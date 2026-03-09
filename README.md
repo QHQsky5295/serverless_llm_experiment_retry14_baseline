@@ -1,4 +1,4 @@
-# FaaSLoRA：面向 Serverless 大模型推理的多 LoRA 工件管理系统
+# FaaSLoRA：面向多 LoRA 大模型推理的扩缩容感知Serverless系统
 
 FaaSLoRA 是一个面向真实云工作负载的 Serverless LLM 推理实验系统，完整实现了以下三项研究贡献，并提供与同类 SOTA 系统（S-LoRA、ServerlessLLM）的对比实验框架。
 
