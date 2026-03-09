@@ -1,0 +1,460 @@
+# =============================================================================
+# FaaSLoRA 完整实验配置（发论文级）
+# =============================================================================
+# 用法：
+#   python scripts/run_all_experiments.py --config configs/experiments.yaml
+#   python scripts/run_all_experiments.py --config configs/experiments.yaml --quick
+#   python scripts/run_all_experiments.py --config configs/experiments.yaml --backend transformers
+#
+# 数据集（与同类论文一致）：
+#   Azure LLM Inference Trace (data/azure_llm/*.csv)
+#     - 真实生产流量，时间跨度 1 小时，~28K 条记录
+#     - 包含对话型（conv）和代码型（code）请求
+#     - 字段：TIMESTAMP, ContextTokens, GeneratedTokens
+#     - 来源：与 ServerlessLLM (NSDI'24) 使用相同数据集
+#
+#   ShareGPT（可选，运行 scripts/download_datasets.py 自动下载）
+#     - 用于填充真实 prompt 文本；未下载时使用内嵌 200 条提示词
+#     - 与 S-LoRA (SOSP'23) / Punica (MLSys'24) 使用相同数据集
+# =============================================================================
+
+experiment:
+  name: "FaaSLoRA-Qwen2.5-3B"
+  description: >
+    对标 S-LoRA (SOSP'23) / ServerlessLLM (NSDI'24) / Punica (MLSys'24)
+    的多 LoRA Serverless 推理完整评测，含三项贡献的消融实验。
+  output_dir: "results"
+  results_file: "experiment_results.json"
+  # 多轮实验：每场景运行 num_runs 次，报告均值 ± 标准差及 95% 置信区间（默认 1 即单次）
+  num_runs: 1
+  confidence_level: 0.95
+
+# ---------------------------------------------------------------------------
+# 基座模型
+# ---------------------------------------------------------------------------
+model:
+  # 默认主路径：Qwen2.5-3B-Instruct（单卡 3090 24G + vLLM）
+  # RTX 3090 上 vLLM LoRA 若出现 "EngineCore died unexpectedly" 可尝试：
+  # 1) 增大 /dev/shm：mount -o remount,size=1G /dev/shm 或 docker --shm-size=1g（需至少约 512MB）
+  # 2) 降级 vLLM：pip install vllm==0.10.2（见 pyproject.toml；0.10.0 需 Python<3.13）
+  # 3) 仍崩溃时可用 --backend transformers 切回稳定回退路径
+  name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-3B-Instruct"
+  backend: "vllm"
+  device_id: 0
+  visible_device_ids: [0, 1]       # dedicated/auto 模式允许从这组 GPU 中选择新实例
+
+  tensor_parallel_size: 1           # 单卡 3090
+  gpu_memory_utilization: 0.65      # 降低显存利用率，减小初始化/推理峰值，避免 OOM/已杀死
+  max_model_len: 1024               # 降低 KV cache 占用；如需长序列可在稳定后再调大
+  max_loras: 2                      # 24G 下少缓存 LoRA 避免杀进程
+  max_lora_rank: 16                 # 适配器最大 rank（code_lora=16）
+  enable_lora: true
+  enforce_eager: true               # 禁用 CUDA Graph，避免兼容问题
+  dtype: "float16"
+  max_num_seqs: 2                   # 单卡 24G 下进一步降低并发，减小显存峰值
+  max_num_batched_tokens: 512       # 降低单批 token 数，减小 KV 与激活显存
+
+  # transformers 后端：限制输出以减小 KV cache，避免 OOM/已杀死
+  max_output_tokens_cap: 64
+  max_input_len: 256              # 输入截断长度，与 Azure trace 分布一致
+  runtime_concurrency_cap: 2      # vLLM 路径默认并发上限；可随实验逐步上调
+
+  # ── 备选：Qwen2.5-7B-Instruct（需要更保守的显存设置）───────────────
+  # 取消以下注释并注释掉上面 3B 配置即可切换：
+  # name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"
+  # backend: "vllm"
+  # tensor_parallel_size: 1
+  # gpu_memory_utilization: 0.85
+  # max_model_len: 1024
+  # max_loras: 2
+  # max_lora_rank: 16
+  # enable_lora: true
+  # enforce_eager: true
+  # dtype: "float16"
+  # max_num_seqs: 4
+  # max_num_batched_tokens: 1024
+
+backend_profiles:
+  transformers:
+    model:
+      backend: "transformers"
+      gpu_memory_utilization: 0.65
+      max_model_len: 1024
+      max_loras: 2
+      max_num_seqs: 2
+      max_num_batched_tokens: 512
+      max_output_tokens_cap: 64
+      max_input_len: 256
+      runtime_concurrency_cap: 1
+    resource_coordination:
+      max_instances: 1
+      instance_mode: "shared"
+
+# ---------------------------------------------------------------------------
+# 硬件配置（用于 SOTA baseline 延迟模型校准）
+# ---------------------------------------------------------------------------
+hardware:
+  gpu_budget_mb: 24576              # 单卡 3090 24 GB
+  model_weights_mb: 3200            # 3B fp16 ≈ 3.2 GB（切7B时改为7424）
+
+  # KV cache 每 1K tokens 占用（MB）：Qwen2.5-3B ≈ 1.0 MB/1K tokens
+  kv_per_1k_tokens_mb: 1.0
+
+  # S-LoRA baseline：CPU pinned memory → GPU (PCIe 4.0 x16)
+  pcie_bw_mbps: 16000
+
+  # ServerlessLLM baseline：NVMe SSD → GPU
+  nvme_bw_mbps: 3000
+
+  # GPU 显存分配与同步开销（ms）
+  gpu_load_overhead_ms: 50
+
+# ---------------------------------------------------------------------------
+# 资源协同调度配置（贡献3）
+# ---------------------------------------------------------------------------
+resource_coordination:
+  min_instances: 1                  # 实例池下限（scale-down 至少保留）
+  max_instances: 1                  # 单实例避免 24G 显存 OOM/已杀死
+  instance_mode: "shared"           # shared=共享主 engine；auto=优先独立 engine，失败回退；dedicated=只允许独立 engine
+  instance_model_overrides: {}      # dedicated/auto 模式下新实例的 model_cfg 覆盖
+  lora_load_reserve_ratio: 0.15     # 预留显存比例用于加载队列
+  max_concurrent_loads: 2           # 渐进式启动：最多2个并发 LoRA 加载
+  idle_timeout_s: 10                # 低负载持续 N 秒后触发 scale-down
+  warm_pool_size: 2                 # 24G 显存下减小以避免 OOM
+  # A1: 请求流内扩缩决策
+  scale_up_threshold_rps: 3.0       # 固定模式下的 RPS 阈值；动态模式下忽略
+  scale_cooldown_s: 30.0           # 两次 scale-up 之间最小间隔（秒）
+  scale_decision_interval: 25      # 每处理 N 个请求评估一次是否扩容
+  routing_policy: "adapter_affinity"
+  arrival_window_s: 5.0            # 估计 arrival RPS 的滑动窗口（秒）
+
+  # 动态扩缩容阈值（论文：workload-adaptive）
+  dynamic_scaling: true             # 默认开启：用 EWMA 基线 + 相对阈值替代固定 RPS 阈值
+  baseline_rps_ewma_beta: 0.25      # EWMA 更新系数 β
+  scale_up_alpha: 0.3               # scale-up 触发线 = max(T_min, baseline_rps * (1 + α))
+  scale_up_t_min: 1.0               # scale-up 绝对下限 (RPS)
+  scale_down_beta: 0.4              # scale-down 触发线 = baseline_rps * β_down
+  scale_down_duration_s: 45         # 持续低负载 ≥ 此秒数才执行 scale-down
+  dynamic_warm_pool: true           # warm pool 大小随近期活跃 LoRA 数自适应
+  warm_pool_gamma: 0.2              # warm_pool_size = clip(round(active_loras_ewma*(1+γ)), min, max)
+  warm_pool_min: 2
+  warm_pool_max: 8
+
+# ---------------------------------------------------------------------------
+# LoRA 适配器
+# ---------------------------------------------------------------------------
+lora_adapters:
+  generate_synthetic: true
+  manifest_path: "configs/generated/lora_manifest_1000.json"
+  auto_create_manifest: true
+  preserve_legacy_names: true
+  selected_num_adapters: 1000
+  quick_num_adapters: 100
+  full_num_adapters: 1000
+  # 说明：
+  #   1) 运行主实验时，将从 manifest 中选择前 N 个 adapter
+  #   2) quick 模式默认 100；full 默认 1000
+  #   3) 若 manifest 不存在，run_all_experiments.py 会自动生成元数据文件
+  #   4) 真正的 adapter 目录可通过 scripts/generate_lora_adapters.py 批量生成
+  scale_presets:
+    "100":
+      workload:
+        zipf_exponent: 1.10
+        lora_request_ratio: 0.95
+        active_adapter_cap: 16
+        hotset_rotation_requests: 120
+      model:
+        max_loras: 4
+        max_num_seqs: 2
+        max_num_batched_tokens: 512
+        runtime_concurrency_cap: 2
+      resource_coordination:
+        warm_pool_size: 4
+    "200":
+      workload:
+        zipf_exponent: 1.15
+        lora_request_ratio: 0.95
+        active_adapter_cap: 24
+        hotset_rotation_requests: 120
+      model:
+        max_loras: 4
+        max_num_seqs: 2
+        max_num_batched_tokens: 768
+        runtime_concurrency_cap: 2
+      resource_coordination:
+        warm_pool_size: 4
+    "300":
+      workload:
+        zipf_exponent: 1.20
+        lora_request_ratio: 0.95
+        active_adapter_cap: 32
+        hotset_rotation_requests: 100
+      model:
+        max_loras: 4
+        max_num_seqs: 2
+        max_num_batched_tokens: 768
+        runtime_concurrency_cap: 2
+      resource_coordination:
+        warm_pool_size: 4
+    "400":
+      workload:
+        zipf_exponent: 1.20
+        lora_request_ratio: 0.95
+        active_adapter_cap: 40
+        hotset_rotation_requests: 100
+      model:
+        max_loras: 6
+        max_num_seqs: 3
+        max_num_batched_tokens: 1024
+        runtime_concurrency_cap: 3
+      resource_coordination:
+        warm_pool_size: 5
+    "500":
+      workload:
+        zipf_exponent: 1.25
+        lora_request_ratio: 0.95
+        active_adapter_cap: 48
+        hotset_rotation_requests: 100
+      model:
+        max_loras: 6
+        max_num_seqs: 3
+        max_num_batched_tokens: 1024
+        runtime_concurrency_cap: 3
+      resource_coordination:
+        warm_pool_size: 6
+    "600":
+      workload:
+        zipf_exponent: 1.25
+        lora_request_ratio: 0.95
+        active_adapter_cap: 56
+        hotset_rotation_requests: 80
+      model:
+        max_loras: 6
+        max_num_seqs: 3
+        max_num_batched_tokens: 1024
+        runtime_concurrency_cap: 3
+      resource_coordination:
+        warm_pool_size: 6
+    "700":
+      workload:
+        zipf_exponent: 1.30
+        lora_request_ratio: 0.95
+        active_adapter_cap: 64
+        hotset_rotation_requests: 80
+      model:
+        max_loras: 8
+        max_num_seqs: 4
+        max_num_batched_tokens: 1536
+        runtime_concurrency_cap: 4
+      resource_coordination:
+        warm_pool_size: 7
+    "800":
+      workload:
+        zipf_exponent: 1.30
+        lora_request_ratio: 0.95
+        active_adapter_cap: 72
+        hotset_rotation_requests: 80
+      model:
+        max_loras: 8
+        max_num_seqs: 4
+        max_num_batched_tokens: 1536
+        runtime_concurrency_cap: 4
+      resource_coordination:
+        warm_pool_size: 8
+    "900":
+      workload:
+        zipf_exponent: 1.35
+        lora_request_ratio: 0.95
+        active_adapter_cap: 80
+        hotset_rotation_requests: 64
+      model:
+        max_loras: 8
+        max_num_seqs: 4
+        max_num_batched_tokens: 1536
+        runtime_concurrency_cap: 4
+      resource_coordination:
+        warm_pool_size: 8
+    "1000":
+      workload:
+        zipf_exponent: 1.35
+        lora_request_ratio: 0.95
+        active_adapter_cap: 96
+        hotset_rotation_requests: 64
+      model:
+        max_loras: 8
+        max_num_seqs: 4
+        max_num_batched_tokens: 2048
+        runtime_concurrency_cap: 4
+      resource_coordination:
+        warm_pool_size: 8
+  # 兼容旧版：若你手工提供 inline adapters，主脚本仍可继续读取。
+  adapters: []
+
+# ---------------------------------------------------------------------------
+# 存储配置
+# ---------------------------------------------------------------------------
+storage:
+  remote_dir: "artifacts/remote"
+  nvme_cache_dir: "artifacts/nvme_cache"
+  # 贡献1 内存层：热点 LoRA 从硬盘预加载到内存，请求时从内存加载到 GPU，减少硬盘→GPU 延迟
+  host_cache_dir: "artifacts/host_cache"
+
+  # 带宽模拟（模拟远端对象存储 → 本地 NVMe 的网络传输，代码中按 MB/s 换算延迟）
+  # 同 region（如 S3/Blob 与实例同区）：约 100–500 MB/s（≈1–4 Gbps），取 250 更贴近典型云环境
+  # 跨 region/受限：可设为 50–100；0 = 不限速（仅测本地拷贝）
+  bandwidth_mbps: 250
+
+# ---------------------------------------------------------------------------
+# 工作负载（使用真实 Azure LLM 推理追踪）
+# ---------------------------------------------------------------------------
+workload:
+  workload_type: "mixed"
+
+  # Azure trace 时间缩放
+  time_scale_factor: 0.1
+
+  # 请求数量：从 28K 条 Azure trace 中采样多少条做本次实验
+  # 数据集共 28185 条；500=常用规模(约10分钟)，1000/5000=更稳，28185=完整trace(数小时)
+  total_requests: 100
+
+  # LoRA 选择分布（Zipf，与 S-LoRA 论文一致）
+  lora_request_ratio: 0.85
+  zipf_exponent: 1.0
+  active_adapter_cap: 16          # 当前活跃热点集合规模；大于此数的 adapter 通过热集轮换进入活跃窗
+  hotset_rotation_requests: 120   # 每处理 N 个请求滚动热点窗
+
+  # 推理并发：先从 1 开始，确认稳定后可调到 2
+  concurrency: 1
+  quick_total_requests: 30
+  quick_concurrency: 1
+  max_tokens: 128
+  temperature: 0.7
+  top_p: 0.9
+
+  # E1: 多周期评估（scale-up → 请求 → scale-down → 再 scale-up）
+  multi_cycle_phases: 1            # 1=单周期（默认），2+ 则分 phase 并在 phase 间 scale_down
+  idle_between_phases_s: 2.0        # 每 phase 结束后 idle 秒数（可选）
+
+# ---------------------------------------------------------------------------
+# 成本模型（A100 实例成本校准）
+# ---------------------------------------------------------------------------
+cost_model:
+  base_cost_usd: 0.001
+  input_token_cost_usd: 0.0000015
+  output_token_cost_usd: 0.000002
+  gpu_hour_cost_usd: 3.0
+
+# =============================================================================
+# 实验场景（消融 + SOTA 对比）
+# =============================================================================
+scenarios:
+
+  # ── Baseline 1: Cold Start（最坏情况，现有 Serverless 平台默认行为）────────
+  - name: "cold_start"
+    baseline_type: "cold_start"
+    description: >
+      Baseline: 每次请求均从远端下载 LoRA，无任何缓存。
+      对标现有无状态 Serverless 函数实例的行为。
+    preloading:
+      enabled: false
+
+  # ── Baseline 2: S-LoRA (SOSP'23) ─────────────────────────────────────
+  - name: "slora_style"
+    baseline_type: "slora_style"
+    description: >
+      S-LoRA: LoRA 适配器驻留在 CPU pinned memory，按需通过 PCIe 加载到 GPU。
+      LRU GPU 驱逐，无预加载。对标 S-LoRA (SOSP'23)。
+    preloading:
+      enabled: false
+      lru_cache_size: 8
+
+  # ── Baseline 3: ServerlessLLM (NSDI'24) ──────────────────────────────
+  - name: "serverlessllm"
+    baseline_type: "serverlessllm"
+    description: >
+      ServerlessLLM: NVMe 检查点存储，本地性感知路由，无预测性预加载。
+      对标 ServerlessLLM (NSDI'24)。
+    preloading:
+      enabled: false
+      lru_cache_size: 8
+
+  # ── FaaSLoRA 贡献1：三层级联预加载（远端→硬盘→内存→GPU）────────────────
+  - name: "faaslora_nvme"
+    baseline_type: "faaslora_nvme"
+    description: >
+      FaaSLoRA 贡献1：最热→GPU、次热→内存、再次→硬盘；请求时从对应层加载，避免远程直连 GPU。
+    preloading:
+      enabled: true
+      min_hotness: 0.4
+      gpu_warmup_hotness: 0.6
+      nvme_capacity_mb: 20480
+      host_capacity_mb: 4096
+      strategy: "greedy"
+
+  # ── FaaSLoRA 贡献1+2（消融：无贡献3）───────────────────────────────
+  - name: "faaslora_no_coord"
+    baseline_type: "faaslora_no_coord"
+    description: >
+      FaaSLoRA 贡献1+2（消融实验）：命中感知预加载 + GPU 多层显存驻留，
+      但无贡献3的扩缩容协同调度。用于量化贡献3的独立价值。
+    preloading:
+      enabled: true
+      min_hotness: 0.3
+      gpu_warmup_hotness: 0.6
+      nvme_capacity_mb: 20480
+      host_capacity_mb: 4096
+      strategy: "greedy"
+    resource_coordination:
+      coordination_enabled: false
+
+  # ── FaaSLoRA 完整系统（贡献1+2+3）──────────────────────────────────
+  - name: "faaslora_full"
+    baseline_type: "faaslora_full"
+    description: >
+      FaaSLoRA 完整系统：
+        贡献1 — 命中感知工件预加载（scale-up 前提前加载高频 LoRA）
+        贡献2 — GPU 显存多层驻留（热层 GPU / 温层 NVMe / 冷层远端）
+        贡献3 — 扩缩容与显存分配协同控制：
+                 扩容阶段渐进式加载（max_concurrent_loads=2），
+                 优先保障 KV cache 与批推理工作集；
+                 负载回落后保留 warm_pool_size 个高频工件，
+                 确保后续负载到来时的快速响应。
+    preloading:
+      enabled: true
+      min_hotness: 0.3
+      gpu_warmup_hotness: 0.9       # 仅预热最热 1~2 个 LoRA，减轻显存
+      nvme_capacity_mb: 20480
+      host_capacity_mb: 4096
+      strategy: "greedy"
+    resource_coordination:
+      coordination_enabled: true
+      max_concurrent_loads: 2
+      warm_pool_size: 2            # 24G 显存下减小
+      idle_timeout_s: 10
+
+  # ── 理论下限：纯 backbone（无 LoRA 开销）──────────────────────────
+  - name: "backbone_only"
+    baseline_type: "backbone_only"
+    description: >
+      纯 backbone 推理，不携带任何 LoRA 适配器。
+      代表 TTFT 的理论下限（无 LoRA 加载开销）。
+    preloading:
+      enabled: false
+
+# =============================================================================
+# 消融实验配置（取消注释后运行）
+# =============================================================================
+# 带宽敏感性：
+# scenarios:
+#   - {name: "bw_50mbps",  baseline_type: "cold_start"}    # 修改 storage.bandwidth_mbps=50
+#   - {name: "bw_200mbps", baseline_type: "cold_start"}    # 修改 storage.bandwidth_mbps=200
+#
+# workload_type 敏感性：
+#   - {name: "conv_only",  workload_type: "conv"}
+#   - {name: "code_only",  workload_type: "code"}
+#
+# 贡献3参数敏感性：
+#   - {name: "coord_maxload1", baseline_type: "faaslora_full",
+#      resource_coordination: {max_concurrent_loads: 1}}
+#   - {name: "warmpool_2",    baseline_type: "faaslora_full",
+#      resource_coordination: {warm_pool_size: 2}}

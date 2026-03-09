@@ -1,0 +1,658 @@
+# FaaSLoRA 实验执行完整指南
+
+本指南面向未接触过本项目的研究人员，按步骤说明如何从零配置环境、运行实验、解读结果，以及如何与同类论文系统进行对比。
+
+---
+
+## 目录
+
+1. [系统要求](#1-系统要求)
+2. [环境配置（GPU 真实推理）](#2-环境配置gpu-真实推理)
+3. [数据集准备](#3-数据集准备)
+4. [下载大模型](#4-下载大模型)
+5. [生成 LoRA 适配器](#5-生成-lora-适配器)
+6. [配置实验参数](#6-配置实验参数)
+7. [运行实验](#7-运行实验)
+8. [解读实验结果](#8-解读实验结果)
+9. [Mock 模式（无 GPU）](#9-mock-模式无-gpu)
+10. [常见问题](#10-常见问题)
+
+---
+
+## 1. 系统要求
+
+### 硬件要求（推荐）
+
+| 组件 | 最低 | 推荐 |
+|------|------|------|
+| GPU | 1× RTX 3090 (24GB) | 2× RTX 3090 |
+| 系统内存 | 32 GB | 64 GB |
+| 存储空间 | 100 GB（SSD） | 200 GB（NVMe SSD） |
+| 操作系统 | Ubuntu 20.04+ | Ubuntu 22.04 |
+
+### 软件要求
+
+| 软件 | 版本 |
+|------|------|
+| CUDA | 11.8+ 或 12.1+ |
+| Python | 3.10+ |
+| PyTorch | 2.0+（含 CUDA） |
+| Conda 虚拟环境 | `LLM`（已配置） |
+
+> **说明**：本项目在 **LLM** 环境中验证，推荐组合为 Python 3.11 + PyTorch 2.4+cu124 + vLLM 0.10.2，见 [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)。
+
+---
+
+## 2. 环境配置（GPU 真实推理）
+
+### 2.1 激活虚拟环境
+
+```bash
+conda activate LLM
+cd /home/qhq/serverless_llm_experiment
+```
+
+### 2.2 一键安装脚本（推荐）
+
+```bash
+bash scripts/setup_gpu.sh
+```
+
+该脚本自动完成：
+- 安装核心依赖（peft、transformers、huggingface-hub 等）
+- 安装 vLLM（用于真实 LLM 推理，约 5-10 分钟）
+- 安装 FaaSLoRA 包（pip install -e .）
+- 生成合成 LoRA 适配器
+
+### 2.3 手动安装（如自动脚本失败）
+
+```bash
+# 基础依赖
+pip install pyyaml safetensors peft transformers huggingface_hub accelerate
+
+# vLLM（关键，与 PyTorch CUDA 版本需匹配）
+pip install vllm
+
+# 安装本项目包
+pip install -e .
+```
+
+### 2.4 验证安装
+
+```bash
+python -c "
+import torch, vllm
+print('PyTorch:', torch.__version__)
+print('CUDA:', torch.cuda.is_available())
+print('vLLM:', vllm.__version__)
+for i in range(torch.cuda.device_count()):
+    p = torch.cuda.get_device_properties(i)
+    print(f'  GPU {i}: {p.name} {p.total_memory//1024**3}GB')
+"
+```
+
+**预期输出**（双 3090）：
+```
+PyTorch: 2.9.0+cu130
+CUDA: True
+vLLM: 0.6.x
+  GPU 0: NVIDIA GeForce RTX 3090 24GB
+  GPU 1: NVIDIA GeForce RTX 3090 24GB
+```
+
+---
+
+## 3. 数据集准备
+
+### 3.1 Azure LLM 追踪（已内置）
+
+Azure 追踪数据已包含在 `data/` 目录，无需下载：
+
+```bash
+ls data/
+# AzureLLMInferenceTrace_1.csv
+# AzureLLMInferenceTrace_2.csv
+# ...
+```
+
+验证数据完整性：
+
+```bash
+python scripts/download_datasets.py --verify
+```
+
+### 3.2 ShareGPT 数据集（可选，提升提示词质量）
+
+```bash
+python scripts/download_datasets.py
+```
+
+> **说明**：ShareGPT 数据集提供真实用户对话文本作为提示词。未下载时，系统使用内嵌的 200 条对话 fallback，不影响 token 数量统计（仍来自 Azure 追踪），但提示词质量稍低。
+
+> **国内网络**：如下载缓慢，设置镜像：
+> ```bash
+> export HF_ENDPOINT=https://hf-mirror.com
+> python scripts/download_datasets.py
+> ```
+
+---
+
+## 4. 下载大模型
+
+这是真实 GPU 实验的**关键步骤**。当前 `models/` 目录为空，必须下载模型才能使用 vLLM 真实推理。
+
+### 4.1 选择模型
+
+```bash
+python scripts/download_model.py --list
+```
+
+输出：
+```
+可用模型（适用于 RTX 3090 24 GB）：
+
+  模型 ID                                        大小    显存  说明
+  ─────────────────────────────────────────── ───── ─────  ──────────────
+  Qwen/Qwen2.5-0.5B-Instruct                    1.0G    2G  快速验证用，无需授权
+  Qwen/Qwen2.5-7B-Instruct                     14.5G   18G  论文实验推荐，RTX 3090 单卡可运行
+  Qwen/Qwen2.5-14B-Instruct                    29.0G   30G  需要双 3090（tensor_parallel=2）
+  facebook/opt-1.3b                             2.6G    4G  无需授权
+  meta-llama/Llama-3.1-8B-Instruct             16.0G   20G  需要 HF Token，与 S-LoRA 同基座
+```
+
+### 4.2 下载模型
+
+**方案A：快速验证（Qwen2.5-0.5B，约 1 GB，5 分钟）**
+
+```bash
+python scripts/download_model.py --model Qwen/Qwen2.5-0.5B-Instruct
+```
+
+**方案B：论文实验（Qwen2.5-7B，约 15 GB，30-60 分钟）**
+
+```bash
+export HF_ENDPOINT=https://hf-mirror.com  # 国内镜像（可选）
+python scripts/download_model.py --model Qwen/Qwen2.5-7B-Instruct
+```
+
+**方案C：与 S-LoRA 同基座（Llama-3-8B，需要 HF Token）**
+
+```bash
+python scripts/download_model.py \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --token hf_xxxxxxxxxxxx
+```
+
+**方案D：双 3090 张量并行（14B 模型）**
+
+```bash
+python scripts/download_model.py \
+  --model Qwen/Qwen2.5-14B-Instruct \
+  --tensor-parallel 2
+```
+
+### 4.3 下载后自动更新配置
+
+下载完成后，`download_model.py` 会自动更新 `configs/experiments.yaml` 中的 `model.name` 字段，无需手动修改。
+
+---
+
+## 5. 生成 LoRA 适配器
+
+> **重要**：LoRA 适配器的权重维度必须与基础模型匹配。如果你更换了模型（如从 0.5B 切换到 7B），必须重新生成适配器。
+
+```bash
+# 自动检测 experiments.yaml 中的模型并生成合成适配器
+python scripts/generate_lora_adapters.py --force
+
+# 或手动指定模型
+python scripts/generate_lora_adapters.py --model models/Qwen--Qwen2.5-7B-Instruct --force
+```
+
+> **说明**：`run_all_experiments.py` 运行时会自动检测适配器是否与当前模型匹配。如果不匹配，会自动重新生成。因此即使忘记手动运行此步骤，实验也不会失败。
+
+生成后检查：
+
+```bash
+ls artifacts/remote/
+# finance_lora/  medical_lora/  code_lora/  support_lora/  legal_lora/  translate_lora/
+```
+
+---
+
+## 6. 配置实验参数
+
+编辑 `configs/experiments.yaml` 调整实验参数：
+
+### 6.1 基础模型配置
+
+```yaml
+model:
+  name: "models/Qwen--Qwen2.5-7B-Instruct"   # 模型本地路径
+  tensor_parallel_size: 1   # 单卡；双 3090 改为 2
+  max_model_len: 2048        # 最大序列长度
+  gpu_memory_utilization: 0.85
+  max_loras: 8              # vLLM 同时缓存的 LoRA 数
+```
+
+### 6.2 硬件参数（贡献3 调度依赖）
+
+```yaml
+hardware:
+  gpu_budget_mb: 24576      # 3090 = 24 × 1024 = 24576 MB
+  model_weights_mb: 14336   # 7B 模型约 14 GB（fp16）
+  kv_per_1k_tokens_mb: 2.0  # 7B 模型每千 token 约 2 MB KV cache
+```
+
+> **0.5B 模型对应值**：
+> ```yaml
+> model_weights_mb: 1000
+> kv_per_1k_tokens_mb: 0.5
+> ```
+
+### 6.3 工作负载参数
+
+```yaml
+workload:
+  workload_type: "mixed"        # 混合请求类型
+  time_scale_factor: 0.1        # 时间压缩：0.1 = 1h 追踪→6min 实验
+  total_requests: 500           # 每个场景处理的请求数
+  lora_request_ratio: 0.85      # 85% 的请求携带 LoRA（参考 S-LoRA 论文）
+  zipf_exponent: 1.0            # Zipf 参数：越大热度越集中
+```
+
+**时间压缩建议**：
+
+| `time_scale_factor` | 实验时长 | 适用场景 |
+|---------------------|----------|----------|
+| 1.0 | 约 60 分钟 | 完整复现 |
+| 0.1 | 约 6 分钟 | 论文实验（推荐） |
+| 0.05 | 约 3 分钟 | 快速调试 |
+
+### 6.4 存储带宽参数
+
+```yaml
+storage:
+  bandwidth_mbps: 100   # 100 Mbps = 典型云存储（S3/OSS）
+  nvme_capacity_mb: 20480
+```
+
+### 6.5 贡献3 协同调度参数
+
+```yaml
+scenarios:
+  - name: "faaslora_no_coord"
+    baseline_type: "faaslora_no_coord"
+    resource_coordination:
+      coordination_enabled: false
+
+  - name: "faaslora_full"
+    baseline_type: "faaslora_full"
+    resource_coordination:
+      coordination_enabled: true        # 开启协调：在显存紧张时排队等待可用空间
+      max_concurrent_loads: 2          # 渐进式启动：最多 2 个并发 LoRA 加载
+      warm_pool_size: 4                # scale-down 后 GPU 暖池保留的 LoRA 数量
+      idle_timeout_s: 10               # 低负载持续时间阈值，触发 scale-down
+```
+
+---
+
+## 6.6 与 SOTA 的对比方式（E2）
+
+本实验与 **S-LoRA**、**ServerlessLLM** 的对比采用 **同一代码库内的 baseline 场景**，而非延迟公式复现：
+
+| 对比对象 | 本仓库中的对应场景 | 说明 |
+|----------|-------------------|------|
+| S-LoRA (SOSP'23/MLSys'24) | `slora_style` | 同一代码库：GPU 显存 LRU 缓存、多 LoRA 批处理；TTFT/TPOT 来自真实 vLLM 推理（或 Mock 标定）。 |
+| ServerlessLLM (NSDI'24) | `serverlessllm` | 同一代码库：GPU + SSD 检查点恢复路径；延迟与命中率在本框架内测量。 |
+| 无缓存基线 | `cold_start` | 每次请求冷加载 LoRA，用于计算改善百分比。 |
+
+**不做**：使用论文中的延迟公式（如固定 compute_slora_load_ms）在代码外复现曲线；所有延迟与命中率均来自本仓库运行结果，便于审稿与复现。
+
+**单实例 vs 多实例**：默认运行为**多实例**（`max_instances=2`，启动即多槽位、每槽位独立 coordinator）。单实例可将 `configs/experiments.yaml` 中 `resource_coordination.max_instances` 设为 1。实验实例数一律以 `configs/experiments.yaml` 的 `min_instances` / `max_instances` 为准；代码库内 `faaslora/utils/config.py` 的默认 `max_instances=10` 为 API/生产配置。若需在 scale-up 时增加**新 engine**（如多卡），可传入可选 `engine_factory`；详见 `docs/TODO_SERVERLESS_LEVEL.md` 中「单实例 vs 多实例 / 对齐已有论文应采用哪种」。
+
+---
+
+## 7. 运行实验
+
+### 7.1 快速验证（Mock 模式，无 GPU）
+
+```bash
+python scripts/run_all_experiments.py \
+  --config configs/experiments.yaml \
+  --quick
+```
+
+`--quick` 模式每个场景处理 30 个请求，约 2 分钟完成，用于验证框架正确性。
+
+### 7.2 完整实验（真实 GPU 推理）
+
+```bash
+# 首次运行前，确保没有其他进程占用 GPU
+nvidia-smi
+
+# 运行完整实验
+python scripts/run_all_experiments.py \
+  --config configs/experiments.yaml
+```
+
+预计运行时间：
+- Qwen2.5-0.5B：约 15-30 分钟
+- Qwen2.5-7B：约 30-90 分钟（取决于 `total_requests`）
+
+> **首次运行可能较慢**：vLLM 首次加载模型时需要编译内核，后续运行会使用缓存。
+
+### 7.3 运行单个场景
+
+```bash
+python scripts/run_all_experiments.py \
+  --config configs/experiments.yaml \
+  --scenario faaslora_full
+```
+
+### 7.4 实时进度
+
+```
+  Scenario: faaslora_full  [faaslora_full]
+  [Phase 1] Preloading ...
+    Preloading 5 hot adapters (hotness ≥ 0.3) ...
+    GPU warmup (loading hot adapters into vLLM) ...
+    Preload done  total_io=0ms  nvme_cached=5
+  [Phase 2] Serving 500 requests ...
+  Done: 500/500  TTFT_avg=183ms  P95=558ms  P99=620ms  RPS=2.48  Hit=83%
+```
+
+---
+
+## 8. 解读实验结果
+
+### 8.1 终端输出表格
+
+实验结束后打印 4 张表格：
+
+#### 表1：完整指标对比
+
+```
+系统 / 场景         类型          TTFT均值    P95     P99    TPOT   E2E_P99   RPS   成本/请求    QPR    命中%  GPU%  完成数
+cold_start       [基线]            486ms  1004ms  1078ms  12.6ms    3812ms  2.08 $0.003777   1130     0%    0%  500/500
+slora_style      [SOTA] S-LoRA     174ms   556ms   627ms  12.1ms    2747ms  2.67 $0.003794   4032    87%   70%  500/500
+faaslora_full    [FaaSLoRA] 完整   183ms   558ms   620ms  12.2ms    3719ms  2.48 $0.003796   3578    83%   70%  500/500
+```
+
+**各指标含义**：
+
+| 指标 | 含义 | 越 |
+|------|------|---|
+| TTFT均值 | 首 token 延迟均值（ms） | 低越好 |
+| P95/P99 | 尾部延迟（ms） | 低越好 |
+| TPOT | 每 token 生成时间（ms） | 低越好 |
+| E2E_P99 | 端到端 P99 延迟 | 低越好 |
+| RPS | 吞吐量（请求/秒） | 高越好 |
+| 成本/请求 | 单请求计算成本（USD） | 低越好 |
+| QPR | 性价比（请求质量/成本） | 高越好 |
+| 命中% | LoRA 缓存命中率（无需远端加载） | 高越好 |
+| GPU% | GPU 热层命中率（0ms 加载） | 高越好 |
+
+#### 表2：相对改进（百分比）
+
+```
+slora_style    [SOTA]     TTFT ↓+64%  P95 ↓+45%  P99 ↓+42%  RPS ↑+28%  QPR ↑+257%
+faaslora_full  [本文]     TTFT ↓+62%  P95 ↓+44%  P99 ↓+43%  RPS ↑+20%  QPR ↑+217%
+```
+
+> 负数 = 比基线差（如 `↓-5%` 表示比 S-LoRA 高 5%，即 TTFT 略高）
+
+#### 表3：SOTA 重点对比（论文表格）
+
+直接对应论文实验表格格式：
+
+```
+系统                  TTFT 均值  TTFT P99    TPOT   吞吐 RPS      QPR    命中率
+[基线] 无缓存             486ms    1078ms  12.6ms      2.08     1130      0%
+[SOTA] S-LoRA            174ms     627ms  12.1ms      2.67     4032     87%
+[SOTA] ServerlessLLM     176ms     626ms  11.2ms      2.58     3874     87%
+[FaaSLoRA] 完整          183ms     620ms  12.2ms      2.48     3578     83% ◄ 本文
+```
+
+#### 表4：贡献3 专项指标
+
+```
+场景               类型      P99_TTFT  竞争次数  竞争惩罚  调度延迟  暖池命中
+faaslora_nvme    [贡献1]      671ms       -         -        -        0
+faaslora_no_coord [消融]      740ms       2      406ms        -       21
+faaslora_full    [本文]       620ms       -         -      17ms       21
+
+贡献3 量化价值：P99 改善 120ms（无协调 740ms → 有协调 620ms）
+```
+
+**表4 各项含义**：
+
+| 指标 | 含义 |
+|------|------|
+| 竞争次数 | 发生 KV-cache vs LoRA 加载显存竞争的次数 |
+| 竞争惩罚 | 竞争导致的延迟惩罚均值（无协调时加入 TTFT） |
+| 调度延迟 | 协调调度引入的渐进式等待时间（远小于竞争惩罚） |
+| 暖池命中 | scale-down 后 GPU 暖池中的 LoRA 被命中的次数 |
+
+### 8.2 JSON 结果文件
+
+结果保存至 `results/experiment_results.json`，结构如下：
+
+```json
+{
+  "元数据": { "运行时间": "...", "数据集": "Azure LLM 真实追踪", ... },
+  "对比结果汇总表": [
+    {
+      "场景名称": "faaslora_full",
+      "TTFT均值_ms": 183.2,
+      "TTFT_P99_ms": 620.1,
+      "vs_baseline": {
+        "TTFT改善%": 62.3,
+        "P99改善%": 42.5
+      }
+    }
+  ],
+  "SOTA重点对比": [...],
+  "详细请求数据": { ... }
+}
+```
+
+---
+
+## 9. Mock 模式（无 GPU）
+
+在没有 GPU 或 vLLM 未安装时，系统自动切换到 Mock 模式。
+
+### Mock 模式与真实 GPU 模式的区别
+
+| 方面 | Mock 模式 | 真实 GPU 模式 |
+|------|-----------|--------------|
+| TTFT 来源 | 标定的延迟模型（正态分布） | 真实 GPU 前向计算 |
+| TPOT 来源 | 固定参数化估计 | 真实逐 token 生成时间 |
+| LoRA 加载 | 基于 bandwidth_mbps 的时间模型 | 真实 safetensors 文件读取 |
+| GPU warmup | `_gpu_warmed` 集合标记 | vLLM `engine.generate()` warmup 请求 |
+| 贡献3 竞争 | ResourceCoordinator 在显存不足时对 LoRA 加载进行排队与驱逐 | 真实显存分配争抢 |
+| 适合场景 | 框架验证、参数调试 | 论文实验数据 |
+
+### Mock 模式延迟参数说明
+
+Mock 模式的延迟来自 `configs/experiments.yaml` 中的 `scenarios[].latency_model`：
+
+```yaml
+scenarios:
+  - name: "cold_start"
+    latency_model:
+      base_ttft_ms: 80        # 基础前向时间
+      cold_load_extra_ms: 400 # 冷加载额外延迟
+      tpot_ms: 12.0           # 每 token 时间
+```
+
+这些参数应根据真实 GPU 测量值进行标定。
+
+---
+
+## 10. 常见问题
+
+### Q1：进程被杀死（"已杀死" / exit code 137）
+
+**症状**：运行 `run_all_experiments.py` 后在 `Starting to load model...` 阶段被杀死
+
+**原因**：Linux OOM Killer 发现系统内存（RAM）或 GPU 显存不足，杀死了进程。
+vLLM 加载 7B 模型需要约 14 GB 系统 RAM + 约 18 GB 显存。
+
+**解决方案**（在 `configs/experiments.yaml` 中逐步降低参数）：
+
+```yaml
+model:
+  gpu_memory_utilization: 0.70   # 默认。如仍被杀死，降低到 0.60
+  max_model_len: 1024             # 默认。降低到 512 可显著节省显存
+  max_loras: 4                    # 默认。降低到 2 或 1
+  enforce_eager: true             # 必须为 true，禁用 CUDA Graph 节省 2-4 GB
+```
+
+**如果仍然被杀死**：
+1. 检查系统内存：`free -h`（建议至少 32 GB RAM）
+2. 检查 GPU 显存：`nvidia-smi`（确认没有其他进程占用）
+3. 如果 GPU 被其他进程占用：`nvidia-smi` → 找到占用显存的 PID → `kill PID`
+4. 换用更小的模型（Qwen2.5-0.5B 仅需 2 GB 显存）：
+   ```bash
+   python scripts/download_model.py --model Qwen/Qwen2.5-0.5B-Instruct
+   ```
+
+### Q1b：显存不足（CUDA OOM）
+
+**症状**：`torch.cuda.OutOfMemoryError`（进程没有被杀死，而是报 CUDA 错误）
+
+**解决方案**：脚本内置了自动降级机制，会自动尝试 3 次递减的参数配置。
+如果 3 次都失败，系统会自动切换到 Mock 模式。你也可以手动调整 YAML：
+
+```yaml
+model:
+  gpu_memory_utilization: 0.60
+  max_model_len: 512
+  max_loras: 1
+  enforce_eager: true
+```
+
+### Q2：vLLM 安装失败
+
+```bash
+# 方案1：降级 vLLM 版本
+pip install vllm==0.5.5
+
+# 方案2：从源码安装（确保与 CUDA 版本匹配）
+pip install vllm --extra-index-url https://download.pytorch.org/whl/cu121
+
+# 方案3：使用 Mock 模式（不需要 vLLM）
+python scripts/run_all_experiments.py --config configs/experiments.yaml --quick
+```
+
+### Q3：HuggingFace 下载超时
+
+```bash
+# 设置国内镜像
+export HF_ENDPOINT=https://hf-mirror.com
+python scripts/download_model.py --model Qwen/Qwen2.5-7B-Instruct
+```
+
+### Q4：双 3090 如何配置
+
+```yaml
+# configs/experiments.yaml
+model:
+  tensor_parallel_size: 2       # 开启张量并行
+  name: "models/Qwen--Qwen2.5-14B-Instruct"  # 14B 需要双卡
+hardware:
+  gpu_budget_mb: 49152          # 2 × 24576 MB
+```
+
+```bash
+python scripts/download_model.py \
+  --model Qwen/Qwen2.5-14B-Instruct \
+  --tensor-parallel 2
+```
+
+### Q5：实验时间太长
+
+```bash
+# 减少请求数量
+# 在 configs/experiments.yaml 中：
+workload:
+  total_requests: 200      # 默认 500，改为 200
+
+# 或使用 --quick 模式（每场景 30 请求）
+python scripts/run_all_experiments.py --config configs/experiments.yaml --quick
+```
+
+### Q6：如何与更多 SOTA 论文对比
+
+在 `configs/experiments.yaml` 的 `scenarios` 列表中添加新场景：
+
+```yaml
+scenarios:
+  # ... 现有场景 ...
+  
+  # 添加 Punica 系统的 baseline
+  - name: "punica_style"
+    enabled: true
+    baseline_type: "slora_style"    # 复用 S-LoRA 行为模型
+    description: "Punica 风格：GPU 显存统一调度，CUDA 内核级多 LoRA 融合"
+    preload:
+      strategy: "gpu_lru"
+      warm_fraction: 0.7
+    latency_model:
+      base_ttft_ms: 65
+      lora_load_overhead_ms: 20
+      tpot_ms: 10.0
+```
+
+### Q7：如何确认实验使用了真实 GPU 推理
+
+运行时检查输出头部：
+
+```
+  推理模式: 真实 GPU 推理（vLLM）          ← 真实推理
+  推理模式: Mock 推理引擎（标定延迟模型）  ← Mock 模式
+```
+
+也可以检查 JSON 结果：
+```json
+"元数据": {
+  "cuda_available": true,
+  "vllm_available": true,
+  ...
+}
+```
+
+---
+
+## 附录 A：论文主表复现（E3）
+
+**单条命令复现论文主表**（需已下载模型与数据集）：
+
+```bash
+conda activate LLM
+cd serverless_llm_experiment
+python scripts/run_all_experiments.py --config configs/experiments.yaml
+```
+
+- **配置文件**：`configs/experiments.yaml`（模型路径、硬件参数、场景列表、workload 均在此文件）。
+- **结果文件**：`results/experiment_results.json`，内含对比结果汇总表、SOTA 重点对比、详细请求数据。
+- **环境**：推荐 Python 3.11 + PyTorch 2.4+ (CUDA 12.x) + vLLM 0.10.x；详见 [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)。如需精确复现，可使用该文档中的 conda 版本与 `pip install -e .` 安装本包。
+
+---
+
+## 附录 B：实验重现清单
+
+在提交论文前，建议完成以下检查：
+
+- [ ] vLLM 已安装并验证（`vllm --version`）
+- [ ] 真实 GPU 确认（`nvidia-smi`）
+- [ ] 模型下载完整（`models/` 目录非空）
+- [ ] Azure 追踪数据加载成功（`python scripts/download_datasets.py --verify`）
+- [ ] ShareGPT 数据集已下载（`data/sharegpt_cache.jsonl` 存在）
+- [ ] LoRA 适配器已生成（`lora_adapters/` 非空）
+- [ ] `configs/experiments.yaml` 中 `model.name` 指向本地路径
+- [ ] 完整实验运行成功（非 `--quick` 模式）
+- [ ] `results/experiment_results.json` 显示 `"cuda_available": true`
+- [ ] 贡献3 表格中 `faaslora_full` 的 `Defer > 0` 且 `Contention = 0`

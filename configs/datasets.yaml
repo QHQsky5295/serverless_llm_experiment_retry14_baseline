@@ -1,0 +1,125 @@
+# FaaSLoRA 数据集配置
+# 真实数据源配置，用于生产环境
+
+datasets:
+  # Azure Functions 2019 Trace Dataset
+  azure_functions:
+    enabled: true
+    type: "azure_functions"
+    source:
+      # 官方数据源 (使用正确的下载地址)
+      url: "https://azurepublicdatasettraces.blob.core.windows.net/azurepublicdatasetv2/azurefunctions_dataset2019/azurefunctions-dataset2019.tar.xz"
+      # 本地缓存路径
+      local_path: "./data/azure_functions"
+      cache_enabled: true
+      # 数据文件
+      files:
+        - "invocations_per_function_md.anon.d01.csv"
+        - "invocations_per_function_md.anon.d02.csv"
+        - "invocations_per_function_md.anon.d03.csv"
+        - "invocations_per_function_md.anon.d04.csv"
+        - "invocations_per_function_md.anon.d05.csv"
+        - "invocations_per_function_md.anon.d06.csv"
+        - "invocations_per_function_md.anon.d07.csv"
+        - "invocations_per_function_md.anon.d08.csv"
+        - "invocations_per_function_md.anon.d09.csv"
+        - "invocations_per_function_md.anon.d10.csv"
+        - "invocations_per_function_md.anon.d11.csv"
+        - "invocations_per_function_md.anon.d12.csv"
+        - "invocations_per_function_md.anon.d13.csv"
+        - "invocations_per_function_md.anon.d14.csv"
+    processing:
+      # 采样配置
+      sample_rate: 1.0  # 使用全部数据
+      time_window_hours: 24
+      min_invocations: 10
+      # 缓存配置
+      cache_processed: true
+      cache_ttl_hours: 168  # 7天
+    
+  # Azure LLM Inference Dataset
+  azure_llm:
+    enabled: true
+    type: "azure_llm"
+    source:
+      # 官方数据源
+      url_base: "https://raw.githubusercontent.com/Azure/AzurePublicDataset/master/data/"
+      local_path: "./data/azure_llm"
+      cache_enabled: true
+      files:
+        - "AzureLLMInferenceTrace_code.csv"
+        - "AzureLLMInferenceTrace_conv.csv"
+    processing:
+      sample_rate: 1.0
+      model_filter: []  # 空列表表示包含所有模型
+      time_window_hours: 24
+      cache_processed: true
+      cache_ttl_hours: 168
+    
+  # HuggingFace LoRA Models
+  huggingface:
+    enabled: true
+    type: "huggingface"
+    source:
+      # HuggingFace Hub配置
+      hub_token: "${HUGGINGFACE_TOKEN}"  # 从环境变量读取
+      cache_dir: "./data/huggingface"
+      # 预定义的LoRA模型列表 (现在从models.txt文件加载1000+个模型)
+      models_file: "./data/huggingface/models.txt"
+      models:
+        - "microsoft/DialoGPT-medium-lora"
+        - "huggingface/CodeBERTa-small-v1-lora"
+        - "facebook/bart-large-cnn-lora"
+        - "google/flan-t5-base-lora"
+        - "microsoft/DialoGPT-small-lora"
+      # 搜索配置 (支持1000+个模型)
+      search_enabled: true
+      search_query: "lora adapter OR fine-tuned OR peft OR adapter OR instruction-tuned"
+      max_models: 1500  # 增加到1500以支持1000+个模型
+      # 批量处理配置
+      batch_size: 50  # 批量处理模型
+      parallel_workers: 4  # 并行工作线程
+    processing:
+      download_enabled: true
+      verify_models: true
+      cache_metadata: true
+      cache_ttl_hours: 720  # 30天
+      # 内存优化配置
+      memory_efficient: true
+      lazy_loading: true
+      # 错误处理配置
+      skip_failed_models: true
+      max_retries: 3
+
+# 全局配置
+global:
+  # 数据根目录
+  data_root: "./data"
+  # 并发下载数 (增加以支持1000+个模型)
+  max_concurrent_downloads: 8
+  # 重试配置
+  retry_attempts: 5
+  retry_delay_seconds: 3
+  # 校验配置
+  verify_checksums: true
+  # 清理配置
+  auto_cleanup_temp: true
+  cleanup_after_days: 30
+  # 性能优化配置
+  memory_limit_mb: 4096  # 内存限制
+  disk_cache_size_gb: 10  # 磁盘缓存大小
+  # 批量处理配置
+  batch_processing: true
+  batch_timeout_seconds: 300
+  # 监控配置
+  enable_metrics: true
+  metrics_interval_seconds: 60
+
+# 环境变量配置
+environment:
+  required_vars:
+    - "HUGGINGFACE_TOKEN"  # HuggingFace访问令牌
+  optional_vars:
+    - "AZURE_STORAGE_CONNECTION_STRING"  # Azure存储连接字符串
+    - "AWS_ACCESS_KEY_ID"  # AWS访问密钥
+    - "AWS_SECRET_ACCESS_KEY"  # AWS密钥

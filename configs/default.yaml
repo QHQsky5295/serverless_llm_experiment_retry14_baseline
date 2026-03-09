@@ -1,0 +1,226 @@
+# FaaSLoRA Default Configuration
+
+# System settings
+system:
+  name: "faaslora"
+  version: "0.1.0"
+  log_level: "INFO"
+  debug: false
+
+# Redis Configuration
+redis:
+  host: "localhost"
+  port: 6379
+  db: 0
+  password: null
+  max_connections: 10
+  socket_timeout: 5
+  socket_connect_timeout: 5
+
+# Artifact Registry Configuration
+registry:
+  backend: "memory"  # redis, memory, file
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 0
+    password: null
+  
+  # EWMA parameters
+  ewma:
+    alpha: 0.3  # Learning rate for load latency estimation
+    initial_latency_ms: 1000  # Initial latency estimate
+  
+  # Access window settings
+  access_window:
+    size: 100  # Number of recent accesses to track
+    decay_factor: 0.95  # Decay factor for hotness calculation
+
+# Memory Management Configuration
+memory:
+  # GPU memory settings
+  gpu:
+    total_memory_gb: 24  # Total GPU memory
+    capacity_gb: 24      # GPU memory capacity
+    execution_window_ratio: 0.6  # Ratio for execution
+    kv_cache_window_ratio: 0.3   # Ratio for KV cache
+    loading_window_ratio: 0.1    # Ratio for loading
+    
+  # Host memory settings
+  host:
+    total_memory_gb: 64
+    capacity_gb: 64      # Host memory capacity
+    cache_ratio: 0.5  # Ratio for LoRA caching
+    
+  # NVMe storage settings
+  nvme:
+    cache_dir: "/tmp/faaslora_cache"
+    max_cache_gb: 100
+    
+  # Eviction policy
+  eviction:
+    policy: "hybrid"
+    check_interval_sec: 30
+  eviction_policy: "hybrid"
+
+# Preloading Configuration
+preloading:
+  # Knapsack algorithm settings
+  knapsack:
+    algorithm: "greedy"  # greedy, dynamic
+    value_threshold: 0.1  # Minimum value per byte
+    
+  # Hotness prediction
+  hotness:
+    prediction_window: 300  # Seconds to look ahead
+    min_access_count: 5     # Minimum accesses for prediction
+    
+  # Preloading limits
+  limits:
+    max_artifacts_per_instance: 10
+    max_preload_time_sec: 60
+
+# Coordination Configuration
+coordination:
+  autoscaling:
+    enabled: true
+    min_instances: 1
+    max_instances: 6
+    target_cpu_utilization: 70.0
+    target_gpu_utilization: 80.0
+    metrics_window: 120.0
+    decision_interval: 15.0
+    scale_up_cooldown: 300.0
+    scale_down_cooldown: 600.0
+  instance:
+    startup_timeout_sec: 120
+    health_check_interval_sec: 30
+    warm_pool_size: 2
+
+# Serving Configuration
+serving:
+  # vLLM settings
+  vllm:
+    host: "localhost"
+    port: 8000
+    model_name: "/data/models/llama-2-7b-hf"
+    tensor_parallel_size: 2
+    max_num_seqs: 256
+    max_model_len: 4096
+    gpu_memory_utilization: 0.9
+    
+  # LoRA settings
+  lora:
+    max_loras: 64
+    max_lora_rank: 64
+    lora_extra_vocab_size: 256
+    
+  # Performance settings
+  performance:
+    gpu_memory_utilization: 0.9
+    swap_space: 4  # GB
+    cpu_offload_gb: 0
+
+# Storage Configuration
+storage:
+  # Remote storage (S3/OSS)
+  remote:
+    provider: "s3"  # s3, oss, gcs
+    bucket: "faaslora-artifacts"
+    region: "us-west-2"
+    access_key: null
+    secret_key: null
+    
+  # Local cache
+  local:
+    cache_dir: "/tmp/faaslora_local"
+    max_cache_gb: 50
+    cleanup_threshold: 0.9
+
+# Metrics Configuration
+metrics:
+  # Prometheus settings
+  prometheus:
+    enabled: true
+    port: 9090
+    path: "/metrics"
+    
+  # Collection settings
+  collection:
+    interval_sec: 10
+    retention_hours: 24
+    
+  # Custom metrics
+  custom:
+    ttft_buckets: [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]  # seconds
+    latency_buckets: [0.01, 0.05, 0.1, 0.5, 1.0, 2.0]  # seconds
+
+# Cost Model Configuration
+cost_model:
+  # Base cost per request (USD)
+  base_cost_usd: 0.001
+  
+  # Token-based costs (USD per token)
+  input_token_cost_usd: 0.0000015   # $0.0015 per 1K input tokens
+  output_token_cost_usd: 0.000002   # $0.002 per 1K output tokens
+  
+  # GPU compute costs (USD per second)
+  gpu_cost_per_second_usd: 0.0008   # Based on A100 pricing
+  
+  # Enable input token estimation from prompt
+  enable_input_token_estimate: true
+  
+  # Cost calculation method: "token_based" or "time_based" or "hybrid"
+  calculation_method: "hybrid"
+
+# API Configuration
+api:
+  # HTTP server settings
+  http:
+    host: "0.0.0.0"
+    port: 8080
+    workers: 4
+    
+  # gRPC server settings
+  grpc:
+    enabled: false
+    host: "0.0.0.0"
+    port: 50051
+    
+  # Rate limiting
+  rate_limit:
+    enabled: true
+    requests_per_minute: 1000
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "json"  # json, text
+  file: null  # null for stdout, or file path
+  rotation: "1 day"
+  retention: "7 days"
+experiment:
+  name: "baseline-llama-7b"
+  api:
+    use_http: true
+  serving:
+    adapter_pool:
+      - repo/finance_adapter
+      - repo/medical_adapter
+      - repo/support_adapter
+      - repo/code_adapter
+    zipf_s: 1.0
+    rotation_interval_requests: 50
+  prompts:
+    inline:
+      - "Explain what is artificial intelligence."
+      - "Translate the following sentence to French: Hello world."
+  run:
+    mode: "streaming"
+    concurrency: 2
+    requests_per_prompt: 3
+    max_tokens: 128
+    temperature: 0.7
+    top_p: 0.9
+  output:
+    file: "experiment_results.json"

@@ -1,0 +1,258 @@
+# FaaSLoRA Production Configuration
+# 完整的生产环境配置，确保所有组件使用真实实现
+
+# System settings
+system:
+  name: "faaslora"
+  version: "0.1.0"
+  log_level: "INFO"
+  debug: false
+  environment: "production"
+
+# Redis Configuration (top-level, required by validator)
+redis:
+  host: "localhost"
+  port: 6379
+  db: 0
+  password: null
+  max_connections: 20
+  socket_timeout: 5
+  socket_connect_timeout: 5
+
+# Artifact Registry Configuration - 使用真实Redis
+registry:
+  backend: "redis"  # 强制使用Redis，不允许fallback到memory
+  redis:
+    host: "localhost"  # 生产环境请修改为实际Redis主机
+    port: 6379
+    db: 0
+    password: null  # 生产环境建议设置密码
+    connection_pool_size: 20
+    socket_timeout: 5
+    socket_connect_timeout: 5
+    retry_on_timeout: true
+    health_check_interval: 30
+  
+  # EWMA parameters
+  ewma:
+    alpha: 0.3
+    initial_latency_ms: 1000
+  
+  # Access window settings
+  access_window:
+    size: 100
+    decay_factor: 0.95
+
+# Memory Management Configuration
+memory:
+  # GPU memory settings
+  gpu:
+    total_memory_gb: 24  # 根据实际GPU配置调整
+    capacity_gb: 24
+    execution_window_ratio: 0.6
+    kv_cache_window_ratio: 0.3
+    loading_window_ratio: 0.1
+    memory_check_interval: 10
+    
+  # Host memory settings
+  host:
+    total_memory_gb: 64  # 根据实际内存配置调整
+    capacity_gb: 64
+    cache_ratio: 0.5
+    
+  # NVMe storage settings
+  nvme:
+    cache_dir: "/data/faaslora_cache"  # 生产环境路径
+    max_cache_gb: 500  # 根据实际存储调整
+    
+  # Eviction policy
+  eviction:
+    policy: "lru_value"
+    check_interval_sec: 30
+
+# Preloading Configuration
+preloading:
+  # Knapsack algorithm settings
+  knapsack:
+    algorithm: "dynamic"  # 生产环境使用更精确的动态规划
+    value_threshold: 0.1
+    
+  # Hotness prediction
+  hotness:
+    prediction_window: 300
+    min_access_count: 5
+    
+  # Preloading limits
+  limits:
+    max_artifacts_per_instance: 20  # 生产环境增加限制
+    max_preload_time_sec: 120
+
+# Coordination Configuration
+coordination:
+  autoscaling:
+    enabled: true
+    min_instances: 2
+    max_instances: 50
+    target_cpu_utilization: 70.0
+    target_gpu_utilization: 80.0
+    metrics_window: 120.0
+    decision_interval: 15.0
+    scale_up_cooldown: 300.0
+    scale_down_cooldown: 600.0
+  instance:
+    startup_timeout_sec: 180
+    health_check_interval_sec: 30
+    warm_pool_size: 5
+
+# Serving Configuration - 使用真实vLLM
+serving:
+  # vLLM settings - 确保vLLM可用
+  vllm:
+    model_name: "/data/models/llama-2-7b-hf"
+    tensor_parallel_size: 2
+    max_num_seqs: 512  # 生产环境增加并发
+    max_model_len: 4096
+    gpu_memory_utilization: 0.9
+    enforce_eager: false
+    disable_log_stats: false
+    
+  # LoRA settings
+  lora:
+    max_loras: 128  # 生产环境支持更多LoRA
+    max_lora_rank: 64
+    lora_extra_vocab_size: 256
+    
+  # Performance settings
+  performance:
+    stats_update_interval: 5.0
+    metrics_report_interval: 10.0
+    auto_preload_enabled: true
+
+# Storage Configuration - 使用真实S3
+storage:
+  backend: "s3"  # 强制使用S3
+  s3:
+    endpoint_url: null  # AWS S3或兼容服务端点
+    access_key_id: null  # 从环境变量获取
+    secret_access_key: null  # 从环境变量获取
+    bucket_name: "faaslora-artifacts"
+    region: "us-west-2"
+    use_ssl: true
+    verify_ssl: true
+    
+  # Cache settings
+  cache:
+    local_cache_dir: "/data/faaslora_storage_cache"
+    max_cache_size_gb: 100
+    cache_ttl_hours: 24
+
+# Dataset Configuration - 使用真实数据集
+datasets:
+  # Azure Functions 2019 Dataset
+  azure_functions:
+    enabled: true
+    data_path: "/data/datasets/azure_functions_2019"
+    cache_enabled: true
+    cache_path: "/data/cache/azure_functions"
+    sample_ratio: 1.0  # 使用完整数据集
+    time_window_hours: null  # 使用所有数据
+    download_url: "https://azurecloudpublicdataset2.blob.core.windows.net/azurepublicdatasetv2/azurefunctions_dataset2019/azurefunctions-dataset2019.zip"
+    
+  # Azure LLM Dataset
+  azure_llm:
+    enabled: true
+    data_path: "/data/datasets/azure_llm"
+    cache_enabled: true
+    cache_path: "/data/cache/azure_llm"
+    sample_ratio: 1.0
+    model_filter: null  # 不过滤模型
+    
+  # HuggingFace LoRA Models
+  huggingface:
+    enabled: true
+    cache_enabled: true
+    cache_path: "/data/cache/huggingface"
+    search_query: "lora"
+    max_models: 5000  # 生产环境支持更多模型
+    download_models: true
+    model_cache_dir: "/data/models/huggingface"
+
+# API Configuration
+api:
+  # HTTP Server
+  http:
+    host: "0.0.0.0"
+    port: 8080
+    workers: 4  # 根据CPU核心数调整
+    max_request_size: 10485760  # 10MB
+    timeout: 300
+    
+  # gRPC Server
+  grpc:
+    host: "0.0.0.0"
+    port: 50051
+    max_workers: 10
+    max_message_length: 10485760
+
+# Monitoring Configuration - 使用真实Prometheus
+monitoring:
+  # Prometheus metrics
+  prometheus:
+    enabled: true
+    port: 9090
+    path: "/metrics"
+    
+  # Logging
+  logging:
+    level: "INFO"
+    format: "json"
+    file: "/var/log/faaslora/faaslora.log"
+    max_size_mb: 100
+    backup_count: 10
+    
+  # Health checks
+  health:
+    enabled: true
+    interval_seconds: 30
+    timeout_seconds: 10
+
+# Security Configuration
+security:
+  # API Authentication
+  api_key:
+    enabled: true
+    header_name: "X-API-Key"
+    
+  # Rate limiting
+  rate_limit:
+    enabled: true
+    requests_per_minute: 1000
+    burst_size: 100
+    
+  # CORS
+  cors:
+    enabled: true
+    allowed_origins: ["*"]  # 生产环境请限制具体域名
+    allowed_methods: ["GET", "POST", "PUT", "DELETE"]
+
+# Environment Variables (生产环境必须设置)
+environment_variables:
+  # Redis
+  REDIS_HOST: "localhost"
+  REDIS_PORT: "6379"
+  REDIS_PASSWORD: ""
+  
+  # S3 Storage
+  AWS_ACCESS_KEY_ID: ""
+  AWS_SECRET_ACCESS_KEY: ""
+  S3_BUCKET_NAME: "faaslora-artifacts"
+  S3_REGION: "us-west-2"
+  
+  # HuggingFace
+  HUGGINGFACE_TOKEN: ""
+  
+  # API Security
+  FAASLORA_API_KEY: ""
+  
+  # GPU
+  CUDA_VISIBLE_DEVICES: "0,1"

@@ -1,0 +1,132 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "faaslora"
+version = "0.1.0"
+description = "FaaSLoRA: Adaptive Multi-LoRA Serverless Inference System"
+authors = [
+    {name = "FaaSLoRA Team", email = "faaslora@example.com"}
+]
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    # Core dependencies
+    "numpy>=1.24.0",
+    "pandas>=1.5.0",
+    "pydantic>=2.0.0",
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.22.0",
+    "click>=8.1.0",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0.0",
+    
+    # ML/LLM dependencies (真实组件)
+    "torch>=2.0.0",
+    "transformers>=4.30.0",
+    "vllm==0.10.2",  # 降级避免 RTX 3090 上 LoRA EngineCore 崩溃（0.10.x 较稳；0.10.0 需 Python<3.13）
+    "accelerate>=0.20.0",
+    "peft>=0.4.0",
+    "datasets>=2.12.0",
+    "tokenizers>=0.13.0",
+    
+    # Storage and caching (真实组件)
+    "redis>=4.5.0",  # 真实Redis客户端
+    "aioredis>=2.0.0",
+    "boto3>=1.26.0",  # 真实S3客户端
+    "s3fs>=2023.6.0",
+    "aiofiles>=23.1.0",
+    
+    # HuggingFace Integration (真实组件)
+    "huggingface-hub>=0.15.0",  # 真实HuggingFace Hub客户端
+    
+    # Monitoring and metrics (真实组件)
+    "prometheus-client>=0.16.0",  # 真实Prometheus客户端
+    "psutil>=5.9.0",
+    "nvidia-ml-py>=12.535.0",
+    "pynvml>=11.5.0",
+    
+    # API & gRPC (真实组件)
+    "grpcio>=1.54.0",
+    "grpcio-tools>=1.54.0",
+    "protobuf>=4.23.0",
+    
+    # Async & Performance
+    "asyncio-mqtt>=0.13.0",
+    "orjson>=3.9.0",
+    "msgpack>=1.0.0",
+    
+    # Logging & Utilities
+    "structlog>=23.1.0",
+    "rich>=13.4.0",
+    
+    # Security
+    "cryptography>=41.0.0",
+    "python-jose[cryptography]>=3.3.0",
+    
+    # Utilities
+    "loguru>=0.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+
+test = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.10.0",
+    "httpx>=0.24.0",
+]
+
+[project.scripts]
+faaslora = "faaslora.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["faaslora*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+asyncio_mode = "auto"
+
+[tool.flake8]
+max-line-length = 88

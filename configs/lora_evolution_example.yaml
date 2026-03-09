@@ -1,0 +1,112 @@
+# LoRA演化机制实验配置示例
+# 展示如何配置工作负载生成、LoRA绑定和演化机制
+
+# 基础系统配置
+system:
+  name: "faaslora-evolution-experiment"
+  version: "0.1.0"
+  log_level: "INFO"
+  debug: true
+
+# LoRA演化机制配置
+lora_evolution:
+  # 全局长尾流行度分布 (Zipf分布)
+  total_adapters: 1000          # 总适配器数量
+  zipf_exponent: 0.9            # Zipf分布指数 (0.5-1.5, 越大越集中)
+  
+  # 分段平稳热点轮换机制
+  epoch_duration_minutes: 10.0  # 每个epoch持续时间(分钟)
+  top_k_ratio: 0.1             # 热点集合比例 (10%的适配器为热点)
+  rotation_ratio: 0.2          # 每次轮换比例 (20%的热点适配器轮换)
+  
+  # 热点增强参数
+  hotness_boost_factor: 2.0    # 热点适配器流行度增强倍数
+
+# 数据集配置
+datasets:
+  azure_llm:
+    data_path: "data/azure_llm"
+    cache_enabled: true
+    cache_path: "cache/azure_llm"
+    sample_ratio: 1.0
+    time_window_hours: 24
+    
+    # 合成工作负载生成参数
+    synthetic_workload:
+      duration_hours: 1.0        # 生成工作负载的持续时间
+      scale_factor: 1.0          # 请求率缩放因子
+      enable_lora_binding: true  # 启用LoRA适配器绑定
+      
+# 工件注册表配置
+registry:
+  backend: "redis"
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 0
+    password: null
+
+# 内存管理配置
+memory:
+  gpu:
+    total_memory_gb: 24
+    execution_window_ratio: 0.6
+    kv_cache_window_ratio: 0.3
+    loading_window_ratio: 0.1
+  
+  host:
+    total_memory_gb: 64
+    cache_ratio: 0.5
+    
+  nvme:
+    cache_dir: "/tmp/faaslora_cache"
+    max_cache_gb: 100
+
+# 预加载策略配置
+preloading:
+  enabled: true
+  strategy: "popularity_based"  # 基于流行度的预加载
+  
+  # 预加载参数
+  preload_ratio: 0.05          # 预加载适配器比例 (5%)
+  update_interval_minutes: 5   # 预加载策略更新间隔
+  
+  # 热点感知预加载
+  hotspot_aware: true
+  hotspot_preload_ratio: 0.8   # 热点适配器预加载比例
+
+# 指标收集配置
+metrics:
+  prometheus:
+    enabled: true
+    port: 8000
+    path: "/metrics"
+    
+  collection:
+    interval_sec: 10
+    retention_hours: 24
+    
+  # LoRA演化相关指标
+  lora_evolution_metrics:
+    track_adapter_popularity: true
+    track_hotspot_transitions: true
+    track_request_distribution: true
+
+# API配置
+api:
+  http:
+    host: "0.0.0.0"
+    port: 8080
+    workers: 4
+    
+  rate_limit:
+    enabled: true
+    requests_per_minute: 1000
+
+# 日志配置
+logging:
+  level: "INFO"
+  format: "json"
+  file: "logs/lora_evolution.log"
+  rotation: "1 day"
+  retention: "7 days"
