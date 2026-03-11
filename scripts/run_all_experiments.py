@@ -4457,6 +4457,7 @@ async def main_async(
     total_requests   = wl_cfg_yaml.get("total_requests", 500)
     time_scale       = wl_cfg_yaml.get("time_scale_factor", 0.1)
     workload_type    = wl_cfg_yaml.get("workload_type", "mixed")
+    sampling_strategy = str(wl_cfg_yaml.get("sampling_strategy", "uniform") or "uniform").strip().lower()
     zipf_exp         = wl_cfg_yaml.get("zipf_exponent", 1.0)
     lora_ratio       = wl_cfg_yaml.get("lora_request_ratio", 0.85)
     active_adapter_cap = wl_cfg_yaml.get("active_adapter_cap")
@@ -4474,6 +4475,7 @@ async def main_async(
             zipf_exponent=zipf_exp,
             max_requests=total_requests,
             time_scale_factor=time_scale,
+            sampling_strategy=sampling_strategy,
             lora_request_ratio=lora_ratio,
             active_adapter_cap=active_adapter_cap,
             hotset_rotation_requests=hotset_rotation_requests,
@@ -4481,6 +4483,7 @@ async def main_async(
             seed=42,
         )
         trace_src = "Azure LLM real trace"
+        sampling_stats = dataset.get_last_sampling_stats()
     else:
         # Fallback: Poisson + ShareGPT prompts
         wl_cfg = WorkloadConfig(
@@ -4500,6 +4503,7 @@ async def main_async(
         gen    = WorkloadGenerator(adapter_ids, wl_cfg, seed=42, dataset=dataset)
         traces = gen.generate()
         trace_src = "Poisson synthetic (Azure data unavailable)"
+        sampling_stats = {"strategy": "synthetic_poisson", "selected_requests": len(traces)}
 
     for t in traces:
         t._burst_phase = "normal"   # real data has natural variation; no artificial label
@@ -4524,6 +4528,32 @@ async def main_async(
     print(f"  Requests  : {len(traces)} total  ({n_lora} with LoRA adapter)")
     print(f"  Time span : {traces[-1].arrival_time - traces[0].arrival_time:.1f}s  "
           f"(~{est_rps:.1f} avg rps)")
+    if sampling_stats:
+        strategy_name = str(sampling_stats.get("strategy", sampling_strategy))
+        print(f"  Sampling  : {strategy_name}")
+        if strategy_name == "representative":
+            full_iat = sampling_stats.get("full_inter_arrival_ms", {})
+            sample_iat = sampling_stats.get("sample_inter_arrival_ms", {})
+            full_ctx_tokens = sampling_stats.get("full_context_tokens", {})
+            sample_ctx_tokens = sampling_stats.get("sample_context_tokens", {})
+            print(
+                "    IAT(ms)  full p50/p95="
+                f"{full_iat.get('p50', 0):.0f}/{full_iat.get('p95', 0):.0f}  "
+                "sample p50/p95="
+                f"{sample_iat.get('p50', 0):.0f}/{sample_iat.get('p95', 0):.0f}"
+            )
+            print(
+                "    CtxTok   full p50/p95="
+                f"{full_ctx_tokens.get('p50', 0):.0f}/{full_ctx_tokens.get('p95', 0):.0f}  "
+                "sample p50/p95="
+                f"{sample_ctx_tokens.get('p50', 0):.0f}/{sample_ctx_tokens.get('p95', 0):.0f}"
+            )
+            print(
+                "    Burst    full="
+                f"{sampling_stats.get('full_burst_ratio', 0):.3f}  "
+                "sample="
+                f"{sampling_stats.get('sample_burst_ratio', 0):.3f}"
+            )
     if active_adapter_cap:
         print(f"  ActiveSet : cap={int(active_adapter_cap)}  rotate_every={hotset_rotation_requests or 'off'} reqs")
     if has_azure:
@@ -4720,6 +4750,8 @@ async def main_async(
             "max_model_len": model_cfg.get("max_model_len"),
             "bandwidth_mbps": bw_mbps,
             "total_requests": len(traces),
+            "sampling_strategy": sampling_strategy,
+            "sampling_stats": sampling_stats,
             "num_adapters": len(adapter_ids),
             "active_adapter_cap": int(active_adapter_cap) if active_adapter_cap else None,
             "hotset_rotation_requests": hotset_rotation_requests,

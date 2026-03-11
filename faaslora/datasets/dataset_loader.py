@@ -297,6 +297,10 @@ class AzureTraceReplay:
 
     def __init__(self, loader: "AzureTraceLoader"):
         self.loader = loader
+        self._last_sampling_stats: Dict[str, Any] = {}
+
+    def get_last_sampling_stats(self) -> Dict[str, Any]:
+        return dict(self._last_sampling_stats)
 
     def replay(
         self,
@@ -305,6 +309,7 @@ class AzureTraceReplay:
         zipf_exponent: float = 1.0,
         max_requests: int = 500,
         time_scale_factor: float = 0.1,
+        sampling_strategy: str = "uniform",
         lora_request_ratio: float = 0.85,
         active_adapter_cap: Optional[int] = None,
         hotset_rotation_requests: int = 0,
@@ -317,11 +322,17 @@ class AzureTraceReplay:
         Arrival times use authentic inter-request gaps from production traffic
         (scaled by time_scale_factor). Token lengths come directly from the trace.
         LoRA adapter selection uses Zipf distribution (α = zipf_exponent).
+
+        sampling_strategy
+          uniform         = evenly pick records across the full span
+          representative  = preserve inter-arrival CDF, token-length CDF,
+                            and burst ratio approximately
         """
         from .workload_generator import RequestTrace
 
         rng = random.Random(seed)
         records = self.loader.load()
+        self._last_sampling_stats = {}
 
         # Filter by workload type
         if workload_type == "conv":
@@ -334,17 +345,40 @@ class AzureTraceReplay:
             logger.warning(f"No Azure trace records found for workload_type={workload_type}")
             return []
 
-        # Sample uniformly across the full trace span to preserve temporal distribution
+        sampling_strategy = str(sampling_strategy or "uniform").strip().lower()
         if len(records) > max_requests:
-            step = len(records) / max_requests
-            selected = [records[int(i * step)] for i in range(max_requests)]
+            if sampling_strategy == "representative":
+                selected, replay_iats, sampling_stats = self._representative_sample(records, max_requests)
+                self._last_sampling_stats = sampling_stats
+            else:
+                step = len(records) / max_requests
+                selected = [records[int(i * step)] for i in range(max_requests)]
+                replay_iats = _compute_inter_arrivals([r.timestamp_s for r in selected])
+                self._last_sampling_stats = self._build_sampling_stats(
+                    records=records,
+                    selected=selected,
+                    replay_iats=replay_iats,
+                    strategy="uniform",
+                )
         else:
             selected = list(records)
+            replay_iats = _compute_inter_arrivals([r.timestamp_s for r in selected])
+            self._last_sampling_stats = self._build_sampling_stats(
+                records=records,
+                selected=selected,
+                replay_iats=replay_iats,
+                strategy="full",
+            )
 
         if not selected:
             return []
 
         t0 = selected[0].timestamp_s   # wall-clock origin
+        replay_arrivals = _rebuild_arrivals_from_iats(replay_iats, time_scale_factor)
+        if len(replay_arrivals) != len(selected):
+            replay_arrivals = [
+                (rec.timestamp_s - t0) * time_scale_factor for rec in selected
+            ]
 
         # Zipf weights for LoRA adapter selection
         n_adapters = len(adapter_ids)
@@ -363,8 +397,7 @@ class AzureTraceReplay:
 
         traces = []
         for i, rec in enumerate(selected):
-            # Real arrival time (scaled)
-            arrival = (rec.timestamp_s - t0) * time_scale_factor
+            arrival = replay_arrivals[i]
 
             # Zipf LoRA selection
             adapter_id = None
@@ -400,11 +433,157 @@ class AzureTraceReplay:
 
         logger.info(
             "Azure trace replay: %d requests  type=%s  scale=%.2f  "
-            "adapters=%d  span=%.1fs",
+            "adapters=%d  span=%.1fs  sampling=%s",
             len(traces), workload_type, time_scale_factor,
-            n_adapters, (selected[-1].timestamp_s - t0) * time_scale_factor,
+            n_adapters, replay_arrivals[-1] if replay_arrivals else 0.0,
+            self._last_sampling_stats.get("strategy", sampling_strategy),
         )
         return traces
+
+    def _representative_sample(
+        self,
+        records: List[AzureRecord],
+        max_requests: int,
+    ) -> Tuple[List[AzureRecord], List[float], Dict[str, Any]]:
+        selected = self._sample_records_by_token_cdf(records, max_requests)
+        replay_iats = self._sample_inter_arrival_cdf(records, max_requests)
+        stats = self._build_sampling_stats(
+            records=records,
+            selected=selected,
+            replay_iats=replay_iats,
+            strategy="representative",
+        )
+        return selected, replay_iats, stats
+
+    def _sample_records_by_token_cdf(
+        self,
+        records: List[AzureRecord],
+        max_requests: int,
+        bins: int = 8,
+    ) -> List[AzureRecord]:
+        if len(records) <= max_requests:
+            return list(records)
+
+        token_totals = [r.context_tokens + r.generated_tokens for r in records]
+        edges = _quantile_edges(token_totals, bins)
+        groups: Dict[Tuple[str, int], List[Tuple[int, AzureRecord]]] = {}
+        for idx, rec in enumerate(records):
+            bucket = _bucketize(rec.context_tokens + rec.generated_tokens, edges)
+            key = (rec.workload_type, bucket)
+            groups.setdefault(key, []).append((idx, rec))
+
+        quotas = _allocate_group_quotas(
+            {key: len(items) for key, items in groups.items()},
+            max_requests,
+        )
+
+        selected_pairs: List[Tuple[int, AzureRecord]] = []
+        used_idx = set()
+        for key, items in groups.items():
+            take = min(quotas.get(key, 0), len(items))
+            if take <= 0:
+                continue
+            picked = _pick_evenly(items, take)
+            selected_pairs.extend(picked)
+            used_idx.update(idx for idx, _ in picked)
+
+        if len(selected_pairs) < max_requests:
+            leftovers = [(idx, rec) for idx, rec in enumerate(records) if idx not in used_idx]
+            selected_pairs.extend(_pick_evenly(leftovers, max_requests - len(selected_pairs)))
+
+        selected_pairs = sorted(selected_pairs, key=lambda x: x[0])[:max_requests]
+        return [rec for _, rec in selected_pairs]
+
+    def _sample_inter_arrival_cdf(
+        self,
+        records: List[AzureRecord],
+        max_requests: int,
+        bins: int = 8,
+    ) -> List[float]:
+        if max_requests <= 1:
+            return []
+
+        timestamps = [r.timestamp_s for r in records]
+        full_iats = _compute_inter_arrivals(timestamps)
+        if not full_iats:
+            return [0.0] * (max_requests - 1)
+
+        burst_threshold = _pct(full_iats, 25)
+        edges = _quantile_edges(full_iats, bins)
+        groups: Dict[Tuple[int, int], List[Tuple[int, float]]] = {}
+        for idx, gap in enumerate(full_iats):
+            burst_flag = 1 if gap <= burst_threshold else 0
+            bucket = _bucketize(gap, edges)
+            key = (burst_flag, bucket)
+            groups.setdefault(key, []).append((idx, gap))
+
+        quotas = _allocate_group_quotas(
+            {key: len(items) for key, items in groups.items()},
+            max_requests - 1,
+        )
+
+        selected_pairs: List[Tuple[int, float]] = []
+        used_idx = set()
+        for key, items in groups.items():
+            take = min(quotas.get(key, 0), len(items))
+            if take <= 0:
+                continue
+            picked = _pick_evenly(items, take)
+            selected_pairs.extend(picked)
+            used_idx.update(idx for idx, _ in picked)
+
+        if len(selected_pairs) < (max_requests - 1):
+            leftovers = [(idx, gap) for idx, gap in enumerate(full_iats) if idx not in used_idx]
+            selected_pairs.extend(_pick_evenly(leftovers, (max_requests - 1) - len(selected_pairs)))
+
+        selected_pairs = sorted(selected_pairs, key=lambda x: x[0])[: max_requests - 1]
+        return [gap for _, gap in selected_pairs]
+
+    def _build_sampling_stats(
+        self,
+        records: List[AzureRecord],
+        selected: List[AzureRecord],
+        replay_iats: List[float],
+        strategy: str,
+    ) -> Dict[str, Any]:
+        full_iats = _compute_inter_arrivals([r.timestamp_s for r in records])
+        burst_threshold = _pct(full_iats, 25) if full_iats else 0.0
+        full_ctx = [r.context_tokens for r in records]
+        full_gen = [r.generated_tokens for r in records]
+        sample_ctx = [r.context_tokens for r in selected]
+        sample_gen = [r.generated_tokens for r in selected]
+        return {
+            "strategy": strategy,
+            "full_records": len(records),
+            "selected_requests": len(selected),
+            "burst_threshold_ms": round(burst_threshold * 1000.0, 4),
+            "full_inter_arrival_ms": {
+                "p50": round(_pct(full_iats, 50) * 1000.0, 4) if full_iats else 0.0,
+                "p95": round(_pct(full_iats, 95) * 1000.0, 4) if full_iats else 0.0,
+            },
+            "sample_inter_arrival_ms": {
+                "p50": round(_pct(replay_iats, 50) * 1000.0, 4) if replay_iats else 0.0,
+                "p95": round(_pct(replay_iats, 95) * 1000.0, 4) if replay_iats else 0.0,
+            },
+            "full_context_tokens": {
+                "p50": round(_pct(full_ctx, 50), 4) if full_ctx else 0.0,
+                "p95": round(_pct(full_ctx, 95), 4) if full_ctx else 0.0,
+            },
+            "sample_context_tokens": {
+                "p50": round(_pct(sample_ctx, 50), 4) if sample_ctx else 0.0,
+                "p95": round(_pct(sample_ctx, 95), 4) if sample_ctx else 0.0,
+            },
+            "full_generated_tokens": {
+                "p50": round(_pct(full_gen, 50), 4) if full_gen else 0.0,
+                "p95": round(_pct(full_gen, 95), 4) if full_gen else 0.0,
+            },
+            "sample_generated_tokens": {
+                "p50": round(_pct(sample_gen, 50), 4) if sample_gen else 0.0,
+                "p95": round(_pct(sample_gen, 95), 4) if sample_gen else 0.0,
+            },
+            "full_burst_ratio": round(_burst_ratio(full_iats, burst_threshold), 6),
+            "sample_burst_ratio": round(_burst_ratio(replay_iats, burst_threshold), 6),
+        }
 
     def get_stats(self, workload_type: str = "mixed") -> Dict[str, Any]:
         records = self.loader.load()
@@ -476,6 +655,7 @@ class WorkloadDataset:
         zipf_exponent: float = 1.0,
         max_requests: int = 500,
         time_scale_factor: float = 0.1,
+        sampling_strategy: str = "uniform",
         lora_request_ratio: float = 0.85,
         active_adapter_cap: Optional[int] = None,
         hotset_rotation_requests: int = 0,
@@ -499,6 +679,7 @@ class WorkloadDataset:
             zipf_exponent=zipf_exponent,
             max_requests=max_requests,
             time_scale_factor=time_scale_factor,
+            sampling_strategy=sampling_strategy,
             lora_request_ratio=lora_request_ratio,
             active_adapter_cap=active_adapter_cap,
             hotset_rotation_requests=hotset_rotation_requests,
@@ -536,6 +717,9 @@ class WorkloadDataset:
         if not self._initialized:
             self.initialize()
         return self.azure.get_arrival_rate_rps()
+
+    def get_last_sampling_stats(self) -> Dict[str, Any]:
+        return self.replay.get_last_sampling_stats()
 
     def has_real_azure_data(self) -> bool:
         return bool(self._azure_records)
@@ -583,3 +767,97 @@ def _pct(vals: List[float], p: float) -> float:
     s = sorted(vals)
     i = max(0, min(len(s) - 1, int(round(p / 100.0 * (len(s) - 1)))))
     return s[i]
+
+
+def _quantile_edges(vals: List[float], bins: int) -> List[float]:
+    if not vals or bins <= 1:
+        return []
+    s = sorted(vals)
+    edges: List[float] = []
+    for i in range(1, bins):
+        idx = max(0, min(len(s) - 1, math.ceil(i * len(s) / bins) - 1))
+        edges.append(s[idx])
+    return edges
+
+
+def _bucketize(value: float, edges: List[float]) -> int:
+    bucket = 0
+    for edge in edges:
+        if value > edge:
+            bucket += 1
+        else:
+            break
+    return bucket
+
+
+def _allocate_group_quotas(group_sizes: Dict[Any, int], total: int) -> Dict[Any, int]:
+    if total <= 0 or not group_sizes:
+        return {key: 0 for key in group_sizes}
+    overall = sum(group_sizes.values())
+    if overall <= 0:
+        return {key: 0 for key in group_sizes}
+
+    quotas: Dict[Any, int] = {}
+    remainders: List[Tuple[float, Any]] = []
+    allocated = 0
+    for key, size in group_sizes.items():
+        raw = total * size / overall
+        base = min(size, int(math.floor(raw)))
+        quotas[key] = base
+        allocated += base
+        remainders.append((raw - base, key))
+
+    remaining = total - allocated
+    for _, key in sorted(remainders, key=lambda x: (-x[0], str(x[1]))):
+        if remaining <= 0:
+            break
+        if quotas[key] < group_sizes[key]:
+            quotas[key] += 1
+            remaining -= 1
+
+    if remaining > 0:
+        for key, size in sorted(group_sizes.items(), key=lambda x: -x[1]):
+            if remaining <= 0:
+                break
+            spare = size - quotas[key]
+            if spare <= 0:
+                continue
+            take = min(spare, remaining)
+            quotas[key] += take
+            remaining -= take
+
+    return quotas
+
+
+def _pick_evenly(items: List[Tuple[Any, Any]], k: int) -> List[Tuple[Any, Any]]:
+    if k <= 0 or not items:
+        return []
+    if k >= len(items):
+        return list(items)
+
+    picked: List[Tuple[Any, Any]] = []
+    last_idx = -1
+    n = len(items)
+    for i in range(k):
+        idx = int((i + 0.5) * n / k)
+        idx = max(0, min(n - 1, idx))
+        if idx <= last_idx:
+            idx = min(n - 1, last_idx + 1)
+        picked.append(items[idx])
+        last_idx = idx
+    return picked
+
+
+def _rebuild_arrivals_from_iats(iats: List[float], time_scale_factor: float) -> List[float]:
+    arrivals = [0.0]
+    current = 0.0
+    for gap in iats:
+        current += max(0.0, gap) * time_scale_factor
+        arrivals.append(current)
+    return arrivals
+
+
+def _burst_ratio(iats: List[float], threshold: float) -> float:
+    if not iats:
+        return 0.0
+    return sum(1 for gap in iats if gap <= threshold) / len(iats)

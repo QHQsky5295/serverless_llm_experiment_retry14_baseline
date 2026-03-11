@@ -38,6 +38,13 @@
    - shared_slots / dedicated_instances
    - cache 与 resident 信息
 7. 矩阵 preset 已固化在 `configs/experiments.yaml`
+8. 主实验路径已接入 representative workload sampling：
+   - 近似保持 inter-arrival CDF
+   - 近似保持 token-length CDF
+   - 近似保持 burst ratio
+9. 完整版默认配置已切换为：
+   - `500 LoRA`
+   - `1000 representative requests`
 
 ### 文档主线变化
 
@@ -78,9 +85,8 @@
 ## 当前仍未完成
 
 ### 主实验
-- `auto1000 + Azure full trace 28185` 真实全量运行仍在进行中
-- 当前运行标识：`auto1000_full28185_real2`
-- 已确认不是 `300/300` 的误跑；当前日志已显示 `submitted=50/28185`
+- 以 `auto500 + Azure full trace 28185` 完成真实工作负载主实验
+- `auto1000 + full trace` 降级为压力测试 / 附录实验，不再作为默认主线
 
 ### 工程闭环
 - CLI / packaging 断裂仍待修复
@@ -102,7 +108,7 @@
 ## 当前主线 TODO
 
 ### A. 先完成 Qwen-3B 主证据
-1. 以 `auto` 为主模式完成真正的 `28185` 全量主实验。
+1. 以 `auto500` 为主模式完成真正的 `28185` 全量主实验。
 2. 汇总小矩阵与 full-trace 主实验，形成论文主表。
 
 ### B. 工程硬伤
@@ -125,21 +131,7 @@
 
 ## 建议的下一步
 
-1. 完成 `auto1000 + 28185` 全量主实验。
+1. 完成 `auto500 + 28185` 全量主实验。
 2. 汇总 `shared / auto / dedicated` 的关键指标与趋势。
 3. 修 CLI / packaging 与测试闭环。
 4. 再进入跨模型家族扩展。
-
-## 当前运行快照
-
-- 运行标签：`auto1000_full28185_real2`
-- 当前模式：`auto`
-- 当前规模：`1000 adapters`
-- 当前目标请求数：`28185`
-- 当前运行状态：进行中
-- 当前已观测状态：
-  - `inst=2`
-  - `runtimes=2`
-  - `shared_slots=0`
-  - `dedicated_instances=2`
-  - 双 GPU 均在工作

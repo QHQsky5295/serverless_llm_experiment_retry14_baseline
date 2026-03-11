@@ -13,6 +13,7 @@ FaaSLoRA 是一个面向真实云工作负载的多 LoRA Serverless 大模型推
 - LoRA 规模：`100 / 300 / 500 / 1000`
 - 工作负载：Azure LLM trace + ShareGPT prompt pool
 - 当前推荐主模式：`auto`
+- 完整版默认配置：`500 LoRA + representative 1000 requests`
 
 ---
 
@@ -301,8 +302,30 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 注意：
 
 - 当前 ShareGPT 不是 full conversation replay，而是 prompt pool
-- 小矩阵使用 representative trace replay
-- 当前主线下一步是：`auto1000 + Azure full trace 28185`
+- 小矩阵默认使用 representative trace replay
+- 完整版默认工作负载为：`500 LoRA + representative 1000 requests`
+- full Azure trace `28185` 不作为所有对比实验的默认配置，而只用于主模式的真实工作负载验证
+
+### representative trace replay
+
+当前矩阵实验不会简单随机截取固定数量的请求，而是基于 Azure trace 构造**代表性子工作负载**。当前实现会尽量保持以下特征与 full trace 接近：
+
+- inter-arrival 分布
+- 输入 / 输出 token 长度分布
+- burst 比例
+
+当前 workload 方法学如下：
+
+1. Azure trace 提供真实请求到达时间和 token 规模骨架。
+2. 系统从 full trace 中抽取 representative subset，近似保持上述统计分布。
+3. `time_scale_factor` 用于统一压缩时间轴，以制造更高的系统压力。
+4. ShareGPT 作为 prompt pool 提供真实 prompt 文本，而不是逐条 conversation replay。
+
+因此，当前实验采用的是：
+
+- **矩阵实验**：representative Azure trace replay + ShareGPT prompt pool
+- **主结论实验**：主模式在 full Azure trace `28185` 上做真实工作负载验证
+- **压力实验**：更大 LoRA 规模作为 scalability / appendix 场景
 
 ---
 
@@ -331,7 +354,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 ### 当前仍未完成
 
-- 真正的 `auto1000 + Azure full trace 28185`
+- 主模式 `auto500 + Azure full trace 28185` 的真实工作负载验证
 - CLI / packaging 断裂修复
 - 稳定环境下测试闭环
 - 跨模型家族与跨数据集扩展
@@ -345,8 +368,14 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 ```bash
 conda activate LLM_vllm0102
 cd /home/qhq/serverless_llm_experiment
-python scripts/run_all_experiments.py --config configs/experiments.yaml --preset auto1000
+python scripts/run_all_experiments.py --config configs/experiments.yaml
 ```
+
+上面这条命令会使用当前完整版本默认配置：
+
+- `500 LoRA`
+- `representative 1000 requests`
+- `vllm` 主后端
 
 ### 协作 / 矩阵验证入口
 
@@ -361,6 +390,11 @@ FAASLORA_PRESET=auto300 bash scripts/run_validation_bundle.sh custom
 - `shared300`, `auto300`, `dedicated300`
 - `shared500`, `auto500`
 - `shared1000`, `auto1000`
+
+建议用法：
+
+- 矩阵实验：使用 preset
+- 主模式全量验证：以 `auto500` 为基础参数，再显式覆盖 `total_requests=28185`
 
 ---
 
@@ -393,4 +427,5 @@ FAASLORA_PRESET=auto300 bash scripts/run_validation_bundle.sh custom
 - 当前系统是单节点双 GPU 原型，不是完整多节点云平台
 - `shared` 模式不是强隔离函数进程模型，而是共享 runtime + shared execution slot 的实现方式
 - ShareGPT 当前作为 prompt pool，而不是 full conversation replay
-- 当前矩阵使用 representative trace replay；主模式仍需 full trace 结果补齐
+- 当前矩阵使用 representative trace replay；主模式需要 full Azure trace 结果补齐
+- `auto1000 + full trace` 更适合作为压力测试或附录实验，而不是当前默认主线

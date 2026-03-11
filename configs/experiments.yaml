@@ -148,12 +148,12 @@ lora_adapters:
   manifest_path: "configs/generated/lora_manifest_1000.json"
   auto_create_manifest: true
   preserve_legacy_names: true
-  selected_num_adapters: 1000
+  selected_num_adapters: 500
   quick_num_adapters: 100
-  full_num_adapters: 1000
+  full_num_adapters: 500
   # 说明：
   #   1) 运行主实验时，将从 manifest 中选择前 N 个 adapter
-  #   2) quick 模式默认 100；full 默认 1000
+  #   2) quick 模式默认 100；完整版默认 500
   #   3) 若 manifest 不存在，run_all_experiments.py 会自动生成元数据文件
   #   4) 真正的 adapter 目录可通过 scripts/generate_lora_adapters.py 批量生成
   scale_presets:
@@ -312,10 +312,11 @@ workload:
 
   # Azure trace 时间缩放
   time_scale_factor: 0.1
+  sampling_strategy: "representative"   # 完整版默认使用代表性抽样，近似保持到达/长度/burst 分布
 
   # 请求数量：从 28K 条 Azure trace 中采样多少条做本次实验
-  # 数据集共 28185 条；500=常用规模(约10分钟)，1000/5000=更稳，28185=完整trace(数小时)
-  total_requests: 100
+  # 当前完整版默认 1000，作为代表性工作负载；28185 用于最终 full-trace 验证
+  total_requests: 1000
 
   # LoRA 选择分布（Zipf，与 S-LoRA 论文一致）
   lora_request_ratio: 0.85
