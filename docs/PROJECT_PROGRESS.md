@@ -85,8 +85,8 @@
 ## 当前仍未完成
 
 ### 主实验
-- 以 `auto500 + Azure full trace 28185` 完成真实工作负载主实验
-- `auto1000 + full trace` 降级为压力测试 / 附录实验，不再作为默认主线
+- 以 `auto500 + 1000 representative requests` 作为论文主实验
+- `28185` full trace 与 `auto1000 + full trace` 保留为压力测试 / 附录实验接口，不再作为默认主线
 
 ### 工程闭环
 - CLI / packaging 断裂仍待修复
@@ -108,8 +108,8 @@
 ## 当前主线 TODO
 
 ### A. 先完成 Qwen-3B 主证据
-1. 以 `auto500` 为主模式完成真正的 `28185` 全量主实验。
-2. 汇总小矩阵与 full-trace 主实验，形成论文主表。
+1. 以 `auto500 + 1000 representative requests` 固化论文主实验结果。
+2. 汇总既有小矩阵与主实验，形成论文主表。
 
 ### B. 工程硬伤
 3. 修复 CLI / packaging 断裂。
@@ -131,7 +131,7 @@
 
 ## 建议的下一步
 
-1. 完成 `auto500 + 28185` 全量主实验。
-2. 汇总 `shared / auto / dedicated` 的关键指标与趋势。
+1. 完成 `auto500 + 1000 representative requests` 主实验验收与总结。
+2. 汇总 `shared / auto / dedicated` 的关键指标与趋势，支撑 `auto` 作为正文主模式。
 3. 修 CLI / packaging 与测试闭环。
 4. 再进入跨模型家族扩展。

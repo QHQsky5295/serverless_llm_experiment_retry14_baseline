@@ -3,7 +3,7 @@
 FaaSLoRA 是一个面向真实云工作负载的多 LoRA Serverless 大模型推理研究原型。系统围绕三条主线展开：
 
 - 工件命中感知的请求放置与扩缩容预加载
-- GPU / 内存 / 本地存储 / 远端存储的多层工件驻留
+- GPU 显存 / HOST 内存 / NVMe 本地存储的三层本地工件驻留，以及远端源仓库补给
 - 工件加载、KV 缓存与批推理之间的资源协同控制
 
 当前仓库已经具备可重复运行的实验主线，支持：
@@ -37,7 +37,7 @@ FaaSLoRA 是一个面向真实云工作负载的多 LoRA Serverless 大模型推
 | 观察 | 问题 | FaaSLoRA 对应机制 |
 |---|---|---|
 | 观察 1 | 请求被放置到现有函数实例时可能未命中所需 LoRA 工件；扩容到新实例时同样会发生工件冷加载 | 命中感知的请求放置与扩缩容预加载 |
-| 观察 2 | 单层缓存策略难以兼顾命中率与显存利用率，工件迁移路径过长 | GPU / HOST / NVME / REMOTE 多层驻留 |
+| 观察 2 | 单层缓存策略难以兼顾命中率与显存利用率，工件迁移路径过长 | GPU 显存 / HOST 内存 / NVMe 的三层本地驻留，远端源仓库按需补给 |
 | 观察 3 | LoRA 工件加载、KV 缓存与批推理共享 GPU 显存和带宽，容易产生资源争用 | 资源协同控制与受控 warmup |
 
 FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例”，而是：
@@ -65,16 +65,16 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 ### 2. 多层工件驻留控制
 
-系统维护四层工件路径：
+系统维护三层本地工件驻留结构，并通过远端源仓库补给缺失工件：
 
 | 层级 | 作用 | 当前语义 |
 |---|---|---|
-| `GPU` | 热层 | 高频 LoRA 工件尽量常驻 GPU，优先保障 TTFT |
+| `GPU` | 热层 | 高频 LoRA 工件尽量常驻 GPU 显存，优先保障 TTFT |
 | `HOST` | 温层 | 缓存近期可能再次命中的工件，缩短再次装载路径 |
-| `NVME` | 本地存储层 | 保留更大规模候选工件集合 |
-| `REMOTE` | 远端源仓库 | 工件的最终来源 |
+| `NVME` | 冷层 | 保留更大规模候选工件集合，作为本地持久层 |
+| `REMOTE` | 远端源仓库 | 工件的最终来源，不属于本地驻留层级 |
 
-系统根据显存预算、访问热度与命中收益，在上述层级之间做迁移和保留，以缩短 LoRA 工件从远端存储到 GPU 的传输路径。
+系统根据显存预算、访问热度与命中收益，在 GPU/HOST/NVMe 三层本地结构中做迁移与保留，并在缺失时再从远端源仓库补给，以缩短 LoRA 工件从远端存储到 GPU 的传输路径。
 
 对应实现：
 
@@ -154,7 +154,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
                        +-----------+--------------+
                                    |
                                    v
-                         GPU / HOST / NVME / REMOTE
+                  REMOTE source -> NVME -> HOST -> GPU VRAM
 ```
 
 ---
@@ -169,7 +169,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 | 路由与实例池 | 维护 `shared / auto / dedicated` 三种实例模式并路由请求 | 默认 `adapter_affinity`；先看缓存亲和性，再看 active、queue、GPU util | `faaslora/experiment/instance_pool.py` |
 | 扩缩容 | 决定何时增加或回收实例 | 结合 `arrival_rps / backlog / busy_ratio / latency` 动态触发 | `faaslora/coordination/autoscaler.py` |
 | 预加载 | 生成并执行初始预加载和 scale-up warmup 计划 | 启动时三阶段预加载；扩容时为新实例做 instance-scoped warmup | `faaslora/preloading/`, `faaslora/experiment/experiment_stack.py` |
-| 分层驻留 | 管理工件在 GPU / HOST / NVME / REMOTE 之间的状态 | 根据预算、热度、层级位置决定保留、迁移和驱逐 | `faaslora/memory/residency_manager.py` |
+| 分层驻留 | 管理工件在 GPU / HOST / NVME 三层本地驻留中的状态，并在需要时从 REMOTE 源仓库补给 | 根据预算、热度、层级位置决定保留、迁移和驱逐 | `faaslora/memory/residency_manager.py` |
 | 资源协同 | 控制工件加载、KV 缓存与推理执行之间的竞争 | admission / defer / warmup 检查 / contention 统计 | `faaslora/scheduling/resource_coordinator.py` |
 | 推理后端 | 执行真实模型推理 | 默认 `vllm`，保留 `transformers` 回退路径 | `faaslora/serving/`, `scripts/run_all_experiments.py` |
 | 实验入口与结果 | 运行矩阵、显示 live 面板、落盘结果 | preset、结果独立命名、顶层 schema 扁平化 | `scripts/run_all_experiments.py`, `scripts/run_validation_bundle.sh` |
@@ -244,7 +244,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 ## 缓存与存储
 
-### 四层工件路径
+### 三层本地驻留与远端源仓库
 
 | 层级 | 当前作用 |
 |---|---|
@@ -324,7 +324,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 因此，当前实验采用的是：
 
 - **矩阵实验**：representative Azure trace replay + ShareGPT prompt pool
-- **主结论实验**：主模式在 full Azure trace `28185` 上做真实工作负载验证
+- **主结论实验**：主模式使用 `auto500 + 1000 representative requests`
 - **压力实验**：更大 LoRA 规模作为 scalability / appendix 场景
 
 ---
@@ -354,7 +354,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 ### 当前仍未完成
 
-- 主模式 `auto500 + Azure full trace 28185` 的真实工作负载验证
+- 主模式 `auto500 + 1000 representative requests`
 - CLI / packaging 断裂修复
 - 稳定环境下测试闭环
 - 跨模型家族与跨数据集扩展
@@ -394,7 +394,7 @@ FAASLORA_PRESET=auto300 bash scripts/run_validation_bundle.sh custom
 建议用法：
 
 - 矩阵实验：使用 preset
-- 主模式全量验证：以 `auto500` 为基础参数，再显式覆盖 `total_requests=28185`
+- full-trace `28185` 接口保留，仅作为附录级压力验证或内部 sanity check，不作为当前论文主线默认配置
 
 ---
 
@@ -427,5 +427,5 @@ FAASLORA_PRESET=auto300 bash scripts/run_validation_bundle.sh custom
 - 当前系统是单节点双 GPU 原型，不是完整多节点云平台
 - `shared` 模式不是强隔离函数进程模型，而是共享 runtime + shared execution slot 的实现方式
 - ShareGPT 当前作为 prompt pool，而不是 full conversation replay
-- 当前矩阵使用 representative trace replay；主模式需要 full Azure trace 结果补齐
-- `auto1000 + full trace` 更适合作为压力测试或附录实验，而不是当前默认主线
+- 当前矩阵和论文主实验统一使用 representative trace replay
+- `28185` full-trace 与 `auto1000 + full trace` 仅保留为压力测试或附录接口，不作为当前默认主线

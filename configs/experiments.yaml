@@ -593,7 +593,7 @@ scenarios:
     description: >
       FaaSLoRA 完整系统：
         贡献1 — 命中感知工件预加载（scale-up 前提前加载高频 LoRA）
-        贡献2 — GPU 显存多层驻留（热层 GPU / 温层 NVMe / 冷层远端）
+        贡献2 — GPU 显存三层本地驻留（热层 GPU 显存 / 温层 HOST 内存 / 冷层 NVMe，本地缺失时再由远端源仓库补给）
         贡献3 — 扩缩容与显存分配协同控制：
                  扩容阶段渐进式加载（max_concurrent_loads=2），
                  优先保障 KV cache 与批推理工作集；
