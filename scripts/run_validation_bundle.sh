@@ -128,6 +128,7 @@ PY
 
 MODE_TAG="$MODE"
 NUM_ADAPTERS="${FAASLORA_NUM_ADAPTERS:-}"
+PRESET_NAME="${FAASLORA_PRESET:-}"
 SCENARIO="${FAASLORA_SCENARIO:-faaslora_full}"
 QUICK_FLAG=()
 
@@ -150,8 +151,8 @@ case "$MODE" in
     NUM_ADAPTERS="${NUM_ADAPTERS:-1000}"
     ;;
   custom)
-    if [[ -z "${NUM_ADAPTERS:-}" ]]; then
-      echo "FAASLORA_NUM_ADAPTERS is required when MODE=custom" >&2
+    if [[ -z "${NUM_ADAPTERS:-}" && -z "${PRESET_NAME:-}" ]]; then
+      echo "FAASLORA_NUM_ADAPTERS or FAASLORA_PRESET is required when MODE=custom" >&2
       exit 2
     fi
     if [[ "${FAASLORA_QUICK:-0}" == "1" ]]; then
@@ -180,8 +181,13 @@ CMD=(
   "$RUNNER_WRAPPER"
   --config "$TMP_CONFIG"
   --scenario "$SCENARIO"
-  --num-adapters "$NUM_ADAPTERS"
 )
+if [[ -n "${PRESET_NAME:-}" ]]; then
+  CMD+=(--preset "$PRESET_NAME")
+fi
+if [[ -n "${NUM_ADAPTERS:-}" ]]; then
+  CMD+=(--num-adapters "$NUM_ADAPTERS")
+fi
 if [[ -n "${FAASLORA_BACKEND:-}" ]]; then
   CMD+=(--backend "$FAASLORA_BACKEND")
 fi

@@ -1,5 +1,7 @@
 # FaaSLoRA 实验执行完整指南
 
+> 说明：本文件保留为补充操作手册。当前仓库的**权威口径**以 [README.md](README.md)、[docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md](docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md) 和 [docs/PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md) 为准；若本文与当前实现冲突，以这三份文档为准。
+
 本指南面向未接触过本项目的研究人员，按步骤说明如何从零配置环境、运行实验、解读结果，以及如何与同类论文系统进行对比。
 
 ---

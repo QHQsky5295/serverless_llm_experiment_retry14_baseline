@@ -319,6 +319,12 @@ class ExperimentStack:
             path = self._host_paths.get(aid) or self._nvme_paths.get(aid)
             if not path:
                 continue
+            tier = "host" if aid in self._host_paths else "nvme"
+            size_mb = float(self.adapter_info.get(aid, {}).get("size_mb", 30.0))
+            if getattr(self.coordinator, "effective_capacity_admission_enabled", False):
+                decision = self.coordinator.evaluate_gpu_admission(aid, size_mb, tier=tier)
+                if not decision.get("admit", False):
+                    continue
             try:
                 await engine_generate_fn("Hi", path, aid)
                 await self.residency_manager.admit_artifact(aid, StorageTier.GPU, force=False)
@@ -408,7 +414,6 @@ class ExperimentStack:
 
     async def trigger_scaling_preload(self, capacity_bytes: int = 200 * 1024 * 1024) -> Optional[str]:
         """Trigger preload on scale-up (A2). Call when scale decision is made."""
-        from ..registry.schema import StorageTier
         selected = self._select_scaleup_gpu_candidates(capacity_bytes)
         if selected:
             self._pending_scaleup_gpu_artifacts = selected
@@ -418,8 +423,11 @@ class ExperimentStack:
                 f"Prepared instance-scoped GPU warmup plan: {len(selected)} adapters ({preview})"
             )
             return plan_id
-        return await self.preloading_manager.trigger_scaling_preload({
-            "type": "scale_up",
-            "target_tier": StorageTier.GPU.value,
-            "capacity_bytes": capacity_bytes,
-        })
+        # GPU-target scale-up warmup is now instance-scoped. Falling back to the
+        # old global planner only produces a misleading "No preloading candidates
+        # found" message because global tier state already reflects the source
+        # instance, not the new instance we are about to spawn.
+        self.logger.info(
+            "No instance-scoped GPU warmup candidates found; skipping legacy global preload fallback"
+        )
+        return None

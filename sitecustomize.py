@@ -42,3 +42,34 @@ except Exception:
     # Any failure here should not block running the main program.
     pass
 
+
+try:
+    # vLLM v1 worker shutdown does not always tear down torch.distributed
+    # before process exit on single-GPU child workers, which leaves noisy
+    # destroy_process_group warnings in our experiment logs. Patch the GPU
+    # worker shutdown path so worker processes explicitly clean their dist env.
+    from vllm.v1.worker.gpu_worker import Worker as _FaaSLoRAVLLMGPUWorker  # type: ignore[import]
+    from vllm.distributed.parallel_state import cleanup_dist_env_and_memory as _faaslora_cleanup_dist  # type: ignore[import]
+
+    _orig_vllm_worker_shutdown = getattr(_FaaSLoRAVLLMGPUWorker, "shutdown", None)
+
+    if callable(_orig_vllm_worker_shutdown):
+
+        def _faaslora_vllm_worker_shutdown(self, *args, **kwargs):
+            try:
+                return _orig_vllm_worker_shutdown(self, *args, **kwargs)
+            finally:
+                try:
+                    _faaslora_cleanup_dist()
+                except Exception:
+                    pass
+                try:
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                except Exception:
+                    pass
+
+        _FaaSLoRAVLLMGPUWorker.shutdown = _faaslora_vllm_worker_shutdown  # type: ignore[assignment]
+except Exception:
+    # vLLM may be unavailable in non-vLLM environments. Do not block startup.
+    pass

@@ -115,6 +115,9 @@ class ResourceCoordinator:
         self.gpu_load_overhead_ms: float  = cfg.get("gpu_load_overhead_ms",  50)
         self.pcie_bw_mbps: float          = cfg.get("pcie_bw_mbps",         16000)
         self.nvme_bw_mbps: float          = cfg.get("nvme_bw_mbps",         3000)
+        self.effective_capacity_admission_enabled: bool = bool(
+            cfg.get("effective_capacity_admission_enabled", False)
+        )
 
         # Scale-down parameters
         self.idle_timeout_s: float       = cfg.get("idle_timeout_s",        15.0)
@@ -178,20 +181,29 @@ class ResourceCoordinator:
 
         # Compute actual disk→GPU transfer time
         transfer_ms = self._compute_transfer_ms(size_mb, tier)
+        if not self.effective_capacity_admission_enabled:
+            async with self._lock:
+                available = self._available_mb()
+                has_pressure = available < size_mb
+            if not has_pressure:
+                async with self._loading_semaphore:
+                    admitted = await self._mark_resident(adapter_id, size_mb)
+                if admitted:
+                    return 0.0, 0.0
+            decision = {"admit": False, "should_attempt": True}
+        else:
+            decision = self.evaluate_gpu_admission(adapter_id, size_mb, tier=tier)
 
-        async with self._lock:
-            available = self._available_mb()
-            has_pressure = available < size_mb
-
-        if not has_pressure:
-            # Memory is available → load immediately (no contention, no defer)
+        if decision["admit"]:
             async with self._loading_semaphore:
                 admitted = await self._mark_resident(adapter_id, size_mb)
             if admitted:
                 return 0.0, 0.0
-            has_pressure = True
 
         # Memory pressure exists
+        if not decision["should_attempt"]:
+            return 0.0, 0.0
+
         self.metrics.contention_events += 1
         self.metrics.total_contention_penalty_ms += transfer_ms
         contention_ms = transfer_ms
@@ -202,19 +214,40 @@ class ResourceCoordinator:
             wait_start = time.perf_counter()
 
             async with self._loading_semaphore:
-                # Wait until memory is available
+                # Wait until the adapter's effective capacity and utility justify
+                # promoting it to GPU; otherwise, keep serving from HOST/NVMe.
                 for _ in range(200):   # max 10s total wait
-                    async with self._lock:
-                        if self._available_mb() >= size_mb:
+                    if self.effective_capacity_admission_enabled:
+                        decision = self.evaluate_gpu_admission(adapter_id, size_mb, tier=tier)
+                        if decision["admit"]:
                             break
+                        if not decision["should_attempt"]:
+                            admitted = False
+                            break
+                    else:
+                        async with self._lock:
+                            if self._available_mb() >= size_mb:
+                                decision = {"admit": True, "should_attempt": True}
+                                break
                     await asyncio.sleep(0.05)   # 50ms polling interval
                 else:
                     await self._force_evict(size_mb)
+                    if self.effective_capacity_admission_enabled:
+                        decision = self.evaluate_gpu_admission(adapter_id, size_mb, tier=tier)
+                    else:
+                        decision = {"admit": self._available_mb() >= size_mb, "should_attempt": True}
 
-                admitted = await self._mark_resident(adapter_id, size_mb)
-                if not admitted:
-                    await self._force_evict(size_mb)
+                admitted = False
+                if decision["admit"]:
                     admitted = await self._mark_resident(adapter_id, size_mb)
+                    if not admitted:
+                        await self._force_evict(size_mb)
+                        if self.effective_capacity_admission_enabled:
+                            decision = self.evaluate_gpu_admission(adapter_id, size_mb, tier=tier)
+                        else:
+                            decision = {"admit": self._available_mb() >= size_mb, "should_attempt": True}
+                        if decision["admit"]:
+                            admitted = await self._mark_resident(adapter_id, size_mb)
 
             defer_ms = (time.perf_counter() - wait_start) * 1000
             self.metrics.total_defer_delay_ms += defer_ms
@@ -229,7 +262,13 @@ class ResourceCoordinator:
             await self._force_evict(size_mb)
             # contention_ms remains 0.0 — any latency impact comes from
             # real transfer and eviction work already reflected in lora_io_ms.
-            admitted = await self._mark_resident(adapter_id, size_mb)
+            if self.effective_capacity_admission_enabled:
+                decision = self.evaluate_gpu_admission(adapter_id, size_mb, tier=tier)
+                admitted = False
+                if decision["admit"]:
+                    admitted = await self._mark_resident(adapter_id, size_mb)
+            else:
+                admitted = await self._mark_resident(adapter_id, size_mb)
             if not admitted:
                 self.logger_warning(
                     f"LoRA load admission failed for {adapter_id} in uncoordinated path; "
@@ -352,6 +391,73 @@ class ResourceCoordinator:
         lora_mb = sum(self._get_resident_loras().values())
         reserve = self.gpu_budget_mb * self.lora_load_reserve_ratio
         return self.gpu_budget_mb - self.model_weights_mb - kv_mb - lora_mb - reserve
+
+    def evaluate_gpu_admission(self, adapter_id: str, size_mb: float, tier: str = "nvme") -> Dict[str, float]:
+        """
+        Contention-Aware Effective Capacity Admission.
+
+        Returns a compact decision dict so both online loads and scale-up warmup
+        can use the same policy without introducing new runtime knobs.
+        """
+        pressure = self._contention_pressure()
+        utility = self._admission_utility(adapter_id, tier=tier)
+        effective_capacity_mb = self._effective_capacity_mb(pressure)
+        should_attempt = utility > pressure
+        return {
+            "pressure": pressure,
+            "utility": utility,
+            "effective_capacity_mb": effective_capacity_mb,
+            "should_attempt": should_attempt,
+            "admit": should_attempt and size_mb <= effective_capacity_mb,
+        }
+
+    def _effective_capacity_mb(self, pressure: Optional[float] = None) -> float:
+        available = max(0.0, self._available_mb())
+        if pressure is None:
+            pressure = self._contention_pressure()
+        return max(0.0, available * (1.0 - pressure))
+
+    def _contention_pressure(self) -> float:
+        usable_budget_mb = max(1.0, self.gpu_budget_mb - self.model_weights_mb)
+        available_mb = max(0.0, self._available_mb())
+        kv_mb = self._active_tokens / 1000.0 * self.kv_per_1k_tokens_mb
+        mem_pressure = min(1.0, max(0.0, 1.0 - (available_mb / usable_budget_mb)))
+        kv_pressure = min(1.0, max(0.0, kv_mb / usable_budget_mb))
+        load_pressure = min(1.0, max(0.0, self._loads_in_flight_ratio()))
+        return max(mem_pressure, kv_pressure, load_pressure)
+
+    def _loads_in_flight_ratio(self) -> float:
+        slots = max(1, self.max_concurrent_loads)
+        semaphore_value = getattr(self._loading_semaphore, "_value", slots)
+        in_flight = max(0, slots - int(semaphore_value))
+        return in_flight / float(slots)
+
+    def _admission_utility(self, adapter_id: str, tier: str = "nvme") -> float:
+        hotness = self._recent_hotness(adapter_id)
+        locality = self._locality_factor(tier)
+        return hotness * locality
+
+    def _recent_hotness(self, adapter_id: str) -> float:
+        log = self._access_log.get(adapter_id, [])
+        if not log:
+            return 0.0
+        now = time.time()
+        window_s = max(60.0, self.idle_timeout_s * 4.0)
+        recent_count = sum(1 for t in log if t > now - window_s)
+        freq_score = recent_count / float(recent_count + 1)
+        recency_age = max(0.0, now - log[-1])
+        recency_score = max(0.0, 1.0 - min(recency_age / window_s, 1.0))
+        return 1.0 - (1.0 - freq_score) * (1.0 - recency_score)
+
+    def _locality_factor(self, tier: str) -> float:
+        tier_key = str(tier or "nvme").lower()
+        if tier_key == "host":
+            return 1.0
+        if tier_key == "cpu":
+            return 0.9
+        if tier_key == "nvme":
+            return 0.75
+        return 0.5
 
     def _is_resident(self, adapter_id: str) -> bool:
         """True if adapter is in GPU (from residency or local _resident_loras)."""

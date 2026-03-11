@@ -1,5 +1,7 @@
 # FaaSLoRA 项目结构详解
 
+> 说明：本文用于说明仓库文件布局；当前系统语义、实例模式、扩缩容规则、缓存层次和实验进度，请以 [README.md](README.md)、[docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md](docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md) 和 [docs/PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md) 为准。
+
 本文档详细说明项目每个目录和文件的作用、实现内容及相互关系，适合初次接触本项目的研究人员参考。
 
 ---
