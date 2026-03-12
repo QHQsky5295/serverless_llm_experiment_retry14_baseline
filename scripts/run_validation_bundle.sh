@@ -67,6 +67,8 @@ build_temp_config() {
   local scale_decision_interval="${FAASLORA_SCALE_DECISION_INTERVAL:-}"
   local scale_up_threshold_rps="${FAASLORA_SCALE_UP_THRESHOLD_RPS:-}"
   local max_model_len="${FAASLORA_MAX_MODEL_LEN:-}"
+  local max_num_seqs="${FAASLORA_MAX_NUM_SEQS:-}"
+  local max_loras="${FAASLORA_MAX_LORAS:-}"
   local max_num_batched_tokens="${FAASLORA_MAX_NUM_BATCHED_TOKENS:-}"
 
   "$PYTHON_BIN" - <<PY
@@ -90,6 +92,8 @@ time_scale_factor = ${time_scale_factor@Q}
 scale_decision_interval = ${scale_decision_interval@Q}
 scale_up_threshold_rps = ${scale_up_threshold_rps@Q}
 max_model_len = ${max_model_len@Q}
+max_num_seqs = ${max_num_seqs@Q}
+max_loras = ${max_loras@Q}
 max_num_batched_tokens = ${max_num_batched_tokens@Q}
 
 if backend:
@@ -98,6 +102,10 @@ if runtime_cap:
     cfg.setdefault("model", {})["runtime_concurrency_cap"] = int(runtime_cap)
 if max_model_len:
     cfg.setdefault("model", {})["max_model_len"] = int(max_model_len)
+if max_num_seqs:
+    cfg.setdefault("model", {})["max_num_seqs"] = int(max_num_seqs)
+if max_loras:
+    cfg.setdefault("model", {})["max_loras"] = int(max_loras)
 if max_num_batched_tokens:
     cfg.setdefault("model", {})["max_num_batched_tokens"] = int(max_num_batched_tokens)
 if instance_mode:

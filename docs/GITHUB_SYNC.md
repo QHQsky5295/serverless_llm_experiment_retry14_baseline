@@ -47,4 +47,4 @@ The intended remote repository is:
 
 ## Reproducibility Note
 
-Experiment outputs referenced in papers should be exported separately from local runtime directories and curated before publication.
+If experiment outputs need to be archived or shared externally, export them separately from local runtime directories and curate them before distribution.

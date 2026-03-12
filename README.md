@@ -13,7 +13,8 @@ FaaSLoRA 是一个面向真实云工作负载的多 LoRA Serverless 大模型推
 - LoRA 规模：`100 / 300 / 500 / 1000`
 - 工作负载：Azure LLM trace + ShareGPT prompt pool
 - 当前推荐主模式：`auto`
-- 完整版默认配置：`500 LoRA + representative 1000 requests`
+- 当前验证通过的主线配置：`auto + 500 LoRA + representative 1000 requests`
+- 当前验证通过的 serving 参数：`max_num_seqs=8`、`max_loras=8`、`runtime_concurrency_cap=8`
 
 ---
 
@@ -21,7 +22,7 @@ FaaSLoRA 是一个面向真实云工作负载的多 LoRA Serverless 大模型推
 
 本项目不是生产级云平台，而是一个**真实可运行的单节点双 GPU Serverless LoRA 系统原型**。它的目标不是展示海量物理实例扩容，而是验证在共享 backbone 的多 LoRA 推理场景下，如何通过工件命中感知、分层驻留和资源协同，降低 TTFT、控制尾延迟，并在必要时扩展新的物理 GPU 执行实例。
 
-论文与文档统一使用以下术语：
+文档统一使用以下术语：
 
 - **函数实例 / function instance**：请求调度与隔离的逻辑单位
 - **物理 GPU 执行实例 / physical GPU execution instance**：绑定 GPU 的独立推理 runtime
@@ -189,7 +190,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 - 优先扩展新的物理 GPU 执行实例
 - 当物理扩容受限或失败时，再回退到共享执行路径
-- 当前最适合作为论文主系统模式
+- 当前最适合作为项目主线模式
 
 ### `dedicated`
 
@@ -197,6 +198,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 - 不回退到 shared slot
 - 在当前双 3090 环境下，物理上限就是 2 个 runtime
 - 适合作为物理扩容真实性与上界对照
+- 当前实现与配置接口保留，但不作为当前主线推进对象
 
 ---
 
@@ -277,7 +279,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 - 更适合多 LoRA serving
 - 更适合 `shared / auto / dedicated` 三种实例模式
-- 更接近论文主线的真实推理路径
+- 更接近当前项目主线的真实推理路径
 
 ### 回退后端：`transformers`
 
@@ -288,7 +290,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 - 非主线后端
 
 因此：
-- 当前论文主线不要再以 `transformers` 为主结果来源
+- 当前项目主线不要再以 `transformers` 为主结果来源
 
 ---
 
@@ -324,40 +326,58 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 因此，当前实验采用的是：
 
 - **矩阵实验**：representative Azure trace replay + ShareGPT prompt pool
-- **主结论实验**：主模式使用 `auto500 + 1000 representative requests`
-- **压力实验**：更大 LoRA 规模作为 scalability / appendix 场景
+- **主线实验**：主模式使用 `auto500 + 1000 representative requests`
+- **压力实验**：更大 LoRA 规模作为 scalability / 备用补充实验场景
 
 ---
 
 ## 当前实验主线
 
-### 已完成的小矩阵（Qwen2.5-3B + vLLM）
+### 当前验证通过的主线配置
 
-已完成：
+当前主线已收敛到以下配置：
 
-- `shared100`
-- `auto100`
-- `dedicated100`
-- `shared300`
-- `auto300`
-- `dedicated300`
-- `shared500`
-- `auto500`
-- `shared1000`
-- `auto1000`
+- `instance_mode = auto`
+- `num_adapters = 500`
+- `total_requests = 1000`
+- `sampling_strategy = representative`
+- `concurrency = 8`
+- `runtime_concurrency_cap = 8`
+- `max_model_len = 2048`
+- `max_num_seqs = 8`
+- `max_loras = 8`
+- `max_num_batched_tokens = 4096`
 
-当前结论：
+当前验证通过的代表性结果文件：
 
-- `shared`：共享执行基线
-- `dedicated`：小规模物理独立上界 / 对照
-- `auto`：当前最合理主模式
+- `results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8.json`
 
-### 当前仍未完成
+这组结果表明：
 
-- 主模式 `auto500 + 1000 representative requests`
-- CLI / packaging 断裂修复
-- 稳定环境下测试闭环
-- 跨模型家族与跨数据集扩展
+- 扩缩容链路已真实工作：出现 `physical_scale_up` 与 `physical_scale_down`
+- `auto` 模式在双 GPU 环境下能真实扩到第二个物理 runtime
+- 当前主瓶颈主要来自 vLLM serving 参数，而不是资源协同路径本身
+- 将 `max_num_seqs / max_loras` 从保守 preset 调整到 `8 / 8` 后，主线结果显著改善
+
+### 当前保留但不作为主线推进的接口
+
+- `shared` / `dedicated` 模式接口继续保留
+- `28185` full-trace 接口继续保留
+- P2.5 风格的“争用感知有效容量准入”实验路径继续保留
+
+这些接口当前的定位是：
+
+- 内部验证
+- 压力测试
+- 后续扩展
+- 备用补充实验 / ablation
+
+### 当前主线下一步
+
+- 将当前 `auto500 + representative 1000 + seq8_lora8` 配置继续做稳定性复验
+- 修 CLI / packaging 与测试闭环
+- 同步 README / 技术说明 / 进度文档与当前实现
+- 在 Qwen-3B 主线稳定后，再进入 `Qwen2.5-7B` 扩展
 
 ---
 
@@ -371,11 +391,27 @@ cd /home/qhq/serverless_llm_experiment
 python scripts/run_all_experiments.py --config configs/experiments.yaml
 ```
 
-上面这条命令会使用当前完整版本默认配置：
+上面这条命令会使用当前配置文件中的默认主路径。若要直接复现当前验证通过的主线配置，推荐使用下面这条：
 
-- `500 LoRA`
-- `representative 1000 requests`
-- `vllm` 主后端
+```bash
+cd /home/qhq/serverless_llm_experiment
+VLLM_NO_USAGE_STATS=1 \
+FAASLORA_LOG_TAG=auto500_main1000_seq8_lora8 \
+FAASLORA_RESULTS_TAG=seq8_lora8 \
+FAASLORA_INSTANCE_MODE=auto \
+FAASLORA_MAX_INSTANCES=2 \
+FAASLORA_RUNTIME_CONCURRENCY_CAP=8 \
+FAASLORA_NUM_ADAPTERS=500 \
+FAASLORA_TOTAL_REQUESTS=1000 \
+FAASLORA_CONCURRENCY=8 \
+FAASLORA_TIME_SCALE_FACTOR=0.02 \
+FAASLORA_MAX_MODEL_LEN=2048 \
+FAASLORA_MAX_NUM_SEQS=8 \
+FAASLORA_MAX_LORAS=8 \
+FAASLORA_MAX_NUM_BATCHED_TOKENS=4096 \
+FAASLORA_QUICK=0 \
+bash scripts/run_validation_bundle.sh custom
+```
 
 ### 协作 / 矩阵验证入口
 
@@ -393,8 +429,9 @@ FAASLORA_PRESET=auto300 bash scripts/run_validation_bundle.sh custom
 
 建议用法：
 
-- 矩阵实验：使用 preset
-- full-trace `28185` 接口保留，仅作为附录级压力验证或内部 sanity check，不作为当前论文主线默认配置
+- 历史矩阵复现：使用 preset
+- 当前主线复现：使用显式环境变量覆盖
+- full-trace `28185` 接口保留，仅作为压力验证或内部 sanity check，不作为当前主线默认配置
 
 ---
 
@@ -427,5 +464,5 @@ FAASLORA_PRESET=auto300 bash scripts/run_validation_bundle.sh custom
 - 当前系统是单节点双 GPU 原型，不是完整多节点云平台
 - `shared` 模式不是强隔离函数进程模型，而是共享 runtime + shared execution slot 的实现方式
 - ShareGPT 当前作为 prompt pool，而不是 full conversation replay
-- 当前矩阵和论文主实验统一使用 representative trace replay
-- `28185` full-trace 与 `auto1000 + full trace` 仅保留为压力测试或附录接口，不作为当前默认主线
+- 当前矩阵和主线实验统一使用 representative trace replay
+- `28185` full-trace 与 `auto1000 + full trace` 仅保留为压力测试或补充接口，不作为当前默认主线

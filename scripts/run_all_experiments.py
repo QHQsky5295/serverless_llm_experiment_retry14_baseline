@@ -743,6 +743,9 @@ class InferenceEngine:
         print(f"    tensor_parallel    = {tp}")
         print(f"    gpu_mem_util       = {gpu_util}")
         print(f"    max_model_len      = {max_len}")
+        print(f"    max_num_seqs       = {self.model_cfg.get('max_num_seqs', 8)}")
+        print(f"    max_batch_tokens   = {self.model_cfg.get('max_num_batched_tokens', 1024)}")
+        print(f"    runtime_conc_cap   = {self.model_cfg.get('runtime_concurrency_cap', 'n/a')}")
         print(f"    max_loras          = {max_lr}")
         print(f"    max_lora_rank      = {max_rank}")
         print(f"    enforce_eager      = {eager}")
@@ -3439,6 +3442,7 @@ def _scaled_results_path(
     concurrency: int,
     scenario_name: Optional[str] = None,
     preset_name: Optional[str] = None,
+    results_tag: Optional[str] = None,
 ) -> Path:
     mode = "quick" if quick else "full"
     suffix = results_file.suffix or ".json"
@@ -3455,6 +3459,8 @@ def _scaled_results_path(
         parts.append(_sanitize_label(scenario_name))
     if preset_name:
         parts.append(_sanitize_label(preset_name))
+    if results_tag:
+        parts.append(_sanitize_label(results_tag))
     return results_file.with_name("_".join(parts) + suffix)
 
 
@@ -3502,6 +3508,59 @@ def _apply_backend_profile(
         coord_cfg = _deep_merge_dict(coord_cfg, profile.get("resource_coordination", {}))
     model_cfg["backend"] = backend
     return exp_cfg, model_cfg, wl_cfg_yaml, coord_cfg
+
+
+def _read_env_override(name: str) -> Optional[str]:
+    value = os.environ.get(name)
+    if value is None:
+        return None
+    value = str(value).strip()
+    return value or None
+
+
+def _apply_explicit_env_overrides(
+    model_cfg: Dict[str, Any],
+    wl_cfg_yaml: Dict[str, Any],
+    coord_cfg: Dict[str, Any],
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+    applied: Dict[str, Any] = {}
+
+    def _apply(
+        env_name: str,
+        target_cfg: Dict[str, Any],
+        key: str,
+        caster: Callable[[str], Any],
+    ) -> None:
+        raw = _read_env_override(env_name)
+        if raw is None:
+            return
+        try:
+            value = caster(raw)
+        except Exception as exc:
+            raise ValueError(f"Invalid {env_name}={raw!r}: {exc}") from exc
+        target_cfg[key] = value
+        applied[env_name] = value
+
+    _apply("FAASLORA_RUNTIME_CONCURRENCY_CAP", model_cfg, "runtime_concurrency_cap", int)
+    _apply("FAASLORA_MAX_MODEL_LEN", model_cfg, "max_model_len", int)
+    _apply("FAASLORA_MAX_NUM_SEQS", model_cfg, "max_num_seqs", int)
+    _apply("FAASLORA_MAX_LORAS", model_cfg, "max_loras", int)
+    _apply("FAASLORA_MAX_NUM_BATCHED_TOKENS", model_cfg, "max_num_batched_tokens", int)
+
+    _apply("FAASLORA_INSTANCE_MODE", coord_cfg, "instance_mode", lambda v: str(v).strip().lower())
+    _apply("FAASLORA_MAX_INSTANCES", coord_cfg, "max_instances", int)
+    _apply("FAASLORA_MIN_INSTANCES", coord_cfg, "min_instances", int)
+    _apply("FAASLORA_SCALE_DECISION_INTERVAL", coord_cfg, "scale_decision_interval", int)
+    _apply("FAASLORA_SCALE_UP_THRESHOLD_RPS", coord_cfg, "scale_up_threshold_rps", float)
+
+    _apply("FAASLORA_TOTAL_REQUESTS", wl_cfg_yaml, "total_requests", int)
+    _apply("FAASLORA_CONCURRENCY", wl_cfg_yaml, "concurrency", int)
+    _apply("FAASLORA_QUICK_TOTAL_REQUESTS", wl_cfg_yaml, "quick_total_requests", int)
+    _apply("FAASLORA_QUICK_CONCURRENCY", wl_cfg_yaml, "quick_concurrency", int)
+    _apply("FAASLORA_TIME_SCALE_FACTOR", wl_cfg_yaml, "time_scale_factor", float)
+
+    return model_cfg, wl_cfg_yaml, coord_cfg, applied
+
 
 def _get_model_arch(model_name: str) -> Dict:
     """
@@ -4336,6 +4395,12 @@ async def main_async(
         coord_cfg,
         backend_override,
     )
+    model_cfg, wl_cfg_yaml, coord_cfg, applied_env_overrides = _apply_explicit_env_overrides(
+        model_cfg,
+        wl_cfg_yaml,
+        coord_cfg,
+    )
+    results_tag = _read_env_override("FAASLORA_RESULTS_TAG")
 
     bw_mbps    = float(storage_cfg.get("bandwidth_mbps", 100))
     remote_dir = REPO_ROOT / storage_cfg.get("remote_dir", "artifacts/remote")
@@ -4395,6 +4460,7 @@ async def main_async(
             concurrency=int(wl_cfg_yaml.get("concurrency", 1)),
             scenario_name=only_scenario,
             preset_name=preset_name,
+            results_tag=results_tag,
         )
     print("=" * 70)
     print("  FaaSLoRA Complete Experiment Runner")
@@ -4410,6 +4476,13 @@ async def main_async(
         print(f"  Manifest: {manifest_label}")
         if scale_preset:
             print(f"  Preset  : scale={selected_adapter_count}")
+    if applied_env_overrides:
+        overrides_text = ", ".join(
+            f"{k}={v}" for k, v in sorted(applied_env_overrides.items())
+        )
+        print(f"  Overrides: {overrides_text}")
+    if results_tag:
+        print(f"  ResultsTag: {results_tag}")
     if applied_preset:
         print(f"  Matrix  : {preset_name}")
     print()
@@ -4748,6 +4821,11 @@ async def main_async(
             "device_id": model_cfg.get("device_id", 0),
             "visible_device_ids": model_cfg.get("visible_device_ids"),
             "max_model_len": model_cfg.get("max_model_len"),
+            "max_num_seqs": model_cfg.get("max_num_seqs"),
+            "max_num_batched_tokens": model_cfg.get("max_num_batched_tokens"),
+            "runtime_concurrency_cap": model_cfg.get("runtime_concurrency_cap"),
+            "max_loras": model_cfg.get("max_loras"),
+            "results_tag": results_tag,
             "bandwidth_mbps": bw_mbps,
             "total_requests": len(traces),
             "sampling_strategy": sampling_strategy,

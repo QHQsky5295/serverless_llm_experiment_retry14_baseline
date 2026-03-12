@@ -2,136 +2,199 @@
 
 ## 文档用途
 
-本文档用于记录相较上一次 GitHub 同步的变化、当前完成状态、主线 TODO、矩阵进度和下一步动作。每次同步 GitHub 前后都应更新本文件。
+本文档记录：
+
+- 当前本地仓库与 GitHub 远端的一致性状态
+- 相较上一次远端同步基线的主要变化
+- 当前主线实验做到哪里了
+- 仍待完成的工程与扩展任务
+- 下一步应该推进什么
+
+每次同步 GitHub 前后都应更新本文件，并保证与 README 和技术说明文档口径一致。
 
 ## 当前仓库标识
 
 - 项目名称：**FaaSLoRA：面向多 LoRA 大模型推理的扩缩容感知Serverless系统**
 - 本地仓库：`/home/qhq/serverless_llm_experiment`
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
-- 上一次远端同步基线：`e717f80`
+- 本次同步前基线：`84da4e1`
 
-## 本次相对上次同步的主要变化
+当前结论：
 
-### 代码主线变化
+- 本次同步开始前，GitHub 上的 `main` 与本地已提交基线一致。
+- 本文记录的是本次同步批次中纳入的代码与文档更新。
 
-1. 默认主后端切换并稳定在 `vllm`
-2. `shared / auto / dedicated` 三种实例模式语义已收敛
-3. full stack 路径已真实接入：
-   - 预加载
-   - 驻留管理
-   - 资源协调
-   - 扩缩容触发
-4. 结果文件命名已按：
-   - backend
-   - instance_mode
-   - adapters
-   - requests
-   - concurrency
-   - preset
-   独立输出，不再互相覆盖
-5. 顶层结果 schema 已补充 `scenario_summaries`
-6. live 面板已支持：
-   - 进度条
-   - arrival / backlog / busy
-   - instance/runtime 状态
-   - shared_slots / dedicated_instances
-   - cache 与 resident 信息
-7. 矩阵 preset 已固化在 `configs/experiments.yaml`
-8. 主实验路径已接入 representative workload sampling：
-   - 近似保持 inter-arrival CDF
-   - 近似保持 token-length CDF
-   - 近似保持 burst ratio
-9. 完整版默认配置已切换为：
-   - `500 LoRA`
-   - `1000 representative requests`
+## 本次同步纳入的更新
 
-### 文档主线变化
+本次同步包含以下文件更新：
 
-1. README 恢复为上一版表格化、分节清晰的结构，并在此基础上按当前实现迭代
-2. README 补充了：
-   - 系统定位
-   - 三项核心机制
-   - 模块与规则说明
-   - 实例模式
-   - 扩缩容 / 路由 / 缓存 / 后端说明
-   - ASCII 架构示意图
-   - 文档导航
-3. 技术说明文档继续作为当前实现的权威补充文档
-4. 本进度文档继续作为同步基线和实验进度记录
+- `README.md`
+- `docs/GITHUB_SYNC.md`
+- `docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md`
+- `docs/PROJECT_PROGRESS.md`
+- `scripts/run_all_experiments.py`
+- `scripts/run_all_experiments_user_scope.sh`
+- `scripts/run_validation_bundle.sh`
 
-## 当前已完成的实验矩阵
+这些变更主要对应：
 
-### 小矩阵（Qwen2.5-3B + vLLM）
+1. 显式环境变量覆盖优先级修复，避免被 `scale_preset` 回写覆盖。
+2. `FAASLORA_MAX_NUM_SEQS` / `FAASLORA_MAX_LORAS` / `FAASLORA_RESULTS_TAG` 支持。
+3. user-scope 启动脚本对 `FAASLORA_*` 环境变量的透传修复。
+4. 文档对当前主线配置、调度机制、扩缩容逻辑和资源协同语义的对齐。
 
-已完成：
-- `shared100`
-- `auto100`
-- `dedicated100`
-- `shared300`
-- `auto300`
-- `dedicated300`
-- `shared500`
-- `auto500`
-- `shared1000`
-- `auto1000`
+## 相较当前 GitHub 基线的主要变化
 
-### 当前结论
+### 代码变化
 
-- `shared`：共享执行基线成立
-- `dedicated`：小规模下是物理独立扩容上界/对照
-- `auto`：当前最合理主模式
+1. 主实验显式参数现在会在 preset 之后做最终覆盖。
+2. `max_num_seqs` 与 `max_loras` 已被纳入当前主线配置入口。
+3. 结果文件可通过 `results_tag` 区分，避免 sweep 结果相互覆盖。
+4. runtime 初始化日志会打印更完整的 serving 参数，便于核对真实生效值。
+5. representative 采样、full stack 路径、auto 模式 scale-up / scale-down 记账都已进入稳定可复现实验路径。
 
-## 当前仍未完成
+### 文档变化
 
-### 主实验
-- 以 `auto500 + 1000 representative requests` 作为论文主实验
-- `28185` full trace 与 `auto1000 + full trace` 保留为压力测试 / 附录实验接口，不再作为默认主线
+1. `README.md` 已更新为当前主线口径：
+   - 主线模式是 `auto`
+   - 当前主线配置是 `auto + 500 LoRA + representative 1000 requests`
+   - 当前验证通过的 serving 参数是 `max_num_seqs=8`、`max_loras=8`、`runtime_concurrency_cap=8`
+2. `docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md` 已基于实现补充：
+   - 统一术语与形式化记号
+   - cache-affinity 路由规则
+   - 批级扩缩容观测与动态阈值
+   - scale-up warmup 选择逻辑
+   - 资源协同与 TTFT 分解
+   - 实验版 `effective_capacity_admission_enabled` 的非主线定位
+3. 本进度文档已经改为反映当前真实状态，而不是历史阶段计划。
 
-### 工程闭环
-- CLI / packaging 断裂仍待修复
-- 稳定环境下基础测试仍待补齐
-- 旧实验指南和部分附属文档仍待继续清理
+## 当前主线实验状态
 
-### 模型扩展
-后续目标为 3 个模型家族 × 每家 2 个尺寸：
+### 已完成
+
+当前已经完成并验收的主线结果为：
+
+- 模式：`auto`
+- LoRA 数量：`500`
+- 请求数：`1000 representative requests`
+- serving 参数：
+  - `concurrency=8`
+  - `runtime_concurrency_cap=8`
+  - `max_model_len=2048`
+  - `max_num_batched_tokens=4096`
+  - `max_num_seqs=8`
+  - `max_loras=8`
+
+对应结果文件：
+
+- `results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8.json`
+
+当前主线结论：
+
+1. `auto` 主路径已真实跑通，扩缩容、warmup、preload、residency、resource coordination 都进入了完整链路。
+2. 当前主线瓶颈已经从 admission / defer 转移到 serving 参数调优问题，并已通过 `seq8_lora8` 基本解决。
+3. 当前 `auto500 + representative1000 + seq8_lora8` 可以作为项目主线的工作基线。
+
+### 当前主线关键结果
+
+当前已验证结果的关键指标约为：
+
+- `TTFT avg = 1409 ms`
+- `TTFT P95 = 4068 ms`
+- `TTFT P99 = 6023 ms`
+- `E2E P99 = 22550 ms`
+- `RPS = 0.364`
+- `Hit = 94.6%`
+- `scale_up_events = 1`
+- `scale_down_events = 1`
+- `contention = 0`
+- `defer = 0`
+
+### 不再作为当前主线推进的内容
+
+以下内容的实现和配置入口继续保留，但不再作为当前主线推进对象：
+
+- `shared`
+- `dedicated`
+- `28185 full trace`
+- `effective_capacity_admission_enabled`（P2.5 风格实验路径）
+
+它们目前的定位是：
+
+- 内部 sanity check
+- 备用补充实验
+- 压力测试入口
+- 后续扩展可复用接口
+
+## 当前工程状态
+
+### 已修复
+
+1. `run_all_experiments.py` 中 preset 对显式环境变量的覆盖问题。
+2. user-scope 启动脚本未透传 `FAASLORA_*` 环境变量的问题。
+3. 结果文件命名冲突问题。
+4. 主线 serving 参数不可显式覆盖的问题。
+
+### 仍待完成
+
+1. CLI / packaging 断裂仍待系统性修复。
+2. 稳定环境下可执行的基础测试仍待补齐。
+3. 仍需继续清理 README / GUIDE / 其他附属文档与当前实现之间的漂移。
+
+## 模型与数据集扩展状态
+
+### 当前状态
+
+- Qwen 主线当前只推进 `Qwen2.5-3B-Instruct`
+- 其他模型家族和额外数据集尚未开始主线接入
+
+### 后续扩展目标
+
+模型家族：
 
 - Qwen：`Qwen2.5-3B-Instruct`、`Qwen2.5-7B-Instruct`
 - Meta-Llama：`Llama-3.2-3B-Instruct`、`Meta-Llama-3.1-8B-Instruct`
 - Gemma：`gemma-3-4b-it`、`gemma-3-12b-it`
 
-### 数据集扩展
-后续目标：
+数据集：
+
 - `HuggingFaceH4/ultrachat_200k`
 - `lmsys/lmsys-chat-1m`
 
+进入这些扩展之前，需要先把当前 Qwen-3B 主线配置和文档稳定下来。
+
 ## 当前主线 TODO
 
-### A. 先完成 Qwen-3B 主证据
-1. 以 `auto500 + 1000 representative requests` 固化论文主实验结果。
-2. 汇总既有小矩阵与主实验，形成论文主表。
+### A. 稳定当前主基线
 
-### B. 工程硬伤
-3. 修复 CLI / packaging 断裂。
-4. 补稳定环境下可执行的基础测试。
-5. 清理 README / GUIDE / docs 与当前实现口径不一致的问题。
+1. 对 `auto500 + representative1000 + seq8_lora8` 做 1 到 2 次复现实验，确认结果稳定。
+2. 将当前 serving 配置正式固化为主线默认复现实验参数。
+3. 把当前主线结果、配置和运行命令同步到所有核心文档。
 
-### C. 模型与数据集扩展
-6. 接入 3 个模型家族 × 每家 2 个尺寸。
-7. 接入 2 个新增对话数据集。
-8. 在不同 backbone、数据集和模式下完成后续扩展实验。
+### B. 工程闭环
+
+4. 修复 CLI / packaging 断裂。
+5. 补齐稳定环境下可跑的基础测试。
+6. 清理 README / GUIDE / docs 与实现不一致的残留项。
+
+### C. 扩展主线
+
+7. 在 Qwen-3B 主线稳定后，推进 `Qwen2.5-7B-Instruct`。
+8. 再进入其他模型家族扩展。
+9. 最后接入额外对话数据集。
 
 ## 当前已确认的长期约束
 
-1. 每次同步 GitHub，不仅同步代码，还要同步 README、实验指南、技术说明及附属文档。
-2. 每次同步前后都维护本进度文档。
+1. 每次同步 GitHub 时，代码与文档必须一起同步。
+2. 每次同步前后都要更新本进度文档。
 3. 项目标题固定为：
    - **FaaSLoRA：面向多 LoRA 大模型推理的扩缩容感知Serverless系统**
 4. 模型目录只保留占位，不上传权重内容。
+5. `shared / dedicated / full-trace / effective_capacity_admission_enabled` 的接口继续保留，但不作为当前主线默认路径。
 
 ## 建议的下一步
 
-1. 完成 `auto500 + 1000 representative requests` 主实验验收与总结。
-2. 汇总 `shared / auto / dedicated` 的关键指标与趋势，支撑 `auto` 作为正文主模式。
-3. 修 CLI / packaging 与测试闭环。
-4. 再进入跨模型家族扩展。
+1. 先做 `auto500 + representative1000 + seq8_lora8` 的复现实验。
+2. 若复现结果稳定，则冻结当前主线配置。
+3. 然后补工程闭环与文档同步。
+4. 最后进入 `Qwen2.5-7B-Instruct` 扩展。

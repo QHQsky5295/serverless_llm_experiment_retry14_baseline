@@ -16,5 +16,16 @@ if [[ ! -f "$SCRIPT_PATH" ]]; then
 fi
 
 cd "$ROOT_DIR"
+
+SYSTEMD_ENV_ARGS=()
+for name in $(compgen -e); do
+  case "$name" in
+    FAASLORA_*|CUDA_VISIBLE_DEVICES)
+      SYSTEMD_ENV_ARGS+=(--setenv="$name=${!name}")
+      ;;
+  esac
+done
+
 exec systemd-run --user --scope --collect \
+  "${SYSTEMD_ENV_ARGS[@]}" \
   "$PYTHON_BIN" "$SCRIPT_PATH" "$@"
