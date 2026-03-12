@@ -3522,7 +3522,8 @@ def _apply_explicit_env_overrides(
     model_cfg: Dict[str, Any],
     wl_cfg_yaml: Dict[str, Any],
     coord_cfg: Dict[str, Any],
-) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+    hw_cfg: Dict[str, Any],
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
     applied: Dict[str, Any] = {}
 
     def _apply(
@@ -3541,11 +3542,16 @@ def _apply_explicit_env_overrides(
         target_cfg[key] = value
         applied[env_name] = value
 
+    _apply("FAASLORA_MODEL_NAME", model_cfg, "name", str)
+    _apply("FAASLORA_GPU_MEMORY_UTILIZATION", model_cfg, "gpu_memory_utilization", float)
     _apply("FAASLORA_RUNTIME_CONCURRENCY_CAP", model_cfg, "runtime_concurrency_cap", int)
     _apply("FAASLORA_MAX_MODEL_LEN", model_cfg, "max_model_len", int)
     _apply("FAASLORA_MAX_NUM_SEQS", model_cfg, "max_num_seqs", int)
     _apply("FAASLORA_MAX_LORAS", model_cfg, "max_loras", int)
     _apply("FAASLORA_MAX_NUM_BATCHED_TOKENS", model_cfg, "max_num_batched_tokens", int)
+
+    _apply("FAASLORA_MODEL_WEIGHTS_MB", hw_cfg, "model_weights_mb", float)
+    _apply("FAASLORA_KV_PER_1K_TOKENS_MB", hw_cfg, "kv_per_1k_tokens_mb", float)
 
     _apply("FAASLORA_INSTANCE_MODE", coord_cfg, "instance_mode", lambda v: str(v).strip().lower())
     _apply("FAASLORA_MAX_INSTANCES", coord_cfg, "max_instances", int)
@@ -3559,7 +3565,7 @@ def _apply_explicit_env_overrides(
     _apply("FAASLORA_QUICK_CONCURRENCY", wl_cfg_yaml, "quick_concurrency", int)
     _apply("FAASLORA_TIME_SCALE_FACTOR", wl_cfg_yaml, "time_scale_factor", float)
 
-    return model_cfg, wl_cfg_yaml, coord_cfg, applied
+    return model_cfg, wl_cfg_yaml, coord_cfg, hw_cfg, applied
 
 
 def _get_model_arch(model_name: str) -> Dict:
@@ -4376,6 +4382,10 @@ async def main_async(
         adapters_cfg["quick_num_adapters"] = int(adapter_count_override)
         adapters_cfg["full_num_adapters"] = int(adapter_count_override)
 
+    initial_model_name = _read_env_override("FAASLORA_MODEL_NAME")
+    if initial_model_name is not None:
+        model_cfg["name"] = initial_model_name
+
     model_name = model_cfg.get("name", "Qwen/Qwen2.5-0.5B-Instruct")
     adapters_cfg, selected_adapters, scale_preset, selected_adapter_count, manifest_path, scalable_mode = (
         _resolve_adapter_scale(adapters_cfg, model_name, quick)
@@ -4395,10 +4405,11 @@ async def main_async(
         coord_cfg,
         backend_override,
     )
-    model_cfg, wl_cfg_yaml, coord_cfg, applied_env_overrides = _apply_explicit_env_overrides(
+    model_cfg, wl_cfg_yaml, coord_cfg, hw_cfg, applied_env_overrides = _apply_explicit_env_overrides(
         model_cfg,
         wl_cfg_yaml,
         coord_cfg,
+        hw_cfg,
     )
     results_tag = _read_env_override("FAASLORA_RESULTS_TAG")
 

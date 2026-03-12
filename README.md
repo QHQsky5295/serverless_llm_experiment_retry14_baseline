@@ -381,7 +381,8 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 - 已完成：补回 `faaslora.cli`，修复 CLI / packaging 的主断裂点
 - 继续补稳定环境下可执行的基础测试
 - 继续清理 README / 技术说明 / 进度文档与当前实现的残余漂移
-- 在 Qwen-3B 主线稳定后，再进入 `Qwen2.5-7B` 扩展
+- 已开始：为 `Qwen2.5-7B` 扩展补显式模型 / 硬件覆盖入口，避免手改 YAML
+- 下一步：先做 `Qwen2.5-7B` 的首轮 bring-up 验证，再决定是否冻结 7B 默认参数
 
 ---
 
@@ -449,6 +450,17 @@ cd /home/qhq/serverless_llm_experiment
 - 主线默认配置没有从 `seq8_lora8` 漂移
 - `scale_presets["500"]` 与主线 serving 参数一致
 - `faaslora.cli` 与环境变量覆盖入口可执行
+
+### 模型扩展覆盖入口
+
+当前已经支持用显式环境变量切换扩展模型验证时最关键的几项参数：
+
+- `FAASLORA_MODEL_NAME`
+- `FAASLORA_GPU_MEMORY_UTILIZATION`
+- `FAASLORA_MODEL_WEIGHTS_MB`
+- `FAASLORA_KV_PER_1K_TOKENS_MB`
+
+这组覆盖主要用于后续 `Qwen2.5-7B` 等 backbone 扩展验证，避免每次先手改 `configs/experiments.yaml`。
 
 ---
 
