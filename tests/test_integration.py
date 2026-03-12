@@ -9,13 +9,8 @@ and system coordination.
 
 import os
 import sys
-import json
-import time
-import asyncio
 import tempfile
 from pathlib import Path
-from typing import Dict, Any, List
-from unittest.mock import Mock, patch
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -393,7 +388,7 @@ def run_integration_tests():
             except Exception as e:
                 print(f"✗ {method_name}: {e}")
     
-    print(f"\n=== Test Summary ===")
+    print("\n=== Test Summary ===")
     print(f"Total: {total_tests}")
     print(f"Passed: {passed_tests}")
     print(f"Failed: {total_tests - passed_tests}")

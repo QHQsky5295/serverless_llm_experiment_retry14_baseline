@@ -1,5 +1,5 @@
 """Minimal vLLM + LoRA test using synchronous LLM API."""
-import os, sys, time
+import os
 
 MODEL = "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"
 LORA_PATH = "/home/qhq/serverless_llm_experiment/artifacts/nvme_cache/faaslora_full/finance_lora"

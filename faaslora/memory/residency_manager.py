@@ -11,7 +11,6 @@ import threading
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
-from collections import defaultdict
 
 from .gpu_monitor import GPUMemoryMonitor
 from ..registry.schema import ArtifactMetadata, StorageTier, ArtifactStatus
@@ -140,7 +139,12 @@ class ResidencyManager:
     async def start(self):
         """Start the residency manager"""
         self.logger.info("Starting residency manager...")
+        await self.start_monitoring()
         self.logger.info("Residency manager started successfully")
+
+    async def stop(self):
+        """Stop the residency manager and background monitoring."""
+        await self.stop_monitoring()
     
     def _initialize_tier_capacities(self) -> Dict[StorageTier, TierCapacity]:
         """Initialize storage tier capacities from configuration"""
@@ -189,6 +193,7 @@ class ResidencyManager:
             return
         
         self.monitoring = True
+        self._sync_gpu_capacity_once()
         self.monitor_task = asyncio.create_task(self._monitoring_loop())
         self.logger.info("Residency monitoring started")
     
@@ -406,6 +411,16 @@ class ResidencyManager:
                 'details': artifact_details
             }
         }
+
+    def is_artifact_in_tier(self, artifact_id: str, tier: Any) -> bool:
+        """Compatibility helper for older service paths that check residency directly."""
+        if isinstance(tier, str):
+            try:
+                from ..registry.schema import StorageTier as StorageTierEnum
+                tier = StorageTierEnum(tier)
+            except Exception:
+                return False
+        return artifact_id in self.tier_artifacts.get(tier, set())
     
     def get_all_tiers_status(self) -> Dict[str, Any]:
         """Get status for all storage tiers"""
@@ -727,19 +742,7 @@ class ResidencyManager:
         """Background monitoring loop"""
         while self.monitoring:
             try:
-                # Update GPU memory information
-                if self.gpu_monitor.enabled:
-                    gpu_info = self.gpu_monitor.get_current_memory_info(0)
-                    if gpu_info:
-                        self.tier_capacities[StorageTier.GPU].used_bytes = gpu_info.used_bytes
-                        
-                        # Update memory estimator
-                        self.memory_estimator.update_memory_usage(
-                            total_bytes=gpu_info.total_bytes,
-                            used_bytes=gpu_info.used_bytes,
-                            exec_peak_bytes=gpu_info.active_bytes,
-                            kv_cache_bytes=gpu_info.cached_bytes
-                        )
+                self._sync_gpu_capacity_once()
                 
                 # Check for memory pressure and trigger evictions
                 await self._check_memory_pressure()
@@ -753,6 +756,21 @@ class ResidencyManager:
             except Exception as e:
                 self.logger.error(f"Error in residency monitoring loop: {e}")
                 await asyncio.sleep(5.0)
+
+    def _sync_gpu_capacity_once(self):
+        """Refresh GPU tier usage from the live monitor when available."""
+        if not self.gpu_monitor.enabled:
+            return
+        gpu_info = self.gpu_monitor.get_current_memory_info(0)
+        if not gpu_info:
+            return
+        self.tier_capacities[StorageTier.GPU].used_bytes = gpu_info.used_bytes
+        self.memory_estimator.update_memory_usage(
+            total_bytes=gpu_info.total_bytes,
+            used_bytes=gpu_info.used_bytes,
+            exec_peak_bytes=gpu_info.active_bytes,
+            kv_cache_bytes=gpu_info.cached_bytes
+        )
     
     async def _check_memory_pressure(self):
         """Check for memory pressure and trigger evictions if needed"""

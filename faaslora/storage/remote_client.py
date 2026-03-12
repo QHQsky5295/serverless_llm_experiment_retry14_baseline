@@ -17,6 +17,7 @@ import time
 import shutil
 import asyncio
 import threading
+import importlib.util
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
@@ -39,7 +40,9 @@ class RemoteStorageClient:
         self.logger = get_logger(__name__)
 
         remote_cfg = config.get("storage", {}).get("remote", {})
-        self.provider: str = remote_cfg.get("provider", "local_dir")
+        self.provider: str = str(remote_cfg.get("provider", "local_dir")).lower()
+        if self.provider not in {"local_dir", "huggingface", "none"}:
+            raise ValueError(f"Unsupported remote storage provider: {self.provider}")
 
         # ---------- local_dir backend ----------
         self.remote_dir = Path(
@@ -75,6 +78,11 @@ class RemoteStorageClient:
     async def initialize(self):
         if self.provider == "local_dir":
             self.remote_dir.mkdir(parents=True, exist_ok=True)
+        elif self.provider == "huggingface":
+            if importlib.util.find_spec("huggingface_hub") is None:
+                raise RuntimeError(
+                    "RemoteStorageClient provider='huggingface' requires huggingface_hub"
+                )
         self.logger.info("RemoteStorageClient ready")
 
     async def cleanup(self):

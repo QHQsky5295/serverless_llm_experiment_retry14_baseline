@@ -8,9 +8,9 @@ and memory estimation using EWMA and optimization algorithms.
 import time
 import math
 import numpy as np
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple
 from dataclasses import dataclass
-from collections import defaultdict, deque
+from collections import deque
 
 
 @dataclass

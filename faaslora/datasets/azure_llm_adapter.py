@@ -5,15 +5,12 @@ Adapter for loading and processing Azure LLM inference datasets
 for language model workload simulation and analysis.
 """
 
-import asyncio
 import json
-import gzip
 import time
-from typing import Dict, Any, List, Optional, Iterator, Tuple, Union
+from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
-from pathlib import Path
 import hashlib
 
 try:
@@ -927,7 +924,7 @@ class AzureLLMAdapter:
             # Get evolution status
             evolution_status = evolution_engine.get_evolution_status()
             
-            self.logger.info(f"Synthetic workload adapter distribution:")
+            self.logger.info("Synthetic workload adapter distribution:")
             self.logger.info(f"  Total requests: {total_requests}")
             self.logger.info(f"  Unique adapters used: {unique_adapters}")
             self.logger.info(f"  Hot adapter requests ratio: {hot_ratio:.3f}")

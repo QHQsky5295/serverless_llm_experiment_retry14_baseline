@@ -5,16 +5,13 @@ Adapter for loading and processing Azure Functions 2019 invocation traces
 for serverless workload simulation and analysis.
 """
 
-import asyncio
 import csv
-import gzip
 import json
 import time
-from typing import Dict, Any, List, Optional, Iterator, Tuple
+from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
-from pathlib import Path
 
 try:
     import pandas as pd
@@ -474,9 +471,6 @@ class AzureFunctionsAdapter:
             return []
         
         # Create hourly buckets
-        min_time = min(timestamps)
-        max_time = max(timestamps)
-        
         buckets = {}
         for timestamp in timestamps:
             # Round to hour
@@ -609,7 +603,6 @@ class AzureFunctionsAdapter:
         
         synthetic_invocations = []
         start_time = time.time()
-        end_time = start_time + (duration_hours * 3600)
         
         for function_name, pattern in self.workload_patterns.items():
             # Calculate number of invocations for this function

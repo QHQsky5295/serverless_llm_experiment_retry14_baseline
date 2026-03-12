@@ -9,11 +9,11 @@ import logging.handlers
 import sys
 import json
 import time
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional
 from pathlib import Path
 from datetime import datetime
 import threading
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass

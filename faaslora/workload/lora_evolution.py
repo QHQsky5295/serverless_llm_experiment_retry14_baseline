@@ -6,13 +6,10 @@ based on Zipf distribution and piecewise-stationary hotspot rotation.
 """
 
 import time
-import math
 import random
-from typing import Dict, List, Set, Tuple, Optional, Any
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from typing import Dict, List, Set, Tuple, Any
+from dataclasses import dataclass
 import numpy as np
-from collections import defaultdict
 
 from ..utils.logger import get_logger
 from ..utils.config import Config

@@ -10,8 +10,7 @@ import threading
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
 from enum import Enum
-import json
-from collections import defaultdict, deque
+from collections import deque
 
 from ..utils.config import Config
 from ..utils.logger import get_logger

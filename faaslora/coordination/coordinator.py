@@ -11,7 +11,6 @@ import threading
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
 from enum import Enum
-import json
 
 from ..registry.artifact_registry import ArtifactRegistry
 from ..memory.residency_manager import ResidencyManager
@@ -197,12 +196,14 @@ class Coordinator:
         # 2. GPU Monitor
         self.gpu_monitor = GPUMemoryMonitor(self.config)
         await self.gpu_monitor.start()
-        self._update_component_status("gpu_monitor", "running")
+        gpu_status = "running" if getattr(self.gpu_monitor, "enabled", False) else "disabled"
+        self._update_component_status("gpu_monitor", gpu_status)
         
         # 3. Metrics Collector
         self.metrics_collector = MetricsCollector(self.config)
         await self.metrics_collector.start()
-        self._update_component_status("metrics_collector", "running")
+        metrics_status = "running" if getattr(self.metrics_collector, "enabled", False) else "disabled"
+        self._update_component_status("metrics_collector", metrics_status)
         
         # 4. Residency Manager
         self.residency_manager = ResidencyManager(
@@ -238,7 +239,9 @@ class Coordinator:
             preloading_manager=self.preloading_manager,
             metrics_collector=self.metrics_collector
         )
-        await self.inference_engine.start()
+        engine_started = await self.inference_engine.start()
+        if not engine_started:
+            raise RuntimeError("Inference engine failed to start")
         self._update_component_status("inference_engine", "running")
         
         # 8. Auto Scaler
@@ -248,7 +251,8 @@ class Coordinator:
             gpu_monitor=self.gpu_monitor
         )
         await self.autoscaler.start()
-        self._update_component_status("autoscaler", "running")
+        autoscaler_status = "running" if getattr(self.autoscaler, "enabled", False) else "disabled"
+        self._update_component_status("autoscaler", autoscaler_status)
         
         # 9. HTTP Server (initialize but don't start yet)
         self.http_server = HTTPServer(
@@ -289,6 +293,9 @@ class Coordinator:
         try:
             self.logger.info("Starting HTTP server asynchronously...")
             await self.http_server.start()
+            status, message = self.http_server.check_server_status()
+            if not status:
+                raise RuntimeError(message)
             self._update_component_status("http_server", "running")
             self.logger.info("HTTP server started successfully")
         except Exception as e:
@@ -435,8 +442,6 @@ class Coordinator:
     
     async def _check_component_health(self):
         """Check health of all components"""
-        current_time = time.time()
-        
         components = {
             "registry": self.registry,
             "gpu_monitor": self.gpu_monitor,

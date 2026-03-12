@@ -15,8 +15,6 @@ import uuid
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
-import json
-import math
 
 from ..registry.artifact_registry import ArtifactRegistry
 from ..memory.gpu_monitor import GPUMemoryMonitor
@@ -536,10 +534,6 @@ class AutoScaler:
         arrival_up_score = category_up_scores.get("arrival_pressure", 0.0)
         service_up_score = category_up_scores.get("service_saturation", 0.0)
         latency_up_score = category_up_scores.get("latency_degradation", 0.0)
-        arrival_down_score = category_down_scores.get("arrival_pressure", 0.0)
-        service_down_score = category_down_scores.get("service_saturation", 0.0)
-        latency_down_score = category_down_scores.get("latency_degradation", 0.0)
-
         action = ScalingAction.NO_ACTION
         target_instances = current_instances
         confidence = 0.0

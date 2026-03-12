@@ -6,8 +6,7 @@ based on hotness prediction and value-per-byte optimization.
 """
 
 import time
-import heapq
-from typing import Dict, List, Optional, Set, Tuple, Any
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict

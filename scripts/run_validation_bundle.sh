@@ -66,6 +66,7 @@ build_temp_config() {
   local time_scale_factor="${FAASLORA_TIME_SCALE_FACTOR:-}"
   local scale_decision_interval="${FAASLORA_SCALE_DECISION_INTERVAL:-}"
   local scale_up_threshold_rps="${FAASLORA_SCALE_UP_THRESHOLD_RPS:-}"
+  local effective_capacity_admission="${FAASLORA_EFFECTIVE_CAPACITY_ADMISSION:-}"
   local max_model_len="${FAASLORA_MAX_MODEL_LEN:-}"
   local max_num_seqs="${FAASLORA_MAX_NUM_SEQS:-}"
   local max_loras="${FAASLORA_MAX_LORAS:-}"
@@ -91,6 +92,7 @@ quick_concurrency = ${quick_concurrency@Q}
 time_scale_factor = ${time_scale_factor@Q}
 scale_decision_interval = ${scale_decision_interval@Q}
 scale_up_threshold_rps = ${scale_up_threshold_rps@Q}
+effective_capacity_admission = ${effective_capacity_admission@Q}
 max_model_len = ${max_model_len@Q}
 max_num_seqs = ${max_num_seqs@Q}
 max_loras = ${max_loras@Q}
@@ -118,6 +120,10 @@ if scale_decision_interval:
     cfg.setdefault("resource_coordination", {})["scale_decision_interval"] = int(scale_decision_interval)
 if scale_up_threshold_rps:
     cfg.setdefault("resource_coordination", {})["scale_up_threshold_rps"] = float(scale_up_threshold_rps)
+if effective_capacity_admission:
+    cfg.setdefault("resource_coordination", {})["effective_capacity_admission_enabled"] = (
+        str(effective_capacity_admission).strip().lower() in {"1", "true", "yes", "on"}
+    )
 if total_requests:
     cfg.setdefault("workload", {})["total_requests"] = int(total_requests)
 if concurrency:

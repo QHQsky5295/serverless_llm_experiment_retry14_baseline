@@ -8,8 +8,6 @@ import asyncio
 import time
 import json
 from typing import Dict, Any, Optional, List
-from dataclasses import dataclass, asdict
-import traceback
 
 try:
     from fastapi import FastAPI, HTTPException, Request, Response, BackgroundTasks
@@ -168,6 +166,7 @@ class HTTPServer:
         self.app: Optional[FastAPI] = None
         self.server: Optional[Any] = None
         self.is_running = False
+        self._server_start_error: Optional[str] = None
         
         # Request tracking
         self.active_requests: Dict[str, Dict[str, Any]] = {}
@@ -421,7 +420,7 @@ class HTTPServer:
                         "version": adapter.version,
                         "size_bytes": adapter.size_bytes,
                         "hit_count": adapter.hit_count,
-                        "last_accessed": adapter.last_accessed,
+                        "last_accessed": adapter.last_accessed_at,
                         "status": adapter.status.value if hasattr(adapter.status, 'value') else str(adapter.status)
                     })
                 
@@ -448,9 +447,10 @@ class HTTPServer:
                     "version": adapter.version,
                     "size_bytes": adapter.size_bytes,
                     "hit_count": adapter.hit_count,
-                    "last_accessed": adapter.last_accessed,
+                    "last_accessed": adapter.last_accessed_at,
                     "status": adapter.status.value if hasattr(adapter.status, 'value') else str(adapter.status),
-                    "storage_locations": [asdict(loc) for loc in adapter.storage_locations]
+                    "storage_tier": adapter.storage_tier.value if hasattr(adapter.storage_tier, 'value') else str(adapter.storage_tier),
+                    "storage_path": adapter.storage_path,
                 }
                 
             except HTTPException:
@@ -492,14 +492,14 @@ class HTTPServer:
         self.logger.info("HTTP server start() method called")
         
         if not FASTAPI_AVAILABLE:
-            self.logger.error("Cannot start HTTP server: FastAPI not available")
-            return
+            raise RuntimeError("Cannot start HTTP server: FastAPI not available")
         
         if self.is_running:
             self.logger.warning("HTTP server already running")
             return
         
         try:
+            self._server_start_error = None
             self.logger.info(f"Starting HTTP server on {self.host}:{self.port}")
             
             # Create FastAPI app
@@ -534,6 +534,7 @@ class HTTPServer:
                         timeout_keep_alive=5
                     )
                 except Exception as e:
+                    self._server_start_error = str(e)
                     self.logger.error(f"Error in server thread: {e}", exc_info=True)
             
             self._server_thread = threading.Thread(target=run_server, daemon=True)
@@ -542,16 +543,23 @@ class HTTPServer:
             
             # Wait a moment for the server to start
             await asyncio.sleep(1.0)
+
+            status, message = self.check_server_status()
+            if not status:
+                raise RuntimeError(f"HTTP server failed to start: {message}")
             
             self.is_running = True
             self.logger.info("HTTP server started successfully")
             
         except Exception as e:
+            self.is_running = False
             self.logger.error(f"Failed to start HTTP server: {e}", exc_info=True)
             raise
     
     def check_server_status(self):
         """Check the status of the uvicorn server task"""
+        if self._server_start_error:
+            return False, self._server_start_error
         if hasattr(self, '_server_thread') and self._server_thread:
             if self._server_thread.is_alive():
                 return True, "running"

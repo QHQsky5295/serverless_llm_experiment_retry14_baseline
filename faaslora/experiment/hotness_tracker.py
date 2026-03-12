@@ -8,7 +8,7 @@ use request-driven heat instead of static config.
 
 import time
 from collections import deque, defaultdict
-from typing import Dict, Optional, Any
+from typing import Dict
 
 from ..registry.artifact_registry import ArtifactRegistry
 from ..utils.logger import get_logger

@@ -341,7 +341,7 @@ LoRA load 请求的核心流程是：
 
 - `ttft_ms = lora_io_ms + contention_ms + defer_ms + vllm_ttft_ms`
 
-当前主线验证结果显示，`seq8_lora8` 配置下 `contention_ms` 与 `defer_ms` 基本为 `0`，主瓶颈转移到 vLLM 自身的首 token 等待。
+历史 `Qwen2.5-3B seq8_lora8` 基线首先证明了 serving 参数是关键瓶颈；在修复 GPU 全局显存观测、ResidencyManager 监控与 contention/defer 记账之后，`Qwen2.5-7B r300` 的 `P2.5 off` 控制组则暴露出了非零的 `contention_ms` 与 `defer_ms`。这说明这两部分指标不能再沿用早期“长期为 0”的解释，而应以修复后的口径为准。
 
 ### 8.3 warm pool
 
@@ -360,7 +360,7 @@ LoRA load 请求的核心流程是：
 
 `\hat{h}_t` 是批级 active adapter 数的 EWMA。
 
-### 8.4 实验版 P2.5 路径
+### 8.4 P2.5 有效容量准入
 
 代码中已经实现了 `effective_capacity_admission_enabled` 分支，其核心量为：
 
@@ -375,7 +375,14 @@ LoRA load 请求的核心流程是：
 
 时才允许 admission。
 
-这条路径当前默认关闭，仅作为实验开关保留，不是当前主线默认机制。
+这条路径的代码一直存在；在修复观测口径后的 `Qwen2.5-7B r300` A/B 中，`P2.5 on` 相对 `P2.5 off` 的关键变化为：
+
+- `contention_events: 19 -> 0`
+- `avg_defer_ms: 6552 -> 0`
+- `avg_ttft_ms: 7053 -> 1747`
+- `throughput_rps: 0.171 -> 0.228`
+
+因此，当前仓库默认配置已将 `faaslora_full` 的 `effective_capacity_admission_enabled` 切到开启状态。需要注意的是：现有 `Qwen2.5-3B` 冻结结果文件仍来自这一切换前的配置，后续需要补一轮 `3B + P2.5 on` 复验来统一口径。
 
 ## 9. 推理后端
 
@@ -433,32 +440,37 @@ LoRA load 请求的核心流程是：
 ### 10.2 当前已得出的工程结论
 
 - 当前主线已经从“能否跑通”进入“主配置固化与工程闭环”阶段。
-- 当前瓶颈主要来自 vLLM 的有效并发参数，而不是资源协同路径。
+- `Qwen2.5-3B` 历史主线首先表明了 vLLM 有效并发参数是首要瓶颈。
+- 在修复显存观测与 contention/defer 记账后，`Qwen2.5-7B` 的高压阶段又表明 P2.5 有效容量准入可以显著改善 admission / defer。
 - 将 `max_num_seqs / max_loras` 从保守 preset 提升到 `8 / 8` 后，TTFT 与 tail latency 显著改善。
-- `shared / dedicated / full-trace / P2.5` 相关接口均保留，但不作为当前主线推进对象。
+- `shared / dedicated / full-trace` 相关接口均保留，但不作为当前主线推进对象。
+- `effective_capacity_admission_enabled` 的 on/off 开关继续保留，但当前仓库默认值已经切到 `on`。
 
 ## 11. 当前主线 TODO
 
 ### A. 主配置固化
 
 1. 已完成：将 `auto500 + representative1000 + seq8_lora8` 正式固化为当前主线默认推荐配置。
-2. 用默认入口再做一次复验，确认后续复现不依赖长串环境变量覆盖。
+2. 已完成：用默认入口再做一次复验，确认后续复现不依赖长串环境变量覆盖。
+3. 补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验，统一默认配置与结果口径。
 
 ### B. 工程闭环
 
-3. 修 CLI / packaging 断裂。
-4. 补稳定环境下可执行的基础测试。
-5. 同步 README / GUIDE / docs 与当前实现和结果。
+4. 修 CLI / packaging 断裂。
+5. 补稳定环境下可执行的基础测试。
+6. 同步 README / GUIDE / docs 与当前实现和结果。
 
 ### C. 扩展主线
 
-6. 在 Qwen-3B 主线稳定后，推进 `Qwen2.5-7B-Instruct`。
-7. 再进入其他模型家族与额外数据集扩展。
+7. 已开始：推进 `Qwen2.5-7B-Instruct`。
+8. 当前进行中：`Qwen2.5-7B auto + 100 adapters + 1000 requests + P2.5 on`。
+9. 在 7B 长跑稳定后，再进入其他模型家族与额外数据集扩展。
 
 ## 12. 已知边界
 
 - 当前系统是单节点双 GPU 原型，不是完整多节点云平台。
 - ShareGPT 当前作为 prompt pool，而不是 full conversation replay。
 - 当前主线统一使用 representative trace replay。
-- `shared` / `dedicated` / `28185 full trace` / `effective_capacity_admission_enabled` 的接口继续保留，但不作为当前主线默认配置。
+- `shared` / `dedicated` / `28185 full trace` 的接口继续保留，但不作为当前主线默认配置。
+- `effective_capacity_admission_enabled` 的 on/off 接口继续保留，但当前默认配置已切到 `on`。
 - `shared` 模式不是强隔离函数进程模型，而是共享 runtime + shared execution slot 的实现方式。

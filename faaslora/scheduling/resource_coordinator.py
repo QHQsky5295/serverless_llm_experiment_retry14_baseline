@@ -30,7 +30,7 @@ import asyncio
 import math
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 
@@ -309,7 +309,6 @@ class ResourceCoordinator:
 
         for aid, _ in sorted_adapters[:n_to_evict]:
             if self._residency_manager is not None:
-                from ..registry.schema import StorageTier
                 ok = await self._residency_manager.evict_artifact(aid, None)
                 if ok:
                     self.metrics.eviction_events += 1
@@ -386,7 +385,9 @@ class ResourceCoordinator:
             status = self._residency_manager.get_tier_status(StorageTier.GPU)
             cap = status.get("capacity", {})
             free_bytes = cap.get("free_bytes", 0)
-            return free_bytes / (1024.0 * 1024.0)
+            reserve = self.gpu_budget_mb * self.lora_load_reserve_ratio
+            available_mb = free_bytes / (1024.0 * 1024.0)
+            return max(0.0, available_mb - reserve)
         kv_mb   = self._active_tokens / 1000.0 * self.kv_per_1k_tokens_mb
         lora_mb = sum(self._get_resident_loras().values())
         reserve = self.gpu_budget_mb * self.lora_load_reserve_ratio
@@ -502,7 +503,6 @@ class ResourceCoordinator:
             details = (status.get("artifacts") or {}).get("details") or []
             # Evict by LRU (access_log)
             candidates = [(d["artifact_id"], d["size_bytes"]) for d in details]
-            now = time.time()
             def _last_access(aid):
                 log = self._access_log.get(aid)
                 return log[-1] if log else 0.0
@@ -521,7 +521,6 @@ class ResourceCoordinator:
         if not resident:
             return 0.0
         scores = {}
-        now = time.time()
         for aid in resident:
             log = self._access_log.get(aid, [])
             scores[aid] = log[-1] if log else 0.0

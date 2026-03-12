@@ -4,14 +4,15 @@ FaaSLoRA vLLM Wrapper
 Wraps vLLM inference engine with LoRA adapter support and performance monitoring.
 """
 
+import os
 import time
-import asyncio
 import threading
-from typing import Dict, List, Optional, Any, Union, AsyncGenerator
+from typing import Dict, List, Optional, Any, AsyncGenerator
 from dataclasses import dataclass, field
 from enum import Enum
-import json
 from collections import deque
+
+os.environ.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "1")
 
 try:
     from vllm import LLM, SamplingParams
@@ -34,7 +35,6 @@ except ImportError:
         pass
     VLLM_AVAILABLE = False
 
-from ..registry.schema import ArtifactMetadata, StorageTier
 from ..registry.artifact_registry import ArtifactRegistry
 from ..memory.gpu_monitor import GPUMemoryMonitor
 from ..utils.config import Config
@@ -181,7 +181,7 @@ class VLLMWrapper:
         self.logger = get_logger(__name__)
         
         if not VLLM_AVAILABLE:
-            self.logger.warning("vLLM not available, using mock implementation")
+            self.logger.error("vLLM not available; real serving cannot start")
         
         # Get configuration
         serving_config = config.get('serving', {})
@@ -221,7 +221,14 @@ class VLLMWrapper:
         # LoRA adapter tracking
         self.loaded_adapters: Dict[str, Dict[str, Any]] = {}
         
-        self.logger.info("vLLM wrapper initialized")
+        if VLLM_AVAILABLE:
+            self.logger.info("vLLM wrapper initialized")
+        else:
+            self.logger.warning("vLLM wrapper constructed without vLLM runtime")
+
+    def _ensure_vllm_available(self) -> None:
+        if not VLLM_AVAILABLE:
+            raise RuntimeError("vLLM is not installed; mock serving is disabled")
     
     async def initialize(self) -> bool:
         """
@@ -239,9 +246,8 @@ class VLLMWrapper:
             
             try:
                 if not VLLM_AVAILABLE:
-                    self.logger.warning("vLLM not available, using mock engine")
-                    self.is_initialized = True
-                    return True
+                    self.logger.error("vLLM not available; initialization aborted")
+                    return False
                 
                 self.logger.info(f"Initializing vLLM engine with model: {self.model_name}")
                 
@@ -445,15 +451,8 @@ class VLLMWrapper:
             local_path = metadata.storage_path if metadata.storage_path else None
 
             if not VLLM_AVAILABLE:
-                # Mock loading for development
-                self.loaded_adapters[adapter_id] = {
-                    'adapter_id': adapter_id,
-                    'loaded_at': time.time(),
-                    'local_path': local_path,
-                    'metadata': metadata
-                }
-                self.logger.info(f"Mock loaded LoRA adapter {adapter_id} (path={local_path})")
-                return True
+                self.logger.error("Cannot load LoRA adapter without vLLM")
+                return False
 
             # Register the adapter path so _resolve_lora_path can find it
             self.loaded_adapters[adapter_id] = {
@@ -635,12 +634,10 @@ class VLLMWrapper:
         request.started_at = time.time()
         
         if not VLLM_AVAILABLE:
-            # Mock inference for development
-            await asyncio.sleep(0.1)  # Simulate processing time
-            request.response = f"Mock response for: {request.prompt[:50]}..."
-            request.status = InferenceStatus.COMPLETED
+            request.status = InferenceStatus.FAILED
+            request.error_message = "vLLM is not installed"
             request.completed_at = time.time()
-            return
+            raise RuntimeError("vLLM is not installed; cannot execute inference")
         
         try:
             # Create sampling parameters
@@ -697,18 +694,10 @@ class VLLMWrapper:
         request.started_at = time.time()
         
         if not VLLM_AVAILABLE:
-            # Mock streaming for development
-            mock_response = f"Mock streaming response for: {request.prompt[:50]}..."
-            for i, char in enumerate(mock_response):
-                await asyncio.sleep(0.01)  # Simulate streaming delay
-                yield char
-                if i % 10 == 0:  # Update response periodically
-                    request.response = mock_response[:i+1]
-            
-            request.response = mock_response
-            request.status = InferenceStatus.COMPLETED
+            request.status = InferenceStatus.FAILED
+            request.error_message = "vLLM is not installed"
             request.completed_at = time.time()
-            return
+            raise RuntimeError("vLLM is not installed; cannot execute streaming inference")
         
         try:
             # Create sampling parameters

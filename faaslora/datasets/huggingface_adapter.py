@@ -5,17 +5,11 @@ Adapter for loading and managing LoRA artifacts from HuggingFace Hub
 for model serving and experimentation.
 """
 
-import asyncio
 import json
 import os
-import time
-from typing import Dict, Any, List, Optional, Iterator, Tuple, Union
+from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta
-from pathlib import Path
-import hashlib
-import tempfile
-import shutil
 
 try:
     import requests
@@ -180,8 +174,8 @@ class HuggingFaceAdapter:
         if HF_HUB_AVAILABLE:
             self.hf_api = HfApi(token=self.token)
         else:
-            self.hf_api = HfApi()
-            self.logger.warning("huggingface_hub not available, some features may be limited")
+            self.hf_api = None
+            self.logger.error("huggingface_hub not available; remote dataset loading is disabled")
         
         if not REQUESTS_AVAILABLE:
             self.logger.warning("requests not available, some features may be limited")
@@ -244,9 +238,7 @@ class HuggingFaceAdapter:
             return
             
         if not HF_HUB_AVAILABLE:
-            self.logger.warning("HuggingFace Hub not available, using mock data")
-            await self._load_mock_data()
-            return
+            raise RuntimeError("HuggingFace Hub not available and no local models file was provided")
         
         try:
             self.logger.info(f"Searching for LoRA models with query: {self.search_query}")
@@ -283,7 +275,7 @@ class HuggingFaceAdapter:
             
         except Exception as e:
             self.logger.error(f"Error searching HuggingFace Hub: {e}")
-            await self._load_mock_data()
+            raise
     
     async def _parse_model_info(self, model_info) -> Optional[LoRAModel]:
         """Parse HuggingFace model info into LoRAModel"""

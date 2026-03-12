@@ -8,15 +8,15 @@ import asyncio
 import os
 import time
 import hashlib
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 from enum import Enum
 import tempfile
 
-from .s3_client import S3Client, S3Object, UploadProgress
+from .s3_client import S3Client
 from .local_cache import LocalCache
 from .remote_client import RemoteStorageClient
-from ..registry.schema import StorageTier, ArtifactStatus
+from ..registry.schema import StorageTier
 from ..utils.config import Config
 from ..utils.logger import get_logger
 
@@ -80,11 +80,25 @@ class StorageManager:
         
         # Storage configuration
         storage_config = config.get('storage', {})
+        remote_config = (
+            storage_config.get('remote', {})
+            if isinstance(storage_config.get('remote', {}), dict)
+            else {}
+        )
+        remote_provider = str(
+            remote_config.get(
+                'provider',
+                storage_config.get('backend', storage_config.get('provider', 'local_dir')),
+            )
+        ).lower()
+        self.remote_backend = 's3' if remote_provider in {'s3', 'oss', 'gcs'} else 'remote_client'
         
         # Initialize storage backends
         self.local_cache = LocalCache(config)
-        self.s3_client = S3Client(config)
-        self.remote_client = RemoteStorageClient(config)
+        self.s3_client = S3Client(config) if self.remote_backend == 's3' else None
+        self.remote_client = (
+            RemoteStorageClient(config) if self.remote_backend == 'remote_client' else None
+        )
         
         # Storage policies
         self.cache_size_limit = storage_config.get('cache_size_limit', 10 * 1024**3)  # 10GB
@@ -120,8 +134,10 @@ class StorageManager:
             
             # Initialize backends
             await self.local_cache.initialize()
-            await self.s3_client.initialize()
-            await self.remote_client.initialize()
+            if self.remote_backend == 's3':
+                await self.s3_client.initialize()
+            else:
+                await self.remote_client.initialize()
             
             # Start background tasks
             if self.auto_cleanup_enabled:
@@ -164,8 +180,10 @@ class StorageManager:
             
             # Cleanup backends
             await self.local_cache.cleanup()
-            await self.s3_client.cleanup()
-            await self.remote_client.cleanup()
+            if self.s3_client:
+                await self.s3_client.cleanup()
+            if self.remote_client:
+                await self.remote_client.cleanup()
             
             self.logger.info("Storage manager shut down successfully")
             
@@ -319,7 +337,7 @@ class StorageManager:
                     success = success and local_success
                 
                 if tier is None or tier == StorageTier.REMOTE:
-                    remote_success = await self.s3_client.delete_artifact(artifact_id)
+                    remote_success = await self._delete_remote_artifact(artifact_id)
                     success = success and remote_success
                 
                 if success:
@@ -408,16 +426,9 @@ class StorageManager:
                     ))
             
             # Check remote storage
-            s3_info = await self.s3_client.get_artifact_info(artifact_id)
-            if s3_info:
-                locations.append(StorageLocation(
-                    tier=StorageTier.REMOTE,
-                    path=s3_info.key,
-                    size=s3_info.size,
-                    checksum=s3_info.etag,
-                    last_modified=s3_info.last_modified,
-                    metadata=s3_info.metadata
-                ))
+            remote_info = await self._get_remote_artifact_info(artifact_id)
+            if remote_info:
+                locations.append(remote_info)
             
         except Exception as e:
             self.logger.error(f"Error getting locations for artifact {artifact_id}: {e}")
@@ -442,12 +453,8 @@ class StorageManager:
                 artifact_ids.update(local_artifacts)
             
             if tier is None or tier == StorageTier.REMOTE:
-                s3_objects = await self.s3_client.list_artifacts()
-                for obj in s3_objects:
-                    # Extract artifact ID from S3 key
-                    if obj.key.startswith('artifacts/'):
-                        artifact_id = obj.key[10:]  # Remove 'artifacts/' prefix
-                        artifact_ids.add(artifact_id)
+                remote_artifacts = await self._list_remote_artifacts()
+                artifact_ids.update(remote_artifacts)
             
         except Exception as e:
             self.logger.error(f"Error listing artifacts: {e}")
@@ -498,10 +505,9 @@ class StorageManager:
             return local_path
 
         # Try downloading from remote
-        import tempfile
         with tempfile.TemporaryDirectory() as tmp:
             tmp_dest = os.path.join(tmp, artifact_id)
-            success = await self.remote_client.download_artifact(artifact_id, tmp_dest)
+            success = await self._retrieve_remote(artifact_id, tmp_dest, None)
             if success:
                 stored_path = await self.local_cache.store_artifact(artifact_id, tmp_dest)
                 return stored_path
@@ -538,17 +544,29 @@ class StorageManager:
                           checksum: Optional[str],
                           progress_callback: Optional[callable]) -> StorageLocation:
         """Store artifact in remote storage"""
-        s3_object = await self.s3_client.upload_artifact(
+        if self.remote_backend == 's3':
+            s3_object = await self.s3_client.upload_artifact(
+                artifact_id, file_path, metadata, progress_callback
+            )
+            return StorageLocation(
+                tier=StorageTier.REMOTE,
+                path=s3_object.key,
+                size=s3_object.size,
+                checksum=checksum or s3_object.etag,
+                last_modified=s3_object.last_modified,
+                metadata=s3_object.metadata
+            )
+
+        remote_info = await self.remote_client.upload_artifact(
             artifact_id, file_path, metadata, progress_callback
         )
-        
         return StorageLocation(
             tier=StorageTier.REMOTE,
-            path=s3_object.key,
-            size=s3_object.size,
-            checksum=checksum or s3_object.etag,
-            last_modified=s3_object.last_modified,
-            metadata=s3_object.metadata
+            path=remote_info["path"],
+            size=remote_info["size"],
+            checksum=checksum or remote_info.get("checksum", ""),
+            last_modified=remote_info["last_modified"],
+            metadata=remote_info.get("metadata", {}),
         )
     
     async def _retrieve_local(self, 
@@ -563,7 +581,11 @@ class StorageManager:
                              target_path: str,
                              progress_callback: Optional[callable]) -> bool:
         """Retrieve artifact from remote storage"""
-        return await self.s3_client.download_artifact(
+        if self.remote_backend == 's3':
+            return await self.s3_client.download_artifact(
+                artifact_id, target_path, progress_callback
+            )
+        return await self.remote_client.download_artifact(
             artifact_id, target_path, progress_callback
         )
     
@@ -639,15 +661,63 @@ class StorageManager:
             cache_stats = await self.local_cache.get_stats()
             
             # Get remote stats
-            remote_artifacts = await self.s3_client.list_artifacts()
-            remote_size = sum(obj.size for obj in remote_artifacts)
+            remote_artifact_ids = await self._list_remote_artifacts()
+            remote_size = 0
+            for artifact_id in remote_artifact_ids:
+                info = await self._get_remote_artifact_info(artifact_id)
+                if info:
+                    remote_size += info.size
             
             # Update totals
-            self.stats.total_artifacts = cache_stats['artifact_count'] + len(remote_artifacts)
+            self.stats.total_artifacts = cache_stats['artifact_count'] + len(remote_artifact_ids)
             self.stats.total_size_bytes = cache_stats['used_bytes'] + remote_size
             
         except Exception as e:
             self.logger.error(f"Error updating stats: {e}")
+
+    async def _delete_remote_artifact(self, artifact_id: str) -> bool:
+        if self.remote_backend == 's3':
+            return await self.s3_client.delete_artifact(artifact_id)
+        self.logger.warning(
+            f"Remote backend '{self.remote_backend}' does not support delete_artifact for {artifact_id}"
+        )
+        return False
+
+    async def _get_remote_artifact_info(self, artifact_id: str) -> Optional[StorageLocation]:
+        if self.remote_backend == 's3':
+            s3_info = await self.s3_client.get_artifact_info(artifact_id)
+            if not s3_info:
+                return None
+            return StorageLocation(
+                tier=StorageTier.REMOTE,
+                path=s3_info.key,
+                size=s3_info.size,
+                checksum=s3_info.etag,
+                last_modified=s3_info.last_modified,
+                metadata=s3_info.metadata,
+            )
+
+        remote_info = await self.remote_client.get_artifact_info(artifact_id)
+        if not remote_info:
+            return None
+        return StorageLocation(
+            tier=StorageTier.REMOTE,
+            path=remote_info["path"],
+            size=remote_info.get("size", 0),
+            checksum=remote_info.get("checksum", ""),
+            last_modified=remote_info.get("last_modified", 0.0),
+            metadata=remote_info,
+        )
+
+    async def _list_remote_artifacts(self) -> List[str]:
+        if self.remote_backend == 's3':
+            s3_objects = await self.s3_client.list_artifacts()
+            artifact_ids = []
+            for obj in s3_objects:
+                if obj.key.startswith('artifacts/'):
+                    artifact_ids.append(obj.key[10:])
+            return artifact_ids
+        return await self.remote_client.list_artifacts()
     
     def get_stats(self) -> Dict[str, Any]:
         """Get storage manager statistics"""

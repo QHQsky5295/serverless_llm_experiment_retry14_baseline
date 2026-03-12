@@ -8,13 +8,13 @@ for scaling-aware artifact preloading.
 import time
 import asyncio
 import threading
-from typing import Dict, List, Optional, Set, Any, Callable
+from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass
 from enum import Enum
-from collections import defaultdict, deque
+from collections import deque
 
 from .preloading_planner import PreloadingPlanner, PreloadingPlanResult
-from ..registry.schema import ArtifactMetadata, StorageTier, PreloadingPlan, ArtifactStatus
+from ..registry.schema import StorageTier, PreloadingPlan, ArtifactStatus
 from ..registry.artifact_registry import ArtifactRegistry
 from ..memory.residency_manager import ResidencyManager
 from ..utils.config import Config

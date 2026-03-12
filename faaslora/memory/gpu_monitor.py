@@ -130,8 +130,15 @@ class GPUMemoryMonitor:
     async def start(self):
         """Start the GPU memory monitor"""
         self.logger.info("Starting GPU memory monitor...")
+        if not self.enabled:
+            self.logger.info("GPU memory monitor disabled; start skipped")
+            return
         self.start_monitoring()
         self.logger.info("GPU memory monitor started successfully")
+
+    async def stop(self):
+        """Compatibility async stop used by the top-level coordinator."""
+        self.stop_monitoring()
     
     def start_monitoring(self):
         """Start background memory monitoring"""
@@ -185,26 +192,36 @@ class GPUMemoryMonitor:
                 active_bytes = torch_stats.get('active_bytes.all.current', 0)
                 cached_bytes = torch_stats.get('reserved_bytes.all.current', 0) - allocated_bytes
             
+            # PyTorch only reports memory reserved by the current process. For vLLM's
+            # multiprocess workers we need device-global usage from NVML when present.
+            used_bytes = reserved_bytes
+            nvml_total_bytes = total_bytes
+            nvml_free_bytes = free_bytes
+
             # Get NVML stats if available
             temperature = 0
             power = 0
             if self.enable_nvml and device_id in self.nvml_handles:
                 try:
                     handle = self.nvml_handles[device_id]
+                    mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+                    nvml_total_bytes = int(mem_info.total)
+                    used_bytes = int(mem_info.used)
+                    nvml_free_bytes = int(mem_info.free)
                     temperature = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
                     power = pynvml.nvmlDeviceGetPowerUsage(handle) // 1000  # Convert mW to W
                 except Exception as e:
                     self.logger.debug(f"Failed to get NVML stats for device {device_id}: {e}")
             
             # Calculate utilization
-            utilization = (reserved_bytes / total_bytes * 100) if total_bytes > 0 else 0.0
+            utilization = (used_bytes / nvml_total_bytes * 100) if nvml_total_bytes > 0 else 0.0
             
             return GPUMemoryInfo(
                 device_id=device_id,
                 timestamp=time.time(),
-                total_bytes=total_bytes,
-                used_bytes=reserved_bytes,
-                free_bytes=free_bytes,
+                total_bytes=nvml_total_bytes,
+                used_bytes=used_bytes,
+                free_bytes=nvml_free_bytes,
                 reserved_bytes=reserved_bytes,
                 active_bytes=active_bytes,
                 cached_bytes=cached_bytes,

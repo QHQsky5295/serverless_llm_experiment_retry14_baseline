@@ -18,7 +18,6 @@ FaaSLoRA 大模型下载脚本
 """
 
 import argparse
-import os
 import sys
 from pathlib import Path
 
@@ -74,7 +73,7 @@ def download_model(model_id: str, token: str = None, force: bool = False):
             print(f"✓ 模型已存在: {local_dir} ({len(files)} 权重文件)")
             return str(local_dir)
         else:
-            print(f"  目录存在但无权重文件，重新下载...")
+            print("  目录存在但无权重文件，重新下载...")
 
     info = RECOMMENDED_MODELS.get(model_id, {})
     size_gb = info.get("size_gb", "?")
@@ -82,7 +81,7 @@ def download_model(model_id: str, token: str = None, force: bool = False):
     print(f"\n下载模型: {model_id}")
     print(f"  预计大小: {size_gb} GB  |  推理显存需求: {vram_gb} GB")
     print(f"  保存路径: {local_dir}")
-    print(f"  (下载可能需要 3-30 分钟，视网络情况)")
+    print("  (下载可能需要 3-30 分钟，视网络情况)")
 
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -112,8 +111,6 @@ def download_model(model_id: str, token: str = None, force: bool = False):
 
 def update_yaml_config(model_id: str, local_path: str, tensor_parallel: int = 1):
     """更新 configs/experiments.yaml 中的模型配置。"""
-    import yaml
-
     yaml_path = REPO_ROOT / "configs" / "experiments.yaml"
     if not yaml_path.exists():
         return
@@ -180,12 +177,12 @@ def main():
     info = RECOMMENDED_MODELS.get(args.model, {})
     vram = info.get("vram_gb", 16)
     print("\n  配置建议（在 configs/experiments.yaml 中修改）：")
-    print(f"    model:")
+    print("    model:")
     print(f"      name: \"{local_path}\"")
     if args.tensor_parallel > 1:
         print(f"      tensor_parallel_size: {args.tensor_parallel}")
     print(f"      gpu_memory_utilization: {'0.85' if vram < 20 else '0.80'}")
-    print(f"    hardware:")
+    print("    hardware:")
     # Recommend gpu_budget_mb based on vram
     gpu_mb = 24576  # 3090 24GB
     print(f"      gpu_budget_mb: {gpu_mb}")
@@ -193,8 +190,8 @@ def main():
     print(f"      model_weights_mb: {model_weights_mb}")
     kv_per_1k = round(info.get("size_gb", 7) / 7 * 2.0, 1)
     print(f"      kv_per_1k_tokens_mb: {kv_per_1k}")
-    print(f"\n  现在可以运行完整实验：")
-    print(f"    python scripts/run_all_experiments.py --config configs/experiments.yaml")
+    print("\n  现在可以运行完整实验：")
+    print("    python scripts/run_all_experiments.py --config configs/experiments.yaml")
 
 
 if __name__ == "__main__":

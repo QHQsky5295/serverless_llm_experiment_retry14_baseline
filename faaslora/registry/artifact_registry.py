@@ -8,9 +8,7 @@ and real-time updates.
 
 import json
 import time
-import hashlib
-from typing import Dict, List, Optional, Set, Tuple, Any
-from collections import defaultdict
+from typing import Dict, List, Optional, Tuple, Any
 
 # Mock Redis for development/memory backend
 class MockRedis:
@@ -120,7 +118,7 @@ except ImportError:
 
 from .schema import (
     ArtifactMetadata, StorageTier, ArtifactStatus, 
-    StorageLocation, PreloadingPlan, MemorySnapshot
+    PreloadingPlan, MemorySnapshot
 )
 from ..utils.config import Config
 from ..utils.logger import get_logger
@@ -180,6 +178,15 @@ class ArtifactRegistry:
         self.logger.info("Starting artifact registry...")
         # Registry is already initialized in __init__, so just log success
         self.logger.info("Artifact registry started successfully")
+
+    async def stop(self):
+        """Stop the artifact registry and close the Redis client if possible."""
+        try:
+            close = getattr(self.redis_client, "close", None)
+            if callable(close):
+                close()
+        except Exception as e:
+            self.logger.warning(f"Artifact registry close failed: {e}")
     
     def _initialize_indices(self):
         """Initialize Redis indices for fast queries"""

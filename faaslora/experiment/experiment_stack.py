@@ -5,7 +5,6 @@ Builds from experiment adapter_info, paths, and hardware_cfg so run_all_experime
 can use the same components as the paper description (tiered residency, preload, coordination).
 """
 
-import asyncio
 import json
 import time
 from pathlib import Path
@@ -232,7 +231,7 @@ class ExperimentStack:
 
     async def stop(self):
         await self.preloading_manager.stop()
-        await self.residency_manager.stop_monitoring()
+        await self.residency_manager.stop()
         self.gpu_monitor.stop_monitoring()
 
     def _ensure_registered(self):
@@ -285,7 +284,6 @@ class ExperimentStack:
                 import shutil
                 t0 = time.perf_counter()
                 if dst.exists():
-                    import shutil
                     shutil.rmtree(dst, ignore_errors=True)
                 shutil.copytree(src, dst)
                 io_ms = (time.perf_counter() - t0) * 1000

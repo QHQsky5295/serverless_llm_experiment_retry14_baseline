@@ -20,7 +20,6 @@ Features
 * ShareGPT prompt distribution (auto-download or embedded fallback)
 """
 
-import math
 import random
 import time
 import asyncio

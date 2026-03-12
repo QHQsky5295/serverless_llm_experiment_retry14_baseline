@@ -131,7 +131,6 @@
 - `shared`
 - `dedicated`
 - `28185 full trace`
-- `effective_capacity_admission_enabled`（P2.5 风格实验路径）
 
 它们目前的定位是：
 
@@ -139,6 +138,11 @@
 - 备用补充实验
 - 压力测试入口
 - 后续扩展可复用接口
+
+补充说明：
+
+- `effective_capacity_admission_enabled` 的开关接口继续保留，用于 on/off 对照；
+- 但在最新一轮 `Qwen2.5-7B r300` A/B 后，仓库默认配置已改为 `on`，不再作为默认关闭路径。
 
 ## 当前工程状态
 
@@ -151,12 +155,16 @@
 5. `configs/experiments.yaml` 的默认主线路径已固化为当前验证通过的 `auto500 + representative1000 + seq8_lora8` 配置。
 6. 默认入口复验已完成，默认命令路径与冻结主线配置保持一致。
 7. `faaslora.cli` 已补回，`pyproject` 的 console script 与 autoscaler 的 `python -m faaslora.cli coordinator ...` 子进程入口不再悬空。
+8. `flashinfer` 与 `torch-c-dlpack-ext` 已装入 `LLM_vllm0102`，vLLM 采样路径显式请求使用 FlashInfer。
+9. 修复了 GPU 全局显存观测、ResidencyManager 监控未启动、contention/defer 记账失真等问题；后续结果统一以修复后的口径为准。
+10. `Qwen2.5-7B r300` 的 `P2.5 on/off` A/B 已完成；`P2.5 on` 在修复后的口径下显著降低了 `contention_events` 与 `avg_defer_ms`。
 
 ### 仍待完成
 
 1. 稳定环境下可执行的基础测试仍待补齐到更完整覆盖面；当前仅补上了不依赖 GPU / 外部模型的 smoke tests。
 2. 仍需继续清理 README / GUIDE / 其他附属文档与当前实现之间的漂移。
-3. `Qwen2.5-7B-Instruct` 扩展仍待完成首轮 bring-up 验证与参数冻结。
+3. `Qwen2.5-7B-Instruct` 扩展仍待完成 `1000 requests` 长跑验证与参数冻结。
+4. 仓库默认配置虽已切到 `3B + P2.5 on`，但仍待补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验。
 
 ## 模型与数据集扩展状态
 
@@ -197,10 +205,12 @@
 
 ### C. 扩展主线
 
-8. 进行 `Qwen2.5-7B-Instruct` 的首轮 bring-up 验证。
-9. 基于 bring-up 结果冻结 7B 的默认验证参数。
-10. 再进入其他模型家族扩展。
-11. 最后接入额外对话数据集。
+8. 已完成：`Qwen2.5-7B-Instruct` 的 bring-up 与 `r300` 短测。
+9. 进行中：`Qwen2.5-7B-Instruct auto + 100 adapters + 1000 requests + P2.5 on` 长跑验证。
+10. 在 7B 长跑后，补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验，统一默认配置与结果口径。
+11. 基于上述结果冻结 7B 的默认验证参数。
+12. 再进入其他模型家族扩展。
+13. 最后接入额外对话数据集。
 
 ## 当前已确认的长期约束
 
@@ -209,10 +219,11 @@
 3. 项目标题固定为：
    - **FaaSLoRA：面向多 LoRA 大模型推理的扩缩容感知Serverless系统**
 4. 模型目录只保留占位，不上传权重内容。
-5. `shared / dedicated / full-trace / effective_capacity_admission_enabled` 的接口继续保留，但不作为当前主线默认路径。
+5. `shared / dedicated / full-trace` 的接口继续保留，但不作为当前主线默认路径。
+6. `effective_capacity_admission_enabled` 的 on/off 接口继续保留，但当前默认配置已切到 `on`。
 
 ## 建议的下一步
 
-1. 利用新的显式模型 / 硬件覆盖入口，先跑 `Qwen2.5-7B-Instruct` 的 100 adapters / 100 requests bring-up。
-2. 如果 7B bring-up 稳定，再放大到更接近主线的 LoRA 规模与请求规模。
-3. 扩展稳定后，再进入其他模型家族与额外数据集。
+1. 等当前 `Qwen2.5-7B auto + 100 adapters + 1000 requests + P2.5 on` 长跑结束并验收。
+2. 若 7B 长跑稳定，补跑一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验。
+3. 统一 3B/7B 默认口径后，再进入其他模型家族与额外数据集。

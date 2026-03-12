@@ -117,6 +117,7 @@ resource_coordination:
   max_instances: 2                  # 当前主线允许扩到第二个物理 runtime
   instance_mode: "auto"             # 当前主线模式；shared/dedicated 接口保留但不作为默认路径
   instance_model_overrides: {}      # dedicated/auto 模式下新实例的 model_cfg 覆盖
+  effective_capacity_admission_enabled: true  # 当前仓库默认主线：开启 P2.5 风格有效容量准入
   lora_load_reserve_ratio: 0.15     # 预留显存比例用于加载队列
   max_concurrent_loads: 2           # 渐进式启动：最多2个并发 LoRA 加载
   idle_timeout_s: 10                # 低负载持续 N 秒后触发 scale-down
@@ -608,6 +609,7 @@ scenarios:
       strategy: "greedy"
     resource_coordination:
       coordination_enabled: true
+      effective_capacity_admission_enabled: true
       max_concurrent_loads: 2
       warm_pool_size: 2            # 24G 显存下减小
       idle_timeout_s: 10

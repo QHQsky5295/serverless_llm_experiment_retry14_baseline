@@ -10,10 +10,10 @@ import threading
 from typing import Dict, List, Optional, Any, AsyncGenerator
 from dataclasses import dataclass
 from enum import Enum
-import json
 
 from .vllm_wrapper import VLLMWrapper, InferenceRequest, InferenceStatus
 from ..registry.artifact_registry import ArtifactRegistry
+from ..registry.schema import StorageTier
 from ..memory.gpu_monitor import GPUMemoryMonitor
 from ..memory.residency_manager import ResidencyManager
 from ..memory.memory_coordinator import MemoryCoordinator, MemoryPriority
@@ -187,6 +187,10 @@ class InferenceEngine:
             
         except Exception as e:
             self.logger.error(f"Error during inference engine shutdown: {e}")
+
+    async def stop(self):
+        """Compatibility alias used by the top-level coordinator."""
+        await self.shutdown()
     
     async def generate(self, 
                       prompt: str,
@@ -564,7 +568,7 @@ class InferenceEngine:
         """
         try:
             # Check if adapter is already in GPU memory
-            if self.residency_manager.is_artifact_in_tier(adapter_id, 'gpu'):
+            if self.residency_manager.is_artifact_in_tier(adapter_id, StorageTier.GPU):
                 return True
             
             # Get artifact size for memory request
@@ -583,7 +587,7 @@ class InferenceEngine:
             
             if allocated:
                 # Try to admit adapter to GPU memory
-                success = await self.residency_manager.admit_artifact(adapter_id, 'gpu')
+                success = await self.residency_manager.admit_artifact(adapter_id, StorageTier.GPU)
                 if success:
                     self.logger.info(f"Successfully loaded adapter {adapter_id} to GPU")
                     return True

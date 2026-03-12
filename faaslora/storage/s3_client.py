@@ -4,13 +4,10 @@ FaaSLoRA S3 Storage Client
 Provides interface for storing and retrieving LoRA artifacts from S3-compatible storage.
 """
 
-import asyncio
 import os
 import time
-from typing import Dict, Any, Optional, List, BinaryIO
+from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
-import hashlib
-import tempfile
 
 try:
     import boto3
@@ -73,23 +70,53 @@ class S3Client:
         
         # S3 configuration
         storage_config = config.get('storage', {})
-        s3_config = storage_config.get('s3', {})
+        remote_config = (
+            storage_config.get('remote', {})
+            if isinstance(storage_config.get('remote', {}), dict)
+            else {}
+        )
+        s3_config = (
+            storage_config.get('s3', {})
+            if isinstance(storage_config.get('s3', {}), dict)
+            else {}
+        )
+        remote_provider = str(
+            remote_config.get(
+                'provider',
+                storage_config.get('backend', storage_config.get('provider', 's3')),
+            )
+        ).lower()
+        merged_s3_config = {}
+        if remote_provider in {'s3', 'oss', 'gcs'}:
+            merged_s3_config.update(remote_config)
+        merged_s3_config.update(s3_config)
         
-        self.bucket_name = s3_config.get('bucket_name', 'faaslora-artifacts')
-        self.region = s3_config.get('region', 'us-east-1')
-        self.endpoint_url = s3_config.get('endpoint_url')  # For S3-compatible services
-        self.access_key = s3_config.get('access_key') or os.getenv('AWS_ACCESS_KEY_ID')
-        self.secret_key = s3_config.get('secret_key') or os.getenv('AWS_SECRET_ACCESS_KEY')
+        self.bucket_name = merged_s3_config.get(
+            'bucket_name',
+            merged_s3_config.get('bucket', 'faaslora-artifacts'),
+        )
+        self.region = merged_s3_config.get('region', 'us-east-1')
+        self.endpoint_url = merged_s3_config.get('endpoint_url')  # For S3-compatible services
+        self.access_key = (
+            merged_s3_config.get('access_key_id')
+            or merged_s3_config.get('access_key')
+            or os.getenv('AWS_ACCESS_KEY_ID')
+        )
+        self.secret_key = (
+            merged_s3_config.get('secret_access_key')
+            or merged_s3_config.get('secret_key')
+            or os.getenv('AWS_SECRET_ACCESS_KEY')
+        )
         
         # Performance settings
-        self.multipart_threshold = s3_config.get('multipart_threshold', 64 * 1024 * 1024)  # 64MB
-        self.multipart_chunksize = s3_config.get('multipart_chunksize', 16 * 1024 * 1024)  # 16MB
-        self.max_concurrency = s3_config.get('max_concurrency', 10)
-        self.max_bandwidth = s3_config.get('max_bandwidth')  # bytes per second
+        self.multipart_threshold = merged_s3_config.get('multipart_threshold', 64 * 1024 * 1024)  # 64MB
+        self.multipart_chunksize = merged_s3_config.get('multipart_chunksize', 16 * 1024 * 1024)  # 16MB
+        self.max_concurrency = merged_s3_config.get('max_concurrency', 10)
+        self.max_bandwidth = merged_s3_config.get('max_bandwidth')  # bytes per second
         
         # Retry settings
-        self.max_retries = s3_config.get('max_retries', 3)
-        self.retry_delay = s3_config.get('retry_delay', 1.0)
+        self.max_retries = merged_s3_config.get('max_retries', 3)
+        self.retry_delay = merged_s3_config.get('retry_delay', 1.0)
         
         # Client state
         self.s3_client = None
@@ -102,8 +129,7 @@ class S3Client:
     async def initialize(self):
         """Initialize S3 client and verify connection"""
         if not BOTO3_AVAILABLE:
-            self.logger.error("Cannot initialize S3 client: boto3 not available")
-            return
+            raise RuntimeError("Cannot initialize S3 client: boto3 not available")
         
         if self.is_initialized:
             return

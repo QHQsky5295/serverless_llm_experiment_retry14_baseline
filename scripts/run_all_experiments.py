@@ -54,12 +54,10 @@ import json
 import warnings
 import math
 import os
-import random
 import re
 import shutil
 import sys
 import time
-import traceback
 from bisect import bisect_right
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
@@ -146,10 +144,12 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:False"
 os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:False"  # new PyTorch name
 # PunicaWrapperGPU multi-stream LoRA can crash on RTX 3090; use single-stream path
 os.environ["VLLM_DISABLE_LORA_STREAM"] = "1"
+# Make the sampler choice explicit once FlashInfer is installed.
+os.environ.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "1")
 
 # ---------------------------------------------------------------------------
-# vLLM v0.16 only has the V1 engine.  The InferenceEngine class handles
-# LoRA + TP on dual GPUs connected via PCIe (no P2P/NVLink).
+# Current stable env uses vLLM 0.10.2. Keep multiprocessing settings explicit
+# so LoRA + dual-GPU instance expansion behaves consistently on PCIe-only 3090s.
 # ---------------------------------------------------------------------------
 os.environ.setdefault("VLLM_ENABLE_V1_MULTIPROCESSING", "1")
 os.environ.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
@@ -236,7 +236,7 @@ def _lazy_import_vllm() -> bool:
         return False
 
 from faaslora.datasets.workload_generator import WorkloadGenerator, WorkloadConfig, RequestTrace
-from faaslora.datasets.dataset_loader import WorkloadDataset, AzureTraceLoader
+from faaslora.datasets.dataset_loader import WorkloadDataset
 from faaslora.registry.schema import StorageTier
 from faaslora.scheduling.resource_coordinator import ResourceCoordinator
 from faaslora.utils.adapter_manifest import (
@@ -509,7 +509,6 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
 
 def _kill_stale_gpu_processes():
     """Kill leftover vLLM / CUDA worker processes (using psutil, no pgrep)."""
-    import signal
     killed = 0
     my_pid = os.getpid()
     patterns = ("vllm.worker", "vllm.v1.worker", "vllm.executor", "EngineCore", "Worker_TP")
@@ -737,7 +736,7 @@ class InferenceEngine:
         max_rank = self.model_cfg.get("max_lora_rank", 16)
         eager    = self.model_cfg.get("enforce_eager", True)
 
-        print(f"  Initialising vLLM engine:")
+        print("  Initialising vLLM engine:")
         print(f"    model              = {model}")
         print(f"    GPU                = {GPU_NAME} (x{GPU_COUNT})")
         print(f"    tensor_parallel    = {tp}")
@@ -932,10 +931,10 @@ class InferenceEngine:
         """Initialize Transformers + PEFT backend (real model, real LoRA)."""
         model = self.model_cfg.get("name", "Qwen/Qwen2.5-0.5B-Instruct")
         dtype_name = str(self.model_cfg.get("dtype", "float16")).lower()
-        print(f"  Initialising Transformers engine:")
+        print("  Initialising Transformers engine:")
         print(f"    model              = {model}")
         print(f"    GPU                = {GPU_NAME} (x{GPU_COUNT})")
-        print(f"    backend            = transformers + peft")
+        print("    backend            = transformers + peft")
         print(f"    dtype              = {dtype_name}")
         print(f"    device_id          = {self.device_id}")
         try:
@@ -1173,7 +1172,7 @@ class InferenceEngine:
                     if not self._reinit_attempted:
                         self._reinit_attempted = True
                         print(f"\n  [ENGINE DEAD] vLLM engine crashed: {str(exc)[:120]}")
-                        print(f"  Attempting reinitialisation ...")
+                        print("  Attempting reinitialisation ...")
                         await self.reinitialize()
                 if self.engine is not None and not self._engine_dead:
                     return await self.generate(
@@ -2409,7 +2408,6 @@ class ScenarioRunner:
         if multi_cycle_phases <= 1:
             # 单周期：按 A1 批处理，每批后评估是否扩容
             t0 = time.perf_counter()
-            last_scale_t = 0.0
             all_raw = []
             batch_start = 0
             while batch_start < len(self.traces):
@@ -2460,7 +2458,6 @@ class ScenarioRunner:
                             flush=True,
                         )
                         await self._stack.trigger_scaling_preload(self._scale_up_preload_capacity_bytes())
-                        last_scale_t = tb1
                         scale_event = await self._scale_up_instance_pool(coord_enabled)
                         if scale_event:
                             result.scale_up_events.append({
@@ -2518,7 +2515,6 @@ class ScenarioRunner:
                 print(f"    [Phase {phase_idx + 1}/{multi_cycle_phases}] {len(phase_traces)} requests ...", flush=True)
                 prev_warm_hits = self._warm_pool_hits_total() if self.instance_pool else self.coordinator.get_summary_metrics().get("warm_pool_hits", 0)
                 t0 = time.perf_counter()
-                last_scale_t = 0.0
                 phase_raw = []
                 batch_start = 0
                 global_offset = sum(len(phase_chunks[k]) for k in range(phase_idx))
@@ -2569,7 +2565,6 @@ class ScenarioRunner:
                                 flush=True,
                             )
                             await self._stack.trigger_scaling_preload(self._scale_up_preload_capacity_bytes())
-                            last_scale_t = tb1
                             scale_event = await self._scale_up_instance_pool(coord_enabled)
                             if scale_event:
                                 result.scale_up_events.append({
@@ -3216,7 +3211,6 @@ class ScenarioRunner:
           faaslora_full    : same as no_coord but ALL loads go through ResourceCoordinator
         """
         btype = self.baseline_type
-        hw    = self.hw
         size_mb = self.adapter_info.get(adapter_id, {}).get("size_mb", 30)
         coord = coordinator if coordinator is not None else self.coordinator
 
@@ -3518,6 +3512,15 @@ def _read_env_override(name: str) -> Optional[str]:
     return value or None
 
 
+def _parse_env_bool(raw: str) -> bool:
+    value = str(raw).strip().lower()
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    if value in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError("expected one of: 1/0, true/false, yes/no, on/off")
+
+
 def _apply_explicit_env_overrides(
     model_cfg: Dict[str, Any],
     wl_cfg_yaml: Dict[str, Any],
@@ -3558,6 +3561,12 @@ def _apply_explicit_env_overrides(
     _apply("FAASLORA_MIN_INSTANCES", coord_cfg, "min_instances", int)
     _apply("FAASLORA_SCALE_DECISION_INTERVAL", coord_cfg, "scale_decision_interval", int)
     _apply("FAASLORA_SCALE_UP_THRESHOLD_RPS", coord_cfg, "scale_up_threshold_rps", float)
+    _apply(
+        "FAASLORA_EFFECTIVE_CAPACITY_ADMISSION",
+        coord_cfg,
+        "effective_capacity_admission_enabled",
+        _parse_env_bool,
+    )
 
     _apply("FAASLORA_TOTAL_REQUESTS", wl_cfg_yaml, "total_requests", int)
     _apply("FAASLORA_CONCURRENCY", wl_cfg_yaml, "concurrency", int)
@@ -3796,7 +3805,7 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
     print(f"  Engine  : {mode_info}")
     print(f"  Network : {bw_mbps:.0f} Mbps (remote -> NVMe)")
     if has_multi_run:
-        print(f"  Report  : mean ± std (over multiple runs)")
+        print("  Report  : mean ± std (over multiple runs)")
     print(f"{LINE}")
 
     H = (f"  {'Scenario':<26} {'Type':<16} "
@@ -3838,13 +3847,13 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
             f"{r.completed}/{r.total:>5}"
         )
     if has_multi_run:
-        print(f"  (Mean ± std over multiple runs; 95% CI in results JSON.)")
+        print("  (Mean ± std over multiple runs; 95% CI in results JSON.)")
     print(f"{DLINE}")
 
     # Table 2: improvement vs cold_start baseline
     base = next((r for r in results if r.baseline_type == "cold_start"), None)
     if base:
-        print(f"\n  Improvement vs cold_start baseline  (v = lower is better, ^ = higher is better)")
+        print("\n  Improvement vs cold_start baseline  (v = lower is better, ^ = higher is better)")
         print(f"  {LINE[2:]}")
         hdr2 = (f"  {'Scenario':<26} {'Type':<16} "
                 f"{'TTFT_avg':>10} {'P95':>8} {'P99':>8} "
@@ -3871,7 +3880,7 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
                   "faaslora_no_coord", "faaslora_full"}
     sota_rows  = [r for r in results if r.baseline_type in sota_types]
     if len(sota_rows) >= 2:
-        print(f"\n  SOTA Head-to-Head Comparison")
+        print("\n  SOTA Head-to-Head Comparison")
         print(f"  {LINE[2:]}")
         hdr3 = (f"  {'Type':<30} "
                 f"{'TTFT avg':>10} {'TTFT P99':>10} {'TPOT':>8} "
@@ -3896,7 +3905,7 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
         slora = next((r for r in results if r.baseline_type == "slora_style"), None)
         sllm  = next((r for r in results if r.baseline_type == "serverlessllm"), None)
         if full and (slora or sllm):
-            print(f"\n  FaaSLoRA full system vs each SOTA:")
+            print("\n  FaaSLoRA full system vs each SOTA:")
             if slora:
                 ttft_vs = _imp(full.avg_ttft_ms, slora.avg_ttft_ms)
                 p99_vs  = _imp(full.p99_ttft_ms, slora.p99_ttft_ms)
@@ -3913,11 +3922,11 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
     c3_rows = [r for r in results
                if r.contention_events > 0 or r.avg_defer_ms > 0.5 or r.warm_pool_hits > 0]
     if c3_rows:
-        print(f"\n  Contribution-3: Resource Coordination Metrics")
-        print(f"  Legend:")
-        print(f"    Contention = KV-cache vs LoRA memory contention events (penalises TTFT)")
-        print(f"    Defer      = coordination queuing delay for concurrent loads")
-        print(f"    WarmPool   = scale-down retains hot LoRA in GPU for fast re-serve")
+        print("\n  Contribution-3: Resource Coordination Metrics")
+        print("  Legend:")
+        print("    Contention = KV-cache vs LoRA memory contention events (penalises TTFT)")
+        print("    Defer      = coordination queuing delay for concurrent loads")
+        print("    WarmPool   = scale-down retains hot LoRA in GPU for fast re-serve")
         print(f"  {'-' * 90}")
         h4 = (f"  {'Scenario':<26} {'Type':<16} {'P99_TTFT':>10} "
               f"{'Contention':>8} {'Penalty':>10} {'Defer':>10} {'WarmPool':>9}")
@@ -3952,7 +3961,7 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
     # E1/B3: 多周期与暖池可观测
     e1_results = [r for r in results if r.multi_cycle_phase_results]
     if e1_results:
-        print(f"\n  E1/B3: Multi-Cycle & Warm Pool Observability")
+        print("\n  E1/B3: Multi-Cycle & Warm Pool Observability")
         print(f"  {'-' * 70}")
         for r in e1_results:
             print(f"  {r.scenario_name}: phases={len(r.multi_cycle_phase_results)}  "
@@ -3965,7 +3974,7 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
     # E1 补全: scale_up 事件与冷启动
     e1_scale_up = [r for r in results if getattr(r, "scale_up_events", None)]
     if e1_scale_up:
-        print(f"\n  E1: Scale-Up Events & Cold Starts After")
+        print("\n  E1: Scale-Up Events & Cold Starts After")
         print(f"  {'-' * 70}")
         for r in e1_scale_up:
             print(f"  {r.scenario_name}: scale_up_events={len(r.scale_up_events)}  "
@@ -4499,7 +4508,8 @@ async def main_async(
     print()
     if backend == "transformers":
         try:
-            from peft import PeftModel  # noqa: F401
+            from peft import PeftModel
+            _ = PeftModel
         except ImportError as e:
             print("  [ERROR] transformers 后端需要 peft 才能加载 LoRA。导入失败：")
             print(f"    {e}")
@@ -4645,7 +4655,7 @@ async def main_async(
               f"(p50={azure_stat['context_tokens']['p50']:.0f}  "
               f"p95={azure_stat['context_tokens']['p95']:.0f})")
         print(f"  Workload  : {workload_type} (conversation + code traces)")
-    print(f"  LoRA top3 : " + ", ".join(f"{k}={v}" for k, v in top3))
+    print("  LoRA top3 : " + ", ".join(f"{k}={v}" for k, v in top3))
     print()
 
     # Free dataset to reduce system RAM before engine init

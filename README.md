@@ -343,6 +343,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 - `sampling_strategy = representative`
 - `concurrency = 8`
 - `runtime_concurrency_cap = 8`
+- `effective_capacity_admission_enabled = true`
 - `max_model_len = 2048`
 - `max_num_seqs = 8`
 - `max_loras = 8`
@@ -357,15 +358,16 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 - 扩缩容链路已真实工作：出现 `physical_scale_up` 与 `physical_scale_down`
 - `auto` 模式在双 GPU 环境下能真实扩到第二个物理 runtime
-- 当前主瓶颈主要来自 vLLM serving 参数，而不是资源协同路径本身
+- 历史 `3B seq8_lora8` 基线首先证明了 vLLM serving 参数是主瓶颈
+- 在修复显存观测与 contention/defer 记账后，`7B r300` 的 P2.5 A/B 进一步证明了有效容量准入可以在高压阶段显著降低 defer
 - 将 `max_num_seqs / max_loras` 从保守 preset 调整到 `8 / 8` 后，主线结果显著改善
 - `r3` 复现实验与上一轮主结果波动较小，当前主基线已通过一次稳定性复验
+- 当前仓库默认配置已把 `faaslora_full` 的 `effective_capacity_admission_enabled` 切到开启状态；现有 `3B` 冻结结果文件仍是这次切换前的参考基线，后续需补一轮 `3B + P2.5 on` 复验
 
 ### 当前保留但不作为主线推进的接口
 
 - `shared` / `dedicated` 模式接口继续保留
 - `28185` full-trace 接口继续保留
-- P2.5 风格的“争用感知有效容量准入”实验路径继续保留
 
 这些接口当前的定位是：
 
@@ -374,6 +376,8 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 - 后续扩展
 - 备用补充实验 / ablation
 
+此外，`effective_capacity_admission_enabled` 的 on/off 开关继续保留，但当前仓库默认值已经切到 `on`，主要用于后续做定点 A/B，而不是继续作为“默认关闭”的备用路径。
+
 ### 当前主线下一步
 
 - 已完成：将当前 `auto500 + representative 1000 + seq8_lora8` 配置固化为默认复现实验参数
@@ -381,8 +385,10 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 - 已完成：补回 `faaslora.cli`，修复 CLI / packaging 的主断裂点
 - 继续补稳定环境下可执行的基础测试
 - 继续清理 README / 技术说明 / 进度文档与当前实现的残余漂移
-- 已开始：为 `Qwen2.5-7B` 扩展补显式模型 / 硬件覆盖入口，避免手改 YAML
-- 下一步：先做 `Qwen2.5-7B` 的首轮 bring-up 验证，再决定是否冻结 7B 默认参数
+- 已完成：为 `Qwen2.5-7B` 扩展补显式模型 / 硬件覆盖入口，避免手改 YAML
+- 已确认：`Qwen2.5-7B r300` 在修复观测口径后，`P2.5 on` 相对 `P2.5 off` 有显著收益
+- 当前进行中：`Qwen2.5-7B auto + 100 adapters + 1000 requests + P2.5 on`
+- 后续：在 7B 长跑结束后，补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验，统一 3B/7B 默认口径
 
 ---
 
@@ -405,6 +411,7 @@ FAASLORA_LOG_TAG=auto500_main1000_seq8_lora8 \
 FAASLORA_RESULTS_TAG=seq8_lora8 \
 FAASLORA_INSTANCE_MODE=auto \
 FAASLORA_MAX_INSTANCES=2 \
+FAASLORA_EFFECTIVE_CAPACITY_ADMISSION=1 \
 FAASLORA_RUNTIME_CONCURRENCY_CAP=8 \
 FAASLORA_NUM_ADAPTERS=500 \
 FAASLORA_TOTAL_REQUESTS=1000 \
@@ -416,6 +423,12 @@ FAASLORA_MAX_LORAS=8 \
 FAASLORA_MAX_NUM_BATCHED_TOKENS=4096 \
 FAASLORA_QUICK=0 \
 bash scripts/run_validation_bundle.sh custom
+```
+
+若只想做 P2.5 关闭的对照实验，可额外显式加：
+
+```bash
+FAASLORA_EFFECTIVE_CAPACITY_ADMISSION=0
 ```
 
 ### 协作 / 矩阵验证入口

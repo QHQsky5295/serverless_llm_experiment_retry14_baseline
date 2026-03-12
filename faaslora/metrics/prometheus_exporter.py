@@ -4,8 +4,6 @@ FaaSLoRA Prometheus Exporter
 Exports metrics to Prometheus monitoring system.
 """
 
-import time
-import asyncio
 import threading
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
@@ -89,7 +87,7 @@ class PrometheusExporter:
         self.logger = get_logger(__name__)
         
         if not PROMETHEUS_AVAILABLE:
-            self.logger.warning("prometheus_client not available, using mock implementation")
+            self.logger.warning("prometheus_client not available; Prometheus export is disabled")
         
         # Configuration
         prometheus_config = config.get('metrics', {}).get('prometheus', {})

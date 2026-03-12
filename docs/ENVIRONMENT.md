@@ -15,6 +15,8 @@
 | **vLLM** | `0.10.2` | 项目固定版本；当前主线实验均基于此版本完成 |
 | **transformers** | `4.57.6` | 当前主线实验环境版本 |
 | **numpy** | `2.2.6` | 当前主线实验环境版本 |
+| **flashinfer-python** | `0.6.6` | 当前主线环境已安装；vLLM 采样路径显式请求使用 |
+| **torch-c-dlpack-ext** | `0.1.5` | 当前主线环境已安装；用于补齐 FlashInfer 相关可选扩展 |
 
 当前主线默认命令、`run_validation_bundle.sh` 和默认入口复验都已在这套环境下验证通过。
 
@@ -81,6 +83,7 @@ print('numpy:', numpy.__version__)
 - **pyproject.toml** 中已固定 `vllm==0.10.2`，与本文档一致。
 - **scripts/run_validation_bundle.sh** 的默认 Python 入口已经固定为 `/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python`。
 - **configs/experiments.yaml** 当前默认主线配置是 `auto + 500 LoRA + representative 1000 requests + seq8_lora8`。
+- **scripts/run_all_experiments.py** 与 **faaslora/serving/vllm_wrapper.py** 都会显式设置 `VLLM_USE_FLASHINFER_SAMPLER=1`。
 - 若在 3090 上仍遇 vLLM LoRA 崩溃，可参考 [docs/VLLM_RTX3090_LORA.md](VLLM_RTX3090_LORA.md)（如增大 `/dev/shm`、改用 `backend: "transformers"` 等）。
 
 ---

@@ -8,11 +8,10 @@ during scaling operations to resolve memory contention issues.
 import time
 import asyncio
 import threading
-from typing import Dict, List, Optional, Any, Tuple, Set
+from typing import Dict, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
-import json
-from collections import deque, defaultdict
+from collections import deque
 
 from ..registry.schema import ArtifactMetadata, StorageTier
 from ..registry.artifact_registry import ArtifactRegistry

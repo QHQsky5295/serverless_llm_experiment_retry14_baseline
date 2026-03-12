@@ -32,7 +32,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
@@ -195,10 +195,8 @@ def generate_adapter_synthetic(
     try:
         from safetensors.torch import save_file
         save_file(state_dict, str(dest / "adapter_model.safetensors"))
-        weight_file = "adapter_model.safetensors"
     except ImportError:
         torch.save(state_dict, str(dest / "adapter_model.bin"))
-        weight_file = "adapter_model.bin"
 
     actual_size = _dir_size_mb(dest)
     print(f"  Generated synthetic adapter → {dest}  ({actual_size:.1f} MB, rank={rank})")
@@ -355,7 +353,7 @@ def main():
     else:
         write_adapter_manifest(manifest, manifest_path)
 
-    print(f"Generating LoRA adapters")
+    print("Generating LoRA adapters")
     print(f"  Model     : {args.model}")
     print(f"  Output    : {output_dir}")
     print(f"  Manifest  : {manifest_path}")

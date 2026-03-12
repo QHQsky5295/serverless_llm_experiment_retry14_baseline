@@ -4,12 +4,9 @@ FaaSLoRA gRPC Server
 Provides high-performance gRPC endpoints for inference and system management.
 """
 
-import asyncio
 import time
-import json
 from typing import Dict, Any, Optional, AsyncIterator
 from dataclasses import dataclass
-import traceback
 
 try:
     import grpc
@@ -382,8 +379,12 @@ class GRPCServer:
     async def start(self):
         """Start the gRPC server"""
         if not GRPC_AVAILABLE:
-            self.logger.error("Cannot start gRPC server: gRPC not available")
-            return
+            raise RuntimeError("Cannot start gRPC server: gRPC not available")
+        if not self._servicer_registration_available():
+            raise RuntimeError(
+                "gRPC server scaffolding is present, but protobuf service "
+                "registration is not implemented in this repository."
+            )
         
         if self.is_running:
             self.logger.warning("gRPC server already running")
@@ -408,11 +409,7 @@ class GRPCServer:
             
             # Create and add servicer
             self.servicer = FaaSLoRAServicer(self.coordinator)
-            
-            # Note: In a real implementation, you would add the servicer to the server
-            # using the generated protobuf code:
-            # add_FaaSLoRAServicer_to_server(self.servicer, self.server)
-            
+
             # Add insecure port
             listen_addr = f'{self.host}:{self.port}'
             self.server.add_insecure_port(listen_addr)
@@ -446,6 +443,10 @@ class GRPCServer:
             
         except Exception as e:
             self.logger.error(f"Error stopping gRPC server: {e}")
+
+    def _servicer_registration_available(self) -> bool:
+        """The repo currently ships only the proto source, not generated bindings."""
+        return False
     
     def get_stats(self) -> Dict[str, Any]:
         """Get gRPC server statistics"""

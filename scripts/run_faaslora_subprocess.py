@@ -236,7 +236,7 @@ def run_inference_inline(
         peft_model.set_adapter(aid)
         loaded_adapters.add(aid)
         adapter_lru.append(aid)
-        print(f"[DBG] GPU warmup done", flush=True)
+        print("[DBG] GPU warmup done", flush=True)
 
     print("[DBG] CUDA pre-warm...", flush=True)
     _model_for_warm = peft_model if peft_model is not None else base_model

@@ -292,6 +292,7 @@ scenarios:
     baseline_type: "faaslora_full"
     resource_coordination:
       coordination_enabled: true        # 开启协调：在显存紧张时排队等待可用空间
+      effective_capacity_admission_enabled: true  # 当前默认：开启 P2.5 有效容量准入
       max_concurrent_loads: 2          # 渐进式启动：最多 2 个并发 LoRA 加载
       warm_pool_size: 4                # scale-down 后 GPU 暖池保留的 LoRA 数量
       idle_timeout_s: 10               # 低负载持续时间阈值，触发 scale-down
@@ -338,6 +339,7 @@ python scripts/run_all_experiments.py \
 
 当前这条默认命令已经对齐到主线配置：
 - `auto + 500 LoRA + representative 1000 requests`
+- `effective_capacity_admission_enabled=true`
 - `max_num_seqs=8`
 - `max_loras=8`
 - `max_num_batched_tokens=4096`
@@ -348,6 +350,12 @@ python scripts/run_all_experiments.py \
 > **建议**：从新的 SSH/TTY 会话启动这条命令，避免当前 session 处于 `closing` 状态时被 systemd 强制终止。
 
 > **首次运行可能较慢**：vLLM 首次加载模型时需要编译内核，后续运行会使用缓存。
+
+> **P2.5 开关**：当前仓库默认配置已将 `effective_capacity_admission_enabled` 切到开启状态。若要做对照实验，可通过环境变量显式关闭：
+>
+> ```bash
+> FAASLORA_EFFECTIVE_CAPACITY_ADMISSION=0 bash scripts/run_validation_bundle.sh custom
+> ```
 
 ### 7.3 运行单个场景
 

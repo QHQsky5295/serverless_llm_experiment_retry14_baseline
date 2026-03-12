@@ -9,7 +9,7 @@ Measures latency, throughput, memory efficiency, and scalability.
 import time
 import json
 import statistics
-from typing import List, Dict, Any
+from typing import List
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -218,8 +218,6 @@ class ThroughputBenchmark:
         for num_workers in range(1, max_workers + 1):
             start_time = time.time()
             requests_per_worker = 50
-            total_requests = num_workers * requests_per_worker
-            
             def worker_task(worker_id: int) -> int:
                 processed = 0
                 for i in range(requests_per_worker):
@@ -332,7 +330,7 @@ def run_all_benchmarks():
     with open('benchmark_results.json', 'w') as f:
         json.dump(results_data, f, indent=2)
     
-    print(f"\n✓ Results exported to benchmark_results.json")
+    print("\n✓ Results exported to benchmark_results.json")
 
 
 if __name__ == '__main__':

@@ -7,9 +7,8 @@ Defines data models and schemas for LoRA artifact metadata management.
 import time
 from dataclasses import fields
 from enum import Enum
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 from dataclasses import dataclass, field
-from datetime import datetime
 
 
 class StorageTier(Enum):
