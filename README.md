@@ -376,7 +376,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 ### 当前主线下一步
 
-- 将当前 `auto500 + representative 1000 + seq8_lora8` 配置固化为默认复现实验参数
+- 已完成：将当前 `auto500 + representative 1000 + seq8_lora8` 配置固化为默认复现实验参数
 - 用默认入口再做一次复验，确认后续复现不依赖长串环境变量覆盖
 - 修 CLI / packaging 与测试闭环
 - 同步 README / 技术说明 / 进度文档与当前实现
@@ -394,7 +394,7 @@ cd /home/qhq/serverless_llm_experiment
 python scripts/run_all_experiments.py --config configs/experiments.yaml
 ```
 
-上面这条命令会使用当前配置文件中的默认主路径。若要直接复现当前验证通过的主线配置，推荐使用下面这条：
+上面这条命令现在已经对齐到当前主线默认配置。若要显式固定日志标签和结果文件名，推荐使用下面这条：
 
 ```bash
 cd /home/qhq/serverless_llm_experiment
