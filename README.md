@@ -351,6 +351,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 当前验证通过的代表性结果文件：
 
 - `results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8.json`
+- `results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8_r3.json`
 
 这组结果表明：
 
@@ -358,6 +359,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 - `auto` 模式在双 GPU 环境下能真实扩到第二个物理 runtime
 - 当前主瓶颈主要来自 vLLM serving 参数，而不是资源协同路径本身
 - 将 `max_num_seqs / max_loras` 从保守 preset 调整到 `8 / 8` 后，主线结果显著改善
+- `r3` 复现实验与上一轮主结果波动较小，当前主基线已通过一次稳定性复验
 
 ### 当前保留但不作为主线推进的接口
 
@@ -374,7 +376,8 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 ### 当前主线下一步
 
-- 将当前 `auto500 + representative 1000 + seq8_lora8` 配置继续做稳定性复验
+- 将当前 `auto500 + representative 1000 + seq8_lora8` 配置固化为默认复现实验参数
+- 用默认入口再做一次复验，确认后续复现不依赖长串环境变量覆盖
 - 修 CLI / packaging 与测试闭环
 - 同步 README / 技术说明 / 进度文档与当前实现
 - 在 Qwen-3B 主线稳定后，再进入 `Qwen2.5-7B` 扩展

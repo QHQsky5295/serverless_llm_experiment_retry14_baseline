@@ -403,6 +403,7 @@ LoRA load 请求的核心流程是：
 当前最重要的一组已验证结果为：
 
 - 文件：`results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8.json`
+- 复现实验：`results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8_r3.json`
 - 配置：`auto + 500 adapters + representative 1000 requests`
 - serving 参数：`max_num_seqs = 8`、`max_loras = 8`、`runtime_concurrency_cap = 8`
 
@@ -418,6 +419,17 @@ LoRA load 请求的核心流程是：
 - `scale_down_events = 1`
 - `cold_starts_after_scale_up = [2]`
 
+对应的 `r3` 复现实验结果为：
+
+- `TTFT avg = 1494 ms`
+- `TTFT P95 = 4138 ms`
+- `TTFT P99 = 6670 ms`
+- `E2E P99 = 22642 ms`
+- `RPS = 0.359`
+- `Hit = 94.6%`
+
+这说明当前主基线已经通过一次稳定性复验，现阶段没有必要继续追加更多相同配置的重复实验。
+
 ### 10.2 当前已得出的工程结论
 
 - 当前主线已经从“能否跑通”进入“主配置固化与工程闭环”阶段。
@@ -429,8 +441,8 @@ LoRA load 请求的核心流程是：
 
 ### A. 主配置固化
 
-1. 继续对 `auto500 + representative1000 + seq8_lora8` 做稳定性复验。
-2. 将这组配置正式固化为当前主线默认推荐配置。
+1. 将 `auto500 + representative1000 + seq8_lora8` 正式固化为当前主线默认推荐配置。
+2. 用默认入口再做一次复验，确认后续复现不依赖长串环境变量覆盖。
 
 ### B. 工程闭环
 

@@ -1,5 +1,9 @@
 # FaaSLoRA 对标 ServerlessLLM / ServerlessLora 级别 — 完整修复 TODO
 
+> 归档说明
+> 本文件是历史阶段的系统完善 TODO，保留用于追溯，不再作为当前项目主线的执行依据。
+> 当前主线状态、机制说明和下一步计划以 `README.md`、`docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md`、`docs/PROJECT_PROGRESS.md` 为准。
+
 本文档列出为达到与 ServerlessLLM (NSDI'24)、ServerlessLora 等**真实 Serverless 大模型推理系统**同级实现与评估所需完成的全部修复与增强。按模块与依赖关系组织，便于按序实施。**无仿真**：实验路径使用与线上一致的决策逻辑与真实加载路径。
 
 ---

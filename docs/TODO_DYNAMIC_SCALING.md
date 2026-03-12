@@ -1,5 +1,9 @@
 # TODO：动态扩缩容阈值实现
 
+> 归档说明
+> 本文件是历史阶段的设计与实现 TODO，保留用于追溯，不再作为当前项目主线的执行依据。
+> 其中部分条目已经进入当前实现；当前主线状态、机制说明和下一步计划以 `README.md`、`docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md`、`docs/PROJECT_PROGRESS.md` 为准。
+
 实现顺序按依赖关系排列；公式与参数见 `DYNAMIC_SCALING_THRESHOLDS_DESIGN.md`。
 
 ---

@@ -94,6 +94,7 @@
 1. `auto` 主路径已真实跑通，扩缩容、warmup、preload、residency、resource coordination 都进入了完整链路。
 2. 当前主线瓶颈已经从 admission / defer 转移到 serving 参数调优问题，并已通过 `seq8_lora8` 基本解决。
 3. 当前 `auto500 + representative1000 + seq8_lora8` 可以作为项目主线的工作基线。
+4. `r3` 复现实验已经完成，当前主基线已通过一次稳定性复验。
 
 ### 当前主线关键结果
 
@@ -109,6 +110,26 @@
 - `scale_down_events = 1`
 - `contention = 0`
 - `defer = 0`
+
+当前稳定性复验结果：
+
+- 文件：`results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8_r3.json`
+- `TTFT avg = 1494 ms`
+- `TTFT P95 = 4138 ms`
+- `TTFT P99 = 6670 ms`
+- `E2E P99 = 22642 ms`
+- `RPS = 0.359`
+- `Hit = 94.6%`
+
+与上一轮主结果相比：
+
+- `TTFT avg` 波动约 `+6.0%`
+- `P95 TTFT` 波动约 `+1.7%`
+- `P99 TTFT` 波动约 `+10.7%`
+- `E2E P99` 波动约 `+0.4%`
+- `RPS` 波动约 `-1.5%`
+
+当前判断：这组波动处于可接受范围，暂时不需要继续追加 `r4` 来确认主基线稳定性。
 
 ### 不再作为当前主线推进的内容
 
@@ -165,23 +186,24 @@
 
 ## 当前主线 TODO
 
-### A. 稳定当前主基线
+### A. 主配置固化
 
-1. 对 `auto500 + representative1000 + seq8_lora8` 做 1 到 2 次复现实验，确认结果稳定。
+1. 已完成：对 `auto500 + representative1000 + seq8_lora8` 做稳定性复验。
 2. 将当前 serving 配置正式固化为主线默认复现实验参数。
-3. 把当前主线结果、配置和运行命令同步到所有核心文档。
+3. 用默认入口再做一次复验，确认后续复现不依赖长串环境变量覆盖。
+4. 把当前主线结果、配置和运行命令同步到所有核心文档。
 
 ### B. 工程闭环
 
-4. 修复 CLI / packaging 断裂。
-5. 补齐稳定环境下可跑的基础测试。
-6. 清理 README / GUIDE / docs 与实现不一致的残留项。
+5. 修复 CLI / packaging 断裂。
+6. 补齐稳定环境下可跑的基础测试。
+7. 清理 README / GUIDE / docs 与实现不一致的残留项。
 
 ### C. 扩展主线
 
-7. 在 Qwen-3B 主线稳定后，推进 `Qwen2.5-7B-Instruct`。
-8. 再进入其他模型家族扩展。
-9. 最后接入额外对话数据集。
+8. 在 Qwen-3B 主线稳定后，推进 `Qwen2.5-7B-Instruct`。
+9. 再进入其他模型家族扩展。
+10. 最后接入额外对话数据集。
 
 ## 当前已确认的长期约束
 
@@ -194,7 +216,7 @@
 
 ## 建议的下一步
 
-1. 先做 `auto500 + representative1000 + seq8_lora8` 的复现实验。
-2. 若复现结果稳定，则冻结当前主线配置。
+1. 将当前 `seq8_lora8` 配置固化为默认主线复现实验参数。
+2. 用默认入口跑一次验证，确认默认路径与当前主结果一致。
 3. 然后补工程闭环与文档同步。
 4. 最后进入 `Qwen2.5-7B-Instruct` 扩展。
