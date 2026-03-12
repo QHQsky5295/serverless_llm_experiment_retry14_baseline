@@ -377,9 +377,10 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 ### 当前主线下一步
 
 - 已完成：将当前 `auto500 + representative 1000 + seq8_lora8` 配置固化为默认复现实验参数
-- 用默认入口再做一次复验，确认后续复现不依赖长串环境变量覆盖
-- 修 CLI / packaging 与测试闭环
-- 同步 README / 技术说明 / 进度文档与当前实现
+- 已完成：用默认入口做复验，确认后续复现不依赖长串环境变量覆盖
+- 已完成：补回 `faaslora.cli`，修复 CLI / packaging 的主断裂点
+- 继续补稳定环境下可执行的基础测试
+- 继续清理 README / 技术说明 / 进度文档与当前实现的残余漂移
 - 在 Qwen-3B 主线稳定后，再进入 `Qwen2.5-7B` 扩展
 
 ---
@@ -435,6 +436,19 @@ FAASLORA_PRESET=auto300 bash scripts/run_validation_bundle.sh custom
 - 历史矩阵复现：使用 preset
 - 当前主线复现：使用显式环境变量覆盖
 - full-trace `28185` 接口保留，仅作为压力验证或内部 sanity check，不作为当前主线默认配置
+
+### 基础 smoke tests
+
+```bash
+cd /home/qhq/serverless_llm_experiment
+/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python -m unittest tests.test_basic_smoke -v
+```
+
+这组测试当前覆盖三条基础路径：
+
+- 主线默认配置没有从 `seq8_lora8` 漂移
+- `scale_presets["500"]` 与主线 serving 参数一致
+- `faaslora.cli` 与环境变量覆盖入口可执行
 
 ---
 

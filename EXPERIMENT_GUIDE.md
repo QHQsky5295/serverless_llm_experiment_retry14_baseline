@@ -37,11 +37,11 @@
 | 软件 | 版本 |
 |------|------|
 | CUDA | 11.8+ 或 12.1+ |
-| Python | 3.10+ |
-| PyTorch | 2.0+（含 CUDA） |
-| Conda 虚拟环境 | `LLM`（已配置） |
+| Python | 3.12（当前稳定环境） |
+| PyTorch | 2.8.0+cu128 |
+| Conda 虚拟环境 | `LLM_vllm0102`（当前主线环境） |
 
-> **说明**：本项目在 **LLM** 环境中验证，推荐组合为 Python 3.11 + PyTorch 2.4+cu124 + vLLM 0.10.2，见 [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)。
+> **说明**：当前主线实验在 **LLM_vllm0102** 环境中验证通过；精确版本见 [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)。
 
 ---
 
@@ -50,7 +50,7 @@
 ### 2.1 激活虚拟环境
 
 ```bash
-conda activate LLM
+conda activate LLM_vllm0102
 cd /home/qhq/serverless_llm_experiment
 ```
 
@@ -311,7 +311,7 @@ scenarios:
 
 **不做**：使用论文中的延迟公式（如固定 compute_slora_load_ms）在代码外复现曲线；所有延迟与命中率均来自本仓库运行结果，便于审稿与复现。
 
-**单实例 vs 多实例**：默认运行为**多实例**（`max_instances=2`，启动即多槽位、每槽位独立 coordinator）。单实例可将 `configs/experiments.yaml` 中 `resource_coordination.max_instances` 设为 1。实验实例数一律以 `configs/experiments.yaml` 的 `min_instances` / `max_instances` 为准；代码库内 `faaslora/utils/config.py` 的默认 `max_instances=10` 为 API/生产配置。若需在 scale-up 时增加**新 engine**（如多卡），可传入可选 `engine_factory`；详见 `docs/TODO_SERVERLESS_LEVEL.md` 中「单实例 vs 多实例 / 对齐已有论文应采用哪种」。
+**单实例 vs 多实例**：当前主线默认是 `instance_mode=auto`、`min_instances=1`、`max_instances=2`。也就是说，系统启动时先保留 1 个物理 runtime，在请求压力达到阈值时再 scale-up 到第 2 个物理 runtime，而不是“启动即双实例常驻”。单实例验证可将 `configs/experiments.yaml` 中 `resource_coordination.max_instances` 设为 1。实验实例数一律以 `configs/experiments.yaml` 的 `min_instances` / `max_instances` 为准；`faaslora/utils/config.py` 中的默认值属于 API/生产配置，不作为当前主实验默认口径。
 
 ---
 
@@ -330,38 +330,47 @@ python scripts/run_all_experiments.py \
 ### 7.2 完整实验（真实 GPU 推理）
 
 ```bash
-# 首次运行前，确保没有其他进程占用 GPU
-nvidia-smi
-
-# 运行完整实验
+conda activate LLM_vllm0102
+cd /home/qhq/serverless_llm_experiment
 python scripts/run_all_experiments.py \
   --config configs/experiments.yaml
 ```
 
-预计运行时间：
-- Qwen2.5-0.5B：约 15-30 分钟
-- Qwen2.5-7B：约 30-90 分钟（取决于 `total_requests`）
+当前这条默认命令已经对齐到主线配置：
+- `auto + 500 LoRA + representative 1000 requests`
+- `max_num_seqs=8`
+- `max_loras=8`
+- `max_num_batched_tokens=4096`
+- `runtime_concurrency_cap=8`
+
+在当前双 3090 机器上，`Qwen2.5-3B-Instruct` 这条主线完整运行的实测耗时约为 `46-47` 分钟。
+
+> **建议**：从新的 SSH/TTY 会话启动这条命令，避免当前 session 处于 `closing` 状态时被 systemd 强制终止。
 
 > **首次运行可能较慢**：vLLM 首次加载模型时需要编译内核，后续运行会使用缓存。
 
 ### 7.3 运行单个场景
 
 ```bash
+cd /home/qhq/serverless_llm_experiment
 python scripts/run_all_experiments.py \
   --config configs/experiments.yaml \
   --scenario faaslora_full
 ```
 
+这条命令现在对应的也是当前主线默认场景。
+
 ### 7.4 实时进度
 
-```
-  Scenario: faaslora_full  [faaslora_full]
-  [Phase 1] Preloading ...
-    Preloading 5 hot adapters (hotness ≥ 0.3) ...
-    GPU warmup (loading hot adapters into vLLM) ...
-    Preload done  total_io=0ms  nvme_cached=5
-  [Phase 2] Serving 500 requests ...
-  Done: 500/500  TTFT_avg=183ms  P95=558ms  P99=620ms  RPS=2.48  Hit=83%
+下列是当前主线路径的典型输出形态；具体数值会随复现实验略有波动：
+
+```text
+Scenario: faaslora_full  [faaslora_full]
+[Phase 1] Preloading ...
+  GPU warmup ...
+[Phase 2] Serving 1000 requests ...
+Live: done=625/1000  active=8  queued=0  inst=2  hit=94.6%
+Done: 1000/1000  TTFT_avg=1.4s  P95=4.1s  P99=6.7s  RPS=0.36  Hit=94.6%
 ```
 
 ---
@@ -580,7 +589,7 @@ python scripts/download_model.py \
 # 减少请求数量
 # 在 configs/experiments.yaml 中：
 workload:
-  total_requests: 200      # 默认 500，改为 200
+  total_requests: 200      # 默认 1000，改为 200
 
 # 或使用 --quick 模式（每场景 30 请求）
 python scripts/run_all_experiments.py --config configs/experiments.yaml --quick
@@ -633,14 +642,14 @@ scenarios:
 **单条命令复现论文主表**（需已下载模型与数据集）：
 
 ```bash
-conda activate LLM
-cd serverless_llm_experiment
+conda activate LLM_vllm0102
+cd /home/qhq/serverless_llm_experiment
 python scripts/run_all_experiments.py --config configs/experiments.yaml
 ```
 
 - **配置文件**：`configs/experiments.yaml`（模型路径、硬件参数、场景列表、workload 均在此文件）。
-- **结果文件**：`results/experiment_results.json`，内含对比结果汇总表、SOTA 重点对比、详细请求数据。
-- **环境**：推荐 Python 3.11 + PyTorch 2.4+ (CUDA 12.x) + vLLM 0.10.x；详见 [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)。如需精确复现，可使用该文档中的 conda 版本与 `pip install -e .` 安装本包。
+- **结果文件**：按 `backend / mode / adapters / requests / concurrency / results_tag` 落盘到 `results/` 目录，例如 `experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_defaultentry_r1.json`。
+- **环境**：当前主线稳定环境为 `LLM_vllm0102`，详见 [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)。
 
 ---
 

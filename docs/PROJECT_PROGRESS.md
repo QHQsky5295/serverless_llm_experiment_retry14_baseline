@@ -17,7 +17,7 @@
 - 项目名称：**FaaSLoRA：面向多 LoRA 大模型推理的扩缩容感知Serverless系统**
 - 本地仓库：`/home/qhq/serverless_llm_experiment`
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
-- 本次同步前基线：`84da4e1`
+- 本次同步前基线：`5826d43`
 
 当前结论：
 
@@ -28,30 +28,28 @@
 
 本次同步包含以下文件更新：
 
+- `faaslora/cli.py`
 - `README.md`
-- `docs/GITHUB_SYNC.md`
-- `docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md`
+- `EXPERIMENT_GUIDE.md`
+- `PROJECT_STRUCTURE.md`
+- `docs/ENVIRONMENT.md`
 - `docs/PROJECT_PROGRESS.md`
-- `scripts/run_all_experiments.py`
-- `scripts/run_all_experiments_user_scope.sh`
-- `scripts/run_validation_bundle.sh`
+- `tests/test_basic_smoke.py`
+- `tests/test_integration.py`
 
 这些变更主要对应：
 
-1. 显式环境变量覆盖优先级修复，避免被 `scale_preset` 回写覆盖。
-2. `FAASLORA_MAX_NUM_SEQS` / `FAASLORA_MAX_LORAS` / `FAASLORA_RESULTS_TAG` 支持。
-3. user-scope 启动脚本对 `FAASLORA_*` 环境变量的透传修复。
-4. 文档对当前主线配置、调度机制、扩缩容逻辑和资源协同语义的对齐。
+1. 补回 `faaslora.cli`，修复 `pyproject` console script 与 autoscaler 子进程入口断裂。
+2. 新增 `unittest` 版 smoke tests，覆盖主线默认配置、500 preset serving 参数与 CLI 可执行性。
+3. 把 `README` / `EXPERIMENT_GUIDE` / `PROJECT_STRUCTURE` / `ENVIRONMENT` / `PROJECT_PROGRESS` 对齐到当前主线默认配置和当前实际稳定环境。
 
 ## 相较当前 GitHub 基线的主要变化
 
 ### 代码变化
 
-1. 主实验显式参数现在会在 preset 之后做最终覆盖。
-2. `max_num_seqs` 与 `max_loras` 已被纳入当前主线配置入口。
-3. 结果文件可通过 `results_tag` 区分，避免 sweep 结果相互覆盖。
-4. runtime 初始化日志会打印更完整的 serving 参数，便于核对真实生效值。
-5. representative 采样、full stack 路径、auto 模式 scale-up / scale-down 记账都已进入稳定可复现实验路径。
+1. `faaslora/cli.py` 已提供 `faaslora coordinator --config ... --host ... --port ...` 的最小可用入口。
+2. `python -m faaslora.cli --help` 与 `python -m faaslora.cli coordinator --help` 已验证可执行。
+3. `tests/test_basic_smoke.py` 已提供当前稳定环境下可直接运行的基础 smoke tests。
 
 ### 文档变化
 
@@ -59,14 +57,9 @@
    - 主线模式是 `auto`
    - 当前主线配置是 `auto + 500 LoRA + representative 1000 requests`
    - 当前验证通过的 serving 参数是 `max_num_seqs=8`、`max_loras=8`、`runtime_concurrency_cap=8`
-2. `docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md` 已基于实现补充：
-   - 统一术语与形式化记号
-   - cache-affinity 路由规则
-   - 批级扩缩容观测与动态阈值
-   - scale-up warmup 选择逻辑
-   - 资源协同与 TTFT 分解
-   - 实验版 `effective_capacity_admission_enabled` 的非主线定位
-3. 本进度文档已经改为反映当前真实状态，而不是历史阶段计划。
+2. `EXPERIMENT_GUIDE.md` 已改掉旧的“启动即多槽位”“默认 500 requests”等过时表述。
+3. `PROJECT_STRUCTURE.md` 与 `docs/ENVIRONMENT.md` 已对齐当前主线默认模型、结果文件形态和当前实际环境版本。
+4. 本进度文档已经改为反映当前真实状态，而不是历史阶段计划。
 
 ## 当前主线实验状态
 
@@ -156,12 +149,13 @@
 3. 结果文件命名冲突问题。
 4. 主线 serving 参数不可显式覆盖的问题。
 5. `configs/experiments.yaml` 的默认主线路径已固化为当前验证通过的 `auto500 + representative1000 + seq8_lora8` 配置。
+6. 默认入口复验已完成，默认命令路径与冻结主线配置保持一致。
+7. `faaslora.cli` 已补回，`pyproject` 的 console script 与 autoscaler 的 `python -m faaslora.cli coordinator ...` 子进程入口不再悬空。
 
 ### 仍待完成
 
-1. CLI / packaging 断裂仍待系统性修复。
-2. 稳定环境下可执行的基础测试仍待补齐。
-3. 仍需继续清理 README / GUIDE / 其他附属文档与当前实现之间的漂移。
+1. 稳定环境下可执行的基础测试仍待补齐到更完整覆盖面；当前仅补上了不依赖 GPU / 外部模型的 smoke tests。
+2. 仍需继续清理 README / GUIDE / 其他附属文档与当前实现之间的漂移。
 
 ## 模型与数据集扩展状态
 
@@ -191,13 +185,13 @@
 
 1. 已完成：对 `auto500 + representative1000 + seq8_lora8` 做稳定性复验。
 2. 已完成：将当前 serving 配置正式固化为主线默认复现实验参数。
-3. 用默认入口再做一次复验，确认后续复现不依赖长串环境变量覆盖。
-4. 把当前主线结果、配置和运行命令同步到所有核心文档。
+3. 已完成：用默认入口再做一次复验，确认后续复现不依赖长串环境变量覆盖。
+4. 已完成：把当前主线结果、配置和运行命令同步到所有核心文档。
 
 ### B. 工程闭环
 
-5. 修复 CLI / packaging 断裂。
-6. 补齐稳定环境下可跑的基础测试。
+5. 已完成：修复 CLI / packaging 断裂。
+6. 继续补齐稳定环境下可跑的基础测试。
 7. 清理 README / GUIDE / docs 与实现不一致的残留项。
 
 ### C. 扩展主线
@@ -217,7 +211,6 @@
 
 ## 建议的下一步
 
-1. 用默认入口跑一次验证，确认默认路径与当前主结果一致。
-2. 如默认入口结果与当前主结果一致，则冻结当前主线配置。
-3. 然后补工程闭环与文档同步。
-4. 最后进入 `Qwen2.5-7B-Instruct` 扩展。
+1. 运行当前新增的 smoke tests，确认 `CLI / 配置冻结 / 环境变量覆盖` 三条基础路径可执行。
+2. 继续补工程闭环中的基础测试与残余文档漂移。
+3. 工程闭环收口后，再进入 `Qwen2.5-7B-Instruct` 扩展。

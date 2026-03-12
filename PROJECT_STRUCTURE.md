@@ -295,8 +295,8 @@ lora_adapters/
 
 | 模型 | 大小 | 显存 | 适用场景 |
 |------|------|------|----------|
-| Qwen/Qwen2.5-0.5B-Instruct | 1 GB | 2 GB | 快速验证 |
-| Qwen/Qwen2.5-7B-Instruct | 15 GB | 18 GB | 论文实验推荐 |
+| /home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-3B-Instruct | 本地已下载 | 当前主线默认 | 当前主线实验 |
+| Qwen/Qwen2.5-7B-Instruct | 15 GB | 18 GB | 下一阶段扩展 |
 | facebook/opt-1.3b | 2.6 GB | 4 GB | 无 Token 授权备选 |
 | meta-llama/Llama-3.1-8B-Instruct | 16 GB | 20 GB | 与 S-LoRA 同基座 |
 
@@ -324,40 +324,40 @@ experiment:
   description: "..."        # 描述
 
 model:                      # 基础大模型配置
-  name: "Qwen/Qwen2.5-0.5B-Instruct"   # 模型路径（本地或 HF ID）
-  tensor_parallel_size: 1   # 张量并行数（双 3090 改为 2）
-  max_model_len: 2048        # 最大序列长度
-  gpu_memory_utilization: 0.85          # vLLM GPU 显存使用率
-  max_loras: 8              # vLLM 同时缓存的 LoRA 数量
+  name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-3B-Instruct"
+  tensor_parallel_size: 1
+  max_model_len: 2048
+  gpu_memory_utilization: 0.65
+  max_loras: 8
+  max_num_seqs: 8
+  max_num_batched_tokens: 4096
+  runtime_concurrency_cap: 8
 
 hardware:                   # 硬件参数（用于调度模拟）
   gpu_budget_mb: 24576      # GPU 总显存（3090 = 24GB）
-  model_weights_mb: 1000    # backbone 占用（0.5B≈1G，7B≈14G）
-  kv_per_1k_tokens_mb: 0.5  # 每千 token KV cache（7B 约 2.0）
+  model_weights_mb: 3200    # 当前 3B 主线配置
+  kv_per_1k_tokens_mb: 1.0
 
-lora_adapters:              # LoRA 适配器定义列表
-  - id: "finance_lora"
-    hotness: 0.9            # 访问热度（越高越靠近 GPU 热层）
-    domain: "finance"
-    size_mb: 30
+resource_coordination:
+  instance_mode: "auto"
+  min_instances: 1
+  max_instances: 2
+  warm_pool_size: 2
 
 storage:                    # 存储层参数
-  bandwidth_mbps: 100       # 远端存储→本地的网络带宽
+  bandwidth_mbps: 250
 
 workload:                   # 工作负载参数
   workload_type: "mixed"    # 请求类型（conv/code/mixed）
-  time_scale_factor: 0.1    # 时间压缩比（0.1 = 1h 追踪→6min 实验）
-  total_requests: 500       # 总请求数
+  time_scale_factor: 0.02
+  sampling_strategy: "representative"
+  total_requests: 1000
+  concurrency: 8
   lora_request_ratio: 0.85  # 携带 LoRA 的请求比例
   zipf_exponent: 1.0        # LoRA 热度 Zipf 参数
-
-scenarios:                  # 实验场景列表
-  - name: "cold_start"
-    baseline_type: "cold_start"
-  - name: "slora_style"
-    baseline_type: "slora_style"
-  # ... 更多场景 ...
 ```
+
+说明：上面的示意片段只保留当前主线最相关字段。完整语义请以 `configs/experiments.yaml` 为准。
 
 ---
 
@@ -381,7 +381,7 @@ TIMESTAMP,ContextTokens,GeneratedTokens,Model,Region
 
 ```
 models/
-└── Qwen--Qwen2.5-7B-Instruct/      ← 下载后的模型权重
+└── Qwen--Qwen2.5-3B-Instruct/      ← 当前主线默认基座模型
     ├── config.json
     ├── tokenizer.json
     ├── tokenizer_config.json
@@ -396,36 +396,32 @@ models/
 
 ```
 results/
-└── experiment_results.json          ← 完整实验结果（每次运行覆盖）
+├── experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8.json
+├── experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8_r3.json
+└── experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_defaultentry_r1.json
 ```
 
 ### JSON 结构
 
 ```json
 {
-  "元数据": {
-    "运行时间": "2024-...",
-    "数据集": "Azure LLM 真实追踪",
-    "vllm": true/false,
-    "cuda": true/false
+  "metadata": {
+    "backend": "vllm",
+    "instance_mode": "auto",
+    "num_adapters": 500,
+    "total_requests": 1000
   },
-  "对比结果汇总表": [
-    {
-      "场景名称": "faaslora_full",
-      "系统类型": "faaslora_full",
-      "TTFT均值_ms": 183.2,
-      "TTFT_P99_ms": 620.1,
-      "吞吐量_RPS": 2.48,
-      "QPR性价比": 3578,
-      "vs_baseline": {
-        "TTFT改善%": 62.3,
-        "P99改善%": 42.5,
-        "RPS提升%": 19.6
-      }
+  "scenario_summaries": {
+    "faaslora_full": {
+      "avg_ttft_ms": 1409.0,
+      "p95_ttft_ms": 4068.0,
+      "p99_ttft_ms": 6023.0,
+      "throughput_rps": 0.364,
+      "cache_hit_rate": 0.946
     }
-  ],
-  "SOTA重点对比": [...],
-  "详细请求数据": {...}
+  },
+  "comparison_table": [...],
+  "detailed_results": {...}
 }
 ```
 
@@ -453,8 +449,8 @@ lora_adapters/
 ```
 Azure Trace CSV
     └─→ AzureTraceLoader.load()
-            └─→ AzureTraceReplay.replay()
-                    │  按真实时间戳排列，Zipf LoRA 选择
+                    └─→ AzureTraceReplay.replay()
+                    │  按真实时间戳排列，representative sampling + Zipf LoRA 选择
                     └─→ List[RequestTrace]
                               │
                               ▼
