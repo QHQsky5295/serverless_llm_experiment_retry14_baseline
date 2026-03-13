@@ -359,6 +359,8 @@ python scripts/run_all_experiments.py \
 
 > **7B 当前已验证参数**：`Qwen2.5-7B-Instruct` 现阶段已验证通过的默认参数为 `auto + 100 adapters + 1000 requests + concurrency=4 + runtime_concurrency_cap=4 + max_num_seqs=4 + max_loras=2 + max_num_batched_tokens=1024 + effective_capacity_admission_enabled=true`。当前主线正在补 `3B + P2.5 on` 复验，用于统一 3B/7B 的默认口径。
 
+> **3B 当前复验结论**：`Qwen2.5-3B auto500 + representative1000 + P2.5 on` 已复验完成。相对旧的 `seq8_lora8` frozen baseline，TTFT/tail 只有小幅波动、`contention=0 / defer=0` 仍保持不变。因此对 3B 而言，P2.5 主要用于统一默认口径，而不是当前性能增益来源。
+
 ### 7.3 运行单个场景
 
 ```bash

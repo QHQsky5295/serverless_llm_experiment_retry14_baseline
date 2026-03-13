@@ -17,6 +17,8 @@ from faaslora.memory.gpu_monitor import GPUMemoryMonitor
 from faaslora.api.grpc_server import GRPCServer
 from faaslora.coordination.coordinator import Coordinator
 from faaslora.datasets.huggingface_adapter import HuggingFaceAdapter
+from faaslora.datasets.azure_functions_adapter import AzureFunctionsAdapter
+from faaslora.datasets.azure_llm_adapter import AzureLLMAdapter
 from faaslora.registry.artifact_registry import ArtifactRegistry
 from faaslora.scheduling.resource_coordinator import ResourceCoordinator
 from faaslora.serving.inference_engine import InferenceEngine
@@ -249,6 +251,34 @@ class DependencyFailFastTests(unittest.TestCase):
         with patch("faaslora.storage.s3_client.BOTO3_AVAILABLE", False):
             with self.assertRaisesRegex(RuntimeError, "boto3 not available"):
                 asyncio.run(client.initialize())
+
+
+class DatasetParsingTests(unittest.TestCase):
+    def test_azure_functions_adapter_parses_string_booleans(self) -> None:
+        adapter = AzureFunctionsAdapter(Config(str(DEFAULT_CONFIG)))
+        invocation = adapter._parse_invocation_row(
+            {
+                "timestamp": "0",
+                "success": "False",
+                "cold_start": "1",
+            }
+        )
+        self.assertIsNotNone(invocation)
+        self.assertFalse(invocation.success)
+        self.assertTrue(invocation.cold_start)
+
+    def test_azure_llm_adapter_parses_string_booleans(self) -> None:
+        adapter = AzureLLMAdapter(Config(str(DEFAULT_CONFIG)))
+        request = adapter._parse_request_data(
+            {
+                "timestamp": "0",
+                "success": "0",
+                "prompt_tokens": 1,
+                "completion_tokens": 1,
+            }
+        )
+        self.assertIsNotNone(request)
+        self.assertFalse(request.success)
 
     def test_storage_manager_skips_s3_when_remote_backend_is_not_s3(self) -> None:
         class DummyLocalCache:

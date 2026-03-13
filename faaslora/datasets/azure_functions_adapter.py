@@ -246,8 +246,8 @@ class AzureFunctionsAdapter:
                 duration_ms=float(row.get('duration_ms', row.get('AverageAllocatedMb', 0))),
                 memory_mb=int(row.get('memory_mb', row.get('AverageAllocatedMb', 128))),
                 trigger_type=str(row.get('trigger_type', row.get('Trigger', 'http'))),
-                success=bool(row.get('success', True)),
-                cold_start=bool(row.get('cold_start', False)),
+                success=self._parse_bool(row.get('success', True), default=True),
+                cold_start=self._parse_bool(row.get('cold_start', False), default=False),
                 instance_id=row.get('instance_id'),
                 region=row.get('region')
             )
@@ -274,6 +274,22 @@ class AzureFunctionsAdapter:
                     return time.time()  # Fallback to current time
         
         return time.time()
+
+    @staticmethod
+    def _parse_bool(value, default: bool) -> bool:
+        """Parse booleans from CSV-friendly string values without treating 'False' as True."""
+        if value is None:
+            return default
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)):
+            return bool(value)
+        text = str(value).strip().lower()
+        if text in {"1", "true", "yes", "y", "on"}:
+            return True
+        if text in {"0", "false", "no", "n", "off", ""}:
+            return False
+        return default
     
     async def _apply_sampling(self):
         """Apply random sampling to reduce dataset size"""

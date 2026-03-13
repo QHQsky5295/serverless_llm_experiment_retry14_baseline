@@ -384,6 +384,17 @@ LoRA load 请求的核心流程是：
 
 因此，当前仓库默认配置已将 `faaslora_full` 的 `effective_capacity_admission_enabled` 切到开启状态。需要注意的是：现有 `Qwen2.5-3B` 冻结结果文件仍来自这一切换前的配置，后续需要补一轮 `3B + P2.5 on` 复验来统一口径。
 
+该 `3B + P2.5 on` 复验现已完成。相对旧的 `Qwen2.5-3B seq8_lora8` frozen baseline，新结果为：
+
+- `avg_ttft_ms: 1494 -> 1563`
+- `p95_ttft_ms: 4138 -> 4442`
+- `p99_ttft_ms: 6670 -> 6839`
+- `throughput_rps: 0.359 -> 0.363`
+- `contention_events: 0 -> 0`
+- `avg_defer_ms: 0 -> 0`
+
+这说明：对当前 3B 路线，P2.5 主要是为了统一 3B/7B 默认口径，而不是性能增益来源。
+
 在进一步放大到 `Qwen2.5-7B auto + 100 adapters + 1000 requests` 后，`P2.5 on` 的长跑结果也保持了同一结论：
 
 - `avg_ttft_ms = 2381`
@@ -454,6 +465,7 @@ LoRA load 请求的核心流程是：
 - 当前主线已经从“能否跑通”进入“主配置固化与工程闭环”阶段。
 - `Qwen2.5-3B` 历史主线首先表明了 vLLM 有效并发参数是首要瓶颈。
 - 在修复显存观测与 contention/defer 记账后，`Qwen2.5-7B` 的高压阶段又表明 P2.5 有效容量准入可以显著改善 admission / defer。
+- `Qwen2.5-3B + P2.5 on` 复验表明，3B 本身并不存在显著的 contention/defer，因此 P2.5 在 3B 上不是核心收益项。
 - `Qwen2.5-7B r1000 + P2.5 on` 长跑进一步表明，这一收益不是短测偶然波动，而能稳定延续到更长工作负载。
 - 将 `max_num_seqs / max_loras` 从保守 preset 提升到 `8 / 8` 后，TTFT 与 tail latency 显著改善。
 - `shared / dedicated / full-trace` 相关接口均保留，但不作为当前主线推进对象。
@@ -465,7 +477,7 @@ LoRA load 请求的核心流程是：
 
 1. 已完成：将 `auto500 + representative1000 + seq8_lora8` 正式固化为当前主线默认推荐配置。
 2. 已完成：用默认入口再做一次复验，确认后续复现不依赖长串环境变量覆盖。
-3. 进行中：补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验，统一默认配置与结果口径。
+3. 已完成：补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验，统一默认配置与结果口径。
 
 ### B. 工程闭环
 
@@ -477,7 +489,7 @@ LoRA load 请求的核心流程是：
 
 7. 已开始：推进 `Qwen2.5-7B-Instruct`。
 8. 已完成：`Qwen2.5-7B auto + 100 adapters + 1000 requests + P2.5 on`。
-9. 当前优先：完成 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验；之后再进入其他模型家族与额外数据集扩展。
+9. 当前优先：进入下一模型家族 bring-up；必要时对新 backbone 再判断是否需要 P2.5 A/B。
 
 ## 12. 已知边界
 

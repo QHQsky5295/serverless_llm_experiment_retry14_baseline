@@ -341,7 +341,7 @@ class AzureLLMAdapter:
                 completion_tokens=completion_tokens,
                 total_tokens=total_tokens,
                 duration_ms=float(data.get('duration_ms', data.get('latency_ms', 100))),  # Default 100ms
-                success=bool(data.get('success', True)),  # Assume success if not specified
+                success=self._parse_bool(data.get('success', True), default=True),
                 error_type=data.get('error_type', data.get('error')),
                 temperature=float(data.get('temperature', 0.7)),
                 max_tokens=int(data.get('max_tokens', 1024)),
@@ -396,6 +396,22 @@ class AzureLLMAdapter:
                     return time.time()
         
         return time.time()
+
+    @staticmethod
+    def _parse_bool(value, default: bool) -> bool:
+        """Parse booleans from JSON/CSV-friendly string values without Python truthiness traps."""
+        if value is None:
+            return default
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)):
+            return bool(value)
+        text = str(value).strip().lower()
+        if text in {"1", "true", "yes", "y", "on"}:
+            return True
+        if text in {"0", "false", "no", "n", "off", ""}:
+            return False
+        return default
     
     async def _apply_model_filter(self):
         """Apply model name filter"""
