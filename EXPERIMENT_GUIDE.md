@@ -357,6 +357,8 @@ python scripts/run_all_experiments.py \
 > FAASLORA_EFFECTIVE_CAPACITY_ADMISSION=0 bash scripts/run_validation_bundle.sh custom
 > ```
 
+> **7B 当前已验证参数**：`Qwen2.5-7B-Instruct` 现阶段已验证通过的默认参数为 `auto + 100 adapters + 1000 requests + concurrency=4 + runtime_concurrency_cap=4 + max_num_seqs=4 + max_loras=2 + max_num_batched_tokens=1024 + effective_capacity_admission_enabled=true`。当前主线正在补 `3B + P2.5 on` 复验，用于统一 3B/7B 的默认口径。
+
 ### 7.3 运行单个场景
 
 ```bash

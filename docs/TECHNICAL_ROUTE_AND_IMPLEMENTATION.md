@@ -384,6 +384,18 @@ LoRA load 请求的核心流程是：
 
 因此，当前仓库默认配置已将 `faaslora_full` 的 `effective_capacity_admission_enabled` 切到开启状态。需要注意的是：现有 `Qwen2.5-3B` 冻结结果文件仍来自这一切换前的配置，后续需要补一轮 `3B + P2.5 on` 复验来统一口径。
 
+在进一步放大到 `Qwen2.5-7B auto + 100 adapters + 1000 requests` 后，`P2.5 on` 的长跑结果也保持了同一结论：
+
+- `avg_ttft_ms = 2381`
+- `p95_ttft_ms = 14274`
+- `p99_ttft_ms = 15968`
+- `throughput_rps = 0.228`
+- `avg_lora_io_ms = 119.6`
+- `contention_events = 0`
+- `avg_defer_ms = 0`
+
+因此，对当前 7B 路线而言，P2.5 已经不再只是实验接口，而是当前默认验证配置的一部分。
+
 ## 9. 推理后端
 
 ### 9.1 默认后端：`vllm`
@@ -442,6 +454,7 @@ LoRA load 请求的核心流程是：
 - 当前主线已经从“能否跑通”进入“主配置固化与工程闭环”阶段。
 - `Qwen2.5-3B` 历史主线首先表明了 vLLM 有效并发参数是首要瓶颈。
 - 在修复显存观测与 contention/defer 记账后，`Qwen2.5-7B` 的高压阶段又表明 P2.5 有效容量准入可以显著改善 admission / defer。
+- `Qwen2.5-7B r1000 + P2.5 on` 长跑进一步表明，这一收益不是短测偶然波动，而能稳定延续到更长工作负载。
 - 将 `max_num_seqs / max_loras` 从保守 preset 提升到 `8 / 8` 后，TTFT 与 tail latency 显著改善。
 - `shared / dedicated / full-trace` 相关接口均保留，但不作为当前主线推进对象。
 - `effective_capacity_admission_enabled` 的 on/off 开关继续保留，但当前仓库默认值已经切到 `on`。
@@ -452,7 +465,7 @@ LoRA load 请求的核心流程是：
 
 1. 已完成：将 `auto500 + representative1000 + seq8_lora8` 正式固化为当前主线默认推荐配置。
 2. 已完成：用默认入口再做一次复验，确认后续复现不依赖长串环境变量覆盖。
-3. 补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验，统一默认配置与结果口径。
+3. 进行中：补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验，统一默认配置与结果口径。
 
 ### B. 工程闭环
 
@@ -463,8 +476,8 @@ LoRA load 请求的核心流程是：
 ### C. 扩展主线
 
 7. 已开始：推进 `Qwen2.5-7B-Instruct`。
-8. 当前进行中：`Qwen2.5-7B auto + 100 adapters + 1000 requests + P2.5 on`。
-9. 在 7B 长跑稳定后，再进入其他模型家族与额外数据集扩展。
+8. 已完成：`Qwen2.5-7B auto + 100 adapters + 1000 requests + P2.5 on`。
+9. 当前优先：完成 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验；之后再进入其他模型家族与额外数据集扩展。
 
 ## 12. 已知边界
 

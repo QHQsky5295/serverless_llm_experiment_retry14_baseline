@@ -353,6 +353,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 - `results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8.json`
 - `results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8_r3.json`
+- `results/experiment_results_full_vllm_auto_a100_r1000_c4_faaslora_full_qwen7b_auto_r1000_p25_on.json`
 
 这组结果表明：
 
@@ -360,6 +361,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 - `auto` 模式在双 GPU 环境下能真实扩到第二个物理 runtime
 - 历史 `3B seq8_lora8` 基线首先证明了 vLLM serving 参数是主瓶颈
 - 在修复显存观测与 contention/defer 记账后，`7B r300` 的 P2.5 A/B 进一步证明了有效容量准入可以在高压阶段显著降低 defer
+- `7B r1000 + P2.5 on` 已完成长跑验证：`TTFT avg=2381ms`、`P95=14274ms`、`P99=15968ms`、`RPS=0.228`、`contention=0`、`defer=0`
 - 将 `max_num_seqs / max_loras` 从保守 preset 调整到 `8 / 8` 后，主线结果显著改善
 - `r3` 复现实验与上一轮主结果波动较小，当前主基线已通过一次稳定性复验
 - 当前仓库默认配置已把 `faaslora_full` 的 `effective_capacity_admission_enabled` 切到开启状态；现有 `3B` 冻结结果文件仍是这次切换前的参考基线，后续需补一轮 `3B + P2.5 on` 复验
@@ -387,8 +389,9 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 - 继续清理 README / 技术说明 / 进度文档与当前实现的残余漂移
 - 已完成：为 `Qwen2.5-7B` 扩展补显式模型 / 硬件覆盖入口，避免手改 YAML
 - 已确认：`Qwen2.5-7B r300` 在修复观测口径后，`P2.5 on` 相对 `P2.5 off` 有显著收益
-- 当前进行中：`Qwen2.5-7B auto + 100 adapters + 1000 requests + P2.5 on`
-- 后续：在 7B 长跑结束后，补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验，统一 3B/7B 默认口径
+- 已完成：`Qwen2.5-7B auto + 100 adapters + 1000 requests + P2.5 on` 长跑验证，并可冻结 7B 默认参数
+- 当前进行中：`Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验
+- 后续：对比 3B 新结果与旧 frozen baseline，统一 3B/7B 默认口径，再进入下一模型家族
 
 ---
 

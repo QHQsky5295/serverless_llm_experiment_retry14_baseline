@@ -158,13 +158,14 @@
 8. `flashinfer` 与 `torch-c-dlpack-ext` 已装入 `LLM_vllm0102`，vLLM 采样路径显式请求使用 FlashInfer。
 9. 修复了 GPU 全局显存观测、ResidencyManager 监控未启动、contention/defer 记账失真等问题；后续结果统一以修复后的口径为准。
 10. `Qwen2.5-7B r300` 的 `P2.5 on/off` A/B 已完成；`P2.5 on` 在修复后的口径下显著降低了 `contention_events` 与 `avg_defer_ms`。
+11. `Qwen2.5-7B auto + 100 adapters + 1000 requests + P2.5 on` 已完成长跑验证，`contention=0 / defer=0`，7B 当前默认验证参数可冻结。
 
 ### 仍待完成
 
 1. 稳定环境下可执行的基础测试仍待补齐到更完整覆盖面；当前仅补上了不依赖 GPU / 外部模型的 smoke tests。
 2. 仍需继续清理 README / GUIDE / 其他附属文档与当前实现之间的漂移。
-3. `Qwen2.5-7B-Instruct` 扩展仍待完成 `1000 requests` 长跑验证与参数冻结。
-4. 仓库默认配置虽已切到 `3B + P2.5 on`，但仍待补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验。
+3. 仓库默认配置虽已切到 `3B + P2.5 on`，但仍待补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验。
+4. 7B 默认参数虽已可冻结，但文档和后续模型扩展仍需以这组参数为基线继续收口。
 
 ## 模型与数据集扩展状态
 
@@ -206,10 +207,10 @@
 ### C. 扩展主线
 
 8. 已完成：`Qwen2.5-7B-Instruct` 的 bring-up 与 `r300` 短测。
-9. 进行中：`Qwen2.5-7B-Instruct auto + 100 adapters + 1000 requests + P2.5 on` 长跑验证。
-10. 在 7B 长跑后，补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验，统一默认配置与结果口径。
-11. 基于上述结果冻结 7B 的默认验证参数。
-12. 再进入其他模型家族扩展。
+9. 已完成：`Qwen2.5-7B-Instruct auto + 100 adapters + 1000 requests + P2.5 on` 长跑验证。
+10. 进行中：补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验，统一默认配置与结果口径。
+11. 已可执行：基于现有结果冻结 7B 的默认验证参数。
+12. 在 3B/7B 默认口径统一后，再进入其他模型家族扩展。
 13. 最后接入额外对话数据集。
 
 ## 当前已确认的长期约束
@@ -224,6 +225,6 @@
 
 ## 建议的下一步
 
-1. 等当前 `Qwen2.5-7B auto + 100 adapters + 1000 requests + P2.5 on` 长跑结束并验收。
-2. 若 7B 长跑稳定，补跑一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验。
-3. 统一 3B/7B 默认口径后，再进入其他模型家族与额外数据集。
+1. 等当前 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验结束并验收。
+2. 对比 3B 新结果与旧 frozen baseline，统一 3B/7B 默认口径。
+3. 统一口径后，再进入其他模型家族与额外数据集。
