@@ -339,35 +339,29 @@ workload_profiles:
 # 基座模型
 # ---------------------------------------------------------------------------
 model:
-  # 当前默认主线复现实验路径：Qwen2.5-3B-Instruct（auto + 500 LoRA + representative 1000 requests）
+  # 兼容回退层：仅供未走 profile_selection / model_profiles 的旧路径读取。
+  # 当前论文主线与日常实验入口请以 profile_selection + model_profiles + workload_profiles 为准。
+  # 如需切模型，优先新增/修改 profile，而不是直接依赖本节注释。
+  #
   # RTX 3090 上 vLLM LoRA 若出现 "EngineCore died unexpectedly" 可尝试：
   # 1) 增大 /dev/shm：mount -o remount,size=1G /dev/shm 或 docker --shm-size=1g（需至少约 512MB）
-  # 2) 降级 vLLM：pip install vllm==0.10.2（见 pyproject.toml；0.10.0 需 Python<3.13）
+  # 2) 保持 vLLM=0.10.2（见 pyproject.toml）
   # 3) 仍崩溃时可用 --backend transformers 切回稳定回退路径
-  #
-  # 模型切换方式：
-  #   直接修改下面的 name 以及本节中的显存/批处理参数即可。
-  #   当前仓库常用参考值：
-  #   - Qwen2.5-3B-Instruct：gpu_memory_utilization=0.65, max_model_len=2048,
-  #     max_loras=8, max_num_seqs=8, max_num_batched_tokens=4096, runtime_concurrency_cap=8
-  #   - Qwen2.5-7B-Instruct：gpu_memory_utilization=0.85, max_model_len=1024,
-  #     max_loras=2, max_num_seqs=4, max_num_batched_tokens=1024, runtime_concurrency_cap=4
-  #   - Qwen2.5-14B-Instruct：建议先用 tensor_parallel_size=2，再按 bring-up 结果继续收紧
   name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct"
   backend: "vllm"
   device_id: 0
   visible_device_ids: [0, 1]       # dedicated/auto 模式允许从这组 GPU 中选择新实例
 
-  tensor_parallel_size: 2           # 单卡 3090
-  gpu_memory_utilization: 0.65      # 当前主线稳定使用 0.65；后续扩到更大 backbone 再单独调
-  max_model_len: 2048               # 当前主线验证通过值
-  max_loras: 8                      # 当前 auto500 主线验证通过值
-  max_lora_rank: 16                 # 适配器最大 rank（code_lora=16）
+  tensor_parallel_size: 2           # 兼容回退默认值；实际主线以所选 model profile 为准
+  gpu_memory_utilization: 0.65      # 兼容回退默认值；主线请以选中 profile 的冻结参数为准
+  max_model_len: 2048               # 兼容回退默认值
+  max_loras: 8                      # 兼容回退默认值
+  max_lora_rank: 16                 # 适配器最大 rank
   enable_lora: true
   enforce_eager: true               # 禁用 CUDA Graph，避免兼容问题
   dtype: "float16"
-  max_num_seqs: 8                   # 当前 auto500 主线验证通过值
-  max_num_batched_tokens: 4096      # 当前 auto500 主线验证通过值
+  max_num_seqs: 8                   # 兼容回退默认值
+  max_num_batched_tokens: 4096      # 兼容回退默认值
 
   # transformers 后端：限制输出以减小 KV cache，避免 OOM/已杀死
   max_output_tokens_cap: 64
@@ -425,10 +419,11 @@ backend_profiles:
 # 硬件配置（用于 SOTA baseline 延迟模型校准）
 # ---------------------------------------------------------------------------
 hardware:
+  # 兼容回退层：active mainline 的硬件估计值通常由所选 model profile 覆盖。
   gpu_budget_mb: 24576              # 单卡 3090 24 GB
-  model_weights_mb: 3200            # 3B fp16 ≈ 3.2 GB（切7B时改为7424）
+  model_weights_mb: 3200            # 回退默认估计值
 
-  # KV cache 每 1K tokens 占用（MB）：Qwen2.5-3B ≈ 1.0 MB/1K tokens
+  # KV cache 每 1K tokens 占用（MB）：回退默认估计值
   kv_per_1k_tokens_mb: 1.0
 
   # S-LoRA baseline：CPU pinned memory → GPU (PCIe 4.0 x16)
@@ -653,6 +648,7 @@ datasets:
 # 工作负载（使用真实 Azure LLM 推理追踪）
 # ---------------------------------------------------------------------------
 workload:
+  # 兼容回退层：active mainline 的请求数/并发/热点窗口通常由 dataset/workload profile 覆盖。
   workload_type: "mixed"
 
   # Azure LLM trace 时间缩放

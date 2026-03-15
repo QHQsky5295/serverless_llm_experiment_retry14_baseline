@@ -3,7 +3,7 @@ FaaSLoRA experiment integration
 
 Provides ExperimentConfig, ExperimentStack, HotnessTracker, and InstancePool
 for running full-stack (ResidencyManager + PreloadingManager + scale events)
-experiments from run_all_experiments.py, and for multi-instance / routing (TODO_SERVERLESS_LEVEL).
+experiments from run_all_experiments.py, and for multi-instance / routing experiments.
 """
 
 from .experiment_config import ExperimentConfig

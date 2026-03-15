@@ -9,6 +9,7 @@ import sys
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from tempfile import TemporaryDirectory
 
 import yaml
 
@@ -28,6 +29,7 @@ from faaslora.storage.remote_client import RemoteStorageClient
 from faaslora.storage.s3_client import S3Client
 from faaslora.storage.storage_manager import StorageManager
 from faaslora.utils.config import Config
+from scripts.generate_lora_adapters import resolve_generation_defaults
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -42,29 +44,23 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             cls.experiments = yaml.safe_load(f)
 
     def test_mainline_defaults_match_frozen_path(self) -> None:
-        model = self.experiments["model"]
-        resource = self.experiments["resource_coordination"]
-        workload = self.experiments["workload"]
-        full = next(
-            scenario for scenario in self.experiments["scenarios"]
-            if scenario["name"] == "faaslora_full"
-        )
+        model, workload, resource, lora_cfg = self._resolve_active_profiles()
 
         self.assertEqual(resource["instance_mode"], "auto")
-        self.assertEqual(resource["max_instances"], 2)
+        self.assertEqual(resource["max_instances"], 1)
         self.assertTrue(resource["effective_capacity_admission_enabled"])
         self.assertEqual(workload["sampling_strategy"], "representative")
         self.assertEqual(workload["total_requests"], 1000)
-        self.assertEqual(workload["concurrency"], 8)
+        self.assertEqual(workload["concurrency"], 2)
         self.assertEqual(workload["time_scale_factor"], 0.02)
-        self.assertEqual(model["max_model_len"], 2048)
-        self.assertEqual(model["max_loras"], 8)
-        self.assertEqual(model["max_num_seqs"], 8)
-        self.assertEqual(model["max_num_batched_tokens"], 4096)
-        self.assertEqual(model["runtime_concurrency_cap"], 8)
-        self.assertTrue(
-            full["resource_coordination"]["effective_capacity_admission_enabled"]
-        )
+        self.assertEqual(model["name"], self.experiments["model_profiles"]["qwen_14b_tp2"]["model"]["name"])
+        self.assertEqual(model["tensor_parallel_size"], 2)
+        self.assertEqual(model["max_model_len"], 1024)
+        self.assertEqual(model["max_loras"], 2)
+        self.assertEqual(model["max_num_seqs"], 2)
+        self.assertEqual(model["max_num_batched_tokens"], 1024)
+        self.assertEqual(model["runtime_concurrency_cap"], 2)
+        self.assertEqual(lora_cfg["full_num_adapters"], 100)
 
     def test_scale_preset_500_matches_mainline_serving_parameters(self) -> None:
         preset = self.experiments["lora_adapters"]["scale_presets"]["500"]["model"]
@@ -105,6 +101,118 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
         self.assertEqual(adapters["generation_mode"], "peft_finetune")
         self.assertFalse(adapters["generate_synthetic"])
+
+    def test_generator_defaults_follow_selected_profile(self) -> None:
+        defaults = resolve_generation_defaults(EXPERIMENTS_CONFIG)
+
+        self.assertEqual(
+            defaults["model"],
+            self.experiments["model_profiles"]["qwen_14b_tp2"]["model"]["name"],
+        )
+        self.assertEqual(defaults["num_adapters"], 100)
+        self.assertEqual(defaults["generation_mode"], "peft_finetune")
+
+    def test_peft_batch_generator_loads_base_model_once(self) -> None:
+        from scripts import generate_lora_adapters as generator
+
+        class FakeTokenizer:
+            def save_pretrained(self, dest: str) -> None:
+                Path(dest, "tokenizer_config.json").write_text("{}", encoding="utf-8")
+
+        class FakePeftModel:
+            def __init__(self) -> None:
+                self.adapters = []
+                self.saved = []
+
+            def add_adapter(self, adapter_name, _config, low_cpu_mem_usage=False):
+                self.adapters.append(adapter_name)
+
+            def set_adapter(self, adapter_name):
+                self.adapters.append(f"active:{adapter_name}")
+
+            def save_pretrained(self, save_directory, selected_adapters=None, **_kwargs):
+                dest = Path(save_directory)
+                dest.mkdir(parents=True, exist_ok=True)
+                Path(dest, "adapter_config.json").write_text("{}", encoding="utf-8")
+                self.saved.append(tuple(selected_adapters or []))
+
+            def delete_adapter(self, adapter_name):
+                self.adapters.append(f"deleted:{adapter_name}")
+
+        fake_model = FakePeftModel()
+
+        class FakePeftModule:
+            @staticmethod
+            def get_peft_model(_base_model, _config, adapter_name="default", **_kwargs):
+                fake_model.adapters.append(f"init:{adapter_name}")
+                return fake_model
+
+        adapter_specs = [
+            {"adapter_id": "a1", "rank": 8},
+            {"adapter_id": "a2", "rank": 8},
+            {"adapter_id": "a3", "rank": 8},
+        ]
+
+        with TemporaryDirectory() as tmpdir:
+            with patch.object(
+                generator,
+                "_load_peft_base_model",
+                return_value=(object(), FakeTokenizer(), ["q_proj"]),
+            ) as load_once, patch.object(
+                generator,
+                "_create_lora_config",
+                return_value=object(),
+            ), patch.object(
+                generator,
+                "ensure_adapter_support_files",
+                return_value=None,
+            ), patch.dict(
+                sys.modules,
+                {"peft": FakePeftModule},
+            ):
+                timings = generator.generate_adapters_with_peft(
+                    model_name="dummy-model",
+                    output_dir=Path(tmpdir),
+                    adapter_specs=adapter_specs,
+                    finetune=False,
+                )
+
+        load_once.assert_called_once()
+        self.assertEqual(set(timings.keys()), {"a1", "a2", "a3"})
+        self.assertEqual(fake_model.saved, [("a1",), ("a2",), ("a3",)])
+
+    def _resolve_active_profiles(self):
+        def merge(base, override):
+            merged = dict(base)
+            for key, value in override.items():
+                if isinstance(value, dict) and isinstance(merged.get(key), dict):
+                    merged[key] = merge(merged[key], value)
+                else:
+                    merged[key] = value
+            return merged
+
+        selection = self.experiments["profile_selection"]
+        model = merge(
+            self.experiments["model"],
+            self.experiments["model_profiles"][selection["model"]]["model"],
+        )
+        workload = merge(
+            self.experiments["workload"],
+            self.experiments["dataset_profiles"][selection["dataset"]]["workload"],
+        )
+        workload = merge(
+            workload,
+            self.experiments["workload_profiles"][selection["workload"]]["workload"],
+        )
+        resource = merge(
+            self.experiments["resource_coordination"],
+            self.experiments["workload_profiles"][selection["workload"]]["resource_coordination"],
+        )
+        lora_cfg = merge(
+            self.experiments["lora_adapters"],
+            self.experiments["workload_profiles"][selection["workload"]].get("lora_adapters", {}),
+        )
+        return model, workload, resource, lora_cfg
 
 
 class ConfigSmokeTests(unittest.TestCase):

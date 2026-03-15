@@ -28,11 +28,12 @@ Notes
 """
 
 import argparse
+import copy
 import os
 import sys
 import time
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
@@ -46,21 +47,82 @@ from faaslora.utils.adapter_manifest import (
 from faaslora.utils.model_assets import ensure_adapter_support_files
 
 
-def generate_adapter_with_peft(
+def _deep_merge_dict(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+    result = copy.deepcopy(base)
+    for key, value in (override or {}).items():
+        if (
+            key in result
+            and isinstance(result[key], dict)
+            and isinstance(value, dict)
+        ):
+            result[key] = _deep_merge_dict(result[key], value)
+        else:
+            result[key] = copy.deepcopy(value)
+    return result
+
+
+def resolve_generation_defaults(config_path: Optional[Path] = None) -> Dict[str, Any]:
+    defaults: Dict[str, Any] = {
+        "model": "Qwen/Qwen2.5-0.5B-Instruct",
+        "manifest_path": "configs/generated/lora_manifest_1000.json",
+        "num_adapters": 1000,
+        "generation_mode": "synthetic",
+    }
+
+    yaml_path = config_path or (REPO_ROOT / "configs" / "experiments.yaml")
+    if not yaml_path.exists():
+        return defaults
+
+    try:
+        import yaml
+
+        with yaml_path.open("r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
+    except Exception:
+        return defaults
+
+    profile_selection = cfg.get("profile_selection", {}) or {}
+    model_profiles = cfg.get("model_profiles", {}) or {}
+    workload_profiles = cfg.get("workload_profiles", {}) or {}
+
+    selected_model = profile_selection.get("model")
+    selected_workload = profile_selection.get("workload")
+
+    default_model = cfg.get("model", {}).get("name", defaults["model"])
+    if selected_model in model_profiles:
+        default_model = (
+            model_profiles[selected_model].get("model", {}).get("name", default_model)
+        )
+
+    lora_cfg = copy.deepcopy(cfg.get("lora_adapters", {}) or {})
+    if selected_workload in workload_profiles:
+        lora_cfg = _deep_merge_dict(
+            lora_cfg,
+            workload_profiles[selected_workload].get("lora_adapters", {}) or {},
+        )
+
+    defaults["model"] = default_model
+    defaults["manifest_path"] = lora_cfg.get(
+        "manifest_path", defaults["manifest_path"]
+    )
+    defaults["num_adapters"] = int(
+        lora_cfg.get(
+            "full_num_adapters",
+            lora_cfg.get("selected_num_adapters", defaults["num_adapters"]),
+        )
+    )
+    defaults["generation_mode"] = str(
+        lora_cfg.get("generation_mode", defaults["generation_mode"])
+    ).strip().lower()
+    return defaults
+
+
+def _load_peft_base_model(
     model_name: str,
-    adapter_id: str,
-    output_dir: Path,
-    rank: int = 8,
     target_modules: Optional[List[str]] = None,
-    finetune: bool = False,
-) -> str:
-    """
-    Use PEFT to create a real LoRA adapter for the given model.
-    Returns the path to the saved adapter directory.
-    """
+) -> tuple[Any, Any, List[str]]:
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
-    from peft import LoraConfig, get_peft_model, TaskType
 
     print(f"  Loading base model: {model_name} ...")
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -76,38 +138,132 @@ def generate_adapter_with_peft(
         # Auto-detect projection modules from model config
         target_modules = _detect_target_modules(model)
 
+    print(f"  Base model ready, targets={target_modules}")
+    return model, tokenizer, target_modules
+
+
+def _create_lora_config(model_name: str, rank: int, target_modules: List[str]):
+    from peft import LoraConfig, TaskType
+
     print(f"  Creating LoRA config: rank={rank}, targets={target_modules}")
-    lora_config = LoraConfig(
+    return LoraConfig(
         r=rank,
         lora_alpha=rank * 2,
         target_modules=target_modules,
         lora_dropout=0.05,
         bias="none",
         task_type=TaskType.CAUSAL_LM,
+        base_model_name_or_path=model_name,
     )
 
-    model = get_peft_model(model, lora_config)
 
-    if finetune:
-        print("  Running 5 gradient steps for non-trivial weights ...")
-        from torch.optim import AdamW
-        model.train()
-        optimizer = AdamW(model.parameters(), lr=1e-4)
-        dummy_input = tokenizer("Hello, I am a", return_tensors="pt")
-        if torch.cuda.is_available():
-            dummy_input = {k: v.cuda() for k, v in dummy_input.items()}
-        dummy_input["labels"] = dummy_input["input_ids"].clone()
-        for _ in range(5):
-            loss = model(**dummy_input).loss
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
+def _finetune_active_adapter(model, tokenizer) -> None:
+    import torch
+    from torch.optim import AdamW
+
+    print("  Running 5 gradient steps for non-trivial weights ...")
+    model.train()
+    optimizer = AdamW((p for p in model.parameters() if p.requires_grad), lr=1e-4)
+    dummy_input = tokenizer("Hello, I am a", return_tensors="pt")
+    if torch.cuda.is_available():
+        dummy_input = {k: v.cuda() for k, v in dummy_input.items()}
+    dummy_input["labels"] = dummy_input["input_ids"].clone()
+    for _ in range(5):
+        loss = model(**dummy_input).loss
+        loss.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+
+
+def generate_adapters_with_peft(
+    model_name: str,
+    output_dir: Path,
+    adapter_specs: List[Dict[str, Any]],
+    target_modules: Optional[List[str]] = None,
+    finetune: bool = False,
+) -> Dict[str, float]:
+    """
+    Load the base model once, then create/save one PEFT adapter at a time.
+
+    Returns a mapping of adapter_id -> elapsed_seconds for successfully created adapters.
+    """
+    from peft import get_peft_model
+
+    try:
+        import torch
+    except ModuleNotFoundError:
+        torch = None
+
+    base_model, tokenizer, detected_targets = _load_peft_base_model(
+        model_name=model_name,
+        target_modules=target_modules,
+    )
+    peft_model = None
+    timings: Dict[str, float] = {}
+
+    try:
+        for spec in adapter_specs:
+            adapter_id = str(spec["adapter_id"])
+            rank = int(spec["rank"])
+            dest = output_dir / adapter_id
+
+            lora_config = _create_lora_config(model_name, rank, detected_targets)
+            t0 = time.time()
+            if peft_model is None:
+                peft_model = get_peft_model(
+                    base_model,
+                    lora_config,
+                    adapter_name=adapter_id,
+                )
+            else:
+                peft_model.add_adapter(adapter_id, lora_config)
+                peft_model.set_adapter(adapter_id)
+
+            if finetune:
+                _finetune_active_adapter(peft_model, tokenizer)
+
+            dest.mkdir(parents=True, exist_ok=True)
+            peft_model.save_pretrained(str(dest), selected_adapters=[adapter_id])
+            tokenizer.save_pretrained(str(dest))
+            ensure_adapter_support_files(dest, model_name)
+
+            size_mb = _dir_size_mb(dest)
+            elapsed = time.time() - t0
+            print(f"  Saved adapter -> {dest}  ({size_mb:.1f} MB)")
+            timings[adapter_id] = elapsed
+
+            peft_model.delete_adapter(adapter_id)
+            if torch is not None and torch.cuda.is_available():
+                torch.cuda.empty_cache()
+    finally:
+        if torch is not None and torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+    return timings
+
+
+def generate_adapter_with_peft(
+    model_name: str,
+    adapter_id: str,
+    output_dir: Path,
+    rank: int = 8,
+    target_modules: Optional[List[str]] = None,
+    finetune: bool = False,
+) -> str:
+    """
+    Backward-compatible single-adapter wrapper around the batched PEFT generator.
+    """
+    timings = generate_adapters_with_peft(
+        model_name=model_name,
+        output_dir=output_dir,
+        adapter_specs=[{"adapter_id": adapter_id, "rank": rank}],
+        target_modules=target_modules,
+        finetune=finetune,
+    )
+    if adapter_id not in timings:
+        raise RuntimeError(f"Failed to generate adapter {adapter_id}")
 
     dest = output_dir / adapter_id
-    dest.mkdir(parents=True, exist_ok=True)
-    model.save_pretrained(str(dest))
-    tokenizer.save_pretrained(str(dest))
-
     size_mb = _dir_size_mb(dest)
     print(f"  Saved adapter → {dest}  ({size_mb:.1f} MB)")
     return str(dest)
@@ -251,31 +407,11 @@ def main():
     parser = argparse.ArgumentParser(
         description="Generate real PEFT LoRA adapters for FaaSLoRA experiments"
     )
-    # Auto-detect model from experiments.yaml if not specified
-    default_model = "Qwen/Qwen2.5-0.5B-Instruct"
-    default_manifest_path = "configs/generated/lora_manifest_1000.json"
-    default_num_adapters = 1000
-    default_generation_mode = "synthetic"
-    try:
-        import yaml
-        yaml_path = REPO_ROOT / "configs" / "experiments.yaml"
-        if yaml_path.exists():
-            with open(yaml_path) as f:
-                cfg = yaml.safe_load(f)
-            default_model = cfg.get("model", {}).get("name", default_model)
-            lora_cfg = cfg.get("lora_adapters", {})
-            default_manifest_path = lora_cfg.get("manifest_path", default_manifest_path)
-            default_num_adapters = int(
-                lora_cfg.get(
-                    "full_num_adapters",
-                    lora_cfg.get("selected_num_adapters", default_num_adapters),
-                )
-            )
-            default_generation_mode = str(
-                lora_cfg.get("generation_mode", default_generation_mode)
-            ).strip().lower()
-    except Exception:
-        pass
+    defaults = resolve_generation_defaults()
+    default_model = defaults["model"]
+    default_manifest_path = defaults["manifest_path"]
+    default_num_adapters = int(defaults["num_adapters"])
+    default_generation_mode = defaults["generation_mode"]
 
     default_use_peft = default_generation_mode in {
         "peft",
@@ -400,6 +536,7 @@ def main():
     rank_cycle = args.ranks
     skipped = 0
     created = 0
+    pending_peft_specs: List[Dict[str, Any]] = []
 
     for i, cfg in enumerate(manifest["adapters"]):
         adapter_id = str(cfg["id"])
@@ -426,29 +563,50 @@ def main():
         rank = rank_cycle[i % len(rank_cycle)]
         size_hint = float(cfg.get("size_mb", 32))
 
+        if args.use_peft:
+            pending_peft_specs.append(
+                {
+                    "adapter_id": adapter_id,
+                    "rank": rank,
+                    "size_mb": size_hint,
+                }
+            )
+            continue
+
         t0 = time.time()
         try:
-            if args.use_peft:
-                generate_adapter_with_peft(
-                    model_name=args.model,
-                    adapter_id=adapter_id,
-                    output_dir=output_dir,
-                    rank=rank,
-                    finetune=args.finetune,
-                )
-            else:
-                generate_adapter_synthetic(
-                    model_name=args.model,
-                    adapter_id=adapter_id,
-                    output_dir=output_dir,
-                    rank=rank,
-                    size_mb=size_hint,
-                )
+            generate_adapter_synthetic(
+                model_name=args.model,
+                adapter_id=adapter_id,
+                output_dir=output_dir,
+                rank=rank,
+                size_mb=size_hint,
+            )
             elapsed = time.time() - t0
             print(f"  {adapter_id}  ✓  ({elapsed:.1f}s)")
             created += 1
         except Exception as exc:
             print(f"  {adapter_id}  ✗  {exc}")
+
+    if pending_peft_specs:
+        try:
+            timings = generate_adapters_with_peft(
+                model_name=args.model,
+                output_dir=output_dir,
+                adapter_specs=pending_peft_specs,
+                finetune=args.finetune,
+            )
+            for spec in pending_peft_specs:
+                adapter_id = str(spec["adapter_id"])
+                elapsed = timings.get(adapter_id)
+                if elapsed is None:
+                    print(f"  {adapter_id}  ✗  generation did not complete")
+                    continue
+                print(f"  {adapter_id}  ✓  ({elapsed:.1f}s)")
+                created += 1
+        except Exception as exc:
+            failed_from = pending_peft_specs[0]["adapter_id"]
+            print(f"  {failed_from}..  ✗  batch PEFT generation aborted: {exc}")
 
     print(f"\nDone: {created} created, {skipped} skipped")
     print(f"Adapters available at: {output_dir}")
