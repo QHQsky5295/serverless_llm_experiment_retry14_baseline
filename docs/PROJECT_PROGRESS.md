@@ -339,6 +339,10 @@
 19. 在 Mistral 主线稳定后，再接入额外数据集，新增 `gsm8k`。
 20. 已决定：论文主线默认 LoRA 工件从 synthetic 切到 `PEFT+finetune`；synthetic 仅保留给 quick/debug。对应地，正式实验在工件缺失时不再自动回退 synthetic，而是要求先离线生成与当前 base model 匹配的 PEFT 工件。
 21. 已补 `mistral_7b_auto500_main`，后续 Mistral 7B 主线统一使用 `representative r1000 + 500 adapters`，不再沿用扩展阶段的 `100 adapters` bring-up 口径。
+22. 已完成：`scripts/generate_lora_adapters.py` 默认值改为跟随 `profile_selection + model_profiles + workload_profiles` 解析，不再只读取顶层 `model.name`。
+23. 已完成：`PEFT+finetune` 生成路径改为单次加载 base model 后循环生成多个 adapters，避免每个 adapter 重复 `from_pretrained`。
+24. 已完成：`tests/test_basic_smoke.py` 与 `tests/test_integration.py` 已更新为校验 active profile、生成器默认值与 batch PEFT 路径；旧的不可执行/失真集成测试入口已清理。
+25. 已完成：`experiments.yaml` 顶层 `model / hardware / workload` 注释已改为“兼容回退层”口径，避免误判为当前主线默认入口。
 
 ## 当前已确认的长期约束
 
@@ -355,6 +359,7 @@
 1. 以当前已经冻结的 `Qwen2.5-14B-Instruct @ gpu_memory_utilization=0.85` 作为 14B 默认主线结果。
 2. 保持 `Qwen2.5-7B-Instruct TP=1` 为默认路径，同时保留 `TP=2` 作为吞吐导向的正式对照 profile。
 3. 下一步切到 `mistralai/Mistral-7B-Instruct-v0.3`；应先完成模型下载/落位，再做运行命令与基线 bring-up。
+4. 旧的 `Mistral-7B` adapter 生成进程继续跑完，不中断；下一次重新启动生成器时，默认会自动使用新的单次加载实现。
 
 补充说明：
 

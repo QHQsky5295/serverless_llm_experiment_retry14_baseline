@@ -216,6 +216,10 @@ python scripts/generate_lora_adapters.py --model models/Qwen--Qwen2.5-7B-Instruc
 
 > **说明**：当前论文主线默认已经切到 `PEFT+finetune`。`run_all_experiments.py` 运行时仍会检测适配器是否与当前模型匹配，但在 `PEFT+finetune` 模式下，若发现工件缺失或与当前模型不兼容，runner 会直接报错并提示先离线生成，不再偷偷回退成 synthetic。
 
+> **当前默认解析方式**：若不显式传 `--model`，`scripts/generate_lora_adapters.py` 会跟随 `configs/experiments.yaml` 当前激活的 `profile_selection.model` 与对应 workload profile 的 adapter 数量来解析默认值，而不是只读取顶层兼容回退字段。
+
+> **当前生成实现**：`PEFT+finetune` 模式现在会对同一轮 adapter 生成只加载一次 base model，再循环保存多个 adapter；因此重新启动后的新一轮生成会比旧版“每个 adapter 重新加载模型”更快。
+
 当前扩展主线 `Mistral-7B + 500 adapters` 的推荐生成命令：
 
 ```bash
@@ -250,6 +254,8 @@ model:
   gpu_memory_utilization: 0.85
   max_loras: 8              # vLLM 同时缓存的 LoRA 数
 ```
+
+> **说明**：上面这段 `model:` 现在主要用于兼容旧路径与兜底读取。当前主线切换应优先通过 `profile_selection + model_profiles + dataset_profiles + workload_profiles` 完成，而不是散改顶层 `model/hardware/workload`。
 
 ### 6.2 硬件参数（贡献3 调度依赖）
 

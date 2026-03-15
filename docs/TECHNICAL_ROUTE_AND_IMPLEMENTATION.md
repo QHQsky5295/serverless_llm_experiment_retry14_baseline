@@ -471,6 +471,11 @@ LoRA load 请求的核心流程是：
 - `shared / dedicated / full-trace` 相关接口均保留，但不作为当前主线推进对象。
 - `effective_capacity_admission_enabled` 的 on/off 开关继续保留，但当前仓库默认值已经切到 `on`。
 - 当前扩展主线已切到 `Mistral-7B-Instruct-v0.3`，论文主线口径统一为 `PEFT+finetune + 500 adapters + representative r1000`。
+- `scripts/generate_lora_adapters.py` 已进一步收敛到当前主线配置：
+  - 默认值跟随 `profile_selection + model_profiles + workload_profiles`
+  - `PEFT+finetune` 生成路径改为单次加载 base model 后循环生成多个 adapters
+  - 顶层 `model / hardware / workload` 继续保留，但主要作为兼容回退层
+- 基础测试也已同步更新：当前 `smoke + integration` 会校验 active profile 解析、生成器默认值和 batch PEFT 路径，而不再只盯顶层 fallback 配置
 
 ## 11. 当前主线 TODO
 
@@ -483,8 +488,8 @@ LoRA load 请求的核心流程是：
 ### B. 工程闭环
 
 4. 修 CLI / packaging 断裂。
-5. 补稳定环境下可执行的基础测试。
-6. 同步 README / GUIDE / docs 与当前实现和结果。
+5. 已完成：补齐稳定环境下可执行的基础测试，并将入口改为真正可被 `unittest discover` 执行的 `smoke + integration`。
+6. 已完成：同步 README / GUIDE / docs 与当前实现和结果。
 
 ### C. 扩展主线
 

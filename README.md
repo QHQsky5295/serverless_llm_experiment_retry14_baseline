@@ -372,7 +372,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 ### 当前主线下一步
 
-- 继续补稳定环境下可执行的基础测试
+- 继续扩展稳定环境下可执行的基础测试，后续再补真实 GPU / 长跑链路覆盖
 - 继续清理 README / 技术说明 / 进度文档与当前实现的残余漂移
 - 完成 `Mistral-7B-Instruct-v0.3 + PEFT+finetune + 500 adapters + representative r1000`
 - 在 `Mistral-7B` 收口后推进 `Mistral-Nemo-Instruct-2407`
@@ -425,6 +425,11 @@ bash scripts/run_all_experiments_user_scope.sh \
   --scenario faaslora_full
 ```
 
+当前生成器还有两条重要默认行为：
+
+- 若不显式传 `--model`，`scripts/generate_lora_adapters.py` 会跟随 `configs/experiments.yaml` 当前激活的 `profile_selection + model_profiles + workload_profiles` 解析默认模型与 adapter 数量
+- 在 `PEFT+finetune` 模式下，生成器会对同一轮待生成 adapters 只加载一次 base model，再循环保存多个 adapter；当前正在运行中的旧生成进程不会自动获得这项提速，需下一次重新启动后生效
+
 ### 协作 / 矩阵验证入口
 
 ```bash
@@ -452,10 +457,11 @@ cd /home/qhq/serverless_llm_experiment
 /home/qhq/anaconda3/envs/LLM_vllm0102/bin/python -m unittest tests.test_basic_smoke -v
 ```
 
-这组测试当前覆盖三条基础路径：
+这组测试当前覆盖四条基础路径：
 
-- 当前 `profile_selection` 与关键 profile 存在且可解析
+- 当前 `profile_selection` 与 active profile 解析结果一致
 - 论文主线默认 LoRA 工件模式已切到 `PEFT+finetune`
+- `generate_lora_adapters.py` 的默认模型解析与单次加载 batch PEFT 路径可被 smoke 覆盖
 - `faaslora.cli` 与环境变量覆盖入口可执行
 
 ### 模型扩展覆盖入口

@@ -21,6 +21,12 @@ The following local-only runtime assets are intentionally excluded from Git:
 - `results/`
 - `.env.*`
 
+In addition, runtime-generated manifests or in-progress outputs should not be mixed into source/config commits by default. A current example is:
+
+- `configs/generated/lora_manifest_1000.json`
+
+Only promote such generated files when they are intentionally curated as repository baselines.
+
 ## Model Directory Policy
 
 The repository does not commit local model weights for any family, including:

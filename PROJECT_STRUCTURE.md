@@ -275,6 +275,11 @@ scripts/
 - 论文主线默认：`PEFT+finetune`，使用 PEFT 库生成并做轻量微调，更贴近真实 LoRA 权重
 - quick/debug：`--synthetic`，仅生成形状正确的最小工件，用于快速系统调试
 
+**当前实现细节**：
+- 默认值会跟随 `configs/experiments.yaml` 当前激活的 `profile_selection`、对应 `model_profiles` 与 workload 里的 adapter 数量解析
+- `PEFT+finetune` 模式下会单次加载 base model，再循环生成并保存多个 adapter，避免为每个 adapter 重复 `from_pretrained`
+- 顶层 `model / hardware / workload` 仍保留在 `experiments.yaml` 中，但现在主要作为兼容回退层
+
 **输出目录**：`artifacts/remote/`，每个适配器一个子目录：
 ```
 artifacts/remote/
@@ -345,7 +350,7 @@ lora_adapters:
   selected_num_adapters: 500
 ```
 
-说明：当前 `experiments.yaml` 已收敛到 `profile_selection + model_profiles + dataset_profiles + workload_profiles` 结构。切换主线时优先切 profile，而不是直接散改顶层 `model/workload` 字段。
+说明：当前 `experiments.yaml` 已收敛到 `profile_selection + model_profiles + dataset_profiles + workload_profiles` 结构。切换主线时优先切 profile，而不是直接散改顶层 `model/workload` 字段。顶层 `model / hardware / workload` 目前主要作为兼容旧路径与兜底读取层保留。
 
 ---
 

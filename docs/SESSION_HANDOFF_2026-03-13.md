@@ -353,9 +353,16 @@
 - `configs/experiments.yaml -> lora_adapters.generation_mode = peft_finetune`
 - `generate_synthetic = false`
 - `scripts/generate_lora_adapters.py` 默认跟随 YAML，直接生成 `PEFT+finetune` 工件
+- 其默认值现在会跟随当前激活的 `profile_selection + model_profiles + workload_profiles` 解析，不再只读取顶层 `model.name`
+- `PEFT+finetune` 生成路径已改为单次加载 base model 后循环生成多个 adapters
 - `scripts/run_all_experiments.py` 在该模式下若发现工件缺失或与当前模型不兼容，会明确报错并提示先离线生成
 - `synthetic` 仍保留，但仅作为 quick/debug 回退路径，不再作为论文主线默认
 - 当前 Mistral 7B 主线统一按 `PEFT+finetune + 500 adapters + representative r1000` 推进；`100 adapters` 仅保留给早期 bring-up / 快速验证口径
+
+补充说明：
+
+- 当前正在运行中的旧 `Mistral-7B` 生成进程仍按旧逻辑继续，不应中途打断
+- 下一次重新启动生成器时，会自动获得“单次加载 base model”的新实现
 
 ---
 
