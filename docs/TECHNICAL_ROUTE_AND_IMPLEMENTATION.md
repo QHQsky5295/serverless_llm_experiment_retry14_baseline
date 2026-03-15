@@ -305,7 +305,7 @@ AutoScaler 的规则先按类别汇总；同一类别内，正向负载证据优
 
 ### 8.1 主线默认路径
 
-当前主线启用的是 `ResourceCoordinator` 的稳定 admission 路径，而不是实验性的有效容量准入路径。
+当前主线启用的是 `ResourceCoordinator` 的稳定 admission 路径；其中 `effective_capacity_admission_enabled`（P2.5 风格有效容量准入）已经并入该主路径，并在当前默认配置中保持开启。该开关继续保留，便于做 on/off 对照实验。
 
 LoRA load 请求的核心流程是：
 

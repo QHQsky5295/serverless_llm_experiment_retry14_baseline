@@ -93,7 +93,7 @@
 - `dedicated`
 - `28185 full trace`
 
-`effective_capacity_admission_enabled`（P2.5）接口也保留，但当前是否默认启用要按不同 backbone 的实验结论区分。
+`effective_capacity_admission_enabled`（P2.5）接口仍保留用于 on/off 对照；当前仓库主线默认配置已切到开启状态。不同 backbone 的差异主要体现在收益幅度与最终冻结结论上，而不是默认开关口径本身。
 
 ---
 

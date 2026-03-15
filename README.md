@@ -104,7 +104,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 - `faaslora/scheduling/resource_coordinator.py`
 
-> 注：一个“争用感知的有效容量准入机制”实验版本已做过评估，但当前未作为主线默认机制启用。
+> 注：`effective_capacity_admission_enabled`（P2.5 风格有效容量准入）的 on/off 开关仍保留用于对照实验；但当前仓库主线默认配置已经启用该机制，并由 `ResourceCoordinator` 主路径统一接入。
 
 ---
 
