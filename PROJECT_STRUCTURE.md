@@ -15,7 +15,7 @@ serverless_llm_experiment/
 ├── configs/                ← 实验配置文件
 ├── data/                   ← 数据集存储（Azure 追踪、ShareGPT 缓存）
 ├── models/                 ← 大模型权重存储（下载后）
-├── lora_adapters/          ← LoRA 适配器权重（合成或真实）
+├── artifacts/remote/       ← LoRA 适配器工件输出目录（PEFT 或 synthetic）
 ├── results/                ← 实验输出（JSON 结果、日志）
 ├── README.md               ← 项目概述与快速开始
 ├── PROJECT_STRUCTURE.md    ← 本文件：项目结构详解
@@ -243,7 +243,7 @@ scripts/
 ├── run_all_experiments.py      ← 主实验脚本（入口点）
 ├── generate_lora_adapters.py   ← 生成合成 LoRA 适配器权重
 ├── download_datasets.py        ← 下载 ShareGPT 数据集
-├── download_model.py           ← 下载大模型（Qwen/Llama/OPT）
+├── download_model.py           ← 下载大模型（Qwen/Mistral）
 └── setup_gpu.sh                ← GPU 环境一键安装
 ```
 
@@ -272,12 +272,12 @@ scripts/
 **作用**：生成 LoRA 适配器文件，供实验加载使用。
 
 **两种模式**：
-- `--synthetic`：生成最小合成权重（仅包含正确的元数据结构，不依赖真实模型）
-- `--peft`（默认）：使用 PEFT 库生成标准 LoRA 权重文件（需要基础模型）
+- 论文主线默认：`PEFT+finetune`，使用 PEFT 库生成并做轻量微调，更贴近真实 LoRA 权重
+- quick/debug：`--synthetic`，仅生成形状正确的最小工件，用于快速系统调试
 
-**输出目录**：`lora_adapters/`，每个适配器一个子目录：
+**输出目录**：`artifacts/remote/`，每个适配器一个子目录：
 ```
-lora_adapters/
+artifacts/remote/
 ├── finance_lora/           # 金融领域（热度 0.9）
 │   ├── adapter_config.json
 │   └── adapter_model.safetensors
@@ -289,16 +289,16 @@ lora_adapters/
 
 ### download_model.py
 
-**作用**：下载 HuggingFace 大模型至本地 `models/` 目录，并自动更新 `experiments.yaml`。
+**作用**：下载 HuggingFace 大模型至本地 `models/` 目录，并打印对应 profile 使用提示。
 
 **支持模型**（均适用于 RTX 3090 24GB）：
 
 | 模型 | 大小 | 显存 | 适用场景 |
 |------|------|------|----------|
-| /home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-3B-Instruct | 本地已下载 | 当前主线默认 | 当前主线实验 |
-| Qwen/Qwen2.5-7B-Instruct | 15 GB | 18 GB | 下一阶段扩展 |
-| facebook/opt-1.3b | 2.6 GB | 4 GB | 无 Token 授权备选 |
-| meta-llama/Llama-3.1-8B-Instruct | 16 GB | 20 GB | 与 S-LoRA 同基座 |
+| Qwen/Qwen2.5-7B-Instruct | 15 GB | 18 GB | Qwen 7B 单卡档 |
+| Qwen/Qwen2.5-14B-Instruct | 29 GB | 30 GB | Qwen 14B 双卡 TP=2 |
+| mistralai/Mistral-7B-Instruct-v0.3 | 14 GB | 18 GB | 当前第二家族 7B 主线 |
+| mistralai/Mistral-Nemo-Instruct-2407 | 24 GB | 30 GB | 当前第二家族 12B/13B 档主线 |
 
 **使用方式**：
 ```bash
@@ -319,45 +319,33 @@ configs/
 ### experiments.yaml 结构
 
 ```yaml
-experiment:
-  name: "..."               # 实验名称
-  description: "..."        # 描述
+profile_selection:
+  model: "qwen_14b_tp2"
+  dataset: "azure_sharegpt_rep1000"
+  workload: "qwen_14b_tp2_main"
 
-model:                      # 基础大模型配置
-  name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-3B-Instruct"
-  tensor_parallel_size: 1
-  max_model_len: 2048
-  gpu_memory_utilization: 0.65
-  max_loras: 8
-  max_num_seqs: 8
-  max_num_batched_tokens: 4096
-  runtime_concurrency_cap: 8
+model_profiles:
+  mistral_7b_main:
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3"
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.85
 
-hardware:                   # 硬件参数（用于调度模拟）
-  gpu_budget_mb: 24576      # GPU 总显存（3090 = 24GB）
-  model_weights_mb: 3200    # 当前 3B 主线配置
-  kv_per_1k_tokens_mb: 1.0
+workload_profiles:
+  mistral_7b_auto500_main:
+    lora_adapters:
+      selected_num_adapters: 500
+      apply_scale_preset: false
+    workload:
+      total_requests: 1000
+      concurrency: 4
 
-resource_coordination:
-  instance_mode: "auto"
-  min_instances: 1
-  max_instances: 2
-  warm_pool_size: 2
-
-storage:                    # 存储层参数
-  bandwidth_mbps: 250
-
-workload:                   # 工作负载参数
-  workload_type: "mixed"    # 请求类型（conv/code/mixed）
-  time_scale_factor: 0.02
-  sampling_strategy: "representative"
-  total_requests: 1000
-  concurrency: 8
-  lora_request_ratio: 0.85  # 携带 LoRA 的请求比例
-  zipf_exponent: 1.0        # LoRA 热度 Zipf 参数
+lora_adapters:
+  generation_mode: "peft_finetune"
+  selected_num_adapters: 500
 ```
 
-说明：上面的示意片段只保留当前主线最相关字段。完整语义请以 `configs/experiments.yaml` 为准。
+说明：当前 `experiments.yaml` 已收敛到 `profile_selection + model_profiles + dataset_profiles + workload_profiles` 结构。切换主线时优先切 profile，而不是直接散改顶层 `model/workload` 字段。
 
 ---
 
@@ -381,14 +369,15 @@ TIMESTAMP,ContextTokens,GeneratedTokens,Model,Region
 
 ```
 models/
-└── Qwen--Qwen2.5-3B-Instruct/      ← 当前主线默认基座模型
+├── Qwen--Qwen2.5-14B-Instruct/                 ← 当前默认 profile 使用的 Qwen 大档位
+└── mistralai--Mistral-7B-Instruct-v0.3/        ← 当前扩展主线小档位
     ├── config.json
     ├── tokenizer.json
     ├── tokenizer_config.json
     └── model-000*.safetensors
 ```
 
-**初始状态**：空目录（需运行 `python scripts/download_model.py` 下载）
+**初始状态**：本地按需下载；仓库不提交模型权重内容。
 
 ---
 
@@ -396,9 +385,9 @@ models/
 
 ```
 results/
-├── experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8.json
-├── experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8_r3.json
-└── experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_defaultentry_r1.json
+├── experiment_results_full_vllm_auto_a100_r1000_c4_faaslora_full_qwen7b_auto_r1000_p25_on.json
+├── experiment_results_full_vllm_auto_a100_r1000_c4_faaslora_full_qwen7b_tp2_compare_r1000_p25_on.json
+└── experiment_results_full_vllm_auto_a100_r4000_c2_faaslora_full_qwen14b_tp2_r4000_u085_p25_on.json
 ```
 
 ### JSON 结构
@@ -427,10 +416,10 @@ results/
 
 ---
 
-## lora_adapters/ — LoRA 适配器
+## artifacts/remote/ — LoRA 适配器工件
 
 ```
-lora_adapters/
+artifacts/remote/
 ├── finance_lora/           ← 金融领域（热度最高，应驻留 GPU 热层）
 ├── medical_lora/           ← 医疗领域（高热度）
 ├── code_lora/              ← 代码生成
@@ -438,9 +427,9 @@ lora_adapters/
 └── legal_lora/             ← 法律文本（热度最低）
 ```
 
-**当前内容**：合成适配器（`--synthetic` 模式生成的最小权重文件）
+**当前主线默认**：`PEFT+finetune` 生成的标准 PEFT LoRA 工件，当前扩展主线为 `500 adapters`。
 
-**真实适配器**：在真实 GPU 模式下，可用 `--peft` 模式基于下载的基础模型生成标准 LoRA 权重。
+**调试回退**：仍可用 `--synthetic` 模式生成最小权重文件，用于 quick/debug，但不再作为论文主线默认。
 
 ---
 

@@ -36,6 +36,90 @@ EngineDeadError: EngineCore encountered an issue.
 
 ---
 
+## 0. 当前仓库在 14B TP=2 上的新增结论（2026-03-13）
+
+这部分不是泛泛而谈的社区经验，而是本仓库在当前机器上已经实际复现并确认过的结论：
+
+- 如果你看到的不是经典的 `EngineCore died unexpectedly`，而是：
+  - `ray_distributed_executor`
+  - `The current node timed out during startup`
+  - `Failed to get node info`
+  这时优先怀疑的根因不是模型权重缺失，而是 **TP=2 场景下可见 GPU 被错误缩成了单卡**。
+
+- 本仓库已经修复：
+  - `scripts/run_all_experiments.py`
+    - `TP>1` 时优先使用 `model.visible_device_ids`
+    - 本机双卡可见时显式优先 `distributed_executor_backend="mp"`
+  - 否则 vLLM 会误判“本机可见 GPU 数 < TP world size”，自动切到 Ray，再在单节点 Ray bring-up 阶段超时。
+
+- 对当前 `Qwen2.5-14B-Instruct + TP=2 + 100 adapters` 来说：
+  - `gpu_memory_utilization=0.90` 会让 serving 阶段长期处在约 `22.3/24.0 GB (93%)`
+  - ResidencyManager 会周期性报 `Memory pressure detected`
+  - GPU resident LoRA 容易被反复驱逐
+
+- 当前主线默认已经收敛到：
+  - `distributed_executor_backend=mp`
+  - `gpu_memory_utilization=0.85`
+
+- 在这组新默认下，quick 复测中：
+  - GPU 常驻约 `19.8/24.0 GB (83%)`
+  - 周期性 memory pressure 告警消失
+  - GPU resident adapter 数可以逐步升到 `3`
+  - 14B 已能稳定进入真实 serving，而不再卡死在 bring-up
+
+- 在 `gpu_memory_utilization=0.80` 下，完整 `representative 1000 requests` 已跑通：
+  - `1000/1000` 完成，`fail=0`
+  - `TTFT avg/p95/p99 = 603 / 1006 / 1174 ms`
+  - `E2E avg/p95/p99 = 13.10 / 14.91 / 15.22 s`
+  - `TPOT avg = 99.3 ms`
+  - `cache hit rate = 85.2%`
+  - `warm_pool_hits = 806`
+  - `contention_events = 0`
+  - `avg_defer_ms = 0`
+  - 运行期间未再出现 `Memory pressure detected`、Ray startup timeout 或 EngineCore 异常退出
+
+- 在 `gpu_memory_utilization=0.85` 下，完整 `representative 1000 requests` A/B 也已跑通：
+  - `1000/1000` 完成，`fail=0`
+  - GPU 常驻约 `21.1/24.0 GB (88%)`
+  - 仍未出现 `Memory pressure detected`、Ray startup timeout 或 EngineCore 异常退出
+  - 相比 `0.80`：
+    - `TTFT avg` 略降约 `0.7%`
+    - `TTFT p99` 略降约 `1.1%`
+    - `E2E avg` 降约 `1.5%`
+    - `E2E p95/p99` 降约 `8.5%`
+    - `TPOT avg` 降约 `1.7%`
+    - `RPS` 升约 `1.5%`
+    - 仅 `TTFT p95` 小幅上升约 `1.5%`
+  - 这说明 `0.85` 是当前机器上更优的稳定参数组合，后续可以直接用它进入 `representative 4000 requests`
+
+- 在 `gpu_memory_utilization=0.85` 下，后续的 `representative 4000 requests` 也已跑通：
+  - `4000/4000` 完成，`fail=0`
+  - `TTFT avg/p95/p99 = 588 / 1013 / 1133 ms`
+  - `E2E avg/p95/p99 = 13.15 / 14.90 / 15.16 s`
+  - `TPOT avg = 99.6 ms`
+  - `RPS = 0.1475`
+  - `cache hit rate = 86.05%`
+  - `warm_pool_hits = 3341`
+  - `contention_events = 0`
+  - `avg_defer_ms = 0`
+  - 因此 `0.85` 现在可以视为当前 14B 路径的冻结默认参数
+
+- 补做的 `Qwen2.5-7B-Instruct TP=2` 单实例双卡对照也已确认稳定：
+  - `1000/1000` 完成，`fail=0`
+  - 相比 `7B TP=1`：
+    - `RPS` 约 `+49.2%`
+    - `E2E avg/p95/p99` 改善约 `30.8% / 38.1% / 14.6%`
+    - `TPOT avg` 改善约 `43.2%`
+    - 但 `TTFT avg` 变差约 `37.7%`
+    - `cache hit rate` 与 `warm_pool_hits` 均下降
+  - 因此 `7B TP=2` 更适合作为吞吐导向对照，不建议替换当前 `7B TP=1` 默认模式
+
+- 当前机器最近多次出现登录会话中途转成 `closing`，所以 14B 长实验应优先通过：
+  - `scripts/run_all_experiments_user_scope.sh`
+  启动，不要直接把长实验绑在当前 SSH/TTY 的 session scope 里。
+
+---
+
 ## 1. 增大 /dev/shm（共享内存）【优先尝试】
 
 **原因**：EngineCore 子进程与主进程通过共享内存通信，`/dev/shm` 过小会导致崩溃。

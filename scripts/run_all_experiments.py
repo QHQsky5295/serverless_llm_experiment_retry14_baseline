@@ -708,6 +708,39 @@ class InferenceEngine:
             safe_max_tokens = min(max_tokens, max(1, max_len - actual_input_tokens - 8))
             return prompt, actual_input_tokens, safe_max_tokens
 
+    def _resolve_vllm_visible_devices(self, tp: int) -> Optional[str]:
+        configured = self.model_cfg.get("visible_device_ids")
+        if tp > 1 and isinstance(configured, list):
+            try:
+                device_ids = [str(int(device_id)) for device_id in configured]
+                if len(device_ids) >= tp:
+                    return ",".join(device_ids[:tp])
+            except Exception:
+                pass
+        if tp <= 1 and self.device_id is not None:
+            return str(self.device_id)
+        return None
+
+    def _resolve_vllm_executor_backend(
+        self,
+        tp: int,
+        visible_devices: Optional[str],
+    ) -> Optional[str]:
+        configured = self.model_cfg.get("distributed_executor_backend")
+        if configured:
+            return str(configured)
+        if tp <= 1:
+            return None
+        if visible_devices:
+            visible_count = len(
+                [item for item in visible_devices.split(",") if item.strip() and item.strip() != "-1"]
+            )
+            if visible_count >= tp:
+                return "mp"
+        if GPU_COUNT >= tp:
+            return "mp"
+        return None
+
     async def initialize(self):
         if not CUDA_AVAILABLE:
             raise RuntimeError(
@@ -735,6 +768,8 @@ class InferenceEngine:
         max_lr   = self.model_cfg.get("max_loras", 4)
         max_rank = self.model_cfg.get("max_lora_rank", 16)
         eager    = self.model_cfg.get("enforce_eager", True)
+        visible_devices = self._resolve_vllm_visible_devices(tp)
+        executor_backend = self._resolve_vllm_executor_backend(tp, visible_devices)
 
         print("  Initialising vLLM engine:")
         print(f"    model              = {model}")
@@ -750,6 +785,10 @@ class InferenceEngine:
         print(f"    enforce_eager      = {eager}")
         print(f"    dtype              = {self.model_cfg.get('dtype', 'float16')}")
         print(f"    device_id          = {self.device_id}")
+        if visible_devices:
+            print(f"    visible_devices    = {visible_devices}")
+        if executor_backend:
+            print(f"    dist_backend       = {executor_backend}")
 
         # Try 1: full config
         engine = await self._try_create_engine(
@@ -821,10 +860,14 @@ class InferenceEngine:
                 kwargs["enable_chunked_prefill"] = enable_chunked_prefill
             if enable_prefix_caching is not None:
                 kwargs["enable_prefix_caching"] = enable_prefix_caching
+            visible_devices = self._resolve_vllm_visible_devices(tp)
+            executor_backend = self._resolve_vllm_executor_backend(tp, visible_devices)
+            if executor_backend is not None:
+                kwargs["distributed_executor_backend"] = executor_backend
 
             prev_visible = os.environ.get("CUDA_VISIBLE_DEVICES")
-            if self.device_id is not None:
-                os.environ["CUDA_VISIBLE_DEVICES"] = str(self.device_id)
+            if visible_devices is not None:
+                os.environ["CUDA_VISIBLE_DEVICES"] = visible_devices
             try:
                 args = AsyncEngineArgs(**kwargs)
                 engine = AsyncLLMEngine.from_engine_args(args)
@@ -3413,7 +3456,12 @@ def _resolve_adapter_scale(
     resolved_cfg["adapters"] = selected_adapters
     resolved_cfg["_selected_adapter_count"] = target_count
     resolved_cfg["_manifest_path"] = str(manifest_path)
-    scale_preset = copy.deepcopy((adapters_cfg.get("scale_presets") or {}).get(str(target_count), {}))
+    apply_scale_preset = bool(resolved_cfg.get("apply_scale_preset", True))
+    scale_preset = {}
+    if apply_scale_preset:
+        scale_preset = copy.deepcopy(
+            (adapters_cfg.get("scale_presets") or {}).get(str(target_count), {})
+        )
     return resolved_cfg, selected_adapters, scale_preset, target_count, manifest_path, True
 
 
@@ -3480,6 +3528,75 @@ def _apply_named_preset(
     wl_cfg_yaml = _deep_merge_dict(wl_cfg_yaml, preset.get("workload", {}))
     coord_cfg = _deep_merge_dict(coord_cfg, preset.get("resource_coordination", {}))
     return exp_cfg, model_cfg, adapters_cfg, wl_cfg_yaml, coord_cfg, preset
+
+
+def _apply_selected_profiles(
+    cfg: Dict[str, Any],
+    exp_cfg: Dict[str, Any],
+    model_cfg: Dict[str, Any],
+    adapters_cfg: Dict[str, Any],
+    datasets_cfg: Dict[str, Any],
+    wl_cfg_yaml: Dict[str, Any],
+    coord_cfg: Dict[str, Any],
+    hw_cfg: Dict[str, Any],
+) -> Tuple[
+    Dict[str, Any],
+    Dict[str, Any],
+    Dict[str, Any],
+    Dict[str, Any],
+    Dict[str, Any],
+    Dict[str, Any],
+    Dict[str, Any],
+    Dict[str, str],
+]:
+    selection = copy.deepcopy(cfg.get("profile_selection", {}) or {})
+    env_selection_map = {
+        "FAASLORA_PROFILE_MODEL": "model",
+        "FAASLORA_PROFILE_DATASET": "dataset",
+        "FAASLORA_PROFILE_WORKLOAD": "workload",
+    }
+    for env_name, selection_key in env_selection_map.items():
+        raw = _read_env_override(env_name)
+        if raw is not None:
+            selection[selection_key] = raw
+    applied: Dict[str, str] = {}
+    profile_buckets = (
+        ("model", "model_profiles"),
+        ("dataset", "dataset_profiles"),
+        ("workload", "workload_profiles"),
+    )
+
+    for selection_key, profiles_key in profile_buckets:
+        selected_name = selection.get(selection_key)
+        if not selected_name:
+            continue
+        profiles = copy.deepcopy(cfg.get(profiles_key, {}) or {})
+        profile = copy.deepcopy(profiles.get(selected_name) or {})
+        if not profile:
+            available = ", ".join(sorted(profiles.keys())) or "<none>"
+            raise KeyError(
+                f"unknown {selection_key} profile '{selected_name}'. "
+                f"available profiles: {available}"
+            )
+        applied[selection_key] = str(selected_name)
+        exp_cfg = _deep_merge_dict(exp_cfg, profile.get("experiment", {}))
+        model_cfg = _deep_merge_dict(model_cfg, profile.get("model", {}))
+        adapters_cfg = _deep_merge_dict(adapters_cfg, profile.get("lora_adapters", {}))
+        datasets_cfg = _deep_merge_dict(datasets_cfg, profile.get("datasets", {}))
+        wl_cfg_yaml = _deep_merge_dict(wl_cfg_yaml, profile.get("workload", {}))
+        coord_cfg = _deep_merge_dict(coord_cfg, profile.get("resource_coordination", {}))
+        hw_cfg = _deep_merge_dict(hw_cfg, profile.get("hardware", {}))
+
+    return (
+        exp_cfg,
+        model_cfg,
+        adapters_cfg,
+        datasets_cfg,
+        wl_cfg_yaml,
+        coord_cfg,
+        hw_cfg,
+        applied,
+    )
 
 
 def _apply_backend_profile(
@@ -3667,6 +3784,21 @@ def generate_synthetic_lora(dest: Path, model_name: str, size_mb: float,
         ensure_adapter_support_files(dest, model_name)
 
 
+def _normalize_lora_generation_mode(adapters_cfg: Dict[str, Any]) -> str:
+    """Normalize LoRA artifact generation mode from config."""
+    raw = str(adapters_cfg.get("generation_mode", "") or "").strip().lower()
+    aliases = {
+        "peft+finetune": "peft_finetune",
+        "peft-finetune": "peft_finetune",
+        "real": "peft",
+    }
+    if raw in aliases:
+        return aliases[raw]
+    if raw:
+        return raw
+    return "synthetic" if bool(adapters_cfg.get("generate_synthetic", True)) else "manual"
+
+
 def _adapter_matches_model(adapter_dir: Path, model_name: str, arch: Dict) -> bool:
     """Check if existing adapter is compatible with the current model."""
     cfg_file = adapter_dir / "adapter_config.json"
@@ -3701,11 +3833,13 @@ def _adapter_matches_model(adapter_dir: Path, model_name: str, arch: Dict) -> bo
 
 
 def setup_remote_storage(adapters_cfg: Dict, remote_dir: Path, model_name: str) -> Dict[str, Dict]:
-    gen_synthetic = adapters_cfg.get("generate_synthetic", True)
-    arch = _get_model_arch(model_name) if gen_synthetic else {}
+    generation_mode = _normalize_lora_generation_mode(adapters_cfg)
+    gen_synthetic = generation_mode == "synthetic"
+    arch = _get_model_arch(model_name)
     hs = arch.get("hidden_size", "?")
     nl = arch.get("num_layers", "?")
     print(f"  Model arch: hidden_size={hs}, layers={nl}")
+    print(f"  LoRA artifact mode: {generation_mode}")
 
     result = {}
     remote_dir.mkdir(parents=True, exist_ok=True)
@@ -3718,10 +3852,9 @@ def setup_remote_storage(adapters_cfg: Dict, remote_dir: Path, model_name: str) 
         dest    = remote_dir / aid
 
         needs_regen = False
-        if dest.exists():
-            if gen_synthetic and not _adapter_matches_model(dest, model_name, arch):
-                needs_regen = True
-                print(f"    {aid}  model mismatch, regenerating...")
+        if dest.exists() and not _adapter_matches_model(dest, model_name, arch):
+            needs_regen = True
+            print(f"    {aid}  model mismatch, regenerating...")
 
         if not dest.exists() or needs_regen:
             lp = a.get("local_path")
@@ -3741,11 +3874,34 @@ def setup_remote_storage(adapters_cfg: Dict, remote_dir: Path, model_name: str) 
                     if gen_synthetic:
                         generate_synthetic_lora(dest, model_name, size_mb,
                                                a.get("lora_rank", 8), arch)
+                    else:
+                        cmd = (
+                            f'{sys.executable} scripts/generate_lora_adapters.py '
+                            f'--model "{model_name}" '
+                            f'{"--use-peft --finetune " if generation_mode == "peft_finetune" else "--use-peft "}'
+                            f'--force'
+                        )
+                        raise RuntimeError(
+                            f"LoRA artifact download failed for {aid} and generation_mode={generation_mode} "
+                            f"does not allow synthetic fallback. Please generate the paper-mainline adapters first:\n  {cmd}"
+                        ) from exc
             elif gen_synthetic:
                 generate_synthetic_lora(dest, model_name, size_mb,
                                        a.get("lora_rank", 8), arch)
                 print(f"    {aid}  {_dir_size_mb(dest):.1f} MB  (synthetic)")
                 regenerated += 1
+            else:
+                cmd = (
+                    f'{sys.executable} scripts/generate_lora_adapters.py '
+                    f'--model "{model_name}" '
+                    f'{"--use-peft --finetune " if generation_mode == "peft_finetune" else "--use-peft "}'
+                    f'--force'
+                )
+                raise RuntimeError(
+                    f"LoRA artifact {aid} is missing or incompatible with model {model_name}. "
+                    f"Current paper-mainline mode is {generation_mode}, so automatic synthetic fallback is disabled.\n"
+                    f"Please generate adapters first:\n  {cmd}"
+                )
         else:
             print(f"    {aid}  {_dir_size_mb(dest):.1f} MB  (exists)")
         if callable(ensure_adapter_support_files):
@@ -4368,6 +4524,7 @@ async def main_async(
     exp_cfg      = copy.deepcopy(cfg.get("experiment", {}))
     model_cfg    = copy.deepcopy(cfg.get("model", {}))
     adapters_cfg = copy.deepcopy(cfg.get("lora_adapters", {}))
+    datasets_cfg = copy.deepcopy(cfg.get("datasets", {}))
     wl_cfg_yaml  = copy.deepcopy(cfg.get("workload", {}))
     scenarios    = copy.deepcopy(cfg.get("scenarios", []))
     storage_cfg  = copy.deepcopy(cfg.get("storage", {}))
@@ -4375,6 +4532,27 @@ async def main_async(
     cost_model   = copy.deepcopy(cfg.get("cost_model", {}))
     coord_cfg    = copy.deepcopy(cfg.get("resource_coordination", {}))
     applied_preset = None
+    applied_profile_selection: Dict[str, str] = {}
+
+    (
+        exp_cfg,
+        model_cfg,
+        adapters_cfg,
+        datasets_cfg,
+        wl_cfg_yaml,
+        coord_cfg,
+        hw_cfg,
+        applied_profile_selection,
+    ) = _apply_selected_profiles(
+        cfg,
+        exp_cfg,
+        model_cfg,
+        adapters_cfg,
+        datasets_cfg,
+        wl_cfg_yaml,
+        coord_cfg,
+        hw_cfg,
+    )
 
     exp_cfg, model_cfg, adapters_cfg, wl_cfg_yaml, coord_cfg, applied_preset = _apply_named_preset(
         cfg,
@@ -4505,6 +4683,11 @@ async def main_async(
         print(f"  ResultsTag: {results_tag}")
     if applied_preset:
         print(f"  Matrix  : {preset_name}")
+    if applied_profile_selection:
+        profile_text = ", ".join(
+            f"{k}={v}" for k, v in sorted(applied_profile_selection.items())
+        )
+        print(f"  Profiles: {profile_text}")
     print()
     if backend == "transformers":
         try:
@@ -4518,24 +4701,77 @@ async def main_async(
             print()
             sys.exit(1)
 
+    arrival_source = str(
+        datasets_cfg.get("arrival_source", "azure_llm") or "azure_llm"
+    ).strip().lower()
+    token_source = str(
+        datasets_cfg.get("token_source", "azure_llm") or "azure_llm"
+    ).strip().lower()
+    prompt_source = str(
+        datasets_cfg.get("prompt_source", "sharegpt_auto") or "sharegpt_auto"
+    ).strip().lower()
+    azure_max_records = datasets_cfg.get("azure_max_records")
+    sharegpt_max_records = int(
+        datasets_cfg.get("sharegpt_max_records", 5000) or 5000
+    )
+
+    if arrival_source not in {"azure_llm", "synthetic_poisson"}:
+        raise ValueError(
+            f"Unsupported datasets.arrival_source={arrival_source}. "
+            "Expected azure_llm or synthetic_poisson."
+        )
+    if token_source not in {"azure_llm", "fixed_default"}:
+        raise ValueError(
+            f"Unsupported datasets.token_source={token_source}. "
+            "Expected azure_llm or fixed_default."
+        )
+    if prompt_source not in {"sharegpt_auto", "embedded"}:
+        raise ValueError(
+            f"Unsupported datasets.prompt_source={prompt_source}. "
+            "Expected sharegpt_auto or embedded."
+        )
+
+    azure_max_records = None if azure_max_records in (None, "") else int(azure_max_records)
+    if azure_max_records is not None and azure_max_records <= 0:
+        azure_max_records = None
+
+    load_azure_records = arrival_source == "azure_llm" or token_source == "azure_llm"
+
     # ---- 1. Load datasets ----
     print("[1/5] Loading datasets ...")
     dataset = WorkloadDataset()
-    ds_stats = dataset.initialize(max_sgpt=5000)
+    ds_stats = dataset.initialize(
+        max_azure=azure_max_records,
+        max_sgpt=sharegpt_max_records,
+        load_azure=load_azure_records,
+        prompt_source=prompt_source,
+    )
 
     azure_stat = ds_stats.get("azure", {})
     sgpt_stat  = ds_stats.get("sharegpt", {})
     has_azure  = dataset.has_real_azure_data()
     has_sgpt   = dataset.has_real_sharegpt_data()
+    use_azure_replay = arrival_source == "azure_llm" and has_azure
+    use_azure_tokens = token_source == "azure_llm" and has_azure
 
-    print(f"  Azure LLM trace: {azure_stat.get('total_records', 0)} records "
-          f"({'REAL' if has_azure else 'MISSING'})")
+    print(
+        "  数据配置 : "
+        f"arrival={arrival_source}  token={token_source}  prompt={prompt_source}"
+    )
+    print(
+        f"  Azure LLM trace: {azure_stat.get('total_records', 0)} records "
+        f"({'REAL' if has_azure else 'DISABLED/MISSING'})"
+    )
     if has_azure:
-        print(f"    input_tokens p50={azure_stat['context_tokens']['p50']:.0f} "
-              f"p95={azure_stat['context_tokens']['p95']:.0f}  "
-              f"output_tokens p50={azure_stat['generated_tokens']['p50']:.0f}")
-    print(f"  ShareGPT: {sgpt_stat.get('total_records', 0)} records "
-          f"({'REAL ? ' + sgpt_stat.get('source','') if has_sgpt else 'embedded fallback'})")
+        print(
+            f"    input_tokens p50={azure_stat['context_tokens']['p50']:.0f} "
+            f"p95={azure_stat['context_tokens']['p95']:.0f}  "
+            f"output_tokens p50={azure_stat['generated_tokens']['p50']:.0f}"
+        )
+    print(
+        f"  ShareGPT: {sgpt_stat.get('total_records', 0)} records "
+        f"({'REAL/' + sgpt_stat.get('source', '') if has_sgpt else sgpt_stat.get('source', 'embedded')})"
+    )
     print()
 
     # ---- 2. Remote storage ----
@@ -4543,8 +4779,8 @@ async def main_async(
     adapter_info = setup_remote_storage(adapters_cfg, remote_dir, model_name)
     print(f"  {len(adapter_info)} adapters ready.\n")
 
-    # ---- 3. Build workload traces from real Azure trace ----
-    print("[3/5] Generating workload traces (Azure LLM real trace replay) ...")
+    # ---- 3. Build workload traces ----
+    print("[3/5] Generating workload traces ...")
     adapter_ids = list(adapter_info.keys())
     domain_map  = {a["id"]: a.get("task_type", "general") for a in selected_adapters}
 
@@ -4561,7 +4797,7 @@ async def main_async(
         total_requests = min(total_requests, 50)
         time_scale     = min(time_scale * 5, 0.5)  # 5x extra compression in quick mode
 
-    if has_azure:
+    if use_azure_replay:
         # Use real Azure trace timestamps for authentic arrival patterns
         traces = dataset.generate_traces(
             adapter_ids=adapter_ids,
@@ -4579,7 +4815,7 @@ async def main_async(
         trace_src = "Azure LLM real trace"
         sampling_stats = dataset.get_last_sampling_stats()
     else:
-        # Fallback: Poisson + ShareGPT prompts
+        # Fallback: Poisson arrivals with configurable token/prompt sources
         wl_cfg = WorkloadConfig(
             arrival_rate_rps=wl_cfg_yaml.get("arrival_rate_rps", 4.0),
             total_requests=total_requests,
@@ -4591,13 +4827,19 @@ async def main_async(
             enable_hotness_evolution=wl_cfg_yaml.get("enable_hotness_evolution", True),
             epoch_requests=wl_cfg_yaml.get("epoch_requests", 25),
             enable_burst=False,
-            use_azure_trace_tokens=False,
+            use_azure_trace_tokens=use_azure_tokens,
             adapter_domain_map=domain_map,
         )
         gen    = WorkloadGenerator(adapter_ids, wl_cfg, seed=42, dataset=dataset)
         traces = gen.generate()
-        trace_src = "Poisson synthetic (Azure data unavailable)"
-        sampling_stats = {"strategy": "synthetic_poisson", "selected_requests": len(traces)}
+        if use_azure_tokens:
+            trace_src = "Poisson synthetic (Azure token lengths)"
+        else:
+            trace_src = "Poisson synthetic (fixed token defaults)"
+        sampling_stats = {
+            "strategy": "synthetic_poisson",
+            "selected_requests": len(traces),
+        }
 
     for t in traces:
         t._burst_phase = "normal"   # real data has natural variation; no artificial label
@@ -4616,7 +4858,7 @@ async def main_async(
     else:
         est_rps = 0.0
 
-    ctx_mean = azure_stat.get("context_tokens", {}).get("mean", 0) if has_azure else 0
+    ctx_mean = azure_stat.get("context_tokens", {}).get("mean", 0) if use_azure_tokens else 0
 
     print(f"  Source    : {trace_src}")
     print(f"  Requests  : {len(traces)} total  ({n_lora} with LoRA adapter)")
@@ -4650,10 +4892,11 @@ async def main_async(
             )
     if active_adapter_cap:
         print(f"  ActiveSet : cap={int(active_adapter_cap)}  rotate_every={hotset_rotation_requests or 'off'} reqs")
-    if has_azure:
+    if use_azure_tokens:
         print(f"  Tokens    : avg ctx={ctx_mean:.0f}  "
               f"(p50={azure_stat['context_tokens']['p50']:.0f}  "
               f"p95={azure_stat['context_tokens']['p95']:.0f})")
+    if use_azure_replay:
         print(f"  Workload  : {workload_type} (conversation + code traces)")
     print("  LoRA top3 : " + ", ".join(f"{k}={v}" for k, v in top3))
     print()
@@ -4827,7 +5070,7 @@ async def main_async(
             all_results.append(run_results[0])
 
     # ---- Output ----
-    print_results(all_results, bw_mbps, has_azure, has_sgpt, backend)
+    print_results(all_results, bw_mbps, use_azure_replay, has_sgpt, backend)
     save_results(
         all_results,
         results_file,
@@ -4859,13 +5102,19 @@ async def main_async(
             "routing_policy": str(coord_cfg.get("routing_policy", "adapter_affinity")).lower(),
             "arrival_window_s": float(coord_cfg.get("arrival_window_s", 5.0)),
             "preset_name": preset_name,
+            "profile_selection": applied_profile_selection,
             "num_runs": num_runs,
             "confidence_level": confidence_level,
+            "arrival_source": arrival_source,
+            "token_source": token_source,
+            "prompt_source": prompt_source,
+            "azure_max_records": azure_max_records,
+            "sharegpt_max_records": sharegpt_max_records,
             "azure_trace_records": azure_stat.get("total_records", 0),
             "sharegpt_source": sgpt_stat.get("source", "embedded"),
             "has_real_azure_data": has_azure,
             "has_real_sharegpt_data": has_sgpt,
-            "workload_source": "azure_real_trace" if has_azure else "poisson_synthetic",
+            "workload_source": "azure_real_trace" if use_azure_replay else "poisson_synthetic",
         },
     )
 

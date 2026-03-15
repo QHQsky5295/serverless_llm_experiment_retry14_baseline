@@ -6,10 +6,12 @@ FaaSLoRA 大模型下载脚本
 将 HuggingFace 开源大模型下载至本地 models/ 目录，供 vLLM 推理使用。
 
 支持的模型（适用于 RTX 3090 24 GB）：
-  - Qwen/Qwen2.5-0.5B-Instruct  (~1 GB，快速验证用)
-  - Qwen/Qwen2.5-7B-Instruct    (~15 GB，论文实验推荐)
-  - facebook/opt-1.3b            (~2.6 GB，无需授权)
-  - meta-llama/Llama-3.1-8B-Instruct (~16 GB，需要 HuggingFace Token)
+  - Qwen/Qwen2.5-0.5B-Instruct           (~1 GB，快速验证用)
+  - Qwen/Qwen2.5-7B-Instruct             (~15 GB，Qwen 单卡档)
+  - Qwen/Qwen2.5-14B-Instruct            (~29 GB，Qwen 双卡档)
+  - mistralai/Mistral-7B-Instruct-v0.3   (~14 GB，当前第二家族 7B 主线)
+  - mistralai/Mistral-Nemo-Instruct-2407 (~24 GB，当前第二家族 12B/13B 档主线)
+  - facebook/opt-1.3b                    (~2.6 GB，仅下载用途；当前 vLLM LoRA 路线不推荐)
 
 用法：
   conda activate LLM
@@ -18,6 +20,7 @@ FaaSLoRA 大模型下载脚本
 """
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -31,32 +34,67 @@ RECOMMENDED_MODELS = {
         "desc": "快速验证用，1 GB，无需授权",
         "vram_gb": 2,
         "yaml_name": "Qwen/Qwen2.5-0.5B-Instruct",
+        "profile": None,
+        "workload": None,
     },
     "Qwen/Qwen2.5-7B-Instruct": {
         "size_gb": 14.5,
         "desc": "论文实验推荐，RTX 3090 单卡可运行",
         "vram_gb": 18,
         "yaml_name": "Qwen/Qwen2.5-7B-Instruct",
+        "profile": "qwen_7b_main",
+        "workload": "qwen_7b_auto100_main",
     },
     "Qwen/Qwen2.5-14B-Instruct": {
         "size_gb": 29.0,
         "desc": "大规模对比实验，需要双 3090（tensor_parallel=2）",
         "vram_gb": 30,
         "yaml_name": "Qwen/Qwen2.5-14B-Instruct",
+        "profile": "qwen_14b_tp2",
+        "workload": "qwen_14b_tp2_main",
     },
     "facebook/opt-1.3b": {
         "size_gb": 2.6,
         "desc": "无需授权，适合无 HuggingFace Token 的环境",
         "vram_gb": 4,
         "yaml_name": "facebook/opt-1.3b",
+        "profile": None,
+        "workload": None,
     },
-    "meta-llama/Llama-3.1-8B-Instruct": {
-        "size_gb": 16.0,
-        "desc": "需要 HuggingFace Token，与 S-LoRA 论文相同基座",
-        "vram_gb": 20,
-        "yaml_name": "meta-llama/Llama-3.1-8B-Instruct",
+    "mistralai/Mistral-7B-Instruct-v0.3": {
+        "size_gb": 14.0,
+        "desc": "无需授权，Mistral 当前 7B 主线（vLLM LoRA 支持）",
+        "vram_gb": 18,
+        "yaml_name": "mistralai/Mistral-7B-Instruct-v0.3",
+        "profile": "mistral_7b_main",
+        "workload": "mistral_7b_auto500_main",
+    },
+    "mistralai/Mistral-Nemo-Instruct-2407": {
+        "size_gb": 24.0,
+        "desc": "无需授权，双 3090 + TP=2；Mistral 当前 12B/13B 左右主线",
+        "vram_gb": 30,
+        "yaml_name": "mistralai/Mistral-Nemo-Instruct-2407",
+        "profile": "mistral_nemo_12b_tp2",
+        "workload": "mistral_nemo_12b_tp2_main",
     },
 }
+
+
+def validate_token(token: str | None):
+    """Fail fast on common placeholder / encoding mistakes."""
+    if not token:
+        return
+
+    try:
+        token.encode("ascii")
+    except UnicodeEncodeError as exc:
+        raise ValueError(
+            "Hugging Face token 包含非 ASCII 字符。请把示例占位符替换成真实的 hf_... token，"
+            "不要直接使用“你的_hf_token”这类中文占位符。"
+        ) from exc
+
+    if not token.startswith("hf_"):
+        print("  [提示] 当前 token 不是以 'hf_' 开头；请确认它是有效的 Hugging Face Access Token。")
 
 
 def download_model(model_id: str, token: str = None, force: bool = False):
@@ -100,7 +138,7 @@ def download_model(model_id: str, token: str = None, force: bool = False):
         print(f"\n[错误] 下载失败: {exc}")
         print("  提示：")
         print("  1. 检查网络连接")
-        print("  2. 如需授权模型（如 Llama），请提供 HF Token：")
+        print("  2. 如需授权模型，请提供 HF Token：")
         print("     python scripts/download_model.py --model MODEL_ID --token hf_xxxx")
         print("  3. 国内网络可设置镜像：")
         print("     export HF_ENDPOINT=https://hf-mirror.com")
@@ -110,32 +148,26 @@ def download_model(model_id: str, token: str = None, force: bool = False):
 
 
 def update_yaml_config(model_id: str, local_path: str, tensor_parallel: int = 1):
-    """更新 configs/experiments.yaml 中的模型配置。"""
+    """打印 experiments.yaml 的 profile 更新提示，不直接改写主配置。"""
     yaml_path = REPO_ROOT / "configs" / "experiments.yaml"
     if not yaml_path.exists():
         return
 
-    with open(yaml_path, "r", encoding="utf-8") as f:
-        content = f.read()
+    info = RECOMMENDED_MODELS.get(model_id, {})
+    profile = info.get("profile")
+    workload = info.get("workload")
 
-    # 更新 model.name 字段
-    import re
-    new_content = re.sub(
-        r'(^  name:\s*")[^"]*(")',
-        f'\\1{local_path}\\2',
-        content,
-        flags=re.MULTILINE,
-    )
-    if tensor_parallel > 1:
-        new_content = re.sub(
-            r"(tensor_parallel_size:\s*)\d+",
-            f"\\g<1>{tensor_parallel}",
-            new_content,
-        )
-
-    with open(yaml_path, "w", encoding="utf-8") as f:
-        f.write(new_content)
-    print(f"✓ 已更新 configs/experiments.yaml: model.name = {local_path}")
+    print("ℹ 当前 experiments.yaml 已改为 profile_selection + model_profiles 结构。")
+    print("  为避免误改主配置，下载脚本不再自动重写整个 YAML 文件。")
+    if profile:
+        print(f"  推荐 model profile   : {profile}")
+        print(f"  推荐 workload profile: {workload}")
+        print(f"  请确认 {yaml_path} 中的 model_profiles.{profile}.model.name 为：")
+        print(f'    "{local_path}"')
+        if tensor_parallel > 1:
+            print(f"  并确认 model_profiles.{profile}.model.tensor_parallel_size = {tensor_parallel}")
+    else:
+        print("  当前模型未绑定现成 profile；请按实验需要手动补充。")
 
 
 def print_model_list():
@@ -151,7 +183,11 @@ def main():
     parser = argparse.ArgumentParser(description="下载 FaaSLoRA 实验所需大模型")
     parser.add_argument("--model", default="Qwen/Qwen2.5-0.5B-Instruct",
                         help="HuggingFace 模型 ID")
-    parser.add_argument("--token", default=None, help="HuggingFace Token（授权模型需要）")
+    parser.add_argument(
+        "--token",
+        default=os.environ.get("HF_TOKEN"),
+        help="HuggingFace Token（授权模型需要；默认读取环境变量 HF_TOKEN）",
+    )
     parser.add_argument("--force", action="store_true", help="强制重新下载")
     parser.add_argument("--tensor-parallel", type=int, default=1,
                         help="张量并行数（双 3090 填 2）")
@@ -162,6 +198,12 @@ def main():
         print_model_list()
         return
 
+    try:
+        validate_token(args.token)
+    except ValueError as exc:
+        print(f"\n[错误] {exc}")
+        sys.exit(1)
+
     print("=" * 60)
     print("  FaaSLoRA 大模型下载工具")
     print("=" * 60)
@@ -170,7 +212,7 @@ def main():
     if not local_path:
         sys.exit(1)
 
-    # 更新 YAML 配置
+    # 打印 YAML / profile 使用提示
     update_yaml_config(args.model, local_path, tensor_parallel=args.tensor_parallel)
 
     # 提示配置建议
@@ -190,8 +232,17 @@ def main():
     print(f"      model_weights_mb: {model_weights_mb}")
     kv_per_1k = round(info.get("size_gb", 7) / 7 * 2.0, 1)
     print(f"      kv_per_1k_tokens_mb: {kv_per_1k}")
-    print("\n  现在可以运行完整实验：")
-    print("    python scripts/run_all_experiments.py --config configs/experiments.yaml")
+    profile = info.get("profile")
+    workload = info.get("workload")
+    if profile and workload:
+        print("\n  现在可以运行完整实验：")
+        print(f"    FAASLORA_PROFILE_MODEL={profile} \\")
+        print("    FAASLORA_PROFILE_DATASET=azure_sharegpt_rep1000 \\")
+        print(f"    FAASLORA_PROFILE_WORKLOAD={workload} \\")
+        print("    python scripts/run_all_experiments.py --config configs/experiments.yaml")
+    else:
+        print("\n  现在可以运行完整实验：")
+        print("    python scripts/run_all_experiments.py --config configs/experiments.yaml")
 
 
 if __name__ == "__main__":

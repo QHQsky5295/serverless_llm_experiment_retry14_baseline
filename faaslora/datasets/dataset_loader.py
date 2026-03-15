@@ -161,8 +161,22 @@ class ShareGPTLoader:
         self._records: List[ShareGPTRecord] = []
         self._source = "none"
 
-    def load(self, max_samples: int = 5000) -> List[ShareGPTRecord]:
+    def load(
+        self,
+        max_samples: int = 5000,
+        source_mode: str = "sharegpt_auto",
+    ) -> List[ShareGPTRecord]:
         """Load ShareGPT prompts. Returns cached/downloaded/embedded data."""
+        source_mode = str(source_mode or "sharegpt_auto").strip().lower()
+        if source_mode not in {"sharegpt_auto", "embedded"}:
+            raise ValueError(
+                "Unsupported ShareGPT prompt source: "
+                f"{source_mode}. Expected sharegpt_auto or embedded."
+            )
+
+        if source_mode == "embedded":
+            return self._load_embedded()
+
         # 1. Check local cache
         if SHAREGPT_CACHE.exists():
             try:
@@ -636,13 +650,23 @@ class WorkloadDataset:
         self,
         max_azure: Optional[int] = None,
         max_sgpt: int = 5000,
+        load_azure: bool = True,
+        prompt_source: str = "sharegpt_auto",
     ) -> Dict[str, Any]:
         """Load all datasets. Returns a stats summary."""
-        self._azure_records = self.azure.load(max_records=max_azure)
-        self._sgpt_records  = self.sgpt.load(max_samples=max_sgpt)
+        if load_azure:
+            self._azure_records = self.azure.load(max_records=max_azure)
+            azure_stats = self.azure.get_stats()
+        else:
+            self._azure_records = []
+            azure_stats = {"loaded": False, "total_records": 0}
+        self._sgpt_records = self.sgpt.load(
+            max_samples=max_sgpt,
+            source_mode=prompt_source,
+        )
         self._initialized = True
         return {
-            "azure": self.azure.get_stats(),
+            "azure": azure_stats,
             "sharegpt": self.sgpt.get_stats(),
         }
 
@@ -714,6 +738,8 @@ class WorkloadDataset:
     def get_azure_arrival_rate(self) -> float:
         if not self._initialized:
             self.initialize()
+        if not self._azure_records:
+            return 0.0
         return self.azure.get_arrival_rate_rps()
 
     def get_last_sampling_stats(self) -> Dict[str, Any]:

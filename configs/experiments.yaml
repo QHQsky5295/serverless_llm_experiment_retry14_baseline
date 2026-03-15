@@ -30,6 +30,312 @@ experiment:
   confidence_level: 0.95
 
 # ---------------------------------------------------------------------------
+# Profile 选择器（优先用于切换模型 / 数据源 / 工作负载主线）
+# ---------------------------------------------------------------------------
+profile_selection:
+  model: "qwen_14b_tp2"
+  dataset: "azure_sharegpt_rep1000"
+  workload: "qwen_14b_tp2_main"
+
+# ---------------------------------------------------------------------------
+# 模型 Profile（可覆盖 model + hardware）
+# ---------------------------------------------------------------------------
+model_profiles:
+  qwen_3b_main:
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-3B-Instruct"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1]
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.65
+      max_model_len: 2048
+      max_loras: 8
+      max_lora_rank: 16
+      enable_lora: true
+      enforce_eager: true
+      dtype: "float16"
+      max_num_seqs: 8
+      max_num_batched_tokens: 4096
+      max_output_tokens_cap: 64
+      max_input_len: 256
+      runtime_concurrency_cap: 8
+    hardware:
+      model_weights_mb: 3200
+      kv_per_1k_tokens_mb: 1.0
+
+  qwen_7b_main:
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1]
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.85
+      max_model_len: 1024
+      max_loras: 2
+      max_lora_rank: 16
+      enable_lora: true
+      enforce_eager: true
+      dtype: "float16"
+      max_num_seqs: 4
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: 64
+      max_input_len: 256
+      runtime_concurrency_cap: 4
+    hardware:
+      model_weights_mb: 14336
+      kv_per_1k_tokens_mb: 2.0
+
+  qwen_7b_tp2_compare:
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1]
+      distributed_executor_backend: "mp"
+      tensor_parallel_size: 2
+      gpu_memory_utilization: 0.85
+      max_model_len: 1024
+      max_loras: 2
+      max_lora_rank: 16
+      enable_lora: true
+      enforce_eager: true
+      dtype: "float16"
+      max_num_seqs: 4
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: 64
+      max_input_len: 256
+      runtime_concurrency_cap: 4
+    hardware:
+      model_weights_mb: 14336
+      kv_per_1k_tokens_mb: 2.0
+
+  qwen_14b_tp2:
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1]
+      distributed_executor_backend: "mp"
+      tensor_parallel_size: 2
+      gpu_memory_utilization: 0.85
+      max_model_len: 1024
+      max_loras: 2
+      max_lora_rank: 16
+      enable_lora: true
+      enforce_eager: true
+      dtype: "float16"
+      max_num_seqs: 2
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: 64
+      max_input_len: 256
+      runtime_concurrency_cap: 2
+    hardware:
+      model_weights_mb: 28672
+      kv_per_1k_tokens_mb: 4.0
+
+  mistral_7b_main:
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1]
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.85
+      max_model_len: 1024
+      max_loras: 2
+      max_lora_rank: 16
+      enable_lora: true
+      enforce_eager: true
+      dtype: "float16"
+      max_num_seqs: 4
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: 64
+      max_input_len: 256
+      runtime_concurrency_cap: 4
+    hardware:
+      model_weights_mb: 14336
+      kv_per_1k_tokens_mb: 2.0
+
+  mistral_nemo_12b_tp2:
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-Nemo-Instruct-2407"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1]
+      distributed_executor_backend: "mp"
+      tensor_parallel_size: 2
+      gpu_memory_utilization: 0.80
+      max_model_len: 1024
+      max_loras: 2
+      max_lora_rank: 16
+      enable_lora: true
+      enforce_eager: true
+      dtype: "float16"
+      max_num_seqs: 2
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: 64
+      max_input_len: 256
+      runtime_concurrency_cap: 2
+    hardware:
+      model_weights_mb: 24576
+      kv_per_1k_tokens_mb: 4.0
+
+# ---------------------------------------------------------------------------
+# 数据集 Profile（可覆盖 datasets + workload）
+# ---------------------------------------------------------------------------
+dataset_profiles:
+  azure_sharegpt_rep1000:
+    datasets:
+      arrival_source: "azure_llm"
+      token_source: "azure_llm"
+      prompt_source: "sharegpt_auto"
+      azure_max_records:
+      sharegpt_max_records: 5000
+    workload:
+      sampling_strategy: "representative"
+      total_requests: 1000
+
+  azure_sharegpt_rep4000:
+    datasets:
+      arrival_source: "azure_llm"
+      token_source: "azure_llm"
+      prompt_source: "sharegpt_auto"
+      azure_max_records:
+      sharegpt_max_records: 5000
+    workload:
+      sampling_strategy: "representative"
+      total_requests: 4000
+
+  azure_embedded_smoke:
+    datasets:
+      arrival_source: "azure_llm"
+      token_source: "azure_llm"
+      prompt_source: "embedded"
+      azure_max_records:
+      sharegpt_max_records: 200
+    workload:
+      sampling_strategy: "representative"
+      total_requests: 100
+
+# ---------------------------------------------------------------------------
+# 工作负载 Profile（可覆盖 workload + resource_coordination + lora_adapters）
+# ---------------------------------------------------------------------------
+workload_profiles:
+  qwen_3b_auto500_main:
+    lora_adapters:
+      selected_num_adapters: 500
+      quick_num_adapters: 100
+      full_num_adapters: 500
+      apply_scale_preset: true
+    workload:
+      concurrency: 8
+      time_scale_factor: 0.02
+      active_adapter_cap: 48
+      hotset_rotation_requests: 100
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 2
+      effective_capacity_admission_enabled: true
+
+  qwen_7b_auto100_main:
+    lora_adapters:
+      selected_num_adapters: 100
+      quick_num_adapters: 100
+      full_num_adapters: 100
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 0.02
+      active_adapter_cap: 16
+      hotset_rotation_requests: 120
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 2
+      effective_capacity_admission_enabled: true
+
+  qwen_7b_tp2_compare_main:
+    lora_adapters:
+      selected_num_adapters: 100
+      quick_num_adapters: 100
+      full_num_adapters: 100
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 0.02
+      active_adapter_cap: 16
+      hotset_rotation_requests: 120
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 1
+      effective_capacity_admission_enabled: true
+
+  qwen_14b_tp2_main:
+    lora_adapters:
+      selected_num_adapters: 100
+      quick_num_adapters: 100
+      full_num_adapters: 100
+      apply_scale_preset: false
+    workload:
+      concurrency: 2
+      time_scale_factor: 0.02
+      active_adapter_cap: 16
+      hotset_rotation_requests: 120
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 1
+      effective_capacity_admission_enabled: true
+
+  mistral_7b_auto100_main:
+    lora_adapters:
+      selected_num_adapters: 100
+      quick_num_adapters: 100
+      full_num_adapters: 100
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 0.02
+      active_adapter_cap: 16
+      hotset_rotation_requests: 120
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 2
+      effective_capacity_admission_enabled: true
+
+  mistral_7b_auto500_main:
+    lora_adapters:
+      selected_num_adapters: 500
+      quick_num_adapters: 100
+      full_num_adapters: 500
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 0.02
+      active_adapter_cap: 48
+      hotset_rotation_requests: 100
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 2
+      effective_capacity_admission_enabled: true
+
+  mistral_nemo_12b_tp2_main:
+    lora_adapters:
+      selected_num_adapters: 100
+      quick_num_adapters: 100
+      full_num_adapters: 100
+      apply_scale_preset: false
+    workload:
+      concurrency: 2
+      time_scale_factor: 0.02
+      active_adapter_cap: 16
+      hotset_rotation_requests: 120
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 1
+      effective_capacity_admission_enabled: true
+
+# ---------------------------------------------------------------------------
 # 基座模型
 # ---------------------------------------------------------------------------
 model:
@@ -38,12 +344,21 @@ model:
   # 1) 增大 /dev/shm：mount -o remount,size=1G /dev/shm 或 docker --shm-size=1g（需至少约 512MB）
   # 2) 降级 vLLM：pip install vllm==0.10.2（见 pyproject.toml；0.10.0 需 Python<3.13）
   # 3) 仍崩溃时可用 --backend transformers 切回稳定回退路径
-  name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-3B-Instruct"
+  #
+  # 模型切换方式：
+  #   直接修改下面的 name 以及本节中的显存/批处理参数即可。
+  #   当前仓库常用参考值：
+  #   - Qwen2.5-3B-Instruct：gpu_memory_utilization=0.65, max_model_len=2048,
+  #     max_loras=8, max_num_seqs=8, max_num_batched_tokens=4096, runtime_concurrency_cap=8
+  #   - Qwen2.5-7B-Instruct：gpu_memory_utilization=0.85, max_model_len=1024,
+  #     max_loras=2, max_num_seqs=4, max_num_batched_tokens=1024, runtime_concurrency_cap=4
+  #   - Qwen2.5-14B-Instruct：建议先用 tensor_parallel_size=2，再按 bring-up 结果继续收紧
+  name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct"
   backend: "vllm"
   device_id: 0
   visible_device_ids: [0, 1]       # dedicated/auto 模式允许从这组 GPU 中选择新实例
 
-  tensor_parallel_size: 1           # 单卡 3090
+  tensor_parallel_size: 2           # 单卡 3090
   gpu_memory_utilization: 0.65      # 当前主线稳定使用 0.65；后续扩到更大 backbone 再单独调
   max_model_len: 2048               # 当前主线验证通过值
   max_loras: 8                      # 当前 auto500 主线验证通过值
@@ -63,7 +378,7 @@ model:
   # 取消以下注释并注释掉上面 3B 配置即可切换：
   # name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"
   # backend: "vllm"
-  # tensor_parallel_size: 1
+  # tensor_parallel_size: 2
   # gpu_memory_utilization: 0.85
   # max_model_len: 1024
   # max_loras: 2
@@ -73,6 +388,22 @@ model:
   # dtype: "float16"
   # max_num_seqs: 4
   # max_num_batched_tokens: 1024
+  # runtime_concurrency_cap: 4
+
+  # ── 备选：Qwen2.5-14B-Instruct（当前下一步主线）───────────────────
+  # name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct"
+  # backend: "vllm"
+  # tensor_parallel_size: 2
+  # gpu_memory_utilization: 0.90
+  # max_model_len: 1024
+  # max_loras: 2
+  # max_lora_rank: 16
+  # enable_lora: true
+  # enforce_eager: true
+  # dtype: "float16"
+  # max_num_seqs: 2
+  # max_num_batched_tokens: 1024
+  # runtime_concurrency_cap: 2
 
 backend_profiles:
   transformers:
@@ -145,10 +476,12 @@ resource_coordination:
 # LoRA 适配器
 # ---------------------------------------------------------------------------
 lora_adapters:
-  generate_synthetic: true
+  generation_mode: "peft_finetune"  # 论文主线默认：PEFT + 轻量 finetune；synthetic 仅保留给 quick/debug
+  generate_synthetic: false
   manifest_path: "configs/generated/lora_manifest_1000.json"
   auto_create_manifest: true
   preserve_legacy_names: true
+  apply_scale_preset: true          # 是否按 adapter 数量自动套用 scale_presets；14B 等新模型可关闭
   selected_num_adapters: 500
   quick_num_adapters: 100
   full_num_adapters: 500
@@ -157,6 +490,7 @@ lora_adapters:
   #   2) quick 模式默认 100；完整版默认 500
   #   3) 若 manifest 不存在，run_all_experiments.py 会自动生成元数据文件
   #   4) 真正的 adapter 目录可通过 scripts/generate_lora_adapters.py 批量生成
+  #   5) 当前论文主线默认要求 PEFT+finetune 工件；若工件缺失，runner 会提示先离线生成
   scale_presets:
     "100":
       workload:
@@ -306,17 +640,27 @@ storage:
   bandwidth_mbps: 250
 
 # ---------------------------------------------------------------------------
+# 数据源配置（由 YAML 控制数据集选择）
+# ---------------------------------------------------------------------------
+datasets:
+  arrival_source: "azure_llm"      # 到达时间来源：azure_llm 或 synthetic_poisson
+  token_source: "azure_llm"        # token 长度来源：azure_llm 或 fixed_default
+  prompt_source: "sharegpt_auto"   # prompt 来源：sharegpt_auto 或 embedded
+  azure_max_records:               # 读取多少条 Azure LLM 记录；留空表示全部
+  sharegpt_max_records: 5000       # 读取多少条 ShareGPT 记录；embedded 模式下忽略
+
+# ---------------------------------------------------------------------------
 # 工作负载（使用真实 Azure LLM 推理追踪）
 # ---------------------------------------------------------------------------
 workload:
   workload_type: "mixed"
 
-  # Azure trace 时间缩放
+  # Azure LLM trace 时间缩放
   time_scale_factor: 0.02
   sampling_strategy: "representative"   # 完整版默认使用代表性抽样，近似保持到达/长度/burst 分布
 
-  # 请求数量：从 28K 条 Azure trace 中采样多少条做本次实验
-  # 当前完整版默认 1000，作为代表性工作负载；28185 用于最终 full-trace 验证
+  # 请求数量：本次实验生成多少条请求
+  # 当前默认 1000；Qwen2.5-14B 主线可直接改成 4000
   total_requests: 1000
 
   # LoRA 选择分布（Zipf，与 S-LoRA 论文一致）

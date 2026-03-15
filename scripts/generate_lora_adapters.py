@@ -255,6 +255,7 @@ def main():
     default_model = "Qwen/Qwen2.5-0.5B-Instruct"
     default_manifest_path = "configs/generated/lora_manifest_1000.json"
     default_num_adapters = 1000
+    default_generation_mode = "synthetic"
     try:
         import yaml
         yaml_path = REPO_ROOT / "configs" / "experiments.yaml"
@@ -270,8 +271,23 @@ def main():
                     lora_cfg.get("selected_num_adapters", default_num_adapters),
                 )
             )
+            default_generation_mode = str(
+                lora_cfg.get("generation_mode", default_generation_mode)
+            ).strip().lower()
     except Exception:
         pass
+
+    default_use_peft = default_generation_mode in {
+        "peft",
+        "peft_finetune",
+        "peft+finetune",
+        "peft-finetune",
+    }
+    default_finetune = default_generation_mode in {
+        "peft_finetune",
+        "peft+finetune",
+        "peft-finetune",
+    }
 
     parser.add_argument(
         "--model",
@@ -304,17 +320,19 @@ def main():
     parser.add_argument(
         "--finetune",
         action="store_true",
+        default=default_finetune,
         help="Run 5 gradient steps to produce non-zero weights (requires GPU)",
     )
     parser.add_argument(
         "--use-peft",
         action="store_true",
+        default=default_use_peft,
         help="Use real PEFT library (requires downloading base model; ~1 GB)",
     )
     parser.add_argument(
         "--synthetic",
         action="store_true",
-        default=True,
+        default=(default_generation_mode == "synthetic"),
         help="Generate synthetic adapters with correct shapes (default, no model download needed)",
     )
     parser.add_argument(
@@ -328,6 +346,12 @@ def main():
         help="Only (re)generate the manifest; do not emit adapter directories",
     )
     args = parser.parse_args()
+
+    if args.synthetic:
+        args.use_peft = False
+        args.finetune = False
+    elif args.finetune:
+        args.use_peft = True
 
     output_dir = REPO_ROOT / args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -359,7 +383,13 @@ def main():
     print(f"  Manifest  : {manifest_path}")
     print(f"  Count     : {args.num_adapters}")
     print(f"  Ranks     : {args.ranks}")
-    print(f"  Mode      : {'PEFT (real)' if args.use_peft else 'Synthetic (correct shapes)'}")
+    if args.use_peft and args.finetune:
+        mode_desc = "PEFT + finetune"
+    elif args.use_peft:
+        mode_desc = "PEFT (real)"
+    else:
+        mode_desc = "Synthetic (correct shapes)"
+    print(f"  Mode      : {mode_desc}")
     print()
 
     if args.manifest_only:

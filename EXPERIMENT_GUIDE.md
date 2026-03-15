@@ -64,7 +64,9 @@ bash scripts/setup_gpu.sh
 - 安装核心依赖（peft、transformers、huggingface-hub 等）
 - 安装 vLLM（用于真实 LLM 推理，约 5-10 分钟）
 - 安装 FaaSLoRA 包（pip install -e .）
-- 生成合成 LoRA 适配器
+- 准备运行所需基础目录与依赖
+
+> 说明：当前论文主线默认 LoRA 工件已切到 `PEFT+finetune`。即使完成环境安装，正式实验前仍建议按第 5 节单独生成与当前 base model 匹配的 PEFT 工件。
 
 ### 2.3 手动安装（如自动脚本失败）
 
@@ -95,9 +97,9 @@ for i in range(torch.cuda.device_count()):
 
 **预期输出**（双 3090）：
 ```
-PyTorch: 2.9.0+cu130
+PyTorch: 2.8.0+cu128
 CUDA: True
-vLLM: 0.6.x
+vLLM: 0.10.2
   GPU 0: NVIDIA GeForce RTX 3090 24GB
   GPU 1: NVIDIA GeForce RTX 3090 24GB
 ```
@@ -155,47 +157,45 @@ python scripts/download_model.py --list
 
   模型 ID                                        大小    显存  说明
   ─────────────────────────────────────────── ───── ─────  ──────────────
-  Qwen/Qwen2.5-0.5B-Instruct                    1.0G    2G  快速验证用，无需授权
   Qwen/Qwen2.5-7B-Instruct                     14.5G   18G  论文实验推荐，RTX 3090 单卡可运行
   Qwen/Qwen2.5-14B-Instruct                    29.0G   30G  需要双 3090（tensor_parallel=2）
-  facebook/opt-1.3b                             2.6G    4G  无需授权
-  meta-llama/Llama-3.1-8B-Instruct             16.0G   20G  需要 HF Token，与 S-LoRA 同基座
+  mistralai/Mistral-7B-Instruct-v0.3          14.0G   18G  Qwen 之后的下一个家族，当前固定的小档位
+  mistralai/Mistral-Nemo-Instruct-2407        24.0G   30G  后续大档位，双 3090 + TP=2
+  gemma-3-12b-it                               24.0G   24G  暂挂计划列表，当前不配置
 ```
 
 ### 4.2 下载模型
 
-**方案A：快速验证（Qwen2.5-0.5B，约 1 GB，5 分钟）**
-
-```bash
-python scripts/download_model.py --model Qwen/Qwen2.5-0.5B-Instruct
-```
-
-**方案B：论文实验（Qwen2.5-7B，约 15 GB，30-60 分钟）**
+**方案A：Qwen 中尺寸（Qwen2.5-7B，约 15 GB，30-60 分钟）**
 
 ```bash
 export HF_ENDPOINT=https://hf-mirror.com  # 国内镜像（可选）
 python scripts/download_model.py --model Qwen/Qwen2.5-7B-Instruct
 ```
 
-**方案C：与 S-LoRA 同基座（Llama-3-8B，需要 HF Token）**
+**方案B：Qwen 13B+ 档（Qwen2.5-14B，双 3090 张量并行）**
 
 ```bash
-python scripts/download_model.py \
-  --model meta-llama/Llama-3.1-8B-Instruct \
-  --token hf_xxxxxxxxxxxx
-```
-
-**方案D：双 3090 张量并行（14B 模型）**
-
-```bash
+export HF_ENDPOINT=https://hf-mirror.com  # 国内镜像（可选）
 python scripts/download_model.py \
   --model Qwen/Qwen2.5-14B-Instruct \
   --tensor-parallel 2
 ```
 
-### 4.3 下载后自动更新配置
+**方案C：当前扩展主线（Mistral-7B，单卡）**
 
-下载完成后，`download_model.py` 会自动更新 `configs/experiments.yaml` 中的 `model.name` 字段，无需手动修改。
+```bash
+export HF_ENDPOINT=https://hf-mirror.com  # 国内镜像（可选）
+python scripts/download_model.py --model mistralai/Mistral-7B-Instruct-v0.3
+```
+
+> 当前 Qwen 家族的 `3B / 7B / 14B` 主线验证已经完成；当前扩展主线固定为 `mistralai/Mistral-7B-Instruct-v0.3`，随后推进 `mistralai/Mistral-Nemo-Instruct-2407`。`OPT` 已在本机验证为不支持 vLLM LoRA。Gemma 暂挂计划列表，当前不配置。
+
+### 4.3 下载后配置提示
+
+下载完成后，`download_model.py` 会打印推荐的 `FAASLORA_PROFILE_MODEL / FAASLORA_PROFILE_WORKLOAD` 与目标本地路径。
+当前脚本**不会自动改写** `configs/experiments.yaml`，以免误改当前的 `profile_selection + model_profiles` 结构。
+更推荐直接通过环境变量或 `profile_selection.model / dataset / workload` 统一切换主线实验组合，而不是分散手改多个字段。
 
 ---
 
@@ -204,14 +204,28 @@ python scripts/download_model.py \
 > **重要**：LoRA 适配器的权重维度必须与基础模型匹配。如果你更换了模型（如从 0.5B 切换到 7B），必须重新生成适配器。
 
 ```bash
-# 自动检测 experiments.yaml 中的模型并生成合成适配器
+# 论文主线默认：自动读取 experiments.yaml 中当前模型，生成 PEFT + 轻量 finetune 工件
 python scripts/generate_lora_adapters.py --force
 
 # 或手动指定模型
 python scripts/generate_lora_adapters.py --model models/Qwen--Qwen2.5-7B-Instruct --force
+
+# 仅 quick/debug 时，才显式回退到 synthetic
+python scripts/generate_lora_adapters.py --model models/Qwen--Qwen2.5-7B-Instruct --synthetic --force
 ```
 
-> **说明**：`run_all_experiments.py` 运行时会自动检测适配器是否与当前模型匹配。如果不匹配，会自动重新生成。因此即使忘记手动运行此步骤，实验也不会失败。
+> **说明**：当前论文主线默认已经切到 `PEFT+finetune`。`run_all_experiments.py` 运行时仍会检测适配器是否与当前模型匹配，但在 `PEFT+finetune` 模式下，若发现工件缺失或与当前模型不兼容，runner 会直接报错并提示先离线生成，不再偷偷回退成 synthetic。
+
+当前扩展主线 `Mistral-7B + 500 adapters` 的推荐生成命令：
+
+```bash
+python scripts/generate_lora_adapters.py \
+  --model /home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3 \
+  --num-adapters 500 \
+  --use-peft \
+  --finetune \
+  --force
+```
 
 生成后检查：
 
@@ -537,7 +551,7 @@ model:
 1. 检查系统内存：`free -h`（建议至少 32 GB RAM）
 2. 检查 GPU 显存：`nvidia-smi`（确认没有其他进程占用）
 3. 如果 GPU 被其他进程占用：`nvidia-smi` → 找到占用显存的 PID → `kill PID`
-4. 换用更小的模型（Qwen2.5-0.5B 仅需 2 GB 显存）：
+4. 换用更小的快速验证模型（Qwen2.5-0.5B）：
    ```bash
    python scripts/download_model.py --model Qwen/Qwen2.5-0.5B-Instruct
    ```
@@ -560,13 +574,14 @@ model:
 ### Q2：vLLM 安装失败
 
 ```bash
-# 方案1：降级 vLLM 版本
-pip install vllm==0.5.5
+# 方案1：优先使用当前主线稳定环境
+conda activate LLM_vllm0102
+python -c "import vllm; print(vllm.__version__)"
 
-# 方案2：从源码安装（确保与 CUDA 版本匹配）
-pip install vllm --extra-index-url https://download.pytorch.org/whl/cu121
+# 方案2：按 pyproject.toml 固定版本重装
+pip install 'vllm==0.10.2'
 
-# 方案3：使用 Mock 模式（不需要 vLLM）
+# 方案3：使用 quick 模式做链路验证
 python scripts/run_all_experiments.py --config configs/experiments.yaml --quick
 ```
 
@@ -651,7 +666,7 @@ scenarios:
 
 ## 附录 A：论文主表复现（E3）
 
-**单条命令复现论文主表**（需已下载模型与数据集）：
+**当前仓库默认入口**（复现 `configs/experiments.yaml` 当前默认 profile）：
 
 ```bash
 conda activate LLM_vllm0102
@@ -659,9 +674,28 @@ cd /home/qhq/serverless_llm_experiment
 python scripts/run_all_experiments.py --config configs/experiments.yaml
 ```
 
-- **配置文件**：`configs/experiments.yaml`（模型路径、硬件参数、场景列表、workload 均在此文件）。
-- **结果文件**：按 `backend / mode / adapters / requests / concurrency / results_tag` 落盘到 `results/` 目录，例如 `experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_defaultentry_r1.json`。
+- **配置文件**：`configs/experiments.yaml`（通过 `profile_selection` 和各类 profile 选择当前主线组合）。
+- **结果文件**：按 `backend / mode / adapters / requests / concurrency / results_tag` 落盘到 `results/` 目录，文件名取决于当前 profile 与环境变量覆盖。
 - **环境**：当前主线稳定环境为 `LLM_vllm0102`，详见 [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)。
+
+**当前扩展主线（Mistral-7B + PEFT+finetune + 500 adapters）**：
+
+```bash
+conda activate LLM_vllm0102
+cd /home/qhq/serverless_llm_experiment
+
+python scripts/generate_lora_adapters.py \
+  --model /home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3 \
+  --num-adapters 500 \
+  --use-peft \
+  --finetune \
+  --force
+
+FAASLORA_PROFILE_MODEL=mistral_7b_main \
+FAASLORA_PROFILE_DATASET=azure_sharegpt_rep1000 \
+FAASLORA_PROFILE_WORKLOAD=mistral_7b_auto500_main \
+python scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faaslora_full
+```
 
 ---
 
@@ -673,8 +707,8 @@ python scripts/run_all_experiments.py --config configs/experiments.yaml
 - [ ] 真实 GPU 确认（`nvidia-smi`）
 - [ ] 模型下载完整（`models/` 目录非空）
 - [ ] Azure 追踪数据加载成功（`python scripts/download_datasets.py --verify`）
-- [ ] ShareGPT 数据集已下载（`data/sharegpt_cache.jsonl` 存在）
-- [ ] LoRA 适配器已生成（`lora_adapters/` 非空）
+- [ ] ShareGPT 数据集已下载（若未下载，将使用 embedded fallback）
+- [ ] LoRA 适配器已生成（`artifacts/remote/` 非空，且与当前模型匹配）
 - [ ] `configs/experiments.yaml` 中 `model.name` 指向本地路径
 - [ ] 完整实验运行成功（非 `--quick` 模式）
 - [ ] `results/experiment_results.json` 显示 `"cuda_available": true`

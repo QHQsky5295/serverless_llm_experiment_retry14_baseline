@@ -333,67 +333,50 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 ## 当前实验主线
 
-### 当前验证通过的主线配置
+### 已完成的主线阶段
 
-当前主线已收敛到以下配置：
+当前仓库已经完成并冻结了以下主线结论：
 
-- `instance_mode = auto`
-- `num_adapters = 500`
-- `total_requests = 1000`
-- `sampling_strategy = representative`
-- `concurrency = 8`
-- `runtime_concurrency_cap = 8`
-- `effective_capacity_admission_enabled = true`
-- `max_model_len = 2048`
-- `max_num_seqs = 8`
-- `max_loras = 8`
-- `max_num_batched_tokens = 4096`
+- `Qwen2.5-3B-Instruct`：`auto + 500 adapters + representative 1000 requests + P2.5 on`
+- `Qwen2.5-7B-Instruct`：`TP=1` 主线长跑验证完成
+- `Qwen2.5-7B-Instruct TP=2`：吞吐导向对照完成，结论是保留 `TP=1` 为默认、`TP=2` 为正式对照
+- `Qwen2.5-14B-Instruct TP=2`：`r1000@0.80`、`r1000@0.85` 与 `r4000@0.85` 已完成，当前冻结稳定参数为 `distributed_executor_backend=mp + gpu_memory_utilization=0.85`
 
-当前验证通过的代表性结果文件：
+### 当前正在推进的扩展主线
 
-- `results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8.json`
-- `results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8_r3.json`
-- `results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_auto500_p25_on.json`
-- `results/experiment_results_full_vllm_auto_a100_r1000_c4_faaslora_full_qwen7b_auto_r1000_p25_on.json`
+当前正在推进的下一个模型家族是 `Mistral`：
 
-这组结果表明：
+- 小档位：`mistralai/Mistral-7B-Instruct-v0.3`
+- 大档位：`mistralai/Mistral-Nemo-Instruct-2407`
 
-- 扩缩容链路已真实工作：出现 `physical_scale_up` 与 `physical_scale_down`
-- `auto` 模式在双 GPU 环境下能真实扩到第二个物理 runtime
-- 历史 `3B seq8_lora8` 基线首先证明了 vLLM serving 参数是主瓶颈
-- 在修复显存观测与 contention/defer 记账后，`7B r300` 的 P2.5 A/B 进一步证明了有效容量准入可以在高压阶段显著降低 defer
-- `3B auto500 + representative1000 + P2.5 on` 复验已完成：`TTFT avg=1563ms`、`P95=4442ms`、`P99=6839ms`、`RPS=0.363`、`contention=0`、`defer=0`
-- `7B r1000 + P2.5 on` 已完成长跑验证：`TTFT avg=2381ms`、`P95=14274ms`、`P99=15968ms`、`RPS=0.228`、`contention=0`、`defer=0`
-- 将 `max_num_seqs / max_loras` 从保守 preset 调整到 `8 / 8` 后，主线结果显著改善
-- `r3` 复现实验与上一轮主结果波动较小，当前主基线已通过一次稳定性复验
-- 当前仓库默认配置已把 `faaslora_full` 的 `effective_capacity_admission_enabled` 切到开启状态；最新 `3B + P2.5 on` 复验表明它对 3B 主要是口径统一，收益不显著；而对 7B 则是明确有效项
+当前论文主线口径已统一为：
+
+- LoRA 工件默认模式：`PEFT+finetune`
+- 论文主线规模：`500 adapters`
+- 当前正在执行的下一步：`Mistral-7B-Instruct-v0.3 + representative 1000 requests`
 
 ### 当前保留但不作为主线推进的接口
 
 - `shared` / `dedicated` 模式接口继续保留
 - `28185` full-trace 接口继续保留
+- `synthetic` LoRA 工件继续保留，但仅用于 quick/debug
 
 这些接口当前的定位是：
 
 - 内部验证
 - 压力测试
-- 后续扩展
-- 备用补充实验 / ablation
+- 消融实验
+- 工程调试
 
-此外，`effective_capacity_admission_enabled` 的 on/off 开关继续保留，但当前仓库默认值已经切到 `on`，主要用于后续做定点 A/B，而不是继续作为“默认关闭”的备用路径。
+此外，`effective_capacity_admission_enabled` 的 on/off 开关继续保留，但默认主线保持开启，用于统一当前评估口径。
 
 ### 当前主线下一步
 
-- 已完成：将当前 `auto500 + representative 1000 + seq8_lora8` 配置固化为默认复现实验参数
-- 已完成：用默认入口做复验，确认后续复现不依赖长串环境变量覆盖
-- 已完成：补回 `faaslora.cli`，修复 CLI / packaging 的主断裂点
 - 继续补稳定环境下可执行的基础测试
 - 继续清理 README / 技术说明 / 进度文档与当前实现的残余漂移
-- 已完成：为 `Qwen2.5-7B` 扩展补显式模型 / 硬件覆盖入口，避免手改 YAML
-- 已确认：`Qwen2.5-7B r300` 在修复观测口径后，`P2.5 on` 相对 `P2.5 off` 有显著收益
-- 已完成：`Qwen2.5-7B auto + 100 adapters + 1000 requests + P2.5 on` 长跑验证，并可冻结 7B 默认参数
-- 已完成：`Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验，并完成与旧 frozen baseline 的对比
-- 后续：提交这次 trace parsing 修复与文档同步；然后进入下一模型家族 bring-up
+- 完成 `Mistral-7B-Instruct-v0.3 + PEFT+finetune + 500 adapters + representative r1000`
+- 在 `Mistral-7B` 收口后推进 `Mistral-Nemo-Instruct-2407`
+- 在第二家族稳定后再接入额外数据集，如 `gsm8k`
 
 ---
 
@@ -411,29 +394,35 @@ python scripts/run_all_experiments.py --config configs/experiments.yaml
 
 ```bash
 cd /home/qhq/serverless_llm_experiment
+FAASLORA_PYTHON=/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python \
+PYTHONUNBUFFERED=1 \
 VLLM_NO_USAGE_STATS=1 \
-FAASLORA_LOG_TAG=auto500_main1000_seq8_lora8 \
-FAASLORA_RESULTS_TAG=seq8_lora8 \
-FAASLORA_INSTANCE_MODE=auto \
-FAASLORA_MAX_INSTANCES=2 \
-FAASLORA_EFFECTIVE_CAPACITY_ADMISSION=1 \
-FAASLORA_RUNTIME_CONCURRENCY_CAP=8 \
-FAASLORA_NUM_ADAPTERS=500 \
-FAASLORA_TOTAL_REQUESTS=1000 \
-FAASLORA_CONCURRENCY=8 \
-FAASLORA_TIME_SCALE_FACTOR=0.02 \
-FAASLORA_MAX_MODEL_LEN=2048 \
-FAASLORA_MAX_NUM_SEQS=8 \
-FAASLORA_MAX_LORAS=8 \
-FAASLORA_MAX_NUM_BATCHED_TOKENS=4096 \
-FAASLORA_QUICK=0 \
-bash scripts/run_validation_bundle.sh custom
+bash scripts/run_all_experiments_user_scope.sh \
+  --config configs/experiments.yaml \
+  --scenario faaslora_full
 ```
 
-若只想做 P2.5 关闭的对照实验，可额外显式加：
+如果要运行当前论文主线的 `Mistral-7B + PEFT+finetune + 500 adapters`，推荐先生成工件，再切 profile 运行：
 
 ```bash
-FAASLORA_EFFECTIVE_CAPACITY_ADMISSION=0
+cd /home/qhq/serverless_llm_experiment
+/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python \
+scripts/generate_lora_adapters.py \
+  --model /home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3 \
+  --num-adapters 500 \
+  --use-peft \
+  --finetune \
+  --force
+
+FAASLORA_PROFILE_MODEL=mistral_7b_main \
+FAASLORA_PROFILE_DATASET=azure_sharegpt_rep1000 \
+FAASLORA_PROFILE_WORKLOAD=mistral_7b_auto500_main \
+FAASLORA_PYTHON=/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python \
+PYTHONUNBUFFERED=1 \
+VLLM_NO_USAGE_STATS=1 \
+bash scripts/run_all_experiments_user_scope.sh \
+  --config configs/experiments.yaml \
+  --scenario faaslora_full
 ```
 
 ### 协作 / 矩阵验证入口
@@ -465,8 +454,8 @@ cd /home/qhq/serverless_llm_experiment
 
 这组测试当前覆盖三条基础路径：
 
-- 主线默认配置没有从 `seq8_lora8` 漂移
-- `scale_presets["500"]` 与主线 serving 参数一致
+- 当前 `profile_selection` 与关键 profile 存在且可解析
+- 论文主线默认 LoRA 工件模式已切到 `PEFT+finetune`
 - `faaslora.cli` 与环境变量覆盖入口可执行
 
 ### 模型扩展覆盖入口

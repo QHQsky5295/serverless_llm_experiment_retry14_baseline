@@ -19,6 +19,7 @@ from faaslora.coordination.coordinator import Coordinator
 from faaslora.datasets.huggingface_adapter import HuggingFaceAdapter
 from faaslora.datasets.azure_functions_adapter import AzureFunctionsAdapter
 from faaslora.datasets.azure_llm_adapter import AzureLLMAdapter
+from faaslora.datasets.dataset_loader import WorkloadDataset
 from faaslora.registry.artifact_registry import ArtifactRegistry
 from faaslora.scheduling.resource_coordinator import ResourceCoordinator
 from faaslora.serving.inference_engine import InferenceEngine
@@ -72,6 +73,38 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(preset["max_num_seqs"], 8)
         self.assertEqual(preset["max_num_batched_tokens"], 4096)
         self.assertEqual(preset["runtime_concurrency_cap"], 8)
+
+    def test_dataset_controls_are_yaml_driven(self) -> None:
+        datasets = self.experiments["datasets"]
+
+        self.assertEqual(datasets["arrival_source"], "azure_llm")
+        self.assertEqual(datasets["token_source"], "azure_llm")
+        self.assertEqual(datasets["prompt_source"], "sharegpt_auto")
+        self.assertEqual(datasets["sharegpt_max_records"], 5000)
+
+    def test_profile_selection_defaults_exist(self) -> None:
+        selection = self.experiments["profile_selection"]
+        model_profiles = self.experiments["model_profiles"]
+        dataset_profiles = self.experiments["dataset_profiles"]
+        workload_profiles = self.experiments["workload_profiles"]
+
+        self.assertEqual(selection["model"], "qwen_14b_tp2")
+        self.assertEqual(selection["dataset"], "azure_sharegpt_rep1000")
+        self.assertEqual(selection["workload"], "qwen_14b_tp2_main")
+        self.assertIn("qwen_14b_tp2", model_profiles)
+        self.assertIn("azure_sharegpt_rep4000", dataset_profiles)
+        self.assertIn("qwen_14b_tp2_main", workload_profiles)
+
+    def test_scale_preset_can_be_disabled_for_new_model_profiles(self) -> None:
+        self.assertTrue(self.experiments["lora_adapters"]["apply_scale_preset"])
+        qwen14 = self.experiments["workload_profiles"]["qwen_14b_tp2_main"]
+        self.assertFalse(qwen14["lora_adapters"]["apply_scale_preset"])
+
+    def test_paper_mainline_defaults_to_peft_finetune_artifacts(self) -> None:
+        adapters = self.experiments["lora_adapters"]
+
+        self.assertEqual(adapters["generation_mode"], "peft_finetune")
+        self.assertFalse(adapters["generate_synthetic"])
 
 
 class ConfigSmokeTests(unittest.TestCase):
@@ -254,6 +287,27 @@ class DependencyFailFastTests(unittest.TestCase):
 
 
 class DatasetParsingTests(unittest.TestCase):
+    def test_workload_dataset_can_disable_azure_and_force_embedded_prompts(self) -> None:
+        dataset = WorkloadDataset()
+
+        stats = dataset.initialize(
+            load_azure=False,
+            max_sgpt=16,
+            prompt_source="embedded",
+        )
+
+        self.assertFalse(dataset.has_real_azure_data())
+        self.assertFalse(dataset.has_real_sharegpt_data())
+        self.assertEqual(stats["azure"]["total_records"], 0)
+        self.assertEqual(stats["sharegpt"]["source"], "embedded")
+        self.assertGreater(stats["sharegpt"]["total_records"], 0)
+
+    def test_workload_dataset_rejects_unknown_prompt_source(self) -> None:
+        dataset = WorkloadDataset()
+
+        with self.assertRaisesRegex(ValueError, "Unsupported ShareGPT prompt source"):
+            dataset.initialize(prompt_source="unknown_source")
+
     def test_azure_functions_adapter_parses_string_booleans(self) -> None:
         adapter = AzureFunctionsAdapter(Config(str(DEFAULT_CONFIG)))
         invocation = adapter._parse_invocation_row(

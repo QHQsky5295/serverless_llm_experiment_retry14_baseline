@@ -187,7 +187,7 @@ class VLLMWrapper:
         serving_config = config.get('serving', {})
         vllm_config = serving_config.get('vllm', {})
         
-        self.model_name = vllm_config.get('model_name', 'meta-llama/Llama-2-7b-hf')
+        self.model_name = vllm_config.get('model_name', 'mistralai/Mistral-7B-Instruct-v0.3')
         self.tensor_parallel_size = vllm_config.get('tensor_parallel_size', 1)
         self.max_model_len = vllm_config.get('max_model_len', 4096)
         self.gpu_memory_utilization = vllm_config.get('gpu_memory_utilization', 0.9)

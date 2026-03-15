@@ -127,9 +127,9 @@ class Config:
                     "max_instances": 10
                 }
             },
-            "serving": {
+                "serving": {
                 "vllm": {
-                    "model_name": "meta-llama/Llama-2-7b-hf",
+                    "model_name": "mistralai/Mistral-7B-Instruct-v0.3",
                     "tensor_parallel_size": 1
                 }
             },

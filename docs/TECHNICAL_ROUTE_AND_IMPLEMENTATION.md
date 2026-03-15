@@ -428,9 +428,9 @@ LoRA load 请求的核心流程是：
 
 ## 10. 当前实验状态
 
-### 10.1 已验证通过的主线结果
+### 10.1 已验证通过的代表性历史基线结果
 
-当前最重要的一组已验证结果为：
+当前最重要的一组历史冻结基线结果为：
 
 - 文件：`results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8.json`
 - 复现实验：`results/experiment_results_full_vllm_auto_a500_r1000_c8_faaslora_full_seq8_lora8_r3.json`
@@ -458,11 +458,11 @@ LoRA load 请求的核心流程是：
 - `RPS = 0.359`
 - `Hit = 94.6%`
 
-这说明当前主基线已经通过一次稳定性复验，现阶段没有必要继续追加更多相同配置的重复实验。
+这说明这组 `3B` 历史冻结基线已经通过一次稳定性复验，现阶段没有必要继续追加更多相同配置的重复实验。
 
 ### 10.2 当前已得出的工程结论
 
-- 当前主线已经从“能否跑通”进入“主配置固化与工程闭环”阶段。
+- 当前 Qwen 家族主线已经从“能否跑通”进入“主配置固化与工程闭环”阶段，`14B r4000@0.85` 也已完成。
 - `Qwen2.5-3B` 历史主线首先表明了 vLLM 有效并发参数是首要瓶颈。
 - 在修复显存观测与 contention/defer 记账后，`Qwen2.5-7B` 的高压阶段又表明 P2.5 有效容量准入可以显著改善 admission / defer。
 - `Qwen2.5-3B + P2.5 on` 复验表明，3B 本身并不存在显著的 contention/defer，因此 P2.5 在 3B 上不是核心收益项。
@@ -470,12 +470,13 @@ LoRA load 请求的核心流程是：
 - 将 `max_num_seqs / max_loras` 从保守 preset 提升到 `8 / 8` 后，TTFT 与 tail latency 显著改善。
 - `shared / dedicated / full-trace` 相关接口均保留，但不作为当前主线推进对象。
 - `effective_capacity_admission_enabled` 的 on/off 开关继续保留，但当前仓库默认值已经切到 `on`。
+- 当前扩展主线已切到 `Mistral-7B-Instruct-v0.3`，论文主线口径统一为 `PEFT+finetune + 500 adapters + representative r1000`。
 
 ## 11. 当前主线 TODO
 
 ### A. 主配置固化
 
-1. 已完成：将 `auto500 + representative1000 + seq8_lora8` 正式固化为当前主线默认推荐配置。
+1. 已完成：将 `auto500 + representative1000 + seq8_lora8` 固化为 `3B` 历史冻结基线，并完成稳定性复验。
 2. 已完成：用默认入口再做一次复验，确认后续复现不依赖长串环境变量覆盖。
 3. 已完成：补一轮 `Qwen2.5-3B auto500 + representative1000 + P2.5 on` 复验，统一默认配置与结果口径。
 
@@ -489,13 +490,18 @@ LoRA load 请求的核心流程是：
 
 7. 已开始：推进 `Qwen2.5-7B-Instruct`。
 8. 已完成：`Qwen2.5-7B auto + 100 adapters + 1000 requests + P2.5 on`。
-9. 当前优先：进入下一模型家族 bring-up；必要时对新 backbone 再判断是否需要 P2.5 A/B。
+9. 当前优先：继续 Qwen 家族，推进 `Qwen2.5-14B-Instruct`（13B+ 级）bring-up，并把工作负载扩到 `representative 4000 requests`；必要时再判断是否需要新的 P2.5 A/B。
+10. Qwen `14B` 稳定后，下一个家族切到 Mistral；`OPT` 已确认在当前 `vLLM 0.10.2 + LoRA` 环境下不支持。
+11. 已完成：将 `model / dataset / workload` 三类主线切换入口收敛到 `experiments.yaml` 的 `profile_selection`，减少手改散落字段。
 
 ## 12. 已知边界
 
 - 当前系统是单节点双 GPU 原型，不是完整多节点云平台。
 - ShareGPT 当前作为 prompt pool，而不是 full conversation replay。
 - 当前主线统一使用 representative trace replay。
+- 当前扩展主线先完成 `Qwen2.5-14B-Instruct`；其后下一个家族固定为 Mistral，并按 `mistralai/Mistral-7B-Instruct-v0.3 -> mistralai/Mistral-Nemo-Instruct-2407` 推进。
+- Gemma 暂不进入当前配置与实验轮次，但继续保留在计划列表中。
+- 本机现有 `Qwen2.5-3B-Instruct` 目录继续保留，不删除。
 - `shared` / `dedicated` / `28185 full trace` 的接口继续保留，但不作为当前主线默认配置。
 - `effective_capacity_admission_enabled` 的 on/off 接口继续保留，但当前默认配置已切到 `on`。
 - `shared` 模式不是强隔离函数进程模型，而是共享 runtime + shared execution slot 的实现方式。

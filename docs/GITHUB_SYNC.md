@@ -23,14 +23,15 @@ The following local-only runtime assets are intentionally excluded from Git:
 
 ## Model Directory Policy
 
-The repository keeps only the two model directory placeholders:
+The repository does not commit local model weights for any family, including:
 
-- `models/Qwen--Qwen2.5-3B-Instruct/`
-- `models/Qwen--Qwen2.5-7B-Instruct/`
+- `Qwen`
+- `Mistral`
+- any future local backbones used for experiments
 
-Their local contents are not committed. This keeps the repository lightweight while preserving the expected on-disk layout for experiments.
+Only source code, configs, docs, and tests are tracked. Model directories may exist locally for convenience, but their weight files must remain uncommitted.
 
-After cloning the repository on a new machine, place the local model files back into those two directories before running experiments.
+After cloning the repository on a new machine, download the required model weights back into `models/` before running experiments.
 
 ## GitHub Remote
 

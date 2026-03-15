@@ -20,7 +20,7 @@ cd "$ROOT_DIR"
 SYSTEMD_ENV_ARGS=()
 for name in $(compgen -e); do
   case "$name" in
-    FAASLORA_*|CUDA_VISIBLE_DEVICES)
+    FAASLORA_*|CUDA_VISIBLE_DEVICES|VLLM_*|PYTHONUNBUFFERED)
       SYSTEMD_ENV_ARGS+=(--setenv="$name=${!name}")
       ;;
   esac

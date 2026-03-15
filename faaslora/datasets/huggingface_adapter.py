@@ -514,14 +514,16 @@ class HuggingFaceAdapter:
         model_lower = model_id.lower()
         
         if 'llama' in model_lower:
-            if '7b' in model_lower:
-                return 'meta-llama/Llama-2-7b-hf'
-            elif '13b' in model_lower:
-                return 'meta-llama/Llama-2-13b-hf'
+            if '13b' in model_lower:
+                return 'mistralai/Mistral-Nemo-Instruct-2407'
+            elif '7b' in model_lower:
+                return 'mistralai/Mistral-7B-Instruct-v0.3'
             else:
-                return 'meta-llama/Llama-2-7b-hf'
+                return 'mistralai/Mistral-7B-Instruct-v0.3'
         elif 'mistral' in model_lower:
-            return 'mistralai/Mistral-7B-v0.1'
+            if 'nemo' in model_lower or '12b' in model_lower or '13b' in model_lower:
+                return 'mistralai/Mistral-Nemo-Instruct-2407'
+            return 'mistralai/Mistral-7B-Instruct-v0.3'
         elif 'codellama' in model_lower:
             return 'codellama/CodeLlama-7b-hf'
         elif 'dialogpt' in model_lower:
@@ -574,7 +576,7 @@ class HuggingFaceAdapter:
             },
             {
                 'model_id': 'huggingface/llama-7b-lora-alpaca',
-                'base_model': 'meta-llama/Llama-2-7b-hf',
+                'base_model': 'mistralai/Mistral-7B-Instruct-v0.3',
                 'task': 'text-generation',
                 'downloads': 5000,
                 'likes': 120
