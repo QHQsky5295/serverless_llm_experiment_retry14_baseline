@@ -100,6 +100,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         adapters = self.experiments["lora_adapters"]
 
         self.assertEqual(adapters["generation_mode"], "peft_finetune")
+        self.assertEqual(adapters["preparation_mode"], "one_shot")
         self.assertFalse(adapters["generate_synthetic"])
 
     def test_generator_defaults_follow_selected_profile(self) -> None:
@@ -180,6 +181,43 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         load_once.assert_called_once()
         self.assertEqual(set(timings.keys()), {"a1", "a2", "a3"})
         self.assertEqual(fake_model.saved, [("a1",), ("a2",), ("a3",)])
+
+    def test_runner_one_shot_preparation_builds_generator_command(self) -> None:
+        from scripts import run_all_experiments as runner
+
+        adapters_cfg = {
+            "generation_mode": "peft_finetune",
+            "preparation_mode": "one_shot",
+            "_manifest_path": "configs/generated/lora_manifest_1000.json",
+            "adapters": [{"id": "finance_lora", "lora_rank": 8}],
+        }
+
+        with TemporaryDirectory() as tmpdir:
+            remote_dir = Path(tmpdir)
+            with patch.object(runner.subprocess, "run") as mocked_run:
+                mocked_run.return_value.returncode = 0
+                runner._auto_prepare_peft_artifacts(
+                    adapters_cfg=adapters_cfg,
+                    remote_dir=remote_dir,
+                    model_name="dummy-model",
+                    generation_mode="peft_finetune",
+                    pending_adapters=adapters_cfg["adapters"],
+                    model_cfg={"visible_device_ids": [0, 1]},
+                )
+
+        mocked_run.assert_called_once()
+        args, kwargs = mocked_run.call_args
+        cmd = args[0]
+        env = kwargs["env"]
+
+        self.assertTrue(str(cmd[1]).endswith("scripts/generate_lora_adapters.py"))
+        self.assertIn("--model", cmd)
+        self.assertIn("dummy-model", cmd)
+        self.assertIn("--num-adapters", cmd)
+        self.assertIn("1", cmd)
+        self.assertIn("--use-peft", cmd)
+        self.assertIn("--finetune", cmd)
+        self.assertEqual(env["CUDA_VISIBLE_DEVICES"], "0,1")
 
     def _resolve_active_profiles(self):
         def merge(base, override):

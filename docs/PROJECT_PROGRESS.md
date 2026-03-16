@@ -288,7 +288,8 @@
 - 当前扩展主线的 Qwen 家族阶段已基本收口
 - 已完成：`Qwen2.5-3B-Instruct`、`Qwen2.5-7B-Instruct`、`Qwen2.5-14B-Instruct`
 - 已完成：`Qwen2.5-7B-Instruct TP=2` 对照 profile 验证
-- 下一步：切到 `mistralai/Mistral-7B-Instruct-v0.3`，再推进 `mistralai/Mistral-Nemo-Instruct-2407`
+- 已完成：`mistralai/Mistral-7B-Instruct-v0.3 + PEFT+finetune + 500 adapters + representative r1000`
+- 下一步：推进 `mistralai/Mistral-Nemo-Instruct-2407 + TP=2 + PEFT+finetune + 500 adapters + representative r1000`
 - Gemma 暂不进入当前配置与实验轮次，但继续保留在计划列表中
 
 ### 后续扩展目标
@@ -296,7 +297,7 @@
 模型家族：
 
 - Qwen：`Qwen2.5-7B-Instruct`、`Qwen2.5-14B-Instruct`
-- Mistral：作为下一个家族，先做 `mistralai/Mistral-7B-Instruct-v0.3`，再推进 `mistralai/Mistral-Nemo-Instruct-2407`
+- Mistral：已完成 `mistralai/Mistral-7B-Instruct-v0.3`，下一步推进 `mistralai/Mistral-Nemo-Instruct-2407`
 - Gemma：暂挂计划列表，当前不配置、不启动实验
 
 数据集：
@@ -334,15 +335,18 @@
 14. 已完成：用 `14B` 最优稳定参数 `gpu_memory_utilization=0.85` 完成 `representative 4000 requests`。
 15. 已完成：新增并验证 `Qwen2.5-7B-Instruct TP=2` 对照 profile（单实例双卡），并与当前默认 `7B TP=1` 路径完成效果对比。
 16. 已确认：`facebook/opt-6.7b` 在当前 `vLLM 0.10.2 + LoRA` 环境下报 `OPTForCausalLM does not support LoRA yet`，因此 OPT 路线退出当前主线。
-17. 下一步：切到 `mistralai/Mistral-7B-Instruct-v0.3`，并按论文主线默认使用 `PEFT+finetune + 500 adapters`；其后推进 `mistralai/Mistral-Nemo-Instruct-2407`。
+17. 已完成：切到 `mistralai/Mistral-7B-Instruct-v0.3`，并按论文主线默认使用 `PEFT+finetune + 500 adapters` 完成 `representative r1000`。
 18. Gemma 暂不配置，但保留在计划列表中，等 Qwen / Mistral 稳定后再恢复。
 19. 在 Mistral 主线稳定后，再接入额外数据集，新增 `gsm8k`。
-20. 已决定：论文主线默认 LoRA 工件从 synthetic 切到 `PEFT+finetune`；synthetic 仅保留给 quick/debug。对应地，正式实验在工件缺失时不再自动回退 synthetic，而是要求先离线生成与当前 base model 匹配的 PEFT 工件。
+20. 已决定：论文主线默认 LoRA 工件从 synthetic 切到 `PEFT+finetune`；synthetic 仅保留给 quick/debug。正式实验现在默认走 `one_shot`：若工件缺失或不兼容，runner 会自动先补齐，再进入正式实验；需要严格两阶段时，可在 YAML 中切到 `preparation_mode=two_phase`。
 21. 已补 `mistral_7b_auto500_main`，后续 Mistral 7B 主线统一使用 `representative r1000 + 500 adapters`，不再沿用扩展阶段的 `100 adapters` bring-up 口径。
 22. 已完成：`scripts/generate_lora_adapters.py` 默认值改为跟随 `profile_selection + model_profiles + workload_profiles` 解析，不再只读取顶层 `model.name`。
 23. 已完成：`PEFT+finetune` 生成路径改为单次加载 base model 后循环生成多个 adapters，避免每个 adapter 重复 `from_pretrained`。
 24. 已完成：`tests/test_basic_smoke.py` 与 `tests/test_integration.py` 已更新为校验 active profile、生成器默认值与 batch PEFT 路径；旧的不可执行/失真集成测试入口已清理。
 25. 已完成：`experiments.yaml` 顶层 `model / hardware / workload` 注释已改为“兼容回退层”口径，避免误判为当前主线默认入口。
+26. 已完成：`Mistral-7B-Instruct-v0.3 + PEFT+finetune + 500 adapters + representative r1000`，结果稳定通过，`1000/1000` 完成且 `fail=0`。
+27. 已确认：`mistral_nemo_12b_tp2_main` 现在作为论文主线工作负载 profile 固定为 `500 adapters`；`mistral_nemo_12b_tp2_bringup100_main` 仅保留给显式 bring-up / 快速排障。
+28. 下一步：下载并推进 `mistralai/Mistral-Nemo-Instruct-2407 + TP=2 + PEFT+finetune + 500 adapters + representative r1000`。
 
 ## 当前已确认的长期约束
 
@@ -358,8 +362,8 @@
 
 1. 以当前已经冻结的 `Qwen2.5-14B-Instruct @ gpu_memory_utilization=0.85` 作为 14B 默认主线结果。
 2. 保持 `Qwen2.5-7B-Instruct TP=1` 为默认路径，同时保留 `TP=2` 作为吞吐导向的正式对照 profile。
-3. 下一步切到 `mistralai/Mistral-7B-Instruct-v0.3`；应先完成模型下载/落位，再做运行命令与基线 bring-up。
-4. 旧的 `Mistral-7B` adapter 生成进程继续跑完，不中断；下一次重新启动生成器时，默认会自动使用新的单次加载实现。
+3. 保持 `Mistral-7B-Instruct-v0.3` 这轮 `PEFT+finetune + 500 adapters + representative r1000` 结果作为第二家族 7B 档基线。
+4. 下一步切到 `mistralai/Mistral-Nemo-Instruct-2407`；直接按论文主线使用 `TP=2 + PEFT+finetune + 500 adapters + representative r1000`，不再把 `100 adapters` bring-up 当主线口径。
 
 补充说明：
 

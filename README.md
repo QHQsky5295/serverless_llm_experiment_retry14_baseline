@@ -353,7 +353,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 - LoRA 工件默认模式：`PEFT+finetune`
 - 论文主线规模：`500 adapters`
-- 当前正在执行的下一步：`Mistral-7B-Instruct-v0.3 + representative 1000 requests`
+- 当前正在执行的下一步：`Mistral-Nemo-Instruct-2407 + PEFT+finetune + 500 adapters + representative r1000`
 
 ### 当前保留但不作为主线推进的接口
 
@@ -374,8 +374,8 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 - 继续扩展稳定环境下可执行的基础测试，后续再补真实 GPU / 长跑链路覆盖
 - 继续清理 README / 技术说明 / 进度文档与当前实现的残余漂移
-- 完成 `Mistral-7B-Instruct-v0.3 + PEFT+finetune + 500 adapters + representative r1000`
-- 在 `Mistral-7B` 收口后推进 `Mistral-Nemo-Instruct-2407`
+- 已完成 `Mistral-7B-Instruct-v0.3 + PEFT+finetune + 500 adapters + representative r1000`
+- 推进 `Mistral-Nemo-Instruct-2407 + PEFT+finetune + 500 adapters + representative r1000`
 - 在第二家族稳定后再接入额外数据集，如 `gsm8k`
 
 ---
@@ -402,21 +402,13 @@ bash scripts/run_all_experiments_user_scope.sh \
   --scenario faaslora_full
 ```
 
-如果要运行当前论文主线的 `Mistral-7B + PEFT+finetune + 500 adapters`，推荐先生成工件，再切 profile 运行：
+如果要运行当前论文主线的 `Mistral-Nemo + TP=2 + PEFT+finetune + 500 adapters`，当前默认推荐直接使用一条正式实验启动命令。只要模型已下载，runner 会按 YAML 中的 adapter 数量自动先补工件、再启动实验：
 
 ```bash
 cd /home/qhq/serverless_llm_experiment
-/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python \
-scripts/generate_lora_adapters.py \
-  --model /home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3 \
-  --num-adapters 500 \
-  --use-peft \
-  --finetune \
-  --force
-
-FAASLORA_PROFILE_MODEL=mistral_7b_main \
+FAASLORA_PROFILE_MODEL=mistral_nemo_12b_tp2 \
 FAASLORA_PROFILE_DATASET=azure_sharegpt_rep1000 \
-FAASLORA_PROFILE_WORKLOAD=mistral_7b_auto500_main \
+FAASLORA_PROFILE_WORKLOAD=mistral_nemo_12b_tp2_main \
 FAASLORA_PYTHON=/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python \
 PYTHONUNBUFFERED=1 \
 VLLM_NO_USAGE_STATS=1 \
@@ -424,6 +416,16 @@ bash scripts/run_all_experiments_user_scope.sh \
   --config configs/experiments.yaml \
   --scenario faaslora_full
 ```
+
+如果你想切回严格的“两阶段”工作流，也可以只改 YAML：
+
+```yaml
+lora_adapters:
+  generation_mode: "peft_finetune"
+  preparation_mode: "two_phase"
+```
+
+这时 runner 会要求你先手动执行 `scripts/generate_lora_adapters.py`，再启动正式实验。
 
 当前生成器还有两条重要默认行为：
 

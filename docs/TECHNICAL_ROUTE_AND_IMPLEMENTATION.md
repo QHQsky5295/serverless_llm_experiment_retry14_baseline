@@ -470,7 +470,8 @@ LoRA load 请求的核心流程是：
 - 将 `max_num_seqs / max_loras` 从保守 preset 提升到 `8 / 8` 后，TTFT 与 tail latency 显著改善。
 - `shared / dedicated / full-trace` 相关接口均保留，但不作为当前主线推进对象。
 - `effective_capacity_admission_enabled` 的 on/off 开关继续保留，但当前仓库默认值已经切到 `on`。
-- 当前扩展主线已切到 `Mistral-7B-Instruct-v0.3`，论文主线口径统一为 `PEFT+finetune + 500 adapters + representative r1000`。
+- 当前扩展主线已从 `Mistral-7B-Instruct-v0.3` 推进到 `Mistral-Nemo-Instruct-2407`，论文主线口径统一为 `PEFT+finetune + 500 adapters`。
+- `Mistral-7B-Instruct-v0.3 + PEFT+finetune + 500 adapters + representative r1000` 已稳定完成；下一步应直接推进 `Mistral-Nemo-Instruct-2407 + TP=2 + PEFT+finetune + 500 adapters + representative r1000`。
 - `scripts/generate_lora_adapters.py` 已进一步收敛到当前主线配置：
   - 默认值跟随 `profile_selection + model_profiles + workload_profiles`
   - `PEFT+finetune` 生成路径改为单次加载 base model 后循环生成多个 adapters
@@ -493,18 +494,19 @@ LoRA load 请求的核心流程是：
 
 ### C. 扩展主线
 
-7. 已开始：推进 `Qwen2.5-7B-Instruct`。
-8. 已完成：`Qwen2.5-7B auto + 100 adapters + 1000 requests + P2.5 on`。
-9. 当前优先：继续 Qwen 家族，推进 `Qwen2.5-14B-Instruct`（13B+ 级）bring-up，并把工作负载扩到 `representative 4000 requests`；必要时再判断是否需要新的 P2.5 A/B。
-10. Qwen `14B` 稳定后，下一个家族切到 Mistral；`OPT` 已确认在当前 `vLLM 0.10.2 + LoRA` 环境下不支持。
+7. 已完成：`Qwen2.5-7B-Instruct` 主线与 `TP=2` 对照。
+8. 已完成：`Qwen2.5-14B-Instruct` 的 `r1000` 收敛与 `r4000@0.85` 长跑冻结。
+9. 已完成：第二家族小档位 `Mistral-7B-Instruct-v0.3 + PEFT+finetune + 500 adapters + representative r1000`。
+10. 当前优先：推进 `Mistral-Nemo-Instruct-2407 + TP=2 + PEFT+finetune + 500 adapters + representative r1000`。
 11. 已完成：将 `model / dataset / workload` 三类主线切换入口收敛到 `experiments.yaml` 的 `profile_selection`，减少手改散落字段。
+12. 已确认：`mistral_nemo_12b_tp2_main` 固定为论文主线 `500 adapters`；`mistral_nemo_12b_tp2_bringup100_main` 仅保留给显式 bring-up / 排障。
 
 ## 12. 已知边界
 
 - 当前系统是单节点双 GPU 原型，不是完整多节点云平台。
 - ShareGPT 当前作为 prompt pool，而不是 full conversation replay。
 - 当前主线统一使用 representative trace replay。
-- 当前扩展主线先完成 `Qwen2.5-14B-Instruct`；其后下一个家族固定为 Mistral，并按 `mistralai/Mistral-7B-Instruct-v0.3 -> mistralai/Mistral-Nemo-Instruct-2407` 推进。
+- 当前扩展主线已从 Qwen 切到 Mistral；当前第二家族 7B 档已完成，下一步固定为 `mistralai/Mistral-Nemo-Instruct-2407`。
 - Gemma 暂不进入当前配置与实验轮次，但继续保留在计划列表中。
 - 本机现有 `Qwen2.5-3B-Instruct` 目录继续保留，不删除。
 - `shared` / `dedicated` / `28185 full trace` 的接口继续保留，但不作为当前主线默认配置。

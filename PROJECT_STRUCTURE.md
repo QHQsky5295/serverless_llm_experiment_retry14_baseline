@@ -344,6 +344,13 @@ workload_profiles:
     workload:
       total_requests: 1000
       concurrency: 4
+  mistral_nemo_12b_tp2_main:
+    lora_adapters:
+      selected_num_adapters: 500
+      apply_scale_preset: false
+    workload:
+      total_requests: 1000
+      concurrency: 2
 
 lora_adapters:
   generation_mode: "peft_finetune"
@@ -375,11 +382,12 @@ TIMESTAMP,ContextTokens,GeneratedTokens,Model,Region
 ```
 models/
 ├── Qwen--Qwen2.5-14B-Instruct/                 ← 当前默认 profile 使用的 Qwen 大档位
-└── mistralai--Mistral-7B-Instruct-v0.3/        ← 当前扩展主线小档位
-    ├── config.json
-    ├── tokenizer.json
-    ├── tokenizer_config.json
-    └── model-000*.safetensors
+├── mistralai--Mistral-7B-Instruct-v0.3/        ← 当前第二家族 7B 主线（已完成）
+│   ├── config.json
+│   ├── tokenizer.json
+│   ├── tokenizer_config.json
+│   └── model-000*.safetensors
+└── mistralai--Mistral-Nemo-Instruct-2407/      ← 当前下一步 12B/13B 档（按需下载）
 ```
 
 **初始状态**：本地按需下载；仓库不提交模型权重内容。

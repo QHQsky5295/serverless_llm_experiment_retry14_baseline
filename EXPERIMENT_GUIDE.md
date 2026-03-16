@@ -182,14 +182,14 @@ python scripts/download_model.py \
   --tensor-parallel 2
 ```
 
-**方案C：当前扩展主线（Mistral-7B，单卡）**
+**方案C：已完成的小档位主线（Mistral-7B，单卡）**
 
 ```bash
 export HF_ENDPOINT=https://hf-mirror.com  # 国内镜像（可选）
 python scripts/download_model.py --model mistralai/Mistral-7B-Instruct-v0.3
 ```
 
-> 当前 Qwen 家族的 `3B / 7B / 14B` 主线验证已经完成；当前扩展主线固定为 `mistralai/Mistral-7B-Instruct-v0.3`，随后推进 `mistralai/Mistral-Nemo-Instruct-2407`。`OPT` 已在本机验证为不支持 vLLM LoRA。Gemma 暂挂计划列表，当前不配置。
+> 当前 Qwen 家族的 `3B / 7B / 14B` 主线验证已经完成；`mistralai/Mistral-7B-Instruct-v0.3` 的论文主线 `PEFT+finetune + 500 adapters + representative r1000` 也已完成。当前扩展主线下一步固定为 `mistralai/Mistral-Nemo-Instruct-2407`。`OPT` 已在本机验证为不支持 vLLM LoRA。Gemma 暂挂计划列表，当前不配置。
 
 ### 4.3 下载后配置提示
 
@@ -214,17 +214,36 @@ python scripts/generate_lora_adapters.py --model models/Qwen--Qwen2.5-7B-Instruc
 python scripts/generate_lora_adapters.py --model models/Qwen--Qwen2.5-7B-Instruct --synthetic --force
 ```
 
-> **说明**：当前论文主线默认已经切到 `PEFT+finetune`。`run_all_experiments.py` 运行时仍会检测适配器是否与当前模型匹配，但在 `PEFT+finetune` 模式下，若发现工件缺失或与当前模型不兼容，runner 会直接报错并提示先离线生成，不再偷偷回退成 synthetic。
+> **说明**：当前论文主线默认已经切到 `PEFT+finetune + one_shot`。也就是说，`run_all_experiments.py` 在正式实验前会先检查当前模型所需的 adapter；若工件缺失或不兼容，会按 YAML 中的 adapter 数量自动补齐，再继续跑实验。只有当你把 `lora_adapters.preparation_mode` 改成 `two_phase` 时，runner 才会改回“先离线生成、再手动启动实验”的两阶段工作流。
 
 > **当前默认解析方式**：若不显式传 `--model`，`scripts/generate_lora_adapters.py` 会跟随 `configs/experiments.yaml` 当前激活的 `profile_selection.model` 与对应 workload profile 的 adapter 数量来解析默认值，而不是只读取顶层兼容回退字段。
 
 > **当前生成实现**：`PEFT+finetune` 模式现在会对同一轮 adapter 生成只加载一次 base model，再循环保存多个 adapter；因此重新启动后的新一轮生成会比旧版“每个 adapter 重新加载模型”更快。
 
-当前扩展主线 `Mistral-7B + 500 adapters` 的推荐生成命令：
+当前下一步 `Mistral-Nemo + TP=2 + 500 adapters` 的推荐正式实验命令：
+
+```bash
+python scripts/download_model.py \
+  --model mistralai/Mistral-Nemo-Instruct-2407
+
+FAASLORA_PROFILE_MODEL=mistral_nemo_12b_tp2 \
+FAASLORA_PROFILE_DATASET=azure_sharegpt_rep1000 \
+FAASLORA_PROFILE_WORKLOAD=mistral_nemo_12b_tp2_main \
+python scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faaslora_full
+```
+
+如果你希望显式使用两阶段工作流，可先在 `configs/experiments.yaml` 中设置：
+
+```yaml
+lora_adapters:
+  preparation_mode: "two_phase"
+```
+
+然后再手动执行：
 
 ```bash
 python scripts/generate_lora_adapters.py \
-  --model /home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3 \
+  --model /home/qhq/serverless_llm_experiment/models/mistralai--Mistral-Nemo-Instruct-2407 \
   --num-adapters 500 \
   --use-peft \
   --finetune \
@@ -684,24 +703,22 @@ python scripts/run_all_experiments.py --config configs/experiments.yaml
 - **结果文件**：按 `backend / mode / adapters / requests / concurrency / results_tag` 落盘到 `results/` 目录，文件名取决于当前 profile 与环境变量覆盖。
 - **环境**：当前主线稳定环境为 `LLM_vllm0102`，详见 [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)。
 
-**当前扩展主线（Mistral-7B + PEFT+finetune + 500 adapters）**：
+**当前下一步（Mistral-Nemo + TP=2 + PEFT+finetune + 500 adapters）**：
 
 ```bash
 conda activate LLM_vllm0102
 cd /home/qhq/serverless_llm_experiment
 
-python scripts/generate_lora_adapters.py \
-  --model /home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3 \
-  --num-adapters 500 \
-  --use-peft \
-  --finetune \
-  --force
+python scripts/download_model.py \
+  --model mistralai/Mistral-Nemo-Instruct-2407
 
-FAASLORA_PROFILE_MODEL=mistral_7b_main \
+FAASLORA_PROFILE_MODEL=mistral_nemo_12b_tp2 \
 FAASLORA_PROFILE_DATASET=azure_sharegpt_rep1000 \
-FAASLORA_PROFILE_WORKLOAD=mistral_7b_auto500_main \
+FAASLORA_PROFILE_WORKLOAD=mistral_nemo_12b_tp2_main \
 python scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faaslora_full
 ```
+
+> 默认 `lora_adapters.preparation_mode = one_shot`，因此上面这条实验命令会自动先补齐缺失/不兼容的 `PEFT+finetune` 工件，再进入正式实验。如果你要强制分成“两阶段”，就在 YAML 里改成 `two_phase`，再手动跑一次 `python scripts/generate_lora_adapters.py --force`。
 
 ---
 

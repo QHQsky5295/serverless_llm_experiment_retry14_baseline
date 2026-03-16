@@ -340,7 +340,7 @@
 
 - `configs/experiments.yaml`
   - 已新增 `mistral_7b_main / mistral_nemo_12b_tp2` model profile
-  - 已新增 `mistral_7b_auto100_main / mistral_7b_auto500_main / mistral_nemo_12b_tp2_main` workload profile
+  - 已新增 `mistral_7b_auto100_main / mistral_7b_auto500_main / mistral_nemo_12b_tp2_bringup100_main / mistral_nemo_12b_tp2_main` workload profile
 - `scripts/download_model.py`
   - 已不再尝试按旧版单模型 YAML 结构自动改写 `experiments.yaml`
   - 当前行为改为：下载完成后打印推荐的 `FAASLORA_PROFILE_MODEL / WORKLOAD` 与本地模型路径
@@ -355,9 +355,12 @@
 - `scripts/generate_lora_adapters.py` 默认跟随 YAML，直接生成 `PEFT+finetune` 工件
 - 其默认值现在会跟随当前激活的 `profile_selection + model_profiles + workload_profiles` 解析，不再只读取顶层 `model.name`
 - `PEFT+finetune` 生成路径已改为单次加载 base model 后循环生成多个 adapters
-- `scripts/run_all_experiments.py` 在该模式下若发现工件缺失或与当前模型不兼容，会明确报错并提示先离线生成
+- `scripts/run_all_experiments.py` 现在支持由 `lora_adapters.preparation_mode` 控制工件准备流程：
+  - `one_shot`：正式实验前自动补齐缺失/不兼容工件
+  - `two_phase`：强制先手动执行 `scripts/generate_lora_adapters.py`，再启动正式实验
 - `synthetic` 仍保留，但仅作为 quick/debug 回退路径，不再作为论文主线默认
 - 当前 Mistral 7B 主线统一按 `PEFT+finetune + 500 adapters + representative r1000` 推进；`100 adapters` 仅保留给早期 bring-up / 快速验证口径
+- 当前 Mistral Nemo 主线也统一按 `TP=2 + PEFT+finetune + 500 adapters + representative r1000` 推进；`mistral_nemo_12b_tp2_bringup100_main` 仅保留给显式 bring-up / 快速排障
 
 补充说明：
 
@@ -645,7 +648,8 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
 4. 当前 `14B r4000 @ 0.85` 已完成，`0.85` 可以视为 14B 的正式冻结参数
 5. 当前 `Qwen2.5-7B-Instruct TP=2` 对照也已完成，并已确定“保留 TP=1 为默认、TP=2 为对照”的结论
 6. 已确认 `facebook/opt-6.7b` 在当前 `vLLM 0.10.2 + LoRA` 环境下不可用，应停止 OPT 路线
-7. 下一步切到 `mistralai/Mistral-7B-Instruct-v0.3`；其后推进 `mistralai/Mistral-Nemo-Instruct-2407`
+7. 已完成：`mistralai/Mistral-7B-Instruct-v0.3 + PEFT+finetune + 500 adapters + representative r1000`
+8. 下一步推进 `mistralai/Mistral-Nemo-Instruct-2407`，并直接使用论文主线 `TP=2 + PEFT+finetune + 500 adapters + representative r1000`
 
 ---
 
@@ -653,7 +657,7 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
 
 建议在新会话直接贴这份文档，或至少贴出下面这段摘要：
 
-> 继续当前主线。`Qwen2.5-14B-Instruct` 的 `r1000@0.80`、`r1000@0.85` 与 `r4000@0.85` 都已完成，`0.85` 已可视为 14B 的冻结默认参数；`Qwen2.5-7B-Instruct TP=2` 对照也已完成，结论是保留 `TP=1` 为默认、`TP=2` 作为吞吐导向对照。`OPT` 已确认不支持当前本机 `vLLM 0.10.2 + LoRA`，下一步请切到 `mistralai/Mistral-7B-Instruct-v0.3`，随后再推进 `mistralai/Mistral-Nemo-Instruct-2407`。
+> 继续当前主线。`Qwen2.5-14B-Instruct` 的 `r1000@0.80`、`r1000@0.85` 与 `r4000@0.85` 都已完成，`0.85` 已可视为 14B 的冻结默认参数；`Qwen2.5-7B-Instruct TP=2` 对照也已完成，结论是保留 `TP=1` 为默认、`TP=2` 作为吞吐导向对照。`OPT` 已确认不支持当前本机 `vLLM 0.10.2 + LoRA`；`mistralai/Mistral-7B-Instruct-v0.3` 的论文主线 `PEFT+finetune + 500 adapters + representative r1000` 也已完成，下一步请切到 `mistralai/Mistral-Nemo-Instruct-2407`，并按论文主线直接使用 `TP=2 + PEFT+finetune + 500 adapters + representative r1000`。
 
 ---
 
@@ -663,8 +667,8 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
 2. 读取并分析 `Qwen2.5-14B-Instruct` 两轮 `representative 1000 requests` 的完整结果
 3. 当前 `14B r4000 @ 0.85` 已完成，可直接把 `0.85` 视为冻结默认参数
 4. 当前 `Qwen2.5-7B-Instruct TP=2` 对照已完成，结论是保留 `TP=1` 为默认、`TP=2` 为正式对照
-5. 下一个家族切到 **mistralai/Mistral-7B-Instruct-v0.3**；应先确认下载计划
-6. `mistralai/Mistral-7B-Instruct-v0.3` 稳定后，再推进 **mistralai/Mistral-Nemo-Instruct-2407**
+5. 当前第二家族 7B 档 **mistralai/Mistral-7B-Instruct-v0.3** 已完成，可直接作为第二家族小档位基线
+6. 下一步推进 **mistralai/Mistral-Nemo-Instruct-2407**，并按论文主线直接使用 `TP=2 + PEFT+finetune + 500 adapters + representative r1000`
 7. Gemma 继续挂在计划列表，不在当前轮次启动
 
 补充说明：

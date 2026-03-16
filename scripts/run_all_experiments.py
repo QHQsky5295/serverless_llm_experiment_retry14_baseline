@@ -56,6 +56,7 @@ import math
 import os
 import re
 import shutil
+import subprocess
 import sys
 import time
 from bisect import bisect_right
@@ -3799,6 +3800,96 @@ def _normalize_lora_generation_mode(adapters_cfg: Dict[str, Any]) -> str:
     return "synthetic" if bool(adapters_cfg.get("generate_synthetic", True)) else "manual"
 
 
+def _normalize_lora_preparation_mode(adapters_cfg: Dict[str, Any]) -> str:
+    """Normalize adapter preparation workflow mode from config."""
+    raw = str(adapters_cfg.get("preparation_mode", "") or "").strip().lower()
+    aliases = {
+        "one-shot": "one_shot",
+        "oneshot": "one_shot",
+        "auto": "one_shot",
+        "auto_prepare": "one_shot",
+        "two-phase": "two_phase",
+        "twophase": "two_phase",
+        "manual": "two_phase",
+    }
+    if raw in aliases:
+        return aliases[raw]
+    if raw:
+        return raw
+    if "auto_prepare_on_run" in adapters_cfg:
+        return "one_shot" if bool(adapters_cfg.get("auto_prepare_on_run")) else "two_phase"
+    return "one_shot"
+
+
+def _auto_prepare_peft_artifacts(
+    adapters_cfg: Dict[str, Any],
+    remote_dir: Path,
+    model_name: str,
+    generation_mode: str,
+    pending_adapters: List[Dict[str, Any]],
+    model_cfg: Optional[Dict[str, Any]] = None,
+) -> None:
+    """Generate missing/incompatible PEFT adapters before the main experiment."""
+    if not pending_adapters:
+        return
+
+    if generation_mode not in {"peft", "peft_finetune"}:
+        return
+
+    manifest_path = str(
+        adapters_cfg.get("_manifest_path")
+        or adapters_cfg.get("manifest_path")
+        or "configs/generated/lora_manifest_1000.json"
+    )
+    adapter_count = max(1, len(adapters_cfg.get("adapters", []) or pending_adapters))
+    cmd = [
+        sys.executable,
+        str(REPO_ROOT / "scripts" / "generate_lora_adapters.py"),
+        "--model",
+        str(model_name),
+        "--output-dir",
+        str(remote_dir),
+        "--manifest-path",
+        manifest_path,
+        "--num-adapters",
+        str(adapter_count),
+    ]
+    if generation_mode == "peft_finetune":
+        cmd.extend(["--use-peft", "--finetune"])
+    else:
+        cmd.append("--use-peft")
+
+    env = os.environ.copy()
+    env.setdefault("PYTHONUNBUFFERED", "1")
+    visible_ids = []
+    if model_cfg is not None:
+        visible_ids = list(model_cfg.get("visible_device_ids") or [])
+    if visible_ids and not env.get("CUDA_VISIBLE_DEVICES"):
+        env["CUDA_VISIBLE_DEVICES"] = ",".join(str(i) for i in visible_ids)
+
+    pending_preview = ", ".join(str(a.get("id", "?")) for a in pending_adapters[:5])
+    if len(pending_adapters) > 5:
+        pending_preview += ", ..."
+    print(
+        f"  Auto-preparing {len(pending_adapters)} LoRA artifacts via {generation_mode} "
+        f"({pending_preview})"
+    )
+    print(f"  Auto-prepare command: {' '.join(cmd)}")
+    result = subprocess.run(
+        cmd,
+        cwd=str(REPO_ROOT),
+        env=env,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"Automatic LoRA preparation failed with exit code {result.returncode}. "
+            "Switch lora_adapters.preparation_mode to two_phase to require manual pre-generation, "
+            "or fix the generator command above."
+        )
+
+
 def _adapter_matches_model(adapter_dir: Path, model_name: str, arch: Dict) -> bool:
     """Check if existing adapter is compatible with the current model."""
     cfg_file = adapter_dir / "adapter_config.json"
@@ -3832,18 +3923,45 @@ def _adapter_matches_model(adapter_dir: Path, model_name: str, arch: Dict) -> bo
         return False
 
 
-def setup_remote_storage(adapters_cfg: Dict, remote_dir: Path, model_name: str) -> Dict[str, Dict]:
+def setup_remote_storage(
+    adapters_cfg: Dict,
+    remote_dir: Path,
+    model_name: str,
+    model_cfg: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Dict]:
     generation_mode = _normalize_lora_generation_mode(adapters_cfg)
+    preparation_mode = _normalize_lora_preparation_mode(adapters_cfg)
     gen_synthetic = generation_mode == "synthetic"
     arch = _get_model_arch(model_name)
     hs = arch.get("hidden_size", "?")
     nl = arch.get("num_layers", "?")
     print(f"  Model arch: hidden_size={hs}, layers={nl}")
     print(f"  LoRA artifact mode: {generation_mode}")
+    print(f"  LoRA preparation mode: {preparation_mode}")
 
     result = {}
     remote_dir.mkdir(parents=True, exist_ok=True)
     regenerated = 0
+    pending_auto_prepare: List[Dict[str, Any]] = []
+
+    if preparation_mode == "one_shot" and generation_mode in {"peft", "peft_finetune"}:
+        for a in adapters_cfg.get("adapters", []):
+            aid = a["id"]
+            dest = remote_dir / aid
+            lp = a.get("local_path")
+            has_local = bool(lp and Path(lp).exists())
+            has_hf = bool(a.get("hf_repo_id"))
+            needs_regen = dest.exists() and not _adapter_matches_model(dest, model_name, arch)
+            if (not dest.exists() or needs_regen) and not has_local and not has_hf:
+                pending_auto_prepare.append(a)
+        _auto_prepare_peft_artifacts(
+            adapters_cfg=adapters_cfg,
+            remote_dir=remote_dir,
+            model_name=model_name,
+            generation_mode=generation_mode,
+            pending_adapters=pending_auto_prepare,
+            model_cfg=model_cfg,
+        )
 
     for a in adapters_cfg.get("adapters", []):
         aid     = a["id"]
@@ -3899,8 +4017,8 @@ def setup_remote_storage(adapters_cfg: Dict, remote_dir: Path, model_name: str) 
                 )
                 raise RuntimeError(
                     f"LoRA artifact {aid} is missing or incompatible with model {model_name}. "
-                    f"Current paper-mainline mode is {generation_mode}, so automatic synthetic fallback is disabled.\n"
-                    f"Please generate adapters first:\n  {cmd}"
+                    f"Current paper-mainline mode is {generation_mode}, and preparation_mode={preparation_mode}.\n"
+                    f"Please generate adapters first, or switch lora_adapters.preparation_mode to one_shot:\n  {cmd}"
                 )
         else:
             print(f"    {aid}  {_dir_size_mb(dest):.1f} MB  (exists)")
@@ -4776,7 +4894,7 @@ async def main_async(
 
     # ---- 2. Remote storage ----
     print("[2/5] Setting up remote storage ...")
-    adapter_info = setup_remote_storage(adapters_cfg, remote_dir, model_name)
+    adapter_info = setup_remote_storage(adapters_cfg, remote_dir, model_name, model_cfg)
     print(f"  {len(adapter_info)} adapters ready.\n")
 
     # ---- 3. Build workload traces ----

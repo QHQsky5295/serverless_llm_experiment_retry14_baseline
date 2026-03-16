@@ -18,327 +18,343 @@
 #     - 与 S-LoRA (SOSP'23) / Punica (MLSys'24) 使用相同数据集
 # =============================================================================
 
-experiment:
-  name: "FaaSLoRA-Qwen2.5-3B"
-  description: >
+experiment:  # 实验整体输出与统计方式总配置块
+  name: "FaaSLoRA-Qwen2.5-3B"  # 实验名称，主要用于结果与文档标识
+  description: >  # 对当前配置块或场景作用的自然语言说明
     对标 S-LoRA (SOSP'23) / ServerlessLLM (NSDI'24) / Punica (MLSys'24)
     的多 LoRA Serverless 推理完整评测，含三项贡献的消融实验。
-  output_dir: "results"
-  results_file: "experiment_results.json"
+  output_dir: "results"  # 实验结果输出目录
+  results_file: "experiment_results.json"  # 默认结果文件名
   # 多轮实验：每场景运行 num_runs 次，报告均值 ± 标准差及 95% 置信区间（默认 1 即单次）
-  num_runs: 1
-  confidence_level: 0.95
+  num_runs: 1  # 每个场景重复运行次数
+  confidence_level: 0.95  # 统计置信区间的置信水平
 
 # ---------------------------------------------------------------------------
 # Profile 选择器（优先用于切换模型 / 数据源 / 工作负载主线）
 # ---------------------------------------------------------------------------
-profile_selection:
-  model: "qwen_14b_tp2"
-  dataset: "azure_sharegpt_rep1000"
-  workload: "qwen_14b_tp2_main"
+profile_selection:  # 当前默认激活的模型/数据集/工作负载 profile 选择器
+  model: "qwen_14b_tp2"  # 模型配置块，或当前选中的 model profile 名称
+  dataset: "azure_sharegpt_rep1000"  # 当前选中的 dataset profile 名称
+  workload: "qwen_14b_tp2_main"  # 工作负载配置块，或当前选中的 workload profile 名称
 
 # ---------------------------------------------------------------------------
 # 模型 Profile（可覆盖 model + hardware）
 # ---------------------------------------------------------------------------
-model_profiles:
-  qwen_3b_main:
-    model:
-      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-3B-Instruct"
-      backend: "vllm"
-      device_id: 0
-      visible_device_ids: [0, 1]
-      tensor_parallel_size: 1
-      gpu_memory_utilization: 0.65
-      max_model_len: 2048
-      max_loras: 8
-      max_lora_rank: 16
-      enable_lora: true
-      enforce_eager: true
-      dtype: "float16"
-      max_num_seqs: 8
-      max_num_batched_tokens: 4096
-      max_output_tokens_cap: 64
-      max_input_len: 256
-      runtime_concurrency_cap: 8
-    hardware:
-      model_weights_mb: 3200
-      kv_per_1k_tokens_mb: 1.0
+model_profiles:  # 可复用的模型 profile 集合
+  qwen_3b_main:  # Qwen 3B 单卡主线模型 profile 名称
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-3B-Instruct"  # 本 profile 对应的模型路径或模型名
+      backend: "vllm"  # 推理后端类型，如 vllm / transformers
+      device_id: 0  # 默认主执行实例使用的 GPU 编号
+      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      tensor_parallel_size: 1  # 张量并行数；2 表示双卡切分模型
+      gpu_memory_utilization: 0.65  # vLLM 允许占用的单卡显存比例上限
+      max_model_len: 2048  # 模型允许处理的最大上下文长度
+      max_loras: 8  # 单个 runtime 同时驻留的最大 LoRA 数量
+      max_lora_rank: 16  # 支持的 LoRA 最大 rank
+      enable_lora: true  # 是否开启 LoRA 支持
+      enforce_eager: true  # 是否强制 eager 模式，避免部分 CUDA Graph 兼容问题
+      dtype: "float16"  # 模型权重与推理使用的数据类型
+      max_num_seqs: 8  # 单个 runtime 同时调度的最大序列数
+      max_num_batched_tokens: 4096  # 单批次允许处理的最大 token 总数
+      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
+      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      runtime_concurrency_cap: 8  # 单个 runtime 允许的并发处理上限
+    hardware:  # 硬件容量与显存估计配置块
+      model_weights_mb: 3200  # 基座模型权重占用的显存估计值（MB）
+      kv_per_1k_tokens_mb: 1.0  # 每 1000 token 的 KV cache 显存估计（MB）
 
-  qwen_7b_main:
-    model:
-      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"
-      backend: "vllm"
-      device_id: 0
-      visible_device_ids: [0, 1]
-      tensor_parallel_size: 1
-      gpu_memory_utilization: 0.85
-      max_model_len: 1024
-      max_loras: 2
-      max_lora_rank: 16
-      enable_lora: true
-      enforce_eager: true
-      dtype: "float16"
-      max_num_seqs: 4
-      max_num_batched_tokens: 1024
-      max_output_tokens_cap: 64
-      max_input_len: 256
-      runtime_concurrency_cap: 4
-    hardware:
-      model_weights_mb: 14336
-      kv_per_1k_tokens_mb: 2.0
+  qwen_7b_main:  # Qwen 7B 单卡主线模型 profile 名称
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"  # 本 profile 对应的模型路径或模型名
+      backend: "vllm"  # 推理后端类型，如 vllm / transformers
+      device_id: 0  # 默认主执行实例使用的 GPU 编号
+      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      tensor_parallel_size: 1  # 张量并行数；2 表示双卡切分模型
+      gpu_memory_utilization: 0.85  # vLLM 允许占用的单卡显存比例上限
+      max_model_len: 1024  # 模型允许处理的最大上下文长度
+      max_loras: 2  # 单个 runtime 同时驻留的最大 LoRA 数量
+      max_lora_rank: 16  # 支持的 LoRA 最大 rank
+      enable_lora: true  # 是否开启 LoRA 支持
+      enforce_eager: true  # 是否强制 eager 模式，避免部分 CUDA Graph 兼容问题
+      dtype: "float16"  # 模型权重与推理使用的数据类型
+      max_num_seqs: 4  # 单个 runtime 同时调度的最大序列数
+      max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
+      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
+      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    hardware:  # 硬件容量与显存估计配置块
+      model_weights_mb: 14336  # 基座模型权重占用的显存估计值（MB）
+      kv_per_1k_tokens_mb: 2.0  # 每 1000 token 的 KV cache 显存估计（MB）
 
-  qwen_7b_tp2_compare:
-    model:
-      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"
-      backend: "vllm"
-      device_id: 0
-      visible_device_ids: [0, 1]
-      distributed_executor_backend: "mp"
-      tensor_parallel_size: 2
-      gpu_memory_utilization: 0.85
-      max_model_len: 1024
-      max_loras: 2
-      max_lora_rank: 16
-      enable_lora: true
-      enforce_eager: true
-      dtype: "float16"
-      max_num_seqs: 4
-      max_num_batched_tokens: 1024
-      max_output_tokens_cap: 64
-      max_input_len: 256
-      runtime_concurrency_cap: 4
-    hardware:
-      model_weights_mb: 14336
-      kv_per_1k_tokens_mb: 2.0
+  qwen_7b_tp2_compare:  # Qwen 7B 双卡 TP=2 吞吐对照模型 profile 名称
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"  # 本 profile 对应的模型路径或模型名
+      backend: "vllm"  # 推理后端类型，如 vllm / transformers
+      device_id: 0  # 默认主执行实例使用的 GPU 编号
+      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      distributed_executor_backend: "mp"  # vLLM 张量并行执行后端，如 mp
+      tensor_parallel_size: 2  # 张量并行数；2 表示双卡切分模型
+      gpu_memory_utilization: 0.85  # vLLM 允许占用的单卡显存比例上限
+      max_model_len: 1024  # 模型允许处理的最大上下文长度
+      max_loras: 2  # 单个 runtime 同时驻留的最大 LoRA 数量
+      max_lora_rank: 16  # 支持的 LoRA 最大 rank
+      enable_lora: true  # 是否开启 LoRA 支持
+      enforce_eager: true  # 是否强制 eager 模式，避免部分 CUDA Graph 兼容问题
+      dtype: "float16"  # 模型权重与推理使用的数据类型
+      max_num_seqs: 4  # 单个 runtime 同时调度的最大序列数
+      max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
+      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
+      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    hardware:  # 硬件容量与显存估计配置块
+      model_weights_mb: 14336  # 基座模型权重占用的显存估计值（MB）
+      kv_per_1k_tokens_mb: 2.0  # 每 1000 token 的 KV cache 显存估计（MB）
 
-  qwen_14b_tp2:
-    model:
-      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct"
-      backend: "vllm"
-      device_id: 0
-      visible_device_ids: [0, 1]
-      distributed_executor_backend: "mp"
-      tensor_parallel_size: 2
-      gpu_memory_utilization: 0.85
-      max_model_len: 1024
-      max_loras: 2
-      max_lora_rank: 16
-      enable_lora: true
-      enforce_eager: true
-      dtype: "float16"
-      max_num_seqs: 2
-      max_num_batched_tokens: 1024
-      max_output_tokens_cap: 64
-      max_input_len: 256
-      runtime_concurrency_cap: 2
-    hardware:
-      model_weights_mb: 28672
-      kv_per_1k_tokens_mb: 4.0
+  qwen_14b_tp2:  # Qwen 14B 双卡 TP=2 主线模型 profile 名称
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct"  # 本 profile 对应的模型路径或模型名
+      backend: "vllm"  # 推理后端类型，如 vllm / transformers
+      device_id: 0  # 默认主执行实例使用的 GPU 编号
+      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      distributed_executor_backend: "mp"  # vLLM 张量并行执行后端，如 mp
+      tensor_parallel_size: 2  # 张量并行数；2 表示双卡切分模型
+      gpu_memory_utilization: 0.85  # vLLM 允许占用的单卡显存比例上限
+      max_model_len: 1024  # 模型允许处理的最大上下文长度
+      max_loras: 2  # 单个 runtime 同时驻留的最大 LoRA 数量
+      max_lora_rank: 16  # 支持的 LoRA 最大 rank
+      enable_lora: true  # 是否开启 LoRA 支持
+      enforce_eager: true  # 是否强制 eager 模式，避免部分 CUDA Graph 兼容问题
+      dtype: "float16"  # 模型权重与推理使用的数据类型
+      max_num_seqs: 2  # 单个 runtime 同时调度的最大序列数
+      max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
+      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
+      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      runtime_concurrency_cap: 2  # 单个 runtime 允许的并发处理上限
+    hardware:  # 硬件容量与显存估计配置块
+      model_weights_mb: 28672  # 基座模型权重占用的显存估计值（MB）
+      kv_per_1k_tokens_mb: 4.0  # 每 1000 token 的 KV cache 显存估计（MB）
 
-  mistral_7b_main:
-    model:
-      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3"
-      backend: "vllm"
-      device_id: 0
-      visible_device_ids: [0, 1]
-      tensor_parallel_size: 1
-      gpu_memory_utilization: 0.85
-      max_model_len: 1024
-      max_loras: 2
-      max_lora_rank: 16
-      enable_lora: true
-      enforce_eager: true
-      dtype: "float16"
-      max_num_seqs: 4
-      max_num_batched_tokens: 1024
-      max_output_tokens_cap: 64
-      max_input_len: 256
-      runtime_concurrency_cap: 4
-    hardware:
-      model_weights_mb: 14336
-      kv_per_1k_tokens_mb: 2.0
+  mistral_7b_main:  # Mistral 7B 第二家族小档位模型 profile 名称
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3"  # 本 profile 对应的模型路径或模型名
+      backend: "vllm"  # 推理后端类型，如 vllm / transformers
+      device_id: 0  # 默认主执行实例使用的 GPU 编号
+      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      tensor_parallel_size: 1  # 张量并行数；2 表示双卡切分模型
+      gpu_memory_utilization: 0.85  # vLLM 允许占用的单卡显存比例上限
+      max_model_len: 1024  # 模型允许处理的最大上下文长度
+      max_loras: 2  # 单个 runtime 同时驻留的最大 LoRA 数量
+      max_lora_rank: 16  # 支持的 LoRA 最大 rank
+      enable_lora: true  # 是否开启 LoRA 支持
+      enforce_eager: true  # 是否强制 eager 模式，避免部分 CUDA Graph 兼容问题
+      dtype: "float16"  # 模型权重与推理使用的数据类型
+      max_num_seqs: 4  # 单个 runtime 同时调度的最大序列数
+      max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
+      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
+      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    hardware:  # 硬件容量与显存估计配置块
+      model_weights_mb: 14336  # 基座模型权重占用的显存估计值（MB）
+      kv_per_1k_tokens_mb: 2.0  # 每 1000 token 的 KV cache 显存估计（MB）
 
-  mistral_nemo_12b_tp2:
-    model:
-      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-Nemo-Instruct-2407"
-      backend: "vllm"
-      device_id: 0
-      visible_device_ids: [0, 1]
-      distributed_executor_backend: "mp"
-      tensor_parallel_size: 2
-      gpu_memory_utilization: 0.80
-      max_model_len: 1024
-      max_loras: 2
-      max_lora_rank: 16
-      enable_lora: true
-      enforce_eager: true
-      dtype: "float16"
-      max_num_seqs: 2
-      max_num_batched_tokens: 1024
-      max_output_tokens_cap: 64
-      max_input_len: 256
-      runtime_concurrency_cap: 2
-    hardware:
-      model_weights_mb: 24576
-      kv_per_1k_tokens_mb: 4.0
+  mistral_nemo_12b_tp2:  # Mistral Nemo 12B/13B 档 TP=2 主线模型 profile 名称
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-Nemo-Instruct-2407"  # 本 profile 对应的模型路径或模型名
+      backend: "vllm"  # 推理后端类型，如 vllm / transformers
+      device_id: 0  # 默认主执行实例使用的 GPU 编号
+      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      distributed_executor_backend: "mp"  # vLLM 张量并行执行后端，如 mp
+      tensor_parallel_size: 2  # 张量并行数；2 表示双卡切分模型
+      gpu_memory_utilization: 0.80  # vLLM 允许占用的单卡显存比例上限
+      max_model_len: 1024  # 模型允许处理的最大上下文长度
+      max_loras: 2  # 单个 runtime 同时驻留的最大 LoRA 数量
+      max_lora_rank: 16  # 支持的 LoRA 最大 rank
+      enable_lora: true  # 是否开启 LoRA 支持
+      enforce_eager: true  # 是否强制 eager 模式，避免部分 CUDA Graph 兼容问题
+      dtype: "float16"  # 模型权重与推理使用的数据类型
+      max_num_seqs: 2  # 单个 runtime 同时调度的最大序列数
+      max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
+      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
+      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      runtime_concurrency_cap: 2  # 单个 runtime 允许的并发处理上限
+    hardware:  # 硬件容量与显存估计配置块
+      model_weights_mb: 24576  # 基座模型权重占用的显存估计值（MB）
+      kv_per_1k_tokens_mb: 4.0  # 每 1000 token 的 KV cache 显存估计（MB）
 
 # ---------------------------------------------------------------------------
 # 数据集 Profile（可覆盖 datasets + workload）
 # ---------------------------------------------------------------------------
-dataset_profiles:
-  azure_sharegpt_rep1000:
-    datasets:
-      arrival_source: "azure_llm"
-      token_source: "azure_llm"
-      prompt_source: "sharegpt_auto"
-      azure_max_records:
-      sharegpt_max_records: 5000
-    workload:
-      sampling_strategy: "representative"
-      total_requests: 1000
+dataset_profiles:  # 可复用的数据集 profile 集合
+  azure_sharegpt_rep1000:  # Azure 到达分布 + ShareGPT prompt 的代表性 1000 请求数据集 profile
+    datasets:  # 请求到达、token 长度和 prompt 文本的数据来源配置块
+      arrival_source: "azure_llm"  # 请求到达时间分布的数据来源
+      token_source: "azure_llm"  # 输入/输出 token 长度分布的数据来源
+      prompt_source: "sharegpt_auto"  # prompt 文本来源
+      azure_max_records:  # 最多读取多少条 Azure 追踪；留空表示不限制
+      sharegpt_max_records: 5000  # 最多读取多少条 ShareGPT prompt 数据
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      sampling_strategy: "representative"  # 如何从真实 trace 中抽样，如 representative
+      total_requests: 1000  # 正式实验总请求数
 
-  azure_sharegpt_rep4000:
-    datasets:
-      arrival_source: "azure_llm"
-      token_source: "azure_llm"
-      prompt_source: "sharegpt_auto"
-      azure_max_records:
-      sharegpt_max_records: 5000
-    workload:
-      sampling_strategy: "representative"
-      total_requests: 4000
+  azure_sharegpt_rep4000:  # Azure 到达分布 + ShareGPT prompt 的代表性 4000 请求数据集 profile
+    datasets:  # 请求到达、token 长度和 prompt 文本的数据来源配置块
+      arrival_source: "azure_llm"  # 请求到达时间分布的数据来源
+      token_source: "azure_llm"  # 输入/输出 token 长度分布的数据来源
+      prompt_source: "sharegpt_auto"  # prompt 文本来源
+      azure_max_records:  # 最多读取多少条 Azure 追踪；留空表示不限制
+      sharegpt_max_records: 5000  # 最多读取多少条 ShareGPT prompt 数据
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      sampling_strategy: "representative"  # 如何从真实 trace 中抽样，如 representative
+      total_requests: 4000  # 正式实验总请求数
 
-  azure_embedded_smoke:
-    datasets:
-      arrival_source: "azure_llm"
-      token_source: "azure_llm"
-      prompt_source: "embedded"
-      azure_max_records:
-      sharegpt_max_records: 200
-    workload:
-      sampling_strategy: "representative"
-      total_requests: 100
+  azure_embedded_smoke:  # 使用内嵌 prompt 的轻量 smoke 数据集 profile
+    datasets:  # 请求到达、token 长度和 prompt 文本的数据来源配置块
+      arrival_source: "azure_llm"  # 请求到达时间分布的数据来源
+      token_source: "azure_llm"  # 输入/输出 token 长度分布的数据来源
+      prompt_source: "embedded"  # prompt 文本来源
+      azure_max_records:  # 最多读取多少条 Azure 追踪；留空表示不限制
+      sharegpt_max_records: 200  # 最多读取多少条 ShareGPT prompt 数据
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      sampling_strategy: "representative"  # 如何从真实 trace 中抽样，如 representative
+      total_requests: 100  # 正式实验总请求数
 
 # ---------------------------------------------------------------------------
 # 工作负载 Profile（可覆盖 workload + resource_coordination + lora_adapters）
 # ---------------------------------------------------------------------------
-workload_profiles:
-  qwen_3b_auto500_main:
-    lora_adapters:
-      selected_num_adapters: 500
-      quick_num_adapters: 100
-      full_num_adapters: 500
-      apply_scale_preset: true
-    workload:
-      concurrency: 8
-      time_scale_factor: 0.02
-      active_adapter_cap: 48
-      hotset_rotation_requests: 100
-    resource_coordination:
-      instance_mode: "auto"
-      max_instances: 2
-      effective_capacity_admission_enabled: true
+workload_profiles:  # 可复用的工作负载 profile 集合
+  qwen_3b_auto500_main:  # Qwen 3B 论文主线工作负载 profile（500 adapters）
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 500  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 500  # 正式完整版使用的 adapter 数量
+      apply_scale_preset: true  # 是否根据 adapter 数量自动套用调参 preset
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      concurrency: 8  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
+      hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
-  qwen_7b_auto100_main:
-    lora_adapters:
-      selected_num_adapters: 100
-      quick_num_adapters: 100
-      full_num_adapters: 100
-      apply_scale_preset: false
-    workload:
-      concurrency: 4
-      time_scale_factor: 0.02
-      active_adapter_cap: 16
-      hotset_rotation_requests: 120
-    resource_coordination:
-      instance_mode: "auto"
-      max_instances: 2
-      effective_capacity_admission_enabled: true
+  qwen_7b_auto100_main:  # Qwen 7B 默认工作负载 profile（100 adapters）
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 100  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 100  # 正式完整版使用的 adapter 数量
+      apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      active_adapter_cap: 16  # 活跃热点 adapter 集合的大小上限
+      hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
-  qwen_7b_tp2_compare_main:
-    lora_adapters:
-      selected_num_adapters: 100
-      quick_num_adapters: 100
-      full_num_adapters: 100
-      apply_scale_preset: false
-    workload:
-      concurrency: 4
-      time_scale_factor: 0.02
-      active_adapter_cap: 16
-      hotset_rotation_requests: 120
-    resource_coordination:
-      instance_mode: "auto"
-      max_instances: 1
-      effective_capacity_admission_enabled: true
+  qwen_7b_tp2_compare_main:  # Qwen 7B TP=2 对照工作负载 profile
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 100  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 100  # 正式完整版使用的 adapter 数量
+      apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      active_adapter_cap: 16  # 活跃热点 adapter 集合的大小上限
+      hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 1  # 最多允许同时存在的物理实例数
+      effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
-  qwen_14b_tp2_main:
-    lora_adapters:
-      selected_num_adapters: 100
-      quick_num_adapters: 100
-      full_num_adapters: 100
-      apply_scale_preset: false
-    workload:
-      concurrency: 2
-      time_scale_factor: 0.02
-      active_adapter_cap: 16
-      hotset_rotation_requests: 120
-    resource_coordination:
-      instance_mode: "auto"
-      max_instances: 1
-      effective_capacity_admission_enabled: true
+  qwen_14b_tp2_main:  # Qwen 14B TP=2 主线工作负载 profile
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 100  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 100  # 正式完整版使用的 adapter 数量
+      apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      concurrency: 2  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      active_adapter_cap: 16  # 活跃热点 adapter 集合的大小上限
+      hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 1  # 最多允许同时存在的物理实例数
+      effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
-  mistral_7b_auto100_main:
-    lora_adapters:
-      selected_num_adapters: 100
-      quick_num_adapters: 100
-      full_num_adapters: 100
-      apply_scale_preset: false
-    workload:
-      concurrency: 4
-      time_scale_factor: 0.02
-      active_adapter_cap: 16
-      hotset_rotation_requests: 120
-    resource_coordination:
-      instance_mode: "auto"
-      max_instances: 2
-      effective_capacity_admission_enabled: true
+  mistral_7b_auto100_main:  # Mistral 7B 早期 bring-up / 快速验证 workload profile
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 100  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 100  # 正式完整版使用的 adapter 数量
+      apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      active_adapter_cap: 16  # 活跃热点 adapter 集合的大小上限
+      hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
-  mistral_7b_auto500_main:
-    lora_adapters:
-      selected_num_adapters: 500
-      quick_num_adapters: 100
-      full_num_adapters: 500
-      apply_scale_preset: false
-    workload:
-      concurrency: 4
-      time_scale_factor: 0.02
-      active_adapter_cap: 48
-      hotset_rotation_requests: 100
-    resource_coordination:
-      instance_mode: "auto"
-      max_instances: 2
-      effective_capacity_admission_enabled: true
+  mistral_7b_auto500_main:  # Mistral 7B 论文主线 workload profile（500 adapters）
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 500  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 500  # 正式完整版使用的 adapter 数量
+      apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
+      hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
-  mistral_nemo_12b_tp2_main:
-    lora_adapters:
-      selected_num_adapters: 100
-      quick_num_adapters: 100
-      full_num_adapters: 100
-      apply_scale_preset: false
-    workload:
-      concurrency: 2
-      time_scale_factor: 0.02
-      active_adapter_cap: 16
-      hotset_rotation_requests: 120
-    resource_coordination:
-      instance_mode: "auto"
-      max_instances: 1
-      effective_capacity_admission_enabled: true
+  mistral_nemo_12b_tp2_main:  # Mistral Nemo TP=2 论文主线 workload profile（500 adapters）
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 500  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 500  # 正式完整版使用的 adapter 数量
+      apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      concurrency: 2  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
+      hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 1  # 最多允许同时存在的物理实例数
+      effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
+
+  mistral_nemo_12b_tp2_bringup100_main:  # Mistral Nemo TP=2 显式 bring-up/profile 排障 workload
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 100  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 100  # 正式完整版使用的 adapter 数量
+      apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      concurrency: 2  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      active_adapter_cap: 16  # 活跃热点 adapter 集合的大小上限
+      hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 1  # 最多允许同时存在的物理实例数
+      effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
 # ---------------------------------------------------------------------------
 # 基座模型
 # ---------------------------------------------------------------------------
-model:
+model:  # 模型配置块，或当前选中的 model profile 名称
   # 兼容回退层：仅供未走 profile_selection / model_profiles 的旧路径读取。
   # 当前论文主线与日常实验入口请以 profile_selection + model_profiles + workload_profiles 为准。
   # 如需切模型，优先新增/修改 profile，而不是直接依赖本节注释。
@@ -347,9 +363,9 @@ model:
   # 1) 增大 /dev/shm：mount -o remount,size=1G /dev/shm 或 docker --shm-size=1g（需至少约 512MB）
   # 2) 保持 vLLM=0.10.2（见 pyproject.toml）
   # 3) 仍崩溃时可用 --backend transformers 切回稳定回退路径
-  name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct"
-  backend: "vllm"
-  device_id: 0
+  name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct"  # 本 profile 对应的模型路径或模型名
+  backend: "vllm"  # 推理后端类型，如 vllm / transformers
+  device_id: 0  # 默认主执行实例使用的 GPU 编号
   visible_device_ids: [0, 1]       # dedicated/auto 模式允许从这组 GPU 中选择新实例
 
   tensor_parallel_size: 2           # 兼容回退默认值；实际主线以所选 model profile 为准
@@ -357,16 +373,16 @@ model:
   max_model_len: 2048               # 兼容回退默认值
   max_loras: 8                      # 兼容回退默认值
   max_lora_rank: 16                 # 适配器最大 rank
-  enable_lora: true
+  enable_lora: true  # 是否开启 LoRA 支持
   enforce_eager: true               # 禁用 CUDA Graph，避免兼容问题
-  dtype: "float16"
+  dtype: "float16"  # 模型权重与推理使用的数据类型
   max_num_seqs: 8                   # 兼容回退默认值
   max_num_batched_tokens: 4096      # 兼容回退默认值
 
   # transformers 后端：限制输出以减小 KV cache，避免 OOM/已杀死
-  max_output_tokens_cap: 64
+  max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
   max_input_len: 256              # 输入截断长度，与 Azure trace 分布一致
-  runtime_concurrency_cap: 8      # 当前 auto500 主线验证通过值
+  runtime_concurrency_cap: 8      # 兼容回退默认值；仅在旧路径未走 active profile 时使用
 
   # ── 备选：Qwen2.5-7B-Instruct（需要更保守的显存设置）───────────────
   # 取消以下注释并注释掉上面 3B 配置即可切换：
@@ -399,60 +415,60 @@ model:
   # max_num_batched_tokens: 1024
   # runtime_concurrency_cap: 2
 
-backend_profiles:
-  transformers:
-    model:
-      backend: "transformers"
-      gpu_memory_utilization: 0.65
-      max_model_len: 1024
-      max_loras: 2
-      max_num_seqs: 2
-      max_num_batched_tokens: 512
-      max_output_tokens_cap: 64
-      max_input_len: 256
-      runtime_concurrency_cap: 1
-    resource_coordination:
-      max_instances: 1
-      instance_mode: "shared"
+backend_profiles:  # 按推理后端切换的覆写 profile 集合
+  transformers:  # Transformers + PEFT 稳定回退后端 profile
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      backend: "transformers"  # 推理后端类型，如 vllm / transformers
+      gpu_memory_utilization: 0.65  # 该后端路径可使用的单卡显存比例上限
+      max_model_len: 1024  # 模型允许处理的最大上下文长度
+      max_loras: 2  # 单个 runtime 同时驻留的最大 LoRA 数量
+      max_num_seqs: 2  # 单个 runtime 同时调度的最大序列数
+      max_num_batched_tokens: 512  # 单批次允许处理的最大 token 总数
+      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
+      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      runtime_concurrency_cap: 1  # 单个 runtime 允许的并发处理上限
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      max_instances: 1  # 最多允许同时存在的物理实例数
+      instance_mode: "shared"  # 实例模式：shared / dedicated / auto
 
 # ---------------------------------------------------------------------------
 # 硬件配置（用于 SOTA baseline 延迟模型校准）
 # ---------------------------------------------------------------------------
-hardware:
+hardware:  # 硬件容量与显存估计配置块
   # 兼容回退层：active mainline 的硬件估计值通常由所选 model profile 覆盖。
   gpu_budget_mb: 24576              # 单卡 3090 24 GB
   model_weights_mb: 3200            # 回退默认估计值
 
   # KV cache 每 1K tokens 占用（MB）：回退默认估计值
-  kv_per_1k_tokens_mb: 1.0
+  kv_per_1k_tokens_mb: 1.0  # 每 1000 token 的 KV cache 显存估计（MB）
 
   # S-LoRA baseline：CPU pinned memory → GPU (PCIe 4.0 x16)
-  pcie_bw_mbps: 16000
+  pcie_bw_mbps: 16000  # CPU 内存到 GPU 的 PCIe 带宽估计（MB/s）
 
   # ServerlessLLM baseline：NVMe SSD → GPU
-  nvme_bw_mbps: 3000
+  nvme_bw_mbps: 3000  # NVMe 到 GPU 的带宽估计（MB/s）
 
   # GPU 显存分配与同步开销（ms）
-  gpu_load_overhead_ms: 50
+  gpu_load_overhead_ms: 50  # GPU 分配/同步的固定开销（ms）
 
 # ---------------------------------------------------------------------------
 # 资源协同调度配置（贡献3）
 # ---------------------------------------------------------------------------
-resource_coordination:
+resource_coordination:  # 扩缩容与资源协同调度配置块
   min_instances: 1                  # 实例池下限（scale-down 至少保留）
-  max_instances: 2                  # 当前主线允许扩到第二个物理 runtime
-  instance_mode: "auto"             # 当前主线模式；shared/dedicated 接口保留但不作为默认路径
+  max_instances: 2                  # 兼容回退层最多允许扩到的物理 runtime 数
+  instance_mode: "auto"             # 兼容回退层默认实例模式；真实主线请以 active workload profile 为准
   instance_model_overrides: {}      # dedicated/auto 模式下新实例的 model_cfg 覆盖
   effective_capacity_admission_enabled: true  # 当前仓库默认主线：开启 P2.5 风格有效容量准入
   lora_load_reserve_ratio: 0.15     # 预留显存比例用于加载队列
   max_concurrent_loads: 2           # 渐进式启动：最多2个并发 LoRA 加载
   idle_timeout_s: 10                # 低负载持续 N 秒后触发 scale-down
-  warm_pool_size: 2                 # 24G 显存下减小以避免 OOM
+  warm_pool_size: 2                 # 默认 warm pool 保留数量；在 24G 显存机器上取 2 更稳
   # A1: 请求流内扩缩决策
   scale_up_threshold_rps: 3.0       # 固定模式下的 RPS 阈值；动态模式下忽略
   scale_cooldown_s: 30.0           # 两次 scale-up 之间最小间隔（秒）
   scale_decision_interval: 25      # 每处理 N 个请求评估一次是否扩容
-  routing_policy: "adapter_affinity"
+  routing_policy: "adapter_affinity"  # 请求路由策略
   arrival_window_s: 5.0            # 估计 arrival RPS 的滑动窗口（秒）
 
   # 动态扩缩容阈值（论文：workload-adaptive）
@@ -464,180 +480,182 @@ resource_coordination:
   scale_down_duration_s: 45         # 持续低负载 ≥ 此秒数才执行 scale-down
   dynamic_warm_pool: true           # warm pool 大小随近期活跃 LoRA 数自适应
   warm_pool_gamma: 0.2              # warm_pool_size = clip(round(active_loras_ewma*(1+γ)), min, max)
-  warm_pool_min: 2
-  warm_pool_max: 8
+  warm_pool_min: 2  # 动态 warm pool 的最小值
+  warm_pool_max: 8  # 动态 warm pool 的最大值
 
 # ---------------------------------------------------------------------------
 # LoRA 适配器
 # ---------------------------------------------------------------------------
-lora_adapters:
+lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
   generation_mode: "peft_finetune"  # 论文主线默认：PEFT + 轻量 finetune；synthetic 仅保留给 quick/debug
-  generate_synthetic: false
-  manifest_path: "configs/generated/lora_manifest_1000.json"
-  auto_create_manifest: true
-  preserve_legacy_names: true
+  preparation_mode: "one_shot"  # one_shot=实验启动时自动补齐工件；two_phase=必须先手动生成再跑实验
+  generate_synthetic: false  # 是否允许用 synthetic 工件兜底
+  manifest_path: "configs/generated/lora_manifest_1000.json"  # adapter manifest 文件路径
+  auto_create_manifest: true  # manifest 不存在时是否自动创建
+  preserve_legacy_names: true  # 是否保留早期 adapter 命名方式
   apply_scale_preset: true          # 是否按 adapter 数量自动套用 scale_presets；14B 等新模型可关闭
-  selected_num_adapters: 500
-  quick_num_adapters: 100
-  full_num_adapters: 500
+  selected_num_adapters: 500  # 当前 profile 默认选中的 adapter 数量
+  quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+  full_num_adapters: 500  # 正式完整版使用的 adapter 数量
   # 说明：
   #   1) 运行主实验时，将从 manifest 中选择前 N 个 adapter
   #   2) quick 模式默认 100；完整版默认 500
   #   3) 若 manifest 不存在，run_all_experiments.py 会自动生成元数据文件
   #   4) 真正的 adapter 目录可通过 scripts/generate_lora_adapters.py 批量生成
-  #   5) 当前论文主线默认要求 PEFT+finetune 工件；若工件缺失，runner 会提示先离线生成
-  scale_presets:
-    "100":
-      workload:
-        zipf_exponent: 1.10
-        lora_request_ratio: 0.95
-        active_adapter_cap: 16
-        hotset_rotation_requests: 120
-      model:
-        max_loras: 4
-        max_num_seqs: 2
-        max_num_batched_tokens: 512
-        runtime_concurrency_cap: 2
-      resource_coordination:
-        warm_pool_size: 4
-    "200":
-      workload:
-        zipf_exponent: 1.15
-        lora_request_ratio: 0.95
-        active_adapter_cap: 24
-        hotset_rotation_requests: 120
-      model:
-        max_loras: 4
-        max_num_seqs: 2
-        max_num_batched_tokens: 768
-        runtime_concurrency_cap: 2
-      resource_coordination:
-        warm_pool_size: 4
-    "300":
-      workload:
-        zipf_exponent: 1.20
-        lora_request_ratio: 0.95
-        active_adapter_cap: 32
-        hotset_rotation_requests: 100
-      model:
-        max_loras: 4
-        max_num_seqs: 2
-        max_num_batched_tokens: 768
-        runtime_concurrency_cap: 2
-      resource_coordination:
-        warm_pool_size: 4
-    "400":
-      workload:
-        zipf_exponent: 1.20
-        lora_request_ratio: 0.95
-        active_adapter_cap: 40
-        hotset_rotation_requests: 100
-      model:
-        max_loras: 6
-        max_num_seqs: 3
-        max_num_batched_tokens: 1024
-        runtime_concurrency_cap: 3
-      resource_coordination:
-        warm_pool_size: 5
-    "500":
-      workload:
-        zipf_exponent: 1.25
-        lora_request_ratio: 0.95
-        active_adapter_cap: 48
-        hotset_rotation_requests: 100
-      model:
-        max_loras: 8
-        max_num_seqs: 8
-        max_num_batched_tokens: 4096
-        runtime_concurrency_cap: 8
-      resource_coordination:
-        warm_pool_size: 6
-    "600":
-      workload:
-        zipf_exponent: 1.25
-        lora_request_ratio: 0.95
-        active_adapter_cap: 56
-        hotset_rotation_requests: 80
-      model:
-        max_loras: 6
-        max_num_seqs: 3
-        max_num_batched_tokens: 1024
-        runtime_concurrency_cap: 3
-      resource_coordination:
-        warm_pool_size: 6
-    "700":
-      workload:
-        zipf_exponent: 1.30
-        lora_request_ratio: 0.95
-        active_adapter_cap: 64
-        hotset_rotation_requests: 80
-      model:
-        max_loras: 8
-        max_num_seqs: 4
-        max_num_batched_tokens: 1536
-        runtime_concurrency_cap: 4
-      resource_coordination:
-        warm_pool_size: 7
-    "800":
-      workload:
-        zipf_exponent: 1.30
-        lora_request_ratio: 0.95
-        active_adapter_cap: 72
-        hotset_rotation_requests: 80
-      model:
-        max_loras: 8
-        max_num_seqs: 4
-        max_num_batched_tokens: 1536
-        runtime_concurrency_cap: 4
-      resource_coordination:
-        warm_pool_size: 8
-    "900":
-      workload:
-        zipf_exponent: 1.35
-        lora_request_ratio: 0.95
-        active_adapter_cap: 80
-        hotset_rotation_requests: 64
-      model:
-        max_loras: 8
-        max_num_seqs: 4
-        max_num_batched_tokens: 1536
-        runtime_concurrency_cap: 4
-      resource_coordination:
-        warm_pool_size: 8
-    "1000":
-      workload:
-        zipf_exponent: 1.35
-        lora_request_ratio: 0.95
-        active_adapter_cap: 96
-        hotset_rotation_requests: 64
-      model:
-        max_loras: 8
-        max_num_seqs: 4
-        max_num_batched_tokens: 2048
-        runtime_concurrency_cap: 4
-      resource_coordination:
-        warm_pool_size: 8
+  #   5) 当前论文主线默认要求 PEFT+finetune 工件；one_shot 会在正式实验前自动补齐
+  #   6) 若想严格拆成两阶段，设置 preparation_mode=two_phase，runner 会要求先手动生成
+  scale_presets:  # 按 adapter 数量自动调参的一组 preset
+    "100":  # 100 个 adapters 时自动套用的负载/显存参数 preset
+      workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+        zipf_exponent: 1.10  # Zipf 热度分布指数，越大表示越长尾
+        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        active_adapter_cap: 16  # 活跃热点 adapter 集合的大小上限
+        hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
+      model:  # 模型配置块，或当前选中的 model profile 名称
+        max_loras: 4  # 单个 runtime 同时驻留的最大 LoRA 数量
+        max_num_seqs: 2  # 单个 runtime 同时调度的最大序列数
+        max_num_batched_tokens: 512  # 单批次允许处理的最大 token 总数
+        runtime_concurrency_cap: 2  # 单个 runtime 允许的并发处理上限
+      resource_coordination:  # 扩缩容与资源协同调度配置块
+        warm_pool_size: 4  # 默认 warm pool 中预热保留的 LoRA 数量
+    "200":  # 200 个 adapters 时自动套用的负载/显存参数 preset
+      workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+        zipf_exponent: 1.15  # Zipf 热度分布指数，越大表示越长尾
+        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        active_adapter_cap: 24  # 活跃热点 adapter 集合的大小上限
+        hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
+      model:  # 模型配置块，或当前选中的 model profile 名称
+        max_loras: 4  # 单个 runtime 同时驻留的最大 LoRA 数量
+        max_num_seqs: 2  # 单个 runtime 同时调度的最大序列数
+        max_num_batched_tokens: 768  # 单批次允许处理的最大 token 总数
+        runtime_concurrency_cap: 2  # 单个 runtime 允许的并发处理上限
+      resource_coordination:  # 扩缩容与资源协同调度配置块
+        warm_pool_size: 4  # 默认 warm pool 中预热保留的 LoRA 数量
+    "300":  # 300 个 adapters 时自动套用的负载/显存参数 preset
+      workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+        zipf_exponent: 1.20  # Zipf 热度分布指数，越大表示越长尾
+        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        active_adapter_cap: 32  # 活跃热点 adapter 集合的大小上限
+        hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
+      model:  # 模型配置块，或当前选中的 model profile 名称
+        max_loras: 4  # 单个 runtime 同时驻留的最大 LoRA 数量
+        max_num_seqs: 2  # 单个 runtime 同时调度的最大序列数
+        max_num_batched_tokens: 768  # 单批次允许处理的最大 token 总数
+        runtime_concurrency_cap: 2  # 单个 runtime 允许的并发处理上限
+      resource_coordination:  # 扩缩容与资源协同调度配置块
+        warm_pool_size: 4  # 默认 warm pool 中预热保留的 LoRA 数量
+    "400":  # 400 个 adapters 时自动套用的负载/显存参数 preset
+      workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+        zipf_exponent: 1.20  # Zipf 热度分布指数，越大表示越长尾
+        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        active_adapter_cap: 40  # 活跃热点 adapter 集合的大小上限
+        hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
+      model:  # 模型配置块，或当前选中的 model profile 名称
+        max_loras: 6  # 单个 runtime 同时驻留的最大 LoRA 数量
+        max_num_seqs: 3  # 单个 runtime 同时调度的最大序列数
+        max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
+        runtime_concurrency_cap: 3  # 单个 runtime 允许的并发处理上限
+      resource_coordination:  # 扩缩容与资源协同调度配置块
+        warm_pool_size: 5  # 默认 warm pool 中预热保留的 LoRA 数量
+    "500":  # 500 个 adapters 时自动套用的负载/显存参数 preset
+      workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+        zipf_exponent: 1.25  # Zipf 热度分布指数，越大表示越长尾
+        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
+        hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
+      model:  # 模型配置块，或当前选中的 model profile 名称
+        max_loras: 8  # 单个 runtime 同时驻留的最大 LoRA 数量
+        max_num_seqs: 8  # 单个 runtime 同时调度的最大序列数
+        max_num_batched_tokens: 4096  # 单批次允许处理的最大 token 总数
+        runtime_concurrency_cap: 8  # 单个 runtime 允许的并发处理上限
+      resource_coordination:  # 扩缩容与资源协同调度配置块
+        warm_pool_size: 6  # 默认 warm pool 中预热保留的 LoRA 数量
+    "600":  # 600 个 adapters 时自动套用的负载/显存参数 preset
+      workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+        zipf_exponent: 1.25  # Zipf 热度分布指数，越大表示越长尾
+        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        active_adapter_cap: 56  # 活跃热点 adapter 集合的大小上限
+        hotset_rotation_requests: 80  # 每处理多少个请求轮换一次热点集合
+      model:  # 模型配置块，或当前选中的 model profile 名称
+        max_loras: 6  # 单个 runtime 同时驻留的最大 LoRA 数量
+        max_num_seqs: 3  # 单个 runtime 同时调度的最大序列数
+        max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
+        runtime_concurrency_cap: 3  # 单个 runtime 允许的并发处理上限
+      resource_coordination:  # 扩缩容与资源协同调度配置块
+        warm_pool_size: 6  # 默认 warm pool 中预热保留的 LoRA 数量
+    "700":  # 700 个 adapters 时自动套用的负载/显存参数 preset
+      workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+        zipf_exponent: 1.30  # Zipf 热度分布指数，越大表示越长尾
+        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        active_adapter_cap: 64  # 活跃热点 adapter 集合的大小上限
+        hotset_rotation_requests: 80  # 每处理多少个请求轮换一次热点集合
+      model:  # 模型配置块，或当前选中的 model profile 名称
+        max_loras: 8  # 单个 runtime 同时驻留的最大 LoRA 数量
+        max_num_seqs: 4  # 单个 runtime 同时调度的最大序列数
+        max_num_batched_tokens: 1536  # 单批次允许处理的最大 token 总数
+        runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+      resource_coordination:  # 扩缩容与资源协同调度配置块
+        warm_pool_size: 7  # 默认 warm pool 中预热保留的 LoRA 数量
+    "800":  # 800 个 adapters 时自动套用的负载/显存参数 preset
+      workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+        zipf_exponent: 1.30  # Zipf 热度分布指数，越大表示越长尾
+        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        active_adapter_cap: 72  # 活跃热点 adapter 集合的大小上限
+        hotset_rotation_requests: 80  # 每处理多少个请求轮换一次热点集合
+      model:  # 模型配置块，或当前选中的 model profile 名称
+        max_loras: 8  # 单个 runtime 同时驻留的最大 LoRA 数量
+        max_num_seqs: 4  # 单个 runtime 同时调度的最大序列数
+        max_num_batched_tokens: 1536  # 单批次允许处理的最大 token 总数
+        runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+      resource_coordination:  # 扩缩容与资源协同调度配置块
+        warm_pool_size: 8  # 默认 warm pool 中预热保留的 LoRA 数量
+    "900":  # 900 个 adapters 时自动套用的负载/显存参数 preset
+      workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+        zipf_exponent: 1.35  # Zipf 热度分布指数，越大表示越长尾
+        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        active_adapter_cap: 80  # 活跃热点 adapter 集合的大小上限
+        hotset_rotation_requests: 64  # 每处理多少个请求轮换一次热点集合
+      model:  # 模型配置块，或当前选中的 model profile 名称
+        max_loras: 8  # 单个 runtime 同时驻留的最大 LoRA 数量
+        max_num_seqs: 4  # 单个 runtime 同时调度的最大序列数
+        max_num_batched_tokens: 1536  # 单批次允许处理的最大 token 总数
+        runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+      resource_coordination:  # 扩缩容与资源协同调度配置块
+        warm_pool_size: 8  # 默认 warm pool 中预热保留的 LoRA 数量
+    "1000":  # 1000 个 adapters 时自动套用的负载/显存参数 preset
+      workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+        zipf_exponent: 1.35  # Zipf 热度分布指数，越大表示越长尾
+        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        active_adapter_cap: 96  # 活跃热点 adapter 集合的大小上限
+        hotset_rotation_requests: 64  # 每处理多少个请求轮换一次热点集合
+      model:  # 模型配置块，或当前选中的 model profile 名称
+        max_loras: 8  # 单个 runtime 同时驻留的最大 LoRA 数量
+        max_num_seqs: 4  # 单个 runtime 同时调度的最大序列数
+        max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
+        runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+      resource_coordination:  # 扩缩容与资源协同调度配置块
+        warm_pool_size: 8  # 默认 warm pool 中预热保留的 LoRA 数量
   # 兼容旧版：若你手工提供 inline adapters，主脚本仍可继续读取。
-  adapters: []
+  adapters: []  # 内联 adapter 列表；通常保持空数组并走 manifest
 
 # ---------------------------------------------------------------------------
 # 存储配置
 # ---------------------------------------------------------------------------
-storage:
-  remote_dir: "artifacts/remote"
-  nvme_cache_dir: "artifacts/nvme_cache"
+storage:  # 远端/本地缓存目录与带宽模拟配置块
+  remote_dir: "artifacts/remote"  # 远端源仓库目录（模拟对象存储）
+  nvme_cache_dir: "artifacts/nvme_cache"  # 本地 NVMe 缓存目录
   # 贡献1 内存层：热点 LoRA 从硬盘预加载到内存，请求时从内存加载到 GPU，减少硬盘→GPU 延迟
-  host_cache_dir: "artifacts/host_cache"
+  host_cache_dir: "artifacts/host_cache"  # 主机内存缓存目录
 
   # 带宽模拟（模拟远端对象存储 → 本地 NVMe 的网络传输，代码中按 MB/s 换算延迟）
   # 同 region（如 S3/Blob 与实例同区）：约 100–500 MB/s（≈1–4 Gbps），取 250 更贴近典型云环境
   # 跨 region/受限：可设为 50–100；0 = 不限速（仅测本地拷贝）
-  bandwidth_mbps: 250
+  bandwidth_mbps: 250  # 远端到本地的模拟带宽（MB/s）
 
 # ---------------------------------------------------------------------------
 # 数据源配置（由 YAML 控制数据集选择）
 # ---------------------------------------------------------------------------
-datasets:
+datasets:  # 请求到达、token 长度和 prompt 文本的数据来源配置块
   arrival_source: "azure_llm"      # 到达时间来源：azure_llm 或 synthetic_poisson
   token_source: "azure_llm"        # token 长度来源：azure_llm 或 fixed_default
   prompt_source: "sharegpt_auto"   # prompt 来源：sharegpt_auto 或 embedded
@@ -647,35 +665,35 @@ datasets:
 # ---------------------------------------------------------------------------
 # 工作负载（使用真实 Azure LLM 推理追踪）
 # ---------------------------------------------------------------------------
-workload:
+workload:  # 工作负载配置块，或当前选中的 workload profile 名称
   # 兼容回退层：active mainline 的请求数/并发/热点窗口通常由 dataset/workload profile 覆盖。
-  workload_type: "mixed"
+  workload_type: "mixed"  # 工作负载类型，如 mixed / conv / code
 
   # Azure LLM trace 时间缩放
-  time_scale_factor: 0.02
+  time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
   sampling_strategy: "representative"   # 完整版默认使用代表性抽样，近似保持到达/长度/burst 分布
 
   # 请求数量：本次实验生成多少条请求
   # 当前默认 1000；Qwen2.5-14B 主线可直接改成 4000
-  total_requests: 1000
+  total_requests: 1000  # 正式实验总请求数
 
   # LoRA 选择分布（Zipf，与 S-LoRA 论文一致）
-  lora_request_ratio: 0.85
-  zipf_exponent: 1.0
+  lora_request_ratio: 0.85  # 有多少比例的请求会带 LoRA
+  zipf_exponent: 1.0  # Zipf 热度分布指数，越大表示越长尾
   active_adapter_cap: 16          # 当前活跃热点集合规模；大于此数的 adapter 通过热集轮换进入活跃窗
   hotset_rotation_requests: 120   # 每处理 N 个请求滚动热点窗
 
   # 当前默认主线并发：与 runtime_concurrency_cap 对齐
-  concurrency: 8
-  quick_total_requests: 30
-  quick_concurrency: 1
-  live_progress: true
-  live_progress_interval_s: 8.0
-  live_progress_every_requests: 25
-  show_instance_panel: true
-  max_tokens: 128
-  temperature: 0.7
-  top_p: 0.9
+  concurrency: 8  # 请求并发度
+  quick_total_requests: 30  # quick 模式下的总请求数
+  quick_concurrency: 1  # quick 模式下的并发度
+  live_progress: true  # 是否实时打印实验进度
+  live_progress_interval_s: 8.0  # 按时间间隔打印进度的秒数
+  live_progress_every_requests: 25  # 每处理多少个请求打印一次进度
+  show_instance_panel: true  # 是否显示实例状态面板
+  max_tokens: 128  # 单次生成默认最大 token 数
+  temperature: 0.7  # 采样温度
+  top_p: 0.9  # top-p 采样阈值
 
   # E1: 多周期评估（scale-up → 请求 → scale-down → 再 scale-up）
   multi_cycle_phases: 1            # 1=单周期（默认），2+ 则分 phase 并在 phase 间 scale_down
@@ -684,254 +702,254 @@ workload:
 # ---------------------------------------------------------------------------
 # 论文矩阵 preset（正式入口，避免只靠环境变量驱动）
 # ---------------------------------------------------------------------------
-matrix_presets:
-  shared100:
-    lora_adapters:
-      selected_num_adapters: 100
-      quick_num_adapters: 100
-      full_num_adapters: 100
-    workload:
-      total_requests: 300
-      concurrency: 4
-      time_scale_factor: 0.02
-    model:
-      max_model_len: 4096
-      max_num_batched_tokens: 2048
-      runtime_concurrency_cap: 4
-    resource_coordination:
-      instance_mode: "shared"
-      max_instances: 2
-      scale_decision_interval: 10
-  auto100:
-    lora_adapters:
-      selected_num_adapters: 100
-      quick_num_adapters: 100
-      full_num_adapters: 100
-    workload:
-      total_requests: 300
-      concurrency: 4
-      time_scale_factor: 0.02
-    model:
-      max_model_len: 4096
-      max_num_batched_tokens: 2048
-      runtime_concurrency_cap: 4
-    resource_coordination:
-      instance_mode: "auto"
-      max_instances: 2
-      scale_decision_interval: 10
-  dedicated100:
-    lora_adapters:
-      selected_num_adapters: 100
-      quick_num_adapters: 100
-      full_num_adapters: 100
-    workload:
-      total_requests: 300
-      concurrency: 4
-      time_scale_factor: 0.02
-    model:
-      max_model_len: 4096
-      max_num_batched_tokens: 2048
-      runtime_concurrency_cap: 4
-    resource_coordination:
-      instance_mode: "dedicated"
-      max_instances: 2
-      scale_decision_interval: 10
-  shared300:
-    lora_adapters:
-      selected_num_adapters: 300
-      quick_num_adapters: 300
-      full_num_adapters: 300
-    workload:
-      total_requests: 300
-      concurrency: 4
-      time_scale_factor: 0.02
-    model:
-      max_model_len: 4096
-      max_num_batched_tokens: 2048
-      runtime_concurrency_cap: 4
-    resource_coordination:
-      instance_mode: "shared"
-      max_instances: 2
-      scale_decision_interval: 10
-  auto300:
-    lora_adapters:
-      selected_num_adapters: 300
-      quick_num_adapters: 300
-      full_num_adapters: 300
-    workload:
-      total_requests: 300
-      concurrency: 4
-      time_scale_factor: 0.02
-    model:
-      max_model_len: 4096
-      max_num_batched_tokens: 2048
-      runtime_concurrency_cap: 4
-    resource_coordination:
-      instance_mode: "auto"
-      max_instances: 2
-      scale_decision_interval: 10
-  dedicated300:
-    lora_adapters:
-      selected_num_adapters: 300
-      quick_num_adapters: 300
-      full_num_adapters: 300
-    workload:
-      total_requests: 300
-      concurrency: 4
-      time_scale_factor: 0.02
-    model:
-      max_model_len: 4096
-      max_num_batched_tokens: 2048
-      runtime_concurrency_cap: 4
-    resource_coordination:
-      instance_mode: "dedicated"
-      max_instances: 2
-      scale_decision_interval: 10
-  shared500:
-    lora_adapters:
-      selected_num_adapters: 500
-      quick_num_adapters: 500
-      full_num_adapters: 500
-    workload:
-      total_requests: 300
-      concurrency: 4
-      time_scale_factor: 0.02
-    model:
-      max_model_len: 4096
-      max_num_batched_tokens: 2048
-      runtime_concurrency_cap: 4
-    resource_coordination:
-      instance_mode: "shared"
-      max_instances: 2
-      scale_decision_interval: 10
-  auto500:
-    lora_adapters:
-      selected_num_adapters: 500
-      quick_num_adapters: 500
-      full_num_adapters: 500
-    workload:
-      total_requests: 300
-      concurrency: 4
-      time_scale_factor: 0.02
-    model:
-      max_model_len: 4096
-      max_num_batched_tokens: 2048
-      runtime_concurrency_cap: 4
-    resource_coordination:
-      instance_mode: "auto"
-      max_instances: 2
-      scale_decision_interval: 10
-  shared1000:
-    lora_adapters:
-      selected_num_adapters: 1000
-      quick_num_adapters: 1000
-      full_num_adapters: 1000
-    workload:
-      total_requests: 300
-      concurrency: 4
-      time_scale_factor: 0.02
-    model:
-      max_model_len: 4096
-      max_num_batched_tokens: 2048
-      runtime_concurrency_cap: 4
-    resource_coordination:
-      instance_mode: "shared"
-      max_instances: 2
-      scale_decision_interval: 10
-  auto1000:
-    lora_adapters:
-      selected_num_adapters: 1000
-      quick_num_adapters: 1000
-      full_num_adapters: 1000
-    workload:
-      total_requests: 300
-      concurrency: 4
-      time_scale_factor: 0.02
-    model:
-      max_model_len: 4096
-      max_num_batched_tokens: 2048
-      runtime_concurrency_cap: 4
-    resource_coordination:
-      instance_mode: "auto"
-      max_instances: 2
-      scale_decision_interval: 10
+matrix_presets:  # 论文矩阵实验的一组快捷 preset
+  shared100:  # shared 模式 + 100 adapters 的矩阵实验 preset
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 100  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 100  # 正式完整版使用的 adapter 数量
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      total_requests: 300  # 正式实验总请求数
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      max_model_len: 4096  # 模型允许处理的最大上下文长度
+      max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "shared"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      scale_decision_interval: 10  # 每处理多少个请求做一次扩缩容判断
+  auto100:  # auto 模式 + 100 adapters 的矩阵实验 preset
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 100  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 100  # 正式完整版使用的 adapter 数量
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      total_requests: 300  # 正式实验总请求数
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      max_model_len: 4096  # 模型允许处理的最大上下文长度
+      max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      scale_decision_interval: 10  # 每处理多少个请求做一次扩缩容判断
+  dedicated100:  # dedicated 模式 + 100 adapters 的矩阵实验 preset
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 100  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 100  # 正式完整版使用的 adapter 数量
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      total_requests: 300  # 正式实验总请求数
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      max_model_len: 4096  # 模型允许处理的最大上下文长度
+      max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "dedicated"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      scale_decision_interval: 10  # 每处理多少个请求做一次扩缩容判断
+  shared300:  # shared 模式 + 300 adapters 的矩阵实验 preset
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 300  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 300  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 300  # 正式完整版使用的 adapter 数量
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      total_requests: 300  # 正式实验总请求数
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      max_model_len: 4096  # 模型允许处理的最大上下文长度
+      max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "shared"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      scale_decision_interval: 10  # 每处理多少个请求做一次扩缩容判断
+  auto300:  # auto 模式 + 300 adapters 的矩阵实验 preset
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 300  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 300  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 300  # 正式完整版使用的 adapter 数量
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      total_requests: 300  # 正式实验总请求数
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      max_model_len: 4096  # 模型允许处理的最大上下文长度
+      max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      scale_decision_interval: 10  # 每处理多少个请求做一次扩缩容判断
+  dedicated300:  # dedicated 模式 + 300 adapters 的矩阵实验 preset
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 300  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 300  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 300  # 正式完整版使用的 adapter 数量
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      total_requests: 300  # 正式实验总请求数
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      max_model_len: 4096  # 模型允许处理的最大上下文长度
+      max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "dedicated"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      scale_decision_interval: 10  # 每处理多少个请求做一次扩缩容判断
+  shared500:  # shared 模式 + 500 adapters 的矩阵实验 preset
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 500  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 500  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 500  # 正式完整版使用的 adapter 数量
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      total_requests: 300  # 正式实验总请求数
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      max_model_len: 4096  # 模型允许处理的最大上下文长度
+      max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "shared"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      scale_decision_interval: 10  # 每处理多少个请求做一次扩缩容判断
+  auto500:  # auto 模式 + 500 adapters 的矩阵实验 preset
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 500  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 500  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 500  # 正式完整版使用的 adapter 数量
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      total_requests: 300  # 正式实验总请求数
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      max_model_len: 4096  # 模型允许处理的最大上下文长度
+      max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      scale_decision_interval: 10  # 每处理多少个请求做一次扩缩容判断
+  shared1000:  # shared 模式 + 1000 adapters 的矩阵实验 preset
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 1000  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 1000  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 1000  # 正式完整版使用的 adapter 数量
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      total_requests: 300  # 正式实验总请求数
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      max_model_len: 4096  # 模型允许处理的最大上下文长度
+      max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "shared"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      scale_decision_interval: 10  # 每处理多少个请求做一次扩缩容判断
+  auto1000:  # auto 模式 + 1000 adapters 的矩阵实验 preset
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 1000  # 当前 profile 默认选中的 adapter 数量
+      quick_num_adapters: 1000  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 1000  # 正式完整版使用的 adapter 数量
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      total_requests: 300  # 正式实验总请求数
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+    model:  # 模型配置块，或当前选中的 model profile 名称
+      max_model_len: 4096  # 模型允许处理的最大上下文长度
+      max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      scale_decision_interval: 10  # 每处理多少个请求做一次扩缩容判断
 
 # ---------------------------------------------------------------------------
 # 成本模型（A100 实例成本校准）
 # ---------------------------------------------------------------------------
-cost_model:
-  base_cost_usd: 0.001
-  input_token_cost_usd: 0.0000015
-  output_token_cost_usd: 0.000002
-  gpu_hour_cost_usd: 3.0
+cost_model:  # 成本估算模型参数
+  base_cost_usd: 0.001  # 每次请求或实验的基础固定成本
+  input_token_cost_usd: 0.0000015  # 每个输入 token 的成本
+  output_token_cost_usd: 0.000002  # 每个输出 token 的成本
+  gpu_hour_cost_usd: 3.0  # GPU 每小时的成本估计
 
 # =============================================================================
 # 实验场景（消融 + SOTA 对比）
 # =============================================================================
-scenarios:
+scenarios:  # 本次要运行的实验场景列表
 
   # ── Baseline 1: Cold Start（最坏情况，现有 Serverless 平台默认行为）────────
-  - name: "cold_start"
-    baseline_type: "cold_start"
-    description: >
+  - name: "cold_start"  # 场景名称；会写入日志与结果文件
+    baseline_type: "cold_start"  # 场景实现路径标识
+    description: >  # 对当前配置块或场景作用的自然语言说明
       Baseline: 每次请求均从远端下载 LoRA，无任何缓存。
       对标现有无状态 Serverless 函数实例的行为。
-    preloading:
-      enabled: false
+    preloading:  # 预加载与本地多层驻留配置块
+      enabled: false  # 是否启用当前功能块
 
   # ── Baseline 2: S-LoRA (SOSP'23) ─────────────────────────────────────
-  - name: "slora_style"
-    baseline_type: "slora_style"
-    description: >
+  - name: "slora_style"  # 场景名称；会写入日志与结果文件
+    baseline_type: "slora_style"  # 场景实现路径标识
+    description: >  # 对当前配置块或场景作用的自然语言说明
       S-LoRA: LoRA 适配器驻留在 CPU pinned memory，按需通过 PCIe 加载到 GPU。
       LRU GPU 驱逐，无预加载。对标 S-LoRA (SOSP'23)。
-    preloading:
-      enabled: false
-      lru_cache_size: 8
+    preloading:  # 预加载与本地多层驻留配置块
+      enabled: false  # 是否启用当前功能块
+      lru_cache_size: 8  # LRU 缓存大小
 
   # ── Baseline 3: ServerlessLLM (NSDI'24) ──────────────────────────────
-  - name: "serverlessllm"
-    baseline_type: "serverlessllm"
-    description: >
+  - name: "serverlessllm"  # 场景名称；会写入日志与结果文件
+    baseline_type: "serverlessllm"  # 场景实现路径标识
+    description: >  # 对当前配置块或场景作用的自然语言说明
       ServerlessLLM: NVMe 检查点存储，本地性感知路由，无预测性预加载。
       对标 ServerlessLLM (NSDI'24)。
-    preloading:
-      enabled: false
-      lru_cache_size: 8
+    preloading:  # 预加载与本地多层驻留配置块
+      enabled: false  # 是否启用当前功能块
+      lru_cache_size: 8  # LRU 缓存大小
 
   # ── FaaSLoRA 贡献1：三层级联预加载（远端→硬盘→内存→GPU）────────────────
-  - name: "faaslora_nvme"
-    baseline_type: "faaslora_nvme"
-    description: >
+  - name: "faaslora_nvme"  # 场景名称；会写入日志与结果文件
+    baseline_type: "faaslora_nvme"  # 场景实现路径标识
+    description: >  # 对当前配置块或场景作用的自然语言说明
       FaaSLoRA 贡献1：最热→GPU、次热→内存、再次→硬盘；请求时从对应层加载，避免远程直连 GPU。
-    preloading:
-      enabled: true
-      min_hotness: 0.4
-      gpu_warmup_hotness: 0.6
-      nvme_capacity_mb: 20480
-      host_capacity_mb: 4096
-      strategy: "greedy"
+    preloading:  # 预加载与本地多层驻留配置块
+      enabled: true  # 是否启用当前功能块
+      min_hotness: 0.4  # 进入预加载集合的最小热度阈值
+      gpu_warmup_hotness: 0.6  # 允许提前预热到 GPU 的热度阈值
+      nvme_capacity_mb: 20480  # NVMe 层可用于 LoRA 的容量上限（MB）
+      host_capacity_mb: 4096  # 主机内存层可用于 LoRA 的容量上限（MB）
+      strategy: "greedy"  # 预加载选择策略
 
   # ── FaaSLoRA 贡献1+2（消融：无贡献3）───────────────────────────────
-  - name: "faaslora_no_coord"
-    baseline_type: "faaslora_no_coord"
-    description: >
+  - name: "faaslora_no_coord"  # 场景名称；会写入日志与结果文件
+    baseline_type: "faaslora_no_coord"  # 场景实现路径标识
+    description: >  # 对当前配置块或场景作用的自然语言说明
       FaaSLoRA 贡献1+2（消融实验）：命中感知预加载 + GPU 多层显存驻留，
       但无贡献3的扩缩容协同调度。用于量化贡献3的独立价值。
-    preloading:
-      enabled: true
-      min_hotness: 0.3
-      gpu_warmup_hotness: 0.6
-      nvme_capacity_mb: 20480
-      host_capacity_mb: 4096
-      strategy: "greedy"
-    resource_coordination:
-      coordination_enabled: false
+    preloading:  # 预加载与本地多层驻留配置块
+      enabled: true  # 是否启用当前功能块
+      min_hotness: 0.3  # 进入预加载集合的最小热度阈值
+      gpu_warmup_hotness: 0.6  # 允许提前预热到 GPU 的热度阈值
+      nvme_capacity_mb: 20480  # NVMe 层可用于 LoRA 的容量上限（MB）
+      host_capacity_mb: 4096  # 主机内存层可用于 LoRA 的容量上限（MB）
+      strategy: "greedy"  # 预加载选择策略
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      coordination_enabled: false  # 是否启用贡献 3 的资源协同机制
 
   # ── FaaSLoRA 完整系统（贡献1+2+3）──────────────────────────────────
-  - name: "faaslora_full"
-    baseline_type: "faaslora_full"
-    description: >
+  - name: "faaslora_full"  # 场景名称；会写入日志与结果文件
+    baseline_type: "faaslora_full"  # 场景实现路径标识
+    description: >  # 对当前配置块或场景作用的自然语言说明
       FaaSLoRA 完整系统：
         贡献1 — 命中感知工件预加载（scale-up 前提前加载高频 LoRA）
         贡献2 — GPU 显存三层本地驻留（热层 GPU 显存 / 温层 HOST 内存 / 冷层 NVMe，本地缺失时再由远端源仓库补给）
@@ -940,28 +958,28 @@ scenarios:
                  优先保障 KV cache 与批推理工作集；
                  负载回落后保留 warm_pool_size 个高频工件，
                  确保后续负载到来时的快速响应。
-    preloading:
-      enabled: true
-      min_hotness: 0.3
-      gpu_warmup_hotness: 0.9       # 仅预热最热 1~2 个 LoRA，减轻显存
-      nvme_capacity_mb: 20480
-      host_capacity_mb: 4096
-      strategy: "greedy"
-    resource_coordination:
-      coordination_enabled: true
-      effective_capacity_admission_enabled: true
-      max_concurrent_loads: 2
-      warm_pool_size: 2            # 24G 显存下减小
-      idle_timeout_s: 10
+    preloading:  # 预加载与本地多层驻留配置块
+      enabled: true  # 是否启用当前功能块
+      min_hotness: 0.3  # 进入预加载集合的最小热度阈值
+      gpu_warmup_hotness: 0.9       # 只把热度非常高的少量 LoRA 提前预热到 GPU，降低显存占用
+      nvme_capacity_mb: 20480  # NVMe 层可用于 LoRA 的容量上限（MB）
+      host_capacity_mb: 4096  # 主机内存层可用于 LoRA 的容量上限（MB）
+      strategy: "greedy"  # 预加载选择策略
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      coordination_enabled: true  # 是否启用贡献 3 的资源协同机制
+      effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
+      max_concurrent_loads: 2  # 最多并发进行多少个 LoRA 加载任务
+      warm_pool_size: 2            # 负载回落后默认保留的 warm pool 数量；在 24G 显存机器上取 2 更稳
+      idle_timeout_s: 10  # 实例空闲多久后允许回收
 
   # ── 理论下限：纯 backbone（无 LoRA 开销）──────────────────────────
-  - name: "backbone_only"
-    baseline_type: "backbone_only"
-    description: >
+  - name: "backbone_only"  # 场景名称；会写入日志与结果文件
+    baseline_type: "backbone_only"  # 场景实现路径标识
+    description: >  # 对当前配置块或场景作用的自然语言说明
       纯 backbone 推理，不携带任何 LoRA 适配器。
       代表 TTFT 的理论下限（无 LoRA 加载开销）。
-    preloading:
-      enabled: false
+    preloading:  # 预加载与本地多层驻留配置块
+      enabled: false  # 是否启用当前功能块
 
 # =============================================================================
 # 消融实验配置（取消注释后运行）
