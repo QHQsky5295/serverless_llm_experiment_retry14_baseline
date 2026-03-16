@@ -30,6 +30,7 @@ Notes
 import argparse
 import copy
 import os
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -222,8 +223,11 @@ def generate_adapters_with_peft(
             if finetune:
                 _finetune_active_adapter(peft_model, tokenizer)
 
+            if dest.exists():
+                shutil.rmtree(dest)
             dest.mkdir(parents=True, exist_ok=True)
             peft_model.save_pretrained(str(dest), selected_adapters=[adapter_id])
+            _flatten_single_adapter_subdir(dest, adapter_id)
             tokenizer.save_pretrained(str(dest))
             ensure_adapter_support_files(dest, model_name)
 
@@ -240,6 +244,29 @@ def generate_adapters_with_peft(
             torch.cuda.empty_cache()
 
     return timings
+
+
+def _flatten_single_adapter_subdir(dest: Path, adapter_id: str) -> None:
+    """
+    PEFT may save a named adapter under ``dest/<adapter_id>/``.
+    FaaSLoRA expects ``adapter_config.json`` and weights at ``dest/`` root,
+    so flatten that single nested adapter directory when present.
+    """
+    nested = dest / adapter_id
+    if (dest / "adapter_config.json").exists() or not nested.is_dir():
+        return
+    if not (nested / "adapter_config.json").exists():
+        return
+
+    for child in nested.iterdir():
+        target = dest / child.name
+        if target.exists():
+            if target.is_dir():
+                shutil.rmtree(target)
+            else:
+                target.unlink()
+        shutil.move(str(child), str(target))
+    nested.rmdir()
 
 
 def generate_adapter_with_peft(

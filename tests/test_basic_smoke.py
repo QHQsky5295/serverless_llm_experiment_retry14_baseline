@@ -134,7 +134,11 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             def save_pretrained(self, save_directory, selected_adapters=None, **_kwargs):
                 dest = Path(save_directory)
                 dest.mkdir(parents=True, exist_ok=True)
-                Path(dest, "adapter_config.json").write_text("{}", encoding="utf-8")
+                adapter_name = (selected_adapters or ["default"])[0]
+                nested = dest / adapter_name
+                nested.mkdir(parents=True, exist_ok=True)
+                Path(nested, "adapter_config.json").write_text("{}", encoding="utf-8")
+                Path(nested, "adapter_model.safetensors").write_text("x", encoding="utf-8")
                 self.saved.append(tuple(selected_adapters or []))
 
             def delete_adapter(self, adapter_name):
@@ -155,6 +159,9 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         ]
 
         with TemporaryDirectory() as tmpdir:
+            stale_dir = Path(tmpdir, "a1")
+            stale_dir.mkdir(parents=True, exist_ok=True)
+            Path(stale_dir, "stale.txt").write_text("old", encoding="utf-8")
             with patch.object(
                 generator,
                 "_load_peft_base_model",
@@ -177,6 +184,9 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                     adapter_specs=adapter_specs,
                     finetune=False,
                 )
+            self.assertFalse(Path(tmpdir, "a1", "stale.txt").exists())
+            self.assertTrue(Path(tmpdir, "a1", "adapter_config.json").exists())
+            self.assertFalse(Path(tmpdir, "a1", "a1").exists())
 
         load_once.assert_called_once()
         self.assertEqual(set(timings.keys()), {"a1", "a2", "a3"})
