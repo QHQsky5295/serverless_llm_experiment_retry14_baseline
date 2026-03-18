@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "created_at": 1773832915,
+  "model_name": "mistralai/Mistral-Nemo-Instruct-2407",
+  "source_dir": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo",
+  "accepted_count": 4,
+  "rejected_count": 1,
+  "accepted": [
+    {
+      "source_id": "MNgaix__Mistral-Nemo-Instruct-2407-bnb-4bit_lora_model",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/MNgaix__Mistral-Nemo-Instruct-2407-bnb-4bit_lora_model",
+      "accepted": true,
+      "reasons": [],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/MNgaix__Mistral-Nemo-Instruct-2407-bnb-4bit_lora_model/adapter_config.json",
+      "base_model_name_or_path": "unsloth/Mistral-Nemo-Instruct-2407-bnb-4bit",
+      "peft_type": "LORA",
+      "rank": 16,
+      "target_modules": [
+        "q_proj",
+        "k_proj",
+        "up_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "down_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/MNgaix__Mistral-Nemo-Instruct-2407-bnb-4bit_lora_model/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 228140600,
+      "size_mb": 217.572
+    },
+    {
+      "source_id": "SubashNeupane__mistral-nemo-instruct-12b-SOAP-summary-lora",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/SubashNeupane__mistral-nemo-instruct-12b-SOAP-summary-lora",
+      "accepted": true,
+      "reasons": [],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/SubashNeupane__mistral-nemo-instruct-12b-SOAP-summary-lora/adapter_config.json",
+      "base_model_name_or_path": "unsloth/Mistral-Nemo-Instruct-2407-bnb-4bit",
+      "peft_type": "LORA",
+      "rank": 16,
+      "target_modules": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/SubashNeupane__mistral-nemo-instruct-12b-SOAP-summary-lora/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 228140600,
+      "size_mb": 217.572
+    },
+    {
+      "source_id": "agamgoy__lora-mistral-nemo-instruct-PoliticalDiscussion",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/agamgoy__lora-mistral-nemo-instruct-PoliticalDiscussion",
+      "accepted": true,
+      "reasons": [],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/agamgoy__lora-mistral-nemo-instruct-PoliticalDiscussion/adapter_config.json",
+      "base_model_name_or_path": "unsloth/Mistral-Nemo-Instruct-2407-bnb-4bit",
+      "peft_type": "LORA",
+      "rank": 16,
+      "target_modules": [
+        "k_proj",
+        "gate_proj",
+        "down_proj",
+        "v_proj",
+        "q_proj",
+        "o_proj",
+        "up_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/agamgoy__lora-mistral-nemo-instruct-PoliticalDiscussion/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 228140600,
+      "size_mb": 217.572
+    },
+    {
+      "source_id": "barca-boy__lora_model_Mistral-Nemo-Instruct-2407-no-qnt_anushtup_final",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/barca-boy__lora_model_Mistral-Nemo-Instruct-2407-no-qnt_anushtup_final",
+      "accepted": true,
+      "reasons": [],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/barca-boy__lora_model_Mistral-Nemo-Instruct-2407-no-qnt_anushtup_final/adapter_config.json",
+      "base_model_name_or_path": "unsloth/Mistral-Nemo-Instruct-2407",
+      "peft_type": "LORA",
+      "rank": 16,
+      "target_modules": [
+        "gate_proj",
+        "down_proj",
+        "up_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "q_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/barca-boy__lora_model_Mistral-Nemo-Instruct-2407-no-qnt_anushtup_final/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 228140600,
+      "size_mb": 217.572
+    }
+  ],
+  "rejected": [
+    {
+      "source_id": "chohtet__mistral_nemo_instruct_2407_lora_epoch_1.00",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/chohtet__mistral_nemo_instruct_2407_lora_epoch_1.00",
+      "accepted": false,
+      "reasons": [
+        "modules_to_save is not empty",
+        "missing adapter_model.safetensors / adapter_model.bin at directory root"
+      ],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_nemo/chohtet__mistral_nemo_instruct_2407_lora_epoch_1.00/adapter_config.json",
+      "base_model_name_or_path": "unsloth/Mistral-Nemo-Instruct-2407-bnb-4bit",
+      "peft_type": "LORA",
+      "rank": 32,
+      "target_modules": [
+        "up_proj",
+        "k_proj",
+        "down_proj",
+        "o_proj",
+        "v_proj",
+        "gate_proj",
+        "q_proj"
+      ],
+      "modules_to_save": [
+        "embed_tokens",
+        "lm_head"
+      ]
+    }
+  ]
+}

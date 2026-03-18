@@ -236,6 +236,73 @@ def _lazy_import_vllm() -> bool:
         VLLM_AVAILABLE = False
         return False
 
+
+def _is_mistral_nemo_model(model_name: Optional[str]) -> bool:
+    normalized = str(model_name or "").lower()
+    return "mistral-nemo" in normalized or "mistral_nemo" in normalized
+
+
+def _resolve_vllm_runtime_guards(model_cfg: Dict[str, Any]) -> Dict[str, Any]:
+    model_name = str(model_cfg.get("name", ""))
+    tokenizer_mode = model_cfg.get("tokenizer_mode")
+    enable_chunked_prefill = model_cfg.get("enable_chunked_prefill")
+    enable_prefix_caching = model_cfg.get("enable_prefix_caching")
+    env_updates: Dict[str, str] = {}
+
+    def _set_env_if_present(cfg_key: str, env_key: str, formatter=str) -> None:
+        if cfg_key in model_cfg and model_cfg.get(cfg_key) is not None:
+            env_updates[env_key] = formatter(model_cfg[cfg_key])
+
+    _set_env_if_present(
+        "vllm_use_v1",
+        "VLLM_USE_V1",
+        lambda value: "1" if bool(value) else "0",
+    )
+    _set_env_if_present("vllm_attention_backend", "VLLM_ATTENTION_BACKEND", str)
+    _set_env_if_present(
+        "vllm_use_flashinfer_sampler",
+        "VLLM_USE_FLASHINFER_SAMPLER",
+        lambda value: "1" if bool(value) else "0",
+    )
+
+    # Mistral-Nemo is the only family that repeatedly triggered runtime
+    # EngineCore crashes on this host under the default V1 + TP2 + LoRA path.
+    # Apply a conservative runtime envelope unless the profile explicitly
+    # overrides these knobs.
+    if _is_mistral_nemo_model(model_name):
+        if tokenizer_mode is None:
+            tokenizer_mode = "mistral"
+        if enable_chunked_prefill is None:
+            enable_chunked_prefill = False
+        if enable_prefix_caching is None:
+            enable_prefix_caching = False
+        env_updates.setdefault("VLLM_USE_V1", "0")
+        env_updates.setdefault("VLLM_ATTENTION_BACKEND", "FLASH_ATTN")
+        env_updates.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "0")
+
+    return {
+        "tokenizer_mode": tokenizer_mode,
+        "enable_chunked_prefill": enable_chunked_prefill,
+        "enable_prefix_caching": enable_prefix_caching,
+        "env_updates": env_updates,
+    }
+
+
+def _push_env_updates(updates: Dict[str, str]) -> Dict[str, Optional[str]]:
+    previous: Dict[str, Optional[str]] = {}
+    for key, value in updates.items():
+        previous[key] = os.environ.get(key)
+        os.environ[key] = value
+    return previous
+
+
+def _restore_env_updates(previous: Dict[str, Optional[str]]) -> None:
+    for key, value in previous.items():
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
+
 from faaslora.datasets.workload_generator import WorkloadGenerator, WorkloadConfig, RequestTrace
 from faaslora.datasets.dataset_loader import WorkloadDataset
 from faaslora.registry.schema import StorageTier
@@ -742,6 +809,29 @@ class InferenceEngine:
             return "mp"
         return None
 
+    def _resolve_vllm_runtime_settings(self, model: str) -> Dict[str, Any]:
+        settings = _resolve_vllm_runtime_guards(self.model_cfg)
+        if _is_mistral_nemo_model(model):
+            print("    runtime_guard      = mistral_nemo_safe_path")
+        if settings["tokenizer_mode"] is not None:
+            print(f"    tokenizer_mode     = {settings['tokenizer_mode']}")
+        if settings["enable_chunked_prefill"] is not None:
+            print(
+                f"    chunked_prefill    = {bool(settings['enable_chunked_prefill'])}"
+            )
+        if settings["enable_prefix_caching"] is not None:
+            print(
+                f"    prefix_caching     = {bool(settings['enable_prefix_caching'])}"
+            )
+        for env_key in (
+            "VLLM_USE_V1",
+            "VLLM_ATTENTION_BACKEND",
+            "VLLM_USE_FLASHINFER_SAMPLER",
+        ):
+            if env_key in settings["env_updates"]:
+                print(f"    {env_key:<18}= {settings['env_updates'][env_key]}")
+        return settings
+
     async def initialize(self):
         if not CUDA_AVAILABLE:
             raise RuntimeError(
@@ -752,16 +842,6 @@ class InferenceEngine:
             await self._initialize_transformers()
             return
 
-        if not _lazy_import_vllm():
-            raise RuntimeError(
-                f"vLLM backend selected but vLLM is unavailable "
-                f"(CUDA={CUDA_AVAILABLE}, vLLM={VLLM_AVAILABLE})"
-            )
-
-        _check_shm_for_vllm()
-        if not bool(self.model_cfg.get("skip_stale_gpu_cleanup", False)):
-            _kill_stale_gpu_processes()
-
         model    = self.model_cfg.get("name", "Qwen/Qwen2.5-3B-Instruct")
         tp       = self.model_cfg.get("tensor_parallel_size", 1)
         gpu_util = self.model_cfg.get("gpu_memory_utilization", 0.90)
@@ -771,54 +851,79 @@ class InferenceEngine:
         eager    = self.model_cfg.get("enforce_eager", True)
         visible_devices = self._resolve_vllm_visible_devices(tp)
         executor_backend = self._resolve_vllm_executor_backend(tp, visible_devices)
+        runtime_settings = self._resolve_vllm_runtime_settings(model)
+        self._vllm_runtime_settings = runtime_settings
 
-        print("  Initialising vLLM engine:")
-        print(f"    model              = {model}")
-        print(f"    GPU                = {GPU_NAME} (x{GPU_COUNT})")
-        print(f"    tensor_parallel    = {tp}")
-        print(f"    gpu_mem_util       = {gpu_util}")
-        print(f"    max_model_len      = {max_len}")
-        print(f"    max_num_seqs       = {self.model_cfg.get('max_num_seqs', 8)}")
-        print(f"    max_batch_tokens   = {self.model_cfg.get('max_num_batched_tokens', 1024)}")
-        print(f"    runtime_conc_cap   = {self.model_cfg.get('runtime_concurrency_cap', 'n/a')}")
-        print(f"    max_loras          = {max_lr}")
-        print(f"    max_lora_rank      = {max_rank}")
-        print(f"    enforce_eager      = {eager}")
-        print(f"    dtype              = {self.model_cfg.get('dtype', 'float16')}")
-        print(f"    device_id          = {self.device_id}")
-        if visible_devices:
-            print(f"    visible_devices    = {visible_devices}")
-        if executor_backend:
-            print(f"    dist_backend       = {executor_backend}")
+        previous_env = _push_env_updates(runtime_settings["env_updates"])
+        try:
+            if not _lazy_import_vllm():
+                raise RuntimeError(
+                    f"vLLM backend selected but vLLM is unavailable "
+                    f"(CUDA={CUDA_AVAILABLE}, vLLM={VLLM_AVAILABLE})"
+                )
 
-        # Try 1: full config
-        engine = await self._try_create_engine(
-            model, tp=tp, gpu_util=gpu_util, max_len=max_len, eager=eager,
-            enable_lora=True, max_loras=max_lr, max_lora_rank=max_rank,
-            enable_chunked_prefill=None, enable_prefix_caching=None,
-        )
-        # Try 2: disable chunked prefill & prefix caching (often fixes EngineCore init on 3090)
-        if engine is None:
-            print("  [RETRY] vLLM with enable_chunked_prefill=False, enable_prefix_caching=False ...")
+            _check_shm_for_vllm()
+            if not bool(self.model_cfg.get("skip_stale_gpu_cleanup", False)):
+                _kill_stale_gpu_processes()
+
+            print("  Initialising vLLM engine:")
+            print(f"    model              = {model}")
+            print(f"    GPU                = {GPU_NAME} (x{GPU_COUNT})")
+            print(f"    tensor_parallel    = {tp}")
+            print(f"    gpu_mem_util       = {gpu_util}")
+            print(f"    max_model_len      = {max_len}")
+            print(f"    max_num_seqs       = {self.model_cfg.get('max_num_seqs', 8)}")
+            print(f"    max_batch_tokens   = {self.model_cfg.get('max_num_batched_tokens', 1024)}")
+            print(f"    runtime_conc_cap   = {self.model_cfg.get('runtime_concurrency_cap', 'n/a')}")
+            print(f"    max_loras          = {max_lr}")
+            print(f"    max_lora_rank      = {max_rank}")
+            print(f"    enforce_eager      = {eager}")
+            print(f"    dtype              = {self.model_cfg.get('dtype', 'float16')}")
+            print(f"    device_id          = {self.device_id}")
+            if visible_devices:
+                print(f"    visible_devices    = {visible_devices}")
+            if executor_backend:
+                print(f"    dist_backend       = {executor_backend}")
+
+            # Try 1: preferred config (now profile/model specific instead of always "all defaults").
             engine = await self._try_create_engine(
                 model, tp=tp, gpu_util=gpu_util, max_len=max_len, eager=eager,
                 enable_lora=True, max_loras=max_lr, max_lora_rank=max_rank,
-                enable_chunked_prefill=False, enable_prefix_caching=False,
+                enable_chunked_prefill=runtime_settings["enable_chunked_prefill"],
+                enable_prefix_caching=runtime_settings["enable_prefix_caching"],
+                tokenizer_mode=runtime_settings["tokenizer_mode"],
             )
-        # Try 3: more conservative memory (LoRA path can OOM during init on 24GB)
-        if engine is None:
-            print("  [RETRY] vLLM with gpu_util=0.6, max_loras=1, no chunked prefill ...")
-            engine = await self._try_create_engine(
-                model, tp=tp, gpu_util=0.6, max_len=max_len, eager=eager,
-                enable_lora=True, max_loras=1, max_lora_rank=max_rank,
-                enable_chunked_prefill=False, enable_prefix_caching=False,
-            )
-        if engine is not None:
-            self.engine = engine
-            self._lora_in_engine = True
-            self._active_tp = tp
-            print(f"  OK: vLLM engine ready (TP={tp}, real LoRA, max_loras={max_lr})")
-            return
+
+            # Try 2: disable chunked prefill & prefix caching if preferred path was not already there.
+            if engine is None and (
+                runtime_settings["enable_chunked_prefill"] is not False
+                or runtime_settings["enable_prefix_caching"] is not False
+            ):
+                print("  [RETRY] vLLM with enable_chunked_prefill=False, enable_prefix_caching=False ...")
+                engine = await self._try_create_engine(
+                    model, tp=tp, gpu_util=gpu_util, max_len=max_len, eager=eager,
+                    enable_lora=True, max_loras=max_lr, max_lora_rank=max_rank,
+                    enable_chunked_prefill=False, enable_prefix_caching=False,
+                    tokenizer_mode=runtime_settings["tokenizer_mode"],
+                )
+
+            # Try 3: more conservative memory + single-resident LoRA.
+            if engine is None:
+                print("  [RETRY] vLLM with gpu_util=0.6, max_loras=1, no chunked prefill ...")
+                engine = await self._try_create_engine(
+                    model, tp=tp, gpu_util=0.6, max_len=max_len, eager=eager,
+                    enable_lora=True, max_loras=1, max_lora_rank=max_rank,
+                    enable_chunked_prefill=False, enable_prefix_caching=False,
+                    tokenizer_mode=runtime_settings["tokenizer_mode"],
+                )
+            if engine is not None:
+                self.engine = engine
+                self._lora_in_engine = True
+                self._active_tp = tp
+                print(f"  OK: vLLM engine ready (TP={tp}, real LoRA, max_loras={max_lr})")
+                return
+        finally:
+            _restore_env_updates(previous_env)
 
         raise RuntimeError(
             "vLLM engine creation failed. Check GPU memory and driver state."
@@ -829,6 +934,7 @@ class InferenceEngine:
         eager: bool, enable_lora: bool, max_loras: int, max_lora_rank: int,
         enable_chunked_prefill: Optional[bool] = None,
         enable_prefix_caching: Optional[bool] = None,
+        tokenizer_mode: Optional[str] = None,
     ) -> Optional[AsyncLLMEngine]:
         """Try to create a vLLM engine; return None on failure."""
         if not _lazy_import_vllm():
@@ -851,6 +957,8 @@ class InferenceEngine:
                 max_num_seqs=self.model_cfg.get("max_num_seqs", 8),
                 max_num_batched_tokens=default_batched,
             )
+            if tokenizer_mode is not None:
+                kwargs["tokenizer_mode"] = tokenizer_mode
             if tp > 1:
                 kwargs["disable_custom_all_reduce"] = True
             if enable_lora:
@@ -954,12 +1062,24 @@ class InferenceEngine:
         max_lr   = self.model_cfg.get("max_loras", 4)
         max_rank = self.model_cfg.get("max_lora_rank", 16)
         eager    = self.model_cfg.get("enforce_eager", True)
-        # Use same config that succeeded at init (no chunked prefill) so reinit does not fail
-        engine = await self._try_create_engine(
-            model, tp=tp, gpu_util=gpu_util, max_len=max_len, eager=eager,
-            enable_lora=True, max_loras=max_lr, max_lora_rank=max_rank,
-            enable_chunked_prefill=False, enable_prefix_caching=False,
+        runtime_settings = getattr(
+            self,
+            "_vllm_runtime_settings",
+            self._resolve_vllm_runtime_settings(model),
         )
+        previous_env = _push_env_updates(runtime_settings["env_updates"])
+        try:
+            # Reuse the conservative runtime settings that were selected for
+            # the model family instead of hard-coding only the no-chunk path.
+            engine = await self._try_create_engine(
+                model, tp=tp, gpu_util=gpu_util, max_len=max_len, eager=eager,
+                enable_lora=True, max_loras=max_lr, max_lora_rank=max_rank,
+                enable_chunked_prefill=runtime_settings["enable_chunked_prefill"],
+                enable_prefix_caching=runtime_settings["enable_prefix_caching"],
+                tokenizer_mode=runtime_settings["tokenizer_mode"],
+            )
+        finally:
+            _restore_env_updates(previous_env)
         if engine is not None:
             self.engine = engine
             self._lora_in_engine = True
@@ -1209,7 +1329,11 @@ class InferenceEngine:
         except Exception as exc:
             exc_s = str(exc).lower()
             is_dead = any(k in exc_s for k in ("dead", "cancelled", "died",
-                                                "shutting down", "worker proc"))
+                                                "shutting down", "worker proc",
+                                                "enginecore encountered",
+                                                "enginedeaderror",
+                                                "illegal memory access",
+                                                "cuda error"))
             if is_dead:
                 self._engine_dead = True
                 async with self._reinit_lock:
@@ -3515,9 +3639,10 @@ def _apply_named_preset(
     adapters_cfg: Dict[str, Any],
     wl_cfg_yaml: Dict[str, Any],
     coord_cfg: Dict[str, Any],
-) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any], Optional[Dict[str, Any]]]:
+    storage_cfg: Dict[str, Any],
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any], Optional[Dict[str, Any]]]:
     if not preset_name:
-        return exp_cfg, model_cfg, adapters_cfg, wl_cfg_yaml, coord_cfg, None
+        return exp_cfg, model_cfg, adapters_cfg, wl_cfg_yaml, coord_cfg, storage_cfg, None
     presets = copy.deepcopy(cfg.get("matrix_presets", {}) or {})
     preset = copy.deepcopy(presets.get(preset_name) or {})
     if not preset:
@@ -3528,7 +3653,8 @@ def _apply_named_preset(
     adapters_cfg = _deep_merge_dict(adapters_cfg, preset.get("lora_adapters", {}))
     wl_cfg_yaml = _deep_merge_dict(wl_cfg_yaml, preset.get("workload", {}))
     coord_cfg = _deep_merge_dict(coord_cfg, preset.get("resource_coordination", {}))
-    return exp_cfg, model_cfg, adapters_cfg, wl_cfg_yaml, coord_cfg, preset
+    storage_cfg = _deep_merge_dict(storage_cfg, preset.get("storage", {}))
+    return exp_cfg, model_cfg, adapters_cfg, wl_cfg_yaml, coord_cfg, storage_cfg, preset
 
 
 def _apply_selected_profiles(
@@ -3540,7 +3666,9 @@ def _apply_selected_profiles(
     wl_cfg_yaml: Dict[str, Any],
     coord_cfg: Dict[str, Any],
     hw_cfg: Dict[str, Any],
+    storage_cfg: Dict[str, Any],
 ) -> Tuple[
+    Dict[str, Any],
     Dict[str, Any],
     Dict[str, Any],
     Dict[str, Any],
@@ -3587,6 +3715,7 @@ def _apply_selected_profiles(
         wl_cfg_yaml = _deep_merge_dict(wl_cfg_yaml, profile.get("workload", {}))
         coord_cfg = _deep_merge_dict(coord_cfg, profile.get("resource_coordination", {}))
         hw_cfg = _deep_merge_dict(hw_cfg, profile.get("hardware", {}))
+        storage_cfg = _deep_merge_dict(storage_cfg, profile.get("storage", {}))
 
     return (
         exp_cfg,
@@ -3596,6 +3725,7 @@ def _apply_selected_profiles(
         wl_cfg_yaml,
         coord_cfg,
         hw_cfg,
+        storage_cfg,
         applied,
     )
 
@@ -3693,6 +3823,38 @@ def _apply_explicit_env_overrides(
     _apply("FAASLORA_TIME_SCALE_FACTOR", wl_cfg_yaml, "time_scale_factor", float)
 
     return model_cfg, wl_cfg_yaml, coord_cfg, hw_cfg, applied
+
+
+def _apply_adapter_storage_env_overrides(
+    adapters_cfg: Dict[str, Any],
+    storage_cfg: Dict[str, Any],
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+    applied: Dict[str, Any] = {}
+
+    remote_dir = _read_env_override("FAASLORA_REMOTE_DIR")
+    if remote_dir is not None:
+        storage_cfg["remote_dir"] = remote_dir
+        applied["FAASLORA_REMOTE_DIR"] = remote_dir
+
+    pool_profile = _read_env_override("FAASLORA_ARTIFACT_POOL_PROFILE")
+    if pool_profile is not None:
+        adapters_cfg["artifact_pool_profile"] = pool_profile
+        applied["FAASLORA_ARTIFACT_POOL_PROFILE"] = pool_profile
+
+    pool_seed = _read_env_override("FAASLORA_ARTIFACT_POOL_SEED")
+    if pool_seed is not None:
+        try:
+            adapters_cfg["artifact_pool_seed"] = int(pool_seed)
+        except Exception as exc:
+            raise ValueError(f"Invalid FAASLORA_ARTIFACT_POOL_SEED={pool_seed!r}: {exc}") from exc
+        applied["FAASLORA_ARTIFACT_POOL_SEED"] = adapters_cfg["artifact_pool_seed"]
+
+    prep_mode = _read_env_override("FAASLORA_LORA_PREPARATION_MODE")
+    if prep_mode is not None:
+        adapters_cfg["preparation_mode"] = prep_mode
+        applied["FAASLORA_LORA_PREPARATION_MODE"] = prep_mode
+
+    return adapters_cfg, storage_cfg, applied
 
 
 def _get_model_arch(model_name: str) -> Dict:
@@ -3808,6 +3970,11 @@ def _normalize_lora_preparation_mode(adapters_cfg: Dict[str, Any]) -> str:
         "oneshot": "one_shot",
         "auto": "one_shot",
         "auto_prepare": "one_shot",
+        "bootstrap-once": "bootstrap_once",
+        "bootstraponce": "bootstrap_once",
+        "freeze-once": "bootstrap_once",
+        "freezeonce": "bootstrap_once",
+        "frozen": "bootstrap_once",
         "two-phase": "two_phase",
         "twophase": "two_phase",
         "manual": "two_phase",
@@ -3854,6 +4021,18 @@ def _auto_prepare_peft_artifacts(
         "--num-adapters",
         str(adapter_count),
     ]
+    artifact_pool_profile = str(
+        adapters_cfg.get("artifact_pool_profile", "standardized_v1")
+    ).strip()
+    artifact_pool_seed = int(adapters_cfg.get("artifact_pool_seed", 42) or 42)
+    cmd.extend(
+        [
+            "--artifact-pool-profile",
+            artifact_pool_profile,
+            "--artifact-pool-seed",
+            str(artifact_pool_seed),
+        ]
+    )
     if generation_mode == "peft_finetune":
         cmd.extend(["--use-peft", "--finetune"])
     else:
@@ -3905,19 +4084,35 @@ def _adapter_matches_model(adapter_dir: Path, model_name: str, arch: Dict) -> bo
         bin_file = adapter_dir / "adapter_model.bin"
         if bin_file.exists() and bin_file.stat().st_size < 100_000:
             return False
-        # Also verify weight file has correct shapes (safetensors)
+        # Verify safetensors weights are readable and LoRA A/B ranks are self-consistent.
+        # Do not hardcode hidden_size here: publicmix V2 may include MLP LoRAs
+        # (down/up/gate) or fused/GQA projections whose dimensions differ from hidden_size.
         sf_file = adapter_dir / "adapter_model.safetensors"
         if sf_file.exists():
             from safetensors import safe_open
             with safe_open(str(sf_file), framework="pt") as f:
                 keys = list(f.keys())
-                if keys:
-                    first_a = [k for k in keys if "lora_A" in k]
-                    if first_a:
-                        shape = f.get_tensor(first_a[0]).shape
-                        expected_hs = arch["hidden_size"]
-                        if shape[1] != expected_hs:
-                            return False
+                lora_a_keys = [k for k in keys if k.endswith("lora_A.weight")]
+                if not lora_a_keys:
+                    return False
+                keyset = set(keys)
+                matched_pair = False
+                for a_key in lora_a_keys:
+                    prefix = a_key[: -len("lora_A.weight")]
+                    b_key = prefix + "lora_B.weight"
+                    if b_key not in keyset:
+                        continue
+                    a_shape = f.get_tensor(a_key).shape
+                    b_shape = f.get_tensor(b_key).shape
+                    if len(a_shape) != 2 or len(b_shape) != 2:
+                        return False
+                    if a_shape[0] <= 0 or a_shape[1] <= 0 or b_shape[0] <= 0 or b_shape[1] <= 0:
+                        return False
+                    if a_shape[0] != b_shape[1]:
+                        return False
+                    matched_pair = True
+                if not matched_pair:
+                    return False
         return True
     except Exception:
         return False
@@ -3943,25 +4138,66 @@ def setup_remote_storage(
     remote_dir.mkdir(parents=True, exist_ok=True)
     regenerated = 0
     pending_auto_prepare: List[Dict[str, Any]] = []
+    selected_adapters = adapters_cfg.get("adapters", [])
+    auto_prepare_modes = {"one_shot", "bootstrap_once"}
 
-    if preparation_mode == "one_shot" and generation_mode in {"peft", "peft_finetune"}:
-        for a in adapters_cfg.get("adapters", []):
+    if preparation_mode in auto_prepare_modes and generation_mode in {"peft", "peft_finetune"}:
+        matching_existing = 0
+        existing_any = 0
+        for a in selected_adapters:
             aid = a["id"]
             dest = remote_dir / aid
             lp = a.get("local_path")
             has_local = bool(lp and Path(lp).exists())
             has_hf = bool(a.get("hf_repo_id"))
-            needs_regen = dest.exists() and not _adapter_matches_model(dest, model_name, arch)
-            if (not dest.exists() or needs_regen) and not has_local and not has_hf:
+            if dest.exists():
+                existing_any += 1
+                if _adapter_matches_model(dest, model_name, arch):
+                    matching_existing += 1
+                    continue
+            if not has_local and not has_hf:
                 pending_auto_prepare.append(a)
-        _auto_prepare_peft_artifacts(
-            adapters_cfg=adapters_cfg,
-            remote_dir=remote_dir,
-            model_name=model_name,
-            generation_mode=generation_mode,
-            pending_adapters=pending_auto_prepare,
-            model_cfg=model_cfg,
-        )
+
+        if preparation_mode == "one_shot":
+            _auto_prepare_peft_artifacts(
+                adapters_cfg=adapters_cfg,
+                remote_dir=remote_dir,
+                model_name=model_name,
+                generation_mode=generation_mode,
+                pending_adapters=pending_auto_prepare,
+                model_cfg=model_cfg,
+            )
+        elif pending_auto_prepare:
+            if existing_any == 0:
+                print(
+                    f"  bootstrap_once: initializing frozen LoRA set for {model_name} "
+                    f"({len(pending_auto_prepare)} adapters)"
+                )
+                _auto_prepare_peft_artifacts(
+                    adapters_cfg=adapters_cfg,
+                    remote_dir=remote_dir,
+                    model_name=model_name,
+                    generation_mode=generation_mode,
+                    pending_adapters=pending_auto_prepare,
+                    model_cfg=model_cfg,
+                )
+            else:
+                sample = ", ".join(str(a.get("id", "?")) for a in pending_auto_prepare[:5])
+                if len(pending_auto_prepare) > 5:
+                    sample += ", ..."
+                cmd = (
+                    f'{sys.executable} scripts/generate_lora_adapters.py '
+                    f'--model "{model_name}" '
+                    f'--output-dir "{remote_dir}" '
+                    f'{"--use-peft --finetune " if generation_mode == "peft_finetune" else "--use-peft "}'
+                    f'--force'
+                )
+                raise RuntimeError(
+                    f"Frozen LoRA set at {remote_dir} is partial or incompatible for model {model_name}. "
+                    f"bootstrap_once only auto-generates on an empty remote_dir and otherwise strictly reuses existing artifacts.\n"
+                    f"Pending adapters: {sample}\n"
+                    f"Fix by cleaning or versioning the remote_dir, or run a deliberate rebuild command:\n  {cmd}"
+                )
 
     for a in adapters_cfg.get("adapters", []):
         aid     = a["id"]
@@ -4660,6 +4896,7 @@ async def main_async(
         wl_cfg_yaml,
         coord_cfg,
         hw_cfg,
+        storage_cfg,
         applied_profile_selection,
     ) = _apply_selected_profiles(
         cfg,
@@ -4670,9 +4907,10 @@ async def main_async(
         wl_cfg_yaml,
         coord_cfg,
         hw_cfg,
+        storage_cfg,
     )
 
-    exp_cfg, model_cfg, adapters_cfg, wl_cfg_yaml, coord_cfg, applied_preset = _apply_named_preset(
+    exp_cfg, model_cfg, adapters_cfg, wl_cfg_yaml, coord_cfg, storage_cfg, applied_preset = _apply_named_preset(
         cfg,
         preset_name,
         exp_cfg,
@@ -4680,6 +4918,7 @@ async def main_async(
         adapters_cfg,
         wl_cfg_yaml,
         coord_cfg,
+        storage_cfg,
     )
 
     if adapter_count_override is not None:
@@ -4716,6 +4955,11 @@ async def main_async(
         coord_cfg,
         hw_cfg,
     )
+    adapters_cfg, storage_cfg, applied_adapter_storage_overrides = _apply_adapter_storage_env_overrides(
+        adapters_cfg,
+        storage_cfg,
+    )
+    applied_env_overrides.update(applied_adapter_storage_overrides)
     results_tag = _read_env_override("FAASLORA_RESULTS_TAG")
 
     bw_mbps    = float(storage_cfg.get("bandwidth_mbps", 100))

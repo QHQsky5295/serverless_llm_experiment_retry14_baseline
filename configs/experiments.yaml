@@ -33,9 +33,9 @@ experiment:  # 实验整体输出与统计方式总配置块
 # Profile 选择器（优先用于切换模型 / 数据源 / 工作负载主线）
 # ---------------------------------------------------------------------------
 profile_selection:  # 当前默认激活的模型/数据集/工作负载 profile 选择器
-  model: "qwen_14b_tp2"  # 模型配置块，或当前选中的 model profile 名称
+  model: "mistral_nemo_12b_tp2_v2_publicmix"  # 默认起点切到 Mistral-Nemo V2 publicmix 主线
   dataset: "azure_sharegpt_rep1000"  # 当前选中的 dataset profile 名称
-  workload: "qwen_14b_tp2_main"  # 工作负载配置块，或当前选中的 workload profile 名称
+  workload: "mistral_nemo_12b_tp2_main"  # 默认先跑 Mistral-Nemo 的 1000 请求论文主线
 
 # ---------------------------------------------------------------------------
 # 模型 Profile（可覆盖 model + hardware）
@@ -86,6 +86,33 @@ model_profiles:  # 可复用的模型 profile 集合
     hardware:  # 硬件容量与显存估计配置块
       model_weights_mb: 14336  # 基座模型权重占用的显存估计值（MB）
       kv_per_1k_tokens_mb: 2.0  # 每 1000 token 的 KV cache 显存估计（MB）
+    storage:  # 工件冻结目录配置；同一 base model 的不同系统/不同实验应复用同一目录
+      remote_dir: "artifacts/frozen/qwen_7b_a500_v1"  # Qwen 7B 论文正式对比的冻结 LoRA 源仓库
+
+  qwen_7b_main_v2_publicmix:  # Qwen 7B 单卡主线模型 profile（V2 publicmix 冻结工件池）
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1]
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.85
+      max_model_len: 1024
+      max_loras: 2
+      max_lora_rank: 32  # publicmix V2 中包含少量更高 rank 的公开 LoRA
+      enable_lora: true
+      enforce_eager: true
+      dtype: "float16"
+      max_num_seqs: 4
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: 64
+      max_input_len: 256
+      runtime_concurrency_cap: 4
+    hardware:
+      model_weights_mb: 14336
+      kv_per_1k_tokens_mb: 2.0
+    storage:
+      remote_dir: "artifacts/frozen/qwen_7b_a500_v2_publicmix"  # Qwen 7B 论文正式 V2 publicmix 冻结 LoRA 源仓库
 
   qwen_7b_tp2_compare:  # Qwen 7B 双卡 TP=2 吞吐对照模型 profile 名称
     model:  # 模型配置块，或当前选中的 model profile 名称
@@ -110,6 +137,34 @@ model_profiles:  # 可复用的模型 profile 集合
     hardware:  # 硬件容量与显存估计配置块
       model_weights_mb: 14336  # 基座模型权重占用的显存估计值（MB）
       kv_per_1k_tokens_mb: 2.0  # 每 1000 token 的 KV cache 显存估计（MB）
+    storage:  # 工件冻结目录配置；与 qwen_7b_main 共用同一批 7B LoRA，保证变量一致
+      remote_dir: "artifacts/frozen/qwen_7b_a500_v1"  # Qwen 7B 论文正式对比的冻结 LoRA 源仓库
+
+  qwen_7b_tp2_compare_v2_publicmix:  # Qwen 7B 双卡 TP=2 吞吐对照模型 profile（V2 publicmix 冻结工件池）
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1]
+      distributed_executor_backend: "mp"
+      tensor_parallel_size: 2
+      gpu_memory_utilization: 0.85
+      max_model_len: 1024
+      max_loras: 2
+      max_lora_rank: 32  # publicmix V2 中包含少量更高 rank 的公开 LoRA
+      enable_lora: true
+      enforce_eager: true
+      dtype: "float16"
+      max_num_seqs: 4
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: 64
+      max_input_len: 256
+      runtime_concurrency_cap: 4
+    hardware:
+      model_weights_mb: 14336
+      kv_per_1k_tokens_mb: 2.0
+    storage:
+      remote_dir: "artifacts/frozen/qwen_7b_a500_v2_publicmix"  # Qwen 7B TP=2 对照与单卡 V2 复用同一批 publicmix 工件
 
   qwen_14b_tp2:  # Qwen 14B 双卡 TP=2 主线模型 profile 名称
     model:  # 模型配置块，或当前选中的 model profile 名称
@@ -134,6 +189,34 @@ model_profiles:  # 可复用的模型 profile 集合
     hardware:  # 硬件容量与显存估计配置块
       model_weights_mb: 28672  # 基座模型权重占用的显存估计值（MB）
       kv_per_1k_tokens_mb: 4.0  # 每 1000 token 的 KV cache 显存估计（MB）
+    storage:  # 工件冻结目录配置；Qwen 14B 的正式对比实验固定复用这一批工件
+      remote_dir: "artifacts/frozen/qwen_14b_a500_v1"  # Qwen 14B 论文正式对比的冻结 LoRA 源仓库
+
+  qwen_14b_tp2_v2_publicmix:  # Qwen 14B 双卡 TP=2 主线模型 profile（V2 publicmix 冻结工件池）
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1]
+      distributed_executor_backend: "mp"
+      tensor_parallel_size: 2
+      gpu_memory_utilization: 0.85
+      max_model_len: 1024
+      max_loras: 2
+      max_lora_rank: 32  # publicmix V2 中包含少量更高 rank 的公开 LoRA
+      enable_lora: true
+      enforce_eager: true
+      dtype: "float16"
+      max_num_seqs: 2
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: 64
+      max_input_len: 256
+      runtime_concurrency_cap: 2
+    hardware:
+      model_weights_mb: 28672
+      kv_per_1k_tokens_mb: 4.0
+    storage:
+      remote_dir: "artifacts/frozen/qwen_14b_a500_v2_publicmix"  # Qwen 14B 论文正式 V2 publicmix 冻结 LoRA 源仓库
 
   mistral_7b_main:  # Mistral 7B 第二家族小档位模型 profile 名称
     model:  # 模型配置块，或当前选中的 model profile 名称
@@ -157,6 +240,33 @@ model_profiles:  # 可复用的模型 profile 集合
     hardware:  # 硬件容量与显存估计配置块
       model_weights_mb: 14336  # 基座模型权重占用的显存估计值（MB）
       kv_per_1k_tokens_mb: 2.0  # 每 1000 token 的 KV cache 显存估计（MB）
+    storage:  # 工件冻结目录配置；Mistral 7B 的正式对比实验固定复用这一批工件
+      remote_dir: "artifacts/frozen/mistral_7b_a500_v1"  # Mistral 7B 论文正式对比的冻结 LoRA 源仓库
+
+  mistral_7b_main_v2_publicmix:  # Mistral 7B 主线模型 profile（V2 publicmix 冻结工件池）
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1]
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.85
+      max_model_len: 1024
+      max_loras: 2
+      max_lora_rank: 32  # publicmix V2 中包含少量更高 rank 的公开 LoRA
+      enable_lora: true
+      enforce_eager: true
+      dtype: "float16"
+      max_num_seqs: 4
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: 64
+      max_input_len: 256
+      runtime_concurrency_cap: 4
+    hardware:
+      model_weights_mb: 14336
+      kv_per_1k_tokens_mb: 2.0
+    storage:
+      remote_dir: "artifacts/frozen/mistral_7b_a500_v2_publicmix"  # Mistral 7B 论文正式 V2 publicmix 冻结 LoRA 源仓库
 
   mistral_nemo_12b_tp2:  # Mistral Nemo 12B/13B 档 TP=2 主线模型 profile 名称
     model:  # 模型配置块，或当前选中的 model profile 名称
@@ -168,19 +278,59 @@ model_profiles:  # 可复用的模型 profile 集合
       tensor_parallel_size: 2  # 张量并行数；2 表示双卡切分模型
       gpu_memory_utilization: 0.80  # vLLM 允许占用的单卡显存比例上限
       max_model_len: 1024  # 模型允许处理的最大上下文长度
-      max_loras: 2  # 单个 runtime 同时驻留的最大 LoRA 数量
+      max_loras: 1  # Nemo + TP=2 在当前 vLLM 路径下先保守限制为 1，避免多 LoRA 同批触发内核异常
       max_lora_rank: 16  # 支持的 LoRA 最大 rank
       enable_lora: true  # 是否开启 LoRA 支持
       enforce_eager: true  # 是否强制 eager 模式，避免部分 CUDA Graph 兼容问题
       dtype: "float16"  # 模型权重与推理使用的数据类型
-      max_num_seqs: 2  # 单个 runtime 同时调度的最大序列数
+      max_num_seqs: 1  # Nemo + TP=2 主线先串行化 runtime 内部调度，绕开已观测到的 V1 LoRA 并发不稳定
       max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
       max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
       max_input_len: 256  # 单请求输入最大长度，超出会截断
-      runtime_concurrency_cap: 2  # 单个 runtime 允许的并发处理上限
+      runtime_concurrency_cap: 1  # 主线先限制单 runtime 并发为 1，把请求排队到系统层而不是交给易崩的内核组合
+      tokenizer_mode: "mistral"  # Mistral/Nemo tokenizer 走官方专用模式，修正 auto 模式下的 regex 警告
+      enable_chunked_prefill: false  # Nemo 当前禁用 chunked prefill，避免 TP=2 + LoRA + V1 路径不稳定
+      enable_prefix_caching: false  # Nemo 当前禁用 prefix caching，避免与保守路径叠加触发运行时异常
+      vllm_use_v1: false  # 强制退回 vLLM V0 LoRA 路径，绕开当前环境下 Nemo 的 V1 EngineCore 崩溃
+      vllm_attention_backend: "FLASH_ATTN"  # 强制使用 FlashAttention 后端，避免 V1/FlashInfer 组合的不确定性
+      vllm_use_flashinfer_sampler: false  # 关闭 FlashInfer sampler，减少 Nemo 当前路径上的额外内核差异
     hardware:  # 硬件容量与显存估计配置块
       model_weights_mb: 24576  # 基座模型权重占用的显存估计值（MB）
       kv_per_1k_tokens_mb: 4.0  # 每 1000 token 的 KV cache 显存估计（MB）
+    storage:  # 工件冻结目录配置；Mistral 12B/13B 档的正式对比实验固定复用这一批工件
+      remote_dir: "artifacts/frozen/mistral_nemo_12b_a500_v1"  # Mistral Nemo 12B/13B 论文正式对比的冻结 LoRA 源仓库
+
+  mistral_nemo_12b_tp2_v2_publicmix:  # Mistral Nemo 12B/13B 档 TP=2 主线模型 profile（V2 publicmix 冻结工件池）
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-Nemo-Instruct-2407"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1]
+      distributed_executor_backend: "mp"
+      tensor_parallel_size: 2
+      gpu_memory_utilization: 0.80
+      max_model_len: 1024
+      max_loras: 1
+      max_lora_rank: 32  # publicmix V2 中包含少量更高 rank 的公开 LoRA
+      enable_lora: true
+      enforce_eager: true
+      dtype: "float16"
+      max_num_seqs: 1
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: 64
+      max_input_len: 256
+      runtime_concurrency_cap: 1
+      tokenizer_mode: "mistral"
+      enable_chunked_prefill: false
+      enable_prefix_caching: false
+      vllm_use_v1: false
+      vllm_attention_backend: "FLASH_ATTN"
+      vllm_use_flashinfer_sampler: false
+    hardware:
+      model_weights_mb: 24576
+      kv_per_1k_tokens_mb: 4.0
+    storage:
+      remote_dir: "artifacts/frozen/mistral_nemo_12b_a500_v2_publicmix"  # Mistral Nemo 论文正式 V2 publicmix 冻结 LoRA 源仓库
 
 # ---------------------------------------------------------------------------
 # 数据集 Profile（可覆盖 datasets + workload）
@@ -255,6 +405,22 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       max_instances: 2  # 最多允许同时存在的物理实例数
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
+  qwen_7b_auto500_main:  # Qwen 7B 论文正式对比 workload profile（500 adapters）
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 500  # 当前 profile 默认选中的 adapter 数量；正式对比固定使用这一批工件池
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 500  # 正式完整版使用的 adapter 数量
+      apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
+      hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 2  # 最多允许同时存在的物理实例数
+      effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
+
   qwen_7b_tp2_compare_main:  # Qwen 7B TP=2 对照工作负载 profile
     lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
       selected_num_adapters: 100  # 当前 profile 默认选中的 adapter 数量
@@ -271,6 +437,22 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       max_instances: 1  # 最多允许同时存在的物理实例数
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
+  qwen_7b_tp2_compare_a500_main:  # Qwen 7B TP=2 正式对比 workload profile（500 adapters）
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 500  # 当前 profile 默认选中的 adapter 数量；与单卡 7B 共用同一批冻结工件
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 500  # 正式完整版使用的 adapter 数量
+      apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      concurrency: 4  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
+      hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 1  # 最多允许同时存在的物理实例数
+      effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
+
   qwen_14b_tp2_main:  # Qwen 14B TP=2 主线工作负载 profile
     lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
       selected_num_adapters: 100  # 当前 profile 默认选中的 adapter 数量
@@ -282,6 +464,22 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
       active_adapter_cap: 16  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
+    resource_coordination:  # 扩缩容与资源协同调度配置块
+      instance_mode: "auto"  # 实例模式：shared / dedicated / auto
+      max_instances: 1  # 最多允许同时存在的物理实例数
+      effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
+
+  qwen_14b_tp2_a500_main:  # Qwen 14B TP=2 论文正式对比 workload profile（500 adapters）
+    lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
+      selected_num_adapters: 500  # 当前 profile 默认选中的 adapter 数量；正式对比固定使用这一批工件池
+      quick_num_adapters: 100  # quick 模式下使用的 adapter 数量
+      full_num_adapters: 500  # 正式完整版使用的 adapter 数量
+      apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      concurrency: 2  # 请求并发度
+      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
+      hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
       instance_mode: "auto"  # 实例模式：shared / dedicated / auto
       max_instances: 1  # 最多允许同时存在的物理实例数
@@ -488,7 +686,9 @@ resource_coordination:  # 扩缩容与资源协同调度配置块
 # ---------------------------------------------------------------------------
 lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
   generation_mode: "peft_finetune"  # 论文主线默认：PEFT + 轻量 finetune；synthetic 仅保留给 quick/debug
-  preparation_mode: "one_shot"  # one_shot=实验启动时自动补齐工件；two_phase=必须先手动生成再跑实验
+  preparation_mode: "two_phase"  # bootstrap_once=空目录时自动生成一次、之后严格冻结复用；one_shot=自动补齐；two_phase=必须先手动生成
+  artifact_pool_profile: "standardized_v1"  # 当前运行中的工件池版本：standardized_v1=标准化控变量；正式 V2 将采用离线建库的 publicmix 方案
+  artifact_pool_seed: 42  # 异构工件池分配种子；同一 base model 下不同系统对比时必须保持一致
   generate_synthetic: false  # 是否允许用 synthetic 工件兜底
   manifest_path: "configs/generated/lora_manifest_1000.json"  # adapter manifest 文件路径
   auto_create_manifest: true  # manifest 不存在时是否自动创建
@@ -502,8 +702,35 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
   #   2) quick 模式默认 100；完整版默认 500
   #   3) 若 manifest 不存在，run_all_experiments.py 会自动生成元数据文件
   #   4) 真正的 adapter 目录可通过 scripts/generate_lora_adapters.py 批量生成
-  #   5) 当前论文主线默认要求 PEFT+finetune 工件；one_shot 会在正式实验前自动补齐
+  #   5) 当前论文主线默认要求 PEFT+finetune 工件；bootstrap_once 会在空目录时自动生成一次并冻结
   #   6) 若想严格拆成两阶段，设置 preparation_mode=two_phase，runner 会要求先手动生成
+  artifact_pool_profiles:  # 生成式 LoRA 工件池模板；V1 当前在用，realistic_v2 仅保留给内部异构生成实验，不等同于正式 publicmix V2
+    standardized_v1:  # V1：标准化控变量工件池
+      description: "rank=8 + q/k/v/o，主实验控变量版本"  # 说明
+      variants:  # 变体列表
+        - name: "attn_r8"  # 变体名
+          weight: 1.0  # 占比
+          rank: 8  # LoRA rank
+          target_modules: ["q_proj", "k_proj", "v_proj", "o_proj"]  # 只作用在注意力投影层
+    realistic_v2:  # 内部异构生成模板：混合 rank 与 attention/MLP 覆盖范围
+      description: "用于内部异构生成实验；正式论文 V2 将优先采用公开 adapter + 统一补齐规则的 publicmix 建库方案"  # 说明
+      variants:  # 变体列表；按固定种子分配到具体 adapter_id
+        - name: "attn_r8"  # 小型主流 LoRA
+          weight: 0.55  # 约 55%
+          rank: 8  # LoRA rank
+          target_modules: ["q_proj", "k_proj", "v_proj", "o_proj"]  # 注意力层
+        - name: "attn_r16"  # 更大的注意力 LoRA
+          weight: 0.20  # 约 20%
+          rank: 16  # LoRA rank
+          target_modules: ["q_proj", "k_proj", "v_proj", "o_proj"]  # 注意力层
+        - name: "attn_mlp_r8"  # 注意力 + MLP 的中型 LoRA
+          weight: 0.15  # 约 15%
+          rank: 8  # LoRA rank
+          target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]  # 注意力 + MLP
+        - name: "attn_mlp_r16"  # 注意力 + MLP 的大型 LoRA
+          weight: 0.10  # 约 10%
+          rank: 16  # LoRA rank
+          target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]  # 注意力 + MLP
   scale_presets:  # 按 adapter 数量自动调参的一组 preset
     "100":  # 100 个 adapters 时自动套用的负载/显存参数 preset
       workload:  # 工作负载配置块，或当前选中的 workload profile 名称
@@ -642,7 +869,7 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
 # 存储配置
 # ---------------------------------------------------------------------------
 storage:  # 远端/本地缓存目录与带宽模拟配置块
-  remote_dir: "artifacts/remote"  # 远端源仓库目录（模拟对象存储）
+  remote_dir: "artifacts/remote"  # 兼容回退目录；正式论文对比请通过 model profile 的 storage.remote_dir 使用模型专属冻结目录
   nvme_cache_dir: "artifacts/nvme_cache"  # 本地 NVMe 缓存目录
   # 贡献1 内存层：热点 LoRA 从硬盘预加载到内存，请求时从内存加载到 GPU，减少硬盘→GPU 延迟
   host_cache_dir: "artifacts/host_cache"  # 主机内存缓存目录

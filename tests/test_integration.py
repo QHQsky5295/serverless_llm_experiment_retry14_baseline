@@ -68,11 +68,11 @@ class EntryPointIntegrationTests(unittest.TestCase):
         self.assertEqual(workload["lora_adapters"]["full_num_adapters"], 500)
         self.assertEqual(workload["resource_coordination"]["max_instances"], 2)
 
-    def test_paper_mainline_defaults_to_one_shot_preparation(self) -> None:
+    def test_paper_mainline_defaults_to_two_phase_preparation(self) -> None:
         adapters = self.experiments["lora_adapters"]
 
         self.assertEqual(adapters["generation_mode"], "peft_finetune")
-        self.assertEqual(adapters["preparation_mode"], "one_shot")
+        self.assertEqual(adapters["preparation_mode"], "two_phase")
 
 
 if __name__ == "__main__":

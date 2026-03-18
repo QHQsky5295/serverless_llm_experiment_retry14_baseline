@@ -1,0 +1,31 @@
+{
+  "qwen_7b_prefiltered": [
+    "ethicalabs/Flwr-Qwen2.5-7B-Instruct-Coding-PEFT",
+    "yangao381/FlowerTune-Medical-Qwen2.5-7B-Instruct-PEFT",
+    "yangao381/FlowerTune-Finance-Qwen2.5-7B-Instruct-PEFT",
+    "yangao381/FlowerTune-NLP-Qwen2.5-7B-Instruct-PEFT",
+    "yangao381/FlowerTune-Code-Qwen2.5-7B-Instruct-PEFT"
+  ],
+  "mistral_7b_prefiltered": [
+    "mrs83/FlowerTune-Mistral-7B-Instruct-v0.3-Medical-PEFT",
+    "yangao381/FlowerTune-NLP-Mistral-7B-Instruct-v0.3-PEFT",
+    "yangao381/FlowerTune-Finance-Mistral-7B-Instruct-v0.3-PEFT",
+    "yangao381/FlowerTune-Medical-Mistral-7B-Instruct-v0.3-PEFT",
+    "yangao381/FlowerTune-Code-Mistral-7B-Instruct-v0.3-PEFT",
+    "liuhaozhe6788/mistralai_Mistral-7B-Instruct-v0.3-peftq_proj_k_proj_v_proj_o_proj-bs1-ne1"
+  ],
+  "qwen_14b_prefiltered": [
+    "chohtet/Qwen2.5-14B-Instruct-H3-LORA-test",
+    "mssongit/Qwen2.5-14B-SFT-LoRA",
+    "mssongit/Qwen2.5-14B-SFT-LoRA-v2",
+    "SKNahin/Qwen2.5-14B-Instruct-Math-Lora",
+    "Allen-UQ/Qwen2.5-14B-Instruct-GRPO-LoRA-RW-Lookup"
+  ],
+  "mistral_nemo_prefiltered": [
+    "chohtet/mistral_nemo_instruct_2407_lora_epoch_1.00",
+    "agamgoy/lora-mistral-nemo-instruct-PoliticalDiscussion",
+    "SubashNeupane/mistral-nemo-instruct-12b-SOAP-summary-lora",
+    "barca-boy/lora_model_Mistral-Nemo-Instruct-2407-no-qnt_anushtup_final",
+    "MNgaix/Mistral-Nemo-Instruct-2407-bnb-4bit_lora_model"
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "created_at": 1773832694,
+  "model_name": "Qwen/Qwen2.5-14B-Instruct",
+  "source_dir": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b",
+  "accepted_count": 4,
+  "rejected_count": 1,
+  "accepted": [
+    {
+      "source_id": "Allen-UQ__Qwen2.5-14B-Instruct-GRPO-LoRA-RW-Lookup",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/Allen-UQ__Qwen2.5-14B-Instruct-GRPO-LoRA-RW-Lookup",
+      "accepted": true,
+      "reasons": [],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/Allen-UQ__Qwen2.5-14B-Instruct-GRPO-LoRA-RW-Lookup/adapter_config.json",
+      "base_model_name_or_path": "Qwen/Qwen2.5-14B-Instruct",
+      "peft_type": "LORA",
+      "rank": 16,
+      "target_modules": [
+        "q_proj",
+        "down_proj",
+        "gate_proj",
+        "k_proj",
+        "o_proj",
+        "up_proj",
+        "v_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/Allen-UQ__Qwen2.5-14B-Instruct-GRPO-LoRA-RW-Lookup/adapter_model.safetensors",
+      "dtype": "bfloat16",
+      "size_bytes": 137716248,
+      "size_mb": 131.336
+    },
+    {
+      "source_id": "SKNahin__Qwen2.5-14B-Instruct-Math-Lora",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/SKNahin__Qwen2.5-14B-Instruct-Math-Lora",
+      "accepted": true,
+      "reasons": [],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/SKNahin__Qwen2.5-14B-Instruct-Math-Lora/adapter_config.json",
+      "base_model_name_or_path": "Qwen/Qwen2.5-14B-Instruct",
+      "peft_type": "LORA",
+      "rank": 32,
+      "target_modules": [
+        "k_proj",
+        "q_proj",
+        "gate_proj",
+        "down_proj",
+        "v_proj",
+        "up_proj",
+        "o_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/SKNahin__Qwen2.5-14B-Instruct-Math-Lora/adapter_model.safetensors",
+      "dtype": "bfloat16",
+      "size_bytes": 275342392,
+      "size_mb": 262.587
+    },
+    {
+      "source_id": "mssongit__Qwen2.5-14B-SFT-LoRA",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/mssongit__Qwen2.5-14B-SFT-LoRA",
+      "accepted": true,
+      "reasons": [],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/mssongit__Qwen2.5-14B-SFT-LoRA/adapter_config.json",
+      "base_model_name_or_path": "Qwen/Qwen2.5-14B-Instruct",
+      "peft_type": "LORA",
+      "rank": 8,
+      "target_modules": [
+        "down_proj",
+        "gate_proj",
+        "k_proj",
+        "q_proj",
+        "v_proj",
+        "o_proj",
+        "up_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/mssongit__Qwen2.5-14B-SFT-LoRA/adapter_model.safetensors",
+      "dtype": "bfloat16",
+      "size_bytes": 68902296,
+      "size_mb": 65.71
+    },
+    {
+      "source_id": "mssongit__Qwen2.5-14B-SFT-LoRA-v2",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/mssongit__Qwen2.5-14B-SFT-LoRA-v2",
+      "accepted": true,
+      "reasons": [],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/mssongit__Qwen2.5-14B-SFT-LoRA-v2/adapter_config.json",
+      "base_model_name_or_path": "Qwen/Qwen2.5-14B-Instruct",
+      "peft_type": "LORA",
+      "rank": 8,
+      "target_modules": [
+        "v_proj",
+        "gate_proj",
+        "k_proj",
+        "o_proj",
+        "down_proj",
+        "up_proj",
+        "q_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/mssongit__Qwen2.5-14B-SFT-LoRA-v2/adapter_model.bin",
+      "dtype": null,
+      "size_bytes": 137867594,
+      "size_mb": 131.481
+    }
+  ],
+  "rejected": [
+    {
+      "source_id": "chohtet__Qwen2.5-14B-Instruct-H3-LORA-test",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/chohtet__Qwen2.5-14B-Instruct-H3-LORA-test",
+      "accepted": false,
+      "reasons": [
+        "base_model_name_or_path does not match expected model"
+      ],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/chohtet__Qwen2.5-14B-Instruct-H3-LORA-test/adapter_config.json",
+      "base_model_name_or_path": "unsloth/Qwen2.5-14B-Instruct-bnb-4bit",
+      "peft_type": "LORA",
+      "rank": 16,
+      "target_modules": [
+        "q_proj",
+        "k_proj",
+        "up_proj",
+        "o_proj",
+        "v_proj",
+        "gate_proj",
+        "down_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_14b/chohtet__Qwen2.5-14B-Instruct-H3-LORA-test/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 275341720,
+      "size_mb": 262.586
+    }
+  ]
+}

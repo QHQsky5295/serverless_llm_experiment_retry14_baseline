@@ -649,7 +649,14 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
 5. 当前 `Qwen2.5-7B-Instruct TP=2` 对照也已完成，并已确定“保留 TP=1 为默认、TP=2 为对照”的结论
 6. 已确认 `facebook/opt-6.7b` 在当前 `vLLM 0.10.2 + LoRA` 环境下不可用，应停止 OPT 路线
 7. 已完成：`mistralai/Mistral-7B-Instruct-v0.3 + PEFT+finetune + 500 adapters + representative r1000`
-8. 下一步推进 `mistralai/Mistral-Nemo-Instruct-2407`，并直接使用论文主线 `TP=2 + PEFT+finetune + 500 adapters + representative r1000`
+8. 论文正式对比现在改为“模型专属冻结工件目录 + two_phase 预生成”工作流：同一 base model 先单独建好冻结工件池，后续严格复用，避免不同系统/不同超参数实验使用了不同 LoRA。
+9. `V2` 路线已经改口径：不再直接沿用旧 `realistic_v2` 目录，而是采用 `publicmix` 建库方案：
+   - `Qwen 7B / Mistral 7B`：尽量下载公开 adapter，先做本地兼容性验证后再纳入正式工件池
+   - `Qwen 14B / Mistral-Nemo`：先下载现有公开 adapter，再按统一规则补齐到 `500`
+10. `V1` 冻结工件保留不动；旧 `V2` 目录已删除，等待按新的 `publicmix` 规则重建。
+11. 当前已经新增 `scripts/prepare_publicmix_pool.py`，可先对本地下载的公开 adapter 做兼容性验收（`validate`），再生成 formal `V2 publicmix` 清单（`plan`）；后续建库请优先使用该脚本，而不是手工挑目录。
+12. 当前 `V2 publicmix` 第一阶段已完成：`Qwen 7B / Qwen 14B / Mistral 7B / Mistral-Nemo` 的 validation report 与 manifest 均已生成；当前 accepted public 数分别为 `5 / 4 / 5 / 4`。
+13. `scripts/prepare_publicmix_pool.py` 已新增 `build` 子命令，可按 manifest 将公开 adapter 复制进冻结目录，并仅对 `generated_fill` 缺口按 `topup_profile + seed` 调用生成器补齐。后续正式 `V2` 建库请走 `validate -> plan -> build`，不要手工混拷目录。
 
 ---
 
@@ -657,7 +664,7 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
 
 建议在新会话直接贴这份文档，或至少贴出下面这段摘要：
 
-> 继续当前主线。`Qwen2.5-14B-Instruct` 的 `r1000@0.80`、`r1000@0.85` 与 `r4000@0.85` 都已完成，`0.85` 已可视为 14B 的冻结默认参数；`Qwen2.5-7B-Instruct TP=2` 对照也已完成，结论是保留 `TP=1` 为默认、`TP=2` 作为吞吐导向对照。`OPT` 已确认不支持当前本机 `vLLM 0.10.2 + LoRA`；`mistralai/Mistral-7B-Instruct-v0.3` 的论文主线 `PEFT+finetune + 500 adapters + representative r1000` 也已完成，下一步请切到 `mistralai/Mistral-Nemo-Instruct-2407`，并按论文主线直接使用 `TP=2 + PEFT+finetune + 500 adapters + representative r1000`。
+> 继续当前主线。`Qwen2.5-14B-Instruct` 的 `r1000@0.80`、`r1000@0.85` 与 `r4000@0.85` 都已完成，`0.85` 已可视为 14B 的冻结默认参数；`Qwen2.5-7B-Instruct TP=2` 对照也已完成，结论是保留 `TP=1` 为默认、`TP=2` 作为吞吐导向对照。`OPT` 已确认不支持当前本机 `vLLM 0.10.2 + LoRA`；`mistralai/Mistral-7B-Instruct-v0.3` 的论文主线 `PEFT+finetune + 500 adapters + representative r1000` 也已完成。当前论文正式对比默认改为“模型专属冻结工件目录 + two_phase 预生成”，并将新的 `V2` 路线收敛为 `publicmix`：`Qwen 7B / Mistral 7B` 优先纳入经本地兼容性验证的公开 adapter，`Qwen 14B / Mistral-Nemo` 采用公开 adapter + 统一规则补齐到 `500`。下一步请先完成这套 `V2` 建库规则，再切到 `mistralai/Mistral-Nemo-Instruct-2407` 的论文主线 `TP=2 + PEFT+finetune + 500 adapters + representative r1000`。
 
 ---
 

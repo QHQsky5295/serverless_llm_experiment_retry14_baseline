@@ -214,7 +214,7 @@ python scripts/generate_lora_adapters.py --model models/Qwen--Qwen2.5-7B-Instruc
 python scripts/generate_lora_adapters.py --model models/Qwen--Qwen2.5-7B-Instruct --synthetic --force
 ```
 
-> **说明**：当前论文主线默认已经切到 `PEFT+finetune + one_shot`。也就是说，`run_all_experiments.py` 在正式实验前会先检查当前模型所需的 adapter；若工件缺失或不兼容，会按 YAML 中的 adapter 数量自动补齐，再继续跑实验。只有当你把 `lora_adapters.preparation_mode` 改成 `two_phase` 时，runner 才会改回“先离线生成、再手动启动实验”的两阶段工作流。
+> **说明**：当前论文正式对比默认已经切到 `PEFT+finetune + two_phase`。也就是说，应先为每个 base model 预生成并冻结一整批 LoRA 工件，再启动正式实验。这样不同系统共享同一 base model 时，能够严格复用同一批工件、同一份负载和同一套热度轮换。若只是日常调试，也可以临时把 `lora_adapters.preparation_mode` 改成 `one_shot` 或 `bootstrap_once`。
 
 > **当前默认解析方式**：若不显式传 `--model`，`scripts/generate_lora_adapters.py` 会跟随 `configs/experiments.yaml` 当前激活的 `profile_selection.model` 与对应 workload profile 的 adapter 数量来解析默认值，而不是只读取顶层兼容回退字段。
 
@@ -718,7 +718,39 @@ FAASLORA_PROFILE_WORKLOAD=mistral_nemo_12b_tp2_main \
 python scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faaslora_full
 ```
 
-> 默认 `lora_adapters.preparation_mode = one_shot`，因此上面这条实验命令会自动先补齐缺失/不兼容的 `PEFT+finetune` 工件，再进入正式实验。如果你要强制分成“两阶段”，就在 YAML 里改成 `two_phase`，再手动跑一次 `python scripts/generate_lora_adapters.py --force`。
+> 当前建议正式论文实验使用 `lora_adapters.preparation_mode = two_phase`：先单独生成冻结工件池，再用实验命令纯复用。若只是快速验证，可以临时切回 `bootstrap_once` 或 `one_shot`。
+
+> 说明：`realistic_v2` 目前仅表示“内部异构生成模板”，不等同于当前正式论文使用的 `V2 publicmix` 路线。当前已确定的正式 `V2` 方案是：
+> - `Qwen 7B / Mistral 7B`：优先下载公开 adapter，先验证本地兼容性，再纳入正式冻结工件池
+> - `Qwen 14B / Mistral-Nemo`：先下载现有公开 adapter，再按统一规则补齐到 `500`
+> - 同一 `base model` 下，不同系统对比必须严格复用同一批工件、同一份 workload、同一套 Zipf/热点轮换参数与 seed
+
+建议先用 `scripts/prepare_publicmix_pool.py` 做离线验收与建库清单：
+
+```bash
+cd /home/qhq/serverless_llm_experiment
+
+python scripts/prepare_publicmix_pool.py validate \
+  --model mistralai/Mistral-7B-Instruct-v0.3 \
+  --source-dir artifacts/public_candidates/mistral_7b \
+  --output-json configs/generated/publicmix/mistral_7b_publicmix_validation.json
+
+python scripts/prepare_publicmix_pool.py plan \
+  --validated-report configs/generated/publicmix/mistral_7b_publicmix_validation.json \
+  --output-json configs/generated/publicmix/mistral_7b_publicmix_manifest.json \
+  --target-count 500 \
+  --topup-profile realistic_v2 \
+  --topup-seed 42
+
+# 第三步：按 manifest 冻结成正式可复用的 V2 工件池
+python scripts/prepare_publicmix_pool.py build \
+  --manifest-json configs/generated/publicmix/mistral_7b_publicmix_manifest.json \
+  --output-dir artifacts/frozen/mistral_7b_a500_v2_publicmix \
+  --generation-mode peft_finetune \
+  --python-bin /home/qhq/anaconda3/envs/LLM_vllm0102/bin/python
+```
+
+> `build` 会先复制已验通过的公开 adapter，再只对 `generated_fill` 缺口按 manifest 中记录的 `topup_profile + seed` 调用生成器补齐。这样冻结后的 `V2 publicmix` 目录可直接供正式对比实验复用，而不需要在实验启动时重新拼池。
 
 ---
 
@@ -731,7 +763,7 @@ python scripts/run_all_experiments.py --config configs/experiments.yaml --scenar
 - [ ] 模型下载完整（`models/` 目录非空）
 - [ ] Azure 追踪数据加载成功（`python scripts/download_datasets.py --verify`）
 - [ ] ShareGPT 数据集已下载（若未下载，将使用 embedded fallback）
-- [ ] LoRA 适配器已生成（`artifacts/remote/` 非空，且与当前模型匹配）
+- [ ] LoRA 适配器已生成并冻结（当前模型专属 `artifacts/frozen/<model>_a500_v1/` 或后续 `v2_publicmix/` 非空，且与当前模型匹配）
 - [ ] `configs/experiments.yaml` 中 `model.name` 指向本地路径
 - [ ] 完整实验运行成功（非 `--quick` 模式）
 - [ ] `results/experiment_results.json` 显示 `"cuda_available": true`

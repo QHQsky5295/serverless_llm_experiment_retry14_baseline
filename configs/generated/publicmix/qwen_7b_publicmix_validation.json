@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "created_at": 1773832694,
+  "model_name": "Qwen/Qwen2.5-7B-Instruct",
+  "source_dir": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b",
+  "accepted_count": 5,
+  "rejected_count": 0,
+  "accepted": [
+    {
+      "source_id": "ethicalabs__Flwr-Qwen2.5-7B-Instruct-Coding-PEFT",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/ethicalabs__Flwr-Qwen2.5-7B-Instruct-Coding-PEFT",
+      "accepted": true,
+      "reasons": [],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/ethicalabs__Flwr-Qwen2.5-7B-Instruct-Coding-PEFT/adapter_config.json",
+      "base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
+      "peft_type": "LORA",
+      "rank": 16,
+      "target_modules": [
+        "down_proj",
+        "o_proj",
+        "qkv_proj",
+        "gate_up_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/ethicalabs__Flwr-Qwen2.5-7B-Instruct-Coding-PEFT/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 54040704,
+      "size_mb": 51.537
+    },
+    {
+      "source_id": "yangao381__FlowerTune-Code-Qwen2.5-7B-Instruct-PEFT",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/yangao381__FlowerTune-Code-Qwen2.5-7B-Instruct-PEFT",
+      "accepted": true,
+      "reasons": [],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/yangao381__FlowerTune-Code-Qwen2.5-7B-Instruct-PEFT/adapter_config.json",
+      "base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
+      "peft_type": "LORA",
+      "rank": 32,
+      "target_modules": [
+        "down_proj",
+        "gate_up_proj",
+        "qkv_proj",
+        "o_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/yangao381__FlowerTune-Code-Qwen2.5-7B-Instruct-PEFT/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 107255992,
+      "size_mb": 102.287
+    },
+    {
+      "source_id": "yangao381__FlowerTune-Finance-Qwen2.5-7B-Instruct-PEFT",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/yangao381__FlowerTune-Finance-Qwen2.5-7B-Instruct-PEFT",
+      "accepted": true,
+      "reasons": [],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/yangao381__FlowerTune-Finance-Qwen2.5-7B-Instruct-PEFT/adapter_config.json",
+      "base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
+      "peft_type": "LORA",
+      "rank": 32,
+      "target_modules": [
+        "down_proj",
+        "gate_up_proj",
+        "o_proj",
+        "qkv_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/yangao381__FlowerTune-Finance-Qwen2.5-7B-Instruct-PEFT/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 107255992,
+      "size_mb": 102.287
+    },
+    {
+      "source_id": "yangao381__FlowerTune-Medical-Qwen2.5-7B-Instruct-PEFT",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/yangao381__FlowerTune-Medical-Qwen2.5-7B-Instruct-PEFT",
+      "accepted": true,
+      "reasons": [],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/yangao381__FlowerTune-Medical-Qwen2.5-7B-Instruct-PEFT/adapter_config.json",
+      "base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
+      "peft_type": "LORA",
+      "rank": 32,
+      "target_modules": [
+        "down_proj",
+        "qkv_proj",
+        "gate_up_proj",
+        "o_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/yangao381__FlowerTune-Medical-Qwen2.5-7B-Instruct-PEFT/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 107255992,
+      "size_mb": 102.287
+    },
+    {
+      "source_id": "yangao381__FlowerTune-NLP-Qwen2.5-7B-Instruct-PEFT",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/yangao381__FlowerTune-NLP-Qwen2.5-7B-Instruct-PEFT",
+      "accepted": true,
+      "reasons": [],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/yangao381__FlowerTune-NLP-Qwen2.5-7B-Instruct-PEFT/adapter_config.json",
+      "base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
+      "peft_type": "LORA",
+      "rank": 32,
+      "target_modules": [
+        "down_proj",
+        "qkv_proj",
+        "gate_up_proj",
+        "o_proj"
+      ],
+      "modules_to_save": null,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/qwen_7b/yangao381__FlowerTune-NLP-Qwen2.5-7B-Instruct-PEFT/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 107255992,
+      "size_mb": 102.287
+    }
+  ],
+  "rejected": []
+}

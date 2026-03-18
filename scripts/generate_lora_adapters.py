@@ -29,7 +29,9 @@ Notes
 
 import argparse
 import copy
+import json
 import os
+import random
 import shutil
 import sys
 import time
@@ -46,6 +48,69 @@ from faaslora.utils.adapter_manifest import (
     write_adapter_manifest,
 )
 from faaslora.utils.model_assets import ensure_adapter_support_files
+
+
+DEFAULT_ARTIFACT_POOL_PROFILES: Dict[str, Dict[str, Any]] = {
+    "standardized_v1": {
+        "description": "Homogeneous paper-mainline pool: rank-8 attention-only LoRA.",
+        "variants": [
+            {
+                "name": "attn_r8",
+                "weight": 1.0,
+                "rank": 8,
+                "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"],
+            }
+        ],
+    },
+    "realistic_v2": {
+        "description": (
+            "More realistic heterogeneous pool with mixed ranks and mixed "
+            "attention/MLP coverage while keeping deterministic counts."
+        ),
+        "variants": [
+            {
+                "name": "attn_r8",
+                "weight": 0.55,
+                "rank": 8,
+                "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"],
+            },
+            {
+                "name": "attn_r16",
+                "weight": 0.20,
+                "rank": 16,
+                "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"],
+            },
+            {
+                "name": "attn_mlp_r8",
+                "weight": 0.15,
+                "rank": 8,
+                "target_modules": [
+                    "q_proj",
+                    "k_proj",
+                    "v_proj",
+                    "o_proj",
+                    "gate_proj",
+                    "up_proj",
+                    "down_proj",
+                ],
+            },
+            {
+                "name": "attn_mlp_r16",
+                "weight": 0.10,
+                "rank": 16,
+                "target_modules": [
+                    "q_proj",
+                    "k_proj",
+                    "v_proj",
+                    "o_proj",
+                    "gate_proj",
+                    "up_proj",
+                    "down_proj",
+                ],
+            },
+        ],
+    },
+}
 
 
 def _deep_merge_dict(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
@@ -68,6 +133,9 @@ def resolve_generation_defaults(config_path: Optional[Path] = None) -> Dict[str,
         "manifest_path": "configs/generated/lora_manifest_1000.json",
         "num_adapters": 1000,
         "generation_mode": "synthetic",
+        "artifact_pool_profile": "standardized_v1",
+        "artifact_pool_seed": 42,
+        "artifact_pool_profiles": copy.deepcopy(DEFAULT_ARTIFACT_POOL_PROFILES),
     }
 
     yaml_path = config_path or (REPO_ROOT / "configs" / "experiments.yaml")
@@ -115,6 +183,17 @@ def resolve_generation_defaults(config_path: Optional[Path] = None) -> Dict[str,
     defaults["generation_mode"] = str(
         lora_cfg.get("generation_mode", defaults["generation_mode"])
     ).strip().lower()
+    defaults["artifact_pool_profile"] = str(
+        lora_cfg.get("artifact_pool_profile", defaults["artifact_pool_profile"])
+    ).strip().lower()
+    defaults["artifact_pool_seed"] = int(
+        lora_cfg.get("artifact_pool_seed", defaults["artifact_pool_seed"])
+    )
+    custom_profiles = copy.deepcopy(lora_cfg.get("artifact_pool_profiles", {}) or {})
+    defaults["artifact_pool_profiles"] = _deep_merge_dict(
+        defaults["artifact_pool_profiles"],
+        custom_profiles,
+    )
     return defaults
 
 
@@ -158,6 +237,101 @@ def _create_lora_config(model_name: str, rank: int, target_modules: List[str]):
     )
 
 
+def _resolve_artifact_pool_profile(
+    profile_name: str,
+    profile_defs: Dict[str, Any],
+) -> Dict[str, Any]:
+    profile_key = str(profile_name or "standardized_v1").strip().lower()
+    profiles = copy.deepcopy(profile_defs or DEFAULT_ARTIFACT_POOL_PROFILES)
+    profile = copy.deepcopy(profiles.get(profile_key) or {})
+    if not profile:
+        available = ", ".join(sorted(profiles.keys())) or "<none>"
+        raise KeyError(
+            f"unknown artifact pool profile '{profile_key}'. available profiles: {available}"
+        )
+    variants = profile.get("variants") or []
+    if not variants:
+        raise ValueError(f"artifact pool profile '{profile_key}' defines no variants")
+    return profile
+
+
+def _allocate_variant_counts(num_adapters: int, variants: List[Dict[str, Any]]) -> List[int]:
+    raw_weights = [max(0.0, float(v.get("weight", 0.0) or 0.0)) for v in variants]
+    total_weight = sum(raw_weights)
+    if total_weight <= 0:
+        raise ValueError("artifact pool variants must have positive total weight")
+
+    raw_counts = [(num_adapters * w) / total_weight for w in raw_weights]
+    counts = [int(x) for x in raw_counts]
+    remaining = int(num_adapters - sum(counts))
+    remainders = sorted(
+        ((raw_counts[i] - counts[i], i) for i in range(len(variants))),
+        reverse=True,
+    )
+    for _, idx in remainders[:remaining]:
+        counts[idx] += 1
+    return counts
+
+
+def _build_adapter_specs(
+    manifest: Dict[str, Any],
+    artifact_pool_profile: str,
+    artifact_pool_profiles: Dict[str, Any],
+    artifact_pool_seed: int,
+    ranks_fallback: List[int],
+) -> List[Dict[str, Any]]:
+    adapters = list(manifest.get("adapters", []) or [])
+    if not adapters:
+        return []
+
+    profile_key = str(artifact_pool_profile or "standardized_v1").strip().lower()
+
+    # Preserve the old rank-cycle semantics for the standardized pool when
+    # callers explicitly provide multiple ranks.
+    if profile_key == "standardized_v1" and len(ranks_fallback) > 1:
+        specs: List[Dict[str, Any]] = []
+        for i, cfg in enumerate(adapters):
+            specs.append(
+                {
+                    "adapter_id": str(cfg["id"]),
+                    "rank": int(ranks_fallback[i % len(ranks_fallback)]),
+                    "size_mb": float(cfg.get("size_mb", 32)),
+                    "variant_name": "rank_cycle",
+                    "target_modules": None,
+                }
+            )
+        return specs
+
+    profile = _resolve_artifact_pool_profile(profile_key, artifact_pool_profiles)
+    variants = list(profile.get("variants") or [])
+    counts = _allocate_variant_counts(len(adapters), variants)
+
+    expanded: List[Dict[str, Any]] = []
+    for variant, count in zip(variants, counts):
+        expanded.extend([copy.deepcopy(variant) for _ in range(count)])
+
+    if len(expanded) != len(adapters):
+        raise RuntimeError(
+            f"artifact pool allocation mismatch: expected {len(adapters)}, got {len(expanded)}"
+        )
+
+    rng = random.Random(int(artifact_pool_seed))
+    rng.shuffle(expanded)
+
+    specs = []
+    for cfg, variant in zip(adapters, expanded):
+        specs.append(
+            {
+                "adapter_id": str(cfg["id"]),
+                "rank": int(variant.get("rank", 8)),
+                "size_mb": float(cfg.get("size_mb", 32)),
+                "variant_name": str(variant.get("name", "unnamed")),
+                "target_modules": list(variant.get("target_modules") or []),
+            }
+        )
+    return specs
+
+
 def _finetune_active_adapter(model, tokenizer) -> None:
     import torch
     from torch.optim import AdamW
@@ -176,12 +350,86 @@ def _finetune_active_adapter(model, tokenizer) -> None:
         optimizer.zero_grad()
 
 
+def _resolve_target_modules_for_model(
+    detected_targets: List[str],
+    requested_targets: Optional[List[str]],
+) -> List[str]:
+    if not requested_targets:
+        return list(detected_targets)
+
+    requested = [str(t).strip() for t in requested_targets if str(t).strip()]
+    detected = list(detected_targets or [])
+    if not detected:
+        return requested
+
+    matched = [t for t in requested if t in detected]
+    if matched:
+        return matched
+    return list(detected)
+
+
+def _normalize_saved_adapter_weights(dest: Path, target_dtype: str = "float16") -> None:
+    sf_path = dest / "adapter_model.safetensors"
+    if not sf_path.exists():
+        return
+
+    try:
+        import torch
+        from safetensors.torch import load_file, save_file
+    except Exception:
+        return
+
+    dtype_map = {
+        "float16": torch.float16,
+        "fp16": torch.float16,
+        "bfloat16": torch.bfloat16,
+        "bf16": torch.bfloat16,
+        "float32": torch.float32,
+        "fp32": torch.float32,
+    }
+    dst_dtype = dtype_map.get(str(target_dtype).strip().lower(), torch.float16)
+    try:
+        state = load_file(str(sf_path))
+    except Exception:
+        return
+    if all(t.dtype == dst_dtype for t in state.values()):
+        return
+    normalized = {k: v.to(dst_dtype) for k, v in state.items()}
+    save_file(normalized, str(sf_path))
+
+
+def _write_adapter_metadata(
+    dest: Path,
+    *,
+    model_name: str,
+    variant_name: str,
+    rank: int,
+    target_modules: List[str],
+    artifact_pool_profile: str,
+    artifact_pool_seed: int,
+) -> None:
+    meta = {
+        "base_model_name_or_path": model_name,
+        "artifact_pool_profile": artifact_pool_profile,
+        "artifact_pool_seed": int(artifact_pool_seed),
+        "variant_name": variant_name,
+        "rank": int(rank),
+        "target_modules": list(target_modules),
+    }
+    (dest / "faaslora_artifact_spec.json").write_text(
+        json.dumps(meta, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
 def generate_adapters_with_peft(
     model_name: str,
     output_dir: Path,
     adapter_specs: List[Dict[str, Any]],
     target_modules: Optional[List[str]] = None,
     finetune: bool = False,
+    artifact_pool_profile: str = "standardized_v1",
+    artifact_pool_seed: int = 42,
 ) -> Dict[str, float]:
     """
     Load the base model once, then create/save one PEFT adapter at a time.
@@ -207,8 +455,14 @@ def generate_adapters_with_peft(
             adapter_id = str(spec["adapter_id"])
             rank = int(spec["rank"])
             dest = output_dir / adapter_id
+            requested_targets = spec.get("target_modules")
+            active_targets = _resolve_target_modules_for_model(
+                detected_targets=detected_targets,
+                requested_targets=requested_targets,
+            )
+            variant_name = str(spec.get("variant_name", "unnamed"))
 
-            lora_config = _create_lora_config(model_name, rank, detected_targets)
+            lora_config = _create_lora_config(model_name, rank, active_targets)
             t0 = time.time()
             if peft_model is None:
                 peft_model = get_peft_model(
@@ -228,8 +482,18 @@ def generate_adapters_with_peft(
             dest.mkdir(parents=True, exist_ok=True)
             peft_model.save_pretrained(str(dest), selected_adapters=[adapter_id])
             _flatten_single_adapter_subdir(dest, adapter_id)
+            _normalize_saved_adapter_weights(dest, target_dtype="float16")
             tokenizer.save_pretrained(str(dest))
             ensure_adapter_support_files(dest, model_name)
+            _write_adapter_metadata(
+                dest,
+                model_name=model_name,
+                variant_name=variant_name,
+                rank=rank,
+                target_modules=active_targets,
+                artifact_pool_profile=artifact_pool_profile,
+                artifact_pool_seed=artifact_pool_seed,
+            )
 
             size_mb = _dir_size_mb(dest)
             elapsed = time.time() - t0
@@ -439,6 +703,9 @@ def main():
     default_manifest_path = defaults["manifest_path"]
     default_num_adapters = int(defaults["num_adapters"])
     default_generation_mode = defaults["generation_mode"]
+    default_artifact_pool_profile = defaults["artifact_pool_profile"]
+    default_artifact_pool_seed = int(defaults["artifact_pool_seed"])
+    default_artifact_pool_profiles = defaults["artifact_pool_profiles"]
 
     default_use_peft = default_generation_mode in {
         "peft",
@@ -479,6 +746,20 @@ def main():
         type=int,
         default=[8],
         help="LoRA ranks to use (one adapter per rank × domain)",
+    )
+    parser.add_argument(
+        "--artifact-pool-profile",
+        default=default_artifact_pool_profile,
+        help=(
+            "Artifact pool profile name. "
+            f"(default: from experiments.yaml → {default_artifact_pool_profile})"
+        ),
+    )
+    parser.add_argument(
+        "--artifact-pool-seed",
+        type=int,
+        default=default_artifact_pool_seed,
+        help=f"Deterministic seed for assigning pool variants (default: {default_artifact_pool_seed})",
     )
     parser.add_argument(
         "--finetune",
@@ -546,6 +827,7 @@ def main():
     print(f"  Manifest  : {manifest_path}")
     print(f"  Count     : {args.num_adapters}")
     print(f"  Ranks     : {args.ranks}")
+    print(f"  Pool      : {args.artifact_pool_profile} (seed={args.artifact_pool_seed})")
     if args.use_peft and args.finetune:
         mode_desc = "PEFT + finetune"
     elif args.use_peft:
@@ -560,13 +842,19 @@ def main():
         print(f"Next step:\n  python scripts/generate_lora_adapters.py --manifest-path {args.manifest_path}")
         return
 
-    rank_cycle = args.ranks
+    adapter_specs = _build_adapter_specs(
+        manifest=manifest,
+        artifact_pool_profile=args.artifact_pool_profile,
+        artifact_pool_profiles=default_artifact_pool_profiles,
+        artifact_pool_seed=args.artifact_pool_seed,
+        ranks_fallback=args.ranks,
+    )
     skipped = 0
     created = 0
     pending_peft_specs: List[Dict[str, Any]] = []
 
-    for i, cfg in enumerate(manifest["adapters"]):
-        adapter_id = str(cfg["id"])
+    for spec in adapter_specs:
+        adapter_id = str(spec["adapter_id"])
         dest = output_dir / adapter_id
 
         if dest.exists() and (dest / "adapter_config.json").exists() and not args.force:
@@ -587,8 +875,8 @@ def main():
             except Exception:
                 print(f"  {adapter_id}  [配置损坏，重新生成]")
 
-        rank = rank_cycle[i % len(rank_cycle)]
-        size_hint = float(cfg.get("size_mb", 32))
+        rank = int(spec["rank"])
+        size_hint = float(spec.get("size_mb", 32))
 
         if args.use_peft:
             pending_peft_specs.append(
@@ -596,6 +884,8 @@ def main():
                     "adapter_id": adapter_id,
                     "rank": rank,
                     "size_mb": size_hint,
+                    "variant_name": str(spec.get("variant_name", "unnamed")),
+                    "target_modules": list(spec.get("target_modules") or []),
                 }
             )
             continue
@@ -622,6 +912,8 @@ def main():
                 output_dir=output_dir,
                 adapter_specs=pending_peft_specs,
                 finetune=args.finetune,
+                artifact_pool_profile=args.artifact_pool_profile,
+                artifact_pool_seed=args.artifact_pool_seed,
             )
             for spec in pending_peft_specs:
                 adapter_id = str(spec["adapter_id"])

@@ -402,7 +402,7 @@ bash scripts/run_all_experiments_user_scope.sh \
   --scenario faaslora_full
 ```
 
-如果要运行当前论文主线的 `Mistral-Nemo + TP=2 + PEFT+finetune + 500 adapters`，当前默认推荐直接使用一条正式实验启动命令。只要模型已下载，runner 会按 YAML 中的 adapter 数量自动先补工件、再启动实验：
+如果要运行当前论文主线的 `Mistral-Nemo + TP=2 + PEFT+finetune + 500 adapters`，当前推荐先按 `two_phase` 提前建好冻结工件池，再启动正式实验。这样不同系统的对比就能严格复用同一批 LoRA，而不会在实验启动时偷偷改变量。
 
 ```bash
 cd /home/qhq/serverless_llm_experiment
@@ -427,10 +427,44 @@ lora_adapters:
 
 这时 runner 会要求你先手动执行 `scripts/generate_lora_adapters.py`，再启动正式实验。
 
-当前生成器还有两条重要默认行为：
+当前生成器还有四条重要默认行为：
 
 - 若不显式传 `--model`，`scripts/generate_lora_adapters.py` 会跟随 `configs/experiments.yaml` 当前激活的 `profile_selection + model_profiles + workload_profiles` 解析默认模型与 adapter 数量
 - 在 `PEFT+finetune` 模式下，生成器会对同一轮待生成 adapters 只加载一次 base model，再循环保存多个 adapter；当前正在运行中的旧生成进程不会自动获得这项提速，需下一次重新启动后生效
+- 论文正式对比现在默认使用模型专属冻结目录，例如 `artifacts/frozen/qwen_7b_a500_v1`、`artifacts/frozen/qwen_14b_a500_v1`、`artifacts/frozen/mistral_7b_a500_v1`、`artifacts/frozen/mistral_nemo_12b_a500_v1`
+- 当前正式主线仍使用 `standardized_v1` 冻结工件；新的 `V2 publicmix` 路线已确定为：
+- `Qwen 7B / Mistral 7B`：尽量下载公开 adapter，并先做本地兼容性验证后再纳入正式工件池
+- `Qwen 14B / Mistral-Nemo`：先下载现有公开 adapter，再按统一规则补齐到 `500`
+- 同一 `base model` 下，不同系统对比必须严格复用同一批冻结工件、同一份 workload 和同一套热度轮换
+
+当前已经提供 `V2 publicmix` 的离线准备脚本：
+
+```bash
+cd /home/qhq/serverless_llm_experiment
+
+# 第一步：验证本地下载的公开 adapter 是否符合当前运行环境
+python scripts/prepare_publicmix_pool.py validate \
+  --model Qwen/Qwen2.5-7B-Instruct \
+  --source-dir artifacts/public_candidates/qwen_7b \
+  --output-json configs/generated/publicmix/qwen_7b_publicmix_validation.json
+
+# 第二步：把“已验通过的公开 adapter + 需要补齐的数量”固化成 formal V2 清单
+python scripts/prepare_publicmix_pool.py plan \
+  --validated-report configs/generated/publicmix/qwen_7b_publicmix_validation.json \
+  --output-json configs/generated/publicmix/qwen_7b_publicmix_manifest.json \
+  --target-count 500 \
+  --topup-profile realistic_v2 \
+  --topup-seed 42
+
+# 第三步：按 manifest 物化成真正可复用的冻结 V2 工件池
+python scripts/prepare_publicmix_pool.py build \
+  --manifest-json configs/generated/publicmix/qwen_7b_publicmix_manifest.json \
+  --output-dir artifacts/frozen/qwen_7b_a500_v2_publicmix \
+  --generation-mode peft_finetune \
+  --python-bin /home/qhq/anaconda3/envs/LLM_vllm0102/bin/python
+```
+
+`build` 子命令会先把已通过验收的公开 adapter 复制进目标冻结目录，再只对 `generated_fill` 缺口按同一 `topup_profile + seed` 调用生成器补齐。因此后续正式实验可以直接复用该目录，而不会在实验启动时临时拼装工件。
 
 ### 协作 / 矩阵验证入口
 

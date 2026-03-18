@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import asyncio
+import json
 import subprocess
 import sys
 import unittest
@@ -29,7 +30,22 @@ from faaslora.storage.remote_client import RemoteStorageClient
 from faaslora.storage.s3_client import S3Client
 from faaslora.storage.storage_manager import StorageManager
 from faaslora.utils.config import Config
-from scripts.generate_lora_adapters import resolve_generation_defaults
+from scripts.generate_lora_adapters import (
+    _build_adapter_specs,
+    _normalize_saved_adapter_weights,
+    resolve_generation_defaults,
+)
+from scripts.prepare_publicmix_pool import (
+    _build_publicmix_pool,
+    build_publicmix_manifest,
+    model_refs_match,
+    scan_public_adapter_pool,
+)
+from scripts.run_all_experiments import (
+    _adapter_matches_model,
+    _normalize_lora_preparation_mode,
+    _resolve_vllm_runtime_guards,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -45,6 +61,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
     def test_mainline_defaults_match_frozen_path(self) -> None:
         model, workload, resource, lora_cfg = self._resolve_active_profiles()
+        selected_model = self.experiments["model_profiles"]["mistral_nemo_12b_tp2_v2_publicmix"]["model"]
 
         self.assertEqual(resource["instance_mode"], "auto")
         self.assertEqual(resource["max_instances"], 1)
@@ -53,14 +70,14 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(workload["total_requests"], 1000)
         self.assertEqual(workload["concurrency"], 2)
         self.assertEqual(workload["time_scale_factor"], 0.02)
-        self.assertEqual(model["name"], self.experiments["model_profiles"]["qwen_14b_tp2"]["model"]["name"])
+        self.assertEqual(model["name"], selected_model["name"])
         self.assertEqual(model["tensor_parallel_size"], 2)
         self.assertEqual(model["max_model_len"], 1024)
-        self.assertEqual(model["max_loras"], 2)
-        self.assertEqual(model["max_num_seqs"], 2)
+        self.assertEqual(model["max_loras"], 1)
+        self.assertEqual(model["max_num_seqs"], 1)
         self.assertEqual(model["max_num_batched_tokens"], 1024)
-        self.assertEqual(model["runtime_concurrency_cap"], 2)
-        self.assertEqual(lora_cfg["full_num_adapters"], 100)
+        self.assertEqual(model["runtime_concurrency_cap"], 1)
+        self.assertEqual(lora_cfg["full_num_adapters"], 500)
 
     def test_scale_preset_500_matches_mainline_serving_parameters(self) -> None:
         preset = self.experiments["lora_adapters"]["scale_presets"]["500"]["model"]
@@ -84,12 +101,12 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         dataset_profiles = self.experiments["dataset_profiles"]
         workload_profiles = self.experiments["workload_profiles"]
 
-        self.assertEqual(selection["model"], "qwen_14b_tp2")
+        self.assertEqual(selection["model"], "mistral_nemo_12b_tp2_v2_publicmix")
         self.assertEqual(selection["dataset"], "azure_sharegpt_rep1000")
-        self.assertEqual(selection["workload"], "qwen_14b_tp2_main")
-        self.assertIn("qwen_14b_tp2", model_profiles)
+        self.assertEqual(selection["workload"], "mistral_nemo_12b_tp2_main")
+        self.assertIn("mistral_nemo_12b_tp2_v2_publicmix", model_profiles)
         self.assertIn("azure_sharegpt_rep4000", dataset_profiles)
-        self.assertIn("qwen_14b_tp2_main", workload_profiles)
+        self.assertIn("mistral_nemo_12b_tp2_main", workload_profiles)
 
     def test_scale_preset_can_be_disabled_for_new_model_profiles(self) -> None:
         self.assertTrue(self.experiments["lora_adapters"]["apply_scale_preset"])
@@ -100,18 +117,342 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         adapters = self.experiments["lora_adapters"]
 
         self.assertEqual(adapters["generation_mode"], "peft_finetune")
-        self.assertEqual(adapters["preparation_mode"], "one_shot")
+        self.assertEqual(adapters["preparation_mode"], "two_phase")
+        self.assertEqual(_normalize_lora_preparation_mode(adapters), "two_phase")
         self.assertFalse(adapters["generate_synthetic"])
+
+    def test_active_profile_uses_model_specific_frozen_remote_dir(self) -> None:
+        selection = self.experiments["profile_selection"]
+        model_profile = self.experiments["model_profiles"][selection["model"]]
+        storage = model_profile.get("storage", {})
+
+        self.assertEqual(storage["remote_dir"], "artifacts/frozen/mistral_nemo_12b_a500_v2_publicmix")
+
+    def test_mistral_nemo_profile_uses_conservative_vllm_path(self) -> None:
+        model = self.experiments["model_profiles"]["mistral_nemo_12b_tp2"]["model"]
+        guards = _resolve_vllm_runtime_guards(model)
+
+        self.assertEqual(model["max_loras"], 1)
+        self.assertEqual(model["max_num_seqs"], 1)
+        self.assertEqual(model["runtime_concurrency_cap"], 1)
+        self.assertEqual(guards["tokenizer_mode"], "mistral")
+        self.assertFalse(guards["enable_chunked_prefill"])
+        self.assertFalse(guards["enable_prefix_caching"])
+        self.assertEqual(guards["env_updates"]["VLLM_USE_V1"], "0")
+        self.assertEqual(guards["env_updates"]["VLLM_ATTENTION_BACKEND"], "FLASH_ATTN")
+        self.assertEqual(guards["env_updates"]["VLLM_USE_FLASHINFER_SAMPLER"], "0")
 
     def test_generator_defaults_follow_selected_profile(self) -> None:
         defaults = resolve_generation_defaults(EXPERIMENTS_CONFIG)
 
         self.assertEqual(
             defaults["model"],
-            self.experiments["model_profiles"]["qwen_14b_tp2"]["model"]["name"],
+            self.experiments["model_profiles"]["mistral_nemo_12b_tp2_v2_publicmix"]["model"]["name"],
         )
-        self.assertEqual(defaults["num_adapters"], 100)
+        self.assertEqual(defaults["num_adapters"], 500)
         self.assertEqual(defaults["generation_mode"], "peft_finetune")
+        self.assertEqual(defaults["artifact_pool_profile"], "standardized_v1")
+
+    def test_formal_a500_profiles_exist_for_four_models(self) -> None:
+        workloads = self.experiments["workload_profiles"]
+
+        self.assertEqual(workloads["qwen_7b_auto500_main"]["lora_adapters"]["selected_num_adapters"], 500)
+        self.assertEqual(workloads["qwen_7b_tp2_compare_a500_main"]["lora_adapters"]["selected_num_adapters"], 500)
+        self.assertEqual(workloads["qwen_14b_tp2_a500_main"]["lora_adapters"]["selected_num_adapters"], 500)
+        self.assertEqual(workloads["mistral_7b_auto500_main"]["lora_adapters"]["selected_num_adapters"], 500)
+        self.assertEqual(workloads["mistral_nemo_12b_tp2_main"]["lora_adapters"]["selected_num_adapters"], 500)
+
+    def test_realistic_v2_pool_planner_creates_mixed_specs(self) -> None:
+        manifest = {
+            "adapters": [{"id": f"a{i:03d}", "size_mb": 32} for i in range(20)]
+        }
+        profiles = self.experiments["lora_adapters"]["artifact_pool_profiles"]
+        specs = _build_adapter_specs(
+            manifest=manifest,
+            artifact_pool_profile="realistic_v2",
+            artifact_pool_profiles=profiles,
+            artifact_pool_seed=42,
+            ranks_fallback=[8],
+        )
+        self.assertEqual(len(specs), 20)
+        self.assertGreater(len({spec["rank"] for spec in specs}), 1)
+        self.assertGreater(
+            len({tuple(spec["target_modules"]) for spec in specs}),
+            1,
+        )
+
+    def test_publicmix_validator_accepts_only_runtime_compatible_public_adapters(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            source_dir = Path(tmpdir, "public")
+            source_dir.mkdir(parents=True, exist_ok=True)
+
+            valid = source_dir / "valid_public_lora"
+            valid.mkdir()
+            Path(valid, "adapter_config.json").write_text(
+                json.dumps(
+                    {
+                        "base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
+                        "peft_type": "LORA",
+                        "r": 8,
+                        "target_modules": ["q_proj", "v_proj"],
+                        "modules_to_save": None,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            Path(valid, "adapter_model.bin").write_bytes(b"ok")
+
+            invalid = source_dir / "bad_public_lora"
+            invalid.mkdir()
+            Path(invalid, "adapter_config.json").write_text(
+                json.dumps(
+                    {
+                        "base_model_name_or_path": "Qwen/Qwen2.5-14B-Instruct",
+                        "peft_type": "LORA",
+                        "r": 8,
+                        "target_modules": ["lm_head"],
+                        "modules_to_save": ["lm_head"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            Path(invalid, "adapter_model.bin").write_bytes(b"bad")
+
+            report = scan_public_adapter_pool(source_dir, "Qwen/Qwen2.5-7B-Instruct")
+            self.assertEqual(report["accepted_count"], 1)
+            self.assertEqual(report["rejected_count"], 1)
+            self.assertEqual(report["accepted"][0]["source_id"], "valid_public_lora")
+            self.assertIn(
+                "base_model_name_or_path does not match expected model",
+                report["rejected"][0]["reasons"],
+            )
+
+    def test_publicmix_validator_accepts_fused_target_modules_when_runtime_supports_them(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            source_dir = Path(tmpdir, "public")
+            source_dir.mkdir(parents=True, exist_ok=True)
+
+            fused = source_dir / "fused_public_lora"
+            fused.mkdir()
+            Path(fused, "adapter_config.json").write_text(
+                json.dumps(
+                    {
+                        "base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
+                        "peft_type": "LORA",
+                        "r": 16,
+                        "target_modules": ["qkv_proj", "gate_up_proj", "down_proj", "o_proj"],
+                        "modules_to_save": None,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            Path(fused, "adapter_model.bin").write_bytes(b"ok")
+
+            report = scan_public_adapter_pool(source_dir, "Qwen/Qwen2.5-7B-Instruct")
+            self.assertEqual(report["accepted_count"], 1)
+            self.assertEqual(report["rejected_count"], 0)
+            self.assertEqual(report["accepted"][0]["source_id"], "fused_public_lora")
+
+    def test_publicmix_validator_rejects_extreme_rank_and_size(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            source_dir = Path(tmpdir, "public")
+            source_dir.mkdir(parents=True, exist_ok=True)
+
+            huge = source_dir / "huge_public_lora"
+            huge.mkdir()
+            Path(huge, "adapter_config.json").write_text(
+                json.dumps(
+                    {
+                        "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.3",
+                        "peft_type": "LORA",
+                        "r": 512,
+                        "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"],
+                        "modules_to_save": None,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            Path(huge, "adapter_model.bin").write_bytes(b"x" * 1024)
+
+            report = scan_public_adapter_pool(source_dir, "mistralai/Mistral-7B-Instruct-v0.3")
+            self.assertEqual(report["accepted_count"], 0)
+            self.assertEqual(report["rejected_count"], 1)
+            reasons = report["rejected"][0]["reasons"]
+            self.assertTrue(any("rank exceeds publicmix limit" in reason for reason in reasons))
+
+    def test_publicmix_manifest_preserves_canonical_order_and_records_fill(self) -> None:
+        report = {
+            "model_name": "Qwen/Qwen2.5-7B-Instruct",
+            "accepted_count": 2,
+            "rejected_count": 1,
+            "accepted": [
+                {
+                    "source_id": "pub_a",
+                    "local_path": "/tmp/pub_a",
+                    "base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
+                    "rank": 8,
+                    "size_mb": 12.5,
+                    "target_modules": ["q_proj", "v_proj"],
+                    "dtype": "float16",
+                },
+                {
+                    "source_id": "pub_b",
+                    "local_path": "/tmp/pub_b",
+                    "base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
+                    "rank": 16,
+                    "size_mb": 18.0,
+                    "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"],
+                    "dtype": "float16",
+                },
+            ],
+            "rejected": [{"source_id": "pub_bad"}],
+        }
+
+        manifest = build_publicmix_manifest(
+            validated_report=report,
+            target_count=4,
+            topup_profile="realistic_v2",
+            topup_seed=42,
+        )
+        self.assertEqual(manifest["public_count"], 2)
+        self.assertEqual(manifest["generated_fill_count"], 2)
+        self.assertEqual(manifest["adapters"][0]["source_type"], "public")
+        self.assertEqual(manifest["adapters"][0]["public_adapter_id"], "pub_a")
+        self.assertEqual(manifest["adapters"][1]["source_type"], "public")
+        self.assertEqual(manifest["adapters"][2]["source_type"], "generated_fill")
+        self.assertEqual(manifest["adapters"][2]["generation_profile"], "realistic_v2")
+
+    def test_publicmix_build_materializes_public_dirs_and_invokes_generator(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            public_dir = root / "public_a"
+            public_dir.mkdir()
+            Path(public_dir, "adapter_config.json").write_text(
+                json.dumps(
+                    {
+                        "base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
+                        "peft_type": "LORA",
+                        "r": 8,
+                        "target_modules": ["q_proj", "v_proj"],
+                        "modules_to_save": None,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            Path(public_dir, "adapter_model.bin").write_bytes(b"ok")
+
+            manifest = {
+                "model_name": "Qwen/Qwen2.5-7B-Instruct",
+                "num_adapters": 2,
+                "topup_profile": "realistic_v2",
+                "topup_seed": 42,
+                "adapters": [
+                    {
+                        "id": "finance_lora",
+                        "source_type": "public",
+                        "local_path": str(public_dir),
+                    },
+                    {
+                        "id": "medical_lora",
+                        "source_type": "generated_fill",
+                    },
+                ],
+            }
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            output_dir = root / "frozen_pool"
+            model_override = str(root / "models" / "Qwen--Qwen2.5-7B-Instruct")
+            Path(model_override).mkdir(parents=True, exist_ok=True)
+
+            with patch("scripts.prepare_publicmix_pool.subprocess.run") as mock_run:
+                mock_run.return_value = subprocess.CompletedProcess(args=["python"], returncode=0)
+                summary = _build_publicmix_pool(
+                    manifest_path=manifest_path,
+                    output_dir=output_dir,
+                    generation_mode="synthetic",
+                    python_bin=sys.executable,
+                    model_override=model_override,
+                    link_mode="copy",
+                    force_public=False,
+                )
+
+            self.assertEqual(summary["public_created"], 1)
+            self.assertTrue((output_dir / "finance_lora").exists())
+            self.assertFalse((output_dir / "finance_lora").is_symlink())
+            normalized_cfg = json.loads((output_dir / "finance_lora" / "adapter_config.json").read_text(encoding="utf-8"))
+            self.assertEqual(normalized_cfg["base_model_name_or_path"], model_override)
+            called_cmd = mock_run.call_args.kwargs["args"] if "args" in mock_run.call_args.kwargs else mock_run.call_args.args[0]
+            self.assertIn("generate_lora_adapters.py", " ".join(called_cmd))
+            self.assertIn("--artifact-pool-profile", called_cmd)
+            self.assertIn("realistic_v2", called_cmd)
+            self.assertIn("--synthetic", called_cmd)
+            self.assertIn(model_override, called_cmd)
+
+    def test_adapter_match_accepts_publicmix_lora_with_mlp_shapes(self) -> None:
+        try:
+            import torch
+            from safetensors.torch import save_file
+        except Exception as exc:  # pragma: no cover - environment-specific fallback
+            self.skipTest(f"safetensors/torch unavailable: {exc}")
+
+        with TemporaryDirectory() as tmpdir:
+            adapter_dir = Path(tmpdir, "finance_lora")
+            adapter_dir.mkdir(parents=True, exist_ok=True)
+            model_name = "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-Nemo-Instruct-2407"
+            Path(adapter_dir, "adapter_config.json").write_text(
+                json.dumps(
+                    {
+                        "base_model_name_or_path": model_name,
+                        "peft_type": "LORA",
+                        "r": 16,
+                        "target_modules": [
+                            "q_proj",
+                            "k_proj",
+                            "v_proj",
+                            "o_proj",
+                            "gate_proj",
+                            "up_proj",
+                            "down_proj",
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            tensors = {
+                "base_model.model.model.layers.0.mlp.down_proj.lora_A.weight": torch.zeros((16, 14336), dtype=torch.float16),
+                "base_model.model.model.layers.0.mlp.down_proj.lora_B.weight": torch.zeros((5120, 16), dtype=torch.float16),
+                "base_model.model.model.layers.0.self_attn.q_proj.lora_A.weight": torch.zeros((16, 5120), dtype=torch.float16),
+                "base_model.model.model.layers.0.self_attn.q_proj.lora_B.weight": torch.zeros((4096, 16), dtype=torch.float16),
+            }
+            save_file(tensors, str(adapter_dir / "adapter_model.safetensors"))
+
+            self.assertTrue(
+                _adapter_matches_model(
+                    adapter_dir,
+                    model_name,
+                    {"hidden_size": 5120},
+                )
+            )
+
+    def test_model_ref_matching_accepts_local_and_repo_style_names(self) -> None:
+        self.assertTrue(
+            model_refs_match(
+                "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct",
+                "Qwen/Qwen2.5-7B-Instruct",
+            )
+        )
+        self.assertFalse(
+            model_refs_match(
+                "Qwen/Qwen2.5-7B-Instruct",
+                "Qwen/Qwen2.5-14B-Instruct",
+            )
+        )
+        self.assertTrue(
+            model_refs_match(
+                "mistralai/Mistral-Nemo-Instruct-2407",
+                "unsloth/Mistral-Nemo-Instruct-2407-bnb-4bit",
+            )
+        )
 
     def test_peft_batch_generator_loads_base_model_once(self) -> None:
         from scripts import generate_lora_adapters as generator
@@ -191,6 +532,20 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         load_once.assert_called_once()
         self.assertEqual(set(timings.keys()), {"a1", "a2", "a3"})
         self.assertEqual(fake_model.saved, [("a1",), ("a2",), ("a3",)])
+
+    def test_saved_adapter_weights_are_normalized_to_fp16(self) -> None:
+        import torch
+        from safetensors.torch import load_file, save_file
+
+        with TemporaryDirectory() as tmpdir:
+            dest = Path(tmpdir)
+            save_file(
+                {"x": torch.ones(2, 2, dtype=torch.float32)},
+                str(dest / "adapter_model.safetensors"),
+            )
+            _normalize_saved_adapter_weights(dest, target_dtype="float16")
+            state = load_file(str(dest / "adapter_model.safetensors"))
+            self.assertEqual({str(v.dtype) for v in state.values()}, {"torch.float16"})
 
     def test_runner_one_shot_preparation_builds_generator_command(self) -> None:
         from scripts import run_all_experiments as runner
