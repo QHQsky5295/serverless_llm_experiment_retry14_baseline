@@ -280,6 +280,34 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             reasons = report["rejected"][0]["reasons"]
             self.assertTrue(any("rank exceeds publicmix limit" in reason for reason in reasons))
 
+    def test_publicmix_validator_rejects_dora_public_adapters(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            source_dir = Path(tmpdir, "public")
+            source_dir.mkdir(parents=True, exist_ok=True)
+
+            dora = source_dir / "dora_public_lora"
+            dora.mkdir()
+            Path(dora, "adapter_config.json").write_text(
+                json.dumps(
+                    {
+                        "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.3",
+                        "peft_type": "LORA",
+                        "r": 32,
+                        "target_modules": ["qkv_proj", "gate_up_proj", "down_proj", "o_proj"],
+                        "modules_to_save": None,
+                        "use_dora": True,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            Path(dora, "adapter_model.bin").write_bytes(b"ok")
+
+            report = scan_public_adapter_pool(source_dir, "mistralai/Mistral-7B-Instruct-v0.3")
+            self.assertEqual(report["accepted_count"], 0)
+            self.assertEqual(report["rejected_count"], 1)
+            reasons = report["rejected"][0]["reasons"]
+            self.assertTrue(any("use_dora=true is unsupported" in reason for reason in reasons))
+
     def test_publicmix_manifest_preserves_canonical_order_and_records_fill(self) -> None:
         report = {
             "model_name": "Qwen/Qwen2.5-7B-Instruct",
@@ -387,6 +415,54 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             self.assertIn("realistic_v2", called_cmd)
             self.assertIn("--synthetic", called_cmd)
             self.assertIn(model_override, called_cmd)
+
+    def test_publicmix_build_revalidates_and_rejects_stale_dora_manifest_entries(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            public_dir = root / "public_dora"
+            public_dir.mkdir()
+            Path(public_dir, "adapter_config.json").write_text(
+                json.dumps(
+                    {
+                        "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.3",
+                        "peft_type": "LORA",
+                        "r": 32,
+                        "target_modules": ["qkv_proj", "gate_up_proj", "down_proj", "o_proj"],
+                        "modules_to_save": None,
+                        "use_dora": True,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            Path(public_dir, "adapter_model.bin").write_bytes(b"ok")
+
+            manifest = {
+                "model_name": "mistralai/Mistral-7B-Instruct-v0.3",
+                "num_adapters": 1,
+                "topup_profile": "realistic_v2",
+                "topup_seed": 42,
+                "adapters": [
+                    {
+                        "id": "finance_lora",
+                        "source_type": "public",
+                        "local_path": str(public_dir),
+                    }
+                ],
+            }
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            output_dir = root / "frozen_pool"
+
+            with self.assertRaisesRegex(ValueError, "runtime-compatible"):
+                _build_publicmix_pool(
+                    manifest_path=manifest_path,
+                    output_dir=output_dir,
+                    generation_mode="synthetic",
+                    python_bin=sys.executable,
+                    model_override="",
+                    link_mode="copy",
+                    force_public=False,
+                )
 
     def test_adapter_match_accepts_publicmix_lora_with_mlp_shapes(self) -> None:
         try:

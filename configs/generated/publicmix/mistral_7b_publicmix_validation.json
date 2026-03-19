@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "created_at": 1773832694,
+  "created_at": 1773901529,
   "model_name": "mistralai/Mistral-7B-Instruct-v0.3",
   "source_dir": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b",
-  "accepted_count": 5,
-  "rejected_count": 1,
+  "accepted_count": 1,
+  "rejected_count": 5,
   "accepted": [
     {
       "source_id": "mrs83__FlowerTune-Mistral-7B-Instruct-v0.3-Medical-PEFT",
@@ -25,94 +25,11 @@
         "q_proj"
       ],
       "modules_to_save": null,
+      "use_dora": false,
       "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/mrs83__FlowerTune-Mistral-7B-Instruct-v0.3-Medical-PEFT/adapter_model.bin",
       "dtype": null,
       "size_bytes": 84047370,
       "size_mb": 80.154
-    },
-    {
-      "source_id": "yangao381__FlowerTune-Code-Mistral-7B-Instruct-v0.3-PEFT",
-      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Code-Mistral-7B-Instruct-v0.3-PEFT",
-      "accepted": true,
-      "reasons": [],
-      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Code-Mistral-7B-Instruct-v0.3-PEFT/adapter_config.json",
-      "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.3",
-      "peft_type": "LORA",
-      "rank": 32,
-      "target_modules": [
-        "gate_up_proj",
-        "down_proj",
-        "o_proj",
-        "qkv_proj"
-      ],
-      "modules_to_save": null,
-      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Code-Mistral-7B-Instruct-v0.3-PEFT/adapter_model.safetensors",
-      "dtype": "float32",
-      "size_bytes": 110126440,
-      "size_mb": 105.025
-    },
-    {
-      "source_id": "yangao381__FlowerTune-Finance-Mistral-7B-Instruct-v0.3-PEFT",
-      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Finance-Mistral-7B-Instruct-v0.3-PEFT",
-      "accepted": true,
-      "reasons": [],
-      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Finance-Mistral-7B-Instruct-v0.3-PEFT/adapter_config.json",
-      "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.3",
-      "peft_type": "LORA",
-      "rank": 32,
-      "target_modules": [
-        "o_proj",
-        "gate_up_proj",
-        "down_proj",
-        "qkv_proj"
-      ],
-      "modules_to_save": null,
-      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Finance-Mistral-7B-Instruct-v0.3-PEFT/adapter_model.safetensors",
-      "dtype": "float32",
-      "size_bytes": 110126440,
-      "size_mb": 105.025
-    },
-    {
-      "source_id": "yangao381__FlowerTune-Medical-Mistral-7B-Instruct-v0.3-PEFT",
-      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Medical-Mistral-7B-Instruct-v0.3-PEFT",
-      "accepted": true,
-      "reasons": [],
-      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Medical-Mistral-7B-Instruct-v0.3-PEFT/adapter_config.json",
-      "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.3",
-      "peft_type": "LORA",
-      "rank": 32,
-      "target_modules": [
-        "qkv_proj",
-        "gate_up_proj",
-        "o_proj",
-        "down_proj"
-      ],
-      "modules_to_save": null,
-      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Medical-Mistral-7B-Instruct-v0.3-PEFT/adapter_model.safetensors",
-      "dtype": "float32",
-      "size_bytes": 110126440,
-      "size_mb": 105.025
-    },
-    {
-      "source_id": "yangao381__FlowerTune-NLP-Mistral-7B-Instruct-v0.3-PEFT",
-      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-NLP-Mistral-7B-Instruct-v0.3-PEFT",
-      "accepted": true,
-      "reasons": [],
-      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-NLP-Mistral-7B-Instruct-v0.3-PEFT/adapter_config.json",
-      "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.3",
-      "peft_type": "LORA",
-      "rank": 32,
-      "target_modules": [
-        "down_proj",
-        "o_proj",
-        "gate_up_proj",
-        "qkv_proj"
-      ],
-      "modules_to_save": null,
-      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-NLP-Mistral-7B-Instruct-v0.3-PEFT/adapter_model.safetensors",
-      "dtype": "float32",
-      "size_bytes": 110126440,
-      "size_mb": 105.025
     }
   ],
   "rejected": [
@@ -135,10 +52,107 @@
         "o_proj"
       ],
       "modules_to_save": null,
+      "use_dora": false,
       "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/liuhaozhe6788__mistralai_Mistral-7B-Instruct-v0.3-peftq_proj_k_proj_v_proj_o_proj-bs1-ne1/adapter_model.safetensors",
       "dtype": "float32",
       "size_bytes": 1744865936,
       "size_mb": 1664.034
+    },
+    {
+      "source_id": "yangao381__FlowerTune-Code-Mistral-7B-Instruct-v0.3-PEFT",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Code-Mistral-7B-Instruct-v0.3-PEFT",
+      "accepted": false,
+      "reasons": [
+        "use_dora=true is unsupported by the current vLLM runtime"
+      ],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Code-Mistral-7B-Instruct-v0.3-PEFT/adapter_config.json",
+      "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.3",
+      "peft_type": "LORA",
+      "rank": 32,
+      "target_modules": [
+        "gate_up_proj",
+        "down_proj",
+        "o_proj",
+        "qkv_proj"
+      ],
+      "modules_to_save": null,
+      "use_dora": true,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Code-Mistral-7B-Instruct-v0.3-PEFT/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 110126440,
+      "size_mb": 105.025
+    },
+    {
+      "source_id": "yangao381__FlowerTune-Finance-Mistral-7B-Instruct-v0.3-PEFT",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Finance-Mistral-7B-Instruct-v0.3-PEFT",
+      "accepted": false,
+      "reasons": [
+        "use_dora=true is unsupported by the current vLLM runtime"
+      ],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Finance-Mistral-7B-Instruct-v0.3-PEFT/adapter_config.json",
+      "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.3",
+      "peft_type": "LORA",
+      "rank": 32,
+      "target_modules": [
+        "o_proj",
+        "gate_up_proj",
+        "down_proj",
+        "qkv_proj"
+      ],
+      "modules_to_save": null,
+      "use_dora": true,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Finance-Mistral-7B-Instruct-v0.3-PEFT/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 110126440,
+      "size_mb": 105.025
+    },
+    {
+      "source_id": "yangao381__FlowerTune-Medical-Mistral-7B-Instruct-v0.3-PEFT",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Medical-Mistral-7B-Instruct-v0.3-PEFT",
+      "accepted": false,
+      "reasons": [
+        "use_dora=true is unsupported by the current vLLM runtime"
+      ],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Medical-Mistral-7B-Instruct-v0.3-PEFT/adapter_config.json",
+      "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.3",
+      "peft_type": "LORA",
+      "rank": 32,
+      "target_modules": [
+        "qkv_proj",
+        "gate_up_proj",
+        "o_proj",
+        "down_proj"
+      ],
+      "modules_to_save": null,
+      "use_dora": true,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-Medical-Mistral-7B-Instruct-v0.3-PEFT/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 110126440,
+      "size_mb": 105.025
+    },
+    {
+      "source_id": "yangao381__FlowerTune-NLP-Mistral-7B-Instruct-v0.3-PEFT",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-NLP-Mistral-7B-Instruct-v0.3-PEFT",
+      "accepted": false,
+      "reasons": [
+        "use_dora=true is unsupported by the current vLLM runtime"
+      ],
+      "adapter_config_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-NLP-Mistral-7B-Instruct-v0.3-PEFT/adapter_config.json",
+      "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.3",
+      "peft_type": "LORA",
+      "rank": 32,
+      "target_modules": [
+        "down_proj",
+        "o_proj",
+        "gate_up_proj",
+        "qkv_proj"
+      ],
+      "modules_to_save": null,
+      "use_dora": true,
+      "weight_file": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/mistral_7b/yangao381__FlowerTune-NLP-Mistral-7B-Instruct-v0.3-PEFT/adapter_model.safetensors",
+      "dtype": "float32",
+      "size_bytes": 110126440,
+      "size_mb": 105.025
     }
   ]
 }

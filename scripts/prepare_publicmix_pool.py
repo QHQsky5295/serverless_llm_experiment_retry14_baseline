@@ -156,6 +156,7 @@ def validate_public_adapter_dir(adapter_dir: Path, expected_model: str) -> Dict[
     result["rank"] = int(cfg.get("r", 0) or 0)
     result["target_modules"] = list(cfg.get("target_modules") or [])
     result["modules_to_save"] = cfg.get("modules_to_save")
+    result["use_dora"] = bool(cfg.get("use_dora", False))
 
     if str(cfg.get("peft_type", "")).upper() != "LORA":
         result["reasons"].append("peft_type is not LORA")
@@ -166,6 +167,9 @@ def validate_public_adapter_dir(adapter_dir: Path, expected_model: str) -> Dict[
     modules_to_save = cfg.get("modules_to_save")
     if modules_to_save not in (None, [], {}):
         result["reasons"].append("modules_to_save is not empty")
+
+    if bool(cfg.get("use_dora", False)):
+        result["reasons"].append("use_dora=true is unsupported by the current vLLM runtime")
 
     target_modules = list(cfg.get("target_modules") or [])
     if not target_modules:
@@ -366,6 +370,13 @@ def _materialize_public_entries(
         if not source_dir.exists():
             raise FileNotFoundError(
                 f"public adapter source for {adapter_id} does not exist: {source_dir}"
+            )
+
+        validation = validate_public_adapter_dir(source_dir, effective_model_ref)
+        if not validation["accepted"]:
+            raise ValueError(
+                f"public adapter {adapter_id} is no longer runtime-compatible: "
+                + "; ".join(validation["reasons"])
             )
 
         if dest.exists() or dest.is_symlink():

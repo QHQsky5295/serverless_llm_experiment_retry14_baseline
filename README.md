@@ -437,6 +437,12 @@ lora_adapters:
 - `Qwen 14B / Mistral-Nemo`：先下载现有公开 adapter，再按统一规则补齐到 `500`
 - 同一 `base model` 下，不同系统对比必须严格复用同一批冻结工件、同一份 workload 和同一套热度轮换
 
+当前 `publicmix` 验收会额外挡掉当前 vLLM 运行时不支持的公开工件类型，例如：
+
+- `use_dora=true`
+- 非空 `modules_to_save`
+- 超过当前项目上限的极端 rank / 体积
+
 当前已经提供 `V2 publicmix` 的离线准备脚本：
 
 ```bash

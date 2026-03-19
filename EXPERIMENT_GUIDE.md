@@ -724,6 +724,7 @@ python scripts/run_all_experiments.py --config configs/experiments.yaml --scenar
 > - `Qwen 7B / Mistral 7B`：优先下载公开 adapter，先验证本地兼容性，再纳入正式冻结工件池
 > - `Qwen 14B / Mistral-Nemo`：先下载现有公开 adapter，再按统一规则补齐到 `500`
 > - 同一 `base model` 下，不同系统对比必须严格复用同一批工件、同一份 workload、同一套 Zipf/热点轮换参数与 seed
+> - 当前 `publicmix` 验证器会主动拒绝当前 vLLM 运行时不支持的公开工件，例如 `use_dora=true`
 
 建议先用 `scripts/prepare_publicmix_pool.py` 做离线验收与建库清单：
 

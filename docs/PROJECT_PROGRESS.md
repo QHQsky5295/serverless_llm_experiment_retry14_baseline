@@ -350,8 +350,9 @@
 29. 已完成：清理旧的 `*_v2_realistic` 目录，保留 `V1` 冻结工件不动，准备按新的正式 `V2 publicmix` 规则重建。
 30. 当前下一步：`Mistral-Nemo V2 publicmix representative r1000` 已完成，且 `opt1`（`gpu_memory_utilization=0.85, max_num_seqs=2, runtime_concurrency_cap=2`）已作为敏感性实验保留、未采纳为默认参数。`Mistral 7B V2 publicmix representative r1000` 首次尝试在当前环境下因 `vLLM V1 + 异构 public LoRA` 触发 `EngineCore / CUDA illegal memory access`，默认 profile 已收紧到更保守的 `V0 + no chunked prefill + no prefix caching + lower concurrency` 路径，准备重跑；随后补齐 `Qwen 7B / Qwen 14B` 的 `representative r1000`，最后进入 `ServerlessLLM` 对比实验。
 31. 已完成：新增 `scripts/prepare_publicmix_pool.py`，支持对本地公开 adapter 做兼容性验收（`validate`）并生成正式 `V2 publicmix` 清单（`plan`），避免后续建库时靠人工肉眼筛选。
-32. 已完成：`Qwen 7B / Qwen 14B / Mistral 7B / Mistral-Nemo` 四个模型的 `V2 publicmix` 第一阶段验证与 manifest 已落盘；当前 accepted public 数分别为 `5 / 4 / 5 / 4`，剩余缺口将通过统一 `realistic_v2 + seed=42` 规则补齐到 `500`。
+32. 已完成：`Qwen 7B / Qwen 14B / Mistral 7B / Mistral-Nemo` 四个模型的 `V2 publicmix` 第一阶段验证与 manifest 已落盘；当前 accepted public 数已修正为 `0 / 4 / 1 / 4`，因为当前运行时不支持 `DoRA`，对应公开工件已在验证阶段被剔除，其余缺口通过统一 `realistic_v2 + seed=42` 规则补齐到 `500`。
 33. 已完成：`scripts/prepare_publicmix_pool.py` 新增 `build` 子命令，可按 manifest 先复制公开 adapter，再只对 `generated_fill` 缺口调用生成器补齐，从而物化成真正可复用的 `V2` 冻结工件池。
+34. 已完成：`Qwen 7B / Mistral 7B` 的 `V2 publicmix` 工件池已做 `DoRA` 清洗修复；当前 live 目录中的 `500` 个工件已重新验到 `use_dora=0`，避免后续 `Mistral 7B / Qwen 7B` 正式实验在 vLLM 侧因 `DoRA` 直接报错。
 
 ## 当前已确认的长期约束
 
