@@ -2247,15 +2247,18 @@ class ScenarioRunner:
                 self._instance_mode in ("dedicated", "auto")
                 and getattr(self, "engine_factory", None) is not None
             )
-            added = False
             if use_dedicated:
                 added = await self._add_dedicated_instance_slot(coord_enabled)
-                if not added and self._instance_mode == "dedicated":
+                # When auto/dedicated mode explicitly asks for a new physical runtime,
+                # do not silently fall back to a shared slot. That would make the
+                # instance count diverge from the actual runtime count and corrupt
+                # scale-out metrics.
+                if not added:
                     break
-            if not added:
+            else:
                 added = await self._add_shared_instance_slot(coord_enabled)
-            if not added:
-                break
+                if not added:
+                    break
 
     async def _scale_up_instance_pool(self, coord_enabled: bool) -> Optional[Dict[str, Any]]:
         if self.instance_pool is None or self.instance_pool.count() >= self.instance_pool.max_instances:
@@ -2264,12 +2267,11 @@ class ScenarioRunner:
             self._instance_mode in ("dedicated", "auto")
             and getattr(self, "engine_factory", None) is not None
         )
-        added: Optional[Dict[str, Any]] = None
         if use_dedicated:
-            added = await self._add_dedicated_instance_slot(coord_enabled)
-        if not added and self._instance_mode != "dedicated":
-            added = await self._add_shared_instance_slot(coord_enabled)
-        return added
+            return await self._add_dedicated_instance_slot(coord_enabled)
+        if self._instance_mode != "dedicated":
+            return await self._add_shared_instance_slot(coord_enabled)
+        return None
 
     async def _scale_down_one_instance(self) -> Optional[Dict[str, Any]]:
         if self.instance_pool is None or self.instance_pool.count() <= self.instance_pool.min_instances:

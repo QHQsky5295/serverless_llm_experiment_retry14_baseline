@@ -338,8 +338,8 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 当前仓库已经完成并冻结了以下主线结论：
 
 - `Qwen2.5-3B-Instruct`：`auto + 500 adapters + representative 1000 requests + P2.5 on`
-- `Qwen2.5-7B-Instruct`：当前正式默认已切到 `TP=2`
-- `Qwen2.5-7B-Instruct TP=2`：吞吐导向对照已完成；当前主线也统一切到 `TP=2`
+- `Qwen2.5-7B-Instruct`：当前正式主线保持 `TP=1 + max_instances=2`，更贴近 serverless scale-out 口径
+- `Qwen2.5-7B-Instruct TP=2`：吞吐导向对照已完成，保留为补充实验而不是默认主线
 - `Qwen2.5-14B-Instruct TP=2`：`r1000@0.80`、`r1000@0.85` 与 `r4000@0.85` 已完成，当前冻结稳定参数为 `distributed_executor_backend=mp + gpu_memory_utilization=0.85`
 - 当前单机 `TP>1` 主线会在运行时按 `visible_device_ids // tensor_parallel_size` 自动收紧 `max_instances`，避免双卡 `TP=2` 再误扩成 2 个物理实例；同时固定 loopback rendezvous 环境，减少 `c10d` hostname warning 与卡死风险
 
@@ -354,7 +354,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 - LoRA 工件默认模式：`PEFT+finetune`
 - 论文主线规模：`500 adapters`
-- 当前正在执行的下一步：`Mistral 7B V2 publicmix + representative r1000`；由于 V2 publicmix 含异构 public LoRA，默认已切到更保守的 vLLM V0 路径
+- 当前正在执行的下一步：`Mistral 7B V2 publicmix + representative r1000`；该主线按 `TP=1 + max_instances=2` 推进，且由于 V2 publicmix 含异构 public LoRA，默认已切到更保守的 vLLM V0 路径，并把 `gpu_memory_utilization` 收到 `0.80` 以保证第二个单卡实例能稳定拉起
 
 ### 当前保留但不作为主线推进的接口
 

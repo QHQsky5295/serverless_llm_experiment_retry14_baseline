@@ -644,7 +644,7 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
    - `results/experiment_results_full_vllm_auto_a100_r1000_c2_faaslora_full_qwen14b_tp2_r1000_u085_p25_on.json`
 3. 以 `0.80` 为稳定基线，以 `0.85` 为当前更优稳定组合
 4. 当前 `14B r4000 @ 0.85` 已完成，`0.85` 可以视为 14B 的正式冻结参数
-5. 当前 `Qwen2.5-7B-Instruct TP=2` 对照已完成；当前项目已按新的实验口径把 `Qwen 7B / Mistral 7B` 主线默认统一切到 `TP=2`
+5. 当前 `Qwen2.5-7B-Instruct TP=2` 对照已完成；当前最终实验口径已收敛为 `Qwen 7B / Mistral 7B -> TP=1 + max_instances=2`、`Qwen 14B / Mistral-Nemo -> TP=2 + max_instances=1`
 6. 已确认 `facebook/opt-6.7b` 在当前 `vLLM 0.10.2 + LoRA` 环境下不可用，应停止 OPT 路线
 7. 已完成：`mistralai/Mistral-7B-Instruct-v0.3 + PEFT+finetune + 500 adapters + representative r1000`
 8. 论文正式对比现在改为“模型专属冻结工件目录 + two_phase 预生成”工作流：同一 base model 先单独建好冻结工件池，后续严格复用，避免不同系统/不同超参数实验使用了不同 LoRA。
@@ -665,7 +665,7 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
 
 建议在新会话直接贴这份文档，或至少贴出下面这段摘要：
 
-> 继续当前主线。`Qwen2.5-14B-Instruct` 的 `r1000@0.80`、`r1000@0.85` 与 `r4000@0.85` 都已完成，`0.85` 已可视为 14B 的冻结默认参数；当前项目已按新的实验口径把 `Qwen 7B / Mistral 7B` 主线默认统一切到 `TP=2`。`OPT` 已确认不支持当前本机 `vLLM 0.10.2 + LoRA`；`mistralai/Mistral-7B-Instruct-v0.3` 的论文主线 `PEFT+finetune + 500 adapters + representative r1000` 也已完成。当前论文正式对比默认改为“模型专属冻结工件目录 + two_phase 预生成”，并将新的 `V2` 路线收敛为 `publicmix`：`Qwen 7B / Mistral 7B` 优先纳入经本地兼容性验证的公开 adapter，`Qwen 14B / Mistral-Nemo` 采用公开 adapter + 统一规则补齐到 `500`。`Mistral-Nemo V2 publicmix representative r1000` 首轮稳定结果已完成；`opt1`（`gpu_memory_utilization=0.85, max_num_seqs=2, runtime_concurrency_cap=2`）仅保留为敏感性实验，不作为默认参数。`Mistral 7B V2 publicmix representative r1000` 首次尝试在当前环境下因 `vLLM V1 + 异构 public LoRA` 触发 `EngineCore / CUDA illegal memory access`，默认 profile 已收紧到更保守的 `V0 + no chunked prefill + no prefix caching + lower concurrency` 路径，下一步请按修复后的 profile 重跑。
+> 继续当前主线。`Qwen2.5-14B-Instruct` 的 `r1000@0.80`、`r1000@0.85` 与 `r4000@0.85` 都已完成，`0.85` 已可视为 14B 的冻结默认参数；当前最终实验口径已收敛为 `Qwen 7B / Mistral 7B -> TP=1 + max_instances=2`、`Qwen 14B / Mistral-Nemo -> TP=2 + max_instances=1`。`OPT` 已确认不支持当前本机 `vLLM 0.10.2 + LoRA`；`mistralai/Mistral-7B-Instruct-v0.3` 的论文主线 `PEFT+finetune + 500 adapters + representative r1000` 也已完成。当前论文正式对比默认改为“模型专属冻结工件目录 + two_phase 预生成”，并将新的 `V2` 路线收敛为 `publicmix`：`Qwen 7B / Mistral 7B` 优先纳入经本地兼容性验证的公开 adapter，`Qwen 14B / Mistral-Nemo` 采用公开 adapter + 统一规则补齐到 `500`。`Mistral-Nemo V2 publicmix representative r1000` 首轮稳定结果已完成；`opt1`（`gpu_memory_utilization=0.85, max_num_seqs=2, runtime_concurrency_cap=2`）仅保留为敏感性实验，不作为默认参数。`Mistral 7B V2 publicmix representative r1000` 首次尝试在当前环境下因 `vLLM V1 + 异构 public LoRA` 触发 `EngineCore / CUDA illegal memory access`，后续又定位出 `auto` 模式在 dedicated 第二实例创建失败时会错误回退 shared slot；当前默认 profile 已收紧到更保守的 `V0 + no chunked prefill + no prefix caching + lower concurrency` 路径，并把 `gpu_memory_utilization` 调到 `0.80`，以保证第二个 TP=1 runtime 真正能稳定拉起。
 
 ---
 
@@ -674,7 +674,7 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
 1. 先确认当前 Remote-SSH/TTY 会话是否 `State=active`
 2. 读取并分析 `Qwen2.5-14B-Instruct` 两轮 `representative 1000 requests` 的完整结果
 3. 当前 `14B r4000 @ 0.85` 已完成，可直接把 `0.85` 视为冻结默认参数
-4. 当前 `Qwen2.5-7B-Instruct TP=2` 对照已完成，结论是保留 `TP=1` 为默认、`TP=2` 为正式对照
+4. 当前 `Qwen2.5-7B-Instruct TP=2` 对照已完成，结论是保留 `TP=1 + max_instances=2` 为默认、`TP=2` 为正式对照
 5. 当前第二家族 7B 档 **mistralai/Mistral-7B-Instruct-v0.3** 已完成，可直接作为第二家族小档位基线
 6. 下一步推进 **mistralai/Mistral-Nemo-Instruct-2407**，并按论文主线直接使用 `TP=2 + PEFT+finetune + 500 adapters + representative r1000`
 7. Gemma 继续挂在计划列表，不在当前轮次启动

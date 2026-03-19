@@ -346,7 +346,7 @@
 27. 已确认：`mistral_nemo_12b_tp2_main` 现在作为论文主线工作负载 profile 固定为 `500 adapters`；`mistral_nemo_12b_tp2_bringup100_main` 仅保留给显式 bring-up / 快速排障。
 28. 已完成：引入模型专属冻结工件目录（`artifacts/frozen/<model>_a500_v1`）与 `standardized_v1` 基线工件池；`Qwen 7B / Qwen 14B / Mistral 7B / Mistral Nemo 12B` 现在都能按“先建库、后复用”的方式维持论文正式对比变量一致。
 29. 已完成：清理旧的 `*_v2_realistic` 目录，保留 `V1` 冻结工件不动，准备按新的正式 `V2 publicmix` 规则重建。
-30. 当前下一步：`Mistral-Nemo V2 publicmix representative r1000` 已完成，且 `opt1`（`gpu_memory_utilization=0.85, max_num_seqs=2, runtime_concurrency_cap=2`）已作为敏感性实验保留、未采纳为默认参数。`Mistral 7B V2 publicmix representative r1000` 首次尝试在当前环境下因 `vLLM V1 + 异构 public LoRA` 触发 `EngineCore / CUDA illegal memory access`，默认 profile 已收紧到更保守的 `V0 + no chunked prefill + no prefix caching + lower concurrency` 路径，准备重跑；随后补齐 `Qwen 7B / Qwen 14B` 的 `representative r1000`，最后进入 `ServerlessLLM` 对比实验。
+30. 当前下一步：`Mistral-Nemo V2 publicmix representative r1000` 已完成，且 `opt1`（`gpu_memory_utilization=0.85, max_num_seqs=2, runtime_concurrency_cap=2`）已作为敏感性实验保留、未采纳为默认参数。`Mistral 7B V2 publicmix representative r1000` 首次尝试在当前环境下因 `vLLM V1 + 异构 public LoRA` 触发 `EngineCore / CUDA illegal memory access`，随后又发现 `auto` 模式在 dedicated 第二实例创建失败时会错误回退成 shared slot，导致实例数和 runtime 数量不一致；当前已将默认 profile 收紧到更保守的 `V0 + no chunked prefill + no prefix caching + lower concurrency` 路径，并把 `gpu_memory_utilization` 调到 `0.80` 以给第二个 TP=1 runtime 预留稳定拉起余量。
 31. 已完成：新增 `scripts/prepare_publicmix_pool.py`，支持对本地公开 adapter 做兼容性验收（`validate`）并生成正式 `V2 publicmix` 清单（`plan`），避免后续建库时靠人工肉眼筛选。
 32. 已完成：`Qwen 7B / Qwen 14B / Mistral 7B / Mistral-Nemo` 四个模型的 `V2 publicmix` 第一阶段验证与 manifest 已落盘；当前 accepted public 数已修正为 `0 / 4 / 1 / 4`，因为当前运行时不支持 `DoRA`，对应公开工件已在验证阶段被剔除，其余缺口通过统一 `realistic_v2 + seed=42` 规则补齐到 `500`。
 33. 已完成：`scripts/prepare_publicmix_pool.py` 新增 `build` 子命令，可按 manifest 先复制公开 adapter，再只对 `generated_fill` 缺口调用生成器补齐，从而物化成真正可复用的 `V2` 冻结工件池。
@@ -368,10 +368,10 @@
 ## 建议的下一步
 
 1. 以当前已经冻结的 `Qwen2.5-14B-Instruct @ gpu_memory_utilization=0.85` 作为 14B 默认主线结果。
-2. 保持 `Qwen2.5-7B-Instruct TP=1` 为默认路径，同时保留 `TP=2` 作为吞吐导向的正式对照 profile。
-3. 保持 `Mistral-7B-Instruct-v0.3` 这轮 `PEFT+finetune + 500 adapters + representative r1000` 结果作为第二家族 7B 档基线。
-4. 先完成 `mistralai/Mistral-Nemo-Instruct-2407` 的论文主线 `TP=2 + PEFT+finetune + 500 adapters + representative r1000`。
-5. 随后补齐 `Qwen 7B / Qwen 14B / Mistral 7B` 的 `representative r1000`，统一验证四个目标模型在当前项目中的正式主线路径。
+2. 保持 `Qwen2.5-7B-Instruct TP=1 + max_instances=2` 为默认路径，同时保留 `TP=2` 作为吞吐导向的正式对照 profile。
+3. 保持 `Mistral-7B-Instruct-v0.3 TP=1 + max_instances=2` 作为第二家族 7B 档主线口径。
+4. 保持 `Qwen2.5-14B-Instruct / Mistral-Nemo-Instruct-2407` 在当前双卡机器上以 `TP=2 + max_instances=1` 作为正式主线口径。
+5. 继续补齐 `Qwen 7B / Qwen 14B / Mistral 7B` 的 `representative r1000`，统一验证四个目标模型在当前项目中的正式主线路径。
 6. 仅在四个模型主线都收口后，再进入 `ServerlessLLM` 的对比实验。
 
 补充说明：

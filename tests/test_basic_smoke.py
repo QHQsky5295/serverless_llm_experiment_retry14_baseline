@@ -11,6 +11,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 
 import yaml
 
@@ -43,6 +44,7 @@ from scripts.prepare_publicmix_pool import (
     scan_public_adapter_pool,
 )
 from scripts.run_all_experiments import (
+    ScenarioRunner,
     _apply_tp_instance_capacity_guard,
     _adapter_matches_model,
     _build_local_tp_runtime_env_updates,
@@ -64,22 +66,22 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
     def test_mainline_defaults_match_frozen_path(self) -> None:
         model, workload, resource, lora_cfg = self._resolve_active_profiles()
-        selected_model = self.experiments["model_profiles"]["mistral_nemo_12b_tp2_v2_publicmix"]["model"]
+        selected_model = self.experiments["model_profiles"]["mistral_7b_main_v2_publicmix"]["model"]
 
         self.assertEqual(resource["instance_mode"], "auto")
-        self.assertEqual(resource["max_instances"], 1)
+        self.assertEqual(resource["max_instances"], 2)
         self.assertTrue(resource["effective_capacity_admission_enabled"])
         self.assertEqual(workload["sampling_strategy"], "representative")
         self.assertEqual(workload["total_requests"], 1000)
-        self.assertEqual(workload["concurrency"], 2)
+        self.assertEqual(workload["concurrency"], 4)
         self.assertEqual(workload["time_scale_factor"], 0.02)
         self.assertEqual(model["name"], selected_model["name"])
-        self.assertEqual(model["tensor_parallel_size"], 2)
+        self.assertEqual(model["tensor_parallel_size"], 1)
         self.assertEqual(model["max_model_len"], 1024)
         self.assertEqual(model["max_loras"], 1)
-        self.assertEqual(model["max_num_seqs"], 1)
+        self.assertEqual(model["max_num_seqs"], 2)
         self.assertEqual(model["max_num_batched_tokens"], 1024)
-        self.assertEqual(model["runtime_concurrency_cap"], 1)
+        self.assertEqual(model["runtime_concurrency_cap"], 2)
         self.assertEqual(lora_cfg["full_num_adapters"], 500)
 
     def test_scale_preset_500_matches_mainline_serving_parameters(self) -> None:
@@ -104,12 +106,12 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         dataset_profiles = self.experiments["dataset_profiles"]
         workload_profiles = self.experiments["workload_profiles"]
 
-        self.assertEqual(selection["model"], "mistral_nemo_12b_tp2_v2_publicmix")
+        self.assertEqual(selection["model"], "mistral_7b_main_v2_publicmix")
         self.assertEqual(selection["dataset"], "azure_sharegpt_rep1000")
-        self.assertEqual(selection["workload"], "mistral_nemo_12b_tp2_main")
-        self.assertIn("mistral_nemo_12b_tp2_v2_publicmix", model_profiles)
+        self.assertEqual(selection["workload"], "mistral_7b_auto500_main")
+        self.assertIn("mistral_7b_main_v2_publicmix", model_profiles)
         self.assertIn("azure_sharegpt_rep4000", dataset_profiles)
-        self.assertIn("mistral_nemo_12b_tp2_main", workload_profiles)
+        self.assertIn("mistral_7b_auto500_main", workload_profiles)
 
     def test_scale_preset_can_be_disabled_for_new_model_profiles(self) -> None:
         self.assertTrue(self.experiments["lora_adapters"]["apply_scale_preset"])
@@ -129,7 +131,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         model_profile = self.experiments["model_profiles"][selection["model"]]
         storage = model_profile.get("storage", {})
 
-        self.assertEqual(storage["remote_dir"], "artifacts/frozen/mistral_nemo_12b_a500_v2_publicmix")
+        self.assertEqual(storage["remote_dir"], "artifacts/frozen/mistral_7b_a500_v2_publicmix")
 
     def test_mistral_nemo_profile_uses_conservative_vllm_path(self) -> None:
         model = self.experiments["model_profiles"]["mistral_nemo_12b_tp2"]["model"]
@@ -167,12 +169,57 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(env["GLOO_SOCKET_IFNAME"], "lo")
         self.assertEqual(env["NCCL_SOCKET_IFNAME"], "lo")
 
+    def test_auto_scale_up_does_not_fallback_to_shared_slot_after_dedicated_failure(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.instance_pool = SimpleNamespace(count=lambda: 1, max_instances=2)
+        runner._instance_mode = "auto"
+        runner.engine_factory = object()
+        calls = []
+
+        async def fake_add_dedicated(coord_enabled: bool):
+            calls.append(("dedicated", coord_enabled))
+            return None
+
+        async def fake_add_shared(coord_enabled: bool):
+            calls.append(("shared", coord_enabled))
+            return {"event_type": "logical_scale_up"}
+
+        runner._add_dedicated_instance_slot = fake_add_dedicated
+        runner._add_shared_instance_slot = fake_add_shared
+
+        result = asyncio.run(runner._scale_up_instance_pool(coord_enabled=True))
+
+        self.assertIsNone(result)
+        self.assertEqual(calls, [("dedicated", True)])
+
+    def test_ensure_min_instances_stops_after_dedicated_failure_in_auto_mode(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.instance_pool = SimpleNamespace(count=lambda: 1, min_instances=2)
+        runner._instance_mode = "auto"
+        runner.engine_factory = object()
+        calls = []
+
+        async def fake_add_dedicated(coord_enabled: bool):
+            calls.append(("dedicated", coord_enabled))
+            return None
+
+        async def fake_add_shared(coord_enabled: bool):
+            calls.append(("shared", coord_enabled))
+            return {"event_type": "logical_scale_up"}
+
+        runner._add_dedicated_instance_slot = fake_add_dedicated
+        runner._add_shared_instance_slot = fake_add_shared
+
+        asyncio.run(runner._ensure_min_instances(coord_enabled=False))
+
+        self.assertEqual(calls, [("dedicated", False)])
+
     def test_generator_defaults_follow_selected_profile(self) -> None:
         defaults = resolve_generation_defaults(EXPERIMENTS_CONFIG)
 
         self.assertEqual(
             defaults["model"],
-            self.experiments["model_profiles"]["mistral_nemo_12b_tp2_v2_publicmix"]["model"]["name"],
+            self.experiments["model_profiles"]["mistral_7b_main_v2_publicmix"]["model"]["name"],
         )
         self.assertEqual(defaults["num_adapters"], 500)
         self.assertEqual(defaults["generation_mode"], "peft_finetune")
