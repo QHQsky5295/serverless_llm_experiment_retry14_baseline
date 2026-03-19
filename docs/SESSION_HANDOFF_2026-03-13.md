@@ -657,6 +657,7 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
 13. `scripts/prepare_publicmix_pool.py` 已新增 `build` 子命令，可按 manifest 将公开 adapter 复制进冻结目录，并仅对 `generated_fill` 缺口按 `topup_profile + seed` 调用生成器补齐。后续正式 `V2` 建库请走 `validate -> plan -> build`，不要手工混拷目录；当前 `publicmix` 验证与 build 均会主动拒绝 `use_dora=true` 的公开工件。
 14. `faaslora/utils/model_assets.py` 现已能自动修复冻结工件池在归档/恢复后留下的坏 `config.json / generation_config.json` 软链接；`Qwen 7B / Mistral 7B` live `V2` 目录已重新补齐到正确本地模型路径，后续 `two_phase` 启动时不应再因支持文件断链而在 `ensure_adapter_support_files()` 阶段报错。
 15. 当前 runtime hygiene 还新增了一层 warning elimination：默认不再全局启用 FlashInfer sampler；`Mistral` 系列 adapter/cache 目录会自动补齐 `tokenizer.model.v* / tekken.json / chat_template.jinja` 等支持文件，从而减少 `FlashInfer fallback` 与 `No tokenizer found ... using base model tokenizer instead` 这类运行时 warning。
+16. 单机 `TP>1` 主线现在还会按 `visible_device_ids // tensor_parallel_size` 自动收紧 `max_instances`，避免双卡 `TP=2` 被错误扩成两个物理实例；同时会固定 loopback rendezvous 环境，以减少 `c10d hostname` warning 与 scale-up 后卡死的问题。
 
 ---
 

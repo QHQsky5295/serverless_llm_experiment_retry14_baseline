@@ -43,7 +43,9 @@ from scripts.prepare_publicmix_pool import (
     scan_public_adapter_pool,
 )
 from scripts.run_all_experiments import (
+    _apply_tp_instance_capacity_guard,
     _adapter_matches_model,
+    _build_local_tp_runtime_env_updates,
     _normalize_lora_preparation_mode,
     _resolve_vllm_runtime_guards,
 )
@@ -142,6 +144,28 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(guards["env_updates"]["VLLM_USE_V1"], "0")
         self.assertEqual(guards["env_updates"]["VLLM_ATTENTION_BACKEND"], "FLASH_ATTN")
         self.assertEqual(guards["env_updates"]["VLLM_USE_FLASHINFER_SAMPLER"], "0")
+
+    def test_tp_capacity_guard_caps_dual_gpu_tp2_to_single_instance(self) -> None:
+        model = {"tensor_parallel_size": 2, "visible_device_ids": [0, 1]}
+        coord = {"min_instances": 1, "max_instances": 2}
+
+        guarded, meta = _apply_tp_instance_capacity_guard(
+            model,
+            coord,
+            fallback_gpu_count=2,
+        )
+
+        self.assertEqual(guarded["max_instances"], 1)
+        self.assertEqual(guarded["min_instances"], 1)
+        self.assertEqual(meta["max_tp_instances"], 1)
+
+    def test_tp_runtime_env_prefers_loopback_for_local_mp(self) -> None:
+        env = _build_local_tp_runtime_env_updates(tp=2, executor_backend="mp")
+
+        self.assertEqual(env["MASTER_ADDR"], "127.0.0.1")
+        self.assertEqual(env["VLLM_HOST_IP"], "127.0.0.1")
+        self.assertEqual(env["GLOO_SOCKET_IFNAME"], "lo")
+        self.assertEqual(env["NCCL_SOCKET_IFNAME"], "lo")
 
     def test_generator_defaults_follow_selected_profile(self) -> None:
         defaults = resolve_generation_defaults(EXPERIMENTS_CONFIG)

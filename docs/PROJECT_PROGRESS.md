@@ -353,6 +353,7 @@
 34. 已完成：`Qwen 7B / Mistral 7B` 的 `V2 publicmix` 工件池已做 `DoRA` 清洗修复；当前 live 目录中的 `500` 个工件已重新验到 `use_dora=0`，避免后续 `Mistral 7B / Qwen 7B` 正式实验在 vLLM 侧因 `DoRA` 直接报错。
 35. 已完成：`faaslora/utils/model_assets.py` 现已能自动修复冻结工件池在归档/恢复后产生的坏 symlink；`Qwen 7B / Mistral 7B` 的 `config.json / generation_config.json` 支持文件已重新补齐到正确本地模型路径，避免 `two_phase` 启动时在 `ensure_adapter_support_files()` 阶段再次报错。
 36. 已完成：`warning elimination / runtime hygiene` 第一轮修复。项目默认不再全局启用 FlashInfer sampler；`Mistral` 系列 frozen adapter 目录现会自动补齐 `tokenizer.model.v* / tekken.json / chat_template.jinja` 等支持文件，从而避免把运行时 fallback warning 当成“正常噪声”长期遗留。
+37. 已完成：单机 `TP>1` 运行时 hygiene 第二轮修复。实验入口现在会按 `visible_device_ids // tensor_parallel_size` 自动收紧 `max_instances`，避免双卡 `TP=2` 被错误扩成 2 个物理实例；同时对本机 `mp` 路径固定 loopback rendezvous 环境，降低 `c10d hostname` warning 和卡死概率。
 
 ## 当前已确认的长期约束
 

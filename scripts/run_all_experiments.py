@@ -854,6 +854,9 @@ class InferenceEngine:
         visible_devices = self._resolve_vllm_visible_devices(tp)
         executor_backend = self._resolve_vllm_executor_backend(tp, visible_devices)
         runtime_settings = self._resolve_vllm_runtime_settings(model)
+        runtime_settings["env_updates"].update(
+            _build_local_tp_runtime_env_updates(tp=tp, executor_backend=executor_backend)
+        )
         self._vllm_runtime_settings = runtime_settings
 
         previous_env = _push_env_updates(runtime_settings["env_updates"])
@@ -1068,6 +1071,11 @@ class InferenceEngine:
             self,
             "_vllm_runtime_settings",
             self._resolve_vllm_runtime_settings(model),
+        )
+        visible_devices = self._resolve_vllm_visible_devices(tp)
+        executor_backend = self._resolve_vllm_executor_backend(tp, visible_devices)
+        runtime_settings["env_updates"].update(
+            _build_local_tp_runtime_env_updates(tp=tp, executor_backend=executor_backend)
         )
         previous_env = _push_env_updates(runtime_settings["env_updates"])
         try:
@@ -3859,6 +3867,78 @@ def _apply_adapter_storage_env_overrides(
     return adapters_cfg, storage_cfg, applied
 
 
+def _apply_tp_instance_capacity_guard(
+    model_cfg: Dict[str, Any],
+    coord_cfg: Dict[str, Any],
+    *,
+    fallback_gpu_count: Optional[int] = None,
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """
+    Prevent autoscaling from overcommitting GPU groups when tensor parallelism
+    already spans the full visible device set.
+
+    Example: with 2 visible GPUs and TP=2, only 1 physical instance can exist.
+    """
+    guarded = copy.deepcopy(coord_cfg)
+    tp = max(1, int(model_cfg.get("tensor_parallel_size", 1) or 1))
+    if tp <= 1:
+        return guarded, {}
+
+    configured = model_cfg.get("visible_device_ids")
+    visible_count = 0
+    if isinstance(configured, list):
+        try:
+            visible_count = len([int(device_id) for device_id in configured])
+        except Exception:
+            visible_count = len(configured)
+    if visible_count <= 0:
+        visible_count = int(fallback_gpu_count or GPU_COUNT or 0)
+    if visible_count <= 0:
+        return guarded, {}
+
+    max_tp_instances = max(1, visible_count // tp)
+    previous_max = int(guarded.get("max_instances", max_tp_instances) or max_tp_instances)
+    previous_min = int(guarded.get("min_instances", 1) or 1)
+    applied = {}
+
+    if previous_max > max_tp_instances:
+        guarded["max_instances"] = max_tp_instances
+        applied["max_instances"] = max_tp_instances
+    if previous_min > max_tp_instances:
+        guarded["min_instances"] = max_tp_instances
+        applied["min_instances"] = max_tp_instances
+
+    if applied:
+        applied.update(
+            {
+                "reason": "tp_capacity_guard",
+                "visible_device_count": visible_count,
+                "tensor_parallel_size": tp,
+                "max_tp_instances": max_tp_instances,
+            }
+        )
+    return guarded, applied
+
+
+def _build_local_tp_runtime_env_updates(
+    *,
+    tp: int,
+    executor_backend: Optional[str],
+) -> Dict[str, str]:
+    """
+    Keep single-node TP rendezvous on loopback so c10d/Gloo do not depend on
+    hostname reverse lookup. This changes runtime hygiene only, not workload.
+    """
+    if tp <= 1 or str(executor_backend or "").lower() != "mp":
+        return {}
+    return {
+        "MASTER_ADDR": "127.0.0.1",
+        "VLLM_HOST_IP": "127.0.0.1",
+        "GLOO_SOCKET_IFNAME": "lo",
+        "NCCL_SOCKET_IFNAME": "lo",
+    }
+
+
 def _get_model_arch(model_name: str) -> Dict:
     """
     Probe model architecture (hidden_size, num_layers, head_dim) from config.json
@@ -4957,6 +5037,7 @@ async def main_async(
         coord_cfg,
         hw_cfg,
     )
+    coord_cfg, tp_capacity_guard = _apply_tp_instance_capacity_guard(model_cfg, coord_cfg)
     adapters_cfg, storage_cfg, applied_adapter_storage_overrides = _apply_adapter_storage_env_overrides(
         adapters_cfg,
         storage_cfg,
@@ -5052,6 +5133,13 @@ async def main_async(
             f"{k}={v}" for k, v in sorted(applied_profile_selection.items())
         )
         print(f"  Profiles: {profile_text}")
+    if tp_capacity_guard:
+        print(
+            "  TPGuard : "
+            f"visible_gpus={tp_capacity_guard['visible_device_count']} "
+            f"tp={tp_capacity_guard['tensor_parallel_size']} "
+            f"max_instances->{tp_capacity_guard['max_tp_instances']}"
+        )
     print()
     if backend == "transformers":
         try:
