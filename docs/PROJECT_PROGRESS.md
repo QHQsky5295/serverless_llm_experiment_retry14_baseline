@@ -354,6 +354,7 @@
 33. 已完成：`scripts/prepare_publicmix_pool.py` 新增 `build` 子命令，可按 manifest 先复制公开 adapter，再只对 `generated_fill` 缺口调用生成器补齐，从而物化成真正可复用的 `V2` 冻结工件池。
 34. 已完成：`Qwen 7B / Mistral 7B` 的 `V2 publicmix` 工件池已做 `DoRA` 清洗修复；当前 live 目录中的 `500` 个工件已重新验到 `use_dora=0`，避免后续 `Mistral 7B / Qwen 7B` 正式实验在 vLLM 侧因 `DoRA` 直接报错。
 35. 已完成：`faaslora/utils/model_assets.py` 现已能自动修复冻结工件池在归档/恢复后产生的坏 symlink；`Qwen 7B / Mistral 7B` 的 `config.json / generation_config.json` 支持文件已重新补齐到正确本地模型路径，避免 `two_phase` 启动时在 `ensure_adapter_support_files()` 阶段再次报错。
+36. 已完成：`warning elimination / runtime hygiene` 第一轮修复。项目默认不再全局启用 FlashInfer sampler；`Mistral` 系列 frozen adapter 目录现会自动补齐 `tokenizer.model.v* / tekken.json / chat_template.jinja` 等支持文件，从而避免把运行时 fallback warning 当成“正常噪声”长期遗留。
 
 ## 当前已确认的长期约束
 

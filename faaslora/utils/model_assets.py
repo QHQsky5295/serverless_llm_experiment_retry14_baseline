@@ -2,24 +2,49 @@
 
 from __future__ import annotations
 
-import os
 import shutil
 from pathlib import Path
-from typing import List
+from typing import Iterable, List
 
 
 _AUX_FILENAMES = (
     "config.json",
     "generation_config.json",
+    "chat_template.jinja",
     "tokenizer.json",
+    "tokenizer.model",
     "tokenizer_config.json",
     "special_tokens_map.json",
     "added_tokens.json",
+    "tekken.json",
     "vocab.json",
     "merges.txt",
     "vocab.txt",
     "spiece.model",
 )
+
+_AUX_GLOB_PATTERNS = (
+    "tokenizer.model.v*",
+    "tokenizer.mm.model.v*",
+)
+
+
+def _iter_aux_sources(model_root: Path) -> Iterable[Path]:
+    seen = set()
+    for name in _AUX_FILENAMES:
+        path = model_root / name
+        if path.exists():
+            resolved = path.resolve()
+            if resolved not in seen:
+                seen.add(resolved)
+                yield path
+    for pattern in _AUX_GLOB_PATTERNS:
+        for path in sorted(model_root.glob(pattern)):
+            if path.exists():
+                resolved = path.resolve()
+                if resolved not in seen:
+                    seen.add(resolved)
+                    yield path
 
 
 def ensure_adapter_support_files(adapter_dir: Path, model_name_or_path: str) -> List[str]:
@@ -36,8 +61,8 @@ def ensure_adapter_support_files(adapter_dir: Path, model_name_or_path: str) -> 
 
     adapter_dir.mkdir(parents=True, exist_ok=True)
     created: List[str] = []
-    for name in _AUX_FILENAMES:
-        src = model_root / name
+    for src in _iter_aux_sources(model_root):
+        name = src.name
         dst = adapter_dir / name
         if not src.exists():
             continue

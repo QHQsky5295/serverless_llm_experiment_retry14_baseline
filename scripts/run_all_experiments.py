@@ -145,8 +145,10 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:False"
 os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:False"  # new PyTorch name
 # PunicaWrapperGPU multi-stream LoRA can crash on RTX 3090; use single-stream path
 os.environ["VLLM_DISABLE_LORA_STREAM"] = "1"
-# Make the sampler choice explicit once FlashInfer is installed.
-os.environ.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "1")
+# Keep the default sampler path conservative and deterministic unless a profile
+# explicitly opts into FlashInfer. This avoids noisy runtime fallbacks when
+# per-request generators are enabled.
+os.environ.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "0")
 
 # ---------------------------------------------------------------------------
 # Current stable env uses vLLM 0.10.2. Keep multiprocessing settings explicit

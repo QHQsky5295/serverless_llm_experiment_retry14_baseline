@@ -648,6 +648,25 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             self.assertTrue(repaired.is_symlink())
             self.assertEqual(repaired.resolve(), (model_root / "config.json").resolve())
 
+    def test_support_files_include_mistral_tokenizer_assets(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            model_root = root / "models" / "mistralai--Mistral-7B-Instruct-v0.3"
+            model_root.mkdir(parents=True, exist_ok=True)
+            (model_root / "config.json").write_text("{}", encoding="utf-8")
+            (model_root / "tokenizer.model.v3").write_text("tok", encoding="utf-8")
+            (model_root / "chat_template.jinja").write_text("tmpl", encoding="utf-8")
+
+            adapter_dir = root / "artifacts" / "frozen" / "mistral_7b_a500_v2_publicmix" / "finance_lora"
+            adapter_dir.mkdir(parents=True, exist_ok=True)
+
+            created = ensure_adapter_support_files(adapter_dir, str(model_root))
+
+            self.assertIn("tokenizer.model.v3", created)
+            self.assertIn("chat_template.jinja", created)
+            self.assertTrue((adapter_dir / "tokenizer.model.v3").exists())
+            self.assertTrue((adapter_dir / "chat_template.jinja").exists())
+
     def test_runner_one_shot_preparation_builds_generator_command(self) -> None:
         from scripts import run_all_experiments as runner
 

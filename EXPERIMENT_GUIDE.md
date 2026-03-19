@@ -751,7 +751,7 @@ python scripts/prepare_publicmix_pool.py build \
   --python-bin /home/qhq/anaconda3/envs/LLM_vllm0102/bin/python
 ```
 
-> `build` 会先复制已验通过的公开 adapter，再只对 `generated_fill` 缺口按 manifest 中记录的 `topup_profile + seed` 调用生成器补齐。这样冻结后的 `V2 publicmix` 目录可直接供正式对比实验复用，而不需要在实验启动时重新拼池。当前 `two_phase` 启动链路也已经能够自动修复冻结工件池在归档/恢复后留下的坏 `config.json / generation_config.json` 软链接，不需要再手工重拷支持文件。
+> `build` 会先复制已验通过的公开 adapter，再只对 `generated_fill` 缺口按 manifest 中记录的 `topup_profile + seed` 调用生成器补齐。这样冻结后的 `V2 publicmix` 目录可直接供正式对比实验复用，而不需要在实验启动时重新拼池。当前 `two_phase` 启动链路也已经能够自动修复冻结工件池在归档/恢复后留下的坏 `config.json / generation_config.json` 软链接，不需要再手工重拷支持文件；同时默认 runtime 不再全局启用 FlashInfer sampler，`Mistral` adapter/cache 目录会自动补齐 tokenizer 支持文件，从而尽量避免 fallback warning。
 
 ---
 

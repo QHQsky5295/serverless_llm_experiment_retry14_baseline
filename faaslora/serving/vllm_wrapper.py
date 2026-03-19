@@ -12,7 +12,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from collections import deque
 
-os.environ.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "1")
+# Match the main experiment runner: only enable the FlashInfer sampler when a
+# profile explicitly opts in. The default PyTorch sampler avoids repeated
+# runtime fallback warnings for per-request generators.
+os.environ.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "0")
 
 try:
     from vllm import LLM, SamplingParams

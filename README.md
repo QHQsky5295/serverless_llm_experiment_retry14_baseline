@@ -471,6 +471,7 @@ python scripts/prepare_publicmix_pool.py build \
 ```
 
 `build` 子命令会先把已通过验收的公开 adapter 复制进目标冻结目录，再只对 `generated_fill` 缺口按同一 `topup_profile + seed` 调用生成器补齐。因此后续正式实验可以直接复用该目录，而不会在实验启动时临时拼装工件。当前 `two_phase` 链路也已能自动修复冻结工件池在归档/恢复后残留的坏 `config.json / generation_config.json` 软链接。
+当前 runtime hygiene 也已进一步收敛：默认不再全局启用 FlashInfer sampler，`Mistral` 系列 adapter/cache 目录会自动补齐 `tokenizer.model.v* / tekken.json / chat_template.jinja` 等支持文件，从而尽量避免运行时 fallback warning。
 
 ### 协作 / 矩阵验证入口
 
