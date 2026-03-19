@@ -244,28 +244,28 @@ model_profiles:  # 可复用的模型 profile 集合
       remote_dir: "artifacts/frozen/mistral_7b_a500_v1"  # Mistral 7B 论文正式对比的冻结 LoRA 源仓库
 
   mistral_7b_main_v2_publicmix:  # Mistral 7B 主线模型 profile（V2 publicmix 冻结工件池）
-    model:
-      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3"
-      backend: "vllm"
-      device_id: 0
-      visible_device_ids: [0, 1]
-      tensor_parallel_size: 1
-      gpu_memory_utilization: 0.85
-      max_model_len: 1024
-      max_loras: 2
+    model:  # Mistral 7B 的运行时模型配置块
+      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3"  # 本 profile 对应的本地基座模型路径
+      backend: "vllm"  # 推理后端，当前主线使用 vLLM
+      device_id: 0  # 默认主执行实例使用的 GPU 编号
+      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      tensor_parallel_size: 1  # 张量并行数；Mistral 7B V2 主线当前走单卡
+      gpu_memory_utilization: 0.85  # vLLM 单卡显存利用率上限
+      max_model_len: 1024  # 模型允许处理的最大上下文长度
+      max_loras: 2  # 单个 runtime 同时驻留的最大 LoRA 数量
       max_lora_rank: 32  # publicmix V2 中包含少量更高 rank 的公开 LoRA
-      enable_lora: true
-      enforce_eager: true
-      dtype: "float16"
-      max_num_seqs: 4
-      max_num_batched_tokens: 1024
-      max_output_tokens_cap: 64
-      max_input_len: 256
-      runtime_concurrency_cap: 4
-    hardware:
-      model_weights_mb: 14336
-      kv_per_1k_tokens_mb: 2.0
-    storage:
+      enable_lora: true  # 是否开启 LoRA 支持
+      enforce_eager: true  # 强制 eager，降低部分 CUDA Graph 兼容风险
+      dtype: "float16"  # 推理 dtype
+      max_num_seqs: 4  # 单个 runtime 同时调度的最大序列数
+      max_num_batched_tokens: 1024  # 单批允许处理的最大 token 总数
+      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
+      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+    hardware:  # Mistral 7B 的硬件容量估计
+      model_weights_mb: 14336  # 基座模型权重显存估计（MB）
+      kv_per_1k_tokens_mb: 2.0  # 每 1000 token 的 KV cache 显存估计（MB）
+    storage:  # Mistral 7B V2 publicmix 冻结工件目录
       remote_dir: "artifacts/frozen/mistral_7b_a500_v2_publicmix"  # Mistral 7B 论文正式 V2 publicmix 冻结 LoRA 源仓库
 
   mistral_nemo_12b_tp2:  # Mistral Nemo 12B/13B 档 TP=2 主线模型 profile 名称
@@ -301,35 +301,35 @@ model_profiles:  # 可复用的模型 profile 集合
       remote_dir: "artifacts/frozen/mistral_nemo_12b_a500_v1"  # Mistral Nemo 12B/13B 论文正式对比的冻结 LoRA 源仓库
 
   mistral_nemo_12b_tp2_v2_publicmix:  # Mistral Nemo 12B/13B 档 TP=2 主线模型 profile（V2 publicmix 冻结工件池）
-    model:
-      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-Nemo-Instruct-2407"
-      backend: "vllm"
-      device_id: 0
-      visible_device_ids: [0, 1]
-      distributed_executor_backend: "mp"
-      tensor_parallel_size: 2
-      gpu_memory_utilization: 0.80
-      max_model_len: 1024
-      max_loras: 1
+    model:  # Mistral-Nemo TP=2 的运行时模型配置块
+      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-Nemo-Instruct-2407"  # 本 profile 对应的本地基座模型路径
+      backend: "vllm"  # 推理后端，当前主线使用 vLLM
+      device_id: 0  # 默认主执行实例使用的起始 GPU 编号
+      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      distributed_executor_backend: "mp"  # TP=2 当前使用多进程执行后端
+      tensor_parallel_size: 2  # 张量并行数；Nemo V2 主线当前走双卡 TP=2
+      gpu_memory_utilization: 0.80  # Nemo TP=2 默认仍回退到首轮稳定值；0.85 仅作为已记录的敏感性实验
+      max_model_len: 1024  # 模型允许处理的最大上下文长度
+      max_loras: 1  # 当前仍限制为 1，优先保证 Nemo TP=2 的稳定性
       max_lora_rank: 32  # publicmix V2 中包含少量更高 rank 的公开 LoRA
-      enable_lora: true
-      enforce_eager: true
-      dtype: "float16"
-      max_num_seqs: 1
-      max_num_batched_tokens: 1024
-      max_output_tokens_cap: 64
-      max_input_len: 256
-      runtime_concurrency_cap: 1
-      tokenizer_mode: "mistral"
-      enable_chunked_prefill: false
-      enable_prefix_caching: false
-      vllm_use_v1: false
-      vllm_attention_backend: "FLASH_ATTN"
-      vllm_use_flashinfer_sampler: false
-    hardware:
-      model_weights_mb: 24576
-      kv_per_1k_tokens_mb: 4.0
-    storage:
+      enable_lora: true  # 是否开启 LoRA 支持
+      enforce_eager: true  # 强制 eager，降低当前 Nemo TP=2 路径的运行时不稳定性
+      dtype: "float16"  # 推理 dtype
+      max_num_seqs: 1  # Nemo TP=2 默认仍回退到首轮稳定值；max_num_seqs=2 仅作为已记录的敏感性实验
+      max_num_batched_tokens: 1024  # 单批允许处理的最大 token 总数
+      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
+      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      runtime_concurrency_cap: 1  # Nemo TP=2 默认仍回退到首轮稳定值；并发=2 仅作为已记录的敏感性实验
+      tokenizer_mode: "mistral"  # 强制使用 Mistral tokenizer 模式
+      enable_chunked_prefill: false  # 当前保守关闭 chunked prefill，降低 TP=2 + LoRA 风险
+      enable_prefix_caching: false  # 当前保守关闭 prefix caching，减少运行时变量
+      vllm_use_v1: false  # 强制使用 vLLM V0 路径，绕开已观测到的 V1 崩溃
+      vllm_attention_backend: "FLASH_ATTN"  # 注意力后端固定为 FlashAttention
+      vllm_use_flashinfer_sampler: false  # 关闭 FlashInfer sampler，减少额外不稳定因素
+    hardware:  # Mistral-Nemo TP=2 的硬件容量估计
+      model_weights_mb: 24576  # 基座模型权重显存估计（MB）
+      kv_per_1k_tokens_mb: 4.0  # 每 1000 token 的 KV cache 显存估计（MB）
+    storage:  # Mistral-Nemo V2 publicmix 冻结工件目录
       remote_dir: "artifacts/frozen/mistral_nemo_12b_a500_v2_publicmix"  # Mistral Nemo 论文正式 V2 publicmix 冻结 LoRA 源仓库
 
 # ---------------------------------------------------------------------------

@@ -353,7 +353,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 - LoRA 工件默认模式：`PEFT+finetune`
 - 论文主线规模：`500 adapters`
-- 当前正在执行的下一步：`Mistral-Nemo-Instruct-2407 + PEFT+finetune + 500 adapters + representative r1000`
+- 当前正在执行的下一步：`Mistral 7B V2 publicmix + representative r1000`
 
 ### 当前保留但不作为主线推进的接口
 
@@ -375,7 +375,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 - 继续扩展稳定环境下可执行的基础测试，后续再补真实 GPU / 长跑链路覆盖
 - 继续清理 README / 技术说明 / 进度文档与当前实现的残余漂移
 - 已完成 `Mistral-7B-Instruct-v0.3 + PEFT+finetune + 500 adapters + representative r1000`
-- 推进 `Mistral-Nemo-Instruct-2407 + PEFT+finetune + 500 adapters + representative r1000`
+- 推进 `Mistral 7B V2 publicmix + representative r1000`
 - 在第二家族稳定后再接入额外数据集，如 `gsm8k`
 
 ---

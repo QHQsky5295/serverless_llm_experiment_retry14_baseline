@@ -348,7 +348,7 @@
 27. 已确认：`mistral_nemo_12b_tp2_main` 现在作为论文主线工作负载 profile 固定为 `500 adapters`；`mistral_nemo_12b_tp2_bringup100_main` 仅保留给显式 bring-up / 快速排障。
 28. 已完成：引入模型专属冻结工件目录（`artifacts/frozen/<model>_a500_v1`）与 `standardized_v1` 基线工件池；`Qwen 7B / Qwen 14B / Mistral 7B / Mistral Nemo 12B` 现在都能按“先建库、后复用”的方式维持论文正式对比变量一致。
 29. 已完成：清理旧的 `*_v2_realistic` 目录，保留 `V1` 冻结工件不动，准备按新的正式 `V2 publicmix` 规则重建。
-30. 当前下一步：先制定并执行 `V2 publicmix` 建库规则——`Qwen 7B / Mistral 7B` 尽量下载公开 adapter 并先做本地兼容性验证；`Qwen 14B / Mistral-Nemo` 先下载现有公开 adapter，再按统一规则补齐到 `500`。`V2` 工件池稳定后，再完成 `mistralai/Mistral-Nemo-Instruct-2407 + representative r1000`，随后补齐 `Qwen 7B / Qwen 14B / Mistral 7B` 的 `representative r1000`，最后进入 `ServerlessLLM` 对比实验。
+30. 当前下一步：`Mistral-Nemo V2 publicmix representative r1000` 已完成，且 `opt1`（`gpu_memory_utilization=0.85, max_num_seqs=2, runtime_concurrency_cap=2`）已作为敏感性实验保留、未采纳为默认参数。主线下一步切到 `Mistral 7B V2 publicmix representative r1000`，随后补齐 `Qwen 7B / Qwen 14B` 的 `representative r1000`，最后进入 `ServerlessLLM` 对比实验。
 31. 已完成：新增 `scripts/prepare_publicmix_pool.py`，支持对本地公开 adapter 做兼容性验收（`validate`）并生成正式 `V2 publicmix` 清单（`plan`），避免后续建库时靠人工肉眼筛选。
 32. 已完成：`Qwen 7B / Qwen 14B / Mistral 7B / Mistral-Nemo` 四个模型的 `V2 publicmix` 第一阶段验证与 manifest 已落盘；当前 accepted public 数分别为 `5 / 4 / 5 / 4`，剩余缺口将通过统一 `realistic_v2 + seed=42` 规则补齐到 `500`。
 33. 已完成：`scripts/prepare_publicmix_pool.py` 新增 `build` 子命令，可按 manifest 先复制公开 adapter，再只对 `generated_fill` 缺口调用生成器补齐，从而物化成真正可复用的 `V2` 冻结工件池。
