@@ -353,6 +353,8 @@ scenarios:
 
 **单实例 vs 多实例**：当前主线默认是 `instance_mode=auto`、`min_instances=1`、`max_instances=2`。也就是说，系统启动时先保留 1 个物理 runtime，在请求压力达到阈值时再 scale-up 到第 2 个物理 runtime，而不是“启动即双实例常驻”。单实例验证可将 `configs/experiments.yaml` 中 `resource_coordination.max_instances` 设为 1。实验实例数一律以 `configs/experiments.yaml` 的 `min_instances` / `max_instances` 为准；`faaslora/utils/config.py` 中的默认值属于 API/生产配置，不作为当前主实验默认口径。
 
+**什么是这里的“实例”**：当前系统中的扩缩容对象不是“每个请求一个短命函数容器”，而是**长生命周期的 serving runtime / replica**。请求先被路由到已有实例；单个实例在生命周期内可以处理很多请求，并在实例内部做 batching 与并发执行。只有当 `arrival_rps / backlog / busy_ratio / latency` 持续达到阈值时，autoscaler 才会新拉一个物理 runtime，让它承接后续部分请求。因此，本项目的 serverless 语义是“请求级调度 + 实例级扩缩容 + 实例内并发”，这也是当前大模型推理 serverless 系统更常见的形态。
+
 ---
 
 ## 7. 运行实验

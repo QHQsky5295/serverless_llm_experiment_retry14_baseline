@@ -56,8 +56,10 @@ import math
 import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
+import tempfile
 import time
 from bisect import bisect_right
 from collections import defaultdict
@@ -133,9 +135,10 @@ except ImportError:
 os.environ["PYTHONPATH"] = str(REPO_ROOT) + os.pathsep + os.environ.get("PYTHONPATH", "")
 
 # Honor an explicit device mask when the caller wants to constrain visible GPUs.
-# Do not force GPU0 globally: dedicated/auto instance modes need access to the
-# full visible device set so new instances can bind a different GPU.
-if os.environ.get("FAASLORA_VISIBLE_DEVICES"):
+# Do not clobber an already-pinned CUDA_VISIBLE_DEVICES mask: dedicated worker
+# processes set it before importing this module so they can bind a single
+# physical GPU cleanly.
+if os.environ.get("FAASLORA_VISIBLE_DEVICES") and not os.environ.get("CUDA_VISIBLE_DEVICES"):
     os.environ["CUDA_VISIBLE_DEVICES"] = os.environ["FAASLORA_VISIBLE_DEVICES"]
 # Limit CPU threads to avoid memory spikes and driver issues with multi-threaded CUDA
 os.environ.setdefault("OMP_NUM_THREADS", "1")
@@ -1380,6 +1383,227 @@ class InferenceEngine:
             return ttft_ms, True
         except Exception:
             return 0.0, False
+
+
+class SubprocessInferenceEngineProxy:
+    """
+    Async proxy that talks to a dedicated engine subprocess over loopback RPC.
+
+    This keeps TP=1 multi-instance scale-out on a multi-GPU host honest: each
+    dedicated runtime owns its own process and therefore its own CUDA device
+    visibility mask.
+    """
+
+    def __init__(
+        self,
+        *,
+        process: subprocess.Popen,
+        host: str,
+        port: int,
+        model_cfg: Dict[str, Any],
+        device_id: Optional[int],
+        workdir: Path,
+        log_path: Path,
+    ) -> None:
+        self._process = process
+        self._host = host
+        self._port = int(port)
+        self.model_cfg = copy.deepcopy(model_cfg)
+        self.device_id = int(device_id) if device_id is not None else 0
+        self.backend = str(self.model_cfg.get("backend", "vllm")).lower()
+        self.engine = None
+        self._engine_dead = False
+        self._reinit_attempted = False
+        self._workdir = workdir
+        self._log_path = log_path
+
+    @staticmethod
+    def _worker_script_path() -> Path:
+        return Path(__file__).resolve().with_name("dedicated_engine_worker.py")
+
+    @staticmethod
+    def _tail_worker_log(log_path: Path, max_chars: int = 1200) -> str:
+        try:
+            text = log_path.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            return ""
+        text = text.strip()
+        if len(text) <= max_chars:
+            return text
+        return text[-max_chars:]
+
+    @classmethod
+    async def spawn(
+        cls,
+        *,
+        model_cfg: Dict[str, Any],
+        cost_model: Dict[str, Any],
+        device_id: Optional[int],
+    ) -> "SubprocessInferenceEngineProxy":
+        requested_device_id = int(device_id) if device_id is not None else None
+        local_model_cfg = copy.deepcopy(model_cfg)
+        if requested_device_id is not None:
+            local_model_cfg["device_id"] = requested_device_id
+
+        worker_root = Path(tempfile.mkdtemp(prefix="faaslora_worker_", dir="/tmp"))
+        payload_path = worker_root / "payload.json"
+        ready_path = worker_root / "ready.json"
+        log_path = worker_root / "worker.log"
+
+        payload = {
+            "repo_root": str(REPO_ROOT),
+            "model_cfg": local_model_cfg,
+            "cost_model": copy.deepcopy(cost_model),
+            "device_id": requested_device_id,
+        }
+        payload_path.write_text(json.dumps(payload), encoding="utf-8")
+
+        python_bin = os.environ.get("FAASLORA_PYTHON") or sys.executable
+        worker_script = cls._worker_script_path()
+        worker_env = os.environ.copy()
+        worker_env["PYTHONPATH"] = str(REPO_ROOT) + os.pathsep + worker_env.get("PYTHONPATH", "")
+        tp = max(1, int(local_model_cfg.get("tensor_parallel_size", 1) or 1))
+        if requested_device_id is not None and tp <= 1:
+            worker_env["CUDA_VISIBLE_DEVICES"] = str(requested_device_id)
+            worker_env["FAASLORA_VISIBLE_DEVICES"] = str(requested_device_id)
+
+        log_handle = open(log_path, "ab", buffering=0)
+        process = subprocess.Popen(
+            [
+                python_bin,
+                str(worker_script),
+                "--payload",
+                str(payload_path),
+                "--ready-file",
+                str(ready_path),
+            ],
+            cwd=str(REPO_ROOT),
+            env=worker_env,
+            stdout=log_handle,
+            stderr=subprocess.STDOUT,
+            close_fds=True,
+        )
+
+        ready: Optional[Dict[str, Any]] = None
+        deadline = time.monotonic() + 180.0
+        while time.monotonic() < deadline:
+            if ready_path.exists():
+                try:
+                    ready = json.loads(ready_path.read_text(encoding="utf-8"))
+                except Exception:
+                    ready = {"status": "error", "error": "invalid_ready_payload"}
+                break
+            if process.poll() is not None:
+                break
+            await asyncio.sleep(0.2)
+
+        log_handle.close()
+        if not isinstance(ready, dict) or ready.get("status") != "ready":
+            try:
+                process.terminate()
+                await asyncio.to_thread(process.wait, 5)
+            except Exception:
+                pass
+            error = ready.get("error") if isinstance(ready, dict) else "subprocess_worker_timeout"
+            log_tail = cls._tail_worker_log(log_path)
+            if log_tail:
+                error = f"{error}\nworker_log_tail:\n{log_tail}"
+            shutil.rmtree(worker_root, ignore_errors=True)
+            raise RuntimeError(f"subprocess_engine_start_failed: {error}")
+
+        return cls(
+            process=process,
+            host=str(ready["host"]),
+            port=int(ready["port"]),
+            model_cfg=local_model_cfg,
+            device_id=requested_device_id,
+            workdir=worker_root,
+            log_path=log_path,
+        )
+
+    async def _rpc(self, cmd: str, **kwargs: Any) -> Dict[str, Any]:
+        if self._engine_dead or self._process.poll() is not None:
+            self._engine_dead = True
+            raise RuntimeError("subprocess_engine_dead")
+        reader = writer = None
+        try:
+            reader, writer = await asyncio.open_connection(self._host, self._port)
+            payload = {"cmd": cmd, "kwargs": kwargs}
+            writer.write((json.dumps(payload, ensure_ascii=True) + "\n").encode("utf-8"))
+            await writer.drain()
+            raw = await asyncio.wait_for(reader.readline(), timeout=300)
+            if not raw:
+                raise RuntimeError("subprocess_engine_empty_response")
+            response = json.loads(raw.decode("utf-8"))
+            if not response.get("ok"):
+                raise RuntimeError(str(response.get("error", "subprocess_engine_rpc_failed")))
+            return response.get("result", {}) or {}
+        except Exception:
+            if cmd != "shutdown":
+                self._engine_dead = True
+            raise
+        finally:
+            if writer is not None:
+                writer.close()
+                try:
+                    await writer.wait_closed()
+                except Exception:
+                    pass
+
+    async def generate(
+        self,
+        prompt: str,
+        lora_path: Optional[str],
+        adapter_id: Optional[str],
+        max_tokens: int,
+        input_tokens: int,
+        temperature: float = 0.7,
+        top_p: float = 0.9,
+    ) -> Tuple[float, float, int]:
+        result = await self._rpc(
+            "generate",
+            prompt=prompt,
+            lora_path=lora_path,
+            adapter_id=adapter_id,
+            max_tokens=max_tokens,
+            input_tokens=input_tokens,
+            temperature=temperature,
+            top_p=top_p,
+        )
+        return (
+            float(result.get("ttft_ms", 0.0)),
+            float(result.get("tpot_ms", 0.0)),
+            int(result.get("output_tokens", 0)),
+        )
+
+    async def load_lora_to_gpu_and_measure(self, lora_path: str, adapter_id: str) -> Tuple[float, bool]:
+        result = await self._rpc(
+            "load_lora_to_gpu_and_measure",
+            lora_path=lora_path,
+            adapter_id=adapter_id,
+        )
+        return float(result.get("load_ms", 0.0)), bool(result.get("ok", False))
+
+    async def shutdown(self) -> None:
+        try:
+            if self._process.poll() is None:
+                try:
+                    await self._rpc("shutdown")
+                except Exception:
+                    pass
+                try:
+                    await asyncio.to_thread(self._process.wait, 10)
+                except Exception:
+                    pass
+        finally:
+            if self._process.poll() is None:
+                self._process.terminate()
+                try:
+                    await asyncio.to_thread(self._process.wait, 5)
+                except Exception:
+                    pass
+            self._engine_dead = True
+            shutil.rmtree(self._workdir, ignore_errors=True)
 
 
 # ==========================================================================
@@ -3941,6 +4165,58 @@ def _build_local_tp_runtime_env_updates(
     }
 
 
+def _should_spawn_dedicated_engine_subprocess(
+    model_cfg: Dict[str, Any],
+    *,
+    instance_mode: str,
+) -> bool:
+    """
+    Dedicated TP=1 vLLM scale-out must use process isolation.
+
+    Once the primary engine has initialized CUDA in the current Python process,
+    spinning up a second vLLM engine with a different CUDA_VISIBLE_DEVICES mask in
+    the same process is unreliable. Use a subprocess-backed proxy instead.
+    """
+    backend = str(model_cfg.get("backend", "vllm")).lower()
+    tp = max(1, int(model_cfg.get("tensor_parallel_size", 1) or 1))
+    return backend == "vllm" and tp <= 1 and str(instance_mode).lower() in ("auto", "dedicated")
+
+
+def _prepare_dedicated_subprocess_model_cfg(
+    model_cfg: Dict[str, Any],
+    *,
+    device_id: Optional[int],
+) -> Tuple[Dict[str, Any], Dict[str, str]]:
+    """
+    Prepare a child-process model config and environment so the child sees only
+    the target physical GPU.
+    """
+    local_model_cfg = copy.deepcopy(model_cfg)
+    env_updates: Dict[str, str] = {}
+    tp = max(1, int(local_model_cfg.get("tensor_parallel_size", 1) or 1))
+
+    if device_id is not None:
+        local_model_cfg["device_id"] = int(device_id)
+
+    if tp <= 1 and device_id is not None:
+        # In the child process, expose only the target physical GPU. vLLM will
+        # see it as local device 0, while the parent still tracks the physical
+        # GPU id for metrics / instance panel reporting.
+        env_updates["CUDA_VISIBLE_DEVICES"] = str(int(device_id))
+        env_updates["FAASLORA_VISIBLE_DEVICES"] = str(int(device_id))
+        local_model_cfg["device_id"] = 0
+        local_model_cfg["visible_device_ids"] = [0]
+
+    executor_backend = local_model_cfg.get("distributed_executor_backend")
+    env_updates.update(
+        _build_local_tp_runtime_env_updates(
+            tp=tp,
+            executor_backend=str(executor_backend) if executor_backend is not None else None,
+        )
+    )
+    return local_model_cfg, env_updates
+
+
 def _get_model_arch(model_name: str) -> Dict:
     """
     Probe model architecture (hidden_size, num_layers, head_dim) from config.json
@@ -5433,6 +5709,10 @@ async def main_async(
             if instance_mode in ("auto", "dedicated") and engine.backend != "transformers":
                 spawn_model_cfg = copy.deepcopy(engine.model_cfg)
                 spawn_model_cfg.update(copy.deepcopy(sc_coord.get("instance_model_overrides", {})))
+                use_subprocess_engine = _should_spawn_dedicated_engine_subprocess(
+                    spawn_model_cfg,
+                    instance_mode=instance_mode,
+                )
 
                 async def _spawn_engine(
                     device_id=None,
@@ -5445,11 +5725,18 @@ async def main_async(
                     local_model_cfg = copy.deepcopy(model_cfg)
                     if device_id is not None:
                         local_model_cfg["device_id"] = int(device_id)
-                    # Do not kill already-live EngineCore workers when spawning
-                    # an additional dedicated instance in the same experiment.
-                    local_model_cfg["skip_stale_gpu_cleanup"] = True
-                    new_engine = InferenceEngine(local_model_cfg, cost_cfg)
-                    await new_engine.initialize()
+                    if use_subprocess_engine:
+                        new_engine = await SubprocessInferenceEngineProxy.spawn(
+                            model_cfg=local_model_cfg,
+                            cost_model=cost_cfg,
+                            device_id=local_model_cfg.get("device_id"),
+                        )
+                    else:
+                        # Do not kill already-live EngineCore workers when spawning
+                        # an additional dedicated instance in the same experiment.
+                        local_model_cfg["skip_stale_gpu_cleanup"] = True
+                        new_engine = InferenceEngine(local_model_cfg, cost_cfg)
+                        await new_engine.initialize()
                     coord_kwargs: Dict[str, Any] = {
                         "config": {**coord_cfg_local, **hw_cfg_local},
                         "coordination_enabled": coord_enabled_local,

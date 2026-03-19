@@ -49,7 +49,9 @@ from scripts.run_all_experiments import (
     _adapter_matches_model,
     _build_local_tp_runtime_env_updates,
     _normalize_lora_preparation_mode,
+    _prepare_dedicated_subprocess_model_cfg,
     _resolve_vllm_runtime_guards,
+    _should_spawn_dedicated_engine_subprocess,
 )
 
 
@@ -168,6 +170,37 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(env["VLLM_HOST_IP"], "127.0.0.1")
         self.assertEqual(env["GLOO_SOCKET_IFNAME"], "lo")
         self.assertEqual(env["NCCL_SOCKET_IFNAME"], "lo")
+
+    def test_tp1_dedicated_vllm_uses_subprocess_isolation(self) -> None:
+        model = {"backend": "vllm", "tensor_parallel_size": 1}
+
+        self.assertTrue(
+            _should_spawn_dedicated_engine_subprocess(model, instance_mode="auto")
+        )
+        self.assertTrue(
+            _should_spawn_dedicated_engine_subprocess(model, instance_mode="dedicated")
+        )
+        self.assertFalse(
+            _should_spawn_dedicated_engine_subprocess(model, instance_mode="shared")
+        )
+
+    def test_prepare_dedicated_subprocess_model_cfg_remaps_tp1_gpu_to_local_zero(self) -> None:
+        model = {
+            "backend": "vllm",
+            "tensor_parallel_size": 1,
+            "device_id": 0,
+            "visible_device_ids": [0, 1],
+        }
+
+        local_model, env = _prepare_dedicated_subprocess_model_cfg(
+            model,
+            device_id=1,
+        )
+
+        self.assertEqual(env["CUDA_VISIBLE_DEVICES"], "1")
+        self.assertEqual(env["FAASLORA_VISIBLE_DEVICES"], "1")
+        self.assertEqual(local_model["device_id"], 0)
+        self.assertEqual(local_model["visible_device_ids"], [0])
 
     def test_auto_scale_up_does_not_fallback_to_shared_slot_after_dedicated_failure(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)

@@ -29,6 +29,16 @@ FaaSLoRA 是一个面向真实云工作负载的多 LoRA Serverless 大模型推
 - **worker 节点 / worker node**：物理宿主机 / 计算节点
 - **共享执行槽位 / shared execution slot**：仅在实现细节中使用，用于描述 `shared` 模式下单个物理 runtime 内部的可路由槽位
 
+如果从“请求到底是怎么被处理的”这个角度看，当前系统的主线运行流程是：
+
+1. 请求先进入实验入口与协调层，而不是“一请求起一个短命函数容器”。
+2. 路由器根据目标 LoRA 的缓存亲和性、实例当前 active requests、load queue depth 和 GPU 负载，选择一个已有函数实例。
+3. 被选中的函数实例会把请求提交给它绑定的物理 GPU runtime；一个 runtime 在生命周期内可以持续处理很多请求，而不是只处理一个请求就销毁。
+4. 当 arrival RPS、backlog、busy ratio、response time 等指标持续超过阈值时，autoscaler 才会扩出新的物理 GPU 执行实例。
+5. scale-up 扩出来的不是“单个请求对应的函数对象”，而是新的 serving runtime / replica；随后新的函数实例会被绑定到这个 runtime，并参与后续请求分担。
+
+因此，本项目的 serverless 语义更接近主流 LLM serving 论文中的“elastic replica-based serving”，而不是传统 FaaS 里“一次请求对应一个短命容器”的模型。
+
 ---
 
 ## 研究背景与动机
@@ -241,6 +251,20 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
    做 tie-break。
 
 这是一个**cache-affinity-aware routing heuristic**，不是全局最优放置器。
+
+### 一个实例能处理多少请求
+
+- 一个函数实例在生命周期内会持续承接很多请求，不是“一实例只跑一个请求”。
+- 单个实例内部还能并发处理多个请求，具体并发上界由：
+  - `runtime_concurrency_cap`
+  - `max_num_seqs`
+  - vLLM 的 batching / decode 调度
+ 共同决定。
+- 因此，serverless 在这里体现为：
+  - 请求级动态路由
+  - 实例级扩缩容
+  - 实例内并发执行
+而不是“每个请求各起一个新的 GPU 容器”。
 
 ---
 

@@ -354,6 +354,15 @@
 35. 已完成：`faaslora/utils/model_assets.py` 现已能自动修复冻结工件池在归档/恢复后产生的坏 symlink；`Qwen 7B / Mistral 7B` 的 `config.json / generation_config.json` 支持文件已重新补齐到正确本地模型路径，避免 `two_phase` 启动时在 `ensure_adapter_support_files()` 阶段再次报错。
 36. 已完成：`warning elimination / runtime hygiene` 第一轮修复。项目默认不再全局启用 FlashInfer sampler；`Mistral` 系列 frozen adapter 目录现会自动补齐 `tokenizer.model.v* / tekken.json / chat_template.jinja` 等支持文件，从而避免把运行时 fallback warning 当成“正常噪声”长期遗留。
 37. 已完成：单机 `TP>1` 运行时 hygiene 第二轮修复。实验入口现在会按 `visible_device_ids // tensor_parallel_size` 自动收紧 `max_instances`，避免双卡 `TP=2` 被错误扩成 2 个物理实例；同时对本机 `mp` 路径固定 loopback rendezvous 环境，降低 `c10d hostname` warning 和卡死概率。
+38. 已完成：`Mistral 7B V2 publicmix TP=1 + max_instances=2` 的第二实例启动链路已继续收口。最新排查确认，`retry4` 虽然已经不再出现“失败实例被错误记入实例池”的 bookkeeping bug，但 dedicated 第二实例仍会在扩容时落入错误的 CUDA 上下文；根因有两层：一是此前使用 `multiprocessing spawn` 启动第二实例，子进程会在设置 `CUDA_VISIBLE_DEVICES` 之前先导入主模块；二是外部 worker import `run_all_experiments.py` 时，顶层还会用 `FAASLORA_VISIBLE_DEVICES=0,1` 再次覆盖 dedicated worker 已经设置好的单卡 `CUDA_VISIBLE_DEVICES=1`，导致第二实例实际上没有真正绑定到物理 `GPU1`。
+39. 已完成：当前本地代码已把 dedicated 第二实例改成“外部独立 Python worker 进程 + 启动前固定 `CUDA_VISIBLE_DEVICES`”，并同步修正 `FAASLORA_VISIBLE_DEVICES` 的覆盖链路：只有当 `CUDA_VISIBLE_DEVICES` 未显式设置时，主模块才会用 `FAASLORA_VISIBLE_DEVICES` 回填；同时 dedicated worker 在父进程启动前、worker 进程内、以及 child model cfg 三处统一固定到目标单卡。正式环境回归 `57` 项通过；随后用 `60 requests` 的真实 GPU probe 复测，已观察到：
+   - `Scaling decision: scale_up to 2 instances`
+   - `Instance inst_2 added (total=2)`
+   - `inst=2 / runtimes=2`
+   - `inst_2 gpu=1`
+   - `gpu1 = 16.7 / 24.0 GB`
+  这说明当前 `Mistral 7B TP=1 + scale-out` 的第二实例已经能够真正落到物理 `GPU1`，而不是像此前那样在扩容点直接失败或伪扩容。
+40. 已完成：`mistral_common` 的 `special token policy=None` 弃用 warning 已通过正经兼容方式在本地环境层消除。根因是当前 `vLLM` 对 Mistral sentencepiece tokenizer 仍显式保留 `None`，而 `mistral_common>=1.9` 已将其标记为弃用；当前已在本地 `vLLM` 安装中把该路径改为显式 `SpecialTokenPolicy.IGNORE`。这不会改变解码语义，因为 `mistral_common` 当前本来就会把 `None` 映射到 `IGNORE`；只是在运行时把未来默认行为显式化，避免持续打印 `FutureWarning`。已用本地 `Mistral-7B-Instruct-v0.3` tokenizer 做最小验证，并在 `FutureWarning` 提升为 error 的条件下确认通过。
 
 ## 当前已确认的长期约束
 

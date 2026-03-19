@@ -83,9 +83,10 @@ print('numpy:', numpy.__version__)
 
 - **pyproject.toml** 中已固定 `vllm==0.10.2`，与本文档一致。
 - **scripts/run_validation_bundle.sh** 的默认 Python 入口已经固定为 `/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python`。
-- **configs/experiments.yaml** 当前默认入口通过 `profile_selection` 指向 `qwen_14b_tp2 + azure_sharegpt_rep1000 + qwen_14b_tp2_main`；当前扩展主线 `Mistral-7B + PEFT+finetune + 500 adapters` 通过 profile 覆盖运行。
+- **configs/experiments.yaml** 当前默认入口已经切到 `mistral_7b_main_v2_publicmix + azure_sharegpt_rep1000 + mistral_7b_auto500_main`；当前主线口径为 `Qwen 7B / Mistral 7B -> TP=1 + max_instances=2`、`Qwen 14B / Mistral-Nemo -> TP=2 + max_instances=1`。
 - **scripts/generate_lora_adapters.py** 当前默认会跟随 `profile_selection + model_profiles + workload_profiles` 解析 base model 与 adapter 数量；`PEFT+finetune` 模式已改为单次加载 base model 后循环生成多个 adapter。
-- **scripts/run_all_experiments.py** 与 **faaslora/serving/vllm_wrapper.py** 都会显式设置 `VLLM_USE_FLASHINFER_SAMPLER=1`。
+- **scripts/run_all_experiments.py** 与 **faaslora/serving/vllm_wrapper.py** 当前默认已不再全局强制启用 FlashInfer sampler；只有显式 profile/运行时需要时才会打开。
+- **当前本机 `LLM_vllm0102` 环境** 还包含一处本地兼容性修复：`vLLM` 的 Mistral sentencepiece tokenizer 适配层已显式改为 `SpecialTokenPolicy.IGNORE`，用来消除 `mistral_common` 的弃用 warning。该修复不改变解码语义，只是把当前已存在的默认行为显式化。
 - 若在 3090 上仍遇 vLLM LoRA 崩溃，可参考 [docs/VLLM_RTX3090_LORA.md](VLLM_RTX3090_LORA.md)（如增大 `/dev/shm`、改用 `backend: "transformers"` 等）。
 
 ---

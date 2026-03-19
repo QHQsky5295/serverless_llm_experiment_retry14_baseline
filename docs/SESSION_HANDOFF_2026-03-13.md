@@ -665,7 +665,7 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
 
 建议在新会话直接贴这份文档，或至少贴出下面这段摘要：
 
-> 继续当前主线。`Qwen2.5-14B-Instruct` 的 `r1000@0.80`、`r1000@0.85` 与 `r4000@0.85` 都已完成，`0.85` 已可视为 14B 的冻结默认参数；当前最终实验口径已收敛为 `Qwen 7B / Mistral 7B -> TP=1 + max_instances=2`、`Qwen 14B / Mistral-Nemo -> TP=2 + max_instances=1`。`OPT` 已确认不支持当前本机 `vLLM 0.10.2 + LoRA`；`mistralai/Mistral-7B-Instruct-v0.3` 的论文主线 `PEFT+finetune + 500 adapters + representative r1000` 也已完成。当前论文正式对比默认改为“模型专属冻结工件目录 + two_phase 预生成”，并将新的 `V2` 路线收敛为 `publicmix`：`Qwen 7B / Mistral 7B` 优先纳入经本地兼容性验证的公开 adapter，`Qwen 14B / Mistral-Nemo` 采用公开 adapter + 统一规则补齐到 `500`。`Mistral-Nemo V2 publicmix representative r1000` 首轮稳定结果已完成；`opt1`（`gpu_memory_utilization=0.85, max_num_seqs=2, runtime_concurrency_cap=2`）仅保留为敏感性实验，不作为默认参数。`Mistral 7B V2 publicmix representative r1000` 首次尝试在当前环境下因 `vLLM V1 + 异构 public LoRA` 触发 `EngineCore / CUDA illegal memory access`，后续又定位出 `auto` 模式在 dedicated 第二实例创建失败时会错误回退 shared slot；当前默认 profile 已收紧到更保守的 `V0 + no chunked prefill + no prefix caching + lower concurrency` 路径，并把 `gpu_memory_utilization` 调到 `0.70`，以保证第二个 TP=1 runtime 真正能稳定拉起。
+> 继续当前主线。`Qwen2.5-14B-Instruct` 的 `r1000@0.80`、`r1000@0.85` 与 `r4000@0.85` 都已完成，`0.85` 已可视为 14B 的冻结默认参数；当前最终实验口径已收敛为 `Qwen 7B / Mistral 7B -> TP=1 + max_instances=2`、`Qwen 14B / Mistral-Nemo -> TP=2 + max_instances=1`。`OPT` 已确认不支持当前本机 `vLLM 0.10.2 + LoRA`；`mistralai/Mistral-7B-Instruct-v0.3` 的论文主线 `PEFT+finetune + 500 adapters + representative r1000` 也已完成。当前论文正式对比默认改为“模型专属冻结工件目录 + two_phase 预生成”，并将新的 `V2` 路线收敛为 `publicmix`：`Qwen 7B / Mistral 7B` 优先纳入经本地兼容性验证的公开 adapter，`Qwen 14B / Mistral-Nemo` 采用公开 adapter + 统一规则补齐到 `500`。`Mistral-Nemo V2 publicmix representative r1000` 首轮稳定结果已完成；`opt1`（`gpu_memory_utilization=0.85, max_num_seqs=2, runtime_concurrency_cap=2`）仅保留为敏感性实验，不作为默认参数。`Mistral 7B V2 publicmix representative r1000` 首次尝试在当前环境下因 `vLLM V1 + 异构 public LoRA` 触发 `EngineCore / CUDA illegal memory access`，后续又定位出 `auto` 模式在 dedicated 第二实例创建失败时会错误回退 shared slot；当前默认 profile 已收紧到更保守的 `V0 + no chunked prefill + no prefix caching + lower concurrency` 路径，并把 `gpu_memory_utilization` 调到 `0.70`。最新本地修复进一步确认：第二实例此前仍通过 `multiprocessing spawn` 启动，子进程会在设置 `CUDA_VISIBLE_DEVICES` 前先导入主模块，导致 dedicated 第二实例并未真正绑定到物理 `GPU1`。当前本地代码已把 dedicated 第二实例改成“外部独立 Python worker 进程 + 启动前固定 `CUDA_VISIBLE_DEVICES`”的路径，正式环境回归 `57` 项通过；下一步必须做一轮干净重跑，确认第二实例真的能起在 `GPU1`。
 
 ---
 
@@ -682,6 +682,30 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
 补充说明：
 
 - `mistralai/Mistral-7B-Instruct-v0.3` 与 `mistralai/Mistral-Nemo-Instruct-2407` 都是公开可下载的 instruct 模型。
+
+最新本地修复补充：
+
+- `Mistral 7B V2 publicmix TP=1 + max_instances=2` 的第二实例扩容问题已经继续收口。
+- 真正根因不是“负载不够”，也不只是“V2 LoRA 更大”，而是 dedicated 第二实例的 GPU 绑定链路此前被改坏了：
+  1. 旧的 `multiprocessing spawn` 路径会在设置 `CUDA_VISIBLE_DEVICES` 之前先导入主模块
+  2. 即使改成外部 worker，`run_all_experiments.py` 顶层之前仍会用 `FAASLORA_VISIBLE_DEVICES=0,1` 覆盖 dedicated worker 已显式固定的单卡 `CUDA_VISIBLE_DEVICES=1`
+- 当前本地代码已修成：
+  - dedicated 第二实例使用外部独立 Python worker 进程
+  - parent/worker/child model cfg 三处统一固定目标单卡
+  - 只有在 `CUDA_VISIBLE_DEVICES` 未显式设置时，主模块才会用 `FAASLORA_VISIBLE_DEVICES` 回填
+- 正式环境回归 `57` 项通过
+- 随后用 `60 requests` 的真实 GPU probe 复测，已观察到：
+  - `Scaling decision: scale_up to 2 instances`
+  - `Instance inst_2 added`
+  - `inst=2 / runtimes=2`
+  - `inst_2 gpu=1`
+  - `gpu1 ≈ 16.7 / 24.0 GB`
+- 这说明当前 `Mistral 7B TP=1 + scale-out` 的第二实例已经能够真正落到物理 `GPU1`
+- 另外，`mistral_common` 的 `special token policy=None` 弃用 warning 也已在本地环境层通过正经兼容方式修掉：
+  - 根因是当前安装的 `vLLM` 对 Mistral sentencepiece tokenizer 仍传 `None`
+  - 当前已改为显式 `SpecialTokenPolicy.IGNORE`
+  - 这不会改变解码语义，因为 `mistral_common` 当前本来就将 `None` 映射到 `IGNORE`
+  - 已用本地 `Mistral-7B-Instruct-v0.3` tokenizer 在 `FutureWarning -> error` 条件下验证通过
 
 ---
 
