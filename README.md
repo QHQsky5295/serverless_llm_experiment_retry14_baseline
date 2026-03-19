@@ -354,7 +354,7 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 - LoRA 工件默认模式：`PEFT+finetune`
 - 论文主线规模：`500 adapters`
-- 当前正在执行的下一步：`Mistral 7B V2 publicmix + representative r1000`；该主线按 `TP=1 + max_instances=2` 推进，且由于 V2 publicmix 含异构 public LoRA，默认已切到更保守的 vLLM V0 路径，并把 `gpu_memory_utilization` 收到 `0.80` 以保证第二个单卡实例能稳定拉起
+- 当前正在执行的下一步：`Mistral 7B V2 publicmix + representative r1000`；该主线按 `TP=1 + max_instances=2` 推进，且由于 V2 publicmix 含异构 public LoRA，默认已切到更保守的 vLLM V0 路径，并把 `gpu_memory_utilization` 收到 `0.70` 以保证第二个单卡实例能稳定拉起
 
 ### 当前保留但不作为主线推进的接口
 

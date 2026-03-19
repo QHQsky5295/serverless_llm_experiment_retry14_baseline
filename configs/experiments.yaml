@@ -250,7 +250,7 @@ model_profiles:  # 可复用的模型 profile 集合
       device_id: 0  # 默认主执行实例使用的 GPU 编号
       visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
       tensor_parallel_size: 1  # 张量并行数；Mistral 7B V2 主线按单卡 TP=1 + scale-out 推进
-      gpu_memory_utilization: 0.80  # 给第二个 TP=1 实例预留启动余量，避免 scale-out 时第二实例因显存顶满而 OOM
+      gpu_memory_utilization: 0.70  # 进一步给第二个 TP=1 实例预留稳定启动余量；0.80 在双实例 scale-out 时仍会触发二号实例 OOM
       max_model_len: 1024  # 模型允许处理的最大上下文长度
       max_loras: 1  # V2 publicmix 含异构 public LoRA，先限制为 1，降低 EngineCore 崩溃风险
       max_lora_rank: 32  # publicmix V2 中包含少量更高 rank 的公开 LoRA
