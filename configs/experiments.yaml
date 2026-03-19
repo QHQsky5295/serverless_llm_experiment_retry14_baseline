@@ -252,16 +252,22 @@ model_profiles:  # 可复用的模型 profile 集合
       tensor_parallel_size: 1  # 张量并行数；Mistral 7B V2 主线当前走单卡
       gpu_memory_utilization: 0.85  # vLLM 单卡显存利用率上限
       max_model_len: 1024  # 模型允许处理的最大上下文长度
-      max_loras: 2  # 单个 runtime 同时驻留的最大 LoRA 数量
+      max_loras: 1  # V2 publicmix 含异构 public LoRA，先限制为 1，降低 EngineCore 崩溃风险
       max_lora_rank: 32  # publicmix V2 中包含少量更高 rank 的公开 LoRA
       enable_lora: true  # 是否开启 LoRA 支持
       enforce_eager: true  # 强制 eager，降低部分 CUDA Graph 兼容风险
       dtype: "float16"  # 推理 dtype
-      max_num_seqs: 4  # 单个 runtime 同时调度的最大序列数
+      max_num_seqs: 2  # V2 publicmix 先降到 2，减少异构 LoRA 下的调度并发
       max_num_batched_tokens: 1024  # 单批允许处理的最大 token 总数
       max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
       max_input_len: 256  # 单请求输入最大长度，超出会截断
-      runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
+      runtime_concurrency_cap: 2  # 系统层并发先降到 2，优先跑稳 Mistral 7B V2
+      tokenizer_mode: "mistral"  # 强制使用 Mistral tokenizer 模式，和 Nemo 路径保持一致
+      enable_chunked_prefill: false  # 关闭 chunked prefill，降低 V2 publicmix 下的运行时不稳定性
+      enable_prefix_caching: false  # 关闭 prefix caching，减少异构 public LoRA 的额外变量
+      vllm_use_v1: false  # 强制使用 vLLM V0 路径，绕开当前环境下 Mistral 7B V2 的 V1 崩溃
+      vllm_attention_backend: "FLASH_ATTN"  # 注意力后端固定为 FlashAttention
+      vllm_use_flashinfer_sampler: false  # 关闭 FlashInfer sampler，减少额外内核差异
     hardware:  # Mistral 7B 的硬件容量估计
       model_weights_mb: 14336  # 基座模型权重显存估计（MB）
       kv_per_1k_tokens_mb: 2.0  # 每 1000 token 的 KV cache 显存估计（MB）

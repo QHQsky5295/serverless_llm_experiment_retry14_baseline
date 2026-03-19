@@ -189,7 +189,7 @@ export HF_ENDPOINT=https://hf-mirror.com  # 国内镜像（可选）
 python scripts/download_model.py --model mistralai/Mistral-7B-Instruct-v0.3
 ```
 
-> 当前 Qwen 家族的 `3B / 7B / 14B` 主线验证已经完成；`mistralai/Mistral-7B-Instruct-v0.3` 的论文主线 `PEFT+finetune + 500 adapters + representative r1000` 也已完成。`Mistral-Nemo V2 publicmix r1000` 首轮稳定结果已完成，且 `opt1` 并发/显存温和优化已作为敏感性实验保留、未采纳为默认参数。当前扩展主线下一步固定为 `Mistral 7B V2 publicmix representative r1000`。`OPT` 已在本机验证为不支持 vLLM LoRA。Gemma 暂挂计划列表，当前不配置。
+> 当前 Qwen 家族的 `3B / 7B / 14B` 主线验证已经完成；`mistralai/Mistral-7B-Instruct-v0.3` 的论文主线 `PEFT+finetune + 500 adapters + representative r1000` 也已完成。`Mistral-Nemo V2 publicmix r1000` 首轮稳定结果已完成，且 `opt1` 并发/显存温和优化已作为敏感性实验保留、未采纳为默认参数。`Mistral 7B V2 publicmix r1000` 首次尝试在当前环境下因 vLLM V1 + 异构 public LoRA 触发 `EngineCore / CUDA illegal memory access`，因此默认已切到更保守的 `V0 + no chunked prefill + no prefix caching + reduced concurrency` 路径后再重跑。`OPT` 已在本机验证为不支持 vLLM LoRA。Gemma 暂挂计划列表，当前不配置。
 
 ### 4.3 下载后配置提示
 
