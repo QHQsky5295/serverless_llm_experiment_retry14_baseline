@@ -338,8 +338,8 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 当前仓库已经完成并冻结了以下主线结论：
 
 - `Qwen2.5-3B-Instruct`：`auto + 500 adapters + representative 1000 requests + P2.5 on`
-- `Qwen2.5-7B-Instruct`：`TP=1` 主线长跑验证完成
-- `Qwen2.5-7B-Instruct TP=2`：吞吐导向对照完成，结论是保留 `TP=1` 为默认、`TP=2` 为正式对照
+- `Qwen2.5-7B-Instruct`：当前正式默认已切到 `TP=2`
+- `Qwen2.5-7B-Instruct TP=2`：吞吐导向对照已完成；当前主线也统一切到 `TP=2`
 - `Qwen2.5-14B-Instruct TP=2`：`r1000@0.80`、`r1000@0.85` 与 `r4000@0.85` 已完成，当前冻结稳定参数为 `distributed_executor_backend=mp + gpu_memory_utilization=0.85`
 
 ### 当前正在推进的扩展主线

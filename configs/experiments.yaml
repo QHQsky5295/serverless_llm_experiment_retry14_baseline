@@ -64,13 +64,14 @@ model_profiles:  # 可复用的模型 profile 集合
       model_weights_mb: 3200  # 基座模型权重占用的显存估计值（MB）
       kv_per_1k_tokens_mb: 1.0  # 每 1000 token 的 KV cache 显存估计（MB）
 
-  qwen_7b_main:  # Qwen 7B 单卡主线模型 profile 名称
+  qwen_7b_main:  # Qwen 7B 双卡 TP=2 主线模型 profile 名称
     model:  # 模型配置块，或当前选中的 model profile 名称
       name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"  # 本 profile 对应的模型路径或模型名
       backend: "vllm"  # 推理后端类型，如 vllm / transformers
       device_id: 0  # 默认主执行实例使用的 GPU 编号
       visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
-      tensor_parallel_size: 1  # 张量并行数；2 表示双卡切分模型
+      distributed_executor_backend: "mp"  # vLLM 张量并行执行后端，如 mp
+      tensor_parallel_size: 2  # 张量并行数；Qwen 7B 主线默认切到双卡 TP=2
       gpu_memory_utilization: 0.85  # vLLM 允许占用的单卡显存比例上限
       max_model_len: 1024  # 模型允许处理的最大上下文长度
       max_loras: 2  # 单个 runtime 同时驻留的最大 LoRA 数量
@@ -89,13 +90,14 @@ model_profiles:  # 可复用的模型 profile 集合
     storage:  # 工件冻结目录配置；同一 base model 的不同系统/不同实验应复用同一目录
       remote_dir: "artifacts/frozen/qwen_7b_a500_v1"  # Qwen 7B 论文正式对比的冻结 LoRA 源仓库
 
-  qwen_7b_main_v2_publicmix:  # Qwen 7B 单卡主线模型 profile（V2 publicmix 冻结工件池）
+  qwen_7b_main_v2_publicmix:  # Qwen 7B 双卡 TP=2 主线模型 profile（V2 publicmix 冻结工件池）
     model:
       name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"
       backend: "vllm"
       device_id: 0
       visible_device_ids: [0, 1]
-      tensor_parallel_size: 1
+      distributed_executor_backend: "mp"
+      tensor_parallel_size: 2
       gpu_memory_utilization: 0.85
       max_model_len: 1024
       max_loras: 2
@@ -218,13 +220,14 @@ model_profiles:  # 可复用的模型 profile 集合
     storage:
       remote_dir: "artifacts/frozen/qwen_14b_a500_v2_publicmix"  # Qwen 14B 论文正式 V2 publicmix 冻结 LoRA 源仓库
 
-  mistral_7b_main:  # Mistral 7B 第二家族小档位模型 profile 名称
+  mistral_7b_main:  # Mistral 7B 第二家族小档位双卡 TP=2 主线模型 profile 名称
     model:  # 模型配置块，或当前选中的 model profile 名称
       name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3"  # 本 profile 对应的模型路径或模型名
       backend: "vllm"  # 推理后端类型，如 vllm / transformers
       device_id: 0  # 默认主执行实例使用的 GPU 编号
       visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
-      tensor_parallel_size: 1  # 张量并行数；2 表示双卡切分模型
+      distributed_executor_backend: "mp"  # vLLM 张量并行执行后端，如 mp
+      tensor_parallel_size: 2  # 张量并行数；Mistral 7B 主线默认切到双卡 TP=2
       gpu_memory_utilization: 0.85  # vLLM 允许占用的单卡显存比例上限
       max_model_len: 1024  # 模型允许处理的最大上下文长度
       max_loras: 2  # 单个 runtime 同时驻留的最大 LoRA 数量
@@ -243,13 +246,14 @@ model_profiles:  # 可复用的模型 profile 集合
     storage:  # 工件冻结目录配置；Mistral 7B 的正式对比实验固定复用这一批工件
       remote_dir: "artifacts/frozen/mistral_7b_a500_v1"  # Mistral 7B 论文正式对比的冻结 LoRA 源仓库
 
-  mistral_7b_main_v2_publicmix:  # Mistral 7B 主线模型 profile（V2 publicmix 冻结工件池）
+  mistral_7b_main_v2_publicmix:  # Mistral 7B 双卡 TP=2 主线模型 profile（V2 publicmix 冻结工件池）
     model:  # Mistral 7B 的运行时模型配置块
       name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3"  # 本 profile 对应的本地基座模型路径
       backend: "vllm"  # 推理后端，当前主线使用 vLLM
       device_id: 0  # 默认主执行实例使用的 GPU 编号
       visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
-      tensor_parallel_size: 1  # 张量并行数；Mistral 7B V2 主线当前走单卡
+      distributed_executor_backend: "mp"  # TP=2 当前使用多进程执行后端
+      tensor_parallel_size: 2  # 张量并行数；Mistral 7B V2 主线默认切到双卡 TP=2
       gpu_memory_utilization: 0.85  # vLLM 单卡显存利用率上限
       max_model_len: 1024  # 模型允许处理的最大上下文长度
       max_loras: 1  # V2 publicmix 含异构 public LoRA，先限制为 1，降低 EngineCore 崩溃风险
