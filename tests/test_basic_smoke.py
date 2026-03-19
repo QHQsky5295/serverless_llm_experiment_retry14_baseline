@@ -29,6 +29,7 @@ from faaslora.serving.vllm_wrapper import VLLMWrapper
 from faaslora.storage.remote_client import RemoteStorageClient
 from faaslora.storage.s3_client import S3Client
 from faaslora.storage.storage_manager import StorageManager
+from faaslora.utils.model_assets import ensure_adapter_support_files
 from faaslora.utils.config import Config
 from scripts.generate_lora_adapters import (
     _build_adapter_specs,
@@ -610,8 +611,11 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(fake_model.saved, [("a1",), ("a2",), ("a3",)])
 
     def test_saved_adapter_weights_are_normalized_to_fp16(self) -> None:
-        import torch
-        from safetensors.torch import load_file, save_file
+        try:
+            import torch
+            from safetensors.torch import load_file, save_file
+        except Exception as exc:  # pragma: no cover - environment-specific fallback
+            self.skipTest(f"torch/safetensors unavailable: {exc}")
 
         with TemporaryDirectory() as tmpdir:
             dest = Path(tmpdir)
@@ -622,6 +626,27 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             _normalize_saved_adapter_weights(dest, target_dtype="float16")
             state = load_file(str(dest / "adapter_model.safetensors"))
             self.assertEqual({str(v.dtype) for v in state.values()}, {"torch.float16"})
+
+    def test_support_files_repair_broken_symlink_after_pool_move(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            model_root = root / "models" / "mistralai--Mistral-7B-Instruct-v0.3"
+            model_root.mkdir(parents=True, exist_ok=True)
+            (model_root / "config.json").write_text('{"ok": true}', encoding="utf-8")
+
+            adapter_dir = root / "artifacts" / "frozen" / "mistral_7b_a500_v2_publicmix" / "medical_lora"
+            adapter_dir.mkdir(parents=True, exist_ok=True)
+
+            broken_target = Path("/definitely/missing/config.json")
+            (adapter_dir / "config.json").symlink_to(broken_target)
+
+            created = ensure_adapter_support_files(adapter_dir, str(model_root))
+
+            self.assertIn("config.json", created)
+            repaired = adapter_dir / "config.json"
+            self.assertTrue(repaired.exists())
+            self.assertTrue(repaired.is_symlink())
+            self.assertEqual(repaired.resolve(), (model_root / "config.json").resolve())
 
     def test_runner_one_shot_preparation_builds_generator_command(self) -> None:
         from scripts import run_all_experiments as runner

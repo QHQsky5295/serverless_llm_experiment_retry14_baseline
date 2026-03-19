@@ -470,7 +470,7 @@ python scripts/prepare_publicmix_pool.py build \
   --python-bin /home/qhq/anaconda3/envs/LLM_vllm0102/bin/python
 ```
 
-`build` 子命令会先把已通过验收的公开 adapter 复制进目标冻结目录，再只对 `generated_fill` 缺口按同一 `topup_profile + seed` 调用生成器补齐。因此后续正式实验可以直接复用该目录，而不会在实验启动时临时拼装工件。
+`build` 子命令会先把已通过验收的公开 adapter 复制进目标冻结目录，再只对 `generated_fill` 缺口按同一 `topup_profile + seed` 调用生成器补齐。因此后续正式实验可以直接复用该目录，而不会在实验启动时临时拼装工件。当前 `two_phase` 链路也已能自动修复冻结工件池在归档/恢复后残留的坏 `config.json / generation_config.json` 软链接。
 
 ### 协作 / 矩阵验证入口
 

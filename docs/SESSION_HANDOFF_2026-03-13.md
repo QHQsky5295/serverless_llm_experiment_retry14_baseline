@@ -657,6 +657,7 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
 11. 当前已经新增 `scripts/prepare_publicmix_pool.py`，可先对本地下载的公开 adapter 做兼容性验收（`validate`），再生成 formal `V2 publicmix` 清单（`plan`）；后续建库请优先使用该脚本，而不是手工挑目录。
 12. 当前 `V2 publicmix` 第一阶段已完成：`Qwen 7B / Qwen 14B / Mistral 7B / Mistral-Nemo` 的 validation report 与 manifest 均已生成；accepted public 数已修正为 `0 / 4 / 1 / 4`，因为当前运行时不支持 `DoRA`，对应公开工件已在验证阶段剔除。
 13. `scripts/prepare_publicmix_pool.py` 已新增 `build` 子命令，可按 manifest 将公开 adapter 复制进冻结目录，并仅对 `generated_fill` 缺口按 `topup_profile + seed` 调用生成器补齐。后续正式 `V2` 建库请走 `validate -> plan -> build`，不要手工混拷目录；当前 `publicmix` 验证与 build 均会主动拒绝 `use_dora=true` 的公开工件。
+14. `faaslora/utils/model_assets.py` 现已能自动修复冻结工件池在归档/恢复后留下的坏 `config.json / generation_config.json` 软链接；`Qwen 7B / Mistral 7B` live `V2` 目录已重新补齐到正确本地模型路径，后续 `two_phase` 启动时不应再因支持文件断链而在 `ensure_adapter_support_files()` 阶段报错。
 
 ---
 

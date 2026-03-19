@@ -48,10 +48,13 @@ class EntryPointIntegrationTests(unittest.TestCase):
 
     def test_generator_defaults_align_with_active_profile_selection(self) -> None:
         defaults = resolve_generation_defaults(EXPERIMENTS_CONFIG)
-        active_model = self.experiments["model_profiles"]["qwen_14b_tp2"]["model"]["name"]
+        selection = self.experiments["profile_selection"]
+        active_model = self.experiments["model_profiles"][selection["model"]]["model"]["name"]
+        active_workload = self.experiments["workload_profiles"][selection["workload"]]
+        expected_num_adapters = active_workload["lora_adapters"]["selected_num_adapters"]
 
         self.assertEqual(defaults["model"], active_model)
-        self.assertEqual(defaults["num_adapters"], 100)
+        self.assertEqual(defaults["num_adapters"], expected_num_adapters)
         self.assertEqual(defaults["generation_mode"], "peft_finetune")
 
     def test_active_qwen14_profile_uses_mp_tp2(self) -> None:

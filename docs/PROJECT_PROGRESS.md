@@ -353,6 +353,7 @@
 32. 已完成：`Qwen 7B / Qwen 14B / Mistral 7B / Mistral-Nemo` 四个模型的 `V2 publicmix` 第一阶段验证与 manifest 已落盘；当前 accepted public 数已修正为 `0 / 4 / 1 / 4`，因为当前运行时不支持 `DoRA`，对应公开工件已在验证阶段被剔除，其余缺口通过统一 `realistic_v2 + seed=42` 规则补齐到 `500`。
 33. 已完成：`scripts/prepare_publicmix_pool.py` 新增 `build` 子命令，可按 manifest 先复制公开 adapter，再只对 `generated_fill` 缺口调用生成器补齐，从而物化成真正可复用的 `V2` 冻结工件池。
 34. 已完成：`Qwen 7B / Mistral 7B` 的 `V2 publicmix` 工件池已做 `DoRA` 清洗修复；当前 live 目录中的 `500` 个工件已重新验到 `use_dora=0`，避免后续 `Mistral 7B / Qwen 7B` 正式实验在 vLLM 侧因 `DoRA` 直接报错。
+35. 已完成：`faaslora/utils/model_assets.py` 现已能自动修复冻结工件池在归档/恢复后产生的坏 symlink；`Qwen 7B / Mistral 7B` 的 `config.json / generation_config.json` 支持文件已重新补齐到正确本地模型路径，避免 `two_phase` 启动时在 `ensure_adapter_support_files()` 阶段再次报错。
 
 ## 当前已确认的长期约束
 

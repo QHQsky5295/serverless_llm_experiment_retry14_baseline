@@ -39,12 +39,39 @@ def ensure_adapter_support_files(adapter_dir: Path, model_name_or_path: str) -> 
     for name in _AUX_FILENAMES:
         src = model_root / name
         dst = adapter_dir / name
-        if not src.exists() or dst.exists():
+        if not src.exists():
             continue
+
+        if dst.exists() or dst.is_symlink():
+            # Keep already-correct files/symlinks, but aggressively repair
+            # stale/broken symlinks that can appear after moving frozen pools.
+            try:
+                if dst.is_symlink():
+                    target = dst.resolve(strict=False)
+                    if target == src.resolve():
+                        continue
+                    dst.unlink()
+                else:
+                    continue
+            except Exception:
+                try:
+                    if dst.is_symlink() or dst.is_file():
+                        dst.unlink()
+                    elif dst.exists():
+                        shutil.rmtree(dst)
+                except Exception:
+                    pass
+
         try:
-            rel_src = os.path.relpath(src, adapter_dir)
-            dst.symlink_to(rel_src)
+            # Absolute symlinks are more robust when frozen adapter pools get
+            # archived/restored or moved across sibling directories.
+            dst.symlink_to(src.resolve())
         except Exception:
+            if dst.exists() or dst.is_symlink():
+                try:
+                    dst.unlink()
+                except Exception:
+                    pass
             shutil.copy2(src, dst)
         created.append(name)
     return created
