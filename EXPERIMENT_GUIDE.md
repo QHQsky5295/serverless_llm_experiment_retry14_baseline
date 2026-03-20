@@ -220,15 +220,15 @@ python scripts/generate_lora_adapters.py --model models/Qwen--Qwen2.5-7B-Instruc
 
 > **当前生成实现**：`PEFT+finetune` 模式现在会对同一轮 adapter 生成只加载一次 base model，再循环保存多个 adapter；因此重新启动后的新一轮生成会比旧版“每个 adapter 重新加载模型”更快。
 
-当前下一步 `Mistral-Nemo + TP=2 + 500 adapters` 的推荐正式实验命令：
+当前下一步 `Qwen 14B V2 publicmix + TP=2 + 500 adapters` 的推荐正式实验命令：
 
 ```bash
 python scripts/download_model.py \
-  --model mistralai/Mistral-Nemo-Instruct-2407
+  --model Qwen/Qwen2.5-14B-Instruct
 
-FAASLORA_PROFILE_MODEL=mistral_nemo_12b_tp2 \
+FAASLORA_PROFILE_MODEL=qwen_14b_tp2_v2_publicmix \
 FAASLORA_PROFILE_DATASET=azure_sharegpt_rep1000 \
-FAASLORA_PROFILE_WORKLOAD=mistral_nemo_12b_tp2_main \
+FAASLORA_PROFILE_WORKLOAD=qwen_14b_tp2_a500_main \
 python scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faaslora_full
 ```
 
@@ -705,18 +705,18 @@ python scripts/run_all_experiments.py --config configs/experiments.yaml
 - **结果文件**：按 `backend / mode / adapters / requests / concurrency / results_tag` 落盘到 `results/` 目录，文件名取决于当前 profile 与环境变量覆盖。
 - **环境**：当前主线稳定环境为 `LLM_vllm0102`，详见 [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)。
 
-**当前下一步（Mistral-Nemo + TP=2 + PEFT+finetune + 500 adapters）**：
+**当前下一步（Qwen 14B V2 publicmix + TP=2 + PEFT+finetune + 500 adapters）**：
 
 ```bash
 conda activate LLM_vllm0102
 cd /home/qhq/serverless_llm_experiment
 
 python scripts/download_model.py \
-  --model mistralai/Mistral-Nemo-Instruct-2407
+  --model Qwen/Qwen2.5-14B-Instruct
 
-FAASLORA_PROFILE_MODEL=mistral_nemo_12b_tp2 \
+FAASLORA_PROFILE_MODEL=qwen_14b_tp2_v2_publicmix \
 FAASLORA_PROFILE_DATASET=azure_sharegpt_rep1000 \
-FAASLORA_PROFILE_WORKLOAD=mistral_nemo_12b_tp2_main \
+FAASLORA_PROFILE_WORKLOAD=qwen_14b_tp2_a500_main \
 python scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faaslora_full
 ```
 

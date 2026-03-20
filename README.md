@@ -369,16 +369,16 @@ FaaSLoRA 的研究重点不是“为每个请求都创建新的物理 GPU 实例
 
 ### 当前正在推进的扩展主线
 
-当前正在推进的下一个模型家族是 `Mistral`：
+当前默认主线已经切到 `Qwen 14B V2 publicmix`：
 
-- 小档位：`mistralai/Mistral-7B-Instruct-v0.3`
-- 大档位：`mistralai/Mistral-Nemo-Instruct-2407`
+- 当前默认组合：`qwen_14b_tp2_v2_publicmix + azure_sharegpt_rep1000 + qwen_14b_tp2_a500_main`
+- 当前验证目标：`Qwen2.5-14B-Instruct` 在单机双卡 `TP=2 + max_instances=1` 口径下的正式 `r1000` 结果
 
 当前论文主线口径已统一为：
 
 - LoRA 工件默认模式：`PEFT+finetune`
 - 论文主线规模：`500 adapters`
-- 当前正在执行的下一步：`Mistral 7B V2 publicmix + representative r1000`；该主线按 `TP=1 + max_instances=2` 推进，且由于 V2 publicmix 含异构 public LoRA，默认已切到更保守的 vLLM V0 路径，并把 `gpu_memory_utilization` 收到 `0.70` 以保证第二个单卡实例能稳定拉起
+- 当前正在执行的下一步：`Qwen 14B V2 publicmix + representative r1000`；该主线按 `TP=2 + max_instances=1` 推进，用于验证双卡大模型实例在多 LoRA、分层驻留与运行时热集管理下的正式表现
 
 ### 当前保留但不作为主线推进的接口
 

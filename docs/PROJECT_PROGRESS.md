@@ -259,7 +259,7 @@
 2. user-scope 启动脚本未透传 `FAASLORA_*` 环境变量的问题。
 3. 结果文件命名冲突问题。
 4. 主线 serving 参数不可显式覆盖的问题。
-5. `configs/experiments.yaml` 的默认入口已固化为 `profile_selection` 路径；当前文件内默认选择为 `qwen_14b_tp2 + azure_sharegpt_rep1000 + qwen_14b_tp2_main`。
+5. `configs/experiments.yaml` 的默认入口已固化为 `profile_selection` 路径；当前文件内默认选择为 `qwen_14b_tp2_v2_publicmix + azure_sharegpt_rep1000 + qwen_14b_tp2_a500_main`。
 6. 默认入口复验已完成，默认命令路径与冻结主线配置保持一致。
 7. `faaslora.cli` 已补回，`pyproject` 的 console script 与 autoscaler 的 `python -m faaslora.cli coordinator ...` 子进程入口不再悬空。
 8. `flashinfer` 与 `torch-c-dlpack-ext` 已装入 `LLM_vllm0102`，vLLM 采样路径显式请求使用 FlashInfer。
@@ -363,6 +363,14 @@
    - `gpu1 = 16.7 / 24.0 GB`
   这说明当前 `Mistral 7B TP=1 + scale-out` 的第二实例已经能够真正落到物理 `GPU1`，而不是像此前那样在扩容点直接失败或伪扩容。
 40. 已完成：`mistral_common` 的 `special token policy=None` 弃用 warning 已通过正经兼容方式在本地环境层消除。根因是当前 `vLLM` 对 Mistral sentencepiece tokenizer 仍显式保留 `None`，而 `mistral_common>=1.9` 已将其标记为弃用；当前已在本地 `vLLM` 安装中把该路径改为显式 `SpecialTokenPolicy.IGNORE`。这不会改变解码语义，因为 `mistral_common` 当前本来就会把 `None` 映射到 `IGNORE`；只是在运行时把未来默认行为显式化，避免持续打印 `FutureWarning`。已用本地 `Mistral-7B-Instruct-v0.3` tokenizer 做最小验证，并在 `FutureWarning` 提升为 error 的条件下确认通过。
+41. 已完成：HOST tier 的实现缺口已补齐，不再只是“逻辑上有 HOST、实际一直显示 0”。本轮修复同时覆盖了四层问题：
+   - `ResidencyManager` 现在会把 `HOST`/`NVME` 的 admit 与 `GPU→HOST` / `HOST→NVME` eviction 真正物化到对应目录，而不是把 `HOST` 默认映射回 `NVME`
+   - `ExperimentStack` 新增 registry 驱动的 `sync_local_tier_paths()`，运行时迁移后的 `_host_paths / _nvme_paths` 不再只依赖启动阶段 preload 状态
+   - live 面板与 instance cache 视图会在刷新时重建 `host/nvme` 集合，不再因为旧 slot 状态残留而长期显示 `host=0`
+   - `PreloadingPlanner` 的 `knapsack_dp` 由“字节级 DP + 错误回溯”改成了 `MiB` 单位 DP，修复了 `Stage 2 (NVMe→HOST)` 在小容量场景下经常意外返回空计划的问题
+   本地新增回归已覆盖：
+   - HOST admit 后真实落文件并回写 registry/storage_path
+   - HOST 预加载在 `96 MiB` 小容量场景下能稳定选出非空计划
 
 ## 当前已确认的长期约束
 

@@ -356,46 +356,46 @@ class PreloadingPlanner:
         if not candidates:
             return []
         
-        # Convert to knapsack items
-        items = [
-            KnapsackItem(
-                artifact_id=c.artifact_id,
-                weight=c.size_bytes,
-                value=c.priority_score * c.size_bytes  # Total value
-            )
-            for c in candidates
-        ]
-        
-        # For large capacity, use greedy approximation to avoid memory issues
-        if capacity_bytes > 100 * 1024**3 or len(items) > 1000:  # 100GB or 1000 items
+        # Byte-level DP is not tractable for GiB-scale capacities. Convert the
+        # problem to MiB units so HOST/NVMe planning remains exact enough while
+        # staying bounded in memory.
+        unit_bytes = 1024 ** 2  # 1 MiB
+        cap_units = max(1, capacity_bytes // unit_bytes)
+
+        # Very large plans still fall back to greedy to keep planning bounded.
+        if cap_units > 16384 or len(candidates) > 1000:  # 16 GiB in MiB units
             return self._greedy_knapsack_approximation(candidates, capacity_bytes)
-        
-        # DP table
+
+        items = []
+        for c in candidates:
+            weight_units = max(1, (c.size_bytes + unit_bytes - 1) // unit_bytes)
+            value = float(c.priority_score) * float(weight_units)
+            items.append((weight_units, value))
+
         n = len(items)
-        W = capacity_bytes
-        
-        # Use space-optimized DP (only keep current and previous row)
-        prev = [0] * (W + 1)
-        curr = [0] * (W + 1)
-        
-        # Fill DP table
+        dp = [[0.0] * (cap_units + 1) for _ in range(n + 1)]
+        keep = [[False] * (cap_units + 1) for _ in range(n + 1)]
+
         for i in range(1, n + 1):
-            item = items[i - 1]
-            for w in range(W + 1):
-                # Don't take item
-                curr[w] = prev[w]
-                
-                # Take item if possible
-                if item.weight <= w:
-                    curr[w] = max(curr[w], prev[w - item.weight] + item.value)
-            
-            # Swap arrays
-            prev, curr = curr, prev
-        
-        # Backtrack to find selected items
-        selected_indices = self._backtrack_knapsack(items, prev, W)
-        
-        # Return selected candidates
+            weight_units, value = items[i - 1]
+            for w in range(cap_units + 1):
+                best = dp[i - 1][w]
+                if weight_units <= w:
+                    candidate_value = dp[i - 1][w - weight_units] + value
+                    if candidate_value > best:
+                        dp[i][w] = candidate_value
+                        keep[i][w] = True
+                        continue
+                dp[i][w] = best
+
+        selected_indices: List[int] = []
+        w = cap_units
+        for i in range(n, 0, -1):
+            if keep[i][w]:
+                selected_indices.append(i - 1)
+                w -= items[i - 1][0]
+
+        selected_indices.reverse()
         return [candidates[i] for i in selected_indices]
     
     def _greedy_knapsack_approximation(self, 
@@ -433,33 +433,13 @@ class PreloadingPlanner:
                           dp: List[int],
                           capacity: int) -> List[int]:
         """
-        Backtrack to find selected items in knapsack solution
-        
-        Args:
-            items: List of knapsack items
-            dp: DP table final row
-            capacity: Knapsack capacity
-            
-        Returns:
-            List of selected item indices
+        Legacy helper kept for compatibility with older callers.
+
+        The planner now uses an in-function traceback table in
+        ``_knapsack_dp_selection`` because byte-level space-optimised DP could not
+        be reconstructed correctly and caused empty HOST preload plans.
         """
-        selected = []
-        w = capacity
-        
-        for i in range(len(items) - 1, -1, -1):
-            item = items[i]
-            
-            # Check if this item was included
-            if w >= item.weight:
-                # Calculate value without this item
-                prev_value = dp[w - item.weight] if i == 0 else 0  # Simplified for space-optimized DP
-                
-                # If including this item gives the optimal value
-                if dp[w] == prev_value + item.value:
-                    selected.append(i)
-                    w -= item.weight
-        
-        return selected[::-1]  # Reverse to get original order
+        return []
     
     def _hotness_based_selection(self, 
                                candidates: List[PreloadingCandidate],

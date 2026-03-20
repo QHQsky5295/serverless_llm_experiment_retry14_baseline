@@ -30,6 +30,9 @@ from faaslora.serving.vllm_wrapper import VLLMWrapper
 from faaslora.storage.remote_client import RemoteStorageClient
 from faaslora.storage.s3_client import S3Client
 from faaslora.storage.storage_manager import StorageManager
+from faaslora.experiment.experiment_stack import ExperimentStack
+from faaslora.preloading.preloading_planner import PreloadingPlanner
+from faaslora.registry.schema import ArtifactMetadata, ArtifactStatus, StorageTier
 from faaslora.utils.model_assets import ensure_adapter_support_files
 from faaslora.utils.config import Config
 from scripts.generate_lora_adapters import (
@@ -68,19 +71,19 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
     def test_mainline_defaults_match_frozen_path(self) -> None:
         model, workload, resource, lora_cfg = self._resolve_active_profiles()
-        selected_model = self.experiments["model_profiles"]["mistral_7b_main_v2_publicmix"]["model"]
+        selected_model = self.experiments["model_profiles"]["qwen_14b_tp2_v2_publicmix"]["model"]
 
         self.assertEqual(resource["instance_mode"], "auto")
-        self.assertEqual(resource["max_instances"], 2)
+        self.assertEqual(resource["max_instances"], 1)
         self.assertTrue(resource["effective_capacity_admission_enabled"])
         self.assertEqual(workload["sampling_strategy"], "representative")
         self.assertEqual(workload["total_requests"], 1000)
-        self.assertEqual(workload["concurrency"], 4)
+        self.assertEqual(workload["concurrency"], 2)
         self.assertEqual(workload["time_scale_factor"], 0.02)
         self.assertEqual(model["name"], selected_model["name"])
-        self.assertEqual(model["tensor_parallel_size"], 1)
+        self.assertEqual(model["tensor_parallel_size"], 2)
         self.assertEqual(model["max_model_len"], 1024)
-        self.assertEqual(model["max_loras"], 1)
+        self.assertEqual(model["max_loras"], 2)
         self.assertEqual(model["max_num_seqs"], 2)
         self.assertEqual(model["max_num_batched_tokens"], 1024)
         self.assertEqual(model["runtime_concurrency_cap"], 2)
@@ -108,12 +111,12 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         dataset_profiles = self.experiments["dataset_profiles"]
         workload_profiles = self.experiments["workload_profiles"]
 
-        self.assertEqual(selection["model"], "mistral_7b_main_v2_publicmix")
+        self.assertEqual(selection["model"], "qwen_14b_tp2_v2_publicmix")
         self.assertEqual(selection["dataset"], "azure_sharegpt_rep1000")
-        self.assertEqual(selection["workload"], "mistral_7b_auto500_main")
-        self.assertIn("mistral_7b_main_v2_publicmix", model_profiles)
+        self.assertEqual(selection["workload"], "qwen_14b_tp2_a500_main")
+        self.assertIn("qwen_14b_tp2_v2_publicmix", model_profiles)
         self.assertIn("azure_sharegpt_rep4000", dataset_profiles)
-        self.assertIn("mistral_7b_auto500_main", workload_profiles)
+        self.assertIn("qwen_14b_tp2_a500_main", workload_profiles)
 
     def test_scale_preset_can_be_disabled_for_new_model_profiles(self) -> None:
         self.assertTrue(self.experiments["lora_adapters"]["apply_scale_preset"])
@@ -133,7 +136,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         model_profile = self.experiments["model_profiles"][selection["model"]]
         storage = model_profile.get("storage", {})
 
-        self.assertEqual(storage["remote_dir"], "artifacts/frozen/mistral_7b_a500_v2_publicmix")
+        self.assertEqual(storage["remote_dir"], "artifacts/frozen/qwen_14b_a500_v2_publicmix")
 
     def test_mistral_nemo_profile_uses_conservative_vllm_path(self) -> None:
         model = self.experiments["model_profiles"]["mistral_nemo_12b_tp2"]["model"]
@@ -252,11 +255,102 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
         self.assertEqual(
             defaults["model"],
-            self.experiments["model_profiles"]["mistral_7b_main_v2_publicmix"]["model"]["name"],
+            self.experiments["model_profiles"]["qwen_14b_tp2_v2_publicmix"]["model"]["name"],
         )
         self.assertEqual(defaults["num_adapters"], 500)
         self.assertEqual(defaults["generation_mode"], "peft_finetune")
         self.assertEqual(defaults["artifact_pool_profile"], "standardized_v1")
+
+    def test_host_admission_materializes_real_host_path_and_syncs_stack_views(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            remote_dir = root / "remote"
+            nvme_dir = root / "nvme"
+            host_dir = root / "host"
+            adapter_id = "finance_lora"
+            src = remote_dir / adapter_id
+            src.mkdir(parents=True, exist_ok=True)
+            Path(src, "adapter_config.json").write_text(
+                json.dumps({"base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct"}),
+                encoding="utf-8",
+            )
+            Path(src, "adapter_model.bin").write_bytes(b"ok")
+
+            stack = ExperimentStack(
+                adapter_info={adapter_id: {"size_mb": 32.0, "hotness": 0.9}},
+                hardware_cfg={"gpu_budget_mb": 24000},
+                coord_cfg={"min_instances": 1, "max_instances": 2},
+                preload_cfg={"strategy": "hybrid", "nvme_capacity_mb": 20480, "host_capacity_mb": 4096},
+                remote_dir=remote_dir,
+                nvme_dir=nvme_dir,
+                host_dir=host_dir,
+            )
+            stack._ensure_registered()
+
+            admitted = asyncio.run(stack.residency_manager.admit_artifact(adapter_id, StorageTier.HOST))
+            self.assertTrue(admitted)
+
+            meta = stack.registry.get_artifact(adapter_id)
+            self.assertEqual(meta.storage_tier, StorageTier.HOST)
+            self.assertTrue(str(meta.storage_path).startswith(str(host_dir)))
+            self.assertTrue((host_dir / adapter_id).exists())
+
+            stack.sync_local_tier_paths()
+            self.assertIn(adapter_id, stack._host_paths)
+            self.assertNotIn(adapter_id, stack._nvme_paths)
+
+    def test_knapsack_host_plan_uses_scaled_units_and_returns_candidates(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            config_path = Path(tmpdir, "planner.yaml")
+            config_path.write_text(
+                yaml.safe_dump(
+                    {
+                        "system": {"name": "faaslora", "version": "1.0.0"},
+                        "redis": {"host": "localhost", "port": 6379},
+                        "memory": {
+                            "gpu": {"enabled": True, "capacity_gb": 24},
+                            "host": {"capacity_gb": 64},
+                            "nvme": {"cache_size_gb": 50},
+                        },
+                        "serving": {"vllm": {"model_name": "stub-model", "tensor_parallel_size": 1}},
+                        "api": {"http": {"host": "127.0.0.1", "port": 8000}},
+                        "registry": {"backend": "memory"},
+                        "preloading": {
+                            "strategy": "hybrid",
+                            "max_plan_size_gb": 4,
+                            "min_hotness_threshold": 0.1,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            config = Config(str(config_path))
+            registry = ArtifactRegistry(config)
+            planner = PreloadingPlanner(config=config, registry=registry)
+
+            for idx, size_mb in enumerate((32, 48, 64), start=1):
+                registry.register_artifact(
+                    ArtifactMetadata(
+                        artifact_id=f"a{idx}",
+                        name=f"a{idx}",
+                        size_bytes=size_mb * 1024 * 1024,
+                        storage_tier=StorageTier.NVME,
+                        storage_path=f"/tmp/a{idx}",
+                        status=ArtifactStatus.AVAILABLE,
+                        hotness_score=0.9,
+                        value_per_byte=0.05,
+                        predicted_load_time_ms=10.0,
+                    )
+                )
+
+            plan = planner.generate_preloading_plan(
+                target_tier=StorageTier.HOST,
+                capacity_bytes=96 * 1024 * 1024,
+                scaling_event={"type": "initial"},
+            )
+
+            self.assertGreaterEqual(len(plan.selected_artifacts), 1)
+            self.assertLessEqual(plan.total_size_bytes, 96 * 1024 * 1024)
 
     def test_formal_a500_profiles_exist_for_four_models(self) -> None:
         workloads = self.experiments["workload_profiles"]

@@ -1900,6 +1900,8 @@ class ScenarioRunner:
     def _instance_panel_lines(self) -> List[str]:
         if not self._show_instance_panel or self.instance_pool is None:
             return []
+        if self._stack is not None and getattr(self._stack, "sync_local_tier_paths", None):
+            self._stack.sync_local_tier_paths()
         lines: List[str] = []
         for group in self.instance_pool.get_runtime_groups():
             if not group:
@@ -1949,6 +1951,8 @@ class ScenarioRunner:
     def _adapter_cache_counts(self) -> Dict[str, int]:
         if self.instance_pool is None:
             return {"gpu": len(self._gpu_warmed), "host": 0, "nvme": len(self._nvme_cache)}
+        if self._stack is not None and getattr(self._stack, "sync_local_tier_paths", None):
+            self._stack.sync_local_tier_paths()
         gpu = set()
         host = set()
         nvme = set()
@@ -2343,10 +2347,16 @@ class ScenarioRunner:
     def _prime_slot_cache_view(self, slot: Any, include_gpu: bool) -> None:
         if slot is None:
             return
-        slot.nvme_cached_adapters.update(self._nvme_cache.keys())
+        if self._stack is not None:
+            sync = getattr(self._stack, "sync_local_tier_paths", None)
+            if sync is not None:
+                sync()
+        slot.nvme_cached_adapters = set(self._nvme_cache.keys())
         if self._stack is not None:
             slot.nvme_cached_adapters.update(getattr(self._stack, "_nvme_paths", {}).keys())
-            slot.host_cached_adapters.update(getattr(self._stack, "_host_paths", {}).keys())
+            slot.host_cached_adapters = set(getattr(self._stack, "_host_paths", {}).keys())
+        else:
+            slot.host_cached_adapters = set()
         if include_gpu:
             slot.gpu_resident_adapters.update(self._gpu_warmed)
         self._refresh_slot_runtime_hints(slot)

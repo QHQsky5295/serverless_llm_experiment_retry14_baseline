@@ -156,6 +156,67 @@ class ExperimentStack:
         self._pending_scaleup_gpu_artifacts: List[str] = []
         self._registered = False
 
+    def _path_tier_hint(self, path: Optional[str]) -> Optional[str]:
+        if not path:
+            return None
+        try:
+            resolved = Path(path).resolve()
+        except Exception:
+            return None
+        try:
+            resolved.relative_to(self.host_dir.resolve())
+            return "host"
+        except Exception:
+            pass
+        try:
+            resolved.relative_to(self.nvme_dir.resolve())
+            return "nvme"
+        except Exception:
+            pass
+        return None
+
+    def sync_local_tier_paths(self) -> None:
+        """
+        Rebuild host/NVMe path hints from registry metadata and existing local files.
+
+        Runtime evictions can move adapters between tiers after initial preload. The
+        experiment runner and router consult ``_host_paths`` / ``_nvme_paths`` for
+        cache-affinity and live panel rendering, so these maps must follow the live
+        registry state rather than only the startup preload plan.
+        """
+        host_paths: Dict[str, str] = {}
+        nvme_paths: Dict[str, str] = {}
+
+        for metadata in self.registry.list_artifacts(limit=max(1000, len(self.adapter_info) * 2)):
+            if not metadata:
+                continue
+            path = str(getattr(metadata, "storage_path", "") or "").strip()
+            if not path:
+                continue
+            aid = metadata.artifact_id
+            tier_hint = self._path_tier_hint(path)
+            exists = Path(path).exists()
+            if not exists:
+                continue
+
+            if metadata.storage_tier == StorageTier.HOST or tier_hint == "host":
+                host_paths[aid] = path
+                continue
+            if metadata.storage_tier in (StorageTier.NVME, StorageTier.GPU) or tier_hint == "nvme":
+                nvme_paths[aid] = path
+
+        # Preserve any still-valid preload hints that have not yet been reflected in
+        # the registry update path.
+        for aid, path in dict(self._host_paths).items():
+            if aid not in host_paths and self._path_tier_hint(path) == "host" and Path(path).exists():
+                host_paths[aid] = path
+        for aid, path in dict(self._nvme_paths).items():
+            if aid not in nvme_paths and self._path_tier_hint(path) == "nvme" and Path(path).exists():
+                nvme_paths[aid] = path
+
+        self._host_paths = host_paths
+        self._nvme_paths = nvme_paths
+
     def _repair_adapter_dir(self, path: Optional[str]) -> None:
         if not path:
             return
@@ -188,6 +249,7 @@ class ExperimentStack:
         recent_threshold = time.time() - 3600.0
         selected: List[str] = []
         remaining = max(0, int(capacity_bytes))
+        self.sync_local_tier_paths()
         candidate_ids = list(set(self._host_paths) | set(self._nvme_paths))
         scored: List[Tuple[float, str, int]] = []
 
@@ -306,6 +368,7 @@ class ExperimentStack:
         engine_generate_fn(prompt, path, adapter_id) -> (ttft, tpot, tokens).
         """
         warmed = 0
+        self.sync_local_tier_paths()
         # Combined set: adapters in host or nvme, sorted by hotness desc
         all_aids = list(set(self._host_paths) | set(self._nvme_paths))
         hot_aids = [
@@ -344,6 +407,7 @@ class ExperimentStack:
         Order: GPU → HOST (memory) → NVME (disk) → remote (ensure_local copies remote→nvme, never direct remote→GPU).
         """
         coord = coordinator if coordinator is not None else self.coordinator
+        self.sync_local_tier_paths()
 
         # Dedicated instances may keep per-instance GPU residency outside the global
         # ResidencyManager. Prefer the request's coordinator view when available.

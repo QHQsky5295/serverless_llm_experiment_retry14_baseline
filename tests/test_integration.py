@@ -65,7 +65,7 @@ class EntryPointIntegrationTests(unittest.TestCase):
         self.assertEqual(active_model["gpu_memory_utilization"], 0.85)
 
     def test_current_mistral_mainline_profile_uses_500_adapters(self) -> None:
-        workload = self.experiments["workload_profiles"]["mistral_7b_auto500_main"]
+        workload = self.experiments["workload_profiles"]["qwen_7b_auto500_main"]
 
         self.assertEqual(workload["lora_adapters"]["selected_num_adapters"], 500)
         self.assertEqual(workload["lora_adapters"]["full_num_adapters"], 500)

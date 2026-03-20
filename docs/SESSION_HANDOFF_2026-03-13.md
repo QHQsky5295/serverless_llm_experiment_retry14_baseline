@@ -373,9 +373,9 @@
 
 ```yaml
 profile_selection:
-  model: "qwen_14b_tp2"
+  model: "qwen_14b_tp2_v2_publicmix"
   dataset: "azure_sharegpt_rep1000"
-  workload: "qwen_14b_tp2_main"
+  workload: "qwen_14b_tp2_a500_main"
 ```
 
 这对应的实际组合是：
@@ -706,6 +706,21 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
   - 当前已改为显式 `SpecialTokenPolicy.IGNORE`
   - 这不会改变解码语义，因为 `mistral_common` 当前本来就将 `None` 映射到 `IGNORE`
   - 已用本地 `Mistral-7B-Instruct-v0.3` tokenizer 在 `FutureWarning -> error` 条件下验证通过
+- 当前又补了一轮 HOST tier 修复：
+  - 之前 `Stage 2 (NVMe→HOST)` 经常是 `0 adapters`，而运行时日志虽反复出现 `gpu -> host` eviction，live 面板却长期显示 `loaded[g/h/n]=.../0/...`
+  - 真正根因不是单点，而是整条链路都不完整：
+    1. `ResidencyManager` 对 `HOST` 仍按“映射到 NVME”处理，没有真正把工件物化到 `host_dir`
+    2. `ExperimentStack._host_paths` 只在启动 preload 阶段维护，运行时 tier 迁移后不会跟 registry 同步
+    3. instance panel 只看 slot 的缓存集合，slot 状态又不会在运行时迁移后重建
+    4. `PreloadingPlanner._knapsack_dp_selection()` 以前按“字节级容量”做 DP，并用错误的回溯方式恢复解，导致 HOST 小容量计划容易直接空掉
+  - 当前本地修复已经完成：
+    - `ResidencyManager` 会把 `HOST/NVME` admit 和 `GPU→HOST`、`HOST→NVME` eviction 真正落到各自目录，并回写 `storage_path`
+    - `ExperimentStack` 新增 `sync_local_tier_paths()`，按 registry + 实际路径重建 `_host_paths/_nvme_paths`
+    - live 面板刷新时会重建 slot 的 `host/nvme` 集合，不再一直显示 `host=0`
+    - knapsack 改成 `MiB` 单位 DP，HOST 预加载不再因为容量单位 bug 返回空计划
+  - 本地回归已覆盖：
+    - HOST admit 后真实落文件并同步 registry / stack 视图
+    - `96 MiB` HOST 计划能选出非空候选
 
 ---
 

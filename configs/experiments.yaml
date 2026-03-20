@@ -33,9 +33,9 @@ experiment:  # 实验整体输出与统计方式总配置块
 # Profile 选择器（优先用于切换模型 / 数据源 / 工作负载主线）
 # ---------------------------------------------------------------------------
 profile_selection:  # 当前默认激活的模型/数据集/工作负载 profile 选择器
-  model: "mistral_7b_main_v2_publicmix"  # 默认起点切到 Mistral 7B V2 publicmix 主线
+  model: "qwen_14b_tp2_v2_publicmix"  # 默认起点切到 Qwen 14B V2 publicmix 主线
   dataset: "azure_sharegpt_rep1000"  # 当前选中的 dataset profile 名称
-  workload: "mistral_7b_auto500_main"  # 默认先跑 Mistral 7B 的 1000 请求论文主线
+  workload: "qwen_14b_tp2_a500_main"  # 默认先跑 Qwen 14B 的 1000 请求论文主线
 
 # ---------------------------------------------------------------------------
 # 模型 Profile（可覆盖 model + hardware）
@@ -96,18 +96,23 @@ model_profiles:  # 可复用的模型 profile 集合
       device_id: 0
       visible_device_ids: [0, 1]
       tensor_parallel_size: 1
-      gpu_memory_utilization: 0.85
+      gpu_memory_utilization: 0.70  # V2 publicmix 的异构 LoRA 更吃显存；给第二个单卡实例和热层装载预留稳定余量
       max_model_len: 1024
-      max_loras: 2
+      max_loras: 6  # 恢复多 LoRA 主线表达力度：24G 单卡上先取 6，兼顾热 LoRA 预加载意义与 V2 publicmix 异构工件稳定性
       max_lora_rank: 32  # publicmix V2 中包含少量更高 rank 的公开 LoRA
       enable_lora: true
       enforce_eager: true
       dtype: "float16"
-      max_num_seqs: 4
+      max_num_seqs: 2  # 先把 runtime 内部调度并发降到 2，避免单实例高水位时 EngineCore 提前死亡
       max_num_batched_tokens: 1024
       max_output_tokens_cap: 64
       max_input_len: 256
-      runtime_concurrency_cap: 4
+      runtime_concurrency_cap: 2  # 系统层并发同步收紧，优先保证 Qwen 7B V2 scale-out 跑稳
+      enable_chunked_prefill: false  # 关闭 chunked prefill，减少 V1 路径下的额外运行时变量
+      enable_prefix_caching: false  # 关闭 prefix caching，降低异构 publicmix LoRA 与缓存路径交互的不确定性
+      vllm_use_v1: false  # 强制退回更稳的 V0 路径，避免当前环境下 Qwen 7B V2 的 EngineCore 中途死亡
+      vllm_attention_backend: "FLASH_ATTN"  # 注意力后端固定为 FlashAttention
+      vllm_use_flashinfer_sampler: false  # 显式关闭 FlashInfer sampler，保证不同模型家族的运行时口径一致
     hardware:
       model_weights_mb: 14336
       kv_per_1k_tokens_mb: 2.0

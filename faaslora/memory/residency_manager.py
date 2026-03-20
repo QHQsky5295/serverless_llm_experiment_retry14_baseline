@@ -8,6 +8,8 @@ using greedy admission and eviction algorithms based on value-per-byte optimizat
 import time
 import asyncio
 import threading
+import shutil
+from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
@@ -129,6 +131,14 @@ class ResidencyManager:
         # Background tasks
         self.monitoring = False
         self.monitor_task: Optional[asyncio.Task] = None
+
+        storage_config = config.get("storage", {})
+        host_cfg = memory_config.get("host", {})
+        nvme_cfg = memory_config.get("nvme", {})
+        host_dir = host_cfg.get("cache_dir") or storage_config.get("host_cache_dir")
+        nvme_dir = nvme_cfg.get("cache_dir") or storage_config.get("local", {}).get("cache_dir")
+        self.host_cache_dir = Path(host_dir) if host_dir else None
+        self.nvme_cache_dir = Path(nvme_dir) if nvme_dir else None
         
         self.logger.info("Residency manager initialized")
     
@@ -669,18 +679,15 @@ class ResidencyManager:
         """
         Ensure the artifact file is present in the target tier.
 
-        NVME tier  → call StorageManager.ensure_local() to download from remote if needed.
-        HOST tier  → currently mapped to NVME directory (RAM-disk optional).
-        GPU tier   → ensure local file present (vLLM loads from it on demand).
+        NVME tier  → materialize adapter under the local NVMe cache.
+        HOST tier  → materialize adapter under the host cache directory.
+        GPU tier   → ensure a local backing file exists (vLLM loads from it on demand).
         """
         artifact_id = operation.artifact_id
         target_tier = operation.target_tier
 
         if self.storage_manager is None:
-            # Fallback: no storage manager, use estimated timing only
-            load_time = self._estimate_load_time(operation.size_bytes, target_tier)
-            await asyncio.sleep(min(load_time / 1000, 0.5))
-            return True
+            return await self._perform_load_without_storage_manager(operation)
 
         if target_tier in (StorageTier.NVME, StorageTier.HOST, StorageTier.GPU):
             local_path = await self.storage_manager.ensure_local(artifact_id)
@@ -690,9 +697,25 @@ class ResidencyManager:
                 )
                 return False
 
+            final_path = local_path
+            if target_tier == StorageTier.HOST:
+                final_path = self._materialize_into_tier_dir(
+                    artifact_id,
+                    local_path,
+                    StorageTier.HOST,
+                )
+                if final_path is None:
+                    return False
+            elif target_tier == StorageTier.NVME:
+                final_path = self._materialize_into_tier_dir(
+                    artifact_id,
+                    local_path,
+                    StorageTier.NVME,
+                ) or local_path
+
             # Update registry with the actual local file path
             self.registry.update_artifact(artifact_id, {
-                "storage_path": local_path,
+                "storage_path": final_path,
             })
             return True
 
@@ -708,17 +731,114 @@ class ResidencyManager:
         artifact_id = operation.artifact_id
         source_tier = operation.source_tier
         target_tier = operation.target_tier
+        metadata = self.registry.get_artifact(artifact_id)
+        current_path = str(getattr(metadata, "storage_path", "") or "").strip() if metadata else ""
 
         if source_tier == StorageTier.GPU:
-            # vLLM handles GPU eviction internally; we only update bookkeeping
-            pass
+            # vLLM handles the in-GPU state; lower tiers still need a real backing path.
+            if target_tier in (StorageTier.HOST, StorageTier.NVME):
+                dest_path = self._materialize_into_tier_dir(artifact_id, current_path, target_tier)
+                if dest_path is None:
+                    self.logger.warning(
+                        f"_perform_evict: could not materialize {artifact_id} into {target_tier.value}"
+                    )
+                    return False
+                self.registry.update_artifact(artifact_id, {"storage_path": dest_path})
+
+        elif source_tier == StorageTier.HOST and target_tier == StorageTier.NVME:
+            dest_path = self._materialize_into_tier_dir(artifact_id, current_path, StorageTier.NVME)
+            if dest_path is None:
+                return False
+            self.registry.update_artifact(artifact_id, {"storage_path": dest_path})
 
         elif source_tier == StorageTier.NVME and target_tier == StorageTier.REMOTE:
             # Remove local file to free disk space
             if self.storage_manager:
                 await self.storage_manager.local_cache.delete_artifact(artifact_id)
+            elif current_path:
+                self._delete_path(current_path)
 
         return True
+
+    async def _perform_load_without_storage_manager(self, operation: ResidencyOperation) -> bool:
+        artifact_id = operation.artifact_id
+        metadata = self.registry.get_artifact(artifact_id)
+        if metadata is None:
+            return False
+
+        target_tier = operation.target_tier
+        current_path = str(getattr(metadata, "storage_path", "") or "").strip()
+
+        if target_tier == StorageTier.GPU:
+            return bool(current_path and Path(current_path).exists())
+
+        if target_tier in (StorageTier.NVME, StorageTier.HOST):
+            dest_path = self._materialize_into_tier_dir(artifact_id, current_path, target_tier)
+            if dest_path is None:
+                return False
+            self.registry.update_artifact(artifact_id, {"storage_path": dest_path})
+            return True
+
+        load_time = self._estimate_load_time(operation.size_bytes, target_tier)
+        await asyncio.sleep(min(load_time / 1000, 0.5))
+        return True
+
+    def _tier_cache_dir(self, tier: StorageTier) -> Optional[Path]:
+        if tier == StorageTier.HOST:
+            return self.host_cache_dir
+        if tier == StorageTier.NVME:
+            return self.nvme_cache_dir
+        return None
+
+    def _materialize_into_tier_dir(
+        self,
+        artifact_id: str,
+        source_path: Optional[str],
+        target_tier: StorageTier,
+    ) -> Optional[str]:
+        tier_dir = self._tier_cache_dir(target_tier)
+        if tier_dir is None:
+            return source_path or None
+
+        src = Path(source_path) if source_path else None
+        if src is None or not src.exists():
+            return None
+
+        try:
+            if src.resolve().parent == tier_dir.resolve():
+                return str(src)
+        except Exception:
+            pass
+
+        dest = tier_dir / artifact_id
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            if dest.exists():
+                if dest.is_dir():
+                    shutil.rmtree(dest, ignore_errors=True)
+                else:
+                    dest.unlink()
+            if src.is_dir():
+                shutil.copytree(src, dest)
+            else:
+                shutil.copy2(src, dest)
+        except Exception as exc:
+            self.logger.error(
+                f"Failed to materialize {artifact_id} into {target_tier.value}: {exc}"
+            )
+            return None
+        return str(dest)
+
+    @staticmethod
+    def _delete_path(path: str) -> None:
+        try:
+            target = Path(path)
+            if target.is_dir():
+                shutil.rmtree(target, ignore_errors=True)
+            elif target.exists():
+                target.unlink()
+        except Exception:
+            pass
     
     def _estimate_load_time(self, size_bytes: int, target_tier: StorageTier) -> float:
         """Estimate loading time in milliseconds"""
