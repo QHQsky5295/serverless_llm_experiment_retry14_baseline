@@ -721,6 +721,18 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
   - 本地回归已覆盖：
     - HOST admit 后真实落文件并同步 registry / stack 视图
     - `96 MiB` HOST 计划能选出非空候选
+- 后续继续排查又确认了一个更深层的问题：
+  - 上面那轮修复解决的是“HOST 物化与统计不同步”，但没有解决“运行期几乎没人主动用 HOST”
+  - 当前运行路径里，`admit_artifact(..., StorageTier.HOST)` 之前基本只会出现在：
+    1. 启动阶段 `Stage 2 (NVMe→HOST)`
+    2. `GPU→HOST` eviction
+  - 这导致像 `Qwen 14B TP=2 + 单实例` 这类路径里，后续请求虽然持续加载新的 LoRA，却大多直接走 `NVME→GPU`，live 面板就会长期表现成 `gpu≈nvme, host=0`
+  - 当前本地代码已进一步补上：
+    - `ExperimentStack.resolve_lora()` 在运行期命中 `NVME` 的热点 LoRA 后，会异步触发一次 `NVME→HOST` 晋升
+    - 该晋升默认受 `preloading.host_promotion_on_nvme_hit_enabled` 与 `host_promotion_min_hotness` 约束
+    - 这样 HOST tier 不再只靠“启动预加载”或“GPU 逐出”两个入口才有机会被使用
+  - 本地回归已新增覆盖：
+    - 运行期 NVME 命中后会异步触发 HOST 晋升，并能在 stack/面板视图中变成可见状态
 
 ---
 

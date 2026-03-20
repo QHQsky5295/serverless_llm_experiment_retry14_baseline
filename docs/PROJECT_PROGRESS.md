@@ -371,6 +371,7 @@
    本地新增回归已覆盖：
    - HOST admit 后真实落文件并回写 registry/storage_path
    - HOST 预加载在 `96 MiB` 小容量场景下能稳定选出非空计划
+42. 已完成：继续补齐 HOST tier 的“运行期使用”缺口。新的排查确认，之前修好的只是 HOST 的真实落盘与统计同步，但运行期路径仍几乎只在“启动 Stage 2”或“GPU→HOST eviction”时触达 HOST；对于 `Qwen 14B TP=2` 这类单实例路径，后续请求虽然持续加载新的 LoRA，却基本都走 `NVME→GPU`，导致 `loaded[g/h/n]` 经常表现为 `gpu≈nvme, host=0`。当前已在 `ExperimentStack.resolve_lora()` 中加入“运行期 NVME 热命中后异步晋升到 HOST”的保守通用策略，并在 `faaslora_full.preloading` 默认配置中加入对应开关与热度阈值，确保 HOST tier 不再只依赖启动预加载或逐出事件才被使用。本地回归已新增覆盖：NVME 命中后会异步触发 HOST 晋升并在 stack 视图中可见。
 
 ## 当前已确认的长期约束
 

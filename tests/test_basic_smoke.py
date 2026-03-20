@@ -352,6 +352,75 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             self.assertGreaterEqual(len(plan.selected_artifacts), 1)
             self.assertLessEqual(plan.total_size_bytes, 96 * 1024 * 1024)
 
+    def test_nvme_hit_schedules_async_host_promotion(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            remote_dir = root / "remote"
+            nvme_dir = root / "nvme"
+            host_dir = root / "host"
+            adapter_id = "medical_lora"
+            src = remote_dir / adapter_id
+            src.mkdir(parents=True, exist_ok=True)
+            Path(src, "adapter_config.json").write_text(
+                json.dumps({"base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct"}),
+                encoding="utf-8",
+            )
+            Path(src, "adapter_model.bin").write_bytes(b"ok")
+
+            stack = ExperimentStack(
+                adapter_info={adapter_id: {"size_mb": 32.0, "hotness": 0.9}},
+                hardware_cfg={"gpu_budget_mb": 24000},
+                coord_cfg={"min_instances": 1, "max_instances": 2},
+                preload_cfg={
+                    "strategy": "hybrid",
+                    "nvme_capacity_mb": 20480,
+                    "host_capacity_mb": 4096,
+                    "min_hotness": 0.3,
+                    "host_promotion_on_nvme_hit_enabled": True,
+                    "host_promotion_min_hotness": 0.3,
+                },
+                remote_dir=remote_dir,
+                nvme_dir=nvme_dir,
+                host_dir=host_dir,
+            )
+            stack._ensure_registered()
+            admitted = asyncio.run(stack.residency_manager.admit_artifact(adapter_id, StorageTier.NVME))
+            self.assertTrue(admitted)
+            stack.sync_local_tier_paths()
+            self.assertIn(adapter_id, stack._nvme_paths)
+            self.assertNotIn(adapter_id, stack._host_paths)
+
+            class FakeCoord:
+                def _is_resident(self, _aid: str) -> bool:
+                    return False
+
+                def record_warm_pool_hit(self) -> None:
+                    return None
+
+                def compute_faaslora_nvme_load_ms(self, _size_mb: float) -> float:
+                    return 1.0
+
+                async def request_lora_load(self, *_args, **_kwargs):
+                    return 0.0, 0.0
+
+            async def run_case() -> None:
+                _, tier, _, _, _ = await stack.resolve_lora(
+                    adapter_id,
+                    32.0,
+                    False,
+                    lambda _aid: "",
+                    coordinator=FakeCoord(),
+                )
+                self.assertEqual(tier, "nvme")
+                if stack._pending_host_promotions:
+                    await asyncio.gather(*stack._pending_host_promotions.values())
+                stack.sync_local_tier_paths()
+
+            asyncio.run(run_case())
+
+            self.assertIn(adapter_id, stack._host_paths)
+            self.assertTrue((host_dir / adapter_id).exists())
+
     def test_formal_a500_profiles_exist_for_four_models(self) -> None:
         workloads = self.experiments["workload_profiles"]
 

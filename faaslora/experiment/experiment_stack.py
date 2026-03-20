@@ -5,6 +5,7 @@ Builds from experiment adapter_info, paths, and hardware_cfg so run_all_experime
 can use the same components as the paper description (tiered residency, preload, coordination).
 """
 
+import asyncio
 import json
 import time
 from pathlib import Path
@@ -154,6 +155,13 @@ class ExperimentStack:
         self._nvme_paths: Dict[str, str] = {}
         self._host_paths: Dict[str, str] = {}
         self._pending_scaleup_gpu_artifacts: List[str] = []
+        self._pending_host_promotions: Dict[str, asyncio.Task] = {}
+        self._host_promotion_on_nvme_hit_enabled = bool(
+            preload_cfg.get("host_promotion_on_nvme_hit_enabled", True)
+        )
+        self._host_promotion_min_hotness = float(
+            preload_cfg.get("host_promotion_min_hotness", preload_cfg.get("min_hotness", 0.3))
+        )
         self._registered = False
 
     def _path_tier_hint(self, path: Optional[str]) -> Optional[str]:
@@ -237,6 +245,57 @@ class ExperimentStack:
         """Single access-stat entrypoint used by the experiment runner."""
         self.hotness_tracker.record_access(adapter_id)
         self.registry.update_access_stats(adapter_id, load_time_ms=load_time_ms, hit=hit)
+
+    def _should_promote_nvme_hit_to_host(self, adapter_id: str) -> bool:
+        if not self._host_promotion_on_nvme_hit_enabled:
+            return False
+        if adapter_id in self._host_paths:
+            return False
+        if adapter_id not in self._nvme_paths:
+            return False
+        if adapter_id in self._pending_host_promotions:
+            return False
+
+        metadata = self.registry.get_artifact(adapter_id)
+        if not metadata:
+            return False
+
+        hotness = max(
+            float(self.adapter_info.get(adapter_id, {}).get("hotness", 0.0) or 0.0),
+            float(getattr(metadata, "hotness_score", 0.0) or 0.0),
+        )
+        if hotness < self._host_promotion_min_hotness:
+            return False
+
+        try:
+            status = self.residency_manager.get_tier_status(StorageTier.HOST)
+            capacity = status.get("capacity", {}) if isinstance(status, dict) else {}
+            if not capacity.get("can_admit", True):
+                return False
+            free_bytes = int(capacity.get("free_bytes", 0) or 0)
+            if free_bytes > 0 and int(getattr(metadata, "size_bytes", 0) or 0) > free_bytes:
+                return False
+        except Exception:
+            pass
+
+        return True
+
+    async def _promote_nvme_hit_to_host(self, adapter_id: str) -> None:
+        try:
+            admitted = await self.residency_manager.admit_artifact(adapter_id, StorageTier.HOST)
+            if admitted:
+                self.sync_local_tier_paths()
+        except Exception as exc:
+            self.logger.warning(f"host promotion {adapter_id}: {exc}")
+        finally:
+            self._pending_host_promotions.pop(adapter_id, None)
+
+    def _schedule_host_promotion_from_nvme(self, adapter_id: str) -> bool:
+        if not self._should_promote_nvme_hit_to_host(adapter_id):
+            return False
+        task = asyncio.create_task(self._promote_nvme_hit_to_host(adapter_id))
+        self._pending_host_promotions[adapter_id] = task
+        return True
 
     def _select_scaleup_gpu_candidates(self, capacity_bytes: int) -> List[str]:
         """
@@ -447,6 +506,10 @@ class ExperimentStack:
             contention_ms, defer_ms = await coord.request_lora_load(
                 adapter_id, size_mb, tier="nvme", is_burst=is_burst
             )
+            # Keep HOST tier meaningful beyond the one-shot startup preload: when a
+            # hot adapter repeatedly hits NVMe during serving, promote it to HOST
+            # asynchronously so future requests can take the faster HOST→GPU path.
+            self._schedule_host_promotion_from_nvme(adapter_id)
             return nvme_path, "nvme", nvme_gpu_ms, contention_ms, defer_ms
 
         # 4) Remote: ensure_local copies to nvme (never direct remote→GPU), then load from nvme
