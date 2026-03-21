@@ -7,6 +7,7 @@ import asyncio
 import json
 import subprocess
 import sys
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -54,6 +55,7 @@ from scripts.run_all_experiments import (
     _normalize_lora_preparation_mode,
     _prepare_dedicated_subprocess_model_cfg,
     _resolve_vllm_runtime_guards,
+    _select_adaptive_retry_gpu_util,
     _should_spawn_dedicated_engine_subprocess,
 )
 
@@ -88,6 +90,8 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(model["max_num_batched_tokens"], 1024)
         self.assertEqual(model["runtime_concurrency_cap"], 2)
         self.assertEqual(lora_cfg["full_num_adapters"], 500)
+        faaslora_full = next(s for s in self.experiments["scenarios"] if s["name"] == "faaslora_full")
+        self.assertTrue(faaslora_full["preloading"]["dynamic_forwarding_enabled"])
 
     def test_scale_preset_500_matches_mainline_serving_parameters(self) -> None:
         preset = self.experiments["lora_adapters"]["scale_presets"]["500"]["model"]
@@ -173,6 +177,12 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(env["VLLM_HOST_IP"], "127.0.0.1")
         self.assertEqual(env["GLOO_SOCKET_IFNAME"], "lo")
         self.assertEqual(env["NCCL_SOCKET_IFNAME"], "lo")
+
+    def test_adaptive_retry_gpu_util_preserves_requested_value_with_sufficient_headroom(self) -> None:
+        self.assertEqual(_select_adaptive_retry_gpu_util(0.85, 0.98), 0.85)
+
+    def test_adaptive_retry_gpu_util_tracks_observed_headroom(self) -> None:
+        self.assertEqual(_select_adaptive_retry_gpu_util(0.85, 0.728), 0.72)
 
     def test_tp1_dedicated_vllm_uses_subprocess_isolation(self) -> None:
         model = {"backend": "vllm", "tensor_parallel_size": 1}
@@ -376,14 +386,15 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                     "nvme_capacity_mb": 20480,
                     "host_capacity_mb": 4096,
                     "min_hotness": 0.3,
-                    "host_promotion_on_nvme_hit_enabled": True,
-                    "host_promotion_min_hotness": 0.3,
+                    "dynamic_forwarding_enabled": True,
                 },
                 remote_dir=remote_dir,
                 nvme_dir=nvme_dir,
                 host_dir=host_dir,
             )
             stack._ensure_registered()
+            stack.coordinator.compute_faaslora_host_load_ms = lambda _size_mb: 4.0
+            stack.coordinator.compute_faaslora_nvme_load_ms = lambda _size_mb: 8.0
             admitted = asyncio.run(stack.residency_manager.admit_artifact(adapter_id, StorageTier.NVME))
             self.assertTrue(admitted)
             stack.sync_local_tier_paths()
@@ -394,7 +405,10 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                 def _is_resident(self, _aid: str) -> bool:
                     return False
 
-                def record_warm_pool_hit(self) -> None:
+                def record_gpu_ready_hit(self, _adapter_id: str) -> None:
+                    return None
+
+                def record_warm_pool_hit(self, _adapter_id: str = "") -> None:
                     return None
 
                 def compute_faaslora_nvme_load_ms(self, _size_mb: float) -> float:
@@ -420,6 +434,268 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
             self.assertIn(adapter_id, stack._host_paths)
             self.assertTrue((host_dir / adapter_id).exists())
+
+    def test_dynamic_forwarding_selects_best_gpu_candidate(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            remote_dir = root / "remote"
+            nvme_dir = root / "nvme"
+            host_dir = root / "host"
+            adapter_a = "hot_host"
+            adapter_b = "warm_nvme"
+            for aid in (adapter_a, adapter_b):
+                src = remote_dir / aid
+                src.mkdir(parents=True, exist_ok=True)
+                Path(src, "adapter_config.json").write_text(
+                    json.dumps({"base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct"}),
+                    encoding="utf-8",
+                )
+                Path(src, "adapter_model.bin").write_bytes(b"ok")
+
+            stack = ExperimentStack(
+                adapter_info={
+                    adapter_a: {"size_mb": 16.0, "hotness": 0.9},
+                    adapter_b: {"size_mb": 32.0, "hotness": 0.6},
+                },
+                hardware_cfg={"gpu_budget_mb": 24000},
+                coord_cfg={"min_instances": 1, "max_instances": 2},
+                preload_cfg={
+                    "strategy": "hybrid",
+                    "nvme_capacity_mb": 20480,
+                    "host_capacity_mb": 4096,
+                    "min_hotness": 0.3,
+                    "dynamic_forwarding_enabled": True,
+                },
+                remote_dir=remote_dir,
+                nvme_dir=nvme_dir,
+                host_dir=host_dir,
+            )
+            stack._ensure_registered()
+            asyncio.run(stack.residency_manager.admit_artifact(adapter_a, StorageTier.HOST))
+            asyncio.run(stack.residency_manager.admit_artifact(adapter_b, StorageTier.NVME))
+            stack.sync_local_tier_paths()
+
+            class FakeCoord:
+                def _contention_pressure(self) -> float:
+                    return 0.0
+
+                def compute_faaslora_host_load_ms(self, _size_mb: float) -> float:
+                    return 4.0
+
+                def compute_faaslora_nvme_load_ms(self, _size_mb: float) -> float:
+                    return 8.0
+
+                def evaluate_gpu_admission(self, _adapter_id: str, _size_mb: float, tier: str = "nvme"):
+                    return {"admit": True, "tier": tier}
+
+            candidate = stack.select_gpu_forward_candidate(
+                gpu_resident_adapters=set(),
+                coordinator=FakeCoord(),
+            )
+            self.assertIsNotNone(candidate)
+            self.assertEqual(candidate["adapter_id"], adapter_a)
+            self.assertEqual(candidate["source_tier"], "host")
+
+    def test_dynamic_forwarding_selects_positive_gain_replacement(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            remote_dir = root / "remote"
+            nvme_dir = root / "nvme"
+            host_dir = root / "host"
+            adapter_hot = "hot_host"
+            adapter_weak = "weak_gpu"
+            for aid in (adapter_hot, adapter_weak):
+                src = remote_dir / aid
+                src.mkdir(parents=True, exist_ok=True)
+                Path(src, "adapter_config.json").write_text(
+                    json.dumps({"base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct"}),
+                    encoding="utf-8",
+                )
+                Path(src, "adapter_model.bin").write_bytes(b"ok")
+
+            stack = ExperimentStack(
+                adapter_info={
+                    adapter_hot: {"size_mb": 16.0, "hotness": 0.9},
+                    adapter_weak: {"size_mb": 32.0, "hotness": 0.2},
+                },
+                hardware_cfg={"gpu_budget_mb": 24000},
+                coord_cfg={"min_instances": 1, "max_instances": 2},
+                preload_cfg={
+                    "strategy": "hybrid",
+                    "nvme_capacity_mb": 20480,
+                    "host_capacity_mb": 4096,
+                    "min_hotness": 0.3,
+                    "dynamic_forwarding_enabled": True,
+                },
+                remote_dir=remote_dir,
+                nvme_dir=nvme_dir,
+                host_dir=host_dir,
+            )
+            stack._ensure_registered()
+            asyncio.run(stack.residency_manager.admit_artifact(adapter_hot, StorageTier.HOST))
+            asyncio.run(stack.residency_manager.admit_artifact(adapter_weak, StorageTier.NVME))
+            stack.sync_local_tier_paths()
+
+            class FakeCoord:
+                def _contention_pressure(self) -> float:
+                    return 0.0
+
+                def compute_faaslora_host_load_ms(self, _size_mb: float) -> float:
+                    return 4.0
+
+                def compute_faaslora_nvme_load_ms(self, _size_mb: float) -> float:
+                    return 8.0
+
+                def evaluate_gpu_admission(self, _adapter_id: str, _size_mb: float, tier: str = "nvme"):
+                    return {
+                        "admit": False,
+                        "should_attempt": True,
+                        "effective_capacity_mb": 0.0,
+                        "tier": tier,
+                    }
+
+            candidate = stack.select_gpu_forward_candidate(
+                gpu_resident_adapters={adapter_weak},
+                coordinator=FakeCoord(),
+            )
+            self.assertIsNotNone(candidate)
+            self.assertEqual(candidate["adapter_id"], adapter_hot)
+            self.assertIsNotNone(candidate["replace"])
+            self.assertEqual(candidate["replace"]["adapter_id"], adapter_weak)
+            self.assertEqual(candidate["replace"]["target_tier"], "nvme")
+
+    def test_runtime_gpu_forward_executes_value_based_replacement(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.model_cfg = {"runtime_concurrency_cap": 2}
+        runner.wl_cfg = {"concurrency": 2}
+        runner._runtime_gpu_forward_tasks = {}
+        runner._runtime_forward_task_key = lambda _slot: ("slot",)
+        runner._refresh_slot_runtime_hints = lambda _slot: None
+        runner._schedule_runtime_gpu_forward = lambda _slot: False
+        marks = []
+        runner._mark_slot_adapter_tier = lambda _slot, aid, tier: marks.append((aid, tier))
+
+        updates = []
+
+        class FakeRegistry:
+            def update_artifact(self, adapter_id: str, payload):
+                updates.append((adapter_id, dict(payload)))
+
+        class FakeResidency:
+            def __init__(self):
+                self.evictions = []
+                self.admits = []
+
+            async def evict_artifact(self, adapter_id: str, tier):
+                self.evictions.append((adapter_id, tier))
+                return True
+
+            async def admit_artifact(self, adapter_id: str, tier, force=False):
+                self.admits.append((adapter_id, tier, force))
+                return True
+
+        residency = FakeResidency()
+        runner._stack = SimpleNamespace(
+            registry=FakeRegistry(),
+            residency_manager=residency,
+            _host_paths={"old": "/tmp/old", "new": "/tmp/new"},
+            _nvme_paths={},
+        )
+
+        class FakeEngine:
+            def __init__(self):
+                self.unloaded = []
+                self.loaded = []
+
+            async def load_lora_to_gpu_and_measure(self, lora_path: str, adapter_id: str):
+                self.loaded.append((lora_path, adapter_id))
+                return 5.0, True
+
+            async def unload_lora_adapter(self, adapter_id: str):
+                self.unloaded.append(adapter_id)
+                return True
+
+        class FakeCoord:
+            def __init__(self):
+                self._residency_manager = object()
+                self._loading_semaphore = asyncio.Semaphore(2)
+
+            def _loads_in_flight_ratio(self) -> float:
+                return 0.0
+
+            def evaluate_gpu_admission(self, _adapter_id: str, _size_mb: float, tier: str = "nvme"):
+                return {
+                    "admit": False,
+                    "should_attempt": True,
+                    "effective_capacity_mb": 0.0,
+                    "tier": tier,
+                }
+
+        slot = SimpleNamespace(
+            engine=FakeEngine(),
+            coordinator=FakeCoord(),
+            active_requests=1,
+            load_queue_depth=0,
+        )
+        candidate = {
+            "adapter_id": "new",
+            "path": "/tmp/new",
+            "source_tier": "host",
+            "size_mb": 16.0,
+            "replace": {
+                "adapter_id": "old",
+                "target_tier": "host",
+                "size_mb": 8.0,
+                "utility": 0.1,
+            },
+        }
+
+        asyncio.run(runner._run_runtime_gpu_forward(slot, candidate))
+
+        self.assertEqual(slot.engine.unloaded, ["old"])
+        self.assertEqual(slot.engine.loaded, [("/tmp/new", "new")])
+        self.assertIn(("old", StorageTier.HOST), residency.evictions)
+        self.assertIn(("new", StorageTier.GPU, True), residency.admits)
+        self.assertIn(("old", "host"), marks)
+        self.assertIn(("new", "gpu"), marks)
+        self.assertTrue(any(aid == "new" for aid, _ in updates))
+
+    def test_online_dynamic_forwarding_allows_controlled_background_activity(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.model_cfg = {"runtime_concurrency_cap": 2}
+        runner.wl_cfg = {"concurrency": 2}
+
+        slot = SimpleNamespace(active_requests=1, load_queue_depth=0)
+
+        class CoordIdle:
+            def _loads_in_flight_ratio(self) -> float:
+                return 0.0
+
+        class CoordWarm:
+            def _loads_in_flight_ratio(self) -> float:
+                return 0.5
+
+        class CoordSaturated:
+            def _loads_in_flight_ratio(self) -> float:
+                return 1.0
+
+        self.assertTrue(runner._runtime_forward_has_capacity(slot, CoordIdle()))
+        slot.load_queue_depth = 1
+        self.assertTrue(runner._runtime_forward_has_capacity(slot, CoordWarm()))
+        slot.load_queue_depth = 2
+        self.assertFalse(runner._runtime_forward_has_capacity(slot, CoordWarm()))
+        slot.load_queue_depth = 0
+        slot.active_requests = 2
+        self.assertFalse(runner._runtime_forward_has_capacity(slot, CoordIdle()))
+        slot.active_requests = 1
+        self.assertFalse(runner._runtime_forward_has_capacity(slot, CoordSaturated()))
+
+    def test_runtime_forward_capacity_limit_falls_back_to_engine_model_cfg(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.engine = SimpleNamespace(model_cfg={"runtime_concurrency_cap": 3})
+        runner.wl_cfg = {"concurrency": 1}
+
+        self.assertEqual(runner._runtime_forward_capacity_limit(), 3)
 
     def test_formal_a500_profiles_exist_for_four_models(self) -> None:
         workloads = self.experiments["workload_profiles"]
@@ -1047,6 +1323,59 @@ class CoordinationSmokeTests(unittest.TestCase):
             residency_manager=DummyResidencyManager(),
         )
         self.assertAlmostEqual(coord._available_mb(), 924.0, places=3)
+
+    def test_gpu_ready_hits_are_distinct_from_warm_pool_hits(self) -> None:
+        coord = ResourceCoordinator(config={"gpu_budget_mb": 1000, "model_weights_mb": 100})
+        coord._resident_loras = {"warm": 10.0, "cold": 12.0}
+        coord._warm_pool = {"warm"}
+
+        coord.record_gpu_ready_hit("warm")
+        coord.record_gpu_ready_hit("cold")
+
+        metrics = coord.get_summary_metrics()
+        self.assertEqual(metrics["gpu_ready_hits"], 2)
+        self.assertEqual(metrics["warm_pool_hits"], 1)
+
+    def test_dynamic_working_set_pressure_reduces_effective_capacity(self) -> None:
+        coord = ResourceCoordinator(config={
+            "gpu_budget_mb": 1000,
+            "model_weights_mb": 100,
+            "lora_load_reserve_ratio": 0.0,
+            "effective_capacity_admission_enabled": True,
+            "idle_timeout_s": 10.0,
+        })
+        base_capacity = coord._effective_capacity_mb(pressure=0.0)
+
+        now = time.time()
+        coord._active_tokens = 4000
+        coord._active_batches = 2
+        coord._recent_batch_tokens_ewma = 3000.0
+        coord._adapter_sizes_mb["hot_a"] = 120.0
+        coord._adapter_sizes_mb["hot_b"] = 140.0
+        coord._access_log["hot_a"].append(now)
+        coord._access_log["hot_b"].append(now)
+
+        dynamic_capacity = coord._effective_capacity_mb()
+        decision = coord.evaluate_gpu_admission("candidate", 64.0, tier="nvme")
+
+        self.assertLess(dynamic_capacity, base_capacity)
+        self.assertGreater(decision["future_reserve_mb"], 0.0)
+        self.assertGreaterEqual(decision["working_set_pressure"], 0.0)
+
+    def test_trigger_scale_down_prefers_high_reload_value_adapter(self) -> None:
+        coord = ResourceCoordinator(config={"gpu_budget_mb": 1000, "model_weights_mb": 100})
+        now = time.time()
+        coord._resident_loras = {"hot": 16.0, "cold": 32.0}
+        coord._adapter_sizes_mb.update({"hot": 16.0, "cold": 32.0})
+        coord._adapter_last_source_tier.update({"hot": "nvme", "cold": "host"})
+        coord._access_log["hot"].extend([now - 1, now - 2, now - 3])
+        coord._access_log["cold"].append(now - 180)
+
+        warm = asyncio.run(coord.trigger_scale_down(warm_pool_size=1))
+
+        self.assertEqual(warm, {"hot"})
+        self.assertIn("hot", coord._resident_loras)
+        self.assertNotIn("cold", coord._resident_loras)
 
 
 class LifecycleCompatibilityTests(unittest.TestCase):

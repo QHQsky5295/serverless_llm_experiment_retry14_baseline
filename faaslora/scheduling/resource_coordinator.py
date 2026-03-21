@@ -56,7 +56,8 @@ class CoordinationMetrics:
 
     # Scale-down metrics
     eviction_events: int = 0
-    warm_pool_hits: int = 0          # adapters that survived eviction → fast response
+    gpu_ready_hits: int = 0          # served directly from already-ready GPU residency
+    warm_pool_hits: int = 0          # subset of gpu_ready_hits retained across scale-down
 
     # Memory efficiency
     peak_memory_utilization: float = 0.0
@@ -129,7 +130,12 @@ class ResourceCoordinator:
         self._resident_loras: Dict[str, float]  = {}   # id → size_mb
         self._loading_semaphore = asyncio.Semaphore(self.max_concurrent_loads)
         self._active_tokens: int = 0        # sum of sequence tokens in-flight
+        self._active_batches: int = 0
+        self._recent_batch_tokens_ewma: float = 0.0
         self._access_log: Dict[str, List[float]] = defaultdict(list)  # id → timestamps
+        self._adapter_sizes_mb: Dict[str, float] = {}
+        self._adapter_last_source_tier: Dict[str, str] = {}
+        self._warm_pool: set[str] = set()
         self._last_request_time: float = time.time()
         self._lock = asyncio.Lock()
 
@@ -142,12 +148,25 @@ class ResourceCoordinator:
     # ----------------------------------------------------------------
 
     def notify_batch_start(self, input_tokens: int):
-        self._active_tokens += input_tokens
+        tokens = max(0, int(input_tokens or 0))
+        self._active_tokens += tokens
+        self._active_batches += 1
         self._last_request_time = time.time()
+        if tokens > 0:
+            decay = min(0.99, max(0.0, float(self.recency_decay)))
+            if self._recent_batch_tokens_ewma <= 0.0:
+                self._recent_batch_tokens_ewma = float(tokens)
+            else:
+                self._recent_batch_tokens_ewma = (
+                    decay * self._recent_batch_tokens_ewma
+                    + (1.0 - decay) * float(tokens)
+                )
         self._record_memory_sample()
 
     def notify_batch_end(self, input_tokens: int):
-        self._active_tokens = max(0, self._active_tokens - input_tokens)
+        tokens = max(0, int(input_tokens or 0))
+        self._active_tokens = max(0, self._active_tokens - tokens)
+        self._active_batches = max(0, self._active_batches - 1)
 
     # ----------------------------------------------------------------
     # LoRA load request (contribution 3 scale-up mechanism)
@@ -172,6 +191,8 @@ class ResourceCoordinator:
         """
         self.metrics.load_requests += 1
         self._access_log[adapter_id].append(time.time())
+        self._adapter_sizes_mb[adapter_id] = float(size_mb)
+        self._adapter_last_source_tier[adapter_id] = str(tier or "nvme").lower()
 
         contention_ms = 0.0
         defer_ms = 0.0
@@ -283,28 +304,26 @@ class ResourceCoordinator:
 
     async def trigger_scale_down(self, access_window_s: float = 60.0, warm_pool_size: Optional[int] = None):
         """
-        Evict cold LoRAs, retain warm_pool_size hot adapters.
-        Called when load drops below scale_down_threshold.
-        warm_pool_size: if provided (e.g. dynamic), use it; else use self.warm_pool_size.
+        Evict lower-value GPU residents and retain the adapters with the
+        highest expected reload value in the warm pool.
         """
         resident = self._get_resident_loras()
         if not resident:
+            self._warm_pool = set()
             return set()
 
         pool_size = warm_pool_size if warm_pool_size is not None else self.warm_pool_size
         pool_size = max(0, int(pool_size))
 
-        now = time.time()
         scores: Dict[str, float] = {}
+        for aid, resident_size in resident.items():
+            size_mb = self._known_size_mb(aid, resident_size)
+            source_tier = self._last_source_tier(aid)
+            reload_ms = self._compute_transfer_ms(size_mb, source_tier)
+            utility = self._admission_utility(aid, tier=source_tier)
+            scores[aid] = utility * (reload_ms / max(size_mb, 0.1))
 
-        for aid in list(resident.keys()):
-            log = [t for t in self._access_log.get(aid, []) if t > now - access_window_s]
-            freq = len(log)
-            recency = max((now - log[-1]) if log else access_window_s, 1)
-            score = freq / math.log1p(recency)
-            scores[aid] = score
-
-        sorted_adapters = sorted(scores.items(), key=lambda x: x[1])  # coldest first
+        sorted_adapters = sorted(scores.items(), key=lambda x: (x[1], x[0]))
         n_to_evict = max(0, len(sorted_adapters) - pool_size)
 
         for aid, _ in sorted_adapters[:n_to_evict]:
@@ -312,21 +331,31 @@ class ResourceCoordinator:
                 ok = await self._residency_manager.evict_artifact(aid, None)
                 if ok:
                     self.metrics.eviction_events += 1
+                    self._warm_pool.discard(aid)
             else:
                 async with self._lock:
                     if aid in self._resident_loras:
                         del self._resident_loras[aid]
                         self.metrics.eviction_events += 1
+                        self._warm_pool.discard(aid)
 
         warm_pool = set(aid for aid, _ in sorted_adapters[n_to_evict:])
+        self._warm_pool = warm_pool
         return warm_pool
 
     def is_warm(self, adapter_id: str) -> bool:
-        """True if the adapter survived scale-down and is in the warm pool."""
-        return self._is_resident(adapter_id)
+        """True if the adapter survived scale-down and is still retained in GPU."""
+        return adapter_id in self._warm_pool and self._is_resident(adapter_id)
 
-    def record_warm_pool_hit(self):
-        self.metrics.warm_pool_hits += 1
+    def record_gpu_ready_hit(self, adapter_id: Optional[str] = None) -> None:
+        self.metrics.gpu_ready_hits += 1
+        if adapter_id:
+            self._access_log[adapter_id].append(time.time())
+            if adapter_id in self._warm_pool:
+                self.metrics.warm_pool_hits += 1
+
+    def record_warm_pool_hit(self, adapter_id: Optional[str] = None):
+        self.record_gpu_ready_hit(adapter_id)
 
     # ----------------------------------------------------------------
     # Hardware latency models (used by experiment runner for SOTA comparison)
@@ -369,6 +398,7 @@ class ResourceCoordinator:
             "queued_loads": m.queued_loads,
             "avg_defer_delay_ms": m.avg_defer_delay_ms(),
             "eviction_events": m.eviction_events,
+            "gpu_ready_hits": m.gpu_ready_hits,
             "warm_pool_hits": m.warm_pool_hits,
             "current_lora_resident_mb": lora_mb,
             "current_gpu_utilization_pct": util,
@@ -395,19 +425,25 @@ class ResourceCoordinator:
 
     def evaluate_gpu_admission(self, adapter_id: str, size_mb: float, tier: str = "nvme") -> Dict[str, float]:
         """
-        Contention-Aware Effective Capacity Admission.
+        Dynamic working-set-aware effective capacity admission.
 
-        Returns a compact decision dict so both online loads and scale-up warmup
-        can use the same policy without introducing new runtime knobs.
+        The decision accounts for current free memory, current and predicted KV
+        footprint, outstanding load pressure, and the recent working-set gap.
         """
         pressure = self._contention_pressure()
         utility = self._admission_utility(adapter_id, tier=tier)
         effective_capacity_mb = self._effective_capacity_mb(pressure)
-        should_attempt = utility > pressure
+        predicted_kv_growth_mb = self._predicted_kv_growth_mb()
+        working_set_pressure = self._working_set_pressure()
+        future_reserve_mb = max(predicted_kv_growth_mb, self._recent_working_set_gap_mb())
+        should_attempt = utility > max(pressure, working_set_pressure)
         return {
             "pressure": pressure,
             "utility": utility,
             "effective_capacity_mb": effective_capacity_mb,
+            "predicted_kv_growth_mb": predicted_kv_growth_mb,
+            "working_set_pressure": working_set_pressure,
+            "future_reserve_mb": future_reserve_mb,
             "should_attempt": should_attempt,
             "admit": should_attempt and size_mb <= effective_capacity_mb,
         }
@@ -416,22 +452,61 @@ class ResourceCoordinator:
         available = max(0.0, self._available_mb())
         if pressure is None:
             pressure = self._contention_pressure()
-        return max(0.0, available * (1.0 - pressure))
+        future_reserve_mb = max(self._predicted_kv_growth_mb(), self._recent_working_set_gap_mb())
+        headroom_mb = max(0.0, available - future_reserve_mb)
+        return max(0.0, headroom_mb * (1.0 - pressure))
 
     def _contention_pressure(self) -> float:
         usable_budget_mb = max(1.0, self.gpu_budget_mb - self.model_weights_mb)
         available_mb = max(0.0, self._available_mb())
         kv_mb = self._active_tokens / 1000.0 * self.kv_per_1k_tokens_mb
+        predicted_kv_mb = kv_mb + self._predicted_kv_growth_mb()
         mem_pressure = min(1.0, max(0.0, 1.0 - (available_mb / usable_budget_mb)))
         kv_pressure = min(1.0, max(0.0, kv_mb / usable_budget_mb))
+        predicted_kv_pressure = min(1.0, max(0.0, predicted_kv_mb / usable_budget_mb))
         load_pressure = min(1.0, max(0.0, self._loads_in_flight_ratio()))
-        return max(mem_pressure, kv_pressure, load_pressure)
+        working_set_pressure = self._working_set_pressure()
+        return max(mem_pressure, kv_pressure, predicted_kv_pressure, load_pressure, working_set_pressure)
 
     def _loads_in_flight_ratio(self) -> float:
         slots = max(1, self.max_concurrent_loads)
         semaphore_value = getattr(self._loading_semaphore, "_value", slots)
         in_flight = max(0, slots - int(semaphore_value))
         return in_flight / float(slots)
+
+    def _known_size_mb(self, adapter_id: str, fallback_mb: float = 0.0) -> float:
+        size_mb = float(self._adapter_sizes_mb.get(adapter_id, 0.0) or 0.0)
+        if size_mb > 0.0:
+            return size_mb
+        resident = self._get_resident_loras()
+        if adapter_id in resident:
+            return float(resident[adapter_id])
+        return max(0.0, float(fallback_mb or 0.0))
+
+    def _predicted_kv_growth_mb(self) -> float:
+        if self._active_batches <= 0 or self._recent_batch_tokens_ewma <= 0.0:
+            return 0.0
+        predicted_tokens = self._recent_batch_tokens_ewma * max(1, self._active_batches)
+        return max(0.0, predicted_tokens / 1000.0 * self.kv_per_1k_tokens_mb)
+
+    def _recent_working_set_mb(self) -> float:
+        window_s = max(1.0, float(self.idle_timeout_s))
+        now = time.time()
+        total_mb = 0.0
+        for aid, log in self._access_log.items():
+            if not log or log[-1] <= now - window_s:
+                continue
+            total_mb += self._known_size_mb(aid) * self._recent_hotness(aid)
+        return total_mb
+
+    def _recent_working_set_gap_mb(self) -> float:
+        resident_mb = sum(self._get_resident_loras().values())
+        return max(0.0, self._recent_working_set_mb() - resident_mb)
+
+    def _working_set_pressure(self) -> float:
+        usable_budget_mb = max(1.0, self.gpu_budget_mb - self.model_weights_mb)
+        gap_mb = self._recent_working_set_gap_mb()
+        return min(1.0, max(0.0, gap_mb / usable_budget_mb))
 
     def _admission_utility(self, adapter_id: str, tier: str = "nvme") -> float:
         hotness = self._recent_hotness(adapter_id)
@@ -449,6 +524,12 @@ class ResourceCoordinator:
         recency_age = max(0.0, now - log[-1])
         recency_score = max(0.0, 1.0 - min(recency_age / window_s, 1.0))
         return 1.0 - (1.0 - freq_score) * (1.0 - recency_score)
+
+    def _last_source_tier(self, adapter_id: str) -> str:
+        tier_key = str(self._adapter_last_source_tier.get(adapter_id, "nvme") or "nvme").lower()
+        if tier_key in {"host", "nvme", "cpu"}:
+            return tier_key
+        return "nvme"
 
     def _locality_factor(self, tier: str) -> float:
         tier_key = str(tier or "nvme").lower()
@@ -488,6 +569,7 @@ class ResourceCoordinator:
         else:
             async with self._lock:
                 self._resident_loras[adapter_id] = size_mb
+                self._adapter_sizes_mb[adapter_id] = float(size_mb)
             return True
 
     @staticmethod
@@ -515,6 +597,7 @@ class ResourceCoordinator:
                 ok = await self._residency_manager.evict_artifact(aid, None)
                 if ok:
                     evicted += size_bytes
+                    self._warm_pool.discard(aid)
             return evicted / (1024.0 * 1024.0)
         evicted = 0.0
         resident = self._get_resident_loras()
@@ -528,6 +611,7 @@ class ResourceCoordinator:
             if evicted >= needed_mb:
                 break
             s = self._resident_loras.pop(aid, 0)
+            self._warm_pool.discard(aid)
             evicted += s
         return evicted
 

@@ -1203,8 +1203,7 @@ scenarios:  # 本次要运行的实验场景列表
       nvme_capacity_mb: 20480  # NVMe 层可用于 LoRA 的容量上限（MB）
       host_capacity_mb: 4096  # 主机内存层可用于 LoRA 的容量上限（MB）
       strategy: "greedy"  # 预加载选择策略
-      host_promotion_on_nvme_hit_enabled: true  # 运行期命中 NVMe 的热点 LoRA 允许异步晋升到 HOST
-      host_promotion_min_hotness: 0.3  # 只有达到该热度阈值的 LoRA 才会在运行期从 NVMe 晋升到 HOST
+      dynamic_forwarding_enabled: true  # P2.6：持续、预测式、预算约束的动态工件前移默认开启
     resource_coordination:  # 扩缩容与资源协同调度配置块
       coordination_enabled: true  # 是否启用贡献 3 的资源协同机制
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）

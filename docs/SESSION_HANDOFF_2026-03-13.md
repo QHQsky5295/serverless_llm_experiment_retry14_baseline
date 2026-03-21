@@ -728,11 +728,24 @@ scripts/run_all_experiments.py --config configs/experiments.yaml --scenario faas
     2. `GPU→HOST` eviction
   - 这导致像 `Qwen 14B TP=2 + 单实例` 这类路径里，后续请求虽然持续加载新的 LoRA，却大多直接走 `NVME→GPU`，live 面板就会长期表现成 `gpu≈nvme, host=0`
   - 当前本地代码已进一步补上：
-    - `ExperimentStack.resolve_lora()` 在运行期命中 `NVME` 的热点 LoRA 后，会异步触发一次 `NVME→HOST` 晋升
-    - 该晋升默认受 `preloading.host_promotion_on_nvme_hit_enabled` 与 `host_promotion_min_hotness` 约束
-    - 这样 HOST tier 不再只靠“启动预加载”或“GPU 逐出”两个入口才有机会被使用
+    - `P2.6` 已作为默认方向接入：系统在运行期会持续更新热点与层压力，并在命中事件后按收益/预算异步推进 `NVME→HOST`
+    - 同时在实例仍有服务余量且后台加载竞争未饱和时，从 `HOST/NVME` 中挑选单位收益更高的候选做在线异步 `→GPU` 前移，不再只依赖“实例初始化”或 `scale-up` 时机
+    - 默认配置只保留 `preloading.dynamic_forwarding_enabled` 开关；是否前移由实时热度、层压力、容量预算和加载收益共同决定，不再依赖固定热度阈值
   - 本地回归已新增覆盖：
     - 运行期 NVME 命中后会异步触发 HOST 晋升，并能在 stack/面板视图中变成可见状态
+    - GPU 前移候选会在本地 tier 工作集内按收益选择，而不是按固定阈值硬编码挑选
+- 随后的真实 GPU 复测也已完成：
+  - `Qwen 14B V2 publicmix r1000 p26 retry2` 已稳定通过，结果文件为 `results/experiment_results_full_vllm_auto_a500_r1000_c2_faaslora_full_qwen_14b_v2_r1000_p26_retry2.json`
+  - 直接结果：`1000/1000`、`fail=0`、末尾 `loaded[g/h/n]=144/39/144`
+  - 说明 `P2.6` 默认路径在 `14B TP=2` 单实例场景下已不再回到 `host=0` 的旧状态，且没有出现新的 bring-up 或运行期错误
+- 在这轮稳定验证之后，当前本地代码又继续补了两项 `C3` 增强：
+  1. 动态工作集感知的有效容量准入：`evaluate_gpu_admission()` 现在会显式扣除预测 KV 增长与最近工作集缺口，不再只依赖静态剩余显存
+  2. warm pool 从数量保留升级为收益保留：`trigger_scale_down()` 现按 `utility * reload_ms / size_mb` 排序保留跨 burst 更值的工件
+- 同时已把 `gpu_ready_hits` 与 `warm_pool_hits` 指标正式拆分：
+  - `gpu_ready_hits`：普通 GPU-ready 命中
+  - `warm_pool_hits`：scale-down 后 retained warm pool 的真实命中
+  - 后续不要再把所有 GPU hit 直接解释成 warm pool hit
+- 本地 smoke 已更新到 `64 OK / 2 skipped`
 
 ---
 

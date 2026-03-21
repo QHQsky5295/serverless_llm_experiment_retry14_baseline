@@ -17,7 +17,7 @@
 - 项目名称：**FaaSLoRA：面向多 LoRA 大模型推理的扩缩容感知Serverless系统**
 - 本地仓库：`/home/qhq/serverless_llm_experiment`
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
-- 本次同步前基线：`5826d43`
+- 本次同步前基线：`7b72e8c`
 
 当前结论：
 
@@ -371,7 +371,23 @@
    本地新增回归已覆盖：
    - HOST admit 后真实落文件并回写 registry/storage_path
    - HOST 预加载在 `96 MiB` 小容量场景下能稳定选出非空计划
-42. 已完成：继续补齐 HOST tier 的“运行期使用”缺口。新的排查确认，之前修好的只是 HOST 的真实落盘与统计同步，但运行期路径仍几乎只在“启动 Stage 2”或“GPU→HOST eviction”时触达 HOST；对于 `Qwen 14B TP=2` 这类单实例路径，后续请求虽然持续加载新的 LoRA，却基本都走 `NVME→GPU`，导致 `loaded[g/h/n]` 经常表现为 `gpu≈nvme, host=0`。当前已在 `ExperimentStack.resolve_lora()` 中加入“运行期 NVME 热命中后异步晋升到 HOST”的保守通用策略，并在 `faaslora_full.preloading` 默认配置中加入对应开关与热度阈值，确保 HOST tier 不再只依赖启动预加载或逐出事件才被使用。本地回归已新增覆盖：NVME 命中后会异步触发 HOST 晋升并在 stack 视图中可见。
+42. 已完成：继续补齐 HOST tier 的“运行期使用”缺口。新的排查确认，之前修好的只是 HOST 的真实落盘与统计同步，但运行期路径仍几乎只在“启动 Stage 2”或“GPU→HOST eviction”时触达 HOST；对于 `Qwen 14B TP=2` 这类单实例路径，后续请求虽然持续加载新的 LoRA，却基本都走 `NVME→GPU`，导致 `loaded[g/h/n]` 经常表现为 `gpu≈nvme, host=0`。当前已在 `ExperimentStack.resolve_lora()` 中加入“运行期 NVME 热命中后异步晋升到 HOST”的保守通用策略，并在 `faaslora_full.preloading` 默认配置中加入统一的动态前移开关，确保 HOST tier 不再只依赖启动预加载或逐出事件才被使用。本地回归已新增覆盖：NVME 命中后会异步触发 HOST 晋升并在 stack 视图中可见。
+43. 已完成：`P2.6` 的默认机制已在本地接入，作为对当前 `P2.5` 的连续化增强，而不是另起一套新系统。当前实现路径是：
+   - 请求/命中事件会持续更新热点状态，并在 `NVME` 热命中后按收益与有效预算异步推进 `NVME→HOST` 前移
+   - 实例会在仍有剩余服务余量、且后台加载竞争未饱和时，从 `HOST/NVME` 工作集里选择单位容量收益更高、且通过现有 GPU admission 的候选做在线异步 `→GPU` 前移；不再要求系统完全没有加载排队或在途加载
+   - 默认配置改为 `preloading.dynamic_forwarding_enabled: true`，不再依赖固定 `host_promotion_min_hotness` 这类可调阈值作为主机制
+   - 本地新增回归已覆盖：运行期 HOST 晋升可见、GPU 前移候选按收益选择；当前完整测试已更新到 `62 OK`，可作为后续正式实验默认配置继续推进。
+44. 已完成：`Qwen 14B V2 publicmix r1000 p26 retry2` 的真实 GPU 复测已稳定通过，当前默认 `P2.6` 路径在双卡 `TP=2` 单实例场景下没有再出现 bring-up 失败或运行期异常。直接结果包括：
+   - `1000/1000`、`fail=0`
+   - 末尾 `loaded[g/h/n]=144/39/144`，说明 `HOST` 在运行期持续非零，不再回到“`gpu≈nvme, host=0`”旧状态
+   - 关键指标：`TTFT avg/p95/p99 = 7897 / 18774 / 20192 ms`，`TPOT = 68.7 ms`，`E2E p99 = 47037 ms`，`Hit = 85%`
+   - 这轮也确认了此前 `ScenarioRunner.model_cfg` 缺失导致 `finally` 覆盖成功结果的 `AttributeError` 已完全消失
+45. 已完成：在当前默认 `P2.6` 基础上继续补齐 `C3` 的两项增强，并同步拆分原先失真的 `warm_pool_hits` 指标口径：
+   - `ResourceCoordinator.evaluate_gpu_admission()` 现已升级为“动态工作集感知的有效容量准入”，不再只看当前剩余显存；同时纳入预测 KV 增长、最近工作集缺口与当前加载压力，形成 `effective_capacity = max(0, available - max(predicted_kv_growth, recent_working_set_gap)) * (1 - pressure)` 的动态守门逻辑
+   - `trigger_scale_down()` 现已从“数量保留”升级成“收益保留”，按 `utility * reload_ms / size_mb` 排序保留更值得跨 burst 继续留在 GPU 的工件，而不是只按 warm pool 数量裁剪
+   - `gpu_ready_hits` 与 `warm_pool_hits` 已正式拆分：前者表示普通 GPU-ready 命中，后者只统计 scale-down 后真正 retained warm pool 的命中；不再把所有 GPU 命中都算成 warm pool 命中
+   - 本地回归已更新到 `64 OK / 2 skipped`，且不涉及任何模型专属 profile 护栏修改，可作为后续 `7B/14B/Nemo` 统一主线继续验证
+
 
 ## 当前已确认的长期约束
 

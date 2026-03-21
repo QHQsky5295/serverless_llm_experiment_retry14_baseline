@@ -200,6 +200,85 @@ def _detect_gpu_without_cuda_init():
 _detect_gpu_without_cuda_init()
 
 
+def _parse_visible_gpu_ids(visible_devices: Optional[str], tp: int) -> List[int]:
+    if visible_devices:
+        parsed: List[int] = []
+        for item in visible_devices.split(","):
+            item = item.strip()
+            if not item or item == "-1":
+                continue
+            try:
+                parsed.append(int(item))
+            except ValueError:
+                continue
+        if parsed:
+            return parsed[: max(1, int(tp))]
+    return list(range(max(0, min(int(tp), GPU_COUNT))))
+
+
+def _query_gpu_memory_without_cuda_init(
+    visible_devices: Optional[str],
+    tp: int,
+) -> Dict[int, Tuple[int, int]]:
+    gpu_ids = _parse_visible_gpu_ids(visible_devices, tp)
+    if not gpu_ids:
+        return {}
+    try:
+        out = subprocess.check_output(
+            [
+                "nvidia-smi",
+                "--query-gpu=index,memory.total,memory.free",
+                "--format=csv,noheader,nounits",
+            ],
+            timeout=5,
+            stderr=subprocess.DEVNULL,
+        ).decode().strip()
+    except Exception:
+        return {}
+
+    stats: Dict[int, Tuple[int, int]] = {}
+    for line in out.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        parts = [part.strip() for part in line.split(",")]
+        if len(parts) != 3:
+            continue
+        try:
+            gpu_id = int(parts[0])
+            total_mb = int(parts[1])
+            free_mb = int(parts[2])
+        except ValueError:
+            continue
+        if gpu_id in gpu_ids:
+            stats[gpu_id] = (total_mb, free_mb)
+    return stats
+
+
+def _visible_gpu_min_free_ratio(
+    visible_devices: Optional[str],
+    tp: int,
+) -> Optional[float]:
+    stats = _query_gpu_memory_without_cuda_init(visible_devices, tp)
+    if not stats:
+        return None
+    ratios = [free_mb / total_mb for total_mb, free_mb in stats.values() if total_mb > 0]
+    if not ratios:
+        return None
+    return min(ratios)
+
+
+def _select_adaptive_retry_gpu_util(
+    requested_gpu_util: float,
+    observed_free_ratio: Optional[float],
+) -> float:
+    requested = float(requested_gpu_util)
+    if observed_free_ratio is None or observed_free_ratio <= 0:
+        return requested
+    adjusted = min(requested, max(0.50, observed_free_ratio - 0.01))
+    return round(adjusted, 2)
+
+
 def _check_shm_for_vllm():
     """Warn if /dev/shm is small; EngineCore IPC needs sufficient shared memory (community fix)."""
     try:
@@ -383,6 +462,7 @@ class ScenarioResult:
     contention_events: int = 0
     avg_contention_ms: float = 0.0
     avg_defer_ms: float = 0.0
+    gpu_ready_hits: int = 0
     warm_pool_hits: int = 0
     memory_efficiency_pct: float = 0.0
 
@@ -462,6 +542,7 @@ class ScenarioResult:
             self.contention_events  = coord_metrics.get("contention_events", 0)
             self.avg_contention_ms  = coord_metrics.get("avg_contention_penalty_ms", 0.0)
             self.avg_defer_ms       = coord_metrics.get("avg_defer_delay_ms", 0.0)
+            self.gpu_ready_hits     = coord_metrics.get("gpu_ready_hits", 0)
             self.warm_pool_hits     = coord_metrics.get("warm_pool_hits", 0)
             self.memory_efficiency_pct = coord_metrics.get("current_gpu_utilization_pct", 0.0)
 
@@ -473,6 +554,7 @@ def _merge_coordinator_metrics(all_metrics: List[Dict]) -> Dict:
     n = len(all_metrics)
     return {
         "contention_events": sum(m.get("contention_events", 0) for m in all_metrics),
+        "gpu_ready_hits": sum(m.get("gpu_ready_hits", 0) for m in all_metrics),
         "warm_pool_hits": sum(m.get("warm_pool_hits", 0) for m in all_metrics),
         "avg_contention_penalty_ms": sum(m.get("avg_contention_penalty_ms", 0.0) for m in all_metrics) / n,
         "avg_defer_delay_ms": sum(m.get("avg_defer_delay_ms", 0.0) for m in all_metrics) / n,
@@ -487,7 +569,7 @@ _SCENARIO_RESULT_NUMERIC_KEYS = (
     "throughput_rps", "avg_cost_usd", "total_cost_usd", "qpr",
     "cache_hit_rate", "gpu_hit_rate", "avg_lora_io_ms",
     "phase1_avg_ttft_ms", "phase2_avg_ttft_ms", "non_burst_avg_ttft_ms", "burst_p99_ttft_ms",
-    "contention_events", "avg_contention_ms", "avg_defer_ms", "warm_pool_hits", "memory_efficiency_pct",
+    "contention_events", "avg_contention_ms", "avg_defer_ms", "gpu_ready_hits", "warm_pool_hits", "memory_efficiency_pct",
     "completed", "failed",
 )
 
@@ -563,6 +645,7 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         contention_events=int(round(agg_dict.get("contention_events", first.contention_events))),
         avg_contention_ms=agg_dict.get("avg_contention_ms", first.avg_contention_ms),
         avg_defer_ms=agg_dict.get("avg_defer_ms", first.avg_defer_ms),
+        gpu_ready_hits=int(round(agg_dict.get("gpu_ready_hits", first.gpu_ready_hits))),
         warm_pool_hits=int(round(agg_dict.get("warm_pool_hits", first.warm_pool_hits))),
         memory_efficiency_pct=agg_dict.get("memory_efficiency_pct", first.memory_efficiency_pct),
         multi_cycle_phase_results=first.multi_cycle_phase_results if n == 1 else [],
@@ -837,6 +920,26 @@ class InferenceEngine:
                 print(f"    {env_key:<18}= {settings['env_updates'][env_key]}")
         return settings
 
+    async def _await_visible_gpu_headroom(
+        self,
+        tp: int,
+        visible_devices: Optional[str],
+        desired_gpu_util: float,
+        timeout_s: float,
+        poll_s: float = 1.0,
+    ) -> Optional[float]:
+        deadline = time.monotonic() + max(0.0, float(timeout_s))
+        best_ratio = _visible_gpu_min_free_ratio(visible_devices, tp)
+        while time.monotonic() < deadline:
+            current_ratio = _visible_gpu_min_free_ratio(visible_devices, tp)
+            if current_ratio is not None:
+                if best_ratio is None or current_ratio > best_ratio:
+                    best_ratio = current_ratio
+                if current_ratio + 1e-6 >= desired_gpu_util:
+                    return current_ratio
+            await asyncio.sleep(max(0.1, float(poll_s)))
+        return best_ratio
+
     async def initialize(self):
         if not CUDA_AVAILABLE:
             raise RuntimeError(
@@ -915,12 +1018,43 @@ class InferenceEngine:
                     tokenizer_mode=runtime_settings["tokenizer_mode"],
                 )
 
-            # Try 3: more conservative memory + single-resident LoRA.
+            # Try 3: post-cleanup adaptive retry that preserves the
+            # active model profile instead of forcing every model into the same
+            # low-memory fallback. This is especially important for TP>1 large
+            # models where gpu_util=0.6 can eliminate KV cache headroom.
             if engine is None:
-                print("  [RETRY] vLLM with gpu_util=0.6, max_loras=1, no chunked prefill ...")
+                _kill_stale_gpu_processes()
+                try:
+                    import torch
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                except Exception:
+                    pass
+                import gc; gc.collect()
+
+                observed_free_ratio = await self._await_visible_gpu_headroom(
+                    tp=tp,
+                    visible_devices=visible_devices,
+                    desired_gpu_util=gpu_util,
+                    timeout_s=8.0 if tp > 1 else 4.0,
+                )
+                retry_gpu_util = _select_adaptive_retry_gpu_util(
+                    requested_gpu_util=gpu_util,
+                    observed_free_ratio=observed_free_ratio,
+                )
+                if observed_free_ratio is not None and retry_gpu_util + 1e-6 < gpu_util:
+                    print(
+                        f"  [RETRY] vLLM after cleanup with adaptive gpu_util={retry_gpu_util:.2f}, "
+                        f"max_loras={max_lr}, no chunked prefill ..."
+                    )
+                else:
+                    print(
+                        f"  [RETRY] vLLM after cleanup with gpu_util={retry_gpu_util:.2f}, "
+                        f"max_loras={max_lr}, no chunked prefill ..."
+                    )
                 engine = await self._try_create_engine(
-                    model, tp=tp, gpu_util=0.6, max_len=max_len, eager=eager,
-                    enable_lora=True, max_loras=1, max_lora_rank=max_rank,
+                    model, tp=tp, gpu_util=retry_gpu_util, max_len=max_len, eager=eager,
+                    enable_lora=True, max_loras=max_lr, max_lora_rank=max_rank,
                     enable_chunked_prefill=False, enable_prefix_caching=False,
                     tokenizer_mode=runtime_settings["tokenizer_mode"],
                 )
@@ -1362,6 +1496,11 @@ class InferenceEngine:
                     )
             raise RuntimeError(f"vLLM: {exc}") from exc
 
+    @staticmethod
+    def _lora_int_id(adapter_id: str) -> int:
+        import hashlib
+        return (int(hashlib.md5(adapter_id.encode()).hexdigest(), 16) % 999999) + 1
+
     async def load_lora_to_gpu_and_measure(self, lora_path: str, adapter_id: str) -> Tuple[float, bool]:
         """
         D1: Trigger vLLM LoRA load and measure time until first token (real load latency).
@@ -1383,6 +1522,39 @@ class InferenceEngine:
             return ttft_ms, True
         except Exception:
             return 0.0, False
+
+    async def unload_lora_adapter(self, adapter_id: str) -> bool:
+        if not adapter_id:
+            return True
+        if self.backend == "transformers":
+            async with self._lock:
+                if adapter_id not in self._hf_loaded_adapters:
+                    return True
+                try:
+                    if hasattr(self._hf_peft_model, "delete_adapter"):
+                        self._hf_peft_model.delete_adapter(adapter_id)
+                    self._hf_loaded_adapters.discard(adapter_id)
+                    try:
+                        self._hf_adapter_lru.remove(adapter_id)
+                    except ValueError:
+                        pass
+                    if len(self._hf_loaded_adapters) == 0 and hasattr(self._hf_peft_model, "unload"):
+                        self._hf_peft_model = self._hf_peft_model.unload()
+                    return True
+                except Exception:
+                    return False
+        if self.backend != "vllm" or self.engine is None or self._engine_dead:
+            return False
+        remove_fn = getattr(self.engine, "remove_lora", None)
+        if remove_fn is None:
+            return False
+        try:
+            result = remove_fn(self._lora_int_id(adapter_id))
+            if asyncio.iscoroutine(result):
+                result = await result
+            return bool(result)
+        except Exception:
+            return False
 
 
 class SubprocessInferenceEngineProxy:
@@ -1713,6 +1885,12 @@ class ScenarioRunner:
         self.hw            = hardware_cfg
         self.cost_model    = cost_model
         self.engine        = engine
+        # Runtime forwarding decisions are scenario-level control logic and
+        # must always see the active model profile, regardless of model family.
+        # Keep a local copy so P2.6 scheduling does not accidentally depend on
+        # callers reaching through engine.model_cfg, and still allow safe
+        # fallbacks when tests build a lightweight runner.
+        self.model_cfg     = copy.deepcopy(getattr(engine, "model_cfg", {}) or {})
         self.preload_cfg   = preload_cfg
         self.wl_cfg        = workload_cfg
         self.coord_cfg     = coord_cfg or {}
@@ -1757,6 +1935,8 @@ class ScenarioRunner:
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
         self._run_started_at = 0.0
+        self._dynamic_forwarding_enabled = bool(self.preload_cfg.get("dynamic_forwarding_enabled", True))
+        self._runtime_gpu_forward_tasks: Dict[tuple, asyncio.Task] = {}
 
         # Resource coordinator (contribution 3); when _stack is set, coordinator comes from stack
         coord_enabled = (baseline_type == "faaslora_full")
@@ -1860,6 +2040,220 @@ class ScenarioRunner:
             return
         for slot in self.instance_pool.get_slots():
             self._refresh_slot_runtime_hints(slot)
+
+    def _runtime_forward_task_key(self, slot: Optional[Any]) -> Optional[tuple]:
+        if slot is None or not hasattr(slot, "runtime_group_key"):
+            return None
+        try:
+            return tuple(slot.runtime_group_key())
+        except Exception:
+            return None
+
+    def _runtime_forward_capacity_limit(self) -> int:
+        model_cfg = getattr(self, "model_cfg", None)
+        if not isinstance(model_cfg, dict) or not model_cfg:
+            model_cfg = getattr(getattr(self, "engine", None), "model_cfg", {}) or {}
+        raw = model_cfg.get("runtime_concurrency_cap", self.wl_cfg.get("concurrency", 1))
+        try:
+            return max(1, int(raw or 1))
+        except Exception:
+            return 1
+
+    def _runtime_forward_has_capacity(self, slot: Optional[Any], coordinator: Optional[Any]) -> bool:
+        if slot is None or coordinator is None:
+            return False
+        capacity_limit = self._runtime_forward_capacity_limit()
+        if capacity_limit <= 0:
+            return False
+        active_requests = max(0, int(getattr(slot, "active_requests", 0) or 0))
+        if active_requests >= capacity_limit:
+            return False
+
+        queue_depth = max(0, int(getattr(slot, "load_queue_depth", 0) or 0))
+        queue_ratio = min(1.0, queue_depth / float(capacity_limit))
+
+        load_ratio = 0.0
+        loads_ratio_fn = getattr(coordinator, "_loads_in_flight_ratio", None)
+        if callable(loads_ratio_fn):
+            try:
+                load_ratio = min(1.0, max(0.0, float(loads_ratio_fn())))
+            except Exception:
+                return False
+
+        service_slack = max(0.0, 1.0 - (active_requests / float(capacity_limit)))
+        loading_slack = max(0.0, 1.0 - max(queue_ratio, load_ratio))
+        return (service_slack * loading_slack) > 0.0
+
+    async def _cancel_runtime_gpu_forward_tasks(self, key: Optional[tuple] = None) -> None:
+        if not self._runtime_gpu_forward_tasks:
+            return
+        if key is not None:
+            items = [(key, self._runtime_gpu_forward_tasks.get(key))]
+        else:
+            items = list(self._runtime_gpu_forward_tasks.items())
+        for task_key, task in items:
+            if task is None:
+                continue
+            if not task.done():
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+                except Exception:
+                    pass
+            self._runtime_gpu_forward_tasks.pop(task_key, None)
+
+    async def _run_runtime_gpu_forward(self, slot: Any, candidate: Dict[str, Any]) -> None:
+        key = self._runtime_forward_task_key(slot)
+        try:
+            if slot is None or candidate is None or self._stack is None:
+                return
+            engine = getattr(slot, "engine", None)
+            coordinator = getattr(slot, "coordinator", None)
+            if engine is None or not hasattr(engine, "load_lora_to_gpu_and_measure"):
+                return
+            if not self._runtime_forward_has_capacity(slot, coordinator):
+                return
+            adapter_id = candidate["adapter_id"]
+            local_path = candidate["path"]
+            source_tier = str(candidate.get("source_tier", "nvme") or "nvme")
+            size_mb = float(candidate.get("size_mb", 0.0) or 0.0)
+            replace = candidate.get("replace") if isinstance(candidate.get("replace"), dict) else None
+            if coordinator is not None and getattr(coordinator, "evaluate_gpu_admission", None):
+                decision = coordinator.evaluate_gpu_admission(adapter_id, size_mb, tier=source_tier)
+                if not decision.get("admit", False) and replace is None:
+                    return
+            semaphore = getattr(coordinator, "_loading_semaphore", None) if coordinator is not None else None
+
+            async def _restore_replaced(resident_state: Optional[Dict[str, Any]]) -> None:
+                if not resident_state:
+                    return
+                restore_id = str(resident_state.get("adapter_id", "") or "")
+                restore_path = str(resident_state.get("path", "") or "")
+                restore_size_mb = float(resident_state.get("size_mb", 0.0) or 0.0)
+                if not restore_id or not restore_path:
+                    return
+                load_ms, ok = await engine.load_lora_to_gpu_and_measure(restore_path, restore_id)
+                if not ok:
+                    return
+                self._stack.registry.update_artifact(
+                    restore_id,
+                    {"last_load_time_ms": load_ms, "predicted_load_time_ms": load_ms},
+                )
+                if coordinator is not None and getattr(coordinator, "_residency_manager", None) is None:
+                    await coordinator._mark_resident(restore_id, restore_size_mb)
+                else:
+                    await self._stack.residency_manager.admit_artifact(
+                        restore_id, StorageTier.GPU, force=True
+                    )
+                self._mark_slot_adapter_tier(slot, restore_id, "gpu")
+
+            async def _demote_replaced() -> Optional[Dict[str, Any]]:
+                if replace is None:
+                    return None
+                replace_id = str(replace.get("adapter_id", "") or "")
+                replace_target = str(replace.get("target_tier", "nvme") or "nvme")
+                replace_size_mb = float(replace.get("size_mb", 0.0) or 0.0)
+                replace_path = (
+                    getattr(self._stack, "_host_paths", {}).get(replace_id)
+                    or getattr(self._stack, "_nvme_paths", {}).get(replace_id)
+                )
+                unload_fn = getattr(engine, "unload_lora_adapter", None)
+                if not replace_id or not replace_path or not callable(unload_fn):
+                    return None
+                resident_state = {
+                    "adapter_id": replace_id,
+                    "path": replace_path,
+                    "size_mb": replace_size_mb,
+                    "target_tier": replace_target,
+                }
+                unloaded = unload_fn(replace_id)
+                if asyncio.iscoroutine(unloaded):
+                    unloaded = await unloaded
+                if not unloaded:
+                    return None
+                if coordinator is not None and getattr(coordinator, "_residency_manager", None) is None:
+                    resident_map = getattr(coordinator, "_resident_loras", None)
+                    if isinstance(resident_map, dict):
+                        resident_map.pop(replace_id, None)
+                else:
+                    target_enum = StorageTier.HOST if replace_target == "host" else StorageTier.NVME
+                    moved = await self._stack.residency_manager.evict_artifact(replace_id, target_enum)
+                    if not moved:
+                        await _restore_replaced(resident_state)
+                        return None
+                self._mark_slot_adapter_tier(slot, replace_id, replace_target)
+                return resident_state
+
+            async def _load_once() -> bool:
+                replaced_state = None
+                if replace is not None:
+                    replaced_state = await _demote_replaced()
+                    if replaced_state is None:
+                        return False
+                load_ms, ok = await engine.load_lora_to_gpu_and_measure(local_path, adapter_id)
+                if not ok:
+                    await _restore_replaced(replaced_state)
+                    return False
+                self._stack.registry.update_artifact(
+                    adapter_id,
+                    {"last_load_time_ms": load_ms, "predicted_load_time_ms": load_ms},
+                )
+                if coordinator is not None and getattr(coordinator, "_residency_manager", None) is None:
+                    await coordinator._mark_resident(adapter_id, size_mb)
+                else:
+                    await self._stack.residency_manager.admit_artifact(
+                        adapter_id, StorageTier.GPU, force=True
+                    )
+                self._mark_slot_adapter_tier(slot, adapter_id, "gpu")
+                return True
+
+            if semaphore is not None:
+                try:
+                    if int(getattr(semaphore, "_value", 0) or 0) <= 0:
+                        return
+                except Exception:
+                    return
+                async with semaphore:
+                    await _load_once()
+            else:
+                await _load_once()
+        except Exception:
+            pass
+        finally:
+            if slot is not None:
+                self._refresh_slot_runtime_hints(slot)
+            if key is not None:
+                self._runtime_gpu_forward_tasks.pop(key, None)
+            if slot is not None:
+                self._schedule_runtime_gpu_forward(slot)
+
+    def _schedule_runtime_gpu_forward(self, slot: Optional[Any]) -> bool:
+        if not self._dynamic_forwarding_enabled or self._stack is None or slot is None:
+            return False
+        engine = getattr(slot, "engine", None)
+        coordinator = getattr(slot, "coordinator", None)
+        if engine is None or coordinator is None or not hasattr(engine, "load_lora_to_gpu_and_measure"):
+            return False
+        if not self._runtime_forward_has_capacity(slot, coordinator):
+            return False
+        key = self._runtime_forward_task_key(slot)
+        if key is None:
+            return False
+        task = self._runtime_gpu_forward_tasks.get(key)
+        if task is not None and not task.done():
+            return False
+        candidate = self._stack.select_gpu_forward_candidate(
+            gpu_resident_adapters=set(getattr(slot, "gpu_resident_adapters", set())),
+            coordinator=coordinator,
+        )
+        if not candidate:
+            return False
+        self._runtime_gpu_forward_tasks[key] = asyncio.create_task(
+            self._run_runtime_gpu_forward(slot, candidate)
+        )
+        return True
 
     def _coordinator_metric_views(self) -> List[Dict[str, Any]]:
         metrics = list(self._retired_coord_metrics)
@@ -2394,9 +2788,28 @@ class ScenarioRunner:
     def _warm_pool_hits_total(self) -> int:
         return sum(m.get("warm_pool_hits", 0) for m in self._coordinator_metric_views())
 
+    @staticmethod
+    def _record_gpu_ready_hit(coord: Optional[Any], adapter_id: str) -> None:
+        if coord is None:
+            return
+        recorder = getattr(coord, "record_gpu_ready_hit", None)
+        if callable(recorder):
+            try:
+                recorder(adapter_id)
+            except TypeError:
+                recorder()
+            return
+        fallback = getattr(coord, "record_warm_pool_hit", None)
+        if callable(fallback):
+            try:
+                fallback(adapter_id)
+            except TypeError:
+                fallback()
+
     async def _cleanup_removed_slot(self, slot: Optional[Any]) -> None:
         if slot is None:
             return
+        await self._cancel_runtime_gpu_forward_tasks(self._runtime_forward_task_key(slot))
         try:
             if getattr(slot, "owns_coordinator", False) and getattr(slot, "coordinator", None) is not None:
                 self._retired_coord_metrics.append(slot.coordinator.get_summary_metrics())
@@ -3042,6 +3455,7 @@ class ScenarioRunner:
                         await asyncio.sleep(idle_between_s)
             elapsed = total_elapsed
 
+        await self._cancel_runtime_gpu_forward_tasks()
         coord_views = self._coordinator_metric_views()
         coord_m = _merge_coordinator_metrics(coord_views) if coord_views else {}
         result.aggregate(elapsed, coord_m)
@@ -3606,6 +4020,7 @@ class ScenarioRunner:
             if slot is not None:
                 slot.active_requests = max(0, slot.active_requests - 1)
                 self._refresh_slot_runtime_hints(slot)
+                self._schedule_runtime_gpu_forward(slot)
 
     async def _resolve_lora(
         self, adapter_id: str, is_burst: bool, input_tokens: int,
@@ -3638,7 +4053,7 @@ class ScenarioRunner:
 
         # GPU tier (faaslora_no_coord / faaslora_full): adapter already in VRAM
         if btype in ("faaslora_no_coord", "faaslora_full") and adapter_id in self._gpu_warmed:
-            coord.record_warm_pool_hit()
+            self._record_gpu_ready_hit(coord, adapter_id)
             local_path = self._nvme_cache.get(adapter_id)
             # For GPU-warm adapters: no load needed, but coordinator still tracks
             # contention events for non-warm concurrent loads
@@ -4890,6 +5305,7 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "C3_contention_events": r.contention_events,
             "C3_contention_penalty_ms": round(r.avg_contention_ms, 1),
             "C3_defer_delay_ms": round(r.avg_defer_ms, 1),
+            "C3_gpu_ready_hits": r.gpu_ready_hits,
             "C3_warm_pool_hits": r.warm_pool_hits,
         }
         if getattr(r, "scale_down_events", 0):
@@ -4952,6 +5368,7 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "contention_events": r.contention_events,
             "avg_contention_ms": round(r.avg_contention_ms, 4),
             "avg_defer_ms": round(r.avg_defer_ms, 4),
+            "gpu_ready_hits": r.gpu_ready_hits,
             "warm_pool_hits": r.warm_pool_hits,
             "scale_up_events": r.scale_up_events,
             "scale_down_events": r.scale_down_events,
@@ -5806,9 +6223,9 @@ async def main_async(
                 f"P99={result.p99_ttft_ms:.0f}ms  RPS={result.throughput_rps:.2f}  "
                 f"Hit={result.cache_hit_rate:.0%}  Contention={result.contention_events}"
             )
-            if result.warm_pool_hits > 0 or result.contention_events > 0:
+            if result.gpu_ready_hits > 0 or result.warm_pool_hits > 0 or result.contention_events > 0:
                 print(
-                    f"  WarmPoolHits={result.warm_pool_hits}  "
+                    f"  GPUReadyHits={result.gpu_ready_hits}  WarmPoolHits={result.warm_pool_hits}  "
                     f"Contention={result.contention_events}?{result.avg_contention_ms:.0f}ms  "
                     f"Defer={result.avg_defer_ms:.0f}ms"
                 )

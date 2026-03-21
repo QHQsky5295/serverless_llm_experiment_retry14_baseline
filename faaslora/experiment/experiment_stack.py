@@ -156,11 +156,11 @@ class ExperimentStack:
         self._host_paths: Dict[str, str] = {}
         self._pending_scaleup_gpu_artifacts: List[str] = []
         self._pending_host_promotions: Dict[str, asyncio.Task] = {}
-        self._host_promotion_on_nvme_hit_enabled = bool(
-            preload_cfg.get("host_promotion_on_nvme_hit_enabled", True)
-        )
-        self._host_promotion_min_hotness = float(
-            preload_cfg.get("host_promotion_min_hotness", preload_cfg.get("min_hotness", 0.3))
+        self._dynamic_forwarding_enabled = bool(
+            preload_cfg.get(
+                "dynamic_forwarding_enabled",
+                preload_cfg.get("host_promotion_on_nvme_hit_enabled", True),
+            )
         )
         self._registered = False
 
@@ -245,40 +245,253 @@ class ExperimentStack:
         """Single access-stat entrypoint used by the experiment runner."""
         self.hotness_tracker.record_access(adapter_id)
         self.registry.update_access_stats(adapter_id, load_time_ms=load_time_ms, hit=hit)
+        self._schedule_host_promotion_from_nvme(adapter_id)
 
-    def _should_promote_nvme_hit_to_host(self, adapter_id: str) -> bool:
-        if not self._host_promotion_on_nvme_hit_enabled:
-            return False
-        if adapter_id in self._host_paths:
-            return False
-        if adapter_id not in self._nvme_paths:
-            return False
-        if adapter_id in self._pending_host_promotions:
-            return False
+    def _artifact_metadata(self, adapter_id: str) -> Optional[Any]:
+        return self.registry.get_artifact(adapter_id)
 
-        metadata = self.registry.get_artifact(adapter_id)
-        if not metadata:
-            return False
+    def _artifact_size_mb(self, adapter_id: str) -> float:
+        metadata = self._artifact_metadata(adapter_id)
+        if metadata is not None:
+            size_bytes = int(getattr(metadata, "size_bytes", 0) or 0)
+            if size_bytes > 0:
+                return size_bytes / (1024.0 * 1024.0)
+        return float(self.adapter_info.get(adapter_id, {}).get("size_mb", 30.0) or 30.0)
 
-        hotness = max(
-            float(self.adapter_info.get(adapter_id, {}).get("hotness", 0.0) or 0.0),
-            float(getattr(metadata, "hotness_score", 0.0) or 0.0),
-        )
-        if hotness < self._host_promotion_min_hotness:
-            return False
+    def _artifact_hotness(self, adapter_id: str) -> float:
+        metadata = self._artifact_metadata(adapter_id)
+        registry_hotness = float(getattr(metadata, "hotness_score", 0.0) or 0.0) if metadata is not None else 0.0
+        tracker_hotness = float(self.hotness_tracker.get_hotness(adapter_id) or 0.0)
+        static_hotness = float(self.adapter_info.get(adapter_id, {}).get("hotness", 0.0) or 0.0)
+        return max(registry_hotness, tracker_hotness, static_hotness)
+
+    def _tier_pressure(self, target_tier: StorageTier, coordinator: Optional[Any] = None) -> float:
+        if target_tier == StorageTier.GPU:
+            coord = coordinator if coordinator is not None else self.coordinator
+            pressure_fn = getattr(coord, "_contention_pressure", None)
+            if callable(pressure_fn):
+                try:
+                    return min(1.0, max(0.0, float(pressure_fn())))
+                except Exception:
+                    return 1.0
+            return 1.0
 
         try:
-            status = self.residency_manager.get_tier_status(StorageTier.HOST)
+            status = self.residency_manager.get_tier_status(target_tier)
             capacity = status.get("capacity", {}) if isinstance(status, dict) else {}
-            if not capacity.get("can_admit", True):
-                return False
-            free_bytes = int(capacity.get("free_bytes", 0) or 0)
-            if free_bytes > 0 and int(getattr(metadata, "size_bytes", 0) or 0) > free_bytes:
-                return False
+            total_bytes = float(capacity.get("total_bytes", 0) or 0)
+            effective_bytes = float(capacity.get("effective_capacity_bytes", 0) or 0)
+            used_bytes = float(capacity.get("used_bytes", 0) or 0)
+            denom = effective_bytes if effective_bytes > 0 else total_bytes
+            if denom <= 0:
+                return 1.0
+            return min(1.0, max(0.0, used_bytes / denom))
         except Exception:
-            pass
+            return 1.0
 
-        return True
+    def _effective_forward_budget_bytes(
+        self, target_tier: StorageTier, coordinator: Optional[Any] = None
+    ) -> int:
+        if target_tier == StorageTier.GPU:
+            coord = coordinator if coordinator is not None else self.coordinator
+            effective_fn = getattr(coord, "_effective_capacity_mb", None)
+            if callable(effective_fn):
+                try:
+                    return max(0, int(float(effective_fn()) * 1024.0 * 1024.0))
+                except Exception:
+                    return 0
+            return 0
+
+        try:
+            status = self.residency_manager.get_tier_status(target_tier)
+            capacity = status.get("capacity", {}) if isinstance(status, dict) else {}
+            free_bytes = float(capacity.get("free_bytes", 0) or 0)
+            pressure = self._tier_pressure(target_tier, coordinator=coordinator)
+            return max(0, int(free_bytes * (1.0 - pressure)))
+        except Exception:
+            return 0
+
+    def _tier_to_gpu_load_ms(
+        self, size_mb: float, tier: StorageTier, coordinator: Optional[Any] = None
+    ) -> float:
+        coord = coordinator if coordinator is not None else self.coordinator
+        if tier == StorageTier.HOST:
+            return float(coord.compute_faaslora_host_load_ms(size_mb))
+        if tier == StorageTier.NVME:
+            return float(coord.compute_faaslora_nvme_load_ms(size_mb))
+        if tier == StorageTier.REMOTE:
+            bandwidth = float(self.hardware_cfg.get("bandwidth_mbps", 0.0) or 0.0)
+            return float(coord.compute_cold_start_load_ms(size_mb, bandwidth))
+        if tier == StorageTier.GPU:
+            return 0.0
+        return float(coord.compute_faaslora_nvme_load_ms(size_mb))
+
+    def _forward_utility(
+        self,
+        adapter_id: str,
+        source_tier: StorageTier,
+        target_tier: StorageTier,
+        coordinator: Optional[Any] = None,
+    ) -> float:
+        size_mb = self._artifact_size_mb(adapter_id)
+        if size_mb <= 0:
+            return 0.0
+        hotness = self._artifact_hotness(adapter_id)
+        if hotness <= 0:
+            return 0.0
+        source_cost = self._tier_to_gpu_load_ms(size_mb, source_tier, coordinator=coordinator)
+        target_cost = self._tier_to_gpu_load_ms(size_mb, target_tier, coordinator=coordinator)
+        latency_gain = max(0.0, source_cost - target_cost)
+        if latency_gain <= 0:
+            return 0.0
+        pressure = self._tier_pressure(target_tier, coordinator=coordinator)
+        return (hotness * latency_gain / max(size_mb, 0.1)) * (1.0 - pressure)
+
+    def _gpu_resident_source_tier(self, adapter_id: str) -> Optional[StorageTier]:
+        self.sync_local_tier_paths()
+        if adapter_id in self._host_paths:
+            return StorageTier.HOST
+        if adapter_id in self._nvme_paths:
+            return StorageTier.NVME
+        return None
+
+    def _resident_gpu_utility(
+        self, adapter_id: str, coordinator: Optional[Any] = None
+    ) -> Optional[Dict[str, Any]]:
+        source_tier = self._gpu_resident_source_tier(adapter_id)
+        if source_tier is None:
+            return None
+        utility = self._forward_utility(
+            adapter_id,
+            source_tier,
+            StorageTier.GPU,
+            coordinator=coordinator,
+        )
+        metadata = self._artifact_metadata(adapter_id)
+        return {
+            "adapter_id": adapter_id,
+            "source_tier": "host" if source_tier == StorageTier.HOST else "nvme",
+            "size_mb": self._artifact_size_mb(adapter_id),
+            "utility": utility,
+            "last_accessed_at": float(getattr(metadata, "last_accessed_at", 0.0) or 0.0)
+            if metadata is not None
+            else 0.0,
+        }
+
+    def _select_host_forward_candidate(self) -> Optional[str]:
+        if not self._dynamic_forwarding_enabled:
+            return None
+        self.sync_local_tier_paths()
+        budget_bytes = self._effective_forward_budget_bytes(StorageTier.HOST)
+        if budget_bytes <= 0:
+            return None
+
+        best: Optional[Tuple[float, float, str]] = None
+        for adapter_id in self._nvme_paths:
+            if adapter_id in self._host_paths or adapter_id in self._pending_host_promotions:
+                continue
+            metadata = self._artifact_metadata(adapter_id)
+            if metadata is None:
+                continue
+            size_bytes = int(getattr(metadata, "size_bytes", 0) or 0)
+            if size_bytes <= 0 or size_bytes > budget_bytes:
+                continue
+            utility = self._forward_utility(adapter_id, StorageTier.NVME, StorageTier.HOST)
+            if utility <= 0:
+                continue
+            last_accessed = float(getattr(metadata, "last_accessed_at", 0.0) or 0.0)
+            candidate = (utility, last_accessed, adapter_id)
+            if best is None or candidate > best:
+                best = candidate
+        return best[2] if best is not None else None
+
+    def select_gpu_forward_candidate(
+        self,
+        gpu_resident_adapters: Optional[set] = None,
+        coordinator: Optional[Any] = None,
+    ) -> Optional[Dict[str, Any]]:
+        if not self._dynamic_forwarding_enabled:
+            return None
+        self.sync_local_tier_paths()
+        resident = set(gpu_resident_adapters or set())
+        coord = coordinator if coordinator is not None else self.coordinator
+        best: Optional[Dict[str, Any]] = None
+        weakest_resident: Optional[Dict[str, Any]] = None
+
+        for adapter_id in resident:
+            resident_state = self._resident_gpu_utility(adapter_id, coordinator=coord)
+            if resident_state is None:
+                continue
+            if weakest_resident is None or (
+                resident_state["utility"],
+                resident_state["last_accessed_at"],
+                -resident_state["size_mb"],
+                resident_state["adapter_id"],
+            ) < (
+                weakest_resident["utility"],
+                weakest_resident["last_accessed_at"],
+                -weakest_resident["size_mb"],
+                weakest_resident["adapter_id"],
+            ):
+                weakest_resident = resident_state
+
+        for adapter_id in set(self._host_paths) | set(self._nvme_paths):
+            if adapter_id in resident:
+                continue
+            source_tier = StorageTier.HOST if adapter_id in self._host_paths else StorageTier.NVME
+            local_path = self._host_paths.get(adapter_id) or self._nvme_paths.get(adapter_id)
+            if not local_path:
+                continue
+            size_mb = self._artifact_size_mb(adapter_id)
+            decision = coord.evaluate_gpu_admission(
+                adapter_id,
+                size_mb,
+                tier="host" if source_tier == StorageTier.HOST else "nvme",
+            )
+            utility = self._forward_utility(adapter_id, source_tier, StorageTier.GPU, coordinator=coord)
+            if utility <= 0:
+                continue
+            replace = None
+            if not decision.get("admit", False):
+                if not decision.get("should_attempt", False) or weakest_resident is None:
+                    continue
+                effective_capacity_mb = float(decision.get("effective_capacity_mb", 0.0) or 0.0)
+                if size_mb > effective_capacity_mb + float(weakest_resident["size_mb"]):
+                    continue
+                net_gain = utility - float(weakest_resident["utility"])
+                if net_gain <= 0.0:
+                    continue
+                replace = {
+                    "adapter_id": weakest_resident["adapter_id"],
+                    "target_tier": weakest_resident["source_tier"],
+                    "size_mb": weakest_resident["size_mb"],
+                    "utility": weakest_resident["utility"],
+                }
+            metadata = self._artifact_metadata(adapter_id)
+            last_accessed = float(getattr(metadata, "last_accessed_at", 0.0) or 0.0) if metadata is not None else 0.0
+            candidate = {
+                "adapter_id": adapter_id,
+                "path": local_path,
+                "source_tier": "host" if source_tier == StorageTier.HOST else "nvme",
+                "size_mb": size_mb,
+                "utility": utility,
+                "net_gain": utility - float(replace["utility"]) if replace is not None else utility,
+                "last_accessed_at": last_accessed,
+                "replace": replace,
+            }
+            if best is None or (
+                candidate["net_gain"],
+                candidate["utility"],
+                candidate["last_accessed_at"],
+                candidate["adapter_id"],
+            ) > (
+                best["net_gain"],
+                best["utility"],
+                best["last_accessed_at"],
+                best["adapter_id"],
+            ):
+                best = candidate
+        return best
 
     async def _promote_nvme_hit_to_host(self, adapter_id: str) -> None:
         try:
@@ -290,11 +503,21 @@ class ExperimentStack:
         finally:
             self._pending_host_promotions.pop(adapter_id, None)
 
-    def _schedule_host_promotion_from_nvme(self, adapter_id: str) -> bool:
-        if not self._should_promote_nvme_hit_to_host(adapter_id):
+    def _schedule_host_promotion_from_nvme(self, adapter_id: Optional[str] = None) -> bool:
+        self.sync_local_tier_paths()
+        candidate = None
+        if adapter_id and adapter_id in self._nvme_paths and adapter_id not in self._host_paths:
+            utility = self._forward_utility(adapter_id, StorageTier.NVME, StorageTier.HOST)
+            size_bytes = int(getattr(self._artifact_metadata(adapter_id), "size_bytes", 0) or 0)
+            budget_bytes = self._effective_forward_budget_bytes(StorageTier.HOST)
+            if utility > 0 and size_bytes > 0 and size_bytes <= budget_bytes and adapter_id not in self._pending_host_promotions:
+                candidate = adapter_id
+        if candidate is None:
+            candidate = self._select_host_forward_candidate()
+        if not candidate:
             return False
-        task = asyncio.create_task(self._promote_nvme_hit_to_host(adapter_id))
-        self._pending_host_promotions[adapter_id] = task
+        task = asyncio.create_task(self._promote_nvme_hit_to_host(candidate))
+        self._pending_host_promotions[candidate] = task
         return True
 
     def _select_scaleup_gpu_candidates(self, capacity_bytes: int) -> List[str]:
@@ -453,6 +676,24 @@ class ExperimentStack:
                 self.logger.warning(f"warmup {aid}: {e}")
         return warmed
 
+    @staticmethod
+    def _record_gpu_ready_hit(coord: Optional[Any], adapter_id: str) -> None:
+        if coord is None:
+            return
+        recorder = getattr(coord, "record_gpu_ready_hit", None)
+        if callable(recorder):
+            try:
+                recorder(adapter_id)
+            except TypeError:
+                recorder()
+            return
+        fallback = getattr(coord, "record_warm_pool_hit", None)
+        if callable(fallback):
+            try:
+                fallback(adapter_id)
+            except TypeError:
+                fallback()
+
     async def resolve_lora(
         self,
         adapter_id: str,
@@ -474,7 +715,7 @@ class ExperimentStack:
             if coord is not None and getattr(coord, "_is_resident", None) and coord._is_resident(adapter_id):
                 path = self._host_paths.get(adapter_id) or self._nvme_paths.get(adapter_id)
                 self._repair_adapter_dir(path)
-                coord.record_warm_pool_hit()
+                self._record_gpu_ready_hit(coord, adapter_id)
                 return path, "gpu", 0.0, 0.0, 0.0
         except Exception:
             pass
@@ -483,7 +724,7 @@ class ExperimentStack:
         status = self.residency_manager.get_tier_status(StorageTier.GPU)
         details = (status.get("artifacts") or {}).get("details") or []
         if any(d.get("artifact_id") == adapter_id for d in details):
-            coord.record_warm_pool_hit()
+            self._record_gpu_ready_hit(coord, adapter_id)
             path = self._host_paths.get(adapter_id) or self._nvme_paths.get(adapter_id)
             self._repair_adapter_dir(path)
             return path, "gpu", 0.0, 0.0, 0.0
