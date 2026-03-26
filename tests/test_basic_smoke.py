@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 import unittest
+from types import SimpleNamespace
 from pathlib import Path
 from unittest.mock import patch
 from tempfile import TemporaryDirectory
@@ -17,8 +18,10 @@ from types import SimpleNamespace
 import yaml
 
 from faaslora.api.http_server import HTTPServer
-from faaslora.memory.gpu_monitor import GPUMemoryMonitor
+from faaslora.memory.gpu_monitor import GPUMemoryInfo, GPUMemoryMonitor
+from faaslora.memory.residency_manager import ResidencyManager
 from faaslora.api.grpc_server import GRPCServer
+from faaslora.coordination.autoscaler import AutoScaler
 from faaslora.coordination.coordinator import Coordinator
 from faaslora.datasets.huggingface_adapter import HuggingFaceAdapter
 from faaslora.datasets.azure_functions_adapter import AzureFunctionsAdapter
@@ -48,10 +51,13 @@ from scripts.prepare_publicmix_pool import (
     scan_public_adapter_pool,
 )
 from scripts.run_all_experiments import (
+    RequestResult,
+    ScenarioResult,
     ScenarioRunner,
     _apply_tp_instance_capacity_guard,
     _adapter_matches_model,
     _build_local_tp_runtime_env_updates,
+    _is_comparable_request,
     _normalize_lora_preparation_mode,
     _prepare_dedicated_subprocess_model_cfg,
     _resolve_vllm_runtime_guards,
@@ -260,6 +266,153 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
         self.assertEqual(calls, [("dedicated", False)])
 
+    def test_refresh_slot_runtime_hints_syncs_real_resident_and_shared_local_tiers(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        sync_calls = []
+        runner._stack = SimpleNamespace(
+            sync_local_tier_paths=lambda: sync_calls.append("sync"),
+            _host_paths={"host_a": "/tmp/host_a"},
+            _nvme_paths={"nvme_b": "/tmp/nvme_b"},
+        )
+        runner._gpu_runtime_snapshot = lambda device_id: (21.0, 24.0, 88.0) if device_id == 1 else None
+        runner._instance_mode = "auto"
+
+        slot = SimpleNamespace(
+            coordinator=SimpleNamespace(
+                get_summary_metrics=lambda: {
+                    "queued_loads": 2,
+                    "current_lora_resident_mb": 96.0,
+                    "current_gpu_utilization_pct": 41.0,
+                },
+                _get_resident_loras=lambda: {"gpu_hot": 32.0},
+            ),
+            device_id=1,
+            gpu_resident_adapters={"stale_gpu"},
+            host_cached_adapters=set(),
+            nvme_cached_adapters=set(),
+        )
+
+        def _update_runtime_hints(metrics):
+            slot.metrics = dict(metrics)
+
+        slot.update_runtime_hints = _update_runtime_hints
+
+        runner._refresh_slot_runtime_hints(slot)
+
+        self.assertEqual(sync_calls, ["sync"])
+        self.assertEqual(slot.gpu_resident_adapters, {"gpu_hot"})
+        self.assertEqual(slot.host_cached_adapters, {"host_a"})
+        self.assertEqual(slot.nvme_cached_adapters, {"nvme_b"})
+        self.assertEqual(slot.metrics["queued_loads"], 2)
+        self.assertEqual(slot.metrics["current_gpu_utilization_pct"], 88.0)
+        self.assertEqual(slot.metrics["physical_gpu_utilization_pct"], 88.0)
+
+    def test_refresh_slot_runtime_hints_keeps_higher_logical_utilization(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._stack = None
+        runner._gpu_runtime_snapshot = lambda _device_id: (10.0, 24.0, 35.0)
+        runner._instance_mode = "auto"
+
+        slot = SimpleNamespace(
+            coordinator=SimpleNamespace(
+                get_summary_metrics=lambda: {
+                    "queued_loads": 0,
+                    "current_lora_resident_mb": 64.0,
+                    "current_gpu_utilization_pct": 61.0,
+                },
+                _get_resident_loras=lambda: {"gpu_hot": 32.0},
+            ),
+            device_id=0,
+            gpu_resident_adapters=set(),
+            host_cached_adapters=set(),
+            nvme_cached_adapters=set(),
+        )
+
+        def _update_runtime_hints(metrics):
+            slot.metrics = dict(metrics)
+
+        slot.update_runtime_hints = _update_runtime_hints
+
+        runner._refresh_slot_runtime_hints(slot)
+
+        self.assertEqual(slot.metrics["current_gpu_utilization_pct"], 61.0)
+        self.assertEqual(slot.metrics["physical_gpu_utilization_pct"], 35.0)
+
+    def test_exec_request_preserves_source_cache_tier_after_gpu_promotion(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.router = None
+        runner.engine = None
+        runner._refresh_all_slot_runtime_hints = lambda: None
+        runner._refresh_slot_runtime_hints = lambda _slot: None
+        marks = []
+        runner._mark_slot_adapter_tier = lambda _slot, aid, tier: marks.append((aid, tier))
+        runner.adapter_info = {"finance_lora": {"size_mb": 30.0}}
+        runner.baseline_type = "faaslora_full"
+        runner._access_count = {"finance_lora": 0}
+        runner.cost_model = {}
+
+        class FakeRegistry:
+            def __init__(self):
+                self.updates = []
+
+            def update_artifact(self, adapter_id: str, payload):
+                self.updates.append((adapter_id, dict(payload)))
+
+        access_log = []
+        runner._stack = SimpleNamespace(
+            registry=FakeRegistry(),
+            residency_manager=SimpleNamespace(admit_artifact=lambda *args, **kwargs: None),
+            record_access=lambda adapter_id, load_time_ms=0.0, hit=True: access_log.append((adapter_id, load_time_ms, hit)),
+        )
+
+        class FakeCoord:
+            def __init__(self):
+                self._residency_manager = None
+                self.marked = []
+
+            def notify_batch_start(self, _tokens: int):
+                return None
+
+            def notify_batch_end(self, _tokens: int):
+                return None
+
+            async def _mark_resident(self, adapter_id: str, size_mb: float):
+                self.marked.append((adapter_id, size_mb))
+                return True
+
+        class FakeEngine:
+            async def load_lora_to_gpu_and_measure(self, lora_path: str, adapter_id: str):
+                return 5.0, True
+
+            async def generate(self, prompt, lora_path, adapter_id, max_tokens, input_tokens, temperature):
+                return 10.0, 1.0, 4
+
+        async def fake_resolve(adapter_id, _is_burst, _expected_input_tokens, coordinator=None):
+            return adapter_id, "/tmp/fake_lora", 123.0, "host", 0.0, 0.0
+
+        runner._resolve_lora = fake_resolve
+        runner.coordinator = FakeCoord()
+        runner.engine = FakeEngine()
+
+        trace = SimpleNamespace(
+            request_id="req_00000",
+            adapter_id="finance_lora",
+            is_burst=False,
+            expected_input_tokens=16,
+            prompt="hello",
+        )
+
+        result = asyncio.run(runner._exec_request(trace, max_tokens=8, temperature=0.0))
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.cache_tier, "host")
+        self.assertTrue(result.cache_hit)
+        self.assertEqual(result.lora_io_ms, 5.0)
+        self.assertIn(("finance_lora", "host"), marks)
+        self.assertIn(("finance_lora", "gpu"), marks)
+        self.assertEqual(runner.coordinator.marked, [("finance_lora", 30.0)])
+        self.assertEqual(access_log, [("finance_lora", 5.0, True)])
+
     def test_generator_defaults_follow_selected_profile(self) -> None:
         defaults = resolve_generation_defaults(EXPERIMENTS_CONFIG)
 
@@ -308,6 +461,40 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             stack.sync_local_tier_paths()
             self.assertIn(adapter_id, stack._host_paths)
             self.assertNotIn(adapter_id, stack._nvme_paths)
+
+    def test_explicit_nvme_hit_schedules_host_promotion_without_utility_gate(self) -> None:
+        stack = ExperimentStack.__new__(ExperimentStack)
+        stack.config = SimpleNamespace(
+            get=lambda key, default=None: {"max_concurrent_operations": 2}
+            if key == "preloading"
+            else default
+        )
+        stack.residency_manager = SimpleNamespace(
+            get_tier_status=lambda _tier: {"capacity": {"total_bytes": 4096 * 1024 * 1024}}
+        )
+        stack.sync_local_tier_paths = lambda: None
+        stack._nvme_paths = {"finance_lora": "/tmp/nvme/finance_lora"}
+        stack._host_paths = {}
+        stack._pending_host_promotions = {}
+        stack._artifact_metadata = lambda _aid: SimpleNamespace(size_bytes=32 * 1024 * 1024)
+        stack._effective_forward_budget_bytes = lambda *_args, **_kwargs: 0
+        stack._forward_utility = lambda *_args, **_kwargs: 0.0
+        stack._select_host_forward_candidate = lambda: None
+
+        async def fake_promote(_aid: str) -> None:
+            return None
+
+        stack._promote_nvme_hit_to_host = fake_promote
+
+        def fake_create_task(coro):
+            coro.close()
+            return SimpleNamespace(kind="task")
+
+        with patch("faaslora.experiment.experiment_stack.asyncio.create_task", side_effect=fake_create_task):
+            scheduled = stack._schedule_host_promotion_from_nvme("finance_lora")
+
+        self.assertTrue(scheduled)
+        self.assertIn("finance_lora", stack._pending_host_promotions)
 
     def test_knapsack_host_plan_uses_scaled_units_and_returns_candidates(self) -> None:
         with TemporaryDirectory() as tmpdir:
@@ -1362,6 +1549,53 @@ class CoordinationSmokeTests(unittest.TestCase):
         self.assertGreater(decision["future_reserve_mb"], 0.0)
         self.assertGreaterEqual(decision["working_set_pressure"], 0.0)
 
+    def test_working_set_gap_is_reserved_once_for_gpu_admission(self) -> None:
+        coord = ResourceCoordinator(config={
+            "gpu_budget_mb": 1000,
+            "model_weights_mb": 100,
+            "lora_load_reserve_ratio": 0.0,
+            "effective_capacity_admission_enabled": True,
+            "idle_timeout_s": 10.0,
+        })
+        now = time.time()
+        for idx in range(3):
+            aid = f"hot_{idx}"
+            coord._adapter_sizes_mb[aid] = 220.0
+            coord._access_log[aid].append(now)
+        coord._adapter_sizes_mb["candidate"] = 64.0
+        coord._access_log["candidate"].append(now)
+
+        decision = coord.evaluate_gpu_admission("candidate", 64.0, tier="nvme")
+
+        self.assertGreater(decision["working_set_pressure"], 0.75)
+        self.assertEqual(decision["pressure"], 0.0)
+        self.assertGreater(decision["effective_capacity_mb"], 150.0)
+        self.assertTrue(decision["should_attempt"])
+        self.assertTrue(decision["admit"])
+
+    def test_latency_model_constants_can_be_explicitly_configured(self) -> None:
+        coord = ResourceCoordinator(config={
+            "gpu_load_overhead_ms": 80.0,
+            "pcie_bw_mbps": 20000.0,
+            "nvme_bw_mbps": 4000.0,
+            "serverlessllm_overhead_ratio": 0.25,
+            "host_locality_factor": 1.2,
+            "cpu_locality_factor": 0.95,
+            "nvme_locality_factor": 0.7,
+            "remote_locality_factor": 0.4,
+        })
+
+        self.assertAlmostEqual(coord.compute_slora_load_ms(100.0), 100.0 / 20.0 + 80.0)
+        self.assertAlmostEqual(
+            coord.compute_serverlessllm_load_ms(100.0),
+            100.0 / 4.0 + 100.0 / 20.0 + 80.0 * 0.25,
+        )
+        self.assertAlmostEqual(coord._locality_factor("host"), 1.2)
+        self.assertAlmostEqual(coord._locality_factor("cpu"), 0.95)
+        self.assertAlmostEqual(coord._locality_factor("nvme"), 0.7)
+        self.assertAlmostEqual(coord._locality_factor("remote"), 0.4)
+        self.assertAlmostEqual(coord._locality_factor("unknown"), 0.4)
+
     def test_trigger_scale_down_prefers_high_reload_value_adapter(self) -> None:
         coord = ResourceCoordinator(config={"gpu_budget_mb": 1000, "model_weights_mb": 100})
         now = time.time()
@@ -1676,6 +1910,221 @@ class DatasetParsingTests(unittest.TestCase):
         self.assertEqual(client.region, "ap-southeast-1")
         self.assertEqual(client.access_key, "legacy-ak")
         self.assertEqual(client.secret_key, "legacy-sk")
+
+
+
+class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
+    def test_scale_up_preload_capacity_prefers_explicit_config(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.preload_cfg = {
+            "scale_up_preload_mb": 1536,
+            "host_capacity_mb": 4096,
+        }
+
+        capacity_bytes = runner._scale_up_preload_capacity_bytes()
+
+        self.assertEqual(capacity_bytes, 1536 * 1024 * 1024)
+
+    def test_residency_manager_sync_gpu_capacity_tracks_active_devices(self) -> None:
+        class DummyConfig:
+            def __init__(self) -> None:
+                self._data = {
+                    "memory": {
+                        "gpu": {"total_memory_gb": 24},
+                        "host": {"total_memory_gb": 64},
+                        "nvme": {"cache_size_gb": 100},
+                    },
+                    "storage": {},
+                }
+
+            def get(self, key, default=None):
+                return self._data.get(key, default)
+
+        infos = {
+            0: GPUMemoryInfo(device_id=0, timestamp=0.0, total_bytes=10, used_bytes=4, free_bytes=6, active_bytes=1, cached_bytes=2),
+            1: GPUMemoryInfo(device_id=1, timestamp=0.0, total_bytes=12, used_bytes=5, free_bytes=7, active_bytes=2, cached_bytes=3),
+        }
+        monitor = SimpleNamespace(
+            enabled=True,
+            devices=[0, 1],
+            get_all_devices_memory_info=lambda: infos,
+            get_current_memory_info=lambda device_id=0: infos.get(device_id),
+        )
+        manager = ResidencyManager(DummyConfig(), SimpleNamespace(), monitor)
+        manager.set_tracked_gpu_device_ids([0, 1])
+
+        manager._sync_gpu_capacity_once()
+
+        gpu_capacity = manager.tier_capacities[StorageTier.GPU]
+        self.assertEqual(gpu_capacity.total_bytes, 22)
+        self.assertEqual(gpu_capacity.used_bytes, 9)
+
+    def test_scenario_result_aggregate_computes_ttft_decomposition(self) -> None:
+        result = ScenarioResult("demo", "faaslora_full", total=4)
+        result.ttft_slo_ms = 180.0
+        result.requests = [
+            RequestResult("r1", "a", False, "normal", True, "gpu", 10.0, 80.0, 100.0, 5.0, 5.0, 20.0, 120.0, 10, 5, 0.0, True, "inst_1", False),
+            RequestResult("r2", "b", False, "normal", True, "host", 60.0, 120.0, 200.0, 10.0, 10.0, 25.0, 240.0, 10, 5, 0.0, True, "inst_1", False),
+            RequestResult("r3", "c", False, "normal", False, "remote", 0.0, 140.0, 150.0, 5.0, 5.0, 30.0, 190.0, 10, 5, 0.0, True, "inst_2", True),
+            RequestResult("r4", "d", False, "normal", True, "gpu", 20.0, 160.0, 220.0, 10.0, 10.0, 35.0, 260.0, 10, 5, 0.0, True, "inst_2", False),
+        ]
+        result.scale_up_events = [{"request_index": 2, "instance_id": "inst_2"}]
+
+        result.aggregate(4.0)
+
+        self.assertAlmostEqual(result.avg_comparable_ttft_ms, (100.0 + 200.0 + 220.0) / 3.0)
+        self.assertAlmostEqual(result.avg_serverless_overhead_ms, (20.0 + 80.0 + 10.0 + 40.0) / 4.0)
+        self.assertAlmostEqual(result.avg_gpu_ready_ttft_ms, (100.0 + 220.0) / 2.0)
+        self.assertAlmostEqual(result.avg_scaleup_affected_ttft_ms, 150.0)
+        self.assertAlmostEqual(result.throughput_tok_per_s, 5.0)
+        self.assertAlmostEqual(result.slo_attainment, 0.5)
+        self.assertEqual(result.cold_starts_after_scale_up, [1])
+
+    def test_live_result_stats_includes_ttft_decomposition(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._live_scale_up_events = [{"request_index": 2}]
+        runner._ttft_slo_ms = 180.0
+        results = [
+            RequestResult("r1", "a", False, "normal", True, "gpu", 10.0, 80.0, 100.0, 5.0, 5.0, 20.0, 120.0, 10, 5, 0.0, True, "inst_1", False),
+            RequestResult("r2", "b", False, "normal", True, "host", 60.0, 120.0, 200.0, 10.0, 10.0, 25.0, 240.0, 10, 5, 0.0, True, "inst_1", False),
+            RequestResult("r3", "c", False, "normal", False, "remote", 0.0, 140.0, 150.0, 5.0, 5.0, 30.0, 190.0, 10, 5, 0.0, True, "inst_2", True),
+            RequestResult("r4", "d", False, "normal", True, "gpu", 20.0, 160.0, 220.0, 10.0, 10.0, 35.0, 260.0, 10, 5, 0.0, True, "inst_2", False),
+        ]
+
+        stats = runner._live_result_stats(results)
+
+        self.assertAlmostEqual(stats["avg_comparable_ttft_ms"], (100.0 + 200.0 + 220.0) / 3.0)
+        self.assertAlmostEqual(stats["avg_serverless_overhead_ms"], (20.0 + 80.0 + 10.0 + 40.0) / 4.0)
+        self.assertAlmostEqual(stats["avg_gpu_ready_ttft_ms"], (100.0 + 220.0) / 2.0)
+        self.assertAlmostEqual(stats["avg_scaleup_affected_ttft_ms"], 150.0)
+        self.assertEqual(stats["total_output_tokens"], 20)
+        self.assertAlmostEqual(stats["slo_attainment"], 0.5)
+
+    def test_live_result_stats_handles_empty_comparable_subset(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._live_scale_up_events = [{"request_index": 0}]
+        runner._ttft_slo_ms = 5000.0
+        results = [
+            RequestResult("r1", "a", False, "normal", False, "remote", 30.0, 120.0, 180.0, 5.0, 5.0, 20.0, 220.0, 10, 5, 0.0, True, "inst_2", True),
+            RequestResult("r2", "b", False, "normal", True, "host", 40.0, 140.0, 210.0, 10.0, 10.0, 25.0, 250.0, 10, 5, 0.0, True, "inst_2", True),
+        ]
+
+        stats = runner._live_result_stats(results)
+
+        self.assertEqual(stats["avg_comparable_ttft_ms"], 0.0)
+        self.assertEqual(stats["p95_comparable_ttft_ms"], 0.0)
+        self.assertEqual(stats["p99_comparable_ttft_ms"], 0.0)
+
+    def test_comparable_request_requires_local_tier_and_non_scaleup(self) -> None:
+        local_hit = RequestResult("r1", "a", False, "normal", True, "host", 40.0, 140.0, 210.0, 10.0, 10.0, 25.0, 250.0, 10, 5, 0.0, True, "inst_1", False)
+        scaleup_local = RequestResult("r2", "b", False, "normal", True, "host", 30.0, 120.0, 180.0, 5.0, 5.0, 20.0, 220.0, 10, 5, 0.0, True, "inst_2", True)
+        remote_fetch = RequestResult("r3", "c", False, "normal", False, "remote", 30.0, 120.0, 180.0, 5.0, 5.0, 20.0, 220.0, 10, 5, 0.0, True, "inst_1", False)
+        legacy_scaleup = SimpleNamespace(success=True, cache_tier="host")
+
+        self.assertTrue(_is_comparable_request(local_hit))
+        self.assertFalse(_is_comparable_request(scaleup_local))
+        self.assertFalse(_is_comparable_request(remote_fetch))
+        self.assertFalse(_is_comparable_request(legacy_scaleup, 3, {3}))
+
+    def test_aggregate_counts_cold_starts_by_scaled_instance_id(self) -> None:
+        result = ScenarioResult("demo", "faaslora_full", total=5)
+        result.requests = [
+            RequestResult("r1", "a", False, "normal", True, "gpu", 0.0, 80.0, 80.0, 0.0, 0.0, 10.0, 110.0, 10, 5, 0.0, True, "inst_1", False),
+            RequestResult("r2", "b", False, "normal", True, "host", 40.0, 120.0, 160.0, 0.0, 0.0, 12.0, 190.0, 10, 5, 0.0, True, "inst_2", True),
+            RequestResult("r3", "c", False, "normal", True, "gpu", 0.0, 90.0, 90.0, 0.0, 0.0, 12.0, 120.0, 10, 5, 0.0, True, "inst_2", False),
+            RequestResult("r4", "d", False, "normal", True, "nvme", 50.0, 140.0, 190.0, 0.0, 0.0, 15.0, 220.0, 10, 5, 0.0, True, "inst_3", True),
+            RequestResult("r5", "e", False, "normal", True, "host", 35.0, 130.0, 165.0, 0.0, 0.0, 14.0, 200.0, 10, 5, 0.0, True, "inst_3", True),
+        ]
+        result.scale_up_events = [
+            {"request_index": 1, "instance_id": "inst_2"},
+            {"request_index": 3, "instance_id": "inst_3"},
+        ]
+
+        result.aggregate(5.0)
+
+        self.assertEqual(result.cold_starts_after_scale_up, [1, 2])
+
+    def test_sync_stack_gpu_accounting_tracks_only_stack_runtime_devices(self) -> None:
+        tracked = []
+        sync_calls = []
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        shared_coord = SimpleNamespace(name="shared")
+        runner._stack = SimpleNamespace(
+            residency_manager=SimpleNamespace(
+                set_tracked_gpu_device_ids=lambda ids: tracked.append(list(ids)),
+                _sync_gpu_capacity_once=lambda: sync_calls.append("sync"),
+            )
+        )
+        runner.coordinator = shared_coord
+        runner.instance_pool = SimpleNamespace(
+            get_slots=lambda: [
+                SimpleNamespace(device_id=0, coordinator=shared_coord),
+                SimpleNamespace(device_id=1, coordinator=SimpleNamespace(name="dedicated")),
+                SimpleNamespace(device_id=1, coordinator=SimpleNamespace(name="dedicated-2")),
+            ]
+        )
+        runner.engine = SimpleNamespace(device_id=0, model_cfg={"tensor_parallel_size": 1})
+        runner._available_device_ids = lambda: [0, 1]
+
+        runner._sync_stack_gpu_accounting()
+
+        self.assertEqual(tracked, [[0]])
+        self.assertEqual(sync_calls, ["sync"])
+
+    def test_sync_stack_gpu_accounting_expands_tp_devices_for_primary_runtime(self) -> None:
+        tracked = []
+        sync_calls = []
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        shared_coord = SimpleNamespace(name="shared")
+        runner._stack = SimpleNamespace(
+            residency_manager=SimpleNamespace(
+                set_tracked_gpu_device_ids=lambda ids: tracked.append(list(ids)),
+                _sync_gpu_capacity_once=lambda: sync_calls.append("sync"),
+            )
+        )
+        runner.coordinator = shared_coord
+        runner.instance_pool = SimpleNamespace(
+            get_slots=lambda: [SimpleNamespace(device_id=0, coordinator=shared_coord)]
+        )
+        runner.engine = SimpleNamespace(
+            device_id=0,
+            model_cfg={"tensor_parallel_size": 2, "visible_device_ids": [0, 1]},
+        )
+        runner._available_device_ids = lambda: [0, 1]
+
+        runner._sync_stack_gpu_accounting()
+
+        self.assertEqual(tracked, [[0, 1]])
+        self.assertEqual(sync_calls, ["sync"])
+
+    def test_autoscaler_collect_metrics_uses_max_gpu_util_across_devices(self) -> None:
+        class DummyConfig:
+            def get(self, key, default=None):
+                if key == "coordination":
+                    return {"autoscaling": {"enabled": True}}
+                return default
+
+        infos = {
+            0: GPUMemoryInfo(device_id=0, timestamp=0.0, total_bytes=100, used_bytes=40, free_bytes=60, active_bytes=0, cached_bytes=0),
+            1: GPUMemoryInfo(device_id=1, timestamp=0.0, total_bytes=100, used_bytes=90, free_bytes=10, active_bytes=0, cached_bytes=0),
+        }
+        autoscaler = AutoScaler(
+            config=DummyConfig(),
+            registry=SimpleNamespace(get_all_artifacts=lambda: []),
+            gpu_monitor=SimpleNamespace(
+                enabled=True,
+                get_all_devices_memory_info=lambda: infos,
+                get_current_memory_info=lambda device_id=0: infos.get(device_id),
+            ),
+        )
+        autoscaler.get_current_instances = lambda: [
+            SimpleNamespace(load_score=0.0, gpu_memory_used=0.0, active_requests=0),
+            SimpleNamespace(load_score=0.0, gpu_memory_used=0.0, active_requests=1),
+        ]
+
+        metrics = asyncio.run(autoscaler._collect_current_metrics())
+
+        self.assertAlmostEqual(metrics.gpu_utilization, 90.0)
 
 
 if __name__ == "__main__":

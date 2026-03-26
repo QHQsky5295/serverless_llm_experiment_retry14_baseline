@@ -378,6 +378,34 @@ class ExperimentStack:
             else 0.0,
         }
 
+    def _host_promotion_concurrency_limit(self) -> int:
+        try:
+            preloading_cfg = self.config.get("preloading", {}) or {}
+            limit = int(preloading_cfg.get("max_concurrent_operations", 3) or 3)
+        except Exception:
+            limit = 3
+        return max(1, limit)
+
+    def _host_total_capacity_bytes(self) -> int:
+        try:
+            status = self.residency_manager.get_tier_status(StorageTier.HOST)
+            capacity = status.get("capacity", {}) if isinstance(status, dict) else {}
+            return max(0, int(float(capacity.get("total_bytes", 0) or 0)))
+        except Exception:
+            return 0
+
+    def _can_schedule_explicit_host_promotion(self, adapter_id: str) -> bool:
+        if adapter_id in self._host_paths or adapter_id in self._pending_host_promotions:
+            return False
+        if len(self._pending_host_promotions) >= self._host_promotion_concurrency_limit():
+            return False
+        metadata = self._artifact_metadata(adapter_id)
+        if metadata is None:
+            return False
+        size_bytes = int(getattr(metadata, "size_bytes", 0) or 0)
+        host_total_bytes = self._host_total_capacity_bytes()
+        return size_bytes > 0 and host_total_bytes > 0 and size_bytes <= host_total_bytes
+
     def _select_host_forward_candidate(self) -> Optional[str]:
         if not self._dynamic_forwarding_enabled:
             return None
@@ -506,11 +534,13 @@ class ExperimentStack:
     def _schedule_host_promotion_from_nvme(self, adapter_id: Optional[str] = None) -> bool:
         self.sync_local_tier_paths()
         candidate = None
-        if adapter_id and adapter_id in self._nvme_paths and adapter_id not in self._host_paths:
-            utility = self._forward_utility(adapter_id, StorageTier.NVME, StorageTier.HOST)
-            size_bytes = int(getattr(self._artifact_metadata(adapter_id), "size_bytes", 0) or 0)
-            budget_bytes = self._effective_forward_budget_bytes(StorageTier.HOST)
-            if utility > 0 and size_bytes > 0 and size_bytes <= budget_bytes and adapter_id not in self._pending_host_promotions:
+        if adapter_id and adapter_id in self._nvme_paths:
+            # A real NVMe-served request is the strongest online signal that this
+            # adapter should enter the HOST tier. Do not re-gate that explicit hit
+            # behind the more conservative utility/budget heuristic used for
+            # opportunistic background forwarding; only require that HOST exists,
+            # the artifact fits, and we are not already promoting it.
+            if self._can_schedule_explicit_host_promotion(adapter_id):
                 candidate = adapter_id
         if candidate is None:
             candidate = self._select_host_forward_candidate()

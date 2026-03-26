@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "created_at": 1773656693,
-  "model_name": "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-Nemo-Instruct-2407",
+  "created_at": 1774405004,
+  "model_name": "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct",
   "num_adapters": 500,
   "preserve_legacy_names": true,
   "adapters": [

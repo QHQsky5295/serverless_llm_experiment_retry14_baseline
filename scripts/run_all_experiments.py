@@ -387,6 +387,55 @@ def _restore_env_updates(previous: Dict[str, Optional[str]]) -> None:
         else:
             os.environ[key] = value
 
+
+def _scaleup_affected_request_indices(
+    total_requests: int,
+    scale_up_events: Optional[List[Dict[str, Any]]],
+    window_size: int = 50,
+) -> set[int]:
+    """Legacy fallback for older results that only recorded scale-up windows."""
+    affected: set[int] = set()
+    if total_requests <= 0:
+        return affected
+    events = sorted(scale_up_events or [], key=lambda e: int(e.get("request_index", 0) or 0))
+    for idx, event in enumerate(events):
+        request_index = int(event.get("request_index", 0) or 0)
+        if request_index >= total_requests:
+            continue
+        next_request_index = (
+            int(events[idx + 1].get("request_index", total_requests) or total_requests)
+            if idx + 1 < len(events)
+            else total_requests
+        )
+        window_end = min(request_index + max(1, int(window_size)), next_request_index, total_requests)
+        affected.update(range(request_index, window_end))
+    return affected
+
+
+_LOCAL_COMPARABLE_TIERS = {"gpu", "host", "nvme"}
+
+
+def _is_comparable_request(
+    request: Any,
+    request_index: Optional[int] = None,
+    scaleup_affected_indices: Optional[set[int]] = None,
+) -> bool:
+    """
+    Paper-facing comparable TTFT subset.
+
+    Comparable requests should preserve local-tier differences (GPU/HOST/NVMe)
+    so the benefit of keeping hot artifacts resident is still visible, while
+    excluding the post-scale-up cold window and remote cold fetches.
+    """
+    if not getattr(request, "success", False):
+        return False
+    tagged_scaleup = getattr(request, "scaleup_affected", None)
+    if tagged_scaleup is None and request_index is not None:
+        tagged_scaleup = request_index in (scaleup_affected_indices or set())
+    if bool(tagged_scaleup):
+        return False
+    return str(getattr(request, "cache_tier", "remote") or "remote").lower() in _LOCAL_COMPARABLE_TIERS
+
 from faaslora.datasets.workload_generator import WorkloadGenerator, WorkloadConfig, RequestTrace
 from faaslora.datasets.dataset_loader import WorkloadDataset
 from faaslora.registry.schema import StorageTier
@@ -422,7 +471,12 @@ class RequestResult:
     output_tokens: int
     cost_usd: float
     success: bool
+    instance_id: Optional[str] = None
+    scaleup_affected: bool = False
     error: Optional[str] = None
+
+
+DEFAULT_TTFT_SLO_MS = 5000.0
 
 
 @dataclass
@@ -445,12 +499,24 @@ class ScenarioResult:
     p95_e2e_ms: float = 0.0
     p99_e2e_ms: float = 0.0
     throughput_rps: float = 0.0
+    throughput_tok_per_s: float = 0.0
+    slo_attainment: float = 0.0
+    ttft_slo_ms: float = DEFAULT_TTFT_SLO_MS
     avg_cost_usd: float = 0.0
     total_cost_usd: float = 0.0
     qpr: float = 0.0
     cache_hit_rate: float = 0.0
     gpu_hit_rate: float = 0.0
     avg_lora_io_ms: float = 0.0
+    avg_comparable_ttft_ms: float = 0.0
+    p95_comparable_ttft_ms: float = 0.0
+    p99_comparable_ttft_ms: float = 0.0
+    avg_serverless_overhead_ms: float = 0.0
+    p95_serverless_overhead_ms: float = 0.0
+    avg_gpu_ready_ttft_ms: float = 0.0
+    p95_gpu_ready_ttft_ms: float = 0.0
+    avg_scaleup_affected_ttft_ms: float = 0.0
+    p95_scaleup_affected_ttft_ms: float = 0.0
 
     # Burst-phase metrics
     phase1_avg_ttft_ms: float = 0.0
@@ -482,15 +548,24 @@ class ScenarioResult:
         ok  = [r for r in self.requests if r.success]
         self.completed = len(ok)
         self.failed    = len(self.requests) - self.completed
-        # E1 补全: 每次 scale_up 之后的冷启动数（下一段请求中 cache_tier != "gpu" 的数量）
-        if self.scale_up_events and self.requests:
-            events = sorted(self.scale_up_events, key=lambda e: e.get("request_index", 0))
-            for i, ev in enumerate(events):
-                ri = ev.get("request_index", 0)
-                next_ri = events[i + 1].get("request_index", len(self.requests)) if i + 1 < len(events) else len(self.requests)
-                window_end = min(ri + 50, next_ri)
-                window = self.requests[ri:window_end] if ri < len(self.requests) else []
-                cold = sum(1 for r in window if getattr(r, "cache_tier", "remote") != "gpu")
+        scaleup_success_ttft = [
+            float(getattr(r, "ttft_ms", 0.0) or 0.0)
+            for r in ok
+            if bool(getattr(r, "scaleup_affected", False))
+        ]
+        self.cold_starts_after_scale_up = []
+        if self.scale_up_events:
+            for ev in self.scale_up_events:
+                instance_id = ev.get("instance_id")
+                if not instance_id:
+                    self.cold_starts_after_scale_up.append(0)
+                    continue
+                cold = sum(
+                    1
+                    for r in self.requests
+                    if getattr(r, "instance_id", None) == instance_id
+                    and bool(getattr(r, "scaleup_affected", False))
+                )
                 self.cold_starts_after_scale_up.append(cold)
         if not ok:
             return
@@ -501,11 +576,24 @@ class ScenarioResult:
             i = max(0, min(len(s)-1, int(round(p/100*(len(s)-1)))))
             return s[i]
 
-        ttft = [r.ttft_ms for r in ok]
-        tpot = [r.tpot_ms for r in ok if r.tpot_ms > 0]
-        e2e  = [r.e2e_ms for r in ok]
-        cost = [r.cost_usd for r in ok]
-        ios  = [r.lora_io_ms for r in ok]
+        ttft = [float(r.ttft_ms) for r in ok]
+        tpot = [float(r.tpot_ms) for r in ok if float(r.tpot_ms) > 0]
+        e2e  = [float(r.e2e_ms) for r in ok]
+        cost = [float(r.cost_usd) for r in ok]
+        ios  = [float(r.lora_io_ms) for r in ok]
+        out_tokens = [int(r.output_tokens) for r in ok]
+        overheads = [
+            float(getattr(r, "lora_io_ms", 0.0) or 0.0)
+            + float(getattr(r, "contention_ms", 0.0) or 0.0)
+            + float(getattr(r, "defer_ms", 0.0) or 0.0)
+            for r in ok
+        ]
+        gpu_ready_ttft = [float(r.ttft_ms) for r in ok if r.cache_tier == "gpu"]
+        comparable_ttft = [
+            float(getattr(r, "ttft_ms", 0.0) or 0.0)
+            for r in self.requests
+            if _is_comparable_request(r)
+        ]
 
         self.avg_ttft_ms = sum(ttft)/len(ttft)
         self.p50_ttft_ms = pct(ttft, 50)
@@ -516,11 +604,27 @@ class ScenarioResult:
         self.p95_e2e_ms  = pct(e2e, 95)
         self.p99_e2e_ms  = pct(e2e, 99)
         self.throughput_rps = self.completed / max(elapsed, 1e-6)
+        self.throughput_tok_per_s = sum(out_tokens) / max(elapsed, 1e-6)
+        self.slo_attainment = sum(1 for r in ok if float(r.ttft_ms) <= float(self.ttft_slo_ms)) / len(ok)
         self.avg_cost_usd   = sum(cost)/len(cost)
         self.total_cost_usd = sum(cost)
         self.cache_hit_rate = sum(1 for r in ok if r.cache_hit)/len(ok)
         self.gpu_hit_rate   = sum(1 for r in ok if r.cache_tier=="gpu")/len(ok)
         self.avg_lora_io_ms = sum(ios)/len(ios) if ios else 0.0
+        self.avg_comparable_ttft_ms = (
+            sum(comparable_ttft)/len(comparable_ttft)
+            if comparable_ttft else 0.0
+        )
+        self.p95_comparable_ttft_ms = pct(comparable_ttft, 95) if comparable_ttft else 0.0
+        self.p99_comparable_ttft_ms = pct(comparable_ttft, 99) if comparable_ttft else 0.0
+        self.avg_serverless_overhead_ms = sum(overheads)/len(overheads) if overheads else 0.0
+        self.p95_serverless_overhead_ms = pct(overheads, 95) if overheads else 0.0
+        self.avg_gpu_ready_ttft_ms = sum(gpu_ready_ttft)/len(gpu_ready_ttft) if gpu_ready_ttft else 0.0
+        self.p95_gpu_ready_ttft_ms = pct(gpu_ready_ttft, 95) if gpu_ready_ttft else 0.0
+        self.avg_scaleup_affected_ttft_ms = (
+            sum(scaleup_success_ttft)/len(scaleup_success_ttft) if scaleup_success_ttft else 0.0
+        )
+        self.p95_scaleup_affected_ttft_ms = pct(scaleup_success_ttft, 95) if scaleup_success_ttft else 0.0
 
         # Per-phase TTFT
         p1 = [r.ttft_ms for r in ok if r.burst_phase == "phase1"]
@@ -566,8 +670,13 @@ def _merge_coordinator_metrics(all_metrics: List[Dict]) -> Dict:
 _SCENARIO_RESULT_NUMERIC_KEYS = (
     "elapsed_sec", "avg_ttft_ms", "p50_ttft_ms", "p95_ttft_ms", "p99_ttft_ms",
     "avg_tpot_ms", "avg_e2e_ms", "p95_e2e_ms", "p99_e2e_ms",
-    "throughput_rps", "avg_cost_usd", "total_cost_usd", "qpr",
+    "throughput_rps", "throughput_tok_per_s", "slo_attainment",
+    "avg_cost_usd", "total_cost_usd", "qpr",
     "cache_hit_rate", "gpu_hit_rate", "avg_lora_io_ms",
+    "avg_comparable_ttft_ms", "p95_comparable_ttft_ms", "p99_comparable_ttft_ms",
+    "avg_serverless_overhead_ms", "p95_serverless_overhead_ms",
+    "avg_gpu_ready_ttft_ms", "p95_gpu_ready_ttft_ms",
+    "avg_scaleup_affected_ttft_ms", "p95_scaleup_affected_ttft_ms",
     "phase1_avg_ttft_ms", "phase2_avg_ttft_ms", "non_burst_avg_ttft_ms", "burst_p99_ttft_ms",
     "contention_events", "avg_contention_ms", "avg_defer_ms", "gpu_ready_hits", "warm_pool_hits", "memory_efficiency_pct",
     "completed", "failed",
@@ -632,12 +741,24 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         p95_e2e_ms=agg_dict.get("p95_e2e_ms", first.p95_e2e_ms),
         p99_e2e_ms=agg_dict.get("p99_e2e_ms", first.p99_e2e_ms),
         throughput_rps=agg_dict.get("throughput_rps", first.throughput_rps),
+        throughput_tok_per_s=agg_dict.get("throughput_tok_per_s", first.throughput_tok_per_s),
+        slo_attainment=agg_dict.get("slo_attainment", first.slo_attainment),
+        ttft_slo_ms=first.ttft_slo_ms,
         avg_cost_usd=agg_dict.get("avg_cost_usd", first.avg_cost_usd),
         total_cost_usd=agg_dict.get("total_cost_usd", first.total_cost_usd),
         qpr=agg_dict.get("qpr", first.qpr),
         cache_hit_rate=agg_dict.get("cache_hit_rate", first.cache_hit_rate),
         gpu_hit_rate=agg_dict.get("gpu_hit_rate", first.gpu_hit_rate),
         avg_lora_io_ms=agg_dict.get("avg_lora_io_ms", first.avg_lora_io_ms),
+        avg_comparable_ttft_ms=agg_dict.get("avg_comparable_ttft_ms", first.avg_comparable_ttft_ms),
+        p95_comparable_ttft_ms=agg_dict.get("p95_comparable_ttft_ms", first.p95_comparable_ttft_ms),
+        p99_comparable_ttft_ms=agg_dict.get("p99_comparable_ttft_ms", first.p99_comparable_ttft_ms),
+        avg_serverless_overhead_ms=agg_dict.get("avg_serverless_overhead_ms", first.avg_serverless_overhead_ms),
+        p95_serverless_overhead_ms=agg_dict.get("p95_serverless_overhead_ms", first.p95_serverless_overhead_ms),
+        avg_gpu_ready_ttft_ms=agg_dict.get("avg_gpu_ready_ttft_ms", first.avg_gpu_ready_ttft_ms),
+        p95_gpu_ready_ttft_ms=agg_dict.get("p95_gpu_ready_ttft_ms", first.p95_gpu_ready_ttft_ms),
+        avg_scaleup_affected_ttft_ms=agg_dict.get("avg_scaleup_affected_ttft_ms", first.avg_scaleup_affected_ttft_ms),
+        p95_scaleup_affected_ttft_ms=agg_dict.get("p95_scaleup_affected_ttft_ms", first.p95_scaleup_affected_ttft_ms),
         phase1_avg_ttft_ms=agg_dict.get("phase1_avg_ttft_ms", first.phase1_avg_ttft_ms),
         phase2_avg_ttft_ms=agg_dict.get("phase2_avg_ttft_ms", first.phase2_avg_ttft_ms),
         non_burst_avg_ttft_ms=agg_dict.get("non_burst_avg_ttft_ms", first.non_burst_avg_ttft_ms),
@@ -1932,11 +2053,17 @@ class ScenarioRunner:
         self._live_progress_interval_s = float(self.wl_cfg.get("live_progress_interval_s", 8.0))
         self._live_progress_every_requests = max(1, int(self.wl_cfg.get("live_progress_every_requests", 25)))
         self._show_instance_panel = bool(self.wl_cfg.get("show_instance_panel", True))
+        self._ttft_slo_ms = max(
+            0.0,
+            float(self.wl_cfg.get("ttft_slo_ms", self.coord_cfg.get("ttft_slo_ms", DEFAULT_TTFT_SLO_MS)) or DEFAULT_TTFT_SLO_MS),
+        )
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
         self._run_started_at = 0.0
         self._dynamic_forwarding_enabled = bool(self.preload_cfg.get("dynamic_forwarding_enabled", True))
         self._runtime_gpu_forward_tasks: Dict[tuple, asyncio.Task] = {}
+        self._live_scale_up_events: List[Dict[str, Any]] = []
+        self._scaleup_runtime_instance_ids: set[str] = set()
 
         # Resource coordinator (contribution 3); when _stack is set, coordinator comes from stack
         coord_enabled = (baseline_type == "faaslora_full")
@@ -1975,6 +2102,7 @@ class ScenarioRunner:
             self.router = Router(self.instance_pool, policy=self._routing_policy)
             for slot in self.instance_pool.get_slots():
                 self._prime_slot_cache_view(slot, include_gpu=self._slot_should_include_gpu(slot))
+            self._sync_stack_gpu_accounting()
 
     def _update_dynamic_scaling_state(
         self, batch: list, batch_rps: float, batch_end_time: float
@@ -2027,19 +2155,125 @@ class ScenarioRunner:
     def _refresh_slot_runtime_hints(self, slot: Optional[Any]) -> None:
         if slot is None:
             return
+        if self._stack is not None:
+            sync = getattr(self._stack, "sync_local_tier_paths", None)
+            if sync is not None:
+                try:
+                    sync()
+                except Exception:
+                    pass
+            slot.nvme_cached_adapters = set(getattr(self._stack, "_nvme_paths", {}).keys())
+            slot.host_cached_adapters = set(getattr(self._stack, "_host_paths", {}).keys())
         coord = getattr(slot, "coordinator", None)
         try:
             metrics = coord.get_summary_metrics() if coord is not None else {}
         except Exception:
             metrics = {}
+        metrics = dict(metrics or {})
+        snapshot_fn = getattr(self, "_gpu_runtime_snapshot", None)
+        if callable(snapshot_fn) and getattr(slot, "device_id", None) is not None:
+            try:
+                runtime_snapshot = snapshot_fn(int(slot.device_id))
+            except Exception:
+                runtime_snapshot = None
+            if runtime_snapshot is not None:
+                _used_gb, _total_gb, physical_util_pct = runtime_snapshot
+                physical_util_pct = float(physical_util_pct or 0.0)
+                logical_util_pct = float(metrics.get("current_gpu_utilization_pct", 0.0) or 0.0)
+                # Route with the most conservative pressure signal we have: the
+                # coordinator's logical estimate should never hide a runtime that
+                # is already physically full on its assigned GPU.
+                metrics["current_gpu_utilization_pct"] = max(logical_util_pct, physical_util_pct)
+                metrics["physical_gpu_utilization_pct"] = physical_util_pct
+        resident_keys = None
+        get_resident = getattr(coord, "_get_resident_loras", None)
+        if callable(get_resident):
+            try:
+                resident_map = get_resident() or {}
+                resident_keys = (
+                    set(resident_map.keys())
+                    if isinstance(resident_map, dict)
+                    else set(resident_map)
+                )
+            except Exception:
+                resident_keys = None
+        if resident_keys is not None:
+            slot.gpu_resident_adapters = resident_keys
+        elif getattr(self, "_instance_mode", None) == "shared":
+            slot.gpu_resident_adapters = set(getattr(self, "_gpu_warmed", set()))
         if hasattr(slot, "update_runtime_hints"):
             slot.update_runtime_hints(metrics)
 
     def _refresh_all_slot_runtime_hints(self) -> None:
         if self.instance_pool is None:
             return
+        self._sync_stack_gpu_accounting()
         for slot in self.instance_pool.get_slots():
             self._refresh_slot_runtime_hints(slot)
+
+    def _active_stack_gpu_device_ids(self) -> List[int]:
+        def _append_unique(dst: List[int], raw_ids: Any) -> None:
+            if raw_ids is None:
+                return
+            source = raw_ids
+            if isinstance(source, str):
+                source = [part.strip() for part in source.split(",")]
+            if not isinstance(source, (list, tuple, set)):
+                source = [source]
+            for item in source:
+                try:
+                    did = int(item)
+                except (TypeError, ValueError):
+                    continue
+                if did not in dst:
+                    dst.append(did)
+
+        device_ids: List[int] = []
+        model_cfg = getattr(self.engine, "model_cfg", {}) or {}
+        try:
+            tp = max(1, int(model_cfg.get("tensor_parallel_size", 1) or 1))
+        except (TypeError, ValueError):
+            tp = 1
+        if tp > 1:
+            configured = model_cfg.get("visible_device_ids")
+            if isinstance(configured, (list, tuple)):
+                _append_unique(device_ids, list(configured)[:tp])
+            elif isinstance(configured, str):
+                _append_unique(device_ids, configured.split(",")[:tp])
+            if device_ids:
+                return device_ids
+        if self.instance_pool is not None:
+            for slot in self.instance_pool.get_slots():
+                if getattr(slot, "coordinator", None) is not self.coordinator:
+                    continue
+                did = getattr(slot, "device_id", None)
+                if did is None:
+                    continue
+                _append_unique(device_ids, [did])
+        if not device_ids:
+            engine_device = getattr(self.engine, "device_id", None)
+            _append_unique(device_ids, [engine_device])
+        if not device_ids:
+            available = self._available_device_ids()
+            if available:
+                _append_unique(device_ids, [available[0]])
+        return device_ids
+
+    def _sync_stack_gpu_accounting(self) -> None:
+        if self._stack is None:
+            return
+        residency_manager = getattr(self._stack, "residency_manager", None)
+        if residency_manager is None:
+            return
+        setter = getattr(residency_manager, "set_tracked_gpu_device_ids", None)
+        if callable(setter):
+            setter(self._active_stack_gpu_device_ids())
+        sync = getattr(residency_manager, "_sync_gpu_capacity_once", None)
+        if callable(sync):
+            try:
+                sync()
+            except Exception:
+                pass
 
     def _runtime_forward_task_key(self, slot: Optional[Any]) -> Optional[tuple]:
         if slot is None or not hasattr(slot, "runtime_group_key"):
@@ -2475,15 +2709,49 @@ class ScenarioRunner:
             e2e = [float(getattr(item, "e2e_ms", 0.0) or 0.0) for item in ok]
             tpot = [float(getattr(item, "tpot_ms", 0.0) or 0.0) for item in ok if float(getattr(item, "tpot_ms", 0.0) or 0.0) > 0]
             out_tokens = [int(getattr(item, "output_tokens", 0) or 0) for item in ok]
+            overheads = [
+                float(getattr(item, "lora_io_ms", 0.0) or 0.0)
+                + float(getattr(item, "contention_ms", 0.0) or 0.0)
+                + float(getattr(item, "defer_ms", 0.0) or 0.0)
+                for item in ok
+            ]
+            gpu_ready_ttft = [
+                float(getattr(item, "ttft_ms", 0.0) or 0.0)
+                for item in ok
+                if getattr(item, "cache_tier", "remote") == "gpu"
+            ]
+            comparable = [
+                float(getattr(item, "ttft_ms", 0.0) or 0.0)
+                for item in results_view
+                if not isinstance(item, Exception)
+                and _is_comparable_request(item)
+            ]
+            scaleup_ttft = [
+                float(getattr(item, "ttft_ms", 0.0) or 0.0)
+                for item in ok
+                if bool(getattr(item, "scaleup_affected", False))
+            ]
             stats.update({
                 "avg_ttft_ms": sum(ttft) / len(ttft),
                 "p95_ttft_ms": self._live_percentile(ttft, 95),
+                "p99_ttft_ms": self._live_percentile(ttft, 99),
                 "avg_e2e_ms": sum(e2e) / len(e2e),
                 "p95_e2e_ms": self._live_percentile(e2e, 95),
                 "p99_e2e_ms": self._live_percentile(e2e, 99),
                 "avg_tpot_ms": (sum(tpot) / len(tpot)) if tpot else 0.0,
                 "cache_hit_ratio": sum(1 for item in ok if getattr(item, "cache_hit", False)) / len(ok),
-                "token_throughput": (sum(out_tokens) / max(1, len(ok))),
+                "total_output_tokens": sum(out_tokens),
+                "slo_attainment": (
+                    sum(1 for item in ok if float(getattr(item, "ttft_ms", 0.0) or 0.0) <= self._ttft_slo_ms)
+                    / len(ok)
+                ),
+                "avg_comparable_ttft_ms": (sum(comparable) / len(comparable)) if comparable else 0.0,
+                "p95_comparable_ttft_ms": self._live_percentile(comparable, 95),
+                "p99_comparable_ttft_ms": self._live_percentile(comparable, 99),
+                "avg_serverless_overhead_ms": sum(overheads) / len(overheads) if overheads else 0.0,
+                "p95_serverless_overhead_ms": self._live_percentile(overheads, 95) if overheads else 0.0,
+                "avg_gpu_ready_ttft_ms": (sum(gpu_ready_ttft) / len(gpu_ready_ttft)) if gpu_ready_ttft else 0.0,
+                "avg_scaleup_affected_ttft_ms": (sum(scaleup_ttft) / len(scaleup_ttft)) if scaleup_ttft else 0.0,
             })
         if failed:
             reasons: Dict[str, int] = {}
@@ -2563,12 +2831,31 @@ class ScenarioRunner:
             flush=True,
         )
         if stats:
+            tokps = float(stats.get("total_output_tokens", 0) or 0.0) / max(elapsed, 1e-6)
             print(
                 "      "
-                f"ttft(avg/p95)={stats.get('avg_ttft_ms', 0.0):.0f}/{stats.get('p95_ttft_ms', 0.0):.0f}ms "
-                f"e2e(avg/p95/p99)={stats.get('avg_e2e_ms', 0.0):.0f}/{stats.get('p95_e2e_ms', 0.0):.0f}/{stats.get('p99_e2e_ms', 0.0):.0f}ms "
+                f"ttft(avg/p95/p99)={stats.get('avg_ttft_ms', 0.0):.0f}/{stats.get('p95_ttft_ms', 0.0):.0f}/{stats.get('p99_ttft_ms', 0.0):.0f}ms "
+                f"ttft_comp(avg/p95/p99)={stats.get('avg_comparable_ttft_ms', 0.0):.0f}/{stats.get('p95_comparable_ttft_ms', 0.0):.0f}/{stats.get('p99_comparable_ttft_ms', 0.0):.0f}ms",
+                flush=True,
+            )
+            print(
+                "      "
+                f"scaleup_ttft={stats.get('avg_scaleup_affected_ttft_ms', 0.0):.0f}ms "
+                f"gpu_ready={stats.get('avg_gpu_ready_ttft_ms', 0.0):.0f}ms "
+                f"e2e(avg/p95/p99)={stats.get('avg_e2e_ms', 0.0):.0f}/{stats.get('p95_e2e_ms', 0.0):.0f}/{stats.get('p99_e2e_ms', 0.0):.0f}ms",
+                flush=True,
+            )
+            print(
+                "      "
                 f"tpot={stats.get('avg_tpot_ms', 0.0):.1f}ms "
-                f"hit={stats.get('cache_hit_ratio', 0.0):.0%}",
+                f"req/s={done_rps:.2f} tok/s={tokps:.2f} "
+                f"slo@{self._ttft_slo_ms:.0f}ms={stats.get('slo_attainment', 0.0):.0%}",
+                flush=True,
+            )
+            print(
+                "      "
+                f"diag hit={stats.get('cache_hit_ratio', 0.0):.0%} "
+                f"overhead(io+coord)={stats.get('avg_serverless_overhead_ms', 0.0):.0f}ms",
                 flush=True,
             )
             failure_reasons = stats.get("failure_reasons") or []
@@ -2809,6 +3096,9 @@ class ScenarioRunner:
     async def _cleanup_removed_slot(self, slot: Optional[Any]) -> None:
         if slot is None:
             return
+        instance_id = getattr(slot, "instance_id", None)
+        if instance_id:
+            self._scaleup_runtime_instance_ids.discard(instance_id)
         await self._cancel_runtime_gpu_forward_tasks(self._runtime_forward_task_key(slot))
         try:
             if getattr(slot, "owns_coordinator", False) and getattr(slot, "coordinator", None) is not None:
@@ -2820,6 +3110,7 @@ class ScenarioRunner:
                 await slot.engine.shutdown()
             except Exception:
                 pass
+        self._sync_stack_gpu_accounting()
 
     async def _add_shared_instance_slot(self, coord_enabled: bool) -> Optional[Dict[str, Any]]:
         if self.instance_pool is None or self.engine is None:
@@ -2834,6 +3125,7 @@ class ScenarioRunner:
             device_id=getattr(self.engine, "device_id", None),
         )
         self._prime_slot_cache_view(self.instance_pool.get_slot(instance_id), include_gpu=True)
+        self._sync_stack_gpu_accounting()
         print(
             f"    Scale-up: added shared-engine slot "
             f"(instances={self.instance_pool.count()}/{self.instance_pool.max_instances})",
@@ -2866,6 +3158,7 @@ class ScenarioRunner:
         )
         slot = self.instance_pool.get_slot(instance_id)
         self._prime_slot_cache_view(slot, include_gpu=False)
+        self._sync_stack_gpu_accounting()
         print(
             f"    Scale-up: added dedicated instance "
             f"(instances={self.instance_pool.count()}/{self.instance_pool.max_instances})",
@@ -2919,6 +3212,47 @@ class ScenarioRunner:
         if self._instance_mode != "dedicated":
             return await self._add_shared_instance_slot(coord_enabled)
         return None
+
+    def _register_scale_up_event(
+        self,
+        result: ScenarioResult,
+        *,
+        decision: Any,
+        current_instances: int,
+        request_index: int,
+        scale_event: Dict[str, Any],
+    ) -> None:
+        event = {
+            "timestamp": time.time(),
+            "event_type": scale_event.get("event_type", "scale_up"),
+            "reason": getattr(decision, "reason", "") or "rps/queue",
+            "current_instances": current_instances,
+            "target_instances": getattr(decision, "target_instances", current_instances),
+            "actual_instances": self.instance_pool.count() if self.instance_pool else getattr(decision, "target_instances", current_instances),
+            "request_index": request_index,
+            "instance_id": scale_event.get("instance_id"),
+            "device_id": scale_event.get("device_id"),
+            "runtime_kind": scale_event.get("runtime_kind"),
+        }
+        result.scale_up_events.append(event)
+        self._live_scale_up_events = result.scale_up_events
+        instance_id = event.get("instance_id")
+        if instance_id and event.get("runtime_kind") == "dedicated":
+            self._scaleup_runtime_instance_ids.add(str(instance_id))
+
+    def _request_scaleup_affected(
+        self,
+        *,
+        slot: Optional[Any],
+        adapter_id: Optional[str],
+        cache_tier: Optional[str],
+    ) -> bool:
+        if slot is None or not adapter_id:
+            return False
+        instance_id = getattr(slot, "instance_id", None)
+        if not instance_id or instance_id not in self._scaleup_runtime_instance_ids:
+            return False
+        return str(cache_tier or "remote").lower() != "gpu"
 
     async def _scale_down_one_instance(self) -> Optional[Dict[str, Any]]:
         if self.instance_pool is None or self.instance_pool.count() <= self.instance_pool.min_instances:
@@ -3203,6 +3537,7 @@ class ScenarioRunner:
             scenario_name=self.name,
             baseline_type=self.baseline_type,
             total=len(self.traces),
+            ttft_slo_ms=self._ttft_slo_ms,
         )
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
@@ -3287,18 +3622,13 @@ class ScenarioRunner:
                         await self._stack.trigger_scaling_preload(self._scale_up_preload_capacity_bytes())
                         scale_event = await self._scale_up_instance_pool(coord_enabled)
                         if scale_event:
-                            result.scale_up_events.append({
-                                "timestamp": time.time(),
-                                "event_type": scale_event.get("event_type", "scale_up"),
-                                "reason": getattr(decision, "reason", "") or "rps/queue",
-                                "current_instances": current_instances,
-                                "target_instances": decision.target_instances,
-                                "actual_instances": self.instance_pool.count() if self.instance_pool else decision.target_instances,
-                                "request_index": batch_start,
-                                "instance_id": scale_event.get("instance_id"),
-                                "device_id": scale_event.get("device_id"),
-                                "runtime_kind": scale_event.get("runtime_kind"),
-                            })
+                            self._register_scale_up_event(
+                                result,
+                                decision=decision,
+                                current_instances=current_instances,
+                                request_index=batch_start,
+                                scale_event=scale_event,
+                            )
                 self._emit_live_snapshot(
                     completed=len(all_raw),
                     total=len(self.traces),
@@ -3394,18 +3724,13 @@ class ScenarioRunner:
                             await self._stack.trigger_scaling_preload(self._scale_up_preload_capacity_bytes())
                             scale_event = await self._scale_up_instance_pool(coord_enabled)
                             if scale_event:
-                                result.scale_up_events.append({
-                                    "timestamp": time.time(),
-                                    "event_type": scale_event.get("event_type", "scale_up"),
-                                    "reason": getattr(decision, "reason", "") or "rps/queue",
-                                    "current_instances": current_instances,
-                                    "target_instances": decision.target_instances,
-                                    "actual_instances": self.instance_pool.count() if self.instance_pool else decision.target_instances,
-                                    "request_index": global_offset + batch_start,
-                                    "instance_id": scale_event.get("instance_id"),
-                                    "device_id": scale_event.get("device_id"),
-                                    "runtime_kind": scale_event.get("runtime_kind"),
-                                })
+                                self._register_scale_up_event(
+                                    result,
+                                    decision=decision,
+                                    current_instances=current_instances,
+                                    request_index=global_offset + batch_start,
+                                    scale_event=scale_event,
+                                )
                     self._emit_live_snapshot(
                         completed=global_offset + len(phase_raw),
                         total=len(self.traces),
@@ -3486,6 +3811,7 @@ class ScenarioRunner:
             scenario_name=self.name,
             baseline_type=self.baseline_type,
             total=len(self.traces),
+            ttft_slo_ms=self._ttft_slo_ms,
         )
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
@@ -3639,6 +3965,7 @@ class ScenarioRunner:
             scenario_name=self.name,
             baseline_type=self.baseline_type,
             total=len(self.traces),
+            ttft_slo_ms=self._ttft_slo_ms,
         )
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
@@ -3910,6 +4237,7 @@ class ScenarioRunner:
         cache_tier    = "remote"
         local_path    = None
         size_mb       = float(self.adapter_info.get(adapter_id, {}).get("size_mb", 30.0)) if adapter_id else 30.0
+        instance_id   = getattr(slot, "instance_id", None) if slot is not None else getattr(self, "_primary_instance_id", None)
 
         # ---- LoRA resolution ----
         if adapter_id and self.baseline_type != "backbone_only":
@@ -3944,11 +4272,17 @@ class ScenarioRunner:
                         adapter_id, StorageTier.GPU, force=True
                     )
                 lora_io_ms = real_load_ms
-                cache_tier = "gpu"
+                # Preserve the source cache tier for metrics/reporting; only the
+                # runtime affinity hint should move to GPU after the real load.
                 self._mark_slot_adapter_tier(slot, adapter_id, "gpu")
 
         # ---- Inference ----
         try:
+            scaleup_affected = self._request_scaleup_affected(
+                slot=slot,
+                adapter_id=adapter_id,
+                cache_tier=cache_tier,
+            )
             batch_started = False
             if _coord:
                 _coord.notify_batch_start(trace.expected_input_tokens)
@@ -3988,6 +4322,8 @@ class ScenarioRunner:
                 output_tokens=out_tokens,
                 cost_usd=cost,
                 success=True,
+                instance_id=instance_id,
+                scaleup_affected=scaleup_affected,
             )
 
         except Exception as exc:
@@ -4005,7 +4341,14 @@ class ScenarioRunner:
                 contention_ms=contention_ms, defer_ms=defer_ms,
                 tpot_ms=0, e2e_ms=lora_io_ms + contention_ms,
                 input_tokens=trace.expected_input_tokens, output_tokens=0,
-                cost_usd=0, success=False, error=str(exc),
+                cost_usd=0, success=False,
+                instance_id=instance_id,
+                scaleup_affected=self._request_scaleup_affected(
+                    slot=slot,
+                    adapter_id=adapter_id,
+                    cache_tier=cache_tier,
+                ),
+                error=str(exc),
             )
         finally:
             if adapter_id and self._stack is not None:
@@ -5291,11 +5634,19 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "TTFT_P50_ms": round(r.p50_ttft_ms, 1),
             "TTFT_P95_ms": round(r.p95_ttft_ms, 1),
             "TTFT_P99_ms": round(r.p99_ttft_ms, 1),
+            "TTFT_comparable_avg_ms": round(r.avg_comparable_ttft_ms, 1),
+            "TTFT_comparable_P95_ms": round(r.p95_comparable_ttft_ms, 1),
+            "TTFT_gpu_ready_avg_ms": round(r.avg_gpu_ready_ttft_ms, 1),
+            "TTFT_scaleup_affected_avg_ms": round(r.avg_scaleup_affected_ttft_ms, 1),
+            "TTFT_serverless_overhead_avg_ms": round(r.avg_serverless_overhead_ms, 1),
             "TPOT_avg_ms": round(r.avg_tpot_ms, 2),
             "E2E_avg_ms":  round(r.avg_e2e_ms, 1),
             "E2E_P95_ms":  round(r.p95_e2e_ms, 1),
             "E2E_P99_ms":  round(r.p99_e2e_ms, 1),
             "throughput_RPS":  round(r.throughput_rps, 3),
+            "throughput_TOKPS": round(r.throughput_tok_per_s, 3),
+            "SLO_attainment": round(r.slo_attainment, 4),
+            "TTFT_SLO_ms": round(r.ttft_slo_ms, 1),
             "avg_cost_USD": round(r.avg_cost_usd, 7),
             "total_cost_USD":    round(r.total_cost_usd, 5),
             "QPR":     round(r.qpr, 1),
@@ -5361,10 +5712,22 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "p95_e2e_ms": round(r.p95_e2e_ms, 4),
             "p99_e2e_ms": round(r.p99_e2e_ms, 4),
             "throughput_rps": round(r.throughput_rps, 6),
+            "throughput_tok_per_s": round(r.throughput_tok_per_s, 6),
+            "slo_attainment": round(r.slo_attainment, 6),
+            "ttft_slo_ms": round(r.ttft_slo_ms, 4),
             "qpr": round(r.qpr, 6),
             "cache_hit_rate": round(r.cache_hit_rate, 6),
             "gpu_hit_rate": round(r.gpu_hit_rate, 6),
             "avg_lora_io_ms": round(r.avg_lora_io_ms, 4),
+            "avg_comparable_ttft_ms": round(r.avg_comparable_ttft_ms, 4),
+            "p95_comparable_ttft_ms": round(r.p95_comparable_ttft_ms, 4),
+            "p99_comparable_ttft_ms": round(r.p99_comparable_ttft_ms, 4),
+            "avg_serverless_overhead_ms": round(r.avg_serverless_overhead_ms, 4),
+            "p95_serverless_overhead_ms": round(r.p95_serverless_overhead_ms, 4),
+            "avg_gpu_ready_ttft_ms": round(r.avg_gpu_ready_ttft_ms, 4),
+            "p95_gpu_ready_ttft_ms": round(r.p95_gpu_ready_ttft_ms, 4),
+            "avg_scaleup_affected_ttft_ms": round(r.avg_scaleup_affected_ttft_ms, 4),
+            "p95_scaleup_affected_ttft_ms": round(r.p95_scaleup_affected_ttft_ms, 4),
             "contention_events": r.contention_events,
             "avg_contention_ms": round(r.avg_contention_ms, 4),
             "avg_defer_ms": round(r.avg_defer_ms, 4),
@@ -6221,7 +6584,18 @@ async def main_async(
                 f"  Done: {result.completed}/{result.total}  "
                 f"TTFT_avg={result.avg_ttft_ms:.0f}ms  P95={result.p95_ttft_ms:.0f}ms  "
                 f"P99={result.p99_ttft_ms:.0f}ms  RPS={result.throughput_rps:.2f}  "
-                f"Hit={result.cache_hit_rate:.0%}  Contention={result.contention_events}"
+                f"Tok/s={result.throughput_tok_per_s:.2f}  "
+                f"SLO@{result.ttft_slo_ms:.0f}ms={result.slo_attainment:.0%}"
+            )
+            print(
+                f"  TTFT_comp={result.avg_comparable_ttft_ms:.0f}/{result.p95_comparable_ttft_ms:.0f}/{result.p99_comparable_ttft_ms:.0f}ms  "
+                f"ScaleUpAffected={result.avg_scaleup_affected_ttft_ms:.0f}ms  "
+                f"TPOT={result.avg_tpot_ms:.1f}ms  E2E={result.avg_e2e_ms:.0f}ms"
+            )
+            print(
+                f"  Diag GPUReady={result.avg_gpu_ready_ttft_ms:.0f}ms  "
+                f"Hit={result.cache_hit_rate:.0%}  "
+                f"Overhead(io+coord)={result.avg_serverless_overhead_ms:.0f}ms"
             )
             if result.gpu_ready_hits > 0 or result.warm_pool_hits > 0 or result.contention_events > 0:
                 print(

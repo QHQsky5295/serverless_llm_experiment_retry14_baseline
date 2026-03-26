@@ -139,6 +139,7 @@ class ResidencyManager:
         nvme_dir = nvme_cfg.get("cache_dir") or storage_config.get("local", {}).get("cache_dir")
         self.host_cache_dir = Path(host_dir) if host_dir else None
         self.nvme_cache_dir = Path(nvme_dir) if nvme_dir else None
+        self._tracked_gpu_device_ids: Optional[Tuple[int, ...]] = None
         
         self.logger.info("Residency manager initialized")
     
@@ -155,6 +156,54 @@ class ResidencyManager:
     async def stop(self):
         """Stop the residency manager and background monitoring."""
         await self.stop_monitoring()
+
+    def set_tracked_gpu_device_ids(self, device_ids: Optional[List[int]]) -> None:
+        """Update the active GPU device set that contributes to the shared GPU tier."""
+        normalized: List[int] = []
+        for device_id in device_ids or []:
+            try:
+                did = int(device_id)
+            except (TypeError, ValueError):
+                continue
+            if did not in normalized:
+                normalized.append(did)
+        self._tracked_gpu_device_ids = tuple(normalized) if normalized else None
+
+    def _gpu_device_ids_for_accounting(self) -> List[int]:
+        """Return the active GPU device set used for shared-tier accounting."""
+        if self._tracked_gpu_device_ids:
+            return list(self._tracked_gpu_device_ids)
+
+        memory_config = self.config.get("memory", {})
+        gpu_config = memory_config.get("gpu", {}) if isinstance(memory_config, dict) else {}
+        configured = gpu_config.get("device_ids")
+        if isinstance(configured, str):
+            ids: List[int] = []
+            for part in configured.split(","):
+                part = part.strip()
+                if not part:
+                    continue
+                try:
+                    ids.append(int(part))
+                except ValueError:
+                    continue
+            if ids:
+                return ids
+        if isinstance(configured, (list, tuple)):
+            ids = []
+            for item in configured:
+                try:
+                    ids.append(int(item))
+                except (TypeError, ValueError):
+                    continue
+            if ids:
+                return ids
+
+        if getattr(self.gpu_monitor, "enabled", False):
+            devices = list(getattr(self.gpu_monitor, "devices", []) or [])
+            if devices:
+                return [int(devices[0])]
+        return [0]
     
     def _initialize_tier_capacities(self) -> Dict[StorageTier, TierCapacity]:
         """Initialize storage tier capacities from configuration"""
@@ -881,15 +930,34 @@ class ResidencyManager:
         """Refresh GPU tier usage from the live monitor when available."""
         if not self.gpu_monitor.enabled:
             return
-        gpu_info = self.gpu_monitor.get_current_memory_info(0)
-        if not gpu_info:
+        infos = self.gpu_monitor.get_all_devices_memory_info()
+        device_ids = [
+            device_id
+            for device_id in self._gpu_device_ids_for_accounting()
+            if device_id in infos
+        ]
+        if not device_ids:
+            gpu_info = self.gpu_monitor.get_current_memory_info(0)
+            if not gpu_info:
+                return
+            total_bytes = gpu_info.total_bytes
+            used_bytes = gpu_info.used_bytes
+            active_bytes = gpu_info.active_bytes
+            cached_bytes = gpu_info.cached_bytes
+        else:
+            total_bytes = sum(int(infos[device_id].total_bytes) for device_id in device_ids)
+            used_bytes = sum(int(infos[device_id].used_bytes) for device_id in device_ids)
+            active_bytes = sum(int(infos[device_id].active_bytes) for device_id in device_ids)
+            cached_bytes = sum(int(infos[device_id].cached_bytes) for device_id in device_ids)
+        if total_bytes <= 0:
             return
-        self.tier_capacities[StorageTier.GPU].used_bytes = gpu_info.used_bytes
+        self.tier_capacities[StorageTier.GPU].total_bytes = total_bytes
+        self.tier_capacities[StorageTier.GPU].used_bytes = used_bytes
         self.memory_estimator.update_memory_usage(
-            total_bytes=gpu_info.total_bytes,
-            used_bytes=gpu_info.used_bytes,
-            exec_peak_bytes=gpu_info.active_bytes,
-            kv_cache_bytes=gpu_info.cached_bytes
+            total_bytes=total_bytes,
+            used_bytes=used_bytes,
+            exec_peak_bytes=active_bytes,
+            kv_cache_bytes=cached_bytes
         )
     
     async def _check_memory_pressure(self):

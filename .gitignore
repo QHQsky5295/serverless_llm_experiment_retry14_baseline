@@ -128,6 +128,11 @@ logs/
 data/
 artifacts/
 results/
+/data
+/artifacts
+/results
+/docs copy/docs/
+/docs copy/docs copy/
 configs/local/
 *.yaml.local
 *.yaml.bak

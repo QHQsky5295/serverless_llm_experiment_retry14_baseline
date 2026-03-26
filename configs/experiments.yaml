@@ -659,6 +659,7 @@ hardware:  # 硬件容量与显存估计配置块
 
   # GPU 显存分配与同步开销（ms）
   gpu_load_overhead_ms: 50  # GPU 分配/同步的固定开销（ms）
+  serverlessllm_overhead_ratio: 0.6  # ServerlessLLM 路径中沿用的固定开销比例；显式冻结，避免藏在代码里
 
 # ---------------------------------------------------------------------------
 # 资源协同调度配置（贡献3）
@@ -691,6 +692,10 @@ resource_coordination:  # 扩缩容与资源协同调度配置块
   warm_pool_gamma: 0.2              # warm_pool_size = clip(round(active_loras_ewma*(1+γ)), min, max)
   warm_pool_min: 2  # 动态 warm pool 的最小值
   warm_pool_max: 8  # 动态 warm pool 的最大值
+  host_locality_factor: 1.0         # HOST→GPU utility 权重；显式配置，避免代码内隐式常数
+  cpu_locality_factor: 0.9          # CPU→GPU utility 权重
+  nvme_locality_factor: 0.75        # NVMe→GPU utility 权重
+  remote_locality_factor: 0.5       # Remote→GPU utility 权重
 
 # ---------------------------------------------------------------------------
 # LoRA 适配器
@@ -1166,6 +1171,7 @@ scenarios:  # 本次要运行的实验场景列表
       gpu_warmup_hotness: 0.6  # 允许提前预热到 GPU 的热度阈值
       nvme_capacity_mb: 20480  # NVMe 层可用于 LoRA 的容量上限（MB）
       host_capacity_mb: 4096  # 主机内存层可用于 LoRA 的容量上限（MB）
+      scale_up_preload_mb: 1024  # scale-up 预加载预算显式固定，避免落回 25%+clamp 启发式
       strategy: "greedy"  # 预加载选择策略
 
   # ── FaaSLoRA 贡献1+2（消融：无贡献3）───────────────────────────────
@@ -1180,6 +1186,7 @@ scenarios:  # 本次要运行的实验场景列表
       gpu_warmup_hotness: 0.6  # 允许提前预热到 GPU 的热度阈值
       nvme_capacity_mb: 20480  # NVMe 层可用于 LoRA 的容量上限（MB）
       host_capacity_mb: 4096  # 主机内存层可用于 LoRA 的容量上限（MB）
+      scale_up_preload_mb: 1024  # scale-up 预加载预算显式固定，避免落回 25%+clamp 启发式
       strategy: "greedy"  # 预加载选择策略
     resource_coordination:  # 扩缩容与资源协同调度配置块
       coordination_enabled: false  # 是否启用贡献 3 的资源协同机制
@@ -1202,6 +1209,7 @@ scenarios:  # 本次要运行的实验场景列表
       gpu_warmup_hotness: 0.9       # 只把热度非常高的少量 LoRA 提前预热到 GPU，降低显存占用
       nvme_capacity_mb: 20480  # NVMe 层可用于 LoRA 的容量上限（MB）
       host_capacity_mb: 4096  # 主机内存层可用于 LoRA 的容量上限（MB）
+      scale_up_preload_mb: 1024  # scale-up 预加载预算显式固定，避免落回 25%+clamp 启发式
       strategy: "greedy"  # 预加载选择策略
       dynamic_forwarding_enabled: true  # P2.6：持续、预测式、预算约束的动态工件前移默认开启
     resource_coordination:  # 扩缩容与资源协同调度配置块

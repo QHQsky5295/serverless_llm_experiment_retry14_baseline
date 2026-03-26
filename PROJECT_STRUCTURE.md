@@ -1,475 +1,96 @@
-# FaaSLoRA 项目结构详解
+# FaaSLoRA 项目结构说明（当前 clean-tree）
 
-> 说明：本文用于说明仓库文件布局；当前系统语义、实例模式、扩缩容规则、缓存层次和实验进度，请以 [README.md](README.md)、[docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md](docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md) 和 [docs/PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md) 为准。
+> 当前仓库主语义、实验进度和论文口径，请以 [README.md](README.md)、[docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md](docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md) 和 [docs/PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md) 为准。
 
-本文档详细说明项目每个目录和文件的作用、实现内容及相互关系，适合初次接触本项目的研究人员参考。
+本文档只说明当前 clean-tree 的文件布局和各目录职责。
 
----
+## 1. 当前仓库根目录
 
-## 一级目录总览
+当前权威代码树：
 
-```
-serverless_llm_experiment/
-├── faaslora/               ← 核心系统模块（Python 包）
-├── scripts/                ← 可执行脚本（实验运行、数据下载等）
-├── configs/                ← 实验配置文件
-├── data/                   ← 数据集存储（Azure 追踪、ShareGPT 缓存）
-├── models/                 ← 大模型权重存储（下载后）
-├── artifacts/remote/       ← LoRA 适配器工件输出目录（PEFT 或 synthetic）
-├── results/                ← 实验输出（JSON 结果、日志）
-├── README.md               ← 项目概述与快速开始
-├── PROJECT_STRUCTURE.md    ← 本文件：项目结构详解
-├── EXPERIMENT_GUIDE.md     ← 实验执行完整指南
-├── pyproject.toml          ← Python 包配置
-└── requirements.txt        ← 依赖列表
-```
+- `/home/qhq/serverless_llm_experiment_retry14_baseline`
 
----
+历史脏树：
 
-## faaslora/ — 核心系统包
+- `/home/qhq/serverless_llm_experiment`
 
-```
-faaslora/
-├── __init__.py             ← 包入口，导出主要类
-├── preloading/             ← 贡献1：命中感知预加载
-│   ├── __init__.py
-│   ├── preloading_planner.py   ← PreloadingPlanner（热度/价值 0-1 背包与策略）
-│   └── preloading_manager.py  ← PreloadingManager（执行预加载计划、扩缩事件触发）
-├── memory/                 ← 贡献2：多层驻留控制
-│   ├── __init__.py
-│   ├── residency_manager.py   ← ResidencyManager（GPU/Host/NVMe/Remote 分层与准入驱逐）
-│   ├── memory_coordinator.py ← MemoryCoordinator（推理与加载显存预算协调）
-│   └── gpu_monitor.py         ← GPU 显存监控
-├── storage/                ← 存储后端
-│   ├── __init__.py
-│   ├── local_cache.py      ← LoRA 本地缓存（NVMe 目录）
-│   └── remote_client.py    ← 远端存储访问（带宽限速模拟）
-├── scheduling/             ← 贡献3：资源协同调度
-│   ├── __init__.py
-│   └── resource_coordinator.py  ← ResourceCoordinator（预留、排队、scale-down 暖池；可选对接 ResidencyManager）
-├── coordination/           ← 扩缩决策（与实验路径共用同一逻辑）
-│   ├── __init__.py
-│   └── autoscaler.py       ← AutoScaler（ScalingMetrics/ScalingDecision；make_scaling_decision_with_metrics 供实验复用）
-├── experiment/             ← 实验集成（完整栈 + 在线热度 + 实例池）
-│   ├── __init__.py
-│   ├── experiment_config.py   ← 实验用 Config 包装（dot get）
-│   ├── experiment_stack.py    ← ExperimentStack（Registry + ResidencyManager + PreloadingManager + Coordinator）
-│   ├── hotness_tracker.py     ← HotnessTracker（在线热度更新 Registry）
-│   └── instance_pool.py      ← InstancePool、Router（多实例与路由，B1/B2）
-├── datasets/               ← 数据集加载与工作负载生成
-│   ├── __init__.py
-│   ├── dataset_loader.py   ← AzureTraceLoader、ShareGPTLoader、WorkloadDataset、AzureTraceReplay
-│   └── workload_generator.py    ← WorkloadGenerator、WorkloadConfig、RequestTrace
-├── registry/               ← 工件元数据
-│   ├── schema.py           ← ArtifactMetadata、StorageTier、PreloadingPlan
-│   └── artifact_registry.py   ← ArtifactRegistry
-└── serving/                ← 推理引擎封装
-    ├── __init__.py
-    ├── inference_engine.py ← InferenceEngine（vLLM / 完整栈用）
-    └── vllm_wrapper.py     ← vLLM 封装
+仅保留作历史参考，不再作为正式实验主树。
+
+## 2. 一级目录总览
+
+```text
+serverless_llm_experiment_retry14_baseline/
+├── faaslora/               核心系统模块
+├── scripts/                实验入口、数据与适配器脚本
+├── configs/                实验配置与 curated manifest
+├── docs/                   仓库主文档
+├── docs copy/              IDE 常用文档镜像
+├── tests/                  smoke / regression tests
+├── README.md               项目概览
+├── EXPERIMENT_GUIDE.md     实验运行指南
+├── PROJECT_STRUCTURE.md    本文件
+├── pyproject.toml          Python 包配置
+└── requirements.txt        依赖说明
 ```
 
-说明：贡献2 的“热–温–冷”分层由 **memory/ResidencyManager** 实现；预加载入口为 ExperimentStack.preload / PreloadingManager.trigger_scaling_preload，实验完整栈默认开启（`--no-full-stack` 可关闭）。
+## 3. 关键目录说明
 
-### faaslora/preloading/preloading_planner.py 与 preloading_manager.py
+### `faaslora/`
 
-**作用**：实现贡献1的命中感知预加载（与扩缩事件绑定）。
+核心研究代码所在目录，主要包含：
 
-**关键类**：`PreloadingPlanner`、`PreloadingManager`
+- `experiment/`：实验完整栈、实例池、在线热度与 routing 组织
+- `preloading/`：贡献 1，命中感知预加载
+- `memory/`：贡献 2，GPU/HOST/NVMe 驻留与监控
+- `scheduling/`：贡献 3，资源协同调度
+- `coordination/`：autoscaler 与扩缩容逻辑
+- `serving/`：vLLM / transformers 后端封装
+- `datasets/`：Azure trace 与 ShareGPT 相关数据入口
 
-**功能**：
-- 基于 Registry 的 hotness_score、value_per_byte 与扩缩事件生成预加载计划（0-1 背包/贪心）
-- `PreloadingManager.trigger_scaling_preload(scaling_event)` 在 scale-up 时触发预加载
-- 执行计划时通过 ResidencyManager 将工件准入到目标 tier（如 GPU/NVMe）
+### `scripts/`
 
-**主要方法**：
-- `generate_preloading_plan(target_tier, capacity_bytes, scaling_event)` — 生成计划
-- `trigger_scaling_preload(scaling_event)` — 扩缩事件触发预加载
-- `execute_preloading_plan(plan_result)` — 执行计划
+当前最关键的脚本有：
 
----
+- `run_all_experiments.py`
+- `run_all_experiments_user_scope.sh`
+- `generate_lora_adapters.py`
+- `download_model.py`
+- `download_datasets.py`
 
-### faaslora/storage/local_cache.py
+### `configs/`
 
-**作用**：存储层 LoRA 本地缓存（NVMe 目录），供下载与本地命中。**贡献2 的多层驻留由 memory/ResidencyManager 实现**；LocalCache 仅负责本地磁盘缓存与驱逐。
+包含：
 
-**关键类**：`LocalCache`
+- `experiments.yaml`：主实验配置
+- `generated/lora_manifest_1000.json`：当前刻意纳入 Git 的 curated manifest
 
-**分层设计**（与 ResidencyManager 的 GPU/Host/NVMe/Remote 配合）：
-```
-GPU 显存（热层）  ←→  NVMe SSD（温层）  ←→  远端存储（冷层）
-  容量：gpu_budget_mb       由 nvme_capacity_mb 控制      无限容量，但高延迟
-  延迟：0ms（已驻留）       延迟：5~50ms                   延迟：50~500ms
-```
+### `docs/` 与 `docs copy/`
 
-**驱逐策略**：LRU（最近最少使用），`_evict_lru()` 负责将低频工件降级到下一层
+- `docs/` 是仓库主文档
+- 顶层 `docs copy/*.md` 是常用镜像文档
+- 同步 GitHub 前，两者应保持一致
+- 误生成的嵌套镜像目录不应提交
 
-**主要方法**：
-- `load_adapter(adapter_id)` — 按层次查找并加载，返回命中层级和耗时
-- `evict_to_nvme(adapter_id)` — 将 GPU 显存中的工件降级到 NVMe
-- `warm_pool_retain(hot_set)` — scale-down 时保留高频工件于 GPU
+## 4. 当前实验入口习惯
 
----
+虽然 `configs/experiments.yaml` 顶层默认 `profile_selection` 仍保留 14B 入口，但当前 rollback 主线更常见的做法是：
 
-### faaslora/storage/remote_client.py
+- 使用环境变量覆盖 profile 选择
+- 固定跑 `Qwen 7B V2 publicmix + 500 adapters + 500 requests`
 
-**作用**：模拟远端对象存储（S3/OSS）访问，通过 `bandwidth_mbps` 参数控制网络传输延迟。
+详见 [EXPERIMENT_GUIDE.md](EXPERIMENT_GUIDE.md)。
 
-**关键类**：`RemoteStorageClient`
+## 5. Git 跟踪边界
 
-**带宽模拟**：
-```python
-transfer_time_ms = size_mb / bandwidth_mbps * 8000   # Mbps→ms
-```
+当前仓库应提交：
 
-默认带宽为 100 Mbps，与同类论文实验设置一致。
+- source/config/docs/tests
+- curated manifest
 
----
+不应提交：
 
-### faaslora/scheduling/resource_coordinator.py
-
-**作用**：实现贡献3的扩缩容与显存协同调度核心逻辑。
-
-**关键类**：`ResourceCoordinator`
-
-**核心参数**（来自 `configs/experiments.yaml` 的 `resource_coordination` 与 `hardware`）：
-
-| 参数 | 含义 | 典型值 |
-|------|------|--------|
-| `min_instances` / `max_instances` | 实例池上下限（实验多实例默认 2） | 1 / 2 |
-| `gpu_budget_mb` | GPU 显存总量 | 24576（3090 24GB） |
-| `model_weights_mb` | backbone 权重占用 | 14336（7B 模型） |
-| `kv_per_1k_tokens_mb` | 每千 token 的 KV cache 占用 | 2.0 MB |
-| `lora_load_reserve_ratio` | 为 LoRA 加载预留的显存比例 | 0.15 |
-| `warm_pool_size` | scale-down 后暖池保留 LoRA 数量 | 4 |
-
-**说明**：实验实例数以 `configs/experiments.yaml` 的 `resource_coordination.min_instances` / `max_instances` 为准；`faaslora/utils/config.py` 中 `coordination.autoscaling` 默认 `max_instances=10` 为 API/生产用，与实验配置无关。
-
-**三个核心行为**：
-
-1. **scale-up 协调**：`request_lora_load()` — 检测显存压力，渐进式等待代替立即驱逐
-2. **竞争检测**：当 LoRA 加载、KV cache、批推理同时占用显存时，
-   - 无协调（`faaslora_no_coord`）：竞争惩罚延迟直接加入 TTFT（80~500ms）
-   - 有协调（`faaslora_full`）：转化为可控的渐进等待（10~60ms）
-3. **scale-down 暖池**：`trigger_scale_down()` — 保留热度最高的 `warm_pool_size` 个 LoRA 于 GPU，释放其余
-
----
-
-### faaslora/datasets/dataset_loader.py
-
-**作用**：加载真实数据集，驱动实验工作负载生成。
-
-**关键类**：
-
-**`AzureTraceLoader`**
-- 读取 `data/` 目录下的 Azure LLM 推理追踪 CSV 文件
-- 字段：时间戳、输入 token 数、输出 token 数
-- 支持按工作负载类型过滤（`conv`/`code`/`mixed`）
-
-**`ShareGPTLoader`**
-- 优先从本地缓存 `data/sharegpt_cache.jsonl` 读取
-- 不存在时尝试从 HuggingFace 下载（需网络）
-- 失败时使用内嵌的 200 条对话作为 fallback
-
-**`AzureTraceReplay`**
-- 核心类：将 Azure 追踪的真实时间戳回放为实验请求序列
-- `time_scale_factor=0.1`：将 1 小时追踪压缩为 6 分钟实验
-- Zipf 分布选择 LoRA 适配器（`zipf_exponent=1.0`，模拟 80/20 热度分布）
-- 用 ShareGPT 真实提示词填充每条请求
-
-**`WorkloadDataset`**
-- 组合 Azure + ShareGPT 数据
-- `generate_traces()` 方法：返回 `List[RequestTrace]`
-
----
-
-### faaslora/datasets/workload_generator.py
-
-**作用**：工作负载生成器，作为 Azure 真实追踪不可用时的 Poisson 合成 fallback。
-
-**关键类**：
-
-**`RequestTrace`（数据类）**
-```python
-@dataclass
-class RequestTrace:
-    request_id: str          # 请求唯一 ID（"req_00001"）
-    arrival_time: float      # 到达时间（秒，相对实验开始）
-    prompt: str              # 提示词文本
-    adapter_id: str          # 请求携带的 LoRA 适配器 ID
-    adapter_domain: str      # 适配器领域（"finance"/"medical"/"code"...）
-    expected_input_tokens: int
-    expected_output_tokens: int
-```
-
-**`WorkloadConfig`**
-- 控制合成工作负载的参数集合
-- 包括到达率、请求数、Zipf 参数、热度演化等
-
-**`WorkloadGenerator`**
-- 基于 Poisson 过程生成请求到达时间
-- 支持 `enable_hotness_evolution`：热度随时间演化，模拟真实用户行为变化
-
----
-
-### faaslora/serving/inference_engine.py
-
-**作用**：统一封装推理引擎接口，自动切换 vLLM（真实 GPU）和 Mock 模式。
-
-**关键类**：`InferenceEngine`
-
-**真实 GPU 模式**（vLLM 已安装 + CUDA 可用）：
-```python
-engine = vllm.AsyncLLMEngine.from_engine_args(
-    EngineArgs(model=model_path, max_loras=8, ...)
-)
-```
-- `max_loras=8`：vLLM 在 GPU 同时缓存 8 个 LoRA 适配器
-- 调用 `engine.generate()` 执行真实 LLM 前向计算
-- TTFT = 真实首 token 延迟（受 GPU 算力、批大小、序列长度影响）
-- TPOT = 真实每 token 生成时间
-
-**Mock 模式**（无 GPU 时）：
-- 基于标定的延迟模型生成仿真延迟
-- 延迟参数来源于真实 GPU 实验或论文数据
-- 用于框架验证和参数调试，**不能代替真实 GPU 实验的结果数据**
-
----
-
-## scripts/ — 可执行脚本
-
-```
-scripts/
-├── run_all_experiments.py      ← 主实验脚本（入口点）
-├── generate_lora_adapters.py   ← 生成合成 LoRA 适配器权重
-├── download_datasets.py        ← 下载 ShareGPT 数据集
-├── download_model.py           ← 下载大模型（Qwen/Mistral）
-└── setup_gpu.sh                ← GPU 环境一键安装
-```
-
-### run_all_experiments.py
-
-**作用**：实验总入口，统一管理工作负载生成、场景执行、结果聚合和输出。
-
-**运行流程**：
-```
-1. 解析 YAML 配置文件
-2. 检测环境（vLLM / GPU / Mock）
-3. 下载/验证数据集（Azure 追踪、ShareGPT）
-4. 生成 LoRA 适配器（如未存在）
-5. 生成请求序列（Azure 追踪回放 或 Poisson 合成）
-6. 按顺序执行各实验场景（cold_start / slora_style / ... / faaslora_full）
-7. 聚合指标，打印对比表格，保存 JSON 结果
-```
-
-**关键命令行参数**：
-- `--config`：指定配置文件路径（默认 `configs/experiments.yaml`）
-- `--quick`：快速模式，每个场景仅 30 个请求（调试用）
-- `--scenario`：只运行指定场景（如 `--scenario faaslora_full`）
-
-### generate_lora_adapters.py
-
-**作用**：生成 LoRA 适配器文件，供实验加载使用。
-
-**两种模式**：
-- 论文主线默认：`PEFT+finetune`，使用 PEFT 库生成并做轻量微调，更贴近真实 LoRA 权重
-- quick/debug：`--synthetic`，仅生成形状正确的最小工件，用于快速系统调试
-
-**当前实现细节**：
-- 默认值会跟随 `configs/experiments.yaml` 当前激活的 `profile_selection`、对应 `model_profiles` 与 workload 里的 adapter 数量解析
-- `PEFT+finetune` 模式下会单次加载 base model，再循环生成并保存多个 adapter，避免为每个 adapter 重复 `from_pretrained`
-- 顶层 `model / hardware / workload` 仍保留在 `experiments.yaml` 中，但现在主要作为兼容回退层
-
-**输出目录**：`artifacts/remote/`，每个适配器一个子目录：
-```
-artifacts/remote/
-├── finance_lora/           # 金融领域（热度 0.9）
-│   ├── adapter_config.json
-│   └── adapter_model.safetensors
-├── medical_lora/           # 医疗领域（热度 0.8）
-├── code_lora/              # 代码领域（热度 0.75）
-├── edu_lora/               # 教育领域（热度 0.6）
-└── legal_lora/             # 法律领域（热度 0.4）
-```
-
-### download_model.py
-
-**作用**：下载 HuggingFace 大模型至本地 `models/` 目录，并打印对应 profile 使用提示。
-
-**支持模型**（均适用于 RTX 3090 24GB）：
-
-| 模型 | 大小 | 显存 | 适用场景 |
-|------|------|------|----------|
-| Qwen/Qwen2.5-7B-Instruct | 15 GB | 18 GB | Qwen 7B 单卡档 |
-| Qwen/Qwen2.5-14B-Instruct | 29 GB | 30 GB | Qwen 14B 双卡 TP=2 |
-| mistralai/Mistral-7B-Instruct-v0.3 | 14 GB | 18 GB | 当前第二家族 7B 主线 |
-| mistralai/Mistral-Nemo-Instruct-2407 | 24 GB | 30 GB | 当前第二家族 12B/13B 档主线 |
-
-**使用方式**：
-```bash
-# 国内网络（需设置镜像）
-export HF_ENDPOINT=https://hf-mirror.com
-python scripts/download_model.py --model Qwen/Qwen2.5-7B-Instruct
-```
-
----
-
-## configs/ — 实验配置
-
-```
-configs/
-└── experiments.yaml        ← 主配置文件
-```
-
-### experiments.yaml 结构
-
-```yaml
-profile_selection:
-  model: "qwen_14b_tp2"
-  dataset: "azure_sharegpt_rep1000"
-  workload: "qwen_14b_tp2_main"
-
-model_profiles:
-  mistral_7b_main:
-    model:
-      name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3"
-      tensor_parallel_size: 1
-      gpu_memory_utilization: 0.85
-
-workload_profiles:
-  mistral_7b_auto500_main:
-    lora_adapters:
-      selected_num_adapters: 500
-      apply_scale_preset: false
-    workload:
-      total_requests: 1000
-      concurrency: 4
-  mistral_nemo_12b_tp2_main:
-    lora_adapters:
-      selected_num_adapters: 500
-      apply_scale_preset: false
-    workload:
-      total_requests: 1000
-      concurrency: 2
-
-lora_adapters:
-  generation_mode: "peft_finetune"
-  selected_num_adapters: 500
-```
-
-说明：当前 `experiments.yaml` 已收敛到 `profile_selection + model_profiles + dataset_profiles + workload_profiles` 结构。切换主线时优先切 profile，而不是直接散改顶层 `model/workload` 字段。顶层 `model / hardware / workload` 目前主要作为兼容旧路径与兜底读取层保留。
-
----
-
-## data/ — 数据目录
-
-```
-data/
-├── AzureLLMInferenceTrace_*.csv        ← Azure 生产推理追踪（已包含）
-└── sharegpt_cache.jsonl                ← ShareGPT 对话缓存（运行后生成）
-```
-
-**Azure 追踪格式**（每行一条推理请求）：
-```csv
-TIMESTAMP,ContextTokens,GeneratedTokens,Model,Region
-2023-04-01 00:00:01,512,128,GPT-4,...
-```
-
----
-
-## models/ — 模型目录
-
-```
-models/
-├── Qwen--Qwen2.5-14B-Instruct/                 ← 当前默认 profile 使用的 Qwen 大档位
-├── mistralai--Mistral-7B-Instruct-v0.3/        ← 当前第二家族 7B 主线（已完成）
-│   ├── config.json
-│   ├── tokenizer.json
-│   ├── tokenizer_config.json
-│   └── model-000*.safetensors
-└── mistralai--Mistral-Nemo-Instruct-2407/      ← 当前下一步 12B/13B 档（按需下载）
-```
-
-**初始状态**：本地按需下载；仓库不提交模型权重内容。
-
----
-
-## results/ — 实验结果
-
-```
-results/
-├── experiment_results_full_vllm_auto_a100_r1000_c4_faaslora_full_qwen7b_auto_r1000_p25_on.json
-├── experiment_results_full_vllm_auto_a100_r1000_c4_faaslora_full_qwen7b_tp2_compare_r1000_p25_on.json
-└── experiment_results_full_vllm_auto_a100_r4000_c2_faaslora_full_qwen14b_tp2_r4000_u085_p25_on.json
-```
-
-### JSON 结构
-
-```json
-{
-  "metadata": {
-    "backend": "vllm",
-    "instance_mode": "auto",
-    "num_adapters": 500,
-    "total_requests": 1000
-  },
-  "scenario_summaries": {
-    "faaslora_full": {
-      "avg_ttft_ms": 1409.0,
-      "p95_ttft_ms": 4068.0,
-      "p99_ttft_ms": 6023.0,
-      "throughput_rps": 0.364,
-      "cache_hit_rate": 0.946
-    }
-  },
-  "comparison_table": [...],
-  "detailed_results": {...}
-}
-```
-
----
-
-## artifacts/remote/ — LoRA 适配器工件
-
-```
-artifacts/remote/
-├── finance_lora/           ← 金融领域（热度最高，应驻留 GPU 热层）
-├── medical_lora/           ← 医疗领域（高热度）
-├── code_lora/              ← 代码生成
-├── edu_lora/               ← 教育问答
-└── legal_lora/             ← 法律文本（热度最低）
-```
-
-**当前主线默认**：`PEFT+finetune` 生成的标准 PEFT LoRA 工件，当前扩展主线为 `500 adapters`。
-
-**调试回退**：仍可用 `--synthetic` 模式生成最小权重文件，用于 quick/debug，但不再作为论文主线默认。
-
----
-
-## 关键数据流
-
-```
-Azure Trace CSV
-    └─→ AzureTraceLoader.load()
-                    └─→ AzureTraceReplay.replay()
-                    │  按真实时间戳排列，representative sampling + Zipf LoRA 选择
-                    └─→ List[RequestTrace]
-                              │
-                              ▼
-                        ScenarioRunner._serve()
-                              │  按 arrival_time 调度
-                              │
-                    ┌─────────┴──────────┐
-                    ▼                    ▼
-              _resolve_lora()      engine.generate()
-              （判断命中层：           （vLLM 推理）
-               GPU/NVMe/Remote）
-                    │
-                    ▼
-              ResourceCoordinator
-              （贡献3 协调）
-                    │
-                    ▼
-              记录延迟指标
-              （TTFT / TPOT / E2E）
-```
+- `results/`
+- `artifacts/`
+- `data/`
+- 模型权重
+- `/tmp` 运行日志

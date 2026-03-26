@@ -116,6 +116,9 @@ class ResourceCoordinator:
         self.gpu_load_overhead_ms: float  = cfg.get("gpu_load_overhead_ms",  50)
         self.pcie_bw_mbps: float          = cfg.get("pcie_bw_mbps",         16000)
         self.nvme_bw_mbps: float          = cfg.get("nvme_bw_mbps",         3000)
+        self.serverlessllm_overhead_ratio: float = float(
+            cfg.get("serverlessllm_overhead_ratio", 0.6)
+        )
         self.effective_capacity_admission_enabled: bool = bool(
             cfg.get("effective_capacity_admission_enabled", False)
         )
@@ -142,6 +145,12 @@ class ResourceCoordinator:
         # Metrics
         self.metrics = CoordinationMetrics()
         self._memory_util_sum: float = 0.0
+        self._locality_factors: Dict[str, float] = {
+            "host": float(cfg.get("host_locality_factor", 1.0)),
+            "cpu": float(cfg.get("cpu_locality_factor", 0.9)),
+            "nvme": float(cfg.get("nvme_locality_factor", 0.75)),
+            "remote": float(cfg.get("remote_locality_factor", 0.5)),
+        }
 
     # ----------------------------------------------------------------
     # KV cache tracking (called by ScenarioRunner around each batch)
@@ -370,7 +379,7 @@ class ResourceCoordinator:
         """ServerlessLLM: NVMe SSD → CPU → GPU (NVMe + PCIe pipeline)."""
         nvme = size_mb / (self.nvme_bw_mbps / 1000)
         pcie = size_mb / (self.pcie_bw_mbps / 1000)
-        return nvme + pcie + self.gpu_load_overhead_ms * 0.6   # less overhead (familiar path)
+        return nvme + pcie + self.gpu_load_overhead_ms * self.serverlessllm_overhead_ratio
 
     def compute_cold_start_load_ms(self, size_mb: float, bandwidth_mbps: float) -> float:
         """Cold start: remote network → NVMe → GPU."""
@@ -430,13 +439,16 @@ class ResourceCoordinator:
         The decision accounts for current free memory, current and predicted KV
         footprint, outstanding load pressure, and the recent working-set gap.
         """
-        pressure = self._contention_pressure()
+        pressure = self._contention_pressure(include_working_set=False)
         utility = self._admission_utility(adapter_id, tier=tier)
         effective_capacity_mb = self._effective_capacity_mb(pressure)
         predicted_kv_growth_mb = self._predicted_kv_growth_mb()
         working_set_pressure = self._working_set_pressure()
         future_reserve_mb = max(predicted_kv_growth_mb, self._recent_working_set_gap_mb())
-        should_attempt = utility > max(pressure, working_set_pressure)
+        # The recent working-set gap is already accounted for in future_reserve_mb.
+        # Re-injecting it into the contention multiplier makes host/NVMe hot adapters
+        # too sticky in lower tiers and blocks them from becoming stable GPU residents.
+        should_attempt = utility > pressure
         return {
             "pressure": pressure,
             "utility": utility,
@@ -451,12 +463,12 @@ class ResourceCoordinator:
     def _effective_capacity_mb(self, pressure: Optional[float] = None) -> float:
         available = max(0.0, self._available_mb())
         if pressure is None:
-            pressure = self._contention_pressure()
+            pressure = self._contention_pressure(include_working_set=False)
         future_reserve_mb = max(self._predicted_kv_growth_mb(), self._recent_working_set_gap_mb())
         headroom_mb = max(0.0, available - future_reserve_mb)
         return max(0.0, headroom_mb * (1.0 - pressure))
 
-    def _contention_pressure(self) -> float:
+    def _contention_pressure(self, include_working_set: bool = True) -> float:
         usable_budget_mb = max(1.0, self.gpu_budget_mb - self.model_weights_mb)
         available_mb = max(0.0, self._available_mb())
         kv_mb = self._active_tokens / 1000.0 * self.kv_per_1k_tokens_mb
@@ -465,8 +477,10 @@ class ResourceCoordinator:
         kv_pressure = min(1.0, max(0.0, kv_mb / usable_budget_mb))
         predicted_kv_pressure = min(1.0, max(0.0, predicted_kv_mb / usable_budget_mb))
         load_pressure = min(1.0, max(0.0, self._loads_in_flight_ratio()))
-        working_set_pressure = self._working_set_pressure()
-        return max(mem_pressure, kv_pressure, predicted_kv_pressure, load_pressure, working_set_pressure)
+        pressures = [mem_pressure, kv_pressure, predicted_kv_pressure, load_pressure]
+        if include_working_set:
+            pressures.append(self._working_set_pressure())
+        return max(pressures)
 
     def _loads_in_flight_ratio(self) -> float:
         slots = max(1, self.max_concurrent_loads)
@@ -533,13 +547,7 @@ class ResourceCoordinator:
 
     def _locality_factor(self, tier: str) -> float:
         tier_key = str(tier or "nvme").lower()
-        if tier_key == "host":
-            return 1.0
-        if tier_key == "cpu":
-            return 0.9
-        if tier_key == "nvme":
-            return 0.75
-        return 0.5
+        return float(self._locality_factors.get(tier_key, self._locality_factors["remote"]))
 
     def _is_resident(self, adapter_id: str) -> bool:
         """True if adapter is in GPU (from residency or local _resident_loras)."""

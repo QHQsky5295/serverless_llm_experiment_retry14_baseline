@@ -701,9 +701,18 @@ class AutoScaler:
             # Get GPU utilization from monitor
             gpu_utilization = 0.0
             if self.gpu_monitor.enabled:
-                gpu_info = self.gpu_monitor.get_current_memory_info(0)
-                if gpu_info:
-                    gpu_utilization = (gpu_info.used_bytes / gpu_info.total_bytes) * 100
+                infos = self.gpu_monitor.get_all_devices_memory_info()
+                utilizations = [
+                    (info.used_bytes / info.total_bytes) * 100
+                    for info in infos.values()
+                    if info and getattr(info, "total_bytes", 0) > 0
+                ]
+                if utilizations:
+                    gpu_utilization = max(utilizations)
+                else:
+                    gpu_info = self.gpu_monitor.get_current_memory_info(0)
+                    if gpu_info and getattr(gpu_info, "total_bytes", 0) > 0:
+                        gpu_utilization = (gpu_info.used_bytes / gpu_info.total_bytes) * 100
             
             # Get LoRA adapter metrics (offload sync I/O to thread to avoid blocking event loop)
             try:
