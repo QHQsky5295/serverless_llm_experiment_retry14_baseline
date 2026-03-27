@@ -31,6 +31,10 @@ class InstanceSlot:
     resident_lora_mb: float = 0.0
     gpu_utilization_pct: float = 0.0
     last_selected_at: float = 0.0
+    observed_runtime_ttft_ms: float = 0.0
+    observed_runtime_samples: int = 0
+    observed_backbone_ttft_ms: float = 0.0
+    observed_backbone_samples: int = 0
 
     def runtime_group_key(self) -> tuple:
         """Group logical slots that share one physical runtime."""
@@ -68,6 +72,25 @@ class InstanceSlot:
         self.load_queue_depth = max(0, int(metrics.get("queued_loads", 0) or 0))
         self.resident_lora_mb = float(metrics.get("current_lora_resident_mb", 0.0) or 0.0)
         self.gpu_utilization_pct = float(metrics.get("current_gpu_utilization_pct", 0.0) or 0.0)
+
+    def record_runtime_ttft(self, ttft_ms: float, *, is_backbone: bool) -> None:
+        """Track observed runtime service cost for lightweight routing decisions."""
+        ttft_ms = float(ttft_ms or 0.0)
+        if ttft_ms <= 0.0:
+            return
+        self.observed_runtime_samples += 1
+        if self.observed_runtime_samples == 1:
+            self.observed_runtime_ttft_ms = ttft_ms
+        else:
+            prev_total = self.observed_runtime_ttft_ms * float(self.observed_runtime_samples - 1)
+            self.observed_runtime_ttft_ms = (prev_total + ttft_ms) / float(self.observed_runtime_samples)
+        if is_backbone:
+            self.observed_backbone_samples += 1
+            if self.observed_backbone_samples == 1:
+                self.observed_backbone_ttft_ms = ttft_ms
+            else:
+                prev_total = self.observed_backbone_ttft_ms * float(self.observed_backbone_samples - 1)
+                self.observed_backbone_ttft_ms = (prev_total + ttft_ms) / float(self.observed_backbone_samples)
 
 
 class InstancePool:
@@ -150,6 +173,29 @@ class Router:
         self._rr_index = 0
         self.logger = get_logger(__name__)
 
+    @staticmethod
+    def _runtime_cost(slot: InstanceSlot, adapter_id: Optional[str]) -> float:
+        """Prefer instances with lower observed runtime cost when queue/load look similar."""
+        if adapter_id:
+            if getattr(slot, "observed_runtime_samples", 0) > 0:
+                return float(getattr(slot, "observed_runtime_ttft_ms", 0.0) or 0.0)
+            return 0.0
+        if getattr(slot, "observed_backbone_samples", 0) > 0:
+            return float(getattr(slot, "observed_backbone_ttft_ms", 0.0) or 0.0)
+        if getattr(slot, "observed_runtime_samples", 0) > 0:
+            return float(getattr(slot, "observed_runtime_ttft_ms", 0.0) or 0.0)
+        return 0.0
+
+    def _routing_key(self, slot: InstanceSlot, adapter_id: Optional[str]) -> tuple:
+        return (
+            slot.load_queue_depth,
+            slot.active_requests,
+            self._runtime_cost(slot, adapter_id),
+            slot.gpu_utilization_pct,
+            slot.last_selected_at,
+            slot.created_at,
+        )
+
     def select_instance(self, adapter_id: Optional[str] = None) -> Optional[InstanceSlot]:
         """Select one instance for the request. adapter_id can be used for affinity."""
         slots = self.pool.get_slots()
@@ -160,41 +206,14 @@ class Router:
             affinity_slots = [slot for slot in slots if slot.affinity_score(adapter_id) == best_score]
             if affinity_slots:
                 if self.policy in ("least_connections", "adapter_affinity"):
-                    return min(
-                        affinity_slots,
-                        key=lambda s: (
-                            s.load_queue_depth,
-                            s.active_requests,
-                            s.gpu_utilization_pct,
-                            s.last_selected_at,
-                            s.created_at,
-                        ),
-                    )
+                    return min(affinity_slots, key=lambda s: self._routing_key(s, adapter_id))
                 if self.policy == "round_robin":
                     self._rr_index = (self._rr_index + 1) % len(affinity_slots)
                     return affinity_slots[self._rr_index]
-                return min(
-                    affinity_slots,
-                    key=lambda s: (
-                        s.load_queue_depth,
-                        s.active_requests,
-                        s.gpu_utilization_pct,
-                        s.last_selected_at,
-                        s.created_at,
-                    ),
-                )
+                return min(affinity_slots, key=lambda s: self._routing_key(s, adapter_id))
         if self.policy == "round_robin":
             self._rr_index = (self._rr_index + 1) % len(slots)
             return slots[self._rr_index]
         if self.policy in ("least_connections", "adapter_affinity"):
-            return min(
-                slots,
-                key=lambda s: (
-                    s.load_queue_depth,
-                    s.active_requests,
-                    s.gpu_utilization_pct,
-                    s.last_selected_at,
-                    s.created_at,
-                ),
-            )
+            return min(slots, key=lambda s: self._routing_key(s, adapter_id))
         return slots[0]

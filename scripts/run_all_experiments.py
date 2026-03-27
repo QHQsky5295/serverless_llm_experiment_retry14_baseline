@@ -521,6 +521,8 @@ class ScenarioResult:
     p99_comparable_ttft_ms: float = 0.0
     avg_serverless_overhead_ms: float = 0.0
     p95_serverless_overhead_ms: float = 0.0
+    avg_runtime_ttft_ms: float = 0.0
+    p95_runtime_ttft_ms: float = 0.0
     avg_gpu_ready_ttft_ms: float = 0.0
     p95_gpu_ready_ttft_ms: float = 0.0
     avg_scaleup_affected_ttft_ms: float = 0.0
@@ -610,6 +612,7 @@ class ScenarioResult:
             + float(getattr(r, "defer_ms", 0.0) or 0.0)
             for r in ok
         ]
+        runtime_ttft = [float(r.vllm_ttft_ms) for r in ok if float(r.vllm_ttft_ms) > 0]
         gpu_ready_ttft = [float(r.ttft_ms) for r in ok if r.cache_tier == "gpu"]
         comparable_ttft = [
             float(getattr(r, "ttft_ms", 0.0) or 0.0)
@@ -641,6 +644,8 @@ class ScenarioResult:
         self.p99_comparable_ttft_ms = pct(comparable_ttft, 99) if comparable_ttft else 0.0
         self.avg_serverless_overhead_ms = sum(overheads)/len(overheads) if overheads else 0.0
         self.p95_serverless_overhead_ms = pct(overheads, 95) if overheads else 0.0
+        self.avg_runtime_ttft_ms = sum(runtime_ttft)/len(runtime_ttft) if runtime_ttft else 0.0
+        self.p95_runtime_ttft_ms = pct(runtime_ttft, 95) if runtime_ttft else 0.0
         self.avg_gpu_ready_ttft_ms = sum(gpu_ready_ttft)/len(gpu_ready_ttft) if gpu_ready_ttft else 0.0
         self.p95_gpu_ready_ttft_ms = pct(gpu_ready_ttft, 95) if gpu_ready_ttft else 0.0
         self.avg_scaleup_affected_ttft_ms = (
@@ -697,6 +702,7 @@ _SCENARIO_RESULT_NUMERIC_KEYS = (
     "cache_hit_rate", "gpu_hit_rate", "avg_lora_io_ms",
     "avg_comparable_ttft_ms", "p95_comparable_ttft_ms", "p99_comparable_ttft_ms",
     "avg_serverless_overhead_ms", "p95_serverless_overhead_ms",
+    "avg_runtime_ttft_ms", "p95_runtime_ttft_ms",
     "avg_gpu_ready_ttft_ms", "p95_gpu_ready_ttft_ms",
     "avg_scaleup_affected_ttft_ms", "p95_scaleup_affected_ttft_ms",
     "avg_cold_start_latency_ms", "p95_cold_start_latency_ms",
@@ -778,6 +784,8 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         p99_comparable_ttft_ms=agg_dict.get("p99_comparable_ttft_ms", first.p99_comparable_ttft_ms),
         avg_serverless_overhead_ms=agg_dict.get("avg_serverless_overhead_ms", first.avg_serverless_overhead_ms),
         p95_serverless_overhead_ms=agg_dict.get("p95_serverless_overhead_ms", first.p95_serverless_overhead_ms),
+        avg_runtime_ttft_ms=agg_dict.get("avg_runtime_ttft_ms", first.avg_runtime_ttft_ms),
+        p95_runtime_ttft_ms=agg_dict.get("p95_runtime_ttft_ms", first.p95_runtime_ttft_ms),
         avg_gpu_ready_ttft_ms=agg_dict.get("avg_gpu_ready_ttft_ms", first.avg_gpu_ready_ttft_ms),
         p95_gpu_ready_ttft_ms=agg_dict.get("p95_gpu_ready_ttft_ms", first.p95_gpu_ready_ttft_ms),
         avg_scaleup_affected_ttft_ms=agg_dict.get("avg_scaleup_affected_ttft_ms", first.avg_scaleup_affected_ttft_ms),
@@ -2265,12 +2273,8 @@ class ScenarioRunner:
                 _append_unique(device_ids, list(configured)[:tp])
             elif isinstance(configured, str):
                 _append_unique(device_ids, configured.split(",")[:tp])
-            if device_ids:
-                return device_ids
         if self.instance_pool is not None:
             for slot in self.instance_pool.get_slots():
-                if getattr(slot, "coordinator", None) is not self.coordinator:
-                    continue
                 did = getattr(slot, "device_id", None)
                 if did is None:
                     continue
@@ -2741,6 +2745,11 @@ class ScenarioRunner:
                 + float(getattr(item, "defer_ms", 0.0) or 0.0)
                 for item in ok
             ]
+            runtime_ttft = [
+                float(getattr(item, "vllm_ttft_ms", 0.0) or 0.0)
+                for item in ok
+                if float(getattr(item, "vllm_ttft_ms", 0.0) or 0.0) > 0.0
+            ]
             gpu_ready_ttft = [
                 float(getattr(item, "ttft_ms", 0.0) or 0.0)
                 for item in ok
@@ -2778,6 +2787,8 @@ class ScenarioRunner:
                 "p99_comparable_ttft_ms": self._live_percentile(comparable, 99),
                 "avg_serverless_overhead_ms": sum(overheads) / len(overheads) if overheads else 0.0,
                 "p95_serverless_overhead_ms": self._live_percentile(overheads, 95) if overheads else 0.0,
+                "avg_runtime_ttft_ms": (sum(runtime_ttft) / len(runtime_ttft)) if runtime_ttft else 0.0,
+                "p95_runtime_ttft_ms": self._live_percentile(runtime_ttft, 95) if runtime_ttft else 0.0,
                 "avg_gpu_ready_ttft_ms": (sum(gpu_ready_ttft) / len(gpu_ready_ttft)) if gpu_ready_ttft else 0.0,
                 "avg_scaleup_affected_ttft_ms": (sum(scaleup_ttft) / len(scaleup_ttft)) if scaleup_ttft else 0.0,
             })
@@ -2869,6 +2880,7 @@ class ScenarioRunner:
             print(
                 "      "
                 f"scaleup_ttft={stats.get('avg_scaleup_affected_ttft_ms', 0.0):.0f}ms "
+                f"runtime={stats.get('avg_runtime_ttft_ms', 0.0):.0f}ms "
                 f"gpu_ready={stats.get('avg_gpu_ready_ttft_ms', 0.0):.0f}ms "
                 f"e2e(avg/p95/p99)={stats.get('avg_e2e_ms', 0.0):.0f}/{stats.get('p95_e2e_ms', 0.0):.0f}/{stats.get('p99_e2e_ms', 0.0):.0f}ms",
                 flush=True,
@@ -3265,6 +3277,9 @@ class ScenarioRunner:
             "device_id": scale_event.get("device_id"),
             "runtime_kind": scale_event.get("runtime_kind"),
         }
+        for key in ("cold_start_latency_ms", "warmed_adapters"):
+            if key in scale_event:
+                event[key] = scale_event.get(key)
         result.scale_up_events.append(event)
         self._live_scale_up_events = result.scale_up_events
         instance_id = event.get("instance_id")
@@ -3491,6 +3506,8 @@ class ScenarioRunner:
         if not hot_aids or not hasattr(engine, "load_lora_to_gpu_and_measure"):
             return set()
         warmed: set = set()
+        admission_rejects: List[str] = []
+        warmup_failures: List[str] = []
         for aid in hot_aids:
             path = getattr(self._stack, "_host_paths", {}).get(aid) or getattr(self._stack, "_nvme_paths", {}).get(aid)
             if not path:
@@ -3502,8 +3519,18 @@ class ScenarioRunner:
                 and getattr(coordinator, "effective_capacity_admission_enabled", False)
                 and getattr(coordinator, "evaluate_gpu_admission", None)
             ):
-                decision = coordinator.evaluate_gpu_admission(aid, size_mb, tier=tier)
+                decision = coordinator.evaluate_gpu_admission(
+                    aid,
+                    size_mb,
+                    tier=tier,
+                    utility_override=1.0,
+                )
                 if not decision.get("admit", False):
+                    admission_rejects.append(
+                        f"{aid}(cap={float(decision.get('effective_capacity_mb', 0.0) or 0.0):.1f}MB,"
+                        f" pressure={float(decision.get('pressure', 0.0) or 0.0):.2f},"
+                        f" utility={float(decision.get('utility', 0.0) or 0.0):.2f})"
+                    )
                     continue
             try:
                 load_ms, ok = await engine.load_lora_to_gpu_and_measure(path, aid)
@@ -3514,8 +3541,20 @@ class ScenarioRunner:
                     if coordinator is not None and getattr(coordinator, "_residency_manager", None) is None:
                         await coordinator._mark_resident(aid, size_mb)
                     warmed.add(aid)
-            except Exception:
-                pass
+            except Exception as exc:
+                warmup_failures.append(f"{aid}: {exc}")
+        if admission_rejects:
+            sample = ", ".join(admission_rejects[:3]) + ("..." if len(admission_rejects) > 3 else "")
+            print(
+                f"    [Warmup] admission rejected {len(admission_rejects)} adapters ({sample})",
+                flush=True,
+            )
+        if warmup_failures:
+            sample = ", ".join(warmup_failures[:3]) + ("..." if len(warmup_failures) > 3 else "")
+            print(
+                f"    [Warmup] load failed for {len(warmup_failures)} adapters ({sample})",
+                flush=True,
+            )
         return warmed
 
     async def _warmup_gpu(self):
@@ -4334,6 +4373,11 @@ class ScenarioRunner:
 
             if adapter_id:
                 self._access_count[adapter_id] += 1
+            if slot is not None and hasattr(slot, "record_runtime_ttft"):
+                try:
+                    slot.record_runtime_ttft(vllm_ttft, is_backbone=not bool(adapter_id))
+                except Exception:
+                    pass
 
             return RequestResult(
                 request_id=trace.request_id,
@@ -5687,6 +5731,8 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "TTFT_P99_ms": round(r.p99_ttft_ms, 1),
             "TTFT_comparable_avg_ms": round(r.avg_comparable_ttft_ms, 1),
             "TTFT_comparable_P95_ms": round(r.p95_comparable_ttft_ms, 1),
+            "Runtime_TTFT_avg_ms": round(r.avg_runtime_ttft_ms, 1),
+            "Runtime_TTFT_P95_ms": round(r.p95_runtime_ttft_ms, 1),
             "TTFT_gpu_ready_avg_ms": round(r.avg_gpu_ready_ttft_ms, 1),
             "TTFT_scaleup_affected_avg_ms": round(r.avg_scaleup_affected_ttft_ms, 1),
             "Cold_start_avg_ms": round(r.avg_cold_start_latency_ms, 1),
@@ -5779,6 +5825,8 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "p99_comparable_ttft_ms": round(r.p99_comparable_ttft_ms, 4),
             "avg_serverless_overhead_ms": round(r.avg_serverless_overhead_ms, 4),
             "p95_serverless_overhead_ms": round(r.p95_serverless_overhead_ms, 4),
+            "avg_runtime_ttft_ms": round(r.avg_runtime_ttft_ms, 4),
+            "p95_runtime_ttft_ms": round(r.p95_runtime_ttft_ms, 4),
             "avg_gpu_ready_ttft_ms": round(r.avg_gpu_ready_ttft_ms, 4),
             "p95_gpu_ready_ttft_ms": round(r.p95_gpu_ready_ttft_ms, 4),
             "avg_scaleup_affected_ttft_ms": round(r.avg_scaleup_affected_ttft_ms, 4),
@@ -6654,7 +6702,8 @@ async def main_async(
                 f"Cost/req=${result.avg_cost_usd:.6f}  TotalCost=${result.total_cost_usd:.4f}"
             )
             print(
-                f"  Diag GPUReady={result.avg_gpu_ready_ttft_ms:.0f}ms  "
+                f"  Diag Runtime={result.avg_runtime_ttft_ms:.0f}ms  "
+                f"GPUReady={result.avg_gpu_ready_ttft_ms:.0f}ms  "
                 f"Hit={result.cache_hit_rate:.0%}  "
                 f"Overhead(io+coord)={result.avg_serverless_overhead_ms:.0f}ms"
             )

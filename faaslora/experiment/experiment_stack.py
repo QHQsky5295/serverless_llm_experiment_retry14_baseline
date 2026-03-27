@@ -571,12 +571,14 @@ class ExperimentStack:
                 continue
             if meta.last_accessed_at < recent_threshold:
                 continue
-            if meta.hotness_score < self.preloading_planner.min_hotness_threshold:
-                continue
             size_bytes = int(getattr(meta, "size_bytes", 0) or 0)
             if size_bytes <= 0 or size_bytes > remaining:
                 continue
-            # Favor more recent accesses first, then hotter / higher value artifacts.
+            # Scale-up warmup is already bounded by instance-scoped capacity. Do not
+            # apply the global min_hotness hard gate here; that gate is tuned for
+            # background preloading and can under-warm a newly added instance. We
+            # still rank by recency, hotness, and value so the limited budget goes
+            # to the best local-tier candidates first.
             score = (
                 float(meta.last_accessed_at) * 10.0
                 + float(meta.hotness_score) * 1000.0

@@ -17,7 +17,7 @@
 - 当前干净树：`/home/qhq/serverless_llm_experiment_retry14_baseline`
 - 历史脏树：`/home/qhq/serverless_llm_experiment`
 - 当前工作分支：`retry14_rebuild`
-- 本次同步前基线提交：`77a424d`
+- 上一轮已推送基线提交：`6697a89`
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
 
 当前约定：
@@ -25,6 +25,39 @@
 - 后续研究与回退统一以 `serverless_llm_experiment_retry14_baseline` 为准。
 - `retry21` 及其对应脏树状态视为废案，不再作为正式对比对象。
 - 本次 GitHub 同步的目的不是发布最终结论，而是把当前 clean-tree 形成一个稳定回退点。
+
+## 2026-03-27 晚更新快照
+
+### 当前最新已验证实验状态
+
+- 当前最新**已验证干净结果**：`retry30_baseline @ 500`
+- 当前最新**结构性结论**：
+  - `GPU0 resident≈0` 的主异常已消失
+  - `scale-up warmup` 已真实生效，`warmed_adapters = 14`
+  - `Cold_start_latency` 已成为可信真值
+  - headline TTFT 仍未显著收口，主矛盾已从 GPU tier 主链转向 `router/runtime path`
+- 当前最新**代码状态**：
+  - `Runtime_TTFT = vllm_ttft_ms` 已接入 live / summary / JSON
+  - router 已补“实例最近真实 runtime 代价”信号，优先修 backbone / 浅路由场景
+  - 上述最新 routing/Runtime_TTFT 修复**尚未经过新一轮实验验证**
+
+### 当前论文第一性原则
+
+后续所有代码修改与实验分析都必须同时满足：
+
+1. 最优化已敲定的论文主指标
+2. 对齐论文三项贡献，不允许把贡献抹掉或绕开
+
+### 当前必须继续盯的三条高优先级问题
+
+1. `scale_decision_interval=25`
+   当前仍是“每处理 N 个请求才评估一次扩容”的请求数硬门槛，会直接拖 `TTFT_scaleup_affected / TTFT_overall`
+
+2. 残留的 `device 0` 拓扑硬编码
+   仍散落在 `memory_coordinator / vllm_wrapper / residency_manager` 等路径中，未来在 `14B` 或更复杂运行时仍可能再次放大多 GPU 偏置问题
+
+3. `scale_up_preload_mb=1024`
+   当前是固定预算，不是真实的 headroom-aware 动态预加载预算，会直接影响 `scale-up cold path`
 
 ## 本次同步纳入的真实变更
 
@@ -62,6 +95,15 @@
 
 6. 当前 Qwen 7B V2 publicmix 工件清单已更新为 curated baseline
    `configs/generated/lora_manifest_1000.json` 当前刻意随仓库快照一起提交，用于后续回退和复现实验入口。
+
+7. Runtime 观测与 runtime-aware routing 的最小修复
+   当前 clean-tree 已补：
+   - `Runtime_TTFT = vllm_ttft_ms`，并接入 live / summary / JSON
+   - router 侧基于实例最近真实 runtime 代价的轻量信号
+
+   说明：
+   - 这批改动是为了继续解决 `retry30` 中“headline TTFT 变差但结构性 bug 已消失”的问题
+   - 当前已经过本地测试，但还没有新的正式实验轮次验证
 
 ## 当前论文主指标
 
@@ -188,6 +230,45 @@
 - 但 GPU resident stickiness 仍弱，热点 adapter 反复从 host 走 `host->gpu`
 - 当前主问题已收敛到：在 host 形成后，如何稳定提高 GPU-ready 命中并压低重复加载
 
+#### `retry29_baseline`
+
+- `500/500`，`fail=0`
+- `TTFT_overall avg/p95/p99 = 9245 / 19518 / 27138 ms`
+- `TTFT_comparable avg = 11102 ms`
+- `TPOT = 46.7 ms`
+- `Throughput = 0.1086 req/s, 13.88 tok/s`
+- `avg_lora_io_ms = 440.0 ms`
+- `gpu_hit_rate = 78.47%`
+
+结论：
+
+- 结构性运行健康
+- 但后续下钻发现：headline TTFT 变差的主要来源不是 LoRA 请求，而是 backbone-only 请求在 `inst_1` 上明显更慢
+
+#### `retry30_baseline`（当前最新干净验证结果）
+
+- `500/500`，`fail=0`
+- `TTFT_overall avg/p95/p99 = 9338 / 20589 / 27659 ms`
+- `TTFT_comparable avg/p95/p99 = 11037 / 21640 / 27964 ms`
+- `TTFT_scaleup_affected avg/p95 = 8000 / 8880 ms`
+- `TTFT_gpu_ready avg = 10185 ms`
+- `TPOT = 43.1 ms`
+- `E2E avg/p95/p99 = 12421 / 22475 / 27964 ms`
+- `Throughput = 0.1007 req/s, 12.856 tok/s`
+- `SLO@5000ms = 17%`
+- `avg_lora_io_ms = 530.3 ms`
+- `avg_cold_start_latency_ms = 72983 ms`
+- tier 分布：`gpu=323 / host=11 / nvme=84 / backbone=82`
+
+结论：
+
+- `GPU0 anomaly` 已被打掉
+- `scale-up warmup` 已真实落地
+- 7B 主线的结构性问题基本收口
+- 但 headline TTFT 仍偏高；当前主矛盾已收敛到：
+  - `router/runtime path`
+  - 尤其是 `inst_1` 上的 backbone/runtime 请求明显慢于 `inst_2`
+
 ### 当前判断
 
 当前 clean-tree 还没有“性能完全收口”，但已经满足：
@@ -200,19 +281,31 @@
 
 ### 本次同步后立即继续的 TODO
 
-1. 运行 `retry28_baseline`
-2. 以新的论文主指标 live 面板观察运行过程
-3. 跑完后正式对比 `retry27 vs retry28`
-4. 继续围绕 `TTFT_overall / TTFT_comparable / TTFT_scaleup_affected / TPOT / Throughput / E2E / SLO` 优化
+1. 跑一轮新的 baseline（当前建议 `retry31_baseline`）
+2. 验证 `Runtime_TTFT` 和 runtime-aware routing 是否真的改善 headline TTFT
+3. 继续围绕：
+   - `TTFT_overall`
+   - `TTFT_comparable`
+   - `TTFT_scaleup_affected`
+   - `TPOT`
+   - `Throughput_req/s`
+   - `Throughput_tok/s`
+   - `E2E_latency`
+   - `SLO_attainment`
+4. 若 `retry31` 没有新结构性 bug，再判断 7B 是否收尾并转 14B
 
 ### 已明确但暂缓的 TODO
 
 1. `REMOTE` 真实性升级
    当前 `REMOTE` 仍是“本地目录 + 带宽仿真”的物理半模拟实现。后续计划接第二台非 GPU 节点做真实远端存储；本次同步只记录，不动代码。
 
-2. 把不合理的暗箱 heuristics 继续逐步替换成：
+2. 把不合理的暗箱 heuristics / 硬门槛继续逐步替换成：
    - 校准后的测量值
    - 或真实系统指标驱动
+   当前已经明确的对象包括：
+   - `scale_decision_interval=25`
+   - 残留 `device 0` 拓扑硬编码
+   - `scale_up_preload_mb=1024`
 
 ### 当前工作原则
 

@@ -1,5 +1,22 @@
 # FaaSLoRA 会话交接文档（2026-03-13）
 
+> 2026-03-27 晚更新（当前权威续接入口）：
+>
+> 这份文档下面仍保留了大量历史 14B / Mistral / V2 publicmix 规划内容，但它们现在**主要作为背景参考**。
+>
+> 新会话如果要快速跟上当前真实进度，请优先只看：
+>
+> 1. 本文件的「0. 2026-03-27 当前续接快照」和「0.1 晚更新」
+> 2. [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md)
+> 3. [ENVIRONMENT.md](ENVIRONMENT.md)
+>
+> 当前最新主线已经收敛到：
+>
+> - 干净树：`/home/qhq/serverless_llm_experiment_retry14_baseline`
+> - 分支：`retry14_rebuild`
+> - 主对象：`Qwen 7B V2 publicmix + auto + 500 adapters + 500 requests`
+> - 当前目标：在**不偏离主线、不修坏系统**的前提下，先收口 7B，再转 14B
+
 > 2026-03-27 续接说明：这份文档现在主要保留两类内容：
 >
 > 1. 交互习惯与协作节奏
@@ -54,6 +71,74 @@
 - 优化的最高原则固定为：
   1. 最优化已敲定的论文指标
   2. 对齐论文贡献
+
+## 0.1 2026-03-27 晚更新
+
+### 当前真实状态
+
+- 当前最新**已验证干净结果**是 `retry30_baseline @ 500`
+- 当前最新**已完成但尚未跑实验验证的新代码**包括：
+  - `Runtime_TTFT = vllm_ttft_ms` 已接入 live / summary / JSON
+  - router 已补“实例最近真实 runtime 代价”信号，优先修 backbone / 浅路由场景
+- 上一轮已推送 GitHub 基线提交：`6697a89`
+- 当前工作树应在本次同步后形成新的可回退快照
+
+### `retry30_baseline` 的最新结论
+
+- 这轮已经证明：
+  - `GPU0 resident≈0` 的主异常被打掉了
+  - `scale-up warmup` 已真实执行，`warmed_adapters = 14`
+  - `Cold_start_latency` 已成为可信真值
+- 但 headline TTFT 没有同步变好：
+  - `TTFT_overall avg ≈ 9338ms`
+  - `TTFT_comparable avg ≈ 11037ms`
+  - `TTFT_scaleup_affected avg ≈ 8000ms`
+- 深挖后已确认：
+  - `retry30` 里 LoRA 请求平均 TTFT 没有变差，甚至略好
+  - 真正把 headline TTFT 拉差的是 `backbone-only` 请求变慢
+  - 更具体地说，是 `inst_1` 的 runtime / prefill / engine 路径明显慢于 `inst_2`
+
+### 当前最重要的诊断结论
+
+- 当前主矛盾已经**不是** GPU tier 主链本身
+- 当前主矛盾是：
+  - router / dispatch 看不到实例真实服务代价
+  - 导致一部分本应走更健康实例的请求，仍落到更慢的 `inst_1`
+- 所以当前主线策略已经收口为：
+  - 不再继续盲改 GPU tier / warmup 主链
+  - 先把 runtime-aware routing 和 `Runtime_TTFT` 观测补实
+
+### 现在已经明确的三条高优先级 TODO
+
+以下 3 条已经讨论达成一致，后续必须改，但必须按最小风险顺序推进：
+
+1. 去掉“每处理 25 个请求才评估一次扩容”的请求数硬门槛
+   改成按真实时间 / 真实压力信号评估 scale-up
+2. 清掉残留的 `device 0` 拓扑硬编码
+   避免多 GPU 路径再次被 GPU0 偏置污染
+3. 把 `scale_up_preload_mb=1024` 固定预算改成更真实的 headroom-aware 动态预算
+
+### 新会话必须延续的协作逻辑
+
+- 每次实验结束后，必须同时做三件事：
+  - 分析本轮运行情况
+  - 和上一轮正式比较
+  - 归因并判断下一步要不要改代码
+- 汇报格式固定保持：
+  - `当前步骤位置`
+  - `之后步骤`
+  - `上一步 TODO`
+  - `本步 TODO`
+  - `剩余 TODO`
+- 不允许只盯局部现象调参，所有修改都要先经过这两条第一性原则筛选：
+  1. 是否直接或间接优化已敲定的论文主指标
+  2. 是否强化而不是抹掉论文三项贡献
+
+### 新会话提示词
+
+如果开新会话，建议直接贴下面这段：
+
+> 继续当前 clean-tree 主线。权威代码树是 `/home/qhq/serverless_llm_experiment_retry14_baseline`，分支 `retry14_rebuild`。当前论文第一性原则固定为：1）最优化 `TTFT_overall / TTFT_comparable / TTFT_scaleup_affected / TTFT_gpu_ready / TPOT / Throughput_req/s / Throughput_tok/s / E2E_latency / SLO_attainment`；2）所有修改必须对齐论文三项贡献。当前最新已验证结果是 `retry30_baseline @ 500`：GPU0 resident 异常已消失、scale-up warmup 已真实生效、Cold_start_latency 已可信，但 headline TTFT 仍偏高。已经确认主矛盾从 GPU tier 主链转移到 router/runtime path：`inst_1` 的 backbone/runtime 请求明显比 `inst_2` 慢。当前代码里已经补了 `Runtime_TTFT=vllm_ttft_ms` 输出和 runtime-aware routing 的最小修复，但还没跑新实验验证。请严格沿用我们固定的交互格式：每轮实验后都要分析本轮、对比上一轮、归因，并固定输出 `当前步骤位置 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO`。先从当前代码状态继续，不要回到旧的 14B/Mistral 历史规划上。
 
 ## 1. 文档用途
 

@@ -432,7 +432,13 @@ class ResourceCoordinator:
         reserve = self.gpu_budget_mb * self.lora_load_reserve_ratio
         return self.gpu_budget_mb - self.model_weights_mb - kv_mb - lora_mb - reserve
 
-    def evaluate_gpu_admission(self, adapter_id: str, size_mb: float, tier: str = "nvme") -> Dict[str, float]:
+    def evaluate_gpu_admission(
+        self,
+        adapter_id: str,
+        size_mb: float,
+        tier: str = "nvme",
+        utility_override: Optional[float] = None,
+    ) -> Dict[str, float]:
         """
         Dynamic working-set-aware effective capacity admission.
 
@@ -440,7 +446,10 @@ class ResourceCoordinator:
         footprint, outstanding load pressure, and the recent working-set gap.
         """
         pressure = self._contention_pressure(include_working_set=False)
-        utility = self._admission_utility(adapter_id, tier=tier)
+        if utility_override is None:
+            utility = self._admission_utility(adapter_id, tier=tier)
+        else:
+            utility = max(0.0, float(utility_override))
         effective_capacity_mb = self._effective_capacity_mb(pressure)
         predicted_kv_growth_mb = self._predicted_kv_growth_mb()
         working_set_pressure = self._working_set_pressure()
