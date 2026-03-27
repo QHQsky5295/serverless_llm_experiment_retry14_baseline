@@ -80,6 +80,11 @@ source ~/.bashrc
 - `E2E_latency`
 - `SLO_attainment`
 
+实验结束 summary 与结果 JSON 还会补充：
+
+- `Cold_start_latency`
+- `Monetary_cost`
+
 其余诊断指标仍会继续写入日志和 JSON，用于归因与后续优化。
 
 ## 7. 当前实验纪律

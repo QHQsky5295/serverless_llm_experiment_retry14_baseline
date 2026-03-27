@@ -77,10 +77,17 @@
 8. `E2E_latency`
 9. `SLO_attainment`
 
+实验结束 summary / JSON 还补充输出：
+
+10. `Cold_start_latency`
+11. `Monetary_cost`
+
 其中：
 
 - `TTFT_comparable` 当前定义为：`非 scale-up 受影响` 且 `cache_tier ∈ {gpu, host, nvme}` 的请求 TTFT。
 - `TTFT_scaleup_affected` 当前定义为：真实路由到 scale-up 新增 runtime，且当时不是 `GPU-ready` 的请求 TTFT。
+- `Cold_start_latency` 当前定义为：dedicated scale-up 从开始创建新实例到新实例 warmup 完成的时延。
+- `Monetary_cost` 当前输出为：`avg_cost_usd` 与 `total_cost_usd`。
 
 其余指标继续完整记录在日志和 JSON 中，用于归因和调优，但不作为论文 headline。
 

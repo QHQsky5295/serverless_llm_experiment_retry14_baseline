@@ -35,10 +35,17 @@ FaaSLoRA 是一个面向真实云工作负载的多 LoRA Serverless 推理研究
 - `E2E_latency`
 - `SLO_attainment`
 
+另外，实验结束 summary 与结果 JSON 还会补充输出两条论文辅助指标：
+
+- `Cold_start_latency`
+- `Monetary_cost`
+
 其中：
 
 - `TTFT_comparable` 当前定义为：非 `scale-up` 受影响，且 `cache_tier ∈ {gpu, host, nvme}` 的请求 TTFT
 - `TTFT_scaleup_affected` 当前定义为：真实落到 scale-up 新增 runtime 且当时不是 `GPU-ready` 的请求 TTFT
+- `Cold_start_latency` 当前定义为：dedicated scale-up 从开始创建新实例到新实例 warmup 完成的真实时延
+- `Monetary_cost` 当前输出为：`avg_cost_usd` 与 `total_cost_usd`
 
 ## 当前主线运行方式
 

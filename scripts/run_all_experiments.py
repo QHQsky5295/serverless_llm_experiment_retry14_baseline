@@ -413,6 +413,11 @@ def _scaleup_affected_request_indices(
 
 
 _LOCAL_COMPARABLE_TIERS = {"gpu", "host", "nvme"}
+_BACKBONE_CACHE_TIER = "backbone"
+
+
+def _has_lora_request(request: Any) -> bool:
+    return bool(getattr(request, "adapter_id", None))
 
 
 def _is_comparable_request(
@@ -424,10 +429,13 @@ def _is_comparable_request(
     Paper-facing comparable TTFT subset.
 
     Comparable requests should preserve local-tier differences (GPU/HOST/NVMe)
-    so the benefit of keeping hot artifacts resident is still visible, while
-    excluding the post-scale-up cold window and remote cold fetches.
+    on LoRA-bearing requests, so the benefit of keeping hot artifacts resident
+    is still visible, while excluding the post-scale-up cold window, adapter-
+    free backbone traffic, and remote cold fetches.
     """
     if not getattr(request, "success", False):
+        return False
+    if not _has_lora_request(request):
         return False
     tagged_scaleup = getattr(request, "scaleup_affected", None)
     if tagged_scaleup is None and request_index is not None:
@@ -517,6 +525,8 @@ class ScenarioResult:
     p95_gpu_ready_ttft_ms: float = 0.0
     avg_scaleup_affected_ttft_ms: float = 0.0
     p95_scaleup_affected_ttft_ms: float = 0.0
+    avg_cold_start_latency_ms: float = 0.0
+    p95_cold_start_latency_ms: float = 0.0
 
     # Burst-phase metrics
     phase1_avg_ttft_ms: float = 0.0
@@ -546,6 +556,7 @@ class ScenarioResult:
     def aggregate(self, elapsed: float, coord_metrics: Optional[Dict] = None):
         self.elapsed_sec = elapsed
         ok  = [r for r in self.requests if r.success]
+        lora_ok = [r for r in ok if _has_lora_request(r)]
         self.completed = len(ok)
         self.failed    = len(self.requests) - self.completed
         scaleup_success_ttft = [
@@ -554,6 +565,12 @@ class ScenarioResult:
             if bool(getattr(r, "scaleup_affected", False))
         ]
         self.cold_starts_after_scale_up = []
+        cold_start_latencies = [
+            float(ev.get("cold_start_latency_ms", 0.0) or 0.0)
+            for ev in self.scale_up_events
+            if str(ev.get("runtime_kind", "") or "") == "dedicated"
+            and float(ev.get("cold_start_latency_ms", 0.0) or 0.0) > 0.0
+        ]
         if self.scale_up_events:
             for ev in self.scale_up_events:
                 instance_id = ev.get("instance_id")
@@ -567,6 +584,9 @@ class ScenarioResult:
                     and bool(getattr(r, "scaleup_affected", False))
                 )
                 self.cold_starts_after_scale_up.append(cold)
+        self.avg_cold_start_latency_ms = (
+            sum(cold_start_latencies) / len(cold_start_latencies) if cold_start_latencies else 0.0
+        )
         if not ok:
             return
 
@@ -575,6 +595,8 @@ class ScenarioResult:
             s = sorted(vals)
             i = max(0, min(len(s)-1, int(round(p/100*(len(s)-1)))))
             return s[i]
+
+        self.p95_cold_start_latency_ms = pct(cold_start_latencies, 95) if cold_start_latencies else 0.0
 
         ttft = [float(r.ttft_ms) for r in ok]
         tpot = [float(r.tpot_ms) for r in ok if float(r.tpot_ms) > 0]
@@ -608,8 +630,8 @@ class ScenarioResult:
         self.slo_attainment = sum(1 for r in ok if float(r.ttft_ms) <= float(self.ttft_slo_ms)) / len(ok)
         self.avg_cost_usd   = sum(cost)/len(cost)
         self.total_cost_usd = sum(cost)
-        self.cache_hit_rate = sum(1 for r in ok if r.cache_hit)/len(ok)
-        self.gpu_hit_rate   = sum(1 for r in ok if r.cache_tier=="gpu")/len(ok)
+        self.cache_hit_rate = (sum(1 for r in lora_ok if r.cache_hit)/len(lora_ok)) if lora_ok else 0.0
+        self.gpu_hit_rate   = (sum(1 for r in lora_ok if r.cache_tier=="gpu")/len(lora_ok)) if lora_ok else 0.0
         self.avg_lora_io_ms = sum(ios)/len(ios) if ios else 0.0
         self.avg_comparable_ttft_ms = (
             sum(comparable_ttft)/len(comparable_ttft)
@@ -677,6 +699,7 @@ _SCENARIO_RESULT_NUMERIC_KEYS = (
     "avg_serverless_overhead_ms", "p95_serverless_overhead_ms",
     "avg_gpu_ready_ttft_ms", "p95_gpu_ready_ttft_ms",
     "avg_scaleup_affected_ttft_ms", "p95_scaleup_affected_ttft_ms",
+    "avg_cold_start_latency_ms", "p95_cold_start_latency_ms",
     "phase1_avg_ttft_ms", "phase2_avg_ttft_ms", "non_burst_avg_ttft_ms", "burst_p99_ttft_ms",
     "contention_events", "avg_contention_ms", "avg_defer_ms", "gpu_ready_hits", "warm_pool_hits", "memory_efficiency_pct",
     "completed", "failed",
@@ -759,6 +782,8 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         p95_gpu_ready_ttft_ms=agg_dict.get("p95_gpu_ready_ttft_ms", first.p95_gpu_ready_ttft_ms),
         avg_scaleup_affected_ttft_ms=agg_dict.get("avg_scaleup_affected_ttft_ms", first.avg_scaleup_affected_ttft_ms),
         p95_scaleup_affected_ttft_ms=agg_dict.get("p95_scaleup_affected_ttft_ms", first.p95_scaleup_affected_ttft_ms),
+        avg_cold_start_latency_ms=agg_dict.get("avg_cold_start_latency_ms", first.avg_cold_start_latency_ms),
+        p95_cold_start_latency_ms=agg_dict.get("p95_cold_start_latency_ms", first.p95_cold_start_latency_ms),
         phase1_avg_ttft_ms=agg_dict.get("phase1_avg_ttft_ms", first.phase1_avg_ttft_ms),
         phase2_avg_ttft_ms=agg_dict.get("phase2_avg_ttft_ms", first.phase2_avg_ttft_ms),
         non_burst_avg_ttft_ms=agg_dict.get("non_burst_avg_ttft_ms", first.non_burst_avg_ttft_ms),
@@ -2705,6 +2730,7 @@ class ScenarioRunner:
             "failed": len(failed),
         }
         if ok:
+            lora_ok = [item for item in ok if _has_lora_request(item)]
             ttft = [float(getattr(item, "ttft_ms", 0.0) or 0.0) for item in ok]
             e2e = [float(getattr(item, "e2e_ms", 0.0) or 0.0) for item in ok]
             tpot = [float(getattr(item, "tpot_ms", 0.0) or 0.0) for item in ok if float(getattr(item, "tpot_ms", 0.0) or 0.0) > 0]
@@ -2739,7 +2765,9 @@ class ScenarioRunner:
                 "p95_e2e_ms": self._live_percentile(e2e, 95),
                 "p99_e2e_ms": self._live_percentile(e2e, 99),
                 "avg_tpot_ms": (sum(tpot) / len(tpot)) if tpot else 0.0,
-                "cache_hit_ratio": sum(1 for item in ok if getattr(item, "cache_hit", False)) / len(ok),
+                "cache_hit_ratio": (
+                    sum(1 for item in lora_ok if getattr(item, "cache_hit", False)) / len(lora_ok)
+                ) if lora_ok else 0.0,
                 "total_output_tokens": sum(out_tokens),
                 "slo_attainment": (
                     sum(1 for item in ok if float(getattr(item, "ttft_ms", 0.0) or 0.0) <= self._ttft_slo_ms)
@@ -3144,6 +3172,7 @@ class ScenarioRunner:
         if self.instance_pool.count() >= self.instance_pool.max_instances:
             return None
         device_id = self._select_dedicated_device_id()
+        cold_start_started_at = time.perf_counter()
         try:
             new_engine, new_coord = await self.engine_factory(device_id=device_id)
         except Exception as exc:
@@ -3171,12 +3200,14 @@ class ScenarioRunner:
             self._refresh_slot_runtime_hints(slot)
         if warmed:
             print(f"    New instance warmup: {len(warmed)} adapters loaded", flush=True)
+        cold_start_latency_ms = max(0.0, (time.perf_counter() - cold_start_started_at) * 1000.0)
         return {
             "event_type": "physical_scale_up",
             "instance_id": instance_id,
             "device_id": getattr(new_engine, "device_id", None),
             "runtime_kind": "dedicated",
             "warmed_adapters": len(warmed),
+            "cold_start_latency_ms": cold_start_latency_ms,
         }
 
     async def _ensure_min_instances(self, coord_enabled: bool) -> None:
@@ -3558,7 +3589,7 @@ class ScenarioRunner:
                     result_requests.append(RequestResult(
                         request_id="error", adapter_id=None,
                         is_burst=False, burst_phase="normal",
-                        cache_hit=False, cache_tier="remote",
+                        cache_hit=False, cache_tier=_BACKBONE_CACHE_TIER,
                         lora_io_ms=0, vllm_ttft_ms=0, ttft_ms=0,
                         contention_ms=0, defer_ms=0, tpot_ms=0, e2e_ms=0,
                         input_tokens=0, output_tokens=0, cost_usd=0,
@@ -3863,7 +3894,7 @@ class ScenarioRunner:
                     is_burst=trace.is_burst,
                     burst_phase=burst_phase,
                     cache_hit=False,
-                    cache_tier="remote",
+                    cache_tier=_BACKBONE_CACHE_TIER,
                     lora_io_ms=0.0,
                     vllm_ttft_ms=vllm_ttft,
                     ttft_ms=vllm_ttft,
@@ -3903,7 +3934,7 @@ class ScenarioRunner:
                         is_burst=trace.is_burst,
                         burst_phase=burst_phase,
                         cache_hit=False,
-                        cache_tier="remote",
+                        cache_tier=_BACKBONE_CACHE_TIER,
                         lora_io_ms=0.0,
                         vllm_ttft_ms=vllm_ttft,
                         ttft_ms=vllm_ttft,
@@ -3923,7 +3954,7 @@ class ScenarioRunner:
                         is_burst=trace.is_burst,
                         burst_phase=burst_phase,
                         cache_hit=False,
-                        cache_tier="remote",
+                        cache_tier=_BACKBONE_CACHE_TIER,
                         lora_io_ms=0.0,
                         vllm_ttft_ms=0.0,
                         ttft_ms=0.0,
@@ -4234,7 +4265,7 @@ class ScenarioRunner:
         lora_io_ms    = 0.0
         contention_ms = 0.0
         defer_ms      = 0.0
-        cache_tier    = "remote"
+        cache_tier    = _BACKBONE_CACHE_TIER if not adapter_id else "remote"
         local_path    = None
         size_mb       = float(self.adapter_info.get(adapter_id, {}).get("size_mb", 30.0)) if adapter_id else 30.0
         instance_id   = getattr(slot, "instance_id", None) if slot is not None else getattr(self, "_primary_instance_id", None)
@@ -4309,7 +4340,7 @@ class ScenarioRunner:
                 adapter_id=adapter_id,
                 is_burst=trace.is_burst,
                 burst_phase=burst_phase,
-                cache_hit=(cache_tier != "remote"),
+                cache_hit=bool(adapter_id) and (cache_tier != "remote"),
                 cache_tier=cache_tier,
                 lora_io_ms=lora_io_ms,
                 vllm_ttft_ms=vllm_ttft,
@@ -4335,7 +4366,7 @@ class ScenarioRunner:
             return RequestResult(
                 request_id=trace.request_id, adapter_id=adapter_id,
                 is_burst=trace.is_burst, burst_phase=burst_phase,
-                cache_hit=False, cache_tier=cache_tier,
+                cache_hit=bool(adapter_id) and (cache_tier != "remote"), cache_tier=cache_tier,
                 lora_io_ms=lora_io_ms, vllm_ttft_ms=0,
                 ttft_ms=lora_io_ms + contention_ms,
                 contention_ms=contention_ms, defer_ms=defer_ms,
@@ -5488,6 +5519,26 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
         print("  (Mean ± std over multiple runs; 95% CI in results JSON.)")
     print(f"{DLINE}")
 
+    print("\n  Secondary Paper Metrics: Cold Start & Monetary Cost")
+    print(f"  {LINE[2:]}")
+    hdr_aux = (
+        f"  {'Scenario':<26} {'Type':<16} "
+        f"{'ColdStart_avg':>14} {'ColdStart_P95':>14} "
+        f"{'Cost/req':>10} {'TotalCost':>11}"
+    )
+    print(hdr_aux)
+    print(f"  {LINE[2:]}")
+    for r in results:
+        label = type_label.get(r.baseline_type, r.baseline_type)
+        cold_avg_s = _cell_with_std(r, "avg_cold_start_latency_ms", ".0f", "ms")
+        cold_p95_s = _cell_with_std(r, "p95_cold_start_latency_ms", ".0f", "ms")
+        print(
+            f"  {r.scenario_name:<26} {label:<16} "
+            f"{cold_avg_s:>14} {cold_p95_s:>14} "
+            f"${r.avg_cost_usd:>9.6f} ${r.total_cost_usd:>10.4f}"
+        )
+    print(f"{DLINE}")
+
     # Table 2: improvement vs cold_start baseline
     base = next((r for r in results if r.baseline_type == "cold_start"), None)
     if base:
@@ -5638,6 +5689,8 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "TTFT_comparable_P95_ms": round(r.p95_comparable_ttft_ms, 1),
             "TTFT_gpu_ready_avg_ms": round(r.avg_gpu_ready_ttft_ms, 1),
             "TTFT_scaleup_affected_avg_ms": round(r.avg_scaleup_affected_ttft_ms, 1),
+            "Cold_start_avg_ms": round(r.avg_cold_start_latency_ms, 1),
+            "Cold_start_P95_ms": round(r.p95_cold_start_latency_ms, 1),
             "TTFT_serverless_overhead_avg_ms": round(r.avg_serverless_overhead_ms, 1),
             "TPOT_avg_ms": round(r.avg_tpot_ms, 2),
             "E2E_avg_ms":  round(r.avg_e2e_ms, 1),
@@ -5715,6 +5768,8 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "throughput_tok_per_s": round(r.throughput_tok_per_s, 6),
             "slo_attainment": round(r.slo_attainment, 6),
             "ttft_slo_ms": round(r.ttft_slo_ms, 4),
+            "avg_cost_usd": round(r.avg_cost_usd, 8),
+            "total_cost_usd": round(r.total_cost_usd, 8),
             "qpr": round(r.qpr, 6),
             "cache_hit_rate": round(r.cache_hit_rate, 6),
             "gpu_hit_rate": round(r.gpu_hit_rate, 6),
@@ -5728,6 +5783,8 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "p95_gpu_ready_ttft_ms": round(r.p95_gpu_ready_ttft_ms, 4),
             "avg_scaleup_affected_ttft_ms": round(r.avg_scaleup_affected_ttft_ms, 4),
             "p95_scaleup_affected_ttft_ms": round(r.p95_scaleup_affected_ttft_ms, 4),
+            "avg_cold_start_latency_ms": round(r.avg_cold_start_latency_ms, 4),
+            "p95_cold_start_latency_ms": round(r.p95_cold_start_latency_ms, 4),
             "contention_events": r.contention_events,
             "avg_contention_ms": round(r.avg_contention_ms, 4),
             "avg_defer_ms": round(r.avg_defer_ms, 4),
@@ -6591,6 +6648,10 @@ async def main_async(
                 f"  TTFT_comp={result.avg_comparable_ttft_ms:.0f}/{result.p95_comparable_ttft_ms:.0f}/{result.p99_comparable_ttft_ms:.0f}ms  "
                 f"ScaleUpAffected={result.avg_scaleup_affected_ttft_ms:.0f}ms  "
                 f"TPOT={result.avg_tpot_ms:.1f}ms  E2E={result.avg_e2e_ms:.0f}ms"
+            )
+            print(
+                f"  ColdStart={result.avg_cold_start_latency_ms:.0f}/{result.p95_cold_start_latency_ms:.0f}ms  "
+                f"Cost/req=${result.avg_cost_usd:.6f}  TotalCost=${result.total_cost_usd:.4f}"
             )
             print(
                 f"  Diag GPUReady={result.avg_gpu_ready_ttft_ms:.0f}ms  "

@@ -34,6 +34,7 @@
   - `Throughput_tok/s`
   - `E2E_latency`
   - `SLO_attainment`
+  - 论文辅助输出：`Cold_start_latency`, `Monetary_cost`
 - 当前最近一批关键修复：
   - `NVMe-hit -> HOST promotion` 生效
   - 多 GPU 口径不再只盯 `device 0`

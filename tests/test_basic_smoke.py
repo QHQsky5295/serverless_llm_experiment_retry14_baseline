@@ -1968,7 +1968,12 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             RequestResult("r3", "c", False, "normal", False, "remote", 0.0, 140.0, 150.0, 5.0, 5.0, 30.0, 190.0, 10, 5, 0.0, True, "inst_2", True),
             RequestResult("r4", "d", False, "normal", True, "gpu", 20.0, 160.0, 220.0, 10.0, 10.0, 35.0, 260.0, 10, 5, 0.0, True, "inst_2", False),
         ]
-        result.scale_up_events = [{"request_index": 2, "instance_id": "inst_2"}]
+        result.scale_up_events = [{
+            "request_index": 2,
+            "instance_id": "inst_2",
+            "runtime_kind": "dedicated",
+            "cold_start_latency_ms": 320.0,
+        }]
 
         result.aggregate(4.0)
 
@@ -1976,6 +1981,8 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertAlmostEqual(result.avg_serverless_overhead_ms, (20.0 + 80.0 + 10.0 + 40.0) / 4.0)
         self.assertAlmostEqual(result.avg_gpu_ready_ttft_ms, (100.0 + 220.0) / 2.0)
         self.assertAlmostEqual(result.avg_scaleup_affected_ttft_ms, 150.0)
+        self.assertAlmostEqual(result.avg_cold_start_latency_ms, 320.0)
+        self.assertAlmostEqual(result.p95_cold_start_latency_ms, 320.0)
         self.assertAlmostEqual(result.throughput_tok_per_s, 5.0)
         self.assertAlmostEqual(result.slo_attainment, 0.5)
         self.assertEqual(result.cold_starts_after_scale_up, [1])
@@ -2019,12 +2026,41 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         local_hit = RequestResult("r1", "a", False, "normal", True, "host", 40.0, 140.0, 210.0, 10.0, 10.0, 25.0, 250.0, 10, 5, 0.0, True, "inst_1", False)
         scaleup_local = RequestResult("r2", "b", False, "normal", True, "host", 30.0, 120.0, 180.0, 5.0, 5.0, 20.0, 220.0, 10, 5, 0.0, True, "inst_2", True)
         remote_fetch = RequestResult("r3", "c", False, "normal", False, "remote", 30.0, 120.0, 180.0, 5.0, 5.0, 20.0, 220.0, 10, 5, 0.0, True, "inst_1", False)
+        backbone = RequestResult("r4", None, False, "normal", False, "backbone", 0.0, 90.0, 90.0, 0.0, 0.0, 20.0, 140.0, 10, 5, 0.0, True, "inst_1", False)
         legacy_scaleup = SimpleNamespace(success=True, cache_tier="host")
 
         self.assertTrue(_is_comparable_request(local_hit))
         self.assertFalse(_is_comparable_request(scaleup_local))
         self.assertFalse(_is_comparable_request(remote_fetch))
+        self.assertFalse(_is_comparable_request(backbone))
         self.assertFalse(_is_comparable_request(legacy_scaleup, 3, {3}))
+
+    def test_aggregate_hit_rates_ignore_backbone_only_requests(self) -> None:
+        result = ScenarioResult("demo", "faaslora_full", total=3)
+        result.requests = [
+            RequestResult("r1", None, False, "normal", False, "backbone", 0.0, 90.0, 90.0, 0.0, 0.0, 15.0, 120.0, 10, 5, 0.0, True, "inst_1", False),
+            RequestResult("r2", "a", False, "normal", True, "gpu", 0.0, 100.0, 100.0, 0.0, 0.0, 15.0, 130.0, 10, 5, 0.0, True, "inst_1", False),
+            RequestResult("r3", "b", False, "normal", False, "remote", 50.0, 150.0, 200.0, 0.0, 0.0, 15.0, 240.0, 10, 5, 0.0, True, "inst_2", False),
+        ]
+
+        result.aggregate(6.0)
+
+        self.assertAlmostEqual(result.cache_hit_rate, 0.5)
+        self.assertAlmostEqual(result.gpu_hit_rate, 0.5)
+
+    def test_live_result_stats_hit_ratio_ignores_backbone_only_requests(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._live_scale_up_events = []
+        runner._ttft_slo_ms = 5000.0
+        results = [
+            RequestResult("r1", None, False, "normal", False, "backbone", 0.0, 90.0, 90.0, 0.0, 0.0, 15.0, 120.0, 10, 5, 0.0, True, "inst_1", False),
+            RequestResult("r2", "a", False, "normal", True, "gpu", 0.0, 100.0, 100.0, 0.0, 0.0, 15.0, 130.0, 10, 5, 0.0, True, "inst_1", False),
+            RequestResult("r3", "b", False, "normal", False, "remote", 50.0, 150.0, 200.0, 0.0, 0.0, 15.0, 240.0, 10, 5, 0.0, True, "inst_2", False),
+        ]
+
+        stats = runner._live_result_stats(results)
+
+        self.assertAlmostEqual(stats["cache_hit_ratio"], 0.5)
 
     def test_aggregate_counts_cold_starts_by_scaled_instance_id(self) -> None:
         result = ScenarioResult("demo", "faaslora_full", total=5)
@@ -2043,6 +2079,43 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         result.aggregate(5.0)
 
         self.assertEqual(result.cold_starts_after_scale_up, [1, 2])
+
+    def test_add_dedicated_instance_slot_records_cold_start_latency(self) -> None:
+        mark_calls = []
+        refresh_calls = []
+        slot = SimpleNamespace(
+            instance_id="inst_2",
+            mark_adapter_tier=lambda aid, tier: mark_calls.append((aid, tier)),
+        )
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.instance_pool = SimpleNamespace(
+            count=lambda: 1,
+            max_instances=2,
+            add_instance=lambda engine, coord, owns_engine, owns_coordinator, device_id: "inst_2",
+            get_slot=lambda instance_id: slot,
+        )
+        async def fake_engine_factory(device_id=None):
+            return SimpleNamespace(device_id=device_id), SimpleNamespace()
+
+        async def fake_warmup(engine, coordinator=None):
+            return {"hot_a", "hot_b"}
+
+        runner.engine_factory = fake_engine_factory
+        runner._select_dedicated_device_id = lambda: 1
+        runner._prime_slot_cache_view = lambda slot_obj, include_gpu=False: None
+        runner._sync_stack_gpu_accounting = lambda: None
+        runner._refresh_slot_runtime_hints = lambda slot_obj: refresh_calls.append(slot_obj.instance_id)
+        runner._warmup_engine_hot_set = fake_warmup
+
+        with patch("scripts.run_all_experiments.time.perf_counter", side_effect=[10.0, 10.25]):
+            event = asyncio.run(runner._add_dedicated_instance_slot(coord_enabled=True))
+
+        self.assertIsNotNone(event)
+        self.assertEqual(event["runtime_kind"], "dedicated")
+        self.assertAlmostEqual(event["cold_start_latency_ms"], 250.0)
+        self.assertEqual(event["warmed_adapters"], 2)
+        self.assertEqual(refresh_calls, ["inst_2"])
+        self.assertEqual(len(mark_calls), 2)
 
     def test_sync_stack_gpu_accounting_tracks_only_stack_runtime_devices(self) -> None:
         tracked = []

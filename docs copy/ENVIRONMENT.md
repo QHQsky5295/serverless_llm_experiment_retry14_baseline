@@ -114,6 +114,11 @@ hash -r
 - `E2E_latency`
 - `SLO_attainment`
 
+实验结束 summary 与结果 JSON 另外补充：
+
+- `Cold_start_latency`
+- `Monetary_cost`
+
 其它诊断指标仍会继续写入日志和 JSON。
 
 ## 7. 环境验证命令
