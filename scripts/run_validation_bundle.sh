@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-PROJECT_ROOT="/home/qhq/serverless_llm_experiment"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT_ROOT="$ROOT_DIR"
 DEFAULT_CONFIG="$PROJECT_ROOT/configs/experiments.yaml"
 PYTHON_BIN="${FAASLORA_PYTHON:-/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python}"
 LOG_DIR="${FAASLORA_LOG_DIR:-/tmp/faaslora_validation}"

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PYTHON_BIN="${FAASLORA_PYTHON:-/home/qhq/anaconda3/envs/LLM/bin/python}"
+PYTHON_BIN="${FAASLORA_PYTHON:-/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python}"
 SCRIPT_PATH="$ROOT_DIR/scripts/run_all_experiments.py"
 
 if [[ ! -x "$PYTHON_BIN" ]]; then

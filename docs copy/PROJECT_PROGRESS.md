@@ -11,13 +11,26 @@
 
 若与旧实验记录冲突，以本文件和当前代码实现为准。
 
+## 项目迭代最高原则
+
+以下原则优先级高于单轮实验表现、局部现象和临时调参判断：
+
+1. 不能把系统改坏，不能偏离当前 clean-tree 的系统优化主线。
+2. 所有修改都必须先服务于已敲定的论文主指标，而不是为局部现象救场。
+3. 所有修改都必须对齐论文三项贡献，不能通过绕开贡献路径去“刷数字”。
+4. 策略层不允许引入面向单实例、单轮实验、单 adapter 的不合理硬编码。
+5. 尽量优先复用系统已经产生的可观测值做优化，避免拍脑袋 heuristics。
+6. 不引入无必要的额外计算开销；若必须增加开销，必须证明它直接服务主指标且风险可控。
+7. 公式、排序逻辑和成本模型都必须具备系统语义上的可解释性，能和真实运行路径对上。
+8. 坚持第一性原则，不接受“先救场再说”的补丁式修复作为正式方案。
+
 ## 当前仓库标识
 
 - 项目名称：`FaaSLoRA：面向多 LoRA 大模型推理的扩缩容感知 Serverless 系统`
 - 当前干净树：`/home/qhq/serverless_llm_experiment_retry14_baseline`
 - 历史脏树：`/home/qhq/serverless_llm_experiment`
 - 当前工作分支：`retry14_rebuild`
-- 当前已推送基线提交：`9147eb0`
+- 上一已推送基线提交：`9b53386`
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
 
 当前约定：
@@ -26,11 +39,12 @@
 - `retry21` 及其对应脏树状态视为废案，不再作为正式对比对象。
 - 本次 GitHub 同步的目的不是发布最终结论，而是把当前 clean-tree 形成一个稳定回退点。
 
-## 2026-03-27 晚更新快照
+## 2026-03-28 凌晨更新快照
 
 ### 当前最新已验证实验状态
 
 - 当前最新**已验证干净结果**：`retry30_baseline @ 500`
+- 当前最新**已正式分析但未通过 headline 目标的结果**：`retry31_baseline @ 500`
 - 当前最新**结构性结论**：
   - `GPU0 resident≈0` 的主异常已消失
   - `scale-up warmup` 已真实生效，`warmed_adapters = 14`
@@ -38,15 +52,22 @@
   - headline TTFT 仍未显著收口，主矛盾已从 GPU tier 主链转向 `router/runtime path`
 - 当前最新**代码状态**：
   - `Runtime_TTFT = vllm_ttft_ms` 已接入 live / summary / JSON
-  - router 已补“实例最近真实 runtime 代价”信号，优先修 backbone / 浅路由场景
-  - 上述最新 routing/Runtime_TTFT 修复**尚未经过新一轮实验验证**
+  - `retry31` 已证明“轻量 runtime-aware routing”只改善了 backbone-only 路径，没有收口 headline TTFT
+  - 当前 clean-tree 已进一步改成“按 `cache_tier + lora_io_ms + vllm_ttft_ms` 的观测总成本做 LoRA 路由”
+  - 上述当前正式修复已通过本地测试，但**仍等待 `retry32_baseline` 的正式实验验证**
+- 当前最新**实验推进状态**：
+  - `retry32_baseline` 已启动
+  - 当前约定是不持续观测，等实验结束后统一读取完整日志和结果做正式分析
 
-### 当前论文第一性原则
+### 当前论文与系统迭代最高原则
 
 后续所有代码修改与实验分析都必须同时满足：
 
 1. 最优化已敲定的论文主指标
 2. 对齐论文三项贡献，不允许把贡献抹掉或绕开
+3. 不把系统改坏，不偏离当前 clean-tree 主线
+4. 不引入不合理硬编码，不接受救场式启发式补丁作为正式方案
+5. 尽量使用已有观测值，不引入无必要的额外计算开销
 
 ### 当前必须继续盯的三条高优先级问题
 
@@ -96,13 +117,15 @@
 6. 当前 Qwen 7B V2 publicmix 工件清单已更新为 curated baseline
    `configs/generated/lora_manifest_1000.json` 当前刻意随仓库快照一起提交，用于后续回退和复现实验入口。
 
-7. Runtime 观测与 runtime-aware routing 的最小修复
+7. Runtime 观测与观测驱动 routing 修复
    当前 clean-tree 已补：
    - `Runtime_TTFT = vllm_ttft_ms`，并接入 live / summary / JSON
-   - router 侧基于实例最近真实 runtime 代价的轻量信号
+   - router 侧不再先做 affinity 硬筛，而是按 slot 已观测的 `cache_tier + lora_io_ms + runtime_ttft_ms` 预测请求服务成本
+   - 在无 exact bucket 观测时，只回落到已有 tier load cost 公式和 slot 已观测 runtime，不新增对象级硬编码
 
    说明：
-   - 这批改动是为了继续解决 `retry30` 中“headline TTFT 变差但结构性 bug 已消失”的问题
+   - `retry31` 已确认轻量 runtime-aware routing 没有收口 headline TTFT，且把主矛盾进一步暴露到 LoRA runtime path
+   - 当前这批新改动是面向该主矛盾的正式修复
    - 当前已经过本地测试，但还没有新的正式实验轮次验证
 
 ## 当前论文主指标
@@ -269,6 +292,27 @@
   - `router/runtime path`
   - 尤其是 `inst_1` 上的 backbone/runtime 请求明显慢于 `inst_2`
 
+#### `retry31_baseline`（已正式分析，未通过 headline 目标）
+
+- `500/500`，`fail=0`
+- `TTFT_overall avg = 10050 ms`，相对 `retry30` 变差
+- `TTFT_comparable avg = 12073 ms`
+- `TTFT_scaleup_affected avg = 8716 ms`
+- `TTFT_gpu_ready avg = 11421 ms`
+- `TPOT = 49.0 ms`
+- `E2E avg = 12984 ms`
+- `Throughput = 0.0977 req/s, 12.419 tok/s`
+- `SLO@5000ms = 18.4%`
+- `avg_cold_start_latency_ms = 58478 ms`
+- `avg_lora_io_ms = 485.7 ms`
+
+结论：
+
+- 当前不是新的结构性 bug
+- `retry31` 证明 backbone-only 路径确实变快了
+- 但 LoRA 请求在两台实例上的 runtime path 更慢，且更多 LoRA 落到更慢实例，导致 headline TTFT 继续变差
+- 因此 `retry31` 只说明“轻量 runtime-aware routing”不是最终解，不能作为正式收口方案
+
 ### 当前判断
 
 当前 clean-tree 还没有“性能完全收口”，但已经满足：
@@ -277,22 +321,31 @@
 - 当前主线问题比前几轮更清楚
 - 可以作为下一轮实验和以后回退的稳定代码快照
 
+当前更具体的判断是：
+
+- 当前问题不是结构性 bug，而是 router/runtime path 上仍未收口的性能瓶颈
+- 当前问题与论文主指标直接相关
+- 当前 clean-tree 的正式修复方向已经从“轻量 runtime-aware routing”升级为“观测驱动总成本路由”
+- 在 `retry32_baseline` 出结果前，不能进入下一条高优先级 TODO
+
 ## 当前保留的关键 TODO
 
 ### 本次同步后立即继续的 TODO
 
-1. 跑一轮新的 baseline（当前建议 `retry31_baseline`）
-2. 验证 `Runtime_TTFT` 和 runtime-aware routing 是否真的改善 headline TTFT
-3. 继续围绕：
+1. 等 `retry32_baseline` 结束后读取完整日志和 JSON
+2. 正式比较 `retry32 vs retry31 vs retry30`
+3. 判断当前观测驱动 routing 是否真的改善 headline TTFT，并确认 backbone-only 改善是否被保住
+4. 继续围绕：
    - `TTFT_overall`
    - `TTFT_comparable`
    - `TTFT_scaleup_affected`
+   - `TTFT_gpu_ready`
    - `TPOT`
    - `Throughput_req/s`
    - `Throughput_tok/s`
    - `E2E_latency`
    - `SLO_attainment`
-4. 若 `retry31` 没有新结构性 bug，再判断 7B 是否收尾并转 14B
+5. 只有当 router/runtime 主矛盾验证收口后，才进入 `scale_decision_interval=25`
 
 ### 已明确但暂缓的 TODO
 
@@ -309,10 +362,12 @@
 
 ### 当前工作原则
 
-后续所有修改统一服从两条宗旨：
+后续所有修改统一服从以下宗旨：
 
 1. 最优化已敲定的论文指标
 2. 对齐论文贡献，而不是绕开贡献路径去“刷数字”
+3. 不把系统改坏，不偏离当前主线
+4. 尽量用已有观测值，不引入不合理硬编码和无必要额外开销
 
 ## GitHub 同步边界
 

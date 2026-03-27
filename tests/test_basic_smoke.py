@@ -2038,6 +2038,56 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertIsNotNone(selected)
         self.assertEqual(selected.instance_id, "inst_fast")
 
+    def test_router_prefers_lower_observed_lora_total_cost(self) -> None:
+        fast = InstanceSlot("inst_fast", None, None)
+        slow = InstanceSlot("inst_slow", None, None)
+        fast.mark_adapter_tier("adapter_a", "nvme")
+        slow.mark_adapter_tier("adapter_a", "gpu")
+        slow.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="gpu",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=5200.0,
+        )
+        fast.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="nvme",
+            lora_io_ms=300.0,
+            runtime_ttft_ms=600.0,
+        )
+        pool = SimpleNamespace(get_slots=lambda: [slow, fast])
+        router = Router(pool, policy="adapter_affinity")
+
+        selected = router.select_instance("adapter_a", adapter_size_mb=30.0)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_fast")
+
+    def test_router_prefers_gpu_slot_when_observed_total_cost_is_lower(self) -> None:
+        nvme = InstanceSlot("inst_nvme", None, None)
+        local = InstanceSlot("inst_local", None, None)
+        local.mark_adapter_tier("adapter_a", "gpu")
+        nvme.mark_adapter_tier("adapter_a", "nvme")
+        local.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="gpu",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=900.0,
+        )
+        nvme.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="nvme",
+            lora_io_ms=500.0,
+            runtime_ttft_ms=700.0,
+        )
+        pool = SimpleNamespace(get_slots=lambda: [local, nvme])
+        router = Router(pool, policy="adapter_affinity")
+
+        selected = router.select_instance("adapter_a", adapter_size_mb=30.0)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_local")
+
     def test_comparable_request_requires_local_tier_and_non_scaleup(self) -> None:
         local_hit = RequestResult("r1", "a", False, "normal", True, "host", 40.0, 140.0, 210.0, 10.0, 10.0, 25.0, 250.0, 10, 5, 0.0, True, "inst_1", False)
         scaleup_local = RequestResult("r2", "b", False, "normal", True, "host", 30.0, 120.0, 180.0, 5.0, 5.0, 20.0, 220.0, 10, 5, 0.0, True, "inst_2", True)

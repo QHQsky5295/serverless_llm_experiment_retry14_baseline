@@ -13,6 +13,28 @@ from ..utils.logger import get_logger
 
 
 @dataclass
+class ObservedRequestCost:
+    """Per-slot observed request cost bucket used by routing."""
+    samples: int = 0
+    avg_lora_io_ms: float = 0.0
+    avg_runtime_ttft_ms: float = 0.0
+
+    def record(self, *, lora_io_ms: float, runtime_ttft_ms: float) -> None:
+        self.samples += 1
+        if self.samples == 1:
+            self.avg_lora_io_ms = float(lora_io_ms or 0.0)
+            self.avg_runtime_ttft_ms = float(runtime_ttft_ms or 0.0)
+            return
+        prev = float(self.samples - 1)
+        self.avg_lora_io_ms = (
+            (self.avg_lora_io_ms * prev) + float(lora_io_ms or 0.0)
+        ) / float(self.samples)
+        self.avg_runtime_ttft_ms = (
+            (self.avg_runtime_ttft_ms * prev) + float(runtime_ttft_ms or 0.0)
+        ) / float(self.samples)
+
+
+@dataclass
 class InstanceSlot:
     """One inference instance: engine + coordinator + state."""
     instance_id: str
@@ -35,6 +57,7 @@ class InstanceSlot:
     observed_runtime_samples: int = 0
     observed_backbone_ttft_ms: float = 0.0
     observed_backbone_samples: int = 0
+    observed_request_costs: Dict[str, ObservedRequestCost] = field(default_factory=dict)
 
     def runtime_group_key(self) -> tuple:
         """Group logical slots that share one physical runtime."""
@@ -66,6 +89,18 @@ class InstanceSlot:
         elif tier == "nvme":
             self.nvme_cached_adapters.add(adapter_id)
 
+    def predicted_cache_tier(self, adapter_id: Optional[str]) -> str:
+        """Return the currently observable source tier for this adapter on the slot."""
+        if not adapter_id:
+            return "backbone"
+        if adapter_id in self.gpu_resident_adapters:
+            return "gpu"
+        if adapter_id in self.host_cached_adapters:
+            return "host"
+        if adapter_id in self.nvme_cached_adapters:
+            return "nvme"
+        return "remote"
+
     def update_runtime_hints(self, metrics: Optional[Dict[str, Any]]) -> None:
         """Refresh lightweight coordinator-derived routing hints."""
         metrics = metrics or {}
@@ -91,6 +126,78 @@ class InstanceSlot:
             else:
                 prev_total = self.observed_backbone_ttft_ms * float(self.observed_backbone_samples - 1)
                 self.observed_backbone_ttft_ms = (prev_total + ttft_ms) / float(self.observed_backbone_samples)
+
+    def _request_bucket(self, adapter_id: Optional[str], cache_tier: Optional[str]) -> str:
+        if not adapter_id:
+            return "backbone"
+        return f"lora_{str(cache_tier or 'remote').lower()}"
+
+    def _bucket_stats(self, bucket: str) -> ObservedRequestCost:
+        stats = self.observed_request_costs.get(bucket)
+        if stats is None:
+            stats = ObservedRequestCost()
+            self.observed_request_costs[bucket] = stats
+        return stats
+
+    def record_request_cost(
+        self,
+        *,
+        adapter_id: Optional[str],
+        cache_tier: Optional[str],
+        lora_io_ms: float,
+        runtime_ttft_ms: float,
+    ) -> None:
+        """Record the observed service cost for the request class routed to this slot."""
+        runtime_ttft_ms = float(runtime_ttft_ms or 0.0)
+        if runtime_ttft_ms <= 0.0:
+            return
+        self.record_runtime_ttft(runtime_ttft_ms, is_backbone=not bool(adapter_id))
+        bucket = self._request_bucket(adapter_id, cache_tier)
+        self._bucket_stats(bucket).record(
+            lora_io_ms=float(lora_io_ms or 0.0),
+            runtime_ttft_ms=runtime_ttft_ms,
+        )
+        if adapter_id:
+            self._bucket_stats("lora_any").record(
+                lora_io_ms=float(lora_io_ms or 0.0),
+                runtime_ttft_ms=runtime_ttft_ms,
+            )
+
+    def predicted_request_cost_ms(
+        self,
+        *,
+        adapter_id: Optional[str],
+        fallback_lora_io_ms: float = 0.0,
+    ) -> float:
+        """
+        Predict per-slot request service cost from observed values.
+
+        The router uses exact per-bucket observations when available, and falls
+        back to the slot's observed LoRA runtime plus the currently observable
+        source-tier load cost.
+        """
+        if not adapter_id:
+            bucket = self.observed_request_costs.get("backbone")
+            if bucket is not None and bucket.samples > 0:
+                return float(bucket.avg_runtime_ttft_ms)
+            if self.observed_backbone_samples > 0:
+                return float(self.observed_backbone_ttft_ms or 0.0)
+            if self.observed_runtime_samples > 0:
+                return float(self.observed_runtime_ttft_ms or 0.0)
+            return 0.0
+
+        predicted_tier = self.predicted_cache_tier(adapter_id)
+        exact_bucket = self.observed_request_costs.get(f"lora_{predicted_tier}")
+        if exact_bucket is not None and exact_bucket.samples > 0:
+            return float(exact_bucket.avg_lora_io_ms + exact_bucket.avg_runtime_ttft_ms)
+
+        lora_any = self.observed_request_costs.get("lora_any")
+        runtime_component = (
+            float(lora_any.avg_runtime_ttft_ms)
+            if lora_any is not None and lora_any.samples > 0
+            else float(self.observed_runtime_ttft_ms or 0.0)
+        )
+        return float(fallback_lora_io_ms or 0.0) + runtime_component
 
 
 class InstancePool:
@@ -174,46 +281,66 @@ class Router:
         self.logger = get_logger(__name__)
 
     @staticmethod
-    def _runtime_cost(slot: InstanceSlot, adapter_id: Optional[str]) -> float:
-        """Prefer instances with lower observed runtime cost when queue/load look similar."""
-        if adapter_id:
-            if getattr(slot, "observed_runtime_samples", 0) > 0:
-                return float(getattr(slot, "observed_runtime_ttft_ms", 0.0) or 0.0)
-            return 0.0
-        if getattr(slot, "observed_backbone_samples", 0) > 0:
-            return float(getattr(slot, "observed_backbone_ttft_ms", 0.0) or 0.0)
-        if getattr(slot, "observed_runtime_samples", 0) > 0:
-            return float(getattr(slot, "observed_runtime_ttft_ms", 0.0) or 0.0)
-        return 0.0
-
-    def _routing_key(self, slot: InstanceSlot, adapter_id: Optional[str]) -> tuple:
+    def _load_key(slot: InstanceSlot) -> tuple:
+        """Keep queue depth and in-flight requests as the first routing guardrails."""
         return (
             slot.load_queue_depth,
             slot.active_requests,
-            self._runtime_cost(slot, adapter_id),
+        )
+
+    @staticmethod
+    def _fallback_lora_io_cost_ms(slot: InstanceSlot, adapter_size_mb: Optional[float], adapter_id: Optional[str]) -> float:
+        if not adapter_id:
+            return 0.0
+        size_mb = float(adapter_size_mb or 0.0)
+        if size_mb <= 0.0:
+            return 0.0
+        predicted_tier = slot.predicted_cache_tier(adapter_id)
+        if predicted_tier == "gpu":
+            return 0.0
+        coordinator = getattr(slot, "coordinator", None)
+        if coordinator is None:
+            return 0.0
+        if predicted_tier == "host":
+            fn = getattr(coordinator, "compute_faaslora_host_load_ms", None)
+            return float(fn(size_mb)) if callable(fn) else 0.0
+        fn = getattr(coordinator, "compute_faaslora_nvme_load_ms", None)
+        return float(fn(size_mb)) if callable(fn) else 0.0
+
+    def _service_cost(self, slot: InstanceSlot, adapter_id: Optional[str], adapter_size_mb: Optional[float]) -> float:
+        fallback_lora_io_ms = self._fallback_lora_io_cost_ms(slot, adapter_size_mb, adapter_id)
+        predictor = getattr(slot, "predicted_request_cost_ms", None)
+        if callable(predictor):
+            return float(
+                predictor(
+                    adapter_id=adapter_id,
+                    fallback_lora_io_ms=fallback_lora_io_ms,
+                )
+            )
+        return 0.0
+
+    def _routing_key(self, slot: InstanceSlot, adapter_id: Optional[str], adapter_size_mb: Optional[float]) -> tuple:
+        return (
+            slot.load_queue_depth,
+            slot.active_requests,
+            self._service_cost(slot, adapter_id, adapter_size_mb),
             slot.gpu_utilization_pct,
             slot.last_selected_at,
             slot.created_at,
         )
 
-    def select_instance(self, adapter_id: Optional[str] = None) -> Optional[InstanceSlot]:
+    def select_instance(
+        self,
+        adapter_id: Optional[str] = None,
+        adapter_size_mb: Optional[float] = None,
+    ) -> Optional[InstanceSlot]:
         """Select one instance for the request. adapter_id can be used for affinity."""
         slots = self.pool.get_slots()
         if not slots:
             return None
-        if adapter_id:
-            best_score = max(slot.affinity_score(adapter_id) for slot in slots)
-            affinity_slots = [slot for slot in slots if slot.affinity_score(adapter_id) == best_score]
-            if affinity_slots:
-                if self.policy in ("least_connections", "adapter_affinity"):
-                    return min(affinity_slots, key=lambda s: self._routing_key(s, adapter_id))
-                if self.policy == "round_robin":
-                    self._rr_index = (self._rr_index + 1) % len(affinity_slots)
-                    return affinity_slots[self._rr_index]
-                return min(affinity_slots, key=lambda s: self._routing_key(s, adapter_id))
         if self.policy == "round_robin":
             self._rr_index = (self._rr_index + 1) % len(slots)
             return slots[self._rr_index]
         if self.policy in ("least_connections", "adapter_affinity"):
-            return min(slots, key=lambda s: self._routing_key(s, adapter_id))
+            return min(slots, key=lambda s: self._routing_key(s, adapter_id, adapter_size_mb))
         return slots[0]

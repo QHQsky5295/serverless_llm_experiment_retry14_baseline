@@ -4287,8 +4287,13 @@ class ScenarioRunner:
         self, trace: RequestTrace, max_tokens: int, temperature: float
     ) -> RequestResult:
         # B2: 由 Router 选择实例，与线上路径一致
+        adapter_id = trace.adapter_id
+        size_mb = float(self.adapter_info.get(adapter_id, {}).get("size_mb", 30.0)) if adapter_id else 30.0
         self._refresh_all_slot_runtime_hints()
-        slot = self.router.select_instance(trace.adapter_id) if self.router else None
+        slot = (
+            self.router.select_instance(adapter_id, adapter_size_mb=size_mb)
+            if self.router else None
+        )
         _engine = slot.engine if slot else self.engine
         _coord = slot.coordinator if slot else self.coordinator
         if slot is not None:
@@ -4296,7 +4301,6 @@ class ScenarioRunner:
             slot.last_selected_at = time.time()
             self._refresh_slot_runtime_hints(slot)
 
-        adapter_id = trace.adapter_id
         burst_phase = trace.is_burst and "phase1" or "normal"
         if hasattr(trace, "_burst_phase"):
             burst_phase = trace._burst_phase
@@ -4306,7 +4310,6 @@ class ScenarioRunner:
         defer_ms      = 0.0
         cache_tier    = _BACKBONE_CACHE_TIER if not adapter_id else "remote"
         local_path    = None
-        size_mb       = float(self.adapter_info.get(adapter_id, {}).get("size_mb", 30.0)) if adapter_id else 30.0
         instance_id   = getattr(slot, "instance_id", None) if slot is not None else getattr(self, "_primary_instance_id", None)
 
         # ---- LoRA resolution ----
@@ -4373,9 +4376,14 @@ class ScenarioRunner:
 
             if adapter_id:
                 self._access_count[adapter_id] += 1
-            if slot is not None and hasattr(slot, "record_runtime_ttft"):
+            if slot is not None and hasattr(slot, "record_request_cost"):
                 try:
-                    slot.record_runtime_ttft(vllm_ttft, is_backbone=not bool(adapter_id))
+                    slot.record_request_cost(
+                        adapter_id=adapter_id,
+                        cache_tier=cache_tier,
+                        lora_io_ms=lora_io_ms,
+                        runtime_ttft_ms=vllm_ttft,
+                    )
                 except Exception:
                     pass
 

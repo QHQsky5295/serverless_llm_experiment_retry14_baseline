@@ -64,6 +64,8 @@
 - 结果分析要同时看“本轮表现 + 与上一轮比较 + 原因归因”
 - 每轮结束后固定列出：
   - `当前步骤位置`
+  - `已验证`
+  - `推测`
   - `之后步骤`
   - `上一步 TODO`
   - `本步 TODO`
@@ -72,16 +74,33 @@
   1. 最优化已敲定的论文指标
   2. 对齐论文贡献
 
+## 0.0 2026-03-28 项目迭代最高原则
+
+以下原则优先级高于单轮实验表现、局部现象和临时调参判断：
+
+1. 不能把系统改坏，不能偏离当前 clean-tree 的系统优化主线。
+2. 所有修改都必须先服务于已敲定的论文主指标，而不是为局部现象救场。
+3. 所有修改都必须对齐论文三项贡献，不能通过绕开贡献路径去“刷数字”。
+4. 策略层不允许引入面向单实例、单轮实验、单 adapter 的不合理硬编码。
+5. 尽量优先复用系统已经产生的可观测值做优化，避免拍脑袋 heuristics。
+6. 不引入无必要的额外计算开销；若必须增加开销，必须证明它直接服务主指标且风险可控。
+7. 公式、排序逻辑和成本模型都必须具备系统语义上的可解释性，能和真实运行路径对上。
+8. 坚持第一性原则，不接受“先救场再说”的补丁式修复作为正式方案。
+
 ## 0.1 2026-03-27 晚更新
 
 ### 当前真实状态
 
 - 当前最新**已验证干净结果**是 `retry30_baseline @ 500`
-- 当前最新**已完成但尚未跑实验验证的新代码**包括：
+- 当前最新**已正式分析但未通过 headline 目标的结果**是 `retry31_baseline @ 500`
+- 当前最新**已完成但尚待正式实验验证的新代码**包括：
   - `Runtime_TTFT = vllm_ttft_ms` 已接入 live / summary / JSON
-  - router 已补“实例最近真实 runtime 代价”信号，优先修 backbone / 浅路由场景
-- 当前已推送 GitHub 基线提交：`9147eb0`
+  - router 已从“轻量 runtime-aware routing”升级为“按 `cache_tier + lora_io_ms + vllm_ttft_ms` 的观测总成本做 LoRA 路由”
+- 上一已推送 GitHub 基线提交：`9b53386`
 - 当前 clean-tree 已形成新的可回退快照
+- 当前正式实验推进状态：
+  - `retry32_baseline` 已启动
+  - 当前约定是不持续观测，等实验结束后再统一读取完整日志和结果归因
 
 ### `retry30_baseline` 的最新结论
 
@@ -96,17 +115,25 @@
 - 深挖后已确认：
   - `retry30` 里 LoRA 请求平均 TTFT 没有变差，甚至略好
   - 真正把 headline TTFT 拉差的是 `backbone-only` 请求变慢
-  - 更具体地说，是 `inst_1` 的 runtime / prefill / engine 路径明显慢于 `inst_2`
+- 更具体地说，是 `inst_1` 的 runtime / prefill / engine 路径明显慢于 `inst_2`
+
+### `retry31_baseline` 的最新结论
+
+- 当前不是新的结构性 bug
+- `retry31` 证明 backbone-only 路径确实变快了
+- 但 LoRA 请求在两台实例上的 runtime path 更慢，且更多 LoRA 落到更慢实例
+- 因此 headline TTFT、`TTFT_comparable`、`TTFT_gpu_ready`、`TPOT`、`E2E`、throughput 都没有收口
+- 这说明“轻量 runtime-aware routing”不是正式解，必须继续回到第一性原则，用可观测总成本而不是局部 heuristics 修正路由
 
 ### 当前最重要的诊断结论
 
 - 当前主矛盾已经**不是** GPU tier 主链本身
 - 当前主矛盾是：
-  - router / dispatch 看不到实例真实服务代价
-  - 导致一部分本应走更健康实例的请求，仍落到更慢的 `inst_1`
+  - `retry31` 已证明 router / dispatch 的轻量 runtime 信号不够，尤其没能正确处理 LoRA 请求的真实服务代价
+  - 当前真正需要的，是按实例上已观测的 `cache_tier + lora_io_ms + vllm_ttft_ms` 去比较总服务成本
 - 所以当前主线策略已经收口为：
   - 不再继续盲改 GPU tier / warmup 主链
-  - 先把 runtime-aware routing 和 `Runtime_TTFT` 观测补实
+  - 先把 `Runtime_TTFT` 和观测驱动 routing 补实
 
 ### 现在已经明确的三条高优先级 TODO
 
@@ -126,10 +153,17 @@
   - 归因并判断下一步要不要改代码
 - 汇报格式固定保持：
   - `当前步骤位置`
+  - `已验证`
+  - `推测`
   - `之后步骤`
   - `上一步 TODO`
   - `本步 TODO`
   - `剩余 TODO`
+- 每轮分析时，还必须明确判断：
+  - 当前问题是不是结构性 bug
+  - 当前问题是不是性能瓶颈
+  - 当前问题是否与论文主指标直接相关
+  - 当前修改是在强化论文三项贡献，还是可能把贡献抹掉
 - 不允许只盯局部现象调参，所有修改都要先经过这两条第一性原则筛选：
   1. 是否直接或间接优化已敲定的论文主指标
   2. 是否强化而不是抹掉论文三项贡献
@@ -138,7 +172,7 @@
 
 如果开新会话，建议直接贴下面这段：
 
-> 继续当前 clean-tree 主线。权威代码树是 `/home/qhq/serverless_llm_experiment_retry14_baseline`，分支 `retry14_rebuild`，当前 GitHub 回退点是 `9147eb0`。当前论文第一性原则固定为：1）最优化 `TTFT_overall / TTFT_comparable / TTFT_scaleup_affected / TTFT_gpu_ready / TPOT / Throughput_req/s / Throughput_tok/s / E2E_latency / SLO_attainment`；2）所有修改必须对齐论文三项贡献。当前最新已验证结果是 `retry30_baseline @ 500`：GPU0 resident 异常已消失、scale-up warmup 已真实生效、Cold_start_latency 已可信，但 headline TTFT 仍偏高。已经确认主矛盾从 GPU tier 主链转移到 router/runtime path：`inst_1` 的 backbone/runtime 请求明显比 `inst_2` 慢。当前代码里已经补了 `Runtime_TTFT=vllm_ttft_ms` 输出和 runtime-aware routing 的最小修复，但还没跑新实验验证。请严格沿用我们固定的交互格式：每轮实验后都要分析本轮、对比上一轮、归因，并固定输出 `当前步骤位置 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO`。先从当前代码状态继续，不要回到旧的 14B/Mistral 历史规划上。
+> 继续当前 clean-tree 主线。权威代码树是 `/home/qhq/serverless_llm_experiment_retry14_baseline`，分支 `retry14_rebuild`，当前 GitHub 回退点是 `9b53386`。项目迭代最高原则固定为：1）不能把系统改坏，不能偏离当前主线；2）最优化 `TTFT_overall / TTFT_comparable / TTFT_scaleup_affected / TTFT_gpu_ready / TPOT / Throughput_req/s / Throughput_tok/s / E2E_latency / SLO_attainment`；3）所有修改必须对齐论文三项贡献；4）尽量使用已有可观测值，不引入不合理硬编码和无必要额外开销；5）拒绝救场式启发式补丁。当前最新已验证结果是 `retry30_baseline @ 500`；当前最新已正式分析结果是 `retry31_baseline @ 500`，其结论是 backbone-only 变快了，但 LoRA runtime path 更差，headline TTFT 继续变差，因此轻量 runtime-aware routing 不是最终解。当前代码里已经补了 `Runtime_TTFT=vllm_ttft_ms` 输出，并把 LoRA 路由改成按 `cache_tier + lora_io_ms + vllm_ttft_ms` 的观测总成本选路；`retry32_baseline` 已启动，等跑完后再统一读取完整日志分析。请严格沿用固定交互格式：`当前步骤位置 / 已验证 / 推测 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO`，并且每轮都明确判断结构性 bug、性能瓶颈、论文主指标相关性、以及是否强化论文三项贡献。先从当前代码状态继续，不要回到旧的 14B/Mistral 历史规划上。
 
 ## 1. 文档用途
 
