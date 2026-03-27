@@ -80,8 +80,8 @@
 - 当前最新**已完成但尚未跑实验验证的新代码**包括：
   - `Runtime_TTFT = vllm_ttft_ms` 已接入 live / summary / JSON
   - router 已补“实例最近真实 runtime 代价”信号，优先修 backbone / 浅路由场景
-- 上一轮已推送 GitHub 基线提交：`6697a89`
-- 当前工作树应在本次同步后形成新的可回退快照
+- 当前已推送 GitHub 基线提交：`9147eb0`
+- 当前 clean-tree 已形成新的可回退快照
 
 ### `retry30_baseline` 的最新结论
 
@@ -138,7 +138,7 @@
 
 如果开新会话，建议直接贴下面这段：
 
-> 继续当前 clean-tree 主线。权威代码树是 `/home/qhq/serverless_llm_experiment_retry14_baseline`，分支 `retry14_rebuild`。当前论文第一性原则固定为：1）最优化 `TTFT_overall / TTFT_comparable / TTFT_scaleup_affected / TTFT_gpu_ready / TPOT / Throughput_req/s / Throughput_tok/s / E2E_latency / SLO_attainment`；2）所有修改必须对齐论文三项贡献。当前最新已验证结果是 `retry30_baseline @ 500`：GPU0 resident 异常已消失、scale-up warmup 已真实生效、Cold_start_latency 已可信，但 headline TTFT 仍偏高。已经确认主矛盾从 GPU tier 主链转移到 router/runtime path：`inst_1` 的 backbone/runtime 请求明显比 `inst_2` 慢。当前代码里已经补了 `Runtime_TTFT=vllm_ttft_ms` 输出和 runtime-aware routing 的最小修复，但还没跑新实验验证。请严格沿用我们固定的交互格式：每轮实验后都要分析本轮、对比上一轮、归因，并固定输出 `当前步骤位置 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO`。先从当前代码状态继续，不要回到旧的 14B/Mistral 历史规划上。
+> 继续当前 clean-tree 主线。权威代码树是 `/home/qhq/serverless_llm_experiment_retry14_baseline`，分支 `retry14_rebuild`，当前 GitHub 回退点是 `9147eb0`。当前论文第一性原则固定为：1）最优化 `TTFT_overall / TTFT_comparable / TTFT_scaleup_affected / TTFT_gpu_ready / TPOT / Throughput_req/s / Throughput_tok/s / E2E_latency / SLO_attainment`；2）所有修改必须对齐论文三项贡献。当前最新已验证结果是 `retry30_baseline @ 500`：GPU0 resident 异常已消失、scale-up warmup 已真实生效、Cold_start_latency 已可信，但 headline TTFT 仍偏高。已经确认主矛盾从 GPU tier 主链转移到 router/runtime path：`inst_1` 的 backbone/runtime 请求明显比 `inst_2` 慢。当前代码里已经补了 `Runtime_TTFT=vllm_ttft_ms` 输出和 runtime-aware routing 的最小修复，但还没跑新实验验证。请严格沿用我们固定的交互格式：每轮实验后都要分析本轮、对比上一轮、归因，并固定输出 `当前步骤位置 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO`。先从当前代码状态继续，不要回到旧的 14B/Mistral 历史规划上。
 
 ## 1. 文档用途
 
