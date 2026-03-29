@@ -6,12 +6,25 @@
 
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
 - 当前 clean-tree 分支：`retry14_rebuild`
-- 上一已推送基线提交：`9b53386`
+- 上一已推送基线提交：`70c90fe`
 
 当前建议：
 
 - 先把当前 clean-tree 推到当前分支，作为可回退快照
 - 是否合并到 `main` 另行决策
+
+## 2026-03-29 晚更新：本次同步已完成
+
+- 已推送提交：`70c90fe`
+- 推送分支：`retry14_rebuild`
+- 本次同步纳入：
+  - TODO `#1` 的 live scale-up 主线修复
+  - scale-up 事件口径修复与实时动态 RPS 阈值刷新
+  - `retry40_baseline` 的正式分析结论与 handoff 文档更新
+- 本次同步后，当前最新已验证结果固定为 `retry40_baseline @ 500`
+- 本次同步后，当前主线判断固定为：
+  - TODO `#1` 已在当前 clean-tree 主线上收口
+  - 下一高优先级 TODO 切换为 `#2`：清理残留 `device 0` 拓扑硬编码
 
 ## 本次同步必须写入的最高原则
 
