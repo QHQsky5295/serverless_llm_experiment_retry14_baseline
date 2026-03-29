@@ -9,12 +9,14 @@
 > - 权威 clean-tree：`/home/qhq/serverless_llm_experiment_retry14_baseline`
 > - 历史脏树：`/home/qhq/serverless_llm_experiment`
 > - 当前分支：`retry14_rebuild`
-> - 当前已推送 GitHub 快照：`70c90fe`
+> - 当前最新已推送**代码基线**：`1544de2`
 > - 当前本地工作树有未提交主线修改：
->   - `faaslora/experiment/experiment_stack.py`
->   - `faaslora/experiment/instance_pool.py`
->   - `scripts/run_all_experiments.py`
+>   - `faaslora/memory/memory_coordinator.py`
+>   - `faaslora/memory/residency_manager.py`
+>   - `faaslora/serving/vllm_wrapper.py`
 >   - `tests/test_basic_smoke.py`
+> - 当前新增调研文档入口：
+>   - `docs/RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md`
 >
 > 当前必须继续遵守的最高原则：
 >
@@ -89,7 +91,8 @@
 >   - live scale-up 路径会在决策前用实时 `arrival_rps` 刷新动态 RPS 阈值，不再残留 batch-end 滞后
 >   - 低负载计时已统一为 monotonic clock，避免 `time.time/perf_counter` 混用
 > - 当前本地测试状态：
->   - `tests.test_basic_smoke`: `98/98 OK`
+>   - 当前 GitHub 上已推送代码基线：`1544de2`
+>   - 当前本地 TODO `#2` 未推送代码：`tests.test_basic_smoke = 101/101 OK`
 >   - `RuntimeAccountingAndMetricsSmokeTests`: `24/24 OK`
 >
 > 当前最新实验状态：
@@ -118,6 +121,18 @@
 >   - 当前 next active TODO 应切到高优先级 `#2`：清理残留 `device 0` 拓扑硬编码
 > - `retry40` 结果文件：
 >   - `/home/qhq/serverless_llm_experiment_retry14_baseline/results/experiment_results_full_vllm_auto_a500_r500_c2_faaslora_full_qwen_7b_v2_r500_p26_c3_retry40_baseline.json`
+> - 2026-03-29 本轮新增调研结论：
+>   - 已完成同类论文与系统的专项调研，见 `docs/RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md`
+>   - 当前不应再回头叠加 TODO `#1` 控制面
+>   - 当前正式后续 TODO 顺序确定为：
+>     1. TODO `#2`：清理残留 `device 0` 拓扑硬编码
+>     2. TODO `#3`：`scale_up_preload_mb=1024` 改成 headroom-aware 动态预算
+>     3. TODO `#4`：rank / size-aware observed utility
+>     4. TODO `#5`：decode-aware contention control
+>   - 当前明确不纳入主线 TODO 的方向：
+>     - fused kernel / 单进程全局 batching
+>     - cluster-level ILP co-migration
+>     - LoRA compression 主线
 >
 > 新窗口第一步必须这样做：
 >
@@ -130,6 +145,8 @@
 > 3. 若要继续优化，只允许从高优先级 TODO `#2` 开始：
 >    - 清理残留 `device 0` 拓扑硬编码
 > 4. 在 TODO `#2` 没有正式收口前，不要提前跳去动态 preload budget
+> 5. 若需要回看同类工作、论文指标与后续 TODO 排序，优先读：
+>    - `docs/RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md`
 > 5. 新实验仍保持“跑完后统一读取完整日志和 JSON 再正式归因”
 >
 > 当前完整剩余 TODO 清单：
@@ -147,10 +164,14 @@
 >    - 清理残留 `device 0` 拓扑硬编码
 > 4. 完成 TODO `#2` 后，才允许进入高优先级 TODO `#3`：
 >    - 把 `scale_up_preload_mb=1024` 改成 headroom-aware 动态预算
+> 5. 完成 TODO `#3` 后，才允许进入高优先级 TODO `#4`：
+>    - 做 rank / size-aware observed utility
+> 6. 完成 TODO `#4` 后，才允许进入高优先级 TODO `#5`：
+>    - 做 decode-aware contention control
 >
 > 2026-03-29 新会话推荐提示词：
 >
-> > 继续当前 FaaSLoRA clean-tree 主线。权威代码树是 `/home/qhq/serverless_llm_experiment_retry14_baseline`，历史脏树是 `/home/qhq/serverless_llm_experiment`，当前分支 `retry14_rebuild`，当前已推送 GitHub 快照 `70c90fe`。请先阅读：1）`/home/qhq/serverless_llm_experiment_retry14_baseline/docs/SESSION_HANDOFF_2026-03-13.md`；2）`/home/qhq/serverless_llm_experiment_retry14_baseline/docs/PROJECT_PROGRESS.md`；3）`/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ENVIRONMENT.md`；4）`/home/qhq/serverless_llm_experiment_retry14_baseline/docs/GITHUB_SYNC.md`。当前项目最高原则固定为：不能把系统改坏，不能偏离 clean-tree 主线；所有修改优先服务 `TTFT_overall / TTFT_comparable / TTFT_scaleup_affected / TTFT_gpu_ready / TPOT / Throughput_req/s / Throughput_tok/s / E2E_latency / SLO_attainment`；辅助指标保留 `Cold_start_latency / Monetary_cost`；所有修改必须对齐论文三项贡献；尽量使用已有可观测值，不引入不合理硬编码与无必要额外开销；拒绝救场式补丁。当前 `retry40_baseline` 已正式验证：TODO `#1` 的 live scale-up 主线已经收口，最新已验证结果为 `TTFT_overall=7197ms / TTFT_comparable=8123ms / TTFT_scaleup_affected=8723ms / TTFT_gpu_ready=8069ms / Runtime_TTFT=7043ms / E2E=10394ms / Throughput_req/s=0.13455 / Throughput_tok/s=17.205 / SLO=17.8% / Cold_start=49529ms`。当前代码已补：1）scale-up 事件可比口径修复；2）live 动态 RPS 阈值刷新；3）scale-down monotonic clock 统一；4）`tests.test_basic_smoke 98/98` 与 `RuntimeAccountingAndMetricsSmokeTests 24/24` 通过。下一步只允许继续高优先级 TODO `#2`：清理残留 `device 0` 拓扑硬编码；不要回旧脏树，也不要跳到动态 preload budget。正式分析和后续讨论继续使用固定格式：`当前步骤位置 / 已验证 / 推测 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO`，并且每轮都要明确判断结构性 bug、性能瓶颈、与论文主指标关系、以及是否强化论文三项贡献。
+> > 继续当前 FaaSLoRA clean-tree 主线。权威代码树是 `/home/qhq/serverless_llm_experiment_retry14_baseline`，历史脏树是 `/home/qhq/serverless_llm_experiment`，当前分支 `retry14_rebuild`，当前最新已推送代码基线 `1544de2`。请先阅读：1）`/home/qhq/serverless_llm_experiment_retry14_baseline/docs/SESSION_HANDOFF_2026-03-13.md`；2）`/home/qhq/serverless_llm_experiment_retry14_baseline/docs/PROJECT_PROGRESS.md`；3）`/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ENVIRONMENT.md`；4）`/home/qhq/serverless_llm_experiment_retry14_baseline/docs/GITHUB_SYNC.md`；5）`/home/qhq/serverless_llm_experiment_retry14_baseline/docs/RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md`。当前项目最高原则固定为：不能把系统改坏，不能偏离 clean-tree 主线；所有修改优先服务 `TTFT_overall / TTFT_comparable / TTFT_scaleup_affected / TTFT_gpu_ready / TPOT / Throughput_req/s / Throughput_tok/s / E2E_latency / SLO_attainment`；辅助指标保留 `Cold_start_latency / Monetary_cost`；所有修改必须对齐论文三项贡献；尽量使用已有可观测值，不引入不合理硬编码与无必要额外开销；拒绝救场式补丁。当前 `retry40_baseline` 已正式验证：TODO `#1` 的 live scale-up 主线已经收口，最新已验证结果为 `TTFT_overall=7197ms / TTFT_comparable=8123ms / TTFT_scaleup_affected=8723ms / TTFT_gpu_ready=8069ms / Runtime_TTFT=7043ms / E2E=10394ms / Throughput_req/s=0.13455 / Throughput_tok/s=17.205 / SLO=17.8% / Cold_start=49529ms`。当前本地未推送代码正在推进 TODO `#2`，已通过 `tests.test_basic_smoke 101/101`。后续正式 TODO 顺序固定为：`#2 device 0 拓扑硬编码` → `#3 headroom-aware 动态 preload budget` → `#4 rank/size-aware observed utility` → `#5 decode-aware contention control`。不要回旧脏树，也不要再回头叠加 TODO `#1` 控制面。正式分析和后续讨论继续使用固定格式：`当前步骤位置 / 已验证 / 推测 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO`，并且每轮都要明确判断结构性 bug、性能瓶颈、与论文主指标关系、以及是否强化论文三项贡献。
 
 > 2026-03-27 晚更新（当前权威续接入口）：
 >

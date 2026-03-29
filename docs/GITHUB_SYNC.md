@@ -6,16 +6,31 @@
 
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
 - 当前 clean-tree 分支：`retry14_rebuild`
-- 上一已推送基线提交：`70c90fe`
+- 当前最新已推送代码基线提交：`1544de2`
 
 当前建议：
 
 - 先把当前 clean-tree 推到当前分支，作为可回退快照
 - 是否合并到 `main` 另行决策
 
-## 2026-03-29 晚更新：本次同步已完成
+## 2026-03-29 深夜更新：本次只同步文档与规划，不纳入当前本地 TODO `#2` 代码修改
 
-- 已推送提交：`70c90fe`
+- 本次同步目的：
+  - 固化 related work / 同类论文调研
+  - 固化基于调研形成的正式 TODO 排序
+  - 更新 handoff / progress / sync 文档，保证以后回退或换会话时可无缝续接
+- 本次同步**不纳入**当前本地未提交代码：
+  - `faaslora/memory/memory_coordinator.py`
+  - `faaslora/memory/residency_manager.py`
+  - `faaslora/serving/vllm_wrapper.py`
+  - `tests/test_basic_smoke.py`
+- 原因：
+  - 上述代码属于正在本地验证的 TODO `#2` 主线修改
+  - 本次用户明确要求“只改文档和规划，不改代码，只推文档”
+
+## 2026-03-29 晚更新：上一次代码主线同步已完成
+
+- 已推送代码基线：`1544de2`
 - 推送分支：`retry14_rebuild`
 - 本次同步纳入：
   - TODO `#1` 的 live scale-up 主线修复
@@ -92,6 +107,9 @@
 - `tests/test_basic_smoke.py`
 - `docs/*.md`
 - `docs copy/*.md`
+- 新增调研文档：
+  - `docs/RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md`
+  - `docs copy/RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md`
 
 ## 本次同步不应提交的内容
 
@@ -103,6 +121,7 @@
 - `models/` 下的权重文件
 - `/tmp` 下的 launch log
 - 本机缓存、虚拟环境和用户级 shell 定制
+- 当前本地未完成验证的 TODO `#2` 代码修改（若本次是 docs-only sync）
 
 ## 文档同步规则
 
@@ -122,20 +141,18 @@
 
 1. 先确认当前实验与代码状态已经分析完，知道本次快照代表什么。
 2. 更新：
-   - `README.md`
-   - `EXPERIMENT_GUIDE.md`
-   - `PROJECT_STRUCTURE.md`
    - `docs/*.md`
    - `docs copy/*.md`
-3. 只提交 source/config/docs/tests 和当前刻意 curated 的 manifest。
-4. 在当前工作分支形成一次带说明的提交。
-5. 推送到 GitHub，作为后续可回退基线。
+   - 新的调研文档 `RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md`
+3. 若当前本地代码仍在验证中，则本次只提交 `docs/` 与 `docs copy/`。
+4. 在当前工作分支形成一次 docs-only 提交。
+5. 推送到 GitHub，作为后续可回退的文档与规划入口。
 
 建议提交信息明确写出：
 
-- `retry31` 已正式分析，结论是 router/runtime path 仍是主矛盾
-- 当前 clean-tree 已切到观测驱动 routing
-- `retry32_baseline` 正在运行，待实验结束后统一读日志分析
+- 本次是 `docs-only sync`
+- 已新增 related work / optimization survey
+- 正式 TODO 顺序已固定为 `#2 -> #3 -> #4 -> #5`
 
 ## 本次快照的目的
 

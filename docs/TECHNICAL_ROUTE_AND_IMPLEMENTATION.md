@@ -2,6 +2,10 @@
 
 本文档是当前仓库的**权威技术说明文档**。内容对齐当前实现，而不是历史设计稿。若 README、实验指南与本文冲突，以本文为准。
 
+相关工作、同类论文实验方式、可比性边界以及基于调研形成的后续优化建议，统一见：
+
+- [RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md](RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md)
+
 ## 1. 系统定位
 
 FaaSLoRA 是一个面向多 LoRA 大模型推理的单节点 Serverless 研究原型。系统运行在单台双 GPU 服务器上，通过共享 backbone、工件感知请求放置、分层驻留和资源协同控制，研究以下问题：

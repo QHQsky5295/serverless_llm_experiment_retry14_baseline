@@ -30,7 +30,7 @@
 - 当前干净树：`/home/qhq/serverless_llm_experiment_retry14_baseline`
 - 历史脏树：`/home/qhq/serverless_llm_experiment`
 - 当前工作分支：`retry14_rebuild`
-- 上一已推送基线提交：`70c90fe`
+- 当前最新已推送代码基线提交：`1544de2`
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
 
 当前约定：
@@ -40,6 +40,15 @@
 - 本次 GitHub 同步的目的不是发布最终结论，而是把当前 clean-tree 形成一个稳定回退点。
 
 ## 2026-03-29 晚更新快照
+
+### 当前新增调研文档入口
+
+- 本轮 related work / 优化调研权威入口：
+  - `docs/RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md`
+- 文档用途：
+  - 固化同类论文的硬件、实验方式、指标类型、结果与可比性判断
+  - 固化“哪些方向可借鉴，哪些方向不应纳入当前 TODO”
+  - 为后续论文撰写与系统调优提供回退参考
 
 ### 当前最新已验证实验状态
 
@@ -79,14 +88,20 @@
 
 ### 当前最新代码状态
 
-- TODO `#1` 当前主线相关代码已经包含并通过本地测试：
-  - live scale-up 评估从“批次尾触发”改为“按真实时间 / 真实压力秒级触发”
-  - scale-up 事件输出恢复可比 `request_index=submitted_request_count`，并补充 `submitted/completed/arrived_request_count`
-  - live 决策前用实时 `arrival_rps` 刷新动态 RPS 阈值，不再残留 batch-end 滞后
-  - scale-down 低负载计时统一使用 monotonic clock
-- 当前测试状态：
-  - `tests.test_basic_smoke = 98/98 OK`
-  - `RuntimeAccountingAndMetricsSmokeTests = 24/24 OK`
+- 当前 GitHub 上的最新已推送代码基线仍是 `1544de2`：
+  - 对应 `retry40` 收口后的主线状态
+  - TODO `#1` 的 live scale-up 主线修复已纳入
+- 当前本地工作树另有**未推送**的 TODO `#2` 主线代码修改：
+  - `faaslora/memory/memory_coordinator.py`
+  - `faaslora/memory/residency_manager.py`
+  - `faaslora/serving/vllm_wrapper.py`
+  - `tests/test_basic_smoke.py`
+- 这批本地未推送代码修改的含义：
+  - 目标是清理残留 `device 0` 拓扑硬编码
+  - 当前只在本地继续验证，不应与本次文档同步混淆
+- 当前本地测试状态：
+  - `tests.test_basic_smoke = 101/101 OK`
+  - TODO `#2` 的新增 smoke 已通过
 
 ### 当前高优先级 TODO 顺序
 
@@ -100,6 +115,14 @@
 3. TODO `#3`：`scale_up_preload_mb=1024` 改成 headroom-aware 动态预算
    - 只有在 TODO `#2` 收口后才允许进入
 
+4. TODO `#4`：rank / size-aware observed utility
+   - 范围包括 routing / preload candidate selection / GPU admission utility
+   - 只有在 TODO `#3` 收口后才允许进入
+
+5. TODO `#5`：decode-aware contention control
+   - 范围包括 LoRA load / KV / decode 争用的更细粒度控制
+   - 只有在 TODO `#4` 收口后才允许进入
+
 ### 当前结论约束
 
 - 当前不应再为了 TODO `#1` 继续改控制逻辑，因为 `retry40` 已经给出足够强的收口证据
@@ -107,6 +130,11 @@
   - 不破坏 `TTFT_overall / TTFT_comparable / TTFT_scaleup_affected / E2E / Throughput` 已收口部分
   - 不引入实例级、单轮级、单 adapter 级硬编码
   - 保持公式和事件口径可解释、可回溯到真实运行路径
+- 当前不应纳入主线 TODO 的方向：
+  - fused kernel / 单进程全局 batching
+  - cluster-level ILP co-migration
+  - LoRA compression 主线
+  - 任何会削弱 serverless 隔离和真实 scale-up 语义的捷径
 
 ## 2026-03-28 凌晨更新快照
 
