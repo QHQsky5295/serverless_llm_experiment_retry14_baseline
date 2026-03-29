@@ -9,7 +9,7 @@ import asyncio
 import json
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Collection, Dict, List, Optional, Tuple
 
 from ..registry.artifact_registry import ArtifactRegistry
 from ..registry.schema import ArtifactMetadata, StorageTier, ArtifactStatus
@@ -347,6 +347,30 @@ class ExperimentStack:
         pressure = self._tier_pressure(target_tier, coordinator=coordinator)
         return (hotness * latency_gain / max(size_mb, 0.1)) * (1.0 - pressure)
 
+    def _global_admission_utility(
+        self,
+        adapter_id: str,
+        source_tier: StorageTier,
+        coordinator: Optional[Any] = None,
+    ) -> float:
+        hotness = self._artifact_hotness(adapter_id)
+        if hotness <= 0.0:
+            return 0.0
+        coord = coordinator if coordinator is not None else self.coordinator
+        locality_fn = getattr(coord, "_locality_factor", None)
+        if not callable(locality_fn):
+            return float(hotness)
+        tier_key = (
+            "host"
+            if source_tier == StorageTier.HOST
+            else "nvme" if source_tier == StorageTier.NVME else "remote"
+        )
+        try:
+            locality = float(locality_fn(tier_key))
+        except Exception:
+            locality = 1.0
+        return float(hotness * max(0.0, locality))
+
     def _gpu_resident_source_tier(self, adapter_id: str) -> Optional[StorageTier]:
         self.sync_local_tier_paths()
         if adapter_id in self._host_paths:
@@ -471,10 +495,16 @@ class ExperimentStack:
             if not local_path:
                 continue
             size_mb = self._artifact_size_mb(adapter_id)
+            admission_utility = self._global_admission_utility(
+                adapter_id,
+                source_tier,
+                coordinator=coord,
+            )
             decision = coord.evaluate_gpu_admission(
                 adapter_id,
                 size_mb,
                 tier="host" if source_tier == StorageTier.HOST else "nvme",
+                utility_override=admission_utility,
             )
             utility = self._forward_utility(adapter_id, source_tier, StorageTier.GPU, coordinator=coord)
             if utility <= 0:
@@ -503,6 +533,7 @@ class ExperimentStack:
                 "source_tier": "host" if source_tier == StorageTier.HOST else "nvme",
                 "size_mb": size_mb,
                 "utility": utility,
+                "admission_utility": admission_utility,
                 "net_gain": utility - float(replace["utility"]) if replace is not None else utility,
                 "last_accessed_at": last_accessed,
                 "replace": replace,
@@ -550,7 +581,11 @@ class ExperimentStack:
         self._pending_host_promotions[candidate] = task
         return True
 
-    def _select_scaleup_gpu_candidates(self, capacity_bytes: int) -> List[str]:
+    def _select_scaleup_gpu_candidates(
+        self,
+        capacity_bytes: int,
+        preferred_gpu_adapters: Optional[Collection[str]] = None,
+    ) -> List[str]:
         """
         Select GPU warmup candidates for a newly added instance.
 
@@ -563,7 +598,8 @@ class ExperimentStack:
         remaining = max(0, int(capacity_bytes))
         self.sync_local_tier_paths()
         candidate_ids = list(set(self._host_paths) | set(self._nvme_paths))
-        scored: List[Tuple[float, str, int]] = []
+        preferred = set(preferred_gpu_adapters or [])
+        scored: List[Tuple[int, float, str, int]] = []
 
         for aid in candidate_ids:
             meta = self.registry.get_artifact(aid)
@@ -584,9 +620,12 @@ class ExperimentStack:
                 + float(meta.hotness_score) * 1000.0
                 + float(meta.value_per_byte)
             )
-            scored.append((score, aid, size_bytes))
+            # When scaling up a new runtime, the strongest observable signal for
+            # which adapters should be mirrored first is the current live GPU
+            # hotset already serving real traffic on existing runtimes.
+            scored.append((1 if aid in preferred else 0, score, aid, size_bytes))
 
-        for _, aid, size_bytes in sorted(scored, reverse=True):
+        for _, _, aid, size_bytes in sorted(scored, reverse=True):
             if size_bytes > remaining:
                 continue
             selected.append(aid)
@@ -810,9 +849,16 @@ class ExperimentStack:
     def record_batch_end(self, input_tokens: int):
         self.coordinator.notify_batch_end(input_tokens)
 
-    async def trigger_scaling_preload(self, capacity_bytes: int = 200 * 1024 * 1024) -> Optional[str]:
+    async def trigger_scaling_preload(
+        self,
+        capacity_bytes: int = 200 * 1024 * 1024,
+        preferred_gpu_adapters: Optional[Collection[str]] = None,
+    ) -> Optional[str]:
         """Trigger preload on scale-up (A2). Call when scale decision is made."""
-        selected = self._select_scaleup_gpu_candidates(capacity_bytes)
+        selected = self._select_scaleup_gpu_candidates(
+            capacity_bytes,
+            preferred_gpu_adapters=preferred_gpu_adapters,
+        )
         if selected:
             self._pending_scaleup_gpu_artifacts = selected
             plan_id = f"instance_gpu_plan_{int(time.time())}"

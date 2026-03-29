@@ -18,12 +18,20 @@ class ObservedRequestCost:
     samples: int = 0
     avg_lora_io_ms: float = 0.0
     avg_runtime_ttft_ms: float = 0.0
+    avg_tail_service_ms: float = 0.0
 
-    def record(self, *, lora_io_ms: float, runtime_ttft_ms: float) -> None:
+    def record(
+        self,
+        *,
+        lora_io_ms: float,
+        runtime_ttft_ms: float,
+        tail_service_ms: float = 0.0,
+    ) -> None:
         self.samples += 1
         if self.samples == 1:
             self.avg_lora_io_ms = float(lora_io_ms or 0.0)
             self.avg_runtime_ttft_ms = float(runtime_ttft_ms or 0.0)
+            self.avg_tail_service_ms = float(tail_service_ms or 0.0)
             return
         prev = float(self.samples - 1)
         self.avg_lora_io_ms = (
@@ -31,6 +39,9 @@ class ObservedRequestCost:
         ) / float(self.samples)
         self.avg_runtime_ttft_ms = (
             (self.avg_runtime_ttft_ms * prev) + float(runtime_ttft_ms or 0.0)
+        ) / float(self.samples)
+        self.avg_tail_service_ms = (
+            (self.avg_tail_service_ms * prev) + float(tail_service_ms or 0.0)
         ) / float(self.samples)
 
 
@@ -146,6 +157,7 @@ class InstanceSlot:
         cache_tier: Optional[str],
         lora_io_ms: float,
         runtime_ttft_ms: float,
+        tail_service_ms: float = 0.0,
     ) -> None:
         """Record the observed service cost for the request class routed to this slot."""
         runtime_ttft_ms = float(runtime_ttft_ms or 0.0)
@@ -156,11 +168,13 @@ class InstanceSlot:
         self._bucket_stats(bucket).record(
             lora_io_ms=float(lora_io_ms or 0.0),
             runtime_ttft_ms=runtime_ttft_ms,
+            tail_service_ms=float(tail_service_ms or 0.0),
         )
         if adapter_id:
             self._bucket_stats("lora_any").record(
                 lora_io_ms=float(lora_io_ms or 0.0),
                 runtime_ttft_ms=runtime_ttft_ms,
+                tail_service_ms=float(tail_service_ms or 0.0),
             )
 
     def predicted_request_cost_ms(
@@ -182,8 +196,10 @@ class InstanceSlot:
                 return float(bucket.avg_runtime_ttft_ms)
             if self.observed_backbone_samples > 0:
                 return float(self.observed_backbone_ttft_ms or 0.0)
-            if self.observed_runtime_samples > 0:
-                return float(self.observed_runtime_ttft_ms or 0.0)
+            # For backbone routing, only backbone-class observations are valid.
+            # Falling back to mixed LoRA-dominated runtime averages permanently
+            # biases backbone requests away from slots that have not yet seen a
+            # backbone sample.
             return 0.0
 
         predicted_tier = self.predicted_cache_tier(adapter_id)
@@ -198,6 +214,28 @@ class InstanceSlot:
             else float(self.observed_runtime_ttft_ms or 0.0)
         )
         return float(fallback_lora_io_ms or 0.0) + runtime_component
+
+    def predicted_tail_service_ms(
+        self,
+        *,
+        adapter_id: Optional[str],
+    ) -> float:
+        """Predict the post-TTFT service occupancy time for the request class."""
+        if not adapter_id:
+            bucket = self.observed_request_costs.get("backbone")
+            if bucket is not None and bucket.samples > 0:
+                return float(bucket.avg_tail_service_ms or 0.0)
+            return 0.0
+
+        predicted_tier = self.predicted_cache_tier(adapter_id)
+        exact_bucket = self.observed_request_costs.get(f"lora_{predicted_tier}")
+        if exact_bucket is not None and exact_bucket.samples > 0:
+            return float(exact_bucket.avg_tail_service_ms or 0.0)
+
+        lora_any = self.observed_request_costs.get("lora_any")
+        if lora_any is not None and lora_any.samples > 0:
+            return float(lora_any.avg_tail_service_ms or 0.0)
+        return 0.0
 
 
 class InstancePool:
@@ -274,19 +312,17 @@ class Router:
     Request router (B2). Selects instance for a request.
     """
 
-    def __init__(self, pool: InstancePool, policy: str = "round_robin"):
+    def __init__(
+        self,
+        pool: InstancePool,
+        policy: str = "round_robin",
+        runtime_concurrency_cap: int = 1,
+    ):
         self.pool = pool
         self.policy = policy
         self._rr_index = 0
+        self.runtime_concurrency_cap = max(1, int(runtime_concurrency_cap or 1))
         self.logger = get_logger(__name__)
-
-    @staticmethod
-    def _load_key(slot: InstanceSlot) -> tuple:
-        """Keep queue depth and in-flight requests as the first routing guardrails."""
-        return (
-            slot.load_queue_depth,
-            slot.active_requests,
-        )
 
     @staticmethod
     def _fallback_lora_io_cost_ms(slot: InstanceSlot, adapter_size_mb: Optional[float], adapter_id: Optional[str]) -> float:
@@ -319,11 +355,25 @@ class Router:
             )
         return 0.0
 
+    def _occupancy_cost(self, slot: InstanceSlot, adapter_id: Optional[str]) -> float:
+        predictor = getattr(slot, "predicted_tail_service_ms", None)
+        if not callable(predictor):
+            return 0.0
+        active_requests = max(0, int(getattr(slot, "active_requests", 0) or 0))
+        if active_requests <= 0:
+            return 0.0
+        busy_ratio = min(1.0, active_requests / float(self.runtime_concurrency_cap))
+        return float(busy_ratio * float(predictor(adapter_id=adapter_id) or 0.0))
+
     def _routing_key(self, slot: InstanceSlot, adapter_id: Optional[str], adapter_size_mb: Optional[float]) -> tuple:
+        service_cost = self._service_cost(slot, adapter_id, adapter_size_mb)
+        occupancy_cost = self._occupancy_cost(slot, adapter_id)
         return (
+            service_cost + occupancy_cost,
+            service_cost,
+            occupancy_cost,
             slot.load_queue_depth,
             slot.active_requests,
-            self._service_cost(slot, adapter_id, adapter_size_mb),
             slot.gpu_utilization_pct,
             slot.last_selected_at,
             slot.created_at,

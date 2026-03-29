@@ -30,7 +30,7 @@
 - 当前干净树：`/home/qhq/serverless_llm_experiment_retry14_baseline`
 - 历史脏树：`/home/qhq/serverless_llm_experiment`
 - 当前工作分支：`retry14_rebuild`
-- 上一已推送基线提交：`9b53386`
+- 上一已推送基线提交：`cbb6dc6`
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
 
 当前约定：
@@ -38,6 +38,75 @@
 - 后续研究与回退统一以 `serverless_llm_experiment_retry14_baseline` 为准。
 - `retry21` 及其对应脏树状态视为废案，不再作为正式对比对象。
 - 本次 GitHub 同步的目的不是发布最终结论，而是把当前 clean-tree 形成一个稳定回退点。
+
+## 2026-03-29 晚更新快照
+
+### 当前最新已验证实验状态
+
+- 当前最新已验证干净结果：`retry40_baseline @ 500`
+- 当前最新已正式分析结果：`retry40 vs retry39 vs retry38`
+- 当前最新结构性结论：
+  - `retry39` 已正式证明 TODO `#1` 的第一阶段有效，live scale-up 已经不再被 `scale_decision_interval=25` 的请求数硬门槛卡死
+  - `retry40` 进一步证明 live 动态 RPS 阈值刷新和事件口径修复后，TODO `#1` 的主瓶颈已经在当前 clean-tree 主线实质收口
+  - 当前没有新的结构性 bug，主问题不再是 TODO `#1`
+- 当前最新 headline 指标结论：
+  - `TTFT_overall = 7196.9 ms`
+  - `TTFT_comparable = 8122.7 ms`
+  - `TTFT_scaleup_affected = 8722.8 ms`
+  - `TTFT_gpu_ready = 8069.4 ms`
+  - `Runtime_TTFT = 7042.5 ms`
+  - `TPOT = 50.5 ms`
+  - `E2E_latency = 10393.8 ms`
+  - `Throughput_req/s = 0.13455`
+  - `Throughput_tok/s = 17.205`
+  - `SLO_attainment = 17.8%`
+  - `Cold_start_latency = 49529.5 ms`
+  - `Monetary_cost = $0.0034435 / req`
+- 相对 `retry39` 的正式改进：
+  - `TTFT_overall: 7571.1 -> 7196.9 ms`
+  - `TTFT_comparable: 8375.6 -> 8122.7 ms`
+  - `TTFT_scaleup_affected: 9146.3 -> 8722.8 ms`
+  - `Runtime_TTFT: 7392.2 -> 7042.5 ms`
+  - `E2E_latency: 11522.0 -> 10393.8 ms`
+  - `Throughput_req/s: 0.10797 -> 0.13455`
+  - `Throughput_tok/s: 13.811 -> 17.205`
+  - `SLO_attainment: 16.8% -> 17.8%`
+  - `Cold_start_latency: 61928.7 -> 49529.5 ms`
+  - `P95/P99_TTFT: 10464.1/17195.9 -> 9724.9/15349.4 ms`
+  - `P95/P99_E2E: 18706.8/25471.6 -> 14926.9/20427.2 ms`
+  - `avg_lora_io_ms: 179.0 -> 154.4 ms`
+  - `TPOT` 小幅回退 `48.8 -> 50.5 ms`，但仍优于 `retry38` 的 `52.4 ms`
+
+### 当前最新代码状态
+
+- TODO `#1` 当前主线相关代码已经包含并通过本地测试：
+  - live scale-up 评估从“批次尾触发”改为“按真实时间 / 真实压力秒级触发”
+  - scale-up 事件输出恢复可比 `request_index=submitted_request_count`，并补充 `submitted/completed/arrived_request_count`
+  - live 决策前用实时 `arrival_rps` 刷新动态 RPS 阈值，不再残留 batch-end 滞后
+  - scale-down 低负载计时统一使用 monotonic clock
+- 当前测试状态：
+  - `tests.test_basic_smoke = 98/98 OK`
+  - `RuntimeAccountingAndMetricsSmokeTests = 24/24 OK`
+
+### 当前高优先级 TODO 顺序
+
+1. TODO `#1`：按真实时间 / 真实压力评估 scale-up
+   - 当前状态：在 `retry40` 上已收口，除非后续出现新回归，否则不应继续为 TODO `#1` 叠加控制面改动
+
+2. TODO `#2`：清理残留 `device 0` 拓扑硬编码
+   - 当前成为 next active TODO
+   - 只能在不破坏 `retry40` 已收口指标的前提下推进
+
+3. TODO `#3`：`scale_up_preload_mb=1024` 改成 headroom-aware 动态预算
+   - 只有在 TODO `#2` 收口后才允许进入
+
+### 当前结论约束
+
+- 当前不应再为了 TODO `#1` 继续改控制逻辑，因为 `retry40` 已经给出足够强的收口证据
+- 当前若继续优化，必须优先选择：
+  - 不破坏 `TTFT_overall / TTFT_comparable / TTFT_scaleup_affected / E2E / Throughput` 已收口部分
+  - 不引入实例级、单轮级、单 adapter 级硬编码
+  - 保持公式和事件口径可解释、可回溯到真实运行路径
 
 ## 2026-03-28 凌晨更新快照
 
