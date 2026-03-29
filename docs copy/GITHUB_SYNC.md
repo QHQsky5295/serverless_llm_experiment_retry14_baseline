@@ -7,6 +7,7 @@
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
 - 当前 clean-tree 分支：`retry14_rebuild`
 - 当前最新已推送代码基线提交：`1544de2`
+- 本轮调研与规划文档首次同步提交：`34881fb`
 
 当前建议：
 
@@ -14,6 +15,10 @@
 - 是否合并到 `main` 另行决策
 
 ## 2026-03-29 深夜更新：本次只同步文档与规划，不纳入当前本地 TODO `#2` 代码修改
+
+- 本次 docs-only 同步已完成并推送：
+  - 提交：`34881fb`
+  - 分支：`retry14_rebuild`
 
 - 本次同步目的：
   - 固化 related work / 同类论文调研

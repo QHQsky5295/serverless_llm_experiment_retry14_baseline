@@ -10,6 +10,7 @@
 > - 历史脏树：`/home/qhq/serverless_llm_experiment`
 > - 当前分支：`retry14_rebuild`
 > - 当前最新已推送**代码基线**：`1544de2`
+> - 本轮调研与规划文档首次同步提交：`34881fb`
 > - 当前本地工作树有未提交主线修改：
 >   - `faaslora/memory/memory_coordinator.py`
 >   - `faaslora/memory/residency_manager.py`
