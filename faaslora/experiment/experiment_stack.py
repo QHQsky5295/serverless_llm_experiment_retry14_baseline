@@ -37,6 +37,15 @@ def _build_experiment_config(
 ) -> ExperimentConfig:
     """Build faaslora config from experiment YAML-style inputs."""
     gpu_mb = hardware_cfg.get("gpu_budget_mb", 24000)
+    gpu_device_ids: List[int] = []
+    for device_id in hardware_cfg.get("gpu_device_ids", []) or []:
+        try:
+            did = int(device_id)
+        except (TypeError, ValueError):
+            continue
+        if did not in gpu_device_ids:
+            gpu_device_ids.append(did)
+    gpu_total_mb = float(gpu_mb) * max(1, len(gpu_device_ids) or 1)
     host_dir = host_dir or (nvme_dir.parent / "host_cache" / nvme_dir.name)
     host_cap_gb = host_capacity_mb / 1024.0
     nvme_capacity_mb = float(preload_cfg.get("nvme_capacity_mb", 102400))
@@ -50,7 +59,11 @@ def _build_experiment_config(
     data = {
         "registry": {"backend": registry_backend, "redis": {}},
         "memory": {
-            "gpu": {"total_memory_gb": gpu_mb / 1024, "safety_margin": 0.15},
+            "gpu": {
+                "total_memory_gb": gpu_total_mb / 1024,
+                "safety_margin": 0.15,
+                "device_ids": gpu_device_ids,
+            },
             "host": {
                 "total_memory_gb": host_cap_gb,
                 "safety_margin": 0.1,
@@ -461,11 +474,13 @@ class ExperimentStack:
         self,
         gpu_resident_adapters: Optional[set] = None,
         coordinator: Optional[Any] = None,
+        preferred_gpu_adapters: Optional[Collection[str]] = None,
     ) -> Optional[Dict[str, Any]]:
         if not self._dynamic_forwarding_enabled:
             return None
         self.sync_local_tier_paths()
         resident = set(gpu_resident_adapters or set())
+        preferred = set(preferred_gpu_adapters or [])
         coord = coordinator if coordinator is not None else self.coordinator
         best: Optional[Dict[str, Any]] = None
         weakest_resident: Optional[Dict[str, Any]] = None
@@ -489,6 +504,8 @@ class ExperimentStack:
 
         for adapter_id in set(self._host_paths) | set(self._nvme_paths):
             if adapter_id in resident:
+                continue
+            if preferred and adapter_id not in preferred:
                 continue
             source_tier = StorageTier.HOST if adapter_id in self._host_paths else StorageTier.NVME
             local_path = self._host_paths.get(adapter_id) or self._nvme_paths.get(adapter_id)
@@ -792,13 +809,17 @@ class ExperimentStack:
             pass
 
         # 1) Already on GPU
-        status = self.residency_manager.get_tier_status(StorageTier.GPU)
-        details = (status.get("artifacts") or {}).get("details") or []
-        if any(d.get("artifact_id") == adapter_id for d in details):
-            self._record_gpu_ready_hit(coord, adapter_id)
-            path = self._host_paths.get(adapter_id) or self._nvme_paths.get(adapter_id)
-            self._repair_adapter_dir(path)
-            return path, "gpu", 0.0, 0.0, 0.0
+        use_shared_gpu_tier = not (
+            coord is not None and getattr(coord, "_residency_manager", None) is None
+        )
+        if use_shared_gpu_tier:
+            status = self.residency_manager.get_tier_status(StorageTier.GPU)
+            details = (status.get("artifacts") or {}).get("details") or []
+            if any(d.get("artifact_id") == adapter_id for d in details):
+                self._record_gpu_ready_hit(coord, adapter_id)
+                path = self._host_paths.get(adapter_id) or self._nvme_paths.get(adapter_id)
+                self._repair_adapter_dir(path)
+                return path, "gpu", 0.0, 0.0, 0.0
 
         # 2) In HOST (memory) → load from memory to GPU
         host_path = self._host_paths.get(adapter_id)

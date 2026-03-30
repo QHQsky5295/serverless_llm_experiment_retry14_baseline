@@ -564,19 +564,90 @@ class VLLMWrapper:
     
     def get_memory_stats(self) -> Dict[str, Any]:
         """Get memory statistics"""
-        if self.gpu_monitor.enabled:
-            gpu_info = self.gpu_monitor.get_current_memory_info(0)
-            if gpu_info:
+        gpu_monitor = self.gpu_monitor
+        if getattr(gpu_monitor, "enabled", False):
+            infos: Dict[int, Any] = {}
+            getter_all = getattr(gpu_monitor, "get_all_devices_memory_info", None)
+            if callable(getter_all):
+                try:
+                    infos = getter_all() or {}
+                except Exception:
+                    infos = {}
+
+            visible_ids: List[int] = []
+            for device_id in list(getattr(gpu_monitor, "devices", []) or []):
+                try:
+                    did = int(device_id)
+                except (TypeError, ValueError):
+                    continue
+                if did not in visible_ids:
+                    visible_ids.append(did)
+            if not visible_ids:
+                configured = self.config.get("serving.vllm.visible_device_ids", None)
+                if isinstance(configured, str):
+                    configured = [part.strip() for part in configured.split(",")]
+                if isinstance(configured, (list, tuple, set)):
+                    for device_id in configured:
+                        try:
+                            did = int(device_id)
+                        except (TypeError, ValueError):
+                            continue
+                        if did not in visible_ids:
+                            visible_ids.append(did)
+
+            device_ids = [device_id for device_id in visible_ids if device_id in infos]
+            if not device_ids and infos:
+                try:
+                    device_ids = [sorted(int(device_id) for device_id in infos.keys())[0]]
+                except Exception:
+                    device_ids = []
+            if device_ids:
+                total_bytes = sum(int(infos[device_id].total_bytes) for device_id in device_ids)
+                used_bytes = sum(int(infos[device_id].used_bytes) for device_id in device_ids)
+                free_bytes = sum(int(infos[device_id].free_bytes) for device_id in device_ids)
+                active_bytes = sum(int(getattr(infos[device_id], "active_bytes", 0)) for device_id in device_ids)
+                cached_bytes = sum(int(getattr(infos[device_id], "cached_bytes", 0)) for device_id in device_ids)
+                kv_cache_bytes = sum(int(getattr(infos[device_id], 'kv_cache_bytes', 0)) for device_id in device_ids)
+                exec_peak_bytes = sum(int(getattr(infos[device_id], 'exec_peak_bytes', 0)) for device_id in device_ids)
                 return {
-                    'gpu_memory_total_bytes': gpu_info.total_bytes,
-                    'gpu_memory_used_bytes': gpu_info.used_bytes,
-                    'gpu_memory_free_bytes': gpu_info.free_bytes,
-                    'gpu_memory_utilization': gpu_info.used_bytes / gpu_info.total_bytes,
-                    'gpu_memory_active_bytes': gpu_info.active_bytes,
-                    'gpu_memory_cached_bytes': gpu_info.cached_bytes,
-                    'kv_cache_bytes': getattr(gpu_info, 'kv_cache_bytes', 0),
-                    'exec_peak_bytes': getattr(gpu_info, 'exec_peak_bytes', 0)
+                    'gpu_memory_total_bytes': total_bytes,
+                    'gpu_memory_used_bytes': used_bytes,
+                    'gpu_memory_free_bytes': free_bytes,
+                    'gpu_memory_utilization': (used_bytes / total_bytes) if total_bytes > 0 else 0.0,
+                    'gpu_memory_active_bytes': active_bytes,
+                    'gpu_memory_cached_bytes': cached_bytes,
+                    'kv_cache_bytes': kv_cache_bytes,
+                    'exec_peak_bytes': exec_peak_bytes,
                 }
+
+            getter_one = getattr(gpu_monitor, "get_current_memory_info", None)
+            if callable(getter_one):
+                for device_id in visible_ids:
+                    gpu_info = getter_one(device_id)
+                    if not gpu_info:
+                        continue
+                    return {
+                        'gpu_memory_total_bytes': gpu_info.total_bytes,
+                        'gpu_memory_used_bytes': gpu_info.used_bytes,
+                        'gpu_memory_free_bytes': gpu_info.free_bytes,
+                        'gpu_memory_utilization': gpu_info.used_bytes / gpu_info.total_bytes,
+                        'gpu_memory_active_bytes': gpu_info.active_bytes,
+                        'gpu_memory_cached_bytes': gpu_info.cached_bytes,
+                        'kv_cache_bytes': getattr(gpu_info, 'kv_cache_bytes', 0),
+                        'exec_peak_bytes': getattr(gpu_info, 'exec_peak_bytes', 0)
+                    }
+                gpu_info = getter_one(0)
+                if gpu_info:
+                    return {
+                        'gpu_memory_total_bytes': gpu_info.total_bytes,
+                        'gpu_memory_used_bytes': gpu_info.used_bytes,
+                        'gpu_memory_free_bytes': gpu_info.free_bytes,
+                        'gpu_memory_utilization': gpu_info.used_bytes / gpu_info.total_bytes,
+                        'gpu_memory_active_bytes': gpu_info.active_bytes,
+                        'gpu_memory_cached_bytes': gpu_info.cached_bytes,
+                        'kv_cache_bytes': getattr(gpu_info, 'kv_cache_bytes', 0),
+                        'exec_peak_bytes': getattr(gpu_info, 'exec_peak_bytes', 0)
+                    }
         
         return {
             'gpu_memory_total_bytes': 0,

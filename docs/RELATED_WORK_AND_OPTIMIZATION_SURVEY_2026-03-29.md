@@ -10,6 +10,14 @@
 
 若本文与当前代码实现、`docs/PROJECT_PROGRESS.md`、`docs/SESSION_HANDOFF_2026-03-13.md` 冲突，以后两者和当前代码为准；本文主要负责记录调研事实、可比性边界和规划建议。
 
+> 2026-03-30 补充：
+>
+> - `retry42_fix4` 已将 TODO `#2` 的 runtime-local topology / background-forward 回退问题实质收口。
+> - 当前 next active TODO 已切换为 `#3`：`scale_up_preload_mb=1024` 的 headroom-aware 动态预算。
+> - 本文第 6 节给出的排序仍成立，但现在应理解为：
+>   - TODO `#2`：当前已收口
+>   - TODO `#3`：当前正式进入
+
 ## 1. 当前 FaaSLoRA 基线与问题边界
 
 本轮调研时的当前已验证主线基线为 `retry40_baseline @ 500`：

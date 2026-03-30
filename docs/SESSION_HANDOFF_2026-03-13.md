@@ -12,9 +12,12 @@
 > - 当前最新已推送**代码基线**：`1544de2`
 > - 本轮调研与规划文档首次同步提交：`34881fb`
 > - 当前本地工作树有未提交主线修改：
+>   - `faaslora/experiment/experiment_stack.py`
 >   - `faaslora/memory/memory_coordinator.py`
 >   - `faaslora/memory/residency_manager.py`
+>   - `faaslora/scheduling/resource_coordinator.py`
 >   - `faaslora/serving/vllm_wrapper.py`
+>   - `scripts/run_all_experiments.py`
 >   - `tests/test_basic_smoke.py`
 > - 当前新增调研文档入口：
 >   - `docs/RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md`
@@ -98,30 +101,47 @@
 >
 > 当前最新实验状态：
 >
-> - `retry39_baseline` 已正式分析，结论是：
->   - 相对 `retry38`，`TTFT_overall / TTFT_comparable / TTFT_scaleup_affected / Runtime_TTFT / Cold_start_latency` 全部明显改善
->   - TODO `#1` 的第一步已经验证通过，但后段 `300-499` 请求仍有 residual tail，TODO `#1` 当时尚未完全收口
-> - `retry40_baseline` 已正式跑完并完成归因：
->   - `TTFT_overall: 7571 -> 7197 ms`
->   - `TTFT_comparable: 8376 -> 8123 ms`
->   - `TTFT_scaleup_affected: 9146 -> 8723 ms`
->   - `TTFT_gpu_ready: 8274 -> 8069 ms`
->   - `Runtime_TTFT: 7392 -> 7043 ms`
->   - `E2E_latency: 11522 -> 10394 ms`
->   - `Throughput_req/s: 0.10797 -> 0.13455`
->   - `Throughput_tok/s: 13.811 -> 17.205`
->   - `SLO_attainment: 16.8% -> 17.8%`
->   - `Cold_start_latency: 61929 -> 49529 ms`
->   - `P95/P99_TTFT: 10464/17196 -> 9725/15349 ms`
->   - `P95/P99_E2E: 18707/25472 -> 14927/20427 ms`
->   - `avg_lora_io_ms: 179.0 -> 154.4 ms`
->   - `TPOT` 小幅回退 `48.8 -> 50.5 ms`，但仍优于 `retry38` 的 `52.4 ms`
-> - `retry40` 的正式结论：
->   - 没有出现新的结构性 bug
->   - TODO `#1` 针对的主瓶颈已经在当前 clean-tree 主线上实质收口
->   - 当前 next active TODO 应切到高优先级 `#2`：清理残留 `device 0` 拓扑硬编码
-> - `retry40` 结果文件：
->   - `/home/qhq/serverless_llm_experiment_retry14_baseline/results/experiment_results_full_vllm_auto_a500_r500_c2_faaslora_full_qwen_7b_v2_r500_p26_c3_retry40_baseline.json`
+> - `retry40_baseline` 已证明 TODO `#1` 在 clean-tree 主线上收口，成为 TODO `#2` 的进入基线。
+> - `retry41_baseline` 证明 TODO `#2` 第一刀把 per-runtime GPU accounting scope 放宽过头，触发系统性性能回退。
+> - `retry42_fix2_baseline`：
+>   - 修回了双实例 hotset 对称性
+>   - 但暴露出 runtime background forward 过度积极，`E2E / Throughput` 被明显拖坏
+> - `retry42_fix3_baseline`：
+>   - 去掉了 forward 递归 self-trigger
+>   - 但仍会在 request-completion 触发下追逐 stale sibling GPU resident set，因此没有真正收口
+> - `retry42_fix4_baseline` 已正式跑完并完成归因：
+>   - `TTFT_overall = 7291.5 ms`
+>   - `TTFT_comparable = 8471.7 ms`
+>   - `TTFT_warm_standard = 8414.4 ms`，`P95/P99 = 12312.5 / 15386.4 ms`
+>   - `TTFT_scaleup_affected = 8974.1 ms`
+>   - `TTFT_gpu_ready = 8414.4 ms`
+>   - `Runtime_TTFT = 7041.8 ms`
+>   - `TPOT = 47.5 ms`
+>   - `E2E_latency = 10478.0 ms`
+>   - `Throughput_req/s = 0.13923`
+>   - `Throughput_tok/s = 17.739`
+>   - `SLO_attainment = 21.0%`
+>   - `Cold_start_latency = 53071.2 ms`
+>   - `Monetary_cost = $0.00344264 / req`
+>   - `avg_lora_io_ms = 249.8 ms`
+> - `retry42_fix4` 相对 `retry42_fix3` 的正式结论：
+>   - runtime background forward 的主回退 bug 已被切掉
+>   - `Runtime_TTFT / E2E / Throughput / P99_TTFT` 已经回到接近或优于 `retry40`
+>   - 剩余主矛盾重新回到 `gpu_hit_rate / lora_io / TTFT_scaleup_affected / Cold_start_latency`
+> - `retry42_fix4` 的正式主线判断：
+>   - 当前没有新的结构性 bug
+>   - TODO `#2` 可视为在 `retry42_fix4` 上实质收口
+>   - 当前 next active TODO 正式切到高优先级 `#3`：`scale_up_preload_mb=1024` 的 headroom-aware 动态预算
+> - `retry42_fix4` 结果文件：
+>   - `/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r500_c2_faaslora_full_qwen_7b_v2_r500_p26_c3_retry42_fix4_baseline.json`
+> - 当前本地测试状态：
+>   - `tests.test_basic_smoke = 114/114 OK`
+>   - `RuntimeAccountingAndMetricsSmokeTests = 39/39 OK`
+> - 当前指标输出层已新增并生效：
+>   - `TTFT_warm_standard(avg/p95/p99)`
+>   - `Cost_effectiveness_e2e`
+>   - `SLO_goodput_RPS / SLO_goodput_TOKPS`
+>   - `standard_serving_metrics / serverless_deployment_metrics / scaling_metrics / mechanism_metrics`
 > - 2026-03-29 本轮新增调研结论：
 >   - 已完成同类论文与系统的专项调研，见 `docs/RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md`
 >   - 当前不应再回头叠加 TODO `#1` 控制面
@@ -143,9 +163,9 @@
 >    - `docs/ENVIRONMENT.md`
 >    - `docs/GITHUB_SYNC.md`
 > 2. 确认当前代码状态与本地未提交主线修改是否保持一致
-> 3. 若要继续优化，只允许从高优先级 TODO `#2` 开始：
->    - 清理残留 `device 0` 拓扑硬编码
-> 4. 在 TODO `#2` 没有正式收口前，不要提前跳去动态 preload budget
+> 3. 若要继续优化，当前 next active TODO 已切到高优先级 `#3`：
+>    - `scale_up_preload_mb=1024` 改成 headroom-aware 动态预算
+> 4. TODO `#2` 已以 `retry42_fix4` 为当前 clean-tree 收口点；不要再回头叠加 runtime-forward 补丁式微调，除非新实验再次暴露明确回归
 > 5. 若需要回看同类工作、论文指标与后续 TODO 排序，优先读：
 >    - `docs/RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md`
 > 5. 新实验仍保持“跑完后统一读取完整日志和 JSON 再正式归因”
@@ -157,17 +177,17 @@
 >    - TODO `#1` 第一阶段验证
 >    - `retry40 vs retry39 vs retry38` 正式分析
 >    - TODO `#1` 当前主线收口判断
+>    - `retry42_fix4 vs retry42_fix3 vs retry42_fix2 vs retry40` 正式分析
+>    - TODO `#2` 当前收口判断
 > 2. 当前应做：
 >    - 更新 `docs/` 与 `docs copy/`
->    - 记录当前最新已验证结果 `retry40_baseline`
+>    - 记录当前最新已验证结果 `retry42_fix4_baseline`
 >    - 提交并推送新的 GitHub 快照
-> 3. 下一高优先级 TODO `#2`：
->    - 清理残留 `device 0` 拓扑硬编码
-> 4. 完成 TODO `#2` 后，才允许进入高优先级 TODO `#3`：
+> 3. 当前 next active TODO `#3`：
 >    - 把 `scale_up_preload_mb=1024` 改成 headroom-aware 动态预算
-> 5. 完成 TODO `#3` 后，才允许进入高优先级 TODO `#4`：
+> 4. 完成 TODO `#3` 后，才允许进入高优先级 TODO `#4`：
 >    - 做 rank / size-aware observed utility
-> 6. 完成 TODO `#4` 后，才允许进入高优先级 TODO `#5`：
+> 5. 完成 TODO `#4` 后，才允许进入高优先级 TODO `#5`：
 >    - 做 decode-aware contention control
 >
 > 2026-03-29 新会话推荐提示词：

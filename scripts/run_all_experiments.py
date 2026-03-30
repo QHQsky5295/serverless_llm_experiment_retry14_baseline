@@ -449,6 +449,29 @@ def _is_comparable_request(
         return False
     return str(getattr(request, "cache_tier", "remote") or "remote").lower() in _LOCAL_COMPARABLE_TIERS
 
+
+def _is_warm_standard_request(
+    request: Any,
+    request_index: Optional[int] = None,
+    scaleup_affected_indices: Optional[set[int]] = None,
+) -> bool:
+    """
+    Standard warm-path TTFT subset for cross-paper dialogue.
+
+    This keeps only successful LoRA-bearing requests that are already GPU-ready
+    and not in the post-scale-up cold window. It is still trace-driven, so it
+    is not a substitute for a separate fixed-prompt microbenchmark, but it is
+    the cleanest paper-facing warm-path TTFT we can derive from current online
+    observables without introducing new instrumentation or hidden heuristics.
+    """
+    if not _is_comparable_request(
+        request,
+        request_index=request_index,
+        scaleup_affected_indices=scaleup_affected_indices,
+    ):
+        return False
+    return str(getattr(request, "cache_tier", "remote") or "remote").lower() == "gpu"
+
 from faaslora.datasets.workload_generator import WorkloadGenerator, WorkloadConfig, RequestTrace
 from faaslora.datasets.dataset_loader import WorkloadDataset
 from faaslora.registry.schema import StorageTier
@@ -524,6 +547,9 @@ class ScenarioResult:
     avg_comparable_ttft_ms: float = 0.0
     p95_comparable_ttft_ms: float = 0.0
     p99_comparable_ttft_ms: float = 0.0
+    avg_warm_standard_ttft_ms: float = 0.0
+    p95_warm_standard_ttft_ms: float = 0.0
+    p99_warm_standard_ttft_ms: float = 0.0
     avg_serverless_overhead_ms: float = 0.0
     p95_serverless_overhead_ms: float = 0.0
     avg_runtime_ttft_ms: float = 0.0
@@ -534,6 +560,9 @@ class ScenarioResult:
     p95_scaleup_affected_ttft_ms: float = 0.0
     avg_cold_start_latency_ms: float = 0.0
     p95_cold_start_latency_ms: float = 0.0
+    cost_effectiveness_e2e: float = 0.0
+    slo_goodput_rps: float = 0.0
+    slo_goodput_tok_per_s: float = 0.0
 
     # Burst-phase metrics
     phase1_avg_ttft_ms: float = 0.0
@@ -624,6 +653,11 @@ class ScenarioResult:
             for r in self.requests
             if _is_comparable_request(r)
         ]
+        warm_standard_ttft = [
+            float(getattr(r, "ttft_ms", 0.0) or 0.0)
+            for r in self.requests
+            if _is_warm_standard_request(r)
+        ]
 
         self.avg_ttft_ms = sum(ttft)/len(ttft)
         self.p50_ttft_ms = pct(ttft, 50)
@@ -647,6 +681,12 @@ class ScenarioResult:
         )
         self.p95_comparable_ttft_ms = pct(comparable_ttft, 95) if comparable_ttft else 0.0
         self.p99_comparable_ttft_ms = pct(comparable_ttft, 99) if comparable_ttft else 0.0
+        self.avg_warm_standard_ttft_ms = (
+            sum(warm_standard_ttft) / len(warm_standard_ttft)
+            if warm_standard_ttft else 0.0
+        )
+        self.p95_warm_standard_ttft_ms = pct(warm_standard_ttft, 95) if warm_standard_ttft else 0.0
+        self.p99_warm_standard_ttft_ms = pct(warm_standard_ttft, 99) if warm_standard_ttft else 0.0
         self.avg_serverless_overhead_ms = sum(overheads)/len(overheads) if overheads else 0.0
         self.p95_serverless_overhead_ms = pct(overheads, 95) if overheads else 0.0
         self.avg_runtime_ttft_ms = sum(runtime_ttft)/len(runtime_ttft) if runtime_ttft else 0.0
@@ -672,6 +712,11 @@ class ScenarioResult:
         avg_ttft_s = self.avg_ttft_ms / 1000.0
         denom = self.avg_cost_usd * avg_ttft_s
         self.qpr = self.throughput_rps / denom if denom > 1e-12 else 0.0
+        avg_e2e_s = self.avg_e2e_ms / 1000.0
+        e2e_cost_denom = self.avg_cost_usd * avg_e2e_s
+        self.cost_effectiveness_e2e = 1.0 / e2e_cost_denom if e2e_cost_denom > 1e-12 else 0.0
+        self.slo_goodput_rps = self.throughput_rps * self.slo_attainment
+        self.slo_goodput_tok_per_s = self.throughput_tok_per_s * self.slo_attainment
 
         # Contribution 3 metrics from coordinator（多实例时为各槽位汇总）
         if coord_metrics:
@@ -704,8 +749,10 @@ _SCENARIO_RESULT_NUMERIC_KEYS = (
     "avg_tpot_ms", "avg_e2e_ms", "p95_e2e_ms", "p99_e2e_ms",
     "throughput_rps", "throughput_tok_per_s", "slo_attainment",
     "avg_cost_usd", "total_cost_usd", "qpr",
+    "cost_effectiveness_e2e", "slo_goodput_rps", "slo_goodput_tok_per_s",
     "cache_hit_rate", "gpu_hit_rate", "avg_lora_io_ms",
     "avg_comparable_ttft_ms", "p95_comparable_ttft_ms", "p99_comparable_ttft_ms",
+    "avg_warm_standard_ttft_ms", "p95_warm_standard_ttft_ms", "p99_warm_standard_ttft_ms",
     "avg_serverless_overhead_ms", "p95_serverless_overhead_ms",
     "avg_runtime_ttft_ms", "p95_runtime_ttft_ms",
     "avg_gpu_ready_ttft_ms", "p95_gpu_ready_ttft_ms",
@@ -781,12 +828,18 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         avg_cost_usd=agg_dict.get("avg_cost_usd", first.avg_cost_usd),
         total_cost_usd=agg_dict.get("total_cost_usd", first.total_cost_usd),
         qpr=agg_dict.get("qpr", first.qpr),
+        cost_effectiveness_e2e=agg_dict.get("cost_effectiveness_e2e", first.cost_effectiveness_e2e),
+        slo_goodput_rps=agg_dict.get("slo_goodput_rps", first.slo_goodput_rps),
+        slo_goodput_tok_per_s=agg_dict.get("slo_goodput_tok_per_s", first.slo_goodput_tok_per_s),
         cache_hit_rate=agg_dict.get("cache_hit_rate", first.cache_hit_rate),
         gpu_hit_rate=agg_dict.get("gpu_hit_rate", first.gpu_hit_rate),
         avg_lora_io_ms=agg_dict.get("avg_lora_io_ms", first.avg_lora_io_ms),
         avg_comparable_ttft_ms=agg_dict.get("avg_comparable_ttft_ms", first.avg_comparable_ttft_ms),
         p95_comparable_ttft_ms=agg_dict.get("p95_comparable_ttft_ms", first.p95_comparable_ttft_ms),
         p99_comparable_ttft_ms=agg_dict.get("p99_comparable_ttft_ms", first.p99_comparable_ttft_ms),
+        avg_warm_standard_ttft_ms=agg_dict.get("avg_warm_standard_ttft_ms", first.avg_warm_standard_ttft_ms),
+        p95_warm_standard_ttft_ms=agg_dict.get("p95_warm_standard_ttft_ms", first.p95_warm_standard_ttft_ms),
+        p99_warm_standard_ttft_ms=agg_dict.get("p99_warm_standard_ttft_ms", first.p99_warm_standard_ttft_ms),
         avg_serverless_overhead_ms=agg_dict.get("avg_serverless_overhead_ms", first.avg_serverless_overhead_ms),
         p95_serverless_overhead_ms=agg_dict.get("p95_serverless_overhead_ms", first.p95_serverless_overhead_ms),
         avg_runtime_ttft_ms=agg_dict.get("avg_runtime_ttft_ms", first.avg_runtime_ttft_ms),
@@ -2041,7 +2094,7 @@ class ScenarioRunner:
         self.remote_dir    = remote_dir
         self.nvme_dir      = nvme_dir
         self.bw_mbps       = bandwidth_mbps
-        self.hw            = hardware_cfg
+        self.hw            = copy.deepcopy(hardware_cfg)
         self.cost_model    = cost_model
         self.engine        = engine
         # Runtime forwarding decisions are scenario-level control logic and
@@ -2050,6 +2103,12 @@ class ScenarioRunner:
         # callers reaching through engine.model_cfg, and still allow safe
         # fallbacks when tests build a lightweight runner.
         self.model_cfg     = copy.deepcopy(getattr(engine, "model_cfg", {}) or {})
+        primary_runtime_gpu_device_ids = _resolve_runtime_gpu_device_ids(
+            self.model_cfg,
+            device_id=getattr(engine, "device_id", None),
+        )
+        if primary_runtime_gpu_device_ids:
+            self.hw["gpu_device_ids"] = primary_runtime_gpu_device_ids
         self.preload_cfg   = preload_cfg
         self.wl_cfg        = workload_cfg
         self.coord_cfg     = coord_cfg or {}
@@ -2197,6 +2256,12 @@ class ScenarioRunner:
 
     def _make_instance_coordinator(self, coord_enabled: bool) -> ResourceCoordinator:
         hw = {**self.hw, **self.coord_cfg}
+        runtime_gpu_device_ids = _resolve_runtime_gpu_device_ids(
+            self.model_cfg,
+            device_id=getattr(self.engine, "device_id", None),
+        )
+        if runtime_gpu_device_ids:
+            hw["gpu_device_ids"] = runtime_gpu_device_ids
         kwargs: Dict[str, Any] = {
             "config": hw,
             "coordination_enabled": coord_enabled,
@@ -2265,48 +2330,16 @@ class ScenarioRunner:
             self._refresh_slot_runtime_hints(slot)
 
     def _active_stack_gpu_device_ids(self) -> List[int]:
-        def _append_unique(dst: List[int], raw_ids: Any) -> None:
-            if raw_ids is None:
-                return
-            source = raw_ids
-            if isinstance(source, str):
-                source = [part.strip() for part in source.split(",")]
-            if not isinstance(source, (list, tuple, set)):
-                source = [source]
-            for item in source:
-                try:
-                    did = int(item)
-                except (TypeError, ValueError):
-                    continue
-                if did not in dst:
-                    dst.append(did)
-
-        device_ids: List[int] = []
-        model_cfg = getattr(self.engine, "model_cfg", {}) or {}
-        try:
-            tp = max(1, int(model_cfg.get("tensor_parallel_size", 1) or 1))
-        except (TypeError, ValueError):
-            tp = 1
-        if tp > 1:
-            configured = model_cfg.get("visible_device_ids")
-            if isinstance(configured, (list, tuple)):
-                _append_unique(device_ids, list(configured)[:tp])
-            elif isinstance(configured, str):
-                _append_unique(device_ids, configured.split(",")[:tp])
-        if self.instance_pool is not None:
-            for slot in self.instance_pool.get_slots():
-                did = getattr(slot, "device_id", None)
-                if did is None:
-                    continue
-                _append_unique(device_ids, [did])
-        if not device_ids:
-            engine_device = getattr(self.engine, "device_id", None)
-            _append_unique(device_ids, [engine_device])
-        if not device_ids:
-            available = self._available_device_ids()
-            if available:
-                _append_unique(device_ids, [available[0]])
-        return device_ids
+        device_ids = _resolve_runtime_gpu_device_ids(
+            getattr(self.engine, "model_cfg", {}) or {},
+            device_id=getattr(self.engine, "device_id", None),
+        )
+        if device_ids:
+            return device_ids
+        available = self._available_device_ids()
+        if available:
+            return [available[0]]
+        return []
 
     def _sync_stack_gpu_accounting(self) -> None:
         if self._stack is None:
@@ -2519,8 +2552,6 @@ class ScenarioRunner:
                 self._refresh_slot_runtime_hints(slot)
             if key is not None:
                 self._runtime_gpu_forward_tasks.pop(key, None)
-            if slot is not None:
-                self._schedule_runtime_gpu_forward(slot)
 
     def _schedule_runtime_gpu_forward(self, slot: Optional[Any]) -> bool:
         if not self._dynamic_forwarding_enabled or self._stack is None or slot is None:
@@ -2537,9 +2568,16 @@ class ScenarioRunner:
         task = self._runtime_gpu_forward_tasks.get(key)
         if task is not None and not task.done():
             return False
+        current_gpu = set(getattr(slot, "gpu_resident_adapters", set()))
+        preferred_gpu = self._runtime_forward_preferred_gpu_adapters(slot)
+        if preferred_gpu is not None:
+            preferred_gpu -= current_gpu
+            if not preferred_gpu:
+                return False
         candidate = self._stack.select_gpu_forward_candidate(
-            gpu_resident_adapters=set(getattr(slot, "gpu_resident_adapters", set())),
+            gpu_resident_adapters=current_gpu,
             coordinator=coordinator,
+            preferred_gpu_adapters=preferred_gpu,
         )
         if not candidate:
             return False
@@ -2547,6 +2585,39 @@ class ScenarioRunner:
             self._run_runtime_gpu_forward(slot, candidate)
         )
         return True
+
+    def _schedule_all_runtime_gpu_forward(self) -> int:
+        """
+        Opportunistically advance GPU forwarding on every live runtime.
+
+        Dedicated runtimes can otherwise fall into a self-reinforcing loop:
+        the slot that just served a request keeps forwarding more hot adapters,
+        while an idle sibling never gets a chance to catch up and remains
+        permanently less GPU-ready. Prioritize idle / least-recently-selected
+        slots first so forwarding can rebalance hot sets before routing drifts
+        too far toward one runtime.
+        """
+        instance_pool = getattr(self, "instance_pool", None)
+        if instance_pool is None:
+            return 0
+
+        def _slot_priority(slot: Any) -> tuple:
+            return (
+                max(0, int(getattr(slot, "active_requests", 0) or 0)),
+                float(getattr(slot, "last_selected_at", 0.0) or 0.0),
+                float(getattr(slot, "created_at", 0.0) or 0.0),
+                str(getattr(slot, "instance_id", "") or ""),
+            )
+
+        scheduled = 0
+        get_slots = getattr(instance_pool, "get_slots", None)
+        if not callable(get_slots):
+            return 0
+
+        for slot in sorted(get_slots(), key=_slot_priority):
+            if self._schedule_runtime_gpu_forward(slot):
+                scheduled += 1
+        return scheduled
 
     def _coordinator_metric_views(self) -> List[Dict[str, Any]]:
         metrics = list(self._retired_coord_metrics)
@@ -2683,6 +2754,59 @@ class ScenarioRunner:
                 preferred.update(getattr(slot, "gpu_resident_adapters", set()))
         return preferred
 
+    def _adapter_is_recently_active(self, adapter_id: str, *, now: Optional[float] = None) -> bool:
+        """
+        Return whether an adapter is still inside the online hotness window.
+
+        Background runtime forwarding should only mirror adapters that are not
+        just GPU-resident somewhere else, but are also part of the current live
+        working set. Reuse the existing hotness tracker window instead of
+        introducing a new forwarding-only heuristic.
+        """
+        if not adapter_id or self._stack is None:
+            return False
+        metadata_fn = getattr(self._stack, "_artifact_metadata", None)
+        metadata = metadata_fn(adapter_id) if callable(metadata_fn) else None
+        last_accessed_at = float(getattr(metadata, "last_accessed_at", 0.0) or 0.0)
+        if last_accessed_at <= 0.0:
+            return False
+        tracker = getattr(self._stack, "hotness_tracker", None)
+        try:
+            window_s = float(getattr(tracker, "window_seconds", 300.0) or 300.0)
+        except Exception:
+            window_s = 300.0
+        window_s = max(1.0, window_s)
+        current_time = time.time() if now is None else float(now)
+        return last_accessed_at >= current_time - window_s
+
+    def _runtime_forward_preferred_gpu_adapters(self, slot: Optional[Any]) -> Optional[set]:
+        """
+        Live sibling hotset for runtime-local background forwarding.
+
+        In multi-runtime mode, opportunistic forward should mirror adapters that
+        are already GPU-resident on sibling runtimes serving real traffic, then
+        stop. This keeps hotsets aligned without endless GPU churn. Single-
+        runtime scenarios still use the broader opportunistic policy.
+        """
+        instance_pool = getattr(self, "instance_pool", None)
+        if instance_pool is None or slot is None:
+            return None
+        groups = instance_pool.get_runtime_groups()
+        if len(groups) <= 1:
+            return None
+        slot_key = self._runtime_forward_task_key(slot)
+        preferred: set = set()
+        now = time.time()
+        for group in groups:
+            group_key = self._runtime_forward_task_key(group[0]) if group else None
+            if slot_key is not None and group_key == slot_key:
+                continue
+            for sibling in group:
+                for adapter_id in getattr(sibling, "gpu_resident_adapters", set()):
+                    if self._adapter_is_recently_active(adapter_id, now=now):
+                        preferred.add(adapter_id)
+        return preferred
+
     def _slot_should_include_gpu(self, slot: Optional[Any]) -> bool:
         if slot is None:
             return self._instance_mode == "shared"
@@ -2813,6 +2937,12 @@ class ScenarioRunner:
                 if not isinstance(item, Exception)
                 and _is_comparable_request(item)
             ]
+            warm_standard = [
+                float(getattr(item, "ttft_ms", 0.0) or 0.0)
+                for item in results_view
+                if not isinstance(item, Exception)
+                and _is_warm_standard_request(item)
+            ]
             scaleup_ttft = [
                 float(getattr(item, "ttft_ms", 0.0) or 0.0)
                 for item in ok
@@ -2837,6 +2967,9 @@ class ScenarioRunner:
                 "avg_comparable_ttft_ms": (sum(comparable) / len(comparable)) if comparable else 0.0,
                 "p95_comparable_ttft_ms": self._live_percentile(comparable, 95),
                 "p99_comparable_ttft_ms": self._live_percentile(comparable, 99),
+                "avg_warm_standard_ttft_ms": (sum(warm_standard) / len(warm_standard)) if warm_standard else 0.0,
+                "p95_warm_standard_ttft_ms": self._live_percentile(warm_standard, 95),
+                "p99_warm_standard_ttft_ms": self._live_percentile(warm_standard, 99),
                 "avg_serverless_overhead_ms": sum(overheads) / len(overheads) if overheads else 0.0,
                 "p95_serverless_overhead_ms": self._live_percentile(overheads, 95) if overheads else 0.0,
                 "avg_runtime_ttft_ms": (sum(runtime_ttft) / len(runtime_ttft)) if runtime_ttft else 0.0,
@@ -2844,6 +2977,10 @@ class ScenarioRunner:
                 "avg_gpu_ready_ttft_ms": (sum(gpu_ready_ttft) / len(gpu_ready_ttft)) if gpu_ready_ttft else 0.0,
                 "avg_scaleup_affected_ttft_ms": (sum(scaleup_ttft) / len(scaleup_ttft)) if scaleup_ttft else 0.0,
             })
+            avg_cost_usd = sum(float(getattr(item, "cost_usd", 0.0) or 0.0) for item in ok) / len(ok)
+            avg_e2e_s = float(stats["avg_e2e_ms"]) / 1000.0
+            denom = avg_cost_usd * avg_e2e_s
+            stats["cost_effectiveness_e2e"] = 1.0 / denom if denom > 1e-12 else 0.0
         if failed:
             reasons: Dict[str, int] = {}
             for item in failed:
@@ -2924,10 +3061,14 @@ class ScenarioRunner:
         )
         if stats:
             tokps = float(stats.get("total_output_tokens", 0) or 0.0) / max(elapsed, 1e-6)
+            live_rps = success / max(elapsed, 1e-6)
+            live_slo_goodput_rps = live_rps * float(stats.get("slo_attainment", 0.0) or 0.0)
+            live_slo_goodput_tokps = tokps * float(stats.get("slo_attainment", 0.0) or 0.0)
             print(
                 "      "
                 f"ttft(avg/p95/p99)={stats.get('avg_ttft_ms', 0.0):.0f}/{stats.get('p95_ttft_ms', 0.0):.0f}/{stats.get('p99_ttft_ms', 0.0):.0f}ms "
-                f"ttft_comp(avg/p95/p99)={stats.get('avg_comparable_ttft_ms', 0.0):.0f}/{stats.get('p95_comparable_ttft_ms', 0.0):.0f}/{stats.get('p99_comparable_ttft_ms', 0.0):.0f}ms",
+                f"ttft_comp(avg/p95/p99)={stats.get('avg_comparable_ttft_ms', 0.0):.0f}/{stats.get('p95_comparable_ttft_ms', 0.0):.0f}/{stats.get('p99_comparable_ttft_ms', 0.0):.0f}ms "
+                f"ttft_warm(avg/p95/p99)={stats.get('avg_warm_standard_ttft_ms', 0.0):.0f}/{stats.get('p95_warm_standard_ttft_ms', 0.0):.0f}/{stats.get('p99_warm_standard_ttft_ms', 0.0):.0f}ms",
                 flush=True,
             )
             print(
@@ -2942,13 +3083,15 @@ class ScenarioRunner:
                 "      "
                 f"tpot={stats.get('avg_tpot_ms', 0.0):.1f}ms "
                 f"req/s={done_rps:.2f} tok/s={tokps:.2f} "
-                f"slo@{self._ttft_slo_ms:.0f}ms={stats.get('slo_attainment', 0.0):.0%}",
+                f"slo@{self._ttft_slo_ms:.0f}ms={stats.get('slo_attainment', 0.0):.0%} "
+                f"slo_goodput={live_slo_goodput_rps:.2f}rps/{live_slo_goodput_tokps:.2f}tok/s",
                 flush=True,
             )
             print(
                 "      "
                 f"diag hit={stats.get('cache_hit_ratio', 0.0):.0%} "
-                f"overhead(io+coord)={stats.get('avg_serverless_overhead_ms', 0.0):.0f}ms",
+                f"overhead(io+coord)={stats.get('avg_serverless_overhead_ms', 0.0):.0f}ms "
+                f"cost_eff={stats.get('cost_effectiveness_e2e', 0.0):.3f}",
                 flush=True,
             )
             failure_reasons = stats.get("failure_reasons") or []
@@ -3352,6 +3495,7 @@ class ScenarioRunner:
         )
         self._prime_slot_cache_view(self.instance_pool.get_slot(instance_id), include_gpu=True)
         self._sync_stack_gpu_accounting()
+        self._schedule_all_runtime_gpu_forward()
         print(
             f"    Scale-up: added shared-engine slot "
             f"(instances={self.instance_pool.count()}/{self.instance_pool.max_instances})",
@@ -3396,6 +3540,7 @@ class ScenarioRunner:
             for aid in warmed:
                 slot.mark_adapter_tier(aid, "gpu")
             self._refresh_slot_runtime_hints(slot)
+        self._schedule_all_runtime_gpu_forward()
         if warmed:
             print(f"    New instance warmup: {len(warmed)} adapters loaded", flush=True)
         cold_start_latency_ms = max(0.0, (time.perf_counter() - cold_start_started_at) * 1000.0)
@@ -4624,7 +4769,7 @@ class ScenarioRunner:
             if slot is not None:
                 slot.active_requests = max(0, slot.active_requests - 1)
                 self._refresh_slot_runtime_hints(slot)
-                self._schedule_runtime_gpu_forward(slot)
+            self._schedule_all_runtime_gpu_forward()
 
     async def _resolve_lora(
         self, adapter_id: str, is_burst: bool, input_tokens: int,
@@ -5246,6 +5391,63 @@ def _prepare_dedicated_subprocess_model_cfg(
     return local_model_cfg, env_updates
 
 
+def _normalize_runtime_device_ids(raw_ids: Any) -> List[int]:
+    normalized: List[int] = []
+    source = raw_ids
+    if isinstance(source, str):
+        source = [part.strip() for part in source.split(",")]
+    if not isinstance(source, (list, tuple, set)):
+        source = [source]
+    for item in source:
+        try:
+            did = int(item)
+        except (TypeError, ValueError):
+            continue
+        if did not in normalized:
+            normalized.append(did)
+    return normalized
+
+
+def _resolve_runtime_gpu_device_ids(
+    model_cfg: Optional[Dict[str, Any]],
+    *,
+    device_id: Optional[int] = None,
+) -> List[int]:
+    """
+    Resolve the GPU device set that belongs to one runtime.
+
+    TP>1 runtimes should explicitly carry all local visible devices. TP=1
+    runtimes should carry only their bound device.
+    """
+    cfg = model_cfg or {}
+    try:
+        tp = max(1, int(cfg.get("tensor_parallel_size", 1) or 1))
+    except (TypeError, ValueError):
+        tp = 1
+
+    visible_ids = _normalize_runtime_device_ids(cfg.get("visible_device_ids"))
+    bound_device_id = device_id
+    if bound_device_id is None:
+        try:
+            raw_bound = cfg.get("device_id")
+            bound_device_id = int(raw_bound) if raw_bound is not None else None
+        except (TypeError, ValueError):
+            bound_device_id = None
+
+    if tp > 1:
+        if visible_ids:
+            return visible_ids[:tp]
+        if bound_device_id is not None:
+            return [int(bound_device_id)]
+        return []
+
+    if bound_device_id is not None:
+        return [int(bound_device_id)]
+    if visible_ids:
+        return [visible_ids[0]]
+    return []
+
+
 def _get_model_arch(model_name: str) -> Dict:
     """
     Probe model architecture (hidden_size, num_layers, head_dim) from config.json
@@ -5683,6 +5885,69 @@ def _cell_with_std(r: ScenarioResult, key: str, fmt: str = ".0f", unit: str = ""
     return f"{val:{fmt}}{unit}"
 
 
+def _round_metric_value(value: Any, digits: int = 4) -> Any:
+    if isinstance(value, float):
+        return round(value, digits)
+    return value
+
+
+def _build_metric_groups(r: ScenarioResult, digits: int = 4) -> Dict[str, Dict[str, Any]]:
+    return {
+        "standard_serving_metrics": {
+            "TTFT_avg_ms": _round_metric_value(r.avg_ttft_ms, digits),
+            "TTFT_P95_ms": _round_metric_value(r.p95_ttft_ms, digits),
+            "TTFT_P99_ms": _round_metric_value(r.p99_ttft_ms, digits),
+            "TTFT_warm_standard_avg_ms": _round_metric_value(r.avg_warm_standard_ttft_ms, digits),
+            "TTFT_warm_standard_P95_ms": _round_metric_value(r.p95_warm_standard_ttft_ms, digits),
+            "TTFT_warm_standard_P99_ms": _round_metric_value(r.p99_warm_standard_ttft_ms, digits),
+            "TPOT_avg_ms": _round_metric_value(r.avg_tpot_ms, digits),
+            "Throughput_RPS": _round_metric_value(r.throughput_rps, digits),
+            "Throughput_TOKPS": _round_metric_value(r.throughput_tok_per_s, digits),
+            "Cost_effectiveness_e2e": _round_metric_value(r.cost_effectiveness_e2e, digits),
+        },
+        "serverless_deployment_metrics": {
+            "TTFT_overall_avg_ms": _round_metric_value(r.avg_ttft_ms, digits),
+            "TTFT_comparable_avg_ms": _round_metric_value(r.avg_comparable_ttft_ms, digits),
+            "TTFT_comparable_P95_ms": _round_metric_value(r.p95_comparable_ttft_ms, digits),
+            "TTFT_comparable_P99_ms": _round_metric_value(r.p99_comparable_ttft_ms, digits),
+            "TTFT_gpu_ready_avg_ms": _round_metric_value(r.avg_gpu_ready_ttft_ms, digits),
+            "TTFT_gpu_ready_P95_ms": _round_metric_value(r.p95_gpu_ready_ttft_ms, digits),
+            "TTFT_scaleup_affected_avg_ms": _round_metric_value(r.avg_scaleup_affected_ttft_ms, digits),
+            "TTFT_scaleup_affected_P95_ms": _round_metric_value(r.p95_scaleup_affected_ttft_ms, digits),
+            "Runtime_TTFT_avg_ms": _round_metric_value(r.avg_runtime_ttft_ms, digits),
+            "Runtime_TTFT_P95_ms": _round_metric_value(r.p95_runtime_ttft_ms, digits),
+            "Cold_start_avg_ms": _round_metric_value(r.avg_cold_start_latency_ms, digits),
+            "Cold_start_P95_ms": _round_metric_value(r.p95_cold_start_latency_ms, digits),
+            "TTFT_serverless_overhead_avg_ms": _round_metric_value(r.avg_serverless_overhead_ms, digits),
+            "TTFT_serverless_overhead_P95_ms": _round_metric_value(r.p95_serverless_overhead_ms, digits),
+            "E2E_avg_ms": _round_metric_value(r.avg_e2e_ms, digits),
+            "E2E_P95_ms": _round_metric_value(r.p95_e2e_ms, digits),
+            "E2E_P99_ms": _round_metric_value(r.p99_e2e_ms, digits),
+            "Monetary_cost_avg_usd": _round_metric_value(r.avg_cost_usd, digits),
+            "Monetary_cost_total_usd": _round_metric_value(r.total_cost_usd, digits),
+        },
+        "scaling_metrics": {
+            "TTFT_SLO_ms": _round_metric_value(r.ttft_slo_ms, digits),
+            "SLO_attainment": _round_metric_value(r.slo_attainment, digits),
+            "SLO_goodput_RPS": _round_metric_value(r.slo_goodput_rps, digits),
+            "SLO_goodput_TOKPS": _round_metric_value(r.slo_goodput_tok_per_s, digits),
+            "scale_up_events": len(getattr(r, "scale_up_events", []) or []),
+            "scale_down_events": int(getattr(r, "scale_down_events", 0) or 0),
+        },
+        "mechanism_metrics": {
+            "QPR": _round_metric_value(r.qpr, digits),
+            "cache_hit_rate": _round_metric_value(r.cache_hit_rate, digits),
+            "GPU_hit_rate": _round_metric_value(r.gpu_hit_rate, digits),
+            "LoRA_IO_avg_ms": _round_metric_value(r.avg_lora_io_ms, digits),
+            "GPU_ready_hits": int(getattr(r, "gpu_ready_hits", 0) or 0),
+            "Warm_pool_hits": int(getattr(r, "warm_pool_hits", 0) or 0),
+            "C3_contention_events": int(getattr(r, "contention_events", 0) or 0),
+            "C3_contention_penalty_ms": _round_metric_value(r.avg_contention_ms, digits),
+            "C3_defer_delay_ms": _round_metric_value(r.avg_defer_ms, digits),
+        },
+    }
+
+
 def print_results(results: List[ScenarioResult], bw_mbps: float,
                   has_azure: bool, has_sgpt: bool, backend: str):
     """Print full results table with comparisons."""
@@ -5747,6 +6012,34 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
         )
     if has_multi_run:
         print("  (Mean ± std over multiple runs; 95% CI in results JSON.)")
+    print(f"{DLINE}")
+
+    print("\n  Standard Serving Metrics (paper-facing, cross-system dialogue)")
+    print(f"  {LINE[2:]}")
+    hdr_std = (
+        f"  {'Scenario':<26} {'Type':<16} "
+        f"{'AvgTTFT':>10} {'WarmTTFT':>22} {'TPOT':>8} "
+        f"{'RPS':>8} {'Tok/s':>9} {'SLOGood':>10} {'CostEff':>10}"
+    )
+    print(hdr_std)
+    print(f"  {LINE[2:]}")
+    for r in results:
+        label = type_label.get(r.baseline_type, r.baseline_type)
+        warm_std = (
+            f"{r.avg_warm_standard_ttft_ms:.0f}/"
+            f"{r.p95_warm_standard_ttft_ms:.0f}/"
+            f"{r.p99_warm_standard_ttft_ms:.0f}ms"
+        )
+        print(
+            f"  {r.scenario_name:<26} {label:<16} "
+            f"{r.avg_ttft_ms:>8.0f}ms "
+            f"{warm_std:>22} "
+            f"{r.avg_tpot_ms:>6.1f}ms "
+            f"{r.throughput_rps:>8.2f} "
+            f"{r.throughput_tok_per_s:>9.2f} "
+            f"{r.slo_goodput_rps:>8.2f} "
+            f"{r.cost_effectiveness_e2e:>10.3f}"
+        )
     print(f"{DLINE}")
 
     print("\n  Secondary Paper Metrics: Cold Start & Monetary Cost")
@@ -5906,6 +6199,7 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
     base = next((r for r in results if r.baseline_type == "cold_start"), None)
     rows = []
     for r in results:
+        metric_groups = _build_metric_groups(r, digits=4)
         row: Dict[str, Any] = {
             "scenario": r.scenario_name,
             "baseline_type": r.baseline_type,
@@ -5917,6 +6211,10 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "TTFT_P99_ms": round(r.p99_ttft_ms, 1),
             "TTFT_comparable_avg_ms": round(r.avg_comparable_ttft_ms, 1),
             "TTFT_comparable_P95_ms": round(r.p95_comparable_ttft_ms, 1),
+            "TTFT_comparable_P99_ms": round(r.p99_comparable_ttft_ms, 1),
+            "TTFT_warm_standard_avg_ms": round(r.avg_warm_standard_ttft_ms, 1),
+            "TTFT_warm_standard_P95_ms": round(r.p95_warm_standard_ttft_ms, 1),
+            "TTFT_warm_standard_P99_ms": round(r.p99_warm_standard_ttft_ms, 1),
             "Runtime_TTFT_avg_ms": round(r.avg_runtime_ttft_ms, 1),
             "Runtime_TTFT_P95_ms": round(r.p95_runtime_ttft_ms, 1),
             "TTFT_gpu_ready_avg_ms": round(r.avg_gpu_ready_ttft_ms, 1),
@@ -5931,9 +6229,12 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "throughput_RPS":  round(r.throughput_rps, 3),
             "throughput_TOKPS": round(r.throughput_tok_per_s, 3),
             "SLO_attainment": round(r.slo_attainment, 4),
+            "SLO_goodput_RPS": round(r.slo_goodput_rps, 4),
+            "SLO_goodput_TOKPS": round(r.slo_goodput_tok_per_s, 4),
             "TTFT_SLO_ms": round(r.ttft_slo_ms, 1),
             "avg_cost_USD": round(r.avg_cost_usd, 7),
             "total_cost_USD":    round(r.total_cost_usd, 5),
+            "Cost_effectiveness_e2e": round(r.cost_effectiveness_e2e, 4),
             "QPR":     round(r.qpr, 1),
             "cache_hit_rate":    round(r.cache_hit_rate, 4),
             "GPU_hit_rate":     round(r.gpu_hit_rate, 4),
@@ -5943,6 +6244,7 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "C3_defer_delay_ms": round(r.avg_defer_ms, 1),
             "C3_gpu_ready_hits": r.gpu_ready_hits,
             "C3_warm_pool_hits": r.warm_pool_hits,
+            **metric_groups,
         }
         if getattr(r, "scale_down_events", 0):
             row["E1_scale_down_events"] = r.scale_down_events
@@ -5975,6 +6277,7 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
 def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     summaries: Dict[str, Dict[str, Any]] = {}
     for r in results:
+        metric_groups = _build_metric_groups(r, digits=6)
         summaries[r.scenario_name] = {
             "scenario_name": r.scenario_name,
             "baseline_type": r.baseline_type,
@@ -6009,6 +6312,9 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "avg_comparable_ttft_ms": round(r.avg_comparable_ttft_ms, 4),
             "p95_comparable_ttft_ms": round(r.p95_comparable_ttft_ms, 4),
             "p99_comparable_ttft_ms": round(r.p99_comparable_ttft_ms, 4),
+            "avg_warm_standard_ttft_ms": round(r.avg_warm_standard_ttft_ms, 4),
+            "p95_warm_standard_ttft_ms": round(r.p95_warm_standard_ttft_ms, 4),
+            "p99_warm_standard_ttft_ms": round(r.p99_warm_standard_ttft_ms, 4),
             "avg_serverless_overhead_ms": round(r.avg_serverless_overhead_ms, 4),
             "p95_serverless_overhead_ms": round(r.p95_serverless_overhead_ms, 4),
             "avg_runtime_ttft_ms": round(r.avg_runtime_ttft_ms, 4),
@@ -6019,6 +6325,9 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "p95_scaleup_affected_ttft_ms": round(r.p95_scaleup_affected_ttft_ms, 4),
             "avg_cold_start_latency_ms": round(r.avg_cold_start_latency_ms, 4),
             "p95_cold_start_latency_ms": round(r.p95_cold_start_latency_ms, 4),
+            "cost_effectiveness_e2e": round(r.cost_effectiveness_e2e, 6),
+            "slo_goodput_rps": round(r.slo_goodput_rps, 6),
+            "slo_goodput_tok_per_s": round(r.slo_goodput_tok_per_s, 6),
             "contention_events": r.contention_events,
             "avg_contention_ms": round(r.avg_contention_ms, 4),
             "avg_defer_ms": round(r.avg_defer_ms, 4),
@@ -6028,6 +6337,7 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "scale_down_events": r.scale_down_events,
             "scale_down_event_log": r.scale_down_event_log,
             "cold_starts_after_scale_up": r.cold_starts_after_scale_up,
+            **metric_groups,
         }
     return summaries
 
@@ -6044,8 +6354,62 @@ def save_results(results: List[ScenarioResult], path: Path, meta: Dict):
                        if row["baseline_type"] in sota_types]
 
     data = {
-        "schema_version": 2,
+        "schema_version": 3,
         "metadata": meta,
+        "metric_structure": {
+            "standard_serving_metrics": [
+                "TTFT_avg_ms",
+                "TTFT_P95_ms",
+                "TTFT_P99_ms",
+                "TTFT_warm_standard_avg_ms",
+                "TTFT_warm_standard_P95_ms",
+                "TTFT_warm_standard_P99_ms",
+                "TPOT_avg_ms",
+                "Throughput_RPS",
+                "Throughput_TOKPS",
+                "Cost_effectiveness_e2e",
+            ],
+            "serverless_deployment_metrics": [
+                "TTFT_overall_avg_ms",
+                "TTFT_comparable_avg_ms",
+                "TTFT_comparable_P95_ms",
+                "TTFT_comparable_P99_ms",
+                "TTFT_gpu_ready_avg_ms",
+                "TTFT_gpu_ready_P95_ms",
+                "TTFT_scaleup_affected_avg_ms",
+                "TTFT_scaleup_affected_P95_ms",
+                "Runtime_TTFT_avg_ms",
+                "Runtime_TTFT_P95_ms",
+                "Cold_start_avg_ms",
+                "Cold_start_P95_ms",
+                "TTFT_serverless_overhead_avg_ms",
+                "TTFT_serverless_overhead_P95_ms",
+                "E2E_avg_ms",
+                "E2E_P95_ms",
+                "E2E_P99_ms",
+                "Monetary_cost_avg_usd",
+                "Monetary_cost_total_usd",
+            ],
+            "scaling_metrics": [
+                "TTFT_SLO_ms",
+                "SLO_attainment",
+                "SLO_goodput_RPS",
+                "SLO_goodput_TOKPS",
+                "scale_up_events",
+                "scale_down_events",
+            ],
+            "mechanism_metrics": [
+                "QPR",
+                "cache_hit_rate",
+                "GPU_hit_rate",
+                "LoRA_IO_avg_ms",
+                "GPU_ready_hits",
+                "Warm_pool_hits",
+                "C3_contention_events",
+                "C3_contention_penalty_ms",
+                "C3_defer_delay_ms",
+            ],
+        },
         "comparison_table": comparison_table,
         "sota_comparison": sota_comparison,
         "scenario_summaries": scenario_summaries,
@@ -6772,9 +7136,16 @@ async def main_async(
             # pynvml/GPUMemoryMonitor initialisation in the main process (no NVML fd inheritance issues).
             _skip_stack = (btype == "faaslora_full" and engine.backend == "transformers")
             if use_full_stack and FAASLORA_EXPERIMENT_AVAILABLE and btype in ("faaslora_nvme", "faaslora_no_coord", "faaslora_full") and not _skip_stack:
+                stack_hw_merged = copy.deepcopy(hw_merged)
+                stack_runtime_gpu_device_ids = _resolve_runtime_gpu_device_ids(
+                    getattr(engine, "model_cfg", {}) or {},
+                    device_id=getattr(engine, "device_id", None),
+                )
+                if stack_runtime_gpu_device_ids:
+                    stack_hw_merged["gpu_device_ids"] = stack_runtime_gpu_device_ids
                 experiment_stack = ExperimentStack(
                     adapter_info=adapter_info,
-                    hardware_cfg=hw_merged,
+                    hardware_cfg=stack_hw_merged,
                     coord_cfg=sc_coord,
                     preload_cfg=preload_cfg,
                     remote_dir=remote_dir,
@@ -6822,6 +7193,12 @@ async def main_async(
                         "config": {**coord_cfg_local, **hw_cfg_local},
                         "coordination_enabled": coord_enabled_local,
                     }
+                    runtime_gpu_device_ids = _resolve_runtime_gpu_device_ids(
+                        local_model_cfg,
+                        device_id=getattr(new_engine, "device_id", local_model_cfg.get("device_id")),
+                    )
+                    if runtime_gpu_device_ids:
+                        coord_kwargs["config"]["gpu_device_ids"] = runtime_gpu_device_ids
                     return new_engine, ResourceCoordinator(**coord_kwargs)
 
                 engine_factory = _spawn_engine
@@ -6880,18 +7257,21 @@ async def main_async(
             )
             print(
                 f"  TTFT_comp={result.avg_comparable_ttft_ms:.0f}/{result.p95_comparable_ttft_ms:.0f}/{result.p99_comparable_ttft_ms:.0f}ms  "
+                f"TTFT_warm={result.avg_warm_standard_ttft_ms:.0f}/{result.p95_warm_standard_ttft_ms:.0f}/{result.p99_warm_standard_ttft_ms:.0f}ms  "
                 f"ScaleUpAffected={result.avg_scaleup_affected_ttft_ms:.0f}ms  "
                 f"TPOT={result.avg_tpot_ms:.1f}ms  E2E={result.avg_e2e_ms:.0f}ms"
             )
             print(
                 f"  ColdStart={result.avg_cold_start_latency_ms:.0f}/{result.p95_cold_start_latency_ms:.0f}ms  "
-                f"Cost/req=${result.avg_cost_usd:.6f}  TotalCost=${result.total_cost_usd:.4f}"
+                f"Cost/req=${result.avg_cost_usd:.6f}  TotalCost=${result.total_cost_usd:.4f}  "
+                f"CostEff={result.cost_effectiveness_e2e:.3f}"
             )
             print(
                 f"  Diag Runtime={result.avg_runtime_ttft_ms:.0f}ms  "
                 f"GPUReady={result.avg_gpu_ready_ttft_ms:.0f}ms  "
                 f"Hit={result.cache_hit_rate:.0%}  "
-                f"Overhead(io+coord)={result.avg_serverless_overhead_ms:.0f}ms"
+                f"Overhead(io+coord)={result.avg_serverless_overhead_ms:.0f}ms  "
+                f"SLOGoodput={result.slo_goodput_rps:.2f}rps/{result.slo_goodput_tok_per_s:.2f}tok/s"
             )
             if result.gpu_ready_hits > 0 or result.warm_pool_hits > 0 or result.contention_events > 0:
                 print(

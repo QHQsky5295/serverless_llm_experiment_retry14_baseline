@@ -11,10 +11,26 @@
 
 当前建议：
 
-- 先把当前 clean-tree 推到当前分支，作为可回退快照
+- 先把当前 clean-tree 的 `retry42_fix4 / TODO #2 收口 / 指标层更新` 推到当前分支，作为新的可回退快照
 - 是否合并到 `main` 另行决策
 
-## 2026-03-29 深夜更新：本次只同步文档与规划，不纳入当前本地 TODO `#2` 代码修改
+## 2026-03-30 更新：下一次同步应纳入 TODO `#2` 收口代码与 `retry42_fix4` 文档状态
+
+- 当前最新本地已验证结果：`retry42_fix4_baseline @ 500`
+- 当前最新正式判断：
+  - TODO `#2` 已在 `retry42_fix4` 上实质收口
+  - TODO `#1` 仍保持收口，不应回头继续叠控制面
+  - 当前 next active TODO 已切换到 `#3`：`scale_up_preload_mb=1024` 的 headroom-aware 动态预算
+- 当前下一次同步应纳入：
+  - TODO `#2` 收口代码
+  - `TTFT_warm_standard / Cost_effectiveness_e2e / SLO_goodput` 指标层更新
+  - `retry42_fix4` 的 handoff / progress / sync 文档结论
+- 当前下一次同步后，新的默认回退点应能表达：
+  - runtime-local topology accounting 已收口
+  - stale sibling GPU residency 不再驱动 background forward
+  - 评价体系已经具备 paper-facing 的双层指标结构
+
+## 2026-03-29 深夜更新：上一次同步只纳入文档与规划，不纳入当时本地 TODO `#2` 代码修改
 
 - 本次 docs-only 同步已完成并推送：
   - 提交：`34881fb`
@@ -107,7 +123,10 @@
 
 - `faaslora/experiment/instance_pool.py`
 - `faaslora/experiment/experiment_stack.py`
+- `faaslora/memory/memory_coordinator.py`
+- `faaslora/memory/residency_manager.py`
 - `faaslora/scheduling/resource_coordinator.py`
+- `faaslora/serving/vllm_wrapper.py`
 - `scripts/run_all_experiments.py`
 - `tests/test_basic_smoke.py`
 - `docs/*.md`
@@ -149,15 +168,16 @@
    - `docs/*.md`
    - `docs copy/*.md`
    - 新的调研文档 `RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md`
-3. 若当前本地代码仍在验证中，则本次只提交 `docs/` 与 `docs copy/`。
-4. 在当前工作分支形成一次 docs-only 提交。
-5. 推送到 GitHub，作为后续可回退的文档与规划入口。
+3. 若当前本地代码已经在正式实验上收口，则本次应把代码与文档一起提交。
+4. 在当前工作分支形成一次明确写明 `retry42_fix4 / TODO #2 closure` 的提交。
+5. 推送到 GitHub，作为后续可回退的代码与文档入口。
 
 建议提交信息明确写出：
 
-- 本次是 `docs-only sync`
-- 已新增 related work / optimization survey
-- 正式 TODO 顺序已固定为 `#2 -> #3 -> #4 -> #5`
+- 本次纳入 `retry42_fix4`
+- TODO `#2` 收口
+- 指标层已补 `TTFT_warm_standard / Cost_effectiveness_e2e / SLO_goodput`
+- 正式 TODO 顺序当前固定为 `#3 -> #4 -> #5`
 
 ## 本次快照的目的
 

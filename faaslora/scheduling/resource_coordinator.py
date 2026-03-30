@@ -34,6 +34,23 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 
+def _normalize_gpu_device_ids(raw_ids: Any) -> List[int]:
+    normalized: List[int] = []
+    source = raw_ids
+    if isinstance(source, str):
+        source = [part.strip() for part in source.split(",")]
+    if not isinstance(source, (list, tuple, set)):
+        source = [source]
+    for item in source:
+        try:
+            did = int(item)
+        except (TypeError, ValueError):
+            continue
+        if did not in normalized:
+            normalized.append(did)
+    return normalized
+
+
 @dataclass
 class MemorySnapshot:
     timestamp: float
@@ -104,7 +121,14 @@ class ResourceCoordinator:
         self._residency_manager = residency_manager  # optional: align GPU state with ResidencyManager (C3)
 
         # GPU memory model (MB)
-        self.gpu_budget_mb: float         = cfg.get("gpu_budget_mb",        24000)
+        self.gpu_device_ids: List[int]    = _normalize_gpu_device_ids(cfg.get("gpu_device_ids"))
+        self.gpu_device_count: int        = max(1, len(self.gpu_device_ids))
+        self.gpu_budget_per_device_mb: float = float(cfg.get("gpu_budget_mb", 24000))
+        total_budget_override = cfg.get("gpu_budget_total_mb")
+        if total_budget_override is not None:
+            self.gpu_budget_mb = float(total_budget_override)
+        else:
+            self.gpu_budget_mb = self.gpu_budget_per_device_mb * self.gpu_device_count
         self.model_weights_mb: float      = cfg.get("model_weights_mb",     1000)   # backbone
         self.kv_per_1k_tokens_mb: float   = cfg.get("kv_per_1k_tokens_mb",  0.5)
 

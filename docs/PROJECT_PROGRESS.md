@@ -40,7 +40,7 @@
 - `retry21` 及其对应脏树状态视为废案，不再作为正式对比对象。
 - 本次 GitHub 同步的目的不是发布最终结论，而是把当前 clean-tree 形成一个稳定回退点。
 
-## 2026-03-29 晚更新快照
+## 2026-03-30 更新快照
 
 ### 当前新增调研文档入口
 
@@ -53,56 +53,69 @@
 
 ### 当前最新已验证实验状态
 
-- 当前最新已验证干净结果：`retry40_baseline @ 500`
-- 当前最新已正式分析结果：`retry40 vs retry39 vs retry38`
+- 当前最新已验证干净结果：`retry42_fix4_baseline @ 500`
+- 当前最新已正式分析结果：`retry42_fix4 vs retry42_fix3 vs retry42_fix2 vs retry40`
 - 当前最新结构性结论：
-  - `retry39` 已正式证明 TODO `#1` 的第一阶段有效，live scale-up 已经不再被 `scale_decision_interval=25` 的请求数硬门槛卡死
-  - `retry40` 进一步证明 live 动态 RPS 阈值刷新和事件口径修复后，TODO `#1` 的主瓶颈已经在当前 clean-tree 主线实质收口
-  - 当前没有新的结构性 bug，主问题不再是 TODO `#1`
+  - `retry41` 证明 TODO `#2` 第一刀把 per-runtime GPU accounting scope 放宽过头，触发了系统性性能回退
+  - `retry42_fix2` 修回了双实例 hotset 对称性，但暴露出 background GPU forward 过度积极，steady-state `E2E / Throughput` 明显变差
+  - `retry42_fix3` 去掉递归 self-trigger 仍不够，因为 request-completion 触发仍会追逐 stale sibling GPU resident 集合
+  - `retry42_fix4` 把 multi-runtime background forward 明确定义为“只镜像 sibling recent live hotset”，从而切掉了 TODO `#2` 的主回退 bug
+  - 当前没有新的结构性 bug，主问题已经从 TODO `#2` 的 steady-state 回退重新切回 cold-path / preload coverage
 - 当前最新 headline 指标结论：
-  - `TTFT_overall = 7196.9 ms`
-  - `TTFT_comparable = 8122.7 ms`
-  - `TTFT_scaleup_affected = 8722.8 ms`
-  - `TTFT_gpu_ready = 8069.4 ms`
-  - `Runtime_TTFT = 7042.5 ms`
-  - `TPOT = 50.5 ms`
-  - `E2E_latency = 10393.8 ms`
-  - `Throughput_req/s = 0.13455`
-  - `Throughput_tok/s = 17.205`
-  - `SLO_attainment = 17.8%`
-  - `Cold_start_latency = 49529.5 ms`
-  - `Monetary_cost = $0.0034435 / req`
-- 相对 `retry39` 的正式改进：
-  - `TTFT_overall: 7571.1 -> 7196.9 ms`
-  - `TTFT_comparable: 8375.6 -> 8122.7 ms`
-  - `TTFT_scaleup_affected: 9146.3 -> 8722.8 ms`
-  - `Runtime_TTFT: 7392.2 -> 7042.5 ms`
-  - `E2E_latency: 11522.0 -> 10393.8 ms`
-  - `Throughput_req/s: 0.10797 -> 0.13455`
-  - `Throughput_tok/s: 13.811 -> 17.205`
-  - `SLO_attainment: 16.8% -> 17.8%`
-  - `Cold_start_latency: 61928.7 -> 49529.5 ms`
-  - `P95/P99_TTFT: 10464.1/17195.9 -> 9724.9/15349.4 ms`
-  - `P95/P99_E2E: 18706.8/25471.6 -> 14926.9/20427.2 ms`
-  - `avg_lora_io_ms: 179.0 -> 154.4 ms`
-  - `TPOT` 小幅回退 `48.8 -> 50.5 ms`，但仍优于 `retry38` 的 `52.4 ms`
+  - `TTFT_overall = 7291.5 ms`
+  - `TTFT_comparable = 8471.7 ms`
+  - `TTFT_warm_standard = 8414.4 ms`
+  - `TTFT_scaleup_affected = 8974.1 ms`
+  - `TTFT_gpu_ready = 8414.4 ms`
+  - `Runtime_TTFT = 7041.8 ms`
+  - `TPOT = 47.5 ms`
+  - `E2E_latency = 10478.0 ms`
+  - `Throughput_req/s = 0.13923`
+  - `Throughput_tok/s = 17.739`
+  - `SLO_attainment = 21.0%`
+  - `Cold_start_latency = 53071.2 ms`
+  - `Monetary_cost = $0.00344264 / req`
+  - `Cost_effectiveness_e2e = 27.7223`
+  - `SLO_goodput_RPS = 0.02924`
+  - `SLO_goodput_TOKPS = 3.72527`
+- 相对 `retry42_fix3` 的正式改进：
+  - `TTFT_overall: 7860.6 -> 7291.5 ms`
+  - `TTFT_comparable: 9143.5 -> 8471.7 ms`
+  - `TTFT_warm_standard: 8705.1 -> 8414.4 ms`
+  - `TTFT_scaleup_affected: 8994.3 -> 8974.1 ms`
+  - `TTFT_gpu_ready: 8705.1 -> 8414.4 ms`
+  - `Runtime_TTFT: 7561.4 -> 7041.8 ms`
+  - `TPOT: 48.3 -> 47.5 ms`
+  - `E2E_latency: 16428.1 -> 10478.0 ms`
+  - `Throughput_req/s: 0.07352 -> 0.13923`
+  - `Throughput_tok/s: 9.3855 -> 17.739`
+  - `SLO_attainment: 19.8% -> 21.0%`
+  - `avg_lora_io_ms: 299.2 -> 249.8 ms`
+- 相对 `retry40` 的当前判断：
+  - `Runtime_TTFT` 基本持平：`7042.5 -> 7041.8 ms`
+  - `TPOT / Throughput / SLO` 已优于 `retry40`
+  - `TTFT_comparable / TTFT_gpu_ready / TTFT_scaleup_affected / Cold_start_latency / avg_lora_io_ms` 仍偏差，剩余主矛盾已重新集中到 cold-path / preload coverage
 
 ### 当前最新代码状态
 
 - 当前 GitHub 上的最新已推送代码基线仍是 `1544de2`：
   - 对应 `retry40` 收口后的主线状态
   - TODO `#1` 的 live scale-up 主线修复已纳入
-- 当前本地工作树另有**未推送**的 TODO `#2` 主线代码修改：
+- 当前本地工作树另有**未推送**的 TODO `#2` 收口代码与指标层更新：
+  - `faaslora/experiment/experiment_stack.py`
   - `faaslora/memory/memory_coordinator.py`
   - `faaslora/memory/residency_manager.py`
+  - `faaslora/scheduling/resource_coordinator.py`
   - `faaslora/serving/vllm_wrapper.py`
+  - `scripts/run_all_experiments.py`
   - `tests/test_basic_smoke.py`
 - 这批本地未推送代码修改的含义：
-  - 目标是清理残留 `device 0` 拓扑硬编码
-  - 当前只在本地继续验证，不应与本次文档同步混淆
+  - TODO `#2`：多 GPU / TP-local topology accounting 与 runtime-local live hotset mirroring 已在 `retry42_fix4` 上实质收口
+  - 指标层已新增 `TTFT_warm_standard / Cost_effectiveness_e2e / SLO_goodput`
+  - 结果 JSON 已升级到 `schema_version = 3`，并分层输出 `standard_serving_metrics / serverless_deployment_metrics / scaling_metrics / mechanism_metrics`
 - 当前本地测试状态：
-  - `tests.test_basic_smoke = 101/101 OK`
-  - TODO `#2` 的新增 smoke 已通过
+  - `tests.test_basic_smoke = 114/114 OK`
+  - `RuntimeAccountingAndMetricsSmokeTests = 39/39 OK`
 
 ### 当前高优先级 TODO 顺序
 
@@ -110,11 +123,18 @@
    - 当前状态：在 `retry40` 上已收口，除非后续出现新回归，否则不应继续为 TODO `#1` 叠加控制面改动
 
 2. TODO `#2`：清理残留 `device 0` 拓扑硬编码
-   - 当前成为 next active TODO
-   - 只能在不破坏 `retry40` 已收口指标的前提下推进
+   - 当前状态：已在 `retry42_fix4` 上实质收口
+   - 当前不要再回头叠加 runtime-forward 微调，除非后续实验再次出现明确回归
 
 3. TODO `#3`：`scale_up_preload_mb=1024` 改成 headroom-aware 动态预算
-   - 只有在 TODO `#2` 收口后才允许进入
+   - 当前成为 next active TODO
+   - 优先服务：
+     - `TTFT_scaleup_affected`
+     - `Cold_start_latency`
+     - `TTFT_overall`
+     - `TTFT_comparable`
+     - `avg_lora_io_ms`
+     - `gpu_hit_rate`
 
 4. TODO `#4`：rank / size-aware observed utility
    - 范围包括 routing / preload candidate selection / GPU admission utility

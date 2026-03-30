@@ -8,7 +8,7 @@ during scaling operations to resolve memory contention issues.
 import time
 import asyncio
 import threading
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import deque
@@ -137,8 +137,126 @@ class MemoryCoordinator:
             'avg_allocation_time_ms': 0.0,
             'memory_pressure_events': 0
         }
-        
+
         self.logger.info("Memory coordinator initialized")
+
+    def _gpu_device_ids_for_accounting(self) -> List[int]:
+        """
+        Return the active GPU device set for coordination decisions.
+
+        Multi-GPU aggregation should happen only when the residency layer
+        explicitly exposes a shared device set. Otherwise keep decisions local
+        to this runtime's first visible GPU.
+        """
+        getter = getattr(self.residency_manager, "_gpu_device_ids_for_accounting", None)
+        if callable(getter):
+            try:
+                device_ids = getter()
+            except Exception:
+                device_ids = []
+            normalized: List[int] = []
+            for device_id in device_ids or []:
+                try:
+                    did = int(device_id)
+                except (TypeError, ValueError):
+                    continue
+                if did not in normalized:
+                    normalized.append(did)
+            if normalized:
+                return normalized
+
+        normalized = []
+        for device_id in list(getattr(self.gpu_monitor, "devices", []) or []):
+            try:
+                did = int(device_id)
+            except (TypeError, ValueError):
+                continue
+            if did not in normalized:
+                normalized.append(did)
+        if normalized:
+            return [normalized[0]]
+
+        try:
+            device_count = int(getattr(self.gpu_monitor, "device_count", 0) or 0)
+        except (TypeError, ValueError):
+            device_count = 0
+        if device_count > 0:
+            return [0]
+        return []
+
+    def _current_gpu_memory_snapshot(self) -> Optional[Dict[str, int]]:
+        """Aggregate live GPU memory across the active device set."""
+        if not getattr(self.gpu_monitor, "enabled", False):
+            return None
+
+        infos: Dict[int, Any] = {}
+        getter_all = getattr(self.gpu_monitor, "get_all_devices_memory_info", None)
+        if callable(getter_all):
+            try:
+                infos = getter_all() or {}
+            except Exception:
+                infos = {}
+
+        preferred_ids = self._gpu_device_ids_for_accounting()
+        device_ids = [device_id for device_id in preferred_ids if device_id in infos]
+        if not device_ids and infos:
+            local_visible: List[int] = []
+            for device_id in list(getattr(self.gpu_monitor, "devices", []) or []):
+                try:
+                    did = int(device_id)
+                except (TypeError, ValueError):
+                    continue
+                if did in infos and did not in local_visible:
+                    local_visible.append(did)
+            if local_visible:
+                device_ids = [local_visible[0]]
+            else:
+                try:
+                    device_ids = [sorted(int(device_id) for device_id in infos.keys())[0]]
+                except Exception:
+                    device_ids = []
+        if device_ids:
+            return {
+                "total_bytes": sum(int(infos[device_id].total_bytes) for device_id in device_ids),
+                "used_bytes": sum(int(infos[device_id].used_bytes) for device_id in device_ids),
+                "free_bytes": sum(int(infos[device_id].free_bytes) for device_id in device_ids),
+                "active_bytes": sum(int(getattr(infos[device_id], "active_bytes", 0)) for device_id in device_ids),
+                "cached_bytes": sum(int(getattr(infos[device_id], "cached_bytes", 0)) for device_id in device_ids),
+            }
+
+        getter_one = getattr(self.gpu_monitor, "get_current_memory_info", None)
+        if not callable(getter_one):
+            return None
+        fallback_ids = preferred_ids or []
+        if not fallback_ids:
+            for device_id in list(getattr(self.gpu_monitor, "devices", []) or []):
+                try:
+                    did = int(device_id)
+                except (TypeError, ValueError):
+                    continue
+                if did not in fallback_ids:
+                    fallback_ids.append(did)
+        for device_id in fallback_ids:
+            gpu_info = getter_one(device_id)
+            if gpu_info:
+                return {
+                    "total_bytes": int(gpu_info.total_bytes),
+                    "used_bytes": int(gpu_info.used_bytes),
+                    "free_bytes": int(gpu_info.free_bytes),
+                    "active_bytes": int(getattr(gpu_info, "active_bytes", 0)),
+                    "cached_bytes": int(getattr(gpu_info, "cached_bytes", 0)),
+                }
+        if not fallback_ids:
+            gpu_info = getter_one(0)
+            if gpu_info:
+                return {
+                    "total_bytes": int(gpu_info.total_bytes),
+                    "used_bytes": int(gpu_info.used_bytes),
+                    "free_bytes": int(gpu_info.free_bytes),
+                    "active_bytes": int(getattr(gpu_info, "active_bytes", 0)),
+                    "cached_bytes": int(getattr(gpu_info, "cached_bytes", 0)),
+                }
+        return None
     
     async def start(self):
         """Start memory coordination"""
@@ -248,15 +366,15 @@ class MemoryCoordinator:
         # Get current memory state
         if not self.gpu_monitor.enabled:
             return False
-        
-        gpu_info = self.gpu_monitor.get_current_memory_info(0)
+
+        gpu_info = self._current_gpu_memory_snapshot()
         if not gpu_info:
             return False
         
         # Calculate how much memory to free (target 20% free space)
         target_free_ratio = 0.2
-        target_free_bytes = int(gpu_info.total_bytes * target_free_ratio)
-        current_free_bytes = gpu_info.free_bytes
+        target_free_bytes = int(gpu_info["total_bytes"] * target_free_ratio)
+        current_free_bytes = gpu_info["free_bytes"]
         
         if current_free_bytes >= target_free_bytes:
             return True  # Already have enough free space
@@ -336,9 +454,9 @@ class MemoryCoordinator:
             self.logger.warning("GPU monitor not enabled, using default budget")
             total_bytes = 8 * 1024**3  # 8GB default
         else:
-            gpu_info = self.gpu_monitor.get_current_memory_info(0)
+            gpu_info = self._current_gpu_memory_snapshot()
             if gpu_info:
-                total_bytes = gpu_info.total_bytes
+                total_bytes = gpu_info["total_bytes"]
             else:
                 total_bytes = 8 * 1024**3  # 8GB fallback
         
@@ -496,13 +614,13 @@ class MemoryCoordinator:
         """Monitor for memory pressure conditions"""
         if not self.gpu_monitor.enabled:
             return
-        
-        gpu_info = self.gpu_monitor.get_current_memory_info(0)
+
+        gpu_info = self._current_gpu_memory_snapshot()
         if not gpu_info:
             return
         
         # Check if memory usage is too high
-        utilization = gpu_info.used_bytes / gpu_info.total_bytes
+        utilization = gpu_info["used_bytes"] / gpu_info["total_bytes"]
         pressure_threshold = 0.9  # 90% utilization triggers pressure handling
         
         if utilization > pressure_threshold:

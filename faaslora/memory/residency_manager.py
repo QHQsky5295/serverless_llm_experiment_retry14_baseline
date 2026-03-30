@@ -170,7 +170,13 @@ class ResidencyManager:
         self._tracked_gpu_device_ids = tuple(normalized) if normalized else None
 
     def _gpu_device_ids_for_accounting(self) -> List[int]:
-        """Return the active GPU device set used for shared-tier accounting."""
+        """
+        Return the active GPU device set used for shared-tier accounting.
+
+        Without explicit topology metadata, default to this runtime's first
+        visible GPU instead of assuming every monitored GPU belongs to one
+        shared artifact pool.
+        """
         if self._tracked_gpu_device_ids:
             return list(self._tracked_gpu_device_ids)
 
@@ -200,10 +206,23 @@ class ResidencyManager:
                 return ids
 
         if getattr(self.gpu_monitor, "enabled", False):
-            devices = list(getattr(self.gpu_monitor, "devices", []) or [])
-            if devices:
-                return [int(devices[0])]
-        return [0]
+            normalized: List[int] = []
+            for device_id in list(getattr(self.gpu_monitor, "devices", []) or []):
+                try:
+                    did = int(device_id)
+                except (TypeError, ValueError):
+                    continue
+                if did not in normalized:
+                    normalized.append(did)
+            if normalized:
+                return [normalized[0]]
+            try:
+                device_count = int(getattr(self.gpu_monitor, "device_count", 0) or 0)
+            except (TypeError, ValueError):
+                device_count = 0
+            if device_count > 0:
+                return [0]
+        return []
     
     def _initialize_tier_capacities(self) -> Dict[StorageTier, TierCapacity]:
         """Initialize storage tier capacities from configuration"""
@@ -937,14 +956,50 @@ class ResidencyManager:
             if device_id in infos
         ]
         if not device_ids:
-            gpu_info = self.gpu_monitor.get_current_memory_info(0)
+            local_visible: List[int] = []
+            for device_id in list(getattr(self.gpu_monitor, "devices", []) or []):
+                try:
+                    did = int(device_id)
+                except (TypeError, ValueError):
+                    continue
+                if did in infos and did not in local_visible:
+                    local_visible.append(did)
+            if local_visible:
+                device_ids = [local_visible[0]]
+            elif infos:
+                try:
+                    device_ids = [sorted(int(device_id) for device_id in infos.keys())[0]]
+                except Exception:
+                    device_ids = []
+        if not device_ids:
+            fallback_ids: List[int] = []
+            for device_id in self._gpu_device_ids_for_accounting():
+                try:
+                    did = int(device_id)
+                except (TypeError, ValueError):
+                    continue
+                if did not in fallback_ids:
+                    fallback_ids.append(did)
+            if not fallback_ids:
+                for device_id in list(getattr(self.gpu_monitor, "devices", []) or []):
+                    try:
+                        did = int(device_id)
+                    except (TypeError, ValueError):
+                        continue
+                    if did not in fallback_ids:
+                        fallback_ids.append(did)
+            gpu_info = None
+            for device_id in fallback_ids or [0]:
+                gpu_info = self.gpu_monitor.get_current_memory_info(device_id)
+                if gpu_info:
+                    break
             if not gpu_info:
                 return
             total_bytes = gpu_info.total_bytes
             used_bytes = gpu_info.used_bytes
             active_bytes = gpu_info.active_bytes
             cached_bytes = gpu_info.cached_bytes
-        else:
+        if device_ids:
             total_bytes = sum(int(infos[device_id].total_bytes) for device_id in device_ids)
             used_bytes = sum(int(infos[device_id].used_bytes) for device_id in device_ids)
             active_bytes = sum(int(infos[device_id].active_bytes) for device_id in device_ids)
