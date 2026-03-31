@@ -10,6 +10,18 @@
 
 若本文与当前代码实现、`docs/PROJECT_PROGRESS.md`、`docs/SESSION_HANDOFF_2026-03-13.md` 冲突，以后两者和当前代码为准；本文主要负责记录调研事实、可比性边界和规划建议。
 
+> 2026-03-31 补充：
+>
+> - 当前最新已正式分析结果是 `retry44_fix6_baseline @ 500`；系统运行形态已经恢复正常，没有新的 crash 型结构性 bug。
+> - 但 TODO `#3` 仍未收口：相对 `retry43`，`retry44_fix6` 仍明显更差于 `TTFT_scaleup_affected / Cold_start_latency / TTFT_overall / TTFT_comparable / GPU_hit_rate / avg_lora_io_ms`。
+> - 这说明当前主瓶颈仍是 cold-path / preload coverage，而不是运行健壮性。
+> - 2026-03-30~31 一度出现过偏离主线的越界修改：把 `primary runtime` 也改成 subprocess；这条改动已经被明确判定为不符合当前 clean-tree 主线，并已收回。
+> - 当前对本文第 6 节 TODO 排序的正式理解应进一步收紧为：
+>   - TODO `#2`：已收口，不再回头扩改 runtime-forward / runtime-shape
+>   - TODO `#3`：当前唯一 next active 主线
+>   - TODO `#4/#5`：继续后置，不提前进入
+> - 当前 latest local code 仍在推进 TODO `#3`，但尚未经过新实验验证；其最新一刀是在 scale-up candidate ranking 上去掉“绝对时间戳主导的混合标量”，改成可解释的词典序排序。
+>
 > 2026-03-30 补充：
 >
 > - `retry42_fix4` 已将 TODO `#2` 的 runtime-local topology / background-forward 回退问题实质收口。

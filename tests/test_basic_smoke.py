@@ -36,7 +36,7 @@ from faaslora.storage.remote_client import RemoteStorageClient
 from faaslora.storage.s3_client import S3Client
 from faaslora.storage.storage_manager import StorageManager
 from faaslora.experiment.experiment_stack import ExperimentStack
-from faaslora.experiment.instance_pool import InstanceSlot, Router
+from faaslora.experiment.instance_pool import InstancePool, InstanceSlot, Router
 from faaslora.preloading.preloading_planner import PreloadingPlanner
 from faaslora.registry.schema import ArtifactMetadata, ArtifactStatus, StorageTier
 from faaslora.utils.model_assets import ensure_adapter_support_files
@@ -53,6 +53,7 @@ from scripts.prepare_publicmix_pool import (
     scan_public_adapter_pool,
 )
 from scripts.run_all_experiments import (
+    InferenceEngine as ScriptInferenceEngine,
     RequestResult,
     ScenarioResult,
     ScenarioRunner,
@@ -61,6 +62,7 @@ from scripts.run_all_experiments import (
     _build_comparison_table,
     _build_scenario_summaries,
     _build_local_tp_runtime_env_updates,
+    _is_fatal_engine_error_message,
     _is_comparable_request,
     _normalize_lora_preparation_mode,
     _prepare_dedicated_subprocess_model_cfg,
@@ -225,6 +227,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(env["FAASLORA_VISIBLE_DEVICES"], "1")
         self.assertEqual(local_model["device_id"], 0)
         self.assertEqual(local_model["visible_device_ids"], [0])
+        self.assertTrue(local_model["skip_stale_gpu_cleanup"])
 
     def test_auto_scale_up_does_not_fallback_to_shared_slot_after_dedicated_failure(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
@@ -2164,6 +2167,42 @@ class DatasetParsingTests(unittest.TestCase):
 
 
 class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
+    def test_fatal_engine_error_message_detects_oom_and_background_loop(self) -> None:
+        self.assertTrue(_is_fatal_engine_error_message("CUDA out of memory. Tried to allocate 34 MiB"))
+        self.assertTrue(_is_fatal_engine_error_message("vLLM: Background loop has errored already."))
+        self.assertFalse(_is_fatal_engine_error_message("temporary timeout while polling"))
+
+    def test_retire_failed_slot_reassigns_primary_instance(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.instance_pool = InstancePool(min_instances=1, max_instances=2)
+        inst_1 = runner.instance_pool.add_instance(
+            SimpleNamespace(_engine_dead=True),
+            SimpleNamespace(),
+            owns_engine=True,
+            device_id=0,
+        )
+        inst_2 = runner.instance_pool.add_instance(
+            SimpleNamespace(_engine_dead=False),
+            SimpleNamespace(),
+            owns_engine=True,
+            device_id=1,
+        )
+        runner._primary_instance_id = inst_1
+        runner._slot_retire_lock = asyncio.Lock()
+        runner._scaleup_runtime_instance_ids = set()
+        runner._runtime_gpu_forward_tasks = {}
+
+        async def _cleanup_removed_slot(_slot) -> None:
+            return None
+
+        runner._cleanup_removed_slot = _cleanup_removed_slot
+
+        retired = asyncio.run(runner._retire_failed_slot(runner.instance_pool.get_slot(inst_1), "oom"))
+
+        self.assertTrue(retired)
+        self.assertEqual(runner._primary_instance_id, inst_2)
+        self.assertEqual([slot.instance_id for slot in runner.instance_pool.get_slots()], [inst_2])
+
     def test_runtime_gpu_device_ids_use_bound_device_for_tp1(self) -> None:
         device_ids = _resolve_runtime_gpu_device_ids(
             {
@@ -2174,6 +2213,44 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         )
 
         self.assertEqual(device_ids, [0])
+
+    def test_available_device_ids_use_runner_scope_not_primary_local_subprocess_mask(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.model_cfg = {"visible_device_ids": [0, 1]}
+        runner.hw = {}
+        runner.engine = SimpleNamespace(model_cfg={"visible_device_ids": [0]})
+
+        self.assertEqual(runner._available_device_ids(), [0, 1])
+
+    def test_scenario_runner_init_preserves_global_scope_when_primary_engine_is_local_subprocess(self) -> None:
+        runner = ScenarioRunner(
+            name="s",
+            baseline_type="faaslora_full",
+            adapter_info={},
+            traces=[],
+            remote_dir=PROJECT_ROOT,
+            nvme_dir=PROJECT_ROOT,
+            bandwidth_mbps=100.0,
+            hardware_cfg={"gpu_device_ids": [0, 1]},
+            cost_model={},
+            engine=SimpleNamespace(device_id=0, model_cfg={"visible_device_ids": [0], "tensor_parallel_size": 1}),
+            runner_model_cfg={"visible_device_ids": [0, 1], "tensor_parallel_size": 1},
+            preload_cfg={},
+            workload_cfg={},
+            coord_cfg={},
+        )
+
+        self.assertEqual(runner.model_cfg["visible_device_ids"], [0, 1])
+        self.assertEqual(runner.hw["gpu_device_ids"], [0, 1])
+        self.assertEqual(runner._available_device_ids(), [0, 1])
+
+    def test_script_inference_engine_cleanup_respects_skip_flag(self) -> None:
+        engine = ScriptInferenceEngine({"skip_stale_gpu_cleanup": True}, {})
+
+        with patch("scripts.run_all_experiments._kill_stale_gpu_processes") as kill:
+            engine._maybe_kill_stale_gpu_processes()
+
+        kill.assert_not_called()
 
     def test_runtime_gpu_device_ids_use_local_visible_set_for_tp2(self) -> None:
         device_ids = _resolve_runtime_gpu_device_ids(
@@ -2220,6 +2297,87 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         capacity_bytes = runner._scale_up_preload_capacity_bytes()
 
         self.assertEqual(capacity_bytes, 1536 * 1024 * 1024)
+
+    def test_scale_up_warmup_preferred_gpu_adapters_includes_recent_local_working_set(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        slot_a = SimpleNamespace(gpu_resident_adapters={"hot_a", "stale_a"})
+        slot_b = SimpleNamespace(gpu_resident_adapters={"hot_b"})
+        runner.instance_pool = SimpleNamespace(get_runtime_groups=lambda: [[slot_a], [slot_b]])
+        runner._stack = SimpleNamespace(
+            sync_local_tier_paths=lambda: None,
+            _host_paths={"host_only": "/tmp/host_only"},
+            _nvme_paths={"nvme_only": "/tmp/nvme_only"},
+        )
+        runner._adapter_is_recently_active = lambda aid, now=None: aid not in {"stale_a", "nvme_only"}
+
+        preferred = runner._scale_up_warmup_preferred_gpu_adapters()
+
+        self.assertEqual(preferred, {"hot_a", "hot_b", "host_only"})
+
+    def test_scale_up_preload_capacity_uses_dynamic_live_hotset_budget(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.preload_cfg = {
+            "scale_up_dynamic_budget_enabled": True,
+            "scale_up_preload_mb": 1024,
+        }
+        runner.hw = {
+            "gpu_budget_mb": 4096,
+            "model_weights_mb": 1024,
+        }
+        runner.coord_cfg = {"lora_load_reserve_ratio": 0.25}
+        runner.model_cfg = {"tensor_parallel_size": 1, "visible_device_ids": [0], "device_id": 0}
+        runner.engine = SimpleNamespace(device_id=0)
+        runner.coordinator = SimpleNamespace(_predicted_kv_growth_mb=lambda: 256.0)
+        runner.adapter_info = {
+            "hot_a": {"size_mb": 400.0},
+            "hot_b": {"size_mb": 500.0},
+        }
+        runner._stack = SimpleNamespace(
+            _host_paths={"hot_a": "/tmp/hot_a"},
+            _nvme_paths={"hot_b": "/tmp/hot_b"},
+            _artifact_size_mb=lambda aid: {"hot_a": 400.0, "hot_b": 500.0}[aid],
+            sync_local_tier_paths=lambda: None,
+        )
+
+        capacity_bytes = runner._scale_up_preload_capacity_bytes({"hot_a", "hot_b"})
+
+        self.assertEqual(capacity_bytes, 900 * 1024 * 1024)
+        self.assertEqual(
+            runner._last_scale_up_preload_budget["mode"],
+            "dynamic_headroom_recent_working_set",
+        )
+
+    def test_scale_up_preload_capacity_expands_to_recent_local_working_set(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.preload_cfg = {
+            "scale_up_dynamic_budget_enabled": True,
+            "scale_up_preload_mb": 1024,
+        }
+        runner.hw = {
+            "gpu_budget_mb": 4096,
+            "model_weights_mb": 1024,
+        }
+        runner.coord_cfg = {"lora_load_reserve_ratio": 0.25}
+        runner.model_cfg = {"tensor_parallel_size": 1, "visible_device_ids": [0], "device_id": 0}
+        runner.engine = SimpleNamespace(device_id=0)
+        runner.coordinator = SimpleNamespace(_predicted_kv_growth_mb=lambda: 256.0)
+        runner.adapter_info = {
+            "hot_a": {"size_mb": 300.0},
+            "recent_b": {"size_mb": 500.0},
+        }
+        runner._stack = SimpleNamespace(
+            _host_paths={"hot_a": "/tmp/hot_a", "recent_b": "/tmp/recent_b"},
+            _nvme_paths={},
+            _artifact_size_mb=lambda aid: {"hot_a": 300.0, "recent_b": 500.0}[aid],
+            sync_local_tier_paths=lambda: None,
+        )
+        runner._adapter_is_recently_active = lambda aid, now=None: aid in {"hot_a", "recent_b"}
+
+        capacity_bytes = runner._scale_up_preload_capacity_bytes({"hot_a"})
+
+        self.assertEqual(capacity_bytes, 800 * 1024 * 1024)
+        self.assertEqual(runner._last_scale_up_preload_budget["live_hotset_bytes"], 300 * 1024 * 1024)
+        self.assertEqual(runner._last_scale_up_preload_budget["recent_working_set_bytes"], 800 * 1024 * 1024)
 
     def test_residency_manager_sync_gpu_capacity_tracks_active_devices(self) -> None:
         class DummyConfig:
@@ -2961,7 +3119,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             trigger_scaling_preload=fake_trigger_scaling_preload,
         )
         runner._autoscaler_gpu_signal = lambda: 72.0
-        runner._scale_up_preload_capacity_bytes = lambda: 512 * 1024 * 1024
+        runner._scale_up_preload_capacity_bytes = lambda preferred_gpu_adapters=None: 512 * 1024 * 1024
         runner._scale_up_warmup_preferred_gpu_adapters = lambda: {"hot_a", "hot_b"}
         runner._scale_up_instance_pool = fake_scale_up_instance_pool
         runner._dynamic_scaling = True
@@ -3119,20 +3277,81 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         self.assertEqual(selected, ["live_gpu"])
 
-    def test_scaleup_preload_prefers_current_runtime_gpu_union(self) -> None:
+    def test_scaleup_gpu_candidates_rank_by_hotness_before_small_recency_deltas(self) -> None:
+        stack = ExperimentStack.__new__(ExperimentStack)
+        now = time.time()
+        metas = {
+            "hot_recent": SimpleNamespace(
+                last_accessed_at=now - 3.0,
+                hotness_score=0.95,
+                value_per_byte=0.05,
+                size_bytes=32 * 1024 * 1024,
+            ),
+            "cold_newer": SimpleNamespace(
+                last_accessed_at=now - 1.0,
+                hotness_score=0.05,
+                value_per_byte=0.05,
+                size_bytes=32 * 1024 * 1024,
+            ),
+        }
+        stack.sync_local_tier_paths = lambda: None
+        stack._host_paths = {"hot_recent": "/tmp/hot_recent", "cold_newer": "/tmp/cold_newer"}
+        stack._nvme_paths = {}
+        stack.registry = SimpleNamespace(get_artifact=lambda aid: metas.get(aid))
+        stack.hotness_tracker = SimpleNamespace(window_seconds=300.0, get_hotness=lambda aid: 0.0)
+        stack.adapter_info = {"hot_recent": {"hotness": 0.95}, "cold_newer": {"hotness": 0.05}}
+
+        selected = stack._select_scaleup_gpu_candidates(32 * 1024 * 1024)
+
+        self.assertEqual(selected, ["hot_recent"])
+
+    def test_scaleup_preload_prefers_recent_live_runtime_gpu_union(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner._gpu_warmed = {"boot_hot"}
+        runner._stack = SimpleNamespace(
+            sync_local_tier_paths=lambda: None,
+            _host_paths={"host_recent": "/tmp/host_recent", "host_stale": "/tmp/host_stale"},
+            _nvme_paths={},
+        )
         runner.instance_pool = SimpleNamespace(
             get_runtime_groups=lambda: [
                 [SimpleNamespace(gpu_resident_adapters={"a", "b"})],
-                [SimpleNamespace(gpu_resident_adapters={"b", "c"})],
+                [SimpleNamespace(gpu_resident_adapters={"b", "c", "stale"})],
             ]
         )
+        runner._adapter_is_recently_active = lambda aid, now=None: aid not in {"stale", "host_stale"}
 
         self.assertEqual(
             runner._scale_up_warmup_preferred_gpu_adapters(),
-            {"a", "b", "c"},
+            {"a", "b", "c", "host_recent"},
         )
+
+    def test_scaleup_gpu_candidates_filter_stale_recent_window_instead_of_hour_threshold(self) -> None:
+        stack = ExperimentStack.__new__(ExperimentStack)
+        now = time.time()
+        metas = {
+            "recent_a": SimpleNamespace(
+                last_accessed_at=now - 30.0,
+                hotness_score=0.9,
+                value_per_byte=0.1,
+                size_bytes=32 * 1024 * 1024,
+            ),
+            "stale_b": SimpleNamespace(
+                last_accessed_at=now - 600.0,
+                hotness_score=0.95,
+                value_per_byte=0.1,
+                size_bytes=32 * 1024 * 1024,
+            ),
+        }
+        stack.sync_local_tier_paths = lambda: None
+        stack._host_paths = {"recent_a": "/tmp/recent_a", "stale_b": "/tmp/stale_b"}
+        stack._nvme_paths = {}
+        stack.registry = SimpleNamespace(get_artifact=lambda aid: metas.get(aid))
+        stack.hotness_tracker = SimpleNamespace(window_seconds=300.0)
+
+        selected = stack._select_scaleup_gpu_candidates(64 * 1024 * 1024)
+
+        self.assertEqual(selected, ["recent_a"])
 
     def test_sync_stack_gpu_accounting_tracks_primary_runtime_only_for_tp1_scale_out(self) -> None:
         tracked = []

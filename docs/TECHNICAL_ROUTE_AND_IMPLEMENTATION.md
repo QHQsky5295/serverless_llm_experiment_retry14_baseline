@@ -6,6 +6,23 @@
 
 - [RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md](RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md)
 
+> 2026-03-31 当前主线补充：
+>
+> - 当前 clean-tree 的 active mainline 已经从 TODO `#2` 切到 TODO `#3`：`scale_up_preload_mb=1024` 的 headroom-aware 动态预算。
+> - 当前继续允许进入主线的修改，必须直接服务：
+>   - `TTFT_scaleup_affected`
+>   - `Cold_start_latency`
+>   - `TTFT_overall`
+>   - `TTFT_comparable`
+>   - `GPU_hit_rate`
+>   - `avg_lora_io_ms`
+> - 2026-03-30~31 一度出现过把 `primary runtime` 也改成 subprocess 的越界改动；这类“改运行形态而不是改当前因果链”的做法已经被判定为偏离当前主线，并已收回。
+> - 当前技术路线重新收紧为：
+>   - `primary runtime` 保持 in-process
+>   - scale-up dedicated runtime 允许是 subprocess
+>   - 所有后续优化继续围绕 cold-path / preload coverage 因果链，不再扩改运行形态
+> - 当前本地最新未验证代码，已经把 scale-up candidate ranking 从“绝对时间戳主导的混合标量”改成可解释的词典序排序；下一轮正式验证目标是 `retry44_fix7_baseline`。
+
 ## 1. 系统定位
 
 FaaSLoRA 是一个面向多 LoRA 大模型推理的单节点 Serverless 研究原型。系统运行在单台双 GPU 服务器上，通过共享 backbone、工件感知请求放置、分层驻留和资源协同控制，研究以下问题：

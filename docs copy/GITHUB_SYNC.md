@@ -6,13 +6,62 @@
 
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
 - 当前 clean-tree 分支：`retry14_rebuild`
-- 当前最新已推送代码基线提交：`1544de2`
+- 当前最新已验证 TODO `#2` 收口代码基线提交：`b314262`
 - 本轮调研与规划文档首次同步提交：`34881fb`
 
 当前建议：
 
-- 先把当前 clean-tree 的 `retry42_fix4 / TODO #2 收口 / 指标层更新` 推到当前分支，作为新的可回退快照
+- 先把当前 clean-tree 的 `retry44_fix6` 文档状态与 TODO `#3` 在研代码一起推到当前分支，作为新的可回退快照
 - 是否合并到 `main` 另行决策
+
+## 2026-03-31 更新：本次同步应纳入 `retry44_fix6` 正式分析状态与 TODO `#3` 在研代码
+
+- 当前最新已正式分析结果：`retry44_fix6_baseline @ 500`
+- 当前最新已验证运行正常的结果链：
+  - `retry43_baseline`
+  - `retry44_fix5_baseline`
+  - `retry44_fix6_baseline`
+- 当前正式判断：
+  - TODO `#2` 仍以 `retry42_fix4` 为收口点
+  - TODO `#3` 是当前唯一 next active 主线
+  - 当前还不能进入 TODO `#4`
+- 当前下一次同步应明确纳入：
+  - `retry44_fix6` 的 handoff / progress / sync / survey 文档结论
+  - 当前重新收紧后的最高原则
+  - TODO `#3` 在研代码：
+    - `scripts/run_all_experiments.py`
+    - `faaslora/experiment/experiment_stack.py`
+    - `tests/test_basic_smoke.py`
+- 这次同步必须明确区分：
+  - `b314262` 是最新已验证 TODO `#2` 收口代码基线
+  - 当前新推送快照包含 TODO `#3` 的在研代码与最新 docs，同步目的不是宣布 TODO `#3` 已收口
+- 当前最新本地测试状态：
+  - `tests.test_basic_smoke = 124/124 OK`
+
+本次同步后的默认回退点应能表达：
+
+1. 运行形态已经回到当前 clean-tree 主线允许的边界内：
+   - `primary runtime` 不再被改成 subprocess
+   - dedicated child 的生命周期修复被保留
+2. 指标层已经具备：
+   - `TTFT_warm_standard`
+   - `Cost_effectiveness_e2e`
+   - `SLO_goodput`
+   - schema v3 分层结果导出
+3. 当前最新正式结论不是“系统有新的结构性 bug”，而是：
+   - TODO `#3` 仍未收口
+   - 剩余主瓶颈是 cold-path / preload coverage
+   - 当前下一刀是修复 scale-up candidate ranking 的第一性原则问题
+
+## 2026-03-31 同步特别说明：最近一度偏离主线的改动已经被收回
+
+- 最近围绕 OOM / runtime death 的一段代码，一度把 `primary runtime` 也改成了 subprocess。
+- 这条改动改变了运行形态和生命周期语义，不直接服务当前论文主指标，属于偏离 clean-tree 当前优化主线的越界修改。
+- 当前这条越界改动已经收回；本次同步不应再把它描述成主线方向。
+- 本次同步应明确写入：
+  - 可以保留 dedicated child 真正需要的最小生命周期修复
+  - 不应再为了局部现象继续扩改运行形态 / 生命周期层
+  - 当前所有在研代码都必须继续服从“只服务主指标、只走三项贡献允许路径”的原则
 
 ## 2026-03-30 更新：下一次同步应纳入 TODO `#2` 收口代码与 `retry42_fix4` 文档状态
 

@@ -274,8 +274,11 @@ class ExperimentStack:
     def _artifact_hotness(self, adapter_id: str) -> float:
         metadata = self._artifact_metadata(adapter_id)
         registry_hotness = float(getattr(metadata, "hotness_score", 0.0) or 0.0) if metadata is not None else 0.0
-        tracker_hotness = float(self.hotness_tracker.get_hotness(adapter_id) or 0.0)
-        static_hotness = float(self.adapter_info.get(adapter_id, {}).get("hotness", 0.0) or 0.0)
+        tracker = getattr(self, "hotness_tracker", None)
+        get_hotness = getattr(tracker, "get_hotness", None)
+        tracker_hotness = float(get_hotness(adapter_id) or 0.0) if callable(get_hotness) else 0.0
+        adapter_info = getattr(self, "adapter_info", {}) or {}
+        static_hotness = float(adapter_info.get(adapter_id, {}).get("hotness", 0.0) or 0.0)
         return max(registry_hotness, tracker_hotness, static_hotness)
 
     def _tier_pressure(self, target_tier: StorageTier, coordinator: Optional[Any] = None) -> float:
@@ -610,39 +613,60 @@ class ExperimentStack:
         are still valid candidates as long as they are available from HOST/NVMe and were
         accessed recently.
         """
-        recent_threshold = time.time() - 3600.0
+        now = time.time()
+        try:
+            recent_window_s = float(getattr(self.hotness_tracker, "window_seconds", 300.0) or 300.0)
+        except Exception:
+            recent_window_s = 300.0
+        recent_threshold = now - max(1.0, recent_window_s)
         selected: List[str] = []
         remaining = max(0, int(capacity_bytes))
         self.sync_local_tier_paths()
         candidate_ids = list(set(self._host_paths) | set(self._nvme_paths))
         preferred = set(preferred_gpu_adapters or [])
-        scored: List[Tuple[int, float, str, int]] = []
+        scored: List[Tuple[int, float, float, float, float, str, int]] = []
 
         for aid in candidate_ids:
             meta = self.registry.get_artifact(aid)
             if not meta:
                 continue
-            if meta.last_accessed_at < recent_threshold:
+            if float(getattr(meta, "last_accessed_at", 0.0) or 0.0) < recent_threshold:
                 continue
             size_bytes = int(getattr(meta, "size_bytes", 0) or 0)
             if size_bytes <= 0 or size_bytes > remaining:
                 continue
             # Scale-up warmup is already bounded by instance-scoped capacity. Do not
             # apply the global min_hotness hard gate here; that gate is tuned for
-            # background preloading and can under-warm a newly added instance. We
-            # still rank by recency, hotness, and value so the limited budget goes
-            # to the best local-tier candidates first.
-            score = (
-                float(meta.last_accessed_at) * 10.0
-                + float(meta.hotness_score) * 1000.0
-                + float(meta.value_per_byte)
+            # background preloading and can under-warm a newly added instance.
+            #
+            # Rank with a lexicographic tuple instead of mixing absolute epoch
+            # timestamps into a scalar score. Using `last_accessed_at * k` makes
+            # the ordering effectively recency-only and hides the contribution of
+            # live hotness / value-per-byte. Here we first prioritize the curated
+            # preferred working set, then the current online hotness, then recency,
+            # then value density, and finally prefer smaller artifacts when the
+            # prior signals tie so limited warmup budget covers more adapters.
+            hotness_score = float(self._artifact_hotness(aid) or 0.0)
+            last_accessed_at = float(getattr(meta, "last_accessed_at", 0.0) or 0.0)
+            value_per_byte = float(getattr(meta, "value_per_byte", 0.0) or 0.0)
+            # When scaling up a new runtime, the strongest observable signal is
+            # the recent local working set currently serving live traffic. The
+            # preferred set may include sibling GPU residents and recently active
+            # host/NVMe adapters; budget and candidate selection should stay
+            # aligned on that same working-set definition.
+            scored.append(
+                (
+                    1 if aid in preferred else 0,
+                    hotness_score,
+                    last_accessed_at,
+                    value_per_byte,
+                    -float(size_bytes),
+                    aid,
+                    size_bytes,
+                )
             )
-            # When scaling up a new runtime, the strongest observable signal for
-            # which adapters should be mirrored first is the current live GPU
-            # hotset already serving real traffic on existing runtimes.
-            scored.append((1 if aid in preferred else 0, score, aid, size_bytes))
 
-        for _, _, aid, size_bytes in sorted(scored, reverse=True):
+        for _, _, _, _, _, aid, size_bytes in sorted(scored, reverse=True):
             if size_bytes > remaining:
                 continue
             selected.append(aid)

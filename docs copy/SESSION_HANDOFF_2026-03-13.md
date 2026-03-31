@@ -1,5 +1,88 @@
 # FaaSLoRA 会话交接文档（2026-03-13）
 
+> 2026-03-31 最新更新（当前最高优先级续接入口）：
+>
+> 如果新开会话，请先只看这一节，不要直接跳到下面旧的 `retry30/31/32` 历史段落。
+>
+> 当前权威状态如下：
+>
+> - 权威 clean-tree：`/home/qhq/serverless_llm_experiment_retry14_baseline`
+> - 历史脏树：`/home/qhq/serverless_llm_experiment`
+> - 当前分支：`retry14_rebuild`
+> - 当前最新已验证的 TODO `#2` 收口代码基线：`b314262`
+> - 当前最新已正式分析结果：`retry44_fix6_baseline @ 500`
+> - 当前最新本地未提交主线修改：
+>   - `faaslora/experiment/experiment_stack.py`
+>   - `scripts/run_all_experiments.py`
+>   - `tests/test_basic_smoke.py`
+> - 当前本地未提交代码含义：
+>   - 继续推进高优先级 TODO `#3`
+>   - 尚未经过新的正式实验轮次验证
+>   - 当前下一轮目标 tag：`retry44_fix7_baseline`
+> - 当前本地测试状态：
+>   - `tests.test_basic_smoke = 124/124 OK`
+>
+> 当前必须继续遵守并重新收紧的最高原则：
+>
+> 1. 不能把系统改坏，不能偏离当前 clean-tree 的系统优化主线。
+> 2. 所有修改都必须先服务于已敲定的论文主指标，而不是为局部现象救场。
+> 3. 所有修改都必须对齐论文三项贡献，不能通过绕开贡献路径去“刷数字”。
+> 4. 策略层不允许引入面向单实例、单轮实验、单 adapter 的不合理硬编码。
+> 5. 尽量优先复用系统已经产生的可观测值做优化，避免拍脑袋 heuristics。
+> 6. 不引入无必要的额外计算开销；若必须增加开销，必须证明它直接服务主指标且风险可控。
+> 7. 公式、排序逻辑和成本模型都必须具备系统语义上的可解释性，能和真实运行路径对上。
+> 8. 坚持第一性原则，不接受“先救场再说”的补丁式修复、兜底方案。
+>
+> 当前 2026-03-31 的真实技术结论：
+>
+> - `retry42_fix4` 仍是 TODO `#2` 的当前收口点；不要再回头改 runtime-forward 主线。
+> - `retry43` 证明 TODO `#3` 第一刀方向是对的，headline 指标整体优于 `retry40`，但 cold-path coverage 没有同步收口。
+> - 随后围绕 OOM / runtime death 的一段修改一度偏离主线，最典型的越界点是把 `primary runtime` 改成 subprocess；这条改动已经收回，不再作为当前主线的一部分。
+> - `retry44_fix5` 恢复了正常运行形态，但性能明显退步。
+> - `retry44_fix6` 相对 `retry44_fix5` 只小幅回正，仍明显差于 `retry43`，正式说明 TODO `#3` 还没闭环。
+> - `retry44_fix6` 的正式结论不是“系统又坏了”，而是：
+>   - 当前没有新的 crash 型结构性 bug
+>   - 当前主瓶颈仍是 cold-path / preload coverage
+>   - 更深根因是 `scale-up candidate ranking` 不符合第一性原则，之前的混合标量排序被绝对时间戳主导，实际退化成“按最后访问时间排”
+> - 当前本地最新未验证代码，已经把排序改成可解释的词典序：
+>   - `preferred`
+>   - `online hotness`
+>   - `recency`
+>   - `value_per_byte`
+>   - `smaller_size`
+> - 当前下一步不是进入 TODO `#4`，而是先跑 `retry44_fix7_baseline`，验证 TODO `#3` 的排序逻辑修复能否真正改善：
+>   - `TTFT_scaleup_affected`
+>   - `Cold_start_latency`
+>   - `TTFT_overall`
+>   - `TTFT_comparable`
+>   - `GPU_hit_rate`
+>   - `avg_lora_io_ms`
+>
+> `retry44_fix6` 当前正式分析结论：
+>
+> - `TTFT_overall = 7586.4 ms`
+> - `TTFT_comparable = 8895.6 ms`
+> - `TTFT_warm_standard = 8818.4 ms`
+> - `TTFT_scaleup_affected = 9091.8 ms`
+> - `TTFT_gpu_ready = 8818.4 ms`
+> - `Runtime_TTFT = 7312.4 ms`
+> - `TPOT = 45.21 ms`
+> - `E2E_latency = 10351.8 ms`
+> - `Throughput_req/s = 0.14265`
+> - `Throughput_tok/s = 18.158`
+> - `SLO_attainment = 21.0%`
+> - `Cold_start_latency = 51710.5 ms`
+> - `Monetary_cost = $0.00344239 / req`
+> - `GPU_hit_rate = 0.7943`
+> - `avg_lora_io_ms = 274.0 ms`
+>
+> 对 `retry44_fix6` 的正式判断必须继续保持：
+>
+> - 当前问题是不是结构性 bug：不是 crash 型结构性 bug。
+> - 当前问题是不是性能瓶颈：是，而且仍然是 TODO `#3` 的主瓶颈。
+> - 当前问题是否与论文主指标直接相关：是，直接打在 `TTFT_scaleup_affected / Cold_start_latency / TTFT_overall / TTFT_comparable / GPU_hit_rate / avg_lora_io_ms`。
+> - 当前修改是否强化论文三项贡献：只有那些直接沿 TODO `#3` 冷路径因果链收口、且不改运行形态的修改才算强化；越过当前主线去改 runtime 形态的不再允许。
+>
 > 2026-03-29 最新更新（当前最高优先级续接入口）：
 >
 > 如果新开会话，请**先只看这一节**，不要先跳到下面的旧 `retry30/31/32` 历史段落。

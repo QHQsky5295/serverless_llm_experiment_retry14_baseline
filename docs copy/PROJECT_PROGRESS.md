@@ -40,6 +40,121 @@
 - `retry21` 及其对应脏树状态视为废案，不再作为正式对比对象。
 - 本次 GitHub 同步的目的不是发布最终结论，而是把当前 clean-tree 形成一个稳定回退点。
 
+## 2026-03-31 更新快照
+
+### 当前最新正式分析结果
+
+- 当前最新已正式分析结果：`retry44_fix6_baseline @ 500`
+- 当前最新已验证 TODO `#2` 收口基线仍为：`retry42_fix4`
+- 当前最新已验证运行正常、但 TODO `#3` 仍未收口的结果链：
+  - `retry43_baseline`
+  - `retry44_fix5_baseline`
+  - `retry44_fix6_baseline`
+- 当前下一轮正式实验目标：`retry44_fix7_baseline`
+
+### 2026-03-31 当前真实结论
+
+- `retry43` 证明 TODO `#3` 的方向是对的：
+  - headline 指标整体优于 `retry40`
+  - 但 `Cold_start_latency / GPU_hit_rate / avg_lora_io_ms / cold_starts_after_scale_up` 没有同步收口
+- 随后围绕 OOM / runtime death 的一段改动一度偏离主线：
+  - 把 `primary runtime` 也改成 subprocess
+  - 这改变了运行形态和生命周期语义，不再只是服务当前论文主指标
+  - 这条越界改动已经收回；当前主线重新回到 `primary in-process + scale-up dedicated subprocess`
+- `retry44_fix5`：
+  - 运行形态恢复正常
+  - 但性能相对 `retry43` 明显退步
+- `retry44_fix6`：
+  - 相对 `retry44_fix5` 只有小幅回正
+  - 相对 `retry43` 仍明显更差
+  - 正式说明 TODO `#3` 还没有闭环
+
+### `retry44_fix6` headline 指标
+
+- `TTFT_overall = 7586.4 ms`
+- `TTFT_comparable = 8895.6 ms`
+- `TTFT_warm_standard = 8818.4 ms`
+- `TTFT_scaleup_affected = 9091.8 ms`
+- `TTFT_gpu_ready = 8818.4 ms`
+- `Runtime_TTFT = 7312.4 ms`
+- `TPOT = 45.21 ms`
+- `E2E_latency = 10351.8 ms`
+- `Throughput_req/s = 0.14265`
+- `Throughput_tok/s = 18.158`
+- `SLO_attainment = 21.0%`
+- `Cold_start_latency = 51710.5 ms`
+- `Monetary_cost = $0.00344239 / req`
+- `Cost_effectiveness_e2e = 28.0625`
+- `SLO_goodput_RPS = 0.02996`
+- `SLO_goodput_TOKPS = 3.81324`
+- `GPU_hit_rate = 0.7943`
+- `avg_lora_io_ms = 274.0 ms`
+
+### `retry44_fix6` 的正式归因
+
+- 当前没有新的 crash 型结构性 bug。
+- 当前主瓶颈不是运行健壮性，而是 TODO `#3` 的 cold-path / preload coverage。
+- `retry44_fix6` 相对 `retry43` 仍差的核心，不是预算大小本身，而是 scale-up candidate ranking 不符合第一性原则：
+  - 之前的混合标量把绝对 `last_accessed_at` 与 `hotness/value_per_byte` 混在一起
+  - 实际上几乎退化成“按最近访问时间排”
+  - 这不够可解释，也没有真实体现 live hotness / value density
+- 当前本地最新未推送代码已经把排序逻辑改成词典序：
+  - `preferred`
+  - `online hotness`
+  - `recency`
+  - `value_per_byte`
+  - `smaller_size`
+- 这批最新本地代码尚未经过新的正式实验轮次验证，因此当前 next active experiment 仍是 `retry44_fix7_baseline`
+
+### 当前最新代码状态
+
+- 当前最新已验证 TODO `#2` 收口提交：`b314262`
+- 当前本地另有**未推送**的 TODO `#3` 在研主线修改：
+  - `faaslora/experiment/experiment_stack.py`
+  - `scripts/run_all_experiments.py`
+  - `tests/test_basic_smoke.py`
+- 这批在研代码的含义：
+  - 继续沿 TODO `#3` 的 cold-path / preload coverage 因果链收口
+  - 不再允许为了局部现象去改 `primary runtime` 运行形态
+  - 当前最新一刀修的是 scale-up candidate ranking 的可解释性与 working-set 语义一致性
+- 当前本地测试状态：
+  - `tests.test_basic_smoke = 124/124 OK`
+
+### 当前高优先级 TODO 顺序
+
+1. TODO `#1`：按真实时间 / 真实压力评估 scale-up
+   - 当前状态：已在 `retry40` 上收口；除非出现新回归，不再继续叠控制面
+
+2. TODO `#2`：清理残留 `device 0` 拓扑硬编码
+   - 当前状态：已在 `retry42_fix4` 上收口
+
+3. TODO `#3`：`scale_up_preload_mb=1024` 改成 headroom-aware 动态预算
+   - 当前状态：进行中，尚未收口
+   - 当前 next active 实验：`retry44_fix7_baseline`
+   - 当前必须继续优先服务：
+     - `TTFT_scaleup_affected`
+     - `Cold_start_latency`
+     - `TTFT_overall`
+     - `TTFT_comparable`
+     - `GPU_hit_rate`
+     - `avg_lora_io_ms`
+
+4. TODO `#4`：rank / size-aware observed utility
+   - 只有 TODO `#3` 收口后才允许进入
+
+5. TODO `#5`：decode-aware contention control
+   - 只有 TODO `#4` 收口后才允许进入
+
+### 当前结论约束
+
+- 当前不要再偏离主线去碰运行形态 / 生命周期大改。
+- 当前如果继续修改，只允许：
+  - 直接服务论文主指标
+  - 对齐三项贡献
+  - 复用已有可观测值
+  - 保持公式、排序、成本模型可解释
+- 当前如果一个修改不能明确回答“它服务哪个主指标、对应哪项贡献、为何不是补丁”，则不应进入 clean-tree 主线。
+
 ## 2026-03-30 更新快照
 
 ### 当前新增调研文档入口

@@ -55,6 +55,7 @@ import warnings
 import math
 import os
 import re
+import signal
 import shutil
 import socket
 import subprocess
@@ -277,6 +278,26 @@ def _select_adaptive_retry_gpu_util(
         return requested
     adjusted = min(requested, max(0.50, observed_free_ratio - 0.01))
     return round(adjusted, 2)
+
+
+def _is_fatal_engine_error_message(message: Any) -> bool:
+    """Return whether an engine/runtime error means the runtime is no longer healthy."""
+    text = str(message or "").lower()
+    fatal_markers = (
+        "cuda out of memory",
+        "outofmemoryerror",
+        "background loop has errored already",
+        "enginedeaderror",
+        "enginecore encountered",
+        "illegal memory access",
+        "subprocess_engine_dead",
+        "subprocess_engine_empty_response",
+        "worker proc",
+        "worker died",
+        "cuda error",
+        "shutting down",
+    )
+    return any(marker in text for marker in fatal_markers)
 
 
 def _check_shm_for_vllm():
@@ -884,6 +905,28 @@ def _kill_stale_gpu_processes():
         import psutil
     except ImportError:
         return
+
+    # Dedicated runtime workers are launched in their own process groups under
+    # /tmp/faaslora_worker_*. If a previous run crashes before normal shutdown,
+    # their descendants (including /app/.venv/bin/python) can outlive the
+    # parent worker. Kill those stale groups first using the persisted pgid.
+    for process_meta in Path("/tmp").glob("faaslora_worker_*/process.json"):
+        try:
+            payload = json.loads(process_meta.read_text(encoding="utf-8"))
+            pgid = int(payload.get("pgid", 0) or 0)
+            pid = int(payload.get("pid", 0) or 0)
+        except Exception:
+            continue
+        if pid == my_pid:
+            continue
+        try:
+            if pid > 0 and psutil.pid_exists(pid):
+                os.killpg(pgid or pid, signal.SIGKILL)
+                killed += 1
+                continue
+        except Exception:
+            pass
+
     for proc in psutil.process_iter():
         try:
             if proc.pid == my_pid:
@@ -891,6 +934,14 @@ def _kill_stale_gpu_processes():
             cmdline = proc.cmdline()
             cmd_str = " ".join(cmdline) if cmdline else ""
             if any(p in cmd_str for p in patterns):
+                try:
+                    for child in proc.children(recursive=True):
+                        try:
+                            child.kill()
+                        except (psutil.NoSuchProcess, psutil.AccessDenied):
+                            pass
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
                 proc.kill()
                 killed += 1
         except (psutil.NoSuchProcess, psutil.AccessDenied):
@@ -1012,6 +1063,10 @@ class InferenceEngine:
         self._hf_max_adapters_in_memory = 1   # 默认；按场景由 set_hf_max_adapters_for_scenario 覆盖
         self._hf_request_count = 0
         self._hf_executor: Optional[concurrent.futures.ThreadPoolExecutor] = None  # single-thread for GPU
+
+    def _maybe_kill_stale_gpu_processes(self) -> None:
+        if not bool(self.model_cfg.get("skip_stale_gpu_cleanup", False)):
+            _kill_stale_gpu_processes()
 
     def set_hf_max_adapters_for_scenario(
         self, baseline_type: str, coord_cfg: Optional[Dict] = None, model_cfg: Optional[Dict] = None
@@ -1186,8 +1241,7 @@ class InferenceEngine:
                 )
 
             _check_shm_for_vllm()
-            if not bool(self.model_cfg.get("skip_stale_gpu_cleanup", False)):
-                _kill_stale_gpu_processes()
+            self._maybe_kill_stale_gpu_processes()
 
             print("  Initialising vLLM engine:")
             print(f"    model              = {model}")
@@ -1235,7 +1289,7 @@ class InferenceEngine:
             # low-memory fallback. This is especially important for TP>1 large
             # models where gpu_util=0.6 can eliminate KV cache headroom.
             if engine is None:
-                _kill_stale_gpu_processes()
+                self._maybe_kill_stale_gpu_processes()
                 try:
                     import torch
                     if torch.cuda.is_available():
@@ -1343,7 +1397,7 @@ class InferenceEngine:
             return engine
         except Exception as exc:
             print(f"  [WARN] vLLM engine creation failed ({desc}): {str(exc)[:300]}")
-            _kill_stale_gpu_processes()
+            self._maybe_kill_stale_gpu_processes()
             try:
                 import torch
                 if torch.cuda.is_available():
@@ -1399,7 +1453,7 @@ class InferenceEngine:
             return
         self._reinit_attempted = True
         print("  [reinit] Restarting vLLM engine ...")
-        _kill_stale_gpu_processes()
+        self._maybe_kill_stale_gpu_processes()
         try:
             import torch
             if torch.cuda.is_available():
@@ -1687,25 +1741,26 @@ class InferenceEngine:
 
         except Exception as exc:
             exc_s = str(exc).lower()
-            is_dead = any(k in exc_s for k in ("dead", "cancelled", "died",
-                                                "shutting down", "worker proc",
-                                                "enginecore encountered",
-                                                "enginedeaderror",
-                                                "illegal memory access",
-                                                "cuda error"))
+            is_dead = _is_fatal_engine_error_message(exc_s) or any(
+                k in exc_s for k in ("dead", "cancelled", "died")
+            )
+            allow_reinit = is_dead and not any(
+                marker in exc_s for marker in ("cuda out of memory", "background loop has errored already")
+            )
             if is_dead:
                 self._engine_dead = True
-                async with self._reinit_lock:
-                    if not self._reinit_attempted:
-                        self._reinit_attempted = True
-                        print(f"\n  [ENGINE DEAD] vLLM engine crashed: {str(exc)[:120]}")
-                        print("  Attempting reinitialisation ...")
-                        await self.reinitialize()
-                if self.engine is not None and not self._engine_dead:
-                    return await self.generate(
-                        prompt, lora_path, adapter_id,
-                        max_tokens, input_tokens, temperature, top_p,
-                    )
+                if allow_reinit:
+                    async with self._reinit_lock:
+                        if not self._reinit_attempted:
+                            self._reinit_attempted = True
+                            print(f"\n  [ENGINE DEAD] vLLM engine crashed: {str(exc)[:120]}")
+                            print("  Attempting reinitialisation ...")
+                            await self.reinitialize()
+                    if self.engine is not None and not self._engine_dead:
+                        return await self.generate(
+                            prompt, lora_path, adapter_id,
+                            max_tokens, input_tokens, temperature, top_p,
+                        )
             raise RuntimeError(f"vLLM: {exc}") from exc
 
     @staticmethod
@@ -1778,6 +1833,8 @@ class SubprocessInferenceEngineProxy:
     visibility mask.
     """
 
+    _startup_cleanup_done: bool = False
+
     def __init__(
         self,
         *,
@@ -1785,6 +1842,7 @@ class SubprocessInferenceEngineProxy:
         host: str,
         port: int,
         model_cfg: Dict[str, Any],
+        cost_model: Dict[str, Any],
         device_id: Optional[int],
         workdir: Path,
         log_path: Path,
@@ -1793,6 +1851,7 @@ class SubprocessInferenceEngineProxy:
         self._host = host
         self._port = int(port)
         self.model_cfg = copy.deepcopy(model_cfg)
+        self._cost_model = copy.deepcopy(cost_model)
         self.device_id = int(device_id) if device_id is not None else 0
         self.backend = str(self.model_cfg.get("backend", "vllm")).lower()
         self.engine = None
@@ -1816,6 +1875,20 @@ class SubprocessInferenceEngineProxy:
             return text
         return text[-max_chars:]
 
+    @staticmethod
+    def _write_process_meta(workdir: Path, process: subprocess.Popen) -> None:
+        try:
+            pgid = os.getpgid(process.pid)
+        except Exception:
+            pgid = process.pid
+        try:
+            (workdir / "process.json").write_text(
+                json.dumps({"pid": int(process.pid), "pgid": int(pgid)}),
+                encoding="utf-8",
+            )
+        except Exception:
+            pass
+
     @classmethod
     async def spawn(
         cls,
@@ -1824,10 +1897,15 @@ class SubprocessInferenceEngineProxy:
         cost_model: Dict[str, Any],
         device_id: Optional[int],
     ) -> "SubprocessInferenceEngineProxy":
+        if not cls._startup_cleanup_done:
+            _kill_stale_gpu_processes()
+            cls._startup_cleanup_done = True
+
         requested_device_id = int(device_id) if device_id is not None else None
-        local_model_cfg = copy.deepcopy(model_cfg)
-        if requested_device_id is not None:
-            local_model_cfg["device_id"] = requested_device_id
+        local_model_cfg, worker_env_updates = _prepare_dedicated_subprocess_model_cfg(
+            model_cfg,
+            device_id=requested_device_id,
+        )
 
         worker_root = Path(tempfile.mkdtemp(prefix="faaslora_worker_", dir="/tmp"))
         payload_path = worker_root / "payload.json"
@@ -1846,10 +1924,7 @@ class SubprocessInferenceEngineProxy:
         worker_script = cls._worker_script_path()
         worker_env = os.environ.copy()
         worker_env["PYTHONPATH"] = str(REPO_ROOT) + os.pathsep + worker_env.get("PYTHONPATH", "")
-        tp = max(1, int(local_model_cfg.get("tensor_parallel_size", 1) or 1))
-        if requested_device_id is not None and tp <= 1:
-            worker_env["CUDA_VISIBLE_DEVICES"] = str(requested_device_id)
-            worker_env["FAASLORA_VISIBLE_DEVICES"] = str(requested_device_id)
+        worker_env.update(worker_env_updates)
 
         log_handle = open(log_path, "ab", buffering=0)
         process = subprocess.Popen(
@@ -1866,7 +1941,9 @@ class SubprocessInferenceEngineProxy:
             stdout=log_handle,
             stderr=subprocess.STDOUT,
             close_fds=True,
+            start_new_session=True,
         )
+        cls._write_process_meta(worker_root, process)
 
         ready: Optional[Dict[str, Any]] = None
         deadline = time.monotonic() + 180.0
@@ -1884,7 +1961,8 @@ class SubprocessInferenceEngineProxy:
         log_handle.close()
         if not isinstance(ready, dict) or ready.get("status") != "ready":
             try:
-                process.terminate()
+                pgid = os.getpgid(process.pid)
+                os.killpg(pgid, signal.SIGTERM)
                 await asyncio.to_thread(process.wait, 5)
             except Exception:
                 pass
@@ -1900,6 +1978,7 @@ class SubprocessInferenceEngineProxy:
             host=str(ready["host"]),
             port=int(ready["port"]),
             model_cfg=local_model_cfg,
+            cost_model=copy.deepcopy(cost_model),
             device_id=requested_device_id,
             workdir=worker_root,
             log_path=log_path,
@@ -1920,7 +1999,11 @@ class SubprocessInferenceEngineProxy:
                 raise RuntimeError("subprocess_engine_empty_response")
             response = json.loads(raw.decode("utf-8"))
             if not response.get("ok"):
-                raise RuntimeError(str(response.get("error", "subprocess_engine_rpc_failed")))
+                error_text = str(response.get("error", "subprocess_engine_rpc_failed"))
+                if _is_fatal_engine_error_message(error_text):
+                    self._engine_dead = True
+                    await self._terminate_process_tree(force=True)
+                raise RuntimeError(error_text)
             return response.get("result", {}) or {}
         except Exception:
             if cmd != "shutdown":
@@ -1933,6 +2016,39 @@ class SubprocessInferenceEngineProxy:
                     await writer.wait_closed()
                 except Exception:
                     pass
+
+    async def _terminate_process_tree(self, *, force: bool = False) -> None:
+        proc = self._process
+        if proc is None:
+            return
+        try:
+            if proc.poll() is not None:
+                return
+        except Exception:
+            pass
+        try:
+            pgid = os.getpgid(proc.pid)
+        except Exception:
+            pgid = None
+        sig = signal.SIGKILL if force else signal.SIGTERM
+        try:
+            if pgid is not None and pgid > 0:
+                os.killpg(pgid, sig)
+            else:
+                proc.send_signal(sig)
+        except Exception:
+            pass
+        try:
+            await asyncio.to_thread(proc.wait, 5 if force else 10)
+        except Exception:
+            pass
+        if force:
+            return
+        try:
+            if proc.poll() is None:
+                await self._terminate_process_tree(force=True)
+        except Exception:
+            pass
 
     async def generate(
         self,
@@ -1975,19 +2091,25 @@ class SubprocessInferenceEngineProxy:
                     await self._rpc("shutdown")
                 except Exception:
                     pass
-                try:
-                    await asyncio.to_thread(self._process.wait, 10)
-                except Exception:
-                    pass
         finally:
-            if self._process.poll() is None:
-                self._process.terminate()
-                try:
-                    await asyncio.to_thread(self._process.wait, 5)
-                except Exception:
-                    pass
+            await self._terminate_process_tree(force=False)
             self._engine_dead = True
             shutil.rmtree(self._workdir, ignore_errors=True)
+
+    async def reinitialize(self) -> None:
+        await self.shutdown()
+        replacement = await self.spawn(
+            model_cfg=self.model_cfg,
+            cost_model=self._cost_model,
+            device_id=self.device_id,
+        )
+        self._process = replacement._process
+        self._host = replacement._host
+        self._port = replacement._port
+        self._workdir = replacement._workdir
+        self._log_path = replacement._log_path
+        self._engine_dead = replacement._engine_dead
+        self._reinit_attempted = False
 
 
 # ==========================================================================
@@ -2086,6 +2208,7 @@ class ScenarioRunner:
         coord_cfg: Optional[Dict] = None,
         experiment_stack: Optional[Any] = None,
         engine_factory: Optional[Callable[..., Awaitable[Tuple[Any, Any]]]] = None,
+        runner_model_cfg: Optional[Dict] = None,
     ):
         self.name          = name
         self.baseline_type = baseline_type
@@ -2097,18 +2220,13 @@ class ScenarioRunner:
         self.hw            = copy.deepcopy(hardware_cfg)
         self.cost_model    = cost_model
         self.engine        = engine
-        # Runtime forwarding decisions are scenario-level control logic and
-        # must always see the active model profile, regardless of model family.
-        # Keep a local copy so P2.6 scheduling does not accidentally depend on
-        # callers reaching through engine.model_cfg, and still allow safe
-        # fallbacks when tests build a lightweight runner.
-        self.model_cfg     = copy.deepcopy(getattr(engine, "model_cfg", {}) or {})
-        primary_runtime_gpu_device_ids = _resolve_runtime_gpu_device_ids(
-            self.model_cfg,
-            device_id=getattr(engine, "device_id", None),
+        # Scenario-level control logic must use the runner/global model profile,
+        # not a child-runtime local view such as visible_device_ids=[0] inside a
+        # dedicated subprocess. Keep local runtime device tracking separate.
+        runner_cfg = runner_model_cfg if isinstance(runner_model_cfg, dict) else None
+        self.model_cfg     = copy.deepcopy(
+            runner_cfg if runner_cfg is not None else (getattr(engine, "model_cfg", {}) or {})
         )
-        if primary_runtime_gpu_device_ids:
-            self.hw["gpu_device_ids"] = primary_runtime_gpu_device_ids
         self.preload_cfg   = preload_cfg
         self.wl_cfg        = workload_cfg
         self.coord_cfg     = coord_cfg or {}
@@ -2163,6 +2281,8 @@ class ScenarioRunner:
         self._scaleup_runtime_instance_ids: set[str] = set()
         self._live_scale_eval_last_at: float = 0.0
         self._live_scale_overrides: Optional[Dict[str, float]] = None
+        self._last_scale_up_preload_budget: Dict[str, Any] = {}
+        self._slot_retire_lock = asyncio.Lock()
 
         # Resource coordinator (contribution 3); when _stack is set, coordinator comes from stack
         coord_enabled = (baseline_type == "faaslora_full")
@@ -2746,12 +2866,44 @@ class ScenarioRunner:
         }
 
     def _scale_up_warmup_preferred_gpu_adapters(self) -> set:
-        preferred = set()
+        """
+        Preferred scale-up warmup set backed by the current recent local working set.
+
+        TODO #3 moved the preload budget from a fixed MB cap to a recent-working-set-
+        aware budget. The preferred candidate set must follow the same definition;
+        otherwise we expand the budget while still warming only the sibling GPU-
+        resident subset, which leaves cold-path coverage unchanged.
+        """
+        now = time.time()
+        preferred: set = set()
+        stack = getattr(self, "_stack", None)
+        if stack is not None:
+            sync_paths = getattr(stack, "sync_local_tier_paths", None)
+            if callable(sync_paths):
+                try:
+                    sync_paths()
+                except Exception:
+                    pass
+            host_paths = dict(getattr(stack, "_host_paths", {}) or {})
+            nvme_paths = dict(getattr(stack, "_nvme_paths", {}) or {})
+            for adapter_id in set(host_paths) | set(nvme_paths):
+                if self._adapter_is_recently_active(adapter_id, now=now):
+                    preferred.add(adapter_id)
+
         if self.instance_pool is None:
-            return set(getattr(self, "_gpu_warmed", set()))
+            gpu_warmed = set(getattr(self, "_gpu_warmed", set()))
+            recent_gpu_warmed = {
+                adapter_id
+                for adapter_id in gpu_warmed
+                if self._adapter_is_recently_active(adapter_id, now=now)
+            }
+            return preferred or recent_gpu_warmed or gpu_warmed
+
         for group in self.instance_pool.get_runtime_groups():
             for slot in group:
-                preferred.update(getattr(slot, "gpu_resident_adapters", set()))
+                for adapter_id in getattr(slot, "gpu_resident_adapters", set()):
+                    if self._adapter_is_recently_active(adapter_id, now=now):
+                        preferred.add(adapter_id)
         return preferred
 
     def _adapter_is_recently_active(self, adapter_id: str, *, now: Optional[float] = None) -> bool:
@@ -2763,9 +2915,10 @@ class ScenarioRunner:
         working set. Reuse the existing hotness tracker window instead of
         introducing a new forwarding-only heuristic.
         """
-        if not adapter_id or self._stack is None:
+        stack = getattr(self, "_stack", None)
+        if not adapter_id or stack is None:
             return False
-        metadata_fn = getattr(self._stack, "_artifact_metadata", None)
+        metadata_fn = getattr(stack, "_artifact_metadata", None)
         metadata = metadata_fn(adapter_id) if callable(metadata_fn) else None
         last_accessed_at = float(getattr(metadata, "last_accessed_at", 0.0) or 0.0)
         if last_accessed_at <= 0.0:
@@ -2878,13 +3031,170 @@ class ScenarioRunner:
             return used_gb, total_gb, util_pct
         return None
 
-    def _scale_up_preload_capacity_bytes(self) -> int:
+    def _scale_up_target_runtime_headroom_mb(self) -> float:
+        hw = dict(getattr(self, "hw", {}) or {})
+        hw.update(dict(getattr(self, "coord_cfg", {}) or {}))
+
+        model_cfg = dict(getattr(self, "model_cfg", {}) or {})
+        device_id = getattr(getattr(self, "engine", None), "device_id", None)
+        runtime_gpu_device_ids = _resolve_runtime_gpu_device_ids(model_cfg, device_id=device_id)
+        if runtime_gpu_device_ids:
+            hw["gpu_device_ids"] = runtime_gpu_device_ids
+
+        raw_gpu_ids = hw.get("gpu_device_ids", []) or []
+        gpu_device_ids: List[int] = []
+        for raw_id in raw_gpu_ids:
+            try:
+                did = int(raw_id)
+            except (TypeError, ValueError):
+                continue
+            if did not in gpu_device_ids:
+                gpu_device_ids.append(did)
+
+        try:
+            gpu_budget_per_device_mb = float(hw.get("gpu_budget_mb", 24000) or 24000.0)
+        except (TypeError, ValueError):
+            gpu_budget_per_device_mb = 24000.0
+        total_budget_override = hw.get("gpu_budget_total_mb")
+        if total_budget_override is not None:
+            try:
+                total_budget_mb = float(total_budget_override)
+            except (TypeError, ValueError):
+                total_budget_mb = gpu_budget_per_device_mb * max(1, len(gpu_device_ids) or 1)
+        else:
+            total_budget_mb = gpu_budget_per_device_mb * max(1, len(gpu_device_ids) or 1)
+
+        try:
+            model_weights_mb = float(hw.get("model_weights_mb", 0.0) or 0.0)
+        except (TypeError, ValueError):
+            model_weights_mb = 0.0
+        try:
+            reserve_ratio = float(hw.get("lora_load_reserve_ratio", 0.15) or 0.15)
+        except (TypeError, ValueError):
+            reserve_ratio = 0.15
+
+        predicted_kv_growth_mb = 0.0
+        predicted_kv_fn = getattr(getattr(self, "coordinator", None), "_predicted_kv_growth_mb", None)
+        if callable(predicted_kv_fn):
+            try:
+                predicted_kv_growth_mb = max(0.0, float(predicted_kv_fn()) or 0.0)
+            except Exception:
+                predicted_kv_growth_mb = 0.0
+
+        reserve_mb = max(total_budget_mb * reserve_ratio, predicted_kv_growth_mb)
+        return max(0.0, total_budget_mb - model_weights_mb - reserve_mb)
+
+    def _scale_up_live_hotset_bytes(self, preferred_gpu_adapters: Optional[set] = None) -> int:
+        stack = getattr(self, "_stack", None)
+        if stack is None:
+            return 0
+        preferred = set(preferred_gpu_adapters or set())
+        if not preferred:
+            return 0
+
+        sync_paths = getattr(stack, "sync_local_tier_paths", None)
+        if callable(sync_paths):
+            try:
+                sync_paths()
+            except Exception:
+                pass
+
+        host_paths = dict(getattr(stack, "_host_paths", {}) or {})
+        nvme_paths = dict(getattr(stack, "_nvme_paths", {}) or {})
+        size_fn = getattr(stack, "_artifact_size_mb", None)
+        total_bytes = 0
+        for adapter_id in preferred:
+            if adapter_id not in host_paths and adapter_id not in nvme_paths:
+                continue
+            try:
+                size_mb = float(size_fn(adapter_id)) if callable(size_fn) else float(
+                    (getattr(self, "adapter_info", {}) or {}).get(adapter_id, {}).get("size_mb", 0.0) or 0.0
+                )
+            except Exception:
+                size_mb = 0.0
+            if size_mb <= 0.0:
+                continue
+            total_bytes += int(size_mb * 1024.0 * 1024.0)
+        return total_bytes
+
+    def _scale_up_recent_local_working_set_bytes(self) -> int:
+        stack = getattr(self, "_stack", None)
+        if stack is None:
+            return 0
+
+        sync_paths = getattr(stack, "sync_local_tier_paths", None)
+        if callable(sync_paths):
+            try:
+                sync_paths()
+            except Exception:
+                pass
+
+        host_paths = dict(getattr(stack, "_host_paths", {}) or {})
+        nvme_paths = dict(getattr(stack, "_nvme_paths", {}) or {})
+        if not host_paths and not nvme_paths:
+            return 0
+        size_fn = getattr(stack, "_artifact_size_mb", None)
+        total_bytes = 0
+        now = time.time()
+        for adapter_id in set(host_paths) | set(nvme_paths):
+            if not self._adapter_is_recently_active(adapter_id, now=now):
+                continue
+            try:
+                size_mb = float(size_fn(adapter_id)) if callable(size_fn) else float(
+                    (getattr(self, "adapter_info", {}) or {}).get(adapter_id, {}).get("size_mb", 0.0) or 0.0
+                )
+            except Exception:
+                size_mb = 0.0
+            if size_mb <= 0.0:
+                continue
+            total_bytes += int(size_mb * 1024.0 * 1024.0)
+        return total_bytes
+
+    def _scale_up_preload_budget_snapshot(
+        self,
+        preferred_gpu_adapters: Optional[set] = None,
+    ) -> Dict[str, Any]:
+        preferred = set(preferred_gpu_adapters or set())
+        dynamic_enabled = bool(self.preload_cfg.get("scale_up_dynamic_budget_enabled", True))
+        if dynamic_enabled:
+            live_hotset_bytes = self._scale_up_live_hotset_bytes(preferred)
+            recent_working_set_bytes = self._scale_up_recent_local_working_set_bytes()
+            target_headroom_mb = self._scale_up_target_runtime_headroom_mb()
+            target_headroom_bytes = max(0, int(target_headroom_mb * 1024.0 * 1024.0))
+            target_working_set_bytes = max(live_hotset_bytes, recent_working_set_bytes)
+            if target_working_set_bytes > 0 and target_headroom_bytes > 0:
+                capacity_bytes = min(target_working_set_bytes, target_headroom_bytes)
+                return {
+                    "mode": "dynamic_headroom_recent_working_set",
+                    "capacity_bytes": max(0, int(capacity_bytes)),
+                    "live_hotset_bytes": live_hotset_bytes,
+                    "recent_working_set_bytes": recent_working_set_bytes,
+                    "target_headroom_bytes": target_headroom_bytes,
+                }
+
         explicit_mb = self.preload_cfg.get("scale_up_preload_mb")
         if explicit_mb is not None:
-            return max(64 * 1024 * 1024, int(float(explicit_mb) * 1024 * 1024))
+            return {
+                "mode": "legacy_explicit_mb",
+                "capacity_bytes": max(64 * 1024 * 1024, int(float(explicit_mb) * 1024 * 1024)),
+                "live_hotset_bytes": 0,
+                "recent_working_set_bytes": 0,
+                "target_headroom_bytes": 0,
+            }
         host_capacity_mb = float(self.preload_cfg.get("host_capacity_mb", 4096) or 4096.0)
         derived_mb = max(200.0, min(1024.0, host_capacity_mb * 0.25))
-        return int(derived_mb * 1024 * 1024)
+        return {
+            "mode": "legacy_host_fraction",
+            "capacity_bytes": int(derived_mb * 1024 * 1024),
+            "live_hotset_bytes": 0,
+            "recent_working_set_bytes": 0,
+            "target_headroom_bytes": 0,
+        }
+
+    def _scale_up_preload_capacity_bytes(self, preferred_gpu_adapters: Optional[set] = None) -> int:
+        snapshot = self._scale_up_preload_budget_snapshot(preferred_gpu_adapters)
+        self._last_scale_up_preload_budget = dict(snapshot)
+        return max(0, int(snapshot.get("capacity_bytes", 0) or 0))
 
     @staticmethod
     def _live_percentile(values: List[float], p: float) -> float:
@@ -3107,7 +3417,16 @@ class ScenarioRunner:
         self._live_last_print_completed = completed
 
     def _available_device_ids(self) -> List[int]:
-        configured = self.engine.model_cfg.get("visible_device_ids") if self.engine is not None else None
+        configured = None
+        runner_model_cfg = getattr(self, "model_cfg", None)
+        if isinstance(runner_model_cfg, dict):
+            configured = runner_model_cfg.get("visible_device_ids")
+        if not configured:
+            hw_cfg = getattr(self, "hw", None)
+            if isinstance(hw_cfg, dict):
+                configured = hw_cfg.get("gpu_device_ids")
+        if not configured and self.engine is not None:
+            configured = self.engine.model_cfg.get("visible_device_ids")
         if configured:
             if isinstance(configured, str):
                 ids: List[int] = []
@@ -3297,6 +3616,9 @@ class ScenarioRunner:
         self._live_scale_eval_last_at = now_mono
         arrived_request_count = self._arrived_request_count(replay_t0)
         request_index = max(0, int(submitted_count or 0))
+        preferred_gpu_adapters = self._scale_up_warmup_preferred_gpu_adapters()
+        preload_capacity_bytes = self._scale_up_preload_capacity_bytes(preferred_gpu_adapters)
+        preload_budget = dict(getattr(self, "_last_scale_up_preload_budget", {}) or {})
         print(
             f"    Scale-up decision: reason={decision.reason} "
             f"instances={current_instances}->{decision.target_instances} "
@@ -3304,9 +3626,17 @@ class ScenarioRunner:
             f"active={active_requests} busy={busy_ratio:.2f}",
             flush=True,
         )
+        print(
+            f"    Scale-up preload budget: mode={preload_budget.get('mode', 'unknown')} "
+            f"budget={preload_capacity_bytes / (1024.0 * 1024.0):.1f}MB "
+            f"live_hotset={float(preload_budget.get('live_hotset_bytes', 0) or 0) / (1024.0 * 1024.0):.1f}MB "
+            f"working_set={float(preload_budget.get('recent_working_set_bytes', 0) or 0) / (1024.0 * 1024.0):.1f}MB "
+            f"headroom={float(preload_budget.get('target_headroom_bytes', 0) or 0) / (1024.0 * 1024.0):.1f}MB",
+            flush=True,
+        )
         await self._stack.trigger_scaling_preload(
-            self._scale_up_preload_capacity_bytes(),
-            preferred_gpu_adapters=self._scale_up_warmup_preferred_gpu_adapters(),
+            preload_capacity_bytes,
+            preferred_gpu_adapters=preferred_gpu_adapters,
         )
         scale_event = await self._scale_up_instance_pool(coord_enabled)
         if not scale_event:
@@ -3480,6 +3810,50 @@ class ScenarioRunner:
             except Exception:
                 pass
         self._sync_stack_gpu_accounting()
+
+    async def _retire_failed_slot(self, slot: Optional[Any], reason: str) -> bool:
+        if slot is None or self.instance_pool is None:
+            return False
+        instance_id = getattr(slot, "instance_id", None)
+        if not instance_id:
+            return False
+        async with self._slot_retire_lock:
+            current = self.instance_pool.get_slot(instance_id)
+            if current is None:
+                return False
+            removed = self.instance_pool.remove_instance(instance_id)
+            if removed is None:
+                return False
+            if instance_id == self._primary_instance_id:
+                remaining = self.instance_pool.get_slots()
+                self._primary_instance_id = remaining[0].instance_id if remaining else None
+            await self._cleanup_removed_slot(removed)
+        print(f"    [runtime-failed] removed {instance_id}: {reason[:160]}", flush=True)
+        return True
+
+    async def _prune_dead_instance_slots(self) -> int:
+        instance_pool = getattr(self, "instance_pool", None)
+        if instance_pool is None:
+            return 0
+        removed = 0
+        for slot in list(instance_pool.get_slots()):
+            if not getattr(slot, "owns_engine", False):
+                continue
+            engine = getattr(slot, "engine", None)
+            if engine is None:
+                continue
+            process = getattr(engine, "_process", None)
+            dead = bool(getattr(engine, "_engine_dead", False))
+            if process is not None:
+                try:
+                    dead = dead or (process.poll() is not None)
+                except Exception:
+                    pass
+            if not dead:
+                continue
+            if await self._retire_failed_slot(slot, "engine_dead"):
+                removed += 1
+        return removed
 
     async def _add_shared_instance_slot(self, coord_enabled: bool) -> Optional[Dict[str, Any]]:
         if self.instance_pool is None or self.engine is None:
@@ -3822,12 +4196,22 @@ class ScenarioRunner:
                 self._prime_slot_cache_view(slot, include_gpu=self._slot_should_include_gpu(slot))
         print(f"    Stage 3 (→GPU warmup): {n} adapters (hotness>={warmup_h})")
 
+        preferred_gpu_adapters = self._scale_up_warmup_preferred_gpu_adapters()
+        preload_capacity_bytes = self._scale_up_preload_capacity_bytes(preferred_gpu_adapters)
+        preload_budget = dict(getattr(self, "_last_scale_up_preload_budget", {}) or {})
         plan_id = await self._stack.trigger_scaling_preload(
-            self._scale_up_preload_capacity_bytes(),
-            preferred_gpu_adapters=self._scale_up_warmup_preferred_gpu_adapters(),
+            preload_capacity_bytes,
+            preferred_gpu_adapters=preferred_gpu_adapters,
         )
         if plan_id:
-            print(f"    Scale-up preload triggered (plan_id={plan_id})")
+            print(
+                f"    Scale-up preload triggered (plan_id={plan_id}, "
+                f"mode={preload_budget.get('mode', 'unknown')}, "
+                f"budget={preload_capacity_bytes / (1024.0 * 1024.0):.1f}MB, "
+                f"live_hotset={float(preload_budget.get('live_hotset_bytes', 0) or 0) / (1024.0 * 1024.0):.1f}MB, "
+                f"working_set={float(preload_budget.get('recent_working_set_bytes', 0) or 0) / (1024.0 * 1024.0):.1f}MB, "
+                f"headroom={float(preload_budget.get('target_headroom_bytes', 0) or 0) / (1024.0 * 1024.0):.1f}MB)"
+            )
         print(f"    Preload done  total_io={total_io:.0f}ms  nvme={len(self._nvme_cache)}  host={len(getattr(self._stack, '_host_paths', {}))}")
 
     async def _warmup_engine_hot_set(self, engine: Any, coordinator: Optional[Any] = None) -> set:
@@ -4609,6 +4993,7 @@ class ScenarioRunner:
         self, trace: RequestTrace, max_tokens: int, temperature: float
     ) -> RequestResult:
         # B2: 由 Router 选择实例，与线上路径一致
+        await self._prune_dead_instance_slots()
         adapter_id = trace.adapter_id
         size_mb = float(self.adapter_info.get(adapter_id, {}).get("size_mb", 30.0)) if adapter_id else 30.0
         self._refresh_all_slot_runtime_hints()
@@ -4733,6 +5118,13 @@ class ScenarioRunner:
             )
 
         except Exception as exc:
+            exc_text = str(exc)
+            if _is_fatal_engine_error_message(exc_text):
+                try:
+                    if slot is not None and getattr(slot, "owns_engine", False):
+                        await self._retire_failed_slot(slot, exc_text)
+                except Exception:
+                    pass
             try:
                 if batch_started and _coord:
                     _coord.notify_batch_end(trace.expected_input_tokens)
@@ -5366,6 +5758,10 @@ def _prepare_dedicated_subprocess_model_cfg(
     the target physical GPU.
     """
     local_model_cfg = copy.deepcopy(model_cfg)
+    # Dedicated child runtimes should never run the global stale-worker cleanup
+    # from inside the child itself, otherwise sibling runtimes from the same
+    # live experiment can be killed during startup.
+    local_model_cfg["skip_stale_gpu_cleanup"] = True
     env_updates: Dict[str, str] = {}
     tp = max(1, int(local_model_cfg.get("tensor_parallel_size", 1) or 1))
 
@@ -7126,6 +7522,8 @@ async def main_async(
         preload_cfg = sc.get("preloading", {})
         host_capacity_mb = float(preload_cfg.get("host_capacity_mb", 4096))
         instance_mode = str(sc_coord.get("instance_mode", "shared")).lower()
+        runner_model_cfg = copy.deepcopy(model_cfg)
+        runner_model_cfg.update(copy.deepcopy(sc_coord.get("instance_model_overrides", {})))
 
         run_results: List[ScenarioResult] = []
         for run_idx in range(num_runs):
@@ -7159,8 +7557,7 @@ async def main_async(
 
             engine_factory = None
             if instance_mode in ("auto", "dedicated") and engine.backend != "transformers":
-                spawn_model_cfg = copy.deepcopy(engine.model_cfg)
-                spawn_model_cfg.update(copy.deepcopy(sc_coord.get("instance_model_overrides", {})))
+                spawn_model_cfg = copy.deepcopy(runner_model_cfg)
                 use_subprocess_engine = _should_spawn_dedicated_engine_subprocess(
                     spawn_model_cfg,
                     instance_mode=instance_mode,
@@ -7214,6 +7611,7 @@ async def main_async(
                 hardware_cfg=hw_merged,
                 cost_model=cost_model,
                 engine=engine,
+                runner_model_cfg=runner_model_cfg,
                 preload_cfg=sc.get("preloading", {}),
                 workload_cfg=wl_cfg_yaml,
                 coord_cfg=sc_coord,
