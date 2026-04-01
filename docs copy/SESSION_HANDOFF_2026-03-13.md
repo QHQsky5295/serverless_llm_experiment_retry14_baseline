@@ -9,7 +9,7 @@
 > - 权威 clean-tree：`/home/qhq/serverless_llm_experiment_retry14_baseline`
 > - 历史脏树：`/home/qhq/serverless_llm_experiment`
 > - 当前分支：`retry14_rebuild`
-> - 当前 GitHub 已推送快照（本次同步前）：`99f0bf8`
+> - 当前 GitHub 已推送快照：`60737dd`
 > - 当前最新已验证的 TODO `#2` 收口代码基线：`b314262`
 > - 当前最新已正式分析结果：`retry44_fix15_baseline @ 500`
 > - 当前最近局部最优正式结果：`retry44_fix12_baseline @ 500`
@@ -114,7 +114,7 @@
 > - 权威 clean-tree：`/home/qhq/serverless_llm_experiment_retry14_baseline`
 > - 历史脏树：`/home/qhq/serverless_llm_experiment`
 > - 当前分支：`retry14_rebuild`
-> - 当前 GitHub 已推送快照：`99f0bf8`
+> - 当时 GitHub 已推送快照：`99f0bf8`（历史）
 > - 当前最新已验证的 TODO `#2` 收口代码基线：`b314262`
 > - 当前最新已正式分析结果：`retry44_fix7_cleanrun2_baseline @ 500`
 > - 当前最新本地未提交主线修改：
