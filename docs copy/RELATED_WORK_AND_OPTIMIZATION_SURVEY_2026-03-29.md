@@ -12,15 +12,36 @@
 
 > 2026-03-31 补充：
 >
-> - 当前最新已正式分析结果是 `retry44_fix6_baseline @ 500`；系统运行形态已经恢复正常，没有新的 crash 型结构性 bug。
-> - 但 TODO `#3` 仍未收口：相对 `retry43`，`retry44_fix6` 仍明显更差于 `TTFT_scaleup_affected / Cold_start_latency / TTFT_overall / TTFT_comparable / GPU_hit_rate / avg_lora_io_ms`。
+> - 当前最新已正式分析结果是 `retry44_fix7_cleanrun2_baseline @ 500`；系统运行形态正常，没有新的 crash 型结构性 bug。
+> - 但 TODO `#3` 仍未收口：相对 `retry43`，`retry44_fix7_cleanrun2` 仍明显更差于 `TTFT_overall / TTFT_comparable / TTFT_gpu_ready / Runtime_TTFT / GPU_hit_rate / avg_lora_io_ms`，且 `scaleup_affected` 请求仍没有真正进入 `GPU-ready` 覆盖。
 > - 这说明当前主瓶颈仍是 cold-path / preload coverage，而不是运行健壮性。
 > - 2026-03-30~31 一度出现过偏离主线的越界修改：把 `primary runtime` 也改成 subprocess；这条改动已经被明确判定为不符合当前 clean-tree 主线，并已收回。
 > - 当前对本文第 6 节 TODO 排序的正式理解应进一步收紧为：
 >   - TODO `#2`：已收口，不再回头扩改 runtime-forward / runtime-shape
 >   - TODO `#3`：当前唯一 next active 主线
 >   - TODO `#4/#5`：继续后置，不提前进入
-> - 当前 latest local code 仍在推进 TODO `#3`，但尚未经过新实验验证；其最新一刀是在 scale-up candidate ranking 上去掉“绝对时间戳主导的混合标量”，改成可解释的词典序排序。
+> - 当前 latest local code 不再继续沿 `retry43 -> retry44_fix6 -> retry44_fix7` 的更激进 working-set 扩张链修补；其最新真实状态是把 scale-up warmup preferred set 与 dynamic preload budget target 收回到 `live hotset` 语义，同时保留 foreign GPU consumer fail-fast guard，等待下一轮正式验证。
+>
+> 2026-04-01 补充：
+>
+> - 当前最新已正式分析结果已推进到 `retry44_fix15_baseline @ 500`；当前最近局部最优正式结果是 `retry44_fix12_baseline @ 500`。
+> - `retry44_fix8 -> retry44_fix12` 说明，从 `retry43 -> fix6 -> fix7_cleanrun2` 的激进 working-set 扩张链回撤之后，headline `TTFT / throughput / avg_lora_io_ms` 已明显回正，但 TODO `#3` 仍未收口。
+> - `retry44_fix8 -> retry44_fix15` 的 request-level 正式结论进一步收紧为：
+>   - `scaleup_affected` 请求仍主要来自 scale-up 新实例的 `host/nvme` tier
+>   - 它们并没有被真正推向 `GPU-ready`
+> - `retry44_fix15` 明确证明“继续放大 frontier / submitted-window coverage”是错误方向：
+>   - scale-up frontier 扩到 `18` 个 adapter
+>   - 新实例实际 warmup 也到 `18` 个 adapter
+>   - `Cold_start_latency` 升到 `93145.9 ms`
+> - 因此，当前对本文第 6 节 TODO 排序的正式理解应进一步收紧为：
+>   - TODO `#2`：已收口，不再回头扩改 runtime-forward / runtime-shape
+>   - TODO `#3`：当前唯一 next active 主线，但其最终方向不再是 `live hotset vs working set` 二选一，而是 `readiness-aware exact scale-up handoff plan`
+>   - TODO `#4/#5`：继续后置，不提前进入
+> - 当前必须保持冻结、不在 TODO `#3` 中混改的实验口径包括：
+>   - `time_scale_factor = 0.02`
+>   - `active_adapter_cap = 48`
+>   - `hotset_rotation_requests = 100`
+>   - `scale_decision_interval = 25`
 >
 > 2026-03-30 补充：
 >

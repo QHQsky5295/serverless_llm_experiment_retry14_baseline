@@ -623,14 +623,22 @@ class ExperimentStack:
         remaining = max(0, int(capacity_bytes))
         self.sync_local_tier_paths()
         candidate_ids = list(set(self._host_paths) | set(self._nvme_paths))
-        preferred = set(preferred_gpu_adapters or [])
+        preferred_sequence: List[str] = []
+        seen_preferred: set = set()
+        for aid in preferred_gpu_adapters or []:
+            if not aid or aid in seen_preferred:
+                continue
+            seen_preferred.add(aid)
+            preferred_sequence.append(aid)
+        preferred_rank = {aid: idx for idx, aid in enumerate(preferred_sequence)}
+        preferred = set(preferred_rank)
         scored: List[Tuple[int, float, float, float, float, str, int]] = []
 
         for aid in candidate_ids:
             meta = self.registry.get_artifact(aid)
             if not meta:
                 continue
-            if float(getattr(meta, "last_accessed_at", 0.0) or 0.0) < recent_threshold:
+            if aid not in preferred and float(getattr(meta, "last_accessed_at", 0.0) or 0.0) < recent_threshold:
                 continue
             size_bytes = int(getattr(meta, "size_bytes", 0) or 0)
             if size_bytes <= 0 or size_bytes > remaining:
@@ -643,20 +651,18 @@ class ExperimentStack:
             # timestamps into a scalar score. Using `last_accessed_at * k` makes
             # the ordering effectively recency-only and hides the contribution of
             # live hotness / value-per-byte. Here we first prioritize the curated
-            # preferred working set, then the current online hotness, then recency,
-            # then value density, and finally prefer smaller artifacts when the
-            # prior signals tie so limited warmup budget covers more adapters.
+            # preferred working set, preserving the live frontier order supplied by
+            # the runner, then the current online hotness, then recency, then value
+            # density, and finally prefer smaller artifacts when the prior signals
+            # tie so limited warmup budget covers more adapters.
             hotness_score = float(self._artifact_hotness(aid) or 0.0)
             last_accessed_at = float(getattr(meta, "last_accessed_at", 0.0) or 0.0)
             value_per_byte = float(getattr(meta, "value_per_byte", 0.0) or 0.0)
-            # When scaling up a new runtime, the strongest observable signal is
-            # the recent local working set currently serving live traffic. The
-            # preferred set may include sibling GPU residents and recently active
-            # host/NVMe adapters; budget and candidate selection should stay
-            # aligned on that same working-set definition.
+            preferred_priority = -float(preferred_rank.get(aid, 10 ** 6))
             scored.append(
                 (
                     1 if aid in preferred else 0,
+                    preferred_priority,
                     hotness_score,
                     last_accessed_at,
                     value_per_byte,
@@ -666,7 +672,7 @@ class ExperimentStack:
                 )
             )
 
-        for _, _, _, _, _, aid, size_bytes in sorted(scored, reverse=True):
+        for _, _, _, _, _, _, aid, size_bytes in sorted(scored, reverse=True):
             if size_bytes > remaining:
                 continue
             selected.append(aid)

@@ -11,32 +11,83 @@
 
 当前建议：
 
-- 先把当前 clean-tree 的 `retry44_fix6` 文档状态与 TODO `#3` 在研代码一起推到当前分支，作为新的可回退快照
+- 本次同步应把 `retry44_fix15` / `retry44_fix12` 的正式分析结论与当前 TODO `#3` 在研代码状态一起推到当前分支，作为新的可回退快照
 - 是否合并到 `main` 另行决策
 
-## 2026-03-31 更新：本次同步应纳入 `retry44_fix6` 正式分析状态与 TODO `#3` 在研代码
+## 2026-04-01 更新：本次同步应纳入 `retry44_fix15` 正式分析状态、`retry44_fix12` 局部最优结论与当前 TODO `#3` 最终方向
 
-- 当前最新已正式分析结果：`retry44_fix6_baseline @ 500`
+- 当前最新已正式分析结果：`retry44_fix15_baseline @ 500`
+- 当前最近局部最优正式结果：`retry44_fix12_baseline @ 500`
+- 当前最新已验证运行正常、并已完成正式分析的结果链：
+  - `retry43_baseline`
+  - `retry44_fix6_baseline`
+  - `retry44_fix7_cleanrun2_baseline`
+  - `retry44_fix8_baseline`
+  - `retry44_fix9_baseline`
+  - `retry44_fix10_baseline`
+  - `retry44_fix11_baseline`
+  - `retry44_fix12_baseline`
+  - `retry44_fix15_baseline`
+- 当前正式判断：
+  - TODO `#2` 仍以 `retry42_fix4 / b314262` 为收口点
+  - TODO `#3` 仍是当前唯一 next active 主线
+  - 当前还不能进入 TODO `#4/#5`
+  - `retry44_fix15` 已明确证明 submitted-window / wider frontier 扩张不是正确方向
+  - 当前唯一正确主线是把 TODO `#3` 收敛到 `readiness-aware exact scale-up handoff plan`
+- 本次同步应明确纳入：
+  - `retry44_fix15` 与 `retry44_fix12` 的 handoff / progress / sync / survey / technical-route 文档结论
+  - 当前重新收紧后的最高原则
+  - 当前 TODO `#3` 在研代码：
+    - `faaslora/experiment/experiment_stack.py`
+    - `scripts/run_all_experiments.py`
+    - `tests/test_basic_smoke.py`
+  - 当前文档镜像：
+    - `docs/*.md`
+    - `docs copy/*.md`
+- 这次同步必须明确区分：
+  - `b314262` 是最新已验证 TODO `#2` 收口代码基线
+  - 本次新推送快照包含 TODO `#3` 的阶段性结论与当前在研代码状态，同步目的不是宣布 TODO `#3` 已收口
+- 当前最新本地测试状态：
+  - `tests.test_basic_smoke = 135/135 OK`
+
+本次同步后的默认回退点应能表达：
+
+1. 系统运行形态仍在当前 clean-tree 主线允许的边界内：
+   - `primary runtime` 继续保持 in-process
+   - scale-up dedicated child 的生命周期修复被保留
+2. 当前没有新的 crash 型结构性 bug，TODO `#3` 的主瓶颈仍是 scale-up cold path / preload coverage。
+3. `retry44_fix15` 已明确证明：
+   - frontier 继续扩张不是正确方向
+   - 把 `warmed_adapters` 做大可以消掉局部 `scaleup_affected`，但会显著放大 `Cold_start_latency`
+4. 当前下一步应在本次快照基础上继续实现：
+   - `ready-time queue horizon`
+   - `exact ordered prefix`
+   - `prefix-bytes budget under headroom`
+   - `plan-only execution`
+
+## 2026-03-31 更新：下一次同步应纳入 `retry44_fix7_cleanrun2` 正式分析状态与当前 TODO `#3` 收代码
+
+- 当前最新已正式分析结果：`retry44_fix7_cleanrun2_baseline @ 500`
 - 当前最新已验证运行正常的结果链：
   - `retry43_baseline`
   - `retry44_fix5_baseline`
   - `retry44_fix6_baseline`
+  - `retry44_fix7_cleanrun2_baseline`
 - 当前正式判断：
   - TODO `#2` 仍以 `retry42_fix4` 为收口点
   - TODO `#3` 是当前唯一 next active 主线
   - 当前还不能进入 TODO `#4`
 - 当前下一次同步应明确纳入：
-  - `retry44_fix6` 的 handoff / progress / sync / survey 文档结论
+  - `retry44_fix7_cleanrun2` 的 handoff / progress / sync / survey 文档结论
   - 当前重新收紧后的最高原则
   - TODO `#3` 在研代码：
     - `scripts/run_all_experiments.py`
-    - `faaslora/experiment/experiment_stack.py`
     - `tests/test_basic_smoke.py`
 - 这次同步必须明确区分：
   - `b314262` 是最新已验证 TODO `#2` 收口代码基线
-  - 当前新推送快照包含 TODO `#3` 的在研代码与最新 docs，同步目的不是宣布 TODO `#3` 已收口
+  - 当前新推送快照包含 TODO `#3` 的收代码状态与最新 docs，同步目的不是宣布 TODO `#3` 已收口
 - 当前最新本地测试状态：
-  - `tests.test_basic_smoke = 124/124 OK`
+  - `tests.test_basic_smoke = 126/126 OK`
 
 本次同步后的默认回退点应能表达：
 
@@ -51,7 +102,7 @@
 3. 当前最新正式结论不是“系统有新的结构性 bug”，而是：
    - TODO `#3` 仍未收口
    - 剩余主瓶颈是 cold-path / preload coverage
-   - 当前下一刀是修复 scale-up candidate ranking 的第一性原则问题
+   - `retry43` 之后那条更激进的 working-set 扩张链没有改善 headline 指标，应回收至 live-hotset 语义再重新验证
 
 ## 2026-03-31 同步特别说明：最近一度偏离主线的改动已经被收回
 

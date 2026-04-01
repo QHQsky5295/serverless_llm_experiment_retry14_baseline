@@ -31,6 +31,7 @@
 - 历史脏树：`/home/qhq/serverless_llm_experiment`
 - 当前工作分支：`retry14_rebuild`
 - 当前最新已推送代码基线提交：`1544de2`
+- 当前 GitHub 已推送快照：`99f0bf8`
 - 本轮调研与规划文档首次同步提交：`34881fb`
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
 
@@ -44,13 +45,14 @@
 
 ### 当前最新正式分析结果
 
-- 当前最新已正式分析结果：`retry44_fix6_baseline @ 500`
+- 当前最新已正式分析结果：`retry44_fix7_cleanrun2_baseline @ 500`
 - 当前最新已验证 TODO `#2` 收口基线仍为：`retry42_fix4`
 - 当前最新已验证运行正常、但 TODO `#3` 仍未收口的结果链：
   - `retry43_baseline`
   - `retry44_fix5_baseline`
   - `retry44_fix6_baseline`
-- 当前下一轮正式实验目标：`retry44_fix7_baseline`
+  - `retry44_fix7_cleanrun2_baseline`
+- 当前下一轮正式实验目标：`retry44_fix8_baseline`
 
 ### 2026-03-31 当前真实结论
 
@@ -68,57 +70,63 @@
   - 相对 `retry44_fix5` 只有小幅回正
   - 相对 `retry43` 仍明显更差
   - 正式说明 TODO `#3` 还没有闭环
+- `retry44_fix7_cleanrun2`：
+  - 在干净 GPU 环境下是有效正式结果
+  - 但相对 `retry44_fix6` 和 `retry43` 仍继续变差
+  - 说明 `retry43 -> retry44_fix6 -> retry44_fix7` 这条更激进 TODO `#3` 扩张链不是正确收口方向
 
-### `retry44_fix6` headline 指标
+### `retry44_fix7_cleanrun2` headline 指标
 
-- `TTFT_overall = 7586.4 ms`
-- `TTFT_comparable = 8895.6 ms`
-- `TTFT_warm_standard = 8818.4 ms`
-- `TTFT_scaleup_affected = 9091.8 ms`
-- `TTFT_gpu_ready = 8818.4 ms`
-- `Runtime_TTFT = 7312.4 ms`
-- `TPOT = 45.21 ms`
-- `E2E_latency = 10351.8 ms`
-- `Throughput_req/s = 0.14265`
-- `Throughput_tok/s = 18.158`
+- `TTFT_overall = 7771.8 ms`
+- `TTFT_comparable = 9268.7 ms`
+- `TTFT_warm_standard = 9113.9 ms`
+- `TTFT_scaleup_affected = 8979.4 ms`
+- `TTFT_gpu_ready = 9113.9 ms`
+- `Runtime_TTFT = 7437.9 ms`
+- `TPOT = 44.85 ms`
+- `E2E_latency = 10042.3 ms`
+- `Throughput_req/s = 0.1499`
+- `Throughput_tok/s = 19.165`
 - `SLO_attainment = 21.0%`
-- `Cold_start_latency = 51710.5 ms`
-- `Monetary_cost = $0.00344239 / req`
-- `Cost_effectiveness_e2e = 28.0625`
-- `SLO_goodput_RPS = 0.02996`
-- `SLO_goodput_TOKPS = 3.81324`
-- `GPU_hit_rate = 0.7943`
-- `avg_lora_io_ms = 274.0 ms`
+- `Cold_start_latency = 50329.2 ms`
+- `Monetary_cost = $0.0034435 / req`
+- `Cost_effectiveness_e2e = 28.9179`
+- `SLO_goodput_RPS = 0.0315`
+- `SLO_goodput_TOKPS = 4.0246`
+- `GPU_hit_rate = 0.7727`
+- `avg_lora_io_ms = 333.8 ms`
 
-### `retry44_fix6` 的正式归因
+### `retry44_fix7_cleanrun2` 的正式归因
 
 - 当前没有新的 crash 型结构性 bug。
 - 当前主瓶颈不是运行健壮性，而是 TODO `#3` 的 cold-path / preload coverage。
-- `retry44_fix6` 相对 `retry43` 仍差的核心，不是预算大小本身，而是 scale-up candidate ranking 不符合第一性原则：
-  - 之前的混合标量把绝对 `last_accessed_at` 与 `hotness/value_per_byte` 混在一起
-  - 实际上几乎退化成“按最近访问时间排”
-  - 这不够可解释，也没有真实体现 live hotness / value density
-- 当前本地最新未推送代码已经把排序逻辑改成词典序：
-  - `preferred`
-  - `online hotness`
-  - `recency`
-  - `value_per_byte`
-  - `smaller_size`
-- 这批最新本地代码尚未经过新的正式实验轮次验证，因此当前 next active experiment 仍是 `retry44_fix7_baseline`
+- `retry44_fix7_cleanrun2` 里 `scaleup_affected=64` 个请求仍全部来自 `host/nvme`，`gpu=0`，说明更激进的 TODO `#3` 链并没有把受影响请求推向 `GPU-ready`。
+- 请求分布也变坏了：
+  - `inst_1` 处理 `232` 个请求，平均 `TTFT ≈ 9579 ms`
+  - `inst_2` 处理 `268` 个请求，平均 `TTFT ≈ 6207 ms`
+  - `inst_1` 上 `gpu` tier 请求平均 `TTFT ≈ 9485 ms`，明显慢于 `inst_2` 的 `≈ 8534 ms`
+- 这说明 `retry43` 之后那条更激进的 working-set 扩张链，正在把过多 GPU LoRA 流量推给更慢实例，而没有换来更好的 cold-path 覆盖。
+- 当前本地最新未推送代码因此不是继续扩张，而是收代码：
+  - `scripts/run_all_experiments.py`
+    - scale-up warmup preferred set：回到 `live GPU hotset`
+    - dynamic preload budget target：回到 `live hotset`
+    - 保留 foreign GPU consumer fail-fast guard，确保外部 GPU 污染不会再产出无效正式结果
+  - `tests/test_basic_smoke.py`
+    - 对应更新到新的 `live hotset` 语义
+- 这批最新本地代码尚未经过新的正式实验轮次验证，因此当前 next active experiment 改为 `retry44_fix8_baseline`
 
 ### 当前最新代码状态
 
 - 当前最新已验证 TODO `#2` 收口提交：`b314262`
 - 当前本地另有**未推送**的 TODO `#3` 在研主线修改：
-  - `faaslora/experiment/experiment_stack.py`
   - `scripts/run_all_experiments.py`
   - `tests/test_basic_smoke.py`
 - 这批在研代码的含义：
   - 继续沿 TODO `#3` 的 cold-path / preload coverage 因果链收口
   - 不再允许为了局部现象去改 `primary runtime` 运行形态
-  - 当前最新一刀修的是 scale-up candidate ranking 的可解释性与 working-set 语义一致性
+  - 当前最新一刀不是继续扩张 working-set 语义，而是把 warmup preferred set 与 dynamic budget 目标集合收回到 `live hotset`，以回到 `retry43` 之后最后一个还符合第一性原则的收口边界
 - 当前本地测试状态：
-  - `tests.test_basic_smoke = 124/124 OK`
+  - `tests.test_basic_smoke = 126/126 OK`
 
 ### 当前高优先级 TODO 顺序
 
@@ -130,7 +138,7 @@
 
 3. TODO `#3`：`scale_up_preload_mb=1024` 改成 headroom-aware 动态预算
    - 当前状态：进行中，尚未收口
-   - 当前 next active 实验：`retry44_fix7_baseline`
+   - 当前 next active 实验：`retry44_fix8_baseline`
    - 当前必须继续优先服务：
      - `TTFT_scaleup_affected`
      - `Cold_start_latency`
@@ -154,6 +162,130 @@
   - 复用已有可观测值
   - 保持公式、排序、成本模型可解释
 - 当前如果一个修改不能明确回答“它服务哪个主指标、对应哪项贡献、为何不是补丁”，则不应进入 clean-tree 主线。
+
+## 2026-04-01 更新快照
+
+### 当前最新正式分析结果
+
+- 当前最新已正式分析结果：`retry44_fix15_baseline @ 500`
+- 当前最近局部最优正式结果：`retry44_fix12_baseline @ 500`
+- 当前最新已验证 TODO `#2` 收口基线仍为：`retry42_fix4 / b314262`
+- 当前已正式分析的 TODO `#3` 结果链：
+  - `retry43_baseline`
+  - `retry44_fix6_baseline`
+  - `retry44_fix7_cleanrun2_baseline`
+  - `retry44_fix8_baseline`
+  - `retry44_fix9_baseline`
+  - `retry44_fix10_baseline`
+  - `retry44_fix11_baseline`
+  - `retry44_fix12_baseline`
+  - `retry44_fix15_baseline`
+- 当前下一轮正式实验目标：`retry44_fix16_baseline`
+
+### 2026-04-01 当前真实结论
+
+- 当前没有新的 crash 型结构性 bug；TODO `#3` 仍是唯一 active 主线。
+- `retry44_fix8 -> retry44_fix12` 说明，从 `retry43 -> fix6 -> fix7_cleanrun2` 的激进扩张链回撤之后，headline `TTFT / throughput / avg_lora_io_ms` 已明显回正，其中 `retry44_fix12` 是当前最近局部最优正式结果。
+- 但 `retry44_fix8 -> retry44_fix15` 这一整条链仍没有把 `scaleup_affected` 请求真正推向 `GPU-ready`：
+  - 这些请求依然几乎都落在 scale-up 新实例 `inst_2`
+  - `cache_tier` 仍主要是 `host / nvme`
+- `retry44_fix15` 进一步明确证明“继续放大 frontier / submitted-window coverage”是错误方向：
+  - scale-up frontier 扩到 `18` 个 adapter
+  - 新实例实际 warmup 也到 `18` 个 adapter
+  - `Cold_start_latency` 升到 `93145.9 ms`
+- 当前唯一主矛盾不是 “live hotset 还是 working set”，而是：
+  - scale-up decision 看到的是 `arrived/backlog`
+  - warmup planning 看到的是 `submitted/waiting/frontier proxy`
+  - 新 runtime 真正 ready 后接到的是 `queue-at-runtime-ready` 的 prefix
+  - 这三者目前还不是同一个系统语义对象
+- 因此当前最终最优方向已经收敛为：
+  - TODO `#3` 继续前进，但不再做 `frontier` 扩张补丁
+  - 下一刀应改成 `readiness-aware exact scale-up handoff plan`
+  - 也就是：`ready-time queue horizon -> exact ordered prefix -> prefix-bytes budget -> plan-only execution`
+- 当前必须保持冻结、不在 TODO `#3` 中混改的实验口径：
+  - `time_scale_factor = 0.02`
+  - `active_adapter_cap = 48`
+  - `hotset_rotation_requests = 100`
+  - `scale_decision_interval = 25`
+
+### `retry44_fix15` headline 指标
+
+- `TTFT_overall = 6915.5 ms`
+- `TTFT_comparable = 8096.5 ms`
+- `TTFT_warm_standard = 7924.9 ms`
+- `TTFT_scaleup_affected = 8374.8 ms`
+- `TTFT_gpu_ready = 7924.9 ms`
+- `Runtime_TTFT = 6674.7 ms`
+- `TPOT = 39.64 ms`
+- `E2E_latency = 9456.1 ms`
+- `Throughput_req/s = 0.1592`
+- `Throughput_tok/s = 20.3244`
+- `SLO_attainment = 21.2%`
+- `Cold_start_latency = 93145.9 ms`
+- `Monetary_cost = $0.00344319 / req`
+- `GPU_hit_rate = 0.8110`
+- `avg_lora_io_ms = 240.9 ms`
+
+### `retry44_fix12` 当前局部最优 headline 指标
+
+- `TTFT_overall = 6870.2 ms`
+- `TTFT_comparable = 8049.4 ms`
+- `TTFT_scaleup_affected = 8197.6 ms`
+- `TTFT_gpu_ready = 7934.2 ms`
+- `Runtime_TTFT = 6653.1 ms`
+- `Throughput_req/s = 0.1580`
+- `Cold_start_latency = 66128.2 ms`
+- `GPU_hit_rate = 0.7990`
+- `avg_lora_io_ms = 217.0 ms`
+
+### 当前最新代码状态
+
+- 当前最新已验证 TODO `#2` 收口提交：`b314262`
+- 当前本地另有**未推送**的 TODO `#3` 在研主线修改：
+  - `faaslora/experiment/experiment_stack.py`
+  - `scripts/run_all_experiments.py`
+  - `tests/test_basic_smoke.py`
+  - `docs/*.md`
+  - `docs copy/*.md`
+- 这批在研代码当前真实含义：
+  - 保留 foreign GPU consumer fail-fast guard，避免外部 GPU 污染产出无效正式结果
+  - 保留从激进 working-set 扩张链回收到 `live GPU hotset` 的语义边界
+  - 保留 waiting-submitted frontier 的 ordered preferred set
+  - 保留 `ExperimentStack` 中按 preferred 顺序选 instance-scoped warmup candidate
+  - 保留 plan-only warmup execution，不再把全局 hot adapters 偷带进 scale-up cold path
+  - 尚未实现最终的 `readiness-aware exact scale-up handoff plan`
+- 当前本地测试状态：
+  - `tests.test_basic_smoke = 135/135 OK`
+
+### 当前高优先级 TODO 顺序
+
+1. TODO `#1`：按真实时间 / 真实压力评估 scale-up
+   - 当前状态：已在 `retry40` 上收口；除非出现新回归，不再继续叠控制面
+
+2. TODO `#2`：清理残留 `device 0` 拓扑硬编码
+   - 当前状态：已在 `retry42_fix4` 上收口
+
+3. TODO `#3`：headroom-aware scale-up cold path / preload coverage 收口
+   - 当前状态：进行中，但当前唯一正确方向已经收敛为 `readiness-aware exact scale-up handoff plan`
+   - 当前 next active 实验：`retry44_fix16_baseline`
+   - 当前子任务：
+     - `queue-at-runtime-ready` horizon
+     - exact ordered prefix
+     - prefix-bytes budget under headroom
+     - plan-only execution
+   - 当前必须继续优先服务：
+     - `TTFT_scaleup_affected`
+     - `Cold_start_latency`
+     - `TTFT_overall`
+     - `TTFT_comparable`
+     - `GPU_hit_rate`
+     - `avg_lora_io_ms`
+
+4. TODO `#4`：rank / size-aware observed utility
+   - 只有 TODO `#3` 真正收口后才允许进入
+
+5. TODO `#5`：decode-aware contention control
+   - 只有 TODO `#4` 真正收口后才允许进入
 
 ## 2026-03-30 更新快照
 

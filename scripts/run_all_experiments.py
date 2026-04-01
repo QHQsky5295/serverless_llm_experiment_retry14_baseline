@@ -300,6 +300,136 @@ def _is_fatal_engine_error_message(message: Any) -> bool:
     return any(marker in text for marker in fatal_markers)
 
 
+def _parse_gpu_memory_mib(text: Any) -> int:
+    match = re.search(r"(\d+)", str(text or ""))
+    return int(match.group(1)) if match else 0
+
+
+def _current_process_family_pids(root_pid: Optional[int] = None) -> set[int]:
+    root_pid = int(root_pid or os.getpid())
+    allowed = {root_pid}
+    try:
+        import psutil
+
+        root = psutil.Process(root_pid)
+        for child in root.children(recursive=True):
+            allowed.add(int(child.pid))
+    except Exception:
+        pass
+    return allowed
+
+
+def _foreign_gpu_consumers_from_rows(
+    device_ids: List[int],
+    *,
+    gpu_uuid_rows: List[str],
+    compute_app_rows: List[str],
+    allowed_pids: set[int],
+    min_used_mib: int = 256,
+) -> List[Dict[str, Any]]:
+    uuid_to_index: Dict[str, int] = {}
+    for row in gpu_uuid_rows:
+        parts = [part.strip() for part in str(row or "").split(",")]
+        if len(parts) < 2:
+            continue
+        try:
+            gpu_index = int(parts[0])
+        except Exception:
+            continue
+        uuid_to_index[parts[1]] = gpu_index
+
+    device_set = {int(idx) for idx in device_ids}
+    offenders: List[Dict[str, Any]] = []
+    for row in compute_app_rows:
+        parts = [part.strip() for part in str(row or "").split(",")]
+        if len(parts) < 4:
+            continue
+        gpu_uuid = parts[0]
+        try:
+            pid = int(parts[1])
+        except Exception:
+            continue
+        gpu_index = uuid_to_index.get(gpu_uuid)
+        if gpu_index is None or gpu_index not in device_set:
+            continue
+        if pid in allowed_pids:
+            continue
+        used_mib = _parse_gpu_memory_mib(parts[3])
+        if used_mib < int(min_used_mib):
+            continue
+        offenders.append(
+            {
+                "gpu_index": gpu_index,
+                "pid": pid,
+                "process_name": parts[2],
+                "used_mib": used_mib,
+            }
+        )
+    return sorted(offenders, key=lambda item: (item["gpu_index"], item["pid"]))
+
+
+def _detect_foreign_gpu_consumers(
+    device_ids: List[int],
+    *,
+    root_pid: Optional[int] = None,
+    min_used_mib: int = 256,
+) -> List[Dict[str, Any]]:
+    device_ids = [int(idx) for idx in (device_ids or [])]
+    if not device_ids:
+        return []
+    try:
+        gpu_uuid_rows = subprocess.check_output(
+            [
+                "nvidia-smi",
+                "--query-gpu=index,uuid",
+                "--format=csv,noheader",
+            ],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).splitlines()
+        compute_app_rows = subprocess.check_output(
+            [
+                "nvidia-smi",
+                "--query-compute-apps=gpu_uuid,pid,process_name,used_gpu_memory",
+                "--format=csv,noheader",
+            ],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).splitlines()
+    except Exception:
+        return []
+
+    allowed_pids = _current_process_family_pids(root_pid=root_pid)
+    return _foreign_gpu_consumers_from_rows(
+        device_ids,
+        gpu_uuid_rows=gpu_uuid_rows,
+        compute_app_rows=compute_app_rows,
+        allowed_pids=allowed_pids,
+        min_used_mib=min_used_mib,
+    )
+
+
+def _assert_clean_gpu_environment(
+    device_ids: List[int],
+    *,
+    context: str,
+    root_pid: Optional[int] = None,
+    min_used_mib: int = 256,
+) -> None:
+    offenders = _detect_foreign_gpu_consumers(
+        device_ids,
+        root_pid=root_pid,
+        min_used_mib=min_used_mib,
+    )
+    if not offenders:
+        return
+    detail = ", ".join(
+        f"gpu{item['gpu_index']} pid={item['pid']} {item['process_name']} {item['used_mib']}MiB"
+        for item in offenders
+    )
+    raise RuntimeError(f"foreign_gpu_consumer_detected[{context}]: {detail}")
+
+
 def _check_shm_for_vllm():
     """Warn if /dev/shm is small; EngineCore IPC needs sufficient shared memory (community fix)."""
     try:
@@ -2275,6 +2405,8 @@ class ScenarioRunner:
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
         self._run_started_at = 0.0
+        self._gpu_environment_guard_last_at = 0.0
+        self._gpu_environment_guard_interval_s = 30.0
         self._dynamic_forwarding_enabled = bool(self.preload_cfg.get("dynamic_forwarding_enabled", True))
         self._runtime_gpu_forward_tasks: Dict[tuple, asyncio.Task] = {}
         self._live_scale_up_events: List[Dict[str, Any]] = []
@@ -2282,6 +2414,10 @@ class ScenarioRunner:
         self._live_scale_eval_last_at: float = 0.0
         self._live_scale_overrides: Optional[Dict[str, float]] = None
         self._last_scale_up_preload_budget: Dict[str, Any] = {}
+        self._live_arrived_lora_counts: Dict[str, int] = defaultdict(int)
+        self._live_started_lora_counts: Dict[str, int] = defaultdict(int)
+        self._live_arrived_lora_first_seen_seq: Dict[str, int] = {}
+        self._live_arrived_lora_seq: int = 0
         self._slot_retire_lock = asyncio.Lock()
 
         # Resource coordinator (contribution 3); when _stack is set, coordinator comes from stack
@@ -2326,6 +2462,17 @@ class ScenarioRunner:
             for slot in self.instance_pool.get_slots():
                 self._prime_slot_cache_view(slot, include_gpu=self._slot_should_include_gpu(slot))
             self._sync_stack_gpu_accounting()
+
+    def _assert_clean_gpu_environment(self, *, context: str, force: bool = False) -> None:
+        now = time.perf_counter()
+        if not force and (now - self._gpu_environment_guard_last_at) < self._gpu_environment_guard_interval_s:
+            return
+        _assert_clean_gpu_environment(
+            self._available_device_ids(),
+            context=context,
+            root_pid=os.getpid(),
+        )
+        self._gpu_environment_guard_last_at = now
 
     def _observe_dynamic_scaling_rps(
         self, observed_rps: float, observed_at: float
@@ -2867,29 +3014,17 @@ class ScenarioRunner:
 
     def _scale_up_warmup_preferred_gpu_adapters(self) -> set:
         """
-        Preferred scale-up warmup set backed by the current recent local working set.
+        Preferred scale-up warmup set backed by the current live GPU hotset.
 
-        TODO #3 moved the preload budget from a fixed MB cap to a recent-working-set-
-        aware budget. The preferred candidate set must follow the same definition;
-        otherwise we expand the budget while still warming only the sibling GPU-
-        resident subset, which leaves cold-path coverage unchanged.
+        Keep TODO #3 aligned to the last validated semantics: when a new runtime is
+        added, the strongest observable signal is the sibling GPU hotset already
+        serving live traffic. Recent local HOST/NVMe working-set expansion regressed
+        headline TTFT metrics by shifting too much LoRA traffic onto the slower
+        primary runtime, so scale-up warmup falls back to the narrower live-hotset
+        definition until a stronger causal model is validated.
         """
         now = time.time()
         preferred: set = set()
-        stack = getattr(self, "_stack", None)
-        if stack is not None:
-            sync_paths = getattr(stack, "sync_local_tier_paths", None)
-            if callable(sync_paths):
-                try:
-                    sync_paths()
-                except Exception:
-                    pass
-            host_paths = dict(getattr(stack, "_host_paths", {}) or {})
-            nvme_paths = dict(getattr(stack, "_nvme_paths", {}) or {})
-            for adapter_id in set(host_paths) | set(nvme_paths):
-                if self._adapter_is_recently_active(adapter_id, now=now):
-                    preferred.add(adapter_id)
-
         if self.instance_pool is None:
             gpu_warmed = set(getattr(self, "_gpu_warmed", set()))
             recent_gpu_warmed = {
@@ -2904,6 +3039,236 @@ class ScenarioRunner:
                 for adapter_id in getattr(slot, "gpu_resident_adapters", set()):
                     if self._adapter_is_recently_active(adapter_id, now=now):
                         preferred.add(adapter_id)
+        return preferred
+
+    def _observe_live_arrived_lora(self, adapter_id: Optional[str]) -> None:
+        if not adapter_id:
+            return
+        counts = getattr(self, "_live_arrived_lora_counts", None)
+        if counts is None:
+            counts = defaultdict(int)
+            self._live_arrived_lora_counts = counts
+        first_seen = getattr(self, "_live_arrived_lora_first_seen_seq", None)
+        if first_seen is None:
+            first_seen = {}
+            self._live_arrived_lora_first_seen_seq = first_seen
+        counts[adapter_id] += 1
+        if counts[adapter_id] == 1:
+            self._live_arrived_lora_seq = int(getattr(self, "_live_arrived_lora_seq", 0) or 0) + 1
+            first_seen[adapter_id] = self._live_arrived_lora_seq
+
+    def _release_live_arrived_lora(self, adapter_id: Optional[str]) -> None:
+        if not adapter_id:
+            return
+        counts = getattr(self, "_live_arrived_lora_counts", None)
+        if not counts:
+            return
+        remaining = max(0, int(counts.get(adapter_id, 0) or 0) - 1)
+        if remaining > 0:
+            counts[adapter_id] = remaining
+            return
+        counts.pop(adapter_id, None)
+        first_seen = getattr(self, "_live_arrived_lora_first_seen_seq", None)
+        if isinstance(first_seen, dict):
+            first_seen.pop(adapter_id, None)
+
+    def _observe_live_started_lora(self, adapter_id: Optional[str]) -> None:
+        if not adapter_id:
+            return
+        counts = getattr(self, "_live_started_lora_counts", None)
+        if counts is None:
+            counts = defaultdict(int)
+            self._live_started_lora_counts = counts
+        counts[adapter_id] += 1
+
+    def _release_live_started_lora(self, adapter_id: Optional[str]) -> None:
+        if not adapter_id:
+            return
+        counts = getattr(self, "_live_started_lora_counts", None)
+        if not counts:
+            return
+        remaining = max(0, int(counts.get(adapter_id, 0) or 0) - 1)
+        if remaining > 0:
+            counts[adapter_id] = remaining
+            return
+        counts.pop(adapter_id, None)
+
+    def _live_scale_up_arrived_demand_frontier(
+        self,
+        *,
+        arrived_request_count: int,
+        submitted_count: int,
+        submitted_traces: Optional[List[Any]] = None,
+    ) -> List[str]:
+        """
+        Return the currently arrived LoRA demand frontier for a new runtime.
+
+        Under the current batch-submission harness, a newly added runtime first
+        inherits requests that have already been submitted but have not yet entered
+        execution. Build the frontier from that waiting queue first, then fall back
+        to the next queued traces already visible to the runner, and only then to
+        broader live-arrived demand.
+        """
+        coverage_limit = self._scale_up_coverage_request_window(
+            submitted_traces=submitted_traces,
+        )
+        if coverage_limit <= 0:
+            return []
+
+        preferred: List[str] = []
+        seen: set = set()
+        covered_gpu = set(self._scale_up_warmup_preferred_gpu_adapters())
+        live_counts = dict(getattr(self, "_live_arrived_lora_counts", {}) or {})
+        started_counts = dict(getattr(self, "_live_started_lora_counts", {}) or {})
+        waiting_counts = {
+            adapter_id: max(
+                0,
+                int(live_counts.get(adapter_id, 0) or 0)
+                - int(started_counts.get(adapter_id, 0) or 0),
+            )
+            for adapter_id in set(live_counts) | set(started_counts)
+        }
+
+        def _waiting_trace_queue(traces: List[Any]) -> List[Any]:
+            remaining_waiting = {
+                adapter_id: int(count or 0)
+                for adapter_id, count in waiting_counts.items()
+                if adapter_id and int(count or 0) > 0
+            }
+            queue: List[Any] = []
+            for trace in traces:
+                adapter_id = getattr(trace, "adapter_id", None)
+                if not adapter_id:
+                    continue
+                remaining = int(remaining_waiting.get(adapter_id, 0) or 0)
+                if remaining <= 0:
+                    continue
+                queue.append(trace)
+                remaining_waiting[adapter_id] = remaining - 1
+            return queue
+
+        def _append_unique_in_queue_order(traces: List[Any]) -> bool:
+            uncovered: List[str] = []
+            covered: List[str] = []
+            local_seen: set = set()
+            for trace in traces:
+                adapter_id = getattr(trace, "adapter_id", None)
+                if not adapter_id or adapter_id in seen or adapter_id in local_seen:
+                    continue
+                local_seen.add(adapter_id)
+                if adapter_id in covered_gpu:
+                    covered.append(adapter_id)
+                else:
+                    uncovered.append(adapter_id)
+            for adapter_id in uncovered + covered:
+                if adapter_id in seen:
+                    continue
+                preferred.append(adapter_id)
+                seen.add(adapter_id)
+                if len(preferred) >= coverage_limit:
+                    return True
+            return False
+
+        submitted_frontier = list(submitted_traces or [])
+        waiting_frontier = _waiting_trace_queue(submitted_frontier)
+        if _append_unique_in_queue_order(waiting_frontier):
+            return preferred
+        if not waiting_frontier and _append_unique_in_queue_order(submitted_frontier):
+            return preferred
+
+        upper = min(max(0, int(arrived_request_count or 0)), len(getattr(self, "traces", []) or []))
+        lower = min(max(0, int(submitted_count or 0)), upper)
+
+        try:
+            lookahead = max(
+                coverage_limit,
+                int(self.coord_cfg.get("scale_decision_interval", coverage_limit) or coverage_limit),
+            )
+        except Exception:
+            lookahead = coverage_limit
+        queue_upper = min(upper, lower + max(coverage_limit, lookahead))
+        queued_traces = (getattr(self, "traces", []) or [])[lower:queue_upper]
+        if _append_unique_in_queue_order(list(queued_traces)):
+            return preferred
+
+        first_seen = dict(getattr(self, "_live_arrived_lora_first_seen_seq", {}) or {})
+        live_ranked = sorted(
+            (
+                adapter_id
+                for adapter_id, count in live_counts.items()
+                if adapter_id and int(count or 0) > 0
+            ),
+            key=lambda aid: (
+                1 if aid not in covered_gpu else 0,
+                int(live_counts.get(aid, 0) or 0),
+                -(int(first_seen.get(aid, 10 ** 9) or 10 ** 9)),
+            ),
+            reverse=True,
+        )
+        for adapter_id in live_ranked:
+            if adapter_id in seen:
+                continue
+            preferred.append(adapter_id)
+            seen.add(adapter_id)
+            if len(preferred) >= coverage_limit:
+                return preferred
+        return preferred
+
+    def _scale_up_coverage_request_window(
+        self,
+        *,
+        submitted_traces: Optional[List[Any]] = None,
+    ) -> int:
+        """
+        Return the request-window horizon for scale-up coverage.
+
+        Do not reuse runtime concurrency as the warmup coverage horizon. Under the
+        current batch-submission model, a freshly added runtime first competes for
+        the currently submitted backlog, whose adapter diversity can be much larger
+        than the number of requests it can execute concurrently.
+        """
+        submitted_window = len(list(submitted_traces or []))
+        if submitted_window > 0:
+            return max(1, submitted_window)
+        try:
+            return max(1, int(self.coord_cfg.get("scale_decision_interval", 1) or 1))
+        except Exception:
+            return 1
+
+    def _live_scale_up_preferred_gpu_adapters(
+        self,
+        *,
+        arrived_request_count: int,
+        submitted_count: int,
+        submitted_traces: Optional[List[Any]] = None,
+    ) -> List[str]:
+        """
+        Build the ordered live preferred set for scale-up warmup.
+
+        Priority is the currently arrived demand frontier; if that frontier is not
+        full, fill the remainder with the sibling live GPU hotset. This keeps TODO
+        #3 on live online observables while avoiding a return to broad historical
+        working-set expansion.
+        """
+        preferred = self._live_scale_up_arrived_demand_frontier(
+            arrived_request_count=arrived_request_count,
+            submitted_count=submitted_count,
+            submitted_traces=submitted_traces,
+        )
+        coverage_limit = self._scale_up_coverage_request_window(
+            submitted_traces=submitted_traces,
+        )
+        if len(preferred) >= coverage_limit:
+            return preferred
+
+        seen = set(preferred)
+        for adapter_id in sorted(self._scale_up_warmup_preferred_gpu_adapters()):
+            if adapter_id in seen:
+                continue
+            preferred.append(adapter_id)
+            seen.add(adapter_id)
+            if len(preferred) >= coverage_limit:
+                break
         return preferred
 
     def _adapter_is_recently_active(self, adapter_id: str, *, now: Optional[float] = None) -> bool:
@@ -3117,39 +3482,6 @@ class ScenarioRunner:
             total_bytes += int(size_mb * 1024.0 * 1024.0)
         return total_bytes
 
-    def _scale_up_recent_local_working_set_bytes(self) -> int:
-        stack = getattr(self, "_stack", None)
-        if stack is None:
-            return 0
-
-        sync_paths = getattr(stack, "sync_local_tier_paths", None)
-        if callable(sync_paths):
-            try:
-                sync_paths()
-            except Exception:
-                pass
-
-        host_paths = dict(getattr(stack, "_host_paths", {}) or {})
-        nvme_paths = dict(getattr(stack, "_nvme_paths", {}) or {})
-        if not host_paths and not nvme_paths:
-            return 0
-        size_fn = getattr(stack, "_artifact_size_mb", None)
-        total_bytes = 0
-        now = time.time()
-        for adapter_id in set(host_paths) | set(nvme_paths):
-            if not self._adapter_is_recently_active(adapter_id, now=now):
-                continue
-            try:
-                size_mb = float(size_fn(adapter_id)) if callable(size_fn) else float(
-                    (getattr(self, "adapter_info", {}) or {}).get(adapter_id, {}).get("size_mb", 0.0) or 0.0
-                )
-            except Exception:
-                size_mb = 0.0
-            if size_mb <= 0.0:
-                continue
-            total_bytes += int(size_mb * 1024.0 * 1024.0)
-        return total_bytes
-
     def _scale_up_preload_budget_snapshot(
         self,
         preferred_gpu_adapters: Optional[set] = None,
@@ -3158,17 +3490,15 @@ class ScenarioRunner:
         dynamic_enabled = bool(self.preload_cfg.get("scale_up_dynamic_budget_enabled", True))
         if dynamic_enabled:
             live_hotset_bytes = self._scale_up_live_hotset_bytes(preferred)
-            recent_working_set_bytes = self._scale_up_recent_local_working_set_bytes()
             target_headroom_mb = self._scale_up_target_runtime_headroom_mb()
             target_headroom_bytes = max(0, int(target_headroom_mb * 1024.0 * 1024.0))
-            target_working_set_bytes = max(live_hotset_bytes, recent_working_set_bytes)
-            if target_working_set_bytes > 0 and target_headroom_bytes > 0:
-                capacity_bytes = min(target_working_set_bytes, target_headroom_bytes)
+            if live_hotset_bytes > 0 and target_headroom_bytes > 0:
+                capacity_bytes = min(live_hotset_bytes, target_headroom_bytes)
                 return {
-                    "mode": "dynamic_headroom_recent_working_set",
+                    "mode": "dynamic_headroom_live_hotset",
                     "capacity_bytes": max(0, int(capacity_bytes)),
                     "live_hotset_bytes": live_hotset_bytes,
-                    "recent_working_set_bytes": recent_working_set_bytes,
+                    "recent_working_set_bytes": 0,
                     "target_headroom_bytes": target_headroom_bytes,
                 }
 
@@ -3328,6 +3658,7 @@ class ScenarioRunner:
             enough_progress = (completed - self._live_last_print_completed) >= self._live_progress_every_requests
             if not (enough_time or enough_progress):
                 return
+        self._assert_clean_gpu_environment(context="live_progress", force=force)
         elapsed = max(0.0, now - self._run_started_at) if self._run_started_at > 0 else 0.0
         eta = 0.0
         if completed > 0 and total > completed:
@@ -3576,6 +3907,7 @@ class ScenarioRunner:
         busy_ratio: float,
         completed_count: int,
         submitted_count: int,
+        submitted_traces: Optional[List[Any]] = None,
     ) -> bool:
         now_mono = time.perf_counter()
         arrival_rps = self._arrival_rps(replay_t0)
@@ -3616,7 +3948,11 @@ class ScenarioRunner:
         self._live_scale_eval_last_at = now_mono
         arrived_request_count = self._arrived_request_count(replay_t0)
         request_index = max(0, int(submitted_count or 0))
-        preferred_gpu_adapters = self._scale_up_warmup_preferred_gpu_adapters()
+        preferred_gpu_adapters = self._live_scale_up_preferred_gpu_adapters(
+            arrived_request_count=arrived_request_count,
+            submitted_count=submitted_count,
+            submitted_traces=submitted_traces,
+        )
         preload_capacity_bytes = self._scale_up_preload_capacity_bytes(preferred_gpu_adapters)
         preload_budget = dict(getattr(self, "_last_scale_up_preload_budget", {}) or {})
         print(
@@ -3626,6 +3962,14 @@ class ScenarioRunner:
             f"active={active_requests} busy={busy_ratio:.2f}",
             flush=True,
         )
+        if preferred_gpu_adapters:
+            preview = ", ".join(preferred_gpu_adapters[:5])
+            if len(preferred_gpu_adapters) > 5:
+                preview += ", ..."
+            print(
+                f"    Scale-up live frontier: {len(preferred_gpu_adapters)} adapters ({preview})",
+                flush=True,
+            )
         print(
             f"    Scale-up preload budget: mode={preload_budget.get('mode', 'unknown')} "
             f"budget={preload_capacity_bytes / (1024.0 * 1024.0):.1f}MB "
@@ -4228,9 +4572,14 @@ class ScenarioRunner:
             if self.adapter_info.get(aid, {}).get("hotness", 0) >= warmup_h
         ]
         if planned_aids:
+            # Keep execution aligned with the instance-scoped scale-up plan. When a
+            # live frontier has already been selected under the current budget,
+            # appending every globally hot adapter widens cold-start work beyond the
+            # plan and breaks the causal link between scale-up ranking, budget, and
+            # observed warmup coverage.
             ordered = []
             seen = set()
-            for aid in planned_aids + hot_aids:
+            for aid in planned_aids:
                 if aid in seen:
                     continue
                 seen.add(aid)
@@ -4326,6 +4675,7 @@ class ScenarioRunner:
             self.engine.set_hf_max_adapters_for_scenario(
                 self.baseline_type, self.coord_cfg, self.engine.model_cfg
             )
+        self._assert_clean_gpu_environment(context="scenario_start", force=True)
         await self._ensure_min_instances(coord_enabled)
         concurrency = self.wl_cfg.get("concurrency", 8)
         max_tokens  = self.wl_cfg.get("max_tokens", 128)
@@ -4353,9 +4703,17 @@ class ScenarioRunner:
 
         async def run_one(i: int, trace: RequestTrace):
             await self._await_trace_arrival(trace, replay_t0)
-            async with sem:
-                out = await self._exec_request(trace, max_tokens, temperature)
-                return out
+            self._observe_live_arrived_lora(getattr(trace, "adapter_id", None))
+            try:
+                async with sem:
+                    self._observe_live_started_lora(getattr(trace, "adapter_id", None))
+                    try:
+                        out = await self._exec_request(trace, max_tokens, temperature)
+                        return out
+                    finally:
+                        self._release_live_started_lora(getattr(trace, "adapter_id", None))
+            finally:
+                self._release_live_arrived_lora(getattr(trace, "adapter_id", None))
 
         def append_raw(raw_list: list, result_requests: list):
             for r in raw_list:
@@ -4401,6 +4759,7 @@ class ScenarioRunner:
                         busy_ratio=peak_busy_ratio,
                         completed_count=completed_now,
                         submitted_count=submitted_count,
+                        submitted_traces=batch,
                     )
 
                 raw, tb1, peak_backlog, peak_active_requests, peak_busy_ratio = await self._run_batch_observed(
@@ -4489,6 +4848,7 @@ class ScenarioRunner:
                             busy_ratio=peak_busy_ratio,
                             completed_count=completed_now,
                             submitted_count=submitted_count,
+                            submitted_traces=batch,
                         )
 
                     raw, tb1, peak_backlog, peak_active_requests, peak_busy_ratio = await self._run_batch_observed(
@@ -5056,6 +5416,20 @@ class ScenarioRunner:
                 # runtime affinity hint should move to GPU after the real load.
                 self._mark_slot_adapter_tier(slot, adapter_id, "gpu")
 
+        if adapter_id and self._stack is not None:
+            try:
+                # Record the live access as soon as the request has resolved the
+                # LoRA path and source tier. The first scale-up can happen while
+                # earlier requests are still in flight, so waiting until finally
+                # leaves the live-hotset empty exactly when TODO #3 needs it.
+                self._stack.record_access(
+                    adapter_id,
+                    load_time_ms=lora_io_ms,
+                    hit=(cache_tier != "remote"),
+                )
+            except Exception:
+                pass
+
         # ---- Inference ----
         try:
             scaleup_affected = self._request_scaleup_affected(
@@ -5149,15 +5523,6 @@ class ScenarioRunner:
                 error=str(exc),
             )
         finally:
-            if adapter_id and self._stack is not None:
-                try:
-                    self._stack.record_access(
-                        adapter_id,
-                        load_time_ms=lora_io_ms,
-                        hit=(cache_tier != "remote"),
-                    )
-                except Exception:
-                    pass
             if slot is not None:
                 slot.active_requests = max(0, slot.active_requests - 1)
                 self._refresh_slot_runtime_hints(slot)
@@ -7482,6 +7847,11 @@ async def main_async(
     engine_inited = False
     if engine.backend != "transformers":
         print("[4/5] Initialising inference engine ...")
+        _assert_clean_gpu_environment(
+            _resolve_runtime_gpu_device_ids(model_cfg, device_id=model_cfg.get("device_id")),
+            context="engine_init",
+            root_pid=os.getpid(),
+        )
         await engine.initialize()
         engine_inited = True
     else:
@@ -7624,6 +7994,11 @@ async def main_async(
                 needs_engine = False  # 子进程隔离，主进程不加载模型
             if needs_engine and not engine_inited:
                 print("[4/5] Initialising inference engine (required for this scenario) ...")
+                _assert_clean_gpu_environment(
+                    _resolve_runtime_gpu_device_ids(model_cfg, device_id=model_cfg.get("device_id")),
+                    context="engine_reinit_for_scenario",
+                    root_pid=os.getpid(),
+                )
                 await engine.initialize()
                 engine_inited = True
             if engine_inited and engine._engine_dead:
@@ -7631,6 +8006,7 @@ async def main_async(
                 await engine.reinitialize()
 
             print("  [Phase 1] Preloading ...")
+            runner._assert_clean_gpu_environment(context="scenario_preload", force=True)
             await runner.preload()
 
             print(f"  [Phase 2] Serving {len(traces)} requests ...")
