@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Dedicated TP=1 engine worker for scale-out.
+Dedicated engine worker for scale-out.
 
-This process must be launched as a fresh Python interpreter so CUDA device
-visibility can be pinned before vLLM / torch initialize any CUDA context.
+This process must be launched as a fresh Python interpreter so the runtime's
+CUDA-visible GPU set can be pinned before vLLM / torch initialize any CUDA
+context.
 """
 
 from __future__ import annotations
@@ -51,12 +52,9 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
     if device_id is not None:
         model_cfg["device_id"] = int(device_id)
 
+    # The parent process has already pinned this worker's exact CUDA-visible GPU
+    # set before launching the child. Do not re-derive a second mask here.
     env_updates: Dict[str, str] = {}
-    if tp <= 1 and device_id is not None:
-        env_updates["CUDA_VISIBLE_DEVICES"] = str(int(device_id))
-        env_updates["FAASLORA_VISIBLE_DEVICES"] = str(int(device_id))
-        model_cfg["device_id"] = 0
-        model_cfg["visible_device_ids"] = [0]
 
     previous_env = _push_env_updates(env_updates)
     try:

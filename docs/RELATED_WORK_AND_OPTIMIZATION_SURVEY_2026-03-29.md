@@ -43,6 +43,20 @@
 >   - `hotset_rotation_requests = 100`
 >   - `scale_decision_interval = 25`
 >
+> 2026-04-02 补充：
+>
+> - 当前最新已正式分析、且仍属于 `substrate_v1` 历史基线的结果已推进到 `retry44_fix16_baseline @ 500`；它相对 `fix15 / fix12` 继续回正，但 TODO `#3` 仍未真正收口。
+> - 更重要的是，当前已经正式确认：旧 runner 的 `arrival/backlog 在线 + submission/decision batch` 语义，并不对齐本文所调研的同类论文与工业实践。
+> - 这意味着：
+>   - `substrate_v1` 可以作为历史实验 substrate 保留
+>   - 但不能再被当成最终 production-correct 运行形态继续积累论文主结论
+>   - TODO `#2` 也不能再被表述为“方法学上已经最终收口”
+> - 因此当前对本文第 6 节 TODO 排序的最新正式理解是：
+>   - `retry14_rebuild`：冻结 `substrate_v1` 历史状态
+>   - `retry14_continuous_queue_v2`：开启 `TODO #2R = continuous online queue substrate v2`
+>   - 现有 TODO `#3` 的 readiness-aware handoff plan 后续要迁移到 `substrate_v2` 上重做
+> - 当前 4GPU 代码适配已经完成；新分支必须继承 `4 × RTX 3090 24GB` 的设备与配置语义，不允许回退到旧的 2GPU 代码假设。
+>
 > 2026-03-30 补充：
 >
 > - `retry42_fix4` 已将 TODO `#2` 的 runtime-local topology / background-forward 回退问题实质收口。

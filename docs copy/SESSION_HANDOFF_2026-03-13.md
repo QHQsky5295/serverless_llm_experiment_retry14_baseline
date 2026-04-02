@@ -1,5 +1,75 @@
 # FaaSLoRA 会话交接文档（2026-03-13）
 
+> 2026-04-02 最新更新（当前最高优先级续接入口）：
+>
+> 如果新开会话，请先只看这一节，不要直接跳到下面旧的 `2026-04-01 / 2026-03-31 / 2026-03-29` 历史段落。
+>
+> 当前权威状态如下：
+>
+> - 权威 clean-tree：`/home/qhq/serverless_llm_experiment_retry14_baseline`
+> - 历史脏树：`/home/qhq/serverless_llm_experiment`
+> - 当前冻结分支：`retry14_rebuild`
+> - 下一条新主线分支：`retry14_continuous_queue_v2`
+> - 当前 GitHub 已推送快照（本次 freeze 前的上一锚点）：`60737dd`
+> - 当前最新已正式分析、且仍属于 `substrate_v1` 历史基线的结果：`retry44_fix16_baseline @ 500`
+> - 当前 `substrate_v1` 历史局部最优结果：`retry44_fix16_baseline @ 500`
+> - 当前最新已验证的 TODO `#2` 收口代码基线：`b314262`
+> - 当前本地未提交 freeze 内容：
+>   - `configs/experiments.yaml`
+>   - `scripts/dedicated_engine_worker.py`
+>   - `scripts/run_all_experiments.py`
+>   - `tests/test_basic_smoke.py`
+>   - `docs/*.md`
+>   - `docs copy/*.md`
+> - 当前这批 freeze 代码的真实含义：
+>   - 已完成 `retry44_fix16_baseline` 的正式分析
+>   - 已完成 4 × RTX 3090 的设备分组、dedicated subprocess、`max_instances` 与 smoke 适配
+>   - `retry44_fix17_4gpu_baseline` 已人工中止，作废，不参与任何正式归因
+>   - 当前必须把旧 runner 明确标注为 `substrate_v1`：`arrival/backlog` 在线语义，但 `submission/decision` 仍是 batch 语义
+>   - `substrate_v1` 只作为历史基线保留，不再把它当成最终 production-correct 形态继续收论文主结论
+> - 当前本地测试状态：
+>   - `tests.test_basic_smoke = 137/137 OK`
+>
+> 当前 2026-04-02 的真实技术结论：
+>
+> - `retry44_fix16_baseline` 相对 `retry44_fix15 / retry44_fix12` 继续回正，headline 指标进一步改善：
+>   - `TTFT_overall = 6681.8 ms`
+>   - `TTFT_comparable = 7776.6 ms`
+>   - `TTFT_scaleup_affected = 8151.9 ms`
+>   - `Cold_start_latency = 61595.4 ms`
+>   - `GPU_hit_rate = 0.7967`
+>   - `avg_lora_io_ms = 210.2 ms`
+> - 但 TODO `#3` 在 `substrate_v1` 上仍未真正收口：
+>   - `scaleup_affected = 76`
+>   - `gpu = 0`
+>   - 这些请求仍几乎全部来自新实例的 `host/nvme` tier
+> - 更关键的是，当前已经重新确认：`substrate_v1` 不是 production-correct 的连续在线队列。
+>   - 同类论文与已有实践的 batch 发生在执行/调度层，而不是实验提交层
+>   - 因此 TODO `#2` 不能再被表述为“方法学上已经最终收口”
+>   - `b314262` 只保留为 `substrate_v1` 语义下的本地收口基线
+> - 当前最符合第一性原则的新主线不是继续在 `substrate_v1` 上刷 TODO `#3`，而是先开启：
+>   - TODO `#2R`：`continuous online queue substrate v2`
+>   - 也就是让 `continuous arrivals / shared pending queue / router-autoscaler 同看一份 queue state / request activation 连续化`
+> - 当前不需要新项目文件夹；正确工程动作是：
+>   - 先在 `retry14_rebuild` 上冻结 `substrate_v1` 历史状态
+>   - 然后切新分支 `retry14_continuous_queue_v2`
+>   - 后续所有 `continuous online queue` 改造都在新分支推进
+>
+> 当前必须继续遵守的最高原则不变：
+>
+> 1. 不能把系统改坏，不能偏离当前 clean-tree 的系统优化主线。
+> 2. 所有修改都必须先服务于已敲定的论文主指标，而不是为局部现象救场。
+> 3. 所有修改都必须对齐论文三项贡献，不能通过绕开贡献路径去“刷数字”。
+> 4. 策略层不允许引入面向单实例、单轮实验、单 adapter 的不合理硬编码。
+> 5. 尽量优先复用系统已经产生的可观测值做优化，避免拍脑袋 heuristics。
+> 6. 不引入无必要的额外计算开销；若必须增加开销，必须证明它直接服务主指标且风险可控。
+> 7. 公式、排序逻辑和成本模型都必须具备系统语义上的可解释性，能和真实运行路径对上。
+> 8. 坚持第一性原则，不接受“先救场再说”的补丁式修复、兜底方案。
+>
+> 当前会话续接提示词（下一会话直接用）：
+>
+> `继续当前 clean-tree 主线，但不要再把 substrate_v1 当成最终论文运行形态。权威代码树是 /home/qhq/serverless_llm_experiment_retry14_baseline。当前用于冻结历史基线的分支是 retry14_rebuild，下一条新主线分支是 retry14_continuous_queue_v2。当前最新已正式分析、且仍属于 substrate_v1 历史基线的结果是 retry44_fix16_baseline @ 500；它比 fix15 / fix12 更好，但 scaleup_affected 仍未真正 GPU-ready，而且当前 runner 已被确认不是 production-correct 的连续在线队列。当前 4 × RTX 3090 适配代码已经完成并通过 tests.test_basic_smoke=137/137 OK；retry44_fix17_4gpu_baseline 已人工中止，作废，不参与正式归因。下一步先完成 retry14_rebuild 的历史冻结，然后在 retry14_continuous_queue_v2 上开启 TODO #2R：continuous online queue substrate v2。正式分析和讨论继续严格使用固定格式：当前步骤位置 / 已验证 / 推测 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO。`
+>
 > 2026-04-01 最新更新（当前最高优先级续接入口）：
 >
 > 如果新开会话，请先只看这一节，不要直接跳到下面旧的 `2026-03-31 / 2026-03-29 / retry30~retry44_fix7` 历史段落。

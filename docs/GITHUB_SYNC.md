@@ -14,6 +14,46 @@
 - 本次同步应把 `retry44_fix15` / `retry44_fix12` 的正式分析结论与当前 TODO `#3` 在研代码状态一起推到当前分支，作为新的可回退快照
 - 是否合并到 `main` 另行决策
 
+## 2026-04-02 更新：本次同步应冻结 `substrate_v1 + 4GPU-ready` 历史状态，并从该点切出 `retry14_continuous_queue_v2`
+
+- 当前最新已正式分析、且仍属于 `substrate_v1` 历史基线的结果：`retry44_fix16_baseline @ 500`
+- `retry44_fix16` 是当前 `substrate_v1` 历史局部最优结果，但它仍没有把 `scaleup_affected` 请求真正推向 `GPU-ready`
+- 当前必须明确写入文档的新结论：
+  - 旧 runner 属于 `substrate_v1`
+  - 其真实语义是 `arrival/backlog` 在线，但 `submission/decision` 仍是 batch
+  - 这不是 production-correct 的连续在线队列
+  - 因此 TODO `#2` 不能再表述为“方法学上最终收口”
+  - `b314262` 仅保留为 `substrate_v1` 语义下的历史收口基线
+- 当前已完成 4GPU 基础设施适配，且这次同步必须纳入：
+  - `configs/experiments.yaml`
+  - `scripts/dedicated_engine_worker.py`
+  - `scripts/run_all_experiments.py`
+  - `tests/test_basic_smoke.py`
+  - 对应文档与 `docs copy/*.md`
+- 这批 4GPU 代码的语义是：
+  - `4 × RTX 3090 24GB`
+  - `TP=1` 最多 `4` 个单卡 runtime
+  - `TP=2` 最多 `2` 个双卡 runtime
+  - dedicated scale-out 统一走 subprocess 隔离
+- `retry44_fix17_4gpu_baseline` 已人工中止，作废，不参与正式分析，也不应写成正式结果
+- 当前最新本地测试状态：
+  - `tests.test_basic_smoke = 137/137 OK`
+
+本次同步后的正确工程动作是：
+
+1. 在 `retry14_rebuild` 上形成一次明确表达 `substrate_v1 历史冻结 + 4GPU-ready` 的提交并 push。
+2. 不新建项目文件夹。
+3. 从这个 freeze 点切新分支：`retry14_continuous_queue_v2`。
+4. 后续所有 `continuous online queue substrate v2` 改造都只在新分支进行。
+
+本次同步必须明确区分：
+
+- `substrate_v1` 历史冻结点：
+  - 代表当前 `retry14_rebuild` 上已经完成正式分析的旧 runner 语义与结果链
+- `retry14_continuous_queue_v2`：
+  - 代表下一条真正对齐论文与实践的新主线
+  - 必须继承当前 4GPU 代码与配置，不允许回退到 2GPU
+
 ## 2026-04-01 更新：本次同步应纳入 `retry44_fix15` 正式分析状态、`retry44_fix12` 局部最优结论与当前 TODO `#3` 最终方向
 
 - 当前最新已正式分析结果：`retry44_fix15_baseline @ 500`

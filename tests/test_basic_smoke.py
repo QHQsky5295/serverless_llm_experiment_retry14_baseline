@@ -91,7 +91,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         selected_model = self.experiments["model_profiles"]["qwen_14b_tp2_v2_publicmix"]["model"]
 
         self.assertEqual(resource["instance_mode"], "auto")
-        self.assertEqual(resource["max_instances"], 1)
+        self.assertEqual(resource["max_instances"], 2)
         self.assertTrue(resource["effective_capacity_admission_enabled"])
         self.assertEqual(workload["sampling_strategy"], "representative")
         self.assertEqual(workload["total_requests"], 1000)
@@ -99,6 +99,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(workload["time_scale_factor"], 0.02)
         self.assertEqual(model["name"], selected_model["name"])
         self.assertEqual(model["tensor_parallel_size"], 2)
+        self.assertEqual(model["visible_device_ids"], [0, 1, 2, 3])
         self.assertEqual(model["max_model_len"], 1024)
         self.assertEqual(model["max_loras"], 2)
         self.assertEqual(model["max_num_seqs"], 2)
@@ -185,6 +186,20 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(guarded["min_instances"], 1)
         self.assertEqual(meta["max_tp_instances"], 1)
 
+    def test_tp_capacity_guard_allows_quad_gpu_tp2_two_instances(self) -> None:
+        model = {"tensor_parallel_size": 2, "visible_device_ids": [0, 1, 2, 3]}
+        coord = {"min_instances": 1, "max_instances": 4}
+
+        guarded, meta = _apply_tp_instance_capacity_guard(
+            model,
+            coord,
+            fallback_gpu_count=4,
+        )
+
+        self.assertEqual(guarded["max_instances"], 2)
+        self.assertEqual(guarded["min_instances"], 1)
+        self.assertEqual(meta["max_tp_instances"], 2)
+
     def test_tp_runtime_env_prefers_loopback_for_local_mp(self) -> None:
         env = _build_local_tp_runtime_env_updates(tp=2, executor_backend="mp")
 
@@ -201,6 +216,19 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
     def test_tp1_dedicated_vllm_uses_subprocess_isolation(self) -> None:
         model = {"backend": "vllm", "tensor_parallel_size": 1}
+
+        self.assertTrue(
+            _should_spawn_dedicated_engine_subprocess(model, instance_mode="auto")
+        )
+        self.assertTrue(
+            _should_spawn_dedicated_engine_subprocess(model, instance_mode="dedicated")
+        )
+        self.assertFalse(
+            _should_spawn_dedicated_engine_subprocess(model, instance_mode="shared")
+        )
+
+    def test_tp2_dedicated_vllm_uses_subprocess_isolation(self) -> None:
+        model = {"backend": "vllm", "tensor_parallel_size": 2}
 
         self.assertTrue(
             _should_spawn_dedicated_engine_subprocess(model, instance_mode="auto")
@@ -229,6 +257,25 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(env["FAASLORA_VISIBLE_DEVICES"], "1")
         self.assertEqual(local_model["device_id"], 0)
         self.assertEqual(local_model["visible_device_ids"], [0])
+        self.assertTrue(local_model["skip_stale_gpu_cleanup"])
+
+    def test_prepare_dedicated_subprocess_model_cfg_remaps_tp2_gpu_group_to_local_indices(self) -> None:
+        model = {
+            "backend": "vllm",
+            "tensor_parallel_size": 2,
+            "device_id": 0,
+            "visible_device_ids": [0, 1, 2, 3],
+        }
+
+        local_model, env = _prepare_dedicated_subprocess_model_cfg(
+            model,
+            device_id=2,
+        )
+
+        self.assertEqual(env["CUDA_VISIBLE_DEVICES"], "2,3")
+        self.assertEqual(env["FAASLORA_VISIBLE_DEVICES"], "2,3")
+        self.assertEqual(local_model["device_id"], 0)
+        self.assertEqual(local_model["visible_device_ids"], [0, 1])
         self.assertTrue(local_model["skip_stale_gpu_cleanup"])
 
     def test_auto_scale_up_does_not_fallback_to_shared_slot_after_dedicated_failure(self) -> None:
@@ -2313,6 +2360,17 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         self.assertEqual(device_ids, [0, 1])
 
+    def test_runtime_gpu_device_ids_use_group_anchor_for_tp2_scale_out(self) -> None:
+        device_ids = _resolve_runtime_gpu_device_ids(
+            {
+                "tensor_parallel_size": 2,
+                "device_id": 2,
+                "visible_device_ids": [0, 1, 2, 3],
+            }
+        )
+
+        self.assertEqual(device_ids, [2, 3])
+
     def test_schedule_all_runtime_gpu_forward_prioritizes_idle_runtime(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         scheduled = []
@@ -2364,189 +2422,97 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         self.assertEqual(preferred, {"hot_a", "hot_b"})
 
-    def test_live_scaleup_preferred_adapters_use_arrived_frontier_before_gpu_hotset(self) -> None:
+    def test_predict_scale_up_handoff_plan_trims_incumbent_progress_and_caps_prefix_by_headroom(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
-        runner.traces = [
-            SimpleNamespace(adapter_id="live_a"),
-            SimpleNamespace(adapter_id="live_b"),
-            SimpleNamespace(adapter_id="backlog_c"),
-            SimpleNamespace(adapter_id="backlog_d"),
-            SimpleNamespace(adapter_id="backlog_e"),
-        ]
-        runner.coord_cfg = {"scale_decision_interval": 4}
-        runner._live_arrived_lora_counts = defaultdict(int, {"live_a": 1, "live_b": 1})
-        runner._live_started_lora_counts = defaultdict(int)
-        runner._live_arrived_lora_first_seen_seq = {"live_a": 1, "live_b": 2}
-        runner._runtime_forward_capacity_limit = lambda: 4
-        runner._scale_up_warmup_preferred_gpu_adapters = lambda: {"gpu_hot", "live_b"}
-
-        preferred = runner._live_scale_up_preferred_gpu_adapters(
-            arrived_request_count=5,
-            submitted_count=2,
-        )
-
-        self.assertEqual(preferred, ["backlog_c", "backlog_d", "backlog_e", "live_a"])
-
-    def test_live_scaleup_preferred_adapters_prioritize_submitted_frontier_before_future_queue(self) -> None:
-        runner = ScenarioRunner.__new__(ScenarioRunner)
-        runner.traces = [
-            SimpleNamespace(adapter_id="finance_hot"),
-            SimpleNamespace(adapter_id="writing_inflight"),
-            SimpleNamespace(adapter_id="queue_cold"),
-            SimpleNamespace(adapter_id="queue_cold"),
-            SimpleNamespace(adapter_id="queue_other"),
-            SimpleNamespace(adapter_id="queue_other"),
-            SimpleNamespace(adapter_id="queue_tail"),
-        ]
-        runner.coord_cfg = {"scale_decision_interval": 4}
-        runner._live_arrived_lora_counts = defaultdict(int, {"finance_hot": 2, "writing_inflight": 1})
-        runner._live_started_lora_counts = defaultdict(int)
-        runner._live_arrived_lora_first_seen_seq = {"finance_hot": 1, "writing_inflight": 2}
-        runner._runtime_forward_capacity_limit = lambda: 2
-        runner._scale_up_warmup_preferred_gpu_adapters = lambda: {"finance_hot"}
-
-        preferred = runner._live_scale_up_preferred_gpu_adapters(
-            arrived_request_count=7,
-            submitted_count=2,
-            submitted_traces=[
-                SimpleNamespace(adapter_id="submitted_a"),
-                SimpleNamespace(adapter_id="submitted_b"),
-                SimpleNamespace(adapter_id="submitted_a"),
+        runner.coord_cfg = {"max_concurrent_loads": 2}
+        runner._scale_up_target_runtime_headroom_mb = lambda: 700.0
+        runner._scale_up_bootstrap_latency_ms = lambda: 120.0
+        runner._scale_up_ready_candidate_queue = lambda **kwargs: (
+            [
+                SimpleNamespace(adapter_id="already_started"),
+                SimpleNamespace(adapter_id="waiting_a"),
+                SimpleNamespace(adapter_id="future_b"),
+                SimpleNamespace(adapter_id="future_c"),
             ],
+            4,
+        )
+        runner._scale_up_incumbent_started_request_count = lambda **kwargs: 1
+        runner._predicted_scale_up_load_ms = lambda adapter_ids, max_concurrent_loads=1: 0.0
+        runner._scale_up_warmup_preferred_gpu_adapters = lambda: {"fallback_only"}
+        runner._stack = SimpleNamespace(
+            _artifact_size_mb=lambda aid: {
+                "waiting_a": 400.0,
+                "future_b": 300.0,
+                "future_c": 500.0,
+            }[aid]
         )
 
-        self.assertEqual(preferred[:2], ["submitted_a", "submitted_b"])
-        self.assertNotIn("queue_cold", preferred[:2])
-
-    def test_live_scaleup_preferred_adapters_prioritize_waiting_submitted_over_started(self) -> None:
-        runner = ScenarioRunner.__new__(ScenarioRunner)
-        runner.traces = []
-        runner.coord_cfg = {"scale_decision_interval": 4}
-        runner._live_arrived_lora_counts = defaultdict(
-            int,
-            {
-                "started_hot": 2,
-                "waiting_cold": 2,
-                "waiting_other": 1,
-            },
-        )
-        runner._live_started_lora_counts = defaultdict(int, {"started_hot": 2})
-        runner._live_arrived_lora_first_seen_seq = {
-            "started_hot": 1,
-            "waiting_cold": 2,
-            "waiting_other": 3,
-        }
-        runner._runtime_forward_capacity_limit = lambda: 2
-        runner._scale_up_warmup_preferred_gpu_adapters = lambda: {"started_hot"}
-
-        preferred = runner._live_scale_up_preferred_gpu_adapters(
-            arrived_request_count=3,
-            submitted_count=3,
-            submitted_traces=[
-                SimpleNamespace(adapter_id="started_hot"),
-                SimpleNamespace(adapter_id="waiting_cold"),
-                SimpleNamespace(adapter_id="waiting_other"),
-                SimpleNamespace(adapter_id="waiting_cold"),
-            ],
-        )
-
-        self.assertEqual(preferred[:2], ["waiting_cold", "waiting_other"])
-        self.assertNotIn("started_hot", preferred[:2])
-
-    def test_live_scaleup_preferred_adapters_follow_waiting_queue_order_before_frequency(self) -> None:
-        runner = ScenarioRunner.__new__(ScenarioRunner)
-        runner.traces = []
-        runner.coord_cfg = {"scale_decision_interval": 4}
-        runner._live_arrived_lora_counts = defaultdict(
-            int,
-            {
-                "early_cold": 1,
-                "late_hot": 2,
-            },
-        )
-        runner._live_started_lora_counts = defaultdict(int)
-        runner._live_arrived_lora_first_seen_seq = {
-            "early_cold": 1,
-            "late_hot": 2,
-        }
-        runner._runtime_forward_capacity_limit = lambda: 2
-        runner._scale_up_warmup_preferred_gpu_adapters = lambda: set()
-
-        preferred = runner._live_scale_up_preferred_gpu_adapters(
-            arrived_request_count=3,
-            submitted_count=3,
-            submitted_traces=[
-                SimpleNamespace(adapter_id="early_cold"),
-                SimpleNamespace(adapter_id="late_hot"),
-                SimpleNamespace(adapter_id="late_hot"),
-            ],
-        )
-
-        self.assertEqual(preferred[:2], ["early_cold", "late_hot"])
-
-    def test_live_scaleup_preferred_adapters_do_not_reinsert_started_submitted_before_future_queue(self) -> None:
-        runner = ScenarioRunner.__new__(ScenarioRunner)
-        runner.traces = [
-            SimpleNamespace(adapter_id="started_hot"),
-            SimpleNamespace(adapter_id="waiting_cold"),
-            SimpleNamespace(adapter_id="future_a"),
-            SimpleNamespace(adapter_id="future_b"),
-        ]
-        runner.coord_cfg = {"scale_decision_interval": 4}
-        runner._live_arrived_lora_counts = defaultdict(
-            int,
-            {
-                "started_hot": 1,
-                "waiting_cold": 1,
-            },
-        )
-        runner._live_started_lora_counts = defaultdict(int, {"started_hot": 1})
-        runner._live_arrived_lora_first_seen_seq = {
-            "started_hot": 1,
-            "waiting_cold": 2,
-        }
-        runner._runtime_forward_capacity_limit = lambda: 2
-        runner._scale_up_warmup_preferred_gpu_adapters = lambda: {"started_hot"}
-
-        preferred = runner._live_scale_up_preferred_gpu_adapters(
+        plan = runner._predict_scale_up_handoff_plan(
+            replay_t0=0.0,
             arrived_request_count=4,
             submitted_count=2,
-            submitted_traces=[
-                SimpleNamespace(adapter_id="started_hot"),
-                SimpleNamespace(adapter_id="waiting_cold"),
-            ],
+            submitted_traces=[],
         )
 
-        self.assertEqual(preferred[:2], ["waiting_cold", "future_a"])
-        self.assertNotIn("started_hot", preferred[:2])
+        self.assertEqual(plan["ordered_handoff_adapters"], ["waiting_a", "future_b", "future_c"])
+        self.assertEqual(plan["planned_adapters"], ["waiting_a", "future_b"])
+        self.assertEqual(plan["queue_at_ready_request_count"], 3)
+        self.assertEqual(plan["incumbent_started_request_count"], 1)
+        self.assertEqual(plan["exact_prefix_bytes"], 700 * 1024 * 1024)
 
-    def test_live_scaleup_preferred_adapters_use_submitted_window_not_runtime_cap(self) -> None:
+    def test_predicted_scale_up_load_ms_respects_max_concurrent_loads(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
-        runner.traces = []
-        runner.coord_cfg = {"scale_decision_interval": 25}
-        runner._live_arrived_lora_counts = defaultdict(int)
-        runner._live_started_lora_counts = defaultdict(int)
-        runner._live_arrived_lora_first_seen_seq = {}
-        runner._runtime_forward_capacity_limit = lambda: 2
-        runner._scale_up_warmup_preferred_gpu_adapters = lambda: set()
+        metadata = {
+            "a": SimpleNamespace(predicted_load_time_ms=100.0),
+            "b": SimpleNamespace(predicted_load_time_ms=80.0),
+            "c": SimpleNamespace(predicted_load_time_ms=40.0),
+        }
+        runner._stack = SimpleNamespace(
+            _artifact_metadata=lambda aid: metadata[aid],
+            _artifact_size_mb=lambda aid: 1.0,
+            _host_paths={},
+            _nvme_paths={},
+        )
+        runner.coordinator = SimpleNamespace()
+        runner.cost_model = {}
+
+        predicted_ms = runner._predicted_scale_up_load_ms(
+            ["a", "b", "c"],
+            max_concurrent_loads=2,
+        )
+
+        self.assertEqual(predicted_ms, 120.0)
+
+    def test_live_scaleup_preferred_adapters_store_exact_handoff_plan(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._predict_scale_up_handoff_plan = lambda **kwargs: {
+            "mode": "dynamic_headroom_exact_handoff_prefix",
+            "planned_adapters": ["waiting_a", "future_b"],
+            "ordered_handoff_adapters": ["waiting_a", "future_b", "future_c"],
+            "exact_prefix_bytes": 700 * 1024 * 1024,
+        }
 
         preferred = runner._live_scale_up_preferred_gpu_adapters(
+            replay_t0=0.0,
             arrived_request_count=4,
-            submitted_count=4,
-            submitted_traces=[
-                SimpleNamespace(adapter_id="submitted_a"),
-                SimpleNamespace(adapter_id="submitted_b"),
-                SimpleNamespace(adapter_id="submitted_c"),
-                SimpleNamespace(adapter_id="submitted_d"),
-            ],
+            submitted_count=2,
+            submitted_traces=[],
+        )
+        frontier = runner._live_scale_up_arrived_demand_frontier(
+            replay_t0=0.0,
+            arrived_request_count=4,
+            submitted_count=2,
+            submitted_traces=[],
         )
 
+        self.assertEqual(preferred, ["waiting_a", "future_b"])
+        self.assertEqual(frontier, ["waiting_a", "future_b", "future_c"])
         self.assertEqual(
-            preferred,
-            ["submitted_a", "submitted_b", "submitted_c", "submitted_d"],
+            runner._last_scale_up_handoff_plan["mode"],
+            "dynamic_headroom_exact_handoff_prefix",
         )
 
-    def test_scale_up_preload_capacity_uses_dynamic_live_hotset_budget(self) -> None:
+    def test_scale_up_preload_capacity_uses_exact_handoff_prefix_budget(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.preload_cfg = {
             "scale_up_dynamic_budget_enabled": True,
@@ -2570,29 +2536,44 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             _artifact_size_mb=lambda aid: {"hot_a": 400.0, "hot_b": 500.0}[aid],
             sync_local_tier_paths=lambda: None,
         )
+        runner._last_scale_up_handoff_plan = {
+            "mode": "dynamic_headroom_exact_handoff_prefix",
+            "planned_adapters": ["hot_a", "hot_b"],
+            "exact_prefix_bytes": 900 * 1024 * 1024,
+            "queue_at_ready_request_count": 5,
+            "queue_at_ready_adapter_count": 2,
+            "projected_arrived_request_count": 7,
+            "incumbent_started_request_count": 1,
+            "bootstrap_latency_ms": 150.0,
+            "plan_load_latency_ms": 320.0,
+            "ready_delay_ms": 470.0,
+            "configured_max_concurrent_loads": 2,
+        }
 
-        capacity_bytes = runner._scale_up_preload_capacity_bytes({"hot_a", "hot_b"})
+        capacity_bytes = runner._scale_up_preload_capacity_bytes(["hot_a", "hot_b"])
 
         self.assertEqual(capacity_bytes, 900 * 1024 * 1024)
         self.assertEqual(
             runner._last_scale_up_preload_budget["mode"],
-            "dynamic_headroom_live_hotset",
+            "dynamic_headroom_exact_handoff_prefix",
         )
+        self.assertEqual(
+            runner._last_scale_up_preload_budget["exact_prefix_bytes"],
+            900 * 1024 * 1024,
+        )
+        self.assertEqual(runner._last_scale_up_preload_budget["queue_at_ready_request_count"], 5)
 
-    def test_scale_up_preload_capacity_is_bounded_by_live_hotset(self) -> None:
+    def test_scale_up_preload_capacity_falls_back_to_preferred_prefix_not_live_hotset(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.preload_cfg = {
             "scale_up_dynamic_budget_enabled": True,
             "scale_up_preload_mb": 1024,
         }
-        runner.hw = {
-            "gpu_budget_mb": 4096,
-            "model_weights_mb": 1024,
-        }
-        runner.coord_cfg = {"lora_load_reserve_ratio": 0.25}
+        runner.hw = {}
+        runner.coord_cfg = {}
         runner.model_cfg = {"tensor_parallel_size": 1, "visible_device_ids": [0], "device_id": 0}
         runner.engine = SimpleNamespace(device_id=0)
-        runner.coordinator = SimpleNamespace(_predicted_kv_growth_mb=lambda: 256.0)
+        runner.coordinator = SimpleNamespace(_predicted_kv_growth_mb=lambda: 0.0)
         runner.adapter_info = {
             "hot_a": {"size_mb": 300.0},
             "recent_b": {"size_mb": 500.0},
@@ -2603,12 +2584,24 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             _artifact_size_mb=lambda aid: {"hot_a": 300.0, "recent_b": 500.0}[aid],
             sync_local_tier_paths=lambda: None,
         )
-        runner._adapter_is_recently_active = lambda aid, now=None: aid in {"hot_a", "recent_b"}
+        runner._last_scale_up_handoff_plan = {}
+        runner._scale_up_target_runtime_headroom_mb = lambda: 600.0
 
-        capacity_bytes = runner._scale_up_preload_capacity_bytes({"hot_a"})
+        capacity_bytes = runner._scale_up_preload_capacity_bytes(["hot_a", "recent_b"])
 
         self.assertEqual(capacity_bytes, 300 * 1024 * 1024)
-        self.assertEqual(runner._last_scale_up_preload_budget["live_hotset_bytes"], 300 * 1024 * 1024)
+        self.assertEqual(
+            runner._last_scale_up_preload_budget["mode"],
+            "dynamic_headroom_preferred_prefix",
+        )
+        self.assertEqual(
+            runner._last_scale_up_preload_budget["exact_prefix_bytes"],
+            300 * 1024 * 1024,
+        )
+        self.assertEqual(
+            runner._last_scale_up_preload_budget["live_hotset_bytes"],
+            800 * 1024 * 1024,
+        )
         self.assertEqual(runner._last_scale_up_preload_budget["recent_working_set_bytes"], 0)
 
     def test_residency_manager_sync_gpu_capacity_tracks_active_devices(self) -> None:
@@ -3282,6 +3275,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
     def test_add_dedicated_instance_slot_records_cold_start_latency(self) -> None:
         mark_calls = []
         refresh_calls = []
+        schedule_all_calls = []
         slot = SimpleNamespace(
             instance_id="inst_2",
             mark_adapter_tier=lambda aid, tier: mark_calls.append((aid, tier)),
@@ -3305,6 +3299,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner._sync_stack_gpu_accounting = lambda: None
         runner._refresh_slot_runtime_hints = lambda slot_obj: refresh_calls.append(slot_obj.instance_id)
         runner._warmup_engine_hot_set = fake_warmup
+        runner._schedule_all_runtime_gpu_forward = lambda: schedule_all_calls.append("called") or 0
 
         with patch("scripts.run_all_experiments.time.perf_counter", side_effect=[10.0, 10.25]):
             event = asyncio.run(runner._add_dedicated_instance_slot(coord_enabled=True))
@@ -3315,6 +3310,19 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertEqual(event["warmed_adapters"], 2)
         self.assertEqual(refresh_calls, ["inst_2"])
         self.assertEqual(len(mark_calls), 2)
+        self.assertEqual(schedule_all_calls, [])
+
+    def test_select_dedicated_device_id_uses_tp_group_anchors(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.model_cfg = {"tensor_parallel_size": 2, "visible_device_ids": [0, 1, 2, 3]}
+        runner.hw = {}
+        runner.engine = None
+        runner.instance_pool = SimpleNamespace(
+            get_slots=lambda: [SimpleNamespace(device_id=0)],
+            count=lambda: 1,
+        )
+
+        self.assertEqual(runner._select_dedicated_device_id(), 2)
 
     def test_live_scale_up_evaluation_uses_time_and_pressure(self) -> None:
         preload_calls = []
@@ -3352,7 +3360,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         )
         runner._autoscaler_gpu_signal = lambda: 72.0
         runner._scale_up_preload_capacity_bytes = lambda preferred_gpu_adapters=None: 512 * 1024 * 1024
-        runner._scale_up_warmup_preferred_gpu_adapters = lambda: {"hot_a", "hot_b"}
+        runner._live_scale_up_preferred_gpu_adapters = lambda **kwargs: ["hot_a", "hot_b"]
         runner._runtime_forward_capacity_limit = lambda: 2
         runner._scale_up_instance_pool = fake_scale_up_instance_pool
         runner._dynamic_scaling = True

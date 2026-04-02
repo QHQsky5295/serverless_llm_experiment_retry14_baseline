@@ -31,8 +31,9 @@
 - 历史脏树：`/home/qhq/serverless_llm_experiment`
 - 当前工作分支：`retry14_rebuild`
 - 当前最新已推送代码基线提交：`1544de2`
-- 当前 GitHub 已推送快照：`60737dd`
+- 当前 GitHub 已推送快照（本次 freeze 前）：`60737dd`
 - 本轮调研与规划文档首次同步提交：`34881fb`
+- 下一条新主线分支：`retry14_continuous_queue_v2`
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
 
 当前约定：
@@ -40,6 +41,83 @@
 - 后续研究与回退统一以 `serverless_llm_experiment_retry14_baseline` 为准。
 - `retry21` 及其对应脏树状态视为废案，不再作为正式对比对象。
 - 本次 GitHub 同步的目的不是发布最终结论，而是把当前 clean-tree 形成一个稳定回退点。
+
+## 2026-04-02 更新快照
+
+### 当前最新正式分析结果
+
+- 当前最新已正式分析、且仍属于 `substrate_v1` 历史基线的结果：`retry44_fix16_baseline @ 500`
+- 当前 `substrate_v1` 历史局部最优结果：`retry44_fix16_baseline @ 500`
+- 当前最新已验证 TODO `#2` 收口代码基线仍为：`retry42_fix4 / b314262`
+- 当前 4GPU bring-up / 代码适配状态：
+  - `4 × RTX 3090 24GB` 已完成设备分组、`max_instances`、dedicated subprocess 隔离与 smoke 适配
+  - `retry44_fix17_4gpu_baseline` 已人工中止，作废，不参与正式分析
+  - 后续 `continuous_queue_v2` 新分支必须继承这套 4GPU 代码与配置，不允许回退到 2GPU 语义
+
+### 2026-04-02 当前真实结论
+
+- `retry44_fix16` 相对 `retry44_fix15 / retry44_fix12` 进一步回正：
+  - `TTFT_overall = 6681.8 ms`
+  - `TTFT_comparable = 7776.6 ms`
+  - `TTFT_scaleup_affected = 8151.9 ms`
+  - `Cold_start_latency = 61595.4 ms`
+  - `GPU_hit_rate = 0.7967`
+  - `avg_lora_io_ms = 210.2 ms`
+- 但 TODO `#3` 在 `substrate_v1` 上仍未收口：
+  - `scaleup_affected = 76`
+  - `gpu = 0`
+  - 这些请求仍主要来自新实例的 `host/nvme` tier
+- 更关键的是，当前已经重新确认：
+  - 旧 runner 属于 `substrate_v1`
+  - 它的真实语义是 `arrival/backlog` 在线，但 `submission/decision` 仍是 batch
+  - 这不是 production-correct 的连续在线队列
+- 因此：
+  - `b314262` 仍保留为 `substrate_v1` 语义下 TODO `#2` 的本地收口基线
+  - 但 TODO `#2` 不能再表述为“方法学上已经最终收口”
+  - 当前下一条主线必须切到 `TODO #2R = continuous online queue substrate v2`
+- 当前正确工程动作不是新建项目文件夹，而是：
+  - 先在 `retry14_rebuild` 上冻结 `substrate_v1 + 4GPU-ready` 的历史快照
+  - 再切新分支 `retry14_continuous_queue_v2`
+  - 后续连续在线队列改造全部在新分支推进
+
+### 当前最新代码状态
+
+- 当前 freeze 应纳入的本地代码修改：
+  - `configs/experiments.yaml`
+  - `scripts/dedicated_engine_worker.py`
+  - `scripts/run_all_experiments.py`
+  - `tests/test_basic_smoke.py`
+- 这批代码的真实含义：
+  - 保留 `retry44_fix16` 对 `substrate_v1` 的最新正式结论
+  - 完成 4GPU 设备组语义：
+    - `TP=1` 允许扩到 `4` 个单卡 runtime
+    - `TP=2` 允许扩到 `2` 个双卡 runtime
+    - dedicated scale-out 统一走 subprocess 隔离
+  - 为后续 `retry14_continuous_queue_v2` 提供 4GPU 基础设施，不再回退到 2GPU
+- 当前本地测试状态：
+  - `tests.test_basic_smoke = 137/137 OK`
+
+### 当前高优先级 TODO 顺序
+
+1. TODO `#2R`：`continuous online queue substrate v2`
+   - 当前状态：新的唯一主线
+   - 新分支：`retry14_continuous_queue_v2`
+   - 当前要求：
+     - `continuous arrivals`
+     - `shared pending queue`
+     - `router / autoscaler` 看到同一份 queue state
+     - request activation 连续化
+     - execution batching 只保留在 runtime / scheduler 层
+
+2. TODO `#3`：headroom-aware scale-up cold path / preload coverage
+   - 当前状态：不删除，但不再在 `substrate_v1` 上继续冲正式结论
+   - 下一步：等 `substrate_v2` 建好后，把现有 readiness-aware handoff plan 迁过去重做
+
+3. TODO `#4`：rank / size-aware observed utility
+   - 继续后置
+
+4. TODO `#5`：decode-aware contention control
+   - 继续后置
 
 ## 2026-03-31 更新快照
 
@@ -533,11 +611,13 @@
 - dataset：`azure_sharegpt_rep1000`
 - 正式回归入口：`500 requests`
 - mode：`auto`
-- max instances：`2`
-- GPU：`2 × RTX 3090 24GB`
+- 当前 4GPU 代码基线下的 max instances：`4`
+- GPU：`4 × RTX 3090 24GB`
 
 说明：
 
+- `retry44_fix16_baseline` 仍是 `substrate_v1` 历史结果，因此它所属正式结果 cohort 仍是当时的 `2 × RTX 3090`。
+- 但当前仓库代码与后续新分支已经切到 `4 × RTX 3090` 语义，不再回退。
 - `configs/experiments.yaml` 顶层默认 `profile_selection` 仍保留 `Qwen 14B TP=2` 入口，便于总配置浏览。
 - 当前 7B rollback 实验统一通过环境变量覆盖 profile 选择与 `FAASLORA_TOTAL_REQUESTS=500` 进入。
 

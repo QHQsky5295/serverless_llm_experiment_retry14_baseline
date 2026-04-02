@@ -46,7 +46,7 @@ model_profiles:  # 可复用的模型 profile 集合
       name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-3B-Instruct"  # 本 profile 对应的模型路径或模型名
       backend: "vllm"  # 推理后端类型，如 vllm / transformers
       device_id: 0  # 默认主执行实例使用的 GPU 编号
-      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      visible_device_ids: [0, 1, 2, 3]  # 允许当前实例或新实例使用的 GPU 列表
       tensor_parallel_size: 1  # 张量并行数；2 表示双卡切分模型
       gpu_memory_utilization: 0.65  # vLLM 允许占用的单卡显存比例上限
       max_model_len: 2048  # 模型允许处理的最大上下文长度
@@ -69,7 +69,7 @@ model_profiles:  # 可复用的模型 profile 集合
       name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"  # 本 profile 对应的模型路径或模型名
       backend: "vllm"  # 推理后端类型，如 vllm / transformers
       device_id: 0  # 默认主执行实例使用的 GPU 编号
-      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      visible_device_ids: [0, 1, 2, 3]  # 允许当前实例或新实例使用的 GPU 列表
       tensor_parallel_size: 1  # 张量并行数；Qwen 7B 主线按单卡 TP=1 + scale-out 推进
       gpu_memory_utilization: 0.85  # vLLM 允许占用的单卡显存比例上限
       max_model_len: 1024  # 模型允许处理的最大上下文长度
@@ -94,7 +94,7 @@ model_profiles:  # 可复用的模型 profile 集合
       name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"
       backend: "vllm"
       device_id: 0
-      visible_device_ids: [0, 1]
+      visible_device_ids: [0, 1, 2, 3]
       tensor_parallel_size: 1
       gpu_memory_utilization: 0.70  # V2 publicmix 的异构 LoRA 更吃显存；给第二个单卡实例和热层装载预留稳定余量
       max_model_len: 1024
@@ -124,7 +124,7 @@ model_profiles:  # 可复用的模型 profile 集合
       name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"  # 本 profile 对应的模型路径或模型名
       backend: "vllm"  # 推理后端类型，如 vllm / transformers
       device_id: 0  # 默认主执行实例使用的 GPU 编号
-      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      visible_device_ids: [0, 1, 2, 3]  # 允许当前实例或新实例使用的 GPU 列表
       distributed_executor_backend: "mp"  # vLLM 张量并行执行后端，如 mp
       tensor_parallel_size: 2  # 张量并行数；2 表示双卡切分模型
       gpu_memory_utilization: 0.85  # vLLM 允许占用的单卡显存比例上限
@@ -150,7 +150,7 @@ model_profiles:  # 可复用的模型 profile 集合
       name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct"
       backend: "vllm"
       device_id: 0
-      visible_device_ids: [0, 1]
+      visible_device_ids: [0, 1, 2, 3]
       distributed_executor_backend: "mp"
       tensor_parallel_size: 2
       gpu_memory_utilization: 0.85
@@ -176,7 +176,7 @@ model_profiles:  # 可复用的模型 profile 集合
       name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct"  # 本 profile 对应的模型路径或模型名
       backend: "vllm"  # 推理后端类型，如 vllm / transformers
       device_id: 0  # 默认主执行实例使用的 GPU 编号
-      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      visible_device_ids: [0, 1, 2, 3]  # 允许当前实例或新实例使用的 GPU 列表
       distributed_executor_backend: "mp"  # vLLM 张量并行执行后端，如 mp
       tensor_parallel_size: 2  # 张量并行数；2 表示双卡切分模型
       gpu_memory_utilization: 0.85  # vLLM 允许占用的单卡显存比例上限
@@ -202,7 +202,7 @@ model_profiles:  # 可复用的模型 profile 集合
       name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct"
       backend: "vllm"
       device_id: 0
-      visible_device_ids: [0, 1]
+      visible_device_ids: [0, 1, 2, 3]
       distributed_executor_backend: "mp"
       tensor_parallel_size: 2
       gpu_memory_utilization: 0.85
@@ -228,7 +228,7 @@ model_profiles:  # 可复用的模型 profile 集合
       name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3"  # 本 profile 对应的模型路径或模型名
       backend: "vllm"  # 推理后端类型，如 vllm / transformers
       device_id: 0  # 默认主执行实例使用的 GPU 编号
-      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      visible_device_ids: [0, 1, 2, 3]  # 允许当前实例或新实例使用的 GPU 列表
       tensor_parallel_size: 1  # 张量并行数；Mistral 7B 主线按单卡 TP=1 + scale-out 推进
       gpu_memory_utilization: 0.85  # vLLM 允许占用的单卡显存比例上限
       max_model_len: 1024  # 模型允许处理的最大上下文长度
@@ -253,7 +253,7 @@ model_profiles:  # 可复用的模型 profile 集合
       name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3"  # 本 profile 对应的本地基座模型路径
       backend: "vllm"  # 推理后端，当前主线使用 vLLM
       device_id: 0  # 默认主执行实例使用的 GPU 编号
-      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      visible_device_ids: [0, 1, 2, 3]  # 允许当前实例或新实例使用的 GPU 列表
       tensor_parallel_size: 1  # 张量并行数；Mistral 7B V2 主线按单卡 TP=1 + scale-out 推进
       gpu_memory_utilization: 0.70  # 进一步给第二个 TP=1 实例预留稳定启动余量；0.80 在双实例 scale-out 时仍会触发二号实例 OOM
       max_model_len: 1024  # 模型允许处理的最大上下文长度
@@ -284,7 +284,7 @@ model_profiles:  # 可复用的模型 profile 集合
       name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-Nemo-Instruct-2407"  # 本 profile 对应的模型路径或模型名
       backend: "vllm"  # 推理后端类型，如 vllm / transformers
       device_id: 0  # 默认主执行实例使用的 GPU 编号
-      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      visible_device_ids: [0, 1, 2, 3]  # 允许当前实例或新实例使用的 GPU 列表
       distributed_executor_backend: "mp"  # vLLM 张量并行执行后端，如 mp
       tensor_parallel_size: 2  # 张量并行数；2 表示双卡切分模型
       gpu_memory_utilization: 0.80  # vLLM 允许占用的单卡显存比例上限
@@ -316,7 +316,7 @@ model_profiles:  # 可复用的模型 profile 集合
       name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-Nemo-Instruct-2407"  # 本 profile 对应的本地基座模型路径
       backend: "vllm"  # 推理后端，当前主线使用 vLLM
       device_id: 0  # 默认主执行实例使用的起始 GPU 编号
-      visible_device_ids: [0, 1]  # 允许当前实例或新实例使用的 GPU 列表
+      visible_device_ids: [0, 1, 2, 3]  # 允许当前实例或新实例使用的 GPU 列表
       distributed_executor_backend: "mp"  # TP=2 当前使用多进程执行后端
       tensor_parallel_size: 2  # 张量并行数；Nemo V2 主线当前走双卡 TP=2
       gpu_memory_utilization: 0.80  # Nemo TP=2 默认仍回退到首轮稳定值；0.85 仅作为已记录的敏感性实验
@@ -397,7 +397,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
       instance_mode: "auto"  # 实例模式：shared / dedicated / auto
-      max_instances: 2  # 最多允许同时存在的物理实例数
+      max_instances: 4  # 最多允许同时存在的物理实例数
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
   qwen_7b_auto100_main:  # Qwen 7B 默认工作负载 profile（100 adapters）
@@ -413,7 +413,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
       instance_mode: "auto"  # 实例模式：shared / dedicated / auto
-      max_instances: 2  # 最多允许同时存在的物理实例数
+      max_instances: 4  # 最多允许同时存在的物理实例数
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
   qwen_7b_auto500_main:  # Qwen 7B 论文正式对比 workload profile（500 adapters）
@@ -429,7 +429,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
       instance_mode: "auto"  # 实例模式：shared / dedicated / auto
-      max_instances: 2  # 最多允许同时存在的物理实例数
+      max_instances: 4  # 最多允许同时存在的物理实例数
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
   qwen_7b_tp2_compare_main:  # Qwen 7B TP=2 对照工作负载 profile
@@ -445,7 +445,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
       instance_mode: "auto"  # 实例模式：shared / dedicated / auto
-      max_instances: 1  # 最多允许同时存在的物理实例数
+      max_instances: 2  # 最多允许同时存在的物理实例数
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
   qwen_7b_tp2_compare_a500_main:  # Qwen 7B TP=2 正式对比 workload profile（500 adapters）
@@ -461,7 +461,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
       instance_mode: "auto"  # 实例模式：shared / dedicated / auto
-      max_instances: 1  # 最多允许同时存在的物理实例数
+      max_instances: 2  # 最多允许同时存在的物理实例数
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
   qwen_14b_tp2_main:  # Qwen 14B TP=2 主线工作负载 profile
@@ -477,7 +477,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
       instance_mode: "auto"  # 实例模式：shared / dedicated / auto
-      max_instances: 1  # 最多允许同时存在的物理实例数
+      max_instances: 2  # 最多允许同时存在的物理实例数
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
   qwen_14b_tp2_a500_main:  # Qwen 14B TP=2 论文正式对比 workload profile（500 adapters）
@@ -493,7 +493,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
       instance_mode: "auto"  # 实例模式：shared / dedicated / auto
-      max_instances: 1  # 最多允许同时存在的物理实例数
+      max_instances: 2  # 最多允许同时存在的物理实例数
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
   mistral_7b_auto100_main:  # Mistral 7B 早期 bring-up / 快速验证 workload profile
@@ -575,7 +575,7 @@ model:  # 模型配置块，或当前选中的 model profile 名称
   name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct"  # 本 profile 对应的模型路径或模型名
   backend: "vllm"  # 推理后端类型，如 vllm / transformers
   device_id: 0  # 默认主执行实例使用的 GPU 编号
-  visible_device_ids: [0, 1]       # dedicated/auto 模式允许从这组 GPU 中选择新实例
+  visible_device_ids: [0, 1, 2, 3]       # dedicated/auto 模式允许从这组 GPU 中选择新实例
 
   tensor_parallel_size: 2           # 兼容回退默认值；实际主线以所选 model profile 为准
   gpu_memory_utilization: 0.65      # 兼容回退默认值；主线请以选中 profile 的冻结参数为准
@@ -666,7 +666,7 @@ hardware:  # 硬件容量与显存估计配置块
 # ---------------------------------------------------------------------------
 resource_coordination:  # 扩缩容与资源协同调度配置块
   min_instances: 1                  # 实例池下限（scale-down 至少保留）
-  max_instances: 2                  # 兼容回退层最多允许扩到的物理 runtime 数
+  max_instances: 4                  # 兼容回退层最多允许扩到的物理 runtime 数
   instance_mode: "auto"             # 兼容回退层默认实例模式；真实主线请以 active workload profile 为准
   instance_model_overrides: {}      # dedicated/auto 模式下新实例的 model_cfg 覆盖
   effective_capacity_admission_enabled: true  # 当前仓库默认主线：开启 P2.5 风格有效容量准入
