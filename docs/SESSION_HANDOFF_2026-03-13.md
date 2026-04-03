@@ -1,5 +1,67 @@
 # FaaSLoRA 会话交接文档（2026-03-13）
 
+> 2026-04-03 最新更新（当前最高优先级续接入口）：
+>
+> 如果新开会话，请先只看这一节，不要直接跳到下面旧的 `2026-04-02 / 2026-04-01 / 2026-03-31` 历史段落。
+>
+> 当前权威状态如下：
+>
+> - 权威 clean-tree：`/home/qhq/serverless_llm_experiment_retry14_baseline`
+> - 历史脏树：`/home/qhq/serverless_llm_experiment`
+> - 当前 active 主线分支：`retry14_continuous_queue_v2`
+> - `substrate_v1` 历史冻结分支：`retry14_rebuild`
+> - `substrate_v1` 历史 freeze 锚点：`050892a`
+> - 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的有效结果：`retry14_continuous_queue_v2_qwen7b_r500_baseline4_cadencefix @ 500`
+> - 当前正式 workload 口径：
+>   - `Qwen/Qwen2.5-7B-Instruct`
+>   - `4 x RTX 3090 24GB`
+>   - `500 adapters`
+>   - `500 representative requests`
+>   - `Azure real trace arrivals + Azure token distribution + ShareGPT prompts`
+>   - `time_scale_factor = 1.0`
+> - 当前 mainline 代码已经额外固定两条 formal-run guard：
+>   - `arrival_source=azure_llm / token_source=azure_llm` 缺失时直接 fail-fast，不允许退回 `synthetic_poisson`
+>   - `prompt_source=sharegpt_auto` 缺失时直接 fail-fast，不允许退回 embedded prompts
+> - 当前本地测试状态：
+>   - `tests.test_basic_smoke = 156/156 OK`
+>
+> 当前 2026-04-03 的真实技术结论：
+>
+> - TODO `#2R` 目前可以按“当前主线已收口”处理，但这表示：
+>   - `continuous arrivals`
+>   - `shared pending queue`
+>   - `dispatch admission / live scale cadence / live result semantics`
+>   - `official workload fail-fast`
+>   已经形成可正式复用的 `continuous_queue_v2` substrate。
+> - 这不等于“以后永远不许再碰 `#2R`”；如果后续出现新的结构性证据，可以重开。但当前主矛盾已经不在 substrate 本身。
+> - `baseline4_cadencefix` 相比 `baseline3_realtiming` 已明显回正：
+>   - `TTFT_overall: 7590.2 -> 7362.1 ms`
+>   - `TTFT_comparable: 8854.9 -> 8527.3 ms`
+>   - `TTFT_scaleup_affected: 9249.1 -> 8896.5 ms`
+>   - `Cold_start_latency: 113656.2 -> 54093.6 ms`
+>   - `Throughput_req/s: 0.1604 -> 0.1996`
+>   - `Throughput_tok/s: 20.50 -> 25.38`
+> - 但 TODO `#3` 在 `continuous_queue_v2` 上仍未收口：
+>   - `scaleup_affected = 112`
+>   - `gpu = 0`
+>   - 这些请求仍全部来自新实例的 `host/nvme` tier
+> - 因此当前正式判断应收紧为：
+>   - TODO `#2R`：当前主线可冻结，不再作为 next active TODO
+>   - TODO `#3`：重新成为唯一 next active 主线，而且现在要在 `continuous_queue_v2` 上继续做
+>   - TODO `#4/#5`：继续后置，不提前进入
+>
+> 当前下一步正确方向：
+>
+> - 不再回头把 `substrate_v1` 当成正式论文主线。
+> - 不再把 formal workload 回退到 `synthetic_poisson` 或 embedded prompts。
+> - 直接围绕 `continuous_queue_v2` 上的 TODO `#3` 继续做：
+>   - `readiness-aware scale-up handoff / cold-path coverage / preload plan quality`
+>   - 核心继续只看 `TTFT_scaleup_affected / Cold_start_latency / TTFT_overall / TTFT_comparable / GPU_hit_rate / avg_lora_io_ms`
+>
+> 当前会话续接提示词（下一会话直接用）：
+>
+> `继续当前 clean-tree 主线。权威代码树是 /home/qhq/serverless_llm_experiment_retry14_baseline。当前 active 主线分支是 retry14_continuous_queue_v2，substrate_v1 历史冻结分支是 retry14_rebuild。当前最新已正式分析、且属于 continuous_queue_v2 主线的有效结果是 retry14_continuous_queue_v2_qwen7b_r500_baseline4_cadencefix @ 500；它说明 TODO #2R 当前主线已可冻结，但 TODO #3 仍未收口，因为 scaleup_affected=112 且 gpu=0，请求仍主要落在 host/nvme cold path。当前正式 workload 口径固定为 4 x RTX 3090 24GB、Qwen 7B、500 adapters、500 representative requests、Azure real trace arrivals + Azure token distribution + ShareGPT prompts、time_scale_factor=1.0；若 azure_llm 或 sharegpt_auto 数据缺失，系统必须 fail-fast，不允许回退到 synthetic_poisson 或 embedded prompts。继续严格使用固定格式：当前步骤位置 / 已验证 / 推测 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO。`
+>
 > 2026-04-02 最新更新（当前最高优先级续接入口）：
 >
 > 如果新开会话，请先只看这一节，不要直接跳到下面旧的 `2026-04-01 / 2026-03-31 / 2026-03-29` 历史段落。

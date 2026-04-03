@@ -37,6 +37,7 @@ class ScalingTrigger(Enum):
     MEMORY_UTILIZATION = "memory_utilization"
     REQUEST_QUEUE_LENGTH = "request_queue_length"
     RESPONSE_TIME = "response_time"
+    TTFT_LATENCY = "ttft_latency"
     REQUESTS_PER_SECOND = "requests_per_second"
     INSTANCE_BUSY_RATIO = "instance_busy_ratio"
     LORA_DEMAND = "lora_demand"
@@ -51,6 +52,7 @@ class ScalingMetrics:
     memory_utilization: Optional[float] = None
     request_queue_length: Optional[int] = None
     avg_response_time_ms: Optional[float] = None
+    avg_ttft_ms: Optional[float] = None
     requests_per_second: Optional[float] = None
     active_requests: Optional[int] = None
     instance_busy_ratio: Optional[float] = None
@@ -305,6 +307,21 @@ class AutoScaler:
     
     def _initialize_scaling_rules(self):
         """Initialize default scaling rules"""
+        scaling_config = (
+            self.config.get("coordination.autoscaling", {})
+            if hasattr(self.config, "get") else {}
+        )
+        if not isinstance(scaling_config, dict):
+            scaling_config = {}
+        ttft_scale_up_threshold_ms = float(
+            scaling_config.get("ttft_latency_scale_up_threshold_ms", 5000.0)
+        )
+        ttft_scale_down_threshold_ms = float(
+            scaling_config.get(
+                "ttft_latency_scale_down_threshold_ms",
+                max(0.0, ttft_scale_up_threshold_ms * 0.6),
+            )
+        )
         self.scaling_rules = [
             ScalingRule(
                 name="cpu_utilization",
@@ -331,10 +348,10 @@ class AutoScaler:
                 category="service_saturation",
             ),
             ScalingRule(
-                name="response_time",
-                trigger=ScalingTrigger.RESPONSE_TIME,
-                scale_up_threshold=2000.0,  # 2 seconds
-                scale_down_threshold=500.0,  # 0.5 seconds
+                name="ttft_latency",
+                trigger=ScalingTrigger.TTFT_LATENCY,
+                scale_up_threshold=ttft_scale_up_threshold_ms,
+                scale_down_threshold=ttft_scale_down_threshold_ms,
                 weight=1.3,
                 category="latency_degradation",
             ),
@@ -356,12 +373,6 @@ class AutoScaler:
             ),
         ]
         # RPS 规则：从 config 的 coordination.autoscaling.scale_up_threshold_rps 读取（与 experiments.yaml 一致）
-        scaling_config = (
-            self.config.get("coordination.autoscaling", {})
-            if hasattr(self.config, "get") else {}
-        )
-        if not isinstance(scaling_config, dict):
-            scaling_config = {}
         scale_up_threshold_rps = float(scaling_config.get("scale_up_threshold_rps", 3.0))
         self.scaling_rules.append(
             ScalingRule(
@@ -640,6 +651,8 @@ class AutoScaler:
                 value = metrics.request_queue_length
             elif rule.trigger == ScalingTrigger.RESPONSE_TIME:
                 value = metrics.avg_response_time_ms
+            elif rule.trigger == ScalingTrigger.TTFT_LATENCY:
+                value = metrics.avg_ttft_ms
             elif rule.trigger == ScalingTrigger.REQUESTS_PER_SECOND:
                 value = metrics.requests_per_second
             elif rule.trigger == ScalingTrigger.INSTANCE_BUSY_RATIO:
@@ -737,6 +750,7 @@ class AutoScaler:
                 memory_utilization=avg_gpu_memory,
                 request_queue_length=total_active_requests,
                 avg_response_time_ms=None,  # Would be calculated from request history
+                avg_ttft_ms=None,  # Would be calculated from request history
                 requests_per_second=None,   # Would be calculated from request history
                 active_requests=total_active_requests,
                 instance_busy_ratio=busy_ratio,

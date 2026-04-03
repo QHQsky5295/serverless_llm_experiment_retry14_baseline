@@ -29,11 +29,11 @@
 - 项目名称：`FaaSLoRA：面向多 LoRA 大模型推理的扩缩容感知 Serverless 系统`
 - 当前干净树：`/home/qhq/serverless_llm_experiment_retry14_baseline`
 - 历史脏树：`/home/qhq/serverless_llm_experiment`
-- 当前工作分支：`retry14_rebuild`
-- 当前最新已推送代码基线提交：`1544de2`
+- 当前工作分支：`retry14_continuous_queue_v2`
+- 当前最新已推送代码基线提交：`050892a`
 - 当前 GitHub 已推送快照（本次 freeze 前）：`60737dd`
 - 本轮调研与规划文档首次同步提交：`34881fb`
-- 下一条新主线分支：`retry14_continuous_queue_v2`
+- `substrate_v1` 历史 freeze 锚点：`050892a`
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
 
 当前约定：
@@ -41,6 +41,83 @@
 - 后续研究与回退统一以 `serverless_llm_experiment_retry14_baseline` 为准。
 - `retry21` 及其对应脏树状态视为废案，不再作为正式对比对象。
 - 本次 GitHub 同步的目的不是发布最终结论，而是把当前 clean-tree 形成一个稳定回退点。
+
+## 2026-04-03 更新快照
+
+### 当前最新正式分析结果
+
+- 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的有效结果：`retry14_continuous_queue_v2_qwen7b_r500_baseline4_cadencefix @ 500`
+- 当前最新可复用 `continuous_queue_v2` substrate bring-up 结果链：
+  - `baseline1`
+  - `baseline2_dispatchfix`
+  - `baseline3_realtiming`
+  - `baseline4_cadencefix`
+- 当前正式 workload 口径已固定为：
+  - `Qwen/Qwen2.5-7B-Instruct`
+  - `4 x RTX 3090 24GB`
+  - `500 adapters`
+  - `500 representative requests`
+  - `Azure real trace arrivals + Azure token distribution + ShareGPT prompts`
+  - `time_scale_factor = 1.0`
+
+### 2026-04-03 当前真实结论
+
+- TODO `#2R` 当前主线可按“已收口并冻结”处理：
+  - `continuous arrivals`
+  - `shared pending queue`
+  - `dispatch admission`
+  - `live scale cadence`
+  - `live/result semantics`
+  - `official workload fail-fast`
+  已经对齐到同一条 `continuous_queue_v2` 因果链。
+- `baseline4_cadencefix` 相比 `baseline3_realtiming` 已明显改善：
+  - `TTFT_overall = 7362.1 ms`
+  - `TTFT_comparable = 8527.3 ms`
+  - `TTFT_scaleup_affected = 8896.5 ms`
+  - `Cold_start_latency = 54093.6 ms`
+  - `Throughput_req/s = 0.1996`
+  - `Throughput_tok/s = 25.3763`
+- 但 TODO `#3` 在 `continuous_queue_v2` 上仍未收口：
+  - `scaleup_affected = 112`
+  - `gpu = 0`
+  - 这些请求仍主要来自新实例的 `host/nvme` tier
+- 因此当前主线判断已经切换为：
+  - TODO `#2R`：当前可冻结，不再是 next active TODO
+  - TODO `#3`：回到唯一 next active 主线，在 `continuous_queue_v2` 上继续推进
+  - TODO `#4/#5`：继续后置
+
+### 当前最新代码状态
+
+- 当前 `continuous_queue_v2` 主线代码的真实含义：
+  - runner 已从 `substrate_v1` 的 batch-submission 语义切到连续在线队列语义
+  - live snapshot / scale event / affected-window 结果语义已对齐在线队列
+  - autoscaler 主延迟信号切到 `TTFT`
+  - 正式 workload 对 `azure_llm` 与 `sharegpt_auto` 已加 fail-fast guard
+  - `VLLM_NO_USAGE_STATS=1` 用于规避当前主机上 usage worker 的噪声报错
+- 当前 4GPU 语义保持不变：
+  - `TP=1` 可扩到 `4` 个单卡 runtime
+  - `TP=2` 可扩到 `2` 个双卡 runtime
+  - 后续 `continuous_queue_v2` 优化不得回退到旧的 2GPU 假设
+- 当前本地测试状态：
+  - `tests.test_basic_smoke = 156/156 OK`
+
+### 当前高优先级 TODO 顺序
+
+1. TODO `#3`：`continuous_queue_v2` 上的 scale-up cold path / preload coverage / handoff plan
+   - 当前状态：唯一 next active 主线
+   - 当前核心指标：
+     - `TTFT_scaleup_affected`
+     - `Cold_start_latency`
+     - `TTFT_overall`
+     - `TTFT_comparable`
+     - `GPU_hit_rate`
+     - `avg_lora_io_ms`
+
+2. TODO `#4`：rank / size-aware observed utility
+   - 继续后置
+
+3. TODO `#5`：decode-aware contention control
+   - 继续后置
 
 ## 2026-04-02 更新快照
 

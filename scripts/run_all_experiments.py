@@ -20,8 +20,8 @@ FAASLORA SCENARIOS
 WORKLOAD
 --------
   * Real Azure LLM trace (data/azure_llm/*.csv) with token distribution
-  * ShareGPT prompts; falls back to embedded 200 prompts if unavailable
-  * Poisson arrival = arrival_rate_rps
+  * ShareGPT real prompts for formal runs; embedded prompts only when explicitly configured
+  * Explicit synthetic Poisson path = arrival_rate_rps
   * Zipf LoRA distribution = zipf_exponent
   * 3-phase Burst workload for contribution 3
 
@@ -499,6 +499,7 @@ def _resolve_vllm_runtime_guards(model_cfg: Dict[str, Any]) -> Dict[str, Any]:
         "VLLM_USE_FLASHINFER_SAMPLER",
         lambda value: "1" if bool(value) else "0",
     )
+    env_updates.setdefault("VLLM_NO_USAGE_STATS", "1")
 
     # Mistral-Nemo is the only family that repeatedly triggered runtime
     # EngineCore crashes on this host under the default V1 + TP2 + LoRA path.
@@ -550,7 +551,14 @@ def _scaleup_affected_request_indices(
         return affected
     def event_request_index(event: Dict[str, Any]) -> int:
         return int(
-            event.get("submitted_request_count", event.get("request_index", 0)) or 0
+            event.get(
+                "queue_visible_request_count",
+                event.get(
+                    "arrived_request_count",
+                    event.get("submitted_request_count", event.get("request_index", 0)),
+                ),
+            )
+            or 0
         )
 
     events = sorted(scale_up_events or [], key=event_request_index)
@@ -664,6 +672,80 @@ class RequestResult:
 
 
 DEFAULT_TTFT_SLO_MS = 5000.0
+
+
+def _assert_official_workload_sources_available(
+    *,
+    arrival_source: str,
+    token_source: str,
+    prompt_source: str,
+    has_azure: bool,
+    has_sgpt: bool,
+) -> None:
+    missing_sources: List[str] = []
+    if str(arrival_source).strip().lower() == "azure_llm" and not has_azure:
+        missing_sources.append("arrival_source=azure_llm")
+    if str(token_source).strip().lower() == "azure_llm" and not has_azure:
+        missing_sources.append("token_source=azure_llm")
+    if missing_sources:
+        requested = ", ".join(missing_sources)
+        raise RuntimeError(
+            "Official Azure-trace workload source requested but real Azure LLM trace data "
+            f"is unavailable ({requested}). Refusing to fall back to synthetic_poisson or "
+            "fixed-default token lengths. For formal experiments, restore "
+            "data/azure_llm/*.csv and keep datasets.arrival_source=azure_llm plus "
+            "datasets.token_source=azure_llm."
+        )
+
+    if str(prompt_source).strip().lower() == "sharegpt_auto" and not has_sgpt:
+        raise RuntimeError(
+            "Official ShareGPT prompt source requested but real ShareGPT data is unavailable "
+            "(prompt_source=sharegpt_auto). Refusing to fall back to embedded prompts. "
+            "For formal experiments, restore data/sharegpt/sharegpt_cache.json or ensure "
+            "ShareGPT download is available, and keep datasets.prompt_source=sharegpt_auto."
+        )
+
+
+def _classify_workload_timing_mode(
+    *,
+    use_azure_replay: bool,
+    time_scale_factor: float,
+) -> str:
+    if not use_azure_replay:
+        return "poisson_synthetic"
+    try:
+        scale = float(time_scale_factor)
+    except Exception:
+        scale = 1.0
+    if scale < 1.0:
+        return "azure_accelerated_replay"
+    if scale > 1.0:
+        return "azure_stretched_replay"
+    return "azure_real_time"
+
+
+def _derive_online_hotness_window_s(
+    coord_cfg: Optional[Dict[str, Any]] = None,
+    preload_cfg: Optional[Dict[str, Any]] = None,
+    *,
+    ttft_slo_ms: float = DEFAULT_TTFT_SLO_MS,
+) -> float:
+    coord_cfg = coord_cfg or {}
+    preload_cfg = preload_cfg or {}
+    explicit = coord_cfg.get(
+        "online_hotness_window_s",
+        preload_cfg.get("online_hotness_window_s"),
+    )
+    if explicit is not None:
+        try:
+            return max(1.0, float(explicit))
+        except Exception:
+            pass
+
+    arrival_window_s = max(1.0, float(coord_cfg.get("arrival_window_s", 5.0) or 5.0))
+    scale_eval_interval_s = max(1.0, float(coord_cfg.get("scale_eval_interval_s", 15.0) or 15.0))
+    ttft_slo_s = max(1.0, float(ttft_slo_ms or DEFAULT_TTFT_SLO_MS) / 1000.0)
+    return max(arrival_window_s, scale_eval_interval_s, ttft_slo_s)
 
 
 @dataclass
@@ -1036,26 +1118,7 @@ def _kill_stale_gpu_processes():
     except ImportError:
         return
 
-    # Dedicated runtime workers are launched in their own process groups under
-    # /tmp/faaslora_worker_*. If a previous run crashes before normal shutdown,
-    # their descendants (including /app/.venv/bin/python) can outlive the
-    # parent worker. Kill those stale groups first using the persisted pgid.
-    for process_meta in Path("/tmp").glob("faaslora_worker_*/process.json"):
-        try:
-            payload = json.loads(process_meta.read_text(encoding="utf-8"))
-            pgid = int(payload.get("pgid", 0) or 0)
-            pid = int(payload.get("pid", 0) or 0)
-        except Exception:
-            continue
-        if pid == my_pid:
-            continue
-        try:
-            if pid > 0 and psutil.pid_exists(pid):
-                os.killpg(pgid or pid, signal.SIGKILL)
-                killed += 1
-                continue
-        except Exception:
-            pass
+    killed += _kill_stale_dedicated_worker_process_groups(psutil=psutil, my_pid=my_pid)
 
     for proc in psutil.process_iter():
         try:
@@ -1081,6 +1144,40 @@ def _kill_stale_gpu_processes():
         time.sleep(3)
     import gc
     gc.collect()
+
+
+def _kill_stale_dedicated_worker_process_groups(*, psutil: Any = None, my_pid: Optional[int] = None) -> int:
+    """Kill only persisted dedicated-worker process groups from previous runs."""
+    killed = 0
+    if psutil is None:
+        try:
+            import psutil as _psutil
+        except ImportError:
+            return 0
+        psutil = _psutil
+    my_pid = os.getpid() if my_pid is None else int(my_pid)
+
+    # Dedicated runtime workers are launched in their own process groups under
+    # /tmp/faaslora_worker_*. If a previous run crashes before normal shutdown,
+    # their descendants (including /app/.venv/bin/python) can outlive the
+    # parent worker. Kill those stale groups first using the persisted pgid.
+    for process_meta in Path("/tmp").glob("faaslora_worker_*/process.json"):
+        try:
+            payload = json.loads(process_meta.read_text(encoding="utf-8"))
+            pgid = int(payload.get("pgid", 0) or 0)
+            pid = int(payload.get("pid", 0) or 0)
+        except Exception:
+            continue
+        if pid == my_pid:
+            continue
+        try:
+            if pid > 0 and psutil.pid_exists(pid):
+                os.killpg(pgid or pid, signal.SIGKILL)
+                killed += 1
+                continue
+        except Exception:
+            pass
+    return killed
 
 
 def _cleanup_distributed_runtime(backend: str) -> None:
@@ -1157,6 +1254,16 @@ def _avg_success_e2e_ms(raw_list: List[Any]) -> Optional[float]:
     for item in raw_list:
         if isinstance(item, RequestResult) and item.success:
             vals.append(float(getattr(item, "e2e_ms", 0.0)))
+    if not vals:
+        return None
+    return sum(vals) / len(vals)
+
+
+def _avg_success_ttft_ms(raw_list: List[Any]) -> Optional[float]:
+    vals: List[float] = []
+    for item in raw_list:
+        if isinstance(item, RequestResult) and item.success:
+            vals.append(float(getattr(item, "ttft_ms", 0.0)))
     if not vals:
         return None
     return sum(vals) / len(vals)
@@ -2031,7 +2138,7 @@ class SubprocessInferenceEngineProxy:
     ) -> "SubprocessInferenceEngineProxy":
         spawn_started_at = time.perf_counter()
         if not cls._startup_cleanup_done:
-            _kill_stale_gpu_processes()
+            _kill_stale_dedicated_worker_process_groups()
             cls._startup_cleanup_done = True
 
         requested_device_id = int(device_id) if device_id is not None else None
@@ -2388,6 +2495,7 @@ class ScenarioRunner:
         self._warm_pool_max = int(cc.get("warm_pool_max", 8))
         self._routing_policy = str(cc.get("routing_policy", "adapter_affinity")).lower()
         self._arrival_window_s = float(cc.get("arrival_window_s", 5.0))
+        self._scale_eval_interval_s = max(0.1, float(cc.get("scale_eval_interval_s", 15.0) or 15.0))
         self._baseline_rps: float = 1.0
         self._low_load_since: Optional[float] = None
         self._active_loras_ewma: float = 0.0
@@ -2406,6 +2514,15 @@ class ScenarioRunner:
             0.0,
             float(self.wl_cfg.get("ttft_slo_ms", self.coord_cfg.get("ttft_slo_ms", DEFAULT_TTFT_SLO_MS)) or DEFAULT_TTFT_SLO_MS),
         )
+        self._workload_concurrency_limit = max(
+            1,
+            int(self.wl_cfg.get("concurrency", 1) or 1),
+        )
+        self._online_hotness_window_s = _derive_online_hotness_window_s(
+            self.coord_cfg,
+            self.preload_cfg,
+            ttft_slo_ms=self._ttft_slo_ms,
+        )
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
         self._run_started_at = 0.0
@@ -2423,6 +2540,9 @@ class ScenarioRunner:
         self._live_started_lora_counts: Dict[str, int] = defaultdict(int)
         self._live_arrived_lora_first_seen_seq: Dict[str, int] = {}
         self._live_arrived_lora_seq: int = 0
+        self._live_waiting_traces_by_id: Dict[str, Any] = {}
+        self._dispatch_admitted_requests: int = 0
+        self._dispatch_capacity_condition: Optional[asyncio.Condition] = None
         self._slot_retire_lock = asyncio.Lock()
 
         # Resource coordinator (contribution 3); when _stack is set, coordinator comes from stack
@@ -2508,6 +2628,57 @@ class ScenarioRunner:
             self._active_loras_ewma = float(active_batch)
         else:
             self._active_loras_ewma = (1.0 - beta) * self._active_loras_ewma + beta * active_batch
+        return overrides
+
+    def _current_live_waiting_trace_queue(self) -> List[Any]:
+        waiting = getattr(self, "_live_waiting_traces_by_id", None)
+        if not waiting:
+            return []
+        return list(waiting.values())
+
+    def _observe_live_waiting_trace(self, trace: Optional[Any]) -> None:
+        request_id = getattr(trace, "request_id", None)
+        if not request_id:
+            return
+        waiting = getattr(self, "_live_waiting_traces_by_id", None)
+        if waiting is None:
+            waiting = {}
+            self._live_waiting_traces_by_id = waiting
+        waiting[str(request_id)] = trace
+
+    def _release_live_waiting_trace(self, trace: Optional[Any]) -> None:
+        request_id = getattr(trace, "request_id", None)
+        if not request_id:
+            return
+        waiting = getattr(self, "_live_waiting_traces_by_id", None)
+        if not waiting:
+            return
+        waiting.pop(str(request_id), None)
+
+    def _current_live_active_adapter_count(self) -> int:
+        active: set[str] = set()
+        for trace in self._current_live_waiting_trace_queue():
+            adapter_id = getattr(trace, "adapter_id", None)
+            if adapter_id:
+                active.add(str(adapter_id))
+        started_counts = dict(getattr(self, "_live_started_lora_counts", {}) or {})
+        for adapter_id, count in started_counts.items():
+            if adapter_id and int(count or 0) > 0:
+                active.add(str(adapter_id))
+        return len(active)
+
+    def _update_dynamic_scaling_live_state(
+        self,
+        arrival_rps: float,
+        observed_at: float,
+    ) -> Optional[Dict[str, float]]:
+        overrides = self._observe_dynamic_scaling_rps(arrival_rps, observed_at)
+        beta = self._baseline_rps_ewma_beta
+        active_now = self._current_live_active_adapter_count()
+        if self._active_loras_ewma <= 0 and active_now > 0:
+            self._active_loras_ewma = float(active_now)
+        else:
+            self._active_loras_ewma = (1.0 - beta) * self._active_loras_ewma + beta * active_now
         return overrides
 
     def _should_trigger_scale_down(self) -> bool:
@@ -3122,10 +3293,17 @@ class ScenarioRunner:
                 latencies.append(latency_ms)
         return (sum(latencies) / len(latencies)) if latencies else 0.0
 
-    def _waiting_submitted_trace_queue(
+    def _waiting_visible_trace_queue(
         self,
+        visible_traces: Optional[List[Any]] = None,
         submitted_traces: Optional[List[Any]] = None,
     ) -> List[Any]:
+        live_waiting_queue = self._current_live_waiting_trace_queue()
+        if live_waiting_queue:
+            return live_waiting_queue
+        candidate_traces = (
+            visible_traces if visible_traces is not None else submitted_traces
+        )
         live_counts = dict(getattr(self, "_live_arrived_lora_counts", {}) or {})
         started_counts = dict(getattr(self, "_live_started_lora_counts", {}) or {})
         waiting_counts = {
@@ -3142,7 +3320,7 @@ class ScenarioRunner:
             if adapter_id and int(count or 0) > 0
         }
         queue: List[Any] = []
-        for trace in list(submitted_traces or []):
+        for trace in list(candidate_traces or []):
             adapter_id = getattr(trace, "adapter_id", None)
             if not adapter_id:
                 continue
@@ -3153,16 +3331,33 @@ class ScenarioRunner:
             remaining_waiting[adapter_id] = remaining - 1
         return queue
 
+    def _waiting_submitted_trace_queue(
+        self,
+        submitted_traces: Optional[List[Any]] = None,
+    ) -> List[Any]:
+        # Backward-compatible alias for substrate_v1 call sites and tests.
+        return self._waiting_visible_trace_queue(submitted_traces=submitted_traces)
+
     def _scale_up_ready_candidate_queue(
         self,
         *,
         replay_t0: Optional[float],
         arrived_request_count: int,
-        submitted_count: int,
+        queue_visible_request_count: Optional[int] = None,
+        visible_traces: Optional[List[Any]] = None,
+        submitted_count: Optional[int] = None,
         submitted_traces: Optional[List[Any]] = None,
         ready_delay_ms: float = 0.0,
     ) -> Tuple[List[Any], int]:
-        waiting_queue = self._waiting_submitted_trace_queue(submitted_traces)
+        visible_request_count = (
+            queue_visible_request_count
+            if queue_visible_request_count is not None
+            else submitted_count
+        )
+        waiting_queue = self._waiting_visible_trace_queue(
+            visible_traces=visible_traces,
+            submitted_traces=submitted_traces,
+        )
         traces = list(getattr(self, "traces", []) or [])
         projected_arrived = max(0, int(arrived_request_count or 0))
         if replay_t0 is not None and getattr(self, "_scheduled_arrivals", None):
@@ -3174,7 +3369,7 @@ class ScenarioRunner:
                 ),
             )
         upper = min(projected_arrived, len(traces))
-        lower = min(max(0, int(submitted_count or 0)), upper)
+        lower = min(max(0, int(visible_request_count or 0)), upper)
         return waiting_queue + traces[lower:upper], upper
 
     def _slot_predicted_service_cost_ms(self, slot: Optional[Any], adapter_id: Optional[str]) -> float:
@@ -3370,7 +3565,9 @@ class ScenarioRunner:
         *,
         replay_t0: Optional[float],
         arrived_request_count: int,
-        submitted_count: int,
+        queue_visible_request_count: Optional[int] = None,
+        visible_traces: Optional[List[Any]] = None,
+        submitted_count: Optional[int] = None,
         submitted_traces: Optional[List[Any]] = None,
     ) -> Dict[str, Any]:
         headroom_bytes = max(
@@ -3397,6 +3594,8 @@ class ScenarioRunner:
             candidate_queue, projected_arrived_request_count = self._scale_up_ready_candidate_queue(
                 replay_t0=replay_t0,
                 arrived_request_count=arrived_request_count,
+                queue_visible_request_count=queue_visible_request_count,
+                visible_traces=visible_traces,
                 submitted_count=submitted_count,
                 submitted_traces=submitted_traces,
                 ready_delay_ms=ready_delay_ms,
@@ -3452,12 +3651,16 @@ class ScenarioRunner:
         *,
         replay_t0: Optional[float] = None,
         arrived_request_count: int,
-        submitted_count: int,
+        queue_visible_request_count: Optional[int] = None,
+        visible_traces: Optional[List[Any]] = None,
+        submitted_count: Optional[int] = None,
         submitted_traces: Optional[List[Any]] = None,
     ) -> List[str]:
         plan = self._predict_scale_up_handoff_plan(
             replay_t0=replay_t0,
             arrived_request_count=arrived_request_count,
+            queue_visible_request_count=queue_visible_request_count,
+            visible_traces=visible_traces,
             submitted_count=submitted_count,
             submitted_traces=submitted_traces,
         )
@@ -3468,12 +3671,16 @@ class ScenarioRunner:
         *,
         replay_t0: Optional[float] = None,
         arrived_request_count: int,
-        submitted_count: int,
+        queue_visible_request_count: Optional[int] = None,
+        visible_traces: Optional[List[Any]] = None,
+        submitted_count: Optional[int] = None,
         submitted_traces: Optional[List[Any]] = None,
     ) -> List[str]:
         plan = self._predict_scale_up_handoff_plan(
             replay_t0=replay_t0,
             arrived_request_count=arrived_request_count,
+            queue_visible_request_count=queue_visible_request_count,
+            visible_traces=visible_traces,
             submitted_count=submitted_count,
             submitted_traces=submitted_traces,
         )
@@ -3499,9 +3706,16 @@ class ScenarioRunner:
             return False
         tracker = getattr(self._stack, "hotness_tracker", None)
         try:
-            window_s = float(getattr(tracker, "window_seconds", 300.0) or 300.0)
+            window_s = float(
+                getattr(
+                    tracker,
+                    "window_seconds",
+                    getattr(self, "_online_hotness_window_s", 15.0),
+                )
+                or getattr(self, "_online_hotness_window_s", 15.0)
+            )
         except Exception:
-            window_s = 300.0
+            window_s = float(getattr(self, "_online_hotness_window_s", 15.0) or 15.0)
         window_s = max(1.0, window_s)
         current_time = time.time() if now is None else float(now)
         return last_accessed_at >= current_time - window_s
@@ -3909,6 +4123,8 @@ class ScenarioRunner:
         backlog_override: Optional[int] = None,
         active_override: Optional[int] = None,
         busy_override: Optional[float] = None,
+        queue_visible_override: Optional[int] = None,
+        arrived_override: Optional[int] = None,
         submitted_override: Optional[int] = None,
         results_view: Optional[List[Any]] = None,
         scale_up_count: Optional[int] = None,
@@ -3929,7 +4145,24 @@ class ScenarioRunner:
             eta = elapsed * (total - completed) / max(1, completed)
         done_rps = completed / max(elapsed, 1e-6) if elapsed > 0 else 0.0
         arrival_rps = self._arrival_rps(replay_t0)
-        submitted = submitted_override if submitted_override is not None else self._arrived_request_count(replay_t0)
+        arrived = (
+            arrived_override
+            if arrived_override is not None
+            else queue_visible_override
+            if queue_visible_override is not None
+            else submitted_override
+            if submitted_override is not None
+            else self._arrived_request_count(replay_t0)
+        )
+        queue_visible = (
+            queue_visible_override
+            if queue_visible_override is not None
+            else arrived_override
+            if arrived_override is not None
+            else submitted_override
+            if submitted_override is not None
+            else self._arrived_request_count(replay_t0)
+        )
         backlog = backlog_override if backlog_override is not None else self._backlog_depth(completed, replay_t0)
         active = active_override if active_override is not None else self._active_request_count()
         busy = busy_override if busy_override is not None else self._busy_instance_ratio()
@@ -3946,10 +4179,11 @@ class ScenarioRunner:
             prefix
             + f"{self._render_progress_bar(completed, total)} "
             + f"mode={self._instance_mode} adapters={len(self.adapter_info)} "
-            + f"submitted={submitted}/{total} done={completed} ok={success} fail={failed} "
+            + f"arrived={arrived}/{total} done={completed} ok={success} fail={failed} "
             + f"elapsed={self._format_eta(elapsed)} "
             + f"eta={self._format_eta(eta)} "
-            + f"arr={arrival_rps:.2f}/s done={done_rps:.2f}/s backlog={max(0, backlog)} "
+            + f"arr={arrival_rps:.2f}/s done={done_rps:.2f}/s "
+            + f"backlog={max(0, backlog)} queue_visible={max(0, int(queue_visible or 0))} "
             + f"active={max(0, active)} busy={busy:.2f} "
             + f"inst={instances} runtimes={runtime_groups}",
             flush=True,
@@ -4099,15 +4333,10 @@ class ScenarioRunner:
         lo = bisect_right(self._scheduled_arrivals, max(0.0, elapsed - window_s))
         hi = bisect_right(self._scheduled_arrivals, elapsed)
         arrivals = max(0, hi - lo)
-        window_rps = arrivals / window_s
-
-        # When service is slower than arrival, a pure trailing-window rate can drop to 0
-        # even though the replay has already injected a large backlog. Use the stronger of
-        # recent-window rate and cumulative replay rate so scale-up reflects actual demand.
-        arrived_total = hi
-        replay_span = max(1.0, min(elapsed, self._scheduled_arrivals[-1] if self._scheduled_arrivals else elapsed))
-        cumulative_rps = arrived_total / replay_span
-        return max(window_rps, cumulative_rps)
+        # In continuous-queue v2, arrival rate should reflect only the recent arrival
+        # process. Existing queued work is already captured by backlog, so mixing in a
+        # cumulative replay average double-counts scale-up pressure.
+        return arrivals / window_s
 
     def _backlog_depth(self, completed_count: int, replay_t0: float) -> int:
         return max(0, self._arrived_request_count(replay_t0) - completed_count)
@@ -4129,7 +4358,78 @@ class ScenarioRunner:
                 busy += 1
         return busy / float(len(groups))
 
+    def _current_runtime_group_count(self) -> int:
+        if self.instance_pool is None:
+            return 1 if getattr(self, "engine", None) is not None else 0
+        get_groups = getattr(self.instance_pool, "get_runtime_groups", None)
+        if callable(get_groups):
+            try:
+                groups = list(get_groups())
+                if groups:
+                    return len(groups)
+            except Exception:
+                pass
+        count_fn = getattr(self.instance_pool, "count", None)
+        if callable(count_fn):
+            try:
+                return max(0, int(count_fn() or 0))
+            except Exception:
+                pass
+        return 0
+
+    def _configured_workload_concurrency(self) -> int:
+        raw = getattr(self, "_workload_concurrency_limit", None)
+        if raw is None:
+            raw = getattr(self, "wl_cfg", {}).get("concurrency", 1)
+        try:
+            return max(1, int(raw or 1))
+        except Exception:
+            return 1
+
+    def _current_dispatch_capacity_limit(self) -> int:
+        workload_limit = self._configured_workload_concurrency()
+        runtime_groups = max(1, self._current_runtime_group_count())
+        runtime_cap = max(1, self._runtime_forward_capacity_limit())
+        aggregate_runtime_capacity = runtime_groups * runtime_cap
+        return max(1, min(workload_limit, aggregate_runtime_capacity))
+
+    def _dispatch_capacity_cond(self) -> asyncio.Condition:
+        cond = getattr(self, "_dispatch_capacity_condition", None)
+        if cond is None:
+            cond = asyncio.Condition()
+            self._dispatch_capacity_condition = cond
+        return cond
+
+    async def _notify_dispatch_capacity_changed(self) -> None:
+        cond = getattr(self, "_dispatch_capacity_condition", None)
+        if cond is None:
+            return
+        async with cond:
+            cond.notify_all()
+
+    async def _acquire_dispatch_admission(self) -> None:
+        cond = self._dispatch_capacity_cond()
+        async with cond:
+            while int(getattr(self, "_dispatch_admitted_requests", 0) or 0) >= self._current_dispatch_capacity_limit():
+                await cond.wait()
+            self._dispatch_admitted_requests = int(
+                getattr(self, "_dispatch_admitted_requests", 0) or 0
+            ) + 1
+
+    async def _release_dispatch_admission(self) -> None:
+        cond = self._dispatch_capacity_cond()
+        async with cond:
+            self._dispatch_admitted_requests = max(
+                0,
+                int(getattr(self, "_dispatch_admitted_requests", 0) or 0) - 1,
+            )
+            cond.notify_all()
+
     def _live_scale_eval_period_s(self) -> float:
+        try:
+            return max(0.1, float(getattr(self, "_scale_eval_interval_s", 15.0) or 15.0))
+        except Exception:
+            pass
         autoscaler = getattr(self._stack, "autoscaler", None) if self._stack is not None else None
         if autoscaler is not None:
             try:
@@ -4138,7 +4438,7 @@ class ScenarioRunner:
                 pass
         return 15.0
 
-    def _should_attempt_live_scale_up_eval(
+    def _should_attempt_live_scale_control_eval(
         self,
         *,
         now_monotonic: float,
@@ -4155,16 +4455,53 @@ class ScenarioRunner:
             or self.instance_pool is None
         ):
             return False
-        if self.instance_pool.count() >= self.instance_pool.max_instances:
-            return False
-        if arrival_rps <= 0.0:
-            return False
+        min_instances = max(1, int(getattr(self.instance_pool, "min_instances", 1) or 1))
+        max_instances = max(min_instances, int(getattr(self.instance_pool, "max_instances", min_instances) or min_instances))
+        current_instances = self.instance_pool.count()
+        can_scale_up = current_instances < max_instances and (
+            arrival_rps > 0.0 or backlog > 0 or active_requests > 0 or busy_ratio > 0.0
+        )
+        can_scale_down = current_instances > min_instances
         pressure_present = backlog > 0 or active_requests > 0 or busy_ratio > 0.0
-        if not pressure_present:
+        if not pressure_present and not can_scale_down:
+            return False
+        if not pressure_present and not self._should_trigger_scale_down():
+            return False
+        if not can_scale_up and not can_scale_down:
             return False
         return (now_monotonic - self._live_scale_eval_last_at) >= self._live_scale_eval_period_s()
 
-    async def _maybe_run_live_scale_up_evaluation(
+    def _select_scale_down_candidate_slot(self) -> Optional[Any]:
+        if self.instance_pool is None:
+            return None
+        min_instances = max(1, int(getattr(self.instance_pool, "min_instances", 1) or 1))
+        if self.instance_pool.count() <= min_instances:
+            return None
+        candidates = [
+            slot
+            for slot in self.instance_pool.get_slots()
+            if slot.instance_id != self._primary_instance_id
+        ]
+        if not candidates:
+            return None
+        idle_candidates = [
+            slot for slot in candidates
+            if int(getattr(slot, "active_requests", 0) or 0) <= 0
+            and int(getattr(slot, "load_queue_depth", 0) or 0) <= 0
+        ]
+        if not idle_candidates:
+            return None
+        return min(
+            idle_candidates,
+            key=lambda slot: (
+                int(getattr(slot, "active_requests", 0) or 0),
+                int(getattr(slot, "load_queue_depth", 0) or 0),
+                float(getattr(slot, "last_selected_at", 0.0) or 0.0),
+                float(getattr(slot, "created_at", 0.0) or 0.0),
+            ),
+        )
+
+    async def _maybe_run_live_scale_control_evaluation(
         self,
         *,
         result: ScenarioResult,
@@ -4175,17 +4512,27 @@ class ScenarioRunner:
         active_requests: int,
         busy_ratio: float,
         completed_count: int,
-        submitted_count: int,
+        queue_visible_request_count: Optional[int] = None,
+        visible_traces: Optional[List[Any]] = None,
+        submitted_count: Optional[int] = None,
         submitted_traces: Optional[List[Any]] = None,
     ) -> bool:
+        visible_request_count = (
+            queue_visible_request_count
+            if queue_visible_request_count is not None
+            else submitted_count
+        )
+        candidate_traces = (
+            visible_traces if visible_traces is not None else submitted_traces
+        )
         now_mono = time.perf_counter()
         arrival_rps = self._arrival_rps(replay_t0)
         if self._dynamic_scaling:
-            self._live_scale_overrides = self._observe_dynamic_scaling_rps(
+            self._live_scale_overrides = self._update_dynamic_scaling_live_state(
                 arrival_rps,
                 now_mono,
             )
-        if not self._should_attempt_live_scale_up_eval(
+        if not self._should_attempt_live_scale_control_eval(
             now_monotonic=now_mono,
             arrival_rps=arrival_rps,
             backlog=backlog,
@@ -4199,6 +4546,7 @@ class ScenarioRunner:
             requests_per_second=arrival_rps,
             request_queue_length=max(0, backlog),
             avg_response_time_ms=_avg_success_e2e_ms(results_view),
+            avg_ttft_ms=_avg_success_ttft_ms(results_view),
             gpu_utilization=gpu_util,
             active_requests=active_requests,
             instance_busy_ratio=busy_ratio,
@@ -4209,6 +4557,41 @@ class ScenarioRunner:
             current_instances=current_instances,
             overrides=self._live_scale_overrides,
         )
+        if decision.action == ScalingAction.SCALE_DOWN:
+            if not self._should_trigger_scale_down():
+                return False
+            scale_down_event = await self._scale_down_one_instance(require_idle=True)
+            if not scale_down_event:
+                return False
+            self._live_scale_eval_last_at = now_mono
+            arrived_request_count = self._arrived_request_count(replay_t0)
+            request_index = max(
+                0,
+                int(
+                    visible_request_count
+                    if visible_request_count is not None
+                    else arrived_request_count
+                    or 0
+                ),
+            )
+            result.scale_down_events += 1
+            result.scale_down_event_log.append({
+                "timestamp": time.time(),
+                "request_index": request_index,
+                "queue_visible_request_count": request_index,
+                "completed_request_count": max(0, int(completed_count or 0)),
+                "arrived_request_count": max(0, int(arrived_request_count or 0)),
+                "reason": decision.reason,
+                **scale_down_event,
+            })
+            print(
+                f"    Scale-down decision: reason={decision.reason} "
+                f"instances={current_instances}->{decision.target_instances} "
+                f"arrival_rps={arrival_rps:.2f} backlog={max(0, backlog)} "
+                f"active={active_requests} busy={busy_ratio:.2f}",
+                flush=True,
+            )
+            return True
         if decision.action != ScalingAction.SCALE_UP:
             if backlog <= 0 and active_requests <= 0 and busy_ratio <= 0.0:
                 self._live_scale_eval_last_at = now_mono
@@ -4216,12 +4599,14 @@ class ScenarioRunner:
 
         self._live_scale_eval_last_at = now_mono
         arrived_request_count = self._arrived_request_count(replay_t0)
-        request_index = max(0, int(submitted_count or 0))
+        request_index = max(0, int(visible_request_count or 0))
         preferred_gpu_adapters = self._live_scale_up_preferred_gpu_adapters(
             replay_t0=replay_t0,
             arrived_request_count=arrived_request_count,
+            queue_visible_request_count=visible_request_count,
+            visible_traces=candidate_traces,
             submitted_count=submitted_count,
-            submitted_traces=submitted_traces,
+            submitted_traces=candidate_traces,
         )
         preload_capacity_bytes = self._scale_up_preload_capacity_bytes(preferred_gpu_adapters)
         preload_budget = dict(getattr(self, "_last_scale_up_preload_budget", {}) or {})
@@ -4262,11 +4647,41 @@ class ScenarioRunner:
             current_instances=current_instances,
             request_index=request_index,
             completed_request_count=max(0, int(completed_count or 0)),
+            queue_visible_request_count=request_index,
             submitted_request_count=request_index,
             arrived_request_count=max(0, int(arrived_request_count or 0)),
             scale_event=scale_event,
         )
         return True
+
+    async def _maybe_run_live_scale_up_evaluation(
+        self,
+        *,
+        result: ScenarioResult,
+        coord_enabled: bool,
+        replay_t0: float,
+        results_view: List[Any],
+        backlog: int,
+        active_requests: int,
+        busy_ratio: float,
+        completed_count: int,
+        submitted_count: int,
+        submitted_traces: Optional[List[Any]] = None,
+    ) -> bool:
+        return await self._maybe_run_live_scale_control_evaluation(
+            result=result,
+            coord_enabled=coord_enabled,
+            replay_t0=replay_t0,
+            results_view=results_view,
+            backlog=backlog,
+            active_requests=active_requests,
+            busy_ratio=busy_ratio,
+            completed_count=completed_count,
+            queue_visible_request_count=submitted_count,
+            visible_traces=submitted_traces,
+            submitted_count=submitted_count,
+            submitted_traces=submitted_traces,
+        )
 
     async def _run_batch_observed(
         self,
@@ -4338,6 +4753,97 @@ class ScenarioRunner:
             except Exception as exc:  # should be rare; gather-like fallback
                 raw.append(exc)
         return raw, time.perf_counter(), peak_backlog, peak_active_requests, peak_busy_ratio
+
+    async def _run_continuous_observed(
+        self,
+        *,
+        traces: List[RequestTrace],
+        trace_start_index: int,
+        replay_t0: float,
+        run_one_fn,
+        completed_before_window: int,
+        total_requests: int,
+        result: ScenarioResult,
+        coord_enabled: bool,
+        phase_label: Optional[str] = None,
+    ) -> Tuple[List[Any], float]:
+        """
+        Execute one trace window with continuous arrivals and a shared waiting queue.
+
+        Unlike substrate_v1's batch runner, request activation remains continuous:
+        every trace owns its arrival sleep, enters the shared waiting queue on
+        arrival, and the autoscaler/router observe that same online queue state.
+        """
+        tasks = [
+            asyncio.create_task(run_one_fn(trace_start_index + i, trace))
+            for i, trace in enumerate(traces)
+        ]
+        observed_done: set[int] = set()
+        observed_raw: List[Any] = []
+        pending = set(tasks)
+        task_to_idx = {task: idx for idx, task in enumerate(tasks)}
+
+        while pending:
+            done_now, pending = await asyncio.wait(
+                pending,
+                timeout=0.02,
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            for task in done_now:
+                idx = task_to_idx[task]
+                if idx in observed_done:
+                    continue
+                observed_done.add(idx)
+                try:
+                    observed_raw.append(task.result())
+                except Exception as exc:
+                    observed_raw.append(exc)
+            completed_now = completed_before_window + len(observed_done)
+            backlog = self._backlog_depth(completed_now, replay_t0)
+            active_requests = self._active_request_count()
+            busy_ratio = self._busy_instance_ratio()
+            arrived_now = self._arrived_request_count(replay_t0)
+            waiting_traces = self._waiting_visible_trace_queue()
+            await self._maybe_run_live_scale_control_evaluation(
+                result=result,
+                coord_enabled=coord_enabled,
+                replay_t0=replay_t0,
+                results_view=list(observed_raw),
+                backlog=backlog,
+                active_requests=active_requests,
+                busy_ratio=busy_ratio,
+                completed_count=completed_now,
+                queue_visible_request_count=arrived_now,
+                visible_traces=waiting_traces,
+            )
+            failed_now = sum(
+                1 for item in observed_raw
+                if isinstance(item, Exception) or not getattr(item, "success", True)
+            )
+            self._emit_live_snapshot(
+                completed=completed_now,
+                total=total_requests,
+                replay_t0=replay_t0,
+                failed=failed_now,
+                phase_label=phase_label,
+                force=(len(observed_done) == len(tasks)),
+                backlog_override=backlog,
+                active_override=active_requests,
+                busy_override=busy_ratio,
+                queue_visible_override=arrived_now,
+                arrived_override=arrived_now,
+                results_view=observed_raw,
+                scale_up_count=len(result.scale_up_events),
+                scale_down_count=result.scale_down_events,
+            )
+
+        raw: List[Any] = []
+        for task in tasks:
+            try:
+                raw.append(await task)
+            except Exception as exc:
+                raw.append(exc)
+        return raw, time.perf_counter()
 
     def _prime_slot_cache_view(self, slot: Any, include_gpu: bool) -> None:
         if slot is None:
@@ -4425,6 +4931,7 @@ class ScenarioRunner:
             except Exception:
                 pass
         self._sync_stack_gpu_accounting()
+        await self._notify_dispatch_capacity_changed()
 
     async def _retire_failed_slot(self, slot: Optional[Any], reason: str) -> bool:
         if slot is None or self.instance_pool is None:
@@ -4485,6 +4992,7 @@ class ScenarioRunner:
         self._prime_slot_cache_view(self.instance_pool.get_slot(instance_id), include_gpu=True)
         self._sync_stack_gpu_accounting()
         self._schedule_all_runtime_gpu_forward()
+        await self._notify_dispatch_capacity_changed()
         print(
             f"    Scale-up: added shared-engine slot "
             f"(instances={self.instance_pool.count()}/{self.instance_pool.max_instances})",
@@ -4519,6 +5027,7 @@ class ScenarioRunner:
         slot = self.instance_pool.get_slot(instance_id)
         self._prime_slot_cache_view(slot, include_gpu=False)
         self._sync_stack_gpu_accounting()
+        await self._notify_dispatch_capacity_changed()
         print(
             f"    Scale-up: added dedicated instance "
             f"(instances={self.instance_pool.count()}/{self.instance_pool.max_instances})",
@@ -4583,10 +5092,18 @@ class ScenarioRunner:
         current_instances: int,
         request_index: int,
         completed_request_count: Optional[int] = None,
+        queue_visible_request_count: Optional[int] = None,
         submitted_request_count: Optional[int] = None,
         arrived_request_count: Optional[int] = None,
         scale_event: Dict[str, Any],
     ) -> None:
+        effective_queue_visible_request_count = (
+            queue_visible_request_count
+            if queue_visible_request_count is not None
+            else arrived_request_count
+            if arrived_request_count is not None
+            else submitted_request_count
+        )
         event = {
             "timestamp": time.time(),
             "event_type": scale_event.get("event_type", "scale_up"),
@@ -4599,6 +5116,10 @@ class ScenarioRunner:
             "device_id": scale_event.get("device_id"),
             "runtime_kind": scale_event.get("runtime_kind"),
         }
+        if effective_queue_visible_request_count is not None:
+            event["queue_visible_request_count"] = max(
+                0, int(effective_queue_visible_request_count or 0)
+            )
         if submitted_request_count is not None:
             event["submitted_request_count"] = max(
                 0, int(submitted_request_count or 0)
@@ -4634,10 +5155,16 @@ class ScenarioRunner:
             return False
         return str(cache_tier or "remote").lower() != "gpu"
 
-    async def _scale_down_one_instance(self) -> Optional[Dict[str, Any]]:
+    async def _scale_down_one_instance(self, require_idle: bool = False) -> Optional[Dict[str, Any]]:
         if self.instance_pool is None or self.instance_pool.count() <= self.instance_pool.min_instances:
             return None
-        slots = [s for s in self.instance_pool.get_slots() if s.instance_id != self._primary_instance_id]
+        if require_idle:
+            candidate = self._select_scale_down_candidate_slot()
+            if candidate is None:
+                return None
+            slots = [candidate]
+        else:
+            slots = [s for s in self.instance_pool.get_slots() if s.instance_id != self._primary_instance_id]
         if not slots:
             return None
         removed = self.instance_pool.remove_instance(slots[-1].instance_id)
@@ -4836,12 +5363,8 @@ class ScenarioRunner:
         paths = getattr(self._stack, "_host_paths", {}) or getattr(self._stack, "_nvme_paths", None)
         if not paths:
             return set()
-        warmup_h = self.preload_cfg.get("gpu_warmup_hotness", 0.6)
         planned_aids = list(getattr(self._stack, "consume_scaleup_gpu_plan", lambda: [])())
-        hot_aids = [
-            aid for aid in (set(getattr(self._stack, "_host_paths", {})) | set(getattr(self._stack, "_nvme_paths", {})))
-            if self.adapter_info.get(aid, {}).get("hotness", 0) >= warmup_h
-        ]
+        hot_aids: List[str] = []
         if planned_aids:
             # Keep execution aligned with the instance-scoped scale-up plan. When a
             # live frontier has already been selected under the current budget,
@@ -4951,8 +5474,6 @@ class ScenarioRunner:
         concurrency = self.wl_cfg.get("concurrency", 8)
         max_tokens  = self.wl_cfg.get("max_tokens", 128)
         temperature = self.wl_cfg.get("temperature", 0.7)
-        # A1: 请求流内扩缩决策
-        scale_interval = int(self.coord_cfg.get("scale_decision_interval", 25))
         # E1: 多周期
         multi_cycle_phases = int(self.wl_cfg.get("multi_cycle_phases", 1))
         idle_between_s = float(self.wl_cfg.get("idle_between_phases_s", 2.0))
@@ -4968,22 +5489,26 @@ class ScenarioRunner:
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
         self._run_started_at = time.perf_counter()
-
-        sem = asyncio.Semaphore(concurrency)
+        self._dispatch_admitted_requests = 0
+        self._dispatch_capacity_condition = None
         replay_t0 = time.perf_counter()
 
         async def run_one(i: int, trace: RequestTrace):
             await self._await_trace_arrival(trace, replay_t0)
             self._observe_live_arrived_lora(getattr(trace, "adapter_id", None))
+            self._observe_live_waiting_trace(trace)
             try:
-                async with sem:
-                    self._observe_live_started_lora(getattr(trace, "adapter_id", None))
-                    try:
-                        out = await self._exec_request(trace, max_tokens, temperature)
-                        return out
-                    finally:
-                        self._release_live_started_lora(getattr(trace, "adapter_id", None))
+                await self._acquire_dispatch_admission()
+                self._release_live_waiting_trace(trace)
+                self._observe_live_started_lora(getattr(trace, "adapter_id", None))
+                try:
+                    out = await self._exec_request(trace, max_tokens, temperature)
+                    return out
+                finally:
+                    self._release_live_started_lora(getattr(trace, "adapter_id", None))
+                    await self._release_dispatch_admission()
             finally:
+                self._release_live_waiting_trace(trace)
                 self._release_live_arrived_lora(getattr(trace, "adapter_id", None))
 
         def append_raw(raw_list: list, result_requests: list):
@@ -5002,67 +5527,18 @@ class ScenarioRunner:
                     result_requests.append(r)
 
         if multi_cycle_phases <= 1:
-            # 单周期：按 A1 批处理，每批后评估是否扩容
+            # substrate_v2: 连续到达 + 共享等待队列；控制面按周期观察在线队列。
             t0 = time.perf_counter()
-            all_raw = []
-            batch_start = 0
-            while batch_start < len(self.traces):
-                batch = self.traces[batch_start:batch_start + scale_interval]
-                batch_offset = batch_start
-                batch_start += len(batch)
-
-                async def observe_batch(
-                    *,
-                    completed_now: int,
-                    submitted_count: int,
-                    observed_raw: List[Any],
-                    peak_backlog: int,
-                    peak_active_requests: int,
-                    peak_busy_ratio: float,
-                ) -> None:
-                    await self._maybe_run_live_scale_up_evaluation(
-                        result=result,
-                        coord_enabled=coord_enabled,
-                        replay_t0=replay_t0,
-                        results_view=all_raw + observed_raw,
-                        backlog=peak_backlog,
-                        active_requests=peak_active_requests,
-                        busy_ratio=peak_busy_ratio,
-                        completed_count=completed_now,
-                        submitted_count=submitted_count,
-                        submitted_traces=batch,
-                    )
-
-                raw, tb1, peak_backlog, peak_active_requests, peak_busy_ratio = await self._run_batch_observed(
-                    batch=batch,
-                    batch_start_index=batch_offset,
-                    replay_t0=replay_t0,
-                    run_one_fn=run_one,
-                    completed_before_batch=len(all_raw),
-                    observe_fn=observe_batch,
-                )
-                all_raw.extend(raw)
-                failed_so_far = sum(
-                    1 for item in all_raw
-                    if isinstance(item, Exception) or not getattr(item, "success", True)
-                )
-                if self._stack is not None and len(batch) > 0:
-                    arrival_rps = self._arrival_rps(replay_t0)
-                    self._live_scale_overrides = self._update_dynamic_scaling_state(batch, arrival_rps, tb1)
-                self._emit_live_snapshot(
-                    completed=len(all_raw),
-                    total=len(self.traces),
-                    replay_t0=replay_t0,
-                    failed=failed_so_far,
-                    force=(batch_start % 50 < len(batch) or batch_start == len(self.traces)),
-                    backlog_override=max(self._backlog_depth(len(all_raw), replay_t0), peak_backlog),
-                    active_override=peak_active_requests,
-                    busy_override=peak_busy_ratio,
-                    submitted_override=batch_start,
-                    results_view=all_raw,
-                    scale_up_count=len(result.scale_up_events),
-                    scale_down_count=result.scale_down_events,
-                )
+            all_raw, _tb1 = await self._run_continuous_observed(
+                traces=list(self.traces),
+                trace_start_index=0,
+                replay_t0=replay_t0,
+                run_one_fn=run_one,
+                completed_before_window=0,
+                total_requests=len(self.traces),
+                result=result,
+                coord_enabled=coord_enabled,
+            )
             elapsed = time.perf_counter() - t0
             append_raw(all_raw, result.requests)
             if self.baseline_type in ("faaslora_full", "faaslora_no_coord"):
@@ -5075,6 +5551,8 @@ class ScenarioRunner:
                     result.scale_down_event_log.append({
                         "timestamp": time.time(),
                         "request_index": len(all_raw),
+                        "queue_visible_request_count": len(all_raw),
+                        "arrived_request_count": len(all_raw),
                         **scale_down_event,
                     })
         else:
@@ -5092,67 +5570,18 @@ class ScenarioRunner:
                 print(f"    [Phase {phase_idx + 1}/{multi_cycle_phases}] {len(phase_traces)} requests ...", flush=True)
                 prev_warm_hits = self._warm_pool_hits_total() if self.instance_pool else self.coordinator.get_summary_metrics().get("warm_pool_hits", 0)
                 t0 = time.perf_counter()
-                phase_raw = []
-                batch_start = 0
                 global_offset = sum(len(phase_chunks[k]) for k in range(phase_idx))
-                while batch_start < len(phase_traces):
-                    batch = phase_traces[batch_start:batch_start + scale_interval]
-                    batch_offset = batch_start
-                    batch_start += len(batch)
-
-                    async def observe_phase_batch(
-                        *,
-                        completed_now: int,
-                        submitted_count: int,
-                        observed_raw: List[Any],
-                        peak_backlog: int,
-                        peak_active_requests: int,
-                        peak_busy_ratio: float,
-                    ) -> None:
-                        await self._maybe_run_live_scale_up_evaluation(
-                            result=result,
-                            coord_enabled=coord_enabled,
-                            replay_t0=replay_t0,
-                            results_view=phase_raw + observed_raw,
-                            backlog=peak_backlog,
-                            active_requests=peak_active_requests,
-                            busy_ratio=peak_busy_ratio,
-                            completed_count=completed_now,
-                            submitted_count=submitted_count,
-                            submitted_traces=batch,
-                        )
-
-                    raw, tb1, peak_backlog, peak_active_requests, peak_busy_ratio = await self._run_batch_observed(
-                        batch=batch,
-                        batch_start_index=global_offset + batch_offset,
-                        replay_t0=replay_t0,
-                        run_one_fn=run_one,
-                        completed_before_batch=global_offset + len(phase_raw),
-                        observe_fn=observe_phase_batch,
-                    )
-                    phase_raw.extend(raw)
-                    failed_so_far = sum(
-                        1 for item in phase_raw
-                        if isinstance(item, Exception) or not getattr(item, "success", True)
-                    )
-                    if self._stack is not None and len(batch) > 0:
-                        arrival_rps = self._arrival_rps(replay_t0)
-                        self._live_scale_overrides = self._update_dynamic_scaling_state(batch, arrival_rps, tb1)
-                    self._emit_live_snapshot(
-                        completed=global_offset + len(phase_raw),
-                        total=len(self.traces),
-                        replay_t0=replay_t0,
-                        failed=failed_so_far,
-                        phase_label=f"phase{phase_idx + 1}",
-                        force=(batch_start % 50 < len(batch) or batch_start == len(phase_traces)),
-                        backlog_override=max(self._backlog_depth(global_offset + len(phase_raw), replay_t0), peak_backlog),
-                        active_override=peak_active_requests,
-                        busy_override=peak_busy_ratio,
-                        submitted_override=global_offset + batch_start,
-                        results_view=phase_raw,
-                        scale_up_count=len(result.scale_up_events),
-                        scale_down_count=result.scale_down_events,
-                    )
+                phase_raw, _tb1 = await self._run_continuous_observed(
+                    traces=list(phase_traces),
+                    trace_start_index=global_offset,
+                    replay_t0=replay_t0,
+                    run_one_fn=run_one,
+                    completed_before_window=global_offset,
+                    total_requests=len(self.traces),
+                    result=result,
+                    coord_enabled=coord_enabled,
+                    phase_label=f"phase{phase_idx + 1}",
+                )
                 phase_elapsed = time.perf_counter() - t0
                 total_elapsed += phase_elapsed
                 append_raw(phase_raw, result.requests)
@@ -5181,6 +5610,8 @@ class ScenarioRunner:
                         result.scale_down_event_log.append({
                             "timestamp": time.time(),
                             "request_index": global_offset + len(phase_raw),
+                            "queue_visible_request_count": global_offset + len(phase_raw),
+                            "arrived_request_count": global_offset + len(phase_raw),
                             **scale_down_event,
                         })
                     if idle_between_s > 0:
@@ -5351,7 +5782,8 @@ class ScenarioRunner:
                         replay_t0=t0,
                         failed=sum(1 for req in result.requests if not getattr(req, "success", True)),
                         force=True,
-                        submitted_override=i + 1,
+                        queue_visible_override=i + 1,
+                        arrived_override=i + 1,
                         results_view=result.requests,
                         scale_up_count=len(result.scale_up_events),
                         scale_down_count=result.scale_down_events,
@@ -6246,6 +6678,7 @@ def _apply_explicit_env_overrides(
     _apply("FAASLORA_MAX_INSTANCES", coord_cfg, "max_instances", int)
     _apply("FAASLORA_MIN_INSTANCES", coord_cfg, "min_instances", int)
     _apply("FAASLORA_SCALE_DECISION_INTERVAL", coord_cfg, "scale_decision_interval", int)
+    _apply("FAASLORA_SCALE_EVAL_INTERVAL_S", coord_cfg, "scale_eval_interval_s", float)
     _apply("FAASLORA_SCALE_UP_THRESHOLD_RPS", coord_cfg, "scale_up_threshold_rps", float)
     _apply(
         "FAASLORA_EFFECTIVE_CAPACITY_ADMISSION",
@@ -6355,12 +6788,26 @@ def _build_local_tp_runtime_env_updates(
 ) -> Dict[str, str]:
     """
     Keep single-node TP rendezvous on loopback so c10d/Gloo do not depend on
-    hostname reverse lookup. This changes runtime hygiene only, not workload.
+    hostname reverse lookup.
+
+    Each local TP runtime also needs its own rendezvous port. Otherwise, when a
+    second TP>1 runtime is spawned on the same host, it can collide with the
+    first runtime's torch distributed group and fail to initialize despite
+    having free GPUs.
     """
     if tp <= 1 or str(executor_backend or "").lower() != "mp":
         return {}
+    master_port = os.environ.get("MASTER_PORT", "").strip()
+    if not master_port:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            sock.bind(("127.0.0.1", 0))
+            master_port = str(int(sock.getsockname()[1]))
+        finally:
+            sock.close()
     return {
         "MASTER_ADDR": "127.0.0.1",
+        "MASTER_PORT": master_port,
         "VLLM_HOST_IP": "127.0.0.1",
         "GLOO_SOCKET_IFNAME": "lo",
         "NCCL_SOCKET_IFNAME": "lo",
@@ -7357,17 +7804,22 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
 def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     summaries: Dict[str, Dict[str, Any]] = {}
     for r in results:
+        resolved_meta = dict(meta or {})
+        resolved_meta.update(dict((meta or {}).get("scenario_coordination", {}).get(r.scenario_name, {}) or {}))
         metric_groups = _build_metric_groups(r, digits=6)
         summaries[r.scenario_name] = {
             "scenario_name": r.scenario_name,
             "baseline_type": r.baseline_type,
-            "backend": meta.get("backend"),
-            "instance_mode": meta.get("instance_mode"),
-            "routing_policy": meta.get("routing_policy"),
-            "num_adapters": meta.get("num_adapters"),
-            "active_adapter_cap": meta.get("active_adapter_cap"),
-            "hotset_rotation_requests": meta.get("hotset_rotation_requests"),
-            "max_instances": meta.get("max_instances"),
+            "backend": resolved_meta.get("backend"),
+            "instance_mode": resolved_meta.get("instance_mode"),
+            "routing_policy": resolved_meta.get("routing_policy"),
+            "num_adapters": resolved_meta.get("num_adapters"),
+            "active_adapter_cap": resolved_meta.get("active_adapter_cap"),
+            "hotset_rotation_requests": resolved_meta.get("hotset_rotation_requests"),
+            "min_instances": resolved_meta.get("min_instances"),
+            "max_instances": resolved_meta.get("max_instances"),
+            "arrival_window_s": resolved_meta.get("arrival_window_s"),
+            "scale_eval_interval_s": resolved_meta.get("scale_eval_interval_s"),
             "total_requests": r.total,
             "completed_requests": r.completed,
             "failed_requests": r.failed,
@@ -7892,8 +8344,7 @@ async def main_async(
         wl_cfg_yaml["concurrency"] = 1
     elif backend == "vllm":
         wl_cfg_yaml = dict(wl_cfg_yaml) if wl_cfg_yaml else {}
-        vllm_cap = int(model_cfg.get("runtime_concurrency_cap", wl_cfg_yaml.get("concurrency", 8)))
-        wl_cfg_yaml["concurrency"] = min(wl_cfg_yaml.get("concurrency", 8), max(1, vllm_cap))
+        wl_cfg_yaml["concurrency"] = max(1, int(wl_cfg_yaml.get("concurrency", 8) or 1))
     results_file = output_dir / exp_cfg.get("results_file", "experiment_results.json")
     if scalable_mode or preset_name or only_scenario:
         results_file = _scaled_results_path(
@@ -8006,6 +8457,13 @@ async def main_async(
     sgpt_stat  = ds_stats.get("sharegpt", {})
     has_azure  = dataset.has_real_azure_data()
     has_sgpt   = dataset.has_real_sharegpt_data()
+    _assert_official_workload_sources_available(
+        arrival_source=arrival_source,
+        token_source=token_source,
+        prompt_source=prompt_source,
+        has_azure=has_azure,
+        has_sgpt=has_sgpt,
+    )
     use_azure_replay = arrival_source == "azure_llm" and has_azure
     use_azure_tokens = token_source == "azure_llm" and has_azure
 
@@ -8040,7 +8498,8 @@ async def main_async(
     domain_map  = {a["id"]: a.get("task_type", "general") for a in selected_adapters}
 
     total_requests   = wl_cfg_yaml.get("total_requests", 500)
-    time_scale       = wl_cfg_yaml.get("time_scale_factor", 0.1)
+    configured_time_scale = float(wl_cfg_yaml.get("time_scale_factor", 0.1) or 0.1)
+    time_scale       = configured_time_scale
     workload_type    = wl_cfg_yaml.get("workload_type", "mixed")
     sampling_strategy = str(wl_cfg_yaml.get("sampling_strategy", "uniform") or "uniform").strip().lower()
     zipf_exp         = wl_cfg_yaml.get("zipf_exponent", 1.0)
@@ -8051,6 +8510,11 @@ async def main_async(
     if quick:
         total_requests = min(total_requests, 50)
         time_scale     = min(time_scale * 5, 0.5)  # 5x extra compression in quick mode
+
+    workload_timing_mode = _classify_workload_timing_mode(
+        use_azure_replay=use_azure_replay,
+        time_scale_factor=time_scale,
+    )
 
     if use_azure_replay:
         # Use real Azure trace timestamps for authentic arrival patterns
@@ -8070,7 +8534,7 @@ async def main_async(
         trace_src = "Azure LLM real trace"
         sampling_stats = dataset.get_last_sampling_stats()
     else:
-        # Fallback: Poisson arrivals with configurable token/prompt sources
+        # Explicit synthetic workload path: only used when arrival_source=synthetic_poisson.
         wl_cfg = WorkloadConfig(
             arrival_rate_rps=wl_cfg_yaml.get("arrival_rate_rps", 4.0),
             total_requests=total_requests,
@@ -8116,6 +8580,16 @@ async def main_async(
     ctx_mean = azure_stat.get("context_tokens", {}).get("mean", 0) if use_azure_tokens else 0
 
     print(f"  Source    : {trace_src}")
+    if use_azure_replay:
+        if workload_timing_mode == "azure_real_time":
+            print(f"  Timing    : Azure real-time replay (time_scale_factor={time_scale:.3f}x)")
+        elif workload_timing_mode == "azure_accelerated_replay":
+            print(
+                f"  Timing    : accelerated Azure replay (time_scale_factor={time_scale:.3f}x); "
+                "not official real-time workload semantics"
+            )
+        else:
+            print(f"  Timing    : stretched Azure replay (time_scale_factor={time_scale:.3f}x)")
     print(f"  Requests  : {len(traces)} total  ({n_lora} with LoRA adapter)")
     print(f"  Time span : {traces[-1].arrival_time - traces[0].arrival_time:.1f}s  "
           f"(~{est_rps:.1f} avg rps)")
@@ -8182,6 +8656,7 @@ async def main_async(
     if num_runs > 1:
         print(f"  num_runs={num_runs} (reporting mean ± std and 95% CI)")
     all_results: List[ScenarioResult] = []
+    scenario_coordination_meta: Dict[str, Dict[str, Any]] = {}
 
     for sc in scenarios:
         sname = sc.get("name", "unknown")
@@ -8207,6 +8682,28 @@ async def main_async(
 
         # Merge hardware config with coordinator config from YAML
         sc_coord = {**coord_cfg, **sc.get("resource_coordination", {})}
+        ttft_slo_ms = max(
+            0.0,
+            float(wl_cfg_yaml.get("ttft_slo_ms", sc_coord.get("ttft_slo_ms", DEFAULT_TTFT_SLO_MS)) or DEFAULT_TTFT_SLO_MS),
+        )
+        sc_coord.setdefault("ttft_slo_ms", ttft_slo_ms)
+        sc_coord.setdefault("ttft_latency_scale_up_threshold_ms", ttft_slo_ms)
+        sc_coord.setdefault("ttft_latency_scale_down_threshold_ms", ttft_slo_ms * 0.6)
+        scenario_coordination_meta[sname] = {
+            "instance_mode": str(sc_coord.get("instance_mode", "shared")).lower(),
+            "min_instances": int(sc_coord.get("min_instances", 1)),
+            "max_instances": int(sc_coord.get("max_instances", 1)),
+            "routing_policy": str(sc_coord.get("routing_policy", "adapter_affinity")).lower(),
+            "arrival_window_s": float(sc_coord.get("arrival_window_s", 5.0)),
+            "scale_eval_interval_s": float(sc_coord.get("scale_eval_interval_s", 15.0)),
+            "ttft_slo_ms": float(sc_coord.get("ttft_slo_ms", ttft_slo_ms)),
+            "ttft_latency_scale_up_threshold_ms": float(
+                sc_coord.get("ttft_latency_scale_up_threshold_ms", ttft_slo_ms)
+            ),
+            "ttft_latency_scale_down_threshold_ms": float(
+                sc_coord.get("ttft_latency_scale_down_threshold_ms", ttft_slo_ms * 0.6)
+            ),
+        }
         hw_merged = {**hw_cfg, **sc.get("hardware_override", {})}
         preload_cfg = sc.get("preloading", {})
         host_capacity_mb = float(preload_cfg.get("host_capacity_mb", 4096))
@@ -8405,13 +8902,19 @@ async def main_async(
             "total_requests": len(traces),
             "sampling_strategy": sampling_strategy,
             "sampling_stats": sampling_stats,
+            "configured_time_scale_factor": configured_time_scale,
+            "effective_time_scale_factor": float(time_scale),
+            "workload_timing_mode": workload_timing_mode,
             "num_adapters": len(adapter_ids),
             "active_adapter_cap": int(active_adapter_cap) if active_adapter_cap else None,
             "hotset_rotation_requests": hotset_rotation_requests,
             "instance_mode": str(coord_cfg.get("instance_mode", "shared")).lower(),
+            "min_instances": int(coord_cfg.get("min_instances", 1)),
             "max_instances": int(coord_cfg.get("max_instances", 1)),
             "routing_policy": str(coord_cfg.get("routing_policy", "adapter_affinity")).lower(),
             "arrival_window_s": float(coord_cfg.get("arrival_window_s", 5.0)),
+            "scale_eval_interval_s": float(coord_cfg.get("scale_eval_interval_s", 15.0)),
+            "scenario_coordination": scenario_coordination_meta,
             "preset_name": preset_name,
             "profile_selection": applied_profile_selection,
             "num_runs": num_runs,

@@ -25,6 +25,29 @@ from ..utils.logger import get_logger
 from ..utils.model_assets import ensure_adapter_support_files
 
 
+def _derive_online_hotness_window_s(
+    coord_cfg: Optional[Dict[str, Any]] = None,
+    preload_cfg: Optional[Dict[str, Any]] = None,
+) -> float:
+    coord_cfg = coord_cfg or {}
+    preload_cfg = preload_cfg or {}
+    explicit = coord_cfg.get(
+        "online_hotness_window_s",
+        preload_cfg.get("online_hotness_window_s"),
+    )
+    if explicit is not None:
+        try:
+            return max(1.0, float(explicit))
+        except Exception:
+            pass
+
+    arrival_window_s = max(1.0, float(coord_cfg.get("arrival_window_s", 5.0) or 5.0))
+    scale_eval_interval_s = max(1.0, float(coord_cfg.get("scale_eval_interval_s", 15.0) or 15.0))
+    ttft_slo_ms = max(0.0, float(coord_cfg.get("ttft_slo_ms", 5000.0) or 5000.0))
+    ttft_slo_s = max(1.0, ttft_slo_ms / 1000.0)
+    return max(arrival_window_s, scale_eval_interval_s, ttft_slo_s)
+
+
 def _build_experiment_config(
     adapter_info: Dict[str, Dict],
     hardware_cfg: Dict,
@@ -142,19 +165,29 @@ class ExperimentStack:
                 coordination_enabled=coordination_enabled,
                 residency_manager=self.residency_manager,
             )
-        self.hotness_tracker = HotnessTracker(self.registry, window_seconds=300.0)
+        hotness_window_s = _derive_online_hotness_window_s(coord_cfg, preload_cfg)
+        self.hotness_tracker = HotnessTracker(self.registry, window_seconds=hotness_window_s)
 
         # AutoScaler 决策逻辑供实验原样复用（不 start 后台任务，仅用 make_scaling_decision_with_metrics）
         min_instances = int(coord_cfg.get("min_instances", 1))
         max_instances = int(coord_cfg.get("max_instances", 2))
+        ttft_scale_up_threshold_ms = float(coord_cfg.get("ttft_latency_scale_up_threshold_ms", 5000.0))
+        ttft_scale_down_threshold_ms = float(
+            coord_cfg.get(
+                "ttft_latency_scale_down_threshold_ms",
+                max(0.0, ttft_scale_up_threshold_ms * 0.6),
+            )
+        )
         autoscaling = {
             "enabled": True,
             "min_instances": min_instances,
             "max_instances": max_instances,
             "scale_up_cooldown": float(coord_cfg.get("scale_cooldown_s", 30.0)),
             "scale_down_cooldown": float(coord_cfg.get("scale_down_cooldown_s", 600.0)),
-            "decision_interval": float(coord_cfg.get("scale_decision_interval", 25)),
+            "decision_interval": float(coord_cfg.get("scale_eval_interval_s", 15.0)),
             "scale_up_threshold_rps": float(coord_cfg.get("scale_up_threshold_rps", 3.0)),
+            "ttft_latency_scale_up_threshold_ms": ttft_scale_up_threshold_ms,
+            "ttft_latency_scale_down_threshold_ms": ttft_scale_down_threshold_ms,
             "target_cpu_utilization": 70.0,
             "target_gpu_utilization": 80.0,
         }
@@ -271,15 +304,29 @@ class ExperimentStack:
                 return size_bytes / (1024.0 * 1024.0)
         return float(self.adapter_info.get(adapter_id, {}).get("size_mb", 30.0) or 30.0)
 
-    def _artifact_hotness(self, adapter_id: str) -> float:
+    def _static_artifact_hotness(self, adapter_id: str) -> float:
+        adapter_info = getattr(self, "adapter_info", {}) or {}
+        return float(adapter_info.get(adapter_id, {}).get("hotness", 0.0) or 0.0)
+
+    def _online_artifact_hotness(self, adapter_id: str) -> float:
         metadata = self._artifact_metadata(adapter_id)
-        registry_hotness = float(getattr(metadata, "hotness_score", 0.0) or 0.0) if metadata is not None else 0.0
+        registry_hotness = 0.0
+        if metadata is not None:
+            observed_access = (
+                float(getattr(metadata, "last_accessed_at", 0.0) or 0.0) > 0.0
+                or int(getattr(metadata, "access_count", 0) or 0) > 0
+                or int(getattr(metadata, "hit_count", 0) or 0) > 0
+                or int(getattr(metadata, "miss_count", 0) or 0) > 0
+            )
+            if observed_access:
+                registry_hotness = float(getattr(metadata, "hotness_score", 0.0) or 0.0)
         tracker = getattr(self, "hotness_tracker", None)
         get_hotness = getattr(tracker, "get_hotness", None)
         tracker_hotness = float(get_hotness(adapter_id) or 0.0) if callable(get_hotness) else 0.0
-        adapter_info = getattr(self, "adapter_info", {}) or {}
-        static_hotness = float(adapter_info.get(adapter_id, {}).get("hotness", 0.0) or 0.0)
-        return max(registry_hotness, tracker_hotness, static_hotness)
+        return max(registry_hotness, tracker_hotness)
+
+    def _artifact_hotness(self, adapter_id: str) -> float:
+        return max(self._online_artifact_hotness(adapter_id), self._static_artifact_hotness(adapter_id))
 
     def _tier_pressure(self, target_tier: StorageTier, coordinator: Optional[Any] = None) -> float:
         if target_tier == StorageTier.GPU:
@@ -352,7 +399,7 @@ class ExperimentStack:
         size_mb = self._artifact_size_mb(adapter_id)
         if size_mb <= 0:
             return 0.0
-        hotness = self._artifact_hotness(adapter_id)
+        hotness = self._online_artifact_hotness(adapter_id)
         if hotness <= 0:
             return 0.0
         source_cost = self._tier_to_gpu_load_ms(size_mb, source_tier, coordinator=coordinator)
@@ -369,7 +416,7 @@ class ExperimentStack:
         source_tier: StorageTier,
         coordinator: Optional[Any] = None,
     ) -> float:
-        hotness = self._artifact_hotness(adapter_id)
+        hotness = self._online_artifact_hotness(adapter_id)
         if hotness <= 0.0:
             return 0.0
         coord = coordinator if coordinator is not None else self.coordinator
@@ -655,7 +702,7 @@ class ExperimentStack:
             # the runner, then the current online hotness, then recency, then value
             # density, and finally prefer smaller artifacts when the prior signals
             # tie so limited warmup budget covers more adapters.
-            hotness_score = float(self._artifact_hotness(aid) or 0.0)
+            hotness_score = float(self._online_artifact_hotness(aid) or 0.0)
             last_accessed_at = float(getattr(meta, "last_accessed_at", 0.0) or 0.0)
             value_per_byte = float(getattr(meta, "value_per_byte", 0.0) or 0.0)
             preferred_priority = -float(preferred_rank.get(aid, 10 ** 6))

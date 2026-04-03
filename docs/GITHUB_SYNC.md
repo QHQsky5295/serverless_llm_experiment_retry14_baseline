@@ -2,10 +2,43 @@
 
 本文件说明当前 `serverless_llm_experiment_retry14_baseline` 如何同步到 GitHub，以及哪些内容应当、哪些内容不应当进入回退快照。
 
+## 2026-04-03 更新：本次同步应冻结 `continuous_queue_v2` bring-up 与 `baseline4_cadencefix` 正式结论
+
+- 当前 active clean-tree 分支：`retry14_continuous_queue_v2`
+- `substrate_v1` 历史 freeze 分支：`retry14_rebuild`
+- `substrate_v1` 历史锚点：`050892a`
+- 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的有效结果：`retry14_continuous_queue_v2_qwen7b_r500_baseline4_cadencefix @ 500`
+- 当前必须纳入本次同步的新结论：
+  - TODO `#2R` 当前主线可冻结，不再作为 next active TODO
+  - `baseline4_cadencefix` 相比 `baseline3_realtiming` 已明显回正，说明 `continuous_queue_v2` substrate 已可作为正式后续优化基线
+  - 但 TODO `#3` 仍未收口，`scaleup_affected=112` 且 `gpu=0`，新实例请求仍主要落在 `host/nvme`
+- 当前必须纳入本次同步的代码语义：
+  - `continuous arrivals + shared pending queue + dispatch admission`
+  - live scale control cadence 与结果 JSON 语义对齐在线队列
+  - autoscaler 主延迟信号切到 `TTFT`
+  - `azure_llm / sharegpt_auto` 正式 workload fail-fast guard
+  - `VLLM_NO_USAGE_STATS=1`，避免当前主机上的 usage worker 噪声报错影响正式实验
+- 当前正式 workload 口径必须随文档一起固定：
+  - `Qwen/Qwen2.5-7B-Instruct`
+  - `4 x RTX 3090 24GB`
+  - `500 adapters`
+  - `500 representative requests`
+  - `Azure real trace arrivals + Azure token distribution + ShareGPT prompts`
+  - `time_scale_factor = 1.0`
+- 当前最新本地测试状态：
+  - `tests.test_basic_smoke = 156/156 OK`
+
+本次同步后的正确工程动作应是：
+
+1. 在 `retry14_continuous_queue_v2` 上 push 当前 bring-up 代码、测试与文档。
+2. 把 `continuous_queue_v2 + baseline4_cadencefix` 固化为新的正式优化起点。
+3. 后续所有系统优化继续只围绕 TODO `#3`，不回头重开 `substrate_v1` 主线。
+4. TODO `#4/#5` 继续后置，不提前进入。
+
 ## 当前远端与分支
 
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
-- 当前 clean-tree 分支：`retry14_rebuild`
+- 当前 clean-tree 分支：`retry14_continuous_queue_v2`
 - 当前最新已验证 TODO `#2` 收口代码基线提交：`b314262`
 - 本轮调研与规划文档首次同步提交：`34881fb`
 

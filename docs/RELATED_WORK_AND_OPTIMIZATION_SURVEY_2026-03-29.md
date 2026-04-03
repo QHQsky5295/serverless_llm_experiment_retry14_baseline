@@ -10,6 +10,28 @@
 
 若本文与当前代码实现、`docs/PROJECT_PROGRESS.md`、`docs/SESSION_HANDOFF_2026-03-13.md` 冲突，以后两者和当前代码为准；本文主要负责记录调研事实、可比性边界和规划建议。
 
+> 2026-04-03 补充：
+>
+> - 当前 active mainline 已经正式切到 `retry14_continuous_queue_v2`，`substrate_v1` 只保留为历史基线。
+> - 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的有效结果是 `retry14_continuous_queue_v2_qwen7b_r500_baseline4_cadencefix @ 500`。
+> - `baseline4_cadencefix` 相比 `baseline3_realtiming` 已明显改善：
+>   - `TTFT_overall`
+>   - `TTFT_comparable`
+>   - `TTFT_scaleup_affected`
+>   - `Cold_start_latency`
+>   - `Throughput_req/s`
+>   - `Throughput_tok/s`
+> - 这说明当前与本文调研结论对齐的关键 runner 问题，已经不再是“batch-submission substrate 本身是否合理”，而是回到：
+>   - `continuous_queue_v2` 上的 scale-up cold path / preload coverage / handoff plan
+> - 当前正式 workload 语义也已经收紧：
+>   - `Azure real trace arrivals + Azure token distribution + ShareGPT prompts`
+>   - `time_scale_factor = 1.0`
+>   - 若真实 Azure / ShareGPT 数据缺失，则 fail-fast，不允许回退到 `synthetic_poisson` 或 embedded prompts
+> - 因此，本文第 6 节 TODO 排序的当前正式理解应更新为：
+>   - TODO `#2R`：当前主线可冻结
+>   - TODO `#3`：当前唯一 next active 主线
+>   - TODO `#4/#5`：继续后置
+>
 > 2026-03-31 补充：
 >
 > - 当前最新已正式分析结果是 `retry44_fix7_cleanrun2_baseline @ 500`；系统运行形态正常，没有新的 crash 型结构性 bug。

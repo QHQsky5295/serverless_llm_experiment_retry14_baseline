@@ -33,9 +33,9 @@ experiment:  # 实验整体输出与统计方式总配置块
 # Profile 选择器（优先用于切换模型 / 数据源 / 工作负载主线）
 # ---------------------------------------------------------------------------
 profile_selection:  # 当前默认激活的模型/数据集/工作负载 profile 选择器
-  model: "qwen_14b_tp2_v2_publicmix"  # 默认起点切到 Qwen 14B V2 publicmix 主线
-  dataset: "azure_sharegpt_rep1000"  # 当前选中的 dataset profile 名称
-  workload: "qwen_14b_tp2_a500_main"  # 默认先跑 Qwen 14B 的 1000 请求论文主线
+  model: "qwen_7b_main_v2_publicmix"  # 当前 continuous_queue_v2 主线默认回到 Qwen 7B V2 publicmix
+  dataset: "azure_sharegpt_rep500"  # 当前正式 bring-up 默认先跑 500 请求
+  workload: "qwen_7b_auto500_main"  # 当前默认先跑 Qwen 7B 的 500 adapter 论文主线
 
 # ---------------------------------------------------------------------------
 # 模型 Profile（可覆盖 model + hardware）
@@ -347,6 +347,17 @@ model_profiles:  # 可复用的模型 profile 集合
 # 数据集 Profile（可覆盖 datasets + workload）
 # ---------------------------------------------------------------------------
 dataset_profiles:  # 可复用的数据集 profile 集合
+  azure_sharegpt_rep500:  # Azure 到达分布 + ShareGPT prompt 的代表性 500 请求数据集 profile
+    datasets:  # 请求到达、token 长度和 prompt 文本的数据来源配置块
+      arrival_source: "azure_llm"  # 请求到达时间分布的数据来源
+      token_source: "azure_llm"  # 输入/输出 token 长度分布的数据来源
+      prompt_source: "sharegpt_auto"  # prompt 文本来源
+      azure_max_records:  # 最多读取多少条 Azure 追踪；留空表示不限制
+      sharegpt_max_records: 5000  # 最多读取多少条 ShareGPT prompt 数据
+    workload:  # 工作负载配置块，或当前选中的 workload profile 名称
+      sampling_strategy: "representative"  # 如何从真实 trace 中抽样，如 representative
+      total_requests: 500  # 当前 7B continuous_queue_v2 bring-up 默认先跑 500 请求
+
   azure_sharegpt_rep1000:  # Azure 到达分布 + ShareGPT prompt 的代表性 1000 请求数据集 profile
     datasets:  # 请求到达、token 长度和 prompt 文本的数据来源配置块
       arrival_source: "azure_llm"  # 请求到达时间分布的数据来源
@@ -392,7 +403,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       apply_scale_preset: true  # 是否根据 adapter 数量自动套用调参 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       concurrency: 8  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
       active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
@@ -408,7 +419,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
       active_adapter_cap: 16  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
@@ -424,7 +435,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
       active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
@@ -440,7 +451,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
       active_adapter_cap: 16  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
@@ -456,7 +467,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
       active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
@@ -472,7 +483,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       concurrency: 2  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
       active_adapter_cap: 16  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
@@ -488,7 +499,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       concurrency: 2  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
       active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
@@ -504,7 +515,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
       active_adapter_cap: 16  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
@@ -520,7 +531,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
       active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
@@ -536,7 +547,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       concurrency: 2  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
       active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
@@ -552,7 +563,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       apply_scale_preset: false  # 是否根据 adapter 数量自动套用调参 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       concurrency: 2  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
       active_adapter_cap: 16  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
@@ -676,10 +687,12 @@ resource_coordination:  # 扩缩容与资源协同调度配置块
   warm_pool_size: 2                 # 默认 warm pool 保留数量；在 24G 显存机器上取 2 更稳
   # A1: 请求流内扩缩决策
   scale_up_threshold_rps: 3.0       # 固定模式下的 RPS 阈值；动态模式下忽略
-  scale_cooldown_s: 30.0           # 两次 scale-up 之间最小间隔（秒）
+  scale_cooldown_s: 5.0            # continuous_queue_v2 主线下与 arrival_window / TTFT_SLO 对齐的 scale-up 最小间隔
   scale_decision_interval: 25      # 每处理 N 个请求评估一次是否扩容
+  scale_eval_interval_s: 5.0       # v2 continuous queue 下 live scale control 周期；与在线观测窗口同阶
   routing_policy: "adapter_affinity"  # 请求路由策略
   arrival_window_s: 5.0            # 估计 arrival RPS 的滑动窗口（秒）
+  # online_hotness_window_s 缺省时复用 max(arrival_window_s, scale_eval_interval_s, TTFT_SLO)
 
   # 动态扩缩容阈值（论文：workload-adaptive）
   dynamic_scaling: true             # 默认开启：用 EWMA 基线 + 相对阈值替代固定 RPS 阈值
@@ -913,7 +926,7 @@ workload:  # 工作负载配置块，或当前选中的 workload profile 名称
   workload_type: "mixed"  # 工作负载类型，如 mixed / conv / code
 
   # Azure LLM trace 时间缩放
-  time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+  time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
   sampling_strategy: "representative"   # 完整版默认使用代表性抽样，近似保持到达/长度/burst 分布
 
   # 请求数量：本次实验生成多少条请求
@@ -954,7 +967,7 @@ matrix_presets:  # 论文矩阵实验的一组快捷 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       total_requests: 300  # 正式实验总请求数
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
     model:  # 模型配置块，或当前选中的 model profile 名称
       max_model_len: 4096  # 模型允许处理的最大上下文长度
       max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
@@ -971,7 +984,7 @@ matrix_presets:  # 论文矩阵实验的一组快捷 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       total_requests: 300  # 正式实验总请求数
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
     model:  # 模型配置块，或当前选中的 model profile 名称
       max_model_len: 4096  # 模型允许处理的最大上下文长度
       max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
@@ -988,7 +1001,7 @@ matrix_presets:  # 论文矩阵实验的一组快捷 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       total_requests: 300  # 正式实验总请求数
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
     model:  # 模型配置块，或当前选中的 model profile 名称
       max_model_len: 4096  # 模型允许处理的最大上下文长度
       max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
@@ -1005,7 +1018,7 @@ matrix_presets:  # 论文矩阵实验的一组快捷 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       total_requests: 300  # 正式实验总请求数
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
     model:  # 模型配置块，或当前选中的 model profile 名称
       max_model_len: 4096  # 模型允许处理的最大上下文长度
       max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
@@ -1022,7 +1035,7 @@ matrix_presets:  # 论文矩阵实验的一组快捷 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       total_requests: 300  # 正式实验总请求数
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
     model:  # 模型配置块，或当前选中的 model profile 名称
       max_model_len: 4096  # 模型允许处理的最大上下文长度
       max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
@@ -1039,7 +1052,7 @@ matrix_presets:  # 论文矩阵实验的一组快捷 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       total_requests: 300  # 正式实验总请求数
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
     model:  # 模型配置块，或当前选中的 model profile 名称
       max_model_len: 4096  # 模型允许处理的最大上下文长度
       max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
@@ -1056,7 +1069,7 @@ matrix_presets:  # 论文矩阵实验的一组快捷 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       total_requests: 300  # 正式实验总请求数
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
     model:  # 模型配置块，或当前选中的 model profile 名称
       max_model_len: 4096  # 模型允许处理的最大上下文长度
       max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
@@ -1073,7 +1086,7 @@ matrix_presets:  # 论文矩阵实验的一组快捷 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       total_requests: 300  # 正式实验总请求数
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
     model:  # 模型配置块，或当前选中的 model profile 名称
       max_model_len: 4096  # 模型允许处理的最大上下文长度
       max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
@@ -1090,7 +1103,7 @@ matrix_presets:  # 论文矩阵实验的一组快捷 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       total_requests: 300  # 正式实验总请求数
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
     model:  # 模型配置块，或当前选中的 model profile 名称
       max_model_len: 4096  # 模型允许处理的最大上下文长度
       max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
@@ -1107,7 +1120,7 @@ matrix_presets:  # 论文矩阵实验的一组快捷 preset
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       total_requests: 300  # 正式实验总请求数
       concurrency: 4  # 请求并发度
-      time_scale_factor: 0.02  # 把原始 trace 时间轴压缩/拉伸的比例
+      time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
     model:  # 模型配置块，或当前选中的 model profile 名称
       max_model_len: 4096  # 模型允许处理的最大上下文长度
       max_num_batched_tokens: 2048  # 单批次允许处理的最大 token 总数
