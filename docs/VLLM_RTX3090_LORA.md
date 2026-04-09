@@ -2,6 +2,20 @@
 
 本文档记录当前 clean-tree 在 RTX 3090 上运行 vLLM + LoRA 的已知稳定口径与常见风险点。
 
+## 0. 2026-04-09 当前同步口径
+
+- 当前最新已正式分析的 7B 有效结果：`retry14_continuous_queue_v2_qwen7b_r500_baseline34_multiruntime_routeaware @ 500`
+- 当前 7B 主线判断：
+  - 已达到可冻结的 soft-close checkpoint
+  - 当前没有新的 crash 型结构性 bug
+  - 但并未证明 7B 在所有 headline 指标上已经完全最优
+- 当前下一步不是回退 runner 语义，也不是继续无限放大 7B 局部调参，而是：
+  - 保持当前 `4 x RTX 3090 24GB` 运行语义
+  - 切到 `Qwen 14B TP=2` 的 `continuous_queue_v2` bring-up
+- 当前正式长跑依然建议通过 `user_scope` 包装脚本启动，避免 session closing 被 systemd 直接杀掉
+- 当前本地测试状态：
+  - `tests.test_basic_smoke = 194/194 OK`
+
 ## 1. 当前已验证环境
 
 当前主线统一使用：

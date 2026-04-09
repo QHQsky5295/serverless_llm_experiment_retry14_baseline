@@ -30,8 +30,8 @@
 - 当前干净树：`/home/qhq/serverless_llm_experiment_retry14_baseline`
 - 历史脏树：`/home/qhq/serverless_llm_experiment`
 - 当前工作分支：`retry14_continuous_queue_v2`
-- 当前最新已推送代码基线提交：`050892a`
-- 当前 GitHub 已推送快照（本次 freeze 前）：`60737dd`
+- 本次同步前上一公开锚点：`a96ab89`
+- 更早的历史 GitHub 快照：`60737dd`
 - 本轮调研与规划文档首次同步提交：`34881fb`
 - `substrate_v1` 历史 freeze 锚点：`050892a`
 - 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
@@ -41,6 +41,84 @@
 - 后续研究与回退统一以 `serverless_llm_experiment_retry14_baseline` 为准。
 - `retry21` 及其对应脏树状态视为废案，不再作为正式对比对象。
 - 本次 GitHub 同步的目的不是发布最终结论，而是把当前 clean-tree 形成一个稳定回退点。
+
+## 2026-04-09 更新快照
+
+### 当前最新正式分析结果
+
+- 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 7B 有效结果：`retry14_continuous_queue_v2_qwen7b_r500_baseline34_multiruntime_routeaware @ 500`
+- 本次同步前上一公开锚点：`a96ab89`
+- 当前 7B 正式 workload 口径保持不变：
+  - `Qwen/Qwen2.5-7B-Instruct`
+  - `4 x RTX 3090 24GB`
+  - `500 adapters`
+  - `500 representative requests`
+  - `Azure real trace arrivals + Azure token distribution + ShareGPT prompts`
+  - `time_scale_factor = 1.0`
+
+### 2026-04-09 当前真实结论
+
+- TODO `#2R` 不需要重开：
+  - `continuous arrivals`
+  - `shared pending queue`
+  - `dispatch admission`
+  - `live scale cadence`
+  - `live/result semantics`
+  - `official workload fail-fast`
+  仍保持收口状态。
+- 当前 7B 主线已经到达一个**可冻结的 soft-close checkpoint**，但不能表述成“所有指标都已经最优”。
+- `baseline34` 相比 `baseline33` 已重新改善：
+  - `TTFT_scaleup_affected = 1474.5 -> 1393.0 ms`
+  - `TTFT_scaleup_first_service = 1068.8 -> 778.8 ms`
+  - `TPOT = 64.2 -> 61.9 ms`
+  - `E2E_latency = 14166.7 -> 13641.3 ms`
+  - `Throughput_tok/s = 25.8559 -> 26.8584`
+- 但 `baseline34` 相比 `baseline30` 仍未完全拿回：
+  - `TTFT_overall = 1060.5 -> 1118.3 ms`
+  - `TTFT_comparable = 1104.5 -> 1184.2 ms`
+  - `GPU_hit_rate = 0.6411 -> 0.5957`
+- 因此当前正式判断应收紧为：
+  - 7B 上没有新的 crash 型结构性 bug
+  - 当前代码已经把最近几轮“局部修补导致语义再漂移”的主要问题收回到同一条因果链
+  - 但 7B 的 TODO `#3` 还没有证明在所有 headline 指标上完全收口
+  - 当前更合理的下一步是冻结 7B soft-close checkpoint，并转入 `Qwen 14B TP=2` 的 `continuous_queue_v2` bring-up
+
+### 当前最新代码状态
+
+- 当前待同步代码修改：
+  - `faaslora/experiment/experiment_stack.py`
+  - `faaslora/experiment/instance_pool.py`
+  - `faaslora/scheduling/resource_coordinator.py`
+  - `scripts/run_all_experiments.py`
+  - `tests/test_basic_smoke.py`
+  - `docs/*.md`
+  - `docs copy/*.md`
+- 这批代码的真实含义：
+  - lane-aware instance state / routing 保护已补齐
+  - scale-up first-service handoff 已升级为 multi-runtime route-aware plan
+  - 4GPU 语义保持不变：
+    - `TP=1` 可扩到 `4` 个单卡 runtime
+    - `TP=2` 可扩到 `2` 个双卡 runtime
+  - 正式 workload 继续 fail-fast，不允许回退到 `synthetic_poisson` 或 embedded prompts
+- 当前本地测试状态：
+  - `tests.test_basic_smoke = 194/194 OK`
+
+### 当前高优先级 TODO 顺序
+
+1. `Qwen 14B TP=2` 的 `continuous_queue_v2` bring-up
+   - 当前状态：下一条 active 主线
+   - 当前目标：
+     - 验证 7B soft-close checkpoint 的三项贡献是否能迁移到更大模型
+     - 检查 TTFT / TPOT / tok/s / E2E / cost 在更大模型上的主矛盾位置
+
+2. 7B 上的 TODO `#3` 仅保留为“可重开但暂不优先”
+   - 只有当 14B 复现相同 first-service/handoff 失配，或出现新的结构性证据时才重开
+
+3. TODO `#4`
+   - 继续后置
+
+4. TODO `#5`
+   - 继续后置
 
 ## 2026-04-03 更新快照
 

@@ -180,8 +180,8 @@ class ResourceCoordinator:
     # KV cache tracking (called by ScenarioRunner around each batch)
     # ----------------------------------------------------------------
 
-    def notify_batch_start(self, input_tokens: int):
-        tokens = max(0, int(input_tokens or 0))
+    def notify_batch_start(self, input_tokens: int, output_tokens_hint: int = 0):
+        tokens = max(0, int(input_tokens or 0)) + max(0, int(output_tokens_hint or 0))
         self._active_tokens += tokens
         self._active_batches += 1
         self._last_request_time = time.time()
@@ -196,8 +196,8 @@ class ResourceCoordinator:
                 )
         self._record_memory_sample()
 
-    def notify_batch_end(self, input_tokens: int):
-        tokens = max(0, int(input_tokens or 0))
+    def notify_batch_end(self, input_tokens: int, output_tokens_hint: int = 0):
+        tokens = max(0, int(input_tokens or 0)) + max(0, int(output_tokens_hint or 0))
         self._active_tokens = max(0, self._active_tokens - tokens)
         self._active_batches = max(0, self._active_batches - 1)
 
@@ -668,7 +668,8 @@ class ResourceCoordinator:
 
     def _record_memory_sample(self):
         resident = self._get_resident_loras()
-        util = (self.model_weights_mb + sum(resident.values())) / self.gpu_budget_mb
+        kv_mb = self._active_tokens / 1000.0 * self.kv_per_1k_tokens_mb
+        util = (self.model_weights_mb + sum(resident.values()) + kv_mb) / self.gpu_budget_mb
         self._memory_util_sum += util
         self.metrics.memory_samples += 1
         if util > self.metrics.peak_memory_utilization:

@@ -37,7 +37,12 @@ from faaslora.storage.remote_client import RemoteStorageClient
 from faaslora.storage.s3_client import S3Client
 from faaslora.storage.storage_manager import StorageManager
 from faaslora.experiment.experiment_stack import ExperimentStack
-from faaslora.experiment.instance_pool import InstancePool, InstanceSlot, Router
+from faaslora.experiment.instance_pool import (
+    InstancePool,
+    InstanceSlot,
+    ObservedRequestCost,
+    Router,
+)
 from faaslora.preloading.preloading_planner import PreloadingPlanner
 from faaslora.registry.schema import ArtifactMetadata, ArtifactStatus, StorageTier
 from faaslora.utils.model_assets import ensure_adapter_support_files
@@ -528,6 +533,41 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(slot.metrics["current_gpu_utilization_pct"], 61.0)
         self.assertEqual(slot.metrics["physical_gpu_utilization_pct"], 35.0)
 
+    def test_refresh_slot_runtime_hints_attaches_scaleup_handoff_plan(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._stack = None
+        runner._gpu_runtime_snapshot = lambda _device_id: None
+        runner._instance_mode = "auto"
+        runner._scaleup_runtime_handoff_plans = {
+            "inst_2": {
+                "planned_adapters": ["adapter_b", "adapter_a"],
+                "first_service_request_count": 2,
+            }
+        }
+
+        slot = SimpleNamespace(
+            instance_id="inst_2",
+            coordinator=SimpleNamespace(
+                get_summary_metrics=lambda: {},
+                _get_resident_loras=lambda: {},
+            ),
+            device_id=0,
+            gpu_resident_adapters=set(),
+            host_cached_adapters=set(),
+            nvme_cached_adapters=set(),
+            scaleup_handoff_assigned_requests=1,
+        )
+
+        runner._refresh_slot_runtime_hints(slot)
+
+        self.assertEqual(slot.scaleup_handoff_planned_adapters, ["adapter_b", "adapter_a"])
+        self.assertEqual(
+            slot.scaleup_handoff_planned_adapter_ranks,
+            {"adapter_b": 0, "adapter_a": 1},
+        )
+        self.assertEqual(slot.scaleup_handoff_request_budget, 2)
+        self.assertEqual(slot.scaleup_handoff_assigned_requests, 1)
+
     def test_exec_request_preserves_source_cache_tier_after_gpu_promotion(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.router = None
@@ -564,10 +604,10 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                 self._residency_manager = None
                 self.marked = []
 
-            def notify_batch_start(self, _tokens: int):
+            def notify_batch_start(self, _tokens: int, _output_tokens_hint: int = 0):
                 return None
 
-            def notify_batch_end(self, _tokens: int):
+            def notify_batch_end(self, _tokens: int, _output_tokens_hint: int = 0):
                 return None
 
             async def _mark_resident(self, adapter_id: str, size_mb: float):
@@ -1297,7 +1337,184 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
         preferred = runner._runtime_forward_preferred_gpu_adapters(current_slot)
 
-        self.assertEqual(preferred, {"hot_a"})
+        self.assertEqual(preferred, ["hot_a"])
+
+    def test_runtime_forward_preferred_gpu_adapters_prioritize_handoff_and_waiting_queue(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        now = time.time()
+        runner._scaleup_runtime_instance_ids = {"inst_2"}
+        runner._runtime_forward_capacity_limit = lambda: 2
+        runner._last_scale_up_handoff_plan = {
+            "planned_adapters": ["handoff_first", "handoff_second"],
+            "ordered_handoff_adapters": [
+                "handoff_first",
+                "handoff_second",
+                "handoff_third",
+            ],
+        }
+        runner._live_waiting_traces_by_id = {
+            "req_1": SimpleNamespace(adapter_id="queue_first"),
+            "req_2": SimpleNamespace(adapter_id="queue_second"),
+            "req_3": SimpleNamespace(adapter_id="queue_only"),
+        }
+        metadata = {
+            "handoff_first": SimpleNamespace(last_accessed_at=0.0),
+            "handoff_second": SimpleNamespace(last_accessed_at=0.0),
+            "handoff_third": SimpleNamespace(last_accessed_at=0.0),
+            "queue_first": SimpleNamespace(last_accessed_at=now - 5.0),
+            "queue_second": SimpleNamespace(last_accessed_at=now - 3.0),
+            "queue_only": SimpleNamespace(last_accessed_at=0.0),
+            "hot_a": SimpleNamespace(last_accessed_at=now - 5.0),
+        }
+        runner._stack = SimpleNamespace(
+            hotness_tracker=SimpleNamespace(window_seconds=300.0),
+            _artifact_metadata=lambda adapter_id: metadata.get(adapter_id),
+        )
+        current_slot = SimpleNamespace(
+            instance_id="inst_2",
+            runtime_group_key=lambda: ("self",),
+            gpu_resident_adapters={"handoff_first"},
+        )
+        sibling_slot = SimpleNamespace(
+            runtime_group_key=lambda: ("sib",),
+            gpu_resident_adapters={"hot_a", "queue_second", "queue_first"},
+        )
+        runner.instance_pool = SimpleNamespace(
+            get_runtime_groups=lambda: [[current_slot], [sibling_slot]]
+        )
+
+        preferred = runner._runtime_forward_preferred_gpu_adapters(current_slot)
+
+        self.assertEqual(
+            preferred,
+            ["handoff_second", "queue_first", "queue_second", "hot_a"],
+        )
+
+    def test_runtime_forward_preferred_gpu_adapters_use_instance_scoped_handoff_tail(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        now = time.time()
+        runner._scaleup_runtime_instance_ids = {"inst_2"}
+        runner._scaleup_runtime_handoff_plans = {
+            "inst_2": {
+                "planned_adapters": ["handoff_first", "handoff_second"],
+                "ordered_handoff_adapters": [
+                    "handoff_first",
+                    "handoff_second",
+                    "handoff_tail_1",
+                    "handoff_tail_2",
+                    "handoff_tail_3",
+                ],
+            }
+        }
+        runner._last_scale_up_handoff_plan = {
+            "planned_adapters": ["wrong_global"],
+            "ordered_handoff_adapters": ["wrong_global", "wrong_tail"],
+        }
+        runner._runtime_forward_capacity_limit = lambda: 2
+        runner._live_waiting_traces_by_id = {
+            "req_1": SimpleNamespace(adapter_id="queue_first"),
+            "req_2": SimpleNamespace(adapter_id="hot_a"),
+        }
+        metadata = {
+            "handoff_tail_1": SimpleNamespace(last_accessed_at=now - 4.0),
+            "handoff_tail_2": SimpleNamespace(last_accessed_at=now - 3.0),
+            "queue_first": SimpleNamespace(last_accessed_at=now - 2.0),
+            "hot_a": SimpleNamespace(last_accessed_at=now - 1.0),
+        }
+        runner._stack = SimpleNamespace(
+            hotness_tracker=SimpleNamespace(window_seconds=300.0),
+            _artifact_metadata=lambda adapter_id: metadata.get(adapter_id),
+        )
+        current_slot = SimpleNamespace(
+            instance_id="inst_2",
+            runtime_group_key=lambda: ("self",),
+            gpu_resident_adapters={"handoff_first"},
+        )
+        sibling_slot = SimpleNamespace(
+            runtime_group_key=lambda: ("sib",),
+            gpu_resident_adapters={"handoff_tail_1", "handoff_tail_2", "queue_first", "hot_a"},
+        )
+        runner.instance_pool = SimpleNamespace(
+            get_runtime_groups=lambda: [[current_slot], [sibling_slot]]
+        )
+
+        preferred = runner._runtime_forward_preferred_gpu_adapters(current_slot)
+
+        self.assertEqual(
+            preferred,
+            ["handoff_second", "handoff_tail_1", "handoff_tail_2", "queue_first", "hot_a"],
+        )
+
+    def test_runtime_forward_preferred_gpu_adapters_do_not_expand_waiting_queue_without_gpu_signal(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        now = time.time()
+        runner._scaleup_runtime_instance_ids = set()
+        runner._last_scale_up_handoff_plan = {}
+        runner._live_waiting_traces_by_id = {
+            "req_1": SimpleNamespace(adapter_id="queue_only"),
+            "req_2": SimpleNamespace(adapter_id="hot_a"),
+        }
+        metadata = {
+            "queue_only": SimpleNamespace(last_accessed_at=0.0),
+            "hot_a": SimpleNamespace(last_accessed_at=now - 5.0),
+        }
+        runner._stack = SimpleNamespace(
+            hotness_tracker=SimpleNamespace(window_seconds=300.0),
+            _artifact_metadata=lambda adapter_id: metadata.get(adapter_id),
+        )
+        current_slot = SimpleNamespace(
+            instance_id="inst_1",
+            runtime_group_key=lambda: ("self",),
+            gpu_resident_adapters=set(),
+        )
+        sibling_slot = SimpleNamespace(
+            runtime_group_key=lambda: ("sib",),
+            gpu_resident_adapters={"hot_a"},
+        )
+        runner.instance_pool = SimpleNamespace(
+            get_runtime_groups=lambda: [[current_slot], [sibling_slot]]
+        )
+
+        preferred = runner._runtime_forward_preferred_gpu_adapters(current_slot)
+
+        self.assertEqual(preferred, ["hot_a"])
+
+    def test_runtime_forward_preferred_gpu_adapters_rank_opportunistic_tail_by_observed_utility(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        now = time.time()
+        size_mb = {
+            "small_wait": 12.0,
+            "large_wait": 120.0,
+        }
+        runner._scaleup_runtime_instance_ids = set()
+        runner._last_scale_up_handoff_plan = {}
+        runner._live_waiting_traces_by_id = {
+            "req_1": SimpleNamespace(adapter_id="large_wait"),
+            "req_2": SimpleNamespace(adapter_id="small_wait"),
+        }
+        runner._stack = SimpleNamespace(
+            hotness_tracker=SimpleNamespace(window_seconds=300.0),
+            _artifact_metadata=lambda _adapter_id: SimpleNamespace(last_accessed_at=now - 5.0),
+            _artifact_size_mb=lambda adapter_id: size_mb[adapter_id],
+            _online_artifact_hotness=lambda _adapter_id: 1.0,
+        )
+        current_slot = SimpleNamespace(
+            instance_id="inst_2",
+            runtime_group_key=lambda: ("self",),
+            gpu_resident_adapters=set(),
+            predicted_lora_io_ms=lambda **kwargs: 240.0,
+        )
+        sibling_slot = SimpleNamespace(
+            runtime_group_key=lambda: ("sib",),
+            gpu_resident_adapters={"large_wait", "small_wait"},
+        )
+        runner.instance_pool = SimpleNamespace(
+            get_runtime_groups=lambda: [[current_slot], [sibling_slot]]
+        )
+
+        preferred = runner._runtime_forward_preferred_gpu_adapters(current_slot)
+
+        self.assertEqual(preferred, ["small_wait", "large_wait"])
 
     def test_schedule_runtime_gpu_forward_skips_when_only_stale_sibling_gpu_set_remains(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
@@ -1997,6 +2214,32 @@ class CoordinationSmokeTests(unittest.TestCase):
         self.assertGreater(decision["future_reserve_mb"], 0.0)
         self.assertGreaterEqual(decision["working_set_pressure"], 0.0)
 
+    def test_notify_batch_tracks_decode_hint_in_active_tokens(self) -> None:
+        coord = ResourceCoordinator(config={"kv_per_1k_tokens_mb": 2.0})
+
+        coord.notify_batch_start(100, 300)
+        self.assertEqual(coord._active_tokens, 400)
+        self.assertEqual(coord._active_batches, 1)
+        self.assertAlmostEqual(coord._recent_batch_tokens_ewma, 400.0)
+
+        coord.notify_batch_end(100, 300)
+        self.assertEqual(coord._active_tokens, 0)
+        self.assertEqual(coord._active_batches, 0)
+
+    def test_record_memory_sample_includes_kv_tokens(self) -> None:
+        coord = ResourceCoordinator(config={
+            "gpu_budget_mb": 1000,
+            "model_weights_mb": 100,
+            "kv_per_1k_tokens_mb": 2.0,
+        })
+        coord._resident_loras["adapter_a"] = 100.0
+        coord._active_tokens = 2000
+
+        coord._record_memory_sample()
+
+        self.assertAlmostEqual(coord.metrics.peak_memory_utilization, 0.204)
+        self.assertAlmostEqual(coord.metrics.avg_memory_utilization, 0.204)
+
     def test_working_set_gap_is_reserved_once_for_gpu_admission(self) -> None:
         coord = ResourceCoordinator(config={
             "gpu_budget_mb": 1000,
@@ -2486,6 +2729,62 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         kill.assert_not_called()
 
+    def test_script_inference_engine_generate_prefers_vllm_request_metrics_for_ttft_and_tpot(self) -> None:
+        class FakeVllmEngine:
+            async def generate(self, **_kwargs):
+                yield SimpleNamespace(
+                    outputs=[SimpleNamespace(token_ids=[11, 12, 13], text="")],
+                    metrics=SimpleNamespace(
+                        arrival_time=10.0,
+                        first_token_time=10.5,
+                        finished_time=11.1,
+                        last_token_time=11.1,
+                    ),
+                )
+
+        engine = ScriptInferenceEngine.__new__(ScriptInferenceEngine)
+        engine.model_cfg = {"backend": "vllm"}
+        engine.cost_model = {}
+        engine.engine = FakeVllmEngine()
+        engine.backend = "vllm"
+        engine.device_id = 0
+        engine._counter = 0
+        engine._lock = asyncio.Lock()
+        engine._reinit_lock = asyncio.Lock()
+        engine._engine_dead = False
+        engine._lora_in_engine = False
+        engine._reinit_attempted = False
+        engine._prepare_vllm_prompt = (
+            lambda prompt, max_tokens, input_tokens_hint: (
+                prompt,
+                input_tokens_hint,
+                max_tokens,
+            )
+        )
+
+        with patch(
+            "scripts.run_all_experiments.SamplingParams",
+            side_effect=lambda **kwargs: SimpleNamespace(**kwargs),
+        ), patch(
+            "scripts.run_all_experiments.time.perf_counter",
+            side_effect=[100.0, 180.0, 250.0],
+        ):
+            ttft_ms, tpot_ms, output_tokens = asyncio.run(
+                engine.generate(
+                    prompt="hello",
+                    lora_path=None,
+                    adapter_id=None,
+                    max_tokens=8,
+                    input_tokens=4,
+                    temperature=0.7,
+                    top_p=0.9,
+                )
+            )
+
+        self.assertEqual(output_tokens, 3)
+        self.assertAlmostEqual(ttft_ms, 500.0)
+        self.assertAlmostEqual(tpot_ms, 300.0)
+
     def test_runtime_gpu_device_ids_use_local_visible_set_for_tp2(self) -> None:
         device_ids = _resolve_runtime_gpu_device_ids(
             {
@@ -2610,6 +2909,8 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner.coord_cfg = {"max_concurrent_loads": 2}
         runner._scale_up_target_runtime_headroom_mb = lambda: 700.0
         runner._scale_up_bootstrap_latency_ms = lambda: 120.0
+        runner._scale_up_initial_admission_request_budget = lambda: 2
+        runner._runtime_forward_capacity_limit = lambda: 2
         runner._scale_up_ready_candidate_queue = lambda **kwargs: (
             [
                 SimpleNamespace(adapter_id="already_started"),
@@ -2640,8 +2941,471 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertEqual(plan["ordered_handoff_adapters"], ["waiting_a", "future_b", "future_c"])
         self.assertEqual(plan["planned_adapters"], ["waiting_a", "future_b"])
         self.assertEqual(plan["queue_at_ready_request_count"], 3)
+        self.assertEqual(plan["first_service_request_count"], 2)
+        self.assertEqual(plan["first_service_adapter_count"], 2)
+        self.assertEqual(plan["initial_admission_request_budget"], 2)
         self.assertEqual(plan["incumbent_started_request_count"], 1)
         self.assertEqual(plan["exact_prefix_bytes"], 700 * 1024 * 1024)
+        self.assertEqual(
+            [trace.adapter_id for trace in plan["_queue_at_ready_traces"]],
+            ["waiting_a", "future_b", "future_c"],
+        )
+
+    def test_route_aware_scale_up_first_service_prefix_follows_router_selected_requests(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._nvme_cache = {}
+        runner._gpu_warmed = set()
+        runner.adapter_info = {
+            "finance": {"size_mb": 50.0},
+            "support": {"size_mb": 50.0},
+        }
+        runner.cost_model = {"bandwidth_mbps": 1000.0}
+        runner._refresh_slot_runtime_hints = lambda slot: None
+        coordinator = SimpleNamespace(
+            metrics={},
+            compute_faaslora_host_load_ms=lambda size_mb: float(size_mb) * 2.0,
+            compute_faaslora_nvme_load_ms=lambda size_mb: float(size_mb) * 4.0,
+            compute_cold_start_load_ms=lambda size_mb, bandwidth: float(size_mb) * 8.0,
+        )
+        runner.coordinator = coordinator
+        runner._stack = SimpleNamespace(
+            _host_paths={"finance": "/tmp/finance", "support": "/tmp/support"},
+            _nvme_paths={},
+            sync_local_tier_paths=lambda: None,
+        )
+        incumbent = InstanceSlot("inst_1", None, coordinator, created_at=1.0)
+        incumbent.host_cached_adapters = {"finance", "support"}
+        incumbent.gpu_resident_adapters = {"finance"}
+        incumbent.observed_runtime_ttft_ms = 1000.0
+        incumbent.observed_runtime_samples = 1
+        incumbent.observed_request_costs = {
+            "lora_gpu": ObservedRequestCost(
+                samples=1,
+                avg_lora_io_ms=0.0,
+                avg_runtime_ttft_ms=1000.0,
+                avg_tail_service_ms=0.0,
+            ),
+            "lora_host": ObservedRequestCost(
+                samples=1,
+                avg_lora_io_ms=100.0,
+                avg_runtime_ttft_ms=1000.0,
+                avg_tail_service_ms=0.0,
+            ),
+            "lora_any": ObservedRequestCost(
+                samples=2,
+                avg_lora_io_ms=50.0,
+                avg_runtime_ttft_ms=1000.0,
+                avg_tail_service_ms=0.0,
+            ),
+        }
+        pool = SimpleNamespace(get_slots=lambda: [incumbent])
+        runner.instance_pool = pool
+        runner.router = Router(pool, policy="least_connections", runtime_concurrency_cap=2)
+        routed = runner._route_aware_scale_up_first_service_prefix_traces(
+            [
+                SimpleNamespace(adapter_id="finance"),
+                SimpleNamespace(adapter_id="support"),
+            ],
+            ["finance"],
+            request_budget=1,
+        )
+
+        self.assertEqual([trace.adapter_id for trace in routed], ["finance"])
+
+    def test_predict_scale_up_handoff_plan_uses_router_aware_first_service_prefix(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.coord_cfg = {"max_concurrent_loads": 1}
+        runner._scale_up_target_runtime_headroom_mb = lambda: 60.0
+        runner._scale_up_bootstrap_latency_ms = lambda: 0.0
+        runner._scale_up_initial_admission_request_budget = lambda: 1
+        runner._runtime_forward_capacity_limit = lambda: 2
+        runner._predicted_scale_up_load_ms = lambda adapter_ids, max_concurrent_loads=1: 0.0
+        runner._scale_up_ready_candidate_queue = lambda **kwargs: (
+            [
+                SimpleNamespace(adapter_id="finance"),
+                SimpleNamespace(adapter_id="support"),
+            ],
+            2,
+        )
+        runner._scale_up_incumbent_started_request_count = lambda **kwargs: 0
+        runner._scale_up_warmup_preferred_gpu_adapters = lambda: set()
+        runner._nvme_cache = {}
+        runner._gpu_warmed = set()
+        runner.adapter_info = {
+            "finance": {"size_mb": 50.0},
+            "support": {"size_mb": 50.0},
+        }
+        runner.cost_model = {"bandwidth_mbps": 1000.0}
+        runner._refresh_slot_runtime_hints = lambda slot: None
+        coordinator = SimpleNamespace(
+            metrics={},
+            compute_faaslora_host_load_ms=lambda size_mb: float(size_mb) * 2.0,
+            compute_faaslora_nvme_load_ms=lambda size_mb: float(size_mb) * 4.0,
+            compute_cold_start_load_ms=lambda size_mb, bandwidth: float(size_mb) * 8.0,
+        )
+        runner.coordinator = coordinator
+        runner._stack = SimpleNamespace(
+            _host_paths={"finance": "/tmp/finance", "support": "/tmp/support"},
+            _nvme_paths={},
+            sync_local_tier_paths=lambda: None,
+            _artifact_size_mb=lambda aid: {"finance": 50.0, "support": 50.0}[aid],
+        )
+        incumbent = InstanceSlot("inst_1", None, coordinator, created_at=1.0)
+        incumbent.host_cached_adapters = {"finance", "support"}
+        incumbent.gpu_resident_adapters = {"finance"}
+        incumbent.observed_runtime_ttft_ms = 1000.0
+        incumbent.observed_runtime_samples = 1
+        incumbent.observed_request_costs = {
+            "lora_gpu": ObservedRequestCost(
+                samples=1,
+                avg_lora_io_ms=0.0,
+                avg_runtime_ttft_ms=1000.0,
+                avg_tail_service_ms=0.0,
+            ),
+            "lora_host": ObservedRequestCost(
+                samples=1,
+                avg_lora_io_ms=100.0,
+                avg_runtime_ttft_ms=1000.0,
+                avg_tail_service_ms=0.0,
+            ),
+            "lora_any": ObservedRequestCost(
+                samples=2,
+                avg_lora_io_ms=50.0,
+                avg_runtime_ttft_ms=1000.0,
+                avg_tail_service_ms=0.0,
+            ),
+        }
+        pool = SimpleNamespace(get_slots=lambda: [incumbent])
+        runner.instance_pool = pool
+        runner.router = Router(pool, policy="least_connections", runtime_concurrency_cap=2)
+
+        plan = runner._predict_scale_up_handoff_plan(
+            replay_t0=0.0,
+            arrived_request_count=2,
+            queue_visible_request_count=2,
+            visible_traces=[],
+        )
+
+        self.assertEqual(plan["ordered_handoff_adapters"], ["finance", "support"])
+        self.assertEqual(plan["planned_adapters"], ["finance"])
+        self.assertEqual(plan["first_service_request_count"], 1)
+        self.assertEqual(plan["first_service_adapter_count"], 1)
+
+    def test_scale_up_first_service_prefix_traces_skip_backbone_when_forming_warmup_slice(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._scale_up_initial_admission_request_budget = lambda: 1
+
+        prefix = runner._scale_up_first_service_prefix_traces(
+            [
+                SimpleNamespace(adapter_id=None),
+                SimpleNamespace(adapter_id="a1"),
+                SimpleNamespace(adapter_id="a2"),
+            ]
+        )
+
+        self.assertEqual([trace.adapter_id for trace in prefix], ["a1"])
+
+    def test_scale_up_initial_admission_request_budget_tracks_incremental_dispatch_capacity(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._runtime_forward_capacity_limit = lambda: 2
+        runner._configured_workload_concurrency = lambda: 8
+        runner._current_runtime_group_count = lambda: 3
+
+        self.assertEqual(runner._scale_up_initial_admission_request_budget(), 2)
+
+        runner._configured_workload_concurrency = lambda: 5
+        self.assertEqual(runner._scale_up_initial_admission_request_budget(), 1)
+
+    def test_refined_scale_up_target_instances_keeps_scale_count_under_autoscaler_control(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.instance_pool = SimpleNamespace(max_instances=4)
+
+        refined = runner._refined_scale_up_target_instances(
+            current_instances=1,
+            decision=SimpleNamespace(target_instances=2),
+            handoff_plan={
+                "queue_at_ready_request_count": 7,
+                "first_service_request_count": 3,
+                "initial_admission_request_budget": 2,
+            },
+        )
+
+        self.assertEqual(refined, 2)
+
+    def test_build_scale_up_runtime_handoff_plans_slices_queue_by_first_service_budget(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._predicted_scale_up_load_ms = lambda adapter_ids, max_concurrent_loads=1: float(len(adapter_ids) * 10)
+        runner._stack = SimpleNamespace(
+            _artifact_size_mb=lambda aid: {
+                "a1": 100.0,
+                "a2": 100.0,
+                "a3": 100.0,
+                "a4": 100.0,
+            }[aid]
+        )
+        plans = runner._build_scale_up_runtime_handoff_plans(
+            {
+                "mode": "dynamic_headroom_exact_handoff_prefix",
+                "_queue_at_ready_traces": [
+                    SimpleNamespace(adapter_id="a1"),
+                    SimpleNamespace(adapter_id="a2"),
+                    SimpleNamespace(adapter_id="a3"),
+                    SimpleNamespace(adapter_id="a4"),
+                ],
+                "ordered_handoff_adapters": ["a1", "a2", "a3", "a4"],
+                "queue_at_ready_request_count": 4,
+                "queue_at_ready_adapter_count": 4,
+                "first_service_request_count": 2,
+                "initial_admission_request_budget": 2,
+                "projected_arrived_request_count": 6,
+                "incumbent_started_request_count": 1,
+                "bootstrap_latency_ms": 50.0,
+                "target_headroom_bytes": 250 * 1024 * 1024,
+                "configured_max_concurrent_loads": 2,
+            },
+            additional_instances=2,
+        )
+
+        self.assertEqual(len(plans), 2)
+        self.assertEqual(plans[0]["ordered_handoff_adapters"], ["a1", "a2"])
+        self.assertEqual(plans[0]["planned_adapters"], ["a1", "a2"])
+        self.assertEqual(plans[1]["ordered_handoff_adapters"], ["a3", "a4"])
+        self.assertEqual(plans[1]["planned_adapters"], ["a3", "a4"])
+
+    def test_build_scale_up_runtime_handoff_plans_skip_backbone_when_forming_lora_handoff_slice(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._predicted_scale_up_load_ms = lambda adapter_ids, max_concurrent_loads=1: float(len(adapter_ids) * 10)
+        runner._stack = SimpleNamespace(
+            _artifact_size_mb=lambda aid: {
+                "a1": 100.0,
+                "a2": 100.0,
+            }[aid]
+        )
+
+        plans = runner._build_scale_up_runtime_handoff_plans(
+            {
+                "mode": "dynamic_headroom_exact_handoff_prefix",
+                "_queue_at_ready_traces": [
+                    SimpleNamespace(adapter_id=None),
+                    SimpleNamespace(adapter_id="a1"),
+                    SimpleNamespace(adapter_id="a2"),
+                ],
+                "ordered_handoff_adapters": ["a1", "a2"],
+                "queue_at_ready_request_count": 3,
+                "queue_at_ready_adapter_count": 2,
+                "first_service_request_count": 1,
+                "initial_admission_request_budget": 1,
+                "projected_arrived_request_count": 6,
+                "incumbent_started_request_count": 1,
+                "bootstrap_latency_ms": 50.0,
+                "target_headroom_bytes": 250 * 1024 * 1024,
+                "configured_max_concurrent_loads": 2,
+            },
+            additional_instances=1,
+        )
+
+        self.assertEqual(len(plans), 1)
+        self.assertEqual(plans[0]["ordered_handoff_adapters"], ["a1"])
+        self.assertEqual(plans[0]["planned_adapters"], ["a1"])
+        self.assertEqual(plans[0]["first_service_request_count"], 1)
+        self.assertEqual(plans[0]["first_service_adapter_count"], 1)
+        self.assertEqual(plans[0]["first_service_scanned_request_count"], 2)
+
+    def test_build_scale_up_runtime_handoff_plans_keeps_request_budget_on_initial_admission(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._predicted_scale_up_load_ms = lambda adapter_ids, max_concurrent_loads=1: float(len(adapter_ids) * 10)
+        runner._stack = SimpleNamespace(
+            _artifact_size_mb=lambda aid: {
+                "a1": 100.0,
+                "a2": 100.0,
+                "a3": 100.0,
+            }[aid]
+        )
+
+        plans = runner._build_scale_up_runtime_handoff_plans(
+            {
+                "mode": "dynamic_headroom_exact_handoff_prefix",
+                "_queue_at_ready_traces": [
+                    SimpleNamespace(adapter_id="a1"),
+                    SimpleNamespace(adapter_id="a2"),
+                    SimpleNamespace(adapter_id="a3"),
+                ],
+                "ordered_handoff_adapters": ["a1", "a2", "a3"],
+                "queue_at_ready_request_count": 3,
+                "queue_at_ready_adapter_count": 3,
+                "first_service_request_count": 2,
+                "initial_admission_request_budget": 1,
+                "effective_initial_warmup_parallelism": 2,
+                "projected_arrived_request_count": 6,
+                "incumbent_started_request_count": 1,
+                "bootstrap_latency_ms": 50.0,
+                "target_headroom_bytes": 250 * 1024 * 1024,
+                "configured_max_concurrent_loads": 2,
+            },
+            additional_instances=1,
+        )
+
+        self.assertEqual(len(plans), 1)
+        self.assertEqual(plans[0]["ordered_handoff_adapters"], ["a1"])
+        self.assertEqual(plans[0]["planned_adapters"], ["a1"])
+        self.assertEqual(plans[0]["first_service_request_count"], 1)
+        self.assertEqual(plans[0]["effective_initial_warmup_parallelism"], 2)
+
+    def test_build_scale_up_runtime_handoff_plans_prefers_route_aware_runtime_slices_when_available(self) -> None:
+        class DummySlot:
+            def __init__(self, instance_id: str) -> None:
+                self.instance_id = instance_id
+                self.active_requests = 0
+                self.load_queue_depth = 0
+                self.last_selected_at = 0.0
+                self.gpu_resident_adapters = set()
+                self.host_cached_adapters = set()
+                self.nvme_cached_adapters = set()
+                self.observed_request_costs = {}
+                self.scaleup_handoff_planned_adapters = []
+                self.scaleup_handoff_planned_adapter_ranks = {}
+
+            def mark_adapter_tier(self, adapter_id: str, tier: str) -> None:
+                if tier == "gpu":
+                    self.gpu_resident_adapters.add(adapter_id)
+
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.router = SimpleNamespace(policy="least_connections", runtime_concurrency_cap=2)
+        runner.instance_pool = SimpleNamespace(get_slots=lambda: [DummySlot("inst_1")])
+        runner._predicted_scale_up_load_ms = (
+            lambda adapter_ids, max_concurrent_loads=1: float(len(adapter_ids) * 10)
+        )
+        runner._stack = SimpleNamespace(
+            _artifact_size_mb=lambda aid: {
+                "education": 100.0,
+                "finance": 100.0,
+                "legal": 100.0,
+            }[aid]
+        )
+
+        def _copy_slot(slot):
+            copied = DummySlot(slot.instance_id)
+            copied.active_requests = int(getattr(slot, "active_requests", 0) or 0)
+            copied.load_queue_depth = int(getattr(slot, "load_queue_depth", 0) or 0)
+            copied.last_selected_at = float(getattr(slot, "last_selected_at", 0.0) or 0.0)
+            copied.gpu_resident_adapters = set(getattr(slot, "gpu_resident_adapters", set()) or set())
+            copied.host_cached_adapters = set(getattr(slot, "host_cached_adapters", set()) or set())
+            copied.nvme_cached_adapters = set(getattr(slot, "nvme_cached_adapters", set()) or set())
+            copied.observed_request_costs = dict(getattr(slot, "observed_request_costs", {}) or {})
+            copied.scaleup_handoff_planned_adapters = list(
+                getattr(slot, "scaleup_handoff_planned_adapters", []) or []
+            )
+            copied.scaleup_handoff_planned_adapter_ranks = dict(
+                getattr(slot, "scaleup_handoff_planned_adapter_ranks", {}) or {}
+            )
+            return copied
+
+        def _make_slot(planned_gpu_adapters, request_budget=0, instance_id=None):
+            slot = DummySlot(str(instance_id or "__scaleup_sim__"))
+            slot.scaleup_handoff_planned_adapters = list(planned_gpu_adapters or [])
+            slot.scaleup_handoff_planned_adapter_ranks = {
+                aid: idx for idx, aid in enumerate(slot.scaleup_handoff_planned_adapters)
+            }
+            for aid in slot.scaleup_handoff_planned_adapters:
+                slot.mark_adapter_tier(aid, "gpu")
+            return slot
+
+        route_aware_calls = []
+
+        def _route_aware_state(queue_at_ready, simulated_slots, new_slot, request_budget):
+            route_aware_calls.append(
+                (new_slot.instance_id, [getattr(t, "adapter_id", None) for t in queue_at_ready])
+            )
+            scanned = [queue_at_ready[0]]
+            routed = [queue_at_ready[0]]
+            remaining = list(queue_at_ready[1:])
+            return scanned, routed, remaining
+
+        runner._copy_scale_up_routing_simulation_slot = _copy_slot
+        runner._make_scale_up_routing_simulated_slot = _make_slot
+        runner._route_aware_scale_up_first_service_prefix_state = _route_aware_state
+
+        plans = runner._build_scale_up_runtime_handoff_plans(
+            {
+                "mode": "dynamic_headroom_exact_handoff_prefix",
+                "_queue_at_ready_traces": [
+                    SimpleNamespace(adapter_id="finance"),
+                    SimpleNamespace(adapter_id="legal"),
+                ],
+                "ordered_handoff_adapters": ["education", "legal"],
+                "queue_at_ready_request_count": 2,
+                "queue_at_ready_adapter_count": 2,
+                "first_service_request_count": 1,
+                "initial_admission_request_budget": 1,
+                "projected_arrived_request_count": 3,
+                "incumbent_started_request_count": 0,
+                "bootstrap_latency_ms": 50.0,
+                "target_headroom_bytes": 300 * 1024 * 1024,
+                "configured_max_concurrent_loads": 2,
+            },
+            additional_instances=2,
+        )
+
+        self.assertEqual(len(route_aware_calls), 4)
+        self.assertEqual(len(plans), 2)
+        self.assertEqual(plans[0]["ordered_handoff_adapters"], ["finance"])
+        self.assertEqual(plans[0]["planned_adapters"], ["finance"])
+        self.assertEqual(plans[1]["ordered_handoff_adapters"], ["legal"])
+        self.assertEqual(plans[1]["planned_adapters"], ["legal"])
+
+    def test_scale_up_first_service_request_budget_matches_initial_admission_slice(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._scale_up_initial_admission_request_budget = lambda: 1
+        runner._runtime_forward_capacity_limit = lambda: 1
+        runner._live_scale_eval_period_s = lambda: 15.0
+        runner._scale_up_trace_total_busy_estimate_ms = lambda trace: {
+            "first": 8200.0,
+            "second": 7800.0,
+            "third": 9000.0,
+        }[trace.adapter_id]
+
+        budget = runner._scale_up_first_service_request_budget(
+            [
+                SimpleNamespace(adapter_id="first"),
+                SimpleNamespace(adapter_id="second"),
+                SimpleNamespace(adapter_id="third"),
+            ]
+        )
+
+        self.assertEqual(budget, 1)
+
+    def test_scale_up_first_service_request_budget_does_not_expand_beyond_initial_admission(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._scale_up_initial_admission_request_budget = lambda: 1
+        runner._runtime_forward_capacity_limit = lambda: 2
+        runner._live_scale_eval_period_s = lambda: 5.0
+        runner._scale_up_trace_total_busy_estimate_ms = lambda trace: 9000.0
+
+        budget = runner._scale_up_first_service_request_budget(
+            [
+                SimpleNamespace(adapter_id="first"),
+                SimpleNamespace(adapter_id="second"),
+                SimpleNamespace(adapter_id="third"),
+            ]
+        )
+
+        self.assertEqual(budget, 1)
+
+    def test_scale_up_first_service_request_budget_does_not_expand_from_parallelism_only(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.coord_cfg = {"max_concurrent_loads": 2}
+        runner._scale_up_initial_admission_request_budget = lambda: 1
+
+        budget = runner._scale_up_first_service_request_budget(
+            [
+                SimpleNamespace(adapter_id="first"),
+                SimpleNamespace(adapter_id="second"),
+                SimpleNamespace(adapter_id="third"),
+            ],
+            configured_max_concurrent_loads=2,
+        )
+
+        self.assertEqual(budget, 1)
 
     def test_predicted_scale_up_load_ms_respects_max_concurrent_loads(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
@@ -2656,13 +3420,36 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             _host_paths={},
             _nvme_paths={},
         )
-        runner.coordinator = SimpleNamespace()
+        runner.coordinator = SimpleNamespace(
+            compute_faaslora_host_load_ms=lambda _size_mb: 0.0,
+            compute_faaslora_nvme_load_ms=lambda _size_mb: 0.0,
+            compute_cold_start_load_ms=lambda _size_mb, _bw: 0.0,
+        )
         runner.cost_model = {}
 
         predicted_ms = runner._predicted_scale_up_load_ms(
             ["a", "b", "c"],
             max_concurrent_loads=2,
         )
+
+        self.assertEqual(predicted_ms, 120.0)
+
+    def test_predicted_scale_up_load_ms_respects_source_tier_busy_floor(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._stack = SimpleNamespace(
+            _artifact_metadata=lambda _aid: SimpleNamespace(predicted_load_time_ms=22.0),
+            _artifact_size_mb=lambda _aid: 30.0,
+            _host_paths={},
+            _nvme_paths={"a": "/tmp/a"},
+        )
+        runner.coordinator = SimpleNamespace(
+            compute_faaslora_host_load_ms=lambda _size_mb: 40.0,
+            compute_faaslora_nvme_load_ms=lambda _size_mb: 120.0,
+            compute_cold_start_load_ms=lambda _size_mb, _bw: 500.0,
+        )
+        runner.cost_model = {"bandwidth_mbps": 100.0}
+
+        predicted_ms = runner._predicted_scale_up_load_ms(["a"])
 
         self.assertEqual(predicted_ms, 120.0)
 
@@ -2694,6 +3481,45 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             runner._last_scale_up_handoff_plan["mode"],
             "dynamic_headroom_exact_handoff_prefix",
         )
+
+    def test_begin_scaleup_runtime_request_labels_tracks_first_service_and_plan_match(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._scaleup_runtime_instance_ids = {"inst_2"}
+        runner._scaleup_runtime_lora_request_ordinals = {}
+        runner._scaleup_runtime_handoff_plan = lambda _instance_id: {
+            "planned_adapters": ["adapter_a", "adapter_b"],
+            "first_service_request_count": 2,
+        }
+
+        first = runner._begin_scaleup_runtime_request_labels(
+            slot=SimpleNamespace(instance_id="inst_2"),
+            adapter_id="adapter_a",
+            cache_tier="gpu",
+        )
+        second = runner._begin_scaleup_runtime_request_labels(
+            slot=SimpleNamespace(instance_id="inst_2"),
+            adapter_id="adapter_x",
+            cache_tier="host",
+        )
+        third = runner._begin_scaleup_runtime_request_labels(
+            slot=SimpleNamespace(instance_id="inst_2"),
+            adapter_id="adapter_b",
+            cache_tier="gpu",
+        )
+
+        self.assertTrue(first["on_scaleup_runtime"])
+        self.assertFalse(first["scaleup_affected"])
+        self.assertTrue(first["scaleup_first_service"])
+        self.assertTrue(first["scaleup_planned_adapter_match"])
+
+        self.assertTrue(second["on_scaleup_runtime"])
+        self.assertTrue(second["scaleup_affected"])
+        self.assertTrue(second["scaleup_first_service"])
+        self.assertFalse(second["scaleup_planned_adapter_match"])
+
+        self.assertTrue(third["on_scaleup_runtime"])
+        self.assertFalse(third["scaleup_first_service"])
+        self.assertTrue(third["scaleup_planned_adapter_match"])
 
     def test_scale_up_preload_capacity_uses_exact_handoff_prefix_budget(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
@@ -3101,8 +3927,16 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         result.requests = [
             RequestResult("r1", "a", False, "normal", True, "gpu", 10.0, 80.0, 100.0, 5.0, 5.0, 20.0, 120.0, 10, 5, 0.10, True, "inst_1", False),
             RequestResult("r2", "b", False, "normal", True, "host", 60.0, 120.0, 200.0, 10.0, 10.0, 25.0, 240.0, 10, 5, 0.20, True, "inst_1", False),
-            RequestResult("r3", "c", False, "normal", False, "remote", 0.0, 140.0, 150.0, 5.0, 5.0, 30.0, 190.0, 10, 5, 0.30, True, "inst_2", True),
-            RequestResult("r4", "d", False, "normal", True, "gpu", 20.0, 160.0, 220.0, 10.0, 10.0, 35.0, 260.0, 10, 5, 0.40, True, "inst_2", False),
+            RequestResult(
+                "r3", "c", False, "normal", False, "remote",
+                0.0, 140.0, 150.0, 5.0, 5.0, 30.0, 190.0, 10, 5, 0.30, True,
+                "inst_2", True, None, True, True, False,
+            ),
+            RequestResult(
+                "r4", "d", False, "normal", True, "gpu",
+                20.0, 160.0, 220.0, 10.0, 10.0, 0.0, 260.0, 10, 5, 0.40, True,
+                "inst_2", False, None, True, False, True,
+            ),
         ]
         result.scale_up_events = [{
             "request_index": 2,
@@ -3121,12 +3955,23 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertAlmostEqual(result.p95_warm_standard_ttft_ms, 220.0)
         self.assertAlmostEqual(result.p99_warm_standard_ttft_ms, 220.0)
         self.assertAlmostEqual(result.avg_scaleup_affected_ttft_ms, 150.0)
+        self.assertAlmostEqual(result.avg_scaleup_runtime_ttft_ms, (150.0 + 220.0) / 2.0)
+        self.assertEqual(result.scaleup_runtime_lora_request_count, 2)
+        self.assertAlmostEqual(result.scaleup_runtime_gpu_hit_rate, 0.5)
+        self.assertAlmostEqual(result.avg_scaleup_first_service_ttft_ms, 150.0)
+        self.assertEqual(result.scaleup_first_service_request_count, 1)
+        self.assertAlmostEqual(result.scaleup_first_service_gpu_hit_rate, 0.0)
+        self.assertAlmostEqual(result.scaleup_first_service_planned_match_rate, 0.0)
         self.assertAlmostEqual(result.avg_cold_start_latency_ms, 320.0)
         self.assertAlmostEqual(result.p95_cold_start_latency_ms, 320.0)
         self.assertAlmostEqual(result.throughput_tok_per_s, 5.0)
         self.assertAlmostEqual(result.slo_attainment, 0.5)
         self.assertAlmostEqual(result.slo_goodput_rps, 0.5)
         self.assertAlmostEqual(result.slo_goodput_tok_per_s, 2.5)
+        self.assertAlmostEqual(result.avg_tpot_ms, 25.0)
+        self.assertAlmostEqual(result.tpot_observed_request_ratio, 0.75)
+        self.assertAlmostEqual(result.qpr, 5.0 / (0.25 * 0.1675))
+        self.assertAlmostEqual(result.qpr_rps_legacy, 1.0 / (0.25 * 0.1675))
         self.assertAlmostEqual(result.cost_effectiveness_e2e, 1.0 / (0.2025 * 0.25))
         self.assertEqual(result.cold_starts_after_scale_up, [1])
 
@@ -3137,8 +3982,16 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         results = [
             RequestResult("r1", "a", False, "normal", True, "gpu", 10.0, 80.0, 100.0, 5.0, 5.0, 20.0, 120.0, 10, 5, 0.10, True, "inst_1", False),
             RequestResult("r2", "b", False, "normal", True, "host", 60.0, 120.0, 200.0, 10.0, 10.0, 25.0, 240.0, 10, 5, 0.20, True, "inst_1", False),
-            RequestResult("r3", "c", False, "normal", False, "remote", 0.0, 140.0, 150.0, 5.0, 5.0, 30.0, 190.0, 10, 5, 0.30, True, "inst_2", True),
-            RequestResult("r4", "d", False, "normal", True, "gpu", 20.0, 160.0, 220.0, 10.0, 10.0, 35.0, 260.0, 10, 5, 0.40, True, "inst_2", False),
+            RequestResult(
+                "r3", "c", False, "normal", False, "remote",
+                0.0, 140.0, 150.0, 5.0, 5.0, 30.0, 190.0, 10, 5, 0.30, True,
+                "inst_2", True, None, True, True, False,
+            ),
+            RequestResult(
+                "r4", "d", False, "normal", True, "gpu",
+                20.0, 160.0, 220.0, 10.0, 10.0, 0.0, 260.0, 10, 5, 0.40, True,
+                "inst_2", False, None, True, False, True,
+            ),
         ]
 
         stats = runner._live_result_stats(results)
@@ -3151,6 +4004,14 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertAlmostEqual(stats["p95_warm_standard_ttft_ms"], 220.0)
         self.assertAlmostEqual(stats["p99_warm_standard_ttft_ms"], 220.0)
         self.assertAlmostEqual(stats["avg_scaleup_affected_ttft_ms"], 150.0)
+        self.assertAlmostEqual(stats["avg_scaleup_runtime_ttft_ms"], (150.0 + 220.0) / 2.0)
+        self.assertEqual(stats["scaleup_runtime_lora_request_count"], 2)
+        self.assertAlmostEqual(stats["scaleup_runtime_gpu_hit_rate"], 0.5)
+        self.assertAlmostEqual(stats["avg_scaleup_first_service_ttft_ms"], 150.0)
+        self.assertEqual(stats["scaleup_first_service_request_count"], 1)
+        self.assertAlmostEqual(stats["scaleup_first_service_gpu_hit_rate"], 0.0)
+        self.assertAlmostEqual(stats["scaleup_first_service_planned_match_rate"], 0.0)
+        self.assertAlmostEqual(stats["tpot_observed_request_ratio"], 0.75)
         self.assertEqual(stats["total_output_tokens"], 20)
         self.assertAlmostEqual(stats["slo_attainment"], 0.5)
         self.assertAlmostEqual(stats["cost_effectiveness_e2e"], 1.0 / (0.2025 * 0.25))
@@ -3179,8 +4040,16 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         result.requests = [
             RequestResult("r1", "a", False, "normal", True, "gpu", 10.0, 80.0, 100.0, 5.0, 5.0, 20.0, 120.0, 10, 5, 0.10, True, "inst_1", False),
             RequestResult("r2", "b", False, "normal", True, "host", 60.0, 120.0, 200.0, 10.0, 10.0, 25.0, 240.0, 10, 5, 0.20, True, "inst_1", False),
-            RequestResult("r3", "c", False, "normal", False, "remote", 0.0, 140.0, 150.0, 5.0, 5.0, 30.0, 190.0, 10, 5, 0.30, True, "inst_2", True),
-            RequestResult("r4", "d", False, "normal", True, "gpu", 20.0, 160.0, 220.0, 10.0, 10.0, 35.0, 260.0, 10, 5, 0.40, True, "inst_2", False),
+            RequestResult(
+                "r3", "c", False, "normal", False, "remote",
+                0.0, 140.0, 150.0, 5.0, 5.0, 30.0, 190.0, 10, 5, 0.30, True,
+                "inst_2", True, None, True, True, False,
+            ),
+            RequestResult(
+                "r4", "d", False, "normal", True, "gpu",
+                20.0, 160.0, 220.0, 10.0, 10.0, 0.0, 260.0, 10, 5, 0.40, True,
+                "inst_2", False, None, True, False, True,
+            ),
         ]
         result.scale_up_events = [{"request_index": 2, "instance_id": "inst_2"}]
         result.aggregate(4.0)
@@ -3198,6 +4067,10 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertAlmostEqual(
             comparison_row["scaling_metrics"]["SLO_goodput_RPS"], 0.5
         )
+        self.assertAlmostEqual(comparison_row["TTFT_scaleup_runtime_avg_ms"], 185.0)
+        self.assertAlmostEqual(comparison_row["TTFT_scaleup_first_service_avg_ms"], 150.0)
+        self.assertAlmostEqual(comparison_row["TPOT_observed_ratio"], 0.75)
+        self.assertEqual(comparison_row["ScaleUp_first_service_requests"], 1)
         self.assertAlmostEqual(
             comparison_row["standard_serving_metrics"]["Cost_effectiveness_e2e"],
             round(1.0 / (0.2025 * 0.25), 4),
@@ -3242,6 +4115,9 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertAlmostEqual(summary["avg_warm_standard_ttft_ms"], 160.0)
         self.assertAlmostEqual(summary["slo_goodput_rps"], 0.5)
         self.assertAlmostEqual(summary["scaling_metrics"]["SLO_goodput_RPS"], 0.5)
+        self.assertAlmostEqual(summary["avg_scaleup_runtime_ttft_ms"], 185.0)
+        self.assertAlmostEqual(summary["avg_scaleup_first_service_ttft_ms"], 150.0)
+        self.assertAlmostEqual(summary["tpot_observed_request_ratio"], 0.75)
 
     def test_router_prefers_lower_observed_backbone_runtime_cost(self) -> None:
         fast = InstanceSlot("inst_fast", None, None)
@@ -3255,6 +4131,23 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         self.assertIsNotNone(selected)
         self.assertEqual(selected.instance_id, "inst_fast")
+
+    def test_predicted_lora_io_uses_exact_bucket_before_fallback(self) -> None:
+        slot = InstanceSlot("inst_a", None, None)
+        slot.mark_adapter_tier("adapter_a", "host")
+        slot.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="host",
+            lora_io_ms=240.0,
+            runtime_ttft_ms=900.0,
+        )
+
+        predicted = slot.predicted_lora_io_ms(
+            adapter_id="adapter_a",
+            fallback_lora_io_ms=1200.0,
+        )
+
+        self.assertEqual(predicted, 240.0)
 
     def test_backbone_routing_does_not_inherit_lora_runtime_bias(self) -> None:
         backbone_only = InstanceSlot("inst_backbone", None, None)
@@ -3353,6 +4246,31 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertIsNotNone(selected)
         self.assertEqual(selected.instance_id, "inst_idle")
 
+    def test_router_accounts_for_idle_backbone_tail_cost(self) -> None:
+        low_ttft_high_tail = InstanceSlot("inst_low_ttft_high_tail", None, None)
+        balanced = InstanceSlot("inst_balanced", None, None)
+        low_ttft_high_tail.record_request_cost(
+            adapter_id=None,
+            cache_tier="backbone",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=120.0,
+            tail_service_ms=9000.0,
+        )
+        balanced.record_request_cost(
+            adapter_id=None,
+            cache_tier="backbone",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=400.0,
+            tail_service_ms=1200.0,
+        )
+        pool = SimpleNamespace(get_slots=lambda: [low_ttft_high_tail, balanced])
+        router = Router(pool, policy="least_connections")
+
+        selected = router.select_instance(None)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_balanced")
+
     def test_router_does_not_trade_gpu_hit_for_small_load_difference(self) -> None:
         host_slot = InstanceSlot("inst_host", None, None)
         gpu_slot = InstanceSlot("inst_gpu", None, None)
@@ -3379,6 +4297,253 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         self.assertIsNotNone(selected)
         self.assertEqual(selected.instance_id, "inst_gpu")
+
+    def test_router_penalizes_saturated_hot_slot_with_large_live_queue_wait(self) -> None:
+        cool_host = InstanceSlot("inst_host", None, None)
+        hot_gpu = InstanceSlot("inst_gpu", None, None)
+        cool_host.mark_adapter_tier("adapter_a", "host")
+        hot_gpu.mark_adapter_tier("adapter_a", "gpu")
+        cool_host.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="host",
+            lora_io_ms=3500.0,
+            runtime_ttft_ms=2500.0,
+            tail_service_ms=1500.0,
+        )
+        hot_gpu.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="gpu",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=3000.0,
+            tail_service_ms=2000.0,
+        )
+        hot_gpu.active_requests = 2
+        hot_gpu.record_inflight_request_estimate(
+            "live_req_a",
+            24000.0,
+            now_monotonic=100.0,
+        )
+        hot_gpu.record_inflight_request_estimate(
+            "live_req_b",
+            26000.0,
+            now_monotonic=100.0,
+        )
+        pool = SimpleNamespace(get_slots=lambda: [cool_host, hot_gpu])
+        router = Router(pool, policy="adapter_affinity", runtime_concurrency_cap=2)
+
+        with patch("faaslora.experiment.instance_pool.time.perf_counter", return_value=100.0):
+            selected = router.select_instance("adapter_a", adapter_size_mb=30.0)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_host")
+
+    def test_router_does_not_override_lower_cost_runtime_for_planned_handoff_adapter(self) -> None:
+        existing = InstanceSlot("inst_existing", None, None)
+        scaleup = InstanceSlot("inst_scaleup", None, None)
+        existing.mark_adapter_tier("adapter_a", "gpu")
+        scaleup.mark_adapter_tier("adapter_a", "gpu")
+        existing.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="gpu",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=3000.0,
+        )
+        scaleup.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="gpu",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=6000.0,
+        )
+        scaleup.scaleup_handoff_planned_adapters = ["adapter_a"]
+        scaleup.scaleup_handoff_planned_adapter_ranks = {"adapter_a": 0}
+        scaleup.scaleup_handoff_request_budget = 1
+        scaleup.scaleup_handoff_assigned_requests = 0
+        pool = SimpleNamespace(get_slots=lambda: [existing, scaleup])
+        router = Router(pool, policy="adapter_affinity")
+
+        selected = router.select_instance("adapter_a", adapter_size_mb=30.0)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_existing")
+        self.assertEqual(scaleup.scaleup_handoff_assigned_requests, 0)
+
+    def test_router_uses_planned_handoff_as_tiebreak_when_costs_are_equal(self) -> None:
+        existing = InstanceSlot("inst_existing", None, None)
+        scaleup = InstanceSlot("inst_scaleup", None, None)
+        existing.mark_adapter_tier("adapter_a", "gpu")
+        scaleup.mark_adapter_tier("adapter_a", "gpu")
+        existing.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="gpu",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=3000.0,
+        )
+        scaleup.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="gpu",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=3000.0,
+        )
+        scaleup.scaleup_handoff_planned_adapters = ["adapter_a"]
+        scaleup.scaleup_handoff_planned_adapter_ranks = {"adapter_a": 0}
+        scaleup.scaleup_handoff_request_budget = 1
+        scaleup.scaleup_handoff_assigned_requests = 0
+        pool = SimpleNamespace(get_slots=lambda: [existing, scaleup])
+        router = Router(pool, policy="adapter_affinity")
+
+        selected = router.select_instance("adapter_a", adapter_size_mb=30.0)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_scaleup")
+        self.assertEqual(scaleup.scaleup_handoff_assigned_requests, 1)
+
+    def test_router_avoids_scaleup_runtime_for_unplanned_adapter_during_handoff(self) -> None:
+        existing = InstanceSlot("inst_existing", None, None)
+        scaleup = InstanceSlot("inst_scaleup", None, None)
+        existing.mark_adapter_tier("adapter_b", "host")
+        existing.record_request_cost(
+            adapter_id="adapter_b",
+            cache_tier="host",
+            lora_io_ms=200.0,
+            runtime_ttft_ms=1200.0,
+        )
+        scaleup.record_request_cost(
+            adapter_id="adapter_b",
+            cache_tier="remote",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=900.0,
+        )
+        scaleup.scaleup_handoff_planned_adapters = ["adapter_a"]
+        scaleup.scaleup_handoff_planned_adapter_ranks = {"adapter_a": 0}
+        scaleup.scaleup_handoff_request_budget = 1
+        scaleup.scaleup_handoff_assigned_requests = 0
+        scaleup.active_requests = 1
+        pool = SimpleNamespace(get_slots=lambda: [existing, scaleup])
+        router = Router(pool, policy="adapter_affinity", runtime_concurrency_cap=2)
+
+        selected = router.select_instance("adapter_b", adapter_size_mb=30.0)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_existing")
+        self.assertEqual(scaleup.scaleup_handoff_assigned_requests, 0)
+
+    def test_router_allows_unplanned_adapter_on_spare_scaleup_lane(self) -> None:
+        existing = InstanceSlot("inst_existing", None, None)
+        scaleup = InstanceSlot("inst_scaleup", None, None)
+        existing.mark_adapter_tier("adapter_b", "host")
+        existing.record_request_cost(
+            adapter_id="adapter_b",
+            cache_tier="host",
+            lora_io_ms=600.0,
+            runtime_ttft_ms=1400.0,
+        )
+        scaleup.record_request_cost(
+            adapter_id="adapter_b",
+            cache_tier="remote",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=100.0,
+        )
+        scaleup.scaleup_handoff_planned_adapters = ["adapter_a"]
+        scaleup.scaleup_handoff_planned_adapter_ranks = {"adapter_a": 0}
+        scaleup.scaleup_handoff_request_budget = 1
+        scaleup.scaleup_handoff_assigned_requests = 0
+        pool = SimpleNamespace(get_slots=lambda: [existing, scaleup])
+        router = Router(pool, policy="adapter_affinity", runtime_concurrency_cap=2)
+
+        selected = router.select_instance("adapter_b", adapter_size_mb=30.0)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_scaleup")
+        self.assertEqual(scaleup.scaleup_handoff_assigned_requests, 0)
+
+    def test_router_avoids_scaleup_runtime_for_backbone_when_only_reserved_lane_remains(self) -> None:
+        existing = InstanceSlot("inst_existing", None, None)
+        scaleup = InstanceSlot("inst_scaleup", None, None)
+        existing.record_request_cost(
+            adapter_id=None,
+            cache_tier="backbone",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=500.0,
+        )
+        scaleup.record_request_cost(
+            adapter_id=None,
+            cache_tier="backbone",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=100.0,
+        )
+        existing.mark_adapter_tier("adapter_a", "gpu")
+        scaleup.mark_adapter_tier("adapter_a", "gpu")
+        existing.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="gpu",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=1200.0,
+        )
+        scaleup.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="gpu",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=1200.0,
+        )
+        scaleup.scaleup_handoff_planned_adapters = ["adapter_a"]
+        scaleup.scaleup_handoff_planned_adapter_ranks = {"adapter_a": 0}
+        scaleup.scaleup_handoff_request_budget = 1
+        scaleup.scaleup_handoff_assigned_requests = 0
+        scaleup.active_requests = 1
+        pool = SimpleNamespace(get_slots=lambda: [existing, scaleup])
+        router = Router(pool, policy="least_connections", runtime_concurrency_cap=2)
+
+        selected = router.select_instance(None)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_existing")
+        self.assertEqual(scaleup.scaleup_handoff_assigned_requests, 0)
+
+    def test_router_backbone_request_can_use_spare_scaleup_lane_without_consuming_budget(self) -> None:
+        existing = InstanceSlot("inst_existing", None, None)
+        scaleup = InstanceSlot("inst_scaleup", None, None)
+        existing.record_request_cost(
+            adapter_id=None,
+            cache_tier="backbone",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=500.0,
+        )
+        scaleup.record_request_cost(
+            adapter_id=None,
+            cache_tier="backbone",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=100.0,
+        )
+        existing.mark_adapter_tier("adapter_a", "gpu")
+        scaleup.mark_adapter_tier("adapter_a", "gpu")
+        existing.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="gpu",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=1200.0,
+        )
+        scaleup.record_request_cost(
+            adapter_id="adapter_a",
+            cache_tier="gpu",
+            lora_io_ms=0.0,
+            runtime_ttft_ms=1200.0,
+        )
+        scaleup.scaleup_handoff_planned_adapters = ["adapter_a"]
+        scaleup.scaleup_handoff_planned_adapter_ranks = {"adapter_a": 0}
+        scaleup.scaleup_handoff_request_budget = 1
+        scaleup.scaleup_handoff_assigned_requests = 0
+        pool = SimpleNamespace(get_slots=lambda: [existing, scaleup])
+        router = Router(pool, policy="adapter_affinity", runtime_concurrency_cap=2)
+
+        backbone_selected = router.select_instance(None)
+        self.assertIsNotNone(backbone_selected)
+        self.assertEqual(backbone_selected.instance_id, "inst_scaleup")
+        self.assertEqual(scaleup.scaleup_handoff_assigned_requests, 0)
+
+        lora_selected = router.select_instance("adapter_a", adapter_size_mb=30.0)
+        self.assertIsNotNone(lora_selected)
+        self.assertEqual(lora_selected.instance_id, "inst_scaleup")
+        self.assertEqual(scaleup.scaleup_handoff_assigned_requests, 1)
 
     def test_comparable_request_requires_local_tier_and_non_scaleup(self) -> None:
         local_hit = RequestResult("r1", "a", False, "normal", True, "host", 40.0, 140.0, 210.0, 10.0, 10.0, 25.0, 250.0, 10, 5, 0.0, True, "inst_1", False)
@@ -3443,6 +4608,30 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner.instance_pool = SimpleNamespace(count=lambda: 2)
         runner._live_scale_up_events = []
         runner._scaleup_runtime_instance_ids = set()
+        runner._last_scale_up_handoff_plan = {
+            "planned_adapters": ["finance_lora"],
+            "ordered_handoff_adapters": ["finance_lora", "medical_lora"],
+            "queue_at_ready_request_count": 12,
+            "queue_at_ready_adapter_count": 2,
+            "first_service_request_count": 1,
+            "first_service_adapter_count": 1,
+            "initial_admission_request_budget": 2,
+            "effective_initial_warmup_parallelism": 2,
+            "projected_arrived_request_count": 40,
+            "incumbent_started_request_count": 28,
+            "configured_max_concurrent_loads": 1,
+            "bootstrap_latency_ms": 50000.0,
+            "plan_load_latency_ms": 120.0,
+            "ready_delay_ms": 50120.0,
+        }
+        runner._last_scale_up_preload_budget = {
+            "mode": "dynamic_headroom_exact_handoff_prefix",
+            "capacity_bytes": 32 * 1024 * 1024,
+            "exact_prefix_bytes": 32 * 1024 * 1024,
+            "live_hotset_bytes": 64 * 1024 * 1024,
+            "recent_working_set_bytes": 0,
+            "target_headroom_bytes": 256 * 1024 * 1024,
+        }
         result = ScenarioResult("demo", "faaslora_full", total=0)
         decision = SimpleNamespace(reason="scale", target_instances=2)
 
@@ -3474,27 +4663,150 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertEqual(event["arrived_request_count"], 40)
         self.assertAlmostEqual(event["cold_start_latency_ms"], 250.0)
         self.assertEqual(event["warmed_adapters"], 14)
+        self.assertEqual(event["planned_adapters"], ["finance_lora"])
+        self.assertEqual(event["ordered_handoff_adapters"], ["finance_lora", "medical_lora"])
+        self.assertEqual(event["warmup_plan_adapter_count"], 1)
+        self.assertEqual(event["queue_at_ready_request_count"], 12)
+        self.assertEqual(event["queue_at_ready_adapter_count"], 2)
+        self.assertEqual(event["first_service_request_count"], 1)
+        self.assertEqual(event["first_service_adapter_count"], 1)
+        self.assertEqual(event["initial_admission_request_budget"], 2)
+        self.assertEqual(event["effective_initial_warmup_parallelism"], 2)
+        self.assertEqual(event["incumbent_started_request_count"], 28)
+        self.assertEqual(event["budget_mode"], "dynamic_headroom_exact_handoff_prefix")
+        self.assertEqual(event["exact_prefix_bytes"], 32 * 1024 * 1024)
         self.assertIn("inst_2", runner._scaleup_runtime_instance_ids)
+
+    def test_scale_up_incumbent_started_request_count_respects_dispatch_capacity_limit(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.adapter_info = {}
+        runner._runtime_forward_capacity_limit = lambda: 2
+        runner._current_dispatch_capacity_limit = lambda: 1
+        slots = [
+            SimpleNamespace(
+                instance_id=f"inst_{idx}",
+                active_requests=0,
+                predicted_cache_tier=lambda _adapter_id: "remote",
+                predicted_request_cost_ms=lambda **_kwargs: 1000.0,
+                predicted_tail_service_ms=lambda **_kwargs: 0.0,
+                observed_request_costs={},
+                observed_runtime_ttft_ms=0.0,
+                observed_backbone_ttft_ms=0.0,
+            )
+            for idx in range(1, 4)
+        ]
+        runner.instance_pool = SimpleNamespace(get_slots=lambda: slots)
+
+        started = runner._scale_up_incumbent_started_request_count(
+            candidate_queue=[
+                SimpleNamespace(adapter_id="a"),
+                SimpleNamespace(adapter_id="b"),
+                SimpleNamespace(adapter_id="c"),
+            ],
+            ready_delay_ms=1500.0,
+        )
+
+        self.assertEqual(started, 2)
+
+    def test_scale_up_incumbent_started_request_count_uses_observed_busy_floor(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.adapter_info = {}
+        runner._runtime_forward_capacity_limit = lambda: 1
+        runner._current_dispatch_capacity_limit = lambda: 1
+        slot = InstanceSlot("inst_1", None, None)
+        slot.record_request_cost(
+            adapter_id="finance_lora",
+            cache_tier="host",
+            lora_io_ms=100.0,
+            runtime_ttft_ms=900.0,
+            tail_service_ms=1100.0,
+        )
+        slot.predicted_request_cost_ms = lambda **_kwargs: 0.0
+        slot.predicted_tail_service_ms = lambda **_kwargs: 0.0
+        runner.instance_pool = SimpleNamespace(get_slots=lambda: [slot])
+
+        started = runner._scale_up_incumbent_started_request_count(
+            candidate_queue=[
+                SimpleNamespace(adapter_id="finance_lora"),
+                SimpleNamespace(adapter_id="finance_lora"),
+            ],
+            ready_delay_ms=1000.0,
+        )
+
+        self.assertEqual(started, 1)
+
+    def test_scale_up_incumbent_started_request_count_does_not_invent_progress_without_observations(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.adapter_info = {}
+        runner._runtime_forward_capacity_limit = lambda: 2
+        runner._current_dispatch_capacity_limit = lambda: 2
+        runner.instance_pool = SimpleNamespace(
+            get_slots=lambda: [
+                SimpleNamespace(
+                    instance_id="inst_1",
+                    active_requests=0,
+                    predicted_cache_tier=lambda _adapter_id: "remote",
+                    predicted_request_cost_ms=lambda **_kwargs: 0.0,
+                    predicted_tail_service_ms=lambda **_kwargs: 0.0,
+                    observed_request_costs={},
+                    observed_runtime_ttft_ms=0.0,
+                    observed_backbone_ttft_ms=0.0,
+                )
+            ]
+        )
+
+        started = runner._scale_up_incumbent_started_request_count(
+            candidate_queue=[
+                SimpleNamespace(adapter_id="a"),
+                SimpleNamespace(adapter_id="b"),
+            ],
+            ready_delay_ms=30000.0,
+        )
+
+        self.assertEqual(started, 0)
+
+    def test_scale_up_bootstrap_latency_ms_uses_engine_startup_signal(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._observed_scale_up_cold_start_latencies_ms = [51000.0, 53000.0]
+        runner._live_scale_up_events = []
+        runner.instance_pool = SimpleNamespace(
+            get_slots=lambda: [
+                SimpleNamespace(engine=SimpleNamespace(startup_latency_ms=26000.0))
+            ]
+        )
+        runner.engine = SimpleNamespace(startup_latency_ms=26000.0)
+
+        bootstrap_ms = runner._scale_up_bootstrap_latency_ms()
+
+        self.assertEqual(bootstrap_ms, 26000.0)
 
     def test_add_dedicated_instance_slot_records_cold_start_latency(self) -> None:
         mark_calls = []
         refresh_calls = []
         schedule_all_calls = []
+        order = []
         slot = SimpleNamespace(
             instance_id="inst_2",
             mark_adapter_tier=lambda aid, tier: mark_calls.append((aid, tier)),
         )
         runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._last_scale_up_handoff_plan = {"planned_adapters": ["hot_a", "hot_b"]}
+        runner._observed_scale_up_cold_start_latencies_ms = []
+        runner._scaleup_runtime_handoff_plans = {}
         runner.instance_pool = SimpleNamespace(
             count=lambda: 1,
             max_instances=2,
-            add_instance=lambda engine, coord, owns_engine, owns_coordinator, device_id: "inst_2",
+            add_instance=lambda engine, coord, owns_engine, owns_coordinator, device_id: (
+                order.append("add_instance") or "inst_2"
+            ),
             get_slot=lambda instance_id: slot,
         )
         async def fake_engine_factory(device_id=None):
+            order.append("engine_factory")
             return SimpleNamespace(device_id=device_id), SimpleNamespace()
 
         async def fake_warmup(engine, coordinator=None):
+            order.append("warmup")
             return {"hot_a", "hot_b"}
 
         runner.engine_factory = fake_engine_factory
@@ -3504,6 +4816,14 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner._refresh_slot_runtime_hints = lambda slot_obj: refresh_calls.append(slot_obj.instance_id)
         runner._warmup_engine_hot_set = fake_warmup
         runner._schedule_all_runtime_gpu_forward = lambda: schedule_all_calls.append("called") or 0
+        async def fake_notify():
+            self.assertIn("inst_2", runner._scaleup_runtime_instance_ids)
+            self.assertEqual(
+                runner._scaleup_runtime_handoff_plans["inst_2"]["planned_adapters"],
+                ["hot_a", "hot_b"],
+            )
+            order.append("notify")
+        runner._notify_dispatch_capacity_changed = fake_notify
 
         with patch("scripts.run_all_experiments.time.perf_counter", side_effect=[10.0, 10.25]):
             event = asyncio.run(runner._add_dedicated_instance_slot(coord_enabled=True))
@@ -3515,6 +4835,13 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertEqual(refresh_calls, ["inst_2"])
         self.assertEqual(len(mark_calls), 2)
         self.assertEqual(schedule_all_calls, [])
+        self.assertEqual(order, ["engine_factory", "warmup", "add_instance", "notify"])
+        self.assertEqual(runner._observed_scale_up_cold_start_latencies_ms, [250.0])
+        self.assertIn("inst_2", runner._scaleup_runtime_instance_ids)
+        self.assertEqual(
+            runner._scaleup_runtime_handoff_plans["inst_2"]["planned_adapters"],
+            ["hot_a", "hot_b"],
+        )
 
     def test_select_dedicated_device_id_uses_tp_group_anchors(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
@@ -3852,6 +5179,69 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertEqual(result.scale_down_event_log[0]["queue_visible_request_count"], 8)
         self.assertEqual(result.scale_down_event_log[0]["arrived_request_count"], 8)
 
+    def test_live_scale_control_evaluation_blocks_scale_down_while_pressure_present(self) -> None:
+        scale_down_calls = []
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.baseline_type = "faaslora_full"
+        runner.instance_pool = SimpleNamespace(count=lambda: 2, max_instances=4, min_instances=1)
+        runner._stack = SimpleNamespace(
+            autoscaler=SimpleNamespace(
+                decision_interval=15.0,
+                make_scaling_decision_with_metrics=lambda *args, **kwargs: SimpleNamespace(
+                    action=ScalingAction.SCALE_DOWN,
+                    target_instances=1,
+                    reason="Scale down triggered by: ttft_latency:scale_down",
+                ),
+            ),
+        )
+        runner._dynamic_scaling = True
+        runner._baseline_rps = 1.0
+        runner._baseline_rps_ewma_beta = 0.25
+        runner._scale_up_alpha = 0.3
+        runner._scale_up_t_min = 1.0
+        runner._scale_down_beta = 0.4
+        runner._scale_down_duration_s = 45.0
+        runner._low_load_since = 0.0
+        runner._active_loras_ewma = 0.0
+        runner._live_waiting_traces_by_id = {}
+        runner._live_started_lora_counts = defaultdict(int)
+        runner._live_scale_eval_last_at = 0.0
+        runner._live_scale_overrides = None
+        runner._arrival_rps = lambda _replay_t0: 0.2
+        runner._arrived_request_count = lambda _replay_t0: 8
+        runner._autoscaler_gpu_signal = lambda: 5.0
+        runner._scale_down_one_instance = (
+            lambda require_idle=False: scale_down_calls.append(require_idle)
+            or asyncio.sleep(0, result={"instance_id": "inst_2"})
+        )
+
+        result = ScenarioResult(
+            scenario_name="faaslora_full",
+            baseline_type="faaslora_full",
+            total=10,
+            ttft_slo_ms=5000.0,
+        )
+
+        with patch("scripts.run_all_experiments.time.perf_counter", return_value=60.0):
+            triggered = asyncio.run(
+                runner._maybe_run_live_scale_control_evaluation(
+                    result=result,
+                    coord_enabled=True,
+                    replay_t0=0.0,
+                    results_view=[],
+                    backlog=2,
+                    active_requests=1,
+                    busy_ratio=0.25,
+                    completed_count=5,
+                    queue_visible_request_count=8,
+                    visible_traces=[],
+                )
+            )
+
+        self.assertFalse(triggered)
+        self.assertEqual(scale_down_calls, [])
+        self.assertEqual(result.scale_down_events, 0)
+
     def test_dynamic_scale_down_uses_monotonic_clock(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner._dynamic_scaling = True
@@ -3979,6 +5369,45 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         )
 
         self.assertEqual(selected, ["frontier_first"])
+
+    def test_gpu_forward_candidates_respect_preferred_order(self) -> None:
+        stack = ExperimentStack.__new__(ExperimentStack)
+        stack._dynamic_forwarding_enabled = True
+        stack.sync_local_tier_paths = lambda: None
+        stack._host_paths = {
+            "frontier_first": "/tmp/frontier_first",
+            "frontier_second": "/tmp/frontier_second",
+        }
+        stack._nvme_paths = {}
+        stack._artifact_size_mb = lambda _aid: 32.0
+        stack._artifact_metadata = lambda _aid: SimpleNamespace(last_accessed_at=0.0)
+        stack._global_admission_utility = lambda *_args, **_kwargs: 1.0
+        utility = {"frontier_first": 1.0, "frontier_second": 100.0}
+        stack._forward_utility = lambda aid, *_args, **_kwargs: utility[aid]
+
+        class FakeCoord:
+            def evaluate_gpu_admission(
+                self,
+                _adapter_id: str,
+                _size_mb: float,
+                tier: str = "host",
+                utility_override=None,
+            ):
+                return {
+                    "admit": True,
+                    "should_attempt": True,
+                    "effective_capacity_mb": 1024.0,
+                    "tier": tier,
+                }
+
+        candidate = stack.select_gpu_forward_candidate(
+            gpu_resident_adapters=set(),
+            coordinator=FakeCoord(),
+            preferred_gpu_adapters=["frontier_first", "frontier_second"],
+        )
+
+        self.assertIsNotNone(candidate)
+        self.assertEqual(candidate["adapter_id"], "frontier_first")
 
     def test_scaleup_gpu_candidates_rank_by_hotness_before_small_recency_deltas(self) -> None:
         stack = ExperimentStack.__new__(ExperimentStack)
@@ -4222,6 +5651,41 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         self.assertEqual(warmed, set())
         self.assertEqual(loaded, [])
+
+    def test_scaleup_warmup_uses_explicit_instance_plan_over_pending_global_plan(self) -> None:
+        loaded = []
+
+        class DummyEngine:
+            async def load_lora_to_gpu_and_measure(self, path: str, aid: str):
+                loaded.append((aid, path))
+                return 10.0, True
+
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.preload_cfg = {"gpu_warmup_hotness": 0.6}
+        runner.adapter_info = {
+            "planned_a": {"size_mb": 30.0, "hotness": 0.2},
+            "wrong_global": {"size_mb": 30.0, "hotness": 0.9},
+        }
+        runner._stack = SimpleNamespace(
+            _host_paths={
+                "planned_a": "/tmp/planned_a",
+                "wrong_global": "/tmp/wrong_global",
+            },
+            _nvme_paths={},
+            consume_scaleup_gpu_plan=lambda: ["wrong_global"],
+            registry=SimpleNamespace(update_artifact=lambda *_args, **_kwargs: None),
+        )
+
+        warmed = asyncio.run(
+            runner._warmup_engine_hot_set(
+                DummyEngine(),
+                coordinator=None,
+                planned_aids=["planned_a"],
+            )
+        )
+
+        self.assertEqual(warmed, {"planned_a"})
+        self.assertEqual(loaded, [("planned_a", "/tmp/planned_a")])
 
     def test_autoscaler_collect_metrics_uses_max_gpu_util_across_devices(self) -> None:
         class DummyConfig:

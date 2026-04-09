@@ -530,7 +530,17 @@ class ExperimentStack:
             return None
         self.sync_local_tier_paths()
         resident = set(gpu_resident_adapters or set())
-        preferred = set(preferred_gpu_adapters or [])
+        preferred_sequence: List[str] = []
+        seen_preferred: set = set()
+        for adapter_id in preferred_gpu_adapters or []:
+            if not adapter_id or adapter_id in seen_preferred:
+                continue
+            seen_preferred.add(adapter_id)
+            preferred_sequence.append(str(adapter_id))
+        preferred = set(preferred_sequence)
+        preferred_rank = {
+            adapter_id: idx for idx, adapter_id in enumerate(preferred_sequence)
+        }
         coord = coordinator if coordinator is not None else self.coordinator
         best: Optional[Dict[str, Any]] = None
         weakest_resident: Optional[Dict[str, Any]] = None
@@ -604,13 +614,18 @@ class ExperimentStack:
                 "net_gain": utility - float(replace["utility"]) if replace is not None else utility,
                 "last_accessed_at": last_accessed,
                 "replace": replace,
+                "preferred_rank": int(preferred_rank.get(adapter_id, 10 ** 6)),
             }
             if best is None or (
+                1 if candidate["adapter_id"] in preferred else 0,
+                -candidate["preferred_rank"],
                 candidate["net_gain"],
                 candidate["utility"],
                 candidate["last_accessed_at"],
                 candidate["adapter_id"],
             ) > (
+                1 if best["adapter_id"] in preferred else 0,
+                -int(best.get("preferred_rank", 10 ** 6)),
                 best["net_gain"],
                 best["utility"],
                 best["last_accessed_at"],

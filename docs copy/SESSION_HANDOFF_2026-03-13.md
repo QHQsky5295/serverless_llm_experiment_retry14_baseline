@@ -1,5 +1,67 @@
 # FaaSLoRA 会话交接文档（2026-03-13）
 
+> 2026-04-09 最新更新（当前最高优先级续接入口）：
+>
+> 如果新开会话，请先只看这一节，不要直接跳到下面旧的 `2026-04-03 / 2026-04-02 / 2026-04-01` 历史段落。
+>
+> 当前权威状态如下：
+>
+> - 权威 clean-tree：`/home/qhq/serverless_llm_experiment_retry14_baseline`
+> - 历史脏树：`/home/qhq/serverless_llm_experiment`
+> - 当前 active 主线分支：`retry14_continuous_queue_v2`
+> - `substrate_v1` 历史冻结分支：`retry14_rebuild`
+> - `substrate_v1` 历史 freeze 锚点：`050892a`
+> - 本次同步前上一公开锚点：`a96ab89`
+> - 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 7B 有效结果：`retry14_continuous_queue_v2_qwen7b_r500_baseline34_multiruntime_routeaware @ 500`
+> - 当前正式 workload 口径：
+>   - `Qwen/Qwen2.5-7B-Instruct`
+>   - `4 x RTX 3090 24GB`
+>   - `500 adapters`
+>   - `500 representative requests`
+>   - `Azure real trace arrivals + Azure token distribution + ShareGPT prompts`
+>   - `time_scale_factor = 1.0`
+> - 当前 mainline formal-run guard：
+>   - `arrival_source=azure_llm / token_source=azure_llm` 缺失时 fail-fast，不允许退回 `synthetic_poisson`
+>   - `prompt_source=sharegpt_auto` 缺失时 fail-fast，不允许退回 embedded prompts
+>   - `foreign GPU consumer` 检测保留，用于阻断外部进程污染正式结果
+> - 当前本地测试状态：
+>   - `tests.test_basic_smoke = 194/194 OK`
+>
+> 当前 2026-04-09 的真实技术结论：
+>
+> - TODO `#2R` 当前不需要重开；`continuous arrivals / shared pending queue / live/result semantics / official workload fail-fast` 仍保持收口状态。
+> - 当前 7B 主线不应再被表述为“所有指标都已经最优”，但已经到达**软收口 checkpoint**：
+>   - `baseline34` 相比 `baseline33` 已重新改善
+>     - `TTFT_scaleup_affected: 1474.5 -> 1393.0 ms`
+>     - `TTFT_scaleup_first_service: 1068.8 -> 778.8 ms`
+>     - `TPOT: 64.2 -> 61.9 ms`
+>     - `E2E_latency: 14166.7 -> 13641.3 ms`
+>     - `Throughput_tok/s: 25.86 -> 26.86`
+>   - 但 `baseline34` 相比 `baseline30` 仍没有完全拿回
+>     - `TTFT_overall: 1060.5 -> 1118.3 ms`
+>     - `TTFT_comparable: 1104.5 -> 1184.2 ms`
+>     - `GPU_hit_rate: 0.641 -> 0.596`
+> - 因此当前正式判断必须收紧为：
+>   - 7B 上不存在新的 crash 型结构性 bug
+>   - 当前代码已把最近几轮“修一处、破一处”的主要语义错位收回到一致链路
+>   - 但 7B 并未证明 TODO `#3` 在所有 headline 指标上已经完全收口
+>   - 现阶段更合理的工程动作是：**冻结 7B soft-close checkpoint，转入 14B bring-up，在同一 `continuous_queue_v2` 语义下验证可迁移性**
+> - 当前这批待同步代码的真实含义：
+>   - lane-aware instance state / routing 保护已补齐
+>   - scale-up first-service handoff 已升级为 multi-runtime route-aware plan
+>   - 4GPU 语义保持不变，不回退到 2GPU 假设
+>
+> 当前下一步正确方向：
+>
+> - 先把当前代码、测试与文档推到 GitHub，形成新的可回退快照。
+> - 7B 主线后续若要重开，只允许围绕 `first-service handoff match / exact plan quality` 继续收口；不再回头重改 substrate。
+> - 下一条 active 实验主线切到 `Qwen 14B TP=2`，在同一 `continuous_queue_v2` 框架下检查三项贡献是否还能稳定成立。
+> - TODO `#4/#5` 继续后置，不提前进入。
+>
+> 当前会话续接提示词（下一会话直接用）：
+>
+> `继续当前 clean-tree 主线。权威代码树是 /home/qhq/serverless_llm_experiment_retry14_baseline，active 分支是 retry14_continuous_queue_v2，substrate_v1 历史冻结分支是 retry14_rebuild。当前最新已正式分析、且属于 continuous_queue_v2 主线的 7B 有效结果是 retry14_continuous_queue_v2_qwen7b_r500_baseline34_multiruntime_routeaware @ 500。当前判断是：TODO #2R 不需要重开；7B 已达到 soft-close checkpoint，但并未证明 TODO #3 在所有 headline 指标上完全收口。baseline34 相比 baseline33 已改善 TTFT_scaleup_affected / TTFT_scaleup_first_service / TPOT / E2E / tok/s，但相对 baseline30 仍未完全拿回 TTFT_overall / TTFT_comparable / GPU_hit_rate。因此下一步先冻结并同步当前 7B checkpoint，再切到 Qwen 14B TP=2 的 continuous_queue_v2 bring-up，验证当前三项贡献在更大模型上的可迁移性。正式分析与讨论继续严格使用固定格式：当前步骤位置 / 已验证 / 推测 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO。`
+
 > 2026-04-03 最新更新（当前最高优先级续接入口）：
 >
 > 如果新开会话，请先只看这一节，不要直接跳到下面旧的 `2026-04-02 / 2026-04-01 / 2026-03-31` 历史段落。

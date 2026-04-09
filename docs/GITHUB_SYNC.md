@@ -2,6 +2,43 @@
 
 本文件说明当前 `serverless_llm_experiment_retry14_baseline` 如何同步到 GitHub，以及哪些内容应当、哪些内容不应当进入回退快照。
 
+## 2026-04-09 更新：本次同步应冻结 `continuous_queue_v2` 的 7B soft-close checkpoint，并把下一步切到 14B bring-up
+
+- 当前 active clean-tree 分支：`retry14_continuous_queue_v2`
+- `substrate_v1` 历史 freeze 分支：`retry14_rebuild`
+- `substrate_v1` 历史锚点：`050892a`
+- 本次同步前上一公开锚点：`a96ab89`
+- 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 7B 有效结果：`retry14_continuous_queue_v2_qwen7b_r500_baseline34_multiruntime_routeaware @ 500`
+- 当前必须纳入本次同步的新结论：
+  - TODO `#2R` 不需要重开
+  - 当前 7B 已达到可冻结的 soft-close checkpoint，但不能表述为“所有 headline 指标都已最优”
+  - `baseline34` 相比 `baseline33` 已改善 `TTFT_scaleup_affected / TTFT_scaleup_first_service / TPOT / E2E / tok/s`
+  - `baseline34` 相比 `baseline30` 仍未完全拿回 `TTFT_overall / TTFT_comparable / GPU_hit_rate`
+  - 因此本次同步的正式含义是：**冻结当前 7B checkpoint，下一步改做 14B bring-up，而不是继续在 7B 上无止境局部打补丁**
+- 当前必须纳入本次同步的代码语义：
+  - lane-aware instance state / routing 保护
+  - multi-runtime route-aware scale-up first-service handoff plan
+  - 4GPU 语义保持不变
+  - `azure_llm / sharegpt_auto` fail-fast guard 保持开启
+  - `foreign GPU consumer` guard 保持开启，继续保护正式实验有效性
+- 当前必须纳入本次同步的代码与文档：
+  - `faaslora/experiment/experiment_stack.py`
+  - `faaslora/experiment/instance_pool.py`
+  - `faaslora/scheduling/resource_coordinator.py`
+  - `scripts/run_all_experiments.py`
+  - `tests/test_basic_smoke.py`
+  - `docs/*.md`
+  - `docs copy/*.md`
+- 当前最新本地测试状态：
+  - `tests.test_basic_smoke = 194/194 OK`
+
+本次同步后的正确工程动作应是：
+
+1. 在 `retry14_continuous_queue_v2` 上 push 当前代码、测试与文档，形成新的可回退快照。
+2. 明确把这个快照定义为“7B soft-close checkpoint”，而不是“7B 全面最终最优版本”。
+3. 后续 active 主线切到 `Qwen 14B TP=2` 的 `continuous_queue_v2` bring-up。
+4. TODO `#4/#5` 继续后置，不提前进入。
+
 ## 2026-04-03 更新：本次同步应冻结 `continuous_queue_v2` bring-up 与 `baseline4_cadencefix` 正式结论
 
 - 当前 active clean-tree 分支：`retry14_continuous_queue_v2`
@@ -44,7 +81,8 @@
 
 当前建议：
 
-- 本次同步应把 `retry44_fix15` / `retry44_fix12` 的正式分析结论与当前 TODO `#3` 在研代码状态一起推到当前分支，作为新的可回退快照
+- 本次同步应把 `baseline34_multiruntime_routeaware` 的正式分析结论、当前 7B soft-close checkpoint 代码状态与全部同步文档一起推到当前分支，作为新的可回退快照
+- 同步完成后，后续 active 主线应切到 `Qwen 14B TP=2` 的 `continuous_queue_v2` bring-up
 - 是否合并到 `main` 另行决策
 
 ## 2026-04-02 更新：本次同步应冻结 `substrate_v1 + 4GPU-ready` 历史状态，并从该点切出 `retry14_continuous_queue_v2`

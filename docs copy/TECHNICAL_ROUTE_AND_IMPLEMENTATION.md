@@ -6,6 +6,31 @@
 
 - [RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md](RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md)
 
+> 2026-04-09 当前主线补充：
+>
+> - `continuous_queue_v2` 当前最新已正式分析的 7B 有效结果是 `retry14_continuous_queue_v2_qwen7b_r500_baseline34_multiruntime_routeaware @ 500`。
+> - 当前正式结论必须收紧为：
+>   - TODO `#2R`：不需要重开
+>   - 7B：达到可冻结的 soft-close checkpoint，但未证明 TODO `#3` 在所有 headline 指标上完全收口
+>   - 下一步：切到 `Qwen 14B TP=2` 的 `continuous_queue_v2` bring-up，验证当前三项贡献的可迁移性
+> - `baseline34` 相比 `baseline33` 已改善：
+>   - `TTFT_scaleup_affected`
+>   - `TTFT_scaleup_first_service`
+>   - `TPOT`
+>   - `E2E_latency`
+>   - `Throughput_tok/s`
+> - 但 `baseline34` 相比 `baseline30` 仍没有完全拿回：
+>   - `TTFT_overall`
+>   - `TTFT_comparable`
+>   - `GPU_hit_rate`
+> - 因此当前技术路线不应再理解成“继续在 7B 上无限细抠局部指标”，而应理解成：
+>   - 先冻结当前 7B checkpoint
+>   - 再在更大模型上检验现有请求放置、三层驻留与资源协同控制三条贡献链是否仍成立
+> - 当前待同步代码已经把最近几轮主要语义错位统一到了同一条因果链上：
+>   - lane-aware instance routing/state guard
+>   - multi-runtime route-aware scale-up handoff plan
+>   - 4GPU 运行语义保持不变
+>
 > 2026-04-03 当前主线补充：
 >
 > - `continuous_queue_v2` 当前最新已正式分析结果是 `retry14_continuous_queue_v2_qwen7b_r500_baseline4_cadencefix @ 500`。

@@ -10,6 +10,26 @@
 
 若本文与当前代码实现、`docs/PROJECT_PROGRESS.md`、`docs/SESSION_HANDOFF_2026-03-13.md` 冲突，以后两者和当前代码为准；本文主要负责记录调研事实、可比性边界和规划建议。
 
+> 2026-04-09 补充：
+>
+> - 当前 active mainline 仍是 `retry14_continuous_queue_v2`。
+> - 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 7B 有效结果是 `retry14_continuous_queue_v2_qwen7b_r500_baseline34_multiruntime_routeaware @ 500`。
+> - 当前正式判断已经从“先把 7B 某个单点数字刷到最低”收紧为：
+>   - 7B 当前已达到一个可冻结的 soft-close checkpoint
+>   - 它说明本文调研所强调的 `continuous online queue + handoff-aware scale-up` 大方向是对的
+>   - 但尚未证明 7B 上的 TODO `#3` 在所有 headline 指标上完全收口
+> - 最新结果信号是：
+>   - `baseline34` 相比 `baseline33` 已改善 `TTFT_scaleup_affected / TTFT_scaleup_first_service / TPOT / E2E / tok/s`
+>   - 但相对 `baseline30` 仍未完全拿回 `TTFT_overall / TTFT_comparable / GPU_hit_rate`
+> - 因此，本文第 6 节 TODO 排序的当前正式理解应更新为：
+>   - TODO `#2R`：不需要重开
+>   - 7B 上的 TODO `#3`：暂不作为唯一 active 主线无限延长
+>   - 下一条 active 主线：`Qwen 14B TP=2` 的 `continuous_queue_v2` bring-up
+>   - TODO `#4/#5`：继续后置
+> - 这一步符合本文调研结论中的“不要闭门造车”原则：
+>   - 先把当前更合理的 runner 语义冻结为可回退 checkpoint
+>   - 再在更大模型上验证同一机制链，而不是长期停留在单一 7B 局部调参
+>
 > 2026-04-03 补充：
 >
 > - 当前 active mainline 已经正式切到 `retry14_continuous_queue_v2`，`substrate_v1` 只保留为历史基线。

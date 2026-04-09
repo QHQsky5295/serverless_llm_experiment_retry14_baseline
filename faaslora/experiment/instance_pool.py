@@ -69,6 +69,7 @@ class InstanceSlot:
     observed_backbone_ttft_ms: float = 0.0
     observed_backbone_samples: int = 0
     observed_request_costs: Dict[str, ObservedRequestCost] = field(default_factory=dict)
+    inflight_request_deadlines: Dict[str, float] = field(default_factory=dict)
 
     def runtime_group_key(self) -> tuple:
         """Group logical slots that share one physical runtime."""
@@ -111,6 +112,73 @@ class InstanceSlot:
         if adapter_id in self.nvme_cached_adapters:
             return "nvme"
         return "remote"
+
+    def _prune_inflight_request_deadlines(
+        self,
+        now_monotonic: Optional[float] = None,
+    ) -> None:
+        if not self.inflight_request_deadlines:
+            return
+        if now_monotonic is None:
+            now_monotonic = time.perf_counter()
+        expired = [
+            request_id
+            for request_id, deadline in self.inflight_request_deadlines.items()
+            if float(deadline or 0.0) <= float(now_monotonic)
+        ]
+        for request_id in expired:
+            self.inflight_request_deadlines.pop(request_id, None)
+
+    def record_inflight_request_estimate(
+        self,
+        request_id: Optional[str],
+        total_busy_ms: float,
+        *,
+        now_monotonic: Optional[float] = None,
+    ) -> None:
+        if not request_id:
+            return
+        total_busy_ms = max(0.0, float(total_busy_ms or 0.0))
+        if total_busy_ms <= 0.0:
+            return
+        if now_monotonic is None:
+            now_monotonic = time.perf_counter()
+        self._prune_inflight_request_deadlines(now_monotonic)
+        self.inflight_request_deadlines[str(request_id)] = (
+            float(now_monotonic) + (total_busy_ms / 1000.0)
+        )
+
+    def clear_inflight_request_estimate(self, request_id: Optional[str]) -> None:
+        if not request_id:
+            return
+        self.inflight_request_deadlines.pop(str(request_id), None)
+
+    def inflight_request_remaining_ms(
+        self,
+        *,
+        now_monotonic: Optional[float] = None,
+    ) -> List[float]:
+        if now_monotonic is None:
+            now_monotonic = time.perf_counter()
+        self._prune_inflight_request_deadlines(now_monotonic)
+        return sorted(
+            max(0.0, (float(deadline or 0.0) - float(now_monotonic)) * 1000.0)
+            for deadline in self.inflight_request_deadlines.values()
+        )
+
+    def predicted_queue_wait_ms(
+        self,
+        *,
+        runtime_concurrency_cap: int,
+        now_monotonic: Optional[float] = None,
+    ) -> float:
+        remaining = self.inflight_request_remaining_ms(now_monotonic=now_monotonic)
+        lane_cap = max(1, int(runtime_concurrency_cap or 1))
+        if len(remaining) < lane_cap:
+            return 0.0
+        # When every lane is occupied, the next request can only start when the
+        # earliest in-flight lane becomes free.
+        return float(remaining[0])
 
     def update_runtime_hints(self, metrics: Optional[Dict[str, Any]]) -> None:
         """Refresh lightweight coordinator-derived routing hints."""
@@ -177,6 +245,27 @@ class InstanceSlot:
                 tail_service_ms=float(tail_service_ms or 0.0),
             )
 
+    def predicted_lora_io_ms(
+        self,
+        *,
+        adapter_id: Optional[str],
+        fallback_lora_io_ms: float = 0.0,
+    ) -> float:
+        """Predict the current per-slot LoRA I/O component for this adapter."""
+        if not adapter_id:
+            return 0.0
+
+        predicted_tier = self.predicted_cache_tier(adapter_id)
+        exact_bucket = self.observed_request_costs.get(f"lora_{predicted_tier}")
+        if exact_bucket is not None and exact_bucket.samples > 0:
+            return float(exact_bucket.avg_lora_io_ms or 0.0)
+
+        lora_any = self.observed_request_costs.get("lora_any")
+        if lora_any is not None and lora_any.samples > 0:
+            return float(lora_any.avg_lora_io_ms or 0.0)
+
+        return float(fallback_lora_io_ms or 0.0)
+
     def predicted_request_cost_ms(
         self,
         *,
@@ -213,7 +302,33 @@ class InstanceSlot:
             if lora_any is not None and lora_any.samples > 0
             else float(self.observed_runtime_ttft_ms or 0.0)
         )
-        return float(fallback_lora_io_ms or 0.0) + runtime_component
+        lora_io_component = self.predicted_lora_io_ms(
+            adapter_id=adapter_id,
+            fallback_lora_io_ms=fallback_lora_io_ms,
+        )
+        return float(lora_io_component) + runtime_component
+
+    def predicted_total_service_ms(
+        self,
+        *,
+        adapter_id: Optional[str],
+        fallback_lora_io_ms: float = 0.0,
+    ) -> float:
+        """
+        Predict the full per-request service footprint for routing.
+
+        Using only TTFT-side cost makes idle slots with historically expensive
+        decode/tail behavior look artificially cheap. The router's primary key
+        should stay aligned with the full request class cost that matters to
+        TTFT, TPOT, and end-to-end latency together.
+        """
+        return float(
+            self.predicted_request_cost_ms(
+                adapter_id=adapter_id,
+                fallback_lora_io_ms=fallback_lora_io_ms,
+            )
+            + self.predicted_tail_service_ms(adapter_id=adapter_id)
+        )
 
     def predicted_tail_service_ms(
         self,
@@ -345,6 +460,14 @@ class Router:
 
     def _service_cost(self, slot: InstanceSlot, adapter_id: Optional[str], adapter_size_mb: Optional[float]) -> float:
         fallback_lora_io_ms = self._fallback_lora_io_cost_ms(slot, adapter_size_mb, adapter_id)
+        total_predictor = getattr(slot, "predicted_total_service_ms", None)
+        if callable(total_predictor):
+            return float(
+                total_predictor(
+                    adapter_id=adapter_id,
+                    fallback_lora_io_ms=fallback_lora_io_ms,
+                )
+            )
         predictor = getattr(slot, "predicted_request_cost_ms", None)
         if callable(predictor):
             return float(
@@ -357,21 +480,118 @@ class Router:
 
     def _occupancy_cost(self, slot: InstanceSlot, adapter_id: Optional[str]) -> float:
         predictor = getattr(slot, "predicted_tail_service_ms", None)
-        if not callable(predictor):
-            return 0.0
+        tail_service_ms = 0.0
+        if callable(predictor):
+            tail_service_ms = max(
+                0.0,
+                float(predictor(adapter_id=adapter_id) or 0.0),
+            )
         active_requests = max(0, int(getattr(slot, "active_requests", 0) or 0))
         if active_requests <= 0:
             return 0.0
         busy_ratio = min(1.0, active_requests / float(self.runtime_concurrency_cap))
-        return float(busy_ratio * float(predictor(adapter_id=adapter_id) or 0.0))
+        baseline_overlap_ms = busy_ratio * tail_service_ms
+        queue_wait_ms = 0.0
+        if active_requests >= self.runtime_concurrency_cap:
+            queue_wait_fn = getattr(slot, "predicted_queue_wait_ms", None)
+            if callable(queue_wait_fn):
+                try:
+                    queue_wait_ms = max(
+                        0.0,
+                        float(
+                            queue_wait_fn(
+                                runtime_concurrency_cap=self.runtime_concurrency_cap,
+                            )
+                            or 0.0
+                        ),
+                    )
+                except Exception:
+                    queue_wait_ms = 0.0
+        return float(max(baseline_overlap_ms, queue_wait_ms))
+
+    @staticmethod
+    def _active_scaleup_handoff_budget(slot: InstanceSlot) -> bool:
+        request_budget = max(
+            0, int(getattr(slot, "scaleup_handoff_request_budget", 0) or 0)
+        )
+        if request_budget <= 0:
+            return False
+        assigned = max(
+            0, int(getattr(slot, "scaleup_handoff_assigned_requests", 0) or 0)
+        )
+        return assigned < request_budget
+
+    @staticmethod
+    def _remaining_scaleup_handoff_budget(slot: InstanceSlot) -> int:
+        request_budget = max(
+            0, int(getattr(slot, "scaleup_handoff_request_budget", 0) or 0)
+        )
+        assigned = max(
+            0, int(getattr(slot, "scaleup_handoff_assigned_requests", 0) or 0)
+        )
+        return max(0, request_budget - assigned)
+
+    def _protected_handoff_lanes(self, slot: InstanceSlot) -> int:
+        remaining_budget = self._remaining_scaleup_handoff_budget(slot)
+        if remaining_budget <= 0:
+            return 0
+        lane_cap = max(1, int(self.runtime_concurrency_cap or 1))
+        if lane_cap <= 1:
+            return 1
+        # Keep at least one lane open for the live queue so the scale-up runtime
+        # can still drain cold-path pressure while preserving a protected prefix
+        # for the planned handoff adapters.
+        return max(1, min(remaining_budget, lane_cap - 1))
+
+    def _handoff_reservation_active(self, slot: InstanceSlot) -> bool:
+        protected_lanes = self._protected_handoff_lanes(slot)
+        if protected_lanes <= 0:
+            return False
+        lane_cap = max(1, int(self.runtime_concurrency_cap or 1))
+        unprotected_lanes = max(0, lane_cap - protected_lanes)
+        active_requests = max(0, int(getattr(slot, "active_requests", 0) or 0))
+        return active_requests >= unprotected_lanes
+
+    def _handoff_priority(
+        self,
+        slot: InstanceSlot,
+        adapter_id: Optional[str],
+    ) -> tuple[int, int]:
+        if not self._active_scaleup_handoff_budget(slot):
+            return (0, 10**6)
+        adapter_key = str(adapter_id)
+        rank_map = dict(getattr(slot, "scaleup_handoff_planned_adapter_ranks", {}) or {})
+        if adapter_key in rank_map:
+            return (0, int(rank_map.get(adapter_key, 10**6)))
+        if not self._handoff_reservation_active(slot):
+            return (0, 10**6)
+        if not adapter_id:
+            return (2, 10**6)
+        return (1, 10**6)
+
+    @staticmethod
+    def _is_planned_handoff_adapter(
+        slot: InstanceSlot,
+        adapter_id: Optional[str],
+    ) -> bool:
+        if not adapter_id:
+            return False
+        rank_map = dict(getattr(slot, "scaleup_handoff_planned_adapter_ranks", {}) or {})
+        return str(adapter_id) in rank_map
 
     def _routing_key(self, slot: InstanceSlot, adapter_id: Optional[str], adapter_size_mb: Optional[float]) -> tuple:
         service_cost = self._service_cost(slot, adapter_id, adapter_size_mb)
         occupancy_cost = self._occupancy_cost(slot, adapter_id)
+        handoff_priority, handoff_rank = self._handoff_priority(slot, adapter_id)
+        total_cost = service_cost + occupancy_cost
+        reservation_penalty = handoff_priority
         return (
-            service_cost + occupancy_cost,
+            reservation_penalty,
+            total_cost,
             service_cost,
             occupancy_cost,
+            handoff_priority,
+            handoff_rank,
             slot.load_queue_depth,
             slot.active_requests,
             slot.gpu_utilization_pct,
@@ -392,5 +612,17 @@ class Router:
             self._rr_index = (self._rr_index + 1) % len(slots)
             return slots[self._rr_index]
         if self.policy in ("least_connections", "adapter_affinity"):
-            return min(slots, key=lambda s: self._routing_key(s, adapter_id, adapter_size_mb))
+            selected = min(
+                slots, key=lambda s: self._routing_key(s, adapter_id, adapter_size_mb)
+            )
+            if (
+                self._is_planned_handoff_adapter(selected, adapter_id)
+                and self._active_scaleup_handoff_budget(selected)
+            ):
+                assigned = max(
+                    0,
+                    int(getattr(selected, "scaleup_handoff_assigned_requests", 0) or 0),
+                )
+                selected.scaleup_handoff_assigned_requests = assigned + 1
+            return selected
         return slots[0]
