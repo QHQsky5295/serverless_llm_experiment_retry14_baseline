@@ -6,6 +6,34 @@
 
 - [RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md](RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md)
 
+> 2026-04-11 当前主线补充：
+>
+> - `continuous_queue_v2` 当前最新已正式分析、且最可信的 7B checkpoint 是 `retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`。
+> - 当前正式结论必须进一步收紧为：
+>   - TODO `#2R`：不需要重开
+>   - 7B 上的 `handoff exactness / async scale control / startup budget` 主链已达到 soft-close checkpoint
+>   - `baseline35` 不再被当成真实上界，因为其部分优势来自更乐观的 `bootstrap / ready-time` 语义
+>   - 下一步：切到 `Qwen 14B TP=2`，再切到另一模型家族，验证当前三项贡献的可迁移性
+> - `baseline44` 相比最近两轮可信主线的真实信号：
+>   - 相比 `baseline43`，`TTFT_overall / TTFT_comparable / TPOT / E2E / QPR / ColdStart` 全部明显回正
+>   - 相比 `baseline41`，`TTFT_overall / TTFT_comparable / TTFT_warm / TPOT / P95_TTFT / QPR` 进一步改善
+> - 当前技术路线已经确认并保留的修复链包括：
+>   - readiness-aware exact handoff prefix
+>   - route-aware empty prefix 不伪预热
+>   - runtime 启动后的 handoff refresh
+>   - async scale control
+>   - pending runtime sequence-aware slicing
+>   - event request-order sorting
+>   - startup fan-out budget 复用 `max_concurrent_loads`
+> - 当前还没有发挥作用、但属于下一阶段 C3 主线的机制是：
+>   - `warm pool retention`
+>   - `受控资源保留`
+>   - 当前结果信号是 `warm_pool_hits = 0`
+> - 因此当前技术路线不应再理解成“继续在 7B 上围绕 handoff 细节无限返工”，而应理解成：
+>   - 先冻结当前 7B checkpoint
+>   - 再在更大模型和另一模型家族上验证同一套请求放置、三层驻留和资源协同控制机制
+>   - 若跨模型验证重现同一条 C3 瓶颈，再回到 7B 与 14B 共通主链继续收口
+
 > 2026-04-09 当前主线补充：
 >
 > - `continuous_queue_v2` 当前最新已正式分析的 7B 有效结果是 `retry14_continuous_queue_v2_qwen7b_r500_baseline34_multiruntime_routeaware @ 500`。

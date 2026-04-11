@@ -2,6 +2,58 @@
 
 本文件说明当前 `serverless_llm_experiment_retry14_baseline` 如何同步到 GitHub，以及哪些内容应当、哪些内容不应当进入回退快照。
 
+## 2026-04-11 更新：本次同步应冻结 `continuous_queue_v2` 的 7B 可信 checkpoint，并把下一步切到 14B 与另一模型家族验证
+
+- 当前 active clean-tree 分支：`retry14_continuous_queue_v2`
+- `substrate_v1` 历史 freeze 分支：`retry14_rebuild`
+- `substrate_v1` 历史锚点：`050892a`
+- 本次同步前上一公开锚点：`a96ab89`
+- 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 7B **最可信 checkpoint**：`retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`
+- 当前必须纳入本次同步的新结论：
+  - TODO `#2R` 不需要重开
+  - 7B 上的 handoff exactness / async control / startup budget 主链可以视为 soft-close checkpoint
+  - `baseline35` 不再被当成真实上界；它的部分优势来自更乐观的 `bootstrap / ready-time` 语义
+  - `baseline42` 的退化来自异步扩容后关联链未同步收口；`baseline43` 的退化来自物理冷启动 fan-out 过强；二者都已修回
+  - `baseline44` 是当前最可信、最适合作为 GitHub 回退点的一轮
+  - 当前 7B 仍保留一个可重开的 C3 子问题：
+    - `warm_pool_hits = 0`
+    - `avg_cold_start_latency_ms = 60760.0`
+    - `avg_scaleup_first_service_ttft_ms = 1076.5`
+    但这已经不阻塞切换到 `14B + 另一模型家族` 做迁移性验证
+- 当前必须纳入本次同步的代码语义：
+  - readiness-aware exact handoff
+  - route-aware empty prefix 不再伪预热
+  - post-startup handoff refresh
+  - async scale control
+  - pending runtime sequence-aware slicing
+  - scale-up event request-order sorting
+  - startup fan-out budget 复用现有 `max_concurrent_loads` 语义，而不是新加模型特定硬编码
+- 当前必须纳入本次同步的代码与文档：
+  - `configs/experiments.yaml`
+  - `configs/generated/lora_manifest_1000.json`
+  - `faaslora/datasets/dataset_loader.py`
+  - `faaslora/datasets/workload_generator.py`
+  - `faaslora/experiment/instance_pool.py`
+  - `scripts/run_all_experiments.py`
+  - `scripts/run_cold_start_subprocess.py`
+  - `scripts/run_faaslora_subprocess.py`
+  - `scripts/run_transformers_subprocess.py`
+  - `tests/test_basic_smoke.py`
+  - `docs/*.md`
+- 当前必须从本次同步中移除的冗余内容：
+  - `docs copy/`
+  - 原因：与正式 `docs/` 顶层文件完全重复，仅额外包含一层无意义嵌套目录，不应继续保留
+- 当前最新本地测试状态：
+  - `tests.test_basic_smoke = 228/228 OK`
+
+本次同步后的正确工程动作应是：
+
+1. 在 `retry14_continuous_queue_v2` 上 push 当前代码、测试与正式文档，形成新的可回退快照。
+2. 明确把这个快照定义为“7B 可信 checkpoint”，而不是“7B 所有指标已经最终最优”。
+3. 后续 active 主线切到 `Qwen 14B TP=2` 的 `continuous_queue_v2` 验证。
+4. 紧接着切到另一模型家族，验证当前三项贡献是否具备跨家族可迁移性。
+5. TODO `#4/#5` 继续后置，不提前进入。
+
 ## 2026-04-09 更新：本次同步应冻结 `continuous_queue_v2` 的 7B soft-close checkpoint，并把下一步切到 14B bring-up
 
 - 当前 active clean-tree 分支：`retry14_continuous_queue_v2`

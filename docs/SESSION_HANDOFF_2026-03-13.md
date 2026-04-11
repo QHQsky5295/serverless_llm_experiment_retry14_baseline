@@ -1,5 +1,58 @@
 # FaaSLoRA 会话交接文档（2026-03-13）
 
+> 2026-04-11 最新更新（当前最高优先级续接入口）：
+>
+> 如果新开会话，请先只看这一节，不要直接跳到下面旧的 `2026-04-09 / 2026-04-03 / 2026-04-02` 历史段落。
+>
+> 当前权威状态如下：
+>
+> - 权威 clean-tree：`/home/qhq/serverless_llm_experiment_retry14_baseline`
+> - 历史脏树：`/home/qhq/serverless_llm_experiment`
+> - 当前 active 主线分支：`retry14_continuous_queue_v2`
+> - `substrate_v1` 历史冻结分支：`retry14_rebuild`
+> - `substrate_v1` 历史 freeze 锚点：`050892a`
+> - 本次同步前上一公开锚点：`a96ab89`
+> - 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 7B **最可信 checkpoint**：`retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`
+> - 当前正式 workload 口径：
+>   - `Qwen/Qwen2.5-7B-Instruct`
+>   - `4 x RTX 3090 24GB`
+>   - `500 adapters`
+>   - `500 representative requests`
+>   - `Azure real trace arrivals + Azure token distribution + ShareGPT prompts`
+>   - `time_scale_factor = 1.0`
+> - 当前 mainline formal-run guard：
+>   - `arrival_source=azure_llm / token_source=azure_llm` 缺失时 fail-fast，不允许退回 `synthetic_poisson`
+>   - `prompt_source=sharegpt_auto` 缺失时 fail-fast，不允许退回 embedded prompts
+>   - `foreign GPU consumer` 检测保留，用于阻断外部进程污染正式结果
+> - 当前本地测试状态：
+>   - `tests.test_basic_smoke = 228/228 OK`
+>
+> 当前 2026-04-11 的真实技术结论：
+>
+> - TODO `#2R` 当前不需要重开；`continuous arrivals / shared pending queue / live/result semantics / official workload fail-fast` 仍保持收口状态。
+> - 7B 当前不应再围绕 handoff/control 语义链无止境返工：
+>   - `baseline42` 的退化来自“异步扩容后 handoff refresh 与事件顺序未一起同步”
+>   - `baseline43` 的退化来自“物理冷启动 fan-out 过强，拖坏在线主实例”
+>   - 当前 `baseline44` 已把这两条链重新收回到一致语义
+> - 当前必须明确接受：
+>   - `baseline35` 的部分优势来自更乐观的 `bootstrap / ready-time` 语义
+>   - 它不能再被当成必须重新达到的真实上界
+> - 当前 7B 最合理判断是：
+>   - handoff exactness / async control / startup budget 这条主链已达到 soft-close checkpoint
+>   - `baseline44` 是当前最可信、最适合作为 GitHub 回退点的一轮
+>   - 但 7B 并未证明第三项贡献中的 `warm pool retention / 受控保留` 已经充分发挥作用
+>   - `warm_pool_hits = 0`、`avg_cold_start_latency_ms = 60760.0`、`avg_scaleup_first_service_ttft_ms = 1076.5` 仍说明 C3 后续还有空间
+> - 因此当前正确工程动作是：
+>   - 先把当前代码、测试与文档同步到 GitHub，形成新的可回退快照
+>   - 7B 主线视为**可冻结的可信 checkpoint**
+>   - 下一条 active 实验主线切到 `Qwen 14B TP=2`
+>   - 再切到另一模型家族，验证当前三项贡献是否具有可迁移性
+>   - 只有当更大模型或另一家族重新暴露同一条 C3 瓶颈时，才回到 7B 重开该子问题
+>
+> 当前会话续接提示词（下一会话直接用）：
+>
+> `继续当前 clean-tree 主线。权威代码树是 /home/qhq/serverless_llm_experiment_retry14_baseline，active 分支是 retry14_continuous_queue_v2，substrate_v1 历史冻结分支是 retry14_rebuild。当前最新已正式分析、且属于 continuous_queue_v2 主线的 7B 最可信 checkpoint 是 retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500。当前判断是：TODO #2R 不需要重开；7B 上 handoff exactness / async control / startup budget 这条主链已经达到 soft-close checkpoint，但第三项贡献中的 warm pool retention 仍未真正发挥作用。baseline35 不能再被当成真实上界，因为其部分优势来自更乐观的 bootstrap/ready-time 语义。下一步先同步当前代码、测试与正式文档，形成新的 GitHub 回退点；随后切到 Qwen 14B TP=2，再切到另一模型家族，验证当前三项贡献是否可迁移。正式分析与讨论继续严格使用固定格式：当前步骤位置 / 已验证 / 推测 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO。`
+
 > 2026-04-09 最新更新（当前最高优先级续接入口）：
 >
 > 如果新开会话，请先只看这一节，不要直接跳到下面旧的 `2026-04-03 / 2026-04-02 / 2026-04-01` 历史段落。

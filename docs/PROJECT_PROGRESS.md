@@ -42,6 +42,107 @@
 - `retry21` 及其对应脏树状态视为废案，不再作为正式对比对象。
 - 本次 GitHub 同步的目的不是发布最终结论，而是把当前 clean-tree 形成一个稳定回退点。
 
+## 2026-04-11 更新快照
+
+### 当前最新正式分析结果
+
+- 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 7B **最可信 checkpoint**：
+  - `retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`
+- 当前正式 workload 口径保持不变：
+  - `Qwen/Qwen2.5-7B-Instruct`
+  - `4 x RTX 3090 24GB`
+  - `500 adapters`
+  - `500 representative requests`
+  - `Azure real trace arrivals + Azure token distribution + ShareGPT prompts`
+  - `time_scale_factor = 1.0`
+- 当前最新本地测试状态：
+  - `tests.test_basic_smoke = 228/228 OK`
+
+### 2026-04-11 当前真实结论
+
+- TODO `#2R` 仍不需要重开：
+  - `continuous arrivals`
+  - `shared pending queue`
+  - `dispatch admission`
+  - `live scale cadence`
+  - `live/result semantics`
+  - `official workload fail-fast`
+  仍保持收口状态。
+- 当前 7B 主线已经从“修语义错位”阶段，推进到“可信 checkpoint + 是否继续迁移验证”阶段：
+  - `baseline44` 相比 `baseline43` 明显回正：
+    - `TTFT_overall = 2483.5 -> 1690.6 ms`
+    - `TTFT_comparable = 3026.6 -> 1368.5 ms`
+    - `TPOT = 82.9 -> 65.5 ms`
+    - `E2E_latency = 19137.3 -> 18157.3 ms`
+    - `QPR = 5253.8 -> 7620.7`
+    - `Cold_start_latency = 63973.3 -> 60760.0 ms`
+  - `baseline44` 相比 `baseline41` 也已进一步改善：
+    - `TTFT_overall = 1926.5 -> 1690.6 ms`
+    - `TTFT_comparable = 1692.6 -> 1368.5 ms`
+    - `TTFT_warm_standard = 1231.4 -> 1186.6 ms`
+    - `TPOT = 82.3 -> 65.5 ms`
+    - `QPR = 6720.7 -> 7620.7`
+    - `P95_TTFT = 9660.1 -> 8305.2 ms`
+- 当前必须明确写入文档的判断：
+  - `baseline35` 的部分优势来自更乐观的 `bootstrap / ready-time` 语义，不能再作为“必须重新达到的真实上界”。
+  - `baseline42` 与 `baseline43` 的退化，已经确认来自异步扩容引入后的关联链未同步收口，以及物理冷启动并发 fan-out 过强；这两条因果链已经修正。
+  - `baseline44` 是当前 7B 上**最可信、也最适合作为回退点**的一轮，而不是简单意义上的“局部偶然最好看数字”。
+- 当前 7B 仍然存在的、但不再阻塞切换模型验证的剩余问题：
+  - `avg_cold_start_latency_ms = 60760.0`
+  - `avg_scaleup_first_service_ttft_ms = 1076.5`
+  - `warm_pool_hits = 0`
+  这说明第三项贡献中的 `warm pool retention / 受控保留` 还没有真正发挥作用；它属于下一阶段可重开的 C3 主线，而不是当前 handoff/control 语义链未收口。
+
+### 当前最新代码状态
+
+- 当前待同步代码修改：
+  - `configs/experiments.yaml`
+  - `configs/generated/lora_manifest_1000.json`
+  - `faaslora/datasets/dataset_loader.py`
+  - `faaslora/datasets/workload_generator.py`
+  - `faaslora/experiment/instance_pool.py`
+  - `scripts/run_all_experiments.py`
+  - `scripts/run_cold_start_subprocess.py`
+  - `scripts/run_faaslora_subprocess.py`
+  - `scripts/run_transformers_subprocess.py`
+  - `tests/test_basic_smoke.py`
+  - `docs/*.md`
+- 这批代码的真实含义：
+  - `continuous_queue_v2` 主线保持不变，不回退到 `substrate_v1`
+  - readiness-aware exact handoff / route-aware empty prefix / post-startup refresh / async scale control / startup budget 已连成同一条语义链
+  - 后台扩容的物理冷启动并发，已经改为复用 `max_concurrent_loads` 语义，不再无约束并发拉起
+  - 4GPU 语义保持不变：
+    - `TP=1` 可扩到 `4` 个单卡 runtime
+    - `TP=2` 可扩到 `2` 个双卡 runtime
+  - 正式 workload 继续 fail-fast，不允许回退到 `synthetic_poisson` 或 embedded prompts
+
+### 当前高优先级 TODO 顺序
+
+1. `Qwen 14B TP=2` 的 `continuous_queue_v2` 验证
+   - 当前状态：下一条 active 主线
+   - 当前目标：
+     - 验证 7B 上已经收正的 handoff/control 语义是否可迁移
+     - 判断更大模型下的主矛盾是否转为物理冷启动、显存分层，还是仍然是扩容接管
+
+2. 另一模型家族的 `7B / 10B~14B` 级别验证
+   - 当前状态：紧随 14B 之后
+   - 当前目标：
+     - 判断当前系统是否已经摆脱对单一 Qwen 家族的隐式适配
+     - 验证三项贡献在不同模型家族上的可迁移性
+
+3. 7B 上的 C3 后续优化
+   - 当前状态：可重开但暂不优先
+   - 当前方向：
+     - `warm pool retention`
+     - `受控资源保留`
+     - 继续压 `Cold_start_latency / ScaleUp_first_service`
+
+4. TODO `#4`
+   - 继续后置
+
+5. TODO `#5`
+   - 继续后置
+
 ## 2026-04-09 更新快照
 
 ### 当前最新正式分析结果

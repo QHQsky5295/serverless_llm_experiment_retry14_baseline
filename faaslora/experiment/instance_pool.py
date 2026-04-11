@@ -563,10 +563,14 @@ class Router:
         rank_map = dict(getattr(slot, "scaleup_handoff_planned_adapter_ranks", {}) or {})
         if adapter_key in rank_map:
             return (0, int(rank_map.get(adapter_key, 10**6)))
+        # Preserve the planned LoRA prefix as a hard routing reservation while
+        # the scale-up handoff budget is still active. Otherwise an idle fresh
+        # runtime can absorb unrelated cold misses before it ever serves the
+        # adapters it was explicitly warmed for.
+        if adapter_id:
+            return (2, 10**6)
         if not self._handoff_reservation_active(slot):
             return (0, 10**6)
-        if not adapter_id:
-            return (2, 10**6)
         return (1, 10**6)
 
     @staticmethod

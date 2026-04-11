@@ -57,8 +57,8 @@ model_profiles:  # 可复用的模型 profile 集合
       dtype: "float16"  # 模型权重与推理使用的数据类型
       max_num_seqs: 8  # 单个 runtime 同时调度的最大序列数
       max_num_batched_tokens: 4096  # 单批次允许处理的最大 token 总数
-      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
-      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      max_output_tokens_cap: null  # official/modern 路径不追加统一输出截断，保留真实请求输出长度分布
+      max_input_len: null  # official/modern 路径不追加统一输入截断，只保留 max_model_len 上下文约束
       runtime_concurrency_cap: 8  # 单个 runtime 允许的并发处理上限
     hardware:  # 硬件容量与显存估计配置块
       model_weights_mb: 3200  # 基座模型权重占用的显存估计值（MB）
@@ -80,8 +80,8 @@ model_profiles:  # 可复用的模型 profile 集合
       dtype: "float16"  # 模型权重与推理使用的数据类型
       max_num_seqs: 4  # 单个 runtime 同时调度的最大序列数
       max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
-      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
-      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      max_output_tokens_cap: null  # official/modern 路径不追加统一输出截断，保留真实请求输出长度分布
+      max_input_len: null  # official/modern 路径不追加统一输入截断，只保留 max_model_len 上下文约束
       runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
     hardware:  # 硬件容量与显存估计配置块
       model_weights_mb: 14336  # 基座模型权重占用的显存估计值（MB）
@@ -105,8 +105,8 @@ model_profiles:  # 可复用的模型 profile 集合
       dtype: "float16"
       max_num_seqs: 2  # 先把 runtime 内部调度并发降到 2，避免单实例高水位时 EngineCore 提前死亡
       max_num_batched_tokens: 1024
-      max_output_tokens_cap: 64
-      max_input_len: 256
+      max_output_tokens_cap: null
+      max_input_len: null
       runtime_concurrency_cap: 2  # 系统层并发同步收紧，优先保证 Qwen 7B V2 scale-out 跑稳
       enable_chunked_prefill: false  # 关闭 chunked prefill，减少 V1 路径下的额外运行时变量
       enable_prefix_caching: false  # 关闭 prefix caching，降低异构 publicmix LoRA 与缓存路径交互的不确定性
@@ -136,8 +136,8 @@ model_profiles:  # 可复用的模型 profile 集合
       dtype: "float16"  # 模型权重与推理使用的数据类型
       max_num_seqs: 4  # 单个 runtime 同时调度的最大序列数
       max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
-      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
-      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      max_output_tokens_cap: null  # official/modern 路径不追加统一输出截断，保留真实请求输出长度分布
+      max_input_len: null  # official/modern 路径不追加统一输入截断，只保留 max_model_len 上下文约束
       runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
     hardware:  # 硬件容量与显存估计配置块
       model_weights_mb: 14336  # 基座模型权重占用的显存估计值（MB）
@@ -162,8 +162,8 @@ model_profiles:  # 可复用的模型 profile 集合
       dtype: "float16"
       max_num_seqs: 4
       max_num_batched_tokens: 1024
-      max_output_tokens_cap: 64
-      max_input_len: 256
+      max_output_tokens_cap: null
+      max_input_len: null
       runtime_concurrency_cap: 4
     hardware:
       model_weights_mb: 14336
@@ -188,8 +188,8 @@ model_profiles:  # 可复用的模型 profile 集合
       dtype: "float16"  # 模型权重与推理使用的数据类型
       max_num_seqs: 2  # 单个 runtime 同时调度的最大序列数
       max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
-      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
-      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      max_output_tokens_cap: null  # official/modern 路径不追加统一输出截断，保留真实请求输出长度分布
+      max_input_len: null  # official/modern 路径不追加统一输入截断，只保留 max_model_len 上下文约束
       runtime_concurrency_cap: 2  # 单个 runtime 允许的并发处理上限
     hardware:  # 硬件容量与显存估计配置块
       model_weights_mb: 28672  # 基座模型权重占用的显存估计值（MB）
@@ -214,8 +214,8 @@ model_profiles:  # 可复用的模型 profile 集合
       dtype: "float16"
       max_num_seqs: 2
       max_num_batched_tokens: 1024
-      max_output_tokens_cap: 64
-      max_input_len: 256
+      max_output_tokens_cap: null
+      max_input_len: null
       runtime_concurrency_cap: 2
     hardware:
       model_weights_mb: 28672
@@ -239,8 +239,8 @@ model_profiles:  # 可复用的模型 profile 集合
       dtype: "float16"  # 模型权重与推理使用的数据类型
       max_num_seqs: 4  # 单个 runtime 同时调度的最大序列数
       max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
-      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
-      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      max_output_tokens_cap: null  # official/modern 路径不追加统一输出截断，保留真实请求输出长度分布
+      max_input_len: null  # official/modern 路径不追加统一输入截断，只保留 max_model_len 上下文约束
       runtime_concurrency_cap: 4  # 单个 runtime 允许的并发处理上限
     hardware:  # 硬件容量与显存估计配置块
       model_weights_mb: 14336  # 基座模型权重占用的显存估计值（MB）
@@ -264,8 +264,8 @@ model_profiles:  # 可复用的模型 profile 集合
       dtype: "float16"  # 推理 dtype
       max_num_seqs: 2  # V2 publicmix 先降到 2，减少异构 LoRA 下的调度并发
       max_num_batched_tokens: 1024  # 单批允许处理的最大 token 总数
-      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
-      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      max_output_tokens_cap: null  # official/modern 路径不追加统一输出截断，保留真实请求输出长度分布
+      max_input_len: null  # official/modern 路径不追加统一输入截断，只保留 max_model_len 上下文约束
       runtime_concurrency_cap: 2  # 系统层并发先降到 2，优先跑稳 Mistral 7B V2
       tokenizer_mode: "mistral"  # 强制使用 Mistral tokenizer 模式，和 Nemo 路径保持一致
       enable_chunked_prefill: false  # 关闭 chunked prefill，降低 V2 publicmix 下的运行时不稳定性
@@ -296,8 +296,8 @@ model_profiles:  # 可复用的模型 profile 集合
       dtype: "float16"  # 模型权重与推理使用的数据类型
       max_num_seqs: 1  # Nemo + TP=2 主线先串行化 runtime 内部调度，绕开已观测到的 V1 LoRA 并发不稳定
       max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
-      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
-      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      max_output_tokens_cap: null  # official/modern 路径不追加统一输出截断，保留真实请求输出长度分布
+      max_input_len: null  # official/modern 路径不追加统一输入截断，只保留 max_model_len 上下文约束
       runtime_concurrency_cap: 1  # 主线先限制单 runtime 并发为 1，把请求排队到系统层而不是交给易崩的内核组合
       tokenizer_mode: "mistral"  # Mistral/Nemo tokenizer 走官方专用模式，修正 auto 模式下的 regex 警告
       enable_chunked_prefill: false  # Nemo 当前禁用 chunked prefill，避免 TP=2 + LoRA + V1 路径不稳定
@@ -328,8 +328,8 @@ model_profiles:  # 可复用的模型 profile 集合
       dtype: "float16"  # 推理 dtype
       max_num_seqs: 1  # Nemo TP=2 默认仍回退到首轮稳定值；max_num_seqs=2 仅作为已记录的敏感性实验
       max_num_batched_tokens: 1024  # 单批允许处理的最大 token 总数
-      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
-      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      max_output_tokens_cap: null  # official/modern 路径不追加统一输出截断，保留真实请求输出长度分布
+      max_input_len: null  # official/modern 路径不追加统一输入截断，只保留 max_model_len 上下文约束
       runtime_concurrency_cap: 1  # Nemo TP=2 默认仍回退到首轮稳定值；并发=2 仅作为已记录的敏感性实验
       tokenizer_mode: "mistral"  # 强制使用 Mistral tokenizer 模式
       enable_chunked_prefill: false  # 当前保守关闭 chunked prefill，降低 TP=2 + LoRA 风险
@@ -599,9 +599,9 @@ model:  # 模型配置块，或当前选中的 model profile 名称
   max_num_seqs: 8                   # 兼容回退默认值
   max_num_batched_tokens: 4096      # 兼容回退默认值
 
-  # transformers 后端：限制输出以减小 KV cache，避免 OOM/已杀死
-  max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
-  max_input_len: 256              # 输入截断长度，与 Azure trace 分布一致
+  # official 主线不再追加统一 input/output cap；只保留 max_model_len 作为部署上下文约束
+  max_output_tokens_cap: null
+  max_input_len: null
   runtime_concurrency_cap: 8      # 兼容回退默认值；仅在旧路径未走 active profile 时使用
 
   # ── 备选：Qwen2.5-7B-Instruct（需要更保守的显存设置）───────────────
@@ -644,8 +644,8 @@ backend_profiles:  # 按推理后端切换的覆写 profile 集合
       max_loras: 2  # 单个 runtime 同时驻留的最大 LoRA 数量
       max_num_seqs: 2  # 单个 runtime 同时调度的最大序列数
       max_num_batched_tokens: 512  # 单批次允许处理的最大 token 总数
-      max_output_tokens_cap: 64  # 单次生成的最大输出 token 上限
-      max_input_len: 256  # 单请求输入最大长度，超出会截断
+      max_output_tokens_cap: null  # transformers fallback 也不追加统一输出截断
+      max_input_len: null  # transformers fallback 也不追加统一输入截断
       runtime_concurrency_cap: 1  # 单个 runtime 允许的并发处理上限
     resource_coordination:  # 扩缩容与资源协同调度配置块
       max_instances: 1  # 最多允许同时存在的物理实例数

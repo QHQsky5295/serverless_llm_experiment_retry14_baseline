@@ -30,6 +30,7 @@ import json
 import logging
 import math
 import random
+from bisect import bisect_left
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -644,6 +645,8 @@ class WorkloadDataset:
 
         self._azure_records: Optional[List[AzureRecord]] = None
         self._sgpt_records:  Optional[List[ShareGPTRecord]] = None
+        self._sgpt_records_sorted_by_input: Optional[List[ShareGPTRecord]] = None
+        self._sgpt_input_lengths: List[int] = []
         self._initialized = False
 
     def initialize(
@@ -664,11 +667,67 @@ class WorkloadDataset:
             max_samples=max_sgpt,
             source_mode=prompt_source,
         )
+        if self._sgpt_records:
+            self._sgpt_records_sorted_by_input = sorted(
+                self._sgpt_records,
+                key=lambda record: (
+                    int(record.input_tokens or 0),
+                    int(record.output_tokens or 0),
+                    str(record.conversation_id),
+                ),
+            )
+            self._sgpt_input_lengths = [
+                max(1, int(record.input_tokens or 1))
+                for record in self._sgpt_records_sorted_by_input
+            ]
+        else:
+            self._sgpt_records_sorted_by_input = None
+            self._sgpt_input_lengths = []
         self._initialized = True
         return {
             "azure": azure_stats,
             "sharegpt": self.sgpt.get_stats(),
         }
+
+    def _select_sharegpt_record(
+        self,
+        rng: random.Random,
+        *,
+        target_input_tokens: Optional[int] = None,
+        target_output_tokens: Optional[int] = None,
+    ) -> Optional[ShareGPTRecord]:
+        records = self._sgpt_records_sorted_by_input or self._sgpt_records or []
+        if not records:
+            return None
+
+        target_in = max(1, int(target_input_tokens or 0))
+        target_out = max(1, int(target_output_tokens or 0))
+        if target_in <= 0 or not self._sgpt_input_lengths:
+            return rng.choice(records)
+
+        insertion = bisect_left(self._sgpt_input_lengths, target_in)
+        window = max(24, min(128, len(records) // 20 or 24))
+        lo = max(0, insertion - window)
+        hi = min(len(records), insertion + window + 1)
+        candidates = records[lo:hi] or records
+
+        def _score(record: ShareGPTRecord) -> Tuple[float, float, str]:
+            record_in = max(1, int(record.input_tokens or 1))
+            record_out = max(1, int(record.output_tokens or 1))
+            input_gap = abs(math.log1p(record_in) - math.log1p(target_in))
+            output_gap = (
+                abs(math.log1p(record_out) - math.log1p(target_out))
+                if target_out > 0
+                else 0.0
+            )
+            return (
+                input_gap + 0.25 * output_gap,
+                abs(record_in - target_in),
+                str(record.conversation_id),
+            )
+
+        ranked = sorted(candidates, key=_score)
+        return ranked[0] if ranked else rng.choice(records)
 
     def generate_traces(
         self,
@@ -712,7 +771,16 @@ class WorkloadDataset:
         if traces and self._sgpt_records:
             rng = random.Random(seed)
             for t in traces:
-                t.prompt = rng.choice(self._sgpt_records).prompt
+                matched = self._select_sharegpt_record(
+                    rng,
+                    target_input_tokens=getattr(t, "expected_input_tokens", None),
+                    target_output_tokens=getattr(t, "expected_output_tokens", None),
+                )
+                if matched is None:
+                    continue
+                t.prompt = matched.prompt
+                t.prompt_input_tokens = max(1, int(matched.input_tokens or 1))
+                t.prompt_output_tokens = max(1, int(matched.output_tokens or 1))
         return traces
 
     def sample_request(
@@ -728,8 +796,13 @@ class WorkloadDataset:
             rec = rng.choice(self._azure_records)
             in_t  = max(10, rec.context_tokens)
             out_t = max(10, rec.generated_tokens)
-        if self._sgpt_records:
-            prompt = rng.choice(self._sgpt_records).prompt
+        matched = self._select_sharegpt_record(
+            rng,
+            target_input_tokens=in_t,
+            target_output_tokens=out_t,
+        )
+        if matched is not None:
+            prompt = matched.prompt
         else:
             from .sharegpt_prompts import ALL_PROMPTS
             prompt = rng.choice(ALL_PROMPTS)[0]

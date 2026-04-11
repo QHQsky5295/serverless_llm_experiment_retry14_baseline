@@ -2,6 +2,27 @@
 
 本文档记录当前干净树 `serverless_llm_experiment_retry14_baseline` 的真实运行环境、启动方式和本机约束。
 
+## 0. 2026-04-11 当前同步口径
+
+- 当前 active 主线分支：`retry14_continuous_queue_v2`
+- 当前最新已正式分析、且最可信的 7B checkpoint：`retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`
+- 当前 7B 正式 workload：
+  - `Qwen/Qwen2.5-7B-Instruct`
+  - `4 x RTX 3090 24GB`
+  - `500 adapters`
+  - `500 representative requests`
+  - `Azure real trace arrivals + Azure token distribution + ShareGPT prompts`
+  - `time_scale_factor = 1.0`
+- 当前下一步 active 主线将转入：
+  - `Qwen 14B TP=2`
+  - 然后转入另一模型家族的 `7B / 10B~14B` 级别验证
+  - 仍在同一 `continuous_queue_v2` runner 语义下进行
+- 当前正式长跑建议继续使用：
+  - `scripts/run_all_experiments_user_scope.sh`
+  - 避免直接从即将关闭的 SSH/session scope 启动，触发 systemd closing-session guard
+- 当前本地测试状态：
+  - `tests.test_basic_smoke = 228/228 OK`
+
 ## 0. 2026-04-09 当前同步口径
 
 - 当前 active 主线分支：`retry14_continuous_queue_v2`

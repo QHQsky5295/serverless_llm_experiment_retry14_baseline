@@ -40,6 +40,8 @@ class RequestTrace:
     adapter_domain: Optional[str]
     expected_input_tokens: int
     expected_output_tokens: int
+    prompt_input_tokens: Optional[int] = None
+    prompt_output_tokens: Optional[int] = None
     is_burst: bool = False       # Part of a simulated burst / scale-up event
 
 
@@ -195,7 +197,7 @@ class WorkloadGenerator:
                 adapter_id = self.rng.choices(sample_ids, weights=sample_weights, k=1)[0]
                 adapter_domain = cfg.adapter_domain_map.get(adapter_id, "general")
 
-            prompt, in_tokens, out_tokens = self._sample_request(adapter_domain)
+            prompt, in_tokens, out_tokens, prompt_in_tokens, prompt_out_tokens = self._sample_request(adapter_domain)
 
             traces.append(RequestTrace(
                 request_id=f"req_{i:05d}",
@@ -205,6 +207,8 @@ class WorkloadGenerator:
                 adapter_domain=adapter_domain,
                 expected_input_tokens=in_tokens,
                 expected_output_tokens=out_tokens,
+                prompt_input_tokens=prompt_in_tokens,
+                prompt_output_tokens=prompt_out_tokens,
                 is_burst=is_burst,
             ))
 
@@ -370,7 +374,7 @@ class WorkloadGenerator:
 
     def _sample_request(
         self, domain: Optional[str] = None
-    ) -> Tuple[str, int, int]:
+    ) -> Tuple[str, int, int, Optional[int], Optional[int]]:
         """
         Sample (prompt, input_tokens, output_tokens).
         Token lengths come from Azure LLM trace when available.
@@ -388,16 +392,28 @@ class WorkloadGenerator:
             out_tokens = max(10, int(self.rng.gauss(
                 self.config.output_mean_tokens, self.config.output_std_tokens)))
 
+        prompt_input_tokens: Optional[int] = None
+        prompt_output_tokens: Optional[int] = None
         # Prompt text
         if self._dataset and self._dataset._sgpt_records:
-            prompt = self.rng.choice(self._dataset._sgpt_records).prompt
+            matched = self._dataset._select_sharegpt_record(
+                self.rng,
+                target_input_tokens=in_tokens,
+                target_output_tokens=out_tokens,
+            )
+            if matched is not None:
+                prompt = matched.prompt
+                prompt_input_tokens = max(1, int(matched.input_tokens or 1))
+                prompt_output_tokens = max(1, int(matched.output_tokens or 1))
+            else:
+                prompt = self.rng.choice(self._dataset._sgpt_records).prompt
         else:
             from .sharegpt_prompts import PROMPT_DOMAINS, ALL_PROMPTS
             pool = PROMPT_DOMAINS.get(domain, ALL_PROMPTS) if domain else ALL_PROMPTS
-            prompt = self.rng.choice(pool)[0]
+            prompt, prompt_input_tokens, prompt_output_tokens = self.rng.choice(pool)
 
-        return prompt, in_tokens, out_tokens
+        return prompt, in_tokens, out_tokens, prompt_input_tokens, prompt_output_tokens
 
-    def _sample_prompt(self, domain: Optional[str] = None) -> Tuple[str, int, int]:
+    def _sample_prompt(self, domain: Optional[str] = None) -> Tuple[str, int, int, Optional[int], Optional[int]]:
         """Alias for backward compatibility."""
         return self._sample_request(domain)

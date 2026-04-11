@@ -90,7 +90,21 @@ def _build_generate_kwargs(model, tokenizer, max_new_tokens: int, *, temperature
     return kwargs
 
 
-def run_backbone_inline(model_path: str, requests: list, return_stats: bool = False):
+def _tokenize_prompt(tokenizer, prompt: str, max_input_len: int):
+    kwargs = {"return_tensors": "pt"}
+    if max_input_len > 0:
+        kwargs.update(truncation=True, max_length=max_input_len)
+    return tokenizer(prompt, **kwargs)
+
+
+def run_backbone_inline(
+    model_path: str,
+    requests: list,
+    *,
+    max_input_len: int = 0,
+    max_output_cap: int = 0,
+    return_stats: bool = False,
+):
     """
     Core inference logic for backbone_only scenario.
     Can be called directly (no subprocess) or from main() via CLI.
@@ -115,15 +129,18 @@ def run_backbone_inline(model_path: str, requests: list, return_stats: bool = Fa
     model = _load_model_to_cuda(model_path, device="cuda:0")
     model.eval()
 
-    max_input_len = 256
+    max_input_len = max(0, int(max_input_len or 0))
+    max_output_cap = max(0, int(max_output_cap or 0))
     results = []
     serving_t0 = time.perf_counter()
     for i, req in enumerate(requests):
-        prompt = req.get("prompt", "")[:1500]
+        prompt = req.get("prompt", "")
         max_tokens = int(req.get("max_tokens", 128))
+        if max_output_cap > 0:
+            max_tokens = min(max_tokens, max_output_cap)
         temperature = float(req.get("temperature", 0.7))
         top_p = float(req.get("top_p", 0.9))
-        inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=max_input_len)
+        inputs = _tokenize_prompt(tokenizer, prompt, max_input_len)
         input_ids = inputs["input_ids"].to("cuda:0")
         attention_mask = inputs["attention_mask"].to("cuda:0")
         t0 = time.perf_counter()
@@ -185,7 +202,14 @@ def main():
     with open(input_path) as f:
         requests = json.load(f)
 
-    results = run_backbone_inline(model_path, requests)
+    max_input_len = int(os.environ.get("FAASLORA_MAX_INPUT_LEN", "0") or 0)
+    max_output_cap = int(os.environ.get("FAASLORA_MAX_OUTPUT_TOKENS_CAP", "0") or 0)
+    results = run_backbone_inline(
+        model_path,
+        requests,
+        max_input_len=max_input_len,
+        max_output_cap=max_output_cap,
+    )
 
     with open(output_path, "w") as f:
         json.dump(results, f, indent=0)

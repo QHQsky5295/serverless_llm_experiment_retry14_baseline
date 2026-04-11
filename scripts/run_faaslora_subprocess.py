@@ -132,6 +132,13 @@ def _build_generate_kwargs(model, tokenizer, max_new_tokens: int, *, temperature
     return kwargs
 
 
+def _tokenize_prompt(tokenizer, prompt: str, max_input_len: int):
+    kwargs = {"return_tensors": "pt"}
+    if max_input_len > 0:
+        kwargs.update(truncation=True, max_length=max_input_len)
+    return tokenizer(prompt, **kwargs)
+
+
 def run_inference_inline(
     model_path: str,
     traces: list,
@@ -142,8 +149,8 @@ def run_inference_inline(
     min_hotness: float = 0.3,
     gpu_warmup_hotness: float = 0.9,
     max_adapters: int = 2,
-    max_input_len: int = 256,
-    max_output_cap: int = 64,
+    max_input_len: int = 0,
+    max_output_cap: int = 0,
     skip_page_cache_warm: bool = False,
     return_stats: bool = False,
 ):
@@ -188,8 +195,8 @@ def run_inference_inline(
 
     nvme_dir.mkdir(parents=True, exist_ok=True)
     max_adapters = max(int(max_adapters), 1)
-    max_input_len = max(int(max_input_len), 8)
-    max_output_cap = max(int(max_output_cap), 1)
+    max_input_len = max(0, int(max_input_len or 0))
+    max_output_cap = max(0, int(max_output_cap or 0))
     print(
         f"[DBG] runtime cfg: min_hotness={min_hotness} "
         f"gpu_warmup_hotness={gpu_warmup_hotness} "
@@ -245,7 +252,7 @@ def run_inference_inline(
             "Warmup",
             return_tensors="pt",
             truncation=True,
-            max_length=min(max_input_len, 16),
+            max_length=min(max_input_len, 16) if max_input_len > 0 else 16,
         )
         warm_input_ids = warm_inputs["input_ids"].to("cuda:0")
         warm_attention_mask = warm_inputs["attention_mask"].to("cuda:0")
@@ -270,13 +277,13 @@ def run_inference_inline(
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
-    max_tokens_default = 128
+    max_tokens_default = max_output_cap if max_output_cap > 0 else 128
     results = []
     serving_t0 = time.perf_counter()
     print(f"[DBG] starting inference loop ({len(traces)} traces)", flush=True)
 
     for i, tr in enumerate(traces):
-        prompt = (tr.get("prompt") or "")[:1500]
+        prompt = tr.get("prompt") or ""
         adapter_id = tr.get("adapter_id")
         max_tokens = (
             min(int(tr.get("max_tokens", max_tokens_default)), max_output_cap)
@@ -336,7 +343,7 @@ def run_inference_inline(
             adapter_lru.append(adapter_id)
             model_to_use = peft_model
 
-        inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=max_input_len)
+        inputs = _tokenize_prompt(tokenizer, prompt, max_input_len)
         input_ids = inputs["input_ids"].to("cuda:0")
         attention_mask = inputs["attention_mask"].to("cuda:0")
 
@@ -432,7 +439,17 @@ def main():
         _ts.load = _load
         torch.load = _load
 
-    results = run_inference_inline(model_path, traces, remote_dir, nvme_dir, adapter_info)
+    max_input_len = int(os.environ.get("FAASLORA_MAX_INPUT_LEN", "0") or 0)
+    max_output_cap = int(os.environ.get("FAASLORA_MAX_OUTPUT_TOKENS_CAP", "0") or 0)
+    results = run_inference_inline(
+        model_path,
+        traces,
+        remote_dir,
+        nvme_dir,
+        adapter_info,
+        max_input_len=max_input_len,
+        max_output_cap=max_output_cap,
+    )
 
     with open(output_path, "w") as f:
         json.dump(results, f, indent=0)

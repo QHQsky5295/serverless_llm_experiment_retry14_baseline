@@ -10,6 +10,28 @@
 
 若本文与当前代码实现、`docs/PROJECT_PROGRESS.md`、`docs/SESSION_HANDOFF_2026-03-13.md` 冲突，以后两者和当前代码为准；本文主要负责记录调研事实、可比性边界和规划建议。
 
+> 2026-04-11 补充：
+>
+> - 当前 active mainline 仍是 `retry14_continuous_queue_v2`。
+> - 当前最新已正式分析、且最可信的 7B checkpoint 是 `retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`。
+> - 当前正式判断进一步收紧为：
+>   - `baseline35` 不能再被当成真实上界，因为其部分优势来自更乐观的 `bootstrap / ready-time` 语义
+>   - `baseline44` 已经把最近几轮由语义错位和并发 fan-out 带来的结构性回归收回
+>   - 7B 当前更合理的工程状态是“可信 checkpoint + 准备做跨模型迁移验证”，而不是“继续在单一 7B 上无限刷局部最好数字”
+> - 这一步与本文调研结论一致：
+>   - 同类论文不会把某个单模型单机型上的一次局部最优，当成系统已经方法学收口的唯一证据
+>   - 更合理的下一步是转向 `14B` 和另一模型家族，验证三项贡献是否具备跨模型可迁移性
+> - 如果后续重开 7B，当前最符合本文调研逻辑的重开方向不再是 handoff exactness，而是第三项贡献中的：
+>   - `warm pool retention`
+>   - `受控资源保留`
+>   - 也就是进一步降低真实物理冷启动带来的代价
+> - 因此，本文第 6 节 TODO 排序的当前正式理解应更新为：
+>   - TODO `#2R`：不需要重开
+>   - 7B 主线：当前可 soft-close
+>   - 下一条 active 主线：`Qwen 14B TP=2`
+>   - 紧接着：另一模型家族的迁移验证
+>   - TODO `#4/#5`：继续后置
+
 > 2026-04-09 补充：
 >
 > - 当前 active mainline 仍是 `retry14_continuous_queue_v2`。

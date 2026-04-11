@@ -109,12 +109,21 @@ def _build_generate_kwargs(model, tokenizer, max_new_tokens: int, *, temperature
     return kwargs
 
 
+def _tokenize_prompt(tokenizer, prompt: str, max_input_len: int):
+    kwargs = {"return_tensors": "pt"}
+    if max_input_len > 0:
+        kwargs.update(truncation=True, max_length=max_input_len)
+    return tokenizer(prompt, **kwargs)
+
+
 def run_cold_start_inline(
     model_path: str,
     traces: list,
     remote_dir,
     nvme_dir,
     bw_mbps: float = 250.0,
+    max_input_len: int = 0,
+    max_output_cap: int = 0,
     return_stats: bool = False,
 ):
     """
@@ -148,17 +157,20 @@ def run_cold_start_inline(
     base_model = _load_model_to_cuda(model_path, device="cuda:0")
     base_model.eval()
 
-    max_input_len = 256
-    max_tokens_default = 128
+    max_input_len = max(0, int(max_input_len or 0))
+    max_output_cap = max(0, int(max_output_cap or 0))
+    max_tokens_default = max_output_cap if max_output_cap > 0 else 128
     peft_model = None
     loaded_adapter = None
     results = []
     serving_t0 = time.perf_counter()
 
     for i, tr in enumerate(traces):
-        prompt = (tr.get("prompt") or "")[:1500]
+        prompt = tr.get("prompt") or ""
         adapter_id = tr.get("adapter_id")
         max_tokens = int(tr.get("max_tokens", max_tokens_default))
+        if max_output_cap > 0:
+            max_tokens = min(max_tokens, max_output_cap)
         temperature = float(tr.get("temperature", 0.7))
         top_p = float(tr.get("top_p", 0.9))
 
@@ -181,7 +193,7 @@ def run_cold_start_inline(
             lora_io_ms = (time.perf_counter() - t0) * 1000.0
             lora_path = str(dst)
 
-        inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=max_input_len)
+        inputs = _tokenize_prompt(tokenizer, prompt, max_input_len)
         input_ids = inputs["input_ids"].to("cuda:0")
         attention_mask = inputs["attention_mask"].to("cuda:0")
 
@@ -275,7 +287,17 @@ def main():
     with open(traces_path) as f:
         traces = json.load(f)
 
-    results = run_cold_start_inline(model_path, traces, remote_dir, nvme_dir, bw_mbps)
+    max_input_len = int(os.environ.get("FAASLORA_MAX_INPUT_LEN", "0") or 0)
+    max_output_cap = int(os.environ.get("FAASLORA_MAX_OUTPUT_TOKENS_CAP", "0") or 0)
+    results = run_cold_start_inline(
+        model_path,
+        traces,
+        remote_dir,
+        nvme_dir,
+        bw_mbps,
+        max_input_len=max_input_len,
+        max_output_cap=max_output_cap,
+    )
 
     with open(output_path, "w") as f:
         json.dump(results, f, indent=0)
