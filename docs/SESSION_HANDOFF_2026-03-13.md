@@ -1,5 +1,45 @@
 # FaaSLoRA 会话交接文档（2026-03-13）
 
+> 2026-04-12 最新更新（当前最高优先级续接入口）：
+>
+> 如果新开会话，请先只看这一节，不要直接跳到下面旧的历史段落。
+>
+> 当前权威状态如下：
+>
+> - 权威 clean-tree：`/home/qhq/serverless_llm_experiment_retry14_baseline`
+> - 当前 active 主线分支：`retry14_continuous_queue_v2`
+> - 本次同步前上一公开锚点：`27290b3`
+> - 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 7B **最可信 checkpoint**：`retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`
+> - 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 14B **最可信 checkpoint**：`retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500`
+> - 当前本地测试状态：
+>   - `tests.test_basic_smoke = 228/228 OK`
+>
+> 当前 2026-04-12 的真实技术结论：
+>
+> - 7B 主线不需要重开 handoff/control 语义修复；`baseline44` 继续作为可信 checkpoint。
+> - 14B 已完成：
+>   - `bringup100`：扩容链可正常工作
+>   - `a500_main_baseline45`：首批接管请求与预热计划重新对齐
+> - 当前 14B 最关键的新证据是：
+>   - `scaleup_first_service_planned_match_rate = 1.0`
+>   - `scaleup_first_service_gpu_hit_rate = 1.0`
+>   - 这说明第一项贡献中的命中感知工件就绪机制，已经在 14B 正式负载上成立
+> - 当前剩余主瓶颈已转到第二、第三项贡献：
+>   - `avg_scaleup_affected_ttft_ms = 4060.3 ms`
+>   - `avg_cold_start_latency_ms = 67901.1 ms`
+>   - `warm_pool_hits = 0`
+>   - 即后续接管请求仍有较多 `host/nvme` 路径，`warm pool retention / 受控保留` 还未真正发挥作用
+> - 当前正确工程动作是：
+>   - 先把当前代码、测试与正式文档推到 GitHub，形成新的可回退快照
+>   - 7B 保持 soft-close
+>   - 14B 上的 C1 handoff/control 语义链视为软收口
+>   - 下一条 active 主线切到 `Mistral 7B V2 publicmix @ 500 adapters`
+>   - 只有当另一模型家族复现同样问题时，才回到跨模型共通的 C2/C3 主线继续收口
+>
+> 当前会话续接提示词（下一会话直接用）：
+>
+> `继续当前 clean-tree 主线。权威代码树是 /home/qhq/serverless_llm_experiment_retry14_baseline，active 分支是 retry14_continuous_queue_v2。当前 7B 最可信 checkpoint 是 retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500；当前 14B 最可信 checkpoint 是 retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500。当前判断是：7B 不再重开 handoff/control 语义链；14B 已证明首批接管请求与预热计划重新对齐，scaleup_first_service_planned_match_rate 和 gpu_hit_rate 都已达到 1.0；当前剩余主瓶颈已转入 C2/C3，即后续接管请求的三层驻留持续维护和 warm pool retention。下一步先同步当前代码、测试与正式文档，再切到 Mistral 7B V2 publicmix @ 500 adapters，验证当前三项贡献的跨模型家族可迁移性。正式分析与讨论继续严格使用固定格式：当前步骤位置 / 已验证 / 推测 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO。`
+
 > 2026-04-11 最新更新（当前最高优先级续接入口）：
 >
 > 如果新开会话，请先只看这一节，不要直接跳到下面旧的 `2026-04-09 / 2026-04-03 / 2026-04-02` 历史段落。

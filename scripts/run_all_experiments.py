@@ -4710,6 +4710,10 @@ class ScenarioRunner:
 
         arrived_request_count = self._arrived_request_count(replay_t0)
         waiting_traces = self._waiting_visible_trace_queue()
+        # Startup has already elapsed by the time we refresh the handoff plan.
+        # Re-adding startup latency into the planning horizon would project the
+        # queue a second time and drift the predicted first-service slice away
+        # from the requests the new runtime will actually see next.
         refreshed_base_plan = self._predict_scale_up_handoff_plan(
             replay_t0=replay_t0,
             arrived_request_count=arrived_request_count,
@@ -4717,7 +4721,7 @@ class ScenarioRunner:
             visible_traces=waiting_traces,
             submitted_count=arrived_request_count,
             submitted_traces=waiting_traces,
-            bootstrap_latency_ms_override=runtime_startup_latency_ms,
+            bootstrap_latency_ms_override=0.0,
         )
         pending_sequence = plan.get("_pending_scaleup_sequence")
         pending_position = self._pending_scale_up_sequence_index(
@@ -4737,6 +4741,10 @@ class ScenarioRunner:
             refreshed_plan["_runtime_plan_index"] = runtime_plan_index
             if pending_sequence is not None:
                 refreshed_plan["_pending_scaleup_sequence"] = int(pending_sequence)
+            refreshed_plan["bootstrap_latency_ms"] = runtime_startup_latency_ms
+            refreshed_plan["ready_delay_ms"] = runtime_startup_latency_ms + float(
+                refreshed_plan.get("plan_load_latency_ms", 0.0) or 0.0
+            )
             return refreshed_plan
 
         plan["bootstrap_latency_ms"] = runtime_startup_latency_ms

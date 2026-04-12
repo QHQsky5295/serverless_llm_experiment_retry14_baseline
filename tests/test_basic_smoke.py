@@ -5607,10 +5607,11 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             runtime_startup_latency_ms=46000.0,
         )
 
-        self.assertEqual(seen["bootstrap_latency_ms_override"], 46000.0)
+        self.assertEqual(seen["bootstrap_latency_ms_override"], 0.0)
         self.assertEqual(seen["arrived_request_count"], 120)
         self.assertEqual(refreshed["_runtime_plan_index"], 1)
         self.assertEqual(refreshed["planned_adapters"], ["runtime_1"])
+        self.assertEqual(refreshed["bootstrap_latency_ms"], 46000.0)
         self.assertEqual(refreshed["ready_delay_ms"], 46500.0)
 
     def test_refresh_scale_up_runtime_handoff_plan_after_startup_uses_pending_sequence_rank(self) -> None:
@@ -5654,12 +5655,14 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             runtime_startup_latency_ms=46000.0,
         )
 
-        self.assertEqual(seen["bootstrap_latency_ms_override"], 46000.0)
+        self.assertEqual(seen["bootstrap_latency_ms_override"], 0.0)
         self.assertEqual(seen["arrived_request_count"], 120)
         self.assertEqual(seen["additional_instances"], 3)
         self.assertEqual(refreshed["_runtime_plan_index"], 1)
         self.assertEqual(refreshed["_pending_scaleup_sequence"], 12)
         self.assertEqual(refreshed["planned_adapters"], ["runtime_1"])
+        self.assertEqual(refreshed["bootstrap_latency_ms"], 46000.0)
+        self.assertEqual(refreshed["ready_delay_ms"], 46500.0)
 
     def test_add_dedicated_instance_slot_records_cold_start_latency(self) -> None:
         mark_calls = []

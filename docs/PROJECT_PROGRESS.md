@@ -42,6 +42,92 @@
 - `retry21` 及其对应脏树状态视为废案，不再作为正式对比对象。
 - 本次 GitHub 同步的目的不是发布最终结论，而是把当前 clean-tree 形成一个稳定回退点。
 
+## 2026-04-12 更新快照
+
+### 当前最新正式分析结果
+
+- 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 7B **最可信 checkpoint** 仍是：
+  - `retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`
+- 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 14B **最可信 checkpoint** 已推进到：
+  - `retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500`
+- 当前正式 workload 口径保持不变：
+  - `Azure real trace arrivals + Azure token distribution + ShareGPT prompts`
+  - `time_scale_factor = 1.0`
+- 当前最新本地测试状态：
+  - `tests.test_basic_smoke = 228/228 OK`
+
+### 2026-04-12 当前真实结论
+
+- 7B 当前结论不变：
+  - `baseline44` 继续作为最可信、最适合作为 GitHub 回退点的 7B checkpoint。
+  - 7B 上 `handoff exactness / async scale control / startup budget` 这条主链不再重开。
+- 14B 当前已经完成两步验证：
+  - `bringup100`：证明 `TP=2` 下 4 张 3090 的 `1 -> 2 runtime` 扩容链可以正常工作。
+  - `a500_main_baseline45`：证明 14B 正式负载下，扩容后首批接管请求与预热计划已经重新对齐。
+- `baseline45` 相比上一轮 14B 正式结果 `a500_main` 的关键改善：
+  - `TTFT_overall = 3558.9 -> 2343.3 ms`
+  - `TTFT_comparable = 4044.0 -> 2497.9 ms`
+  - `TTFT_warm_standard = 3418.4 -> 2180.1 ms`
+  - `TTFT_scaleup_first_service = 1884.9 -> 546.3 ms`
+  - `Throughput_tok/s = 25.49 -> 26.80`
+  - `QPR = 2853.3 -> 4481.9`
+  - `P95_TTFT = 12344.3 -> 9345.4 ms`
+- 当前 14B 最重要的新结论必须明确写入：
+  - `scaleup_first_service_planned_match_rate = 0.0 -> 1.0`
+  - `scaleup_first_service_gpu_hit_rate = 0.0 -> 1.0`
+  - 这说明第一项贡献中的“命中感知工件就绪机制”已经在 14B 正式负载上成立。
+- 当前 14B 尚未收口的部分已经转移到第二、第三项贡献：
+  - `avg_scaleup_affected_ttft_ms = 4060.3 ms`
+  - `avg_cold_start_latency_ms = 67901.1 ms`
+  - `warm_pool_hits = 0`
+  - 说明后续接管请求仍然有较多 `host/nvme` 路径，`warm pool retention / 受控保留` 还未真正发挥作用。
+- 因此当前正确收口判断是：
+  - 7B：soft-close，冻结
+  - 14B：第一项贡献对应的 handoff/control 语义链可软收口
+  - 下一条 active 主线：`Mistral 7B V2 publicmix @ 500 adapters`
+  - 只有当另一模型家族复现同样的后续接管冷路径问题时，才回到跨模型共通的 C2/C3 主线继续收口
+
+### 当前最新代码状态
+
+- 当前待同步代码修改：
+  - `scripts/run_all_experiments.py`
+  - `tests/test_basic_smoke.py`
+  - `configs/generated/lora_manifest_1000.json`
+  - `docs/*.md`
+- 这批代码的真实含义：
+  - `post-startup refresh` 不再把已经发生过的 `runtime_startup_latency_ms` 重复计入未来 handoff 预测窗口
+  - 扩容事件中的 `runtime_startup_latency_ms` 仍保留为诊断字段
+  - 14B 正式负载下的首批接管请求，已经和 `planned_adapters` 对齐
+- `configs/generated/lora_manifest_1000.json` 当前状态说明：
+  - 它仍是受当前实验 profile 影响的 generated manifest
+  - 本次快照里的 `model_name` 已被 14B 正式验证刷新
+  - 后续切换到其他模型家族时，该文件可能再次被自动刷新
+  - 这不属于新的系统语义变更，而是当前实验入口的一部分
+
+### 当前高优先级 TODO 顺序
+
+1. `Mistral 7B V2 publicmix` 的 `continuous_queue_v2` 验证
+   - 当前状态：下一条 active 主线
+   - 当前目标：
+     - 验证 7B Qwen 与 14B Qwen 上已经收正的 handoff/control 语义是否能迁移到另一模型家族
+     - 判断当前剩余瓶颈是否仍集中在 C2/C3，而不是模型家族特定适配
+
+2. 14B 上的 C2/C3 后续优化
+   - 当前状态：等待另一模型家族验证后决定是否重开
+   - 当前方向：
+     - 三层驻留持续维护
+     - `warm pool retention`
+     - `受控资源保留`
+
+3. 更大模型或另一家族的 `10B~14B` 级别验证
+   - 当前状态：位于 `Mistral 7B` 之后
+
+4. TODO `#4`
+   - 继续后置
+
+5. TODO `#5`
+   - 继续后置
+
 ## 2026-04-11 更新快照
 
 ### 当前最新正式分析结果

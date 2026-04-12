@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "created_at": 1775798200,
-  "model_name": "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct",
+  "created_at": 1775965061,
+  "model_name": "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct",
   "num_adapters": 500,
   "preserve_legacy_names": true,
   "adapters": [

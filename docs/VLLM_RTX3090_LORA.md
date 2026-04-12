@@ -2,6 +2,22 @@
 
 本文档记录当前 clean-tree 在 RTX 3090 上运行 vLLM + LoRA 的已知稳定口径与常见风险点。
 
+## 0. 2026-04-12 当前同步口径
+
+- 当前最新已正式分析、且最可信的 7B checkpoint：`retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`
+- 当前最新已正式分析、且最可信的 14B checkpoint：`retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500`
+- 当前 14B 主线判断：
+  - `TP=2` 下的 `1 -> 2 runtime` 扩容链已验证通过
+  - 14B 正式负载下，首批接管请求与预热计划已经重新对齐
+  - 当前剩余瓶颈已转入后续接管请求的 `nvme/host` 路径与 `warm pool retention`
+- 当前下一步不是继续围绕 14B 的 handoff 细节反复返工，而是：
+  - 保持当前 `4 x RTX 3090 24GB` 运行语义
+  - 切到 `Mistral 7B V2 publicmix`
+  - 判断当前三项贡献是否具备跨模型家族可迁移性
+- 当前正式长跑依然建议通过 `user_scope` 包装脚本启动，避免 session closing 被 systemd 直接杀掉
+- 当前本地测试状态：
+  - `tests.test_basic_smoke = 228/228 OK`
+
 ## 0. 2026-04-11 当前同步口径
 
 - 当前最新已正式分析、且最可信的 7B checkpoint：`retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`

@@ -6,6 +6,25 @@
 
 - [RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md](RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md)
 
+> 2026-04-12 当前主线补充：
+>
+> - 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 14B **最可信 checkpoint** 是 `retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500`。
+> - 当前正式结论必须进一步收紧为：
+>   - 7B 继续以 `baseline44` 作为可信 checkpoint
+>   - 14B 上第一项贡献对应的 handoff/control 语义链已经软收口
+>   - 当前最关键证据是：
+>     - `scaleup_first_service_planned_match_rate = 1.0`
+>     - `scaleup_first_service_gpu_hit_rate = 1.0`
+>     - `TTFT_scaleup_first_service_avg_ms = 546.3`
+> - 当前 14B 尚未收口的问题已经从 C1 转到 C2/C3：
+>   - `TTFT_scaleup_affected` 仍偏高
+>   - `Cold_start_latency` 仍接近 `68s`
+>   - `warm_pool_hits = 0`
+> - 因此当前技术路线不应再理解成“继续围绕 14B 的 first-service handoff 打转”，而应理解成：
+>   - 保持当前 7B 与 14B checkpoint
+>   - 切到 `Mistral 7B V2 publicmix`
+>   - 如果另一模型家族复现同样的后续接管冷路径问题，再回到跨模型共通的 C2/C3 主线继续优化
+
 > 2026-04-11 当前主线补充：
 >
 > - `continuous_queue_v2` 当前最新已正式分析、且最可信的 7B checkpoint 是 `retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`。

@@ -2,6 +2,52 @@
 
 本文件说明当前 `serverless_llm_experiment_retry14_baseline` 如何同步到 GitHub，以及哪些内容应当、哪些内容不应当进入回退快照。
 
+## 2026-04-12 更新：本次同步应冻结 7B checkpoint、14B baseline45 结论，并把下一步切到 Mistral 7B
+
+- 当前 active clean-tree 分支：`retry14_continuous_queue_v2`
+- 本次同步前上一公开锚点：`27290b3`
+- 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 7B **最可信 checkpoint**：`retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`
+- 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 14B **最可信 checkpoint**：`retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500`
+- 当前必须纳入本次同步的新结论：
+  - 7B 的 handoff/control 语义链保持 soft-close，不再重开
+  - 14B `bringup100` 已证明 `TP=2` 下的 `1 -> 2 runtime` 扩容链可以正常工作
+  - 14B `baseline45` 已修正 `post-startup refresh` 的时间语义重复投影问题
+  - 当前最关键的新证据是：
+    - `ScaleUp_first_service_plan_match_rate = 1.0`
+    - `ScaleUp_first_service_gpu_hit_rate = 1.0`
+    - `TTFT_scaleup_first_service_avg_ms = 546.3`
+  - 因此第一项贡献中的“命中感知工件就绪机制”已经在 14B 正式负载上成立
+  - 当前 14B 尚未收口的部分已经转到 C2/C3：
+    - `TTFT_scaleup_affected_avg_ms = 4060.3`
+    - `Cold_start_latency = 67901.1 ms`
+    - `warm_pool_hits = 0`
+  - 下一条 active 主线应切到 `Mistral 7B V2 publicmix @ 500 adapters`
+- 当前必须纳入本次同步的代码语义：
+  - `post-startup refresh` 不再把已经发生过的 `runtime_startup_latency_ms` 再次计入未来 handoff 预测窗口
+  - 事件中仍保留 `runtime_startup_latency_ms` 作为诊断字段
+  - 14B 正式负载下首批接管请求已与 `planned_adapters` 对齐
+- 当前必须纳入本次同步的代码与文档：
+  - `scripts/run_all_experiments.py`
+  - `tests/test_basic_smoke.py`
+  - `docs/*.md`
+  - `configs/generated/lora_manifest_1000.json`
+- 对 `configs/generated/lora_manifest_1000.json` 的正式说明：
+  - 它当前是 model-bound 的 generated manifest
+  - 本次快照里的 `model_name` 已被 14B 正式验证刷新
+  - 后续切换模型家族时，它可能再次自动刷新
+  - 这不代表新的系统语义分支，而是当前实验入口的一部分
+- 当前最新本地测试状态：
+  - `tests.test_basic_smoke = 228/228 OK`
+
+本次同步后的正确工程动作应是：
+
+1. 在 `retry14_continuous_queue_v2` 上 push 当前代码、测试与正式文档，形成新的可回退快照。
+2. 明确把这个快照定义为：
+   - 7B 可信 checkpoint
+   - 14B 上 C1 handoff/control 已软收口的 checkpoint
+3. 后续 active 主线切到 `Mistral 7B V2 publicmix @ 500 adapters`。
+4. 如果另一模型家族复现同样的后续接管冷路径问题，再回到跨模型共通的 C2/C3 主线继续收口。
+
 ## 2026-04-11 更新：本次同步应冻结 `continuous_queue_v2` 的 7B 可信 checkpoint，并把下一步切到 14B 与另一模型家族验证
 
 - 当前 active clean-tree 分支：`retry14_continuous_queue_v2`

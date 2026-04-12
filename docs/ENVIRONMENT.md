@@ -2,6 +2,20 @@
 
 本文档记录当前干净树 `serverless_llm_experiment_retry14_baseline` 的真实运行环境、启动方式和本机约束。
 
+## 0. 2026-04-12 当前同步口径
+
+- 当前 active 主线分支：`retry14_continuous_queue_v2`
+- 当前最新已正式分析、且最可信的 7B checkpoint：`retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`
+- 当前最新已正式分析、且最可信的 14B checkpoint：`retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500`
+- 当前最新本地测试状态：
+  - `tests.test_basic_smoke = 228/228 OK`
+- 当前下一步 active 主线将转入：
+  - `Mistral 7B V2 publicmix @ 500 adapters`
+  - 仍在同一 `continuous_queue_v2` runner 语义下进行
+- 当前正式长跑建议继续使用：
+  - `scripts/run_all_experiments_user_scope.sh`
+  - 避免直接从即将关闭的 SSH/session scope 启动，触发 systemd closing-session guard
+
 ## 0. 2026-04-11 当前同步口径
 
 - 当前 active 主线分支：`retry14_continuous_queue_v2`
