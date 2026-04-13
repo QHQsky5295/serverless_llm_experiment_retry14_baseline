@@ -10,19 +10,29 @@
 
 若本文与当前代码实现、`docs/PROJECT_PROGRESS.md`、`docs/SESSION_HANDOFF_2026-03-13.md` 冲突，以后两者和当前代码为准；本文主要负责记录调研事实、可比性边界和规划建议。
 
+> 2026-04-13 补充：
+>
+> - 当前正式论文模型家族已固定为 `Qwen + Llama-2` 两个家族，共 4 个模型。
+> - 当前正式综合主指标已固定为 `CE = 1 / (avg_e2e_sec * avg_cost_usd)`；该口径与 `ServerlessLoRA` 的 cost-effectiveness 表述保持一致。
+> - 当前 `TTFT_overall` 继续作为 TTFT 家族主指标；`TTFT_comp` 和 `TTFT_warm` 用于论文对齐和机制解释。
+> - 当前系统主链已经先 soft-close，后续是否继续优化，应以与其他论文系统的正式对比结果为准；若剩余差距主要表现为模型 serving envelope 差异，则不再继续改系统主链。
+
 > 2026-04-12 补充：
 >
 > - 当前 active mainline 仍是 `retry14_continuous_queue_v2`。
 > - 当前 7B 可信 checkpoint 仍是 `retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`。
 > - 当前 14B 正式负载最新可信结果已推进到 `retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500`。
+> - 当前另一模型家族 7B 最新可信结果已推进到 `retry14_continuous_queue_v2_mistral7b_r500_a500_main_baseline3_maxloras4 @ 500`。
 > - 当前新结论与本文调研逻辑是对齐的：
 >   - 14B bring-up 与正式负载都表明，命中感知的扩容首批接管机制并没有停留在单一 7B 场景
 >   - `scaleup_first_service_planned_match_rate = 1.0` 与 `gpu_hit_rate = 1.0` 说明第一项贡献已跨到更大模型
+>   - `Mistral 7B baseline3` 进一步说明当前主线不是 Qwen 家族特化；跨家族 7B 上同样能把 `TTFT / QPR / avg_lora_io_ms` 拉回合理区间
 >   - 剩余问题已从“首批接管预测错误”转向“后续接管请求的层级驻留与资源协同不足”，也就是更接近第二、第三项贡献
 > - 因此，本文第 6 节 TODO 排序的当前正式理解应更新为：
 >   - 7B：保持 soft-close
 >   - 14B：第一项贡献对应的 handoff/control 语义链可软收口
->   - 下一条 active 主线：`Mistral 7B V2 publicmix @ 500 adapters`
+>   - `Mistral 7B`：已进入可信 checkpoint 区间
+>   - 下一条 active 主线：`Mistral Nemo TP=2`
 >   - 如果另一模型家族复现同样的后续接管冷路径问题，再回到跨模型共通的 C2/C3 主线继续收口
 
 > 2026-04-11 补充：

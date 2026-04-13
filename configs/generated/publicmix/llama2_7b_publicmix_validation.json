@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "created_at": 1776062453,
+  "model_name": "meta-llama/Llama-2-7b-hf",
+  "source_dir": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/llama2_7b",
+  "accepted_count": 0,
+  "rejected_count": 5,
+  "accepted": [],
+  "rejected": [
+    {
+      "source_id": "calibration-tuning__Llama-2-7b-hf-ct-choice",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/llama2_7b/calibration-tuning__Llama-2-7b-hf-ct-choice",
+      "accepted": false,
+      "reasons": [
+        "missing adapter_config.json at directory root"
+      ]
+    },
+    {
+      "source_id": "calibration-tuning__Llama-2-7b-hf-ct-oe",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/llama2_7b/calibration-tuning__Llama-2-7b-hf-ct-oe",
+      "accepted": false,
+      "reasons": [
+        "missing adapter_config.json at directory root"
+      ]
+    },
+    {
+      "source_id": "migaraa__Gaudi_LoRA_Llama-2-7b-hf",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/llama2_7b/migaraa__Gaudi_LoRA_Llama-2-7b-hf",
+      "accepted": false,
+      "reasons": [
+        "missing adapter_config.json at directory root"
+      ]
+    },
+    {
+      "source_id": "ntrajic__llama-2-7b-guanaco-helios",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/llama2_7b/ntrajic__llama-2-7b-guanaco-helios",
+      "accepted": false,
+      "reasons": [
+        "missing adapter_config.json at directory root"
+      ]
+    },
+    {
+      "source_id": "renyiyu__llama-2-7b-sft-lora",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/llama2_7b/renyiyu__llama-2-7b-sft-lora",
+      "accepted": false,
+      "reasons": [
+        "missing adapter_config.json at directory root"
+      ]
+    }
+  ]
+}

@@ -1,9 +1,19 @@
 {
   "version": 1,
-  "created_at": 1776077192,
-  "model_name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-13b-hf",
+  "created_at": 1776063220,
+  "model_name": "meta-llama/Llama-2-13b-hf",
+  "pool_type": "publicmix_v2",
   "num_adapters": 500,
-  "preserve_legacy_names": true,
+  "public_count": 0,
+  "generated_fill_count": 500,
+  "topup_profile": "realistic_v2",
+  "topup_seed": 42,
+  "source_report_summary": {
+    "accepted_count": 0,
+    "rejected_count": 5,
+    "overflow_public_count": 0
+  },
+  "overflow_public": [],
   "adapters": [
     {
       "id": "finance_lora",
@@ -13,7 +23,10 @@
       "size_hint": "32 MB",
       "hotness": 0.95,
       "lora_rank": 8,
-      "manifest_index": 0
+      "manifest_index": 0,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora",
@@ -23,7 +36,10 @@
       "size_hint": "28 MB",
       "hotness": 0.95,
       "lora_rank": 8,
-      "manifest_index": 1
+      "manifest_index": 1,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora",
@@ -33,7 +49,10 @@
       "size_hint": "45 MB",
       "hotness": 0.75,
       "lora_rank": 16,
-      "manifest_index": 2
+      "manifest_index": 2,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora",
@@ -43,7 +62,10 @@
       "size_hint": "20 MB",
       "hotness": 0.75,
       "lora_rank": 8,
-      "manifest_index": 3
+      "manifest_index": 3,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora",
@@ -53,7 +75,10 @@
       "size_hint": "35 MB",
       "hotness": 0.75,
       "lora_rank": 8,
-      "manifest_index": 4
+      "manifest_index": 4,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora",
@@ -63,7 +88,10 @@
       "size_hint": "24 MB",
       "hotness": 0.75,
       "lora_rank": 4,
-      "manifest_index": 5
+      "manifest_index": 5,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0007",
@@ -73,7 +101,10 @@
       "size_hint": "26 MB",
       "hotness": 0.75,
       "lora_rank": 8,
-      "manifest_index": 6
+      "manifest_index": 6,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0008",
@@ -83,7 +114,10 @@
       "size_hint": "30 MB",
       "hotness": 0.75,
       "lora_rank": 8,
-      "manifest_index": 7
+      "manifest_index": 7,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0009",
@@ -93,7 +127,10 @@
       "size_hint": "22 MB",
       "hotness": 0.75,
       "lora_rank": 8,
-      "manifest_index": 8
+      "manifest_index": 8,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0010",
@@ -103,7 +140,10 @@
       "size_hint": "18 MB",
       "hotness": 0.75,
       "lora_rank": 4,
-      "manifest_index": 9
+      "manifest_index": 9,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0011",
@@ -113,7 +153,10 @@
       "size_hint": "27 MB",
       "hotness": 0.55,
       "lora_rank": 8,
-      "manifest_index": 10
+      "manifest_index": 10,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0012",
@@ -123,7 +166,10 @@
       "size_hint": "34 MB",
       "hotness": 0.55,
       "lora_rank": 8,
-      "manifest_index": 11
+      "manifest_index": 11,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0013",
@@ -133,7 +179,10 @@
       "size_hint": "32 MB",
       "hotness": 0.55,
       "lora_rank": 8,
-      "manifest_index": 12
+      "manifest_index": 12,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0014",
@@ -143,7 +192,10 @@
       "size_hint": "28 MB",
       "hotness": 0.55,
       "lora_rank": 8,
-      "manifest_index": 13
+      "manifest_index": 13,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0015",
@@ -153,7 +205,10 @@
       "size_hint": "45 MB",
       "hotness": 0.55,
       "lora_rank": 16,
-      "manifest_index": 14
+      "manifest_index": 14,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0016",
@@ -163,7 +218,10 @@
       "size_hint": "20 MB",
       "hotness": 0.55,
       "lora_rank": 8,
-      "manifest_index": 15
+      "manifest_index": 15,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0017",
@@ -173,7 +231,10 @@
       "size_hint": "35 MB",
       "hotness": 0.55,
       "lora_rank": 8,
-      "manifest_index": 16
+      "manifest_index": 16,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0018",
@@ -183,7 +244,10 @@
       "size_hint": "24 MB",
       "hotness": 0.55,
       "lora_rank": 4,
-      "manifest_index": 17
+      "manifest_index": 17,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0019",
@@ -193,7 +257,10 @@
       "size_hint": "26 MB",
       "hotness": 0.55,
       "lora_rank": 8,
-      "manifest_index": 18
+      "manifest_index": 18,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0020",
@@ -203,7 +270,10 @@
       "size_hint": "30 MB",
       "hotness": 0.55,
       "lora_rank": 8,
-      "manifest_index": 19
+      "manifest_index": 19,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0021",
@@ -213,7 +283,10 @@
       "size_hint": "22 MB",
       "hotness": 0.55,
       "lora_rank": 8,
-      "manifest_index": 20
+      "manifest_index": 20,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0022",
@@ -223,7 +296,10 @@
       "size_hint": "18 MB",
       "hotness": 0.55,
       "lora_rank": 4,
-      "manifest_index": 21
+      "manifest_index": 21,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0023",
@@ -233,7 +309,10 @@
       "size_hint": "27 MB",
       "hotness": 0.55,
       "lora_rank": 8,
-      "manifest_index": 22
+      "manifest_index": 22,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0024",
@@ -243,7 +322,10 @@
       "size_hint": "34 MB",
       "hotness": 0.55,
       "lora_rank": 8,
-      "manifest_index": 23
+      "manifest_index": 23,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0025",
@@ -253,7 +335,10 @@
       "size_hint": "32 MB",
       "hotness": 0.55,
       "lora_rank": 8,
-      "manifest_index": 24
+      "manifest_index": 24,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0026",
@@ -263,7 +348,10 @@
       "size_hint": "28 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 25
+      "manifest_index": 25,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0027",
@@ -273,7 +361,10 @@
       "size_hint": "45 MB",
       "hotness": 0.35,
       "lora_rank": 16,
-      "manifest_index": 26
+      "manifest_index": 26,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0028",
@@ -283,7 +374,10 @@
       "size_hint": "20 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 27
+      "manifest_index": 27,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0029",
@@ -293,7 +387,10 @@
       "size_hint": "35 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 28
+      "manifest_index": 28,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0030",
@@ -303,7 +400,10 @@
       "size_hint": "24 MB",
       "hotness": 0.35,
       "lora_rank": 4,
-      "manifest_index": 29
+      "manifest_index": 29,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0031",
@@ -313,7 +413,10 @@
       "size_hint": "26 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 30
+      "manifest_index": 30,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0032",
@@ -323,7 +426,10 @@
       "size_hint": "30 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 31
+      "manifest_index": 31,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0033",
@@ -333,7 +439,10 @@
       "size_hint": "22 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 32
+      "manifest_index": 32,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0034",
@@ -343,7 +452,10 @@
       "size_hint": "18 MB",
       "hotness": 0.35,
       "lora_rank": 4,
-      "manifest_index": 33
+      "manifest_index": 33,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0035",
@@ -353,7 +465,10 @@
       "size_hint": "27 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 34
+      "manifest_index": 34,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0036",
@@ -363,7 +478,10 @@
       "size_hint": "34 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 35
+      "manifest_index": 35,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0037",
@@ -373,7 +491,10 @@
       "size_hint": "32 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 36
+      "manifest_index": 36,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0038",
@@ -383,7 +504,10 @@
       "size_hint": "28 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 37
+      "manifest_index": 37,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0039",
@@ -393,7 +517,10 @@
       "size_hint": "45 MB",
       "hotness": 0.35,
       "lora_rank": 16,
-      "manifest_index": 38
+      "manifest_index": 38,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0040",
@@ -403,7 +530,10 @@
       "size_hint": "20 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 39
+      "manifest_index": 39,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0041",
@@ -413,7 +543,10 @@
       "size_hint": "35 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 40
+      "manifest_index": 40,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0042",
@@ -423,7 +556,10 @@
       "size_hint": "24 MB",
       "hotness": 0.35,
       "lora_rank": 4,
-      "manifest_index": 41
+      "manifest_index": 41,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0043",
@@ -433,7 +569,10 @@
       "size_hint": "26 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 42
+      "manifest_index": 42,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0044",
@@ -443,7 +582,10 @@
       "size_hint": "30 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 43
+      "manifest_index": 43,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0045",
@@ -453,7 +595,10 @@
       "size_hint": "22 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 44
+      "manifest_index": 44,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0046",
@@ -463,7 +608,10 @@
       "size_hint": "18 MB",
       "hotness": 0.35,
       "lora_rank": 4,
-      "manifest_index": 45
+      "manifest_index": 45,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0047",
@@ -473,7 +621,10 @@
       "size_hint": "27 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 46
+      "manifest_index": 46,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0048",
@@ -483,7 +634,10 @@
       "size_hint": "34 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 47
+      "manifest_index": 47,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0049",
@@ -493,7 +647,10 @@
       "size_hint": "32 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 48
+      "manifest_index": 48,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0050",
@@ -503,7 +660,10 @@
       "size_hint": "28 MB",
       "hotness": 0.35,
       "lora_rank": 8,
-      "manifest_index": 49
+      "manifest_index": 49,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0051",
@@ -513,7 +673,10 @@
       "size_hint": "45 MB",
       "hotness": 0.2,
       "lora_rank": 16,
-      "manifest_index": 50
+      "manifest_index": 50,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0052",
@@ -523,7 +686,10 @@
       "size_hint": "20 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 51
+      "manifest_index": 51,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0053",
@@ -533,7 +699,10 @@
       "size_hint": "35 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 52
+      "manifest_index": 52,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0054",
@@ -543,7 +712,10 @@
       "size_hint": "24 MB",
       "hotness": 0.2,
       "lora_rank": 4,
-      "manifest_index": 53
+      "manifest_index": 53,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0055",
@@ -553,7 +725,10 @@
       "size_hint": "26 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 54
+      "manifest_index": 54,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0056",
@@ -563,7 +738,10 @@
       "size_hint": "30 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 55
+      "manifest_index": 55,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0057",
@@ -573,7 +751,10 @@
       "size_hint": "22 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 56
+      "manifest_index": 56,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0058",
@@ -583,7 +764,10 @@
       "size_hint": "18 MB",
       "hotness": 0.2,
       "lora_rank": 4,
-      "manifest_index": 57
+      "manifest_index": 57,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0059",
@@ -593,7 +777,10 @@
       "size_hint": "27 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 58
+      "manifest_index": 58,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0060",
@@ -603,7 +790,10 @@
       "size_hint": "34 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 59
+      "manifest_index": 59,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0061",
@@ -613,7 +803,10 @@
       "size_hint": "32 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 60
+      "manifest_index": 60,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0062",
@@ -623,7 +816,10 @@
       "size_hint": "28 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 61
+      "manifest_index": 61,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0063",
@@ -633,7 +829,10 @@
       "size_hint": "45 MB",
       "hotness": 0.2,
       "lora_rank": 16,
-      "manifest_index": 62
+      "manifest_index": 62,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0064",
@@ -643,7 +842,10 @@
       "size_hint": "20 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 63
+      "manifest_index": 63,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0065",
@@ -653,7 +855,10 @@
       "size_hint": "35 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 64
+      "manifest_index": 64,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0066",
@@ -663,7 +868,10 @@
       "size_hint": "24 MB",
       "hotness": 0.2,
       "lora_rank": 4,
-      "manifest_index": 65
+      "manifest_index": 65,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0067",
@@ -673,7 +881,10 @@
       "size_hint": "26 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 66
+      "manifest_index": 66,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0068",
@@ -683,7 +894,10 @@
       "size_hint": "30 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 67
+      "manifest_index": 67,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0069",
@@ -693,7 +907,10 @@
       "size_hint": "22 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 68
+      "manifest_index": 68,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0070",
@@ -703,7 +920,10 @@
       "size_hint": "18 MB",
       "hotness": 0.2,
       "lora_rank": 4,
-      "manifest_index": 69
+      "manifest_index": 69,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0071",
@@ -713,7 +933,10 @@
       "size_hint": "27 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 70
+      "manifest_index": 70,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0072",
@@ -723,7 +946,10 @@
       "size_hint": "34 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 71
+      "manifest_index": 71,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0073",
@@ -733,7 +959,10 @@
       "size_hint": "32 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 72
+      "manifest_index": 72,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0074",
@@ -743,7 +972,10 @@
       "size_hint": "28 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 73
+      "manifest_index": 73,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0075",
@@ -753,7 +985,10 @@
       "size_hint": "45 MB",
       "hotness": 0.2,
       "lora_rank": 16,
-      "manifest_index": 74
+      "manifest_index": 74,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0076",
@@ -763,7 +998,10 @@
       "size_hint": "20 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 75
+      "manifest_index": 75,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0077",
@@ -773,7 +1011,10 @@
       "size_hint": "35 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 76
+      "manifest_index": 76,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0078",
@@ -783,7 +1024,10 @@
       "size_hint": "24 MB",
       "hotness": 0.2,
       "lora_rank": 4,
-      "manifest_index": 77
+      "manifest_index": 77,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0079",
@@ -793,7 +1037,10 @@
       "size_hint": "26 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 78
+      "manifest_index": 78,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0080",
@@ -803,7 +1050,10 @@
       "size_hint": "30 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 79
+      "manifest_index": 79,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0081",
@@ -813,7 +1063,10 @@
       "size_hint": "22 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 80
+      "manifest_index": 80,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0082",
@@ -823,7 +1076,10 @@
       "size_hint": "18 MB",
       "hotness": 0.2,
       "lora_rank": 4,
-      "manifest_index": 81
+      "manifest_index": 81,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0083",
@@ -833,7 +1089,10 @@
       "size_hint": "27 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 82
+      "manifest_index": 82,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0084",
@@ -843,7 +1102,10 @@
       "size_hint": "34 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 83
+      "manifest_index": 83,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0085",
@@ -853,7 +1115,10 @@
       "size_hint": "32 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 84
+      "manifest_index": 84,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0086",
@@ -863,7 +1128,10 @@
       "size_hint": "28 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 85
+      "manifest_index": 85,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0087",
@@ -873,7 +1141,10 @@
       "size_hint": "45 MB",
       "hotness": 0.2,
       "lora_rank": 16,
-      "manifest_index": 86
+      "manifest_index": 86,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0088",
@@ -883,7 +1154,10 @@
       "size_hint": "20 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 87
+      "manifest_index": 87,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0089",
@@ -893,7 +1167,10 @@
       "size_hint": "35 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 88
+      "manifest_index": 88,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0090",
@@ -903,7 +1180,10 @@
       "size_hint": "24 MB",
       "hotness": 0.2,
       "lora_rank": 4,
-      "manifest_index": 89
+      "manifest_index": 89,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0091",
@@ -913,7 +1193,10 @@
       "size_hint": "26 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 90
+      "manifest_index": 90,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0092",
@@ -923,7 +1206,10 @@
       "size_hint": "30 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 91
+      "manifest_index": 91,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0093",
@@ -933,7 +1219,10 @@
       "size_hint": "22 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 92
+      "manifest_index": 92,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0094",
@@ -943,7 +1232,10 @@
       "size_hint": "18 MB",
       "hotness": 0.2,
       "lora_rank": 4,
-      "manifest_index": 93
+      "manifest_index": 93,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0095",
@@ -953,7 +1245,10 @@
       "size_hint": "27 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 94
+      "manifest_index": 94,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0096",
@@ -963,7 +1258,10 @@
       "size_hint": "34 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 95
+      "manifest_index": 95,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0097",
@@ -973,7 +1271,10 @@
       "size_hint": "32 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 96
+      "manifest_index": 96,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0098",
@@ -983,7 +1284,10 @@
       "size_hint": "28 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 97
+      "manifest_index": 97,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0099",
@@ -993,7 +1297,10 @@
       "size_hint": "45 MB",
       "hotness": 0.2,
       "lora_rank": 16,
-      "manifest_index": 98
+      "manifest_index": 98,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0100",
@@ -1003,7 +1310,10 @@
       "size_hint": "20 MB",
       "hotness": 0.2,
       "lora_rank": 8,
-      "manifest_index": 99
+      "manifest_index": 99,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0101",
@@ -1013,7 +1323,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 100
+      "manifest_index": 100,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0102",
@@ -1023,7 +1336,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 101
+      "manifest_index": 101,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0103",
@@ -1033,7 +1349,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 102
+      "manifest_index": 102,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0104",
@@ -1043,7 +1362,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 103
+      "manifest_index": 103,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0105",
@@ -1053,7 +1375,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 104
+      "manifest_index": 104,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0106",
@@ -1063,7 +1388,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 105
+      "manifest_index": 105,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0107",
@@ -1073,7 +1401,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 106
+      "manifest_index": 106,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0108",
@@ -1083,7 +1414,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 107
+      "manifest_index": 107,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0109",
@@ -1093,7 +1427,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 108
+      "manifest_index": 108,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0110",
@@ -1103,7 +1440,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 109
+      "manifest_index": 109,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0111",
@@ -1113,7 +1453,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 110
+      "manifest_index": 110,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0112",
@@ -1123,7 +1466,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 111
+      "manifest_index": 111,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0113",
@@ -1133,7 +1479,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 112
+      "manifest_index": 112,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0114",
@@ -1143,7 +1492,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 113
+      "manifest_index": 113,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0115",
@@ -1153,7 +1505,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 114
+      "manifest_index": 114,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0116",
@@ -1163,7 +1518,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 115
+      "manifest_index": 115,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0117",
@@ -1173,7 +1531,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 116
+      "manifest_index": 116,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0118",
@@ -1183,7 +1544,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 117
+      "manifest_index": 117,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0119",
@@ -1193,7 +1557,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 118
+      "manifest_index": 118,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0120",
@@ -1203,7 +1570,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 119
+      "manifest_index": 119,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0121",
@@ -1213,7 +1583,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 120
+      "manifest_index": 120,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0122",
@@ -1223,7 +1596,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 121
+      "manifest_index": 121,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0123",
@@ -1233,7 +1609,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 122
+      "manifest_index": 122,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0124",
@@ -1243,7 +1622,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 123
+      "manifest_index": 123,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0125",
@@ -1253,7 +1635,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 124
+      "manifest_index": 124,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0126",
@@ -1263,7 +1648,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 125
+      "manifest_index": 125,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0127",
@@ -1273,7 +1661,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 126
+      "manifest_index": 126,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0128",
@@ -1283,7 +1674,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 127
+      "manifest_index": 127,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0129",
@@ -1293,7 +1687,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 128
+      "manifest_index": 128,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0130",
@@ -1303,7 +1700,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 129
+      "manifest_index": 129,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0131",
@@ -1313,7 +1713,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 130
+      "manifest_index": 130,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0132",
@@ -1323,7 +1726,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 131
+      "manifest_index": 131,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0133",
@@ -1333,7 +1739,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 132
+      "manifest_index": 132,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0134",
@@ -1343,7 +1752,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 133
+      "manifest_index": 133,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0135",
@@ -1353,7 +1765,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 134
+      "manifest_index": 134,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0136",
@@ -1363,7 +1778,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 135
+      "manifest_index": 135,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0137",
@@ -1373,7 +1791,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 136
+      "manifest_index": 136,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0138",
@@ -1383,7 +1804,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 137
+      "manifest_index": 137,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0139",
@@ -1393,7 +1817,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 138
+      "manifest_index": 138,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0140",
@@ -1403,7 +1830,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 139
+      "manifest_index": 139,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0141",
@@ -1413,7 +1843,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 140
+      "manifest_index": 140,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0142",
@@ -1423,7 +1856,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 141
+      "manifest_index": 141,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0143",
@@ -1433,7 +1869,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 142
+      "manifest_index": 142,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0144",
@@ -1443,7 +1882,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 143
+      "manifest_index": 143,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0145",
@@ -1453,7 +1895,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 144
+      "manifest_index": 144,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0146",
@@ -1463,7 +1908,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 145
+      "manifest_index": 145,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0147",
@@ -1473,7 +1921,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 146
+      "manifest_index": 146,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0148",
@@ -1483,7 +1934,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 147
+      "manifest_index": 147,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0149",
@@ -1493,7 +1947,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 148
+      "manifest_index": 148,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0150",
@@ -1503,7 +1960,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 149
+      "manifest_index": 149,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0151",
@@ -1513,7 +1973,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 150
+      "manifest_index": 150,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0152",
@@ -1523,7 +1986,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 151
+      "manifest_index": 151,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0153",
@@ -1533,7 +1999,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 152
+      "manifest_index": 152,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0154",
@@ -1543,7 +2012,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 153
+      "manifest_index": 153,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0155",
@@ -1553,7 +2025,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 154
+      "manifest_index": 154,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0156",
@@ -1563,7 +2038,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 155
+      "manifest_index": 155,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0157",
@@ -1573,7 +2051,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 156
+      "manifest_index": 156,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0158",
@@ -1583,7 +2064,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 157
+      "manifest_index": 157,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0159",
@@ -1593,7 +2077,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 158
+      "manifest_index": 158,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0160",
@@ -1603,7 +2090,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 159
+      "manifest_index": 159,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0161",
@@ -1613,7 +2103,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 160
+      "manifest_index": 160,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0162",
@@ -1623,7 +2116,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 161
+      "manifest_index": 161,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0163",
@@ -1633,7 +2129,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 162
+      "manifest_index": 162,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0164",
@@ -1643,7 +2142,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 163
+      "manifest_index": 163,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0165",
@@ -1653,7 +2155,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 164
+      "manifest_index": 164,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0166",
@@ -1663,7 +2168,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 165
+      "manifest_index": 165,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0167",
@@ -1673,7 +2181,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 166
+      "manifest_index": 166,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0168",
@@ -1683,7 +2194,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 167
+      "manifest_index": 167,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0169",
@@ -1693,7 +2207,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 168
+      "manifest_index": 168,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0170",
@@ -1703,7 +2220,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 169
+      "manifest_index": 169,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0171",
@@ -1713,7 +2233,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 170
+      "manifest_index": 170,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0172",
@@ -1723,7 +2246,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 171
+      "manifest_index": 171,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0173",
@@ -1733,7 +2259,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 172
+      "manifest_index": 172,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0174",
@@ -1743,7 +2272,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 173
+      "manifest_index": 173,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0175",
@@ -1753,7 +2285,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 174
+      "manifest_index": 174,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0176",
@@ -1763,7 +2298,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 175
+      "manifest_index": 175,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0177",
@@ -1773,7 +2311,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 176
+      "manifest_index": 176,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0178",
@@ -1783,7 +2324,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 177
+      "manifest_index": 177,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0179",
@@ -1793,7 +2337,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 178
+      "manifest_index": 178,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0180",
@@ -1803,7 +2350,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 179
+      "manifest_index": 179,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0181",
@@ -1813,7 +2363,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 180
+      "manifest_index": 180,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0182",
@@ -1823,7 +2376,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 181
+      "manifest_index": 181,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0183",
@@ -1833,7 +2389,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 182
+      "manifest_index": 182,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0184",
@@ -1843,7 +2402,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 183
+      "manifest_index": 183,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0185",
@@ -1853,7 +2415,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 184
+      "manifest_index": 184,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0186",
@@ -1863,7 +2428,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 185
+      "manifest_index": 185,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0187",
@@ -1873,7 +2441,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 186
+      "manifest_index": 186,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0188",
@@ -1883,7 +2454,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 187
+      "manifest_index": 187,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0189",
@@ -1893,7 +2467,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 188
+      "manifest_index": 188,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0190",
@@ -1903,7 +2480,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 189
+      "manifest_index": 189,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0191",
@@ -1913,7 +2493,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 190
+      "manifest_index": 190,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0192",
@@ -1923,7 +2506,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 191
+      "manifest_index": 191,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0193",
@@ -1933,7 +2519,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 192
+      "manifest_index": 192,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0194",
@@ -1943,7 +2532,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 193
+      "manifest_index": 193,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0195",
@@ -1953,7 +2545,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 194
+      "manifest_index": 194,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0196",
@@ -1963,7 +2558,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 195
+      "manifest_index": 195,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0197",
@@ -1973,7 +2571,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 196
+      "manifest_index": 196,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0198",
@@ -1983,7 +2584,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 197
+      "manifest_index": 197,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0199",
@@ -1993,7 +2597,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 198
+      "manifest_index": 198,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0200",
@@ -2003,7 +2610,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 199
+      "manifest_index": 199,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0201",
@@ -2013,7 +2623,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 200
+      "manifest_index": 200,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0202",
@@ -2023,7 +2636,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 201
+      "manifest_index": 201,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0203",
@@ -2033,7 +2649,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 202
+      "manifest_index": 202,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0204",
@@ -2043,7 +2662,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 203
+      "manifest_index": 203,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0205",
@@ -2053,7 +2675,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 204
+      "manifest_index": 204,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0206",
@@ -2063,7 +2688,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 205
+      "manifest_index": 205,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0207",
@@ -2073,7 +2701,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 206
+      "manifest_index": 206,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0208",
@@ -2083,7 +2714,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 207
+      "manifest_index": 207,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0209",
@@ -2093,7 +2727,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 208
+      "manifest_index": 208,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0210",
@@ -2103,7 +2740,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 209
+      "manifest_index": 209,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0211",
@@ -2113,7 +2753,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 210
+      "manifest_index": 210,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0212",
@@ -2123,7 +2766,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 211
+      "manifest_index": 211,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0213",
@@ -2133,7 +2779,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 212
+      "manifest_index": 212,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0214",
@@ -2143,7 +2792,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 213
+      "manifest_index": 213,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0215",
@@ -2153,7 +2805,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 214
+      "manifest_index": 214,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0216",
@@ -2163,7 +2818,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 215
+      "manifest_index": 215,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0217",
@@ -2173,7 +2831,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 216
+      "manifest_index": 216,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0218",
@@ -2183,7 +2844,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 217
+      "manifest_index": 217,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0219",
@@ -2193,7 +2857,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 218
+      "manifest_index": 218,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0220",
@@ -2203,7 +2870,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 219
+      "manifest_index": 219,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0221",
@@ -2213,7 +2883,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 220
+      "manifest_index": 220,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0222",
@@ -2223,7 +2896,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 221
+      "manifest_index": 221,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0223",
@@ -2233,7 +2909,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 222
+      "manifest_index": 222,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0224",
@@ -2243,7 +2922,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 223
+      "manifest_index": 223,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0225",
@@ -2253,7 +2935,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 224
+      "manifest_index": 224,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0226",
@@ -2263,7 +2948,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 225
+      "manifest_index": 225,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0227",
@@ -2273,7 +2961,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 226
+      "manifest_index": 226,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0228",
@@ -2283,7 +2974,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 227
+      "manifest_index": 227,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0229",
@@ -2293,7 +2987,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 228
+      "manifest_index": 228,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0230",
@@ -2303,7 +3000,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 229
+      "manifest_index": 229,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0231",
@@ -2313,7 +3013,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 230
+      "manifest_index": 230,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0232",
@@ -2323,7 +3026,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 231
+      "manifest_index": 231,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0233",
@@ -2333,7 +3039,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 232
+      "manifest_index": 232,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0234",
@@ -2343,7 +3052,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 233
+      "manifest_index": 233,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0235",
@@ -2353,7 +3065,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 234
+      "manifest_index": 234,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0236",
@@ -2363,7 +3078,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 235
+      "manifest_index": 235,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0237",
@@ -2373,7 +3091,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 236
+      "manifest_index": 236,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0238",
@@ -2383,7 +3104,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 237
+      "manifest_index": 237,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0239",
@@ -2393,7 +3117,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 238
+      "manifest_index": 238,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0240",
@@ -2403,7 +3130,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 239
+      "manifest_index": 239,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0241",
@@ -2413,7 +3143,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 240
+      "manifest_index": 240,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0242",
@@ -2423,7 +3156,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 241
+      "manifest_index": 241,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0243",
@@ -2433,7 +3169,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 242
+      "manifest_index": 242,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0244",
@@ -2443,7 +3182,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 243
+      "manifest_index": 243,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0245",
@@ -2453,7 +3195,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 244
+      "manifest_index": 244,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0246",
@@ -2463,7 +3208,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 245
+      "manifest_index": 245,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0247",
@@ -2473,7 +3221,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 246
+      "manifest_index": 246,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0248",
@@ -2483,7 +3234,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 247
+      "manifest_index": 247,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0249",
@@ -2493,7 +3247,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 248
+      "manifest_index": 248,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0250",
@@ -2503,7 +3260,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 249
+      "manifest_index": 249,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0251",
@@ -2513,7 +3273,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 250
+      "manifest_index": 250,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0252",
@@ -2523,7 +3286,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 251
+      "manifest_index": 251,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0253",
@@ -2533,7 +3299,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 252
+      "manifest_index": 252,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0254",
@@ -2543,7 +3312,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 253
+      "manifest_index": 253,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0255",
@@ -2553,7 +3325,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 254
+      "manifest_index": 254,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0256",
@@ -2563,7 +3338,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 255
+      "manifest_index": 255,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0257",
@@ -2573,7 +3351,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 256
+      "manifest_index": 256,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0258",
@@ -2583,7 +3364,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 257
+      "manifest_index": 257,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0259",
@@ -2593,7 +3377,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 258
+      "manifest_index": 258,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0260",
@@ -2603,7 +3390,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 259
+      "manifest_index": 259,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0261",
@@ -2613,7 +3403,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 260
+      "manifest_index": 260,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0262",
@@ -2623,7 +3416,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 261
+      "manifest_index": 261,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0263",
@@ -2633,7 +3429,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 262
+      "manifest_index": 262,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0264",
@@ -2643,7 +3442,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 263
+      "manifest_index": 263,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0265",
@@ -2653,7 +3455,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 264
+      "manifest_index": 264,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0266",
@@ -2663,7 +3468,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 265
+      "manifest_index": 265,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0267",
@@ -2673,7 +3481,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 266
+      "manifest_index": 266,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0268",
@@ -2683,7 +3494,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 267
+      "manifest_index": 267,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0269",
@@ -2693,7 +3507,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 268
+      "manifest_index": 268,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0270",
@@ -2703,7 +3520,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 269
+      "manifest_index": 269,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0271",
@@ -2713,7 +3533,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 270
+      "manifest_index": 270,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0272",
@@ -2723,7 +3546,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 271
+      "manifest_index": 271,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0273",
@@ -2733,7 +3559,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 272
+      "manifest_index": 272,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0274",
@@ -2743,7 +3572,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 273
+      "manifest_index": 273,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0275",
@@ -2753,7 +3585,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 274
+      "manifest_index": 274,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0276",
@@ -2763,7 +3598,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 275
+      "manifest_index": 275,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0277",
@@ -2773,7 +3611,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 276
+      "manifest_index": 276,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0278",
@@ -2783,7 +3624,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 277
+      "manifest_index": 277,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0279",
@@ -2793,7 +3637,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 278
+      "manifest_index": 278,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0280",
@@ -2803,7 +3650,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 279
+      "manifest_index": 279,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0281",
@@ -2813,7 +3663,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 280
+      "manifest_index": 280,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0282",
@@ -2823,7 +3676,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 281
+      "manifest_index": 281,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0283",
@@ -2833,7 +3689,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 282
+      "manifest_index": 282,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0284",
@@ -2843,7 +3702,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 283
+      "manifest_index": 283,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0285",
@@ -2853,7 +3715,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 284
+      "manifest_index": 284,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0286",
@@ -2863,7 +3728,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 285
+      "manifest_index": 285,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0287",
@@ -2873,7 +3741,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 286
+      "manifest_index": 286,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0288",
@@ -2883,7 +3754,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 287
+      "manifest_index": 287,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0289",
@@ -2893,7 +3767,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 288
+      "manifest_index": 288,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0290",
@@ -2903,7 +3780,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 289
+      "manifest_index": 289,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0291",
@@ -2913,7 +3793,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 290
+      "manifest_index": 290,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0292",
@@ -2923,7 +3806,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 291
+      "manifest_index": 291,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0293",
@@ -2933,7 +3819,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 292
+      "manifest_index": 292,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0294",
@@ -2943,7 +3832,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 293
+      "manifest_index": 293,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0295",
@@ -2953,7 +3845,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 294
+      "manifest_index": 294,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0296",
@@ -2963,7 +3858,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 295
+      "manifest_index": 295,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0297",
@@ -2973,7 +3871,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 296
+      "manifest_index": 296,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0298",
@@ -2983,7 +3884,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 297
+      "manifest_index": 297,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0299",
@@ -2993,7 +3897,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 298
+      "manifest_index": 298,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0300",
@@ -3003,7 +3910,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 299
+      "manifest_index": 299,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0301",
@@ -3013,7 +3923,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 300
+      "manifest_index": 300,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0302",
@@ -3023,7 +3936,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 301
+      "manifest_index": 301,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0303",
@@ -3033,7 +3949,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 302
+      "manifest_index": 302,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0304",
@@ -3043,7 +3962,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 303
+      "manifest_index": 303,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0305",
@@ -3053,7 +3975,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 304
+      "manifest_index": 304,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0306",
@@ -3063,7 +3988,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 305
+      "manifest_index": 305,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0307",
@@ -3073,7 +4001,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 306
+      "manifest_index": 306,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0308",
@@ -3083,7 +4014,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 307
+      "manifest_index": 307,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0309",
@@ -3093,7 +4027,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 308
+      "manifest_index": 308,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0310",
@@ -3103,7 +4040,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 309
+      "manifest_index": 309,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0311",
@@ -3113,7 +4053,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 310
+      "manifest_index": 310,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0312",
@@ -3123,7 +4066,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 311
+      "manifest_index": 311,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0313",
@@ -3133,7 +4079,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 312
+      "manifest_index": 312,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0314",
@@ -3143,7 +4092,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 313
+      "manifest_index": 313,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0315",
@@ -3153,7 +4105,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 314
+      "manifest_index": 314,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0316",
@@ -3163,7 +4118,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 315
+      "manifest_index": 315,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0317",
@@ -3173,7 +4131,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 316
+      "manifest_index": 316,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0318",
@@ -3183,7 +4144,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 317
+      "manifest_index": 317,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0319",
@@ -3193,7 +4157,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 318
+      "manifest_index": 318,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0320",
@@ -3203,7 +4170,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 319
+      "manifest_index": 319,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0321",
@@ -3213,7 +4183,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 320
+      "manifest_index": 320,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0322",
@@ -3223,7 +4196,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 321
+      "manifest_index": 321,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0323",
@@ -3233,7 +4209,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 322
+      "manifest_index": 322,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0324",
@@ -3243,7 +4222,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 323
+      "manifest_index": 323,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0325",
@@ -3253,7 +4235,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 324
+      "manifest_index": 324,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0326",
@@ -3263,7 +4248,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 325
+      "manifest_index": 325,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0327",
@@ -3273,7 +4261,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 326
+      "manifest_index": 326,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0328",
@@ -3283,7 +4274,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 327
+      "manifest_index": 327,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0329",
@@ -3293,7 +4287,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 328
+      "manifest_index": 328,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0330",
@@ -3303,7 +4300,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 329
+      "manifest_index": 329,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0331",
@@ -3313,7 +4313,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 330
+      "manifest_index": 330,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0332",
@@ -3323,7 +4326,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 331
+      "manifest_index": 331,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0333",
@@ -3333,7 +4339,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 332
+      "manifest_index": 332,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0334",
@@ -3343,7 +4352,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 333
+      "manifest_index": 333,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0335",
@@ -3353,7 +4365,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 334
+      "manifest_index": 334,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0336",
@@ -3363,7 +4378,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 335
+      "manifest_index": 335,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0337",
@@ -3373,7 +4391,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 336
+      "manifest_index": 336,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0338",
@@ -3383,7 +4404,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 337
+      "manifest_index": 337,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0339",
@@ -3393,7 +4417,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 338
+      "manifest_index": 338,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0340",
@@ -3403,7 +4430,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 339
+      "manifest_index": 339,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0341",
@@ -3413,7 +4443,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 340
+      "manifest_index": 340,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0342",
@@ -3423,7 +4456,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 341
+      "manifest_index": 341,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0343",
@@ -3433,7 +4469,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 342
+      "manifest_index": 342,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0344",
@@ -3443,7 +4482,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 343
+      "manifest_index": 343,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0345",
@@ -3453,7 +4495,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 344
+      "manifest_index": 344,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0346",
@@ -3463,7 +4508,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 345
+      "manifest_index": 345,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0347",
@@ -3473,7 +4521,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 346
+      "manifest_index": 346,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0348",
@@ -3483,7 +4534,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 347
+      "manifest_index": 347,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0349",
@@ -3493,7 +4547,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 348
+      "manifest_index": 348,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0350",
@@ -3503,7 +4560,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 349
+      "manifest_index": 349,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0351",
@@ -3513,7 +4573,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 350
+      "manifest_index": 350,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0352",
@@ -3523,7 +4586,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 351
+      "manifest_index": 351,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0353",
@@ -3533,7 +4599,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 352
+      "manifest_index": 352,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0354",
@@ -3543,7 +4612,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 353
+      "manifest_index": 353,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0355",
@@ -3553,7 +4625,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 354
+      "manifest_index": 354,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0356",
@@ -3563,7 +4638,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 355
+      "manifest_index": 355,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0357",
@@ -3573,7 +4651,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 356
+      "manifest_index": 356,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0358",
@@ -3583,7 +4664,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 357
+      "manifest_index": 357,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0359",
@@ -3593,7 +4677,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 358
+      "manifest_index": 358,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0360",
@@ -3603,7 +4690,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 359
+      "manifest_index": 359,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0361",
@@ -3613,7 +4703,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 360
+      "manifest_index": 360,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0362",
@@ -3623,7 +4716,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 361
+      "manifest_index": 361,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0363",
@@ -3633,7 +4729,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 362
+      "manifest_index": 362,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0364",
@@ -3643,7 +4742,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 363
+      "manifest_index": 363,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0365",
@@ -3653,7 +4755,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 364
+      "manifest_index": 364,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0366",
@@ -3663,7 +4768,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 365
+      "manifest_index": 365,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0367",
@@ -3673,7 +4781,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 366
+      "manifest_index": 366,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0368",
@@ -3683,7 +4794,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 367
+      "manifest_index": 367,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0369",
@@ -3693,7 +4807,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 368
+      "manifest_index": 368,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0370",
@@ -3703,7 +4820,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 369
+      "manifest_index": 369,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0371",
@@ -3713,7 +4833,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 370
+      "manifest_index": 370,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0372",
@@ -3723,7 +4846,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 371
+      "manifest_index": 371,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0373",
@@ -3733,7 +4859,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 372
+      "manifest_index": 372,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0374",
@@ -3743,7 +4872,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 373
+      "manifest_index": 373,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0375",
@@ -3753,7 +4885,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 374
+      "manifest_index": 374,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0376",
@@ -3763,7 +4898,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 375
+      "manifest_index": 375,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0377",
@@ -3773,7 +4911,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 376
+      "manifest_index": 376,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0378",
@@ -3783,7 +4924,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 377
+      "manifest_index": 377,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0379",
@@ -3793,7 +4937,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 378
+      "manifest_index": 378,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0380",
@@ -3803,7 +4950,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 379
+      "manifest_index": 379,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0381",
@@ -3813,7 +4963,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 380
+      "manifest_index": 380,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0382",
@@ -3823,7 +4976,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 381
+      "manifest_index": 381,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0383",
@@ -3833,7 +4989,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 382
+      "manifest_index": 382,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0384",
@@ -3843,7 +5002,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 383
+      "manifest_index": 383,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0385",
@@ -3853,7 +5015,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 384
+      "manifest_index": 384,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0386",
@@ -3863,7 +5028,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 385
+      "manifest_index": 385,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0387",
@@ -3873,7 +5041,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 386
+      "manifest_index": 386,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0388",
@@ -3883,7 +5054,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 387
+      "manifest_index": 387,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0389",
@@ -3893,7 +5067,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 388
+      "manifest_index": 388,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0390",
@@ -3903,7 +5080,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 389
+      "manifest_index": 389,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0391",
@@ -3913,7 +5093,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 390
+      "manifest_index": 390,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0392",
@@ -3923,7 +5106,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 391
+      "manifest_index": 391,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0393",
@@ -3933,7 +5119,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 392
+      "manifest_index": 392,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0394",
@@ -3943,7 +5132,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 393
+      "manifest_index": 393,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0395",
@@ -3953,7 +5145,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 394
+      "manifest_index": 394,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0396",
@@ -3963,7 +5158,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 395
+      "manifest_index": 395,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0397",
@@ -3973,7 +5171,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 396
+      "manifest_index": 396,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0398",
@@ -3983,7 +5184,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 397
+      "manifest_index": 397,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0399",
@@ -3993,7 +5197,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 398
+      "manifest_index": 398,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0400",
@@ -4003,7 +5210,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 399
+      "manifest_index": 399,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0401",
@@ -4013,7 +5223,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 400
+      "manifest_index": 400,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0402",
@@ -4023,7 +5236,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 401
+      "manifest_index": 401,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0403",
@@ -4033,7 +5249,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 402
+      "manifest_index": 402,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0404",
@@ -4043,7 +5262,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 403
+      "manifest_index": 403,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0405",
@@ -4053,7 +5275,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 404
+      "manifest_index": 404,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0406",
@@ -4063,7 +5288,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 405
+      "manifest_index": 405,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0407",
@@ -4073,7 +5301,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 406
+      "manifest_index": 406,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0408",
@@ -4083,7 +5314,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 407
+      "manifest_index": 407,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0409",
@@ -4093,7 +5327,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 408
+      "manifest_index": 408,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0410",
@@ -4103,7 +5340,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 409
+      "manifest_index": 409,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0411",
@@ -4113,7 +5353,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 410
+      "manifest_index": 410,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0412",
@@ -4123,7 +5366,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 411
+      "manifest_index": 411,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0413",
@@ -4133,7 +5379,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 412
+      "manifest_index": 412,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0414",
@@ -4143,7 +5392,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 413
+      "manifest_index": 413,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0415",
@@ -4153,7 +5405,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 414
+      "manifest_index": 414,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0416",
@@ -4163,7 +5418,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 415
+      "manifest_index": 415,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0417",
@@ -4173,7 +5431,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 416
+      "manifest_index": 416,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0418",
@@ -4183,7 +5444,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 417
+      "manifest_index": 417,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0419",
@@ -4193,7 +5457,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 418
+      "manifest_index": 418,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0420",
@@ -4203,7 +5470,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 419
+      "manifest_index": 419,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0421",
@@ -4213,7 +5483,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 420
+      "manifest_index": 420,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0422",
@@ -4223,7 +5496,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 421
+      "manifest_index": 421,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0423",
@@ -4233,7 +5509,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 422
+      "manifest_index": 422,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0424",
@@ -4243,7 +5522,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 423
+      "manifest_index": 423,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0425",
@@ -4253,7 +5535,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 424
+      "manifest_index": 424,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0426",
@@ -4263,7 +5548,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 425
+      "manifest_index": 425,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0427",
@@ -4273,7 +5561,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 426
+      "manifest_index": 426,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0428",
@@ -4283,7 +5574,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 427
+      "manifest_index": 427,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0429",
@@ -4293,7 +5587,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 428
+      "manifest_index": 428,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0430",
@@ -4303,7 +5600,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 429
+      "manifest_index": 429,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0431",
@@ -4313,7 +5613,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 430
+      "manifest_index": 430,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0432",
@@ -4323,7 +5626,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 431
+      "manifest_index": 431,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0433",
@@ -4333,7 +5639,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 432
+      "manifest_index": 432,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0434",
@@ -4343,7 +5652,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 433
+      "manifest_index": 433,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0435",
@@ -4353,7 +5665,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 434
+      "manifest_index": 434,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0436",
@@ -4363,7 +5678,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 435
+      "manifest_index": 435,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0437",
@@ -4373,7 +5691,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 436
+      "manifest_index": 436,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0438",
@@ -4383,7 +5704,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 437
+      "manifest_index": 437,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0439",
@@ -4393,7 +5717,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 438
+      "manifest_index": 438,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0440",
@@ -4403,7 +5730,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 439
+      "manifest_index": 439,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0441",
@@ -4413,7 +5743,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 440
+      "manifest_index": 440,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0442",
@@ -4423,7 +5756,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 441
+      "manifest_index": 441,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0443",
@@ -4433,7 +5769,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 442
+      "manifest_index": 442,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0444",
@@ -4443,7 +5782,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 443
+      "manifest_index": 443,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0445",
@@ -4453,7 +5795,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 444
+      "manifest_index": 444,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0446",
@@ -4463,7 +5808,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 445
+      "manifest_index": 445,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0447",
@@ -4473,7 +5821,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 446
+      "manifest_index": 446,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0448",
@@ -4483,7 +5834,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 447
+      "manifest_index": 447,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0449",
@@ -4493,7 +5847,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 448
+      "manifest_index": 448,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0450",
@@ -4503,7 +5860,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 449
+      "manifest_index": 449,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0451",
@@ -4513,7 +5873,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 450
+      "manifest_index": 450,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0452",
@@ -4523,7 +5886,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 451
+      "manifest_index": 451,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0453",
@@ -4533,7 +5899,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 452
+      "manifest_index": 452,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0454",
@@ -4543,7 +5912,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 453
+      "manifest_index": 453,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0455",
@@ -4553,7 +5925,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 454
+      "manifest_index": 454,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0456",
@@ -4563,7 +5938,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 455
+      "manifest_index": 455,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0457",
@@ -4573,7 +5951,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 456
+      "manifest_index": 456,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0458",
@@ -4583,7 +5964,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 457
+      "manifest_index": 457,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0459",
@@ -4593,7 +5977,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 458
+      "manifest_index": 458,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0460",
@@ -4603,7 +5990,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 459
+      "manifest_index": 459,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0461",
@@ -4613,7 +6003,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 460
+      "manifest_index": 460,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0462",
@@ -4623,7 +6016,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 461
+      "manifest_index": 461,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0463",
@@ -4633,7 +6029,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 462
+      "manifest_index": 462,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0464",
@@ -4643,7 +6042,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 463
+      "manifest_index": 463,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0465",
@@ -4653,7 +6055,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 464
+      "manifest_index": 464,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0466",
@@ -4663,7 +6068,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 465
+      "manifest_index": 465,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0467",
@@ -4673,7 +6081,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 466
+      "manifest_index": 466,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0468",
@@ -4683,7 +6094,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 467
+      "manifest_index": 467,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0469",
@@ -4693,7 +6107,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 468
+      "manifest_index": 468,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0470",
@@ -4703,7 +6120,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 469
+      "manifest_index": 469,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0471",
@@ -4713,7 +6133,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 470
+      "manifest_index": 470,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0472",
@@ -4723,7 +6146,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 471
+      "manifest_index": 471,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0473",
@@ -4733,7 +6159,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 472
+      "manifest_index": 472,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0474",
@@ -4743,7 +6172,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 473
+      "manifest_index": 473,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0475",
@@ -4753,7 +6185,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 474
+      "manifest_index": 474,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0476",
@@ -4763,7 +6198,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 475
+      "manifest_index": 475,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0477",
@@ -4773,7 +6211,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 476
+      "manifest_index": 476,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0478",
@@ -4783,7 +6224,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 477
+      "manifest_index": 477,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0479",
@@ -4793,7 +6237,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 478
+      "manifest_index": 478,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0480",
@@ -4803,7 +6250,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 479
+      "manifest_index": 479,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0481",
@@ -4813,7 +6263,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 480
+      "manifest_index": 480,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0482",
@@ -4823,7 +6276,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 481
+      "manifest_index": 481,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0483",
@@ -4833,7 +6289,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 482
+      "manifest_index": 482,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0484",
@@ -4843,7 +6302,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 483
+      "manifest_index": 483,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0485",
@@ -4853,7 +6315,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 484
+      "manifest_index": 484,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0486",
@@ -4863,7 +6328,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 485
+      "manifest_index": 485,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0487",
@@ -4873,7 +6341,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 486
+      "manifest_index": 486,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0488",
@@ -4883,7 +6354,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 487
+      "manifest_index": 487,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "ecommerce_lora_0489",
@@ -4893,7 +6367,10 @@
       "size_hint": "22 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 488
+      "manifest_index": 488,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "gaming_lora_0490",
@@ -4903,7 +6380,10 @@
       "size_hint": "18 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 489
+      "manifest_index": 489,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "writing_lora_0491",
@@ -4913,7 +6393,10 @@
       "size_hint": "27 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 490
+      "manifest_index": 490,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "security_lora_0492",
@@ -4923,7 +6406,10 @@
       "size_hint": "34 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 491
+      "manifest_index": 491,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "finance_lora_0493",
@@ -4933,7 +6419,10 @@
       "size_hint": "32 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 492
+      "manifest_index": 492,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "medical_lora_0494",
@@ -4943,7 +6432,10 @@
       "size_hint": "28 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 493
+      "manifest_index": 493,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "code_lora_0495",
@@ -4953,7 +6445,10 @@
       "size_hint": "45 MB",
       "hotness": 0.05,
       "lora_rank": 16,
-      "manifest_index": 494
+      "manifest_index": 494,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "support_lora_0496",
@@ -4963,7 +6458,10 @@
       "size_hint": "20 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 495
+      "manifest_index": 495,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "legal_lora_0497",
@@ -4973,7 +6471,10 @@
       "size_hint": "35 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 496
+      "manifest_index": 496,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "translate_lora_0498",
@@ -4983,7 +6484,10 @@
       "size_hint": "24 MB",
       "hotness": 0.05,
       "lora_rank": 4,
-      "manifest_index": 497
+      "manifest_index": 497,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "education_lora_0499",
@@ -4993,7 +6497,10 @@
       "size_hint": "26 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 498
+      "manifest_index": 498,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     },
     {
       "id": "research_lora_0500",
@@ -5003,7 +6510,10 @@
       "size_hint": "30 MB",
       "hotness": 0.05,
       "lora_rank": 8,
-      "manifest_index": 499
+      "manifest_index": 499,
+      "source_type": "generated_fill",
+      "generation_profile": "realistic_v2",
+      "generation_seed": 42
     }
   ]
 }

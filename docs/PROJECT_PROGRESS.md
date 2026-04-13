@@ -23,6 +23,7 @@
 6. 不引入无必要的额外计算开销；若必须增加开销，必须证明它直接服务主指标且风险可控。
 7. 公式、排序逻辑和成本模型都必须具备系统语义上的可解释性，能和真实运行路径对上。
 8. 坚持第一性原则，不接受“先救场再说”的补丁式修复作为正式方案。
+9. 每次优化前，必须先结合最近十几次代码修改历史、对应实验结果、日志细节，以及同家族/同规模跨家族对比做宏观审计；若剩余差距主要表现为模型 serving envelope 差异而非系统主链漏洞，则先收口，待与其他论文系统正式对比后再决定是否二次优化。
 
 ## 当前仓库标识
 
@@ -42,7 +43,87 @@
 - `retry21` 及其对应脏树状态视为废案，不再作为正式对比对象。
 - 本次 GitHub 同步的目的不是发布最终结论，而是把当前 clean-tree 形成一个稳定回退点。
 
+## 2026-04-13 更新快照
+
+### 当前正式论文口径
+
+- 当前正式模型家族已固定为：
+  - `Qwen 7B`
+  - `Qwen 14B TP=2`
+  - `Llama-2 7B`
+  - `Llama-2 13B TP=2`
+- `Mistral 7B / Mistral Nemo` 当前保留为历史迁移验证与包络诊断结果，不再作为论文主线正式家族。
+- 当前正式综合主指标固定为：
+  - `CE = 1 / (avg_e2e_sec * avg_cost_usd)`
+- 当前正式 TTFT 展示口径固定为：
+  - `TTFT_overall`：TTFT 家族主指标
+  - `TTFT_comp`：论文对齐辅助 TTFT
+  - `TTFT_warm`：机制诊断 TTFT
+- 历史指标保留但不再主展示：
+  - `QPR_TOKPS_TTFT_legacy`
+  - `QPR_RPS_legacy`
+
+### 当前四个正式模型结果
+
+- `Qwen 7B baseline44`
+  - `TTFT_overall = 1690.6 ms`
+  - `TTFT_comp = 1368.5 ms`
+  - `TTFT_warm = 1186.6 ms`
+  - `TPOT = 65.5 ms`
+  - `E2E = 18157.3 ms`
+  - `Tok/s = 35.36`
+  - `CE = 20.066`
+- `Qwen 14B baseline45`
+  - `TTFT_overall = 2343.3 ms`
+  - `TTFT_comp = 2497.9 ms`
+  - `TTFT_warm = 2180.1 ms`
+  - `TPOT = 104.8 ms`
+  - `E2E = 14708.2 ms`
+  - `Tok/s = 26.80`
+  - `CE = 26.638`
+- `Llama-2 7B formal`
+  - `TTFT_overall = 1477.5 ms`
+  - `TTFT_comp = 1394.4 ms`
+  - `TTFT_warm = 1350.8 ms`
+  - `TPOT = 65.1 ms`
+  - `E2E = 20142.0 ms`
+  - `Tok/s = 30.41`
+  - `CE = 18.114`
+- `Llama-2 13B formal`
+  - `TTFT_overall = 4953.4 ms`
+  - `TTFT_comp = 4875.3 ms`
+  - `TTFT_warm = 4944.2 ms`
+  - `TPOT = 121.9 ms`
+  - `E2E = 18896.5 ms`
+  - `Tok/s = 20.00`
+  - `CE = 19.752`
+
+### 2026-04-13 当前真实结论
+
+- 当前系统主链可以先 soft-close：
+  - `Qwen 7B baseline44`
+  - `Qwen 14B baseline45`
+  - `Llama-2 7B formal`
+  - `Llama-2 13B formal`
+  已构成当前论文主线的四模型正式基线。
+- 当前继续优化的门槛必须提高：
+  - 若问题仍是 `planned_match / gpu_hit / cache_hit / scale-up chain` 这类系统主链漏洞，则允许继续修。
+  - 若差距主要表现为模型家族在当前 vLLM + TP + LoRA 栈下的 runtime 包络差异，则不再继续改系统主链。
+- 当前四模型共同显示：
+  - `C1` 命中感知工件就绪机制已收正，正式结果里的 `scaleup_first_service_planned_match_rate` 已稳定到 `1.0`。
+  - `C2/C3` 仍有空间，但当前正式 workload 下 `warm_pool_hits = 0`、`contention_events = 0`，说明这部分尚未成为共通主瓶颈。
+- 因此当前最合理工程决策是：
+  - 先以这 4 个正式模型结果进入跨论文系统对比阶段。
+  - 等与 `ServerlessLoRA / ServerlessLLM / Punica / DistServe` 等论文系统做完正式对比后，再决定是否针对某个明确短板重开优化。
+
 ## 2026-04-12 更新快照
+
+### 当前最新正式分析结果补充
+
+- 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 `Mistral 7B V2 publicmix` **最可信 checkpoint** 已推进到：
+  - `retry14_continuous_queue_v2_mistral7b_r500_a500_main_baseline3_maxloras4 @ 500`
+- 当前最新本地测试状态仍为：
+  - `tests.test_basic_smoke = 228/228 OK`
 
 ### 当前最新正式分析结果
 
@@ -76,6 +157,21 @@
   - `scaleup_first_service_planned_match_rate = 0.0 -> 1.0`
   - `scaleup_first_service_gpu_hit_rate = 0.0 -> 1.0`
   - 这说明第一项贡献中的“命中感知工件就绪机制”已经在 14B 正式负载上成立。
+- 当前 `Mistral 7B V2 publicmix` 也已经完成第一轮跨家族主线验证：
+  - `baseline2_4inst -> baseline3_maxloras4` 的关键改善为：
+    - `TTFT_overall = 5857.0 -> 1397.9 ms`
+    - `TTFT_comparable = 5152.0 -> 1160.7 ms`
+    - `TTFT_warm_standard = 5135.2 -> 1131.2 ms`
+    - `TTFT_scaleup_affected = 10257.2 -> 1881.8 ms`
+    - `TTFT_scaleup_first_service = 1439.9 -> 321.6 ms`
+    - `Tok/s = 29.54 -> 34.93`
+    - `QPR = 1839.4 -> 9121.1`
+    - `avg_lora_io_ms = 1624.4 -> 303.6`
+  - 当前最重要的新判断是：
+    - 问题不是 C1 失效，也不是控制链再度损坏
+    - 真正根因是 `Mistral 7B` 仍套着历史稳定性保守壳中的 `max_loras=1`
+    - 将 `max_loras` 恢复到与当前真实局部工作集匹配的 `4` 后，C2/C3 的收益立刻显现
+  - 这说明当前 `continuous_queue_v2` 主线已经不再只对 Qwen 家族有效。
 - 当前 14B 尚未收口的部分已经转移到第二、第三项贡献：
   - `avg_scaleup_affected_ttft_ms = 4060.3 ms`
   - `avg_cold_start_latency_ms = 67901.1 ms`
@@ -84,17 +180,21 @@
 - 因此当前正确收口判断是：
   - 7B：soft-close，冻结
   - 14B：第一项贡献对应的 handoff/control 语义链可软收口
-  - 下一条 active 主线：`Mistral 7B V2 publicmix @ 500 adapters`
-  - 只有当另一模型家族复现同样的后续接管冷路径问题时，才回到跨模型共通的 C2/C3 主线继续收口
+  - `Mistral 7B V2 publicmix`：当前也已进入可信 checkpoint 区间
+  - 下一条 active 主线：`Mistral Nemo TP=2`
+  - 只有当 `Mistral Nemo` 也复现同样的后续接管冷路径问题时，才回到跨模型共通的 C2/C3 主线继续收口
 
 ### 当前最新代码状态
 
 - 当前待同步代码修改：
+  - `configs/experiments.yaml`
   - `scripts/run_all_experiments.py`
   - `tests/test_basic_smoke.py`
   - `configs/generated/lora_manifest_1000.json`
   - `docs/*.md`
 - 这批代码的真实含义：
+  - `Mistral 7B V2 publicmix` 的 `max_loras` 已从历史稳定性保守壳中的 `1` 恢复到 `4`
+  - `Mistral Nemo TP=2` 的 workload `max_instances` 已与当前 `4 x 3090` 物理上限对齐到 `2`
   - `post-startup refresh` 不再把已经发生过的 `runtime_startup_latency_ms` 重复计入未来 handoff 预测窗口
   - 扩容事件中的 `runtime_startup_latency_ms` 仍保留为诊断字段
   - 14B 正式负载下的首批接管请求，已经和 `planned_adapters` 对齐
@@ -107,25 +207,31 @@
 ### 当前高优先级 TODO 顺序
 
 1. `Mistral 7B V2 publicmix` 的 `continuous_queue_v2` 验证
-   - 当前状态：下一条 active 主线
+   - 当前状态：已完成并进入可信 checkpoint 区间
    - 当前目标：
-     - 验证 7B Qwen 与 14B Qwen 上已经收正的 handoff/control 语义是否能迁移到另一模型家族
-     - 判断当前剩余瓶颈是否仍集中在 C2/C3，而不是模型家族特定适配
+     - 已验证 7B Qwen 与 14B Qwen 上已经收正的 handoff/control 语义可以迁移到另一模型家族
+     - 已确认当前 `Mistral 7B` 的主问题是历史稳定性保守壳，而不是系统主链损坏
 
-2. 14B 上的 C2/C3 后续优化
-   - 当前状态：等待另一模型家族验证后决定是否重开
+2. `Mistral Nemo TP=2` 的 `continuous_queue_v2` 验证
+   - 当前状态：下一条 active 主线
+   - 当前方向：
+     - 先验证 `TP=2` 下当前 `1 -> 2 runtime` 扩容链是否与 `Qwen 14B` 一样成立
+     - 再判断 `Nemo` 是否也会把剩余瓶颈暴露在 C2/C3，而不是暴露新的模型家族特有控制链问题
+
+3. 14B / 跨家族上的 C2/C3 后续优化
+   - 当前状态：等待 `Mistral Nemo TP=2` 验证后决定是否重开
    - 当前方向：
      - 三层驻留持续维护
      - `warm pool retention`
      - `受控资源保留`
 
-3. 更大模型或另一家族的 `10B~14B` 级别验证
-   - 当前状态：位于 `Mistral 7B` 之后
+4. 更大模型或另一家族的 `10B~14B` 级别验证
+   - 当前状态：位于 `Mistral Nemo TP=2` 之后
 
-4. TODO `#4`
+5. TODO `#4`
    - 继续后置
 
-5. TODO `#5`
+6. TODO `#5`
    - 继续后置
 
 ## 2026-04-11 更新快照

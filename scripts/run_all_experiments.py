@@ -27,7 +27,7 @@ WORKLOAD
 
 METRICS
 -------
-  TTFT / TPOT / P50/P95/P99 latency / throughput(RPS) / cost / QPR
+  TTFT / TPOT / P50/P95/P99 latency / throughput(RPS) / cost / CE
   LoRA hit rate / GPU hit rate / LoRA IO latency
   [C3] contention events / defer delay / warm pool / burst TTFT
 
@@ -73,6 +73,19 @@ import yaml
 
 # 抑制 PEFT load_adapter 时的 "Already found peft_config" 警告（预期行为，非错误）
 warnings.filterwarnings("ignore", message=r"Already found a .*peft_config", category=UserWarning)
+# 抑制 Mistral tokenizer 反复打印的已知弃用提示；这是第三方包噪声，不应淹没真正运行期异常。
+warnings.filterwarnings(
+    "ignore",
+    message=r"`get_control_token` is deprecated\. Use `get_special_token` instead\.",
+    category=FutureWarning,
+    module=r"mistral_common\.tokens\.tokenizers\.tekken",
+)
+_mistral_warning_filter = "ignore::FutureWarning:mistral_common.tokens.tokenizers.tekken"
+_pythonwarnings = os.environ.get("PYTHONWARNINGS", "").strip()
+if _mistral_warning_filter not in _pythonwarnings.split(","):
+    os.environ["PYTHONWARNINGS"] = (
+        f"{_pythonwarnings},{_mistral_warning_filter}" if _pythonwarnings else _mistral_warning_filter
+    )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -790,6 +803,7 @@ class ScenarioResult:
     avg_cost_usd: float = 0.0
     total_cost_usd: float = 0.0
     qpr: float = 0.0
+    qpr_tokps_ttft_legacy: float = 0.0
     qpr_rps_legacy: float = 0.0
     cache_hit_rate: float = 0.0
     gpu_hit_rate: float = 0.0
@@ -1019,15 +1033,21 @@ class ScenarioResult:
         self.non_burst_avg_ttft_ms = sum(nb)/len(nb) if nb else 0.0
         self.burst_p99_ttft_ms    = pct(b_all, 99) if b_all else 0.0
 
-        # Paper-facing QPR uses token throughput; keep the older RPS-based
-        # ratio as a legacy field so historical results remain interpretable.
+        # Main paper-facing metric is CE = 1 / (avg_e2e * avg_cost).
+        # Keep the older throughput-normalized ratios as explicit legacy fields
+        # so historical results remain traceable.
         avg_ttft_s = self.avg_ttft_ms / 1000.0
         denom = self.avg_cost_usd * avg_ttft_s
-        self.qpr = self.throughput_tok_per_s / denom if denom > 1e-12 else 0.0
+        self.qpr_tokps_ttft_legacy = (
+            self.throughput_tok_per_s / denom if denom > 1e-12 else 0.0
+        )
         self.qpr_rps_legacy = self.throughput_rps / denom if denom > 1e-12 else 0.0
         avg_e2e_s = self.avg_e2e_ms / 1000.0
         e2e_cost_denom = self.avg_cost_usd * avg_e2e_s
         self.cost_effectiveness_e2e = 1.0 / e2e_cost_denom if e2e_cost_denom > 1e-12 else 0.0
+        # Preserve the historical qpr field name as the main CE value so the
+        # rest of the reporting pipeline can switch labels without breaking.
+        self.qpr = self.cost_effectiveness_e2e
         self.slo_goodput_rps = self.throughput_rps * self.slo_attainment
         self.slo_goodput_tok_per_s = self.throughput_tok_per_s * self.slo_attainment
 
@@ -1061,7 +1081,7 @@ _SCENARIO_RESULT_NUMERIC_KEYS = (
     "elapsed_sec", "avg_ttft_ms", "p50_ttft_ms", "p95_ttft_ms", "p99_ttft_ms",
     "avg_tpot_ms", "avg_e2e_ms", "p95_e2e_ms", "p99_e2e_ms",
     "throughput_rps", "throughput_tok_per_s", "slo_attainment",
-    "avg_cost_usd", "total_cost_usd", "qpr", "qpr_rps_legacy",
+    "avg_cost_usd", "total_cost_usd", "qpr", "qpr_tokps_ttft_legacy", "qpr_rps_legacy",
     "cost_effectiveness_e2e", "slo_goodput_rps", "slo_goodput_tok_per_s",
     "cache_hit_rate", "gpu_hit_rate", "avg_lora_io_ms",
     "avg_comparable_ttft_ms", "p95_comparable_ttft_ms", "p99_comparable_ttft_ms",
@@ -1145,6 +1165,10 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         avg_cost_usd=agg_dict.get("avg_cost_usd", first.avg_cost_usd),
         total_cost_usd=agg_dict.get("total_cost_usd", first.total_cost_usd),
         qpr=agg_dict.get("qpr", first.qpr),
+        qpr_tokps_ttft_legacy=agg_dict.get(
+            "qpr_tokps_ttft_legacy",
+            first.qpr_tokps_ttft_legacy,
+        ),
         qpr_rps_legacy=agg_dict.get("qpr_rps_legacy", first.qpr_rps_legacy),
         cost_effectiveness_e2e=agg_dict.get("cost_effectiveness_e2e", first.cost_effectiveness_e2e),
         slo_goodput_rps=agg_dict.get("slo_goodput_rps", first.slo_goodput_rps),
@@ -5586,7 +5610,7 @@ class ScenarioRunner:
         idx = max(0, min(len(ordered) - 1, int(round((p / 100.0) * (len(ordered) - 1)))))
         return float(ordered[idx])
 
-    def _live_result_stats(self, results_view: Optional[List[Any]]) -> Dict[str, Any]:
+    def _live_result_stats(self, results_view: Optional[List[Any]], elapsed_sec: float = 1.0) -> Dict[str, Any]:
         if not results_view:
             return {}
         ok = [
@@ -5725,9 +5749,20 @@ class ScenarioRunner:
                     len(tpot) / len(tpot_eligible)
                 ) if tpot_eligible else 0.0,
             })
+            avg_ttft_s = float(stats["avg_ttft_ms"]) / 1000.0
+            legacy_denom = avg_cost_usd * avg_ttft_s
+            stats["qpr_tokps_ttft_legacy"] = (
+                float(stats["total_output_tokens"]) / max(elapsed_sec, 1e-6) / legacy_denom
+                if legacy_denom > 1e-12 else 0.0
+            )
+            stats["qpr_rps_legacy"] = (
+                float(stats["success"]) / max(elapsed_sec, 1e-6) / legacy_denom
+                if legacy_denom > 1e-12 else 0.0
+            )
             avg_e2e_s = float(stats["avg_e2e_ms"]) / 1000.0
             denom = avg_cost_usd * avg_e2e_s
             stats["cost_effectiveness_e2e"] = 1.0 / denom if denom > 1e-12 else 0.0
+            stats["ce"] = stats["cost_effectiveness_e2e"]
         if failed:
             reasons: Dict[str, int] = {}
             for item in failed:
@@ -5799,7 +5834,7 @@ class ScenarioRunner:
         runtime_groups = len(self.instance_pool.get_runtime_groups()) if self.instance_pool is not None else 1
         cache_counts = self._adapter_cache_counts()
         success = max(0, completed - failed)
-        stats = self._live_result_stats(results_view)
+        stats = self._live_result_stats(results_view, elapsed)
         if stats:
             success = int(stats.get("success", success))
             failed = int(stats.get("failed", failed))
@@ -5835,7 +5870,8 @@ class ScenarioRunner:
             live_avg_ttft_s = float(stats.get("avg_ttft_ms", 0.0) or 0.0) / 1000.0
             live_avg_cost_usd = float(stats.get("avg_cost_usd", 0.0) or 0.0)
             live_qpr_denom = live_avg_cost_usd * live_avg_ttft_s
-            live_qpr = tokps / live_qpr_denom if live_qpr_denom > 1e-12 else 0.0
+            live_qpr_legacy = tokps / live_qpr_denom if live_qpr_denom > 1e-12 else 0.0
+            live_ce = float(stats.get("ce", stats.get("cost_effectiveness_e2e", 0.0)) or 0.0)
             print(
                 "      "
                 f"ttft_overall(avg/p95/p99)={stats.get('avg_ttft_ms', 0.0):.0f}/{stats.get('p95_ttft_ms', 0.0):.0f}/{stats.get('p99_ttft_ms', 0.0):.0f}ms "
@@ -5847,7 +5883,8 @@ class ScenarioRunner:
                 "      "
                 f"tok/s={tokps:.2f} "
                 f"cost/req=${live_avg_cost_usd:.6f} "
-                f"qpr={live_qpr:.1f} "
+                f"ce={live_ce:.3f} "
+                f"qpr_legacy={live_qpr_legacy:.1f} "
                 f"cold_start(avg/p95)={stats.get('avg_cold_start_latency_ms', 0.0):.0f}/{stats.get('p95_cold_start_latency_ms', 0.0):.0f}ms",
                 flush=True,
             )
@@ -5871,7 +5908,7 @@ class ScenarioRunner:
                 f"gpu_ready={stats.get('avg_gpu_ready_ttft_ms', 0.0):.0f}ms "
                 f"diag hit={stats.get('cache_hit_ratio', 0.0):.0%} "
                 f"overhead(io+coord)={stats.get('avg_serverless_overhead_ms', 0.0):.0f}ms "
-                f"cost_eff={stats.get('cost_effectiveness_e2e', 0.0):.3f}",
+                f"ce={stats.get('ce', stats.get('cost_effectiveness_e2e', 0.0)):.3f}",
                 flush=True,
             )
             failure_reasons = stats.get("failure_reasons") or []
@@ -9819,7 +9856,7 @@ def _build_metric_groups(r: ScenarioResult, digits: int = 4) -> Dict[str, Dict[s
             "TPOT_avg_ms": _round_metric_value(r.avg_tpot_ms, digits),
             "Throughput_RPS": _round_metric_value(r.throughput_rps, digits),
             "Throughput_TOKPS": _round_metric_value(r.throughput_tok_per_s, digits),
-            "Cost_effectiveness_e2e": _round_metric_value(r.cost_effectiveness_e2e, digits),
+            "CE": _round_metric_value(r.qpr, digits),
         },
         "serverless_deployment_metrics": {
             "TTFT_overall_avg_ms": _round_metric_value(r.avg_ttft_ms, digits),
@@ -9854,7 +9891,9 @@ def _build_metric_groups(r: ScenarioResult, digits: int = 4) -> Dict[str, Dict[s
             "scale_down_events": int(getattr(r, "scale_down_events", 0) or 0),
         },
         "mechanism_metrics": {
-            "QPR": _round_metric_value(r.qpr, digits),
+            "CE": _round_metric_value(r.qpr, digits),
+            "QPR_TOKPS_TTFT_legacy": _round_metric_value(r.qpr_tokps_ttft_legacy, digits),
+            "QPR_RPS_legacy": _round_metric_value(r.qpr_rps_legacy, digits),
             "TPOT_observed_ratio": _round_metric_value(r.tpot_observed_request_ratio, digits),
             "cache_hit_rate": _round_metric_value(r.cache_hit_rate, digits),
             "GPU_hit_rate": _round_metric_value(r.gpu_hit_rate, digits),
@@ -9900,7 +9939,7 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
     print("\n  Paper Headline Metrics (7)")
     H = (f"  {'Scenario':<26} {'Type':<16} "
          f"{'TTFT':>10} {'TPOT':>8} {'Tok/s':>9} "
-         f"{'E2E':>9} {'Cost/req':>10} {'QPR':>10} {'ColdStart':>12}")
+         f"{'E2E':>9} {'Cost/req':>10} {'CE':>10} {'ColdStart':>12}")
     print(H)
     print(f"  {LINE[2:]}")
 
@@ -9922,7 +9961,7 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
         tokps_s = _cell_with_std(r, "throughput_tok_per_s", ".2f", "")
         e2e_s = _cell_with_std(r, "avg_e2e_ms", ".0f", "ms")
         cost_s = _cell_with_std(r, "avg_cost_usd", ".6f", "")
-        qpr_s  = _cell_with_std(r, "qpr", ".0f", "")
+        qpr_s  = _cell_with_std(r, "qpr", ".3f", "")
         cold_s = _cell_with_std(r, "avg_cold_start_latency_ms", ".0f", "ms")
         print(
             f"  {r.scenario_name:<26} {label:<16} "
@@ -9965,7 +10004,7 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
     hdr_aux = (
         f"  {'Scenario':<26} {'Type':<16} "
         f"{'ScaleUpTTFT':>12} {'RuntimeTTFT':>12} {'GPUReady':>10} "
-        f"{'SLO':>8} {'SLOGood':>10} {'CostEff':>10}"
+        f"{'SLO':>8} {'SLOGood':>10} {'CE':>10}"
     )
     print(hdr_aux)
     print(f"  {LINE[2:]}")
@@ -9978,7 +10017,7 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
             f"  {r.scenario_name:<26} {label:<16} "
             f"{scaleup_s:>12} {runtime_s:>12} {gpu_ready_s:>10} "
             f"{r.slo_attainment:>7.0%} {r.slo_goodput_tok_per_s:>9.2f} "
-            f"{r.cost_effectiveness_e2e:>10.3f}"
+            f"{r.qpr:>10.3f}"
         )
     print(f"{DLINE}")
 
@@ -9989,7 +10028,7 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
         print(f"  {LINE[2:]}")
         hdr2 = (f"  {'Scenario':<26} {'Type':<16} "
                 f"{'TTFT_avg':>10} {'P95':>8} {'P99':>8} "
-                f"{'RPS':>8} {'QPR':>8} {'Cost':>8}")
+                f"{'RPS':>8} {'CE':>8} {'Cost':>8}")
         print(hdr2)
         print(f"  {LINE[2:]}")
         for r in results:
@@ -10016,7 +10055,7 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
         print(f"  {LINE[2:]}")
         hdr3 = (f"  {'Type':<30} "
                 f"{'TTFT avg':>10} {'TTFT P99':>10} {'TPOT':>8} "
-                f"{'RPS':>10} {'QPR':>10} {'HitRate':>8}")
+                f"{'RPS':>10} {'CE':>10} {'HitRate':>8}")
         print(hdr3)
         print(f"  {'-' * 90}")
         for r in sota_rows:
@@ -10027,7 +10066,7 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
                 f"{r.avg_ttft_ms:>8.0f}ms {r.p99_ttft_ms:>8.0f}ms "
                 f"{r.avg_tpot_ms:>6.1f}ms "
                 f"{r.throughput_rps:>8.2f} "
-                f"{r.qpr:>10.0f} "
+                f"{r.qpr:>10.3f} "
                 f"{r.cache_hit_rate:>7.0%} "
                 f"{marker}"
             )
@@ -10042,12 +10081,12 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
                 ttft_vs = _imp(full.avg_ttft_ms, slora.avg_ttft_ms)
                 p99_vs  = _imp(full.p99_ttft_ms, slora.p99_ttft_ms)
                 qpr_vs  = _imp(full.qpr, slora.qpr, False)
-                print(f"    vs S-LoRA      :  TTFT {ttft_vs}  P99 {p99_vs}  QPR {qpr_vs}")
+                print(f"    vs S-LoRA      :  TTFT {ttft_vs}  P99 {p99_vs}  CE {qpr_vs}")
             if sllm:
                 ttft_vs = _imp(full.avg_ttft_ms, sllm.avg_ttft_ms)
                 p99_vs  = _imp(full.p99_ttft_ms, sllm.p99_ttft_ms)
                 qpr_vs  = _imp(full.qpr, sllm.qpr, False)
-                print(f"    vs ServerlessLLM:  TTFT {ttft_vs}  P99 {p99_vs}  QPR {qpr_vs}")
+                print(f"    vs ServerlessLLM:  TTFT {ttft_vs}  P99 {p99_vs}  CE {qpr_vs}")
         print(f"{DLINE}")
 
     # Table 4: Contribution-3 coordination metrics
@@ -10157,8 +10196,9 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "TTFT_SLO_ms": round(r.ttft_slo_ms, 1),
             "avg_cost_USD": round(r.avg_cost_usd, 7),
             "total_cost_USD":    round(r.total_cost_usd, 5),
+            "CE":      round(r.qpr, 4),
             "Cost_effectiveness_e2e": round(r.cost_effectiveness_e2e, 4),
-            "QPR":     round(r.qpr, 1),
+            "QPR_TOKPS_TTFT_legacy": round(r.qpr_tokps_ttft_legacy, 1),
             "QPR_RPS_legacy": round(r.qpr_rps_legacy, 1),
             "cache_hit_rate":    round(r.cache_hit_rate, 4),
             "GPU_hit_rate":     round(r.gpu_hit_rate, 4),
@@ -10191,7 +10231,7 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
                 "TTFT_improvement_pct":  round((base.avg_ttft_ms - r.avg_ttft_ms) / base.avg_ttft_ms * 100, 1),
                 "P99_improvement_pct":   round((base.p99_ttft_ms - r.p99_ttft_ms) / base.p99_ttft_ms * 100, 1),
                 "RPS_improvement_pct":   round((r.throughput_rps - base.throughput_rps) / base.throughput_rps * 100, 1),
-                "QPR_improvement_pct":   round((r.qpr - base.qpr) / max(base.qpr, 1e-9) * 100, 1),
+                "CE_improvement_pct":    round((r.qpr - base.qpr) / max(base.qpr, 1e-9) * 100, 1),
             }
         if getattr(r, "std_ci", None):
             row["std_ci"] = {
@@ -10239,7 +10279,9 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "ttft_slo_ms": round(r.ttft_slo_ms, 4),
             "avg_cost_usd": round(r.avg_cost_usd, 8),
             "total_cost_usd": round(r.total_cost_usd, 8),
+            "ce": round(r.qpr, 6),
             "qpr": round(r.qpr, 6),
+            "qpr_tokps_ttft_legacy": round(r.qpr_tokps_ttft_legacy, 6),
             "qpr_rps_legacy": round(r.qpr_rps_legacy, 6),
             "cache_hit_rate": round(r.cache_hit_rate, 6),
             "gpu_hit_rate": round(r.gpu_hit_rate, 6),
@@ -10343,7 +10385,9 @@ def save_results(results: List[ScenarioResult], path: Path, meta: Dict):
                 "scale_down_events",
             ],
             "mechanism_metrics": [
-                "QPR",
+                "CE",
+                "QPR_TOKPS_TTFT_legacy",
+                "QPR_RPS_legacy",
                 "cache_hit_rate",
                 "GPU_hit_rate",
                 "LoRA_IO_avg_ms",
@@ -11289,7 +11333,7 @@ async def main_async(
                 f"E2E={result.avg_e2e_ms:.0f}ms"
             )
             print(
-                f"  Cost/req=${result.avg_cost_usd:.6f}  QPR={result.qpr:.1f}  "
+                f"  Cost/req=${result.avg_cost_usd:.6f}  CE={result.qpr:.3f}  "
                 f"ColdStart={result.avg_cold_start_latency_ms:.0f}/{result.p95_cold_start_latency_ms:.0f}ms  "
                 f"SLO@{result.ttft_slo_ms:.0f}ms={result.slo_attainment:.0%}"
             )
@@ -11297,7 +11341,7 @@ async def main_async(
                 f"  TTFT_comp={result.avg_comparable_ttft_ms:.0f}/{result.p95_comparable_ttft_ms:.0f}/{result.p99_comparable_ttft_ms:.0f}ms  "
                 f"TTFT_warm={result.avg_warm_standard_ttft_ms:.0f}/{result.p95_warm_standard_ttft_ms:.0f}/{result.p99_warm_standard_ttft_ms:.0f}ms  "
                 f"ScaleUpAffected={result.avg_scaleup_affected_ttft_ms:.0f}ms  "
-                f"TotalCost=${result.total_cost_usd:.4f}  CostEff={result.cost_effectiveness_e2e:.3f}"
+                f"TotalCost=${result.total_cost_usd:.4f}  QPR_legacy={result.qpr_tokps_ttft_legacy:.1f}"
             )
             print(
                 f"  Diag Runtime={result.avg_runtime_ttft_ms:.0f}ms  "

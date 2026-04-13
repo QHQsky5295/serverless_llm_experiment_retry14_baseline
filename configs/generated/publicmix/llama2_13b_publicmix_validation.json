@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "created_at": 1776063220,
+  "model_name": "meta-llama/Llama-2-13b-hf",
+  "source_dir": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/llama2_13b",
+  "accepted_count": 0,
+  "rejected_count": 5,
+  "accepted": [],
+  "rejected": [
+    {
+      "source_id": "Rcross__IPM-Llama-2-13b",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/llama2_13b/Rcross__IPM-Llama-2-13b",
+      "accepted": false,
+      "reasons": [
+        "missing adapter_config.json at directory root"
+      ]
+    },
+    {
+      "source_id": "calibration-tuning__Llama-2-13b-hf-ct-choice",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/llama2_13b/calibration-tuning__Llama-2-13b-hf-ct-choice",
+      "accepted": false,
+      "reasons": [
+        "missing adapter_config.json at directory root"
+      ]
+    },
+    {
+      "source_id": "calibration-tuning__Llama-2-13b-hf-ct-oe",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/llama2_13b/calibration-tuning__Llama-2-13b-hf-ct-oe",
+      "accepted": false,
+      "reasons": [
+        "missing adapter_config.json at directory root"
+      ]
+    },
+    {
+      "source_id": "dhmeltzer__Llama-2-13b-hf-eli5-cleaned-1024_qlora",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/llama2_13b/dhmeltzer__Llama-2-13b-hf-eli5-cleaned-1024_qlora",
+      "accepted": false,
+      "reasons": [
+        "missing adapter_config.json at directory root"
+      ]
+    },
+    {
+      "source_id": "harpomaxx__Llama-2-13b-hf-juris-adapter",
+      "local_path": "/home/qhq/serverless_llm_experiment/artifacts/public_candidates/llama2_13b/harpomaxx__Llama-2-13b-hf-juris-adapter",
+      "accepted": false,
+      "reasons": [
+        "missing adapter_config.json at directory root"
+      ]
+    }
+  ]
+}

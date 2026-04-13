@@ -223,6 +223,67 @@ model_profiles:  # 可复用的模型 profile 集合
     storage:
       remote_dir: "artifacts/frozen/qwen_14b_a500_v2_publicmix"  # Qwen 14B 论文正式 V2 publicmix 冻结 LoRA 源仓库
 
+  llama2_7b_main_v2_publicmix:  # Llama-2 7B 单卡 TP=1 主线模型 profile（V2 publicmix 冻结工件池）
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1, 2, 3]
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.70
+      max_model_len: 1024
+      max_loras: 4
+      max_lora_rank: 64
+      enable_lora: true
+      enforce_eager: true
+      dtype: "float16"
+      max_num_seqs: 2
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: null
+      max_input_len: null
+      runtime_concurrency_cap: 2
+      enable_chunked_prefill: false
+      enable_prefix_caching: false
+      vllm_use_v1: false
+      vllm_attention_backend: "FLASH_ATTN"
+      vllm_use_flashinfer_sampler: false
+    hardware:
+      model_weights_mb: 14336
+      kv_per_1k_tokens_mb: 2.0
+    storage:
+      remote_dir: "artifacts/frozen/llama2_7b_a500_v2_publicmix"
+
+  llama2_13b_tp2_v2_publicmix:  # Llama-2 13B 双卡 TP=2 主线模型 profile（V2 publicmix 冻结工件池）
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-13b-hf"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1, 2, 3]
+      distributed_executor_backend: "mp"
+      tensor_parallel_size: 2
+      gpu_memory_utilization: 0.85
+      max_model_len: 1024
+      max_loras: 2
+      max_lora_rank: 64
+      enable_lora: true
+      enforce_eager: true
+      dtype: "float16"
+      max_num_seqs: 2
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: null
+      max_input_len: null
+      runtime_concurrency_cap: 2
+      enable_chunked_prefill: false
+      enable_prefix_caching: false
+      vllm_use_v1: false
+      vllm_attention_backend: "FLASH_ATTN"
+      vllm_use_flashinfer_sampler: false
+    hardware:
+      model_weights_mb: 26624
+      kv_per_1k_tokens_mb: 4.0
+    storage:
+      remote_dir: "artifacts/frozen/llama2_13b_a500_v2_publicmix"
+
   mistral_7b_main:  # Mistral 7B 第二家族小档位单卡 TP=1 主线模型 profile 名称
     model:  # 模型配置块，或当前选中的 model profile 名称
       name: "/home/qhq/serverless_llm_experiment/models/mistralai--Mistral-7B-Instruct-v0.3"  # 本 profile 对应的模型路径或模型名
@@ -257,7 +318,7 @@ model_profiles:  # 可复用的模型 profile 集合
       tensor_parallel_size: 1  # 张量并行数；Mistral 7B V2 主线按单卡 TP=1 + scale-out 推进
       gpu_memory_utilization: 0.70  # 进一步给第二个 TP=1 实例预留稳定启动余量；0.80 在双实例 scale-out 时仍会触发二号实例 OOM
       max_model_len: 1024  # 模型允许处理的最大上下文长度
-      max_loras: 1  # V2 publicmix 含异构 public LoRA，先限制为 1，降低 EngineCore 崩溃风险
+      max_loras: 4  # 按当前 500-adapter 主线的真实局部工作集恢复到 4；避免每个 runtime 在短窗口内因单 LoRA 上限过低而反复落回 host/NVMe
       max_lora_rank: 32  # publicmix V2 中包含少量更高 rank 的公开 LoRA
       enable_lora: true  # 是否开启 LoRA 支持
       enforce_eager: true  # 强制 eager，降低部分 CUDA Graph 兼容风险
@@ -326,11 +387,11 @@ model_profiles:  # 可复用的模型 profile 集合
       enable_lora: true  # 是否开启 LoRA 支持
       enforce_eager: true  # 强制 eager，降低当前 Nemo TP=2 路径的运行时不稳定性
       dtype: "float16"  # 推理 dtype
-      max_num_seqs: 1  # Nemo TP=2 默认仍回退到首轮稳定值；max_num_seqs=2 仅作为已记录的敏感性实验
+      max_num_seqs: 1  # 当前 bringup100 已证明 Nemo TP=2 在 seq=2/concurrency=2 下显著恶化；先回退到历史稳定值，保持其余已修正项不动
       max_num_batched_tokens: 1024  # 单批允许处理的最大 token 总数
       max_output_tokens_cap: null  # official/modern 路径不追加统一输出截断，保留真实请求输出长度分布
       max_input_len: null  # official/modern 路径不追加统一输入截断，只保留 max_model_len 上下文约束
-      runtime_concurrency_cap: 1  # Nemo TP=2 默认仍回退到首轮稳定值；并发=2 仅作为已记录的敏感性实验
+      runtime_concurrency_cap: 1  # 与 max_num_seqs 同步回退到历史稳定值；当前先保留 max_instances=2，避免把 profile 包络问题误判成系统主链问题
       tokenizer_mode: "mistral"  # 强制使用 Mistral tokenizer 模式
       enable_chunked_prefill: false  # 当前保守关闭 chunked prefill，降低 TP=2 + LoRA 风险
       enable_prefix_caching: false  # 当前保守关闭 prefix caching，减少运行时变量
@@ -507,6 +568,70 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       max_instances: 2  # 最多允许同时存在的物理实例数
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
+  llama2_7b_auto100_main:  # Llama-2 7B 早期 bring-up / 快速验证 workload profile
+    lora_adapters:
+      selected_num_adapters: 100
+      quick_num_adapters: 100
+      full_num_adapters: 100
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 1.0
+      active_adapter_cap: 16
+      hotset_rotation_requests: 120
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 4
+      effective_capacity_admission_enabled: true
+
+  llama2_7b_auto500_main:  # Llama-2 7B 论文主线 workload profile（500 adapters）
+    lora_adapters:
+      selected_num_adapters: 500
+      quick_num_adapters: 100
+      full_num_adapters: 500
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 1.0
+      active_adapter_cap: 48
+      hotset_rotation_requests: 100
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 4
+      effective_capacity_admission_enabled: true
+
+  llama2_13b_tp2_bringup100_main:  # Llama-2 13B TP=2 显式 bring-up/profile 排障 workload
+    lora_adapters:
+      selected_num_adapters: 100
+      quick_num_adapters: 100
+      full_num_adapters: 100
+      apply_scale_preset: false
+    workload:
+      concurrency: 2
+      time_scale_factor: 1.0
+      active_adapter_cap: 16
+      hotset_rotation_requests: 120
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 2
+      effective_capacity_admission_enabled: true
+
+  llama2_13b_tp2_a500_main:  # Llama-2 13B TP=2 论文主线 workload profile（500 adapters）
+    lora_adapters:
+      selected_num_adapters: 500
+      quick_num_adapters: 100
+      full_num_adapters: 500
+      apply_scale_preset: false
+    workload:
+      concurrency: 2
+      time_scale_factor: 1.0
+      active_adapter_cap: 48
+      hotset_rotation_requests: 100
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 2
+      effective_capacity_admission_enabled: true
+
   mistral_7b_auto100_main:  # Mistral 7B 早期 bring-up / 快速验证 workload profile
     lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
       selected_num_adapters: 100  # 当前 profile 默认选中的 adapter 数量
@@ -520,7 +645,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
       instance_mode: "auto"  # 实例模式：shared / dedicated / auto
-      max_instances: 2  # 最多允许同时存在的物理实例数
+      max_instances: 4  # Mistral 7B 按单卡 TP=1 + 四卡 scale-out 主线推进，应允许扩到 4 个物理实例
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
   mistral_7b_auto500_main:  # Mistral 7B 论文主线 workload profile（500 adapters）
@@ -536,7 +661,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
       instance_mode: "auto"  # 实例模式：shared / dedicated / auto
-      max_instances: 2  # 最多允许同时存在的物理实例数
+      max_instances: 4  # Mistral 7B 论文主线需要与 Qwen 7B 保持同一单卡 scale-out 口径，允许扩到 4 个物理实例
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
   mistral_nemo_12b_tp2_main:  # Mistral Nemo TP=2 论文主线 workload profile（500 adapters）
@@ -552,7 +677,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
       instance_mode: "auto"  # 实例模式：shared / dedicated / auto
-      max_instances: 1  # 最多允许同时存在的物理实例数
+      max_instances: 2  # 当前机器已是 4 x 3090；TP=2 路径应与 Qwen 14B 一样允许扩到 2 个双卡 runtime
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
   mistral_nemo_12b_tp2_bringup100_main:  # Mistral Nemo TP=2 显式 bring-up/profile 排障 workload
@@ -568,7 +693,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
       instance_mode: "auto"  # 实例模式：shared / dedicated / auto
-      max_instances: 1  # 最多允许同时存在的物理实例数
+      max_instances: 2  # 与当前 4 x 3090 的 TP=2 物理上限对齐，避免再次被旧两卡时期的保守上限卡死
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
 # ---------------------------------------------------------------------------

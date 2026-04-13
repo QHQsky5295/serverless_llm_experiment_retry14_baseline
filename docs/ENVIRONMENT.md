@@ -2,16 +2,43 @@
 
 本文档记录当前干净树 `serverless_llm_experiment_retry14_baseline` 的真实运行环境、启动方式和本机约束。
 
+## 0. 2026-04-13 当前同步口径
+
+- 当前 active 主线分支：`retry14_continuous_queue_v2`
+- 当前正式论文模型家族已固定为：
+  - `Qwen 7B`
+  - `Qwen 14B TP=2`
+  - `Llama-2 7B`
+  - `Llama-2 13B TP=2`
+- 当前正式综合主指标已固定为：
+  - `CE = 1 / (avg_e2e_sec * avg_cost_usd)`
+- 当前 live 与 summary 中需要共同展示的核心指标为：
+  - `CE`
+  - `TTFT_overall`
+  - `TTFT_comp`
+  - `TTFT_warm`
+  - `TPOT`
+  - `Tok/s`
+  - `E2E`
+  - `ColdStart`
+  - `ScaleUpAffectedTTFT`
+- 当前最新本地测试状态：
+  - `tests.test_basic_smoke = 228/228 OK`
+
 ## 0. 2026-04-12 当前同步口径
 
 - 当前 active 主线分支：`retry14_continuous_queue_v2`
 - 当前最新已正式分析、且最可信的 7B checkpoint：`retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`
 - 当前最新已正式分析、且最可信的 14B checkpoint：`retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500`
+- 当前最新已正式分析、且最可信的另一模型家族 7B checkpoint：`retry14_continuous_queue_v2_mistral7b_r500_a500_main_baseline3_maxloras4 @ 500`
 - 当前最新本地测试状态：
   - `tests.test_basic_smoke = 228/228 OK`
 - 当前下一步 active 主线将转入：
-  - `Mistral 7B V2 publicmix @ 500 adapters`
+  - `Mistral Nemo TP=2`
   - 仍在同一 `continuous_queue_v2` runner 语义下进行
+- 当前环境层面必须特别说明：
+  - 当前机器是 `4 x RTX 3090 24GB`
+  - 因此 `TP=2` 路径的物理上限是 `2` 个双卡 runtime，而不是旧两卡时期的 `1`
 - 当前正式长跑建议继续使用：
   - `scripts/run_all_experiments_user_scope.sh`
   - 避免直接从即将关闭的 SSH/session scope 启动，触发 systemd closing-session guard

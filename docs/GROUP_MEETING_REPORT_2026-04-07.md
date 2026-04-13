@@ -1,5 +1,7 @@
 # FaaSLoRA 组会汇报文档
 
+> 当前汇报口径更新到 2026-04-13：正式论文模型家族已固定为 `Qwen + Llama-2` 两个家族、共 4 个模型。当前最新判断不是“继续围绕单个模型刷局部最优”，而是“系统主链先收口，以当前四模型正式结果进入与其他论文系统的对比阶段；若对比后再暴露明确系统级短板，再做第二轮定向优化”。当前综合主指标已统一为 `CE = 1 / (avg_e2e_sec * avg_cost_usd)`，同时继续共同展示 `TTFT_overall / TTFT_comp / TTFT_warm / TPOT / Tok/s / E2E / ColdStart / ScaleUpAffectedTTFT`。 
+
 > 当前汇报口径更新到 2026-04-12：在保持 7B 可信检查点 `retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500` 不变的同时，14B 正式负载最新结果已推进到 `retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500`。当前可对外明确说明：7B 与 14B 上的扩容首批接管语义已经稳定；14B 剩余主问题已从“首批接管预测是否准确”转为“后续接管请求的三层驻留与资源协同是否足够强”；下一步将切到另一模型家族做迁移验证。 
 
 > 当前汇报口径更新到 2026-04-11：当前 7B 主线最新且最可信的结果为 `retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`。当前结论不是“7B 已经所有指标最优”，而是“系统骨架、扩容接管语义和控制链已经稳定，7B 已达到可信检查点；下一步转入 14B 和另一模型家族，验证三项贡献的可迁移性”。

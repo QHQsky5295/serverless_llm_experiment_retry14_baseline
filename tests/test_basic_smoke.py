@@ -4642,7 +4642,8 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertAlmostEqual(result.slo_goodput_tok_per_s, 2.5)
         self.assertAlmostEqual(result.avg_tpot_ms, 25.0)
         self.assertAlmostEqual(result.tpot_observed_request_ratio, 0.75)
-        self.assertAlmostEqual(result.qpr, 5.0 / (0.25 * 0.1675))
+        self.assertAlmostEqual(result.qpr, 1.0 / (0.2025 * 0.25))
+        self.assertAlmostEqual(result.qpr_tokps_ttft_legacy, 5.0 / (0.25 * 0.1675))
         self.assertAlmostEqual(result.qpr_rps_legacy, 1.0 / (0.25 * 0.1675))
         self.assertAlmostEqual(result.cost_effectiveness_e2e, 1.0 / (0.2025 * 0.25))
         self.assertEqual(result.cold_starts_after_scale_up, [1])
@@ -4667,7 +4668,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             ),
         ]
 
-        stats = runner._live_result_stats(results)
+        stats = runner._live_result_stats(results, elapsed_sec=4.0)
 
         self.assertAlmostEqual(stats["avg_comparable_ttft_ms"], (100.0 + 200.0 + 220.0) / 3.0)
         self.assertAlmostEqual(stats["avg_serverless_overhead_ms"], (20.0 + 80.0 + 10.0 + 40.0) / 4.0)
@@ -4690,7 +4691,9 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertAlmostEqual(stats["avg_cold_start_latency_ms"], 400.0)
         self.assertAlmostEqual(stats["p95_cold_start_latency_ms"], 500.0)
         self.assertAlmostEqual(stats["slo_attainment"], 0.5)
+        self.assertAlmostEqual(stats["qpr_tokps_ttft_legacy"], 5.0 / (0.25 * 0.1675))
         self.assertAlmostEqual(stats["cost_effectiveness_e2e"], 1.0 / (0.2025 * 0.25))
+        self.assertAlmostEqual(stats["ce"], 1.0 / (0.2025 * 0.25))
 
     def test_live_result_stats_handles_empty_comparable_subset(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
@@ -4701,7 +4704,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             RequestResult("r2", "b", False, "normal", True, "host", 40.0, 140.0, 210.0, 10.0, 10.0, 25.0, 250.0, 10, 5, 0.0, True, "inst_2", True),
         ]
 
-        stats = runner._live_result_stats(results)
+        stats = runner._live_result_stats(results, elapsed_sec=4.0)
 
         self.assertEqual(stats["avg_comparable_ttft_ms"], 0.0)
         self.assertEqual(stats["p95_comparable_ttft_ms"], 0.0)
@@ -4748,8 +4751,12 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertAlmostEqual(comparison_row["TPOT_observed_ratio"], 0.75)
         self.assertEqual(comparison_row["ScaleUp_first_service_requests"], 1)
         self.assertAlmostEqual(
-            comparison_row["standard_serving_metrics"]["Cost_effectiveness_e2e"],
+            comparison_row["standard_serving_metrics"]["CE"],
             round(1.0 / (0.2025 * 0.25), 4),
+        )
+        self.assertAlmostEqual(
+            comparison_row["mechanism_metrics"]["QPR_TOKPS_TTFT_legacy"],
+            round(5.0 / (0.25 * 0.1675), 4),
         )
 
         summaries = _build_scenario_summaries(
@@ -4790,6 +4797,8 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertEqual(summary["scale_eval_interval_s"], 12.0)
         self.assertAlmostEqual(summary["avg_warm_standard_ttft_ms"], 160.0)
         self.assertAlmostEqual(summary["slo_goodput_rps"], 0.5)
+        self.assertAlmostEqual(summary["ce"], round(1.0 / (0.2025 * 0.25), 6))
+        self.assertAlmostEqual(summary["qpr_tokps_ttft_legacy"], round(5.0 / (0.25 * 0.1675), 6))
         self.assertAlmostEqual(summary["scaling_metrics"]["SLO_goodput_RPS"], 0.5)
         self.assertAlmostEqual(summary["avg_scaleup_runtime_ttft_ms"], 185.0)
         self.assertAlmostEqual(summary["avg_scaleup_first_service_ttft_ms"], 150.0)

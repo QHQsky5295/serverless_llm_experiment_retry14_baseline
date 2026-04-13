@@ -1,5 +1,42 @@
 # FaaSLoRA 会话交接文档（2026-03-13）
 
+> 2026-04-13 最新更新（当前最高优先级续接入口）：
+>
+> 如果新开会话，请先只看这一节。
+>
+> 当前权威状态如下：
+>
+> - 权威 clean-tree：`/home/qhq/serverless_llm_experiment_retry14_baseline`
+> - 当前 active 主线分支：`retry14_continuous_queue_v2`
+> - 当前正式论文模型家族已固定为：
+>   - `Qwen 7B`
+>   - `Qwen 14B TP=2`
+>   - `Llama-2 7B`
+>   - `Llama-2 13B TP=2`
+> - 当前正式综合主指标：
+>   - `CE = 1 / (avg_e2e_sec * avg_cost_usd)`
+> - 当前 TTFT 家族固定展示：
+>   - `TTFT_overall`
+>   - `TTFT_comp`
+>   - `TTFT_warm`
+> - 当前四个正式结果已经具备论文主线可用性：
+>   - `Qwen 7B baseline44`
+>   - `Qwen 14B baseline45`
+>   - `Llama-2 7B formal`
+>   - `Llama-2 13B formal`
+>
+> 当前 2026-04-13 的真实技术结论：
+>
+> - 当前系统主链先 soft-close，不再继续为了单模型单指标做补丁式优化。
+> - `C1` 已经跨四模型收正，正式结果中的 `scaleup_first_service_planned_match_rate` 已稳定为 `1.0`。
+> - 当前四模型共同显示，剩余差距更像模型家族在当前 serving stack 下的 runtime / envelope 差异，而不是系统主链仍有明显语义漏洞。
+> - 当前必须执行的新原则是：
+>   - 每次优化前，先结合最近十几次代码修改历史、对应实验结果、日志细节，以及同家族/同规模跨家族对比做宏观审计。
+>   - 若剩余差距主要表现为模型包络差异，而不是系统主链漏洞，则先收口，待跨论文系统正式对比后再决定是否二次优化。
+> - 当前正确工程动作：
+>   - 先把当前代码、配置、测试与正式文档同步到 GitHub，形成新的可回退快照。
+>   - 随后进入与其他论文系统的正式对比阶段。
+
 > 2026-04-12 最新更新（当前最高优先级续接入口）：
 >
 > 如果新开会话，请先只看这一节，不要直接跳到下面旧的历史段落。
@@ -11,6 +48,7 @@
 > - 本次同步前上一公开锚点：`27290b3`
 > - 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 7B **最可信 checkpoint**：`retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500`
 > - 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 14B **最可信 checkpoint**：`retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500`
+> - 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的另一模型家族 7B **最可信 checkpoint**：`retry14_continuous_queue_v2_mistral7b_r500_a500_main_baseline3_maxloras4 @ 500`
 > - 当前本地测试状态：
 >   - `tests.test_basic_smoke = 228/228 OK`
 >
@@ -33,12 +71,14 @@
 >   - 先把当前代码、测试与正式文档推到 GitHub，形成新的可回退快照
 >   - 7B 保持 soft-close
 >   - 14B 上的 C1 handoff/control 语义链视为软收口
->   - 下一条 active 主线切到 `Mistral 7B V2 publicmix @ 500 adapters`
+>   - `Mistral 7B baseline3` 作为跨家族 7B checkpoint 保留
+>   - 下一条 active 主线切到 `Mistral Nemo TP=2`
+>   - 历史文档里“TP=2 只能 max_instances=1”的判断来自旧的两张 3090 环境，当前 4 x 3090 环境下已失效
 >   - 只有当另一模型家族复现同样问题时，才回到跨模型共通的 C2/C3 主线继续收口
 >
 > 当前会话续接提示词（下一会话直接用）：
 >
-> `继续当前 clean-tree 主线。权威代码树是 /home/qhq/serverless_llm_experiment_retry14_baseline，active 分支是 retry14_continuous_queue_v2。当前 7B 最可信 checkpoint 是 retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500；当前 14B 最可信 checkpoint 是 retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500。当前判断是：7B 不再重开 handoff/control 语义链；14B 已证明首批接管请求与预热计划重新对齐，scaleup_first_service_planned_match_rate 和 gpu_hit_rate 都已达到 1.0；当前剩余主瓶颈已转入 C2/C3，即后续接管请求的三层驻留持续维护和 warm pool retention。下一步先同步当前代码、测试与正式文档，再切到 Mistral 7B V2 publicmix @ 500 adapters，验证当前三项贡献的跨模型家族可迁移性。正式分析与讨论继续严格使用固定格式：当前步骤位置 / 已验证 / 推测 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO。`
+> `继续当前 clean-tree 主线。权威代码树是 /home/qhq/serverless_llm_experiment_retry14_baseline，active 分支是 retry14_continuous_queue_v2。当前可信 checkpoint 已包括：Qwen 7B 的 retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500、Qwen 14B 的 retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500，以及 Mistral 7B 的 retry14_continuous_queue_v2_mistral7b_r500_a500_main_baseline3_maxloras4 @ 500。当前判断是：7B 不再重开 handoff/control 语义链；14B 已证明首批接管请求与预热计划重新对齐，scaleup_first_service_planned_match_rate 和 gpu_hit_rate 都已达到 1.0；Mistral 7B 已证明当前主线具备跨模型家族可迁移性。当前剩余主瓶颈已转入 C2/C3，即后续接管请求的三层驻留持续维护和 warm pool retention。下一步先同步当前代码、测试与正式文档，再切到 Mistral Nemo TP=2。特别注意：历史文档里“TP=2 只能 max_instances=1”的判断来自旧的两张 3090 环境，当前 4 x 3090 环境下已失效；TP=2 路径的物理上限应按 2 个双卡 runtime 理解。正式分析与讨论继续严格使用固定格式：当前步骤位置 / 已验证 / 推测 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO。`
 
 > 2026-04-11 最新更新（当前最高优先级续接入口）：
 >
@@ -91,7 +131,7 @@
 >
 > 当前会话续接提示词（下一会话直接用）：
 >
-> `继续当前 clean-tree 主线。权威代码树是 /home/qhq/serverless_llm_experiment_retry14_baseline，active 分支是 retry14_continuous_queue_v2，substrate_v1 历史冻结分支是 retry14_rebuild。当前最新已正式分析、且属于 continuous_queue_v2 主线的 7B 最可信 checkpoint 是 retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500。当前判断是：TODO #2R 不需要重开；7B 上 handoff exactness / async control / startup budget 这条主链已经达到 soft-close checkpoint，但第三项贡献中的 warm pool retention 仍未真正发挥作用。baseline35 不能再被当成真实上界，因为其部分优势来自更乐观的 bootstrap/ready-time 语义。下一步先同步当前代码、测试与正式文档，形成新的 GitHub 回退点；随后切到 Qwen 14B TP=2，再切到另一模型家族，验证当前三项贡献是否可迁移。正式分析与讨论继续严格使用固定格式：当前步骤位置 / 已验证 / 推测 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO。`
+> `继续当前 clean-tree 主线。权威代码树是 /home/qhq/serverless_llm_experiment_retry14_baseline，active 分支是 retry14_continuous_queue_v2，substrate_v1 历史冻结分支是 retry14_rebuild。当前最新已正式分析、且属于 continuous_queue_v2 主线的可信 checkpoint 已包括：Qwen 7B 的 retry14_continuous_queue_v2_qwen7b_r500_baseline44_startup_budget @ 500、Qwen 14B 的 retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500，以及 Mistral 7B 的 retry14_continuous_queue_v2_mistral7b_r500_a500_main_baseline3_maxloras4 @ 500。当前判断是：TODO #2R 不需要重开；Qwen 7B 的 handoff exactness / async control / startup budget 主链已经达到 soft-close checkpoint；Qwen 14B 上 C1 handoff/control 语义链已经软收口；Mistral 7B 已证明当前主线具备跨家族可迁移性。当前下一条 active 主线应切到 Mistral Nemo TP=2。特别注意：历史文档中关于“TP=2 只能 max_instances=1”的判断来源于旧的两张 3090 环境，当前 4 x 3090 环境下该判断已失效；TP=2 路径的物理上限应按 2 个双卡 runtime 理解。正式分析与讨论继续严格使用固定格式：当前步骤位置 / 已验证 / 推测 / 之后步骤 / 上一步 TODO / 本步 TODO / 剩余 TODO。`
 
 > 2026-04-09 最新更新（当前最高优先级续接入口）：
 >

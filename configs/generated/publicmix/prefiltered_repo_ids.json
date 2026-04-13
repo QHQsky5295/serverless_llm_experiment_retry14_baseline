@@ -27,5 +27,19 @@
     "SubashNeupane/mistral-nemo-instruct-12b-SOAP-summary-lora",
     "barca-boy/lora_model_Mistral-Nemo-Instruct-2407-no-qnt_anushtup_final",
     "MNgaix/Mistral-Nemo-Instruct-2407-bnb-4bit_lora_model"
+  ],
+  "llama2_7b_prefiltered": [
+    "calibration-tuning/Llama-2-7b-hf-ct-oe",
+    "calibration-tuning/Llama-2-7b-hf-ct-choice",
+    "renyiyu/llama-2-7b-sft-lora",
+    "migaraa/Gaudi_LoRA_Llama-2-7b-hf",
+    "ntrajic/llama-2-7b-guanaco-helios"
+  ],
+  "llama2_13b_prefiltered": [
+    "calibration-tuning/Llama-2-13b-hf-ct-oe",
+    "calibration-tuning/Llama-2-13b-hf-ct-choice",
+    "Rcross/IPM-Llama-2-13b",
+    "harpomaxx/Llama-2-13b-hf-juris-adapter",
+    "dhmeltzer/Llama-2-13b-hf-eli5-cleaned-1024_qlora"
   ]
 }

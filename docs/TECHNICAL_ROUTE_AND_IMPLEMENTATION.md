@@ -6,23 +6,49 @@
 
 - [RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md](RELATED_WORK_AND_OPTIMIZATION_SURVEY_2026-03-29.md)
 
+> 2026-04-13 当前主线补充：
+>
+> - 当前正式论文模型家族已固定为 `Qwen + Llama-2` 两个家族、共 4 个模型：
+>   - `Qwen 7B`
+>   - `Qwen 14B TP=2`
+>   - `Llama-2 7B`
+>   - `Llama-2 13B TP=2`
+> - `Mistral 7B / Mistral Nemo` 当前保留为历史迁移验证与 serving envelope 诊断结果，不再作为论文主线正式家族。
+> - 当前正式综合主指标已固定为：
+>   - `CE = 1 / (avg_e2e_sec * avg_cost_usd)`
+> - 当前技术路线的正式收口判断是：
+>   - `C1` 命中感知工件就绪机制已在四模型上形成可信主链结果
+>   - `C2/C3` 仍有提升空间，但当前正式 workload 下尚未形成“继续动系统主链就一定更优”的强证据
+>   - 因此当前技术路线应先进入跨论文系统对比阶段，再决定是否重开下一轮系统优化
+> - 当前不再允许的做法：
+>   - 为了单模型单指标局部变好，继续打补丁式修复
+>   - 将模型 serving envelope 差异误判为系统主链漏洞
+
 > 2026-04-12 当前主线补充：
 >
 > - 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的 14B **最可信 checkpoint** 是 `retry14_continuous_queue_v2_qwen14b_r500_a500_main_baseline45_poststartup_elapsed @ 500`。
+> - 当前最新已正式分析、且属于 `continuous_queue_v2` 主线的另一模型家族 7B **最可信 checkpoint** 是 `retry14_continuous_queue_v2_mistral7b_r500_a500_main_baseline3_maxloras4 @ 500`。
 > - 当前正式结论必须进一步收紧为：
 >   - 7B 继续以 `baseline44` 作为可信 checkpoint
 >   - 14B 上第一项贡献对应的 handoff/control 语义链已经软收口
+>   - `Mistral 7B baseline3` 已证明当前系统主线不是 Qwen 家族特化，而可以迁移到另一模型家族
 >   - 当前最关键证据是：
 >     - `scaleup_first_service_planned_match_rate = 1.0`
 >     - `scaleup_first_service_gpu_hit_rate = 1.0`
 >     - `TTFT_scaleup_first_service_avg_ms = 546.3`
+>     - `Mistral 7B baseline2 -> baseline3`：
+>       - `TTFT_overall = 5857.0 -> 1397.9 ms`
+>       - `TTFT_comparable = 5152.0 -> 1160.7 ms`
+>       - `avg_lora_io_ms = 1624.4 -> 303.6 ms`
+>       - `QPR = 1839.4 -> 9121.1`
 > - 当前 14B 尚未收口的问题已经从 C1 转到 C2/C3：
 >   - `TTFT_scaleup_affected` 仍偏高
 >   - `Cold_start_latency` 仍接近 `68s`
 >   - `warm_pool_hits = 0`
 > - 因此当前技术路线不应再理解成“继续围绕 14B 的 first-service handoff 打转”，而应理解成：
 >   - 保持当前 7B 与 14B checkpoint
->   - 切到 `Mistral 7B V2 publicmix`
+>   - 保持 `Mistral 7B baseline3` 这个跨家族 7B checkpoint
+>   - 切到 `Mistral Nemo TP=2`
 >   - 如果另一模型家族复现同样的后续接管冷路径问题，再回到跨模型共通的 C2/C3 主线继续优化
 
 > 2026-04-11 当前主线补充：

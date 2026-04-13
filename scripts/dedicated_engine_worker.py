@@ -14,8 +14,23 @@ import asyncio
 import json
 import os
 import sys
+import warnings
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+# 抑制 Mistral tokenizer 反复打印的已知弃用提示；保留真正的 worker 异常输出。
+warnings.filterwarnings(
+    "ignore",
+    message=r"`get_control_token` is deprecated\. Use `get_special_token` instead\.",
+    category=FutureWarning,
+    module=r"mistral_common\.tokens\.tokenizers\.tekken",
+)
+_mistral_warning_filter = "ignore::FutureWarning:mistral_common.tokens.tokenizers.tekken"
+_pythonwarnings = os.environ.get("PYTHONWARNINGS", "").strip()
+if _mistral_warning_filter not in _pythonwarnings.split(","):
+    os.environ["PYTHONWARNINGS"] = (
+        f"{_pythonwarnings},{_mistral_warning_filter}" if _pythonwarnings else _mistral_warning_filter
+    )
 
 
 def _write_ready(path: Path, payload: Dict[str, Any]) -> None:
