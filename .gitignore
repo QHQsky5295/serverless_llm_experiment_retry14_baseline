@@ -1,0 +1,25 @@
+# Runtime outputs
+logs/
+results/
+models/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Local environments and temporary artifacts
+.venv/
+env/
+.env
+.env.*
+
+# Cloned upstream repositories are tracked via patch files + commit notes,
+# not vendored directly into this repo.
+repos/ServerlessLLM/
+repos/S-LoRA/
+repos/skypilot/
+
+# Keep the project symlink tree, scripts, docs, and patch files.

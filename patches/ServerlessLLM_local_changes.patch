@@ -1,0 +1,1950 @@
+diff --git a/sllm/app_lib.py b/sllm/app_lib.py
+index c7dbe79..29d1a53 100644
+--- a/sllm/app_lib.py
++++ b/sllm/app_lib.py
+@@ -16,6 +16,9 @@
+ #  limitations under the license.                                              #
+ # ---------------------------------------------------------------------------- #
+ from contextlib import asynccontextmanager
++import time
++import traceback
++import uuid
+ 
+ import ray
+ import ray.exceptions
+@@ -52,10 +55,23 @@ def create_app() -> FastAPI:
+             )
+         try:
+             await controller.register.remote(body)
++        except ray.exceptions.RayTaskError as e:
++            logger.error(
++                "Model registration failed with RayTaskError: %s\n%s",
++                e,
++                traceback.format_exc(),
++            )
++            detail = str(getattr(e, "cause", e))
++            raise HTTPException(status_code=500, detail=detail)
+         except Exception as e:
++            logger.error(
++                "Model registration failed: %s\n%s",
++                e,
++                traceback.format_exc(),
++            )
+             raise HTTPException(
+                 status_code=500,
+-                detail="Cannot register model, please contact the administrator",
++                detail=str(e),
+             )
+ 
+         return {"status": "ok"}
+@@ -115,6 +131,12 @@ def create_app() -> FastAPI:
+ 
+     async def inference_handler(request: Request, action: str):
+         body = await request.json()
++        request_id = str(body.get("request_id") or f"chatcmpl-{uuid.uuid4()}")
++        body["request_id"] = request_id
++        internal_metrics = dict(body.get("_sllm_internal_metrics", {}) or {})
++        internal_metrics.setdefault("request_received_at", time.time())
++        internal_metrics.setdefault("request_id", request_id)
++        body["_sllm_internal_metrics"] = internal_metrics
+         model_name = body.get("model")
+         logger.info(f"Received request for model {model_name}")
+         if not model_name:
+diff --git a/sllm/backends/__init__.py b/sllm/backends/__init__.py
+index 91c243c..7a26196 100644
+--- a/sllm/backends/__init__.py
++++ b/sllm/backends/__init__.py
+@@ -15,8 +15,21 @@
+ #  see the license for the specific language governing permissions and         #
+ #  limitations under the license.                                              #
+ # ---------------------------------------------------------------------------- #
++from importlib import import_module
++from typing import TYPE_CHECKING
++
+ from .dummy_backend import DummyBackend
+-from .transformers_backend import TransformersBackend
+-from .vllm_backend import VllmBackend
++
++if TYPE_CHECKING:
++    from .transformers_backend import TransformersBackend
++    from .vllm_backend import VllmBackend
+ 
+ __all__ = ["DummyBackend", "VllmBackend", "TransformersBackend"]
++
++
++def __getattr__(name):
++    if name == "VllmBackend":
++        return import_module(".vllm_backend", __name__).VllmBackend
++    if name == "TransformersBackend":
++        return import_module(".transformers_backend", __name__).TransformersBackend
++    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+diff --git a/sllm/backends/transformers_backend.py b/sllm/backends/transformers_backend.py
+index 52de3e6..df3c908 100644
+--- a/sllm/backends/transformers_backend.py
++++ b/sllm/backends/transformers_backend.py
+@@ -21,7 +21,7 @@ import threading
+ import time
+ import uuid
+ from copy import deepcopy
+-from typing import Any, Dict, List, Optional
++from typing import Any, Callable, Dict, List, Optional
+ 
+ import peft
+ import torch
+@@ -50,26 +50,146 @@ class DeletingException(Exception):
+ 
+ 
+ class InferenceStatus(BaseStreamer):
+-    def __init__(self, status: BackendStatus):
++    def __init__(
++        self,
++        status_getter: Callable[[], BackendStatus],
++        prompt_tokens: int = 0,
++        request_id: Optional[str] = None,
++        internal_metrics: Optional[Dict[str, Any]] = None,
++    ):
+         super().__init__()
+-        self.status = status
++        self._status_getter = status_getter
++        self.prompt_tokens = max(int(prompt_tokens), 0)
++        self.request_id = request_id or "unknown"
++        self.internal_metrics = dict(internal_metrics or {})
+         self.intermediate = []
++        self.started_at = float(
++            self.internal_metrics.get("backend_started_at", time.time())
++        )
++        self.finished_at: Optional[float] = None
++        self.first_token_at: Optional[float] = None
++        self.last_token_at: Optional[float] = None
++        self.generated_tokens_observed = 0
++        self.stream_event_count = 0
++        self.multi_token_event_detected = False
++        self.event_sizes: List[int] = []
++        self.token_timestamps: List[float] = []
++        self._saw_prompt_snapshot: List[bool] = []
++        self.first_token_exact = False
++
++    def _normalize_value(self, value):
++        data = value.tolist() if hasattr(value, "tolist") else value
++        if isinstance(data, tuple):
++            data = list(data)
++        if not isinstance(data, list):
++            return [[data]]
++        if not data:
++            return []
++        if isinstance(data[0], list):
++            return [list(seq) for seq in data]
++        return [list(data)]
++
++    def _is_deleting(self) -> bool:
++        return self._status_getter() == BackendStatus.DELETING
++
++    def _record_new_tokens(self, new_tokens: int, now: float):
++        if new_tokens <= 0:
++            return
++        if self.first_token_at is None:
++            self.first_token_at = now
++            self.first_token_exact = int(new_tokens) == 1
++        self.last_token_at = now
++        self.generated_tokens_observed += int(new_tokens)
++        self.stream_event_count += 1
++        self.event_sizes.append(int(new_tokens))
++        if int(new_tokens) == 1:
++            self.token_timestamps.append(now)
++        else:
++            self.multi_token_event_detected = True
+ 
+     def put(self, value):
+-        value = value.tolist()
+-        if not self.intermediate:
+-            self.intermediate = value
+-        else:
+-            # NOTE: This does not support in-flight batching
+-            # or dynamic batch size
+-            for i, v in enumerate(value):
+-                self.intermediate[i].append(v)
+-        logger.warning(f"Intermediate output: {self.intermediate}")
+-        if self.status == BackendStatus.DELETING:
++        raw_value = value
++        value = self._normalize_value(value)
++        if not value:
++            return
++        now = time.time()
++        if not self.intermediate or len(self.intermediate) != len(value):
++            self.intermediate = [[] for _ in value]
++            self._saw_prompt_snapshot = [False for _ in value]
++
++        for i, chunk in enumerate(value):
++            chunk = list(chunk)
++            current = self.intermediate[i]
++            saw_prompt_snapshot = self._saw_prompt_snapshot[i]
++            is_prompt_snapshot = (
++                not saw_prompt_snapshot
++                and self.prompt_tokens > 0
++                and len(chunk) == self.prompt_tokens
++            )
++            is_initial_sequence_with_generation = (
++                not saw_prompt_snapshot
++                and self.prompt_tokens > 0
++                and len(chunk) > self.prompt_tokens
++            )
++            is_sequence_snapshot = (
++                saw_prompt_snapshot
++                and len(chunk) > len(current)
++                and current == chunk[: len(current)]
++            )
++            if is_prompt_snapshot:
++                logger.debug(
++                    "InferenceStatus[%s|%s] prompt snapshot prompt_tokens=%s raw_type=%s raw_shape=%s normalized_len=%s",
++                    self.request_id,
++                    id(self),
++                    self.prompt_tokens,
++                    type(raw_value).__name__,
++                    getattr(raw_value, "shape", None),
++                    len(chunk),
++                )
++                self.intermediate[i] = list(chunk)
++                self._saw_prompt_snapshot[i] = True
++            elif is_initial_sequence_with_generation:
++                generated_total = max(0, len(chunk) - self.prompt_tokens)
++                logger.debug(
++                    "InferenceStatus[%s|%s] prompt+generation snapshot prompt_tokens=%s generated_total=%s raw_type=%s raw_shape=%s normalized_len=%s",
++                    self.request_id,
++                    id(self),
++                    self.prompt_tokens,
++                    generated_total,
++                    type(raw_value).__name__,
++                    getattr(raw_value, "shape", None),
++                    len(chunk),
++                )
++                self.intermediate[i] = list(chunk)
++                self._saw_prompt_snapshot[i] = True
++                self._record_new_tokens(generated_total, now)
++            elif is_sequence_snapshot:
++                prev_generated = (
++                    max(0, len(current) - self.prompt_tokens) if current else 0
++                )
++                self.intermediate[i] = list(chunk)
++                generated_total = max(0, len(self.intermediate[i]) - self.prompt_tokens)
++                self._record_new_tokens(generated_total - prev_generated, now)
++            else:
++                current.extend(chunk)
++                self._record_new_tokens(len(chunk), now)
++
++        logger.debug(
++            "InferenceStatus[%s|%s] events=%s observed=%s first=%s last=%s output=%s",
++            self.request_id,
++            id(self),
++            self.stream_event_count,
++            self.generated_tokens_observed,
++            self.first_token_at,
++            self.last_token_at,
++            self.intermediate,
++        )
++        if self._is_deleting():
+             raise DeletingException("Backend is deleting")
+ 
+     def end(self):
+         logger.error("Inference completed")
++        self.finished_at = time.time()
+ 
+     def get(self):
+         return deepcopy(self.intermediate)
+@@ -77,6 +197,81 @@ class InferenceStatus(BaseStreamer):
+     def delete(self):
+         logger.info("Deleting intermediate output")
+         self.intermediate = []
++        self.finished_at = time.time()
++
++    def build_metrics(self, completion_tokens: int) -> Dict[str, Any]:
++        completion_tokens = max(int(completion_tokens or 0), 0)
++        finished_at = self.finished_at if self.finished_at is not None else time.time()
++        request_received_at = self.internal_metrics.get("request_received_at")
++        ttft_ms = None
++        if self.first_token_at is not None:
++            if request_received_at is not None:
++                ttft_ms = (self.first_token_at - float(request_received_at)) * 1000.0
++            else:
++                ttft_ms = (self.first_token_at - self.started_at) * 1000.0
++        if request_received_at is not None:
++            e2e_ms = max(0.0, (finished_at - float(request_received_at)) * 1000.0)
++        else:
++            e2e_ms = max(0.0, (finished_at - self.started_at) * 1000.0)
++        runtime_ttft_ms = None
++        if self.first_token_at is not None:
++            runtime_ttft_ms = max(0.0, (self.first_token_at - self.started_at) * 1000.0)
++        tpot_ms = None
++        tpot_observed = False
++        if (
++            completion_tokens > 1
++            and self.first_token_at is not None
++            and self.last_token_at is not None
++            and self.first_token_exact
++        ):
++            tpot_ms = (
++                (self.last_token_at - self.first_token_at) * 1000.0
++                / max(completion_tokens - 1, 1)
++            )
++            tpot_observed = True
++        logger.debug(
++            "InferenceStatus[%s|%s] build_metrics completion=%s observed=%s events=%s ttft_ms=%s tpot_ms=%s",
++            self.request_id,
++            id(self),
++            completion_tokens,
++            self.generated_tokens_observed,
++            self.stream_event_count,
++            ttft_ms,
++            tpot_ms,
++        )
++        return {
++            "source": "serverlessllm_transformers_streamer",
++            "ttft_ms": ttft_ms,
++            "e2e_ms": e2e_ms,
++            "runtime_ttft_ms": runtime_ttft_ms,
++            "serverless_overhead_ms": (
++                max(0.0, float(ttft_ms) - float(runtime_ttft_ms))
++                if ttft_ms is not None and runtime_ttft_ms is not None
++                else None
++            ),
++            "tpot_ms": tpot_ms,
++            "tpot_observed": tpot_observed,
++            "completion_tokens_observed": self.generated_tokens_observed,
++            "stream_event_count": self.stream_event_count,
++            "multi_token_event_detected": self.multi_token_event_detected,
++            "event_sizes": list(self.event_sizes),
++            "request_received_at": request_received_at,
++            "backend_started_at": self.started_at,
++            "first_token_at": self.first_token_at,
++            "last_token_at": self.last_token_at,
++            "finished_at": finished_at,
++            "queue_wait_ms": self.internal_metrics.get("queue_wait_ms"),
++            "lora_load_ms": self.internal_metrics.get("lora_load_ms"),
++            "lora_cache_hit": self.internal_metrics.get("lora_cache_hit"),
++            "cache_hit": self.internal_metrics.get("lora_cache_hit"),
++            "gpu_ready_request": self.internal_metrics.get("lora_cache_hit"),
++            "scaleup_affected": self.internal_metrics.get("scaleup_affected"),
++            "scaleup_first_service": self.internal_metrics.get("scaleup_first_service"),
++            "cold_start_latency_ms": self.internal_metrics.get("cold_start_latency_ms"),
++            "instance_id": self.internal_metrics.get("instance_id"),
++            "instance_created_at": self.internal_metrics.get("instance_created_at"),
++            "instance_ready_at": self.internal_metrics.get("instance_ready_at"),
++        }
+ 
+ 
+ class TransformersBackend(SllmBackend):
+@@ -92,12 +287,52 @@ class TransformersBackend(SllmBackend):
+             "pretrained_model_name_or_path"
+         )
+         self.status: BackendStatus = BackendStatus.UNINITIALIZED
+-        self.inf_status = InferenceStatus(self.status)
++        self.inf_status = InferenceStatus(lambda: self.status)
+         self.status_lock = threading.Lock()
++        self.active_streamers: Dict[str, InferenceStatus] = {}
++        self.active_streamers_lock = threading.Lock()
+         self.model = None
+         self.tokenizer = None
+         self.past_key_values = None
+ 
++    def _build_chat_completion_response(
++        self,
++        *,
++        request_id: str,
++        model_name: str,
++        output_text: str,
++        prompt_tokens: int,
++        total_tokens: int,
++        max_tokens: int,
++        metrics: Dict[str, Any],
++    ) -> Dict[str, Any]:
++        completion_tokens = total_tokens - prompt_tokens
++        finish_reason = "stop" if completion_tokens < max_tokens else "length"
++        response = {
++            "id": request_id,
++            "object": "chat.completion",
++            "created": int(time.time()),
++            "model": model_name,
++            "choices": [
++                {
++                    "index": 0,
++                    "message": {
++                        "role": "assistant",
++                        "content": output_text,
++                    },
++                    "logprobs": None,
++                    "finish_reason": finish_reason,
++                }
++            ],
++            "usage": {
++                "prompt_tokens": prompt_tokens,
++                "completion_tokens": completion_tokens,
++                "total_tokens": total_tokens,
++            },
++            "metrics": metrics,
++        }
++        return response
++
+     def convert_str_to_json(self, json_str):
+         try:
+             # Parse the JSON string and return the corresponding Python object
+@@ -158,6 +393,56 @@ class TransformersBackend(SllmBackend):
+     def _tokenize(self, prompt: str):
+         return self.tokenizer(prompt, return_tensors="pt").to("cuda:0")
+ 
++    def _resolve_request_output_limit(self, requested_output_tokens: int) -> int:
++        desired_tokens = max(1, int(requested_output_tokens or 0))
++        cap = int(self.backend_config.get("max_output_tokens_cap", 0) or 0)
++        if cap > 0:
++            desired_tokens = min(desired_tokens, cap)
++        return max(1, desired_tokens)
++
++    def _render_messages_prompt(self, messages: List[Dict[str, Any]]) -> str:
++        try:
++            prompt = self.tokenizer.apply_chat_template(
++                messages,
++                add_generation_prompt=True,
++                tokenize=False,
++            )
++            if isinstance(prompt, str) and prompt.strip():
++                return prompt
++        except Exception:
++            pass
++        return "\n".join(
++            f"{str(message.get('role') or 'user').capitalize()}: "
++            f"{'' if message.get('content') is None else str(message.get('content'))}"
++            for message in messages
++        )
++
++    def _prepare_prompt(self, prompt: str, max_tokens: int) -> tuple[str, int, int]:
++        max_tokens = self._resolve_request_output_limit(max_tokens)
++        max_len = max(32, int(self.backend_config.get("max_model_len", 2048) or 2048))
++        max_input_len = max(0, int(self.backend_config.get("max_input_len", 0) or 0))
++        prompt_budget = max(8, max_len - int(max_tokens) - 8)
++        if max_input_len > 0:
++            prompt_budget = min(prompt_budget, max_input_len)
++        try:
++            token_ids = self.tokenizer.encode(prompt, add_special_tokens=False)
++            if len(token_ids) > prompt_budget:
++                logger.warning(
++                    "Prompt exceeded budget (%s > %s); truncating to align with fair-run prompt guard",
++                    len(token_ids),
++                    prompt_budget,
++                )
++                token_ids = token_ids[-prompt_budget:]
++                prompt = self.tokenizer.decode(token_ids, skip_special_tokens=False)
++            actual_input_tokens = max(1, len(token_ids))
++        except Exception:
++            max_chars = min(max_len * 4, 8192)
++            if len(prompt) > max_chars:
++                prompt = prompt[-max_chars:]
++            actual_input_tokens = min(max(1, len(prompt)), prompt_budget)
++        max_tokens = min(max_tokens, max(1, max_len - actual_input_tokens - 8))
++        return prompt, actual_input_tokens, max(1, max_tokens)
++
+     def _encoder_tokenize(self, query: str, max_length: int):
+         return self.tokenizer(
+             query,
+@@ -237,30 +522,28 @@ class TransformersBackend(SllmBackend):
+ 
+         assert self.model is not None
+ 
++        internal_metrics = dict(
++            (request_data or {}).get("_sllm_internal_metrics", {}) or {}
++        )
++        internal_metrics["backend_started_at"] = time.time()
++
+         model_name = request_data.get("model", "dummy-model")
+         messages = request_data.get("messages", [])
+         temperature = request_data.get("temperature", 0.7)
+         max_tokens = request_data.get("max_tokens", 10)
+         lora_adapter_name = request_data.get("lora_adapter_name", None)
++        request_id = request_data.get("request_id", f"chatcmpl-{uuid.uuid4()}")
+ 
+-        # Combine messages to form the prompt
+-        try:
+-            prompt = self.tokenizer.apply_chat_template(
+-                messages, add_generation_prompt=True, tokenize=False
+-            )
+-        except Exception as e:
+-            prompt = "\n".join(
+-                f"{message['role'].capitalize()}: {message['content']}"
+-                for message in messages
+-            )
++        prompt = self._render_messages_prompt(messages)
+ 
+         if not prompt:
+             return {"error": "Missing prompt in request data"}
+ 
++        prompt, prompt_tokens, max_tokens = self._prepare_prompt(prompt, max_tokens)
++
+         generate_kwargs = {
+             "max_new_tokens": max_tokens,
+             "temperature": temperature,
+-            "streamer": self.inf_status,
+         }
+ 
+         if lora_adapter_name:
+@@ -272,7 +555,23 @@ class TransformersBackend(SllmBackend):
+             generate_kwargs["adapter_names"] = [lora_adapter_name]
+ 
+         inputs = self._tokenize(prompt)
+-        prompt_tokens = inputs.input_ids.shape[1]
++        prompt_tokens = min(prompt_tokens, inputs.input_ids.shape[1])
++        logger.debug(
++            "generate request_id=%s prompt_shape=%s prompt_tokens=%s adapter=%s",
++            request_id,
++            tuple(inputs.input_ids.shape),
++            prompt_tokens,
++            lora_adapter_name,
++        )
++        streamer = InferenceStatus(
++            lambda: self.status,
++            prompt_tokens=prompt_tokens,
++            request_id=request_id,
++            internal_metrics=internal_metrics,
++        )
++        generate_kwargs["streamer"] = streamer
++        with self.active_streamers_lock:
++            self.active_streamers[request_id] = streamer
+ 
+         # Generate response
+         try:
+@@ -283,8 +582,8 @@ class TransformersBackend(SllmBackend):
+                 )
+         except DeletingException:
+             logger.info("Backend is shutting down. Aborting request")
+-            output_tokens = self.inf_status.get()
+-            self.inf_status.delete()
++            output_tokens = streamer.get()
++            streamer.delete()
+             return {
+                 "preempted": "True",
+                 "current_output": output_tokens,
+@@ -298,54 +597,46 @@ class TransformersBackend(SllmBackend):
+                 outputs[0][prompt_tokens:], skip_special_tokens=True
+             )
+             total_tokens = len(outputs[0])
+-            completion_tokens = total_tokens - prompt_tokens
+-            # FIXME: consider corner case when max_tokens is reached
+-            finish_reason = (
+-                "stop" if completion_tokens < max_tokens else "length"
++            metrics = streamer.build_metrics(total_tokens - prompt_tokens)
++            streamer.delete()
++            return self._build_chat_completion_response(
++                request_id=request_id,
++                model_name=model_name,
++                output_text=output_text,
++                prompt_tokens=prompt_tokens,
++                total_tokens=total_tokens,
++                max_tokens=max_tokens,
++                metrics=metrics,
+             )
+-
+-            # Generate response compatible with OpenAI's API
+-            response = {
+-                "id": f"chatcmpl-{uuid.uuid4()}",
+-                "object": "chat.completion",
+-                "created": int(time.time()),
+-                "model": model_name,
+-                "choices": [
+-                    {
+-                        "index": 0,
+-                        "message": {
+-                            "role": "assistant",
+-                            "content": output_text,
+-                        },
+-                        "logprobs": None,
+-                        "finish_reason": finish_reason,
+-                    }
+-                ],
+-                "usage": {
+-                    "prompt_tokens": prompt_tokens,
+-                    "completion_tokens": completion_tokens,
+-                    "total_tokens": total_tokens,
+-                },
+-            }
+-
+-            self.inf_status.delete()
+-
+-            return response
++        finally:
++            with self.active_streamers_lock:
++                self.active_streamers.pop(request_id, None)
+ 
+     def load_lora_adapter(self, lora_name: str, lora_path: str):
+         with self.status_lock:
+             if self.status != BackendStatus.RUNNING:
+                 return {"error": "Model not initialized"}
+ 
++        load_started_at = time.time()
++
+         if (
+             hasattr(self.model, "peft_config")
+             and lora_name in self.model.peft_config
+         ):
+             logger.info(f"LoRA adapter {lora_name} already loaded")
+-            return
++            return {
++                "cache_hit": True,
++                "load_ms": 0.0,
++            }
+ 
+-        lora_path = os.path.join("transformers", lora_path)
+         storage_path = os.getenv("STORAGE_PATH", os.path.expanduser("~/models"))
++        if os.path.isabs(lora_path):
++            try:
++                lora_path = os.path.relpath(lora_path, storage_path)
++            except ValueError:
++                pass
++        elif not lora_path.startswith("transformers" + os.sep):
++            lora_path = os.path.join("transformers", lora_path)
+         device_map = self.backend_config.get("device_map", "auto")
+         torch_dtype = self.backend_config.get("torch_dtype", torch.float16)
+         torch_dtype = getattr(torch, torch_dtype)
+@@ -363,6 +654,10 @@ class TransformersBackend(SllmBackend):
+             torch_dtype=torch_dtype,
+         )
+         logger.info(f"Loaded LoRA adapter {lora_name} from {lora_path}")
++        return {
++            "cache_hit": False,
++            "load_ms": max(0.0, (time.time() - load_started_at) * 1000.0),
++        }
+ 
+     def shutdown(self):
+         """Abort all requests and shutdown the backend."""
+@@ -370,10 +665,12 @@ class TransformersBackend(SllmBackend):
+             if self.status == BackendStatus.DELETING:
+                 return
+             self.status = BackendStatus.DELETING
+-            if self.inf_status:
+-                self.inf_status.status = BackendStatus.DELETING
+ 
+-        while self.inf_status and len(self.inf_status.get()) > 0:
++        while True:
++            with self.active_streamers_lock:
++                active_count = len(self.active_streamers)
++            if active_count <= 0:
++                break
+             logger.info("Waiting for all requests to finish")
+             time.sleep(1)
+ 
+@@ -386,7 +683,11 @@ class TransformersBackend(SllmBackend):
+             if self.status.value >= BackendStatus.STOPPING.value:
+                 return
+             self.status = BackendStatus.STOPPING
+-        while self.inf_status and len(self.inf_status.get()) > 0:
++        while True:
++            with self.active_streamers_lock:
++                active_count = len(self.active_streamers)
++            if active_count <= 0:
++                break
+             logger.info("Waiting for all requests to finish")
+             time.sleep(1)
+         logger.info("All requests finished. Shutting down the backend.")
+@@ -398,7 +699,8 @@ class TransformersBackend(SllmBackend):
+             if self.status != BackendStatus.RUNNING:
+                 return []
+ 
+-        status = self.inf_status.get()
++        with self.active_streamers_lock:
++            status = [streamer.get()[0] for streamer in self.active_streamers.values() if streamer.get()]
+         logger.info(f"Current tokens: {status}")
+         return status
+ 
+@@ -433,22 +735,14 @@ class TransformersBackend(SllmBackend):
+         temperature = request_data.get("temperature", 0.7)
+         max_tokens = request_data.get("max_tokens", 10)
+ 
+-        # Combine messages to form the prompt
+-        try:
+-            prompt = self.tokenizer.apply_chat_template(
+-                messages, add_generation_prompt=True, tokenize=False
+-            )
+-        except Exception as e:
+-            prompt = "\n".join(
+-                f"{message['role'].capitalize()}: {message['content']}"
+-                for message in messages
+-            )
++        prompt = self._render_messages_prompt(messages)
+ 
+         if not prompt:
+             return {"error": "Missing prompt in request data"}
+ 
++        prompt, prompt_tokens, max_tokens = self._prepare_prompt(prompt, max_tokens)
+         inputs = self._tokenize(prompt)
+-        prompt_tokens = inputs.input_ids.shape[1]
++        prompt_tokens = min(prompt_tokens, inputs.input_ids.shape[1])
+ 
+         # Generate response
+         try:
+diff --git a/sllm/backends/vllm_backend.py b/sllm/backends/vllm_backend.py
+index bed58f8..c28ae09 100644
+--- a/sllm/backends/vllm_backend.py
++++ b/sllm/backends/vllm_backend.py
+@@ -26,6 +26,7 @@ from dataclasses import fields
+ from typing import Any, Dict, List, Optional, Sequence, Union, cast
+ 
+ import torch
++from transformers import AutoTokenizer
+ from vllm import (
+     AsyncEngineArgs,
+     AsyncLLMEngine,
+@@ -37,6 +38,10 @@ from vllm import (
+ )
+ from vllm.inputs import TokensPrompt
+ from vllm.utils import Counter
++try:
++    from vllm.lora.request import LoRARequest
++except Exception:  # pragma: no cover - exercised in runtime env
++    LoRARequest = None  # type: ignore[assignment]
+ 
+ from sllm.backends.backend_utils import (
+     BackendStatus,
+@@ -46,6 +51,67 @@ from sllm.backends.backend_utils import (
+ logger = logging.getLogger("ray")
+ 
+ 
++def _extract_vllm_metrics(output: RequestOutput) -> Optional[Dict[str, Any]]:
++    metrics = getattr(output, "metrics", None)
++    if metrics is None:
++        return None
++
++    arrival_time = getattr(metrics, "arrival_time", None)
++    first_token_time = getattr(metrics, "first_token_time", None)
++    last_token_time = getattr(metrics, "last_token_time", None)
++    finished_time = getattr(metrics, "finished_time", None)
++    if last_token_time is None:
++        last_token_time = finished_time
++
++    completion_tokens = sum(len(result.token_ids) for result in output.outputs)
++
++    ttft_ms = None
++    if (
++        arrival_time is not None
++        and first_token_time is not None
++        and float(first_token_time) >= float(arrival_time)
++    ):
++        ttft_ms = (float(first_token_time) - float(arrival_time)) * 1000.0
++
++    e2e_ms = None
++    terminal_time = finished_time if finished_time is not None else last_token_time
++    if (
++        arrival_time is not None
++        and terminal_time is not None
++        and float(terminal_time) >= float(arrival_time)
++    ):
++        e2e_ms = (float(terminal_time) - float(arrival_time)) * 1000.0
++
++    tpot_ms = None
++    tpot_observed = False
++    if (
++        completion_tokens > 1
++        and first_token_time is not None
++        and last_token_time is not None
++        and float(last_token_time) >= float(first_token_time)
++    ):
++        tpot_ms = (
++            (float(last_token_time) - float(first_token_time))
++            * 1000.0
++            / max(completion_tokens - 1, 1)
++        )
++        tpot_observed = True
++
++    return {
++        "source": "serverlessllm_vllm_metrics",
++        "ttft_ms": ttft_ms,
++        "e2e_ms": e2e_ms,
++        "tpot_ms": tpot_ms,
++        "tpot_observed": tpot_observed,
++        "completion_tokens_observed": completion_tokens,
++        "stream_event_count": completion_tokens,
++        "arrival_time": arrival_time,
++        "first_token_time": first_token_time,
++        "last_token_time": last_token_time,
++        "finished_time": finished_time,
++    }
++
++
+ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
+     choices: List[Dict[str, Any]] = [
+         {
+@@ -54,7 +120,7 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
+                 "role": "assistant",
+                 "content": result.text,
+             },
+-            "logprobs": result.logprobs,
++            "logprobs": None,
+             "finish_reason": result.finish_reason,
+         }
+         for idx, result in enumerate(output.outputs)
+@@ -79,6 +145,9 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
+             + sum(len(result.token_ids) for result in output.outputs),
+         },
+     }
++    metrics = _extract_vllm_metrics(output)
++    if metrics is not None:
++        api_response["metrics"] = metrics
+     return api_response
+ 
+ 
+@@ -155,6 +224,14 @@ class VllmBackend(SllmBackend):
+         # if trace_debug is True, request trace will not be deleted after completion
+         self.trace_debug = backend_config.get("trace_debug", False)
+         self.enforce_eager = backend_config.get("enforce_eager", False)
++        self.enable_lora = bool(backend_config.get("enable_lora", False))
++        self.disable_lora_embeddings = bool(
++            backend_config.get("disable_lora_embeddings", False)
++        )
++        self.pretrained_model_name_or_path = backend_config.get(
++            "pretrained_model_name_or_path"
++        )
++        self.tokenizer = None
+         self.enable_prefix_caching = backend_config.get(
+             "enable_prefix_caching", True
+         )
+@@ -169,6 +246,12 @@ class VllmBackend(SllmBackend):
+         torch_dtype = backend_config.get("torch_dtype")
+         if torch_dtype is not None:
+             filtered_engine_config["dtype"] = torch_dtype
++        if self.enable_lora:
++            filtered_engine_config["enable_lora"] = True
++            if self.disable_lora_embeddings:
++                os.environ["VLLM_DISABLE_LORA_EMBEDDINGS"] = "1"
++            else:
++                os.environ.pop("VLLM_DISABLE_LORA_EMBEDDINGS", None)
+ 
+         if load_format is not None:
+             filtered_engine_config["load_format"] = load_format
+@@ -203,8 +286,116 @@ class VllmBackend(SllmBackend):
+             if self.status != BackendStatus.UNINITIALIZED:
+                 return
+             self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
++            tokenizer_source = (
++                self.pretrained_model_name_or_path
++                or getattr(self.engine_args, "model", None)
++            )
++            if tokenizer_source:
++                self.tokenizer = AutoTokenizer.from_pretrained(
++                    tokenizer_source,
++                    trust_remote_code=True,
++                )
+             self.status = BackendStatus.RUNNING
+ 
++    def _resolve_request_output_limit(self, requested_output_tokens: int) -> int:
++        desired_tokens = max(1, int(requested_output_tokens or 0))
++        cap = int(self.backend_config.get("max_output_tokens_cap", 0) or 0)
++        if cap > 0:
++            desired_tokens = min(desired_tokens, cap)
++        return max(1, desired_tokens)
++
++    def _render_messages_prompt(self, messages: List[Dict[str, Any]]) -> str:
++        if self.tokenizer is not None:
++            try:
++                prompt = self.tokenizer.apply_chat_template(
++                    messages,
++                    add_generation_prompt=True,
++                    tokenize=False,
++                )
++                if isinstance(prompt, str) and prompt.strip():
++                    return prompt
++            except Exception:
++                pass
++        return "\n".join(
++            f"{str(message.get('role') or 'user').capitalize()}: "
++            f"{'' if message.get('content') is None else str(message.get('content'))}"
++            for message in messages
++        )
++
++    def _prepare_prompt(self, prompt: str, max_tokens: int) -> tuple[str, int, int]:
++        max_tokens = self._resolve_request_output_limit(max_tokens)
++        max_len = max(
++            32, int(self.backend_config.get("max_model_len", 2048) or 2048)
++        )
++        max_input_len = max(
++            0, int(self.backend_config.get("max_input_len", 0) or 0)
++        )
++        prompt_budget = max(8, max_len - int(max_tokens) - 8)
++        if max_input_len > 0:
++            prompt_budget = min(prompt_budget, max_input_len)
++        if self.tokenizer is not None:
++            try:
++                token_ids = self.tokenizer.encode(
++                    prompt, add_special_tokens=False
++                )
++                if len(token_ids) > prompt_budget:
++                    logger.warning(
++                        "Prompt exceeded budget (%s > %s); truncating to align with fair-run prompt guard",
++                        len(token_ids),
++                        prompt_budget,
++                    )
++                    token_ids = token_ids[-prompt_budget:]
++                    prompt = self.tokenizer.decode(
++                        token_ids, skip_special_tokens=False
++                    )
++                actual_input_tokens = max(1, len(token_ids))
++            except Exception:
++                token_ids = None
++        else:
++            token_ids = None
++        if token_ids is None:
++            max_chars = min(max_len * 4, 8192)
++            if len(prompt) > max_chars:
++                prompt = prompt[-max_chars:]
++            actual_input_tokens = min(max(1, len(prompt)), prompt_budget)
++        max_tokens = min(max_tokens, max(1, max_len - actual_input_tokens - 8))
++        return prompt, actual_input_tokens, max(1, max_tokens)
++
++    def _build_lora_request(
++        self,
++        lora_adapter_name: Optional[str],
++        lora_adapter_id: Optional[int],
++        lora_adapter_path: Optional[str],
++    ):
++        if lora_adapter_name is None:
++            return None
++        if not self.enable_lora:
++            return {"error": "LoRA requested but vLLM backend was not initialized with enable_lora=true"}
++        if LoRARequest is None:
++            return {
++                "error": "vLLM LoRA support is unavailable in the active ServerlessLLM environment"
++            }
++        if not lora_adapter_path:
++            return {
++                "error": f"LoRA adapter path missing for adapter {lora_adapter_name}"
++            }
++        resolved_lora_path = str(lora_adapter_path)
++        if not os.path.isabs(resolved_lora_path):
++            storage_path = os.getenv(
++                "STORAGE_PATH", os.path.expanduser("~/models")
++            )
++            resolved_lora_path = os.path.join(storage_path, resolved_lora_path)
++        if not os.path.exists(resolved_lora_path):
++            return {
++                "error": f"LoRA adapter path not found: {resolved_lora_path}"
++            }
++        return LoRARequest(
++            lora_name=str(lora_adapter_name),
++            lora_int_id=int(lora_adapter_id or 0) or 1,
++            lora_path=resolved_lora_path,
++            base_model_name=str(self.pretrained_model_name_or_path or ""),
++        )
++
+     async def generate(self, request_data: Dict[str, Any]):
+         async with self.status_lock:
+             if self.status != BackendStatus.RUNNING:
+@@ -215,28 +406,45 @@ class VllmBackend(SllmBackend):
+         if request_data is None:
+             return {"error": "Request data is missing"}
+ 
+-        model_name: str = request_data.pop("model", "vllm-model")
+-        messages: Dict[Dict[str, str], str] = request_data.pop("messages", [])
+-        construct_prompt: str = "\n".join(
+-            [
+-                f"{message['role']}: {message['content']}"
+-                for message in messages
+-                if "content" in message
+-            ]
++        internal_metrics = dict(
++            request_data.pop("_sllm_internal_metrics", {}) or {}
+         )
++        internal_metrics["backend_started_at"] = time.time()
+ 
+-        # If prompt is not provided, construct it from messages
+-        inputs: Union[str, TokensPrompt] = request_data.pop(
+-            "prompt", construct_prompt
+-        )
+-        if request_data.get("input_tokens") is not None:
+-            inputs = TokensPrompt(
+-                prompt_token_ids=request_data.pop("input_tokens"),
++        model_name: str = request_data.pop("model", "vllm-model")
++        messages: List[Dict[str, Any]] = request_data.pop("messages", [])
++        requested_max_tokens = int(request_data.get("max_tokens", 256) or 256)
++        request_data.pop("stream", None)
++        request_data.pop("stream_options", None)
++        prompt = request_data.pop("prompt", None)
++        input_token_ids = request_data.pop("input_tokens", None)
++        if input_token_ids is None:
++            if prompt is None:
++                prompt = self._render_messages_prompt(messages)
++            if not prompt:
++                return {"error": "Missing prompt in request data"}
++            prompt, actual_input_tokens, max_tokens = self._prepare_prompt(
++                str(prompt), requested_max_tokens
+             )
++            request_data["max_tokens"] = max_tokens
++            inputs: Union[str, TokensPrompt] = prompt
++        else:
++            actual_input_tokens = len(input_token_ids)
++            inputs = TokensPrompt(prompt_token_ids=input_token_ids)
+ 
+         request_id: str = request_data.pop(
+             "request_id", f"chatcmpl-{uuid.uuid4()}"
+         )
++        lora_adapter_name = request_data.pop("lora_adapter_name", None)
++        lora_adapter_id = request_data.pop("lora_adapter_id", None)
++        lora_adapter_path = request_data.pop("lora_adapter_path", None)
++        lora_request = self._build_lora_request(
++            lora_adapter_name,
++            lora_adapter_id,
++            lora_adapter_path,
++        )
++        if isinstance(lora_request, dict) and lora_request.get("error"):
++            return lora_request
+ 
+         try:
+             sampling_params = SamplingParams(**request_data)
+@@ -244,23 +452,108 @@ class VllmBackend(SllmBackend):
+             return {"error": f"Invalid sampling parameters: {e}"}
+ 
+         results_generator = self.engine.generate(
+-            inputs, sampling_params, request_id
++            inputs,
++            sampling_params,
++            request_id,
++            lora_request=lora_request,
+         )
+ 
+         # TODO stream results
+ 
+         # Non-stream case
+         final_output = None
++        completion_tokens_observed = 0
++        first_token_at = None
++        last_token_at = None
++        token_timestamps = []
+         async for response_output in results_generator:
+             final_output = response_output
++            current_completion_tokens = sum(
++                len(result.token_ids) for result in response_output.outputs
++            )
++            if current_completion_tokens > completion_tokens_observed:
++                delta = current_completion_tokens - completion_tokens_observed
++                now = time.time()
++                if first_token_at is None:
++                    first_token_at = now
++                last_token_at = now
++                if delta == 1:
++                    token_timestamps.append(now)
++                completion_tokens_observed = current_completion_tokens
+             await self.request_trace.update_status(request_id, response_output)
+ 
+         assert final_output is not None
++        finished_at = time.time()
+ 
+         if not self.trace_debug:
+             await self.request_trace.delete_request(request_id)
+-
+-        return process_output(final_output, model_name)
++        response = process_output(final_output, model_name)
++        if actual_input_tokens > 0:
++            response.setdefault("usage", {})["prompt_tokens"] = actual_input_tokens
++            response["usage"]["total_tokens"] = actual_input_tokens + int(
++                response["usage"].get("completion_tokens", 0)
++            )
++        metrics = dict(response.get("metrics", {}) or {})
++        request_received_at = internal_metrics.get("request_received_at")
++        backend_started_at = internal_metrics.get("backend_started_at")
++        runtime_ttft_ms = None
++        if first_token_at is not None and backend_started_at is not None:
++            runtime_ttft_ms = max(
++                0.0, (float(first_token_at) - float(backend_started_at)) * 1000.0
++            )
++        if (
++            metrics.get("first_token_time") is not None
++            and request_received_at is not None
++        ):
++            metrics["ttft_ms"] = max(
++                0.0,
++                (float(metrics["first_token_time"]) - float(request_received_at))
++                * 1000.0,
++            )
++        if request_received_at is not None:
++            terminal_time = metrics.get("finished_time") or metrics.get(
++                "last_token_time"
++            )
++            if terminal_time is not None:
++                metrics["e2e_ms"] = max(
++                    0.0,
++                    (float(terminal_time) - float(request_received_at)) * 1000.0,
++                )
++        metrics["runtime_ttft_ms"] = runtime_ttft_ms
++        metrics["serverless_overhead_ms"] = (
++            max(0.0, float(metrics["ttft_ms"]) - float(runtime_ttft_ms))
++            if metrics.get("ttft_ms") is not None and runtime_ttft_ms is not None
++            else None
++        )
++        if not metrics.get("tpot_observed") and (
++            completion_tokens_observed > 1
++            and len(token_timestamps) == completion_tokens_observed
++        ):
++            metrics["tpot_ms"] = (
++                (float(token_timestamps[-1]) - float(token_timestamps[0])) * 1000.0
++                / max(completion_tokens_observed - 1, 1)
++            )
++            metrics["tpot_observed"] = True
++        metrics["request_received_at"] = request_received_at
++        metrics["backend_started_at"] = backend_started_at
++        metrics["first_token_at"] = first_token_at
++        metrics["last_token_at"] = last_token_at
++        metrics["finished_at"] = finished_at
++        metrics["queue_wait_ms"] = internal_metrics.get("queue_wait_ms")
++        metrics["lora_load_ms"] = internal_metrics.get("lora_load_ms")
++        metrics["cache_hit"] = internal_metrics.get("lora_cache_hit")
++        metrics["gpu_ready_request"] = internal_metrics.get("lora_cache_hit")
++        metrics["scaleup_affected"] = internal_metrics.get("scaleup_affected")
++        metrics["scaleup_first_service"] = internal_metrics.get("scaleup_first_service")
++        metrics["cold_start_latency_ms"] = internal_metrics.get("cold_start_latency_ms")
++        metrics["instance_id"] = internal_metrics.get("instance_id")
++        metrics["instance_created_at"] = internal_metrics.get("instance_created_at")
++        metrics["instance_ready_at"] = internal_metrics.get("instance_ready_at")
++        response["metrics"] = metrics
++        return response
++
++    async def load_lora_adapter(self, lora_name: str, lora_path: str):
++        return {"cache_hit": None, "load_ms": None}
+ 
+     async def shutdown(self):
+         """Abort all requests and shutdown the backend."""
+diff --git a/sllm/cli/_cli_utils.py b/sllm/cli/_cli_utils.py
+index a51be9b..518953c 100644
+--- a/sllm/cli/_cli_utils.py
++++ b/sllm/cli/_cli_utils.py
+@@ -44,7 +44,14 @@ def start_server(
+         # Initialize Ray if not already initialized
+         if not ray.is_initialized():
+             click.echo("[ℹ] Initializing Ray...")
+-            ray.init()
++            ray_address = os.getenv("SLLM_RAY_ADDRESS") or None
++            ray_node_ip = os.getenv("SLLM_RAY_NODE_IP") or None
++            ray_init_kwargs = {}
++            if ray_address:
++                ray_init_kwargs["address"] = ray_address
++            if ray_node_ip:
++                ray_init_kwargs["_node_ip_address"] = ray_node_ip
++            ray.init(**ray_init_kwargs)
+         else:
+             click.echo("[ℹ] Ray already initialized")
+ 
+diff --git a/sllm/cli/clic.py b/sllm/cli/clic.py
+index c684fe8..23c1c3a 100644
+--- a/sllm/cli/clic.py
++++ b/sllm/cli/clic.py
+@@ -56,10 +56,12 @@ def cli():
+     ),
+ )
+ @click.option(
+-    "--enable-lora",
+-    is_flag=True,
+-    default=False,
+-    help="Enable LoRA support for the model",
++    "--enable-lora/--disable-lora",
++    default=None,
++    help=(
++        "Enable or disable LoRA support for the model. "
++        "When omitted, preserve the value from the config file."
++    ),
+ )
+ @click.option(
+     "--precision",
+diff --git a/sllm/controller.py b/sllm/controller.py
+index 6104456..dee18ef 100644
+--- a/sllm/controller.py
++++ b/sllm/controller.py
+@@ -109,6 +109,9 @@ class SllmController:
+         auto_scaling_config = model_config.get("auto_scaling_config", None)
+         enable_lora = backend_config.get("enable_lora", False)
+         lora_adapters = backend_config.get("lora_adapters", {})
++        skip_store_lora_registration = bool(
++            backend_config.get("skip_store_lora_registration", False)
++        )
+         async with self.metadata_lock:
+             if model_name in self.registered_models:
+                 logger.info(f"Model {model_name} already registered")
+@@ -117,12 +120,13 @@ class SllmController:
+                         lora_adapter_name,
+                         lora_adapter_path,
+                     ) in lora_adapters.items():
+-                        await self.store_manager.register_lora_adapter.remote(
+-                            model_name,
+-                            lora_adapter_name,
+-                            lora_adapter_path,
+-                            backend_config,
+-                        )
++                        if not skip_store_lora_registration:
++                            await self.store_manager.register_lora_adapter.remote(
++                                model_name,
++                                lora_adapter_name,
++                                lora_adapter_path,
++                                backend_config,
++                            )
+                     request_router = self.request_routers[model_name]
+                     await request_router.update.remote(
+                         lora_adapters=lora_adapters
+@@ -132,16 +136,28 @@ class SllmController:
+         logger.info(f"Registering new model {model_name}")
+         try:
+             await self.store_manager.register.remote(model_config)
+-            for lora_adapter_name, lora_adapter_path in lora_adapters.items():
+-                await self.store_manager.register_lora_adapter.remote(
+-                    model_name,
+-                    lora_adapter_name,
+-                    lora_adapter_path,
+-                    backend_config,
+-                )
++            if not skip_store_lora_registration:
++                for lora_adapter_name, lora_adapter_path in lora_adapters.items():
++                    await self.store_manager.register_lora_adapter.remote(
++                        model_name,
++                        lora_adapter_name,
++                        lora_adapter_path,
++                        backend_config,
++                    )
+         except RuntimeError as e:
+             error_message = e.args[0]
++            logger.exception(
++                "Model registration failed for %s with runtime error: %s",
++                model_name,
++                error_message,
++            )
+             raise RuntimeError(f"{error_message}")
++        except Exception as e:
++            logger.exception(
++                "Model registration failed for %s with unexpected error",
++                model_name,
++            )
++            raise
+         # TODO: put resource requirements in model_config
+         resource_requirements = {
+             "num_cpus": 1,
+diff --git a/sllm/hardware_info_collector.py b/sllm/hardware_info_collector.py
+index a41c086..567b163 100644
+--- a/sllm/hardware_info_collector.py
++++ b/sllm/hardware_info_collector.py
+@@ -1,13 +1,12 @@
+ import json
+ import os
++import subprocess
+ import tempfile
+ import time
+ from typing import Dict, Set
+ 
+-import GPUtil
+ import psutil
+ import ray
+-import speedtest
+ from tqdm import tqdm
+ 
+ from sllm.logger import init_logger
+@@ -119,6 +118,8 @@ def get_network_bandwidth(num_iterations=1):
+     upload_results = []
+     download_results = []
+     try:
++        import speedtest
++
+         for _ in tqdm(range(num_iterations), desc="Testing network bandwidth"):
+             st = speedtest.Speedtest()
+             st.get_best_server()
+@@ -149,9 +150,39 @@ def get_gpu_info():
+     """
+     gpus_info = {}
+     try:
+-        gpus = GPUtil.getGPUs()
++        try:
++            import GPUtil
++
++            gpus = GPUtil.getGPUs()
++        except ModuleNotFoundError:
++            gpus = []
+         if not gpus:
+-            gpus_info = "No GPUs found."
++            try:
++                output = subprocess.check_output(
++                    [
++                        "nvidia-smi",
++                        "--query-gpu=name,utilization.gpu,memory.free,memory.used,memory.total",
++                        "--format=csv,noheader,nounits",
++                    ],
++                    text=True,
++                )
++                rows = [line.strip() for line in output.splitlines() if line.strip()]
++                if not rows:
++                    gpus_info = "No GPUs found."
++                else:
++                    for idx, row in enumerate(rows, start=1):
++                        name, load, free_mem, used_mem, total_mem = [
++                            item.strip() for item in row.split(",")
++                        ]
++                        gpus_info[idx] = {
++                            "Name": name,
++                            "Load": f"{load}%",
++                            "Free_Memory": f"{free_mem}MB",
++                            "Used_Memory": f"{used_mem}MB",
++                            "Total_Memory": f"{total_mem}MB",
++                        }
++            except Exception:
++                gpus_info = "No GPUs found."
+         else:
+             for gpu in gpus:
+                 gpu_id = gpu.id + 1  # To start GPU numbering from 1
+diff --git a/sllm/model_downloader.py b/sllm/model_downloader.py
+index 23ccabb..d011de0 100644
+--- a/sllm/model_downloader.py
++++ b/sllm/model_downloader.py
+@@ -38,6 +38,18 @@ logger = logging.getLogger("ray")
+ #     return total_size
+ 
+ 
++def _resolve_storage_relative_path(storage_path: str, path_or_name: str) -> str:
++    """Accept either storage-root-relative or backend-local relative paths."""
++    if os.path.isabs(path_or_name):
++        return path_or_name
++
++    storage_relative = os.path.join(storage_path, path_or_name)
++    if os.path.exists(storage_relative):
++        return storage_relative
++
++    return os.path.join(storage_path, "transformers", path_or_name)
++
++
+ @ray.remote(num_cpus=1)
+ def download_transformers_model(
+     model_name: str,
+@@ -71,7 +83,13 @@ def download_transformers_model(
+         trust_remote_code=True,
+     )
+ 
+-    tokenizer = AutoTokenizer.from_pretrained(model_name)
++    # Keep tokenizer resolution aligned with the actual base model source.
++    # Our fair-comparison setup uses local absolute model paths rather than
++    # Hugging Face repo aliases, so resolving via the serving alias would fail.
++    tokenizer = AutoTokenizer.from_pretrained(
++        pretrained_model_name_or_path,
++        trust_remote_code=True,
++    )
+ 
+     from sllm_store.transformers import save_model
+ 
+@@ -80,7 +98,7 @@ def download_transformers_model(
+         save_model(model, model_path)
+         tokenizer.save_pretrained(tokenizer_path)
+     except Exception as e:
+-        logger.error(f"Failed to save {model_path}: {e}")
++        logger.error(f"Failed to save {model_path}: {e}", exc_info=True)
+         # shutil.rmtree(model_path)  # TODO: deal with error in save_model
+         raise RuntimeError(
+             f"Failed to save {model_name} for transformer backend: {e}"
+@@ -101,9 +119,7 @@ def download_lora_adapter(
+     torch_dtype: str,
+ ) -> bool:
+     storage_path = os.getenv("STORAGE_PATH", os.path.expanduser("~/models"))
+-    adapter_path = os.path.join(
+-        storage_path, "transformers", adapter_name_or_path
+-    )
++    adapter_path = _resolve_storage_relative_path(storage_path, adapter_name_or_path)
+ 
+     if os.path.exists(adapter_path):
+         logger.info(f"{adapter_path} already exists")
+@@ -144,7 +160,7 @@ def download_lora_adapter(
+     try:
+         save_lora(model, adapter_path)
+     except Exception as e:
+-        logger.error(f"Failed to save {adapter_path}: {e}")
++        logger.error(f"Failed to save {adapter_path}: {e}", exc_info=True)
+         # shutil.rmtree(model_path)  # TODO: deal with error in save_model
+         raise RuntimeError(
+             f"Failed to save {adapter_name} for transformer backend: {e}"
+diff --git a/sllm/routers/roundrobin_router.py b/sllm/routers/roundrobin_router.py
+index e32012d..f86e27b 100644
+--- a/sllm/routers/roundrobin_router.py
++++ b/sllm/routers/roundrobin_router.py
+@@ -17,8 +17,9 @@
+ # ---------------------------------------------------------------------------- #
+ import asyncio
+ import logging
++import time
+ import uuid
+-from typing import Dict, List, Optional
++from typing import Any, Dict, List, Optional
+ 
+ import ray
+ 
+@@ -102,6 +103,7 @@ class RoundRobinRouter(SllmRouter):
+ 
+         self.enable_lora = enable_lora
+         self.loaded_lora_adapters = lora_adapters
++        self.lora_numeric_ids = self._build_lora_numeric_ids(lora_adapters or {})
+         self.lora_lock = asyncio.Lock()
+ 
+         self.auto_scaler = None
+@@ -132,6 +134,9 @@ class RoundRobinRouter(SllmRouter):
+         if lora_adapters is not None:
+             async with self.lora_lock:
+                 self.loaded_lora_adapters = lora_adapters
++                self.lora_numeric_ids = self._build_lora_numeric_ids(
++                    lora_adapters
++                )
+ 
+         logger.info(
+             f"Model {self.model_name}'s auto scaling config updated to {auto_scaling_config}"
+@@ -141,11 +146,33 @@ class RoundRobinRouter(SllmRouter):
+         pattern = "{model_name}_{id}"
+         return pattern.format(model_name=self.model_name, id=uuid.uuid4())
+ 
++    @staticmethod
++    def _build_lora_numeric_ids(lora_adapters: Dict[str, str]) -> Dict[str, int]:
++        return {
++            adapter_name: idx
++            for idx, adapter_name in enumerate(
++                sorted((lora_adapters or {}).keys()), start=1
++            )
++        }
++
+     async def inference(self, request_data: dict, action: str):
+         async with self.running_lock:
+             if not self.running:
+                 return {"error": "Instance stopped"}
+ 
++        request_id = str(request_data.get("request_id") or f"chatcmpl-{uuid.uuid4()}")
++        request_data["request_id"] = request_id
++        internal_metrics: Dict[str, Any] = dict(
++            request_data.get("_sllm_internal_metrics", {}) or {}
++        )
++        internal_metrics.setdefault("request_id", request_id)
++        internal_metrics.setdefault("request_received_at", time.time())
++        enqueue_at = time.time()
++        internal_metrics["router_enqueued_at"] = enqueue_at
++        async with self.instance_management_lock:
++            ready_instances_at_enqueue = len(self.ready_inference_instances)
++        internal_metrics["ready_instances_at_enqueue"] = ready_instances_at_enqueue
++
+         async with self.request_count_lock:
+             self.request_count += 1
+ 
+@@ -155,43 +182,106 @@ class RoundRobinRouter(SllmRouter):
+         instance_allocation = self.loop.create_future()
+         await self.request_queue.put(instance_allocation)
+         logger.info(f"Enqueued {action} request for model {self.model_name}")
+-
+-        instance_id = await instance_allocation
+-        logger.info(f"{request_data}, type: {type(request_data)}")
+-        async with self.instance_management_lock:
+-            if instance_id not in self.ready_inference_instances:
+-                logger.error(f"Instance {instance_id} not found")
+-                return {"error": "Instance not found"}
+-            instance = self.ready_inference_instances[instance_id]
+-
+-        # sanity check
+-        if self.enable_lora and "lora_adapter_name" in request_data:
+-            lora_adapter_name = request_data["lora_adapter_name"]
+-            if lora_adapter_name not in self.loaded_lora_adapters:
+-                logger.error(f"Lora adapter {lora_adapter_name} not found")
+-                return {"error": f"Lora adapter {lora_adapter_name} not found"}
+-            await instance.backend_instance.load_lora_adapter.remote(
+-                lora_name=lora_adapter_name,
+-                lora_path=self.loaded_lora_adapters[lora_adapter_name],
+-            )
+-        # NOTE: `.remote(request_data)` does not work, don't know why.
+-        # Looks like a known issue:
+-        # https://github.com/ray-project/ray/issues/26283#issuecomment-1780691475
+-        if action == "generate":
+-            result = await instance.backend_instance.generate.remote(
+-                request_data=request_data
+-            )
+-        elif action == "encode":
+-            result = await instance.backend_instance.encode.remote(
+-                request_data=request_data
++        instance = None
++        try:
++            instance_id = await instance_allocation
++            assigned_at = time.time()
++            internal_metrics["instance_assigned_at"] = assigned_at
++            internal_metrics["queue_wait_ms"] = max(
++                0.0, (assigned_at - enqueue_at) * 1000.0
+             )
+-        else:
+-            result = {"error": "Invalid action"}
+-        logger.info(f"Finished processing request")
+-        await instance.add_requests(-1)
+-        async with self.request_count_lock:
+-            self.request_count -= 1
+-        return result
++            logger.info(f"{request_data}, type: {type(request_data)}")
++            async with self.instance_management_lock:
++                if instance_id not in self.ready_inference_instances:
++                    logger.error(f"Instance {instance_id} not found")
++                    return {"error": "Instance not found"}
++                instance = self.ready_inference_instances[instance_id]
++                internal_metrics["instance_id"] = instance_id
++                internal_metrics["instance_created_at"] = instance.created_at
++                internal_metrics["instance_ready_at"] = instance.ready_at
++                scaleup_affected = bool(
++                    instance.ready_at is not None
++                    and enqueue_at <= float(instance.ready_at) + 1e-9
++                    and (
++                        instance.created_at is None
++                        or enqueue_at >= float(instance.created_at) - 1e-9
++                    )
++                )
++                internal_metrics["scaleup_affected"] = scaleup_affected
++                scaleup_first_service = instance.first_request_id is None
++                if scaleup_first_service:
++                    instance.first_request_id = request_id
++                    instance.first_request_assigned_at = assigned_at
++                internal_metrics["scaleup_first_service"] = scaleup_first_service
++                cold_start_latency_ms = None
++                if (
++                    scaleup_first_service
++                    and instance.created_at is not None
++                    and instance.ready_at is not None
++                    and float(instance.ready_at) >= float(instance.created_at)
++                ):
++                    cold_start_latency_ms = (
++                        float(instance.ready_at) - float(instance.created_at)
++                    ) * 1000.0
++                internal_metrics["cold_start_latency_ms"] = cold_start_latency_ms
++
++            if self.enable_lora:
++                lora_adapter_name = request_data.get("lora_adapter_name")
++                require_lora = bool(
++                    self.backend_config.get("require_lora_for_inference", False)
++                )
++                if require_lora and not lora_adapter_name:
++                    return {
++                        "error": "LoRA adapter is required for this deployment but the request did not provide lora_adapter_name"
++                    }
++                if lora_adapter_name is not None:
++                    if lora_adapter_name not in self.loaded_lora_adapters:
++                        logger.error(f"Lora adapter {lora_adapter_name} not found")
++                        return {"error": f"Lora adapter {lora_adapter_name} not found"}
++                    lora_adapter_path = self.loaded_lora_adapters[lora_adapter_name]
++                    if self.backend == "transformers":
++                        load_result = await instance.backend_instance.load_lora_adapter.remote(
++                            lora_name=lora_adapter_name,
++                            lora_path=lora_adapter_path,
++                        )
++                        load_result = dict(load_result or {})
++                        internal_metrics["lora_cache_hit"] = load_result.get(
++                            "cache_hit"
++                        )
++                        internal_metrics["lora_load_ms"] = (
++                            float(load_result["load_ms"])
++                            if load_result.get("load_ms") is not None
++                            else None
++                        )
++                    elif self.backend == "vllm":
++                        request_data["lora_adapter_path"] = lora_adapter_path
++                        request_data["lora_adapter_id"] = self.lora_numeric_ids.get(
++                            lora_adapter_name
++                        )
++                        internal_metrics["lora_cache_hit"] = None
++                        internal_metrics["lora_load_ms"] = None
++            request_data["_sllm_internal_metrics"] = internal_metrics
++
++            # NOTE: `.remote(request_data)` does not work, don't know why.
++            # Looks like a known issue:
++            # https://github.com/ray-project/ray/issues/26283#issuecomment-1780691475
++            if action == "generate":
++                result = await instance.backend_instance.generate.remote(
++                    request_data=request_data
++                )
++            elif action == "encode":
++                result = await instance.backend_instance.encode.remote(
++                    request_data=request_data
++                )
++            else:
++                result = {"error": "Invalid action"}
++            logger.info(f"Finished processing request")
++            return result
++        finally:
++            if instance is not None:
++                await instance.add_requests(-1)
++            async with self.request_count_lock:
++                self.request_count -= 1
+ 
+     async def fine_tuning(self, request_data: dict):
+         logger.info(f"Starting fine-tuning for model {self.model_name}")
+@@ -387,6 +477,7 @@ class RoundRobinRouter(SllmRouter):
+             instance_id=instance_id,
+             max_queue_length=max_request_length,
+             num_gpu=self.resource_requirements["num_gpus"],
++            created_at=time.time(),
+         )
+         async with self.instance_management_lock:
+             self.starting_inference_instances[instance_id] = instance
+@@ -452,10 +543,11 @@ class RoundRobinRouter(SllmRouter):
+             f"Started instance {instance_id} for model {self.model_name}"
+         )
+         instance.backend_instance = ray.get_actor(instance_id)
++        await instance.backend_instance.init_backend.remote()
+         async with instance.lock:
+             instance.ready = True
+             instance.node_id = startup_node
+-        await instance.backend_instance.init_backend.remote()
++            instance.ready_at = time.time()
+ 
+         async with self.instance_management_lock:
+             self.ready_inference_instances[instance_id] = instance
+diff --git a/sllm/store_manager.py b/sllm/store_manager.py
+index 089082b..80e47da 100644
+--- a/sllm/store_manager.py
++++ b/sllm/store_manager.py
+@@ -31,7 +31,13 @@ from sllm.model_downloader import (
+     download_transformers_model,
+ )
+ from sllm.utils import get_worker_nodes
+-from sllm_store.client import SllmStoreClient
++try:
++    from sllm_store.client import SllmStoreClient
++except Exception as exc:  # pragma: no cover - exercised in runtime env
++    SllmStoreClient = None  # type: ignore[assignment]
++    _SLLM_STORE_CLIENT_IMPORT_ERROR = exc
++else:
++    _SLLM_STORE_CLIENT_IMPORT_ERROR = None
+ 
+ logger = init_logger(__name__)
+ 
+@@ -78,6 +84,10 @@ class SllmLocalStore:
+             model_path = self._get_model_path(model_name, backend)
+             if backend == "transformers":
+                 model_size = self.client.register_model(model_path)
++                if model_size < 0:
++                    raise RuntimeError(
++                        f"Store failed to register transformer model {model_name} at {model_path}"
++                    )
+                 self.disk_models[model_name] = ([model_path], model_size)
+             elif backend == "vllm":
+                 tensor_parallel_size = backend_config.get(
+@@ -87,7 +97,12 @@ class SllmLocalStore:
+                 model_path_list = []
+                 for rank in range(tensor_parallel_size):
+                     model_rank_path = os.path.join(model_path, f"rank_{rank}")
+-                    model_size += self.client.register_model(model_rank_path)
++                    model_rank_size = self.client.register_model(model_rank_path)
++                    if model_rank_size < 0:
++                        raise RuntimeError(
++                            f"Store failed to register vLLM model {model_name} rank {rank} at {model_rank_path}"
++                        )
++                    model_size += model_rank_size
+                     model_path_list.append(model_rank_path)
+                 self.disk_models[model_name] = (model_path_list, model_size)
+             logger.info(f"{model_name} registered, {self.disk_models}")
+@@ -225,6 +240,9 @@ class StoreManager:
+     def __init__(self):
+         logger.info("Initializing store manager")
+         self.hardware_info = {}
++        self.direct_path_mode = bool(
++            int(os.getenv("SLLM_DIRECT_PATH_MODE", "0") or "0")
++        )
+ 
+         self.metadata_lock = asyncio.Lock()
+         # Storage info
+@@ -264,6 +282,18 @@ class StoreManager:
+                 )
+                 continue
+ 
++        if self.direct_path_mode:
++            logger.info(
++                "Direct-path mode enabled; skipping local store client initialization"
++            )
++            return True
++
++        if SllmStoreClient is None:
++            raise RuntimeError(
++                "sllm_store.client is unavailable but direct-path mode is disabled: "
++                f"{_SLLM_STORE_CLIENT_IMPORT_ERROR}"
++            )
++
+         uninitialized_nodes = list(self.hardware_info.keys())
+ 
+         while len(uninitialized_nodes) > 0:
+@@ -368,27 +398,31 @@ class StoreManager:
+             pretrained_model_name_or_path = backend_config.get(
+                 "pretrained_model_name_or_path", None
+             )
++            skip_store_model_registration = bool(
++                backend_config.get("skip_store_model_registration", False)
++            )
+             # 1. download this model to one worker using round-robin
+             worker_node_info = get_worker_nodes()
+ 
+             n_nodes = len(worker_node_info)
+             assert n_nodes > 0, "No worker nodes found"
+ 
+-            for node_id, node_info in worker_node_info.items():
+-                node_address = node_info["address"]
+-                if node_id not in self.local_servers:
+-                    if self.local_servers:
+-                        first_node = next(iter(self.local_servers.values()))
+-                        self.local_servers[node_id] = SllmLocalStore(
+-                            node_id,
+-                            SllmStoreClient(f"{node_address}:8073"),
+-                            1,
+-                            first_node.chunk_size,
+-                            first_node.hardware_info,
+-                        )
+-                    else:
+-                        logger.error(f"Node {node_id} not found")
+-                        raise ValueError(f"Node {node_id} not found")
++            if not skip_store_model_registration:
++                for node_id, node_info in worker_node_info.items():
++                    node_address = node_info["address"]
++                    if node_id not in self.local_servers:
++                        if self.local_servers:
++                            first_node = next(iter(self.local_servers.values()))
++                            self.local_servers[node_id] = SllmLocalStore(
++                                node_id,
++                                SllmStoreClient(f"{node_address}:8073"),
++                                1,
++                                first_node.chunk_size,
++                                first_node.hardware_info,
++                            )
++                        else:
++                            logger.error(f"Node {node_id} not found")
++                            raise ValueError(f"Node {node_id} not found")
+ 
+             local_disk = []
+             if placement_config and "local_disk" in placement_config:
+@@ -422,6 +456,26 @@ class StoreManager:
+             logger.info(
+                 f"Downloading model {pretrained_model_name_or_path} to nodes {local_disk}"  # noqa: E501
+             )
++            if skip_store_model_registration:
++                if not pretrained_model_name_or_path or not os.path.exists(
++                    pretrained_model_name_or_path
++                ):
++                    raise RuntimeError(
++                        "skip_store_model_registration requires a local "
++                        f"pretrained_model_name_or_path, got: {pretrained_model_name_or_path}"
++                    )
++                model_size = 0
++                for node_id in local_disk:
++                    self.model_storage_info[model_name][node_id] = True
++                    logger.info(
++                        "Direct-path registration enabled for %s on node %s using local model path %s",
++                        model_name,
++                        node_id,
++                        pretrained_model_name_or_path,
++                    )
++                self.model_info[model_name] = model_size
++                logger.info(f"{model_name} registered via direct local model path")
++                return
+             for node_id in local_disk:
+                 if backend == "transformers":
+                     hf_model_class = backend_config.get("hf_model_class", None)
+diff --git a/sllm/utils.py b/sllm/utils.py
+index 6d5e48d..8d56c53 100644
+--- a/sllm/utils.py
++++ b/sllm/utils.py
+@@ -16,7 +16,7 @@
+ #  limitations under the license.                                              #
+ # ---------------------------------------------------------------------------- #
+ import asyncio
+-from dataclasses import dataclass
++from dataclasses import dataclass, field
+ from typing import List, Optional
+ 
+ import ray
+@@ -26,14 +26,16 @@ def get_worker_nodes():
+     ray_nodes = ray.nodes()
+     worker_node_info = {}
+     for node in ray_nodes:
++        if not node.get("Alive", True):
++            continue
+         ray_node_id = node.get("NodeID", None)
+         assert ray_node_id is not None, "NodeID not found"
+         resources = node.get("Resources", {})
+-        assert resources != {}, "Resources not found"
++        if not resources:
++            continue
+         node_address = node.get("NodeManagerAddress", None)
+-        assert (
+-            node_address is not None and node_address != ""
+-        ), "NodeManagerAddress not found"
++        if node_address is None or node_address == "":
++            continue
+         if resources.get("control_node", 0) > 0:
+             continue  # Skip the control node
+ 
+@@ -72,8 +74,12 @@ class InstanceHandle:
+     backend_instance: Optional[ray.actor.ActorHandle] = None
+     ready: bool = False
+     concurrency: int = 0
++    created_at: Optional[float] = None
++    ready_at: Optional[float] = None
++    first_request_assigned_at: Optional[float] = None
++    first_request_id: Optional[str] = None
+ 
+-    lock: asyncio.Lock = asyncio.Lock()
++    lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+ 
+     async def add_requests(self, num_requests: int = 1):
+         async with self.lock:
+diff --git a/sllm_store/sllm_store/transformers.py b/sllm_store/sllm_store/transformers.py
+index 9a87bcd..fa1c376 100644
+--- a/sllm_store/sllm_store/transformers.py
++++ b/sllm_store/sllm_store/transformers.py
+@@ -72,6 +72,14 @@ def _get_uuid():
+     return str(uuid.uuid4())
+ 
+ 
++def _should_skip_confirm() -> bool:
++    return os.getenv("SLLM_SKIP_CONFIRM_MODEL_LOADED", "0").lower() in {
++        "1",
++        "true",
++        "yes",
++    }
++
++
+ def save_model(model: nn.Module, model_path: str):
+     """
+     Args:
+@@ -255,7 +263,14 @@ def fully_parallel_load(
+         model, device_map, skip_keys=model._skip_keys_device_placement
+     )
+     client = SllmStoreClient("127.0.0.1:8073")
+-    client.confirm_model_loaded(model_path, replica_uuid)
++    if _should_skip_confirm():
++        logger.warning(
++            "Skipping confirm_model_loaded for %s due to "
++            "SLLM_SKIP_CONFIRM_MODEL_LOADED",
++            model_path,
++        )
++    else:
++        client.confirm_model_loaded(model_path, replica_uuid)
+     model.hf_device_map = device_map
+     model.eval()
+     return model
+@@ -399,7 +414,14 @@ def best_effort_load(
+         model, device_map, skip_keys=model._skip_keys_device_placement
+     )
+ 
+-    client.confirm_model_loaded(model_path, replica_uuid)
++    if _should_skip_confirm():
++        logger.warning(
++            "Skipping confirm_model_loaded for %s due to "
++            "SLLM_SKIP_CONFIRM_MODEL_LOADED",
++            model_path,
++        )
++    else:
++        client.confirm_model_loaded(model_path, replica_uuid)
+     model.eval()
+     model.hf_device_map = device_map
+ 
+@@ -436,21 +458,73 @@ def load_lora(
+     client = SllmStoreClient("127.0.0.1:8073")
+     client.register_model(adapter_path)
+ 
+-    model.add_adapter(lora_config, adapter_name=adapter_name)
++    # The original path re-wrapped the model with get_peft_model() every time a
++    # new adapter was loaded. That works for the first adapter but breaks
++    # multi-LoRA serving because the second adapter is effectively loaded into a
++    # model that is PEFT-wrapped twice. Keep a single PeftModel wrapper and only
++    # add new adapters to it.
++    if isinstance(model, PeftModel):
++        peft_model = model
++        if adapter_name not in peft_model.peft_config:
++            peft_model.add_adapter(adapter_name, lora_config)
++    else:
++        peft_model = get_peft_model(
++            model, lora_config, adapter_name=adapter_name
++        )
+ 
+     replica_uuid, state_dict = load_dict_non_blocking(
+         adapter_path, {"": 0}, storage_path
+     )
+ 
+-    # https://github.com/huggingface/transformers/blob/de182ba2690fe6c3466f6463c7f4b3a61694b885/src/transformers/integrations/peft.py#L228-L265
+-    processed_adapter_state_dict = {}
+-    prefix = "base_model.model."
+-    for key, value in state_dict.items():
+-        new_key = key[len(prefix) :] if key.startswith(prefix) else key
+-        processed_adapter_state_dict[new_key] = value
++    # Align adapter key prefixes with the PEFT-wrapped model we just created.
++    # Our frozen publicmix pools store standard PEFT keys such as
++    # `base_model.model.model.layers...lora_A.weight`, while some older
++    # ServerlessLLM paths assumed they should always strip `base_model.model.`.
++    # That breaks loading for adapters whose saved keys already match the model.
++    expected_lora_keys = set()
++    adapter_marker = f".{adapter_name}."
++    for key in peft_model.state_dict().keys():
++        if "lora_" not in key or adapter_marker not in key:
++            continue
++        expected_lora_keys.add(key.replace(adapter_marker, ".", 1))
++
++    def _candidate_state_dict(strip_prefix: str | None):
++        processed = {}
++        for key, value in state_dict.items():
++            if strip_prefix and key.startswith(strip_prefix):
++                processed[key[len(strip_prefix) :]] = value
++            else:
++                processed[key] = value
++        return processed
++
++    raw_state_dict = _candidate_state_dict(strip_prefix=None)
++    stripped_state_dict = _candidate_state_dict(strip_prefix="base_model.model.")
++
++    def _match_score(candidate):
++        if not expected_lora_keys:
++            return 0
++        return sum(1 for key in candidate.keys() if key in expected_lora_keys)
++
++    raw_score = _match_score(raw_state_dict)
++    stripped_score = _match_score(stripped_state_dict)
++
++    if stripped_score > raw_score:
++        processed_adapter_state_dict = stripped_state_dict
++        logger.info(
++            "Using stripped LoRA key prefix for adapter %s (%d exact key matches)",
++            adapter_name,
++            stripped_score,
++        )
++    else:
++        processed_adapter_state_dict = raw_state_dict
++        logger.info(
++            "Using raw LoRA key prefix for adapter %s (%d exact key matches)",
++            adapter_name,
++            raw_score,
++        )
+ 
+     incompatible_keys = set_peft_model_state_dict(
+-        model, processed_adapter_state_dict, adapter_name
++        peft_model, processed_adapter_state_dict, adapter_name
+     )
+     if incompatible_keys is not None:
+         err_msg = ""
+@@ -469,10 +543,13 @@ def load_lora(
+         # Check for missing keys.
+         missing_keys = getattr(incompatible_keys, "missing_keys", None)
+         if missing_keys:
+-            # Filter missing keys specific to the current adapter, \
+-            # as missing base model keys are expected.
++            # Filter missing keys specific to the current adapter only.
++            # A plain substring check is too broad for pools that legitimately
++            # contain both `medical_lora` and `medical_lora_0014`; it would
++            # incorrectly report the latter as missing while loading the former.
++            adapter_marker = f".{adapter_name}."
+             lora_missing_keys = [
+-                k for k in missing_keys if "lora_" in k and adapter_name in k
++                k for k in missing_keys if "lora_" in k and adapter_marker in k
+             ]
+             if lora_missing_keys:
+                 err_msg += (
+@@ -484,11 +561,15 @@ def load_lora(
+         if err_msg:
+             logger.warning(err_msg)
+ 
+-    # convert base model to PeftModel
+-    peft_model = get_peft_model(model, lora_config)
+-
+     # synchronize
+-    client.confirm_model_loaded(adapter_path, replica_uuid)
++    if _should_skip_confirm():
++        logger.warning(
++            "Skipping confirm_model_loaded for %s due to "
++            "SLLM_SKIP_CONFIRM_MODEL_LOADED",
++            adapter_path,
++        )
++    else:
++        client.confirm_model_loaded(adapter_path, replica_uuid)
+ 
+     if lora_config.inference_mode:
+         peft_model.eval()

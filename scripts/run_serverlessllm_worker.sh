@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WORKER_ENV="${SLLM_WORKER_ENV:-sllm_worker_official}"
+RAY_PORT="${SLLM_RAY_PORT:-6389}"
+CUDA_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
+WORKER_ID="${SLLM_WORKER_ID:-0}"
+WORKER_NUM_GPUS="${SLLM_WORKER_NUM_GPUS:-}"
+WORKER_CPUS="${SLLM_WORKER_CPUS:-}"
+RAY_HEAD_HOST="${SLLM_RAY_HEAD_HOST:-127.0.0.1}"
+RAY_HEAD_ADDRESS="${SLLM_RAY_HEAD_ADDRESS:-${RAY_HEAD_HOST}:${RAY_PORT}}"
+RAY_NODE_IP="${SLLM_RAY_NODE_IP:-127.0.0.1}"
+SLLM_WORKER_RESOURCES="${SLLM_WORKER_RESOURCES:-{\"worker_node\": 1, \"worker_id_${WORKER_ID}\": 1}}"
+SLLM_REPO_ROOT="${SLLM_REPO_ROOT:-/home/qhq/serverless_llm_baselines/repos/ServerlessLLM}"
+SLLM_STORE_PATH="${SLLM_STORE_PATH:-/home/qhq/serverless_llm_baselines/models}"
+SLLM_EXTRA_PYTHONPATH="${SLLM_EXTRA_PYTHONPATH:-}"
+PYTHONPATH_PREFIX="${SLLM_REPO_ROOT}${SLLM_EXTRA_PYTHONPATH:+:${SLLM_EXTRA_PYTHONPATH}}"
+
+mkdir -p "${SLLM_STORE_PATH}"
+
+if [[ -z "${WORKER_NUM_GPUS}" ]]; then
+  IFS=',' read -r -a _VISIBLE_GPU_LIST <<< "${CUDA_DEVICES}"
+  WORKER_NUM_GPUS="${#_VISIBLE_GPU_LIST[@]}"
+fi
+
+if [[ -z "${WORKER_CPUS}" ]]; then
+  WORKER_CPUS="$(( WORKER_NUM_GPUS * 4 ))"
+fi
+
+exec env PYTHONNOUSERSITE=1 CUDA_VISIBLE_DEVICES="${CUDA_DEVICES}" \
+  STORAGE_PATH="${SLLM_STORE_PATH}" \
+  SLLM_SKIP_CONFIRM_MODEL_LOADED="${SLLM_SKIP_CONFIRM_MODEL_LOADED:-1}" \
+  PYTHONPATH="${PYTHONPATH_PREFIX}" \
+  conda run --no-capture-output -n "${WORKER_ENV}" \
+  ray start --node-ip-address="${RAY_NODE_IP}" --address="${RAY_HEAD_ADDRESS}" --num-cpus="${WORKER_CPUS}" --num-gpus="${WORKER_NUM_GPUS}" \
+  --resources="${SLLM_WORKER_RESOURCES}" --block
