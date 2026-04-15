@@ -79,6 +79,8 @@ from scripts.run_all_experiments import (
     _foreign_gpu_consumers_from_rows,
     _is_fatal_engine_error_message,
     _is_comparable_request,
+    _load_shared_adapter_subset,
+    _load_shared_trace_requests,
     _normalize_lora_preparation_mode,
     _prepare_dedicated_subprocess_model_cfg,
     _resolve_host_visible_device_ids,
@@ -253,6 +255,105 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(wl_cfg_yaml["concurrency"], 2)
         self.assertEqual(coord_cfg["max_instances"], 2)
         self.assertEqual(storage_cfg["remote_dir"], "artifacts/frozen/qwen_14b_a500_v2_publicmix")
+
+    def test_load_shared_adapter_subset_reads_exact_adapters(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            subset_path = Path(tmpdir) / "adapter_subset.json"
+            subset_path.write_text(
+                json.dumps(
+                    {
+                        "adapters": [
+                            {"id": "alpha_lora", "task_type": "finance"},
+                            {"id": "beta_lora", "task_type": "support"},
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            resolved_path, adapters = _load_shared_adapter_subset(str(subset_path))
+
+            self.assertEqual(resolved_path, subset_path.resolve())
+            self.assertEqual([entry["id"] for entry in adapters], ["alpha_lora", "beta_lora"])
+
+    def test_load_shared_trace_requests_reads_external_artifact(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            trace_path = Path(tmpdir) / "trace.json"
+            trace_path.write_text(
+                json.dumps(
+                    {
+                        "requests": [
+                            {
+                                "request_id": "req_b",
+                                "arrival_time_s": 2.0,
+                                "adapter_id": "beta_lora",
+                                "adapter_domain": "support",
+                                "expected_input_tokens": 12,
+                                "expected_output_tokens": 6,
+                                "prompt_input_tokens": 12,
+                                "prompt_output_tokens": 6,
+                                "body": {
+                                    "messages": [{"role": "user", "content": "beta prompt"}],
+                                    "lora_adapter_name": "beta_lora",
+                                },
+                            },
+                            {
+                                "request_id": "req_a",
+                                "arrival_time_s": 1.0,
+                                "adapter_id": "alpha_lora",
+                                "adapter_domain": "finance",
+                                "expected_input_tokens": 10,
+                                "expected_output_tokens": 5,
+                                "body": {
+                                    "messages": [{"role": "user", "content": "alpha prompt"}],
+                                    "lora_adapter_name": "alpha_lora",
+                                },
+                            },
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            resolved_path, traces = _load_shared_trace_requests(
+                str(trace_path),
+                allowed_adapter_ids={"alpha_lora", "beta_lora"},
+            )
+
+            self.assertEqual(resolved_path, trace_path.resolve())
+            self.assertEqual([trace.request_id for trace in traces], ["req_a", "req_b"])
+            self.assertEqual(traces[0].prompt, "alpha prompt")
+            self.assertEqual(traces[1].adapter_id, "beta_lora")
+
+    def test_load_shared_trace_requests_rejects_unknown_adapter(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            trace_path = Path(tmpdir) / "trace.json"
+            trace_path.write_text(
+                json.dumps(
+                    {
+                        "requests": [
+                            {
+                                "request_id": "req_0",
+                                "arrival_time_s": 0.0,
+                                "adapter_id": "rogue_lora",
+                                "expected_input_tokens": 8,
+                                "expected_output_tokens": 4,
+                                "body": {
+                                    "messages": [{"role": "user", "content": "rogue prompt"}],
+                                    "lora_adapter_name": "rogue_lora",
+                                },
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "not present in the selected adapter subset"):
+                _load_shared_trace_requests(
+                    str(trace_path),
+                    allowed_adapter_ids={"alpha_lora"},
+                )
 
     def test_scale_preset_can_be_disabled_for_new_model_profiles(self) -> None:
         self.assertTrue(self.experiments["lora_adapters"]["apply_scale_preset"])

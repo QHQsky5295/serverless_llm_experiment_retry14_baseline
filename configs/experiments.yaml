@@ -497,6 +497,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       concurrency: 4  # 请求并发度
       time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
+      lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
       active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
@@ -561,6 +562,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
     workload:  # 工作负载配置块，或当前选中的 workload profile 名称
       concurrency: 2  # 请求并发度
       time_scale_factor: 1.0  # official continuous_queue_v2 主线默认回放真实 Azure trace 时序
+      lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
       active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
       hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
     resource_coordination:  # 扩缩容与资源协同调度配置块
@@ -593,6 +595,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
     workload:
       concurrency: 4
       time_scale_factor: 1.0
+      lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
       active_adapter_cap: 48
       hotset_rotation_requests: 100
     resource_coordination:
@@ -625,6 +628,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
     workload:
       concurrency: 2
       time_scale_factor: 1.0
+      lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
       active_adapter_cap: 48
       hotset_rotation_requests: 100
     resource_coordination:
@@ -889,7 +893,7 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
     "100":  # 100 个 adapters 时自动套用的负载/显存参数 preset
       workload:  # 工作负载配置块，或当前选中的 workload profile 名称
         zipf_exponent: 1.10  # Zipf 热度分布指数，越大表示越长尾
-        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
         active_adapter_cap: 16  # 活跃热点 adapter 集合的大小上限
         hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
       model:  # 模型配置块，或当前选中的 model profile 名称
@@ -902,7 +906,7 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
     "200":  # 200 个 adapters 时自动套用的负载/显存参数 preset
       workload:  # 工作负载配置块，或当前选中的 workload profile 名称
         zipf_exponent: 1.15  # Zipf 热度分布指数，越大表示越长尾
-        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
         active_adapter_cap: 24  # 活跃热点 adapter 集合的大小上限
         hotset_rotation_requests: 120  # 每处理多少个请求轮换一次热点集合
       model:  # 模型配置块，或当前选中的 model profile 名称
@@ -915,7 +919,7 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
     "300":  # 300 个 adapters 时自动套用的负载/显存参数 preset
       workload:  # 工作负载配置块，或当前选中的 workload profile 名称
         zipf_exponent: 1.20  # Zipf 热度分布指数，越大表示越长尾
-        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
         active_adapter_cap: 32  # 活跃热点 adapter 集合的大小上限
         hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
       model:  # 模型配置块，或当前选中的 model profile 名称
@@ -928,7 +932,7 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
     "400":  # 400 个 adapters 时自动套用的负载/显存参数 preset
       workload:  # 工作负载配置块，或当前选中的 workload profile 名称
         zipf_exponent: 1.20  # Zipf 热度分布指数，越大表示越长尾
-        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
         active_adapter_cap: 40  # 活跃热点 adapter 集合的大小上限
         hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
       model:  # 模型配置块，或当前选中的 model profile 名称
@@ -941,7 +945,7 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
     "500":  # 500 个 adapters 时自动套用的负载/显存参数 preset
       workload:  # 工作负载配置块，或当前选中的 workload profile 名称
         zipf_exponent: 1.25  # Zipf 热度分布指数，越大表示越长尾
-        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
         active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
         hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
       model:  # 模型配置块，或当前选中的 model profile 名称
@@ -954,7 +958,7 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
     "600":  # 600 个 adapters 时自动套用的负载/显存参数 preset
       workload:  # 工作负载配置块，或当前选中的 workload profile 名称
         zipf_exponent: 1.25  # Zipf 热度分布指数，越大表示越长尾
-        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
         active_adapter_cap: 56  # 活跃热点 adapter 集合的大小上限
         hotset_rotation_requests: 80  # 每处理多少个请求轮换一次热点集合
       model:  # 模型配置块，或当前选中的 model profile 名称
@@ -967,7 +971,7 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
     "700":  # 700 个 adapters 时自动套用的负载/显存参数 preset
       workload:  # 工作负载配置块，或当前选中的 workload profile 名称
         zipf_exponent: 1.30  # Zipf 热度分布指数，越大表示越长尾
-        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
         active_adapter_cap: 64  # 活跃热点 adapter 集合的大小上限
         hotset_rotation_requests: 80  # 每处理多少个请求轮换一次热点集合
       model:  # 模型配置块，或当前选中的 model profile 名称
@@ -980,7 +984,7 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
     "800":  # 800 个 adapters 时自动套用的负载/显存参数 preset
       workload:  # 工作负载配置块，或当前选中的 workload profile 名称
         zipf_exponent: 1.30  # Zipf 热度分布指数，越大表示越长尾
-        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
         active_adapter_cap: 72  # 活跃热点 adapter 集合的大小上限
         hotset_rotation_requests: 80  # 每处理多少个请求轮换一次热点集合
       model:  # 模型配置块，或当前选中的 model profile 名称
@@ -993,7 +997,7 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
     "900":  # 900 个 adapters 时自动套用的负载/显存参数 preset
       workload:  # 工作负载配置块，或当前选中的 workload profile 名称
         zipf_exponent: 1.35  # Zipf 热度分布指数，越大表示越长尾
-        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
         active_adapter_cap: 80  # 活跃热点 adapter 集合的大小上限
         hotset_rotation_requests: 64  # 每处理多少个请求轮换一次热点集合
       model:  # 模型配置块，或当前选中的 model profile 名称
@@ -1006,7 +1010,7 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
     "1000":  # 1000 个 adapters 时自动套用的负载/显存参数 preset
       workload:  # 工作负载配置块，或当前选中的 workload profile 名称
         zipf_exponent: 1.35  # Zipf 热度分布指数，越大表示越长尾
-        lora_request_ratio: 0.95  # 有多少比例的请求会带 LoRA
+        lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
         active_adapter_cap: 96  # 活跃热点 adapter 集合的大小上限
         hotset_rotation_requests: 64  # 每处理多少个请求轮换一次热点集合
       model:  # 模型配置块，或当前选中的 model profile 名称
@@ -1059,7 +1063,7 @@ workload:  # 工作负载配置块，或当前选中的 workload profile 名称
   total_requests: 1000  # 正式实验总请求数
 
   # LoRA 选择分布（Zipf，与 S-LoRA 论文一致）
-  lora_request_ratio: 0.85  # 有多少比例的请求会带 LoRA
+  lora_request_ratio: 1.0  # 论文 many-LoRA 场景下所有请求都必须绑定 LoRA
   zipf_exponent: 1.0  # Zipf 热度分布指数，越大表示越长尾
   active_adapter_cap: 16          # 当前活跃热点集合规模；大于此数的 adapter 通过热集轮换进入活跃窗
   hotset_rotation_requests: 120   # 每处理 N 个请求滚动热点窗

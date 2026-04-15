@@ -36,10 +36,11 @@ class RequestTrace:
     request_id: str
     arrival_time: float          # seconds since experiment start
     prompt: str
-    adapter_id: Optional[str]   # None means no LoRA (backbone only)
+    adapter_id: Optional[str]   # Formal many-LoRA experiments require every request to bind a LoRA
     adapter_domain: Optional[str]
     expected_input_tokens: int
     expected_output_tokens: int
+    chat_messages: Optional[List[Dict[str, Any]]] = None
     prompt_input_tokens: Optional[int] = None
     prompt_output_tokens: Optional[int] = None
     is_burst: bool = False       # Part of a simulated burst / scale-up event
@@ -54,7 +55,7 @@ class WorkloadConfig:
 
     # LoRA adapter settings
     num_adapters: int = 6
-    lora_request_ratio: float = 0.8   # fraction of reqs that carry LoRA
+    lora_request_ratio: float = 1.0   # formal many-LoRA experiments bind a LoRA on every request
     zipf_exponent: float = 1.0        # α: Zipf distribution exponent
     active_adapter_cap: Optional[int] = None
     hotset_rotation_requests: int = 0

@@ -208,10 +208,23 @@
 
 ## 当前远端与分支
 
-- 远端仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
-- 当前 clean-tree 分支：`retry14_continuous_queue_v2`
-- 当前最新已验证 TODO `#2` 收口代码基线提交：`b314262`
-- 本轮调研与规划文档首次同步提交：`34881fb`
+当前需要同时维护两个远端语义：
+
+- 主仓库：`https://github.com/QHQsky5295/FaaSLoRA.git`
+- 当前 clean-tree 独立镜像仓库：`https://github.com/QHQsky5295/serverless_llm_experiment_retry14_baseline.git`
+
+当前正式实验对应分支为：
+
+- `retry14_continuous_queue_v2`
+
+当前最新已验证 TODO `#2` 收口代码基线提交：`b314262`
+本轮调研与规划文档首次同步提交：`34881fb`
+
+从当前阶段开始，`serverless_llm_experiment_retry14_baseline` 不应再只作为主仓库中的一个历史分支副本存在，而应：
+
+1. 继续把 `retry14_continuous_queue_v2` 同步到主仓库对应分支；
+2. 同时把当前 clean-tree 同步到独立镜像仓库；
+3. 在后续 baseline 复现、对比实验和论文收口过程中，以该独立镜像仓库承担可回退快照职责。
 
 当前建议：
 

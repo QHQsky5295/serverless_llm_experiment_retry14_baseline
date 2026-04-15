@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "created_at": 1776077192,
-  "model_name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-13b-hf",
+  "created_at": 1776171360,
+  "model_name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
   "num_adapters": 500,
   "preserve_legacy_names": true,
   "adapters": [

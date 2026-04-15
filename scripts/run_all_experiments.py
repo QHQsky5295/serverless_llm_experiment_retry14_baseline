@@ -1523,12 +1523,47 @@ class InferenceEngine:
             actual_input_tokens = min(actual_input_tokens, prompt_budget)
         return prompt, actual_input_tokens, max_tokens
 
+    def _render_chat_messages_prompt(
+        self,
+        messages: Optional[List[Dict[str, Any]]],
+        *,
+        fallback_prompt: str,
+    ) -> str:
+        if not messages:
+            return fallback_prompt
+        try:
+            tokenizer = self._hf_tokenizer or self._get_prompt_guard_tokenizer()
+            rendered = tokenizer.apply_chat_template(
+                messages,
+                add_generation_prompt=True,
+                tokenize=False,
+            )
+            if isinstance(rendered, str) and rendered.strip():
+                return rendered
+        except Exception:
+            pass
+        lines: List[str] = []
+        for message in messages:
+            item = dict(message or {})
+            role = str(item.get("role") or "user").strip().capitalize() or "User"
+            content = item.get("content")
+            if not isinstance(content, str):
+                content = "" if content is None else str(content)
+            lines.append(f"{role}: {content}")
+        fallback = "\n".join(lines).strip()
+        return fallback or fallback_prompt
+
     def prepare_request(
         self,
         prompt: str,
         requested_output_tokens: int,
         input_tokens_hint: int,
+        chat_messages: Optional[List[Dict[str, Any]]] = None,
     ) -> RequestExecutionPlan:
+        prompt = self._render_chat_messages_prompt(
+            chat_messages,
+            fallback_prompt=prompt,
+        )
         if self.backend == "transformers":
             prompt, input_tokens, max_tokens = self._prepare_transformers_prompt(
                 prompt=prompt,
@@ -2916,6 +2951,7 @@ class ScenarioRunner:
         default_max_tokens: int,
     ) -> RequestExecutionPlan:
         prompt = str(getattr(trace, "prompt", "") or "")
+        chat_messages = getattr(trace, "chat_messages", None)
         input_tokens_hint = self._trace_input_tokens_hint(trace)
         requested_output_tokens = self._trace_requested_output_tokens(
             trace,
@@ -2927,6 +2963,7 @@ class ScenarioRunner:
                     prompt=prompt,
                     requested_output_tokens=requested_output_tokens,
                     input_tokens_hint=input_tokens_hint,
+                    chat_messages=chat_messages,
                 )
                 if isinstance(plan, RequestExecutionPlan):
                     return plan
@@ -8773,6 +8810,126 @@ def _repo_path(path_like: str) -> Path:
     return path if path.is_absolute() else (REPO_ROOT / path)
 
 
+def _load_shared_adapter_subset(path_like: str) -> Tuple[Path, List[Dict[str, Any]]]:
+    path = Path(path_like).expanduser()
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+    path = path.resolve()
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    adapters = list(payload.get("adapters", []) or payload.get("selected_adapters", []) or [])
+    if not adapters:
+        raise ValueError(f"shared adapter subset artifact has no adapters: {path}")
+    return path, adapters
+
+
+def _extract_prompt_from_shared_request(req: Dict[str, Any]) -> str:
+    body = dict(req.get("body", {}) or {})
+    messages = list(body.get("messages", []) or [])
+    if messages:
+        first = dict(messages[0] or {})
+        content = first.get("content")
+        if isinstance(content, str) and content.strip():
+            return content
+    prompt = req.get("prompt")
+    if isinstance(prompt, str) and prompt.strip():
+        return prompt
+    raise ValueError("shared trace request missing prompt/messages content")
+
+
+def _extract_chat_messages_from_shared_request(req: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:
+    body = dict(req.get("body", {}) or {})
+    messages = list(body.get("messages", []) or [])
+    if not messages:
+        return None
+    normalized: List[Dict[str, Any]] = []
+    for message in messages:
+        item = dict(message or {})
+        role = str(item.get("role") or "user").strip() or "user"
+        content = item.get("content")
+        if not isinstance(content, str):
+            content = "" if content is None else str(content)
+        normalized.append({"role": role, "content": content})
+    return normalized or None
+
+
+def _load_shared_trace_requests(
+    path_like: str,
+    *,
+    allowed_adapter_ids: Optional[Collection[str]] = None,
+) -> Tuple[Path, List[RequestTrace]]:
+    path = Path(path_like).expanduser()
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+    path = path.resolve()
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    request_items = list(payload.get("requests", []) or [])
+    if not request_items:
+        raise ValueError(f"shared trace artifact has no requests: {path}")
+
+    allowed = {str(a) for a in (allowed_adapter_ids or []) if str(a or "").strip()}
+    traces: List[RequestTrace] = []
+    for idx, item in enumerate(request_items):
+        req = dict(item or {})
+        adapter_id = req.get("adapter_id")
+        if not adapter_id:
+            body = dict(req.get("body", {}) or {})
+            adapter_id = body.get("lora_adapter_name")
+        adapter_id = str(adapter_id) if adapter_id else None
+        if not adapter_id:
+            raise ValueError(
+                "formal many-LoRA shared trace contains a request without adapter_id; "
+                f"request_id={req.get('request_id', f'req_{idx:05d}')}"
+            )
+        if adapter_id and allowed and adapter_id not in allowed:
+            raise ValueError(
+                f"shared trace request references adapter {adapter_id!r} not present in the selected adapter subset"
+            )
+        traces.append(
+            RequestTrace(
+                request_id=str(req.get("request_id", f"req_{idx:05d}")),
+                arrival_time=float(req.get("arrival_time_s", req.get("arrival_time", 0.0)) or 0.0),
+                prompt=_extract_prompt_from_shared_request(req),
+                chat_messages=_extract_chat_messages_from_shared_request(req),
+                adapter_id=adapter_id,
+                adapter_domain=(
+                    str(req.get("adapter_domain"))
+                    if req.get("adapter_domain") is not None
+                    else None
+                ),
+                expected_input_tokens=int(req.get("expected_input_tokens", 0) or 0),
+                expected_output_tokens=int(req.get("expected_output_tokens", 0) or 0),
+                prompt_input_tokens=(
+                    int(req.get("prompt_input_tokens"))
+                    if req.get("prompt_input_tokens") is not None
+                    else None
+                ),
+                prompt_output_tokens=(
+                    int(req.get("prompt_output_tokens"))
+                    if req.get("prompt_output_tokens") is not None
+                    else None
+                ),
+                is_burst=bool(req.get("is_burst", False)),
+            )
+        )
+
+    traces.sort(key=lambda t: (float(t.arrival_time), str(t.request_id)))
+    return path, traces
+
+
+def _assert_all_requests_bind_lora(
+    traces: Collection[RequestTrace],
+    *,
+    context: str,
+) -> None:
+    missing = [str(t.request_id) for t in traces if not getattr(t, "adapter_id", None)]
+    if missing:
+        sample = ", ".join(missing[:5])
+        raise RuntimeError(
+            "formal many-LoRA experiments require every request to bind a LoRA adapter, "
+            f"but {len(missing)} requests in {context} have no adapter_id. Examples: {sample}"
+        )
+
+
 def _deep_merge_dict(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
     merged = copy.deepcopy(base)
     for key, value in override.items():
@@ -10728,6 +10885,9 @@ async def main_async(
         adapters_cfg["quick_num_adapters"] = int(adapter_count_override)
         adapters_cfg["full_num_adapters"] = int(adapter_count_override)
 
+    shared_trace_path_override = _read_env_override("FAASLORA_SHARED_TRACE_PATH")
+    shared_adapter_subset_path_override = _read_env_override("FAASLORA_SHARED_ADAPTER_SUBSET_PATH")
+
     initial_model_name = _read_env_override("FAASLORA_MODEL_NAME")
     if initial_model_name is not None:
         model_cfg["name"] = initial_model_name
@@ -10736,6 +10896,30 @@ async def main_async(
     adapters_cfg, selected_adapters, scale_preset, selected_adapter_count, manifest_path, scalable_mode = (
         _resolve_adapter_scale(adapters_cfg, model_name, quick)
     )
+    shared_adapter_subset_path: Optional[Path] = None
+    if shared_adapter_subset_path_override is not None:
+        shared_adapter_subset_path, shared_selected_adapters = _load_shared_adapter_subset(
+            shared_adapter_subset_path_override
+        )
+        shared_model_name = str(
+            json.loads(shared_adapter_subset_path.read_text(encoding="utf-8")).get("model_name", "") or ""
+        ).strip()
+        if shared_model_name and shared_model_name != model_name:
+            raise RuntimeError(
+                f"shared adapter subset model_name={shared_model_name!r} does not match active model {model_name!r}"
+            )
+        selected_adapters = copy.deepcopy(shared_selected_adapters)
+        selected_adapter_count = len(selected_adapters)
+        adapters_cfg = copy.deepcopy(adapters_cfg)
+        adapters_cfg["adapters"] = copy.deepcopy(selected_adapters)
+        adapters_cfg["_selected_adapter_count"] = selected_adapter_count
+        adapters_cfg["_shared_adapter_subset_path"] = str(shared_adapter_subset_path)
+        if adapters_cfg.get("apply_scale_preset", True):
+            scale_preset = copy.deepcopy(
+                (adapters_cfg.get("scale_presets") or {}).get(str(selected_adapter_count), {})
+            )
+        else:
+            scale_preset = {}
     if scale_preset:
         exp_cfg = _deep_merge_dict(exp_cfg, scale_preset.get("experiment", {}))
         model_cfg = _deep_merge_dict(model_cfg, scale_preset.get("model", {}))
@@ -10838,6 +11022,10 @@ async def main_async(
         print(f"  Manifest: {manifest_label}")
         if scale_preset:
             print(f"  Preset  : scale={selected_adapter_count}")
+    if shared_adapter_subset_path is not None:
+        print(f"  SharedAdapters: {shared_adapter_subset_path}")
+    if shared_trace_path_override is not None:
+        print(f"  SharedTrace   : {shared_trace_path_override}")
     if applied_env_overrides:
         overrides_text = ", ".join(
             f"{k}={v}" for k, v in sorted(applied_env_overrides.items())
@@ -10972,16 +11160,32 @@ async def main_async(
     active_adapter_cap = wl_cfg_yaml.get("active_adapter_cap")
     hotset_rotation_requests = int(wl_cfg_yaml.get("hotset_rotation_requests", 0) or 0)
 
-    if quick:
+    if quick and shared_trace_path_override is None:
         total_requests = min(total_requests, 50)
         time_scale     = min(time_scale * 5, 0.5)  # 5x extra compression in quick mode
 
-    workload_timing_mode = _classify_workload_timing_mode(
-        use_azure_replay=use_azure_replay,
-        time_scale_factor=time_scale,
+    workload_timing_mode = (
+        "external_shared_trace"
+        if shared_trace_path_override is not None
+        else _classify_workload_timing_mode(
+            use_azure_replay=use_azure_replay,
+            time_scale_factor=time_scale,
+        )
     )
 
-    if use_azure_replay:
+    if shared_trace_path_override is not None:
+        shared_trace_path, traces = _load_shared_trace_requests(
+            shared_trace_path_override,
+            allowed_adapter_ids=adapter_ids,
+        )
+        _assert_all_requests_bind_lora(traces, context=f"shared trace {shared_trace_path}")
+        total_requests = len(traces)
+        trace_src = f"Shared external trace ({shared_trace_path})"
+        sampling_stats = {
+            "strategy": "external_shared_trace",
+            "selected_requests": len(traces),
+        }
+    elif use_azure_replay:
         # Use real Azure trace timestamps for authentic arrival patterns
         traces = dataset.generate_traces(
             adapter_ids=adapter_ids,
@@ -10996,6 +11200,7 @@ async def main_async(
             domain_map=domain_map,
             seed=42,
         )
+        _assert_all_requests_bind_lora(traces, context="Azure LLM real trace workload generation")
         trace_src = "Azure LLM real trace"
         sampling_stats = dataset.get_last_sampling_stats()
     else:
@@ -11016,6 +11221,7 @@ async def main_async(
         )
         gen    = WorkloadGenerator(adapter_ids, wl_cfg, seed=42, dataset=dataset)
         traces = gen.generate()
+        _assert_all_requests_bind_lora(traces, context="synthetic workload generation")
         if use_azure_tokens:
             trace_src = "Poisson synthetic (Azure token lengths)"
         else:
@@ -11404,6 +11610,12 @@ async def main_async(
             "scenario_coordination": scenario_coordination_meta,
             "preset_name": preset_name,
             "profile_selection": applied_profile_selection,
+            "shared_trace_path": str(shared_trace_path_override) if shared_trace_path_override is not None else None,
+            "shared_adapter_subset_path": (
+                str(shared_adapter_subset_path_override)
+                if shared_adapter_subset_path_override is not None
+                else None
+            ),
             "num_runs": num_runs,
             "confidence_level": confidence_level,
             "arrival_source": arrival_source,
