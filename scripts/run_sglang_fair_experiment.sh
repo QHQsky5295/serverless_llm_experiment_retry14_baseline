@@ -325,8 +325,9 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
   "${ROOT_DIR}/scripts/replay_openai_trace.py" \
   --trace "${SHARED_TRACE_PATH}" \
   --base-url "http://${SGLANG_HOST}:${SGLANG_PORT}" \
-  --endpoint-path "/v1/completions" \
+  --endpoint-path "/generate" \
   --convert-chat-to-prompt \
+  --sglang-native-generate \
   --prompt-guard-tokenizer-model "${PROMPT_GUARD_TOKENIZER_MODEL}" \
   --prompt-guard-max-model-len "${PROMPT_GUARD_MAX_MODEL_LEN}" \
   --prompt-guard-max-input-len "${PROMPT_GUARD_MAX_INPUT_LEN}" \

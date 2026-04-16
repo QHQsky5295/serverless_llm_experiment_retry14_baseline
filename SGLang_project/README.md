@@ -28,6 +28,17 @@
   - official multi-LoRA 能力核查
   - many-LoRA 公平 replay 脚本接入
   - `Llama-2 7B + sanitized shared subset` 最小真实 GPU smoke（`4/4` 成功）
+  - `Llama-2 13B / Qwen 7B / Qwen 14B` 正式 profile smoke
 - 后续正式对比将直接复用：
   - `/home/qhq/serverless_llm_baselines/scripts/prepare_sanitized_shared_round.sh`
   - `/home/qhq/serverless_llm_baselines/scripts/run_sglang_fair_experiment.sh`
+
+## 当前结论
+
+截至当前版本，`SGLang` 已不再局限于 `Llama-2 7B` 最小验证。  
+它当前已完成四个正式模型 profile 的 smoke，并且正式公平 replay 已统一切到：
+
+- 原生 `/generate`
+- 提交 `input_ids`
+
+这样可以避免旧 `/v1/completions` 路径在 `Qwen` 长上下文边界上的 prompt 解释偏差。

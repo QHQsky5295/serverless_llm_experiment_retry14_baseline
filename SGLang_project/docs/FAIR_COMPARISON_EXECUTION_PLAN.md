@@ -1,6 +1,6 @@
 # SGLang 公平对比执行说明
 
-本文档记录 `SGLang` 接入当前 many-LoRA 公平对比实验链时的执行原则。
+本文档记录 `SGLang` 接入当前 many-LoRA 公平对比实验链时的当前有效规则。
 
 ## 当前定位
 
@@ -34,6 +34,26 @@
    - `CE`
    - `SLO`
 
+## 当前正式入口
+
+当前 `SGLang` 的正式公平 replay 已不再走 `/v1/completions`，而是统一走：
+
+- 原生 `/generate`
+- 明确提交 `input_ids`
+
+这是当前版本最关键的修复点。原因是：
+
+- `/v1/completions` 仍会有一层服务端 prompt 解释
+- 这层解释会在 `Qwen` 的长上下文边界上与 `FaaSLoRA` 的 tokenizer 预算产生偏差
+
+因此，当前正式链路改为：
+
+1. 复用 `FaaSLoRA` 共享 trace
+2. 在客户端按相同 tokenizer 语义渲染 chat prompt
+3. 按 `max_model_len / max_input_len / max_output_tokens_cap` 做 prompt budget guard
+4. 转成 `input_ids`
+5. 通过 `/generate` 提交给 `SGLang`
+
 ## 当前执行入口
 
 - shared artifact 准备：
@@ -43,34 +63,29 @@
 - 多系统 compare：
   - `/home/qhq/serverless_llm_baselines/scripts/compare_completed_fair_rounds.sh`
 
-## 当前实机状态
+## 当前已验证范围
 
-截至 2026-04-16，`SGLang` 已完成最小真实 GPU smoke：
+截至 2026-04-16，以下正式 profile 的 smoke 已全部完成：
 
-- 基座模型：`Llama-2 7B`
-- LoRA：来自 sanitized frozen mirror pool 的同轮 shared subset
-- 结果：`4/4` 请求成功
-- 产物：
-  - `/home/qhq/serverless_llm_baselines/results/replay/codex_sglang_smoke1_replay.json`
-  - `/home/qhq/serverless_llm_baselines/results/replay/codex_sglang_smoke1_summary.json`
+- `Llama-2 7B`
+- `Llama-2 13B`
+- `Qwen 7B`
+- `Qwen 14B`
 
-当前 wrapper 已完成两层公平对齐：
+对应 summary：
 
-1. 请求级 LoRA 对齐  
-   `SGLang` 使用其官方 OpenAI-compatible LoRA 入口，不修改其核心 serving 逻辑。
+- `/home/qhq/serverless_llm_baselines/results/replay/codex_sglang_smoke1_summary.json`
+- `/home/qhq/serverless_llm_baselines/results/replay/codex_sglang_llama13b_smoke1_summary.json`
+- `/home/qhq/serverless_llm_baselines/results/replay/codex_sglang_qwen7b_smoke1_summary.json`
+- `/home/qhq/serverless_llm_baselines/results/replay/codex_sglang_qwen14b_smoke1_summary.json`
 
-2. 输入预算语义对齐  
-   shared trace 中的 `messages` 在 replay 前会先按 `FaaSLoRA` 的真实 prompt budget guard 语义做：
-   - chat 渲染
-   - tokenizer 编码
-   - `max_model_len / max_input_len / max_output_tokens_cap` 约束
-   然后再提交到 `SGLang` 的 `/v1/completions`。
+## 当前公平性结论
 
-因此，当前 `SGLang` 已具备进入正式 many-LoRA 公平对比的条件。
+当前 `SGLang` 已与 `FaaSLoRA / ServerlessLLM` 对齐以下要素：
 
-补充说明：
+- 同一 shared trace artifact
+- 同一 shared LoRA subset artifact
+- 同一 `100% LoRA` 正式主场景
+- 同一主指标口径
 
-- `Qwen 7B` 的最小 smoke 已能成功完成部分请求并产出统一 summary
-- 但在当前 `max_model_len = 1024` 的正式 profile 下，仍存在一个极端长输入样本的上下文长度计数差异
-- 因此，本版本中“已实机完全验证的正式入口”先限定为：
-  - `Llama-2 7B`
+因此，当前 `SGLang` 已具备作为正式 many-LoRA 主基线进入论文对比的条件。

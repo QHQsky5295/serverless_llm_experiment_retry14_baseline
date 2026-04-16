@@ -443,3 +443,97 @@
 3. `vLLM`：下一步待补的独立通用 LoRA serving 基线
 4. `ServerlessLLM`：通用 serverless 次级基线
 5. `Punica`：`Llama-2 7B` 范围内的次要备选
+
+## 2026-04-16 当前有效正式版本（以本节为准）
+
+本节用于覆盖本文档中更早版本的旧结论。若前文与本节冲突，以本节为准。
+
+### 1. 当前正式对比系统优先级
+
+1. `FaaSLoRA`
+2. `SGLang`
+3. `vLLM`（下一步待建立独立 baseline 工程）
+4. `ServerlessLLM`
+5. `Punica`（仅作为 `Llama-2 7B` 的次要备选）
+
+### 2. 当前正式覆盖的模型
+
+当前论文正式模型矩阵仍然是：
+
+- `Llama-2 7B`
+- `Llama-2 13B`
+- `Qwen 7B`
+- `Qwen 14B`
+
+其中当前系统覆盖状态为：
+
+- `FaaSLoRA`：4 个模型正式覆盖
+- `SGLang`：4 个模型正式 smoke 已全部通过
+- `ServerlessLLM`：4 个模型正式覆盖
+- `Punica`：当前诚实收口到 `Llama-2 7B`
+
+### 3. 当前公平性再核查结论
+
+本轮再次核查后，当前正式实验链路保持公平，核心结论如下：
+
+1. shared trace 仍然来自 `FaaSLoRA` 原有 workload 生成逻辑。当前 baseline 并没有使用另一套“近似 workload generator”。
+2. shared LoRA subset 现在统一从 `sanitized frozen mirror pools` 中采样。这里只替换 LoRA 工件来源，不改变 adapter ID 集合、采样种子、采样数量与采样逻辑。
+3. 同一轮中，各系统都必须共用同一基座模型、同一 shared trace artifact、同一 shared LoRA subset artifact、同一套主指标口径。
+4. 因此，当前正式对比中唯一允许保留的变量，就是系统本身的运行时与调度实现。
+
+### 4. SGLang 的根因修复与正式入口
+
+`SGLang` 当前已经不是“只能跑 `Llama-2 7B`”的状态。这轮真正修掉的根因是：
+
+- 旧 wrapper 走 `/v1/completions`
+- 服务端会再做一层 prompt 解释
+- 在 `Qwen` 的正式 profile 下，这层解释会和 `FaaSLoRA` 的 prompt budget guard 产生边界偏差
+
+当前正式修复不是继续打补丁裁剪，而是：
+
+- 正式切到 `SGLang` 原生 `/generate`
+- 本地先用对应 tokenizer 按 `FaaSLoRA` 同语义完成 prompt budget guard
+- 本地先转成 `input_ids`
+- 再把 `input_ids` 提交给 `SGLang`
+
+因此，当前 `SGLang` 正式 replay 的真实入口已经变为 `/generate + input_ids`，而不是旧的 `/v1/completions + prompt`。
+
+### 5. SGLang 当前已验证结果
+
+截至当前版本，以下 4 个正式 profile 的 smoke 已完成并成功产出统一 summary：
+
+- `Llama-2 7B`
+- `Llama-2 13B`
+- `Qwen 7B`
+- `Qwen 14B`
+
+对应 summary：
+
+- `/home/qhq/serverless_llm_baselines/results/replay/codex_sglang_smoke1_summary.json`
+- `/home/qhq/serverless_llm_baselines/results/replay/codex_sglang_llama13b_smoke1_summary.json`
+- `/home/qhq/serverless_llm_baselines/results/replay/codex_sglang_qwen7b_smoke1_summary.json`
+- `/home/qhq/serverless_llm_baselines/results/replay/codex_sglang_qwen14b_smoke1_summary.json`
+
+### 6. 当前正式执行顺序
+
+每个模型统一按以下顺序执行：
+
+1. 清理已有会话与 GPU 占用
+2. 生成该轮唯一共享 `trace artifact`
+3. 生成该轮唯一共享 `adapter subset artifact`
+4. 先跑 `SGLang`
+5. 再次清理
+6. 再跑 `ServerlessLLM`
+7. 再次清理
+8. 再跑 `FaaSLoRA`
+9. 生成三系统 compare
+10. 如需补充 `Punica`，仅在 `Llama-2 7B` 上额外补跑
+
+### 7. 当前正式 run tag 版本
+
+当前正式指令统一使用：
+
+- `llama2_7b_r500_a500_seed42_sanitized_v2`
+- `llama2_13b_r500_a500_seed42_sanitized_v2`
+- `qwen7b_r500_a500_seed42_sanitized_v2`
+- `qwen14b_r500_a500_seed42_sanitized_v2`

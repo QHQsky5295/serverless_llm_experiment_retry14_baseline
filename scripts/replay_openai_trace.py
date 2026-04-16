@@ -170,6 +170,44 @@ def _apply_faaslora_style_prompt_guard(
         return prompt, max(1, min(desired_tokens, safe_max_model_len - 8))
 
 
+def _build_sglang_native_generate_body(
+    *,
+    prompt: str,
+    body: Dict[str, Any],
+    tokenizer_model: Optional[str],
+    max_tokens: int,
+) -> tuple[Dict[str, Any], int]:
+    if not tokenizer_model:
+        raise RuntimeError("sglang native generate requires --prompt-guard-tokenizer-model")
+    tokenizer = _get_prompt_guard_tokenizer(tokenizer_model)
+    input_ids = tokenizer.encode(prompt, add_special_tokens=False)
+    sampling_params: Dict[str, Any] = {
+        "temperature": float(body.get("temperature", 0.7) or 0.7),
+        "top_p": float(body.get("top_p", 0.9) or 0.9),
+        "max_new_tokens": int(max(1, max_tokens)),
+    }
+    for source_key in (
+        "top_k",
+        "min_p",
+        "presence_penalty",
+        "frequency_penalty",
+        "repetition_penalty",
+        "stop",
+        "stop_token_ids",
+        "ignore_eos",
+        "skip_special_tokens",
+    ):
+        value = body.get(source_key)
+        if value is not None:
+            sampling_params[source_key] = value
+    native_body: Dict[str, Any] = {
+        "input_ids": input_ids,
+        "sampling_params": sampling_params,
+        "stream": bool(body.get("stream", True)),
+    }
+    return native_body, len(input_ids)
+
+
 def _derive_latency_ms(start_ts: Any, end_ts: Any) -> Optional[float]:
     try:
         start = float(start_ts)
@@ -181,6 +219,40 @@ def _derive_latency_ms(start_ts: Any, end_ts: Any) -> Optional[float]:
     if end < start:
         return None
     return (end - start) * 1000.0
+
+
+def _sglang_meta_to_metrics(meta_info: Dict[str, Any]) -> Dict[str, Any]:
+    metrics: Dict[str, Any] = {
+        "metrics_source": "sglang_generate_meta_info",
+        "meta_info": meta_info,
+    }
+    prompt_tokens = meta_info.get("prompt_tokens")
+    completion_tokens = meta_info.get("completion_tokens")
+    if prompt_tokens is not None:
+        metrics["prompt_tokens"] = int(prompt_tokens)
+    if completion_tokens is not None:
+        metrics["completion_tokens"] = int(completion_tokens)
+
+    request_received_ts = meta_info.get("request_received_ts")
+    response_sent_to_client_ts = meta_info.get("response_sent_to_client_ts")
+    request_finished_ts = meta_info.get("request_finished_ts")
+    decode_throughput = meta_info.get("decode_throughput")
+
+    ttft_ms = _derive_latency_ms(request_received_ts, response_sent_to_client_ts)
+    e2e_ms = _derive_latency_ms(request_received_ts, request_finished_ts)
+    if ttft_ms is not None:
+        metrics["ttft_ms"] = ttft_ms
+    if e2e_ms is not None:
+        metrics["e2e_ms"] = e2e_ms
+    if decode_throughput is not None:
+        try:
+            decode_tps = float(decode_throughput)
+            if math.isfinite(decode_tps) and decode_tps > 0.0:
+                metrics["tpot_ms"] = 1000.0 / decode_tps
+                metrics["tpot_observed"] = True
+        except (TypeError, ValueError):
+            pass
+    return metrics
 
 
 def _replay_one(
@@ -203,8 +275,10 @@ def _replay_one(
     prompt_guard_max_model_len: int,
     prompt_guard_max_input_len: int,
     prompt_guard_max_output_tokens_cap: int,
+    sglang_native_generate: bool,
 ) -> Dict[str, Any]:
     body = dict(item["body"])
+    local_prompt_tokens_override: Optional[int] = None
     for field in drop_body_fields:
         body.pop(field, None)
     if convert_chat_to_prompt:
@@ -228,11 +302,19 @@ def _replay_one(
                 max_input_len=prompt_guard_max_input_len,
                 max_output_tokens_cap=prompt_guard_max_output_tokens_cap,
             )
-            body["prompt"] = prompt
-            if "max_tokens" in body or "max_completion_tokens" not in body:
-                body["max_tokens"] = safe_max_tokens
-            if "max_completion_tokens" in body:
-                body["max_completion_tokens"] = safe_max_tokens
+            if sglang_native_generate:
+                body, local_prompt_tokens_override = _build_sglang_native_generate_body(
+                    prompt=prompt,
+                    body=body,
+                    tokenizer_model=prompt_guard_tokenizer_model,
+                    max_tokens=safe_max_tokens,
+                )
+            else:
+                body["prompt"] = prompt
+                if "max_tokens" in body or "max_completion_tokens" not in body:
+                    body["max_tokens"] = safe_max_tokens
+                if "max_completion_tokens" in body:
+                    body["max_completion_tokens"] = safe_max_tokens
     if model_override:
         body["model"] = model_override
     if adapter_source_field and adapter_target_field:
@@ -286,6 +368,12 @@ def _replay_one(
                                     error = str(obj.get("error"))
                                 if obj.get("usage"):
                                     usage = obj["usage"]
+                                meta_info = obj.get("meta_info")
+                                if isinstance(meta_info, dict):
+                                    server_metrics.update(_sglang_meta_to_metrics(meta_info))
+                                    metrics_source = str(
+                                        server_metrics.get("metrics_source") or "sglang_generate_meta_info"
+                                    )
                                 if obj.get("metrics"):
                                     server_metrics = dict(obj["metrics"] or {})
                                     metrics_source = str(
@@ -302,6 +390,12 @@ def _replay_one(
                                 error = str(obj.get("error"))
                             if obj.get("usage"):
                                 usage = obj["usage"]
+                            meta_info = obj.get("meta_info")
+                            if isinstance(meta_info, dict):
+                                server_metrics.update(_sglang_meta_to_metrics(meta_info))
+                                metrics_source = str(
+                                    server_metrics.get("metrics_source") or "sglang_generate_meta_info"
+                                )
                             if obj.get("metrics"):
                                 server_metrics = dict(obj["metrics"] or {})
                                 metrics_source = str(
@@ -315,8 +409,25 @@ def _replay_one(
         error = str(exc)
 
     completion_offset_s = time.perf_counter() - start_time
-    prompt_tokens = int((usage or {}).get("prompt_tokens", item.get("expected_input_tokens", 0)) or 0)
-    completion_tokens = int((usage or {}).get("completion_tokens", item.get("expected_output_tokens", 0)) or 0)
+    prompt_tokens = int(
+        (usage or {}).get(
+            "prompt_tokens",
+            server_metrics.get(
+                "prompt_tokens",
+                local_prompt_tokens_override
+                if local_prompt_tokens_override is not None
+                else item.get("expected_input_tokens", 0),
+            ),
+        )
+        or 0
+    )
+    completion_tokens = int(
+        (usage or {}).get(
+            "completion_tokens",
+            server_metrics.get("completion_tokens", item.get("expected_output_tokens", 0)),
+        )
+        or 0
+    )
     total_tokens = int((usage or {}).get("total_tokens", prompt_tokens + completion_tokens) or 0)
     cost_usd = _calc_cost(
         prompt_tokens,
@@ -574,6 +685,7 @@ def main() -> int:
     ap.add_argument("--prompt-guard-max-model-len", type=int, default=0)
     ap.add_argument("--prompt-guard-max-input-len", type=int, default=0)
     ap.add_argument("--prompt-guard-max-output-tokens-cap", type=int, default=0)
+    ap.add_argument("--sglang-native-generate", action="store_true")
     args = ap.parse_args()
 
     payload = json.loads(args.trace.read_text(encoding="utf-8"))
@@ -615,6 +727,7 @@ def main() -> int:
             prompt_guard_max_output_tokens_cap=int(
                 args.prompt_guard_max_output_tokens_cap or 0
             ),
+            sglang_native_generate=bool(args.sglang_native_generate),
         )
         with lock:
             results[index] = result
