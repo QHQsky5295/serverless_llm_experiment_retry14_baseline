@@ -150,6 +150,11 @@ def main() -> int:
     ap.add_argument("--workload-profile", required=True)
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--scenario-name", default="serverlessllm_fair")
+    ap.add_argument("--baseline-type", default="serverlessllm")
+    ap.add_argument("--backend-label", default="serverlessllm_official")
+    ap.add_argument("--system-name", default="ServerlessLLM")
+    ap.add_argument("--instance-mode", default="auto")
+    ap.add_argument("--routing-policy", default="round_robin")
     args = ap.parse_args()
 
     main_repo = args.main_repo.resolve()
@@ -255,10 +260,10 @@ def main() -> int:
 
     summary = {
         "scenario_name": args.scenario_name,
-        "baseline_type": "serverlessllm",
-        "backend": "serverlessllm_official",
-        "instance_mode": "auto",
-        "routing_policy": "round_robin",
+        "baseline_type": str(args.baseline_type),
+        "backend": str(args.backend_label),
+        "instance_mode": str(args.instance_mode),
+        "routing_policy": str(args.routing_policy),
         "num_adapters": int(trace.get("selected_num_adapters", 0) or 0),
         "active_adapter_cap": workload_cfg.get("active_adapter_cap"),
         "hotset_rotation_requests": workload_cfg.get("hotset_rotation_requests"),
@@ -413,7 +418,7 @@ def main() -> int:
 
     comparison_row = {
         "scenario": args.scenario_name,
-        "baseline_type": "serverlessllm",
+        "baseline_type": str(args.baseline_type),
         "completed": len(ok),
         "total": total,
         "TTFT_avg_ms": _cell(avg_ttft_ms),
@@ -490,7 +495,7 @@ def main() -> int:
     detailed_results = {
         args.scenario_name: {
             "scenario_name": args.scenario_name,
-            "baseline_type": "serverlessllm",
+            "baseline_type": str(args.baseline_type),
             "total": total,
             "completed": len(ok),
             "failed": len(failed),
@@ -502,7 +507,7 @@ def main() -> int:
     output = {
         "schema_version": 3,
         "metadata": {
-            "system": "ServerlessLLM",
+            "system": str(args.system_name),
             "main_repo": str(main_repo),
             "config_path": str(cfg_path),
             "model_profile": args.model_profile,

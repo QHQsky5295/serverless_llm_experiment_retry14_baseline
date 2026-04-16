@@ -31,6 +31,20 @@
 - 当前上游基线 commit：`c1ddf488781ea7f551cd0bb07bfd097124c93411`
 - 当前本地状态：未检测到本地修改
 
+### Punica
+
+- 上游仓库：`https://github.com/punica-ai/punica.git`
+- 本地路径：`/home/qhq/serverless_llm_baselines/repos/Punica`
+- 当前上游基线 commit：`591b59899f0a20760821785d06b331c8a2e5cb86`
+- 当前本地状态：通过外层 wrapper 接入公平实验链；不直接修改上游源码
+
+### SGLang
+
+- 上游仓库：`https://github.com/sgl-project/sglang.git`
+- 本地路径：`/home/qhq/serverless_llm_baselines/repos/SGLang`
+- 当前上游基线 commit：`7d7fdc13093ccc151ddb43a5e5a2e0017872464e`
+- 当前本地状态：通过外层 wrapper 接入公平实验链；不直接修改上游源码
+
 ### SkyPilot
 
 - 上游仓库：当前已本地克隆
@@ -47,6 +61,7 @@
 - `environments/`
 - `scripts/`
 - `ServerlessLLM_project/`
+- `SGLang_project/`
 - `patches/`
 
 不跟踪：

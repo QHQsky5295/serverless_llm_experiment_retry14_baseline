@@ -12,6 +12,8 @@ from typing import Any, Dict, List, Optional
 import requests
 
 LIVE_PRINT_INTERVAL_S = 2.0
+_PROMPT_GUARD_TOKENIZER_CACHE: Dict[str, Any] = {}
+_PROMPT_GUARD_TOKENIZER_LOCK = threading.Lock()
 
 
 def _percentile(values: List[float], q: float) -> float:
@@ -67,6 +69,120 @@ def _calc_cost(in_tok: int, out_tok: int, *, base: float, in_cost: float, out_co
     return float(base) + float(in_cost) * max(0, int(in_tok)) + float(out_cost) * max(0, int(out_tok))
 
 
+def _render_messages_fallback(messages: List[Dict[str, Any]]) -> str:
+    lines: List[str] = []
+    for message in messages:
+        item = dict(message or {})
+        role = str(item.get("role") or "user").strip().capitalize() or "User"
+        content = item.get("content")
+        if not isinstance(content, str):
+            content = "" if content is None else str(content)
+        lines.append(f"{role}: {content}")
+    return "\n".join(lines).strip()
+
+
+def _render_chat_messages_prompt(
+    messages: List[Dict[str, Any]],
+    *,
+    tokenizer_model: Optional[str],
+) -> str:
+    if not messages:
+        return ""
+    if tokenizer_model:
+        try:
+            tokenizer = _get_prompt_guard_tokenizer(tokenizer_model)
+            rendered = tokenizer.apply_chat_template(
+                messages,
+                add_generation_prompt=True,
+                tokenize=False,
+            )
+            if isinstance(rendered, str) and rendered.strip():
+                return rendered
+        except Exception:
+            pass
+    return _render_messages_fallback(messages)
+
+
+def _get_prompt_guard_tokenizer(model_name: str):
+    cached = _PROMPT_GUARD_TOKENIZER_CACHE.get(model_name)
+    if cached is not None:
+        return cached
+    with _PROMPT_GUARD_TOKENIZER_LOCK:
+        cached = _PROMPT_GUARD_TOKENIZER_CACHE.get(model_name)
+        if cached is not None:
+            return cached
+        from transformers import AutoTokenizer
+
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_name,
+            trust_remote_code=True,
+        )
+        _PROMPT_GUARD_TOKENIZER_CACHE[model_name] = tokenizer
+        return tokenizer
+
+
+def _apply_faaslora_style_prompt_guard(
+    *,
+    prompt: str,
+    requested_output_tokens: int,
+    tokenizer_model: Optional[str],
+    max_model_len: int,
+    max_input_len: int,
+    max_output_tokens_cap: int,
+) -> tuple[str, int]:
+    desired_tokens = max(1, int(requested_output_tokens or 1))
+    if max_output_tokens_cap > 0:
+        desired_tokens = min(desired_tokens, max_output_tokens_cap)
+    safe_max_model_len = max(32, int(max_model_len or 0))
+    reserve = max(32, min(desired_tokens, 256))
+    prompt_budget = max(32, safe_max_model_len - reserve - 8)
+    if max_input_len > 0:
+        prompt_budget = min(prompt_budget, max_input_len)
+    if not tokenizer_model:
+        return prompt, max(1, min(desired_tokens, safe_max_model_len - 8))
+    try:
+        tokenizer = _get_prompt_guard_tokenizer(tokenizer_model)
+        current_budget = int(prompt_budget)
+        token_ids = tokenizer.encode(prompt, add_special_tokens=False)
+        for _ in range(8):
+            if len(token_ids) <= current_budget:
+                break
+            token_ids = token_ids[-current_budget:]
+            prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
+            token_ids = tokenizer.encode(prompt, add_special_tokens=False)
+            if len(token_ids) <= current_budget:
+                break
+            overflow = len(token_ids) - current_budget
+            current_budget = max(
+                32,
+                current_budget - max(overflow + 8, current_budget // 16, 16),
+            )
+        actual_input_tokens = max(1, len(token_ids))
+        safe_max_tokens = min(
+            desired_tokens,
+            max(1, safe_max_model_len - actual_input_tokens - 8),
+        )
+        return prompt, safe_max_tokens
+    except Exception:
+        max_chars = min(safe_max_model_len * 4, 8192)
+        if len(prompt) > max_chars:
+            prompt = prompt[-max_chars:]
+        return prompt, max(1, min(desired_tokens, safe_max_model_len - 8))
+
+
+def _derive_latency_ms(start_ts: Any, end_ts: Any) -> Optional[float]:
+    try:
+        start = float(start_ts)
+        end = float(end_ts)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(start) or not math.isfinite(end):
+        return None
+    if end < start:
+        return None
+    return (end - start) * 1000.0
+
+
 def _replay_one(
     *,
     base_url: str,
@@ -77,9 +193,57 @@ def _replay_one(
     input_token_cost_usd: float,
     output_token_cost_usd: float,
     require_server_metrics: bool,
+    model_override: Optional[str],
+    adapter_source_field: Optional[str],
+    adapter_target_field: Optional[str],
+    drop_body_fields: List[str],
+    endpoint_path: str,
+    convert_chat_to_prompt: bool,
+    prompt_guard_tokenizer_model: Optional[str],
+    prompt_guard_max_model_len: int,
+    prompt_guard_max_input_len: int,
+    prompt_guard_max_output_tokens_cap: int,
 ) -> Dict[str, Any]:
     body = dict(item["body"])
-    endpoint = f"{base_url.rstrip('/')}/v1/chat/completions"
+    for field in drop_body_fields:
+        body.pop(field, None)
+    if convert_chat_to_prompt:
+        messages = body.pop("messages", None)
+        if messages:
+            prompt = _render_chat_messages_prompt(
+                list(messages),
+                tokenizer_model=prompt_guard_tokenizer_model,
+            )
+            requested_output_tokens = int(
+                body.get("max_tokens")
+                or body.get("max_completion_tokens")
+                or item.get("expected_output_tokens")
+                or 1
+            )
+            prompt, safe_max_tokens = _apply_faaslora_style_prompt_guard(
+                prompt=prompt,
+                requested_output_tokens=requested_output_tokens,
+                tokenizer_model=prompt_guard_tokenizer_model,
+                max_model_len=prompt_guard_max_model_len,
+                max_input_len=prompt_guard_max_input_len,
+                max_output_tokens_cap=prompt_guard_max_output_tokens_cap,
+            )
+            body["prompt"] = prompt
+            if "max_tokens" in body or "max_completion_tokens" not in body:
+                body["max_tokens"] = safe_max_tokens
+            if "max_completion_tokens" in body:
+                body["max_completion_tokens"] = safe_max_tokens
+    if model_override:
+        body["model"] = model_override
+    if adapter_source_field and adapter_target_field:
+        adapter_value = body.get(adapter_source_field)
+        if adapter_value is None:
+            adapter_value = item.get(adapter_source_field)
+        if adapter_value is None and adapter_source_field == "adapter_id":
+            adapter_value = item.get("adapter_id")
+        if adapter_value is not None:
+            body[adapter_target_field] = adapter_value
+    endpoint = f"{base_url.rstrip('/')}/{endpoint_path.lstrip('/')}"
     scheduled_offset_s = float(item["arrival_time_s"])
     dispatch_offset_s = time.perf_counter() - start_time
     t0 = time.perf_counter()
@@ -167,6 +331,10 @@ def _replay_one(
     tpot_observed = bool(server_metrics.get("tpot_observed", False))
     runtime_ttft_ms = server_metrics.get("runtime_ttft_ms")
     serverless_overhead_ms = server_metrics.get("serverless_overhead_ms")
+    request_received_at = server_metrics.get("request_received_at")
+    first_token_at = server_metrics.get("first_token_at")
+    last_token_at = server_metrics.get("last_token_at")
+    finished_at = server_metrics.get("finished_at")
     lora_load_ms = server_metrics.get("lora_load_ms")
     cache_hit = (
         bool(server_metrics.get("cache_hit"))
@@ -194,6 +362,30 @@ def _replay_one(
     if cache_hit is not None and scaleup_affected is not None:
         comparable_request = bool(cache_hit) and not bool(scaleup_affected)
         warm_standard_request = comparable_request
+
+    if ttft_ms is None:
+        ttft_ms = _derive_latency_ms(request_received_at, first_token_at)
+        if ttft_ms is None and api_ttft_ms is not None:
+            # For OpenAI-compatible baselines without internal request metrics, use
+            # the API-observed first-chunk latency as the real end-user TTFT.
+            ttft_ms = float(api_ttft_ms)
+    if e2e_ms is None:
+        e2e_ms = _derive_latency_ms(request_received_at, finished_at)
+        if e2e_ms is None:
+            e2e_ms = _derive_latency_ms(request_received_at, last_token_at)
+        if e2e_ms is None:
+            e2e_ms = float(api_e2e_ms)
+    if tpot_ms is None and completion_tokens > 1:
+        decode_window_ms = _derive_latency_ms(first_token_at, last_token_at)
+        if decode_window_ms is None and api_ttft_ms is not None and api_e2e_ms is not None:
+            decode_window_ms = max(0.0, float(api_e2e_ms) - float(api_ttft_ms))
+        if decode_window_ms is not None:
+            tpot_ms = decode_window_ms / max(1, completion_tokens - 1)
+            # When the response is streamed in multiple events, the client-side
+            # decode window is a true observable rather than an estimate.
+            tpot_observed = stream_event_count > 1 or tpot_observed
+    if serverless_overhead_ms is None and ttft_ms is not None and runtime_ttft_ms is not None:
+        serverless_overhead_ms = max(0.0, float(ttft_ms) - float(runtime_ttft_ms))
 
     metric_warning = None
     if error is None and status_code == 200 and require_server_metrics:
@@ -372,6 +564,16 @@ def main() -> int:
     ap.add_argument("--ttft-slo-ms", type=float, default=5000.0)
     ap.add_argument("--label", default="serverlessllm")
     ap.add_argument("--require-server-metrics", action="store_true")
+    ap.add_argument("--model-override", default=None)
+    ap.add_argument("--adapter-source-field", default=None)
+    ap.add_argument("--adapter-target-field", default=None)
+    ap.add_argument("--drop-body-field", action="append", default=[])
+    ap.add_argument("--endpoint-path", default="/v1/chat/completions")
+    ap.add_argument("--convert-chat-to-prompt", action="store_true")
+    ap.add_argument("--prompt-guard-tokenizer-model", default=None)
+    ap.add_argument("--prompt-guard-max-model-len", type=int, default=0)
+    ap.add_argument("--prompt-guard-max-input-len", type=int, default=0)
+    ap.add_argument("--prompt-guard-max-output-tokens-cap", type=int, default=0)
     args = ap.parse_args()
 
     payload = json.loads(args.trace.read_text(encoding="utf-8"))
@@ -397,6 +599,22 @@ def main() -> int:
             input_token_cost_usd=float(args.input_token_cost_usd),
             output_token_cost_usd=float(args.output_token_cost_usd),
             require_server_metrics=bool(args.require_server_metrics),
+            model_override=(str(args.model_override) if args.model_override else None),
+            adapter_source_field=(str(args.adapter_source_field) if args.adapter_source_field else None),
+            adapter_target_field=(str(args.adapter_target_field) if args.adapter_target_field else None),
+            drop_body_fields=[str(x) for x in (args.drop_body_field or [])],
+            endpoint_path=str(args.endpoint_path),
+            convert_chat_to_prompt=bool(args.convert_chat_to_prompt),
+            prompt_guard_tokenizer_model=(
+                str(args.prompt_guard_tokenizer_model)
+                if args.prompt_guard_tokenizer_model
+                else None
+            ),
+            prompt_guard_max_model_len=int(args.prompt_guard_max_model_len or 0),
+            prompt_guard_max_input_len=int(args.prompt_guard_max_input_len or 0),
+            prompt_guard_max_output_tokens_cap=int(
+                args.prompt_guard_max_output_tokens_cap or 0
+            ),
         )
         with lock:
             results[index] = result

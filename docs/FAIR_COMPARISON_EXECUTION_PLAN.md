@@ -1,6 +1,6 @@
 # 对比实验执行规范
 
-本文档用于约束 `ServerlessLLM` 与 `FaaSLoRA` 的正式对比实验执行方式，目标是保证实验差异只来自系统设计，而不是数据路径、指标口径、环境配置或人为特殊处理。
+本文档用于约束当前 baseline 工作区中各对比系统与 `FaaSLoRA` 的正式对比实验执行方式，目标是保证实验差异只来自系统设计，而不是数据路径、指标口径、环境配置或人为特殊处理。
 
 ## 1. 适用范围
 
@@ -13,10 +13,20 @@
 - 同一轮共享 LoRA 子集
 - 同一套真实观测指标
 
-当前优先覆盖的模型为：
+当前正式优先覆盖的模型为：
 
 - `Llama-2 7B`
 - `Llama-2 13B`
+- `Qwen 7B`
+- `Qwen 14B`
+
+当前对比系统优先级更新为：
+
+1. `FaaSLoRA`：主系统
+2. `SGLang`：主 many-LoRA 对比系统
+3. `vLLM`：主通用 many-LoRA serving 对比系统（待独立 baseline 工程接入）
+4. `ServerlessLLM`：通用 serverless 基线
+5. `Punica`：问题匹配但覆盖范围受限的次要备选基线
 
 ## 2. 核心公平性原则
 
@@ -67,7 +77,17 @@
 
 - `FaaSLoRA` 原有主指标口径是合理的
 - `ServerlessLLM` 已统一到同一套语义
+- `SGLang` 后续正式 replay 也统一使用同一套 `TTFT_overall / TPOT / E2E / CE / SLO`
 - 观测不到的机制指标输出 `null`，不允许用估计值或近似值代替
+
+补充说明：
+
+- 对 `ServerlessLLM`，优先使用系统内部真实指标。
+- 对 `SGLang / vLLM` 这类 OpenAI-compatible serving baseline，如果拿不到服务端内部埋点，则使用客户端真实观测：
+  - `TTFT_overall = request submit -> first streamed token`
+  - `E2E = request submit -> final token / response completion`
+  - `TPOT = (E2E - TTFT) / (completion_tokens - 1)`，仅在真实流式输出且 `completion_tokens > 1` 时计算；否则为 `null`
+- 这不是估计值，而是标准的 API 侧真实观测值。
 
 ## 4. ServerlessLLM 后端策略
 
@@ -161,6 +181,26 @@
 - 可以开始 `Llama-2 7B / 13B` 的正式 many-LoRA 公平对比
 - 正式运行时仍可能先 probe `vllm`，随后自动回退 `transformers`
 - 这属于预期行为，不是卡死
+- `ServerlessLLM` 的正式 replay 默认读超时已提升到 `3600s`
+
+关于该超时调整，需要特别说明：
+
+1. 这不是为了让 baseline “看起来更好”。
+2. 它不会改变模型、shared trace、LoRA subset 或任何主指标定义。
+3. 它只是避免在 many-LoRA 高排队场景下，客户端在 `600s` 时把仍在等待中的请求提前判死。
+4. 因此，它属于观测窗口修复，而不是系统能力修饰。
+
+补充结论：
+
+- 在 `Llama-2 7B all-lora_v5_timeoutfix` 重跑中，`ServerlessLLM` 已可做到 `500/500` 完整返回。
+- 但其 `TTFT/E2E/CE` 不但没有进入与 `FaaSLoRA` 可比的范围，反而因为尾部超长排队被完整计入而进一步恶化。
+- 这说明当前修复只解决了“观测被 600s 截断”的问题，没有改变 baseline 在正式 many-LoRA 场景中的真实结构瓶颈。
+
+补充结论：
+
+- 在 `Llama-2 7B all-lora_v5_timeoutfix` 重跑中，`ServerlessLLM` 已可做到 `500/500` 完整返回。
+- 但其 `TTFT/E2E/CE` 不但没有进入与 `FaaSLoRA` 可比的范围，反而因为尾部超长排队被完整计入而进一步恶化。
+- 这说明当前修复只解决了“观测被 600s 截断”的问题，没有改变 baseline 在正式 many-LoRA 场景中的真实结构瓶颈。
 
 ## 7. 正式实验执行顺序
 
@@ -187,3 +227,219 @@
 - `llama2_13b_r500_a500_seed42_alllora_v5`
 
 如果后续脚本逻辑再发生变化，应在更新实验指令前，先更新本文档与对应的《对比实验日志》。
+
+## 9. Punica 当前复现状态与适用范围
+
+截至目前，`Punica` 已在 `/home/qhq/serverless_llm_baselines/Punica_project` 下建立独立复现工程，并完成以下关键步骤：
+
+1. 官方仓库已拉取并固定到本地 baseline workspace。
+2. 使用独立虚拟环境 `/home/qhq/.venvs/punica_cu121_py310`，不会污染 `FaaSLoRA` 或 `ServerlessLLM` 环境。
+3. 官方二进制 wheel 已与其期望的 `torch 2.1.0+cu121` 对齐。
+4. 官方示例已能在本地 `Llama-2 7B + sampled LoRA` 上真实出 token。
+5. 已实现：
+   - `replay_punica_trace.py`
+   - `summarize_punica_replay.py`
+   - `run_punica_fair_experiment.sh`
+
+当前需明确的范围约束：
+
+- `Punica` 官方代码当前只支持 `Llama` 家族路径。
+- 当前公平回放 wrapper 仅支持 `tensor_parallel_size = 1`。
+- 因此，当前正式可比范围先收敛为：
+  - `Llama-2 7B`
+- `Llama-2 13B / Qwen 7B / Qwen 14B` 暂不纳入 `Punica` 正式对比。
+
+因此，自本版本起：
+
+- `Punica` 从“主对比系统”调整为“次要备选基线”
+- 它主要用于 `Llama-2 7B many-LoRA` 的问题匹配补充验证
+- 不再承担四模型统一对比基线的角色
+
+## 10. Sanitized Frozen Mirror Pools
+
+当前正式共享 LoRA 采样链路，已从“每轮临时 repair sampled subset”更新为“统一从 sanitized frozen mirror pools 采样”。
+
+原则如下：
+
+1. 原始 frozen pools 只读保留，不做原地修改。
+2. 为每个正式模型家族建立一套 sanitized mirror pool，仅执行：
+   - `nan -> 0`
+   - `inf -> 0`
+   - `-inf -> 0`
+3. 所有系统在同一轮中，都从同一个 sanitized pool 采样 shared adapter subset。
+4. 这样不会改变该轮的 adapter ID 集合，也不会把数据修复混入系统差异。
+
+当前 sanitized pools 为：
+
+- `llama2_7b_a500_v2_publicmix`
+- `llama2_13b_a500_v2_publicmix`
+- `qwen_7b_a500_v2_publicmix`
+- `qwen_14b_a500_v2_publicmix`
+
+对应统一采样入口：
+
+- `/home/qhq/serverless_llm_baselines/scripts/prepare_sanitized_shared_round.sh`
+
+## 11. SGLang 当前定位与复现约束
+
+当前联网核查与本地源码核查结论如下：
+
+1. `SGLang` 官方明确支持 `multi-LoRA batching`。
+2. `SGLang` 官方明确支持 `Llama` 与 `Qwen` 两个模型家族。
+3. 其 OpenAI-compatible API 支持按请求传入 LoRA：
+   - `model:adapter_name`
+   - 或 `lora_path`
+4. 因此，`SGLang` 比 `ServerlessLLM` 更贴近当前论文主问题，也比 `Punica` 更适合作为“四模型统一可比”的主 baseline。
+
+当前正式策略为：
+
+- 优先推进 `SGLang`
+- 后续继续补独立 `vLLM` baseline 工程
+- `ServerlessLLM` 保留为通用 serverless 对比项
+- `Punica` 保留为次要备选
+
+## 10. 共享 LoRA 工件的数值有效性问题
+
+在接入 `Punica` 的过程中，我们发现当前 `Llama-2 7B publicmix` 共享 LoRA 池存在严重数值问题：
+
+- 共享子集中大量 `generated_fill` adapter 的 `adapter_model.safetensors` 含有 `nan/inf`
+- 问题不是 `Punica` 独有，而是共享 LoRA 工件本身失真
+
+这意味着：
+
+1. 如果不修复共享 LoRA 工件，任何系统的对比都可能被失真数据污染。
+2. 该问题不能通过修改某一个系统来规避。
+3. 当前更稳定的正式做法已经升级为：
+   - 为 4 个正式模型家族建立池级 `sanitized frozen mirror pools`
+   - 以后每轮 shared sampling 直接从对应 sanitized pool 采样
+   - 让 `FaaSLoRA / ServerlessLLM / Punica` 全部使用同一份来自 sanitized pool 的 subset
+
+## 11. 当前正式公平执行链路
+
+为满足“同一 trace / 同一 LoRA subset / 同一指标口径”的原则，当前推荐执行链路更新为：
+
+1. 先离线构建 4 个模型家族的 `sanitized frozen mirror pools`
+2. 每轮实验直接从对应 sanitized pool 采样
+3. 该轮产出：
+   - `trace.json`
+   - `adapter_subset.json`
+4. `FaaSLoRA / ServerlessLLM / Punica` 全部直接使用同一份来自 sanitized pool 的 `adapter_subset.json`
+
+说明：
+
+- sanitized pool 只修复数值无效项，不改变 adapter ID 集合与 trace 采样逻辑。
+- sanitized pool 不修改任何系统的底层逻辑。
+- sanitized pool 不修改原始 frozen pool，而是建立独立、只读、可追溯的镜像池。
+- 这样可以避免每轮重复 repair，并降低工件准备噪声。
+
+## 12. Punica 当前可用的正式入口
+
+当前已可用的 Punica 正式入口包括：
+
+- `scripts/build_sanitized_frozen_pools.py`
+- `scripts/prepare_sanitized_shared_round.sh`
+- `scripts/run_punica_fair_experiment.sh`
+- `scripts/compare_completed_fair_rounds.sh`
+
+其中：
+
+- `build_sanitized_frozen_pools.py`
+  - 为 4 个正式模型家族建立池级 sanitized mirror pools
+- `prepare_sanitized_shared_round.sh`
+  - 直接从对应 sanitized frozen pool 生成 shared trace / shared adapter subset
+- `run_punica_fair_experiment.sh`
+  - 对 sanitized subset 做 Punica 格式物化
+  - 回放 shared trace
+  - 生成统一 summary JSON
+- `compare_completed_fair_rounds.sh`
+  - 可直接输出 `FaaSLoRA / ServerlessLLM / Punica` 的统一对比表
+
+## 13. 2026-04-15 新增闭环修复与当前最小验证状态
+
+为保证三系统真正使用同一份 sanitized subset，而不是表面共享、实际回退，本轮又完成了两项关键修复：
+
+1. `FaaSLoRA`
+   - 修复 `run_all_experiments.py` 中 shared adapter subset 的解析逻辑
+   - 当 subset JSON 提供 `remote_dir` 时，会为每个 adapter 显式展开 `local_path`
+   - 这样 `FaaSLoRA` 会把 sanitized subset 视为权威输入，而不再回退到自身原 remote pool
+
+2. `ServerlessLLM`
+   - 修复 `replay_openai_trace.py`
+   - 当服务端已返回真实时间戳：
+     - `request_received_at`
+     - `first_token_at`
+     - `last_token_at`
+     - `finished_at`
+   - 即使显式 `ttft_ms/e2e_ms` 字段缺失，也会直接由这些真实时间戳计算 `TTFT/E2E`
+   - 这属于真实观测值换算，不是近似值或估计值
+
+当前三系统最小闭环验证状态如下：
+
+- `FaaSLoRA`：`codex_faaslora_quick1_sanitizedpool` 成功
+- `Punica`：`codex_punica_quick1_repaired` 已验证 repaired 路径成功，sanitized 直连路径在最小回放时已进入真实模型加载与物化阶段
+- `ServerlessLLM`：`codex_serverlessllm_quick1_repaired_v3` 成功
+
+当前可确认的结论是：
+
+1. 三个系统都已经能够使用同一份 sanitized/repaired 权威 subset。
+2. 三个系统都已经能输出统一口径 summary JSON。
+3. `compare_completed_fair_rounds.sh` 已可直接输出三系统统一对比表。
+
+因此，当前正式公平对比链路已经从：
+
+- “二系统 + raw subset”
+
+升级为：
+
+- “三系统 + sanitized frozen mirror pools + 统一 compare”
+
+## 14. 2026-04-16 SGLang 公平链路实机打通
+
+在完成 `SGLang` 隔离环境、OpenAI-compatible wrapper、sanitized pool 接入之后，本轮继续完成了 `Llama-2 7B + 2 adapters + 4 requests` 的真实 GPU smoke，结论如下：
+
+1. `SGLang` many-LoRA 正式链路已经实机打通。
+2. 它可以与 `FaaSLoRA / ServerlessLLM` 共享：
+   - 同一 `trace`
+   - 同一 `adapter subset`
+   - 同一成本模型
+   - 同一 `TTFT_overall / TPOT / E2E / CE / SLO` 语义
+3. 当前 smoke 已实现：
+   - `4/4` 请求成功
+   - live 进度输出正常
+   - replay JSON 正常
+   - summary JSON 正常
+
+本轮还确认了一个关键公平性细节：
+
+- 如果直接把 shared trace 中的 `messages` 简单拼成 `prompt` 发给 `SGLang`，会因为上下文预算与 `FaaSLoRA` 的真实输入整形逻辑不一致而导致额外失败。
+- 当前 wrapper 已显式复用 `FaaSLoRA` 的 prompt budget guard 语义：
+  - 使用同一 tokenizer 家族做 prompt 编码
+  - 按 `max_model_len / max_input_len / max_output_tokens_cap` 做输入裁剪
+  - 再用裁剪后的 prompt 提交到 `SGLang`
+
+因此，当前 `SGLang` 不是“能跑但不可比”的状态，而是已经进入：
+
+- “在同一 many-LoRA 问题背景下、输入语义对齐后的正式可比 baseline”
+
+当前已验证成功的 smoke 产物：
+
+- replay：
+  - `/home/qhq/serverless_llm_baselines/results/replay/codex_sglang_smoke1_replay.json`
+- summary：
+  - `/home/qhq/serverless_llm_baselines/results/replay/codex_sglang_smoke1_summary.json`
+
+当前跨模型家族补充验证情况：
+
+- `Qwen 7B` 的最小 smoke 已能成功完成部分请求并产出统一 summary
+- 但在 `max_model_len = 1024` 的当前正式 profile 下，仍存在一个极端长输入样本出现上下文长度计数差异
+- 因此，截至本版本，`SGLang` 已实机完全验证的正式范围先收敛为：
+  - `Llama-2 7B`
+- `Qwen / 13B TP=2` 路径已进入工程验证阶段，但暂不在本版本中承诺为“已完全验证的正式入口”
+
+当前客观定位更新为：
+
+1. `FaaSLoRA`：主系统
+2. `SGLang`：当前最值得优先推进的 many-LoRA 主基线
+3. `vLLM`：下一步待补的独立通用 LoRA serving 基线
+4. `ServerlessLLM`：通用 serverless 次级基线
+5. `Punica`：`Llama-2 7B` 范围内的次要备选

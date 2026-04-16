@@ -21,5 +21,8 @@ env/
 repos/ServerlessLLM/
 repos/S-LoRA/
 repos/skypilot/
+repos/Punica/
+repos/SGLang/
+artifacts/
 
 # Keep the project symlink tree, scripts, docs, and patch files.

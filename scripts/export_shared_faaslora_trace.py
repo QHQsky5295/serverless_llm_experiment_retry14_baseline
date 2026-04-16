@@ -72,8 +72,9 @@ def _load_existing_pool_adapters(
     *,
     main_repo: Path,
     storage_cfg: Dict[str, Any],
+    remote_dir_override: Path | None = None,
 ) -> Tuple[List[Dict[str, Any]], Path, str]:
-    remote_dir = _resolve_remote_dir(main_repo, storage_cfg)
+    remote_dir = remote_dir_override.resolve() if remote_dir_override is not None else _resolve_remote_dir(main_repo, storage_cfg)
     pool_manifest_path = remote_dir / ".publicmix_generation_manifest.json"
     if not pool_manifest_path.exists():
         raise RuntimeError(
@@ -144,6 +145,12 @@ def main() -> int:
         help="Optional path to write the exact sampled LoRA subset artifact.",
     )
     ap.add_argument("--serving-model-name", default=None)
+    ap.add_argument(
+        "--storage-remote-dir-override",
+        type=Path,
+        default=None,
+        help="Optional absolute or repo-relative sanitized frozen pool directory to sample from instead of the profile storage.remote_dir.",
+    )
     ap.add_argument("--selected-num-adapters", type=int, default=None)
     ap.add_argument("--total-requests", type=int, default=None)
     ap.add_argument("--seed", type=int, default=42)
@@ -169,6 +176,11 @@ def main() -> int:
     pool_adapters, pool_source_path, resolved_remote_dir = _load_existing_pool_adapters(
         main_repo=main_repo,
         storage_cfg=storage_cfg,
+        remote_dir_override=(
+            (args.storage_remote_dir_override if args.storage_remote_dir_override.is_absolute() else (main_repo / args.storage_remote_dir_override))
+            if args.storage_remote_dir_override is not None
+            else None
+        ),
     )
     selected_adapters = _sample_existing_pool(
         pool_adapters,

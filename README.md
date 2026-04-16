@@ -9,16 +9,25 @@
 - 尽量贴近原论文与官方仓库的运行方式
 - 与主项目共享 workload / prompts / 分析方法，但不共享 serving 运行栈
 
-## 当前推荐的 3 个对照系统
+## 当前推荐的对照系统优先级
 
 1. `ServerlessLLM`
-2. `S-LoRA`
-3. `SkyServe`
+2. `SGLang`
+3. `vLLM`
+4. `Punica`
 
-备选：
+次要备选 / 后续补充：
 
+- `S-LoRA`
+- `SkyServe`
 - `Llumnix`
-- `Punica`
+
+说明：
+
+- `SGLang` 当前是最优先推进的 many-LoRA 主基线之一，已完成最小真实 GPU smoke。
+- `vLLM` 是下一步待补的独立通用 LoRA serving baseline 工程。
+- `ServerlessLLM` 保留为通用 `serverless` 基线。
+- `Punica` 保留为 `Llama-2 7B` 范围内的问题匹配次要备选。
 
 ## 目录说明
 
