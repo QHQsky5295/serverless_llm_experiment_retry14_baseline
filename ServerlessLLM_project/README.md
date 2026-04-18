@@ -9,9 +9,11 @@ systems remain independently runnable.
 Layout:
 
 - `repo/`
-  Official `ServerlessLLM` source tree.
+  Symlink to the official `ServerlessLLM` source tree under
+  `/home/qhq/serverless_llm_baselines/repos/ServerlessLLM`.
 - `scripts/`
-  Reproduction and fair-comparison entry points.
+  Symlink to the shared baseline harness. Use project-local paths when running
+  experiments, but keep the implementation centralized to avoid script drift.
 - `results/`
   Shared-input artifacts, replay outputs, and derived baseline results.
 - `docs/`
@@ -30,3 +32,14 @@ Recommended entry points:
 - `scripts/run_serverlessllm_fair_experiment.sh`
   Run `ServerlessLLM` with either internally generated or externally fixed
   shared artifacts.
+- `scripts/audit_e2e_v3_round.py`
+  Validate that completed results use the strict shared metric schema before
+  comparison.
+
+Reproduction boundary:
+
+- Do not make ServerlessLLM adapter-aware beyond its published design.
+- Runtime fixes are allowed only when they restore serving correctness,
+  dependency isolation, or metric instrumentation.
+- All final comparison results must consume the same frozen sanitized pools,
+  shared trace, and shared adapter subset as FaaSLoRA and SGLang.

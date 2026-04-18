@@ -15,23 +15,30 @@
 
 ## 目录说明
 
+- [repo](/home/qhq/serverless_llm_baselines/SGLang_project/repo)：官方 `SGLang` 仓库映射，实际指向 `/home/qhq/serverless_llm_baselines/repos/SGLang`
 - [docs](/home/qhq/serverless_llm_baselines/SGLang_project/docs)：中文复现说明与实验记录
-- [scripts](/home/qhq/serverless_llm_baselines/SGLang_project/scripts)：统一脚本目录
+- [scripts](/home/qhq/serverless_llm_baselines/SGLang_project/scripts)：项目本地入口 wrapper，转发到共享公平实验 harness
 - [configs](/home/qhq/serverless_llm_baselines/SGLang_project/configs)：基线配置目录
+- [results](/home/qhq/serverless_llm_baselines/SGLang_project/results)：结果目录映射，实际指向共享 baseline 结果目录
+- [logs](/home/qhq/serverless_llm_baselines/SGLang_project/logs)：日志目录映射
+- [environments](/home/qhq/serverless_llm_baselines/SGLang_project/environments)：环境说明目录映射
 
 ## 当前状态
 
 - `SGLang_project` 项目目录已建立
 - 已完成：
-  - 上游仓库拉取
+  - 上游仓库拉取：`/home/qhq/serverless_llm_baselines/repos/SGLang`
   - 隔离虚拟环境 `/home/qhq/.venvs/sglang_py310`
   - official multi-LoRA 能力核查
   - many-LoRA 公平 replay 脚本接入
   - `Llama-2 7B + sanitized shared subset` 最小真实 GPU smoke（`4/4` 成功）
   - `Llama-2 13B / Qwen 7B / Qwen 14B` 正式 profile smoke
-- 后续正式对比将直接复用：
-  - `/home/qhq/serverless_llm_baselines/scripts/prepare_sanitized_shared_round.sh`
-  - `/home/qhq/serverless_llm_baselines/scripts/run_sglang_fair_experiment.sh`
+- 后续正式对比应从本项目入口调用：
+  - `/home/qhq/serverless_llm_baselines/SGLang_project/scripts/prepare_shared_round_artifacts.sh`
+  - `/home/qhq/serverless_llm_baselines/SGLang_project/scripts/run_sglang_fair_experiment.sh`
+  - `/home/qhq/serverless_llm_baselines/SGLang_project/scripts/audit_e2e_v3_round.sh`
+
+这些入口只做路径归位，不复制或改写底层逻辑。真正的公平 replay、summary 和 audit 实现仍保留在 `/home/qhq/serverless_llm_baselines/scripts`，防止不同 baseline 之间出现多份 harness 漂移。
 
 ## 当前结论
 
@@ -42,3 +49,15 @@
 - 提交 `input_ids`
 
 这样可以避免旧 `/v1/completions` 路径在 `Qwen` 长上下文边界上的 prompt 解释偏差。
+
+## 复现边界
+
+当前 SGLang 复现不修改官方 SGLang 底层 serving 逻辑。我们只在外部实验 harness 中完成：
+
+- shared trace 和 shared adapter subset 校验；
+- LoRA path materialization；
+- 统一 prompt/token budget；
+- 统一 `e2e_v3` 指标采集；
+- 与 FaaSLoRA、ServerlessLLM 一致的 replay/summary/audit。
+
+因此，`SGLang_project` 是项目化入口，`repos/SGLang` 是官方源码，`.venvs/sglang_py310` 是运行环境，三者不要混淆。

@@ -37,6 +37,7 @@
 - `logs/`: baseline 运行日志
 - `results/`: baseline 输出结果
 - `environments/`: 环境说明和依赖导出
+- `ServerlessLLM_project/`, `SGLang_project/`, `Punica_project/`: 每个 baseline 的项目化入口。项目目录应能直接说明源码位置、运行环境、fair-run 入口和复现边界。
 
 ## 隔离原则
 
@@ -44,3 +45,11 @@
 2. 每个 baseline 使用单独的环境说明文件。
 3. 不把 baseline 源码 vendor 到主项目仓库。
 4. 只共享数据与结果分析，不共享 serving runtime。
+
+## 交互与工程规则
+
+Codex 协作、代码修改、实验分析和后续 baseline 复现必须遵守：
+
+- [CODEX_INTERACTION_RULES.md](/home/qhq/serverless_llm_baselines/docs/CODEX_INTERACTION_RULES.md)
+
+该文档记录了从 FaaSLoRA 主系统到 ServerlessLLM、Punica、SGLang 复现过程中形成的固定交互习惯和工程边界。
