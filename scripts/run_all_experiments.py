@@ -691,6 +691,60 @@ class RequestResult:
     on_scaleup_runtime: bool = False
     scaleup_first_service: bool = False
     scaleup_planned_adapter_match: bool = False
+    service_ttft_ms: float = 0.0
+    service_e2e_ms: float = 0.0
+    admitted_service_ttft_ms: float = 0.0
+    admitted_service_e2e_ms: float = 0.0
+    ingress_queue_wait_ms: float = 0.0
+    overall_ttft_ms: float = 0.0
+    overall_e2e_ms: float = 0.0
+    dispatch_admission_wait_ms: float = 0.0
+    scheduled_arrival_offset_s: Optional[float] = None
+    arrival_released_offset_s: Optional[float] = None
+    admission_start_offset_s: Optional[float] = None
+    admitted_offset_s: Optional[float] = None
+    completed_offset_s: Optional[float] = None
+
+
+def _positive_or_fallback(primary: Any, fallback: Any = 0.0) -> float:
+    try:
+        value = float(primary)
+        if value > 0.0:
+            return value
+    except Exception:
+        pass
+    try:
+        return float(fallback)
+    except Exception:
+        return 0.0
+
+
+def _request_overall_ttft_ms(request: Any) -> float:
+    return _positive_or_fallback(
+        getattr(request, "overall_ttft_ms", 0.0),
+        getattr(request, "ttft_ms", 0.0),
+    )
+
+
+def _request_overall_e2e_ms(request: Any) -> float:
+    return _positive_or_fallback(
+        getattr(request, "overall_e2e_ms", 0.0),
+        getattr(request, "e2e_ms", 0.0),
+    )
+
+
+def _request_service_ttft_ms(request: Any) -> float:
+    return _positive_or_fallback(
+        getattr(request, "service_ttft_ms", 0.0),
+        getattr(request, "ttft_ms", 0.0),
+    )
+
+
+def _request_service_e2e_ms(request: Any) -> float:
+    return _positive_or_fallback(
+        getattr(request, "service_e2e_ms", 0.0),
+        getattr(request, "e2e_ms", 0.0),
+    )
 
 
 @dataclass
@@ -792,10 +846,29 @@ class ScenarioResult:
     p50_ttft_ms: float = 0.0
     p95_ttft_ms: float = 0.0
     p99_ttft_ms: float = 0.0
+    avg_overall_ttft_ms: float = 0.0
+    p50_overall_ttft_ms: float = 0.0
+    p95_overall_ttft_ms: float = 0.0
+    p99_overall_ttft_ms: float = 0.0
+    avg_service_ttft_ms: float = 0.0
+    p95_service_ttft_ms: float = 0.0
+    p99_service_ttft_ms: float = 0.0
+    avg_admitted_service_ttft_ms: float = 0.0
+    p95_admitted_service_ttft_ms: float = 0.0
+    p99_admitted_service_ttft_ms: float = 0.0
     avg_tpot_ms: float = 0.0
     avg_e2e_ms: float = 0.0
     p95_e2e_ms: float = 0.0
     p99_e2e_ms: float = 0.0
+    avg_overall_e2e_ms: float = 0.0
+    p95_overall_e2e_ms: float = 0.0
+    p99_overall_e2e_ms: float = 0.0
+    avg_service_e2e_ms: float = 0.0
+    p95_service_e2e_ms: float = 0.0
+    p99_service_e2e_ms: float = 0.0
+    avg_admitted_service_e2e_ms: float = 0.0
+    p95_admitted_service_e2e_ms: float = 0.0
+    p99_admitted_service_e2e_ms: float = 0.0
     throughput_rps: float = 0.0
     throughput_tok_per_s: float = 0.0
     slo_attainment: float = 0.0
@@ -816,6 +889,12 @@ class ScenarioResult:
     p99_warm_standard_ttft_ms: float = 0.0
     avg_serverless_overhead_ms: float = 0.0
     p95_serverless_overhead_ms: float = 0.0
+    avg_service_overhead_ms: float = 0.0
+    p95_service_overhead_ms: float = 0.0
+    avg_dispatch_admission_wait_ms: float = 0.0
+    p95_dispatch_admission_wait_ms: float = 0.0
+    avg_ingress_queue_wait_ms: float = 0.0
+    p95_ingress_queue_wait_ms: float = 0.0
     avg_runtime_ttft_ms: float = 0.0
     p95_runtime_ttft_ms: float = 0.0
     avg_gpu_ready_ttft_ms: float = 0.0
@@ -863,13 +942,21 @@ class ScenarioResult:
     std_ci: Optional[Dict[str, Dict[str, float]]] = None  # e.g. {"avg_ttft_ms": {"std": s, "ci95_low": l, "ci95_high": h}}
 
     def aggregate(self, elapsed: float, coord_metrics: Optional[Dict] = None):
-        self.elapsed_sec = elapsed
+        completed_offsets = [
+            float(getattr(r, "completed_offset_s", 0.0) or 0.0)
+            for r in self.requests
+            if getattr(r, "completed_offset_s", None) is not None
+        ]
+        self.elapsed_sec = (
+            max(completed_offsets)
+            if completed_offsets else float(elapsed)
+        )
         ok  = [r for r in self.requests if r.success]
         lora_ok = [r for r in ok if _has_lora_request(r)]
         self.completed = len(ok)
         self.failed    = len(self.requests) - self.completed
         scaleup_success_ttft = [
-            float(getattr(r, "ttft_ms", 0.0) or 0.0)
+            _request_overall_ttft_ms(r)
             for r in ok
             if bool(getattr(r, "scaleup_affected", False))
         ]
@@ -879,7 +966,7 @@ class ScenarioResult:
             and _has_lora_request(r)
         ]
         scaleup_runtime_ttft = [
-            float(getattr(r, "ttft_ms", 0.0) or 0.0)
+            _request_overall_ttft_ms(r)
             for r in scaleup_runtime_lora
         ]
         scaleup_first_service = [
@@ -887,7 +974,7 @@ class ScenarioResult:
             if bool(getattr(r, "scaleup_first_service", False))
         ]
         scaleup_first_service_ttft = [
-            float(getattr(r, "ttft_ms", 0.0) or 0.0)
+            _request_overall_ttft_ms(r)
             for r in scaleup_first_service
         ]
         self.cold_starts_after_scale_up = []
@@ -917,14 +1004,27 @@ class ScenarioResult:
             return
 
         def pct(vals, p):
-            if not vals: return 0.0
-            s = sorted(vals)
-            i = max(0, min(len(s)-1, int(round(p/100*(len(s)-1)))))
-            return s[i]
+            if not vals:
+                return 0.0
+            ordered = sorted(float(v) for v in vals)
+            if len(ordered) == 1:
+                return ordered[0]
+            rank = max(0.0, min(1.0, float(p) / 100.0)) * (len(ordered) - 1)
+            lo = int(math.floor(rank))
+            hi = int(math.ceil(rank))
+            if lo == hi:
+                return ordered[lo]
+            frac = rank - lo
+            return ordered[lo] + (ordered[hi] - ordered[lo]) * frac
 
         self.p95_cold_start_latency_ms = pct(cold_start_latencies, 95) if cold_start_latencies else 0.0
 
-        ttft = [float(r.ttft_ms) for r in ok]
+        ttft = [_request_overall_ttft_ms(r) for r in ok]
+        service_ttft = [_request_service_ttft_ms(r) for r in ok]
+        admitted_service_ttft = [
+            float(getattr(r, "admitted_service_ttft_ms", 0.0) or 0.0)
+            for r in ok
+        ]
         tpot_eligible = [
             r for r in ok
             if int(getattr(r, "output_tokens", 0) or 0) > 1
@@ -933,25 +1033,42 @@ class ScenarioResult:
             float(r.tpot_ms) for r in tpot_eligible
             if float(r.tpot_ms) > 0
         ]
-        e2e  = [float(r.e2e_ms) for r in ok]
+        e2e  = [_request_overall_e2e_ms(r) for r in ok]
+        service_e2e = [_request_service_e2e_ms(r) for r in ok]
+        admitted_service_e2e = [
+            float(getattr(r, "admitted_service_e2e_ms", 0.0) or 0.0)
+            for r in ok
+        ]
         cost = [float(r.cost_usd) for r in ok]
         ios  = [float(r.lora_io_ms) for r in ok]
         out_tokens = [int(r.output_tokens) for r in ok]
-        overheads = [
+        service_overheads = [
             float(getattr(r, "lora_io_ms", 0.0) or 0.0)
             + float(getattr(r, "contention_ms", 0.0) or 0.0)
             + float(getattr(r, "defer_ms", 0.0) or 0.0)
             for r in ok
         ]
+        dispatch_waits = [
+            float(getattr(r, "dispatch_admission_wait_ms", 0.0) or 0.0)
+            for r in ok
+        ]
+        ingress_queue_waits = [
+            float(getattr(r, "ingress_queue_wait_ms", 0.0) or 0.0)
+            for r in ok
+        ]
+        overheads = [
+            dispatch_wait + service_overhead
+            for dispatch_wait, service_overhead in zip(dispatch_waits, service_overheads)
+        ]
         runtime_ttft = [float(r.vllm_ttft_ms) for r in ok if float(r.vllm_ttft_ms) > 0]
-        gpu_ready_ttft = [float(r.ttft_ms) for r in ok if r.cache_tier == "gpu"]
+        gpu_ready_ttft = [_request_overall_ttft_ms(r) for r in ok if r.cache_tier == "gpu"]
         comparable_ttft = [
-            float(getattr(r, "ttft_ms", 0.0) or 0.0)
+            _request_overall_ttft_ms(r)
             for r in self.requests
             if _is_comparable_request(r)
         ]
         warm_standard_ttft = [
-            float(getattr(r, "ttft_ms", 0.0) or 0.0)
+            _request_overall_ttft_ms(r)
             for r in self.requests
             if _is_warm_standard_request(r)
         ]
@@ -960,13 +1077,32 @@ class ScenarioResult:
         self.p50_ttft_ms = pct(ttft, 50)
         self.p95_ttft_ms = pct(ttft, 95)
         self.p99_ttft_ms = pct(ttft, 99)
+        self.avg_overall_ttft_ms = self.avg_ttft_ms
+        self.p50_overall_ttft_ms = self.p50_ttft_ms
+        self.p95_overall_ttft_ms = self.p95_ttft_ms
+        self.p99_overall_ttft_ms = self.p99_ttft_ms
+        self.avg_service_ttft_ms = sum(service_ttft)/len(service_ttft)
+        self.p95_service_ttft_ms = pct(service_ttft, 95)
+        self.p99_service_ttft_ms = pct(service_ttft, 99)
+        self.avg_admitted_service_ttft_ms = sum(admitted_service_ttft)/len(admitted_service_ttft)
+        self.p95_admitted_service_ttft_ms = pct(admitted_service_ttft, 95)
+        self.p99_admitted_service_ttft_ms = pct(admitted_service_ttft, 99)
         self.avg_tpot_ms = sum(tpot)/len(tpot) if tpot else 0.0
         self.avg_e2e_ms  = sum(e2e)/len(e2e)
         self.p95_e2e_ms  = pct(e2e, 95)
         self.p99_e2e_ms  = pct(e2e, 99)
-        self.throughput_rps = self.completed / max(elapsed, 1e-6)
-        self.throughput_tok_per_s = sum(out_tokens) / max(elapsed, 1e-6)
-        self.slo_attainment = sum(1 for r in ok if float(r.ttft_ms) <= float(self.ttft_slo_ms)) / len(ok)
+        self.avg_overall_e2e_ms = self.avg_e2e_ms
+        self.p95_overall_e2e_ms = self.p95_e2e_ms
+        self.p99_overall_e2e_ms = self.p99_e2e_ms
+        self.avg_service_e2e_ms = sum(service_e2e)/len(service_e2e)
+        self.p95_service_e2e_ms = pct(service_e2e, 95)
+        self.p99_service_e2e_ms = pct(service_e2e, 99)
+        self.avg_admitted_service_e2e_ms = sum(admitted_service_e2e)/len(admitted_service_e2e)
+        self.p95_admitted_service_e2e_ms = pct(admitted_service_e2e, 95)
+        self.p99_admitted_service_e2e_ms = pct(admitted_service_e2e, 99)
+        self.throughput_rps = self.completed / max(self.elapsed_sec, 1e-6)
+        self.throughput_tok_per_s = sum(out_tokens) / max(self.elapsed_sec, 1e-6)
+        self.slo_attainment = sum(1 for r in ok if _request_overall_ttft_ms(r) <= float(self.ttft_slo_ms)) / len(ok)
         self.avg_cost_usd   = sum(cost)/len(cost)
         self.total_cost_usd = sum(cost)
         self.cache_hit_rate = (sum(1 for r in lora_ok if r.cache_hit)/len(lora_ok)) if lora_ok else 0.0
@@ -986,6 +1122,12 @@ class ScenarioResult:
         self.p99_warm_standard_ttft_ms = pct(warm_standard_ttft, 99) if warm_standard_ttft else 0.0
         self.avg_serverless_overhead_ms = sum(overheads)/len(overheads) if overheads else 0.0
         self.p95_serverless_overhead_ms = pct(overheads, 95) if overheads else 0.0
+        self.avg_service_overhead_ms = sum(service_overheads)/len(service_overheads) if service_overheads else 0.0
+        self.p95_service_overhead_ms = pct(service_overheads, 95) if service_overheads else 0.0
+        self.avg_dispatch_admission_wait_ms = sum(dispatch_waits)/len(dispatch_waits) if dispatch_waits else 0.0
+        self.p95_dispatch_admission_wait_ms = pct(dispatch_waits, 95) if dispatch_waits else 0.0
+        self.avg_ingress_queue_wait_ms = sum(ingress_queue_waits)/len(ingress_queue_waits) if ingress_queue_waits else 0.0
+        self.p95_ingress_queue_wait_ms = pct(ingress_queue_waits, 95) if ingress_queue_waits else 0.0
         self.avg_runtime_ttft_ms = sum(runtime_ttft)/len(runtime_ttft) if runtime_ttft else 0.0
         self.p95_runtime_ttft_ms = pct(runtime_ttft, 95) if runtime_ttft else 0.0
         self.avg_gpu_ready_ttft_ms = sum(gpu_ready_ttft)/len(gpu_ready_ttft) if gpu_ready_ttft else 0.0
@@ -1024,9 +1166,9 @@ class ScenarioResult:
         ) if tpot_eligible else 0.0
 
         # Per-phase TTFT
-        p1 = [r.ttft_ms for r in ok if r.burst_phase == "phase1"]
-        p2 = [r.ttft_ms for r in ok if r.burst_phase == "phase2"]
-        nb = [r.ttft_ms for r in ok if r.burst_phase == "normal"]
+        p1 = [_request_overall_ttft_ms(r) for r in ok if r.burst_phase == "phase1"]
+        p2 = [_request_overall_ttft_ms(r) for r in ok if r.burst_phase == "phase2"]
+        nb = [_request_overall_ttft_ms(r) for r in ok if r.burst_phase == "normal"]
         b_all = p1 + p2
         self.phase1_avg_ttft_ms   = sum(p1)/len(p1) if p1 else 0.0
         self.phase2_avg_ttft_ms   = sum(p2)/len(p2) if p2 else 0.0
@@ -1079,7 +1221,13 @@ def _merge_coordinator_metrics(all_metrics: List[Dict]) -> Dict:
 # 多轮实验聚合：对数值指标计算均值、标准差与 95% 置信区间（t 分布）
 _SCENARIO_RESULT_NUMERIC_KEYS = (
     "elapsed_sec", "avg_ttft_ms", "p50_ttft_ms", "p95_ttft_ms", "p99_ttft_ms",
+    "avg_overall_ttft_ms", "p50_overall_ttft_ms", "p95_overall_ttft_ms", "p99_overall_ttft_ms",
+    "avg_service_ttft_ms", "p95_service_ttft_ms", "p99_service_ttft_ms",
+    "avg_admitted_service_ttft_ms", "p95_admitted_service_ttft_ms", "p99_admitted_service_ttft_ms",
     "avg_tpot_ms", "avg_e2e_ms", "p95_e2e_ms", "p99_e2e_ms",
+    "avg_overall_e2e_ms", "p95_overall_e2e_ms", "p99_overall_e2e_ms",
+    "avg_service_e2e_ms", "p95_service_e2e_ms", "p99_service_e2e_ms",
+    "avg_admitted_service_e2e_ms", "p95_admitted_service_e2e_ms", "p99_admitted_service_e2e_ms",
     "throughput_rps", "throughput_tok_per_s", "slo_attainment",
     "avg_cost_usd", "total_cost_usd", "qpr", "qpr_tokps_ttft_legacy", "qpr_rps_legacy",
     "cost_effectiveness_e2e", "slo_goodput_rps", "slo_goodput_tok_per_s",
@@ -1087,6 +1235,9 @@ _SCENARIO_RESULT_NUMERIC_KEYS = (
     "avg_comparable_ttft_ms", "p95_comparable_ttft_ms", "p99_comparable_ttft_ms",
     "avg_warm_standard_ttft_ms", "p95_warm_standard_ttft_ms", "p99_warm_standard_ttft_ms",
     "avg_serverless_overhead_ms", "p95_serverless_overhead_ms",
+    "avg_service_overhead_ms", "p95_service_overhead_ms",
+    "avg_dispatch_admission_wait_ms", "p95_dispatch_admission_wait_ms",
+    "avg_ingress_queue_wait_ms", "p95_ingress_queue_wait_ms",
     "avg_runtime_ttft_ms", "p95_runtime_ttft_ms",
     "avg_gpu_ready_ttft_ms", "p95_gpu_ready_ttft_ms",
     "avg_scaleup_affected_ttft_ms", "p95_scaleup_affected_ttft_ms",
@@ -1154,10 +1305,29 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         p50_ttft_ms=agg_dict.get("p50_ttft_ms", first.p50_ttft_ms),
         p95_ttft_ms=agg_dict.get("p95_ttft_ms", first.p95_ttft_ms),
         p99_ttft_ms=agg_dict.get("p99_ttft_ms", first.p99_ttft_ms),
+        avg_overall_ttft_ms=agg_dict.get("avg_overall_ttft_ms", first.avg_overall_ttft_ms),
+        p50_overall_ttft_ms=agg_dict.get("p50_overall_ttft_ms", first.p50_overall_ttft_ms),
+        p95_overall_ttft_ms=agg_dict.get("p95_overall_ttft_ms", first.p95_overall_ttft_ms),
+        p99_overall_ttft_ms=agg_dict.get("p99_overall_ttft_ms", first.p99_overall_ttft_ms),
+        avg_service_ttft_ms=agg_dict.get("avg_service_ttft_ms", first.avg_service_ttft_ms),
+        p95_service_ttft_ms=agg_dict.get("p95_service_ttft_ms", first.p95_service_ttft_ms),
+        p99_service_ttft_ms=agg_dict.get("p99_service_ttft_ms", first.p99_service_ttft_ms),
+        avg_admitted_service_ttft_ms=agg_dict.get("avg_admitted_service_ttft_ms", first.avg_admitted_service_ttft_ms),
+        p95_admitted_service_ttft_ms=agg_dict.get("p95_admitted_service_ttft_ms", first.p95_admitted_service_ttft_ms),
+        p99_admitted_service_ttft_ms=agg_dict.get("p99_admitted_service_ttft_ms", first.p99_admitted_service_ttft_ms),
         avg_tpot_ms=agg_dict.get("avg_tpot_ms", first.avg_tpot_ms),
         avg_e2e_ms=agg_dict.get("avg_e2e_ms", first.avg_e2e_ms),
         p95_e2e_ms=agg_dict.get("p95_e2e_ms", first.p95_e2e_ms),
         p99_e2e_ms=agg_dict.get("p99_e2e_ms", first.p99_e2e_ms),
+        avg_overall_e2e_ms=agg_dict.get("avg_overall_e2e_ms", first.avg_overall_e2e_ms),
+        p95_overall_e2e_ms=agg_dict.get("p95_overall_e2e_ms", first.p95_overall_e2e_ms),
+        p99_overall_e2e_ms=agg_dict.get("p99_overall_e2e_ms", first.p99_overall_e2e_ms),
+        avg_service_e2e_ms=agg_dict.get("avg_service_e2e_ms", first.avg_service_e2e_ms),
+        p95_service_e2e_ms=agg_dict.get("p95_service_e2e_ms", first.p95_service_e2e_ms),
+        p99_service_e2e_ms=agg_dict.get("p99_service_e2e_ms", first.p99_service_e2e_ms),
+        avg_admitted_service_e2e_ms=agg_dict.get("avg_admitted_service_e2e_ms", first.avg_admitted_service_e2e_ms),
+        p95_admitted_service_e2e_ms=agg_dict.get("p95_admitted_service_e2e_ms", first.p95_admitted_service_e2e_ms),
+        p99_admitted_service_e2e_ms=agg_dict.get("p99_admitted_service_e2e_ms", first.p99_admitted_service_e2e_ms),
         throughput_rps=agg_dict.get("throughput_rps", first.throughput_rps),
         throughput_tok_per_s=agg_dict.get("throughput_tok_per_s", first.throughput_tok_per_s),
         slo_attainment=agg_dict.get("slo_attainment", first.slo_attainment),
@@ -1184,6 +1354,12 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         p99_warm_standard_ttft_ms=agg_dict.get("p99_warm_standard_ttft_ms", first.p99_warm_standard_ttft_ms),
         avg_serverless_overhead_ms=agg_dict.get("avg_serverless_overhead_ms", first.avg_serverless_overhead_ms),
         p95_serverless_overhead_ms=agg_dict.get("p95_serverless_overhead_ms", first.p95_serverless_overhead_ms),
+        avg_service_overhead_ms=agg_dict.get("avg_service_overhead_ms", first.avg_service_overhead_ms),
+        p95_service_overhead_ms=agg_dict.get("p95_service_overhead_ms", first.p95_service_overhead_ms),
+        avg_dispatch_admission_wait_ms=agg_dict.get("avg_dispatch_admission_wait_ms", first.avg_dispatch_admission_wait_ms),
+        p95_dispatch_admission_wait_ms=agg_dict.get("p95_dispatch_admission_wait_ms", first.p95_dispatch_admission_wait_ms),
+        avg_ingress_queue_wait_ms=agg_dict.get("avg_ingress_queue_wait_ms", first.avg_ingress_queue_wait_ms),
+        p95_ingress_queue_wait_ms=agg_dict.get("p95_ingress_queue_wait_ms", first.p95_ingress_queue_wait_ms),
         avg_runtime_ttft_ms=agg_dict.get("avg_runtime_ttft_ms", first.avg_runtime_ttft_ms),
         p95_runtime_ttft_ms=agg_dict.get("p95_runtime_ttft_ms", first.p95_runtime_ttft_ms),
         avg_gpu_ready_ttft_ms=agg_dict.get("avg_gpu_ready_ttft_ms", first.avg_gpu_ready_ttft_ms),
@@ -1371,7 +1547,7 @@ def _avg_success_e2e_ms(raw_list: List[Any]) -> Optional[float]:
     vals: List[float] = []
     for item in raw_list:
         if isinstance(item, RequestResult) and item.success:
-            vals.append(float(getattr(item, "e2e_ms", 0.0)))
+            vals.append(_request_overall_e2e_ms(item))
     if not vals:
         return None
     return sum(vals) / len(vals)
@@ -1381,7 +1557,7 @@ def _avg_success_ttft_ms(raw_list: List[Any]) -> Optional[float]:
     vals: List[float] = []
     for item in raw_list:
         if isinstance(item, RequestResult) and item.success:
-            vals.append(float(getattr(item, "ttft_ms", 0.0)))
+            vals.append(_request_overall_ttft_ms(item))
     if not vals:
         return None
     return sum(vals) / len(vals)
@@ -5643,9 +5819,16 @@ class ScenarioRunner:
     def _live_percentile(values: List[float], p: float) -> float:
         if not values:
             return 0.0
-        ordered = sorted(values)
-        idx = max(0, min(len(ordered) - 1, int(round((p / 100.0) * (len(ordered) - 1)))))
-        return float(ordered[idx])
+        ordered = sorted(float(v) for v in values)
+        if len(ordered) == 1:
+            return ordered[0]
+        rank = max(0.0, min(1.0, float(p) / 100.0)) * (len(ordered) - 1)
+        lo = int(math.floor(rank))
+        hi = int(math.ceil(rank))
+        if lo == hi:
+            return ordered[lo]
+        frac = rank - lo
+        return ordered[lo] + (ordered[hi] - ordered[lo]) * frac
 
     def _live_result_stats(self, results_view: Optional[List[Any]], elapsed_sec: float = 1.0) -> Dict[str, Any]:
         if not results_view:
@@ -5664,19 +5847,29 @@ class ScenarioRunner:
         }
         if ok:
             lora_ok = [item for item in ok if _has_lora_request(item)]
-            ttft = [float(getattr(item, "ttft_ms", 0.0) or 0.0) for item in ok]
-            e2e = [float(getattr(item, "e2e_ms", 0.0) or 0.0) for item in ok]
+            ttft = [_request_overall_ttft_ms(item) for item in ok]
+            service_ttft = [_request_service_ttft_ms(item) for item in ok]
+            e2e = [_request_overall_e2e_ms(item) for item in ok]
+            service_e2e = [_request_service_e2e_ms(item) for item in ok]
             tpot = [float(getattr(item, "tpot_ms", 0.0) or 0.0) for item in ok if float(getattr(item, "tpot_ms", 0.0) or 0.0) > 0]
             tpot_eligible = [
                 item for item in ok
                 if int(getattr(item, "output_tokens", 0) or 0) > 1
             ]
             out_tokens = [int(getattr(item, "output_tokens", 0) or 0) for item in ok]
-            overheads = [
+            service_overheads = [
                 float(getattr(item, "lora_io_ms", 0.0) or 0.0)
                 + float(getattr(item, "contention_ms", 0.0) or 0.0)
                 + float(getattr(item, "defer_ms", 0.0) or 0.0)
                 for item in ok
+            ]
+            dispatch_waits = [
+                float(getattr(item, "dispatch_admission_wait_ms", 0.0) or 0.0)
+                for item in ok
+            ]
+            overheads = [
+                dispatch_wait + service_overhead
+                for dispatch_wait, service_overhead in zip(dispatch_waits, service_overheads)
             ]
             runtime_ttft = [
                 float(getattr(item, "vllm_ttft_ms", 0.0) or 0.0)
@@ -5684,24 +5877,24 @@ class ScenarioRunner:
                 if float(getattr(item, "vllm_ttft_ms", 0.0) or 0.0) > 0.0
             ]
             gpu_ready_ttft = [
-                float(getattr(item, "ttft_ms", 0.0) or 0.0)
+                _request_overall_ttft_ms(item)
                 for item in ok
                 if getattr(item, "cache_tier", "remote") == "gpu"
             ]
             comparable = [
-                float(getattr(item, "ttft_ms", 0.0) or 0.0)
+                _request_overall_ttft_ms(item)
                 for item in results_view
                 if not isinstance(item, Exception)
                 and _is_comparable_request(item)
             ]
             warm_standard = [
-                float(getattr(item, "ttft_ms", 0.0) or 0.0)
+                _request_overall_ttft_ms(item)
                 for item in results_view
                 if not isinstance(item, Exception)
                 and _is_warm_standard_request(item)
             ]
             scaleup_ttft = [
-                float(getattr(item, "ttft_ms", 0.0) or 0.0)
+                _request_overall_ttft_ms(item)
                 for item in ok
                 if bool(getattr(item, "scaleup_affected", False))
             ]
@@ -5711,7 +5904,7 @@ class ScenarioRunner:
                 and _has_lora_request(item)
             ]
             scaleup_runtime_ttft = [
-                float(getattr(item, "ttft_ms", 0.0) or 0.0)
+                _request_overall_ttft_ms(item)
                 for item in scaleup_runtime_lora
             ]
             scaleup_first_service = [
@@ -5719,7 +5912,7 @@ class ScenarioRunner:
                 if bool(getattr(item, "scaleup_first_service", False))
             ]
             scaleup_first_service_ttft = [
-                float(getattr(item, "ttft_ms", 0.0) or 0.0)
+                _request_overall_ttft_ms(item)
                 for item in scaleup_first_service
             ]
             avg_cost_usd = (
@@ -5732,9 +5925,33 @@ class ScenarioRunner:
                 "avg_ttft_ms": sum(ttft) / len(ttft),
                 "p95_ttft_ms": self._live_percentile(ttft, 95),
                 "p99_ttft_ms": self._live_percentile(ttft, 99),
+                "avg_service_ttft_ms": sum(service_ttft) / len(service_ttft),
+                "p95_service_ttft_ms": self._live_percentile(service_ttft, 95),
+                "p99_service_ttft_ms": self._live_percentile(service_ttft, 99),
+                "avg_admitted_service_ttft_ms": (
+                    sum(float(getattr(item, "admitted_service_ttft_ms", 0.0) or 0.0) for item in ok) / len(ok)
+                ) if ok else 0.0,
+                "p95_admitted_service_ttft_ms": self._live_percentile(
+                    [float(getattr(item, "admitted_service_ttft_ms", 0.0) or 0.0) for item in ok], 95
+                ) if ok else 0.0,
+                "p99_admitted_service_ttft_ms": self._live_percentile(
+                    [float(getattr(item, "admitted_service_ttft_ms", 0.0) or 0.0) for item in ok], 99
+                ) if ok else 0.0,
                 "avg_e2e_ms": sum(e2e) / len(e2e),
                 "p95_e2e_ms": self._live_percentile(e2e, 95),
                 "p99_e2e_ms": self._live_percentile(e2e, 99),
+                "avg_service_e2e_ms": sum(service_e2e) / len(service_e2e),
+                "p95_service_e2e_ms": self._live_percentile(service_e2e, 95),
+                "p99_service_e2e_ms": self._live_percentile(service_e2e, 99),
+                "avg_admitted_service_e2e_ms": (
+                    sum(float(getattr(item, "admitted_service_e2e_ms", 0.0) or 0.0) for item in ok) / len(ok)
+                ) if ok else 0.0,
+                "p95_admitted_service_e2e_ms": self._live_percentile(
+                    [float(getattr(item, "admitted_service_e2e_ms", 0.0) or 0.0) for item in ok], 95
+                ) if ok else 0.0,
+                "p99_admitted_service_e2e_ms": self._live_percentile(
+                    [float(getattr(item, "admitted_service_e2e_ms", 0.0) or 0.0) for item in ok], 99
+                ) if ok else 0.0,
                 "avg_tpot_ms": (sum(tpot) / len(tpot)) if tpot else 0.0,
                 "cache_hit_ratio": (
                     sum(1 for item in lora_ok if getattr(item, "cache_hit", False)) / len(lora_ok)
@@ -5742,7 +5959,7 @@ class ScenarioRunner:
                 "total_output_tokens": sum(out_tokens),
                 "avg_cost_usd": avg_cost_usd,
                 "slo_attainment": (
-                    sum(1 for item in ok if float(getattr(item, "ttft_ms", 0.0) or 0.0) <= self._ttft_slo_ms)
+                    sum(1 for item in ok if _request_overall_ttft_ms(item) <= self._ttft_slo_ms)
                     / len(ok)
                 ),
                 "avg_comparable_ttft_ms": (sum(comparable) / len(comparable)) if comparable else 0.0,
@@ -5753,6 +5970,16 @@ class ScenarioRunner:
                 "p99_warm_standard_ttft_ms": self._live_percentile(warm_standard, 99),
                 "avg_serverless_overhead_ms": sum(overheads) / len(overheads) if overheads else 0.0,
                 "p95_serverless_overhead_ms": self._live_percentile(overheads, 95) if overheads else 0.0,
+                "avg_service_overhead_ms": sum(service_overheads) / len(service_overheads) if service_overheads else 0.0,
+                "p95_service_overhead_ms": self._live_percentile(service_overheads, 95) if service_overheads else 0.0,
+                "avg_dispatch_admission_wait_ms": sum(dispatch_waits) / len(dispatch_waits) if dispatch_waits else 0.0,
+                "p95_dispatch_admission_wait_ms": self._live_percentile(dispatch_waits, 95) if dispatch_waits else 0.0,
+                "avg_ingress_queue_wait_ms": (
+                    sum(float(getattr(item, "ingress_queue_wait_ms", 0.0) or 0.0) for item in ok) / len(ok)
+                ) if ok else 0.0,
+                "p95_ingress_queue_wait_ms": self._live_percentile(
+                    [float(getattr(item, "ingress_queue_wait_ms", 0.0) or 0.0) for item in ok], 95
+                ) if ok else 0.0,
                 "avg_runtime_ttft_ms": (sum(runtime_ttft) / len(runtime_ttft)) if runtime_ttft else 0.0,
                 "p95_runtime_ttft_ms": self._live_percentile(runtime_ttft, 95) if runtime_ttft else 0.0,
                 "avg_gpu_ready_ttft_ms": (sum(gpu_ready_ttft) / len(gpu_ready_ttft)) if gpu_ready_ttft else 0.0,
@@ -5911,9 +6138,10 @@ class ScenarioRunner:
             live_ce = float(stats.get("ce", stats.get("cost_effectiveness_e2e", 0.0)) or 0.0)
             print(
                 "      "
-                f"ttft_overall(avg/p95/p99)={stats.get('avg_ttft_ms', 0.0):.0f}/{stats.get('p95_ttft_ms', 0.0):.0f}/{stats.get('p99_ttft_ms', 0.0):.0f}ms "
+                f"ttft_e2e(avg/p95/p99)={stats.get('avg_ttft_ms', 0.0):.0f}/{stats.get('p95_ttft_ms', 0.0):.0f}/{stats.get('p99_ttft_ms', 0.0):.0f}ms "
+                f"ttft_service(avg/p95/p99)={stats.get('avg_service_ttft_ms', 0.0):.0f}/{stats.get('p95_service_ttft_ms', 0.0):.0f}/{stats.get('p99_service_ttft_ms', 0.0):.0f}ms "
                 f"tpot={stats.get('avg_tpot_ms', 0.0):.1f}ms "
-                f"e2e(avg/p95/p99)={stats.get('avg_e2e_ms', 0.0):.0f}/{stats.get('p95_e2e_ms', 0.0):.0f}/{stats.get('p99_e2e_ms', 0.0):.0f}ms",
+                f"e2e_e2e(avg/p95/p99)={stats.get('avg_e2e_ms', 0.0):.0f}/{stats.get('p95_e2e_ms', 0.0):.0f}/{stats.get('p99_e2e_ms', 0.0):.0f}ms",
                 flush=True,
             )
             print(
@@ -5944,7 +6172,9 @@ class ScenarioRunner:
                 f"runtime={stats.get('avg_runtime_ttft_ms', 0.0):.0f}ms "
                 f"gpu_ready={stats.get('avg_gpu_ready_ttft_ms', 0.0):.0f}ms "
                 f"diag hit={stats.get('cache_hit_ratio', 0.0):.0%} "
-                f"overhead(io+coord)={stats.get('avg_serverless_overhead_ms', 0.0):.0f}ms "
+                f"dispatch_wait={stats.get('avg_dispatch_admission_wait_ms', 0.0):.0f}ms "
+                f"overhead(e2e_path)={stats.get('avg_serverless_overhead_ms', 0.0):.0f}ms "
+                f"overhead(service_path)={stats.get('avg_service_overhead_ms', 0.0):.0f}ms "
                 f"ce={stats.get('ce', stats.get('cost_effectiveness_e2e', 0.0)):.3f}",
                 flush=True,
             )
@@ -7807,15 +8037,33 @@ class ScenarioRunner:
         replay_t0 = time.perf_counter()
 
         async def run_one(i: int, trace: RequestTrace):
+            scheduled_offset_s = self._scheduled_offset(trace)
+            scheduled_arrival_at = replay_t0 + scheduled_offset_s
             await self._await_trace_arrival(trace, replay_t0)
+            arrival_released_at = time.perf_counter()
             self._observe_live_arrived_lora(getattr(trace, "adapter_id", None))
             self._observe_live_waiting_trace(trace)
             try:
+                admission_start_at = time.perf_counter()
                 await self._acquire_dispatch_admission()
+                admitted_at = time.perf_counter()
+                dispatch_admission_wait_ms = max(
+                    0.0,
+                    (arrival_released_at - scheduled_arrival_at) * 1000.0,
+                )
                 self._release_live_waiting_trace(trace)
                 self._observe_live_started_lora(getattr(trace, "adapter_id", None))
                 try:
-                    out = await self._exec_request(trace, max_tokens, temperature)
+                    out = await self._exec_request(
+                        trace,
+                        max_tokens,
+                        temperature,
+                        dispatch_admission_wait_ms=dispatch_admission_wait_ms,
+                        scheduled_arrival_offset_s=scheduled_offset_s,
+                        admission_start_offset_s=max(0.0, admission_start_at - replay_t0),
+                        admitted_offset_s=max(0.0, admitted_at - replay_t0),
+                        arrival_released_offset_s=max(0.0, arrival_released_at - replay_t0),
+                    )
                     return out
                 finally:
                     self._release_live_started_lora(getattr(trace, "adapter_id", None))
@@ -8411,7 +8659,16 @@ class ScenarioRunner:
         return result, coord_m
 
     async def _exec_request(
-        self, trace: RequestTrace, max_tokens: int, temperature: float
+        self,
+        trace: RequestTrace,
+        max_tokens: int,
+        temperature: float,
+        *,
+        dispatch_admission_wait_ms: float = 0.0,
+        scheduled_arrival_offset_s: Optional[float] = None,
+        arrival_released_offset_s: Optional[float] = None,
+        admission_start_offset_s: Optional[float] = None,
+        admitted_offset_s: Optional[float] = None,
     ) -> RequestResult:
         # B2: 由 Router 选择实例，与线上路径一致
         await self._prune_dead_instance_slots()
@@ -8559,8 +8816,18 @@ class ScenarioRunner:
                     output_tokens_hint,
                 )
 
-            ttft_total = lora_io_ms + contention_ms + defer_ms + vllm_ttft
-            e2e_ms     = lora_io_ms + contention_ms + (t_end - t_start) * 1000
+            admitted_service_ttft_ms = lora_io_ms + contention_ms + defer_ms + vllm_ttft
+            admitted_service_e2e_ms = (
+                lora_io_ms + contention_ms + defer_ms + (t_end - t_start) * 1000
+            )
+            ingress_queue_wait_ms = max(
+                0.0,
+                (float(admitted_offset_s) - float(arrival_released_offset_s)) * 1000.0,
+            ) if admitted_offset_s is not None and arrival_released_offset_s is not None else 0.0
+            service_ttft_ms = ingress_queue_wait_ms + admitted_service_ttft_ms
+            service_e2e_ms = ingress_queue_wait_ms + admitted_service_e2e_ms
+            overall_ttft_ms = dispatch_admission_wait_ms + service_ttft_ms
+            overall_e2e_ms = dispatch_admission_wait_ms + service_e2e_ms
             cost       = _calc_cost(self.cost_model, request_plan.input_tokens, out_tokens)
 
             if adapter_id:
@@ -8572,10 +8839,18 @@ class ScenarioRunner:
                         cache_tier=cache_tier,
                         lora_io_ms=lora_io_ms,
                         runtime_ttft_ms=vllm_ttft,
-                        tail_service_ms=max(float(e2e_ms) - float(ttft_total), 0.0),
+                        tail_service_ms=max(
+                            float(admitted_service_e2e_ms) - float(admitted_service_ttft_ms),
+                            0.0,
+                        ),
                     )
                 except Exception:
                     pass
+            completed_offset_s = (
+                max(0.0, float(scheduled_arrival_offset_s) + overall_e2e_ms / 1000.0)
+                if scheduled_arrival_offset_s is not None
+                else None
+            )
 
             return RequestResult(
                 request_id=trace.request_id,
@@ -8586,11 +8861,11 @@ class ScenarioRunner:
                 cache_tier=cache_tier,
                 lora_io_ms=lora_io_ms,
                 vllm_ttft_ms=vllm_ttft,
-                ttft_ms=ttft_total,
+                ttft_ms=overall_ttft_ms,
                 contention_ms=contention_ms,
                 defer_ms=defer_ms,
                 tpot_ms=tpot,
-                e2e_ms=e2e_ms,
+                e2e_ms=overall_e2e_ms,
                 input_tokens=request_plan.input_tokens,
                 output_tokens=out_tokens,
                 cost_usd=cost,
@@ -8602,6 +8877,19 @@ class ScenarioRunner:
                 scaleup_planned_adapter_match=bool(
                     scaleup_labels.get("scaleup_planned_adapter_match", False)
                 ),
+                service_ttft_ms=service_ttft_ms,
+                service_e2e_ms=service_e2e_ms,
+                admitted_service_ttft_ms=admitted_service_ttft_ms,
+                admitted_service_e2e_ms=admitted_service_e2e_ms,
+                ingress_queue_wait_ms=ingress_queue_wait_ms,
+                overall_ttft_ms=overall_ttft_ms,
+                overall_e2e_ms=overall_e2e_ms,
+                dispatch_admission_wait_ms=dispatch_admission_wait_ms,
+                scheduled_arrival_offset_s=scheduled_arrival_offset_s,
+                arrival_released_offset_s=arrival_released_offset_s,
+                admission_start_offset_s=admission_start_offset_s,
+                admitted_offset_s=admitted_offset_s,
+                completed_offset_s=completed_offset_s,
             )
 
         except Exception as exc:
@@ -8620,14 +8908,26 @@ class ScenarioRunner:
                     )
             except Exception:
                 pass
+            admitted_service_error_ms = lora_io_ms + contention_ms + defer_ms
+            ingress_queue_wait_ms = max(
+                0.0,
+                (float(admitted_offset_s) - float(arrival_released_offset_s)) * 1000.0,
+            ) if admitted_offset_s is not None and arrival_released_offset_s is not None else 0.0
+            service_error_ms = ingress_queue_wait_ms + admitted_service_error_ms
+            overall_error_ms = dispatch_admission_wait_ms + service_error_ms
+            completed_offset_s = (
+                max(0.0, float(scheduled_arrival_offset_s) + overall_error_ms / 1000.0)
+                if scheduled_arrival_offset_s is not None
+                else None
+            )
             return RequestResult(
                 request_id=trace.request_id, adapter_id=adapter_id,
                 is_burst=trace.is_burst, burst_phase=burst_phase,
                 cache_hit=bool(adapter_id) and (cache_tier != "remote"), cache_tier=cache_tier,
                 lora_io_ms=lora_io_ms, vllm_ttft_ms=0,
-                ttft_ms=lora_io_ms + contention_ms,
+                ttft_ms=overall_error_ms,
                 contention_ms=contention_ms, defer_ms=defer_ms,
-                tpot_ms=0, e2e_ms=lora_io_ms + contention_ms,
+                tpot_ms=0, e2e_ms=overall_error_ms,
                 input_tokens=request_plan.input_tokens, output_tokens=0,
                 cost_usd=0, success=False,
                 instance_id=instance_id,
@@ -8637,6 +8937,19 @@ class ScenarioRunner:
                 scaleup_planned_adapter_match=bool(
                     scaleup_labels.get("scaleup_planned_adapter_match", False)
                 ),
+                service_ttft_ms=service_error_ms,
+                service_e2e_ms=service_error_ms,
+                admitted_service_ttft_ms=admitted_service_error_ms,
+                admitted_service_e2e_ms=admitted_service_error_ms,
+                ingress_queue_wait_ms=ingress_queue_wait_ms,
+                overall_ttft_ms=overall_error_ms,
+                overall_e2e_ms=overall_error_ms,
+                dispatch_admission_wait_ms=dispatch_admission_wait_ms,
+                scheduled_arrival_offset_s=scheduled_arrival_offset_s,
+                arrival_released_offset_s=arrival_released_offset_s,
+                admission_start_offset_s=admission_start_offset_s,
+                admitted_offset_s=admitted_offset_s,
+                completed_offset_s=completed_offset_s,
                 error=str(exc),
             )
         finally:
@@ -8819,6 +9132,22 @@ def _load_shared_adapter_subset(path_like: str) -> Tuple[Path, List[Dict[str, An
     adapters = list(payload.get("adapters", []) or payload.get("selected_adapters", []) or [])
     if not adapters:
         raise ValueError(f"shared adapter subset artifact has no adapters: {path}")
+    remote_dir_raw = payload.get("remote_dir")
+    if remote_dir_raw:
+        remote_dir = Path(str(remote_dir_raw)).expanduser()
+        if not remote_dir.is_absolute():
+            remote_dir = (REPO_ROOT / remote_dir).resolve()
+        else:
+            remote_dir = remote_dir.resolve()
+        normalized: List[Dict[str, Any]] = []
+        for adapter in adapters:
+            entry = copy.deepcopy(dict(adapter or {}))
+            adapter_id = str(entry.get("id") or "").strip()
+            if not adapter_id:
+                raise ValueError(f"shared adapter subset has adapter without id: {path}")
+            entry.setdefault("local_path", str((remote_dir / adapter_id).resolve()))
+            normalized.append(entry)
+        adapters = normalized
     return path, adapters
 
 
@@ -9791,11 +10120,16 @@ def _adapter_matches_model(adapter_dir: Path, model_name: str, arch: Dict) -> bo
         sf_file = adapter_dir / "adapter_model.safetensors"
         if sf_file.exists():
             from safetensors import safe_open
+            import torch
             with safe_open(str(sf_file), framework="pt") as f:
                 keys = list(f.keys())
                 lora_a_keys = [k for k in keys if k.endswith("lora_A.weight")]
                 if not lora_a_keys:
                     return False
+                for key in keys:
+                    tensor = f.get_tensor(key)
+                    if not torch.isfinite(tensor).all().item():
+                        return False
                 keyset = set(keys)
                 matched_pair = False
                 for a_key in lora_a_keys:
@@ -10007,6 +10341,12 @@ def _build_metric_groups(r: ScenarioResult, digits: int = 4) -> Dict[str, Dict[s
             "TTFT_avg_ms": _round_metric_value(r.avg_ttft_ms, digits),
             "TTFT_P95_ms": _round_metric_value(r.p95_ttft_ms, digits),
             "TTFT_P99_ms": _round_metric_value(r.p99_ttft_ms, digits),
+            "TTFT_e2e_avg_ms": _round_metric_value(r.avg_overall_ttft_ms, digits),
+            "TTFT_e2e_P95_ms": _round_metric_value(r.p95_overall_ttft_ms, digits),
+            "TTFT_e2e_P99_ms": _round_metric_value(r.p99_overall_ttft_ms, digits),
+            "TTFT_service_avg_ms": _round_metric_value(r.avg_service_ttft_ms, digits),
+            "TTFT_service_P95_ms": _round_metric_value(r.p95_service_ttft_ms, digits),
+            "TTFT_service_P99_ms": _round_metric_value(r.p99_service_ttft_ms, digits),
             "TTFT_warm_standard_avg_ms": _round_metric_value(r.avg_warm_standard_ttft_ms, digits),
             "TTFT_warm_standard_P95_ms": _round_metric_value(r.p95_warm_standard_ttft_ms, digits),
             "TTFT_warm_standard_P99_ms": _round_metric_value(r.p99_warm_standard_ttft_ms, digits),
@@ -10017,6 +10357,10 @@ def _build_metric_groups(r: ScenarioResult, digits: int = 4) -> Dict[str, Dict[s
         },
         "serverless_deployment_metrics": {
             "TTFT_overall_avg_ms": _round_metric_value(r.avg_ttft_ms, digits),
+            "TTFT_e2e_avg_ms": _round_metric_value(r.avg_overall_ttft_ms, digits),
+            "TTFT_service_avg_ms": _round_metric_value(r.avg_service_ttft_ms, digits),
+            "Dispatch_admission_wait_avg_ms": _round_metric_value(r.avg_dispatch_admission_wait_ms, digits),
+            "Dispatch_admission_wait_P95_ms": _round_metric_value(r.p95_dispatch_admission_wait_ms, digits),
             "TTFT_comparable_avg_ms": _round_metric_value(r.avg_comparable_ttft_ms, digits),
             "TTFT_comparable_P95_ms": _round_metric_value(r.p95_comparable_ttft_ms, digits),
             "TTFT_comparable_P99_ms": _round_metric_value(r.p99_comparable_ttft_ms, digits),
@@ -10033,9 +10377,13 @@ def _build_metric_groups(r: ScenarioResult, digits: int = 4) -> Dict[str, Dict[s
             "Cold_start_P95_ms": _round_metric_value(r.p95_cold_start_latency_ms, digits),
             "TTFT_serverless_overhead_avg_ms": _round_metric_value(r.avg_serverless_overhead_ms, digits),
             "TTFT_serverless_overhead_P95_ms": _round_metric_value(r.p95_serverless_overhead_ms, digits),
+            "TTFT_service_overhead_avg_ms": _round_metric_value(r.avg_service_overhead_ms, digits),
+            "TTFT_service_overhead_P95_ms": _round_metric_value(r.p95_service_overhead_ms, digits),
             "E2E_avg_ms": _round_metric_value(r.avg_e2e_ms, digits),
             "E2E_P95_ms": _round_metric_value(r.p95_e2e_ms, digits),
             "E2E_P99_ms": _round_metric_value(r.p99_e2e_ms, digits),
+            "E2E_e2e_avg_ms": _round_metric_value(r.avg_overall_e2e_ms, digits),
+            "E2E_service_avg_ms": _round_metric_value(r.avg_service_e2e_ms, digits),
             "Monetary_cost_avg_usd": _round_metric_value(r.avg_cost_usd, digits),
             "Monetary_cost_total_usd": _round_metric_value(r.total_cost_usd, digits),
         },
@@ -10325,6 +10673,12 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "TTFT_P50_ms": round(r.p50_ttft_ms, 1),
             "TTFT_P95_ms": round(r.p95_ttft_ms, 1),
             "TTFT_P99_ms": round(r.p99_ttft_ms, 1),
+            "TTFT_e2e_avg_ms": round(r.avg_overall_ttft_ms, 1),
+            "TTFT_e2e_P95_ms": round(r.p95_overall_ttft_ms, 1),
+            "TTFT_e2e_P99_ms": round(r.p99_overall_ttft_ms, 1),
+            "TTFT_service_avg_ms": round(r.avg_service_ttft_ms, 1),
+            "TTFT_service_P95_ms": round(r.p95_service_ttft_ms, 1),
+            "TTFT_service_P99_ms": round(r.p99_service_ttft_ms, 1),
             "TTFT_comparable_avg_ms": round(r.avg_comparable_ttft_ms, 1),
             "TTFT_comparable_P95_ms": round(r.p95_comparable_ttft_ms, 1),
             "TTFT_comparable_P99_ms": round(r.p99_comparable_ttft_ms, 1),
@@ -10340,11 +10694,16 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "Cold_start_avg_ms": round(r.avg_cold_start_latency_ms, 1),
             "Cold_start_P95_ms": round(r.p95_cold_start_latency_ms, 1),
             "TTFT_serverless_overhead_avg_ms": round(r.avg_serverless_overhead_ms, 1),
+            "TTFT_service_overhead_avg_ms": round(r.avg_service_overhead_ms, 1),
+            "Dispatch_admission_wait_avg_ms": round(r.avg_dispatch_admission_wait_ms, 1),
+            "Dispatch_admission_wait_P95_ms": round(r.p95_dispatch_admission_wait_ms, 1),
             "TPOT_avg_ms": round(r.avg_tpot_ms, 2),
             "TPOT_observed_ratio": round(r.tpot_observed_request_ratio, 4),
             "E2E_avg_ms":  round(r.avg_e2e_ms, 1),
             "E2E_P95_ms":  round(r.p95_e2e_ms, 1),
             "E2E_P99_ms":  round(r.p99_e2e_ms, 1),
+            "E2E_e2e_avg_ms": round(r.avg_overall_e2e_ms, 1),
+            "E2E_service_avg_ms": round(r.avg_service_e2e_ms, 1),
             "throughput_RPS":  round(r.throughput_rps, 3),
             "throughput_TOKPS": round(r.throughput_tok_per_s, 3),
             "SLO_attainment": round(r.slo_attainment, 4),
@@ -10423,13 +10782,37 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "completed_requests": r.completed,
             "failed_requests": r.failed,
             "elapsed_sec": round(r.elapsed_sec, 4),
+            "metric_schema_version": "e2e_v3",
+            "primary_ttft_definition": "scheduled trace arrival to client-observed first output token/chunk",
+            "primary_e2e_definition": "scheduled trace arrival to client-observed response completion",
+            "service_ttft_definition": "common system-ingress to first output token/chunk; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
+            "slo_metric": "TTFT_e2e",
             "avg_ttft_ms": round(r.avg_ttft_ms, 4),
             "p95_ttft_ms": round(r.p95_ttft_ms, 4),
             "p99_ttft_ms": round(r.p99_ttft_ms, 4),
+            "avg_overall_ttft_ms": round(r.avg_overall_ttft_ms, 4),
+            "p50_overall_ttft_ms": round(r.p50_overall_ttft_ms, 4),
+            "p95_overall_ttft_ms": round(r.p95_overall_ttft_ms, 4),
+            "p99_overall_ttft_ms": round(r.p99_overall_ttft_ms, 4),
+            "avg_service_ttft_ms": round(r.avg_service_ttft_ms, 4),
+            "p95_service_ttft_ms": round(r.p95_service_ttft_ms, 4),
+            "p99_service_ttft_ms": round(r.p99_service_ttft_ms, 4),
+            "avg_admitted_service_ttft_ms": round(r.avg_admitted_service_ttft_ms, 4),
+            "p95_admitted_service_ttft_ms": round(r.p95_admitted_service_ttft_ms, 4),
+            "p99_admitted_service_ttft_ms": round(r.p99_admitted_service_ttft_ms, 4),
             "avg_tpot_ms": round(r.avg_tpot_ms, 4),
             "avg_e2e_ms": round(r.avg_e2e_ms, 4),
             "p95_e2e_ms": round(r.p95_e2e_ms, 4),
             "p99_e2e_ms": round(r.p99_e2e_ms, 4),
+            "avg_overall_e2e_ms": round(r.avg_overall_e2e_ms, 4),
+            "p95_overall_e2e_ms": round(r.p95_overall_e2e_ms, 4),
+            "p99_overall_e2e_ms": round(r.p99_overall_e2e_ms, 4),
+            "avg_service_e2e_ms": round(r.avg_service_e2e_ms, 4),
+            "p95_service_e2e_ms": round(r.p95_service_e2e_ms, 4),
+            "p99_service_e2e_ms": round(r.p99_service_e2e_ms, 4),
+            "avg_admitted_service_e2e_ms": round(r.avg_admitted_service_e2e_ms, 4),
+            "p95_admitted_service_e2e_ms": round(r.p95_admitted_service_e2e_ms, 4),
+            "p99_admitted_service_e2e_ms": round(r.p99_admitted_service_e2e_ms, 4),
             "throughput_rps": round(r.throughput_rps, 6),
             "throughput_tok_per_s": round(r.throughput_tok_per_s, 6),
             "slo_attainment": round(r.slo_attainment, 6),
@@ -10451,6 +10834,12 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "p99_warm_standard_ttft_ms": round(r.p99_warm_standard_ttft_ms, 4),
             "avg_serverless_overhead_ms": round(r.avg_serverless_overhead_ms, 4),
             "p95_serverless_overhead_ms": round(r.p95_serverless_overhead_ms, 4),
+            "avg_service_overhead_ms": round(r.avg_service_overhead_ms, 4),
+            "p95_service_overhead_ms": round(r.p95_service_overhead_ms, 4),
+            "avg_dispatch_admission_wait_ms": round(r.avg_dispatch_admission_wait_ms, 4),
+            "p95_dispatch_admission_wait_ms": round(r.p95_dispatch_admission_wait_ms, 4),
+            "avg_ingress_queue_wait_ms": round(r.avg_ingress_queue_wait_ms, 4),
+            "p95_ingress_queue_wait_ms": round(r.p95_ingress_queue_wait_ms, 4),
             "avg_runtime_ttft_ms": round(r.avg_runtime_ttft_ms, 4),
             "p95_runtime_ttft_ms": round(r.p95_runtime_ttft_ms, 4),
             "avg_gpu_ready_ttft_ms": round(r.avg_gpu_ready_ttft_ms, 4),
@@ -10497,13 +10886,30 @@ def save_results(results: List[ScenarioResult], path: Path, meta: Dict):
                        if row["baseline_type"] in sota_types]
 
     data = {
-        "schema_version": 3,
+        "schema_version": 4,
+        "metric_schema_version": "e2e_v3",
         "metadata": meta,
+        "metric_definitions": {
+            "primary_ttft": "scheduled trace arrival to client-observed first output token/chunk",
+            "primary_e2e": "scheduled trace arrival to client-observed response completion",
+            "service_ttft": "common system-ingress to first output token/chunk; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
+            "service_e2e": "common system-ingress to response completion; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
+            "admitted_service_ttft": "FaaSLoRA-only internal metric from dispatch admission granted to first output token/chunk",
+            "admitted_service_e2e": "FaaSLoRA-only internal metric from dispatch admission granted to response completion",
+            "tpot": "(final_token_time - first_token_time) / max(output_tokens - 1, 1)",
+            "slo_metric": "TTFT_e2e",
+        },
         "metric_structure": {
             "standard_serving_metrics": [
                 "TTFT_avg_ms",
                 "TTFT_P95_ms",
                 "TTFT_P99_ms",
+                "TTFT_e2e_avg_ms",
+                "TTFT_e2e_P95_ms",
+                "TTFT_e2e_P99_ms",
+                "TTFT_service_avg_ms",
+                "TTFT_service_P95_ms",
+                "TTFT_service_P99_ms",
                 "TTFT_warm_standard_avg_ms",
                 "TTFT_warm_standard_P95_ms",
                 "TTFT_warm_standard_P99_ms",
@@ -10514,6 +10920,10 @@ def save_results(results: List[ScenarioResult], path: Path, meta: Dict):
             ],
             "serverless_deployment_metrics": [
                 "TTFT_overall_avg_ms",
+                "TTFT_e2e_avg_ms",
+                "TTFT_service_avg_ms",
+                "Dispatch_admission_wait_avg_ms",
+                "Dispatch_admission_wait_P95_ms",
                 "TTFT_comparable_avg_ms",
                 "TTFT_comparable_P95_ms",
                 "TTFT_comparable_P99_ms",
@@ -10527,9 +10937,13 @@ def save_results(results: List[ScenarioResult], path: Path, meta: Dict):
                 "Cold_start_P95_ms",
                 "TTFT_serverless_overhead_avg_ms",
                 "TTFT_serverless_overhead_P95_ms",
+                "TTFT_service_overhead_avg_ms",
+                "TTFT_service_overhead_P95_ms",
                 "E2E_avg_ms",
                 "E2E_P95_ms",
                 "E2E_P99_ms",
+                "E2E_e2e_avg_ms",
+                "E2E_service_avg_ms",
                 "Monetary_cost_avg_usd",
                 "Monetary_cost_total_usd",
             ],
@@ -11534,9 +11948,10 @@ async def main_async(
 
             print(
                 f"  Done: {result.completed}/{result.total}  "
-                f"TTFT_overall={result.avg_ttft_ms:.0f}/{result.p95_ttft_ms:.0f}/{result.p99_ttft_ms:.0f}ms  "
+                f"TTFT_e2e={result.avg_ttft_ms:.0f}/{result.p95_ttft_ms:.0f}/{result.p99_ttft_ms:.0f}ms  "
+                f"TTFT_service={result.avg_service_ttft_ms:.0f}/{result.p95_service_ttft_ms:.0f}/{result.p99_service_ttft_ms:.0f}ms  "
                 f"TPOT={result.avg_tpot_ms:.1f}ms  Tok/s={result.throughput_tok_per_s:.2f}  "
-                f"E2E={result.avg_e2e_ms:.0f}ms"
+                f"E2E_e2e={result.avg_e2e_ms:.0f}ms"
             )
             print(
                 f"  Cost/req=${result.avg_cost_usd:.6f}  CE={result.qpr:.3f}  "
@@ -11553,7 +11968,9 @@ async def main_async(
                 f"  Diag Runtime={result.avg_runtime_ttft_ms:.0f}ms  "
                 f"GPUReady={result.avg_gpu_ready_ttft_ms:.0f}ms  "
                 f"Hit={result.cache_hit_rate:.0%}  "
-                f"Overhead(io+coord)={result.avg_serverless_overhead_ms:.0f}ms  "
+                f"DispatchWait={result.avg_dispatch_admission_wait_ms:.0f}ms  "
+                f"Overhead(e2e_path)={result.avg_serverless_overhead_ms:.0f}ms  "
+                f"Overhead(service_path)={result.avg_service_overhead_ms:.0f}ms  "
                 f"SLOGoodput={result.slo_goodput_rps:.2f}rps/{result.slo_goodput_tok_per_s:.2f}tok/s"
             )
             if result.gpu_ready_hits > 0 or result.warm_pool_hits > 0 or result.contention_events > 0:
@@ -11577,6 +11994,11 @@ async def main_async(
         results_file,
         meta={
             "experiment_time": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "metric_schema_version": "e2e_v3",
+            "primary_ttft_definition": "scheduled trace arrival to client-observed first output token/chunk",
+            "primary_e2e_definition": "scheduled trace arrival to client-observed response completion",
+            "service_ttft_definition": "common system-ingress to first output token/chunk; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
+            "slo_metric": "TTFT_e2e",
             "cuda_available": CUDA_AVAILABLE,
             "vllm_available": VLLM_AVAILABLE,
             "gpu_name": GPU_NAME,

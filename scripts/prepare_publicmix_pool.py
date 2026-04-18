@@ -194,6 +194,19 @@ def validate_public_adapter_dir(adapter_dir: Path, expected_model: str) -> Dict[
             result["reasons"].append(
                 f"adapter size exceeds publicmix limit ({result['size_mb']} MB > {MAX_PUBLICMIX_SIZE_MB} MB)"
             )
+        try:
+            import torch
+            from safetensors.torch import load_file
+
+            state = load_file(str(weight_file)) if str(weight_file).endswith(".safetensors") else torch.load(
+                str(weight_file),
+                map_location="cpu",
+                weights_only=False,
+            )
+            if not all(torch.isfinite(tensor).all().item() for tensor in state.values()):
+                result["reasons"].append("adapter weights contain non-finite values")
+        except Exception as exc:
+            result["reasons"].append(f"unable to validate weight finiteness: {exc}")
 
     if int(result["rank"]) > MAX_PUBLICMIX_RANK:
         result["reasons"].append(
