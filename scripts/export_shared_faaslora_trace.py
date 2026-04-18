@@ -128,6 +128,77 @@ def _validate_all_requests_bind_lora(
         )
 
 
+def _percentile(values: List[float], p: float) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    idx = int((len(ordered) - 1) * min(max(p, 0.0), 1.0))
+    return float(ordered[idx])
+
+
+def _max_count_in_window(arrivals: List[float], window_s: float) -> int:
+    if not arrivals or window_s <= 0:
+        return 0
+    ordered = sorted(float(x) for x in arrivals)
+    best = 0
+    right = 0
+    for left, start in enumerate(ordered):
+        while right < len(ordered) and ordered[right] <= start + window_s + 1e-9:
+            right += 1
+        best = max(best, right - left)
+    return best
+
+
+def _build_load_profile(
+    traces: List[Any],
+    *,
+    configured_time_scale_factor: float,
+    effective_time_scale_factor: float,
+    workload_cfg: Dict[str, Any],
+) -> Dict[str, Any]:
+    arrivals = [float(getattr(trace, "arrival_time", 0.0) or 0.0) for trace in traces]
+    input_tokens = [float(getattr(trace, "expected_input_tokens", 0) or 0) for trace in traces]
+    output_tokens = [float(getattr(trace, "expected_output_tokens", 0) or 0) for trace in traces]
+    adapters = [str(getattr(trace, "adapter_id", "") or "") for trace in traces]
+    span_s = max(arrivals) - min(arrivals) if len(arrivals) >= 2 else 0.0
+
+    def token_summary(values: List[float]) -> Dict[str, float | None]:
+        return {
+            "avg": (sum(values) / len(values)) if values else None,
+            "p50": _percentile(values, 0.50),
+            "p95": _percentile(values, 0.95),
+            "p99": _percentile(values, 0.99),
+            "max": max(values) if values else None,
+        }
+
+    window_summaries: Dict[str, Dict[str, float]] = {}
+    for window_s in (1.0, 5.0, 10.0, 30.0, 60.0, 300.0):
+        count = _max_count_in_window(arrivals, window_s)
+        window_summaries[f"{int(window_s)}s"] = {
+            "max_count": int(count),
+            "max_rps": float(count / window_s),
+        }
+
+    return {
+        "configured_time_scale_factor": float(configured_time_scale_factor),
+        "effective_time_scale_factor": float(effective_time_scale_factor),
+        "total_requests": int(len(traces)),
+        "span_s": float(span_s),
+        "avg_rps": float(len(traces) / span_s) if span_s > 0 else None,
+        "window_peaks": window_summaries,
+        "input_tokens": token_summary(input_tokens),
+        "output_tokens": token_summary(output_tokens),
+        "unique_adapters_in_trace": int(len(set(adapter for adapter in adapters if adapter))),
+        "zipf_exponent": float(workload_cfg.get("zipf_exponent", 1.0) or 1.0),
+        "active_adapter_cap": (
+            int(workload_cfg["active_adapter_cap"])
+            if workload_cfg.get("active_adapter_cap") is not None
+            else None
+        ),
+        "hotset_rotation_requests": int(workload_cfg.get("hotset_rotation_requests", 0) or 0),
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(
         description="Export the authoritative FaaSLoRA formal trace as a shared comparison input."
@@ -153,6 +224,15 @@ def main() -> int:
     )
     ap.add_argument("--selected-num-adapters", type=int, default=None)
     ap.add_argument("--total-requests", type=int, default=None)
+    ap.add_argument(
+        "--time-scale-factor",
+        type=float,
+        default=None,
+        help=(
+            "Optional workload time-scale override. Values >1 stretch the same "
+            "Azure-shaped trace and reduce offered load; values <1 compress it."
+        ),
+    )
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
 
@@ -205,6 +285,17 @@ def main() -> int:
             f"but resolved profile {args.workload_profile!r} uses {lora_request_ratio:.6f}"
         )
 
+    configured_time_scale = float(workload_cfg.get("time_scale_factor", 1.0) or 1.0)
+    effective_time_scale = (
+        float(args.time_scale_factor)
+        if args.time_scale_factor is not None
+        else configured_time_scale
+    )
+    if effective_time_scale <= 0:
+        raise RuntimeError(
+            f"time_scale_factor must be > 0 for fair replay, got {effective_time_scale}"
+        )
+
     traces = dataset.generate_traces(
         adapter_ids=adapter_ids,
         workload_type=str(workload_cfg.get("workload_type", "mixed")),
@@ -214,7 +305,7 @@ def main() -> int:
             if args.total_requests is not None
             else (workload_cfg.get("total_requests", 500) or 500)
         ),
-        time_scale_factor=float(workload_cfg.get("time_scale_factor", 1.0) or 1.0),
+        time_scale_factor=effective_time_scale,
         sampling_strategy=str(workload_cfg.get("sampling_strategy", "representative")),
         lora_request_ratio=lora_request_ratio,
         active_adapter_cap=workload_cfg.get("active_adapter_cap"),
@@ -263,6 +354,13 @@ def main() -> int:
             }
         )
 
+    load_profile = _build_load_profile(
+        traces,
+        configured_time_scale_factor=configured_time_scale,
+        effective_time_scale_factor=effective_time_scale,
+        workload_cfg=workload_cfg,
+    )
+
     adapter_subset_payload = {
         "source": "faaslora_formal_adapter_subset",
         "main_repo": str(main_repo),
@@ -290,6 +388,9 @@ def main() -> int:
         "selected_num_adapters": selected_num,
         "total_requests": len(requests),
         "sampling_seed": int(args.seed),
+        "configured_time_scale_factor": configured_time_scale,
+        "effective_time_scale_factor": effective_time_scale,
+        "load_profile": load_profile,
         "remote_dir": resolved_remote_dir,
         "pool_source_path": str(pool_source_path),
         "selected_adapters": selected_adapters,
@@ -300,6 +401,15 @@ def main() -> int:
     args.output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     print(f"exported {len(requests)} requests -> {args.output}")
     print(f"selected adapters: {selected_num}")
+    print(
+        "load profile -> "
+        f"time_scale={effective_time_scale:.3f} "
+        f"span={load_profile['span_s']:.1f}s "
+        f"avg_rps={load_profile['avg_rps']:.3f} "
+        f"peak_1s={load_profile['window_peaks']['1s']['max_rps']:.3f}rps "
+        f"peak_5s={load_profile['window_peaks']['5s']['max_rps']:.3f}rps "
+        f"unique_adapters={load_profile['unique_adapters_in_trace']}"
+    )
     print(f"adapter pool source -> {pool_source_path}")
     if args.adapter_subset_output is not None:
         args.adapter_subset_output.parent.mkdir(parents=True, exist_ok=True)

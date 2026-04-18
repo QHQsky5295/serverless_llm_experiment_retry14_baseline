@@ -5,6 +5,7 @@ ROOT_DIR="${SLLM_BASELINES_ROOT:-/home/qhq/serverless_llm_baselines}"
 MAIN_REPO="${SLLM_MAIN_REPO:-/home/qhq/serverless_llm_experiment_retry14_baseline}"
 SHARED_INPUT_DIR="${SLLM_SHARED_INPUT_DIR:-${ROOT_DIR}/results/shared_inputs}"
 RESULT_DIR="${SLLM_RESULT_DIR:-${ROOT_DIR}/results/replay}"
+LOG_DIR="${SLLM_LOG_DIR:-${ROOT_DIR}/results/logs}"
 CONFIG_PATH="${SLLM_CONFIG_PATH:-${MAIN_REPO}/configs/experiments.yaml}"
 
 MODEL_PROFILE="${SLLM_MODEL_PROFILE:?SLLM_MODEL_PROFILE is required}"
@@ -18,8 +19,10 @@ WORKER_GPUS="${SLLM_WORKER_GPUS:-0,1,2,3}"
 BACKEND="${SLLM_BACKEND:-auto}"
 VLLM_ENV_NAME="${SLLM_VLLM_ENV_NAME:-sllm_vllm0102_official}"
 VLLM_SOURCE_ENV="${SLLM_VLLM_SOURCE_ENV:-LLM_vllm0102}"
+CONDA_ROOT="${SLLM_CONDA_ROOT:-/home/qhq/anaconda3}"
 SLEEP_SCALE="${SLLM_SLEEP_SCALE:-1.0}"
 TIMEOUT_S="${SLLM_TIMEOUT_S:-3600}"
+VLLM_PROBE_TIMEOUT_S="${SLLM_VLLM_PROBE_TIMEOUT_S:-120}"
 LIMIT_ADAPTERS="${SLLM_LIMIT_ADAPTERS:-}"
 SHARED_TRACE_PATH="${SLLM_SHARED_TRACE_PATH:?SLLM_SHARED_TRACE_PATH is required}"
 SHARED_ADAPTER_SUBSET_PATH="${SLLM_SHARED_ADAPTER_SUBSET_PATH:?SLLM_SHARED_ADAPTER_SUBSET_PATH is required}"
@@ -30,18 +33,45 @@ ADAPTER_SUBSET_PATH="${SHARED_ADAPTER_SUBSET_PATH}"
 DEPLOY_PATH="${SHARED_INPUT_DIR}/${RUN_TAG}_deploy.json"
 REPLAY_PATH="${RESULT_DIR}/${RUN_TAG}_replay.json"
 SUMMARY_PATH="${RESULT_DIR}/${RUN_TAG}_summary.json"
+STACK_SUFFIX_RAW="${SLLM_STACK_SUFFIX:-${RUN_TAG}}"
+STACK_SUFFIX="$(printf '%s' "${STACK_SUFFIX_RAW}" | tr -c 'A-Za-z0-9_.-' '_')"
 
-mkdir -p "${SHARED_INPUT_DIR}" "${RESULT_DIR}"
+mkdir -p "${SHARED_INPUT_DIR}" "${RESULT_DIR}" "${LOG_DIR}"
 
 ORIGINAL_HEAD_ENV="${SLLM_HEAD_ENV:-}"
 ORIGINAL_WORKER_ENV="${SLLM_WORKER_ENV:-}"
 ORIGINAL_STORE_ENV="${SLLM_STORE_ENV:-}"
 ORIGINAL_DIRECT_PATH_MODE="${SLLM_DIRECT_PATH_MODE:-}"
+STACK_STARTED=0
+
+env_prefix() {
+  local env_name="$1"
+  printf '%s/envs/%s' "${CONDA_ROOT}" "${env_name}"
+}
+
+env_python_bin() {
+  local env_name="$1"
+  printf '%s/bin/python' "$(env_prefix "${env_name}")"
+}
+
+run_python_in_env() {
+  local env_name="$1"
+  shift
+  env PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "$(env_python_bin "${env_name}")" "$@"
+}
+
+cleanup_stack() {
+  if [[ "${STACK_STARTED}" == "1" && "${SLLM_AUTO_STOP_STACK:-1}" == "1" ]]; then
+    bash "${ROOT_DIR}/scripts/stop_serverlessllm_stack.sh" >/dev/null 2>&1 || true
+  fi
+}
+
+trap cleanup_stack EXIT
 
 generate_deploy() {
   local backend="$1"
   local -a gen_cmd=(
-    python "${ROOT_DIR}/scripts/generate_serverlessllm_deploy_config.py"
+    "${ROOT_DIR}/scripts/generate_serverlessllm_deploy_config.py"
     --main-repo "${MAIN_REPO}"
     --model-profile "${MODEL_PROFILE}"
     --workload-profile "${WORKLOAD_PROFILE}"
@@ -57,16 +87,32 @@ generate_deploy() {
   if [[ -n "${LIMIT_ADAPTERS}" ]]; then
     gen_cmd+=(--limit-adapters "${LIMIT_ADAPTERS}")
   fi
-  env PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 conda run --no-capture-output -n sllm_head_official "${gen_cmd[@]}"
+  run_python_in_env sllm_head_official "${gen_cmd[@]}"
+}
+
+env_has_vllm() {
+  local env_name="$1"
+  timeout 20s run_python_in_env "${env_name}" \
+    -c 'import importlib.util, sys; sys.exit(0 if importlib.util.find_spec("vllm") else 1)' \
+    >/dev/null 2>&1
 }
 
 probe_vllm_backend() {
   local use_v1="$1"
-  env PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 CUDA_VISIBLE_DEVICES="${WORKER_GPUS}" VLLM_USE_V1="${use_v1}" STORAGE_PATH="${ROOT_DIR}/models" SLLM_STORAGE_PATH="${ROOT_DIR}/models" \
-    conda run --no-capture-output -n "${VLLM_RUNTIME_ENV}" \
-    python "${ROOT_DIR}/scripts/probe_vllm_lora_runtime.py" \
+  local probe_log
+  probe_log="$(mktemp)"
+  if timeout "${VLLM_PROBE_TIMEOUT_S}s" \
+    env PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 CUDA_VISIBLE_DEVICES="${WORKER_GPUS}" VLLM_USE_V1="${use_v1}" STORAGE_PATH="${ROOT_DIR}/models" SLLM_STORAGE_PATH="${ROOT_DIR}/models" \
+      "$(env_python_bin "${VLLM_RUNTIME_ENV}")" "${ROOT_DIR}/scripts/probe_vllm_lora_runtime.py" \
       --deploy "${DEPLOY_PATH}" \
-      --trace "${TRACE_PATH}"
+      --trace "${TRACE_PATH}" >"${probe_log}" 2>&1; then
+    rm -f "${probe_log}"
+    return 0
+  fi
+  echo "      vllm_probe_engine=V${use_v1} failed; tail follows:" >&2
+  grep -Ev '^(ERROR conda\\.cli\\.main_run:execute|TRACE conda\\.|==> )' "${probe_log}" | tail -n 40 >&2 || true
+  rm -f "${probe_log}"
+  return 1
 }
 
 configure_runtime_for_backend() {
@@ -100,8 +146,8 @@ if [[ ! -f "${ADAPTER_SUBSET_PATH}" ]]; then
 fi
 
 echo "[1/5] Validating shared trace and adapter subset"
-env PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 conda run --no-capture-output -n sllm_head_official \
-  python - "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" "${SAMPLING_SEED}" <<'PY'
+run_python_in_env sllm_head_official \
+  - "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" "${SAMPLING_SEED}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -170,8 +216,8 @@ if not trace_ids.issubset(subset_ids):
 PY
 
 readarray -t _METRIC_CFG < <(
-  env PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 conda run --no-capture-output -n sllm_head_official \
-    python - "${ROOT_DIR}" "${CONFIG_PATH}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" <<'PY'
+  run_python_in_env sllm_head_official \
+    - "${ROOT_DIR}" "${CONFIG_PATH}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" <<'PY'
 import sys
 from pathlib import Path
 
@@ -216,7 +262,7 @@ echo "      replay_timeout_s=${TIMEOUT_S}"
 
 if [[ "${BACKEND}" == "vllm" || "${BACKEND}" == "auto" ]]; then
   VLLM_RUNTIME_ENV="${VLLM_ENV_NAME}"
-  if [[ ! -d "/home/qhq/anaconda3/envs/${VLLM_RUNTIME_ENV}" ]]; then
+  if [[ ! -d "/home/qhq/anaconda3/envs/${VLLM_RUNTIME_ENV}" ]] || ! env_has_vllm "${VLLM_RUNTIME_ENV}"; then
     VLLM_RUNTIME_ENV="${VLLM_SOURCE_ENV}"
   fi
   echo "      vllm_runtime_env=${VLLM_RUNTIME_ENV}"
@@ -254,15 +300,23 @@ fi
 
 BACKEND="${ACTUAL_BACKEND}"
 echo "      runtime_backend=${BACKEND} head_env=${SLLM_HEAD_ENV} worker_env=${SLLM_WORKER_ENV} store_env=${SLLM_STORE_ENV} direct_path_mode=${SLLM_DIRECT_PATH_MODE}"
+export SLLM_HEAD_SESSION="${SLLM_HEAD_SESSION:-sllm_head_${STACK_SUFFIX}}"
+export SLLM_STORE_SESSION="${SLLM_STORE_SESSION:-sllm_store_${STACK_SUFFIX}}"
+export SLLM_SERVE_SESSION="${SLLM_SERVE_SESSION:-sllm_serve_${STACK_SUFFIX}}"
+export SLLM_WORKER_SESSION_PREFIX="${SLLM_WORKER_SESSION_PREFIX:-sllm_worker_${STACK_SUFFIX}}"
+export SLLM_SERVE_LOG_PATH="${SLLM_SERVE_LOG_PATH:-${LOG_DIR}/${RUN_TAG}_serve.log}"
+echo "      stack_sessions=head:${SLLM_HEAD_SESSION} store:${SLLM_STORE_SESSION} serve:${SLLM_SERVE_SESSION} worker_prefix:${SLLM_WORKER_SESSION_PREFIX}"
+echo "      serve_log=${SLLM_SERVE_LOG_PATH}"
 
 echo "[3/5] Starting isolated ServerlessLLM stack"
+STACK_STARTED=1
 SLLM_WORKER_GPUS="${WORKER_GPUS}" bash "${ROOT_DIR}/scripts/start_serverlessllm_stack.sh"
 echo "[4/5] Deploying model + sampled LoRA subset"
 bash "${ROOT_DIR}/scripts/deploy_serverlessllm_model.sh" "${DEPLOY_PATH}"
 
 echo "[5/5] Replaying shared trace with live metrics"
-env PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 conda run --no-capture-output -n sllm_head_official \
-  python "${ROOT_DIR}/scripts/replay_openai_trace.py" \
+run_python_in_env sllm_head_official \
+  "${ROOT_DIR}/scripts/replay_openai_trace.py" \
   --trace "${TRACE_PATH}" \
   --base-url "http://127.0.0.1:8343" \
   --sleep-scale "${SLEEP_SCALE}" \
@@ -276,17 +330,19 @@ env PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 conda run --no-capture-output -n sllm_
   --output "${REPLAY_PATH}"
 
 echo "[post] Summarizing replay into the shared paper metric schema"
-env PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 conda run --no-capture-output -n sllm_head_official \
-  python "${ROOT_DIR}/scripts/summarize_serverlessllm_replay.py" \
+run_python_in_env sllm_head_official \
+  "${ROOT_DIR}/scripts/summarize_serverlessllm_replay.py" \
   --main-repo "${MAIN_REPO}" \
   --config "${CONFIG_PATH}" \
   --model-profile "${MODEL_PROFILE}" \
   --dataset-profile "${DATASET_PROFILE}" \
   --workload-profile "${WORKLOAD_PROFILE}" \
   --trace "${TRACE_PATH}" \
+  --adapter-subset "${ADAPTER_SUBSET_PATH}" \
   --replay "${REPLAY_PATH}" \
   --deploy "${DEPLOY_PATH}" \
   --scenario-name "serverlessllm_fair" \
+  --backend-label "serverlessllm_${BACKEND}" \
   --output "${SUMMARY_PATH}"
 
 echo "trace  -> ${TRACE_PATH}"

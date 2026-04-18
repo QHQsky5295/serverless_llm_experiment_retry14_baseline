@@ -2,6 +2,9 @@
 set -euo pipefail
 
 WORKER_ENV="${SLLM_WORKER_ENV:-sllm_worker_official}"
+CONDA_ROOT="${SLLM_CONDA_ROOT:-/home/qhq/anaconda3}"
+WORKER_ENV_PREFIX="${SLLM_WORKER_ENV_PREFIX:-${CONDA_ROOT}/envs/${WORKER_ENV}}"
+WORKER_RAY_BIN="${SLLM_WORKER_RAY_BIN:-${WORKER_ENV_PREFIX}/bin/ray}"
 RAY_PORT="${SLLM_RAY_PORT:-6389}"
 CUDA_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
 WORKER_ID="${SLLM_WORKER_ID:-0}"
@@ -9,7 +12,7 @@ WORKER_NUM_GPUS="${SLLM_WORKER_NUM_GPUS:-}"
 WORKER_CPUS="${SLLM_WORKER_CPUS:-}"
 RAY_HEAD_HOST="${SLLM_RAY_HEAD_HOST:-127.0.0.1}"
 RAY_HEAD_ADDRESS="${SLLM_RAY_HEAD_ADDRESS:-${RAY_HEAD_HOST}:${RAY_PORT}}"
-RAY_NODE_IP="${SLLM_RAY_NODE_IP:-127.0.0.1}"
+RAY_NODE_IP="${SLLM_RAY_NODE_IP:-${RAY_HEAD_HOST}}"
 SLLM_WORKER_RESOURCES="${SLLM_WORKER_RESOURCES:-{\"worker_node\": 1, \"worker_id_${WORKER_ID}\": 1}}"
 SLLM_REPO_ROOT="${SLLM_REPO_ROOT:-/home/qhq/serverless_llm_baselines/repos/ServerlessLLM}"
 SLLM_STORE_PATH="${SLLM_STORE_PATH:-/home/qhq/serverless_llm_baselines/models}"
@@ -31,6 +34,5 @@ exec env PYTHONNOUSERSITE=1 CUDA_VISIBLE_DEVICES="${CUDA_DEVICES}" \
   STORAGE_PATH="${SLLM_STORE_PATH}" \
   SLLM_SKIP_CONFIRM_MODEL_LOADED="${SLLM_SKIP_CONFIRM_MODEL_LOADED:-1}" \
   PYTHONPATH="${PYTHONPATH_PREFIX}" \
-  conda run --no-capture-output -n "${WORKER_ENV}" \
-  ray start --node-ip-address="${RAY_NODE_IP}" --address="${RAY_HEAD_ADDRESS}" --num-cpus="${WORKER_CPUS}" --num-gpus="${WORKER_NUM_GPUS}" \
+  "${WORKER_RAY_BIN}" start --node-ip-address="${RAY_NODE_IP}" --address="${RAY_HEAD_ADDRESS}" --num-cpus="${WORKER_CPUS}" --num-gpus="${WORKER_NUM_GPUS}" \
   --resources="${SLLM_WORKER_RESOURCES}" --block

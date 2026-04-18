@@ -85,6 +85,12 @@ def _build_metric_structure() -> Dict[str, List[str]]:
             "TTFT_avg_ms",
             "TTFT_P95_ms",
             "TTFT_P99_ms",
+            "TTFT_e2e_avg_ms",
+            "TTFT_e2e_P95_ms",
+            "TTFT_e2e_P99_ms",
+            "TTFT_service_avg_ms",
+            "TTFT_service_P95_ms",
+            "TTFT_service_P99_ms",
             "TTFT_warm_standard_avg_ms",
             "TTFT_warm_standard_P95_ms",
             "TTFT_warm_standard_P99_ms",
@@ -95,6 +101,10 @@ def _build_metric_structure() -> Dict[str, List[str]]:
         ],
         "serverless_deployment_metrics": [
             "TTFT_overall_avg_ms",
+            "TTFT_e2e_avg_ms",
+            "TTFT_service_avg_ms",
+            "Dispatch_admission_wait_avg_ms",
+            "Dispatch_admission_wait_P95_ms",
             "TTFT_comparable_avg_ms",
             "TTFT_comparable_P95_ms",
             "TTFT_comparable_P99_ms",
@@ -108,9 +118,13 @@ def _build_metric_structure() -> Dict[str, List[str]]:
             "Cold_start_P95_ms",
             "TTFT_serverless_overhead_avg_ms",
             "TTFT_serverless_overhead_P95_ms",
+            "TTFT_service_overhead_avg_ms",
+            "TTFT_service_overhead_P95_ms",
             "E2E_avg_ms",
             "E2E_P95_ms",
             "E2E_P99_ms",
+            "E2E_e2e_avg_ms",
+            "E2E_service_avg_ms",
             "Monetary_cost_avg_usd",
             "Monetary_cost_total_usd",
         ],
@@ -138,12 +152,21 @@ def _build_metric_structure() -> Dict[str, List[str]]:
     }
 
 
+def _known_bool_rate(records: List[Dict[str, Any]], key: str) -> Optional[float]:
+    """Return a boolean rate only when the backend actually reported the field."""
+    known = [record for record in records if record.get(key) is not None]
+    if not known:
+        return None
+    return sum(1 for record in known if bool(record.get(key))) / len(known)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Summarize a ServerlessLLM replay into the paper metric schema.")
     ap.add_argument("--main-repo", type=Path, default=Path("/home/qhq/serverless_llm_experiment_retry14_baseline"))
     ap.add_argument("--config", type=Path, default=None)
     ap.add_argument("--replay", type=Path, required=True)
     ap.add_argument("--trace", type=Path, required=True)
+    ap.add_argument("--adapter-subset", type=Path, default=None)
     ap.add_argument("--deploy", type=Path, default=None)
     ap.add_argument("--model-profile", required=True)
     ap.add_argument("--dataset-profile", required=True)
@@ -176,6 +199,20 @@ def main() -> int:
 
     ttft = [float(r["ttft_ms"]) for r in ok if r.get("ttft_ms") is not None]
     e2e = [float(r["e2e_ms"]) for r in ok if r.get("e2e_ms") is not None]
+    service_ttft = [
+        float(r.get("service_ttft_ms", r.get("ttft_ms")))
+        for r in ok
+        if r.get("service_ttft_ms", r.get("ttft_ms")) is not None
+    ]
+    service_e2e = [
+        float(r.get("service_e2e_ms", r.get("e2e_ms")))
+        for r in ok
+        if r.get("service_e2e_ms", r.get("e2e_ms")) is not None
+    ]
+    dispatch_wait = [
+        float(r.get("dispatch_admission_wait_ms", 0.0) or 0.0)
+        for r in ok
+    ]
     tpot = [float(r["tpot_ms"]) for r in ok if r.get("tpot_ms") is not None]
     runtime_ttft = [
         float(r["runtime_ttft_ms"])
@@ -186,6 +223,11 @@ def main() -> int:
         float(r["serverless_overhead_ms"])
         for r in ok
         if r.get("serverless_overhead_ms") is not None
+    ]
+    service_overhead = [
+        float(r["service_overhead_ms"])
+        for r in ok
+        if r.get("service_overhead_ms") is not None
     ]
     lora_io = [
         float(r["lora_load_ms"])
@@ -251,12 +293,8 @@ def main() -> int:
     ce = 1.0 / ce_denom if ce_denom > 1e-12 else 0.0
     multi_token_ok = [r for r in ok if int(r.get("completion_tokens", 0) or 0) > 1]
     tpot_observed_ratio = (observed_tpot_count / len(multi_token_ok)) if multi_token_ok else 0.0
-    cache_hit_rate = (
-        sum(1 for r in ok if bool(r.get("cache_hit"))) / len(ok)
-    ) if ok else None
-    gpu_hit_rate = (
-        sum(1 for r in ok if bool(r.get("gpu_ready_request"))) / len(ok)
-    ) if ok else None
+    cache_hit_rate = _known_bool_rate(ok, "cache_hit")
+    gpu_hit_rate = _known_bool_rate(ok, "gpu_ready_request")
 
     summary = {
         "scenario_name": args.scenario_name,
@@ -275,13 +313,31 @@ def main() -> int:
         "completed_requests": len(ok),
         "failed_requests": len(failed),
         "elapsed_sec": _round(elapsed_sec),
+        "metric_schema_version": "e2e_v3",
+        "primary_ttft_definition": "scheduled trace arrival to client-observed first output token/chunk",
+        "primary_e2e_definition": "scheduled trace arrival to client-observed response completion",
+        "service_ttft_definition": "common system-ingress to first output token/chunk; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
+        "slo_metric": "TTFT_e2e",
         "avg_ttft_ms": _round(avg_ttft_ms),
         "p95_ttft_ms": _round(_pct(ttft, 95)),
         "p99_ttft_ms": _round(_pct(ttft, 99)),
+        "avg_overall_ttft_ms": _round(avg_ttft_ms),
+        "p50_overall_ttft_ms": _round(_pct(ttft, 50)),
+        "p95_overall_ttft_ms": _round(_pct(ttft, 95)),
+        "p99_overall_ttft_ms": _round(_pct(ttft, 99)),
+        "avg_service_ttft_ms": _round(sum(service_ttft) / len(service_ttft) if service_ttft else None),
+        "p95_service_ttft_ms": _round(_pct(service_ttft, 95)),
+        "p99_service_ttft_ms": _round(_pct(service_ttft, 99)),
         "avg_tpot_ms": _round(avg_tpot_ms),
         "avg_e2e_ms": _round(avg_e2e_ms),
         "p95_e2e_ms": _round(_pct(e2e, 95)),
         "p99_e2e_ms": _round(_pct(e2e, 99)),
+        "avg_overall_e2e_ms": _round(avg_e2e_ms),
+        "p95_overall_e2e_ms": _round(_pct(e2e, 95)),
+        "p99_overall_e2e_ms": _round(_pct(e2e, 99)),
+        "avg_service_e2e_ms": _round(sum(service_e2e) / len(service_e2e) if service_e2e else None),
+        "p95_service_e2e_ms": _round(_pct(service_e2e, 95)),
+        "p99_service_e2e_ms": _round(_pct(service_e2e, 99)),
         "throughput_rps": _round(throughput_rps, 6),
         "throughput_tok_per_s": _round(throughput_tokps, 6),
         "slo_attainment": _round(slo_attainment, 6),
@@ -303,6 +359,10 @@ def main() -> int:
         "p99_warm_standard_ttft_ms": _round(_pct(warm_standard_ttft, 99)),
         "avg_serverless_overhead_ms": _round(sum(overhead) / len(overhead) if overhead else None),
         "p95_serverless_overhead_ms": _round(_pct(overhead, 95)),
+        "avg_service_overhead_ms": _round(sum(service_overhead) / len(service_overhead) if service_overhead else None),
+        "p95_service_overhead_ms": _round(_pct(service_overhead, 95)),
+        "avg_dispatch_admission_wait_ms": _round(sum(dispatch_wait) / len(dispatch_wait) if dispatch_wait else None),
+        "p95_dispatch_admission_wait_ms": _round(_pct(dispatch_wait, 95)),
         "avg_runtime_ttft_ms": _round(sum(runtime_ttft) / len(runtime_ttft) if runtime_ttft else None),
         "p95_runtime_ttft_ms": _round(_pct(runtime_ttft, 95)),
         "avg_gpu_ready_ttft_ms": _round(sum(gpu_ready_ttft) / len(gpu_ready_ttft) if gpu_ready_ttft else None),
@@ -312,22 +372,10 @@ def main() -> int:
         "avg_scaleup_runtime_ttft_ms": _round(sum(scaleup_runtime_ttft) / len(scaleup_runtime_ttft) if scaleup_runtime_ttft else None),
         "p95_scaleup_runtime_ttft_ms": _round(_pct(scaleup_runtime_ttft, 95)),
         "scaleup_runtime_lora_request_count": len(scaleup_runtime_lora),
-        "scaleup_runtime_gpu_hit_rate": _round(
-            (
-                sum(1 for r in scaleup_runtime_lora if bool(r.get("gpu_ready_request")))
-                / len(scaleup_runtime_lora)
-            ) if scaleup_runtime_lora else None,
-            6,
-        ),
+        "scaleup_runtime_gpu_hit_rate": _round(_known_bool_rate(scaleup_runtime_lora, "gpu_ready_request"), 6),
         "avg_scaleup_first_service_ttft_ms": _round(sum(scaleup_first_service_ttft) / len(scaleup_first_service_ttft) if scaleup_first_service_ttft else None),
         "scaleup_first_service_request_count": len(scaleup_first_service),
-        "scaleup_first_service_gpu_hit_rate": _round(
-            (
-                sum(1 for r in scaleup_first_service if bool(r.get("gpu_ready_request")))
-                / len(scaleup_first_service)
-            ) if scaleup_first_service else None,
-            6,
-        ),
+        "scaleup_first_service_gpu_hit_rate": _round(_known_bool_rate(scaleup_first_service, "gpu_ready_request"), 6),
         "scaleup_first_service_planned_match_rate": None,
         "avg_cold_start_latency_ms": _round(sum(cold_start) / len(cold_start) if cold_start else None),
         "p95_cold_start_latency_ms": _round(_pct(cold_start, 95)),
@@ -348,6 +396,12 @@ def main() -> int:
             "TTFT_avg_ms": _round(avg_ttft_ms),
             "TTFT_P95_ms": _round(_pct(ttft, 95)),
             "TTFT_P99_ms": _round(_pct(ttft, 99)),
+            "TTFT_e2e_avg_ms": _round(avg_ttft_ms),
+            "TTFT_e2e_P95_ms": _round(_pct(ttft, 95)),
+            "TTFT_e2e_P99_ms": _round(_pct(ttft, 99)),
+            "TTFT_service_avg_ms": _round(sum(service_ttft) / len(service_ttft) if service_ttft else None),
+            "TTFT_service_P95_ms": _round(_pct(service_ttft, 95)),
+            "TTFT_service_P99_ms": _round(_pct(service_ttft, 99)),
             "TTFT_warm_standard_avg_ms": _round(sum(warm_standard_ttft) / len(warm_standard_ttft) if warm_standard_ttft else None),
             "TTFT_warm_standard_P95_ms": _round(_pct(warm_standard_ttft, 95)),
             "TTFT_warm_standard_P99_ms": _round(_pct(warm_standard_ttft, 99)),
@@ -358,6 +412,10 @@ def main() -> int:
         },
         "serverless_deployment_metrics": {
             "TTFT_overall_avg_ms": _round(avg_ttft_ms),
+            "TTFT_e2e_avg_ms": _round(avg_ttft_ms),
+            "TTFT_service_avg_ms": _round(sum(service_ttft) / len(service_ttft) if service_ttft else None),
+            "Dispatch_admission_wait_avg_ms": _round(sum(dispatch_wait) / len(dispatch_wait) if dispatch_wait else None),
+            "Dispatch_admission_wait_P95_ms": _round(_pct(dispatch_wait, 95)),
             "TTFT_comparable_avg_ms": _round(sum(comparable_ttft) / len(comparable_ttft) if comparable_ttft else None),
             "TTFT_comparable_P95_ms": _round(_pct(comparable_ttft, 95)),
             "TTFT_comparable_P99_ms": _round(_pct(comparable_ttft, 99)),
@@ -371,9 +429,13 @@ def main() -> int:
             "Cold_start_P95_ms": _round(_pct(cold_start, 95)),
             "TTFT_serverless_overhead_avg_ms": _round(sum(overhead) / len(overhead) if overhead else None),
             "TTFT_serverless_overhead_P95_ms": _round(_pct(overhead, 95)),
+            "TTFT_service_overhead_avg_ms": _round(sum(service_overhead) / len(service_overhead) if service_overhead else None),
+            "TTFT_service_overhead_P95_ms": _round(_pct(service_overhead, 95)),
             "E2E_avg_ms": _round(avg_e2e_ms),
             "E2E_P95_ms": _round(_pct(e2e, 95)),
             "E2E_P99_ms": _round(_pct(e2e, 99)),
+            "E2E_e2e_avg_ms": _round(avg_e2e_ms),
+            "E2E_service_avg_ms": _round(sum(service_e2e) / len(service_e2e) if service_e2e else None),
             "Monetary_cost_avg_usd": _round(avg_cost_usd, 8),
             "Monetary_cost_total_usd": _round(total_cost_usd, 8),
         },
@@ -425,6 +487,12 @@ def main() -> int:
         "TTFT_P50_ms": _cell(_pct(ttft, 50)),
         "TTFT_P95_ms": _cell(_pct(ttft, 95)),
         "TTFT_P99_ms": _cell(_pct(ttft, 99)),
+        "TTFT_e2e_avg_ms": _cell(avg_ttft_ms),
+        "TTFT_e2e_P95_ms": _cell(_pct(ttft, 95)),
+        "TTFT_e2e_P99_ms": _cell(_pct(ttft, 99)),
+        "TTFT_service_avg_ms": _cell(sum(service_ttft) / len(service_ttft) if service_ttft else None),
+        "TTFT_service_P95_ms": _cell(_pct(service_ttft, 95)),
+        "TTFT_service_P99_ms": _cell(_pct(service_ttft, 99)),
         "TTFT_comparable_avg_ms": _cell(sum(comparable_ttft) / len(comparable_ttft) if comparable_ttft else None),
         "TTFT_comparable_P95_ms": _cell(_pct(comparable_ttft, 95)),
         "TTFT_comparable_P99_ms": _cell(_pct(comparable_ttft, 99)),
@@ -440,11 +508,16 @@ def main() -> int:
         "Cold_start_avg_ms": _cell(sum(cold_start) / len(cold_start) if cold_start else None),
         "Cold_start_P95_ms": _cell(_pct(cold_start, 95)),
         "TTFT_serverless_overhead_avg_ms": _cell(sum(overhead) / len(overhead) if overhead else None),
+        "TTFT_service_overhead_avg_ms": _cell(sum(service_overhead) / len(service_overhead) if service_overhead else None),
+        "Dispatch_admission_wait_avg_ms": _cell(sum(dispatch_wait) / len(dispatch_wait) if dispatch_wait else None),
+        "Dispatch_admission_wait_P95_ms": _cell(_pct(dispatch_wait, 95)),
         "TPOT_avg_ms": _cell(avg_tpot_ms),
         "TPOT_observed_ratio": _cell(tpot_observed_ratio, 4),
         "E2E_avg_ms": _cell(avg_e2e_ms),
         "E2E_P95_ms": _cell(_pct(e2e, 95)),
         "E2E_P99_ms": _cell(_pct(e2e, 99)),
+        "E2E_e2e_avg_ms": _cell(avg_e2e_ms),
+        "E2E_service_avg_ms": _cell(sum(service_e2e) / len(service_e2e) if service_e2e else None),
         "throughput_RPS": _cell(throughput_rps, 3),
         "throughput_TOKPS": _cell(throughput_tokps, 3),
         "SLO_attainment": _cell(slo_attainment, 4),
@@ -505,15 +578,30 @@ def main() -> int:
     }
 
     output = {
-        "schema_version": 3,
+        "schema_version": 4,
+        "metric_schema_version": "e2e_v3",
+        "metric_definitions": {
+            "primary_ttft": "scheduled trace arrival to client-observed first output token/chunk",
+            "primary_e2e": "scheduled trace arrival to client-observed response completion",
+            "service_ttft": "common system-ingress to first output token/chunk; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
+            "service_e2e": "common system-ingress to response completion; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
+            "tpot": "(final_token_time - first_token_time) / max(output_tokens - 1, 1)",
+            "slo_metric": "TTFT_e2e",
+        },
         "metadata": {
             "system": str(args.system_name),
+            "metric_schema_version": "e2e_v3",
+            "primary_ttft_definition": "scheduled trace arrival to client-observed first output token/chunk",
+            "primary_e2e_definition": "scheduled trace arrival to client-observed response completion",
+            "service_ttft_definition": "common system-ingress to first output token/chunk; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
+            "slo_metric": "TTFT_e2e",
             "main_repo": str(main_repo),
             "config_path": str(cfg_path),
             "model_profile": args.model_profile,
             "dataset_profile": args.dataset_profile,
             "workload_profile": args.workload_profile,
             "trace_source": str(args.trace),
+            "adapter_subset_path": str(args.adapter_subset) if args.adapter_subset else None,
             "replay_source": str(args.replay),
             "deploy_config": str(args.deploy) if args.deploy else None,
             "model_name": str(model_cfg.get("name")),

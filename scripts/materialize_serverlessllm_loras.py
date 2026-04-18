@@ -6,10 +6,12 @@ import json
 import shutil
 from pathlib import Path
 
+import torch
 from safetensors.torch import load_file
 
 
 DEFAULT_STORAGE_ROOT = Path("/home/qhq/serverless_llm_baselines/models")
+PROVENANCE_FILE = ".serverlessllm_lora_source.json"
 
 
 def _is_materialized_store_lora(path: Path) -> bool:
@@ -22,6 +24,44 @@ def _is_raw_peft_lora(path: Path) -> bool:
 
 def _copy_metadata(raw_source: Path, target: Path) -> None:
     shutil.copy2(raw_source / "adapter_config.json", target / "adapter_config.json")
+
+
+def _resolve_raw_weight_path(raw_source: Path) -> Path:
+    for weight_name in ("adapter_model.safetensors", "adapter_model.bin"):
+        candidate = raw_source / weight_name
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError(
+        f"raw source missing adapter weights at {raw_source} "
+        "(expected adapter_model.safetensors or adapter_model.bin)"
+    )
+
+
+def _load_raw_state_dict(raw_source: Path):
+    weight_path = _resolve_raw_weight_path(raw_source)
+    if weight_path.name.endswith(".safetensors"):
+        return load_file(str(weight_path))
+    payload = torch.load(str(weight_path), map_location="cpu", weights_only=False)
+    if not isinstance(payload, dict):
+        raise RuntimeError(
+            f"unexpected adapter_model.bin payload type at {weight_path}: {type(payload)!r}"
+        )
+    return payload
+
+
+def _write_provenance(raw_source: Path, target: Path) -> None:
+    weight_path = _resolve_raw_weight_path(raw_source)
+    stat = weight_path.stat()
+    payload = {
+        "source_path": str(raw_source.resolve()),
+        "weight_path": str(weight_path.resolve()),
+        "weight_size": stat.st_size,
+        "weight_mtime_ns": stat.st_mtime_ns,
+    }
+    (target / PROVENANCE_FILE).write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
 
 def materialize_lora(
@@ -65,11 +105,12 @@ def materialize_lora(
     try:
         print(f"[materialize] {adapter_name}: {raw_source} -> {target}")
         tmp_target.mkdir(parents=True, exist_ok=True)
-        state_dict = load_file(str(raw_source / "adapter_model.safetensors"))
+        state_dict = _load_raw_state_dict(raw_source)
         from sllm_store.torch import save_dict
 
         save_dict(state_dict, str(tmp_target))
         _copy_metadata(raw_source, tmp_target)
+        _write_provenance(raw_source, tmp_target)
 
         if not _is_materialized_store_lora(tmp_target):
             raise RuntimeError(

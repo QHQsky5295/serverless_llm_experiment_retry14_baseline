@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -13,6 +14,7 @@ import yaml
 
 DEFAULT_MAIN_REPO = Path("/home/qhq/serverless_llm_experiment_retry14_baseline")
 DEFAULT_SLLM_STORAGE_ROOT = Path("/home/qhq/serverless_llm_baselines/models")
+PROVENANCE_FILE = ".serverlessllm_lora_source.json"
 
 try:
     from safetensors import safe_open
@@ -62,8 +64,6 @@ def _stage_serverlessllm_loras(
                     same_target = False
                 if not same_target:
                     if dst.is_dir() and not dst.is_symlink():
-                        import shutil
-
                         shutil.rmtree(dst)
                     else:
                         dst.unlink()
@@ -72,17 +72,25 @@ def _stage_serverlessllm_loras(
         else:
             if dst.exists() or dst.is_symlink():
                 if dst.is_dir() and (dst / "tensor_index.json").exists() and (dst / "adapter_config.json").exists():
-                    staged[str(adapter_id)] = os.path.relpath(dst, storage_root)
-                    continue
-                try:
-                    same_target = dst.resolve() == src
-                except FileNotFoundError:
-                    same_target = False
-                if not same_target:
-                    raise FileExistsError(
-                        f"staging path already exists with different target: {dst}"
-                    )
-            else:
+                    provenance_path = dst / PROVENANCE_FILE
+                    provenance_ok = False
+                    if provenance_path.exists():
+                        try:
+                            provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+                            provenance_ok = Path(str(provenance.get("source_path", ""))).resolve() == src
+                        except Exception:
+                            provenance_ok = False
+                    if not provenance_ok:
+                        shutil.rmtree(dst)
+                    else:
+                        staged[str(adapter_id)] = os.path.relpath(dst, storage_root)
+                        continue
+                if dst.exists() or dst.is_symlink():
+                    if dst.is_dir() and not dst.is_symlink():
+                        shutil.rmtree(dst)
+                    else:
+                        dst.unlink()
+            if not (dst.exists() or dst.is_symlink()):
                 os.symlink(src, dst, target_is_directory=True)
         staged[str(adapter_id)] = os.path.relpath(dst, storage_root)
 
@@ -154,12 +162,13 @@ def _resolve_profiles(
     return model_cfg, adapters_cfg, coord_cfg, storage_cfg
 
 
-def _load_adapter_subset(path: Path) -> List[Dict[str, Any]]:
+def _load_adapter_subset(path: Path) -> Dict[str, Any]:
     data = json.loads(path.read_text(encoding="utf-8"))
     adapters = list(data.get("adapters", []) or [])
     if not adapters:
         raise ValueError(f"adapter subset artifact has no adapters: {path}")
-    return adapters
+    data["adapters"] = adapters
+    return data
 
 
 def main() -> int:
@@ -216,7 +225,8 @@ def main() -> int:
         raise RuntimeError(
             "--adapter-subset-path is required for fair comparison deploy generation"
         )
-    selected_adapters = _load_adapter_subset(args.adapter_subset_path.resolve())
+    subset_payload = _load_adapter_subset(args.adapter_subset_path.resolve())
+    selected_adapters = list(subset_payload["adapters"])
     if args.selected_num_adapters is not None and len(selected_adapters) != int(args.selected_num_adapters):
         raise RuntimeError(
             f"adapter subset artifact contains {len(selected_adapters)} adapters, "
@@ -227,9 +237,15 @@ def main() -> int:
             raise RuntimeError("--limit-adapters must be > 0 when provided")
         selected_adapters = selected_adapters[: args.limit_adapters]
 
-    remote_dir = Path(storage_cfg.get("remote_dir", "artifacts/remote"))
-    if not remote_dir.is_absolute():
-        remote_dir = main_repo / remote_dir
+    subset_remote_dir = subset_payload.get("remote_dir")
+    if subset_remote_dir:
+        remote_dir = Path(str(subset_remote_dir))
+        if not remote_dir.is_absolute():
+            remote_dir = main_repo / remote_dir
+    else:
+        remote_dir = Path(storage_cfg.get("remote_dir", "artifacts/remote"))
+        if not remote_dir.is_absolute():
+            remote_dir = main_repo / remote_dir
     remote_dir = remote_dir.resolve()
 
     serving_model_name = str(args.serving_model_name or args.model_profile)

@@ -22,6 +22,7 @@ SHARED_ADAPTER_SUBSET_PATH="${SLLM_SHARED_ADAPTER_SUBSET_PATH:?SLLM_SHARED_ADAPT
 SGLANG_HOST="${SGLANG_HOST:-127.0.0.1}"
 SGLANG_PORT="${SGLANG_PORT:-8353}"
 SGLANG_GPU_IDS="${SGLANG_GPU_IDS:-0,1,2,3}"
+SGLANG_TENSOR_PARALLEL_SIZE="${SGLANG_TENSOR_PARALLEL_SIZE:-}"
 SGLANG_SLEEP_SCALE="${SGLANG_SLEEP_SCALE:-1.0}"
 SGLANG_TIMEOUT_S="${SGLANG_TIMEOUT_S:-3600}"
 
@@ -167,7 +168,7 @@ PROMPT_GUARD_MAX_INPUT_LEN="${_METRIC_CFG[6]}"
 PROMPT_GUARD_MAX_OUTPUT_TOKENS_CAP="${_METRIC_CFG[7]}"
 
 echo "[2/5] Building SGLang launch spec from shared subset"
-PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" - "${CONFIG_PATH}" "${MAIN_REPO}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${SHARED_ADAPTER_SUBSET_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_PATHS_JSON}" "${SGLANG_HOST}" "${SGLANG_PORT}" <<'PY'
+PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" - "${CONFIG_PATH}" "${MAIN_REPO}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${SHARED_ADAPTER_SUBSET_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_PATHS_JSON}" "${SGLANG_HOST}" "${SGLANG_PORT}" "${SGLANG_TENSOR_PARALLEL_SIZE}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -217,6 +218,7 @@ output_path = Path(sys.argv[7]).resolve()
 lora_paths_json = Path(sys.argv[8]).resolve()
 host = sys.argv[9]
 port = int(sys.argv[10])
+tp_override = str(sys.argv[11] or "").strip()
 
 cfg = yaml.safe_load(cfg_path.read_text()) or {}
 model_cfg, _adapters_cfg, _datasets_cfg, _workload_cfg, _coord_cfg = _resolve_profiles(
@@ -233,13 +235,14 @@ for item in subset_payload.get("adapters", []):
         raise SystemExit(f"missing adapter path for SGLang launch: {adapter_path}")
     lora_entries.append(f"{adapter_id}={adapter_path}")
 
+tp_size = int(tp_override) if tp_override else int(model_cfg.get("tensor_parallel_size", 1) or 1)
 launch = {
     "model-path": str(model_cfg["name"]),
     "host": host,
     "port": port,
     "served-model-name": model_profile,
     "trust-remote-code": True,
-    "tp": int(model_cfg.get("tensor_parallel_size", 1) or 1),
+    "tp": tp_size,
     "context-length": int(model_cfg.get("max_model_len", 1024) or 1024),
     "mem-fraction-static": float(model_cfg.get("gpu_memory_utilization", 0.7) or 0.7),
     "dtype": str(model_cfg.get("dtype", "auto") or "auto"),
@@ -274,6 +277,8 @@ echo "      ttft_slo_ms=${TTFT_SLO_MS}"
 echo "      launch_spec=${LAUNCH_SPEC_PATH}"
 echo "      lora_paths_json=${LORA_PATHS_JSON}"
 echo "      server_log=${SERVER_LOG_PATH}"
+echo "      sglang_gpu_ids=${SGLANG_GPU_IDS}"
+echo "      sglang_tensor_parallel_size=${SGLANG_TENSOR_PARALLEL_SIZE:-profile_default}"
 
 echo "[3/5] Starting isolated SGLang server"
 rm -f "${SERVER_LOG_PATH}"
@@ -354,6 +359,7 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
   --dataset-profile "${DATASET_PROFILE}" \
   --workload-profile "${WORKLOAD_PROFILE}" \
   --trace "${SHARED_TRACE_PATH}" \
+  --adapter-subset "${SHARED_ADAPTER_SUBSET_PATH}" \
   --replay "${REPLAY_PATH}" \
   --scenario-name "sglang_fair" \
   --baseline-type "sglang" \

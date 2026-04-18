@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import shutil
@@ -105,15 +106,90 @@ def _copy_or_link_metadata(src_dir: Path, dst_dir: Path) -> None:
         if child.name in {"adapter_model.safetensors", "adapter_model.bin"}:
             continue
         dst = dst_dir / child.name
+        if not child.exists():
+            # Skip broken legacy symlinks from older artifact pools.
+            continue
         if child.is_dir():
             if dst.exists():
                 shutil.rmtree(dst)
-            shutil.copytree(child, dst, symlinks=True)
+            shutil.copytree(child.resolve(), dst, symlinks=False)
         else:
-            _safe_symlink(child, dst)
+            shutil.copy2(child.resolve(), dst)
 
 
-def _build_one_pool(source_pool: Path, dest_pool: Path, profile_name: str, model_name: str, overwrite: bool) -> Dict[str, Any]:
+def _load_lora_generator_module(main_repo: Path):
+    script_path = main_repo / "scripts" / "generate_lora_adapters.py"
+    spec = importlib.util.spec_from_file_location("faaslora_generate_lora_adapters", script_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"unable to load generator module from {script_path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _repair_missing_weight_dirs(
+    *,
+    main_repo: Path,
+    manifest: Dict[str, Any],
+    dest_pool: Path,
+    model_name: str,
+    missing_adapter_ids: List[str],
+) -> int:
+    if not missing_adapter_ids:
+        return 0
+
+    generator = _load_lora_generator_module(main_repo)
+    adapters = list(manifest.get("adapters", []) or [])
+    if not adapters:
+        return 0
+
+    adapters_by_id = {str(item.get("id")): item for item in adapters if item.get("id")}
+    jobs: Dict[Tuple[str, int], List[str]] = {}
+    default_profile = str(manifest.get("topup_profile") or "realistic_v2")
+    default_seed = int(manifest.get("topup_seed") or 42)
+
+    for adapter_id in missing_adapter_ids:
+        entry = adapters_by_id.get(adapter_id) or {}
+        profile = str(entry.get("generation_profile") or default_profile)
+        seed = int(entry.get("generation_seed") or default_seed)
+        jobs.setdefault((profile, seed), []).append(adapter_id)
+
+    repaired = 0
+    for (profile, seed), adapter_ids in jobs.items():
+        spec_map = {
+            str(item["adapter_id"]): item
+            for item in generator._build_adapter_specs(  # noqa: SLF001
+                manifest=manifest,
+                artifact_pool_profile=profile,
+                artifact_pool_profiles=generator.DEFAULT_ARTIFACT_POOL_PROFILES,
+                artifact_pool_seed=seed,
+                ranks_fallback=[8],
+            )
+        }
+        specs = [spec_map[adapter_id] for adapter_id in adapter_ids if adapter_id in spec_map]
+        if not specs:
+            continue
+        generator.generate_adapters_with_peft(
+            model_name=model_name,
+            output_dir=dest_pool,
+            adapter_specs=specs,
+            target_modules=None,
+            finetune=True,
+            artifact_pool_profile=profile,
+            artifact_pool_seed=seed,
+        )
+        repaired += len(specs)
+    return repaired
+
+
+def _build_one_pool(
+    source_pool: Path,
+    dest_pool: Path,
+    profile_name: str,
+    model_name: str,
+    overwrite: bool,
+    main_repo: Path,
+) -> Dict[str, Any]:
     manifest_path = source_pool / ".publicmix_generation_manifest.json"
     if not manifest_path.exists():
         raise FileNotFoundError(f"missing source manifest: {manifest_path}")
@@ -133,7 +209,9 @@ def _build_one_pool(source_pool: Path, dest_pool: Path, profile_name: str, model
     clean_adapters = 0
     nonfinite_tensors = 0
     nonfinite_values = 0
+    repaired_missing_weights = 0
     adapter_reports: List[Dict[str, Any]] = []
+    missing_weight_ids: List[str] = []
 
     for src_adapter_dir in _iter_adapter_dirs(source_pool):
         total_adapters += 1
@@ -169,6 +247,17 @@ def _build_one_pool(source_pool: Path, dest_pool: Path, profile_name: str, model
                 "nonfinite_values": adapter_value_count,
             }
         )
+        if not any((dst_adapter_dir / name).exists() for name in ("adapter_model.safetensors", "adapter_model.bin")):
+            missing_weight_ids.append(src_adapter_dir.name)
+
+    if missing_weight_ids:
+        repaired_missing_weights = _repair_missing_weight_dirs(
+            main_repo=main_repo,
+            manifest=manifest,
+            dest_pool=dest_pool,
+            model_name=model_name,
+            missing_adapter_ids=missing_weight_ids,
+        )
 
     sanitized_manifest = dict(manifest)
     sanitized_manifest["sanitized"] = True
@@ -182,6 +271,7 @@ def _build_one_pool(source_pool: Path, dest_pool: Path, profile_name: str, model
         "clean_adapters": clean_adapters,
         "nonfinite_tensors": nonfinite_tensors,
         "nonfinite_values": nonfinite_values,
+        "repaired_missing_weights": repaired_missing_weights,
     }
     (dest_pool / ".publicmix_generation_manifest.json").write_text(
         json.dumps(sanitized_manifest, indent=2, ensure_ascii=False),
@@ -198,6 +288,7 @@ def _build_one_pool(source_pool: Path, dest_pool: Path, profile_name: str, model
         "clean_adapters": clean_adapters,
         "nonfinite_tensors": nonfinite_tensors,
         "nonfinite_values": nonfinite_values,
+        "repaired_missing_weights": repaired_missing_weights,
         "repair_policy": "nan_to_num_zero",
         "adapter_reports": adapter_reports,
     }
@@ -233,6 +324,7 @@ def main() -> int:
             profile_name=profile_name,
             model_name=str(model_cfg.get("name")),
             overwrite=bool(args.overwrite),
+            main_repo=main_repo,
         )
         overall.append(report)
         print(
