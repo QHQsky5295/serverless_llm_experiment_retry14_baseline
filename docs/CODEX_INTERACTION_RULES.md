@@ -56,18 +56,18 @@
 
 主表指标：
 
-- `TTFT_e2e`: scheduled trace arrival 到客户端观测首 token。
-- `E2E_e2e`: scheduled trace arrival 到客户端响应完成。
-- `TPOT`: 首 token 后平均输出 token 间隔；没有逐 token timestamp 时必须说明近似方式。
+- `TTFT_e2e`: scheduled trace arrival 到系统可观测的首个生成 token。若后端暴露 `first_token_at/backend_started_at`，优先使用服务端 token 时间；不要把非流式 HTTP 的完整响应 chunk 误当成 first token。
+- `E2E_e2e`: scheduled trace arrival 到系统可观测响应完成；若后端缺少完成时间戳，才回退到客户端响应完成。
+- `TPOT`: `(E2E_service - TTFT_service) / max(output_tokens - 1, 1)`，必须和请求级 service 时间轴闭合。
 - `SLO attainment`: 使用同一 TTFT SLO 口径。
 - `Cost efficiency`: 使用同一 cost model。
 - 所有关键延迟指标必须给 `avg/p50/p95/p99`。
 
 机制拆解指标：
 
-- `TTFT_service`: backend/server request receipt 到首 token。
-- `E2E_service`: backend/server request receipt 到完成。
-- `dispatch_admission_wait_ms`: scheduled trace arrival 到实际 dispatch/admission 的等待。
+- `TTFT_service`: admitted/backend-started service path 到首 token。若系统暴露 `backend_started_at`，`request_received_at -> backend_started_at` 必须归入 dispatch/admission wait，而不是 service TTFT。
+- `E2E_service`: admitted/backend-started service path 到完成。
+- `dispatch_admission_wait_ms`: scheduled trace arrival 到实际 admitted/backend-started 之间的等待，包括 replay dispatch 等待和后端 queue/admission wait。
 - cold start、LoRA I/O、scale-up affected requests、already-ready requests 只用于解释机制，不替代主表口径。
 
 旧 `e2e_v1/e2e_v2` 或系统内部 TTFT 只能用于历史定位，不能进入论文主表。
@@ -133,4 +133,301 @@ shared trace 必须记录并审计：
 - “给实验指令”：按清理、准备、三系统顺序、audit/compare 分段给，且说明每段用途。
 - “复现新系统”：先验证是否支持 multi-LoRA、四个 backbone、开源代码、论文发表情况和实验可比性，再建立 `System_project`。
 
+## 11. 根因分析工作流
+
+以后遇到“结果突然变好 / 变差 / 与历史不一致”的情况，必须按下面顺序做第一性原则分析，禁止直接凭单个数字、单个日志片段或单个参数做局部修补。
+
+### 11.1 先分层，再判断问题在哪一层
+
+固定按六层检查：
+
+1. `问题定义层`
+   - 当前结果是否仍然服务同一个论文问题：
+     - `serverless`
+     - `multi-LoRA`
+     - `adapter readiness`
+     - `scale-out + admission + residency`
+2. `公平性链路层`
+   - 是否仍是同一 backbone / 同一 GPU 预算 / 同一 frozen sanitized pool / 同一 shared trace / 同一 adapter subset / 同一 metric schema。
+3. `workload 层`
+   - 负载是否只是时间尺度变了，还是 prompt/token 分布也变了。
+   - 必须区分：
+     - `raw trace token distribution`
+     - `prompt budget guard 后真正送进引擎的 served token distribution`
+4. `配置生效层`
+   - 参数是否真的进入了最终运行路径，而不是只改了 YAML 表面值。
+   - 任何想调的参数，都必须沿“profile 合并 -> scenario 覆盖 -> runtime metadata -> 结果日志”完整核实。
+5. `系统机制层`
+   - 结果变化到底来自：
+     - dispatch/admission
+     - live scale-up
+     - cold-start / warmup
+     - adapter load / residency
+     - runtime queue / decode
+   - 不能把 queue wait、LoRA I/O、runtime TTFT、TPOT 混成一句“系统慢”。
+6. `指标口径层`
+   - 结果差异到底是系统性能变了，还是统计边界更严格了。
+   - 旧结果只有在同一 `metric_schema_version` 下才允许直接横比。
+
+### 11.2 每次都必须回答的四个问题
+
+1. 这次结果“好”或“差”，首先是哪一段链路变了？
+2. 这一变化是实验场景改变导致的，还是系统代码行为改变导致的？
+3. 这一变化是否真的反映论文贡献，还是只是某个非主问题参数被调得更有利？
+4. 这个参数或机制是否真的在热路径上生效，还是只是元数据/配置表面值？
+
+### 11.3 禁止的分析方式
+
+- 看到 headline 数字差，就直接改 summary 或指标定义。
+- 看到单个配置值不合理，就立刻调它，但不验证它是否真的被运行链路消费。
+- 拿旧的漂亮结果直接当基准，却不先核对：
+  - metric schema
+  - time scale
+  - shared trace 是否一致
+  - admission wait 是否被计入
+- 看到 baseline 很差，就默认是 baseline 复现坏了。
+- 看到 FaaSLoRA 很差，就默认是某个单点参数不够激进。
+
+### 11.4 允许的修复顺序
+
+只允许按下面顺序修：
+
+1. 先修 `错误的链路覆盖 / 配置未生效 / 指标未暴露`
+2. 再修 `真正的控制面 / cold-path / runtime 机制问题`
+3. 最后才做 `性能包络` 调优
+
+换句话说：
+
+- 先修“参数根本没生效”
+- 再修“系统按错误能力估计在工作”
+- 最后才修“在正确路径上继续提速”
+
+### 11.5 对历史结果的使用规则
+
+历史结果只能作为“证据”，不能直接作为“当前正确性证明”。
+
+使用历史结果前，必须先标注它属于哪一类：
+
+- `旧口径结果`
+- `同 workload 旧实现结果`
+- `同系统不同 time scale 结果`
+- `同 trace 但未共享 artifact 的早期结果`
+
+特别是：
+
+- 旧 `FaaSLoRA` 那些 `1.x s` 级别结果，如果没有 `dispatch_admission_wait_ms`，只能证明 service-path 曾经较强，不能证明当前严格 `e2e_v3` 下端到端仍是 `1.x s`。
+
+### 11.6 写结论时必须明确因果链
+
+每次分析和修复都必须用下面这类句式说明：
+
+- “结果好，因为 X 段链路缩短了，而不是因为 Y 指标边界变窄了。”
+- “结果差，主因是 A 段排队被放大；B 段虽然也慢，但不是第一根因。”
+- “这次修改修复的是配置覆盖根因，不是系统机制本身；因此需要重跑验证机制收益是否真正释放。”
+- “这个参数被记录到了 metadata，但当前并不在 active control path 上，因此不能把它当成已经调到位。”
+
+### 11.7 当前默认执行姿势
+
+以后默认使用以下判断顺序：
+
+1. 先证明确实是“同一实验”
+2. 再证明确实是“同一指标”
+3. 再证明确实是“同一条运行路径”
+4. 最后才讨论优劣与论文表述
+
+如果前三步没有过，禁止下“系统更强 / 更弱”的结论。
+
+### 11.8 反复规律必须纳入根因分析
+
+如果实验呈现“刚开始指标较好，运行一段时间后突然变差”的规律，不能只看最终均值，也不能只调 workload 或指标口径。必须按时间线检查：
+
+- 早期和后期请求是否进入同一个 runtime；
+- 单个 runtime 的 active request 数是否超过真实执行能力；
+- 单个 runtime 的 active LoRA adapter 多样性是否超过后端上限，例如 vLLM `max_loras`；
+- LoRA I/O、runtime TTFT、dispatch wait 哪一段先开始膨胀；
+- scale-out 是否来得太晚，导致早期实例被喂入不可恢复的内部队列。
+
+特别注意：`max_num_seqs` 控制的是请求/序列并发，`max_loras` 控制的是同一 runtime 内可并发承载的 LoRA adapter 多样性。二者都是物理执行约束，不能只用前者做 admission。若系统忽略 `max_loras`，就会把本应在调度层等待的请求错误送入 vLLM 内部队列，造成 `TTFT_service` 极端膨胀。
+
+以后遇到类似现象，修复顺序必须是：
+
+1. 先确认 shared trace、adapter subset、metric schema 是否一致；
+2. 再按实例和时间线拆 `dispatch_admission_wait_ms`、`TTFT_service`、LoRA I/O、runtime TTFT；
+3. 再检查控制面是否对齐后端真实物理约束；
+4. 最后才调整 workload 强度、scale 参数或论文表述。
+
+### 11.9 修复完成后必须给出完整运行指令
+
+每次完成代码修复、实验链路修复或指标口径修复后，不能只说明“已修复”或“下一步重跑”。必须直接给出可执行的完整指令，至少包括：
+
+- 清理旧 tmux 会话；
+- 停止 ServerlessLLM/FaaSLoRA 可能残留的服务或 worker；
+- 检查 GPU 空闲状态；
+- 生成或复用 shared trace / adapter subset 的说明；
+- 启动对应系统实验的 tmux 命令；
+- 进入 tmux 会话的命令；
+- 跑完后的 audit / compare 命令。
+
+如果本轮只需要重跑单个系统，也必须给出该系统的完整清理、启动、进入 tmux、结果校验指令。不要让用户再次提醒。
+
+### 11.10 指标必须请求级闭合
+
+以后任何 `TTFT / E2E / TPOT` 分析都不能只看 summary 均值。必须抽查请求级数学关系：
+
+- `overall_ttft_ms = dispatch_admission_wait_ms + service_ttft_ms`
+- `overall_e2e_ms = dispatch_admission_wait_ms + service_e2e_ms`
+- `TPOT_ms = (service_e2e_ms - service_ttft_ms) / max(output_tokens - 1, 1)`
+
+如果 `TPOT` 来自 vLLM 内部 metrics，而 `service_e2e` 来自外层 wall-clock，两者可能不在同一时间轴上。遇到这种情况，不能解释为系统好或坏，必须先统一口径，再重跑。
+
+### 11.11 模型 profile 优先于全局 scale preset
+
+`scale_presets` 只能描述 adapter 规模带来的 workload / hotset / warm-pool 变化，不能无脑覆盖模型专属 serving 包络。尤其是 `max_loras`、`max_num_seqs`、`runtime_concurrency_cap`、`max_num_batched_tokens` 必须服从模型、GPU、LoRA rank、KV cache 的实测能力。
+
+如果 vLLM 启动日志中的 `Maximum concurrency for 1024 tokens per request` 明显小于配置里的 `runtime_concurrency_cap` 或 `max_num_seqs`，该结果不应进入论文主表。必须先修正模型 profile，或者让 admission 读取真实后端能力。
+
+### 11.12 全局对比优化的强制规则
+
+以后凡是进入“结果分析 -> 代码修复 -> 下一轮实验”循环，必须额外遵守下面这组高标准规则。
+
+#### 11.12.1 必须结合历史修改链分析，不能只看当前一轮
+
+每次对比和修复，必须同时纳入：
+
+- 过去十几轮相关代码修改历史；
+- 每一轮修改对应的结果变化；
+- 其它对比系统在相同拆分指标上的表现和规律；
+- 当前这一轮日志、结果、请求级样本和代码路径。
+
+禁止只拿“当前一轮 headline 指标”或“某个单独 patch 后的单个数字”做判断。
+
+#### 11.12.2 必须做全局、第一性原则分析
+
+每次分析都必须从完整执行链出发，至少覆盖：
+
+- workload / trace arrival
+- dispatch / admission
+- router / slot reserve
+- LoRA resolve / adapter residency
+- runtime service path
+- subprocess / RPC / control plane
+- 指标聚合与 summary 导出
+
+目标是回答：
+
+1. 真正的第一根因在哪一段？
+2. 这一段为什么会把 headline 指标拖坏或抬高？
+3. 修这一段后，理论上哪些指标应该一起变好，哪些指标不该被误伤？
+
+#### 11.12.3 禁止局部最优和兜底补丁
+
+以后禁止以下修法：
+
+- 为了让结果好看，临时改一个阈值或 summary 输出，但不修真正的热路径；
+- 看到某个指标差，就只修这一项显示口径，不修背后的控制链；
+- 引入隐藏 fallback、静默降级、局部 bypass，掩盖真实问题；
+- 明知问题涉及整条链，却只修其中一个点，导致其它对应位置继续错位。
+
+默认要求是：**尽量每次修复一整条根因链，让单次修改收益最大化。**
+
+#### 11.12.4 用户判断和助手判断都不能直接当结论
+
+当用户提出“我查到一般应该怎样”时，必须把它视为**待验证假设**，不是直接当真。
+
+同样地，助手自己的经验判断也不能直接当真，必须回到：
+
+- 代码
+- 日志
+- 结果
+- 历史修改链
+- 必要时的联网文献/论文核对
+
+做客观验证。
+
+允许的表达方式应当是：
+
+- “这是一个合理假设，但还需要用当前代码链和对比结果验证。”
+- “从现有文献看大体趋势如此，但不能直接假设你当前场景一定同样成立。”
+
+#### 11.12.5 需要联网时，联网的目标不是找支持，而是校准期望
+
+必要时必须联网搜索同类论文或系统，用来回答：
+
+- 在这个问题背景下，合理的最终指标期望是什么；
+- `Serverless vs Serverful` 的合理差距区间是什么；
+- `Serverless vs Serverless` 的合理优势边界是什么；
+- 哪些指标是论文里真正有说服力的主指标，哪些只能作为补充；
+- 当前系统是否已经达到“可发表、可解释、可自洽”的水平。
+
+联网搜索的目的不是“找一篇支持当前结果的论文”，而是**校准目标边界，避免盲目优化**。
+
+#### 11.12.6 优化必须有明确目标
+
+每次修改前，必须明确写出：
+
+- 这次要打中的根因链是什么；
+- 预期改善哪些主指标；
+- 为什么这些指标会改善；
+- 哪些指标不应该被错误地一起拉坏；
+- 这轮修改完成后需要用户跑哪一轮实验来验证。
+
+如果做不到这一点，就说明分析还不够深，不允许直接改代码。
+
+#### 11.12.7 对论文目标的默认约束
+
+以后默认按下面的论文目标约束自己：
+
+- 对 `Serverful` 对比系统：
+  - `TTFT` 不一定必须全面压过，但至少要进入合理可比范围；
+  - 如果延迟略逊，成本或 `CE / InfraCE` 必须有清晰优势；
+  - 结论必须能解释为 serverless 弹性收益，而不是实验链路或口径偏差。
+- 对 `Serverless` 对比系统：
+  - 目标应当是主指标基本全方位更强，或者至少在论文主问题相关指标上形成稳定优势。
+
+这只是默认研究目标，不是先验真理。若当前结果不符合这一期望，必须先分析：
+
+1. 是系统真实还没优化到位；
+2. 还是实验设置 / workload 强度 / 成本模型不匹配论文场景；
+3. 还是指标口径或复现链路还没完全对齐。
+
+#### 11.12.8 每一轮都要以“给出下一步实验指令”为闭环
+
+每次完成一轮分析或修复后，必须走到可执行闭环：
+
+- 若代码/链路仍有根因未修完，继续修，不停在半分析状态；
+- 若已具备验证条件，必须给出完整、可直接运行的下一轮实验指令；
+- 等用户说“跑完了”后，再按同样高标准重新进入下一轮全局分析。
+
+禁止出现：
+
+- “先这样吧”
+- “大概差不多了”
+- “你先随便跑跑看”
+
+这种不闭环的交付方式。
+
 这份文档是后续协作的默认约束。如果实际任务和本文档冲突，必须先说明冲突点，再决定是否临时偏离。
+
+#### 11.12.9 Baseline 结果必须先过 served-token 和生命周期审计
+
+以后任何横向结论都不能只看 TTFT/E2E/CE 表面数值。必须先检查：
+
+- 三个系统是否使用同一个 shared trace、adapter subset、prompt guard、max-model-len、max-input-len、max-output-cap；
+- compare 表是否打印并通过 execution envelope audit（`MaxModelLen / MaxInputLen / MaxOutputCap / RuntimeCap / MaxSeqs / MaxLoras`）；
+- `PromptTokAvg / PromptTokMax / OutTokAvg / OutTokMax / OutTok>cap` 是否处在同一预算语义下；
+- SGLang 这类 serverful baseline 是否计入 launch-to-ready 的静态 GPU 启动时间；
+- ServerlessLLM/FaaSLoRA 这类 serverless 系统是否记录 runtime lifecycle GPU-seconds；
+- `metrics_source_counts` 是否显示关键请求确实来自可解释的 server/runtime metrics，而不是静默退回客户端粗粒度时间。
+
+如果 served-token 分布或生命周期计费没对齐，旧结果只能做诊断，不能做论文结论。
+
+#### 11.12.10 避免模型专属硬编码，优先自适应策略
+
+FaaSLoRA 是通用 serverless multi-LoRA inference 系统，不应依赖某个基座模型专属的经验参数。以后修改扩缩容、预加载、并发或成本策略时，默认优先：
+
+- 从 trace 间隔、在线 arrival rate、observed cold-start、runtime ready delay、KV/cache envelope、实际 LoRA IO 中推导；
+- 使用无量纲 factor 或 profile 可解释约束，而不是把 “Llama-2 7B 当前机器上的某个秒数” 写成固定规则；
+- 如果必须临时使用 profile 参数，必须说明它是硬件/模型 envelope，不是算法贡献；
+- 每次换基座模型前，不应要求重新手工调参才能让系统成立。
+
+违反这条时，必须暂停并说明为什么这次不能自适应。

@@ -237,15 +237,20 @@ _model_cfg, _adapters_cfg, _datasets_cfg, workload_cfg, coord_cfg = _resolve_pro
     dataset_profile,
     workload_profile,
 )
+model_cfg = dict(_model_cfg or {})
 cost_model = dict(cfg.get("cost_model", {}) or {})
 print(float(cost_model.get("base_cost_usd", 0.001)))
 print(float(cost_model.get("input_token_cost_usd", 0.0000015)))
 print(float(cost_model.get("output_token_cost_usd", 0.000002)))
 print(float(workload_cfg.get("ttft_slo_ms", coord_cfg.get("ttft_slo_ms", 5000.0)) or 5000.0))
+print(str(model_cfg.get("name", "")))
+print(int(model_cfg.get("max_model_len", 0) or 0))
+print(int(model_cfg.get("max_input_len", 0) or 0))
+print(int(model_cfg.get("max_output_tokens_cap", 0) or 0))
 PY
 )
 
-if (( ${#_METRIC_CFG[@]} != 4 )); then
+if (( ${#_METRIC_CFG[@]} != 8 )); then
   echo "[ERROR] failed to resolve shared metric parameters from ${CONFIG_PATH}" >&2
   exit 1
 fi
@@ -254,9 +259,14 @@ BASE_COST_USD="${_METRIC_CFG[0]}"
 INPUT_TOKEN_COST_USD="${_METRIC_CFG[1]}"
 OUTPUT_TOKEN_COST_USD="${_METRIC_CFG[2]}"
 TTFT_SLO_MS="${_METRIC_CFG[3]}"
+PROMPT_GUARD_TOKENIZER_MODEL="${_METRIC_CFG[4]}"
+PROMPT_GUARD_MAX_MODEL_LEN="${_METRIC_CFG[5]}"
+PROMPT_GUARD_MAX_INPUT_LEN="${_METRIC_CFG[6]}"
+PROMPT_GUARD_MAX_OUTPUT_TOKENS_CAP="${_METRIC_CFG[7]}"
 
 echo "      cost_model(base/in/out)=${BASE_COST_USD}/${INPUT_TOKEN_COST_USD}/${OUTPUT_TOKEN_COST_USD}"
 echo "      ttft_slo_ms=${TTFT_SLO_MS}"
+echo "      prompt_guard(model/max_len/max_input/output_cap)=${PROMPT_GUARD_TOKENIZER_MODEL}/${PROMPT_GUARD_MAX_MODEL_LEN}/${PROMPT_GUARD_MAX_INPUT_LEN}/${PROMPT_GUARD_MAX_OUTPUT_TOKENS_CAP}"
 echo "      backend=${BACKEND}"
 echo "      replay_timeout_s=${TIMEOUT_S}"
 
@@ -319,6 +329,11 @@ run_python_in_env sllm_head_official \
   "${ROOT_DIR}/scripts/replay_openai_trace.py" \
   --trace "${TRACE_PATH}" \
   --base-url "http://127.0.0.1:8343" \
+  --convert-chat-to-prompt \
+  --prompt-guard-tokenizer-model "${PROMPT_GUARD_TOKENIZER_MODEL}" \
+  --prompt-guard-max-model-len "${PROMPT_GUARD_MAX_MODEL_LEN}" \
+  --prompt-guard-max-input-len "${PROMPT_GUARD_MAX_INPUT_LEN}" \
+  --prompt-guard-max-output-tokens-cap "${PROMPT_GUARD_MAX_OUTPUT_TOKENS_CAP}" \
   --sleep-scale "${SLEEP_SCALE}" \
   --timeout-s "${TIMEOUT_S}" \
   --base-cost-usd "${BASE_COST_USD}" \

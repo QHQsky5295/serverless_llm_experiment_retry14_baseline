@@ -83,10 +83,15 @@ def _audit_result(path: Path, trace: Path, subset: Path, total_requests: int) ->
         errors.append(f"completed/failed = {completed}/{failed}, expected {total_requests}/0")
     required = (
         "avg_overall_ttft_ms",
+        "p50_overall_ttft_ms",
         "avg_service_ttft_ms",
+        "p50_service_ttft_ms",
         "avg_overall_e2e_ms",
+        "p50_overall_e2e_ms",
         "avg_service_e2e_ms",
+        "p50_service_e2e_ms",
         "avg_dispatch_admission_wait_ms",
+        "p50_dispatch_admission_wait_ms",
     )
     missing = [key for key in required if summary.get(key) is None]
     if missing:
@@ -99,6 +104,15 @@ def _audit_result(path: Path, trace: Path, subset: Path, total_requests: int) ->
             # deploy config. Keep this as a warning-style audit error so the final
             # paper table cannot silently omit artifact provenance.
             errors.append("metadata does not point to the audited shared adapter subset")
+        backend = str(meta.get("backend", "") or "").strip().lower()
+        runtime_cap = _float_or_none(meta.get("runtime_concurrency_cap"))
+        max_num_seqs = _float_or_none(meta.get("max_num_seqs"))
+        if backend == "vllm" and runtime_cap is not None and max_num_seqs is not None:
+            if runtime_cap > max_num_seqs + 1e-6:
+                errors.append(
+                    "runtime_concurrency_cap exceeds max_num_seqs "
+                    f"({runtime_cap:g} > {max_num_seqs:g})"
+                )
     for idx, request in enumerate(_iter_detail_requests(data)):
         if not bool(request.get("success", True)):
             continue
@@ -106,6 +120,20 @@ def _audit_result(path: Path, trace: Path, subset: Path, total_requests: int) ->
         service_ttft = _float_or_none(request.get("service_ttft_ms", request.get("ttft_ms")))
         overall_e2e = _float_or_none(request.get("overall_e2e_ms", request.get("e2e_ms")))
         service_e2e = _float_or_none(request.get("service_e2e_ms", request.get("e2e_ms")))
+        dispatch_wait = _float_or_none(request.get("dispatch_admission_wait_ms", 0.0))
+        ingress_queue_wait = _float_or_none(request.get("ingress_queue_wait_ms"))
+        admitted_service_ttft = _float_or_none(request.get("admitted_service_ttft_ms"))
+        admitted_service_e2e = _float_or_none(request.get("admitted_service_e2e_ms"))
+        tpot_ms = _float_or_none(request.get("tpot_ms"))
+        output_tokens_raw = (
+            request.get("output_tokens")
+            if request.get("output_tokens") is not None
+            else request.get("completion_tokens")
+        )
+        try:
+            output_tokens = int(output_tokens_raw or 0)
+        except Exception:
+            output_tokens = 0
         if overall_ttft is None or service_ttft is None or overall_e2e is None or service_e2e is None:
             errors.append(f"request[{idx}] missing e2e/service metrics")
             break
@@ -118,6 +146,33 @@ def _audit_result(path: Path, trace: Path, subset: Path, total_requests: int) ->
         if overall_e2e + 1e-6 < overall_ttft:
             errors.append(f"request[{idx}] overall_e2e < overall_ttft")
             break
+        if dispatch_wait is not None:
+            if abs(overall_ttft - service_ttft - dispatch_wait) > max(2.0, overall_ttft * 0.001):
+                errors.append(f"request[{idx}] overall_ttft != dispatch_wait + service_ttft")
+                break
+            if abs(overall_e2e - service_e2e - dispatch_wait) > max(2.0, overall_e2e * 0.001):
+                errors.append(f"request[{idx}] overall_e2e != dispatch_wait + service_e2e")
+                break
+        if ingress_queue_wait is not None and dispatch_wait is not None:
+            if dispatch_wait + 1e-6 < ingress_queue_wait:
+                errors.append(f"request[{idx}] dispatch_wait < ingress_queue_wait")
+                break
+        if admitted_service_ttft is not None:
+            if abs(service_ttft - admitted_service_ttft) > max(2.0, service_ttft * 0.001):
+                errors.append(f"request[{idx}] service_ttft != admitted_service_ttft")
+                break
+        if admitted_service_e2e is not None:
+            if abs(service_e2e - admitted_service_e2e) > max(2.0, service_e2e * 0.001):
+                errors.append(f"request[{idx}] service_e2e != admitted_service_e2e")
+                break
+        if output_tokens > 1 and tpot_ms is not None:
+            derived_tpot = max(0.0, service_e2e - service_ttft) / max(output_tokens - 1, 1)
+            if abs(tpot_ms - derived_tpot) > max(50.0, derived_tpot * 0.50):
+                errors.append(
+                    "request[%d] tpot_ms is inconsistent with service_e2e-service_ttft "
+                    "(tpot=%.3f derived=%.3f)" % (idx, tpot_ms, derived_tpot)
+                )
+                break
     return errors
 
 

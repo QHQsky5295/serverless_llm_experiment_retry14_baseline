@@ -23,6 +23,7 @@ SGLANG_HOST="${SGLANG_HOST:-127.0.0.1}"
 SGLANG_PORT="${SGLANG_PORT:-8353}"
 SGLANG_GPU_IDS="${SGLANG_GPU_IDS:-0,1,2,3}"
 SGLANG_TENSOR_PARALLEL_SIZE="${SGLANG_TENSOR_PARALLEL_SIZE:-}"
+SGLANG_DATA_PARALLEL_REPLICAS="${SGLANG_DATA_PARALLEL_REPLICAS:-1}"
 SGLANG_SLEEP_SCALE="${SGLANG_SLEEP_SCALE:-1.0}"
 SGLANG_TIMEOUT_S="${SGLANG_TIMEOUT_S:-3600}"
 
@@ -31,6 +32,7 @@ SUMMARY_PATH="${RESULT_DIR}/${RUN_TAG}_summary.json"
 SERVER_LOG_PATH="${LOG_DIR}/${RUN_TAG}_sglang_server.log"
 METRICS_DIR="${LOG_DIR}/${RUN_TAG}_sglang_metrics"
 LAUNCH_SPEC_PATH="${SHARED_INPUT_DIR}/${RUN_TAG}_sglang_launch.yaml"
+FLEET_SPEC_PATH="${SHARED_INPUT_DIR}/${RUN_TAG}_sglang_fleet.yaml"
 LORA_PATHS_JSON="${SHARED_INPUT_DIR}/${RUN_TAG}_sglang_lora_paths.json"
 
 mkdir -p "${RESULT_DIR}" "${LOG_DIR}" "${SHARED_INPUT_DIR}" "${METRICS_DIR}"
@@ -56,6 +58,14 @@ export PATH="${SGLANG_VENV}/bin:${PATH}"
 
 cleanup() {
   local status=$?
+  if [[ -n "${SGLANG_SERVER_PIDS:-}" ]]; then
+    for pid in ${SGLANG_SERVER_PIDS}; do
+      kill "${pid}" 2>/dev/null || true
+    done
+    for pid in ${SGLANG_SERVER_PIDS}; do
+      wait "${pid}" 2>/dev/null || true
+    done
+  fi
   if [[ -n "${SGLANG_SERVER_PID:-}" ]]; then
     kill "${SGLANG_SERVER_PID}" 2>/dev/null || true
     wait "${SGLANG_SERVER_PID}" 2>/dev/null || true
@@ -280,9 +290,9 @@ echo "      server_log=${SERVER_LOG_PATH}"
 echo "      sglang_gpu_ids=${SGLANG_GPU_IDS}"
 echo "      sglang_tensor_parallel_size=${SGLANG_TENSOR_PARALLEL_SIZE:-profile_default}"
 
-echo "[3/5] Starting isolated SGLang server"
-rm -f "${SERVER_LOG_PATH}"
-rm -rf "${METRICS_DIR}"
+echo "[3/5] Starting isolated SGLang server(s)"
+rm -f "${SERVER_LOG_PATH}" "${LOG_DIR}/${RUN_TAG}_sglang_server_"*.log
+rm -rf "${METRICS_DIR}" "${LOG_DIR}/${RUN_TAG}_sglang_metrics_"*
 mkdir -p "${METRICS_DIR}"
 mapfile -t SGLANG_LORA_PATHS < <(
   PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" - "${LORA_PATHS_JSON}" <<'PY'
@@ -295,41 +305,143 @@ for item in items:
     print(str(item))
 PY
 )
-CUDA_VISIBLE_DEVICES="${SGLANG_GPU_IDS}" PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 \
-  "${SGLANG_VENV}/bin/python" -m sglang.launch_server \
-  --config "${LAUNCH_SPEC_PATH}" \
-  --lora-paths "${SGLANG_LORA_PATHS[@]}" \
-  --export-metrics-to-file \
-  --export-metrics-to-file-dir "${METRICS_DIR}" \
-  > "${SERVER_LOG_PATH}" 2>&1 &
-SGLANG_SERVER_PID=$!
-echo "      sglang_server_pid=${SGLANG_SERVER_PID}"
+TP_EFFECTIVE="$(
+  PYTHONNOUSERSITE=1 "${SGLANG_VENV}/bin/python" - "${LAUNCH_SPEC_PATH}" <<'PY'
+import sys
+from pathlib import Path
+import yaml
 
-ready=0
-for _ in $(seq 1 240); do
-  if curl -s "http://${SGLANG_HOST}:${SGLANG_PORT}/v1/models" >/tmp/sglang_models_${RUN_TAG}.json 2>/dev/null; then
-    ready=1
-    break
-  fi
-  if ! kill -0 "${SGLANG_SERVER_PID}" 2>/dev/null; then
-    echo "[ERROR] SGLang server exited before becoming ready. Tail log:" >&2
-    tail -n 80 "${SERVER_LOG_PATH}" >&2 || true
-    exit 1
-  fi
-  sleep 2
-done
-
-if [[ "${ready}" != "1" ]]; then
-  echo "[ERROR] timed out waiting for SGLang /v1/models readiness. Tail log:" >&2
-  tail -n 80 "${SERVER_LOG_PATH}" >&2 || true
+payload = yaml.safe_load(Path(sys.argv[1]).read_text()) or {}
+print(int(payload.get("tp", payload.get("tensor_parallel_size", 1)) or 1))
+PY
+)"
+DP_REPLICAS="$(PYTHONNOUSERSITE=1 "${SGLANG_VENV}/bin/python" -c 'import sys; print(max(1, int(sys.argv[1])))' "${SGLANG_DATA_PARALLEL_REPLICAS}")"
+IFS=',' read -r -a GPU_ID_ARRAY <<< "${SGLANG_GPU_IDS}"
+REQUIRED_GPU_COUNT=$(( DP_REPLICAS * TP_EFFECTIVE ))
+if (( ${#GPU_ID_ARRAY[@]} < REQUIRED_GPU_COUNT )); then
+  echo "[ERROR] SGLang DP/TP topology requires ${REQUIRED_GPU_COUNT} GPU ids, got ${#GPU_ID_ARRAY[@]} from SGLANG_GPU_IDS=${SGLANG_GPU_IDS}" >&2
   exit 1
 fi
+
+SGLANG_SERVER_PIDS=""
+SGLANG_BASE_URLS=()
+SGLANG_REPLICA_PORTS=()
+SGLANG_REPLICA_GPU_MASKS=()
+SGLANG_STARTUP_SECS=()
+
+for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
+  replica_port=$((SGLANG_PORT + replica_idx))
+  replica_spec="${SHARED_INPUT_DIR}/${RUN_TAG}_sglang_launch_r${replica_idx}.yaml"
+  replica_log="${LOG_DIR}/${RUN_TAG}_sglang_server_r${replica_idx}.log"
+  replica_metrics="${LOG_DIR}/${RUN_TAG}_sglang_metrics_r${replica_idx}"
+  gpu_slice=()
+  for local_idx in $(seq 0 $((TP_EFFECTIVE - 1))); do
+    gpu_slice+=("${GPU_ID_ARRAY[$((replica_idx * TP_EFFECTIVE + local_idx))]}")
+  done
+  replica_gpu_mask="$(IFS=,; echo "${gpu_slice[*]}")"
+  PYTHONNOUSERSITE=1 "${SGLANG_VENV}/bin/python" - "${LAUNCH_SPEC_PATH}" "${replica_spec}" "${replica_port}" <<'PY'
+import sys
+from pathlib import Path
+import yaml
+
+payload = yaml.safe_load(Path(sys.argv[1]).read_text()) or {}
+payload["port"] = int(sys.argv[3])
+Path(sys.argv[2]).write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+PY
+  rm -f "${replica_log}"
+  rm -rf "${replica_metrics}"
+  mkdir -p "${replica_metrics}"
+  launch_epoch="$(PYTHONNOUSERSITE=1 "${SGLANG_VENV}/bin/python" -c 'import time; print(f"{time.time():.6f}")')"
+  CUDA_VISIBLE_DEVICES="${replica_gpu_mask}" PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 \
+    "${SGLANG_VENV}/bin/python" -m sglang.launch_server \
+    --config "${replica_spec}" \
+    --lora-paths "${SGLANG_LORA_PATHS[@]}" \
+    --export-metrics-to-file \
+    --export-metrics-to-file-dir "${replica_metrics}" \
+    > "${replica_log}" 2>&1 &
+  replica_pid=$!
+  SGLANG_SERVER_PIDS="${SGLANG_SERVER_PIDS} ${replica_pid}"
+  SGLANG_BASE_URLS+=("http://${SGLANG_HOST}:${replica_port}")
+  SGLANG_REPLICA_PORTS+=("${replica_port}")
+  SGLANG_REPLICA_GPU_MASKS+=("${replica_gpu_mask}")
+  echo "      replica=${replica_idx} pid=${replica_pid} port=${replica_port} gpu_mask=${replica_gpu_mask}"
+  ready=0
+  for _ in $(seq 1 240); do
+    if curl -s "http://${SGLANG_HOST}:${replica_port}/v1/models" >/tmp/sglang_models_${RUN_TAG}_${replica_idx}.json 2>/dev/null; then
+      ready=1
+      break
+    fi
+    if ! kill -0 "${replica_pid}" 2>/dev/null; then
+      echo "[ERROR] SGLang replica ${replica_idx} exited before becoming ready. Tail log:" >&2
+      tail -n 80 "${replica_log}" >&2 || true
+      exit 1
+    fi
+    sleep 2
+  done
+  if [[ "${ready}" != "1" ]]; then
+    echo "[ERROR] timed out waiting for SGLang replica ${replica_idx} /v1/models readiness. Tail log:" >&2
+    tail -n 80 "${replica_log}" >&2 || true
+    exit 1
+  fi
+  ready_epoch="$(PYTHONNOUSERSITE=1 "${SGLANG_VENV}/bin/python" -c 'import time; print(f"{time.time():.6f}")')"
+  startup_sec="$(
+    PYTHONNOUSERSITE=1 "${SGLANG_VENV}/bin/python" -c 'import sys; print(f"{max(0.0, float(sys.argv[2]) - float(sys.argv[1])):.6f}")' \
+      "${launch_epoch}" "${ready_epoch}"
+  )"
+  SGLANG_STARTUP_SECS+=("${startup_sec}")
+  echo "      replica=${replica_idx} startup_sec=${startup_sec}"
+done
+
+SGLANG_BASE_URL_LIST="$(IFS=,; echo "${SGLANG_BASE_URLS[*]}")"
+SGLANG_SERVER_STARTUP_SEC="$(
+  PYTHONNOUSERSITE=1 "${SGLANG_VENV}/bin/python" - "${SGLANG_STARTUP_SECS[@]}" <<'PY'
+import sys
+values = [float(v) for v in sys.argv[1:]]
+print(f"{(max(values) if values else 0.0):.6f}")
+PY
+)"
+PYTHONNOUSERSITE=1 "${SGLANG_VENV}/bin/python" - "${LAUNCH_SPEC_PATH}" "${FLEET_SPEC_PATH}" "${DP_REPLICAS}" "${TP_EFFECTIVE}" "${SGLANG_BASE_URL_LIST}" "${SGLANG_SERVER_STARTUP_SEC}" "${SGLANG_REPLICA_PORTS[*]}" "${SGLANG_REPLICA_GPU_MASKS[*]}" <<'PY'
+import sys
+from pathlib import Path
+import yaml
+
+base = yaml.safe_load(Path(sys.argv[1]).read_text()) or {}
+dp = int(sys.argv[3])
+tp = int(sys.argv[4])
+base_urls = [item for item in sys.argv[5].split(",") if item]
+startup_sec = float(sys.argv[6])
+ports = [int(item) for item in sys.argv[7].split() if item]
+gpu_masks = [item for item in sys.argv[8].split() if item]
+fleet = dict(base)
+fleet.update({
+    "data_parallel_replicas": dp,
+    "tp": tp,
+    "tensor_parallel_size": tp,
+    "num_gpus": dp * tp,
+    "gpu_per_request": tp,
+    "parallelism_topology": f"data_parallel_dp{dp}_tp{tp}" if dp > 1 else (f"model_parallel_tp{tp}" if tp > 1 else "single_gpu"),
+    "base_urls": base_urls,
+    "replica_ports": ports,
+    "replica_gpu_masks": gpu_masks,
+    "static_startup_sec": startup_sec,
+})
+Path(sys.argv[2]).write_text(yaml.safe_dump(fleet, sort_keys=False), encoding="utf-8")
+PY
+if [[ "${DP_REPLICAS}" -gt 1 ]]; then
+  SGLANG_TOPOLOGY_LABEL="dp${DP_REPLICAS}_tp${TP_EFFECTIVE}"
+else
+  SGLANG_TOPOLOGY_LABEL="tp${TP_EFFECTIVE}"
+fi
+echo "      sglang_topology=${SGLANG_TOPOLOGY_LABEL}"
+echo "      sglang_startup_sec=${SGLANG_SERVER_STARTUP_SEC}"
+echo "      sglang_base_urls=${SGLANG_BASE_URL_LIST}"
 
 echo "[4/5] Replaying shared trace with unified live metrics"
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
   "${ROOT_DIR}/scripts/replay_openai_trace.py" \
   --trace "${SHARED_TRACE_PATH}" \
-  --base-url "http://${SGLANG_HOST}:${SGLANG_PORT}" \
+  --base-url "${SGLANG_BASE_URLS[0]}" \
+  --base-url-list "${SGLANG_BASE_URL_LIST}" \
   --endpoint-path "/generate" \
   --convert-chat-to-prompt \
   --sglang-native-generate \
@@ -360,6 +472,7 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
   --workload-profile "${WORKLOAD_PROFILE}" \
   --trace "${SHARED_TRACE_PATH}" \
   --adapter-subset "${SHARED_ADAPTER_SUBSET_PATH}" \
+  --deploy "${FLEET_SPEC_PATH}" \
   --replay "${REPLAY_PATH}" \
   --scenario-name "sglang_fair" \
   --baseline-type "sglang" \
@@ -367,6 +480,7 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
   --system-name "SGLang" \
   --instance-mode "static_runtime" \
   --routing-policy "fcfs_batching" \
+  --static-startup-sec "${SGLANG_SERVER_STARTUP_SEC}" \
   --output "${SUMMARY_PATH}"
 
 echo

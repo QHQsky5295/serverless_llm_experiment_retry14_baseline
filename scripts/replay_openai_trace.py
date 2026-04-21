@@ -14,6 +14,23 @@ import requests
 LIVE_PRINT_INTERVAL_S = 2.0
 _PROMPT_GUARD_TOKENIZER_CACHE: Dict[str, Any] = {}
 _PROMPT_GUARD_TOKENIZER_LOCK = threading.Lock()
+METRIC_DEF_PRIMARY_TTFT = (
+    "scheduled trace arrival to system-observed first generated output token/chunk"
+)
+METRIC_DEF_PRIMARY_E2E = (
+    "scheduled trace arrival to system-observed response completion when available; "
+    "otherwise client-observed completion"
+)
+METRIC_DEF_SERVICE_TTFT = (
+    "service-path start to first generated output token/chunk; service-path start "
+    "is the system-specific admitted/backend-execution start and excludes scheduled-arrival "
+    "and upstream queue/admission wait"
+)
+METRIC_DEF_SERVICE_E2E = (
+    "service-path start to response completion; service-path start is the system-specific "
+    "admitted/backend-execution start and excludes scheduled-arrival and upstream "
+    "queue/admission wait"
+)
 
 
 def _percentile(values: List[float], q: float) -> float:
@@ -67,6 +84,24 @@ def _fmt_optional_pair(avg: Optional[float], p95: Optional[float]) -> str:
 
 def _calc_cost(in_tok: int, out_tok: int, *, base: float, in_cost: float, out_cost: float) -> float:
     return float(base) + float(in_cost) * max(0, int(in_tok)) + float(out_cost) * max(0, int(out_tok))
+
+
+def _parse_base_urls(primary: str, extra_csv: Optional[str]) -> List[str]:
+    urls: List[str] = []
+    if primary:
+        urls.append(str(primary).strip())
+    if extra_csv:
+        urls.extend(item.strip() for item in str(extra_csv).split(",") if item.strip())
+    normalized: List[str] = []
+    seen = set()
+    for url in urls:
+        clean = url.rstrip("/")
+        if clean and clean not in seen:
+            normalized.append(clean)
+            seen.add(clean)
+    if not normalized:
+        raise RuntimeError("at least one --base-url is required")
+    return normalized
 
 
 def _known_bool_rate(records: List[Dict[str, Any]], key: str) -> Optional[float]:
@@ -149,21 +184,10 @@ def _apply_faaslora_style_prompt_guard(
         return prompt, max(1, min(desired_tokens, safe_max_model_len - 8))
     try:
         tokenizer = _get_prompt_guard_tokenizer(tokenizer_model)
-        current_budget = int(prompt_budget)
         token_ids = tokenizer.encode(prompt, add_special_tokens=False)
-        for _ in range(8):
-            if len(token_ids) <= current_budget:
-                break
-            token_ids = token_ids[-current_budget:]
+        if len(token_ids) > int(prompt_budget):
+            token_ids = token_ids[-int(prompt_budget):]
             prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
-            token_ids = tokenizer.encode(prompt, add_special_tokens=False)
-            if len(token_ids) <= current_budget:
-                break
-            overflow = len(token_ids) - current_budget
-            current_budget = max(
-                32,
-                current_budget - max(overflow + 8, current_budget // 16, 16),
-            )
         actual_input_tokens = max(1, len(token_ids))
         safe_max_tokens = min(
             desired_tokens,
@@ -228,6 +252,20 @@ def _derive_latency_ms(start_ts: Any, end_ts: Any) -> Optional[float]:
     return (end - start) * 1000.0
 
 
+def _latest_finite_ts(*values: Any) -> Optional[float]:
+    latest: Optional[float] = None
+    for value in values:
+        try:
+            ts = float(value)
+        except (TypeError, ValueError):
+            continue
+        if not math.isfinite(ts):
+            continue
+        if latest is None or ts > latest:
+            latest = ts
+    return latest
+
+
 def _sglang_meta_to_metrics(meta_info: Dict[str, Any]) -> Dict[str, Any]:
     metrics: Dict[str, Any] = {
         "metrics_source": "sglang_generate_meta_info",
@@ -245,8 +283,9 @@ def _sglang_meta_to_metrics(meta_info: Dict[str, Any]) -> Dict[str, Any]:
     request_finished_ts = meta_info.get("request_finished_ts")
     decode_throughput = meta_info.get("decode_throughput")
 
+    finished_ts = _latest_finite_ts(request_finished_ts, response_sent_to_client_ts)
     ttft_ms = _derive_latency_ms(request_received_ts, response_sent_to_client_ts)
-    e2e_ms = _derive_latency_ms(request_received_ts, request_finished_ts)
+    e2e_ms = _derive_latency_ms(request_received_ts, finished_ts)
     if ttft_ms is not None:
         metrics["ttft_ms"] = ttft_ms
     if e2e_ms is not None:
@@ -455,6 +494,7 @@ def _replay_one(
     runtime_ttft_ms = server_metrics.get("runtime_ttft_ms")
     serverless_overhead_ms = server_metrics.get("serverless_overhead_ms")
     request_received_at = server_metrics.get("request_received_at")
+    backend_started_at = server_metrics.get("backend_started_at")
     first_token_at = server_metrics.get("first_token_at")
     last_token_at = server_metrics.get("last_token_at")
     finished_at = server_metrics.get("finished_at")
@@ -486,41 +526,78 @@ def _replay_one(
         comparable_request = bool(cache_hit) and not bool(scaleup_affected)
         warm_standard_request = comparable_request
 
-    server_ttft_available = backend_ttft_ms is not None or _derive_latency_ms(request_received_at, first_token_at) is not None
+    server_queue_wait_ms = _derive_latency_ms(request_received_at, backend_started_at)
+    service_start_at = backend_started_at if server_queue_wait_ms is not None else request_received_at
+    server_ttft_available = (
+        backend_ttft_ms is not None
+        or _derive_latency_ms(service_start_at, first_token_at) is not None
+        or _derive_latency_ms(request_received_at, first_token_at) is not None
+    )
     server_e2e_available = (
         backend_e2e_ms is not None
+        or _derive_latency_ms(service_start_at, finished_at) is not None
+        or _derive_latency_ms(service_start_at, last_token_at) is not None
         or _derive_latency_ms(request_received_at, finished_at) is not None
         or _derive_latency_ms(request_received_at, last_token_at) is not None
     )
-    if api_ttft_ms is not None:
+    server_service_ttft_ms = _derive_latency_ms(service_start_at, first_token_at)
+    if server_service_ttft_ms is None:
+        server_service_ttft_ms = _derive_latency_ms(request_received_at, first_token_at)
+    if server_service_ttft_ms is None:
+        server_service_ttft_ms = backend_ttft_ms
+    server_service_e2e_ms = _derive_latency_ms(service_start_at, finished_at)
+    if server_service_e2e_ms is None:
+        server_service_e2e_ms = _derive_latency_ms(service_start_at, last_token_at)
+    if server_service_e2e_ms is None:
+        server_service_e2e_ms = _derive_latency_ms(request_received_at, finished_at)
+    if server_service_e2e_ms is None:
+        server_service_e2e_ms = _derive_latency_ms(request_received_at, last_token_at)
+    if server_service_e2e_ms is None:
+        server_service_e2e_ms = backend_e2e_ms
+    if server_service_ttft_ms is not None and server_service_e2e_ms is not None:
+        server_service_e2e_ms = max(
+            float(server_service_e2e_ms),
+            float(server_service_ttft_ms),
+        )
+
+    # Prefer server-side first-token timestamps when available. Some baselines
+    # generate tokens incrementally but return a single non-streamed JSON object,
+    # so client chunk timing collapses TTFT onto full response latency.
+    #
+    # When the backend exposes backend_started_at, the interval before it is
+    # dispatch/admission wait rather than service-path TTFT. This keeps the
+    # baseline split aligned with FaaSLoRA: waiting for an executable runtime is
+    # queue/admission, while runtime prefill/decode after admission is service.
+    if server_service_ttft_ms is not None:
+        service_ttft_ms = float(server_service_ttft_ms)
+    elif api_ttft_ms is not None:
         service_ttft_ms = float(api_ttft_ms)
-    else:
-        service_ttft_ms = _derive_latency_ms(request_received_at, first_token_at)
-        if service_ttft_ms is None:
-            service_ttft_ms = backend_ttft_ms
-    if api_e2e_ms is not None:
+    if server_service_e2e_ms is not None:
+        service_e2e_ms = float(server_service_e2e_ms)
+    elif api_e2e_ms is not None:
         service_e2e_ms = float(api_e2e_ms)
-    else:
-        service_e2e_ms = _derive_latency_ms(request_received_at, finished_at)
-        if service_e2e_ms is None:
-            service_e2e_ms = _derive_latency_ms(request_received_at, last_token_at)
-        if service_e2e_ms is None:
-            service_e2e_ms = backend_e2e_ms
-    dispatch_admission_wait_ms = max(0.0, (dispatch_offset_s - scheduled_offset_s) * 1000.0)
+    replay_dispatch_wait_ms = max(0.0, (dispatch_offset_s - scheduled_offset_s) * 1000.0)
+    dispatch_admission_wait_ms = replay_dispatch_wait_ms + max(0.0, float(server_queue_wait_ms or 0.0))
     overall_ttft_ms = None
-    if api_ttft_ms is not None:
-        overall_ttft_ms = dispatch_admission_wait_ms + float(api_ttft_ms)
-    elif service_ttft_ms is not None:
+    if service_ttft_ms is not None:
         overall_ttft_ms = dispatch_admission_wait_ms + float(service_ttft_ms)
-    overall_e2e_ms = max(0.0, (completion_offset_s - scheduled_offset_s) * 1000.0)
-    if tpot_ms is None and completion_tokens > 1:
+    elif api_ttft_ms is not None:
+        overall_ttft_ms = replay_dispatch_wait_ms + float(api_ttft_ms)
+    if service_e2e_ms is not None:
+        overall_e2e_ms = dispatch_admission_wait_ms + float(service_e2e_ms)
+    else:
+        overall_e2e_ms = max(0.0, (completion_offset_s - scheduled_offset_s) * 1000.0)
+    if overall_ttft_ms is not None and overall_e2e_ms is not None:
+        overall_e2e_ms = max(float(overall_e2e_ms), float(overall_ttft_ms))
+    if completion_tokens > 1:
         decode_window_ms = _derive_latency_ms(first_token_at, last_token_at)
-        if decode_window_ms is None and api_ttft_ms is not None and api_e2e_ms is not None:
-            decode_window_ms = max(0.0, float(api_e2e_ms) - float(api_ttft_ms))
         if decode_window_ms is not None:
             tpot_ms = decode_window_ms / max(1, completion_tokens - 1)
-            # When the response is streamed in multiple events, the client-side
-            # decode window is a true observable rather than an estimate.
+            tpot_observed = True
+        elif tpot_ms is None and api_ttft_ms is not None and api_e2e_ms is not None:
+            decode_window_ms = max(0.0, float(api_e2e_ms) - float(api_ttft_ms))
+            tpot_ms = decode_window_ms / max(1, completion_tokens - 1)
+            # A single non-streamed response cannot expose the decode window.
             tpot_observed = stream_event_count > 1 or tpot_observed
     service_overhead_ms = serverless_overhead_ms
     if service_overhead_ms is None and service_ttft_ms is not None and runtime_ttft_ms is not None:
@@ -538,7 +615,7 @@ def _replay_one(
                     "server latency metrics unavailable; using client-observed api metrics"
                 )
             if completion_tokens > 1 and (tpot_ms is None or not tpot_observed):
-                metric_warnings.append("server tpot_ms unavailable for this request; recorded as null")
+                metric_warnings.append("observable decode-window tpot_ms unavailable for this request")
     metric_warning = "; ".join(metric_warnings) if metric_warnings else None
 
     return {
@@ -556,6 +633,8 @@ def _replay_one(
         "backend_ttft_ms": backend_ttft_ms,
         "backend_e2e_ms": backend_e2e_ms,
         "dispatch_admission_wait_ms": dispatch_admission_wait_ms,
+        "replay_dispatch_wait_ms": replay_dispatch_wait_ms,
+        "server_queue_wait_ms": server_queue_wait_ms,
         "tpot_ms": tpot_ms,
         "tpot_observed": tpot_observed,
         "runtime_ttft_ms": runtime_ttft_ms,
@@ -612,7 +691,11 @@ def _build_live_stats(results: List[Optional[Dict[str, Any]]], ttft_slo_ms: floa
         }
 
     ttft = [float(r["ttft_ms"]) for r in ok if r.get("ttft_ms") is not None]
-    tpot = [float(r["tpot_ms"]) for r in ok if r.get("tpot_ms") is not None]
+    tpot = [
+        float(r["tpot_ms"])
+        for r in ok
+        if r.get("tpot_ms") is not None and bool(r.get("tpot_observed", True))
+    ]
     e2e = [float(r["e2e_ms"]) for r in ok]
     cost = [float(r["cost_usd"]) for r in ok]
     out_tokens = [int(r.get("completion_tokens", 0) or 0) for r in ok]
@@ -708,6 +791,12 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Replay a shared trace against an OpenAI-compatible endpoint.")
     ap.add_argument("--trace", type=Path, required=True)
     ap.add_argument("--base-url", required=True)
+    ap.add_argument(
+        "--base-url-list",
+        default=None,
+        help="Optional comma-separated endpoint list for data-parallel replicas. "
+        "Requests are dispatched round-robin by trace index.",
+    )
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--sleep-scale", type=float, default=1.0)
     ap.add_argument("--timeout-s", type=float, default=600.0)
@@ -734,6 +823,7 @@ def main() -> int:
     requests_list = list(payload.get("requests", []))
     if not requests_list:
         raise RuntimeError("trace contains no requests")
+    base_urls = _parse_base_urls(args.base_url, args.base_url_list)
 
     results: List[Optional[Dict[str, Any]]] = [None] * len(requests_list)
     threads: List[threading.Thread] = []
@@ -744,8 +834,9 @@ def main() -> int:
 
     def _worker(index: int, item: Dict[str, Any]) -> None:
         nonlocal last_live_print_at
+        target_base_url = base_urls[index % len(base_urls)]
         result = _replay_one(
-            base_url=args.base_url,
+            base_url=target_base_url,
             item=item,
             timeout_s=args.timeout_s,
             start_time=start_time,
@@ -771,6 +862,7 @@ def main() -> int:
             ),
             sglang_native_generate=bool(args.sglang_native_generate),
         )
+        result["target_base_url"] = target_base_url
         with lock:
             results[index] = result
             live = _build_live_stats(results, ttft_slo_ms=float(args.ttft_slo_ms))
@@ -855,14 +947,16 @@ def main() -> int:
     output = {
         "metric_schema_version": "e2e_v3",
         "metric_definitions": {
-            "primary_ttft": "scheduled trace arrival to client-observed first output token/chunk",
-            "primary_e2e": "scheduled trace arrival to client-observed response completion",
-            "service_ttft": "common system-ingress to first output token/chunk; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
-            "service_e2e": "common system-ingress to response completion; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
-            "tpot": "(final_token_time - first_token_time) / max(output_tokens - 1, 1)",
+            "primary_ttft": METRIC_DEF_PRIMARY_TTFT,
+            "primary_e2e": METRIC_DEF_PRIMARY_E2E,
+            "service_ttft": METRIC_DEF_SERVICE_TTFT,
+            "service_e2e": METRIC_DEF_SERVICE_E2E,
+            "tpot": "(service_completion_time - service_first_token_time) / max(output_tokens - 1, 1)",
         },
         "trace_source": str(args.trace),
         "base_url": args.base_url,
+        "base_urls": base_urls,
+        "routing_policy": "round_robin" if len(base_urls) > 1 else "single_endpoint",
         "sleep_scale": args.sleep_scale,
         "label": args.label,
         "ttft_slo_ms": float(args.ttft_slo_ms),

@@ -4,10 +4,29 @@ from __future__ import annotations
 import argparse
 import json
 import math
+from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
+
+METRIC_DEF_PRIMARY_TTFT = (
+    "scheduled trace arrival to system-observed first generated output token/chunk"
+)
+METRIC_DEF_PRIMARY_E2E = (
+    "scheduled trace arrival to system-observed response completion when available; "
+    "otherwise client-observed completion"
+)
+METRIC_DEF_SERVICE_TTFT = (
+    "service-path start to first generated output token/chunk; service-path start "
+    "is the system-specific admitted/backend-execution start and excludes scheduled-arrival "
+    "and upstream queue/admission wait"
+)
+METRIC_DEF_SERVICE_E2E = (
+    "service-path start to response completion; service-path start is the system-specific "
+    "admitted/backend-execution start and excludes scheduled-arrival and upstream "
+    "queue/admission wait"
+)
 
 
 def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
@@ -79,16 +98,301 @@ def _cell(value: Optional[float], digits: int = 2) -> Optional[float]:
     return round(float(value), digits)
 
 
+def _load_structured_file(path: Optional[Path]) -> Dict[str, Any]:
+    if path is None:
+        return {}
+    raw = path.read_text(encoding="utf-8")
+    try:
+        parsed = json.loads(raw)
+        return parsed if isinstance(parsed, dict) else {}
+    except Exception:
+        parsed = yaml.safe_load(raw) or {}
+        return parsed if isinstance(parsed, dict) else {}
+
+
+def _gpu_cost_per_second_usd(cost_model: Dict[str, Any]) -> float:
+    per_second = cost_model.get("gpu_cost_per_second_usd")
+    if per_second is not None:
+        try:
+            return max(0.0, float(per_second))
+        except Exception:
+            pass
+    per_hour = cost_model.get("gpu_hour_cost_usd")
+    if per_hour is not None:
+        try:
+            return max(0.0, float(per_hour)) / 3600.0
+        except Exception:
+            pass
+    return 0.0008
+
+
+def _replay_start_wall_time(results: List[Dict[str, Any]]) -> Optional[float]:
+    candidates: List[float] = []
+    for record in results:
+        sm = dict(record.get("server_metrics") or {})
+        request_received_at = sm.get("request_received_at")
+        dispatch_offset_s = record.get("dispatch_offset_s")
+        if request_received_at is not None and dispatch_offset_s is not None:
+            try:
+                candidates.append(float(request_received_at) - float(dispatch_offset_s))
+            except Exception:
+                pass
+            continue
+        finished_at = sm.get("finished_at") or sm.get("last_token_at") or sm.get("response_sent_to_client_ts")
+        completion_offset_s = record.get("completion_offset_s")
+        if finished_at is not None and completion_offset_s is not None:
+            try:
+                candidates.append(float(finished_at) - float(completion_offset_s))
+            except Exception:
+                pass
+    if candidates:
+        return min(candidates)
+    return None
+
+
+def _serverlessllm_runtime_gpu_count(deploy: Dict[str, Any], model_cfg: Dict[str, Any]) -> int:
+    deploy_count = deploy.get("num_gpus")
+    backend_cfg = dict(deploy.get("backend_config", {}) or {})
+    tp = backend_cfg.get("tensor_parallel_size", model_cfg.get("tensor_parallel_size", 1))
+    candidates = []
+    for value in (deploy_count, tp, model_cfg.get("tensor_parallel_size", 1)):
+        try:
+            candidates.append(int(value))
+        except Exception:
+            continue
+    return max([v for v in candidates if v > 0] or [1])
+
+
+def _sglang_runtime_gpu_count(deploy: Dict[str, Any], model_cfg: Dict[str, Any]) -> int:
+    for key in ("num_gpus", "runtime_gpu_count"):
+        value = deploy.get(key)
+        if value is not None:
+            try:
+                parsed = int(value)
+                if parsed > 0:
+                    return parsed
+            except Exception:
+                pass
+    try:
+        dp = int(deploy.get("data_parallel_replicas", deploy.get("dp", 1)) or 1)
+        tp = int(deploy.get("tp", deploy.get("tensor_parallel_size", model_cfg.get("tensor_parallel_size", 1))) or 1)
+        if dp > 0 and tp > 0:
+            return dp * tp
+    except Exception:
+        pass
+    for key in ("tp", "tensor_parallel_size"):
+        value = deploy.get(key)
+        if value is not None:
+            try:
+                parsed = int(value)
+                if parsed > 0:
+                    return parsed
+            except Exception:
+                pass
+    try:
+        return max(1, int(model_cfg.get("tensor_parallel_size", 1) or 1))
+    except Exception:
+        return 1
+
+
+def _static_runtime_lifecycle(
+    *,
+    elapsed_sec: float,
+    startup_sec: float = 0.0,
+    gpu_count: int,
+    label: str,
+    model_name: str,
+) -> List[Dict[str, Any]]:
+    safe_elapsed = max(0.0, float(elapsed_sec or 0.0))
+    safe_startup = max(0.0, float(startup_sec or 0.0))
+    return [
+        {
+            "instance_id": f"{label}_static_runtime",
+            "runtime_kind": "static_serverful",
+            "gpu_count": max(1, int(gpu_count or 1)),
+            "model_name": str(model_name or ""),
+            "lifecycle_source": "static_runtime_window_with_startup",
+            "created_offset_s": 0.0,
+            "ready_offset_s": safe_startup,
+            "removed_offset_s": safe_startup + safe_elapsed,
+        }
+    ]
+
+
+def _reconstruct_serverless_instance_lifecycles(
+    *,
+    results: List[Dict[str, Any]],
+    elapsed_sec: float,
+    gpu_count: int,
+    model_name: str,
+) -> List[Dict[str, Any]]:
+    replay_start_wall = _replay_start_wall_time(results)
+    if replay_start_wall is None:
+        return []
+    instances: Dict[str, Dict[str, Any]] = {}
+    for record in results:
+        sm = dict(record.get("server_metrics") or {})
+        instance_id = str(sm.get("instance_id") or "").strip()
+        if not instance_id:
+            continue
+        created_at = sm.get("instance_created_at")
+        ready_at = sm.get("instance_ready_at")
+        request_received_at = sm.get("request_received_at")
+        backend_started_at = sm.get("backend_started_at")
+        finished_at = (
+            sm.get("finished_at")
+            or sm.get("last_token_at")
+            or sm.get("response_sent_to_client_ts")
+            or sm.get("first_token_at")
+            or backend_started_at
+            or request_received_at
+        )
+        try:
+            created_abs = float(
+                created_at
+                if created_at is not None
+                else request_received_at
+                if request_received_at is not None
+                else backend_started_at
+                if backend_started_at is not None
+                else finished_at
+            )
+            ready_abs = float(
+                ready_at
+                if ready_at is not None
+                else backend_started_at
+                if backend_started_at is not None
+                else request_received_at
+                if request_received_at is not None
+                else created_abs
+            )
+            finished_abs = float(finished_at)
+        except Exception:
+            continue
+        rec = instances.setdefault(
+            instance_id,
+            {
+                "instance_id": instance_id,
+                "runtime_kind": "serverless_runtime",
+                "gpu_count": max(1, int(gpu_count or 1)),
+                "model_name": str(model_name or ""),
+                "lifecycle_source": "server_metrics_reconstructed",
+                "created_abs": created_abs,
+                "ready_abs": ready_abs,
+                "last_finished_abs": finished_abs,
+            },
+        )
+        rec["created_abs"] = min(float(rec.get("created_abs", created_abs)), created_abs)
+        rec["ready_abs"] = min(float(rec.get("ready_abs", ready_abs)), ready_abs)
+        rec["last_finished_abs"] = max(float(rec.get("last_finished_abs", finished_abs)), finished_abs)
+
+    lifecycles: List[Dict[str, Any]] = []
+    for rec in instances.values():
+        created_offset_s = max(0.0, float(rec["created_abs"]) - replay_start_wall)
+        ready_offset_s = max(created_offset_s, float(rec["ready_abs"]) - replay_start_wall)
+        removed_offset_s = max(
+            ready_offset_s,
+            float(rec["last_finished_abs"]) - replay_start_wall,
+        )
+        lifecycles.append(
+            {
+                "instance_id": rec["instance_id"],
+                "runtime_kind": rec["runtime_kind"],
+                "gpu_count": rec["gpu_count"],
+                "model_name": rec["model_name"],
+                "lifecycle_source": rec["lifecycle_source"],
+                "created_offset_s": created_offset_s,
+                "ready_offset_s": ready_offset_s,
+                "removed_offset_s": removed_offset_s,
+                "last_finished_offset_s": max(0.0, float(rec["last_finished_abs"]) - replay_start_wall),
+            }
+        )
+    lifecycles.sort(key=lambda item: (float(item.get("created_offset_s", 0.0) or 0.0), str(item.get("instance_id") or "")))
+    return lifecycles
+
+
+def _summarize_infra_from_lifecycles(
+    lifecycles: List[Dict[str, Any]],
+    *,
+    elapsed_sec: float,
+    completed_requests: int,
+    total_requests: int,
+    avg_e2e_ms: float,
+    gpu_cost_per_second_usd: float,
+) -> Dict[str, Any]:
+    normalized: List[Dict[str, Any]] = []
+    total_gpu_seconds = 0.0
+    startup_gpu_seconds = 0.0
+    ready_gpu_seconds = 0.0
+    safe_elapsed = max(0.0, float(elapsed_sec or 0.0))
+    for raw in lifecycles or []:
+        item = dict(raw or {})
+        instance_id = str(item.get("instance_id") or "").strip()
+        if not instance_id:
+            continue
+        gpu_count = max(1, int(item.get("gpu_count", 1) or 1))
+        created_offset_s = min(max(0.0, float(item.get("created_offset_s", 0.0) or 0.0)), safe_elapsed)
+        ready_offset_s = min(
+            max(created_offset_s, float(item.get("ready_offset_s", created_offset_s) or created_offset_s)),
+            safe_elapsed,
+        )
+        removed_offset_s = min(
+            max(ready_offset_s, float(item.get("removed_offset_s", safe_elapsed) or safe_elapsed)),
+            safe_elapsed,
+        )
+        lifetime_sec = max(0.0, removed_offset_s - created_offset_s)
+        startup_sec = max(0.0, ready_offset_s - created_offset_s)
+        ready_sec = max(0.0, removed_offset_s - ready_offset_s)
+        lifetime_gpu_seconds = lifetime_sec * gpu_count
+        startup_gpu_seconds_i = startup_sec * gpu_count
+        ready_gpu_seconds_i = ready_sec * gpu_count
+        total_gpu_seconds += lifetime_gpu_seconds
+        startup_gpu_seconds += startup_gpu_seconds_i
+        ready_gpu_seconds += ready_gpu_seconds_i
+        item.update(
+            {
+                "created_offset_s": _round(created_offset_s, 6),
+                "ready_offset_s": _round(ready_offset_s, 6),
+                "removed_offset_s": _round(removed_offset_s, 6),
+                "lifetime_sec": _round(lifetime_sec, 6),
+                "startup_sec": _round(startup_sec, 6),
+                "ready_sec": _round(ready_sec, 6),
+                "lifetime_gpu_seconds": _round(lifetime_gpu_seconds, 6),
+                "startup_gpu_seconds": _round(startup_gpu_seconds_i, 6),
+                "ready_gpu_seconds": _round(ready_gpu_seconds_i, 6),
+            }
+        )
+        normalized.append(item)
+    infra_cost_total_usd = total_gpu_seconds * max(0.0, float(gpu_cost_per_second_usd or 0.0))
+    per_request_denominator = int(completed_requests or 0) if int(completed_requests or 0) > 0 else max(0, int(total_requests or 0))
+    infra_cost_per_request_usd = infra_cost_total_usd / per_request_denominator if per_request_denominator > 0 else 0.0
+    avg_e2e_s = max(0.0, float(avg_e2e_ms or 0.0)) / 1000.0
+    infra_ce_denom = infra_cost_per_request_usd * avg_e2e_s
+    infra_ce = 1.0 / infra_ce_denom if infra_ce_denom > 1e-12 else 0.0
+    return {
+        "instance_lifecycle_log": normalized,
+        "infra_gpu_seconds_total": total_gpu_seconds,
+        "infra_startup_gpu_seconds": startup_gpu_seconds,
+        "infra_ready_gpu_seconds": ready_gpu_seconds,
+        "infra_cost_total_usd": infra_cost_total_usd,
+        "infra_cost_per_request_usd": infra_cost_per_request_usd,
+        "infra_ce": infra_ce,
+    }
+
+
 def _build_metric_structure() -> Dict[str, List[str]]:
     return {
         "standard_serving_metrics": [
             "TTFT_avg_ms",
+            "TTFT_P50_ms",
             "TTFT_P95_ms",
             "TTFT_P99_ms",
             "TTFT_e2e_avg_ms",
+            "TTFT_e2e_P50_ms",
             "TTFT_e2e_P95_ms",
             "TTFT_e2e_P99_ms",
             "TTFT_service_avg_ms",
+            "TTFT_service_P50_ms",
             "TTFT_service_P95_ms",
             "TTFT_service_P99_ms",
             "TTFT_warm_standard_avg_ms",
@@ -104,6 +408,7 @@ def _build_metric_structure() -> Dict[str, List[str]]:
             "TTFT_e2e_avg_ms",
             "TTFT_service_avg_ms",
             "Dispatch_admission_wait_avg_ms",
+            "Dispatch_admission_wait_P50_ms",
             "Dispatch_admission_wait_P95_ms",
             "TTFT_comparable_avg_ms",
             "TTFT_comparable_P95_ms",
@@ -121,12 +426,21 @@ def _build_metric_structure() -> Dict[str, List[str]]:
             "TTFT_service_overhead_avg_ms",
             "TTFT_service_overhead_P95_ms",
             "E2E_avg_ms",
+            "E2E_P50_ms",
             "E2E_P95_ms",
             "E2E_P99_ms",
             "E2E_e2e_avg_ms",
             "E2E_service_avg_ms",
+            "E2E_service_P50_ms",
+            "E2E_service_P95_ms",
+            "E2E_service_P99_ms",
             "Monetary_cost_avg_usd",
             "Monetary_cost_total_usd",
+            "Infra_GPU_seconds_total",
+            "Infra_GPU_seconds_startup",
+            "Infra_GPU_seconds_ready",
+            "Infra_cost_total_usd",
+            "Infra_cost_per_request_usd",
         ],
         "scaling_metrics": [
             "TTFT_SLO_ms",
@@ -138,6 +452,7 @@ def _build_metric_structure() -> Dict[str, List[str]]:
         ],
         "mechanism_metrics": [
             "CE",
+            "Infra_CE",
             "QPR_TOKPS_TTFT_legacy",
             "QPR_RPS_legacy",
             "cache_hit_rate",
@@ -178,6 +493,7 @@ def main() -> int:
     ap.add_argument("--system-name", default="ServerlessLLM")
     ap.add_argument("--instance-mode", default="auto")
     ap.add_argument("--routing-policy", default="round_robin")
+    ap.add_argument("--static-startup-sec", type=float, default=0.0)
     args = ap.parse_args()
 
     main_repo = args.main_repo.resolve()
@@ -190,7 +506,7 @@ def main() -> int:
 
     replay = json.loads(args.replay.read_text(encoding="utf-8"))
     trace = json.loads(args.trace.read_text(encoding="utf-8"))
-    deploy = json.loads(args.deploy.read_text(encoding="utf-8")) if args.deploy else {}
+    deploy = _load_structured_file(args.deploy.resolve()) if args.deploy else {}
 
     results = list(replay.get("results", []) or [])
     total = int(trace.get("total_requests", len(results)) or len(results))
@@ -213,7 +529,11 @@ def main() -> int:
         float(r.get("dispatch_admission_wait_ms", 0.0) or 0.0)
         for r in ok
     ]
-    tpot = [float(r["tpot_ms"]) for r in ok if r.get("tpot_ms") is not None]
+    tpot = [
+        float(r["tpot_ms"])
+        for r in ok
+        if r.get("tpot_ms") is not None and bool(r.get("tpot_observed", True))
+    ]
     runtime_ttft = [
         float(r["runtime_ttft_ms"])
         for r in ok
@@ -276,6 +596,7 @@ def main() -> int:
     completion_tokens = [int(r.get("completion_tokens", 0) or 0) for r in ok]
     prompt_tokens = [int(r.get("prompt_tokens", 0) or 0) for r in ok]
     total_tokens = [int(r.get("total_tokens", 0) or 0) for r in ok]
+    metrics_source_counts = Counter(str(r.get("metrics_source") or "missing") for r in ok)
     elapsed_sec = max((float(r.get("completion_offset_s", 0.0) or 0.0) for r in results), default=0.0)
     avg_ttft_ms = sum(ttft) / len(ttft) if ttft else 0.0
     avg_e2e_ms = sum(e2e) / len(e2e) if e2e else 0.0
@@ -295,6 +616,57 @@ def main() -> int:
     tpot_observed_ratio = (observed_tpot_count / len(multi_token_ok)) if multi_token_ok else 0.0
     cache_hit_rate = _known_bool_rate(ok, "cache_hit")
     gpu_hit_rate = _known_bool_rate(ok, "gpu_ready_request")
+    infra_gpu_cost_per_second_usd = _gpu_cost_per_second_usd(cost_model)
+    static_startup_sec = max(0.0, float(args.static_startup_sec or 0.0))
+    infra_billing_elapsed_sec = elapsed_sec
+    backend_cfg = dict(deploy.get("backend_config", {}) or {})
+    if str(args.baseline_type) == "sglang":
+        tensor_parallel_size = int(deploy.get("tp", deploy.get("tensor_parallel_size", model_cfg.get("tensor_parallel_size", 1))) or 1)
+        data_parallel_replicas = int(deploy.get("data_parallel_replicas", deploy.get("dp", 1)) or 1)
+        runtime_gpu_count = _sglang_runtime_gpu_count(deploy, model_cfg)
+        parallelism_topology = str(
+            deploy.get("parallelism_topology")
+            or (
+                f"data_parallel_dp{data_parallel_replicas}_tp{tensor_parallel_size}"
+                if data_parallel_replicas > 1
+                else (
+                    f"model_parallel_tp{tensor_parallel_size}"
+                    if tensor_parallel_size > 1
+                    else "single_gpu"
+                )
+            )
+        )
+        instance_lifecycle_log = _static_runtime_lifecycle(
+            elapsed_sec=elapsed_sec,
+            startup_sec=static_startup_sec,
+            gpu_count=runtime_gpu_count,
+            label=str(args.scenario_name),
+            model_name=str(model_cfg.get("name", "")),
+        )
+        infra_billing_elapsed_sec = elapsed_sec + static_startup_sec
+    else:
+        tensor_parallel_size = int(backend_cfg.get("tensor_parallel_size", deploy.get("tensor_parallel_size", model_cfg.get("tensor_parallel_size", 1))) or 1)
+        data_parallel_replicas = 1
+        runtime_gpu_count = _serverlessllm_runtime_gpu_count(deploy, model_cfg)
+        parallelism_topology = (
+            f"model_parallel_tp{tensor_parallel_size}"
+            if tensor_parallel_size > 1
+            else "single_gpu"
+        )
+        instance_lifecycle_log = _reconstruct_serverless_instance_lifecycles(
+            results=results,
+            elapsed_sec=elapsed_sec,
+            gpu_count=runtime_gpu_count,
+            model_name=str(model_cfg.get("name", "")),
+        )
+    infra_summary = _summarize_infra_from_lifecycles(
+        instance_lifecycle_log,
+        elapsed_sec=infra_billing_elapsed_sec,
+        completed_requests=len(ok),
+        total_requests=total,
+        avg_e2e_ms=avg_e2e_ms,
+        gpu_cost_per_second_usd=infra_gpu_cost_per_second_usd,
+    )
 
     summary = {
         "scenario_name": args.scenario_name,
@@ -314,9 +686,10 @@ def main() -> int:
         "failed_requests": len(failed),
         "elapsed_sec": _round(elapsed_sec),
         "metric_schema_version": "e2e_v3",
-        "primary_ttft_definition": "scheduled trace arrival to client-observed first output token/chunk",
-        "primary_e2e_definition": "scheduled trace arrival to client-observed response completion",
-        "service_ttft_definition": "common system-ingress to first output token/chunk; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
+        "primary_ttft_definition": METRIC_DEF_PRIMARY_TTFT,
+        "primary_e2e_definition": METRIC_DEF_PRIMARY_E2E,
+        "service_ttft_definition": METRIC_DEF_SERVICE_TTFT,
+        "service_e2e_definition": METRIC_DEF_SERVICE_E2E,
         "slo_metric": "TTFT_e2e",
         "avg_ttft_ms": _round(avg_ttft_ms),
         "p95_ttft_ms": _round(_pct(ttft, 95)),
@@ -326,6 +699,7 @@ def main() -> int:
         "p95_overall_ttft_ms": _round(_pct(ttft, 95)),
         "p99_overall_ttft_ms": _round(_pct(ttft, 99)),
         "avg_service_ttft_ms": _round(sum(service_ttft) / len(service_ttft) if service_ttft else None),
+        "p50_service_ttft_ms": _round(_pct(service_ttft, 50)),
         "p95_service_ttft_ms": _round(_pct(service_ttft, 95)),
         "p99_service_ttft_ms": _round(_pct(service_ttft, 99)),
         "avg_tpot_ms": _round(avg_tpot_ms),
@@ -333,9 +707,11 @@ def main() -> int:
         "p95_e2e_ms": _round(_pct(e2e, 95)),
         "p99_e2e_ms": _round(_pct(e2e, 99)),
         "avg_overall_e2e_ms": _round(avg_e2e_ms),
+        "p50_overall_e2e_ms": _round(_pct(e2e, 50)),
         "p95_overall_e2e_ms": _round(_pct(e2e, 95)),
         "p99_overall_e2e_ms": _round(_pct(e2e, 99)),
         "avg_service_e2e_ms": _round(sum(service_e2e) / len(service_e2e) if service_e2e else None),
+        "p50_service_e2e_ms": _round(_pct(service_e2e, 50)),
         "p95_service_e2e_ms": _round(_pct(service_e2e, 95)),
         "p99_service_e2e_ms": _round(_pct(service_e2e, 99)),
         "throughput_rps": _round(throughput_rps, 6),
@@ -344,6 +720,28 @@ def main() -> int:
         "ttft_slo_ms": _round(ttft_slo_ms),
         "avg_cost_usd": _round(avg_cost_usd, 8),
         "total_cost_usd": _round(total_cost_usd, 8),
+        "max_model_len": model_cfg.get("max_model_len"),
+        "max_input_len": model_cfg.get("max_input_len"),
+        "max_output_tokens_cap": model_cfg.get("max_output_tokens_cap"),
+        "max_num_seqs": model_cfg.get("max_num_seqs"),
+        "runtime_concurrency_cap": model_cfg.get("runtime_concurrency_cap"),
+        "max_loras": model_cfg.get("max_loras"),
+        "avg_prompt_tokens": _round((sum(prompt_tokens) / len(prompt_tokens)) if prompt_tokens else None),
+        "p95_prompt_tokens": _round(_pct(prompt_tokens, 95)),
+        "max_prompt_tokens": max(prompt_tokens) if prompt_tokens else None,
+        "avg_completion_tokens": _round((sum(completion_tokens) / len(completion_tokens)) if completion_tokens else None),
+        "p95_completion_tokens": _round(_pct(completion_tokens, 95)),
+        "p99_completion_tokens": _round(_pct(completion_tokens, 99)),
+        "max_completion_tokens": max(completion_tokens) if completion_tokens else None,
+        "avg_total_tokens": _round((sum(total_tokens) / len(total_tokens)) if total_tokens else None),
+        "max_total_tokens": max(total_tokens) if total_tokens else None,
+        "metrics_source_counts": dict(sorted(metrics_source_counts.items())),
+        "infra_gpu_seconds_total": _round(infra_summary["infra_gpu_seconds_total"], 6),
+        "infra_startup_gpu_seconds": _round(infra_summary["infra_startup_gpu_seconds"], 6),
+        "infra_ready_gpu_seconds": _round(infra_summary["infra_ready_gpu_seconds"], 6),
+        "infra_cost_total_usd": _round(infra_summary["infra_cost_total_usd"], 8),
+        "infra_cost_per_request_usd": _round(infra_summary["infra_cost_per_request_usd"], 8),
+        "infra_ce": _round(infra_summary["infra_ce"], 6),
         "ce": _round(ce, 6),
         "qpr": _round(ce, 6),
         "qpr_tokps_ttft_legacy": _round(qpr_tokps_ttft_legacy, 6),
@@ -362,6 +760,7 @@ def main() -> int:
         "avg_service_overhead_ms": _round(sum(service_overhead) / len(service_overhead) if service_overhead else None),
         "p95_service_overhead_ms": _round(_pct(service_overhead, 95)),
         "avg_dispatch_admission_wait_ms": _round(sum(dispatch_wait) / len(dispatch_wait) if dispatch_wait else None),
+        "p50_dispatch_admission_wait_ms": _round(_pct(dispatch_wait, 50)),
         "p95_dispatch_admission_wait_ms": _round(_pct(dispatch_wait, 95)),
         "avg_runtime_ttft_ms": _round(sum(runtime_ttft) / len(runtime_ttft) if runtime_ttft else None),
         "p95_runtime_ttft_ms": _round(_pct(runtime_ttft, 95)),
@@ -394,12 +793,15 @@ def main() -> int:
         "cold_starts_after_scale_up": None,
         "standard_serving_metrics": {
             "TTFT_avg_ms": _round(avg_ttft_ms),
+            "TTFT_P50_ms": _round(_pct(ttft, 50)),
             "TTFT_P95_ms": _round(_pct(ttft, 95)),
             "TTFT_P99_ms": _round(_pct(ttft, 99)),
             "TTFT_e2e_avg_ms": _round(avg_ttft_ms),
+            "TTFT_e2e_P50_ms": _round(_pct(ttft, 50)),
             "TTFT_e2e_P95_ms": _round(_pct(ttft, 95)),
             "TTFT_e2e_P99_ms": _round(_pct(ttft, 99)),
             "TTFT_service_avg_ms": _round(sum(service_ttft) / len(service_ttft) if service_ttft else None),
+            "TTFT_service_P50_ms": _round(_pct(service_ttft, 50)),
             "TTFT_service_P95_ms": _round(_pct(service_ttft, 95)),
             "TTFT_service_P99_ms": _round(_pct(service_ttft, 99)),
             "TTFT_warm_standard_avg_ms": _round(sum(warm_standard_ttft) / len(warm_standard_ttft) if warm_standard_ttft else None),
@@ -415,6 +817,7 @@ def main() -> int:
             "TTFT_e2e_avg_ms": _round(avg_ttft_ms),
             "TTFT_service_avg_ms": _round(sum(service_ttft) / len(service_ttft) if service_ttft else None),
             "Dispatch_admission_wait_avg_ms": _round(sum(dispatch_wait) / len(dispatch_wait) if dispatch_wait else None),
+            "Dispatch_admission_wait_P50_ms": _round(_pct(dispatch_wait, 50)),
             "Dispatch_admission_wait_P95_ms": _round(_pct(dispatch_wait, 95)),
             "TTFT_comparable_avg_ms": _round(sum(comparable_ttft) / len(comparable_ttft) if comparable_ttft else None),
             "TTFT_comparable_P95_ms": _round(_pct(comparable_ttft, 95)),
@@ -432,12 +835,21 @@ def main() -> int:
             "TTFT_service_overhead_avg_ms": _round(sum(service_overhead) / len(service_overhead) if service_overhead else None),
             "TTFT_service_overhead_P95_ms": _round(_pct(service_overhead, 95)),
             "E2E_avg_ms": _round(avg_e2e_ms),
+            "E2E_P50_ms": _round(_pct(e2e, 50)),
             "E2E_P95_ms": _round(_pct(e2e, 95)),
             "E2E_P99_ms": _round(_pct(e2e, 99)),
             "E2E_e2e_avg_ms": _round(avg_e2e_ms),
             "E2E_service_avg_ms": _round(sum(service_e2e) / len(service_e2e) if service_e2e else None),
+            "E2E_service_P50_ms": _round(_pct(service_e2e, 50)),
+            "E2E_service_P95_ms": _round(_pct(service_e2e, 95)),
+            "E2E_service_P99_ms": _round(_pct(service_e2e, 99)),
             "Monetary_cost_avg_usd": _round(avg_cost_usd, 8),
             "Monetary_cost_total_usd": _round(total_cost_usd, 8),
+            "Infra_GPU_seconds_total": _round(infra_summary["infra_gpu_seconds_total"], 6),
+            "Infra_GPU_seconds_startup": _round(infra_summary["infra_startup_gpu_seconds"], 6),
+            "Infra_GPU_seconds_ready": _round(infra_summary["infra_ready_gpu_seconds"], 6),
+            "Infra_cost_total_usd": _round(infra_summary["infra_cost_total_usd"], 8),
+            "Infra_cost_per_request_usd": _round(infra_summary["infra_cost_per_request_usd"], 8),
         },
         "scaling_metrics": {
             "TTFT_SLO_ms": _round(ttft_slo_ms),
@@ -449,6 +861,7 @@ def main() -> int:
         },
         "mechanism_metrics": {
             "CE": _round(ce),
+            "Infra_CE": _round(infra_summary["infra_ce"]),
             "QPR_TOKPS_TTFT_legacy": _round(qpr_tokps_ttft_legacy),
             "QPR_RPS_legacy": _round(qpr_rps_legacy),
             "TPOT_observed_ratio": _round(tpot_observed_ratio),
@@ -488,9 +901,11 @@ def main() -> int:
         "TTFT_P95_ms": _cell(_pct(ttft, 95)),
         "TTFT_P99_ms": _cell(_pct(ttft, 99)),
         "TTFT_e2e_avg_ms": _cell(avg_ttft_ms),
+        "TTFT_e2e_P50_ms": _cell(_pct(ttft, 50)),
         "TTFT_e2e_P95_ms": _cell(_pct(ttft, 95)),
         "TTFT_e2e_P99_ms": _cell(_pct(ttft, 99)),
         "TTFT_service_avg_ms": _cell(sum(service_ttft) / len(service_ttft) if service_ttft else None),
+        "TTFT_service_P50_ms": _cell(_pct(service_ttft, 50)),
         "TTFT_service_P95_ms": _cell(_pct(service_ttft, 95)),
         "TTFT_service_P99_ms": _cell(_pct(service_ttft, 99)),
         "TTFT_comparable_avg_ms": _cell(sum(comparable_ttft) / len(comparable_ttft) if comparable_ttft else None),
@@ -510,14 +925,19 @@ def main() -> int:
         "TTFT_serverless_overhead_avg_ms": _cell(sum(overhead) / len(overhead) if overhead else None),
         "TTFT_service_overhead_avg_ms": _cell(sum(service_overhead) / len(service_overhead) if service_overhead else None),
         "Dispatch_admission_wait_avg_ms": _cell(sum(dispatch_wait) / len(dispatch_wait) if dispatch_wait else None),
+        "Dispatch_admission_wait_P50_ms": _cell(_pct(dispatch_wait, 50)),
         "Dispatch_admission_wait_P95_ms": _cell(_pct(dispatch_wait, 95)),
         "TPOT_avg_ms": _cell(avg_tpot_ms),
         "TPOT_observed_ratio": _cell(tpot_observed_ratio, 4),
         "E2E_avg_ms": _cell(avg_e2e_ms),
+        "E2E_P50_ms": _cell(_pct(e2e, 50)),
         "E2E_P95_ms": _cell(_pct(e2e, 95)),
         "E2E_P99_ms": _cell(_pct(e2e, 99)),
         "E2E_e2e_avg_ms": _cell(avg_e2e_ms),
         "E2E_service_avg_ms": _cell(sum(service_e2e) / len(service_e2e) if service_e2e else None),
+        "E2E_service_P50_ms": _cell(_pct(service_e2e, 50)),
+        "E2E_service_P95_ms": _cell(_pct(service_e2e, 95)),
+        "E2E_service_P99_ms": _cell(_pct(service_e2e, 99)),
         "throughput_RPS": _cell(throughput_rps, 3),
         "throughput_TOKPS": _cell(throughput_tokps, 3),
         "SLO_attainment": _cell(slo_attainment, 4),
@@ -526,7 +946,13 @@ def main() -> int:
         "TTFT_SLO_ms": _cell(ttft_slo_ms, 1),
         "avg_cost_USD": _cell(avg_cost_usd, 7),
         "total_cost_USD": _cell(total_cost_usd, 5),
+        "infra_gpu_seconds_total": _cell(infra_summary["infra_gpu_seconds_total"], 6),
+        "infra_startup_gpu_seconds": _cell(infra_summary["infra_startup_gpu_seconds"], 6),
+        "infra_ready_gpu_seconds": _cell(infra_summary["infra_ready_gpu_seconds"], 6),
+        "infra_cost_total_usd": _cell(infra_summary["infra_cost_total_usd"], 7),
+        "infra_cost_per_request_usd": _cell(infra_summary["infra_cost_per_request_usd"], 7),
         "CE": _cell(ce, 4),
+        "Infra_CE": _cell(infra_summary["infra_ce"], 4),
         "Cost_effectiveness_e2e": _cell(ce, 4),
         "QPR_TOKPS_TTFT_legacy": _cell(qpr_tokps_ttft_legacy, 1),
         "QPR_RPS_legacy": _cell(qpr_rps_legacy, 1),
@@ -574,6 +1000,7 @@ def main() -> int:
             "failed": len(failed),
             "elapsed_sec": elapsed_sec,
             "requests": results,
+            "instance_lifecycle_log": infra_summary["instance_lifecycle_log"],
         }
     }
 
@@ -581,19 +1008,21 @@ def main() -> int:
         "schema_version": 4,
         "metric_schema_version": "e2e_v3",
         "metric_definitions": {
-            "primary_ttft": "scheduled trace arrival to client-observed first output token/chunk",
-            "primary_e2e": "scheduled trace arrival to client-observed response completion",
-            "service_ttft": "common system-ingress to first output token/chunk; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
-            "service_e2e": "common system-ingress to response completion; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
-            "tpot": "(final_token_time - first_token_time) / max(output_tokens - 1, 1)",
+            "primary_ttft": METRIC_DEF_PRIMARY_TTFT,
+            "primary_e2e": METRIC_DEF_PRIMARY_E2E,
+            "service_ttft": METRIC_DEF_SERVICE_TTFT,
+            "service_e2e": METRIC_DEF_SERVICE_E2E,
+            "tpot": "(service_completion_time - service_first_token_time) / max(output_tokens - 1, 1)",
+            "infra_cost_model": "simulated GPU-second infrastructure billing over the replay serving window; total/startup/ready GPU-seconds are multiplied by a shared gpu_cost_per_second_usd and normalized into infra_cost_per_request_usd and infra_ce",
             "slo_metric": "TTFT_e2e",
         },
         "metadata": {
             "system": str(args.system_name),
             "metric_schema_version": "e2e_v3",
-            "primary_ttft_definition": "scheduled trace arrival to client-observed first output token/chunk",
-            "primary_e2e_definition": "scheduled trace arrival to client-observed response completion",
-            "service_ttft_definition": "common system-ingress to first output token/chunk; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
+            "primary_ttft_definition": METRIC_DEF_PRIMARY_TTFT,
+            "primary_e2e_definition": METRIC_DEF_PRIMARY_E2E,
+            "service_ttft_definition": METRIC_DEF_SERVICE_TTFT,
+            "service_e2e_definition": METRIC_DEF_SERVICE_E2E,
             "slo_metric": "TTFT_e2e",
             "main_repo": str(main_repo),
             "config_path": str(cfg_path),
@@ -605,6 +1034,26 @@ def main() -> int:
             "replay_source": str(args.replay),
             "deploy_config": str(args.deploy) if args.deploy else None,
             "model_name": str(model_cfg.get("name")),
+            "max_model_len": model_cfg.get("max_model_len"),
+            "max_input_len": model_cfg.get("max_input_len"),
+            "max_output_tokens_cap": model_cfg.get("max_output_tokens_cap"),
+            "max_num_seqs": model_cfg.get("max_num_seqs"),
+            "runtime_concurrency_cap": model_cfg.get("runtime_concurrency_cap"),
+            "max_loras": model_cfg.get("max_loras"),
+            "tensor_parallel_size": tensor_parallel_size,
+            "data_parallel_replicas": data_parallel_replicas,
+            "gpu_per_request": max(1, tensor_parallel_size),
+            "runtime_gpu_count": runtime_gpu_count,
+            "parallelism_topology": parallelism_topology,
+            "infra_cost_model": {
+                "name": "simulated_gpu_second_v1",
+                "gpu_cost_per_second_usd": round(infra_gpu_cost_per_second_usd, 8),
+                "gpu_hour_cost_usd_equivalent": round(infra_gpu_cost_per_second_usd * 3600.0, 6),
+                "scope": "runtime_gpu_lifecycle_with_static_startup_for_serverful",
+                "billing_unit": "gpu_second",
+                "static_startup_sec": round(static_startup_sec, 6),
+                "infra_billing_elapsed_sec": round(infra_billing_elapsed_sec, 6),
+            },
             "selected_num_adapters": trace.get("selected_num_adapters"),
             "sampling_seed": trace.get("sampling_seed"),
         },
@@ -623,7 +1072,9 @@ def main() -> int:
         f"Summary[{args.scenario_name}] "
         f"TTFT={avg_ttft_ms:.1f}ms TPOT={tpot_display} "
         f"Tok/s={throughput_tokps:.2f} E2E={avg_e2e_ms:.1f}ms "
-        f"Cost/req=${avg_cost_usd:.6f} CE={ce:.3f}"
+        f"Cost/req=${avg_cost_usd:.6f} CE={ce:.3f} "
+        f"InfraCost/req=${infra_summary['infra_cost_per_request_usd']:.6f} "
+        f"InfraCE={infra_summary['infra_ce']:.3f}"
     )
     print(f"wrote summary -> {args.output}")
     return 0
