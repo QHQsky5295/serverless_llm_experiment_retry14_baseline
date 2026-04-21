@@ -36,6 +36,7 @@ class ScalingTrigger(Enum):
     GPU_UTILIZATION = "gpu_utilization"
     MEMORY_UTILIZATION = "memory_utilization"
     REQUEST_QUEUE_LENGTH = "request_queue_length"
+    DISPATCH_ADMISSION_WAIT = "dispatch_admission_wait"
     RESPONSE_TIME = "response_time"
     TTFT_LATENCY = "ttft_latency"
     REQUESTS_PER_SECOND = "requests_per_second"
@@ -51,6 +52,7 @@ class ScalingMetrics:
     gpu_utilization: Optional[float] = None
     memory_utilization: Optional[float] = None
     request_queue_length: Optional[int] = None
+    dispatch_admission_wait_ms: Optional[float] = None
     avg_response_time_ms: Optional[float] = None
     avg_ttft_ms: Optional[float] = None
     requests_per_second: Optional[float] = None
@@ -322,6 +324,18 @@ class AutoScaler:
                 max(0.0, ttft_scale_up_threshold_ms * 0.6),
             )
         )
+        dispatch_wait_scale_up_threshold_ms = float(
+            scaling_config.get(
+                "dispatch_wait_scale_up_threshold_ms",
+                max(250.0, min(ttft_scale_up_threshold_ms * 0.1, 1000.0)),
+            )
+        )
+        dispatch_wait_scale_down_threshold_ms = float(
+            scaling_config.get(
+                "dispatch_wait_scale_down_threshold_ms",
+                max(50.0, dispatch_wait_scale_up_threshold_ms * 0.2),
+            )
+        )
         self.scaling_rules = [
             ScalingRule(
                 name="cpu_utilization",
@@ -354,6 +368,14 @@ class AutoScaler:
                 scale_down_threshold=ttft_scale_down_threshold_ms,
                 weight=1.3,
                 category="latency_degradation",
+            ),
+            ScalingRule(
+                name="dispatch_admission_wait",
+                trigger=ScalingTrigger.DISPATCH_ADMISSION_WAIT,
+                scale_up_threshold=dispatch_wait_scale_up_threshold_ms,
+                scale_down_threshold=dispatch_wait_scale_down_threshold_ms,
+                weight=1.2,
+                category="arrival_pressure",
             ),
             ScalingRule(
                 name="instance_busy_ratio",
@@ -649,6 +671,8 @@ class AutoScaler:
                 value = metrics.memory_utilization
             elif rule.trigger == ScalingTrigger.REQUEST_QUEUE_LENGTH:
                 value = metrics.request_queue_length
+            elif rule.trigger == ScalingTrigger.DISPATCH_ADMISSION_WAIT:
+                value = metrics.dispatch_admission_wait_ms
             elif rule.trigger == ScalingTrigger.RESPONSE_TIME:
                 value = metrics.avg_response_time_ms
             elif rule.trigger == ScalingTrigger.TTFT_LATENCY:
@@ -670,6 +694,16 @@ class AutoScaler:
                     scale_up_threshold = overrides["scale_up_threshold_rps"]
                 if "scale_down_threshold_rps" in overrides:
                     scale_down_threshold = overrides["scale_down_threshold_rps"]
+            elif rule.trigger == ScalingTrigger.REQUEST_QUEUE_LENGTH:
+                if "scale_up_threshold_queue_length" in overrides:
+                    scale_up_threshold = overrides["scale_up_threshold_queue_length"]
+                if "scale_down_threshold_queue_length" in overrides:
+                    scale_down_threshold = overrides["scale_down_threshold_queue_length"]
+
+            one_sided_scale_up = rule.trigger in (
+                ScalingTrigger.TTFT_LATENCY,
+                ScalingTrigger.DISPATCH_ADMISSION_WAIT,
+            )
             
             # Calculate vote strength based on how far the metric is from thresholds
             if value >= scale_up_threshold:
@@ -679,7 +713,7 @@ class AutoScaler:
                 vote_strength = min(excess / max_excess, 1.0) if max_excess > 0 else 1.0
                 return vote_strength, True
             
-            elif value <= scale_down_threshold:
+            elif (not one_sided_scale_up) and value <= scale_down_threshold:
                 # Scale down vote
                 deficit = scale_down_threshold - value
                 max_deficit = scale_down_threshold * 0.5  # Assume 50% below threshold is max

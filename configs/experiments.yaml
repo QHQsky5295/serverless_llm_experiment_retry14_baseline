@@ -238,7 +238,7 @@ model_profiles:  # 可复用的模型 profile 集合
       enforce_eager: true
       dtype: "float16"
       max_num_seqs: 2
-      max_num_batched_tokens: 1024
+      max_num_batched_tokens: 1024  # 500-adapter publicmix 下 max_loras=8 会把可用 KV cache 压到约 1.36x；主线按实测稳定包络收紧
       max_output_tokens_cap: null
       max_input_len: null
       runtime_concurrency_cap: 2
@@ -586,7 +586,7 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       max_instances: 4
       effective_capacity_admission_enabled: true
 
-  llama2_7b_auto500_main:  # Llama-2 7B 论文主线 workload profile（500 adapters）
+  llama2_7b_auto500_main:  # Llama-2 7B 主论文 workload profile（500 adapters，主表场景）
     lora_adapters:
       selected_num_adapters: 500
       quick_num_adapters: 100
@@ -602,6 +602,40 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       instance_mode: "auto"
       max_instances: 4
       effective_capacity_admission_enabled: true
+      max_concurrent_loads: 3  # 主论文 workload 优先缩短 scale-up 就绪链路；保留前台在线请求余量的同时，给后台预热更多并行加载预算
+      scale_cooldown_s: 2.0  # 当前 7B 单卡长 prompt 主线需要更快地补足实例数；5s 冷却会让 backlog 在实例 ready 前继续放大
+      scale_eval_interval_s: 2.0  # 主论文 workload 下按更细粒度在线评估扩容，避免等到 backlog 已显著堆积后才触发下一轮 scale-up
+      arrival_window_s: 2.0  # 与更快的 scale_eval_interval 对齐，缩短 arrival RPS 观测窗，提升对 burst 前沿的响应速度
+      scale_up_alpha: 0.15  # 单卡 7B 主线对 arrival 增幅更敏感一些；降低动态阈值的保守程度，减少“明明已在堆积却扩不起来”的时间
+      scale_up_t_min: 0.5  # 7B 主论文场景允许在较低绝对 RPS 下提前 scale-up，避免把低 RPS 但长 prompt 的重压误判为轻载
+      scale_down_duration_s: "auto"  # 由 replay 间隔分布给出释放下界，再由观测/预测 cold-start break-even 抬高；避免为某个基座模型硬调 TTL
+      scale_down_startup_break_even_s: 0.0  # 不写死 7B cold-start；运行时用已观测 scale-up ready delay / cold-start 自适应决定释放门槛
+      scale_down_break_even_factor: 1.0
+      scale_down_cooldown_s: "auto"  # 与有效释放门槛联动，禁止刚扩出的 runtime 在 break-even 前被缩回
+      scale_down_beta: 0.5  # 低负载判定略放宽，配合短 TTL 让 sparse real trace 中的 idle window 能进入回收路径
+
+  llama2_7b_auto500_stress:  # Llama-2 7B 压力测试 workload profile（500 adapters，重压场景）
+    lora_adapters:
+      selected_num_adapters: 500
+      quick_num_adapters: 100
+      full_num_adapters: 500
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 1.0
+      lora_request_ratio: 1.0
+      active_adapter_cap: 48
+      hotset_rotation_requests: 100
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 4
+      effective_capacity_admission_enabled: true
+      max_concurrent_loads: 2
+      scale_cooldown_s: 5.0
+      scale_eval_interval_s: 5.0
+      arrival_window_s: 5.0
+      scale_up_alpha: 0.3
+      scale_up_t_min: 1.0
 
   llama2_13b_tp2_bringup100_main:  # Llama-2 13B TP=2 显式 bring-up/profile 排障 workload
     lora_adapters:
@@ -949,10 +983,10 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
         active_adapter_cap: 48  # 活跃热点 adapter 集合的大小上限
         hotset_rotation_requests: 100  # 每处理多少个请求轮换一次热点集合
       model:  # 模型配置块，或当前选中的 model profile 名称
-        max_loras: 8  # 单个 runtime 同时驻留的最大 LoRA 数量
-        max_num_seqs: 8  # 单个 runtime 同时调度的最大序列数
-        max_num_batched_tokens: 4096  # 单批次允许处理的最大 token 总数
-        runtime_concurrency_cap: 8  # 单个 runtime 允许的并发处理上限
+        max_loras: 4  # 单个 runtime 同时驻留的最大 LoRA 数量；500-adapter 主线默认不再覆盖模型专属硬件包络
+        max_num_seqs: 2  # 单个 runtime 同时调度的最大序列数
+        max_num_batched_tokens: 1024  # 单批次允许处理的最大 token 总数
+        runtime_concurrency_cap: 2  # 单个 runtime 允许的并发处理上限
       resource_coordination:  # 扩缩容与资源协同调度配置块
         warm_pool_size: 6  # 默认 warm pool 中预热保留的 LoRA 数量
     "600":  # 600 个 adapters 时自动套用的负载/显存参数 preset
@@ -1341,14 +1375,14 @@ scenarios:  # 本次要运行的实验场景列表
         贡献1 — 命中感知工件预加载（scale-up 前提前加载高频 LoRA）
         贡献2 — GPU 显存三层本地驻留（热层 GPU 显存 / 温层 HOST 内存 / 冷层 NVMe，本地缺失时再由远端源仓库补给）
         贡献3 — 扩缩容与显存分配协同控制：
-                 扩容阶段渐进式加载（max_concurrent_loads=2），
+                 扩容阶段渐进式加载（并行加载上限由 active workload profile 决定），
                  优先保障 KV cache 与批推理工作集；
                  负载回落后保留 warm_pool_size 个高频工件，
                  确保后续负载到来时的快速响应。
     preloading:  # 预加载与本地多层驻留配置块
       enabled: true  # 是否启用当前功能块
       min_hotness: 0.3  # 进入预加载集合的最小热度阈值
-      gpu_warmup_hotness: 0.9       # 只把热度非常高的少量 LoRA 提前预热到 GPU，降低显存占用
+      gpu_warmup_hotness: 0.6       # 与当前 publicmix 热度分布对齐：500-adapter 池中 >=0.9 仅 2 个，取 0.6 可让 TP=1 7B runtime 更充分用满其 8-LoRA GPU 驻留包络
       nvme_capacity_mb: 20480  # NVMe 层可用于 LoRA 的容量上限（MB）
       host_capacity_mb: 4096  # 主机内存层可用于 LoRA 的容量上限（MB）
       scale_up_preload_mb: 1024  # scale-up 预加载预算显式固定，避免落回 25%+clamp 启发式
@@ -1357,7 +1391,6 @@ scenarios:  # 本次要运行的实验场景列表
     resource_coordination:  # 扩缩容与资源协同调度配置块
       coordination_enabled: true  # 是否启用贡献 3 的资源协同机制
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
-      max_concurrent_loads: 2  # 最多并发进行多少个 LoRA 加载任务
       warm_pool_size: 2            # 负载回落后默认保留的 warm pool 数量；在 24G 显存机器上取 2 更稳
       idle_timeout_s: 10  # 实例空闲多久后允许回收
 

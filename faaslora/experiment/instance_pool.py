@@ -53,6 +53,7 @@ class InstanceSlot:
     coordinator: Any
     created_at: float = field(default_factory=time.time)
     active_requests: int = 0
+    active_adapter_counts: Dict[str, int] = field(default_factory=dict)
     status: str = "running"  # running, draining, stopped
     owns_engine: bool = False
     owns_coordinator: bool = False
@@ -64,12 +65,15 @@ class InstanceSlot:
     resident_lora_mb: float = 0.0
     gpu_utilization_pct: float = 0.0
     last_selected_at: float = 0.0
+    last_idle_at: float = field(default_factory=time.time)
     observed_runtime_ttft_ms: float = 0.0
     observed_runtime_samples: int = 0
     observed_backbone_ttft_ms: float = 0.0
     observed_backbone_samples: int = 0
     observed_request_costs: Dict[str, ObservedRequestCost] = field(default_factory=dict)
     inflight_request_deadlines: Dict[str, float] = field(default_factory=dict)
+    runtime_forwarding_active: int = 0
+    runtime_forwarding_started_at: float = 0.0
 
     def runtime_group_key(self) -> tuple:
         """Group logical slots that share one physical runtime."""
@@ -112,6 +116,54 @@ class InstanceSlot:
         if adapter_id in self.nvme_cached_adapters:
             return "nvme"
         return "remote"
+
+    def active_adapter_count(self) -> int:
+        """Return the number of distinct LoRA adapters currently executing."""
+        return sum(
+            1
+            for count in self.active_adapter_counts.values()
+            if int(count or 0) > 0
+        )
+
+    def can_accept_active_adapter(
+        self,
+        adapter_id: Optional[str],
+        max_active_loras: Optional[int],
+    ) -> bool:
+        """Whether this runtime can accept a request without exceeding max_loras."""
+        if not adapter_id:
+            return True
+        try:
+            cap = int(max_active_loras or 0)
+        except Exception:
+            cap = 0
+        if cap <= 0:
+            return True
+        key = str(adapter_id)
+        if int(self.active_adapter_counts.get(key, 0) or 0) > 0:
+            return True
+        return self.active_adapter_count() < cap
+
+    def begin_active_adapter(self, adapter_id: Optional[str]) -> None:
+        """Track a LoRA adapter that has entered the runtime execution set."""
+        if not adapter_id:
+            return
+        key = str(adapter_id)
+        self.active_adapter_counts[key] = max(
+            0,
+            int(self.active_adapter_counts.get(key, 0) or 0),
+        ) + 1
+
+    def end_active_adapter(self, adapter_id: Optional[str]) -> None:
+        """Release one in-flight reference to a LoRA adapter."""
+        if not adapter_id:
+            return
+        key = str(adapter_id)
+        next_count = max(0, int(self.active_adapter_counts.get(key, 0) or 0) - 1)
+        if next_count <= 0:
+            self.active_adapter_counts.pop(key, None)
+        else:
+            self.active_adapter_counts[key] = next_count
 
     def _prune_inflight_request_deadlines(
         self,
@@ -179,6 +231,15 @@ class InstanceSlot:
         # When every lane is occupied, the next request can only start when the
         # earliest in-flight lane becomes free.
         return float(remaining[0])
+
+    def begin_runtime_forwarding(self) -> None:
+        self.runtime_forwarding_active = max(0, int(self.runtime_forwarding_active or 0)) + 1
+        self.runtime_forwarding_started_at = time.perf_counter()
+
+    def end_runtime_forwarding(self) -> None:
+        self.runtime_forwarding_active = max(0, int(self.runtime_forwarding_active or 0) - 1)
+        if self.runtime_forwarding_active <= 0:
+            self.runtime_forwarding_started_at = 0.0
 
     def update_runtime_hints(self, metrics: Optional[Dict[str, Any]]) -> None:
         """Refresh lightweight coordinator-derived routing hints."""
@@ -432,11 +493,13 @@ class Router:
         pool: InstancePool,
         policy: str = "round_robin",
         runtime_concurrency_cap: int = 1,
+        max_active_loras: int = 0,
     ):
         self.pool = pool
         self.policy = policy
         self._rr_index = 0
         self.runtime_concurrency_cap = max(1, int(runtime_concurrency_cap or 1))
+        self.max_active_loras = max(0, int(max_active_loras or 0))
         self.logger = get_logger(__name__)
 
     @staticmethod
@@ -508,6 +571,20 @@ class Router:
                 except Exception:
                     queue_wait_ms = 0.0
         return float(max(baseline_overlap_ms, queue_wait_ms))
+
+    def _capacity_penalty(self, slot: InstanceSlot, adapter_id: Optional[str]) -> int:
+        """Prefer runtimes whose active LoRA set can accept this adapter."""
+        can_accept = getattr(slot, "can_accept_active_adapter", None)
+        if callable(can_accept) and not can_accept(adapter_id, self.max_active_loras):
+            return 1
+        return 0
+
+    def _runtime_capacity_penalty(self, slot: InstanceSlot) -> int:
+        """Treat an already-full runtime as unavailable before affinity/cost."""
+        if max(0, int(getattr(slot, "runtime_forwarding_active", 0) or 0)) > 0:
+            return 1
+        active_requests = max(0, int(getattr(slot, "active_requests", 0) or 0))
+        return 1 if active_requests >= self.runtime_concurrency_cap else 0
 
     @staticmethod
     def _active_scaleup_handoff_budget(slot: InstanceSlot) -> bool:
@@ -583,21 +660,50 @@ class Router:
         rank_map = dict(getattr(slot, "scaleup_handoff_planned_adapter_ranks", {}) or {})
         return str(adapter_id) in rank_map
 
+    def _consume_scaleup_handoff_budget_if_needed(
+        self,
+        slot: InstanceSlot,
+        adapter_id: Optional[str],
+    ) -> None:
+        """Consume one handoff budget unit when a LoRA request actually lands.
+
+        The runtime-side "first service" window is defined by the first N LoRA
+        requests that a fresh scale-up runtime truly serves, regardless of
+        whether those requests happen to match the planned adapter set. If we
+        only consume budget for planned-adapter hits, the routing reservation can
+        linger longer than the measured first-service window and artificially
+        suppress usable capacity.
+        """
+        if not adapter_id:
+            return
+        if not self._active_scaleup_handoff_budget(slot):
+            return
+        assigned = max(
+            0,
+            int(getattr(slot, "scaleup_handoff_assigned_requests", 0) or 0),
+        )
+        slot.scaleup_handoff_assigned_requests = assigned + 1
+
     def _routing_key(self, slot: InstanceSlot, adapter_id: Optional[str], adapter_size_mb: Optional[float]) -> tuple:
         service_cost = self._service_cost(slot, adapter_id, adapter_size_mb)
         occupancy_cost = self._occupancy_cost(slot, adapter_id)
         handoff_priority, handoff_rank = self._handoff_priority(slot, adapter_id)
         total_cost = service_cost + occupancy_cost
         reservation_penalty = handoff_priority
+        capacity_penalty = self._capacity_penalty(slot, adapter_id)
+        runtime_capacity_penalty = self._runtime_capacity_penalty(slot)
+        active_requests = max(0, int(getattr(slot, "active_requests", 0) or 0))
         return (
+            runtime_capacity_penalty,
+            capacity_penalty,
             reservation_penalty,
             total_cost,
             service_cost,
             occupancy_cost,
+            active_requests,
             handoff_priority,
             handoff_rank,
             slot.load_queue_depth,
-            slot.active_requests,
             slot.gpu_utilization_pct,
             slot.last_selected_at,
             slot.created_at,
@@ -619,14 +725,6 @@ class Router:
             selected = min(
                 slots, key=lambda s: self._routing_key(s, adapter_id, adapter_size_mb)
             )
-            if (
-                self._is_planned_handoff_adapter(selected, adapter_id)
-                and self._active_scaleup_handoff_budget(selected)
-            ):
-                assigned = max(
-                    0,
-                    int(getattr(selected, "scaleup_handoff_assigned_requests", 0) or 0),
-                )
-                selected.scaleup_handoff_assigned_requests = assigned + 1
+            self._consume_scaleup_handoff_budget_if_needed(selected, adapter_id)
             return selected
         return slots[0]

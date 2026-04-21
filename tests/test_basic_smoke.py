@@ -6,6 +6,7 @@ import os
 import asyncio
 import copy
 import json
+import signal
 import subprocess
 import sys
 import time
@@ -24,7 +25,7 @@ from faaslora.memory.gpu_monitor import GPUMemoryInfo, GPUMemoryMonitor
 from faaslora.memory.memory_coordinator import MemoryCoordinator
 from faaslora.memory.residency_manager import ResidencyManager
 from faaslora.api.grpc_server import GRPCServer
-from faaslora.coordination.autoscaler import AutoScaler, ScalingAction
+from faaslora.coordination.autoscaler import AutoScaler, ScalingAction, ScalingMetrics
 from faaslora.coordination.coordinator import Coordinator
 from faaslora.datasets.huggingface_adapter import HuggingFaceAdapter
 from faaslora.datasets.azure_functions_adapter import AzureFunctionsAdapter
@@ -82,12 +83,16 @@ from scripts.run_all_experiments import (
     _load_shared_adapter_subset,
     _load_shared_trace_requests,
     _normalize_lora_preparation_mode,
+    _effective_runtime_concurrency_cap,
+    _normalize_runtime_concurrency_cap,
     _prepare_dedicated_subprocess_model_cfg,
     _resolve_host_visible_device_ids,
     _resolve_runtime_gpu_device_ids,
     _resolve_vllm_runtime_guards,
     _select_adaptive_retry_gpu_util,
+    _should_defer_primary_engine_initialization,
     _should_spawn_dedicated_engine_subprocess,
+    _summarize_infra_cost_from_lifecycles,
 )
 
 
@@ -133,10 +138,24 @@ class MainlineConfigSmokeTests(unittest.TestCase):
     def test_scale_preset_500_matches_mainline_serving_parameters(self) -> None:
         preset = self.experiments["lora_adapters"]["scale_presets"]["500"]["model"]
 
-        self.assertEqual(preset["max_loras"], 8)
-        self.assertEqual(preset["max_num_seqs"], 8)
-        self.assertEqual(preset["max_num_batched_tokens"], 4096)
-        self.assertEqual(preset["runtime_concurrency_cap"], 8)
+        self.assertEqual(preset["max_loras"], 4)
+        self.assertEqual(preset["max_num_seqs"], 2)
+        self.assertEqual(preset["max_num_batched_tokens"], 1024)
+        self.assertEqual(preset["runtime_concurrency_cap"], 2)
+
+    def test_runtime_concurrency_cap_is_clamped_to_vllm_max_num_seqs(self) -> None:
+        model_cfg = {
+            "backend": "vllm",
+            "runtime_concurrency_cap": 3,
+            "max_num_seqs": 2,
+        }
+
+        self.assertEqual(_effective_runtime_concurrency_cap(model_cfg), 2)
+
+        normalized = _normalize_runtime_concurrency_cap(model_cfg)
+
+        self.assertEqual(normalized["requested_runtime_concurrency_cap"], 3)
+        self.assertEqual(normalized["runtime_concurrency_cap"], 2)
 
     def test_dataset_controls_are_yaml_driven(self) -> None:
         datasets = self.experiments["datasets"]
@@ -255,6 +274,64 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(wl_cfg_yaml["concurrency"], 2)
         self.assertEqual(coord_cfg["max_instances"], 2)
         self.assertEqual(storage_cfg["remote_dir"], "artifacts/frozen/qwen_14b_a500_v2_publicmix")
+
+    def test_llama2_7b_main_profile_uses_measured_kv_safe_serving_envelope(self) -> None:
+        (
+            _exp_cfg,
+            model_cfg,
+            _adapters_cfg,
+            _datasets_cfg,
+            _wl_cfg_yaml,
+            coord_cfg,
+            _hw_cfg,
+            _storage_cfg,
+            applied,
+        ) = _apply_selected_profiles(
+            self.experiments,
+            copy.deepcopy(self.experiments.get("experiment", {})),
+            copy.deepcopy(self.experiments.get("model", {})),
+            copy.deepcopy(self.experiments.get("lora_adapters", {})),
+            copy.deepcopy(self.experiments.get("datasets", {})),
+            copy.deepcopy(self.experiments.get("workload", {})),
+            copy.deepcopy(self.experiments.get("resource_coordination", {})),
+            copy.deepcopy(self.experiments.get("hardware", {})),
+            copy.deepcopy(self.experiments.get("storage", {})),
+            {
+                "model": "llama2_7b_main_v2_publicmix",
+                "dataset": "azure_sharegpt_rep500",
+                "workload": "llama2_7b_auto500_main",
+            },
+        )
+
+        self.assertEqual(applied["model"], "llama2_7b_main_v2_publicmix")
+        self.assertEqual(applied["dataset"], "azure_sharegpt_rep500")
+        self.assertEqual(applied["workload"], "llama2_7b_auto500_main")
+        self.assertEqual(model_cfg["max_loras"], 4)
+        self.assertEqual(model_cfg["max_num_seqs"], 2)
+        self.assertEqual(model_cfg["runtime_concurrency_cap"], 2)
+        self.assertEqual(model_cfg["max_num_batched_tokens"], 1024)
+        self.assertEqual(coord_cfg["scale_eval_interval_s"], 2.0)
+        self.assertEqual(coord_cfg["arrival_window_s"], 2.0)
+        self.assertEqual(coord_cfg["scale_cooldown_s"], 2.0)
+        self.assertEqual(coord_cfg["max_concurrent_loads"], 3)
+        self.assertEqual(coord_cfg["scale_down_duration_s"], 12.0)
+        self.assertEqual(coord_cfg["scale_down_cooldown_s"], 20.0)
+        self.assertEqual(coord_cfg["scale_down_beta"], 0.5)
+
+    def test_llama2_7b_stress_profile_preserves_slower_scale_windows(self) -> None:
+        workloads = self.experiments["workload_profiles"]
+        stress = workloads["llama2_7b_auto500_stress"]
+
+        self.assertEqual(stress["lora_adapters"]["selected_num_adapters"], 500)
+        self.assertEqual(stress["resource_coordination"]["scale_eval_interval_s"], 5.0)
+        self.assertEqual(stress["resource_coordination"]["arrival_window_s"], 5.0)
+        self.assertEqual(stress["resource_coordination"]["scale_cooldown_s"], 5.0)
+        self.assertEqual(stress["resource_coordination"]["max_concurrent_loads"], 2)
+
+    def test_faaslora_full_does_not_pin_parallel_load_budget_over_workload_profile(self) -> None:
+        faaslora_full = next(s for s in self.experiments["scenarios"] if s["name"] == "faaslora_full")
+
+        self.assertNotIn("max_concurrent_loads", faaslora_full.get("resource_coordination", {}))
 
     def test_load_shared_adapter_subset_reads_exact_adapters(self) -> None:
         with TemporaryDirectory() as tmpdir:
@@ -487,6 +564,34 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         )
         self.assertFalse(
             _should_spawn_dedicated_engine_subprocess(model, instance_mode="shared")
+        )
+
+    def test_auto_vllm_scenario_defers_primary_parent_process_init(self) -> None:
+        model = {"backend": "vllm", "tensor_parallel_size": 1}
+        coord = {"instance_mode": "shared"}
+        scenarios = [
+            {
+                "name": "faaslora_full",
+                "baseline_type": "faaslora_full",
+                "resource_coordination": {"instance_mode": "auto"},
+            }
+        ]
+
+        self.assertTrue(
+            _should_defer_primary_engine_initialization(
+                model,
+                scenarios,
+                coord,
+                only_scenario="faaslora_full",
+            )
+        )
+        self.assertFalse(
+            _should_defer_primary_engine_initialization(
+                model,
+                scenarios,
+                coord,
+                only_scenario="other_scenario",
+            )
         )
 
     def test_prepare_dedicated_subprocess_model_cfg_remaps_tp1_gpu_to_local_zero(self) -> None:
@@ -743,6 +848,67 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             self.assertTrue(worker_root.exists())
             self.assertTrue((worker_root / "worker.log").exists())
 
+    def test_subprocess_spawn_failure_force_kills_worker_group_if_sigterm_does_not_exit(self) -> None:
+        class FakeProcess:
+            def __init__(self, pid: int):
+                self.pid = pid
+                self._poll_count = 0
+
+            def poll(self):
+                self._poll_count += 1
+                return None if self._poll_count < 4 else -signal.SIGKILL
+
+            def wait(self, timeout=None):
+                return None
+
+        kill_calls = []
+        SubprocessInferenceEngineProxy._startup_cleanup_done = True
+
+        with TemporaryDirectory() as tmpdir:
+            worker_root = Path(tmpdir) / "faaslora_worker_fail_force"
+            worker_root.mkdir(parents=True, exist_ok=True)
+
+            def fake_popen(cmd, **kwargs):
+                ready_path = Path(cmd[cmd.index("--ready-file") + 1])
+                ready_path.write_text(
+                    json.dumps({"status": "error", "error": "synthetic_startup_error"}),
+                    encoding="utf-8",
+                )
+                return FakeProcess(pid=54321)
+
+            async def run_spawn():
+                with patch(
+                    "scripts.run_all_experiments._prepare_dedicated_subprocess_model_cfg",
+                    return_value=({"backend": "vllm", "tensor_parallel_size": 1, "device_id": 0}, {}),
+                ), patch(
+                    "scripts.run_all_experiments.tempfile.mkdtemp",
+                    return_value=str(worker_root),
+                ), patch(
+                    "scripts.run_all_experiments.subprocess.Popen",
+                    side_effect=fake_popen,
+                ), patch(
+                    "scripts.run_all_experiments.os.getpgid",
+                    return_value=54321,
+                ), patch(
+                    "scripts.run_all_experiments.os.killpg",
+                    side_effect=lambda pgid, sig: kill_calls.append((pgid, sig)),
+                ), patch.object(
+                    SubprocessInferenceEngineProxy,
+                    "_write_process_meta",
+                    return_value=None,
+                ):
+                    with self.assertRaisesRegex(RuntimeError, "synthetic_startup_error"):
+                        await SubprocessInferenceEngineProxy.spawn(
+                            model_cfg={"backend": "vllm", "tensor_parallel_size": 1},
+                            cost_model={},
+                            device_id=0,
+                        )
+
+            asyncio.run(run_spawn())
+
+        self.assertEqual(kill_calls[0], (54321, signal.SIGTERM))
+        self.assertIn((54321, signal.SIGKILL), kill_calls)
+
     def test_auto_scale_up_does_not_fallback_to_shared_slot_after_dedicated_failure(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.instance_pool = SimpleNamespace(count=lambda: 1, max_instances=2)
@@ -895,6 +1061,45 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(slot.scaleup_handoff_request_budget, 2)
         self.assertEqual(slot.scaleup_handoff_assigned_requests, 1)
 
+    def test_refresh_slot_runtime_hints_throttles_repeated_hot_path_refreshes(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        sync_calls = []
+        runner._stack = SimpleNamespace(
+            sync_local_tier_paths=lambda: sync_calls.append("sync"),
+            _host_paths={},
+            _nvme_paths={},
+        )
+        runner._gpu_runtime_snapshot = lambda _device_id: None
+        runner._instance_mode = "auto"
+        runner._runtime_hints_refresh_interval_s = 10.0
+        runner._runtime_hints_last_refresh_by_slot = {}
+        runner._scaleup_runtime_handoff_plans = {}
+
+        slot = SimpleNamespace(
+            instance_id="inst_hot",
+            coordinator=SimpleNamespace(
+                get_summary_metrics=lambda: {"current_gpu_utilization_pct": 12.0},
+                _get_resident_loras=lambda: {},
+            ),
+            device_id=0,
+            gpu_resident_adapters=set(),
+            host_cached_adapters=set(),
+            nvme_cached_adapters=set(),
+            scaleup_handoff_assigned_requests=0,
+        )
+
+        def _update_runtime_hints(metrics):
+            slot.metrics = dict(metrics)
+
+        slot.update_runtime_hints = _update_runtime_hints
+
+        with patch("scripts.run_all_experiments.time.monotonic", side_effect=[100.0, 101.0, 101.5]):
+            runner._refresh_slot_runtime_hints(slot)
+            runner._refresh_slot_runtime_hints(slot)
+            runner._refresh_slot_runtime_hints(slot, force=True)
+
+        self.assertEqual(sync_calls, ["sync", "sync"])
+
     def test_exec_request_preserves_source_cache_tier_after_gpu_promotion(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.router = None
@@ -948,8 +1153,9 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             def __init__(self):
                 self.prepare_calls = []
                 self.generate_calls = []
+                self.load_calls = []
 
-            def prepare_request(self, prompt, requested_output_tokens, input_tokens_hint):
+            def prepare_request(self, prompt, requested_output_tokens, input_tokens_hint, chat_messages=None):
                 self.prepare_calls.append((prompt, requested_output_tokens, input_tokens_hint))
                 return RequestExecutionPlan(
                     prompt="trimmed prompt",
@@ -958,13 +1164,31 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                 )
 
             async def load_lora_to_gpu_and_measure(self, lora_path: str, adapter_id: str):
+                self.load_calls.append((lora_path, adapter_id))
                 return 5.0, True
 
-            async def generate_prepared(self, *, request_plan, lora_path, adapter_id, temperature=0.7, top_p=0.9):
+            async def generate_prepared(
+                self,
+                *,
+                request_plan,
+                lora_path,
+                adapter_id,
+                temperature=0.7,
+                top_p=0.9,
+                return_timing=False,
+            ):
                 self.generate_calls.append(
                     (request_plan.prompt, request_plan.input_tokens, request_plan.max_tokens, adapter_id)
                 )
                 events.append(("generate", adapter_id))
+                timing = {
+                    "runtime_estimated_e2e_ms": 13.0,
+                    "worker_wall_e2e_ms": 13.0,
+                    "parent_rpc_wall_ms": 13.0,
+                    "parent_rpc_overhead_ms": 0.0,
+                }
+                if return_timing:
+                    return 10.0, 1.0, 4, timing
                 return 10.0, 1.0, 4
 
         async def fake_resolve(adapter_id, _is_burst, _expected_input_tokens, coordinator=None):
@@ -990,7 +1214,8 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.cache_tier, "host")
         self.assertTrue(result.cache_hit)
-        self.assertEqual(result.lora_io_ms, 5.0)
+        self.assertEqual(result.lora_io_ms, 123.0)
+        self.assertEqual(runner.engine.load_calls, [])
         self.assertIn(("finance_lora", "host"), marks)
         self.assertIn(("finance_lora", "gpu"), marks)
         self.assertEqual(runner.coordinator.marked, [("finance_lora", 30.0)])
@@ -1007,9 +1232,202 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             [("start", 7, 5), ("end", 7, 5)],
         )
         self.assertEqual(result.input_tokens, 7)
-        self.assertEqual(access_log, [("finance_lora", 5.0, True)])
+        self.assertEqual(access_log, [("finance_lora", 123.0, True)])
         self.assertLess(
-            events.index(("record_access", "finance_lora", 5.0, True)),
+            events.index(("record_access", "finance_lora", 123.0, True)),
+            events.index(("generate", "finance_lora")),
+        )
+        self.assertAlmostEqual(result.runtime_estimated_e2e_ms, 13.0)
+        self.assertAlmostEqual(result.worker_wall_e2e_ms, 13.0)
+        self.assertAlmostEqual(result.parent_rpc_overhead_ms, 0.0)
+
+    def test_exec_request_prefers_per_request_timing_over_shared_engine_last_timing(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.router = None
+        runner.engine = None
+        runner.coordinator = None
+        runner.instance_pool = None
+        runner.model_cfg = {
+            "runtime_concurrency_cap": 1,
+            "max_num_seqs": 1,
+            "max_loras": 1,
+        }
+        runner.baseline_type = "backbone_only"
+        runner.cost_model = {}
+        runner._stack = None
+        runner._gpu_warmed = set()
+        runner._access_count = defaultdict(int)
+        runner._mark_slot_adapter_tier = lambda *args, **kwargs: None
+        runner._begin_scaleup_runtime_request_labels = lambda **kwargs: {}
+        runner._refresh_slot_runtime_hints = lambda slot: None
+        runner._prepare_request_execution_plan = (
+            lambda engine, trace, default_max_tokens: RequestExecutionPlan(
+                prompt=trace.prompt,
+                input_tokens=trace.prompt_input_tokens,
+                max_tokens=trace.expected_output_tokens,
+            )
+        )
+        runner._primary_instance_id = "inst_1"
+
+        class FakeEngine:
+            def __init__(self):
+                self.last_timing = {
+                    "runtime_estimated_e2e_ms": 9999.0,
+                    "worker_wall_e2e_ms": 9999.0,
+                    "parent_rpc_wall_ms": 9999.0,
+                    "parent_rpc_overhead_ms": 9999.0,
+                }
+
+            async def generate_prepared(
+                self,
+                *,
+                request_plan,
+                lora_path,
+                adapter_id,
+                temperature=0.7,
+                top_p=0.9,
+                return_timing=False,
+            ):
+                timing = {
+                    "runtime_estimated_e2e_ms": 25.0,
+                    "worker_wall_e2e_ms": 27.0,
+                    "parent_rpc_wall_ms": 27.0,
+                    "parent_rpc_overhead_ms": 2.0,
+                }
+                if return_timing:
+                    return 11.0, 2.0, 5, timing
+                return 11.0, 2.0, 5
+
+        runner.engine = FakeEngine()
+
+        trace = SimpleNamespace(
+            request_id="req_timing",
+            adapter_id=None,
+            is_burst=False,
+            expected_input_tokens=16,
+            prompt_input_tokens=9,
+            expected_output_tokens=5,
+            prompt_output_tokens=5,
+            prompt="hello",
+        )
+
+        result = asyncio.run(runner._exec_request(trace, max_tokens=8, temperature=0.0))
+
+        self.assertTrue(result.success)
+        self.assertAlmostEqual(result.runtime_estimated_e2e_ms, 25.0)
+        self.assertAlmostEqual(result.worker_wall_e2e_ms, 27.0)
+        self.assertAlmostEqual(result.parent_rpc_overhead_ms, 2.0)
+        self.assertLess(result.runtime_estimated_e2e_ms, 9999.0)
+
+    def test_exec_request_releases_live_waiting_only_after_runtime_slot_is_reserved(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.model_cfg = {
+            "runtime_concurrency_cap": 1,
+            "max_num_seqs": 1,
+            "max_loras": 1,
+        }
+        runner.baseline_type = "backbone_only"
+        runner.cost_model = {}
+        runner._stack = None
+        runner._gpu_warmed = set()
+        runner._access_count = defaultdict(int)
+        runner.adapter_info = {"finance_lora": {"size_mb": 30.0}}
+        runner._mark_slot_adapter_tier = lambda *args, **kwargs: None
+        runner._begin_scaleup_runtime_request_labels = lambda **kwargs: {}
+        runner._refresh_all_slot_runtime_hints = lambda: events.append("refresh_all")
+        runner._refresh_slot_runtime_hints = lambda slot: events.append("refresh_slot")
+        runner._prepare_request_execution_plan = (
+            lambda engine, trace, default_max_tokens: RequestExecutionPlan(
+                prompt=trace.prompt,
+                input_tokens=trace.prompt_input_tokens,
+                max_tokens=trace.expected_output_tokens,
+            )
+        )
+        runner._primary_instance_id = "inst_1"
+
+        events = []
+
+        class FakeEngine:
+            async def generate_prepared(
+                self,
+                *,
+                request_plan,
+                lora_path,
+                adapter_id,
+                temperature=0.7,
+                top_p=0.9,
+                return_timing=False,
+            ):
+                events.append(("generate", adapter_id))
+                timing = {
+                    "runtime_estimated_e2e_ms": 20.0,
+                    "worker_wall_e2e_ms": 20.0,
+                    "parent_rpc_wall_ms": 20.0,
+                    "parent_rpc_overhead_ms": 0.0,
+                }
+                if return_timing:
+                    return 10.0, 2.0, 4, timing
+                return 10.0, 2.0, 4
+
+        slot = SimpleNamespace(
+            instance_id="inst_slot",
+            engine=FakeEngine(),
+            coordinator=None,
+            active_requests=1,
+        )
+        runner.router = SimpleNamespace(
+            select_instance=lambda adapter_id, adapter_size_mb=None: slot
+        )
+        runner._try_reserve_runtime_request_slot = (
+            lambda selected_slot, adapter_id: (
+                events.append(("reserve", getattr(selected_slot, "instance_id", None), adapter_id))
+                or True,
+                False,
+            )
+        )
+        runner._release_live_waiting_trace = (
+            lambda trace: events.append(("release_waiting", getattr(trace, "request_id", None)))
+        )
+        runner._observe_live_started_lora = (
+            lambda adapter_id: events.append(("started", adapter_id))
+        )
+
+        trace = SimpleNamespace(
+            request_id="req_order",
+            adapter_id="finance_lora",
+            is_burst=False,
+            expected_input_tokens=16,
+            prompt_input_tokens=9,
+            expected_output_tokens=4,
+            prompt_output_tokens=4,
+            prompt="hello",
+        )
+
+        result = asyncio.run(
+            runner._exec_request(
+                trace,
+                max_tokens=8,
+                temperature=0.0,
+                dispatch_admission_wait_ms=15.0,
+                arrival_release_lateness_ms=3.0,
+                scheduled_arrival_offset_s=0.0,
+                arrival_released_offset_s=0.0,
+                admission_start_offset_s=0.0,
+                admitted_offset_s=0.015,
+            )
+        )
+
+        self.assertTrue(result.success)
+        self.assertLess(
+            events.index(("reserve", "inst_slot", "finance_lora")),
+            events.index(("release_waiting", "req_order")),
+        )
+        self.assertLess(
+            events.index(("release_waiting", "req_order")),
+            events.index(("generate", "finance_lora")),
+        )
+        self.assertLess(
+            events.index(("started", "finance_lora")),
             events.index(("generate", "finance_lora")),
         )
 
@@ -1020,7 +1438,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             def __init__(self):
                 self.calls = []
 
-            def prepare_request(self, prompt, requested_output_tokens, input_tokens_hint):
+            def prepare_request(self, prompt, requested_output_tokens, input_tokens_hint, chat_messages=None):
                 self.calls.append((prompt, requested_output_tokens, input_tokens_hint))
                 return RequestExecutionPlan(
                     prompt=prompt,
@@ -1042,6 +1460,253 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(engine.calls, [("hello", 17, 21)])
         self.assertEqual(plan.input_tokens, 21)
         self.assertEqual(plan.max_tokens, 13)
+
+    def test_prepare_request_execution_plan_cache_precomputes_once_per_request(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+
+        class FakeEngine:
+            def __init__(self):
+                self.calls = []
+
+            def prepare_request(self, prompt, requested_output_tokens, input_tokens_hint, chat_messages=None):
+                self.calls.append((prompt, requested_output_tokens, input_tokens_hint))
+                return RequestExecutionPlan(
+                    prompt=prompt,
+                    input_tokens=input_tokens_hint,
+                    max_tokens=requested_output_tokens,
+                )
+
+        engine = FakeEngine()
+        traces = [
+            SimpleNamespace(
+                request_id="req_1",
+                prompt="hello",
+                prompt_input_tokens=21,
+                expected_input_tokens=210,
+                expected_output_tokens=17,
+                prompt_output_tokens=9,
+            ),
+            SimpleNamespace(
+                request_id="req_2",
+                prompt="world",
+                prompt_input_tokens=11,
+                expected_input_tokens=110,
+                expected_output_tokens=13,
+                prompt_output_tokens=7,
+            ),
+        ]
+
+        cache = runner._prepare_request_execution_plan_cache(engine, traces, default_max_tokens=128)
+
+        self.assertEqual(sorted(cache.keys()), ["req_1", "req_2"])
+        self.assertEqual(engine.calls, [("hello", 17, 21), ("world", 13, 11)])
+
+    def test_exec_request_uses_precomputed_request_plan_when_provided(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.model_cfg = {
+            "runtime_concurrency_cap": 1,
+            "max_num_seqs": 1,
+            "max_loras": 1,
+        }
+        runner.baseline_type = "backbone_only"
+        runner.cost_model = {}
+        runner._stack = None
+        runner._gpu_warmed = set()
+        runner._access_count = defaultdict(int)
+        runner.adapter_info = {}
+        runner._mark_slot_adapter_tier = lambda *args, **kwargs: None
+        runner._begin_scaleup_runtime_request_labels = lambda **kwargs: {}
+        runner._refresh_all_slot_runtime_hints = lambda: None
+        runner._refresh_slot_runtime_hints = lambda slot: None
+        runner._prepare_request_execution_plan = lambda *args, **kwargs: (_ for _ in ()).throw(
+            AssertionError("hot path should reuse precomputed request plan")
+        )
+        runner._primary_instance_id = "inst_1"
+
+        class FakeEngine:
+            async def generate_prepared(
+                self,
+                *,
+                request_plan,
+                lora_path,
+                adapter_id,
+                temperature=0.7,
+                top_p=0.9,
+                return_timing=False,
+            ):
+                timing = {
+                    "runtime_estimated_e2e_ms": 20.0,
+                    "worker_wall_e2e_ms": 20.0,
+                    "parent_rpc_wall_ms": 20.0,
+                    "parent_rpc_overhead_ms": 0.0,
+                }
+                if return_timing:
+                    return 10.0, 2.0, 4, timing
+                return 10.0, 2.0, 4
+
+        slot = SimpleNamespace(
+            instance_id="inst_slot",
+            engine=FakeEngine(),
+            coordinator=None,
+            active_requests=1,
+        )
+        runner.router = SimpleNamespace(
+            select_instance=lambda adapter_id, adapter_size_mb=None: slot
+        )
+        runner._try_reserve_runtime_request_slot = (
+            lambda selected_slot, adapter_id: (True, False)
+        )
+        runner._release_live_waiting_trace = lambda trace: None
+        runner._observe_live_started_lora = lambda adapter_id: None
+
+        trace = SimpleNamespace(
+            request_id="req_prepared",
+            adapter_id=None,
+            is_burst=False,
+            expected_input_tokens=16,
+            prompt_input_tokens=9,
+            expected_output_tokens=4,
+            prompt_output_tokens=4,
+            prompt="hello",
+        )
+
+        result = asyncio.run(
+            runner._exec_request(
+                trace,
+                max_tokens=8,
+                temperature=0.0,
+                request_plan=RequestExecutionPlan(prompt="cached", input_tokens=9, max_tokens=4),
+                dispatch_admission_wait_ms=15.0,
+                arrival_release_lateness_ms=3.0,
+                scheduled_arrival_offset_s=0.0,
+                arrival_released_offset_s=0.0,
+                admission_start_offset_s=0.0,
+                admitted_offset_s=0.015,
+            )
+        )
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.input_tokens, 9)
+
+    def test_subprocess_proxy_prepares_requests_like_worker_before_parent_accounting(self) -> None:
+        proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
+        proxy.model_cfg = {
+            "backend": "vllm",
+            "max_model_len": 96,
+            "max_input_len": 0,
+            "max_output_tokens_cap": 0,
+        }
+        proxy._cost_model = {}
+        proxy._prompt_planner = None
+
+        tokenizer = SimpleNamespace(
+            encode=lambda prompt, add_special_tokens=False: list(range(len(prompt))),
+            decode=lambda token_ids, skip_special_tokens=False: "x" * len(token_ids),
+        )
+
+        with patch.object(
+            ScriptInferenceEngine,
+            "_get_prompt_guard_tokenizer",
+            return_value=tokenizer,
+        ):
+            plan = proxy.prepare_request(
+                prompt="p" * 200,
+                requested_output_tokens=32,
+                input_tokens_hint=200,
+            )
+
+        self.assertEqual(len(plan.prompt), 56)
+        self.assertEqual(plan.input_tokens, 56)
+        self.assertEqual(plan.max_tokens, 32)
+
+    def test_subprocess_proxy_rpc_reuses_persistent_channel(self) -> None:
+        class FakeProcess:
+            def poll(self):
+                return None
+
+        class FakeSock:
+            def __init__(self):
+                self.closed = False
+
+            def close(self):
+                self.closed = True
+
+        proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
+        proxy._process = FakeProcess()
+        proxy._host = "127.0.0.1"
+        proxy._port = 9999
+        proxy._engine_dead = False
+        proxy._rpc_pool_size = 1
+        proxy._rpc_channel_queue = None
+        proxy._rpc_channel_init_lock = asyncio.Lock()
+        proxy._rpc_channels = []
+        proxy.last_timing = {}
+
+        sock = FakeSock()
+        channel = SimpleNamespace(sock=sock, recv_buffer=bytearray())
+        open_calls = []
+        payloads = []
+        results = iter(
+            [
+                (b'{"ok": true, "result": {"value": 1}}\n', 0.1, 0.2, time.time()),
+                (b'{"ok": true, "result": {"value": 2}}\n', 0.1, 0.2, time.time()),
+            ]
+        )
+
+        async def fake_open_rpc_channel():
+            open_calls.append((proxy._host, proxy._port))
+            return channel
+
+        def fake_blocking_rpc_roundtrip(_channel, payload_bytes):
+            payloads.append(payload_bytes)
+            return next(results)
+
+        proxy._open_rpc_channel = fake_open_rpc_channel
+        proxy._blocking_rpc_roundtrip = fake_blocking_rpc_roundtrip
+
+        with patch("scripts.run_all_experiments.asyncio.to_thread", side_effect=lambda fn, *a, **k: fn(*a, **k)):
+            first = asyncio.run(proxy._rpc("ping", seq=1))
+            second = asyncio.run(proxy._rpc("ping", seq=2))
+            asyncio.run(proxy._close_all_rpc_channels())
+
+        self.assertEqual(first["value"], 1)
+        self.assertEqual(second["value"], 2)
+        self.assertIn("timing", first)
+        self.assertIn("timing", second)
+        self.assertEqual(open_calls, [("127.0.0.1", 9999)])
+        self.assertEqual(len(payloads), 2)
+        self.assertTrue(sock.closed)
+
+    def test_try_reserve_runtime_request_slot_updates_slot_occupancy_atomically(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.model_cfg = {
+            "runtime_concurrency_cap": 2,
+            "max_num_seqs": 2,
+            "max_loras": 2,
+        }
+        slot = InstanceSlot(instance_id="inst_1", engine=None, coordinator=None)
+
+        reserved_1, adapter_reserved_1 = runner._try_reserve_runtime_request_slot(
+            slot,
+            "finance",
+        )
+        reserved_2, adapter_reserved_2 = runner._try_reserve_runtime_request_slot(
+            slot,
+            "finance",
+        )
+        reserved_3, adapter_reserved_3 = runner._try_reserve_runtime_request_slot(
+            slot,
+            "finance",
+        )
+
+        self.assertTrue(reserved_1)
+        self.assertTrue(adapter_reserved_1)
+        self.assertTrue(reserved_2)
+        self.assertTrue(adapter_reserved_2)
+        self.assertFalse(reserved_3)
+        self.assertFalse(adapter_reserved_3)
+        self.assertEqual(slot.active_requests, 2)
+        self.assertEqual(slot.active_adapter_counts, {"finance": 2})
 
     def test_script_inference_engine_prepare_request_transformers_uses_token_budget_not_char_clip(self) -> None:
         engine = ScriptInferenceEngine.__new__(ScriptInferenceEngine)
@@ -1081,7 +1746,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                 "max_input_len": 321,
                 "max_output_tokens_cap": 65,
             },
-            prepare_request=lambda prompt, requested_output_tokens, input_tokens_hint: RequestExecutionPlan(
+            prepare_request=lambda prompt, requested_output_tokens, input_tokens_hint, chat_messages=None: RequestExecutionPlan(
                 prompt=prompt,
                 input_tokens=input_tokens_hint,
                 max_tokens=min(requested_output_tokens, 65),
@@ -1168,6 +1833,82 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             stack.sync_local_tier_paths()
             self.assertIn(adapter_id, stack._host_paths)
             self.assertNotIn(adapter_id, stack._nvme_paths)
+
+    def test_local_tier_path_sync_is_cached_on_hot_path(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            host_dir = root / "host"
+            nvme_dir = root / "nvme"
+            adapter_dir = nvme_dir / "finance_lora"
+            adapter_dir.mkdir(parents=True, exist_ok=True)
+
+            list_calls = {"count": 0}
+
+            def fake_list_artifacts(*_args, **_kwargs):
+                list_calls["count"] += 1
+                return [
+                    SimpleNamespace(
+                        artifact_id="finance_lora",
+                        storage_path=str(adapter_dir),
+                        storage_tier=StorageTier.NVME,
+                    )
+                ]
+
+            stack = ExperimentStack.__new__(ExperimentStack)
+            stack.adapter_info = {"finance_lora": {"size_mb": 32.0}}
+            stack.host_dir = host_dir
+            stack.nvme_dir = nvme_dir
+            stack.registry = SimpleNamespace(list_artifacts=fake_list_artifacts)
+            stack._host_paths = {}
+            stack._nvme_paths = {}
+            stack._local_tier_paths_last_sync_at = 0.0
+            stack._local_tier_paths_sync_interval_s = 60.0
+            stack._local_tier_paths_sync_count = 0
+            stack._local_tier_paths_sync_total_ms = 0.0
+
+            stack.sync_local_tier_paths()
+            stack.sync_local_tier_paths()
+
+            self.assertEqual(list_calls["count"], 1)
+            self.assertIn("finance_lora", stack._nvme_paths)
+            self.assertEqual(stack._local_tier_paths_sync_count, 1)
+
+            stack.sync_local_tier_paths(force=True)
+            self.assertEqual(list_calls["count"], 2)
+            self.assertEqual(stack._local_tier_paths_sync_count, 2)
+
+    def test_experiment_stack_accepts_auto_scale_down_cooldown(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            remote_dir = root / "remote"
+            nvme_dir = root / "nvme"
+            host_dir = root / "host"
+            adapter_id = "finance_lora"
+            src = remote_dir / adapter_id
+            src.mkdir(parents=True, exist_ok=True)
+            Path(src, "adapter_config.json").write_text(
+                json.dumps({"base_model_name_or_path": "Qwen/Qwen2.5-7B-Instruct"}),
+                encoding="utf-8",
+            )
+            Path(src, "adapter_model.bin").write_bytes(b"ok")
+
+            stack = ExperimentStack(
+                adapter_info={adapter_id: {"size_mb": 32.0, "hotness": 0.9}},
+                hardware_cfg={"gpu_budget_mb": 24000},
+                coord_cfg={
+                    "min_instances": 1,
+                    "max_instances": 2,
+                    "scale_cooldown_s": 2.0,
+                    "scale_down_cooldown_s": "auto",
+                },
+                preload_cfg={"strategy": "hybrid", "nvme_capacity_mb": 20480, "host_capacity_mb": 4096},
+                remote_dir=remote_dir,
+                nvme_dir=nvme_dir,
+                host_dir=host_dir,
+            )
+
+            self.assertEqual(stack.autoscaler.scale_up_cooldown, 2.0)
+            self.assertEqual(stack.autoscaler.scale_down_cooldown, 2.0)
 
     def test_explicit_nvme_hit_schedules_host_promotion_without_utility_gate(self) -> None:
         stack = ExperimentStack.__new__(ExperimentStack)
@@ -3202,8 +3943,9 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner._slot_retire_lock = asyncio.Lock()
         runner._scaleup_runtime_instance_ids = set()
         runner._runtime_gpu_forward_tasks = {}
+        runner._failed_runtime_device_ids = set()
 
-        async def _cleanup_removed_slot(_slot) -> None:
+        async def _cleanup_removed_slot(_slot, **_kwargs) -> None:
             return None
 
         runner._cleanup_removed_slot = _cleanup_removed_slot
@@ -3213,6 +3955,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertTrue(retired)
         self.assertEqual(runner._primary_instance_id, inst_2)
         self.assertEqual([slot.instance_id for slot in runner.instance_pool.get_slots()], [inst_2])
+        self.assertEqual(runner._failed_runtime_device_ids, {0})
 
     def test_runtime_gpu_device_ids_use_bound_device_for_tp1(self) -> None:
         device_ids = _resolve_runtime_gpu_device_ids(
@@ -3318,6 +4061,73 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertEqual(output_tokens, 3)
         self.assertAlmostEqual(ttft_ms, 500.0)
         self.assertAlmostEqual(tpot_ms, 300.0)
+
+    def test_script_inference_engine_generate_can_return_per_request_timing(self) -> None:
+        class FakeVllmEngine:
+            async def generate(self, **_kwargs):
+                yield SimpleNamespace(
+                    outputs=[SimpleNamespace(token_ids=[21, 22, 23], text="")],
+                    metrics=SimpleNamespace(
+                        arrival_time=20.0,
+                        first_token_time=20.4,
+                        finished_time=21.0,
+                        last_token_time=21.0,
+                    ),
+                )
+
+        engine = ScriptInferenceEngine.__new__(ScriptInferenceEngine)
+        engine.model_cfg = {"backend": "vllm"}
+        engine.cost_model = {}
+        engine.engine = FakeVllmEngine()
+        engine.backend = "vllm"
+        engine.device_id = 0
+        engine._counter = 0
+        engine._lock = asyncio.Lock()
+        engine._reinit_lock = asyncio.Lock()
+        engine._engine_dead = False
+        engine._lora_in_engine = False
+        engine._reinit_attempted = False
+        engine._prepare_vllm_prompt = (
+            lambda prompt, max_tokens, input_tokens_hint: (
+                prompt,
+                input_tokens_hint,
+                max_tokens,
+            )
+        )
+
+        with patch(
+            "scripts.run_all_experiments.SamplingParams",
+            side_effect=lambda **kwargs: SimpleNamespace(**kwargs),
+        ), patch(
+            "scripts.run_all_experiments.time.perf_counter",
+            side_effect=[200.0, 200.4, 201.0],
+        ):
+            ttft_ms, tpot_ms, output_tokens, timing = asyncio.run(
+                engine.generate(
+                    prompt="hello",
+                    lora_path=None,
+                    adapter_id=None,
+                    max_tokens=8,
+                    input_tokens=4,
+                    temperature=0.7,
+                    top_p=0.9,
+                    return_timing=True,
+                )
+            )
+
+        self.assertEqual(output_tokens, 3)
+        self.assertAlmostEqual(ttft_ms, 400.0)
+        self.assertAlmostEqual(tpot_ms, 300.0)
+        self.assertEqual(
+            timing,
+            {
+                "runtime_estimated_e2e_ms": 1000.0,
+                "worker_wall_e2e_ms": 1000.0,
+                "parent_rpc_wall_ms": 1000.0,
+                "parent_rpc_overhead_ms": 0.0,
+                "actual_prompt_tokens": 4,
+            },
+        )
 
     def test_script_inference_engine_prepare_request_honors_vllm_input_and_output_caps(self) -> None:
         engine = ScriptInferenceEngine.__new__(ScriptInferenceEngine)
@@ -4103,6 +4913,64 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertEqual(plans[0]["first_service_request_count"], 0)
         self.assertEqual(plans[0]["plan_load_latency_ms"], 0.0)
 
+    def test_refresh_scale_up_runtime_handoff_plan_preserves_original_budget_when_refresh_collapses(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._active_replay_t0 = 1.0
+        runner._arrived_request_count = lambda replay_t0: 32
+        runner._waiting_visible_trace_queue = lambda: []
+        runner._predict_scale_up_handoff_plan = lambda **kwargs: {
+            "mode": "dynamic_headroom_exact_handoff_prefix",
+            "planned_adapters": [],
+            "ordered_handoff_adapters": [],
+            "queue_at_ready_request_count": 0,
+            "queue_at_ready_adapter_count": 0,
+            "first_service_request_count": 0,
+            "first_service_adapter_count": 0,
+            "first_service_scanned_request_count": 0,
+            "configured_max_concurrent_loads": 3,
+            "target_headroom_bytes": 512 * 1024 * 1024,
+            "plan_load_latency_ms": 0.0,
+        }
+        runner._pending_scale_up_sequence_index = lambda sequence_id: (0, 1)
+        runner._build_scale_up_runtime_handoff_plans = (
+            lambda base_plan, additional_instances: [dict(base_plan)]
+        )
+        runner._scale_up_adapter_total_bytes = (
+            lambda adapter_ids: len(list(adapter_ids)) * 128 * 1024 * 1024
+        )
+        runner._predicted_scale_up_load_ms = (
+            lambda adapter_ids, max_concurrent_loads=1: float(len(list(adapter_ids)) * 25.0)
+        )
+        runner._ordered_unique_adapter_ids = (
+            lambda items: list(dict.fromkeys(str(item) for item in items if item))
+        )
+
+        refreshed = runner._refresh_scale_up_runtime_handoff_plan_after_startup(
+            {
+                "planned_adapters": ["finance", "support"],
+                "ordered_handoff_adapters": ["finance", "support"],
+                "first_service_request_count": 2,
+                "initial_admission_request_budget": 2,
+                "configured_max_concurrent_loads": 3,
+                "_pending_scaleup_sequence": 7,
+            },
+            runtime_startup_latency_ms=30000.0,
+        )
+
+        self.assertEqual(refreshed["planned_adapters"], ["finance", "support"])
+        self.assertEqual(
+            refreshed["ordered_handoff_adapters"], ["finance", "support"]
+        )
+        self.assertEqual(refreshed["first_service_request_count"], 2)
+        self.assertEqual(refreshed["first_service_adapter_count"], 2)
+        self.assertEqual(refreshed["first_service_scanned_request_count"], 2)
+        self.assertEqual(refreshed["bootstrap_latency_ms"], 30000.0)
+        self.assertEqual(refreshed["plan_load_latency_ms"], 50.0)
+        self.assertEqual(refreshed["ready_delay_ms"], 30050.0)
+        self.assertEqual(
+            refreshed["exact_prefix_bytes"], 2 * 128 * 1024 * 1024
+        )
+
     def test_scale_up_first_service_request_budget_matches_initial_admission_slice(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner._scale_up_initial_admission_request_budget = lambda: 1
@@ -4698,17 +5566,17 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         result = ScenarioResult("demo", "faaslora_full", total=4)
         result.ttft_slo_ms = 180.0
         result.requests = [
-            RequestResult("r1", "a", False, "normal", True, "gpu", 10.0, 80.0, 100.0, 5.0, 5.0, 20.0, 120.0, 10, 5, 0.10, True, "inst_1", False),
-            RequestResult("r2", "b", False, "normal", True, "host", 60.0, 120.0, 200.0, 10.0, 10.0, 25.0, 240.0, 10, 5, 0.20, True, "inst_1", False),
+            RequestResult("r1", "a", False, "normal", True, "gpu", 10.0, 80.0, 100.0, 5.0, 5.0, 20.0, 120.0, 10, 5, 0.10, True, "inst_1", False, dispatch_window_wait_ms=11.0, runtime_slot_wait_ms=4.0, arrival_release_lateness_ms=15.0),
+            RequestResult("r2", "b", False, "normal", True, "host", 60.0, 120.0, 200.0, 10.0, 10.0, 25.0, 240.0, 10, 5, 0.20, True, "inst_1", False, dispatch_window_wait_ms=21.0, runtime_slot_wait_ms=7.0, arrival_release_lateness_ms=25.0),
             RequestResult(
                 "r3", "c", False, "normal", False, "remote",
                 0.0, 140.0, 150.0, 5.0, 5.0, 30.0, 190.0, 10, 5, 0.30, True,
-                "inst_2", True, None, True, True, False,
+                "inst_2", True, None, True, True, False, dispatch_window_wait_ms=31.0, runtime_slot_wait_ms=9.0, arrival_release_lateness_ms=35.0,
             ),
             RequestResult(
                 "r4", "d", False, "normal", True, "gpu",
                 20.0, 160.0, 220.0, 10.0, 10.0, 0.0, 260.0, 10, 5, 0.40, True,
-                "inst_2", False, None, True, False, True,
+                "inst_2", False, None, True, False, True, dispatch_window_wait_ms=41.0, runtime_slot_wait_ms=13.0, arrival_release_lateness_ms=45.0,
             ),
         ]
         result.scale_up_events = [{
@@ -4724,9 +5592,13 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertAlmostEqual(result.avg_serverless_overhead_ms, (20.0 + 80.0 + 10.0 + 40.0) / 4.0)
         self.assertAlmostEqual(result.avg_runtime_ttft_ms, (80.0 + 120.0 + 140.0 + 160.0) / 4.0)
         self.assertAlmostEqual(result.avg_gpu_ready_ttft_ms, (100.0 + 220.0) / 2.0)
+        self.assertAlmostEqual(result.avg_dispatch_window_wait_ms, 26.0)
+        self.assertAlmostEqual(result.avg_runtime_slot_wait_ms, 8.25)
+        self.assertAlmostEqual(result.avg_arrival_release_lateness_ms, 30.0)
+        self.assertAlmostEqual(result.p95_arrival_release_lateness_ms, 43.5)
         self.assertAlmostEqual(result.avg_warm_standard_ttft_ms, (100.0 + 220.0) / 2.0)
-        self.assertAlmostEqual(result.p95_warm_standard_ttft_ms, 220.0)
-        self.assertAlmostEqual(result.p99_warm_standard_ttft_ms, 220.0)
+        self.assertAlmostEqual(result.p95_warm_standard_ttft_ms, 214.0)
+        self.assertAlmostEqual(result.p99_warm_standard_ttft_ms, 218.8)
         self.assertAlmostEqual(result.avg_scaleup_affected_ttft_ms, 150.0)
         self.assertAlmostEqual(result.avg_scaleup_runtime_ttft_ms, (150.0 + 220.0) / 2.0)
         self.assertEqual(result.scaleup_runtime_lora_request_count, 2)
@@ -4755,17 +5627,17 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner._ttft_slo_ms = 180.0
         runner._observed_scale_up_cold_start_latencies_ms = [300.0, 500.0]
         results = [
-            RequestResult("r1", "a", False, "normal", True, "gpu", 10.0, 80.0, 100.0, 5.0, 5.0, 20.0, 120.0, 10, 5, 0.10, True, "inst_1", False),
-            RequestResult("r2", "b", False, "normal", True, "host", 60.0, 120.0, 200.0, 10.0, 10.0, 25.0, 240.0, 10, 5, 0.20, True, "inst_1", False),
+            RequestResult("r1", "a", False, "normal", True, "gpu", 10.0, 80.0, 100.0, 5.0, 5.0, 20.0, 120.0, 10, 5, 0.10, True, "inst_1", False, dispatch_window_wait_ms=11.0, runtime_slot_wait_ms=4.0, arrival_release_lateness_ms=15.0),
+            RequestResult("r2", "b", False, "normal", True, "host", 60.0, 120.0, 200.0, 10.0, 10.0, 25.0, 240.0, 10, 5, 0.20, True, "inst_1", False, dispatch_window_wait_ms=21.0, runtime_slot_wait_ms=7.0, arrival_release_lateness_ms=25.0),
             RequestResult(
                 "r3", "c", False, "normal", False, "remote",
                 0.0, 140.0, 150.0, 5.0, 5.0, 30.0, 190.0, 10, 5, 0.30, True,
-                "inst_2", True, None, True, True, False,
+                "inst_2", True, None, True, True, False, dispatch_window_wait_ms=31.0, runtime_slot_wait_ms=9.0, arrival_release_lateness_ms=35.0,
             ),
             RequestResult(
                 "r4", "d", False, "normal", True, "gpu",
                 20.0, 160.0, 220.0, 10.0, 10.0, 0.0, 260.0, 10, 5, 0.40, True,
-                "inst_2", False, None, True, False, True,
+                "inst_2", False, None, True, False, True, dispatch_window_wait_ms=41.0, runtime_slot_wait_ms=13.0, arrival_release_lateness_ms=45.0,
             ),
         ]
 
@@ -4775,9 +5647,13 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertAlmostEqual(stats["avg_serverless_overhead_ms"], (20.0 + 80.0 + 10.0 + 40.0) / 4.0)
         self.assertAlmostEqual(stats["avg_runtime_ttft_ms"], (80.0 + 120.0 + 140.0 + 160.0) / 4.0)
         self.assertAlmostEqual(stats["avg_gpu_ready_ttft_ms"], (100.0 + 220.0) / 2.0)
+        self.assertAlmostEqual(stats["avg_dispatch_window_wait_ms"], 26.0)
+        self.assertAlmostEqual(stats["avg_runtime_slot_wait_ms"], 8.25)
+        self.assertAlmostEqual(stats["avg_arrival_release_lateness_ms"], 30.0)
+        self.assertAlmostEqual(stats["p95_arrival_release_lateness_ms"], 43.5)
         self.assertAlmostEqual(stats["avg_warm_standard_ttft_ms"], (100.0 + 220.0) / 2.0)
-        self.assertAlmostEqual(stats["p95_warm_standard_ttft_ms"], 220.0)
-        self.assertAlmostEqual(stats["p99_warm_standard_ttft_ms"], 220.0)
+        self.assertAlmostEqual(stats["p95_warm_standard_ttft_ms"], 214.0)
+        self.assertAlmostEqual(stats["p99_warm_standard_ttft_ms"], 218.8)
         self.assertAlmostEqual(stats["avg_scaleup_affected_ttft_ms"], 150.0)
         self.assertAlmostEqual(stats["avg_scaleup_runtime_ttft_ms"], (150.0 + 220.0) / 2.0)
         self.assertEqual(stats["scaleup_runtime_lora_request_count"], 2)
@@ -4790,7 +5666,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertEqual(stats["total_output_tokens"], 20)
         self.assertAlmostEqual(stats["avg_cost_usd"], 0.25)
         self.assertAlmostEqual(stats["avg_cold_start_latency_ms"], 400.0)
-        self.assertAlmostEqual(stats["p95_cold_start_latency_ms"], 500.0)
+        self.assertAlmostEqual(stats["p95_cold_start_latency_ms"], 490.0)
         self.assertAlmostEqual(stats["slo_attainment"], 0.5)
         self.assertAlmostEqual(stats["qpr_tokps_ttft_legacy"], 5.0 / (0.25 * 0.1675))
         self.assertAlmostEqual(stats["cost_effectiveness_e2e"], 1.0 / (0.2025 * 0.25))
@@ -4818,17 +5694,17 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         result = ScenarioResult("demo", "faaslora_full", total=4)
         result.ttft_slo_ms = 180.0
         result.requests = [
-            RequestResult("r1", "a", False, "normal", True, "gpu", 10.0, 80.0, 100.0, 5.0, 5.0, 20.0, 120.0, 10, 5, 0.10, True, "inst_1", False),
-            RequestResult("r2", "b", False, "normal", True, "host", 60.0, 120.0, 200.0, 10.0, 10.0, 25.0, 240.0, 10, 5, 0.20, True, "inst_1", False),
+            RequestResult("r1", "a", False, "normal", True, "gpu", 10.0, 80.0, 100.0, 5.0, 5.0, 20.0, 120.0, 10, 5, 0.10, True, "inst_1", False, dispatch_window_wait_ms=11.0, runtime_slot_wait_ms=4.0, arrival_release_lateness_ms=15.0),
+            RequestResult("r2", "b", False, "normal", True, "host", 60.0, 120.0, 200.0, 10.0, 10.0, 25.0, 240.0, 10, 5, 0.20, True, "inst_1", False, dispatch_window_wait_ms=21.0, runtime_slot_wait_ms=7.0, arrival_release_lateness_ms=25.0),
             RequestResult(
                 "r3", "c", False, "normal", False, "remote",
                 0.0, 140.0, 150.0, 5.0, 5.0, 30.0, 190.0, 10, 5, 0.30, True,
-                "inst_2", True, None, True, True, False,
+                "inst_2", True, None, True, True, False, dispatch_window_wait_ms=31.0, runtime_slot_wait_ms=9.0, arrival_release_lateness_ms=35.0,
             ),
             RequestResult(
                 "r4", "d", False, "normal", True, "gpu",
                 20.0, 160.0, 220.0, 10.0, 10.0, 0.0, 260.0, 10, 5, 0.40, True,
-                "inst_2", False, None, True, False, True,
+                "inst_2", False, None, True, False, True, dispatch_window_wait_ms=41.0, runtime_slot_wait_ms=13.0, arrival_release_lateness_ms=45.0,
             ),
         ]
         result.scale_up_events = [{"request_index": 2, "instance_id": "inst_2"}]
@@ -4839,8 +5715,20 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertIn("serverless_deployment_metrics", comparison_row)
         self.assertIn("scaling_metrics", comparison_row)
         self.assertIn("mechanism_metrics", comparison_row)
+        self.assertAlmostEqual(comparison_row["Arrival_release_lateness_avg_ms"], 30.0)
+        self.assertAlmostEqual(comparison_row["Dispatch_window_wait_avg_ms"], 26.0)
+        self.assertAlmostEqual(comparison_row["Runtime_slot_wait_avg_ms"], 8.2)
         self.assertAlmostEqual(comparison_row["TTFT_warm_standard_avg_ms"], 160.0)
         self.assertAlmostEqual(comparison_row["SLO_goodput_RPS"], 0.5)
+        self.assertAlmostEqual(
+            comparison_row["serverless_deployment_metrics"]["Arrival_release_lateness_avg_ms"], 30.0
+        )
+        self.assertAlmostEqual(
+            comparison_row["serverless_deployment_metrics"]["Dispatch_window_wait_avg_ms"], 26.0
+        )
+        self.assertAlmostEqual(
+            comparison_row["serverless_deployment_metrics"]["Runtime_slot_wait_avg_ms"], 8.25
+        )
         self.assertAlmostEqual(
             comparison_row["standard_serving_metrics"]["TTFT_warm_standard_avg_ms"], 160.0
         )
@@ -4911,7 +5799,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         slow.record_runtime_ttft(4500.0, is_backbone=True)
         fast.record_runtime_ttft(120.0, is_backbone=True)
         pool = SimpleNamespace(get_slots=lambda: [slow, fast])
-        router = Router(pool, policy="least_connections")
+        router = Router(pool, policy="least_connections", runtime_concurrency_cap=2)
 
         selected = router.select_instance(None)
 
@@ -4947,7 +5835,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         )
         lora_only.active_requests = 1
         pool = SimpleNamespace(get_slots=lambda: [backbone_only, lora_only])
-        router = Router(pool, policy="least_connections")
+        router = Router(pool, policy="least_connections", runtime_concurrency_cap=2)
 
         selected = router.select_instance(None)
 
@@ -5032,6 +5920,62 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertIsNotNone(selected)
         self.assertEqual(selected.instance_id, "inst_idle")
 
+    def test_instance_slot_tracks_active_adapter_capacity(self) -> None:
+        slot = InstanceSlot("inst_active", None, None)
+        slot.begin_active_adapter("adapter_a")
+        slot.begin_active_adapter("adapter_a")
+        slot.begin_active_adapter("adapter_b")
+
+        self.assertEqual(slot.active_adapter_count(), 2)
+        self.assertTrue(slot.can_accept_active_adapter("adapter_a", 2))
+        self.assertFalse(slot.can_accept_active_adapter("adapter_c", 2))
+
+        slot.end_active_adapter("adapter_a")
+        self.assertEqual(slot.active_adapter_count(), 2)
+        slot.end_active_adapter("adapter_a")
+        self.assertEqual(slot.active_adapter_count(), 1)
+        self.assertTrue(slot.can_accept_active_adapter("adapter_c", 2))
+
+    def test_router_avoids_runtime_with_full_active_lora_set(self) -> None:
+        full_gpu = InstanceSlot("inst_full_gpu", None, None)
+        open_host = InstanceSlot("inst_open_host", None, None)
+        full_gpu.mark_adapter_tier("adapter_c", "gpu")
+        open_host.mark_adapter_tier("adapter_c", "host")
+        full_gpu.begin_active_adapter("adapter_a")
+        full_gpu.begin_active_adapter("adapter_b")
+        pool = SimpleNamespace(get_slots=lambda: [full_gpu, open_host])
+        router = Router(
+            pool,
+            policy="adapter_affinity",
+            runtime_concurrency_cap=8,
+            max_active_loras=2,
+        )
+
+        selected = router.select_instance("adapter_c", adapter_size_mb=30.0)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_open_host")
+
+    def test_router_allows_adapter_already_active_under_lora_cap(self) -> None:
+        hot_gpu = InstanceSlot("inst_hot_gpu", None, None)
+        open_host = InstanceSlot("inst_open_host", None, None)
+        hot_gpu.mark_adapter_tier("adapter_a", "gpu")
+        open_host.mark_adapter_tier("adapter_a", "host")
+        hot_gpu.begin_active_adapter("adapter_a")
+        hot_gpu.begin_active_adapter("adapter_b")
+        pool = SimpleNamespace(get_slots=lambda: [open_host, hot_gpu])
+        router = Router(
+            pool,
+            policy="adapter_affinity",
+            runtime_concurrency_cap=8,
+            max_active_loras=2,
+        )
+
+        selected = router.select_instance("adapter_a", adapter_size_mb=30.0)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_hot_gpu")
+
     def test_router_accounts_for_idle_backbone_tail_cost(self) -> None:
         low_ttft_high_tail = InstanceSlot("inst_low_ttft_high_tail", None, None)
         balanced = InstanceSlot("inst_balanced", None, None)
@@ -5077,7 +6021,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             runtime_ttft_ms=7200.0,
         )
         pool = SimpleNamespace(get_slots=lambda: [host_slot, gpu_slot])
-        router = Router(pool, policy="adapter_affinity")
+        router = Router(pool, policy="adapter_affinity", runtime_concurrency_cap=2)
 
         selected = router.select_instance("adapter_a", adapter_size_mb=30.0)
 
@@ -5358,6 +6302,36 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         lora_selected = router.select_instance("adapter_a", adapter_size_mb=30.0)
         self.assertIsNotNone(lora_selected)
         self.assertEqual(lora_selected.instance_id, "inst_scaleup")
+        self.assertEqual(scaleup.scaleup_handoff_assigned_requests, 1)
+
+    def test_router_consumes_handoff_budget_for_unplanned_lora_that_lands_on_scaleup_runtime(self) -> None:
+        existing = InstanceSlot("inst_existing", None, None)
+        scaleup = InstanceSlot("inst_scaleup", None, None)
+        existing.mark_adapter_tier("adapter_b", "remote")
+        existing.record_request_cost(
+            adapter_id="adapter_b",
+            cache_tier="remote",
+            lora_io_ms=900.0,
+            runtime_ttft_ms=2200.0,
+        )
+        scaleup.record_request_cost(
+            adapter_id="adapter_b",
+            cache_tier="nvme",
+            lora_io_ms=50.0,
+            runtime_ttft_ms=300.0,
+        )
+        scaleup.scaleup_handoff_planned_adapters = ["adapter_a"]
+        scaleup.scaleup_handoff_planned_adapter_ranks = {"adapter_a": 0}
+        scaleup.scaleup_handoff_request_budget = 2
+        scaleup.scaleup_handoff_assigned_requests = 0
+        existing.active_requests = 2
+        pool = SimpleNamespace(get_slots=lambda: [existing, scaleup])
+        router = Router(pool, policy="adapter_affinity", runtime_concurrency_cap=2)
+
+        selected = router.select_instance("adapter_b", adapter_size_mb=30.0)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_scaleup")
         self.assertEqual(scaleup.scaleup_handoff_assigned_requests, 1)
 
     def test_comparable_request_requires_local_tier_and_non_scaleup(self) -> None:
@@ -5811,10 +6785,10 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner._select_dedicated_device_id = lambda: 1
         runner._prime_slot_cache_view = lambda slot_obj, include_gpu=False: None
         runner._sync_stack_gpu_accounting = lambda: None
-        runner._refresh_slot_runtime_hints = lambda slot_obj: refresh_calls.append(slot_obj.instance_id)
+        runner._refresh_slot_runtime_hints = lambda slot_obj, **_kwargs: refresh_calls.append(slot_obj.instance_id)
         runner._warmup_engine_hot_set = fake_warmup
         runner._schedule_all_runtime_gpu_forward = lambda: schedule_all_calls.append("called") or 0
-        async def fake_notify():
+        async def fake_notify(**_kwargs):
             self.assertIn("inst_2", runner._scaleup_runtime_instance_ids)
             self.assertEqual(
                 runner._scaleup_runtime_handoff_plans["inst_2"]["planned_adapters"],
@@ -5876,12 +6850,12 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner._select_dedicated_device_id = lambda: 1
         runner._prime_slot_cache_view = lambda slot_obj, include_gpu=False: None
         runner._sync_stack_gpu_accounting = lambda: None
-        runner._refresh_slot_runtime_hints = lambda slot_obj: None
+        runner._refresh_slot_runtime_hints = lambda slot_obj, **_kwargs: None
         runner._warmup_engine_hot_set = fake_warmup
         runner._predicted_scale_up_load_ms = lambda adapter_ids, max_concurrent_loads=1: float(len(adapter_ids) * 10)
         runner._scale_up_adapter_total_bytes = lambda adapter_ids: len(list(adapter_ids)) * 100
 
-        async def fake_notify():
+        async def fake_notify(**_kwargs):
             return None
 
         runner._notify_dispatch_capacity_changed = fake_notify
@@ -5908,12 +6882,63 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner.model_cfg = {"tensor_parallel_size": 2, "visible_device_ids": [0, 1, 2, 3]}
         runner.hw = {}
         runner.engine = None
+        runner._failed_runtime_device_ids = set()
+        runner._pending_scale_up_device_ids = set()
         runner.instance_pool = SimpleNamespace(
             get_slots=lambda: [SimpleNamespace(device_id=0)],
             count=lambda: 1,
         )
 
         self.assertEqual(runner._select_dedicated_device_id(), 2)
+
+    def test_select_dedicated_device_id_returns_none_when_all_devices_used(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._available_device_ids = lambda: [0, 1, 2, 3]
+        runner.model_cfg = {"tensor_parallel_size": 1}
+        runner._pending_scale_up_device_ids = set()
+        runner._failed_runtime_device_ids = set()
+        runner.instance_pool = SimpleNamespace(
+            get_slots=lambda: [
+                SimpleNamespace(device_id=0),
+                SimpleNamespace(device_id=1),
+                SimpleNamespace(device_id=2),
+                SimpleNamespace(device_id=3),
+            ],
+            count=lambda: 4,
+        )
+
+        self.assertIsNone(runner._select_dedicated_device_id())
+
+    def test_select_dedicated_device_id_skips_failed_runtime_devices(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._available_device_ids = lambda: [0, 1, 2, 3]
+        runner.model_cfg = {"tensor_parallel_size": 1}
+        runner._pending_scale_up_device_ids = set()
+        runner._failed_runtime_device_ids = {0}
+        runner.instance_pool = SimpleNamespace(
+            get_slots=lambda: [SimpleNamespace(device_id=1)],
+            count=lambda: 1,
+        )
+
+        self.assertEqual(runner._select_dedicated_device_id(), 2)
+
+    def test_shutdown_instance_pool_cancels_pending_scale_up_tasks(self) -> None:
+        async def run_case() -> None:
+            runner = ScenarioRunner.__new__(ScenarioRunner)
+            pending = asyncio.create_task(asyncio.sleep(60))
+            runner._pending_scale_up_tasks = {pending}
+            runner._pending_scale_up_device_ids = {3}
+            runner._pending_scale_up_sequences = {7}
+            runner.instance_pool = SimpleNamespace(get_slots=lambda: [])
+
+            await runner._shutdown_instance_pool()
+
+            self.assertTrue(pending.cancelled())
+            self.assertEqual(runner._pending_scale_up_tasks, set())
+            self.assertEqual(runner._pending_scale_up_device_ids, set())
+            self.assertEqual(runner._pending_scale_up_sequences, set())
+
+        asyncio.run(run_case())
 
     def test_dispatch_capacity_tracks_live_runtime_groups_for_open_loop_trace_replay(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
@@ -6105,6 +7130,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner._available_device_ids = lambda: [0, 1, 2, 3]
         runner.model_cfg = {}
+        runner._failed_runtime_device_ids = set()
         runner.instance_pool = SimpleNamespace(
             get_slots=lambda: [SimpleNamespace(device_id=0)],
             count=lambda: 1,
@@ -6364,6 +7390,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             active_requests=0,
             load_queue_depth=0,
             last_selected_at=5.0,
+            last_idle_at=5.0,
             created_at=1.0,
         )
         busy_slot = SimpleNamespace(
@@ -6371,6 +7398,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             active_requests=1,
             load_queue_depth=0,
             last_selected_at=10.0,
+            last_idle_at=10.0,
             created_at=2.0,
         )
         runner = ScenarioRunner.__new__(ScenarioRunner)
@@ -6386,7 +7414,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             remove_instance=lambda instance_id: removed_ids.append(instance_id) or idle_slot,
         )
 
-        async def fake_cleanup(_slot):
+        async def fake_cleanup(_slot, **_kwargs):
             return None
 
         runner._cleanup_removed_slot = fake_cleanup
@@ -6396,6 +7424,81 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertIsNotNone(event)
         self.assertEqual(removed_ids, ["inst_idle"])
         self.assertEqual(event["instance_id"], "inst_idle")
+
+    def test_scale_down_candidate_honors_idle_ttl(self) -> None:
+        fresh_idle = SimpleNamespace(
+            instance_id="inst_fresh",
+            active_requests=0,
+            load_queue_depth=0,
+            runtime_forwarding_active=0,
+            last_selected_at=100.0,
+            last_idle_at=195.0,
+            created_at=1.0,
+        )
+        old_idle = SimpleNamespace(
+            instance_id="inst_old",
+            active_requests=0,
+            load_queue_depth=0,
+            runtime_forwarding_active=0,
+            last_selected_at=50.0,
+            last_idle_at=150.0,
+            created_at=1.0,
+        )
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._primary_instance_id = "inst_1"
+        runner.instance_pool = SimpleNamespace(
+            min_instances=1,
+            count=lambda: 3,
+            get_slots=lambda: [
+                SimpleNamespace(instance_id="inst_1", active_requests=0, load_queue_depth=0),
+                fresh_idle,
+                old_idle,
+            ],
+        )
+
+        with patch("scripts.run_all_experiments.time.time", return_value=200.0):
+            selected = runner._select_scale_down_candidate_slot(min_idle_s=12.0)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_old")
+
+    def test_scale_down_candidate_skips_recently_ready_slot_during_cooldown(self) -> None:
+        recent_ready = SimpleNamespace(
+            instance_id="inst_recent",
+            active_requests=0,
+            load_queue_depth=0,
+            runtime_forwarding_active=0,
+            last_selected_at=90.0,
+            last_idle_at=150.0,
+            created_at=192.0,
+        )
+        mature_ready = SimpleNamespace(
+            instance_id="inst_mature",
+            active_requests=0,
+            load_queue_depth=0,
+            runtime_forwarding_active=0,
+            last_selected_at=80.0,
+            last_idle_at=140.0,
+            created_at=150.0,
+        )
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._primary_instance_id = "inst_1"
+        runner._scale_down_cooldown_s = 20.0
+        runner.instance_pool = SimpleNamespace(
+            min_instances=1,
+            count=lambda: 3,
+            get_slots=lambda: [
+                SimpleNamespace(instance_id="inst_1", active_requests=0, load_queue_depth=0),
+                recent_ready,
+                mature_ready,
+            ],
+        )
+
+        with patch("scripts.run_all_experiments.time.time", return_value=200.0):
+            selected = runner._select_scale_down_candidate_slot(min_idle_s=12.0)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_mature")
 
     def test_live_scale_control_evaluation_can_trigger_online_scale_down(self) -> None:
         scale_down_calls = []
@@ -6419,6 +7522,8 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner._scale_up_t_min = 1.0
         runner._scale_down_beta = 0.4
         runner._scale_down_duration_s = 45.0
+        runner._scale_down_startup_break_even_s = 0.0
+        runner._scale_down_break_even_factor = 1.0
         runner._low_load_since = 0.0
         runner._active_loras_ewma = 0.0
         runner._live_waiting_traces_by_id = {}
@@ -6428,7 +7533,9 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner._arrival_rps = lambda _replay_t0: 0.2
         runner._arrived_request_count = lambda _replay_t0: 8
         runner._autoscaler_gpu_signal = lambda: 5.0
-        runner._scale_down_one_instance = lambda require_idle=False: scale_down_calls.append(require_idle) or asyncio.sleep(0, result={
+        runner._scale_down_one_instance = lambda require_idle=False, min_idle_s=None: scale_down_calls.append(
+            (require_idle, min_idle_s)
+        ) or asyncio.sleep(0, result={
             "event_type": "physical_scale_down",
             "instance_id": "inst_2",
             "device_id": 1,
@@ -6459,7 +7566,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             )
 
         self.assertTrue(triggered)
-        self.assertEqual(scale_down_calls, [True])
+        self.assertEqual(scale_down_calls, [(True, 45.0)])
         self.assertEqual(result.scale_down_events, 1)
         self.assertEqual(result.scale_down_event_log[0]["instance_id"], "inst_2")
         self.assertEqual(result.scale_down_event_log[0]["queue_visible_request_count"], 8)
@@ -6487,6 +7594,8 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner._scale_up_t_min = 1.0
         runner._scale_down_beta = 0.4
         runner._scale_down_duration_s = 45.0
+        runner._scale_down_startup_break_even_s = 0.0
+        runner._scale_down_break_even_factor = 1.0
         runner._low_load_since = 0.0
         runner._active_loras_ewma = 0.0
         runner._live_waiting_traces_by_id = {}
@@ -6528,10 +7637,169 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertEqual(scale_down_calls, [])
         self.assertEqual(result.scale_down_events, 0)
 
+    def test_live_scale_control_can_release_idle_slot_under_pressure_when_capacity_remains(self) -> None:
+        scale_down_calls = []
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.baseline_type = "faaslora_full"
+        runner.instance_pool = SimpleNamespace(count=lambda: 3, max_instances=4, min_instances=1)
+        runner._stack = SimpleNamespace(
+            autoscaler=SimpleNamespace(
+                decision_interval=15.0,
+                make_scaling_decision_with_metrics=lambda *args, **kwargs: SimpleNamespace(
+                    action=ScalingAction.NO_ACTION,
+                    target_instances=3,
+                    reason="No scaling needed",
+                ),
+            ),
+        )
+        runner._dynamic_scaling = True
+        runner._baseline_rps = 1.0
+        runner._baseline_rps_ewma_beta = 0.25
+        runner._scale_up_alpha = 0.3
+        runner._scale_up_t_min = 1.0
+        runner._scale_down_beta = 0.5
+        runner._scale_down_duration_s = 12.0
+        runner._scale_down_startup_break_even_s = 0.0
+        runner._scale_down_break_even_factor = 1.0
+        runner._low_load_since = None
+        runner._active_loras_ewma = 0.0
+        runner._live_waiting_traces_by_id = {}
+        runner._live_started_lora_counts = defaultdict(int)
+        runner._live_scale_eval_last_at = 0.0
+        runner._scale_down_cooldown_s = 12.0
+        runner._last_live_scale_up_completed_at = 0.0
+        runner._last_live_scale_down_completed_at = 0.0
+        runner._live_scale_overrides = None
+        runner._arrival_rps = lambda _replay_t0: 0.2
+        runner._arrived_request_count = lambda _replay_t0: 8
+        runner._autoscaler_gpu_signal = lambda: 5.0
+        runner._can_scale_down_idle_slot_under_visible_pressure = (
+            lambda *, backlog, active_requests, now_monotonic=None: (
+                backlog == 2 and active_requests == 1
+            )
+        )
+        runner._scale_down_one_instance = (
+            lambda require_idle=False, min_idle_s=None: scale_down_calls.append(
+                (require_idle, min_idle_s)
+            )
+            or asyncio.sleep(0, result={
+                "event_type": "physical_scale_down",
+                "instance_id": "inst_idle",
+                "device_id": 2,
+                "runtime_kind": "dedicated",
+            })
+        )
+
+        result = ScenarioResult(
+            scenario_name="faaslora_full",
+            baseline_type="faaslora_full",
+            total=10,
+            ttft_slo_ms=5000.0,
+        )
+
+        with patch("scripts.run_all_experiments.time.perf_counter", return_value=60.0):
+            triggered = asyncio.run(
+                runner._maybe_run_live_scale_control_evaluation(
+                    result=result,
+                    coord_enabled=True,
+                    replay_t0=0.0,
+                    results_view=[],
+                    backlog=2,
+                    active_requests=1,
+                    busy_ratio=0.25,
+                    completed_count=5,
+                    queue_visible_request_count=8,
+                    visible_traces=[],
+                )
+            )
+
+        self.assertTrue(triggered)
+        self.assertEqual(scale_down_calls, [(True, 12.0)])
+        self.assertEqual(result.scale_down_events, 1)
+        self.assertEqual(result.scale_down_event_log[0]["reason"], "idle_slot_ttl_safe_capacity")
+        self.assertEqual(result.scale_down_event_log[0]["instance_id"], "inst_idle")
+
+    def test_live_scale_control_blocks_idle_slot_scale_down_during_scale_down_cooldown(self) -> None:
+        scale_down_calls = []
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.baseline_type = "faaslora_full"
+        runner.instance_pool = SimpleNamespace(count=lambda: 3, max_instances=4, min_instances=1)
+        runner._stack = SimpleNamespace(
+            autoscaler=SimpleNamespace(
+                decision_interval=15.0,
+                make_scaling_decision_with_metrics=lambda *args, **kwargs: SimpleNamespace(
+                    action=ScalingAction.NO_ACTION,
+                    target_instances=3,
+                    reason="No scaling needed",
+                ),
+            ),
+        )
+        runner._dynamic_scaling = True
+        runner._baseline_rps = 1.0
+        runner._baseline_rps_ewma_beta = 0.25
+        runner._scale_up_alpha = 0.3
+        runner._scale_up_t_min = 1.0
+        runner._scale_down_beta = 0.5
+        runner._scale_down_duration_s = 12.0
+        runner._scale_down_startup_break_even_s = 0.0
+        runner._scale_down_break_even_factor = 1.0
+        runner._scale_down_cooldown_s = 20.0
+        runner._low_load_since = None
+        runner._active_loras_ewma = 0.0
+        runner._live_waiting_traces_by_id = {}
+        runner._live_started_lora_counts = defaultdict(int)
+        runner._live_scale_eval_last_at = 0.0
+        runner._last_live_scale_up_completed_at = 50.0
+        runner._last_live_scale_down_completed_at = 0.0
+        runner._live_scale_overrides = None
+        runner._arrival_rps = lambda _replay_t0: 0.2
+        runner._arrived_request_count = lambda _replay_t0: 8
+        runner._autoscaler_gpu_signal = lambda: 5.0
+        runner._pending_scale_up_count = lambda: 0
+        runner._select_scale_down_candidate_slot = (
+            lambda min_idle_s=None: SimpleNamespace(instance_id="inst_idle")
+        )
+        runner._runtime_total_capacity_after_removal = lambda remaining_instances: 4
+        runner._scale_down_one_instance = (
+            lambda require_idle=False, min_idle_s=None: scale_down_calls.append(
+                (require_idle, min_idle_s)
+            )
+            or asyncio.sleep(0, result={"instance_id": "inst_idle"})
+        )
+
+        result = ScenarioResult(
+            scenario_name="faaslora_full",
+            baseline_type="faaslora_full",
+            total=10,
+            ttft_slo_ms=5000.0,
+        )
+
+        with patch("scripts.run_all_experiments.time.perf_counter", return_value=60.0):
+            triggered = asyncio.run(
+                runner._maybe_run_live_scale_control_evaluation(
+                    result=result,
+                    coord_enabled=True,
+                    replay_t0=0.0,
+                    results_view=[],
+                    backlog=2,
+                    active_requests=1,
+                    busy_ratio=0.25,
+                    completed_count=5,
+                    queue_visible_request_count=8,
+                    visible_traces=[],
+                )
+            )
+
+        self.assertFalse(triggered)
+        self.assertEqual(scale_down_calls, [])
+        self.assertEqual(result.scale_down_events, 0)
+
     def test_dynamic_scale_down_uses_monotonic_clock(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner._dynamic_scaling = True
         runner._scale_down_duration_s = 45.0
+        runner._scale_down_startup_break_even_s = 0.0
+        runner._scale_down_break_even_factor = 1.0
         runner._low_load_since = None
         runner._baseline_rps = 10.0
         runner._baseline_rps_ewma_beta = 0.25
@@ -6549,6 +7817,42 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             self.assertFalse(runner._should_trigger_scale_down())
         with patch("scripts.run_all_experiments.time.perf_counter", return_value=146.0):
             self.assertTrue(runner._should_trigger_scale_down())
+
+    def test_effective_scale_down_min_idle_uses_cold_start_break_even(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._scale_down_duration_s = 12.0
+        runner._scale_down_startup_break_even_s = 0.0
+        runner._scale_down_break_even_factor = 1.0
+        runner._observed_scale_up_cold_start_latencies_ms = [31800.0, 32200.0]
+        runner._observed_scale_up_runtime_startup_latencies_ms = [29000.0]
+
+        self.assertAlmostEqual(runner._effective_scale_down_min_idle_s(), 32.0)
+
+    def test_effective_scale_down_min_idle_uses_handoff_prediction_before_observation(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._scale_down_duration_s = 12.0
+        runner._scale_down_startup_break_even_s = 0.0
+        runner._scale_down_break_even_factor = 1.0
+        runner._observed_scale_up_cold_start_latencies_ms = []
+        runner._observed_scale_up_runtime_startup_latencies_ms = []
+        runner._last_scale_up_handoff_plan = {"ready_delay_ms": 30500.0}
+
+        self.assertAlmostEqual(runner._effective_scale_down_min_idle_s(), 30.5)
+
+    def test_adaptive_scale_down_cooldown_tracks_effective_restart_gate(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._scale_eval_interval_s = 2.0
+        runner._scheduled_arrivals = [0.0, 1.0, 3.0, 8.0, 20.0]
+        runner._trace_scale_down_floor_s = runner._derive_trace_scale_down_floor_s()
+        runner._scale_down_duration_s = runner._trace_scale_down_floor_s
+        runner._scale_down_cooldown_s = runner._trace_scale_down_floor_s
+        runner._scale_down_cooldown_auto = True
+        runner._scale_down_startup_break_even_s = 0.0
+        runner._scale_down_break_even_factor = 1.0
+        runner._observed_scale_up_cold_start_latencies_ms = [32000.0]
+        runner._observed_scale_up_runtime_startup_latencies_ms = []
+
+        self.assertGreaterEqual(runner._effective_scale_down_cooldown_s(), 32.0)
 
     def test_scaleup_gpu_candidates_ignore_global_min_hotness_gate(self) -> None:
         stack = ExperimentStack.__new__(ExperimentStack)
@@ -7001,6 +8305,181 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         metrics = asyncio.run(autoscaler._collect_current_metrics())
 
         self.assertAlmostEqual(metrics.gpu_utilization, 90.0)
+
+    def test_autoscaler_low_ttft_alone_does_not_trigger_scale_down(self) -> None:
+        class DummyConfig:
+            def get(self, key, default=None):
+                if key == "coordination":
+                    return {
+                        "autoscaling": {
+                            "enabled": True,
+                            "min_instances": 1,
+                            "max_instances": 4,
+                            "scale_up_cooldown": 0.0,
+                            "scale_down_cooldown": 0.0,
+                        }
+                    }
+                return default
+
+        autoscaler = AutoScaler(
+            config=DummyConfig(),
+            registry=SimpleNamespace(get_all_artifacts=lambda: []),
+            gpu_monitor=SimpleNamespace(
+                enabled=False,
+                get_all_devices_memory_info=lambda: {},
+                get_current_memory_info=lambda device_id=0: None,
+            ),
+        )
+
+        decision = autoscaler.make_scaling_decision_with_metrics(
+            ScalingMetrics(avg_ttft_ms=200.0),
+            current_instances=2,
+        )
+
+        self.assertEqual(decision.action, ScalingAction.NO_ACTION)
+
+    def test_autoscaler_dispatch_wait_can_trigger_scale_up(self) -> None:
+        class DummyConfig:
+            def get(self, key, default=None):
+                if key == "coordination":
+                    return {
+                        "autoscaling": {
+                            "enabled": True,
+                            "min_instances": 1,
+                            "max_instances": 4,
+                            "scale_up_cooldown": 0.0,
+                            "scale_down_cooldown": 0.0,
+                        }
+                    }
+                return default
+
+        autoscaler = AutoScaler(
+            config=DummyConfig(),
+            registry=SimpleNamespace(get_all_artifacts=lambda: []),
+            gpu_monitor=SimpleNamespace(
+                enabled=False,
+                get_all_devices_memory_info=lambda: {},
+                get_current_memory_info=lambda device_id=0: None,
+            ),
+        )
+
+        decision = autoscaler.make_scaling_decision_with_metrics(
+            ScalingMetrics(dispatch_admission_wait_ms=1200.0),
+            current_instances=1,
+        )
+
+        self.assertEqual(decision.action, ScalingAction.SCALE_UP)
+
+    def test_autoscaler_queue_length_override_supports_capacity_aware_scale_up(self) -> None:
+        class DummyConfig:
+            def get(self, key, default=None):
+                if key == "coordination":
+                    return {
+                        "autoscaling": {
+                            "enabled": True,
+                            "min_instances": 1,
+                            "max_instances": 4,
+                            "scale_up_cooldown": 0.0,
+                            "scale_down_cooldown": 0.0,
+                        }
+                    }
+                return default
+
+        autoscaler = AutoScaler(
+            config=DummyConfig(),
+            registry=SimpleNamespace(get_all_artifacts=lambda: []),
+            gpu_monitor=SimpleNamespace(
+                enabled=False,
+                get_all_devices_memory_info=lambda: {},
+                get_current_memory_info=lambda device_id=0: None,
+            ),
+        )
+
+        decision = autoscaler.make_scaling_decision_with_metrics(
+            ScalingMetrics(request_queue_length=3),
+            current_instances=1,
+            overrides={
+                "scale_up_threshold_queue_length": 2.0,
+                "scale_down_threshold_queue_length": 0.0,
+            },
+        )
+
+        self.assertEqual(decision.action, ScalingAction.SCALE_UP)
+
+    def test_runtime_gpu_forwarding_yields_to_online_inference_pressure(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._runtime_forward_capacity_limit = lambda: 3
+        slot = InstanceSlot(
+            instance_id="inst_test",
+            engine=SimpleNamespace(load_lora_to_gpu_and_measure=lambda *_args, **_kwargs: None),
+            coordinator=SimpleNamespace(_loads_in_flight_ratio=lambda: 0.0),
+        )
+
+        runner._current_live_waiting_trace_queue = lambda: [object()]
+        self.assertFalse(runner._runtime_forward_has_capacity(slot, slot.coordinator))
+
+        runner._current_live_waiting_trace_queue = lambda: []
+        slot.begin_runtime_forwarding()
+        self.assertFalse(runner._runtime_forward_has_capacity(slot, slot.coordinator))
+
+        slot.end_runtime_forwarding()
+        self.assertTrue(runner._runtime_forward_has_capacity(slot, slot.coordinator))
+
+    def test_infra_cost_summary_splits_startup_and_ready_gpu_seconds(self) -> None:
+        summary = _summarize_infra_cost_from_lifecycles(
+            [
+                {
+                    "instance_id": "inst_a",
+                    "gpu_count": 2,
+                    "created_offset_s": 0.0,
+                    "ready_offset_s": 5.0,
+                    "removed_offset_s": 20.0,
+                },
+                {
+                    "instance_id": "inst_b",
+                    "gpu_count": 1,
+                    "created_offset_s": 10.0,
+                    "ready_offset_s": 12.0,
+                    "removed_offset_s": 16.0,
+                },
+            ],
+            elapsed_sec=20.0,
+            completed_requests=10,
+            total_requests=10,
+            avg_e2e_ms=1000.0,
+            gpu_cost_per_second_usd=0.5,
+        )
+
+        self.assertAlmostEqual(summary["infra_gpu_seconds_total"], 46.0)
+        self.assertAlmostEqual(summary["infra_startup_gpu_seconds"], 12.0)
+        self.assertAlmostEqual(summary["infra_ready_gpu_seconds"], 34.0)
+        self.assertAlmostEqual(summary["infra_cost_total_usd"], 23.0)
+        self.assertAlmostEqual(summary["infra_cost_per_request_usd"], 2.3)
+        self.assertAlmostEqual(summary["infra_ce"], 1.0 / 2.3, places=6)
+
+    def test_infra_cost_summary_clamps_teardown_after_replay_end(self) -> None:
+        summary = _summarize_infra_cost_from_lifecycles(
+            [
+                {
+                    "instance_id": "inst_a",
+                    "gpu_count": 1,
+                    "created_offset_s": 0.0,
+                    "ready_offset_s": 3.0,
+                    "removed_offset_s": 25.0,
+                },
+            ],
+            elapsed_sec=20.0,
+            completed_requests=5,
+            total_requests=5,
+            avg_e2e_ms=2000.0,
+            gpu_cost_per_second_usd=1.0,
+        )
+
+        lifecycle = summary["instance_lifecycle_log"][0]
+        self.assertAlmostEqual(lifecycle["removed_offset_s"], 20.0)
+        self.assertAlmostEqual(summary["infra_gpu_seconds_total"], 20.0)
+        self.assertAlmostEqual(summary["infra_startup_gpu_seconds"], 3.0)
+        self.assertAlmostEqual(summary["infra_ready_gpu_seconds"], 17.0)
 
 
 if __name__ == "__main__":

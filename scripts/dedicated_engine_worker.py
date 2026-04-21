@@ -14,6 +14,7 @@ import asyncio
 import json
 import os
 import sys
+import time
 import warnings
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -92,38 +93,66 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
         stop_event = asyncio.Event()
 
         async def _handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
-            response: Dict[str, Any]
             try:
-                line = await reader.readline()
-                if not line:
-                    return
-                rpc = json.loads(line.decode("utf-8"))
-                cmd = rpc.get("cmd")
-                kwargs = rpc.get("kwargs", {}) or {}
-                if cmd == "generate":
-                    ttft_ms, tpot_ms, out_tokens = await engine.generate(**kwargs)
-                    response = {
-                        "ok": True,
-                        "result": {
-                            "ttft_ms": ttft_ms,
-                            "tpot_ms": tpot_ms,
-                            "output_tokens": out_tokens,
-                        },
-                    }
-                elif cmd == "load_lora_to_gpu_and_measure":
-                    load_ms, ok = await engine.load_lora_to_gpu_and_measure(**kwargs)
-                    response = {"ok": True, "result": {"load_ms": load_ms, "ok": ok}}
-                elif cmd == "shutdown":
-                    response = {"ok": True}
-                    stop_event.set()
-                else:
-                    response = {"ok": False, "error": f"unknown_cmd:{cmd}"}
+                while True:
+                    response: Dict[str, Any]
+                    line = await reader.readline()
+                    if not line:
+                        break
+                    rpc = json.loads(line.decode("utf-8"))
+                    cmd = rpc.get("cmd")
+                    kwargs = rpc.get("kwargs", {}) or {}
+                    try:
+                        worker_rpc_queue_ms = max(
+                            0.0,
+                            (time.time() - float(rpc.get("client_send_wall_time", time.time()))) * 1000.0,
+                        )
+                    except Exception:
+                        worker_rpc_queue_ms = 0.0
+                    if cmd == "generate":
+                        started_at = time.perf_counter()
+                        generate_started_wall_time = time.time()
+                        generate_ret = await engine.generate(**kwargs)
+                        worker_wall_ms = max(0.0, (time.perf_counter() - started_at) * 1000.0)
+                        worker_response_ready_wall_time = time.time()
+                        if isinstance(generate_ret, tuple) and len(generate_ret) == 4:
+                            ttft_ms, tpot_ms, out_tokens, timing = generate_ret
+                        else:
+                            ttft_ms, tpot_ms, out_tokens = generate_ret
+                            timing = dict(getattr(engine, "last_timing", {}) or {})
+                        timing.setdefault("worker_wall_e2e_ms", worker_wall_ms)
+                        timing["worker_rpc_handler_wall_ms"] = worker_wall_ms
+                        timing["worker_rpc_queue_ms"] = worker_rpc_queue_ms
+                        timing["worker_generate_started_wall_time"] = generate_started_wall_time
+                        timing["worker_response_ready_wall_time"] = worker_response_ready_wall_time
+                        response = {
+                            "ok": True,
+                            "result": {
+                                "ttft_ms": ttft_ms,
+                                "tpot_ms": tpot_ms,
+                                "output_tokens": out_tokens,
+                                "timing": timing,
+                            },
+                        }
+                    elif cmd == "load_lora_to_gpu_and_measure":
+                        load_ms, ok = await engine.load_lora_to_gpu_and_measure(**kwargs)
+                        response = {"ok": True, "result": {"load_ms": load_ms, "ok": ok}}
+                    elif cmd == "shutdown":
+                        response = {"ok": True}
+                        stop_event.set()
+                    else:
+                        response = {"ok": False, "error": f"unknown_cmd:{cmd}"}
+                    writer.write((json.dumps(response, ensure_ascii=True) + "\n").encode("utf-8"))
+                    await writer.drain()
+                    if cmd == "shutdown":
+                        break
             except Exception as exc:  # pragma: no cover - exercised via parent integration
-                response = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
-
-            try:
-                writer.write((json.dumps(response, ensure_ascii=True) + "\n").encode("utf-8"))
-                await writer.drain()
+                try:
+                    response = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+                    writer.write((json.dumps(response, ensure_ascii=True) + "\n").encode("utf-8"))
+                    await writer.drain()
+                except Exception:
+                    pass
             finally:
                 writer.close()
                 try:

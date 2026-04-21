@@ -25,6 +25,24 @@ from ..utils.logger import get_logger
 from ..utils.model_assets import ensure_adapter_support_files
 
 
+def _is_auto_config_value(value: Any) -> bool:
+    return isinstance(value, str) and value.strip().lower() in {"auto", "adaptive"}
+
+
+def _coerce_nonnegative_seconds(value: Any, default: float, *, auto_fallback: Optional[float] = None) -> float:
+    if value is None:
+        return max(0.0, float(default))
+    if _is_auto_config_value(value):
+        if auto_fallback is None:
+            return max(0.0, float(default))
+        return max(0.0, float(auto_fallback))
+    try:
+        parsed = float(value)
+    except Exception:
+        return max(0.0, float(default))
+    return max(0.0, parsed)
+
+
 def _derive_online_hotness_window_s(
     coord_cfg: Optional[Dict[str, Any]] = None,
     preload_cfg: Optional[Dict[str, Any]] = None,
@@ -182,8 +200,18 @@ class ExperimentStack:
             "enabled": True,
             "min_instances": min_instances,
             "max_instances": max_instances,
-            "scale_up_cooldown": float(coord_cfg.get("scale_cooldown_s", 30.0)),
-            "scale_down_cooldown": float(coord_cfg.get("scale_down_cooldown_s", 600.0)),
+            "scale_up_cooldown": _coerce_nonnegative_seconds(
+                coord_cfg.get("scale_cooldown_s", 30.0),
+                30.0,
+            ),
+            "scale_down_cooldown": _coerce_nonnegative_seconds(
+                coord_cfg.get("scale_down_cooldown_s", coord_cfg.get("scale_cooldown_s", 600.0)),
+                600.0,
+                auto_fallback=_coerce_nonnegative_seconds(
+                    coord_cfg.get("scale_cooldown_s", 0.0),
+                    0.0,
+                ),
+            ),
             "decision_interval": float(coord_cfg.get("scale_eval_interval_s", 15.0)),
             "scale_up_threshold_rps": float(coord_cfg.get("scale_up_threshold_rps", 3.0)),
             "ttft_latency_scale_up_threshold_ms": ttft_scale_up_threshold_ms,
@@ -202,6 +230,19 @@ class ExperimentStack:
         self._host_paths: Dict[str, str] = {}
         self._pending_scaleup_gpu_artifacts: List[str] = []
         self._pending_host_promotions: Dict[str, asyncio.Task] = {}
+        self._local_tier_paths_last_sync_at: float = 0.0
+        self._local_tier_paths_sync_interval_s: float = max(
+            0.0,
+            float(
+                preload_cfg.get(
+                    "local_tier_paths_sync_interval_s",
+                    coord_cfg.get("local_tier_paths_sync_interval_s", 60.0),
+                )
+                or 60.0
+            ),
+        )
+        self._local_tier_paths_sync_count: int = 0
+        self._local_tier_paths_sync_total_ms: float = 0.0
         self._dynamic_forwarding_enabled = bool(
             preload_cfg.get(
                 "dynamic_forwarding_enabled",
@@ -229,7 +270,7 @@ class ExperimentStack:
             pass
         return None
 
-    def sync_local_tier_paths(self) -> None:
+    def sync_local_tier_paths(self, *, force: bool = False) -> None:
         """
         Rebuild host/NVMe path hints from registry metadata and existing local files.
 
@@ -237,7 +278,20 @@ class ExperimentStack:
         experiment runner and router consult ``_host_paths`` / ``_nvme_paths`` for
         cache-affinity and live panel rendering, so these maps must follow the live
         registry state rather than only the startup preload plan.
+
+        This method is intentionally cached on the online serving path. A full
+        rebuild scans all registered LoRA artifacts and touches the filesystem for
+        each candidate path; doing that for every request turns the LoRA-preload
+        fast path into a control-plane bottleneck. Callers that just changed tier
+        state should pass ``force=True`` to publish the update immediately.
         """
+        now = time.perf_counter()
+        if not force and (self._host_paths or self._nvme_paths):
+            interval_s = max(0.0, float(self._local_tier_paths_sync_interval_s or 0.0))
+            if interval_s > 0.0 and (now - self._local_tier_paths_last_sync_at) < interval_s:
+                return
+
+        sync_started_at = time.perf_counter()
         host_paths: Dict[str, str] = {}
         nvme_paths: Dict[str, str] = {}
 
@@ -270,6 +324,12 @@ class ExperimentStack:
 
         self._host_paths = host_paths
         self._nvme_paths = nvme_paths
+        self._local_tier_paths_last_sync_at = now
+        self._local_tier_paths_sync_count += 1
+        self._local_tier_paths_sync_total_ms += max(
+            0.0,
+            (time.perf_counter() - sync_started_at) * 1000.0,
+        )
 
     def _repair_adapter_dir(self, path: Optional[str]) -> None:
         if not path:
@@ -638,7 +698,7 @@ class ExperimentStack:
         try:
             admitted = await self.residency_manager.admit_artifact(adapter_id, StorageTier.HOST)
             if admitted:
-                self.sync_local_tier_paths()
+                self.sync_local_tier_paths(force=True)
         except Exception as exc:
             self.logger.warning(f"host promotion {adapter_id}: {exc}")
         finally:
@@ -818,6 +878,7 @@ class ExperimentStack:
                 self.registry.update_artifact(aid, {"storage_path": str(dst)})
                 await self.residency_manager.admit_artifact(aid, StorageTier.NVME)
                 total_io += io_ms
+        self.sync_local_tier_paths(force=True)
         return total_io
 
     async def warmup_gpu(

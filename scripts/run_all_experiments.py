@@ -67,7 +67,7 @@ from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Awaitable, Callable, Collection, Dict, List, Optional, Tuple
+from typing import Any, Awaitable, Callable, Collection, Dict, List, Optional, Sequence, Tuple
 
 import yaml
 
@@ -695,7 +695,10 @@ class RequestResult:
     service_e2e_ms: float = 0.0
     admitted_service_ttft_ms: float = 0.0
     admitted_service_e2e_ms: float = 0.0
+    dispatch_window_wait_ms: float = 0.0
+    runtime_slot_wait_ms: float = 0.0
     ingress_queue_wait_ms: float = 0.0
+    arrival_release_lateness_ms: float = 0.0
     overall_ttft_ms: float = 0.0
     overall_e2e_ms: float = 0.0
     dispatch_admission_wait_ms: float = 0.0
@@ -704,6 +707,20 @@ class RequestResult:
     admission_start_offset_s: Optional[float] = None
     admitted_offset_s: Optional[float] = None
     completed_offset_s: Optional[float] = None
+    runtime_tpot_ms: float = 0.0
+    tpot_observed: bool = True
+    runtime_estimated_e2e_ms: float = 0.0
+    worker_wall_e2e_ms: float = 0.0
+    worker_rpc_handler_wall_ms: float = 0.0
+    worker_engine_shell_ms: float = 0.0
+    worker_rpc_queue_ms: float = 0.0
+    parent_rpc_wall_ms: float = 0.0
+    parent_rpc_overhead_ms: float = 0.0
+    parent_rpc_channel_acquire_ms: float = 0.0
+    parent_rpc_response_pickup_delay_ms: float = 0.0
+    parent_rpc_thread_resume_delay_ms: float = 0.0
+    service_path_residual_ms: float = 0.0
+    pre_runtime_service_shell_ms: float = 0.0
 
 
 def _positive_or_fallback(primary: Any, fallback: Any = 0.0) -> float:
@@ -717,6 +734,105 @@ def _positive_or_fallback(primary: Any, fallback: Any = 0.0) -> float:
         return float(fallback)
     except Exception:
         return 0.0
+
+
+def _safe_float(value: Any, fallback: float = 0.0) -> float:
+    try:
+        parsed = float(value)
+    except Exception:
+        return float(fallback)
+    if not math.isfinite(parsed):
+        return float(fallback)
+    return parsed
+
+
+def _attach_parent_rpc_breakdown(
+    timing: Optional[Dict[str, Any]],
+    *,
+    channel_acquire_ms: float = 0.0,
+    parent_response_read_wall_time: Optional[float] = None,
+) -> Dict[str, float]:
+    """Normalize parent/worker RPC timing into comparable sub-phases.
+
+    ``parent_rpc_overhead_ms`` is a useful headline residual, but it mixes:
+    1. waiting for a free parent-side RPC channel,
+    2. any delay between the worker being ready to respond and the parent event
+       loop actually reading that response,
+    3. smaller loopback transport / serialization overheads.
+
+    Keeping these as separate diagnostics lets us decide whether the next fix
+    should target slot/channel budgeting, parent event-loop starvation, or the
+    RPC transport itself.
+    """
+    normalized = {
+        key: _safe_float(value, 0.0)
+        for key, value in dict(timing or {}).items()
+        if isinstance(key, str)
+    }
+    normalized["parent_rpc_channel_acquire_ms"] = max(0.0, _safe_float(channel_acquire_ms, 0.0))
+    worker_ready_wall_time = _safe_float(
+        normalized.get("worker_response_ready_wall_time"),
+        0.0,
+    )
+    if parent_response_read_wall_time is not None and worker_ready_wall_time > 0.0:
+        normalized["parent_rpc_response_pickup_delay_ms"] = max(
+            0.0,
+            (float(parent_response_read_wall_time) - float(worker_ready_wall_time)) * 1000.0,
+        )
+    else:
+        normalized["parent_rpc_response_pickup_delay_ms"] = max(
+            0.0,
+            _safe_float(normalized.get("parent_rpc_response_pickup_delay_ms"), 0.0),
+        )
+    return normalized
+
+
+def _effective_runtime_concurrency_cap(model_cfg: Optional[Dict[str, Any]]) -> int:
+    """Return the system-level runtime admission cap that the backend can honor.
+
+    ``runtime_concurrency_cap`` is the capacity seen by the router, dispatcher,
+    and subprocess RPC pool. For vLLM it must never exceed ``max_num_seqs``:
+    otherwise the system admits more online requests than the engine can
+    schedule, hiding queueing inside vLLM/RPC and making TTFT attribution
+    misleading.
+    """
+    cfg = model_cfg or {}
+    raw_cap = cfg.get("runtime_concurrency_cap", cfg.get("max_num_seqs", 1))
+    try:
+        cap = max(1, int(raw_cap or 1))
+    except Exception:
+        cap = 1
+
+    backend = str(cfg.get("backend", "vllm") or "vllm").lower()
+    if backend == "vllm":
+        try:
+            max_num_seqs = int(cfg.get("max_num_seqs", cap) or cap)
+        except Exception:
+            max_num_seqs = cap
+        cap = min(cap, max(1, max_num_seqs))
+    return max(1, cap)
+
+
+def _normalize_runtime_concurrency_cap(model_cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """Clamp the configured runtime cap to the backend's true scheduling cap."""
+    cfg = copy.deepcopy(model_cfg or {})
+    requested = cfg.get("runtime_concurrency_cap", cfg.get("max_num_seqs", 1))
+    effective = _effective_runtime_concurrency_cap(cfg)
+    cfg["requested_runtime_concurrency_cap"] = requested
+    cfg["runtime_concurrency_cap"] = effective
+    try:
+        requested_int = int(requested or 1)
+    except Exception:
+        requested_int = effective
+    if requested_int != effective:
+        max_num_seqs = cfg.get("max_num_seqs")
+        print(
+            "  [capacity] clamped runtime_concurrency_cap "
+            f"from {requested_int} to {effective} "
+            f"(backend={cfg.get('backend', 'vllm')}, max_num_seqs={max_num_seqs})",
+            flush=True,
+        )
+    return cfg
 
 
 def _request_overall_ttft_ms(request: Any) -> float:
@@ -831,6 +947,56 @@ def _derive_online_hotness_window_s(
     return max(arrival_window_s, scale_eval_interval_s, ttft_slo_s)
 
 
+METRIC_DEF_PRIMARY_TTFT = (
+    "scheduled trace arrival to system-observed first generated output token/chunk"
+)
+METRIC_DEF_PRIMARY_E2E = (
+    "scheduled trace arrival to system-observed response completion when available; "
+    "otherwise client-observed completion"
+)
+METRIC_DEF_SERVICE_TTFT = (
+    "service-path start to first generated output token/chunk; service-path start "
+    "is the system-specific admitted/backend-execution start and excludes scheduled-arrival "
+    "and upstream queue/admission wait"
+)
+METRIC_DEF_SERVICE_E2E = (
+    "service-path start to response completion; service-path start is the system-specific "
+    "admitted/backend-execution start and excludes scheduled-arrival and upstream "
+    "queue/admission wait"
+)
+
+
+def _is_auto_config_value(value: Any) -> bool:
+    return isinstance(value, str) and value.strip().lower() in {"auto", "adaptive"}
+
+
+def _nonnegative_seconds_or_none(value: Any) -> Optional[float]:
+    if value is None or _is_auto_config_value(value):
+        return None
+    try:
+        parsed = float(value)
+    except Exception:
+        return None
+    if not math.isfinite(parsed):
+        return None
+    return max(0.0, parsed)
+
+
+def _percentile_seconds(values: Sequence[float], percentile: float) -> float:
+    finite = sorted(float(v) for v in values if math.isfinite(float(v)))
+    if not finite:
+        return 0.0
+    if len(finite) == 1:
+        return finite[0]
+    rank = (len(finite) - 1) * (float(percentile) / 100.0)
+    lo = int(math.floor(rank))
+    hi = int(math.ceil(rank))
+    if lo == hi:
+        return finite[lo]
+    frac = rank - lo
+    return finite[lo] * (1.0 - frac) + finite[hi] * frac
+
+
 @dataclass
 class ScenarioResult:
     scenario_name: str
@@ -851,22 +1017,28 @@ class ScenarioResult:
     p95_overall_ttft_ms: float = 0.0
     p99_overall_ttft_ms: float = 0.0
     avg_service_ttft_ms: float = 0.0
+    p50_service_ttft_ms: float = 0.0
     p95_service_ttft_ms: float = 0.0
     p99_service_ttft_ms: float = 0.0
     avg_admitted_service_ttft_ms: float = 0.0
+    p50_admitted_service_ttft_ms: float = 0.0
     p95_admitted_service_ttft_ms: float = 0.0
     p99_admitted_service_ttft_ms: float = 0.0
     avg_tpot_ms: float = 0.0
     avg_e2e_ms: float = 0.0
+    p50_e2e_ms: float = 0.0
     p95_e2e_ms: float = 0.0
     p99_e2e_ms: float = 0.0
     avg_overall_e2e_ms: float = 0.0
+    p50_overall_e2e_ms: float = 0.0
     p95_overall_e2e_ms: float = 0.0
     p99_overall_e2e_ms: float = 0.0
     avg_service_e2e_ms: float = 0.0
+    p50_service_e2e_ms: float = 0.0
     p95_service_e2e_ms: float = 0.0
     p99_service_e2e_ms: float = 0.0
     avg_admitted_service_e2e_ms: float = 0.0
+    p50_admitted_service_e2e_ms: float = 0.0
     p95_admitted_service_e2e_ms: float = 0.0
     p99_admitted_service_e2e_ms: float = 0.0
     throughput_rps: float = 0.0
@@ -875,6 +1047,12 @@ class ScenarioResult:
     ttft_slo_ms: float = DEFAULT_TTFT_SLO_MS
     avg_cost_usd: float = 0.0
     total_cost_usd: float = 0.0
+    infra_gpu_seconds_total: float = 0.0
+    infra_startup_gpu_seconds: float = 0.0
+    infra_ready_gpu_seconds: float = 0.0
+    infra_cost_total_usd: float = 0.0
+    infra_cost_per_request_usd: float = 0.0
+    infra_ce: float = 0.0
     qpr: float = 0.0
     qpr_tokps_ttft_legacy: float = 0.0
     qpr_rps_legacy: float = 0.0
@@ -892,11 +1070,44 @@ class ScenarioResult:
     avg_service_overhead_ms: float = 0.0
     p95_service_overhead_ms: float = 0.0
     avg_dispatch_admission_wait_ms: float = 0.0
+    p50_dispatch_admission_wait_ms: float = 0.0
     p95_dispatch_admission_wait_ms: float = 0.0
+    avg_dispatch_window_wait_ms: float = 0.0
+    p50_dispatch_window_wait_ms: float = 0.0
+    p95_dispatch_window_wait_ms: float = 0.0
+    avg_runtime_slot_wait_ms: float = 0.0
+    p50_runtime_slot_wait_ms: float = 0.0
+    p95_runtime_slot_wait_ms: float = 0.0
     avg_ingress_queue_wait_ms: float = 0.0
+    p50_ingress_queue_wait_ms: float = 0.0
     p95_ingress_queue_wait_ms: float = 0.0
+    avg_arrival_release_lateness_ms: float = 0.0
+    p50_arrival_release_lateness_ms: float = 0.0
+    p95_arrival_release_lateness_ms: float = 0.0
     avg_runtime_ttft_ms: float = 0.0
     p95_runtime_ttft_ms: float = 0.0
+    avg_runtime_estimated_e2e_ms: float = 0.0
+    p95_runtime_estimated_e2e_ms: float = 0.0
+    avg_worker_wall_e2e_ms: float = 0.0
+    p95_worker_wall_e2e_ms: float = 0.0
+    avg_worker_rpc_handler_wall_ms: float = 0.0
+    p95_worker_rpc_handler_wall_ms: float = 0.0
+    avg_worker_engine_shell_ms: float = 0.0
+    p95_worker_engine_shell_ms: float = 0.0
+    avg_worker_rpc_queue_ms: float = 0.0
+    p95_worker_rpc_queue_ms: float = 0.0
+    avg_parent_rpc_overhead_ms: float = 0.0
+    p95_parent_rpc_overhead_ms: float = 0.0
+    avg_parent_rpc_channel_acquire_ms: float = 0.0
+    p95_parent_rpc_channel_acquire_ms: float = 0.0
+    avg_parent_rpc_response_pickup_delay_ms: float = 0.0
+    p95_parent_rpc_response_pickup_delay_ms: float = 0.0
+    avg_parent_rpc_thread_resume_delay_ms: float = 0.0
+    p95_parent_rpc_thread_resume_delay_ms: float = 0.0
+    avg_service_path_residual_ms: float = 0.0
+    p95_service_path_residual_ms: float = 0.0
+    avg_pre_runtime_service_shell_ms: float = 0.0
+    p95_pre_runtime_service_shell_ms: float = 0.0
     avg_gpu_ready_ttft_ms: float = 0.0
     p95_gpu_ready_ttft_ms: float = 0.0
     avg_scaleup_affected_ttft_ms: float = 0.0
@@ -935,6 +1146,7 @@ class ScenarioResult:
     scale_down_events: int = 0
     scale_down_event_log: List[Dict[str, Any]] = field(default_factory=list)
     warm_pool_retained_after_phase: List[int] = field(default_factory=list)
+    instance_lifecycle_log: List[Dict[str, Any]] = field(default_factory=list)
     # E1 补全: 每次 scale_up 事件及之后冷启动数
     scale_up_events: List[Dict[str, Any]] = field(default_factory=list)
     cold_starts_after_scale_up: List[int] = field(default_factory=list)
@@ -1031,7 +1243,7 @@ class ScenarioResult:
         ]
         tpot = [
             float(r.tpot_ms) for r in tpot_eligible
-            if float(r.tpot_ms) > 0
+            if float(r.tpot_ms) > 0 and bool(getattr(r, "tpot_observed", True))
         ]
         e2e  = [_request_overall_e2e_ms(r) for r in ok]
         service_e2e = [_request_service_e2e_ms(r) for r in ok]
@@ -1052,8 +1264,20 @@ class ScenarioResult:
             float(getattr(r, "dispatch_admission_wait_ms", 0.0) or 0.0)
             for r in ok
         ]
+        dispatch_window_waits = [
+            float(getattr(r, "dispatch_window_wait_ms", 0.0) or 0.0)
+            for r in ok
+        ]
+        runtime_slot_waits = [
+            float(getattr(r, "runtime_slot_wait_ms", 0.0) or 0.0)
+            for r in ok
+        ]
         ingress_queue_waits = [
             float(getattr(r, "ingress_queue_wait_ms", 0.0) or 0.0)
+            for r in ok
+        ]
+        arrival_release_lateness = [
+            float(getattr(r, "arrival_release_lateness_ms", 0.0) or 0.0)
             for r in ok
         ]
         overheads = [
@@ -1061,6 +1285,61 @@ class ScenarioResult:
             for dispatch_wait, service_overhead in zip(dispatch_waits, service_overheads)
         ]
         runtime_ttft = [float(r.vllm_ttft_ms) for r in ok if float(r.vllm_ttft_ms) > 0]
+        runtime_estimated_e2e = [
+            float(getattr(r, "runtime_estimated_e2e_ms", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "runtime_estimated_e2e_ms", 0.0) or 0.0) > 0.0
+        ]
+        worker_wall_e2e = [
+            float(getattr(r, "worker_wall_e2e_ms", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "worker_wall_e2e_ms", 0.0) or 0.0) > 0.0
+        ]
+        worker_rpc_handler_wall = [
+            float(getattr(r, "worker_rpc_handler_wall_ms", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "worker_rpc_handler_wall_ms", 0.0) or 0.0) > 0.0
+        ]
+        worker_engine_shell = [
+            float(getattr(r, "worker_engine_shell_ms", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "worker_engine_shell_ms", 0.0) or 0.0) >= 0.0
+        ]
+        worker_rpc_queue = [
+            float(getattr(r, "worker_rpc_queue_ms", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "worker_rpc_queue_ms", 0.0) or 0.0) >= 0.0
+        ]
+        parent_rpc_overhead = [
+            float(getattr(r, "parent_rpc_overhead_ms", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "parent_rpc_overhead_ms", 0.0) or 0.0) >= 0.0
+        ]
+        parent_rpc_channel_acquire = [
+            float(getattr(r, "parent_rpc_channel_acquire_ms", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "parent_rpc_channel_acquire_ms", 0.0) or 0.0) >= 0.0
+        ]
+        parent_rpc_response_pickup = [
+            float(getattr(r, "parent_rpc_response_pickup_delay_ms", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "parent_rpc_response_pickup_delay_ms", 0.0) or 0.0) >= 0.0
+        ]
+        parent_rpc_thread_resume = [
+            float(getattr(r, "parent_rpc_thread_resume_delay_ms", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "parent_rpc_thread_resume_delay_ms", 0.0) or 0.0) >= 0.0
+        ]
+        service_path_residual = [
+            float(getattr(r, "service_path_residual_ms", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "service_path_residual_ms", 0.0) or 0.0) >= 0.0
+        ]
+        pre_runtime_service_shell = [
+            float(getattr(r, "pre_runtime_service_shell_ms", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "pre_runtime_service_shell_ms", 0.0) or 0.0) >= 0.0
+        ]
         gpu_ready_ttft = [_request_overall_ttft_ms(r) for r in ok if r.cache_tier == "gpu"]
         comparable_ttft = [
             _request_overall_ttft_ms(r)
@@ -1082,22 +1361,28 @@ class ScenarioResult:
         self.p95_overall_ttft_ms = self.p95_ttft_ms
         self.p99_overall_ttft_ms = self.p99_ttft_ms
         self.avg_service_ttft_ms = sum(service_ttft)/len(service_ttft)
+        self.p50_service_ttft_ms = pct(service_ttft, 50)
         self.p95_service_ttft_ms = pct(service_ttft, 95)
         self.p99_service_ttft_ms = pct(service_ttft, 99)
         self.avg_admitted_service_ttft_ms = sum(admitted_service_ttft)/len(admitted_service_ttft)
+        self.p50_admitted_service_ttft_ms = pct(admitted_service_ttft, 50)
         self.p95_admitted_service_ttft_ms = pct(admitted_service_ttft, 95)
         self.p99_admitted_service_ttft_ms = pct(admitted_service_ttft, 99)
         self.avg_tpot_ms = sum(tpot)/len(tpot) if tpot else 0.0
         self.avg_e2e_ms  = sum(e2e)/len(e2e)
+        self.p50_e2e_ms  = pct(e2e, 50)
         self.p95_e2e_ms  = pct(e2e, 95)
         self.p99_e2e_ms  = pct(e2e, 99)
         self.avg_overall_e2e_ms = self.avg_e2e_ms
+        self.p50_overall_e2e_ms = self.p50_e2e_ms
         self.p95_overall_e2e_ms = self.p95_e2e_ms
         self.p99_overall_e2e_ms = self.p99_e2e_ms
         self.avg_service_e2e_ms = sum(service_e2e)/len(service_e2e)
+        self.p50_service_e2e_ms = pct(service_e2e, 50)
         self.p95_service_e2e_ms = pct(service_e2e, 95)
         self.p99_service_e2e_ms = pct(service_e2e, 99)
         self.avg_admitted_service_e2e_ms = sum(admitted_service_e2e)/len(admitted_service_e2e)
+        self.p50_admitted_service_e2e_ms = pct(admitted_service_e2e, 50)
         self.p95_admitted_service_e2e_ms = pct(admitted_service_e2e, 95)
         self.p99_admitted_service_e2e_ms = pct(admitted_service_e2e, 99)
         self.throughput_rps = self.completed / max(self.elapsed_sec, 1e-6)
@@ -1125,11 +1410,120 @@ class ScenarioResult:
         self.avg_service_overhead_ms = sum(service_overheads)/len(service_overheads) if service_overheads else 0.0
         self.p95_service_overhead_ms = pct(service_overheads, 95) if service_overheads else 0.0
         self.avg_dispatch_admission_wait_ms = sum(dispatch_waits)/len(dispatch_waits) if dispatch_waits else 0.0
+        self.p50_dispatch_admission_wait_ms = pct(dispatch_waits, 50) if dispatch_waits else 0.0
         self.p95_dispatch_admission_wait_ms = pct(dispatch_waits, 95) if dispatch_waits else 0.0
+        self.avg_dispatch_window_wait_ms = (
+            sum(dispatch_window_waits) / len(dispatch_window_waits)
+            if dispatch_window_waits else 0.0
+        )
+        self.p50_dispatch_window_wait_ms = (
+            pct(dispatch_window_waits, 50) if dispatch_window_waits else 0.0
+        )
+        self.p95_dispatch_window_wait_ms = (
+            pct(dispatch_window_waits, 95) if dispatch_window_waits else 0.0
+        )
+        self.avg_runtime_slot_wait_ms = (
+            sum(runtime_slot_waits) / len(runtime_slot_waits)
+            if runtime_slot_waits else 0.0
+        )
+        self.p50_runtime_slot_wait_ms = (
+            pct(runtime_slot_waits, 50) if runtime_slot_waits else 0.0
+        )
+        self.p95_runtime_slot_wait_ms = (
+            pct(runtime_slot_waits, 95) if runtime_slot_waits else 0.0
+        )
         self.avg_ingress_queue_wait_ms = sum(ingress_queue_waits)/len(ingress_queue_waits) if ingress_queue_waits else 0.0
+        self.p50_ingress_queue_wait_ms = pct(ingress_queue_waits, 50) if ingress_queue_waits else 0.0
         self.p95_ingress_queue_wait_ms = pct(ingress_queue_waits, 95) if ingress_queue_waits else 0.0
+        self.avg_arrival_release_lateness_ms = (
+            sum(arrival_release_lateness) / len(arrival_release_lateness)
+            if arrival_release_lateness else 0.0
+        )
+        self.p50_arrival_release_lateness_ms = (
+            pct(arrival_release_lateness, 50) if arrival_release_lateness else 0.0
+        )
+        self.p95_arrival_release_lateness_ms = (
+            pct(arrival_release_lateness, 95) if arrival_release_lateness else 0.0
+        )
         self.avg_runtime_ttft_ms = sum(runtime_ttft)/len(runtime_ttft) if runtime_ttft else 0.0
         self.p95_runtime_ttft_ms = pct(runtime_ttft, 95) if runtime_ttft else 0.0
+        self.avg_runtime_estimated_e2e_ms = (
+            sum(runtime_estimated_e2e) / len(runtime_estimated_e2e)
+            if runtime_estimated_e2e else 0.0
+        )
+        self.p95_runtime_estimated_e2e_ms = (
+            pct(runtime_estimated_e2e, 95) if runtime_estimated_e2e else 0.0
+        )
+        self.avg_worker_wall_e2e_ms = (
+            sum(worker_wall_e2e) / len(worker_wall_e2e)
+            if worker_wall_e2e else 0.0
+        )
+        self.p95_worker_wall_e2e_ms = (
+            pct(worker_wall_e2e, 95) if worker_wall_e2e else 0.0
+        )
+        self.avg_worker_rpc_handler_wall_ms = (
+            sum(worker_rpc_handler_wall) / len(worker_rpc_handler_wall)
+            if worker_rpc_handler_wall else 0.0
+        )
+        self.p95_worker_rpc_handler_wall_ms = (
+            pct(worker_rpc_handler_wall, 95) if worker_rpc_handler_wall else 0.0
+        )
+        self.avg_worker_engine_shell_ms = (
+            sum(worker_engine_shell) / len(worker_engine_shell)
+            if worker_engine_shell else 0.0
+        )
+        self.p95_worker_engine_shell_ms = (
+            pct(worker_engine_shell, 95) if worker_engine_shell else 0.0
+        )
+        self.avg_worker_rpc_queue_ms = (
+            sum(worker_rpc_queue) / len(worker_rpc_queue)
+            if worker_rpc_queue else 0.0
+        )
+        self.p95_worker_rpc_queue_ms = (
+            pct(worker_rpc_queue, 95) if worker_rpc_queue else 0.0
+        )
+        self.avg_parent_rpc_overhead_ms = (
+            sum(parent_rpc_overhead) / len(parent_rpc_overhead)
+            if parent_rpc_overhead else 0.0
+        )
+        self.p95_parent_rpc_overhead_ms = (
+            pct(parent_rpc_overhead, 95) if parent_rpc_overhead else 0.0
+        )
+        self.avg_parent_rpc_channel_acquire_ms = (
+            sum(parent_rpc_channel_acquire) / len(parent_rpc_channel_acquire)
+            if parent_rpc_channel_acquire else 0.0
+        )
+        self.p95_parent_rpc_channel_acquire_ms = (
+            pct(parent_rpc_channel_acquire, 95) if parent_rpc_channel_acquire else 0.0
+        )
+        self.avg_parent_rpc_response_pickup_delay_ms = (
+            sum(parent_rpc_response_pickup) / len(parent_rpc_response_pickup)
+            if parent_rpc_response_pickup else 0.0
+        )
+        self.p95_parent_rpc_response_pickup_delay_ms = (
+            pct(parent_rpc_response_pickup, 95) if parent_rpc_response_pickup else 0.0
+        )
+        self.avg_parent_rpc_thread_resume_delay_ms = (
+            sum(parent_rpc_thread_resume) / len(parent_rpc_thread_resume)
+            if parent_rpc_thread_resume else 0.0
+        )
+        self.p95_parent_rpc_thread_resume_delay_ms = (
+            pct(parent_rpc_thread_resume, 95) if parent_rpc_thread_resume else 0.0
+        )
+        self.avg_service_path_residual_ms = (
+            sum(service_path_residual) / len(service_path_residual)
+            if service_path_residual else 0.0
+        )
+        self.p95_service_path_residual_ms = (
+            pct(service_path_residual, 95) if service_path_residual else 0.0
+        )
+        self.avg_pre_runtime_service_shell_ms = (
+            sum(pre_runtime_service_shell) / len(pre_runtime_service_shell)
+            if pre_runtime_service_shell else 0.0
+        )
+        self.p95_pre_runtime_service_shell_ms = (
+            pct(pre_runtime_service_shell, 95) if pre_runtime_service_shell else 0.0
+        )
         self.avg_gpu_ready_ttft_ms = sum(gpu_ready_ttft)/len(gpu_ready_ttft) if gpu_ready_ttft else 0.0
         self.p95_gpu_ready_ttft_ms = pct(gpu_ready_ttft, 95) if gpu_ready_ttft else 0.0
         self.avg_scaleup_affected_ttft_ms = (
@@ -1222,23 +1616,40 @@ def _merge_coordinator_metrics(all_metrics: List[Dict]) -> Dict:
 _SCENARIO_RESULT_NUMERIC_KEYS = (
     "elapsed_sec", "avg_ttft_ms", "p50_ttft_ms", "p95_ttft_ms", "p99_ttft_ms",
     "avg_overall_ttft_ms", "p50_overall_ttft_ms", "p95_overall_ttft_ms", "p99_overall_ttft_ms",
-    "avg_service_ttft_ms", "p95_service_ttft_ms", "p99_service_ttft_ms",
-    "avg_admitted_service_ttft_ms", "p95_admitted_service_ttft_ms", "p99_admitted_service_ttft_ms",
-    "avg_tpot_ms", "avg_e2e_ms", "p95_e2e_ms", "p99_e2e_ms",
-    "avg_overall_e2e_ms", "p95_overall_e2e_ms", "p99_overall_e2e_ms",
-    "avg_service_e2e_ms", "p95_service_e2e_ms", "p99_service_e2e_ms",
-    "avg_admitted_service_e2e_ms", "p95_admitted_service_e2e_ms", "p99_admitted_service_e2e_ms",
+    "avg_service_ttft_ms", "p50_service_ttft_ms", "p95_service_ttft_ms", "p99_service_ttft_ms",
+    "avg_admitted_service_ttft_ms", "p50_admitted_service_ttft_ms", "p95_admitted_service_ttft_ms", "p99_admitted_service_ttft_ms",
+    "avg_tpot_ms", "avg_e2e_ms", "p50_e2e_ms", "p95_e2e_ms", "p99_e2e_ms",
+    "avg_overall_e2e_ms", "p50_overall_e2e_ms", "p95_overall_e2e_ms", "p99_overall_e2e_ms",
+    "avg_service_e2e_ms", "p50_service_e2e_ms", "p95_service_e2e_ms", "p99_service_e2e_ms",
+    "avg_admitted_service_e2e_ms", "p50_admitted_service_e2e_ms", "p95_admitted_service_e2e_ms", "p99_admitted_service_e2e_ms",
     "throughput_rps", "throughput_tok_per_s", "slo_attainment",
-    "avg_cost_usd", "total_cost_usd", "qpr", "qpr_tokps_ttft_legacy", "qpr_rps_legacy",
+    "avg_cost_usd", "total_cost_usd",
+    "infra_gpu_seconds_total", "infra_startup_gpu_seconds", "infra_ready_gpu_seconds",
+    "infra_cost_total_usd", "infra_cost_per_request_usd", "infra_ce",
+    "qpr", "qpr_tokps_ttft_legacy", "qpr_rps_legacy",
     "cost_effectiveness_e2e", "slo_goodput_rps", "slo_goodput_tok_per_s",
     "cache_hit_rate", "gpu_hit_rate", "avg_lora_io_ms",
     "avg_comparable_ttft_ms", "p95_comparable_ttft_ms", "p99_comparable_ttft_ms",
     "avg_warm_standard_ttft_ms", "p95_warm_standard_ttft_ms", "p99_warm_standard_ttft_ms",
     "avg_serverless_overhead_ms", "p95_serverless_overhead_ms",
     "avg_service_overhead_ms", "p95_service_overhead_ms",
-    "avg_dispatch_admission_wait_ms", "p95_dispatch_admission_wait_ms",
-    "avg_ingress_queue_wait_ms", "p95_ingress_queue_wait_ms",
+    "avg_dispatch_admission_wait_ms", "p50_dispatch_admission_wait_ms", "p95_dispatch_admission_wait_ms",
+    "avg_dispatch_window_wait_ms", "p50_dispatch_window_wait_ms", "p95_dispatch_window_wait_ms",
+    "avg_runtime_slot_wait_ms", "p50_runtime_slot_wait_ms", "p95_runtime_slot_wait_ms",
+    "avg_ingress_queue_wait_ms", "p50_ingress_queue_wait_ms", "p95_ingress_queue_wait_ms",
+    "avg_arrival_release_lateness_ms", "p50_arrival_release_lateness_ms", "p95_arrival_release_lateness_ms",
     "avg_runtime_ttft_ms", "p95_runtime_ttft_ms",
+    "avg_runtime_estimated_e2e_ms", "p95_runtime_estimated_e2e_ms",
+    "avg_worker_wall_e2e_ms", "p95_worker_wall_e2e_ms",
+    "avg_worker_rpc_handler_wall_ms", "p95_worker_rpc_handler_wall_ms",
+    "avg_worker_engine_shell_ms", "p95_worker_engine_shell_ms",
+    "avg_worker_rpc_queue_ms", "p95_worker_rpc_queue_ms",
+    "avg_parent_rpc_overhead_ms", "p95_parent_rpc_overhead_ms",
+    "avg_parent_rpc_channel_acquire_ms", "p95_parent_rpc_channel_acquire_ms",
+    "avg_parent_rpc_response_pickup_delay_ms", "p95_parent_rpc_response_pickup_delay_ms",
+    "avg_parent_rpc_thread_resume_delay_ms", "p95_parent_rpc_thread_resume_delay_ms",
+    "avg_service_path_residual_ms", "p95_service_path_residual_ms",
+    "avg_pre_runtime_service_shell_ms", "p95_pre_runtime_service_shell_ms",
     "avg_gpu_ready_ttft_ms", "p95_gpu_ready_ttft_ms",
     "avg_scaleup_affected_ttft_ms", "p95_scaleup_affected_ttft_ms",
     "avg_scaleup_runtime_ttft_ms", "p95_scaleup_runtime_ttft_ms",
@@ -1310,22 +1721,28 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         p95_overall_ttft_ms=agg_dict.get("p95_overall_ttft_ms", first.p95_overall_ttft_ms),
         p99_overall_ttft_ms=agg_dict.get("p99_overall_ttft_ms", first.p99_overall_ttft_ms),
         avg_service_ttft_ms=agg_dict.get("avg_service_ttft_ms", first.avg_service_ttft_ms),
+        p50_service_ttft_ms=agg_dict.get("p50_service_ttft_ms", first.p50_service_ttft_ms),
         p95_service_ttft_ms=agg_dict.get("p95_service_ttft_ms", first.p95_service_ttft_ms),
         p99_service_ttft_ms=agg_dict.get("p99_service_ttft_ms", first.p99_service_ttft_ms),
         avg_admitted_service_ttft_ms=agg_dict.get("avg_admitted_service_ttft_ms", first.avg_admitted_service_ttft_ms),
+        p50_admitted_service_ttft_ms=agg_dict.get("p50_admitted_service_ttft_ms", first.p50_admitted_service_ttft_ms),
         p95_admitted_service_ttft_ms=agg_dict.get("p95_admitted_service_ttft_ms", first.p95_admitted_service_ttft_ms),
         p99_admitted_service_ttft_ms=agg_dict.get("p99_admitted_service_ttft_ms", first.p99_admitted_service_ttft_ms),
         avg_tpot_ms=agg_dict.get("avg_tpot_ms", first.avg_tpot_ms),
         avg_e2e_ms=agg_dict.get("avg_e2e_ms", first.avg_e2e_ms),
+        p50_e2e_ms=agg_dict.get("p50_e2e_ms", first.p50_e2e_ms),
         p95_e2e_ms=agg_dict.get("p95_e2e_ms", first.p95_e2e_ms),
         p99_e2e_ms=agg_dict.get("p99_e2e_ms", first.p99_e2e_ms),
         avg_overall_e2e_ms=agg_dict.get("avg_overall_e2e_ms", first.avg_overall_e2e_ms),
+        p50_overall_e2e_ms=agg_dict.get("p50_overall_e2e_ms", first.p50_overall_e2e_ms),
         p95_overall_e2e_ms=agg_dict.get("p95_overall_e2e_ms", first.p95_overall_e2e_ms),
         p99_overall_e2e_ms=agg_dict.get("p99_overall_e2e_ms", first.p99_overall_e2e_ms),
         avg_service_e2e_ms=agg_dict.get("avg_service_e2e_ms", first.avg_service_e2e_ms),
+        p50_service_e2e_ms=agg_dict.get("p50_service_e2e_ms", first.p50_service_e2e_ms),
         p95_service_e2e_ms=agg_dict.get("p95_service_e2e_ms", first.p95_service_e2e_ms),
         p99_service_e2e_ms=agg_dict.get("p99_service_e2e_ms", first.p99_service_e2e_ms),
         avg_admitted_service_e2e_ms=agg_dict.get("avg_admitted_service_e2e_ms", first.avg_admitted_service_e2e_ms),
+        p50_admitted_service_e2e_ms=agg_dict.get("p50_admitted_service_e2e_ms", first.p50_admitted_service_e2e_ms),
         p95_admitted_service_e2e_ms=agg_dict.get("p95_admitted_service_e2e_ms", first.p95_admitted_service_e2e_ms),
         p99_admitted_service_e2e_ms=agg_dict.get("p99_admitted_service_e2e_ms", first.p99_admitted_service_e2e_ms),
         throughput_rps=agg_dict.get("throughput_rps", first.throughput_rps),
@@ -1334,6 +1751,12 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         ttft_slo_ms=first.ttft_slo_ms,
         avg_cost_usd=agg_dict.get("avg_cost_usd", first.avg_cost_usd),
         total_cost_usd=agg_dict.get("total_cost_usd", first.total_cost_usd),
+        infra_gpu_seconds_total=agg_dict.get("infra_gpu_seconds_total", first.infra_gpu_seconds_total),
+        infra_startup_gpu_seconds=agg_dict.get("infra_startup_gpu_seconds", first.infra_startup_gpu_seconds),
+        infra_ready_gpu_seconds=agg_dict.get("infra_ready_gpu_seconds", first.infra_ready_gpu_seconds),
+        infra_cost_total_usd=agg_dict.get("infra_cost_total_usd", first.infra_cost_total_usd),
+        infra_cost_per_request_usd=agg_dict.get("infra_cost_per_request_usd", first.infra_cost_per_request_usd),
+        infra_ce=agg_dict.get("infra_ce", first.infra_ce),
         qpr=agg_dict.get("qpr", first.qpr),
         qpr_tokps_ttft_legacy=agg_dict.get(
             "qpr_tokps_ttft_legacy",
@@ -1357,11 +1780,53 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         avg_service_overhead_ms=agg_dict.get("avg_service_overhead_ms", first.avg_service_overhead_ms),
         p95_service_overhead_ms=agg_dict.get("p95_service_overhead_ms", first.p95_service_overhead_ms),
         avg_dispatch_admission_wait_ms=agg_dict.get("avg_dispatch_admission_wait_ms", first.avg_dispatch_admission_wait_ms),
+        p50_dispatch_admission_wait_ms=agg_dict.get("p50_dispatch_admission_wait_ms", first.p50_dispatch_admission_wait_ms),
         p95_dispatch_admission_wait_ms=agg_dict.get("p95_dispatch_admission_wait_ms", first.p95_dispatch_admission_wait_ms),
+        avg_dispatch_window_wait_ms=agg_dict.get("avg_dispatch_window_wait_ms", first.avg_dispatch_window_wait_ms),
+        p50_dispatch_window_wait_ms=agg_dict.get("p50_dispatch_window_wait_ms", first.p50_dispatch_window_wait_ms),
+        p95_dispatch_window_wait_ms=agg_dict.get("p95_dispatch_window_wait_ms", first.p95_dispatch_window_wait_ms),
+        avg_runtime_slot_wait_ms=agg_dict.get("avg_runtime_slot_wait_ms", first.avg_runtime_slot_wait_ms),
+        p50_runtime_slot_wait_ms=agg_dict.get("p50_runtime_slot_wait_ms", first.p50_runtime_slot_wait_ms),
+        p95_runtime_slot_wait_ms=agg_dict.get("p95_runtime_slot_wait_ms", first.p95_runtime_slot_wait_ms),
         avg_ingress_queue_wait_ms=agg_dict.get("avg_ingress_queue_wait_ms", first.avg_ingress_queue_wait_ms),
+        p50_ingress_queue_wait_ms=agg_dict.get("p50_ingress_queue_wait_ms", first.p50_ingress_queue_wait_ms),
         p95_ingress_queue_wait_ms=agg_dict.get("p95_ingress_queue_wait_ms", first.p95_ingress_queue_wait_ms),
+        avg_arrival_release_lateness_ms=agg_dict.get(
+            "avg_arrival_release_lateness_ms",
+            first.avg_arrival_release_lateness_ms,
+        ),
+        p50_arrival_release_lateness_ms=agg_dict.get(
+            "p50_arrival_release_lateness_ms",
+            first.p50_arrival_release_lateness_ms,
+        ),
+        p95_arrival_release_lateness_ms=agg_dict.get(
+            "p95_arrival_release_lateness_ms",
+            first.p95_arrival_release_lateness_ms,
+        ),
         avg_runtime_ttft_ms=agg_dict.get("avg_runtime_ttft_ms", first.avg_runtime_ttft_ms),
         p95_runtime_ttft_ms=agg_dict.get("p95_runtime_ttft_ms", first.p95_runtime_ttft_ms),
+        avg_runtime_estimated_e2e_ms=agg_dict.get("avg_runtime_estimated_e2e_ms", first.avg_runtime_estimated_e2e_ms),
+        p95_runtime_estimated_e2e_ms=agg_dict.get("p95_runtime_estimated_e2e_ms", first.p95_runtime_estimated_e2e_ms),
+        avg_worker_wall_e2e_ms=agg_dict.get("avg_worker_wall_e2e_ms", first.avg_worker_wall_e2e_ms),
+        p95_worker_wall_e2e_ms=agg_dict.get("p95_worker_wall_e2e_ms", first.p95_worker_wall_e2e_ms),
+        avg_worker_rpc_handler_wall_ms=agg_dict.get("avg_worker_rpc_handler_wall_ms", first.avg_worker_rpc_handler_wall_ms),
+        p95_worker_rpc_handler_wall_ms=agg_dict.get("p95_worker_rpc_handler_wall_ms", first.p95_worker_rpc_handler_wall_ms),
+        avg_worker_engine_shell_ms=agg_dict.get("avg_worker_engine_shell_ms", first.avg_worker_engine_shell_ms),
+        p95_worker_engine_shell_ms=agg_dict.get("p95_worker_engine_shell_ms", first.p95_worker_engine_shell_ms),
+        avg_worker_rpc_queue_ms=agg_dict.get("avg_worker_rpc_queue_ms", first.avg_worker_rpc_queue_ms),
+        p95_worker_rpc_queue_ms=agg_dict.get("p95_worker_rpc_queue_ms", first.p95_worker_rpc_queue_ms),
+        avg_parent_rpc_overhead_ms=agg_dict.get("avg_parent_rpc_overhead_ms", first.avg_parent_rpc_overhead_ms),
+        p95_parent_rpc_overhead_ms=agg_dict.get("p95_parent_rpc_overhead_ms", first.p95_parent_rpc_overhead_ms),
+        avg_parent_rpc_channel_acquire_ms=agg_dict.get("avg_parent_rpc_channel_acquire_ms", first.avg_parent_rpc_channel_acquire_ms),
+        p95_parent_rpc_channel_acquire_ms=agg_dict.get("p95_parent_rpc_channel_acquire_ms", first.p95_parent_rpc_channel_acquire_ms),
+        avg_parent_rpc_response_pickup_delay_ms=agg_dict.get("avg_parent_rpc_response_pickup_delay_ms", first.avg_parent_rpc_response_pickup_delay_ms),
+        p95_parent_rpc_response_pickup_delay_ms=agg_dict.get("p95_parent_rpc_response_pickup_delay_ms", first.p95_parent_rpc_response_pickup_delay_ms),
+        avg_parent_rpc_thread_resume_delay_ms=agg_dict.get("avg_parent_rpc_thread_resume_delay_ms", first.avg_parent_rpc_thread_resume_delay_ms),
+        p95_parent_rpc_thread_resume_delay_ms=agg_dict.get("p95_parent_rpc_thread_resume_delay_ms", first.p95_parent_rpc_thread_resume_delay_ms),
+        avg_service_path_residual_ms=agg_dict.get("avg_service_path_residual_ms", first.avg_service_path_residual_ms),
+        p95_service_path_residual_ms=agg_dict.get("p95_service_path_residual_ms", first.p95_service_path_residual_ms),
+        avg_pre_runtime_service_shell_ms=agg_dict.get("avg_pre_runtime_service_shell_ms", first.avg_pre_runtime_service_shell_ms),
+        p95_pre_runtime_service_shell_ms=agg_dict.get("p95_pre_runtime_service_shell_ms", first.p95_pre_runtime_service_shell_ms),
         avg_gpu_ready_ttft_ms=agg_dict.get("avg_gpu_ready_ttft_ms", first.avg_gpu_ready_ttft_ms),
         p95_gpu_ready_ttft_ms=agg_dict.get("p95_gpu_ready_ttft_ms", first.p95_gpu_ready_ttft_ms),
         avg_scaleup_affected_ttft_ms=agg_dict.get("avg_scaleup_affected_ttft_ms", first.avg_scaleup_affected_ttft_ms),
@@ -1391,6 +1856,7 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         scale_down_events=int(round(sum(getattr(r, "scale_down_events", 0) for r in runs) / n)),
         scale_down_event_log=first.scale_down_event_log if n == 1 else [],
         warm_pool_retained_after_phase=first.warm_pool_retained_after_phase if n == 1 else [],
+        instance_lifecycle_log=first.instance_lifecycle_log if n == 1 else [],
         scale_up_events=first.scale_up_events if n == 1 else [],
         cold_starts_after_scale_up=first.cold_starts_after_scale_up if n == 1 else [],
         std_ci=std_ci,
@@ -1563,6 +2029,16 @@ def _avg_success_ttft_ms(raw_list: List[Any]) -> Optional[float]:
     return sum(vals) / len(vals)
 
 
+def _avg_success_dispatch_wait_ms(raw_list: List[Any]) -> Optional[float]:
+    vals: List[float] = []
+    for item in raw_list:
+        if isinstance(item, RequestResult) and item.success:
+            vals.append(float(getattr(item, "dispatch_admission_wait_ms", 0.0) or 0.0))
+    if not vals:
+        return None
+    return sum(vals) / len(vals)
+
+
 class InferenceEngine:
     """
     Wraps vLLM AsyncLLMEngine (or Transformers+PEFT fallback) with real LoRA.
@@ -1596,6 +2072,7 @@ class InferenceEngine:
         self._hf_executor: Optional[concurrent.futures.ThreadPoolExecutor] = None  # single-thread for GPU
         self.startup_latency_ms: float = 0.0
         self._last_engine_create_error: str = ""
+        self.last_timing: Dict[str, float] = {}
 
     def _maybe_kill_stale_gpu_processes(self) -> None:
         if not bool(self.model_cfg.get("skip_stale_gpu_cleanup", False)):
@@ -2295,6 +2772,12 @@ class InferenceEngine:
         output_tokens = max(int(out.shape[-1] - input_ids.shape[-1]), 1)
         total_ms = (t1 - t0) * 1000.0
         per_token_ms = total_ms / float(output_tokens)
+        self.last_timing = {
+            "runtime_estimated_e2e_ms": float(total_ms),
+            "worker_wall_e2e_ms": float(total_ms),
+            "parent_rpc_wall_ms": float(total_ms),
+            "parent_rpc_overhead_ms": 0.0,
+        }
 
         # 尽早释放所有张量，降低显存峰值
         del out, input_ids, attention_mask
@@ -2385,14 +2868,15 @@ class InferenceEngine:
         top_p: float = 0.9,
         *,
         _prepared_request: Optional[RequestExecutionPlan] = None,
+        return_timing: bool = False,
     ) -> Tuple[float, float, int]:
-        """Returns (vllm_ttft_ms, tpot_ms, output_tokens). Always real inference."""
+        """Returns (vllm_ttft_ms, tpot_ms, output_tokens[, timing]). Always real inference."""
         async with self._lock:
             self._counter += 1
             req_id = f"req_{self._counter}"
 
         if self.backend == "transformers":
-            return await self._generate_transformers(
+            ttft_ms, tpot_ms, out_tokens = await self._generate_transformers(
                 prompt=prompt,
                 lora_path=lora_path,
                 adapter_id=adapter_id,
@@ -2400,6 +2884,9 @@ class InferenceEngine:
                 temperature=temperature,
                 top_p=top_p,
             )
+            if return_timing:
+                return ttft_ms, tpot_ms, out_tokens, dict(self.last_timing or {})
+            return ttft_ms, tpot_ms, out_tokens
 
         if self.engine is None or self._engine_dead:
             raise RuntimeError("vLLM engine is not initialised or dead")
@@ -2427,6 +2914,7 @@ class InferenceEngine:
             t0 = time.perf_counter()
             first_t = None
             tok_count = 0
+            actual_prompt_tokens = max(1, int(input_tokens or 1))
             last_metrics = None
             async for out in self.engine.generate(
                 prompt=prompt, sampling_params=sp, request_id=req_id, lora_request=lora_req
@@ -2434,6 +2922,9 @@ class InferenceEngine:
                 metrics = getattr(out, "metrics", None)
                 if metrics is not None:
                     last_metrics = metrics
+                prompt_token_ids = getattr(out, "prompt_token_ids", None)
+                if prompt_token_ids is not None:
+                    actual_prompt_tokens = max(1, len(prompt_token_ids))
                 if out.outputs:
                     current_output = out.outputs[0]
                     if first_t is None and len(getattr(current_output, "token_ids", []) or []) > 0:
@@ -2448,6 +2939,20 @@ class InferenceEngine:
                 perf_finished_at=t1,
                 output_tokens=tok_count,
             )
+            runtime_estimated_e2e_ms = float(ttft_ms) + (
+                float(tpot_ms) * max(int(tok_count or 0) - 1, 0)
+            )
+            worker_wall_e2e_ms = max(0.0, (float(t1) - float(t0)) * 1000.0)
+            timing = {
+                "runtime_estimated_e2e_ms": max(0.0, runtime_estimated_e2e_ms),
+                "worker_wall_e2e_ms": worker_wall_e2e_ms,
+                "parent_rpc_wall_ms": worker_wall_e2e_ms,
+                "parent_rpc_overhead_ms": 0.0,
+                "actual_prompt_tokens": actual_prompt_tokens,
+            }
+            self.last_timing = dict(timing)
+            if return_timing:
+                return ttft_ms, tpot_ms, tok_count, timing
             return ttft_ms, tpot_ms, tok_count
 
         except Exception as exc:
@@ -2555,6 +3060,12 @@ class InferenceEngine:
             return False
 
 
+@dataclass
+class _BlockingRPCChannel:
+    sock: socket.socket
+    recv_buffer: bytearray = field(default_factory=bytearray)
+
+
 class SubprocessInferenceEngineProxy:
     """
     Async proxy that talks to a dedicated engine subprocess over loopback RPC.
@@ -2577,6 +3088,7 @@ class SubprocessInferenceEngineProxy:
         device_id: Optional[int],
         workdir: Path,
         log_path: Path,
+        runtime_gpu_ids: Optional[List[int]] = None,
         startup_latency_ms: float = 0.0,
     ) -> None:
         self._process = process
@@ -2585,13 +3097,22 @@ class SubprocessInferenceEngineProxy:
         self.model_cfg = copy.deepcopy(model_cfg)
         self._cost_model = copy.deepcopy(cost_model)
         self.device_id = int(device_id) if device_id is not None else 0
+        self._runtime_gpu_ids = [
+            int(gpu_id) for gpu_id in (runtime_gpu_ids or []) if gpu_id is not None
+        ]
         self.backend = str(self.model_cfg.get("backend", "vllm")).lower()
         self.engine = None
         self._engine_dead = False
         self._reinit_attempted = False
+        self.last_timing: Dict[str, float] = {}
+        self._prompt_planner: Optional[InferenceEngine] = None
         self._workdir = workdir
         self._log_path = log_path
         self.startup_latency_ms = float(startup_latency_ms or 0.0)
+        self._rpc_pool_size = _effective_runtime_concurrency_cap(self.model_cfg)
+        self._rpc_channel_queue: Optional[asyncio.Queue] = None
+        self._rpc_channel_init_lock = asyncio.Lock()
+        self._rpc_channels: List["_BlockingRPCChannel"] = []
 
     @staticmethod
     def _worker_script_path() -> Path:
@@ -2681,27 +3202,54 @@ class SubprocessInferenceEngineProxy:
         )
         cls._write_process_meta(worker_root, process)
 
-        ready: Optional[Dict[str, Any]] = None
-        deadline = time.monotonic() + 180.0
-        while time.monotonic() < deadline:
-            if ready_path.exists():
-                try:
-                    ready = json.loads(ready_path.read_text(encoding="utf-8"))
-                except Exception:
-                    ready = {"status": "error", "error": "invalid_ready_payload"}
-                break
-            if process.poll() is not None:
-                break
-            await asyncio.sleep(0.2)
-
-        log_handle.close()
-        if not isinstance(ready, dict) or ready.get("status") != "ready":
+        async def _terminate_startup_process() -> None:
+            try:
+                if process.poll() is not None:
+                    return
+            except Exception:
+                pass
             try:
                 pgid = os.getpgid(process.pid)
                 os.killpg(pgid, signal.SIGTERM)
                 await asyncio.to_thread(process.wait, 5)
             except Exception:
                 pass
+            try:
+                if process.poll() is None:
+                    pgid = os.getpgid(process.pid)
+                    os.killpg(pgid, signal.SIGKILL)
+                    await asyncio.to_thread(process.wait, 5)
+            except Exception:
+                pass
+
+        ready: Optional[Dict[str, Any]] = None
+        try:
+            deadline = time.monotonic() + 180.0
+            while time.monotonic() < deadline:
+                if ready_path.exists():
+                    try:
+                        ready = json.loads(ready_path.read_text(encoding="utf-8"))
+                    except Exception:
+                        ready = {"status": "error", "error": "invalid_ready_payload"}
+                    break
+                if process.poll() is not None:
+                    break
+                await asyncio.sleep(0.2)
+        except BaseException:
+            try:
+                log_handle.close()
+            except Exception:
+                pass
+            await _terminate_startup_process()
+            raise
+        finally:
+            try:
+                log_handle.close()
+            except Exception:
+                pass
+
+        if not isinstance(ready, dict) or ready.get("status") != "ready":
+            await _terminate_startup_process()
             error = ready.get("error") if isinstance(ready, dict) else "subprocess_worker_timeout"
             log_tail = cls._tail_worker_log(log_path)
             error = (
@@ -2720,6 +3268,7 @@ class SubprocessInferenceEngineProxy:
             device_id=requested_device_id,
             workdir=worker_root,
             log_path=log_path,
+            runtime_gpu_ids=runtime_gpu_ids,
             startup_latency_ms=max(0.0, (time.perf_counter() - spawn_started_at) * 1000.0),
         )
 
@@ -2727,13 +3276,21 @@ class SubprocessInferenceEngineProxy:
         if self._engine_dead or self._process.poll() is not None:
             self._engine_dead = True
             raise RuntimeError("subprocess_engine_dead")
-        reader = writer = None
-        try:
-            reader, writer = await asyncio.open_connection(self._host, self._port)
+
+        async def _send_rpc_on_channel(
+            channel: _BlockingRPCChannel,
+            *,
+            rpc_channel_acquire_ms: float,
+        ) -> Dict[str, Any]:
             payload = {"cmd": cmd, "kwargs": kwargs}
-            writer.write((json.dumps(payload, ensure_ascii=True) + "\n").encode("utf-8"))
-            await writer.drain()
-            raw = await asyncio.wait_for(reader.readline(), timeout=300)
+            payload["client_send_wall_time"] = time.time()
+            payload_bytes = (json.dumps(payload, ensure_ascii=True) + "\n").encode("utf-8")
+            raw, send_flush_ms, wait_response_ms, parent_response_read_wall_time = await asyncio.to_thread(
+                self._blocking_rpc_roundtrip,
+                channel,
+                payload_bytes,
+            )
+            parent_roundtrip_resume_wall_time = time.time()
             if not raw:
                 raise RuntimeError("subprocess_engine_empty_response")
             response = json.loads(raw.decode("utf-8"))
@@ -2743,18 +3300,169 @@ class SubprocessInferenceEngineProxy:
                     self._engine_dead = True
                     await self._terminate_process_tree(force=True)
                 raise RuntimeError(error_text)
-            return response.get("result", {}) or {}
+            result = response.get("result", {}) or {}
+            if isinstance(result, dict):
+                result_timing = _attach_parent_rpc_breakdown(
+                    result.get("timing"),
+                    channel_acquire_ms=rpc_channel_acquire_ms,
+                    parent_response_read_wall_time=parent_response_read_wall_time,
+                )
+                result_timing["parent_rpc_send_flush_ms"] = send_flush_ms
+                result_timing["parent_rpc_wait_response_ms"] = wait_response_ms
+                result_timing["parent_rpc_thread_resume_delay_ms"] = max(
+                    0.0,
+                    (
+                        parent_roundtrip_resume_wall_time
+                        - float(parent_response_read_wall_time)
+                    )
+                    * 1000.0,
+                )
+                result["timing"] = result_timing
+            return result
+
+        channel = None
+        try:
+            channel_acquire_started_at = time.perf_counter()
+            channel = await self._acquire_rpc_channel()
+            rpc_channel_acquire_ms = max(
+                0.0,
+                (time.perf_counter() - channel_acquire_started_at) * 1000.0,
+            )
+            return await _send_rpc_on_channel(
+                channel,
+                rpc_channel_acquire_ms=rpc_channel_acquire_ms,
+            )
         except Exception:
-            if cmd != "shutdown":
-                self._engine_dead = True
+            if channel is not None:
+                await self._drop_rpc_channel(channel)
+                channel = None
+            if cmd == "shutdown":
+                raise
+            if self._process.poll() is None and not self._engine_dead:
+                try:
+                    channel_acquire_started_at = time.perf_counter()
+                    channel = await self._open_rpc_channel()
+                    rpc_channel_acquire_ms = max(
+                        0.0,
+                        (time.perf_counter() - channel_acquire_started_at) * 1000.0,
+                    )
+                    return await _send_rpc_on_channel(
+                        channel,
+                        rpc_channel_acquire_ms=rpc_channel_acquire_ms,
+                    )
+                except Exception:
+                    if channel is not None:
+                        await self._drop_rpc_channel(channel)
+                        channel = None
+                    self._engine_dead = True
+                    raise
+            self._engine_dead = True
             raise
         finally:
-            if writer is not None:
-                writer.close()
-                try:
-                    await writer.wait_closed()
-                except Exception:
-                    pass
+            if channel is not None and cmd != "shutdown":
+                await self._release_rpc_channel(channel)
+
+    async def _ensure_rpc_channel_pool(self) -> None:
+        if self._rpc_channel_queue is not None:
+            return
+        async with self._rpc_channel_init_lock:
+            if self._rpc_channel_queue is not None:
+                return
+            queue: asyncio.Queue = asyncio.Queue()
+            opened: List[_BlockingRPCChannel] = []
+            try:
+                for _ in range(self._rpc_pool_size):
+                    channel = await self._open_rpc_channel()
+                    opened.append(channel)
+                    await queue.put(channel)
+            except Exception:
+                for channel in opened:
+                    await self._drop_rpc_channel(channel)
+                raise
+            self._rpc_channels = list(opened)
+            self._rpc_channel_queue = queue
+
+    def _open_blocking_rpc_channel(self) -> _BlockingRPCChannel:
+        sock = socket.create_connection((self._host, self._port), timeout=30.0)
+        sock.settimeout(300.0)
+        try:
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        except Exception:
+            pass
+        return _BlockingRPCChannel(sock=sock)
+
+    def _blocking_rpc_roundtrip(
+        self,
+        channel: _BlockingRPCChannel,
+        payload_bytes: bytes,
+    ) -> Tuple[bytes, float, float, float]:
+        send_flush_started_at = time.perf_counter()
+        channel.sock.sendall(payload_bytes)
+        send_flush_ms = max(0.0, (time.perf_counter() - send_flush_started_at) * 1000.0)
+
+        wait_response_started_at = time.perf_counter()
+        while True:
+            newline_idx = channel.recv_buffer.find(b"\n")
+            if newline_idx >= 0:
+                raw = bytes(channel.recv_buffer[: newline_idx + 1])
+                del channel.recv_buffer[: newline_idx + 1]
+                parent_response_read_wall_time = time.time()
+                wait_response_ms = max(
+                    0.0,
+                    (time.perf_counter() - wait_response_started_at) * 1000.0,
+                )
+                return raw, send_flush_ms, wait_response_ms, parent_response_read_wall_time
+            chunk = channel.sock.recv(65536)
+            if not chunk:
+                raise RuntimeError("subprocess_engine_empty_response")
+            channel.recv_buffer.extend(chunk)
+
+    async def _open_rpc_channel(self) -> _BlockingRPCChannel:
+        return await asyncio.to_thread(self._open_blocking_rpc_channel)
+
+    async def _acquire_rpc_channel(self) -> _BlockingRPCChannel:
+        await self._ensure_rpc_channel_pool()
+        assert self._rpc_channel_queue is not None
+        channel = await self._rpc_channel_queue.get()
+        return channel
+
+    async def _release_rpc_channel(
+        self,
+        channel: _BlockingRPCChannel,
+    ) -> None:
+        queue = self._rpc_channel_queue
+        if queue is None:
+            await self._drop_rpc_channel(channel)
+            return
+        await queue.put(channel)
+
+    async def _drop_rpc_channel(
+        self,
+        channel: _BlockingRPCChannel,
+    ) -> None:
+        try:
+            await asyncio.to_thread(channel.sock.close)
+        except Exception:
+            pass
+        if channel in self._rpc_channels:
+            try:
+                self._rpc_channels.remove(channel)
+            except ValueError:
+                pass
+
+    async def _close_all_rpc_channels(self) -> None:
+        queue = self._rpc_channel_queue
+        channels = list(self._rpc_channels)
+        self._rpc_channel_queue = None
+        self._rpc_channels = []
+        if queue is not None:
+            try:
+                while True:
+                    queue.get_nowait()
+            except asyncio.QueueEmpty:
+                pass
+        for channel in channels:
+            await self._drop_rpc_channel(channel)
 
     async def _terminate_process_tree(self, *, force: bool = False) -> None:
         proc = self._process
@@ -2798,7 +3506,10 @@ class SubprocessInferenceEngineProxy:
         input_tokens: int,
         temperature: float = 0.7,
         top_p: float = 0.9,
+        *,
+        return_timing: bool = False,
     ) -> Tuple[float, float, int]:
+        rpc_started_at = time.perf_counter()
         result = await self._rpc(
             "generate",
             prompt=prompt,
@@ -2808,11 +3519,83 @@ class SubprocessInferenceEngineProxy:
             input_tokens=input_tokens,
             temperature=temperature,
             top_p=top_p,
+            return_timing=return_timing,
         )
+        parent_rpc_wall_ms = max(0.0, (time.perf_counter() - rpc_started_at) * 1000.0)
+        timing = dict(result.get("timing") or {})
+        worker_wall_ms = _positive_or_fallback(
+            timing.get("worker_rpc_handler_wall_ms"),
+            timing.get("worker_wall_e2e_ms", 0.0),
+        )
+        timing["parent_rpc_wall_ms"] = parent_rpc_wall_ms
+        timing["parent_rpc_overhead_ms"] = (
+            max(0.0, parent_rpc_wall_ms - worker_wall_ms)
+            if worker_wall_ms > 0.0
+            else 0.0
+        )
+        self.last_timing = {
+            key: _safe_float(value, 0.0)
+            for key, value in timing.items()
+            if isinstance(key, str)
+        }
+        if return_timing:
+            return (
+                float(result.get("ttft_ms", 0.0)),
+                float(result.get("tpot_ms", 0.0)),
+                int(result.get("output_tokens", 0)),
+                dict(self.last_timing),
+            )
         return (
             float(result.get("ttft_ms", 0.0)),
             float(result.get("tpot_ms", 0.0)),
             int(result.get("output_tokens", 0)),
+        )
+
+    def prepare_request(
+        self,
+        prompt: str,
+        requested_output_tokens: int,
+        input_tokens_hint: int,
+        chat_messages: Optional[List[Dict[str, Any]]] = None,
+    ) -> RequestExecutionPlan:
+        """Mirror the worker-side prompt guard in the parent process.
+
+        The scheduler and metric path run in the parent process. Dedicated
+        scale-out runtimes execute inside subprocesses, so without this mirror
+        the parent would account for raw trace token hints while the worker
+        silently applies the vLLM prompt guard. That makes resource coordination,
+        cost, and reported token statistics diverge from the actual request.
+        """
+        planner = self._prompt_planner
+        if planner is None:
+            planner = InferenceEngine(copy.deepcopy(self.model_cfg), copy.deepcopy(self._cost_model))
+            self._prompt_planner = planner
+        return planner.prepare_request(
+            prompt=prompt,
+            requested_output_tokens=requested_output_tokens,
+            input_tokens_hint=input_tokens_hint,
+            chat_messages=chat_messages,
+        )
+
+    async def generate_prepared(
+        self,
+        *,
+        request_plan: RequestExecutionPlan,
+        lora_path: Optional[str],
+        adapter_id: Optional[str],
+        temperature: float = 0.7,
+        top_p: float = 0.9,
+        return_timing: bool = False,
+    ) -> Tuple[float, float, int]:
+        return await self.generate(
+            prompt=request_plan.prompt,
+            lora_path=lora_path,
+            adapter_id=adapter_id,
+            max_tokens=request_plan.max_tokens,
+            input_tokens=request_plan.input_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            return_timing=return_timing,
         )
 
     async def load_lora_to_gpu_and_measure(self, lora_path: str, adapter_id: str) -> Tuple[float, bool]:
@@ -2831,6 +3614,7 @@ class SubprocessInferenceEngineProxy:
                 except Exception:
                     pass
         finally:
+            await self._close_all_rpc_channels()
             await self._terminate_process_tree(force=False)
             self._engine_dead = True
             shutil.rmtree(self._workdir, ignore_errors=True)
@@ -2841,6 +3625,7 @@ class SubprocessInferenceEngineProxy:
             model_cfg=self.model_cfg,
             cost_model=self._cost_model,
             device_id=self.device_id,
+            runtime_gpu_ids=self._runtime_gpu_ids,
         )
         self._process = replacement._process
         self._host = replacement._host
@@ -2882,6 +3667,112 @@ def _calc_cost(cost_model: Dict, in_tok: int, out_tok: int) -> float:
     in_c    = float(cost_model.get("input_token_cost_usd",  0.0000015)) * in_tok
     out_c   = float(cost_model.get("output_token_cost_usd", 0.000002))  * out_tok
     return base + in_c + out_c
+
+
+def _gpu_cost_per_second_usd(cost_model: Dict[str, Any]) -> float:
+    per_second = cost_model.get("gpu_cost_per_second_usd")
+    if per_second is not None:
+        try:
+            return max(0.0, float(per_second))
+        except Exception:
+            pass
+    per_hour = cost_model.get("gpu_hour_cost_usd")
+    if per_hour is not None:
+        try:
+            return max(0.0, float(per_hour)) / 3600.0
+        except Exception:
+            pass
+    return 0.0008
+
+
+def _summarize_infra_cost_from_lifecycles(
+    lifecycles: Collection[Dict[str, Any]],
+    *,
+    elapsed_sec: float,
+    completed_requests: int,
+    total_requests: int,
+    avg_e2e_ms: float,
+    gpu_cost_per_second_usd: float,
+) -> Dict[str, Any]:
+    normalized: List[Dict[str, Any]] = []
+    total_gpu_seconds = 0.0
+    startup_gpu_seconds = 0.0
+    ready_gpu_seconds = 0.0
+    safe_elapsed = max(0.0, float(elapsed_sec or 0.0))
+
+    for raw in lifecycles or []:
+        item = dict(raw or {})
+        instance_id = str(item.get("instance_id") or "").strip()
+        if not instance_id:
+            continue
+        gpu_count = max(1, int(item.get("gpu_count", 1) or 1))
+        created_offset_s = max(0.0, float(item.get("created_offset_s", 0.0) or 0.0))
+        ready_offset_s = item.get("ready_offset_s")
+        if ready_offset_s is None:
+            ready_offset_s = created_offset_s
+        ready_offset_s = max(created_offset_s, float(ready_offset_s or 0.0))
+        removed_offset_s = item.get("removed_offset_s")
+        if removed_offset_s is None:
+            removed_offset_s = safe_elapsed
+        removed_offset_s = max(ready_offset_s, float(removed_offset_s or 0.0))
+
+        # Align infra billing to the same replay window across systems. Instance
+        # teardown that happens after the replay completes should not inflate the
+        # serving-window infra cost comparison.
+        created_offset_s = min(created_offset_s, safe_elapsed)
+        ready_offset_s = min(max(created_offset_s, ready_offset_s), safe_elapsed)
+        removed_offset_s = min(max(ready_offset_s, removed_offset_s), safe_elapsed)
+
+        lifetime_sec = max(0.0, removed_offset_s - created_offset_s)
+        startup_sec = max(0.0, ready_offset_s - created_offset_s)
+        ready_sec = max(0.0, removed_offset_s - ready_offset_s)
+        lifetime_gpu_seconds = lifetime_sec * gpu_count
+        startup_gpu_seconds_i = startup_sec * gpu_count
+        ready_gpu_seconds_i = ready_sec * gpu_count
+
+        total_gpu_seconds += lifetime_gpu_seconds
+        startup_gpu_seconds += startup_gpu_seconds_i
+        ready_gpu_seconds += ready_gpu_seconds_i
+
+        item.update(
+            {
+                "created_offset_s": round(created_offset_s, 6),
+                "ready_offset_s": round(ready_offset_s, 6),
+                "removed_offset_s": round(removed_offset_s, 6),
+                "lifetime_sec": round(lifetime_sec, 6),
+                "startup_sec": round(startup_sec, 6),
+                "ready_sec": round(ready_sec, 6),
+                "lifetime_gpu_seconds": round(lifetime_gpu_seconds, 6),
+                "startup_gpu_seconds": round(startup_gpu_seconds_i, 6),
+                "ready_gpu_seconds": round(ready_gpu_seconds_i, 6),
+            }
+        )
+        normalized.append(item)
+
+    infra_cost_total_usd = total_gpu_seconds * max(0.0, float(gpu_cost_per_second_usd or 0.0))
+    per_request_denominator = (
+        int(completed_requests)
+        if int(completed_requests or 0) > 0
+        else max(0, int(total_requests or 0))
+    )
+    infra_cost_per_request_usd = (
+        infra_cost_total_usd / per_request_denominator
+        if per_request_denominator > 0
+        else 0.0
+    )
+    avg_e2e_s = max(0.0, float(avg_e2e_ms or 0.0)) / 1000.0
+    infra_ce_denom = infra_cost_per_request_usd * avg_e2e_s
+    infra_ce = 1.0 / infra_ce_denom if infra_ce_denom > 1e-12 else 0.0
+    return {
+        "instance_lifecycle_log": normalized,
+        "infra_gpu_seconds_total": total_gpu_seconds,
+        "infra_startup_gpu_seconds": startup_gpu_seconds,
+        "infra_ready_gpu_seconds": ready_gpu_seconds,
+        "infra_cost_total_usd": infra_cost_total_usd,
+        "infra_cost_per_request_usd": infra_cost_per_request_usd,
+        "infra_ce": infra_ce,
+        "gpu_cost_per_second_usd": max(0.0, float(gpu_cost_per_second_usd or 0.0)),
+    }
 
 
 def _build_hf_generate_kwargs(model, tokenizer, max_new_tokens: int, *, temperature: float, top_p: float) -> Dict[str, Any]:
@@ -2986,7 +3877,22 @@ class ScenarioRunner:
         self._scale_up_alpha = float(cc.get("scale_up_alpha", 0.3))
         self._scale_up_t_min = float(cc.get("scale_up_t_min", 1.0))
         self._scale_down_beta = float(cc.get("scale_down_beta", 0.4))
-        self._scale_down_duration_s = float(cc.get("scale_down_duration_s", 45))
+        scale_down_duration_raw = cc.get("scale_down_duration_s", "auto")
+        self._scale_down_duration_auto = _is_auto_config_value(scale_down_duration_raw)
+        parsed_scale_down_duration_s = _nonnegative_seconds_or_none(scale_down_duration_raw)
+        self._scale_down_duration_s = parsed_scale_down_duration_s if parsed_scale_down_duration_s is not None else 0.0
+        scale_down_cooldown_raw = cc.get("scale_down_cooldown_s", cc.get("scale_cooldown_s", "auto"))
+        self._scale_down_cooldown_auto = _is_auto_config_value(scale_down_cooldown_raw)
+        parsed_scale_down_cooldown_s = _nonnegative_seconds_or_none(scale_down_cooldown_raw)
+        self._scale_down_cooldown_s = parsed_scale_down_cooldown_s if parsed_scale_down_cooldown_s is not None else 0.0
+        self._scale_down_startup_break_even_s = max(
+            0.0,
+            float(cc.get("scale_down_startup_break_even_s", 0.0) or 0.0),
+        )
+        self._scale_down_break_even_factor = max(
+            0.0,
+            float(cc.get("scale_down_break_even_factor", 1.0) or 1.0),
+        )
         self._dynamic_warm_pool = bool(cc.get("dynamic_warm_pool", True))
         self._warm_pool_gamma = float(cc.get("warm_pool_gamma", 0.2))
         self._warm_pool_min = int(cc.get("warm_pool_min", 2))
@@ -3004,6 +3910,11 @@ class ScenarioRunner:
         self._scheduled_arrivals = [
             max(0.0, t.arrival_time - self._arrival_base) for t in traces
         ]
+        self._trace_scale_down_floor_s = self._derive_trace_scale_down_floor_s()
+        if self._scale_down_duration_auto:
+            self._scale_down_duration_s = self._trace_scale_down_floor_s
+        if self._scale_down_cooldown_auto:
+            self._scale_down_cooldown_s = self._trace_scale_down_floor_s
         self._live_progress = bool(self.wl_cfg.get("live_progress", True))
         self._live_progress_interval_s = float(self.wl_cfg.get("live_progress_interval_s", 8.0))
         self._live_progress_every_requests = max(1, int(self.wl_cfg.get("live_progress_every_requests", 25)))
@@ -3034,23 +3945,39 @@ class ScenarioRunner:
         self._pending_scale_up_tasks: set[asyncio.Task] = set()
         self._pending_scale_up_device_ids: set[int] = set()
         self._pending_scale_up_sequences: set[int] = set()
+        self._failed_runtime_device_ids: set[int] = set()
         self._next_pending_scale_up_sequence: int = 0
         self._scaleup_runtime_instance_ids: set[str] = set()
         self._scaleup_runtime_handoff_plans: Dict[str, Dict[str, Any]] = {}
         self._scaleup_runtime_lora_request_ordinals: Dict[str, int] = {}
         self._live_scale_eval_last_at: float = 0.0
+        self._last_live_scale_up_completed_at: float = 0.0
+        self._last_live_scale_down_completed_at: float = 0.0
         self._live_scale_overrides: Optional[Dict[str, float]] = None
         self._last_scale_up_preload_budget: Dict[str, Any] = {}
         self._last_scale_up_handoff_plan: Dict[str, Any] = {}
+        self._instance_lifecycle_records: Dict[str, Dict[str, Any]] = {}
         self._live_arrived_lora_counts: Dict[str, int] = defaultdict(int)
         self._live_started_lora_counts: Dict[str, int] = defaultdict(int)
         self._live_arrived_lora_first_seen_seq: Dict[str, int] = {}
         self._live_arrived_lora_seq: int = 0
         self._live_waiting_traces_by_id: Dict[str, Any] = {}
         self._dispatch_admitted_requests: int = 0
-        self._dispatch_capacity_condition: Optional[asyncio.Condition] = None
+        self._dispatch_admission_condition: Optional[asyncio.Condition] = None
+        self._runtime_slot_capacity_condition: Optional[asyncio.Condition] = None
         self._active_replay_t0: Optional[float] = None
         self._slot_retire_lock = asyncio.Lock()
+        # The replay dispatcher, autoscaler, and subprocess RPC completion all
+        # share one asyncio loop. Refreshing per-slot runtime hints on every
+        # hot-path request admission can monopolize that loop and make the trace
+        # arrival clock itself fall behind. Cache routing hints for a short
+        # interval so online dispatch remains reactive without redoing the same
+        # synchronous bookkeeping for every request.
+        self._runtime_hints_refresh_interval_s = max(
+            0.0,
+            float(self.coord_cfg.get("runtime_hints_refresh_interval_s", 0.5) or 0.5),
+        )
+        self._runtime_hints_last_refresh_by_slot: Dict[str, float] = {}
 
         # Resource coordinator (contribution 3); when _stack is set, coordinator comes from stack
         coord_enabled = (baseline_type == "faaslora_full")
@@ -3090,10 +4017,150 @@ class ScenarioRunner:
                 self.instance_pool,
                 policy=self._routing_policy,
                 runtime_concurrency_cap=self._runtime_forward_capacity_limit(),
+                max_active_loras=self._runtime_max_active_loras(),
             )
             for slot in self.instance_pool.get_slots():
                 self._prime_slot_cache_view(slot, include_gpu=self._slot_should_include_gpu(slot))
             self._sync_stack_gpu_accounting()
+
+    def _runtime_gpu_count_for_cfg(self, cfg: Optional[Dict[str, Any]] = None) -> int:
+        effective_cfg = cfg if isinstance(cfg, dict) else getattr(self, "model_cfg", {})
+        return max(1, int((effective_cfg or {}).get("tensor_parallel_size", 1) or 1))
+
+    def _run_elapsed_offset_s(self, when: Optional[float] = None) -> float:
+        run_started_at = float(getattr(self, "_run_started_at", 0.0) or 0.0)
+        if run_started_at <= 0.0:
+            return 0.0
+        reference = time.perf_counter() if when is None else float(when)
+        return max(0.0, reference - run_started_at)
+
+    def _ensure_instance_lifecycle_record(
+        self,
+        instance_id: Optional[str],
+        *,
+        runtime_kind: str,
+        gpu_count: int,
+        device_id: Optional[int],
+        created_offset_s: Optional[float] = None,
+        ready_offset_s: Optional[float] = None,
+        lifecycle_source: Optional[str] = None,
+        model_name: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        if not instance_id:
+            return None
+        key = str(instance_id)
+        records = getattr(self, "_instance_lifecycle_records", None)
+        if records is None:
+            records = {}
+            self._instance_lifecycle_records = records
+        model_cfg = getattr(self, "model_cfg", {}) or {}
+        record = records.get(key)
+        if record is None:
+            record = {
+                "instance_id": key,
+                "runtime_kind": str(runtime_kind or "shared"),
+                "gpu_count": max(1, int(gpu_count or 1)),
+                "device_id": device_id,
+                "model_name": str(model_name or model_cfg.get("name") or ""),
+                "lifecycle_source": str(lifecycle_source or ""),
+                "created_offset_s": None,
+                "ready_offset_s": None,
+                "removed_offset_s": None,
+                "remove_reason": None,
+            }
+            records[key] = record
+        else:
+            record["runtime_kind"] = str(record.get("runtime_kind") or runtime_kind or "shared")
+            record["gpu_count"] = max(1, int(record.get("gpu_count", gpu_count) or gpu_count or 1))
+            if record.get("device_id") is None and device_id is not None:
+                record["device_id"] = device_id
+            if not record.get("model_name") and model_name:
+                record["model_name"] = str(model_name)
+            if lifecycle_source and not record.get("lifecycle_source"):
+                record["lifecycle_source"] = str(lifecycle_source)
+        if created_offset_s is not None:
+            created_value = max(0.0, float(created_offset_s or 0.0))
+            existing = record.get("created_offset_s")
+            if existing is None or created_value < float(existing):
+                record["created_offset_s"] = created_value
+        if ready_offset_s is not None:
+            ready_value = max(0.0, float(ready_offset_s or 0.0))
+            created_value = float(record.get("created_offset_s") or 0.0)
+            ready_value = max(created_value, ready_value)
+            existing = record.get("ready_offset_s")
+            if existing is None or ready_value < float(existing):
+                record["ready_offset_s"] = ready_value
+        return record
+
+    def _mark_instance_lifecycle_removed(
+        self,
+        instance_id: Optional[str],
+        *,
+        removed_offset_s: Optional[float] = None,
+        reason: Optional[str] = None,
+    ) -> None:
+        if not instance_id:
+            return
+        record = self._instance_lifecycle_records.get(str(instance_id))
+        if record is None:
+            return
+        removed_value = (
+            self._run_elapsed_offset_s()
+            if removed_offset_s is None
+            else max(0.0, float(removed_offset_s or 0.0))
+        )
+        existing = record.get("removed_offset_s")
+        if existing is None or removed_value < float(existing):
+            record["removed_offset_s"] = removed_value
+        if reason:
+            record["remove_reason"] = str(reason)
+
+    def _begin_instance_lifecycle_tracking(self) -> None:
+        if self._run_started_at <= 0.0 or self.instance_pool is None:
+            return
+        for slot in self.instance_pool.get_slots():
+            instance_id = getattr(slot, "instance_id", None)
+            if not instance_id:
+                continue
+            is_physical_runtime = bool(getattr(slot, "owns_engine", False)) or (
+                instance_id == self._primary_instance_id
+            )
+            if not is_physical_runtime:
+                continue
+            runtime_kind = (
+                "dedicated"
+                if bool(getattr(slot, "owns_engine", False)) and instance_id != self._primary_instance_id
+                else "shared" if self._instance_mode == "shared" else "dedicated"
+            )
+            engine = getattr(slot, "engine", None)
+            model_cfg = getattr(engine, "model_cfg", None) if engine is not None else None
+            self._ensure_instance_lifecycle_record(
+                instance_id,
+                runtime_kind=runtime_kind,
+                gpu_count=self._runtime_gpu_count_for_cfg(model_cfg),
+                device_id=getattr(slot, "device_id", None),
+                created_offset_s=0.0,
+                ready_offset_s=0.0,
+                lifecycle_source="run_start",
+                model_name=(model_cfg or {}).get("name") if isinstance(model_cfg, dict) else None,
+            )
+
+    def finalize_runtime_infra_accounting(self, result: ScenarioResult) -> None:
+        summary = _summarize_infra_cost_from_lifecycles(
+            list(self._instance_lifecycle_records.values()),
+            elapsed_sec=float(getattr(result, "elapsed_sec", 0.0) or 0.0),
+            completed_requests=int(getattr(result, "completed", 0) or 0),
+            total_requests=int(getattr(result, "total", 0) or 0),
+            avg_e2e_ms=float(getattr(result, "avg_e2e_ms", 0.0) or 0.0),
+            gpu_cost_per_second_usd=_gpu_cost_per_second_usd(self.cost_model),
+        )
+        result.instance_lifecycle_log = summary["instance_lifecycle_log"]
+        result.infra_gpu_seconds_total = summary["infra_gpu_seconds_total"]
+        result.infra_startup_gpu_seconds = summary["infra_startup_gpu_seconds"]
+        result.infra_ready_gpu_seconds = summary["infra_ready_gpu_seconds"]
+        result.infra_cost_total_usd = summary["infra_cost_total_usd"]
+        result.infra_cost_per_request_usd = summary["infra_cost_per_request_usd"]
+        result.infra_ce = summary["infra_ce"]
 
     def _assert_clean_gpu_environment(self, *, context: str, force: bool = False) -> None:
         now = time.perf_counter()
@@ -3159,6 +4226,32 @@ class ScenarioRunner:
             input_tokens=resolved_input_tokens,
             max_tokens=max(1, max_tokens),
         )
+
+    def _prepare_request_execution_plan_cache(
+        self,
+        engine: Any,
+        traces: Collection[Any],
+        default_max_tokens: int,
+    ) -> Dict[str, RequestExecutionPlan]:
+        """Precompute prompt/token budgets before replay timing starts.
+
+        Baseline replayers already do prompt rendering / prompt-guard tokenization
+        before the per-request timing window opens. Keep FaaSLoRA aligned by
+        caching the resolved prompt, input-token count, and output-token cap
+        outside the hot request path instead of recomputing them after
+        dispatch/admission.
+        """
+        plan_cache: Dict[str, RequestExecutionPlan] = {}
+        for trace in traces:
+            request_id = str(getattr(trace, "request_id", "") or "")
+            if not request_id or request_id in plan_cache:
+                continue
+            plan_cache[request_id] = self._prepare_request_execution_plan(
+                engine,
+                trace,
+                default_max_tokens,
+            )
+        return plan_cache
 
     def _observe_dynamic_scaling_rps(
         self, observed_rps: float, observed_at: float
@@ -3248,7 +4341,88 @@ class ScenarioRunner:
             return True
         if self._low_load_since is None:
             return False
-        return (time.perf_counter() - self._low_load_since) >= self._scale_down_duration_s
+        return (time.perf_counter() - self._low_load_since) >= self._effective_scale_down_min_idle_s()
+
+    def _derive_trace_scale_down_floor_s(self) -> float:
+        """Derive a model-agnostic scale-down floor from the replay arrival shape.
+
+        This is intentionally a lower bound only. The actual scale-down gate is
+        later raised to the observed/predicted runtime restart cost, so changing
+        base models does not require hand-tuning an idle TTL for each model.
+        """
+        arrivals = sorted(float(v) for v in (getattr(self, "_scheduled_arrivals", []) or []))
+        gaps = [
+            max(0.0, float(curr) - float(prev))
+            for prev, curr in zip(arrivals, arrivals[1:])
+            if float(curr) > float(prev)
+        ]
+        trace_gap_floor_s = _percentile_seconds(gaps, 90)
+        scale_eval_floor_s = max(
+            1.0,
+            float(getattr(self, "_scale_eval_interval_s", 1.0) or 1.0),
+        )
+        return max(scale_eval_floor_s, trace_gap_floor_s)
+
+    def _observed_scale_up_restart_seconds(self) -> float:
+        """Estimate the restart cost paid if an idle dedicated runtime is removed.
+
+        The live controller should not reclaim a GPU for a short idle gap when
+        the next burst would immediately pay a longer cold-start. We prefer the
+        observed scale-up cold-start because it includes the runtime becoming
+        ready for service; runtime-startup is a fallback for early runs where no
+        full cold-start samples have been recorded yet.
+        """
+        observed_ms = [
+            float(v)
+            for v in (getattr(self, "_observed_scale_up_cold_start_latencies_ms", []) or [])
+            if float(v or 0.0) > 0.0
+        ]
+        if not observed_ms:
+            observed_ms = [
+                float(v)
+                for v in (getattr(self, "_observed_scale_up_runtime_startup_latencies_ms", []) or [])
+                if float(v or 0.0) > 0.0
+            ]
+        if not observed_ms:
+            handoff_plan = dict(getattr(self, "_last_scale_up_handoff_plan", {}) or {})
+            predicted_ready_delay_ms = float(handoff_plan.get("ready_delay_ms", 0.0) or 0.0)
+            if predicted_ready_delay_ms > 0.0:
+                return max(
+                    max(0.0, float(getattr(self, "_scale_down_startup_break_even_s", 0.0) or 0.0)),
+                    predicted_ready_delay_ms / 1000.0,
+                )
+        if not observed_ms:
+            return max(0.0, float(getattr(self, "_scale_down_startup_break_even_s", 0.0) or 0.0))
+        window = observed_ms[-8:]
+        observed_s = (sum(window) / len(window)) / 1000.0
+        configured_floor = max(
+            0.0,
+            float(getattr(self, "_scale_down_startup_break_even_s", 0.0) or 0.0),
+        )
+        return max(configured_floor, observed_s)
+
+    def _effective_scale_down_min_idle_s(self) -> float:
+        configured_ttl = max(
+            0.0,
+            float(getattr(self, "_scale_down_duration_s", 0.0) or 0.0),
+        )
+        restart_s = self._observed_scale_up_restart_seconds()
+        factor = max(
+            0.0,
+            float(getattr(self, "_scale_down_break_even_factor", 1.0) or 1.0),
+        )
+        if restart_s <= 0.0 or factor <= 0.0:
+            return configured_ttl
+        return max(configured_ttl, restart_s * factor)
+
+    def _effective_scale_down_cooldown_s(self) -> float:
+        configured = max(
+            0.0,
+            float(getattr(self, "_scale_down_cooldown_s", 0.0) or 0.0),
+        )
+        if not bool(getattr(self, "_scale_down_cooldown_auto", False)):
+            return configured
+        return max(configured, self._effective_scale_down_min_idle_s())
 
     def _get_dynamic_warm_pool_size(self) -> Optional[int]:
         """When dynamic_warm_pool, return clip(round(active_loras_ewma*(1+gamma)), min, max); else None."""
@@ -3274,9 +4448,39 @@ class ScenarioRunner:
             kwargs["residency_manager"] = self._stack.residency_manager
         return ResourceCoordinator(**kwargs)
 
-    def _refresh_slot_runtime_hints(self, slot: Optional[Any]) -> None:
+    def _runtime_hints_slot_key(self, slot: Optional[Any]) -> Optional[str]:
+        if slot is None:
+            return None
+        instance_id = getattr(slot, "instance_id", None)
+        if instance_id is not None:
+            return str(instance_id)
+        return f"slot_{id(slot)}"
+
+    def _refresh_slot_runtime_hints(
+        self,
+        slot: Optional[Any],
+        *,
+        force: bool = False,
+    ) -> None:
         if slot is None:
             return
+        interval_s = max(
+            0.0,
+            float(getattr(self, "_runtime_hints_refresh_interval_s", 0.0) or 0.0),
+        )
+        key = self._runtime_hints_slot_key(slot)
+        last_refresh_by_slot = getattr(self, "_runtime_hints_last_refresh_by_slot", None)
+        if last_refresh_by_slot is None:
+            last_refresh_by_slot = {}
+            self._runtime_hints_last_refresh_by_slot = last_refresh_by_slot
+        if not force and interval_s > 0.0 and key is not None:
+            last_refresh = last_refresh_by_slot.get(key)
+            now_mono = time.monotonic()
+            if last_refresh is not None and (now_mono - float(last_refresh)) < interval_s:
+                return
+            last_refresh_by_slot[key] = now_mono
+        elif key is not None:
+            last_refresh_by_slot[key] = time.monotonic()
         if self._stack is not None:
             sync = getattr(self._stack, "sync_local_tier_paths", None)
             if sync is not None:
@@ -3349,12 +4553,12 @@ class ScenarioRunner:
         if hasattr(slot, "update_runtime_hints"):
             slot.update_runtime_hints(metrics)
 
-    def _refresh_all_slot_runtime_hints(self) -> None:
+    def _refresh_all_slot_runtime_hints(self, *, force: bool = False) -> None:
         if self.instance_pool is None:
             return
         self._sync_stack_gpu_accounting()
         for slot in self.instance_pool.get_slots():
-            self._refresh_slot_runtime_hints(slot)
+            self._refresh_slot_runtime_hints(slot, force=force)
 
     def _active_stack_gpu_device_ids(self) -> List[int]:
         device_ids = _resolve_runtime_gpu_device_ids(
@@ -3396,14 +4600,126 @@ class ScenarioRunner:
         model_cfg = getattr(self, "model_cfg", None)
         if not isinstance(model_cfg, dict) or not model_cfg:
             model_cfg = getattr(getattr(self, "engine", None), "model_cfg", {}) or {}
-        raw = model_cfg.get(
-            "runtime_concurrency_cap",
-            model_cfg.get("max_num_seqs", 1),
-        )
+        return _effective_runtime_concurrency_cap(model_cfg)
+
+    def _runtime_max_active_loras(self) -> int:
+        model_cfg = getattr(self, "model_cfg", None)
+        if not isinstance(model_cfg, dict) or not model_cfg:
+            model_cfg = getattr(getattr(self, "engine", None), "model_cfg", {}) or {}
+        raw = model_cfg.get("max_loras", 0) if isinstance(model_cfg, dict) else 0
         try:
-            return max(1, int(raw or 1))
+            return max(0, int(raw or 0))
         except Exception:
-            return 1
+            return 0
+
+    def _slot_can_accept_runtime_request(
+        self,
+        slot: Optional[Any],
+        adapter_id: Optional[str],
+    ) -> bool:
+        if slot is None:
+            return True
+        if max(0, int(getattr(slot, "runtime_forwarding_active", 0) or 0)) > 0:
+            return False
+        active_requests = max(0, int(getattr(slot, "active_requests", 0) or 0))
+        if active_requests >= self._runtime_forward_capacity_limit():
+            return False
+        can_accept = getattr(slot, "can_accept_active_adapter", None)
+        if callable(can_accept) and not can_accept(
+            adapter_id,
+            self._runtime_max_active_loras(),
+        ):
+            return False
+        return True
+
+    def _try_reserve_runtime_request_slot(
+        self,
+        slot: Optional[Any],
+        adapter_id: Optional[str],
+    ) -> Tuple[bool, bool]:
+        """
+        Atomically reserve one execution lane on a slot for the current request.
+
+        Router selection and slot admission both run inside the same asyncio event
+        loop, but multiple request coroutines can still interleave between "slot
+        looked available" and the later bookkeeping that increments
+        ``slot.active_requests``. That race lets several requests enter the same
+        runtime on the stale pre-increment view, oversubscribing the runtime and
+        shifting the resulting queue into the worker/RPC path. Reserve the lane
+        immediately after selection, before any await, so the next coroutine sees
+        the updated occupancy.
+        """
+        if slot is None:
+            return True, False
+        if max(0, int(getattr(slot, "runtime_forwarding_active", 0) or 0)) > 0:
+            return False, False
+        active_requests = max(0, int(getattr(slot, "active_requests", 0) or 0))
+        if active_requests >= self._runtime_forward_capacity_limit():
+            return False, False
+        can_accept = getattr(slot, "can_accept_active_adapter", None)
+        if callable(can_accept) and not can_accept(
+            adapter_id,
+            self._runtime_max_active_loras(),
+        ):
+            return False, False
+        slot.active_requests = active_requests + 1
+        active_adapter_reserved = False
+        if adapter_id and hasattr(slot, "begin_active_adapter"):
+            try:
+                slot.begin_active_adapter(adapter_id)
+                active_adapter_reserved = True
+            except Exception:
+                active_adapter_reserved = False
+        slot.last_selected_at = time.time()
+        return True, active_adapter_reserved
+
+    def _runtime_total_capacity_after_removal(self, remaining_instances: int) -> int:
+        return max(0, int(remaining_instances or 0)) * max(
+            1,
+            int(self._runtime_forward_capacity_limit() or 1),
+        )
+
+    def _slot_idle_seconds(self, slot: Any, *, now_wall: Optional[float] = None) -> float:
+        if now_wall is None:
+            now_wall = time.time()
+        last_idle = float(
+            getattr(
+                slot,
+                "last_idle_at",
+                getattr(slot, "last_selected_at", getattr(slot, "created_at", now_wall)),
+            )
+            or now_wall
+        )
+        return max(0.0, float(now_wall) - last_idle)
+
+    def _slot_ready_age_seconds(
+        self,
+        slot: Any,
+        *,
+        now_wall: Optional[float] = None,
+    ) -> float:
+        if now_wall is None:
+            now_wall = time.time()
+        ready_at = float(getattr(slot, "created_at", now_wall) or now_wall)
+        return max(0.0, float(now_wall) - ready_at)
+
+    def _live_scale_down_cooldown_open(self, now_monotonic: float) -> bool:
+        cooldown_s = max(0.0, float(self._effective_scale_down_cooldown_s()))
+        if cooldown_s <= 0.0:
+            return True
+        last_scale_down_at = max(
+            0.0,
+            float(getattr(self, "_last_live_scale_down_completed_at", 0.0) or 0.0),
+        )
+        if last_scale_down_at > 0.0 and (float(now_monotonic) - last_scale_down_at) < cooldown_s:
+            return False
+        last_scale_up_at = max(
+            0.0,
+            float(getattr(self, "_last_live_scale_up_completed_at", 0.0) or 0.0),
+        )
+        if last_scale_up_at > 0.0 and (float(now_monotonic) - last_scale_up_at) < cooldown_s:
+            return False
+        return True
 
     def _runtime_forward_has_capacity(self, slot: Optional[Any], coordinator: Optional[Any]) -> bool:
         if slot is None or coordinator is None:
@@ -3411,6 +4727,16 @@ class ScenarioRunner:
         capacity_limit = self._runtime_forward_capacity_limit()
         if capacity_limit <= 0:
             return False
+        if max(0, int(getattr(slot, "runtime_forwarding_active", 0) or 0)) > 0:
+            return False
+        # GPU forwarding is an opportunistic background action. If online requests
+        # are already waiting in the shared visible queue, inference wins; otherwise
+        # the forwarding RPC can hide queueing inside the worker and inflate TPOT/E2E.
+        try:
+            if self._current_live_waiting_trace_queue():
+                return False
+        except Exception:
+            pass
         active_requests = max(0, int(getattr(slot, "active_requests", 0) or 0))
         # Background GPU forwarding should never compete with an in-flight request's
         # decode path on the same runtime. Only use truly idle windows for proactive
@@ -3456,6 +4782,7 @@ class ScenarioRunner:
 
     async def _run_runtime_gpu_forward(self, slot: Any, candidate: Dict[str, Any]) -> None:
         key = self._runtime_forward_task_key(slot)
+        forwarding_marked = False
         try:
             if slot is None or candidate is None or self._stack is None:
                 return
@@ -3572,12 +4899,27 @@ class ScenarioRunner:
                 except Exception:
                     return
                 async with semaphore:
+                    if not self._runtime_forward_has_capacity(slot, coordinator):
+                        return
+                    if hasattr(slot, "begin_runtime_forwarding"):
+                        slot.begin_runtime_forwarding()
+                        forwarding_marked = True
                     await _load_once()
             else:
+                if not self._runtime_forward_has_capacity(slot, coordinator):
+                    return
+                if hasattr(slot, "begin_runtime_forwarding"):
+                    slot.begin_runtime_forwarding()
+                    forwarding_marked = True
                 await _load_once()
         except Exception:
             pass
         finally:
+            if forwarding_marked and hasattr(slot, "end_runtime_forwarding"):
+                try:
+                    slot.end_runtime_forwarding()
+                except Exception:
+                    pass
             if slot is not None:
                 self._refresh_slot_runtime_hints(slot)
             if key is not None:
@@ -3697,6 +5039,7 @@ class ScenarioRunner:
             primary = group[0]
             label = ",".join(slot.instance_id for slot in group)
             active = sum(max(0, int(getattr(slot, "active_requests", 0))) for slot in group)
+            forwarding = sum(max(0, int(getattr(slot, "runtime_forwarding_active", 0) or 0)) for slot in group)
             queue_depth = max(int(getattr(slot, "load_queue_depth", 0)) for slot in group)
             gpu_util = max(float(getattr(slot, "gpu_utilization_pct", 0.0)) for slot in group)
             resident_mb = max(float(getattr(slot, "resident_lora_mb", 0.0)) for slot in group)
@@ -3706,7 +5049,7 @@ class ScenarioRunner:
             lines.append(
                 "      "
                 f"{label} gpu={getattr(primary, 'device_id', '?')} "
-                f"active={active} queue={queue_depth} util={gpu_util:.0f}% "
+                f"active={active} fwd={forwarding} queue={queue_depth} util={gpu_util:.0f}% "
                 f"resident={resident_mb:.0f}MB cache[g/h/n]={gpu_cached}/{host_cached}/{nvme_cached}"
             )
         return lines
@@ -4623,6 +5966,17 @@ class ScenarioRunner:
                     or fallback_runtime_cap
                 ),
             ),
+            max_active_loras=max(
+                0,
+                int(
+                    getattr(
+                        router,
+                        "max_active_loras",
+                        self._runtime_max_active_loras(),
+                    )
+                    or self._runtime_max_active_loras()
+                ),
+            ),
         )
         runtime_cap = max(
             1, int(getattr(sim_router, "runtime_concurrency_cap", 1) or 1)
@@ -4659,6 +6013,11 @@ class ScenarioRunner:
                     0, int(getattr(selected, "load_queue_depth", 0) or 0)
                 ) + 1
             selected.active_requests = current_active + 1
+            if adapter_id and hasattr(selected, "begin_active_adapter"):
+                try:
+                    selected.begin_active_adapter(adapter_id)
+                except Exception:
+                    pass
             selected.last_selected_at = logical_time
             logical_time += 1e-6
             if adapter_id and hasattr(selected, "mark_adapter_tier"):
@@ -4937,6 +6296,25 @@ class ScenarioRunner:
         if runtime_startup_latency_ms <= 0.0:
             return plan
 
+        original_planned_adapters = [
+            str(adapter_id)
+            for adapter_id in list(plan.get("planned_adapters", []) or [])
+            if adapter_id
+        ]
+        original_ordered_handoff = [
+            str(adapter_id)
+            for adapter_id in list(plan.get("ordered_handoff_adapters", []) or [])
+            if adapter_id
+        ]
+        original_first_service_budget = max(
+            0,
+            int(
+                plan.get("first_service_request_count", 0)
+                or plan.get("initial_admission_request_budget", 0)
+                or 0
+            ),
+        )
+
         replay_t0 = getattr(self, "_active_replay_t0", None)
         if replay_t0 is None:
             plan["bootstrap_latency_ms"] = runtime_startup_latency_ms
@@ -4975,6 +6353,68 @@ class ScenarioRunner:
         )
         if runtime_plan_index < len(refreshed_runtime_plans):
             refreshed_plan = dict(refreshed_runtime_plans[runtime_plan_index] or {})
+            preserved_planned_prefix = False
+            refreshed_planned_adapters = [
+                str(adapter_id)
+                for adapter_id in list(refreshed_plan.get("planned_adapters", []) or [])
+                if adapter_id
+            ]
+            refreshed_ordered_handoff = [
+                str(adapter_id)
+                for adapter_id in list(refreshed_plan.get("ordered_handoff_adapters", []) or [])
+                if adapter_id
+            ]
+            refreshed_first_service_budget = max(
+                0,
+                int(refreshed_plan.get("first_service_request_count", 0) or 0),
+            )
+            if not refreshed_planned_adapters and original_planned_adapters:
+                refreshed_planned_adapters = list(original_planned_adapters)
+                refreshed_plan["planned_adapters"] = list(refreshed_planned_adapters)
+                preserved_planned_prefix = True
+            if not refreshed_ordered_handoff and original_ordered_handoff:
+                refreshed_ordered_handoff = list(original_ordered_handoff)
+                refreshed_plan["ordered_handoff_adapters"] = list(
+                    refreshed_ordered_handoff
+                )
+                preserved_planned_prefix = True
+            if refreshed_first_service_budget <= 0 and refreshed_planned_adapters:
+                refreshed_first_service_budget = max(1, original_first_service_budget)
+                refreshed_plan["first_service_request_count"] = (
+                    refreshed_first_service_budget
+                )
+                refreshed_plan["first_service_adapter_count"] = max(
+                    int(refreshed_plan.get("first_service_adapter_count", 0) or 0),
+                    len(
+                        self._ordered_unique_adapter_ids(
+                            refreshed_ordered_handoff or refreshed_planned_adapters
+                        )
+                    ),
+                )
+                refreshed_plan["first_service_scanned_request_count"] = max(
+                    int(
+                        refreshed_plan.get("first_service_scanned_request_count", 0)
+                        or 0
+                    ),
+                    refreshed_first_service_budget,
+                )
+            if preserved_planned_prefix and refreshed_planned_adapters:
+                refreshed_plan["exact_prefix_bytes"] = self._scale_up_adapter_total_bytes(
+                    refreshed_planned_adapters
+                )
+                refreshed_plan["plan_load_latency_ms"] = self._predicted_scale_up_load_ms(
+                    refreshed_planned_adapters,
+                    max_concurrent_loads=max(
+                        1,
+                        int(
+                            refreshed_plan.get(
+                                "configured_max_concurrent_loads",
+                                plan.get("configured_max_concurrent_loads", 1),
+                            )
+                            or 1
+                        ),
+                    ),
+                )
             refreshed_plan["_runtime_plan_index"] = runtime_plan_index
             if pending_sequence is not None:
                 refreshed_plan["_pending_scaleup_sequence"] = int(pending_sequence)
@@ -5851,7 +7291,12 @@ class ScenarioRunner:
             service_ttft = [_request_service_ttft_ms(item) for item in ok]
             e2e = [_request_overall_e2e_ms(item) for item in ok]
             service_e2e = [_request_service_e2e_ms(item) for item in ok]
-            tpot = [float(getattr(item, "tpot_ms", 0.0) or 0.0) for item in ok if float(getattr(item, "tpot_ms", 0.0) or 0.0) > 0]
+            tpot = [
+                float(getattr(item, "tpot_ms", 0.0) or 0.0)
+                for item in ok
+                if float(getattr(item, "tpot_ms", 0.0) or 0.0) > 0
+                and bool(getattr(item, "tpot_observed", True))
+            ]
             tpot_eligible = [
                 item for item in ok
                 if int(getattr(item, "output_tokens", 0) or 0) > 1
@@ -5867,6 +7312,18 @@ class ScenarioRunner:
                 float(getattr(item, "dispatch_admission_wait_ms", 0.0) or 0.0)
                 for item in ok
             ]
+            dispatch_window_waits = [
+                float(getattr(item, "dispatch_window_wait_ms", 0.0) or 0.0)
+                for item in ok
+            ]
+            runtime_slot_waits = [
+                float(getattr(item, "runtime_slot_wait_ms", 0.0) or 0.0)
+                for item in ok
+            ]
+            arrival_release_lateness = [
+                float(getattr(item, "arrival_release_lateness_ms", 0.0) or 0.0)
+                for item in ok
+            ]
             overheads = [
                 dispatch_wait + service_overhead
                 for dispatch_wait, service_overhead in zip(dispatch_waits, service_overheads)
@@ -5875,6 +7332,61 @@ class ScenarioRunner:
                 float(getattr(item, "vllm_ttft_ms", 0.0) or 0.0)
                 for item in ok
                 if float(getattr(item, "vllm_ttft_ms", 0.0) or 0.0) > 0.0
+            ]
+            runtime_estimated_e2e = [
+                float(getattr(item, "runtime_estimated_e2e_ms", 0.0) or 0.0)
+                for item in ok
+                if float(getattr(item, "runtime_estimated_e2e_ms", 0.0) or 0.0) > 0.0
+            ]
+            worker_wall_e2e = [
+                float(getattr(item, "worker_wall_e2e_ms", 0.0) or 0.0)
+                for item in ok
+                if float(getattr(item, "worker_wall_e2e_ms", 0.0) or 0.0) > 0.0
+            ]
+            worker_rpc_handler_wall = [
+                float(getattr(item, "worker_rpc_handler_wall_ms", 0.0) or 0.0)
+                for item in ok
+                if float(getattr(item, "worker_rpc_handler_wall_ms", 0.0) or 0.0) > 0.0
+            ]
+            worker_engine_shell = [
+                float(getattr(item, "worker_engine_shell_ms", 0.0) or 0.0)
+                for item in ok
+                if float(getattr(item, "worker_engine_shell_ms", 0.0) or 0.0) >= 0.0
+            ]
+            worker_rpc_queue = [
+                float(getattr(item, "worker_rpc_queue_ms", 0.0) or 0.0)
+                for item in ok
+                if float(getattr(item, "worker_rpc_queue_ms", 0.0) or 0.0) >= 0.0
+            ]
+            parent_rpc_overhead = [
+                float(getattr(item, "parent_rpc_overhead_ms", 0.0) or 0.0)
+                for item in ok
+                if float(getattr(item, "parent_rpc_overhead_ms", 0.0) or 0.0) >= 0.0
+            ]
+            parent_rpc_channel_acquire = [
+                float(getattr(item, "parent_rpc_channel_acquire_ms", 0.0) or 0.0)
+                for item in ok
+                if float(getattr(item, "parent_rpc_channel_acquire_ms", 0.0) or 0.0) >= 0.0
+            ]
+            parent_rpc_response_pickup = [
+                float(getattr(item, "parent_rpc_response_pickup_delay_ms", 0.0) or 0.0)
+                for item in ok
+                if float(getattr(item, "parent_rpc_response_pickup_delay_ms", 0.0) or 0.0) >= 0.0
+            ]
+            parent_rpc_thread_resume = [
+                float(getattr(item, "parent_rpc_thread_resume_delay_ms", 0.0) or 0.0)
+                for item in ok
+                if float(getattr(item, "parent_rpc_thread_resume_delay_ms", 0.0) or 0.0) >= 0.0
+            ]
+            service_path_residual = [
+                float(getattr(item, "service_path_residual_ms", 0.0) or 0.0)
+                for item in ok
+                if float(getattr(item, "service_path_residual_ms", 0.0) or 0.0) >= 0.0
+            ]
+            pre_runtime_service_shell = [
+                float(getattr(item, "pre_runtime_service_shell_ms", 0.0) or 0.0)
+                for item in ok
+                if float(getattr(item, "pre_runtime_service_shell_ms", 0.0) or 0.0) >= 0.0
             ]
             gpu_ready_ttft = [
                 _request_overall_ttft_ms(item)
@@ -5974,14 +7486,109 @@ class ScenarioRunner:
                 "p95_service_overhead_ms": self._live_percentile(service_overheads, 95) if service_overheads else 0.0,
                 "avg_dispatch_admission_wait_ms": sum(dispatch_waits) / len(dispatch_waits) if dispatch_waits else 0.0,
                 "p95_dispatch_admission_wait_ms": self._live_percentile(dispatch_waits, 95) if dispatch_waits else 0.0,
+                "avg_dispatch_window_wait_ms": (
+                    sum(dispatch_window_waits) / len(dispatch_window_waits)
+                ) if dispatch_window_waits else 0.0,
+                "p95_dispatch_window_wait_ms": self._live_percentile(
+                    dispatch_window_waits, 95
+                ) if dispatch_window_waits else 0.0,
+                "avg_runtime_slot_wait_ms": (
+                    sum(runtime_slot_waits) / len(runtime_slot_waits)
+                ) if runtime_slot_waits else 0.0,
+                "p95_runtime_slot_wait_ms": self._live_percentile(
+                    runtime_slot_waits, 95
+                ) if runtime_slot_waits else 0.0,
                 "avg_ingress_queue_wait_ms": (
                     sum(float(getattr(item, "ingress_queue_wait_ms", 0.0) or 0.0) for item in ok) / len(ok)
                 ) if ok else 0.0,
+                "avg_arrival_release_lateness_ms": (
+                    sum(arrival_release_lateness) / len(arrival_release_lateness)
+                ) if arrival_release_lateness else 0.0,
                 "p95_ingress_queue_wait_ms": self._live_percentile(
                     [float(getattr(item, "ingress_queue_wait_ms", 0.0) or 0.0) for item in ok], 95
                 ) if ok else 0.0,
+                "p95_arrival_release_lateness_ms": self._live_percentile(
+                    arrival_release_lateness, 95
+                ) if arrival_release_lateness else 0.0,
                 "avg_runtime_ttft_ms": (sum(runtime_ttft) / len(runtime_ttft)) if runtime_ttft else 0.0,
                 "p95_runtime_ttft_ms": self._live_percentile(runtime_ttft, 95) if runtime_ttft else 0.0,
+                "avg_runtime_estimated_e2e_ms": (
+                    sum(runtime_estimated_e2e) / len(runtime_estimated_e2e)
+                ) if runtime_estimated_e2e else 0.0,
+                "p95_runtime_estimated_e2e_ms": (
+                    self._live_percentile(runtime_estimated_e2e, 95)
+                    if runtime_estimated_e2e else 0.0
+                ),
+                "avg_worker_wall_e2e_ms": (
+                    sum(worker_wall_e2e) / len(worker_wall_e2e)
+                ) if worker_wall_e2e else 0.0,
+                "p95_worker_wall_e2e_ms": (
+                    self._live_percentile(worker_wall_e2e, 95)
+                    if worker_wall_e2e else 0.0
+                ),
+                "avg_worker_rpc_handler_wall_ms": (
+                    sum(worker_rpc_handler_wall) / len(worker_rpc_handler_wall)
+                ) if worker_rpc_handler_wall else 0.0,
+                "p95_worker_rpc_handler_wall_ms": (
+                    self._live_percentile(worker_rpc_handler_wall, 95)
+                    if worker_rpc_handler_wall else 0.0
+                ),
+                "avg_worker_engine_shell_ms": (
+                    sum(worker_engine_shell) / len(worker_engine_shell)
+                ) if worker_engine_shell else 0.0,
+                "p95_worker_engine_shell_ms": (
+                    self._live_percentile(worker_engine_shell, 95)
+                    if worker_engine_shell else 0.0
+                ),
+                "avg_worker_rpc_queue_ms": (
+                    sum(worker_rpc_queue) / len(worker_rpc_queue)
+                ) if worker_rpc_queue else 0.0,
+                "p95_worker_rpc_queue_ms": (
+                    self._live_percentile(worker_rpc_queue, 95)
+                    if worker_rpc_queue else 0.0
+                ),
+                "avg_parent_rpc_overhead_ms": (
+                    sum(parent_rpc_overhead) / len(parent_rpc_overhead)
+                ) if parent_rpc_overhead else 0.0,
+                "p95_parent_rpc_overhead_ms": (
+                    self._live_percentile(parent_rpc_overhead, 95)
+                    if parent_rpc_overhead else 0.0
+                ),
+                "avg_parent_rpc_channel_acquire_ms": (
+                    sum(parent_rpc_channel_acquire) / len(parent_rpc_channel_acquire)
+                ) if parent_rpc_channel_acquire else 0.0,
+                "p95_parent_rpc_channel_acquire_ms": (
+                    self._live_percentile(parent_rpc_channel_acquire, 95)
+                    if parent_rpc_channel_acquire else 0.0
+                ),
+                "avg_parent_rpc_response_pickup_delay_ms": (
+                    sum(parent_rpc_response_pickup) / len(parent_rpc_response_pickup)
+                ) if parent_rpc_response_pickup else 0.0,
+                "p95_parent_rpc_response_pickup_delay_ms": (
+                    self._live_percentile(parent_rpc_response_pickup, 95)
+                    if parent_rpc_response_pickup else 0.0
+                ),
+                "avg_parent_rpc_thread_resume_delay_ms": (
+                    sum(parent_rpc_thread_resume) / len(parent_rpc_thread_resume)
+                ) if parent_rpc_thread_resume else 0.0,
+                "p95_parent_rpc_thread_resume_delay_ms": (
+                    self._live_percentile(parent_rpc_thread_resume, 95)
+                    if parent_rpc_thread_resume else 0.0
+                ),
+                "avg_service_path_residual_ms": (
+                    sum(service_path_residual) / len(service_path_residual)
+                ) if service_path_residual else 0.0,
+                "p95_service_path_residual_ms": (
+                    self._live_percentile(service_path_residual, 95)
+                    if service_path_residual else 0.0
+                ),
+                "avg_pre_runtime_service_shell_ms": (
+                    sum(pre_runtime_service_shell) / len(pre_runtime_service_shell)
+                ) if pre_runtime_service_shell else 0.0,
+                "p95_pre_runtime_service_shell_ms": (
+                    self._live_percentile(pre_runtime_service_shell, 95)
+                    if pre_runtime_service_shell else 0.0
+                ),
                 "avg_gpu_ready_ttft_ms": (sum(gpu_ready_ttft) / len(gpu_ready_ttft)) if gpu_ready_ttft else 0.0,
                 "avg_scaleup_affected_ttft_ms": (sum(scaleup_ttft) / len(scaleup_ttft)) if scaleup_ttft else 0.0,
                 "avg_scaleup_runtime_ttft_ms": (sum(scaleup_runtime_ttft) / len(scaleup_runtime_ttft)) if scaleup_runtime_ttft else 0.0,
@@ -6170,8 +7777,19 @@ class ScenarioRunner:
                 "      "
                 f"scaleup_ttft={stats.get('avg_scaleup_affected_ttft_ms', 0.0):.0f}ms "
                 f"runtime={stats.get('avg_runtime_ttft_ms', 0.0):.0f}ms "
+                f"runtime_e2e={stats.get('avg_runtime_estimated_e2e_ms', 0.0):.0f}ms "
+                f"worker_wall={stats.get('avg_worker_wall_e2e_ms', 0.0):.0f}ms "
+                f"worker_shell={stats.get('avg_worker_engine_shell_ms', 0.0):.0f}ms "
+                f"worker_q={stats.get('avg_worker_rpc_queue_ms', 0.0):.0f}ms "
+                f"pre_runtime={stats.get('avg_pre_runtime_service_shell_ms', 0.0):.0f}ms "
+                f"svc_residual={stats.get('avg_service_path_residual_ms', 0.0):.0f}ms "
+                f"rpc_ovh={stats.get('avg_parent_rpc_overhead_ms', 0.0):.0f}ms "
+                f"rpc_acq={stats.get('avg_parent_rpc_channel_acquire_ms', 0.0):.0f}ms "
+                f"rpc_pickup={stats.get('avg_parent_rpc_response_pickup_delay_ms', 0.0):.0f}ms "
+                f"rpc_resume={stats.get('avg_parent_rpc_thread_resume_delay_ms', 0.0):.0f}ms "
                 f"gpu_ready={stats.get('avg_gpu_ready_ttft_ms', 0.0):.0f}ms "
                 f"diag hit={stats.get('cache_hit_ratio', 0.0):.0%} "
+                f"arrival_late={stats.get('avg_arrival_release_lateness_ms', 0.0):.0f}ms "
                 f"dispatch_wait={stats.get('avg_dispatch_admission_wait_ms', 0.0):.0f}ms "
                 f"overhead(e2e_path)={stats.get('avg_serverless_overhead_ms', 0.0):.0f}ms "
                 f"overhead(service_path)={stats.get('avg_service_overhead_ms', 0.0):.0f}ms "
@@ -6245,10 +7863,15 @@ class ScenarioRunner:
             for device_id in getattr(self, "_pending_scale_up_device_ids", set()) or set()
             if device_id is not None
         )
+        used.update(
+            int(device_id)
+            for device_id in getattr(self, "_failed_runtime_device_ids", set()) or set()
+            if device_id is not None
+        )
         for device_id in device_ids:
             if device_id not in used:
                 return device_id
-        return device_ids[self.instance_pool.count() % len(device_ids)]
+        return None
 
     def _scheduled_offset(self, trace: RequestTrace) -> float:
         return max(0.0, trace.arrival_time - self._arrival_base)
@@ -6414,6 +8037,11 @@ class ScenarioRunner:
         if self._dispatch_admission_mode() == "workload_capped":
             workload_limit = self._configured_workload_concurrency()
             return min(workload_limit, aggregate_runtime_capacity)
+        # For this replay harness, allowing extra admitted requests beyond the
+        # physical runtime capacity increases control-plane contention on the
+        # shared event loop faster than it improves routing opportunity. Keep
+        # the dispatch gate aligned with the true runtime capacity so open-loop
+        # trace replay preserves stable backpressure semantics.
         return aggregate_runtime_capacity
 
     def _current_dispatch_capacity_limit(self) -> int:
@@ -6423,22 +8051,47 @@ class ScenarioRunner:
             self._dispatch_capacity_limit_for_runtime_groups(runtime_groups),
         )
 
-    def _dispatch_capacity_cond(self) -> asyncio.Condition:
-        cond = getattr(self, "_dispatch_capacity_condition", None)
+    def _dispatch_admission_cond(self) -> asyncio.Condition:
+        cond = getattr(self, "_dispatch_admission_condition", None)
         if cond is None:
             cond = asyncio.Condition()
-            self._dispatch_capacity_condition = cond
+            self._dispatch_admission_condition = cond
         return cond
 
-    async def _notify_dispatch_capacity_changed(self) -> None:
-        cond = getattr(self, "_dispatch_capacity_condition", None)
+    def _runtime_slot_capacity_cond(self) -> asyncio.Condition:
+        cond = getattr(self, "_runtime_slot_capacity_condition", None)
         if cond is None:
+            cond = asyncio.Condition()
+            self._runtime_slot_capacity_condition = cond
+        return cond
+
+    async def _notify_dispatch_capacity_changed(
+        self,
+        *,
+        wake_all: bool = False,
+        notify_admission: bool = True,
+        slot_wake_all: Optional[bool] = None,
+    ) -> None:
+        admission_cond = getattr(self, "_dispatch_admission_condition", None)
+        if notify_admission and admission_cond is not None:
+            async with admission_cond:
+                if wake_all:
+                    admission_cond.notify_all()
+                else:
+                    admission_cond.notify(1)
+        runtime_cond = getattr(self, "_runtime_slot_capacity_condition", None)
+        if runtime_cond is None:
             return
-        async with cond:
-            cond.notify_all()
+        if slot_wake_all is None:
+            slot_wake_all = wake_all
+        async with runtime_cond:
+            if slot_wake_all:
+                runtime_cond.notify_all()
+            else:
+                runtime_cond.notify(1)
 
     async def _acquire_dispatch_admission(self) -> None:
-        cond = self._dispatch_capacity_cond()
+        cond = self._dispatch_admission_cond()
         async with cond:
             while int(getattr(self, "_dispatch_admitted_requests", 0) or 0) >= self._current_dispatch_capacity_limit():
                 await cond.wait()
@@ -6447,13 +8100,13 @@ class ScenarioRunner:
             ) + 1
 
     async def _release_dispatch_admission(self) -> None:
-        cond = self._dispatch_capacity_cond()
+        cond = self._dispatch_admission_cond()
         async with cond:
             self._dispatch_admitted_requests = max(
                 0,
                 int(getattr(self, "_dispatch_admitted_requests", 0) or 0) - 1,
             )
-            cond.notify_all()
+            cond.notify(1)
 
     def _live_scale_eval_period_s(self) -> float:
         try:
@@ -6503,15 +8156,23 @@ class ScenarioRunner:
             return False
         return (now_monotonic - self._live_scale_eval_last_at) >= self._live_scale_eval_period_s()
 
-    def _select_scale_down_candidate_slot(self) -> Optional[Any]:
+    def _select_scale_down_candidate_slot(
+        self,
+        *,
+        min_idle_s: Optional[float] = None,
+    ) -> Optional[Any]:
         if self.instance_pool is None:
+            return None
+        get_slots = getattr(self.instance_pool, "get_slots", None)
+        if not callable(get_slots):
             return None
         min_instances = max(1, int(getattr(self.instance_pool, "min_instances", 1) or 1))
         if self.instance_pool.count() <= min_instances:
             return None
+        now_wall = time.time()
         candidates = [
             slot
-            for slot in self.instance_pool.get_slots()
+            for slot in get_slots()
             if slot.instance_id != self._primary_instance_id
         ]
         if not candidates:
@@ -6520,7 +8181,20 @@ class ScenarioRunner:
             slot for slot in candidates
             if int(getattr(slot, "active_requests", 0) or 0) <= 0
             and int(getattr(slot, "load_queue_depth", 0) or 0) <= 0
+            and max(0, int(getattr(slot, "runtime_forwarding_active", 0) or 0)) <= 0
         ]
+        if min_idle_s is not None:
+            idle_threshold = max(0.0, float(min_idle_s or 0.0))
+            idle_candidates = [
+                slot for slot in idle_candidates
+                if self._slot_idle_seconds(slot, now_wall=now_wall) >= idle_threshold
+            ]
+        scale_down_cooldown_s = max(0.0, float(self._effective_scale_down_cooldown_s()))
+        if scale_down_cooldown_s > 0.0:
+            idle_candidates = [
+                slot for slot in idle_candidates
+                if self._slot_ready_age_seconds(slot, now_wall=now_wall) >= scale_down_cooldown_s
+            ]
         if not idle_candidates:
             return None
         return min(
@@ -6528,10 +8202,47 @@ class ScenarioRunner:
             key=lambda slot: (
                 int(getattr(slot, "active_requests", 0) or 0),
                 int(getattr(slot, "load_queue_depth", 0) or 0),
+                -self._slot_idle_seconds(slot, now_wall=now_wall),
                 float(getattr(slot, "last_selected_at", 0.0) or 0.0),
                 float(getattr(slot, "created_at", 0.0) or 0.0),
             ),
         )
+
+    def _can_scale_down_idle_slot_under_visible_pressure(
+        self,
+        *,
+        backlog: int,
+        active_requests: int,
+        now_monotonic: Optional[float] = None,
+    ) -> bool:
+        """Allow serverless-style per-replica TTL without waiting for global idle.
+
+        The previous live scale-down path required the whole system to have no
+        backlog and no active request. That is safe but too conservative for a
+        serverless pool: a replica can be released once that replica is idle and
+        the remaining replicas can still cover all currently visible work.
+        """
+        if self.instance_pool is None:
+            return False
+        if now_monotonic is None:
+            now_monotonic = time.perf_counter()
+        if not self._live_scale_down_cooldown_open(float(now_monotonic)):
+            return False
+        actual_instances = max(0, int(self.instance_pool.count() or 0))
+        min_instances = max(1, int(getattr(self.instance_pool, "min_instances", 1) or 1))
+        if actual_instances <= min_instances:
+            return False
+        if self._pending_scale_up_count() > 0:
+            return False
+        min_idle_s = self._effective_scale_down_min_idle_s()
+        candidate = self._select_scale_down_candidate_slot(
+            min_idle_s=min_idle_s,
+        )
+        if candidate is None:
+            return False
+        remaining_capacity = self._runtime_total_capacity_after_removal(actual_instances - 1)
+        visible_work = max(0, int(backlog or 0), int(active_requests or 0))
+        return visible_work <= remaining_capacity
 
     async def _maybe_run_live_scale_control_evaluation(
         self,
@@ -6577,6 +8288,7 @@ class ScenarioRunner:
         metrics = ScalingMetrics(
             requests_per_second=arrival_rps,
             request_queue_length=max(0, backlog),
+            dispatch_admission_wait_ms=_avg_success_dispatch_wait_ms(results_view),
             avg_response_time_ms=_avg_success_e2e_ms(results_view),
             avg_ttft_ms=_avg_success_ttft_ms(results_view),
             gpu_utilization=gpu_util,
@@ -6586,49 +8298,112 @@ class ScenarioRunner:
         actual_current_instances = max(0, int(self.instance_pool.count() or 0))
         pending_scale_up_instances = self._pending_scale_up_count()
         current_instances = actual_current_instances + pending_scale_up_instances
+        live_overrides = dict(self._live_scale_overrides or {})
+        runtime_total_capacity_fn = getattr(self, "_runtime_total_capacity", None)
+        if callable(runtime_total_capacity_fn):
+            visible_capacity = max(
+                1,
+                int(runtime_total_capacity_fn(max(1, current_instances)) or 1),
+            )
+        else:
+            runtime_lane_cap = max(1, int(self._runtime_forward_capacity_limit() or 1))
+            visible_capacity = max(1, runtime_lane_cap * max(1, current_instances))
+        # Queue pressure should be judged against the currently available
+        # runtime lanes, not a static backlog=10 heuristic. This keeps the
+        # controller adapter/model agnostic while still reacting early when a
+        # single runtime is already saturated.
+        live_overrides["scale_up_threshold_queue_length"] = float(max(2, visible_capacity))
+        live_overrides["scale_down_threshold_queue_length"] = 0.0
         decision = self._stack.autoscaler.make_scaling_decision_with_metrics(
             metrics,
             current_instances=current_instances,
-            overrides=self._live_scale_overrides,
+            overrides=live_overrides,
         )
         if decision.action == ScalingAction.SCALE_DOWN:
-            if backlog > 0 or active_requests > 0 or busy_ratio > 0.0:
-                return False
-            if not self._should_trigger_scale_down():
-                return False
-            scale_down_event = await self._scale_down_one_instance(require_idle=True)
-            if not scale_down_event:
-                return False
-            self._live_scale_eval_last_at = now_mono
-            arrived_request_count = self._arrived_request_count(replay_t0)
-            request_index = max(
-                0,
-                int(
-                    visible_request_count
-                    if visible_request_count is not None
-                    else arrived_request_count
-                    or 0
-                ),
-            )
-            result.scale_down_events += 1
-            result.scale_down_event_log.append({
-                "timestamp": time.time(),
-                "request_index": request_index,
-                "queue_visible_request_count": request_index,
-                "completed_request_count": max(0, int(completed_count or 0)),
-                "arrived_request_count": max(0, int(arrived_request_count or 0)),
-                "reason": decision.reason,
-                **scale_down_event,
-            })
-            print(
-                f"    Scale-down decision: reason={decision.reason} "
-                f"instances={current_instances}->{decision.target_instances} "
-                f"arrival_rps={arrival_rps:.2f} backlog={max(0, backlog)} "
-                f"active={active_requests} busy={busy_ratio:.2f}",
-                flush=True,
-            )
-            return True
+            if backlog <= 0 and active_requests <= 0 and busy_ratio <= 0.0:
+                if not self._live_scale_down_cooldown_open(now_mono):
+                    return False
+                if not self._should_trigger_scale_down():
+                    return False
+                scale_down_min_idle_s = self._effective_scale_down_min_idle_s()
+                scale_down_event = await self._scale_down_one_instance(
+                    require_idle=True,
+                    min_idle_s=scale_down_min_idle_s,
+                )
+                if not scale_down_event:
+                    return False
+                self._live_scale_eval_last_at = now_mono
+                self._last_live_scale_down_completed_at = now_mono
+                arrived_request_count = self._arrived_request_count(replay_t0)
+                request_index = max(
+                    0,
+                    int(
+                        visible_request_count
+                        if visible_request_count is not None
+                        else arrived_request_count
+                        or 0
+                    ),
+                )
+                result.scale_down_events += 1
+                result.scale_down_event_log.append({
+                    "timestamp": time.time(),
+                    "request_index": request_index,
+                    "queue_visible_request_count": request_index,
+                    "completed_request_count": max(0, int(completed_count or 0)),
+                    "arrived_request_count": max(0, int(arrived_request_count or 0)),
+                    "reason": decision.reason,
+                    **scale_down_event,
+                })
+                print(
+                    f"    Scale-down decision: reason={decision.reason} "
+                    f"instances={current_instances}->{decision.target_instances} "
+                    f"arrival_rps={arrival_rps:.2f} backlog={max(0, backlog)} "
+                    f"active={active_requests} busy={busy_ratio:.2f}",
+                    flush=True,
+                )
+                return True
         if decision.action != ScalingAction.SCALE_UP:
+            if self._can_scale_down_idle_slot_under_visible_pressure(
+                backlog=backlog,
+                active_requests=active_requests,
+                now_monotonic=now_mono,
+            ):
+                scale_down_min_idle_s = self._effective_scale_down_min_idle_s()
+                scale_down_event = await self._scale_down_one_instance(
+                    require_idle=True,
+                    min_idle_s=scale_down_min_idle_s,
+                )
+                if scale_down_event:
+                    self._live_scale_eval_last_at = now_mono
+                    self._last_live_scale_down_completed_at = now_mono
+                    arrived_request_count = self._arrived_request_count(replay_t0)
+                    request_index = max(
+                        0,
+                        int(
+                            visible_request_count
+                            if visible_request_count is not None
+                            else arrived_request_count
+                            or 0
+                        ),
+                    )
+                    result.scale_down_events += 1
+                    result.scale_down_event_log.append({
+                        "timestamp": time.time(),
+                        "request_index": request_index,
+                        "queue_visible_request_count": request_index,
+                        "completed_request_count": max(0, int(completed_count or 0)),
+                        "arrived_request_count": max(0, int(arrived_request_count or 0)),
+                        "reason": "idle_slot_ttl_safe_capacity",
+                        **scale_down_event,
+                    })
+                    print(
+                        "    Scale-down decision: reason=idle_slot_ttl_safe_capacity "
+                        f"instances={current_instances}->{max(1, actual_current_instances - 1)} "
+                        f"arrival_rps={arrival_rps:.2f} backlog={max(0, backlog)} "
+                        f"active={active_requests} busy={busy_ratio:.2f}",
+                        flush=True,
+                    )
+                    return True
             if backlog <= 0 and active_requests <= 0 and busy_ratio <= 0.0:
                 self._live_scale_eval_last_at = now_mono
             return False
@@ -6879,77 +8654,120 @@ class ScenarioRunner:
         arrival, and the autoscaler/router observe that same online queue state.
         """
         self._active_replay_t0 = replay_t0
-        tasks = [
-            asyncio.create_task(run_one_fn(trace_start_index + i, trace))
-            for i, trace in enumerate(traces)
-        ]
-        observed_done: set[int] = set()
+        launched_count = 0
+        completed_indices: set[int] = set()
         observed_raw: List[Any] = []
-        pending = set(tasks)
-        task_to_idx = {task: idx for idx, task in enumerate(tasks)}
+        active_tasks: set[asyncio.Task] = set()
+        task_to_idx: Dict[asyncio.Task, int] = {}
+        results_by_idx: Dict[int, Any] = {}
 
-        while pending:
-            done_now, pending = await asyncio.wait(
-                pending,
-                timeout=0.02,
-                return_when=asyncio.FIRST_COMPLETED,
-            )
-            for task in done_now:
-                idx = task_to_idx[task]
-                if idx in observed_done:
-                    continue
-                observed_done.add(idx)
-                try:
-                    observed_raw.append(task.result())
-                except Exception as exc:
-                    observed_raw.append(exc)
-            completed_now = completed_before_window + len(observed_done)
-            backlog = self._backlog_depth(completed_now, replay_t0)
-            active_requests = self._active_request_count()
-            busy_ratio = self._busy_instance_ratio()
-            arrived_now = self._arrived_request_count(replay_t0)
-            waiting_traces = self._waiting_visible_trace_queue()
-            await self._maybe_run_live_scale_control_evaluation(
-                result=result,
-                coord_enabled=coord_enabled,
-                replay_t0=replay_t0,
-                results_view=list(observed_raw),
-                backlog=backlog,
-                active_requests=active_requests,
-                busy_ratio=busy_ratio,
-                completed_count=completed_now,
-                queue_visible_request_count=arrived_now,
-                visible_traces=waiting_traces,
-            )
-            failed_now = sum(
-                1 for item in observed_raw
-                if isinstance(item, Exception) or not getattr(item, "success", True)
-            )
-            self._emit_live_snapshot(
-                completed=completed_now,
-                total=total_requests,
-                replay_t0=replay_t0,
-                failed=failed_now,
-                phase_label=phase_label,
-                force=(len(observed_done) == len(tasks)),
-                backlog_override=backlog,
-                active_override=active_requests,
-                busy_override=busy_ratio,
-                queue_visible_override=arrived_now,
-                arrived_override=arrived_now,
-                results_view=observed_raw,
-                scale_up_count=len(result.scale_up_events),
-                scale_down_count=result.scale_down_events,
-            )
+        async def _dispatch_traces() -> None:
+            nonlocal launched_count
+            for local_idx, trace in enumerate(traces):
+                await self._await_trace_arrival(trace, replay_t0)
+                arrival_released_at = time.perf_counter()
+                task = asyncio.create_task(
+                    run_one_fn(
+                        trace_start_index + local_idx,
+                        trace,
+                        arrival_released_at=arrival_released_at,
+                    )
+                )
+                active_tasks.add(task)
+                task_to_idx[task] = local_idx
+                launched_count += 1
 
-        raw: List[Any] = []
-        for task in tasks:
-            try:
-                raw.append(await task)
-            except Exception as exc:
-                raw.append(exc)
-        self._active_replay_t0 = None
-        return raw, time.perf_counter()
+        dispatcher = asyncio.create_task(_dispatch_traces())
+        control_poll_s = min(0.1, max(0.02, self._live_scale_eval_period_s() / 20.0))
+
+        try:
+            while active_tasks or not dispatcher.done():
+                wait_set: set[asyncio.Task] = set(active_tasks)
+                if not dispatcher.done():
+                    wait_set.add(dispatcher)
+
+                if wait_set:
+                    done_now, _ = await asyncio.wait(
+                        wait_set,
+                        timeout=control_poll_s,
+                        return_when=asyncio.FIRST_COMPLETED,
+                    )
+                else:
+                    done_now = set()
+                    await asyncio.sleep(control_poll_s)
+
+                if dispatcher in done_now:
+                    done_now.remove(dispatcher)
+                    await dispatcher
+
+                for task in done_now:
+                    if task is dispatcher:
+                        continue
+                    active_tasks.discard(task)
+                    idx = task_to_idx.pop(task, None)
+                    if idx is None or idx in completed_indices:
+                        continue
+                    completed_indices.add(idx)
+                    try:
+                        item = task.result()
+                    except Exception as exc:
+                        item = exc
+                    observed_raw.append(item)
+                    results_by_idx[idx] = item
+
+                completed_now = completed_before_window + len(completed_indices)
+                backlog = self._backlog_depth(completed_now, replay_t0)
+                active_requests = self._active_request_count()
+                busy_ratio = self._busy_instance_ratio()
+                arrived_now = self._arrived_request_count(replay_t0)
+                waiting_traces = self._waiting_visible_trace_queue()
+                await self._maybe_run_live_scale_control_evaluation(
+                    result=result,
+                    coord_enabled=coord_enabled,
+                    replay_t0=replay_t0,
+                    results_view=observed_raw,
+                    backlog=backlog,
+                    active_requests=active_requests,
+                    busy_ratio=busy_ratio,
+                    completed_count=completed_now,
+                    queue_visible_request_count=arrived_now,
+                    visible_traces=waiting_traces,
+                )
+                failed_now = sum(
+                    1 for item in observed_raw
+                    if isinstance(item, Exception) or not getattr(item, "success", True)
+                )
+                self._emit_live_snapshot(
+                    completed=completed_now,
+                    total=total_requests,
+                    replay_t0=replay_t0,
+                    failed=failed_now,
+                    phase_label=phase_label,
+                    force=(dispatcher.done() and not active_tasks),
+                    backlog_override=backlog,
+                    active_override=active_requests,
+                    busy_override=busy_ratio,
+                    queue_visible_override=arrived_now,
+                    arrived_override=arrived_now,
+                    results_view=observed_raw,
+                    scale_up_count=len(result.scale_up_events),
+                    scale_down_count=result.scale_down_events,
+                )
+
+            if not dispatcher.done():
+                await dispatcher
+
+            raw: List[Any] = []
+            for idx in range(len(traces)):
+                raw.append(
+                    results_by_idx.get(
+                        idx,
+                        RuntimeError(f"missing request result for trace_index={trace_start_index + idx}"),
+                    )
+                )
+            return raw, time.perf_counter()
+        finally:
+            self._active_replay_t0 = None
 
     def _prime_slot_cache_view(self, slot: Any, include_gpu: bool) -> None:
         if slot is None:
@@ -6995,7 +8813,7 @@ class ScenarioRunner:
             warm = await coord.trigger_scale_down(warm_pool_size=warm_pool_size)
             if warm:
                 warm_union.update(warm)
-        self._refresh_all_slot_runtime_hints()
+        self._refresh_all_slot_runtime_hints(force=True)
         return warm_union
 
     def _warm_pool_hits_total(self) -> int:
@@ -7019,10 +8837,20 @@ class ScenarioRunner:
             except TypeError:
                 fallback()
 
-    async def _cleanup_removed_slot(self, slot: Optional[Any]) -> None:
+    async def _cleanup_removed_slot(
+        self,
+        slot: Optional[Any],
+        *,
+        removal_reason: Optional[str] = None,
+    ) -> None:
         if slot is None:
             return
         instance_id = getattr(slot, "instance_id", None)
+        if instance_id:
+            self._mark_instance_lifecycle_removed(
+                instance_id,
+                reason=removal_reason or "removed",
+            )
         if instance_id:
             self._scaleup_runtime_instance_ids.discard(instance_id)
             self._scaleup_runtime_handoff_plans.pop(str(instance_id), None)
@@ -7039,7 +8867,7 @@ class ScenarioRunner:
             except Exception:
                 pass
         self._sync_stack_gpu_accounting()
-        await self._notify_dispatch_capacity_changed()
+        await self._notify_dispatch_capacity_changed(wake_all=True)
 
     async def _retire_failed_slot(self, slot: Optional[Any], reason: str) -> bool:
         if slot is None or self.instance_pool is None:
@@ -7054,12 +8882,52 @@ class ScenarioRunner:
             removed = self.instance_pool.remove_instance(instance_id)
             if removed is None:
                 return False
+            failed_device_id = getattr(removed, "device_id", None)
+            if failed_device_id is not None and getattr(removed, "owns_engine", False):
+                failed_devices = getattr(self, "_failed_runtime_device_ids", None)
+                if failed_devices is None:
+                    failed_devices = set()
+                    self._failed_runtime_device_ids = failed_devices
+                failed_devices.add(int(failed_device_id))
             if instance_id == self._primary_instance_id:
                 remaining = self.instance_pool.get_slots()
                 self._primary_instance_id = remaining[0].instance_id if remaining else None
-            await self._cleanup_removed_slot(removed)
+            await self._cleanup_removed_slot(
+                removed,
+                removal_reason=f"runtime_failed:{reason}",
+            )
         print(f"    [runtime-failed] removed {instance_id}: {reason[:160]}", flush=True)
         return True
+
+    async def _shutdown_instance_pool(self) -> None:
+        tasks = list(getattr(self, "_pending_scale_up_tasks", set()) or [])
+        for task in tasks:
+            if task is not None and not task.done():
+                task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+        pending_tasks = getattr(self, "_pending_scale_up_tasks", None)
+        if pending_tasks is not None:
+            pending_tasks.clear()
+        pending_device_ids = getattr(self, "_pending_scale_up_device_ids", None)
+        if pending_device_ids is not None:
+            pending_device_ids.clear()
+        pending_sequences = getattr(self, "_pending_scale_up_sequences", None)
+        if pending_sequences is not None:
+            pending_sequences.clear()
+        if self.instance_pool is None:
+            return
+        for slot in list(self.instance_pool.get_slots()):
+            instance_id = getattr(slot, "instance_id", None)
+            if not instance_id:
+                continue
+            removed = self.instance_pool.remove_instance(instance_id)
+            if removed is None:
+                continue
+            await self._cleanup_removed_slot(
+                removed,
+                removal_reason="shutdown",
+            )
 
     async def _prune_dead_instance_slots(self) -> int:
         instance_pool = getattr(self, "instance_pool", None)
@@ -7100,7 +8968,7 @@ class ScenarioRunner:
         self._prime_slot_cache_view(self.instance_pool.get_slot(instance_id), include_gpu=True)
         self._sync_stack_gpu_accounting()
         self._schedule_all_runtime_gpu_forward()
-        await self._notify_dispatch_capacity_changed()
+        await self._notify_dispatch_capacity_changed(wake_all=True)
         print(
             f"    Scale-up: added shared-engine slot "
             f"(instances={self.instance_pool.count()}/{self.instance_pool.max_instances})",
@@ -7189,6 +9057,17 @@ class ScenarioRunner:
             owns_coordinator=True,
             device_id=getattr(new_engine, "device_id", None),
         )
+        lifecycle_ready_offset_s = self._run_elapsed_offset_s()
+        self._ensure_instance_lifecycle_record(
+            instance_id,
+            runtime_kind="dedicated",
+            gpu_count=self._runtime_gpu_count_for_cfg(getattr(new_engine, "model_cfg", None)),
+            device_id=getattr(new_engine, "device_id", None),
+            created_offset_s=self._run_elapsed_offset_s(cold_start_started_at),
+            ready_offset_s=lifecycle_ready_offset_s,
+            lifecycle_source="scale_up",
+            model_name=(getattr(new_engine, "model_cfg", {}) or {}).get("name"),
+        )
         slot = self.instance_pool.get_slot(instance_id)
         self._prime_slot_cache_view(slot, include_gpu=False)
         if active_handoff_plan:
@@ -7200,14 +9079,14 @@ class ScenarioRunner:
         if slot is not None:
             for aid in warmed:
                 slot.mark_adapter_tier(aid, "gpu")
-            self._refresh_slot_runtime_hints(slot)
+            self._refresh_slot_runtime_hints(slot, force=True)
         scaleup_ids = getattr(self, "_scaleup_runtime_instance_ids", None)
         if scaleup_ids is None:
             scaleup_ids = set()
             self._scaleup_runtime_instance_ids = scaleup_ids
         scaleup_ids.add(str(instance_id))
         self._sync_stack_gpu_accounting()
-        await self._notify_dispatch_capacity_changed()
+        await self._notify_dispatch_capacity_changed(wake_all=True)
         print(
             f"    Scale-up: added dedicated instance "
             f"(instances={self.instance_pool.count()}/{self.instance_pool.max_instances})",
@@ -7626,6 +9505,7 @@ class ScenarioRunner:
             )
         )
         self._live_scale_up_events = result.scale_up_events
+        self._last_live_scale_up_completed_at = time.perf_counter()
         instance_id = event.get("instance_id")
         if instance_id and event.get("runtime_kind") == "dedicated":
             self._scaleup_runtime_instance_ids.add(str(instance_id))
@@ -7690,11 +9570,16 @@ class ScenarioRunner:
         ordinals[instance_id] = lora_ordinal + 1
         return labels
 
-    async def _scale_down_one_instance(self, require_idle: bool = False) -> Optional[Dict[str, Any]]:
+    async def _scale_down_one_instance(
+        self,
+        require_idle: bool = False,
+        *,
+        min_idle_s: Optional[float] = None,
+    ) -> Optional[Dict[str, Any]]:
         if self.instance_pool is None or self.instance_pool.count() <= self.instance_pool.min_instances:
             return None
         if require_idle:
-            candidate = self._select_scale_down_candidate_slot()
+            candidate = self._select_scale_down_candidate_slot(min_idle_s=min_idle_s)
             if candidate is None:
                 return None
             slots = [candidate]
@@ -7703,7 +9588,10 @@ class ScenarioRunner:
         if not slots:
             return None
         removed = self.instance_pool.remove_instance(slots[-1].instance_id)
-        await self._cleanup_removed_slot(removed)
+        await self._cleanup_removed_slot(
+            removed,
+            removal_reason="scale_down",
+        )
         if removed is None:
             return None
         return {
@@ -7711,6 +9599,11 @@ class ScenarioRunner:
             "instance_id": removed.instance_id,
             "device_id": getattr(removed, "device_id", None),
             "runtime_kind": "dedicated" if getattr(removed, "owns_engine", False) else "shared",
+            "scale_down_min_idle_s": (
+                max(0.0, float(min_idle_s))
+                if min_idle_s is not None
+                else None
+            ),
         }
 
     async def _cleanup_extra_instances(self) -> None:
@@ -7719,7 +9612,10 @@ class ScenarioRunner:
         slots = [s.instance_id for s in self.instance_pool.get_slots() if s.instance_id != self._primary_instance_id]
         for instance_id in reversed(slots):
             removed = self.instance_pool.remove_instance(instance_id)
-            await self._cleanup_removed_slot(removed)
+            await self._cleanup_removed_slot(
+                removed,
+                removal_reason="cleanup_extra_instances",
+            )
 
     # ------------------------------------------------------------------
     # Phase 1: preload
@@ -8032,33 +9928,62 @@ class ScenarioRunner:
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
         self._run_started_at = time.perf_counter()
+        self._begin_instance_lifecycle_tracking()
         self._dispatch_admitted_requests = 0
-        self._dispatch_capacity_condition = None
+        self._dispatch_admission_condition = None
+        self._runtime_slot_capacity_condition = None
+        request_plan_cache = self._prepare_request_execution_plan_cache(
+            self.engine,
+            self.traces,
+            max_tokens,
+        )
         replay_t0 = time.perf_counter()
 
-        async def run_one(i: int, trace: RequestTrace):
+        async def run_one(
+            i: int,
+            trace: RequestTrace,
+            *,
+            arrival_released_at: Optional[float] = None,
+        ):
             scheduled_offset_s = self._scheduled_offset(trace)
             scheduled_arrival_at = replay_t0 + scheduled_offset_s
-            await self._await_trace_arrival(trace, replay_t0)
-            arrival_released_at = time.perf_counter()
+            if arrival_released_at is None:
+                await self._await_trace_arrival(trace, replay_t0)
+                arrival_released_at = time.perf_counter()
+            arrival_release_lateness_ms = max(
+                0.0,
+                (float(arrival_released_at) - float(scheduled_arrival_at)) * 1000.0,
+            )
             self._observe_live_arrived_lora(getattr(trace, "adapter_id", None))
             self._observe_live_waiting_trace(trace)
+            # Let the dispatcher keep releasing due trace arrivals before this
+            # request starts the heavier dispatch/runtime path on the shared
+            # control loop.
+            await asyncio.sleep(0)
             try:
                 admission_start_at = time.perf_counter()
                 await self._acquire_dispatch_admission()
                 admitted_at = time.perf_counter()
+                dispatch_window_wait_ms = max(
+                    0.0,
+                    (admitted_at - arrival_released_at) * 1000.0,
+                )
                 dispatch_admission_wait_ms = max(
                     0.0,
-                    (arrival_released_at - scheduled_arrival_at) * 1000.0,
+                    (admitted_at - scheduled_arrival_at) * 1000.0,
                 )
-                self._release_live_waiting_trace(trace)
-                self._observe_live_started_lora(getattr(trace, "adapter_id", None))
                 try:
+                    request_plan = request_plan_cache.get(
+                        str(getattr(trace, "request_id", "") or "")
+                    )
                     out = await self._exec_request(
                         trace,
                         max_tokens,
                         temperature,
+                        request_plan=request_plan,
                         dispatch_admission_wait_ms=dispatch_admission_wait_ms,
+                        dispatch_window_wait_ms=dispatch_window_wait_ms,
+                        arrival_release_lateness_ms=arrival_release_lateness_ms,
                         scheduled_arrival_offset_s=scheduled_offset_s,
                         admission_start_offset_s=max(0.0, admission_start_at - replay_t0),
                         admitted_offset_s=max(0.0, admitted_at - replay_t0),
@@ -8217,6 +10142,7 @@ class ScenarioRunner:
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
         self._run_started_at = time.perf_counter()
+        self._begin_instance_lifecycle_tracking()
         request_plans = [
             self._prepare_request_execution_plan(self.engine, trace, max_tokens)
             for trace in self.traces
@@ -8395,6 +10321,7 @@ class ScenarioRunner:
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
         self._run_started_at = time.perf_counter()
+        self._begin_instance_lifecycle_tracking()
         request_plans = [
             self._prepare_request_execution_plan(self.engine, trace, max_tokens)
             for trace in self.traces
@@ -8531,6 +10458,7 @@ class ScenarioRunner:
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
         self._run_started_at = time.perf_counter()
+        self._begin_instance_lifecycle_tracking()
         request_plans = [
             self._prepare_request_execution_plan(self.engine, trace, max_tokens)
             for trace in self.traces
@@ -8664,27 +10592,59 @@ class ScenarioRunner:
         max_tokens: int,
         temperature: float,
         *,
+        request_plan: Optional[RequestExecutionPlan] = None,
         dispatch_admission_wait_ms: float = 0.0,
+        dispatch_window_wait_ms: float = 0.0,
+        arrival_release_lateness_ms: float = 0.0,
         scheduled_arrival_offset_s: Optional[float] = None,
         arrival_released_offset_s: Optional[float] = None,
         admission_start_offset_s: Optional[float] = None,
         admitted_offset_s: Optional[float] = None,
     ) -> RequestResult:
         # B2: 由 Router 选择实例，与线上路径一致
-        await self._prune_dead_instance_slots()
         adapter_id = trace.adapter_id
         size_mb = float(self.adapter_info.get(adapter_id, {}).get("size_mb", 30.0)) if adapter_id else 30.0
-        self._refresh_all_slot_runtime_hints()
-        slot = (
-            self.router.select_instance(adapter_id, adapter_size_mb=size_mb)
-            if self.router else None
+        runtime_slot_wait_started = time.perf_counter()
+        slot = None
+        slot_active_reserved = False
+        while True:
+            await self._prune_dead_instance_slots()
+            self._refresh_all_slot_runtime_hints()
+            slot = (
+                self.router.select_instance(adapter_id, adapter_size_mb=size_mb)
+                if self.router else None
+            )
+            reserved, active_adapter_reserved = self._try_reserve_runtime_request_slot(
+                slot,
+                adapter_id,
+            )
+            if reserved:
+                slot_active_reserved = active_adapter_reserved
+                break
+            cond = self._runtime_slot_capacity_cond()
+            async with cond:
+                try:
+                    await asyncio.wait_for(cond.wait(), timeout=0.1)
+                except asyncio.TimeoutError:
+                    pass
+        runtime_slot_wait_ms = max(
+            0.0,
+            (time.perf_counter() - runtime_slot_wait_started) * 1000.0,
         )
+        dispatch_admission_wait_ms = max(
+            0.0,
+            float(dispatch_admission_wait_ms or 0.0) + runtime_slot_wait_ms,
+        )
+        if admitted_offset_s is not None:
+            admitted_offset_s = float(admitted_offset_s) + (runtime_slot_wait_ms / 1000.0)
+        self._release_live_waiting_trace(trace)
+        self._observe_live_started_lora(adapter_id)
+        admitted_perf_counter = time.perf_counter()
         _engine = slot.engine if slot else self.engine
         _coord = slot.coordinator if slot else self.coordinator
         inflight_request_key: Optional[str] = None
+        active_adapter_registered = slot_active_reserved
         if slot is not None:
-            slot.active_requests += 1
-            slot.last_selected_at = time.time()
             inflight_request_key = str(
                 getattr(trace, "request_id", None) or f"trace_{id(trace)}"
             )
@@ -8712,7 +10672,8 @@ class ScenarioRunner:
         cache_tier    = _BACKBONE_CACHE_TIER if not adapter_id else "remote"
         local_path    = None
         instance_id   = getattr(slot, "instance_id", None) if slot is not None else getattr(self, "_primary_instance_id", None)
-        request_plan = self._prepare_request_execution_plan(_engine, trace, max_tokens)
+        if request_plan is None:
+            request_plan = self._prepare_request_execution_plan(_engine, trace, max_tokens)
 
         # ---- LoRA resolution ----
         if adapter_id and self.baseline_type != "backbone_only":
@@ -8729,32 +10690,13 @@ class ScenarioRunner:
                 affinity_tier = "nvme"
             self._mark_slot_adapter_tier(slot, adapter_id, affinity_tier)
 
-        # ---- D1: NVMe/HOST→GPU 真实加载并写回 Registry（覆盖公式估计的 lora_io_ms）----
-        if (
-            adapter_id
-            and local_path
+        should_mark_gpu_after_inference = (
+            bool(adapter_id)
+            and bool(local_path)
             and self._stack is not None
             and self.baseline_type in ("faaslora_nvme", "faaslora_no_coord", "faaslora_full")
             and cache_tier in ("nvme", "host")
-            and _engine is not None
-            and hasattr(_engine, "load_lora_to_gpu_and_measure")
-        ):
-            real_load_ms, ok = await _engine.load_lora_to_gpu_and_measure(local_path, adapter_id)
-            if ok:
-                self._stack.registry.update_artifact(
-                    adapter_id,
-                    {"last_load_time_ms": real_load_ms, "predicted_load_time_ms": real_load_ms},
-                )
-                if _coord is not None and getattr(_coord, "_residency_manager", None) is None:
-                    await _coord._mark_resident(adapter_id, size_mb)
-                else:
-                    await self._stack.residency_manager.admit_artifact(
-                        adapter_id, StorageTier.GPU, force=True
-                    )
-                lora_io_ms = real_load_ms
-                # Preserve the source cache tier for metrics/reporting; only the
-                # runtime affinity hint should move to GPU after the real load.
-                self._mark_slot_adapter_tier(slot, adapter_id, "gpu")
+        )
 
         if adapter_id and self._stack is not None:
             try:
@@ -8794,41 +10736,113 @@ class ScenarioRunner:
             t_start = time.perf_counter()
 
             if hasattr(_engine, "generate_prepared"):
-                vllm_ttft, tpot, out_tokens = await _engine.generate_prepared(
+                generate_ret = await _engine.generate_prepared(
                     request_plan=request_plan,
                     lora_path=local_path,
                     adapter_id=adapter_id,
                     temperature=temperature,
+                    return_timing=True,
                 )
             else:
-                vllm_ttft, tpot, out_tokens = await _engine.generate(
+                generate_ret = await _engine.generate(
                     request_plan.prompt,
                     local_path,
                     adapter_id,
                     request_plan.max_tokens,
                     request_plan.input_tokens,
                     temperature,
+                    return_timing=True,
                 )
             t_end = time.perf_counter()
+            if isinstance(generate_ret, tuple) and len(generate_ret) == 4:
+                vllm_ttft, tpot, out_tokens, per_request_timing = generate_ret
+            else:
+                vllm_ttft, tpot, out_tokens = generate_ret
+                per_request_timing = {}
+            engine_timing = dict(per_request_timing or getattr(_engine, "last_timing", {}) or {})
             if batch_started and _coord:
                 _coord.notify_batch_end(
                     request_plan.input_tokens,
                     output_tokens_hint,
                 )
 
-            admitted_service_ttft_ms = lora_io_ms + contention_ms + defer_ms + vllm_ttft
-            admitted_service_e2e_ms = (
-                lora_io_ms + contention_ms + defer_ms + (t_end - t_start) * 1000
+            admitted_service_ttft_ms = max(
+                0.0,
+                (float(t_start) - float(admitted_perf_counter)) * 1000.0 + float(vllm_ttft),
             )
+            admitted_service_e2e_ms = max(
+                0.0,
+                (float(t_end) - float(admitted_perf_counter)) * 1000.0,
+            )
+            if should_mark_gpu_after_inference:
+                try:
+                    if _coord is not None and getattr(_coord, "_residency_manager", None) is None:
+                        await _coord._mark_resident(adapter_id, size_mb)
+                    else:
+                        await self._stack.residency_manager.admit_artifact(
+                            adapter_id, StorageTier.GPU, force=True
+                        )
+                    self._mark_slot_adapter_tier(slot, adapter_id, "gpu")
+                except Exception:
+                    pass
             ingress_queue_wait_ms = max(
                 0.0,
                 (float(admitted_offset_s) - float(arrival_released_offset_s)) * 1000.0,
             ) if admitted_offset_s is not None and arrival_released_offset_s is not None else 0.0
-            service_ttft_ms = ingress_queue_wait_ms + admitted_service_ttft_ms
-            service_e2e_ms = ingress_queue_wait_ms + admitted_service_e2e_ms
+            service_ttft_ms = admitted_service_ttft_ms
+            service_e2e_ms = admitted_service_e2e_ms
+            observed_tpot_ms = (
+                max(0.0, float(service_e2e_ms) - float(service_ttft_ms))
+                / max(int(out_tokens) - 1, 1)
+                if int(out_tokens or 0) > 1
+                else 0.0
+            )
+            runtime_estimated_e2e_ms = _safe_float(
+                engine_timing.get("runtime_estimated_e2e_ms"),
+                float(vllm_ttft) + float(tpot) * max(int(out_tokens or 0) - 1, 0),
+            )
+            worker_rpc_handler_wall_ms = _safe_float(
+                engine_timing.get("worker_rpc_handler_wall_ms"),
+                0.0,
+            )
+            worker_wall_e2e_ms = _positive_or_fallback(
+                worker_rpc_handler_wall_ms,
+                engine_timing.get("worker_wall_e2e_ms"),
+            )
+            worker_engine_shell_ms = max(
+                0.0,
+                float(worker_wall_e2e_ms) - max(0.0, float(runtime_estimated_e2e_ms)),
+            )
+            worker_rpc_queue_ms = _safe_float(engine_timing.get("worker_rpc_queue_ms"), 0.0)
+            parent_rpc_wall_ms = _safe_float(engine_timing.get("parent_rpc_wall_ms"), 0.0)
+            parent_rpc_overhead_ms = _safe_float(engine_timing.get("parent_rpc_overhead_ms"), 0.0)
+            parent_rpc_channel_acquire_ms = _safe_float(
+                engine_timing.get("parent_rpc_channel_acquire_ms"),
+                0.0,
+            )
+            parent_rpc_response_pickup_delay_ms = _safe_float(
+                engine_timing.get("parent_rpc_response_pickup_delay_ms"),
+                0.0,
+            )
+            parent_rpc_thread_resume_delay_ms = _safe_float(
+                engine_timing.get("parent_rpc_thread_resume_delay_ms"),
+                0.0,
+            )
+            service_path_residual_ms = max(
+                0.0,
+                float(service_e2e_ms) - max(0.0, float(runtime_estimated_e2e_ms)),
+            )
+            pre_runtime_service_shell_ms = max(
+                0.0,
+                float(service_ttft_ms) - max(0.0, float(vllm_ttft)),
+            )
             overall_ttft_ms = dispatch_admission_wait_ms + service_ttft_ms
             overall_e2e_ms = dispatch_admission_wait_ms + service_e2e_ms
-            cost       = _calc_cost(self.cost_model, request_plan.input_tokens, out_tokens)
+            actual_input_tokens = max(
+                1,
+                int(_safe_float(engine_timing.get("actual_prompt_tokens"), request_plan.input_tokens)),
+            )
+            cost       = _calc_cost(self.cost_model, actual_input_tokens, out_tokens)
 
             if adapter_id:
                 self._access_count[adapter_id] += 1
@@ -8864,9 +10878,9 @@ class ScenarioRunner:
                 ttft_ms=overall_ttft_ms,
                 contention_ms=contention_ms,
                 defer_ms=defer_ms,
-                tpot_ms=tpot,
+                tpot_ms=observed_tpot_ms,
                 e2e_ms=overall_e2e_ms,
-                input_tokens=request_plan.input_tokens,
+                input_tokens=actual_input_tokens,
                 output_tokens=out_tokens,
                 cost_usd=cost,
                 success=True,
@@ -8881,7 +10895,10 @@ class ScenarioRunner:
                 service_e2e_ms=service_e2e_ms,
                 admitted_service_ttft_ms=admitted_service_ttft_ms,
                 admitted_service_e2e_ms=admitted_service_e2e_ms,
+                dispatch_window_wait_ms=dispatch_window_wait_ms,
+                runtime_slot_wait_ms=runtime_slot_wait_ms,
                 ingress_queue_wait_ms=ingress_queue_wait_ms,
+                arrival_release_lateness_ms=arrival_release_lateness_ms,
                 overall_ttft_ms=overall_ttft_ms,
                 overall_e2e_ms=overall_e2e_ms,
                 dispatch_admission_wait_ms=dispatch_admission_wait_ms,
@@ -8890,6 +10907,20 @@ class ScenarioRunner:
                 admission_start_offset_s=admission_start_offset_s,
                 admitted_offset_s=admitted_offset_s,
                 completed_offset_s=completed_offset_s,
+                runtime_tpot_ms=tpot,
+                tpot_observed=bool(int(out_tokens or 0) > 1),
+                runtime_estimated_e2e_ms=runtime_estimated_e2e_ms,
+                worker_wall_e2e_ms=worker_wall_e2e_ms,
+                worker_rpc_handler_wall_ms=worker_rpc_handler_wall_ms,
+                worker_engine_shell_ms=worker_engine_shell_ms,
+                worker_rpc_queue_ms=worker_rpc_queue_ms,
+                parent_rpc_wall_ms=parent_rpc_wall_ms,
+                parent_rpc_overhead_ms=parent_rpc_overhead_ms,
+                parent_rpc_channel_acquire_ms=parent_rpc_channel_acquire_ms,
+                parent_rpc_response_pickup_delay_ms=parent_rpc_response_pickup_delay_ms,
+                parent_rpc_thread_resume_delay_ms=parent_rpc_thread_resume_delay_ms,
+                service_path_residual_ms=service_path_residual_ms,
+                pre_runtime_service_shell_ms=pre_runtime_service_shell_ms,
             )
 
         except Exception as exc:
@@ -8913,7 +10944,7 @@ class ScenarioRunner:
                 0.0,
                 (float(admitted_offset_s) - float(arrival_released_offset_s)) * 1000.0,
             ) if admitted_offset_s is not None and arrival_released_offset_s is not None else 0.0
-            service_error_ms = ingress_queue_wait_ms + admitted_service_error_ms
+            service_error_ms = max(0.0, (time.perf_counter() - admitted_perf_counter) * 1000.0)
             overall_error_ms = dispatch_admission_wait_ms + service_error_ms
             completed_offset_s = (
                 max(0.0, float(scheduled_arrival_offset_s) + overall_error_ms / 1000.0)
@@ -8941,7 +10972,10 @@ class ScenarioRunner:
                 service_e2e_ms=service_error_ms,
                 admitted_service_ttft_ms=admitted_service_error_ms,
                 admitted_service_e2e_ms=admitted_service_error_ms,
+                dispatch_window_wait_ms=dispatch_window_wait_ms,
+                runtime_slot_wait_ms=runtime_slot_wait_ms,
                 ingress_queue_wait_ms=ingress_queue_wait_ms,
+                arrival_release_lateness_ms=arrival_release_lateness_ms,
                 overall_ttft_ms=overall_error_ms,
                 overall_e2e_ms=overall_error_ms,
                 dispatch_admission_wait_ms=dispatch_admission_wait_ms,
@@ -8961,8 +10995,22 @@ class ScenarioRunner:
                         slot.clear_inflight_request_estimate(inflight_request_key)
                     except Exception:
                         pass
+                if active_adapter_registered and hasattr(slot, "end_active_adapter"):
+                    try:
+                        slot.end_active_adapter(adapter_id)
+                    except Exception:
+                        pass
                 slot.active_requests = max(0, slot.active_requests - 1)
+                if int(getattr(slot, "active_requests", 0) or 0) <= 0:
+                    try:
+                        slot.last_idle_at = time.time()
+                    except Exception:
+                        pass
                 self._refresh_slot_runtime_hints(slot)
+                await self._notify_dispatch_capacity_changed(
+                    notify_admission=False,
+                    slot_wake_all=False,
+                )
             self._schedule_all_runtime_gpu_forward()
 
     async def _resolve_lora(
@@ -9185,7 +11233,7 @@ def _load_shared_trace_requests(
     path_like: str,
     *,
     allowed_adapter_ids: Optional[Collection[str]] = None,
-) -> Tuple[Path, List[RequestTrace]]:
+) -> Tuple[Path, List[RequestTrace], Dict[str, Any]]:
     path = Path(path_like).expanduser()
     if not path.is_absolute():
         path = REPO_ROOT / path
@@ -9242,7 +11290,22 @@ def _load_shared_trace_requests(
         )
 
     traces.sort(key=lambda t: (float(t.arrival_time), str(t.request_id)))
-    return path, traces
+    metadata = {
+        key: payload.get(key)
+        for key in (
+            "configured_time_scale_factor",
+            "effective_time_scale_factor",
+            "load_profile",
+            "trace_sha256",
+            "adapter_subset_sha256",
+            "run_tag",
+            "dataset_profile",
+            "workload_profile",
+            "model_profile",
+        )
+        if key in payload
+    }
+    return path, traces, metadata
 
 
 def _assert_all_requests_bind_lora(
@@ -9704,6 +11767,45 @@ def _should_spawn_dedicated_engine_subprocess(
     """
     backend = str(model_cfg.get("backend", "vllm")).lower()
     return backend == "vllm" and str(instance_mode).lower() in ("auto", "dedicated")
+
+
+def _should_defer_primary_engine_initialization(
+    model_cfg: Dict[str, Any],
+    scenarios: List[Dict[str, Any]],
+    coord_cfg: Dict[str, Any],
+    *,
+    only_scenario: Optional[str] = None,
+) -> bool:
+    """
+    Defer parent-process vLLM init when the selected serving scenario will run
+    dedicated runtimes.
+
+    FaaSLoRA's auto/dedicated mode models physical serverless replicas. If the
+    scale-out replicas are isolated in subprocesses but the primary replica is
+    hosted inside the controller process, the primary vLLM async loop competes
+    with scheduling, live monitoring, warmup, and autoscaling callbacks. That is
+    not the same runtime topology as the scale-out replicas, and it can turn the
+    primary into a hidden bottleneck. Defer init so the scenario can replace the
+    primary with the same subprocess-backed runtime used by scale-out.
+    """
+    if str(model_cfg.get("backend", "vllm")).lower() == "transformers":
+        return False
+    for sc in scenarios:
+        sname = str(sc.get("name", "unknown"))
+        if only_scenario and sname != only_scenario:
+            continue
+        btype = str(sc.get("baseline_type", sname))
+        if btype in ("backbone_only", "cold_start"):
+            continue
+        sc_coord = {**coord_cfg, **sc.get("resource_coordination", {})}
+        runner_model_cfg = copy.deepcopy(model_cfg)
+        runner_model_cfg.update(copy.deepcopy(sc_coord.get("instance_model_overrides", {})))
+        if _should_spawn_dedicated_engine_subprocess(
+            runner_model_cfg,
+            instance_mode=str(sc_coord.get("instance_mode", "shared")).lower(),
+        ):
+            return True
+    return False
 
 
 def _prepare_dedicated_subprocess_model_cfg(
@@ -10339,12 +12441,15 @@ def _build_metric_groups(r: ScenarioResult, digits: int = 4) -> Dict[str, Dict[s
     return {
         "standard_serving_metrics": {
             "TTFT_avg_ms": _round_metric_value(r.avg_ttft_ms, digits),
+            "TTFT_P50_ms": _round_metric_value(r.p50_ttft_ms, digits),
             "TTFT_P95_ms": _round_metric_value(r.p95_ttft_ms, digits),
             "TTFT_P99_ms": _round_metric_value(r.p99_ttft_ms, digits),
             "TTFT_e2e_avg_ms": _round_metric_value(r.avg_overall_ttft_ms, digits),
+            "TTFT_e2e_P50_ms": _round_metric_value(r.p50_overall_ttft_ms, digits),
             "TTFT_e2e_P95_ms": _round_metric_value(r.p95_overall_ttft_ms, digits),
             "TTFT_e2e_P99_ms": _round_metric_value(r.p99_overall_ttft_ms, digits),
             "TTFT_service_avg_ms": _round_metric_value(r.avg_service_ttft_ms, digits),
+            "TTFT_service_P50_ms": _round_metric_value(r.p50_service_ttft_ms, digits),
             "TTFT_service_P95_ms": _round_metric_value(r.p95_service_ttft_ms, digits),
             "TTFT_service_P99_ms": _round_metric_value(r.p99_service_ttft_ms, digits),
             "TTFT_warm_standard_avg_ms": _round_metric_value(r.avg_warm_standard_ttft_ms, digits),
@@ -10360,7 +12465,17 @@ def _build_metric_groups(r: ScenarioResult, digits: int = 4) -> Dict[str, Dict[s
             "TTFT_e2e_avg_ms": _round_metric_value(r.avg_overall_ttft_ms, digits),
             "TTFT_service_avg_ms": _round_metric_value(r.avg_service_ttft_ms, digits),
             "Dispatch_admission_wait_avg_ms": _round_metric_value(r.avg_dispatch_admission_wait_ms, digits),
+            "Dispatch_admission_wait_P50_ms": _round_metric_value(r.p50_dispatch_admission_wait_ms, digits),
             "Dispatch_admission_wait_P95_ms": _round_metric_value(r.p95_dispatch_admission_wait_ms, digits),
+            "Dispatch_window_wait_avg_ms": _round_metric_value(r.avg_dispatch_window_wait_ms, digits),
+            "Dispatch_window_wait_P50_ms": _round_metric_value(r.p50_dispatch_window_wait_ms, digits),
+            "Dispatch_window_wait_P95_ms": _round_metric_value(r.p95_dispatch_window_wait_ms, digits),
+            "Runtime_slot_wait_avg_ms": _round_metric_value(r.avg_runtime_slot_wait_ms, digits),
+            "Runtime_slot_wait_P50_ms": _round_metric_value(r.p50_runtime_slot_wait_ms, digits),
+            "Runtime_slot_wait_P95_ms": _round_metric_value(r.p95_runtime_slot_wait_ms, digits),
+            "Arrival_release_lateness_avg_ms": _round_metric_value(r.avg_arrival_release_lateness_ms, digits),
+            "Arrival_release_lateness_P50_ms": _round_metric_value(r.p50_arrival_release_lateness_ms, digits),
+            "Arrival_release_lateness_P95_ms": _round_metric_value(r.p95_arrival_release_lateness_ms, digits),
             "TTFT_comparable_avg_ms": _round_metric_value(r.avg_comparable_ttft_ms, digits),
             "TTFT_comparable_P95_ms": _round_metric_value(r.p95_comparable_ttft_ms, digits),
             "TTFT_comparable_P99_ms": _round_metric_value(r.p99_comparable_ttft_ms, digits),
@@ -10373,6 +12488,28 @@ def _build_metric_groups(r: ScenarioResult, digits: int = 4) -> Dict[str, Dict[s
             "TTFT_scaleup_first_service_avg_ms": _round_metric_value(r.avg_scaleup_first_service_ttft_ms, digits),
             "Runtime_TTFT_avg_ms": _round_metric_value(r.avg_runtime_ttft_ms, digits),
             "Runtime_TTFT_P95_ms": _round_metric_value(r.p95_runtime_ttft_ms, digits),
+            "Runtime_E2E_estimate_avg_ms": _round_metric_value(r.avg_runtime_estimated_e2e_ms, digits),
+            "Runtime_E2E_estimate_P95_ms": _round_metric_value(r.p95_runtime_estimated_e2e_ms, digits),
+            "Worker_wall_E2E_avg_ms": _round_metric_value(r.avg_worker_wall_e2e_ms, digits),
+            "Worker_wall_E2E_P95_ms": _round_metric_value(r.p95_worker_wall_e2e_ms, digits),
+            "Worker_RPC_handler_wall_avg_ms": _round_metric_value(r.avg_worker_rpc_handler_wall_ms, digits),
+            "Worker_RPC_handler_wall_P95_ms": _round_metric_value(r.p95_worker_rpc_handler_wall_ms, digits),
+            "Worker_engine_shell_avg_ms": _round_metric_value(r.avg_worker_engine_shell_ms, digits),
+            "Worker_engine_shell_P95_ms": _round_metric_value(r.p95_worker_engine_shell_ms, digits),
+            "Worker_RPC_queue_avg_ms": _round_metric_value(r.avg_worker_rpc_queue_ms, digits),
+            "Worker_RPC_queue_P95_ms": _round_metric_value(r.p95_worker_rpc_queue_ms, digits),
+            "Parent_RPC_overhead_avg_ms": _round_metric_value(r.avg_parent_rpc_overhead_ms, digits),
+            "Parent_RPC_overhead_P95_ms": _round_metric_value(r.p95_parent_rpc_overhead_ms, digits),
+            "Parent_RPC_channel_acquire_avg_ms": _round_metric_value(r.avg_parent_rpc_channel_acquire_ms, digits),
+            "Parent_RPC_channel_acquire_P95_ms": _round_metric_value(r.p95_parent_rpc_channel_acquire_ms, digits),
+            "Parent_RPC_response_pickup_avg_ms": _round_metric_value(r.avg_parent_rpc_response_pickup_delay_ms, digits),
+            "Parent_RPC_response_pickup_P95_ms": _round_metric_value(r.p95_parent_rpc_response_pickup_delay_ms, digits),
+            "Parent_RPC_thread_resume_avg_ms": _round_metric_value(r.avg_parent_rpc_thread_resume_delay_ms, digits),
+            "Parent_RPC_thread_resume_P95_ms": _round_metric_value(r.p95_parent_rpc_thread_resume_delay_ms, digits),
+            "Service_path_residual_avg_ms": _round_metric_value(r.avg_service_path_residual_ms, digits),
+            "Service_path_residual_P95_ms": _round_metric_value(r.p95_service_path_residual_ms, digits),
+            "Pre_runtime_service_shell_avg_ms": _round_metric_value(r.avg_pre_runtime_service_shell_ms, digits),
+            "Pre_runtime_service_shell_P95_ms": _round_metric_value(r.p95_pre_runtime_service_shell_ms, digits),
             "Cold_start_avg_ms": _round_metric_value(r.avg_cold_start_latency_ms, digits),
             "Cold_start_P95_ms": _round_metric_value(r.p95_cold_start_latency_ms, digits),
             "TTFT_serverless_overhead_avg_ms": _round_metric_value(r.avg_serverless_overhead_ms, digits),
@@ -10380,12 +12517,21 @@ def _build_metric_groups(r: ScenarioResult, digits: int = 4) -> Dict[str, Dict[s
             "TTFT_service_overhead_avg_ms": _round_metric_value(r.avg_service_overhead_ms, digits),
             "TTFT_service_overhead_P95_ms": _round_metric_value(r.p95_service_overhead_ms, digits),
             "E2E_avg_ms": _round_metric_value(r.avg_e2e_ms, digits),
+            "E2E_P50_ms": _round_metric_value(r.p50_e2e_ms, digits),
             "E2E_P95_ms": _round_metric_value(r.p95_e2e_ms, digits),
             "E2E_P99_ms": _round_metric_value(r.p99_e2e_ms, digits),
             "E2E_e2e_avg_ms": _round_metric_value(r.avg_overall_e2e_ms, digits),
             "E2E_service_avg_ms": _round_metric_value(r.avg_service_e2e_ms, digits),
+            "E2E_service_P50_ms": _round_metric_value(r.p50_service_e2e_ms, digits),
+            "E2E_service_P95_ms": _round_metric_value(r.p95_service_e2e_ms, digits),
+            "E2E_service_P99_ms": _round_metric_value(r.p99_service_e2e_ms, digits),
             "Monetary_cost_avg_usd": _round_metric_value(r.avg_cost_usd, digits),
             "Monetary_cost_total_usd": _round_metric_value(r.total_cost_usd, digits),
+            "Infra_GPU_seconds_total": _round_metric_value(r.infra_gpu_seconds_total, digits),
+            "Infra_GPU_seconds_startup": _round_metric_value(r.infra_startup_gpu_seconds, digits),
+            "Infra_GPU_seconds_ready": _round_metric_value(r.infra_ready_gpu_seconds, digits),
+            "Infra_cost_total_usd": _round_metric_value(r.infra_cost_total_usd, digits),
+            "Infra_cost_per_request_usd": _round_metric_value(r.infra_cost_per_request_usd, digits),
         },
         "scaling_metrics": {
             "TTFT_SLO_ms": _round_metric_value(r.ttft_slo_ms, digits),
@@ -10397,6 +12543,7 @@ def _build_metric_groups(r: ScenarioResult, digits: int = 4) -> Dict[str, Dict[s
         },
         "mechanism_metrics": {
             "CE": _round_metric_value(r.qpr, digits),
+            "Infra_CE": _round_metric_value(r.infra_ce, digits),
             "QPR_TOKPS_TTFT_legacy": _round_metric_value(r.qpr_tokps_ttft_legacy, digits),
             "QPR_RPS_legacy": _round_metric_value(r.qpr_rps_legacy, digits),
             "TPOT_observed_ratio": _round_metric_value(r.tpot_observed_request_ratio, digits),
@@ -10523,6 +12670,29 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
             f"{scaleup_s:>12} {runtime_s:>12} {gpu_ready_s:>10} "
             f"{r.slo_attainment:>7.0%} {r.slo_goodput_tok_per_s:>9.2f} "
             f"{r.qpr:>10.3f}"
+        )
+    print(f"{DLINE}")
+
+    print("\n  Simulated Infrastructure Cost (GPU-Second Model)")
+    print(f"  {LINE[2:]}")
+    hdr_infra = (
+        f"  {'Scenario':<26} {'Type':<16} "
+        f"{'InfraGPU':>10} {'StartupGPU':>11} {'ReadyGPU':>10} "
+        f"{'Infra$/req':>11} {'InfraCE':>10}"
+    )
+    print(hdr_infra)
+    print(f"  {LINE[2:]}")
+    for r in results:
+        label = type_label.get(r.baseline_type, r.baseline_type)
+        infra_gpu_s = _cell_with_std(r, 'infra_gpu_seconds_total', '.2f', 's')
+        infra_startup_s = _cell_with_std(r, 'infra_startup_gpu_seconds', '.2f', 's')
+        infra_ready_s = _cell_with_std(r, 'infra_ready_gpu_seconds', '.2f', 's')
+        infra_cost_s = _cell_with_std(r, 'infra_cost_per_request_usd', '.6f', '')
+        infra_ce_s = _cell_with_std(r, 'infra_ce', '.3f', '')
+        print(
+            f"  {r.scenario_name:<26} {label:<16} "
+            f"{infra_gpu_s:>10} {infra_startup_s:>11} {infra_ready_s:>10} "
+            f"${infra_cost_s:>10} {infra_ce_s:>10}"
         )
     print(f"{DLINE}")
 
@@ -10674,9 +12844,11 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "TTFT_P95_ms": round(r.p95_ttft_ms, 1),
             "TTFT_P99_ms": round(r.p99_ttft_ms, 1),
             "TTFT_e2e_avg_ms": round(r.avg_overall_ttft_ms, 1),
+            "TTFT_e2e_P50_ms": round(r.p50_overall_ttft_ms, 1),
             "TTFT_e2e_P95_ms": round(r.p95_overall_ttft_ms, 1),
             "TTFT_e2e_P99_ms": round(r.p99_overall_ttft_ms, 1),
             "TTFT_service_avg_ms": round(r.avg_service_ttft_ms, 1),
+            "TTFT_service_P50_ms": round(r.p50_service_ttft_ms, 1),
             "TTFT_service_P95_ms": round(r.p95_service_ttft_ms, 1),
             "TTFT_service_P99_ms": round(r.p99_service_ttft_ms, 1),
             "TTFT_comparable_avg_ms": round(r.avg_comparable_ttft_ms, 1),
@@ -10687,6 +12859,28 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "TTFT_warm_standard_P99_ms": round(r.p99_warm_standard_ttft_ms, 1),
             "Runtime_TTFT_avg_ms": round(r.avg_runtime_ttft_ms, 1),
             "Runtime_TTFT_P95_ms": round(r.p95_runtime_ttft_ms, 1),
+            "Runtime_E2E_estimate_avg_ms": round(r.avg_runtime_estimated_e2e_ms, 1),
+            "Runtime_E2E_estimate_P95_ms": round(r.p95_runtime_estimated_e2e_ms, 1),
+            "Worker_wall_E2E_avg_ms": round(r.avg_worker_wall_e2e_ms, 1),
+            "Worker_wall_E2E_P95_ms": round(r.p95_worker_wall_e2e_ms, 1),
+            "Worker_RPC_handler_wall_avg_ms": round(r.avg_worker_rpc_handler_wall_ms, 1),
+            "Worker_RPC_handler_wall_P95_ms": round(r.p95_worker_rpc_handler_wall_ms, 1),
+            "Worker_engine_shell_avg_ms": round(r.avg_worker_engine_shell_ms, 1),
+            "Worker_engine_shell_P95_ms": round(r.p95_worker_engine_shell_ms, 1),
+            "Worker_RPC_queue_avg_ms": round(r.avg_worker_rpc_queue_ms, 1),
+            "Worker_RPC_queue_P95_ms": round(r.p95_worker_rpc_queue_ms, 1),
+            "Parent_RPC_overhead_avg_ms": round(r.avg_parent_rpc_overhead_ms, 1),
+            "Parent_RPC_overhead_P95_ms": round(r.p95_parent_rpc_overhead_ms, 1),
+            "Parent_RPC_channel_acquire_avg_ms": round(r.avg_parent_rpc_channel_acquire_ms, 1),
+            "Parent_RPC_channel_acquire_P95_ms": round(r.p95_parent_rpc_channel_acquire_ms, 1),
+            "Parent_RPC_response_pickup_avg_ms": round(r.avg_parent_rpc_response_pickup_delay_ms, 1),
+            "Parent_RPC_response_pickup_P95_ms": round(r.p95_parent_rpc_response_pickup_delay_ms, 1),
+            "Parent_RPC_thread_resume_avg_ms": round(r.avg_parent_rpc_thread_resume_delay_ms, 1),
+            "Parent_RPC_thread_resume_P95_ms": round(r.p95_parent_rpc_thread_resume_delay_ms, 1),
+            "Service_path_residual_avg_ms": round(r.avg_service_path_residual_ms, 1),
+            "Service_path_residual_P95_ms": round(r.p95_service_path_residual_ms, 1),
+            "Pre_runtime_service_shell_avg_ms": round(r.avg_pre_runtime_service_shell_ms, 1),
+            "Pre_runtime_service_shell_P95_ms": round(r.p95_pre_runtime_service_shell_ms, 1),
             "TTFT_gpu_ready_avg_ms": round(r.avg_gpu_ready_ttft_ms, 1),
             "TTFT_scaleup_affected_avg_ms": round(r.avg_scaleup_affected_ttft_ms, 1),
             "TTFT_scaleup_runtime_avg_ms": round(r.avg_scaleup_runtime_ttft_ms, 1),
@@ -10696,14 +12890,28 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "TTFT_serverless_overhead_avg_ms": round(r.avg_serverless_overhead_ms, 1),
             "TTFT_service_overhead_avg_ms": round(r.avg_service_overhead_ms, 1),
             "Dispatch_admission_wait_avg_ms": round(r.avg_dispatch_admission_wait_ms, 1),
+            "Dispatch_admission_wait_P50_ms": round(r.p50_dispatch_admission_wait_ms, 1),
             "Dispatch_admission_wait_P95_ms": round(r.p95_dispatch_admission_wait_ms, 1),
+            "Dispatch_window_wait_avg_ms": round(r.avg_dispatch_window_wait_ms, 1),
+            "Dispatch_window_wait_P50_ms": round(r.p50_dispatch_window_wait_ms, 1),
+            "Dispatch_window_wait_P95_ms": round(r.p95_dispatch_window_wait_ms, 1),
+            "Runtime_slot_wait_avg_ms": round(r.avg_runtime_slot_wait_ms, 1),
+            "Runtime_slot_wait_P50_ms": round(r.p50_runtime_slot_wait_ms, 1),
+            "Runtime_slot_wait_P95_ms": round(r.p95_runtime_slot_wait_ms, 1),
+            "Arrival_release_lateness_avg_ms": round(r.avg_arrival_release_lateness_ms, 1),
+            "Arrival_release_lateness_P50_ms": round(r.p50_arrival_release_lateness_ms, 1),
+            "Arrival_release_lateness_P95_ms": round(r.p95_arrival_release_lateness_ms, 1),
             "TPOT_avg_ms": round(r.avg_tpot_ms, 2),
             "TPOT_observed_ratio": round(r.tpot_observed_request_ratio, 4),
             "E2E_avg_ms":  round(r.avg_e2e_ms, 1),
+            "E2E_P50_ms":  round(r.p50_e2e_ms, 1),
             "E2E_P95_ms":  round(r.p95_e2e_ms, 1),
             "E2E_P99_ms":  round(r.p99_e2e_ms, 1),
             "E2E_e2e_avg_ms": round(r.avg_overall_e2e_ms, 1),
             "E2E_service_avg_ms": round(r.avg_service_e2e_ms, 1),
+            "E2E_service_P50_ms": round(r.p50_service_e2e_ms, 1),
+            "E2E_service_P95_ms": round(r.p95_service_e2e_ms, 1),
+            "E2E_service_P99_ms": round(r.p99_service_e2e_ms, 1),
             "throughput_RPS":  round(r.throughput_rps, 3),
             "throughput_TOKPS": round(r.throughput_tok_per_s, 3),
             "SLO_attainment": round(r.slo_attainment, 4),
@@ -10712,7 +12920,13 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "TTFT_SLO_ms": round(r.ttft_slo_ms, 1),
             "avg_cost_USD": round(r.avg_cost_usd, 7),
             "total_cost_USD":    round(r.total_cost_usd, 5),
+            "infra_gpu_seconds_total": round(r.infra_gpu_seconds_total, 6),
+            "infra_startup_gpu_seconds": round(r.infra_startup_gpu_seconds, 6),
+            "infra_ready_gpu_seconds": round(r.infra_ready_gpu_seconds, 6),
+            "infra_cost_total_usd": round(r.infra_cost_total_usd, 7),
+            "infra_cost_per_request_usd": round(r.infra_cost_per_request_usd, 7),
             "CE":      round(r.qpr, 4),
+            "Infra_CE": round(r.infra_ce, 4),
             "Cost_effectiveness_e2e": round(r.cost_effectiveness_e2e, 4),
             "QPR_TOKPS_TTFT_legacy": round(r.qpr_tokps_ttft_legacy, 1),
             "QPR_RPS_legacy": round(r.qpr_rps_legacy, 1),
@@ -10778,14 +12992,22 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "max_instances": resolved_meta.get("max_instances"),
             "arrival_window_s": resolved_meta.get("arrival_window_s"),
             "scale_eval_interval_s": resolved_meta.get("scale_eval_interval_s"),
+            "max_model_len": resolved_meta.get("max_model_len"),
+            "max_input_len": resolved_meta.get("max_input_len"),
+            "max_output_tokens_cap": resolved_meta.get("max_output_tokens_cap"),
+            "requested_runtime_concurrency_cap": resolved_meta.get("requested_runtime_concurrency_cap"),
+            "runtime_concurrency_cap": resolved_meta.get("runtime_concurrency_cap"),
+            "max_num_seqs": resolved_meta.get("max_num_seqs"),
+            "max_loras": resolved_meta.get("max_loras"),
             "total_requests": r.total,
             "completed_requests": r.completed,
             "failed_requests": r.failed,
             "elapsed_sec": round(r.elapsed_sec, 4),
             "metric_schema_version": "e2e_v3",
-            "primary_ttft_definition": "scheduled trace arrival to client-observed first output token/chunk",
-            "primary_e2e_definition": "scheduled trace arrival to client-observed response completion",
-            "service_ttft_definition": "common system-ingress to first output token/chunk; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
+            "primary_ttft_definition": METRIC_DEF_PRIMARY_TTFT,
+            "primary_e2e_definition": METRIC_DEF_PRIMARY_E2E,
+            "service_ttft_definition": METRIC_DEF_SERVICE_TTFT,
+            "service_e2e_definition": METRIC_DEF_SERVICE_E2E,
             "slo_metric": "TTFT_e2e",
             "avg_ttft_ms": round(r.avg_ttft_ms, 4),
             "p95_ttft_ms": round(r.p95_ttft_ms, 4),
@@ -10795,22 +13017,28 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "p95_overall_ttft_ms": round(r.p95_overall_ttft_ms, 4),
             "p99_overall_ttft_ms": round(r.p99_overall_ttft_ms, 4),
             "avg_service_ttft_ms": round(r.avg_service_ttft_ms, 4),
+            "p50_service_ttft_ms": round(r.p50_service_ttft_ms, 4),
             "p95_service_ttft_ms": round(r.p95_service_ttft_ms, 4),
             "p99_service_ttft_ms": round(r.p99_service_ttft_ms, 4),
             "avg_admitted_service_ttft_ms": round(r.avg_admitted_service_ttft_ms, 4),
+            "p50_admitted_service_ttft_ms": round(r.p50_admitted_service_ttft_ms, 4),
             "p95_admitted_service_ttft_ms": round(r.p95_admitted_service_ttft_ms, 4),
             "p99_admitted_service_ttft_ms": round(r.p99_admitted_service_ttft_ms, 4),
             "avg_tpot_ms": round(r.avg_tpot_ms, 4),
             "avg_e2e_ms": round(r.avg_e2e_ms, 4),
+            "p50_e2e_ms": round(r.p50_e2e_ms, 4),
             "p95_e2e_ms": round(r.p95_e2e_ms, 4),
             "p99_e2e_ms": round(r.p99_e2e_ms, 4),
             "avg_overall_e2e_ms": round(r.avg_overall_e2e_ms, 4),
+            "p50_overall_e2e_ms": round(r.p50_overall_e2e_ms, 4),
             "p95_overall_e2e_ms": round(r.p95_overall_e2e_ms, 4),
             "p99_overall_e2e_ms": round(r.p99_overall_e2e_ms, 4),
             "avg_service_e2e_ms": round(r.avg_service_e2e_ms, 4),
+            "p50_service_e2e_ms": round(r.p50_service_e2e_ms, 4),
             "p95_service_e2e_ms": round(r.p95_service_e2e_ms, 4),
             "p99_service_e2e_ms": round(r.p99_service_e2e_ms, 4),
             "avg_admitted_service_e2e_ms": round(r.avg_admitted_service_e2e_ms, 4),
+            "p50_admitted_service_e2e_ms": round(r.p50_admitted_service_e2e_ms, 4),
             "p95_admitted_service_e2e_ms": round(r.p95_admitted_service_e2e_ms, 4),
             "p99_admitted_service_e2e_ms": round(r.p99_admitted_service_e2e_ms, 4),
             "throughput_rps": round(r.throughput_rps, 6),
@@ -10819,6 +13047,12 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "ttft_slo_ms": round(r.ttft_slo_ms, 4),
             "avg_cost_usd": round(r.avg_cost_usd, 8),
             "total_cost_usd": round(r.total_cost_usd, 8),
+            "infra_gpu_seconds_total": round(r.infra_gpu_seconds_total, 6),
+            "infra_startup_gpu_seconds": round(r.infra_startup_gpu_seconds, 6),
+            "infra_ready_gpu_seconds": round(r.infra_ready_gpu_seconds, 6),
+            "infra_cost_total_usd": round(r.infra_cost_total_usd, 8),
+            "infra_cost_per_request_usd": round(r.infra_cost_per_request_usd, 8),
+            "infra_ce": round(r.infra_ce, 6),
             "ce": round(r.qpr, 6),
             "qpr": round(r.qpr, 6),
             "qpr_tokps_ttft_legacy": round(r.qpr_tokps_ttft_legacy, 6),
@@ -10837,11 +13071,44 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "avg_service_overhead_ms": round(r.avg_service_overhead_ms, 4),
             "p95_service_overhead_ms": round(r.p95_service_overhead_ms, 4),
             "avg_dispatch_admission_wait_ms": round(r.avg_dispatch_admission_wait_ms, 4),
+            "p50_dispatch_admission_wait_ms": round(r.p50_dispatch_admission_wait_ms, 4),
             "p95_dispatch_admission_wait_ms": round(r.p95_dispatch_admission_wait_ms, 4),
+            "avg_dispatch_window_wait_ms": round(r.avg_dispatch_window_wait_ms, 4),
+            "p50_dispatch_window_wait_ms": round(r.p50_dispatch_window_wait_ms, 4),
+            "p95_dispatch_window_wait_ms": round(r.p95_dispatch_window_wait_ms, 4),
+            "avg_runtime_slot_wait_ms": round(r.avg_runtime_slot_wait_ms, 4),
+            "p50_runtime_slot_wait_ms": round(r.p50_runtime_slot_wait_ms, 4),
+            "p95_runtime_slot_wait_ms": round(r.p95_runtime_slot_wait_ms, 4),
             "avg_ingress_queue_wait_ms": round(r.avg_ingress_queue_wait_ms, 4),
+            "p50_ingress_queue_wait_ms": round(r.p50_ingress_queue_wait_ms, 4),
             "p95_ingress_queue_wait_ms": round(r.p95_ingress_queue_wait_ms, 4),
+            "avg_arrival_release_lateness_ms": round(r.avg_arrival_release_lateness_ms, 4),
+            "p50_arrival_release_lateness_ms": round(r.p50_arrival_release_lateness_ms, 4),
+            "p95_arrival_release_lateness_ms": round(r.p95_arrival_release_lateness_ms, 4),
             "avg_runtime_ttft_ms": round(r.avg_runtime_ttft_ms, 4),
             "p95_runtime_ttft_ms": round(r.p95_runtime_ttft_ms, 4),
+            "avg_runtime_estimated_e2e_ms": round(r.avg_runtime_estimated_e2e_ms, 4),
+            "p95_runtime_estimated_e2e_ms": round(r.p95_runtime_estimated_e2e_ms, 4),
+            "avg_worker_wall_e2e_ms": round(r.avg_worker_wall_e2e_ms, 4),
+            "p95_worker_wall_e2e_ms": round(r.p95_worker_wall_e2e_ms, 4),
+            "avg_worker_rpc_handler_wall_ms": round(r.avg_worker_rpc_handler_wall_ms, 4),
+            "p95_worker_rpc_handler_wall_ms": round(r.p95_worker_rpc_handler_wall_ms, 4),
+            "avg_worker_engine_shell_ms": round(r.avg_worker_engine_shell_ms, 4),
+            "p95_worker_engine_shell_ms": round(r.p95_worker_engine_shell_ms, 4),
+            "avg_worker_rpc_queue_ms": round(r.avg_worker_rpc_queue_ms, 4),
+            "p95_worker_rpc_queue_ms": round(r.p95_worker_rpc_queue_ms, 4),
+            "avg_parent_rpc_overhead_ms": round(r.avg_parent_rpc_overhead_ms, 4),
+            "p95_parent_rpc_overhead_ms": round(r.p95_parent_rpc_overhead_ms, 4),
+            "avg_parent_rpc_channel_acquire_ms": round(r.avg_parent_rpc_channel_acquire_ms, 4),
+            "p95_parent_rpc_channel_acquire_ms": round(r.p95_parent_rpc_channel_acquire_ms, 4),
+            "avg_parent_rpc_response_pickup_delay_ms": round(r.avg_parent_rpc_response_pickup_delay_ms, 4),
+            "p95_parent_rpc_response_pickup_delay_ms": round(r.p95_parent_rpc_response_pickup_delay_ms, 4),
+            "avg_parent_rpc_thread_resume_delay_ms": round(r.avg_parent_rpc_thread_resume_delay_ms, 4),
+            "p95_parent_rpc_thread_resume_delay_ms": round(r.p95_parent_rpc_thread_resume_delay_ms, 4),
+            "avg_service_path_residual_ms": round(r.avg_service_path_residual_ms, 4),
+            "p95_service_path_residual_ms": round(r.p95_service_path_residual_ms, 4),
+            "avg_pre_runtime_service_shell_ms": round(r.avg_pre_runtime_service_shell_ms, 4),
+            "p95_pre_runtime_service_shell_ms": round(r.p95_pre_runtime_service_shell_ms, 4),
             "avg_gpu_ready_ttft_ms": round(r.avg_gpu_ready_ttft_ms, 4),
             "p95_gpu_ready_ttft_ms": round(r.p95_gpu_ready_ttft_ms, 4),
             "avg_scaleup_affected_ttft_ms": round(r.avg_scaleup_affected_ttft_ms, 4),
@@ -10856,6 +13123,12 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "scaleup_first_service_planned_match_rate": round(r.scaleup_first_service_planned_match_rate, 6),
             "avg_cold_start_latency_ms": round(r.avg_cold_start_latency_ms, 4),
             "p95_cold_start_latency_ms": round(r.p95_cold_start_latency_ms, 4),
+            "infra_gpu_seconds_total": round(r.infra_gpu_seconds_total, 6),
+            "infra_startup_gpu_seconds": round(r.infra_startup_gpu_seconds, 6),
+            "infra_ready_gpu_seconds": round(r.infra_ready_gpu_seconds, 6),
+            "infra_cost_total_usd": round(r.infra_cost_total_usd, 8),
+            "infra_cost_per_request_usd": round(r.infra_cost_per_request_usd, 8),
+            "infra_ce": round(r.infra_ce, 6),
             "cost_effectiveness_e2e": round(r.cost_effectiveness_e2e, 6),
             "slo_goodput_rps": round(r.slo_goodput_rps, 6),
             "slo_goodput_tok_per_s": round(r.slo_goodput_tok_per_s, 6),
@@ -10869,6 +13142,7 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "scale_down_events": r.scale_down_events,
             "scale_down_event_log": r.scale_down_event_log,
             "cold_starts_after_scale_up": r.cold_starts_after_scale_up,
+            "instance_lifecycle_log": r.instance_lifecycle_log,
             **metric_groups,
         }
     return summaries
@@ -10890,24 +13164,39 @@ def save_results(results: List[ScenarioResult], path: Path, meta: Dict):
         "metric_schema_version": "e2e_v3",
         "metadata": meta,
         "metric_definitions": {
-            "primary_ttft": "scheduled trace arrival to client-observed first output token/chunk",
-            "primary_e2e": "scheduled trace arrival to client-observed response completion",
-            "service_ttft": "common system-ingress to first output token/chunk; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
-            "service_e2e": "common system-ingress to response completion; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
-            "admitted_service_ttft": "FaaSLoRA-only internal metric from dispatch admission granted to first output token/chunk",
-            "admitted_service_e2e": "FaaSLoRA-only internal metric from dispatch admission granted to response completion",
-            "tpot": "(final_token_time - first_token_time) / max(output_tokens - 1, 1)",
+            "primary_ttft": METRIC_DEF_PRIMARY_TTFT,
+            "primary_e2e": METRIC_DEF_PRIMARY_E2E,
+            "service_ttft": METRIC_DEF_SERVICE_TTFT,
+            "service_e2e": METRIC_DEF_SERVICE_E2E,
+            "admitted_service_ttft": "alias of service_ttft for FaaSLoRA: dispatch admission granted to first output token/chunk",
+            "admitted_service_e2e": "alias of service_e2e for FaaSLoRA: dispatch admission granted to response completion",
+            "tpot": "(service_completion_time - service_first_token_time) / max(output_tokens - 1, 1)",
+            "runtime_estimated_e2e": "vLLM/Transformers native runtime estimate: runtime TTFT + runtime TPOT * max(output_tokens - 1, 0)",
+            "worker_wall_e2e": "wall-clock time inside the dedicated inference worker for one generate call",
+            "worker_rpc_handler_wall": "actual wall-clock time spent by the dedicated worker RPC handler around engine.generate",
+            "worker_engine_shell": "worker_rpc_handler_wall minus runtime_estimated_e2e; captures worker/vLLM wrapper time not explained by native runtime timing",
+            "worker_rpc_queue": "time between the parent sending an RPC and the worker event loop reading it; captures hidden worker-side queueing before generate starts",
+            "parent_rpc_overhead": "parent-observed subprocess RPC wall time minus worker generate wall time",
+            "parent_rpc_channel_acquire": "parent-side wait to acquire a reusable subprocess RPC channel before a generate RPC is issued",
+            "parent_rpc_response_pickup_delay": "delay between the worker becoming ready to reply and the parent event loop actually reading that reply",
+            "parent_rpc_thread_resume_delay": "delay between the blocking RPC thread reading a response and the parent asyncio coroutine resuming after await to_thread",
+            "service_path_residual": "service_e2e minus runtime_estimated_e2e; isolates orchestration/proxy/runtime-wall residual not explained by native runtime metrics",
+            "pre_runtime_service_shell": "service_ttft minus runtime_ttft; captures post-admission work before the backend runtime actually starts producing first-token latency",
+            "infra_cost_model": "simulated GPU-second infrastructure billing over the replay serving window; total/startup/ready GPU-seconds are multiplied by a shared gpu_cost_per_second_usd and normalized into infra_cost_per_request_usd and infra_ce",
             "slo_metric": "TTFT_e2e",
         },
         "metric_structure": {
             "standard_serving_metrics": [
                 "TTFT_avg_ms",
+                "TTFT_P50_ms",
                 "TTFT_P95_ms",
                 "TTFT_P99_ms",
                 "TTFT_e2e_avg_ms",
+                "TTFT_e2e_P50_ms",
                 "TTFT_e2e_P95_ms",
                 "TTFT_e2e_P99_ms",
                 "TTFT_service_avg_ms",
+                "TTFT_service_P50_ms",
                 "TTFT_service_P95_ms",
                 "TTFT_service_P99_ms",
                 "TTFT_warm_standard_avg_ms",
@@ -10923,6 +13212,7 @@ def save_results(results: List[ScenarioResult], path: Path, meta: Dict):
                 "TTFT_e2e_avg_ms",
                 "TTFT_service_avg_ms",
                 "Dispatch_admission_wait_avg_ms",
+                "Dispatch_admission_wait_P50_ms",
                 "Dispatch_admission_wait_P95_ms",
                 "TTFT_comparable_avg_ms",
                 "TTFT_comparable_P95_ms",
@@ -10933,6 +13223,28 @@ def save_results(results: List[ScenarioResult], path: Path, meta: Dict):
                 "TTFT_scaleup_affected_P95_ms",
                 "Runtime_TTFT_avg_ms",
                 "Runtime_TTFT_P95_ms",
+                "Runtime_E2E_estimate_avg_ms",
+                "Runtime_E2E_estimate_P95_ms",
+                "Worker_wall_E2E_avg_ms",
+                "Worker_wall_E2E_P95_ms",
+                "Worker_RPC_handler_wall_avg_ms",
+                "Worker_RPC_handler_wall_P95_ms",
+                "Worker_engine_shell_avg_ms",
+                "Worker_engine_shell_P95_ms",
+                "Worker_RPC_queue_avg_ms",
+                "Worker_RPC_queue_P95_ms",
+                "Parent_RPC_overhead_avg_ms",
+                "Parent_RPC_overhead_P95_ms",
+                "Parent_RPC_channel_acquire_avg_ms",
+                "Parent_RPC_channel_acquire_P95_ms",
+                "Parent_RPC_response_pickup_avg_ms",
+                "Parent_RPC_response_pickup_P95_ms",
+                "Parent_RPC_thread_resume_avg_ms",
+                "Parent_RPC_thread_resume_P95_ms",
+                "Service_path_residual_avg_ms",
+                "Service_path_residual_P95_ms",
+                "Pre_runtime_service_shell_avg_ms",
+                "Pre_runtime_service_shell_P95_ms",
                 "Cold_start_avg_ms",
                 "Cold_start_P95_ms",
                 "TTFT_serverless_overhead_avg_ms",
@@ -10940,12 +13252,21 @@ def save_results(results: List[ScenarioResult], path: Path, meta: Dict):
                 "TTFT_service_overhead_avg_ms",
                 "TTFT_service_overhead_P95_ms",
                 "E2E_avg_ms",
+                "E2E_P50_ms",
                 "E2E_P95_ms",
                 "E2E_P99_ms",
                 "E2E_e2e_avg_ms",
                 "E2E_service_avg_ms",
+                "E2E_service_P50_ms",
+                "E2E_service_P95_ms",
+                "E2E_service_P99_ms",
                 "Monetary_cost_avg_usd",
                 "Monetary_cost_total_usd",
+                "Infra_GPU_seconds_total",
+                "Infra_GPU_seconds_startup",
+                "Infra_GPU_seconds_ready",
+                "Infra_cost_total_usd",
+                "Infra_cost_per_request_usd",
             ],
             "scaling_metrics": [
                 "TTFT_SLO_ms",
@@ -10957,6 +13278,7 @@ def save_results(results: List[ScenarioResult], path: Path, meta: Dict):
             ],
             "mechanism_metrics": [
                 "CE",
+                "Infra_CE",
                 "QPR_TOKPS_TTFT_legacy",
                 "QPR_RPS_legacy",
                 "cache_hit_rate",
@@ -11301,6 +13623,7 @@ async def main_async(
 
     shared_trace_path_override = _read_env_override("FAASLORA_SHARED_TRACE_PATH")
     shared_adapter_subset_path_override = _read_env_override("FAASLORA_SHARED_ADAPTER_SUBSET_PATH")
+    shared_trace_metadata: Dict[str, Any] = {}
 
     initial_model_name = _read_env_override("FAASLORA_MODEL_NAME")
     if initial_model_name is not None:
@@ -11336,7 +13659,11 @@ async def main_async(
             scale_preset = {}
     if scale_preset:
         exp_cfg = _deep_merge_dict(exp_cfg, scale_preset.get("experiment", {}))
-        model_cfg = _deep_merge_dict(model_cfg, scale_preset.get("model", {}))
+        apply_scale_preset_model = bool(
+            adapters_cfg.get("apply_scale_preset_model", False)
+        ) or not bool(applied_profile_selection.get("model"))
+        if apply_scale_preset_model:
+            model_cfg = _deep_merge_dict(model_cfg, scale_preset.get("model", {}))
         wl_cfg_yaml = _deep_merge_dict(wl_cfg_yaml, scale_preset.get("workload", {}))
         coord_cfg = _deep_merge_dict(
             coord_cfg, scale_preset.get("resource_coordination", {})
@@ -11355,6 +13682,7 @@ async def main_async(
         coord_cfg,
         hw_cfg,
     )
+    model_cfg = _normalize_runtime_concurrency_cap(model_cfg)
     coord_cfg, tp_capacity_guard = _apply_tp_instance_capacity_guard(model_cfg, coord_cfg)
     adapters_cfg, storage_cfg, applied_adapter_storage_overrides = _apply_adapter_storage_env_overrides(
         adapters_cfg,
@@ -11588,16 +13916,25 @@ async def main_async(
     )
 
     if shared_trace_path_override is not None:
-        shared_trace_path, traces = _load_shared_trace_requests(
+        shared_trace_path, traces, shared_trace_metadata = _load_shared_trace_requests(
             shared_trace_path_override,
             allowed_adapter_ids=adapter_ids,
         )
         _assert_all_requests_bind_lora(traces, context=f"shared trace {shared_trace_path}")
         total_requests = len(traces)
+        configured_time_scale = _safe_float(
+            shared_trace_metadata.get("configured_time_scale_factor"),
+            configured_time_scale,
+        )
+        time_scale = _safe_float(
+            shared_trace_metadata.get("effective_time_scale_factor"),
+            time_scale,
+        )
         trace_src = f"Shared external trace ({shared_trace_path})"
         sampling_stats = {
             "strategy": "external_shared_trace",
             "selected_requests": len(traces),
+            "shared_trace_metadata": shared_trace_metadata,
         }
     elif use_azure_replay:
         # Use real Azure trace timestamps for authentic arrival patterns
@@ -11724,14 +14061,26 @@ async def main_async(
     engine = InferenceEngine(model_cfg, cost_model)
     engine_inited = False
     if engine.backend != "transformers":
-        print("[4/5] Initialising inference engine ...")
-        _assert_clean_gpu_environment(
-            _resolve_runtime_gpu_device_ids(model_cfg, device_id=model_cfg.get("device_id")),
-            context="engine_init",
-            root_pid=os.getpid(),
+        defer_primary_engine_init = _should_defer_primary_engine_initialization(
+            model_cfg,
+            scenarios,
+            coord_cfg,
+            only_scenario=only_scenario,
         )
-        await engine.initialize()
-        engine_inited = True
+        if defer_primary_engine_init:
+            print(
+                "[4/5] Deferring primary vLLM runtime init: selected scenario uses "
+                "subprocess-isolated dedicated runtimes."
+            )
+        else:
+            print("[4/5] Initialising inference engine ...")
+            _assert_clean_gpu_environment(
+                _resolve_runtime_gpu_device_ids(model_cfg, device_id=model_cfg.get("device_id")),
+                context="engine_init",
+                root_pid=os.getpid(),
+            )
+            await engine.initialize()
+            engine_inited = True
     else:
         print("[4/5] Transformers backend: engine will init when first needed (cold_start/backbone use subprocess).")
     print()
@@ -11779,8 +14128,23 @@ async def main_async(
             "min_instances": int(sc_coord.get("min_instances", 1)),
             "max_instances": int(sc_coord.get("max_instances", 1)),
             "routing_policy": str(sc_coord.get("routing_policy", "adapter_affinity")).lower(),
+            "max_concurrent_loads": int(sc_coord.get("max_concurrent_loads", 1) or 1),
+            "warm_pool_size": int(sc_coord.get("warm_pool_size", 0) or 0),
             "arrival_window_s": float(sc_coord.get("arrival_window_s", 5.0)),
             "scale_eval_interval_s": float(sc_coord.get("scale_eval_interval_s", 15.0)),
+            "scale_cooldown_s": float(sc_coord.get("scale_cooldown_s", 0.0) or 0.0),
+            "scale_decision_interval": int(sc_coord.get("scale_decision_interval", 0) or 0),
+            "scale_up_alpha": float(sc_coord.get("scale_up_alpha", 0.0) or 0.0),
+            "scale_up_t_min": float(sc_coord.get("scale_up_t_min", 0.0) or 0.0),
+            "scale_down_beta": float(sc_coord.get("scale_down_beta", 0.0) or 0.0),
+            "scale_down_duration_s": float(
+                _nonnegative_seconds_or_none(sc_coord.get("scale_down_duration_s")) or 0.0
+            ),
+            "scale_down_duration_policy": str(sc_coord.get("scale_down_duration_s", "auto")),
+            "scale_down_cooldown_s": float(
+                _nonnegative_seconds_or_none(sc_coord.get("scale_down_cooldown_s")) or 0.0
+            ),
+            "scale_down_cooldown_policy": str(sc_coord.get("scale_down_cooldown_s", "auto")),
             "ttft_slo_ms": float(sc_coord.get("ttft_slo_ms", ttft_slo_ms)),
             "ttft_latency_scale_up_threshold_ms": float(
                 sc_coord.get("ttft_latency_scale_up_threshold_ms", ttft_slo_ms)
@@ -11795,6 +14159,21 @@ async def main_async(
         instance_mode = str(sc_coord.get("instance_mode", "shared")).lower()
         runner_model_cfg = copy.deepcopy(model_cfg)
         runner_model_cfg.update(copy.deepcopy(sc_coord.get("instance_model_overrides", {})))
+        runner_model_cfg = _normalize_runtime_concurrency_cap(runner_model_cfg)
+        scenario_coordination_meta[sname].update(
+            {
+                "max_model_len": runner_model_cfg.get("max_model_len"),
+                "max_input_len": runner_model_cfg.get("max_input_len"),
+                "max_output_tokens_cap": runner_model_cfg.get("max_output_tokens_cap"),
+                "max_num_seqs": runner_model_cfg.get("max_num_seqs"),
+                "requested_runtime_concurrency_cap": runner_model_cfg.get(
+                    "requested_runtime_concurrency_cap",
+                    runner_model_cfg.get("runtime_concurrency_cap"),
+                ),
+                "runtime_concurrency_cap": runner_model_cfg.get("runtime_concurrency_cap"),
+                "max_loras": runner_model_cfg.get("max_loras"),
+            }
+        )
 
         run_results: List[ScenarioResult] = []
         for run_idx in range(num_runs):
@@ -11827,6 +14206,8 @@ async def main_async(
                     print("  [Full stack] ResidencyManager + PreloadingManager + scale-aware (C1: GPU/HOST/NVME tiers)")
 
             engine_factory = None
+            use_subprocess_engine = False
+            host_visible_device_ids: List[int] = []
             if instance_mode in ("auto", "dedicated") and engine.backend != "transformers":
                 spawn_model_cfg = copy.deepcopy(runner_model_cfg)
                 host_visible_device_ids = _resolve_host_visible_device_ids(
@@ -11886,6 +14267,35 @@ async def main_async(
 
                 engine_factory = _spawn_engine
 
+            if (
+                use_subprocess_engine
+                and not engine_inited
+                and not isinstance(engine, SubprocessInferenceEngineProxy)
+            ):
+                primary_model_cfg = copy.deepcopy(runner_model_cfg)
+                primary_device_id_raw = primary_model_cfg.get("device_id", model_cfg.get("device_id", 0))
+                primary_device_id = int(primary_device_id_raw) if primary_device_id_raw is not None else 0
+                primary_model_cfg["device_id"] = primary_device_id
+                primary_resolve_cfg = copy.deepcopy(runner_model_cfg)
+                if host_visible_device_ids:
+                    primary_resolve_cfg["visible_device_ids"] = list(host_visible_device_ids)
+                primary_runtime_gpu_ids = _resolve_runtime_gpu_device_ids(
+                    primary_resolve_cfg,
+                    device_id=primary_device_id,
+                )
+                print(
+                    "  [Runtime isolation] Primary vLLM runtime uses the same "
+                    "subprocess-backed path as scale-out replicas "
+                    f"(device_id={primary_device_id}, runtime_gpus={primary_runtime_gpu_ids or [primary_device_id]})."
+                )
+                engine = await SubprocessInferenceEngineProxy.spawn(
+                    model_cfg=primary_model_cfg,
+                    cost_model=cost_model,
+                    device_id=primary_device_id,
+                    runtime_gpu_ids=primary_runtime_gpu_ids,
+                )
+                engine_inited = True
+
             runner_workload_cfg = dict(wl_cfg_yaml)
             runner_workload_cfg["arrival_source"] = arrival_source
             runner_workload_cfg["workload_timing_mode"] = workload_timing_mode
@@ -11929,22 +14339,43 @@ async def main_async(
                 engine._reinit_attempted = False
                 await engine.reinitialize()
 
-            print("  [Phase 1] Preloading ...")
-            runner._assert_clean_gpu_environment(context="scenario_preload", force=True)
-            await runner.preload()
+            try:
+                print("  [Phase 1] Preloading ...")
+                runner._assert_clean_gpu_environment(context="scenario_preload", force=True)
+                await runner.preload()
 
-            print(f"  [Phase 2] Serving {len(traces)} requests ...")
-            if btype == "backbone_only" and engine.backend == "transformers":
-                result, coord_m = runner.run_sync_backbone_only()
-            elif btype == "cold_start" and engine.backend == "transformers":
-                result, coord_m = runner.run_sync_cold_start_subprocess()
-            elif btype == "faaslora_full" and engine.backend == "transformers":
-                result, coord_m = runner.run_sync_faaslora_subprocess()
-            else:
-                result, coord_m = await runner.run()
-
-            if experiment_stack is not None:
-                await experiment_stack.stop()
+                print(f"  [Phase 2] Serving {len(traces)} requests ...")
+                if btype == "backbone_only" and engine.backend == "transformers":
+                    result, coord_m = runner.run_sync_backbone_only()
+                elif btype == "cold_start" and engine.backend == "transformers":
+                    result, coord_m = runner.run_sync_cold_start_subprocess()
+                elif btype == "faaslora_full" and engine.backend == "transformers":
+                    result, coord_m = runner.run_sync_faaslora_subprocess()
+                else:
+                    result, coord_m = await runner.run()
+            finally:
+                try:
+                    await runner._shutdown_instance_pool()
+                finally:
+                    if experiment_stack is not None:
+                        await experiment_stack.stop()
+            runner.finalize_runtime_infra_accounting(result)
+            scenario_coordination_meta[sname].update(
+                {
+                    "effective_scale_down_min_idle_s": round(
+                        runner._effective_scale_down_min_idle_s(),
+                        6,
+                    ),
+                    "effective_scale_down_cooldown_s": round(
+                        runner._effective_scale_down_cooldown_s(),
+                        6,
+                    ),
+                    "trace_scale_down_floor_s": round(
+                        float(getattr(runner, "_trace_scale_down_floor_s", 0.0) or 0.0),
+                        6,
+                    ),
+                }
+            )
 
             print(
                 f"  Done: {result.completed}/{result.total}  "
@@ -11959,6 +14390,14 @@ async def main_async(
                 f"SLO@{result.ttft_slo_ms:.0f}ms={result.slo_attainment:.0%}"
             )
             print(
+                f"  InfraGPU={result.infra_gpu_seconds_total:.2f}s  "
+                f"InfraStartupGPU={result.infra_startup_gpu_seconds:.2f}s  "
+                f"InfraReadyGPU={result.infra_ready_gpu_seconds:.2f}s  "
+                f"InfraCost/req=${result.infra_cost_per_request_usd:.6f}  "
+                f"InfraTotal=${result.infra_cost_total_usd:.4f}  "
+                f"InfraCE={result.infra_ce:.3f}"
+            )
+            print(
                 f"  TTFT_comp={result.avg_comparable_ttft_ms:.0f}/{result.p95_comparable_ttft_ms:.0f}/{result.p99_comparable_ttft_ms:.0f}ms  "
                 f"TTFT_warm={result.avg_warm_standard_ttft_ms:.0f}/{result.p95_warm_standard_ttft_ms:.0f}/{result.p99_warm_standard_ttft_ms:.0f}ms  "
                 f"ScaleUpAffected={result.avg_scaleup_affected_ttft_ms:.0f}ms  "
@@ -11966,9 +14405,21 @@ async def main_async(
             )
             print(
                 f"  Diag Runtime={result.avg_runtime_ttft_ms:.0f}ms  "
+                f"RuntimeE2E={result.avg_runtime_estimated_e2e_ms:.0f}ms  "
+                f"WorkerWall={result.avg_worker_wall_e2e_ms:.0f}ms  "
+                f"WorkerShell={result.avg_worker_engine_shell_ms:.0f}ms  "
+                f"PreRuntime={result.avg_pre_runtime_service_shell_ms:.0f}ms  "
+                f"SvcResidual={result.avg_service_path_residual_ms:.0f}ms  "
+                f"RPCOverhead={result.avg_parent_rpc_overhead_ms:.0f}ms  "
+                f"RPCAcquire={result.avg_parent_rpc_channel_acquire_ms:.0f}ms  "
+                f"RPCPickup={result.avg_parent_rpc_response_pickup_delay_ms:.0f}ms  "
+                f"RPCResume={result.avg_parent_rpc_thread_resume_delay_ms:.0f}ms  "
                 f"GPUReady={result.avg_gpu_ready_ttft_ms:.0f}ms  "
                 f"Hit={result.cache_hit_rate:.0%}  "
+                f"ArrivalLate={result.avg_arrival_release_lateness_ms:.0f}ms  "
                 f"DispatchWait={result.avg_dispatch_admission_wait_ms:.0f}ms  "
+                f"DispatchWindow={result.avg_dispatch_window_wait_ms:.0f}ms  "
+                f"SlotWait={result.avg_runtime_slot_wait_ms:.0f}ms  "
                 f"Overhead(e2e_path)={result.avg_serverless_overhead_ms:.0f}ms  "
                 f"Overhead(service_path)={result.avg_service_overhead_ms:.0f}ms  "
                 f"SLOGoodput={result.slo_goodput_rps:.2f}rps/{result.slo_goodput_tok_per_s:.2f}tok/s"
@@ -11995,21 +14446,44 @@ async def main_async(
         meta={
             "experiment_time": time.strftime("%Y-%m-%d %H:%M:%S"),
             "metric_schema_version": "e2e_v3",
-            "primary_ttft_definition": "scheduled trace arrival to client-observed first output token/chunk",
-            "primary_e2e_definition": "scheduled trace arrival to client-observed response completion",
-            "service_ttft_definition": "common system-ingress to first output token/chunk; ingress is request release/dispatch into the target serving system and excludes scheduled-arrival wait",
+            "primary_ttft_definition": METRIC_DEF_PRIMARY_TTFT,
+            "primary_e2e_definition": METRIC_DEF_PRIMARY_E2E,
+            "service_ttft_definition": METRIC_DEF_SERVICE_TTFT,
+            "service_e2e_definition": METRIC_DEF_SERVICE_E2E,
             "slo_metric": "TTFT_e2e",
             "cuda_available": CUDA_AVAILABLE,
             "vllm_available": VLLM_AVAILABLE,
             "gpu_name": GPU_NAME,
             "model": model_name,
             "backend": backend,
+            "infra_cost_model": {
+                "name": "simulated_gpu_second_v1",
+                "gpu_cost_per_second_usd": round(_gpu_cost_per_second_usd(cost_model), 8),
+                "gpu_hour_cost_usd_equivalent": round(_gpu_cost_per_second_usd(cost_model) * 3600.0, 6),
+                "scope": "runtime_gpu_lifecycle_within_replay_window",
+                "billing_unit": "gpu_second",
+            },
             "engine_info": _engine_mode_info(backend),
             "device_id": model_cfg.get("device_id", 0),
             "visible_device_ids": model_cfg.get("visible_device_ids"),
+            "visible_gpu_count": len(model_cfg.get("visible_device_ids") or []),
+            "tensor_parallel_size": model_cfg.get("tensor_parallel_size"),
+            "gpu_per_request": model_cfg.get("tensor_parallel_size"),
+            "runtime_gpu_count": model_cfg.get("tensor_parallel_size"),
+            "parallelism_topology": (
+                "model_parallel_tp{}".format(model_cfg.get("tensor_parallel_size"))
+                if int(model_cfg.get("tensor_parallel_size", 1) or 1) > 1
+                else "single_gpu_scaleout"
+            ),
             "max_model_len": model_cfg.get("max_model_len"),
+            "max_input_len": model_cfg.get("max_input_len"),
+            "max_output_tokens_cap": model_cfg.get("max_output_tokens_cap"),
             "max_num_seqs": model_cfg.get("max_num_seqs"),
             "max_num_batched_tokens": model_cfg.get("max_num_batched_tokens"),
+            "requested_runtime_concurrency_cap": model_cfg.get(
+                "requested_runtime_concurrency_cap",
+                model_cfg.get("runtime_concurrency_cap"),
+            ),
             "runtime_concurrency_cap": model_cfg.get("runtime_concurrency_cap"),
             "max_loras": model_cfg.get("max_loras"),
             "results_tag": results_tag,
@@ -12027,12 +14501,22 @@ async def main_async(
             "min_instances": int(coord_cfg.get("min_instances", 1)),
             "max_instances": int(coord_cfg.get("max_instances", 1)),
             "routing_policy": str(coord_cfg.get("routing_policy", "adapter_affinity")).lower(),
+            "max_concurrent_loads": int(coord_cfg.get("max_concurrent_loads", 1) or 1),
+            "warm_pool_size": int(coord_cfg.get("warm_pool_size", 0) or 0),
             "arrival_window_s": float(coord_cfg.get("arrival_window_s", 5.0)),
             "scale_eval_interval_s": float(coord_cfg.get("scale_eval_interval_s", 15.0)),
+            "scale_cooldown_s": float(coord_cfg.get("scale_cooldown_s", 0.0) or 0.0),
+            "scale_decision_interval": int(coord_cfg.get("scale_decision_interval", 0) or 0),
+            "scale_up_alpha": float(coord_cfg.get("scale_up_alpha", 0.0) or 0.0),
+            "scale_up_t_min": float(coord_cfg.get("scale_up_t_min", 0.0) or 0.0),
             "scenario_coordination": scenario_coordination_meta,
             "preset_name": preset_name,
             "profile_selection": applied_profile_selection,
             "shared_trace_path": str(shared_trace_path_override) if shared_trace_path_override is not None else None,
+            "shared_trace_metadata": shared_trace_metadata,
+            "shared_trace_configured_time_scale_factor": shared_trace_metadata.get("configured_time_scale_factor"),
+            "shared_trace_effective_time_scale_factor": shared_trace_metadata.get("effective_time_scale_factor"),
+            "shared_trace_load_profile": shared_trace_metadata.get("load_profile"),
             "shared_adapter_subset_path": (
                 str(shared_adapter_subset_path_override)
                 if shared_adapter_subset_path_override is not None
