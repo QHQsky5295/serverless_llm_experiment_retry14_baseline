@@ -235,7 +235,7 @@ model_profiles:  # 可复用的模型 profile 集合
       max_loras: 4
       max_lora_rank: 64
       enable_lora: true
-      enforce_eager: true
+      enforce_eager: "auto"  # 单卡 scale-out LoRA 路径自动启用 CUDA graph；TP/Nemo 等风险路径仍保持 conservative eager
       dtype: "float16"
       max_num_seqs: 2
       max_num_batched_tokens: 1024  # 500-adapter publicmix 下 max_loras=8 会把可用 KV cache 压到约 1.36x；主线按实测稳定包络收紧

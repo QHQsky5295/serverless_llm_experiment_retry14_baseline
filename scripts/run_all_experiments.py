@@ -496,6 +496,41 @@ def _is_mistral_nemo_model(model_name: Optional[str]) -> bool:
     return "mistral-nemo" in normalized or "mistral_nemo" in normalized
 
 
+def _resolve_vllm_enforce_eager(model_cfg: Dict[str, Any]) -> bool:
+    """Resolve eager/graph mode with an explicit-safe adaptive default.
+
+    ``enforce_eager`` may be a boolean or ``auto``. Explicit booleans always
+    win. In auto mode, keep conservative eager execution for known-risk TP or
+    Mistral-Nemo paths, and allow CUDA graph on the single-GPU scale-out path
+    where graphprobe showed the decode path is substantially faster.
+    """
+    raw = model_cfg.get("enforce_eager", True)
+    if isinstance(raw, bool):
+        return raw
+    if isinstance(raw, str):
+        normalized = raw.strip().lower()
+        if normalized in {"1", "true", "yes", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "off"}:
+            return False
+        if normalized != "auto":
+            raise ValueError(
+                "model.enforce_eager must be boolean or 'auto', "
+                f"got {raw!r}"
+            )
+    else:
+        raise ValueError(
+            "model.enforce_eager must be boolean or 'auto', "
+            f"got {type(raw).__name__}"
+        )
+
+    model_name = str(model_cfg.get("name", ""))
+    tp = int(model_cfg.get("tensor_parallel_size", 1) or 1)
+    if tp > 1 or _is_mistral_nemo_model(model_name):
+        return True
+    return False
+
+
 def _resolve_vllm_runtime_guards(model_cfg: Dict[str, Any]) -> Dict[str, Any]:
     model_name = str(model_cfg.get("name", ""))
     tokenizer_mode = model_cfg.get("tokenizer_mode")
@@ -2332,7 +2367,7 @@ class InferenceEngine:
         max_len  = self.model_cfg.get("max_model_len", 2048)
         max_lr   = self.model_cfg.get("max_loras", 4)
         max_rank = self.model_cfg.get("max_lora_rank", 16)
-        eager    = self.model_cfg.get("enforce_eager", True)
+        eager    = _resolve_vllm_enforce_eager(self.model_cfg)
         visible_devices = self._resolve_vllm_visible_devices(tp)
         executor_backend = self._resolve_vllm_executor_backend(tp, visible_devices)
         runtime_settings = self._resolve_vllm_runtime_settings(model)
@@ -2587,7 +2622,7 @@ class InferenceEngine:
         max_len  = self.model_cfg.get("max_model_len", 2048)
         max_lr   = self.model_cfg.get("max_loras", 4)
         max_rank = self.model_cfg.get("max_lora_rank", 16)
-        eager    = self.model_cfg.get("enforce_eager", True)
+        eager    = _resolve_vllm_enforce_eager(self.model_cfg)
         runtime_settings = getattr(
             self,
             "_vllm_runtime_settings",
@@ -11607,6 +11642,27 @@ def _apply_explicit_env_overrides(
     _apply("FAASLORA_MAX_NUM_SEQS", model_cfg, "max_num_seqs", int)
     _apply("FAASLORA_MAX_LORAS", model_cfg, "max_loras", int)
     _apply("FAASLORA_MAX_NUM_BATCHED_TOKENS", model_cfg, "max_num_batched_tokens", int)
+    _apply("FAASLORA_ENFORCE_EAGER", model_cfg, "enforce_eager", _parse_env_bool)
+    _apply("FAASLORA_VLLM_USE_V1", model_cfg, "vllm_use_v1", _parse_env_bool)
+    _apply("FAASLORA_VLLM_ATTENTION_BACKEND", model_cfg, "vllm_attention_backend", str)
+    _apply(
+        "FAASLORA_VLLM_USE_FLASHINFER_SAMPLER",
+        model_cfg,
+        "vllm_use_flashinfer_sampler",
+        _parse_env_bool,
+    )
+    _apply(
+        "FAASLORA_ENABLE_CHUNKED_PREFILL",
+        model_cfg,
+        "enable_chunked_prefill",
+        _parse_env_bool,
+    )
+    _apply(
+        "FAASLORA_ENABLE_PREFIX_CACHING",
+        model_cfg,
+        "enable_prefix_caching",
+        _parse_env_bool,
+    )
 
     _apply("FAASLORA_MODEL_WEIGHTS_MB", hw_cfg, "model_weights_mb", float)
     _apply("FAASLORA_KV_PER_1K_TOKENS_MB", hw_cfg, "kv_per_1k_tokens_mb", float)
@@ -11819,6 +11875,11 @@ def _prepare_dedicated_subprocess_model_cfg(
     the target physical GPU.
     """
     local_model_cfg = copy.deepcopy(model_cfg)
+    requested_enforce_eager = local_model_cfg.get("enforce_eager", True)
+    resolved_enforce_eager = _resolve_vllm_enforce_eager(local_model_cfg)
+    local_model_cfg["requested_enforce_eager"] = requested_enforce_eager
+    local_model_cfg["resolved_enforce_eager"] = resolved_enforce_eager
+    local_model_cfg["enforce_eager"] = resolved_enforce_eager
     # Dedicated child runtimes should never run the global stale-worker cleanup
     # from inside the child itself, otherwise sibling runtimes from the same
     # live experiment can be killed during startup.

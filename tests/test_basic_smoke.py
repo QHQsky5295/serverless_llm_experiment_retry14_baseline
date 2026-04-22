@@ -69,6 +69,7 @@ from scripts.run_all_experiments import (
     ScenarioRunner,
     SubprocessInferenceEngineProxy,
     _assert_official_workload_sources_available,
+    _apply_explicit_env_overrides,
     _apply_selected_profiles,
     _apply_tp_instance_capacity_guard,
     _adapter_matches_model,
@@ -88,6 +89,7 @@ from scripts.run_all_experiments import (
     _prepare_dedicated_subprocess_model_cfg,
     _resolve_host_visible_device_ids,
     _resolve_runtime_gpu_device_ids,
+    _resolve_vllm_enforce_eager,
     _resolve_vllm_runtime_guards,
     _select_adaptive_retry_gpu_util,
     _should_defer_primary_engine_initialization,
@@ -156,6 +158,81 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
         self.assertEqual(normalized["requested_runtime_concurrency_cap"], 3)
         self.assertEqual(normalized["runtime_concurrency_cap"], 2)
+
+    def test_explicit_env_overrides_can_probe_vllm_runtime_guards(self) -> None:
+        model_cfg = {
+            "backend": "vllm",
+            "enforce_eager": True,
+            "vllm_use_v1": False,
+            "vllm_attention_backend": "FLASH_ATTN",
+            "vllm_use_flashinfer_sampler": False,
+            "enable_chunked_prefill": False,
+            "enable_prefix_caching": False,
+        }
+        workload_cfg = {}
+        coord_cfg = {}
+        hw_cfg = {}
+
+        with patch.dict(
+            os.environ,
+            {
+                "FAASLORA_ENFORCE_EAGER": "false",
+                "FAASLORA_VLLM_USE_V1": "true",
+                "FAASLORA_VLLM_ATTENTION_BACKEND": "FLASHINFER",
+                "FAASLORA_VLLM_USE_FLASHINFER_SAMPLER": "true",
+                "FAASLORA_ENABLE_CHUNKED_PREFILL": "true",
+                "FAASLORA_ENABLE_PREFIX_CACHING": "true",
+            },
+            clear=False,
+        ):
+            model_cfg, workload_cfg, coord_cfg, hw_cfg, applied = _apply_explicit_env_overrides(
+                model_cfg,
+                workload_cfg,
+                coord_cfg,
+                hw_cfg,
+            )
+
+        self.assertFalse(model_cfg["enforce_eager"])
+        self.assertTrue(model_cfg["vllm_use_v1"])
+        self.assertEqual(model_cfg["vllm_attention_backend"], "FLASHINFER")
+        self.assertTrue(model_cfg["vllm_use_flashinfer_sampler"])
+        self.assertTrue(model_cfg["enable_chunked_prefill"])
+        self.assertTrue(model_cfg["enable_prefix_caching"])
+        self.assertEqual(
+            applied,
+            {
+                "FAASLORA_ENFORCE_EAGER": False,
+                "FAASLORA_VLLM_USE_V1": True,
+                "FAASLORA_VLLM_ATTENTION_BACKEND": "FLASHINFER",
+                "FAASLORA_VLLM_USE_FLASHINFER_SAMPLER": True,
+                "FAASLORA_ENABLE_CHUNKED_PREFILL": True,
+                "FAASLORA_ENABLE_PREFIX_CACHING": True,
+            },
+        )
+
+    def test_vllm_enforce_eager_auto_uses_graph_for_single_gpu_scaleout(self) -> None:
+        model_cfg = {
+            "name": "/models/meta-llama--Llama-2-7b-hf",
+            "tensor_parallel_size": 1,
+            "enforce_eager": "auto",
+        }
+
+        self.assertFalse(_resolve_vllm_enforce_eager(model_cfg))
+
+    def test_vllm_enforce_eager_auto_keeps_tp_and_nemo_conservative(self) -> None:
+        tp_cfg = {
+            "name": "/models/Qwen--Qwen2.5-7B-Instruct",
+            "tensor_parallel_size": 2,
+            "enforce_eager": "auto",
+        }
+        nemo_cfg = {
+            "name": "/models/mistralai--Mistral-Nemo-Instruct-2407",
+            "tensor_parallel_size": 1,
+            "enforce_eager": "auto",
+        }
+
+        self.assertTrue(_resolve_vllm_enforce_eager(tp_cfg))
+        self.assertTrue(_resolve_vllm_enforce_eager(nemo_cfg))
 
     def test_dataset_controls_are_yaml_driven(self) -> None:
         datasets = self.experiments["datasets"]
@@ -612,6 +689,25 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(local_model["device_id"], 0)
         self.assertEqual(local_model["visible_device_ids"], [0])
         self.assertTrue(local_model["skip_stale_gpu_cleanup"])
+
+    def test_prepare_dedicated_subprocess_model_cfg_resolves_auto_eager(self) -> None:
+        model = {
+            "backend": "vllm",
+            "name": "/models/meta-llama--Llama-2-7b-hf",
+            "tensor_parallel_size": 1,
+            "device_id": 0,
+            "visible_device_ids": [0, 1],
+            "enforce_eager": "auto",
+        }
+
+        local_model, _ = _prepare_dedicated_subprocess_model_cfg(
+            model,
+            device_id=1,
+        )
+
+        self.assertEqual(local_model["requested_enforce_eager"], "auto")
+        self.assertFalse(local_model["resolved_enforce_eager"])
+        self.assertFalse(local_model["enforce_eager"])
 
     def test_prepare_dedicated_subprocess_model_cfg_remaps_tp2_gpu_group_to_local_indices(self) -> None:
         model = {
