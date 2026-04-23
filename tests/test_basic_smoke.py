@@ -103,6 +103,12 @@ EXPERIMENTS_CONFIG = PROJECT_ROOT / "configs" / "experiments.yaml"
 DEFAULT_CONFIG = PROJECT_ROOT / "configs" / "default.yaml"
 
 
+def _write_valid_torch_adapter_bin(path: Path) -> None:
+    import torch
+
+    torch.save({"base_model.model.q_proj.lora_A.weight": torch.ones(1, 1)}, path)
+
+
 class MainlineConfigSmokeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -144,6 +150,23 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(preset["max_num_seqs"], 2)
         self.assertEqual(preset["max_num_batched_tokens"], 1024)
         self.assertEqual(preset["runtime_concurrency_cap"], 2)
+
+    def test_llama2_7b_main_profile_uses_validated_fast_v1_runtime(self) -> None:
+        model_cfg = copy.deepcopy(
+            self.experiments["model_profiles"]["llama2_7b_main_v2_publicmix"]["model"]
+        )
+
+        self.assertTrue(model_cfg["vllm_use_v1"])
+        self.assertTrue(model_cfg["enable_chunked_prefill"])
+        self.assertTrue(model_cfg["vllm_use_flashinfer_sampler"])
+        self.assertEqual(model_cfg["vllm_attention_backend"], "FLASH_ATTN")
+
+        normalized = _normalize_runtime_concurrency_cap(model_cfg)
+        guards = _resolve_vllm_runtime_guards(normalized)
+
+        self.assertTrue(guards["enable_chunked_prefill"])
+        self.assertEqual(guards["env_updates"].get("VLLM_USE_V1"), "1")
+        self.assertEqual(guards["env_updates"].get("VLLM_USE_FLASHINFER_SAMPLER"), "1")
 
     def test_runtime_concurrency_cap_is_clamped_to_vllm_max_num_seqs(self) -> None:
         model_cfg = {
@@ -391,8 +414,8 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(coord_cfg["arrival_window_s"], 2.0)
         self.assertEqual(coord_cfg["scale_cooldown_s"], 2.0)
         self.assertEqual(coord_cfg["max_concurrent_loads"], 3)
-        self.assertEqual(coord_cfg["scale_down_duration_s"], 12.0)
-        self.assertEqual(coord_cfg["scale_down_cooldown_s"], 20.0)
+        self.assertEqual(coord_cfg["scale_down_duration_s"], "auto")
+        self.assertEqual(coord_cfg["scale_down_cooldown_s"], "auto")
         self.assertEqual(coord_cfg["scale_down_beta"], 0.5)
 
     def test_llama2_7b_stress_profile_preserves_slower_scale_windows(self) -> None:
@@ -469,7 +492,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            resolved_path, traces = _load_shared_trace_requests(
+            resolved_path, traces, _trace_meta = _load_shared_trace_requests(
                 str(trace_path),
                 allowed_adapter_ids={"alpha_lora", "beta_lora"},
             )
@@ -2908,7 +2931,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            Path(valid, "adapter_model.bin").write_bytes(b"ok")
+            _write_valid_torch_adapter_bin(Path(valid, "adapter_model.bin"))
 
             invalid = source_dir / "bad_public_lora"
             invalid.mkdir()
@@ -2954,7 +2977,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            Path(fused, "adapter_model.bin").write_bytes(b"ok")
+            _write_valid_torch_adapter_bin(Path(fused, "adapter_model.bin"))
 
             report = scan_public_adapter_pool(source_dir, "Qwen/Qwen2.5-7B-Instruct")
             self.assertEqual(report["accepted_count"], 1)
@@ -3075,7 +3098,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            Path(public_dir, "adapter_model.bin").write_bytes(b"ok")
+            _write_valid_torch_adapter_bin(Path(public_dir, "adapter_model.bin"))
 
             manifest = {
                 "model_name": "Qwen/Qwen2.5-7B-Instruct",
@@ -8544,6 +8567,8 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             total_requests=10,
             avg_e2e_ms=1000.0,
             gpu_cost_per_second_usd=0.5,
+            deployment_idle_tail_s=0.0,
+            serverless_idle_retention_s=0.0,
         )
 
         self.assertAlmostEqual(summary["infra_gpu_seconds_total"], 46.0)
@@ -8569,6 +8594,8 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             total_requests=5,
             avg_e2e_ms=2000.0,
             gpu_cost_per_second_usd=1.0,
+            deployment_idle_tail_s=0.0,
+            serverless_idle_retention_s=0.0,
         )
 
         lifecycle = summary["instance_lifecycle_log"][0]

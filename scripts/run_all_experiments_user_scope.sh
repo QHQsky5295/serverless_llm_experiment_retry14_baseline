@@ -26,6 +26,27 @@ for name in $(compgen -e); do
   esac
 done
 
-exec systemd-run --user --scope --collect \
-  "${SYSTEMD_ENV_ARGS[@]}" \
-  "$PYTHON_BIN" "$SCRIPT_PATH" "$@"
+can_use_systemd_user_scope() {
+  if [[ "${FAASLORA_DISABLE_SYSTEMD_SCOPE:-0}" == "1" ]]; then
+    return 1
+  fi
+  if ! command -v systemd-run >/dev/null 2>&1; then
+    return 1
+  fi
+  if [[ -z "${DBUS_SESSION_BUS_ADDRESS:-}" && -z "${XDG_RUNTIME_DIR:-}" ]]; then
+    return 1
+  fi
+  if ! systemd-run --user --scope --collect /bin/true >/dev/null 2>&1; then
+    return 1
+  fi
+  return 0
+}
+
+if can_use_systemd_user_scope; then
+  exec systemd-run --user --scope --collect \
+    "${SYSTEMD_ENV_ARGS[@]}" \
+    "$PYTHON_BIN" "$SCRIPT_PATH" "$@"
+fi
+
+echo "[warn] systemd user scope unavailable; running without systemd-run --user --scope" >&2
+exec "$PYTHON_BIN" "$SCRIPT_PATH" "$@"

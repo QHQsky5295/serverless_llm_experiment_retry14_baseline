@@ -14,5 +14,11 @@
 - 每次修复都要尽量覆盖整条根因链，并在结束时给出完整下一轮实验指令。
 - 横向结果必须先通过 served-token 分布、生命周期 GPU-seconds、启动成本和 metrics source 审计；
 - FaaSLoRA 的扩缩容/预加载/并发策略优先使用 trace、observed cold-start、runtime ready delay 等自适应信号，避免为某个基座模型写死秒数。
+- SGLang 主公平对比默认使用 4 个 TP1 replica 的 DP4/TP1 拓扑，对齐 FaaSLoRA 单请求单卡 scale-out；TP4 只作为 serverful model-parallel upper-bound 附表。
+- 指标和成本模型必须保持真实语义：主 `Cost/req`/`CE` 使用可解释的 serverless
+  monetary 差分计费，`InfraCost`/`InfraCE` 保留为 flat GPU-second 审计；禁止为了让结果好看而使用不可解释的指标口径。
+- 正式论文 TODO、正式图表和主实验 checklist 只能使用结果 JSON 中真实可观测的字段。横向图必须使用所有系统都能统一输出的字段；FaaSLoRA 机制图只能使用 FaaSLoRA full/消融/超参变体都能输出的字段。调试审计可以记录缺失值，但论文图表中不允许依赖 `null`、估计值或 baseline 无法真实暴露的内部机制指标。
+- 当前默认 `serverless_idle_gpu_cost_factor=0.2380952381`，来自 Alibaba Function
+  Compute Tesla GPU idle/active CU conversion factor `0.5 / 2.1`；若更换云厂商或价格模型，必须显式配置并写入文档。
 
 保留本副本的目的，是让 FaaSLoRA 主实验仓在脱离 baseline 工作区时也能看到同一套协作约束。

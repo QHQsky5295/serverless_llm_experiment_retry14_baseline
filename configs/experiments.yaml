@@ -242,11 +242,11 @@ model_profiles:  # 可复用的模型 profile 集合
       max_output_tokens_cap: null
       max_input_len: null
       runtime_concurrency_cap: 2
-      enable_chunked_prefill: false
+      enable_chunked_prefill: true  # Llama-2 7B 单卡主线已验证 V1 + chunked prefill 稳定；恢复更快的 prefill/TTFT 包络
       enable_prefix_caching: false
-      vllm_use_v1: false
+      vllm_use_v1: true  # 当前主实验 backbone 回到已验证稳定的 V1 路径；Qwen/Mistral/Nemo 仍保持各自保守配置
       vllm_attention_backend: "FLASH_ATTN"
-      vllm_use_flashinfer_sampler: false
+      vllm_use_flashinfer_sampler: true  # 与已验证稳定的 observe1/v1probe1 路径对齐，恢复更低的 decode/tpot 开销
     hardware:
       model_weights_mb: 14336
       kv_per_1k_tokens_mb: 2.0
@@ -1301,6 +1301,10 @@ cost_model:  # 成本估算模型参数
   input_token_cost_usd: 0.0000015  # 每个输入 token 的成本
   output_token_cost_usd: 0.000002  # 每个输出 token 的成本
   gpu_hour_cost_usd: 3.0  # GPU 每小时的成本估计
+  deployment_idle_tail_s: 300  # 全生命周期计费：请求结束后继续观察的部署空闲窗口
+  serverless_idle_retention_s: 300  # serverless 函数/副本仍保持 warm 时的空闲保留计费窗口
+  serverless_idle_gpu_cost_factor: 0.2380952381  # serverless ready-but-idle GPU 差分计费：Tesla idle/active CU = 0.5/2.1
+  serverless_invocation_cost_per_request_usd: 0.0  # GPU 实验中 invocation fee 远小于 GPU 费用；保留字段便于切换云厂商价格
 
 # =============================================================================
 # 实验场景（消融 + SOTA 对比）

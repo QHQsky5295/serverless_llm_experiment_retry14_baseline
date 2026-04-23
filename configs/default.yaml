@@ -166,6 +166,13 @@ cost_model:
   
   # GPU compute costs (USD per second)
   gpu_cost_per_second_usd: 0.0008   # Based on A100 pricing
+
+  # Full deployment lifecycle billing horizon.
+  # Serverful baselines keep their GPU fleet allocated for this post-workload
+  # idle tail. Serverless runtimes pay actual lifetime and, if still alive when
+  # benchmark cleanup begins, at most this idle-retention tail.
+  deployment_idle_tail_s: 300
+  serverless_idle_retention_s: 300
   
   # Enable input token estimation from prompt
   enable_input_token_estimate: true
