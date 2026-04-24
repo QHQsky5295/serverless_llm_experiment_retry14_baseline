@@ -72,6 +72,7 @@ Cost_serverless =
 - `hotset rotation interval = 500 requests`
 - `time scale factor = 8.0`
 - `seed = 42`
+- 当前配置 profile：`llama2_7b_auto500_formal4000_s8`
 
 500 请求只作为 bring-up/debug，不写主结论。它用于快速检查脚本、环境、指标 schema、端口、tmux/session、GPU 是否健康；如果 500 请求结果趋势和 4000 请求不同，应以 4000 请求正式结果为准。
 
@@ -226,6 +227,28 @@ time_scale_factor in {8.0, 6.0, 4.0, 2.0, 1.0}
 - first non-empty token：当前口径已统一为 first output token/chunk，不再改成 non-empty，以避免三系统解析不一致。
 
 如果未来需要资源利用率图，应先实现一个独立的统一 GPU sampler，把 `nvidia-smi` 采样写入所有系统同格式 JSON，并通过 smoke test 后再加入正式 TODO。
+
+### 2.4 Baseline 准入审计 gate
+
+每个新 baseline 或新修复后的 baseline，在进入正式图之前必须先通过字段审计：
+
+- `completed_requests == total_requests`，否则本轮只能作为失败诊断。
+- `metric_schema_version == e2e_v3`。
+- `metrics_source_counts`、`prompt_token_source_counts`、
+  `completion_token_source_counts` 必须写入 summary。
+- 对 OpenAI-compatible streaming backend，如果 `usage` 缺失，必须使用 prompt guard
+  后的本地 tokenizer 计数；不能大面积回退到 raw trace `expected_*_tokens`。
+- 如果 token source 出现 `trace_expected`，正式 harness 应直接失败；历史 bring-up
+  结果最多只能保留 `TTFT/E2E/Cost/req/CE` 的诊断判断，不能进入 token 相关正式图。
+
+当前已知 gate：
+
+- `vLLM vllmformal1` 的 `TTFT/E2E/Cost/req/CE` 初步可参考；已补 token source
+  gate，必须重跑修复后的 vLLM，才能使用 `TPOT` 和 token 成本审计。
+- `S-LoRA` 已建立复现准入文档并完成 dry-run harness；它应作为 serverful
+  multi-LoRA serving paper baseline，而不是 serverless baseline。真实 GPU replay
+  已建立 `slora_official_cu118` 环境并通过官方 CUDA 11.8 extension preflight；
+  下一步需要跑真实 GPU bring-up。
 
 ## 3. 论文图与实验 checklist
 
@@ -700,12 +723,32 @@ results/paper_experiments/
 
 这样未来画图只读 `results/paper_experiments/**/MANIFEST.json` 和 summary/result JSON，不需要靠聊天记录回忆。
 
+### 5.1 连续执行与断点接续
+
+正式横向 round 优先使用：
+
+```text
+/home/qhq/serverless_llm_baselines/scripts/run_full_fair_round.sh
+```
+
+该脚本负责：
+
+- 生成 shared trace 与 adapter subset；
+- 按顺序运行 `SGLang -> ServerlessLLM -> vLLM -> S-LoRA -> FaaSLoRA`；
+- 每个系统前后清理已知遗留服务并检查 GPU compute state；
+- 把所有 raw replay、summary、logs、shared inputs、FaaSLoRA 结果副本和 compare 输出收进同一个带时间戳的 round 目录；
+- 为每个阶段写入 `state/*.done` 标记，失败后保留同一个 `FAIR_ROUND_DIR` 重新执行即可从失败阶段继续；
+- 写出 `round.env`，用于恢复同一轮实验环境。
+
+以后更换基座模型、请求规模、adapter pool、time scale 或 workload profile 时，也应优先使用该连续 runner，而不是手工逐个系统执行。
+
 ## 6. 执行顺序
 
 正式执行建议：
 
 1. 先生成并冻结 shared trace 与 adapter subset。
-2. 运行 500-request debug，确保四系统都输出 `e2e_v3` 且 completed rate 合格。
+2. 运行 500-request debug，确保 FaaSLoRA、SGLang、vLLM、ServerlessLLM 输出
+   `e2e_v3` 且 completed rate 合格；S-LoRA 通过环境和 smoke 后再加入同轮 debug。
 3. 运行 Llama-2 7B 4000-request 主横向对比。
 4. 审计 served-token、completed、metric schema、GPU budget、Cost/req、CE。
 5. 运行 vLLM/SGLang/ServerlessLLM/FaaSLoRA 对比图输入导出。
@@ -714,6 +757,32 @@ results/paper_experiments/
 8. 运行 hyperparameter。
 9. 运行 scalability。
 10. 最后再扩展到 13B/Qwen；不要在 7B 主链未闭合前并行扩展。
+
+### 6.1 当前执行 gate（2026-04-24）
+
+`Llama-2 7B / 500 requests / 500 adapters / s24_vllmformal1` 的五系统 debug gate 已闭合：
+
+- `FaaSLoRA`：有效，`500/500`
+- `SGLang`：有效，`500/500`
+- `ServerlessLLM`：有效，`500/500`
+- `vLLM`：有效，`500/500`
+- `S-LoRA`：有效，`fix5` 已修复 native prompt budget 语义，`500/500`
+
+这说明当前复现链路已经足够支撑下一阶段正式实验；但它仍然只是 `500-request` bring-up/debug，不写作论文主结论。
+
+下一步 gate 应改为：
+
+1. 运行 `Llama-2 7B / 4000 requests / 500 adapters / Zipf 1.0 / hotset rotation 500 / s8` 五系统主横向对比；配置 profile 固定为 `llama2_7b_auto500_formal4000_s8`。
+2. 审计五系统 summary：
+   - `completed_requests == total_requests`
+   - `metric_schema_version == e2e_v3`
+   - 没有 `trace_expected` token source fallback
+   - `Cost/req`、`CE`、`GPU-seconds`、`TTFT/E2E avg+p95` 均存在且非零
+3. 只有在 4000-request 主横向结果闭合后，才进入：
+   - 其它三个基座模型扩展
+   - 引言图、motivation、ablation、hyperparameter 的正式执行顺序
+
+当前不建议直接扩展到其它三个基座模型。PrimeLoRA 的主 claim 必须先由 `Llama-2 7B` 的正式 4000-request 五系统横向主表定锚，再把多基座结果作为稳健性扩展。
 
 ## 7. 文献和系统设置对齐备注
 

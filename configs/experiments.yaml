@@ -614,6 +614,34 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       scale_down_cooldown_s: "auto"  # 与有效释放门槛联动，禁止刚扩出的 runtime 在 break-even 前被缩回
       scale_down_beta: 0.5  # 低负载判定略放宽，配合短 TTL 让 sparse real trace 中的 idle window 能进入回收路径
 
+  llama2_7b_auto500_formal4000_s8:  # Llama-2 7B 正式主横向 workload（4000 requests，500 adapters，8 个热点阶段）
+    lora_adapters:
+      selected_num_adapters: 500
+      quick_num_adapters: 100
+      full_num_adapters: 500
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 8.0
+      lora_request_ratio: 1.0
+      active_adapter_cap: 48
+      hotset_rotation_requests: 500
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 4
+      effective_capacity_admission_enabled: true
+      max_concurrent_loads: 3
+      scale_cooldown_s: 2.0
+      scale_eval_interval_s: 2.0
+      arrival_window_s: 2.0
+      scale_up_alpha: 0.15
+      scale_up_t_min: 0.5
+      scale_down_duration_s: "auto"
+      scale_down_startup_break_even_s: 0.0
+      scale_down_break_even_factor: 1.0
+      scale_down_cooldown_s: "auto"
+      scale_down_beta: 0.5
+
   llama2_7b_auto500_stress:  # Llama-2 7B 压力测试 workload profile（500 adapters，重压场景）
     lora_adapters:
       selected_num_adapters: 500
