@@ -28,10 +28,9 @@
 - Trace: `$FAIR_ROUND_DIR/shared_artifacts/${RUN_TAG}_trace.json`
 - Adapter subset: `$FAIR_ROUND_DIR/shared_artifacts/${RUN_TAG}_adapter_subset.json`
 
-下面的手动 fallback 分段命令使用旧共享目录：
-
-- Trace: `/home/qhq/serverless_llm_baselines/results/shared_rounds/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json`
-- Adapter subset: `/home/qhq/serverless_llm_baselines/results/shared_rounds/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json`
+正式实验不要再使用旧的 `results/shared_rounds` 手动路径作为主输入。连续
+runner 会把本轮 shared artifacts 固定保存在 timestamped round 目录中，后续
+取数、复跑和审计都应以该目录为准。
 
 进入 tmux 查看时，如果当前不在 tmux 中，使用：
 
@@ -103,14 +102,14 @@ tmux attach -t l7_4000_mainv1_round
 tmux switch-client -t l7_4000_mainv1_round
 ```
 
-失败后断点接续：
+失败后断点接续优先使用：
 
 ```bash
-source /path/to/the/round/round.env
-bash /home/qhq/serverless_llm_baselines/scripts/run_full_fair_round.sh
+/home/qhq/serverless_llm_baselines/scripts/resume_fair_round_tmux.sh
 ```
 
-下面的分段命令只作为 fallback；正式运行优先用上面的连续脚本。
+下面的分段命令只作为紧急 fallback；正式运行优先用上面的连续脚本或
+`resume_fair_round_tmux.sh`。
 
 ## 1. 生成 shared trace 和 adapter subset
 
