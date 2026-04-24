@@ -1,23 +1,16 @@
-# Punica 环境说明
+# Punica Environment
 
-本文档记录 `Punica` 在当前 baseline 工作区中的隔离环境要求。
+Punica is kept as a scoped Llama-2 7B auxiliary baseline only.
 
-## 原则
+## Current Status
 
-1. 不与 `FaaSLoRA` 正式环境混用
-2. 不覆盖已有 `ServerlessLLM` 相关环境
-3. 能独立删除、重建与回退
+- Upstream repo: `/home/qhq/serverless_llm_baselines/repos/Punica`
+- Project entry: `/home/qhq/serverless_llm_baselines/Punica_project`
+- Current use: limited Llama-2 7B replay / sanity reference.
+- Not used as a full four-backbone main-table baseline.
 
-## 当前状态
+## Boundary
 
-- 尚未开始正式安装
-- 后续将在确认官方依赖和 CUDA / vLLM / PyTorch 版本要求后补全
-
-## 预期内容
-
-后续将补充：
-
-1. 建议 conda 环境名
-2. Python 版本
-3. 关键依赖版本
-4. 与当前机器 GPU / CUDA 条件的匹配说明
+Punica should not be expanded by changing its core serving algorithm. Any future
+use must stay in wrapper/materialization/replay/summary layers and must clearly
+state the limited coverage.

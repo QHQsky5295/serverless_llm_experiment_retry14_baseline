@@ -1,44 +1,39 @@
-# ServerlessLLM Official Reproduction Environment
+# ServerlessLLM Environment
 
-- Repo: `/home/qhq/serverless_llm_baselines/repos/ServerlessLLM`
-- Suggested head env: `sllm_head_official`
-- Suggested worker env: `sllm_worker_official`
-- Current status: source cloned, isolated bootstrap scripts prepared
+ServerlessLLM is the active general serverless baseline. It runs in isolated
+head/worker environments and is launched through the shared baseline harness.
 
-## Reproduction strategy
+## Current Environments
 
-- 不在主项目环境 `LLM_vllm0102` 中直接安装
-- 不强求官方 Docker Compose 路径
-- 优先走官方 `single_machine` 文档里的非 Docker 路线
-- 目标是在当前机器上最大程度复现其 Ray + store + serve 原型系统
+- Head env: `sllm_head_official`
+- Worker env: `sllm_worker_official`
+- vLLM runtime env preference:
+  - `sllm_vllm0102_official` when available
+  - fallback source env: `LLM_vllm0102`
+- Upstream repo: `/home/qhq/serverless_llm_baselines/repos/ServerlessLLM`
+- Project entry: `/home/qhq/serverless_llm_baselines/ServerlessLLM_project`
 
-## Local scripts
+## Current Runtime Rules
 
-- 环境安装：
-  - `/home/qhq/serverless_llm_baselines/scripts/setup_serverlessllm_envs.sh`
-- 启动 head：
-  - `/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_head.sh`
-- 启动 worker：
-  - `/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_worker.sh`
-- 启动 store：
-  - `/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_store.sh`
-- 启动 serve：
-  - `/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_serve.sh`
-- 部署模型：
-  - `/home/qhq/serverless_llm_baselines/scripts/deploy_serverlessllm_model.sh`
-- 发请求：
-  - `/home/qhq/serverless_llm_baselines/scripts/query_serverlessllm_chat.sh`
+1. Prefer the ServerlessLLM vLLM backend for formal many-LoRA comparison.
+2. Generate deploy config from the authoritative FaaSLoRA experiment profile.
+3. Use the exact shared trace and shared adapter subset.
+4. `enforce_eager: auto` must resolve to CUDA graph for stable single-GPU
+   Llama-2 scale-out LoRA paths, while preserving conservative eager mode for
+   TP or known-risk paths.
+5. Runtime env such as `VLLM_USE_V1`, `VLLM_ATTENTION_BACKEND`, and
+   `VLLM_USE_FLASHINFER_SAMPLER` must be written into deploy config and passed
+   into tmux-launched head/worker/serve processes.
+6. Do not silently fallback to transformers. If vLLM backend fails correctness
+   probing, record the root cause and stop the formal run.
 
-## Minimal local path
+## Maintenance
 
-1. 建双环境：head / worker
-2. 启动本地 Ray head
-3. 启动本地 Ray worker
-4. 启动 `sllm-store`
-5. 启动 `sllm start`
-6. 用 `sllm deploy` 部署一个小模型验证
+Local source changes required for reproduction are recorded in:
 
-## Current next step
+```text
+/home/qhq/serverless_llm_baselines/patches/ServerlessLLM_local_changes.patch
+```
 
-- 执行 `setup_serverlessllm_envs.sh`
-- 若依赖安装成功，再按上面的顺序启动单机最小复现链路
+The stack sync script copies the patched runtime files into the active head and
+worker site-packages before launch.

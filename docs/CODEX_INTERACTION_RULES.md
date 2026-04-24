@@ -134,7 +134,7 @@ shared trace 必须记录并审计：
 - “跑完了”：立即按日志、结果、代码、论文、指标、负载六个维度分析。
 - “给实验指令”：按清理、准备、三系统顺序、audit/compare 分段给，且说明每段用途。
 - “复现新系统”：先阅读 `docs/SYSTEM_REPRODUCTION_RULES.md`，再验证是否支持 multi-LoRA、四个 backbone、开源代码、论文发表情况和实验可比性，最后建立 `System_project`。
-- 选择新论文 baseline 前，必须先查 `FAIR_COMPARISON_EXECUTION_PLAN.md` 的 baseline 复现状态台账，避免忘记已经做过的系统。当前固定事实：`Punica` 已经完成 Llama-2 7B 受限复现，不再作为“新系统”重复规划；`vLLM` 已接入 standalone OpenAI-compatible server 正式 harness，后续只需复跑和分析；`S-LoRA` 只是 repo 已存在，尚未接入正式 harness。
+- 选择新论文 baseline 前，必须先查 `FAIR_COMPARISON_EXECUTION_PLAN.md` 的 baseline 复现状态台账，避免忘记已经做过的系统。当前固定事实：`Punica` 已经完成 Llama-2 7B 受限复现，不再作为“新系统”重复规划；`vLLM` 已接入 standalone OpenAI-compatible server 正式 harness，后续只需复跑和分析；`S-LoRA` 已项目化接入 shared artifact / `e2e_v3` replay，但必须尊重原论文实现边界，不能为了结果修改其核心调度或 paging 机制。
 
 ## 11. 根因分析工作流
 

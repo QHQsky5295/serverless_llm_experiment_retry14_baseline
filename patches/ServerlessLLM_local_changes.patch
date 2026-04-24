@@ -79,7 +79,7 @@ index 91c243c..7a26196 100644
 +        return import_module(".transformers_backend", __name__).TransformersBackend
 +    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 diff --git a/sllm/backends/transformers_backend.py b/sllm/backends/transformers_backend.py
-index 52de3e6..df3c908 100644
+index 52de3e6..543b256 100644
 --- a/sllm/backends/transformers_backend.py
 +++ b/sllm/backends/transformers_backend.py
 @@ -21,7 +21,7 @@ import threading
@@ -332,13 +332,14 @@ index 52de3e6..df3c908 100644
  
  
  class TransformersBackend(SllmBackend):
-@@ -92,12 +287,52 @@ class TransformersBackend(SllmBackend):
+@@ -92,12 +287,53 @@ class TransformersBackend(SllmBackend):
              "pretrained_model_name_or_path"
          )
          self.status: BackendStatus = BackendStatus.UNINITIALIZED
 -        self.inf_status = InferenceStatus(self.status)
 +        self.inf_status = InferenceStatus(lambda: self.status)
          self.status_lock = threading.Lock()
++        self.generate_lock = threading.Lock()
 +        self.active_streamers: Dict[str, InferenceStatus] = {}
 +        self.active_streamers_lock = threading.Lock()
          self.model = None
@@ -386,7 +387,7 @@ index 52de3e6..df3c908 100644
      def convert_str_to_json(self, json_str):
          try:
              # Parse the JSON string and return the corresponding Python object
-@@ -158,6 +393,56 @@ class TransformersBackend(SllmBackend):
+@@ -158,6 +394,56 @@ class TransformersBackend(SllmBackend):
      def _tokenize(self, prompt: str):
          return self.tokenizer(prompt, return_tensors="pt").to("cuda:0")
  
@@ -443,7 +444,7 @@ index 52de3e6..df3c908 100644
      def _encoder_tokenize(self, query: str, max_length: int):
          return self.tokenizer(
              query,
-@@ -237,30 +522,28 @@ class TransformersBackend(SllmBackend):
+@@ -237,30 +523,28 @@ class TransformersBackend(SllmBackend):
  
          assert self.model is not None
  
@@ -483,8 +484,11 @@ index 52de3e6..df3c908 100644
          }
  
          if lora_adapter_name:
-@@ -272,7 +555,23 @@ class TransformersBackend(SllmBackend):
-             generate_kwargs["adapter_names"] = [lora_adapter_name]
+@@ -269,22 +553,45 @@ class TransformersBackend(SllmBackend):
+                 or lora_adapter_name not in self.model.peft_config
+             ):
+                 return {"error": f"LoRA adapter {lora_adapter_name} not found"}
+-            generate_kwargs["adapter_names"] = [lora_adapter_name]
  
          inputs = self._tokenize(prompt)
 -        prompt_tokens = inputs.input_ids.shape[1]
@@ -508,8 +512,24 @@ index 52de3e6..df3c908 100644
  
          # Generate response
          try:
-@@ -283,8 +582,8 @@ class TransformersBackend(SllmBackend):
-                 )
+-            with torch.no_grad():
+-                outputs = self.model.generate(
+-                    **inputs,
+-                    **generate_kwargs,
+-                )
++            with self.generate_lock:
++                if lora_adapter_name and hasattr(self.model, "set_adapter"):
++                    self.model.set_adapter(lora_adapter_name)
++                elif lora_adapter_name:
++                    # Older PEFT releases route per-request adapter selection
++                    # through generate(adapter_names=...). Newer releases reject
++                    # that kwarg, so prefer set_adapter() when available.
++                    generate_kwargs["adapter_names"] = [lora_adapter_name]
++                with torch.no_grad():
++                    outputs = self.model.generate(
++                        **inputs,
++                        **generate_kwargs,
++                    )
          except DeletingException:
              logger.info("Backend is shutting down. Aborting request")
 -            output_tokens = self.inf_status.get()
@@ -519,7 +539,7 @@ index 52de3e6..df3c908 100644
              return {
                  "preempted": "True",
                  "current_output": output_tokens,
-@@ -298,54 +597,46 @@ class TransformersBackend(SllmBackend):
+@@ -298,54 +605,46 @@ class TransformersBackend(SllmBackend):
                  outputs[0][prompt_tokens:], skip_special_tokens=True
              )
              total_tokens = len(outputs[0])
@@ -600,7 +620,7 @@ index 52de3e6..df3c908 100644
          device_map = self.backend_config.get("device_map", "auto")
          torch_dtype = self.backend_config.get("torch_dtype", torch.float16)
          torch_dtype = getattr(torch, torch_dtype)
-@@ -363,6 +654,10 @@ class TransformersBackend(SllmBackend):
+@@ -363,6 +662,10 @@ class TransformersBackend(SllmBackend):
              torch_dtype=torch_dtype,
          )
          logger.info(f"Loaded LoRA adapter {lora_name} from {lora_path}")
@@ -611,7 +631,7 @@ index 52de3e6..df3c908 100644
  
      def shutdown(self):
          """Abort all requests and shutdown the backend."""
-@@ -370,10 +665,12 @@ class TransformersBackend(SllmBackend):
+@@ -370,10 +673,12 @@ class TransformersBackend(SllmBackend):
              if self.status == BackendStatus.DELETING:
                  return
              self.status = BackendStatus.DELETING
@@ -627,7 +647,7 @@ index 52de3e6..df3c908 100644
              logger.info("Waiting for all requests to finish")
              time.sleep(1)
  
-@@ -386,7 +683,11 @@ class TransformersBackend(SllmBackend):
+@@ -386,7 +691,11 @@ class TransformersBackend(SllmBackend):
              if self.status.value >= BackendStatus.STOPPING.value:
                  return
              self.status = BackendStatus.STOPPING
@@ -640,7 +660,7 @@ index 52de3e6..df3c908 100644
              logger.info("Waiting for all requests to finish")
              time.sleep(1)
          logger.info("All requests finished. Shutting down the backend.")
-@@ -398,7 +699,8 @@ class TransformersBackend(SllmBackend):
+@@ -398,7 +707,8 @@ class TransformersBackend(SllmBackend):
              if self.status != BackendStatus.RUNNING:
                  return []
  
@@ -650,7 +670,7 @@ index 52de3e6..df3c908 100644
          logger.info(f"Current tokens: {status}")
          return status
  
-@@ -433,22 +735,14 @@ class TransformersBackend(SllmBackend):
+@@ -433,22 +743,14 @@ class TransformersBackend(SllmBackend):
          temperature = request_data.get("temperature", 0.7)
          max_tokens = request_data.get("max_tokens", 10)
  
@@ -677,7 +697,7 @@ index 52de3e6..df3c908 100644
          # Generate response
          try:
 diff --git a/sllm/backends/vllm_backend.py b/sllm/backends/vllm_backend.py
-index bed58f8..c28ae09 100644
+index bed58f8..af7825e 100644
 --- a/sllm/backends/vllm_backend.py
 +++ b/sllm/backends/vllm_backend.py
 @@ -26,6 +26,7 @@ from dataclasses import fields
@@ -699,10 +719,51 @@ index bed58f8..c28ae09 100644
  
  from sllm.backends.backend_utils import (
      BackendStatus,
-@@ -46,6 +51,67 @@ from sllm.backends.backend_utils import (
+@@ -46,6 +51,108 @@ from sllm.backends.backend_utils import (
  logger = logging.getLogger("ray")
  
  
++def _as_env_bool(value: Any) -> str:
++    if isinstance(value, bool):
++        return "1" if value else "0"
++    text = str(value).strip().lower()
++    if text in {"1", "true", "yes", "y", "on"}:
++        return "1"
++    if text in {"0", "false", "no", "n", "off"}:
++        return "0"
++    return "1" if bool(value) else "0"
++
++
++def _apply_vllm_runtime_env(backend_config: Dict[str, Any]) -> Dict[str, str]:
++    env_updates: Dict[str, str] = {}
++    configured_env = backend_config.get("vllm_runtime_env")
++    if isinstance(configured_env, dict):
++        for key, value in configured_env.items():
++            if key and value is not None:
++                env_updates[str(key)] = str(value)
++
++    if backend_config.get("vllm_use_v1") is not None:
++        env_updates.setdefault(
++            "VLLM_USE_V1",
++            _as_env_bool(backend_config.get("vllm_use_v1")),
++        )
++    if backend_config.get("vllm_attention_backend") not in (None, ""):
++        env_updates.setdefault(
++            "VLLM_ATTENTION_BACKEND",
++            str(backend_config.get("vllm_attention_backend")),
++        )
++    if backend_config.get("vllm_use_flashinfer_sampler") is not None:
++        env_updates.setdefault(
++            "VLLM_USE_FLASHINFER_SAMPLER",
++            _as_env_bool(backend_config.get("vllm_use_flashinfer_sampler")),
++        )
++    env_updates.setdefault("VLLM_NO_USAGE_STATS", "1")
++
++    for key, value in env_updates.items():
++        os.environ[str(key)] = str(value)
++    return env_updates
++
++
 +def _extract_vllm_metrics(output: RequestOutput) -> Optional[Dict[str, Any]]:
 +    metrics = getattr(output, "metrics", None)
 +    if metrics is None:
@@ -767,7 +828,7 @@ index bed58f8..c28ae09 100644
  def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
      choices: List[Dict[str, Any]] = [
          {
-@@ -54,7 +120,7 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
+@@ -54,7 +161,7 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
                  "role": "assistant",
                  "content": result.text,
              },
@@ -776,7 +837,7 @@ index bed58f8..c28ae09 100644
              "finish_reason": result.finish_reason,
          }
          for idx, result in enumerate(output.outputs)
-@@ -79,6 +145,9 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
+@@ -79,6 +186,9 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
              + sum(len(result.token_ids) for result in output.outputs),
          },
      }
@@ -786,9 +847,11 @@ index bed58f8..c28ae09 100644
      return api_response
  
  
-@@ -155,6 +224,14 @@ class VllmBackend(SllmBackend):
+@@ -154,7 +264,16 @@ class VllmBackend(SllmBackend):
+         self.request_trace = LLMEngineStatusDict()
          # if trace_debug is True, request trace will not be deleted after completion
          self.trace_debug = backend_config.get("trace_debug", False)
++        self.vllm_runtime_env = _apply_vllm_runtime_env(backend_config)
          self.enforce_eager = backend_config.get("enforce_eager", False)
 +        self.enable_lora = bool(backend_config.get("enable_lora", False))
 +        self.disable_lora_embeddings = bool(
@@ -801,7 +864,7 @@ index bed58f8..c28ae09 100644
          self.enable_prefix_caching = backend_config.get(
              "enable_prefix_caching", True
          )
-@@ -169,6 +246,12 @@ class VllmBackend(SllmBackend):
+@@ -169,6 +288,12 @@ class VllmBackend(SllmBackend):
          torch_dtype = backend_config.get("torch_dtype")
          if torch_dtype is not None:
              filtered_engine_config["dtype"] = torch_dtype
@@ -814,7 +877,15 @@ index bed58f8..c28ae09 100644
  
          if load_format is not None:
              filtered_engine_config["load_format"] = load_format
-@@ -203,8 +286,116 @@ class VllmBackend(SllmBackend):
+@@ -193,6 +318,7 @@ class VllmBackend(SllmBackend):
+         logger.info(
+             f"Creating new VLLM engine with config: {filtered_engine_config}"
+         )
++        logger.info(f"Applied VLLM runtime env: {self.vllm_runtime_env}")
+
+         self.engine_args = AsyncEngineArgs(**filtered_engine_config)
+
+@@ -203,8 +329,116 @@ class VllmBackend(SllmBackend):
              if self.status != BackendStatus.UNINITIALIZED:
                  return
              self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
@@ -931,7 +1002,7 @@ index bed58f8..c28ae09 100644
      async def generate(self, request_data: Dict[str, Any]):
          async with self.status_lock:
              if self.status != BackendStatus.RUNNING:
-@@ -215,28 +406,45 @@ class VllmBackend(SllmBackend):
+@@ -215,28 +449,45 @@ class VllmBackend(SllmBackend):
          if request_data is None:
              return {"error": "Request data is missing"}
  
@@ -992,7 +1063,7 @@ index bed58f8..c28ae09 100644
  
          try:
              sampling_params = SamplingParams(**request_data)
-@@ -244,23 +452,108 @@ class VllmBackend(SllmBackend):
+@@ -244,23 +495,108 @@ class VllmBackend(SllmBackend):
              return {"error": f"Invalid sampling parameters: {e}"}
  
          results_generator = self.engine.generate(

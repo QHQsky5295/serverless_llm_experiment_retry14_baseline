@@ -88,11 +88,11 @@ System_project/
 - `SGLang` 已接入正式 shared artifact / e2e_v3 链路。
 - `ServerlessLLM` 已接入正式 shared artifact / e2e_v3 链路。
 - `vLLM` 已接入 standalone OpenAI-compatible server 正式 harness。
-- `S-LoRA` repo 已存在，并已建立 `S-LoRA_project` 准入文档，但尚未接入正式 harness。
-- `S-LoRA` 已新增正式 harness 与项目 wrapper；dry-run launch/fleet/spec 通过，
-  `slora_official_cu118` 独立环境、官方 CUDA 11.8 extension、PyTorch CUDA
-  可见性 preflight 已通过，下一步运行真实 `500 requests / 500 adapters / s24`
-  replay。
+- `S-LoRA` 已建立 `S-LoRA_project`，使用独立 `slora_official_cu118`
+  环境和项目 wrapper 接入 shared artifact / `e2e_v3` replay。由于该系统
+  属于官方 serverful multi-LoRA paper baseline，复现只能做环境、输入和
+  观测口径适配，不修改其核心调度或 paging 机制；若真实 replay 报错或效果
+  异常，应保留原论文语义并在横向分析中说明复现边界。
 
 ## 4. 公平输入规则
 

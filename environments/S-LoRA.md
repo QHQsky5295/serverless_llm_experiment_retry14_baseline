@@ -1,14 +1,21 @@
-# S-LoRA Official Reproduction Environment
+# S-LoRA Environment
 
-- Repo: `/home/qhq/serverless_llm_baselines/repos/S-LoRA`
-- Suggested env name: `slora_official`
-- Current status: source cloned
+S-LoRA uses an isolated CUDA 11.8 environment and must not share dependencies
+with FaaSLoRA, SGLang, vLLM, or ServerlessLLM.
 
-## Notes
+## Current Environment
 
-- README 指出推荐：
-  - CUDA 11.8
-  - PyTorch 1.13 ~ 2.0.1
-  - Ampere GPU
-- 与主项目当前环境依赖差异较大，必须独立环境
-- 后续优先检查 benchmark 脚本是否能在本机双 3090 做缩小版验证
+- Conda env: `/home/qhq/anaconda3/envs/slora_official_cu118`
+- Python: environment-specific Python under the path above.
+- CUDA toolkit: CUDA 11.8 from the `nvidia/label/cuda-11.8.0` channel.
+- PyTorch/Triton family: aligned with the official S-LoRA CUDA extension path.
+- Upstream repo: `/home/qhq/serverless_llm_baselines/repos/S-LoRA`
+- Project entry: `/home/qhq/serverless_llm_baselines/S-LoRA_project`
+
+## Current Rules
+
+1. Use native `/generate_stream`, not the OpenAI chat endpoint.
+2. Use the shared trace and shared adapter subset from the active round.
+3. Use S-LoRA-native prompt budgeting with special tokens included.
+4. Fail fast if token source falls back to raw trace expected tokens.
+5. Do not patch S-LoRA algorithms to mimic PrimeLoRA mechanisms.

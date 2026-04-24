@@ -30,9 +30,9 @@
 - 本地路径：`/home/qhq/serverless_llm_baselines/repos/S-LoRA`
 - 当前上游基线 commit：`c1ddf488781ea7f551cd0bb07bfd097124c93411`
 - 当前本地状态：不修改上游源码；通过外层 wrapper 接入公平实验链
-- 当前复现范围：shared trace / shared adapter subset dry-run harness 已通过；
-  `slora_official_cu118` 独立环境、官方 CUDA 11.8 extension 与宿主 GPU 可见性
-  preflight 已通过；下一步跑真实 500 请求 bring-up
+- 当前复现范围：`slora_official_cu118` 独立环境、官方 CUDA 11.8 extension、
+  native `/generate_stream` replay、S-LoRA token budget guard、`e2e_v3` summary
+  已接入当前 fair round；不修改上游核心 serving 机制。
 
 ### Punica
 
@@ -56,12 +56,12 @@
 - 当前本地状态：通过外层 wrapper 启动 standalone OpenAI-compatible API server；不修改 vLLM 底层源码
 - 当前复现范围：shared trace / shared LoRA subset / e2e_v3 / lifecycle monetary cost 已接入正式 harness
 
-### SkyPilot
+### SkyPilot / SkyServe
 
-- 上游仓库：当前已本地克隆
-- 本地路径：`/home/qhq/serverless_llm_baselines/repos/skypilot`
-- 当前上游基线 commit：`ce5970ae46269cff18a22caf8102bf7dab097bd0`
-- 当前本地状态：未检测到本地修改
+- 本地曾克隆过 SkyPilot 源码，但当前不属于 formal many-LoRA main-table
+  harness。
+- 若未来重新纳入，必须重新完成 shared trace、shared adapter subset、
+  `e2e_v3`、cost model 和 per-system project entry 的准入检查。
 
 ## 当前 baseline 工程的 Git 说明
 

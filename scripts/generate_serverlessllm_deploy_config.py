@@ -37,6 +37,78 @@ def _load_yaml(path: Path) -> Dict[str, Any]:
         return yaml.safe_load(fh) or {}
 
 
+def _as_bool(value: Any, default: bool = False) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    text = str(value).strip().lower()
+    if text in {"1", "true", "yes", "y", "on"}:
+        return True
+    if text in {"0", "false", "no", "n", "off"}:
+        return False
+    return default
+
+
+def _is_mistral_nemo_model(model_name: Any) -> bool:
+    normalized = str(model_name or "").lower()
+    return "mistral-nemo" in normalized or "mistral_nemo" in normalized
+
+
+def _resolve_vllm_enforce_eager(model_cfg: Dict[str, Any]) -> bool:
+    raw = model_cfg.get("enforce_eager", True)
+    if isinstance(raw, bool):
+        return raw
+    if isinstance(raw, str):
+        normalized = raw.strip().lower()
+        if normalized in {"1", "true", "yes", "y", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "n", "off"}:
+            return False
+        if normalized != "auto":
+            raise ValueError(
+                "model.enforce_eager must be boolean or 'auto', "
+                f"got {raw!r}"
+            )
+    else:
+        raise ValueError(
+            "model.enforce_eager must be boolean or 'auto', "
+            f"got {type(raw).__name__}"
+        )
+
+    model_name = str(model_cfg.get("name", ""))
+    tp = int(model_cfg.get("tensor_parallel_size", 1) or 1)
+    if tp > 1 or _is_mistral_nemo_model(model_name):
+        return True
+    return False
+
+
+def _resolve_vllm_runtime_env(model_cfg: Dict[str, Any]) -> Dict[str, str]:
+    env_updates: Dict[str, str] = {}
+    if "vllm_use_v1" in model_cfg and model_cfg.get("vllm_use_v1") is not None:
+        env_updates["VLLM_USE_V1"] = "1" if _as_bool(model_cfg.get("vllm_use_v1")) else "0"
+    if (
+        "vllm_attention_backend" in model_cfg
+        and model_cfg.get("vllm_attention_backend") not in (None, "")
+    ):
+        env_updates["VLLM_ATTENTION_BACKEND"] = str(model_cfg.get("vllm_attention_backend"))
+    if (
+        "vllm_use_flashinfer_sampler" in model_cfg
+        and model_cfg.get("vllm_use_flashinfer_sampler") is not None
+    ):
+        env_updates["VLLM_USE_FLASHINFER_SAMPLER"] = (
+            "1" if _as_bool(model_cfg.get("vllm_use_flashinfer_sampler")) else "0"
+        )
+    env_updates.setdefault("VLLM_NO_USAGE_STATS", "1")
+
+    if _is_mistral_nemo_model(model_cfg.get("name")):
+        env_updates.setdefault("VLLM_USE_V1", "0")
+        env_updates.setdefault("VLLM_ATTENTION_BACKEND", "FLASH_ATTN")
+        env_updates.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "0")
+
+    return env_updates
+
+
 def _stage_serverlessllm_loras(
     adapter_ids,
     remote_dir: Path,
@@ -251,6 +323,8 @@ def main() -> int:
     serving_model_name = str(args.serving_model_name or args.model_profile)
     backend = _normalize_backend(args.backend)
     selected_ids = [str(entry["id"]) for entry in selected_adapters]
+    resolved_enforce_eager = _resolve_vllm_enforce_eager(model_cfg)
+    vllm_runtime_env = _resolve_vllm_runtime_env(model_cfg)
     disable_lora_embeddings = (
         backend == "vllm"
         and _should_disable_lora_embeddings(selected_ids, remote_dir)
@@ -330,7 +404,15 @@ def main() -> int:
                 "enable_prefix_caching": bool(
                     model_cfg.get("enable_prefix_caching", False)
                 ),
-                "enforce_eager": bool(model_cfg.get("enforce_eager", False)),
+                "enforce_eager": resolved_enforce_eager,
+                "requested_enforce_eager": model_cfg.get("enforce_eager", False),
+                "resolved_enforce_eager": resolved_enforce_eager,
+                "vllm_runtime_env": vllm_runtime_env,
+                "vllm_use_v1": model_cfg.get("vllm_use_v1"),
+                "vllm_attention_backend": model_cfg.get("vllm_attention_backend"),
+                "vllm_use_flashinfer_sampler": model_cfg.get(
+                    "vllm_use_flashinfer_sampler"
+                ),
                 "max_loras": int(
                     model_cfg.get("max_loras", max(1, min(len(lora_adapters), 1))) or 1
                 ),

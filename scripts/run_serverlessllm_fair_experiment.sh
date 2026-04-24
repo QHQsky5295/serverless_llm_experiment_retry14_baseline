@@ -130,7 +130,65 @@ configure_runtime_for_backend() {
     export SLLM_STORE_ENV="${ORIGINAL_STORE_ENV:-${SLLM_WORKER_ENV}}"
     export SLLM_DIRECT_PATH_MODE="${ORIGINAL_DIRECT_PATH_MODE:-0}"
     unset VLLM_USE_V1 || true
+    unset VLLM_ATTENTION_BACKEND || true
+    unset VLLM_USE_FLASHINFER_SAMPLER || true
+    unset VLLM_NO_USAGE_STATS || true
   fi
+}
+
+export_vllm_runtime_env_from_deploy() {
+  if [[ ! -f "${DEPLOY_PATH}" ]]; then
+    return 0
+  fi
+  readarray -t _VLLM_RUNTIME_ENV < <(
+    run_python_in_env sllm_head_official - "${DEPLOY_PATH}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+deploy = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+backend_config = deploy.get("backend_config", {}) or {}
+runtime_env = backend_config.get("vllm_runtime_env", {}) or {}
+if not isinstance(runtime_env, dict):
+    runtime_env = {}
+for key in (
+    "VLLM_USE_V1",
+    "VLLM_ATTENTION_BACKEND",
+    "VLLM_USE_FLASHINFER_SAMPLER",
+    "VLLM_NO_USAGE_STATS",
+):
+    value = runtime_env.get(key)
+    if value not in (None, ""):
+        print(f"{key}={value}")
+PY
+  )
+  local item key value
+  for item in "${_VLLM_RUNTIME_ENV[@]}"; do
+    key="${item%%=*}"
+    value="${item#*=}"
+    if [[ -n "${key}" ]]; then
+      export "${key}=${value}"
+    fi
+  done
+}
+
+update_deploy_vllm_use_v1() {
+  local use_v1="$1"
+  run_python_in_env sllm_head_official - "${DEPLOY_PATH}" "${use_v1}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+use_v1 = str(sys.argv[2]).strip()
+deploy = json.loads(path.read_text(encoding="utf-8"))
+backend_config = deploy.setdefault("backend_config", {})
+runtime_env = backend_config.setdefault("vllm_runtime_env", {})
+runtime_env["VLLM_USE_V1"] = use_v1
+backend_config["vllm_use_v1"] = use_v1 == "1"
+path.write_text(json.dumps(deploy, indent=2), encoding="utf-8")
+PY
+  export_vllm_runtime_env_from_deploy
 }
 
 if [[ ! -f "${CONFIG_PATH}" ]]; then
@@ -288,14 +346,18 @@ configure_runtime_for_backend "${ACTUAL_BACKEND}"
 
 echo "[2/5] Generating ServerlessLLM deploy config"
 generate_deploy "${ACTUAL_BACKEND}"
+if [[ "${ACTUAL_BACKEND}" == "vllm" ]]; then
+  export_vllm_runtime_env_from_deploy
+  echo "      vllm_runtime_env=VLLM_USE_V1=${VLLM_USE_V1:-unset} VLLM_ATTENTION_BACKEND=${VLLM_ATTENTION_BACKEND:-unset} VLLM_USE_FLASHINFER_SAMPLER=${VLLM_USE_FLASHINFER_SAMPLER:-unset}"
+fi
 
 if [[ "${ACTUAL_BACKEND}" == "vllm" ]]; then
   echo "[2.5/5] Probing vLLM LoRA correctness on a real shared-trace request"
   if probe_vllm_backend 1; then
-    export VLLM_USE_V1=1
+    update_deploy_vllm_use_v1 1
     echo "      selected_vllm_engine=V1"
   elif probe_vllm_backend 0; then
-    export VLLM_USE_V1=0
+    update_deploy_vllm_use_v1 0
     echo "      selected_vllm_engine=V0"
   else
     if [[ "${BACKEND}" == "vllm" ]]; then
