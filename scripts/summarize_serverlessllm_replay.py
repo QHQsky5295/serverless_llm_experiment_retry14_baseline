@@ -98,6 +98,17 @@ def _cell(value: Optional[float], digits: int = 2) -> Optional[float]:
     return round(float(value), digits)
 
 
+def _cost_per_million_tokens(total_cost_usd: float, token_count: int) -> float:
+    try:
+        cost = float(total_cost_usd or 0.0)
+        tokens = int(token_count or 0)
+    except Exception:
+        return 0.0
+    if cost <= 0.0 or tokens <= 0:
+        return 0.0
+    return cost * 1_000_000.0 / float(tokens)
+
+
 def _load_structured_file(path: Optional[Path]) -> Dict[str, Any]:
     if path is None:
         return {}
@@ -124,6 +135,189 @@ def _gpu_cost_per_second_usd(cost_model: Dict[str, Any]) -> float:
         except Exception:
             pass
     return 0.0008
+
+
+def _serverless_idle_gpu_cost_factor(cost_model: Dict[str, Any]) -> float:
+    for key in (
+        "serverless_idle_gpu_cost_factor",
+        "idle_gpu_cost_factor",
+        "gpu_idle_cost_factor",
+    ):
+        value = cost_model.get(key)
+        if value is None:
+            continue
+        try:
+            parsed = float(value)
+        except Exception:
+            continue
+        if math.isfinite(parsed):
+            return min(1.0, max(0.0, parsed))
+    # Alibaba Function Compute Tesla GPU CU factors: idle 0.5 / active 2.1.
+    return 0.5 / 2.1
+
+
+def _serverless_invocation_cost_per_request_usd(cost_model: Dict[str, Any]) -> float:
+    for key in (
+        "serverless_invocation_cost_per_request_usd",
+        "invocation_cost_per_request_usd",
+        "function_invocation_cost_usd",
+    ):
+        value = cost_model.get(key)
+        if value is None:
+            continue
+        try:
+            parsed = float(value)
+        except Exception:
+            continue
+        if math.isfinite(parsed):
+            return max(0.0, parsed)
+    return 0.0
+
+
+def _cost_model_deployment_idle_tail_s(cost_model: Dict[str, Any]) -> float:
+    for key in (
+        "deployment_idle_tail_s",
+        "deployment_lifecycle_idle_tail_s",
+        "post_workload_idle_tail_s",
+    ):
+        value = cost_model.get(key)
+        if value is None:
+            continue
+        try:
+            parsed = float(value)
+        except Exception:
+            continue
+        if math.isfinite(parsed):
+            return max(0.0, parsed)
+    return 300.0
+
+
+def _cost_model_serverless_idle_retention_s(cost_model: Dict[str, Any]) -> float:
+    for key in (
+        "serverless_idle_retention_s",
+        "serverless_keepalive_s",
+        "function_keepalive_s",
+    ):
+        value = cost_model.get(key)
+        if value is None:
+            continue
+        try:
+            parsed = float(value)
+        except Exception:
+            continue
+        if math.isfinite(parsed):
+            return max(0.0, parsed)
+    return _cost_model_deployment_idle_tail_s(cost_model)
+
+
+def _is_serverful_cost_runtime(lifecycles: List[Dict[str, Any]]) -> bool:
+    runtime_kinds = [
+        str((item or {}).get("runtime_kind", "") or "").lower()
+        for item in lifecycles or []
+    ]
+    return bool(runtime_kinds) and all("static_serverful" in kind for kind in runtime_kinds)
+
+
+def _summarize_monetary_cost_from_resource_seconds(
+    *,
+    cost_model: Dict[str, Any],
+    completed_requests: int,
+    total_requests: int,
+    avg_e2e_ms: float,
+    lifecycles: List[Dict[str, Any]],
+    infra_gpu_seconds_total: float,
+    infra_startup_gpu_seconds: float,
+    infra_active_gpu_seconds: float,
+    infra_idle_ready_gpu_seconds: float,
+) -> Dict[str, Any]:
+    per_second = _gpu_cost_per_second_usd(cost_model)
+    idle_factor = _serverless_idle_gpu_cost_factor(cost_model)
+    invocation_cost = _serverless_invocation_cost_per_request_usd(cost_model)
+    completed = max(0, int(completed_requests or 0))
+    denominator = completed if completed > 0 else max(0, int(total_requests or 0))
+    serverful = _is_serverful_cost_runtime(lifecycles)
+
+    total_gpu_s = max(0.0, float(infra_gpu_seconds_total or 0.0))
+    startup_gpu_s = max(0.0, float(infra_startup_gpu_seconds or 0.0))
+    active_gpu_s = max(0.0, float(infra_active_gpu_seconds or 0.0))
+    idle_ready_gpu_s = max(0.0, float(infra_idle_ready_gpu_seconds or 0.0))
+
+    if serverful:
+        monetary_equivalent_gpu_seconds = total_gpu_s
+        charged_idle_factor = 1.0
+        active_charge_gpu_seconds = total_gpu_s
+        idle_charge_gpu_seconds = 0.0
+    else:
+        active_charge_gpu_seconds = startup_gpu_s + active_gpu_s
+        idle_charge_gpu_seconds = idle_ready_gpu_s * idle_factor
+        monetary_equivalent_gpu_seconds = active_charge_gpu_seconds + idle_charge_gpu_seconds
+        charged_idle_factor = idle_factor
+
+    invocation_total = invocation_cost * float(completed)
+    total_cost = monetary_equivalent_gpu_seconds * per_second + invocation_total
+    per_request = total_cost / float(denominator) if denominator > 0 else 0.0
+    avg_e2e_s = max(0.0, float(avg_e2e_ms or 0.0)) / 1000.0
+    ce_denom = per_request * avg_e2e_s
+    ce = 1.0 / ce_denom if ce_denom > 1e-12 else 0.0
+    return {
+        "monetary_cost_total_usd": total_cost,
+        "monetary_cost_per_request_usd": per_request,
+        "monetary_ce": ce,
+        "monetary_equivalent_gpu_seconds": monetary_equivalent_gpu_seconds,
+        "monetary_active_charge_gpu_seconds": active_charge_gpu_seconds,
+        "monetary_idle_charge_gpu_seconds": idle_charge_gpu_seconds,
+        "serverless_idle_gpu_cost_factor": charged_idle_factor,
+        "serverless_invocation_cost_total_usd": invocation_total,
+        "serverless_invocation_cost_per_request_usd": invocation_cost,
+        "monetary_pricing_runtime_class": "serverful" if serverful else "serverless",
+    }
+
+
+def _capped_weighted_interval_seconds(
+    intervals: List[Tuple[float, float, float]],
+    max_weight: Optional[float] = None,
+) -> float:
+    events: List[Tuple[float, float]] = []
+    for start, end, weight in intervals or []:
+        try:
+            s = float(start)
+            e = float(end)
+            w = float(weight)
+        except Exception:
+            continue
+        if not (math.isfinite(s) and math.isfinite(e) and math.isfinite(w)):
+            continue
+        if e <= s or w <= 0.0:
+            continue
+        events.append((s, w))
+        events.append((e, -w))
+    if not events:
+        return 0.0
+
+    cap: Optional[float] = None
+    if max_weight is not None:
+        try:
+            parsed = float(max_weight)
+            if math.isfinite(parsed) and parsed > 0.0:
+                cap = parsed
+        except Exception:
+            cap = None
+
+    total = 0.0
+    current = 0.0
+    previous: Optional[float] = None
+    idx = 0
+    events.sort(key=lambda item: item[0])
+    while idx < len(events):
+        at = events[idx][0]
+        if previous is not None and at > previous:
+            effective = min(current, cap) if cap is not None else current
+            total += (at - previous) * max(0.0, effective)
+        while idx < len(events) and events[idx][0] == at:
+            current += events[idx][1]
+            idx += 1
+        previous = at
+    return max(0.0, total)
 
 
 def _replay_start_wall_time(results: List[Dict[str, Any]]) -> Optional[float]:
@@ -202,20 +396,29 @@ def _static_runtime_lifecycle(
     gpu_count: int,
     label: str,
     model_name: str,
+    replica_count: int = 1,
+    gpu_per_replica: Optional[int] = None,
 ) -> List[Dict[str, Any]]:
     safe_elapsed = max(0.0, float(elapsed_sec or 0.0))
     safe_startup = max(0.0, float(startup_sec or 0.0))
+    replicas = max(1, int(replica_count or 1))
+    per_replica = (
+        max(1, int(gpu_per_replica or 1))
+        if gpu_per_replica is not None
+        else max(1, int(math.ceil(max(1, int(gpu_count or 1)) / replicas)))
+    )
     return [
         {
-            "instance_id": f"{label}_static_runtime",
+            "instance_id": f"{label}_static_runtime_{idx}",
             "runtime_kind": "static_serverful",
-            "gpu_count": max(1, int(gpu_count or 1)),
+            "gpu_count": per_replica,
             "model_name": str(model_name or ""),
             "lifecycle_source": "static_runtime_window_with_startup",
             "created_offset_s": 0.0,
             "ready_offset_s": safe_startup,
             "removed_offset_s": safe_startup + safe_elapsed,
         }
+        for idx in range(replicas)
     ]
 
 
@@ -319,27 +522,53 @@ def _summarize_infra_from_lifecycles(
     total_requests: int,
     avg_e2e_ms: float,
     gpu_cost_per_second_usd: float,
+    deployment_idle_tail_s: float = 300.0,
+    serverless_idle_retention_s: float = 300.0,
+    max_billing_gpus: Optional[float] = None,
 ) -> Dict[str, Any]:
     normalized: List[Dict[str, Any]] = []
     total_gpu_seconds = 0.0
     startup_gpu_seconds = 0.0
     ready_gpu_seconds = 0.0
     safe_elapsed = max(0.0, float(elapsed_sec or 0.0))
+    safe_tail = max(0.0, float(deployment_idle_tail_s or 0.0))
+    safe_retention = max(0.0, float(serverless_idle_retention_s or 0.0))
+    billing_elapsed = safe_elapsed + safe_tail
+    lifetime_intervals: List[Tuple[float, float, float]] = []
+    startup_intervals: List[Tuple[float, float, float]] = []
+    ready_intervals: List[Tuple[float, float, float]] = []
     for raw in lifecycles or []:
         item = dict(raw or {})
         instance_id = str(item.get("instance_id") or "").strip()
         if not instance_id:
             continue
+        runtime_kind = str(item.get("runtime_kind") or "").lower()
+        remove_reason = str(item.get("remove_reason") or "").lower()
         gpu_count = max(1, int(item.get("gpu_count", 1) or 1))
-        created_offset_s = min(max(0.0, float(item.get("created_offset_s", 0.0) or 0.0)), safe_elapsed)
+        created_offset_s = min(max(0.0, float(item.get("created_offset_s", 0.0) or 0.0)), billing_elapsed)
         ready_offset_s = min(
             max(created_offset_s, float(item.get("ready_offset_s", created_offset_s) or created_offset_s)),
-            safe_elapsed,
+            billing_elapsed,
         )
-        removed_offset_s = min(
-            max(ready_offset_s, float(item.get("removed_offset_s", safe_elapsed) or safe_elapsed)),
-            safe_elapsed,
-        )
+        removed_offset_s = max(ready_offset_s, float(item.get("removed_offset_s", safe_elapsed) or safe_elapsed))
+        last_finished_offset_s = item.get("last_finished_offset_s")
+        try:
+            last_finished_offset_s = float(last_finished_offset_s)
+        except Exception:
+            last_finished_offset_s = None
+        if "static_serverful" in runtime_kind:
+            billing_removed_offset_s = billing_elapsed
+        elif remove_reason == "scale_down":
+            billing_removed_offset_s = removed_offset_s
+        else:
+            live_until = max(
+                removed_offset_s,
+                float(last_finished_offset_s)
+                if last_finished_offset_s is not None
+                else removed_offset_s,
+            )
+            billing_removed_offset_s = live_until + safe_retention
+        removed_offset_s = min(max(ready_offset_s, billing_removed_offset_s), billing_elapsed)
         lifetime_sec = max(0.0, removed_offset_s - created_offset_s)
         startup_sec = max(0.0, ready_offset_s - created_offset_s)
         ready_sec = max(0.0, removed_offset_s - ready_offset_s)
@@ -349,11 +578,17 @@ def _summarize_infra_from_lifecycles(
         total_gpu_seconds += lifetime_gpu_seconds
         startup_gpu_seconds += startup_gpu_seconds_i
         ready_gpu_seconds += ready_gpu_seconds_i
+        lifetime_intervals.append((created_offset_s, removed_offset_s, float(gpu_count)))
+        startup_intervals.append((created_offset_s, ready_offset_s, float(gpu_count)))
+        ready_intervals.append((ready_offset_s, removed_offset_s, float(gpu_count)))
         item.update(
             {
                 "created_offset_s": _round(created_offset_s, 6),
                 "ready_offset_s": _round(ready_offset_s, 6),
                 "removed_offset_s": _round(removed_offset_s, 6),
+                "billing_scope": "deployment_lifecycle",
+                "deployment_idle_tail_s": _round(safe_tail, 6),
+                "serverless_idle_retention_s": _round(safe_retention, 6),
                 "lifetime_sec": _round(lifetime_sec, 6),
                 "startup_sec": _round(startup_sec, 6),
                 "ready_sec": _round(ready_sec, 6),
@@ -363,6 +598,18 @@ def _summarize_infra_from_lifecycles(
             }
         )
         normalized.append(item)
+
+    if max_billing_gpus is not None and float(max_billing_gpus or 0.0) > 0.0:
+        total_gpu_seconds = _capped_weighted_interval_seconds(lifetime_intervals, max_billing_gpus)
+        startup_gpu_seconds = min(
+            _capped_weighted_interval_seconds(startup_intervals, max_billing_gpus),
+            total_gpu_seconds,
+        )
+        ready_gpu_seconds = min(
+            _capped_weighted_interval_seconds(ready_intervals, max_billing_gpus),
+            total_gpu_seconds,
+        )
+
     infra_cost_total_usd = total_gpu_seconds * max(0.0, float(gpu_cost_per_second_usd or 0.0))
     per_request_denominator = int(completed_requests or 0) if int(completed_requests or 0) > 0 else max(0, int(total_requests or 0))
     infra_cost_per_request_usd = infra_cost_total_usd / per_request_denominator if per_request_denominator > 0 else 0.0
@@ -377,7 +624,215 @@ def _summarize_infra_from_lifecycles(
         "infra_cost_total_usd": infra_cost_total_usd,
         "infra_cost_per_request_usd": infra_cost_per_request_usd,
         "infra_ce": infra_ce,
+        "infra_billing_elapsed_sec": billing_elapsed,
+        "deployment_idle_tail_s": safe_tail,
+        "serverless_idle_retention_s": safe_retention,
+        "infra_max_billing_gpus": max(0.0, float(max_billing_gpus or 0.0)),
+        "billing_scope": "deployment_lifecycle",
     }
+
+
+def _union_interval_seconds(intervals: List[Tuple[float, float]]) -> float:
+    finite = sorted(
+        (float(start), float(end))
+        for start, end in intervals
+        if math.isfinite(float(start)) and math.isfinite(float(end)) and float(end) > float(start)
+    )
+    if not finite:
+        return 0.0
+    total = 0.0
+    cur_start, cur_end = finite[0]
+    for start, end in finite[1:]:
+        if start <= cur_end:
+            cur_end = max(cur_end, end)
+            continue
+        total += cur_end - cur_start
+        cur_start, cur_end = start, end
+    total += cur_end - cur_start
+    return max(0.0, total)
+
+
+def _max_concurrent_lifecycles(
+    lifecycles: List[Dict[str, Any]],
+    *,
+    elapsed_sec: float,
+    ready_only: bool,
+    weight_key: Optional[str] = None,
+) -> float:
+    safe_elapsed = max(0.0, float(elapsed_sec or 0.0))
+    events: List[Tuple[float, int, float]] = []
+    for raw in lifecycles or []:
+        item = dict(raw or {})
+        start_key = "ready_offset_s" if ready_only else "created_offset_s"
+        start = max(0.0, min(float(item.get(start_key, 0.0) or 0.0), safe_elapsed))
+        end = max(start, min(float(item.get("removed_offset_s", safe_elapsed) or safe_elapsed), safe_elapsed))
+        if end <= start:
+            continue
+        weight = float(item.get(weight_key, 1.0) or 1.0) if weight_key else 1.0
+        events.append((start, 1, weight))
+        events.append((end, -1, weight))
+    current = 0.0
+    peak = 0.0
+    for _, kind, weight in sorted(events, key=lambda ev: (ev[0], ev[1])):
+        current += kind * weight
+        peak = max(peak, current)
+    return max(0.0, peak)
+
+
+def _summarize_resource_efficiency(
+    *,
+    results: List[Dict[str, Any]],
+    lifecycles: List[Dict[str, Any]],
+    elapsed_sec: float,
+    ttft_slo_ms: float,
+    static_startup_sec: float = 0.0,
+    max_allocated_gpus: Optional[float] = None,
+    max_allocated_replicas: Optional[float] = None,
+    target_url_to_instance_id: Optional[Dict[str, str]] = None,
+    default_instance_id: str = "__static_runtime_0",
+) -> Dict[str, float]:
+    safe_elapsed = max(0.0, float(elapsed_sec or 0.0))
+    url_to_instance = dict(target_url_to_instance_id or {})
+    gpu_count_by_instance = {
+        str(item.get("instance_id") or ""): max(1, int(item.get("gpu_count", 1) or 1))
+        for item in lifecycles or []
+        if str(item.get("instance_id") or "")
+    }
+    intervals_by_instance: Dict[str, List[Tuple[float, float]]] = {}
+    active_weighted_intervals: List[Tuple[float, float, float]] = []
+    completed = 0
+    output_tokens = 0
+    slo_completed = 0
+    slo_output_tokens = 0
+    offset_shift = max(0.0, float(static_startup_sec or 0.0))
+    for record in results or []:
+        if not bool(record.get("success")):
+            continue
+        completed += 1
+        tokens = max(0, int(record.get("completion_tokens", record.get("output_tokens", 0)) or 0))
+        output_tokens += tokens
+        try:
+            ttft_ms = float(record.get("ttft_ms", record.get("overall_ttft_ms", 0.0)) or 0.0)
+        except Exception:
+            ttft_ms = 0.0
+        if ttft_ms <= float(ttft_slo_ms or 5000.0):
+            slo_completed += 1
+            slo_output_tokens += tokens
+        target_url = str(record.get("target_base_url") or "")
+        server_metrics = dict(record.get("server_metrics") or {})
+        instance_id = (
+            url_to_instance.get(target_url)
+            or str(server_metrics.get("instance_id") or "")
+            or default_instance_id
+        )
+        try:
+            end = float(record.get("completion_offset_s", 0.0) or 0.0) + offset_shift
+        except Exception:
+            continue
+        try:
+            service_e2e_ms = float(record.get("service_e2e_ms", record.get("e2e_ms", 0.0)) or 0.0)
+        except Exception:
+            service_e2e_ms = 0.0
+        start = max(0.0, end - max(0.0, service_e2e_ms) / 1000.0)
+        # The denominator lifecycles include startup for static serverful systems.
+        # Clamp active serving to the same billing window.
+        billing_elapsed = safe_elapsed + offset_shift
+        start = max(0.0, min(start, billing_elapsed))
+        end = max(start, min(end, billing_elapsed))
+        if end > start:
+            intervals_by_instance.setdefault(instance_id, []).append((start, end))
+            active_weighted_intervals.append(
+                (start, end, float(gpu_count_by_instance.get(instance_id, 1)))
+            )
+
+    active_gpu_seconds = 0.0
+    for instance_id, intervals in intervals_by_instance.items():
+        active_gpu_seconds += _union_interval_seconds(intervals) * gpu_count_by_instance.get(instance_id, 1)
+    active_gpu_seconds = _capped_weighted_interval_seconds(
+        active_weighted_intervals,
+        max_allocated_gpus,
+    )
+
+    total_gpu_seconds = _capped_weighted_interval_seconds(
+        [
+            (
+                float(item.get("created_offset_s", 0.0) or 0.0),
+                float(item.get("removed_offset_s", 0.0) or 0.0),
+                float(item.get("gpu_count", 1) or 1),
+            )
+            for item in lifecycles or []
+        ],
+        max_allocated_gpus,
+    )
+    startup_gpu_seconds = _capped_weighted_interval_seconds(
+        [
+            (
+                float(item.get("created_offset_s", 0.0) or 0.0),
+                float(item.get("ready_offset_s", 0.0) or 0.0),
+                float(item.get("gpu_count", 1) or 1),
+            )
+            for item in lifecycles or []
+        ],
+        max_allocated_gpus,
+    )
+    ready_gpu_seconds = _capped_weighted_interval_seconds(
+        [
+            (
+                float(item.get("ready_offset_s", 0.0) or 0.0),
+                float(item.get("removed_offset_s", 0.0) or 0.0),
+                float(item.get("gpu_count", 1) or 1),
+            )
+            for item in lifecycles or []
+        ],
+        max_allocated_gpus,
+    )
+    idle_ready_gpu_seconds = max(0.0, ready_gpu_seconds - active_gpu_seconds)
+    billing_elapsed = safe_elapsed + offset_shift
+    summary = {
+        "infra_active_gpu_seconds": active_gpu_seconds,
+        "infra_idle_ready_gpu_seconds": idle_ready_gpu_seconds,
+        "infra_avg_allocated_gpus": total_gpu_seconds / billing_elapsed if billing_elapsed > 1e-12 else 0.0,
+        "infra_avg_ready_gpus": ready_gpu_seconds / billing_elapsed if billing_elapsed > 1e-12 else 0.0,
+        "infra_max_allocated_gpus": _max_concurrent_lifecycles(
+            lifecycles,
+            elapsed_sec=billing_elapsed,
+            ready_only=False,
+            weight_key="gpu_count",
+        ),
+        "infra_max_ready_gpus": _max_concurrent_lifecycles(
+            lifecycles,
+            elapsed_sec=billing_elapsed,
+            ready_only=True,
+            weight_key="gpu_count",
+        ),
+        "infra_avg_replicas": (
+            sum(float(item.get("lifetime_sec", 0.0) or 0.0) for item in lifecycles or []) / billing_elapsed
+            if billing_elapsed > 1e-12 else 0.0
+        ),
+        "infra_max_replicas": _max_concurrent_lifecycles(
+            lifecycles,
+            elapsed_sec=billing_elapsed,
+            ready_only=False,
+            weight_key=None,
+        ),
+        "infra_active_gpu_ratio": active_gpu_seconds / total_gpu_seconds if total_gpu_seconds > 1e-12 else 0.0,
+        "infra_ready_active_gpu_ratio": active_gpu_seconds / ready_gpu_seconds if ready_gpu_seconds > 1e-12 else 0.0,
+        "infra_idle_ready_gpu_ratio": idle_ready_gpu_seconds / total_gpu_seconds if total_gpu_seconds > 1e-12 else 0.0,
+        "infra_startup_gpu_ratio": startup_gpu_seconds / total_gpu_seconds if total_gpu_seconds > 1e-12 else 0.0,
+        "completed_requests_per_gpu_second": completed / total_gpu_seconds if total_gpu_seconds > 1e-12 else 0.0,
+        "output_tokens_per_gpu_second": output_tokens / total_gpu_seconds if total_gpu_seconds > 1e-12 else 0.0,
+        "goodput_requests_per_gpu_second": slo_completed / total_gpu_seconds if total_gpu_seconds > 1e-12 else 0.0,
+        "goodput_tokens_per_gpu_second": slo_output_tokens / total_gpu_seconds if total_gpu_seconds > 1e-12 else 0.0,
+    }
+    if max_allocated_gpus is not None and float(max_allocated_gpus or 0.0) > 0.0:
+        cap = max(0.0, float(max_allocated_gpus or 0.0))
+        summary["infra_max_allocated_gpus"] = min(summary["infra_max_allocated_gpus"], cap)
+        summary["infra_max_ready_gpus"] = min(summary["infra_max_ready_gpus"], cap)
+    if max_allocated_replicas is not None and float(max_allocated_replicas or 0.0) > 0.0:
+        replica_cap = max(0.0, float(max_allocated_replicas or 0.0))
+        summary["infra_avg_replicas"] = min(summary["infra_avg_replicas"], replica_cap)
+        summary["infra_max_replicas"] = min(summary["infra_max_replicas"], replica_cap)
+    return summary
 
 
 def _build_metric_structure() -> Dict[str, List[str]]:
@@ -439,8 +894,31 @@ def _build_metric_structure() -> Dict[str, List[str]]:
             "Infra_GPU_seconds_total",
             "Infra_GPU_seconds_startup",
             "Infra_GPU_seconds_ready",
+            "Infra_GPU_seconds_active",
+            "Infra_GPU_seconds_idle_ready",
+            "Infra_avg_allocated_GPUs",
+            "Infra_avg_ready_GPUs",
+            "Infra_max_allocated_GPUs",
+            "Infra_max_ready_GPUs",
+            "Infra_avg_replicas",
+            "Infra_max_replicas",
+            "Infra_active_GPU_ratio",
+            "Infra_ready_active_GPU_ratio",
+            "Infra_idle_ready_GPU_ratio",
+            "Infra_startup_GPU_ratio",
+            "Completed_requests_per_GPU_second",
+            "Output_tokens_per_GPU_second",
+            "Goodput_requests_per_GPU_second",
+            "Goodput_tokens_per_GPU_second",
             "Infra_cost_total_usd",
             "Infra_cost_per_request_usd",
+            "Monetary_cost_total_usd",
+            "Monetary_cost_per_request_usd",
+            "Monetary_equivalent_GPU_seconds",
+            "Monetary_active_charge_GPU_seconds",
+            "Monetary_idle_charge_GPU_seconds",
+            "Serverless_idle_GPU_cost_factor",
+            "Monetary_pricing_runtime_class",
         ],
         "scaling_metrics": [
             "TTFT_SLO_ms",
@@ -452,6 +930,7 @@ def _build_metric_structure() -> Dict[str, List[str]]:
         ],
         "mechanism_metrics": [
             "CE",
+            "Monetary_CE",
             "Infra_CE",
             "QPR_TOKPS_TTFT_legacy",
             "QPR_RPS_legacy",
@@ -597,6 +1076,14 @@ def main() -> int:
     prompt_tokens = [int(r.get("prompt_tokens", 0) or 0) for r in ok]
     total_tokens = [int(r.get("total_tokens", 0) or 0) for r in ok]
     metrics_source_counts = Counter(str(r.get("metrics_source") or "missing") for r in ok)
+    prompt_token_source_counts = Counter(
+        str(r.get("prompt_token_source") or "missing")
+        for r in ok
+    )
+    completion_token_source_counts = Counter(
+        str(r.get("completion_token_source") or "missing")
+        for r in ok
+    )
     elapsed_sec = max((float(r.get("completion_offset_s", 0.0) or 0.0) for r in results), default=0.0)
     avg_ttft_ms = sum(ttft) / len(ttft) if ttft else 0.0
     avg_e2e_ms = sum(e2e) / len(e2e) if e2e else 0.0
@@ -618,12 +1105,19 @@ def main() -> int:
     gpu_hit_rate = _known_bool_rate(ok, "gpu_ready_request")
     infra_gpu_cost_per_second_usd = _gpu_cost_per_second_usd(cost_model)
     static_startup_sec = max(0.0, float(args.static_startup_sec or 0.0))
+    deployment_idle_tail_s = _cost_model_deployment_idle_tail_s(cost_model)
+    serverless_idle_retention_s = _cost_model_serverless_idle_retention_s(cost_model)
     infra_billing_elapsed_sec = elapsed_sec
     backend_cfg = dict(deploy.get("backend_config", {}) or {})
-    if str(args.baseline_type) == "sglang":
+    max_billing_gpus = 1.0
+    max_billing_replicas = 1.0
+    static_serverful_baseline = str(args.baseline_type) in ("sglang", "vllm", "slora")
+    if static_serverful_baseline:
         tensor_parallel_size = int(deploy.get("tp", deploy.get("tensor_parallel_size", model_cfg.get("tensor_parallel_size", 1))) or 1)
         data_parallel_replicas = int(deploy.get("data_parallel_replicas", deploy.get("dp", 1)) or 1)
         runtime_gpu_count = _sglang_runtime_gpu_count(deploy, model_cfg)
+        max_billing_gpus = float(max(1, runtime_gpu_count))
+        max_billing_replicas = float(max(1, data_parallel_replicas))
         parallelism_topology = str(
             deploy.get("parallelism_topology")
             or (
@@ -642,12 +1136,17 @@ def main() -> int:
             gpu_count=runtime_gpu_count,
             label=str(args.scenario_name),
             model_name=str(model_cfg.get("name", "")),
+            replica_count=data_parallel_replicas,
+            gpu_per_replica=tensor_parallel_size,
         )
         infra_billing_elapsed_sec = elapsed_sec + static_startup_sec
     else:
         tensor_parallel_size = int(backend_cfg.get("tensor_parallel_size", deploy.get("tensor_parallel_size", model_cfg.get("tensor_parallel_size", 1))) or 1)
         data_parallel_replicas = 1
         runtime_gpu_count = _serverlessllm_runtime_gpu_count(deploy, model_cfg)
+        max_instances_cfg = int(((deploy.get("auto_scaling_config", {}) or {}).get("max_instances", 1)) or 1)
+        max_billing_gpus = float(max(1, max_instances_cfg) * max(1, runtime_gpu_count))
+        max_billing_replicas = float(max(1, max_instances_cfg))
         parallelism_topology = (
             f"model_parallel_tp{tensor_parallel_size}"
             if tensor_parallel_size > 1
@@ -666,6 +1165,58 @@ def main() -> int:
         total_requests=total,
         avg_e2e_ms=avg_e2e_ms,
         gpu_cost_per_second_usd=infra_gpu_cost_per_second_usd,
+        deployment_idle_tail_s=deployment_idle_tail_s,
+        serverless_idle_retention_s=serverless_idle_retention_s,
+        max_billing_gpus=max_billing_gpus,
+    )
+    target_url_to_instance_id = {}
+    if static_serverful_baseline:
+        base_urls = list(deploy.get("base_urls") or [])
+        target_url_to_instance_id = {
+            str(url): f"{args.scenario_name}_static_runtime_{idx}"
+            for idx, url in enumerate(base_urls)
+        }
+    resource_summary = _summarize_resource_efficiency(
+        results=results,
+        lifecycles=infra_summary["instance_lifecycle_log"],
+        elapsed_sec=elapsed_sec + deployment_idle_tail_s,
+        ttft_slo_ms=ttft_slo_ms,
+        static_startup_sec=static_startup_sec if static_serverful_baseline else 0.0,
+        max_allocated_gpus=max_billing_gpus,
+        max_allocated_replicas=max_billing_replicas,
+        target_url_to_instance_id=target_url_to_instance_id,
+        default_instance_id=f"{args.scenario_name}_static_runtime_0",
+    )
+    monetary_summary = _summarize_monetary_cost_from_resource_seconds(
+        cost_model=cost_model,
+        completed_requests=len(ok),
+        total_requests=total,
+        avg_e2e_ms=avg_e2e_ms,
+        lifecycles=infra_summary["instance_lifecycle_log"],
+        infra_gpu_seconds_total=infra_summary["infra_gpu_seconds_total"],
+        infra_startup_gpu_seconds=infra_summary["infra_startup_gpu_seconds"],
+        infra_active_gpu_seconds=resource_summary["infra_active_gpu_seconds"],
+        infra_idle_ready_gpu_seconds=resource_summary["infra_idle_ready_gpu_seconds"],
+    )
+
+    token_avg_cost_usd = avg_cost_usd
+    token_total_cost_usd = total_cost_usd
+    token_ce = ce
+    avg_cost_usd = monetary_summary["monetary_cost_per_request_usd"]
+    total_cost_usd = monetary_summary["monetary_cost_total_usd"]
+    ce = monetary_summary["monetary_ce"]
+    total_prompt_tokens = sum(prompt_tokens)
+    total_completion_tokens = sum(completion_tokens)
+    total_served_tokens = total_prompt_tokens + total_completion_tokens
+    cost_per_1m_total_tokens_usd = _cost_per_million_tokens(total_cost_usd, total_served_tokens)
+    cost_per_1m_output_tokens_usd = _cost_per_million_tokens(total_cost_usd, total_completion_tokens)
+    token_proxy_cost_per_1m_total_tokens_usd = _cost_per_million_tokens(
+        token_total_cost_usd,
+        total_served_tokens,
+    )
+    token_proxy_cost_per_1m_output_tokens_usd = _cost_per_million_tokens(
+        token_total_cost_usd,
+        total_completion_tokens,
     )
 
     summary = {
@@ -720,6 +1271,16 @@ def main() -> int:
         "ttft_slo_ms": _round(ttft_slo_ms),
         "avg_cost_usd": _round(avg_cost_usd, 8),
         "total_cost_usd": _round(total_cost_usd, 8),
+        "total_input_tokens": int(total_prompt_tokens),
+        "total_output_tokens": int(total_completion_tokens),
+        "total_tokens": int(total_served_tokens),
+        "cost_per_1m_total_tokens_usd": _round(cost_per_1m_total_tokens_usd, 8),
+        "cost_per_1m_output_tokens_usd": _round(cost_per_1m_output_tokens_usd, 8),
+        "token_avg_cost_usd": _round(token_avg_cost_usd, 8),
+        "token_total_cost_usd": _round(token_total_cost_usd, 8),
+        "token_proxy_cost_per_1m_total_tokens_usd": _round(token_proxy_cost_per_1m_total_tokens_usd, 8),
+        "token_proxy_cost_per_1m_output_tokens_usd": _round(token_proxy_cost_per_1m_output_tokens_usd, 8),
+        "token_ce": _round(token_ce, 6),
         "max_model_len": model_cfg.get("max_model_len"),
         "max_input_len": model_cfg.get("max_input_len"),
         "max_output_tokens_cap": model_cfg.get("max_output_tokens_cap"),
@@ -736,12 +1297,44 @@ def main() -> int:
         "avg_total_tokens": _round((sum(total_tokens) / len(total_tokens)) if total_tokens else None),
         "max_total_tokens": max(total_tokens) if total_tokens else None,
         "metrics_source_counts": dict(sorted(metrics_source_counts.items())),
+        "prompt_token_source_counts": dict(sorted(prompt_token_source_counts.items())),
+        "completion_token_source_counts": dict(sorted(completion_token_source_counts.items())),
         "infra_gpu_seconds_total": _round(infra_summary["infra_gpu_seconds_total"], 6),
         "infra_startup_gpu_seconds": _round(infra_summary["infra_startup_gpu_seconds"], 6),
         "infra_ready_gpu_seconds": _round(infra_summary["infra_ready_gpu_seconds"], 6),
+        "infra_active_gpu_seconds": _round(resource_summary["infra_active_gpu_seconds"], 6),
+        "infra_idle_ready_gpu_seconds": _round(resource_summary["infra_idle_ready_gpu_seconds"], 6),
+        "infra_avg_allocated_gpus": _round(resource_summary["infra_avg_allocated_gpus"], 6),
+        "infra_avg_ready_gpus": _round(resource_summary["infra_avg_ready_gpus"], 6),
+        "infra_max_allocated_gpus": _round(resource_summary["infra_max_allocated_gpus"], 6),
+        "infra_max_ready_gpus": _round(resource_summary["infra_max_ready_gpus"], 6),
+        "infra_avg_replicas": _round(resource_summary["infra_avg_replicas"], 6),
+        "infra_max_replicas": _round(resource_summary["infra_max_replicas"], 6),
+        "infra_active_gpu_ratio": _round(resource_summary["infra_active_gpu_ratio"], 6),
+        "infra_ready_active_gpu_ratio": _round(resource_summary["infra_ready_active_gpu_ratio"], 6),
+        "infra_idle_ready_gpu_ratio": _round(resource_summary["infra_idle_ready_gpu_ratio"], 6),
+        "infra_startup_gpu_ratio": _round(resource_summary["infra_startup_gpu_ratio"], 6),
+        "completed_requests_per_gpu_second": _round(resource_summary["completed_requests_per_gpu_second"], 6),
+        "output_tokens_per_gpu_second": _round(resource_summary["output_tokens_per_gpu_second"], 6),
+        "goodput_requests_per_gpu_second": _round(resource_summary["goodput_requests_per_gpu_second"], 6),
+        "goodput_tokens_per_gpu_second": _round(resource_summary["goodput_tokens_per_gpu_second"], 6),
         "infra_cost_total_usd": _round(infra_summary["infra_cost_total_usd"], 8),
         "infra_cost_per_request_usd": _round(infra_summary["infra_cost_per_request_usd"], 8),
         "infra_ce": _round(infra_summary["infra_ce"], 6),
+        "monetary_cost_total_usd": _round(monetary_summary["monetary_cost_total_usd"], 8),
+        "monetary_cost_per_request_usd": _round(monetary_summary["monetary_cost_per_request_usd"], 8),
+        "monetary_ce": _round(monetary_summary["monetary_ce"], 6),
+        "monetary_equivalent_gpu_seconds": _round(monetary_summary["monetary_equivalent_gpu_seconds"], 6),
+        "monetary_active_charge_gpu_seconds": _round(monetary_summary["monetary_active_charge_gpu_seconds"], 6),
+        "monetary_idle_charge_gpu_seconds": _round(monetary_summary["monetary_idle_charge_gpu_seconds"], 6),
+        "serverless_idle_gpu_cost_factor": _round(monetary_summary["serverless_idle_gpu_cost_factor"], 6),
+        "serverless_invocation_cost_total_usd": _round(monetary_summary["serverless_invocation_cost_total_usd"], 8),
+        "serverless_invocation_cost_per_request_usd": _round(monetary_summary["serverless_invocation_cost_per_request_usd"], 10),
+        "monetary_pricing_runtime_class": monetary_summary["monetary_pricing_runtime_class"],
+        "infra_billing_elapsed_sec": _round(infra_summary["infra_billing_elapsed_sec"], 6),
+        "infra_max_billing_gpus": _round(infra_summary["infra_max_billing_gpus"], 6),
+        "deployment_idle_tail_s": _round(infra_summary["deployment_idle_tail_s"], 6),
+        "serverless_idle_retention_s": _round(infra_summary["serverless_idle_retention_s"], 6),
         "ce": _round(ce, 6),
         "qpr": _round(ce, 6),
         "qpr_tokps_ttft_legacy": _round(qpr_tokps_ttft_legacy, 6),
@@ -845,11 +1438,45 @@ def main() -> int:
             "E2E_service_P99_ms": _round(_pct(service_e2e, 99)),
             "Monetary_cost_avg_usd": _round(avg_cost_usd, 8),
             "Monetary_cost_total_usd": _round(total_cost_usd, 8),
+            "Monetary_cost_per_1M_total_tokens_usd": _round(cost_per_1m_total_tokens_usd, 8),
+            "Monetary_cost_per_1M_output_tokens_usd": _round(cost_per_1m_output_tokens_usd, 8),
+            "Token_proxy_cost_avg_usd": _round(token_avg_cost_usd, 8),
+            "Token_proxy_cost_total_usd": _round(token_total_cost_usd, 8),
+            "Token_proxy_cost_per_1M_total_tokens_usd": _round(token_proxy_cost_per_1m_total_tokens_usd, 8),
+            "Token_proxy_cost_per_1M_output_tokens_usd": _round(token_proxy_cost_per_1m_output_tokens_usd, 8),
+            "Token_proxy_CE": _round(token_ce, 6),
             "Infra_GPU_seconds_total": _round(infra_summary["infra_gpu_seconds_total"], 6),
             "Infra_GPU_seconds_startup": _round(infra_summary["infra_startup_gpu_seconds"], 6),
             "Infra_GPU_seconds_ready": _round(infra_summary["infra_ready_gpu_seconds"], 6),
+            "Infra_GPU_seconds_active": _round(resource_summary["infra_active_gpu_seconds"], 6),
+            "Infra_GPU_seconds_idle_ready": _round(resource_summary["infra_idle_ready_gpu_seconds"], 6),
+            "Infra_avg_allocated_GPUs": _round(resource_summary["infra_avg_allocated_gpus"], 6),
+            "Infra_avg_ready_GPUs": _round(resource_summary["infra_avg_ready_gpus"], 6),
+            "Infra_max_allocated_GPUs": _round(resource_summary["infra_max_allocated_gpus"], 6),
+            "Infra_max_ready_GPUs": _round(resource_summary["infra_max_ready_gpus"], 6),
+            "Infra_avg_replicas": _round(resource_summary["infra_avg_replicas"], 6),
+            "Infra_max_replicas": _round(resource_summary["infra_max_replicas"], 6),
+            "Infra_active_GPU_ratio": _round(resource_summary["infra_active_gpu_ratio"], 6),
+            "Infra_ready_active_GPU_ratio": _round(resource_summary["infra_ready_active_gpu_ratio"], 6),
+            "Infra_idle_ready_GPU_ratio": _round(resource_summary["infra_idle_ready_gpu_ratio"], 6),
+            "Infra_startup_GPU_ratio": _round(resource_summary["infra_startup_gpu_ratio"], 6),
+            "Completed_requests_per_GPU_second": _round(resource_summary["completed_requests_per_gpu_second"], 6),
+            "Output_tokens_per_GPU_second": _round(resource_summary["output_tokens_per_gpu_second"], 6),
+            "Goodput_requests_per_GPU_second": _round(resource_summary["goodput_requests_per_gpu_second"], 6),
+            "Goodput_tokens_per_GPU_second": _round(resource_summary["goodput_tokens_per_gpu_second"], 6),
             "Infra_cost_total_usd": _round(infra_summary["infra_cost_total_usd"], 8),
             "Infra_cost_per_request_usd": _round(infra_summary["infra_cost_per_request_usd"], 8),
+            "Monetary_cost_total_usd": _round(monetary_summary["monetary_cost_total_usd"], 8),
+            "Monetary_cost_per_request_usd": _round(monetary_summary["monetary_cost_per_request_usd"], 8),
+            "Monetary_equivalent_GPU_seconds": _round(monetary_summary["monetary_equivalent_gpu_seconds"], 6),
+            "Monetary_active_charge_GPU_seconds": _round(monetary_summary["monetary_active_charge_gpu_seconds"], 6),
+            "Monetary_idle_charge_GPU_seconds": _round(monetary_summary["monetary_idle_charge_gpu_seconds"], 6),
+            "Serverless_idle_GPU_cost_factor": _round(monetary_summary["serverless_idle_gpu_cost_factor"], 6),
+            "Monetary_pricing_runtime_class": monetary_summary["monetary_pricing_runtime_class"],
+            "Infra_billing_elapsed_sec": _round(infra_summary["infra_billing_elapsed_sec"], 6),
+            "Infra_max_billing_GPUs": _round(infra_summary["infra_max_billing_gpus"], 6),
+            "Deployment_idle_tail_s": _round(infra_summary["deployment_idle_tail_s"], 6),
+            "Serverless_idle_retention_s": _round(infra_summary["serverless_idle_retention_s"], 6),
         },
         "scaling_metrics": {
             "TTFT_SLO_ms": _round(ttft_slo_ms),
@@ -861,6 +1488,7 @@ def main() -> int:
         },
         "mechanism_metrics": {
             "CE": _round(ce),
+            "Monetary_CE": _round(monetary_summary["monetary_ce"]),
             "Infra_CE": _round(infra_summary["infra_ce"]),
             "QPR_TOKPS_TTFT_legacy": _round(qpr_tokps_ttft_legacy),
             "QPR_RPS_legacy": _round(qpr_rps_legacy),
@@ -946,12 +1574,50 @@ def main() -> int:
         "TTFT_SLO_ms": _cell(ttft_slo_ms, 1),
         "avg_cost_USD": _cell(avg_cost_usd, 7),
         "total_cost_USD": _cell(total_cost_usd, 5),
+        "cost_per_1m_total_tokens_usd": _cell(cost_per_1m_total_tokens_usd, 8),
+        "cost_per_1m_output_tokens_usd": _cell(cost_per_1m_output_tokens_usd, 8),
+        "token_avg_cost_usd": _cell(token_avg_cost_usd, 8),
+        "token_total_cost_usd": _cell(token_total_cost_usd, 8),
+        "token_proxy_cost_per_1m_total_tokens_usd": _cell(token_proxy_cost_per_1m_total_tokens_usd, 8),
+        "token_proxy_cost_per_1m_output_tokens_usd": _cell(token_proxy_cost_per_1m_output_tokens_usd, 8),
+        "token_ce": _cell(token_ce, 6),
         "infra_gpu_seconds_total": _cell(infra_summary["infra_gpu_seconds_total"], 6),
         "infra_startup_gpu_seconds": _cell(infra_summary["infra_startup_gpu_seconds"], 6),
         "infra_ready_gpu_seconds": _cell(infra_summary["infra_ready_gpu_seconds"], 6),
+        "infra_active_gpu_seconds": _cell(resource_summary["infra_active_gpu_seconds"], 6),
+        "infra_idle_ready_gpu_seconds": _cell(resource_summary["infra_idle_ready_gpu_seconds"], 6),
+        "infra_avg_allocated_gpus": _cell(resource_summary["infra_avg_allocated_gpus"], 6),
+        "infra_avg_ready_gpus": _cell(resource_summary["infra_avg_ready_gpus"], 6),
+        "infra_max_allocated_gpus": _cell(resource_summary["infra_max_allocated_gpus"], 6),
+        "infra_max_ready_gpus": _cell(resource_summary["infra_max_ready_gpus"], 6),
+        "infra_avg_replicas": _cell(resource_summary["infra_avg_replicas"], 6),
+        "infra_max_replicas": _cell(resource_summary["infra_max_replicas"], 6),
+        "infra_active_gpu_ratio": _cell(resource_summary["infra_active_gpu_ratio"], 6),
+        "infra_ready_active_gpu_ratio": _cell(resource_summary["infra_ready_active_gpu_ratio"], 6),
+        "infra_idle_ready_gpu_ratio": _cell(resource_summary["infra_idle_ready_gpu_ratio"], 6),
+        "infra_startup_gpu_ratio": _cell(resource_summary["infra_startup_gpu_ratio"], 6),
+        "completed_requests_per_gpu_second": _cell(resource_summary["completed_requests_per_gpu_second"], 6),
+        "output_tokens_per_gpu_second": _cell(resource_summary["output_tokens_per_gpu_second"], 6),
+        "goodput_requests_per_gpu_second": _cell(resource_summary["goodput_requests_per_gpu_second"], 6),
+        "goodput_tokens_per_gpu_second": _cell(resource_summary["goodput_tokens_per_gpu_second"], 6),
         "infra_cost_total_usd": _cell(infra_summary["infra_cost_total_usd"], 7),
         "infra_cost_per_request_usd": _cell(infra_summary["infra_cost_per_request_usd"], 7),
+        "monetary_cost_total_usd": _cell(monetary_summary["monetary_cost_total_usd"], 7),
+        "monetary_cost_per_request_usd": _cell(monetary_summary["monetary_cost_per_request_usd"], 7),
+        "monetary_ce": _cell(monetary_summary["monetary_ce"], 4),
+        "monetary_equivalent_gpu_seconds": _cell(monetary_summary["monetary_equivalent_gpu_seconds"], 6),
+        "monetary_active_charge_gpu_seconds": _cell(monetary_summary["monetary_active_charge_gpu_seconds"], 6),
+        "monetary_idle_charge_gpu_seconds": _cell(monetary_summary["monetary_idle_charge_gpu_seconds"], 6),
+        "serverless_idle_gpu_cost_factor": _cell(monetary_summary["serverless_idle_gpu_cost_factor"], 6),
+        "serverless_invocation_cost_total_usd": _cell(monetary_summary["serverless_invocation_cost_total_usd"], 8),
+        "serverless_invocation_cost_per_request_usd": _cell(monetary_summary["serverless_invocation_cost_per_request_usd"], 10),
+        "monetary_pricing_runtime_class": monetary_summary["monetary_pricing_runtime_class"],
+        "infra_billing_elapsed_sec": _cell(infra_summary["infra_billing_elapsed_sec"], 6),
+        "infra_max_billing_gpus": _cell(infra_summary["infra_max_billing_gpus"], 6),
+        "deployment_idle_tail_s": _cell(infra_summary["deployment_idle_tail_s"], 6),
+        "serverless_idle_retention_s": _cell(infra_summary["serverless_idle_retention_s"], 6),
         "CE": _cell(ce, 4),
+        "Monetary_CE": _cell(monetary_summary["monetary_ce"], 4),
         "Infra_CE": _cell(infra_summary["infra_ce"], 4),
         "Cost_effectiveness_e2e": _cell(ce, 4),
         "QPR_TOKPS_TTFT_legacy": _cell(qpr_tokps_ttft_legacy, 1),
@@ -1013,7 +1679,13 @@ def main() -> int:
             "service_ttft": METRIC_DEF_SERVICE_TTFT,
             "service_e2e": METRIC_DEF_SERVICE_E2E,
             "tpot": "(service_completion_time - service_first_token_time) / max(output_tokens - 1, 1)",
-            "infra_cost_model": "simulated GPU-second infrastructure billing over the replay serving window; total/startup/ready GPU-seconds are multiplied by a shared gpu_cost_per_second_usd and normalized into infra_cost_per_request_usd and infra_ce",
+            "infra_cost_model": "flat deployment lifecycle GPU-second audit; every allocated GPU-second has the same price, independent of active vs idle state",
+            "monetary_cost_model": "main cloud monetary billing; serverful runtimes pay full-price lifecycle GPU-seconds, while serverless runtimes pay full-price startup/active GPU-seconds plus discounted ready-but-idle GPU-seconds",
+            "primary_cost": "workload-level monetary cost normalized as Cost/req = total monetary cost / completed requests",
+            "primary_ce": "1 / (avg E2E_e2e in seconds * Cost/req); this is the main paper-facing cost-effectiveness metric",
+            "cost_per_1m_total_tokens": "workload-level lifecycle monetary cost divided by total served tokens (input + output), scaled to one million tokens",
+            "token_proxy_cost": "legacy request/token pricing proxy derived from base + per-input-token + per-output-token charges; retained only as a diagnostic view and never used as the headline cost",
+            "infra_resource_efficiency": "active/idle GPU-seconds and replica counts derived from runtime lifecycles plus request service intervals; goodput per GPU-second uses TTFT-SLO-satisfied requests/tokens divided by allocated GPU-seconds",
             "slo_metric": "TTFT_e2e",
         },
         "metadata": {
@@ -1046,13 +1718,27 @@ def main() -> int:
             "runtime_gpu_count": runtime_gpu_count,
             "parallelism_topology": parallelism_topology,
             "infra_cost_model": {
-                "name": "simulated_gpu_second_v1",
+                "name": "simulated_gpu_second_deployment_lifecycle_v3_capped",
                 "gpu_cost_per_second_usd": round(infra_gpu_cost_per_second_usd, 8),
                 "gpu_hour_cost_usd_equivalent": round(infra_gpu_cost_per_second_usd * 3600.0, 6),
-                "scope": "runtime_gpu_lifecycle_with_static_startup_for_serverful",
+                "scope": "deployment_lifecycle_with_idle_tail",
                 "billing_unit": "gpu_second",
                 "static_startup_sec": round(static_startup_sec, 6),
-                "infra_billing_elapsed_sec": round(infra_billing_elapsed_sec, 6),
+                "deployment_idle_tail_s": round(deployment_idle_tail_s, 6),
+                "serverless_idle_retention_s": round(serverless_idle_retention_s, 6),
+                "infra_billing_elapsed_sec": round(infra_summary["infra_billing_elapsed_sec"], 6),
+                "infra_max_billing_gpus": round(infra_summary["infra_max_billing_gpus"], 6),
+            },
+            "monetary_cost_model": {
+                "name": "serverless_active_idle_differential_billing_v1",
+                "gpu_cost_per_second_usd": round(infra_gpu_cost_per_second_usd, 8),
+                "serverless_idle_gpu_cost_factor": round(_serverless_idle_gpu_cost_factor(cost_model), 10),
+                "serverless_invocation_cost_per_request_usd": round(
+                    _serverless_invocation_cost_per_request_usd(cost_model),
+                    10,
+                ),
+                "serverful_policy": "full-price lifecycle GPU-seconds",
+                "serverless_policy": "startup/active GPU-seconds at full price; ready-but-idle GPU-seconds at idle factor",
             },
             "selected_num_adapters": trace.get("selected_num_adapters"),
             "sampling_seed": trace.get("sampling_seed"),
@@ -1072,9 +1758,16 @@ def main() -> int:
         f"Summary[{args.scenario_name}] "
         f"TTFT={avg_ttft_ms:.1f}ms TPOT={tpot_display} "
         f"Tok/s={throughput_tokps:.2f} E2E={avg_e2e_ms:.1f}ms "
-        f"Cost/req=${avg_cost_usd:.6f} CE={ce:.3f} "
+        f"Cost/req=${avg_cost_usd:.6f} CE={ce:.3f} Cost/1MTok=${cost_per_1m_total_tokens_usd:.2f} "
+        f"TokenProxy/req=${token_avg_cost_usd:.6f} TokenProxyCE={token_ce:.3f} "
         f"InfraCost/req=${infra_summary['infra_cost_per_request_usd']:.6f} "
-        f"InfraCE={infra_summary['infra_ce']:.3f}"
+        f"InfraCE={infra_summary['infra_ce']:.3f} "
+        f"MonetaryEqGPU={monetary_summary['monetary_equivalent_gpu_seconds']:.2f}s "
+        f"IdleFactor={monetary_summary['serverless_idle_gpu_cost_factor']:.3f} "
+        f"PricingClass={monetary_summary['monetary_pricing_runtime_class']} "
+        f"ActiveGPU={resource_summary['infra_active_gpu_seconds']:.2f}s "
+        f"IdleReadyGPU={resource_summary['infra_idle_ready_gpu_seconds']:.2f}s "
+        f"GoodTok/GPU-s={resource_summary['goodput_tokens_per_gpu_second']:.2f}"
     )
     print(f"wrote summary -> {args.output}")
     return 0

@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
+import re
 import threading
 import time
 from pathlib import Path
@@ -86,6 +88,17 @@ def _calc_cost(in_tok: int, out_tok: int, *, base: float, in_cost: float, out_co
     return float(base) + float(in_cost) * max(0, int(in_tok)) + float(out_cost) * max(0, int(out_tok))
 
 
+def _cost_per_million_tokens(total_cost_usd: float, token_count: int) -> float:
+    try:
+        cost = float(total_cost_usd or 0.0)
+        tokens = int(token_count or 0)
+    except Exception:
+        return 0.0
+    if cost <= 0.0 or tokens <= 0:
+        return 0.0
+    return cost * 1_000_000.0 / float(tokens)
+
+
 def _parse_base_urls(primary: str, extra_csv: Optional[str]) -> List[str]:
     urls: List[str] = []
     if primary:
@@ -102,6 +115,28 @@ def _parse_base_urls(primary: str, extra_csv: Optional[str]) -> List[str]:
     if not normalized:
         raise RuntimeError("at least one --base-url is required")
     return normalized
+
+
+def _derive_request_generation_seed(
+    base_seed: Optional[int],
+    request_id: Optional[str],
+    request_index: int,
+) -> Optional[int]:
+    if base_seed is None:
+        return None
+    try:
+        seed = int(base_seed)
+    except (TypeError, ValueError):
+        return None
+    rid = str(request_id or "").strip()
+    match = re.search(r"(\d+)$", rid)
+    if match:
+        offset = int(match.group(1))
+    elif rid:
+        offset = int(hashlib.sha1(rid.encode("utf-8")).hexdigest()[:8], 16)
+    else:
+        offset = int(request_index)
+    return int((seed + offset) % (2**32))
 
 
 def _known_bool_rate(records: List[Dict[str, Any]], key: str) -> Optional[float]:
@@ -163,6 +198,60 @@ def _get_prompt_guard_tokenizer(model_name: str):
         return tokenizer
 
 
+def _count_text_tokens(text: str, tokenizer_model: Optional[str]) -> Optional[int]:
+    if not tokenizer_model:
+        return None
+    try:
+        tokenizer = _get_prompt_guard_tokenizer(tokenizer_model)
+        return len(tokenizer.encode(str(text or ""), add_special_tokens=False))
+    except Exception:
+        return None
+
+
+def _extract_generated_text_fragment(obj: Dict[str, Any]) -> str:
+    """Extract generated text from OpenAI-compatible response chunks.
+
+    Some backends, notably standalone vLLM completions in streaming mode, do not
+    include a final usage object. Counting the generated text locally keeps
+    token/cost diagnostics tied to the actual guarded request instead of falling
+    back to the raw trace budget.
+    """
+    parts: List[str] = []
+    for choice in obj.get("choices") or []:
+        if not isinstance(choice, dict):
+            continue
+        text = choice.get("text")
+        if isinstance(text, str):
+            parts.append(text)
+        delta = choice.get("delta")
+        if isinstance(delta, dict):
+            content = delta.get("content")
+            if isinstance(content, str):
+                parts.append(content)
+            delta_text = delta.get("text")
+            if isinstance(delta_text, str):
+                parts.append(delta_text)
+        message = choice.get("message")
+        if isinstance(message, dict):
+            content = message.get("content")
+            if isinstance(content, str):
+                parts.append(content)
+    text = obj.get("text")
+    if isinstance(text, str):
+        parts.append(text)
+    token = obj.get("token")
+    if isinstance(token, dict):
+        token_text = token.get("text")
+        if isinstance(token_text, str):
+            parts.append(token_text)
+    generated_text = obj.get("generated_text")
+    if isinstance(generated_text, str):
+        parts.append(generated_text)
+    elif isinstance(generated_text, list):
+        parts.extend(str(item) for item in generated_text if isinstance(item, str))
+    return "".join(parts)
+
+
 def _apply_faaslora_style_prompt_guard(
     *,
     prompt: str,
@@ -171,7 +260,8 @@ def _apply_faaslora_style_prompt_guard(
     max_model_len: int,
     max_input_len: int,
     max_output_tokens_cap: int,
-) -> tuple[str, int]:
+    tokenizer_add_special_tokens: bool = False,
+) -> tuple[str, int, Optional[int]]:
     desired_tokens = max(1, int(requested_output_tokens or 1))
     if max_output_tokens_cap > 0:
         desired_tokens = min(desired_tokens, max_output_tokens_cap)
@@ -181,24 +271,49 @@ def _apply_faaslora_style_prompt_guard(
     if max_input_len > 0:
         prompt_budget = min(prompt_budget, max_input_len)
     if not tokenizer_model:
-        return prompt, max(1, min(desired_tokens, safe_max_model_len - 8))
+        return prompt, max(1, min(desired_tokens, safe_max_model_len - 8)), None
     try:
         tokenizer = _get_prompt_guard_tokenizer(tokenizer_model)
-        token_ids = tokenizer.encode(prompt, add_special_tokens=False)
+        token_ids = tokenizer.encode(
+            prompt,
+            add_special_tokens=tokenizer_add_special_tokens,
+        )
         if len(token_ids) > int(prompt_budget):
             token_ids = token_ids[-int(prompt_budget):]
+        # Tokenizer decode -> re-encode is not perfectly idempotent near a hard
+        # boundary. Re-check the final prompt string against the same tokenizer
+        # so the emitted request never exceeds the backend's true input budget.
+        while True:
             prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
+            reencoded = tokenizer.encode(
+                prompt,
+                add_special_tokens=tokenizer_add_special_tokens,
+            )
+            if len(reencoded) <= int(prompt_budget):
+                token_ids = reencoded
+                break
+            overflow = max(1, len(reencoded) - int(prompt_budget))
+            if len(token_ids) <= overflow:
+                token_ids = token_ids[-1:]
+                prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
+                reencoded = tokenizer.encode(
+                    prompt,
+                    add_special_tokens=tokenizer_add_special_tokens,
+                )
+                token_ids = reencoded[: max(1, min(len(reencoded), int(prompt_budget)))]
+                break
+            token_ids = token_ids[overflow:]
         actual_input_tokens = max(1, len(token_ids))
         safe_max_tokens = min(
             desired_tokens,
             max(1, safe_max_model_len - actual_input_tokens - 8),
         )
-        return prompt, safe_max_tokens
+        return prompt, safe_max_tokens, actual_input_tokens
     except Exception:
         max_chars = min(safe_max_model_len * 4, 8192)
         if len(prompt) > max_chars:
             prompt = prompt[-max_chars:]
-        return prompt, max(1, min(desired_tokens, safe_max_model_len - 8))
+        return prompt, max(1, min(desired_tokens, safe_max_model_len - 8)), None
 
 
 def _build_sglang_native_generate_body(
@@ -217,6 +332,12 @@ def _build_sglang_native_generate_body(
         "top_p": float(body.get("top_p", 0.9) or 0.9),
         "max_new_tokens": int(max(1, max_tokens)),
     }
+    if body.get("sampling_seed") is not None:
+        sampling_params["sampling_seed"] = int(body["sampling_seed"])
+    elif body.get("seed") is not None:
+        # This SGLang version names the field sampling_seed, while OpenAI/vLLM
+        # compatible endpoints commonly use seed.
+        sampling_params["sampling_seed"] = int(body["seed"])
     for source_key in (
         "top_k",
         "min_p",
@@ -237,6 +358,36 @@ def _build_sglang_native_generate_body(
         "stream": bool(body.get("stream", True)),
     }
     return native_body, len(input_ids)
+
+
+def _build_slora_native_generate_body(
+    *,
+    prompt: str,
+    body: Dict[str, Any],
+    max_tokens: int,
+    request_id: str,
+) -> Dict[str, Any]:
+    params: Dict[str, Any] = {
+        "do_sample": False,
+        "ignore_eos": bool(body.get("ignore_eos", True)),
+        "max_new_tokens": int(max(1, max_tokens)),
+    }
+    for source_key in (
+        "presence_penalty",
+        "frequency_penalty",
+        "temperature",
+        "top_p",
+        "top_k",
+        "stop_sequences",
+    ):
+        value = body.get(source_key)
+        if value is not None:
+            params[source_key] = value
+    return {
+        "inputs": prompt,
+        "parameters": params,
+        "req_id": request_id,
+    }
 
 
 def _derive_latency_ms(start_ts: Any, end_ts: Any) -> Optional[float]:
@@ -308,6 +459,7 @@ def _replay_one(
     *,
     base_url: str,
     item: Dict[str, Any],
+    request_index: int,
     timeout_s: float,
     start_time: float,
     base_cost_usd: float,
@@ -317,6 +469,7 @@ def _replay_one(
     model_override: Optional[str],
     adapter_source_field: Optional[str],
     adapter_target_field: Optional[str],
+    adapter_value_map: Dict[str, str],
     drop_body_fields: List[str],
     endpoint_path: str,
     convert_chat_to_prompt: bool,
@@ -325,9 +478,19 @@ def _replay_one(
     prompt_guard_max_input_len: int,
     prompt_guard_max_output_tokens_cap: int,
     sglang_native_generate: bool,
+    slora_native_generate: bool,
+    generation_seed: Optional[int],
 ) -> Dict[str, Any]:
     body = dict(item["body"])
+    request_seed = _derive_request_generation_seed(
+        generation_seed,
+        item.get("request_id"),
+        request_index,
+    )
+    if request_seed is not None:
+        body["seed"] = int(request_seed)
     local_prompt_tokens_override: Optional[int] = None
+    guard_max_tokens: Optional[int] = None
     for field in drop_body_fields:
         body.pop(field, None)
     if convert_chat_to_prompt:
@@ -343,20 +506,31 @@ def _replay_one(
                 or item.get("expected_output_tokens")
                 or 1
             )
-            prompt, safe_max_tokens = _apply_faaslora_style_prompt_guard(
+            prompt, safe_max_tokens, guarded_prompt_tokens = _apply_faaslora_style_prompt_guard(
                 prompt=prompt,
                 requested_output_tokens=requested_output_tokens,
                 tokenizer_model=prompt_guard_tokenizer_model,
                 max_model_len=prompt_guard_max_model_len,
                 max_input_len=prompt_guard_max_input_len,
                 max_output_tokens_cap=prompt_guard_max_output_tokens_cap,
+                tokenizer_add_special_tokens=bool(slora_native_generate),
             )
+            guard_max_tokens = int(safe_max_tokens)
+            if guarded_prompt_tokens is not None:
+                local_prompt_tokens_override = int(guarded_prompt_tokens)
             if sglang_native_generate:
                 body, local_prompt_tokens_override = _build_sglang_native_generate_body(
                     prompt=prompt,
                     body=body,
                     tokenizer_model=prompt_guard_tokenizer_model,
                     max_tokens=safe_max_tokens,
+                )
+            elif slora_native_generate:
+                body = _build_slora_native_generate_body(
+                    prompt=prompt,
+                    body=body,
+                    max_tokens=safe_max_tokens,
+                    request_id=str(item.get("request_id") or f"req_{request_index:05d}"),
                 )
             else:
                 body["prompt"] = prompt
@@ -373,7 +547,7 @@ def _replay_one(
         if adapter_value is None and adapter_source_field == "adapter_id":
             adapter_value = item.get("adapter_id")
         if adapter_value is not None:
-            body[adapter_target_field] = adapter_value
+            body[adapter_target_field] = adapter_value_map.get(str(adapter_value), adapter_value)
     endpoint = f"{base_url.rstrip('/')}/{endpoint_path.lstrip('/')}"
     scheduled_offset_s = float(item["arrival_time_s"])
     dispatch_offset_s = time.perf_counter() - start_time
@@ -382,6 +556,7 @@ def _replay_one(
     status_code: Optional[int] = None
     usage: Dict[str, Any] = {}
     error: Optional[str] = None
+    generated_text_parts: List[str] = []
     stream_event_count = 0
     server_metrics: Dict[str, Any] = {}
     metrics_source: Optional[str] = None
@@ -413,6 +588,9 @@ def _replay_one(
                         try:
                             obj = json.loads(payload)
                             if isinstance(obj, dict):
+                                fragment = _extract_generated_text_fragment(obj)
+                                if fragment:
+                                    generated_text_parts.append(fragment)
                                 if obj.get("error"):
                                     error = str(obj.get("error"))
                                 if obj.get("usage"):
@@ -435,6 +613,9 @@ def _replay_one(
                     try:
                         obj = json.loads(raw_text)
                         if isinstance(obj, dict):
+                            fragment = _extract_generated_text_fragment(obj)
+                            if fragment:
+                                generated_text_parts.append(fragment)
                             if obj.get("error"):
                                 error = str(obj.get("error"))
                             if obj.get("usage"):
@@ -458,6 +639,36 @@ def _replay_one(
         error = str(exc)
 
     completion_offset_s = time.perf_counter() - start_time
+    generated_text = "".join(generated_text_parts)
+    observed_empty_generation = (
+        not generated_text
+        and error is None
+        and status_code == 200
+        and stream_event_count > 0
+    )
+    local_completion_tokens_override = _count_text_tokens(
+        generated_text,
+        prompt_guard_tokenizer_model,
+    ) if (generated_text or observed_empty_generation) else None
+    prompt_token_source = "usage"
+    completion_token_source = "usage"
+    usage_prompt_tokens = (usage or {}).get("prompt_tokens")
+    usage_completion_tokens = (usage or {}).get("completion_tokens")
+    server_prompt_tokens = server_metrics.get("prompt_tokens")
+    server_completion_tokens = server_metrics.get("completion_tokens")
+    if usage_prompt_tokens is None:
+        prompt_token_source = "server_metrics" if server_prompt_tokens is not None else (
+            "local_guarded_prompt" if local_prompt_tokens_override is not None else "trace_expected"
+        )
+    if usage_completion_tokens is None:
+        completion_token_source = "server_metrics" if server_completion_tokens is not None else (
+            (
+                "local_generated_text_empty"
+                if observed_empty_generation
+                else "local_generated_text"
+            )
+            if local_completion_tokens_override is not None else "trace_expected"
+        )
     prompt_tokens = int(
         (usage or {}).get(
             "prompt_tokens",
@@ -473,7 +684,12 @@ def _replay_one(
     completion_tokens = int(
         (usage or {}).get(
             "completion_tokens",
-            server_metrics.get("completion_tokens", item.get("expected_output_tokens", 0)),
+            server_metrics.get(
+                "completion_tokens",
+                local_completion_tokens_override
+                if local_completion_tokens_override is not None
+                else item.get("expected_output_tokens", 0),
+            ),
         )
         or 0
     )
@@ -606,6 +822,19 @@ def _replay_one(
         serverless_overhead_ms = dispatch_admission_wait_ms + float(service_overhead_ms)
 
     metric_warnings: List[str] = []
+    if error is None and status_code == 200:
+        if prompt_token_source == "trace_expected" or completion_token_source == "trace_expected":
+            metric_warnings.append(
+                "token usage metrics unavailable; at least one token count fell back to trace expected tokens"
+            )
+        elif (
+            prompt_token_source == "local_guarded_prompt"
+            or completion_token_source == "local_generated_text"
+            or completion_token_source == "local_generated_text_empty"
+        ):
+            metric_warnings.append(
+                "server usage metrics unavailable; using local tokenizer counts from guarded prompt/response text"
+            )
     if error is None and status_code == 200 and require_server_metrics:
         if service_ttft_ms is None or service_e2e_ms is None:
             error = "missing required client-observed service metrics: api_ttft_ms/api_e2e_ms"
@@ -620,6 +849,7 @@ def _replay_one(
 
     return {
         "request_id": item["request_id"],
+        "generation_seed": request_seed,
         "arrival_time_s": scheduled_offset_s,
         "dispatch_offset_s": dispatch_offset_s,
         "completion_offset_s": completion_offset_s,
@@ -659,6 +889,11 @@ def _replay_one(
         "prompt_tokens": prompt_tokens,
         "completion_tokens": completion_tokens,
         "total_tokens": total_tokens,
+        "prompt_token_source": prompt_token_source,
+        "completion_token_source": completion_token_source,
+        "guard_prompt_tokens": local_prompt_tokens_override,
+        "guard_max_tokens": guard_max_tokens,
+        "generated_text_chars": len(generated_text),
         "cost_usd": cost_usd,
         "metric_warning": metric_warning,
         "error": error,
@@ -685,19 +920,39 @@ def _build_live_stats(results: List[Optional[Dict[str, Any]]], ttft_slo_ms: floa
             "slo_goodput_rps": 0.0,
             "slo_goodput_tok_per_s": 0.0,
             "avg_cost_usd": 0.0,
+            "token_proxy_avg_cost_usd": 0.0,
+            "token_proxy_total_cost_usd": 0.0,
+            "token_proxy_cost_per_1m_total_tokens_usd": 0.0,
             "ce": 0.0,
+            "token_proxy_ce": 0.0,
             "qpr_legacy": 0.0,
             "slo_attainment": 0.0,
         }
 
     ttft = [float(r["ttft_ms"]) for r in ok if r.get("ttft_ms") is not None]
+    service_ttft = [
+        float(r["service_ttft_ms"])
+        for r in ok
+        if r.get("service_ttft_ms") is not None
+    ]
+    dispatch_wait = [
+        float(r["dispatch_admission_wait_ms"])
+        for r in ok
+        if r.get("dispatch_admission_wait_ms") is not None
+    ]
     tpot = [
         float(r["tpot_ms"])
         for r in ok
         if r.get("tpot_ms") is not None and bool(r.get("tpot_observed", True))
     ]
     e2e = [float(r["e2e_ms"]) for r in ok]
+    service_e2e = [
+        float(r["service_e2e_ms"])
+        for r in ok
+        if r.get("service_e2e_ms") is not None
+    ]
     cost = [float(r["cost_usd"]) for r in ok]
+    prompt_tokens = [int(r.get("prompt_tokens", 0) or 0) for r in ok]
     out_tokens = [int(r.get("completion_tokens", 0) or 0) for r in ok]
     runtime_ttft = [
         float(r["runtime_ttft_ms"])
@@ -741,7 +996,11 @@ def _build_live_stats(results: List[Optional[Dict[str, Any]]], ttft_slo_ms: floa
     ]
     elapsed = max(float(r.get("completion_offset_s", 0.0) or 0.0) for r in done) if done else 0.0
     avg_e2e_ms = sum(e2e) / len(e2e) if e2e else 0.0
+    total_cost_usd = sum(cost)
     avg_cost_usd = sum(cost) / len(cost) if cost else 0.0
+    total_input_tokens = sum(prompt_tokens)
+    total_output_tokens = sum(out_tokens)
+    total_tokens = total_input_tokens + total_output_tokens
     denom = avg_cost_usd * (avg_e2e_ms / 1000.0)
     ce = 1.0 / denom if denom > 1e-12 else 0.0
     done_rps = (len(done) / max(elapsed, 1e-6)) if elapsed > 0 else 0.0
@@ -758,16 +1017,35 @@ def _build_live_stats(results: List[Optional[Dict[str, Any]]], ttft_slo_ms: floa
         "avg_ttft_ms": sum(ttft) / len(ttft) if ttft else 0.0,
         "p95_ttft_ms": _percentile(ttft, 95) if ttft else 0.0,
         "p99_ttft_ms": _percentile(ttft, 99) if ttft else 0.0,
+        "avg_service_ttft_ms": sum(service_ttft) / len(service_ttft) if service_ttft else 0.0,
+        "p95_service_ttft_ms": _percentile(service_ttft, 95) if service_ttft else 0.0,
+        "p99_service_ttft_ms": _percentile(service_ttft, 99) if service_ttft else 0.0,
+        "avg_dispatch_admission_wait_ms": (
+            sum(dispatch_wait) / len(dispatch_wait) if dispatch_wait else 0.0
+        ),
+        "p95_dispatch_admission_wait_ms": _percentile(dispatch_wait, 95) if dispatch_wait else 0.0,
+        "p99_dispatch_admission_wait_ms": _percentile(dispatch_wait, 99) if dispatch_wait else 0.0,
         "avg_tpot_ms": (sum(tpot) / len(tpot)) if tpot else None,
         "avg_e2e_ms": avg_e2e_ms,
         "p95_e2e_ms": _percentile(e2e, 95) if e2e else 0.0,
         "p99_e2e_ms": _percentile(e2e, 99) if e2e else 0.0,
+        "avg_service_e2e_ms": sum(service_e2e) / len(service_e2e) if service_e2e else 0.0,
+        "p95_service_e2e_ms": _percentile(service_e2e, 95) if service_e2e else 0.0,
+        "p99_service_e2e_ms": _percentile(service_e2e, 99) if service_e2e else 0.0,
         "done_rps": done_rps,
         "throughput_tok_per_s": (sum(out_tokens) / max(elapsed, 1e-6)) if elapsed > 0 else 0.0,
         "slo_goodput_rps": done_rps * slo_attainment,
         "slo_goodput_tok_per_s": ((sum(out_tokens) / max(elapsed, 1e-6)) * slo_attainment) if elapsed > 0 else 0.0,
         "avg_cost_usd": avg_cost_usd,
+        "token_proxy_avg_cost_usd": avg_cost_usd,
+        "token_proxy_total_cost_usd": total_cost_usd,
+        "total_input_tokens": total_input_tokens,
+        "total_output_tokens": total_output_tokens,
+        "total_tokens": total_tokens,
+        "token_proxy_cost_per_1m_total_tokens_usd": _cost_per_million_tokens(total_cost_usd, total_tokens),
+        "token_proxy_cost_per_1m_output_tokens_usd": _cost_per_million_tokens(total_cost_usd, total_output_tokens),
         "ce": ce,
+        "token_proxy_ce": ce,
         "qpr_legacy": qpr_legacy,
         "slo_attainment": slo_attainment,
         "avg_runtime_ttft_ms": (sum(runtime_ttft) / len(runtime_ttft)) if runtime_ttft else None,
@@ -809,6 +1087,7 @@ def main() -> int:
     ap.add_argument("--model-override", default=None)
     ap.add_argument("--adapter-source-field", default=None)
     ap.add_argument("--adapter-target-field", default=None)
+    ap.add_argument("--adapter-value-map", type=Path, default=None)
     ap.add_argument("--drop-body-field", action="append", default=[])
     ap.add_argument("--endpoint-path", default="/v1/chat/completions")
     ap.add_argument("--convert-chat-to-prompt", action="store_true")
@@ -817,13 +1096,28 @@ def main() -> int:
     ap.add_argument("--prompt-guard-max-input-len", type=int, default=0)
     ap.add_argument("--prompt-guard-max-output-tokens-cap", type=int, default=0)
     ap.add_argument("--sglang-native-generate", action="store_true")
+    ap.add_argument("--slora-native-generate", action="store_true")
+    ap.add_argument(
+        "--generation-seed",
+        type=int,
+        default=None,
+        help="Optional base sampling seed; each request derives a stable per-request seed from request_id.",
+    )
     args = ap.parse_args()
 
     payload = json.loads(args.trace.read_text(encoding="utf-8"))
     requests_list = list(payload.get("requests", []))
     if not requests_list:
         raise RuntimeError("trace contains no requests")
+    if args.sglang_native_generate and args.slora_native_generate:
+        raise RuntimeError("--sglang-native-generate and --slora-native-generate are mutually exclusive")
     base_urls = _parse_base_urls(args.base_url, args.base_url_list)
+    adapter_value_map: Dict[str, str] = {}
+    if args.adapter_value_map:
+        raw_map = json.loads(args.adapter_value_map.read_text(encoding="utf-8"))
+        if not isinstance(raw_map, dict):
+            raise RuntimeError(f"adapter value map must be a JSON object: {args.adapter_value_map}")
+        adapter_value_map = {str(key): str(value) for key, value in raw_map.items()}
 
     results: List[Optional[Dict[str, Any]]] = [None] * len(requests_list)
     threads: List[threading.Thread] = []
@@ -838,6 +1132,7 @@ def main() -> int:
         result = _replay_one(
             base_url=target_base_url,
             item=item,
+            request_index=index,
             timeout_s=args.timeout_s,
             start_time=start_time,
             base_cost_usd=float(args.base_cost_usd),
@@ -847,6 +1142,7 @@ def main() -> int:
             model_override=(str(args.model_override) if args.model_override else None),
             adapter_source_field=(str(args.adapter_source_field) if args.adapter_source_field else None),
             adapter_target_field=(str(args.adapter_target_field) if args.adapter_target_field else None),
+            adapter_value_map=adapter_value_map,
             drop_body_fields=[str(x) for x in (args.drop_body_field or [])],
             endpoint_path=str(args.endpoint_path),
             convert_chat_to_prompt=bool(args.convert_chat_to_prompt),
@@ -861,6 +1157,8 @@ def main() -> int:
                 args.prompt_guard_max_output_tokens_cap or 0
             ),
             sglang_native_generate=bool(args.sglang_native_generate),
+            slora_native_generate=bool(args.slora_native_generate),
+            generation_seed=args.generation_seed,
         )
         result["target_base_url"] = target_base_url
         with lock:
@@ -902,14 +1200,18 @@ def main() -> int:
                 print(
                     f"[live:{args.label}] "
                     f"ttft_e2e(avg/p95/p99)={live['avg_ttft_ms']:.0f}/{live['p95_ttft_ms']:.0f}/{live['p99_ttft_ms']:.0f}ms "
+                    f"ttft_service(avg/p95/p99)={live['avg_service_ttft_ms']:.0f}/{live['p95_service_ttft_ms']:.0f}/{live['p99_service_ttft_ms']:.0f}ms "
+                    f"dispatch_wait(avg/p95/p99)={live['avg_dispatch_admission_wait_ms']:.0f}/{live['p95_dispatch_admission_wait_ms']:.0f}/{live['p99_dispatch_admission_wait_ms']:.0f}ms "
                     f"tpot={tpot_display} "
-                    f"e2e_e2e(avg/p95/p99)={live['avg_e2e_ms']:.0f}/{live['p95_e2e_ms']:.0f}/{live['p99_e2e_ms']:.0f}ms",
+                    f"e2e_e2e(avg/p95/p99)={live['avg_e2e_ms']:.0f}/{live['p95_e2e_ms']:.0f}/{live['p99_e2e_ms']:.0f}ms "
+                    f"e2e_service(avg/p95/p99)={live['avg_service_e2e_ms']:.0f}/{live['p95_service_e2e_ms']:.0f}/{live['p99_service_e2e_ms']:.0f}ms",
                     flush=True,
                 )
                 print(
                     f"[live:{args.label}] "
-                    f"cost/req=${live['avg_cost_usd']:.6f} "
-                    f"ce={live['ce']:.3f} "
+                    f"tokenproxy/req=${live['token_proxy_avg_cost_usd']:.6f} "
+                    f"tokenproxy/1MTok=${live['token_proxy_cost_per_1m_total_tokens_usd']:.2f} "
+                    f"tokenproxy_ce={live['token_proxy_ce']:.3f} "
                     f"qpr_legacy={live['qpr_legacy']:.1f} "
                     f"cold_start(avg/p95)="
                     f"{_fmt_optional_pair(live['avg_cold_start_latency_ms'], live['p95_cold_start_latency_ms'])}",
@@ -959,6 +1261,7 @@ def main() -> int:
         "routing_policy": "round_robin" if len(base_urls) > 1 else "single_endpoint",
         "sleep_scale": args.sleep_scale,
         "label": args.label,
+        "generation_seed": args.generation_seed,
         "ttft_slo_ms": float(args.ttft_slo_ms),
         "cost_model": {
             "base_cost_usd": float(args.base_cost_usd),

@@ -15,7 +15,13 @@ STRICT_KEY_METRICS = [
     ("RPS", "throughput_rps"),
     ("SLO", "slo_attainment"),
     ("Cost_req_usd", "avg_cost_usd"),
+    ("Cost_1MTok_usd", "cost_per_1m_total_tokens_usd"),
     ("CE", "ce"),
+    ("MonetaryCost_req_usd", "monetary_cost_per_request_usd"),
+    ("MonetaryCE", "monetary_ce"),
+    ("TokenProxy_req_usd", "token_avg_cost_usd"),
+    ("TokenProxy_1MTok_usd", "token_proxy_cost_per_1m_total_tokens_usd"),
+    ("TokenProxyCE", "token_ce"),
     ("InfraCost_req_usd", "infra_cost_per_request_usd"),
     ("InfraCE", "infra_ce"),
 ]
@@ -32,6 +38,27 @@ DIAGNOSTIC_KEY_METRICS = [
     ("InfraGPU_s", "infra_gpu_seconds_total"),
     ("InfraStartupGPU_s", "infra_startup_gpu_seconds"),
     ("InfraReadyGPU_s", "infra_ready_gpu_seconds"),
+    ("InfraBilling_s", "infra_billing_elapsed_sec"),
+    ("InfraMaxBillingGPU", "infra_max_billing_gpus"),
+]
+
+RESOURCE_KEY_METRICS = [
+    ("ActiveGPU_s", "infra_active_gpu_seconds"),
+    ("IdleReadyGPU_s", "infra_idle_ready_gpu_seconds"),
+    ("AvgRep", "infra_avg_replicas"),
+    ("MaxRep", "infra_max_replicas"),
+    ("AvgGPU", "infra_avg_allocated_gpus"),
+    ("MaxGPU", "infra_max_allocated_gpus"),
+    ("ActiveGPU%", "infra_active_gpu_ratio"),
+    ("IdleReadyGPU%", "infra_idle_ready_gpu_ratio"),
+    ("Req/GPU-s", "completed_requests_per_gpu_second"),
+    ("Tok/GPU-s", "output_tokens_per_gpu_second"),
+    ("GoodReq/GPU-s", "goodput_requests_per_gpu_second"),
+    ("GoodTok/GPU-s", "goodput_tokens_per_gpu_second"),
+    ("MonetaryEqGPU_s", "monetary_equivalent_gpu_seconds"),
+    ("MonetaryActiveChargeGPU_s", "monetary_active_charge_gpu_seconds"),
+    ("MonetaryIdleChargeGPU_s", "monetary_idle_charge_gpu_seconds"),
+    ("IdleGPUCostFactor", "serverless_idle_gpu_cost_factor"),
 ]
 
 DEFAULT_DEADLINE_MS = 300_000.0
@@ -320,6 +347,12 @@ def main() -> int:
         row = [label] + [_fmt(_metric_value(summary, field)) for _, field in DIAGNOSTIC_KEY_METRICS]
         diagnostic_rows.append(row)
 
+    resource_headers = ["System"] + [name for name, _ in RESOURCE_KEY_METRICS]
+    resource_rows: List[List[str]] = []
+    for label, summary, _ in rows:
+        row = [label] + [_fmt(_metric_value(summary, field)) for _, field in RESOURCE_KEY_METRICS]
+        resource_rows.append(row)
+
     envelope_headers = ["System"] + [name for name, _ in ENVELOPE_KEY_METRICS]
     envelope_rows: List[List[str]] = []
     for label, summary, _ in rows:
@@ -363,6 +396,9 @@ def main() -> int:
     print("[Diagnostic Breakdown Metrics]")
     print(_render_table(diagnostic_headers, diagnostic_rows))
     print()
+    print("[Resource Efficiency Metrics]")
+    print(_render_table(resource_headers, resource_rows))
+    print()
     print("[Execution Envelope Audit]")
     print(_render_table(envelope_headers, envelope_rows))
     print()
@@ -383,11 +419,30 @@ def main() -> int:
                 "primary_e2e": METRIC_DEF_PRIMARY_E2E,
                 "service_ttft": METRIC_DEF_SERVICE_TTFT,
                 "service_e2e": METRIC_DEF_SERVICE_E2E,
+                "resource_efficiency": (
+                    "active/idle GPU-seconds, replica counts, and goodput per GPU-second "
+                    "derived from each system's runtime lifecycle and request service intervals"
+                ),
+                "ce": (
+                    "main monetary cost efficiency: 1 / (E2E_e2e_seconds * monetary "
+                    "cost per completed request). Serverful runtimes pay full-price "
+                    "lifecycle GPU-seconds; serverless runtimes pay full-price "
+                    "startup/active GPU-seconds plus discounted idle-ready GPU-seconds."
+                ),
+                "infra_ce": (
+                    "resource-normalized audit CE using flat deployment-lifecycle "
+                    "GPU-second cost where every allocated GPU-second has the same price"
+                ),
+                "token_ce": (
+                    "diagnostic legacy token-proxy CE retained only for auditing old cost accounting"
+                ),
             },
             "strict_headers": strict_headers,
             "strict_rows": strict_rows,
             "diagnostic_headers": diagnostic_headers,
             "diagnostic_rows": diagnostic_rows,
+            "resource_headers": resource_headers,
+            "resource_rows": resource_rows,
             "envelope_headers": envelope_headers,
             "envelope_rows": envelope_rows,
             "topology_headers": topology_headers,

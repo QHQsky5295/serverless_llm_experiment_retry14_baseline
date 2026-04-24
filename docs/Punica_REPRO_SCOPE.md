@@ -24,6 +24,13 @@
 
 ## 3. 当前复现边界
 
+当前状态更新：
+
+- Punica 已经在当前 baseline 工作区完成 Llama-2 7B 受限 quick replay。
+- 该复现使用外层 wrapper 接入 shared trace / shared LoRA subset / 统一 summary schema。
+- 由于当前开源实现路径只稳定覆盖 Llama-2 7B，不把 Punica 作为覆盖 Llama-2 13B、Qwen 7B、Qwen 14B 的完整主表 baseline。
+- 后续选择新论文 baseline 时，不能把 Punica 误判为“还没复现的候选项”。
+
 允许做的工作：
 
 1. 建立独立环境

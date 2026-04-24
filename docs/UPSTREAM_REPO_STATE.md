@@ -29,7 +29,10 @@
 - 上游仓库：当前已本地克隆
 - 本地路径：`/home/qhq/serverless_llm_baselines/repos/S-LoRA`
 - 当前上游基线 commit：`c1ddf488781ea7f551cd0bb07bfd097124c93411`
-- 当前本地状态：未检测到本地修改
+- 当前本地状态：不修改上游源码；通过外层 wrapper 接入公平实验链
+- 当前复现范围：shared trace / shared adapter subset dry-run harness 已通过；
+  `slora_official_cu118` 独立环境、官方 CUDA 11.8 extension 与宿主 GPU 可见性
+  preflight 已通过；下一步跑真实 500 请求 bring-up
 
 ### Punica
 
@@ -37,6 +40,7 @@
 - 本地路径：`/home/qhq/serverless_llm_baselines/repos/Punica`
 - 当前上游基线 commit：`591b59899f0a20760821785d06b331c8a2e5cb86`
 - 当前本地状态：通过外层 wrapper 接入公平实验链；不直接修改上游源码
+- 当前复现范围：已完成 Llama-2 7B 受限 quick replay；不作为覆盖全部 backbone 的主表 baseline
 
 ### SGLang
 
@@ -44,6 +48,13 @@
 - 本地路径：`/home/qhq/serverless_llm_baselines/repos/SGLang`
 - 当前上游基线 commit：`7d7fdc13093ccc151ddb43a5e5a2e0017872464e`
 - 当前本地状态：通过外层 wrapper 接入公平实验链；不直接修改上游源码
+
+### vLLM
+
+- 上游/安装来源：本机 `LLM_vllm0102` 环境中的 `vllm==0.10.2`，并保留源码镜像 `/home/qhq/vllm`
+- 本地项目入口：`/home/qhq/serverless_llm_baselines/vLLM_project`
+- 当前本地状态：通过外层 wrapper 启动 standalone OpenAI-compatible API server；不修改 vLLM 底层源码
+- 当前复现范围：shared trace / shared LoRA subset / e2e_v3 / lifecycle monetary cost 已接入正式 harness
 
 ### SkyPilot
 
