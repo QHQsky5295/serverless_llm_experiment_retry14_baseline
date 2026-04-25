@@ -181,6 +181,13 @@ serverless_idle_gpu_cost_factor = 0.2380952381
 - 使用 standalone OpenAI-compatible server。
 - Llama-2 base tokenizer 无 chat template，因此正式路径使用 `/v1/completions`。
 - 成功请求不得回退到 raw trace expected tokens；否则脚本必须失败。
+- vLLM OpenAI streaming replay 必须显式请求 `stream_options.include_usage=true`，
+  并设置 `min_tokens=1`。正式 trace 中所有请求都有正的 expected output
+  token budget；若不设置 `min_tokens`，vLLM 可能合法地首步 EOS，返回
+  `200 OK` 但没有 generated text、usage 或可定义的 first-token event。
+  这类结果不是有效 TTFT 样本，必须通过 replay contract 规避或由 audit 拒绝。
+- 若仍出现 `HTTP 200` 空成功，wrapper 允许少量 retry，但 retry 时间仍归入
+  同一请求延迟窗口；重试后仍为空则本阶段失败，不能生成 summary。
 
 ### ServerlessLLM
 

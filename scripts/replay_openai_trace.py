@@ -513,6 +513,8 @@ def _replay_one(
     generation_seed: Optional[int],
     empty_success_retries: int,
     empty_success_retry_delay_s: float,
+    min_output_tokens: int,
+    include_stream_usage: bool,
 ) -> Dict[str, Any]:
     body = dict(item["body"])
     request_seed = _derive_request_generation_seed(
@@ -571,6 +573,28 @@ def _replay_one(
                     body["max_tokens"] = safe_max_tokens
                 if "max_completion_tokens" in body:
                     body["max_completion_tokens"] = safe_max_tokens
+    if min_output_tokens > 0 and not (sglang_native_generate or slora_native_generate):
+        request_max_tokens = (
+            body.get("max_tokens")
+            or body.get("max_completion_tokens")
+            or guard_max_tokens
+            or item.get("expected_output_tokens")
+            or min_output_tokens
+        )
+        try:
+            min_tokens = min(
+                max(1, int(min_output_tokens)),
+                max(1, int(request_max_tokens)),
+            )
+        except (TypeError, ValueError):
+            min_tokens = max(1, int(min_output_tokens))
+        body["min_tokens"] = max(int(body.get("min_tokens", 0) or 0), min_tokens)
+    if include_stream_usage and bool(body.get("stream", False)):
+        stream_options = body.get("stream_options")
+        if not isinstance(stream_options, dict):
+            stream_options = {}
+        stream_options["include_usage"] = True
+        body["stream_options"] = stream_options
     if model_override:
         body["model"] = model_override
     if adapter_source_field and adapter_target_field:
@@ -1180,6 +1204,25 @@ def main() -> int:
     )
     ap.add_argument("--empty-success-retry-delay-s", type=float, default=1.0)
     ap.add_argument(
+        "--min-output-tokens",
+        type=int,
+        default=0,
+        help=(
+            "For OpenAI-compatible generation endpoints, request at least this "
+            "many generated tokens. This keeps positive-output trace requests "
+            "from ending at EOS before the first token, so TTFT remains "
+            "observable. Native SGLang/S-LoRA endpoint adapters are not changed."
+        ),
+    )
+    ap.add_argument(
+        "--include-stream-usage",
+        action="store_true",
+        help=(
+            "When a request is streamed, add stream_options.include_usage=true "
+            "so OpenAI-compatible servers can report observed token usage."
+        ),
+    )
+    ap.add_argument(
         "--generation-seed",
         type=int,
         default=None,
@@ -1243,6 +1286,8 @@ def main() -> int:
             generation_seed=args.generation_seed,
             empty_success_retries=int(args.empty_success_retries or 0),
             empty_success_retry_delay_s=float(args.empty_success_retry_delay_s or 0.0),
+            min_output_tokens=int(args.min_output_tokens or 0),
+            include_stream_usage=bool(args.include_stream_usage),
         )
         result["target_base_url"] = target_base_url
         with lock:
@@ -1349,6 +1394,8 @@ def main() -> int:
         "ttft_slo_ms": float(args.ttft_slo_ms),
         "empty_success_retries": int(args.empty_success_retries or 0),
         "empty_success_retry_delay_s": float(args.empty_success_retry_delay_s or 0.0),
+        "min_output_tokens": int(args.min_output_tokens or 0),
+        "include_stream_usage": bool(args.include_stream_usage),
         "cost_model": {
             "base_cost_usd": float(args.base_cost_usd),
             "input_token_cost_usd": float(args.input_token_cost_usd),

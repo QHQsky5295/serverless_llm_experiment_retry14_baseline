@@ -29,6 +29,10 @@ VLLM_DATA_PARALLEL_REPLICAS="${VLLM_DATA_PARALLEL_REPLICAS:-}"
 VLLM_SLEEP_SCALE="${VLLM_SLEEP_SCALE:-1.0}"
 VLLM_TIMEOUT_S="${VLLM_TIMEOUT_S:-3600}"
 VLLM_DRY_RUN="${VLLM_DRY_RUN:-0}"
+VLLM_MIN_OUTPUT_TOKENS="${VLLM_MIN_OUTPUT_TOKENS:-1}"
+VLLM_INCLUDE_STREAM_USAGE="${VLLM_INCLUDE_STREAM_USAGE:-1}"
+VLLM_EMPTY_SUCCESS_RETRIES="${VLLM_EMPTY_SUCCESS_RETRIES:-2}"
+VLLM_EMPTY_SUCCESS_RETRY_DELAY_S="${VLLM_EMPTY_SUCCESS_RETRY_DELAY_S:-0.5}"
 
 mkdir -p "${RESULT_DIR}" "${LOG_DIR}" "${SHARED_INPUT_DIR}"
 
@@ -390,6 +394,7 @@ echo "      cost_model(base/in/out)=${BASE_COST_USD}/${INPUT_TOKEN_COST_USD}/${O
 echo "      ttft_slo_ms=${TTFT_SLO_MS}"
 echo "      model=${MODEL_PATH}"
 echo "      topology=${VLLM_TOPOLOGY_LABEL} gpu_ids=${VLLM_GPU_IDS}"
+echo "      min_output_tokens=${VLLM_MIN_OUTPUT_TOKENS} include_stream_usage=${VLLM_INCLUDE_STREAM_USAGE} empty_success_retries=${VLLM_EMPTY_SUCCESS_RETRIES}"
 echo "      launch_spec=${LAUNCH_SPEC_PATH}"
 echo "      lora_modules=${LORA_MODULES_TXT}"
 echo "      replay=${REPLAY_PATH}"
@@ -551,6 +556,10 @@ echo "      vllm_startup_sec=${VLLM_SERVER_STARTUP_SEC}"
 echo "      vllm_base_urls=${VLLM_BASE_URL_LIST}"
 
 echo "[4/5] Replaying shared trace with unified live metrics"
+REPLAY_EXTRA_ARGS=()
+if [[ "${VLLM_INCLUDE_STREAM_USAGE}" == "1" ]]; then
+  REPLAY_EXTRA_ARGS+=(--include-stream-usage)
+fi
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
   "${ROOT_DIR}/scripts/replay_openai_trace.py" \
   --trace "${SHARED_TRACE_PATH}" \
@@ -569,12 +578,16 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
   --output-token-cost-usd "${OUTPUT_TOKEN_COST_USD}" \
   --ttft-slo-ms "${TTFT_SLO_MS}" \
   --generation-seed "${GENERATION_SEED}" \
+  --min-output-tokens "${VLLM_MIN_OUTPUT_TOKENS}" \
+  --empty-success-retries "${VLLM_EMPTY_SUCCESS_RETRIES}" \
+  --empty-success-retry-delay-s "${VLLM_EMPTY_SUCCESS_RETRY_DELAY_S}" \
   --adapter-source-field "adapter_id" \
   --adapter-target-field "model" \
   --drop-body-field "request_id" \
   --drop-body-field "lora_adapter_name" \
   --label "${RESULT_TAG}" \
-  --output "${REPLAY_PATH}"
+  --output "${REPLAY_PATH}" \
+  "${REPLAY_EXTRA_ARGS[@]}"
 
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${REPLAY_PATH}" <<'PY'
 import json

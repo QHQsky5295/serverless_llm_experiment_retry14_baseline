@@ -256,6 +256,13 @@ prompt/output token stats fall back to raw trace expected tokens
 - replay 在 prompt guard 后记录 `local_guarded_prompt` token count。
 - 当 server `usage` 缺失时，replay 从实际响应文本中用同一 tokenizer 计算
   `completion_tokens`。
+- 对 vLLM standalone OpenAI streaming replay，正式 wrapper 必须显式加入
+  `stream_options.include_usage=true`，让 vLLM 在最终 SSE chunk 中返回真实
+  token usage。
+- 对正输出 trace 请求，正式 wrapper 必须设置 `min_tokens=1`。否则 vLLM
+  OpenAI completion 可能首步 EOS，返回 `200 OK`、`finish_reason=stop`、
+  但没有 generated text；这种请求没有可定义的 first-token event，不能作为
+  `TTFT` 样本进入正式结果。
 - replay 写出 `prompt_token_source` 与 `completion_token_source`。
 - summary 写出 `prompt_token_source_counts` 与
   `completion_token_source_counts`。
@@ -595,6 +602,9 @@ git diff --check
 - 失败请求必须阻断 summary。
 - server `usage` 缺失时，必须用 prompt guard 后的本地 prompt 和实际响应文本
   计算 token；如果 token source 仍是 `trace_expected`，正式脚本必须失败。
+- standalone streaming replay 必须请求 `stream_options.include_usage=true`，
+  并对正输出 trace 设置 `min_tokens=1`，避免首步 EOS 造成不可观测 TTFT 的
+  `200 OK` 空成功。
 
 ### SGLang
 
