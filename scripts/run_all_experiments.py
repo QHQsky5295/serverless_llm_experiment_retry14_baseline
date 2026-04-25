@@ -7287,9 +7287,40 @@ class ScenarioRunner:
             current_instances + 1,
             int(getattr(decision, "target_instances", current_instances + 1) or current_instances + 1),
         )
-        # Keep scale-out count under autoscaler control. The handoff plan should
-        # decide what a new runtime warms first, not how many runtimes to add.
-        return min(max_instances, base_target)
+        if not bool(getattr(self, "coord_cfg", {}).get("scale_up_predictive_target_enabled", True)):
+            return min(max_instances, base_target)
+
+        # The autoscaler decides *whether* to scale, while the handoff predictor
+        # estimates how much queue will still be waiting when a new runtime is
+        # ready. Under bursty traces, only adding one runtime per decision leaves
+        # service-ready capacity lagging the predicted queue frontier. Refine the
+        # target from that predicted ready-time queue, but keep the result bounded
+        # by the physical pool and the normal autoscaler decision.
+        plan = dict(handoff_plan or {})
+        queue_at_ready = max(
+            0,
+            int(
+                plan.get("queue_at_ready_request_count", 0)
+                or plan.get("projected_queue_at_ready_request_count", 0)
+                or 0
+            ),
+        )
+        projected_arrived = max(
+            0,
+            int(plan.get("projected_arrived_request_count", 0) or 0),
+        )
+        incumbent_started = max(
+            0,
+            int(plan.get("incumbent_started_request_count", 0) or 0),
+        )
+        predicted_waiting = max(queue_at_ready, projected_arrived - incumbent_started)
+        if predicted_waiting <= 0:
+            return min(max_instances, base_target)
+
+        runtime_cap = max(1, int(self._runtime_forward_capacity_limit() or 1))
+        required_instances = int(math.ceil(predicted_waiting / float(runtime_cap)))
+        predictive_target = max(base_target, min(max_instances, required_instances))
+        return min(max_instances, predictive_target)
 
     def _build_scale_up_runtime_handoff_plans(
         self,
@@ -8795,6 +8826,15 @@ class ScenarioRunner:
             1,
             int(getattr(self, "coord_cfg", {}).get("max_concurrent_loads", 1) or 1),
         )
+        startup_parallelism_raw = getattr(self, "coord_cfg", {}).get(
+            "scale_up_startup_parallelism",
+            "auto",
+        )
+        if not _is_auto_config_value(startup_parallelism_raw):
+            try:
+                return max(1, int(startup_parallelism_raw or 1))
+            except Exception:
+                return configured_max_concurrent_loads
         pressure_present = (
             backlog > 0
             or active_requests > 0
@@ -8802,6 +8842,17 @@ class ScenarioRunner:
             or int(getattr(self, "_dispatch_admitted_requests", 0) or 0) > 0
         )
         if not pressure_present:
+            return configured_max_concurrent_loads
+        try:
+            current_dispatch_capacity = max(1, int(self._current_dispatch_capacity_limit() or 1))
+        except Exception:
+            current_dispatch_capacity = max(1, int(self._runtime_forward_capacity_limit() or 1))
+        high_scaleout_pressure = (
+            backlog > current_dispatch_capacity
+            or active_requests >= current_dispatch_capacity
+            or busy_ratio >= 0.75
+        )
+        if high_scaleout_pressure:
             return configured_max_concurrent_loads
         # Background scale-up is a cold-path consumer that competes with
         # foreground request-triggered loads. Keep at least one lane available
@@ -12506,6 +12557,16 @@ def _apply_adapter_storage_env_overrides(
         storage_cfg["remote_dir"] = remote_dir
         applied["FAASLORA_REMOTE_DIR"] = remote_dir
 
+    host_cache_dir = _read_env_override("FAASLORA_HOST_CACHE_DIR")
+    if host_cache_dir is not None:
+        storage_cfg["host_cache_dir"] = host_cache_dir
+        applied["FAASLORA_HOST_CACHE_DIR"] = host_cache_dir
+
+    require_memory_backed_host_cache = _read_env_override("FAASLORA_REQUIRE_MEMORY_BACKED_HOST_CACHE")
+    if require_memory_backed_host_cache is not None:
+        storage_cfg["require_memory_backed_host_cache"] = _parse_env_bool(require_memory_backed_host_cache)
+        applied["FAASLORA_REQUIRE_MEMORY_BACKED_HOST_CACHE"] = storage_cfg["require_memory_backed_host_cache"]
+
     pool_profile = _read_env_override("FAASLORA_ARTIFACT_POOL_PROFILE")
     if pool_profile is not None:
         adapters_cfg["artifact_pool_profile"] = pool_profile
@@ -12525,6 +12586,128 @@ def _apply_adapter_storage_env_overrides(
         applied["FAASLORA_LORA_PREPARATION_MODE"] = prep_mode
 
     return adapters_cfg, storage_cfg, applied
+
+
+def _resolve_cache_base_path(raw_value: Any, default_value: str) -> Path:
+    raw_path = Path(str(raw_value or default_value)).expanduser()
+    if raw_path.is_absolute():
+        return raw_path
+    return REPO_ROOT / raw_path
+
+
+def _decode_mountinfo_path(value: str) -> str:
+    return (
+        value.replace("\\040", " ")
+        .replace("\\011", "\t")
+        .replace("\\012", "\n")
+        .replace("\\134", "\\")
+    )
+
+
+def _find_mount_for_path(path: Path) -> Dict[str, str]:
+    resolved = path.resolve(strict=False)
+    best: Dict[str, str] = {"mount_point": "", "fs_type": "unknown"}
+    best_len = -1
+    try:
+        lines = Path("/proc/self/mountinfo").read_text(encoding="utf-8").splitlines()
+    except Exception:
+        return best
+
+    for line in lines:
+        parts = line.split()
+        if " - " not in line or len(parts) < 10:
+            continue
+        try:
+            sep = parts.index("-")
+        except ValueError:
+            continue
+        if sep + 1 >= len(parts) or len(parts) <= 4:
+            continue
+        mount_point = Path(_decode_mountinfo_path(parts[4])).resolve(strict=False)
+        fs_type = parts[sep + 1]
+        try:
+            resolved.relative_to(mount_point)
+        except Exception:
+            continue
+        mount_len = len(str(mount_point))
+        if mount_len > best_len:
+            best = {"mount_point": str(mount_point), "fs_type": fs_type}
+            best_len = mount_len
+    return best
+
+
+def _validate_host_cache_backing(
+    host_dir: Path,
+    *,
+    host_capacity_mb: float,
+    storage_cfg: Dict[str, Any],
+    scenario_name: str,
+) -> Dict[str, Any]:
+    """Validate that PrimeLoRA's HOST tier is physically memory-backed.
+
+    System-paper experiments should not label a regular ext4 directory as
+    HOST memory.  We use tmpfs/ramfs as the observable DRAM-backed file layer so
+    vLLM can still consume normal filesystem paths through LoRARequest.
+    """
+    require_memory = bool(storage_cfg.get("require_memory_backed_host_cache", True))
+    memory_fs_types = {
+        str(fs).strip().lower()
+        for fs in storage_cfg.get("memory_backed_host_cache_fs_types", ["tmpfs", "ramfs"])
+    }
+    capacity_margin = max(1.0, float(storage_cfg.get("host_cache_capacity_margin", 1.10) or 1.10))
+    host_dir.mkdir(parents=True, exist_ok=True)
+
+    mount = _find_mount_for_path(host_dir)
+    fs_type = str(mount.get("fs_type", "unknown") or "unknown").lower()
+    is_memory_backed = fs_type in memory_fs_types
+
+    writable = False
+    probe_path = host_dir / f".faaslora_host_cache_probe_{os.getpid()}"
+    try:
+        probe_path.write_bytes(b"faaslora-host-cache-probe")
+        probe_path.unlink(missing_ok=True)
+        writable = True
+    except Exception:
+        try:
+            probe_path.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+    usage = shutil.disk_usage(host_dir)
+    available_mb = usage.free / (1024.0 * 1024.0)
+    required_mb = max(0.0, float(host_capacity_mb or 0.0) * capacity_margin)
+    enough_capacity = available_mb >= required_mb
+
+    metadata = {
+        "host_cache_dir": str(host_dir),
+        "host_cache_mount_point": mount.get("mount_point", ""),
+        "host_cache_fs_type": fs_type,
+        "host_cache_memory_backed": bool(is_memory_backed),
+        "host_cache_memory_backed_required": bool(require_memory),
+        "host_cache_writable": bool(writable),
+        "host_cache_available_mb": round(available_mb, 3),
+        "host_cache_required_mb": round(required_mb, 3),
+        "host_cache_capacity_margin": round(capacity_margin, 4),
+    }
+
+    errors: List[str] = []
+    if require_memory and not is_memory_backed:
+        errors.append(
+            f"fs_type={fs_type!r} is not memory-backed; expected one of {sorted(memory_fs_types)}"
+        )
+    if not writable:
+        errors.append("path is not writable")
+    if not enough_capacity:
+        errors.append(
+            f"available={available_mb:.1f}MB < required={required_mb:.1f}MB "
+            f"(host_capacity_mb={host_capacity_mb}, margin={capacity_margin})"
+        )
+    if errors:
+        raise RuntimeError(
+            "Invalid PrimeLoRA HOST cache for scenario "
+            f"{scenario_name!r}: {host_dir}. " + "; ".join(errors)
+        )
+    return metadata
 
 
 def _apply_tp_instance_capacity_guard(
@@ -13958,6 +14141,15 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "runtime_concurrency_cap": resolved_meta.get("runtime_concurrency_cap"),
             "max_num_seqs": resolved_meta.get("max_num_seqs"),
             "max_loras": resolved_meta.get("max_loras"),
+            "nvme_cache_dir": resolved_meta.get("nvme_cache_dir"),
+            "host_cache_dir": resolved_meta.get("host_cache_dir"),
+            "host_capacity_mb": resolved_meta.get("host_capacity_mb"),
+            "host_cache_mount_point": resolved_meta.get("host_cache_mount_point"),
+            "host_cache_fs_type": resolved_meta.get("host_cache_fs_type"),
+            "host_cache_memory_backed": resolved_meta.get("host_cache_memory_backed"),
+            "host_cache_memory_backed_required": resolved_meta.get("host_cache_memory_backed_required"),
+            "host_cache_available_mb": resolved_meta.get("host_cache_available_mb"),
+            "host_cache_required_mb": resolved_meta.get("host_cache_required_mb"),
             "total_requests": r.total,
             "completed_requests": r.completed,
             "failed_requests": r.failed,
@@ -14220,6 +14412,7 @@ def save_results(results: List[ScenarioResult], path: Path, meta: Dict):
             "parent_rpc_thread_resume_delay": "delay between the blocking RPC thread reading a response and the parent asyncio coroutine resuming after await to_thread",
             "service_path_residual": "service_e2e minus runtime_estimated_e2e; isolates orchestration/proxy/runtime-wall residual not explained by native runtime metrics",
             "pre_runtime_service_shell": "service_ttft minus runtime_ttft; captures post-admission work before the backend runtime actually starts producing first-token latency",
+            "host_cache_backing": "PrimeLoRA HOST adapter tier backing store; formal FaaSLoRA runs require a memory-backed filesystem such as tmpfs/ramfs and record the resolved path, filesystem type, mount point, and available capacity",
             "infra_cost_model": "flat deployment lifecycle GPU-second audit; every allocated GPU-second has the same price, independent of active vs idle state",
             "monetary_cost_model": "main cloud monetary billing; serverful runtimes pay full-price lifecycle GPU-seconds, while serverless runtimes pay full-price startup/active GPU-seconds plus discounted ready-but-idle GPU-seconds",
             "primary_cost": "workload-level monetary cost normalized as Cost/req = total monetary cost / completed requests",
@@ -15183,10 +15376,41 @@ async def main_async(
             print(f"  Runs: {num_runs}")
         print(f"{'=' * 70}")
 
-        sc_nvme = REPO_ROOT / storage_cfg.get("nvme_cache_dir", "artifacts/nvme_cache") / sname
+        preload_cfg = sc.get("preloading", {})
+        host_capacity_mb = float(preload_cfg.get("host_capacity_mb", 4096))
+        sc_nvme_base = _resolve_cache_base_path(
+            storage_cfg.get("nvme_cache_dir", "artifacts/nvme_cache"),
+            "artifacts/nvme_cache",
+        )
+        sc_host_base = _resolve_cache_base_path(
+            storage_cfg.get("host_cache_dir", "/dev/shm/faaslora_host_cache"),
+            "/dev/shm/faaslora_host_cache",
+        )
+        sc_nvme = sc_nvme_base / sname
         sc_nvme.mkdir(parents=True, exist_ok=True)
-        sc_host = REPO_ROOT / storage_cfg.get("host_cache_dir", "artifacts/host_cache") / sname
-        sc_host.mkdir(parents=True, exist_ok=True)
+        sc_host = sc_host_base / sname
+        host_cache_meta: Dict[str, Any] = {
+            "host_cache_dir": str(sc_host),
+            "host_cache_memory_backed_required": bool(
+                storage_cfg.get("require_memory_backed_host_cache", True)
+            ),
+        }
+        if btype in ("faaslora_nvme", "faaslora_no_coord", "faaslora_full"):
+            host_cache_meta = _validate_host_cache_backing(
+                sc_host,
+                host_capacity_mb=host_capacity_mb,
+                storage_cfg=storage_cfg,
+                scenario_name=sname,
+            )
+            print(
+                "  [HOST tier] "
+                f"path={host_cache_meta['host_cache_dir']} "
+                f"fs={host_cache_meta['host_cache_fs_type']} "
+                f"available={host_cache_meta['host_cache_available_mb']:.0f}MB "
+                f"required={host_cache_meta['host_cache_required_mb']:.0f}MB"
+            )
+        else:
+            sc_host.mkdir(parents=True, exist_ok=True)
 
         # Merge hardware config with coordinator config from YAML
         sc_coord = {**coord_cfg, **sc.get("resource_coordination", {})}
@@ -15227,9 +15451,15 @@ async def main_async(
                 sc_coord.get("ttft_latency_scale_down_threshold_ms", ttft_slo_ms * 0.6)
             ),
         }
+        scenario_coordination_meta[sname].update(
+            {
+                "nvme_cache_dir": str(sc_nvme),
+                "host_capacity_mb": host_capacity_mb,
+                **host_cache_meta,
+            }
+        )
+
         hw_merged = {**hw_cfg, **sc.get("hardware_override", {})}
-        preload_cfg = sc.get("preloading", {})
-        host_capacity_mb = float(preload_cfg.get("host_capacity_mb", 4096))
         instance_mode = str(sc_coord.get("instance_mode", "shared")).lower()
         runner_model_cfg = copy.deepcopy(model_cfg)
         runner_model_cfg.update(copy.deepcopy(sc_coord.get("instance_model_overrides", {})))

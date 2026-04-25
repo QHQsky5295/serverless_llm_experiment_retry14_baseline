@@ -4691,8 +4691,10 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         self.assertEqual(runner._scale_up_initial_admission_request_budget(), 2)
 
-    def test_refined_scale_up_target_instances_keeps_scale_count_under_autoscaler_control(self) -> None:
+    def test_refined_scale_up_target_instances_uses_ready_time_queue_when_enabled(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.coord_cfg = {"scale_up_predictive_target_enabled": True}
+        runner.model_cfg = {"runtime_concurrency_cap": 2}
         runner.instance_pool = SimpleNamespace(max_instances=4)
 
         refined = runner._refined_scale_up_target_instances(
@@ -4705,7 +4707,15 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             },
         )
 
-        self.assertEqual(refined, 2)
+        self.assertEqual(refined, 4)
+
+        runner.coord_cfg = {"scale_up_predictive_target_enabled": False}
+        conservative = runner._refined_scale_up_target_instances(
+            current_instances=1,
+            decision=SimpleNamespace(target_instances=2),
+            handoff_plan={"queue_at_ready_request_count": 7},
+        )
+        self.assertEqual(conservative, 2)
 
     def test_build_scale_up_runtime_handoff_plans_slices_queue_by_first_service_budget(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
@@ -7258,15 +7268,27 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         self.assertEqual(runner._select_dedicated_device_id(), 2)
 
-    def test_background_scale_up_parallelism_limit_reserves_one_lane_for_online_pressure(self) -> None:
+    def test_background_scale_up_parallelism_limit_is_pressure_adaptive(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.coord_cfg = {"max_concurrent_loads": 2}
+        runner.model_cfg = {"runtime_concurrency_cap": 2}
+        runner.wl_cfg = {
+            "arrival_source": "azure_llm",
+            "workload_timing_mode": "azure_real_time",
+            "workload_source": "azure_real_trace",
+        }
+        runner._current_runtime_group_count = lambda: 1
         runner._dispatch_admitted_requests = 1
 
-        pressured_limit = runner._background_scale_up_parallelism_limit(
+        high_pressure_limit = runner._background_scale_up_parallelism_limit(
             backlog=5,
             active_requests=2,
             busy_ratio=1.0,
+        )
+        medium_pressure_limit = runner._background_scale_up_parallelism_limit(
+            backlog=1,
+            active_requests=1,
+            busy_ratio=0.2,
         )
         runner._dispatch_admitted_requests = 0
         idle_limit = runner._background_scale_up_parallelism_limit(
@@ -7275,7 +7297,8 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             busy_ratio=0.0,
         )
 
-        self.assertEqual(pressured_limit, 1)
+        self.assertEqual(high_pressure_limit, 2)
+        self.assertEqual(medium_pressure_limit, 1)
         self.assertEqual(idle_limit, 2)
 
     def test_schedule_background_scale_up_instance_pool_respects_startup_parallelism_limit(self) -> None:

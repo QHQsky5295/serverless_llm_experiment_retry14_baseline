@@ -17,6 +17,9 @@
 - SGLang 主公平对比默认使用 4 个 TP1 replica 的 DP4/TP1 拓扑，对齐 FaaSLoRA 单请求单卡 scale-out；TP4 只作为 serverful model-parallel upper-bound 附表。
 - 指标和成本模型必须保持真实语义：主 `Cost/req`/`CE` 使用可解释的 serverless
   monetary 差分计费，`InfraCost`/`InfraCE` 保留为 flat GPU-second 审计；禁止为了让结果好看而使用不可解释的指标口径。
+- 系统层命名必须有物理实现支撑：例如 PrimeLoRA 的 `HOST` tier 必须落在
+  tmpfs/ramfs 等内存背书文件系统上，不能把普通 ext4/NVMe 目录命名为
+  “HOST memory”。正式实验必须 fail fast 并在结果 JSON 中记录 backing fs。
 - 正式论文 TODO、正式图表和主实验 checklist 只能使用结果 JSON 中真实可观测的字段。横向图必须使用所有系统都能统一输出的字段；FaaSLoRA 机制图只能使用 FaaSLoRA full/消融/超参变体都能输出的字段。调试审计可以记录缺失值，但论文图表中不允许依赖 `null`、估计值或 baseline 无法真实暴露的内部机制指标。
 - 当前默认 `serverless_idle_gpu_cost_factor=0.2380952381`，来自 Alibaba Function
   Compute Tesla GPU idle/active CU conversion factor `0.5 / 2.1`；若更换云厂商或价格模型，必须显式配置并写入文档。

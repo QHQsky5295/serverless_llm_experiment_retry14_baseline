@@ -64,12 +64,12 @@ class EntryPointIntegrationTests(unittest.TestCase):
         self.assertEqual(active_model["distributed_executor_backend"], "mp")
         self.assertEqual(active_model["gpu_memory_utilization"], 0.85)
 
-    def test_current_mistral_mainline_profile_uses_500_adapters(self) -> None:
+    def test_current_qwen7_mainline_profile_uses_500_adapters(self) -> None:
         workload = self.experiments["workload_profiles"]["qwen_7b_auto500_main"]
 
         self.assertEqual(workload["lora_adapters"]["selected_num_adapters"], 500)
         self.assertEqual(workload["lora_adapters"]["full_num_adapters"], 500)
-        self.assertEqual(workload["resource_coordination"]["max_instances"], 2)
+        self.assertEqual(workload["resource_coordination"]["max_instances"], 4)
 
     def test_paper_mainline_defaults_to_two_phase_preparation(self) -> None:
         adapters = self.experiments["lora_adapters"]

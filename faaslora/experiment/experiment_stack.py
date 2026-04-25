@@ -87,7 +87,7 @@ def _build_experiment_config(
         if did not in gpu_device_ids:
             gpu_device_ids.append(did)
     gpu_total_mb = float(gpu_mb) * max(1, len(gpu_device_ids) or 1)
-    host_dir = host_dir or (nvme_dir.parent / "host_cache" / nvme_dir.name)
+    host_dir = host_dir or (Path("/dev/shm/faaslora_host_cache") / nvme_dir.name)
     host_cap_gb = host_capacity_mb / 1024.0
     nvme_capacity_mb = float(preload_cfg.get("nvme_capacity_mb", 102400))
     max_plan_size_gb = float(preload_cfg.get("max_plan_size_gb", max(nvme_capacity_mb / 1024.0, 1.0)))
@@ -149,7 +149,11 @@ class ExperimentStack:
         self.adapter_info = adapter_info
         self.remote_dir = Path(remote_dir)
         self.nvme_dir = Path(nvme_dir)
-        self.host_dir = Path(host_dir) if host_dir else (Path(nvme_dir).parent / "host_cache" / Path(nvme_dir).name)
+        self.host_dir = (
+            Path(host_dir)
+            if host_dir
+            else (Path("/dev/shm/faaslora_host_cache") / Path(nvme_dir).name)
+        )
         self.logger = get_logger(__name__)
 
         self.config = _build_experiment_config(

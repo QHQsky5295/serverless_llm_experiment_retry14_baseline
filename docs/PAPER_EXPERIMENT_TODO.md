@@ -24,6 +24,31 @@
 - 如果某个指标当前不存在，但理论上可通过所有系统的统一 wrapper 真实补齐，则先列入“工程补齐项”；补齐并通过 smoke test 后才进入正式图。
 - 如果某个指标需要 baseline 内部事件、无法通过统一 replay wrapper 真实观测，则直接排除，不用替代值、估计值或硬编码值。
 
+### 0.1.1 物理层真实性约束
+
+正式实验中，论文里的系统层级必须能被运行时证明。尤其是 PrimeLoRA 的
+`GPU/HOST/NVMe/REMOTE` adapter tier：
+
+- `HOST` tier 必须使用 tmpfs/ramfs 等内存背书文件系统，当前默认路径为
+  `/dev/shm/faaslora_host_cache/<scenario>`；
+- `NVMe` tier 使用 repo 下的 `artifacts/nvme_cache/<scenario>`；
+- `REMOTE` tier 使用冻结 artifact pool；
+- FaaSLoRA 启动前必须校验 HOST 路径的 mount point、filesystem type、
+  可写性和容量余量；
+- 结果 JSON 的 `scenario_summaries.*` 必须记录 `host_cache_dir`、
+  `host_cache_fs_type`、`host_cache_memory_backed`、`host_cache_available_mb`
+  和 `host_cache_required_mb`。
+- FaaSLoRA 正式 scale-out 必须开启
+  `scale_up_predictive_target_enabled=true`：autoscaler 负责判断是否扩容，
+  handoff predictor 使用 ready-time queue 和 runtime capacity 自适应决定一次
+  scale-out 目标，避免 `current+1` 逐步扩容在 burst 前沿拖高 dispatch wait。
+- `scale_up_startup_parallelism=auto` 必须保留：低压时保护前台 adapter loading，
+  高压时用满 `max_concurrent_loads` 并行启动新 runtime，以尽快把 GPU capacity
+  转化为 service-ready capacity。
+
+如果 `host_cache_memory_backed=false`，该轮不能进入论文结果；如果程序未输出
+这些字段，说明本轮没有通过最新真实性 gate，需要重跑。
+
 ### 0.2 主指标口径
 
 正式实验使用 `metric_schema_version=e2e_v3`。主延迟、成本和 CE 口径固定如下。

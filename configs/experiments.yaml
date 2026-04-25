@@ -603,6 +603,8 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       max_instances: 4
       effective_capacity_admission_enabled: true
       max_concurrent_loads: 3  # 主论文 workload 优先缩短 scale-up 就绪链路；保留前台在线请求余量的同时，给后台预热更多并行加载预算
+      scale_up_predictive_target_enabled: true  # 由 handoff 预测的 ready-time queue 自适应决定一次 scale-out 应补足几个 runtime，避免 current+1 逐步扩容拖高早期 TTFT
+      scale_up_startup_parallelism: "auto"  # 高压 scale-out 时允许后台启动并行度用满 max_concurrent_loads，低压时自动保留前台加载余量
       scale_cooldown_s: 2.0  # 当前 7B 单卡长 prompt 主线需要更快地补足实例数；5s 冷却会让 backlog 在实例 ready 前继续放大
       scale_eval_interval_s: 2.0  # 主论文 workload 下按更细粒度在线评估扩容，避免等到 backlog 已显著堆积后才触发下一轮 scale-up
       arrival_window_s: 2.0  # 与更快的 scale_eval_interval 对齐，缩短 arrival RPS 观测窗，提升对 burst 前沿的响应速度
@@ -631,6 +633,8 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       max_instances: 4
       effective_capacity_admission_enabled: true
       max_concurrent_loads: 3
+      scale_up_predictive_target_enabled: true
+      scale_up_startup_parallelism: "auto"
       scale_cooldown_s: 2.0
       scale_eval_interval_s: 2.0
       arrival_window_s: 2.0
@@ -874,6 +878,8 @@ resource_coordination:  # 扩缩容与资源协同调度配置块
   effective_capacity_admission_enabled: true  # 当前仓库默认主线：开启 P2.5 风格有效容量准入
   lora_load_reserve_ratio: 0.15     # 预留显存比例用于加载队列
   max_concurrent_loads: 2           # 渐进式启动：最多2个并发 LoRA 加载
+  scale_up_predictive_target_enabled: true  # 允许 live handoff 预测把 scale-up 目标从 current+1 提升到 ready-time queue 所需实例数
+  scale_up_startup_parallelism: "auto"  # auto=低压保留前台余量，高压时用满 max_concurrent_loads 启动 runtime
   idle_timeout_s: 10                # 低负载持续 N 秒后触发 scale-down
   warm_pool_size: 2                 # 默认 warm pool 保留数量；在 24G 显存机器上取 2 更稳
   # A1: 请求流内扩缩决策
@@ -1091,8 +1097,12 @@ lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
 storage:  # 远端/本地缓存目录与带宽模拟配置块
   remote_dir: "artifacts/remote"  # 兼容回退目录；正式论文对比请通过 model profile 的 storage.remote_dir 使用模型专属冻结目录
   nvme_cache_dir: "artifacts/nvme_cache"  # 本地 NVMe 缓存目录
-  # 贡献1 内存层：热点 LoRA 从硬盘预加载到内存，请求时从内存加载到 GPU，减少硬盘→GPU 延迟
-  host_cache_dir: "artifacts/host_cache"  # 主机内存缓存目录
+  # 贡献1 内存层：正式 FaaSLoRA 运行必须落在 tmpfs/ramfs 等内存背书文件系统上。
+  # vLLM LoRARequest 需要普通文件路径，因此 HOST 层使用 /dev/shm 下的 tmpfs 路径承载 adapter 文件。
+  host_cache_dir: "/dev/shm/faaslora_host_cache"  # 主机内存缓存目录；禁止把普通 ext4 目录伪装为 HOST
+  require_memory_backed_host_cache: true  # FaaSLoRA 场景启动前校验 host_cache_dir 的实际文件系统类型
+  memory_backed_host_cache_fs_types: ["tmpfs", "ramfs"]  # 可接受的 HOST 内存层文件系统
+  host_cache_capacity_margin: 1.10  # HOST 层可用空间必须覆盖 host_capacity_mb 并保留安全余量
 
   # 带宽模拟（模拟远端对象存储 → 本地 NVMe 的网络传输，代码中按 MB/s 换算延迟）
   # 同 region（如 S3/Blob 与实例同区）：约 100–500 MB/s（≈1–4 Gbps），取 250 更贴近典型云环境
