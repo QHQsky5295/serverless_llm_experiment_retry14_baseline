@@ -466,6 +466,12 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
   --label "${RUN_TAG}" \
   --output "${REPLAY_PATH}"
 
+PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
+  "${ROOT_DIR}/scripts/validate_replay_results.py" \
+  --system "SGLang" \
+  --replay "${REPLAY_PATH}" \
+  --expected-total "${TOTAL_REQUESTS}"
+
 echo "[5/5] Summarizing replay into the shared paper metric schema"
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
   "${ROOT_DIR}/scripts/summarize_serverlessllm_replay.py" \

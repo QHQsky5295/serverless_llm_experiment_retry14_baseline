@@ -495,11 +495,24 @@ CE       = 1 / (avg E2E_e2e seconds * Cost/req)
    - `error`
 3. 失败时退出非 0。
 4. 不生成或不继续使用全 0 summary。
+5. 在生成 summary 前统一运行
+   `scripts/validate_replay_results.py --system <name> --replay <path>
+   --expected-total <N>`。
+6. `prompt_token_source` 或 `completion_token_source` 只要仍为
+   `trace_expected`，正式阶段必须失败；这说明 token、TPOT 或成本诊断不再是
+   后端真实观测/本地 guarded prompt 的结果。
+
+当前 `SGLang`、`ServerlessLLM`、`vLLM`、`S-LoRA` wrapper 都必须在 replay
+后、summary 前经过同一个 replay gate。`run_full_fair_round.sh` 的 summary
+schema audit 是第二道保险，不能替代 wrapper 本地 gate。
 
 已踩坑：
 
 - vLLM chat template 错误导致所有请求 400，但 live 指标全 0。
 - 如果不做成功数检查，summary 可能看起来像“系统极差”，实际是 serving 失败。
+- vLLM OpenAI completion 可能返回 `HTTP 200` 但空输出、无 usage 和无
+  first-token event；这类“空成功”必须在 replay gate 被拒绝，不能进入
+  summary。
 
 因此：
 

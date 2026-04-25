@@ -517,6 +517,12 @@ PY
   --label "${RESULT_TAG}" \
   --output "${REPLAY_PATH}"
 
+PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${HELPER_PYTHON}" \
+  "${ROOT_DIR}/scripts/validate_replay_results.py" \
+  --system "S-LoRA" \
+  --replay "${REPLAY_PATH}" \
+  --expected-total "${TOTAL_REQUESTS}"
+
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${HELPER_PYTHON}" - "${REPLAY_PATH}" <<'PY'
 import json
 import sys

@@ -414,6 +414,12 @@ run_python_in_env sllm_head_official \
   --label "${RUN_TAG}" \
   --output "${REPLAY_PATH}"
 
+run_python_in_env sllm_head_official \
+  "${ROOT_DIR}/scripts/validate_replay_results.py" \
+  --system "ServerlessLLM" \
+  --replay "${REPLAY_PATH}" \
+  --expected-total "${TOTAL_REQUESTS}"
+
 echo "[post] Summarizing replay into the shared paper metric schema"
 run_python_in_env sllm_head_official \
   "${ROOT_DIR}/scripts/summarize_serverlessllm_replay.py" \

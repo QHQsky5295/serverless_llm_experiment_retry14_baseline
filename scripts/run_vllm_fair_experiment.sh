@@ -589,6 +589,12 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
   --output "${REPLAY_PATH}" \
   "${REPLAY_EXTRA_ARGS[@]}"
 
+PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
+  "${ROOT_DIR}/scripts/validate_replay_results.py" \
+  --system "vLLM" \
+  --replay "${REPLAY_PATH}" \
+  --expected-total "${TOTAL_REQUESTS}"
+
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${REPLAY_PATH}" <<'PY'
 import json
 import sys

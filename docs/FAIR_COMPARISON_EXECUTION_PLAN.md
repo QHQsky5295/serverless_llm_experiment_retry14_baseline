@@ -117,6 +117,19 @@ comparison/
 - 为某个系统单独放宽 prompt/token budget。
 - 将失败系统静默 fallback 到另一个 backend。
 
+所有系统在 replay 结束后、summary 生成前必须通过统一 gate：
+
+```text
+scripts/validate_replay_results.py
+```
+
+该 gate 检查 `ok == total_requests`，并拒绝
+`prompt_token_source=trace_expected` 或
+`completion_token_source=trace_expected` 的正式结果。这样可以避免某个系统
+产生半成功 replay、空成功请求或 token fallback 后仍写出看似完整的
+summary。`run_full_fair_round.sh` 还会在每个系统阶段后做 summary schema
+audit，这是第二道保险。
+
 ## 6. 主指标
 
 主表使用以下字段：
