@@ -21,6 +21,10 @@
 7. 失败时能明确报错，而不是生成全 0 或半空 summary。
 8. 复现边界、不可观测指标、已知限制必须写入文档。
 
+9. 如果系统声明存在 Host/CPU-memory、NVMe、Remote、GPU 等物理层级，
+   wrapper 必须验证该层级的真实 backing store。禁止把普通磁盘目录当作
+   Host memory 层，或把 fallback 路径伪装成论文机制。
+
 不满足这些条件的系统只能标记为：
 
 - `smoke only`
@@ -29,6 +33,22 @@
 - `related work only`
 
 不能包装成正式主 baseline。
+
+### 1.1 物理层真实性 gate
+
+正式系统实验必须遵守“名称对应物理实现”的 gate：
+
+- `GPU` 层必须对应真实 GPU runtime/cache/adapter admission；
+- `HOST` 或 `main memory` 层必须对应 DRAM-backed 路径或真实进程内内存；
+- `NVMe` 层必须对应本地持久化存储路径；
+- `REMOTE` 层必须对应远端源仓库、对象存储模拟目录或跨节点传输路径；
+- 成本中的 active/idle/lifecycle GPU seconds 必须来自真实 runtime lifecycle 或统一模拟审计，而不是硬编码常量。
+
+对于 PrimeLoRA/FaaSLoRA，`HOST` adapter tier 通过 vLLM `LoRARequest`
+仍需要普通文件路径，因此正式实现使用 `/dev/shm/faaslora_host_cache`
+下的 tmpfs 目录承载 adapter 文件。启动时必须校验 mount、filesystem type、
+可写性和容量余量，并把这些元数据写入结果 JSON。若校验失败，正式实验
+必须停止，而不是静默使用 `artifacts/host_cache` 等 ext4 目录。
 
 ## 2. 新系统准入检查
 
@@ -239,6 +259,15 @@ prompt/output token stats fall back to raw trace expected tokens
 - replay 写出 `prompt_token_source` 与 `completion_token_source`。
 - summary 写出 `prompt_token_source_counts` 与
   `completion_token_source_counts`。
+- `HTTP 200` 但没有任何可观测成功负载的响应不能当作成功。可观测成功
+  负载至少包括 `usage`、server metrics 或实际生成文本之一；只有 SSE
+  结束帧、空白 chunk、不可解析 body 或空 JSON envelope 都不能用于正式
+  token/latency/cost 统计。可对这类协议级空响应做少量 client retry，
+  retry 时间仍计入同一个请求的延迟窗口，重试后仍为空则必须失败。
+- OpenAI-compatible replay 必须优先按 JSON object 解析非流式响应；只有行首
+  `data:` 的 Server-Sent Events 才能按流式响应处理。不能用
+  `if "data:" in raw_text` 这类全文子串判断 SSE，因为模型输出文本本身可能
+  包含 `data:`，例如代码、URL 或普通英文句子。
 - 正式结果中不允许 token source 仍大面积为 `trace_expected`；否则只能作为
   timing bring-up，不能进入 token/TPOT/cost-per-token 图。
 

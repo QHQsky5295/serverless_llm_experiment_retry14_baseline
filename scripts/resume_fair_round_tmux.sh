@@ -7,12 +7,13 @@ ROUND_ROOT="${FAIR_ROUND_ROOT:-${BASELINES_ROOT}/results/paper_experiments/${ROU
 RUNNER="${FAIR_ROUND_RUNNER:-${BASELINES_ROOT}/scripts/run_full_fair_round.sh}"
 SESSION_NAME="${FAIR_ROUND_TMUX_SESSION:-}"
 ROUND_DIR="${FAIR_ROUND_DIR:-}"
+RESTART_SESSION="${FAIR_ROUND_RESTART_SESSION:-0}"
 DRY_RUN=0
 
 usage() {
   cat <<'EOF'
 Usage:
-  resume_fair_round_tmux.sh [--round-dir DIR] [--round-root DIR] [--session NAME] [--dry-run]
+  resume_fair_round_tmux.sh [--round-dir DIR] [--round-root DIR] [--session NAME] [--restart-session] [--dry-run]
 
 Purpose:
   Resume a fair-comparison round from anywhere. The script automatically:
@@ -25,6 +26,9 @@ Environment overrides:
   FAIR_ROUND_DIR           Explicit round directory to resume.
   FAIR_ROUND_ROOT          Directory containing timestamped round directories.
   FAIR_ROUND_TMUX_SESSION  tmux session name.
+  FAIR_ROUND_RESTART_SESSION=1
+                           Kill and recreate an existing tmux session while
+                           preserving round state markers.
 EOF
 }
 
@@ -41,6 +45,10 @@ while [[ $# -gt 0 ]]; do
     --session)
       SESSION_NAME="${2:?--session requires a value}"
       shift 2
+      ;;
+    --restart-session)
+      RESTART_SESSION=1
+      shift
       ;;
     --dry-run)
       DRY_RUN=1
@@ -139,6 +147,11 @@ find "${ROUND_DIR}/state" -maxdepth 1 -type f -name '*.done' -printf '  %f\n' 2>
 if [[ "${DRY_RUN}" == "1" ]]; then
   echo "[resume] dry-run only; no tmux session was created or entered"
   exit 0
+fi
+
+if [[ "${RESTART_SESSION}" == "1" ]] && tmux has-session -t "${SESSION_NAME}" 2>/dev/null; then
+  echo "[resume] killing existing tmux session before restart: ${SESSION_NAME}"
+  tmux kill-session -t "${SESSION_NAME}" 2>/dev/null || true
 fi
 
 if tmux has-session -t "${SESSION_NAME}" 2>/dev/null; then

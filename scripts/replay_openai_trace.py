@@ -252,6 +252,37 @@ def _extract_generated_text_fragment(obj: Dict[str, Any]) -> str:
     return "".join(parts)
 
 
+def _apply_response_payload(
+    obj: Any,
+    *,
+    generated_text_parts: List[str],
+    server_metrics: Dict[str, Any],
+) -> tuple[Optional[str], Dict[str, Any], Optional[str]]:
+    """Extract text, usage, and metrics from one OpenAI-compatible payload."""
+    if not isinstance(obj, dict):
+        return None, {}, None
+    fragment = _extract_generated_text_fragment(obj)
+    if fragment:
+        generated_text_parts.append(fragment)
+    error = str(obj.get("error")) if obj.get("error") else None
+    usage = obj["usage"] if isinstance(obj.get("usage"), dict) else {}
+    metrics_source = None
+    meta_info = obj.get("meta_info")
+    if isinstance(meta_info, dict):
+        server_metrics.update(_sglang_meta_to_metrics(meta_info))
+        metrics_source = str(
+            server_metrics.get("metrics_source") or "sglang_generate_meta_info"
+        )
+    metrics = obj.get("metrics")
+    if isinstance(metrics, dict):
+        server_metrics.clear()
+        server_metrics.update(metrics)
+        metrics_source = str(
+            server_metrics.get("source") or "serverlessllm_api_metrics"
+        )
+    return error, usage, metrics_source
+
+
 def _apply_faaslora_style_prompt_guard(
     *,
     prompt: str,
@@ -480,6 +511,8 @@ def _replay_one(
     sglang_native_generate: bool,
     slora_native_generate: bool,
     generation_seed: Optional[int],
+    empty_success_retries: int,
+    empty_success_retry_delay_s: float,
 ) -> Dict[str, Any]:
     body = dict(item["body"])
     request_seed = _derive_request_generation_seed(
@@ -560,83 +593,116 @@ def _replay_one(
     stream_event_count = 0
     server_metrics: Dict[str, Any] = {}
     metrics_source: Optional[str] = None
+    request_attempts = 0
+    empty_success_retry_count = 0
+    final_empty_success = False
+    last_raw_text_chars = 0
+    last_raw_text_preview = ""
 
-    try:
-        with requests.post(endpoint, json=body, stream=True, timeout=timeout_s) as resp:
-            status_code = resp.status_code
-            raw_chunks: List[str] = []
-            for chunk in resp.iter_content(chunk_size=None, decode_unicode=True):
-                if not chunk:
-                    continue
-                if api_ttft_ms is None:
-                    api_ttft_ms = (time.perf_counter() - t0) * 1000.0
-                raw_chunks.append(chunk)
-            raw_text = "".join(raw_chunks).strip()
+    max_attempts = max(1, 1 + max(0, int(empty_success_retries or 0)))
+    for attempt_idx in range(max_attempts):
+        request_attempts = attempt_idx + 1
+        api_ttft_ms = None
+        status_code = None
+        usage = {}
+        error = None
+        generated_text_parts = []
+        stream_event_count = 0
+        server_metrics = {}
+        metrics_source = None
+        raw_text = ""
+        try:
+            with requests.post(endpoint, json=body, stream=True, timeout=timeout_s) as resp:
+                status_code = resp.status_code
+                raw_chunks: List[str] = []
+                for chunk in resp.iter_content(chunk_size=None, decode_unicode=True):
+                    if not chunk:
+                        continue
+                    # TTFT should start at the first non-empty response payload,
+                    # not at an empty keepalive/whitespace chunk.
+                    if api_ttft_ms is None and str(chunk).strip():
+                        api_ttft_ms = (time.perf_counter() - t0) * 1000.0
+                    raw_chunks.append(chunk)
+                raw_text = "".join(raw_chunks).strip()
+                last_raw_text_chars = len(raw_text)
+                last_raw_text_preview = raw_text[:240]
 
-            if status_code != 200:
-                error = raw_text[:1000] or f"HTTP {status_code}"
-            elif raw_text:
-                if "data:" in raw_text:
-                    for line in raw_text.splitlines():
-                        line = line.strip()
-                        if not line.startswith("data:"):
-                            continue
-                        payload = line[len("data:") :].strip()
-                        if payload == "[DONE]":
-                            break
-                        stream_event_count += 1
+                if status_code != 200:
+                    error = raw_text[:1000] or f"HTTP {status_code}"
+                elif raw_text:
+                    stripped_raw_text = raw_text.lstrip()
+                    if stripped_raw_text.startswith(("{", "[")):
+                        stream_event_count = 1
                         try:
-                            obj = json.loads(payload)
-                            if isinstance(obj, dict):
-                                fragment = _extract_generated_text_fragment(obj)
-                                if fragment:
-                                    generated_text_parts.append(fragment)
-                                if obj.get("error"):
-                                    error = str(obj.get("error"))
-                                if obj.get("usage"):
-                                    usage = obj["usage"]
-                                meta_info = obj.get("meta_info")
-                                if isinstance(meta_info, dict):
-                                    server_metrics.update(_sglang_meta_to_metrics(meta_info))
-                                    metrics_source = str(
-                                        server_metrics.get("metrics_source") or "sglang_generate_meta_info"
-                                    )
-                                if obj.get("metrics"):
-                                    server_metrics = dict(obj["metrics"] or {})
-                                    metrics_source = str(
-                                        server_metrics.get("source") or "serverlessllm_api_metrics"
-                                    )
+                            obj = json.loads(raw_text)
+                            payload_error, payload_usage, payload_metrics_source = (
+                                _apply_response_payload(
+                                    obj,
+                                    generated_text_parts=generated_text_parts,
+                                    server_metrics=server_metrics,
+                                )
+                            )
+                            if payload_error:
+                                error = payload_error
+                            if payload_usage:
+                                usage = payload_usage
+                            if payload_metrics_source:
+                                metrics_source = payload_metrics_source
                         except json.JSONDecodeError:
-                            continue
-                else:
-                    stream_event_count = 1
-                    try:
-                        obj = json.loads(raw_text)
-                        if isinstance(obj, dict):
-                            fragment = _extract_generated_text_fragment(obj)
-                            if fragment:
-                                generated_text_parts.append(fragment)
-                            if obj.get("error"):
-                                error = str(obj.get("error"))
-                            if obj.get("usage"):
-                                usage = obj["usage"]
-                            meta_info = obj.get("meta_info")
-                            if isinstance(meta_info, dict):
-                                server_metrics.update(_sglang_meta_to_metrics(meta_info))
-                                metrics_source = str(
-                                    server_metrics.get("metrics_source") or "sglang_generate_meta_info"
+                            pass
+                    else:
+                        for line in raw_text.splitlines():
+                            line = line.strip()
+                            if not line.startswith("data:"):
+                                continue
+                            payload = line[len("data:") :].strip()
+                            if payload == "[DONE]":
+                                break
+                            stream_event_count += 1
+                            try:
+                                obj = json.loads(payload)
+                                payload_error, payload_usage, payload_metrics_source = (
+                                    _apply_response_payload(
+                                        obj,
+                                        generated_text_parts=generated_text_parts,
+                                        server_metrics=server_metrics,
+                                    )
                                 )
-                            if obj.get("metrics"):
-                                server_metrics = dict(obj["metrics"] or {})
-                                metrics_source = str(
-                                    server_metrics.get("source") or "serverlessllm_api_metrics"
-                                )
-                    except json.JSONDecodeError:
-                        pass
-        api_e2e_ms = (time.perf_counter() - t0) * 1000.0
-    except Exception as exc:  # noqa: BLE001
-        api_e2e_ms = (time.perf_counter() - t0) * 1000.0
-        error = str(exc)
+                                if payload_error:
+                                    error = payload_error
+                                if payload_usage:
+                                    usage = payload_usage
+                                if payload_metrics_source:
+                                    metrics_source = payload_metrics_source
+                            except json.JSONDecodeError:
+                                continue
+            api_e2e_ms = (time.perf_counter() - t0) * 1000.0
+        except Exception as exc:  # noqa: BLE001
+            api_e2e_ms = (time.perf_counter() - t0) * 1000.0
+            error = str(exc)
+
+        generated_text_candidate = "".join(generated_text_parts)
+        observable_success_payload = bool(
+            generated_text_candidate
+            or usage
+            or server_metrics
+        )
+        empty_success = (
+            error is None
+            and status_code == 200
+            and not observable_success_payload
+        )
+        if empty_success and request_attempts < max_attempts:
+            empty_success_retry_count += 1
+            time.sleep(max(0.0, float(empty_success_retry_delay_s or 0.0)))
+            continue
+        if empty_success:
+            final_empty_success = True
+            error = (
+                "empty successful response with no generated text, usage, or "
+                "server metrics"
+            )
+        break
 
     completion_offset_s = time.perf_counter() - start_time
     generated_text = "".join(generated_text_parts)
@@ -893,6 +959,11 @@ def _replay_one(
         "completion_token_source": completion_token_source,
         "guard_prompt_tokens": local_prompt_tokens_override,
         "guard_max_tokens": guard_max_tokens,
+        "request_attempts": request_attempts,
+        "empty_success_retries": empty_success_retry_count,
+        "final_empty_success": final_empty_success,
+        "raw_text_chars": last_raw_text_chars,
+        "raw_text_preview": last_raw_text_preview,
         "generated_text_chars": len(generated_text),
         "cost_usd": cost_usd,
         "metric_warning": metric_warning,
@@ -1098,6 +1169,17 @@ def main() -> int:
     ap.add_argument("--sglang-native-generate", action="store_true")
     ap.add_argument("--slora-native-generate", action="store_true")
     ap.add_argument(
+        "--empty-success-retries",
+        type=int,
+        default=0,
+        help=(
+            "Retry a transient HTTP 200 response that contains no body, no stream "
+            "events, no usage, and no server metrics. The retry remains part of "
+            "the same request latency window."
+        ),
+    )
+    ap.add_argument("--empty-success-retry-delay-s", type=float, default=1.0)
+    ap.add_argument(
         "--generation-seed",
         type=int,
         default=None,
@@ -1159,6 +1241,8 @@ def main() -> int:
             sglang_native_generate=bool(args.sglang_native_generate),
             slora_native_generate=bool(args.slora_native_generate),
             generation_seed=args.generation_seed,
+            empty_success_retries=int(args.empty_success_retries or 0),
+            empty_success_retry_delay_s=float(args.empty_success_retry_delay_s or 0.0),
         )
         result["target_base_url"] = target_base_url
         with lock:
@@ -1263,6 +1347,8 @@ def main() -> int:
         "label": args.label,
         "generation_seed": args.generation_seed,
         "ttft_slo_ms": float(args.ttft_slo_ms),
+        "empty_success_retries": int(args.empty_success_retries or 0),
+        "empty_success_retry_delay_s": float(args.empty_success_retry_delay_s or 0.0),
         "cost_model": {
             "base_cost_usd": float(args.base_cost_usd),
             "input_token_cost_usd": float(args.input_token_cost_usd),

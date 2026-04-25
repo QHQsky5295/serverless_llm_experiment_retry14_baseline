@@ -67,6 +67,15 @@ prep -> SGLang -> ServerlessLLM -> vLLM -> S-LoRA -> FaaSLoRA -> compare
   --round-dir /home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/<round_dir>
 ```
 
+如果上一次 tmux session 已经失败并停在 shell 提示符，保留断点但重建
+session：
+
+```bash
+/home/qhq/serverless_llm_baselines/scripts/resume_fair_round_tmux.sh \
+  --round-dir /home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/<round_dir> \
+  --restart-session
+```
+
 ## 4. 断点续跑规则
 
 每个 round 目录包含：
@@ -83,7 +92,8 @@ comparison/
 规则：
 
 1. 已完成阶段写入 `state/<stage>.done`。
-2. 失败后修复代码，再运行 `resume_fair_round_tmux.sh`。
+2. 失败后修复代码，再运行 `resume_fair_round_tmux.sh`；如果旧 tmux
+   session 仍存在但已经停在失败后的 shell，使用 `--restart-session`。
 3. 续跑会跳过已完成阶段，从第一个未完成系统开始。
 4. 每个系统运行前必须清理已知遗留进程，并检查 GPU compute 进程。
 5. 不手工移动或删除 `state/*.done`，除非明确要重跑某个阶段。
@@ -191,6 +201,24 @@ serverless_idle_gpu_cost_factor = 0.2380952381
 
 - 由 `run_full_fair_round.sh` 调用 FaaSLoRA shared-artifact wrapper。
 - 机制指标只用于 FaaSLoRA 内部图和消融，不进入跨系统主表。
+- `HOST` adapter tier 必须使用 tmpfs/ramfs 等内存背书文件系统。当前正式
+  默认路径是 `/dev/shm/faaslora_host_cache/<scenario>`；若结果 JSON 中
+  `host_cache_memory_backed` 不是 `true`，该轮不能进入论文结果。
+- FaaSLoRA 启动日志应出现类似
+  `[HOST tier] path=... fs=tmpfs available=... required=...` 的 preflight 行。
+- FaaSLoRA scale-out 使用 predictive target refinement：autoscaler 决定是否扩容，
+  handoff predictor 根据 ready-time queue 和 runtime capacity 决定一次补足几个
+  runtime。该机制必须保持 `scale_up_predictive_target_enabled=true`，避免正式
+  burst 前沿中退回 `current+1` 逐步扩容而拖高早期 E2E/CE。
+- `scale_up_startup_parallelism=auto`：低压时为前台 adapter load 保留余量；
+  高压 scale-out 时可以用满 `max_concurrent_loads` 并行启动 runtime，但仍受
+  `max_instances` 和 GPU 清洁检查约束。
+- 2026-04-25 已完成同 trace 500-request 回归闭口
+  `llama2_7b_r500_a500_seed42_s8_predictive1_faaslora`：
+  `500/500` 成功，`TTFT_e2e=1395/10052/16366ms`，
+  `TTFT_service=412/573/674ms`，`TPOT=28.1ms`，
+  `E2E_e2e=4037ms`，`Cost/req=$0.003084`，主 `CE=80.324`。
+  该结果只作为 FaaSLoRA 修复非回归证明，不替代 4000-request 正式结论。
 
 ## 9. 结果保存
 
@@ -210,3 +238,23 @@ serverless_idle_gpu_cost_factor = 0.2380952381
 
 FaaSLoRA 自身原始结果可同时在主项目结果目录保留，但论文横向取数以这个
 timestamped round 目录为准。
+
+## 10. 当前推荐动作
+
+当前不建议继续围绕 500-request debug round 做局部调参。500 请求闭口已经证明
+FaaSLoRA 的 HOST tmpfs 真实性 gate、scale-out predictive target 和 startup
+parallelism 没有破坏服务路径，并带来小幅 CE 改善。下一步应回到正式 round：
+
+```bash
+/home/qhq/serverless_llm_baselines/scripts/resume_fair_round_tmux.sh --dry-run
+/home/qhq/serverless_llm_baselines/scripts/resume_fair_round_tmux.sh
+```
+
+如果需要从零启动新 round：
+
+```bash
+/home/qhq/serverless_llm_baselines/scripts/run_full_fair_round.sh
+```
+
+正式判断以 timestamped round 目录中的 `comparison/` 和各系统 `summary.json`
+为准，而不是单个系统的中途 live 输出。

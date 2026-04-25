@@ -23,6 +23,8 @@ VLLM_SOURCE_ENV="${SLLM_VLLM_SOURCE_ENV:-LLM_vllm0102}"
 CONDA_ROOT="${SLLM_CONDA_ROOT:-/home/qhq/anaconda3}"
 SLEEP_SCALE="${SLLM_SLEEP_SCALE:-1.0}"
 TIMEOUT_S="${SLLM_TIMEOUT_S:-3600}"
+EMPTY_SUCCESS_RETRIES="${SLLM_EMPTY_SUCCESS_RETRIES:-2}"
+EMPTY_SUCCESS_RETRY_DELAY_S="${SLLM_EMPTY_SUCCESS_RETRY_DELAY_S:-1.0}"
 VLLM_PROBE_TIMEOUT_S="${SLLM_VLLM_PROBE_TIMEOUT_S:-120}"
 LIMIT_ADAPTERS="${SLLM_LIMIT_ADAPTERS:-}"
 SHARED_TRACE_PATH="${SLLM_SHARED_TRACE_PATH:?SLLM_SHARED_TRACE_PATH is required}"
@@ -329,6 +331,7 @@ echo "      ttft_slo_ms=${TTFT_SLO_MS}"
 echo "      prompt_guard(model/max_len/max_input/output_cap)=${PROMPT_GUARD_TOKENIZER_MODEL}/${PROMPT_GUARD_MAX_MODEL_LEN}/${PROMPT_GUARD_MAX_INPUT_LEN}/${PROMPT_GUARD_MAX_OUTPUT_TOKENS_CAP}"
 echo "      backend=${BACKEND}"
 echo "      replay_timeout_s=${TIMEOUT_S}"
+echo "      empty_success_retries=${EMPTY_SUCCESS_RETRIES} delay_s=${EMPTY_SUCCESS_RETRY_DELAY_S}"
 
 if [[ "${BACKEND}" == "vllm" || "${BACKEND}" == "auto" ]]; then
   VLLM_RUNTIME_ENV="${VLLM_ENV_NAME}"
@@ -400,6 +403,8 @@ run_python_in_env sllm_head_official \
   --prompt-guard-max-output-tokens-cap "${PROMPT_GUARD_MAX_OUTPUT_TOKENS_CAP}" \
   --sleep-scale "${SLEEP_SCALE}" \
   --timeout-s "${TIMEOUT_S}" \
+  --empty-success-retries "${EMPTY_SUCCESS_RETRIES}" \
+  --empty-success-retry-delay-s "${EMPTY_SUCCESS_RETRY_DELAY_S}" \
   --base-cost-usd "${BASE_COST_USD}" \
   --input-token-cost-usd "${INPUT_TOKEN_COST_USD}" \
   --output-token-cost-usd "${OUTPUT_TOKEN_COST_USD}" \
