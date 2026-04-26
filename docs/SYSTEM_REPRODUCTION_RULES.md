@@ -150,6 +150,14 @@ shared trace 必须记录：
 
 缺少这些字段的结果不能进入论文主表。
 
+正式 compare 还必须审计 served token distribution。平均输出 token 接近时，
+`Cost/req` 与 `CE` 可以作为主成本结论；但如果某个系统的输出尾部明显偏长或
+偏短，例如 `OutTok>256` 与其他系统相差数倍，则不能直接用该系统的
+`TPOT`、`Tok/s` 或 `Cost/1MTok` 写强结论，必须先定位是否来自 endpoint、
+EOS、`ignore_eos`、`min_tokens`、prompt guard 或 server tokenizer 语义差异。
+这类审计不是为了美化某个系统，而是为了防止输出长度差异被误解释为运行时
+性能差异。
+
 ## 5. LoRA 选择语义
 
 不同系统的 LoRA 请求语义不同，必须逐个对齐，不能凭字段名猜。
@@ -513,6 +521,12 @@ schema audit 是第二道保险，不能替代 wrapper 本地 gate。
 - vLLM OpenAI completion 可能返回 `HTTP 200` 但空输出、无 usage 和无
   first-token event；这类“空成功”必须在 replay gate 被拒绝，不能进入
   summary。
+- FaaSLoRA 结果目录可能是 symlink。post-run collection 必须跟随 symlink
+  查找结果；如果长实验已经成功写出结果，但收集阶段失败，修复后应优先
+  收集已有合法结果并断点续跑 compare，不应无谓重跑。
+- GPU 清洁检查必须把 `nvidia-smi` 查询失败和“有残留 GPU 进程”区分开。
+  不能把 driver/tool 错误输出解析成 PID；严格模式下 `nvidia-smi -L`
+  不可用应直接失败并提示检查环境。
 
 因此：
 

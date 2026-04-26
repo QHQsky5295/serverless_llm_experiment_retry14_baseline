@@ -97,6 +97,12 @@ comparison/
 3. 续跑会跳过已完成阶段，从第一个未完成系统开始。
 4. 每个系统运行前必须清理已知遗留进程，并检查 GPU compute 进程。
 5. 不手工移动或删除 `state/*.done`，除非明确要重跑某个阶段。
+6. FaaSLoRA 原始结果目录可能是 symlink。runner 查找 FaaSLoRA 结果时必须
+   跟随 symlink，并在断点恢复时优先收集已有合法结果；如果实验已经完成但
+   post-collection 失败，不应重复重跑 FaaSLoRA。
+7. GPU 清洁检查不能把 `nvidia-smi` 错误输出解析为 PID。严格模式下如果
+   `nvidia-smi -L` 不可用，应直接失败并提示检查 driver，而不是继续跑正式
+   round。
 
 ## 5. 共享输入规则
 
@@ -216,6 +222,11 @@ serverless_idle_gpu_cost_factor = 0.2380952381
 - 使用官方 CUDA 11.8 / PyTorch 2.0.1 兼容环境。
 - 正式 replay 走 native `/generate_stream`。
 - prompt guard 必须按 S-LoRA 服务端 `tokenizer.encode(prompt)` 语义计入 special tokens。
+- 当前正式结果中，S-LoRA 已通过 replay gate，但 served output tail
+  明显长于其他系统。使用 S-LoRA 的 `TPOT`、`Tok/s` 或 token-normalized
+  cost 写论文强结论前，必须先检查 EOS / ignore-eos / max-new-token
+  请求语义是否与其他系统对齐；若选择保持 official wrapper 语义，也必须在
+  结果分析中标注为 paper-faithful 复现边界。
 
 ### FaaSLoRA
 
@@ -261,20 +272,23 @@ timestamped round 目录为准。
 
 ## 10. 当前推荐动作
 
-当前不建议继续围绕 500-request debug round 做局部调参。500 请求闭口已经证明
-FaaSLoRA 的 HOST tmpfs 真实性 gate、scale-out predictive target 和 startup
-parallelism 没有破坏服务路径，并带来小幅 CE 改善。下一步应回到正式 round：
+2026-04-26 当前 Llama-2 7B 4000-request 五系统正式 round 已闭合：
 
-```bash
-/home/qhq/serverless_llm_baselines/scripts/resume_fair_round_tmux.sh --dry-run
-/home/qhq/serverless_llm_baselines/scripts/resume_fair_round_tmux.sh
+```text
+/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1
 ```
 
-如果需要从零启动新 round：
+主结论：
 
-```bash
-/home/qhq/serverless_llm_baselines/scripts/run_full_fair_round.sh
-```
+- FaaSLoRA 主 CE 高于 SGLang、vLLM、S-LoRA 和 ServerlessLLM；
+- SGLang 延迟最低，符合强 serverful runtime 的预期；
+- FaaSLoRA 以更低 lifecycle monetary cost 赢得 CE；
+- ServerlessLLM 的主要瓶颈是 dispatch/admission wait，而不是单请求
+  service path；
+- S-LoRA 输出 token 尾部分布偏长，进入论文强结论前需要单独审计或说明
+  official wrapper 语义边界。
 
-正式判断以 timestamped round 目录中的 `comparison/` 和各系统 `summary.json`
-为准，而不是单个系统的中途 live 输出。
+因此当前不建议继续围绕 500-request debug round 或单个 headline 数字做局部
+调参。下一步应优先按 `PAPER_EXPERIMENT_TODO.md` 推进论文实验序列：
+引言图、motivation、ablation、workload/adapters scale、资源/成本图。若要
+把 S-LoRA 写进主表强对比，则先做一次 targeted EOS/输出语义审计。

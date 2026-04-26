@@ -150,11 +150,15 @@ gpu_residual_pids() {
   fi
   local gpu_ids=()
   local gpu=""
+  local query_output=""
   IFS=',' read -r -a gpu_ids <<< "${gpu_csv}"
   for gpu in "${gpu_ids[@]}"; do
     gpu="$(printf '%s' "${gpu}" | xargs)"
     [[ -z "${gpu}" ]] && continue
-    nvidia-smi --id="${gpu}" --query-compute-apps=pid --format=csv,noheader,nounits 2>/dev/null \
+    if ! query_output="$(nvidia-smi --id="${gpu}" --query-compute-apps=pid --format=csv,noheader,nounits 2>/dev/null)"; then
+      continue
+    fi
+    printf '%s\n' "${query_output}" \
       | sed '/^[[:space:]]*$/d' \
       | awk '{print $1}'
   done | sort -u
@@ -194,11 +198,15 @@ gpu_compute_rows() {
   fi
   local gpu_ids=()
   local gpu=""
+  local query_output=""
   IFS=',' read -r -a gpu_ids <<< "${gpu_csv}"
   for gpu in "${gpu_ids[@]}"; do
     gpu="$(printf '%s' "${gpu}" | xargs)"
     [[ -z "${gpu}" ]] && continue
-    nvidia-smi --id="${gpu}" --query-compute-apps=pid,used_gpu_memory,process_name --format=csv,noheader,nounits 2>/dev/null \
+    if ! query_output="$(nvidia-smi --id="${gpu}" --query-compute-apps=pid,used_gpu_memory,process_name --format=csv,noheader,nounits 2>/dev/null)"; then
+      continue
+    fi
+    printf '%s\n' "${query_output}" \
       | sed '/^[[:space:]]*$/d' \
       | awk -v gpu="${gpu}" '{print "gpu=" gpu " " $0}'
   done
@@ -210,6 +218,11 @@ wait_gpu_idle() {
   fi
   if ! command -v nvidia-smi >/dev/null 2>&1; then
     return 0
+  fi
+  if ! nvidia-smi -L >/dev/null 2>&1; then
+    echo "[ERROR] nvidia-smi is unavailable; cannot verify GPU idle state under strict mode." >&2
+    echo "        Check the NVIDIA driver, or set FAIR_ROUND_STRICT_GPU_IDLE=0 only for diagnosis." >&2
+    return 1
   fi
   local deadline=$((SECONDS + CLEANUP_TIMEOUT_S))
   local rows=""
@@ -458,9 +471,32 @@ run_slora() {
 
 find_latest_faaslora_result() {
   local tag="$1"
-  find "${MAIN_REPO}/results" -maxdepth 3 -type f -name "*${tag}*.json" -printf '%T@ %p\n' 2>/dev/null \
+  # MAIN_REPO/results is a symlink in the current FaaSLoRA checkout. Use -L so
+  # post-run collection follows the real result directory instead of treating the
+  # symlink itself as a terminal file.
+  find -L "${MAIN_REPO}/results" -maxdepth 3 -type f -name "*${tag}*.json" -printf '%T@ %p\n' 2>/dev/null \
     | sort -n \
     | awk 'END{print substr($0, index($0,$2))}'
+}
+
+collect_faaslora_result() {
+  local stage="$1"
+  local faas_tag="$2"
+  local faas_copy="$3"
+  local latest
+  latest="$(find_latest_faaslora_result "${faas_tag}")"
+  if [[ -z "${latest}" || ! -f "${latest}" ]]; then
+    return 1
+  fi
+  log "collecting FaaSLoRA result: ${latest}"
+  cp -f "${latest}" "${faas_copy}"
+  printf '%s\n' "${latest}" >"${RAW_FAAS_DIR}/${RUN_TAG}_faaslora_source_path.txt"
+  if validate_summary "FaaSLoRA" "${faas_copy}"; then
+    post_system_clean_check "FaaSLoRA"
+    mark_done "${stage}"
+    return 0
+  fi
+  return 1
 }
 
 run_faaslora() {
@@ -470,6 +506,10 @@ run_faaslora() {
   faas_copy="$(summary_path_for_system faaslora)"
   if is_done "${stage}"; then
     log "skip ${stage}; marker exists"
+    return 0
+  fi
+  if collect_faaslora_result "${stage}" "${faas_tag}" "${faas_copy}"; then
+    log "skip ${stage}; valid existing FaaSLoRA result was collected"
     return 0
   fi
   pre_system_clean_check "FaaSLoRA"
@@ -485,17 +525,11 @@ run_faaslora() {
     bash "${MAIN_REPO}/scripts/run_faaslora_shared_artifact_experiment.sh" \
       --num-adapters "${SELECTED_NUM_ADAPTERS}" \
       --full-stack
-  local latest
-  latest="$(find_latest_faaslora_result "${faas_tag}")"
-  if [[ -z "${latest}" || ! -f "${latest}" ]]; then
+  if ! collect_faaslora_result "${stage}" "${faas_tag}" "${faas_copy}"; then
     echo "[ERROR] unable to locate FaaSLoRA result for tag=${faas_tag}" >&2
+    post_system_clean_check "FaaSLoRA" || true
     return 1
   fi
-  cp -f "${latest}" "${faas_copy}"
-  printf '%s\n' "${latest}" >"${RAW_FAAS_DIR}/${RUN_TAG}_faaslora_source_path.txt"
-  validate_summary "FaaSLoRA" "${faas_copy}"
-  post_system_clean_check "FaaSLoRA"
-  mark_done "${stage}"
 }
 
 run_compare() {
