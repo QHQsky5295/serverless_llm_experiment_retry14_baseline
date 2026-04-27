@@ -9,6 +9,8 @@ experiment evidence.
 - `../README.md`: current project overview.
 - `../EXPERIMENT_GUIDE.md`: current experiment entry points.
 - `../PROJECT_STRUCTURE.md`: current repository layout.
+- `../paper/primelora_current_draft.tex`: current tracked paper draft used for
+  future text/figure insertion reviews.
 - `ENVIRONMENT.md`: current runtime assumptions.
 - `TECHNICAL_ROUTE_AND_IMPLEMENTATION.md`: current system design overview.
 - `PAPER_EXPERIMENT_TODO.md`: paper experiment plan and figure checklist.
