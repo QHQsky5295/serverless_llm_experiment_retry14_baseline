@@ -23,6 +23,40 @@
 llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1
 ```
 
+## 1.1 Live Queue: 2026-04-27
+
+当前正在运行的长队列是 operating-load sensitivity，不是主 s8 round 的重跑：
+
+```text
+tmux session: paper_load_operating_p0
+queue id:     20260427_112832_load_operating_p0
+profile:      load_operating_p0
+systems:      sglang serverlessllm vllm slora faaslora
+active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+section:      06_sensitivity_load_operating
+```
+
+截至 `2026-04-27 13:03 CST`，该 run 仍在 tmux 中健康运行，约完成
+`3768/4000` 请求，`fail=0`。外层终端退出不代表实验失败；先检查：
+
+```bash
+tmux capture-pane -p -t paper_load_operating_p0 -S -120
+```
+
+如果之后确认失败，用同一个 queue id 断点恢复：
+
+```bash
+cd /home/qhq/serverless_llm_baselines
+PAPER_QUEUE_ID=20260427_112832_load_operating_p0 \
+PAPER_QUEUE_PROFILE=load_operating_p0 \
+PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
+bash scripts/run_paper_long_experiment_queue.sh
+```
+
+该队列用于补齐 Fig. 8 候选的 `s12/s10` 低/中 operating-load 数据。它必须保留
+ServerlessLLM；若 ServerlessLLM 阶段失败，应修根因并恢复，不允许把它从队列
+中静默移除。
+
 ## 2. 当前系统顺序
 
 完整 round 默认按以下顺序执行：

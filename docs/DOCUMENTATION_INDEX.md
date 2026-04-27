@@ -7,6 +7,8 @@ execution source.
 ## Canonical Documents
 
 - `FAIR_COMPARISON_EXECUTION_PLAN.md`: current cross-system execution rules.
+- `CURRENT_QUEUE_HANDOFF_2026-04-27.md`: current tmux queue status, monitor
+  command, and resume command for the active operating-load sensitivity run.
 - `SYSTEM_REPRODUCTION_RULES.md`: rules for adding or maintaining baselines.
 - `BASELINE_MATRIX.md`: current baseline status and inclusion boundary.
 - `UPSTREAM_REPO_STATE.md`: upstream commit and patch tracking.
