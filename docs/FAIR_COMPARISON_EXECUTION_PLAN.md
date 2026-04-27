@@ -32,12 +32,13 @@ tmux session: paper_load_operating_p0
 queue id:     20260427_112832_load_operating_p0
 profile:      load_operating_p0
 systems:      sglang serverlessllm vllm slora faaslora
-active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
 section:      06_sensitivity_load_operating
 ```
 
-截至 `2026-04-27 13:03 CST`，该 run 仍在 tmux 中健康运行，约完成
-`3768/4000` 请求，`fail=0`。外层终端退出不代表实验失败；先检查：
+截至 `2026-04-27 23:57 CST`，队列已进入 `s10` run 的 vLLM 阶段，约完成
+`2449/4000` 请求，`fail=0`，ETA 约 29 分钟。外层终端退出不代表实验失败；
+先检查：
 
 ```bash
 tmux capture-pane -p -t paper_load_operating_p0 -S -120
@@ -180,7 +181,8 @@ TTFT_e2e_avg_ms
 TTFT_e2e_p95_ms
 E2E_e2e_avg_ms
 E2E_e2e_p95_ms
-TPOT_ms
+TPOT_avg_ms
+TPOT_p95_ms
 Throughput_tok_s
 Cost_per_request_usd
 CE
@@ -191,13 +193,15 @@ CE
 ```text
 TTFT_e2e = scheduled trace arrival -> first output token/chunk observed
 E2E_e2e  = scheduled trace arrival -> full response completion observed
-TPOT     = per-request service decode time per generated token
+TPOT     = per-request service decode time per generated token; report avg and p95
 Cost/req = total monetary cost / completed requests
 CE       = 1 / (avg_E2E_e2e_seconds * Cost/req)
 ```
 
 `Cost/1M tokens`、GPU-second、active/idle GPU ratio 是审计指标，不替代
 `Cost/req` 主成本口径。
+TPOT 是请求级 decode 延迟分布，不能只报告均值；正式横向表和 normalized 图
+应从 observed request-level `tpot_ms` 样本报告 `TPOT avg/p95`。
 
 ## 7. 成本模型
 
@@ -281,7 +285,7 @@ serverless_idle_gpu_cost_factor = 0.2380952381
 - 2026-04-25 已完成同 trace 500-request 回归闭口
   `llama2_7b_r500_a500_seed42_s8_predictive1_faaslora`：
   `500/500` 成功，`TTFT_e2e=1395/10052/16366ms`，
-  `TTFT_service=412/573/674ms`，`TPOT=28.1ms`，
+  `TTFT_service=412/573/674ms`，`TPOT avg=28.1ms`，
   `E2E_e2e=4037ms`，`Cost/req=$0.003084`，主 `CE=80.324`。
   该结果只作为 FaaSLoRA 修复非回归证明，不替代 4000-request 正式结论。
 

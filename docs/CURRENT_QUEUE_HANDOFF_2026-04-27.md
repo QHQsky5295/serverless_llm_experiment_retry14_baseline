@@ -9,14 +9,14 @@ experiments. The broader paper handoff lives in:
 
 ## Live Queue
 
-As of `2026-04-27 13:03 CST`, the queue is active and healthy:
+As of `2026-04-27 23:57 CST`, the queue is active and healthy:
 
 ```text
 tmux session: paper_load_operating_p0
 queue id:     20260427_112832_load_operating_p0
 profile:      load_operating_p0
 systems:      sglang serverlessllm vllm slora faaslora
-active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
 section:      06_sensitivity_load_operating
 ```
 
@@ -27,23 +27,27 @@ queue env:
 /home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/queue.env
 
 queue log:
-/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/logs/06_sensitivity_load_operating_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1.log
+/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/logs/06_sensitivity_load_operating_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1.log
 
 round dir:
-/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
 ```
 
 Latest observed progress:
 
 ```text
-done:         about 3768/4000
+active stage: vLLM in the s10 run
+done:         about 2449/4000
 fail:         0
-ETA:          about 6 minutes for the active system stage
+ETA:          about 29 minutes for the active vLLM stage
+TTFT_e2e:     avg/p95/p99 about 469/796/2350 ms
+E2E_e2e:      avg/p95/p99 about 2987/7264/7948 ms
+TPOT avg:     about 26.1 ms in the live summary
 SLO@5000 ms:  100%
 ```
 
-The round state directory contained only `00_prep.done`; the first system stage
-was still running.
+The queue has advanced beyond the earlier s12 round into the s10 run; the
+active stage log is `30_vllm.log`.
 
 ## Monitor And Resume
 
