@@ -1,0 +1,63 @@
+[Strict Main Metrics]
+System                           | TTFT_e2e_ms | E2E_e2e_ms  | TPOT_ms | Tok/s    | RPS    | SLO    | Cost_req_usd | Cost_1MTok_usd | CE       | MonetaryCost_req_usd | MonetaryCE | TokenProxy_req_usd | TokenProxy_1MTok_usd | TokenProxyCE | InfraCost_req_usd | InfraCE 
+---------------------------------+-------------+-------------+---------+----------+--------+--------+--------------+----------------+----------+----------------------+------------+--------------------+----------------------+--------------+-------------------+---------
+faaslora_full:faaslora_full      | 563.9507    | 3167.2217   | 28.6274 | 102.7505 | 1.0090 | 0.9955 | 0.0026       | 2.9741         | 123.0204 | 0.0026               | 123.0204   | 0.0023             | 2.7178               | 134.6212     | 0.0035            | 90.8185 
+SGLang:sglang_fair               | 229.8003    | 2384.6869   | 19.9565 | 105.5969 | 1.0090 | 1.0000 | 0.0036       | 4.2075         | 115.2768 | 0.0036               | 115.2768   | 0.0023             | 2.7172               | 178.5049     | 0.0036            | 115.2768
+ServerlessLLM:serverlessllm_fair | 235998.6581 | 238580.9940 | 25.1611 | 98.4267  | 0.9605 | 0.0522 | 0.0027       | 3.1147         | 1.5604   | 0.0027               | 1.5604     | 0.0023             | 2.7190               | 1.7875       | 0.0037            | 1.1321  
+vLLM:vllm_fair                   | 517.3566    | 3223.2531   | 26.5733 | 104.5387 | 1.0089 | 0.9980 | 0.0036       | 4.2119         | 85.2015  | 0.0036               | 85.2015    | 0.0023             | 2.7166               | 132.0977     | 0.0036            | 85.2015 
+S-LoRA:slora_fair                | 284.2341    | 3591.1922   | 28.5173 | 116.4831 | 1.0090 | 0.9998 | 0.0037       | 4.2205         | 75.2993  | 0.0037               | 75.2993    | 0.0024             | 2.7072               | 117.3919     | 0.0037            | 75.2993 
+
+[Diagnostic Breakdown Metrics]
+System                           | TTFT_service_ms | E2E_service_ms | DispatchWait_ms | TTFT_comp_ms | TTFT_warm_ms | ColdStart_ms | ScaleUpAffected_ms | ScaleUpFirstService_ms | InfraGPU_s | InfraStartupGPU_s | InfraReadyGPU_s | InfraBilling_s | InfraMaxBillingGPU
+---------------------------------+-----------------+----------------+-----------------+--------------+--------------+--------------+--------------------+------------------------+------------+-------------------+-----------------+----------------+-------------------
+faaslora_full:faaslora_full      | 452.8069        | 3056.0779      | 111.1438        | 557.0596     | 537.1491     | 55240.9500   | 775.8250           | 6589.9383              | 16687.3854 | 165.6998          | 16521.6856      | 4264.4663      | 4.0000            
+SGLang:sglang_fair               | 214.4971        | 2369.3836      | 15.3033         | N/A          | N/A          | N/A          | N/A                | N/A                    | 17460.9543 | 403.3332          | 17057.6211      | 4365.2386      | 4.0000            
+ServerlessLLM:serverlessllm_fair | 418.2447        | 3000.5805      | 235580.4135     | N/A          | N/A          | 53434.3915   | 32374.7317         | 38779.5063             | 17771.0737 | 213.1401          | 17557.9336      | 4464.4301      | 4.0000            
+vLLM:vllm_fair                   | 503.8195        | 3209.7159      | 13.5372         | N/A          | N/A          | N/A          | N/A                | N/A                    | 17478.3132 | 419.7599          | 17058.5533      | 4369.5783      | 4.0000            
+S-LoRA:slora_fair                | 267.7403        | 3574.6984      | 16.4938         | N/A          | N/A          | N/A          | N/A                | N/A                    | 17750.5532 | 692.7023          | 17057.8509      | 4437.6383      | 4.0000            
+
+[Resource Efficiency Metrics]
+System                           | ActiveGPU_s | IdleReadyGPU_s | AvgRep | MaxRep | AvgGPU | MaxGPU | ActiveGPU% | IdleReadyGPU% | Req/GPU-s | Tok/GPU-s | GoodReq/GPU-s | GoodTok/GPU-s | MonetaryEqGPU_s | MonetaryActiveChargeGPU_s | MonetaryIdleChargeGPU_s | IdleGPUCostFactor
+---------------------------------+-------------+----------------+--------+--------+--------+--------+------------+---------------+-----------+-----------+---------------+---------------+-----------------+---------------------------+-------------------------+------------------
+faaslora_full:faaslora_full      | 10788.5522  | 5733.1333      | 3.9131 | 4.0000 | 3.9131 | 4.0000 | 0.6465     | 0.3436        | 0.2397    | 24.4107   | 0.2386        | 24.2143       | 12319.2838      | 10954.2520                | 1365.0318               | 0.2381           
+SGLang:sglang_fair               | 8904.2411   | 8153.3800      | 4.0000 | 4.0000 | 4.0000 | 4.0000 | 0.5100     | 0.4669        | 0.2291    | 23.9751   | 0.2291        | 23.9751       | 17460.9543      | 17460.9543                | 0.0000                  | 1.0000           
+ServerlessLLM:serverlessllm_fair | 11155.6380  | 6402.2956      | 3.9806 | 4.0000 | 3.9806 | 4.0000 | 0.6277     | 0.3603        | 0.2251    | 23.0651   | 0.0118        | 1.5723        | 12893.1342      | 11368.7781                | 1524.3561               | 0.2381           
+vLLM:vllm_fair                   | 11022.2042  | 6036.3490      | 4.0000 | 4.0000 | 4.0000 | 4.0000 | 0.6306     | 0.3454        | 0.2289    | 23.7127   | 0.2284        | 23.6813       | 17478.3132      | 17478.3132                | 0.0000                  | 1.0000           
+S-LoRA:slora_fair                | 12069.8633  | 4987.9877      | 4.0000 | 4.0000 | 4.0000 | 4.0000 | 0.6800     | 0.2810        | 0.2253    | 26.0157   | 0.2253        | 26.0071       | 17750.5532      | 17750.5532                | 0.0000                  | 1.0000           
+
+[Execution Envelope Audit]
+System                           | MaxModelLen | MaxInputLen | MaxOutputCap | RuntimeCap | MaxSeqs | MaxLoras
+---------------------------------+-------------+-------------+--------------+------------+---------+---------
+faaslora_full:faaslora_full      | 1024        | N/A         | N/A          | 2          | 2       | 4       
+SGLang:sglang_fair               | 1024        | N/A         | N/A          | 2          | 2       | 4       
+ServerlessLLM:serverlessllm_fair | 1024        | N/A         | N/A          | 2          | 2       | 4       
+vLLM:vllm_fair                   | 1024        | N/A         | N/A          | 2          | 2       | 4       
+S-LoRA:slora_fair                | 1024        | N/A         | N/A          | 2          | 2       | 4       
+
+[Parallelism Topology Audit]
+System                           | TP | GPU/Req | RuntimeGPUs | VisibleGPUs | Topology             
+---------------------------------+----+---------+-------------+-------------+----------------------
+faaslora_full:faaslora_full      | 1  | 1       | 1           | 4           | single_gpu_scaleout  
+SGLang:sglang_fair               | 1  | 1       | 4           | N/A         | data_parallel_dp4_tp1
+ServerlessLLM:serverlessllm_fair | 1  | 1       | 1           | N/A         | single_gpu           
+vLLM:vllm_fair                   | 1  | 1       | 4           | N/A         | data_parallel_dp4_tp1
+S-LoRA:slora_fair                | 1  | 1       | 4           | N/A         | data_parallel_dp4_tp1
+
+[Deadline / Effective Service Metrics]
+System                           | E2E<= 300s | CompletionRate | TTFT<= 300s | TTFTRate | TokenCoverage | EffRPS  | EffTok/s 
+---------------------------------+------------+----------------+-------------+----------+---------------+---------+----------
+faaslora_full:faaslora_full      | 4000/4000  | 1.0000         | 4000/4000   | 1.0000   | 1.0000        | 13.3333 | 1357.8367
+SGLang:sglang_fair               | 4000/4000  | 1.0000         | 4000/4000   | 1.0000   | 1.0000        | 13.3333 | 1395.4300
+ServerlessLLM:serverlessllm_fair | 2434/4000  | 0.6085         | 2440/4000   | 0.6100   | 0.6029        | 8.1133  | 823.7567 
+vLLM:vllm_fair                   | 4000/4000  | 1.0000         | 4000/4000   | 1.0000   | 1.0000        | 13.3333 | 1381.5267
+S-LoRA:slora_fair                | 4000/4000  | 1.0000         | 4000/4000   | 1.0000   | 1.0000        | 13.3333 | 1539.3100
+
+[Served Token Distribution Audit]
+System                           | PromptTokAvg | PromptTokMax | OutTokAvg | OutTokMax | OutTok>256
+---------------------------------+--------------+--------------+-----------+-----------+-----------
+faaslora_full:faaslora_full      | 761.12       | 986          | 101.84    | 333       | 3         
+SGLang:sglang_fair               | 759.92       | 984          | 104.66    | 333       | 166       
+ServerlessLLM:serverlessllm_fair | 759.92       | 984          | 102.47    | 333       | 165       
+vLLM:vllm_fair                   | 760.92       | 985          | 103.61    | 333       | 165       
+S-LoRA:slora_fair                | 760.77       | 984          | 115.45    | 334       | 822       
+wrote comparison table -> /home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/compare/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_five_system_compare.json

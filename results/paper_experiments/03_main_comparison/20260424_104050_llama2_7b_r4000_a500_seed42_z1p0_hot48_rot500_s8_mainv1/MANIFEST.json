@@ -1,0 +1,33 @@
+{
+  "run_tag": "llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1",
+  "model_profile": "llama2_7b_main_v2_publicmix",
+  "dataset_profile": "azure_sharegpt_rep4000",
+  "workload_profile": "llama2_7b_auto500_formal4000_s8",
+  "total_requests": 4000,
+  "selected_num_adapters": 500,
+  "sampling_seed": 42,
+  "shared_trace_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+  "shared_adapter_subset_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json",
+  "systems": [
+    "sglang",
+    "serverlessllm",
+    "vllm",
+    "slora",
+    "faaslora"
+  ],
+  "metric_schema_version": "e2e_v3",
+  "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1",
+  "state_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/state",
+  "compare_json": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/compare/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_five_system_compare.json",
+  "compare_txt": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/compare/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_five_system_compare.txt",
+  "baseline_git": {
+    "path": "/home/qhq/serverless_llm_baselines",
+    "branch": "main",
+    "commit": "5a6bb7442489debb0ecb70b61598306b5e123692"
+  },
+  "faaslora_git": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+    "branch": "retry14_continuous_queue_v2",
+    "commit": "cd0a527da86e62eb4c410d5058fcb8994ab3c284"
+  }
+}

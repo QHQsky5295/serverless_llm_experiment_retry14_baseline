@@ -103,7 +103,7 @@ ensure_gpu_set_idle() {
     local procs=()
     local query_output=""
     query_output="$(nvidia-smi --id="${gpu}" --query-compute-apps=pid,used_gpu_memory --format=csv,noheader,nounits 2>/dev/null || true)"
-    mapfile -t procs < <(printf '%s\n' "${query_output}" | sed '/^[[:space:]]*$/d' | rg '^[[:space:]]*[0-9]+[[:space:]]*,')
+    mapfile -t procs < <(printf '%s\n' "${query_output}" | sed '/^[[:space:]]*$/d' | grep -E '^[[:space:]]*[0-9]+[[:space:]]*,')
     if (( ${#procs[@]} > 0 )); then
       echo "[ERROR] ${label} target GPU ${gpu} is not idle; active compute processes detected:" >&2
       printf '  %s\n' "${procs[@]}" >&2

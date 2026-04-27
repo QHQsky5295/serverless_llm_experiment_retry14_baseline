@@ -10,6 +10,7 @@ WORKLOAD_PROFILE="${SLLM_WORKLOAD_PROFILE:-llama2_7b_auto500_formal4000_s8}"
 TOTAL_REQUESTS="${SLLM_TOTAL_REQUESTS:-4000}"
 SELECTED_NUM_ADAPTERS="${SLLM_SELECTED_NUM_ADAPTERS:-500}"
 SAMPLING_SEED="${SLLM_SAMPLING_SEED:-42}"
+TIME_SCALE_FACTOR="${SLLM_TIME_SCALE_FACTOR:-}"
 
 default_run_tag() {
   local model="$1" workload="$2" requests="$3" adapters="$4" seed="$5"
@@ -68,6 +69,7 @@ write_round_env() {
     printf 'export SLLM_TOTAL_REQUESTS=%q\n' "${TOTAL_REQUESTS}"
     printf 'export SLLM_SELECTED_NUM_ADAPTERS=%q\n' "${SELECTED_NUM_ADAPTERS}"
     printf 'export SLLM_SAMPLING_SEED=%q\n' "${SAMPLING_SEED}"
+    printf 'export SLLM_TIME_SCALE_FACTOR=%q\n' "${TIME_SCALE_FACTOR}"
   } >"${ROUND_ENV_FILE}"
 }
 
@@ -339,6 +341,7 @@ run_prep() {
     SLLM_TOTAL_REQUESTS="${TOTAL_REQUESTS}" \
     SLLM_SELECTED_NUM_ADAPTERS="${SELECTED_NUM_ADAPTERS}" \
     SLLM_SAMPLING_SEED="${SAMPLING_SEED}" \
+    SLLM_TIME_SCALE_FACTOR="${TIME_SCALE_FACTOR}" \
     SLLM_RUN_TAG="${RUN_TAG}" \
     bash "${BASELINES_ROOT}/scripts/prepare_shared_round_artifacts.sh"
   [[ -f "${TRACE_PATH}" ]] || { echo "[ERROR] missing trace: ${TRACE_PATH}" >&2; return 1; }
@@ -535,8 +538,40 @@ run_faaslora() {
 run_compare() {
   local stage="90_compare"
   if is_done "${stage}"; then
-    log "skip ${stage}; marker exists"
-    return 0
+    local compare_json="${COMPARE_DIR}/${RUN_TAG}_five_system_compare.json"
+    if python3 - "${compare_json}" "${SYSTEMS}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+systems = sys.argv[2].split()
+if not path.exists():
+    raise SystemExit(1)
+data = json.loads(path.read_text(encoding="utf-8"))
+rows = data.get("strict_rows") or []
+seen = set()
+for row in rows:
+    name = str(row[0]).lower() if row else ""
+    if "faaslora" in name:
+        seen.add("faaslora")
+    elif "sglang" in name:
+        seen.add("sglang")
+    elif "serverlessllm" in name:
+        seen.add("serverlessllm")
+    elif "vllm" in name:
+        seen.add("vllm")
+    elif "s-lora" in name or "slora" in name:
+        seen.add("slora")
+missing = [system for system in systems if system not in seen]
+if missing:
+    raise SystemExit(1)
+PY
+    then
+      log "skip ${stage}; marker exists and compare contains selected systems"
+      return 0
+    fi
+    log "${stage} marker exists but compare is missing selected systems; regenerating compare"
   fi
   local compare_json="${COMPARE_DIR}/${RUN_TAG}_five_system_compare.json"
   local compare_txt="${COMPARE_DIR}/${RUN_TAG}_five_system_compare.txt"

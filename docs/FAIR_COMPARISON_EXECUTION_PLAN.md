@@ -292,3 +292,91 @@ timestamped round 目录为准。
 调参。下一步应优先按 `PAPER_EXPERIMENT_TODO.md` 推进论文实验序列：
 引言图、motivation、ablation、workload/adapters scale、资源/成本图。若要
 把 S-LoRA 写进主表强对比，则先做一次 targeted EOS/输出语义审计。
+
+## 11. 长期数据队列
+
+2026-04-26 已新增长期队列脚本：
+
+```text
+/home/qhq/serverless_llm_baselines/scripts/run_paper_long_experiment_queue.sh
+```
+
+当前默认 profile 为 `load_p0`，连续运行完整五系统 high-pressure sensitivity：
+
+```text
+06_sensitivity_load / Llama-2 7B / s6 / sglang serverlessllm vllm slora faaslora
+06_sensitivity_load / Llama-2 7B / s4 / sglang serverlessllm vllm slora faaslora
+```
+
+2026-04-27 审计后，`s6/s4` 被降级为 stress diagnostic：它们会把
+PrimeLoRA 推入持续高负载边界，dispatch/admission wait 放大后 CE 被 SGLang
+反超，不适合作为主文“负载稳健性优势”图。为验证 serverless 合理运行区间，
+新增 `load_operating_p0`：
+
+```text
+06_sensitivity_load_operating / Llama-2 7B / s12 / sglang serverlessllm vllm slora faaslora
+06_sensitivity_load_operating / Llama-2 7B / s10 / sglang serverlessllm vllm slora faaslora
+```
+
+这两个点与已有 s8 主 round 组成低/中/名义负载三点：s12 约 `0.67 rps`、
+s10 约 `0.81 rps`、s8 约 `1.01 rps`。选择依据是 s8 下 PrimeLoRA
+`ActiveGPU%≈0.65` 且 `DispatchWait≈111 ms`，仍是可解释的 serverless
+名义负载；s10/s12 则把 active 占比外推到约 `0.52/0.43`，分别对应中、
+低负载。s6/s4 由于 dispatch wait 明显放大，只作为 stress diagnostic。
+
+该队列只改变 `SLLM_TIME_SCALE_FACTOR`，保持已闭合主 round 的模型、请求数、
+adapter pool、seed、Zipf、hot set 和 rotation 语义。`run_full_fair_round.sh`
+已同步透传 `SLLM_TIME_SCALE_FACTOR` 到 shared trace prepare 阶段，避免
+run tag 与真实 trace scale 不一致。
+
+如果为了快速探路显式覆盖 `PAPER_QUEUE_SYSTEMS="sglang vllm slora faaslora"`，
+该结果只能标注为 partial sensitivity，不能作为完备横向对比。后续必须补跑
+ServerlessLLM 并重新生成 compare。2026-04-27 已修复队列断点逻辑：即使
+queue-level `.done` marker 已存在，只要 compare JSON 缺少当前
+`PAPER_QUEUE_SYSTEMS` 中的系统，队列也会重新进入该 round；底层
+`run_full_fair_round.sh` 会跳过已完成系统，只补缺失系统并重写 compare。
+
+注意：不要在某个 bash 脚本仍在 tmux 中执行时热修改该脚本文件。bash 会按需
+继续读取脚本内容，热修改可能导致当前进程在后续行遇到不一致内容并报
+`unexpected token`。若必须修脚本，先让当前阶段失败/停止并清洁 GPU，再用
+同一 queue id 断点续跑。
+
+启动命令：
+
+```bash
+cd /home/qhq/serverless_llm_baselines
+tmux new -s paper_load_p0
+
+PAPER_QUEUE_PROFILE=load_p0 \
+scripts/run_paper_long_experiment_queue.sh
+```
+
+如果目标是生成可进入主文的低/中/名义负载 sensitivity，使用：
+
+```bash
+cd /home/qhq/serverless_llm_baselines
+tmux new -s paper_load_operating_p0
+
+PAPER_QUEUE_PROFILE=load_operating_p0 \
+scripts/run_paper_long_experiment_queue.sh
+```
+
+队列会写出：
+
+```text
+results/paper_experiments/00_queues/<queue_id>/queue.env
+results/paper_experiments/06_sensitivity_load/<queue_id>_<run_tag>/
+```
+
+失败后建议显式指定完整系统列表继续，避免旧 partial `queue.env` 把
+ServerlessLLM 再次排除：
+
+```bash
+cd /home/qhq/serverless_llm_baselines
+PAPER_QUEUE_ID=<queue_id> \
+PAPER_QUEUE_PROFILE=<load_p0_or_load_operating_p0> \
+PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
+bash scripts/run_paper_long_experiment_queue.sh
+```
+
+已完成且 compare 完整的 round 不会重跑；已完成但缺系统的 round 会自动补齐。
