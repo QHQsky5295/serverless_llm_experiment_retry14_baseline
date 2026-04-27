@@ -50,7 +50,7 @@ batched generation as independent knobs.
 
 Observable evidence should come from:
 
-- `TPOT`
+- `TPOT avg/p95`
 - throughput
 - cold-start and scale-up diagnostics
 - GPU-second / active-idle resource metrics
@@ -63,7 +63,7 @@ Cross-system headline metrics are limited to fields shared by all systems:
 ```text
 TTFT_e2e avg/p95
 E2E_e2e avg/p95
-TPOT
+TPOT avg/p95
 Throughput_tok_s
 Cost/req
 CE

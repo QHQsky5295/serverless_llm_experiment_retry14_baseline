@@ -19,11 +19,12 @@ tmux session: paper_load_operating_p0
 queue id:     20260427_112832_load_operating_p0
 profile:      load_operating_p0
 systems:      sglang serverlessllm vllm slora faaslora
-active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
 ```
 
-截至 `2026-04-27 13:03 CST`，该 run 约完成 `3768/4000` 请求，`fail=0`，
-ETA 约 6 分钟，属于健康运行。若用户看到“终端退出”，优先检查 tmux：
+截至 `2026-04-27 23:57 CST`，队列已进入 `s10` run 的 vLLM 阶段，约完成
+`2449/4000` 请求，`fail=0`，ETA 约 29 分钟，属于健康运行。
+若用户看到“终端退出”，优先检查 tmux：
 
 ```bash
 tmux capture-pane -p -t paper_load_operating_p0 -S -120
@@ -98,6 +99,11 @@ Cost/req = total monetary cost / completed requests
 
 CE       = 1 / (avg E2E_e2e in seconds * Cost/req)
 ```
+
+TPOT is also a per-request latency distribution, not a scalar-only throughput
+proxy. Formal tables and latency comparisons must therefore report at least
+`TPOT avg` and `TPOT p95`, computed only from observed request-level
+`tpot_ms` samples where `tpot_observed` is not false.
 
 `Cost/1M tokens` 只作为补充审计指标，用来说明 token workload 没有异常偏移；主成本指标仍是 `Cost/req`，主性价比指标仍是 `CE`。
 
@@ -226,7 +232,8 @@ time_scale_factor in {8.0, 6.0, 4.0, 2.0, 1.0}
 | P95 TTFT_service | `p95_service_ttft_ms` | `TTFT_service_P95_ms` | 服务路径尾延迟 |
 | Avg E2E_e2e | `avg_overall_e2e_ms` | `E2E_e2e_avg_ms` | 主完成延迟 |
 | P95 E2E_e2e | `p95_overall_e2e_ms` | `E2E_P95_ms` | 主完成尾延迟 |
-| TPOT | `avg_tpot_ms` | `TPOT_avg_ms` | decode 速度 |
+| Avg TPOT | `avg_tpot_ms` | `TPOT_avg_ms` | decode 平均速度 |
+| P95 TPOT | request-level observed `tpot_ms` p95 / `p95_tpot_ms` when exported | `TPOT_P95_ms` when exported | decode 尾部延迟 |
 | Throughput RPS | `throughput_rps` | `Throughput_RPS` | 请求吞吐 |
 | Throughput TOK/s | `throughput_tok_per_s` | `Throughput_TOKPS` | token 吞吐 |
 | SLO attainment | `slo_attainment` | `SLO_attainment` | SLO 达成率 |
@@ -311,17 +318,23 @@ time_scale_factor in {8.0, 6.0, 4.0, 2.0, 1.0}
 
 ## 3. 论文图与实验 checklist
 
-### 3.1 引言图：Cost-Latency-CE teaser
+### 3.1 引言图：Serverless cost-efficiency opportunity
 
-目标：开篇说明 PrimeLoRA 位于更优 cost-latency tradeoff：E2E 可以接近 serverful，成本显著低于 serverful，CE 更高。
+目标：放在 Introduction 第二段之后，说明 representative Llama-2 7B 主实验下
+serverless-style execution 相比
+always-on serverful runtimes 有 lifecycle-cost / CE 机会。adapter--replica
+mismatch 的 request-level 证据不放在 Fig. 1，统一留给 Motivation 的 Fig. 2/3，
+避免引言图和后文 motivation 重合，也避免把 PrimeLoRA 自身 instrumentation
+误读成系统缺陷。它不是所有延迟最优 teaser。
 
 图形建议：
 
-- 一张 Pareto scatter。
-- X 轴：`Cost/req`。
-- Y 轴：`Avg E2E_e2e`。
-- 点大小或标签：`CE`。
-- 误差棒：`P95 E2E_e2e`。
+- 单栏 cost-vs-CE scatter，尺寸约 `3.45in x 1.55in`。
+- X 轴：`Cost/req (mUSD)`，越低越好。
+- Y 轴：`CE`，越高越好。
+- serverless-style 系统用 diamond，serverful 系统用 circle。
+- 坐标轴使用箭头，方便作为 intro teaser 快速读图。
+- 不包含 `(a)`/`(b)` 子图标题；所有系统名禁止换行，尤其是 `ServerlessLLM`。
 
 系统：
 
@@ -329,16 +342,16 @@ time_scale_factor in {8.0, 6.0, 4.0, 2.0, 1.0}
 - SGLang DP4/TP1。
 - vLLM DP4/TP1。
 - ServerlessLLM。
+- S-LoRA DP4/TP1。
 
 字段：
 
 | 图中元素 | 必需字段 | 状态 |
 |---|---|---|
-| X: Cost/req | `monetary_cost_per_request_usd` | 已有 |
-| Y: Avg E2E | `avg_overall_e2e_ms` | 已有 |
-| Error: P95 E2E | `p95_overall_e2e_ms` | 已有 |
-| Label: CE | `monetary_ce` | 已有 |
-| Sanity | `completed_requests`, `total_requests`, `total_tokens` | 已有 |
+| Cost point | `monetary_cost_per_request_usd * 1000` | 已有 |
+| CE point | `monetary_ce` | 已有 |
+| Runtime class | fixed mapping: serverless-style vs serverful | 已有 |
+| Sanity | `completed_requests`, `total_requests`, request count | 已有 |
 
 run family：
 
@@ -346,14 +359,8 @@ run family：
 intro_teaser
 ```
 
-run tag 示例：
-
-```text
-llama2_7b_r4000_a500_z1p0_hot48_rot500_s8_seed42_intro_teaser_faaslora_full_v1
-llama2_7b_r4000_a500_z1p0_hot48_rot500_s8_seed42_intro_teaser_sglang_dp4_tp1_v1
-llama2_7b_r4000_a500_z1p0_hot48_rot500_s8_seed42_intro_teaser_vllm_dp4_tp1_v1
-llama2_7b_r4000_a500_z1p0_hot48_rot500_s8_seed42_intro_teaser_sllm_vllm_v1
-```
+取数目录使用已经闭合的主横向 round：
+`03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1`。
 
 ### 3.2 Workload characterization
 
@@ -388,94 +395,96 @@ llama2_7b_r4000_a500_z1p0_hot48_rot500_s8_seed42_intro_teaser_sllm_vllm_v1
 - 保存 trace、adapter subset、生成命令和 seed。
 - 如果 trace artifact 没有显式记录 `zipf_exponent`、`hotset_rotation_requests`，在 run manifest 中补记录；不要在论文中从结果反推。
 
-### 3.3 Motivation 1：Adapter-replica mismatch 的存在性
+### 3.3 Motivation 1：Serverless readiness gap
 
-目标：证明 dynamic many-LoRA serverless 场景中，adapter readiness 会进入首 token 前关键路径。
+目标：用 representative external baseline 证明 dynamic many-LoRA serverless
+场景中，runtime/model-level ready 不等于 service-ready。该图不展示 PrimeLoRA
+收益，也不使用 PrimeLoRA internal instrumentation。
 
-建议只用 FaaSLoRA diagnostic/variant，不强行要求 baseline 输出内部 mismatch 事件。
-
-图形建议：
-
-- 分组柱：`Avg TTFT_e2e`、`P95 TTFT_e2e`、`Avg LoRA I/O`、`GPU hit rate`。
-- 对比对象：无预加载/弱预加载 variant vs full PrimeLoRA。
-
-字段：
-
-| 内容 | 字段 | 状态 |
-|---|---|---|
-| Avg TTFT | `avg_overall_ttft_ms` | 已有 |
-| P95 TTFT | `p95_overall_ttft_ms` | 已有 |
-| LoRA I/O | `avg_lora_io_ms` | 已有 |
-| GPU hit | `gpu_hit_rate` | 已有 |
-| Scale-up affected TTFT | `avg_scaleup_affected_ttft_ms`, `p95_scaleup_affected_ttft_ms` | 已有 |
-
-run family：
+当前使用 ServerlessLLM replay，输出：
 
 ```text
-motivation_mismatch
+figs/paper/motivation/fig2_mismatch.pdf
 ```
 
-可运行变体：
+图形：
 
-- `faaslora_full`
-- `faaslora_no_preload`
-- `faaslora_no_hit_aware_placement`
-
-### 3.4 Motivation 2：Serverful low latency but high lifecycle cost
-
-目标：说明 serverful 系统在 latency 上通常强，但由于常驻 GPU 生命周期成本高，Cost/req 和 CE 不一定优。
-
-图形建议：
-
-- 双轴或两个子图。
-- 子图 A：Avg/P95 E2E。
-- 子图 B：Cost/req、CE。
-
-系统：
-
-- SGLang DP4/TP1。
-- vLLM DP4/TP1。
-- PrimeLoRA full。
+- Panel (a)：ServerlessLLM TTFT path，stacked horizontal bars，
+  `dispatch_admission_wait_ms + runtime_ttft_ms`，展示 Avg 与 p95。
+- Panel (b)：startup-affected requests breakdown，grouped bars，
+  `cold_start_latency_ms`、`dispatch_admission_wait_ms`、`runtime_ttft_ms`，
+  展示 Avg 与 p95。
 
 字段：
 
 | 内容 | 字段 | 状态 |
 |---|---|---|
-| Avg E2E | `avg_overall_e2e_ms` | 已有 |
-| P95 E2E | `p95_overall_e2e_ms` | 已有 |
-| Cost/req | `monetary_cost_per_request_usd` | 已有 |
-| CE | `monetary_ce` | 已有 |
-| GPU lifecycle | `infra_gpu_seconds_total`, `monetary_equivalent_gpu_seconds` | 已有 |
-| Active/idle split | `infra_active_gpu_seconds`, `infra_idle_ready_gpu_seconds` | 已有 |
+| Overall TTFT | `overall_ttft_ms` | 已有 |
+| Admission wait | `dispatch_admission_wait_ms` / `replay_dispatch_wait_ms` | 已有 |
+| Runtime TTFT | `runtime_ttft_ms` / `service_ttft_ms` | 已有 |
+| Startup affected | `scaleup_affected`, `scaleup_first_service` | 已有 |
+| Cold start | `cold_start_latency_ms` | 已有 |
 
-### 3.5 Motivation 3：General serverless LLM 不等于 many-LoRA serverless LLM
+边界：
 
-目标：证明 ServerlessLLM 擅长模型级启动/迁移，但在 many-LoRA adapter readiness 上不是专门优化。
+- ServerlessLLM replay 当前没有 per-request adapter-tier/load 字段，不能写成
+  adapter transfer/tier 图。
+- 该图证明 service-readiness gap，不证明 PrimeLoRA 的系统收益。
+
+### 3.4 Motivation 2：Adapter churn 的存在性
+
+目标：用 shared replay + S-LoRA external baseline 证明大 adapter pool 与热点迁移
+会产生 first-touch / long-gap reuse 请求，这些请求在代表性 multi-LoRA runtime
+中具有更重的 TTFT tail。该图不做横向系统优劣比较。
+
+当前输出：
+
+```text
+figs/paper/motivation/fig3_tier.pdf
+```
 
 图形建议：
 
-- Grouped bar：Avg/P95 TTFT_e2e、Avg/P95 E2E_e2e、Cost/req、CE。
-- 附加表：SLO attainment、SLO goodput。
-
-系统：
-
-- ServerlessLLM。
-- PrimeLoRA full。
+- Panel (a)：shared replay adapter reuse mix，stacked horizontal bar。
+- Panel (b)：S-LoRA TTFT CDF by reuse bucket。
 
 字段：
 
 | 内容 | 字段 | 状态 |
 |---|---|---|
-| Avg TTFT | `avg_overall_ttft_ms` | 已有 |
-| P95 TTFT | `p95_overall_ttft_ms` | 已有 |
-| Avg E2E | `avg_overall_e2e_ms` | 已有 |
-| P95 E2E | `p95_overall_e2e_ms` | 已有 |
-| Cost/req | `monetary_cost_per_request_usd` | 已有 |
-| CE | `monetary_ce` | 已有 |
-| SLO | `slo_attainment` | 已有 |
-| SLO goodput | `slo_goodput_rps`, `slo_goodput_tok_per_s` | 已有 |
+| Adapter identity | `adapter_id` | 已有 |
+| Arrival/order | `arrival_time_s`, request order | 已有 |
+| TTFT | `overall_ttft_ms` | 已有 |
 
-### 3.6 Main comparison
+reuse bucket 定义：
+
+```text
+first touch: adapter 第一次出现
+hot reuse:   距离上次同 adapter 请求 <= 16 个请求
+warm reuse:  17-64 个请求
+cold reuse:  > 64 个请求
+```
+
+边界：
+
+- 当前 S-LoRA/vLLM replay 没有 per-request resident/fetch/tier 或
+  adapter-transfer 字段，不能画 tier/transfer 图，也不能根据 TTFT 大小反推
+  cache hit/miss。
+- vLLM 可以作为后续替代/补充 external runtime，但当前主文 Motivation 不把
+  S-LoRA/vLLM 做成横向评估图。
+
+### 3.5 Evaluation-only：Serverful latency/cost tradeoff
+
+serverful low latency but high lifecycle cost 属于 Evaluation 主结果或 cost 分析，
+不再作为 Motivation 图。相关证据由 Table 1、Fig. 1 和 Fig. 7 共同承担。
+
+### 3.6 Evaluation-only：General serverless LLM 对比
+
+ServerlessLLM 与 PrimeLoRA 的完整横向差异属于 Evaluation，不放 Motivation。
+Motivation 的 ServerlessLLM 图只说明 admission/startup readiness gap；不能提前
+展示 PrimeLoRA 相对 ServerlessLLM 的收益。
+
+### 3.7 Main comparison
 
 目标：正式横向对比 PrimeLoRA、SGLang、vLLM、ServerlessLLM。
 
@@ -487,7 +496,7 @@ motivation_mismatch
 | P95 TTFT | `p95_overall_ttft_ms` | 已有 |
 | Avg E2E | `avg_overall_e2e_ms` | 已有 |
 | P95 E2E | `p95_overall_e2e_ms` | 已有 |
-| TPOT | `avg_tpot_ms` | 已有 |
+| TPOT avg/p95 | `avg_tpot_ms`, request-level observed `tpot_ms` p95 | 已有 |
 | Throughput TOK/s | `throughput_tok_per_s` | 已有 |
 | Cost/req | `monetary_cost_per_request_usd` | 已有 |
 | CE | `monetary_ce` | 已有 |
@@ -495,12 +504,15 @@ motivation_mismatch
 
 主图建议：
 
-- 图 A：Avg/P95 TTFT grouped bar。
-- 图 B：Avg/P95 E2E grouped bar。
-- 图 C：Cost/req grouped bar。
-- 图 D：CE grouped bar。
+- 当前 Fig. 5：左图 CE ranking，右图 TTFT/E2E/TPOT/Cost normalized matrix。
+- 图中 PrimeLoRA 相对 SGLang 的 CE 优势约为 `+7%`，这是 formal 五系统
+  round 中 against strongest CE baseline 的保守结论；相对 vLLM 约为
+  `+44%`，相对当前 ServerlessLLM baseline 约为 `79x`。
+- 若后续另画 expanded main figure，可使用 Avg/P95 TTFT、Avg/P95 E2E、
+  Avg/P95 TPOT、Cost/req 和 CE 的 grouped/relative view，但不要替代
+  Table 1 的完整数值。
 
-注意：延迟图每次都同时放 Avg 和 P95，方便同时看平均体验和尾延迟。CE 不放 P95，因为当前主 CE 定义是基于平均 E2E 和 Cost/req 的 workload-level 指标。
+注意：延迟图每次都同时放 Avg 和 P95，方便同时看平均体验和尾延迟；TPOT 也必须遵守这一规则。CE 不放 P95，因为当前主 CE 定义是基于平均 E2E 和 Cost/req 的 workload-level 指标。
 
 run family：
 

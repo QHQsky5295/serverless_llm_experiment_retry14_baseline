@@ -32,7 +32,7 @@ Baseline: 0241cdf Add paper experiment queue and confirmed comparisons
 
 ## 2. Current Terminal State
 
-As of `2026-04-27 13:03 CST`, the long experiment did not fail. The foreground
+As of `2026-04-27 23:57 CST`, the long experiment did not fail. The foreground
 terminal may have exited, but the experiment is still running inside tmux.
 
 ```text
@@ -40,7 +40,7 @@ active tmux session: paper_load_operating_p0
 queue id:            20260427_112832_load_operating_p0
 queue profile:       load_operating_p0
 systems:             sglang serverlessllm vllm slora faaslora
-active run tag:      llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+active run tag:      llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
 active section:      06_sensitivity_load_operating
 ```
 
@@ -51,26 +51,28 @@ queue env:
 /home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/queue.env
 
 queue log:
-/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/logs/06_sensitivity_load_operating_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1.log
+/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/logs/06_sensitivity_load_operating_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1.log
 
 round dir:
-/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
 ```
 
 Observed progress at handoff:
 
 ```text
-arrived/done: about 3768/4000
+active stage:  vLLM in the s10 run
+arrived/done: about 2451/2449 of 4000
 fail:         0
-ETA:          about 6 minutes for the current system stage
-TTFT_e2e:     avg/p95/p99 about 229/301/313 ms
-E2E_e2e:      avg/p95/p99 about 2308/5528/5795 ms
+ETA:          about 29 minutes for the current vLLM stage
+TTFT_e2e:     avg/p95/p99 about 469/796/2350 ms
+E2E_e2e:      avg/p95/p99 about 2987/7264/7948 ms
+TPOT avg:     about 26.1 ms in the live summary
 SLO@5000 ms:  100%
 ```
 
-The state directory only contained `00_prep.done`, so the first system stage was
-still running. The metrics look like a serverful baseline stage rather than
-FaaSLoRA; do not infer final Fig. 8 behavior from this partial live output.
+The queue has advanced beyond the earlier s12 round into the s10 run; the
+active log is `30_vllm.log`. These are partial live
+metrics for one system stage, not final Fig. 8 behavior.
 
 Safe monitor commands:
 
@@ -108,18 +110,35 @@ figs/paper/main/fig1_intro_teaser.pdf
 figs/paper/main/table1_end_to_end.tex
 figs/paper/main/fig5_main_normalized.pdf
 figs/paper/main/fig7_lifecycle_cost.pdf
-figs/paper/ablation/fig2_mismatch.pdf
-figs/paper/ablation/fig3_tier.pdf
+figs/paper/motivation/fig2_mismatch.pdf
+figs/paper/motivation/fig3_tier.pdf
 figs/paper/ablation/fig4_coordination.pdf
 figs/paper/ablation/fig6_ablation.pdf
 ```
 
+Current generated multi-panel figures use panel captions below each panel and
+offset value labels; do not move `(a)/(b)` titles back above the axes when
+redrawing figures. Fig. 1 is now a single-column cost-vs-CE opportunity scatter
+with arrow-style axes, no `(a)` subcaption, and no wrapped system names. The
+old Fig. 1(b)(c) request-level readiness panels were removed because they used
+PrimeLoRA instrumentation and overlapped Motivation. The latest redraw
+intentionally diversifies figure forms: Fig. 2 uses ServerlessLLM stacked/grouped
+bars for readiness gap, Fig. 3 uses shared-replay adapter-churn mix plus an
+S-LoRA CDF, Fig. 5 uses CE ranking plus a normalized matrix, Fig. 6 uses
+relative-change bar panels, and Fig. 7 uses stacked lifecycle breakdowns.
+
 Important interpretation boundaries:
 
-- Motivation figures should show that the problem exists; they should not
-  prematurely compare PrimeLoRA full against its ablations.
+- Motivation figures should show that the problem exists using external
+  baseline/workload observations. Do not use PrimeLoRA full or ablation
+  instrumentation as Motivation evidence; keep those results in
+  Evaluation/Ablation or appendix mechanism audit.
 - Current Llama-2 7B s8 main comparison supports a cost/CE-centered headline,
   not a claim that PrimeLoRA dominates every TTFT metric.
+- Fig. 5's `+7%` CE is specifically PrimeLoRA vs the strongest CE baseline,
+  SGLang, in the formal five-system round. The same data are about `+44%`
+  vs vLLM and about `79x` vs the current general ServerlessLLM baseline.
+  Do not mix older 500-request smoke/two-system results into this figure.
 - Fig. 8 sensitivity is not ready for the paper. Old `s4/s6/s8` data are stress
   diagnostics. The current `load_operating_p0` queue is collecting lower/medium
   operating points (`s12`, then `s10`) while keeping the same Llama-2 7B
@@ -144,6 +163,16 @@ seed:                  42
 main time scale:       s8
 operating sensitivity: s12 and s10, plus the existing s8 main point
 systems:               SGLang, ServerlessLLM, vLLM, S-LoRA, FaaSLoRA
+```
+
+Backbone model sources are outside the current repo checkout and are referenced
+by absolute paths in `configs/experiments.yaml`. This is expected:
+
+```text
+Llama-2 7B:  /home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf
+Llama-2 13B: /home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-13b-hf
+Qwen2.5 7B:  /home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct
+Qwen2.5 14B: /home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct
 ```
 
 The current queue intentionally includes ServerlessLLM. If ServerlessLLM fails,
@@ -173,9 +202,9 @@ it from the comparison.
 - Avoid tiny labels; target IEEE double-column readability.
 - Do not use log axes for main reader-facing comparisons unless explicitly
   justified.
-- Do not make every figure a bar chart. Use CDFs, lollipop/dumbbell plots,
-  numeric matrices, and stacked breakdowns where they answer the question more
-  clearly.
+- Do not make every figure the same shape. Use CDFs, grouped/progress bars,
+  CE rankings, numeric matrices, and stacked breakdowns where they answer the
+  question more clearly.
 - Do not plot near-identical absolute bars when the difference is invisible;
   use relative deltas or move the result into a table/text.
 - Do not add error bars unless repeated runs, seeds, or a clear CI/bootstrap
@@ -203,8 +232,14 @@ Use the following prompt to start a new Codex session:
 - FaaSLoRA repo 在 /home/qhq/serverless_llm_experiment_retry14_baseline，
   branch 是 retry14_continuous_queue_v2。
 - baseline repo 在 /home/qhq/serverless_llm_baselines，branch 是 main。
-- 已经闭合的主 Llama-2 7B s8 五系统对比可以支撑 Table 1、Fig. 1、Fig. 5、Fig. 7。
-- Motivation 图 Fig. 2/Fig. 3 和 ablation 图 Fig. 4/Fig. 6 已有 draft-ready PDF/CSV/manifest。
+- 已经闭合的主 Llama-2 7B s8 五系统对比可以支撑 Table 1、Fig. 1、Fig. 2、
+  Fig. 3、Fig. 5、Fig. 7。
+- Motivation 图 Fig. 2/Fig. 3 来自 external baseline/workload observation；
+  ablation 图 Fig. 4/Fig. 6 来自 PrimeLoRA variants，已有 draft-ready
+  PDF/CSV/manifest。
+- Table 1、Fig. 4、Fig. 5、Fig. 6、Fig. 7 已同步补上 TPOT avg/p95 口径；
+  Table 1 现在包含 `TPOT Avg` 与 `TPOT p95` 两列；Fig. 1 已改为 Introduction
+  第二段后的单栏 serverless cost/CE opportunity scatter。
 - 论文当前 tracked draft 在
   /home/qhq/serverless_llm_experiment_retry14_baseline/paper/primelora_current_draft.tex。
 - 当前不要声称 PrimeLoRA 在所有 TTFT 指标上都超过 SGLang/S-LoRA；主叙事应围绕
@@ -215,12 +250,12 @@ Use the following prompt to start a new Codex session:
   tmux capture-pane -p -t paper_load_operating_p0 -S -120
   nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader,nounits
 
-截至 2026-04-27 13:03 CST，paper_load_operating_p0 仍在运行，队列 id 是
+截至 2026-04-27 23:57 CST，paper_load_operating_p0 仍在运行，队列 id 是
 20260427_112832_load_operating_p0，profile 是 load_operating_p0，系统列表是
 sglang serverlessllm vllm slora faaslora，active tag 是
-llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1。它约完成
-3768/4000 请求且 fail=0，所以外层终端退出不等于实验失败。除非 tmux 和日志证明
-已经失败，否则不要重启。
+llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1。队列已经从
+较早的 s12 round 推进到 s10 round，当前在 vLLM 阶段，约完成 2449/4000 请求且 fail=0，
+所以外层终端退出不等于实验失败。除非 tmux 和日志证明已经失败，否则不要重启。
 
 如果它仍在跑：只汇报当前进度，不动脚本。
 如果它失败：读取

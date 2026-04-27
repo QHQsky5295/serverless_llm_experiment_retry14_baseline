@@ -78,21 +78,56 @@ Evaluation 放主表、消融、成本、稳健性。但不能原样执行，主
 - `Cost/1M tokens` 只能作为 token-normalized 审计；主成本指标必须是
   `Cost/req`，主 CE 使用 `avg E2E_e2e * Cost/req`。
 - 所有延迟图必须同时给 avg 和 p95，避免只用 tail 或只用 average 造成片面叙事。
-- S-LoRA 当前输出 token 尾部明显更长。若图中使用 `Tok/s`、`TPOT`、
+- S-LoRA 当前输出 token 尾部明显更长。若图中使用 `Tok/s`、`TPOT avg/p95`、
   `Cost/1M tokens`，必须在图注或分析中说明 token-tail audit，或先补做
   EOS/输出语义 targeted audit。
 
 ### 0.2 可以保留的地方
 
-- Introduction teaser 保留，但应改成“latency-cost-CE headline”，避免画
-  不可审计的 service-ready capacity 时间序列。
-- Motivation 图只保留“问题存在性”证据，应使用 FaaSLoRA raw request
-  中真实可观测的 request category、adapter tier 和 latency/I/O 字段。
-  不在 Motivation 中提前展示 PrimeLoRA 相对消融组或 baseline 的效果收益；
-  NoCoord vs Full 这类机制收益图放到 Evaluation/Ablation。
-- Evaluation 主表保留，指标为 `TTFT avg/p95`、`E2E avg/p95`、`TPOT`、
+- Introduction teaser 保留，但应放在 Introduction 第二段之后，用作
+  “serverless lifecycle-cost opportunity” 的前置证据图；adapter-readiness risk
+  的实证图移到 Motivation 的 Fig. 2/Fig. 3，避免引言中使用 PrimeLoRA 自身
+  instrumentation 造成“系统自己有问题”的误读。Fig. 1 不再作为所有延迟最优
+  headline，也不放在 “To address these challenges” 段落之后。
+- Motivation 图只保留“问题存在性”证据，并优先使用已有系统或代表性 baseline。
+  `faaslora_full`、`faaslora_no_coord`、`faaslora_nvme` 以及 PrimeLoRA 内部
+  instrumentation 不再用来证明“已有系统存在问题”。这些数据可进入
+  Evaluation/Ablation 或 appendix mechanism audit，但不能作为 Motivation 的
+  外部问题证据。NoCoord vs Full 这类机制收益图放到 Evaluation/Ablation。
+- Evaluation 主表保留，指标为 `TTFT avg/p95`、`E2E avg/p95`、`TPOT avg/p95`、
   `Tok/s`、`Cost/req`、`CE`。
 - Ablation、cost breakdown、sensitivity 保留，但必须先补齐对应实验。
+
+### 0.3 与 ServerlessLoRA 结论的边界
+
+ServerlessLoRA 报告了 serverless LoRA serving 相对 vLLM/dLoRA/InstaInfer/
+ServerlessLLM 的大幅 cost-effectiveness 提升。其核心原因是：普通 serverless
+LoRA 会为不同 LoRA function 重复加载几乎相同的 backbone 权重，ServerlessLoRA
+通过 backbone sharing、LoRA artifact pre-loading、contention-aware batching
+和 offloading 同时降低 E2E latency 与 monetary cost。
+
+这说明 serverless LoRA 的方向是有价值的，但不能直接推出 PrimeLoRA 在当前
+formal Fig. 5 中应当比 SGLang 高很多倍。原因如下：
+
+- Fig. 5 使用的是本项目闭合的五系统主 round，best CE baseline 是 SGLang，
+  不是 vLLM。SGLang 在该 workload 上 avg E2E 仅约 `2.38s`，显著低于
+  PrimeLoRA 的 `3.17s`，所以 PrimeLoRA 的 `Cost/req` 优势只转化为约
+  `1.07x` CE。
+- 如果以 vLLM 为参照，同一 Fig. 5 数据下 PrimeLoRA 的 CE 是约 `1.44x`；
+  如果以当前 general ServerlessLLM baseline 为参照，则是约 `79x`。因此
+  “只强 7%”只成立于“against strongest CE baseline SGLang”这个严苛口径。
+- 早期 Llama-2 7B smoke/two-system 结果和当前 formal round 不可混用：早期
+  结果通常请求数更少、baseline 集合不完整、成本/CE schema 尚未完全对齐，
+  只能作为调试历史，不能替代表格/图 5 的正式结论。
+
+若审稿人问“为什么不如 ServerlessLoRA 或为什么只比 SGLang 高 7%”，正文答法应为：
+PrimeLoRA 的 novelty 不是复现 ServerlessLoRA 的 backbone-sharing result，而是解决
+elastic multi-replica LoRA serving 中的 adapter--replica mismatch、tier-aware
+readiness 和 coordinated residency/admission。我们用强 serverful SGLang 作为
+best CE reference，报告的是 conservative end-to-end comparison；同时 Fig. 7
+解释成本来源，Fig. 6 解释机制边际贡献。若后续实现/对比 ServerlessLoRA，应作为
+额外 baseline 进入 robustness 或 related-work discussion，而不能用当前
+ServerlessLLM 数据代替。
 
 ## 1. 统一画图规则
 
@@ -125,7 +160,8 @@ Evaluation 放主表、消融、成本、稳健性。但不能原样执行，主
 | TTFT p95 | `p95_overall_ttft_ms` | 越小越好 |
 | E2E avg | `E2E_e2e_ms` 或 `avg_overall_e2e_ms` | 越小越好 |
 | E2E p95 | `p95_overall_e2e_ms` | 越小越好 |
-| TPOT | `avg_tpot_ms` | 越小越好 |
+| TPOT avg | `avg_tpot_ms` | 越小越好 |
+| TPOT p95 | request-level observed `tpot_ms` p95 / `p95_tpot_ms` when exported | 越小越好 |
 | Tok/s | `throughput_tok_per_s` | 越大越好 |
 | Cost/req | `monetary_cost_per_request_usd` | 越小越好 |
 | CE | `monetary_ce` | 越大越好 |
@@ -153,12 +189,18 @@ CE = 1 / (avg_E2E_e2e_seconds * Cost/req)
   固定用绿色强调，SGLang/vLLM/S-LoRA/ServerlessLLM 使用蓝、橙、青、红
   的稳定映射，避免每张图换色导致读者迷路。
 - 图中所有延迟单位统一为 ms 或 s，不混用。
+- 复合图的 panel caption 必须放在分图下方，例如
+  `(a) Serverless cost opportunity`，不要用 axes top title。图脚本中应通过
+  xlabel 下一行或等价布局实现，避免和主文 caption 的视觉层级冲突。
+- 点图、lollipop、dumbbell 和条形图的数值标注必须使用固定 offset，不能贴在
+  圆点、marker、线段、柱边或坐标轴上。导出 PDF 后要用 PNG 目检确认无重叠。
 - 复合图每个 panel 只回答一个问题。若一个 panel 需要同时展示 avg/p95，
   优先只展示同一类延迟（如 TTFT 或 E2E），不要把 TTFT、E2E、成本、
   readiness 全部塞入同一 panel。
-- 不把所有结果都画成柱状图。主结果可用表格和数值矩阵，机制图优先采用
-  CDF、dumbbell/lollipop、relative-change panel 或堆叠分解图。只有
-  “组成部分求和”或类别差异非常直观时才使用柱状图。
+- 不把所有结果都画成同一种图。主结果可用表格、CE ranking 和数值矩阵，
+  motivation 图优先采用 CDF、grouped bars 或 progress bars，机制图可采用
+  relative-change bar panel 或堆叠分解图。只有“组成部分求和”或类别差异
+  非常直观时才使用普通柱状图。
 - 当绝对值差异很小、柱高几乎不可区分时，禁止继续使用绝对柱状图。
   例如消融中的 `Cost/req` 差异小于 0.4\%，正式图应改用相对变化百分比
   或在正文/表格中报告。
@@ -175,14 +217,14 @@ CE = 1 / (avg_E2E_e2e_seconds * Cost/req)
 
 | 位置 | 图/表 | 类型 | 数据状态 | 优先级 |
 |---|---|---|---|---|
-| Introduction | Fig. 1 Teaser | p95 latency dumbbell + cost/CE ratio | 已有主 round | 必保留 |
-| Motivation | Fig. 2 Scale-out mismatch | request-class TTFT lollipop + readiness lollipop | 已生成，可用 raw full 做问题证据 | 必保留 |
-| Motivation | Fig. 3 Cross-tier adapter fetching | tier TTFT CDF + I/O lollipop | 已生成，可用 raw full 做问题证据 | 必保留 |
-| Motivation | Optional Fig. M3 Loading pressure | problem-only loading pressure observation | 当前缺稳定可观测字段，暂不放主文 | 可选 |
+| Introduction | Fig. 1 Teaser | single-column cost-vs-CE opportunity scatter | 已有主 round | 必保留 |
+| Motivation | Fig. 2 Serverless readiness gap | ServerlessLLM TTFT path + startup breakdown | 已生成，来自 external baseline | 必保留 |
+| Motivation | Fig. 3 Adapter churn in representative runtime | Shared replay reuse mix + S-LoRA reuse-distance CDF | 已生成，来自 external baseline | 建议保留 |
+| Motivation | Optional Fig. M3 Loading pressure | external-baseline switching/load observation | 当前缺稳定可观测字段，暂不放主文 | 可选 |
 | Evaluation | Table 1 Main comparison | 主表 | 已有 Llama-2 7B | 必保留 |
-| Evaluation | Fig. 5 Main normalized view | Numeric normalized matrix | 已有 Llama-2 7B | 可保留 |
-| Evaluation | Fig. 6 Ablation | Cumulative relative-change panels | 已生成 | 必保留 |
-| Evaluation | Fig. 6/7 subfigure Coordination effect | Full vs NoCoord relative-change panels | 已生成，Evaluation-only | 可保留 |
+| Evaluation | Fig. 5 Main outcome view | CE ranking + normalized latency/cost matrix | 已有 Llama-2 7B | 暂作为 appendix/备选 |
+| Evaluation | Fig. 6 Ablation | Cumulative relative-change bar panels | 已生成 | 必保留 |
+| Evaluation | Fig. 6/7 subfigure Coordination effect | Full vs NoCoord relative-change bar panels | 已生成，Evaluation-only | 可保留 |
 | Evaluation | Fig. 7 Lifecycle cost | Stacked monetary cost + GPU-time breakdown | 已有主 round | 必保留 |
 | Evaluation | Fig. 8 Sensitivity | Time scale / adapter pool | s4/s6/s8 已有但仅作 stress diagnostic；主文需重跑低/中负载 | 视篇幅 |
 | Evaluation | Table/Fig. 9 Multi-backbone robustness | 4 backbones main metrics | 需跑 13B/Qwen | 建议保留或附录 |
@@ -190,11 +232,14 @@ CE = 1 / (avg_E2E_e2e_seconds * Cost/req)
 如果主文篇幅紧，优先级顺序为：
 
 ```text
-Fig. 1 -> Table 1 -> Fig. 6 -> Fig. 7 -> Fig. 2/3 -> Fig. 8/9
+Fig. 1 -> Table 1 -> Fig. 2 -> Fig. 6 -> Fig. 7 -> Fig. 5/8/9
 ```
 
-其中 Fig. 2/3 是论文问题链，最好保留；NoCoord vs Full 属于机制收益证据，
-放在 Evaluation/Ablation，不放在 Motivation。Fig. 8/9 可以压缩到附录。
+其中 Fig. 2/Fig. 3 是当前已闭合的外部 baseline motivation 证据。Fig. 3 不再
+声称 per-request adapter tier 或 transfer latency，而是先展示 shared trace 中
+adapter reuse/churn 的 workload 事实，再用 S-LoRA 这个代表性 multi-LoRA runtime
+观察 TTFT tail 放大。NoCoord vs Full 属于机制收益证据，放在 Evaluation/Ablation，不放在
+Motivation。Fig. 5/8/9 可以压缩到附录或后续版本。
 
 ## 2.1 当前图表状态台账
 
@@ -203,14 +248,14 @@ Fig. 1 -> Table 1 -> Fig. 6 -> Fig. 7 -> Fig. 2/3 -> Fig. 8/9
 
 | 图/表 | 当前状态 | 已有文件或数据 | 是否可直接进论文 | 下一步 |
 |---|---|---|---|---|
-| Fig. 1 Teaser | 已重画，可进初稿 | `figs/paper/main/fig1_intro_teaser.pdf` 与同名 CSV/manifest | 可作为 Introduction 初版 | dumbbell/ratio 图；不写所有延迟最优 |
-| Fig. 2 Scale-out mismatch | 已重画 | `figs/paper/ablation/fig2_mismatch.pdf` 与同名 CSV/manifest | 可作为 Motivation 问题图初版 | 左图用 avg/p95 lollipop 保留 first-service 尾部差异 |
-| Fig. 3 Cross-tier fetching | 已重画 | `figs/paper/ablation/fig3_tier.pdf` 与同名 CSV/manifest | 可作为 Motivation 问题图初版 | 左图 CDF，右图 I/O lollipop，标注 tier 样本数 |
+| Fig. 1 Teaser | 已改为单栏单图，可进初稿 | `figs/paper/main/fig1_intro_teaser.pdf` 与同名 CSV/manifest | 可作为 Introduction 第二段后图 | 只证明 representative Llama-2 7B 主实验下的 serverless-style 成本/CE 机会；所有模型名不换行 |
+| Fig. 2 Serverless readiness gap | 已重画 | `figs/paper/motivation/fig2_mismatch.pdf` 与同名 CSV/manifest | 可作为 Motivation 问题图初版 | 数据来自 ServerlessLLM baseline；展示 admission/startup gap；manifest 明确无 per-request adapter-tier 字段 |
+| Fig. 3 Adapter churn | 已重画 | `figs/paper/motivation/fig3_tier.pdf` 与同名 CSV/manifest | 可作为 Motivation 问题图初版 | 使用 shared replay + S-LoRA external baseline；reuse bucket 只由 `adapter_id` 序列定义；不声称 tier/transfer |
 | Optional Fig. M3 Loading pressure | 暂不生成 | 当前没有稳定、非零且语义清晰的 loading-pressure 字段 | 暂不进主文 | 若后续补字段，再做 problem-only 观察 |
-| Table 1 Main comparison | 已生成 draft | `figs/paper/main/table1_end_to_end.tex` 与同名 CSV/manifest | 可作为 Evaluation 主表初版 | 注意 S-LoRA token-tail 注释 |
-| Fig. 5 Normalized main | 已重画，可进初稿 | `figs/paper/main/fig5_main_normalized.pdf` 与同名 CSV/manifest | 可作为 Evaluation 压缩视图初版 | 不使用 log 轴；用数值矩阵保留极端 ServerlessLLM 比值 |
-| Fig. 6 Ablation | 已重画 | `figs/paper/ablation/fig6_ablation.pdf` 与同名 CSV/manifest | 可作为 Evaluation 图初版 | 全部为相对 NVMe-pre 的变化；避免等高 cost 柱 |
-| Coordination effect subfigure | 已重画 | `figs/paper/ablation/fig4_coordination.pdf` 与同名 CSV/manifest | 只能放 Evaluation/Ablation | Full vs NoCoord 相对变化，不放 Motivation |
+| Table 1 Main comparison | 已生成 draft，已补 TPOT avg/p95 | `figs/paper/main/table1_end_to_end.tex` 与同名 CSV/manifest | 可作为 Evaluation 主表初版 | 注意 S-LoRA token-tail 注释；TPOT p95 从 observed request-level `tpot_ms` 计算 |
+| Fig. 5 Normalized main | 已重画，暂不作为主线必放图 | `figs/paper/main/fig5_main_normalized.pdf` 与同名 CSV/manifest | 建议先放 appendix/备选 | 当前只是 Llama-2 7B 单点，PrimeLoRA 相对最强 CE baseline SGLang 为 7%；主文优先 Table 1 + Fig. 7 |
+| Fig. 6 Ablation | 已重画 | `figs/paper/ablation/fig6_ablation.pdf` 与同名 CSV/manifest | 可作为 Evaluation 图初版 | 全部为相对 NVMe-pre 的 bar-panel 变化；避免等高 cost 柱 |
+| Coordination effect subfigure | 已重画 | `figs/paper/ablation/fig4_coordination.pdf` 与同名 CSV/manifest | 只能放 Evaluation/Ablation | Full vs NoCoord 相对变化 bar panel，不放 Motivation |
 | Fig. 7 Lifecycle cost | 已重画，可进初稿 | `figs/paper/main/fig7_lifecycle_cost.pdf` 与同名 CSV/manifest | 可作为成本解释图初版 | 左图解释 monetary cost，右图解释 GPU-seconds 生命周期来源 |
 | Fig. 8 Sensitivity | `load_operating_p0` 正在跑，旧 s4/s6/s8 仅作 stress diagnostic | 旧图：`figs/paper/sensitivity/fig8_load_sensitivity.pdf`；新队列：`20260427_112832_load_operating_p0` | 当前不可直接进论文 | 等 s12/s10 五系统跑完；结合 s8 形成低/中/名义负载 sensitivity；若 CE 叙事仍不成立则删除 Fig. 8 |
 | Fig. 9 Multi-backbone robustness | 未跑 | 无 | 不可进论文 | 等 Llama-2 7B 图闭口后跑 13B/Qwen |
@@ -233,9 +278,11 @@ Zipf `1.0`、hot set cap `48`、hotset rotation `500`、seed `42`。唯一有意
 是 time scale，用 `s12` 和 `s10` 补齐低/中 operating-load 点；已有 `s8` 主 round
 作为名义负载点。旧 `s6/s4` 只作为 stress diagnostic，不直接进入主文 sensitivity。
 
-截至 `2026-04-27 13:03 CST`，`s12` run 仍在 tmux 中健康运行，已完成约
-`3768/4000` 请求，`fail=0`。状态目录只有 `00_prep.done`，说明仍处于第一个系统
-阶段；不要在该队列完成或失败前修改运行脚本。若后续该队列完整结束，应先检查
+截至 `2026-04-27 23:57 CST`，队列已经从较早的 `s12` round 推进到 `s10`
+round，且仍在 tmux 中健康运行。当前处于 `s10` 的 vLLM 阶段，已完成约
+`2449/4000` 请求，`fail=0`，ETA 约 29 分钟。不要在该队列完成或失败前修改
+运行脚本。
+若后续该队列完整结束，应先检查
 每个 run 的 `compare/*.json` 是否包含五个系统，特别是 ServerlessLLM，然后再重画
 Fig. 8。若 Fig. 8 不能形成清晰、公平、与主文一致的 CE 结论，应删除该图，而不是
 保留一个削弱论文主张的负载强度图。
@@ -251,21 +298,28 @@ S-LoRA 先说明多 LoRA serving 的 adapter/fragmentation 挑战再做系统评
 
 因此本文固定如下边界：
 
-- Fig. 2 和 Fig. 3 可以放 Motivation，因为它们只按请求类别或 adapter tier
-  展示 TTFT/I/O 差异，证明 `adapter-replica mismatch` 和 cross-tier fetching
-  是真实问题。
-- 当前 Fig. 2/Fig. 3 的数据来自 full run 的 request-level instrumentation。
-  这不是在 Motivation 中展示 full system 效果，而是利用系统日志观察请求类别
-  和 tier 路径的 latency gap。图注和正文必须避免出现 “PrimeLoRA improves”
-  这类收益表达，只写 “scale-up affected requests have higher TTFT”、
-  “lower tiers introduce additional adapter I/O” 这类问题事实。
-- 如果后续想让 Motivation 数据源更“中性”，可以补一个只开启最小 instrumentation
-  的 baseline-like run；但在当前没有稳定独立开关前，不为了形式纯度新增
-  不可审计或会混淆贡献边界的变体。
+- Motivation 不再使用 `faaslora_full`、`faaslora_no_coord`、`faaslora_nvme`
+  或其他 PrimeLoRA 内部 instrumentation 来证明已有系统的问题。这样避免审稿人
+  将 problem observation 解读为“PrimeLoRA 自身没有解决 readiness 问题”。
+- 当前 Fig. 2 使用 ServerlessLLM 作为 representative serverless baseline。
+  它展示在同一 Llama-2 7B multi-LoRA replay 下，end-to-end TTFT 主要被
+  admission/startup readiness gap 放大，而 runtime TTFT 本身较小。该图的
+  manifest 明确记录：ServerlessLLM replay 没有 per-request adapter-tier 字段，
+  因此正文只能写 “runtime/model-level readiness does not close service readiness”，
+  不能伪称观测到了 adapter-tier load path。
+- S-LoRA 是合适的 representative serverful multi-LoRA baseline；vLLM 是强通用
+  serving runtime，可作为后续替代/补充 baseline。当前闭合 replay 没有能与请求一一对应的 GPU-resident vs
+  host-fetch/tier/load latency 字段，因此 Fig. 3 改为更保守的 external-baseline
+  adapter-churn observation：reuse bucket 只由 `adapter_id` 序列定义，图中只放
+  workload reuse mix 与 S-LoRA 的 first-touch/cold-reuse TTFT 分布。
+  正文不能把该图写成 adapter tier 或 transfer-latency 证据。
+- 旧 `figs/paper/ablation/fig2_mismatch.pdf` 与 `figs/paper/ablation/fig3_tier.pdf`
+  来自 PrimeLoRA/FaaSLoRA 内部 request-level instrumentation，后续只可作为
+  Evaluation/Appendix 的 mechanism audit artifact，不放 Motivation。
 - `fig4_coordination.pdf` 不放 Motivation，因为它比较 `faaslora_no_coord`
   和 `faaslora_full`，本质是在展示 PrimeLoRA 第三项机制的收益。
-- 如果一定要在 Motivation 放第三张图，只能画 problem-only 的 loading pressure
-  observation；当前字段不足且 `contention_events` 不稳定，所以暂不强行画。
+- 如果一定要在 Motivation 放第三张图，只能画 external-baseline 的保守
+  switching/load observation；当前字段不足，所以暂不强行画。
 
 ## 2.3 当前 load sensitivity 审计结论
 
@@ -304,107 +358,139 @@ E2E 上升过快并使 CE 被 SGLang 反超。
 
 ### 3.1 目的
 
-用一张图回答读者最关心的问题：
+Fig. 1 应放在 Introduction 第二段之后，也就是当前 `.tex` 中
+“When adapter readiness is not prepared in advance, cross-tier transfer and
+on-replica adapter loading can enter the TTFT-critical path.” 这段后面，
+并且放在 “This issue becomes more pronounced...” 段落之前。
+
+这张图只回答一个前置问题：
 
 ```text
-PrimeLoRA 不是纯粹追求最低延迟，而是在 serverless many-LoRA 场景中取得
-更好的 latency-cost tradeoff 和 CE。
+为什么 serverless-style LLM serving 相比 always-on serverful runtimes 有成本/CE 机会？
 ```
+
+它不再承载 adapter--replica mismatch 的实证论证，因为旧 Fig. 1(b)(c) 使用的是
+PrimeLoRA `faaslora_full` request-level instrumentation，容易被误读为
+PrimeLoRA 自身仍有严重 readiness 问题；而且它与 Motivation 的 Fig. 2/Fig. 3
+职责重合。adapter readiness 的问题证据统一放到 Motivation。Fig. 1 也不应
+提前宣称 PrimeLoRA 在所有延迟指标上超过 baseline；完整横向 latency-cost-CE
+结论仍放到 Evaluation 的 Table 1/Fig. 5/Fig. 7。
 
 ### 3.2 推荐设计
 
-使用两 panel。
+当前 draft 使用单栏单图，尺寸约 `3.45in x 1.55in`，适合 IEEE 双栏模板中的
+单栏插入。图中横纵坐标使用 arrow-style axes，不包含 `(a)`/`(b)` 分图标题。
+所有模型名保持单行，禁止将 `ServerlessLLM`、`PrimeLoRA` 等名称拆行。
 
-#### Panel (a): tail_latency_headline
-
-- 图类型：horizontal dumbbell / point comparison。
-- Y 轴：`TTFT p95`、`E2E p95`。
-- X 轴：latency in ms。
-- 点：PrimeLoRA 与该指标下最强 baseline。
-- 标签：baseline 名称与数值、PrimeLoRA 数值。
-- 结论：诚实展示 SGLang 等 serverful runtime 的低尾延迟，同时把详细横向
-  比较留给 Evaluation。
+- 图类型：cost-vs-CE scatter。
+- X 轴：`Cost/req (mUSD)`，越低越好。
+- Y 轴：`CE`，越高越好。
+- 点：PrimeLoRA、ServerlessLLM、SGLang、vLLM、S-LoRA。
+- 标记：serverless-style 系统用 diamond，serverful 系统用 circle。
+- 结论：同一 workload 下，PrimeLoRA 位于低成本/高 CE 区域；SGLang 是强
+  latency/CE baseline，但 lifecycle cost 更高。这只是引出 serverless-style
+  execution 的机会，不是 latency dominance claim。
 
 字段：
 
 | 元素 | 字段 | 数据源 |
 |---|---|---|
-| PrimeLoRA point | `p95_overall_ttft_ms`, `p95_overall_e2e_ms` | FaaSLoRA summary |
-| best-baseline point | per-metric min over baselines | summary |
-| label | system name and metric value | summary |
-
-#### Panel (b): cost_efficiency_headline
-
-- 图类型：horizontal ratio lollipop。
-- Y 轴：`Cost/req lower`、`CE higher`。
-- X 轴：PrimeLoRA / best baseline。
-- 归一化：
-  - 延迟和成本：以 best baseline 为 1.0，越低越好；
-  - CE：以 best baseline 为 1.0，越高越好。
-- 结论：SGLang 延迟强，FaaSLoRA 成本和 CE 强。
-
-注意：不要写成“FaaSLoRA 所有延迟都最好”。
+| cost point | `monetary_cost_per_request_usd * 1000` | `03_main_comparison` five-system summaries |
+| CE point | `monetary_ce` | `03_main_comparison` five-system summaries |
+| system class | serverless-style vs serverful | plotting script fixed mapping |
+| label | system name | summary |
 
 ### 3.3 LaTeX 骨架
 
 ```latex
-\begin{figure*}[t]
+\begin{figure}[t]
     \centering
-    \includegraphics[width=\textwidth]{figs/paper/main/fig1_intro_teaser.pdf}
-    \caption{PrimeLoRA's main-workload headline. The left panel uses a point comparison for p95 latency against the strongest baseline for each latency metric. The right panel reports PrimeLoRA's cost and CE relative to the strongest baseline for each metric.}
+    \includegraphics[width=\columnwidth]{figs/paper/main/fig1_intro_teaser.pdf}
+\caption{Serverless-style cost-efficiency opportunity in multi-LoRA serving on the representative Llama-2 7B main workload. Each point uses the same 4000-request, 500-adapter replay and GPU budget; lower cost and higher CE are better. Diamonds denote serverless-style systems and circles denote always-on serverful runtimes.}
     \label{fig:intro_teaser}
-\end{figure*}
+\end{figure}
 ```
 
 ### 3.4 配套正文
 
 ```text
-Figure~\ref{fig:intro_teaser} summarizes the main tradeoff targeted by
-PrimeLoRA. Strong serverful runtimes can provide lower first-token latency by
-keeping GPU capacity resident, but this increases lifecycle serving cost.
-PrimeLoRA reduces the service-readiness gap in serverless multi-LoRA inference
-and achieves lower per-request cost and higher cost efficiency on the main
-workload, while the detailed latency tradeoff is reported in
-Section~\ref{sec:evaluation}.
+Figure~\ref{fig:intro_teaser} illustrates the serverless-style cost-efficiency
+opportunity under the representative Llama-2 7B main workload and the same GPU
+budget. PrimeLoRA occupies the low-cost/high-CE region, while strong always-on
+runtimes provide competitive latency at higher lifecycle cost. This opportunity
+motivates serverless multi-LoRA serving; the following paragraphs and Motivation
+section then isolate the adapter-readiness mechanism that makes elastic
+multi-LoRA serving nontrivial.
 ```
 
-## 4. Fig. 2: Adapter--Replica Mismatch Under Scaling
+### 3.5 Optional Non-Overlapping Intro/Setup Figure
+
+如果还想在 Fig. 1 之外再放一张图，最不与 Motivation 重合的选择是
+`Workload dynamics`，而不是再画 request-level readiness：
+
+- 放置位置：Introduction 末尾或 Evaluation Setup，优先作为 Fig. 2 之前的
+  workload characterization；如果主文篇幅紧，放附录。
+- 图类型：单栏或双栏 compact trace panel。
+- Panel (a)：arrival rate over replay time，用 shared trace 的 request timestamp
+  聚合成小时间窗。
+- Panel (b)：adapter popularity / hotset migration，用 top-k adapter rank 或
+  hotset phase timeline 表示热点迁移。
+- 作用：支撑 “bursty arrivals and hotspot migration” 这个 workload 前提。
+- 不做：不画 TTFT、readiness rate、LoRA I/O、scale-up first-service 等结果指标，
+  因为这些已经属于 Fig. 2/Fig. 3 Motivation。
+
+这张图回答“为什么 workload 会触发 mismatch 条件”，而 Fig. 2/Fig. 3 回答
+“mismatch/tier fetching 在 serving path 中造成了什么观测后果”，两者不冲突。
+
+## 4. Fig. 2: Serverless Readiness Gap Under Scaling
 
 ### 4.1 目的
 
-证明 scale-out 后“runtime ready”不等于“adapter service ready”，并且
-scale-up 相关请求的 TTFT 高于 GPU-ready 请求。
+用 ServerlessLLM 这个 representative serverless baseline 证明：在 multi-LoRA
+replay 中，runtime/model-level ready 不等于 service-ready。该图不使用
+PrimeLoRA 数据，也不伪造 ServerlessLLM 没有导出的 adapter-tier 字段。
 
 ### 4.2 推荐设计
 
-使用 FaaSLoRA 内部真实字段，不强行做跨系统内部对比。
+使用 `03_main_comparison` 中 ServerlessLLM 的 replay JSON：
 
-#### Panel (a): scaleup_request_categories.pdf
+```text
+/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/raw/replay/*serverlessllm_replay.json
+```
 
-- 图类型：horizontal lollipop / dumbbell。
-- Y 轴：request category。
-- 类别：
-  - GPU-ready requests；
-  - scale-up affected requests；
-  - scale-up first-service requests。
-- X 轴：TTFT avg 和 p95。
+输出：
+
+```text
+figs/paper/motivation/fig2_mismatch.pdf
+figs/paper/motivation/fig2_mismatch_data.csv
+figs/paper/motivation/fig2_mismatch_manifest.json
+```
+
+#### Panel (a): serverless_ttft_path
+
+- 图类型：stacked horizontal bars。
+- Y 轴：Avg 与 p95。
+- X 轴：ServerlessLLM TTFT path，单位为 seconds。
+- 堆叠项：`dispatch_admission_wait_ms` + `runtime_ttft_ms`。
 - 数据源：
-  - summary: `avg_gpu_ready_ttft_ms`、`p95_gpu_ready_ttft_ms`；
-  - summary: `avg_scaleup_affected_ttft_ms`、`p95_scaleup_affected_ttft_ms`；
-  - summary: `avg_scaleup_first_service_ttft_ms`。
-- 若 first-service p95 未输出，则只用 avg 或从 `detailed_results.requests`
-  过滤 `scaleup_first_service=true` 后计算 p95。
+  - request-level `overall_ttft_ms`；
+  - `dispatch_admission_wait_ms` / fallback `replay_dispatch_wait_ms`；
+  - `runtime_ttft_ms` / fallback `service_ttft_ms`。
+- 结论边界：说明 general serverless baseline 的 service-ready gap，而不是
+  PrimeLoRA 的系统收益。
 
-#### Panel (b): scaleup_readiness_hits.pdf
+#### Panel (b): startup_affected_breakdown
 
-- 图类型：horizontal lollipop。
-- Y 轴：readiness metrics。
-- X 轴：first-service GPU hit rate / planned match rate。
+- 图类型：grouped bars。
+- X 轴：Cold start、Admission wait、Runtime TTFT。
+- Series：Avg 与 p95。
 - 字段：
-  - `scaleup_first_service_gpu_hit_rate`；
-  - `scaleup_first_service_planned_match_rate`；
-  - 或 `scale_up_events[*].planned_adapters` 和请求级
-    `scaleup_planned_adapter_match`。
+  - `cold_start_latency_ms`；
+  - `dispatch_admission_wait_ms`；
+  - `runtime_ttft_ms`。
+- 类别定义：`scaleup_affected=true` 或 `scaleup_first_service=true`。
+- 图中标注 `startup n=29, first-service n=4`，提醒读者 first-service 样本小，
+  不能把它写成独立分布结论。
 
 ### 4.3 为什么不画 compute-ready/service-ready 双折线
 
@@ -418,44 +504,69 @@ scale-up 相关请求的 TTFT 高于 GPU-ready 请求。
 
 在这些定义未工程化前，不把它放进正式实验图。
 
-## 5. Fig. 3: Latency Amplification From Cross-Tier Adapter Fetching
+## 5. Fig. 3: Adapter Churn In Existing Multi-LoRA Runtimes
 
 ### 5.1 目的
 
-证明 adapter readiness 是 tier-sensitive，而不是简单 hit/miss。
+用 shared replay 与 S-LoRA external baseline 证明：在大 adapter pool 和热点迁移的
+multi-LoRA replay 中，adapter first-touch 与长间隔复用会放大 TTFT。这是
+adapter-readiness 问题的 workload/runtime 侧证据，不使用 PrimeLoRA 数据，也不
+展开横向系统优劣比较。
 
 ### 5.2 推荐设计
 
-使用 FaaSLoRA `detailed_results.faaslora_full.requests`。
+当前生成：
 
-#### Panel (a): tier_ttft.pdf
+```text
+figs/paper/motivation/fig3_tier.pdf
+figs/paper/motivation/fig3_tier_data.csv
+figs/paper/motivation/fig3_tier_manifest.json
+```
+
+数据来自 `03_main_comparison` 的 S-LoRA replay。reuse bucket 只由
+`adapter_id` 在请求序列中的出现位置定义：
+
+```text
+first touch: adapter 第一次出现
+hot reuse:   距离上次同 adapter 请求 <= 16 个请求
+warm reuse:  17-64 个请求
+cold reuse:  > 64 个请求
+```
+
+注意：该图不声称 S-LoRA 导出了 per-request adapter cache tier 或 transfer
+latency；当前这些字段不存在或为 null。若后续补字段，可以再升级成
+resident-vs-fetch/tier 图。
+
+#### Panel (a): shared_replay_adapter_churn
+
+- 图类型：stacked horizontal bar。
+- X 轴：请求占比。
+- Segment：`first touch`、`hot reuse <=16`、`warm reuse 17-64`、
+  `cold reuse >64`。
+- 字段：
+  - `adapter_id`；
+  - request arrival order。
+
+#### Panel (b): slora_reuse_ttft_cdf
 
 - 图类型：CDF。
-- 曲线：`cache_tier in {gpu, host, nvme, remote}`。
+- 曲线：S-LoRA 的 `first touch`、`hot reuse <=16`、`cold reuse >64`。
 - X 轴：TTFT。
 - Y 轴：CDF。
 - 字段：
-  - `requests[*].cache_tier`；
+  - `adapter_id`；
   - `requests[*].overall_ttft_ms`；
-  - 可补 `requests[*].service_ttft_ms` 作为 service-only 版本。
-
-#### Panel (b): tier_lora_io.pdf
-
-- 图类型：horizontal lollipop / dumbbell。
-- Y 轴：`cache_tier`。
-- X 轴：LoRA I/O avg 和 p95。
-- 字段：
-  - `requests[*].lora_io_ms`。
 
 ### 5.3 解释边界
 
-如果某些 tier 样本太少，应在图注标注样本数，或合并为：
+如果某些 reuse bucket 样本太少，应在图注标注样本数，或合并为：
 
 ```text
-GPU-ready / local-tier / remote-tier
+first touch / recurring
 ```
 
-不能为了凑四个柱而把缺失 tier 填 0。
+不能为了凑 tier 图而把缺失 `adapter_fetch_tier` 或 `lora_load_ms` 填 0，也不能
+根据 TTFT 大小反推 cache hit/miss。
 
 ## 6. Evaluation Subfigure: Coordinated Resource Control Effect
 
@@ -475,24 +586,24 @@ GPU-ready / local-tier / remote-tier
 
 #### Panel (a): coordination_latency.pdf
 
-- 图类型：relative-change lollipop。
+- 图类型：relative-change horizontal bars。
 - Reference：`NoCoord`。
 - Target：`Full`。
-- 指标：TTFT avg/p95、E2E avg/p95、TPOT。
+- 指标：TTFT avg/p95、E2E avg/p95、TPOT avg/p95。
 - 字段：
   - `avg_overall_ttft_ms`、`p95_overall_ttft_ms`；
   - `avg_overall_e2e_ms`、`p95_overall_e2e_ms`。
 
 #### Panel (b): coordination_efficiency.pdf
 
-- 图类型：relative-change lollipop。
+- 图类型：relative-change horizontal bars。
 - Reference：`NoCoord`。
 - Target：`Full`。
 - 指标：LoRA I/O、Cost/req、CE。
 - 字段：
   - `avg_lora_io_ms`；
   - `monetary_cost_per_request_usd`；
-  - `avg_tpot_ms`；
+  - `avg_tpot_ms`、observed request-level `tpot_ms` p95；
   - `monetary_ce`。
 
 ### 6.3 当前状态
@@ -528,7 +639,8 @@ PrimeLoRA 相对 runtime、serverful multi-LoRA 和 general serverless LLM 的
 | TTFT p95 | `p95_overall_ttft_ms` from summary or compare extended | summary/compare |
 | E2E Avg | `E2E_e2e_ms` | compare |
 | E2E p95 | `p95_overall_e2e_ms` | summary/compare |
-| TPOT | `TPOT_ms` | compare |
+| TPOT Avg | `avg_tpot_ms` / `TPOT_avg_ms` | summary/compare |
+| TPOT p95 | observed request-level `tpot_ms` p95 / `p95_tpot_ms` / `TPOT_P95_ms` | summary/replay |
 | Tok/s | `Tok/s` | compare |
 | Cost/req | `Cost_req_usd` | compare |
 | CE | `CE` | compare |
@@ -551,21 +663,33 @@ summary JSON 读取，不要用平均值代替。
 - PrimeLoRA 在所有 TTFT/E2E 指标上都优于 SGLang；
 - S-LoRA 的 token-throughput 结果可直接作为强结论，而不讨论 output-tail 差异。
 
-## 8. Fig. 5: Normalized Main Results
+## 8. Fig. 5: Main Outcome Dashboard
 
 ### 8.1 目的
 
 把 Table 1 的多个指标压缩成一张更适合读者快速扫描的图，同时避免
-ServerlessLLM 极端延迟值迫使柱状图使用 log 轴。
+ServerlessLLM 极端延迟值迫使柱状图使用 log 轴。Fig. 5 不是新的实验；
+它取自 `03_main_comparison` 的 Llama-2 7B、4000-request、500-adapter、
+time-scale s8 五系统主横向 round。
+
+当前 Fig. 5 中 PrimeLoRA 相对 SGLang 的 CE 是 `1.07x`，也就是高约 7%。
+这是因为 SGLang 在该 formal workload 上有更低 avg E2E，而 PrimeLoRA 用更低
+`Cost/req` 抵消了部分延迟劣势。它不等价于“PrimeLoRA 只比所有 baseline 强
+7%”：相对 vLLM，PrimeLoRA 的 CE 约为 `1.44x`；相对 S-LoRA 约为 `1.63x`；
+相对当前 general ServerlessLLM baseline 约为 `79x`。正文应把 7% 写成
+“against the strongest CE baseline, SGLang”，不要把早期 smoke/two-system
+结果混入正式五系统主 round。
 
 ### 8.2 推荐设计
 
-- 图类型：数值矩阵/轻量 heatmap。
-- 横坐标：`TTFT avg lower`、`TTFT p95 lower`、`E2E avg lower`、
-  `E2E p95 lower`、`Cost/req lower`、`CE higher`。
-- 纵坐标：FaaSLoRA、SGLang、vLLM、S-LoRA、ServerlessLLM。
-- 延迟和成本归一化为 `system / best_baseline`，越低越好。
-- CE 归一化为 `system / best_baseline`，越高越好。
+- 图类型：left CE ranking + right normalized latency/cost matrix。
+- 左图：横向 CE bars，系统按 CE 降序排列；PrimeLoRA label 显式标出
+  `+7% vs SGLang`，避免读者误以为隐藏了更强 baseline。
+- 右图横坐标：`TTFT avg`、`TTFT p95`、`E2E avg`、`E2E p95`、
+  `TPOT avg`、`TPOT p95`、`Cost/req`。
+- 右图纵坐标：FaaSLoRA、SGLang、vLLM、S-LoRA、ServerlessLLM。
+- 右图延迟和成本归一化为 `system / best_baseline`，越低越好；
+  PrimeLoRA 可以低于 `1.0x`，表示它超过了 best non-Prime baseline。
 - 单元格必须打印真实归一化数值；背景颜色只作为辅助阅读，允许对极端值
   做颜色上限，但不能修改单元格文字。
 
@@ -574,11 +698,13 @@ ServerlessLLM 极端延迟值迫使柱状图使用 log 轴。
 图注必须说明：
 
 ```text
-Latency and cost cells lower are better; CE cells higher are better. Exact
-normalized values are printed in each cell.
+Panel (a) reports CE, where higher is better. Panel (b) reports latency and
+cost factors normalized to the best non-PrimeLoRA baseline, where lower is
+better. Exact normalized values are printed in each cell.
 ```
 
-如果把不同方向指标放在同一张图，建议用背景或箭头标注方向，避免读者误读。
+这样避免在同一个矩阵里混合“lower is better”和“higher is better”，也能直接
+回答“PrimeLoRA 对最强 CE baseline 到底强多少”。
 
 ## 9. Fig. 6: Ablation Analysis
 
@@ -631,7 +757,7 @@ latency/cost 为 reduction，CE 为 increase。
 
 #### Panel (a): first_token_improvement
 
-- 图类型：relative-change lollipop。
+- 图类型：relative-change horizontal bars。
 - Reference：`faaslora_nvme`。
 - Series：`faaslora_no_coord`、`faaslora_full`。
 - 指标：TTFT avg、TTFT p95。
@@ -639,27 +765,28 @@ latency/cost 为 reduction，CE 为 increase。
 
 #### Panel (b): end_to_end_impact
 
-- 图类型：relative-change lollipop。
+- 图类型：relative-change horizontal bars。
 - 指标：E2E avg、E2E p95。
 - 结论：E2E tail 基本保持稳定，说明主要收益集中在 TTFT path。
 
 #### Panel (c): admission_io_overhead
 
-- 图类型：relative-change lollipop。
+- 图类型：relative-change horizontal bars。
 - 指标：dispatch/admission wait reduction、LoRA I/O reduction。
 - 结论：coordination 减少 admission wait，同时避免把 LoRA I/O 作为孤立目标。
 
 #### Panel (d): relative_cost_efficiency
 
-- 图类型：relative-change lollipop。
+- 图类型：relative-change horizontal bars。
 - 指标：Cost/req reduction、CE increase。
 - 结论：full system 的 CE 提升不是来自显著增加 per-request cost；小成本差异
   用 relative-change 表达，不再画等高绝对 cost 柱。
 
 ### 9.4 需要补跑
 
-当前 Llama-2 7B ablation round 已闭合，可直接用于 Fig. 2、Fig. 3、Fig. 4、
-Fig. 6。若后续补充 robustness，不需要默认重复全模型家族消融；只在某个
+当前 Llama-2 7B ablation round 已闭合，可直接用于 Fig. 4、Fig. 6 以及
+appendix/internal mechanism audit。主文 Motivation 的 Fig. 2/Fig. 3 改用
+external baseline/main-round replay，不再由 ablation round 生成。若后续补充 robustness，不需要默认重复全模型家族消融；只在某个
 backbone 的 full-vs-baseline 结果反常时补局部消融定位原因。
 
 已完成的 ablation scenarios：
@@ -867,8 +994,9 @@ time scale = 8.0
 
 ```text
 Phase 1: 用当前 Llama-2 7B round 生成 Table 1、Fig. 1、Fig. 5、Fig. 7 初版。
-Phase 2: 用已完成的 Llama-2 7B ablation round 生成 Fig. 2、Fig. 3、Fig. 6，
-         以及 Evaluation-only coordination subfigure。
+Phase 2: 用主横向 round 的 external baseline replay 生成 Motivation Fig. 2/Fig. 3；
+         用已完成的 Llama-2 7B ablation round 生成 Fig. 6 以及
+         Evaluation-only coordination subfigure。
 Phase 3: 审核图注和正文位置，确保 Motivation 只写问题存在性。
 Phase 4: 视论文篇幅跑 load intensity 和 adapter pool sensitivity。
 Phase 5: 最后跑 Llama-2 13B 与 Qwen family 的 4000-request robustness。
@@ -883,12 +1011,12 @@ Phase 5: 最后跑 Llama-2 13B 与 Qwen family 的 4000-request robustness。
 
 | 阶段 | 场景 | 目标图 | 作用 |
 |---|---|---|---|
-| 1 | `faaslora_nvme` | Fig. 2/6 | 验证 hit-aware placement/preparation 与本地 NVMe readiness |
+| 1 | `faaslora_nvme` | Fig. 6 / appendix audit | 验证 hit-aware placement/preparation 与本地 NVMe readiness |
 | 2 | `faaslora_no_coord` | Fig. 6 / coordination subfigure | 验证 residency/migration 但不加协调时的收益与干扰 |
-| 3 | `faaslora_full` | Fig. 2/3/6 / coordination subfigure | 与 no_coord/nvme 对比，证明 full coordination 的最终收益 |
+| 3 | `faaslora_full` | Fig. 6 / coordination subfigure / appendix audit | 与 no_coord/nvme 对比，证明 full coordination 的最终收益 |
 
-这轮实验不替代五系统横向主表；它只服务 Motivation problem-only 图、
-Ablation 图和 coordination effect 图。
+这轮实验不替代五系统横向主表；它只服务 Evaluation/Ablation 图、
+coordination effect 图和可选 appendix/internal mechanism audit。
 后续画主横向图仍使用 `03_main_comparison` 中已经闭合的五系统结果。
 
 ## 14. 结果保存与命名
@@ -948,6 +1076,10 @@ qwen2p5_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_backbone_v1
 当前脚本已经实现，支持：
 
 ```text
+fig1_intro
+table1_main
+fig5_normalized
+fig7_cost
 fig2_mismatch
 fig3_tier
 fig4_coordination
@@ -979,7 +1111,24 @@ all
 - 横向图发现 token-tail 异常时打印 warning，要求人工确认是否进入论文；
 - 不允许静默补 0。
 
-已生成的 ablation/motivation 图位于：
+已生成的 Motivation 图位于：
+
+```text
+/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/motivation/
+```
+
+对应文件：
+
+```text
+fig2_mismatch.pdf
+fig3_tier.pdf
+```
+
+它们来自 `03_main_comparison` 的 external baseline replay：Fig. 2 使用
+ServerlessLLM，Fig. 3 使用 shared replay + S-LoRA。它们可以作为 Motivation
+problem evidence。
+
+已生成的 Evaluation/Ablation 图位于：
 
 ```text
 /home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/ablation/
@@ -988,15 +1137,14 @@ all
 对应文件：
 
 ```text
-fig2_mismatch.pdf
-fig3_tier.pdf
 fig4_coordination.pdf
 fig6_ablation.pdf
 ```
 
-其中 `fig2_mismatch.pdf` 和 `fig3_tier.pdf` 可以作为 Motivation problem-only
-图初版；`fig4_coordination.pdf` 与 `fig6_ablation.pdf` 只能作为 Evaluation
-图，不放 Motivation。
+`fig4_coordination.pdf` 与 `fig6_ablation.pdf` 只能作为 Evaluation 图，
+不放 Motivation。旧的 ablation-path `fig2_mismatch.pdf` 和 `fig3_tier.pdf`
+若仍存在，只能作为 PrimeLoRA-internal appendix/mechanism audit artifact，
+不放 Motivation。
 
 每张图同时包含：
 
@@ -1011,7 +1159,7 @@ fig6_ablation.pdf
 cd /home/qhq/serverless_llm_experiment_retry14_baseline
 python3 scripts/plot_paper_figures.py \
   --round-dir /home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1 \
-  --figure all \
+  --figure ablation_all \
   --out-dir /home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/ablation
 ```
 
@@ -1025,8 +1173,8 @@ python3 scripts/plot_paper_figures.py \
 - `figs/paper/main/table1_end_to_end.tex`；
 - `figs/paper/main/fig5_main_normalized.pdf`；
 - `figs/paper/main/fig7_lifecycle_cost.pdf`；
-- `figs/paper/ablation/fig2_mismatch.pdf`；
-- `figs/paper/ablation/fig3_tier.pdf`；
+- `figs/paper/motivation/fig2_mismatch.pdf`；
+- `figs/paper/motivation/fig3_tier.pdf`；
 - `figs/paper/ablation/fig6_ablation.pdf`；
 - `figs/paper/ablation/fig4_coordination.pdf`，但它只能作为 Evaluation-only
   coordination subfigure。
@@ -1048,7 +1196,7 @@ python3 scripts/plot_paper_figures.py \
 已有数据已经转化为完整论文图初版：
 
 ```text
-Fig. 1 + Table 1 + Fig. 5 + Fig. 7 + Fig. 2/3/6
+Fig. 1 + Table 1 + Fig. 2 + Fig. 3 + Fig. 6 + Fig. 7
 ```
 
 下一步进入可长期运行的数据积累阶段，优先跑 `06_sensitivity_load`。
@@ -1074,7 +1222,7 @@ faaslora_no_coord
 faaslora_full
 ```
 
-这样可以保证当前 round 只回答“PrimeLoRA 三个机制如何贡献 Fig. 2/3/6
+这样可以保证当前 round 只回答“PrimeLoRA 三个机制如何贡献 Fig. 6
 以及 Evaluation-only coordination subfigure”，
 不与 sensitivity 或 backbone robustness 的论文职责冲突。
 
@@ -1112,6 +1260,11 @@ ablation_consistency_audit.json
   overhead 和 real-world trace 集群实验，适合作为“机制实验与 trace 主实验分开”
   的参考。
   <https://www.usenix.org/system/files/osdi24-fu.pdf>
+- ServerlessLoRA, arXiv 2025：将 serverless LoRA 的问题拆成 backbone
+  redundancy、artifact loading 和 multi-LoRA contention，并用 CE 说明
+  serverless LoRA 专门系统相对 vLLM/ServerlessLLM 的收益；本文借鉴其问题
+  拆分方式，但 Fig. 5 仍以本项目 formal 五系统 round 为准。
+  <https://huggingface.co/papers/2505.14468>
 - vLLM/PagedAttention, SOSP 2023：主评估覆盖不同 workload/model，ablation
   单独分析 kernel/block size 等设计选择。
   <https://arxiv.org/pdf/2309.06180>
@@ -1150,13 +1303,23 @@ python3 scripts/plot_paper_figures.py \
   --out-dir /home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main
 ```
 
-Ablation/Motivation 图生成命令：
+Motivation 图生成命令：
+
+```bash
+cd /home/qhq/serverless_llm_experiment_retry14_baseline
+python3 scripts/plot_paper_figures.py \
+  --round-dir /home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1 \
+  --figure motivation_all \
+  --out-dir /home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/motivation
+```
+
+Ablation 图生成命令：
 
 ```bash
 cd /home/qhq/serverless_llm_experiment_retry14_baseline
 python3 scripts/plot_paper_figures.py \
   --round-dir /home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1 \
-  --figure all \
+  --figure ablation_all \
   --out-dir /home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/ablation
 ```
 
@@ -1202,11 +1365,11 @@ tmux attach -t faas_l7_ablation_v1_rerun
 
 | 图/表 | 放置位置 | 图注与正文口径 |
 |---|---|---|
-| Fig. 1 | Introduction 贡献列表前 | 写 p95 latency headline 与 cost/CE headline，不写所有延迟最优 |
-| Fig. 2 | Motivation: Adapter--Replica Mismatch | 只写 scale-up affected / first-service 请求 TTFT 更高，证明问题存在 |
-| Fig. 3 | Motivation: Cross-Tier Fetching | 只写 tier path 与 TTFT/I/O gap，证明 adapter readiness 是 tier-sensitive |
+| Fig. 1 | Introduction 第二段后，`This issue becomes...` 前 | 写 serverless-style cost/CE opportunity，不写 readiness 实证或所有延迟最优 |
+| Fig. 2 | Motivation: Serverless readiness gap | 只写 ServerlessLLM admission/startup gap；不写 PrimeLoRA 收益，不伪称 adapter-tier 字段 |
+| Fig. 3 | Motivation: Adapter churn | 只写 shared replay reuse/churn 与 S-LoRA TTFT tail gap；不写横向系统胜负，不伪称 tier/transfer |
 | Table 1 | Evaluation 第一个结果小节 | 主表如实呈现 SGLang 延迟优势、PrimeLoRA 成本/CE 优势 |
-| Fig. 5 | Table 1 后 | 用数值矩阵压缩展示归一化主结果；不使用 log 轴 |
+| Fig. 5 | Table 1 后或 appendix | 备选压缩视图；当前 Llama-2 7B 单点不作为主线必放图 |
 | Fig. 6 | Ablation Analysis | 证明 cumulative mechanisms 的边际收益，不作为 motivation |
 | Coordination subfigure | Ablation 或 Resource Coordination 小节 | NoCoord vs Full 是机制收益图，只能放 Evaluation |
 | Fig. 7 | Lifecycle Cost Efficiency | 解释 CE 来源和 lifecycle cost 结构，不替代主表 |

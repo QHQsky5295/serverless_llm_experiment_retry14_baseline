@@ -9,6 +9,7 @@
 \usepackage{url}
 \usepackage{verbatim}
 \usepackage{graphicx}
+\graphicspath{{../}{}}
 \usepackage{cite}
 \hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
 
@@ -26,7 +27,7 @@
 \maketitle
 
 \begin{abstract}
-Large language models (LLMs) are increasingly deployed in multi-tenant and domain-specific applications with bursty and skewed demand, making serverless platforms attractive for elastic, pay-as-you-go inference. LoRA allows many task- or tenant-specific adapters to share a common backbone model, but serverless multi-LoRA inference introduces a service-readiness gap: scale-out may add compute replicas before the selected replicas can execute the adapters required by incoming requests. We call this condition \emph{adapter--replica mismatch}. It exposes adapter preparation to the TTFT-critical path, weakens the latency and throughput gains of scale-out, and increases contention with KV-cache usage and batched inference. To address this problem, we present PrimeLoRA, a scaling-aware serverless system for multi-LoRA LLM inference. PrimeLoRA integrates LoRA Hit-Aware Request Placement and Scaling, Hierarchical LoRA Adapter Residency and Dynamic Migration, and Coordinated Resource Control for LoRA Loading and Inference to align adapter readiness with routing, scale-out, residency, and online inference. We implement PrimeLoRA on a multi-GPU prototype and evaluate it using Azure LLM inference traces and ShareGPT prompts. The results show that PrimeLoRA improves first-token responsiveness, tail latency, and cost efficiency by reducing readiness delay while controlling adapter-loading interference.
+Large language models (LLMs) are increasingly deployed in multi-tenant and domain-specific applications with bursty and skewed demand, making serverless platforms attractive for elastic, pay-as-you-go inference. LoRA allows many task- or tenant-specific adapters to share a common backbone model, but serverless multi-LoRA inference introduces a service-readiness gap: scale-out may add compute replicas before the selected replicas can execute the adapters required by incoming requests. We call this condition \emph{adapter--replica mismatch}. It exposes adapter preparation to the TTFT-critical path, weakens the latency and throughput gains of scale-out, and increases contention with KV-cache usage and batched inference. To address this problem, we present PrimeLoRA, a scaling-aware serverless system for multi-LoRA LLM inference. PrimeLoRA integrates LoRA Hit-Aware Request Placement and Scaling, Hierarchical LoRA Adapter Residency and Dynamic Migration, and Coordinated Resource Control for LoRA Loading and Inference to align adapter readiness with routing, scale-out, residency, and online inference. We implement PrimeLoRA on a multi-GPU prototype and evaluate it using Azure LLM inference traces and ShareGPT prompts. The results show that PrimeLoRA improves lifecycle cost efficiency and reduces readiness-related delay by aligning elastic capacity with executable adapter state, while exposing the latency tradeoff against always-on serverful runtimes.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -38,6 +39,15 @@ serverless computing, large language model serving, LoRA adapters, time-to-first
 Large language models (LLMs) are increasingly deployed in customer service, financial analysis, and domain-specific assistants, where inference demand is often bursty, concurrent, and multi-tenant. Serverless platforms are therefore attractive for elastic, pay-as-you-go inference because resources can be provisioned and reclaimed according to workload intensity~\cite{ServerlessLLM}. Serving diverse tasks with separate monolithic deployments, however, is inefficient. LoRA (Low-Rank Adaptation) injects low-rank updates into a frozen backbone LLM to derive task-specific adapters at modest overhead~\cite{LoRA}, enabling many tasks or tenants to share the same backbone.
 
 In multi-LoRA inference, reducing startup overhead often means keeping the backbone model resident in ready GPU replicas or pre-staging it in nearby storage, whereas LoRA adapters are commonly loaded on demand~\cite{SLoRA}. Consequently, scale-out does not by itself imply service-ready capacity. After additional execution capacity has been provisioned, a request can begin generation on a selected replica only after its target adapter has been fetched, placed into an executable memory tier, and made GPU-ready on that replica. When adapter readiness is not prepared in advance, cross-tier transfer and on-replica adapter loading can enter the TTFT-critical path.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figs/paper/main/fig1_intro_teaser.pdf}
+    \caption{Serverless-style cost-efficiency opportunity in multi-LoRA serving on the representative Llama-2 7B main workload. Each point uses the same 4000-request, 500-adapter replay and GPU budget; lower cost and higher CE are better. Diamonds denote serverless-style systems and circles denote always-on serverful runtimes.}
+    \label{fig:intro_teaser}
+\end{figure}
+
+Figure~\ref{fig:intro_teaser} illustrates the serverless-style cost-efficiency opportunity under the representative Llama-2 7B main workload and the same GPU budget. PrimeLoRA occupies the low-cost/high-CE region, while strong always-on runtimes provide competitive latency at higher lifecycle cost. This opportunity motivates serverless multi-LoRA serving; the following paragraphs and Motivation section then isolate the adapter-readiness mechanism that makes elastic multi-LoRA serving nontrivial.
 
 This issue becomes more pronounced when cross-replica routing and elastic scaling interact with time-varying adapter popularity. Under bursty arrivals and hotspot migration, a request may be routed to an active replica that lacks the required adapter, while a newly activated replica may still need to prepare likely-needed adapters before it can absorb demand. We refer to this recurrent condition as \emph{adapter--replica mismatch}. Although LoRA adapters are smaller than the backbone model, repeated adapter loading can still delay service readiness, increase TTFT and tail latency, and contend with KV-cache usage and batched inference.
 
@@ -75,13 +85,31 @@ This gap leads to \emph{adapter--replica mismatch}. During bursts, the scheduler
 
 This mismatch makes adapter readiness a first-order scheduling concern. A policy that considers only runtime availability or queue length may increase the number of replicas without immediately improving effective serving capacity. In serverless multi-LoRA inference, scaling decisions therefore need to be evaluated by whether the added replicas can serve the adapters requested by the incoming workload, not only by whether the runtimes have been activated.
 
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figs/paper/motivation/fig2_mismatch.pdf}
+    \caption{Service-readiness gap in a representative serverless baseline. The figure is measured on ServerlessLLM under the representative Llama-2 7B multi-LoRA replay. Panel (a) decomposes end-to-end TTFT into admission wait and runtime TTFT for all requests. Panel (b) reports cold-start, admission-wait, and runtime-TTFT latency for startup-affected requests.}
+    \label{fig:motivation_mismatch}
+\end{figure*}
+
+Figure~\ref{fig:motivation_mismatch} shows that runtime execution latency is only a small part of the end-to-end first-token path in a general serverless baseline. Even when the runtime path is short, admission and startup readiness can dominate the observed TTFT under a multi-LoRA replay. This supports treating service readiness as part of the serving path, rather than assuming that model-level runtime readiness alone closes the gap.
+
 \subsection{Latency Amplification from Cross-Tier Adapter Fetching}
 
 LoRA adapters are much smaller than backbone checkpoints, but their residency tier still has a direct effect on first-token latency. When the target adapter is already resident in GPU memory, the request can enter generation without additional adapter I/O. When the adapter resides in the HOST tier, local NVMe storage, or the REMOTE tier, the runtime must move it through one or more tiers before it becomes executable. Thus, adapter readiness is not a binary hit-or-miss property; it depends on the distance between the adapter's current tier and the GPU execution tier.
 
 This tier distance becomes important under dynamic multi-LoRA workloads. Adapter popularity can shift over time, so adapters that were previously cold may become hot, while stale GPU-resident adapters continue to occupy upper-tier memory. If hot adapters remain in lower tiers, successive requests continue to pay cross-tier loading cost. This increases TTFT even when the backbone runtime is warm and the replica has already been selected.
 
-Adapter placement should therefore be treated as a latency-control problem under constrained memory. A practical system must distinguish GPU-ready, HOST-tier, NVMe-tier, and REMOTE-tier states and adapt residency as adapter popularity shifts.
+Adapter placement should therefore be treated as a latency-control problem under constrained memory. A practical system must distinguish frequently reused adapters from first-touch and long-gap adapters as popularity shifts over time. Existing shared-backbone runtimes already expose this pressure under the same replay: adapter identity and reuse distance are workload facts, even when the runtime does not export a detailed cache-tier label.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figs/paper/motivation/fig3_tier.pdf}
+    \caption{Adapter churn in a representative multi-LoRA runtime. The figure is measured from the shared Llama-2 7B replay and the S-LoRA baseline. Panel (a) reports the request share of adapter first-touch, hot-reuse, warm-reuse, and cold-reuse cases. Panel (b) reports S-LoRA TTFT distributions for first-touch, hot-reuse, and cold-reuse adapter requests.}
+    \label{fig:motivation_crosstier}
+\end{figure*}
+
+Figure~\ref{fig:motivation_crosstier} shows that adapter churn is visible even without PrimeLoRA instrumentation. A substantial fraction of requests reuse adapters after nontrivial gaps, and in S-LoRA the first-touch and long-gap adapter requests have heavier TTFT tails than hot-reuse requests. This motivates readiness-aware adapter placement and routing under time-varying popularity.
 
 \subsection{LoRA Adapter Loading--Inference Contention}
 
@@ -89,7 +117,7 @@ Adapter loading is not isolated from online inference. During serving, a runtime
 
 This contention is particularly pronounced when elastic scale-out and steady-state serving coexist. Newly activated replicas may require adapter preparation, while existing replicas continue to serve requests and maintain active KV-cache state. Under bursty arrivals, adapter loading, prefill, decode, and batching can overlap in time. A policy that only maximizes adapter residency may disturb the working set and degrade TTFT, TPOT, or end-to-end latency. Conversely, an overly conservative policy may leave frequently requested adapters in slower tiers, causing repeated loading delay.
 
-This tradeoff shows that adapter management must be coordinated with online inference rather than optimized independently. The system must decide when adapter movement is beneficial, when it should be deferred, and how much upper-tier capacity should be preserved for the KV cache and batched execution. Such coordination is necessary to reduce both adapter-miss latency and resource interference under dynamic serverless workloads.
+This tradeoff shows that adapter management must be coordinated with online inference rather than optimized independently. The system must decide when adapter movement is beneficial, when it should be deferred, and how much upper-tier capacity should be preserved for the KV cache and batched execution. Such coordination is necessary to reduce both adapter-miss latency and resource interference under dynamic serverless workloads. We evaluate this coordination effect through controlled PrimeLoRA ablations in Section~\ref{sec:evaluation}, rather than relying on loading-pressure metrics that are not uniformly observable across all baselines.
 
 \section{System Overview}
 
@@ -285,7 +313,7 @@ Before admitting a proactive GPU promotion, PrimeLoRA checks whether the adapter
 We evaluate PrimeLoRA on a two-node testbed. The GPU inference node runs Ubuntu 24.04.3 LTS with two Intel Xeon Silver CPUs, 125\,GB memory, four NVIDIA GeForce RTX 3090 GPUs (24\,GB each), and a 3.3\,TB RAID-backed local disk. The remote artifact storage node runs Ubuntu 24.04.3 LTS with two Intel Xeon Silver 4210R CPUs (40 logical cores), 125\,GB memory, 8\,GB swap, multiple RAID-backed disks, and four 1\,Gbps Ethernet interfaces.
 
 \textbf{Models and LoRA Adapters.}
-We evaluate PrimeLoRA on four open-source backbones from two model families and two model scales: Qwen2.5-7B-Instruct, Qwen2.5-14B-Instruct, Llama-2-7B, and Llama-2-13B. The Qwen models use instruction-tuned checkpoints, while the Llama-2 experiments use the corresponding open Llama-2 backbone checkpoints available in our evaluation environment. The 7B models run with tensor parallelism degree 1, while Qwen2.5-14B-Instruct and Llama-2-13B run with tensor parallelism degree 2. For each backbone, we use a frozen PEFT-format pool of 500 LoRA adapters, sanitized before evaluation and heterogeneous in rank, size, task/domain label, and metadata. All systems in the same round use the same sampled adapter subset, so performance differences do not come from different adapter universes. All adapters and metadata are stored on the remote artifact node and are fetched on demand into local NVMe storage, the HOST tier, and GPU memory. The inference stack uses Python 3.12, PyTorch 2.8.0+cu128, vLLM 0.10.2, Transformers 4.57.6, and PEFT.
+Unless otherwise stated, the reported main results use Llama-2-7B as the representative backbone. This setting is the currently closed five-system workload and uses tensor parallelism degree 1. Larger-backbone robustness uses the same adapter-pool construction for Qwen2.5-7B-Instruct, Qwen2.5-14B-Instruct, and Llama-2-13B when those rounds are reported, with tensor parallelism degree 2 for the 13B/14B models. For each backbone, we use a frozen PEFT-format pool of 500 LoRA adapters, sanitized before evaluation and heterogeneous in rank, size, task/domain label, and metadata. All systems in the same round use the same sampled adapter subset, so performance differences do not come from different adapter universes. All adapters and metadata are stored on the remote artifact node and are fetched on demand into local NVMe storage, the HOST tier, and GPU memory. The inference stack uses Python 3.12, PyTorch 2.8.0+cu128, vLLM 0.10.2, Transformers 4.57.6, and PEFT.
 
 \textbf{Datasets and Workloads.}
 We construct workloads from Azure LLM Inference Trace and ShareGPT. Azure LLM Inference Trace provides request timestamps and input/output token counts for conversation and code services; the released slice used in our implementation contains about 28K requests~\cite{DynamoLLM}. ShareGPT provides realistic prompt text, from which we extract the first human turn to build a prompt pool of up to 5,000 records~\cite{EfficientLLMScheduling}. We replay Azure arrivals and token statistics, and assign prompts sampled from ShareGPT. This preserves realistic inter-arrival patterns, token-length distributions, and burstiness while avoiding template-driven prompts~\cite{BurstGPT}.
@@ -303,12 +331,12 @@ We compare PrimeLoRA with four representative serving systems under the same req
 \end{itemize}
 
 \textbf{Ablations.}
-We use cumulative ablations to isolate the marginal contribution of each PrimeLoRA mechanism and map the results to the three motivation problems. PrimeLoRA-Placement targets adapter--replica mismatch during routing and scale-out, PrimeLoRA-Placement+Residency further targets latency amplification from cross-tier adapter fetching, and full PrimeLoRA adds resource coordination to address contention between adapter loading and online inference.
+We use cumulative ablations to isolate the marginal contribution of each implemented PrimeLoRA mechanism and map the results to the three motivation problems. PrimeLoRA-NVMe enables hit-aware local preparation, PrimeLoRA-NoCoord adds residency and migration without coordinated GPU admission, and full PrimeLoRA adds resource coordination to address contention between adapter loading and online inference.
 
 \begin{itemize}
-    \item \textbf{PrimeLoRA-Placement} enables LoRA Hit-Aware Request Placement and Scaling. It evaluates whether adapter-aware routing and scale-out preparation reduce adapter--replica mismatch and improve TTFT under dynamic scaling.
-    \item \textbf{PrimeLoRA-Placement+Residency} further enables Hierarchical LoRA Adapter Residency and Dynamic Migration. It evaluates whether cross-tier adapter residency reduces repeated adapter loading and improves TTFT and end-to-end latency.
-    \item \textbf{PrimeLoRA} enables all three mechanisms by adding Coordinated Resource Control for LoRA Loading and Inference. The comparison between \textbf{PrimeLoRA-Placement+Residency} and full \textbf{PrimeLoRA} isolates the marginal effect of coordinating adapter movement with KV-cache usage and batched inference.
+    \item \textbf{PrimeLoRA-NVMe} enables hit-aware adapter preparation into local NVMe storage. It evaluates whether local preparation reduces remote-readiness delay under the shared replay.
+    \item \textbf{PrimeLoRA-NoCoord} further enables adapter residency and migration without coordinated GPU admission. It evaluates whether residency alone improves readiness and where it can still create admission or interference pressure.
+    \item \textbf{PrimeLoRA} enables all three mechanisms by adding Coordinated Resource Control for LoRA Loading and Inference. The comparison between \textbf{PrimeLoRA-NoCoord} and full \textbf{PrimeLoRA} isolates the marginal effect of coordinating adapter movement with KV-cache usage and batched inference.
 \end{itemize}
 
 \textbf{Evaluation Metrics.}
@@ -317,11 +345,48 @@ We report the following primary metrics in the main evaluation table.
 \begin{itemize}
     \item \textbf{TTFT.} We report average and p95 time-to-first-token, measured from scheduled replay arrival to the first output token or first-token event observed by the replay harness. When reliable server-side first-token timestamps are available, we use them; otherwise, we use the first streamed token observed by the client-side replay. This metric captures first-token responsiveness and is widely used to characterize prefill-side latency in interactive LLM serving~\cite{DistServe}.
     \item \textbf{End-to-end latency.} We report average and p95 end-to-end latency. End-to-end latency is measured from request arrival to request completion, and reflects the full user-perceived request latency.
-    \item \textbf{TPOT.} We report time-per-output-token over generated tokens after the first token. TPOT reflects decode-stage efficiency after the first-token path has completed, and is commonly used together with TTFT to characterize serving latency across prefill and decode phases~\cite{DistServe}.
+    \item \textbf{TPOT.} We report both average and p95 time-per-output-token over generated tokens after the first token, using only requests with observed decode timing. TPOT reflects decode-stage efficiency after the first-token path has completed, and is commonly used together with TTFT to characterize serving latency across prefill and decode phases~\cite{DistServe}.
     \item \textbf{Token throughput.} We report aggregate token throughput in tokens per second. This metric measures the serving capacity achieved under the same workload and runtime configuration, following common LLM serving evaluations~\cite{vLLM}.
     \item \textbf{Cost per request.} We report average per-request monetary cost using a lifecycle-based cost model shared by all systems. The model follows public cloud active/idle GPU billing semantics and uses an idle-ready GPU factor of \(0.5/2.1=0.238\), derived from Alibaba Cloud Function Compute's public Tesla GPU CU conversion factors~\cite{AlibabaFCBilling,AlibabaFCIdleGPU}.
     \item \textbf{Cost efficiency.} We report CE = \(1/(\overline{L}_{\mathrm{E2E}}\cdot \overline{C})\), where \(\overline{L}_{\mathrm{E2E}}\) is the average end-to-end latency in seconds and \(\overline{C}\) is the lifecycle-based cost per completed request defined above. A higher CE indicates lower latency and lower serving cost under the same workload~\cite{ServerlessLoRA}.
 \end{itemize}
+
+\subsection{End-to-End Performance}
+
+\textbf{Question.}
+Does PrimeLoRA improve the latency--cost tradeoff under the same trace, adapter pool, token budget, and GPU budget?
+
+\IfFileExists{figs/paper/main/table1_end_to_end.tex}{\input{figs/paper/main/table1_end_to_end.tex}}{\input{../figs/paper/main/table1_end_to_end.tex}}
+
+Table~\ref{tab:end_to_end} reports the primary end-to-end results on the representative Llama-2 7B main workload. The optimized serverful runtimes provide strong TTFT and E2E latency because they keep GPU capacity resident throughout the replay. PrimeLoRA is not the lowest-latency system in every column, but it reduces lifecycle cost per request and achieves the best CE by converting elastic capacity into useful adapter-ready service capacity. TPOT is reported as both average and p95 over observed per-request decode samples, so decode-stage tail behavior is audited consistently with TTFT and E2E.
+
+\subsection{Ablation Analysis}
+
+\textbf{Question.}
+How much does each PrimeLoRA mechanism contribute to the final performance?
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figs/paper/ablation/fig6_ablation.pdf}
+    \caption{Cumulative ablation of PrimeLoRA mechanisms. Each panel reports the change relative to the NVMe-preparation variant, so small lifecycle-cost differences are shown as relative changes rather than visually indistinguishable absolute bars.}
+    \label{fig:ablation}
+\end{figure*}
+
+Figure~\ref{fig:ablation} isolates the marginal effect of PrimeLoRA's mechanisms. Residency and migration reduce readiness-related first-token delay, while the full coordinated system improves CE without materially increasing per-request cost. The E2E tail remains close across variants, indicating that the main gain comes from the first-token readiness path rather than from changing the decode workload.
+
+\subsection{Lifecycle Cost Efficiency}
+
+\textbf{Question.}
+Where does PrimeLoRA's lifecycle cost-efficiency advantage come from?
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figs/paper/main/fig7_lifecycle_cost.pdf}
+    \caption{Lifecycle cost efficiency. The left panel decomposes monetary cost per request, and the right panel decomposes lifecycle GPU time per request.}
+    \label{fig:lifecycle_cost}
+\end{figure*}
+
+Figure~\ref{fig:lifecycle_cost} explains the cost-efficiency result. PrimeLoRA lowers lifecycle cost per request by using serverless-style elastic residency while retaining enough ready capacity to serve the workload. The GPU-time breakdown shows that CE is not a standalone pricing artifact; it follows from how much active, startup, and idle-ready GPU time each system consumes under the same replay.
 
 \section{Related Work}
 
@@ -345,7 +410,7 @@ Prior work has improved runtime execution, multi-LoRA adapter serving, and serve
 
 \section{Conclusion}
 
-This paper presented PrimeLoRA, a scaling-aware serverless system for multi-LoRA LLM inference. PrimeLoRA reduces the service-readiness gap between elastic replica activation and adapter execution by aligning request placement, scale-out preparation, hierarchical adapter residency, and GPU-admission control around adapter readiness. We implement PrimeLoRA on a multi-GPU prototype and evaluate it with trace-driven multi-LoRA workloads. The results show that PrimeLoRA improves first-token responsiveness, tail latency, and lifecycle cost efficiency by reducing readiness delay and controlling adapter-loading interference along the serving path. As future work, we plan to extend PrimeLoRA to deployments with multiple inference nodes and broader multimodal serving scenarios.
+This paper presented PrimeLoRA, a scaling-aware serverless system for multi-LoRA LLM inference. PrimeLoRA reduces the service-readiness gap between elastic replica activation and adapter execution by aligning request placement, scale-out preparation, hierarchical adapter residency, and GPU-admission control around adapter readiness. We implement PrimeLoRA on a multi-GPU prototype and evaluate it with trace-driven multi-LoRA workloads. The results show that PrimeLoRA improves lifecycle cost efficiency and reduces readiness-related delay, while exposing the expected latency tradeoff against always-on serverful runtimes. As future work, we plan to extend PrimeLoRA to deployments with multiple inference nodes and broader multimodal serving scenarios.
 
 \section*{Acknowledgments}
 This should be a simple paragraph before the References to thank those individuals and institutions who have supported your work on this article.

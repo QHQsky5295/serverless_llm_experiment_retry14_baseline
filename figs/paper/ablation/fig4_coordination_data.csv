@@ -1,4 +1,4 @@
-scenario,label,ttft_avg_ms,ttft_p95_ms,e2e_avg_ms,e2e_p95_ms,tpot_ms,lora_io_ms,ce,cost_per_req_usd,panel,reference,target,ttft_avg_ms_improvement_pct,ttft_p95_ms_improvement_pct,e2e_avg_ms_improvement_pct,e2e_p95_ms_improvement_pct,tpot_ms_improvement_pct,lora_io_ms_improvement_pct,cost_per_req_usd_improvement_pct,ce_improvement_pct
-faaslora_no_coord,NoCoord,564.4969,1050.3529,3163.2883,7229.3245,28.1973,1.8924,123.233492,0.00256527,,,,,,,,,,,
-faaslora_full,Full,545.667,941.5925,3129.7466,7188.5701,27.6805,1.7676,125.045244,0.00255519,,,,,,,,,,,
-,,,,,,,,,,coordination_change,NoCoord,Full,3.4508042450798637,11.550686735503968,1.0717065720272867,0.5669333321240089,1.86701829807987,7.060420909708087,0.3944912120038113,1.470178253165133
+scenario,label,ttft_avg_ms,ttft_p95_ms,e2e_avg_ms,e2e_p95_ms,tpot_avg_ms,tpot_p95_ms,lora_io_ms,ce,cost_per_req_usd,panel,reference,target,ttft_avg_ms_improvement_pct,ttft_p95_ms_improvement_pct,e2e_avg_ms_improvement_pct,e2e_p95_ms_improvement_pct,tpot_avg_ms_improvement_pct,tpot_p95_ms_improvement_pct,lora_io_ms_improvement_pct,cost_per_req_usd_improvement_pct,ce_improvement_pct
+faaslora_no_coord,NoCoord,564.4969,1050.3529,3163.2883,7229.3245,28.1973,38.69600198129773,1.8924,123.233492,0.00256527,,,,,,,,,,,,
+faaslora_full,Full,545.667,941.5925,3129.7466,7188.5701,27.6805,36.86162925359289,1.7676,125.045244,0.00255519,,,,,,,,,,,,
+,,,,,,,,,,,coordination_change,NoCoord,Full,3.4508042450798637,11.550686735503968,1.0717065720272867,0.5669333321240089,1.86701829807987,4.97637452507893,7.060420909708087,0.3944912120038113,1.470178253165133

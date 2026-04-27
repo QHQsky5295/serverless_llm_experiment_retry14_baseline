@@ -13,7 +13,7 @@ April handoff snapshots have been removed from the active documentation set.
 - Current main round: `llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1`.
 - Latest 500-request closure: `llama2_7b_r500_a500_seed42_s8_predictive1_faaslora`.
 
-## Live Status: 2026-04-27 13:03 CST
+## Live Status: 2026-04-27 23:57 CST
 
 The long-running operating-load sensitivity queue is still active in tmux and
 has not failed. The user's foreground terminal may have exited, but the tmux
@@ -26,15 +26,12 @@ session continues to run.
 - active section:
   `/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating`.
 - active run tag:
-  `llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1`.
-- current state files: only `00_prep.done`, so the first system stage is still
-  running.
-- latest observed live progress: about `3768/4000` requests, `fail=0`,
-  ETA about 6 minutes, `TTFT_e2e avg/p95/p99 = 229/301/313 ms`, and
-  `slo@5000ms=100%`.
-- GPU state at the same check showed model processes resident on all four
-  GPUs, with GPU 2 actively computing; this is consistent with an active
-  serving replay rather than an abnormal exit.
+  `llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1`.
+- latest observed live progress: the queue has advanced to the `s10` round and
+  is in the vLLM stage. vLLM is at about `2449/4000` completed requests,
+  `fail=0`, ETA about 29 minutes, `TTFT_e2e avg/p95/p99 = 469/796/2350 ms`,
+  `E2E_e2e avg/p95/p99 = 2987/7264/7948 ms`, live `TPOT avg = 26.1 ms`,
+  and `slo@5000ms=100%`.
 
 Monitor without disturbing the run:
 
@@ -76,6 +73,24 @@ S-LoRA
 
 Punica is retained as a scoped Llama-2 7B auxiliary baseline only.
 
+## Model Source Paths
+
+The active paper profiles read backbone weights from the older shared model
+workspace, not from the current repo checkout. This is expected and does not
+affect the currently running tmux queue because the running process already
+uses absolute model paths.
+
+```text
+Llama-2 7B:  /home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf
+Llama-2 13B: /home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-13b-hf
+Qwen2.5 7B:  /home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-7B-Instruct
+Qwen2.5 14B: /home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-14B-Instruct
+```
+
+These directories existed at the 2026-04-27 check. If a future workspace
+restriction hides `/home/qhq/serverless_llm_experiment`, do not rewrite model
+profiles; restore read access or keep launching from the same absolute paths.
+
 ## Current Experiment Direction
 
 1. Start or resume the Llama-2 7B / 4000-request five-system round through the
@@ -112,7 +127,7 @@ Result:
 - `500/500` completed, `fail=0`.
 - `TTFT_e2e avg/p95/p99 = 1395 / 10052 / 16366 ms`.
 - `TTFT_service avg/p95/p99 = 412 / 573 / 674 ms`.
-- `TPOT = 28.1 ms`.
+- `TPOT avg = 28.1 ms`.
 - `E2E_e2e avg/p95/p99 = 4037 / 12621 / 20272 ms`.
 - `Cost/req = $0.003084`.
 - main monetary `CE = 80.324`.
@@ -131,13 +146,36 @@ Main table:
 
 - `TTFT_e2e avg/p95`
 - `E2E_e2e avg/p95`
-- `TPOT`
+- `TPOT avg/p95`
 - `Throughput_tok_s`
 - `Cost/req`
 - `CE`
 
 Mechanism and ablation figures may additionally use FaaSLoRA-specific fields
 when the field is truly observable in all compared FaaSLoRA variants.
+
+Current Fig. 5 interpretation:
+
+- Fig. 5 is not a new experiment. It summarizes the closed Llama-2 7B,
+  4000-request, 500-adapter, s8 five-system main round.
+- PrimeLoRA is about `1.07x` CE over SGLang in this formal round because
+  SGLang has lower avg E2E and PrimeLoRA wins through lower `Cost/req`.
+- The same data show about `1.44x` CE over vLLM and about `79x` over the
+  current general ServerlessLLM baseline. Do not replace this with older
+  500-request smoke or two-system debug comparisons.
+
+## Current Paper Figure Boundary
+
+- Fig. 1 is a single-column cost-vs-CE scatter from the representative
+  Llama-2 7B / 4000-request / 500-adapter `s8` main round. It has no subpanel
+  caption and no wrapped system names.
+- Motivation now uses external baseline evidence only:
+  `figs/paper/motivation/fig2_mismatch.pdf` is from ServerlessLLM, and
+  `figs/paper/motivation/fig3_tier.pdf` is from the shared replay plus S-LoRA.
+- PrimeLoRA/FaaSLoRA internal request/tier figures under `figs/paper/ablation/`
+  are not Motivation evidence; they are appendix or mechanism-audit artifacts.
+- Fig. 5 is generated but currently treated as an appendix/backup view until
+  robustness/sensitivity is closed.
 
 ## Guardrails
 

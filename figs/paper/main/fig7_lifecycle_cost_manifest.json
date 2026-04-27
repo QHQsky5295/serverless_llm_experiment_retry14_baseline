@@ -1,7 +1,7 @@
 {
   "figure": "fig7_lifecycle_cost",
   "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1",
-  "generated_at_utc": "2026-04-27T00:26:36.349953+00:00",
+  "generated_at_utc": "2026-04-27T15:55:31.207678+00:00",
   "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main/fig7_lifecycle_cost.pdf",
   "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main/fig7_lifecycle_cost_data.csv",
   "sources": [

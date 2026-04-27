@@ -60,7 +60,7 @@ The main comparison table should use:
 
 - `TTFT_e2e avg/p95`
 - `E2E_e2e avg/p95`
-- `TPOT`
+- `TPOT avg/p95`
 - `Throughput_tok_s`
 - `Cost/req`
 - `CE = 1 / (avg_E2E_e2e_seconds * Cost/req)`

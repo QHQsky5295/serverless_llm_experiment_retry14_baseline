@@ -1,7 +1,7 @@
 {
   "figure": "fig1_intro_teaser",
   "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1",
-  "generated_at_utc": "2026-04-27T00:26:33.407725+00:00",
+  "generated_at_utc": "2026-04-27T15:55:26.561568+00:00",
   "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main/fig1_intro_teaser.pdf",
   "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main/fig1_intro_teaser_data.csv",
   "sources": [
@@ -10,5 +10,17 @@
     "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_vllm_dp4_tp1_summary.json",
     "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_summary.json",
     "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_serverlessllm_summary.json"
-  ]
+  ],
+  "baseline_or_own_system": "five_system_main_round",
+  "model": "Llama-2-7B",
+  "request_count": 4000,
+  "adapter_pool_size": 500,
+  "trace_id": "llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1",
+  "fields_used": [
+    "monetary_cost_per_request_usd",
+    "avg_overall_e2e_ms",
+    "monetary_ce"
+  ],
+  "benchmark": "Representative Llama-2-7B main workload: 4000 requests, 500 adapters, Zipf=1.0, hot set=48, rotation=500, time scale=8.",
+  "role": "Measured serverless-style cost/CE opportunity from the completed five-system main round."
 }

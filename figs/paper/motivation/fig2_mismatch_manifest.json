@@ -1,0 +1,28 @@
+{
+  "figure": "fig2_mismatch",
+  "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1",
+  "generated_at_utc": "2026-04-27T15:56:04.980278+00:00",
+  "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/motivation/fig2_mismatch.pdf",
+  "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/motivation/fig2_mismatch_data.csv",
+  "sources": [
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_serverlessllm_replay.json"
+  ],
+  "system": "ServerlessLLM",
+  "baseline_or_own_system": "external_baseline",
+  "evidence_role": "external serverless baseline motivation",
+  "model": "Llama-2-7B",
+  "request_count": 4000,
+  "adapter_pool_size": 500,
+  "trace_id": "llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1",
+  "fields_used": [
+    "overall_ttft_ms",
+    "dispatch_admission_wait_ms",
+    "runtime_ttft_ms",
+    "cold_start_latency_ms",
+    "scaleup_affected",
+    "scaleup_first_service"
+  ],
+  "benchmark": "Llama-2-7B, 4000 requests, 500 adapters, Zipf=1.0, hot set=48, rotation=500, time scale=8",
+  "category_definition": "Startup affected requests are those with scaleup_affected or scaleup_first_service flags in the ServerlessLLM replay.",
+  "limitations": "This replay exposes serverless admission/startup readiness gaps but does not include per-request adapter-tier instrumentation."
+}

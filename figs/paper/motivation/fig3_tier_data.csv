@@ -1,0 +1,9 @@
+panel,system_key,system,benchmark,category,count,fraction,ttft_avg_ms,ttft_p95_ms,avg_ratio_vs_hot_reuse,p95_ratio_vs_hot_reuse
+adapter_reuse_ttft,slora,S-LoRA,Llama-2-7B / 4000 requests / 500 adapters / Zipf 1.0 / hot set 48 / rotation 500 / time scale 8,First touch,132,0.033,468.289151725802,949.0664613367694,1.763400004258741,2.7671447009103587
+adapter_reuse_ttft,slora,S-LoRA,Llama-2-7B / 4000 requests / 500 adapters / Zipf 1.0 / hot set 48 / rotation 500 / time scale 8,Hot reuse <=16,2133,0.53325,265.56036667508744,342.97680964227766,1.0,1.0
+adapter_reuse_ttft,slora,S-LoRA,Llama-2-7B / 4000 requests / 500 adapters / Zipf 1.0 / hot set 48 / rotation 500 / time scale 8,Warm reuse 17-64,1029,0.25725,281.4797518733969,435.7173168566078,1.059946389582248,1.2703987692668137
+adapter_reuse_ttft,slora,S-LoRA,Llama-2-7B / 4000 requests / 500 adapters / Zipf 1.0 / hot set 48 / rotation 500 / time scale 8,Cold reuse >64,706,0.1765,310.25384970051954,739.1888094171009,1.168298769824017,2.155215130107687
+workload_reuse_mix,,,,First touch,132,0.033,,,,
+workload_reuse_mix,,,,Hot reuse <=16,2133,0.53325,,,,
+workload_reuse_mix,,,,Warm reuse 17-64,1029,0.25725,,,,
+workload_reuse_mix,,,,Cold reuse >64,706,0.1765,,,,

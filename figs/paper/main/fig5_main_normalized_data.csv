@@ -1,61 +1,76 @@
-metric,metric_key,system_key,system,value,best_baseline,best_baseline_value,normalized,higher_is_better
-"TTFT avg
-lower",ttft_avg_ms,faaslora,PrimeLoRA,563.9507,SGLang,229.8,2.4540935596170583,False
-"TTFT avg
-lower",ttft_avg_ms,sglang,SGLang,229.8,SGLang,229.8,1.0,False
-"TTFT avg
-lower",ttft_avg_ms,vllm,vLLM,517.36,SGLang,229.8,2.251348999129678,False
-"TTFT avg
-lower",ttft_avg_ms,slora,S-LoRA,284.23,SGLang,229.8,1.2368581375108791,False
-"TTFT avg
-lower",ttft_avg_ms,serverlessllm,ServerlessLLM,235998.66,SGLang,229.8,1026.9741514360312,False
-"TTFT p95
-lower",ttft_p95_ms,faaslora,PrimeLoRA,1015.4881,SGLang,305.21,3.327178336227516,False
-"TTFT p95
-lower",ttft_p95_ms,sglang,SGLang,305.21,SGLang,305.21,1.0,False
-"TTFT p95
-lower",ttft_p95_ms,vllm,vLLM,1284.75,SGLang,305.21,4.2093968087546285,False
-"TTFT p95
-lower",ttft_p95_ms,slora,S-LoRA,419.33,SGLang,305.21,1.3739064906130205,False
-"TTFT p95
-lower",ttft_p95_ms,serverlessllm,ServerlessLLM,469501.74,SGLang,305.21,1538.2908161593657,False
-"E2E avg
-lower",e2e_avg_ms,faaslora,PrimeLoRA,3167.2217,SGLang,2384.69,1.328148186976085,False
-"E2E avg
-lower",e2e_avg_ms,sglang,SGLang,2384.69,SGLang,2384.69,1.0,False
-"E2E avg
-lower",e2e_avg_ms,vllm,vLLM,3223.25,SGLang,2384.69,1.3516431905195225,False
-"E2E avg
-lower",e2e_avg_ms,slora,S-LoRA,3591.19,SGLang,2384.69,1.5059357820094017,False
-"E2E avg
-lower",e2e_avg_ms,serverlessllm,ServerlessLLM,238580.99,SGLang,2384.69,100.04696207892849,False
-"E2E p95
-lower",e2e_p95_ms,faaslora,PrimeLoRA,7206.746,SGLang,5619.52,1.2824486788907237,False
-"E2E p95
-lower",e2e_p95_ms,sglang,SGLang,5619.52,SGLang,5619.52,1.0,False
-"E2E p95
-lower",e2e_p95_ms,vllm,vLLM,7391.07,SGLang,5619.52,1.3152493451397982,False
-"E2E p95
-lower",e2e_p95_ms,slora,S-LoRA,8081.07,SGLang,5619.52,1.4380356329366208,False
-"E2E p95
-lower",e2e_p95_ms,serverlessllm,ServerlessLLM,472473.72,SGLang,5619.52,84.07723791355845,False
-"Cost/req
-lower",cost_req_usd,faaslora,PrimeLoRA,0.00256652,ServerlessLLM,0.0026861,0.9554819254681509,False
-"Cost/req
-lower",cost_req_usd,sglang,SGLang,0.0036377,ServerlessLLM,0.0026861,1.3542682699825026,False
-"Cost/req
-lower",cost_req_usd,vllm,vLLM,0.0036413,ServerlessLLM,0.0026861,1.3556085030341387,False
-"Cost/req
-lower",cost_req_usd,slora,S-LoRA,0.003698,ServerlessLLM,0.0026861,1.3767171735974089,False
-"Cost/req
-lower",cost_req_usd,serverlessllm,ServerlessLLM,0.0026861,ServerlessLLM,0.0026861,1.0,False
-"CE
-higher",ce,faaslora,PrimeLoRA,123.02045,SGLang,115.2768,1.0671744010937154,True
-"CE
-higher",ce,sglang,SGLang,115.2768,SGLang,115.2768,1.0,True
-"CE
-higher",ce,vllm,vLLM,85.2015,SGLang,115.2768,0.7391036184210527,True
-"CE
-higher",ce,slora,S-LoRA,75.2993,SGLang,115.2768,0.6532042874194982,True
-"CE
-higher",ce,serverlessllm,ServerlessLLM,1.5604,SGLang,115.2768,0.013536114812347325,True
+panel,system_key,system,ce,e2e_avg_ms,cost_req_usd,metric,metric_key,value,best_baseline,best_baseline_value,normalized,higher_is_better
+ce_ranking,faaslora,PrimeLoRA,123.02045,3167.2217,0.00256652,,,,,,,
+ce_ranking,sglang,SGLang,115.2768,2384.69,0.0036377,,,,,,,
+ce_ranking,vllm,vLLM,85.2015,3223.25,0.0036413,,,,,,,
+ce_ranking,slora,S-LoRA,75.2993,3591.19,0.003698,,,,,,,
+ce_ranking,serverlessllm,ServerlessLLM,1.5604,238580.99,0.0026861,,,,,,,
+latency_cost_matrix,faaslora,PrimeLoRA,,,,"TTFT
+avg",ttft_avg_ms,563.9507,SGLang,229.8,2.4540935596170583,False
+latency_cost_matrix,sglang,SGLang,,,,"TTFT
+avg",ttft_avg_ms,229.8,SGLang,229.8,1.0,False
+latency_cost_matrix,vllm,vLLM,,,,"TTFT
+avg",ttft_avg_ms,517.36,SGLang,229.8,2.251348999129678,False
+latency_cost_matrix,slora,S-LoRA,,,,"TTFT
+avg",ttft_avg_ms,284.23,SGLang,229.8,1.2368581375108791,False
+latency_cost_matrix,serverlessllm,ServerlessLLM,,,,"TTFT
+avg",ttft_avg_ms,235998.66,SGLang,229.8,1026.9741514360312,False
+latency_cost_matrix,faaslora,PrimeLoRA,,,,"TTFT
+p95",ttft_p95_ms,1015.4881,SGLang,305.21,3.327178336227516,False
+latency_cost_matrix,sglang,SGLang,,,,"TTFT
+p95",ttft_p95_ms,305.21,SGLang,305.21,1.0,False
+latency_cost_matrix,vllm,vLLM,,,,"TTFT
+p95",ttft_p95_ms,1284.75,SGLang,305.21,4.2093968087546285,False
+latency_cost_matrix,slora,S-LoRA,,,,"TTFT
+p95",ttft_p95_ms,419.33,SGLang,305.21,1.3739064906130205,False
+latency_cost_matrix,serverlessllm,ServerlessLLM,,,,"TTFT
+p95",ttft_p95_ms,469501.74,SGLang,305.21,1538.2908161593657,False
+latency_cost_matrix,faaslora,PrimeLoRA,,,,"E2E
+avg",e2e_avg_ms,3167.2217,SGLang,2384.69,1.328148186976085,False
+latency_cost_matrix,sglang,SGLang,,,,"E2E
+avg",e2e_avg_ms,2384.69,SGLang,2384.69,1.0,False
+latency_cost_matrix,vllm,vLLM,,,,"E2E
+avg",e2e_avg_ms,3223.25,SGLang,2384.69,1.3516431905195225,False
+latency_cost_matrix,slora,S-LoRA,,,,"E2E
+avg",e2e_avg_ms,3591.19,SGLang,2384.69,1.5059357820094017,False
+latency_cost_matrix,serverlessllm,ServerlessLLM,,,,"E2E
+avg",e2e_avg_ms,238580.99,SGLang,2384.69,100.04696207892849,False
+latency_cost_matrix,faaslora,PrimeLoRA,,,,"E2E
+p95",e2e_p95_ms,7206.746,SGLang,5619.52,1.2824486788907237,False
+latency_cost_matrix,sglang,SGLang,,,,"E2E
+p95",e2e_p95_ms,5619.52,SGLang,5619.52,1.0,False
+latency_cost_matrix,vllm,vLLM,,,,"E2E
+p95",e2e_p95_ms,7391.07,SGLang,5619.52,1.3152493451397982,False
+latency_cost_matrix,slora,S-LoRA,,,,"E2E
+p95",e2e_p95_ms,8081.07,SGLang,5619.52,1.4380356329366208,False
+latency_cost_matrix,serverlessllm,ServerlessLLM,,,,"E2E
+p95",e2e_p95_ms,472473.72,SGLang,5619.52,84.07723791355845,False
+latency_cost_matrix,faaslora,PrimeLoRA,,,,"TPOT
+avg",tpot_avg_ms,28.6274,SGLang,19.96,1.4342384769539078,False
+latency_cost_matrix,sglang,SGLang,,,,"TPOT
+avg",tpot_avg_ms,19.96,SGLang,19.96,1.0,False
+latency_cost_matrix,vllm,vLLM,,,,"TPOT
+avg",tpot_avg_ms,26.57,SGLang,19.96,1.3311623246492985,False
+latency_cost_matrix,slora,S-LoRA,,,,"TPOT
+avg",tpot_avg_ms,28.52,SGLang,19.96,1.4288577154308617,False
+latency_cost_matrix,serverlessllm,ServerlessLLM,,,,"TPOT
+avg",tpot_avg_ms,25.16,SGLang,19.96,1.2605210420841684,False
+latency_cost_matrix,faaslora,PrimeLoRA,,,,"TPOT
+p95",tpot_p95_ms,39.44787753946742,SGLang,23.05333501118598,1.7111570850953433,False
+latency_cost_matrix,sglang,SGLang,,,,"TPOT
+p95",tpot_p95_ms,23.05333501118598,SGLang,23.05333501118598,1.0,False
+latency_cost_matrix,vllm,vLLM,,,,"TPOT
+p95",tpot_p95_ms,29.762221684344397,SGLang,23.05333501118598,1.2910158842485533,False
+latency_cost_matrix,slora,S-LoRA,,,,"TPOT
+p95",tpot_p95_ms,34.39981667579559,SGLang,23.05333501118598,1.4921839577268996,False
+latency_cost_matrix,serverlessllm,ServerlessLLM,,,,"TPOT
+p95",tpot_p95_ms,26.873626358368817,SGLang,23.05333501118598,1.165715344236708,False
+latency_cost_matrix,faaslora,PrimeLoRA,,,,"Cost/
+req",cost_req_usd,0.00256652,ServerlessLLM,0.0026861,0.9554819254681509,False
+latency_cost_matrix,sglang,SGLang,,,,"Cost/
+req",cost_req_usd,0.0036377,ServerlessLLM,0.0026861,1.3542682699825026,False
+latency_cost_matrix,vllm,vLLM,,,,"Cost/
+req",cost_req_usd,0.0036413,ServerlessLLM,0.0026861,1.3556085030341387,False
+latency_cost_matrix,slora,S-LoRA,,,,"Cost/
+req",cost_req_usd,0.003698,ServerlessLLM,0.0026861,1.3767171735974089,False
+latency_cost_matrix,serverlessllm,ServerlessLLM,,,,"Cost/
+req",cost_req_usd,0.0026861,ServerlessLLM,0.0026861,1.0,False

@@ -12,12 +12,13 @@ sensitivity 队列：
 tmux session: paper_load_operating_p0
 queue id:     20260427_112832_load_operating_p0
 profile:      load_operating_p0
-active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
 systems:      sglang serverlessllm vllm slora faaslora
 ```
 
-截至 `2026-04-27 13:03 CST`，s12 run 仍在运行，约 `3768/4000` 请求已完成，
-`fail=0`。不要因为外层终端退出而重启同一队列；先检查：
+截至 `2026-04-27 23:57 CST`，队列已从 s12 run 推进到 s10 run。当前处于
+vLLM 阶段，约 `2449/4000` 请求已完成，`fail=0`，ETA 约 29 分钟。
+不要因为外层终端退出而重启同一队列；先检查：
 
 ```bash
 tmux capture-pane -p -t paper_load_operating_p0 -S -120
