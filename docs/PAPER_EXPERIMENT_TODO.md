@@ -10,6 +10,40 @@
 
 ## 0. 硬性约束
 
+### 0.0 当前运行队列：2026-04-27
+
+当前有一个正式长实验仍在运行，不能误判为失败后重复启动：
+
+```text
+tmux session: paper_load_operating_p0
+queue id:     20260427_112832_load_operating_p0
+profile:      load_operating_p0
+systems:      sglang serverlessllm vllm slora faaslora
+active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+```
+
+截至 `2026-04-27 13:03 CST`，该 run 约完成 `3768/4000` 请求，`fail=0`，
+ETA 约 6 分钟，属于健康运行。若用户看到“终端退出”，优先检查 tmux：
+
+```bash
+tmux capture-pane -p -t paper_load_operating_p0 -S -120
+```
+
+只有当 tmux 不存在、日志出现 failed stage、或 queue state 明确失败时，才按
+`queue.env` 中的 `PAPER_QUEUE_ID` 恢复。恢复命令：
+
+```bash
+cd /home/qhq/serverless_llm_baselines
+PAPER_QUEUE_ID=20260427_112832_load_operating_p0 \
+PAPER_QUEUE_PROFILE=load_operating_p0 \
+PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
+bash scripts/run_paper_long_experiment_queue.sh
+```
+
+该队列用于 Fig. 8 候选数据，不用于替代已经闭合的 Llama-2 7B s8 主横向表。
+如果它完成后不能支持清晰、公平的 CE sensitivity 结论，应从主文删除 Fig. 8，
+不要为了“图表完整”强行保留。
+
 ### 0.1 不使用不可观测机制指标
 
 正式论文 TODO、正式图表和主实验 checklist 只允许使用结果 JSON 中真实存在的字段。不能观测、不能跨系统统一、或者执行时只能填 `null` 的机制指标，不进入正式论文图。

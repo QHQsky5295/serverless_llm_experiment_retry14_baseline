@@ -28,6 +28,21 @@
 - `s8/s6/s4` load sensitivity 当前只作为 stress diagnostic；若后续 `s12/s10/s8`
   operating-load round 通过审计，再补 Fig. 8 主文插入。
 
+### 0.1 当前运行实验状态
+
+截至 `2026-04-27 13:03 CST`，`load_operating_p0` 队列仍在 tmux 中运行：
+
+```text
+tmux session: paper_load_operating_p0
+queue id:     20260427_112832_load_operating_p0
+active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+systems:      sglang serverlessllm vllm slora faaslora
+```
+
+该队列用于决定 Fig. 8 是否保留。当前文档中的 Fig. 8 插入建议仍然保持
+“暂不进主文”。只有当 `s12/s10/s8` 五系统结果闭合并能形成清晰 CE sensitivity
+叙事后，才更新本文档的 Fig. 8 段落；否则删除 Fig. 8 主文候选。
+
 ## 1. 当前稿件维护入口
 
 当前草稿文件：

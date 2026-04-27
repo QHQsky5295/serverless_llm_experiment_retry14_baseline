@@ -35,3 +35,17 @@ git -C /home/qhq/serverless_llm_experiment_retry14_baseline status --short
 ```
 
 Do not push accidental generated results, large artifacts, or obsolete docs.
+
+## Latest Known Sync Before 2026-04-27 Handoff Update
+
+- FaaSLoRA branch: `retry14_continuous_queue_v2`.
+- Latest pushed FaaSLoRA commit before the current handoff/documentation edits:
+  `2478514 Track paper draft and formal insertion guide`.
+- Baseline harness branch: `main`.
+- Latest pushed baseline commit before the current handoff/documentation edits:
+  `0241cdf Add paper experiment queue and confirmed comparisons`.
+
+The operating-load queue `20260427_112832_load_operating_p0` was still running
+when this note was added. Do not push new raw result directories from that
+queue until it has completed and the artifacts have been audited for size and
+paper relevance.

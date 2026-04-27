@@ -19,6 +19,8 @@ experiment evidence.
 - `PAPER_LATEX_INSERTIONS.md`: ready-to-paste LaTeX figure/table insertion
   snippets and EuroSys-style paragraph replacements for the current draft.
 - `PROJECT_PROGRESS.md`: current high-level project status.
+- `SESSION_HANDOFF_2026-04-27.md`: current restart prompt, live tmux status,
+  queue recovery command, and next-step checklist for a new session.
 - `VLLM_RTX3090_LORA.md`: current vLLM/LoRA runtime notes.
 - `CODEX_INTERACTION_RULES.md`: local copy pointing to the authoritative
   collaboration rules in the baseline workspace.

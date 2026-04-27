@@ -1,0 +1,247 @@
+# Session Handoff: 2026-04-27
+
+This document is the current restart point for the PrimeLoRA/FaaSLoRA paper and
+experiment workflow. It intentionally records both the paper state and the
+running terminal state so a new Codex session can continue without reconstructing
+the project from chat history.
+
+## 1. Repositories And Branches
+
+Primary FaaSLoRA repository:
+
+```text
+path:   /home/qhq/serverless_llm_experiment_retry14_baseline
+branch: retry14_continuous_queue_v2
+remote: faaslora_origin -> https://github.com/QHQsky5295/FaaSLoRA.git
+```
+
+Baseline/fair-comparison repository:
+
+```text
+path:   /home/qhq/serverless_llm_baselines
+branch: main
+remote: origin -> https://github.com/QHQsky5295/serverless_llm_experiment_retry14_baseline.git
+```
+
+Latest known pushed commits before this handoff update:
+
+```text
+FaaSLoRA: 2478514 Track paper draft and formal insertion guide
+Baseline: 0241cdf Add paper experiment queue and confirmed comparisons
+```
+
+## 2. Current Terminal State
+
+As of `2026-04-27 13:03 CST`, the long experiment did not fail. The foreground
+terminal may have exited, but the experiment is still running inside tmux.
+
+```text
+active tmux session: paper_load_operating_p0
+queue id:            20260427_112832_load_operating_p0
+queue profile:       load_operating_p0
+systems:             sglang serverlessllm vllm slora faaslora
+active run tag:      llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+active section:      06_sensitivity_load_operating
+```
+
+Queue files:
+
+```text
+queue env:
+/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/queue.env
+
+queue log:
+/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/logs/06_sensitivity_load_operating_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1.log
+
+round dir:
+/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+```
+
+Observed progress at handoff:
+
+```text
+arrived/done: about 3768/4000
+fail:         0
+ETA:          about 6 minutes for the current system stage
+TTFT_e2e:     avg/p95/p99 about 229/301/313 ms
+E2E_e2e:      avg/p95/p99 about 2308/5528/5795 ms
+SLO@5000 ms:  100%
+```
+
+The state directory only contained `00_prep.done`, so the first system stage was
+still running. The metrics look like a serverful baseline stage rather than
+FaaSLoRA; do not infer final Fig. 8 behavior from this partial live output.
+
+Safe monitor commands:
+
+```bash
+tmux capture-pane -p -t paper_load_operating_p0 -S -120
+```
+
+```bash
+tmux attach -t paper_load_operating_p0
+```
+
+If the queue later really fails, resume with:
+
+```bash
+cd /home/qhq/serverless_llm_baselines
+PAPER_QUEUE_ID=20260427_112832_load_operating_p0 \
+PAPER_QUEUE_PROFILE=load_operating_p0 \
+PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
+bash scripts/run_paper_long_experiment_queue.sh
+```
+
+Do not start another copy of this queue unless tmux and the queue logs both
+prove the current one has stopped.
+
+## 3. Paper Figure And Data State
+
+Closed or draft-ready artifacts in the FaaSLoRA repo:
+
+```text
+paper/primelora_current_draft.tex
+docs/PAPER_LATEX_INSERTIONS.md
+docs/PAPER_FIGURE_PLAN.md
+docs/PAPER_EXPERIMENT_TODO.md
+figs/paper/main/fig1_intro_teaser.pdf
+figs/paper/main/table1_end_to_end.tex
+figs/paper/main/fig5_main_normalized.pdf
+figs/paper/main/fig7_lifecycle_cost.pdf
+figs/paper/ablation/fig2_mismatch.pdf
+figs/paper/ablation/fig3_tier.pdf
+figs/paper/ablation/fig4_coordination.pdf
+figs/paper/ablation/fig6_ablation.pdf
+```
+
+Important interpretation boundaries:
+
+- Motivation figures should show that the problem exists; they should not
+  prematurely compare PrimeLoRA full against its ablations.
+- Current Llama-2 7B s8 main comparison supports a cost/CE-centered headline,
+  not a claim that PrimeLoRA dominates every TTFT metric.
+- Fig. 8 sensitivity is not ready for the paper. Old `s4/s6/s8` data are stress
+  diagnostics. The current `load_operating_p0` queue is collecting lower/medium
+  operating points (`s12`, then `s10`) while keeping the same Llama-2 7B
+  4000-request/500-adapter workload family and all five systems.
+- If the completed sensitivity data do not support a clear and fair CE story,
+  remove Fig. 8 from the main paper instead of forcing a weak plot.
+- Multi-backbone robustness is still pending after the current queue and figure
+  audit.
+
+## 4. Current Experiment Policy
+
+The formal workload family for Llama-2 7B is:
+
+```text
+requests:              4000
+adapter pool:          500
+LoRA request ratio:    100%
+Zipf exponent:         1.0
+active hot set cap:    48
+hotset rotation:       500 requests
+seed:                  42
+main time scale:       s8
+operating sensitivity: s12 and s10, plus the existing s8 main point
+systems:               SGLang, ServerlessLLM, vLLM, S-LoRA, FaaSLoRA
+```
+
+The current queue intentionally includes ServerlessLLM. If ServerlessLLM fails,
+fix the root cause and rerun the same queue or same stage; do not silently drop
+it from the comparison.
+
+## 5. Next Steps After The Current Queue
+
+1. Check whether `paper_load_operating_p0` completed or failed.
+2. If it failed, inspect the queue log and stage log, fix the root cause, and
+   resume with the same `PAPER_QUEUE_ID`.
+3. If it completed, inspect each run directory under
+   `/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating`.
+4. Confirm that each compare JSON contains all five systems:
+   `sglang`, `serverlessllm`, `vllm`, `slora`, and `faaslora`.
+5. Regenerate or update Fig. 8 only if s12/s10/s8 form a coherent sensitivity
+   story. Use CE as the primary narrative axis and avoid log-scale bars unless
+   there is a very strong reason.
+6. Update `docs/PAPER_FIGURE_PLAN.md`, `docs/PAPER_LATEX_INSERTIONS.md`, and
+   `docs/PROJECT_PROGRESS.md` with the final Fig. 8 decision.
+7. Only after the Llama-2 7B figure set is coherent, plan the multi-backbone
+   robustness runs.
+
+## 6. Visualization Rules To Preserve
+
+- Use Times-compatible fonts in paper figures.
+- Avoid tiny labels; target IEEE double-column readability.
+- Do not use log axes for main reader-facing comparisons unless explicitly
+  justified.
+- Do not make every figure a bar chart. Use CDFs, lollipop/dumbbell plots,
+  numeric matrices, and stacked breakdowns where they answer the question more
+  clearly.
+- Do not plot near-identical absolute bars when the difference is invisible;
+  use relative deltas or move the result into a table/text.
+- Do not add error bars unless repeated runs, seeds, or a clear CI/bootstrap
+  method exist.
+- Keep Motivation, Ablation, Main Comparison, Cost, and Sensitivity figures
+  logically separate.
+
+## 7. Detailed Prompt For A New Session
+
+Use the following prompt to start a new Codex session:
+
+```text
+你现在接手 PrimeLoRA/FaaSLoRA 论文和实验工作。请先不要改代码，不要重启实验，
+先读取这些文档并检查 tmux 状态：
+
+1. /home/qhq/serverless_llm_experiment_retry14_baseline/docs/SESSION_HANDOFF_2026-04-27.md
+2. /home/qhq/serverless_llm_experiment_retry14_baseline/docs/PROJECT_PROGRESS.md
+3. /home/qhq/serverless_llm_experiment_retry14_baseline/docs/PAPER_FIGURE_PLAN.md
+4. /home/qhq/serverless_llm_experiment_retry14_baseline/docs/PAPER_EXPERIMENT_TODO.md
+5. /home/qhq/serverless_llm_experiment_retry14_baseline/docs/PAPER_LATEX_INSERTIONS.md
+6. /home/qhq/serverless_llm_baselines/docs/FAIR_COMPARISON_EXECUTION_PLAN.md
+7. /home/qhq/serverless_llm_baselines/docs/CURRENT_QUEUE_HANDOFF_2026-04-27.md
+
+当前关键背景：
+- FaaSLoRA repo 在 /home/qhq/serverless_llm_experiment_retry14_baseline，
+  branch 是 retry14_continuous_queue_v2。
+- baseline repo 在 /home/qhq/serverless_llm_baselines，branch 是 main。
+- 已经闭合的主 Llama-2 7B s8 五系统对比可以支撑 Table 1、Fig. 1、Fig. 5、Fig. 7。
+- Motivation 图 Fig. 2/Fig. 3 和 ablation 图 Fig. 4/Fig. 6 已有 draft-ready PDF/CSV/manifest。
+- 论文当前 tracked draft 在
+  /home/qhq/serverless_llm_experiment_retry14_baseline/paper/primelora_current_draft.tex。
+- 当前不要声称 PrimeLoRA 在所有 TTFT 指标上都超过 SGLang/S-LoRA；主叙事应围绕
+  readiness 机制、tail/cost tradeoff、lifecycle cost 和 CE。
+
+先检查终端：
+  tmux ls
+  tmux capture-pane -p -t paper_load_operating_p0 -S -120
+  nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader,nounits
+
+截至 2026-04-27 13:03 CST，paper_load_operating_p0 仍在运行，队列 id 是
+20260427_112832_load_operating_p0，profile 是 load_operating_p0，系统列表是
+sglang serverlessllm vllm slora faaslora，active tag 是
+llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1。它约完成
+3768/4000 请求且 fail=0，所以外层终端退出不等于实验失败。除非 tmux 和日志证明
+已经失败，否则不要重启。
+
+如果它仍在跑：只汇报当前进度，不动脚本。
+如果它失败：读取
+/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/logs/
+下的队列日志和对应 round 的 logs/state，找根因后修复，再用同一个 PAPER_QUEUE_ID 恢复：
+  cd /home/qhq/serverless_llm_baselines
+  PAPER_QUEUE_ID=20260427_112832_load_operating_p0 \
+  PAPER_QUEUE_PROFILE=load_operating_p0 \
+  PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
+  bash scripts/run_paper_long_experiment_queue.sh
+
+如果它完成：检查 06_sensitivity_load_operating 下 s12 和 s10 的 compare JSON 是否都包含
+五个系统，尤其是 ServerlessLLM。然后判断 Fig. 8 是否值得进入论文：只有当 s12/s10/s8
+能形成清晰、公平、与主文一致的 CE sensitivity 叙事时才重画并更新
+PAPER_FIGURE_PLAN.md 与 PAPER_LATEX_INSERTIONS.md；否则明确删除 Fig. 8 主文候选。
+
+所有正式图遵守这些规则：Times-compatible 字体、IEEE 双栏可读字号、不要 log 纵轴、
+不要图例遮挡、不要模型名字重叠、不要所有图都画成柱状图、没有 repeated runs 不加误差线、
+近似等高柱子要改成相对变化或表格。Motivation 只证明问题存在，不提前展示 full 系统收益；
+消融只在 Evaluation/Ablation 里解释机制贡献；横向主图不使用 FaaSLoRA-only 内部字段。
+
+做任何代码或脚本修改前，先确认没有正在运行的同一脚本会被影响。当前长实验跑完前，
+只允许更新文档或分析日志，不要修改正在运行的 runner。
+```

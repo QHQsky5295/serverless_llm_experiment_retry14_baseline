@@ -212,8 +212,33 @@ Fig. 1 -> Table 1 -> Fig. 6 -> Fig. 7 -> Fig. 2/3 -> Fig. 8/9
 | Fig. 6 Ablation | 已重画 | `figs/paper/ablation/fig6_ablation.pdf` 与同名 CSV/manifest | 可作为 Evaluation 图初版 | 全部为相对 NVMe-pre 的变化；避免等高 cost 柱 |
 | Coordination effect subfigure | 已重画 | `figs/paper/ablation/fig4_coordination.pdf` 与同名 CSV/manifest | 只能放 Evaluation/Ablation | Full vs NoCoord 相对变化，不放 Motivation |
 | Fig. 7 Lifecycle cost | 已重画，可进初稿 | `figs/paper/main/fig7_lifecycle_cost.pdf` 与同名 CSV/manifest | 可作为成本解释图初版 | 左图解释 monetary cost，右图解释 GPU-seconds 生命周期来源 |
-| Fig. 8 Sensitivity | 已有 s4/s6/s8 stress diagnostic，但不建议进主文 | `figs/paper/sensitivity/fig8_load_sensitivity.pdf` 与同名 CSV/manifest | 当前不可直接进论文 | 已新增 `load_operating_p0`，先跑 s12/s10；结合已有 s8 形成低/中/名义负载 sensitivity；若仍无 CE 优势则删除 Fig. 8 |
+| Fig. 8 Sensitivity | `load_operating_p0` 正在跑，旧 s4/s6/s8 仅作 stress diagnostic | 旧图：`figs/paper/sensitivity/fig8_load_sensitivity.pdf`；新队列：`20260427_112832_load_operating_p0` | 当前不可直接进论文 | 等 s12/s10 五系统跑完；结合 s8 形成低/中/名义负载 sensitivity；若 CE 叙事仍不成立则删除 Fig. 8 |
 | Fig. 9 Multi-backbone robustness | 未跑 | 无 | 不可进论文 | 等 Llama-2 7B 图闭口后跑 13B/Qwen |
+
+## 2.3 Live Experiment Ledger: 2026-04-27
+
+当前唯一正在运行的正式长实验是 operating-load sensitivity 队列：
+
+```text
+tmux session: paper_load_operating_p0
+queue id:     20260427_112832_load_operating_p0
+profile:      load_operating_p0
+systems:      sglang serverlessllm vllm slora faaslora
+section:      06_sensitivity_load_operating
+```
+
+该队列不是新的主横向对比，而是 Fig. 8 的候选数据来源。它保留与 Llama-2 7B
+主横向对比一致的核心 workload 语义：`4000` requests、`500` adapters、
+Zipf `1.0`、hot set cap `48`、hotset rotation `500`、seed `42`。唯一有意变化的
+是 time scale，用 `s12` 和 `s10` 补齐低/中 operating-load 点；已有 `s8` 主 round
+作为名义负载点。旧 `s6/s4` 只作为 stress diagnostic，不直接进入主文 sensitivity。
+
+截至 `2026-04-27 13:03 CST`，`s12` run 仍在 tmux 中健康运行，已完成约
+`3768/4000` 请求，`fail=0`。状态目录只有 `00_prep.done`，说明仍处于第一个系统
+阶段；不要在该队列完成或失败前修改运行脚本。若后续该队列完整结束，应先检查
+每个 run 的 `compare/*.json` 是否包含五个系统，特别是 ServerlessLLM，然后再重画
+Fig. 8。若 Fig. 8 不能形成清晰、公平、与主文一致的 CE 结论，应删除该图，而不是
+保留一个削弱论文主张的负载强度图。
 
 ## 2.2 Motivation 图边界
 

@@ -3,6 +3,36 @@
 本文件记录 `Llama-2 7B / 4000 requests / 500 adapters / s8 / hotset rotation 500`
 五系统主横向对比的执行指令。按顺序执行，不要并发跑多个系统。
 
+## Live queue note: 2026-04-27
+
+当前正在运行的不是 s8 主横向对比，而是 Fig. 8 候选的 operating-load
+sensitivity 队列：
+
+```text
+tmux session: paper_load_operating_p0
+queue id:     20260427_112832_load_operating_p0
+profile:      load_operating_p0
+active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+systems:      sglang serverlessllm vllm slora faaslora
+```
+
+截至 `2026-04-27 13:03 CST`，s12 run 仍在运行，约 `3768/4000` 请求已完成，
+`fail=0`。不要因为外层终端退出而重启同一队列；先检查：
+
+```bash
+tmux capture-pane -p -t paper_load_operating_p0 -S -120
+```
+
+若之后确认失败，使用同一个 queue id 断点恢复：
+
+```bash
+cd /home/qhq/serverless_llm_baselines
+PAPER_QUEUE_ID=20260427_112832_load_operating_p0 \
+PAPER_QUEUE_PROFILE=load_operating_p0 \
+PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
+bash scripts/run_paper_long_experiment_queue.sh
+```
+
 优先使用连续执行脚本：
 
 - 脚本：`/home/qhq/serverless_llm_baselines/scripts/run_full_fair_round.sh`

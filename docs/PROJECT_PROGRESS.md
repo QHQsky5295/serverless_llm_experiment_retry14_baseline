@@ -13,6 +13,55 @@ April handoff snapshots have been removed from the active documentation set.
 - Current main round: `llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1`.
 - Latest 500-request closure: `llama2_7b_r500_a500_seed42_s8_predictive1_faaslora`.
 
+## Live Status: 2026-04-27 13:03 CST
+
+The long-running operating-load sensitivity queue is still active in tmux and
+has not failed. The user's foreground terminal may have exited, but the tmux
+session continues to run.
+
+- tmux session: `paper_load_operating_p0`.
+- queue id: `20260427_112832_load_operating_p0`.
+- queue env:
+  `/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/queue.env`.
+- active section:
+  `/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating`.
+- active run tag:
+  `llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1`.
+- current state files: only `00_prep.done`, so the first system stage is still
+  running.
+- latest observed live progress: about `3768/4000` requests, `fail=0`,
+  ETA about 6 minutes, `TTFT_e2e avg/p95/p99 = 229/301/313 ms`, and
+  `slo@5000ms=100%`.
+- GPU state at the same check showed model processes resident on all four
+  GPUs, with GPU 2 actively computing; this is consistent with an active
+  serving replay rather than an abnormal exit.
+
+Monitor without disturbing the run:
+
+```bash
+tmux capture-pane -p -t paper_load_operating_p0 -S -120
+```
+
+Attach interactively:
+
+```bash
+tmux attach -t paper_load_operating_p0
+```
+
+If the queue later fails after the current check, resume with:
+
+```bash
+cd /home/qhq/serverless_llm_baselines
+PAPER_QUEUE_ID=20260427_112832_load_operating_p0 \
+PAPER_QUEUE_PROFILE=load_operating_p0 \
+PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
+bash scripts/run_paper_long_experiment_queue.sh
+```
+
+Do not edit running experiment scripts while this queue is active. Documentation
+updates are safe; code changes should wait until the current stage is complete
+or failed.
+
 ## Current Paper Baselines
 
 The current formal comparison set is:
@@ -37,6 +86,12 @@ Punica is retained as a scoped Llama-2 7B auxiliary baseline only.
    profiles rather than manually running systems one by one.
 4. Do not reopen FaaSLoRA system optimization unless cross-system logs expose a
    root-cause issue in the FaaSLoRA causal chain.
+5. Let `load_operating_p0` finish before judging Fig. 8. It intentionally runs
+   lower/medium operating points (`s12`, then `s10`) with the same Llama-2 7B
+   4000-request/500-adapter workload family and all five systems, including
+   ServerlessLLM. Only keep the load-sensitivity figure if the completed data
+   supports a clear and fair CE narrative; otherwise drop it from the main text
+   instead of forcing a weak plot.
 
 ## Latest Verified FaaSLoRA Closure
 
