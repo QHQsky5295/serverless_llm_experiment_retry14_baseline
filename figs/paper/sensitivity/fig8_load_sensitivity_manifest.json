@@ -1,0 +1,12 @@
+{
+  "figure": "fig8_load_sensitivity",
+  "generated_at_utc": "2026-04-27T00:32:23.467084+00:00",
+  "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig8_load_sensitivity.pdf",
+  "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig8_load_sensitivity_data.csv",
+  "round_dirs": [
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load/20260426_194536_load_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s6_sensload_v1",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load/20260426_194536_load_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s4_sensload_v1"
+  ],
+  "note": "Latency panels intentionally exclude ServerlessLLM because its queueing delay is orders of magnitude larger; CE/cost panels include all systems."
+}

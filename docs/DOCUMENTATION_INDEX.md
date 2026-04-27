@@ -12,6 +12,10 @@ experiment evidence.
 - `ENVIRONMENT.md`: current runtime assumptions.
 - `TECHNICAL_ROUTE_AND_IMPLEMENTATION.md`: current system design overview.
 - `PAPER_EXPERIMENT_TODO.md`: paper experiment plan and figure checklist.
+- `PAPER_FIGURE_PLAN.md`: publication figure plan, data-field mapping, and
+  execution order for paper plots.
+- `PAPER_LATEX_INSERTIONS.md`: ready-to-paste LaTeX figure/table insertion
+  snippets and EuroSys-style paragraph replacements for the current draft.
 - `PROJECT_PROGRESS.md`: current high-level project status.
 - `VLLM_RTX3090_LORA.md`: current vLLM/LoRA runtime notes.
 - `CODEX_INTERACTION_RULES.md`: local copy pointing to the authoritative
