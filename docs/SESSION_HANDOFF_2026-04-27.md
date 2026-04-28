@@ -26,57 +26,65 @@ remote: origin -> https://github.com/QHQsky5295/serverless_llm_experiment_retry1
 Latest known pushed commits before this handoff update:
 
 ```text
-FaaSLoRA: 2478514 Track paper draft and formal insertion guide
-Baseline: 0241cdf Add paper experiment queue and confirmed comparisons
+FaaSLoRA: 90809aa Add adapter-pool sensitivity profiles
+Baseline: b82e13a Add adapter-pool experiment queue
 ```
 
 ## 2. Current Terminal State
 
-As of `2026-04-28 03:41 CST`, the long experiment completed successfully inside
-tmux.
+As of `2026-04-28 09:59 CST`, the next long experiment is running inside tmux.
 
 ```text
-active tmux session: paper_load_operating_p0
-queue id:            20260427_112832_load_operating_p0
-queue profile:       load_operating_p0
+active tmux session: paper_adapter_pool_p0
+queue id:            20260428_095850_adapter_pool_p0
+queue profile:       adapter_pool_p0
 systems:             sglang serverlessllm vllm slora faaslora
-active section:      06_sensitivity_load_operating
-completed runs:      s12 and s10 operating-load rounds
+active section:      07_sensitivity_adapter_pool
+planned runs:        a100/hot16, a200/hot24, a300/hot32, a400/hot40
 ```
 
 Queue files:
 
 ```text
 queue env:
-/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/queue.env
+/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260428_095850_adapter_pool_p0/queue.env
 
-queue log:
-/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/logs/06_sensitivity_load_operating_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1.log
-
-round dir:
-/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
+first round dir:
+/home/qhq/serverless_llm_baselines/results/paper_experiments/07_sensitivity_adapter_pool/20260428_095850_adapter_pool_p0_llama2_7b_r4000_a100_seed42_z1p0_hot16_rot500_s8_sensadpool_v1
 ```
 
-Completion summary:
+Startup summary:
 
 ```text
-s12 state: 00_prep.done ... 90_compare.done
-s10 state: 00_prep.done ... 90_compare.done
-systems:   sglang serverlessllm vllm slora faaslora in both compare JSONs
-Fig. 8:   retained as operating-load CE/cost-latency sensitivity
+a100 shared trace: exported 4000 requests
+selected adapters: 100
+unique adapters in trace: 44
+time scale: 8.0
+hotset rotation: 500 requests
 ```
 
-The tmux session may still exist at a completed shell prompt, but no resume is
-needed unless a later audit finds a concrete integrity issue.
+The canonical `a500/hot48` endpoint should be reused from the completed Llama-2
+7B `s8` main round unless a later audit requires a self-contained rerun with
+`adapter_pool_full_p0`.
 
 Safe monitor commands:
 
 ```bash
-tmux capture-pane -p -t paper_load_operating_p0 -S -120
+tmux capture-pane -p -t paper_adapter_pool_p0 -S -120
 ```
 
 ```bash
-tmux attach -t paper_load_operating_p0
+tmux attach -t paper_adapter_pool_p0
+```
+
+Completed queue retained for Fig. 8:
+
+```text
+tmux session: paper_load_operating_p0
+queue id:     20260427_112832_load_operating_p0
+profile:      load_operating_p0
+section:      06_sensitivity_load_operating
+completed:    s12 and s10 operating-load rounds
 ```
 
 Do not start another copy of this queue unless a later audit identifies a

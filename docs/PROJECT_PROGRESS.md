@@ -34,7 +34,8 @@ The operating-load sensitivity queue completed successfully inside tmux.
 
 Adapter-pool sensitivity is now prepared as the next long-running queue.
 
-- default tmux session: `paper_adapter_pool_p0`.
+- active tmux session: `paper_adapter_pool_p0`.
+- queue id: `20260428_095850_adapter_pool_p0`.
 - queue profile: `adapter_pool_p0`.
 - section: `07_sensitivity_adapter_pool`.
 - systems: `sglang serverlessllm vllm slora faaslora`.
