@@ -1,7 +1,7 @@
 {
   "figure": "fig3_tier",
   "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1",
-  "generated_at_utc": "2026-04-27T15:56:05.355997+00:00",
+  "generated_at_utc": "2026-04-28T02:32:05.747485+00:00",
   "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/motivation/fig3_tier.pdf",
   "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/motivation/fig3_tier_data.csv",
   "sources": [
@@ -10,6 +10,7 @@
   "system": "S-LoRA",
   "baseline_or_own_system": "external_baseline",
   "evidence_role": "external multi-LoRA/runtime motivation",
+  "figure_layout": "IEEE single-column PDF intended for includegraphics width=\\columnwidth",
   "model": "Llama-2-7B",
   "request_count": 4000,
   "adapter_pool_size": 500,

@@ -201,12 +201,12 @@ This mismatch makes adapter readiness a first-order scheduling concern. A policy
 ```latex
 This mismatch makes adapter readiness a first-order scheduling concern. A policy that considers only runtime availability or queue length may increase the number of replicas without immediately improving effective serving capacity. In serverless multi-LoRA inference, scaling decisions therefore need to be evaluated by whether the added replicas can serve the adapters requested by the incoming workload, not only by whether the runtimes have been activated.
 
-\begin{figure*}[t]
+\begin{figure}[t]
     \centering
-    \includegraphics[width=\textwidth]{figs/paper/motivation/fig2_mismatch.pdf}
+    \includegraphics[width=\columnwidth]{figs/paper/motivation/fig2_mismatch.pdf}
     \caption{Service-readiness gap in a representative serverless baseline. The figure is measured on ServerlessLLM under the representative Llama-2 7B multi-LoRA replay. Panel (a) decomposes end-to-end TTFT into admission wait and runtime TTFT for all requests. Panel (b) reports cold-start, admission-wait, and runtime-TTFT latency for startup-affected requests.}
     \label{fig:motivation_mismatch}
-\end{figure*}
+\end{figure}
 
 Figure~\ref{fig:motivation_mismatch} shows that runtime execution latency is only a small part of the end-to-end first-token path in a general serverless baseline. Even when the runtime path is short, admission and startup readiness can dominate the observed TTFT under a multi-LoRA replay. This supports treating service readiness as part of the serving path, rather than assuming that model-level runtime readiness alone closes the gap.
 ```
@@ -231,12 +231,12 @@ Adapter placement should therefore be treated as a latency-control problem under
 ```latex
 Adapter placement should therefore be treated as a latency-control problem under constrained memory. A practical system must distinguish frequently reused adapters from first-touch and long-gap adapters as popularity shifts over time. Existing shared-backbone runtimes already expose this pressure under the same replay: adapter identity and reuse distance are workload facts, even when the runtime does not export a detailed cache-tier label.
 
-\begin{figure*}[t]
+\begin{figure}[t]
     \centering
-    \includegraphics[width=\textwidth]{figs/paper/motivation/fig3_tier.pdf}
-\caption{Adapter churn in a representative multi-LoRA runtime. The figure is measured from the shared Llama-2 7B replay and the S-LoRA baseline. Panel (a) reports the request share of adapter first-touch, hot-reuse, warm-reuse, and cold-reuse cases. Panel (b) reports S-LoRA TTFT distributions for first-touch, hot-reuse, and cold-reuse adapter requests.}
+    \includegraphics[width=\columnwidth]{figs/paper/motivation/fig3_tier.pdf}
+    \caption{Adapter churn in a representative multi-LoRA runtime. The figure is measured from the shared Llama-2 7B replay and the S-LoRA baseline. Panel (a) reports the request share of adapter first-touch, hot-reuse, warm-reuse, and cold-reuse cases. Panel (b) reports S-LoRA TTFT distributions for first-touch, hot-reuse, and cold-reuse adapter requests.}
     \label{fig:motivation_crosstier}
-\end{figure*}
+\end{figure}
 
 Figure~\ref{fig:motivation_crosstier} shows that adapter churn is visible even without PrimeLoRA instrumentation. A substantial fraction of requests reuse adapters after nontrivial gaps, and in S-LoRA the first-touch and long-gap adapter requests have heavier TTFT tails than hot-reuse requests. This motivates readiness-aware adapter placement and routing under time-varying popularity.
 ```

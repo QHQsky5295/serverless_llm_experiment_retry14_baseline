@@ -249,8 +249,8 @@ Motivation。Fig. 5/8/9 可以压缩到附录或后续版本。
 | 图/表 | 当前状态 | 已有文件或数据 | 是否可直接进论文 | 下一步 |
 |---|---|---|---|---|
 | Fig. 1 Teaser | 已改为单栏单图，可进初稿 | `figs/paper/main/fig1_intro_teaser.pdf` 与同名 CSV/manifest | 可作为 Introduction 第二段后图 | 只证明 representative Llama-2 7B 主实验下的 serverless-style 成本/CE 机会；所有模型名不换行 |
-| Fig. 2 Serverless readiness gap | 已重画 | `figs/paper/motivation/fig2_mismatch.pdf` 与同名 CSV/manifest | 可作为 Motivation 问题图初版 | 数据来自 ServerlessLLM baseline；展示 admission/startup gap；manifest 明确无 per-request adapter-tier 字段 |
-| Fig. 3 Adapter churn | 已重画 | `figs/paper/motivation/fig3_tier.pdf` 与同名 CSV/manifest | 可作为 Motivation 问题图初版 | 使用 shared replay + S-LoRA external baseline；reuse bucket 只由 `adapter_id` 序列定义；不声称 tier/transfer |
+| Fig. 2 Serverless readiness gap | 已重画为 IEEE 单栏版 | `figs/paper/motivation/fig2_mismatch.pdf` 与同名 CSV/manifest | 可作为 Motivation 问题图初版，按 `\columnwidth` 插入 | 数据来自 ServerlessLLM baseline；展示 admission/startup gap；manifest 明确无 per-request adapter-tier 字段 |
+| Fig. 3 Adapter churn | 已重画为 IEEE 单栏版 | `figs/paper/motivation/fig3_tier.pdf` 与同名 CSV/manifest | 可作为 Motivation 问题图初版，按 `\columnwidth` 插入 | 使用 shared replay + S-LoRA external baseline；reuse bucket 只由 `adapter_id` 序列定义；不声称 tier/transfer |
 | Optional Fig. M3 Loading pressure | 暂不生成 | 当前没有稳定、非零且语义清晰的 loading-pressure 字段 | 暂不进主文 | 若后续补字段，再做 problem-only 观察 |
 | Table 1 Main comparison | 已生成 draft，已补 TPOT avg/p95 | `figs/paper/main/table1_end_to_end.tex` 与同名 CSV/manifest | 可作为 Evaluation 主表初版 | 注意 S-LoRA token-tail 注释；TPOT p95 从 observed request-level `tpot_ms` 计算 |
 | Fig. 5 Normalized main | 已重画，暂不作为主线必放图 | `figs/paper/main/fig5_main_normalized.pdf` 与同名 CSV/manifest | 建议先放 appendix/备选 | 当前只是 Llama-2 7B 单点，PrimeLoRA 相对最强 CE baseline SGLang 为 7%；主文优先 Table 1 + Fig. 7 |

@@ -95,10 +95,16 @@ METRIC_COLORS = {
 }
 DOUBLE_COL_FIGSIZE = (7.16, 3.15)
 DOUBLE_COL_TALL_FIGSIZE = (7.16, 5.9)
+SINGLE_COL_MOTIVATION_FIGSIZE = (3.45, 4.45)
 PANEL_TITLE_FONTSIZE = 10.4
 TICK_FONTSIZE = 9.2
 LEGEND_FONTSIZE = 9.0
 ANNOTATION_FONTSIZE = 9.2
+MOTIVATION_LABEL_FONTSIZE = 10.8
+MOTIVATION_TICK_FONTSIZE = 9.8
+MOTIVATION_LEGEND_FONTSIZE = 9.0
+MOTIVATION_ANNOTATION_FONTSIZE = 9.5
+MOTIVATION_SMALL_TEXT_FONTSIZE = 8.7
 
 
 @dataclass
@@ -227,6 +233,13 @@ def _style_xgrid_axes(ax: plt.Axes) -> None:
 
 def _xlabel_with_panel(ax: plt.Axes, xlabel: str, panel_caption: str) -> None:
     ax.set_xlabel(f"{xlabel}\n{panel_caption}" if xlabel else panel_caption)
+
+
+def _use_motivation_fonts(axes: Sequence[plt.Axes]) -> None:
+    for ax in axes:
+        ax.xaxis.label.set_size(MOTIVATION_LABEL_FONTSIZE)
+        ax.yaxis.label.set_size(MOTIVATION_LABEL_FONTSIZE)
+        ax.tick_params(axis="both", labelsize=MOTIVATION_TICK_FONTSIZE)
 
 
 def _annotate_value(
@@ -751,7 +764,13 @@ def plot_fig2(round_dir: Path, out_dir: Path) -> None:
         ]
     )
 
-    fig, axes = plt.subplots(1, 2, figsize=DOUBLE_COL_FIGSIZE, constrained_layout=True)
+    fig, axes = plt.subplots(
+        2,
+        1,
+        figsize=SINGLE_COL_MOTIVATION_FIGSIZE,
+        gridspec_kw={"height_ratios": [1.0, 1.05]},
+        constrained_layout=True,
+    )
     stat_names = ["Avg", "p95"]
     wait_vals = [_mean(all_wait) / 1000.0, _percentile(all_wait, 95) / 1000.0]
     runtime_vals = [_mean(all_runtime) / 1000.0, _percentile(all_runtime, 95) / 1000.0]
@@ -769,25 +788,25 @@ def plot_fig2(round_dir: Path, out_dir: Path) -> None:
         label="Runtime TTFT",
     )
     for yi, total, runtime in zip(yy, total_vals, runtime_vals):
-        _annotate_barh_value(axes[0], total, yi, f"{total:.0f}s total")
+        _annotate_barh_value(axes[0], total, yi, f"{total:.0f}s total", fontsize=MOTIVATION_ANNOTATION_FONTSIZE)
         axes[0].annotate(
             f"runtime {runtime:.1f}s",
             xy=(0, yi),
-            xytext=(6.0, -14.0),
+            xytext=(8.0, 0.0),
             textcoords="offset points",
             ha="left",
             va="center",
-            fontsize=8.4,
+            fontsize=MOTIVATION_SMALL_TEXT_FONTSIZE,
             color="#2F4C66",
         )
     axes[0].set_yticks(yy, stat_names)
     axes[0].invert_yaxis()
     axes[0].set_xlim(0, max(total_vals) * 1.20)
-    axes[0].legend(frameon=False, fontsize=LEGEND_FONTSIZE, loc="upper left", bbox_to_anchor=(0.42, 1.10), ncols=2)
+    axes[0].legend(frameon=False, fontsize=MOTIVATION_LEGEND_FONTSIZE, loc="upper center", bbox_to_anchor=(0.5, 1.18), ncols=2)
     _xlabel_with_panel(axes[0], "ServerlessLLM TTFT path (s)", "(a) Runtime ready is not service ready")
     _style_xgrid_axes(axes[0])
 
-    component_labels = ["Cold start", "Admission wait", "Runtime TTFT"]
+    component_labels = ["Cold\nstart", "Admission\nwait", "Runtime\nTTFT"]
     avg_components = [_mean(startup_cold) / 1000.0, _mean(startup_wait) / 1000.0, _mean(startup_runtime) / 1000.0]
     p95_components = [_percentile(startup_cold, 95) / 1000.0, _percentile(startup_wait, 95) / 1000.0, _percentile(startup_runtime, 95) / 1000.0]
     cx = np.arange(len(component_labels), dtype=float)
@@ -813,23 +832,24 @@ def plot_fig2(round_dir: Path, out_dir: Path) -> None:
     ymax = max(p95_components) * 1.28
     axes[1].set_ylim(0, ymax)
     for x, avg, p95 in zip(cx, avg_components, p95_components):
-        axes[1].text(x - width / 2, avg + ymax * 0.018, f"{avg:.1f}", ha="center", va="bottom", fontsize=8.6)
-        axes[1].text(x + width / 2, p95 + ymax * 0.018, f"{p95:.1f}", ha="center", va="bottom", fontsize=8.6)
+        axes[1].text(x - width / 2, avg + ymax * 0.020, f"{avg:.1f}", ha="center", va="bottom", fontsize=MOTIVATION_SMALL_TEXT_FONTSIZE)
+        axes[1].text(x + width / 2, p95 + ymax * 0.020, f"{p95:.1f}", ha="center", va="bottom", fontsize=MOTIVATION_SMALL_TEXT_FONTSIZE)
     axes[1].set_xticks(cx, component_labels, rotation=0)
     axes[1].set_ylabel("Latency (s)")
-    axes[1].legend(frameon=False, fontsize=LEGEND_FONTSIZE, loc="upper right", bbox_to_anchor=(1.0, 1.12), ncols=2)
+    axes[1].legend(frameon=False, fontsize=MOTIVATION_LEGEND_FONTSIZE, loc="upper center", bbox_to_anchor=(0.5, 1.18), ncols=2)
     axes[1].text(
-        0.03,
-        0.94,
+        0.98,
+        0.92,
         f"startup n={len(startup_requests)}, first-service n={len(startup_first)}",
         transform=axes[1].transAxes,
-        ha="left",
+        ha="right",
         va="top",
-        fontsize=8.6,
+        fontsize=MOTIVATION_SMALL_TEXT_FONTSIZE,
         bbox={"boxstyle": "round,pad=0.12", "facecolor": "white", "edgecolor": "#CFCFCF", "linewidth": 0.35},
     )
     _xlabel_with_panel(axes[1], "", "(b) Startup-affected requests")
     _style_axes(axes[1])
+    _use_motivation_fonts(axes)
 
     pdf = out_dir / "fig2_mismatch.pdf"
     csv_path = out_dir / "fig2_mismatch_data.csv"
@@ -849,6 +869,7 @@ def plot_fig2(round_dir: Path, out_dir: Path) -> None:
             "system": "ServerlessLLM",
             "baseline_or_own_system": "external_baseline",
             "evidence_role": "external serverless baseline motivation",
+            "figure_layout": "IEEE single-column PDF intended for includegraphics width=\\columnwidth",
             "model": "Llama-2-7B",
             "request_count": len(requests),
             "adapter_pool_size": 500,
@@ -949,10 +970,10 @@ def plot_fig3(round_dir: Path, out_dir: Path) -> None:
         )
 
     fig, axes = plt.subplots(
-        1,
         2,
-        figsize=DOUBLE_COL_FIGSIZE,
-        gridspec_kw={"width_ratios": [0.78, 1.22]},
+        1,
+        figsize=SINGLE_COL_MOTIVATION_FIGSIZE,
+        gridspec_kw={"height_ratios": [0.78, 1.32]},
         constrained_layout=True,
     )
 
@@ -971,9 +992,9 @@ def plot_fig3(round_dir: Path, out_dir: Path) -> None:
             label=bucket_labels[bucket],
         )
         if frac >= 0.08:
-            axes[0].text(left + frac * 50.0, 0, f"{frac * 100:.0f}%", ha="center", va="center", fontsize=8.8)
+            axes[0].text(left + frac * 50.0, 0, f"{frac * 100:.0f}%", ha="center", va="center", fontsize=MOTIVATION_ANNOTATION_FONTSIZE)
         else:
-            axes[0].text(left + frac * 100.0 + 1.4, 0.17, f"{frac * 100:.0f}%", ha="left", va="center", fontsize=8.2)
+            axes[0].text(left + frac * 100.0 + 1.4, 0.18, f"{frac * 100:.0f}%", ha="left", va="center", fontsize=MOTIVATION_SMALL_TEXT_FONTSIZE)
         rows.append(
             {
                 "panel": "workload_reuse_mix",
@@ -987,7 +1008,7 @@ def plot_fig3(round_dir: Path, out_dir: Path) -> None:
     axes[0].set_ylim(-0.38, 0.44)
     axes[0].set_yticks([])
     axes[0].set_xlabel("Share of requests (%)\n(a) Shared replay adapter churn")
-    axes[0].legend(frameon=False, fontsize=8.0, loc="upper center", bbox_to_anchor=(0.5, 1.30), ncols=2)
+    axes[0].legend(frameon=False, fontsize=MOTIVATION_LEGEND_FONTSIZE, loc="upper center", bbox_to_anchor=(0.5, 1.38), ncols=2)
     _style_xgrid_axes(axes[0])
 
     cdf_specs = [("first_touch", bucket_colors["first_touch"]), ("hot_reuse", bucket_colors["hot_reuse"]), ("cold_reuse", bucket_colors["cold_reuse"])]
@@ -996,15 +1017,16 @@ def plot_fig3(round_dir: Path, out_dir: Path) -> None:
         values = buckets[bucket]
         all_cdf_values.extend(values)
         row = next(item for item in rows if item.get("panel") == "adapter_reuse_ttft" and item["category"] == bucket_labels[bucket])
-        label = f"{bucket_labels[bucket]} (n={len(values)}, p95={row['ttft_p95_ms']:.0f} ms)"
+        label = f"{bucket_labels[bucket]} n={len(values)}, p95={row['ttft_p95_ms']:.0f}"
         _plot_ecdf(axes[1], values, label=label, color=color)
 
     axes[1].set_xlim(0, _percentile(all_cdf_values, 99.2) * 1.04)
     axes[1].set_ylim(0, 1.02)
     axes[1].set_ylabel("CDF")
     _xlabel_with_panel(axes[1], "TTFT (ms)", "(b) S-LoRA TTFT by reuse distance")
-    axes[1].legend(frameon=False, fontsize=LEGEND_FONTSIZE, loc="lower right")
+    axes[1].legend(frameon=False, fontsize=MOTIVATION_LEGEND_FONTSIZE, loc="lower right")
     _style_xgrid_axes(axes[1])
+    _use_motivation_fonts(axes)
 
     pdf = out_dir / "fig3_tier.pdf"
     csv_path = out_dir / "fig3_tier_data.csv"
@@ -1024,6 +1046,7 @@ def plot_fig3(round_dir: Path, out_dir: Path) -> None:
             "system": "S-LoRA",
             "baseline_or_own_system": "external_baseline",
             "evidence_role": "external multi-LoRA/runtime motivation",
+            "figure_layout": "IEEE single-column PDF intended for includegraphics width=\\columnwidth",
             "model": "Llama-2-7B",
             "request_count": len(requests),
             "adapter_pool_size": 500,
