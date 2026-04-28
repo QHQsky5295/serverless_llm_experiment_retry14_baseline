@@ -13,11 +13,9 @@ April handoff snapshots have been removed from the active documentation set.
 - Current main round: `llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1`.
 - Latest 500-request closure: `llama2_7b_r500_a500_seed42_s8_predictive1_faaslora`.
 
-## Live Status: 2026-04-27 23:57 CST
+## Queue Status: 2026-04-28 03:41 CST
 
-The long-running operating-load sensitivity queue is still active in tmux and
-has not failed. The user's foreground terminal may have exited, but the tmux
-session continues to run.
+The operating-load sensitivity queue completed successfully inside tmux.
 
 - tmux session: `paper_load_operating_p0`.
 - queue id: `20260427_112832_load_operating_p0`.
@@ -25,39 +23,12 @@ session continues to run.
   `/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/queue.env`.
 - active section:
   `/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating`.
-- active run tag:
-  `llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1`.
-- latest observed live progress: the queue has advanced to the `s10` round and
-  is in the vLLM stage. vLLM is at about `2449/4000` completed requests,
-  `fail=0`, ETA about 29 minutes, `TTFT_e2e avg/p95/p99 = 469/796/2350 ms`,
-  `E2E_e2e avg/p95/p99 = 2987/7264/7948 ms`, live `TPOT avg = 26.1 ms`,
-  and `slo@5000ms=100%`.
-
-Monitor without disturbing the run:
-
-```bash
-tmux capture-pane -p -t paper_load_operating_p0 -S -120
-```
-
-Attach interactively:
-
-```bash
-tmux attach -t paper_load_operating_p0
-```
-
-If the queue later fails after the current check, resume with:
-
-```bash
-cd /home/qhq/serverless_llm_baselines
-PAPER_QUEUE_ID=20260427_112832_load_operating_p0 \
-PAPER_QUEUE_PROFILE=load_operating_p0 \
-PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
-bash scripts/run_paper_long_experiment_queue.sh
-```
-
-Do not edit running experiment scripts while this queue is active. Documentation
-updates are safe; code changes should wait until the current stage is complete
-or failed.
+- completed rounds:
+  - `llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1`
+  - `llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1`
+- both rounds have all five systems and `90_compare.done`.
+- combined with the existing s8 main point, Fig. 8 is retained as
+  operating-load CE/cost-latency sensitivity.
 
 ## Current Paper Baselines
 
@@ -101,12 +72,9 @@ profiles; restore read access or keep launching from the same absolute paths.
    profiles rather than manually running systems one by one.
 4. Do not reopen FaaSLoRA system optimization unless cross-system logs expose a
    root-cause issue in the FaaSLoRA causal chain.
-5. Let `load_operating_p0` finish before judging Fig. 8. It intentionally runs
-   lower/medium operating points (`s12`, then `s10`) with the same Llama-2 7B
-   4000-request/500-adapter workload family and all five systems, including
-   ServerlessLLM. Only keep the load-sensitivity figure if the completed data
-   supports a clear and fair CE narrative; otherwise drop it from the main text
-   instead of forcing a weak plot.
+5. Fig. 8 now uses `s12/s10/s8` operating-load points. It should be written as
+   a CE/cost-latency tradeoff result: PrimeLoRA has the highest CE at all three
+   operating points, while SGLang remains the lower-latency always-on runtime.
 
 ## Latest Verified FaaSLoRA Closure
 

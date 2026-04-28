@@ -32,16 +32,16 @@ Baseline: 0241cdf Add paper experiment queue and confirmed comparisons
 
 ## 2. Current Terminal State
 
-As of `2026-04-27 23:57 CST`, the long experiment did not fail. The foreground
-terminal may have exited, but the experiment is still running inside tmux.
+As of `2026-04-28 03:41 CST`, the long experiment completed successfully inside
+tmux.
 
 ```text
 active tmux session: paper_load_operating_p0
 queue id:            20260427_112832_load_operating_p0
 queue profile:       load_operating_p0
 systems:             sglang serverlessllm vllm slora faaslora
-active run tag:      llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
 active section:      06_sensitivity_load_operating
+completed runs:      s12 and s10 operating-load rounds
 ```
 
 Queue files:
@@ -57,22 +57,17 @@ round dir:
 /home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
 ```
 
-Observed progress at handoff:
+Completion summary:
 
 ```text
-active stage:  vLLM in the s10 run
-arrived/done: about 2451/2449 of 4000
-fail:         0
-ETA:          about 29 minutes for the current vLLM stage
-TTFT_e2e:     avg/p95/p99 about 469/796/2350 ms
-E2E_e2e:      avg/p95/p99 about 2987/7264/7948 ms
-TPOT avg:     about 26.1 ms in the live summary
-SLO@5000 ms:  100%
+s12 state: 00_prep.done ... 90_compare.done
+s10 state: 00_prep.done ... 90_compare.done
+systems:   sglang serverlessllm vllm slora faaslora in both compare JSONs
+Fig. 8:   retained as operating-load CE/cost-latency sensitivity
 ```
 
-The queue has advanced beyond the earlier s12 round into the s10 run; the
-active log is `30_vllm.log`. These are partial live
-metrics for one system stage, not final Fig. 8 behavior.
+The tmux session may still exist at a completed shell prompt, but no resume is
+needed unless a later audit finds a concrete integrity issue.
 
 Safe monitor commands:
 
@@ -84,18 +79,8 @@ tmux capture-pane -p -t paper_load_operating_p0 -S -120
 tmux attach -t paper_load_operating_p0
 ```
 
-If the queue later really fails, resume with:
-
-```bash
-cd /home/qhq/serverless_llm_baselines
-PAPER_QUEUE_ID=20260427_112832_load_operating_p0 \
-PAPER_QUEUE_PROFILE=load_operating_p0 \
-PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
-bash scripts/run_paper_long_experiment_queue.sh
-```
-
-Do not start another copy of this queue unless tmux and the queue logs both
-prove the current one has stopped.
+Do not start another copy of this queue unless a later audit identifies a
+specific data-integrity problem.
 
 ## 3. Paper Figure And Data State
 
@@ -140,11 +125,12 @@ Important interpretation boundaries:
   vs vLLM and about `79x` vs the current general ServerlessLLM baseline.
   Do not mix older 500-request smoke/two-system results into this figure.
 - Fig. 8 sensitivity is not ready for the paper. Old `s4/s6/s8` data are stress
-  diagnostics. The current `load_operating_p0` queue is collecting lower/medium
+  diagnostics. The completed `load_operating_p0` queue collected lower/medium
   operating points (`s12`, then `s10`) while keeping the same Llama-2 7B
   4000-request/500-adapter workload family and all five systems.
-- If the completed sensitivity data do not support a clear and fair CE story,
-  remove Fig. 8 from the main paper instead of forcing a weak plot.
+- Fig. 8 is retained because `s12/s10/s8` all show PrimeLoRA/FaaSLoRA with the
+  highest CE. The text must still state that SGLang has lower TTFT/E2E latency;
+  PrimeLoRA's advantage is the integrated CE/cost-latency tradeoff.
 - Multi-backbone robustness is still pending after the current queue and figure
   audit.
 
@@ -250,27 +236,11 @@ Use the following prompt to start a new Codex session:
   tmux capture-pane -p -t paper_load_operating_p0 -S -120
   nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader,nounits
 
-截至 2026-04-27 23:57 CST，paper_load_operating_p0 仍在运行，队列 id 是
+截至 2026-04-28 03:41 CST，paper_load_operating_p0 已完成，队列 id 是
 20260427_112832_load_operating_p0，profile 是 load_operating_p0，系统列表是
-sglang serverlessllm vllm slora faaslora，active tag 是
-llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1。队列已经从
-较早的 s12 round 推进到 s10 round，当前在 vLLM 阶段，约完成 2449/4000 请求且 fail=0，
-所以外层终端退出不等于实验失败。除非 tmux 和日志证明已经失败，否则不要重启。
-
-如果它仍在跑：只汇报当前进度，不动脚本。
-如果它失败：读取
-/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260427_112832_load_operating_p0/logs/
-下的队列日志和对应 round 的 logs/state，找根因后修复，再用同一个 PAPER_QUEUE_ID 恢复：
-  cd /home/qhq/serverless_llm_baselines
-  PAPER_QUEUE_ID=20260427_112832_load_operating_p0 \
-  PAPER_QUEUE_PROFILE=load_operating_p0 \
-  PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
-  bash scripts/run_paper_long_experiment_queue.sh
-
-如果它完成：检查 06_sensitivity_load_operating 下 s12 和 s10 的 compare JSON 是否都包含
-五个系统，尤其是 ServerlessLLM。然后判断 Fig. 8 是否值得进入论文：只有当 s12/s10/s8
-能形成清晰、公平、与主文一致的 CE sensitivity 叙事时才重画并更新
-PAPER_FIGURE_PLAN.md 与 PAPER_LATEX_INSERTIONS.md；否则明确删除 Fig. 8 主文候选。
+sglang serverlessllm vllm slora faaslora。s12 和 s10 的 compare JSON 都包含
+五个系统，尤其包含 ServerlessLLM。Fig. 8 已重画为 `s12/s10/s8` operating-load
+sensitivity，并保留为主文候选：结论是 CE/cost-latency tradeoff 胜出，不是延迟全面胜出。
 
 所有正式图遵守这些规则：Times-compatible 字体、IEEE 双栏可读字号、不要 log 纵轴、
 不要图例遮挡、不要模型名字重叠、不要所有图都画成柱状图、没有 repeated runs 不加误差线、

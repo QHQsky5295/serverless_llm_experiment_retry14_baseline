@@ -226,7 +226,7 @@ CE = 1 / (avg_E2E_e2e_seconds * Cost/req)
 | Evaluation | Fig. 6 Ablation | Cumulative relative-change bar panels | 已生成 | 必保留 |
 | Evaluation | Fig. 6/7 subfigure Coordination effect | Full vs NoCoord relative-change bar panels | 已生成，Evaluation-only | 可保留 |
 | Evaluation | Fig. 7 Lifecycle cost | Stacked monetary cost + GPU-time breakdown | 已有主 round | 必保留 |
-| Evaluation | Fig. 8 Sensitivity | Time scale / adapter pool | s4/s6/s8 已有但仅作 stress diagnostic；主文需重跑低/中负载 | 视篇幅 |
+| Evaluation | Fig. 8 Sensitivity | Operating-load CE/cost-latency sensitivity + full-metric table | s12/s10/s8 已完成 | 可保留 |
 | Evaluation | Table/Fig. 9 Multi-backbone robustness | 4 backbones main metrics | 需跑 13B/Qwen | 建议保留或附录 |
 
 如果主文篇幅紧，优先级顺序为：
@@ -257,12 +257,12 @@ Motivation。Fig. 5/8/9 可以压缩到附录或后续版本。
 | Fig. 6 Ablation | 已重画 | `figs/paper/ablation/fig6_ablation.pdf` 与同名 CSV/manifest | 可作为 Evaluation 图初版 | 全部为相对 NVMe-pre 的 bar-panel 变化；避免等高 cost 柱 |
 | Coordination effect subfigure | 已重画 | `figs/paper/ablation/fig4_coordination.pdf` 与同名 CSV/manifest | 只能放 Evaluation/Ablation | Full vs NoCoord 相对变化 bar panel，不放 Motivation |
 | Fig. 7 Lifecycle cost | 已重画，可进初稿 | `figs/paper/main/fig7_lifecycle_cost.pdf` 与同名 CSV/manifest | 可作为成本解释图初版 | 左图解释 monetary cost，右图解释 GPU-seconds 生命周期来源 |
-| Fig. 8 Sensitivity | `load_operating_p0` 正在跑，旧 s4/s6/s8 仅作 stress diagnostic | 旧图：`figs/paper/sensitivity/fig8_load_sensitivity.pdf`；新队列：`20260427_112832_load_operating_p0` | 当前不可直接进论文 | 等 s12/s10 五系统跑完；结合 s8 形成低/中/名义负载 sensitivity；若 CE 叙事仍不成立则删除 Fig. 8 |
+| Fig. 8 Sensitivity | 已重画为 operating-load CE/cost-latency sensitivity | `figs/paper/sensitivity/fig8_load_sensitivity.pdf`、同名 CSV/manifest、`table_fig8_load_sensitivity_metrics.tex` | 可作为 Evaluation sensitivity 初版 | 使用 s12/s10/s8；五系统齐全；结论是 CE/cost-latency tradeoff 胜出，不是延迟全面胜出 |
 | Fig. 9 Multi-backbone robustness | 未跑 | 无 | 不可进论文 | 等 Llama-2 7B 图闭口后跑 13B/Qwen |
 
 ## 2.3 Live Experiment Ledger: 2026-04-27
 
-当前唯一正在运行的正式长实验是 operating-load sensitivity 队列：
+当前 operating-load sensitivity 队列已经完成：
 
 ```text
 tmux session: paper_load_operating_p0
@@ -270,6 +270,7 @@ queue id:     20260427_112832_load_operating_p0
 profile:      load_operating_p0
 systems:      sglang serverlessllm vllm slora faaslora
 section:      06_sensitivity_load_operating
+status:       complete
 ```
 
 该队列不是新的主横向对比，而是 Fig. 8 的候选数据来源。它保留与 Llama-2 7B
@@ -278,14 +279,11 @@ Zipf `1.0`、hot set cap `48`、hotset rotation `500`、seed `42`。唯一有意
 是 time scale，用 `s12` 和 `s10` 补齐低/中 operating-load 点；已有 `s8` 主 round
 作为名义负载点。旧 `s6/s4` 只作为 stress diagnostic，不直接进入主文 sensitivity。
 
-截至 `2026-04-27 23:57 CST`，队列已经从较早的 `s12` round 推进到 `s10`
-round，且仍在 tmux 中健康运行。当前处于 `s10` 的 vLLM 阶段，已完成约
-`2449/4000` 请求，`fail=0`，ETA 约 29 分钟。不要在该队列完成或失败前修改
-运行脚本。
-若后续该队列完整结束，应先检查
-每个 run 的 `compare/*.json` 是否包含五个系统，特别是 ServerlessLLM，然后再重画
-Fig. 8。若 Fig. 8 不能形成清晰、公平、与主文一致的 CE 结论，应删除该图，而不是
-保留一个削弱论文主张的负载强度图。
+截至 `2026-04-28 03:41 CST`，s12 与 s10 均完成，状态目录包含
+`00_prep.done`、`10_sglang.done`、`20_serverlessllm.done`、`30_vllm.done`、
+`40_slora.done`、`50_faaslora.done` 和 `90_compare.done`。两个 compare JSON
+都包含 `sglang`、`serverlessllm`、`vllm`、`slora` 和 `faaslora`。结合已有 s8
+主 round，Fig. 8 可保留为 operating-load sensitivity。
 
 ## 2.2 Motivation 图边界
 
@@ -329,7 +327,7 @@ S-LoRA 先说明多 LoRA serving 的 adapter/fragmentation 挑战再做系统评
 SGLang，但 dispatch/admission wait 从 `111 ms` 增加到 `2568 ms`，导致
 E2E 上升过快并使 CE 被 SGLang 反超。
 
-当前三点的 CE 关系如下：
+旧 stress 三点的 CE 关系如下：
 
 | time scale | PrimeLoRA CE | SGLang CE | 判断 |
 |---|---:|---:|---|
@@ -337,22 +335,28 @@ E2E 上升过快并使 CE 被 SGLang 反超。
 | s6 | 133.0 | 147.0 | SGLang 反超，PrimeLoRA 进入高压力边界 |
 | s4 | 102.8 | 200.4 | 持续高负载区，serverful latency 优势主导 CE |
 
-这不是作图问题，也不能通过修改 CE 口径来“修”。按交互规则，结论固定为：
+这不是作图问题，也不能通过修改 CE 口径来“修”。因此旧 `s4/s6/s8` 图不放主文，
+高压力 `s6/s4` 只用于后续优化 admission/scale-out 的根因分析。
 
-- 当前 `s4/s6/s8` 图不放主文；
-- 若需要 Fig. 8，应改成 serverless 合理运行区间的低/中/名义负载 sensitivity，
-  使用 `s12/s10/s8`，并保持同一 Llama-2 7B、4000 requests、500 adapters、
-  Zipf 1.0、hotset rotation 500、seed 42；
-- 选择依据不是结果好坏，而是运行区间：已完成 s8 的 PrimeLoRA
-  `ActiveGPU%≈0.65`、`IdleReadyGPU%≈0.34`、`DispatchWait≈111 ms`，仍属于
-  serverless 可解释的名义负载；按 arrival rate 线性外推，s10 约为
-  `0.81 rps`、active 占比约 `0.52`，s12 约为 `0.67 rps`、active 占比约
-  `0.43`，分别对应中负载和低负载。s6/s4 的 active 占比升至约 `0.76/0.86`，
-  且 dispatch wait 明显放大，因此归为 stress diagnostic；
-- 若 `s12/s10/s8` 仍不能形成稳定 CE 优势，Fig. 8 从主文删除，改为内部
-  diagnostic 或 appendix negative-result 备查；
-- 高压力 `s6/s4` 只用于后续优化 admission/scale-out 的根因分析，不作为
-  当前论文主 claim 的证据图。
+新的 operating-load 三点使用 `s12/s10/s8`，保持同一 Llama-2 7B、4000 requests、
+500 adapters、Zipf 1.0、hotset rotation 500、seed 42。它们的 CE 关系如下：
+
+| time scale | PrimeLoRA CE | SGLang CE | PrimeLoRA / SGLang | 判断 |
+|---|---:|---:|---:|---|
+| s12 | 106.1 | 81.9 | 1.30x | 低负载下 PrimeLoRA CE 更好 |
+| s10 | 116.9 | 95.9 | 1.22x | 中负载下 PrimeLoRA CE 更好 |
+| s8 | 123.0 | 115.3 | 1.07x | 名义负载下 PrimeLoRA CE 更好 |
+
+Fig. 8 因此保留为 operating-load sensitivity。解释边界必须明确：
+
+- 结论是 CE/cost-latency tradeoff 胜出，不是延迟全面胜出；
+- SGLang 在 TTFT 和 E2E latency 上仍然更低，这是 serverful always-on runtime
+  的预期优势；
+- PrimeLoRA 的优势来自 lower lifecycle Cost/req，在同一成本模型下抵消了
+  serverless readiness overhead，从而让 CE 在 `s12/s10/s8` 三个 operating
+  points 均高于最强 CE baseline；
+- Fig. 8 右侧 ratio matrix 和配套 table 必须列出完整主指标：
+  TTFT avg/p95、E2E avg/p95、TPOT avg/p95、Tok/s、Cost/req 和 CE。
 
 ## 3. Fig. 1: Introduction Teaser
 
@@ -866,14 +870,19 @@ GPU-seconds 按 full price 计入。
 
 ### 11.1 目的
 
-证明 PrimeLoRA 的优势不是只在一个 trace 设置上成立。
+证明 PrimeLoRA 的 CE/cost-latency tradeoff 不是只在一个到达率设置上成立。
+这里的“优势”定义为主综合指标 CE 胜出，同时完整报告 TTFT/E2E/TPOT/Tok/s/Cost，
+不要求 serverless runtime 在所有延迟指标上超过 always-on serverful runtime。
 
 ### 11.2 推荐优先级
 
-先跑两个最能服务论文贡献的维度：
+当前已完成最紧急的 Load intensity / operating-load 三点：
 
-1. Load intensity；
-2. Adapter pool size。
+```text
+s12 -> s10 -> s8
+```
+
+后续若篇幅允许，再补 Adapter pool size。
 
 Zipf exponent 可以作为附录或后续补充，优先级低于上面两项。
 
@@ -887,21 +896,31 @@ adapters = 500
 zipf = 1.0
 hotset cap = 48
 rotation = 500
-time_scale_factor in {8.0, 6.0, 4.0, 2.0}
+time_scale_factor in {12.0, 10.0, 8.0}
 ```
 
 图：
 
-- TTFT avg/p95 vs time scale；
-- E2E avg/p95 vs time scale；
-- SLO goodput vs time scale；
-- CE vs time scale。
+- CE vs nominal replay rate，五系统全展示；
+- Cost/req vs nominal replay rate，五系统全展示；
+- FaaSLoRA/SGLang ratio matrix，列出 CE、Cost/req、TTFT avg/p95、
+  E2E avg/p95、TPOT avg/p95、Tok/s；
+- 配套 LaTeX table 列出 s12/s10/s8 下五系统的全部主指标。
 
 对比对象：
 
-- FaaSLoRA；
-- strongest baseline SGLang；
-- ServerlessLLM 可选。
+- FaaSLoRA、SGLang、ServerlessLLM、vLLM、S-LoRA。
+
+当前结论：
+
+```text
+s12: FaaSLoRA CE 106.1 vs SGLang 81.9  -> 1.30x
+s10: FaaSLoRA CE 116.9 vs SGLang 95.9  -> 1.22x
+s8:  FaaSLoRA CE 123.0 vs SGLang 115.3 -> 1.07x
+```
+
+写作时必须同时说明：SGLang 的 TTFT/E2E latency 更低；PrimeLoRA 胜在较低
+lifecycle Cost/req 带来的综合 CE。
 
 ### 11.4 Adapter pool size
 
@@ -1187,7 +1206,8 @@ python3 scripts/plot_paper_figures.py \
   微调 caption、legend 和是否拆分成单栏/双栏；
 - Optional Motivation M3：若要保留第三张 motivation 图，需要先补稳定的
   problem-only loading-pressure observation 字段，否则不画；
-- Fig. 8：必须补 sensitivity；
+- Fig. 8：已补 operating-load sensitivity，可进初稿；adapter-pool sensitivity
+  仍可作为后续增强；
 - Fig. 9：必须补 13B/Qwen robustness。
 
 ### 16.3 下一步建议
@@ -1373,7 +1393,7 @@ tmux attach -t faas_l7_ablation_v1_rerun
 | Fig. 6 | Ablation Analysis | 证明 cumulative mechanisms 的边际收益，不作为 motivation |
 | Coordination subfigure | Ablation 或 Resource Coordination 小节 | NoCoord vs Full 是机制收益图，只能放 Evaluation |
 | Fig. 7 | Lifecycle Cost Efficiency | 解释 CE 来源和 lifecycle cost 结构，不替代主表 |
-| Fig. 8 | Sensitivity | 等 `06_sensitivity_load` 完成后再写，不提前占结论 |
+| Fig. 8 | Sensitivity | s12/s10/s8 operating-load CE/cost-latency sensitivity；完整主指标表随图给出 |
 
 这份审计的核心原则是：Motivation 写问题事实，Evaluation 写系统收益。
 
@@ -1381,8 +1401,9 @@ tmux attach -t faas_l7_ablation_v1_rerun
 
 ### 19.1 当前优先跑什么
 
-当前最适合先连续运行的是 `06_sensitivity_load`，而不是马上跑全部 13B/Qwen
-矩阵。原因是：
+`06_sensitivity_load_operating` 已完成。下一步不应继续重复相同 load 队列，
+而应转向 adapter-pool sensitivity 或 backbone robustness。保留这里的原则用于
+未来扩展：
 
 - 它只改变 `SLLM_TIME_SCALE_FACTOR`，保持 Llama-2 7B、4000 requests、
   500 adapters、seed=42、Zipf=1.0、active hot set=48、rotation=500 不变；

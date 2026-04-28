@@ -5,34 +5,25 @@
 
 ## Live queue note: 2026-04-27
 
-当前正在运行的不是 s8 主横向对比，而是 Fig. 8 候选的 operating-load
+最近完成的不是 s8 主横向对比，而是 Fig. 8 候选的 operating-load
 sensitivity 队列：
 
 ```text
 tmux session: paper_load_operating_p0
 queue id:     20260427_112832_load_operating_p0
 profile:      load_operating_p0
-active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
+completed:    s12 and s10 operating-load rounds
 systems:      sglang serverlessllm vllm slora faaslora
 ```
 
-截至 `2026-04-27 23:57 CST`，队列已从 s12 run 推进到 s10 run。当前处于
-vLLM 阶段，约 `2449/4000` 请求已完成，`fail=0`，ETA 约 29 分钟。
-不要因为外层终端退出而重启同一队列；先检查：
+截至 `2026-04-28 03:41 CST`，该队列已经完成；s12 和 s10 的 compare JSON
+均包含五个系统。tmux 可能仍停在完成后的 shell prompt，可检查：
 
 ```bash
 tmux capture-pane -p -t paper_load_operating_p0 -S -120
 ```
 
-若之后确认失败，使用同一个 queue id 断点恢复：
-
-```bash
-cd /home/qhq/serverless_llm_baselines
-PAPER_QUEUE_ID=20260427_112832_load_operating_p0 \
-PAPER_QUEUE_PROFILE=load_operating_p0 \
-PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
-bash scripts/run_paper_long_experiment_queue.sh
-```
+不要重复启动该队列，除非后续审计发现明确的数据完整性问题。
 
 优先使用连续执行脚本：
 

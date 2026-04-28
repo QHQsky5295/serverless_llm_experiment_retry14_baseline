@@ -1,0 +1,28 @@
+time_scale,nominal_rps,reference_system,metric,metric_label,direction,faaslora_value,reference_value,faaslora_over_sglang
+12.0,0.6727,SGLang,ce,CE,higher_is_better,106.065404,81.873,1.2954869615135636
+12.0,0.6727,SGLang,cost_req_usd,Cost,lower_is_better,0.0031137,0.0052438,0.5937869483962013
+12.0,0.6727,SGLang,ttft_avg_ms,TTFT avg,lower_is_better,502.5155,228.67,2.1975576157781957
+12.0,0.6727,SGLang,ttft_p95_ms,TTFT p95,lower_is_better,780.2508,300.67,2.595040409751555
+12.0,0.6727,SGLang,e2e_avg_ms,E2E avg,lower_is_better,3027.9569,2329.24,1.2999763442152807
+12.0,0.6727,SGLang,e2e_p95_ms,E2E p95,lower_is_better,6910.1221,5524.94,1.250714414998172
+12.0,0.6727,SGLang,tpot_avg_ms,TPOT avg,lower_is_better,27.1887,19.51,1.3935776524859045
+12.0,0.6727,SGLang,tpot_p95_ms,TPOT p95,lower_is_better,33.75192399576511,21.595374523494648,1.5629237621716061
+12.0,0.6727,SGLang,tok_s,Tok/s,higher_is_better,68.321518,70.172,0.9736293393376275
+10.0,0.8072,SGLang,ce,CE,higher_is_better,116.946652,95.8887,1.219608275010507
+10.0,0.8072,SGLang,cost_req_usd,Cost,lower_is_better,0.0028178,0.0044401,0.6346253462759848
+10.0,0.8072,SGLang,ttft_avg_ms,TTFT avg,lower_is_better,497.4363,228.78,2.1742997639653816
+10.0,0.8072,SGLang,ttft_p95_ms,TTFT p95,lower_is_better,791.6032,302.21,2.6193812249760104
+10.0,0.8072,SGLang,e2e_avg_ms,E2E avg,lower_is_better,3034.6053,2348.77,1.2919976413186478
+10.0,0.8072,SGLang,e2e_p95_ms,E2E p95,lower_is_better,6997.9896,5557.11,1.259285779838801
+10.0,0.8072,SGLang,tpot_avg_ms,TPOT avg,lower_is_better,27.5351,19.6,1.4048520408163265
+10.0,0.8072,SGLang,tpot_p95_ms,TPOT p95,lower_is_better,34.16275782558826,22.031796542444226,1.5506115336429216
+10.0,0.8072,SGLang,tok_s,Tok/s,higher_is_better,81.851896,84.428,0.9694875633676031
+8.0,1.009,SGLang,ce,CE,higher_is_better,123.02045,115.2768,1.0671744010937154
+8.0,1.009,SGLang,cost_req_usd,Cost,lower_is_better,0.00256652,0.0036377,0.705533716359238
+8.0,1.009,SGLang,ttft_avg_ms,TTFT avg,lower_is_better,563.9507,229.8,2.4540935596170583
+8.0,1.009,SGLang,ttft_p95_ms,TTFT p95,lower_is_better,1015.4881,305.21,3.327178336227516
+8.0,1.009,SGLang,e2e_avg_ms,E2E avg,lower_is_better,3167.2217,2384.69,1.328148186976085
+8.0,1.009,SGLang,e2e_p95_ms,E2E p95,lower_is_better,7206.746,5619.52,1.2824486788907237
+8.0,1.009,SGLang,tpot_avg_ms,TPOT avg,lower_is_better,28.6274,19.96,1.4342384769539078
+8.0,1.009,SGLang,tpot_p95_ms,TPOT p95,lower_is_better,39.44787753946742,23.05333501118598,1.7111570850953433
+8.0,1.009,SGLang,tok_s,Tok/s,higher_is_better,102.750526,105.597,0.9730439879920831

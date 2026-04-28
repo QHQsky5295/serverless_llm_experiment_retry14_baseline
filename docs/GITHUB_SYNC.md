@@ -45,7 +45,7 @@ Do not push accidental generated results, large artifacts, or obsolete docs.
 - Latest pushed baseline commit before the current handoff/documentation edits:
   `0241cdf Add paper experiment queue and confirmed comparisons`.
 
-The operating-load queue `20260427_112832_load_operating_p0` was still running
-when this note was added. Do not push new raw result directories from that
-queue until it has completed and the artifacts have been audited for size and
+The operating-load queue `20260427_112832_load_operating_p0` completed on
+`2026-04-28 03:41 CST`. Push only paper-facing derived artifacts from that
+queue unless raw result directories have been explicitly audited for size and
 paper relevance.

@@ -1,12 +1,14 @@
 {
   "figure": "fig8_load_sensitivity",
-  "generated_at_utc": "2026-04-27T00:32:23.467084+00:00",
+  "generated_at_utc": "2026-04-28T01:30:53.472942+00:00",
   "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig8_load_sensitivity.pdf",
   "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig8_load_sensitivity_data.csv",
+  "ratio_csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig8_load_sensitivity_ratios.csv",
+  "table_tex": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex",
   "round_dirs": [
-    "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1",
-    "/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load/20260426_194536_load_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s6_sensload_v1",
-    "/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load/20260426_194536_load_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s4_sensload_v1"
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1"
   ],
-  "note": "Latency panels intentionally exclude ServerlessLLM because its queueing delay is orders of magnitude larger; CE/cost panels include all systems."
+  "note": "Panels (a) and (b) compare all five systems on CE and lifecycle cost. Panel (c) audits all primary metrics as FaaSLoRA/SGLang ratios because SGLang is the strongest CE baseline in these operating-load rounds. The accompanying table reports all primary metrics for all systems and load points."
 }

@@ -25,8 +25,8 @@
   更高 CE。因此正文不能写成 “PrimeLoRA wins all latency metrics”。
 - Ablation 证明三项机制对 PrimeLoRA 自身的边际贡献。
 - Lifecycle cost 图解释 CE 来源，避免 CE 被理解为黑箱公式或只靠价格模型取胜。
-- `s8/s6/s4` load sensitivity 当前只作为 stress diagnostic；若后续 `s12/s10/s8`
-  operating-load round 通过审计，再补 Fig. 8 主文插入。
+- `s8/s6/s4` load sensitivity 只作为 stress diagnostic；已完成的 `s12/s10/s8`
+  operating-load round 通过 CE/cost-latency tradeoff 审计，可作为 Fig. 8 主文候选。
 
 ServerlessLoRA 相关审稿问答口径：
 
@@ -43,22 +43,19 @@ ServerlessLoRA 相关审稿问答口径：
 
 ### 0.1 当前运行实验状态
 
-截至 `2026-04-27 23:57 CST`，`load_operating_p0` 队列仍在 tmux 中运行：
+截至 `2026-04-28 03:41 CST`，`load_operating_p0` 队列已经完成：
 
 ```text
 tmux session: paper_load_operating_p0
 queue id:     20260427_112832_load_operating_p0
-active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
+completed:    s12 and s10 operating-load rounds
 systems:      sglang serverlessllm vllm slora faaslora
 ```
 
-队列已经从较早的 s12 round 推进到 s10 round，当前处于 vLLM 阶段；最新 live
-进度约为 `2449/4000`、`fail=0`，active log 为 `30_vllm.log`。这仍然只是
-Fig. 8 候选队列的部分 live 输出，不应用来替代已经闭合的 s8 主横向表。
-
-该队列用于决定 Fig. 8 是否保留。当前文档中的 Fig. 8 插入建议仍然保持
-“暂不进主文”。只有当 `s12/s10/s8` 五系统结果闭合并能形成清晰 CE sensitivity
-叙事后，才更新本文档的 Fig. 8 段落；否则删除 Fig. 8 主文候选。
+s12 与 s10 的 compare JSON 均包含五个系统。结合已闭合的 s8 主点，三点都显示
+PrimeLoRA/FaaSLoRA 的 CE 高于最强 CE baseline SGLang；同时 SGLang 的绝对
+TTFT/E2E 延迟仍更低。因此 Fig. 8 保留为 operating-load CE/cost-latency
+sensitivity 图，而不是延迟全面胜出图。
 
 ## 1. 当前稿件维护入口
 
@@ -71,7 +68,8 @@ paper/primelora_current_draft.tex
 当前 `.tex` 对齐检查（2026-04-27 23:55）：
 
 - 该文件仍是 IEEEtran 草稿，但已同步插入 Fig. 1、Fig. 2、Fig. 3、Table 1、
-  Fig. 6 和 Fig. 7；Fig. 5/Fig. 8/Fig. 9 未进入主线。
+  Fig. 6、Fig. 7、Fig. 8 和 Fig. 8 的主指标 sensitivity 表；Fig. 5/Fig. 9
+  未进入主线。
 - 当前 section 结构为：Introduction -> Background and Motivation -> System Overview ->
   System Design -> Implementation -> Evaluation and Analysis -> Related Work -> Conclusion。
 - 已有 `\label{sec:evaluation}`，所以本文档中 `Section~\ref{sec:evaluation}` 可直接使用。
@@ -103,15 +101,18 @@ paper/primelora_current_draft.tex
 | Fig. 5 | `figs/paper/main/fig5_main_normalized.pdf` | Table 1 后或 appendix | 暂作备选/appendix；主文优先 Table 1 + Fig. 7 |
 | Fig. 6 | `figs/paper/ablation/fig6_ablation.pdf` | Evaluation: Ablation Analysis | 可进初稿 |
 | Fig. 7 | `figs/paper/main/fig7_lifecycle_cost.pdf` | Evaluation: Lifecycle Cost Efficiency | 可进初稿 |
-| Fig. 8 | `figs/paper/sensitivity/fig8_load_sensitivity.pdf` | Evaluation: Sensitivity | 暂不进主文，仅作 stress diagnostic |
+| Fig. 8 | `figs/paper/sensitivity/fig8_load_sensitivity.pdf` | Evaluation: Operating-load sensitivity | 可进初稿；CE/cost-latency tradeoff |
+| Table S | `figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex` | Fig. 8 后或 appendix | 可进初稿；列出 s12/s10/s8 五系统全部主指标 |
 
 旧 `figs/paper/ablation/fig2_mismatch.pdf` 与 `figs/paper/ablation/fig3_tier.pdf`
 来自 PrimeLoRA/FaaSLoRA 内部 instrumentation，不再作为 Motivation 图使用；
 最多作为 Evaluation/Appendix 的 mechanism audit artifact。`fig4_coordination.pdf`
 是 Evaluation-only 的机制图，当前不放 Motivation。
-`fig8_load_sensitivity.pdf` 由 `s8/s6/s4` stress 数据生成，不能支撑负载稳健性
-主文结论；若 `s12/s10/s8` operating-load round 闭合后 PrimeLoRA CE 仍不稳，
-Fig. 8 应从主文删除。
+旧 `fig8_load_sensitivity.pdf` 曾由 `s8/s6/s4` stress 数据生成，不能支撑负载
+稳健性主文结论。当前文件已重画为 `s12/s10/s8` operating-load sensitivity：
+panel (a)/(b) 展示五系统 CE 与 Cost/req，panel (c) 用 FaaSLoRA/SGLang 比值审计
+CE、Cost、TTFT avg/p95、E2E avg/p95、TPOT avg/p95 和 Tok/s；配套表列出
+所有系统的全部主指标。
 
 图形排版约束：当前已确定的复合图均已改为 panel caption 在分图下方，例如
 `(a) ...`，不使用图上方的小标题；数值标注使用固定 offset，不应与圆点、
@@ -345,20 +346,39 @@ Evaluation 部分按系统论文常见结构组织为：主结果、消融、成
 压缩图削弱主线；Fig. 6 使用 relative-change bar panels 避免 cost 柱几乎等高；
 Fig. 7 专门解释 cost/CE 来源，不与 Fig. 1 重复。
 
-## 9. 暂不插入 Fig. 8
+## 9. Evaluation 插入 Fig. 8
 
-当前不建议在主文加入 `fig8_load_sensitivity.pdf`。如果后续
-`load_operating_p0` 产生的 `s12/s10/s8` 三点满足以下条件，再新增 sensitivity
-小节：
+### 插入位置
 
-- 五系统均完整完成，compare JSON 包含 ServerlessLLM；
-- workload 除 time scale 外完全一致；
-- PrimeLoRA 的 CE 在低/中/名义负载下保持可解释优势，或者正文明确写成
-  operating boundary 而非优势图；
-- 图注说明 `s6/s4` 是 stress diagnostic，不作为主文稳健性证据。
+放在 Lifecycle Cost Efficiency 小节之后、Related Work 之前。
 
-若这些条件不满足，Fig. 8 从主文删除，相关数据只保留在 `PAPER_FIGURE_PLAN.md`
-和内部结果目录中。
+### 插入片段
+
+```latex
+\subsection{Operating-Load Sensitivity}
+
+\textbf{Question.}
+Does the latency--cost tradeoff remain favorable as the replay rate changes within the intended serverless operating region?
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figs/paper/sensitivity/fig8_load_sensitivity.pdf}
+    \caption{Operating-load sensitivity on the representative Llama-2 7B workload. Panels (a) and (b) compare all five systems on CE and lifecycle cost across low, medium, and nominal replay rates. Panel (c) audits the full primary metric set as FaaSLoRA/SGLang ratios; SGLang is the strongest CE baseline in these rounds.}
+    \label{fig:load_sensitivity}
+\end{figure*}
+
+\IfFileExists{figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}{\input{figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}}{\input{../figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}}
+
+Figure~\ref{fig:load_sensitivity} and Table~\ref{tab:load_sensitivity_metrics} report the operating-load sensitivity for the same 4000-request, 500-adapter Llama-2 7B workload family. Across the low-load, medium-load, and nominal-load points, PrimeLoRA has the highest CE among all five systems. This does not mean that PrimeLoRA dominates every latency metric: SGLang remains the lower-latency always-on runtime. Instead, PrimeLoRA's lower lifecycle cost compensates for the serverless readiness overhead and yields a better integrated latency--cost tradeoff in the intended operating region.
+```
+
+### 修改原因
+
+同类系统论文通常会把吞吐、延迟、SLO/goodput 和成本/效率分开展示，而不是只用
+单一 headline。当前 Fig. 8 因此保留 CE 与 Cost/req 的五系统趋势，同时用右侧
+ratio matrix 和配套表审计完整主指标：TTFT avg/p95、E2E avg/p95、TPOT avg/p95、
+Tok/s、Cost/req 和 CE。正文结论固定为“operating region 下综合 CE 更好”，
+不写成“serverless 延迟全面超过 serverful”。
 
 ## 10. 最终写作提醒
 

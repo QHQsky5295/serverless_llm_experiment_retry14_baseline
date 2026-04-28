@@ -388,6 +388,22 @@ Where does PrimeLoRA's lifecycle cost-efficiency advantage come from?
 
 Figure~\ref{fig:lifecycle_cost} explains the cost-efficiency result. PrimeLoRA lowers lifecycle cost per request by using serverless-style elastic residency while retaining enough ready capacity to serve the workload. The GPU-time breakdown shows that CE is not a standalone pricing artifact; it follows from how much active, startup, and idle-ready GPU time each system consumes under the same replay.
 
+\subsection{Operating-Load Sensitivity}
+
+\textbf{Question.}
+Does the latency--cost tradeoff remain favorable as the replay rate changes within the intended serverless operating region?
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figs/paper/sensitivity/fig8_load_sensitivity.pdf}
+    \caption{Operating-load sensitivity on the representative Llama-2 7B workload. Panels (a) and (b) compare all five systems on CE and lifecycle cost across low, medium, and nominal replay rates. Panel (c) audits the full primary metric set as FaaSLoRA/SGLang ratios; SGLang is the strongest CE baseline in these rounds.}
+    \label{fig:load_sensitivity}
+\end{figure*}
+
+\IfFileExists{figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}{\input{figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}}{\input{../figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}}
+
+Figure~\ref{fig:load_sensitivity} and Table~\ref{tab:load_sensitivity_metrics} report the operating-load sensitivity for the same 4000-request, 500-adapter Llama-2 7B workload family. Across the low-load, medium-load, and nominal-load points, PrimeLoRA has the highest CE among all five systems. This does not mean that PrimeLoRA dominates every latency metric: SGLang remains the lower-latency always-on runtime. Instead, PrimeLoRA's lower lifecycle cost compensates for the serverless readiness overhead and yields a better integrated latency--cost tradeoff in the intended operating region.
+
 \section{Related Work}
 
 Recent LLM serving systems improve runtime execution, multi-LoRA adapter serving, and serverless startup or scaling. PrimeLoRA builds on these advances but focuses on the gap between replica availability and adapter executability.
