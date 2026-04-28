@@ -7,6 +7,44 @@ experiments. The broader paper handoff lives in:
 /home/qhq/serverless_llm_experiment_retry14_baseline/docs/SESSION_HANDOFF_2026-04-27.md
 ```
 
+## Active Queue
+
+As of `2026-04-28 09:59 CST`, the next long queue is running in tmux:
+
+```text
+tmux session: paper_adapter_pool_p0
+queue id:     20260428_095850_adapter_pool_p0
+profile:      adapter_pool_p0
+systems:      sglang serverlessllm vllm slora faaslora
+section:      07_sensitivity_adapter_pool
+planned:      a100/hot16, a200/hot24, a300/hot32, a400/hot40
+```
+
+The canonical `a500/hot48` right endpoint is the already completed Llama-2 7B
+`s8` main round unless `adapter_pool_full_p0` is explicitly requested later.
+
+Active files:
+
+```text
+queue env:
+/home/qhq/serverless_llm_baselines/results/paper_experiments/00_queues/20260428_095850_adapter_pool_p0/queue.env
+
+first round:
+/home/qhq/serverless_llm_baselines/results/paper_experiments/07_sensitivity_adapter_pool/20260428_095850_adapter_pool_p0_llama2_7b_r4000_a100_seed42_z1p0_hot16_rot500_s8_sensadpool_v1
+```
+
+Monitor:
+
+```bash
+tmux capture-pane -p -t paper_adapter_pool_p0 -S -120
+```
+
+Attach:
+
+```bash
+tmux attach -t paper_adapter_pool_p0
+```
+
 ## Completed Queue
 
 As of `2026-04-28 03:41 CST`, the queue completed successfully:
