@@ -7,17 +7,17 @@ experiments. The broader paper handoff lives in:
 /home/qhq/serverless_llm_experiment_retry14_baseline/docs/SESSION_HANDOFF_2026-04-27.md
 ```
 
-## Live Queue
+## Completed Queue
 
-As of `2026-04-27 23:57 CST`, the queue is active and healthy:
+As of `2026-04-28 03:41 CST`, the queue completed successfully:
 
 ```text
 tmux session: paper_load_operating_p0
 queue id:     20260427_112832_load_operating_p0
 profile:      load_operating_p0
 systems:      sglang serverlessllm vllm slora faaslora
-active tag:   llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
 section:      06_sensitivity_load_operating
+completed:    s12 and s10 operating-load rounds
 ```
 
 Key files:
@@ -33,25 +33,25 @@ round dir:
 /home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
 ```
 
-Latest observed progress:
+Completed rounds:
 
 ```text
-active stage: vLLM in the s10 run
-done:         about 2449/4000
-fail:         0
-ETA:          about 29 minutes for the active vLLM stage
-TTFT_e2e:     avg/p95/p99 about 469/796/2350 ms
-E2E_e2e:      avg/p95/p99 about 2987/7264/7948 ms
-TPOT avg:     about 26.1 ms in the live summary
-SLO@5000 ms:  100%
+s12:
+/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1
+
+s10:
+/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1
 ```
 
-The queue has advanced beyond the earlier s12 round into the s10 run; the
-active stage log is `30_vllm.log`.
+Both rounds have `90_compare.done` and include all five systems. Combined with
+the existing s8 main point, the data support keeping Fig. 8 as operating-load
+CE/cost-latency sensitivity. The result should not be written as latency
+dominance: SGLang remains lower-latency, while FaaSLoRA has higher CE through
+lower lifecycle cost.
 
-## Monitor And Resume
+## Monitor
 
-Monitor:
+The tmux session may still be open at a completed shell prompt:
 
 ```bash
 tmux capture-pane -p -t paper_load_operating_p0 -S -120
@@ -63,17 +63,8 @@ Attach:
 tmux attach -t paper_load_operating_p0
 ```
 
-Resume only if the tmux session or queue log proves a real failure:
-
-```bash
-cd /home/qhq/serverless_llm_baselines
-PAPER_QUEUE_ID=20260427_112832_load_operating_p0 \
-PAPER_QUEUE_PROFILE=load_operating_p0 \
-PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
-bash scripts/run_paper_long_experiment_queue.sh
-```
-
 ## Rule
 
-Do not drop ServerlessLLM from this queue. If that stage fails, fix the root
-cause and resume with the same workload, trace, adapter subset, and queue id.
+Do not rerun this completed queue unless a later audit finds a concrete data
+integrity issue. Do not drop ServerlessLLM from any paper-facing sensitivity
+rerun.
