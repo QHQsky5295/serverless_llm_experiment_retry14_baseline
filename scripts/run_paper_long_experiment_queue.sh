@@ -233,6 +233,60 @@ run_profile_load_low_p0() {
   run_profile_load_operating_p0
 }
 
+run_profile_adapter_pool_p0() {
+  # Adapter-pool sensitivity for the formal Llama-2 7B replay. The canonical
+  # 500-adapter point is the closed s8 main round; this profile fills the
+  # missing 100/200/300/400-adapter points while keeping 4000 requests,
+  # Zipf=1.0, time scale=8, rotation=500, seed=42 and the five-system set.
+  run_round \
+    "Llama-2 7B adapter-pool sensitivity a100" \
+    "07_sensitivity_adapter_pool" \
+    "llama2_7b_r4000_a100_seed42_z1p0_hot16_rot500_s8_sensadpool_v1" \
+    "llama2_7b_main_v2_publicmix" \
+    "azure_sharegpt_rep4000" \
+    "llama2_7b_auto100_formal4000_s8_adpool_v1" \
+    "4000" "100" "42" "8.0" "${DEFAULT_SYSTEMS}"
+
+  run_round \
+    "Llama-2 7B adapter-pool sensitivity a200" \
+    "07_sensitivity_adapter_pool" \
+    "llama2_7b_r4000_a200_seed42_z1p0_hot24_rot500_s8_sensadpool_v1" \
+    "llama2_7b_main_v2_publicmix" \
+    "azure_sharegpt_rep4000" \
+    "llama2_7b_auto200_formal4000_s8_adpool_v1" \
+    "4000" "200" "42" "8.0" "${DEFAULT_SYSTEMS}"
+
+  run_round \
+    "Llama-2 7B adapter-pool sensitivity a300" \
+    "07_sensitivity_adapter_pool" \
+    "llama2_7b_r4000_a300_seed42_z1p0_hot32_rot500_s8_sensadpool_v1" \
+    "llama2_7b_main_v2_publicmix" \
+    "azure_sharegpt_rep4000" \
+    "llama2_7b_auto300_formal4000_s8_adpool_v1" \
+    "4000" "300" "42" "8.0" "${DEFAULT_SYSTEMS}"
+
+  run_round \
+    "Llama-2 7B adapter-pool sensitivity a400" \
+    "07_sensitivity_adapter_pool" \
+    "llama2_7b_r4000_a400_seed42_z1p0_hot40_rot500_s8_sensadpool_v1" \
+    "llama2_7b_main_v2_publicmix" \
+    "azure_sharegpt_rep4000" \
+    "llama2_7b_auto400_formal4000_s8_adpool_v1" \
+    "4000" "400" "42" "8.0" "${DEFAULT_SYSTEMS}"
+}
+
+run_profile_adapter_pool_full_p0() {
+  run_profile_adapter_pool_p0
+  run_round \
+    "Llama-2 7B adapter-pool sensitivity a500 self-contained rerun" \
+    "07_sensitivity_adapter_pool" \
+    "llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_sensadpool_v1" \
+    "llama2_7b_main_v2_publicmix" \
+    "azure_sharegpt_rep4000" \
+    "llama2_7b_auto500_formal4000_s8" \
+    "4000" "500" "42" "8.0" "${DEFAULT_SYSTEMS}"
+}
+
 main() {
   write_queue_env
   validate_runner
@@ -246,8 +300,10 @@ main() {
     load_p1) run_profile_load_p1 ;;
     load_operating_p0) run_profile_load_operating_p0 ;;
     load_low_p0) run_profile_load_low_p0 ;;
+    adapter_pool_p0) run_profile_adapter_pool_p0 ;;
+    adapter_pool_full_p0) run_profile_adapter_pool_full_p0 ;;
     *)
-      echo "[ERROR] unknown PAPER_QUEUE_PROFILE=${QUEUE_PROFILE}; supported: load_p0, load_p1, load_operating_p0, load_low_p0" >&2
+      echo "[ERROR] unknown PAPER_QUEUE_PROFILE=${QUEUE_PROFILE}; supported: load_p0, load_p1, load_operating_p0, load_low_p0, adapter_pool_p0, adapter_pool_full_p0" >&2
       return 2
       ;;
   esac

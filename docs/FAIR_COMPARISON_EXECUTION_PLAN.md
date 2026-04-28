@@ -356,6 +356,25 @@ adapter pool、seed、Zipf、hot set 和 rotation 语义。`run_full_fair_round.
 已同步透传 `SLLM_TIME_SCALE_FACTOR` 到 shared trace prepare 阶段，避免
 run tag 与真实 trace scale 不一致。
 
+2026-04-28 新增 `adapter_pool_p0`，作为下一轮长期实验队列：
+
+```text
+07_sensitivity_adapter_pool / Llama-2 7B / a100 hot16 / sglang serverlessllm vllm slora faaslora
+07_sensitivity_adapter_pool / Llama-2 7B / a200 hot24 / sglang serverlessllm vllm slora faaslora
+07_sensitivity_adapter_pool / Llama-2 7B / a300 hot32 / sglang serverlessllm vllm slora faaslora
+07_sensitivity_adapter_pool / Llama-2 7B / a400 hot40 / sglang serverlessllm vllm slora faaslora
+```
+
+该 profile 保持 `4000` requests、Zipf `1.0`、hotset rotation `500`、time
+scale `8.0`、seed `42` 与完整五系统集合不变，只改变 adapter universe 和
+active hot cap。`a500/hot48` 右端点优先复用已闭合的 Llama-2 7B `s8` 主 round；
+如需同一 queue 自包含五个点，使用 `adapter_pool_full_p0`，它会额外重跑
+`a500/hot48`。便捷入口为：
+
+```text
+/home/qhq/serverless_llm_baselines/scripts/run_paper_adapter_pool_queue.sh
+```
+
 如果为了快速探路显式覆盖 `PAPER_QUEUE_SYSTEMS="sglang vllm slora faaslora"`，
 该结果只能标注为 partial sensitivity，不能作为完备横向对比。后续必须补跑
 ServerlessLLM 并重新生成 compare。2026-04-27 已修复队列断点逻辑：即使
@@ -388,11 +407,20 @@ PAPER_QUEUE_PROFILE=load_operating_p0 \
 scripts/run_paper_long_experiment_queue.sh
 ```
 
+如果目标是生成 adapter-pool sensitivity，使用：
+
+```bash
+cd /home/qhq/serverless_llm_baselines
+tmux new -s paper_adapter_pool_p0
+
+scripts/run_paper_adapter_pool_queue.sh
+```
+
 队列会写出：
 
 ```text
 results/paper_experiments/00_queues/<queue_id>/queue.env
-results/paper_experiments/06_sensitivity_load/<queue_id>_<run_tag>/
+results/paper_experiments/<section>/<queue_id>_<run_tag>/
 ```
 
 失败后建议显式指定完整系统列表继续，避免旧 partial `queue.env` 把
@@ -401,7 +429,7 @@ ServerlessLLM 再次排除：
 ```bash
 cd /home/qhq/serverless_llm_baselines
 PAPER_QUEUE_ID=<queue_id> \
-PAPER_QUEUE_PROFILE=<load_p0_or_load_operating_p0> \
+PAPER_QUEUE_PROFILE=<load_p0_or_load_operating_p0_or_adapter_pool_p0> \
 PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
 bash scripts/run_paper_long_experiment_queue.sh
 ```
