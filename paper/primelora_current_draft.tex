@@ -368,7 +368,7 @@ How much does each PrimeLoRA mechanism contribute to the final performance?
 \begin{figure}[t]
     \centering
     \includegraphics[width=\linewidth]{figs/paper/ablation/fig6_ablation.pdf}
-    \caption{Cumulative ablation of PrimeLoRA mechanisms on the representative Llama-2-7B workload. Each cell reports the absolute metric value and the signed change relative to the NVMe variant; green indicates improvement and red indicates regression.}
+    \caption{Cumulative ablation of PrimeLoRA mechanisms on the representative Llama-2-7B workload. Rows are implemented variants, and columns cover latency, TPOT, dispatch wait, LoRA I/O, Cost/req, throughput, and CE. Each cell reports the absolute value and the signed change relative to NVMe; green indicates improvement and red indicates regression.}
     \label{fig:ablation}
 \end{figure}
 
@@ -396,7 +396,7 @@ Does the latency--cost tradeoff remain favorable as the replay rate changes with
 \begin{figure*}[t]
     \centering
     \includegraphics[width=\textwidth]{figs/paper/sensitivity/fig8_load_sensitivity.pdf}
-    \caption{Operating-load sensitivity on the representative Llama-2 7B workload. Panels (a) and (b) compare all five systems on CE and lifecycle cost across low, medium, and nominal replay rates. Panel (c) reports concrete values for the full primary metric set, with separate s12/s10/s8 rows under each system and values rounded to three decimals; TTFT and E2E are in seconds, TPOT is in ms, throughput is in tok/s, and Cost/req is in mUSD. Colors mark within-metric favorability at each load.}
+    \caption{Operating-load sensitivity on the representative Llama-2 7B workload. Panels (a) and (b) compare all five systems on CE and lifecycle cost across Low, Medium, and Nominal load points, corresponding to 0.67, 0.81, and 1.01 req/s on the 4-GPU testbed. Panel (c) reports concrete values for the full primary metric set with the same load labels; TTFT and E2E are in seconds, TPOT is in ms, throughput is in tok/s, and Cost/req is in mUSD. Colors mark within-metric favorability at each load.}
     \label{fig:load_sensitivity}
 \end{figure*}
 

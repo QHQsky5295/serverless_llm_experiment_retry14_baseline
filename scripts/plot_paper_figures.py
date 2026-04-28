@@ -422,11 +422,15 @@ def _draw_ablation_metric_matrix(
     rows: Sequence[Dict[str, Any]],
     reference: Dict[str, Any],
     metric_specs: Sequence[tuple[str, str, bool, float, str]],
+    *,
+    group_label: str | None = None,
 ) -> None:
-    ax.set_xlim(0, len(rows))
-    ax.set_ylim(0, len(metric_specs))
-    for yi, (label, key, higher_is_better, scale, fmt) in enumerate(metric_specs):
-        for xi, row in enumerate(rows):
+    ax.set_xlim(0, len(metric_specs))
+    ax.set_ylim(0, len(rows))
+    main_font = 7.5 if len(metric_specs) >= 6 else 7.8
+    delta_font = 6.7 if len(metric_specs) >= 6 else 7.0
+    for yi, row in enumerate(rows):
+        for xi, (label, key, higher_is_better, scale, fmt) in enumerate(metric_specs):
             is_reference = row["scenario"] == reference["scenario"]
             value = float(row[key]) * scale
             change = None if is_reference else _improvement_pct(reference[key], row[key], higher_is_better=higher_is_better)
@@ -441,17 +445,18 @@ def _draw_ablation_metric_matrix(
             ax.add_patch(rect)
             main_text = fmt.format(value)
             change_text = "ref" if is_reference else _signed_pct_text(float(change))
-            ax.text(xi + 0.5, yi + 0.38, main_text, ha="center", va="center", fontsize=9.0, color="#111111")
-            ax.text(xi + 0.5, yi + 0.68, change_text, ha="center", va="center", fontsize=8.0, color="#4A4A4A")
+            ax.text(xi + 0.5, yi + 0.38, main_text, ha="center", va="center", fontsize=main_font, color="#111111")
+            ax.text(xi + 0.5, yi + 0.68, change_text, ha="center", va="center", fontsize=delta_font, color="#4A4A4A")
 
-    ax.set_xticks(np.arange(len(rows)) + 0.5, [row["label"] for row in rows])
-    ax.set_yticks(np.arange(len(metric_specs)) + 0.5, [spec[0] for spec in metric_specs])
+    ax.set_xticks(np.arange(len(metric_specs)) + 0.5, [spec[0] for spec in metric_specs])
+    ax.set_yticks(np.arange(len(rows)) + 0.5, [row["label"] for row in rows])
     ax.invert_yaxis()
-    ax.tick_params(axis="x", labelsize=9.0, length=0, pad=2.0, top=True, labeltop=True, bottom=False, labelbottom=False)
-    ax.tick_params(axis="y", labelsize=8.5, length=0, pad=2.0)
+    ax.tick_params(axis="x", labelsize=6.7, length=0, pad=1.8, top=True, labeltop=True, bottom=False, labelbottom=False)
+    ax.tick_params(axis="y", labelsize=7.7, length=0, pad=2.0)
     for spine in ax.spines.values():
         spine.set_visible(False)
-    ax.set_xlabel("absolute value; Δ vs NVMe", fontsize=8.7)
+    if group_label:
+        ax.text(0.0, 1.17, group_label, transform=ax.transAxes, ha="left", va="bottom", fontsize=8.0, fontweight="bold")
 
 
 def _add_bar_labels(ax: plt.Axes, bars: Iterable[Any], *, fmt: str = "{:.0f}", padding_frac: float = 0.012) -> None:
@@ -1211,6 +1216,7 @@ def plot_fig6(round_dir: Path, out_dir: Path) -> None:
                 "e2e_p95_ms": _summary_float(scenario, "p95_overall_e2e_ms"),
                 "tpot_avg_ms": _summary_float(scenario, "avg_tpot_ms"),
                 "tpot_p95_ms": _percentile(_observed_tpot_values(scenario.requests, scenario.name), 95),
+                "tok_s": _summary_float(scenario, "throughput_tok_per_s"),
                 "gpu_hit_rate_pct": _summary_float(scenario, "gpu_hit_rate") * 100,
                 "lora_io_ms": _summary_float(scenario, "avg_lora_io_ms"),
                 "dispatch_wait_ms": _summary_float(scenario, "avg_dispatch_admission_wait_ms"),
@@ -1230,26 +1236,32 @@ def plot_fig6(round_dir: Path, out_dir: Path) -> None:
         row["e2e_p95_improvement_pct"] = _improvement_pct(reference["e2e_p95_ms"], row["e2e_p95_ms"], higher_is_better=False)
         row["tpot_avg_improvement_pct"] = _improvement_pct(reference["tpot_avg_ms"], row["tpot_avg_ms"], higher_is_better=False)
         row["tpot_p95_improvement_pct"] = _improvement_pct(reference["tpot_p95_ms"], row["tpot_p95_ms"], higher_is_better=False)
+        row["tok_s_improvement_pct"] = _improvement_pct(reference["tok_s"], row["tok_s"], higher_is_better=True)
         row["lora_io_improvement_pct"] = _improvement_pct(reference["lora_io_ms"], row["lora_io_ms"], higher_is_better=False)
         row["dispatch_wait_improvement_pct"] = _improvement_pct(reference["dispatch_wait_ms"], row["dispatch_wait_ms"], higher_is_better=False)
         row["cost_improvement_pct"] = _improvement_pct(reference["cost_per_req_usd"], row["cost_per_req_usd"], higher_is_better=False)
         row["ce_improvement_pct"] = _improvement_pct(reference["ce"], row["ce"], higher_is_better=True)
 
-    metric_specs = [
+    latency_metric_specs = [
         ("TTFT avg\n(ms)", "ttft_avg_ms", False, 1.0, "{:.0f}"),
         ("TTFT p95\n(ms)", "ttft_p95_ms", False, 1.0, "{:.0f}"),
         ("E2E avg\n(ms)", "e2e_avg_ms", False, 1.0, "{:.0f}"),
         ("E2E p95\n(ms)", "e2e_p95_ms", False, 1.0, "{:.0f}"),
         ("TPOT avg\n(ms)", "tpot_avg_ms", False, 1.0, "{:.1f}"),
         ("TPOT p95\n(ms)", "tpot_p95_ms", False, 1.0, "{:.1f}"),
-        ("Dispatch\nwait ms", "dispatch_wait_ms", False, 1.0, "{:.1f}"),
+    ]
+    serving_metric_specs = [
+        ("Dispatch\nwait (ms)", "dispatch_wait_ms", False, 1.0, "{:.1f}"),
         ("LoRA I/O\n(ms)", "lora_io_ms", False, 1.0, "{:.2f}"),
-        ("Cost/req\n(mUSD)", "cost_per_req_usd", False, 1000.0, "{:.3f}"),
+        ("Cost/req\nmUSD", "cost_per_req_usd", False, 1000.0, "{:.3f}"),
+        ("Throughput\n(tok/s)", "tok_s", True, 1.0, "{:.1f}"),
         ("CE", "ce", True, 1.0, "{:.1f}"),
     ]
-    fig, ax = plt.subplots(figsize=(3.45, 4.92), constrained_layout=False)
-    _draw_ablation_metric_matrix(ax, rows, reference, metric_specs)
-    fig.subplots_adjust(left=0.285, right=0.995, top=0.935, bottom=0.105)
+    fig, axes = plt.subplots(2, 1, figsize=(3.45, 2.55), constrained_layout=False)
+    _draw_ablation_metric_matrix(axes[0], rows, reference, latency_metric_specs)
+    _draw_ablation_metric_matrix(axes[1], rows, reference, serving_metric_specs)
+    axes[1].set_xlabel("cell: value; Δ vs NVMe", fontsize=7.4, labelpad=3.0)
+    fig.subplots_adjust(left=0.185, right=0.995, top=0.87, bottom=0.135, hspace=0.46)
 
     pdf = out_dir / "fig6_ablation.pdf"
     csv_path = out_dir / "fig6_ablation_data.csv"
@@ -1258,7 +1270,34 @@ def plot_fig6(round_dir: Path, out_dir: Path) -> None:
     fig.savefig(pdf)
     plt.close(fig)
     _write_csv(csv_path, rows)
-    _write_manifest(manifest, "fig6_ablation", round_dir, pdf, csv_path, [s.source for s in scenarios])
+    _write_manifest(
+        manifest,
+        "fig6_ablation",
+        round_dir,
+        pdf,
+        csv_path,
+        [s.source for s in scenarios],
+        extra={
+            "model": "Llama-2-7B",
+            "scenario_labels": ["NVMe", "NoCoord", "Full"],
+            "reference": "NVMe",
+            "layout": "single-column transposed matrix; rows are implemented variants and columns are metrics",
+            "fields_used": [
+                "avg_overall_ttft_ms",
+                "p95_overall_ttft_ms",
+                "avg_overall_e2e_ms",
+                "p95_overall_e2e_ms",
+                "avg_tpot_ms",
+                "request_level_tpot_ms_p95",
+                "throughput_tok_per_s",
+                "avg_dispatch_wait_ms",
+                "avg_lora_io_ms",
+                "monetary_cost_per_request_usd",
+                "monetary_ce",
+            ],
+            "cell_semantics": "Each cell reports absolute value plus signed change relative to NVMe; positive change means better.",
+        },
+    )
 
 
 def _main_csv_rows(systems: Sequence[MainSystemData]) -> List[Dict[str, Any]]:

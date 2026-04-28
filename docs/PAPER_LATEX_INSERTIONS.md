@@ -25,8 +25,9 @@
   更高 CE。因此正文不能写成 “PrimeLoRA wins all latency metrics”。
 - Ablation 证明三项机制对 PrimeLoRA 自身的边际贡献。
 - Lifecycle cost 图解释 CE 来源，避免 CE 被理解为黑箱公式或只靠价格模型取胜。
-- `s8/s6/s4` load sensitivity 只作为 stress diagnostic；已完成的 `s12/s10/s8`
-  operating-load round 通过 CE/cost-latency tradeoff 审计，可作为 Fig. 8 主文候选。
+- `s8/s6/s4` load sensitivity 只作为 stress diagnostic；已完成的 Low/Medium/Nominal
+  operating-load round 通过 CE/cost-latency tradeoff 审计，可作为 Fig. 8 主文候选
+  （底层 time scale 为 `s12/s10/s8`）。
 
 ServerlessLoRA 相关审稿问答口径：
 
@@ -102,14 +103,15 @@ paper/primelora_current_draft.tex
 | Fig. 6 | `figs/paper/ablation/fig6_ablation.pdf` | Evaluation: Ablation Analysis | 可进初稿 |
 | Fig. 7 | `figs/paper/main/fig7_lifecycle_cost.pdf` | Evaluation: Lifecycle Cost Efficiency | 可进初稿 |
 | Fig. 8 | `figs/paper/sensitivity/fig8_load_sensitivity.pdf` | Evaluation: Operating-load sensitivity | 可进初稿；CE/cost-latency tradeoff |
-| Table S | `figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex` | Fig. 8 后或 appendix | 可进初稿；列出 s12/s10/s8 五系统全部主指标 |
+| Table S | `figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex` | Fig. 8 后或 appendix | 可进初稿；列出 Low/Medium/Nominal 五系统全部主指标 |
 
 旧 `figs/paper/ablation/fig2_mismatch.pdf` 与 `figs/paper/ablation/fig3_tier.pdf`
 来自 PrimeLoRA/FaaSLoRA 内部 instrumentation，不再作为 Motivation 图使用；
 最多作为 Evaluation/Appendix 的 mechanism audit artifact。`fig4_coordination.pdf`
 是 Evaluation-only 的机制图，当前不放 Motivation。
 旧 `fig8_load_sensitivity.pdf` 曾由 `s8/s6/s4` stress 数据生成，不能支撑负载
-稳健性主文结论。当前文件已重画为 `s12/s10/s8` operating-load sensitivity：
+稳健性主文结论。当前文件已重画为 Low/Medium/Nominal operating-load sensitivity
+（底层 time scale 为 `s12/s10/s8`）：
 panel (a)/(b) 展示五系统 CE 与 Cost/req，panel (c) 用五系统真实数值矩阵展示
 CE、Cost、TTFT avg/p95、E2E avg/p95、TPOT avg/p95 和 Throughput；配套表列出
 所有系统的全部主指标。
@@ -308,7 +310,7 @@ How much does each PrimeLoRA mechanism contribute to the final performance?
 \begin{figure}[t]
     \centering
     \includegraphics[width=\linewidth]{figs/paper/ablation/fig6_ablation.pdf}
-    \caption{Cumulative ablation of PrimeLoRA mechanisms on the representative Llama-2-7B workload. Each cell reports the absolute metric value and the signed change relative to the NVMe variant; green indicates improvement and red indicates regression.}
+    \caption{Cumulative ablation of PrimeLoRA mechanisms on the representative Llama-2-7B workload. Rows are implemented variants, and columns cover latency, TPOT, dispatch wait, LoRA I/O, Cost/req, throughput, and CE. Each cell reports the absolute value and the signed change relative to NVMe; green indicates improvement and red indicates regression.}
     \label{fig:ablation}
 \end{figure}
 
@@ -364,7 +366,7 @@ Does the latency--cost tradeoff remain favorable as the replay rate changes with
 \begin{figure*}[t]
     \centering
     \includegraphics[width=\textwidth]{figs/paper/sensitivity/fig8_load_sensitivity.pdf}
-    \caption{Operating-load sensitivity on the representative Llama-2 7B workload. Panels (a) and (b) compare all five systems on CE and lifecycle cost across low, medium, and nominal replay rates. Panel (c) reports concrete values for the full primary metric set, with separate s12/s10/s8 rows under each system and values rounded to three decimals; TTFT and E2E are in seconds, TPOT is in ms, throughput is in tok/s, and Cost/req is in mUSD. Colors mark within-metric favorability at each load.}
+    \caption{Operating-load sensitivity on the representative Llama-2 7B workload. Panels (a) and (b) compare all five systems on CE and lifecycle cost across Low, Medium, and Nominal load points, corresponding to 0.67, 0.81, and 1.01 req/s on the 4-GPU testbed. Panel (c) reports concrete values for the full primary metric set with the same load labels; TTFT and E2E are in seconds, TPOT is in ms, throughput is in tok/s, and Cost/req is in mUSD. Colors mark within-metric favorability at each load.}
     \label{fig:load_sensitivity}
 \end{figure*}
 

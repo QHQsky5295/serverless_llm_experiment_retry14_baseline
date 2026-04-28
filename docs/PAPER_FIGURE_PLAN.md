@@ -226,7 +226,7 @@ CE = 1 / (avg_E2E_e2e_seconds * Cost/req)
 | Evaluation | Fig. 6 Ablation | Single-column absolute-value + relative-change matrix | 已生成 | 必保留 |
 | Evaluation | Fig. 6/7 subfigure Coordination effect | Full vs NoCoord relative-change panels | 已生成，Evaluation-only | 可保留 |
 | Evaluation | Fig. 7 Lifecycle cost | Stacked monetary cost + GPU-time breakdown | 已有主 round | 必保留 |
-| Evaluation | Fig. 8 Sensitivity | Operating-load CE/cost-latency sensitivity + full-metric table | s12/s10/s8 已完成 | 可保留 |
+| Evaluation | Fig. 8 Sensitivity | Operating-load CE/cost-latency sensitivity + full-metric table | Low/Medium/Nominal 三点已完成（底层 s12/s10/s8） | 可保留 |
 | Evaluation | Table/Fig. 9 Multi-backbone robustness | 4 backbones main metrics | 需跑 13B/Qwen | 建议保留或附录 |
 
 如果主文篇幅紧，优先级顺序为：
@@ -254,10 +254,10 @@ Motivation。Fig. 5/8/9 可以压缩到附录或后续版本。
 | Optional Fig. M3 Loading pressure | 暂不生成 | 当前没有稳定、非零且语义清晰的 loading-pressure 字段 | 暂不进主文 | 若后续补字段，再做 problem-only 观察 |
 | Table 1 Main comparison | 已生成 draft，已补 TPOT avg/p95 | `figs/paper/main/table1_end_to_end.tex` 与同名 CSV/manifest | 可作为 Evaluation 主表初版 | 注意 S-LoRA token-tail 注释；TPOT p95 从 observed request-level `tpot_ms` 计算 |
 | Fig. 5 Normalized main | 已重画，暂不作为主线必放图 | `figs/paper/main/fig5_main_normalized.pdf` 与同名 CSV/manifest | 建议先放 appendix/备选 | 当前只是 Llama-2 7B 单点，PrimeLoRA 相对最强 CE baseline SGLang 为 7%；主文优先 Table 1 + Fig. 7 |
-| Fig. 6 Ablation | 已重画为单栏矩阵 | `figs/paper/ablation/fig6_ablation.pdf` 与同名 CSV/manifest | 可作为 Evaluation 图初版 | 每个 cell 同时显示绝对值和相对 NVMe 的 signed change；避免只看百分比或等高 cost 柱 |
+| Fig. 6 Ablation | 已重画为单栏转置矩阵 | `figs/paper/ablation/fig6_ablation.pdf` 与同名 CSV/manifest | 可作为 Evaluation 图初版 | 行为 `NVMe/NoCoord/Full`，列为主指标；每个 cell 同时显示绝对值和相对 NVMe 的 signed change，并补齐 throughput |
 | Coordination effect subfigure | 已重画 | `figs/paper/ablation/fig4_coordination.pdf` 与同名 CSV/manifest | 只能放 Evaluation/Ablation | Full vs NoCoord 相对变化 panel，不放 Motivation |
 | Fig. 7 Lifecycle cost | 已重画，可进初稿 | `figs/paper/main/fig7_lifecycle_cost.pdf` 与同名 CSV/manifest | 可作为成本解释图初版 | 左图解释 monetary cost，右图解释 GPU-seconds 生命周期来源 |
-| Fig. 8 Sensitivity | 已重画为 operating-load CE/cost-latency sensitivity | `figs/paper/sensitivity/fig8_load_sensitivity.pdf`、同名 CSV/manifest、`table_fig8_load_sensitivity_metrics.tex` | 可作为 Evaluation sensitivity 初版 | 使用 s12/s10/s8；五系统齐全；结论是 CE/cost-latency tradeoff 胜出，不是延迟全面胜出 |
+| Fig. 8 Sensitivity | 已重画为 operating-load CE/cost-latency sensitivity | `figs/paper/sensitivity/fig8_load_sensitivity.pdf`、同名 CSV/manifest、`table_fig8_load_sensitivity_metrics.tex` | 可作为 Evaluation sensitivity 初版 | 图中使用 Low/Medium/Nominal 负载标签，对应 0.67/0.81/1.01 req/s；五系统齐全；结论是 CE/cost-latency tradeoff 胜出，不是延迟全面胜出 |
 | Fig. 9 Multi-backbone robustness | 未跑 | 无 | 不可进论文 | 等 Llama-2 7B 图闭口后跑 13B/Qwen |
 
 ## 2.3 Live Experiment Ledger: 2026-04-27
@@ -338,7 +338,8 @@ E2E 上升过快并使 CE 被 SGLang 反超。
 这不是作图问题，也不能通过修改 CE 口径来“修”。因此旧 `s4/s6/s8` 图不放主文，
 高压力 `s6/s4` 只用于后续优化 admission/scale-out 的根因分析。
 
-新的 operating-load 三点使用 `s12/s10/s8`，保持同一 Llama-2 7B、4000 requests、
+新的 operating-load 三点在图中标为 Low/Medium/Nominal，分别对应 0.67/0.81/1.01 req/s；
+底层 time scale 仍记录为 `s12/s10/s8`，保持同一 Llama-2 7B、4000 requests、
 500 adapters、Zipf 1.0、hotset rotation 500、seed 42。它们的 CE 关系如下：
 
 | time scale | PrimeLoRA CE | SGLang CE | PrimeLoRA / SGLang | 判断 |
@@ -353,11 +354,11 @@ Fig. 8 因此保留为 operating-load sensitivity。解释边界必须明确：
 - SGLang 在 TTFT 和 E2E latency 上仍然更低，这是 serverful always-on runtime
   的预期优势；
 - PrimeLoRA 的优势来自 lower lifecycle Cost/req，在同一成本模型下抵消了
-  serverless readiness overhead，从而让 CE 在 `s12/s10/s8` 三个 operating
-  points 均高于最强 CE baseline；
+  serverless readiness overhead，从而让 CE 在 Low/Medium/Nominal 三个 operating
+  points（底层 time scale 为 `s12/s10/s8`）均高于最强 CE baseline；
 - Fig. 8 右侧真实数值矩阵和配套 table 必须列出完整主指标：
   TTFT avg/p95、E2E avg/p95、TPOT avg/p95、Throughput、Cost/req 和 CE；
-  矩阵按系统分组逐行列出 `s12/s10/s8`，所有单元格保留三位小数。
+  矩阵按系统分组逐行列出 Low/Medium/Nominal，所有单元格保留三位小数。
 
 ## 3. Fig. 1: Introduction Teaser
 
@@ -756,8 +757,8 @@ Optional appendix sanity: 选择一个更大 backbone（优先 Qwen2.5-14B 或 L
 ### 9.3 推荐图
 
 当前正式 Fig. 6 使用 `faaslora_nvme` 作为 reference，但不再只画百分比条或
-lollipop。主文版采用 IEEE 单栏数值矩阵：行是主消融指标，列是
-`NVMe`、`NoCoord` 和 `Full`。每个非 reference cell 同时显示：
+lollipop。主文版采用 IEEE 单栏转置数值矩阵：行是
+`NVMe`、`NoCoord` 和 `Full`，列是主消融指标。每个非 reference cell 同时显示：
 
 ```text
 absolute metric value
@@ -765,7 +766,7 @@ signed change vs NVMe
 ```
 
 颜色只表达相对 reference 的方向和强弱：绿色表示更好，红色表示更差。所有百分比
-按“positive is better”定义：latency/cost 为 reduction，CE 为 increase。
+按“positive is better”定义：latency/cost 为 reduction，Throughput/CE 为 increase。
 这种设计同时保留真实数值和机制贡献百分比，避免只看百分比，也避免
 `Cost/req=2.56 milli-USD` 这类绝对柱高几乎相同的硬伤。
 
@@ -774,7 +775,7 @@ signed change vs NVMe
 - TTFT avg/p95、E2E avg/p95；
 - TPOT avg/p95；
 - dispatch/admission wait、LoRA I/O；
-- Cost/req、CE。
+- Cost/req、Throughput、CE。
 
 解释边界：
 
@@ -903,9 +904,9 @@ time_scale_factor in {12.0, 10.0, 8.0}
 
 - CE vs nominal replay rate，五系统全展示；
 - Cost/req vs nominal replay rate，五系统全展示；
-- 五系统真实数值矩阵，按系统分组列出 s12/s10/s8 三行，展示 CE、Cost/req、
+- 五系统真实数值矩阵，按系统分组列出 Low/Medium/Nominal 三行，展示 CE、Cost/req、
   TTFT avg/p95、E2E avg/p95、TPOT avg/p95、Throughput；
-- 配套 LaTeX table 列出 s12/s10/s8 下五系统的全部主指标。
+- 配套 LaTeX table 列出 Low/Medium/Nominal（0.67/0.81/1.01 req/s）下五系统的全部主指标。
 
 对比对象：
 
@@ -1405,7 +1406,7 @@ tmux attach -t faas_l7_ablation_v1_rerun
 | Fig. 6 | Ablation Analysis | 证明 cumulative mechanisms 的边际收益，不作为 motivation |
 | Coordination subfigure | Ablation 或 Resource Coordination 小节 | NoCoord vs Full 是机制收益图，只能放 Evaluation |
 | Fig. 7 | Lifecycle Cost Efficiency | 解释 CE 来源和 lifecycle cost 结构，不替代主表 |
-| Fig. 8 | Sensitivity | s12/s10/s8 operating-load CE/cost-latency sensitivity；完整主指标表随图给出 |
+| Fig. 8 | Sensitivity | Low/Medium/Nominal operating-load CE/cost-latency sensitivity；完整主指标表随图给出，底层 time scale 记录为 s12/s10/s8 |
 
 这份审计的核心原则是：Motivation 写问题事实，Evaluation 写系统收益。
 

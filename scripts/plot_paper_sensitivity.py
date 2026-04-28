@@ -110,6 +110,15 @@ def _series(rows: Sequence[Dict[str, Any]], system_key: str, metric: str) -> tup
     return [row["nominal_rps"] for row in selected], [row[metric] for row in selected]
 
 
+def _load_label_map(rows: Sequence[Dict[str, Any]]) -> Dict[float, str]:
+    loads = sorted({float(row["nominal_rps"]) for row in rows})
+    if len(loads) == 3:
+        names = ["Low", "Medium", "Nominal"]
+    else:
+        names = [f"Load {idx + 1}" for idx in range(len(loads))]
+    return {load: name for load, name in zip(loads, names)}
+
+
 def _add_axis_arrows(ax: plt.Axes) -> None:
     for spine in ("top", "right", "bottom", "left"):
         ax.spines[spine].set_visible(False)
@@ -147,11 +156,15 @@ def _plot_lines(
         ys = [value * scale for value in ys]
         label = SYSTEM_LABELS[key]
         ax.plot(xs, ys, marker="o", markersize=4.5, linewidth=1.55, color=SYSTEM_COLORS[key], label=label)
-    _xlabel_with_panel(ax, "Replay rate (req/s)", panel_caption)
+    _xlabel_with_panel(ax, "Offered load (req/s)", panel_caption)
     ax.set_ylabel(ylabel)
     loads = sorted({row["nominal_rps"] for row in rows})
+    load_labels = _load_label_map(rows)
+    if len(loads) > 1:
+        xpad = (max(loads) - min(loads)) * 0.16
+        ax.set_xlim(min(loads) - xpad, max(loads) + xpad)
     ax.set_xticks(loads)
-    ax.set_xticklabels([f"{load:.2f}" for load in loads])
+    ax.set_xticklabels([f"{load_labels[load]}\n{load:.2f}" for load in loads])
     ax.tick_params(axis="both", labelsize=TICK_FONTSIZE)
     _style_axes(ax)
     _add_axis_arrows(ax)
@@ -178,37 +191,40 @@ def _format_metric_value(value: float, fmt: str) -> str:
 def _metric_load_matrix_panel(ax: plt.Axes, rows: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
     metric_specs = [
         ("CE", "ce", "higher_is_better", 1.0, "one_decimal"),
-        ("Cost\nmUSD", "cost_req_usd", "lower_is_better", 1000.0, "cost"),
-        ("TTFT\navg s", "ttft_avg_ms", "lower_is_better", 0.001, "seconds"),
-        ("TTFT\np95 s", "ttft_p95_ms", "lower_is_better", 0.001, "seconds"),
-        ("E2E\navg s", "e2e_avg_ms", "lower_is_better", 0.001, "seconds"),
-        ("E2E\np95 s", "e2e_p95_ms", "lower_is_better", 0.001, "seconds"),
-        ("TPOT\navg ms", "tpot_avg_ms", "lower_is_better", 1.0, "one_decimal"),
-        ("TPOT\np95 ms", "tpot_p95_ms", "lower_is_better", 1.0, "one_decimal"),
-        ("Throughput\ntok/s", "tok_s", "higher_is_better", 1.0, "one_decimal"),
+        ("Cost\n(mUSD)", "cost_req_usd", "lower_is_better", 1000.0, "cost"),
+        ("TTFT\navg (s)", "ttft_avg_ms", "lower_is_better", 0.001, "seconds"),
+        ("TTFT\np95 (s)", "ttft_p95_ms", "lower_is_better", 0.001, "seconds"),
+        ("E2E\navg (s)", "e2e_avg_ms", "lower_is_better", 0.001, "seconds"),
+        ("E2E\np95 (s)", "e2e_p95_ms", "lower_is_better", 0.001, "seconds"),
+        ("TPOT\navg (ms)", "tpot_avg_ms", "lower_is_better", 1.0, "one_decimal"),
+        ("TPOT\np95 (ms)", "tpot_p95_ms", "lower_is_better", 1.0, "one_decimal"),
+        ("Throughput\n(tok/s)", "tok_s", "higher_is_better", 1.0, "one_decimal"),
     ]
     systems = [key for key in SYSTEM_ORDER if any(row["system_key"] == key for row in rows)]
-    scales = sorted({row["time_scale"] for row in rows}, reverse=True)
+    loads = sorted({float(row["nominal_rps"]) for row in rows})
+    load_labels = _load_label_map(rows)
+    row_lookup = {(row["system_key"], float(row["nominal_rps"])): row for row in rows}
     display_values: Dict[tuple[str, str, float], float] = {}
     for system_key in systems:
-        system_rows = [row for row in rows if row["system_key"] == system_key]
         for _, metric, _, display_scale, _ in metric_specs:
-            for row in system_rows:
-                display_values[(system_key, metric, row["time_scale"])] = float(row[metric]) * display_scale
+            for load in loads:
+                row = row_lookup[(system_key, load)]
+                display_values[(system_key, metric, load)] = float(row[metric]) * display_scale
 
-    row_specs = [(system_key, scale) for system_key in systems for scale in scales]
+    row_specs = [(system_key, load) for system_key in systems for load in loads]
     out_rows: List[Dict[str, Any]] = []
     ax.set_xlim(0, len(metric_specs))
     ax.set_ylim(0, len(row_specs))
     for xi, (label, metric, direction, _, fmt) in enumerate(metric_specs):
-        for yi, (system_key, scale) in enumerate(row_specs):
+        for yi, (system_key, load) in enumerate(row_specs):
+            row = row_lookup[(system_key, load)]
             ordered_systems = sorted(
                 systems,
-                key=lambda key: display_values[(key, metric, scale)],
+                key=lambda key: display_values[(key, metric, load)],
                 reverse=direction == "higher_is_better",
             )
             color_rank = {key: rank + 1 for rank, key in enumerate(ordered_systems)}
-            value = display_values[(system_key, metric, scale)]
+            value = display_values[(system_key, metric, load)]
             rect = plt.Rectangle((xi, yi), 1, 1, facecolor=_rank_shade(color_rank[system_key]), edgecolor="white", linewidth=0.8)
             ax.add_patch(rect)
             ax.text(
@@ -223,8 +239,9 @@ def _metric_load_matrix_panel(ax: plt.Axes, rows: Sequence[Dict[str, Any]]) -> L
                 {
                     "system_key": system_key,
                     "system": SYSTEM_LABELS[system_key],
-                    "time_scale": scale,
-                    "load": f"s{int(scale)}" if float(scale).is_integer() else f"s{scale:g}",
+                    "time_scale": row["time_scale"],
+                    "load": load_labels[load],
+                    "load_rate_req_s": load,
                     "metric": metric,
                     "metric_label": label.replace("\n", " "),
                     "direction": direction,
@@ -240,30 +257,31 @@ def _metric_load_matrix_panel(ax: plt.Axes, rows: Sequence[Dict[str, Any]]) -> L
             )
     ax.set_xticks(np.arange(len(metric_specs)) + 0.5, [item[0] for item in metric_specs])
     ylabels: List[str] = []
-    for system_key, scale in row_specs:
-        load_label = f"s{int(scale)}" if float(scale).is_integer() else f"s{scale:g}"
-        ylabels.append(f"{SYSTEM_LABELS[system_key]} {load_label}" if scale == scales[0] else f"  {load_label}")
+    for system_key, load in row_specs:
+        load_label = load_labels[load]
+        ylabels.append(f"{SYSTEM_LABELS[system_key]} {load_label}" if load == loads[0] else f"  {load_label}")
     ax.set_yticks(np.arange(len(row_specs)) + 0.5, ylabels)
     ax.invert_yaxis()
     ax.tick_params(axis="x", labelsize=MATRIX_TICK_FONTSIZE, length=0, pad=1.6)
     ax.tick_params(axis="y", labelsize=MATRIX_TICK_FONTSIZE, length=0, pad=1.0)
     for group_idx, system_key in enumerate(systems):
         if group_idx > 0:
-            ax.axhline(group_idx * len(scales), color="white", linewidth=2.0)
+            ax.axhline(group_idx * len(loads), color="white", linewidth=2.0)
     for spine in ax.spines.values():
         spine.set_visible(False)
-    _xlabel_with_panel(ax, "Rows list s12, s10, and s8 for each system", "(c) Metric values")
+    _xlabel_with_panel(ax, "Rows use Low, Medium, and Nominal load points", "(c) Metric values")
     ax.xaxis.label.set_size(TICK_FONTSIZE)
     return out_rows
 
 
 def _write_main_metric_table(path: Path, rows: Sequence[Dict[str, Any]]) -> None:
-    selected = sorted(rows, key=lambda row: (-row["time_scale"], SYSTEM_ORDER.index(row["system_key"])))
+    selected = sorted(rows, key=lambda row: (row["nominal_rps"], SYSTEM_ORDER.index(row["system_key"])))
+    load_labels = _load_label_map(rows)
     lines = [
         "% Auto-generated by scripts/plot_paper_sensitivity.py. Verify caption wording before final submission.",
         "\\begin{table*}[t]",
         "\\centering",
-        "\\caption{Operating-load sensitivity on the representative Llama-2 7B workload. TTFT, E2E, and TPOT are in milliseconds, throughput is in tok/s, and Cost/req is in USD. Lower is better for latency and cost; higher is better for throughput and CE.}",
+        "\\caption{Operating-load sensitivity on the representative Llama-2 7B workload. Low, Medium, and Nominal denote average arrival rates of 0.67, 0.81, and 1.01 req/s on the 4-GPU testbed. TTFT, E2E, and TPOT are in milliseconds, throughput is in tok/s, and Cost/req is in USD. Lower is better for latency and cost; higher is better for throughput and CE.}",
         "\\label{tab:load_sensitivity_metrics}",
         "\\begin{tabular}{llrrrrrrrrr}",
         "\\hline",
@@ -271,9 +289,10 @@ def _write_main_metric_table(path: Path, rows: Sequence[Dict[str, Any]]) -> None
         "\\hline",
     ]
     for row in selected:
-        scale = int(row["time_scale"]) if float(row["time_scale"]).is_integer() else row["time_scale"]
+        load = float(row["nominal_rps"])
+        load_cell = f"{load_labels[load]} ({load:.2f})"
         lines.append(
-            f"s{scale} & {SYSTEM_LABELS[row['system_key']]} & "
+            f"{load_cell} & {SYSTEM_LABELS[row['system_key']]} & "
             f"{row['ttft_avg_ms']:.0f} & {row['ttft_p95_ms']:.0f} & "
             f"{row['e2e_avg_ms']:.0f} & {row['e2e_p95_ms']:.0f} & "
             f"{row['tpot_avg_ms']:.1f} & {row['tpot_p95_ms']:.1f} & "
@@ -324,7 +343,7 @@ def plot_load_sensitivity(round_dirs: Sequence[Path], out_dir: Path) -> None:
         "metric_values_csv": str(value_csv_path),
         "table_tex": str(table_path),
         "round_dirs": [str(Path(path).resolve()) for path in round_dirs],
-        "note": "Panels (a) and (b) compare all five systems on CE and lifecycle cost across the operating-load points. Panel (c) reports concrete metric values for all five systems and all three load points; rows list s12, s10, and s8 for each system, all cell values are rounded to three decimals, and colors mark within-metric, within-load favorability with lower-is-better for latency/cost and higher-is-better for CE/throughput. Units: TTFT/E2E in seconds, TPOT in ms, throughput in tok/s, and cost in milli-USD. The accompanying table reports all primary metrics for all systems and load points.",
+        "note": "Panels (a) and (b) compare all five systems on CE and lifecycle cost across Low, Medium, and Nominal operating-load points. These labels correspond to average arrival rates of 0.67, 0.81, and 1.01 req/s on the 4-GPU testbed. Panel (c) reports concrete metric values for all five systems and all three load points using the same load labels; all cell values are rounded to three decimals, and colors mark within-metric, within-load favorability with lower-is-better for latency/cost and higher-is-better for CE/throughput. Units: TTFT/E2E in seconds, TPOT in ms, throughput in tok/s, and cost in milli-USD. The accompanying table reports all primary metrics for all systems and load points.",
     }
     manifest.write_text(json.dumps(manifest_payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
