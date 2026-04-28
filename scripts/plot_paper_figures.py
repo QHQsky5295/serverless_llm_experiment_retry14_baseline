@@ -404,6 +404,56 @@ def _plot_delta_bar_panel(
     _style_xgrid_axes(ax)
 
 
+def _improvement_shade(value: float | None) -> str:
+    if value is None:
+        return "#F2F2F2"
+    magnitude = min(abs(value) / 30.0, 1.0)
+    if abs(value) < 0.05:
+        return "#F7F7F7"
+    if value > 0:
+        palette = ["#EAF4EA", "#D6EBD6", "#B8DDB9", "#8CC98E"]
+    else:
+        palette = ["#F8ECEA", "#F3D6D3", "#EBB6B2", "#DD8580"]
+    return palette[min(int(magnitude * len(palette)), len(palette) - 1)]
+
+
+def _draw_ablation_metric_matrix(
+    ax: plt.Axes,
+    rows: Sequence[Dict[str, Any]],
+    reference: Dict[str, Any],
+    metric_specs: Sequence[tuple[str, str, bool, float, str]],
+) -> None:
+    ax.set_xlim(0, len(rows))
+    ax.set_ylim(0, len(metric_specs))
+    for yi, (label, key, higher_is_better, scale, fmt) in enumerate(metric_specs):
+        for xi, row in enumerate(rows):
+            is_reference = row["scenario"] == reference["scenario"]
+            value = float(row[key]) * scale
+            change = None if is_reference else _improvement_pct(reference[key], row[key], higher_is_better=higher_is_better)
+            rect = plt.Rectangle(
+                (xi, yi),
+                1,
+                1,
+                facecolor=_improvement_shade(change),
+                edgecolor="white",
+                linewidth=0.95,
+            )
+            ax.add_patch(rect)
+            main_text = fmt.format(value)
+            change_text = "ref" if is_reference else _signed_pct_text(float(change))
+            ax.text(xi + 0.5, yi + 0.38, main_text, ha="center", va="center", fontsize=9.0, color="#111111")
+            ax.text(xi + 0.5, yi + 0.68, change_text, ha="center", va="center", fontsize=8.0, color="#4A4A4A")
+
+    ax.set_xticks(np.arange(len(rows)) + 0.5, [row["label"] for row in rows])
+    ax.set_yticks(np.arange(len(metric_specs)) + 0.5, [spec[0] for spec in metric_specs])
+    ax.invert_yaxis()
+    ax.tick_params(axis="x", labelsize=9.0, length=0, pad=2.0, top=True, labeltop=True, bottom=False, labelbottom=False)
+    ax.tick_params(axis="y", labelsize=8.5, length=0, pad=2.0)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    ax.set_xlabel("absolute value; Δ vs NVMe-pre", fontsize=8.7)
+
+
 def _add_bar_labels(ax: plt.Axes, bars: Iterable[Any], *, fmt: str = "{:.0f}", padding_frac: float = 0.012) -> None:
     ymin, ymax = ax.get_ylim()
     pad = (ymax - ymin) * padding_frac
@@ -1169,23 +1219,8 @@ def plot_fig6(round_dir: Path, out_dir: Path) -> None:
             }
         )
 
-    fig, axes = plt.subplots(2, 2, figsize=(7.16, 5.20), constrained_layout=False)
-    axes = axes.ravel()
-
     reference = rows[0]
     compared = rows[1:]
-
-    def panel_values(metric_specs: Sequence[tuple[str, str, bool]]) -> List[tuple[str, List[float], str]]:
-        out: List[tuple[str, List[float], str]] = []
-        for row in compared:
-            out.append(
-                (
-                    row["label"],
-                    [_improvement_pct(reference[key], row[key], higher_is_better=higher) for _, key, higher in metric_specs],
-                    COLORS[row["scenario"]],
-                )
-            )
-        return out
 
     for row in compared:
         row["reference"] = reference["label"]
@@ -1200,48 +1235,21 @@ def plot_fig6(round_dir: Path, out_dir: Path) -> None:
         row["cost_improvement_pct"] = _improvement_pct(reference["cost_per_req_usd"], row["cost_per_req_usd"], higher_is_better=False)
         row["ce_improvement_pct"] = _improvement_pct(reference["ce"], row["ce"], higher_is_better=True)
 
-    _plot_change_panel(
-        axes[0],
-        ["TTFT avg", "TTFT p95"],
-        panel_values([("TTFT avg", "ttft_avg_ms", False), ("TTFT p95", "ttft_p95_ms", False)]),
-        title="(a) First-token improvement",
-        xlabel=f"Improvement vs {reference['label']} (%)",
-        min_span=8.0,
-    )
-    _plot_change_panel(
-        axes[1],
-        ["E2E avg", "E2E p95", "TPOT avg", "TPOT p95"],
-        panel_values(
-            [
-                ("E2E avg", "e2e_avg_ms", False),
-                ("E2E p95", "e2e_p95_ms", False),
-                ("TPOT avg", "tpot_avg_ms", False),
-                ("TPOT p95", "tpot_p95_ms", False),
-            ]
-        ),
-        title="(b) End-to-end and decode impact",
-        xlabel=f"Improvement vs {reference['label']} (%)",
-        min_span=2.0,
-    )
-    _plot_change_panel(
-        axes[2],
-        ["Dispatch wait", "LoRA I/O"],
-        panel_values([("Dispatch wait", "dispatch_wait_ms", False), ("LoRA I/O", "lora_io_ms", False)]),
-        title="(c) Admission and I/O overhead",
-        xlabel=f"Reduction vs {reference['label']} (%)",
-        min_span=12.0,
-    )
-    _plot_change_panel(
-        axes[3],
-        ["Cost/req", "CE"],
-        panel_values([("Cost/req", "cost_per_req_usd", False), ("CE", "ce", True)]),
-        title="(d) Relative cost-efficiency",
-        xlabel=f"Improvement vs {reference['label']} (%)",
-        min_span=1.5,
-    )
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, frameon=False, fontsize=LEGEND_FONTSIZE, ncols=2, loc="upper center", bbox_to_anchor=(0.5, 0.995))
-    fig.subplots_adjust(left=0.145, right=0.985, top=0.90, bottom=0.15, hspace=0.62, wspace=0.28)
+    metric_specs = [
+        ("TTFT avg\n(ms)", "ttft_avg_ms", False, 1.0, "{:.0f}"),
+        ("TTFT p95\n(ms)", "ttft_p95_ms", False, 1.0, "{:.0f}"),
+        ("E2E avg\n(ms)", "e2e_avg_ms", False, 1.0, "{:.0f}"),
+        ("E2E p95\n(ms)", "e2e_p95_ms", False, 1.0, "{:.0f}"),
+        ("TPOT avg\n(ms)", "tpot_avg_ms", False, 1.0, "{:.1f}"),
+        ("TPOT p95\n(ms)", "tpot_p95_ms", False, 1.0, "{:.1f}"),
+        ("Dispatch\nwait ms", "dispatch_wait_ms", False, 1.0, "{:.1f}"),
+        ("LoRA I/O\n(ms)", "lora_io_ms", False, 1.0, "{:.2f}"),
+        ("Cost/req\n(mUSD)", "cost_per_req_usd", False, 1000.0, "{:.3f}"),
+        ("CE", "ce", True, 1.0, "{:.1f}"),
+    ]
+    fig, ax = plt.subplots(figsize=(3.45, 4.92), constrained_layout=False)
+    _draw_ablation_metric_matrix(ax, rows, reference, metric_specs)
+    fig.subplots_adjust(left=0.285, right=0.995, top=0.935, bottom=0.105)
 
     pdf = out_dir / "fig6_ablation.pdf"
     csv_path = out_dir / "fig6_ablation_data.csv"

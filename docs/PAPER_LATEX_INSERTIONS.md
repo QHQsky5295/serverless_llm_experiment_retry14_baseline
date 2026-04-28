@@ -305,12 +305,12 @@ TPOT is reported as both average and p95 over observed per-request decode sample
 \textbf{Question.}
 How much does each PrimeLoRA mechanism contribute to the final performance?
 
-\begin{figure*}[t]
+\begin{figure}[t]
     \centering
-    \includegraphics[width=\textwidth]{figs/paper/ablation/fig6_ablation.pdf}
-    \caption{Cumulative ablation of PrimeLoRA mechanisms. Each panel reports the change relative to the NVMe-preparation variant with relative-change lollipop markers, so small lifecycle-cost differences are shown as signed changes rather than visually indistinguishable absolute bars.}
+    \includegraphics[width=\linewidth]{figs/paper/ablation/fig6_ablation.pdf}
+    \caption{Cumulative ablation of PrimeLoRA mechanisms on the representative Llama-2-7B workload. Each cell reports the absolute metric value and the signed change relative to the NVMe-preparation variant; green indicates improvement and red indicates regression.}
     \label{fig:ablation}
-\end{figure*}
+\end{figure}
 
 Figure~\ref{fig:ablation} isolates the marginal effect of PrimeLoRA's mechanisms. Placement and scale-out preparation reduce mismatch-related TTFT, hierarchical residency changes admission and I/O overhead, and the full system improves CE while keeping per-request cost nearly flat. The E2E tail remains close across variants, indicating that the main gain comes from the first-token readiness path rather than from changing the decode workload.
 
@@ -343,7 +343,8 @@ sensitivity 闭合后，再决定是否把 Fig. 5 放回主文。
 
 Evaluation 部分按系统论文常见结构组织为：主结果、消融、成本解释。主结果文字
 避免过度 claim；Fig. 5 已生成但暂作为 appendix/备选，避免用单个 Llama-2 7B
-压缩图削弱主线；Fig. 6 使用 relative-change lollipop panels 避免 cost 柱几乎等高；
+压缩图削弱主线；Fig. 6 使用单栏数值矩阵同时展示绝对值和相对变化，避免 cost
+柱几乎等高；
 Fig. 7 专门解释 cost/CE 来源，不与 Fig. 1 重复。
 
 ## 9. Evaluation 插入 Fig. 8

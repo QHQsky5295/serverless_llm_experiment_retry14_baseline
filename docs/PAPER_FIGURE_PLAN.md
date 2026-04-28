@@ -223,7 +223,7 @@ CE = 1 / (avg_E2E_e2e_seconds * Cost/req)
 | Motivation | Optional Fig. M3 Loading pressure | external-baseline switching/load observation | 当前缺稳定可观测字段，暂不放主文 | 可选 |
 | Evaluation | Table 1 Main comparison | 主表 | 已有 Llama-2 7B | 必保留 |
 | Evaluation | Fig. 5 Main outcome view | CE ranking + normalized latency/cost matrix | 已有 Llama-2 7B | 暂作为 appendix/备选 |
-| Evaluation | Fig. 6 Ablation | Cumulative relative-change lollipop panels | 已生成 | 必保留 |
+| Evaluation | Fig. 6 Ablation | Single-column absolute-value + relative-change matrix | 已生成 | 必保留 |
 | Evaluation | Fig. 6/7 subfigure Coordination effect | Full vs NoCoord relative-change panels | 已生成，Evaluation-only | 可保留 |
 | Evaluation | Fig. 7 Lifecycle cost | Stacked monetary cost + GPU-time breakdown | 已有主 round | 必保留 |
 | Evaluation | Fig. 8 Sensitivity | Operating-load CE/cost-latency sensitivity + full-metric table | s12/s10/s8 已完成 | 可保留 |
@@ -254,7 +254,7 @@ Motivation。Fig. 5/8/9 可以压缩到附录或后续版本。
 | Optional Fig. M3 Loading pressure | 暂不生成 | 当前没有稳定、非零且语义清晰的 loading-pressure 字段 | 暂不进主文 | 若后续补字段，再做 problem-only 观察 |
 | Table 1 Main comparison | 已生成 draft，已补 TPOT avg/p95 | `figs/paper/main/table1_end_to_end.tex` 与同名 CSV/manifest | 可作为 Evaluation 主表初版 | 注意 S-LoRA token-tail 注释；TPOT p95 从 observed request-level `tpot_ms` 计算 |
 | Fig. 5 Normalized main | 已重画，暂不作为主线必放图 | `figs/paper/main/fig5_main_normalized.pdf` 与同名 CSV/manifest | 建议先放 appendix/备选 | 当前只是 Llama-2 7B 单点，PrimeLoRA 相对最强 CE baseline SGLang 为 7%；主文优先 Table 1 + Fig. 7 |
-| Fig. 6 Ablation | 已重画 | `figs/paper/ablation/fig6_ablation.pdf` 与同名 CSV/manifest | 可作为 Evaluation 图初版 | 全部为相对 NVMe-pre 的 lollipop 变化；避免等高 cost 柱 |
+| Fig. 6 Ablation | 已重画为单栏矩阵 | `figs/paper/ablation/fig6_ablation.pdf` 与同名 CSV/manifest | 可作为 Evaluation 图初版 | 每个 cell 同时显示绝对值和相对 NVMe-pre 的 signed change；避免只看百分比或等高 cost 柱 |
 | Coordination effect subfigure | 已重画 | `figs/paper/ablation/fig4_coordination.pdf` 与同名 CSV/manifest | 只能放 Evaluation/Ablation | Full vs NoCoord 相对变化 panel，不放 Motivation |
 | Fig. 7 Lifecycle cost | 已重画，可进初稿 | `figs/paper/main/fig7_lifecycle_cost.pdf` 与同名 CSV/manifest | 可作为成本解释图初版 | 左图解释 monetary cost，右图解释 GPU-seconds 生命周期来源 |
 | Fig. 8 Sensitivity | 已重画为 operating-load CE/cost-latency sensitivity | `figs/paper/sensitivity/fig8_load_sensitivity.pdf`、同名 CSV/manifest、`table_fig8_load_sensitivity_metrics.tex` | 可作为 Evaluation sensitivity 初版 | 使用 s12/s10/s8；五系统齐全；结论是 CE/cost-latency tradeoff 胜出，不是延迟全面胜出 |
@@ -755,37 +755,36 @@ Optional appendix sanity: 选择一个更大 backbone（优先 Qwen2.5-14B 或 L
 
 ### 9.3 推荐图
 
-当前正式 Fig. 6 使用 `faaslora_nvme` 作为 reference，把后续变体画成相对变化。
-这样可以避免 `Cost/req=2.56 milli-USD` 这类绝对柱高几乎相同的硬伤，同时更
-直接地展示机制边际贡献。所有百分比都按“positive is better”定义：
-latency/cost 为 reduction，CE 为 increase。
+当前正式 Fig. 6 使用 `faaslora_nvme` 作为 reference，但不再只画百分比条或
+lollipop。主文版采用 IEEE 单栏数值矩阵：行是主消融指标，列是
+`NVMe-pre`、`NoCoord` 和 `Full`。每个非 reference cell 同时显示：
 
-#### Panel (a): first_token_improvement
+```text
+absolute metric value
+signed change vs NVMe-pre
+```
 
-- 图类型：relative-change lollipop。
-- Reference：`faaslora_nvme`。
-- Series：`faaslora_no_coord`、`faaslora_full`。
-- 指标：TTFT avg、TTFT p95。
-- 结论：完整机制明显降低 first-token readiness delay。
+颜色只表达相对 reference 的方向和强弱：绿色表示更好，红色表示更差。所有百分比
+按“positive is better”定义：latency/cost 为 reduction，CE 为 increase。
+这种设计同时保留真实数值和机制贡献百分比，避免只看百分比，也避免
+`Cost/req=2.56 milli-USD` 这类绝对柱高几乎相同的硬伤。
 
-#### Panel (b): end_to_end_impact
+矩阵指标：
 
-- 图类型：relative-change lollipop。
-- 指标：E2E avg、E2E p95。
-- 结论：E2E tail 基本保持稳定，说明主要收益集中在 TTFT path。
+- TTFT avg/p95、E2E avg/p95；
+- TPOT avg/p95；
+- dispatch/admission wait、LoRA I/O；
+- Cost/req、CE。
 
-#### Panel (c): admission_io_overhead
+解释边界：
 
-- 图类型：relative-change lollipop。
-- 指标：dispatch/admission wait reduction、LoRA I/O reduction。
-- 结论：coordination 减少 admission wait，同时避免把 LoRA I/O 作为孤立目标。
-
-#### Panel (d): relative_cost_efficiency
-
-- 图类型：relative-change lollipop。
-- 指标：Cost/req reduction、CE increase。
-- 结论：full system 的 CE 提升不是来自显著增加 per-request cost；小成本差异
-  用 relative-change 表达，不再画等高绝对 cost 柱。
+- TTFT p95 和 dispatch wait 是最清晰的机制收益；
+- E2E tail 基本保持稳定，说明主要收益集中在 readiness/TTFT path；
+- Full 的 CE 提升不是来自显著增加 per-request cost，而是 latency/cost tradeoff
+  的小幅联合改善；
+- 如果后续需要展示请求级分布，可以追加 appendix CDF，例如 TTFT CDF 或
+  dispatch-wait CDF for `NVMe-pre/NoCoord/Full`，并用虚线标注 p95。但主文
+  Fig. 6 保持单栏矩阵，因为它需要完整展示主数据和相对变化。
 
 ### 9.4 需要补跑
 

@@ -365,12 +365,12 @@ Table~\ref{tab:end_to_end} reports the primary end-to-end results on the represe
 \textbf{Question.}
 How much does each PrimeLoRA mechanism contribute to the final performance?
 
-\begin{figure*}[t]
+\begin{figure}[t]
     \centering
-    \includegraphics[width=\textwidth]{figs/paper/ablation/fig6_ablation.pdf}
-    \caption{Cumulative ablation of PrimeLoRA mechanisms. Each panel reports the change relative to the NVMe-preparation variant with relative-change lollipop markers, so small lifecycle-cost differences are shown as signed changes rather than visually indistinguishable absolute bars.}
+    \includegraphics[width=\linewidth]{figs/paper/ablation/fig6_ablation.pdf}
+    \caption{Cumulative ablation of PrimeLoRA mechanisms on the representative Llama-2-7B workload. Each cell reports the absolute metric value and the signed change relative to the NVMe-preparation variant; green indicates improvement and red indicates regression.}
     \label{fig:ablation}
-\end{figure*}
+\end{figure}
 
 Figure~\ref{fig:ablation} isolates the marginal effect of PrimeLoRA's mechanisms. Residency and migration reduce readiness-related first-token delay, while the full coordinated system improves CE without materially increasing per-request cost. The E2E tail remains close across variants, indicating that the main gain comes from the first-token readiness path rather than from changing the decode workload.
 
