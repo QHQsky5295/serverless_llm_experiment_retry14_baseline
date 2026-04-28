@@ -53,7 +53,7 @@ _configure_matplotlib()
 
 SCENARIOS = ("faaslora_nvme", "faaslora_no_coord", "faaslora_full")
 SCENARIO_LABELS = {
-    "faaslora_nvme": "NVMe-pre",
+    "faaslora_nvme": "NVMe",
     "faaslora_no_coord": "NoCoord",
     "faaslora_full": "Full",
 }
@@ -451,7 +451,7 @@ def _draw_ablation_metric_matrix(
     ax.tick_params(axis="y", labelsize=8.5, length=0, pad=2.0)
     for spine in ax.spines.values():
         spine.set_visible(False)
-    ax.set_xlabel("absolute value; Δ vs NVMe-pre", fontsize=8.7)
+    ax.set_xlabel("absolute value; Δ vs NVMe", fontsize=8.7)
 
 
 def _add_bar_labels(ax: plt.Axes, bars: Iterable[Any], *, fmt: str = "{:.0f}", padding_frac: float = 0.012) -> None:
