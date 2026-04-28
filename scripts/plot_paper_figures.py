@@ -321,7 +321,7 @@ def _plot_change_panel(
     min_span: float = 1.0,
 ) -> None:
     y = np.arange(len(metric_labels), dtype=float)
-    offsets = np.linspace(-0.08, 0.08, len(series)) if len(series) > 1 else np.array([0.0])
+    offsets = np.linspace(-0.13, 0.13, len(series)) if len(series) > 1 else np.array([0.0])
     all_values: List[float] = [0.0]
     for _, values, _ in series:
         all_values.extend(float(v) for v in values)
@@ -1169,7 +1169,7 @@ def plot_fig6(round_dir: Path, out_dir: Path) -> None:
             }
         )
 
-    fig, axes = plt.subplots(2, 2, figsize=DOUBLE_COL_TALL_FIGSIZE, constrained_layout=True)
+    fig, axes = plt.subplots(2, 2, figsize=(7.16, 5.20), constrained_layout=False)
     axes = axes.ravel()
 
     reference = rows[0]
@@ -1200,7 +1200,7 @@ def plot_fig6(round_dir: Path, out_dir: Path) -> None:
         row["cost_improvement_pct"] = _improvement_pct(reference["cost_per_req_usd"], row["cost_per_req_usd"], higher_is_better=False)
         row["ce_improvement_pct"] = _improvement_pct(reference["ce"], row["ce"], higher_is_better=True)
 
-    _plot_delta_bar_panel(
+    _plot_change_panel(
         axes[0],
         ["TTFT avg", "TTFT p95"],
         panel_values([("TTFT avg", "ttft_avg_ms", False), ("TTFT p95", "ttft_p95_ms", False)]),
@@ -1208,7 +1208,7 @@ def plot_fig6(round_dir: Path, out_dir: Path) -> None:
         xlabel=f"Improvement vs {reference['label']} (%)",
         min_span=8.0,
     )
-    _plot_delta_bar_panel(
+    _plot_change_panel(
         axes[1],
         ["E2E avg", "E2E p95", "TPOT avg", "TPOT p95"],
         panel_values(
@@ -1223,7 +1223,7 @@ def plot_fig6(round_dir: Path, out_dir: Path) -> None:
         xlabel=f"Improvement vs {reference['label']} (%)",
         min_span=2.0,
     )
-    _plot_delta_bar_panel(
+    _plot_change_panel(
         axes[2],
         ["Dispatch wait", "LoRA I/O"],
         panel_values([("Dispatch wait", "dispatch_wait_ms", False), ("LoRA I/O", "lora_io_ms", False)]),
@@ -1231,7 +1231,7 @@ def plot_fig6(round_dir: Path, out_dir: Path) -> None:
         xlabel=f"Reduction vs {reference['label']} (%)",
         min_span=12.0,
     )
-    _plot_delta_bar_panel(
+    _plot_change_panel(
         axes[3],
         ["Cost/req", "CE"],
         panel_values([("Cost/req", "cost_per_req_usd", False), ("CE", "ce", True)]),
@@ -1240,13 +1240,14 @@ def plot_fig6(round_dir: Path, out_dir: Path) -> None:
         min_span=1.5,
     )
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, frameon=False, fontsize=LEGEND_FONTSIZE, ncols=2, loc="upper center", bbox_to_anchor=(0.5, 1.06))
+    fig.legend(handles, labels, frameon=False, fontsize=LEGEND_FONTSIZE, ncols=2, loc="upper center", bbox_to_anchor=(0.5, 0.995))
+    fig.subplots_adjust(left=0.145, right=0.985, top=0.90, bottom=0.15, hspace=0.62, wspace=0.28)
 
     pdf = out_dir / "fig6_ablation.pdf"
     csv_path = out_dir / "fig6_ablation_data.csv"
     manifest = out_dir / "fig6_ablation_manifest.json"
     out_dir.mkdir(parents=True, exist_ok=True)
-    fig.savefig(pdf, bbox_inches="tight")
+    fig.savefig(pdf)
     plt.close(fig)
     _write_csv(csv_path, rows)
     _write_manifest(manifest, "fig6_ablation", round_dir, pdf, csv_path, [s.source for s in scenarios])
@@ -1577,6 +1578,10 @@ def plot_fig7(round_dir: Path, out_dir: Path) -> None:
     rows = _main_csv_rows(systems)
     labels = [AXIS_SYSTEM_LABELS[system.key] for system in systems]
     x = np.arange(len(systems))
+    label_fontsize = 15.8
+    tick_fontsize = 13.8
+    panel_fontsize = 14.8
+    legend_fontsize = 14.2
     components = [
         ("Startup", "cost_startup_usd", "#A9C4E8"),
         ("Active", "cost_active_usd", "#A7D3A8"),
@@ -1584,7 +1589,7 @@ def plot_fig7(round_dir: Path, out_dir: Path) -> None:
         ("Invocation", "cost_invocation_usd", "#D8B6D9"),
     ]
 
-    fig, axes = plt.subplots(1, 2, figsize=(7.16, 3.0), constrained_layout=True)
+    fig, axes = plt.subplots(1, 2, figsize=(7.16, 3.35), constrained_layout=False)
     bottom = np.zeros(len(systems))
     legend_handles = []
     legend_labels = []
@@ -1600,6 +1605,9 @@ def plot_fig7(round_dir: Path, out_dir: Path) -> None:
     axes[0].set_ylabel("Cost/req (milli-USD)")
     _xlabel_with_panel(axes[0], "", "(a) Monetary lifecycle cost")
     _style_axes(axes[0])
+    axes[0].xaxis.label.set_size(panel_fontsize)
+    axes[0].yaxis.label.set_size(label_fontsize)
+    axes[0].tick_params(axis="both", labelsize=tick_fontsize)
 
     gpu_components = [
         ("Startup", "infra_startup_gpu_seconds", "#A9C4E8"),
@@ -1616,15 +1624,19 @@ def plot_fig7(round_dir: Path, out_dir: Path) -> None:
     axes[1].set_ylabel("GPU-seconds/req")
     _xlabel_with_panel(axes[1], "", "(b) Lifecycle GPU time")
     _style_axes(axes[1])
+    axes[1].xaxis.label.set_size(panel_fontsize)
+    axes[1].yaxis.label.set_size(label_fontsize)
+    axes[1].tick_params(axis="both", labelsize=tick_fontsize)
     fig.legend(
         legend_handles,
         legend_labels,
         frameon=False,
-        fontsize=LEGEND_FONTSIZE,
+        fontsize=legend_fontsize,
         ncols=max(1, min(4, len(legend_labels))),
         loc="upper center",
-        bbox_to_anchor=(0.5, 1.08),
+        bbox_to_anchor=(0.5, 0.99),
     )
+    fig.subplots_adjust(left=0.095, right=0.995, top=0.76, bottom=0.27, wspace=0.22)
 
     pdf = out_dir / "fig7_lifecycle_cost.pdf"
     csv_path = out_dir / "fig7_lifecycle_cost_data.csv"

@@ -198,8 +198,8 @@ CE = 1 / (avg_E2E_e2e_seconds * Cost/req)
   优先只展示同一类延迟（如 TTFT 或 E2E），不要把 TTFT、E2E、成本、
   readiness 全部塞入同一 panel。
 - 不把所有结果都画成同一种图。主结果可用表格、CE ranking 和数值矩阵，
-  motivation 图优先采用 CDF、grouped bars 或 progress bars，机制图可采用
-  relative-change bar panel 或堆叠分解图。只有“组成部分求和”或类别差异
+  motivation 图优先采用 CDF、grouped bars 或 progress bars，机制图优先采用
+  relative-change lollipop/dumbbell panel 或堆叠分解图。只有“组成部分求和”或类别差异
   非常直观时才使用普通柱状图。
 - 当绝对值差异很小、柱高几乎不可区分时，禁止继续使用绝对柱状图。
   例如消融中的 `Cost/req` 差异小于 0.4\%，正式图应改用相对变化百分比
@@ -223,8 +223,8 @@ CE = 1 / (avg_E2E_e2e_seconds * Cost/req)
 | Motivation | Optional Fig. M3 Loading pressure | external-baseline switching/load observation | 当前缺稳定可观测字段，暂不放主文 | 可选 |
 | Evaluation | Table 1 Main comparison | 主表 | 已有 Llama-2 7B | 必保留 |
 | Evaluation | Fig. 5 Main outcome view | CE ranking + normalized latency/cost matrix | 已有 Llama-2 7B | 暂作为 appendix/备选 |
-| Evaluation | Fig. 6 Ablation | Cumulative relative-change bar panels | 已生成 | 必保留 |
-| Evaluation | Fig. 6/7 subfigure Coordination effect | Full vs NoCoord relative-change bar panels | 已生成，Evaluation-only | 可保留 |
+| Evaluation | Fig. 6 Ablation | Cumulative relative-change lollipop panels | 已生成 | 必保留 |
+| Evaluation | Fig. 6/7 subfigure Coordination effect | Full vs NoCoord relative-change panels | 已生成，Evaluation-only | 可保留 |
 | Evaluation | Fig. 7 Lifecycle cost | Stacked monetary cost + GPU-time breakdown | 已有主 round | 必保留 |
 | Evaluation | Fig. 8 Sensitivity | Operating-load CE/cost-latency sensitivity + full-metric table | s12/s10/s8 已完成 | 可保留 |
 | Evaluation | Table/Fig. 9 Multi-backbone robustness | 4 backbones main metrics | 需跑 13B/Qwen | 建议保留或附录 |
@@ -254,8 +254,8 @@ Motivation。Fig. 5/8/9 可以压缩到附录或后续版本。
 | Optional Fig. M3 Loading pressure | 暂不生成 | 当前没有稳定、非零且语义清晰的 loading-pressure 字段 | 暂不进主文 | 若后续补字段，再做 problem-only 观察 |
 | Table 1 Main comparison | 已生成 draft，已补 TPOT avg/p95 | `figs/paper/main/table1_end_to_end.tex` 与同名 CSV/manifest | 可作为 Evaluation 主表初版 | 注意 S-LoRA token-tail 注释；TPOT p95 从 observed request-level `tpot_ms` 计算 |
 | Fig. 5 Normalized main | 已重画，暂不作为主线必放图 | `figs/paper/main/fig5_main_normalized.pdf` 与同名 CSV/manifest | 建议先放 appendix/备选 | 当前只是 Llama-2 7B 单点，PrimeLoRA 相对最强 CE baseline SGLang 为 7%；主文优先 Table 1 + Fig. 7 |
-| Fig. 6 Ablation | 已重画 | `figs/paper/ablation/fig6_ablation.pdf` 与同名 CSV/manifest | 可作为 Evaluation 图初版 | 全部为相对 NVMe-pre 的 bar-panel 变化；避免等高 cost 柱 |
-| Coordination effect subfigure | 已重画 | `figs/paper/ablation/fig4_coordination.pdf` 与同名 CSV/manifest | 只能放 Evaluation/Ablation | Full vs NoCoord 相对变化 bar panel，不放 Motivation |
+| Fig. 6 Ablation | 已重画 | `figs/paper/ablation/fig6_ablation.pdf` 与同名 CSV/manifest | 可作为 Evaluation 图初版 | 全部为相对 NVMe-pre 的 lollipop 变化；避免等高 cost 柱 |
+| Coordination effect subfigure | 已重画 | `figs/paper/ablation/fig4_coordination.pdf` 与同名 CSV/manifest | 只能放 Evaluation/Ablation | Full vs NoCoord 相对变化 panel，不放 Motivation |
 | Fig. 7 Lifecycle cost | 已重画，可进初稿 | `figs/paper/main/fig7_lifecycle_cost.pdf` 与同名 CSV/manifest | 可作为成本解释图初版 | 左图解释 monetary cost，右图解释 GPU-seconds 生命周期来源 |
 | Fig. 8 Sensitivity | 已重画为 operating-load CE/cost-latency sensitivity | `figs/paper/sensitivity/fig8_load_sensitivity.pdf`、同名 CSV/manifest、`table_fig8_load_sensitivity_metrics.tex` | 可作为 Evaluation sensitivity 初版 | 使用 s12/s10/s8；五系统齐全；结论是 CE/cost-latency tradeoff 胜出，不是延迟全面胜出 |
 | Fig. 9 Multi-backbone robustness | 未跑 | 无 | 不可进论文 | 等 Llama-2 7B 图闭口后跑 13B/Qwen |
@@ -591,7 +591,7 @@ first touch / recurring
 
 #### Panel (a): coordination_latency.pdf
 
-- 图类型：relative-change horizontal bars。
+- 图类型：relative-change lollipop。
 - Reference：`NoCoord`。
 - Target：`Full`。
 - 指标：TTFT avg/p95、E2E avg/p95、TPOT avg/p95。
@@ -601,7 +601,7 @@ first touch / recurring
 
 #### Panel (b): coordination_efficiency.pdf
 
-- 图类型：relative-change horizontal bars。
+- 图类型：relative-change lollipop。
 - Reference：`NoCoord`。
 - Target：`Full`。
 - 指标：LoRA I/O、Cost/req、CE。
@@ -762,7 +762,7 @@ latency/cost 为 reduction，CE 为 increase。
 
 #### Panel (a): first_token_improvement
 
-- 图类型：relative-change horizontal bars。
+- 图类型：relative-change lollipop。
 - Reference：`faaslora_nvme`。
 - Series：`faaslora_no_coord`、`faaslora_full`。
 - 指标：TTFT avg、TTFT p95。
@@ -770,19 +770,19 @@ latency/cost 为 reduction，CE 为 increase。
 
 #### Panel (b): end_to_end_impact
 
-- 图类型：relative-change horizontal bars。
+- 图类型：relative-change lollipop。
 - 指标：E2E avg、E2E p95。
 - 结论：E2E tail 基本保持稳定，说明主要收益集中在 TTFT path。
 
 #### Panel (c): admission_io_overhead
 
-- 图类型：relative-change horizontal bars。
+- 图类型：relative-change lollipop。
 - 指标：dispatch/admission wait reduction、LoRA I/O reduction。
 - 结论：coordination 减少 admission wait，同时避免把 LoRA I/O 作为孤立目标。
 
 #### Panel (d): relative_cost_efficiency
 
-- 图类型：relative-change horizontal bars。
+- 图类型：relative-change lollipop。
 - 指标：Cost/req reduction、CE increase。
 - 结论：full system 的 CE 提升不是来自显著增加 per-request cost；小成本差异
   用 relative-change 表达，不再画等高绝对 cost 柱。
