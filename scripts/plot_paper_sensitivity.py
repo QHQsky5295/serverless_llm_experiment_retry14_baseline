@@ -45,6 +45,8 @@ LOWER_BETTER_METRICS = {
     "tpot_p95_ms",
 }
 HIGHER_BETTER_METRICS = {"ce", "tok_s"}
+MATRIX_CELL_FONTSIZE = 8.0
+MATRIX_TICK_FONTSIZE = 8.3
 
 
 def _compare_json(round_dir: Path) -> Path:
@@ -108,6 +110,28 @@ def _series(rows: Sequence[Dict[str, Any]], system_key: str, metric: str) -> tup
     return [row["nominal_rps"] for row in selected], [row[metric] for row in selected]
 
 
+def _add_axis_arrows(ax: plt.Axes) -> None:
+    for spine in ("top", "right", "bottom", "left"):
+        ax.spines[spine].set_visible(False)
+    ax.tick_params(axis="both", length=2.6, width=0.65, color="#333333")
+    ax.annotate(
+        "",
+        xy=(1.025, 0.0),
+        xytext=(0.0, 0.0),
+        xycoords="axes fraction",
+        arrowprops={"arrowstyle": "-|>", "linewidth": 0.7, "color": "#333333", "shrinkA": 0.0, "shrinkB": 0.0},
+        annotation_clip=False,
+    )
+    ax.annotate(
+        "",
+        xy=(0.0, 1.035),
+        xytext=(0.0, 0.0),
+        xycoords="axes fraction",
+        arrowprops={"arrowstyle": "-|>", "linewidth": 0.7, "color": "#333333", "shrinkA": 0.0, "shrinkB": 0.0},
+        annotation_clip=False,
+    )
+
+
 def _plot_lines(
     ax: plt.Axes,
     rows: Sequence[Dict[str, Any]],
@@ -123,68 +147,113 @@ def _plot_lines(
         ys = [value * scale for value in ys]
         label = SYSTEM_LABELS[key]
         ax.plot(xs, ys, marker="o", markersize=4.5, linewidth=1.55, color=SYSTEM_COLORS[key], label=label)
-    _xlabel_with_panel(ax, "Nominal replay rate (req/s)", panel_caption)
+    _xlabel_with_panel(ax, "Replay rate (req/s)", panel_caption)
     ax.set_ylabel(ylabel)
-    ax.set_xticks(sorted({row["nominal_rps"] for row in rows}))
+    loads = sorted({row["nominal_rps"] for row in rows})
+    ax.set_xticks(loads)
+    ax.set_xticklabels([f"{load:.2f}" for load in loads])
     ax.tick_params(axis="both", labelsize=TICK_FONTSIZE)
     _style_axes(ax)
+    _add_axis_arrows(ax)
 
 
-def _ratio_color(metric: str, ratio: float) -> str:
-    favorable = ratio < 1.0 if metric in LOWER_BETTER_METRICS else ratio > 1.0
-    distance = min(abs(ratio - 1.0), 1.0)
-    if distance < 0.05:
+def _rank_shade(rank: int) -> str:
+    if rank == 1:
+        return "#B9DFBA"
+    if rank == 2:
+        return "#DCEEDC"
+    if rank == 3:
         return "#F1F1F1"
-    if favorable:
-        return "#DCEEDC" if distance < 0.25 else "#B9DFBA"
-    return "#F7D9D7" if distance < 0.75 else "#EFB3AF"
+    if rank == 4:
+        return "#F7D9D7"
+    return "#EFB3AF"
 
 
-def _metric_ratio_panel(ax: plt.Axes, rows: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _format_metric_value(value: float, fmt: str) -> str:
+    if fmt in {"seconds", "one_decimal", "integer", "cost"}:
+        return f"{value:.3f}"
+    raise ValueError(f"unknown metric format {fmt!r}")
+
+
+def _metric_load_matrix_panel(ax: plt.Axes, rows: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
     metric_specs = [
-        ("CE", "ce", "↑"),
-        ("Cost", "cost_req_usd", "↓"),
-        ("TTFT avg", "ttft_avg_ms", "↓"),
-        ("TTFT p95", "ttft_p95_ms", "↓"),
-        ("E2E avg", "e2e_avg_ms", "↓"),
-        ("E2E p95", "e2e_p95_ms", "↓"),
-        ("TPOT avg", "tpot_avg_ms", "↓"),
-        ("TPOT p95", "tpot_p95_ms", "↓"),
-        ("Tok/s", "tok_s", "↑"),
+        ("CE", "ce", "higher_is_better", 1.0, "one_decimal"),
+        ("Cost\nmUSD", "cost_req_usd", "lower_is_better", 1000.0, "cost"),
+        ("TTFT\navg s", "ttft_avg_ms", "lower_is_better", 0.001, "seconds"),
+        ("TTFT\np95 s", "ttft_p95_ms", "lower_is_better", 0.001, "seconds"),
+        ("E2E\navg s", "e2e_avg_ms", "lower_is_better", 0.001, "seconds"),
+        ("E2E\np95 s", "e2e_p95_ms", "lower_is_better", 0.001, "seconds"),
+        ("TPOT\navg ms", "tpot_avg_ms", "lower_is_better", 1.0, "one_decimal"),
+        ("TPOT\np95 ms", "tpot_p95_ms", "lower_is_better", 1.0, "one_decimal"),
+        ("Throughput\ntok/s", "tok_s", "higher_is_better", 1.0, "one_decimal"),
     ]
+    systems = [key for key in SYSTEM_ORDER if any(row["system_key"] == key for row in rows)]
     scales = sorted({row["time_scale"] for row in rows}, reverse=True)
+    display_values: Dict[tuple[str, str, float], float] = {}
+    for system_key in systems:
+        system_rows = [row for row in rows if row["system_key"] == system_key]
+        for _, metric, _, display_scale, _ in metric_specs:
+            for row in system_rows:
+                display_values[(system_key, metric, row["time_scale"])] = float(row[metric]) * display_scale
+
+    row_specs = [(system_key, scale) for system_key in systems for scale in scales]
     out_rows: List[Dict[str, Any]] = []
     ax.set_xlim(0, len(metric_specs))
-    ax.set_ylim(0, len(scales))
-    for yi, scale in enumerate(scales):
-        scale_rows = [row for row in rows if row["time_scale"] == scale]
-        faas = next(row for row in scale_rows if row["system_key"] == "faaslora")
-        ref = next(row for row in scale_rows if row["system_key"] == "sglang")
-        for xi, (label, metric, direction) in enumerate(metric_specs):
-            ratio = faas[metric] / ref[metric]
-            rect = plt.Rectangle((xi, yi), 1, 1, facecolor=_ratio_color(metric, ratio), edgecolor="white", linewidth=1.0)
+    ax.set_ylim(0, len(row_specs))
+    for xi, (label, metric, direction, _, fmt) in enumerate(metric_specs):
+        for yi, (system_key, scale) in enumerate(row_specs):
+            ordered_systems = sorted(
+                systems,
+                key=lambda key: display_values[(key, metric, scale)],
+                reverse=direction == "higher_is_better",
+            )
+            color_rank = {key: rank + 1 for rank, key in enumerate(ordered_systems)}
+            value = display_values[(system_key, metric, scale)]
+            rect = plt.Rectangle((xi, yi), 1, 1, facecolor=_rank_shade(color_rank[system_key]), edgecolor="white", linewidth=0.8)
             ax.add_patch(rect)
-            ax.text(xi + 0.5, yi + 0.58, f"{ratio:.2f}x", ha="center", va="center", fontsize=8.3)
-            ax.text(xi + 0.5, yi + 0.28, direction, ha="center", va="center", fontsize=7.8, color="#555555")
+            ax.text(
+                xi + 0.5,
+                yi + 0.5,
+                _format_metric_value(value, fmt),
+                ha="center",
+                va="center",
+                fontsize=MATRIX_CELL_FONTSIZE,
+            )
             out_rows.append(
                 {
+                    "system_key": system_key,
+                    "system": SYSTEM_LABELS[system_key],
                     "time_scale": scale,
-                    "nominal_rps": faas["nominal_rps"],
-                    "reference_system": "SGLang",
+                    "load": f"s{int(scale)}" if float(scale).is_integer() else f"s{scale:g}",
                     "metric": metric,
-                    "metric_label": label,
-                    "direction": "lower_is_better" if metric in LOWER_BETTER_METRICS else "higher_is_better",
-                    "faaslora_value": faas[metric],
-                    "reference_value": ref[metric],
-                    "faaslora_over_sglang": ratio,
+                    "metric_label": label.replace("\n", " "),
+                    "direction": direction,
+                    "display_unit": (
+                        "s"
+                        if fmt == "seconds"
+                        else ("milli-USD" if fmt == "cost" else ("tok/s" if metric == "tok_s" else "ms" if metric.startswith("tpot_") else "native"))
+                    ),
+                    "display_value": value,
+                    "display_text": _format_metric_value(value, fmt),
+                    "color_rank_within_metric_load": color_rank[system_key],
                 }
             )
-    ax.set_xticks(np.arange(len(metric_specs)) + 0.5, [item[0] for item in metric_specs], rotation=28, ha="right", rotation_mode="anchor")
-    ax.set_yticks(np.arange(len(scales)) + 0.5, [f"s{int(scale)}" if float(scale).is_integer() else f"s{scale:g}" for scale in scales])
-    ax.tick_params(axis="both", labelsize=8.1, length=0)
+    ax.set_xticks(np.arange(len(metric_specs)) + 0.5, [item[0] for item in metric_specs])
+    ylabels: List[str] = []
+    for system_key, scale in row_specs:
+        load_label = f"s{int(scale)}" if float(scale).is_integer() else f"s{scale:g}"
+        ylabels.append(f"{SYSTEM_LABELS[system_key]} {load_label}" if scale == scales[0] else f"  {load_label}")
+    ax.set_yticks(np.arange(len(row_specs)) + 0.5, ylabels)
+    ax.invert_yaxis()
+    ax.tick_params(axis="x", labelsize=MATRIX_TICK_FONTSIZE, length=0, pad=1.6)
+    ax.tick_params(axis="y", labelsize=MATRIX_TICK_FONTSIZE, length=0, pad=1.0)
+    for group_idx, system_key in enumerate(systems):
+        if group_idx > 0:
+            ax.axhline(group_idx * len(scales), color="white", linewidth=2.0)
     for spine in ax.spines.values():
         spine.set_visible(False)
-    ax.set_xlabel("(c) Primary metric ratio: FaaSLoRA / SGLang")
+    _xlabel_with_panel(ax, "Rows list s12, s10, and s8 for each system", "(c) Metric values")
+    ax.xaxis.label.set_size(TICK_FONTSIZE)
     return out_rows
 
 
@@ -194,11 +263,11 @@ def _write_main_metric_table(path: Path, rows: Sequence[Dict[str, Any]]) -> None
         "% Auto-generated by scripts/plot_paper_sensitivity.py. Verify caption wording before final submission.",
         "\\begin{table*}[t]",
         "\\centering",
-        "\\caption{Operating-load sensitivity on the representative Llama-2 7B workload. Lower is better for latency and cost; higher is better for Tok/s and CE.}",
+        "\\caption{Operating-load sensitivity on the representative Llama-2 7B workload. TTFT, E2E, and TPOT are in milliseconds, throughput is in tok/s, and Cost/req is in USD. Lower is better for latency and cost; higher is better for throughput and CE.}",
         "\\label{tab:load_sensitivity_metrics}",
         "\\begin{tabular}{llrrrrrrrrr}",
         "\\hline",
-        "Load & System & TTFT Avg & TTFT p95 & E2E Avg & E2E p95 & TPOT Avg & TPOT p95 & Tok/s & Cost/req & CE \\\\",
+        "Load & System & TTFT Avg (ms) & TTFT p95 (ms) & E2E Avg (ms) & E2E p95 (ms) & TPOT Avg (ms) & TPOT p95 (ms) & Throughput (tok/s) & Cost/req (USD) & CE \\\\",
         "\\hline",
     ]
     for row in selected:
@@ -218,43 +287,44 @@ def plot_load_sensitivity(round_dirs: Sequence[Path], out_dir: Path) -> None:
     rows = _collect([Path(path).resolve() for path in round_dirs])
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    fig = plt.figure(figsize=(7.16, 3.35), constrained_layout=True)
-    gridspec = fig.add_gridspec(1, 3, width_ratios=[1.0, 1.0, 1.55])
-    axes = [fig.add_subplot(gridspec[0, 0]), fig.add_subplot(gridspec[0, 1]), fig.add_subplot(gridspec[0, 2])]
-    _plot_lines(axes[0], rows, SYSTEM_ORDER, "ce", "CE (higher is better)", "(a) CE across operating load")
-    _plot_lines(axes[1], rows, SYSTEM_ORDER, "cost_req_usd", "Cost/req (milli-USD)", "(b) Lifecycle cost", scale=1000.0)
-    ratio_rows = _metric_ratio_panel(axes[2], rows)
+    fig = plt.figure(figsize=(7.16, 4.60), constrained_layout=False)
+    gridspec = fig.add_gridspec(2, 2, height_ratios=[0.95, 2.15], width_ratios=[1.0, 1.0])
+    axes = [fig.add_subplot(gridspec[0, 0]), fig.add_subplot(gridspec[0, 1]), fig.add_subplot(gridspec[1, :])]
+    _plot_lines(axes[0], rows, SYSTEM_ORDER, "ce", "CE (higher is better)", "(a) CE vs load")
+    _plot_lines(axes[1], rows, SYSTEM_ORDER, "cost_req_usd", "Cost/req (mUSD)", "(b) Cost vs load", scale=1000.0)
+    value_rows = _metric_load_matrix_panel(axes[2], rows)
+    fig.subplots_adjust(left=0.13, right=0.995, top=0.91, bottom=0.14, hspace=0.43, wspace=0.16)
 
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(
         handles,
         labels,
         frameon=False,
-        fontsize=LEGEND_FONTSIZE,
+        fontsize=8.4,
         ncols=5,
         loc="upper center",
-        bbox_to_anchor=(0.5, 1.04),
+        bbox_to_anchor=(0.5, 0.995),
     )
 
     pdf = out_dir / "fig8_load_sensitivity.pdf"
     csv_path = out_dir / "fig8_load_sensitivity_data.csv"
-    ratio_csv_path = out_dir / "fig8_load_sensitivity_ratios.csv"
+    value_csv_path = out_dir / "fig8_load_sensitivity_metric_values.csv"
     table_path = out_dir / "table_fig8_load_sensitivity_metrics.tex"
     manifest = out_dir / "fig8_load_sensitivity_manifest.json"
-    fig.savefig(pdf, bbox_inches="tight")
+    fig.savefig(pdf)
     plt.close(fig)
     _write_csv(csv_path, rows)
-    _write_csv(ratio_csv_path, ratio_rows)
+    _write_csv(value_csv_path, value_rows)
     _write_main_metric_table(table_path, rows)
     manifest_payload = {
         "figure": "fig8_load_sensitivity",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "pdf": str(pdf),
         "csv": str(csv_path),
-        "ratio_csv": str(ratio_csv_path),
+        "metric_values_csv": str(value_csv_path),
         "table_tex": str(table_path),
         "round_dirs": [str(Path(path).resolve()) for path in round_dirs],
-        "note": "Panels (a) and (b) compare all five systems on CE and lifecycle cost. Panel (c) audits all primary metrics as FaaSLoRA/SGLang ratios because SGLang is the strongest CE baseline in these operating-load rounds. The accompanying table reports all primary metrics for all systems and load points.",
+        "note": "Panels (a) and (b) compare all five systems on CE and lifecycle cost across the operating-load points. Panel (c) reports concrete metric values for all five systems and all three load points; rows list s12, s10, and s8 for each system, all cell values are rounded to three decimals, and colors mark within-metric, within-load favorability with lower-is-better for latency/cost and higher-is-better for CE/throughput. Units: TTFT/E2E in seconds, TPOT in ms, throughput in tok/s, and cost in milli-USD. The accompanying table reports all primary metrics for all systems and load points.",
     }
     manifest.write_text(json.dumps(manifest_payload, indent=2, ensure_ascii=False), encoding="utf-8")
 

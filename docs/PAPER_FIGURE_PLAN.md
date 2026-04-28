@@ -78,7 +78,7 @@ Evaluation 放主表、消融、成本、稳健性。但不能原样执行，主
 - `Cost/1M tokens` 只能作为 token-normalized 审计；主成本指标必须是
   `Cost/req`，主 CE 使用 `avg E2E_e2e * Cost/req`。
 - 所有延迟图必须同时给 avg 和 p95，避免只用 tail 或只用 average 造成片面叙事。
-- S-LoRA 当前输出 token 尾部明显更长。若图中使用 `Tok/s`、`TPOT avg/p95`、
+- S-LoRA 当前输出 token 尾部明显更长。若图中使用 throughput、`TPOT avg/p95`、
   `Cost/1M tokens`，必须在图注或分析中说明 token-tail audit，或先补做
   EOS/输出语义 targeted audit。
 
@@ -95,7 +95,7 @@ Evaluation 放主表、消融、成本、稳健性。但不能原样执行，主
   Evaluation/Ablation 或 appendix mechanism audit，但不能作为 Motivation 的
   外部问题证据。NoCoord vs Full 这类机制收益图放到 Evaluation/Ablation。
 - Evaluation 主表保留，指标为 `TTFT avg/p95`、`E2E avg/p95`、`TPOT avg/p95`、
-  `Tok/s`、`Cost/req`、`CE`。
+  `Throughput (tok/s)`、`Cost/req`、`CE`。
 - Ablation、cost breakdown、sensitivity 保留，但必须先补齐对应实验。
 
 ### 0.3 与 ServerlessLoRA 结论的边界
@@ -162,7 +162,7 @@ ServerlessLLM 数据代替。
 | E2E p95 | `p95_overall_e2e_ms` | 越小越好 |
 | TPOT avg | `avg_tpot_ms` | 越小越好 |
 | TPOT p95 | request-level observed `tpot_ms` p95 / `p95_tpot_ms` when exported | 越小越好 |
-| Tok/s | `throughput_tok_per_s` | 越大越好 |
+| Throughput (tok/s) | `throughput_tok_per_s` | 越大越好 |
 | Cost/req | `monetary_cost_per_request_usd` | 越小越好 |
 | CE | `monetary_ce` | 越大越好 |
 
@@ -355,8 +355,9 @@ Fig. 8 因此保留为 operating-load sensitivity。解释边界必须明确：
 - PrimeLoRA 的优势来自 lower lifecycle Cost/req，在同一成本模型下抵消了
   serverless readiness overhead，从而让 CE 在 `s12/s10/s8` 三个 operating
   points 均高于最强 CE baseline；
-- Fig. 8 右侧 ratio matrix 和配套 table 必须列出完整主指标：
-  TTFT avg/p95、E2E avg/p95、TPOT avg/p95、Tok/s、Cost/req 和 CE。
+- Fig. 8 右侧真实数值矩阵和配套 table 必须列出完整主指标：
+  TTFT avg/p95、E2E avg/p95、TPOT avg/p95、Throughput、Cost/req 和 CE；
+  矩阵按系统分组逐行列出 `s12/s10/s8`，所有单元格保留三位小数。
 
 ## 3. Fig. 1: Introduction Teaser
 
@@ -645,7 +646,7 @@ PrimeLoRA 相对 runtime、serverful multi-LoRA 和 general serverless LLM 的
 | E2E p95 | `p95_overall_e2e_ms` | summary/compare |
 | TPOT Avg | `avg_tpot_ms` / `TPOT_avg_ms` | summary/compare |
 | TPOT p95 | observed request-level `tpot_ms` p95 / `p95_tpot_ms` / `TPOT_P95_ms` | summary/replay |
-| Tok/s | `Tok/s` | compare |
+| Throughput (tok/s) | compare throughput column / `throughput_tok_per_s` | compare |
 | Cost/req | `Cost_req_usd` | compare |
 | CE | `CE` | compare |
 
@@ -690,7 +691,7 @@ time-scale s8 五系统主横向 round。
 - 左图：横向 CE bars，系统按 CE 降序排列；PrimeLoRA label 显式标出
   `+7% vs SGLang`，避免读者误以为隐藏了更强 baseline。
 - 右图横坐标：`TTFT avg`、`TTFT p95`、`E2E avg`、`E2E p95`、
-  `TPOT avg`、`TPOT p95`、`Cost/req`。
+  `TPOT avg`、`TPOT p95`、`Throughput`、`Cost/req`。
 - 右图纵坐标：FaaSLoRA、SGLang、vLLM、S-LoRA、ServerlessLLM。
 - 右图延迟和成本归一化为 `system / best_baseline`，越低越好；
   PrimeLoRA 可以低于 `1.0x`，表示它超过了 best non-Prime baseline。
@@ -871,7 +872,7 @@ GPU-seconds 按 full price 计入。
 ### 11.1 目的
 
 证明 PrimeLoRA 的 CE/cost-latency tradeoff 不是只在一个到达率设置上成立。
-这里的“优势”定义为主综合指标 CE 胜出，同时完整报告 TTFT/E2E/TPOT/Tok/s/Cost，
+这里的“优势”定义为主综合指标 CE 胜出，同时完整报告 TTFT/E2E/TPOT/Throughput/Cost，
 不要求 serverless runtime 在所有延迟指标上超过 always-on serverful runtime。
 
 ### 11.2 推荐优先级
@@ -903,8 +904,8 @@ time_scale_factor in {12.0, 10.0, 8.0}
 
 - CE vs nominal replay rate，五系统全展示；
 - Cost/req vs nominal replay rate，五系统全展示；
-- FaaSLoRA/SGLang ratio matrix，列出 CE、Cost/req、TTFT avg/p95、
-  E2E avg/p95、TPOT avg/p95、Tok/s；
+- 五系统真实数值矩阵，按系统分组列出 s12/s10/s8 三行，展示 CE、Cost/req、
+  TTFT avg/p95、E2E avg/p95、TPOT avg/p95、Throughput；
 - 配套 LaTeX table 列出 s12/s10/s8 下五系统的全部主指标。
 
 对比对象：
@@ -956,8 +957,8 @@ zipf = 1.0
 - 完整五系统：FaaSLoRA、SGLang、ServerlessLLM、vLLM、S-LoRA；
 - 主叙事仍以 CE/cost-latency tradeoff 为主，不要求 FaaSLoRA 在所有延迟指标上
   胜过 serverful runtimes；
-- 配套表格或 ratio matrix 必须列出 TTFT avg/p95、E2E avg/p95、TPOT avg/p95、
-  Tok/s、Cost/req、CE，避免只展示 CE。
+- 配套表格或真实数值矩阵必须列出 TTFT avg/p95、E2E avg/p95、TPOT avg/p95、
+  Throughput、Cost/req、CE，避免只展示 CE。
 
 ## 12. Table/Fig. 9: Multi-Backbone Robustness
 

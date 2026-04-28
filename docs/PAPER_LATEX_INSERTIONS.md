@@ -110,8 +110,8 @@ paper/primelora_current_draft.tex
 是 Evaluation-only 的机制图，当前不放 Motivation。
 旧 `fig8_load_sensitivity.pdf` 曾由 `s8/s6/s4` stress 数据生成，不能支撑负载
 稳健性主文结论。当前文件已重画为 `s12/s10/s8` operating-load sensitivity：
-panel (a)/(b) 展示五系统 CE 与 Cost/req，panel (c) 用 FaaSLoRA/SGLang 比值审计
-CE、Cost、TTFT avg/p95、E2E avg/p95、TPOT avg/p95 和 Tok/s；配套表列出
+panel (a)/(b) 展示五系统 CE 与 Cost/req，panel (c) 用五系统真实数值矩阵展示
+CE、Cost、TTFT avg/p95、E2E avg/p95、TPOT avg/p95 和 Throughput；配套表列出
 所有系统的全部主指标。
 
 图形排版约束：当前已确定的复合图均已改为 panel caption 在分图下方，例如
@@ -363,21 +363,21 @@ Does the latency--cost tradeoff remain favorable as the replay rate changes with
 \begin{figure*}[t]
     \centering
     \includegraphics[width=\textwidth]{figs/paper/sensitivity/fig8_load_sensitivity.pdf}
-    \caption{Operating-load sensitivity on the representative Llama-2 7B workload. Panels (a) and (b) compare all five systems on CE and lifecycle cost across low, medium, and nominal replay rates. Panel (c) audits the full primary metric set as FaaSLoRA/SGLang ratios; SGLang is the strongest CE baseline in these rounds.}
+    \caption{Operating-load sensitivity on the representative Llama-2 7B workload. Panels (a) and (b) compare all five systems on CE and lifecycle cost across low, medium, and nominal replay rates. Panel (c) reports concrete values for the full primary metric set, with separate s12/s10/s8 rows under each system and values rounded to three decimals; TTFT and E2E are in seconds, TPOT is in ms, throughput is in tok/s, and Cost/req is in mUSD. Colors mark within-metric favorability at each load.}
     \label{fig:load_sensitivity}
 \end{figure*}
 
 \IfFileExists{figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}{\input{figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}}{\input{../figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}}
 
-Figure~\ref{fig:load_sensitivity} and Table~\ref{tab:load_sensitivity_metrics} report the operating-load sensitivity for the same 4000-request, 500-adapter Llama-2 7B workload family. Across the low-load, medium-load, and nominal-load points, PrimeLoRA has the highest CE among all five systems. This does not mean that PrimeLoRA dominates every latency metric: SGLang remains the lower-latency always-on runtime. Instead, PrimeLoRA's lower lifecycle cost compensates for the serverless readiness overhead and yields a better integrated latency--cost tradeoff in the intended operating region.
+Figure~\ref{fig:load_sensitivity} and Table~\ref{tab:load_sensitivity_metrics} report the operating-load sensitivity for the same 4000-request, 500-adapter Llama-2 7B workload family. Across the low-load, medium-load, and nominal-load points, PrimeLoRA has the highest CE among all five systems. This does not mean that PrimeLoRA dominates every latency metric: Panel (c) shows the corresponding TTFT, E2E, TPOT, and throughput values, where SGLang remains the lower-latency always-on runtime. Instead, PrimeLoRA's lower lifecycle cost compensates for the serverless readiness overhead and yields a better integrated latency--cost tradeoff in the intended operating region.
 ```
 
 ### 修改原因
 
 同类系统论文通常会把吞吐、延迟、SLO/goodput 和成本/效率分开展示，而不是只用
 单一 headline。当前 Fig. 8 因此保留 CE 与 Cost/req 的五系统趋势，同时用右侧
-ratio matrix 和配套表审计完整主指标：TTFT avg/p95、E2E avg/p95、TPOT avg/p95、
-Tok/s、Cost/req 和 CE。正文结论固定为“operating region 下综合 CE 更好”，
+真实数值矩阵和配套表审计完整主指标：TTFT avg/p95、E2E avg/p95、TPOT avg/p95、
+Throughput、Cost/req 和 CE。正文结论固定为“operating region 下综合 CE 更好”，
 不写成“serverless 延迟全面超过 serverful”。
 
 ## 10. 最终写作提醒
