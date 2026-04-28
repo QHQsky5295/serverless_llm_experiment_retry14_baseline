@@ -646,6 +646,126 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       scale_down_cooldown_s: "auto"
       scale_down_beta: 0.5
 
+  llama2_7b_auto100_formal4000_s8_adpool_v1:  # Fig. 8/adapter-pool sensitivity: 100 adapters, same formal replay shape
+    lora_adapters:
+      selected_num_adapters: 100
+      quick_num_adapters: 100
+      full_num_adapters: 100
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 8.0
+      lora_request_ratio: 1.0
+      active_adapter_cap: 16
+      hotset_rotation_requests: 500
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 4
+      effective_capacity_admission_enabled: true
+      max_concurrent_loads: 3
+      scale_up_predictive_target_enabled: true
+      scale_up_startup_parallelism: "auto"
+      scale_cooldown_s: 2.0
+      scale_eval_interval_s: 2.0
+      arrival_window_s: 2.0
+      scale_up_alpha: 0.15
+      scale_up_t_min: 0.5
+      scale_down_duration_s: "auto"
+      scale_down_startup_break_even_s: 0.0
+      scale_down_break_even_factor: 1.0
+      scale_down_cooldown_s: "auto"
+      scale_down_beta: 0.5
+
+  llama2_7b_auto200_formal4000_s8_adpool_v1:  # Fig. 8/adapter-pool sensitivity: 200 adapters, same formal replay shape
+    lora_adapters:
+      selected_num_adapters: 200
+      quick_num_adapters: 100
+      full_num_adapters: 200
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 8.0
+      lora_request_ratio: 1.0
+      active_adapter_cap: 24
+      hotset_rotation_requests: 500
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 4
+      effective_capacity_admission_enabled: true
+      max_concurrent_loads: 3
+      scale_up_predictive_target_enabled: true
+      scale_up_startup_parallelism: "auto"
+      scale_cooldown_s: 2.0
+      scale_eval_interval_s: 2.0
+      arrival_window_s: 2.0
+      scale_up_alpha: 0.15
+      scale_up_t_min: 0.5
+      scale_down_duration_s: "auto"
+      scale_down_startup_break_even_s: 0.0
+      scale_down_break_even_factor: 1.0
+      scale_down_cooldown_s: "auto"
+      scale_down_beta: 0.5
+
+  llama2_7b_auto300_formal4000_s8_adpool_v1:  # Fig. 8/adapter-pool sensitivity: 300 adapters, same formal replay shape
+    lora_adapters:
+      selected_num_adapters: 300
+      quick_num_adapters: 100
+      full_num_adapters: 300
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 8.0
+      lora_request_ratio: 1.0
+      active_adapter_cap: 32
+      hotset_rotation_requests: 500
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 4
+      effective_capacity_admission_enabled: true
+      max_concurrent_loads: 3
+      scale_up_predictive_target_enabled: true
+      scale_up_startup_parallelism: "auto"
+      scale_cooldown_s: 2.0
+      scale_eval_interval_s: 2.0
+      arrival_window_s: 2.0
+      scale_up_alpha: 0.15
+      scale_up_t_min: 0.5
+      scale_down_duration_s: "auto"
+      scale_down_startup_break_even_s: 0.0
+      scale_down_break_even_factor: 1.0
+      scale_down_cooldown_s: "auto"
+      scale_down_beta: 0.5
+
+  llama2_7b_auto400_formal4000_s8_adpool_v1:  # Fig. 8/adapter-pool sensitivity: 400 adapters, same formal replay shape
+    lora_adapters:
+      selected_num_adapters: 400
+      quick_num_adapters: 100
+      full_num_adapters: 400
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 8.0
+      lora_request_ratio: 1.0
+      active_adapter_cap: 40
+      hotset_rotation_requests: 500
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 4
+      effective_capacity_admission_enabled: true
+      max_concurrent_loads: 3
+      scale_up_predictive_target_enabled: true
+      scale_up_startup_parallelism: "auto"
+      scale_cooldown_s: 2.0
+      scale_eval_interval_s: 2.0
+      arrival_window_s: 2.0
+      scale_up_alpha: 0.15
+      scale_up_t_min: 0.5
+      scale_down_duration_s: "auto"
+      scale_down_startup_break_even_s: 0.0
+      scale_down_break_even_factor: 1.0
+      scale_down_cooldown_s: "auto"
+      scale_down_beta: 0.5
+
   llama2_7b_auto500_stress:  # Llama-2 7B 压力测试 workload profile（500 adapters，重压场景）
     lora_adapters:
       selected_num_adapters: 500

@@ -935,6 +935,15 @@ rotation = 500
 zipf = 1.0
 ```
 
+当前执行策略：
+
+- 新增正式 workload profiles：
+  `llama2_7b_auto100/200/300/400_formal4000_s8_adpool_v1`；
+- 默认连续队列 `adapter_pool_p0` 只补跑 `100/200/300/400` 四个点；
+- `500` adapters 右端点优先复用已经闭合的 Llama-2 7B `s8` 主横向 round；
+- 如需完全自包含的同队列五点结果，可使用 `adapter_pool_full_p0`，它会额外重跑
+  `500` adapters。
+
 图：
 
 - TTFT avg/p95 vs adapter pool size；
@@ -944,8 +953,11 @@ zipf = 1.0
 
 对比对象：
 
-- FaaSLoRA full；
-- SGLang 或 vLLM 作为 serverful reference 可选。
+- 完整五系统：FaaSLoRA、SGLang、ServerlessLLM、vLLM、S-LoRA；
+- 主叙事仍以 CE/cost-latency tradeoff 为主，不要求 FaaSLoRA 在所有延迟指标上
+  胜过 serverful runtimes；
+- 配套表格或 ratio matrix 必须列出 TTFT avg/p95、E2E avg/p95、TPOT avg/p95、
+  Tok/s、Cost/req、CE，避免只展示 CE。
 
 ## 12. Table/Fig. 9: Multi-Backbone Robustness
 
@@ -1402,14 +1414,21 @@ tmux attach -t faas_l7_ablation_v1_rerun
 ### 19.1 当前优先跑什么
 
 `06_sensitivity_load_operating` 已完成。下一步不应继续重复相同 load 队列，
-而应转向 adapter-pool sensitivity 或 backbone robustness。保留这里的原则用于
-未来扩展：
+而应转向 `07_sensitivity_adapter_pool`。该队列保持 Llama-2 7B、4000 requests、
+seed=42、Zipf=1.0、hotset rotation=500、time scale=8.0 和五系统集合不变，只改变
+adapter universe 与 active hot cap：
 
-- 它只改变 `SLLM_TIME_SCALE_FACTOR`，保持 Llama-2 7B、4000 requests、
-  500 adapters、seed=42、Zipf=1.0、active hot set=48、rotation=500 不变；
-- 它直接服务 Fig. 8 load sensitivity，是当前论文图缺口；
-- 它复用已经验证过的 Llama-2 7B profile，风险低于立即切换大模型家族；
-- 默认系统为完整五系统：`sglang serverlessllm vllm slora faaslora`。
+```text
+100 adapters / hot cap 16
+200 adapters / hot cap 24
+300 adapters / hot cap 32
+400 adapters / hot cap 40
+500 adapters / hot cap 48  # 复用已闭合 s8 main round，或用 full profile 重跑
+```
+
+它直接服务 adapter-pool sensitivity，证明结论不是只在 500-adapter 单点偶然成立。
+这一组实验复用已经验证过的 Llama-2 7B fair-round runner，风险低于立即切换大模型家族。
+默认系统为完整五系统：`sglang serverlessllm vllm slora faaslora`。
   若临时为了诊断或快速探路跳过 ServerlessLLM，必须显式覆盖
   `PAPER_QUEUE_SYSTEMS`，并把结果标注为 partial sensitivity，不能作为
   完备横向对比。
@@ -1418,48 +1437,54 @@ tmux attach -t faas_l7_ablation_v1_rerun
 
 ```text
 /home/qhq/serverless_llm_baselines/scripts/run_paper_long_experiment_queue.sh
+/home/qhq/serverless_llm_baselines/scripts/run_paper_adapter_pool_queue.sh
 ```
 
-默认 `load_p0` 会连续跑两轮：
+默认 `adapter_pool_p0` 会连续跑四轮：
 
 ```text
-06_sensitivity_load / s6 / sglang serverlessllm vllm slora faaslora
-06_sensitivity_load / s4 / sglang serverlessllm vllm slora faaslora
+07_sensitivity_adapter_pool / a100 / sglang serverlessllm vllm slora faaslora
+07_sensitivity_adapter_pool / a200 / sglang serverlessllm vllm slora faaslora
+07_sensitivity_adapter_pool / a300 / sglang serverlessllm vllm slora faaslora
+07_sensitivity_adapter_pool / a400 / sglang serverlessllm vllm slora faaslora
 ```
 
-可选 `load_p1` 会额外跑：
+可选 `adapter_pool_full_p0` 会额外重跑：
 
 ```text
-06_sensitivity_load / s2 / sglang serverlessllm vllm slora faaslora
+07_sensitivity_adapter_pool / a500 / sglang serverlessllm vllm slora faaslora
 ```
 
 ### 19.2 运行前已做的防 bug 检查
 
 - `run_full_fair_round.sh` 已修正为向 shared trace prepare 阶段透传
   `SLLM_TIME_SCALE_FACTOR`，避免 run tag 是 s6/s4 但 trace 仍是 s8。
+- `configs/experiments.yaml` 已新增 `100/200/300/400` adapter-pool sensitivity
+  workload profiles，并固定 `time_scale_factor=8.0`、`lora_request_ratio=1.0`、
+  `hotset_rotation_requests=500`。
 - `run_paper_long_experiment_queue.sh` 已通过 `bash -n`。
+- `run_paper_adapter_pool_queue.sh` 已通过 `bash -n`。
 - `run_full_fair_round.sh` 已通过 `bash -n`。
-- `PAPER_QUEUE_DRY_RUN=1` 已验证会生成两个独立 round 目录、正确的
-  run tag、正确的 time scale 和正确的系统集合。
+- `PAPER_QUEUE_DRY_RUN=1 PAPER_QUEUE_PROFILE=adapter_pool_p0` 应验证会生成四个
+  独立 round 目录、正确 run tag、正确 adapter 数量和完整系统集合。
 - 每个 round 仍使用原 `run_full_fair_round.sh` 的清理、GPU idle 检查、
   per-system summary validation、`e2e_v3` gate 和断点 markers。
 
 ### 19.3 tmux 启动命令
 
-推荐先跑默认 `load_p0`：
+推荐跑默认 `adapter_pool_p0`：
 
 ```bash
 cd /home/qhq/serverless_llm_baselines
-tmux new -s paper_load_p0
+tmux new -s paper_adapter_pool_p0
 
-PAPER_QUEUE_PROFILE=load_p0 \
-scripts/run_paper_long_experiment_queue.sh
+scripts/run_paper_adapter_pool_queue.sh
 ```
 
 断线后恢复：
 
 ```bash
-tmux attach -t paper_load_p0
+tmux attach -t paper_adapter_pool_p0
 ```
 
 如果中途失败，保留同一个 queue id 恢复：
@@ -1470,20 +1495,18 @@ source results/paper_experiments/00_queues/<queue_id>/queue.env
 scripts/run_paper_long_experiment_queue.sh
 ```
 
-如果 `load_p0` 跑完且结果正常，再启动更重的 `load_p1`：
+如果必须把 500-adapter 点也放进同一个新 queue，使用：
 
 ```bash
 cd /home/qhq/serverless_llm_baselines
-tmux new -s paper_load_p1
+tmux new -s paper_adapter_pool_full_p0
 
-PAPER_QUEUE_PROFILE=load_p1 \
-scripts/run_paper_long_experiment_queue.sh
+PAPER_QUEUE_PROFILE=adapter_pool_full_p0 \
+scripts/run_paper_adapter_pool_queue.sh
 ```
 
 ### 19.4 不建议现在放进队列的实验
 
-- `07_sensitivity_adapter_pool`：会改变 adapter universe 和 active hot cap，
-  需要先固定每个 adapter pool size 的 shared subset 命名与审计规则。
 - `08_backbone_robustness`：Llama-2 13B/Qwen 7B/Qwen 14B 还需要先补
   formal4000_s8/rotation500 的 workload profile 或显式记录当前 profile 差异，
   否则容易和 Llama-2 7B 主 round 负载不一致。

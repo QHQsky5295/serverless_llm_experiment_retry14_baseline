@@ -30,6 +30,20 @@ The operating-load sensitivity queue completed successfully inside tmux.
 - combined with the existing s8 main point, Fig. 8 is retained as
   operating-load CE/cost-latency sensitivity.
 
+## Next Queue: 07_sensitivity_adapter_pool
+
+Adapter-pool sensitivity is now prepared as the next long-running queue.
+
+- default tmux session: `paper_adapter_pool_p0`.
+- queue profile: `adapter_pool_p0`.
+- section: `07_sensitivity_adapter_pool`.
+- systems: `sglang serverlessllm vllm slora faaslora`.
+- points: `a100/hot16`, `a200/hot24`, `a300/hot32`, `a400/hot40`.
+- right endpoint: reuse the closed Llama-2 7B `a500/hot48/s8` main round unless
+  `adapter_pool_full_p0` is explicitly requested.
+- convenience script:
+  `/home/qhq/serverless_llm_baselines/scripts/run_paper_adapter_pool_queue.sh`.
+
 ## Current Paper Baselines
 
 The current formal comparison set is:
@@ -64,11 +78,11 @@ profiles; restore read access or keep launching from the same absolute paths.
 
 ## Current Experiment Direction
 
-1. Start or resume the Llama-2 7B / 4000-request five-system round through the
-   formal fair-round runner.
-2. Use the resulting round directory as the first paper-quality main-table
-   candidate.
-3. If the Llama-2 7B round is stable, extend the same runner to other backbone
+1. Do not rerun the completed operating-load queue unless a concrete audit issue
+   is found.
+2. Run `07_sensitivity_adapter_pool` next to test whether the CE/cost-latency
+   story remains stable as the adapter universe grows.
+3. After adapter-pool sensitivity, extend the same runner to other backbone
    profiles rather than manually running systems one by one.
 4. Do not reopen FaaSLoRA system optimization unless cross-system logs expose a
    root-cause issue in the FaaSLoRA causal chain.

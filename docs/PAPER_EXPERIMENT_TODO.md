@@ -597,6 +597,21 @@ serverless_idle_retention_s in {60, 120, 300, 600, adaptive}
 - CE vs adapter pool。
 - GPU hit rate vs adapter pool。
 
+当前连续队列已经固定为：
+
+```text
+profile: adapter_pool_p0
+section: 07_sensitivity_adapter_pool
+points:  a100/hot16, a200/hot24, a300/hot32, a400/hot40
+reuse:   a500/hot48 from the closed Llama-2 7B s8 main round
+systems: sglang serverlessllm vllm slora faaslora
+```
+
+如需同一 queue 自包含五个点，使用 `adapter_pool_full_p0`，它会额外重跑
+`a500/hot48`。无论采用哪个 profile，正式写作必须同时报告 TTFT avg/p95、
+E2E avg/p95、TPOT avg/p95、Tok/s、Cost/req 和 CE；主结论可以是 CE 胜出，
+但不能把 serverful baseline 的 latency advantage 藏掉。
+
 #### S2. Load intensity
 
 使用第 1.6 节设置。图形：
@@ -796,6 +811,17 @@ results/paper_experiments/
 - 写出 `round.env`，用于恢复同一轮实验环境。
 
 以后更换基座模型、请求规模、adapter pool、time scale 或 workload profile 时，也应优先使用该连续 runner，而不是手工逐个系统执行。
+
+Adapter-pool sensitivity 的便捷入口：
+
+```bash
+cd /home/qhq/serverless_llm_baselines
+scripts/run_paper_adapter_pool_queue.sh
+```
+
+该脚本默认设置 `PAPER_QUEUE_PROFILE=adapter_pool_p0`，并调用同一个
+`run_paper_long_experiment_queue.sh`，因此继承 queue-level 和 per-system
+stage-level 断点续跑逻辑。
 
 ## 6. 执行顺序
 
