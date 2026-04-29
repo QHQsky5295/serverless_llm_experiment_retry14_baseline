@@ -44,14 +44,17 @@ Adapter-pool sensitivity has completed and is now available as Fig. 9 candidate 
   `adapter_pool_full_p0` is explicitly requested.
 - generated figure:
   `/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig9_adapter_pool_sensitivity.pdf`.
+- figure layout: IEEE single-column, two side-by-side panels for CE and
+  Cost/req, matching the compact Fig. 8 sensitivity style.
 - generated full-metric table:
   `/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/table_fig9_adapter_pool_sensitivity_metrics.tex`.
 
-## Next Queue: 08_backbone_robustness
+## Current Queue: 08_backbone_robustness
 
 Backbone robustness is the next appropriate long-running experiment once the
 current Llama-2 7B figure set is stable.
 
+- latest queue id: `20260429_115544_backbone_robustness_p0`.
 - queue profile: `backbone_robustness_p0`.
 - convenience script:
   `/home/qhq/serverless_llm_baselines/scripts/run_paper_backbone_robustness_queue.sh`.
@@ -60,6 +63,11 @@ current Llama-2 7B figure set is stable.
   - `llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_backbone_v1`
   - `qwen2p5_14b_r4000_a500_seed42_z1p0_hot48_rot500_s8_backbone_v1`
 - dry-run status: passed on 2026-04-29; no GPU work was launched.
+- first run status: Qwen2.5-7B reached ServerlessLLM stage and failed after
+  `3637/4000` successful requests because Ray's host-memory guard killed a
+  `VllmBackend` worker at the default `0.95` memory threshold. This is a serving
+  failure, not a valid performance result. The baseline runner now defaults
+  `SLLM_RAY_MEMORY_USAGE_THRESHOLD` to `0.99`; resume with the same queue id.
 
 ## Current Paper Baselines
 
@@ -99,8 +107,8 @@ profiles; restore read access or keep launching from the same absolute paths.
    is found.
 2. Use Fig. 9 to report adapter-pool sensitivity if space permits; otherwise
    move it to appendix with its full-metric table.
-3. Run `08_backbone_robustness` next to test whether the CE/cost-latency story
-   generalizes beyond Llama-2 7B.
+3. Resume `08_backbone_robustness` with the same queue id to test whether the
+   CE/cost-latency story generalizes beyond Llama-2 7B.
 4. Do not reopen FaaSLoRA system optimization unless cross-system logs expose a
    root-cause issue in the FaaSLoRA causal chain.
 5. Fig. 8 now uses `s12/s10/s8` operating-load points and labels them by direct

@@ -400,20 +400,33 @@ def _plot_adapter_pool_lines(
     panel_caption: str,
     *,
     scale: float = 1.0,
+    compact: bool = False,
 ) -> None:
     for key in systems:
         xs, ys = _series_by_adapter_pool(rows, key, metric)
         ys = [value * scale for value in ys]
-        ax.plot(xs, ys, marker="o", markersize=4.5, linewidth=1.55, color=SYSTEM_COLORS[key], label=SYSTEM_LABELS[key])
+        ax.plot(
+            xs,
+            ys,
+            marker="o",
+            markersize=3.1 if compact else 4.5,
+            linewidth=1.2 if compact else 1.55,
+            color=SYSTEM_COLORS[key],
+            label=SYSTEM_LABELS[key],
+        )
     pools = sorted({int(row["adapter_pool_size"]) for row in rows})
-    _xlabel_with_panel(ax, "Adapter pool size", panel_caption)
+    _xlabel_with_panel(ax, "Adapters", panel_caption)
     ax.set_ylabel(ylabel)
     if len(pools) > 1:
         xpad = (max(pools) - min(pools)) * 0.08
         ax.set_xlim(min(pools) - xpad, max(pools) + xpad)
     ax.set_xticks(pools)
     ax.set_xticklabels([str(pool) for pool in pools])
-    ax.tick_params(axis="both", labelsize=TICK_FONTSIZE)
+    ax.tick_params(axis="both", labelsize=6.8 if compact else TICK_FONTSIZE)
+    if compact:
+        ax.xaxis.label.set_size(7.0)
+        ax.yaxis.label.set_size(7.1)
+        ax.yaxis.labelpad = 1.0
     _style_axes(ax)
     _add_axis_arrows(ax)
 
@@ -422,22 +435,31 @@ def plot_adapter_pool_sensitivity(round_dirs: Sequence[Path], out_dir: Path) -> 
     rows = _collect_adapter_pool([Path(path).resolve() for path in round_dirs])
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    fig, axes = plt.subplots(2, 1, figsize=(3.45, 3.15), constrained_layout=False)
-    _plot_adapter_pool_lines(axes[0], rows, SYSTEM_ORDER, "ce", "CE (higher is better)", "(a) Cost efficiency")
-    _plot_adapter_pool_lines(axes[1], rows, SYSTEM_ORDER, "cost_req_usd", "Cost/req (mUSD)", "(b) Lifecycle cost", scale=1000.0)
+    fig, axes = plt.subplots(1, 2, figsize=(3.58, 1.88), constrained_layout=False)
+    _plot_adapter_pool_lines(axes[0], rows, SYSTEM_ORDER, "ce", "CE", "(a) CE", compact=True)
+    _plot_adapter_pool_lines(
+        axes[1],
+        rows,
+        SYSTEM_ORDER,
+        "cost_req_usd",
+        "Cost/req\n(mUSD)",
+        "(b) Cost",
+        scale=1000.0,
+        compact=True,
+    )
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(
         handles,
         labels,
         frameon=False,
-        fontsize=7.6,
-        ncols=2,
+        fontsize=6.5,
+        ncols=3,
         loc="upper center",
-        bbox_to_anchor=(0.54, 0.995),
-        columnspacing=0.9,
-        handlelength=1.35,
+        bbox_to_anchor=(0.5, 0.995),
+        columnspacing=0.8,
+        handlelength=1.2,
     )
-    fig.subplots_adjust(left=0.23, right=0.985, top=0.83, bottom=0.16, hspace=0.62)
+    fig.subplots_adjust(left=0.15, right=0.99, top=0.70, bottom=0.34, wspace=0.42)
 
     pdf = out_dir / "fig9_adapter_pool_sensitivity.pdf"
     csv_path = out_dir / "fig9_adapter_pool_sensitivity_data.csv"
@@ -470,9 +492,9 @@ def plot_load_sensitivity(round_dirs: Sequence[Path], out_dir: Path) -> None:
     value_rows = _metric_load_matrix_panel(axes[2], rows)
     fig.subplots_adjust(left=0.13, right=0.995, top=0.91, bottom=0.14, hspace=0.57, wspace=0.16)
 
-    trend_fig, trend_axes = plt.subplots(1, 2, figsize=(3.45, 2.08), constrained_layout=False)
+    trend_fig, trend_axes = plt.subplots(1, 2, figsize=(3.58, 1.88), constrained_layout=False)
     _draw_load_trend_panels(trend_fig, trend_axes, rows, compact=True)
-    trend_fig.subplots_adjust(left=0.15, right=0.99, top=0.72, bottom=0.34, wspace=0.42)
+    trend_fig.subplots_adjust(left=0.15, right=0.99, top=0.70, bottom=0.34, wspace=0.42)
 
     pdf = out_dir / "fig8_load_sensitivity.pdf"
     trend_pdf = out_dir / "fig8_load_sensitivity_trends.pdf"

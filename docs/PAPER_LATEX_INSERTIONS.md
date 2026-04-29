@@ -324,12 +324,12 @@ Figure~\ref{fig:ablation} isolates the marginal effect of PrimeLoRA's mechanisms
 \textbf{Question.}
 Where does PrimeLoRA's lifecycle cost-efficiency advantage come from?
 
-\begin{figure*}[t]
+\begin{figure}[t]
     \centering
-    \includegraphics[width=\textwidth]{figs/paper/main/fig7_lifecycle_cost.pdf}
+    \includegraphics[width=\columnwidth]{figs/paper/main/fig7_lifecycle_cost.pdf}
     \caption{Lifecycle cost efficiency. The left panel decomposes monetary cost per request, and the right panel decomposes lifecycle GPU time per request.}
     \label{fig:lifecycle_cost}
-\end{figure*}
+\end{figure}
 
 Figure~\ref{fig:lifecycle_cost} explains the cost-efficiency result. PrimeLoRA lowers lifecycle cost per request by using serverless-style elastic residency while retaining enough ready capacity to serve the workload. The GPU-time breakdown shows that CE is not a standalone pricing artifact; it follows from how much active, startup, and idle-ready GPU time each system consumes under the same replay.
 

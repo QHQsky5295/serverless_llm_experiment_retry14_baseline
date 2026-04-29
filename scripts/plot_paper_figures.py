@@ -1624,11 +1624,11 @@ def plot_fig7(round_dir: Path, out_dir: Path) -> None:
     systems = _main_round_data(round_dir)
     rows = _main_csv_rows(systems)
     labels = [AXIS_SYSTEM_LABELS[system.key] for system in systems]
-    x = np.arange(len(systems))
-    label_fontsize = 15.8
-    tick_fontsize = 13.8
-    panel_fontsize = 14.8
-    legend_fontsize = 14.2
+    y = np.arange(len(systems))
+    label_fontsize = 7.1
+    tick_fontsize = 6.8
+    panel_fontsize = 7.0
+    legend_fontsize = 6.5
     components = [
         ("Startup", "cost_startup_usd", "#A9C4E8"),
         ("Active", "cost_active_usd", "#A7D3A8"),
@@ -1636,24 +1636,32 @@ def plot_fig7(round_dir: Path, out_dir: Path) -> None:
         ("Invocation", "cost_invocation_usd", "#D8B6D9"),
     ]
 
-    fig, axes = plt.subplots(1, 2, figsize=(7.16, 3.35), constrained_layout=False)
+    fig, axes = plt.subplots(1, 2, figsize=(3.58, 2.05), constrained_layout=False)
     bottom = np.zeros(len(systems))
     legend_handles = []
     legend_labels = []
     for name, key, color in components:
         vals = np.asarray([system.metrics[key] * 1000.0 for system in systems])
-        bars = axes[0].bar(x, vals, bottom=bottom, width=0.58, label=name, color=color, edgecolor="#555555", linewidth=0.3)
+        bars = axes[0].barh(
+            y,
+            vals,
+            left=bottom,
+            height=0.58,
+            label=name,
+            color=color,
+            edgecolor="#555555",
+            linewidth=0.25,
+        )
         if np.any(vals > 0):
             legend_handles.append(bars[0])
             legend_labels.append(name)
         bottom += vals
-    axes[0].set_xticks(x)
-    axes[0].set_xticklabels(labels, rotation=18, ha="right", rotation_mode="anchor")
-    axes[0].set_ylabel("Cost/req (milli-USD)")
-    _xlabel_with_panel(axes[0], "", "(a) Monetary lifecycle cost")
+    axes[0].set_yticks(y)
+    axes[0].set_yticklabels(labels)
+    axes[0].invert_yaxis()
+    _xlabel_with_panel(axes[0], "Cost/req\n(mUSD)", "(a) Cost")
     _style_axes(axes[0])
     axes[0].xaxis.label.set_size(panel_fontsize)
-    axes[0].yaxis.label.set_size(label_fontsize)
     axes[0].tick_params(axis="both", labelsize=tick_fontsize)
 
     gpu_components = [
@@ -1664,26 +1672,39 @@ def plot_fig7(round_dir: Path, out_dir: Path) -> None:
     bottom = np.zeros(len(systems))
     for name, key, color in gpu_components:
         vals = np.asarray([system.metrics[key] / system.metrics["completed"] for system in systems])
-        axes[1].bar(x, vals, bottom=bottom, width=0.58, label=name, color=color, edgecolor="#555555", linewidth=0.3)
+        axes[1].barh(
+            y,
+            vals,
+            left=bottom,
+            height=0.58,
+            label=name,
+            color=color,
+            edgecolor="#555555",
+            linewidth=0.25,
+        )
         bottom += vals
-    axes[1].set_xticks(x)
-    axes[1].set_xticklabels(labels, rotation=18, ha="right", rotation_mode="anchor")
-    axes[1].set_ylabel("GPU-seconds/req")
-    _xlabel_with_panel(axes[1], "", "(b) Lifecycle GPU time")
+    axes[1].set_yticks(y)
+    axes[1].set_yticklabels([])
+    axes[1].invert_yaxis()
+    _xlabel_with_panel(axes[1], "GPU-s/req", "(b) GPU time")
     _style_axes(axes[1])
     axes[1].xaxis.label.set_size(panel_fontsize)
-    axes[1].yaxis.label.set_size(label_fontsize)
     axes[1].tick_params(axis="both", labelsize=tick_fontsize)
     fig.legend(
         legend_handles,
         legend_labels,
         frameon=False,
         fontsize=legend_fontsize,
-        ncols=max(1, min(4, len(legend_labels))),
+        ncols=2,
         loc="upper center",
-        bbox_to_anchor=(0.5, 0.99),
+        bbox_to_anchor=(0.53, 0.995),
+        columnspacing=0.9,
+        handlelength=1.1,
     )
-    fig.subplots_adjust(left=0.095, right=0.995, top=0.76, bottom=0.27, wspace=0.22)
+    for ax in axes:
+        ax.xaxis.labelpad = 4.0
+        ax.grid(axis="x", color="#E7E7E7", linewidth=0.45)
+    fig.subplots_adjust(left=0.28, right=0.99, top=0.72, bottom=0.29, wspace=0.26)
 
     pdf = out_dir / "fig7_lifecycle_cost.pdf"
     csv_path = out_dir / "fig7_lifecycle_cost_data.csv"
