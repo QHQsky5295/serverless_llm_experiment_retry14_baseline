@@ -258,7 +258,7 @@ Motivation。Fig. 5/8/9 可以压缩到附录或后续版本。
 | Fig. 6 Ablation | 已重画为单栏转置矩阵 | `figs/paper/ablation/fig6_ablation.pdf` 与同名 CSV/manifest | 可作为 Evaluation 图初版 | 行为 `NVMe/NoCoord/Full`，列为主指标；每个 cell 同时显示绝对值和相对 NVMe 的 signed change，并补齐 throughput |
 | Coordination effect subfigure | 已重画 | `figs/paper/ablation/fig4_coordination.pdf` 与同名 CSV/manifest | 只能放 Evaluation/Ablation | Full vs NoCoord 相对变化 panel，不放 Motivation |
 | Fig. 7 Lifecycle cost | 已重画，可进初稿 | `figs/paper/main/fig7_lifecycle_cost.pdf` 与同名 CSV/manifest | 可作为成本解释图初版 | 左图解释 monetary cost，右图解释 GPU-seconds 生命周期来源 |
-| Fig. 8 Sensitivity | 已重画为 operating-load CE/cost-latency sensitivity | `figs/paper/sensitivity/fig8_load_sensitivity_trends.pdf`、完整版本 `fig8_load_sensitivity.pdf`、同名 CSV/manifest、`table_fig8_load_sensitivity_metrics.tex` | 可作为 Evaluation sensitivity 初版 | 图中直接使用 0.67/0.81/1.01 req/s 的 4-GPU replay rate；五系统齐全；结论是 CE/cost-latency tradeoff 胜出，不是延迟全面胜出 |
+| Fig. 8 Sensitivity | 已重画为 IEEE 单栏 operating-load CE/cost-latency sensitivity | `figs/paper/sensitivity/fig8_load_sensitivity_trends.pdf`、完整版本 `fig8_load_sensitivity.pdf`、同名 CSV/manifest、`table_fig8_load_sensitivity_metrics.tex` | 可作为 Evaluation sensitivity 初版，按 `\columnwidth` 插入 | 图中直接使用 0.67/0.81/1.01 req/s 的 4-GPU replay rate；五系统齐全；结论是 CE/cost-latency tradeoff 胜出，不是延迟全面胜出 |
 | Fig. 9 Adapter-pool sensitivity | 已生成 | `figs/paper/sensitivity/fig9_adapter_pool_sensitivity.pdf`、同名 CSV/manifest、`table_fig9_adapter_pool_sensitivity_metrics.tex` | 可作为 Evaluation sensitivity 或 appendix 初版 | 100/200/300/400 来自 `adapter_pool_p0`，500 复用主 round；五系统齐全；主图只放 CE 与 Cost/req，完整主指标放表 |
 | Fig. 10 Multi-backbone robustness | 未跑 | 无 | 不可进论文 | 已补 `backbone_robustness_p0` dry-run；下一步跑 Qwen2.5-7B、Llama-2-13B、Qwen2.5-14B |
 

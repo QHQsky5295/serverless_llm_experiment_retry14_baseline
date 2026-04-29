@@ -181,13 +181,14 @@ def _plot_lines(
     panel_caption: str,
     *,
     scale: float = 1.0,
+    xlabel: str = "Replay rate on 4 GPUs (req/s)",
 ) -> None:
     for key in systems:
         xs, ys = _series(rows, key, metric)
         ys = [value * scale for value in ys]
         label = SYSTEM_LABELS[key]
         ax.plot(xs, ys, marker="o", markersize=4.5, linewidth=1.55, color=SYSTEM_COLORS[key], label=label)
-    _xlabel_with_panel(ax, "Replay rate on 4 GPUs (req/s)", panel_caption)
+    _xlabel_with_panel(ax, xlabel, panel_caption)
     ax.set_ylabel(ylabel)
     loads = sorted({row["nominal_rps"] for row in rows})
     if len(loads) > 1:
@@ -357,18 +358,36 @@ def _write_adapter_pool_metric_table(path: Path, rows: Sequence[Dict[str, Any]])
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def _draw_load_trend_panels(fig: plt.Figure, axes: Sequence[plt.Axes], rows: Sequence[Dict[str, Any]]) -> None:
-    _plot_lines(axes[0], rows, SYSTEM_ORDER, "ce", "CE (higher is better)", "(a) CE vs load")
-    _plot_lines(axes[1], rows, SYSTEM_ORDER, "cost_req_usd", "Cost/req (mUSD)", "(b) Cost vs load", scale=1000.0)
+def _draw_load_trend_panels(
+    fig: plt.Figure,
+    axes: Sequence[plt.Axes],
+    rows: Sequence[Dict[str, Any]],
+    *,
+    compact: bool = False,
+) -> None:
+    if compact:
+        xlabel = "Replay rate\n(req/s)"
+        _plot_lines(axes[0], rows, SYSTEM_ORDER, "ce", "CE", "(a) CE", xlabel=xlabel)
+        _plot_lines(axes[1], rows, SYSTEM_ORDER, "cost_req_usd", "Cost/req\n(mUSD)", "(b) Cost", scale=1000.0, xlabel=xlabel)
+        for ax in axes:
+            ax.xaxis.label.set_size(7.0)
+            ax.yaxis.label.set_size(7.1)
+            ax.tick_params(axis="both", labelsize=6.8)
+            ax.yaxis.labelpad = 1.0
+    else:
+        _plot_lines(axes[0], rows, SYSTEM_ORDER, "ce", "CE (higher is better)", "(a) CE vs load")
+        _plot_lines(axes[1], rows, SYSTEM_ORDER, "cost_req_usd", "Cost/req (mUSD)", "(b) Cost vs load", scale=1000.0)
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(
         handles,
         labels,
         frameon=False,
-        fontsize=8.4,
-        ncols=5,
+        fontsize=6.5 if compact else 8.4,
+        ncols=3 if compact else 5,
         loc="upper center",
         bbox_to_anchor=(0.5, 0.995),
+        columnspacing=0.8 if compact else 1.3,
+        handlelength=1.2 if compact else 1.6,
     )
 
 
@@ -451,9 +470,9 @@ def plot_load_sensitivity(round_dirs: Sequence[Path], out_dir: Path) -> None:
     value_rows = _metric_load_matrix_panel(axes[2], rows)
     fig.subplots_adjust(left=0.13, right=0.995, top=0.91, bottom=0.14, hspace=0.57, wspace=0.16)
 
-    trend_fig, trend_axes = plt.subplots(1, 2, figsize=(7.16, 2.35), constrained_layout=False)
-    _draw_load_trend_panels(trend_fig, trend_axes, rows)
-    trend_fig.subplots_adjust(left=0.11, right=0.995, top=0.82, bottom=0.28, wspace=0.18)
+    trend_fig, trend_axes = plt.subplots(1, 2, figsize=(3.45, 2.08), constrained_layout=False)
+    _draw_load_trend_panels(trend_fig, trend_axes, rows, compact=True)
+    trend_fig.subplots_adjust(left=0.15, right=0.99, top=0.72, bottom=0.34, wspace=0.42)
 
     pdf = out_dir / "fig8_load_sensitivity.pdf"
     trend_pdf = out_dir / "fig8_load_sensitivity_trends.pdf"

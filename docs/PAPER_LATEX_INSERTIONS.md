@@ -366,12 +366,12 @@ Fig. 7 专门解释 cost/CE 来源，不与 Fig. 1 重复。
 \textbf{Question.}
 Does the latency--cost tradeoff remain favorable as the replay rate changes within the intended serverless operating region?
 
-\begin{figure*}[t]
+\begin{figure}[t]
     \centering
-    \includegraphics[width=\textwidth]{figs/paper/sensitivity/fig8_load_sensitivity_trends.pdf}
+    \includegraphics[width=\columnwidth]{figs/paper/sensitivity/fig8_load_sensitivity_trends.pdf}
     \caption{Operating-load sensitivity on the representative Llama-2 7B workload. Panels (a) and (b) compare all five systems on CE and lifecycle cost across average replay rates of 0.67, 0.81, and 1.01 req/s on the fixed 4-GPU testbed. These rates are deployment-local replay intensities for the measured four-GPU setup rather than fleet-wide production QPS.}
     \label{fig:load_sensitivity}
-\end{figure*}
+\end{figure}
 
 \IfFileExists{figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}{\input{figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}}{\input{../figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}}
 
