@@ -1,6 +1,6 @@
 {
   "figure": "fig9_adapter_pool_sensitivity",
-  "generated_at_utc": "2026-04-29T07:11:38.594547+00:00",
+  "generated_at_utc": "2026-04-29T07:35:17.066676+00:00",
   "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig9_adapter_pool_sensitivity.pdf",
   "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig9_adapter_pool_sensitivity_data.csv",
   "table_tex": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/table_fig9_adapter_pool_sensitivity_metrics.tex",

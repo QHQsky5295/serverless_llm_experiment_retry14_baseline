@@ -1,6 +1,6 @@
 {
   "figure": "fig8_load_sensitivity",
-  "generated_at_utc": "2026-04-29T07:11:20.293692+00:00",
+  "generated_at_utc": "2026-04-29T07:34:42.891629+00:00",
   "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig8_load_sensitivity.pdf",
   "trend_pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig8_load_sensitivity_trends.pdf",
   "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig8_load_sensitivity_data.csv",

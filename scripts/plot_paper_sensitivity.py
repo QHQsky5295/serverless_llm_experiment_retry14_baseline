@@ -182,12 +182,21 @@ def _plot_lines(
     *,
     scale: float = 1.0,
     xlabel: str = "Replay rate on 4 GPUs (req/s)",
+    compact: bool = False,
 ) -> None:
     for key in systems:
         xs, ys = _series(rows, key, metric)
         ys = [value * scale for value in ys]
         label = SYSTEM_LABELS[key]
-        ax.plot(xs, ys, marker="o", markersize=4.5, linewidth=1.55, color=SYSTEM_COLORS[key], label=label)
+        ax.plot(
+            xs,
+            ys,
+            marker="o",
+            markersize=2.9 if compact else 4.5,
+            linewidth=1.05 if compact else 1.55,
+            color=SYSTEM_COLORS[key],
+            label=label,
+        )
     _xlabel_with_panel(ax, xlabel, panel_caption)
     ax.set_ylabel(ylabel)
     loads = sorted({row["nominal_rps"] for row in rows})
@@ -367,8 +376,8 @@ def _draw_load_trend_panels(
 ) -> None:
     if compact:
         xlabel = "Replay rate\n(req/s)"
-        _plot_lines(axes[0], rows, SYSTEM_ORDER, "ce", "CE", "(a) CE", xlabel=xlabel)
-        _plot_lines(axes[1], rows, SYSTEM_ORDER, "cost_req_usd", "Cost/req\n(mUSD)", "(b) Cost", scale=1000.0, xlabel=xlabel)
+        _plot_lines(axes[0], rows, SYSTEM_ORDER, "ce", "CE", "(a) CE", xlabel=xlabel, compact=True)
+        _plot_lines(axes[1], rows, SYSTEM_ORDER, "cost_req_usd", "Cost/req\n(mUSD)", "(b) Cost", scale=1000.0, xlabel=xlabel, compact=True)
         for ax in axes:
             ax.xaxis.label.set_size(7.0)
             ax.yaxis.label.set_size(7.1)
@@ -409,8 +418,8 @@ def _plot_adapter_pool_lines(
             xs,
             ys,
             marker="o",
-            markersize=3.1 if compact else 4.5,
-            linewidth=1.2 if compact else 1.55,
+            markersize=2.9 if compact else 4.5,
+            linewidth=1.05 if compact else 1.55,
             color=SYSTEM_COLORS[key],
             label=SYSTEM_LABELS[key],
         )
@@ -435,7 +444,7 @@ def plot_adapter_pool_sensitivity(round_dirs: Sequence[Path], out_dir: Path) -> 
     rows = _collect_adapter_pool([Path(path).resolve() for path in round_dirs])
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    fig, axes = plt.subplots(1, 2, figsize=(3.58, 1.88), constrained_layout=False)
+    fig, axes = plt.subplots(1, 2, figsize=(3.62, 1.76), constrained_layout=False)
     _plot_adapter_pool_lines(axes[0], rows, SYSTEM_ORDER, "ce", "CE", "(a) CE", compact=True)
     _plot_adapter_pool_lines(
         axes[1],
@@ -492,7 +501,7 @@ def plot_load_sensitivity(round_dirs: Sequence[Path], out_dir: Path) -> None:
     value_rows = _metric_load_matrix_panel(axes[2], rows)
     fig.subplots_adjust(left=0.13, right=0.995, top=0.91, bottom=0.14, hspace=0.57, wspace=0.16)
 
-    trend_fig, trend_axes = plt.subplots(1, 2, figsize=(3.58, 1.88), constrained_layout=False)
+    trend_fig, trend_axes = plt.subplots(1, 2, figsize=(3.62, 1.76), constrained_layout=False)
     _draw_load_trend_panels(trend_fig, trend_axes, rows, compact=True)
     trend_fig.subplots_adjust(left=0.15, right=0.99, top=0.70, bottom=0.34, wspace=0.42)
 
