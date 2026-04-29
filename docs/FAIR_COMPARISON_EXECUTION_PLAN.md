@@ -391,6 +391,15 @@ active hot cap。`a500/hot48` 右端点优先复用已闭合的 Llama-2 7B `s8` 
 
 该 profile 已通过 `PAPER_QUEUE_DRY_RUN=1`，只生成预期的三个 round，不启动 GPU。
 
+2026-04-29 首次运行 `backbone_robustness_p0` 时，Qwen2.5-7B 的
+ServerlessLLM 阶段在第 `3637/4000` 个成功请求后失败。服务端日志显示根因是
+Ray host-memory guard 触发：节点内存达到 `119.11/125.38 GB`，超过默认
+`0.95` 阈值，Ray 杀掉 `VllmBackend` worker，随后请求返回 500。因此该 round
+不是有效性能结果，必须用同一 queue id 修复后断点续跑。脚本已将
+ServerlessLLM Ray 启动阈值默认设为 `SLLM_RAY_MEMORY_USAGE_THRESHOLD=0.99`，
+仍可通过环境变量覆盖；如后续仍接近系统真实 OOM，再考虑降低该阶段并发或单独
+调整 ServerlessLLM profile，而不是把失败请求纳入论文结果。
+
 如果为了快速探路显式覆盖 `PAPER_QUEUE_SYSTEMS="sglang vllm slora faaslora"`，
 该结果只能标注为 partial sensitivity，不能作为完备横向对比。后续必须补跑
 ServerlessLLM 并重新生成 compare。2026-04-27 已修复队列断点逻辑：即使

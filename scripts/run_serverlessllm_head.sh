@@ -10,9 +10,26 @@ RAY_NODE_IP="${SLLM_RAY_NODE_IP:-${SLLM_RAY_HEAD_HOST:-127.0.0.1}}"
 SLLM_HEAD_RESOURCES="${SLLM_HEAD_RESOURCES:-{\"control_node\": 1}}"
 SLLM_REPO_ROOT="${SLLM_REPO_ROOT:-/home/qhq/serverless_llm_baselines/repos/ServerlessLLM}"
 SLLM_EXTRA_PYTHONPATH="${SLLM_EXTRA_PYTHONPATH:-}"
+RAY_MEMORY_USAGE_THRESHOLD="${SLLM_RAY_MEMORY_USAGE_THRESHOLD:-0.99}"
+RAY_OBJECT_STORE_MEMORY_BYTES="${SLLM_RAY_OBJECT_STORE_MEMORY_BYTES:-}"
 PYTHONPATH_PREFIX="${SLLM_REPO_ROOT}${SLLM_EXTRA_PYTHONPATH:+:${SLLM_EXTRA_PYTHONPATH}}"
 
+RAY_START_ARGS=(
+  start
+  --head
+  --node-ip-address="${RAY_NODE_IP}"
+  --port="${RAY_PORT}"
+  --num-cpus=4
+  --num-gpus=0
+  --resources="${SLLM_HEAD_RESOURCES}"
+  --block
+)
+
+if [[ -n "${RAY_OBJECT_STORE_MEMORY_BYTES}" ]]; then
+  RAY_START_ARGS+=(--object-store-memory="${RAY_OBJECT_STORE_MEMORY_BYTES}")
+fi
+
 exec env PYTHONNOUSERSITE=1 \
+  RAY_memory_usage_threshold="${RAY_MEMORY_USAGE_THRESHOLD}" \
   PYTHONPATH="${PYTHONPATH_PREFIX}" \
-  "${HEAD_RAY_BIN}" start --head --node-ip-address="${RAY_NODE_IP}" --port="${RAY_PORT}" --num-cpus=4 --num-gpus=0 \
-  --resources="${SLLM_HEAD_RESOURCES}" --block
+  "${HEAD_RAY_BIN}" "${RAY_START_ARGS[@]}"

@@ -17,6 +17,8 @@ SLLM_WORKER_RESOURCES="${SLLM_WORKER_RESOURCES:-{\"worker_node\": 1, \"worker_id
 SLLM_REPO_ROOT="${SLLM_REPO_ROOT:-/home/qhq/serverless_llm_baselines/repos/ServerlessLLM}"
 SLLM_STORE_PATH="${SLLM_STORE_PATH:-/home/qhq/serverless_llm_baselines/models}"
 SLLM_EXTRA_PYTHONPATH="${SLLM_EXTRA_PYTHONPATH:-}"
+RAY_MEMORY_USAGE_THRESHOLD="${SLLM_RAY_MEMORY_USAGE_THRESHOLD:-0.99}"
+RAY_OBJECT_STORE_MEMORY_BYTES="${SLLM_RAY_OBJECT_STORE_MEMORY_BYTES:-}"
 PYTHONPATH_PREFIX="${SLLM_REPO_ROOT}${SLLM_EXTRA_PYTHONPATH:+:${SLLM_EXTRA_PYTHONPATH}}"
 
 mkdir -p "${SLLM_STORE_PATH}"
@@ -30,9 +32,23 @@ if [[ -z "${WORKER_CPUS}" ]]; then
   WORKER_CPUS="$(( WORKER_NUM_GPUS * 4 ))"
 fi
 
+RAY_START_ARGS=(
+  start
+  --node-ip-address="${RAY_NODE_IP}"
+  --address="${RAY_HEAD_ADDRESS}"
+  --num-cpus="${WORKER_CPUS}"
+  --num-gpus="${WORKER_NUM_GPUS}"
+  --resources="${SLLM_WORKER_RESOURCES}"
+  --block
+)
+
+if [[ -n "${RAY_OBJECT_STORE_MEMORY_BYTES}" ]]; then
+  RAY_START_ARGS+=(--object-store-memory="${RAY_OBJECT_STORE_MEMORY_BYTES}")
+fi
+
 exec env PYTHONNOUSERSITE=1 CUDA_VISIBLE_DEVICES="${CUDA_DEVICES}" \
+  RAY_memory_usage_threshold="${RAY_MEMORY_USAGE_THRESHOLD}" \
   STORAGE_PATH="${SLLM_STORE_PATH}" \
   SLLM_SKIP_CONFIRM_MODEL_LOADED="${SLLM_SKIP_CONFIRM_MODEL_LOADED:-1}" \
   PYTHONPATH="${PYTHONPATH_PREFIX}" \
-  "${WORKER_RAY_BIN}" start --node-ip-address="${RAY_NODE_IP}" --address="${RAY_HEAD_ADDRESS}" --num-cpus="${WORKER_CPUS}" --num-gpus="${WORKER_NUM_GPUS}" \
-  --resources="${SLLM_WORKER_RESOURCES}" --block
+  "${WORKER_RAY_BIN}" "${RAY_START_ARGS[@]}"
