@@ -505,6 +505,36 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       max_instances: 4  # 最多允许同时存在的物理实例数
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
 
+  qwen_7b_auto500_formal4000_s8:  # Qwen 7B robustness workload aligned with Llama-2 7B formal replay semantics
+    lora_adapters:
+      selected_num_adapters: 500
+      quick_num_adapters: 100
+      full_num_adapters: 500
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 8.0
+      lora_request_ratio: 1.0
+      active_adapter_cap: 48
+      hotset_rotation_requests: 500
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 4
+      effective_capacity_admission_enabled: true
+      max_concurrent_loads: 3
+      scale_up_predictive_target_enabled: true
+      scale_up_startup_parallelism: "auto"
+      scale_cooldown_s: 2.0
+      scale_eval_interval_s: 2.0
+      arrival_window_s: 2.0
+      scale_up_alpha: 0.15
+      scale_up_t_min: 0.5
+      scale_down_duration_s: "auto"
+      scale_down_startup_break_even_s: 0.0
+      scale_down_break_even_factor: 1.0
+      scale_down_cooldown_s: "auto"
+      scale_down_beta: 0.5
+
   qwen_7b_tp2_compare_main:  # Qwen 7B TP=2 对照工作负载 profile
     lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块
       selected_num_adapters: 100  # 当前 profile 默认选中的 adapter 数量
@@ -569,6 +599,36 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       instance_mode: "auto"  # 实例模式：shared / dedicated / auto
       max_instances: 2  # 最多允许同时存在的物理实例数
       effective_capacity_admission_enabled: true  # 是否开启有效容量准入（P2.5）
+
+  qwen_14b_tp2_a500_formal4000_s8:  # Qwen 14B TP=2 robustness workload aligned with Llama-2 7B formal replay semantics
+    lora_adapters:
+      selected_num_adapters: 500
+      quick_num_adapters: 100
+      full_num_adapters: 500
+      apply_scale_preset: false
+    workload:
+      concurrency: 2
+      time_scale_factor: 8.0
+      lora_request_ratio: 1.0
+      active_adapter_cap: 48
+      hotset_rotation_requests: 500
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 2
+      effective_capacity_admission_enabled: true
+      max_concurrent_loads: 2
+      scale_up_predictive_target_enabled: true
+      scale_up_startup_parallelism: "auto"
+      scale_cooldown_s: 2.0
+      scale_eval_interval_s: 2.0
+      arrival_window_s: 2.0
+      scale_up_alpha: 0.15
+      scale_up_t_min: 0.5
+      scale_down_duration_s: "auto"
+      scale_down_startup_break_even_s: 0.0
+      scale_down_break_even_factor: 1.0
+      scale_down_cooldown_s: "auto"
+      scale_down_beta: 0.5
 
   llama2_7b_auto100_main:  # Llama-2 7B 早期 bring-up / 快速验证 workload profile
     lora_adapters:
@@ -821,6 +881,36 @@ workload_profiles:  # 可复用的工作负载 profile 集合
       instance_mode: "auto"
       max_instances: 2
       effective_capacity_admission_enabled: true
+
+  llama2_13b_tp2_a500_formal4000_s8:  # Llama-2 13B TP=2 robustness workload aligned with Llama-2 7B formal replay semantics
+    lora_adapters:
+      selected_num_adapters: 500
+      quick_num_adapters: 100
+      full_num_adapters: 500
+      apply_scale_preset: false
+    workload:
+      concurrency: 2
+      time_scale_factor: 8.0
+      lora_request_ratio: 1.0
+      active_adapter_cap: 48
+      hotset_rotation_requests: 500
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 2
+      effective_capacity_admission_enabled: true
+      max_concurrent_loads: 2
+      scale_up_predictive_target_enabled: true
+      scale_up_startup_parallelism: "auto"
+      scale_cooldown_s: 2.0
+      scale_eval_interval_s: 2.0
+      arrival_window_s: 2.0
+      scale_up_alpha: 0.15
+      scale_up_t_min: 0.5
+      scale_down_duration_s: "auto"
+      scale_down_startup_break_even_s: 0.0
+      scale_down_break_even_factor: 1.0
+      scale_down_cooldown_s: "auto"
+      scale_down_beta: 0.5
 
   mistral_7b_auto100_main:  # Mistral 7B 早期 bring-up / 快速验证 workload profile
     lora_adapters:  # LoRA 工件生成、数量与 manifest 配置块

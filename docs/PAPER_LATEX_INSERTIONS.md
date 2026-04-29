@@ -25,9 +25,11 @@
   更高 CE。因此正文不能写成 “PrimeLoRA wins all latency metrics”。
 - Ablation 证明三项机制对 PrimeLoRA 自身的边际贡献。
 - Lifecycle cost 图解释 CE 来源，避免 CE 被理解为黑箱公式或只靠价格模型取胜。
-- `s8/s6/s4` load sensitivity 只作为 stress diagnostic；已完成的 Low/Medium/Nominal
-  operating-load round 通过 CE/cost-latency tradeoff 审计，可作为 Fig. 8 主文候选
-  （底层 time scale 为 `s12/s10/s8`）。
+- `s8/s6/s4` load sensitivity 只作为 stress diagnostic；已完成的 operating-load
+  round 通过 CE/cost-latency tradeoff 审计，可作为 Fig. 8 主文候选
+  （底层 time scale 为 `s12/s10/s8`，图中直接标注 4-GPU replay rate）。
+- `adapter_pool_p0` 已完成 `100/200/300/400` 四点；结合已闭合的 `500` adapter
+  Llama-2 7B 主 round，可作为 adapter-pool sensitivity 初版。
 
 ServerlessLoRA 相关审稿问答口径：
 
@@ -69,8 +71,8 @@ paper/primelora_current_draft.tex
 当前 `.tex` 对齐检查（2026-04-27 23:55）：
 
 - 该文件仍是 IEEEtran 草稿，但已同步插入 Fig. 1、Fig. 2、Fig. 3、Table 1、
-  Fig. 6、Fig. 7、Fig. 8 和 Fig. 8 的主指标 sensitivity 表；Fig. 5/Fig. 9
-  未进入主线。
+  Fig. 6、Fig. 7、Fig. 8、Fig. 8 的主指标 sensitivity 表，以及 adapter-pool
+  sensitivity 初版；Fig. 5 暂未进入主线。
 - 当前 section 结构为：Introduction -> Background and Motivation -> System Overview ->
   System Design -> Implementation -> Evaluation and Analysis -> Related Work -> Conclusion。
 - 已有 `\label{sec:evaluation}`，所以本文档中 `Section~\ref{sec:evaluation}` 可直接使用。
@@ -102,19 +104,20 @@ paper/primelora_current_draft.tex
 | Fig. 5 | `figs/paper/main/fig5_main_normalized.pdf` | Table 1 后或 appendix | 暂作备选/appendix；主文优先 Table 1 + Fig. 7 |
 | Fig. 6 | `figs/paper/ablation/fig6_ablation.pdf` | Evaluation: Ablation Analysis | 可进初稿 |
 | Fig. 7 | `figs/paper/main/fig7_lifecycle_cost.pdf` | Evaluation: Lifecycle Cost Efficiency | 可进初稿 |
-| Fig. 8 | `figs/paper/sensitivity/fig8_load_sensitivity.pdf` | Evaluation: Operating-load sensitivity | 可进初稿；CE/cost-latency tradeoff |
-| Table S | `figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex` | Fig. 8 后或 appendix | 可进初稿；列出 Low/Medium/Nominal 五系统全部主指标 |
+| Fig. 8 | `figs/paper/sensitivity/fig8_load_sensitivity_trends.pdf` | Evaluation: Operating-load sensitivity | 可进初稿；CE/cost-latency tradeoff |
+| Table S | `figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex` | Fig. 8 后或 appendix | 可进初稿；列出 0.67/0.81/1.01 req/s 五系统全部主指标 |
+| Fig. 9 | `figs/paper/sensitivity/fig9_adapter_pool_sensitivity.pdf` | Evaluation: Adapter-pool sensitivity | 可进初稿或 appendix；CE/cost trend |
+| Table S | `figs/paper/sensitivity/table_fig9_adapter_pool_sensitivity_metrics.tex` | Fig. 9 后或 appendix | 可用；列出 100/200/300/400/500 adapters 五系统全部主指标 |
 
 旧 `figs/paper/ablation/fig2_mismatch.pdf` 与 `figs/paper/ablation/fig3_tier.pdf`
 来自 PrimeLoRA/FaaSLoRA 内部 instrumentation，不再作为 Motivation 图使用；
 最多作为 Evaluation/Appendix 的 mechanism audit artifact。`fig4_coordination.pdf`
 是 Evaluation-only 的机制图，当前不放 Motivation。
 旧 `fig8_load_sensitivity.pdf` 曾由 `s8/s6/s4` stress 数据生成，不能支撑负载
-稳健性主文结论。当前文件已重画为 Low/Medium/Nominal operating-load sensitivity
-（底层 time scale 为 `s12/s10/s8`）：
-panel (a)/(b) 展示五系统 CE 与 Cost/req，panel (c) 用五系统真实数值矩阵展示
-CE、Cost、TTFT avg/p95、E2E avg/p95、TPOT avg/p95 和 Throughput；配套表列出
-所有系统的全部主指标。
+稳健性主文结论。当前 `fig8_load_sensitivity.pdf` 已重画为完整 operating-load
+版本；更适合主文的是拆分后的 `fig8_load_sensitivity_trends.pdf`，只包含五系统
+CE 与 Cost/req 趋势。配套表 `table_fig8_load_sensitivity_metrics.tex` 列出
+0.67/0.81/1.01 req/s 下所有系统的完整主指标。
 
 图形排版约束：当前已确定的复合图均已改为 panel caption 在分图下方，例如
 `(a) ...`，不使用图上方的小标题；数值标注使用固定 offset，不应与圆点、
@@ -365,14 +368,14 @@ Does the latency--cost tradeoff remain favorable as the replay rate changes with
 
 \begin{figure*}[t]
     \centering
-    \includegraphics[width=\textwidth]{figs/paper/sensitivity/fig8_load_sensitivity.pdf}
-    \caption{Operating-load sensitivity on the representative Llama-2 7B workload. Panels (a) and (b) compare all five systems on CE and lifecycle cost across Low, Medium, and Nominal load points, corresponding to 0.67, 0.81, and 1.01 req/s on the 4-GPU testbed. Panel (c) reports concrete values for the full primary metric set with the same load labels; TTFT and E2E are in seconds, TPOT is in ms, throughput is in tok/s, and Cost/req is in mUSD. Colors mark within-metric favorability at each load.}
+    \includegraphics[width=\textwidth]{figs/paper/sensitivity/fig8_load_sensitivity_trends.pdf}
+    \caption{Operating-load sensitivity on the representative Llama-2 7B workload. Panels (a) and (b) compare all five systems on CE and lifecycle cost across average replay rates of 0.67, 0.81, and 1.01 req/s on the fixed 4-GPU testbed. These rates are deployment-local replay intensities for the measured four-GPU setup rather than fleet-wide production QPS.}
     \label{fig:load_sensitivity}
 \end{figure*}
 
 \IfFileExists{figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}{\input{figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}}{\input{../figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}}
 
-Figure~\ref{fig:load_sensitivity} and Table~\ref{tab:load_sensitivity_metrics} report the operating-load sensitivity for the same 4000-request, 500-adapter Llama-2 7B workload family. Across the low-load, medium-load, and nominal-load points, PrimeLoRA has the highest CE among all five systems. This does not mean that PrimeLoRA dominates every latency metric: Panel (c) shows the corresponding TTFT, E2E, TPOT, and throughput values, where SGLang remains the lower-latency always-on runtime. Instead, PrimeLoRA's lower lifecycle cost compensates for the serverless readiness overhead and yields a better integrated latency--cost tradeoff in the intended operating region.
+Figure~\ref{fig:load_sensitivity} and Table~\ref{tab:load_sensitivity_metrics} report the operating-load sensitivity for the same 4000-request, 500-adapter Llama-2 7B workload family. The replay rates are measured on the fixed four-GPU testbed, where each request carries long Azure-derived token sequences and targets a LoRA adapter; they should therefore be interpreted as per-deployment offered load for this hardware budget, not as aggregate fleet traffic. Across all three replay rates, PrimeLoRA has the highest CE among all five systems. This does not mean that PrimeLoRA dominates every latency metric: Table~\ref{tab:load_sensitivity_metrics} shows the corresponding TTFT, E2E, TPOT, and throughput values, where SGLang remains the lower-latency always-on runtime. Instead, PrimeLoRA's lower lifecycle cost compensates for the serverless readiness overhead and yields a better integrated latency--cost tradeoff in the intended operating region.
 ```
 
 ### 修改原因
@@ -383,7 +386,39 @@ Figure~\ref{fig:load_sensitivity} and Table~\ref{tab:load_sensitivity_metrics} r
 Throughput、Cost/req 和 CE。正文结论固定为“operating region 下综合 CE 更好”，
 不写成“serverless 延迟全面超过 serverful”。
 
-## 10. 最终写作提醒
+## 10. Evaluation 插入 Adapter-Pool Sensitivity
+
+### 插入位置
+
+放在 Operating-Load Sensitivity 小节之后；如果主文篇幅紧，可只保留图，
+把配套完整主指标表放到 appendix。
+
+### 插入片段
+
+```latex
+\subsection{Adapter-Pool Sensitivity}
+
+\textbf{Question.}
+Does the latency--cost tradeoff remain favorable as the adapter universe grows?
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figs/paper/sensitivity/fig9_adapter_pool_sensitivity.pdf}
+    \caption{Adapter-pool sensitivity on the representative Llama-2 7B workload. Each point uses 4,000 requests, the same replay scale, 100\% LoRA-bound requests, Zipf adapter popularity, and hot-set rotation every 500 requests.}
+    \label{fig:adapter_pool_sensitivity}
+\end{figure}
+
+Figure~\ref{fig:adapter_pool_sensitivity} varies the adapter pool from 100 to 500 adapters while keeping the replay length, popularity skew, time scale, and rotation interval fixed. PrimeLoRA keeps the best CE across all adapter-pool sizes and maintains a lower lifecycle cost per request than the always-on runtimes. The trend is consistent with the motivation: as the adapter universe grows, useful locality becomes more transient and must be coordinated with routing and scale-out rather than treated as a static cache property. The full primary-metric audit for this sensitivity is generated with the figure and can be placed in the appendix if space permits.
+```
+
+### 修改原因
+
+S-LoRA 等 multi-LoRA 系统论文经常用 adapter 数量/请求率作为横轴展示扩展性。
+当前 Fig. 9 只画 CE 与 Cost/req 两个主趋势，避免单栏图过密；配套
+`table_fig9_adapter_pool_sensitivity_metrics.tex` 列出 TTFT avg/p95、E2E avg/p95、
+TPOT avg/p95、Throughput、Cost/req 和 CE，满足完整主指标审计。
+
+## 11. 最终写作提醒
 
 - `IEEEtran` 可以继续用于当前草稿，但如果投稿 EuroSys，应最终切换到 EuroSys
   提供的模板；本文档的片段不依赖 IEEE 专有命令。

@@ -30,20 +30,36 @@ The operating-load sensitivity queue completed successfully inside tmux.
 - combined with the existing s8 main point, Fig. 8 is retained as
   operating-load CE/cost-latency sensitivity.
 
-## Next Queue: 07_sensitivity_adapter_pool
+## Completed Queue: 07_sensitivity_adapter_pool
 
-Adapter-pool sensitivity is now prepared as the next long-running queue.
+Adapter-pool sensitivity has completed and is now available as Fig. 9 candidate data.
 
-- active tmux session: `paper_adapter_pool_p0`.
+- tmux session: `paper_adapter_pool_p0` has exited.
 - queue id: `20260428_095850_adapter_pool_p0`.
 - queue profile: `adapter_pool_p0`.
 - section: `07_sensitivity_adapter_pool`.
 - systems: `sglang serverlessllm vllm slora faaslora`.
-- points: `a100/hot16`, `a200/hot24`, `a300/hot32`, `a400/hot40`.
+- completed points: `a100/hot16`, `a200/hot24`, `a300/hot32`, `a400/hot40`.
 - right endpoint: reuse the closed Llama-2 7B `a500/hot48/s8` main round unless
   `adapter_pool_full_p0` is explicitly requested.
+- generated figure:
+  `/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig9_adapter_pool_sensitivity.pdf`.
+- generated full-metric table:
+  `/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/table_fig9_adapter_pool_sensitivity_metrics.tex`.
+
+## Next Queue: 08_backbone_robustness
+
+Backbone robustness is the next appropriate long-running experiment once the
+current Llama-2 7B figure set is stable.
+
+- queue profile: `backbone_robustness_p0`.
 - convenience script:
-  `/home/qhq/serverless_llm_baselines/scripts/run_paper_adapter_pool_queue.sh`.
+  `/home/qhq/serverless_llm_baselines/scripts/run_paper_backbone_robustness_queue.sh`.
+- planned points:
+  - `qwen2p5_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_backbone_v1`
+  - `llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_backbone_v1`
+  - `qwen2p5_14b_r4000_a500_seed42_z1p0_hot48_rot500_s8_backbone_v1`
+- dry-run status: passed on 2026-04-29; no GPU work was launched.
 
 ## Current Paper Baselines
 
@@ -81,15 +97,16 @@ profiles; restore read access or keep launching from the same absolute paths.
 
 1. Do not rerun the completed operating-load queue unless a concrete audit issue
    is found.
-2. Run `07_sensitivity_adapter_pool` next to test whether the CE/cost-latency
-   story remains stable as the adapter universe grows.
-3. After adapter-pool sensitivity, extend the same runner to other backbone
-   profiles rather than manually running systems one by one.
+2. Use Fig. 9 to report adapter-pool sensitivity if space permits; otherwise
+   move it to appendix with its full-metric table.
+3. Run `08_backbone_robustness` next to test whether the CE/cost-latency story
+   generalizes beyond Llama-2 7B.
 4. Do not reopen FaaSLoRA system optimization unless cross-system logs expose a
    root-cause issue in the FaaSLoRA causal chain.
-5. Fig. 8 now uses `s12/s10/s8` operating-load points. It should be written as
-   a CE/cost-latency tradeoff result: PrimeLoRA has the highest CE at all three
-   operating points, while SGLang remains the lower-latency always-on runtime.
+5. Fig. 8 now uses `s12/s10/s8` operating-load points and labels them by direct
+   4-GPU replay rate. It should be written as a CE/cost-latency tradeoff result:
+   PrimeLoRA has the highest CE at all three operating points, while SGLang
+   remains the lower-latency always-on runtime.
 
 ## Latest Verified FaaSLoRA Closure
 
@@ -146,6 +163,12 @@ Current Fig. 5 interpretation:
 - The same data show about `1.44x` CE over vLLM and about `79x` over the
   current general ServerlessLLM baseline. Do not replace this with older
   500-request smoke or two-system debug comparisons.
+- ServerlessLLM's very low CE in the main round is not a missing-result artifact:
+  it completed `4000/4000` requests with `fail=0`; service TTFT was only about
+  `418 ms`, while dispatch/admission wait averaged about `235.6 s`. The
+  adapter-pool `a400` round repeats the same pattern (`407 ms` service TTFT,
+  `236.6 s` dispatch/admission wait), so rerunning is not the next priority
+  unless a harness-level root cause is found.
 
 ## Current Paper Figure Boundary
 

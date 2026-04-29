@@ -395,14 +395,28 @@ Does the latency--cost tradeoff remain favorable as the replay rate changes with
 
 \begin{figure*}[t]
     \centering
-    \includegraphics[width=\textwidth]{figs/paper/sensitivity/fig8_load_sensitivity.pdf}
-    \caption{Operating-load sensitivity on the representative Llama-2 7B workload. Panels (a) and (b) compare all five systems on CE and lifecycle cost across Low, Medium, and Nominal load points, corresponding to 0.67, 0.81, and 1.01 req/s on the 4-GPU testbed. Panel (c) reports concrete values for the full primary metric set with the same load labels; TTFT and E2E are in seconds, TPOT is in ms, throughput is in tok/s, and Cost/req is in mUSD. Colors mark within-metric favorability at each load.}
+    \includegraphics[width=\textwidth]{figs/paper/sensitivity/fig8_load_sensitivity_trends.pdf}
+    \caption{Operating-load sensitivity on the representative Llama-2 7B workload. Panels (a) and (b) compare all five systems on CE and lifecycle cost across average replay rates of 0.67, 0.81, and 1.01 req/s on the fixed 4-GPU testbed. These rates are deployment-local replay intensities for the measured four-GPU setup rather than fleet-wide production QPS.}
     \label{fig:load_sensitivity}
 \end{figure*}
 
 \IfFileExists{figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}{\input{figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}}{\input{../figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex}}
 
-Figure~\ref{fig:load_sensitivity} and Table~\ref{tab:load_sensitivity_metrics} report the operating-load sensitivity for the same 4000-request, 500-adapter Llama-2 7B workload family. Across the low-load, medium-load, and nominal-load points, PrimeLoRA has the highest CE among all five systems. This does not mean that PrimeLoRA dominates every latency metric: Panel (c) shows the corresponding TTFT, E2E, TPOT, and throughput values at each load point, where SGLang remains the lower-latency always-on runtime. Instead, PrimeLoRA's lower lifecycle cost compensates for the serverless readiness overhead and yields a better integrated latency--cost tradeoff in the intended operating region.
+Figure~\ref{fig:load_sensitivity} and Table~\ref{tab:load_sensitivity_metrics} report the operating-load sensitivity for the same 4000-request, 500-adapter Llama-2 7B workload family. The replay rates are measured on the fixed four-GPU testbed, where each request carries long Azure-derived token sequences and targets a LoRA adapter; they should therefore be interpreted as per-deployment offered load for this hardware budget, not as aggregate fleet traffic. Across all three replay rates, PrimeLoRA has the highest CE among all five systems. This does not mean that PrimeLoRA dominates every latency metric: Table~\ref{tab:load_sensitivity_metrics} shows the corresponding TTFT, E2E, TPOT, and throughput values at each load point, where SGLang remains the lower-latency always-on runtime. Instead, PrimeLoRA's lower lifecycle cost compensates for the serverless readiness overhead and yields a better integrated latency--cost tradeoff in the intended operating region.
+
+\subsection{Adapter-Pool Sensitivity}
+
+\textbf{Question.}
+Does the latency--cost tradeoff remain favorable as the adapter universe grows?
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figs/paper/sensitivity/fig9_adapter_pool_sensitivity.pdf}
+    \caption{Adapter-pool sensitivity on the representative Llama-2 7B workload. Each point uses 4,000 requests, the same replay scale, 100\% LoRA-bound requests, Zipf adapter popularity, and hot-set rotation every 500 requests.}
+    \label{fig:adapter_pool_sensitivity}
+\end{figure}
+
+Figure~\ref{fig:adapter_pool_sensitivity} varies the adapter pool from 100 to 500 adapters while keeping the replay length, popularity skew, time scale, and rotation interval fixed. PrimeLoRA keeps the best CE across all adapter-pool sizes and maintains a lower lifecycle cost per request than the always-on runtimes. The trend is consistent with the motivation: as the adapter universe grows, useful locality becomes more transient and must be coordinated with routing and scale-out rather than treated as a static cache property. The full primary-metric audit for this sensitivity is generated with the figure and can be placed in the appendix if space permits.
 
 \section{Related Work}
 

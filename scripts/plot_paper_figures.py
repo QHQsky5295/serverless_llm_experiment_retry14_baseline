@@ -1255,7 +1255,7 @@ def plot_fig6(round_dir: Path, out_dir: Path) -> None:
         ("LoRA I/O\n(ms)", "lora_io_ms", False, 1.0, "{:.2f}"),
         ("Cost/req\nmUSD", "cost_per_req_usd", False, 1000.0, "{:.3f}"),
         ("Throughput\n(tok/s)", "tok_s", True, 1.0, "{:.1f}"),
-        ("CE", "ce", True, 1.0, "{:.1f}"),
+        ("CE\n$1/(\\bar{L}\\bar{C})$", "ce", True, 1.0, "{:.1f}"),
     ]
     fig, axes = plt.subplots(2, 1, figsize=(3.45, 2.55), constrained_layout=False)
     _draw_ablation_metric_matrix(axes[0], rows, reference, latency_metric_specs)

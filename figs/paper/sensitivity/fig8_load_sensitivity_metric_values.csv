@@ -1,136 +1,136 @@
 system_key,system,time_scale,load,load_rate_req_s,metric,metric_label,direction,display_unit,display_value,display_text,color_rank_within_metric_load
-faaslora,PrimeLoRA,12.0,Low,0.6727,ce,CE,higher_is_better,native,106.065404,106.065,1
-faaslora,PrimeLoRA,10.0,Medium,0.8072,ce,CE,higher_is_better,native,116.946652,116.947,1
-faaslora,PrimeLoRA,8.0,Nominal,1.009,ce,CE,higher_is_better,native,123.02045,123.020,1
-sglang,SGLang,12.0,Low,0.6727,ce,CE,higher_is_better,native,81.873,81.873,2
-sglang,SGLang,10.0,Medium,0.8072,ce,CE,higher_is_better,native,95.8887,95.889,2
-sglang,SGLang,8.0,Nominal,1.009,ce,CE,higher_is_better,native,115.2768,115.277,2
-vllm,vLLM,12.0,Low,0.6727,ce,CE,higher_is_better,native,62.7644,62.764,3
-vllm,vLLM,10.0,Medium,0.8072,ce,CE,higher_is_better,native,71.5178,71.518,3
-vllm,vLLM,8.0,Nominal,1.009,ce,CE,higher_is_better,native,85.2015,85.201,3
-slora,S-LoRA,12.0,Low,0.6727,ce,CE,higher_is_better,native,47.2329,47.233,4
-slora,S-LoRA,10.0,Medium,0.8072,ce,CE,higher_is_better,native,45.6691,45.669,4
-slora,S-LoRA,8.0,Nominal,1.009,ce,CE,higher_is_better,native,75.2993,75.299,4
-serverlessllm,ServerlessLLM,12.0,Low,0.6727,ce,CE,higher_is_better,native,22.8265,22.826,5
-serverlessllm,ServerlessLLM,10.0,Medium,0.8072,ce,CE,higher_is_better,native,8.195,8.195,5
-serverlessllm,ServerlessLLM,8.0,Nominal,1.009,ce,CE,higher_is_better,native,1.5604,1.560,5
-faaslora,PrimeLoRA,12.0,Low,0.6727,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,3.1137,3.114,1
-faaslora,PrimeLoRA,10.0,Medium,0.8072,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,2.8178,2.818,1
-faaslora,PrimeLoRA,8.0,Nominal,1.009,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,2.56652,2.567,1
-sglang,SGLang,12.0,Low,0.6727,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,5.2438,5.244,3
-sglang,SGLang,10.0,Medium,0.8072,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,4.4401,4.440,3
-sglang,SGLang,8.0,Nominal,1.009,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,3.6376999999999997,3.638,3
-vllm,vLLM,12.0,Low,0.6727,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,5.2745,5.274,4
-vllm,vLLM,10.0,Medium,0.8072,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,4.4456,4.446,4
-vllm,vLLM,8.0,Nominal,1.009,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,3.6413,3.641,4
-slora,S-LoRA,12.0,Low,0.6727,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,5.3621,5.362,5
-slora,S-LoRA,10.0,Medium,0.8072,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,4.5288,4.529,5
-slora,S-LoRA,8.0,Nominal,1.009,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,3.698,3.698,5
-serverlessllm,ServerlessLLM,12.0,Low,0.6727,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,3.2482,3.248,2
-serverlessllm,ServerlessLLM,10.0,Medium,0.8072,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,2.9537,2.954,2
-serverlessllm,ServerlessLLM,8.0,Nominal,1.009,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,2.6860999999999997,2.686,2
-faaslora,PrimeLoRA,12.0,Low,0.6727,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.5025155,0.503,3
-faaslora,PrimeLoRA,10.0,Medium,0.8072,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.49743630000000005,0.497,3
-faaslora,PrimeLoRA,8.0,Nominal,1.009,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.5639507,0.564,4
-sglang,SGLang,12.0,Low,0.6727,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.22866999999999998,0.229,1
-sglang,SGLang,10.0,Medium,0.8072,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.22878,0.229,1
-sglang,SGLang,8.0,Nominal,1.009,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.2298,0.230,1
-vllm,vLLM,12.0,Low,0.6727,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.40842,0.408,2
-vllm,vLLM,10.0,Medium,0.8072,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.49528,0.495,2
-vllm,vLLM,8.0,Nominal,1.009,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.51736,0.517,3
-slora,S-LoRA,12.0,Low,0.6727,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.5603600000000001,0.560,4
-slora,S-LoRA,10.0,Medium,0.8072,ttft_avg_ms,TTFT avg (s),lower_is_better,s,1.31759,1.318,4
-slora,S-LoRA,8.0,Nominal,1.009,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.28423000000000004,0.284,2
-serverlessllm,ServerlessLLM,12.0,Low,0.6727,ttft_avg_ms,TTFT avg (s),lower_is_better,s,10.95013,10.950,5
-serverlessllm,ServerlessLLM,10.0,Medium,0.8072,ttft_avg_ms,TTFT avg (s),lower_is_better,s,38.76463,38.765,5
-serverlessllm,ServerlessLLM,8.0,Nominal,1.009,ttft_avg_ms,TTFT avg (s),lower_is_better,s,235.99866,235.999,5
-faaslora,PrimeLoRA,12.0,Low,0.6727,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.7802508,0.780,3
-faaslora,PrimeLoRA,10.0,Medium,0.8072,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.7916032000000001,0.792,2
-faaslora,PrimeLoRA,8.0,Nominal,1.009,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,1.0154881,1.015,3
-sglang,SGLang,12.0,Low,0.6727,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.30067000000000005,0.301,1
-sglang,SGLang,10.0,Medium,0.8072,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.30221,0.302,1
-sglang,SGLang,8.0,Nominal,1.009,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.30521,0.305,1
-vllm,vLLM,12.0,Low,0.6727,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.5272,0.527,2
-vllm,vLLM,10.0,Medium,0.8072,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.91298,0.913,3
-vllm,vLLM,8.0,Nominal,1.009,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,1.28475,1.285,4
-slora,S-LoRA,12.0,Low,0.6727,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.82684,0.827,4
-slora,S-LoRA,10.0,Medium,0.8072,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,1.70252,1.703,4
-slora,S-LoRA,8.0,Nominal,1.009,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.41933,0.419,2
-serverlessllm,ServerlessLLM,12.0,Low,0.6727,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,40.935120000000005,40.935,5
-serverlessllm,ServerlessLLM,10.0,Medium,0.8072,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,102.11417999999999,102.114,5
-serverlessllm,ServerlessLLM,8.0,Nominal,1.009,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,469.50174,469.502,5
-faaslora,PrimeLoRA,12.0,Low,0.6727,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.0279569000000004,3.028,3
-faaslora,PrimeLoRA,10.0,Medium,0.8072,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.0346053000000004,3.035,2
-faaslora,PrimeLoRA,8.0,Nominal,1.009,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.1672217000000003,3.167,2
-sglang,SGLang,12.0,Low,0.6727,e2e_avg_ms,E2E avg (s),lower_is_better,s,2.32924,2.329,1
-sglang,SGLang,10.0,Medium,0.8072,e2e_avg_ms,E2E avg (s),lower_is_better,s,2.34877,2.349,1
-sglang,SGLang,8.0,Nominal,1.009,e2e_avg_ms,E2E avg (s),lower_is_better,s,2.38469,2.385,1
-vllm,vLLM,12.0,Low,0.6727,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.0207100000000002,3.021,2
-vllm,vLLM,10.0,Medium,0.8072,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.1452600000000004,3.145,3
-vllm,vLLM,8.0,Nominal,1.009,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.22325,3.223,3
-slora,S-LoRA,12.0,Low,0.6727,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.94842,3.948,4
-slora,S-LoRA,10.0,Medium,0.8072,e2e_avg_ms,E2E avg (s),lower_is_better,s,4.83493,4.835,4
-slora,S-LoRA,8.0,Nominal,1.009,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.59119,3.591,4
-serverlessllm,ServerlessLLM,12.0,Low,0.6727,e2e_avg_ms,E2E avg (s),lower_is_better,s,13.48691,13.487,5
-serverlessllm,ServerlessLLM,10.0,Medium,0.8072,e2e_avg_ms,E2E avg (s),lower_is_better,s,41.31266,41.313,5
-serverlessllm,ServerlessLLM,8.0,Nominal,1.009,e2e_avg_ms,E2E avg (s),lower_is_better,s,238.58098999999999,238.581,5
-faaslora,PrimeLoRA,12.0,Low,0.6727,e2e_p95_ms,E2E p95 (s),lower_is_better,s,6.9101221,6.910,2
-faaslora,PrimeLoRA,10.0,Medium,0.8072,e2e_p95_ms,E2E p95 (s),lower_is_better,s,6.9979896,6.998,2
-faaslora,PrimeLoRA,8.0,Nominal,1.009,e2e_p95_ms,E2E p95 (s),lower_is_better,s,7.206746,7.207,2
-sglang,SGLang,12.0,Low,0.6727,e2e_p95_ms,E2E p95 (s),lower_is_better,s,5.52494,5.525,1
-sglang,SGLang,10.0,Medium,0.8072,e2e_p95_ms,E2E p95 (s),lower_is_better,s,5.55711,5.557,1
-sglang,SGLang,8.0,Nominal,1.009,e2e_p95_ms,E2E p95 (s),lower_is_better,s,5.6195200000000005,5.620,1
-vllm,vLLM,12.0,Low,0.6727,e2e_p95_ms,E2E p95 (s),lower_is_better,s,7.06408,7.064,3
-vllm,vLLM,10.0,Medium,0.8072,e2e_p95_ms,E2E p95 (s),lower_is_better,s,7.27193,7.272,3
-vllm,vLLM,8.0,Nominal,1.009,e2e_p95_ms,E2E p95 (s),lower_is_better,s,7.39107,7.391,3
-slora,S-LoRA,12.0,Low,0.6727,e2e_p95_ms,E2E p95 (s),lower_is_better,s,8.53416,8.534,4
-slora,S-LoRA,10.0,Medium,0.8072,e2e_p95_ms,E2E p95 (s),lower_is_better,s,9.59396,9.594,4
-slora,S-LoRA,8.0,Nominal,1.009,e2e_p95_ms,E2E p95 (s),lower_is_better,s,8.08107,8.081,4
-serverlessllm,ServerlessLLM,12.0,Low,0.6727,e2e_p95_ms,E2E p95 (s),lower_is_better,s,42.86456,42.865,5
-serverlessllm,ServerlessLLM,10.0,Medium,0.8072,e2e_p95_ms,E2E p95 (s),lower_is_better,s,104.41345,104.413,5
-serverlessllm,ServerlessLLM,8.0,Nominal,1.009,e2e_p95_ms,E2E p95 (s),lower_is_better,s,472.47371999999996,472.474,5
-faaslora,PrimeLoRA,12.0,Low,0.6727,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,27.1887,27.189,4
-faaslora,PrimeLoRA,10.0,Medium,0.8072,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,27.5351,27.535,4
-faaslora,PrimeLoRA,8.0,Nominal,1.009,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,28.6274,28.627,5
-sglang,SGLang,12.0,Low,0.6727,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,19.51,19.510,1
-sglang,SGLang,10.0,Medium,0.8072,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,19.6,19.600,1
-sglang,SGLang,8.0,Nominal,1.009,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,19.96,19.960,1
-vllm,vLLM,12.0,Low,0.6727,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,25.73,25.730,3
-vllm,vLLM,10.0,Medium,0.8072,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,26.03,26.030,3
-vllm,vLLM,8.0,Nominal,1.009,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,26.57,26.570,3
-slora,S-LoRA,12.0,Low,0.6727,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,29.24,29.240,5
-slora,S-LoRA,10.0,Medium,0.8072,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,31.49,31.490,5
-slora,S-LoRA,8.0,Nominal,1.009,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,28.52,28.520,4
-serverlessllm,ServerlessLLM,12.0,Low,0.6727,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,24.89,24.890,2
-serverlessllm,ServerlessLLM,10.0,Medium,0.8072,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,24.97,24.970,2
-serverlessllm,ServerlessLLM,8.0,Nominal,1.009,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,25.16,25.160,2
-faaslora,PrimeLoRA,12.0,Low,0.6727,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,33.75192399576511,33.752,4
-faaslora,PrimeLoRA,10.0,Medium,0.8072,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,34.16275782558826,34.163,4
-faaslora,PrimeLoRA,8.0,Nominal,1.009,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,39.44787753946742,39.448,5
-sglang,SGLang,12.0,Low,0.6727,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,21.595374523494648,21.595,1
-sglang,SGLang,10.0,Medium,0.8072,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,22.031796542444226,22.032,1
-sglang,SGLang,8.0,Nominal,1.009,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,23.05333501118598,23.053,1
-vllm,vLLM,12.0,Low,0.6727,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,28.02249596598644,28.022,3
-vllm,vLLM,10.0,Medium,0.8072,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,28.9229960035256,28.923,3
-vllm,vLLM,8.0,Nominal,1.009,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,29.762221684344397,29.762,3
-slora,S-LoRA,12.0,Low,0.6727,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,36.42494975344156,36.425,5
-slora,S-LoRA,10.0,Medium,0.8072,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,50.83869214852685,50.839,5
-slora,S-LoRA,8.0,Nominal,1.009,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,34.39981667579559,34.400,4
-serverlessllm,ServerlessLLM,12.0,Low,0.6727,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,26.62789503733317,26.628,2
-serverlessllm,ServerlessLLM,10.0,Medium,0.8072,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,26.63729389508565,26.637,2
-serverlessllm,ServerlessLLM,8.0,Nominal,1.009,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,26.873626358368817,26.874,2
-faaslora,PrimeLoRA,12.0,Low,0.6727,tok_s,Throughput (tok/s),higher_is_better,tok/s,68.321518,68.322,5
-faaslora,PrimeLoRA,10.0,Medium,0.8072,tok_s,Throughput (tok/s),higher_is_better,tok/s,81.851896,81.852,5
-faaslora,PrimeLoRA,8.0,Nominal,1.009,tok_s,Throughput (tok/s),higher_is_better,tok/s,102.750526,102.751,4
-sglang,SGLang,12.0,Low,0.6727,tok_s,Throughput (tok/s),higher_is_better,tok/s,70.172,70.172,2
-sglang,SGLang,10.0,Medium,0.8072,tok_s,Throughput (tok/s),higher_is_better,tok/s,84.428,84.428,2
-sglang,SGLang,8.0,Nominal,1.009,tok_s,Throughput (tok/s),higher_is_better,tok/s,105.597,105.597,2
-vllm,vLLM,12.0,Low,0.6727,tok_s,Throughput (tok/s),higher_is_better,tok/s,69.719,69.719,3
-vllm,vLLM,10.0,Medium,0.8072,tok_s,Throughput (tok/s),higher_is_better,tok/s,83.646,83.646,3
-vllm,vLLM,8.0,Nominal,1.009,tok_s,Throughput (tok/s),higher_is_better,tok/s,104.539,104.539,3
-slora,S-LoRA,12.0,Low,0.6727,tok_s,Throughput (tok/s),higher_is_better,tok/s,77.568,77.568,1
-slora,S-LoRA,10.0,Medium,0.8072,tok_s,Throughput (tok/s),higher_is_better,tok/s,92.481,92.481,1
-slora,S-LoRA,8.0,Nominal,1.009,tok_s,Throughput (tok/s),higher_is_better,tok/s,116.483,116.483,1
-serverlessllm,ServerlessLLM,12.0,Low,0.6727,tok_s,Throughput (tok/s),higher_is_better,tok/s,68.833,68.833,4
-serverlessllm,ServerlessLLM,10.0,Medium,0.8072,tok_s,Throughput (tok/s),higher_is_better,tok/s,82.491,82.491,4
-serverlessllm,ServerlessLLM,8.0,Nominal,1.009,tok_s,Throughput (tok/s),higher_is_better,tok/s,98.427,98.427,5
+faaslora,PrimeLoRA,12.0,0.67,0.6727,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,106.065404,106.065,1
+faaslora,PrimeLoRA,10.0,0.81,0.8072,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,116.946652,116.947,1
+faaslora,PrimeLoRA,8.0,1.01,1.009,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,123.02045,123.020,1
+sglang,SGLang,12.0,0.67,0.6727,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,81.873,81.873,2
+sglang,SGLang,10.0,0.81,0.8072,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,95.8887,95.889,2
+sglang,SGLang,8.0,1.01,1.009,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,115.2768,115.277,2
+vllm,vLLM,12.0,0.67,0.6727,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,62.7644,62.764,3
+vllm,vLLM,10.0,0.81,0.8072,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,71.5178,71.518,3
+vllm,vLLM,8.0,1.01,1.009,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,85.2015,85.201,3
+slora,S-LoRA,12.0,0.67,0.6727,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,47.2329,47.233,4
+slora,S-LoRA,10.0,0.81,0.8072,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,45.6691,45.669,4
+slora,S-LoRA,8.0,1.01,1.009,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,75.2993,75.299,4
+serverlessllm,ServerlessLLM,12.0,0.67,0.6727,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,22.8265,22.826,5
+serverlessllm,ServerlessLLM,10.0,0.81,0.8072,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,8.195,8.195,5
+serverlessllm,ServerlessLLM,8.0,1.01,1.009,ce,CE $1/(\bar{L}\bar{C})$,higher_is_better,native,1.5604,1.560,5
+faaslora,PrimeLoRA,12.0,0.67,0.6727,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,3.1137,3.114,1
+faaslora,PrimeLoRA,10.0,0.81,0.8072,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,2.8178,2.818,1
+faaslora,PrimeLoRA,8.0,1.01,1.009,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,2.56652,2.567,1
+sglang,SGLang,12.0,0.67,0.6727,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,5.2438,5.244,3
+sglang,SGLang,10.0,0.81,0.8072,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,4.4401,4.440,3
+sglang,SGLang,8.0,1.01,1.009,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,3.6376999999999997,3.638,3
+vllm,vLLM,12.0,0.67,0.6727,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,5.2745,5.274,4
+vllm,vLLM,10.0,0.81,0.8072,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,4.4456,4.446,4
+vllm,vLLM,8.0,1.01,1.009,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,3.6413,3.641,4
+slora,S-LoRA,12.0,0.67,0.6727,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,5.3621,5.362,5
+slora,S-LoRA,10.0,0.81,0.8072,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,4.5288,4.529,5
+slora,S-LoRA,8.0,1.01,1.009,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,3.698,3.698,5
+serverlessllm,ServerlessLLM,12.0,0.67,0.6727,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,3.2482,3.248,2
+serverlessllm,ServerlessLLM,10.0,0.81,0.8072,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,2.9537,2.954,2
+serverlessllm,ServerlessLLM,8.0,1.01,1.009,cost_req_usd,Cost (mUSD),lower_is_better,milli-USD,2.6860999999999997,2.686,2
+faaslora,PrimeLoRA,12.0,0.67,0.6727,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.5025155,0.503,3
+faaslora,PrimeLoRA,10.0,0.81,0.8072,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.49743630000000005,0.497,3
+faaslora,PrimeLoRA,8.0,1.01,1.009,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.5639507,0.564,4
+sglang,SGLang,12.0,0.67,0.6727,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.22866999999999998,0.229,1
+sglang,SGLang,10.0,0.81,0.8072,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.22878,0.229,1
+sglang,SGLang,8.0,1.01,1.009,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.2298,0.230,1
+vllm,vLLM,12.0,0.67,0.6727,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.40842,0.408,2
+vllm,vLLM,10.0,0.81,0.8072,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.49528,0.495,2
+vllm,vLLM,8.0,1.01,1.009,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.51736,0.517,3
+slora,S-LoRA,12.0,0.67,0.6727,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.5603600000000001,0.560,4
+slora,S-LoRA,10.0,0.81,0.8072,ttft_avg_ms,TTFT avg (s),lower_is_better,s,1.31759,1.318,4
+slora,S-LoRA,8.0,1.01,1.009,ttft_avg_ms,TTFT avg (s),lower_is_better,s,0.28423000000000004,0.284,2
+serverlessllm,ServerlessLLM,12.0,0.67,0.6727,ttft_avg_ms,TTFT avg (s),lower_is_better,s,10.95013,10.950,5
+serverlessllm,ServerlessLLM,10.0,0.81,0.8072,ttft_avg_ms,TTFT avg (s),lower_is_better,s,38.76463,38.765,5
+serverlessllm,ServerlessLLM,8.0,1.01,1.009,ttft_avg_ms,TTFT avg (s),lower_is_better,s,235.99866,235.999,5
+faaslora,PrimeLoRA,12.0,0.67,0.6727,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.7802508,0.780,3
+faaslora,PrimeLoRA,10.0,0.81,0.8072,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.7916032000000001,0.792,2
+faaslora,PrimeLoRA,8.0,1.01,1.009,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,1.0154881,1.015,3
+sglang,SGLang,12.0,0.67,0.6727,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.30067000000000005,0.301,1
+sglang,SGLang,10.0,0.81,0.8072,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.30221,0.302,1
+sglang,SGLang,8.0,1.01,1.009,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.30521,0.305,1
+vllm,vLLM,12.0,0.67,0.6727,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.5272,0.527,2
+vllm,vLLM,10.0,0.81,0.8072,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.91298,0.913,3
+vllm,vLLM,8.0,1.01,1.009,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,1.28475,1.285,4
+slora,S-LoRA,12.0,0.67,0.6727,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.82684,0.827,4
+slora,S-LoRA,10.0,0.81,0.8072,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,1.70252,1.703,4
+slora,S-LoRA,8.0,1.01,1.009,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,0.41933,0.419,2
+serverlessllm,ServerlessLLM,12.0,0.67,0.6727,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,40.935120000000005,40.935,5
+serverlessllm,ServerlessLLM,10.0,0.81,0.8072,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,102.11417999999999,102.114,5
+serverlessllm,ServerlessLLM,8.0,1.01,1.009,ttft_p95_ms,TTFT p95 (s),lower_is_better,s,469.50174,469.502,5
+faaslora,PrimeLoRA,12.0,0.67,0.6727,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.0279569000000004,3.028,3
+faaslora,PrimeLoRA,10.0,0.81,0.8072,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.0346053000000004,3.035,2
+faaslora,PrimeLoRA,8.0,1.01,1.009,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.1672217000000003,3.167,2
+sglang,SGLang,12.0,0.67,0.6727,e2e_avg_ms,E2E avg (s),lower_is_better,s,2.32924,2.329,1
+sglang,SGLang,10.0,0.81,0.8072,e2e_avg_ms,E2E avg (s),lower_is_better,s,2.34877,2.349,1
+sglang,SGLang,8.0,1.01,1.009,e2e_avg_ms,E2E avg (s),lower_is_better,s,2.38469,2.385,1
+vllm,vLLM,12.0,0.67,0.6727,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.0207100000000002,3.021,2
+vllm,vLLM,10.0,0.81,0.8072,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.1452600000000004,3.145,3
+vllm,vLLM,8.0,1.01,1.009,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.22325,3.223,3
+slora,S-LoRA,12.0,0.67,0.6727,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.94842,3.948,4
+slora,S-LoRA,10.0,0.81,0.8072,e2e_avg_ms,E2E avg (s),lower_is_better,s,4.83493,4.835,4
+slora,S-LoRA,8.0,1.01,1.009,e2e_avg_ms,E2E avg (s),lower_is_better,s,3.59119,3.591,4
+serverlessllm,ServerlessLLM,12.0,0.67,0.6727,e2e_avg_ms,E2E avg (s),lower_is_better,s,13.48691,13.487,5
+serverlessllm,ServerlessLLM,10.0,0.81,0.8072,e2e_avg_ms,E2E avg (s),lower_is_better,s,41.31266,41.313,5
+serverlessllm,ServerlessLLM,8.0,1.01,1.009,e2e_avg_ms,E2E avg (s),lower_is_better,s,238.58098999999999,238.581,5
+faaslora,PrimeLoRA,12.0,0.67,0.6727,e2e_p95_ms,E2E p95 (s),lower_is_better,s,6.9101221,6.910,2
+faaslora,PrimeLoRA,10.0,0.81,0.8072,e2e_p95_ms,E2E p95 (s),lower_is_better,s,6.9979896,6.998,2
+faaslora,PrimeLoRA,8.0,1.01,1.009,e2e_p95_ms,E2E p95 (s),lower_is_better,s,7.206746,7.207,2
+sglang,SGLang,12.0,0.67,0.6727,e2e_p95_ms,E2E p95 (s),lower_is_better,s,5.52494,5.525,1
+sglang,SGLang,10.0,0.81,0.8072,e2e_p95_ms,E2E p95 (s),lower_is_better,s,5.55711,5.557,1
+sglang,SGLang,8.0,1.01,1.009,e2e_p95_ms,E2E p95 (s),lower_is_better,s,5.6195200000000005,5.620,1
+vllm,vLLM,12.0,0.67,0.6727,e2e_p95_ms,E2E p95 (s),lower_is_better,s,7.06408,7.064,3
+vllm,vLLM,10.0,0.81,0.8072,e2e_p95_ms,E2E p95 (s),lower_is_better,s,7.27193,7.272,3
+vllm,vLLM,8.0,1.01,1.009,e2e_p95_ms,E2E p95 (s),lower_is_better,s,7.39107,7.391,3
+slora,S-LoRA,12.0,0.67,0.6727,e2e_p95_ms,E2E p95 (s),lower_is_better,s,8.53416,8.534,4
+slora,S-LoRA,10.0,0.81,0.8072,e2e_p95_ms,E2E p95 (s),lower_is_better,s,9.59396,9.594,4
+slora,S-LoRA,8.0,1.01,1.009,e2e_p95_ms,E2E p95 (s),lower_is_better,s,8.08107,8.081,4
+serverlessllm,ServerlessLLM,12.0,0.67,0.6727,e2e_p95_ms,E2E p95 (s),lower_is_better,s,42.86456,42.865,5
+serverlessllm,ServerlessLLM,10.0,0.81,0.8072,e2e_p95_ms,E2E p95 (s),lower_is_better,s,104.41345,104.413,5
+serverlessllm,ServerlessLLM,8.0,1.01,1.009,e2e_p95_ms,E2E p95 (s),lower_is_better,s,472.47371999999996,472.474,5
+faaslora,PrimeLoRA,12.0,0.67,0.6727,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,27.1887,27.189,4
+faaslora,PrimeLoRA,10.0,0.81,0.8072,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,27.5351,27.535,4
+faaslora,PrimeLoRA,8.0,1.01,1.009,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,28.6274,28.627,5
+sglang,SGLang,12.0,0.67,0.6727,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,19.51,19.510,1
+sglang,SGLang,10.0,0.81,0.8072,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,19.6,19.600,1
+sglang,SGLang,8.0,1.01,1.009,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,19.96,19.960,1
+vllm,vLLM,12.0,0.67,0.6727,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,25.73,25.730,3
+vllm,vLLM,10.0,0.81,0.8072,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,26.03,26.030,3
+vllm,vLLM,8.0,1.01,1.009,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,26.57,26.570,3
+slora,S-LoRA,12.0,0.67,0.6727,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,29.24,29.240,5
+slora,S-LoRA,10.0,0.81,0.8072,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,31.49,31.490,5
+slora,S-LoRA,8.0,1.01,1.009,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,28.52,28.520,4
+serverlessllm,ServerlessLLM,12.0,0.67,0.6727,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,24.89,24.890,2
+serverlessllm,ServerlessLLM,10.0,0.81,0.8072,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,24.97,24.970,2
+serverlessllm,ServerlessLLM,8.0,1.01,1.009,tpot_avg_ms,TPOT avg (ms),lower_is_better,ms,25.16,25.160,2
+faaslora,PrimeLoRA,12.0,0.67,0.6727,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,33.75192399576511,33.752,4
+faaslora,PrimeLoRA,10.0,0.81,0.8072,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,34.16275782558826,34.163,4
+faaslora,PrimeLoRA,8.0,1.01,1.009,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,39.44787753946742,39.448,5
+sglang,SGLang,12.0,0.67,0.6727,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,21.595374523494648,21.595,1
+sglang,SGLang,10.0,0.81,0.8072,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,22.031796542444226,22.032,1
+sglang,SGLang,8.0,1.01,1.009,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,23.05333501118598,23.053,1
+vllm,vLLM,12.0,0.67,0.6727,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,28.02249596598644,28.022,3
+vllm,vLLM,10.0,0.81,0.8072,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,28.9229960035256,28.923,3
+vllm,vLLM,8.0,1.01,1.009,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,29.762221684344397,29.762,3
+slora,S-LoRA,12.0,0.67,0.6727,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,36.42494975344156,36.425,5
+slora,S-LoRA,10.0,0.81,0.8072,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,50.83869214852685,50.839,5
+slora,S-LoRA,8.0,1.01,1.009,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,34.39981667579559,34.400,4
+serverlessllm,ServerlessLLM,12.0,0.67,0.6727,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,26.62789503733317,26.628,2
+serverlessllm,ServerlessLLM,10.0,0.81,0.8072,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,26.63729389508565,26.637,2
+serverlessllm,ServerlessLLM,8.0,1.01,1.009,tpot_p95_ms,TPOT p95 (ms),lower_is_better,ms,26.873626358368817,26.874,2
+faaslora,PrimeLoRA,12.0,0.67,0.6727,tok_s,Throughput (tok/s),higher_is_better,tok/s,68.321518,68.322,5
+faaslora,PrimeLoRA,10.0,0.81,0.8072,tok_s,Throughput (tok/s),higher_is_better,tok/s,81.851896,81.852,5
+faaslora,PrimeLoRA,8.0,1.01,1.009,tok_s,Throughput (tok/s),higher_is_better,tok/s,102.750526,102.751,4
+sglang,SGLang,12.0,0.67,0.6727,tok_s,Throughput (tok/s),higher_is_better,tok/s,70.172,70.172,2
+sglang,SGLang,10.0,0.81,0.8072,tok_s,Throughput (tok/s),higher_is_better,tok/s,84.428,84.428,2
+sglang,SGLang,8.0,1.01,1.009,tok_s,Throughput (tok/s),higher_is_better,tok/s,105.597,105.597,2
+vllm,vLLM,12.0,0.67,0.6727,tok_s,Throughput (tok/s),higher_is_better,tok/s,69.719,69.719,3
+vllm,vLLM,10.0,0.81,0.8072,tok_s,Throughput (tok/s),higher_is_better,tok/s,83.646,83.646,3
+vllm,vLLM,8.0,1.01,1.009,tok_s,Throughput (tok/s),higher_is_better,tok/s,104.539,104.539,3
+slora,S-LoRA,12.0,0.67,0.6727,tok_s,Throughput (tok/s),higher_is_better,tok/s,77.568,77.568,1
+slora,S-LoRA,10.0,0.81,0.8072,tok_s,Throughput (tok/s),higher_is_better,tok/s,92.481,92.481,1
+slora,S-LoRA,8.0,1.01,1.009,tok_s,Throughput (tok/s),higher_is_better,tok/s,116.483,116.483,1
+serverlessllm,ServerlessLLM,12.0,0.67,0.6727,tok_s,Throughput (tok/s),higher_is_better,tok/s,68.833,68.833,4
+serverlessllm,ServerlessLLM,10.0,0.81,0.8072,tok_s,Throughput (tok/s),higher_is_better,tok/s,82.491,82.491,4
+serverlessllm,ServerlessLLM,8.0,1.01,1.009,tok_s,Throughput (tok/s),higher_is_better,tok/s,98.427,98.427,5

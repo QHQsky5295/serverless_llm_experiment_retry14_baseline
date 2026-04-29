@@ -1,0 +1,15 @@
+{
+  "figure": "fig9_adapter_pool_sensitivity",
+  "generated_at_utc": "2026-04-29T03:51:49.520532+00:00",
+  "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig9_adapter_pool_sensitivity.pdf",
+  "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig9_adapter_pool_sensitivity_data.csv",
+  "table_tex": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/table_fig9_adapter_pool_sensitivity_metrics.tex",
+  "round_dirs": [
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/07_sensitivity_adapter_pool/20260428_095850_adapter_pool_p0_llama2_7b_r4000_a100_seed42_z1p0_hot16_rot500_s8_sensadpool_v1",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/07_sensitivity_adapter_pool/20260428_095850_adapter_pool_p0_llama2_7b_r4000_a200_seed42_z1p0_hot24_rot500_s8_sensadpool_v1",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/07_sensitivity_adapter_pool/20260428_095850_adapter_pool_p0_llama2_7b_r4000_a300_seed42_z1p0_hot32_rot500_s8_sensadpool_v1",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/07_sensitivity_adapter_pool/20260428_095850_adapter_pool_p0_llama2_7b_r4000_a400_seed42_z1p0_hot40_rot500_s8_sensadpool_v1",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1"
+  ],
+  "note": "Adapter-pool sensitivity combines the completed 100/200/300/400-adapter queue with the closed 500-adapter Llama-2 7B main round. The figure follows the scaling style used in multi-LoRA systems papers: adapter pool size is the x-axis, and all five systems are shown on the same axes. The full metric table reports TTFT, E2E, TPOT, throughput, Cost/req, and CE."
+}

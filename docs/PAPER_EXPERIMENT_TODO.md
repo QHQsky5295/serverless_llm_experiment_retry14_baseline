@@ -10,7 +10,7 @@
 
 ## 0. 硬性约束
 
-### 0.0 已完成队列：2026-04-28
+### 0.0 已完成队列：2026-04-29
 
 `load_operating_p0` 正式长实验已经完成：
 
@@ -25,9 +25,23 @@ completed:    s12 and s10 operating-load rounds
 截至 `2026-04-28 03:41 CST`，s12 和 s10 的状态目录均包含
 `00_prep.done`、`10_sglang.done`、`20_serverlessllm.done`、`30_vllm.done`、
 `40_slora.done`、`50_faaslora.done` 和 `90_compare.done`。结合已有 s8 主点，
-Fig. 8 可保留为 operating-load sensitivity。写作口径是：PrimeLoRA 在三个
-operating points 上 CE 均高于最强 CE baseline SGLang；SGLang 仍是更低延迟的
-always-on runtime。
+Fig. 8 可保留为 operating-load sensitivity。写作口径是：PrimeLoRA 在
+0.67/0.81/1.01 req/s 的 4-GPU replay rates 上 CE 均高于最强 CE baseline
+SGLang；SGLang 仍是更低延迟的 always-on runtime。
+
+`adapter_pool_p0` 正式长实验也已经完成：
+
+```text
+tmux session: paper_adapter_pool_p0 (exited)
+queue id:     20260428_095850_adapter_pool_p0
+profile:      adapter_pool_p0
+systems:      sglang serverlessllm vllm slora faaslora
+completed:    a100, a200, a300, a400 adapter-pool rounds
+```
+
+结合已有 `a500/hot48/s8` 主 round，Fig. 9 可保留为 adapter-pool sensitivity。
+主图展示 CE 与 Cost/req；配套 table 列出 TTFT avg/p95、E2E avg/p95、
+TPOT avg/p95、Throughput、Cost/req 和 CE。
 
 ### 0.1 不使用不可观测机制指标
 
@@ -592,12 +606,13 @@ serverless_idle_retention_s in {60, 120, 300, 600, adaptive}
 
 使用第 1.5 节设置。图形：
 
-- Avg/P95 TTFT vs adapter pool。
-- Cost/req vs adapter pool。
-- CE vs adapter pool。
-- GPU hit rate vs adapter pool。
+- 当前主图：CE vs adapter pool。
+- 当前主图：Cost/req vs adapter pool。
+- 配套 table：TTFT avg/p95、E2E avg/p95、TPOT avg/p95、Throughput、
+  Cost/req、CE。
+- 如需 appendix 扩展，可再补 Avg/P95 TTFT、E2E、TPOT trend。
 
-当前连续队列已经固定为：
+当前连续队列已经完成：
 
 ```text
 profile: adapter_pool_p0
@@ -822,6 +837,20 @@ scripts/run_paper_adapter_pool_queue.sh
 该脚本默认设置 `PAPER_QUEUE_PROFILE=adapter_pool_p0`，并调用同一个
 `run_paper_long_experiment_queue.sh`，因此继承 queue-level 和 per-system
 stage-level 断点续跑逻辑。
+
+Backbone robustness 的便捷入口：
+
+```bash
+cd /home/qhq/serverless_llm_baselines
+scripts/run_paper_backbone_robustness_queue.sh
+```
+
+该脚本默认设置 `PAPER_QUEUE_PROFILE=backbone_robustness_p0`，连续执行
+Qwen2.5-7B、Llama-2-13B TP=2、Qwen2.5-14B TP=2 三个 robustness round。
+三个 workload profiles 均对齐当前 Llama-2 7B formal replay 语义：
+4000 requests、500 adapters、Zipf=1.0、active hot set cap=48、
+hotset rotation=500、seed=42、time scale=8.0。该队列已通过 dry-run，
+可在 tmux 中启动。
 
 ## 6. 执行顺序
 
