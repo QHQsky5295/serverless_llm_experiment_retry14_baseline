@@ -356,7 +356,7 @@ adapter pool、seed、Zipf、hot set 和 rotation 语义。`run_full_fair_round.
 已同步透传 `SLLM_TIME_SCALE_FACTOR` 到 shared trace prepare 阶段，避免
 run tag 与真实 trace scale 不一致。
 
-2026-04-28 新增 `adapter_pool_p0`，作为下一轮长期实验队列：
+2026-04-28 新增并完成 `adapter_pool_p0`，作为 adapter-pool sensitivity 队列：
 
 ```text
 07_sensitivity_adapter_pool / Llama-2 7B / a100 hot16 / sglang serverlessllm vllm slora faaslora
@@ -374,6 +374,22 @@ active hot cap。`a500/hot48` 右端点优先复用已闭合的 Llama-2 7B `s8` 
 ```text
 /home/qhq/serverless_llm_baselines/scripts/run_paper_adapter_pool_queue.sh
 ```
+
+2026-04-29 新增 `backbone_robustness_p0`，作为下一轮长期实验队列：
+
+```text
+08_backbone_robustness / Qwen2.5 7B / a500 hot48 rot500 s8 / sglang serverlessllm vllm slora faaslora
+08_backbone_robustness / Llama-2 13B TP=2 / a500 hot48 rot500 s8 / sglang serverlessllm vllm slora faaslora
+08_backbone_robustness / Qwen2.5 14B TP=2 / a500 hot48 rot500 s8 / sglang serverlessllm vllm slora faaslora
+```
+
+便捷入口为：
+
+```text
+/home/qhq/serverless_llm_baselines/scripts/run_paper_backbone_robustness_queue.sh
+```
+
+该 profile 已通过 `PAPER_QUEUE_DRY_RUN=1`，只生成预期的三个 round，不启动 GPU。
 
 如果为了快速探路显式覆盖 `PAPER_QUEUE_SYSTEMS="sglang vllm slora faaslora"`，
 该结果只能标注为 partial sensitivity，不能作为完备横向对比。后续必须补跑
@@ -416,6 +432,15 @@ tmux new -s paper_adapter_pool_p0
 scripts/run_paper_adapter_pool_queue.sh
 ```
 
+如果目标是生成 multi-backbone robustness，使用：
+
+```bash
+cd /home/qhq/serverless_llm_baselines
+tmux new -s paper_backbone_robustness_p0
+
+scripts/run_paper_backbone_robustness_queue.sh
+```
+
 队列会写出：
 
 ```text
@@ -429,7 +454,7 @@ ServerlessLLM 再次排除：
 ```bash
 cd /home/qhq/serverless_llm_baselines
 PAPER_QUEUE_ID=<queue_id> \
-PAPER_QUEUE_PROFILE=<load_p0_or_load_operating_p0_or_adapter_pool_p0> \
+PAPER_QUEUE_PROFILE=<load_p0_or_load_operating_p0_or_adapter_pool_p0_or_backbone_robustness_p0> \
 PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
 bash scripts/run_paper_long_experiment_queue.sh
 ```

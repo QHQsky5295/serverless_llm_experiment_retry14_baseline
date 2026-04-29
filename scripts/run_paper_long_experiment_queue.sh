@@ -287,6 +287,38 @@ run_profile_adapter_pool_full_p0() {
     "4000" "500" "42" "8.0" "${DEFAULT_SYSTEMS}"
 }
 
+run_profile_backbone_robustness_p0() {
+  # Cross-backbone robustness after the Llama-2 7B main/sensitivity figures are
+  # closed. Each round keeps the paper workload semantics fixed: 4000 requests,
+  # 500 adapters, Zipf=1.0, hot set cap=48, rotation=500, seed=42 and time scale=8.
+  run_round \
+    "Qwen2.5 7B backbone robustness" \
+    "08_backbone_robustness" \
+    "qwen2p5_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_backbone_v1" \
+    "qwen_7b_main_v2_publicmix" \
+    "azure_sharegpt_rep4000" \
+    "qwen_7b_auto500_formal4000_s8" \
+    "4000" "500" "42" "8.0" "${DEFAULT_SYSTEMS}"
+
+  run_round \
+    "Llama-2 13B TP=2 backbone robustness" \
+    "08_backbone_robustness" \
+    "llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_backbone_v1" \
+    "llama2_13b_tp2_v2_publicmix" \
+    "azure_sharegpt_rep4000" \
+    "llama2_13b_tp2_a500_formal4000_s8" \
+    "4000" "500" "42" "8.0" "${DEFAULT_SYSTEMS}"
+
+  run_round \
+    "Qwen2.5 14B TP=2 backbone robustness" \
+    "08_backbone_robustness" \
+    "qwen2p5_14b_r4000_a500_seed42_z1p0_hot48_rot500_s8_backbone_v1" \
+    "qwen_14b_tp2_v2_publicmix" \
+    "azure_sharegpt_rep4000" \
+    "qwen_14b_tp2_a500_formal4000_s8" \
+    "4000" "500" "42" "8.0" "${DEFAULT_SYSTEMS}"
+}
+
 main() {
   write_queue_env
   validate_runner
@@ -302,8 +334,9 @@ main() {
     load_low_p0) run_profile_load_low_p0 ;;
     adapter_pool_p0) run_profile_adapter_pool_p0 ;;
     adapter_pool_full_p0) run_profile_adapter_pool_full_p0 ;;
+    backbone_robustness_p0) run_profile_backbone_robustness_p0 ;;
     *)
-      echo "[ERROR] unknown PAPER_QUEUE_PROFILE=${QUEUE_PROFILE}; supported: load_p0, load_p1, load_operating_p0, load_low_p0, adapter_pool_p0, adapter_pool_full_p0" >&2
+      echo "[ERROR] unknown PAPER_QUEUE_PROFILE=${QUEUE_PROFILE}; supported: load_p0, load_p1, load_operating_p0, load_low_p0, adapter_pool_p0, adapter_pool_full_p0, backbone_robustness_p0" >&2
       return 2
       ;;
   esac
