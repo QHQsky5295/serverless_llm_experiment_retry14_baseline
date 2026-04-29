@@ -103,6 +103,8 @@ paper/primelora_current_draft.tex
 | Table 1 | `figs/paper/main/table1_end_to_end.tex` | Evaluation Setup 后 | 可进初稿 |
 | Fig. 5 | `figs/paper/main/fig5_main_normalized.pdf` | Table 1 后或 appendix | 暂作备选/appendix；主文优先 Table 1 + Fig. 7 |
 | Fig. 6 | `figs/paper/ablation/fig6_ablation.pdf` | Evaluation: Ablation Analysis | 可进初稿 |
+| Table R | `figs/paper/readiness/tables/table_service_readiness.tex` | Evaluation/Ablation: Service-Readiness Audit | 可进初稿；只放 Evaluation，不放 Motivation |
+| Fig. R | `figs/paper/readiness/fig_service_readiness_summary.pdf` | Evaluation/Ablation: Service-Readiness Audit | 可进初稿；展示 readiness tier 与 non-GPU-ready tail penalty |
 | Fig. 7 | `figs/paper/main/fig7_lifecycle_cost.pdf` | Evaluation: Lifecycle Cost Efficiency | 可进初稿 |
 | Fig. 8 | `figs/paper/sensitivity/fig8_load_sensitivity_trends.pdf` | Evaluation: Operating-load sensitivity | 可进初稿；CE/cost-latency tradeoff |
 | Table S | `figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex` | Fig. 8 后或 appendix | 可进初稿；列出 0.67/0.81/1.01 req/s 五系统全部主指标 |
@@ -318,6 +320,22 @@ How much does each PrimeLoRA mechanism contribute to the final performance?
 \end{figure}
 
 Figure~\ref{fig:ablation} isolates the marginal effect of PrimeLoRA's mechanisms. Placement and scale-out preparation reduce mismatch-related TTFT, hierarchical residency changes admission and I/O overhead, and the full system improves CE while keeping per-request cost nearly flat. The E2E tail remains close across variants, indicating that the main gain comes from the first-token readiness path rather than from changing the decode workload.
+
+\subsection{Service-Readiness Audit}
+
+\textbf{Question.}
+Do non-GPU-ready adapter requests form a measurable first-token tail, and does PrimeLoRA reduce this readiness gap in its mechanism path?
+
+\IfFileExists{figs/paper/readiness/tables/table_service_readiness.tex}{\input{figs/paper/readiness/tables/table_service_readiness.tex}}{\input{../figs/paper/readiness/tables/table_service_readiness.tex}}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figs/paper/readiness/fig_service_readiness_summary.pdf}
+    \caption{Service-readiness audit for PrimeLoRA variants on the representative Llama-2-7B ablation workload. Panel (a) reports GPU-ready request share and magnifies the HOST/NVMe composition of non-GPU-ready requests. Panel (b) compares p95 TTFT for GPU-ready requests (circles) and non-GPU-ready mismatch requests (diamonds).}
+    \label{fig:service_readiness}
+\end{figure}
+
+Table~\ref{tab:service_readiness} and Figure~\ref{fig:service_readiness} audit the request-level readiness path inside the PrimeLoRA ablation round. This is not a Motivation figure: it uses PrimeLoRA variants and therefore belongs in Evaluation. Because the archived results do not include dispatch-before selected-replica tier, the table uses \texttt{cache\_tier} as a service-time adapter-readiness proxy. Under this conservative audit, most requests are GPU-ready, but the non-GPU-ready group still forms a clear tail: its p95 TTFT is about five to six seconds, compared with about one second for GPU-ready requests. Remote-cold is zero in this round, which indicates that the preparation path converts the worst misses into local-prepared states rather than leaving them in remote storage. Thus, the CE improvement is supported by readiness-gap reduction and tail control, not only by the lifecycle cost formula.
 
 \subsection{Lifecycle Cost Efficiency}
 

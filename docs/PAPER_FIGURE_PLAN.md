@@ -256,6 +256,8 @@ Motivation。Fig. 5/8/9 可以压缩到附录或后续版本。
 | Table 1 Main comparison | 已生成 draft，已补 TPOT avg/p95 | `figs/paper/main/table1_end_to_end.tex` 与同名 CSV/manifest | 可作为 Evaluation 主表初版 | 注意 S-LoRA token-tail 注释；TPOT p95 从 observed request-level `tpot_ms` 计算 |
 | Fig. 5 Normalized main | 已重画，暂不作为主线必放图 | `figs/paper/main/fig5_main_normalized.pdf` 与同名 CSV/manifest | 建议先放 appendix/备选 | 当前只是 Llama-2 7B 单点，PrimeLoRA 相对最强 CE baseline SGLang 为 7%；主文优先 Table 1 + Fig. 7 |
 | Fig. 6 Ablation | 已重画为单栏转置矩阵 | `figs/paper/ablation/fig6_ablation.pdf` 与同名 CSV/manifest | 可作为 Evaluation 图初版 | 行为 `NVMe/NoCoord/Full`，列为主指标；每个 cell 同时显示绝对值和相对 NVMe 的 signed change，并补齐 throughput |
+| Table R Service-readiness audit | 已生成 | `figs/paper/readiness/tables/table_service_readiness.tex`、`service_readiness_summary.csv`、manifest | 只能放 Evaluation/Ablation | 使用 PrimeLoRA variants，不能放 Motivation；`cache_tier` 是 service-time readiness proxy |
+| Fig. R Service-readiness summary | 已生成 | `figs/paper/readiness/fig_service_readiness_summary.pdf`、`fig_mechanism_gap_ablation.pdf`、`fig_ttft_breakdown_readiness.pdf` | 可作为 Evaluation/Ablation 初版或 appendix | 左图同时展示 GPU-ready rate 与 non-GPU-ready 的 HOST/NVMe 放大组成，右图展示 TTFT tail penalty；remote-cold 本轮为 0，图中隐藏全零图例/行，表格保留审计列 |
 | Coordination effect subfigure | 已重画 | `figs/paper/ablation/fig4_coordination.pdf` 与同名 CSV/manifest | 只能放 Evaluation/Ablation | Full vs NoCoord 相对变化 panel，不放 Motivation |
 | Fig. 7 Lifecycle cost | 已重画为 IEEE 单栏双 panel | `figs/paper/main/fig7_lifecycle_cost.pdf` 与同名 CSV/manifest | 可作为成本解释图初版，按 `\columnwidth` 插入 | 左图解释 monetary cost，右图解释 GPU-seconds 生命周期来源 |
 | Fig. 8 Sensitivity | 已重画为 IEEE 单栏 operating-load CE/cost-latency sensitivity | `figs/paper/sensitivity/fig8_load_sensitivity_trends.pdf`、完整版本 `fig8_load_sensitivity.pdf`、同名 CSV/manifest、`table_fig8_load_sensitivity_metrics.tex` | 可作为 Evaluation sensitivity 初版，按 `\columnwidth` 插入 | 图中直接使用 0.67/0.81/1.01 req/s 的 4-GPU replay rate；五系统齐全；结论是 CE/cost-latency tradeoff 胜出，不是延迟全面胜出 |
@@ -801,6 +803,58 @@ signed change vs NVMe
 appendix/internal mechanism audit。主文 Motivation 的 Fig. 2/Fig. 3 改用
 external baseline/main-round replay，不再由 ablation round 生成。若后续补充 robustness，不需要默认重复全模型家族消融；只在某个
 backbone 的 full-vs-baseline 结果反常时补局部消融定位原因。
+
+### 9.5 Service-Readiness Audit
+
+为了补强“CE 提升不是只靠 cost model”的机制证据，当前新增一组
+request-level service-readiness 审计图表。它们全部来自同一个 Llama-2 7B
+ablation round：
+
+```text
+/home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1
+```
+
+生成命令：
+
+```bash
+cd /home/qhq/serverless_llm_experiment_retry14_baseline
+python3 scripts/analyze_service_readiness.py \
+  --input /home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1 \
+  --output /home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/readiness
+```
+
+输出：
+
+```text
+figs/paper/readiness/tables/table_service_readiness.tex
+figs/paper/readiness/fig_service_readiness_summary.pdf
+figs/paper/readiness/fig_mechanism_gap_ablation.pdf
+figs/paper/readiness/fig_ttft_breakdown_readiness.pdf
+```
+
+放置边界：
+
+- 这组图表只能放 Evaluation/Ablation，不能放 Motivation，因为它们使用
+  PrimeLoRA variants。
+- 当前结果没有 `readiness_tier_before_dispatch`，因此使用 `cache_tier` 作为
+  service-time adapter-readiness proxy。正文必须写清楚该口径。
+- 本轮 remote-cold 为 `0%`。表格保留 Remote-cold 列作为审计；图中隐藏
+  全零 remote-cold 图例/矩阵行，避免红色图例占位但没有实际数据。
+- 因为 HOST 只有约 `0.9--1.15%`，100% stacked bar 会把蓝色段压成细线。
+  当前 `fig_service_readiness_summary.pdf` 改为混合审计视图：左侧保留
+  GPU-ready rate，右侧放大 non-GPU-ready 的 HOST/NVMe 组成，避免小比例
+  在 IEEE 单栏下不可读。
+- `scaleup_first_service` 每个 scenario 只有 `6` 个样本，planned miss 只有
+  `2` 个，不生成主文 scale-out first-service 图。
+
+当前可支持的结论：
+
+- non-GPU-ready 请求约占 `4.2--4.45%`，是一个小但真实的 tail group；
+- GPU-ready p95 TTFT 约 `0.91--1.05s`，non-GPU-ready p95 TTFT 约
+  `4.98--6.04s`；
+- PrimeLoRA 的 GPU-ready 占比最高、GPU-ready p95 TTFT 最低；
+- mismatch-only p95 不严格单调，不能声称每个 readiness 子指标都由 full
+  PrimeLoRA 单调最优。
 
 已完成的 ablation scenarios：
 

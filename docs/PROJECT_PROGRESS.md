@@ -63,11 +63,47 @@ current Llama-2 7B figure set is stable.
   - `llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_backbone_v1`
   - `qwen2p5_14b_r4000_a500_seed42_z1p0_hot48_rot500_s8_backbone_v1`
 - dry-run status: passed on 2026-04-29; no GPU work was launched.
-- first run status: Qwen2.5-7B reached ServerlessLLM stage and failed after
-  `3637/4000` successful requests because Ray's host-memory guard killed a
-  `VllmBackend` worker at the default `0.95` memory threshold. This is a serving
-  failure, not a valid performance result. The baseline runner now defaults
-  `SLLM_RAY_MEMORY_USAGE_THRESHOLD` to `0.99`; resume with the same queue id.
+- first run status: Qwen2.5-7B completed SGLang and ServerlessLLM, then failed
+  at the vLLM stage with `ok=407/4000` because many queued requests hit the
+  replay client timeout. This is a serving/replay failure, not a valid
+  performance result.
+- fix status: baseline scripts now launch vLLM servers in their own process
+  group and clean the process group on exit, preventing orphan vLLM workers.
+  The backbone queue also sets `VLLM_TIMEOUT_S=21600` by default through
+  `PAPER_QUEUE_VLLM_TIMEOUT_S`, so slow Qwen-vLLM requests are treated as long
+  latency instead of client timeout failures.
+- current terminal status at the 2026-04-29 check: tmux
+  `paper_backbone_robustness_p0` is stopped at a shell prompt; GPUs are idle
+  (`15 MiB`, `0%` util on all four GPUs). Resume with the same queue id.
+
+## Service-Readiness Audit: 2026-04-29
+
+新增 request-level service-readiness 机制审计，作为 Evaluation/Ablation 证据，
+不放 Motivation。
+
+- script:
+  `/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_service_readiness.py`
+- plan:
+  `/home/qhq/serverless_llm_experiment_retry14_baseline/docs/SERVICE_READINESS_ANALYSIS_PLAN.md`
+- input round:
+  `/home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1`
+- outputs:
+  - `figs/paper/readiness/tables/table_service_readiness.tex`
+  - `figs/paper/readiness/fig_service_readiness_summary.pdf`
+  - `figs/paper/readiness/fig_mechanism_gap_ablation.pdf`
+  - `figs/paper/readiness/fig_ttft_breakdown_readiness.pdf`
+
+关键结论边界：
+
+- Motivation 不能放 PrimeLoRA variants 的 readiness 图；当前 external
+  baselines 没有 selected-replica adapter tier 字段，所以 Motivation 不硬画
+  adapter-tier distribution。
+- 当前审计使用 `cache_tier` 作为 service-time readiness proxy，不等价于严格的
+  dispatch-before selected-replica tier。
+- non-GPU-ready 请求约 `4.2--4.45%`，但 p95 TTFT 约 `4.98--6.04s`，明显高于
+  GPU-ready 的 `0.91--1.05s`，支持 readiness gap 是 first-token tail 的机制来源。
+- remote-cold 在该 ablation round 中为 `0%`；表格保留该列作为审计，图中隐藏
+  全零图例/矩阵行。
 
 ## Current Paper Baselines
 

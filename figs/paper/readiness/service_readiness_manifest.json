@@ -1,0 +1,33 @@
+{
+  "analysis": "service_readiness",
+  "input_sources": [
+    {
+      "scenario": "faaslora_nvme",
+      "source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1_faaslora_nvme_result.json",
+      "requests_used": 4000
+    },
+    {
+      "scenario": "faaslora_no_coord",
+      "source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1_faaslora_no_coord_result.json",
+      "requests_used": 4000
+    },
+    {
+      "scenario": "faaslora_full",
+      "source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1_faaslora_full_result.json",
+      "requests_used": 4000
+    }
+  ],
+  "filter": "success == True and adapter_id non-empty",
+  "tier_field": "readiness_tier_before_dispatch when present; otherwise cache_tier",
+  "dispatch_before_tier_available": false,
+  "field_caveat": "Current archived results do not contain readiness_tier_before_dispatch. cache_tier is used as a selected-replica service-time readiness proxy.",
+  "generated": [
+    "fig_service_readiness_summary.pdf",
+    "fig_mechanism_gap_ablation.pdf",
+    "fig_ttft_breakdown_readiness.pdf"
+  ],
+  "skipped": {
+    "fig_scaleout_first_service.pdf": "Skipped as a paper figure because scaleup_first_service has fewer than 20 samples per scenario (minimum observed n=6).",
+    "fig_control_plane_overhead.pdf": "Skipped because archived results do not contain routing_decision_us, gpu_admission_decision_us, or control_plane_total_us."
+  }
+}
