@@ -57,6 +57,7 @@ cleanup() {
   local status=$?
   if [[ -n "${VLLM_SERVER_PIDS:-}" ]]; then
     for pid in ${VLLM_SERVER_PIDS}; do
+      kill -- "-${pid}" 2>/dev/null || true
       kill "${pid}" 2>/dev/null || true
     done
     for pid in ${VLLM_SERVER_PIDS}; do
@@ -512,7 +513,7 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
     server_cmd+=(--enforce-eager)
   fi
 
-  env "${env_args[@]}" "${server_cmd[@]}" > "${replica_log}" 2>&1 &
+  setsid env "${env_args[@]}" "${server_cmd[@]}" > "${replica_log}" 2>&1 &
   replica_pid=$!
   VLLM_SERVER_PIDS="${VLLM_SERVER_PIDS} ${replica_pid}"
   echo "      replica=${replica_idx} pid=${replica_pid} port=${replica_port} gpu_mask=${replica_gpu_mask} log=${replica_log}"

@@ -47,6 +47,49 @@ tmux capture-pane -p -t paper_load_operating_p0 -S -120
 ServerlessLLM；后续若重跑 paper-facing sensitivity，仍不得静默移除
 ServerlessLLM。
 
+## 1.2 Live Queue: 08_backbone_robustness
+
+当前 backbone robustness 队列用于补充 Llama-2 13B 与 Qwen 家族的泛化性
+证据，不替代已经闭合的 Llama-2 7B main round。
+
+```text
+tmux session: paper_backbone_robustness_p0
+queue id:     20260429_115544_backbone_robustness_p0
+profile:      backbone_robustness_p0
+systems:      sglang serverlessllm vllm slora faaslora
+section:      08_backbone_robustness
+```
+
+截至 `2026-04-29` 检查，Qwen2.5-7B 已完成 SGLang 和 ServerlessLLM 阶段，
+但 vLLM 阶段失败，`ok=407/4000`。失败原因是请求在 vLLM backlog 中排队过久，
+触发 replay client timeout；这不是有效性能结果，不能进入论文或 compare 表。
+
+已修复的 runner 问题：
+
+- `run_vllm_fair_experiment.sh` 现在使用 `setsid` 启动 vLLM server，并在
+  cleanup 时优先 kill server process group，避免失败后遗留 vLLM worker 占用 GPU。
+- `run_paper_long_experiment_queue.sh` 对 `backbone_robustness_p0` 默认设置
+  `VLLM_TIMEOUT_S="${PAPER_QUEUE_VLLM_TIMEOUT_S:-21600}"`，让 Qwen-vLLM 的长排队
+  表现为真实高延迟，而不是 1 小时 client timeout 失败。
+- `bash -n` 已通过；`PAPER_QUEUE_DRY_RUN=1 PAPER_QUEUE_PROFILE=backbone_robustness_p0`
+  已验证三轮计划和模型/workload profile 正确。
+
+恢复同一个队列时不要新建 queue id，使用：
+
+```bash
+cd /home/qhq/serverless_llm_baselines
+PAPER_QUEUE_ID=20260429_115544_backbone_robustness_p0 \
+PAPER_QUEUE_PROFILE=backbone_robustness_p0 \
+PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
+bash scripts/run_paper_backbone_robustness_queue.sh
+```
+
+如果希望进一步放宽 vLLM timeout，可显式加：
+
+```bash
+PAPER_QUEUE_VLLM_TIMEOUT_S=28800
+```
+
 ## 2. 当前系统顺序
 
 完整 round 默认按以下顺序执行：

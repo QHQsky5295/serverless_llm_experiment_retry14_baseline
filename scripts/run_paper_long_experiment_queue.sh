@@ -125,6 +125,14 @@ run_round() {
   log "systems=${systems}"
   log "time_scale=${time_scale}"
 
+  local -a round_extra_env=()
+  if [[ "${QUEUE_PROFILE}" == "backbone_robustness_p0" ]]; then
+    # Cross-backbone vLLM can be much slower than the Llama-2 7B main run under
+    # conservative LoRA settings. Keep the replay valid by recording the slow
+    # latency instead of converting queued requests into client-side timeouts.
+    round_extra_env+=(VLLM_TIMEOUT_S="${PAPER_QUEUE_VLLM_TIMEOUT_S:-21600}")
+  fi
+
   if [[ "${DRY_RUN}" == "1" ]]; then
     cat <<EOF
 [dry-run] ${label}
@@ -158,6 +166,7 @@ EOF
     SLLM_SAMPLING_SEED="${seed}" \
     SLLM_TIME_SCALE_FACTOR="${time_scale}" \
     FAIR_ROUND_SYSTEMS="${systems}" \
+    "${round_extra_env[@]}" \
     bash "${RUNNER}" 2>&1 | tee "${log_path}"
   local status=${PIPESTATUS[0]}
   set -e
