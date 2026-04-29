@@ -47,6 +47,20 @@ LOWER_BETTER_METRICS = {
 HIGHER_BETTER_METRICS = {"ce", "tok_s"}
 MATRIX_CELL_FONTSIZE = 8.0
 MATRIX_TICK_FONTSIZE = 8.3
+ADAPTER_POOL_MARKERS = {
+    "faaslora": "D",
+    "sglang": "s",
+    "vllm": "^",
+    "slora": "o",
+    "serverlessllm": "X",
+}
+ADAPTER_POOL_LINESTYLES = {
+    "faaslora": "-",
+    "sglang": (0, (3.0, 1.4)),
+    "vllm": (0, (1.2, 1.2)),
+    "slora": (0, (4.0, 1.4, 1.2, 1.4)),
+    "serverlessllm": "-.",
+}
 
 
 def _compare_json(round_dir: Path) -> Path:
@@ -417,10 +431,14 @@ def _plot_adapter_pool_lines(
         ax.plot(
             xs,
             ys,
-            marker="o",
-            markersize=2.9 if compact else 4.5,
+            marker=ADAPTER_POOL_MARKERS[key],
+            markersize=3.15 if compact else 4.7,
             linewidth=1.05 if compact else 1.55,
+            linestyle=ADAPTER_POOL_LINESTYLES[key],
             color=SYSTEM_COLORS[key],
+            markerfacecolor="white",
+            markeredgecolor=SYSTEM_COLORS[key],
+            markeredgewidth=0.85 if compact else 1.0,
             label=SYSTEM_LABELS[key],
         )
     pools = sorted({int(row["adapter_pool_size"]) for row in rows})
