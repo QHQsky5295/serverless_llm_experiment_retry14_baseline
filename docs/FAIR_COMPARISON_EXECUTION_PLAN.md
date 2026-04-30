@@ -483,16 +483,38 @@ active hot cap。`a500/hot48` 右端点优先复用已闭合的 Llama-2 7B `s8` 
 
 2026-04-30 复查 `backbone_robustness_p0` 时，Qwen2.5-7B 已完成 SGLang 与
 ServerlessLLM；失败点在 vLLM。内核日志记录 `Out of memory: Killed process
-... (python)`，对应 vLLM engine PID。原因不是 500-adapter workload 过大本身，
-而是 runner 把 vLLM 的 `max_cpu_loras` 设置成 500，导致每个 replica 复制完整
-CPU LoRA cache。已修复为 bounded CPU LoRA cache，同时保留 500 个
-`--lora-modules` 和 4000 个 LoRA-bound 请求。失败期间 OOM killer 也杀过
-`systemd-journald`，因此该问题可能解释服务器间歇性连接不稳。
+... (python)`，对应 vLLM APIServer/engine PID。原因不是 500-adapter workload
+过大本身：500 是正式采样池，vLLM launch 仍暴露 500 个 `--lora-modules`，
+shared trace 中 4000 个请求均绑定 LoRA。真正触发点是 Qwen2.5-7B publicmix
+当前必须走 vLLM V0/eager，`dp4/tp1` 四个独立 replica 会复制过大的 host-side
+model/runtime state；即便 `max_cpu_loras` 已收紧到 `48/500`，长 replay 仍能把
+125GB 主机推入 OOM 区间。
+
+已修复为：Qwen2.5-7B vLLM 使用同一 4-GPU 预算下的 `dp2/tp2` safe topology，
+`max_cpu_loras=auto` 当前解析为 `24/500`，并加入 host-memory guard 与
+server PID replay monitor。真实主机命名空间下的 smoke 已通过：两个
+Qwen2.5-7B vLLM `dp2/tp2` replica 均启动成功，并分别完成一条短 LoRA 请求；
+退出后四张 GPU 均释放，主机内存回到约 `118GiB available`。
+
+强制重启后的日志还显示 `frpc.service` 反复连接远端超时。如果 SSH 依赖 frp，
+远程不可达不完全由实验解释；但本次需要物理重启的直接实验侧触发因素是
+vLLM/Qwen 的 host OOM。
 
 同次修复还发现并修正了 backbone 队列的拓扑风险：原 `run_full_fair_round.sh`
 向 vLLM/SGLang/S-LoRA 默认传 `TP=1,DP=4`，会让 Llama-2-13B 和 Qwen2.5-14B
 这些 TP=2 profile 在后续阶段按错误拓扑启动。修复后默认不覆盖 profile；
-7B 解析为 `dp4/tp1`，13B/14B 解析为 `dp2/tp2`。
+Qwen2.5-7B 的 vLLM 例外使用 `dp2/tp2` safe topology，13B/14B 解析为
+`dp2/tp2`。Llama-2 7B 主 round 仍保持已验证的 `dp4/tp1`。
+
+额外预检：
+
+- Llama-2 13B 与 Qwen2.5 14B shared artifacts 已在 `/tmp` 预生成验证：
+  均为 `4000/4000` LoRA-bound requests，500 adapter subset，132 个实际命中
+  adapter。
+- vLLM dry-run 验证 Llama-2 13B 与 Qwen2.5 14B 均为 `dp2/tp2`，且
+  `lora_modules_count=500`。
+- S-LoRA dry-run 验证 Qwen2.5 7B 为 `dp4/tp1`，Llama-2 13B 与 Qwen2.5 14B
+  为 `dp2/tp2`，三者均暴露 500 个 LoRA dirs。
 
 如果为了快速探路显式覆盖 `PAPER_QUEUE_SYSTEMS="sglang vllm slora faaslora"`，
 该结果只能标注为 partial sensitivity，不能作为完备横向对比。后续必须补跑

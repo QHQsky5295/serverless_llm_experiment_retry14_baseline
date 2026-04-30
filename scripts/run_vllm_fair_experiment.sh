@@ -35,6 +35,8 @@ VLLM_EMPTY_SUCCESS_RETRIES="${VLLM_EMPTY_SUCCESS_RETRIES:-2}"
 VLLM_EMPTY_SUCCESS_RETRY_DELAY_S="${VLLM_EMPTY_SUCCESS_RETRY_DELAY_S:-0.5}"
 VLLM_HOST_MIN_MEM_GB="${VLLM_HOST_MIN_MEM_GB:-32}"
 VLLM_MEM_WATCH_INTERVAL_S="${VLLM_MEM_WATCH_INTERVAL_S:-2}"
+VLLM_SMOKE_ONLY="${VLLM_SMOKE_ONLY:-0}"
+VLLM_SMOKE_MAX_TOKENS="${VLLM_SMOKE_MAX_TOKENS:-1}"
 
 mkdir -p "${RESULT_DIR}" "${LOG_DIR}" "${SHARED_INPUT_DIR}"
 
@@ -502,6 +504,7 @@ echo "      model=${MODEL_PATH}"
 echo "      topology=${VLLM_TOPOLOGY_LABEL} gpu_ids=${VLLM_GPU_IDS}"
 echo "      max_loras=${MAX_LORAS} max_cpu_loras=${MAX_CPU_LORAS}/${SELECTED_NUM_ADAPTERS} max_lora_rank=${MAX_LORA_RANK}"
 echo "      host_memory_guard=${VLLM_HOST_MIN_MEM_GB}GiB watch_interval=${VLLM_MEM_WATCH_INTERVAL_S}s"
+echo "      smoke_only=${VLLM_SMOKE_ONLY} smoke_max_tokens=${VLLM_SMOKE_MAX_TOKENS}"
 echo "      min_output_tokens=${VLLM_MIN_OUTPUT_TOKENS} include_stream_usage=${VLLM_INCLUDE_STREAM_USAGE} empty_success_retries=${VLLM_EMPTY_SUCCESS_RETRIES}"
 echo "      launch_spec=${LAUNCH_SPEC_PATH}"
 echo "      lora_modules=${LORA_MODULES_TXT}"
@@ -664,6 +667,63 @@ PY
 write_fleet_spec "${VLLM_SERVER_STARTUP_SEC}" "${VLLM_BASE_URL_LIST}" "${VLLM_REPLICA_PORTS[*]}" "${VLLM_REPLICA_GPU_MASKS[*]}"
 echo "      vllm_startup_sec=${VLLM_SERVER_STARTUP_SEC}"
 echo "      vllm_base_urls=${VLLM_BASE_URL_LIST}"
+
+if [[ "${VLLM_SMOKE_ONLY}" == "1" ]]; then
+  echo "[smoke] Sending one short LoRA request to each vLLM replica"
+  PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${VLLM_BASE_URL_LIST}" "${LORA_MODULES_TXT}" "${VLLM_SMOKE_MAX_TOKENS}" <<'PY'
+import json
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+base_urls = [item for item in sys.argv[1].split(",") if item]
+modules = [
+    line.split("=", 1)[0]
+    for line in Path(sys.argv[2]).read_text(encoding="utf-8").splitlines()
+    if line.strip()
+]
+max_tokens = int(sys.argv[3])
+if not base_urls:
+    raise SystemExit("no vLLM base URLs for smoke test")
+if not modules:
+    raise SystemExit("no LoRA modules for smoke test")
+
+for idx, base_url in enumerate(base_urls):
+    adapter = modules[idx % len(modules)]
+    payload = {
+        "model": adapter,
+        "prompt": "Hello",
+        "max_tokens": max_tokens,
+        "temperature": 0.0,
+        "stream": False,
+    }
+    req = urllib.request.Request(
+        base_url.rstrip("/") + "/v1/completions",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=180) as resp:
+            body = resp.read().decode("utf-8", errors="replace")
+            if resp.status != 200:
+                raise RuntimeError(f"HTTP {resp.status}: {body[:500]}")
+            parsed = json.loads(body)
+            choices = parsed.get("choices") or []
+            if not choices:
+                raise RuntimeError(f"no completion choices: {body[:500]}")
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        raise SystemExit(f"smoke request failed for {base_url} adapter={adapter}: HTTP {exc.code}: {body[:800]}")
+    except Exception as exc:
+        raise SystemExit(f"smoke request failed for {base_url} adapter={adapter}: {type(exc).__name__}: {exc}")
+    print(f"[smoke] ok replica={idx} base_url={base_url} adapter={adapter}")
+PY
+  require_host_memory "after vLLM smoke"
+  echo "[smoke] vLLM startup and short LoRA requests succeeded; skipping formal replay."
+  exit 0
+fi
 
 echo "[4/5] Replaying shared trace with unified live metrics"
 REPLAY_EXTRA_ARGS=()

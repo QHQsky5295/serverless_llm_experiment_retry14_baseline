@@ -144,6 +144,12 @@ Applied runner fixes:
   replica dies.
 - full-round summary discovery no longer assumes `dp4_tp1`, so TP=2 backbone
   runs validate correctly.
+- Real-host Qwen2.5-7B vLLM smoke passed after the fix: both `dp2/tp2`
+  replicas started, each completed a short LoRA request, and cleanup released
+  all GPUs.
+- Llama-2 13B and Qwen2.5 14B preflight generated 4000 LoRA-bound requests and
+  500-adapter subsets. vLLM and S-LoRA dry-runs for these backbones both expose
+  500 adapters and resolve to `dp2/tp2`.
 
 There is also a separate remote-access issue: `frpc.service` is repeatedly
 failing to connect to `120.26.187.54:7000`, and an unrelated-looking
