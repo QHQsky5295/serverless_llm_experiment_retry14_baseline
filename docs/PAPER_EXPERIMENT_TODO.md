@@ -853,12 +853,26 @@ hotset rotation=500、seed=42、time scale=8.0。该队列已通过 dry-run，
 可在 tmux 中启动。
 
 2026-04-30 调试记录：首次 Qwen2.5-7B backbone round 在 vLLM 阶段失败，
-内核日志显示 host OOM killer 杀掉 vLLM engine。根因是 vLLM runner 把
-`max_cpu_loras` 设成完整 500-adapter pool，导致每个 DP replica 复制过大的
-CPU LoRA cache；这不是要减少 500-adapter 采样池。修复后仍保留
-`lora_modules_count=500` 和 LoRA-bound 请求，只将每个 replica 的 CPU LoRA
-cache 设为有界值。同步修复了 full-round runner 对 vLLM/SGLang/S-LoRA
-强行传 `TP=1,DP=4` 的问题；后续 13B/14B 会按 profile 使用 `dp2/tp2`。
+无效 partial replay 不能进论文。根因分两层：
+
+1. Qwen2.5-7B publicmix 当前必须走 vLLM V0/eager，`dp4/tp1` 四个独立
+   replica 会复制过大的 host-side model/runtime state，导致 host OOM killer
+   杀掉 vLLM APIServer/engine。500 LoRA 仍是正式采样池，不是错误配置；
+   launch spec 仍暴露 `lora_modules_count=500`，shared trace 中 `4000/4000`
+   请求都绑定 LoRA。
+2. 切换到 `dp2/tp2` 后，如果继续沿用 Qwen profile 的 bring-up-only 包络
+   `max_num_seqs=2`、`max_loras=6`、`max_num_batched_tokens=1024`，总 running
+   slots 只有 4 个，会造成 vLLM internal pending queue 迅速积压，并引发大量
+   timeout/fail。因此修复必须同时调整拓扑和 vLLM execution envelope。
+
+当前修复后，Qwen2.5-7B vLLM 在同一 4-GPU budget 下使用 `dp2/tp2`，并将
+formal replay 包络设为 `max_num_seqs=8`、`max_loras=8`、
+`max_num_batched_tokens=4096`、`max_cpu_loras=32`。这不改变 workload、模型、
+采样、500-adapter universe 或 GPU budget，只避免 vLLM 内部队列成为错误失败源。
+`replay_openai_trace.py` 同时增加 bounded preflight 与 failure-abort gate：
+正式前可用 `VLLM_MAX_REPLAY_REQUESTS=96/256` 验证，正式跑若出现 fail 累计会
+立即失败，不继续写污染结果。真实 Qwen2.5-7B vLLM 96-request 和 256-request
+preflight 均为 `fail=0`。
 
 ## 6. 执行顺序
 
