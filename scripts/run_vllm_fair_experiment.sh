@@ -33,6 +33,8 @@ VLLM_MIN_OUTPUT_TOKENS="${VLLM_MIN_OUTPUT_TOKENS:-1}"
 VLLM_INCLUDE_STREAM_USAGE="${VLLM_INCLUDE_STREAM_USAGE:-1}"
 VLLM_EMPTY_SUCCESS_RETRIES="${VLLM_EMPTY_SUCCESS_RETRIES:-2}"
 VLLM_EMPTY_SUCCESS_RETRY_DELAY_S="${VLLM_EMPTY_SUCCESS_RETRY_DELAY_S:-0.5}"
+VLLM_HOST_MIN_MEM_GB="${VLLM_HOST_MIN_MEM_GB:-32}"
+VLLM_MEM_WATCH_INTERVAL_S="${VLLM_MEM_WATCH_INTERVAL_S:-2}"
 
 mkdir -p "${RESULT_DIR}" "${LOG_DIR}" "${SHARED_INPUT_DIR}"
 
@@ -53,8 +55,7 @@ if [[ ! -x "${VLLM_PYTHON}" ]]; then
   exit 1
 fi
 
-cleanup() {
-  local status=$?
+stop_vllm_servers() {
   if [[ -n "${VLLM_SERVER_PIDS:-}" ]]; then
     for pid in ${VLLM_SERVER_PIDS}; do
       kill -- "-${pid}" 2>/dev/null || true
@@ -63,10 +64,70 @@ cleanup() {
     for pid in ${VLLM_SERVER_PIDS}; do
       wait "${pid}" 2>/dev/null || true
     done
+    VLLM_SERVER_PIDS=""
   fi
+}
+
+cleanup() {
+  local status=$?
+  stop_vllm_servers
   return "${status}"
 }
 trap cleanup EXIT
+
+mem_available_kib() {
+  awk '/^MemAvailable:/ {print $2; exit}' /proc/meminfo
+}
+
+mem_threshold_kib() {
+  PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${VLLM_HOST_MIN_MEM_GB}" <<'PY'
+import sys
+value = float(sys.argv[1])
+print(int(value * 1024 * 1024))
+PY
+}
+
+require_host_memory() {
+  local context="$1"
+  local threshold_kib
+  threshold_kib="$(mem_threshold_kib)"
+  if (( threshold_kib <= 0 )); then
+    return 0
+  fi
+  local available_kib
+  available_kib="$(mem_available_kib)"
+  if [[ -z "${available_kib}" ]]; then
+    echo "[WARN] unable to read MemAvailable while checking host memory for ${context}" >&2
+    return 0
+  fi
+  if (( available_kib < threshold_kib )); then
+    echo "[ERROR] host memory guard tripped during ${context}: MemAvailable=$((available_kib / 1024)) MiB < required=$((threshold_kib / 1024)) MiB." >&2
+    echo "        Aborting vLLM stage before Linux OOM can destabilize SSH/system services." >&2
+    stop_vllm_servers
+    return 1
+  fi
+}
+
+monitor_replay_and_servers() {
+  local replay_pid="$1"
+  local replica_pid
+  while kill -0 "${replay_pid}" 2>/dev/null; do
+    if ! require_host_memory "vLLM replay"; then
+      kill "${replay_pid}" 2>/dev/null || true
+      return 1
+    fi
+    for replica_pid in ${VLLM_SERVER_PIDS:-}; do
+      if ! kill -0 "${replica_pid}" 2>/dev/null; then
+        echo "[ERROR] vLLM server pid=${replica_pid} exited during replay. Aborting this stage instead of continuing with invalid partial results." >&2
+        kill "${replay_pid}" 2>/dev/null || true
+        stop_vllm_servers
+        return 1
+      fi
+    done
+    sleep "${VLLM_MEM_WATCH_INTERVAL_S}"
+  done
+  return 0
+}
 
 ensure_port_is_free() {
   local port="$1"
@@ -305,7 +366,7 @@ resolve_max_cpu_loras() {
 
   local value
   if [[ "${requested}" == "auto" || -z "${requested}" || "${requested}" == "0" ]]; then
-    value=$(( MAX_LORAS * 8 ))
+    value=$(( MAX_LORAS * 4 ))
     if (( value < 16 )); then
       value=16
     fi
@@ -440,6 +501,7 @@ echo "      ttft_slo_ms=${TTFT_SLO_MS}"
 echo "      model=${MODEL_PATH}"
 echo "      topology=${VLLM_TOPOLOGY_LABEL} gpu_ids=${VLLM_GPU_IDS}"
 echo "      max_loras=${MAX_LORAS} max_cpu_loras=${MAX_CPU_LORAS}/${SELECTED_NUM_ADAPTERS} max_lora_rank=${MAX_LORA_RANK}"
+echo "      host_memory_guard=${VLLM_HOST_MIN_MEM_GB}GiB watch_interval=${VLLM_MEM_WATCH_INTERVAL_S}s"
 echo "      min_output_tokens=${VLLM_MIN_OUTPUT_TOKENS} include_stream_usage=${VLLM_INCLUDE_STREAM_USAGE} empty_success_retries=${VLLM_EMPTY_SUCCESS_RETRIES}"
 echo "      launch_spec=${LAUNCH_SPEC_PATH}"
 echo "      lora_modules=${LORA_MODULES_TXT}"
@@ -454,6 +516,7 @@ if (( ${#GPU_ID_ARRAY[@]} < REQUIRED_GPU_COUNT )); then
   exit 1
 fi
 ensure_gpu_set_idle "${VLLM_GPU_IDS}" "vLLM"
+require_host_memory "before vLLM launch"
 
 write_fleet_spec() {
   local startup_sec="$1"
@@ -588,6 +651,7 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
   )"
   VLLM_STARTUP_SECS+=("${startup_sec}")
   echo "      replica=${replica_idx} startup_sec=${startup_sec}"
+  require_host_memory "after vLLM replica ${replica_idx} startup"
 done
 
 VLLM_SERVER_STARTUP_SEC="$(
@@ -606,6 +670,7 @@ REPLAY_EXTRA_ARGS=()
 if [[ "${VLLM_INCLUDE_STREAM_USAGE}" == "1" ]]; then
   REPLAY_EXTRA_ARGS+=(--include-stream-usage)
 fi
+set +e
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
   "${ROOT_DIR}/scripts/replay_openai_trace.py" \
   --trace "${SHARED_TRACE_PATH}" \
@@ -633,7 +698,24 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
   --drop-body-field "lora_adapter_name" \
   --label "${RESULT_TAG}" \
   --output "${REPLAY_PATH}" \
-  "${REPLAY_EXTRA_ARGS[@]}"
+  "${REPLAY_EXTRA_ARGS[@]}" &
+REPLAY_PID=$!
+
+MONITOR_STATUS=0
+monitor_replay_and_servers "${REPLAY_PID}" || MONITOR_STATUS=$?
+wait "${REPLAY_PID}"
+REPLAY_STATUS=$?
+set -e
+if [[ "${MONITOR_STATUS}" -ne 0 ]]; then
+  echo "[ERROR] vLLM replay monitor failed status=${MONITOR_STATUS}; rejecting this run." >&2
+  exit "${MONITOR_STATUS}"
+fi
+if [[ "${REPLAY_STATUS}" -ne 0 ]]; then
+  echo "[ERROR] vLLM replay failed status=${REPLAY_STATUS}; rejecting this run." >&2
+  stop_vllm_servers
+  exit "${REPLAY_STATUS}"
+fi
+require_host_memory "after vLLM replay"
 
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
   "${ROOT_DIR}/scripts/validate_replay_results.py" \

@@ -60,36 +60,62 @@ systems:      sglang serverlessllm vllm slora faaslora
 section:      08_backbone_robustness
 ```
 
-截至 `2026-04-30` 检查，Qwen2.5-7B 已完成 SGLang 和 ServerlessLLM 阶段，
-但 vLLM 阶段失败，`ok=447/4000`。内核日志显示根因是 host OOM killer 杀掉
-vLLM engine process，而不是 GPU OOM、LoRA 数量被错误设置，或 replay 本身失败。
-触发条件是 vLLM launch spec 将 `max_cpu_loras` 设成完整 500-adapter pool，
-在 Qwen2.5-7B publicmix/V0 路径和 DP=4 replica 下复制了过大的 CPU LoRA 缓存。
-500 LoRA 仍然是正式采样池；每个请求仍然绑定 LoRA adapter；修复只限制
-vLLM 每个 replica 的 CPU LoRA cache 大小，不改变 `--lora-modules` 暴露的
-adapter universe。
+截至 `2026-04-30 16:13 CST` 强制重启后检查，Qwen2.5-7B 已完成 SGLang 和
+ServerlessLLM 阶段，但 vLLM 阶段触发主机级 OOM，随后 tmux session 消失。
+内核日志显示 OOM killer 连续杀掉 vLLM APIServer/engine 进程；这不是 GPU OOM、
+不是 500-adapter 采样池被错误设置，也不是 replay 自身生成错误。该 round 的
+vLLM launch spec 仍包含 `lora_modules_count=500`，shared trace 中 `4000/4000`
+请求均绑定 LoRA adapter。
+
+根因是 Qwen2.5-7B publicmix 当前必须走 vLLM V0/eager 路径，`dp4/tp1` 会在
+4 个独立 replica 中复制过大的 host-side model/runtime state。即使
+`max_cpu_loras` 已从完整 500 adapter pool 限制到 `48/500`，四个 replica 在
+长 replay 中仍会把 125GB 主机内存推入 OOM 区间。后台 Docker/Milvus/Ray 以及
+持续失败重启的 `frpc.service` 会进一步降低系统余量，但实验侧直接触发点是
+Qwen-vLLM 的 host-memory footprint。
 
 已修复的 runner 问题：
 
 - `run_vllm_fair_experiment.sh` 现在使用 `setsid` 启动 vLLM server，并在
   cleanup 时优先 kill server process group，避免失败后遗留 vLLM worker 占用 GPU。
+- `run_vllm_fair_experiment.sh` 增加 host-memory fail-fast guard：
+  默认要求 `MemAvailable >= 32GiB`，并在 replica 启动后和 replay 期间持续检查。
+  一旦触发，runner 会终止 replay 和 vLLM process group，显式失败该阶段，
+  而不是继续运行到 Linux OOM 并拖垮 SSH/systemd。
+- `run_vllm_fair_experiment.sh` 在 replay 期间监控 vLLM server PID；若任何
+  replica 中途退出，立即拒绝该 run，避免写出 `ok < total` 的污染结果。
 - `run_paper_long_experiment_queue.sh` 对 `backbone_robustness_p0` 默认设置
   `VLLM_TIMEOUT_S="${PAPER_QUEUE_VLLM_TIMEOUT_S:-21600}"`，让 Qwen-vLLM 的长排队
   表现为真实高延迟，而不是 1 小时 client timeout 失败。
 - `run_vllm_fair_experiment.sh` 将 `VLLM_MAX_CPU_LORAS=auto` 解析为有界 CPU
-  LoRA cache：Qwen2.5-7B 为 `48/500`，Llama-2-13B TP=2 和 Qwen2.5-14B TP=2
-  为 `16/500`。对应 dry-run 仍显示 `lora_modules_count=500`。
-- `run_full_fair_round.sh` 不再给 vLLM/SGLang/S-LoRA 强行传入 `TP=1,DP=4`；
-  子 runner 会按 model profile 与 GPU 列表解析拓扑。因此 7B 为 `dp4/tp1`，
-  13B/14B 为 `dp2/tp2`，避免后续 backbone 阶段因错误单卡启动而 OOM。
+  LoRA cache；当前 Qwen2.5-7B safe dry-run 为 `24/500`。这只限制每个
+  replica 的 CPU LoRA cache，不改变 `--lora-modules` 的 500-adapter universe。
+- `run_full_fair_round.sh` 对 Qwen2.5-7B 的 vLLM stage 使用安全拓扑
+  `dp2/tp2`，仍占用同一 4-GPU 预算；Llama-2 13B 和 Qwen2.5 14B 继续按
+  model profile 使用 `dp2/tp2`。Llama-2 7B 主 round 仍可使用已验证的
+  `dp4/tp1`。
+- `run_full_fair_round.sh` 不再把 vLLM/SGLang/S-LoRA summary 路径写死成
+  `dp4_tp1`，而是按当前 run tag 动态选择最新 summary；这避免 13B/14B 或
+  Qwen-vLLM safe topology 完成后被错误判定为缺文件。
 - `bash -n` 已通过；`PAPER_QUEUE_DRY_RUN=1 PAPER_QUEUE_PROFILE=backbone_robustness_p0`
-  已验证三轮计划和模型/workload profile 正确。vLLM 和 S-LoRA 的三组
-  backbone dry-run 已验证 launch spec 拓扑与 500-adapter module 数一致。
+  已验证三轮计划和模型/workload profile 正确。Qwen2.5-7B vLLM dry-run
+  已验证 `topology=dp2_tp2`、`lora_modules_count=500`、`4000/4000` 请求绑定 LoRA。
 
-恢复同一个队列时不要新建 queue id，使用：
+系统服务注意事项：
+
+- 强制重启后的 journal 显示 `frpc.service` 每 5 秒重启并连接
+  `120.26.187.54:7000` 超时；如果 SSH 依赖 frp 隧道，远程不可达不完全由实验
+  解释。需要单独检查 frp server、mihomo/TUN 路由和本机 `frpc.service`。
+- journal 还显示 `yk0Wk9DV.service` 持续尝试执行不存在的 `/bin/YXt5BHl6`。
+  这不像论文实验服务，应由管理员审计并禁用/删除，避免持续重启污染系统日志。
+
+恢复同一个队列时不要新建 queue id。由于强制重启后 tmux session 已不存在，
+建议重新创建同名 tmux 并使用同一个 queue id：
 
 ```bash
 cd /home/qhq/serverless_llm_baselines
+tmux new -s paper_backbone_robustness_p0
+
 PAPER_QUEUE_ID=20260429_115544_backbone_robustness_p0 \
 PAPER_QUEUE_PROFILE=backbone_robustness_p0 \
 PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
@@ -100,6 +126,15 @@ bash scripts/run_paper_backbone_robustness_queue.sh
 
 ```bash
 PAPER_QUEUE_VLLM_TIMEOUT_S=28800
+```
+
+监控：
+
+```bash
+tmux attach -t paper_backbone_robustness_p0
+tmux capture-pane -p -t paper_backbone_robustness_p0 -S -160
+nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader,nounits
+free -h
 ```
 
 ## 2. 当前系统顺序

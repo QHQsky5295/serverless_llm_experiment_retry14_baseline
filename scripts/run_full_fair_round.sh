@@ -260,12 +260,31 @@ post_system_clean_check() {
   wait_gpu_idle
 }
 
+latest_summary_match() {
+  local pattern="$1"
+  local fallback="$2"
+  python3 - "${pattern}" "${fallback}" <<'PY'
+import glob
+import os
+import sys
+
+pattern = sys.argv[1]
+fallback = sys.argv[2]
+matches = [path for path in glob.glob(pattern) if os.path.isfile(path)]
+if not matches:
+    print(fallback)
+else:
+    matches.sort(key=lambda path: os.path.getmtime(path))
+    print(matches[-1])
+PY
+}
+
 summary_path_for_system() {
   case "$1" in
-    sglang) printf '%s/%s_sglang_dp4_tp1_summary.json\n' "${RAW_REPLAY_DIR}" "${RUN_TAG}" ;;
+    sglang) latest_summary_match "${RAW_REPLAY_DIR}/${RUN_TAG}_sglang_*_summary.json" "${RAW_REPLAY_DIR}/${RUN_TAG}_sglang_dp4_tp1_summary.json" ;;
     serverlessllm) printf '%s/%s_serverlessllm_summary.json\n' "${RAW_REPLAY_DIR}" "${RUN_TAG}" ;;
-    vllm) printf '%s/%s_vllm_dp4_tp1_summary.json\n' "${RAW_REPLAY_DIR}" "${RUN_TAG}" ;;
-    slora) printf '%s/%s_slora_dp4_tp1_summary.json\n' "${RAW_REPLAY_DIR}" "${RUN_TAG}" ;;
+    vllm) latest_summary_match "${RAW_REPLAY_DIR}/${RUN_TAG}_vllm_*_summary.json" "${RAW_REPLAY_DIR}/${RUN_TAG}_vllm_dp4_tp1_summary.json" ;;
+    slora) latest_summary_match "${RAW_REPLAY_DIR}/${RUN_TAG}_slora_*_summary.json" "${RAW_REPLAY_DIR}/${RUN_TAG}_slora_dp4_tp1_summary.json" ;;
     faaslora) printf '%s/%s_faaslora_result.json\n' "${RAW_FAAS_DIR}" "${RUN_TAG}" ;;
     *) return 1 ;;
   esac
@@ -416,6 +435,18 @@ run_vllm() {
     log "skip ${stage}; marker exists"
     return 0
   fi
+  local vllm_dp="${VLLM_DATA_PARALLEL_REPLICAS:-}"
+  local vllm_tp="${VLLM_TENSOR_PARALLEL_SIZE:-}"
+  if [[ -z "${vllm_dp}" && -z "${vllm_tp}" && "${MODEL_PROFILE}" == "qwen_7b_main_v2_publicmix" ]]; then
+    # Qwen2.5-7B V2 uses vLLM V0/eager in the current environment. Four
+    # independent TP=1 replicas duplicate enough host-side model/runtime state
+    # to trigger Linux OOM on the 125GB testbed. Use a two-replica TP=2 topology
+    # for vLLM on the same four-GPU budget; all 500 LoRA modules and replay
+    # requests remain unchanged.
+    vllm_dp="${VLLM_QWEN7_SAFE_DP:-2}"
+    vllm_tp="${VLLM_QWEN7_SAFE_TP:-2}"
+    log "vLLM Qwen2.5-7B safe topology override: dp=${vllm_dp} tp=${vllm_tp} on gpu_ids=${GPU_IDS}"
+  fi
   pre_system_clean_check "vLLM"
   run_logged "${stage}" env \
     SLLM_BASELINES_ROOT="${BASELINES_ROOT}" \
@@ -433,8 +464,8 @@ run_vllm() {
     SLLM_SHARED_TRACE_PATH="${TRACE_PATH}" \
     SLLM_SHARED_ADAPTER_SUBSET_PATH="${ADAPTER_SUBSET_PATH}" \
     VLLM_GPU_IDS="${GPU_IDS}" \
-    VLLM_DATA_PARALLEL_REPLICAS="${VLLM_DATA_PARALLEL_REPLICAS:-}" \
-    VLLM_TENSOR_PARALLEL_SIZE="${VLLM_TENSOR_PARALLEL_SIZE:-}" \
+    VLLM_DATA_PARALLEL_REPLICAS="${vllm_dp}" \
+    VLLM_TENSOR_PARALLEL_SIZE="${vllm_tp}" \
     bash "${BASELINES_ROOT}/scripts/run_vllm_fair_experiment.sh"
   validate_summary "vLLM" "$(summary_path_for_system vllm)"
   post_system_clean_check "vLLM"
