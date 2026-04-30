@@ -60,19 +60,28 @@ systems:      sglang serverlessllm vllm slora faaslora
 section:      08_backbone_robustness
 ```
 
-截至 `2026-04-30 16:13 CST` 强制重启后检查，Qwen2.5-7B 已完成 SGLang 和
-ServerlessLLM 阶段，但 vLLM 阶段触发主机级 OOM，随后 tmux session 消失。
-内核日志显示 OOM killer 连续杀掉 vLLM APIServer/engine 进程；这不是 GPU OOM、
-不是 500-adapter 采样池被错误设置，也不是 replay 自身生成错误。该 round 的
-vLLM launch spec 仍包含 `lora_modules_count=500`，shared trace 中 `4000/4000`
+截至 `2026-04-30` 复查，Qwen2.5-7B 已完成 SGLang 和 ServerlessLLM 阶段，
+但 vLLM 阶段先后暴露两个问题。第一轮 `dp4/tp1` 触发主机级 OOM，内核日志显示
+OOM killer 连续杀掉 vLLM APIServer/engine 进程；这不是 GPU OOM、不是
+500-adapter 采样池被错误设置，也不是 replay 自身生成错误。该 round 的 vLLM
+launch spec 仍包含 `lora_modules_count=500`，shared trace 中 `4000/4000`
 请求均绑定 LoRA adapter。
 
-根因是 Qwen2.5-7B publicmix 当前必须走 vLLM V0/eager 路径，`dp4/tp1` 会在
-4 个独立 replica 中复制过大的 host-side model/runtime state。即使
-`max_cpu_loras` 已从完整 500 adapter pool 限制到 `48/500`，四个 replica 在
-长 replay 中仍会把 125GB 主机内存推入 OOM 区间。后台 Docker/Milvus/Ray 以及
-持续失败重启的 `frpc.service` 会进一步降低系统余量，但实验侧直接触发点是
-Qwen-vLLM 的 host-memory footprint。
+根因分两层：
+
+1. Qwen2.5-7B publicmix 当前必须走 vLLM V0/eager 路径，`dp4/tp1` 会在 4 个
+   独立 replica 中复制过大的 host-side model/runtime state。即使
+   `max_cpu_loras` 从完整 500 adapter pool 限制为有界值，四个 replica 在长
+   replay 中仍会把 125GB 主机内存推入 OOM 区间。
+2. 切换到 `dp2/tp2` 后，原 Qwen profile 仍继承 bring-up-only 的调度包络：
+   `max_num_seqs=2`、`max_loras=6`、`max_num_batched_tokens=1024`。这在两个
+   replica 上总共只有 4 个 running slots，vLLM 日志出现 `Pending: 190+`
+   到数百的内部积压，随后请求超时/连接中断并产生大量 fail。该问题不是
+   backbone 语义错误，也不是 500-LoRA workload 定义错误，而是 vLLM 拓扑与
+   per-replica concurrency envelope 不匹配。
+
+后台 Docker/Milvus/Ray 以及持续失败重启的 `frpc.service` 会降低系统余量，
+但实验侧直接触发点是 Qwen-vLLM 的 host-memory footprint 与调度包络。
 
 已修复的 runner 问题：
 
@@ -94,12 +103,24 @@ Qwen-vLLM 的 host-memory footprint。
   `dp2/tp2`，仍占用同一 4-GPU 预算；Llama-2 13B 和 Qwen2.5 14B 继续按
   model profile 使用 `dp2/tp2`。Llama-2 7B 主 round 仍可使用已验证的
   `dp4/tp1`。
+- `run_full_fair_round.sh` 同时只对 Qwen2.5-7B vLLM formal stage 提升
+  per-replica 调度包络为 `max_num_seqs=8`、`max_loras=8`、
+  `max_num_batched_tokens=4096`、`max_cpu_loras=32`。这不改变模型、
+  GPU budget、500-adapter universe、request trace、sampling 或 LoRA-bound
+  workload，只修正 vLLM 内部 pending queue 过小造成的 timeout/fail。
+- `replay_openai_trace.py` 增加 `--max-requests` 和 failure-abort gate，
+  允许正式前做 96/256-request bounded preflight，并在 fail 请求累计时立即
+  终止无效 replay。
 - `run_full_fair_round.sh` 不再把 vLLM/SGLang/S-LoRA summary 路径写死成
   `dp4_tp1`，而是按当前 run tag 动态选择最新 summary；这避免 13B/14B 或
   Qwen-vLLM safe topology 完成后被错误判定为缺文件。
 - `bash -n` 已通过；`PAPER_QUEUE_DRY_RUN=1 PAPER_QUEUE_PROFILE=backbone_robustness_p0`
   已验证三轮计划和模型/workload profile 正确。Qwen2.5-7B vLLM dry-run
   已验证 `topology=dp2_tp2`、`lora_modules_count=500`、`4000/4000` 请求绑定 LoRA。
+- Qwen2.5-7B vLLM 已完成真实 preflight：`96/96` 和 `256/256` 请求均
+  `fail=0`。256-request preflight 使用同一 shared trace/subset，证明之前的
+  高 fail 模式已被拓扑与调度包络修复。该 preflight 是健康性验证，不作为论文
+  performance data。
 
 系统服务注意事项：
 
@@ -108,9 +129,13 @@ Qwen-vLLM 的 host-memory footprint。
   解释。需要单独检查 frp server、mihomo/TUN 路由和本机 `frpc.service`。
 - journal 还显示 `yk0Wk9DV.service` 持续尝试执行不存在的 `/bin/YXt5BHl6`。
   这不像论文实验服务，应由管理员审计并禁用/删除，避免持续重启污染系统日志。
+- `2026-04-30 19:12 CST` 复查：`systemctl --failed` 没有 failed units，但
+  `frpc.service` 和 `yk0Wk9DV.service` 均处于 `activating (auto-restart)`。
+  这说明当前 GPU/实验进程已空闲，远程接入不稳仍可能来自实验外服务。
 
-恢复同一个队列时不要新建 queue id。由于强制重启后 tmux session 已不存在，
-建议重新创建同名 tmux 并使用同一个 queue id：
+恢复同一个队列时不要新建 queue id。当前 `paper_backbone_robustness_p0` 可能
+只剩一个 attached shell；若里面没有运行脚本，可直接在该 tmux 中使用同一个
+queue id 继续。若希望干净重开，先关闭空 session 再新建同名 tmux。
 
 ```bash
 cd /home/qhq/serverless_llm_baselines

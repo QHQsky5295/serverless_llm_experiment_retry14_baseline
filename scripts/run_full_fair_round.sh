@@ -437,15 +437,27 @@ run_vllm() {
   fi
   local vllm_dp="${VLLM_DATA_PARALLEL_REPLICAS:-}"
   local vllm_tp="${VLLM_TENSOR_PARALLEL_SIZE:-}"
+  local vllm_max_loras="${VLLM_MAX_LORAS:-}"
+  local vllm_max_num_seqs="${VLLM_MAX_NUM_SEQS:-}"
+  local vllm_max_num_batched_tokens="${VLLM_MAX_NUM_BATCHED_TOKENS:-}"
+  local vllm_max_cpu_loras="${VLLM_MAX_CPU_LORAS:-}"
   if [[ -z "${vllm_dp}" && -z "${vllm_tp}" && "${MODEL_PROFILE}" == "qwen_7b_main_v2_publicmix" ]]; then
     # Qwen2.5-7B V2 uses vLLM V0/eager in the current environment. Four
     # independent TP=1 replicas duplicate enough host-side model/runtime state
     # to trigger Linux OOM on the 125GB testbed. Use a two-replica TP=2 topology
-    # for vLLM on the same four-GPU budget; all 500 LoRA modules and replay
-    # requests remain unchanged.
+    # for vLLM on the same four-GPU budget. The model profile's conservative
+    # per-runtime concurrency (max_num_seqs=2) was chosen for single-replica
+    # bring-up and is too small for dp2/tp2 formal replay: it creates a vLLM
+    # internal pending queue and request timeouts. Raise the formal vLLM
+    # scheduling envelope while keeping the same 500-adapter universe, request
+    # trace, sampling, and GPU budget.
     vllm_dp="${VLLM_QWEN7_SAFE_DP:-2}"
     vllm_tp="${VLLM_QWEN7_SAFE_TP:-2}"
-    log "vLLM Qwen2.5-7B safe topology override: dp=${vllm_dp} tp=${vllm_tp} on gpu_ids=${GPU_IDS}"
+    vllm_max_num_seqs="${vllm_max_num_seqs:-${VLLM_QWEN7_SAFE_MAX_NUM_SEQS:-8}}"
+    vllm_max_loras="${vllm_max_loras:-${VLLM_QWEN7_SAFE_MAX_LORAS:-8}}"
+    vllm_max_num_batched_tokens="${vllm_max_num_batched_tokens:-${VLLM_QWEN7_SAFE_MAX_NUM_BATCHED_TOKENS:-4096}}"
+    vllm_max_cpu_loras="${vllm_max_cpu_loras:-${VLLM_QWEN7_SAFE_MAX_CPU_LORAS:-32}}"
+    log "vLLM Qwen2.5-7B safe topology override: dp=${vllm_dp} tp=${vllm_tp} max_num_seqs=${vllm_max_num_seqs} max_loras=${vllm_max_loras} max_batched_tokens=${vllm_max_num_batched_tokens} on gpu_ids=${GPU_IDS}"
   fi
   pre_system_clean_check "vLLM"
   run_logged "${stage}" env \
@@ -466,6 +478,10 @@ run_vllm() {
     VLLM_GPU_IDS="${GPU_IDS}" \
     VLLM_DATA_PARALLEL_REPLICAS="${vllm_dp}" \
     VLLM_TENSOR_PARALLEL_SIZE="${vllm_tp}" \
+    VLLM_MAX_NUM_SEQS="${vllm_max_num_seqs}" \
+    VLLM_MAX_LORAS="${vllm_max_loras}" \
+    VLLM_MAX_NUM_BATCHED_TOKENS="${vllm_max_num_batched_tokens}" \
+    VLLM_MAX_CPU_LORAS="${vllm_max_cpu_loras}" \
     bash "${BASELINES_ROOT}/scripts/run_vllm_fair_experiment.sh"
   validate_summary "vLLM" "$(summary_path_for_system vllm)"
   post_system_clean_check "vLLM"

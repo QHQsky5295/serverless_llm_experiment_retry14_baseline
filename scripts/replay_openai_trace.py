@@ -5,7 +5,9 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import re
+import sys
 import threading
 import time
 from pathlib import Path
@@ -1228,10 +1230,30 @@ def main() -> int:
         default=None,
         help="Optional base sampling seed; each request derives a stable per-request seed from request_id.",
     )
+    ap.add_argument(
+        "--max-requests",
+        type=int,
+        default=0,
+        help="Replay only the first N requests. Intended for bounded preflight probes.",
+    )
+    ap.add_argument(
+        "--abort-after-failures",
+        type=int,
+        default=0,
+        help="Abort the replay process once this many failed requests have completed.",
+    )
+    ap.add_argument(
+        "--abort-failures-min-done",
+        type=int,
+        default=1,
+        help="Minimum completed requests before --abort-after-failures can terminate replay.",
+    )
     args = ap.parse_args()
 
     payload = json.loads(args.trace.read_text(encoding="utf-8"))
     requests_list = list(payload.get("requests", []))
+    if int(args.max_requests or 0) > 0:
+        requests_list = requests_list[: int(args.max_requests)]
     if not requests_list:
         raise RuntimeError("trace contains no requests")
     if args.sglang_native_generate and args.slora_native_generate:
@@ -1358,6 +1380,18 @@ def main() -> int:
                     f"{_fmt_optional_ms(live['avg_serverless_overhead_ms'])}",
                     flush=True,
                 )
+            if (
+                int(args.abort_after_failures or 0) > 0
+                and live["done"] >= max(1, int(args.abort_failures_min_done or 1))
+                and live["failed"] >= int(args.abort_after_failures)
+            ):
+                print(
+                    f"[ERROR] aborting replay after {live['failed']} failed requests "
+                    f"among {live['done']} completed requests. This run is invalid.",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                os._exit(80)
 
     for idx, item in enumerate(requests_list):
         target_offset = float(item["arrival_time_s"]) * max(args.sleep_scale, 0.0)
@@ -1391,6 +1425,9 @@ def main() -> int:
         "sleep_scale": args.sleep_scale,
         "label": args.label,
         "generation_seed": args.generation_seed,
+        "max_requests": int(args.max_requests or 0),
+        "abort_after_failures": int(args.abort_after_failures or 0),
+        "abort_failures_min_done": int(args.abort_failures_min_done or 1),
         "ttft_slo_ms": float(args.ttft_slo_ms),
         "empty_success_retries": int(args.empty_success_retries or 0),
         "empty_success_retry_delay_s": float(args.empty_success_retry_delay_s or 0.0),

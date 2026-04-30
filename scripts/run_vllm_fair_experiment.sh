@@ -37,6 +37,16 @@ VLLM_HOST_MIN_MEM_GB="${VLLM_HOST_MIN_MEM_GB:-32}"
 VLLM_MEM_WATCH_INTERVAL_S="${VLLM_MEM_WATCH_INTERVAL_S:-2}"
 VLLM_SMOKE_ONLY="${VLLM_SMOKE_ONLY:-0}"
 VLLM_SMOKE_MAX_TOKENS="${VLLM_SMOKE_MAX_TOKENS:-1}"
+VLLM_MAX_LORAS="${VLLM_MAX_LORAS:-}"
+VLLM_MAX_NUM_SEQS="${VLLM_MAX_NUM_SEQS:-}"
+VLLM_MAX_NUM_BATCHED_TOKENS="${VLLM_MAX_NUM_BATCHED_TOKENS:-}"
+VLLM_MAX_REPLAY_REQUESTS="${VLLM_MAX_REPLAY_REQUESTS:-0}"
+VLLM_ABORT_AFTER_FAILURES="${VLLM_ABORT_AFTER_FAILURES:-8}"
+VLLM_ABORT_FAILURES_MIN_DONE="${VLLM_ABORT_FAILURES_MIN_DONE:-32}"
+VLLM_EXPECTED_REPLAY_TOTAL="${TOTAL_REQUESTS}"
+if [[ "${VLLM_MAX_REPLAY_REQUESTS}" =~ ^[0-9]+$ ]] && (( VLLM_MAX_REPLAY_REQUESTS > 0 && VLLM_MAX_REPLAY_REQUESTS < TOTAL_REQUESTS )); then
+  VLLM_EXPECTED_REPLAY_TOTAL="${VLLM_MAX_REPLAY_REQUESTS}"
+fi
 
 mkdir -p "${RESULT_DIR}" "${LOG_DIR}" "${SHARED_INPUT_DIR}"
 
@@ -344,6 +354,30 @@ VLLM_USE_V1_EFFECTIVE="${_CFG[19]}"
 VLLM_ATTENTION_BACKEND_EFFECTIVE="${_CFG[20]}"
 VLLM_USE_FLASHINFER_SAMPLER_EFFECTIVE="${_CFG[21]}"
 
+apply_positive_int_override() {
+  local env_name="$1"
+  local current_value="$2"
+  local override_value="${!env_name:-}"
+  if [[ -z "${override_value}" || "${override_value}" == "0" ]]; then
+    printf '%s\n' "${current_value}"
+    return 0
+  fi
+  if ! [[ "${override_value}" =~ ^[0-9]+$ ]] || (( override_value <= 0 )); then
+    echo "[ERROR] ${env_name} must be a positive integer, got ${override_value}" >&2
+    return 1
+  fi
+  printf '%s\n' "${override_value}"
+}
+
+MAX_LORAS="$(apply_positive_int_override VLLM_MAX_LORAS "${MAX_LORAS}")"
+MAX_NUM_SEQS="$(apply_positive_int_override VLLM_MAX_NUM_SEQS "${MAX_NUM_SEQS}")"
+MAX_NUM_BATCHED_TOKENS="$(apply_positive_int_override VLLM_MAX_NUM_BATCHED_TOKENS "${MAX_NUM_BATCHED_TOKENS}")"
+if (( MAX_LORAS < MAX_NUM_SEQS )); then
+  echo "[ERROR] max_loras=${MAX_LORAS} is smaller than max_num_seqs=${MAX_NUM_SEQS}." >&2
+  echo "        Set VLLM_MAX_LORAS>=VLLM_MAX_NUM_SEQS for formal multi-LoRA runs." >&2
+  exit 1
+fi
+
 VLLM_TOPOLOGY_LABEL="dp${DP_REPLICAS}_tp${TP_EFFECTIVE}"
 RESULT_TAG="${VLLM_RESULT_TAG:-${RUN_TAG}_vllm_${VLLM_TOPOLOGY_LABEL}}"
 REPLAY_PATH="${RESULT_DIR}/${RESULT_TAG}_replay.json"
@@ -503,8 +537,10 @@ echo "      ttft_slo_ms=${TTFT_SLO_MS}"
 echo "      model=${MODEL_PATH}"
 echo "      topology=${VLLM_TOPOLOGY_LABEL} gpu_ids=${VLLM_GPU_IDS}"
 echo "      max_loras=${MAX_LORAS} max_cpu_loras=${MAX_CPU_LORAS}/${SELECTED_NUM_ADAPTERS} max_lora_rank=${MAX_LORA_RANK}"
+echo "      max_num_seqs=${MAX_NUM_SEQS} max_num_batched_tokens=${MAX_NUM_BATCHED_TOKENS}"
 echo "      host_memory_guard=${VLLM_HOST_MIN_MEM_GB}GiB watch_interval=${VLLM_MEM_WATCH_INTERVAL_S}s"
 echo "      smoke_only=${VLLM_SMOKE_ONLY} smoke_max_tokens=${VLLM_SMOKE_MAX_TOKENS}"
+echo "      max_replay_requests=${VLLM_MAX_REPLAY_REQUESTS} expected_replay_total=${VLLM_EXPECTED_REPLAY_TOTAL} abort_after_failures=${VLLM_ABORT_AFTER_FAILURES} abort_failures_min_done=${VLLM_ABORT_FAILURES_MIN_DONE}"
 echo "      min_output_tokens=${VLLM_MIN_OUTPUT_TOKENS} include_stream_usage=${VLLM_INCLUDE_STREAM_USAGE} empty_success_retries=${VLLM_EMPTY_SUCCESS_RETRIES}"
 echo "      launch_spec=${LAUNCH_SPEC_PATH}"
 echo "      lora_modules=${LORA_MODULES_TXT}"
@@ -752,6 +788,9 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
   --min-output-tokens "${VLLM_MIN_OUTPUT_TOKENS}" \
   --empty-success-retries "${VLLM_EMPTY_SUCCESS_RETRIES}" \
   --empty-success-retry-delay-s "${VLLM_EMPTY_SUCCESS_RETRY_DELAY_S}" \
+  --max-requests "${VLLM_MAX_REPLAY_REQUESTS}" \
+  --abort-after-failures "${VLLM_ABORT_AFTER_FAILURES}" \
+  --abort-failures-min-done "${VLLM_ABORT_FAILURES_MIN_DONE}" \
   --adapter-source-field "adapter_id" \
   --adapter-target-field "model" \
   --drop-body-field "request_id" \
@@ -781,7 +820,7 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
   "${ROOT_DIR}/scripts/validate_replay_results.py" \
   --system "vLLM" \
   --replay "${REPLAY_PATH}" \
-  --expected-total "${TOTAL_REQUESTS}"
+  --expected-total "${VLLM_EXPECTED_REPLAY_TOTAL}"
 
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${REPLAY_PATH}" <<'PY'
 import json

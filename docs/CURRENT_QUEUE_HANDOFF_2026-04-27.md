@@ -132,21 +132,33 @@ Root cause from journal and runner logs:
 - The 500 LoRA value remains the formal sampled adapter pool. The vLLM launch
   spec still exposes all 500 LoRA modules, and the shared trace has `4000/4000`
   LoRA-bound requests.
+- After switching Qwen2.5-7B vLLM to `dp2/tp2`, the original Qwen profile still
+  used a bring-up-only vLLM envelope (`max_num_seqs=2`, `max_loras=6`,
+  `max_num_batched_tokens=1024`). That left only four total running slots, built
+  a large vLLM internal pending queue, and caused request timeouts/failures.
+  This is a topology/envelope mismatch, not a model-family issue and not a
+  reason to reduce the 500-adapter pool.
 
 Applied runner fixes:
 
 - Qwen2.5-7B vLLM now uses `dp2/tp2` on the same four-GPU budget.
+- Qwen2.5-7B vLLM formal stage now raises the execution envelope to
+  `max_num_seqs=8`, `max_loras=8`, `max_num_batched_tokens=4096`,
+  `max_cpu_loras=32`.
 - vLLM `max_cpu_loras=auto` is bounded per replica; current Qwen2.5-7B dry-run
   resolves to `24/500`.
 - vLLM runner now checks host `MemAvailable` during launch and replay and aborts
   before system OOM.
 - vLLM runner monitors server PIDs during replay and rejects partial runs when a
   replica dies.
+- replay now supports bounded preflight through `--max-requests` and aborts as
+  soon as repeated request failures prove a run invalid.
 - full-round summary discovery no longer assumes `dp4_tp1`, so TP=2 backbone
   runs validate correctly.
-- Real-host Qwen2.5-7B vLLM smoke passed after the fix: both `dp2/tp2`
-  replicas started, each completed a short LoRA request, and cleanup released
-  all GPUs.
+- Real-host Qwen2.5-7B vLLM smoke and preflight passed after the fix: both
+  `dp2/tp2` replicas started, each completed a short LoRA request, and bounded
+  96-request and 256-request replays both completed with `fail=0`. Cleanup
+  released all GPUs.
 - Llama-2 13B and Qwen2.5 14B preflight generated 4000 LoRA-bound requests and
   500-adapter subsets. vLLM and S-LoRA dry-runs for these backbones both expose
   500 adapters and resolve to `dp2/tp2`.
@@ -156,8 +168,13 @@ failing to connect to `120.26.187.54:7000`, and an unrelated-looking
 `yk0Wk9DV.service` repeatedly tries to execute missing `/bin/YXt5BHl6`. These
 services should be inspected outside the experiment harness; if SSH depends on
 frp, remote access can fail even when GPUs and experiments are idle.
+As of `2026-04-30 19:12 CST`, `systemctl --failed` lists no failed units, but
+both services are still in `activating (auto-restart)`, so they remain separate
+remote-access noise to resolve outside the paper runner.
 
-Resume command, using the same queue id:
+Resume command, using the same queue id. If `paper_backbone_robustness_p0` is
+still just an attached shell, run the command there; otherwise create a new
+tmux with the same name:
 
 ```bash
 cd /home/qhq/serverless_llm_baselines
