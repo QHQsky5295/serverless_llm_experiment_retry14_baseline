@@ -60,9 +60,14 @@ systems:      sglang serverlessllm vllm slora faaslora
 section:      08_backbone_robustness
 ```
 
-截至 `2026-04-29` 检查，Qwen2.5-7B 已完成 SGLang 和 ServerlessLLM 阶段，
-但 vLLM 阶段失败，`ok=407/4000`。失败原因是请求在 vLLM backlog 中排队过久，
-触发 replay client timeout；这不是有效性能结果，不能进入论文或 compare 表。
+截至 `2026-04-30` 检查，Qwen2.5-7B 已完成 SGLang 和 ServerlessLLM 阶段，
+但 vLLM 阶段失败，`ok=447/4000`。内核日志显示根因是 host OOM killer 杀掉
+vLLM engine process，而不是 GPU OOM、LoRA 数量被错误设置，或 replay 本身失败。
+触发条件是 vLLM launch spec 将 `max_cpu_loras` 设成完整 500-adapter pool，
+在 Qwen2.5-7B publicmix/V0 路径和 DP=4 replica 下复制了过大的 CPU LoRA 缓存。
+500 LoRA 仍然是正式采样池；每个请求仍然绑定 LoRA adapter；修复只限制
+vLLM 每个 replica 的 CPU LoRA cache 大小，不改变 `--lora-modules` 暴露的
+adapter universe。
 
 已修复的 runner 问题：
 
@@ -71,8 +76,15 @@ section:      08_backbone_robustness
 - `run_paper_long_experiment_queue.sh` 对 `backbone_robustness_p0` 默认设置
   `VLLM_TIMEOUT_S="${PAPER_QUEUE_VLLM_TIMEOUT_S:-21600}"`，让 Qwen-vLLM 的长排队
   表现为真实高延迟，而不是 1 小时 client timeout 失败。
+- `run_vllm_fair_experiment.sh` 将 `VLLM_MAX_CPU_LORAS=auto` 解析为有界 CPU
+  LoRA cache：Qwen2.5-7B 为 `48/500`，Llama-2-13B TP=2 和 Qwen2.5-14B TP=2
+  为 `16/500`。对应 dry-run 仍显示 `lora_modules_count=500`。
+- `run_full_fair_round.sh` 不再给 vLLM/SGLang/S-LoRA 强行传入 `TP=1,DP=4`；
+  子 runner 会按 model profile 与 GPU 列表解析拓扑。因此 7B 为 `dp4/tp1`，
+  13B/14B 为 `dp2/tp2`，避免后续 backbone 阶段因错误单卡启动而 OOM。
 - `bash -n` 已通过；`PAPER_QUEUE_DRY_RUN=1 PAPER_QUEUE_PROFILE=backbone_robustness_p0`
-  已验证三轮计划和模型/workload profile 正确。
+  已验证三轮计划和模型/workload profile 正确。vLLM 和 S-LoRA 的三组
+  backbone dry-run 已验证 launch spec 拓扑与 500-adapter module 数一致。
 
 恢复同一个队列时不要新建 queue id，使用：
 
@@ -434,14 +446,18 @@ active hot cap。`a500/hot48` 右端点优先复用已闭合的 Llama-2 7B `s8` 
 
 该 profile 已通过 `PAPER_QUEUE_DRY_RUN=1`，只生成预期的三个 round，不启动 GPU。
 
-2026-04-29 首次运行 `backbone_robustness_p0` 时，Qwen2.5-7B 的
-ServerlessLLM 阶段在第 `3637/4000` 个成功请求后失败。服务端日志显示根因是
-Ray host-memory guard 触发：节点内存达到 `119.11/125.38 GB`，超过默认
-`0.95` 阈值，Ray 杀掉 `VllmBackend` worker，随后请求返回 500。因此该 round
-不是有效性能结果，必须用同一 queue id 修复后断点续跑。脚本已将
-ServerlessLLM Ray 启动阈值默认设为 `SLLM_RAY_MEMORY_USAGE_THRESHOLD=0.99`，
-仍可通过环境变量覆盖；如后续仍接近系统真实 OOM，再考虑降低该阶段并发或单独
-调整 ServerlessLLM profile，而不是把失败请求纳入论文结果。
+2026-04-30 复查 `backbone_robustness_p0` 时，Qwen2.5-7B 已完成 SGLang 与
+ServerlessLLM；失败点在 vLLM。内核日志记录 `Out of memory: Killed process
+... (python)`，对应 vLLM engine PID。原因不是 500-adapter workload 过大本身，
+而是 runner 把 vLLM 的 `max_cpu_loras` 设置成 500，导致每个 replica 复制完整
+CPU LoRA cache。已修复为 bounded CPU LoRA cache，同时保留 500 个
+`--lora-modules` 和 4000 个 LoRA-bound 请求。失败期间 OOM killer 也杀过
+`systemd-journald`，因此该问题可能解释服务器间歇性连接不稳。
+
+同次修复还发现并修正了 backbone 队列的拓扑风险：原 `run_full_fair_round.sh`
+向 vLLM/SGLang/S-LoRA 默认传 `TP=1,DP=4`，会让 Llama-2-13B 和 Qwen2.5-14B
+这些 TP=2 profile 在后续阶段按错误拓扑启动。修复后默认不覆盖 profile；
+7B 解析为 `dp4/tp1`，13B/14B 解析为 `dp2/tp2`。
 
 如果为了快速探路显式覆盖 `PAPER_QUEUE_SYSTEMS="sglang vllm slora faaslora"`，
 该结果只能标注为 partial sensitivity，不能作为完备横向对比。后续必须补跑

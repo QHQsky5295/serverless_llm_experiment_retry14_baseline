@@ -31,7 +31,7 @@ SLORA_PORT="${SLORA_PORT:-8463}"
 SLORA_PORT_STRIDE="${SLORA_PORT_STRIDE:-10}"
 SLORA_NCCL_PORT="${SLORA_NCCL_PORT:-29630}"
 SLORA_GPU_IDS="${SLORA_GPU_IDS:-0,1,2,3}"
-SLORA_TENSOR_PARALLEL_SIZE="${SLORA_TENSOR_PARALLEL_SIZE:-1}"
+SLORA_TENSOR_PARALLEL_SIZE="${SLORA_TENSOR_PARALLEL_SIZE:-}"
 SLORA_DATA_PARALLEL_REPLICAS="${SLORA_DATA_PARALLEL_REPLICAS:-}"
 SLORA_MAX_TOTAL_TOKEN_NUM="${SLORA_MAX_TOTAL_TOKEN_NUM:-14000}"
 SLORA_SLEEP_SCALE="${SLORA_SLEEP_SCALE:-1.0}"
@@ -195,7 +195,7 @@ dp_override = str(sys.argv[7] or "").strip()
 gpu_ids = [item.strip() for item in str(sys.argv[8]).split(",") if item.strip()]
 cost_model = dict(cfg.get("cost_model", {}) or {})
 
-tp = int(tp_override) if tp_override else 1
+tp = int(tp_override) if tp_override else int(model_cfg.get("tensor_parallel_size", 1) or 1)
 if tp <= 0:
     raise SystemExit(f"invalid tensor parallel size: {tp}")
 if dp_override:

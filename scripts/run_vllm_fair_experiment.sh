@@ -291,8 +291,51 @@ LORA_MODULES_JSON="${SHARED_INPUT_DIR}/${RESULT_TAG}_lora_modules.json"
 LORA_MODULES_TXT="${SHARED_INPUT_DIR}/${RESULT_TAG}_lora_modules.txt"
 SERVER_LOG_PREFIX="${LOG_DIR}/${RESULT_TAG}_server"
 
+resolve_max_cpu_loras() {
+  # Keep the experiment adapter universe unchanged: --lora-modules still lists
+  # all SELECTED_NUM_ADAPTERS entries and every replay request remains
+  # LoRA-bound. This value only limits vLLM's per-replica CPU LoRA cache. Setting
+  # it to the full 500-adapter pool duplicates large adapter state in every
+  # replica and can trigger host OOM on Qwen/publicmix profiles.
+  local requested="${VLLM_MAX_CPU_LORAS:-auto}"
+  local minimum="${MAX_LORAS}"
+  if (( MAX_NUM_SEQS > minimum )); then
+    minimum="${MAX_NUM_SEQS}"
+  fi
+
+  local value
+  if [[ "${requested}" == "auto" || -z "${requested}" || "${requested}" == "0" ]]; then
+    value=$(( MAX_LORAS * 8 ))
+    if (( value < 16 )); then
+      value=16
+    fi
+    if (( value < minimum )); then
+      value="${minimum}"
+    fi
+    if (( value > SELECTED_NUM_ADAPTERS )); then
+      value="${SELECTED_NUM_ADAPTERS}"
+    fi
+  else
+    if ! [[ "${requested}" =~ ^[0-9]+$ ]]; then
+      echo "[ERROR] VLLM_MAX_CPU_LORAS must be a positive integer or auto, got ${requested}" >&2
+      return 1
+    fi
+    value="${requested}"
+    if (( value < minimum )); then
+      echo "[ERROR] VLLM_MAX_CPU_LORAS=${value} is smaller than required minimum ${minimum} (max(max_loras,max_num_seqs))" >&2
+      return 1
+    fi
+    if (( value > SELECTED_NUM_ADAPTERS )); then
+      value="${SELECTED_NUM_ADAPTERS}"
+    fi
+  fi
+  printf '%s\n' "${value}"
+}
+
+MAX_CPU_LORAS="$(resolve_max_cpu_loras)"
+
 echo "[2/5] Building vLLM launch spec from shared subset"
-PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${SHARED_ADAPTER_SUBSET_PATH}" "${MODEL_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_MODULES_JSON}" "${LORA_MODULES_TXT}" "${TP_EFFECTIVE}" "${DP_REPLICAS}" "${VLLM_GPU_IDS}" "${VLLM_HOST}" "${VLLM_PORT}" "${VLLM_PORT_STRIDE}" "${GPU_MEMORY_UTILIZATION}" "${DTYPE}" "${MAX_LORAS}" "${MAX_LORA_RANK}" "${MAX_NUM_SEQS}" "${MAX_NUM_BATCHED_TOKENS}" "${ENABLE_CHUNKED_PREFILL}" "${ENABLE_PREFIX_CACHING}" "${ENFORCE_EAGER}" "${VLLM_USE_V1_EFFECTIVE}" "${VLLM_ATTENTION_BACKEND_EFFECTIVE}" "${VLLM_USE_FLASHINFER_SAMPLER_EFFECTIVE}" "${PROMPT_GUARD_MAX_MODEL_LEN}" <<'PY'
+PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${SHARED_ADAPTER_SUBSET_PATH}" "${MODEL_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_MODULES_JSON}" "${LORA_MODULES_TXT}" "${TP_EFFECTIVE}" "${DP_REPLICAS}" "${VLLM_GPU_IDS}" "${VLLM_HOST}" "${VLLM_PORT}" "${VLLM_PORT_STRIDE}" "${GPU_MEMORY_UTILIZATION}" "${DTYPE}" "${MAX_LORAS}" "${MAX_CPU_LORAS}" "${MAX_LORA_RANK}" "${MAX_NUM_SEQS}" "${MAX_NUM_BATCHED_TOKENS}" "${ENABLE_CHUNKED_PREFILL}" "${ENABLE_PREFIX_CACHING}" "${ENFORCE_EAGER}" "${VLLM_USE_V1_EFFECTIVE}" "${VLLM_ATTENTION_BACKEND_EFFECTIVE}" "${VLLM_USE_FLASHINFER_SAMPLER_EFFECTIVE}" "${PROMPT_GUARD_MAX_MODEL_LEN}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -313,16 +356,17 @@ port_stride = int(sys.argv[11])
 gpu_memory_utilization = float(sys.argv[12])
 dtype = sys.argv[13]
 max_loras = int(sys.argv[14])
-max_lora_rank = int(sys.argv[15])
-max_num_seqs = int(sys.argv[16])
-max_num_batched_tokens = int(sys.argv[17])
-enable_chunked_prefill = bool(int(sys.argv[18]))
-enable_prefix_caching = bool(int(sys.argv[19]))
-enforce_eager = bool(int(sys.argv[20]))
-vllm_use_v1 = bool(int(sys.argv[21]))
-attention_backend = sys.argv[22]
-use_flashinfer_sampler = bool(int(sys.argv[23]))
-max_model_len = int(sys.argv[24])
+max_cpu_loras = int(sys.argv[15])
+max_lora_rank = int(sys.argv[16])
+max_num_seqs = int(sys.argv[17])
+max_num_batched_tokens = int(sys.argv[18])
+enable_chunked_prefill = bool(int(sys.argv[19]))
+enable_prefix_caching = bool(int(sys.argv[20]))
+enforce_eager = bool(int(sys.argv[21]))
+vllm_use_v1 = bool(int(sys.argv[22]))
+attention_backend = sys.argv[23]
+use_flashinfer_sampler = bool(int(sys.argv[24]))
+max_model_len = int(sys.argv[25])
 if port_stride < 4:
     raise SystemExit(f"VLLM_PORT_STRIDE must leave room for vLLM internal ports, got {port_stride}")
 
@@ -368,7 +412,7 @@ launch = {
     "dtype": dtype,
     "enable_lora": True,
     "max_loras": max_loras,
-    "max_cpu_loras": max(len(modules), max_loras),
+    "max_cpu_loras": max_cpu_loras,
     "max_lora_rank": max_lora_rank,
     "max_num_seqs": max_num_seqs,
     "max_num_batched_tokens": max_num_batched_tokens,
@@ -395,6 +439,7 @@ echo "      cost_model(base/in/out)=${BASE_COST_USD}/${INPUT_TOKEN_COST_USD}/${O
 echo "      ttft_slo_ms=${TTFT_SLO_MS}"
 echo "      model=${MODEL_PATH}"
 echo "      topology=${VLLM_TOPOLOGY_LABEL} gpu_ids=${VLLM_GPU_IDS}"
+echo "      max_loras=${MAX_LORAS} max_cpu_loras=${MAX_CPU_LORAS}/${SELECTED_NUM_ADAPTERS} max_lora_rank=${MAX_LORA_RANK}"
 echo "      min_output_tokens=${VLLM_MIN_OUTPUT_TOKENS} include_stream_usage=${VLLM_INCLUDE_STREAM_USAGE} empty_success_retries=${VLLM_EMPTY_SUCCESS_RETRIES}"
 echo "      launch_spec=${LAUNCH_SPEC_PATH}"
 echo "      lora_modules=${LORA_MODULES_TXT}"
@@ -494,7 +539,7 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
     --max-num-batched-tokens "${MAX_NUM_BATCHED_TOKENS}"
     --enable-lora
     --max-loras "${MAX_LORAS}"
-    --max-cpu-loras "${#VLLM_LORA_MODULES[@]}"
+    --max-cpu-loras "${MAX_CPU_LORAS}"
     --max-lora-rank "${MAX_LORA_RANK}"
     --lora-modules "${VLLM_LORA_MODULES[@]}"
     --disable-log-requests

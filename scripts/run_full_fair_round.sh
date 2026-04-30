@@ -372,8 +372,8 @@ run_sglang() {
     SLLM_SHARED_TRACE_PATH="${TRACE_PATH}" \
     SLLM_SHARED_ADAPTER_SUBSET_PATH="${ADAPTER_SUBSET_PATH}" \
     SGLANG_GPU_IDS="${GPU_IDS}" \
-    SGLANG_DATA_PARALLEL_REPLICAS="${SGLANG_DATA_PARALLEL_REPLICAS:-4}" \
-    SGLANG_TENSOR_PARALLEL_SIZE="${SGLANG_TENSOR_PARALLEL_SIZE:-1}" \
+    SGLANG_DATA_PARALLEL_REPLICAS="${SGLANG_DATA_PARALLEL_REPLICAS:-}" \
+    SGLANG_TENSOR_PARALLEL_SIZE="${SGLANG_TENSOR_PARALLEL_SIZE:-}" \
     bash "${BASELINES_ROOT}/scripts/run_sglang_fair_experiment.sh"
   validate_summary "SGLang" "$(summary_path_for_system sglang)"
   post_system_clean_check "SGLang"
@@ -433,8 +433,8 @@ run_vllm() {
     SLLM_SHARED_TRACE_PATH="${TRACE_PATH}" \
     SLLM_SHARED_ADAPTER_SUBSET_PATH="${ADAPTER_SUBSET_PATH}" \
     VLLM_GPU_IDS="${GPU_IDS}" \
-    VLLM_DATA_PARALLEL_REPLICAS="${VLLM_DATA_PARALLEL_REPLICAS:-4}" \
-    VLLM_TENSOR_PARALLEL_SIZE="${VLLM_TENSOR_PARALLEL_SIZE:-1}" \
+    VLLM_DATA_PARALLEL_REPLICAS="${VLLM_DATA_PARALLEL_REPLICAS:-}" \
+    VLLM_TENSOR_PARALLEL_SIZE="${VLLM_TENSOR_PARALLEL_SIZE:-}" \
     bash "${BASELINES_ROOT}/scripts/run_vllm_fair_experiment.sh"
   validate_summary "vLLM" "$(summary_path_for_system vllm)"
   post_system_clean_check "vLLM"
@@ -464,8 +464,8 @@ run_slora() {
     SLLM_SHARED_TRACE_PATH="${TRACE_PATH}" \
     SLLM_SHARED_ADAPTER_SUBSET_PATH="${ADAPTER_SUBSET_PATH}" \
     SLORA_GPU_IDS="${GPU_IDS}" \
-    SLORA_DATA_PARALLEL_REPLICAS="${SLORA_DATA_PARALLEL_REPLICAS:-4}" \
-    SLORA_TENSOR_PARALLEL_SIZE="${SLORA_TENSOR_PARALLEL_SIZE:-1}" \
+    SLORA_DATA_PARALLEL_REPLICAS="${SLORA_DATA_PARALLEL_REPLICAS:-}" \
+    SLORA_TENSOR_PARALLEL_SIZE="${SLORA_TENSOR_PARALLEL_SIZE:-}" \
     bash "${BASELINES_ROOT}/scripts/run_slora_fair_experiment.sh"
   validate_summary "S-LoRA" "$(summary_path_for_system slora)"
   post_system_clean_check "S-LoRA"

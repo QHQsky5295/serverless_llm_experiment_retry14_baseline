@@ -24,7 +24,7 @@ SGLANG_HOST="${SGLANG_HOST:-127.0.0.1}"
 SGLANG_PORT="${SGLANG_PORT:-8353}"
 SGLANG_GPU_IDS="${SGLANG_GPU_IDS:-0,1,2,3}"
 SGLANG_TENSOR_PARALLEL_SIZE="${SGLANG_TENSOR_PARALLEL_SIZE:-}"
-SGLANG_DATA_PARALLEL_REPLICAS="${SGLANG_DATA_PARALLEL_REPLICAS:-1}"
+SGLANG_DATA_PARALLEL_REPLICAS="${SGLANG_DATA_PARALLEL_REPLICAS:-}"
 SGLANG_SLEEP_SCALE="${SGLANG_SLEEP_SCALE:-1.0}"
 SGLANG_TIMEOUT_S="${SGLANG_TIMEOUT_S:-3600}"
 
@@ -318,7 +318,19 @@ payload = yaml.safe_load(Path(sys.argv[1]).read_text()) or {}
 print(int(payload.get("tp", payload.get("tensor_parallel_size", 1)) or 1))
 PY
 )"
-DP_REPLICAS="$(PYTHONNOUSERSITE=1 "${SGLANG_VENV}/bin/python" -c 'import sys; print(max(1, int(sys.argv[1])))' "${SGLANG_DATA_PARALLEL_REPLICAS}")"
+DP_REPLICAS="$(
+  PYTHONNOUSERSITE=1 "${SGLANG_VENV}/bin/python" - "${SGLANG_DATA_PARALLEL_REPLICAS}" "${SGLANG_GPU_IDS}" "${TP_EFFECTIVE}" <<'PY'
+import sys
+
+override = str(sys.argv[1] or "").strip()
+gpu_ids = [item.strip() for item in str(sys.argv[2]).split(",") if item.strip()]
+tp = int(sys.argv[3])
+if override:
+    print(max(1, int(override)))
+else:
+    print(max(1, len(gpu_ids) // tp))
+PY
+)"
 IFS=',' read -r -a GPU_ID_ARRAY <<< "${SGLANG_GPU_IDS}"
 REQUIRED_GPU_COUNT=$(( DP_REPLICAS * TP_EFFECTIVE ))
 if (( ${#GPU_ID_ARRAY[@]} < REQUIRED_GPU_COUNT )); then
