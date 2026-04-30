@@ -27,11 +27,18 @@ Hardware calibration
 """
 
 import asyncio
+import contextvars
 import math
 import time
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
+
+
+_GPU_ADMISSION_DECISION_US: contextvars.ContextVar[float] = contextvars.ContextVar(
+    "faaslora_gpu_admission_decision_us",
+    default=0.0,
+)
 
 
 def _normalize_gpu_device_ids(raw_ids: Any) -> List[int]:
@@ -456,7 +463,35 @@ class ResourceCoordinator:
         reserve = self.gpu_budget_mb * self.lora_load_reserve_ratio
         return self.gpu_budget_mb - self.model_weights_mb - kv_mb - lora_mb - reserve
 
+    def reset_gpu_admission_decision_us(self) -> None:
+        _GPU_ADMISSION_DECISION_US.set(0.0)
+
+    def consume_gpu_admission_decision_us(self) -> float:
+        value = max(0.0, float(_GPU_ADMISSION_DECISION_US.get(0.0) or 0.0))
+        _GPU_ADMISSION_DECISION_US.set(0.0)
+        return value
+
     def evaluate_gpu_admission(
+        self,
+        adapter_id: str,
+        size_mb: float,
+        tier: str = "nvme",
+        utility_override: Optional[float] = None,
+    ) -> Dict[str, float]:
+        started_ns = time.perf_counter_ns()
+        try:
+            return self._evaluate_gpu_admission_impl(
+                adapter_id,
+                size_mb,
+                tier=tier,
+                utility_override=utility_override,
+            )
+        finally:
+            elapsed_us = max(0.0, (time.perf_counter_ns() - started_ns) / 1000.0)
+            previous = max(0.0, float(_GPU_ADMISSION_DECISION_US.get(0.0) or 0.0))
+            _GPU_ADMISSION_DECISION_US.set(previous + elapsed_us)
+
+    def _evaluate_gpu_admission_impl(
         self,
         adapter_id: str,
         size_mb: float,

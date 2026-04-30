@@ -2,6 +2,7 @@
 \usepackage{amsmath,amsfonts}
 \usepackage{algorithmic}
 \usepackage{algorithm}
+\usepackage{booktabs}
 \usepackage{array}
 \usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
 \usepackage{textcomp}
@@ -365,6 +366,27 @@ Table~\ref{tab:end_to_end} reports the primary end-to-end results on the represe
 \textbf{Question.}
 How much does each PrimeLoRA mechanism contribute to the final performance?
 
+We analyze PrimeLoRA's mechanisms from two complementary views. First, a request-level service-readiness audit examines whether selected replicas are adapter-ready for LoRA-bearing requests. Second, the aggregate ablation figure reports how the cumulative mechanisms affect latency, throughput, cost, and CE.
+
+\subsubsection{Service-Readiness Audit}
+\label{subsec:service_readiness_audit}
+
+This audit is performed on the PrimeLoRA ablation round, where per-request adapter-tier observations are available. We count only successful LoRA-bearing requests and use the recorded service-path tier as the selected-replica readiness proxy. A request is GPU-ready when the target adapter is already executable from the GPU tier; HOST/NVMe requests are local-prepared but still non-GPU-ready, so adapter-path resolution and admission can enter the first-token path.
+
+\IfFileExists{figs/paper/readiness/tables/table_service_readiness.tex}{\input{figs/paper/readiness/tables/table_service_readiness.tex}}{\input{../figs/paper/readiness/tables/table_service_readiness.tex}}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.92\columnwidth]{figs/paper/readiness/fig_service_readiness_summary.pdf}
+    \caption{Service-readiness audit on the PrimeLoRA ablation round. Panel (a) separates GPU-ready requests from local-prepared non-GPU requests. Panel (b) compares p95 TTFT for GPU-ready and non-GPU requests.}
+    \label{fig:service_readiness_summary}
+\end{figure}
+
+Table~\ref{tab:service_readiness} and Fig.~\ref{fig:service_readiness_summary} show that most requests are GPU-ready across all variants, while a small non-GPU local-prepared group remains. This group forms a much higher TTFT tail: GPU-ready p95 TTFT is around 0.91--1.05\,s, whereas non-GPU p95 TTFT reaches about 4.98--6.04\,s. The archived ablation round does not show remote-cold service-path cases, so the audit is used to support the residual local-prepared readiness gap rather than a remote-cold claim.
+
+\subsubsection{Aggregate Ablation Results}
+\label{subsubsec:aggregate_ablation_results}
+
 \begin{figure}[t]
     \centering
     \includegraphics[width=\linewidth]{figs/paper/ablation/fig6_ablation.pdf}
@@ -373,6 +395,22 @@ How much does each PrimeLoRA mechanism contribute to the final performance?
 \end{figure}
 
 Figure~\ref{fig:ablation} isolates the marginal effect of PrimeLoRA's mechanisms. Residency and migration reduce readiness-related first-token delay, while the full coordinated system improves CE without materially increasing per-request cost. The E2E tail remains close across variants, indicating that the main gain comes from the first-token readiness path rather than from changing the decode workload.
+
+\subsection{Control-Path Overhead}
+\label{subsec:control_path_overhead}
+
+PrimeLoRA adds online checks for routing, tier-state lookup, adapter-path resolution, and GPU admission. We audit these costs only inside PrimeLoRA rather than comparing them across systems, because vLLM, SGLang, S-LoRA, and ServerlessLLM expose different wrapper, runtime, and admission boundaries. The purpose is to verify that PrimeLoRA's added readiness-aware decisions do not become a new request-path bottleneck.
+
+\IfFileExists{figs/paper/control_path/tables/table_control_path_overhead.tex}{\input{figs/paper/control_path/tables/table_control_path_overhead.tex}}{}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.96\columnwidth]{figs/paper/control_path/fig_control_path_overhead.pdf}
+    \caption{PrimeLoRA control-path overhead on the representative Llama-2-7B workload. The audit reports PrimeLoRA-only online and background decision costs and is not used as a cross-system comparison.}
+    \label{fig:control_path_overhead}
+\end{figure}
+
+The measured overhead is interpreted relative to the TTFT and Service TTFT results in Table~\ref{tab:end_to_end}. Routing, tier lookup, path resolution, and admission checks use cached runtime state and bounded request statistics, while background handoff planning runs asynchronously. Thus, this audit checks that readiness-aware coordination improves service readiness without shifting substantial work into the online control path.
 
 \subsection{Lifecycle Cost Efficiency}
 

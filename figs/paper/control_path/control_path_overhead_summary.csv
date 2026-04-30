@@ -1,0 +1,11 @@
+operation_label,operation_latex,avg_us,p95_us,avg_ms,p95_ms,events,source
+"Routing +
+tier lookup",Routing + tier lookup,107.6784545,195.16904999999997,0.1076784545,0.19516904999999998,4000,/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_controlpath_v1.json
+"Adapter-path
+resolution",Adapter-path resolution,4524.319627180291,5956.9908,4.524319627180291,5.9569908,4000,/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_controlpath_v1.json
+"GPU-admission
+check",GPU-admission check,3353.6537976190475,23016.284,3.3536537976190477,23.016284,168,/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_controlpath_v1.json
+"Online control
+total",Online control total,4772.85154118029,6118.673499999995,4.77285154118029,6.118673499999995,4000,/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_controlpath_v1.json
+"Background
+handoff plan",Background handoff plan,2016.8047,4033.5767,2.0168047,4.0335767,6,/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_controlpath_v1.json

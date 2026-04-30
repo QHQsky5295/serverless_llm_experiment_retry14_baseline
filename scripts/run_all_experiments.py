@@ -756,6 +756,18 @@ class RequestResult:
     parent_rpc_thread_resume_delay_ms: float = 0.0
     service_path_residual_ms: float = 0.0
     pre_runtime_service_shell_ms: float = 0.0
+    readiness_tier_before_dispatch: str = ""
+    adapter_gpu_ready_before_dispatch: bool = False
+    adapter_local_ready_before_dispatch: bool = False
+    adapter_remote_cold_before_dispatch: bool = False
+    adapter_replica_mismatch: bool = False
+    remote_mismatch: bool = False
+    scaleout_mismatch: bool = False
+    selected_instance_age_s: float = 0.0
+    routing_decision_us: float = 0.0
+    adapter_path_resolution_us: float = 0.0
+    gpu_admission_decision_us: float = 0.0
+    control_path_total_us: float = 0.0
 
 
 def _positive_or_fallback(primary: Any, fallback: Any = 0.0) -> float:
@@ -1226,6 +1238,17 @@ class ScenarioResult:
     p95_service_path_residual_ms: float = 0.0
     avg_pre_runtime_service_shell_ms: float = 0.0
     p95_pre_runtime_service_shell_ms: float = 0.0
+    avg_routing_decision_us: float = 0.0
+    p95_routing_decision_us: float = 0.0
+    avg_adapter_path_resolution_us: float = 0.0
+    p95_adapter_path_resolution_us: float = 0.0
+    avg_gpu_admission_decision_us: float = 0.0
+    p95_gpu_admission_decision_us: float = 0.0
+    avg_control_path_total_us: float = 0.0
+    p95_control_path_total_us: float = 0.0
+    avg_background_planning_us: float = 0.0
+    p95_background_planning_us: float = 0.0
+    background_planning_event_count: int = 0
     avg_gpu_ready_ttft_ms: float = 0.0
     p95_gpu_ready_ttft_ms: float = 0.0
     avg_scaleup_affected_ttft_ms: float = 0.0
@@ -1459,6 +1482,26 @@ class ScenarioResult:
             for r in ok
             if float(getattr(r, "pre_runtime_service_shell_ms", 0.0) or 0.0) >= 0.0
         ]
+        routing_decision_us = [
+            float(getattr(r, "routing_decision_us", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "routing_decision_us", 0.0) or 0.0) >= 0.0
+        ]
+        adapter_path_resolution_us = [
+            float(getattr(r, "adapter_path_resolution_us", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "adapter_path_resolution_us", 0.0) or 0.0) >= 0.0
+        ]
+        gpu_admission_decision_us = [
+            float(getattr(r, "gpu_admission_decision_us", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "gpu_admission_decision_us", 0.0) or 0.0) >= 0.0
+        ]
+        control_path_total_us = [
+            float(getattr(r, "control_path_total_us", 0.0) or 0.0)
+            for r in ok
+            if float(getattr(r, "control_path_total_us", 0.0) or 0.0) >= 0.0
+        ]
         gpu_ready_ttft = [_request_overall_ttft_ms(r) for r in ok if r.cache_tier == "gpu"]
         comparable_ttft = [
             _request_overall_ttft_ms(r)
@@ -1646,6 +1689,34 @@ class ScenarioResult:
         )
         self.p95_pre_runtime_service_shell_ms = (
             pct(pre_runtime_service_shell, 95) if pre_runtime_service_shell else 0.0
+        )
+        self.avg_routing_decision_us = (
+            sum(routing_decision_us) / len(routing_decision_us)
+            if routing_decision_us else 0.0
+        )
+        self.p95_routing_decision_us = (
+            pct(routing_decision_us, 95) if routing_decision_us else 0.0
+        )
+        self.avg_adapter_path_resolution_us = (
+            sum(adapter_path_resolution_us) / len(adapter_path_resolution_us)
+            if adapter_path_resolution_us else 0.0
+        )
+        self.p95_adapter_path_resolution_us = (
+            pct(adapter_path_resolution_us, 95) if adapter_path_resolution_us else 0.0
+        )
+        self.avg_gpu_admission_decision_us = (
+            sum(gpu_admission_decision_us) / len(gpu_admission_decision_us)
+            if gpu_admission_decision_us else 0.0
+        )
+        self.p95_gpu_admission_decision_us = (
+            pct(gpu_admission_decision_us, 95) if gpu_admission_decision_us else 0.0
+        )
+        self.avg_control_path_total_us = (
+            sum(control_path_total_us) / len(control_path_total_us)
+            if control_path_total_us else 0.0
+        )
+        self.p95_control_path_total_us = (
+            pct(control_path_total_us, 95) if control_path_total_us else 0.0
         )
         self.avg_gpu_ready_ttft_ms = sum(gpu_ready_ttft)/len(gpu_ready_ttft) if gpu_ready_ttft else 0.0
         self.p95_gpu_ready_ttft_ms = pct(gpu_ready_ttft, 95) if gpu_ready_ttft else 0.0
@@ -1838,6 +1909,12 @@ _SCENARIO_RESULT_NUMERIC_KEYS = (
     "avg_parent_rpc_thread_resume_delay_ms", "p95_parent_rpc_thread_resume_delay_ms",
     "avg_service_path_residual_ms", "p95_service_path_residual_ms",
     "avg_pre_runtime_service_shell_ms", "p95_pre_runtime_service_shell_ms",
+    "avg_routing_decision_us", "p95_routing_decision_us",
+    "avg_adapter_path_resolution_us", "p95_adapter_path_resolution_us",
+    "avg_gpu_admission_decision_us", "p95_gpu_admission_decision_us",
+    "avg_control_path_total_us", "p95_control_path_total_us",
+    "avg_background_planning_us", "p95_background_planning_us",
+    "background_planning_event_count",
     "avg_gpu_ready_ttft_ms", "p95_gpu_ready_ttft_ms",
     "avg_scaleup_affected_ttft_ms", "p95_scaleup_affected_ttft_ms",
     "avg_scaleup_runtime_ttft_ms", "p95_scaleup_runtime_ttft_ms",
@@ -2067,6 +2144,17 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         p95_service_path_residual_ms=agg_dict.get("p95_service_path_residual_ms", first.p95_service_path_residual_ms),
         avg_pre_runtime_service_shell_ms=agg_dict.get("avg_pre_runtime_service_shell_ms", first.avg_pre_runtime_service_shell_ms),
         p95_pre_runtime_service_shell_ms=agg_dict.get("p95_pre_runtime_service_shell_ms", first.p95_pre_runtime_service_shell_ms),
+        avg_routing_decision_us=agg_dict.get("avg_routing_decision_us", first.avg_routing_decision_us),
+        p95_routing_decision_us=agg_dict.get("p95_routing_decision_us", first.p95_routing_decision_us),
+        avg_adapter_path_resolution_us=agg_dict.get("avg_adapter_path_resolution_us", first.avg_adapter_path_resolution_us),
+        p95_adapter_path_resolution_us=agg_dict.get("p95_adapter_path_resolution_us", first.p95_adapter_path_resolution_us),
+        avg_gpu_admission_decision_us=agg_dict.get("avg_gpu_admission_decision_us", first.avg_gpu_admission_decision_us),
+        p95_gpu_admission_decision_us=agg_dict.get("p95_gpu_admission_decision_us", first.p95_gpu_admission_decision_us),
+        avg_control_path_total_us=agg_dict.get("avg_control_path_total_us", first.avg_control_path_total_us),
+        p95_control_path_total_us=agg_dict.get("p95_control_path_total_us", first.p95_control_path_total_us),
+        avg_background_planning_us=agg_dict.get("avg_background_planning_us", first.avg_background_planning_us),
+        p95_background_planning_us=agg_dict.get("p95_background_planning_us", first.p95_background_planning_us),
+        background_planning_event_count=int(round(agg_dict.get("background_planning_event_count", first.background_planning_event_count))),
         avg_gpu_ready_ttft_ms=agg_dict.get("avg_gpu_ready_ttft_ms", first.avg_gpu_ready_ttft_ms),
         p95_gpu_ready_ttft_ms=agg_dict.get("p95_gpu_ready_ttft_ms", first.p95_gpu_ready_ttft_ms),
         avg_scaleup_affected_ttft_ms=agg_dict.get("avg_scaleup_affected_ttft_ms", first.avg_scaleup_affected_ttft_ms),
@@ -4674,6 +4762,7 @@ class ScenarioRunner:
         self._live_arrived_lora_first_seen_seq: Dict[str, int] = {}
         self._live_arrived_lora_seq: int = 0
         self._live_waiting_traces_by_id: Dict[str, Any] = {}
+        self._background_planning_us: List[float] = []
         self._dispatch_admitted_requests: int = 0
         self._dispatch_admission_condition: Optional[asyncio.Condition] = None
         self._runtime_slot_capacity_condition: Optional[asyncio.Condition] = None
@@ -4745,6 +4834,34 @@ class ScenarioRunner:
             return 0.0
         reference = time.perf_counter() if when is None else float(when)
         return max(0.0, reference - run_started_at)
+
+    def _control_path_percentile(self, values: Sequence[float], percentile: float) -> float:
+        finite = sorted(float(v) for v in values if math.isfinite(float(v)))
+        if not finite:
+            return 0.0
+        if len(finite) == 1:
+            return finite[0]
+        rank = max(0.0, min(1.0, float(percentile) / 100.0)) * (len(finite) - 1)
+        lo = int(math.floor(rank))
+        hi = int(math.ceil(rank))
+        if lo == hi:
+            return finite[lo]
+        frac = rank - lo
+        return finite[lo] * (1.0 - frac) + finite[hi] * frac
+
+    def _attach_control_path_background_metrics(self, result: ScenarioResult) -> None:
+        values = [
+            float(v)
+            for v in getattr(self, "_background_planning_us", [])
+            if math.isfinite(float(v)) and float(v) >= 0.0
+        ]
+        result.background_planning_event_count = len(values)
+        result.avg_background_planning_us = (
+            sum(values) / len(values) if values else 0.0
+        )
+        result.p95_background_planning_us = (
+            self._control_path_percentile(values, 95) if values else 0.0
+        )
 
     def _ensure_instance_lifecycle_record(
         self,
@@ -6938,6 +7055,7 @@ class ScenarioRunner:
         submitted_traces: Optional[List[Any]] = None,
         bootstrap_latency_ms_override: Optional[float] = None,
     ) -> Dict[str, Any]:
+        planning_started_ns = time.perf_counter_ns()
         headroom_bytes = max(
             0,
             int(self._scale_up_target_runtime_headroom_mb() * 1024.0 * 1024.0),
@@ -7056,7 +7174,7 @@ class ScenarioRunner:
             previous_signature = signature
             ready_delay_ms = next_ready_delay_ms
 
-        return {
+        plan = {
             "mode": "dynamic_headroom_exact_handoff_prefix",
             "planned_adapters": planned_adapters,
             "ordered_handoff_adapters": ordered_handoff_adapters,
@@ -7076,6 +7194,10 @@ class ScenarioRunner:
             "configured_max_concurrent_loads": configured_max_concurrent_loads,
             "effective_initial_warmup_parallelism": effective_initial_warmup_parallelism,
         }
+        self._background_planning_us.append(
+            max(0.0, (time.perf_counter_ns() - planning_started_ns) / 1000.0)
+        )
+        return plan
 
     def _refresh_scale_up_runtime_handoff_plan_after_startup(
         self,
@@ -10981,6 +11103,7 @@ class ScenarioRunner:
         coord_views = self._coordinator_metric_views()
         coord_m = _merge_coordinator_metrics(coord_views) if coord_views else {}
         result.aggregate(elapsed, coord_m)
+        self._attach_control_path_background_metrics(result)
         await self._cleanup_extra_instances()
         return result, coord_m
 
@@ -11175,6 +11298,7 @@ class ScenarioRunner:
 
         coord_m = self._current_coord_metrics()
         result.aggregate(elapsed, coord_m)
+        self._attach_control_path_background_metrics(result)
         return result, coord_m
 
     def run_sync_cold_start_subprocess(self) -> Tuple[ScenarioResult, Dict]:
@@ -11308,6 +11432,7 @@ class ScenarioRunner:
 
         coord_m = self._current_coord_metrics()
         result.aggregate(elapsed, coord_m)
+        self._attach_control_path_background_metrics(result)
         return result, coord_m
 
     def run_sync_faaslora_subprocess(self) -> Tuple[ScenarioResult, Dict]:
@@ -11455,6 +11580,7 @@ class ScenarioRunner:
 
         coord_m = self._current_coord_metrics()
         result.aggregate(elapsed, coord_m)
+        self._attach_control_path_background_metrics(result)
         return result, coord_m
 
     async def _exec_request(
@@ -11475,15 +11601,35 @@ class ScenarioRunner:
         # B2: 由 Router 选择实例，与线上路径一致
         adapter_id = trace.adapter_id
         size_mb = float(self.adapter_info.get(adapter_id, {}).get("size_mb", 30.0)) if adapter_id else 30.0
+        readiness_tier_before_dispatch = _BACKBONE_CACHE_TIER if not adapter_id else "remote"
+        routing_decision_us = 0.0
+        adapter_path_resolution_us = 0.0
+        gpu_admission_decision_us = 0.0
+        selected_instance_age_s = 0.0
         runtime_slot_wait_started = time.perf_counter()
         slot = None
         slot_active_reserved = False
         while True:
             await self._prune_dead_instance_slots()
             self._refresh_all_slot_runtime_hints()
+            routing_started_ns = time.perf_counter_ns()
             slot = (
                 self.router.select_instance(adapter_id, adapter_size_mb=size_mb)
                 if self.router else None
+            )
+            selected_readiness_tier = _BACKBONE_CACHE_TIER if not adapter_id else "remote"
+            if slot is not None and adapter_id:
+                predictor = getattr(slot, "predicted_cache_tier", None)
+                if callable(predictor):
+                    try:
+                        selected_readiness_tier = str(
+                            predictor(adapter_id) or selected_readiness_tier
+                        ).strip().lower() or selected_readiness_tier
+                    except Exception:
+                        selected_readiness_tier = "remote"
+            routing_decision_us += max(
+                0.0,
+                (time.perf_counter_ns() - routing_started_ns) / 1000.0,
             )
             reserved, active_adapter_reserved = self._try_reserve_runtime_request_slot(
                 slot,
@@ -11491,6 +11637,11 @@ class ScenarioRunner:
             )
             if reserved:
                 slot_active_reserved = active_adapter_reserved
+                readiness_tier_before_dispatch = selected_readiness_tier
+                if slot is not None:
+                    created_at = float(getattr(slot, "created_at", 0.0) or 0.0)
+                    if created_at > 0.0:
+                        selected_instance_age_s = max(0.0, time.time() - created_at)
                 break
             cond = self._runtime_slot_capacity_cond()
             async with cond:
@@ -11552,6 +11703,12 @@ class ScenarioRunner:
 
         # ---- LoRA resolution ----
         if adapter_id and self.baseline_type != "backbone_only":
+            if _coord is not None and hasattr(_coord, "reset_gpu_admission_decision_us"):
+                try:
+                    _coord.reset_gpu_admission_decision_us()
+                except Exception:
+                    pass
+            resolve_started_ns = time.perf_counter_ns()
             (adapter_id, local_path, lora_io_ms,
              cache_tier, contention_ms, defer_ms) = \
                 await self._resolve_lora(
@@ -11560,6 +11717,24 @@ class ScenarioRunner:
                     request_plan.input_tokens,
                     coordinator=_coord,
                 )
+            resolve_wall_us = max(
+                0.0,
+                (time.perf_counter_ns() - resolve_started_ns) / 1000.0,
+            )
+            if _coord is not None and hasattr(_coord, "consume_gpu_admission_decision_us"):
+                try:
+                    gpu_admission_decision_us = max(
+                        0.0,
+                        float(_coord.consume_gpu_admission_decision_us() or 0.0),
+                    )
+                except Exception:
+                    gpu_admission_decision_us = 0.0
+            explicit_adapter_work_us = (
+                max(0.0, float(lora_io_ms or 0.0))
+                + max(0.0, float(contention_ms or 0.0))
+                + max(0.0, float(defer_ms or 0.0))
+            ) * 1000.0
+            adapter_path_resolution_us = max(0.0, resolve_wall_us - explicit_adapter_work_us)
             affinity_tier = cache_tier
             if local_path and cache_tier == "remote":
                 affinity_tier = "nvme"
@@ -11756,6 +11931,31 @@ class ScenarioRunner:
                 if scheduled_arrival_offset_s is not None
                 else None
             )
+            readiness_tier_before_dispatch = str(
+                readiness_tier_before_dispatch or cache_tier or "remote"
+            ).strip().lower()
+            adapter_gpu_ready_before_dispatch = bool(
+                adapter_id and readiness_tier_before_dispatch == "gpu"
+            )
+            adapter_local_ready_before_dispatch = bool(
+                adapter_id and readiness_tier_before_dispatch in ("host", "nvme")
+            )
+            adapter_remote_cold_before_dispatch = bool(
+                adapter_id and readiness_tier_before_dispatch == "remote"
+            )
+            adapter_replica_mismatch = bool(
+                adapter_id and readiness_tier_before_dispatch != "gpu"
+            )
+            remote_mismatch = adapter_remote_cold_before_dispatch
+            scaleout_mismatch = bool(
+                scaleup_labels.get("scaleup_first_service", False)
+                and not scaleup_labels.get("scaleup_planned_adapter_match", False)
+            )
+            control_path_total_us = (
+                max(0.0, float(routing_decision_us or 0.0))
+                + max(0.0, float(adapter_path_resolution_us or 0.0))
+                + max(0.0, float(gpu_admission_decision_us or 0.0))
+            )
 
             return RequestResult(
                 request_id=trace.request_id,
@@ -11812,6 +12012,18 @@ class ScenarioRunner:
                 parent_rpc_thread_resume_delay_ms=parent_rpc_thread_resume_delay_ms,
                 service_path_residual_ms=service_path_residual_ms,
                 pre_runtime_service_shell_ms=pre_runtime_service_shell_ms,
+                readiness_tier_before_dispatch=readiness_tier_before_dispatch,
+                adapter_gpu_ready_before_dispatch=adapter_gpu_ready_before_dispatch,
+                adapter_local_ready_before_dispatch=adapter_local_ready_before_dispatch,
+                adapter_remote_cold_before_dispatch=adapter_remote_cold_before_dispatch,
+                adapter_replica_mismatch=adapter_replica_mismatch,
+                remote_mismatch=remote_mismatch,
+                scaleout_mismatch=scaleout_mismatch,
+                selected_instance_age_s=selected_instance_age_s,
+                routing_decision_us=routing_decision_us,
+                adapter_path_resolution_us=adapter_path_resolution_us,
+                gpu_admission_decision_us=gpu_admission_decision_us,
+                control_path_total_us=control_path_total_us,
             )
 
         except Exception as exc:
@@ -11841,6 +12053,14 @@ class ScenarioRunner:
                 max(0.0, float(scheduled_arrival_offset_s) + overall_error_ms / 1000.0)
                 if scheduled_arrival_offset_s is not None
                 else None
+            )
+            readiness_tier_before_dispatch = str(
+                readiness_tier_before_dispatch or cache_tier or "remote"
+            ).strip().lower()
+            control_path_total_us = (
+                max(0.0, float(routing_decision_us or 0.0))
+                + max(0.0, float(adapter_path_resolution_us or 0.0))
+                + max(0.0, float(gpu_admission_decision_us or 0.0))
             )
             return RequestResult(
                 request_id=trace.request_id, adapter_id=adapter_id,
@@ -11876,6 +12096,21 @@ class ScenarioRunner:
                 admitted_offset_s=admitted_offset_s,
                 completed_offset_s=completed_offset_s,
                 error=str(exc),
+                readiness_tier_before_dispatch=readiness_tier_before_dispatch,
+                adapter_gpu_ready_before_dispatch=bool(adapter_id and readiness_tier_before_dispatch == "gpu"),
+                adapter_local_ready_before_dispatch=bool(adapter_id and readiness_tier_before_dispatch in ("host", "nvme")),
+                adapter_remote_cold_before_dispatch=bool(adapter_id and readiness_tier_before_dispatch == "remote"),
+                adapter_replica_mismatch=bool(adapter_id and readiness_tier_before_dispatch != "gpu"),
+                remote_mismatch=bool(adapter_id and readiness_tier_before_dispatch == "remote"),
+                scaleout_mismatch=bool(
+                    scaleup_labels.get("scaleup_first_service", False)
+                    and not scaleup_labels.get("scaleup_planned_adapter_match", False)
+                ),
+                selected_instance_age_s=selected_instance_age_s,
+                routing_decision_us=routing_decision_us,
+                adapter_path_resolution_us=adapter_path_resolution_us,
+                gpu_admission_decision_us=gpu_admission_decision_us,
+                control_path_total_us=control_path_total_us,
             )
         finally:
             if slot is not None:
@@ -13560,6 +13795,17 @@ def _build_metric_groups(r: ScenarioResult, digits: int = 4) -> Dict[str, Dict[s
             "Service_path_residual_P95_ms": _round_metric_value(r.p95_service_path_residual_ms, digits),
             "Pre_runtime_service_shell_avg_ms": _round_metric_value(r.avg_pre_runtime_service_shell_ms, digits),
             "Pre_runtime_service_shell_P95_ms": _round_metric_value(r.p95_pre_runtime_service_shell_ms, digits),
+            "Control_routing_avg_us": _round_metric_value(r.avg_routing_decision_us, digits),
+            "Control_routing_P95_us": _round_metric_value(r.p95_routing_decision_us, digits),
+            "Control_path_resolution_avg_us": _round_metric_value(r.avg_adapter_path_resolution_us, digits),
+            "Control_path_resolution_P95_us": _round_metric_value(r.p95_adapter_path_resolution_us, digits),
+            "Control_gpu_admission_avg_us": _round_metric_value(r.avg_gpu_admission_decision_us, digits),
+            "Control_gpu_admission_P95_us": _round_metric_value(r.p95_gpu_admission_decision_us, digits),
+            "Control_online_total_avg_us": _round_metric_value(r.avg_control_path_total_us, digits),
+            "Control_online_total_P95_us": _round_metric_value(r.p95_control_path_total_us, digits),
+            "Control_background_planning_avg_us": _round_metric_value(r.avg_background_planning_us, digits),
+            "Control_background_planning_P95_us": _round_metric_value(r.p95_background_planning_us, digits),
+            "Control_background_planning_events": int(r.background_planning_event_count),
             "Cold_start_avg_ms": _round_metric_value(r.avg_cold_start_latency_ms, digits),
             "Cold_start_P95_ms": _round_metric_value(r.p95_cold_start_latency_ms, digits),
             "TTFT_serverless_overhead_avg_ms": _round_metric_value(r.avg_serverless_overhead_ms, digits),
@@ -13979,6 +14225,17 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "Service_path_residual_P95_ms": round(r.p95_service_path_residual_ms, 1),
             "Pre_runtime_service_shell_avg_ms": round(r.avg_pre_runtime_service_shell_ms, 1),
             "Pre_runtime_service_shell_P95_ms": round(r.p95_pre_runtime_service_shell_ms, 1),
+            "Control_routing_avg_us": round(r.avg_routing_decision_us, 3),
+            "Control_routing_P95_us": round(r.p95_routing_decision_us, 3),
+            "Control_path_resolution_avg_us": round(r.avg_adapter_path_resolution_us, 3),
+            "Control_path_resolution_P95_us": round(r.p95_adapter_path_resolution_us, 3),
+            "Control_gpu_admission_avg_us": round(r.avg_gpu_admission_decision_us, 3),
+            "Control_gpu_admission_P95_us": round(r.p95_gpu_admission_decision_us, 3),
+            "Control_online_total_avg_us": round(r.avg_control_path_total_us, 3),
+            "Control_online_total_P95_us": round(r.p95_control_path_total_us, 3),
+            "Control_background_planning_avg_us": round(r.avg_background_planning_us, 3),
+            "Control_background_planning_P95_us": round(r.p95_background_planning_us, 3),
+            "Control_background_planning_events": int(r.background_planning_event_count),
             "TTFT_gpu_ready_avg_ms": round(r.avg_gpu_ready_ttft_ms, 1),
             "TTFT_scaleup_affected_avg_ms": round(r.avg_scaleup_affected_ttft_ms, 1),
             "TTFT_scaleup_runtime_avg_ms": round(r.avg_scaleup_runtime_ttft_ms, 1),
@@ -14085,6 +14342,17 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "C3_defer_delay_ms": round(r.avg_defer_ms, 1),
             "C3_gpu_ready_hits": r.gpu_ready_hits,
             "C3_warm_pool_hits": r.warm_pool_hits,
+            "Control_routing_avg_us": round(r.avg_routing_decision_us, 3),
+            "Control_routing_P95_us": round(r.p95_routing_decision_us, 3),
+            "Control_path_resolution_avg_us": round(r.avg_adapter_path_resolution_us, 3),
+            "Control_path_resolution_P95_us": round(r.p95_adapter_path_resolution_us, 3),
+            "Control_gpu_admission_avg_us": round(r.avg_gpu_admission_decision_us, 3),
+            "Control_gpu_admission_P95_us": round(r.p95_gpu_admission_decision_us, 3),
+            "Control_online_total_avg_us": round(r.avg_control_path_total_us, 3),
+            "Control_online_total_P95_us": round(r.p95_control_path_total_us, 3),
+            "Control_background_planning_avg_us": round(r.avg_background_planning_us, 3),
+            "Control_background_planning_P95_us": round(r.p95_background_planning_us, 3),
+            "Control_background_planning_events": int(r.background_planning_event_count),
             **metric_groups,
         }
         if getattr(r, "scale_down_events", 0):
@@ -14293,6 +14561,17 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "p95_service_path_residual_ms": round(r.p95_service_path_residual_ms, 4),
             "avg_pre_runtime_service_shell_ms": round(r.avg_pre_runtime_service_shell_ms, 4),
             "p95_pre_runtime_service_shell_ms": round(r.p95_pre_runtime_service_shell_ms, 4),
+            "avg_routing_decision_us": round(r.avg_routing_decision_us, 4),
+            "p95_routing_decision_us": round(r.p95_routing_decision_us, 4),
+            "avg_adapter_path_resolution_us": round(r.avg_adapter_path_resolution_us, 4),
+            "p95_adapter_path_resolution_us": round(r.p95_adapter_path_resolution_us, 4),
+            "avg_gpu_admission_decision_us": round(r.avg_gpu_admission_decision_us, 4),
+            "p95_gpu_admission_decision_us": round(r.p95_gpu_admission_decision_us, 4),
+            "avg_control_path_total_us": round(r.avg_control_path_total_us, 4),
+            "p95_control_path_total_us": round(r.p95_control_path_total_us, 4),
+            "avg_background_planning_us": round(r.avg_background_planning_us, 4),
+            "p95_background_planning_us": round(r.p95_background_planning_us, 4),
+            "background_planning_event_count": int(r.background_planning_event_count),
             "avg_gpu_ready_ttft_ms": round(r.avg_gpu_ready_ttft_ms, 4),
             "p95_gpu_ready_ttft_ms": round(r.p95_gpu_ready_ttft_ms, 4),
             "avg_scaleup_affected_ttft_ms": round(r.avg_scaleup_affected_ttft_ms, 4),

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import shutil
 import math
 from dataclasses import dataclass
 from pathlib import Path
@@ -322,6 +323,19 @@ def fmt_num(value: Any, digits: int = 1) -> str:
 
 
 def write_latex_table(path: Path, rows: Sequence[Dict[str, Any]]) -> None:
+    include_remote = bool(
+        rows and max(float(row.get("remote_cold_pct", 0.0) or 0.0) for row in rows) > 0.0
+    )
+    colspec = "lrrrrrrr" if include_remote else "lrrrrrr"
+    header = (
+        r"System & \shortstack{GPU\\(\%)} & \shortstack{HOST/NVMe\\(\%)} & "
+    )
+    if include_remote:
+        header += r"\shortstack{Remote\\(\%)} & "
+    header += (
+        r"\shortstack{Mismatch\\(\%)} & \shortstack{TTFT p95\\GPU (ms)} & "
+        r"\shortstack{TTFT p95\\Non-GPU (ms)} & \shortstack{Prep p95\\Non-GPU (ms)} \\"
+    )
     lines = [
         r"\begin{table}[t]",
         r"\centering",
@@ -329,25 +343,29 @@ def write_latex_table(path: Path, rows: Sequence[Dict[str, Any]]) -> None:
         r"\label{tab:service_readiness}",
         r"\setlength{\tabcolsep}{2.4pt}",
         r"\renewcommand{\arraystretch}{1.10}",
-        r"\begin{tabular}{lrrrrrrr}",
+        rf"\begin{{tabular}}{{{colspec}}}",
         r"\hline",
-        r"System & \shortstack{GPU\\(\%)} & \shortstack{HOST/NVMe\\(\%)} & \shortstack{Remote\\(\%)} & \shortstack{Mismatch\\(\%)} & \shortstack{TTFT p95\\GPU (ms)} & \shortstack{TTFT p95\\Mis. (ms)} & \shortstack{Prep p95\\Mis. (ms)} \\",
+        header,
         r"\hline",
     ]
     for row in rows:
+        cells = [
+            str(row["label"]),
+            fmt_num(row["gpu_ready_pct"], 2),
+            fmt_num(row["host_nvme_pct"], 2),
+        ]
+        if include_remote:
+            cells.append(fmt_num(row["remote_cold_pct"], 2))
+        cells.extend(
+            [
+                fmt_num(row["mismatch_pct"], 2),
+                fmt_num(row["ttft_p95_gpu_ready_ms"], 1),
+                fmt_num(row["ttft_p95_mismatch_ms"], 1),
+                fmt_num(row["adapter_prep_p95_mismatch_ms"], 1),
+            ]
+        )
         lines.append(
-            " & ".join(
-                [
-                    str(row["label"]),
-                    fmt_num(row["gpu_ready_pct"], 2),
-                    fmt_num(row["host_nvme_pct"], 2),
-                    fmt_num(row["remote_cold_pct"], 2),
-                    fmt_num(row["mismatch_pct"], 2),
-                    fmt_num(row["ttft_p95_gpu_ready_ms"], 1),
-                    fmt_num(row["ttft_p95_mismatch_ms"], 1),
-                    fmt_num(row["adapter_prep_p95_mismatch_ms"], 1),
-                ]
-            )
+            " & ".join(cells)
             + r" \\"
         )
     lines.extend([r"\hline", r"\end{tabular}", r"\end{table}", ""])
@@ -636,6 +654,13 @@ def main() -> None:
         encoding="utf-8",
     )
     write_manifest(out_dir / "service_readiness_manifest.json", scenarios, generated, skipped)
+
+    paper_fig_dir = Path("figs")
+    paper_fig_dir.mkdir(parents=True, exist_ok=True)
+    for fig_name in generated:
+        src = out_dir / fig_name
+        if src.exists():
+            shutil.copy2(src, paper_fig_dir / fig_name)
 
     print("Service-readiness summary")
     for row in summary_rows:

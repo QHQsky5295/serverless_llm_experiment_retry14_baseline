@@ -197,8 +197,12 @@ Service-Readiness Audit
 - `fig_scaleout_first_service.pdf`：每个 scenario 只有 `6` 个
   `scaleup_first_service` 样本，其中 planned miss 只有 `2` 个。样本不足，
   不能作为稳定论文图。CSV 与 warning 已保留。
-- `fig_control_plane_overhead.pdf`：当前结果没有 `routing_decision_us`、
-  `gpu_admission_decision_us` 或 `control_plane_total_us`，不硬画。
+- cross-system control-plane overhead 对比：不做。现有 FaaSLoRA 结果中有
+  `parent_rpc_overhead_ms`、`dispatch_admission_wait_ms` 和
+  `service_overhead_ms`，但这些字段分别包含 RPC 包装、排队/准入等待或
+  service-path 残差；vLLM、SGLang、S-LoRA 和 ServerlessLLM 也没有同一口径的
+  routing/admission decision timing。把这些 wrapper/runtime/internal 字段横向
+  对比会变成非等价指标比较。
 - Motivation 版 selected-replica adapter tier 图：外部 baseline 当前没有
   adapter tier 字段，不硬画。
 
@@ -219,6 +223,61 @@ routing_decision_us
 gpu_admission_decision_us
 control_plane_total_us
 ```
+
+2026-05-01 已补充第一版 control-path instrumentation，且不改变 workload、
+adapter 采样、routing policy 或 admission policy：
+
+- `RequestResult` 新增 dispatch-before readiness 标记：
+  `readiness_tier_before_dispatch`、`adapter_gpu_ready_before_dispatch`、
+  `adapter_local_ready_before_dispatch`、`adapter_remote_cold_before_dispatch`、
+  `adapter_replica_mismatch`、`remote_mismatch`、`scaleout_mismatch`。
+- `RequestResult` 新增在线控制路径耗时：
+  `routing_decision_us`、`adapter_path_resolution_us`、
+  `gpu_admission_decision_us`、`control_path_total_us`。
+- `ScenarioResult` 新增聚合字段：
+  `avg/p95_routing_decision_us`、`avg/p95_adapter_path_resolution_us`、
+  `avg/p95_gpu_admission_decision_us`、`avg/p95_control_path_total_us`、
+  `avg/p95_background_planning_us` 和
+  `background_planning_event_count`。
+- `ResourceCoordinator.evaluate_gpu_admission()` 仅增加计时包装，原有
+  effective-capacity admission 逻辑不变。
+- `_predict_scale_up_handoff_plan()` 记录 background handoff planning 时间，
+  用于说明异步/准在线规划成本，不把它混入每请求 online total。
+
+新增脚本：
+
+```bash
+python3 scripts/analyze_control_path_overhead.py \
+  --input <new_faaslora_result_json_or_dir> \
+  --output figs/paper/control_path
+```
+
+输出：
+
+```text
+figs/paper/control_path/control_path_overhead_summary.csv
+figs/paper/control_path/tables/table_control_path_overhead.tex
+figs/paper/control_path/fig_control_path_overhead.pdf
+figs/fig_control_path_overhead.pdf
+```
+
+2026-05-01 已完成一次 Llama-2-7B/4000-request PrimeLoRA/FaaSLoRA 诊断
+round：
+
+```text
+input:
+/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_controlpath_v1.json
+
+Routing + tier lookup:       avg 0.108 ms, p95 0.195 ms, events 4000
+Adapter-path resolution:     avg 4.524 ms, p95 5.957 ms, events 4000
+GPU-admission check:         avg 3.354 ms, p95 23.016 ms, events 168
+Online control total:        avg 4.773 ms, p95 6.119 ms, events 4000
+Background handoff planning: avg 2.017 ms, p95 4.034 ms, events 6
+```
+
+`Online control total` 按每个请求统计；`GPU-admission check` 和
+`Background handoff plan` 按实际触发事件统计。该图定位为 PrimeLoRA-only
+audit，不作为跨系统 superiority claim。
 
 关键要求：
 

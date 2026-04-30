@@ -43,6 +43,20 @@ completed:    a100, a200, a300, a400 adapter-pool rounds
 主图展示 CE 与 Cost/req；配套 table 列出 TTFT avg/p95、E2E avg/p95、
 TPOT avg/p95、Throughput、Cost/req 和 CE。
 
+`control_path_v1` PrimeLoRA-only 诊断已经完成：
+
+```text
+input: /home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_controlpath_v1.json
+outputs:
+  figs/paper/control_path/fig_control_path_overhead.pdf
+  figs/paper/control_path/tables/table_control_path_overhead.tex
+```
+
+该实验只用于审计 PrimeLoRA 新增控制路径是否轻量，不做跨系统 control-plane
+overhead 对比。当前结果显示 online control total 为 avg `4.773 ms`、p95
+`6.119 ms`；GPU admission 行按实际触发事件统计，为 avg `3.354 ms`、p95
+`23.016 ms`、`168` events。
+
 ### 0.1 不使用不可观测机制指标
 
 正式论文 TODO、正式图表和主实验 checklist 只允许使用结果 JSON 中真实存在的字段。不能观测、不能跨系统统一、或者执行时只能填 `null` 的机制指标，不进入正式论文图。
@@ -855,24 +869,24 @@ hotset rotation=500、seed=42、time scale=8.0。该队列已通过 dry-run，
 2026-04-30 调试记录：首次 Qwen2.5-7B backbone round 在 vLLM 阶段失败，
 无效 partial replay 不能进论文。根因分两层：
 
-1. Qwen2.5-7B publicmix 当前必须走 vLLM V0/eager，`dp4/tp1` 四个独立
-   replica 会复制过大的 host-side model/runtime state，导致 host OOM killer
-   杀掉 vLLM APIServer/engine。500 LoRA 仍是正式采样池，不是错误配置；
-   launch spec 仍暴露 `lora_modules_count=500`，shared trace 中 `4000/4000`
-   请求都绑定 LoRA。
-2. 切换到 `dp2/tp2` 后，如果继续沿用 Qwen profile 的 bring-up-only 包络
-   `max_num_seqs=2`、`max_loras=6`、`max_num_batched_tokens=1024`，总 running
-   slots 只有 4 个，会造成 vLLM internal pending queue 迅速积压，并引发大量
-   timeout/fail。因此修复必须同时调整拓扑和 vLLM execution envelope。
+1. Qwen2.5-7B publicmix 当前必须走 vLLM V0/eager，首次失败来自长 replay 下
+   host-side LoRA/runtime footprint 过大，导致 host OOM killer 杀掉 vLLM
+   APIServer/engine。500 LoRA 仍是正式采样池，不是错误配置；launch spec 仍
+   暴露 `lora_modules_count=500`，shared trace 中 `4000/4000` 请求都绑定 LoRA。
+2. 临时切换到 `dp2/tp2` 虽然降低了 host-memory footprint，但把四个独立服务
+   replica 降成两个，384-request probe 已显示 `TTFT` 超过 100s，属于稳定但
+   性能崩坏的错误修复，不能作为论文配置。
 
-当前修复后，Qwen2.5-7B vLLM 在同一 4-GPU budget 下使用 `dp2/tp2`，并将
+当前修复后，Qwen2.5-7B vLLM 保持同一 4-GPU budget 下的 `dp4/tp1`，并将
 formal replay 包络设为 `max_num_seqs=8`、`max_loras=8`、
-`max_num_batched_tokens=4096`、`max_cpu_loras=32`。这不改变 workload、模型、
-采样、500-adapter universe 或 GPU budget，只避免 vLLM 内部队列成为错误失败源。
-`replay_openai_trace.py` 同时增加 bounded preflight 与 failure-abort gate：
-正式前可用 `VLLM_MAX_REPLAY_REQUESTS=96/256` 验证，正式跑若出现 fail 累计会
-立即失败，不继续写污染结果。真实 Qwen2.5-7B vLLM 96-request 和 256-request
-preflight 均为 `fail=0`。
+`max_num_batched_tokens=4096`、`max_cpu_loras=16`。这不改变 workload、模型、
+采样、500-adapter universe 或 GPU budget，只限制每个 replica 的 active CPU
+LoRA cache，既保留四个服务 replica 的性能，又避免 Qwen V0/eager host-memory
+footprint 成为错误失败源。`replay_openai_trace.py` 同时增加 bounded preflight
+与 failure-abort gate：正式前可用 `VLLM_MAX_REPLAY_REQUESTS=96/256/384` 验证，
+正式跑若出现 fail 累计会立即失败，不继续写污染结果。真实 Qwen2.5-7B vLLM
+`dp4/tp1,max_cpu_loras=16` 384-request preflight 为 `ok=384/384, fail=0`，
+`TTFT=1661.8ms`、`TPOT=73.0ms`、`Tok/s=106.21`。
 
 ## 6. 执行顺序
 

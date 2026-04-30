@@ -69,16 +69,14 @@ current Llama-2 7B figure set is stable.
   data. Kernel logs showed host OOM killing vLLM APIServer/engine processes, and
   the machine later required a physical reboot; this was a serving/runtime
   failure, not a valid comparison result.
-- root cause: Qwen2.5-7B publicmix currently uses vLLM V0/eager. The initial
-  `dp4/tp1` topology duplicated too much host-side model/runtime state across
-  four independent replicas. Switching to `dp2/tp2` fixed the host-memory
-  footprint, but the original Qwen profile still carried a bring-up-only
-  scheduling envelope (`max_num_seqs=2`, `max_loras=6`,
-  `max_num_batched_tokens=1024`). Under the 4000-request replay this allowed
-  only four total running request slots, pushed hundreds of requests into
-  vLLM's internal pending queue, and caused timeout/connection failures. The
-  500 LoRA value remains the formal sampled adapter pool, and every request
-  remains LoRA-bound; the launch spec still exposes all 500 LoRA modules.
+- root cause: Qwen2.5-7B publicmix currently uses vLLM V0/eager. The invalid
+  formal run exhausted host memory because the vLLM CPU LoRA/runtime footprint
+  was left too large for a long four-replica replay. A temporary `dp2/tp2`
+  workaround reduced the memory footprint, but it also reduced the number of
+  independent serving replicas from four to two and produced severe pending
+  queue buildup, so it is not a valid paper topology. The 500 LoRA value remains
+  the formal sampled adapter pool, and every request remains LoRA-bound; the
+  launch spec still exposes all 500 LoRA modules.
 - fix status: baseline scripts now launch vLLM servers in their own process
   group, clean the process group on exit, bound per-replica CPU LoRA cache,
   add a `MemAvailable` fail-fast guard during launch/replay, monitor vLLM server
@@ -86,19 +84,23 @@ current Llama-2 7B figure set is stable.
   replica exits, host memory falls below the guard threshold, or replay failure
   count crosses the configured gate, the stage fails explicitly instead of
   continuing toward Linux OOM or writing polluted results.
-- topology/scheduling fix: `run_full_fair_round.sh` uses a vLLM-specific safe
-  topology for Qwen2.5-7B (`dp2/tp2` on the same four GPUs) and raises the
-  vLLM formal scheduling envelope to `max_num_seqs=8`, `max_loras=8`,
-  `max_num_batched_tokens=4096`, `max_cpu_loras=32`. Llama-2-13B and
-  Qwen2.5-14B use their TP=2 model profiles. Summary discovery is dynamic, so
-  non-`dp4_tp1` outputs are validated correctly.
-- verification: Qwen2.5-7B vLLM `dp2/tp2` passed a real-host smoke test, a
-  96-request preflight, and a 256-request preflight with `fail=0`. The 256-run
-  used the same Qwen2.5-7B shared trace/subset and reported `ok=256/256`,
-  proving the previous high-fail mode was fixed. Llama-2 13B and Qwen2.5 14B
-  queue dry-run/config audit also produced 4000 LoRA-bound requests and
-  500-adapter subsets; their vLLM/S-LoRA profiles resolve to TP=2 topologies.
-- current terminal status on 2026-04-30: `paper_backbone_robustness_p0` exists
+- topology/scheduling fix: `run_full_fair_round.sh` keeps Qwen2.5-7B vLLM on
+  `dp4/tp1` so all four GPUs remain independent serving replicas, and raises
+  the formal scheduling envelope to `max_num_seqs=8`, `max_loras=8`,
+  `max_num_batched_tokens=4096`, `max_cpu_loras=16`. The CPU LoRA cache limit
+  does not reduce the 500-adapter sampled universe; it only bounds the active
+  host-side LoRA cache for the Qwen V0/eager vLLM path. Llama-2-13B and
+  Qwen2.5-14B continue to use their TP=2 model profiles.
+- verification: the rejected `dp2/tp2` probe was stable but unusably slow
+  (`TTFT` above 100s on a 384-request probe). The accepted Qwen2.5-7B vLLM
+  `dp4/tp1`, `max_cpu_loras=16` probe completed the same shared trace/subset
+  prefix with `ok=384/384`, `fail=0`, `TTFT=1661.8ms`, `TPOT=73.0ms`, and
+  `Tok/s=106.21`. The traceback lines in vLLM logs occur after successful
+  replay during controlled API-server shutdown and are not request failures.
+  Llama-2 13B and Qwen2.5 14B queue dry-run/config audit also produced 4000
+  LoRA-bound requests and 500-adapter subsets; their vLLM/S-LoRA profiles
+  resolve to TP=2 topologies.
+- current terminal status on 2026-05-01: `paper_backbone_robustness_p0` exists
   as an attached tmux shell, but no experiment process is running; GPUs are idle
   (`15 MiB`, `0%` util on all four GPUs), and no vLLM API ports are listening.
   Resume with the same queue id after confirming remote access health.
@@ -131,6 +133,32 @@ current Llama-2 7B figure set is stable.
   GPU-ready 的 `0.91--1.05s`，支持 readiness gap 是 first-token tail 的机制来源。
 - remote-cold 在该 ablation round 中为 `0%`；表格保留该列作为审计，图中隐藏
   全零图例/矩阵行。
+
+## Control-Path Overhead Audit: 2026-05-01
+
+已补充 PrimeLoRA-only control-path 开销审计，用来回答新增 online routing、
+tier lookup、adapter-path resolution、GPU admission 和 background handoff
+planning 是否会成为新瓶颈。该实验不做跨系统 control-plane overhead 对比，
+因为 vLLM、SGLang、S-LoRA 和 ServerlessLLM 暴露的 wrapper、runtime 与
+admission 边界不等价。
+
+- input:
+  `/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_controlpath_v1.json`
+- outputs:
+  - `figs/paper/control_path/control_path_overhead_summary.csv`
+  - `figs/paper/control_path/tables/table_control_path_overhead.tex`
+  - `figs/paper/control_path/fig_control_path_overhead.pdf`
+  - `figs/fig_control_path_overhead.pdf`
+- result:
+  - Routing + tier lookup: avg `0.108 ms`, p95 `0.195 ms` over `4000` requests.
+  - Adapter-path resolution: avg `4.524 ms`, p95 `5.957 ms` over `4000` requests.
+  - GPU-admission check: avg `3.354 ms`, p95 `23.016 ms` over `168` triggered events.
+  - Online control total: avg `4.773 ms`, p95 `6.119 ms` over `4000` requests.
+  - Background handoff plan: avg `2.017 ms`, p95 `4.034 ms` over `6` triggered events.
+
+解释边界：`Online control total` 是每请求在线路径；GPU admission 和 background
+planning 行按实际触发事件统计。相对当前 Llama-2-7B 主结果中的 Service TTFT，
+这些控制路径开销不是主要瓶颈。
 
 ## Current Paper Baselines
 
