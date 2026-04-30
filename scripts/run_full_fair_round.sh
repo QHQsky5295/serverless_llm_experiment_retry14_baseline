@@ -442,22 +442,22 @@ run_vllm() {
   local vllm_max_num_batched_tokens="${VLLM_MAX_NUM_BATCHED_TOKENS:-}"
   local vllm_max_cpu_loras="${VLLM_MAX_CPU_LORAS:-}"
   if [[ -z "${vllm_dp}" && -z "${vllm_tp}" && "${MODEL_PROFILE}" == "qwen_7b_main_v2_publicmix" ]]; then
-    # Qwen2.5-7B V2 uses vLLM V0/eager in the current environment. Four
-    # independent TP=1 replicas duplicate enough host-side model/runtime state
-    # to trigger Linux OOM on the 125GB testbed. Use a two-replica TP=2 topology
-    # for vLLM on the same four-GPU budget. The model profile's conservative
-    # per-runtime concurrency (max_num_seqs=2) was chosen for single-replica
-    # bring-up and is too small for dp2/tp2 formal replay: it creates a vLLM
-    # internal pending queue and request timeouts. Raise the formal vLLM
-    # scheduling envelope while keeping the same 500-adapter universe, request
-    # trace, sampling, and GPU budget.
-    vllm_dp="${VLLM_QWEN7_SAFE_DP:-2}"
-    vllm_tp="${VLLM_QWEN7_SAFE_TP:-2}"
+    # Qwen2.5-7B V2 uses the vLLM V0/eager path in the current environment.
+    # The failed formal run was not caused by the 500-adapter workload itself:
+    # every request remains LoRA-bound and the full sampled pool stays
+    # registered. The actual risk is the host-side LoRA/runtime footprint during
+    # long Qwen replays. Keep four independent TP=1 service replicas so vLLM can
+    # use all four GPUs as serving capacity, and bound only the active CPU LoRA
+    # cache. A dp2/tp2 workaround is stable but collapses service capacity and
+    # produces unusably high queueing, so it is intentionally not the formal
+    # paper topology for Qwen2.5-7B vLLM.
+    vllm_dp="${VLLM_QWEN7_SAFE_DP:-4}"
+    vllm_tp="${VLLM_QWEN7_SAFE_TP:-1}"
     vllm_max_num_seqs="${vllm_max_num_seqs:-${VLLM_QWEN7_SAFE_MAX_NUM_SEQS:-8}}"
     vllm_max_loras="${vllm_max_loras:-${VLLM_QWEN7_SAFE_MAX_LORAS:-8}}"
     vllm_max_num_batched_tokens="${vllm_max_num_batched_tokens:-${VLLM_QWEN7_SAFE_MAX_NUM_BATCHED_TOKENS:-4096}}"
-    vllm_max_cpu_loras="${vllm_max_cpu_loras:-${VLLM_QWEN7_SAFE_MAX_CPU_LORAS:-32}}"
-    log "vLLM Qwen2.5-7B safe topology override: dp=${vllm_dp} tp=${vllm_tp} max_num_seqs=${vllm_max_num_seqs} max_loras=${vllm_max_loras} max_batched_tokens=${vllm_max_num_batched_tokens} on gpu_ids=${GPU_IDS}"
+    vllm_max_cpu_loras="${vllm_max_cpu_loras:-${VLLM_QWEN7_SAFE_MAX_CPU_LORAS:-16}}"
+    log "vLLM Qwen2.5-7B safe topology override: dp=${vllm_dp} tp=${vllm_tp} max_num_seqs=${vllm_max_num_seqs} max_loras=${vllm_max_loras} max_cpu_loras=${vllm_max_cpu_loras} max_batched_tokens=${vllm_max_num_batched_tokens} on gpu_ids=${GPU_IDS}"
   fi
   pre_system_clean_check "vLLM"
   run_logged "${stage}" env \

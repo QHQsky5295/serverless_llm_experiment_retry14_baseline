@@ -69,16 +69,14 @@ launch spec 仍包含 `lora_modules_count=500`，shared trace 中 `4000/4000`
 
 根因分两层：
 
-1. Qwen2.5-7B publicmix 当前必须走 vLLM V0/eager 路径，`dp4/tp1` 会在 4 个
-   独立 replica 中复制过大的 host-side model/runtime state。即使
-   `max_cpu_loras` 从完整 500 adapter pool 限制为有界值，四个 replica 在长
-   replay 中仍会把 125GB 主机内存推入 OOM 区间。
-2. 切换到 `dp2/tp2` 后，原 Qwen profile 仍继承 bring-up-only 的调度包络：
-   `max_num_seqs=2`、`max_loras=6`、`max_num_batched_tokens=1024`。这在两个
-   replica 上总共只有 4 个 running slots，vLLM 日志出现 `Pending: 190+`
-   到数百的内部积压，随后请求超时/连接中断并产生大量 fail。该问题不是
-   backbone 语义错误，也不是 500-LoRA workload 定义错误，而是 vLLM 拓扑与
-   per-replica concurrency envelope 不匹配。
+1. Qwen2.5-7B publicmix 当前必须走 vLLM V0/eager 路径，首次失败来自长
+   replay 下 host-side LoRA/runtime footprint 过大，导致 125GB 主机进入 OOM
+   区间并杀掉 vLLM APIServer/engine。
+2. 临时切换到 `dp2/tp2` 可以降低 host-memory footprint，但会把四个独立服务
+   replica 降成两个。真实 384-request probe 显示该拓扑稳定但排队严重、
+   `TTFT` 超过 100s，因此不能作为论文配置。该问题不是 backbone 语义错误，
+   也不是 500-LoRA workload 定义错误，而是 vLLM host-memory footprint 与
+   serving-replica topology 需要同时约束。
 
 后台 Docker/Milvus/Ray 以及持续失败重启的 `frpc.service` 会降低系统余量，
 但实验侧直接触发点是 Qwen-vLLM 的 host-memory footprint 与调度包络。
@@ -97,17 +95,20 @@ launch spec 仍包含 `lora_modules_count=500`，shared trace 中 `4000/4000`
   `VLLM_TIMEOUT_S="${PAPER_QUEUE_VLLM_TIMEOUT_S:-21600}"`，让 Qwen-vLLM 的长排队
   表现为真实高延迟，而不是 1 小时 client timeout 失败。
 - `run_vllm_fair_experiment.sh` 将 `VLLM_MAX_CPU_LORAS=auto` 解析为有界 CPU
-  LoRA cache；当前 Qwen2.5-7B safe dry-run 为 `24/500`。这只限制每个
-  replica 的 CPU LoRA cache，不改变 `--lora-modules` 的 500-adapter universe。
-- `run_full_fair_round.sh` 对 Qwen2.5-7B 的 vLLM stage 使用安全拓扑
-  `dp2/tp2`，仍占用同一 4-GPU 预算；Llama-2 13B 和 Qwen2.5 14B 继续按
-  model profile 使用 `dp2/tp2`。Llama-2 7B 主 round 仍可使用已验证的
-  `dp4/tp1`。
+  LoRA cache；这只限制每个 replica 的 CPU LoRA cache，不改变
+  `--lora-modules` 的 500-adapter universe。
+- `run_full_fair_round.sh` 对 Qwen2.5-7B 的 vLLM stage 保持 `dp4/tp1`，
+  仍占用同一 4-GPU 预算并保留四个独立服务 replica；Llama-2 13B 和
+  Qwen2.5 14B 继续按 model profile 使用 `dp2/tp2`。Llama-2 7B 主 round
+  仍使用已验证的 `dp4/tp1`。
 - `run_full_fair_round.sh` 同时只对 Qwen2.5-7B vLLM formal stage 提升
   per-replica 调度包络为 `max_num_seqs=8`、`max_loras=8`、
-  `max_num_batched_tokens=4096`、`max_cpu_loras=32`。这不改变模型、
+  `max_num_batched_tokens=4096`、`max_cpu_loras=16`。这不改变模型、
   GPU budget、500-adapter universe、request trace、sampling 或 LoRA-bound
-  workload，只修正 vLLM 内部 pending queue 过小造成的 timeout/fail。
+  workload，只修正 vLLM 内部 pending queue 过小造成的 timeout/fail，同时把
+  Qwen V0/eager 路径的 host-side LoRA cache footprint 控制在 32GiB
+  `MemAvailable` guard 之上，同时不减少 `--lora-modules` 暴露的 500-adapter
+  universe。
 - `replay_openai_trace.py` 增加 `--max-requests` 和 failure-abort gate，
   允许正式前做 96/256-request bounded preflight，并在 fail 请求累计时立即
   终止无效 replay。
@@ -116,11 +117,11 @@ launch spec 仍包含 `lora_modules_count=500`，shared trace 中 `4000/4000`
   Qwen-vLLM safe topology 完成后被错误判定为缺文件。
 - `bash -n` 已通过；`PAPER_QUEUE_DRY_RUN=1 PAPER_QUEUE_PROFILE=backbone_robustness_p0`
   已验证三轮计划和模型/workload profile 正确。Qwen2.5-7B vLLM dry-run
-  已验证 `topology=dp2_tp2`、`lora_modules_count=500`、`4000/4000` 请求绑定 LoRA。
-- Qwen2.5-7B vLLM 已完成真实 preflight：`96/96` 和 `256/256` 请求均
-  `fail=0`。256-request preflight 使用同一 shared trace/subset，证明之前的
-  高 fail 模式已被拓扑与调度包络修复。该 preflight 是健康性验证，不作为论文
-  performance data。
+  已验证 `topology=dp4_tp1`、`lora_modules_count=500`、`4000/4000` 请求绑定 LoRA。
+- Qwen2.5-7B vLLM 已完成最终真实 preflight：
+  `dp4/tp1,max_cpu_loras=16` 在同一 shared trace/subset 上完成
+  `ok=384/384, fail=0`，`TTFT=1661.8ms`、`TPOT=73.0ms`、`Tok/s=106.21`。
+  该 preflight 是健康性验证，不作为论文 performance data。
 
 系统服务注意事项：
 
@@ -511,14 +512,14 @@ ServerlessLLM；失败点在 vLLM。内核日志记录 `Out of memory: Killed pr
 ... (python)`，对应 vLLM APIServer/engine PID。原因不是 500-adapter workload
 过大本身：500 是正式采样池，vLLM launch 仍暴露 500 个 `--lora-modules`，
 shared trace 中 4000 个请求均绑定 LoRA。真正触发点是 Qwen2.5-7B publicmix
-当前必须走 vLLM V0/eager，`dp4/tp1` 四个独立 replica 会复制过大的 host-side
-model/runtime state；即便 `max_cpu_loras` 已收紧到 `48/500`，长 replay 仍能把
-125GB 主机推入 OOM 区间。
+当前必须走 vLLM V0/eager，首次失败来自长 replay 下 host-side
+LoRA/runtime footprint 过大。随后验证表明，`dp2/tp2` 虽然降低内存压力，
+但会把四个服务 replica 降成两个并导致严重排队，因此不能作为论文配置。
 
-已修复为：Qwen2.5-7B vLLM 使用同一 4-GPU 预算下的 `dp2/tp2` safe topology，
-`max_cpu_loras=auto` 当前解析为 `24/500`，并加入 host-memory guard 与
-server PID replay monitor。真实主机命名空间下的 smoke 已通过：两个
-Qwen2.5-7B vLLM `dp2/tp2` replica 均启动成功，并分别完成一条短 LoRA 请求；
+已修复为：Qwen2.5-7B vLLM 保持同一 4-GPU 预算下的 `dp4/tp1` topology，
+`max_cpu_loras=16`，并加入 host-memory guard 与 server PID replay monitor。
+真实主机命名空间下的 384-request preflight 已通过：
+`ok=384/384, fail=0`，`TTFT=1661.8ms`、`TPOT=73.0ms`、`Tok/s=106.21`；
 退出后四张 GPU 均释放，主机内存回到约 `118GiB available`。
 
 强制重启后的日志还显示 `frpc.service` 反复连接远端超时。如果 SSH 依赖 frp，
@@ -528,8 +529,8 @@ vLLM/Qwen 的 host OOM。
 同次修复还发现并修正了 backbone 队列的拓扑风险：原 `run_full_fair_round.sh`
 向 vLLM/SGLang/S-LoRA 默认传 `TP=1,DP=4`，会让 Llama-2-13B 和 Qwen2.5-14B
 这些 TP=2 profile 在后续阶段按错误拓扑启动。修复后默认不覆盖 profile；
-Qwen2.5-7B 的 vLLM 例外使用 `dp2/tp2` safe topology，13B/14B 解析为
-`dp2/tp2`。Llama-2 7B 主 round 仍保持已验证的 `dp4/tp1`。
+Qwen2.5-7B 的 vLLM 例外保持 `dp4/tp1` 并限制 active CPU LoRA cache，
+13B/14B 解析为 `dp2/tp2`。Llama-2 7B 主 round 仍保持已验证的 `dp4/tp1`。
 
 额外预检：
 

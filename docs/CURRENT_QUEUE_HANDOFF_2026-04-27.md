@@ -125,28 +125,29 @@ vLLM stage.
 
 Root cause from journal and runner logs:
 
-- vLLM/Qwen2.5-7B V0/eager with `dp4/tp1` duplicated too much host-side model
-  and runtime state across four independent replicas.
+- vLLM/Qwen2.5-7B V0/eager exhausted host memory because the long replay kept
+  too much host-side LoRA/runtime state alive across four independent replicas.
 - Linux OOM killed vLLM APIServer/engine processes during replay. The partial
   replay is invalid and must not be used.
 - The 500 LoRA value remains the formal sampled adapter pool. The vLLM launch
   spec still exposes all 500 LoRA modules, and the shared trace has `4000/4000`
   LoRA-bound requests.
-- After switching Qwen2.5-7B vLLM to `dp2/tp2`, the original Qwen profile still
-  used a bring-up-only vLLM envelope (`max_num_seqs=2`, `max_loras=6`,
-  `max_num_batched_tokens=1024`). That left only four total running slots, built
-  a large vLLM internal pending queue, and caused request timeouts/failures.
-  This is a topology/envelope mismatch, not a model-family issue and not a
-  reason to reduce the 500-adapter pool.
+- A temporary `dp2/tp2` workaround avoided the host OOM but cut the number of
+  independent service replicas from four to two. A real 384-request probe then
+  produced unusable queueing (`TTFT` above 100s), so `dp2/tp2` is not acceptable
+  for the Qwen2.5-7B vLLM paper baseline.
 
 Applied runner fixes:
 
-- Qwen2.5-7B vLLM now uses `dp2/tp2` on the same four-GPU budget.
-- Qwen2.5-7B vLLM formal stage now raises the execution envelope to
+- Qwen2.5-7B vLLM now keeps `dp4/tp1` on the same four-GPU budget so all four
+  GPUs remain independent serving replicas.
+- Qwen2.5-7B vLLM formal stage raises the execution envelope to
   `max_num_seqs=8`, `max_loras=8`, `max_num_batched_tokens=4096`,
-  `max_cpu_loras=32`.
-- vLLM `max_cpu_loras=auto` is bounded per replica; current Qwen2.5-7B dry-run
-  resolves to `24/500`.
+  `max_cpu_loras=16`.
+- vLLM `max_cpu_loras` remains a bounded per-replica CPU LoRA cache; the full
+  500-adapter sampled universe is still registered through `--lora-modules`.
+  The Qwen2.5-7B formal override keeps this cache at `16/500` so the replay
+  stays above the host-memory guard while still registering all 500 adapters.
 - vLLM runner now checks host `MemAvailable` during launch and replay and aborts
   before system OOM.
 - vLLM runner monitors server PIDs during replay and rejects partial runs when a
@@ -155,10 +156,11 @@ Applied runner fixes:
   soon as repeated request failures prove a run invalid.
 - full-round summary discovery no longer assumes `dp4_tp1`, so TP=2 backbone
   runs validate correctly.
-- Real-host Qwen2.5-7B vLLM smoke and preflight passed after the fix: both
-  `dp2/tp2` replicas started, each completed a short LoRA request, and bounded
-  96-request and 256-request replays both completed with `fail=0`. Cleanup
-  released all GPUs.
+- Real-host Qwen2.5-7B vLLM verification passed after the final fix:
+  `dp4/tp1,max_cpu_loras=16` completed a bounded 384-request replay with
+  `ok=384/384`, `fail=0`, `TTFT=1661.8ms`, `TPOT=73.0ms`, and `Tok/s=106.21`.
+  Cleanup released all GPUs. Traceback lines in the vLLM logs are from
+  controlled API-server shutdown after successful replay, not request failures.
 - Llama-2 13B and Qwen2.5 14B preflight generated 4000 LoRA-bound requests and
   500-adapter subsets. vLLM and S-LoRA dry-runs for these backbones both expose
   500 adapters and resolve to `dp2/tp2`.

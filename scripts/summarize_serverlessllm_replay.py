@@ -1109,6 +1109,16 @@ def main() -> int:
     serverless_idle_retention_s = _cost_model_serverless_idle_retention_s(cost_model)
     infra_billing_elapsed_sec = elapsed_sec
     backend_cfg = dict(deploy.get("backend_config", {}) or {})
+
+    def _effective_runtime_cfg(key: str, default: Any = None) -> Any:
+        if key in deploy and deploy.get(key) is not None:
+            return deploy.get(key)
+        if key in backend_cfg and backend_cfg.get(key) is not None:
+            return backend_cfg.get(key)
+        if key in model_cfg and model_cfg.get(key) is not None:
+            return model_cfg.get(key)
+        return default
+
     max_billing_gpus = 1.0
     max_billing_replicas = 1.0
     static_serverful_baseline = str(args.baseline_type) in ("sglang", "vllm", "slora")
@@ -1187,6 +1197,21 @@ def main() -> int:
         target_url_to_instance_id=target_url_to_instance_id,
         default_instance_id=f"{args.scenario_name}_static_runtime_0",
     )
+    effective_max_model_len = _effective_runtime_cfg("max_model_len")
+    effective_max_input_len = _effective_runtime_cfg("max_input_len")
+    effective_max_output_tokens_cap = _effective_runtime_cfg("max_output_tokens_cap")
+    effective_max_num_seqs = _effective_runtime_cfg("max_num_seqs")
+    effective_runtime_concurrency_cap = _effective_runtime_cfg("runtime_concurrency_cap")
+    if (
+        static_serverful_baseline
+        and "runtime_concurrency_cap" not in deploy
+        and "runtime_concurrency_cap" not in backend_cfg
+        and effective_max_num_seqs is not None
+    ):
+        effective_runtime_concurrency_cap = effective_max_num_seqs
+    elif effective_runtime_concurrency_cap is None and effective_max_num_seqs is not None:
+        effective_runtime_concurrency_cap = effective_max_num_seqs
+    effective_max_loras = _effective_runtime_cfg("max_loras")
     monetary_summary = _summarize_monetary_cost_from_resource_seconds(
         cost_model=cost_model,
         completed_requests=len(ok),
@@ -1281,12 +1306,12 @@ def main() -> int:
         "token_proxy_cost_per_1m_total_tokens_usd": _round(token_proxy_cost_per_1m_total_tokens_usd, 8),
         "token_proxy_cost_per_1m_output_tokens_usd": _round(token_proxy_cost_per_1m_output_tokens_usd, 8),
         "token_ce": _round(token_ce, 6),
-        "max_model_len": model_cfg.get("max_model_len"),
-        "max_input_len": model_cfg.get("max_input_len"),
-        "max_output_tokens_cap": model_cfg.get("max_output_tokens_cap"),
-        "max_num_seqs": model_cfg.get("max_num_seqs"),
-        "runtime_concurrency_cap": model_cfg.get("runtime_concurrency_cap"),
-        "max_loras": model_cfg.get("max_loras"),
+        "max_model_len": effective_max_model_len,
+        "max_input_len": effective_max_input_len,
+        "max_output_tokens_cap": effective_max_output_tokens_cap,
+        "max_num_seqs": effective_max_num_seqs,
+        "runtime_concurrency_cap": effective_runtime_concurrency_cap,
+        "max_loras": effective_max_loras,
         "avg_prompt_tokens": _round((sum(prompt_tokens) / len(prompt_tokens)) if prompt_tokens else None),
         "p95_prompt_tokens": _round(_pct(prompt_tokens, 95)),
         "max_prompt_tokens": max(prompt_tokens) if prompt_tokens else None,
@@ -1706,12 +1731,12 @@ def main() -> int:
             "replay_source": str(args.replay),
             "deploy_config": str(args.deploy) if args.deploy else None,
             "model_name": str(model_cfg.get("name")),
-            "max_model_len": model_cfg.get("max_model_len"),
-            "max_input_len": model_cfg.get("max_input_len"),
-            "max_output_tokens_cap": model_cfg.get("max_output_tokens_cap"),
-            "max_num_seqs": model_cfg.get("max_num_seqs"),
-            "runtime_concurrency_cap": model_cfg.get("runtime_concurrency_cap"),
-            "max_loras": model_cfg.get("max_loras"),
+            "max_model_len": effective_max_model_len,
+            "max_input_len": effective_max_input_len,
+            "max_output_tokens_cap": effective_max_output_tokens_cap,
+            "max_num_seqs": effective_max_num_seqs,
+            "runtime_concurrency_cap": effective_runtime_concurrency_cap,
+            "max_loras": effective_max_loras,
             "tensor_parallel_size": tensor_parallel_size,
             "data_parallel_replicas": data_parallel_replicas,
             "gpu_per_request": max(1, tensor_parallel_size),
