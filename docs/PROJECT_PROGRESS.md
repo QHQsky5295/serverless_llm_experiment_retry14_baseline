@@ -64,21 +64,29 @@ current Llama-2 7B figure set is stable.
   - `qwen2p5_14b_r4000_a500_seed42_z1p0_hot48_rot500_s8_backbone_v1`
 - dry-run status: passed on 2026-04-29; no GPU work was launched.
 - first run status: Qwen2.5-7B completed SGLang and ServerlessLLM, then failed
-  at the vLLM stage with `ok=447/4000`. Kernel logs show host OOM killed the
-  vLLM engine process; this is a serving failure, not a valid performance
-  result.
+  at the vLLM stage. The invalid partial replay is not usable as performance
+  data. Kernel logs show host OOM killed vLLM APIServer/engine processes and
+  the machine later required a physical reboot; this is a serving/runtime
+  failure, not a valid comparison result.
+- root cause: Qwen2.5-7B publicmix currently uses vLLM V0/eager. Running four
+  independent TP=1 replicas (`dp4/tp1`) duplicates enough host-side
+  model/runtime state to exceed the 125GB testbed memory during the long replay.
+  The 500 LoRA value is still the formal adapter pool, and every request remains
+  LoRA-bound; the dry-run verified `lora_modules_count=500` and `4000/4000`
+  requests with adapters.
 - fix status: baseline scripts now launch vLLM servers in their own process
-  group and clean the process group on exit. vLLM no longer sets
-  `max_cpu_loras` to the full 500-adapter pool; the 500-adapter universe and
-  LoRA-bound replay remain unchanged, while the per-replica CPU LoRA cache is
-  bounded. The backbone queue also sets `VLLM_TIMEOUT_S=21600` by default.
-- topology fix: `run_full_fair_round.sh` no longer forces `TP=1,DP=4` for
-  vLLM/SGLang/S-LoRA. The child runners now resolve profile-aware topology:
-  Qwen2.5-7B uses `dp4/tp1`, while Llama-2-13B and Qwen2.5-14B use `dp2/tp2`.
-  Dry-runs verified vLLM and S-LoRA launch specs keep `lora_modules_count=500`.
-- current terminal status at the 2026-04-29 check: tmux
-  `paper_backbone_robustness_p0` is stopped at a shell prompt; GPUs are idle
-  (`15 MiB`, `0%` util on all four GPUs). Resume with the same queue id.
+  group, clean the process group on exit, bound per-replica CPU LoRA cache
+  (`auto` gives Qwen2.5-7B `24/500`), add a `MemAvailable` fail-fast guard
+  during launch/replay, and monitor vLLM server liveness during replay. If a
+  replica exits or host memory falls below the guard threshold, the stage fails
+  explicitly instead of continuing toward Linux OOM.
+- topology fix: `run_full_fair_round.sh` uses a vLLM-specific safe topology
+  for Qwen2.5-7B (`dp2/tp2` on the same four GPUs). Llama-2-13B and
+  Qwen2.5-14B use their TP=2 model profiles. Summary discovery is now dynamic,
+  so non-`dp4_tp1` outputs are validated correctly.
+- current terminal status after the 2026-04-30 forced reboot: no tmux sessions
+  are active; GPUs are idle (`15 MiB`, `0%` util on all four GPUs). Resume with
+  the same queue id only after checking `frpc.service`/remote access health.
 
 ## Service-Readiness Audit: 2026-04-29
 
