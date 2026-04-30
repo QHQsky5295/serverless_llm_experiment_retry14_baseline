@@ -84,6 +84,12 @@ current Llama-2 7B figure set is stable.
   for Qwen2.5-7B (`dp2/tp2` on the same four GPUs). Llama-2-13B and
   Qwen2.5-14B use their TP=2 model profiles. Summary discovery is now dynamic,
   so non-`dp4_tp1` outputs are validated correctly.
+- verification: a real-host Qwen2.5-7B vLLM smoke test passed with the new
+  `dp2/tp2` topology. Both replicas started and completed one short LoRA
+  request; cleanup released all GPUs and host memory returned to about
+  `118GiB available`. Llama-2 13B and Qwen2.5 14B shared-artifact preflight
+  also produced 4000 LoRA-bound requests and 500-adapter subsets; vLLM/S-LoRA
+  dry-runs for these backbones expose 500 adapters and use `dp2/tp2`.
 - current terminal status after the 2026-04-30 forced reboot: no tmux sessions
   are active; GPUs are idle (`15 MiB`, `0%` util on all four GPUs). Resume with
   the same queue id only after checking `frpc.service`/remote access health.
