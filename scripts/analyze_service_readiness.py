@@ -461,15 +461,27 @@ def plot_summary(out_path: Path, summary_rows: Sequence[Dict[str, Any]]) -> None
     for yi, gv, mv in zip(y, gpu_s, mis_s):
         ax.plot([gv, mv], [yi, yi], color="#A0A0A0", lw=1.0, zorder=1)
     ax.scatter(gpu_s, y, marker="o", s=34, color=TIER_COLORS["gpu"], label="GPU-ready", zorder=2)
-    ax.scatter(mis_s, y, marker="D", s=34, color="#C74343", label="Mismatch", zorder=2)
+    ax.scatter(mis_s, y, marker="D", s=34, color="#C74343", label="Non-GPU", zorder=2)
     ax.set_yticks(y)
     ax.set_yticklabels(labels)
     ax.invert_yaxis()
     ax.set_xlabel("TTFT p95 (s)")
     ax.grid(axis="x", alpha=0.25)
-    xmax = max(mis_s + gpu_s) * 1.16
+    xmax = max(mis_s + gpu_s) * 1.65
     ax.set_xlim(0, xmax)
     ax.set_ylim(len(summary_rows) - 0.45, -0.45)
+    ax.legend(
+        loc="center right",
+        bbox_to_anchor=(0.98, 0.50),
+        frameon=True,
+        framealpha=0.94,
+        facecolor="white",
+        edgecolor="#D0D0D0",
+        fontsize=8.2,
+        handlelength=1.25,
+        handletextpad=0.45,
+        borderpad=0.35,
+    )
     for yi, gv, mv in zip(y, gpu_s, mis_s):
         ax.text(gv + xmax * 0.018, yi - 0.14, f"{gv:.2f}", fontsize=8.8, color="#2F6F3E")
         ax.text(mv + xmax * 0.018, yi - 0.14, f"{mv:.2f}", fontsize=8.8, color="#8A2E2E")

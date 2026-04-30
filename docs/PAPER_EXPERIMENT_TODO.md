@@ -852,6 +852,14 @@ Qwen2.5-7B、Llama-2-13B TP=2、Qwen2.5-14B TP=2 三个 robustness round。
 hotset rotation=500、seed=42、time scale=8.0。该队列已通过 dry-run，
 可在 tmux 中启动。
 
+2026-04-30 调试记录：首次 Qwen2.5-7B backbone round 在 vLLM 阶段失败，
+内核日志显示 host OOM killer 杀掉 vLLM engine。根因是 vLLM runner 把
+`max_cpu_loras` 设成完整 500-adapter pool，导致每个 DP replica 复制过大的
+CPU LoRA cache；这不是要减少 500-adapter 采样池。修复后仍保留
+`lora_modules_count=500` 和 LoRA-bound 请求，只将每个 replica 的 CPU LoRA
+cache 设为有界值。同步修复了 full-round runner 对 vLLM/SGLang/S-LoRA
+强行传 `TP=1,DP=4` 的问题；后续 13B/14B 会按 profile 使用 `dp2/tp2`。
+
 ## 6. 执行顺序
 
 正式执行建议：
