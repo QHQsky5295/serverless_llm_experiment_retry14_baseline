@@ -10,6 +10,7 @@ import re
 import sys
 import threading
 import time
+from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -45,10 +46,13 @@ class DynamicLoRALoader:
         *,
         modules: Dict[str, str],
         timeout_s: float,
+        max_loaded_per_endpoint: int,
     ) -> None:
         self._modules = dict(modules)
         self._timeout_s = max(1.0, float(timeout_s))
-        self._loaded: Dict[str, set[str]] = {}
+        self._max_loaded_per_endpoint = max(0, int(max_loaded_per_endpoint or 0))
+        self._loaded: Dict[str, OrderedDict[str, None]] = {}
+        self._active: Dict[str, Dict[str, int]] = {}
         self._locks: Dict[str, threading.Lock] = {}
         self._global_lock = threading.Lock()
 
@@ -61,19 +65,81 @@ class DynamicLoRALoader:
                 self._locks[key] = lock
             return lock
 
-    def ensure_loaded(self, base_url: str, adapter_id: Optional[str]) -> Dict[str, Any]:
+    def _unload_adapter(self, key: str, adapter: str) -> float:
+        endpoint = f"{key}/v1/unload_lora_adapter"
+        payload = {"lora_name": adapter}
+        t0 = time.perf_counter()
+        try:
+            resp = requests.post(endpoint, json=payload, timeout=self._timeout_s)
+            elapsed_ms = (time.perf_counter() - t0) * 1000.0
+        except Exception as exc:  # noqa: BLE001
+            raise RuntimeError(
+                f"dynamic LoRA unload failed for {adapter} on {key}: {type(exc).__name__}: {exc}"
+            ) from exc
+        if resp.status_code not in (200, 201, 204):
+            body = resp.text[:800]
+            lowered = body.lower()
+            if resp.status_code in (400, 404) and (
+                "not" in lowered and ("loaded" in lowered or "found" in lowered)
+            ):
+                return elapsed_ms
+            raise RuntimeError(
+                f"dynamic LoRA unload failed for {adapter} on {key}: HTTP {resp.status_code}: {body}"
+            )
+        return elapsed_ms
+
+    def _evict_inactive(self, key: str, loaded: OrderedDict[str, None]) -> Dict[str, Any]:
+        if self._max_loaded_per_endpoint <= 0:
+            return {"dynamic_lora_unloaded_count": 0, "dynamic_lora_unload_ms": 0.0}
+        active = self._active.setdefault(key, {})
+        unloaded_count = 0
+        unload_ms = 0.0
+        while len(loaded) >= self._max_loaded_per_endpoint:
+            victim = None
+            for candidate in loaded.keys():
+                if active.get(candidate, 0) <= 0:
+                    victim = candidate
+                    break
+            if victim is None:
+                break
+            unload_ms += self._unload_adapter(key, victim)
+            loaded.pop(victim, None)
+            active.pop(victim, None)
+            unloaded_count += 1
+        return {
+            "dynamic_lora_unloaded_count": unloaded_count,
+            "dynamic_lora_unload_ms": unload_ms,
+        }
+
+    def acquire(self, base_url: str, adapter_id: Optional[str]) -> Dict[str, Any]:
         adapter = str(adapter_id or "").strip()
         if not adapter:
-            return {"dynamic_lora_loaded": False, "dynamic_lora_load_ms": 0.0}
+            return {
+                "dynamic_lora_loaded": False,
+                "dynamic_lora_load_ms": 0.0,
+                "dynamic_lora_unloaded_count": 0,
+                "dynamic_lora_unload_ms": 0.0,
+            }
         path = self._modules.get(adapter)
         if not path:
             raise RuntimeError(f"adapter {adapter!r} is absent from dynamic LoRA module map")
         key = base_url.rstrip("/")
         lock = self._endpoint_lock(key)
         with lock:
-            loaded = self._loaded.setdefault(key, set())
+            loaded = self._loaded.setdefault(key, OrderedDict())
+            active = self._active.setdefault(key, {})
             if adapter in loaded:
-                return {"dynamic_lora_loaded": False, "dynamic_lora_load_ms": 0.0}
+                loaded.move_to_end(adapter)
+                active[adapter] = active.get(adapter, 0) + 1
+                return {
+                    "dynamic_lora_loaded": False,
+                    "dynamic_lora_load_ms": 0.0,
+                    "dynamic_lora_unloaded_count": 0,
+                    "dynamic_lora_unload_ms": 0.0,
+                    "dynamic_lora_resident_count": len(loaded),
+                    "dynamic_lora_max_resident": self._max_loaded_per_endpoint,
+                }
+            eviction_metrics = self._evict_inactive(key, loaded)
             endpoint = f"{key}/v1/load_lora_adapter"
             payload = {"lora_name": adapter, "lora_path": path}
             t0 = time.perf_counter()
@@ -87,17 +153,44 @@ class DynamicLoRALoader:
             if resp.status_code not in (200, 201, 204):
                 body = resp.text[:800]
                 if resp.status_code == 400 and "already" in body.lower() and "loaded" in body.lower():
-                    loaded.add(adapter)
+                    loaded[adapter] = None
+                    loaded.move_to_end(adapter)
+                    active[adapter] = active.get(adapter, 0) + 1
                     return {
                         "dynamic_lora_loaded": False,
                         "dynamic_lora_load_ms": elapsed_ms,
                         "dynamic_lora_already_loaded": True,
+                        "dynamic_lora_resident_count": len(loaded),
+                        "dynamic_lora_max_resident": self._max_loaded_per_endpoint,
+                        **eviction_metrics,
                     }
                 raise RuntimeError(
                     f"dynamic LoRA load failed for {adapter} on {key}: HTTP {resp.status_code}: {body}"
                 )
-            loaded.add(adapter)
-            return {"dynamic_lora_loaded": True, "dynamic_lora_load_ms": elapsed_ms}
+            loaded[adapter] = None
+            loaded.move_to_end(adapter)
+            active[adapter] = active.get(adapter, 0) + 1
+            return {
+                "dynamic_lora_loaded": True,
+                "dynamic_lora_load_ms": elapsed_ms,
+                "dynamic_lora_resident_count": len(loaded),
+                "dynamic_lora_max_resident": self._max_loaded_per_endpoint,
+                **eviction_metrics,
+            }
+
+    def release(self, base_url: str, adapter_id: Optional[str]) -> None:
+        adapter = str(adapter_id or "").strip()
+        if not adapter:
+            return
+        key = base_url.rstrip("/")
+        lock = self._endpoint_lock(key)
+        with lock:
+            active = self._active.setdefault(key, {})
+            count = active.get(adapter, 0)
+            if count <= 1:
+                active.pop(adapter, None)
+            else:
+                active[adapter] = count - 1
 
 
 def _percentile(values: List[float], q: float) -> float:
@@ -1365,6 +1458,17 @@ def main() -> int:
         ),
     )
     ap.add_argument(
+        "--dynamic-lora-max-loaded-per-endpoint",
+        type=int,
+        default=0,
+        help=(
+            "Maximum runtime-registered LoRA adapters kept per vLLM endpoint. "
+            "When positive, the replay unloads inactive least-recently-used "
+            "adapters before loading a new one. This bounds vLLM OpenAI "
+            "runtime-LoRA host memory without changing the adapter universe."
+        ),
+    )
+    ap.add_argument(
         "--generation-seed",
         type=int,
         default=None,
@@ -1425,6 +1529,7 @@ def main() -> int:
         dynamic_lora_loader = DynamicLoRALoader(
             modules=module_map,
             timeout_s=float(args.dynamic_lora_timeout_s or 180.0),
+            max_loaded_per_endpoint=int(args.dynamic_lora_max_loaded_per_endpoint or 0),
         )
 
     results: List[Optional[Dict[str, Any]]] = [None] * len(requests_list)
@@ -1474,12 +1579,14 @@ def main() -> int:
         else:
             target_base_url = base_urls[index % len(base_urls)]
         dynamic_lora_metrics: Dict[str, Any] = {}
+        dynamic_lora_acquired = False
         if dynamic_lora_loader is not None:
             try:
-                dynamic_lora_metrics = dynamic_lora_loader.ensure_loaded(
+                dynamic_lora_metrics = dynamic_lora_loader.acquire(
                     target_base_url,
                     str(adapter_id_for_dynamic) if adapter_id_for_dynamic is not None else None,
                 )
+                dynamic_lora_acquired = bool(str(adapter_id_for_dynamic or "").strip())
             except Exception as exc:  # noqa: BLE001
                 completion_offset_s = time.perf_counter() - start_time
                 scheduled_offset_s = float(item["arrival_time_s"])
@@ -1535,41 +1642,48 @@ def main() -> int:
                         )
                         os._exit(80)
                 return
-        result = _replay_one(
-            base_url=target_base_url,
-            item=item,
-            request_index=index,
-            timeout_s=args.timeout_s,
-            start_time=start_time,
-            base_cost_usd=float(args.base_cost_usd),
-            input_token_cost_usd=float(args.input_token_cost_usd),
-            output_token_cost_usd=float(args.output_token_cost_usd),
-            require_server_metrics=bool(args.require_server_metrics),
-            model_override=(str(args.model_override) if args.model_override else None),
-            adapter_source_field=(str(args.adapter_source_field) if args.adapter_source_field else None),
-            adapter_target_field=(str(args.adapter_target_field) if args.adapter_target_field else None),
-            adapter_value_map=adapter_value_map,
-            drop_body_fields=[str(x) for x in (args.drop_body_field or [])],
-            endpoint_path=str(args.endpoint_path),
-            convert_chat_to_prompt=bool(args.convert_chat_to_prompt),
-            prompt_guard_tokenizer_model=(
-                str(args.prompt_guard_tokenizer_model)
-                if args.prompt_guard_tokenizer_model
-                else None
-            ),
-            prompt_guard_max_model_len=int(args.prompt_guard_max_model_len or 0),
-            prompt_guard_max_input_len=int(args.prompt_guard_max_input_len or 0),
-            prompt_guard_max_output_tokens_cap=int(
-                args.prompt_guard_max_output_tokens_cap or 0
-            ),
-            sglang_native_generate=bool(args.sglang_native_generate),
-            slora_native_generate=bool(args.slora_native_generate),
-            generation_seed=args.generation_seed,
-            empty_success_retries=int(args.empty_success_retries or 0),
-            empty_success_retry_delay_s=float(args.empty_success_retry_delay_s or 0.0),
-            min_output_tokens=int(args.min_output_tokens or 0),
-            include_stream_usage=bool(args.include_stream_usage),
-        )
+        try:
+            result = _replay_one(
+                base_url=target_base_url,
+                item=item,
+                request_index=index,
+                timeout_s=args.timeout_s,
+                start_time=start_time,
+                base_cost_usd=float(args.base_cost_usd),
+                input_token_cost_usd=float(args.input_token_cost_usd),
+                output_token_cost_usd=float(args.output_token_cost_usd),
+                require_server_metrics=bool(args.require_server_metrics),
+                model_override=(str(args.model_override) if args.model_override else None),
+                adapter_source_field=(str(args.adapter_source_field) if args.adapter_source_field else None),
+                adapter_target_field=(str(args.adapter_target_field) if args.adapter_target_field else None),
+                adapter_value_map=adapter_value_map,
+                drop_body_fields=[str(x) for x in (args.drop_body_field or [])],
+                endpoint_path=str(args.endpoint_path),
+                convert_chat_to_prompt=bool(args.convert_chat_to_prompt),
+                prompt_guard_tokenizer_model=(
+                    str(args.prompt_guard_tokenizer_model)
+                    if args.prompt_guard_tokenizer_model
+                    else None
+                ),
+                prompt_guard_max_model_len=int(args.prompt_guard_max_model_len or 0),
+                prompt_guard_max_input_len=int(args.prompt_guard_max_input_len or 0),
+                prompt_guard_max_output_tokens_cap=int(
+                    args.prompt_guard_max_output_tokens_cap or 0
+                ),
+                sglang_native_generate=bool(args.sglang_native_generate),
+                slora_native_generate=bool(args.slora_native_generate),
+                generation_seed=args.generation_seed,
+                empty_success_retries=int(args.empty_success_retries or 0),
+                empty_success_retry_delay_s=float(args.empty_success_retry_delay_s or 0.0),
+                min_output_tokens=int(args.min_output_tokens or 0),
+                include_stream_usage=bool(args.include_stream_usage),
+            )
+        finally:
+            if dynamic_lora_loader is not None and dynamic_lora_acquired:
+                dynamic_lora_loader.release(
+                    target_base_url,
+                    str(adapter_id_for_dynamic) if adapter_id_for_dynamic is not None else None,
+                )
         result.update(dynamic_lora_metrics)
         result["target_base_url"] = target_base_url
         with lock:
@@ -1702,6 +1816,9 @@ def main() -> int:
         "dynamic_lora_routing": str(args.dynamic_lora_routing),
         "dynamic_lora_hot_pair_threshold": int(args.dynamic_lora_hot_pair_threshold or 0),
         "dynamic_lora_hot_pair_max_adapters": int(args.dynamic_lora_hot_pair_max_adapters or 0),
+        "dynamic_lora_max_loaded_per_endpoint": int(
+            args.dynamic_lora_max_loaded_per_endpoint or 0
+        ),
         "dynamic_lora_hot_pair_adapters": sorted(dynamic_hot_pair_adapters),
         "cost_model": {
             "base_cost_usd": float(args.base_cost_usd),

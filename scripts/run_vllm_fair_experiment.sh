@@ -45,6 +45,7 @@ VLLM_LORA_REGISTRATION_MODE="${VLLM_LORA_REGISTRATION_MODE:-static}"
 VLLM_DYNAMIC_LORA_ROUTING="${VLLM_DYNAMIC_LORA_ROUTING:-round_robin}"
 VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD="${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD:-8}"
 VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS="${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS:-32}"
+VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT="${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT:-auto}"
 VLLM_DISABLE_FRONTEND_MULTIPROCESSING="${VLLM_DISABLE_FRONTEND_MULTIPROCESSING:-0}"
 VLLM_ABORT_AFTER_FAILURES="${VLLM_ABORT_AFTER_FAILURES:-8}"
 VLLM_ABORT_FAILURES_MIN_DONE="${VLLM_ABORT_FAILURES_MIN_DONE:-32}"
@@ -139,10 +140,28 @@ require_host_memory() {
   fi
 }
 
+require_nvidia_driver() {
+  local context="$1"
+  if ! command -v nvidia-smi >/dev/null 2>&1; then
+    echo "[ERROR] nvidia-smi is unavailable while checking ${context}; refusing to start a formal vLLM run." >&2
+    return 1
+  fi
+  if ! nvidia-smi -L >/dev/null 2>&1; then
+    echo "[ERROR] nvidia-smi cannot communicate with the NVIDIA driver during ${context}." >&2
+    echo "        Stop here and recover the driver/host before running paper experiments." >&2
+    return 1
+  fi
+}
+
 monitor_replay_and_servers() {
   local replay_pid="$1"
   local replica_pid
   while kill -0 "${replay_pid}" 2>/dev/null; do
+    if ! require_nvidia_driver "vLLM replay"; then
+      kill "${replay_pid}" 2>/dev/null || true
+      stop_vllm_servers
+      return 1
+    fi
     if ! require_host_memory "vLLM replay"; then
       kill "${replay_pid}" 2>/dev/null || true
       return 1
@@ -184,9 +203,7 @@ ensure_port_is_free() {
 ensure_gpu_set_idle() {
   local gpu_csv="$1"
   local label="$2"
-  if ! command -v nvidia-smi >/dev/null 2>&1; then
-    return 0
-  fi
+  require_nvidia_driver "${label} GPU-idle check"
   local gpu_ids=()
   local gpu=""
   IFS=',' read -r -a gpu_ids <<< "${gpu_csv}"
@@ -195,7 +212,10 @@ ensure_gpu_set_idle() {
     [[ -z "${gpu}" ]] && continue
     local procs=()
     local query_output=""
-    query_output="$(nvidia-smi --id="${gpu}" --query-compute-apps=pid,used_gpu_memory --format=csv,noheader,nounits 2>/dev/null || true)"
+    if ! query_output="$(nvidia-smi --id="${gpu}" --query-compute-apps=pid,used_gpu_memory --format=csv,noheader,nounits 2>&1)"; then
+      echo "[ERROR] failed to query target GPU ${gpu} for ${label}: ${query_output}" >&2
+      exit 1
+    fi
     mapfile -t procs < <(printf '%s\n' "${query_output}" | sed '/^[[:space:]]*$/d' | grep -E '^[[:space:]]*[0-9]+[[:space:]]*,')
     if (( ${#procs[@]} > 0 )); then
       echo "[ERROR] ${label} target GPU ${gpu} is not idle; active compute processes detected:" >&2
@@ -450,8 +470,32 @@ resolve_max_cpu_loras() {
 
 MAX_CPU_LORAS="$(resolve_max_cpu_loras)"
 
+resolve_dynamic_lora_max_loaded_per_endpoint() {
+  local requested="${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT:-auto}"
+  local value
+  if [[ "${requested}" == "auto" || -z "${requested}" || "${requested}" == "0" ]]; then
+    value="${MAX_CPU_LORAS}"
+  else
+    if ! [[ "${requested}" =~ ^[0-9]+$ ]]; then
+      echo "[ERROR] VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT must be a positive integer or auto, got ${requested}" >&2
+      return 1
+    fi
+    value="${requested}"
+    if (( value < 1 )); then
+      echo "[ERROR] VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT must be positive or auto, got ${requested}" >&2
+      return 1
+    fi
+    if (( value > SELECTED_NUM_ADAPTERS )); then
+      value="${SELECTED_NUM_ADAPTERS}"
+    fi
+  fi
+  printf '%s\n' "${value}"
+}
+
+VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT_EFFECTIVE="$(resolve_dynamic_lora_max_loaded_per_endpoint)"
+
 echo "[2/5] Building vLLM launch spec from shared subset"
-PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${SHARED_ADAPTER_SUBSET_PATH}" "${MODEL_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_MODULES_JSON}" "${LORA_MODULES_TXT}" "${TP_EFFECTIVE}" "${DP_REPLICAS}" "${VLLM_GPU_IDS}" "${VLLM_HOST}" "${VLLM_PORT}" "${VLLM_PORT_STRIDE}" "${GPU_MEMORY_UTILIZATION}" "${DTYPE}" "${MAX_LORAS}" "${MAX_CPU_LORAS}" "${MAX_LORA_RANK}" "${MAX_NUM_SEQS}" "${MAX_NUM_BATCHED_TOKENS}" "${ENABLE_CHUNKED_PREFILL}" "${ENABLE_PREFIX_CACHING}" "${ENFORCE_EAGER}" "${VLLM_USE_V1_EFFECTIVE}" "${VLLM_ATTENTION_BACKEND_EFFECTIVE}" "${VLLM_USE_FLASHINFER_SAMPLER_EFFECTIVE}" "${PROMPT_GUARD_MAX_MODEL_LEN}" "${VLLM_LORA_REGISTRATION_MODE}" "${VLLM_DYNAMIC_LORA_ROUTING}" "${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD}" "${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS}" "${VLLM_DISABLE_FRONTEND_MULTIPROCESSING}" <<'PY'
+PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${SHARED_ADAPTER_SUBSET_PATH}" "${MODEL_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_MODULES_JSON}" "${LORA_MODULES_TXT}" "${TP_EFFECTIVE}" "${DP_REPLICAS}" "${VLLM_GPU_IDS}" "${VLLM_HOST}" "${VLLM_PORT}" "${VLLM_PORT_STRIDE}" "${GPU_MEMORY_UTILIZATION}" "${DTYPE}" "${MAX_LORAS}" "${MAX_CPU_LORAS}" "${MAX_LORA_RANK}" "${MAX_NUM_SEQS}" "${MAX_NUM_BATCHED_TOKENS}" "${ENABLE_CHUNKED_PREFILL}" "${ENABLE_PREFIX_CACHING}" "${ENFORCE_EAGER}" "${VLLM_USE_V1_EFFECTIVE}" "${VLLM_ATTENTION_BACKEND_EFFECTIVE}" "${VLLM_USE_FLASHINFER_SAMPLER_EFFECTIVE}" "${PROMPT_GUARD_MAX_MODEL_LEN}" "${VLLM_LORA_REGISTRATION_MODE}" "${VLLM_DYNAMIC_LORA_ROUTING}" "${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD}" "${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS}" "${VLLM_DISABLE_FRONTEND_MULTIPROCESSING}" "${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT_EFFECTIVE}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -488,6 +532,7 @@ dynamic_lora_routing = sys.argv[27]
 dynamic_lora_hot_pair_threshold = int(sys.argv[28])
 dynamic_lora_hot_pair_max_adapters = int(sys.argv[29])
 disable_frontend_multiprocessing = bool(int(sys.argv[30]))
+dynamic_lora_max_loaded_per_endpoint = int(sys.argv[31])
 if port_stride < 4:
     raise SystemExit(f"VLLM_PORT_STRIDE must leave room for vLLM internal ports, got {port_stride}")
 
@@ -549,6 +594,7 @@ launch = {
     "dynamic_lora_routing": dynamic_lora_routing,
     "dynamic_lora_hot_pair_threshold": dynamic_lora_hot_pair_threshold,
     "dynamic_lora_hot_pair_max_adapters": dynamic_lora_hot_pair_max_adapters,
+    "dynamic_lora_max_loaded_per_endpoint": dynamic_lora_max_loaded_per_endpoint,
     "disable_frontend_multiprocessing": disable_frontend_multiprocessing,
     "base_urls": base_urls,
     "replica_ports": replica_ports,
@@ -567,7 +613,7 @@ echo "      model=${MODEL_PATH}"
 echo "      topology=${VLLM_TOPOLOGY_LABEL} gpu_ids=${VLLM_GPU_IDS}"
 echo "      max_loras=${MAX_LORAS} max_cpu_loras=${MAX_CPU_LORAS}/${SELECTED_NUM_ADAPTERS} max_lora_rank=${MAX_LORA_RANK}"
 echo "      max_num_seqs=${MAX_NUM_SEQS} max_num_batched_tokens=${MAX_NUM_BATCHED_TOKENS}"
-echo "      lora_registration_mode=${VLLM_LORA_REGISTRATION_MODE} dynamic_lora_routing=${VLLM_DYNAMIC_LORA_ROUTING} hot_pair_threshold=${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD} hot_pair_max=${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS}"
+echo "      lora_registration_mode=${VLLM_LORA_REGISTRATION_MODE} dynamic_lora_routing=${VLLM_DYNAMIC_LORA_ROUTING} hot_pair_threshold=${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD} hot_pair_max=${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS} dynamic_lora_max_loaded_per_endpoint=${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT_EFFECTIVE}"
 echo "      disable_frontend_multiprocessing=${VLLM_DISABLE_FRONTEND_MULTIPROCESSING}"
 echo "      host_memory_guard=${VLLM_HOST_MIN_MEM_GB}GiB watch_interval=${VLLM_MEM_WATCH_INTERVAL_S}s"
 echo "      smoke_only=${VLLM_SMOKE_ONLY} smoke_max_tokens=${VLLM_SMOKE_MAX_TOKENS}"
@@ -832,6 +878,7 @@ if [[ "${VLLM_LORA_REGISTRATION_MODE}" == "dynamic" ]]; then
     --dynamic-lora-routing "${VLLM_DYNAMIC_LORA_ROUTING}"
     --dynamic-lora-hot-pair-threshold "${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD}"
     --dynamic-lora-hot-pair-max-adapters "${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS}"
+    --dynamic-lora-max-loaded-per-endpoint "${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT_EFFECTIVE}"
   )
 fi
 set +e

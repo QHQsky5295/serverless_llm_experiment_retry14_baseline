@@ -445,6 +445,7 @@ run_vllm() {
   local vllm_dynamic_lora_routing="${VLLM_DYNAMIC_LORA_ROUTING:-}"
   local vllm_dynamic_lora_hot_pair_threshold="${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD:-}"
   local vllm_dynamic_lora_hot_pair_max_adapters="${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS:-}"
+  local vllm_dynamic_lora_max_loaded_per_endpoint="${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT:-}"
   local vllm_disable_frontend_mp="${VLLM_DISABLE_FRONTEND_MULTIPROCESSING:-}"
   if [[ -z "${vllm_dp}" && -z "${vllm_tp}" && "${MODEL_PROFILE}" == "qwen_7b_main_v2_publicmix" ]]; then
     # Qwen2.5-7B V2 uses the vLLM V0/eager path in the current environment.
@@ -459,13 +460,14 @@ run_vllm() {
     vllm_max_num_seqs="${vllm_max_num_seqs:-${VLLM_QWEN7_SAFE_MAX_NUM_SEQS:-8}}"
     vllm_max_loras="${vllm_max_loras:-${VLLM_QWEN7_SAFE_MAX_LORAS:-8}}"
     vllm_max_num_batched_tokens="${vllm_max_num_batched_tokens:-${VLLM_QWEN7_SAFE_MAX_NUM_BATCHED_TOKENS:-4096}}"
-    vllm_max_cpu_loras="${vllm_max_cpu_loras:-${VLLM_QWEN7_SAFE_MAX_CPU_LORAS:-16}}"
+    vllm_max_cpu_loras="${vllm_max_cpu_loras:-${VLLM_QWEN7_SAFE_MAX_CPU_LORAS:-24}}"
     vllm_lora_registration_mode="${VLLM_QWEN7_LORA_REGISTRATION_MODE:-dynamic}"
     vllm_dynamic_lora_routing="${VLLM_QWEN7_DYNAMIC_LORA_ROUTING:-adaptive_hot_pair_hash}"
     vllm_dynamic_lora_hot_pair_threshold="${vllm_dynamic_lora_hot_pair_threshold:-${VLLM_QWEN7_DYNAMIC_LORA_HOT_PAIR_THRESHOLD:-8}}"
     vllm_dynamic_lora_hot_pair_max_adapters="${vllm_dynamic_lora_hot_pair_max_adapters:-${VLLM_QWEN7_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS:-32}}"
+    vllm_dynamic_lora_max_loaded_per_endpoint="${vllm_dynamic_lora_max_loaded_per_endpoint:-${VLLM_QWEN7_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT:-${vllm_max_cpu_loras}}}"
     vllm_disable_frontend_mp="${vllm_disable_frontend_mp:-${VLLM_QWEN7_DISABLE_FRONTEND_MULTIPROCESSING:-1}}"
-    log "vLLM Qwen2.5-7B safe topology override: dp=${vllm_dp} tp=${vllm_tp} max_num_seqs=${vllm_max_num_seqs} max_loras=${vllm_max_loras} max_cpu_loras=${vllm_max_cpu_loras} max_batched_tokens=${vllm_max_num_batched_tokens} lora_registration_mode=${vllm_lora_registration_mode} dynamic_lora_routing=${vllm_dynamic_lora_routing} hot_pair_threshold=${vllm_dynamic_lora_hot_pair_threshold} hot_pair_max=${vllm_dynamic_lora_hot_pair_max_adapters} disable_frontend_mp=${vllm_disable_frontend_mp} on gpu_ids=${GPU_IDS}"
+    log "vLLM Qwen2.5-7B safe topology override: dp=${vllm_dp} tp=${vllm_tp} max_num_seqs=${vllm_max_num_seqs} max_loras=${vllm_max_loras} max_cpu_loras=${vllm_max_cpu_loras} max_batched_tokens=${vllm_max_num_batched_tokens} lora_registration_mode=${vllm_lora_registration_mode} dynamic_lora_routing=${vllm_dynamic_lora_routing} hot_pair_threshold=${vllm_dynamic_lora_hot_pair_threshold} hot_pair_max=${vllm_dynamic_lora_hot_pair_max_adapters} dynamic_lora_max_loaded_per_endpoint=${vllm_dynamic_lora_max_loaded_per_endpoint} disable_frontend_mp=${vllm_disable_frontend_mp} on gpu_ids=${GPU_IDS}"
   fi
   if [[ -z "${vllm_lora_registration_mode}" ]]; then
     if [[ "${MODEL_PROFILE}" == qwen_* ]]; then
@@ -483,6 +485,13 @@ run_vllm() {
   fi
   vllm_dynamic_lora_hot_pair_threshold="${vllm_dynamic_lora_hot_pair_threshold:-8}"
   vllm_dynamic_lora_hot_pair_max_adapters="${vllm_dynamic_lora_hot_pair_max_adapters:-32}"
+  if [[ -z "${vllm_dynamic_lora_max_loaded_per_endpoint}" ]]; then
+    if [[ "${vllm_lora_registration_mode}" == "dynamic" ]]; then
+      vllm_dynamic_lora_max_loaded_per_endpoint="${VLLM_QWEN_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT:-auto}"
+    else
+      vllm_dynamic_lora_max_loaded_per_endpoint="auto"
+    fi
+  fi
   if [[ -z "${vllm_disable_frontend_mp}" ]]; then
     if [[ "${vllm_lora_registration_mode}" == "dynamic" && "${MODEL_PROFILE}" == qwen_* ]]; then
       # Qwen-family profiles use vLLM's V0/eager OpenAI API path in this
@@ -522,6 +531,7 @@ run_vllm() {
     VLLM_DYNAMIC_LORA_ROUTING="${vllm_dynamic_lora_routing}" \
     VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD="${vllm_dynamic_lora_hot_pair_threshold}" \
     VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS="${vllm_dynamic_lora_hot_pair_max_adapters}" \
+    VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT="${vllm_dynamic_lora_max_loaded_per_endpoint}" \
     VLLM_DISABLE_FRONTEND_MULTIPROCESSING="${vllm_disable_frontend_mp}" \
     bash "${BASELINES_ROOT}/scripts/run_vllm_fair_experiment.sh"
   if [[ "${VLLM_SMOKE_ONLY:-0}" == "1" ]]; then
