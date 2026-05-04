@@ -879,14 +879,40 @@ hotset rotation=500、seed=42、time scale=8.0。该队列已通过 dry-run，
 
 当前修复后，Qwen2.5-7B vLLM 保持同一 4-GPU budget 下的 `dp4/tp1`，并将
 formal replay 包络设为 `max_num_seqs=8`、`max_loras=8`、
-`max_num_batched_tokens=4096`、`max_cpu_loras=16`。这不改变 workload、模型、
-采样、500-adapter universe 或 GPU budget，只限制每个 replica 的 active CPU
-LoRA cache，既保留四个服务 replica 的性能，又避免 Qwen V0/eager host-memory
-footprint 成为错误失败源。`replay_openai_trace.py` 同时增加 bounded preflight
-与 failure-abort gate：正式前可用 `VLLM_MAX_REPLAY_REQUESTS=96/256/384` 验证，
-正式跑若出现 fail 累计会立即失败，不继续写污染结果。真实 Qwen2.5-7B vLLM
+`max_num_batched_tokens=4096`、`max_cpu_loras=16`、
+`lora_registration_mode=dynamic`、`dynamic_lora_routing=adaptive_hot_pair_hash`。
+这不改变 workload、模型、采样、
+500-adapter universe 或 GPU budget；它修复的是 standalone vLLM OpenAI API
+path 把 500 个 LoRA 静态注册到每个 Qwen V0/eager replica 导致 host-side
+footprint 放大的问题，同时避免 request round-robin dynamic loading 把同一个
+adapter 重复加载到过多 endpoint。`adaptive_hot_pair_hash` 仅用于 standalone vLLM
+baseline 的 runtime LoRA 注册负载均衡：冷 adapter 单 endpoint，在线观测到热度后
+扩展到两个 endpoint，且热 adapter 数有上限；它不引入 PrimeLoRA 的 readiness-aware
+routing、scale-out warmup、residency 或 admission 机制。`replay_openai_trace.py`
+同时增加 dynamic LoRA pre-load、bounded preflight 与 failure-abort gate：
+正式跑若出现 fail 累计会立即失败，不继续写污染结果。真实 Qwen2.5-7B vLLM 此前 static
 `dp4/tp1,max_cpu_loras=16` 384-request preflight 为 `ok=384/384, fail=0`，
-`TTFT=1661.8ms`、`TPOT=73.0ms`、`Tok/s=106.21`。
+`TTFT=1661.8ms`、`TPOT=73.0ms`、`Tok/s=106.21`，但长 replay 后续在约 900
+完成请求处触发 host-memory guard，且 `max_cpu_loras=8` 长 probe 也失败。因此
+当前验证和正式续跑必须使用 dynamic registration + adaptive-hot adapter-affinity routing。
+2026-05-04 进一步横向排查确认：standalone vLLM baseline 的 Qwen2.5-7B
+问题发生在 OpenAI API server + `/v1/load_lora_adapter` runtime registration 路径，
+而 PrimeLoRA/FaaSLoRA 使用 `AsyncLLMEngine + LoRARequest` 直连后端，由自身
+adapter path resolver 给请求传入 LoRA 路径。因此两者虽然都使用 vLLM 内核，
+但不是同一个入口。baseline 侧已经把 Qwen-family standalone vLLM dynamic LoRA
+默认改为 `--disable-frontend-multiprocessing`，并完成 1200-request bounded
+preflight：`ok=1200/1200, fail=0`，无 token-source fallback，越过旧 static
+路径约 900 completed 的失败区间。该轮不是论文数据；正式 multi-backbone 仍需完整
+4000-request round。
+
+同日补充 Qwen2.5-14B standalone vLLM host smoke：`dp2/tp2`、
+`max_num_seqs=2`、`max_loras=2`、`max_cpu_loras=8`、
+`lora_registration_mode=dynamic`、
+`dynamic_lora_routing=adaptive_hot_pair_hash`、
+`disable_frontend_multiprocessing=1`。两个 TP=2 replica 均成功启动，完成
+runtime LoRA load 与短请求，结束后 GPU 和 vLLM 进程清理干净。旧
+`paper_backbone_robustness_v2` 终端是 2026-05-01 的 static launch 失败记录，
+不应继续作为当前修复判断依据；正式重跑应新建 queue id，避免旧目录和旧日志混入。
 
 ## 6. 执行顺序
 

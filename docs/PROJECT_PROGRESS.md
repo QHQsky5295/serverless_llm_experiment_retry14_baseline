@@ -85,18 +85,30 @@ current Llama-2 7B figure set is stable.
   count crosses the configured gate, the stage fails explicitly instead of
   continuing toward Linux OOM or writing polluted results.
 - topology/scheduling fix: `run_full_fair_round.sh` keeps Qwen2.5-7B vLLM on
-  `dp4/tp1` so all four GPUs remain independent serving replicas, and raises
-  the formal scheduling envelope to `max_num_seqs=8`, `max_loras=8`,
-  `max_num_batched_tokens=4096`, `max_cpu_loras=16`. The CPU LoRA cache limit
-  does not reduce the 500-adapter sampled universe; it only bounds the active
-  host-side LoRA cache for the Qwen V0/eager vLLM path. Llama-2-13B and
-  Qwen2.5-14B continue to use their TP=2 model profiles.
+  `dp4/tp1` so all four GPUs remain independent serving replicas, and uses
+  vLLM runtime LoRA loading plus adapter-affinity sticky endpoint routing for
+  Qwen-family standalone-vLLM stages. The formal Qwen2.5-7B scheduling envelope
+  is `max_num_seqs=8`, `max_loras=8`, `max_num_batched_tokens=4096`,
+  `max_cpu_loras=16`, `lora_registration_mode=dynamic`, and
+  `dynamic_lora_routing=adaptive_hot_pair_hash`. This does not reduce the
+  500-adapter sampled universe; it avoids statically registering all 500 LoRA
+  modules into every Qwen OpenAI API replica and also avoids request round-robin
+  repeatedly loading the same adapter into too many endpoints. Cold adapters are
+  initially sticky to one endpoint; adapters that become hot according to online
+  observed request counts can use two endpoints under a bounded hot-adapter cap.
 - verification: the rejected `dp2/tp2` probe was stable but unusably slow
-  (`TTFT` above 100s on a 384-request probe). The accepted Qwen2.5-7B vLLM
-  `dp4/tp1`, `max_cpu_loras=16` probe completed the same shared trace/subset
+  (`TTFT` above 100s on a 384-request probe). The earlier Qwen2.5-7B vLLM
+  static `dp4/tp1`, `max_cpu_loras=16` probe completed the same shared trace/subset
   prefix with `ok=384/384`, `fail=0`, `TTFT=1661.8ms`, `TPOT=73.0ms`, and
-  `Tok/s=106.21`. The traceback lines in vLLM logs occur after successful
-  replay during controlled API-server shutdown and are not request failures.
+  `Tok/s=106.21`, but the longer formal replay later tripped the host-memory
+  guard around 900 completed requests. A later `max_cpu_loras=8` long probe also
+  failed, so static all-adapter registration is the problem. A later pure
+  dynamic/round-robin probe started correctly but still showed avoidable
+  endpoint-adapter duplication. A pure `adapter_hash` probe was safer for memory
+  but created excessive hotspot imbalance. The current validation target is
+  dynamic LoRA registration with `adaptive_hot_pair_hash`. The traceback lines in vLLM logs occur
+  after successful replay during controlled API-server shutdown and are not
+  request failures.
   Llama-2 13B and Qwen2.5 14B queue dry-run/config audit also produced 4000
   LoRA-bound requests and 500-adapter subsets; their vLLM/S-LoRA profiles
   resolve to TP=2 topologies.
@@ -294,3 +306,17 @@ Current Fig. 5 interpretation:
 6. Do not optimize the 500-request debug closure at the expense of the formal
    4000-request scenario. Short-run cold-start artifacts are diagnostic, not
    the paper headline workload.
+7. Qwen-family vLLM robustness must distinguish backend entrypoints. PrimeLoRA
+   uses direct `AsyncLLMEngine + LoRARequest`; the standalone vLLM baseline uses
+   OpenAI API server runtime LoRA registration. The Qwen2.5-7B failure observed
+   in the baseline path is therefore not direct evidence that PrimeLoRA will
+   fail, but PrimeLoRA still requires model-family preflight before formal
+   robustness runs. The current baseline fix keeps the same DP/TP and LoRA caps,
+   uses dynamic adapter-sticky registration, and disables OpenAI API frontend
+   multiprocessing for Qwen-family vLLM.
+8. Qwen2.5-14B standalone vLLM host smoke passed on 2026-05-04 with `dp2/tp2`,
+   dynamic runtime LoRA registration, adaptive hot-pair routing, and disabled
+   OpenAI frontend multiprocessing. Both TP=2 replicas completed a short LoRA
+   request and cleaned up GPU/process state. The failed
+   `paper_backbone_robustness_v2` tmux window is an old static-launch record and
+   should not be reused as evidence for the current configuration.
