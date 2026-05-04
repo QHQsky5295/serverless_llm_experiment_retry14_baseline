@@ -41,6 +41,11 @@ VLLM_MAX_LORAS="${VLLM_MAX_LORAS:-}"
 VLLM_MAX_NUM_SEQS="${VLLM_MAX_NUM_SEQS:-}"
 VLLM_MAX_NUM_BATCHED_TOKENS="${VLLM_MAX_NUM_BATCHED_TOKENS:-}"
 VLLM_MAX_REPLAY_REQUESTS="${VLLM_MAX_REPLAY_REQUESTS:-0}"
+VLLM_LORA_REGISTRATION_MODE="${VLLM_LORA_REGISTRATION_MODE:-static}"
+VLLM_DYNAMIC_LORA_ROUTING="${VLLM_DYNAMIC_LORA_ROUTING:-round_robin}"
+VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD="${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD:-8}"
+VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS="${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS:-32}"
+VLLM_DISABLE_FRONTEND_MULTIPROCESSING="${VLLM_DISABLE_FRONTEND_MULTIPROCESSING:-0}"
 VLLM_ABORT_AFTER_FAILURES="${VLLM_ABORT_AFTER_FAILURES:-8}"
 VLLM_ABORT_FAILURES_MIN_DONE="${VLLM_ABORT_FAILURES_MIN_DONE:-32}"
 VLLM_EXPECTED_REPLAY_TOTAL="${TOTAL_REQUESTS}"
@@ -66,6 +71,20 @@ if [[ ! -x "${VLLM_PYTHON}" ]]; then
   echo "[ERROR] vLLM python not found or not executable: ${VLLM_PYTHON}" >&2
   exit 1
 fi
+case "${VLLM_LORA_REGISTRATION_MODE}" in
+  static|dynamic) ;;
+  *)
+    echo "[ERROR] VLLM_LORA_REGISTRATION_MODE must be static or dynamic, got ${VLLM_LORA_REGISTRATION_MODE}" >&2
+    exit 1
+    ;;
+esac
+case "${VLLM_DYNAMIC_LORA_ROUTING}" in
+  round_robin|adapter_hash|adapter_pair_hash|adaptive_hot_pair_hash) ;;
+  *)
+    echo "[ERROR] VLLM_DYNAMIC_LORA_ROUTING must be round_robin, adapter_hash, adapter_pair_hash, or adaptive_hot_pair_hash; got ${VLLM_DYNAMIC_LORA_ROUTING}" >&2
+    exit 1
+    ;;
+esac
 
 stop_vllm_servers() {
   if [[ -n "${VLLM_SERVER_PIDS:-}" ]]; then
@@ -389,11 +408,11 @@ LORA_MODULES_TXT="${SHARED_INPUT_DIR}/${RESULT_TAG}_lora_modules.txt"
 SERVER_LOG_PREFIX="${LOG_DIR}/${RESULT_TAG}_server"
 
 resolve_max_cpu_loras() {
-  # Keep the experiment adapter universe unchanged: --lora-modules still lists
-  # all SELECTED_NUM_ADAPTERS entries and every replay request remains
-  # LoRA-bound. This value only limits vLLM's per-replica CPU LoRA cache. Setting
-  # it to the full 500-adapter pool duplicates large adapter state in every
-  # replica and can trigger host OOM on Qwen/publicmix profiles.
+  # Keep the experiment adapter universe unchanged: every replay request remains
+  # LoRA-bound against the same SELECTED_NUM_ADAPTERS pool. In static mode those
+  # adapters are exposed through --lora-modules; in dynamic mode the same module
+  # map is used by replay-time /v1/load_lora_adapter calls. This value only
+  # limits vLLM's per-replica CPU LoRA cache.
   local requested="${VLLM_MAX_CPU_LORAS:-auto}"
   local minimum="${MAX_LORAS}"
   if (( MAX_NUM_SEQS > minimum )); then
@@ -432,7 +451,7 @@ resolve_max_cpu_loras() {
 MAX_CPU_LORAS="$(resolve_max_cpu_loras)"
 
 echo "[2/5] Building vLLM launch spec from shared subset"
-PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${SHARED_ADAPTER_SUBSET_PATH}" "${MODEL_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_MODULES_JSON}" "${LORA_MODULES_TXT}" "${TP_EFFECTIVE}" "${DP_REPLICAS}" "${VLLM_GPU_IDS}" "${VLLM_HOST}" "${VLLM_PORT}" "${VLLM_PORT_STRIDE}" "${GPU_MEMORY_UTILIZATION}" "${DTYPE}" "${MAX_LORAS}" "${MAX_CPU_LORAS}" "${MAX_LORA_RANK}" "${MAX_NUM_SEQS}" "${MAX_NUM_BATCHED_TOKENS}" "${ENABLE_CHUNKED_PREFILL}" "${ENABLE_PREFIX_CACHING}" "${ENFORCE_EAGER}" "${VLLM_USE_V1_EFFECTIVE}" "${VLLM_ATTENTION_BACKEND_EFFECTIVE}" "${VLLM_USE_FLASHINFER_SAMPLER_EFFECTIVE}" "${PROMPT_GUARD_MAX_MODEL_LEN}" <<'PY'
+PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${SHARED_ADAPTER_SUBSET_PATH}" "${MODEL_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_MODULES_JSON}" "${LORA_MODULES_TXT}" "${TP_EFFECTIVE}" "${DP_REPLICAS}" "${VLLM_GPU_IDS}" "${VLLM_HOST}" "${VLLM_PORT}" "${VLLM_PORT_STRIDE}" "${GPU_MEMORY_UTILIZATION}" "${DTYPE}" "${MAX_LORAS}" "${MAX_CPU_LORAS}" "${MAX_LORA_RANK}" "${MAX_NUM_SEQS}" "${MAX_NUM_BATCHED_TOKENS}" "${ENABLE_CHUNKED_PREFILL}" "${ENABLE_PREFIX_CACHING}" "${ENFORCE_EAGER}" "${VLLM_USE_V1_EFFECTIVE}" "${VLLM_ATTENTION_BACKEND_EFFECTIVE}" "${VLLM_USE_FLASHINFER_SAMPLER_EFFECTIVE}" "${PROMPT_GUARD_MAX_MODEL_LEN}" "${VLLM_LORA_REGISTRATION_MODE}" "${VLLM_DYNAMIC_LORA_ROUTING}" "${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD}" "${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS}" "${VLLM_DISABLE_FRONTEND_MULTIPROCESSING}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -464,6 +483,11 @@ vllm_use_v1 = bool(int(sys.argv[22]))
 attention_backend = sys.argv[23]
 use_flashinfer_sampler = bool(int(sys.argv[24]))
 max_model_len = int(sys.argv[25])
+lora_registration_mode = sys.argv[26]
+dynamic_lora_routing = sys.argv[27]
+dynamic_lora_hot_pair_threshold = int(sys.argv[28])
+dynamic_lora_hot_pair_max_adapters = int(sys.argv[29])
+disable_frontend_multiprocessing = bool(int(sys.argv[30]))
 if port_stride < 4:
     raise SystemExit(f"VLLM_PORT_STRIDE must leave room for vLLM internal ports, got {port_stride}")
 
@@ -521,6 +545,11 @@ launch = {
     "vllm_attention_backend": attention_backend,
     "vllm_use_flashinfer_sampler": use_flashinfer_sampler,
     "lora_modules_count": len(modules),
+    "lora_registration_mode": lora_registration_mode,
+    "dynamic_lora_routing": dynamic_lora_routing,
+    "dynamic_lora_hot_pair_threshold": dynamic_lora_hot_pair_threshold,
+    "dynamic_lora_hot_pair_max_adapters": dynamic_lora_hot_pair_max_adapters,
+    "disable_frontend_multiprocessing": disable_frontend_multiprocessing,
     "base_urls": base_urls,
     "replica_ports": replica_ports,
     "replica_gpu_masks": replica_gpu_masks,
@@ -538,6 +567,8 @@ echo "      model=${MODEL_PATH}"
 echo "      topology=${VLLM_TOPOLOGY_LABEL} gpu_ids=${VLLM_GPU_IDS}"
 echo "      max_loras=${MAX_LORAS} max_cpu_loras=${MAX_CPU_LORAS}/${SELECTED_NUM_ADAPTERS} max_lora_rank=${MAX_LORA_RANK}"
 echo "      max_num_seqs=${MAX_NUM_SEQS} max_num_batched_tokens=${MAX_NUM_BATCHED_TOKENS}"
+echo "      lora_registration_mode=${VLLM_LORA_REGISTRATION_MODE} dynamic_lora_routing=${VLLM_DYNAMIC_LORA_ROUTING} hot_pair_threshold=${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD} hot_pair_max=${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS}"
+echo "      disable_frontend_multiprocessing=${VLLM_DISABLE_FRONTEND_MULTIPROCESSING}"
 echo "      host_memory_guard=${VLLM_HOST_MIN_MEM_GB}GiB watch_interval=${VLLM_MEM_WATCH_INTERVAL_S}s"
 echo "      smoke_only=${VLLM_SMOKE_ONLY} smoke_max_tokens=${VLLM_SMOKE_MAX_TOKENS}"
 echo "      max_replay_requests=${VLLM_MAX_REPLAY_REQUESTS} expected_replay_total=${VLLM_EXPECTED_REPLAY_TOTAL} abort_after_failures=${VLLM_ABORT_AFTER_FAILURES} abort_failures_min_done=${VLLM_ABORT_FAILURES_MIN_DONE}"
@@ -626,6 +657,9 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
   if [[ -n "${VLLM_ATTENTION_BACKEND_EFFECTIVE}" ]]; then
     env_args+=(VLLM_ATTENTION_BACKEND="${VLLM_ATTENTION_BACKEND_EFFECTIVE}")
   fi
+  if [[ "${VLLM_LORA_REGISTRATION_MODE}" == "dynamic" ]]; then
+    env_args+=(VLLM_ALLOW_RUNTIME_LORA_UPDATING=True)
+  fi
   server_cmd=(
     "${VLLM_PYTHON}" -m vllm.entrypoints.openai.api_server
     --model "${MODEL_PATH}"
@@ -643,9 +677,14 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
     --max-loras "${MAX_LORAS}"
     --max-cpu-loras "${MAX_CPU_LORAS}"
     --max-lora-rank "${MAX_LORA_RANK}"
-    --lora-modules "${VLLM_LORA_MODULES[@]}"
     --disable-log-requests
   )
+  if [[ "${VLLM_LORA_REGISTRATION_MODE}" == "static" ]]; then
+    server_cmd+=(--lora-modules "${VLLM_LORA_MODULES[@]}")
+  fi
+  if [[ "${VLLM_DISABLE_FRONTEND_MULTIPROCESSING}" == "1" ]]; then
+    server_cmd+=(--disable-frontend-multiprocessing)
+  fi
   if [[ "${ENABLE_CHUNKED_PREFILL}" == "1" ]]; then
     server_cmd+=(--enable-chunked-prefill)
   else
@@ -693,20 +732,21 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
   require_host_memory "after vLLM replica ${replica_idx} startup"
 done
 
-VLLM_SERVER_STARTUP_SEC="$(
-  PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${VLLM_STARTUP_SECS[@]}" <<'PY'
+startup_max_sec="$(
+  PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" -c '
 import sys
 values = [float(v) for v in sys.argv[1:]]
 print(f"{(max(values) if values else 0.0):.6f}")
-PY
+' "${VLLM_STARTUP_SECS[@]}"
 )"
+VLLM_SERVER_STARTUP_SEC="${startup_max_sec:-0.0}"
 write_fleet_spec "${VLLM_SERVER_STARTUP_SEC}" "${VLLM_BASE_URL_LIST}" "${VLLM_REPLICA_PORTS[*]}" "${VLLM_REPLICA_GPU_MASKS[*]}"
 echo "      vllm_startup_sec=${VLLM_SERVER_STARTUP_SEC}"
 echo "      vllm_base_urls=${VLLM_BASE_URL_LIST}"
 
 if [[ "${VLLM_SMOKE_ONLY}" == "1" ]]; then
   echo "[smoke] Sending one short LoRA request to each vLLM replica"
-  PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${VLLM_BASE_URL_LIST}" "${LORA_MODULES_TXT}" "${VLLM_SMOKE_MAX_TOKENS}" <<'PY'
+  PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${VLLM_BASE_URL_LIST}" "${LORA_MODULES_TXT}" "${VLLM_SMOKE_MAX_TOKENS}" "${VLLM_LORA_REGISTRATION_MODE}" <<'PY'
 import json
 import sys
 import urllib.error
@@ -715,18 +755,38 @@ from pathlib import Path
 
 base_urls = [item for item in sys.argv[1].split(",") if item]
 modules = [
-    line.split("=", 1)[0]
+    tuple(line.split("=", 1))
     for line in Path(sys.argv[2]).read_text(encoding="utf-8").splitlines()
     if line.strip()
 ]
 max_tokens = int(sys.argv[3])
+registration_mode = sys.argv[4]
 if not base_urls:
     raise SystemExit("no vLLM base URLs for smoke test")
 if not modules:
     raise SystemExit("no LoRA modules for smoke test")
 
 for idx, base_url in enumerate(base_urls):
-    adapter = modules[idx % len(modules)]
+    adapter, adapter_path = modules[idx % len(modules)]
+    if registration_mode == "dynamic":
+        load_payload = {"lora_name": adapter, "lora_path": adapter_path}
+        load_req = urllib.request.Request(
+            base_url.rstrip("/") + "/v1/load_lora_adapter",
+            data=json.dumps(load_payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(load_req, timeout=180) as resp:
+                if resp.status not in (200, 201, 204):
+                    body = resp.read().decode("utf-8", errors="replace")
+                    raise RuntimeError(f"HTTP {resp.status}: {body[:500]}")
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            if "already" not in body.lower() or "loaded" not in body.lower():
+                raise SystemExit(f"smoke dynamic load failed for {base_url} adapter={adapter}: HTTP {exc.code}: {body[:800]}")
+        except Exception as exc:
+            raise SystemExit(f"smoke dynamic load failed for {base_url} adapter={adapter}: {type(exc).__name__}: {exc}")
     payload = {
         "model": adapter,
         "prompt": "Hello",
@@ -765,6 +825,14 @@ echo "[4/5] Replaying shared trace with unified live metrics"
 REPLAY_EXTRA_ARGS=()
 if [[ "${VLLM_INCLUDE_STREAM_USAGE}" == "1" ]]; then
   REPLAY_EXTRA_ARGS+=(--include-stream-usage)
+fi
+if [[ "${VLLM_LORA_REGISTRATION_MODE}" == "dynamic" ]]; then
+  REPLAY_EXTRA_ARGS+=(
+    --dynamic-lora-modules "${LORA_MODULES_TXT}"
+    --dynamic-lora-routing "${VLLM_DYNAMIC_LORA_ROUTING}"
+    --dynamic-lora-hot-pair-threshold "${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD}"
+    --dynamic-lora-hot-pair-max-adapters "${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS}"
+  )
 fi
 set +e
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \

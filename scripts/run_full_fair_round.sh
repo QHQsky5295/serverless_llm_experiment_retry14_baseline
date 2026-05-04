@@ -441,23 +441,59 @@ run_vllm() {
   local vllm_max_num_seqs="${VLLM_MAX_NUM_SEQS:-}"
   local vllm_max_num_batched_tokens="${VLLM_MAX_NUM_BATCHED_TOKENS:-}"
   local vllm_max_cpu_loras="${VLLM_MAX_CPU_LORAS:-}"
+  local vllm_lora_registration_mode="${VLLM_LORA_REGISTRATION_MODE:-}"
+  local vllm_dynamic_lora_routing="${VLLM_DYNAMIC_LORA_ROUTING:-}"
+  local vllm_dynamic_lora_hot_pair_threshold="${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD:-}"
+  local vllm_dynamic_lora_hot_pair_max_adapters="${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS:-}"
+  local vllm_disable_frontend_mp="${VLLM_DISABLE_FRONTEND_MULTIPROCESSING:-}"
   if [[ -z "${vllm_dp}" && -z "${vllm_tp}" && "${MODEL_PROFILE}" == "qwen_7b_main_v2_publicmix" ]]; then
     # Qwen2.5-7B V2 uses the vLLM V0/eager path in the current environment.
-    # The failed formal run was not caused by the 500-adapter workload itself:
-    # every request remains LoRA-bound and the full sampled pool stays
-    # registered. The actual risk is the host-side LoRA/runtime footprint during
-    # long Qwen replays. Keep four independent TP=1 service replicas so vLLM can
-    # use all four GPUs as serving capacity, and bound only the active CPU LoRA
-    # cache. A dp2/tp2 workaround is stable but collapses service capacity and
-    # produces unusably high queueing, so it is intentionally not the formal
-    # paper topology for Qwen2.5-7B vLLM.
+    # Static registration preloads all sampled LoRA modules into every OpenAI
+    # API replica and leaves a large host-side footprint before the replay even
+    # reaches the long-tail adapter set. Keep four independent TP=1 service
+    # replicas for throughput, but load LoRA modules through vLLM's runtime API
+    # on first use. This preserves the 500-adapter universe and 100% LoRA-bound
+    # replay while avoiding static per-replica registration of all adapters.
     vllm_dp="${VLLM_QWEN7_SAFE_DP:-4}"
     vllm_tp="${VLLM_QWEN7_SAFE_TP:-1}"
     vllm_max_num_seqs="${vllm_max_num_seqs:-${VLLM_QWEN7_SAFE_MAX_NUM_SEQS:-8}}"
     vllm_max_loras="${vllm_max_loras:-${VLLM_QWEN7_SAFE_MAX_LORAS:-8}}"
     vllm_max_num_batched_tokens="${vllm_max_num_batched_tokens:-${VLLM_QWEN7_SAFE_MAX_NUM_BATCHED_TOKENS:-4096}}"
     vllm_max_cpu_loras="${vllm_max_cpu_loras:-${VLLM_QWEN7_SAFE_MAX_CPU_LORAS:-16}}"
-    log "vLLM Qwen2.5-7B safe topology override: dp=${vllm_dp} tp=${vllm_tp} max_num_seqs=${vllm_max_num_seqs} max_loras=${vllm_max_loras} max_cpu_loras=${vllm_max_cpu_loras} max_batched_tokens=${vllm_max_num_batched_tokens} on gpu_ids=${GPU_IDS}"
+    vllm_lora_registration_mode="${VLLM_QWEN7_LORA_REGISTRATION_MODE:-dynamic}"
+    vllm_dynamic_lora_routing="${VLLM_QWEN7_DYNAMIC_LORA_ROUTING:-adaptive_hot_pair_hash}"
+    vllm_dynamic_lora_hot_pair_threshold="${vllm_dynamic_lora_hot_pair_threshold:-${VLLM_QWEN7_DYNAMIC_LORA_HOT_PAIR_THRESHOLD:-8}}"
+    vllm_dynamic_lora_hot_pair_max_adapters="${vllm_dynamic_lora_hot_pair_max_adapters:-${VLLM_QWEN7_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS:-32}}"
+    vllm_disable_frontend_mp="${vllm_disable_frontend_mp:-${VLLM_QWEN7_DISABLE_FRONTEND_MULTIPROCESSING:-1}}"
+    log "vLLM Qwen2.5-7B safe topology override: dp=${vllm_dp} tp=${vllm_tp} max_num_seqs=${vllm_max_num_seqs} max_loras=${vllm_max_loras} max_cpu_loras=${vllm_max_cpu_loras} max_batched_tokens=${vllm_max_num_batched_tokens} lora_registration_mode=${vllm_lora_registration_mode} dynamic_lora_routing=${vllm_dynamic_lora_routing} hot_pair_threshold=${vllm_dynamic_lora_hot_pair_threshold} hot_pair_max=${vllm_dynamic_lora_hot_pair_max_adapters} disable_frontend_mp=${vllm_disable_frontend_mp} on gpu_ids=${GPU_IDS}"
+  fi
+  if [[ -z "${vllm_lora_registration_mode}" ]]; then
+    if [[ "${MODEL_PROFILE}" == qwen_* ]]; then
+      vllm_lora_registration_mode="dynamic"
+    else
+      vllm_lora_registration_mode="static"
+    fi
+  fi
+  if [[ -z "${vllm_dynamic_lora_routing}" ]]; then
+    if [[ "${vllm_lora_registration_mode}" == "dynamic" && "${MODEL_PROFILE}" == qwen_* ]]; then
+      vllm_dynamic_lora_routing="adaptive_hot_pair_hash"
+    else
+      vllm_dynamic_lora_routing="round_robin"
+    fi
+  fi
+  vllm_dynamic_lora_hot_pair_threshold="${vllm_dynamic_lora_hot_pair_threshold:-8}"
+  vllm_dynamic_lora_hot_pair_max_adapters="${vllm_dynamic_lora_hot_pair_max_adapters:-32}"
+  if [[ -z "${vllm_disable_frontend_mp}" ]]; then
+    if [[ "${vllm_lora_registration_mode}" == "dynamic" && "${MODEL_PROFILE}" == qwen_* ]]; then
+      # Qwen-family profiles use vLLM's V0/eager OpenAI API path in this
+      # environment. Runtime LoRA loading is stable with the single-process
+      # frontend and avoids the extra host-side footprint observed with
+      # frontend multiprocessing, while keeping the same DP/TP topology and
+      # serving caps.
+      vllm_disable_frontend_mp="${VLLM_QWEN_DISABLE_FRONTEND_MULTIPROCESSING:-1}"
+    else
+      vllm_disable_frontend_mp="0"
+    fi
   fi
   pre_system_clean_check "vLLM"
   run_logged "${stage}" env \
@@ -482,8 +518,17 @@ run_vllm() {
     VLLM_MAX_LORAS="${vllm_max_loras}" \
     VLLM_MAX_NUM_BATCHED_TOKENS="${vllm_max_num_batched_tokens}" \
     VLLM_MAX_CPU_LORAS="${vllm_max_cpu_loras}" \
+    VLLM_LORA_REGISTRATION_MODE="${vllm_lora_registration_mode}" \
+    VLLM_DYNAMIC_LORA_ROUTING="${vllm_dynamic_lora_routing}" \
+    VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD="${vllm_dynamic_lora_hot_pair_threshold}" \
+    VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS="${vllm_dynamic_lora_hot_pair_max_adapters}" \
+    VLLM_DISABLE_FRONTEND_MULTIPROCESSING="${vllm_disable_frontend_mp}" \
     bash "${BASELINES_ROOT}/scripts/run_vllm_fair_experiment.sh"
-  validate_summary "vLLM" "$(summary_path_for_system vllm)"
+  if [[ "${VLLM_SMOKE_ONLY:-0}" == "1" ]]; then
+    log "vLLM smoke-only run completed; skipping formal summary validation"
+  else
+    validate_summary "vLLM" "$(summary_path_for_system vllm)"
+  fi
   post_system_clean_check "vLLM"
   mark_done "${stage}"
 }

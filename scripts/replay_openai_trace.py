@@ -37,6 +37,69 @@ METRIC_DEF_SERVICE_E2E = (
 )
 
 
+class DynamicLoRALoader:
+    """Thread-safe per-endpoint LoRA loader for vLLM's runtime LoRA API."""
+
+    def __init__(
+        self,
+        *,
+        modules: Dict[str, str],
+        timeout_s: float,
+    ) -> None:
+        self._modules = dict(modules)
+        self._timeout_s = max(1.0, float(timeout_s))
+        self._loaded: Dict[str, set[str]] = {}
+        self._locks: Dict[str, threading.Lock] = {}
+        self._global_lock = threading.Lock()
+
+    def _endpoint_lock(self, base_url: str) -> threading.Lock:
+        key = base_url.rstrip("/")
+        with self._global_lock:
+            lock = self._locks.get(key)
+            if lock is None:
+                lock = threading.Lock()
+                self._locks[key] = lock
+            return lock
+
+    def ensure_loaded(self, base_url: str, adapter_id: Optional[str]) -> Dict[str, Any]:
+        adapter = str(adapter_id or "").strip()
+        if not adapter:
+            return {"dynamic_lora_loaded": False, "dynamic_lora_load_ms": 0.0}
+        path = self._modules.get(adapter)
+        if not path:
+            raise RuntimeError(f"adapter {adapter!r} is absent from dynamic LoRA module map")
+        key = base_url.rstrip("/")
+        lock = self._endpoint_lock(key)
+        with lock:
+            loaded = self._loaded.setdefault(key, set())
+            if adapter in loaded:
+                return {"dynamic_lora_loaded": False, "dynamic_lora_load_ms": 0.0}
+            endpoint = f"{key}/v1/load_lora_adapter"
+            payload = {"lora_name": adapter, "lora_path": path}
+            t0 = time.perf_counter()
+            try:
+                resp = requests.post(endpoint, json=payload, timeout=self._timeout_s)
+                elapsed_ms = (time.perf_counter() - t0) * 1000.0
+            except Exception as exc:  # noqa: BLE001
+                raise RuntimeError(
+                    f"dynamic LoRA load failed for {adapter} on {key}: {type(exc).__name__}: {exc}"
+                ) from exc
+            if resp.status_code not in (200, 201, 204):
+                body = resp.text[:800]
+                if resp.status_code == 400 and "already" in body.lower() and "loaded" in body.lower():
+                    loaded.add(adapter)
+                    return {
+                        "dynamic_lora_loaded": False,
+                        "dynamic_lora_load_ms": elapsed_ms,
+                        "dynamic_lora_already_loaded": True,
+                    }
+                raise RuntimeError(
+                    f"dynamic LoRA load failed for {adapter} on {key}: HTTP {resp.status_code}: {body}"
+                )
+            loaded.add(adapter)
+            return {"dynamic_lora_loaded": True, "dynamic_lora_load_ms": elapsed_ms}
+
+
 def _percentile(values: List[float], q: float) -> float:
     if not values:
         return 0.0
@@ -117,6 +180,38 @@ def _parse_base_urls(primary: str, extra_csv: Optional[str]) -> List[str]:
     if not normalized:
         raise RuntimeError("at least one --base-url is required")
     return normalized
+
+
+def _stable_hash_int(value: str) -> int:
+    digest = hashlib.sha1(value.encode("utf-8")).digest()
+    return int.from_bytes(digest[:8], "big", signed=False)
+
+
+def _choose_dynamic_lora_base_url(
+    *,
+    base_urls: List[str],
+    request_index: int,
+    adapter_id: Optional[Any],
+    request_id: Optional[Any],
+    routing: str,
+) -> str:
+    if not base_urls:
+        raise RuntimeError("no base URLs available for replay")
+    if len(base_urls) == 1:
+        return base_urls[0]
+    adapter = str(adapter_id or "").strip()
+    if routing == "round_robin" or not adapter:
+        return base_urls[request_index % len(base_urls)]
+    if routing in ("adapter_hash", "adaptive_hot_pair_hash"):
+        return base_urls[_stable_hash_int(adapter) % len(base_urls)]
+    if routing == "adapter_pair_hash":
+        first = _stable_hash_int(adapter) % len(base_urls)
+        second_offset = 1 + (_stable_hash_int(f"{adapter}|pair") % (len(base_urls) - 1))
+        second = (first + second_offset) % len(base_urls)
+        pair = (first, second)
+        selector_key = f"{adapter}|{request_id if request_id is not None else request_index}"
+        return base_urls[pair[_stable_hash_int(selector_key) % 2]]
+    raise RuntimeError(f"unknown dynamic LoRA routing policy: {routing}")
 
 
 def _derive_request_generation_seed(
@@ -1225,6 +1320,51 @@ def main() -> int:
         ),
     )
     ap.add_argument(
+        "--dynamic-lora-modules",
+        type=Path,
+        default=None,
+        help=(
+            "Optional name=path LoRA module file. When set, the replay loads the "
+            "request adapter into the target vLLM endpoint through "
+            "/v1/load_lora_adapter before sending the request. The load latency "
+            "naturally appears as upstream dispatch/admission wait."
+        ),
+    )
+    ap.add_argument(
+        "--dynamic-lora-timeout-s",
+        type=float,
+        default=180.0,
+        help="Timeout for vLLM runtime LoRA load requests.",
+    )
+    ap.add_argument(
+        "--dynamic-lora-routing",
+        choices=("round_robin", "adapter_hash", "adapter_pair_hash", "adaptive_hot_pair_hash"),
+        default="round_robin",
+        help=(
+            "Endpoint selection policy used when --dynamic-lora-modules is set. "
+            "adaptive_hot_pair_hash keeps cold adapters on one deterministic "
+            "replica and expands observed hot adapters to two replicas."
+        ),
+    )
+    ap.add_argument(
+        "--dynamic-lora-hot-pair-threshold",
+        type=int,
+        default=8,
+        help=(
+            "For adaptive_hot_pair_hash, promote an adapter to two endpoint "
+            "choices after this many observed requests."
+        ),
+    )
+    ap.add_argument(
+        "--dynamic-lora-hot-pair-max-adapters",
+        type=int,
+        default=32,
+        help=(
+            "For adaptive_hot_pair_hash, maximum number of adapters promoted "
+            "to two endpoint choices."
+        ),
+    )
+    ap.add_argument(
         "--generation-seed",
         type=int,
         default=None,
@@ -1265,17 +1405,136 @@ def main() -> int:
         if not isinstance(raw_map, dict):
             raise RuntimeError(f"adapter value map must be a JSON object: {args.adapter_value_map}")
         adapter_value_map = {str(key): str(value) for key, value in raw_map.items()}
+    dynamic_lora_loader: Optional[DynamicLoRALoader] = None
+    if args.dynamic_lora_modules:
+        module_map: Dict[str, str] = {}
+        for line in args.dynamic_lora_modules.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" not in line:
+                raise RuntimeError(f"invalid dynamic LoRA module entry: {line!r}")
+            name, path = line.split("=", 1)
+            name = name.strip()
+            path = path.strip()
+            if not name or not path:
+                raise RuntimeError(f"invalid dynamic LoRA module entry: {line!r}")
+            module_map[name] = path
+        if not module_map:
+            raise RuntimeError(f"dynamic LoRA module map is empty: {args.dynamic_lora_modules}")
+        dynamic_lora_loader = DynamicLoRALoader(
+            modules=module_map,
+            timeout_s=float(args.dynamic_lora_timeout_s or 180.0),
+        )
 
     results: List[Optional[Dict[str, Any]]] = [None] * len(requests_list)
     threads: List[threading.Thread] = []
     lock = threading.Lock()
+    dynamic_routing_lock = threading.Lock()
+    dynamic_adapter_counts: Dict[str, int] = {}
+    dynamic_hot_pair_adapters: set[str] = set()
     start_time = time.perf_counter()
     last_live_print_at = 0.0
     arrival_schedule = [float(item["arrival_time_s"]) * max(args.sleep_scale, 0.0) for item in requests_list]
 
     def _worker(index: int, item: Dict[str, Any]) -> None:
         nonlocal last_live_print_at
-        target_base_url = base_urls[index % len(base_urls)]
+        adapter_id_for_dynamic = item.get("adapter_id")
+        if adapter_id_for_dynamic is None and args.adapter_source_field:
+            adapter_id_for_dynamic = item.get(str(args.adapter_source_field))
+        if dynamic_lora_loader is not None:
+            dynamic_routing_policy = str(args.dynamic_lora_routing)
+            if dynamic_routing_policy == "adaptive_hot_pair_hash":
+                adapter_key = str(adapter_id_for_dynamic or "").strip()
+                dynamic_routing_policy = "adapter_hash"
+                if adapter_key:
+                    with dynamic_routing_lock:
+                        seen = dynamic_adapter_counts.get(adapter_key, 0) + 1
+                        dynamic_adapter_counts[adapter_key] = seen
+                        threshold = max(1, int(args.dynamic_lora_hot_pair_threshold or 1))
+                        max_hot = max(0, int(args.dynamic_lora_hot_pair_max_adapters or 0))
+                        if (
+                            seen >= threshold
+                            and max_hot > 0
+                            and (
+                                adapter_key in dynamic_hot_pair_adapters
+                                or len(dynamic_hot_pair_adapters) < max_hot
+                            )
+                        ):
+                            dynamic_hot_pair_adapters.add(adapter_key)
+                        if adapter_key in dynamic_hot_pair_adapters:
+                            dynamic_routing_policy = "adapter_pair_hash"
+            target_base_url = _choose_dynamic_lora_base_url(
+                base_urls=base_urls,
+                request_index=index,
+                adapter_id=adapter_id_for_dynamic,
+                request_id=item.get("request_id"),
+                routing=dynamic_routing_policy,
+            )
+        else:
+            target_base_url = base_urls[index % len(base_urls)]
+        dynamic_lora_metrics: Dict[str, Any] = {}
+        if dynamic_lora_loader is not None:
+            try:
+                dynamic_lora_metrics = dynamic_lora_loader.ensure_loaded(
+                    target_base_url,
+                    str(adapter_id_for_dynamic) if adapter_id_for_dynamic is not None else None,
+                )
+            except Exception as exc:  # noqa: BLE001
+                completion_offset_s = time.perf_counter() - start_time
+                scheduled_offset_s = float(item["arrival_time_s"])
+                failed_e2e_ms = max(0.0, (completion_offset_s - scheduled_offset_s) * 1000.0)
+                result = {
+                    "request_id": item.get("request_id"),
+                    "generation_seed": _derive_request_generation_seed(
+                        args.generation_seed,
+                        item.get("request_id"),
+                        index,
+                    ),
+                    "arrival_time_s": scheduled_offset_s,
+                    "dispatch_offset_s": completion_offset_s,
+                    "completion_offset_s": completion_offset_s,
+                    "adapter_id": item.get("adapter_id"),
+                    "ttft_ms": None,
+                    "e2e_ms": failed_e2e_ms,
+                    "overall_ttft_ms": None,
+                    "overall_e2e_ms": failed_e2e_ms,
+                    "service_ttft_ms": None,
+                    "service_e2e_ms": None,
+                    "dispatch_admission_wait_ms": None,
+                    "replay_dispatch_wait_ms": None,
+                    "status_code": None,
+                    "success": False,
+                    "prompt_tokens": int(item.get("expected_input_tokens", 0) or 0),
+                    "completion_tokens": 0,
+                    "total_tokens": int(item.get("expected_input_tokens", 0) or 0),
+                    "cost_usd": 0.0,
+                    "error": str(exc),
+                }
+                result["target_base_url"] = target_base_url
+                result.update(dynamic_lora_metrics)
+                with lock:
+                    results[index] = result
+                    live = _build_live_stats(results, ttft_slo_ms=float(args.ttft_slo_ms))
+                    print(
+                        f"[ERROR] dynamic LoRA load failed for request={result['request_id']} "
+                        f"adapter={result.get('adapter_id')} endpoint={target_base_url}: {exc}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                    if (
+                        int(args.abort_after_failures or 0) > 0
+                        and live["done"] >= max(1, int(args.abort_failures_min_done or 1))
+                        and live["failed"] >= int(args.abort_after_failures)
+                    ):
+                        print(
+                            f"[ERROR] aborting replay after {live['failed']} failed requests "
+                            f"among {live['done']} completed requests. This run is invalid.",
+                            file=sys.stderr,
+                            flush=True,
+                        )
+                        os._exit(80)
+                return
         result = _replay_one(
             base_url=target_base_url,
             item=item,
@@ -1311,6 +1570,7 @@ def main() -> int:
             min_output_tokens=int(args.min_output_tokens or 0),
             include_stream_usage=bool(args.include_stream_usage),
         )
+        result.update(dynamic_lora_metrics)
         result["target_base_url"] = target_base_url
         with lock:
             results[index] = result
@@ -1421,7 +1681,11 @@ def main() -> int:
         "trace_source": str(args.trace),
         "base_url": args.base_url,
         "base_urls": base_urls,
-        "routing_policy": "round_robin" if len(base_urls) > 1 else "single_endpoint",
+        "routing_policy": (
+            f"dynamic_lora_{args.dynamic_lora_routing}"
+            if dynamic_lora_loader is not None and len(base_urls) > 1
+            else ("round_robin" if len(base_urls) > 1 else "single_endpoint")
+        ),
         "sleep_scale": args.sleep_scale,
         "label": args.label,
         "generation_seed": args.generation_seed,
@@ -1433,6 +1697,12 @@ def main() -> int:
         "empty_success_retry_delay_s": float(args.empty_success_retry_delay_s or 0.0),
         "min_output_tokens": int(args.min_output_tokens or 0),
         "include_stream_usage": bool(args.include_stream_usage),
+        "dynamic_lora_modules": str(args.dynamic_lora_modules) if args.dynamic_lora_modules else None,
+        "dynamic_lora_enabled": dynamic_lora_loader is not None,
+        "dynamic_lora_routing": str(args.dynamic_lora_routing),
+        "dynamic_lora_hot_pair_threshold": int(args.dynamic_lora_hot_pair_threshold or 0),
+        "dynamic_lora_hot_pair_max_adapters": int(args.dynamic_lora_hot_pair_max_adapters or 0),
+        "dynamic_lora_hot_pair_adapters": sorted(dynamic_hot_pair_adapters),
         "cost_model": {
             "base_cost_usd": float(args.base_cost_usd),
             "input_token_cost_usd": float(args.input_token_cost_usd),

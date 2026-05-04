@@ -94,21 +94,36 @@ launch spec 仍包含 `lora_modules_count=500`，shared trace 中 `4000/4000`
 - `run_paper_long_experiment_queue.sh` 对 `backbone_robustness_p0` 默认设置
   `VLLM_TIMEOUT_S="${PAPER_QUEUE_VLLM_TIMEOUT_S:-21600}"`，让 Qwen-vLLM 的长排队
   表现为真实高延迟，而不是 1 小时 client timeout 失败。
-- `run_vllm_fair_experiment.sh` 将 `VLLM_MAX_CPU_LORAS=auto` 解析为有界 CPU
-  LoRA cache；这只限制每个 replica 的 CPU LoRA cache，不改变
-  `--lora-modules` 的 500-adapter universe。
+- `run_vllm_fair_experiment.sh` 支持 `VLLM_LORA_REGISTRATION_MODE=static|dynamic`。
+  static 模式保留原始 `--lora-modules` 注册路径；dynamic 模式通过 vLLM
+  `/v1/load_lora_adapter` 在每个 replica 首次遇到 adapter 时按需加载。两种
+  模式都不改变 shared trace、500-adapter sampled universe 或每请求 LoRA 绑定。
+- `replay_openai_trace.py` 进一步支持 `--dynamic-lora-routing`。Qwen-family
+  dynamic vLLM 正式默认使用 `adaptive_hot_pair_hash`：冷 adapter 先映射到一个
+  确定性 endpoint；当在线已观测请求数达到阈值后，再扩展到两个确定性 endpoint，
+  且热 adapter 数有上限。这样避免 request round-robin 把同一个 adapter 重复
+  加载到过多 OpenAI API replica，同时避免单纯 `adapter_hash` 对热点 adapter 的
+  过度倾斜。它不是 PrimeLoRA 的 readiness-aware routing，只是在 standalone vLLM
+  baseline 中修复 runtime LoRA 注册的负载重复问题。
 - `run_full_fair_round.sh` 对 Qwen2.5-7B 的 vLLM stage 保持 `dp4/tp1`，
   仍占用同一 4-GPU 预算并保留四个独立服务 replica；Llama-2 13B 和
   Qwen2.5 14B 继续按 model profile 使用 `dp2/tp2`。Llama-2 7B 主 round
   仍使用已验证的 `dp4/tp1`。
-- `run_full_fair_round.sh` 同时只对 Qwen2.5-7B vLLM formal stage 提升
-  per-replica 调度包络为 `max_num_seqs=8`、`max_loras=8`、
-  `max_num_batched_tokens=4096`、`max_cpu_loras=16`。这不改变模型、
-  GPU budget、500-adapter universe、request trace、sampling 或 LoRA-bound
-  workload，只修正 vLLM 内部 pending queue 过小造成的 timeout/fail，同时把
-  Qwen V0/eager 路径的 host-side LoRA cache footprint 控制在 32GiB
-  `MemAvailable` guard 之上，同时不减少 `--lora-modules` 暴露的 500-adapter
-  universe。
+- `run_full_fair_round.sh` 对 Qwen-family vLLM stage 默认使用 dynamic LoRA
+  registration 和 `adaptive_hot_pair_hash` dynamic routing。Qwen2.5-7B vLLM
+  formal stage 保持 `dp4/tp1` 和四个独立服务 replica，并使用
+  `max_num_seqs=8`、`max_loras=8`、
+  `max_num_batched_tokens=4096`、`max_cpu_loras=16`。这不改变模型、GPU
+  budget、500-adapter universe、request trace、sampling 或 LoRA-bound
+  workload；修复的是 standalone vLLM OpenAI API path 在 Qwen V0/eager 下把
+  500 个 LoRA 静态注册进每个 replica 导致 host-side footprint 放大的问题。
+- Qwen-family standalone vLLM dynamic LoRA stage 现在默认增加
+  `--disable-frontend-multiprocessing`。这不降低 vLLM 的 `dp/tp` topology、
+  `max_num_seqs`、`max_loras` 或 `max_cpu_loras`，只关闭 OpenAI API frontend
+  的额外多进程形态。横向排查显示，PrimeLoRA/FaaSLoRA 使用
+  `AsyncLLMEngine + LoRARequest` 直连路径，不走 standalone OpenAI API server
+  的 runtime LoRA 注册路径；因此此前 Qwen2.5-7B 问题不能直接推断为
+  “所有 vLLM 后端都会崩”，但 Qwen-family 仍需要独立 preflight gate。
 - `replay_openai_trace.py` 增加 `--max-requests` 和 failure-abort gate，
   允许正式前做 96/256-request bounded preflight，并在 fail 请求累计时立即
   终止无效 replay。
@@ -118,10 +133,24 @@ launch spec 仍包含 `lora_modules_count=500`，shared trace 中 `4000/4000`
 - `bash -n` 已通过；`PAPER_QUEUE_DRY_RUN=1 PAPER_QUEUE_PROFILE=backbone_robustness_p0`
   已验证三轮计划和模型/workload profile 正确。Qwen2.5-7B vLLM dry-run
   已验证 `topology=dp4_tp1`、`lora_modules_count=500`、`4000/4000` 请求绑定 LoRA。
-- Qwen2.5-7B vLLM 已完成最终真实 preflight：
+- Qwen2.5-7B vLLM 曾完成真实 static preflight：
   `dp4/tp1,max_cpu_loras=16` 在同一 shared trace/subset 上完成
   `ok=384/384, fail=0`，`TTFT=1661.8ms`、`TPOT=73.0ms`、`Tok/s=106.21`。
-  该 preflight 是健康性验证，不作为论文 performance data。
+  该 preflight 是健康性验证，不作为论文 performance data。后续长 replay 在约
+  900 个完成请求处触发 host-memory guard，且 `max_cpu_loras=8` 也未能通过
+  1200-request 长 probe；单纯 dynamic + request round-robin 又会让 adapter
+  被重复加载到多个 endpoint，单纯 `adapter_hash` 又会让热点 adapter 过度倾斜。
+  因此当前需要用 dynamic LoRA registration + `adaptive_hot_pair_hash` 重做更长的
+  bounded preflight 和正式续跑。
+- Qwen2.5-7B vLLM no-frontend-multiprocessing bounded preflight 已完成：
+  `dp4/tp1,max_num_seqs=8,max_loras=8,max_cpu_loras=16`,
+  `lora_registration_mode=dynamic`,
+  `dynamic_lora_routing=adaptive_hot_pair_hash`,
+  `disable_frontend_multiprocessing=1`，结果 `ok=1200/1200, fail=0`，
+  无 token-source fallback，且越过旧 static 路径约 900 completed 的失败区间。
+  该轮显式设置 `VLLM_MAX_REPLAY_REQUESTS=1200`，所以 formal gate 最后报告
+  `completed=1200,total=4000` 并拒绝进入论文结果，这是正确保护；正式数据仍必须
+  跑完整 4000-request round。
 
 系统服务注意事项：
 
@@ -516,11 +545,18 @@ shared trace 中 4000 个请求均绑定 LoRA。真正触发点是 Qwen2.5-7B pu
 LoRA/runtime footprint 过大。随后验证表明，`dp2/tp2` 虽然降低内存压力，
 但会把四个服务 replica 降成两个并导致严重排队，因此不能作为论文配置。
 
-已修复为：Qwen2.5-7B vLLM 保持同一 4-GPU 预算下的 `dp4/tp1` topology，
-`max_cpu_loras=16`，并加入 host-memory guard 与 server PID replay monitor。
-真实主机命名空间下的 384-request preflight 已通过：
-`ok=384/384, fail=0`，`TTFT=1661.8ms`、`TPOT=73.0ms`、`Tok/s=106.21`；
-退出后四张 GPU 均释放，主机内存回到约 `118GiB available`。
+当前修复为：Qwen2.5-7B vLLM 保持同一 4-GPU 预算下的 `dp4/tp1` topology，
+并使用 `lora_registration_mode=dynamic,dynamic_lora_routing=adaptive_hot_pair_hash`，
+同时默认关闭 standalone vLLM OpenAI API frontend multiprocessing，并保留
+host-memory guard 与 server PID replay monitor。此前真实主机命名空间下的 384-request static
+`max_cpu_loras=16` preflight 已通过：`ok=384/384, fail=0`，
+`TTFT=1661.8ms`、`TPOT=73.0ms`、`Tok/s=106.21`；但正式长跑随后触发
+32GiB host-memory guard，`max_cpu_loras=8` 长 probe 也失败。因此下一次验证
+必须使用 dynamic registration + adapter-affinity sticky routing + no frontend
+multiprocessing，而不是继续沿用 static `--lora-modules` 全量注册或 request
+round-robin dynamic loading。1200-request bounded preflight 已验证该组合
+`ok=1200/1200, fail=0`；它只是 stability gate，不是论文正式 4000-request
+结果。
 
 强制重启后的日志还显示 `frpc.service` 反复连接远端超时。如果 SSH 依赖 frp，
 远程不可达不完全由实验解释；但本次需要物理重启的直接实验侧触发因素是
@@ -541,6 +577,18 @@ Qwen2.5-7B 的 vLLM 例外保持 `dp4/tp1` 并限制 active CPU LoRA cache，
   `lora_modules_count=500`。
 - S-LoRA dry-run 验证 Qwen2.5 7B 为 `dp4/tp1`，Llama-2 13B 与 Qwen2.5 14B
   为 `dp2/tp2`，三者均暴露 500 个 LoRA dirs。
+- 2026-05-04 补充 Qwen2.5-14B standalone vLLM smoke：`dp2/tp2`、
+  `max_num_seqs=2`、`max_loras=2`、`max_cpu_loras=8`、
+  `lora_registration_mode=dynamic`、
+  `dynamic_lora_routing=adaptive_hot_pair_hash`、
+  `disable_frontend_multiprocessing=1`。两个 replica 均完成 runtime LoRA
+  load 和短请求，结束后 GPU/进程清理干净。
+- 2026-05-01 的 `paper_backbone_robustness_v2` 失败终端是旧 static launch：
+  launch spec 中没有 `lora_registration_mode` 和
+  `disable_frontend_multiprocessing` 字段，不能用于判断当前修复。它在约
+  900 completed 后触发 host-memory guard，说明旧路径确实会把机器推向
+  OOM 风险；修复后的正式队列应新建 queue id，或至少确认重跑 stage 写出的
+  launch spec 已变为 dynamic + no-mp。
 
 如果为了快速探路显式覆盖 `PAPER_QUEUE_SYSTEMS="sglang vllm slora faaslora"`，
 该结果只能标注为 partial sensitivity，不能作为完备横向对比。后续必须补跑
@@ -589,7 +637,9 @@ scripts/run_paper_adapter_pool_queue.sh
 cd /home/qhq/serverless_llm_baselines
 tmux new -s paper_backbone_robustness_p0
 
-scripts/run_paper_backbone_robustness_queue.sh
+PAPER_QUEUE_PROFILE=backbone_robustness_p0 \
+PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
+bash scripts/run_paper_backbone_robustness_queue.sh
 ```
 
 队列会写出：

@@ -143,11 +143,60 @@ Applied runner fixes:
   GPUs remain independent serving replicas.
 - Qwen2.5-7B vLLM formal stage raises the execution envelope to
   `max_num_seqs=8`, `max_loras=8`, `max_num_batched_tokens=4096`,
-  `max_cpu_loras=16`.
-- vLLM `max_cpu_loras` remains a bounded per-replica CPU LoRA cache; the full
-  500-adapter sampled universe is still registered through `--lora-modules`.
-  The Qwen2.5-7B formal override keeps this cache at `16/500` so the replay
-  stays above the host-memory guard while still registering all 500 adapters.
+  `max_cpu_loras=16`, `lora_registration_mode=dynamic`, and
+  `dynamic_lora_routing=adaptive_hot_pair_hash`.
+- vLLM no longer statically registers all 500 LoRA modules into every Qwen2.5-7B
+  OpenAI API replica. Static registration with `max_cpu_loras=16` passed a
+  384-request probe but tripped the host-memory guard around 900 completed
+  requests; shrinking to `max_cpu_loras=8` still failed a 1200-request probe.
+  The current fix keeps the same 500-adapter sampled universe and 100% LoRA-bound
+  trace, but loads adapters through vLLM's runtime LoRA API on first use. The
+  dynamic mode avoids per-replica static registration while preserving the
+  `dp4/tp1` serving envelope.
+- 2026-05-04 复查进一步确认：单纯 dynamic runtime LoRA + request round-robin
+  仍会让同一 adapter 随请求流落到多个 endpoint，长 replay 下会重复加载并继续
+  推高 host-side footprint。根因修复不是继续收缩 `max_cpu_loras`，而是给
+  standalone vLLM dynamic 模式加入 adapter-sticky endpoint selection。当前正式默认
+  `adaptive_hot_pair_hash`：冷 adapter 先映射到一个确定性 endpoint；当在线观测到
+  该 adapter 已达到热度阈值后，才扩展到两个确定性 endpoint，且热 adapter 数有上限。
+  这样保留四个独立 serving replicas 和 vLLM 的 `max_num_seqs=8/max_loras=8`
+  性能包络，同时避免 full 4000 下 request round-robin 的 lifetime endpoint-adapter
+  加载爆炸。中间验证过的 `adapter_hash` 最稳但热点负载倾斜会拉高 TTFT tail；
+  `adapter_pair_hash` 性能较好但 full 4000 下 lifetime 加载上界仍偏高。自适应策略
+  不使用未来请求信息，只用已到达请求的 adapter 计数；它只是 vLLM baseline 的运行时
+  LoRA 注册负载均衡，不引入 PrimeLoRA 的 readiness-aware routing、scale-out warmup、
+  residency 或 admission 机制。
+- 同日追加横向排查：PrimeLoRA/FaaSLoRA 虽然也使用 vLLM 后端，但走的是
+  `AsyncLLMEngine + LoRARequest` 直连路径，并由自身 residency/path resolver
+  给每个请求传入 adapter 路径；standalone vLLM baseline 走的是
+  OpenAI API server + `/v1/load_lora_adapter` runtime registration 路径。此前
+  Qwen2.5-7B 崩溃发生在后者的 OpenAI API frontend multiprocessing + runtime
+  LoRA 组合上，不等价于所有 vLLM 后端都会崩。为消除同族风险，Qwen-family
+  standalone vLLM dynamic LoRA 现在默认增加 `--disable-frontend-multiprocessing`，
+  保持 `dp/tp`、`max_num_seqs`、`max_loras`、`max_cpu_loras` 不变，只改变
+  OpenAI API frontend 进程形态。
+- 2026-05-04 真实主机 1200-request Qwen2.5-7B vLLM preflight：
+  `dp4/tp1,max_num_seqs=8,max_loras=8,max_cpu_loras=16`,
+  `lora_registration_mode=dynamic`,
+  `dynamic_lora_routing=adaptive_hot_pair_hash`,
+  `disable_frontend_multiprocessing=1`。结果为 `ok=1200/1200, fail=0`，
+  无 `trace_expected` token fallback，越过旧 static 路径约 900 请求处的失败区间；
+  吞吐约 `108.85 tok/s`，`TTFT avg/p95 = 6682.7/41820.8 ms`，`TPOT avg = 130.6 ms`。
+  这轮是 bounded stability preflight，不是论文正式 4000-request 结果；formal
+  gate 正确拒绝将 `completed=1200,total=4000` 的 summary 写入论文对比。
+- 2026-05-04 真实主机 Qwen2.5-14B vLLM smoke：
+  `dp2/tp2,max_num_seqs=2,max_loras=2,max_cpu_loras=8`,
+  `lora_registration_mode=dynamic`,
+  `dynamic_lora_routing=adaptive_hot_pair_hash`,
+  `disable_frontend_multiprocessing=1`。两个 TP=2 replica 均成功启动，分别通过
+  `/v1/load_lora_adapter` 加载 LoRA 并完成 1-token smoke request；smoke-only
+  结束后四张 GPU 均回到约 15 MiB，未残留 vLLM server 进程。
+- 不要用旧 `paper_backbone_robustness_v2` 终端判断当前修复是否有效。该终端是
+  2026-05-01 启动的旧队列，失败 launch spec 中没有
+  `lora_registration_mode: dynamic`，也没有
+  `disable_frontend_multiprocessing: true`，因此属于旧 static/OpenAI
+  frontend-multiprocessing 路径；它在约 900 completed 后触发 32 GiB
+  host-memory guard 并中止是预期保护行为，不能作为修复后的正式结果。
 - vLLM runner now checks host `MemAvailable` during launch and replay and aborts
   before system OOM.
 - vLLM runner monitors server PIDs during replay and rejects partial runs when a
@@ -156,11 +205,14 @@ Applied runner fixes:
   soon as repeated request failures prove a run invalid.
 - full-round summary discovery no longer assumes `dp4_tp1`, so TP=2 backbone
   runs validate correctly.
-- Real-host Qwen2.5-7B vLLM verification passed after the final fix:
-  `dp4/tp1,max_cpu_loras=16` completed a bounded 384-request replay with
-  `ok=384/384`, `fail=0`, `TTFT=1661.8ms`, `TPOT=73.0ms`, and `Tok/s=106.21`.
-  Cleanup released all GPUs. Traceback lines in the vLLM logs are from
-  controlled API-server shutdown after successful replay, not request failures.
+- Real-host Qwen2.5-7B vLLM verification history: static `dp4/tp1,max_cpu_loras=16`
+  completed a bounded 384-request replay with `ok=384/384`, `fail=0`,
+  `TTFT=1661.8ms`, `TPOT=73.0ms`, and `Tok/s=106.21`, but later failed the long
+  replay. A `max_cpu_loras=8` long probe also failed, so it is not the root fix.
+  The current validation target is
+  `dp4/tp1,lora_registration_mode=dynamic,dynamic_lora_routing=adaptive_hot_pair_hash`.
+  Traceback lines in the vLLM logs are from controlled API-server shutdown after
+  successful replay, not request failures.
 - Llama-2 13B and Qwen2.5 14B preflight generated 4000 LoRA-bound requests and
   500-adapter subsets. vLLM and S-LoRA dry-runs for these backbones both expose
   500 adapters and resolve to `dp2/tp2`.
@@ -174,15 +226,17 @@ As of `2026-04-30 19:12 CST`, `systemctl --failed` lists no failed units, but
 both services are still in `activating (auto-restart)`, so they remain separate
 remote-access noise to resolve outside the paper runner.
 
-Resume command, using the same queue id. If `paper_backbone_robustness_p0` is
-still just an attached shell, run the command there; otherwise create a new
-tmux with the same name:
+Backbone robustness 建议使用新的 queue id 重新跑，避免旧 static launch 目录和
+旧失败日志继续干扰判断。若确实要断点续跑旧 queue，必须先确认新生成的 vLLM
+launch spec 中包含 `lora_registration_mode: dynamic` 与
+`disable_frontend_multiprocessing: true`。
+
+推荐启动命令：
 
 ```bash
 cd /home/qhq/serverless_llm_baselines
 tmux new -s paper_backbone_robustness_p0
 
-PAPER_QUEUE_ID=20260429_115544_backbone_robustness_p0 \
 PAPER_QUEUE_PROFILE=backbone_robustness_p0 \
 PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
 bash scripts/run_paper_backbone_robustness_queue.sh
