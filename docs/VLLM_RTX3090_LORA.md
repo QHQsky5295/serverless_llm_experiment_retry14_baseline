@@ -32,3 +32,29 @@ The standalone vLLM baseline is documented under:
 If TPOT suddenly returns to the 60ms range for Llama-2 7B on this host, first
 check whether a path accidentally enabled eager mode or failed to propagate the
 vLLM runtime env into tmux-launched processes.
+
+## 2026-05-04 Qwen vLLM Baseline Boundary
+
+Qwen2.5-7B 的 standalone vLLM baseline 使用 OpenAI-compatible server 的
+runtime LoRA API 来避免启动时静态注册 500 个 sampled adapters。这里的
+500 adapter 是正式采样池大小；每个 replay 请求仍然只绑定一个 LoRA adapter。
+
+本次 backbone robustness 队列失败的根因不是“请求一次绑定了 500 个 LoRA”，也
+不是 PrimeLoRA/FaaSLoRA 内部 vLLM 后端路径。问题出在 standalone vLLM OpenAI
+runtime LoRA API：`/v1/load_lora_adapter` 加载过的 adapter 不会自动按照
+`--max-cpu-loras` 从 API server registry 中释放，长尾请求会让每个 endpoint
+的已注册 adapter 数持续增长，最终触发 host-memory guard。
+
+baseline harness 已在 `/home/qhq/serverless_llm_baselines` 中修复：动态 LoRA
+replay 现在维护 per-endpoint LRU registry，并在加载新 adapter 前通过
+`/v1/unload_lora_adapter` 卸载 inactive adapter。Qwen2.5-7B vLLM baseline
+默认使用 `max_cpu_loras=24` 和
+`dynamic_lora_max_loaded_per_endpoint=24`。这保留 500-adapter universe 与
+请求级 LoRA 语义，同时把 standalone vLLM OpenAI server 的 host-memory 使用
+限定在可控范围内。
+
+PrimeLoRA/FaaSLoRA 自身使用直接的 `AsyncLLMEngine + LoRARequest` 控制路径和
+系统内 adapter residency/resolution，不走 standalone OpenAI API server 的
+runtime registry。因此这个问题不直接作用于 PrimeLoRA 的当前后端，但 Qwen
+family 的正式实验仍应保留 GPU/host-memory preflight 与小规模 probe，防止
+未来配置变更引入相同类别的问题。
