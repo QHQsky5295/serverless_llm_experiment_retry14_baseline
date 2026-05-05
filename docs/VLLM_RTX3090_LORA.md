@@ -63,6 +63,14 @@ Linux OOM，也不等价于 SSH 即将失联。因此 baseline workspace 已把 
 `max_cpu_loras`、`max_num_seqs` 或 GPU 拓扑，因此不会通过牺牲 vLLM baseline
 性能来换取“更容易跑完”。
 
+随后对 Qwen2.5-7B DP4 vLLM 长跑的 RSS 监控显示，`/v1/models` 中的 resident
+LoRA 数已被限制在 24，但 vLLM runtime-LoRA unload 不会立刻释放 host allocator
+内存；如果继续使用 `adaptive_hot_pair_hash`，热 adapter 会复制到两个 endpoint，
+从而增加每个进程曾经加载过的 adapter 集合。baseline workspace 已将 Qwen2.5-7B
+vLLM 的默认动态 LoRA 路由改为 `adapter_hash`，让每个 adapter 固定归属一个
+endpoint，降低重复加载和 unload churn。这仍然保持 500-adapter 采样池与
+100% LoRA-bound 请求不变，也不降低 vLLM 的并发、resident 上限或 DP4/TP1 拓扑。
+
 PrimeLoRA/FaaSLoRA 自身使用直接的 `AsyncLLMEngine + LoRARequest` 控制路径和
 系统内 adapter residency/resolution，不走 standalone OpenAI API server 的
 runtime registry。因此这个问题不直接作用于 PrimeLoRA 的当前后端，但 Qwen
