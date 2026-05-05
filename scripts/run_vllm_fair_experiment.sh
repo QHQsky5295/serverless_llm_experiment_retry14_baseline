@@ -33,7 +33,8 @@ VLLM_MIN_OUTPUT_TOKENS="${VLLM_MIN_OUTPUT_TOKENS:-1}"
 VLLM_INCLUDE_STREAM_USAGE="${VLLM_INCLUDE_STREAM_USAGE:-1}"
 VLLM_EMPTY_SUCCESS_RETRIES="${VLLM_EMPTY_SUCCESS_RETRIES:-2}"
 VLLM_EMPTY_SUCCESS_RETRY_DELAY_S="${VLLM_EMPTY_SUCCESS_RETRY_DELAY_S:-0.5}"
-VLLM_HOST_MIN_MEM_GB="${VLLM_HOST_MIN_MEM_GB:-32}"
+VLLM_HOST_MIN_MEM_GB="${VLLM_HOST_MIN_MEM_GB:-16}"
+VLLM_HOST_WARN_MEM_GB="${VLLM_HOST_WARN_MEM_GB:-32}"
 VLLM_MEM_WATCH_INTERVAL_S="${VLLM_MEM_WATCH_INTERVAL_S:-2}"
 VLLM_SMOKE_ONLY="${VLLM_SMOKE_ONLY:-0}"
 VLLM_SMOKE_MAX_TOKENS="${VLLM_SMOKE_MAX_TOKENS:-1}"
@@ -112,18 +113,44 @@ mem_available_kib() {
 }
 
 mem_threshold_kib() {
-  PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${VLLM_HOST_MIN_MEM_GB}" <<'PY'
+  PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "$1" <<'PY'
 import sys
 value = float(sys.argv[1])
 print(int(value * 1024 * 1024))
 PY
 }
 
+VLLM_MEM_WARNED=0
+
+append_mem_watch() {
+  local context="$1"
+  local available_kib="$2"
+  if [[ -z "${MEM_WATCH_PATH:-}" ]]; then
+    return 0
+  fi
+  if [[ ! -f "${MEM_WATCH_PATH}" ]]; then
+    printf 'epoch_s,context,mem_available_mib,hard_min_mib,warn_mib\n' > "${MEM_WATCH_PATH}"
+  fi
+  PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - \
+    "${context}" "${available_kib}" "${VLLM_HOST_MIN_MEM_GB}" "${VLLM_HOST_WARN_MEM_GB}" >> "${MEM_WATCH_PATH}" <<'PY'
+import sys
+import time
+
+context = sys.argv[1]
+available_mib = int(int(sys.argv[2]) / 1024)
+hard_mib = int(float(sys.argv[3]) * 1024)
+warn_mib = int(float(sys.argv[4]) * 1024)
+print(f"{time.time():.6f},{context},{available_mib},{hard_mib},{warn_mib}")
+PY
+}
+
 require_host_memory() {
   local context="$1"
-  local threshold_kib
-  threshold_kib="$(mem_threshold_kib)"
-  if (( threshold_kib <= 0 )); then
+  local hard_threshold_kib
+  local warn_threshold_kib
+  hard_threshold_kib="$(mem_threshold_kib "${VLLM_HOST_MIN_MEM_GB}")"
+  warn_threshold_kib="$(mem_threshold_kib "${VLLM_HOST_WARN_MEM_GB}")"
+  if (( hard_threshold_kib <= 0 && warn_threshold_kib <= 0 )); then
     return 0
   fi
   local available_kib
@@ -132,10 +159,14 @@ require_host_memory() {
     echo "[WARN] unable to read MemAvailable while checking host memory for ${context}" >&2
     return 0
   fi
-  if (( available_kib < threshold_kib )); then
-    echo "[ERROR] host memory guard tripped during ${context}: MemAvailable=$((available_kib / 1024)) MiB < required=$((threshold_kib / 1024)) MiB." >&2
+  append_mem_watch "${context}" "${available_kib}"
+  if (( warn_threshold_kib > 0 && available_kib < warn_threshold_kib && VLLM_MEM_WARNED == 0 )); then
+    echo "[WARN] host memory low during ${context}: MemAvailable=$((available_kib / 1024)) MiB < warn=$((warn_threshold_kib / 1024)) MiB; continuing unless hard guard is crossed." >&2
+    VLLM_MEM_WARNED=1
+  fi
+  if (( hard_threshold_kib > 0 && available_kib < hard_threshold_kib )); then
+    echo "[ERROR] host memory hard guard tripped during ${context}: MemAvailable=$((available_kib / 1024)) MiB < required=$((hard_threshold_kib / 1024)) MiB." >&2
     echo "        Aborting vLLM stage before Linux OOM can destabilize SSH/system services." >&2
-    stop_vllm_servers
     return 1
   fi
 }
@@ -164,6 +195,7 @@ monitor_replay_and_servers() {
     fi
     if ! require_host_memory "vLLM replay"; then
       kill "${replay_pid}" 2>/dev/null || true
+      stop_vllm_servers
       return 1
     fi
     for replica_pid in ${VLLM_SERVER_PIDS:-}; do
@@ -426,6 +458,7 @@ FLEET_SPEC_PATH="${SHARED_INPUT_DIR}/${RESULT_TAG}_fleet.yaml"
 LORA_MODULES_JSON="${SHARED_INPUT_DIR}/${RESULT_TAG}_lora_modules.json"
 LORA_MODULES_TXT="${SHARED_INPUT_DIR}/${RESULT_TAG}_lora_modules.txt"
 SERVER_LOG_PREFIX="${LOG_DIR}/${RESULT_TAG}_server"
+MEM_WATCH_PATH="${LOG_DIR}/${RESULT_TAG}_vllm_mem_watch.csv"
 
 resolve_max_cpu_loras() {
   # Keep the experiment adapter universe unchanged: every replay request remains
@@ -615,12 +648,13 @@ echo "      max_loras=${MAX_LORAS} max_cpu_loras=${MAX_CPU_LORAS}/${SELECTED_NUM
 echo "      max_num_seqs=${MAX_NUM_SEQS} max_num_batched_tokens=${MAX_NUM_BATCHED_TOKENS}"
 echo "      lora_registration_mode=${VLLM_LORA_REGISTRATION_MODE} dynamic_lora_routing=${VLLM_DYNAMIC_LORA_ROUTING} hot_pair_threshold=${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD} hot_pair_max=${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS} dynamic_lora_max_loaded_per_endpoint=${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT_EFFECTIVE}"
 echo "      disable_frontend_multiprocessing=${VLLM_DISABLE_FRONTEND_MULTIPROCESSING}"
-echo "      host_memory_guard=${VLLM_HOST_MIN_MEM_GB}GiB watch_interval=${VLLM_MEM_WATCH_INTERVAL_S}s"
+echo "      host_memory_guard_hard=${VLLM_HOST_MIN_MEM_GB}GiB warn=${VLLM_HOST_WARN_MEM_GB}GiB watch_interval=${VLLM_MEM_WATCH_INTERVAL_S}s"
 echo "      smoke_only=${VLLM_SMOKE_ONLY} smoke_max_tokens=${VLLM_SMOKE_MAX_TOKENS}"
 echo "      max_replay_requests=${VLLM_MAX_REPLAY_REQUESTS} expected_replay_total=${VLLM_EXPECTED_REPLAY_TOTAL} abort_after_failures=${VLLM_ABORT_AFTER_FAILURES} abort_failures_min_done=${VLLM_ABORT_FAILURES_MIN_DONE}"
 echo "      min_output_tokens=${VLLM_MIN_OUTPUT_TOKENS} include_stream_usage=${VLLM_INCLUDE_STREAM_USAGE} empty_success_retries=${VLLM_EMPTY_SUCCESS_RETRIES}"
 echo "      launch_spec=${LAUNCH_SPEC_PATH}"
 echo "      lora_modules=${LORA_MODULES_TXT}"
+echo "      mem_watch=${MEM_WATCH_PATH}"
 echo "      replay=${REPLAY_PATH}"
 echo "      summary=${SUMMARY_PATH}"
 

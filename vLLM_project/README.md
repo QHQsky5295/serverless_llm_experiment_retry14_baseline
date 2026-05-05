@@ -88,6 +88,19 @@ replay harness 中为 vLLM OpenAI runtime LoRA 增加 per-endpoint LRU registry
   探针完成 `ok=400/400`，记录到 `dynamic_lora_loaded=184` 和
   `dynamic_lora_unloaded_count=168`，证明 runtime unload 路径实际生效。
 
+2026-05-06 继续排查时确认，后续失败不是新的 vLLM serving 错误，而是
+host-memory guard 把 `32 GiB` 当成硬停止线，导致 Qwen2.5-7B DP4 replay 在
+已完成 3776/4000 且请求仍正常返回时被人为中止。DP4 standalone vLLM 会在同一
+host 上启动 4 个单卡 Qwen2.5-7B runtime，这是公平 GPU 预算下的正常资源形态；
+32 GiB 剩余内存适合作为预警线，但不应直接判定为失效。当前策略改为：
+
+- `VLLM_HOST_WARN_MEM_GB=32`：只打印 warning，并继续运行；
+- `VLLM_HOST_MIN_MEM_GB=16`：硬停止线，用于防止 Linux OOM 影响 SSH/系统服务；
+- 每轮 vLLM stage 写出
+  `${RESULT_TAG}_vllm_mem_watch.csv`，记录 `MemAvailable`、预警线和硬停止线；
+- monitor 触发硬停止时先终止 replay，再清理 vLLM server，避免人为中止被混入
+  正式请求失败结果。
+
 这个修复只作用在 standalone vLLM OpenAI-compatible baseline 的 runtime LoRA
 注册边界上，不改变 vLLM 底层调度、不改变 shared trace、adapter subset、
 token budget 或请求级 `adapter_id -> model` 映射。
