@@ -462,7 +462,7 @@ run_vllm() {
     vllm_max_num_batched_tokens="${vllm_max_num_batched_tokens:-${VLLM_QWEN7_SAFE_MAX_NUM_BATCHED_TOKENS:-4096}}"
     vllm_max_cpu_loras="${vllm_max_cpu_loras:-${VLLM_QWEN7_SAFE_MAX_CPU_LORAS:-24}}"
     vllm_lora_registration_mode="${VLLM_QWEN7_LORA_REGISTRATION_MODE:-dynamic}"
-    vllm_dynamic_lora_routing="${VLLM_QWEN7_DYNAMIC_LORA_ROUTING:-adaptive_hot_pair_hash}"
+    vllm_dynamic_lora_routing="${VLLM_QWEN7_DYNAMIC_LORA_ROUTING:-adapter_hash}"
     vllm_dynamic_lora_hot_pair_threshold="${vllm_dynamic_lora_hot_pair_threshold:-${VLLM_QWEN7_DYNAMIC_LORA_HOT_PAIR_THRESHOLD:-8}}"
     vllm_dynamic_lora_hot_pair_max_adapters="${vllm_dynamic_lora_hot_pair_max_adapters:-${VLLM_QWEN7_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS:-32}}"
     vllm_dynamic_lora_max_loaded_per_endpoint="${vllm_dynamic_lora_max_loaded_per_endpoint:-${VLLM_QWEN7_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT:-${vllm_max_cpu_loras}}}"

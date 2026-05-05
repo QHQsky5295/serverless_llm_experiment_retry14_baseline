@@ -104,3 +104,14 @@ host 上启动 4 个单卡 Qwen2.5-7B runtime，这是公平 GPU 预算下的正
 这个修复只作用在 standalone vLLM OpenAI-compatible baseline 的 runtime LoRA
 注册边界上，不改变 vLLM 底层调度、不改变 shared trace、adapter subset、
 token budget 或请求级 `adapter_id -> model` 映射。
+
+同日进一步监控 Qwen2.5-7B DP4 长跑发现，虽然 per-endpoint LRU 能把
+`/v1/models` 中的 resident LoRA 数限制到 24，vLLM 0.10.2 的 runtime-LoRA
+unload 仍不会立即把 host allocator 内存归还给 OS。若使用
+`adaptive_hot_pair_hash`，热 adapter 会被复制到两个 endpoint，导致每个进程的
+historical loaded-set 继续扩张，RSS 在请求成功的同时持续上涨。Qwen2.5-7B
+baseline 因此默认改为 `adapter_hash`：每个 adapter 固定归属一个 endpoint，
+减少跨 endpoint 重复加载和 unload churn。该调整不改变 500-adapter 采样池，也
+不降低 `max_loras`、`max_cpu_loras`、`max_num_seqs` 或 DP4/TP1 拓扑；它只把
+runtime-LoRA 路由对齐到 adapter-affinity，避免 vLLM API 的 allocator 行为把
+重复动态注册放大成主机内存压力。

@@ -144,6 +144,12 @@ print(f"{time.time():.6f},{context},{available_mib},{hard_mib},{warn_mib}")
 PY
 }
 
+reset_mem_watch() {
+  if [[ -n "${MEM_WATCH_PATH:-}" ]]; then
+    printf 'epoch_s,context,mem_available_mib,hard_min_mib,warn_mib\n' > "${MEM_WATCH_PATH}"
+  fi
+}
+
 require_host_memory() {
   local context="$1"
   local hard_threshold_kib
@@ -658,6 +664,7 @@ echo "      mem_watch=${MEM_WATCH_PATH}"
 echo "      replay=${REPLAY_PATH}"
 echo "      summary=${SUMMARY_PATH}"
 
+reset_mem_watch
 mapfile -t VLLM_LORA_MODULES < "${LORA_MODULES_TXT}"
 IFS=',' read -r -a GPU_ID_ARRAY <<< "${VLLM_GPU_IDS}"
 REQUIRED_GPU_COUNT=$(( DP_REPLICAS * TP_EFFECTIVE ))
