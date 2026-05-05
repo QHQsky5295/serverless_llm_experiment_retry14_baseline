@@ -78,6 +78,28 @@ raise SystemExit(0 if not missing else 1)
 PY
 }
 
+unsupported_reason_for_profile_system() {
+  local model_profile="$1"
+  local system="$2"
+  if [[ "${system}" == "slora" && "${model_profile}" == qwen_* ]]; then
+    printf 'S-LoRA upstream only provides Llama/Llama2 model backends; Qwen-family profiles expose model_type=qwen2.'
+    return 0
+  fi
+  return 1
+}
+
+supported_systems_for_profile() {
+  local model_profile="$1"
+  local systems="$2"
+  local system=""
+  for system in ${systems}; do
+    if unsupported_reason_for_profile_system "${model_profile}" "${system}" >/dev/null; then
+      continue
+    fi
+    printf '%s\n' "${system}"
+  done | xargs
+}
+
 write_queue_env() {
   {
     printf 'export PAPER_QUEUE_ID=%q\n' "${QUEUE_ID}"
@@ -111,9 +133,11 @@ run_round() {
   local round_dir="${BASELINES_ROOT}/results/paper_experiments/${section}/${QUEUE_ID}_${run_tag}"
   local stage_label="${section}_${run_tag}"
   local log_path="${LOG_DIR}/$(sanitize_label "${stage_label}").log"
+  local expected_systems=""
+  expected_systems="$(supported_systems_for_profile "${model_profile}" "${systems}")"
 
   if is_done "${stage_label}"; then
-    if round_compare_contains_systems "${round_dir}" "${run_tag}" "${systems}"; then
+    if round_compare_contains_systems "${round_dir}" "${run_tag}" "${expected_systems}"; then
       log "skip ${stage_label}; queue marker exists and compare contains selected systems"
       return 0
     fi
@@ -123,6 +147,7 @@ run_round() {
   log "queue stage=${stage_label}"
   log "round_dir=${round_dir}"
   log "systems=${systems}"
+  log "expected_supported_systems=${expected_systems}"
   log "time_scale=${time_scale}"
 
   local -a round_extra_env=()

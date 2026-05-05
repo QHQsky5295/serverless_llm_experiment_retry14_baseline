@@ -99,18 +99,17 @@ launch spec 仍包含 `lora_modules_count=500`，shared trace 中 `4000/4000`
   `/v1/load_lora_adapter` 在每个 replica 首次遇到 adapter 时按需加载。两种
   模式都不改变 shared trace、500-adapter sampled universe 或每请求 LoRA 绑定。
 - `replay_openai_trace.py` 进一步支持 `--dynamic-lora-routing`。Qwen-family
-  dynamic vLLM 正式默认使用 `adaptive_hot_pair_hash`：冷 adapter 先映射到一个
-  确定性 endpoint；当在线已观测请求数达到阈值后，再扩展到两个确定性 endpoint，
-  且热 adapter 数有上限。这样避免 request round-robin 把同一个 adapter 重复
-  加载到过多 OpenAI API replica，同时避免单纯 `adapter_hash` 对热点 adapter 的
-  过度倾斜。它不是 PrimeLoRA 的 readiness-aware routing，只是在 standalone vLLM
-  baseline 中修复 runtime LoRA 注册的负载重复问题。
+  dynamic vLLM 正式默认使用 `adapter_hash`，让同一个 adapter 固定归属一个
+  endpoint，避免 request round-robin 或 hot-pair routing 在长 replay 中把同一
+  adapter 重复加载到多个 OpenAI API replica。它不是 PrimeLoRA 的
+  readiness-aware routing，只是在 standalone vLLM baseline 中约束 runtime LoRA
+  注册路径的 lifetime endpoint-adapter footprint。
 - `run_full_fair_round.sh` 对 Qwen2.5-7B 的 vLLM stage 保持 `dp4/tp1`，
   仍占用同一 4-GPU 预算并保留四个独立服务 replica；Llama-2 13B 和
   Qwen2.5 14B 继续按 model profile 使用 `dp2/tp2`。Llama-2 7B 主 round
   仍使用已验证的 `dp4/tp1`。
 - `run_full_fair_round.sh` 对 Qwen-family vLLM stage 默认使用 dynamic LoRA
-  registration 和 `adaptive_hot_pair_hash` dynamic routing。Qwen2.5-7B vLLM
+  registration 和 `adapter_hash` dynamic routing。Qwen2.5-7B vLLM
   formal stage 保持 `dp4/tp1` 和四个独立服务 replica，并使用
   `max_num_seqs=8`、`max_loras=8`、
   `max_num_batched_tokens=4096`、`max_cpu_loras=16`。这不改变模型、GPU
@@ -138,10 +137,10 @@ launch spec 仍包含 `lora_modules_count=500`，shared trace 中 `4000/4000`
   `ok=384/384, fail=0`，`TTFT=1661.8ms`、`TPOT=73.0ms`、`Tok/s=106.21`。
   该 preflight 是健康性验证，不作为论文 performance data。后续长 replay 在约
   900 个完成请求处触发 host-memory guard，且 `max_cpu_loras=8` 也未能通过
-  1200-request 长 probe；单纯 dynamic + request round-robin 又会让 adapter
-  被重复加载到多个 endpoint，单纯 `adapter_hash` 又会让热点 adapter 过度倾斜。
-  因此当前需要用 dynamic LoRA registration + `adaptive_hot_pair_hash` 重做更长的
-  bounded preflight 和正式续跑。
+  1200-request 长 probe；单纯 dynamic + request round-robin 或 hot-pair routing
+  又会让 adapter 被重复加载到多个 endpoint。因此当前正式长跑使用 dynamic LoRA
+  registration + `adapter_hash`，把 500-adapter universe 约束到稳定的
+  endpoint-affinity 路径。
 - Qwen2.5-7B vLLM no-frontend-multiprocessing bounded preflight 已完成：
   `dp4/tp1,max_num_seqs=8,max_loras=8,max_cpu_loras=16`,
   `lora_registration_mode=dynamic`,
@@ -523,10 +522,16 @@ active hot cap。`a500/hot48` 右端点优先复用已闭合的 Llama-2 7B `s8` 
 2026-04-29 新增 `backbone_robustness_p0`，作为下一轮长期实验队列：
 
 ```text
-08_backbone_robustness / Qwen2.5 7B / a500 hot48 rot500 s8 / sglang serverlessllm vllm slora faaslora
+08_backbone_robustness / Qwen2.5 7B / a500 hot48 rot500 s8 / sglang serverlessllm vllm faaslora
 08_backbone_robustness / Llama-2 13B TP=2 / a500 hot48 rot500 s8 / sglang serverlessllm vllm slora faaslora
-08_backbone_robustness / Qwen2.5 14B TP=2 / a500 hot48 rot500 s8 / sglang serverlessllm vllm slora faaslora
+08_backbone_robustness / Qwen2.5 14B TP=2 / a500 hot48 rot500 s8 / sglang serverlessllm vllm faaslora
 ```
+
+说明：`PAPER_QUEUE_SYSTEMS` 仍可写成完整五系统列表；runner 会对 Qwen-family
+profile 显式标记 `S-LoRA` 为 unsupported 并跳过该 stage。原因是当前接入的
+S-LoRA 上游实现只提供 Llama/Llama2 model backend，Qwen2/Qwen2.5 在
+Transformers 中暴露为 `model_type=qwen2`，不应通过修改核心模型实现或静默
+替换来伪造 baseline 结果。Llama-2-13B 仍保留 S-LoRA 对比。
 
 便捷入口为：
 
@@ -546,7 +551,7 @@ LoRA/runtime footprint 过大。随后验证表明，`dp2/tp2` 虽然降低内�
 但会把四个服务 replica 降成两个并导致严重排队，因此不能作为论文配置。
 
 当前修复为：Qwen2.5-7B vLLM 保持同一 4-GPU 预算下的 `dp4/tp1` topology，
-并使用 `lora_registration_mode=dynamic,dynamic_lora_routing=adaptive_hot_pair_hash`，
+并使用 `lora_registration_mode=dynamic,dynamic_lora_routing=adapter_hash`，
 同时默认关闭 standalone vLLM OpenAI API frontend multiprocessing，并保留
 host-memory guard 与 server PID replay monitor。此前真实主机命名空间下的 384-request static
 `max_cpu_loras=16` preflight 已通过：`ok=384/384, fail=0`，
@@ -554,9 +559,19 @@ host-memory guard 与 server PID replay monitor。此前真实主机命名空间
 32GiB host-memory guard，`max_cpu_loras=8` 长 probe 也失败。因此下一次验证
 必须使用 dynamic registration + adapter-affinity sticky routing + no frontend
 multiprocessing，而不是继续沿用 static `--lora-modules` 全量注册或 request
-round-robin dynamic loading。1200-request bounded preflight 已验证该组合
+round-robin/adaptive hot-pair dynamic loading。1200-request bounded preflight 已验证该组合
 `ok=1200/1200, fail=0`；它只是 stability gate，不是论文正式 4000-request
 结果。
+
+2026-05-06 复查当前 queue `20260504_122743_backbone_robustness_p0`：
+Qwen2.5-7B vLLM 使用 `adapter_hash` 完成正式 4000-request replay，
+`ok=4000/4000, fail=0`，token source 无 `trace_expected` fallback。该轮失败日志中的
+`abel: 未找到命令` 来自旧启动进程读到的脚本片段；当前 HEAD 中该参数行为
+`--label`，且 `bash -n` 已通过。已补生成 vLLM summary 并写入 `30_vllm.done`，
+随后 queue 在 S-LoRA 阶段触发上游限制 `can not support qwen2 now`。runner
+已改为对 Qwen-family S-LoRA 写 `.unsupported` 并继续后续系统。
+外层 long-queue runner 也同步使用“supported systems”校验 compare 文件，
+避免后续恢复 queue 时因为 Qwen-family 缺少 S-LoRA 行而误判该轮未完成。
 
 强制重启后的日志还显示 `frpc.service` 反复连接远端超时。如果 SSH 依赖 frp，
 远程不可达不完全由实验解释；但本次需要物理重启的直接实验侧触发因素是
@@ -575,14 +590,20 @@ Qwen2.5-7B 的 vLLM 例外保持 `dp4/tp1` 并限制 active CPU LoRA cache，
   adapter。
 - vLLM dry-run 验证 Llama-2 13B 与 Qwen2.5 14B 均为 `dp2/tp2`，且
   `lora_modules_count=500`。
-- S-LoRA dry-run 验证 Qwen2.5 7B 为 `dp4/tp1`，Llama-2 13B 与 Qwen2.5 14B
-  为 `dp2/tp2`，三者均暴露 500 个 LoRA dirs。
+- S-LoRA dry-run 曾验证 launch spec 能为 Qwen2.5 生成 `dp4/tp1`/500 LoRA
+  dirs，但正式启动暴露上游 model backend 限制：`qwen2` 不受支持。因此 Qwen
+  family 不再强行跑 S-LoRA；Llama-2 13B 继续按 `dp2/tp2` 和 500 LoRA dirs
+  参与 backbone 对比。
 - 2026-05-04 补充 Qwen2.5-14B standalone vLLM smoke：`dp2/tp2`、
   `max_num_seqs=2`、`max_loras=2`、`max_cpu_loras=8`、
   `lora_registration_mode=dynamic`、
   `dynamic_lora_routing=adaptive_hot_pair_hash`、
   `disable_frontend_multiprocessing=1`。两个 replica 均完成 runtime LoRA
   load 和短请求，结束后 GPU/进程清理干净。
+- 2026-05-06 在将 Qwen-family dynamic routing 默认统一为 `adapter_hash` 后，
+  又补跑 Qwen2.5-14B standalone vLLM smoke：`dp2/tp2` 两个 TP=2 replica
+  均成功启动、runtime-load LoRA，并完成 1-token LoRA 请求；`VLLM_SMOKE_ONLY=1`
+  路径已跳过 formal compare，命令本身以 0 退出且 GPU/进程清理干净。
 - 2026-05-01 的 `paper_backbone_robustness_v2` 失败终端是旧 static launch：
   launch spec 中没有 `lora_registration_mode` 和
   `disable_frontend_multiprocessing` 字段，不能用于判断当前修复。它在约

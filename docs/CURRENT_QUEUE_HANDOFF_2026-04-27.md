@@ -144,7 +144,7 @@ Applied runner fixes:
 - Qwen2.5-7B vLLM formal stage raises the execution envelope to
   `max_num_seqs=8`, `max_loras=8`, `max_num_batched_tokens=4096`,
   `max_cpu_loras=16`, `lora_registration_mode=dynamic`, and
-  `dynamic_lora_routing=adaptive_hot_pair_hash`.
+  `dynamic_lora_routing=adapter_hash`.
 - vLLM no longer statically registers all 500 LoRA modules into every Qwen2.5-7B
   OpenAI API replica. Static registration with `max_cpu_loras=16` passed a
   384-request probe but tripped the host-memory guard around 900 completed
@@ -157,15 +157,12 @@ Applied runner fixes:
   仍会让同一 adapter 随请求流落到多个 endpoint，长 replay 下会重复加载并继续
   推高 host-side footprint。根因修复不是继续收缩 `max_cpu_loras`，而是给
   standalone vLLM dynamic 模式加入 adapter-sticky endpoint selection。当前正式默认
-  `adaptive_hot_pair_hash`：冷 adapter 先映射到一个确定性 endpoint；当在线观测到
-  该 adapter 已达到热度阈值后，才扩展到两个确定性 endpoint，且热 adapter 数有上限。
+  `adapter_hash`：同一个 adapter 固定归属一个 endpoint，避免 full 4000 下
+  request round-robin 或 hot-pair routing 的 lifetime endpoint-adapter 加载爆炸。
   这样保留四个独立 serving replicas 和 vLLM 的 `max_num_seqs=8/max_loras=8`
-  性能包络，同时避免 full 4000 下 request round-robin 的 lifetime endpoint-adapter
-  加载爆炸。中间验证过的 `adapter_hash` 最稳但热点负载倾斜会拉高 TTFT tail；
-  `adapter_pair_hash` 性能较好但 full 4000 下 lifetime 加载上界仍偏高。自适应策略
-  不使用未来请求信息，只用已到达请求的 adapter 计数；它只是 vLLM baseline 的运行时
-  LoRA 注册负载均衡，不引入 PrimeLoRA 的 readiness-aware routing、scale-out warmup、
-  residency 或 admission 机制。
+  性能包络，不通过降低并发、resident 上限或 DP/TP 拓扑换稳定性。该选择只是
+  vLLM baseline 的运行时 LoRA 注册负载约束，不引入 PrimeLoRA 的
+  readiness-aware routing、scale-out warmup、residency 或 admission 机制。
 - 同日追加横向排查：PrimeLoRA/FaaSLoRA 虽然也使用 vLLM 后端，但走的是
   `AsyncLLMEngine + LoRARequest` 直连路径，并由自身 residency/path resolver
   给每个请求传入 adapter 路径；standalone vLLM baseline 走的是
@@ -191,6 +188,10 @@ Applied runner fixes:
   `disable_frontend_multiprocessing=1`。两个 TP=2 replica 均成功启动，分别通过
   `/v1/load_lora_adapter` 加载 LoRA 并完成 1-token smoke request；smoke-only
   结束后四张 GPU 均回到约 15 MiB，未残留 vLLM server 进程。
+- 2026-05-06 追加 Qwen2.5-14B vLLM smoke：在当前默认
+  `dynamic_lora_routing=adapter_hash` 下，两个 TP=2 replica 均成功启动、加载 LoRA
+  并完成 1-token 请求；smoke-only wrapper 已跳过 formal compare，命令以 0 退出，
+  GPU/进程清理干净。
 - 不要用旧 `paper_backbone_robustness_v2` 终端判断当前修复是否有效。该终端是
   2026-05-01 启动的旧队列，失败 launch spec 中没有
   `lora_registration_mode: dynamic`，也没有
@@ -210,12 +211,18 @@ Applied runner fixes:
   `TTFT=1661.8ms`, `TPOT=73.0ms`, and `Tok/s=106.21`, but later failed the long
   replay. A `max_cpu_loras=8` long probe also failed, so it is not the root fix.
   The current validation target is
-  `dp4/tp1,lora_registration_mode=dynamic,dynamic_lora_routing=adaptive_hot_pair_hash`.
+  `dp4/tp1,lora_registration_mode=dynamic,dynamic_lora_routing=adapter_hash`.
   Traceback lines in the vLLM logs are from controlled API-server shutdown after
   successful replay, not request failures.
 - Llama-2 13B and Qwen2.5 14B preflight generated 4000 LoRA-bound requests and
   500-adapter subsets. vLLM and S-LoRA dry-runs for these backbones both expose
   500 adapters and resolve to `dp2/tp2`.
+- 2026-05-06 更新：当前 S-LoRA 上游实现只提供 Llama/Llama2 model backend。
+  Qwen2.5 正式启动会报 `can not support qwen2 now`，因此 backbone queue 对
+  Qwen-family profile 显式写 `40_slora.unsupported` 并跳过 S-LoRA；Llama-2
+  13B 仍继续运行 S-LoRA。不要把 Qwen 上缺失的 S-LoRA 行当作实验失败或
+  静默替换结果。外层 long-queue 的完成校验也使用 profile-aware supported
+  systems，Qwen-family compare 不再强制要求 S-LoRA 行。
 
 There is also a separate remote-access issue: `frpc.service` is repeatedly
 failing to connect to `120.26.187.54:7000`, and an unrelated-looking

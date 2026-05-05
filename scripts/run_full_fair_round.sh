@@ -91,6 +91,65 @@ mark_done() {
   date '+%F %T' >"$(stage_done_path "$1")"
 }
 
+stage_for_system() {
+  case "$1" in
+    sglang) printf '10_sglang\n' ;;
+    serverlessllm) printf '20_serverlessllm\n' ;;
+    vllm) printf '30_vllm\n' ;;
+    slora) printf '40_slora\n' ;;
+    faaslora) printf '50_faaslora\n' ;;
+    *)
+      printf 'unknown_%s\n' "$1"
+      ;;
+  esac
+}
+
+unsupported_reason_for_system() {
+  local system="$1"
+  if [[ "${system}" == "slora" && "${MODEL_PROFILE}" == qwen_* ]]; then
+    printf 'S-LoRA upstream only provides Llama/Llama2 model backends in this harness; Qwen-family profiles expose model_type=qwen2 and are unsupported without a new core model implementation.'
+    return 0
+  fi
+  return 1
+}
+
+system_supported() {
+  local system="$1"
+  if unsupported_reason_for_system "${system}" >/dev/null; then
+    return 1
+  fi
+  return 0
+}
+
+mark_unsupported_system() {
+  local system="$1"
+  local stage=""
+  local reason=""
+  stage="$(stage_for_system "${system}")"
+  reason="$(unsupported_reason_for_system "${system}")"
+  log "skip ${stage}; ${reason}"
+  {
+    printf 'timestamp=%s\n' "$(date '+%F %T')"
+    printf 'system=%s\n' "${system}"
+    printf 'model_profile=%s\n' "${MODEL_PROFILE}"
+    printf 'reason=%s\n' "${reason}"
+  } >"${STATE_DIR}/${stage}.unsupported"
+  mark_done "${stage}"
+}
+
+selected_supported_systems() {
+  local system=""
+  for system in "$@"; do
+    case " ${SYSTEMS} " in
+      *" ${system} "*)
+        if system_supported "${system}"; then
+          printf '%s\n' "${system}"
+        fi
+        ;;
+    esac
+  done
+}
+
 run_logged() {
   local stage="$1"
   shift
@@ -478,7 +537,7 @@ run_vllm() {
   fi
   if [[ -z "${vllm_dynamic_lora_routing}" ]]; then
     if [[ "${vllm_lora_registration_mode}" == "dynamic" && "${MODEL_PROFILE}" == qwen_* ]]; then
-      vllm_dynamic_lora_routing="adaptive_hot_pair_hash"
+      vllm_dynamic_lora_routing="adapter_hash"
     else
       vllm_dynamic_lora_routing="round_robin"
     fi
@@ -639,9 +698,16 @@ run_faaslora() {
 
 run_compare() {
   local stage="90_compare"
+  if [[ "${VLLM_SMOKE_ONLY:-0}" == "1" ]]; then
+    log "skip ${stage}; VLLM_SMOKE_ONLY=1 does not produce a formal summary"
+    mark_done "${stage}"
+    return 0
+  fi
+  local expected_systems=""
+  expected_systems="$(selected_supported_systems faaslora sglang serverlessllm vllm slora | xargs)"
   if is_done "${stage}"; then
     local compare_json="${COMPARE_DIR}/${RUN_TAG}_five_system_compare.json"
-    if python3 - "${compare_json}" "${SYSTEMS}" <<'PY'
+    if python3 - "${compare_json}" "${expected_systems}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -682,7 +748,11 @@ PY
   local system=""
   for system in faaslora sglang serverlessllm vllm slora; do
     case " ${SYSTEMS} " in
-      *" ${system} "*) args+=(--result "$(summary_path_for_system "${system}")") ;;
+      *" ${system} "*)
+        if system_supported "${system}"; then
+          args+=(--result "$(summary_path_for_system "${system}")")
+        fi
+        ;;
     esac
   done
   args+=(--output "${compare_json}")
@@ -739,7 +809,13 @@ PY
 run_system_if_selected() {
   local system="$1"
   case " ${SYSTEMS} " in
-    *" ${system} "*) "run_${system}" ;;
+    *" ${system} "*)
+      if system_supported "${system}"; then
+        "run_${system}"
+      else
+        mark_unsupported_system "${system}"
+      fi
+      ;;
     *) log "skip ${system}; not listed in FAIR_ROUND_SYSTEMS=${SYSTEMS}" ;;
   esac
 }
