@@ -103,11 +103,11 @@ model_profiles:  # 可复用的模型 profile 集合
       enable_lora: true
       enforce_eager: true
       dtype: "float16"
-      max_num_seqs: 2  # 先把 runtime 内部调度并发降到 2，避免单实例高水位时 EngineCore 提前死亡
-      max_num_batched_tokens: 1024
+      max_num_seqs: 4  # 2026-05-06 cap4 probe 在 4x3090 Qwen7 publicmix 上稳定，避免 cap2 形成持续 backlog
+      max_num_batched_tokens: 4096
       max_output_tokens_cap: null
       max_input_len: null
-      runtime_concurrency_cap: 2  # 系统层并发同步收紧，优先保证 Qwen 7B V2 scale-out 跑稳
+      runtime_concurrency_cap: 4  # 与 max_num_seqs 对齐；cap2 会让 Qwen7 backbone 正式轮低估 PrimeLoRA
       enable_chunked_prefill: false  # 关闭 chunked prefill，减少 V1 路径下的额外运行时变量
       enable_prefix_caching: false  # 关闭 prefix caching，降低异构 publicmix LoRA 与缓存路径交互的不确定性
       vllm_use_v1: false  # 强制退回更稳的 V0 路径，避免当前环境下 Qwen 7B V2 的 EngineCore 中途死亡

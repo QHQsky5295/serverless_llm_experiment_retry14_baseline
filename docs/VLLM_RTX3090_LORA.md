@@ -76,3 +76,33 @@ PrimeLoRA/FaaSLoRA 自身使用直接的 `AsyncLLMEngine + LoRARequest` 控制�
 runtime registry。因此这个问题不直接作用于 PrimeLoRA 的当前后端，但 Qwen
 family 的正式实验仍应保留 GPU/host-memory preflight 与小规模 probe，防止
 未来配置变更引入相同类别的问题。
+
+## 2026-05-06 Qwen PrimeLoRA Capacity Gate
+
+Qwen2.5-7B publicmix 的 PrimeLoRA/FaaSLoRA profile 曾被临时收紧到
+`max_num_seqs=2` / `runtime_concurrency_cap=2`。这一路径可以避免崩溃，但在
+backbone robustness 正式队列中会把四个 runtime 的总并发压到 8，导致 4000-request
+s8 replay 早期形成持续 backlog，TTFT tail 被系统层排队放大。因此这不是可用于论文的
+性能包络。
+
+已在真实主机上用同一 Qwen2.5-7B model profile、同一 500-adapter subset、同一
+formal s8 trace 前 800 个请求做 cap4 gate：
+
+```text
+FAASLORA_RUNTIME_CONCURRENCY_CAP=4
+FAASLORA_MAX_NUM_SEQS=4
+FAASLORA_MAX_NUM_BATCHED_TOKENS=4096
+FAASLORA_MAX_LORAS=6
+```
+
+结果为 `800/800` 成功、`fail=0`，退出后四张 GPU 均回到约 15 MiB，主机
+`MemAvailable` 回到约 117 GiB，无 vLLM/FaaSLoRA worker 残留。落盘结果文件：
+
+```text
+results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_qwen2p5_7b_probe800_cap4_s4096_faaslora.json
+```
+
+该 probe 不是论文正式数据，只作为容量与稳定性 gate。它证明 cap4 在当前
+4xRTX3090 Qwen2.5-7B publicmix 路径上稳定，并且避免 cap2 对 PrimeLoRA 的明显低估。
+因此正式 backbone robustness 队列使用 cap4 配置继续运行；后续若修改 Qwen family
+profile，仍需先通过 bounded probe，再进入 4000-request formal replay。
