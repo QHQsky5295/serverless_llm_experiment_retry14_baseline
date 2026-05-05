@@ -53,6 +53,16 @@ replay 现在维护 per-endpoint LRU registry，并在加载新 adapter 前通�
 请求级 LoRA 语义，同时把 standalone vLLM OpenAI server 的 host-memory 使用
 限定在可控范围内。
 
+2026-05-06 的继续排查说明：后续队列再次失败不是因为 vLLM 请求链路继续报错，
+而是因为 baseline harness 把 `VLLM_HOST_MIN_MEM_GB=32` 当成硬停止线。当前
+Qwen2.5-7B DP4 baseline 会在同一台 125 GiB host 上启动四个单卡 vLLM runtime，
+这会自然消耗大量 host memory；`MemAvailable` 接近 32 GiB 时仍然不等价于
+Linux OOM，也不等价于 SSH 即将失联。因此 baseline workspace 已把 32 GiB 调整
+为预警线，把 16 GiB 作为硬停止线，并为每轮 vLLM stage 输出
+`*_vllm_mem_watch.csv`。这个修改不降低 vLLM 的 `max_loras`、
+`max_cpu_loras`、`max_num_seqs` 或 GPU 拓扑，因此不会通过牺牲 vLLM baseline
+性能来换取“更容易跑完”。
+
 PrimeLoRA/FaaSLoRA 自身使用直接的 `AsyncLLMEngine + LoRARequest` 控制路径和
 系统内 adapter residency/resolution，不走 standalone OpenAI API server 的
 runtime registry。因此这个问题不直接作用于 PrimeLoRA 的当前后端，但 Qwen
