@@ -99,15 +99,16 @@ model_profiles:  # 可复用的模型 profile 集合
       gpu_memory_utilization: 0.70  # V2 publicmix 的异构 LoRA 更吃显存；给第二个单卡实例和热层装载预留稳定余量
       max_model_len: 1024
       max_loras: 6  # 恢复多 LoRA 主线表达力度：24G 单卡上先取 6，兼顾热 LoRA 预加载意义与 V2 publicmix 异构工件稳定性
+      max_cpu_loras: 24  # 与 standalone vLLM Qwen7 DP4 baseline 的 CPU-side LoRA cache 边界对齐，避免长跑中反复注册/换入触发 direct AsyncLLMEngine 不稳定
       max_lora_rank: 32  # publicmix V2 中包含少量更高 rank 的公开 LoRA
       enable_lora: true
       enforce_eager: true
       dtype: "float16"
-      max_num_seqs: 4  # 2026-05-06 cap4 probe 在 4x3090 Qwen7 publicmix 上稳定，避免 cap2 形成持续 backlog
-      max_num_batched_tokens: 4096
+      max_num_seqs: 3  # 2026-05-06 长 probe 表明 direct vLLM Qwen7 cap4 会触发 background-loop timeout；cap3 是当前稳定且不过度保守的正式包络
+      max_num_batched_tokens: 3072  # 与 max_num_seqs * max_model_len 对齐，避免 vLLM scheduler 的 unexpected-behavior 警告
       max_output_tokens_cap: null
       max_input_len: null
-      runtime_concurrency_cap: 4  # 与 max_num_seqs 对齐；cap2 会让 Qwen7 backbone 正式轮低估 PrimeLoRA
+      runtime_concurrency_cap: 3  # 与 max_num_seqs 对齐；cap3 长 probe 1600/1600 成功，且保留约 111 tok/s 吞吐
       enable_chunked_prefill: false  # 关闭 chunked prefill，减少 V1 路径下的额外运行时变量
       enable_prefix_caching: false  # 关闭 prefix caching，降低异构 publicmix LoRA 与缓存路径交互的不确定性
       vllm_use_v1: false  # 强制退回更稳的 V0 路径，避免当前环境下 Qwen 7B V2 的 EngineCore 中途死亡
@@ -997,6 +998,7 @@ model:  # 模型配置块，或当前选中的 model profile 名称
   gpu_memory_utilization: 0.65      # 兼容回退默认值；主线请以选中 profile 的冻结参数为准
   max_model_len: 2048               # 兼容回退默认值
   max_loras: 8                      # 兼容回退默认值
+  max_cpu_loras: 24                 # 直连 vLLM LoRA 路径默认保留的 CPU-side adapter cache 上限
   max_lora_rank: 16                 # 适配器最大 rank
   enable_lora: true  # 是否开启 LoRA 支持
   enforce_eager: true               # 禁用 CUDA Graph，避免兼容问题

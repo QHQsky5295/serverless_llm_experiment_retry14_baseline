@@ -102,7 +102,33 @@ FAASLORA_MAX_LORAS=6
 results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_qwen2p5_7b_probe800_cap4_s4096_faaslora.json
 ```
 
-该 probe 不是论文正式数据，只作为容量与稳定性 gate。它证明 cap4 在当前
-4xRTX3090 Qwen2.5-7B publicmix 路径上稳定，并且避免 cap2 对 PrimeLoRA 的明显低估。
-因此正式 backbone robustness 队列使用 cap4 配置继续运行；后续若修改 Qwen family
-profile，仍需先通过 bounded probe，再进入 4000-request formal replay。
+该 probe 不是论文正式数据，只作为容量与稳定性 gate。后续 4000-request formal
+队列在约 1100 个到达请求后暴露出更长时间尺度的问题：standalone vLLM Qwen7
+baseline 显式使用 `max_cpu_loras=24`，而 PrimeLoRA/FaaSLoRA 的 direct
+`AsyncLLMEngine + LoRARequest` 路径只传递了 `max_loras/max_lora_rank`，没有把
+CPU-side LoRA cache 边界同步到 direct engine。短 probe 不能覆盖这种长跑下的
+adapter lifecycle 差异。
+
+因此当前根因修复是：FaaSLoRA direct vLLM engine 在 LoRA 模式下显式传递
+`max_cpu_loras`，Qwen2.5-7B publicmix profile 固定为 `max_cpu_loras=24`，并新增
+`FAASLORA_MAX_CPU_LORAS` 显式覆盖入口。同时，dedicated worker 在 vLLM background
+loop / RPC fatal error 时会保留 worker workdir 和 `worker.log`，避免再次丢失真实
+vLLM traceback。cap4 仍作为“不降性能”的优先包络验证；长 probe 结果显示 cap4 +
+`max_cpu_loras=24` 在尾部高 backlog / active=16 的区间仍会触发 vLLM V0
+`AsyncLLMEngine` background-loop timeout，因此不能进入正式配置。
+
+1600-request 长 probe 进一步暴露了一个独立的 drain bug：在所有请求已经到达但仍有
+4 个请求处于 in-flight 时，旧的 live scale-down 逻辑释放了一个 direct vLLM worker，
+导致最后 4 个请求失败。修复后，live scale-down 必须同时满足全局没有 visible backlog /
+active work，且候选 slot 自身没有 active requests、loading queue 或 runtime-forwarding
+任务。这个修改不改变 routing/admission 策略，也不降低 vLLM 并发；它只禁止在 drain
+窗口关闭仍可能承载请求的 runtime。
+
+最终稳定包络是 `max_num_seqs=3` / `runtime_concurrency_cap=3` /
+`max_num_batched_tokens=3072` / `max_cpu_loras=24`。其中 `3072` 与
+`max_num_seqs * max_model_len` 对齐，避免 vLLM scheduler 在 cap3 下给出
+`max_num_batched_tokens` 超界的 unexpected-behavior 警告。该包络在同一个 Qwen2.5-7B
+publicmix、同一 500-adapter 采样池、同一 1600-request shared probe 上完成
+`1600/1600`，`fail=0`，尾部 drain 后四张 GPU 和 worker 进程均清理干净，吞吐约
+`111 tok/s`。因此正式 backbone robustness 队列使用 cap3/cpu24/s3072 继续运行；cap4
+探针结果只作为被排除的失效边界记录，不进入论文数据。

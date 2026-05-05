@@ -2659,6 +2659,10 @@ class InferenceEngine:
         gpu_util = self.model_cfg.get("gpu_memory_utilization", 0.90)
         max_len  = self.model_cfg.get("max_model_len", 2048)
         max_lr   = self.model_cfg.get("max_loras", 4)
+        max_cpu_lr = self.model_cfg.get("max_cpu_loras")
+        if max_cpu_lr is None:
+            max_cpu_lr = max(int(max_lr), 24)
+            self.model_cfg["max_cpu_loras"] = int(max_cpu_lr)
         max_rank = self.model_cfg.get("max_lora_rank", 16)
         eager    = _resolve_vllm_enforce_eager(self.model_cfg)
         visible_devices = self._resolve_vllm_visible_devices(tp)
@@ -2690,6 +2694,7 @@ class InferenceEngine:
             print(f"    max_batch_tokens   = {self.model_cfg.get('max_num_batched_tokens', 1024)}")
             print(f"    runtime_conc_cap   = {self.model_cfg.get('runtime_concurrency_cap', 'n/a')}")
             print(f"    max_loras          = {max_lr}")
+            print(f"    max_cpu_loras      = {max_cpu_lr}")
             print(f"    max_lora_rank      = {max_rank}")
             print(f"    enforce_eager      = {eager}")
             print(f"    dtype              = {self.model_cfg.get('dtype', 'float16')}")
@@ -2703,6 +2708,7 @@ class InferenceEngine:
             engine = await self._try_create_engine(
                 model, tp=tp, gpu_util=gpu_util, max_len=max_len, eager=eager,
                 enable_lora=True, max_loras=max_lr, max_lora_rank=max_rank,
+                max_cpu_loras=int(max_cpu_lr),
                 enable_chunked_prefill=runtime_settings["enable_chunked_prefill"],
                 enable_prefix_caching=runtime_settings["enable_prefix_caching"],
                 tokenizer_mode=runtime_settings["tokenizer_mode"],
@@ -2717,6 +2723,7 @@ class InferenceEngine:
                 engine = await self._try_create_engine(
                     model, tp=tp, gpu_util=gpu_util, max_len=max_len, eager=eager,
                     enable_lora=True, max_loras=max_lr, max_lora_rank=max_rank,
+                    max_cpu_loras=int(max_cpu_lr),
                     enable_chunked_prefill=False, enable_prefix_caching=False,
                     tokenizer_mode=runtime_settings["tokenizer_mode"],
                 )
@@ -2758,6 +2765,7 @@ class InferenceEngine:
                 engine = await self._try_create_engine(
                     model, tp=tp, gpu_util=retry_gpu_util, max_len=max_len, eager=eager,
                     enable_lora=True, max_loras=max_lr, max_lora_rank=max_rank,
+                    max_cpu_loras=int(max_cpu_lr),
                     enable_chunked_prefill=False, enable_prefix_caching=False,
                     tokenizer_mode=runtime_settings["tokenizer_mode"],
                 )
@@ -2784,6 +2792,7 @@ class InferenceEngine:
     async def _try_create_engine(
         self, model: str, tp: int, gpu_util: float, max_len: int,
         eager: bool, enable_lora: bool, max_loras: int, max_lora_rank: int,
+        max_cpu_loras: Optional[int] = None,
         enable_chunked_prefill: Optional[bool] = None,
         enable_prefix_caching: Optional[bool] = None,
         tokenizer_mode: Optional[str] = None,
@@ -2817,6 +2826,8 @@ class InferenceEngine:
                 kwargs["enable_lora"] = True
                 kwargs["max_lora_rank"] = max_lora_rank
                 kwargs["max_loras"] = max_loras
+                if max_cpu_loras is not None:
+                    kwargs["max_cpu_loras"] = max(int(max_cpu_loras), int(max_loras))
             if enable_chunked_prefill is not None:
                 kwargs["enable_chunked_prefill"] = enable_chunked_prefill
             if enable_prefix_caching is not None:
@@ -3441,6 +3452,7 @@ class SubprocessInferenceEngineProxy:
         self.backend = str(self.model_cfg.get("backend", "vllm")).lower()
         self.engine = None
         self._engine_dead = False
+        self._normal_shutdown_completed = False
         self._reinit_attempted = False
         self.last_timing: Dict[str, float] = {}
         self._prompt_planner: Optional[InferenceEngine] = None
@@ -3466,6 +3478,36 @@ class SubprocessInferenceEngineProxy:
         if len(text) <= max_chars:
             return text
         return text[-max_chars:]
+
+    def _with_worker_log_context(self, message: str, max_chars: int = 6000) -> str:
+        parts = [
+            str(message).rstrip(),
+            f"worker_root={self._workdir}",
+            f"worker_log={self._log_path}",
+        ]
+        log_tail = self._tail_worker_log(self._log_path, max_chars=max_chars)
+        if log_tail:
+            parts.append(f"worker_log_tail:\n{log_tail}")
+        return "\n".join(part for part in parts if part)
+
+    def _preserve_worker_workdir(self, reason: str) -> None:
+        archive_root = Path(
+            os.environ.get("FAASLORA_WORKER_LOG_ARCHIVE_DIR")
+            or (REPO_ROOT / "results" / "worker_failures")
+        )
+        try:
+            archive_root.mkdir(parents=True, exist_ok=True)
+            safe_reason = "".join(ch if ch.isalnum() or ch in {"-", "_"} else "_" for ch in reason)
+            archive_dir = archive_root / f"{self._workdir.name}_{safe_reason}_{int(time.time())}"
+            shutil.copytree(self._workdir, archive_dir, dirs_exist_ok=True)
+            print(f"[worker-log] preserved dedicated worker workdir: {archive_dir}")
+        except Exception as exc:
+            print(f"[worker-log] failed to preserve {self._workdir}: {exc}")
+
+    @staticmethod
+    def _keep_worker_logs_requested() -> bool:
+        raw = os.environ.get("FAASLORA_KEEP_DEDICATED_WORKER_LOGS", "")
+        return str(raw).strip().lower() in {"1", "true", "yes", "on"}
 
     @staticmethod
     def _write_process_meta(workdir: Path, process: subprocess.Popen) -> None:
@@ -3613,7 +3655,7 @@ class SubprocessInferenceEngineProxy:
     async def _rpc(self, cmd: str, **kwargs: Any) -> Dict[str, Any]:
         if self._engine_dead or self._process.poll() is not None:
             self._engine_dead = True
-            raise RuntimeError("subprocess_engine_dead")
+            raise RuntimeError(self._with_worker_log_context("subprocess_engine_dead"))
 
         async def _send_rpc_on_channel(
             channel: _BlockingRPCChannel,
@@ -3637,6 +3679,8 @@ class SubprocessInferenceEngineProxy:
                 if _is_fatal_engine_error_message(error_text):
                     self._engine_dead = True
                     await self._terminate_process_tree(force=True)
+                    self._preserve_worker_workdir("fatal_rpc")
+                    error_text = self._with_worker_log_context(error_text)
                 raise RuntimeError(error_text)
             result = response.get("result", {}) or {}
             if isinstance(result, dict):
@@ -3670,7 +3714,7 @@ class SubprocessInferenceEngineProxy:
                 channel,
                 rpc_channel_acquire_ms=rpc_channel_acquire_ms,
             )
-        except Exception:
+        except Exception as first_exc:
             if channel is not None:
                 await self._drop_rpc_channel(channel)
                 channel = None
@@ -3688,14 +3732,20 @@ class SubprocessInferenceEngineProxy:
                         channel,
                         rpc_channel_acquire_ms=rpc_channel_acquire_ms,
                     )
-                except Exception:
+                except Exception as retry_exc:
                     if channel is not None:
                         await self._drop_rpc_channel(channel)
                         channel = None
                     self._engine_dead = True
-                    raise
+                    message = (
+                        "subprocess_engine_rpc_failed_after_retry: "
+                        f"first={type(first_exc).__name__}: {first_exc}; "
+                        f"retry={type(retry_exc).__name__}: {retry_exc}"
+                    )
+                    raise RuntimeError(self._with_worker_log_context(message)) from None
             self._engine_dead = True
-            raise
+            message = f"subprocess_engine_dead: {type(first_exc).__name__}: {first_exc}"
+            raise RuntimeError(self._with_worker_log_context(message))
         finally:
             if channel is not None and cmd != "shutdown":
                 await self._release_rpc_channel(channel)
@@ -3949,17 +3999,35 @@ class SubprocessInferenceEngineProxy:
         return float(result.get("load_ms", 0.0)), bool(result.get("ok", False))
 
     async def shutdown(self) -> None:
+        keep_logs = self._keep_worker_logs_requested()
+        if self._normal_shutdown_completed and not keep_logs:
+            shutil.rmtree(self._workdir, ignore_errors=True)
+            self._engine_dead = True
+            return
+        preserve_logs = bool(self._engine_dead) or keep_logs
+        normal_shutdown = False
         try:
             if self._process.poll() is None:
                 try:
                     await self._rpc("shutdown")
+                    normal_shutdown = True
                 except Exception:
                     pass
+            elif not self._engine_dead and self._process.returncode == 0:
+                normal_shutdown = True
         finally:
             await self._close_all_rpc_channels()
             await self._terminate_process_tree(force=False)
+            if normal_shutdown and not keep_logs:
+                shutil.rmtree(self._workdir, ignore_errors=True)
+                self._normal_shutdown_completed = True
+            elif preserve_logs:
+                self._preserve_worker_workdir("engine_dead")
+            else:
+                shutil.rmtree(self._workdir, ignore_errors=True)
+                if normal_shutdown:
+                    self._normal_shutdown_completed = True
             self._engine_dead = True
-            shutil.rmtree(self._workdir, ignore_errors=True)
 
     async def reinitialize(self) -> None:
         await self.shutdown()
@@ -9162,6 +9230,12 @@ class ScenarioRunner:
         if self.instance_pool.count() <= min_instances:
             return None
         now_wall = time.time()
+        def _slot_drain_safe(slot: Any) -> bool:
+            return (
+                int(getattr(slot, "active_requests", 0) or 0) <= 0
+                and int(getattr(slot, "load_queue_depth", 0) or 0) <= 0
+                and max(0, int(getattr(slot, "runtime_forwarding_active", 0) or 0)) <= 0
+            )
         candidates = [
             slot
             for slot in get_slots()
@@ -9170,10 +9244,7 @@ class ScenarioRunner:
         if not candidates:
             return None
         idle_candidates = [
-            slot for slot in candidates
-            if int(getattr(slot, "active_requests", 0) or 0) <= 0
-            and int(getattr(slot, "load_queue_depth", 0) or 0) <= 0
-            and max(0, int(getattr(slot, "runtime_forwarding_active", 0) or 0)) <= 0
+            slot for slot in candidates if _slot_drain_safe(slot)
         ]
         if min_idle_s is not None:
             idle_threshold = max(0.0, float(min_idle_s or 0.0))
@@ -9209,11 +9280,18 @@ class ScenarioRunner:
     ) -> bool:
         """Allow serverless-style per-replica TTL without waiting for global idle.
 
-        The previous live scale-down path required the whole system to have no
-        backlog and no active request. That is safe but too conservative for a
-        serverless pool: a replica can be released once that replica is idle and
-        the remaining replicas can still cover all currently visible work.
+        Scale-down must be drain-safe in the formal replay. A replica may look
+        idle in one control-loop snapshot while new requests are still becoming
+        runnable, so visible backlog/active work blocks reclamation.
         """
+        # Direct AsyncLLMEngine runtimes are not safe to tear down while the
+        # replay still has visible work. A request can reserve a runtime between
+        # successive control-loop observations, and shutting the worker down in
+        # that drain window turns valid in-flight requests into failures. Keep
+        # the live controller conservative; normal benchmark cleanup still
+        # accounts for idle-retention cost without killing active requests.
+        if max(0, int(backlog or 0)) > 0 or max(0, int(active_requests or 0)) > 0:
+            return False
         if self.instance_pool is None:
             return False
         if now_monotonic is None:
@@ -10577,10 +10655,20 @@ class ScenarioRunner:
                 return None
             slots = [candidate]
         else:
-            slots = [s for s in self.instance_pool.get_slots() if s.instance_id != self._primary_instance_id]
+            candidate = self._select_scale_down_candidate_slot(min_idle_s=0.0)
+            if candidate is None:
+                return None
+            slots = [candidate]
         if not slots:
             return None
-        removed = self.instance_pool.remove_instance(slots[-1].instance_id)
+        selected_slot = slots[-1]
+        if (
+            int(getattr(selected_slot, "active_requests", 0) or 0) > 0
+            or int(getattr(selected_slot, "load_queue_depth", 0) or 0) > 0
+            or max(0, int(getattr(selected_slot, "runtime_forwarding_active", 0) or 0)) > 0
+        ):
+            return None
+        removed = self.instance_pool.remove_instance(selected_slot.instance_id)
         await self._cleanup_removed_slot(
             removed,
             removal_reason="scale_down",
@@ -12732,6 +12820,7 @@ def _apply_explicit_env_overrides(
     _apply("FAASLORA_MAX_MODEL_LEN", model_cfg, "max_model_len", int)
     _apply("FAASLORA_MAX_NUM_SEQS", model_cfg, "max_num_seqs", int)
     _apply("FAASLORA_MAX_LORAS", model_cfg, "max_loras", int)
+    _apply("FAASLORA_MAX_CPU_LORAS", model_cfg, "max_cpu_loras", int)
     _apply("FAASLORA_MAX_NUM_BATCHED_TOKENS", model_cfg, "max_num_batched_tokens", int)
     _apply("FAASLORA_ENFORCE_EAGER", model_cfg, "enforce_eager", _parse_env_bool)
     _apply("FAASLORA_VLLM_USE_V1", model_cfg, "vllm_use_v1", _parse_env_bool)
@@ -16103,6 +16192,7 @@ async def main_async(
             ),
             "runtime_concurrency_cap": model_cfg.get("runtime_concurrency_cap"),
             "max_loras": model_cfg.get("max_loras"),
+            "max_cpu_loras": model_cfg.get("max_cpu_loras"),
             **_runtime_mode_summary(model_cfg),
             "applied_env_overrides": applied_env_overrides,
             "results_tag": results_tag,
