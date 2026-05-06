@@ -83,8 +83,14 @@ stage_done_path() {
   printf '%s/%s.done\n' "${STATE_DIR}" "$1"
 }
 
+stage_unsupported_path() {
+  printf '%s/%s.unsupported\n' "${STATE_DIR}" "$1"
+}
+
 is_done() {
-  [[ "${FORCE_RERUN}" != "1" && -f "$(stage_done_path "$1")" ]]
+  [[ "${FORCE_RERUN}" != "1" ]] && {
+    [[ -f "$(stage_done_path "$1")" ]] || [[ -f "$(stage_unsupported_path "$1")" ]]
+  }
 }
 
 mark_done() {
@@ -133,8 +139,7 @@ mark_unsupported_system() {
     printf 'system=%s\n' "${system}"
     printf 'model_profile=%s\n' "${MODEL_PROFILE}"
     printf 'reason=%s\n' "${reason}"
-  } >"${STATE_DIR}/${stage}.unsupported"
-  mark_done "${stage}"
+  } >"$(stage_unsupported_path "${stage}")"
 }
 
 selected_supported_systems() {
@@ -769,7 +774,17 @@ PY
 }
 
 write_manifest() {
-  python3 - "${ROUND_DIR}" "${RUN_TAG}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" "${SAMPLING_SEED}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" "${SYSTEMS}" <<'PY'
+  local supported_systems=""
+  local unsupported_systems=""
+  supported_systems="$(selected_supported_systems faaslora sglang serverlessllm vllm slora | xargs)"
+  unsupported_systems="$(
+    for system in ${SYSTEMS}; do
+      if ! system_supported "${system}"; then
+        printf '%s\n' "${system}"
+      fi
+    done | xargs
+  )"
+  python3 - "${ROUND_DIR}" "${RUN_TAG}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" "${SAMPLING_SEED}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" "${SYSTEMS}" "${supported_systems}" "${unsupported_systems}" <<'PY'
 import json
 import subprocess
 import sys
@@ -787,6 +802,8 @@ payload = {
     "shared_trace_path": sys.argv[9],
     "shared_adapter_subset_path": sys.argv[10],
     "systems": sys.argv[11].split(),
+    "supported_systems": sys.argv[12].split(),
+    "unsupported_systems": sys.argv[13].split(),
     "metric_schema_version": "e2e_v3",
     "round_dir": str(round_dir),
     "state_dir": str(round_dir / "state"),
