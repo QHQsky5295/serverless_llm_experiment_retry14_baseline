@@ -253,6 +253,22 @@ class ExperimentStack:
                 preload_cfg.get("host_promotion_on_nvme_hit_enabled", True),
             )
         )
+        self._gpu_dynamic_forwarding_enabled = bool(
+            preload_cfg.get("gpu_dynamic_forwarding_enabled", self._dynamic_forwarding_enabled)
+        )
+        self._gpu_forward_pressure_cutoff = min(
+            1.0,
+            max(
+                0.0,
+                float(
+                    preload_cfg.get(
+                        "gpu_forward_pressure_cutoff",
+                        coord_cfg.get("gpu_forward_pressure_cutoff", 0.90),
+                    )
+                    or 0.90
+                ),
+            ),
+        )
         self._registered = False
 
     def _path_tier_hint(self, path: Optional[str]) -> Optional[str]:
@@ -395,13 +411,24 @@ class ExperimentStack:
     def _tier_pressure(self, target_tier: StorageTier, coordinator: Optional[Any] = None) -> float:
         if target_tier == StorageTier.GPU:
             coord = coordinator if coordinator is not None else self.coordinator
+            actual_pressure = 0.0
+            try:
+                status = self.residency_manager.get_tier_status(StorageTier.GPU)
+                capacity = status.get("capacity", {}) if isinstance(status, dict) else {}
+                actual_pressure = min(
+                    1.0,
+                    max(0.0, float(capacity.get("utilization", 0.0) or 0.0)),
+                )
+            except Exception:
+                actual_pressure = 0.0
             pressure_fn = getattr(coord, "_contention_pressure", None)
             if callable(pressure_fn):
                 try:
-                    return min(1.0, max(0.0, float(pressure_fn())))
+                    coord_pressure = min(1.0, max(0.0, float(pressure_fn())))
+                    return max(actual_pressure, coord_pressure)
                 except Exception:
-                    return 1.0
-            return 1.0
+                    return max(actual_pressure, 1.0)
+            return actual_pressure
 
         try:
             status = self.residency_manager.get_tier_status(target_tier)
@@ -420,6 +447,8 @@ class ExperimentStack:
         self, target_tier: StorageTier, coordinator: Optional[Any] = None
     ) -> int:
         if target_tier == StorageTier.GPU:
+            if self._tier_pressure(StorageTier.GPU, coordinator=coordinator) >= self._gpu_forward_pressure_cutoff:
+                return 0
             coord = coordinator if coordinator is not None else self.coordinator
             effective_fn = getattr(coord, "_effective_capacity_mb", None)
             if callable(effective_fn):
@@ -590,9 +619,11 @@ class ExperimentStack:
         coordinator: Optional[Any] = None,
         preferred_gpu_adapters: Optional[Collection[str]] = None,
     ) -> Optional[Dict[str, Any]]:
-        if not self._dynamic_forwarding_enabled:
+        if not self._dynamic_forwarding_enabled or not self._gpu_dynamic_forwarding_enabled:
             return None
         self.sync_local_tier_paths()
+        if self._tier_pressure(StorageTier.GPU, coordinator=coordinator) >= self._gpu_forward_pressure_cutoff:
+            return None
         resident = set(gpu_resident_adapters or set())
         preferred_sequence: List[str] = []
         seen_preferred: set = set()

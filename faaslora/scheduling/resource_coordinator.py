@@ -29,6 +29,8 @@ Hardware calibration
 import asyncio
 import contextvars
 import math
+import os
+import subprocess
 import time
 from collections import defaultdict
 from dataclasses import dataclass
@@ -153,6 +155,16 @@ class ResourceCoordinator:
         self.effective_capacity_admission_enabled: bool = bool(
             cfg.get("effective_capacity_admission_enabled", False)
         )
+        self.gpu_admission_pressure_cutoff: float = min(
+            1.0,
+            max(0.0, float(cfg.get("gpu_admission_pressure_cutoff", 0.90) or 0.90)),
+        )
+        self.gpu_memory_probe_interval_s: float = max(
+            0.1,
+            float(cfg.get("gpu_memory_probe_interval_s", 1.0) or 1.0),
+        )
+        self._gpu_memory_probe_ts: float = 0.0
+        self._gpu_memory_probe_pressure: float = 0.0
 
         # Scale-down parameters
         self.idle_timeout_s: float       = cfg.get("idle_timeout_s",        15.0)
@@ -516,9 +528,12 @@ class ResourceCoordinator:
         # The recent working-set gap is already accounted for in future_reserve_mb.
         # Re-injecting it into the contention multiplier makes host/NVMe hot adapters
         # too sticky in lower tiers and blocks them from becoming stable GPU residents.
-        should_attempt = utility > pressure
+        actual_gpu_pressure = self._actual_gpu_memory_pressure()
+        pressure_cutoff_open = actual_gpu_pressure < self.gpu_admission_pressure_cutoff
+        should_attempt = pressure_cutoff_open and utility > pressure
         return {
             "pressure": pressure,
+            "actual_gpu_pressure": actual_gpu_pressure,
             "utility": utility,
             "effective_capacity_mb": effective_capacity_mb,
             "predicted_kv_growth_mb": predicted_kv_growth_mb,
@@ -536,6 +551,88 @@ class ResourceCoordinator:
         headroom_mb = max(0.0, available - future_reserve_mb)
         return max(0.0, headroom_mb * (1.0 - pressure))
 
+    def _actual_gpu_memory_pressure(self) -> float:
+        if self._residency_manager is not None:
+            try:
+                from ..registry.schema import StorageTier
+
+                status = self._residency_manager.get_tier_status(StorageTier.GPU)
+                capacity = status.get("capacity", {}) if isinstance(status, dict) else {}
+                return min(1.0, max(0.0, float(capacity.get("utilization", 0.0) or 0.0)))
+            except Exception:
+                return 0.0
+        return self._device_global_gpu_memory_pressure()
+
+    def _device_global_gpu_memory_pressure(self) -> float:
+        """Return global memory pressure for the runtime GPUs when no residency manager is bound."""
+        if not self.gpu_device_ids:
+            return 0.0
+        now = time.time()
+        if (now - self._gpu_memory_probe_ts) < self.gpu_memory_probe_interval_s:
+            return self._gpu_memory_probe_pressure
+        pressure = self._probe_gpu_memory_pressure_via_nvml()
+        if pressure <= 0.0:
+            pressure = self._probe_gpu_memory_pressure_via_nvidia_smi()
+        self._gpu_memory_probe_ts = now
+        self._gpu_memory_probe_pressure = min(1.0, max(0.0, pressure))
+        return self._gpu_memory_probe_pressure
+
+    def _probe_gpu_memory_pressure_via_nvml(self) -> float:
+        try:
+            import pynvml  # type: ignore
+
+            pynvml.nvmlInit()
+            used_bytes = 0
+            total_bytes = 0
+            for device_id in self.gpu_device_ids:
+                handle = pynvml.nvmlDeviceGetHandleByIndex(int(device_id))
+                info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+                used_bytes += int(info.used)
+                total_bytes += int(info.total)
+            if total_bytes <= 0:
+                return 0.0
+            return used_bytes / float(total_bytes)
+        except Exception:
+            return 0.0
+
+    def _probe_gpu_memory_pressure_via_nvidia_smi(self) -> float:
+        try:
+            completed = subprocess.run(
+                [
+                    "nvidia-smi",
+                    "--query-gpu=index,memory.used,memory.total",
+                    "--format=csv,noheader,nounits",
+                ],
+                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                text=True,
+                timeout=1.5,
+                env={**os.environ, "LC_ALL": "C"},
+            )
+        except Exception:
+            return 0.0
+        if completed.returncode != 0:
+            return 0.0
+        wanted = {int(device_id) for device_id in self.gpu_device_ids}
+        used_mb = 0.0
+        total_mb = 0.0
+        for raw_line in completed.stdout.splitlines():
+            parts = [part.strip() for part in raw_line.split(",")]
+            if len(parts) < 3:
+                continue
+            try:
+                device_id = int(parts[0])
+                if device_id not in wanted:
+                    continue
+                used_mb += float(parts[1])
+                total_mb += float(parts[2])
+            except ValueError:
+                continue
+        if total_mb <= 0.0:
+            return 0.0
+        return used_mb / total_mb
+
     def _contention_pressure(self, include_working_set: bool = True) -> float:
         usable_budget_mb = max(1.0, self.gpu_budget_mb - self.model_weights_mb)
         available_mb = max(0.0, self._available_mb())
@@ -545,7 +642,13 @@ class ResourceCoordinator:
         kv_pressure = min(1.0, max(0.0, kv_mb / usable_budget_mb))
         predicted_kv_pressure = min(1.0, max(0.0, predicted_kv_mb / usable_budget_mb))
         load_pressure = min(1.0, max(0.0, self._loads_in_flight_ratio()))
-        pressures = [mem_pressure, kv_pressure, predicted_kv_pressure, load_pressure]
+        pressures = [
+            mem_pressure,
+            kv_pressure,
+            predicted_kv_pressure,
+            load_pressure,
+            self._actual_gpu_memory_pressure(),
+        ]
         if include_working_set:
             pressures.append(self._working_set_pressure())
         return max(pressures)

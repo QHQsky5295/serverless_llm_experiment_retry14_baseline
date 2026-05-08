@@ -3604,7 +3604,9 @@ class SubprocessInferenceEngineProxy:
 
         ready: Optional[Dict[str, Any]] = None
         try:
-            deadline = time.monotonic() + 180.0
+            startup_timeout_s = float(os.environ.get("FAASLORA_WORKER_START_TIMEOUT_S", "180"))
+            startup_timeout_s = max(30.0, startup_timeout_s)
+            deadline = time.monotonic() + startup_timeout_s
             while time.monotonic() < deadline:
                 if ready_path.exists():
                     try:
@@ -5724,6 +5726,14 @@ class ScenarioRunner:
         # warming; otherwise we risk inflating TPOT/E2E while trying to improve
         # future TTFT.
         if active_requests > 0:
+            return False
+        try:
+            stack = getattr(self, "_stack", None)
+            pressure_fn = getattr(stack, "_tier_pressure", None)
+            cutoff = float(getattr(stack, "_gpu_forward_pressure_cutoff", 0.90) or 0.90)
+            if callable(pressure_fn) and pressure_fn(StorageTier.GPU, coordinator=coordinator) >= cutoff:
+                return False
+        except Exception:
             return False
 
         queue_depth = max(0, int(getattr(slot, "load_queue_depth", 0) or 0))
@@ -11930,13 +11940,26 @@ class ScenarioRunner:
             )
             if should_mark_gpu_after_inference:
                 try:
-                    if _coord is not None and getattr(_coord, "_residency_manager", None) is None:
-                        await _coord._mark_resident(adapter_id, size_mb)
-                    else:
-                        await self._stack.residency_manager.admit_artifact(
-                            adapter_id, StorageTier.GPU, force=True
+                    mark_gpu_allowed = True
+                    if (
+                        _coord is not None
+                        and getattr(_coord, "effective_capacity_admission_enabled", False)
+                        and getattr(_coord, "evaluate_gpu_admission", None)
+                    ):
+                        decision = _coord.evaluate_gpu_admission(
+                            adapter_id,
+                            size_mb,
+                            tier=cache_tier,
                         )
-                    self._mark_slot_adapter_tier(slot, adapter_id, "gpu")
+                        mark_gpu_allowed = bool(decision.get("admit", False))
+                    if mark_gpu_allowed:
+                        if _coord is not None and getattr(_coord, "_residency_manager", None) is None:
+                            await _coord._mark_resident(adapter_id, size_mb)
+                        else:
+                            await self._stack.residency_manager.admit_artifact(
+                                adapter_id, StorageTier.GPU, force=True
+                            )
+                        self._mark_slot_adapter_tier(slot, adapter_id, "gpu")
                 except Exception:
                     pass
             ingress_queue_wait_ms = max(
@@ -12853,6 +12876,8 @@ def _apply_explicit_env_overrides(
     _apply("FAASLORA_SCALE_DECISION_INTERVAL", coord_cfg, "scale_decision_interval", int)
     _apply("FAASLORA_SCALE_EVAL_INTERVAL_S", coord_cfg, "scale_eval_interval_s", float)
     _apply("FAASLORA_SCALE_UP_THRESHOLD_RPS", coord_cfg, "scale_up_threshold_rps", float)
+    _apply("FAASLORA_MAX_CONCURRENT_LOADS", coord_cfg, "max_concurrent_loads", int)
+    _apply("FAASLORA_LORA_LOAD_RESERVE_RATIO", coord_cfg, "lora_load_reserve_ratio", float)
     _apply(
         "FAASLORA_EFFECTIVE_CAPACITY_ADMISSION",
         coord_cfg,
@@ -12910,6 +12935,44 @@ def _apply_adapter_storage_env_overrides(
         applied["FAASLORA_LORA_PREPARATION_MODE"] = prep_mode
 
     return adapters_cfg, storage_cfg, applied
+
+
+def _apply_preloading_env_overrides(preload_cfg: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """Apply explicit experiment-time overrides for PrimeLoRA tier movement.
+
+    These knobs map to existing preloading/residency configuration fields.  They
+    are intentionally explicit so paper probes can tune 13B memory headroom
+    without changing workload generation, routing policy, admission logic, or
+    metric definitions.
+    """
+    cfg = dict(preload_cfg or {})
+    applied: Dict[str, Any] = {}
+
+    def _apply(env_name: str, key: str, caster: Callable[[str], Any]) -> None:
+        raw = _read_env_override(env_name)
+        if raw is None:
+            return
+        try:
+            value = caster(raw)
+        except Exception as exc:
+            raise ValueError(f"Invalid {env_name}={raw!r}: {exc}") from exc
+        cfg[key] = value
+        applied[env_name] = value
+
+    _apply("FAASLORA_MIN_HOTNESS", "min_hotness", float)
+    _apply("FAASLORA_GPU_WARMUP_HOTNESS", "gpu_warmup_hotness", float)
+    _apply("FAASLORA_SCALE_UP_PRELOAD_MB", "scale_up_preload_mb", float)
+    _apply("FAASLORA_NVME_CAPACITY_MB", "nvme_capacity_mb", float)
+    _apply("FAASLORA_HOST_CAPACITY_MB", "host_capacity_mb", float)
+    _apply("FAASLORA_MAX_CONCURRENT_OPERATIONS", "max_concurrent_operations", int)
+    _apply("FAASLORA_DYNAMIC_FORWARDING_ENABLED", "dynamic_forwarding_enabled", _parse_env_bool)
+    _apply("FAASLORA_GPU_DYNAMIC_FORWARDING_ENABLED", "gpu_dynamic_forwarding_enabled", _parse_env_bool)
+    _apply(
+        "FAASLORA_HOST_PROMOTION_ON_NVME_HIT_ENABLED",
+        "host_promotion_on_nvme_hit_enabled",
+        _parse_env_bool,
+    )
+    return cfg, applied
 
 
 def _resolve_cache_base_path(raw_value: Any, default_value: str) -> Path:
@@ -15744,7 +15807,9 @@ async def main_async(
             print(f"  Runs: {num_runs}")
         print(f"{'=' * 70}")
 
-        preload_cfg = sc.get("preloading", {})
+        preload_cfg, preload_env_overrides = _apply_preloading_env_overrides(sc.get("preloading", {}))
+        if preload_env_overrides:
+            print(f"  [Env overrides] preloading={preload_env_overrides}")
         host_capacity_mb = float(preload_cfg.get("host_capacity_mb", 4096))
         sc_nvme_base = _resolve_cache_base_path(
             storage_cfg.get("nvme_cache_dir", "artifacts/nvme_cache"),

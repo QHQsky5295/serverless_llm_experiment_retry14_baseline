@@ -567,7 +567,17 @@ def _main_summary_path(round_dir: Path, run_tag: str, key: str) -> Path:
     }
     if key not in suffixes:
         raise SystemExit(f"unknown main system key: {key}")
-    return round_dir / "raw" / "replay" / f"{run_tag}_{suffixes[key]}"
+    default = round_dir / "raw" / "replay" / f"{run_tag}_{suffixes[key]}"
+    if default.exists():
+        return default
+    matches = sorted((round_dir / "raw" / "replay").glob(f"{run_tag}_{key}_*_summary.json"))
+    if len(matches) == 1:
+        return matches[0]
+    if key == "slora":
+        matches = sorted((round_dir / "raw" / "replay").glob(f"{run_tag}_slora_*_summary.json"))
+        if len(matches) == 1:
+            return matches[0]
+    raise SystemExit(f"expected one summary for {key} under {round_dir / 'raw' / 'replay'}, found {len(matches)}")
 
 
 def _main_replay_path(round_dir: Path, run_tag: str, key: str) -> Path:
@@ -581,7 +591,17 @@ def _main_replay_path(round_dir: Path, run_tag: str, key: str) -> Path:
     }
     if key not in suffixes:
         raise SystemExit(f"unknown main system key: {key}")
-    return round_dir / "raw" / "replay" / f"{run_tag}_{suffixes[key]}"
+    default = round_dir / "raw" / "replay" / f"{run_tag}_{suffixes[key]}"
+    if default.exists():
+        return default
+    matches = sorted((round_dir / "raw" / "replay").glob(f"{run_tag}_{key}_*_replay.json"))
+    if len(matches) == 1:
+        return matches[0]
+    if key == "slora":
+        matches = sorted((round_dir / "raw" / "replay").glob(f"{run_tag}_slora_*_replay.json"))
+        if len(matches) == 1:
+            return matches[0]
+    raise SystemExit(f"expected one replay for {key} under {round_dir / 'raw' / 'replay'}, found {len(matches)}")
 
 
 def _main_row_from_summary(path: Path, key: str) -> Dict[str, Any]:
@@ -1636,7 +1656,7 @@ def plot_fig7(round_dir: Path, out_dir: Path) -> None:
         ("Invocation", "cost_invocation_usd", "#D8B6D9"),
     ]
 
-    fig, axes = plt.subplots(1, 2, figsize=(3.58, 2.05), constrained_layout=False)
+    fig, axes = plt.subplots(1, 2, figsize=(3.58, 2.10), constrained_layout=False)
     bottom = np.zeros(len(systems))
     legend_handles = []
     legend_labels = []
@@ -1659,7 +1679,8 @@ def plot_fig7(round_dir: Path, out_dir: Path) -> None:
     axes[0].set_yticks(y)
     axes[0].set_yticklabels(labels)
     axes[0].invert_yaxis()
-    _xlabel_with_panel(axes[0], "Cost/req\n(mUSD)", "(a) Cost")
+    axes[0].set_ylim(len(systems) - 0.31, -0.295)
+    _xlabel_with_panel(axes[0], "Cost/req (mUSD)", "(a) Cost")
     _style_axes(axes[0])
     axes[0].xaxis.label.set_size(panel_fontsize)
     axes[0].tick_params(axis="both", labelsize=tick_fontsize)
@@ -1686,6 +1707,7 @@ def plot_fig7(round_dir: Path, out_dir: Path) -> None:
     axes[1].set_yticks(y)
     axes[1].set_yticklabels([])
     axes[1].invert_yaxis()
+    axes[1].set_ylim(len(systems) - 0.31, -0.295)
     _xlabel_with_panel(axes[1], "GPU-s/req", "(b) GPU time")
     _style_axes(axes[1])
     axes[1].xaxis.label.set_size(panel_fontsize)
@@ -1695,16 +1717,16 @@ def plot_fig7(round_dir: Path, out_dir: Path) -> None:
         legend_labels,
         frameon=False,
         fontsize=legend_fontsize,
-        ncols=2,
+        ncols=3,
         loc="upper center",
-        bbox_to_anchor=(0.53, 0.995),
-        columnspacing=0.9,
+        bbox_to_anchor=(0.54, 0.882),
+        columnspacing=0.68,
         handlelength=1.1,
     )
     for ax in axes:
         ax.xaxis.labelpad = 4.0
         ax.grid(axis="x", color="#E7E7E7", linewidth=0.45)
-    fig.subplots_adjust(left=0.28, right=0.99, top=0.72, bottom=0.29, wspace=0.26)
+    fig.subplots_adjust(left=0.28, right=0.99, top=0.825, bottom=0.215, wspace=0.26)
 
     pdf = out_dir / "fig7_lifecycle_cost.pdf"
     csv_path = out_dir / "fig7_lifecycle_cost_data.csv"

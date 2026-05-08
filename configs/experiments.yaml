@@ -156,10 +156,10 @@ model_profiles:  # 可复用的模型 profile 集合
       tensor_parallel_size: 2
       gpu_memory_utilization: 0.85
       max_model_len: 1024
-      max_loras: 2
+      max_loras: 8
       max_lora_rank: 32  # publicmix V2 中包含少量更高 rank 的公开 LoRA
       enable_lora: true
-      enforce_eager: true
+      enforce_eager: false
       dtype: "float16"
       max_num_seqs: 4
       max_num_batched_tokens: 1024
@@ -213,8 +213,8 @@ model_profiles:  # 可复用的模型 profile 集合
       enable_lora: true
       enforce_eager: true
       dtype: "float16"
-      max_num_seqs: 2
-      max_num_batched_tokens: 1024
+      max_num_seqs: 8
+      max_num_batched_tokens: 4096
       max_output_tokens_cap: null
       max_input_len: null
       runtime_concurrency_cap: 2
@@ -264,17 +264,17 @@ model_profiles:  # 可复用的模型 profile 集合
       tensor_parallel_size: 2
       gpu_memory_utilization: 0.85
       max_model_len: 1024
-      max_loras: 2
+      max_loras: 8
       max_lora_rank: 64
       enable_lora: true
-      enforce_eager: true
+      enforce_eager: false
       dtype: "float16"
-      max_num_seqs: 2
-      max_num_batched_tokens: 1024
+      max_num_seqs: 8
+      max_num_batched_tokens: 4096
       max_output_tokens_cap: null
       max_input_len: null
-      runtime_concurrency_cap: 2
-      enable_chunked_prefill: false
+      runtime_concurrency_cap: 8
+      enable_chunked_prefill: true
       enable_prefix_caching: false
       vllm_use_v1: false
       vllm_attention_backend: "FLASH_ATTN"
