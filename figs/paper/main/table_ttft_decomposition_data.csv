@@ -1,0 +1,11 @@
+model,system_key,system,ttft_avg_ms,service_ttft_ms,dispatch_wait_ms,tpot_avg_ms
+Llama-2 7B,sglang,SGLang,229.8,214.5,15.3,19.96
+Llama-2 7B,vllm,vLLM,517.36,503.82,13.54,26.57
+Llama-2 7B,slora,S-LoRA,284.23,267.74,16.49,28.52
+Llama-2 7B,serverlessllm,ServerlessLLM,235998.66,418.24,235580.41,25.16
+Llama-2 7B,faaslora,PrimeLoRA,563.9507,452.8069,111.1438,28.6274
+Llama-2 13B,sglang,SGLang,474.11,458.79,15.32,35.28
+Llama-2 13B,vllm,vLLM,2554.84,2541.3,13.54,66.45
+Llama-2 13B,slora,S-LoRA,5926431.77,5926416.03,15.74,367.89
+Llama-2 13B,serverlessllm,ServerlessLLM,237234.01,501.81,236732.2,32.59
+Llama-2 13B,faaslora,PrimeLoRA,745.9051,577.6913,168.2138,44.5187

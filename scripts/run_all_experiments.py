@@ -4759,10 +4759,10 @@ class ScenarioRunner:
             0.0,
             float(cc.get("scale_down_startup_break_even_s", 0.0) or 0.0),
         )
-        self._scale_down_break_even_factor = max(
-            0.0,
-            float(cc.get("scale_down_break_even_factor", 1.0) or 1.0),
-        )
+        break_even_factor_raw = cc.get("scale_down_break_even_factor", 1.0)
+        if break_even_factor_raw is None:
+            break_even_factor_raw = 1.0
+        self._scale_down_break_even_factor = max(0.0, float(break_even_factor_raw))
         self._dynamic_warm_pool = bool(cc.get("dynamic_warm_pool", True))
         self._warm_pool_gamma = float(cc.get("warm_pool_gamma", 0.2))
         self._warm_pool_min = int(cc.get("warm_pool_min", 2))
@@ -5390,10 +5390,10 @@ class ScenarioRunner:
             float(getattr(self, "_scale_down_duration_s", 0.0) or 0.0),
         )
         restart_s = self._observed_scale_up_restart_seconds()
-        factor = max(
-            0.0,
-            float(getattr(self, "_scale_down_break_even_factor", 1.0) or 1.0),
-        )
+        factor_raw = getattr(self, "_scale_down_break_even_factor", 1.0)
+        if factor_raw is None:
+            factor_raw = 1.0
+        factor = max(0.0, float(factor_raw))
         if restart_s <= 0.0 or factor <= 0.0:
             return configured_ttl
         return max(configured_ttl, restart_s * factor)
@@ -12876,6 +12876,21 @@ def _apply_explicit_env_overrides(
     _apply("FAASLORA_SCALE_DECISION_INTERVAL", coord_cfg, "scale_decision_interval", int)
     _apply("FAASLORA_SCALE_EVAL_INTERVAL_S", coord_cfg, "scale_eval_interval_s", float)
     _apply("FAASLORA_SCALE_UP_THRESHOLD_RPS", coord_cfg, "scale_up_threshold_rps", float)
+    _apply("FAASLORA_SCALE_DOWN_BETA", coord_cfg, "scale_down_beta", float)
+    _apply("FAASLORA_SCALE_DOWN_DURATION_S", coord_cfg, "scale_down_duration_s", float)
+    _apply("FAASLORA_SCALE_DOWN_COOLDOWN_S", coord_cfg, "scale_down_cooldown_s", float)
+    _apply(
+        "FAASLORA_SCALE_DOWN_STARTUP_BREAK_EVEN_S",
+        coord_cfg,
+        "scale_down_startup_break_even_s",
+        float,
+    )
+    _apply(
+        "FAASLORA_SCALE_DOWN_BREAK_EVEN_FACTOR",
+        coord_cfg,
+        "scale_down_break_even_factor",
+        float,
+    )
     _apply("FAASLORA_MAX_CONCURRENT_LOADS", coord_cfg, "max_concurrent_loads", int)
     _apply("FAASLORA_LORA_LOAD_RESERVE_RATIO", coord_cfg, "lora_load_reserve_ratio", float)
     _apply(

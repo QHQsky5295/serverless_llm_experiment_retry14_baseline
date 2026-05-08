@@ -45,6 +45,11 @@ def _fmt(value: float, fmt: str, *, bold: bool = False) -> str:
     return f"\\textbf{{{text}}}" if bold else text
 
 
+def _fmt_ms(value: float, *, bold: bool = False) -> str:
+    text = f"{value / 1_000_000.0:.2f}e6" if abs(value) >= 1_000_000.0 else f"{value:.1f}"
+    return f"\\textbf{{{text}}}" if bold else text
+
+
 def _best_keys(systems: Sequence[ppf.MainSystemData], metric: str, *, higher: bool = False) -> set[str]:
     values = {system.key: float(system.metrics[metric]) for system in systems}
     best = max(values.values()) if higher else min(values.values())
@@ -152,6 +157,38 @@ def _parse_system_round_overrides(specs: Sequence[str]) -> dict[str, dict[str, P
             raise SystemExit(f"{spec}: unknown system key {system_key!r}")
         overrides.setdefault(model_key, {})[system_key] = Path(round_dir).expanduser().resolve()
     return overrides
+
+
+def _parse_system_summary_overrides(specs: Sequence[str]) -> dict[str, dict[str, Path]]:
+    overrides: dict[str, dict[str, Path]] = {}
+    for spec in specs:
+        parts = spec.split(":", 2)
+        if len(parts) != 3:
+            raise SystemExit(
+                "--system-summary-override must use MODEL_KEY:SYSTEM_KEY:SUMMARY_JSON, "
+                "for example llama2_13b:faaslora:/path/to/summary.json"
+            )
+        model_key, system_key, summary_path = parts
+        if model_key not in {"llama2_7b", "llama2_13b"}:
+            raise SystemExit(f"{spec}: unknown model key {model_key!r}")
+        if system_key not in SYSTEM_ORDER:
+            raise SystemExit(f"{spec}: unknown system key {system_key!r}")
+        path = Path(summary_path).expanduser().resolve()
+        if not path.exists():
+            raise SystemExit(f"{spec}: summary override does not exist: {path}")
+        overrides.setdefault(model_key, {})[system_key] = path
+    return overrides
+
+
+def _validate_summary_override_path(round_dir: Path, source: Path, *, model_key: str, system_key: str) -> None:
+    try:
+        source.relative_to(round_dir)
+    except ValueError as exc:
+        raise SystemExit(
+            f"{model_key}:{system_key}: summary override must be inside the corresponding round directory. "
+            f"Use --system-round-override for a complete separate round with its own shared-artifact hashes. "
+            f"round={round_dir} source={source}"
+        ) from exc
 
 
 def _metrics_from_summary(source: Path, key: str) -> dict[str, float]:
@@ -292,10 +329,10 @@ def build_main_table(models: Sequence[ModelRound], out_dir: Path) -> None:
                 " & ".join(
                     [
                         system.label,
-                        _fmt(m["ttft_avg_ms"], "{:.1f}", bold=system.key in best["ttft_avg_ms"]),
-                        _fmt(m["ttft_p95_ms"], "{:.1f}", bold=system.key in best["ttft_p95_ms"]),
-                        _fmt(m["e2e_avg_ms"], "{:.1f}", bold=system.key in best["e2e_avg_ms"]),
-                        _fmt(m["e2e_p95_ms"], "{:.1f}", bold=system.key in best["e2e_p95_ms"]),
+                        _fmt_ms(m["ttft_avg_ms"], bold=system.key in best["ttft_avg_ms"]),
+                        _fmt_ms(m["ttft_p95_ms"], bold=system.key in best["ttft_p95_ms"]),
+                        _fmt_ms(m["e2e_avg_ms"], bold=system.key in best["e2e_avg_ms"]),
+                        _fmt_ms(m["e2e_p95_ms"], bold=system.key in best["e2e_p95_ms"]),
                         _fmt(m["tpot_avg_ms"], "{:.1f}", bold=system.key in best["tpot_avg_ms"]),
                         _fmt(m["tpot_p95_ms"], "{:.1f}", bold=system.key in best["tpot_p95_ms"]),
                         _fmt(m["tok_s"], "{:.1f}", bold=system.key in best["tok_s"]),
@@ -353,8 +390,8 @@ def build_decomposition_table(models: Sequence[ModelRound], out_dir: Path) -> No
         last_model = row["model"]
         lines.append(
             f"{model_label} & {row['system']} & "
-            f"{row['ttft_avg_ms']:.1f} & {row['service_ttft_ms']:.1f} & "
-            f"{row['dispatch_wait_ms']:.1f} & {row['tpot_avg_ms']:.1f} \\\\"
+            f"{_fmt_ms(row['ttft_avg_ms'])} & {_fmt_ms(row['service_ttft_ms'])} & "
+            f"{_fmt_ms(row['dispatch_wait_ms'])} & {row['tpot_avg_ms']:.1f} \\\\"
         )
     lines.extend(["\\bottomrule", "\\end{tabular}", "\\end{table*}", ""])
     (out_dir / "table_ttft_decomposition.tex").write_text("\n".join(lines), encoding="utf-8")
@@ -450,11 +487,12 @@ def build_lifecycle_figure(models: Sequence[ModelRound], out_dir: Path) -> None:
         fontsize=6.7,
         ncols=3,
         loc="upper center",
-        bbox_to_anchor=(0.61, 0.900),
-        columnspacing=0.64,
+        bbox_to_anchor=(0.61, 0.872),
+        columnspacing=0.58,
         handlelength=1.1,
+        borderaxespad=0.0,
     )
-    fig.subplots_adjust(left=0.43, right=0.99, top=0.858, bottom=0.125, wspace=0.23)
+    fig.subplots_adjust(left=0.43, right=0.99, top=0.842, bottom=0.125, wspace=0.23)
 
     pdf = out_dir / "fig7_lifecycle_cost.pdf"
     fig.savefig(pdf, bbox_inches="tight")
@@ -479,7 +517,14 @@ def write_manifest(models: Sequence[ModelRound], out_dir: Path) -> None:
             "fig7": str(out_dir / "fig7_lifecycle_cost.pdf"),
         },
     }
-    (out_dir / "main_7b13b_manifest.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    manifest_text = json.dumps(payload, indent=2, ensure_ascii=False)
+    for name in (
+        "main_7b13b_manifest.json",
+        "table1_end_to_end_manifest.json",
+        "table_ttft_decomposition_manifest.json",
+        "fig7_lifecycle_cost_manifest.json",
+    ):
+        (out_dir / name).write_text(manifest_text, encoding="utf-8")
 
 
 def load_model_round(
@@ -488,25 +533,31 @@ def load_model_round(
     round_dir: Path,
     *,
     system_round_overrides: dict[str, Path] | None = None,
+    system_summary_overrides: dict[str, Path] | None = None,
     allow_missing_systems: set[str] | None = None,
 ) -> ModelRound:
     system_round_overrides = system_round_overrides or {}
+    system_summary_overrides = system_summary_overrides or {}
     allow_missing_systems = allow_missing_systems or set()
     systems: list[ppf.MainSystemData] = []
     missing: list[str] = []
     for system_key in SYSTEM_ORDER:
-        source_round_dir = system_round_overrides.get(system_key, round_dir)
-        if source_round_dir != round_dir:
-            _validate_same_shared_artifacts(round_dir, source_round_dir, model_key=key, system_key=system_key)
-        run_tag = _round_run_tag(source_round_dir)
-        try:
-            source = ppf._main_summary_path(source_round_dir, run_tag, system_key)
-        except SystemExit:
-            missing.append(system_key)
-            continue
-        if not source.exists():
-            missing.append(system_key)
-            continue
+        if system_key in system_summary_overrides:
+            source = system_summary_overrides[system_key]
+            _validate_summary_override_path(round_dir, source, model_key=key, system_key=system_key)
+        else:
+            source_round_dir = system_round_overrides.get(system_key, round_dir)
+            if source_round_dir != round_dir:
+                _validate_same_shared_artifacts(round_dir, source_round_dir, model_key=key, system_key=system_key)
+            run_tag = _round_run_tag(source_round_dir)
+            try:
+                source = ppf._main_summary_path(source_round_dir, run_tag, system_key)
+            except SystemExit:
+                missing.append(system_key)
+                continue
+            if not source.exists():
+                missing.append(system_key)
+                continue
         systems.append(
             ppf.MainSystemData(
                 system_key,
@@ -539,6 +590,14 @@ def main() -> None:
         "Format: MODEL_KEY:SYSTEM_KEY:ROUND_DIR.",
     )
     parser.add_argument(
+        "--system-summary-override",
+        action="append",
+        default=[],
+        help="Use an explicit summary JSON from inside the corresponding round directory. "
+        "This preserves tuned-run provenance without copying over raw results. "
+        "Format: MODEL_KEY:SYSTEM_KEY:SUMMARY_JSON.",
+    )
+    parser.add_argument(
         "--allow-missing-system",
         action="append",
         default=[],
@@ -551,6 +610,7 @@ def main() -> None:
     out_dir = args.out_dir.resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
     overrides = _parse_system_round_overrides(args.system_round_override)
+    summary_overrides = _parse_system_summary_overrides(args.system_summary_override)
     allow_missing_systems = set(args.allow_missing_system)
     models = [
         load_model_round(
@@ -558,6 +618,7 @@ def main() -> None:
             "Llama-2 7B",
             args.round_7b.resolve(),
             system_round_overrides=overrides.get("llama2_7b", {}),
+            system_summary_overrides=summary_overrides.get("llama2_7b", {}),
             allow_missing_systems=allow_missing_systems,
         ),
         load_model_round(
@@ -565,6 +626,7 @@ def main() -> None:
             "Llama-2 13B",
             args.round_13b.resolve(),
             system_round_overrides=overrides.get("llama2_13b", {}),
+            system_summary_overrides=summary_overrides.get("llama2_13b", {}),
             allow_missing_systems=allow_missing_systems,
         ),
     ]

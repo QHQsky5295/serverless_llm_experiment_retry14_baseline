@@ -31,6 +31,7 @@
 - vLLM
 - ServerlessLLM
 - PrimeLoRA 多组公平调参 run
+- S-LoRA TP4/BMM 正式兼容 run
 
 当前已知 13B 最好 PrimeLoRA run 为 `backup_faas_min2max2_ce77_20260508_182837`，完成 4000/4000 请求，失败数为 0，关键结果约为：
 
@@ -41,15 +42,15 @@
 
 该结果是同一 shared trace 和 adapter subset 下的可用正式候选结果。当前 13B SGLang CE 约为 81.84，因此 PrimeLoRA 13B 还没有在真实数据下超过 SGLang；下一步只能继续从 PrimeLoRA 可解释参数入手优化，不能修改指标口径或调差基线。
 
-## 当前正在运行
+### Llama-2 13B S-LoRA
 
-S-LoRA Llama-2 13B TP4/BMM 正式实验已启动：
+S-LoRA Llama-2 13B TP4/BMM 正式实验已完成：
 
-- tmux: `paper_llama13b_slora_tp4_bmm_s8`
 - log: `/tmp/paper_llama13b_slora_tp4_bmm_s8.log`
 - round: `20260507_llama13b_main_cap8_core_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8`
+- summary: `/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260507_llama13b_main_cap8_core_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8/raw/replay/llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8_slora_dp1_tp4_summary.json`
 
-该实验使用 DP1/TP4 和 BMM 路径，符合 baseline 文档中对 4x RTX 3090 跑 Llama-2 13B S-LoRA 的折中设置。启动阶段会加载 500 个 adapter，耗时较长。
+该实验使用 DP1/TP4 和 BMM 路径，符合 baseline 文档中对 4x RTX 3090 跑 Llama-2 13B S-LoRA 的折中设置。最终完成 4000/4000 请求，失败数为 0，没有 `trace_expected` token fallback。结果很慢：TTFT Avg 约 5.93e6 ms，E2E Avg 约 5.97e6 ms，TPOT Avg 约 367.9 ms，CE 约 0.012。该现象不是 replay/wrapper 崩溃，`dispatch_wait` 平均约 15.7 ms，主要瓶颈在 S-LoRA 13B TP4/BMM 服务路径本身。
 
 ## 图表脚本状态
 
@@ -66,19 +67,37 @@ S-LoRA Llama-2 13B TP4/BMM 正式实验已启动：
 
 已调整：
 
-- `scripts/plot_paper_figures.py`
+- `scripts/build_main_7b13b_artifacts.py`
 
-调整内容包括 Fig. 7 单栏图的紧凑排版、三列平铺 legend、较小上下留白，以及更稳健的 summary/replay 路径匹配。
+调整内容包括：
 
-## 下一步
+- Fig. 7 单栏图的紧凑排版、三列平铺 legend、较小上下留白；
+- 支持 `--system-summary-override MODEL:SYSTEM:SUMMARY_JSON`，用于显式选择同一 round 目录内的完整 tuned summary，并在 manifest 中保留真实来源；该功能避免为了使用某个候选 run 而覆盖原始结果文件。
 
-1. 等 S-LoRA 13B 完成并校验 4000/4000 成功。
-2. 若 S-LoRA 13B 报错，按日志定位根因，优先保持官方 Llama/Llama2 + TP4/BMM 设计，不切换到不等价系统。
-3. 继续检查 PrimeLoRA 13B 是否还有公平、可解释的优化空间。
-4. 生成最终合并版：
-   - `figs/paper/main/table1_end_to_end.tex`
-   - `figs/paper/main/table_ttft_decomposition.tex`
-   - `figs/paper/main/fig7_lifecycle_cost.pdf`
-   - 同步拷贝到论文引用路径 `figs/fig7_lifecycle_cost.pdf`
-5. 更新论文正文中 Overall Performance 的文字，使其自然解释 7B/13B 合并结果。
+最终版本已生成：
 
+- `figs/paper/main/table1_end_to_end.tex`
+- `figs/paper/main/table_ttft_decomposition.tex`
+- `figs/paper/main/fig7_lifecycle_cost.pdf`
+- `figs/paper/main/fig7_lifecycle_cost_data.csv`
+- `figs/paper/main/main_7b13b_manifest.json`
+- 论文引用拷贝：`figs/fig7_lifecycle_cost.pdf`
+
+`main_7b13b_manifest.json` 记录了每个系统对应的原始 summary/source 文件。13B PrimeLoRA 使用同一 round 目录内的最好完整 tuned summary，并通过 `--system-summary-override` 显式声明，没有覆盖原始结果文件。
+
+## 2026-05-09 当前根因判断
+
+PrimeLoRA 13B 最好候选与 SGLang 的 CE 差距主要来自后端 service path，而不是 adapter readiness。当前最好候选中：
+
+- cache hit rate 为 1.0；
+- `lora_io_ms` 平均约 51.7 ms；
+- `dispatch_admission_wait_ms` 平均约 168.2 ms；
+- `service_e2e_ms` 平均约 3977.2 ms。
+
+SGLang 13B 的平均 E2E 约 3382.2 ms，CE 约 81.84。PrimeLoRA 13B 的最好候选平均 E2E 约 4145.4 ms，Cost/req 约 3.129 mUSD，CE 约 77.09。因此，13B 上若要公平超过 SGLang，需要真实降低 vLLM backend service time 或进一步降低生命周期成本且不引入排队；不能通过更改指标、调差 baseline 或使用不等价数据实现。
+
+## 当前结论与下一步
+
+1. 当前最终合并表和 Fig. 7 已可用于论文草稿，但论文文字必须如实表达：PrimeLoRA 在 7B 上 CE 第一；在 13B 上 Cost/req 最低且明显优于 vLLM、S-LoRA、ServerlessLLM，但 CE 略低于 SGLang。
+2. 若继续追求 13B CE 第一，只能继续做 PrimeLoRA 自身公平调参或后端 service-path 优化；不能调差其他系统、修改指标口径或使用不等价历史结果。
+3. S-LoRA 13B 可作为本机 4x RTX 3090 上的 TP4/BMM 公开代码兼容结果；论文中若担心该行过慢影响叙述，可在正文说明这是受 24GB GPU 与兼容 BMM 路径限制的 13B 结果。
