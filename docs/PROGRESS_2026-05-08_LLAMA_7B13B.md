@@ -35,6 +35,7 @@ Round：
 
 - SGLang
 - vLLM
+- S-LoRA TP4/BMM
 - ServerlessLLM
 - PrimeLoRA/FaaSLoRA 候选正式 run
 
@@ -42,17 +43,17 @@ Round：
 
 - SGLang: CE 约 81.84
 - vLLM: CE 约 36.70
+- S-LoRA TP4/BMM: CE 约 0.012
 - ServerlessLLM: CE 约 1.23
 - PrimeLoRA 最好候选: CE 约 77.09
 
 当前 13B PrimeLoRA 真实结果尚未超过 SGLang。后续若要让 PrimeLoRA 成为 13B 组内 CE 第一，必须继续做公平、可解释的 PrimeLoRA 参数优化，不能更改 baseline 结果或指标口径。
 
-## S-LoRA 13B 当前状态
+## S-LoRA 13B 最终状态
 
-已启动正式实验：
+正式实验已完成，原 tmux 会话已退出：
 
 ```bash
-tmux attach -t paper_llama13b_slora_tp4_bmm_s8
 tail -f /tmp/paper_llama13b_slora_tp4_bmm_s8.log
 ```
 
@@ -68,6 +69,25 @@ tail -f /tmp/paper_llama13b_slora_tp4_bmm_s8.log
 
 该配置对应本仓库复现文档中对 Llama-2 13B + 4x RTX 3090 的官方兼容折中：TP4 避免每张卡承载完整 13B 权重，BMM 路径用于处理 tensor-parallel 下的 LoRA 计算。
 
+最终 summary：
+
+`results/paper_experiments/03_main_comparison/20260507_llama13b_main_cap8_core_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8/raw/replay/llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8_slora_dp1_tp4_summary.json`
+
+校验结果：
+
+- completed/total: 4000/4000
+- failed: 0
+- `metric_schema_version`: `e2e_v3`
+- 无 `trace_expected` token fallback
+- TTFT Avg/P95: 5926431.8 / 11148533.3 ms
+- E2E Avg/P95: 5971941.8 / 11201449.0 ms
+- TPOT Avg/P95: 367.9 / 474.9 ms
+- Token throughput: 29.4 tok/s
+- Cost/req: 14.008 mUSD
+- CE: 0.012
+
+因此，该 run 是“有效但很慢”，不是实验链路崩溃。`dispatch_wait` 平均约 15.7 ms，主要瓶颈在 S-LoRA 13B TP4/BMM 服务路径本身。论文中若纳入该行，需要把它标注为本机 4x RTX 3090 上的 TP4/BMM 公开代码兼容结果，而不是官方论文中完整 optimized TP fast-kernel 路径。
+
 ## 稳定性修复进度
 
 已完成的 baseline wrapper 修复包括：
@@ -82,9 +102,6 @@ tail -f /tmp/paper_llama13b_slora_tp4_bmm_s8.log
 
 ## 下一步
 
-1. 等待 S-LoRA 13B 完成。
-2. 校验 summary 中 `completed == total == 4000`。
-3. 重新生成 13B compare。
-4. 回到 FaaSLoRA 仓库生成合并后的主表、decomposition 表和 Fig. 7。
-5. 若 PrimeLoRA 13B 仍不是 CE 第一，继续定位可解释优化空间，优先检查 scale-in/out、warm pool、capacity cap、LoRA admission 和 vLLM backend 参数。
-
+1. 当前 baseline 侧 Llama-2 7B/13B 正式结果已全部落盘。
+2. FaaSLoRA 仓库已生成合并后的主表、decomposition 表和 Fig. 7。
+3. 若继续追求 PrimeLoRA 13B CE 第一，下一步应在 FaaSLoRA 自身公平参数或 backend service-path 优化上继续实验，不能更改 baseline 结果或指标口径。
