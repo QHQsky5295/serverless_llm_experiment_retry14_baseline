@@ -35,7 +35,19 @@ SLORA_TENSOR_PARALLEL_SIZE="${SLORA_TENSOR_PARALLEL_SIZE:-}"
 SLORA_DATA_PARALLEL_REPLICAS="${SLORA_DATA_PARALLEL_REPLICAS:-}"
 SLORA_MAX_TOTAL_TOKEN_NUM="${SLORA_MAX_TOTAL_TOKEN_NUM:-14000}"
 SLORA_SLEEP_SCALE="${SLORA_SLEEP_SCALE:-1.0}"
-SLORA_TIMEOUT_S="${SLORA_TIMEOUT_S:-3600}"
+SLORA_USE_BMM="${SLORA_USE_BMM:-auto}"
+SLORA_READY_WAIT_S="${SLORA_READY_WAIT_S:-}"
+default_client_timeout_s() {
+  case "${MODEL_PROFILE}" in
+    *13b*|*14b*|*13B*|*14B*)
+      printf '%s\n' 21600
+      ;;
+    *)
+      printf '%s\n' 3600
+      ;;
+  esac
+}
+SLORA_TIMEOUT_S="${SLORA_TIMEOUT_S:-$(default_client_timeout_s)}"
 SLORA_DRY_RUN="${SLORA_DRY_RUN:-0}"
 
 mkdir -p "${RESULT_DIR}" "${LOG_DIR}" "${SHARED_INPUT_DIR}"
@@ -60,12 +72,67 @@ if [[ ! -d "${SLORA_REPO}" ]]; then
   echo "[ERROR] S-LoRA repo not found: ${SLORA_REPO}" >&2
   exit 1
 fi
+if ! command -v setsid >/dev/null 2>&1; then
+  echo "[ERROR] setsid is required so S-LoRA tensor-parallel worker trees can be cleaned as one process group" >&2
+  exit 1
+fi
+
+collect_descendants() {
+  local parent="$1"
+  local child
+  for child in $(pgrep -P "${parent}" 2>/dev/null || true); do
+    collect_descendants "${child}"
+    echo "${child}"
+  done
+}
+
+terminate_process_group_or_tree() {
+  local pid="$1"
+  local label="${2:-process}"
+  if [[ -z "${pid}" ]] || ! kill -0 "${pid}" 2>/dev/null; then
+    return 0
+  fi
+
+  local pgid current_pgid
+  pgid="$(ps -o pgid= -p "${pid}" 2>/dev/null | tr -d ' ')"
+  current_pgid="$(ps -o pgid= -p "$$" 2>/dev/null | tr -d ' ')"
+  if [[ -n "${pgid}" && "${pgid}" != "${current_pgid}" && "${pgid}" != "1" ]]; then
+    echo "      stopping ${label} pid=${pid} pgid=${pgid}"
+    kill -TERM "-${pgid}" 2>/dev/null || true
+    for _ in $(seq 1 20); do
+      if ! pgrep -g "${pgid}" >/dev/null 2>&1; then
+        return 0
+      fi
+      sleep 0.5
+    done
+    echo "      force-stopping ${label} pid=${pid} pgid=${pgid}"
+    kill -KILL "-${pgid}" 2>/dev/null || true
+    return 0
+  fi
+
+  local descendants=()
+  mapfile -t descendants < <(collect_descendants "${pid}" | awk '!seen[$0]++')
+  if (( ${#descendants[@]} > 0 )); then
+    kill -TERM "${descendants[@]}" 2>/dev/null || true
+  fi
+  kill -TERM "${pid}" 2>/dev/null || true
+  for _ in $(seq 1 20); do
+    if ! kill -0 "${pid}" 2>/dev/null; then
+      return 0
+    fi
+    sleep 0.5
+  done
+  if (( ${#descendants[@]} > 0 )); then
+    kill -KILL "${descendants[@]}" 2>/dev/null || true
+  fi
+  kill -KILL "${pid}" 2>/dev/null || true
+}
 
 cleanup() {
   local status=$?
   if [[ -n "${SLORA_SERVER_PIDS:-}" ]]; then
     for pid in ${SLORA_SERVER_PIDS}; do
-      kill "${pid}" 2>/dev/null || true
+      terminate_process_group_or_tree "${pid}" "S-LoRA replica"
     done
     for pid in ${SLORA_SERVER_PIDS}; do
       wait "${pid}" 2>/dev/null || true
@@ -84,7 +151,9 @@ ensure_port_is_free() {
     return 0
   fi
   echo "      clearing stale ${label} listener(s) on port=${port}: ${pids[*]}"
-  kill "${pids[@]}" 2>/dev/null || true
+  for pid in "${pids[@]}"; do
+    terminate_process_group_or_tree "${pid}" "stale ${label}"
+  done
   for _ in $(seq 1 15); do
     sleep 1
     mapfile -t pids < <(lsof -tiTCP:"${port}" -sTCP:LISTEN 2>/dev/null | awk '!seen[$0]++')
@@ -251,6 +320,23 @@ SLORA_BATCH_MAX_TOKENS="${SLORA_BATCH_MAX_TOKENS:-${SLORA_MAX_REQ_TOTAL_LEN}}"
 
 SLORA_TOPOLOGY_LABEL="dp${DP_REPLICAS}_tp${TP_EFFECTIVE}"
 RESULT_TAG="${SLORA_RESULT_TAG:-${RUN_TAG}_slora_${SLORA_TOPOLOGY_LABEL}}"
+if [[ "${SLORA_USE_BMM}" == "auto" ]]; then
+  if (( TP_EFFECTIVE > 1 )); then
+    SLORA_BMM_EFFECTIVE="1"
+  else
+    SLORA_BMM_EFFECTIVE="0"
+  fi
+else
+  SLORA_BMM_EFFECTIVE="${SLORA_USE_BMM}"
+fi
+if [[ -z "${SLORA_READY_WAIT_S}" ]]; then
+  if (( TP_EFFECTIVE > 1 )); then
+    SLORA_READY_WAIT_S=1800
+  else
+    SLORA_READY_WAIT_S=720
+  fi
+fi
+SLORA_READY_WAIT_ITERS=$(( (SLORA_READY_WAIT_S + 1) / 2 ))
 REPLAY_PATH="${RESULT_DIR}/${RESULT_TAG}_replay.json"
 SUMMARY_PATH="${RESULT_DIR}/${RESULT_TAG}_summary.json"
 LAUNCH_SPEC_PATH="${SHARED_INPUT_DIR}/${RESULT_TAG}_launch.yaml"
@@ -345,6 +431,8 @@ echo "      cost_model(base/in/out)=${BASE_COST_USD}/${INPUT_TOKEN_COST_USD}/${O
 echo "      ttft_slo_ms=${TTFT_SLO_MS}"
 echo "      model=${MODEL_PATH}"
 echo "      topology=${SLORA_TOPOLOGY_LABEL} gpu_ids=${SLORA_GPU_IDS}"
+echo "      bmm=${SLORA_BMM_EFFECTIVE} (requested=${SLORA_USE_BMM})"
+echo "      ready_wait_s=${SLORA_READY_WAIT_S}"
 echo "      launch_spec=${LAUNCH_SPEC_PATH}"
 echo "      adapter_map=${ADAPTER_VALUE_MAP_PATH}"
 echo "      replay=${REPLAY_PATH}"
@@ -408,7 +496,7 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
   replica_gpu_mask="$(IFS=,; echo "${gpu_slice[*]}")"
   replica_log="${SERVER_LOG_PREFIX}_r${replica_idx}.log"
   launch_epoch="$(PYTHONNOUSERSITE=1 "${HELPER_PYTHON}" -c 'import time; print(f"{time.time():.6f}")')"
-  server_cmd=(
+	  server_cmd=(
     "${SLORA_PYTHON}" -m slora.server.api_server
     --model_dir "${MODEL_PATH}"
     --tokenizer_mode auto
@@ -421,9 +509,12 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
     --max_req_total_len "${SLORA_MAX_REQ_TOTAL_LEN}"
     --batch_max_tokens "${SLORA_BATCH_MAX_TOKENS}"
     --trust_remote_code
-    --swap
-    --disable_log_stats
-  )
+	    --swap
+	    --disable_log_stats
+	  )
+	  if [[ "${SLORA_BMM_EFFECTIVE}" == "1" ]]; then
+	    server_cmd+=(--bmm)
+	  fi
   for lora_dir in "${SLORA_LORA_DIRS[@]}"; do
     server_cmd+=(--lora-dirs "${lora_dir}")
   done
@@ -434,13 +525,13 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
   PYTHONPATH="${SLORA_REPO}:${PYTHONPATH:-}" \
   PYTHONNOUSERSITE=1 \
   PYTHONUNBUFFERED=1 \
-  "${server_cmd[@]}" > "${replica_log}" 2>&1 &
+  setsid "${server_cmd[@]}" > "${replica_log}" 2>&1 &
   replica_pid=$!
   SLORA_SERVER_PIDS="${SLORA_SERVER_PIDS} ${replica_pid}"
   echo "      replica=${replica_idx} pid=${replica_pid} port=${replica_port} gpu_mask=${replica_gpu_mask} log=${replica_log}"
 
   ready=0
-  for _ in $(seq 1 360); do
+	  for _ in $(seq 1 "${SLORA_READY_WAIT_ITERS}"); do
     if curl -s "http://${SLORA_HOST}:${replica_port}/health" >/tmp/slora_health_${RESULT_TAG}_${replica_idx}.txt 2>/dev/null; then
       ready=1
       break
@@ -452,8 +543,8 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
     fi
     sleep 2
   done
-  if [[ "${ready}" != "1" ]]; then
-    echo "[ERROR] timed out waiting for S-LoRA replica ${replica_idx} /health readiness. Tail log:" >&2
+	  if [[ "${ready}" != "1" ]]; then
+	    echo "[ERROR] timed out after ${SLORA_READY_WAIT_S}s waiting for S-LoRA replica ${replica_idx} /health readiness. Tail log:" >&2
     tail -n 120 "${replica_log}" >&2 || true
     exit 1
   fi

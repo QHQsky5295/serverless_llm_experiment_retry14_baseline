@@ -632,6 +632,17 @@ git diff --check
 - standalone streaming replay 必须请求 `stream_options.include_usage=true`，
   并对正输出 trace 设置 `min_tokens=1`，避免首步 EOS 造成不可观测 TTFT 的
   `200 OK` 空成功。
+- 2026-05-07 起，Llama-2 13B standalone vLLM 正式路径在同一 4-GPU
+  预算下使用 `DP=2, TP=2, max_num_seqs=8, max_loras=8,
+  max_num_batched_tokens=4096, max_cpu_loras=64`。根因是旧的
+  `seq/lora=2` 以及后续 `seq/lora=4` 包络在 s8 500-adapter replay 下
+  让 vLLM 后端长期停留在低 `Running` 上限并积累 `Pending` 队列，而 GPU
+  KV cache 使用率仍较低；256-request probe 只能覆盖第一个 hot set，
+  不足以证明 full replay 稳定。1000-request 同负载 probe 跨过
+  500-request hot-set rotation 后仍 0 failure、backlog 为个位数，且
+  vLLM 日志报告 1024-token 最大并发约 11.69x，因此 `seq/lora=8` 是当前
+  13B TP=2 baseline 的实测执行包络。该修复不改变 trace、adapter pool、
+  token budget 或 LoRA 选择语义，只修正 13B TP=2 baseline 的硬件执行包络。
 
 ### SGLang
 
@@ -653,6 +664,32 @@ git diff --check
 - S-LoRA native guard 必须与服务端 `tokenizer.encode(prompt)` 语义一致，
   包括 special tokens；否则长 prompt 会在服务端被重新计成 `+1 token` 并触发
   `the input prompt token len ... is too long`。
+- 2026-05-06 起，Llama-2 13B 的 S-LoRA 路径允许使用经过单独验证的
+  TP LoRA adapter 修复：去除官方 PEFT adapter path 中的 `world_size == 1`
+  限制，按 tensor-parallel rank 切分 LoRA 权重，并在 LoRA attention output
+  后执行 TP all-reduce。该修复只补齐 Llama-family TP 执行能力，不引入
+  PrimeLoRA 的 adapter-aware placement、scale-out preparation 或 residency
+  migration。Qwen-family 仍因缺少 S-LoRA 上游 Qwen model backend 而标记为
+  `.unsupported`。
+- Llama-2 13B 正式 S-LoRA 轮次使用同一 4-GPU 预算下的 `DP=1, TP=4`。
+  原因是 `DP=2, TP=2` 会把 500 个 PEFT adapter 的 host-side registry 和
+  CPU buffer 复制到两个 data-parallel replica，在 125GB 主机内存测试床上
+  触发严重内存压力并可能影响 SSH/系统响应；`DP=1, TP=4` 仍使用全部 4 张
+  GPU，保留 S-LoRA 的 serverful multi-LoRA runtime 语义，并避免用不安全
+  拓扑污染正式结果。
+- Llama-2 13B 的 S-LoRA 正式路径必须自动启用 `--bmm`。原因是官方 packed
+  BGMV adapter pool 只支持 `world_size=1` 的同构 q/k/v/o 维度；tensor
+  parallel 下 q/k/v 是 column-parallel 局部输出，而 o projection 是
+  row-parallel 局部输入，必须走按 adapter 分组的 BMM 路径并在 o projection
+  后执行 TP all-reduce。该修改不改变 S-LoRA 的调度、paging、adapter registry
+  或请求语义。
+- 2026-05-07 已通过 `Llama-2 13B / TP=4 / BMM / 500 adapters / 16 requests`
+  真实 smoke：`ok=16/16`，无 `trace_expected` token fallback，无 runtime
+  traceback，结束后 GPU compute state clean。该 smoke 用于证明 13B TP LoRA
+  执行路径正确，不作为论文性能数据。
+- S-LoRA runner 必须使用独立 process group 启动 replica，并在超时或失败时
+  清理整个 TP worker tree。否则健康检查超时会留下四个 CUDA worker 持续占用
+  GPU，污染后续系统实验。
 - S-LoRA 环境必须使用 `nvidia/label/cuda-11.8.0`，禁止默认 `nvidia` channel
   混装 CUDA 12/13 组件。
 - 真实结果必须先通过 shared-subset GPU replay 和 replay success/token-source gate。

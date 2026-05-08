@@ -208,6 +208,28 @@ prep -> SGLang -> ServerlessLLM -> vLLM -> S-LoRA -> FaaSLoRA -> compare
 - `S-LoRA`: serverful multi-LoRA paper baseline。
 - `Punica`: Llama-2 7B scoped auxiliary baseline，不进入完整四 backbone 主表。
 
+Llama-2 13B 主对比补充状态：
+
+- `vLLM` 不再使用早期保守的 `seq/lora=2` 或 `seq/lora=4` 13B 包络。
+  2026-05-07 的 s8/full 诊断显示，旧配置的异常 TTFT 来自 vLLM 后端内部
+  Pending 队列长期累积，而非 replay 失败或 GPU OOM；256-request probe
+  对 13B 不充分，因为它只覆盖第一个 hot set。后续同负载
+  `DP=2,TP=2,max_num_seqs=8,max_loras=8,max_num_batched_tokens=4096`
+  probe 跨过 500-request hot-set rotation 后仍保持 0 failure、个位数
+  backlog，且 vLLM 日志报告 1024-token 最大并发约 11.69x。正式 13B
+  vLLM rerun 应使用该包络，仍保持同一 4-GPU 预算、500-adapter pool、
+  s8 trace 和 OpenAI completions LoRA 语义。
+- `S-LoRA` 不再回避 13B。当前路径使用同一 4-GPU 预算下的 `DP=1, TP=4`，
+  并自动启用官方 BMM adapter path。原因是 S-LoRA 原 packed BGMV pool 仅适配
+  `world_size=1`，而 13B 需要 tensor parallel；BMM 路径已补齐 q/k/v/o 的
+  TP LoRA 分片和 o projection 后的 all-reduce。
+- 已完成 `20260507_13b_preflight_llama13b_slora_tp4_bmmfix3_smoke16_a500`
+  真实 preflight：500-adapter 注册、16/16 请求成功、无 token fallback、无
+  runtime traceback，结束后 GPU clean。该轮仅作为正确性 gate，不进入论文图表。
+- `run_slora_fair_experiment.sh` 现在用独立 process group 启动 S-LoRA replica，
+  失败或超时时清理整个 TP worker tree，避免旧 worker 占 GPU 造成后续系统
+  “看似崩溃”。
+
 ## 3. 权威脚本
 
 启动新的完整 round：
@@ -592,8 +614,19 @@ Qwen2.5-7B 的 vLLM 例外保持 `dp4/tp1` 并限制 active CPU LoRA cache，
   `lora_modules_count=500`。
 - S-LoRA dry-run 曾验证 launch spec 能为 Qwen2.5 生成 `dp4/tp1`/500 LoRA
   dirs，但正式启动暴露上游 model backend 限制：`qwen2` 不受支持。因此 Qwen
-  family 不再强行跑 S-LoRA；Llama-2 13B 继续按 `dp2/tp2` 和 500 LoRA dirs
-  参与 backbone 对比。
+  family 不再强行跑 S-LoRA。
+- 2026-05-06 补充 Llama-2 13B S-LoRA TP2 修复。此前 smoke 暴露官方 PEFT
+  LoRA adapter path 中的 `assert world_size == 1`，导致 13B 在 4xRTX3090
+  测试床必须使用 `dp2/tp2` 时无法启动。当前修复按 TP rank 切分 LoRA 权重，
+  将 combined CPU buffer reshape 改为 local attention heads，并恢复 LoRA
+  attention output 的 TP all-reduce。fair-round runner 因此不再跳过 Llama
+  13B S-LoRA；Qwen-family 仍因缺少 S-LoRA 上游 Qwen model backend 而标记为
+  `.unsupported`。
+- 进一步 smoke 显示，Llama-2 13B 的 `dp2/tp2` S-LoRA 虽可启动第一组 TP
+  replica，但第二个 data-parallel replica 会重复加载 500 个 adapter 的
+  host-side 状态，使 `MemAvailable` 快速降到危险区间并增加整机卡死风险。
+  因此 Llama-2 13B 正式主轮次固定为 `dp1/tp4`：仍使用同一 4-GPU 预算和
+  S-LoRA serverful runtime，但不再复制整套 adapter pool 到多个 DP replica。
 - 2026-05-04 补充 Qwen2.5-14B standalone vLLM smoke：`dp2/tp2`、
   `max_num_seqs=2`、`max_loras=2`、`max_cpu_loras=8`、
   `lora_registration_mode=dynamic`、

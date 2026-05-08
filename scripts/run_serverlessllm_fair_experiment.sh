@@ -22,7 +22,17 @@ VLLM_ENV_NAME="${SLLM_VLLM_ENV_NAME:-sllm_vllm0102_official}"
 VLLM_SOURCE_ENV="${SLLM_VLLM_SOURCE_ENV:-LLM_vllm0102}"
 CONDA_ROOT="${SLLM_CONDA_ROOT:-/home/qhq/anaconda3}"
 SLEEP_SCALE="${SLLM_SLEEP_SCALE:-1.0}"
-TIMEOUT_S="${SLLM_TIMEOUT_S:-3600}"
+default_client_timeout_s() {
+  case "${MODEL_PROFILE}" in
+    *13b*|*14b*|*13B*|*14B*)
+      printf '%s\n' 21600
+      ;;
+    *)
+      printf '%s\n' 3600
+      ;;
+  esac
+}
+TIMEOUT_S="${SLLM_TIMEOUT_S:-$(default_client_timeout_s)}"
 EMPTY_SUCCESS_RETRIES="${SLLM_EMPTY_SUCCESS_RETRIES:-2}"
 EMPTY_SUCCESS_RETRY_DELAY_S="${SLLM_EMPTY_SUCCESS_RETRY_DELAY_S:-1.0}"
 VLLM_PROBE_TIMEOUT_S="${SLLM_VLLM_PROBE_TIMEOUT_S:-120}"

@@ -189,6 +189,40 @@ S-LoRA 下一步 gate：
 
 本轮可以作为 `Llama-2 7B / 500 requests / 500 adapters` debug gate 的有效 S-LoRA 结果。正式论文主结论仍需重跑 `4000 requests`，并继续遵守本文档的边界：不修改 S-LoRA 算法逻辑，不用其它 backend 冒充 S-LoRA，不使用无法跨系统观测的内部机制字段做横向图。
 
+## 2026-05-07 补充：Llama-2 13B 复现边界与当前判断
+
+本轮重新核查了官方文档、公开源码、shared adapter subset 和本机日志。结论是：
+S-LoRA 在 `Llama-2 7B` 上可以使用 `DP4/TP1` 复现正式 multi-LoRA baseline；
+但在本机 `4 x RTX 3090 24GB` 上复现 `Llama-2 13B` 会进入 S-LoRA 公开代码的
+LoRA tensor-parallel 边界，不能把该结果简单当成与 7B 同等成熟的主表 baseline。
+
+依据如下：
+
+- 官方 README 的 evaluation 设置确实包含 `S4: Llama-13B, hidden size 5120,
+  adapter ranks {64, 32, 16}`，并在方法部分描述了 S-LoRA TP。
+- 但同一官方 README 的 Roadmap 仍列出 `Release tensor parallelism implementation`。
+- 公开源码中 `slora/models/peft/lora_adapter.py` 的原始 `LoraTpPartAdapter`
+  路径包含 `assert world_size == 1`，说明当前开源 PEFT LoRA adapter path
+  并没有完整开放可直接用于正式复现的 TP LoRA 实现。
+- 本机 `Llama-2 13B` frozen subset 为 `500` 个 PEFT adapter，rank 分布为
+  `r=8: 375, r=16: 42, r=4: 83`，与官方 13B S4 的 `{64, 32, 16}` 不完全一致。
+  早期 TP4 fast-kernel 路径曾触发 rank/shape 相关 kernel 缺口。
+- 因为单张 3090 24GB 无法稳定承载 13B + 500 adapter 正式服务，13B 必须使用
+  tensor parallelism；这正好触发上述公开源码边界。7B 不触发该问题，是因为
+  正式复现可使用 `DP4/TP1`，每个 replica 单卡运行。
+
+当前工程判断：
+
+1. 可以继续把 S-LoRA 作为 `Llama-2 7B` 的正式 serverful multi-LoRA baseline。
+2. 对 `Llama-2 13B`，若使用当前本地 TP 修复和 `--bmm` 路径，服务端可以接收请求，
+   但这是官方 README 中定义的 `S-LoRA-bmm` 变体，即“不使用 Unified Paging 和
+   customized kernels”的退化路径，吞吐和 TPOT 会显著变差。
+3. 因此，`Llama-2 13B` 的 S-LoRA 结果只有在明确标注为 `S-LoRA-bmm/TP diagnostic`
+   时才可作为附加诊断；不应在论文主表中伪装成完整 S-LoRA fast-kernel 13B 结果。
+4. 如果后续坚持把 S-LoRA 纳入 13B 主表，必须单独跑完整 `4000 requests`、
+   `500 adapters`、`e2e_v3`，并在结果说明中写明它是公开代码可运行边界下的
+   BMM 变体，而不是官方论文中宣称的完整 TP optimized path。
+
 ## 7. 推荐环境建立命令
 
 如果本机没有 `slora_official_cu118`，按官方依赖边界优先建立独立环境。以下命令是复现入口，

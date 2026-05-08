@@ -35,6 +35,7 @@ STRICT_GPU_IDLE="${FAIR_ROUND_STRICT_GPU_IDLE:-1}"
 CLEANUP_TIMEOUT_S="${FAIR_ROUND_CLEANUP_TIMEOUT_S:-180}"
 FORCE_RERUN="${FAIR_ROUND_FORCE:-0}"
 KILL_KNOWN_GPU_RESIDUALS="${FAIR_ROUND_KILL_KNOWN_GPU_RESIDUALS:-1}"
+DRY_RUN="${FAIR_ROUND_DRY_RUN:-${PAPER_QUEUE_DRY_RUN:-0}}"
 
 TRACE_PATH="${ROUND_DIR}/shared_artifacts/${RUN_TAG}_trace.json"
 ADAPTER_SUBSET_PATH="${ROUND_DIR}/shared_artifacts/${RUN_TAG}_adapter_subset.json"
@@ -77,6 +78,17 @@ write_round_env
 
 log() {
   printf '[%s] %s\n' "$(date '+%F %T')" "$*"
+}
+
+default_client_timeout_s() {
+  case "${MODEL_PROFILE}" in
+    *13b*|*14b*|*13B*|*14B*)
+      printf '%s\n' 21600
+      ;;
+    *)
+      printf '%s\n' 3600
+      ;;
+  esac
 }
 
 stage_done_path() {
@@ -178,6 +190,11 @@ kill_listener_port() {
   fi
   mapfile -t pids < <(lsof -tiTCP:"${port}" -sTCP:LISTEN 2>/dev/null | awk '!seen[$0]++')
   if (( ${#pids[@]} == 0 )); then
+    if command -v ss >/dev/null 2>&1 && ss -ltn 2>/dev/null | awk '{print $4}' | grep -Eq "(^|:)${port}$"; then
+      echo "[ERROR] listener remains on port=${port}, but its PID is not visible to the current user." >&2
+      echo "        It is likely owned by root or a container; stop it before running a fair round." >&2
+      return 1
+    fi
     return 0
   fi
   log "clearing stale listener port=${port} pid=${pids[*]}"
@@ -191,6 +208,12 @@ kill_listener_port() {
   done
   log "forcing stale listener cleanup port=${port} pid=${pids[*]}"
   kill -9 "${pids[@]}" 2>/dev/null || true
+  sleep 1
+  if command -v ss >/dev/null 2>&1 && ss -ltn 2>/dev/null | awk '{print $4}' | grep -Eq "(^|:)${port}$"; then
+    echo "[ERROR] listener remains on port=${port} after cleanup." >&2
+    echo "        Stop the owning process before running a fair round." >&2
+    return 1
+  fi
 }
 
 cleanup_known_leftovers() {
@@ -201,6 +224,7 @@ cleanup_known_leftovers() {
     8363 8373 8383 8393
     8463 8473 8483 8493
     8000 8001 8002 8003
+    8080
   )
   local port
   for port in "${ports[@]}"; do
@@ -272,9 +296,24 @@ gpu_compute_rows() {
     if ! query_output="$(nvidia-smi --id="${gpu}" --query-compute-apps=pid,used_gpu_memory,process_name --format=csv,noheader,nounits 2>/dev/null)"; then
       continue
     fi
-    printf '%s\n' "${query_output}" \
-      | sed '/^[[:space:]]*$/d' \
-      | awk -v gpu="${gpu}" '{print "gpu=" gpu " " $0}'
+    while IFS=',' read -r pid used_mem process_name; do
+      pid="$(printf '%s' "${pid}" | xargs)"
+      used_mem="$(printf '%s' "${used_mem}" | xargs)"
+      process_name="$(printf '%s' "${process_name}" | xargs)"
+      [[ -z "${pid}" ]] && continue
+      local user=""
+      local cmd=""
+      user="$(ps -p "${pid}" -o user= 2>/dev/null | xargs || true)"
+      cmd="$(ps -p "${pid}" -o args= 2>/dev/null || true)"
+      if (( ${#cmd} > 240 )); then
+        cmd="${cmd:0:240}..."
+      fi
+      if [[ -n "${cmd}" ]]; then
+        printf 'gpu=%s pid=%s mem=%sMiB process=%s user=%s cmd=%s\n' "${gpu}" "${pid}" "${used_mem}" "${process_name}" "${user:-unknown}" "${cmd}"
+      else
+        printf 'gpu=%s pid=%s mem=%sMiB process=%s user=%s cmd=<unavailable>\n' "${gpu}" "${pid}" "${used_mem}" "${process_name}" "${user:-unknown}"
+      fi
+    done < <(printf '%s\n' "${query_output}" | sed '/^[[:space:]]*$/d')
   done
 }
 
@@ -309,6 +348,20 @@ wait_gpu_idle() {
     sleep 5
   done
 }
+
+ROUND_EXIT_CLEANUP_RUNNING=0
+cleanup_on_round_exit() {
+  local status=$?
+  if (( ROUND_EXIT_CLEANUP_RUNNING != 0 )); then
+    return "${status}"
+  fi
+  ROUND_EXIT_CLEANUP_RUNNING=1
+  set +e
+  cleanup_known_leftovers >/dev/null 2>&1 || true
+  ROUND_EXIT_CLEANUP_RUNNING=0
+  return "${status}"
+}
+trap cleanup_on_round_exit EXIT INT TERM HUP
 
 pre_system_clean_check() {
   local system="$1"
@@ -469,6 +522,8 @@ run_serverlessllm() {
     log "skip ${stage}; marker exists"
     return 0
   fi
+  local serverless_timeout_s="${SLLM_TIMEOUT_S:-$(default_client_timeout_s)}"
+  log "ServerlessLLM client timeout=${serverless_timeout_s}s for model_profile=${MODEL_PROFILE}"
   pre_system_clean_check "ServerlessLLM"
   run_logged "${stage}" env \
     SLLM_BASELINES_ROOT="${BASELINES_ROOT}" \
@@ -487,6 +542,7 @@ run_serverlessllm() {
     SLLM_SHARED_ADAPTER_SUBSET_PATH="${ADAPTER_SUBSET_PATH}" \
     SLLM_BACKEND="${SLLM_BACKEND:-vllm}" \
     SLLM_WORKER_GPUS="${GPU_IDS}" \
+    SLLM_TIMEOUT_S="${serverless_timeout_s}" \
     bash "${BASELINES_ROOT}/scripts/run_serverlessllm_fair_experiment.sh"
   validate_summary "ServerlessLLM" "$(summary_path_for_system serverlessllm)"
   post_system_clean_check "ServerlessLLM"
@@ -511,6 +567,13 @@ run_vllm() {
   local vllm_dynamic_lora_hot_pair_max_adapters="${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS:-}"
   local vllm_dynamic_lora_max_loaded_per_endpoint="${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT:-}"
   local vllm_disable_frontend_mp="${VLLM_DISABLE_FRONTEND_MULTIPROCESSING:-}"
+  local vllm_enforce_eager="${VLLM_ENFORCE_EAGER:-}"
+  local vllm_enable_chunked_prefill="${VLLM_ENABLE_CHUNKED_PREFILL:-}"
+  local vllm_enable_prefix_caching="${VLLM_ENABLE_PREFIX_CACHING:-}"
+  local vllm_use_v1="${VLLM_USE_V1:-}"
+  local vllm_use_flashinfer_sampler="${VLLM_USE_FLASHINFER_SAMPLER:-}"
+  local vllm_attention_backend="${VLLM_ATTENTION_BACKEND:-}"
+  local vllm_timeout_s="${VLLM_TIMEOUT_S:-$(default_client_timeout_s)}"
   if [[ -z "${vllm_dp}" && -z "${vllm_tp}" && "${MODEL_PROFILE}" == "qwen_7b_main_v2_publicmix" ]]; then
     # Qwen2.5-7B V2 uses the vLLM V0/eager path in the current environment.
     # Static registration preloads all sampled LoRA modules into every OpenAI
@@ -532,6 +595,30 @@ run_vllm() {
     vllm_dynamic_lora_max_loaded_per_endpoint="${vllm_dynamic_lora_max_loaded_per_endpoint:-${VLLM_QWEN7_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT:-${vllm_max_cpu_loras}}}"
     vllm_disable_frontend_mp="${vllm_disable_frontend_mp:-${VLLM_QWEN7_DISABLE_FRONTEND_MULTIPROCESSING:-1}}"
     log "vLLM Qwen2.5-7B safe topology override: dp=${vllm_dp} tp=${vllm_tp} max_num_seqs=${vllm_max_num_seqs} max_loras=${vllm_max_loras} max_cpu_loras=${vllm_max_cpu_loras} max_batched_tokens=${vllm_max_num_batched_tokens} lora_registration_mode=${vllm_lora_registration_mode} dynamic_lora_routing=${vllm_dynamic_lora_routing} hot_pair_threshold=${vllm_dynamic_lora_hot_pair_threshold} hot_pair_max=${vllm_dynamic_lora_hot_pair_max_adapters} dynamic_lora_max_loaded_per_endpoint=${vllm_dynamic_lora_max_loaded_per_endpoint} disable_frontend_mp=${vllm_disable_frontend_mp} on gpu_ids=${GPU_IDS}"
+  fi
+  if [[ -z "${vllm_dp}" && -z "${vllm_tp}" && "${MODEL_PROFILE}" == "llama2_13b_tp2_v2_publicmix" ]]; then
+    # Llama-2-13B uses two TP=2 vLLM replicas on the four-GPU testbed.  The
+    # V0 eager path is correct but excessively serializes long-prefill
+    # multi-LoRA replay at this scale.  Use the same static LoRA universe for
+    # fairness, while allowing vLLM's graph/chunked-prefill path so the baseline
+    # is not penalized by a conservative smoke-test configuration.  The earlier
+    # seq/lora=2 and seq/lora=4 envelopes left each backend with low KV-cache
+    # occupancy and persistent internal Pending queues on the fixed s8 replay.
+    # A same-load 1000-request probe that crosses the 500-request hot-set
+    # rotation stayed failure-free at seq/lora=8, with vLLM reporting maximum
+    # concurrency 11.69x for 1024-token requests.  Therefore seq/lora=8 is the
+    # current stable 13B serving envelope on this 4x3090 testbed.
+    vllm_dp="${VLLM_LLAMA13B_SAFE_DP:-2}"
+    vllm_tp="${VLLM_LLAMA13B_SAFE_TP:-2}"
+    vllm_max_num_seqs="${vllm_max_num_seqs:-${VLLM_LLAMA13B_SAFE_MAX_NUM_SEQS:-8}}"
+    vllm_max_loras="${vllm_max_loras:-${VLLM_LLAMA13B_SAFE_MAX_LORAS:-8}}"
+    vllm_max_num_batched_tokens="${vllm_max_num_batched_tokens:-${VLLM_LLAMA13B_SAFE_MAX_NUM_BATCHED_TOKENS:-4096}}"
+    vllm_max_cpu_loras="${vllm_max_cpu_loras:-${VLLM_LLAMA13B_SAFE_MAX_CPU_LORAS:-64}}"
+    vllm_lora_registration_mode="${vllm_lora_registration_mode:-${VLLM_LLAMA13B_LORA_REGISTRATION_MODE:-static}}"
+    vllm_enforce_eager="${vllm_enforce_eager:-${VLLM_LLAMA13B_ENFORCE_EAGER:-0}}"
+    vllm_enable_chunked_prefill="${vllm_enable_chunked_prefill:-${VLLM_LLAMA13B_ENABLE_CHUNKED_PREFILL:-1}}"
+    vllm_enable_prefix_caching="${vllm_enable_prefix_caching:-${VLLM_LLAMA13B_ENABLE_PREFIX_CACHING:-0}}"
+    log "vLLM Llama-2-13B topology override: dp=${vllm_dp} tp=${vllm_tp} max_num_seqs=${vllm_max_num_seqs} max_loras=${vllm_max_loras} max_cpu_loras=${vllm_max_cpu_loras} max_batched_tokens=${vllm_max_num_batched_tokens} lora_registration_mode=${vllm_lora_registration_mode} enforce_eager=${vllm_enforce_eager} chunked_prefill=${vllm_enable_chunked_prefill} prefix_caching=${vllm_enable_prefix_caching} on gpu_ids=${GPU_IDS}"
   fi
   if [[ -z "${vllm_lora_registration_mode}" ]]; then
     if [[ "${MODEL_PROFILE}" == qwen_* ]]; then
@@ -569,6 +656,7 @@ run_vllm() {
     fi
   fi
   pre_system_clean_check "vLLM"
+  log "vLLM client timeout=${vllm_timeout_s}s for model_profile=${MODEL_PROFILE}"
   run_logged "${stage}" env \
     SLLM_BASELINES_ROOT="${BASELINES_ROOT}" \
     SLLM_MAIN_REPO="${MAIN_REPO}" \
@@ -597,6 +685,13 @@ run_vllm() {
     VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS="${vllm_dynamic_lora_hot_pair_max_adapters}" \
     VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT="${vllm_dynamic_lora_max_loaded_per_endpoint}" \
     VLLM_DISABLE_FRONTEND_MULTIPROCESSING="${vllm_disable_frontend_mp}" \
+    VLLM_ENFORCE_EAGER="${vllm_enforce_eager}" \
+    VLLM_ENABLE_CHUNKED_PREFILL="${vllm_enable_chunked_prefill}" \
+    VLLM_ENABLE_PREFIX_CACHING="${vllm_enable_prefix_caching}" \
+    VLLM_USE_V1="${vllm_use_v1}" \
+    VLLM_USE_FLASHINFER_SAMPLER="${vllm_use_flashinfer_sampler}" \
+    VLLM_ATTENTION_BACKEND="${vllm_attention_backend}" \
+    VLLM_TIMEOUT_S="${vllm_timeout_s}" \
     bash "${BASELINES_ROOT}/scripts/run_vllm_fair_experiment.sh"
   if [[ "${VLLM_SMOKE_ONLY:-0}" == "1" ]]; then
     log "vLLM smoke-only run completed; skipping formal summary validation"
@@ -613,6 +708,8 @@ run_slora() {
     log "skip ${stage}; marker exists"
     return 0
   fi
+  local slora_timeout_s="${SLORA_TIMEOUT_S:-$(default_client_timeout_s)}"
+  log "S-LoRA client timeout=${slora_timeout_s}s for model_profile=${MODEL_PROFILE}"
   pre_system_clean_check "S-LoRA"
   run_logged "${stage}" env \
     SLLM_BASELINES_ROOT="${BASELINES_ROOT}" \
@@ -632,6 +729,7 @@ run_slora() {
     SLORA_GPU_IDS="${GPU_IDS}" \
     SLORA_DATA_PARALLEL_REPLICAS="${SLORA_DATA_PARALLEL_REPLICAS:-}" \
     SLORA_TENSOR_PARALLEL_SIZE="${SLORA_TENSOR_PARALLEL_SIZE:-}" \
+    SLORA_TIMEOUT_S="${slora_timeout_s}" \
     bash "${BASELINES_ROOT}/scripts/run_slora_fair_experiment.sh"
   validate_summary "S-LoRA" "$(summary_path_for_system slora)"
   post_system_clean_check "S-LoRA"
@@ -842,6 +940,12 @@ main() {
   log "run_tag=${RUN_TAG}"
   log "resume_file=${ROUND_ENV_FILE}"
   run_prep
+  if [[ "${DRY_RUN}" == "1" ]]; then
+    log "dry-run complete after shared artifact preparation; selected systems=${SYSTEMS}"
+    log "dry-run does not launch serving systems, replay requests, validate summaries, or write compare tables"
+    write_manifest
+    return 0
+  fi
   run_system_if_selected sglang
   run_system_if_selected serverlessllm
   run_system_if_selected vllm

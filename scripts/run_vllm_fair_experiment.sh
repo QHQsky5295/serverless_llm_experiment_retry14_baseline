@@ -27,14 +27,24 @@ VLLM_GPU_IDS="${VLLM_GPU_IDS:-0,1,2,3}"
 VLLM_TENSOR_PARALLEL_SIZE="${VLLM_TENSOR_PARALLEL_SIZE:-}"
 VLLM_DATA_PARALLEL_REPLICAS="${VLLM_DATA_PARALLEL_REPLICAS:-}"
 VLLM_SLEEP_SCALE="${VLLM_SLEEP_SCALE:-1.0}"
-VLLM_TIMEOUT_S="${VLLM_TIMEOUT_S:-3600}"
+default_client_timeout_s() {
+  case "${MODEL_PROFILE}" in
+    *13b*|*14b*|*13B*|*14B*)
+      printf '%s\n' 21600
+      ;;
+    *)
+      printf '%s\n' 3600
+      ;;
+  esac
+}
+VLLM_TIMEOUT_S="${VLLM_TIMEOUT_S:-$(default_client_timeout_s)}"
 VLLM_DRY_RUN="${VLLM_DRY_RUN:-0}"
 VLLM_MIN_OUTPUT_TOKENS="${VLLM_MIN_OUTPUT_TOKENS:-1}"
 VLLM_INCLUDE_STREAM_USAGE="${VLLM_INCLUDE_STREAM_USAGE:-1}"
 VLLM_EMPTY_SUCCESS_RETRIES="${VLLM_EMPTY_SUCCESS_RETRIES:-2}"
 VLLM_EMPTY_SUCCESS_RETRY_DELAY_S="${VLLM_EMPTY_SUCCESS_RETRY_DELAY_S:-0.5}"
-VLLM_HOST_MIN_MEM_GB="${VLLM_HOST_MIN_MEM_GB:-16}"
-VLLM_HOST_WARN_MEM_GB="${VLLM_HOST_WARN_MEM_GB:-32}"
+VLLM_HOST_MIN_MEM_GB="${VLLM_HOST_MIN_MEM_GB:-32}"
+VLLM_HOST_WARN_MEM_GB="${VLLM_HOST_WARN_MEM_GB:-48}"
 VLLM_MEM_WATCH_INTERVAL_S="${VLLM_MEM_WATCH_INTERVAL_S:-2}"
 VLLM_SMOKE_ONLY="${VLLM_SMOKE_ONLY:-0}"
 VLLM_SMOKE_MAX_TOKENS="${VLLM_SMOKE_MAX_TOKENS:-1}"
@@ -42,6 +52,12 @@ VLLM_MAX_LORAS="${VLLM_MAX_LORAS:-}"
 VLLM_MAX_NUM_SEQS="${VLLM_MAX_NUM_SEQS:-}"
 VLLM_MAX_NUM_BATCHED_TOKENS="${VLLM_MAX_NUM_BATCHED_TOKENS:-}"
 VLLM_MAX_REPLAY_REQUESTS="${VLLM_MAX_REPLAY_REQUESTS:-0}"
+VLLM_ENFORCE_EAGER="${VLLM_ENFORCE_EAGER:-}"
+VLLM_ENABLE_CHUNKED_PREFILL="${VLLM_ENABLE_CHUNKED_PREFILL:-}"
+VLLM_ENABLE_PREFIX_CACHING="${VLLM_ENABLE_PREFIX_CACHING:-}"
+VLLM_USE_V1_OVERRIDE="${VLLM_USE_V1:-}"
+VLLM_USE_FLASHINFER_SAMPLER_OVERRIDE="${VLLM_USE_FLASHINFER_SAMPLER:-}"
+VLLM_ATTENTION_BACKEND_OVERRIDE="${VLLM_ATTENTION_BACKEND:-}"
 VLLM_LORA_REGISTRATION_MODE="${VLLM_LORA_REGISTRATION_MODE:-static}"
 VLLM_DYNAMIC_LORA_ROUTING="${VLLM_DYNAMIC_LORA_ROUTING:-round_robin}"
 VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD="${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD:-8}"
@@ -88,13 +104,80 @@ case "${VLLM_DYNAMIC_LORA_ROUTING}" in
     ;;
 esac
 
+vllm_pid_tree() {
+  local roots=("$@")
+  if (( ${#roots[@]} == 0 )); then
+    return 0
+  fi
+  PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${roots[@]}" <<'PY'
+import subprocess
+import sys
+
+roots = []
+for item in sys.argv[1:]:
+    try:
+        roots.append(int(item))
+    except ValueError:
+        pass
+if not roots:
+    raise SystemExit(0)
+
+children = {}
+out = subprocess.run(
+    ["ps", "-eo", "pid=,ppid="],
+    text=True,
+    stdout=subprocess.PIPE,
+    check=False,
+).stdout.splitlines()
+for line in out:
+    parts = line.strip().split()
+    if len(parts) != 2:
+        continue
+    pid, ppid = map(int, parts)
+    children.setdefault(ppid, []).append(pid)
+
+seen = set()
+ordered = []
+def walk(pid: int) -> None:
+    if pid in seen:
+        return
+    seen.add(pid)
+    ordered.append(pid)
+    for child in children.get(pid, []):
+        walk(child)
+
+for root in roots:
+    walk(root)
+print(" ".join(str(pid) for pid in ordered))
+PY
+}
+
 stop_vllm_servers() {
   if [[ -n "${VLLM_SERVER_PIDS:-}" ]]; then
-    for pid in ${VLLM_SERVER_PIDS}; do
+    local pids=()
+    local pid=""
+    local tree=""
+    mapfile -t pids < <(printf '%s\n' ${VLLM_SERVER_PIDS} | awk 'NF && !seen[$0]++')
+    for pid in "${pids[@]}"; do
+      tree="$(vllm_pid_tree "${pid}" 2>/dev/null || true)"
+      if [[ -n "${tree}" ]]; then
+        echo "      stopping vLLM process tree root=${pid}: ${tree}"
+        kill ${tree} 2>/dev/null || true
+      fi
       kill -- "-${pid}" 2>/dev/null || true
       kill "${pid}" 2>/dev/null || true
     done
-    for pid in ${VLLM_SERVER_PIDS}; do
+    sleep 5
+    for pid in "${pids[@]}"; do
+      tree="$(vllm_pid_tree "${pid}" 2>/dev/null || true)"
+      if [[ -n "${tree}" ]]; then
+        echo "      force-stopping vLLM process tree root=${pid}: ${tree}"
+        kill -9 ${tree} 2>/dev/null || true
+      fi
+      kill -9 -- "-${pid}" 2>/dev/null || true
+      kill -9 "${pid}" 2>/dev/null || true
+    done
+    for pid in "${pids[@]}"; do
       wait "${pid}" 2>/dev/null || true
     done
     VLLM_SERVER_PIDS=""
@@ -106,7 +189,7 @@ cleanup() {
   stop_vllm_servers
   return "${status}"
 }
-trap cleanup EXIT
+trap cleanup EXIT INT TERM HUP
 
 mem_available_kib() {
   awk '/^MemAvailable:/ {print $2; exit}' /proc/meminfo
@@ -449,6 +532,35 @@ apply_positive_int_override() {
 MAX_LORAS="$(apply_positive_int_override VLLM_MAX_LORAS "${MAX_LORAS}")"
 MAX_NUM_SEQS="$(apply_positive_int_override VLLM_MAX_NUM_SEQS "${MAX_NUM_SEQS}")"
 MAX_NUM_BATCHED_TOKENS="$(apply_positive_int_override VLLM_MAX_NUM_BATCHED_TOKENS "${MAX_NUM_BATCHED_TOKENS}")"
+apply_bool_override() {
+  local env_name="$1"
+  local current_value="$2"
+  local override_value="${!env_name:-}"
+  if [[ -z "${override_value}" ]]; then
+    printf '%s\n' "${current_value}"
+    return 0
+  fi
+  case "$(printf '%s' "${override_value}" | tr '[:upper:]' '[:lower:]')" in
+    1|true|yes|y|on)
+      printf '1\n'
+      ;;
+    0|false|no|n|off)
+      printf '0\n'
+      ;;
+    *)
+      echo "[ERROR] ${env_name} must be boolean, got ${override_value}" >&2
+      return 1
+      ;;
+  esac
+}
+ENABLE_CHUNKED_PREFILL="$(apply_bool_override VLLM_ENABLE_CHUNKED_PREFILL "${ENABLE_CHUNKED_PREFILL}")"
+ENABLE_PREFIX_CACHING="$(apply_bool_override VLLM_ENABLE_PREFIX_CACHING "${ENABLE_PREFIX_CACHING}")"
+ENFORCE_EAGER="$(apply_bool_override VLLM_ENFORCE_EAGER "${ENFORCE_EAGER}")"
+VLLM_USE_V1_EFFECTIVE="$(apply_bool_override VLLM_USE_V1_OVERRIDE "${VLLM_USE_V1_EFFECTIVE}")"
+VLLM_USE_FLASHINFER_SAMPLER_EFFECTIVE="$(apply_bool_override VLLM_USE_FLASHINFER_SAMPLER_OVERRIDE "${VLLM_USE_FLASHINFER_SAMPLER_EFFECTIVE}")"
+if [[ -n "${VLLM_ATTENTION_BACKEND_OVERRIDE}" ]]; then
+  VLLM_ATTENTION_BACKEND_EFFECTIVE="${VLLM_ATTENTION_BACKEND_OVERRIDE}"
+fi
 if (( MAX_LORAS < MAX_NUM_SEQS )); then
   echo "[ERROR] max_loras=${MAX_LORAS} is smaller than max_num_seqs=${MAX_NUM_SEQS}." >&2
   echo "        Set VLLM_MAX_LORAS>=VLLM_MAX_NUM_SEQS for formal multi-LoRA runs." >&2
