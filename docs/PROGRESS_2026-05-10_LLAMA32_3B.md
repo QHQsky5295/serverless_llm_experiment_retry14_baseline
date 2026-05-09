@@ -78,12 +78,19 @@
 
 ## 与 Llama-2 13B 的关系
 
-本地已有 Llama-2 13B 结果显示，该模型规模更符合论文的 elasticity/readiness 叙事：
+本地已有 Llama-2 13B 结果显示，该模型规模更符合论文的 elasticity/readiness 叙事，但仍需要使用最强已完成 baseline 结果做公平比较：
 
-- SGLang 13B 已完成结果 CE 约 61.52；
+- SGLang 13B 早期 round CE 约 61.52；更强的 cap8/core round CE 约 81.84，应以后者作为主表比较对象；
 - vLLM 13B 已完成结果 CE 约 36.70；
-- PrimeLoRA 13B 正式候选结果最高约 76.66，具备 CE 第一的趋势；
+- PrimeLoRA 13B 正式候选结果最高约 76.66，接近但尚未超过更强的 SGLang 13B，因此不能直接定稿；
 - S-LoRA 13B 在当前 4x RTX 3090 24GB、长 Azure trace、500 adapters 环境下表现异常差。S-LoRA 论文/官方博客中的 Llama-13B 设置使用 A100 80GB 级别环境，因此该差异更像硬件与长序列压力不匹配，而不是简单代码崩溃。
+
+已启动新的合法 PrimeLoRA-only 13B formal 候选：
+
+- session: `paper_llama13b_faas_loras4_cap10_current_s8`
+- log: `/tmp/paper_llama13b_faas_loras4_cap10_current_s8.log`
+- 配置：`min2/max2 + runtime_concurrency_cap=10 + max_num_seqs=10 + max_loras=4 + max_num_batched_tokens=8192 + gpu_memory_utilization=0.90 + vLLM V1/FlashInfer`
+- 依据：之前 13B probe 中 `loras4_cap10` 一类配置是较好的合法调参方向；该轮只调整 PrimeLoRA 自身运行参数，不改 baseline、trace、adapter subset 或指标。
 
 ## 下一步
 
