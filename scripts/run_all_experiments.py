@@ -7559,7 +7559,7 @@ class ScenarioRunner:
     ) -> bool:
         current = max(0, int(current_instances or 0))
         pending = max(0, int(pending_scale_up_instances or 0))
-        if current <= 1 and pending <= 0:
+        if current <= 0:
             return False
         queue_at_ready = self._scale_up_handoff_queue_at_ready_count(handoff_plan)
         if queue_at_ready > 0:
@@ -9560,12 +9560,10 @@ class ScenarioRunner:
             backlog=backlog,
             active_requests=active_requests,
         ):
-            # A pending runtime is already being started and the ready-time
-            # projection says incumbent runtimes will drain the visible queue
-            # before another new runtime can help. Suppress repeated busy-ratio
-            # scale-out pulses in this state; otherwise a single busy runtime
-            # can enqueue multiple extra replicas that spend most of the replay
-            # idle.
+            # The current and pending runtime capacity already covers the
+            # ready-time queue projection. Suppress busy-ratio scale-out pulses
+            # in this state; otherwise a brief busy interval can enqueue extra
+            # replicas that spend most of the replay idle.
             self._live_scale_eval_last_at = now_mono
             return False
         refined_target_instances = self._refined_scale_up_target_instances(

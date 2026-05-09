@@ -4699,13 +4699,22 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
                 active_requests=1,
             )
         )
-        self.assertFalse(
+        self.assertTrue(
             runner._scale_up_capacity_covers_ready_projection(
                 handoff_plan=empty_ready_plan,
                 current_instances=1,
                 pending_scale_up_instances=0,
                 backlog=1,
                 active_requests=1,
+            )
+        )
+        self.assertFalse(
+            runner._scale_up_capacity_covers_ready_projection(
+                handoff_plan=empty_ready_plan,
+                current_instances=1,
+                pending_scale_up_instances=0,
+                backlog=9,
+                active_requests=9,
             )
         )
         self.assertTrue(
