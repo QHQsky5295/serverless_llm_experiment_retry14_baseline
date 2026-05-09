@@ -7503,6 +7503,21 @@ class ScenarioRunner:
         # service-ready capacity lagging the predicted queue frontier. Refine the
         # target from that predicted ready-time queue, but keep the result bounded
         # by the physical pool and the normal autoscaler decision.
+        predicted_waiting = self._scale_up_handoff_predicted_waiting_count(
+            handoff_plan
+        )
+        if predicted_waiting <= 0:
+            return min(max_instances, base_target)
+
+        runtime_cap = max(1, int(self._runtime_forward_capacity_limit() or 1))
+        required_instances = int(math.ceil(predicted_waiting / float(runtime_cap)))
+        predictive_target = max(base_target, min(max_instances, required_instances))
+        return min(max_instances, predictive_target)
+
+    def _scale_up_handoff_predicted_waiting_count(
+        self,
+        handoff_plan: Optional[Dict[str, Any]],
+    ) -> int:
         plan = dict(handoff_plan or {})
         queue_at_ready = max(
             0,
@@ -7520,14 +7535,31 @@ class ScenarioRunner:
             0,
             int(plan.get("incumbent_started_request_count", 0) or 0),
         )
-        predicted_waiting = max(queue_at_ready, projected_arrived - incumbent_started)
-        if predicted_waiting <= 0:
-            return min(max_instances, base_target)
+        return max(queue_at_ready, projected_arrived - incumbent_started)
 
+    def _pending_scale_up_covers_ready_projection(
+        self,
+        *,
+        handoff_plan: Optional[Dict[str, Any]],
+        pending_scale_up_instances: int,
+        backlog: int,
+        active_requests: int,
+    ) -> bool:
+        pending = max(0, int(pending_scale_up_instances or 0))
+        if pending <= 0:
+            return False
+        predicted_waiting = self._scale_up_handoff_predicted_waiting_count(
+            handoff_plan
+        )
+        if predicted_waiting > 0:
+            return False
+        visible_work = max(0, int(backlog or 0)) + max(
+            0, int(active_requests or 0)
+        )
+        if visible_work <= 0:
+            return True
         runtime_cap = max(1, int(self._runtime_forward_capacity_limit() or 1))
-        required_instances = int(math.ceil(predicted_waiting / float(runtime_cap)))
-        predictive_target = max(base_target, min(max_instances, required_instances))
-        return min(max_instances, predictive_target)
+        return visible_work <= pending * runtime_cap
 
     def _build_scale_up_runtime_handoff_plans(
         self,
@@ -9508,6 +9540,20 @@ class ScenarioRunner:
             submitted_traces=candidate_traces,
         )
         handoff_plan = dict(getattr(self, "_last_scale_up_handoff_plan", {}) or {})
+        if self._pending_scale_up_covers_ready_projection(
+            handoff_plan=handoff_plan,
+            pending_scale_up_instances=pending_scale_up_instances,
+            backlog=backlog,
+            active_requests=active_requests,
+        ):
+            # A pending runtime is already being started and the ready-time
+            # projection says incumbent runtimes will drain the visible queue
+            # before another new runtime can help. Suppress repeated busy-ratio
+            # scale-out pulses in this state; otherwise a single busy runtime
+            # can enqueue multiple extra replicas that spend most of the replay
+            # idle.
+            self._live_scale_eval_last_at = now_mono
+            return False
         refined_target_instances = self._refined_scale_up_target_instances(
             current_instances=current_instances,
             decision=decision,

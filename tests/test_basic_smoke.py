@@ -4666,6 +4666,46 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         self.assertEqual([trace.adapter_id for trace in prefix], ["a1"])
 
+    def test_pending_scale_up_covers_empty_ready_projection(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._runtime_forward_capacity_limit = lambda: 8
+
+        empty_ready_plan = {
+            "queue_at_ready_request_count": 0,
+            "projected_arrived_request_count": 12,
+            "incumbent_started_request_count": 12,
+        }
+        self.assertTrue(
+            runner._pending_scale_up_covers_ready_projection(
+                handoff_plan=empty_ready_plan,
+                pending_scale_up_instances=1,
+                backlog=1,
+                active_requests=1,
+            )
+        )
+
+        waiting_plan = {
+            "queue_at_ready_request_count": 3,
+            "projected_arrived_request_count": 15,
+            "incumbent_started_request_count": 12,
+        }
+        self.assertFalse(
+            runner._pending_scale_up_covers_ready_projection(
+                handoff_plan=waiting_plan,
+                pending_scale_up_instances=1,
+                backlog=1,
+                active_requests=1,
+            )
+        )
+        self.assertFalse(
+            runner._pending_scale_up_covers_ready_projection(
+                handoff_plan=empty_ready_plan,
+                pending_scale_up_instances=0,
+                backlog=1,
+                active_requests=1,
+            )
+        )
+
     def test_scale_up_initial_admission_request_budget_tracks_incremental_dispatch_capacity(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner._runtime_forward_capacity_limit = lambda: 2
