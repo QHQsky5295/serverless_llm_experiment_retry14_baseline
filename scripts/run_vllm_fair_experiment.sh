@@ -561,6 +561,12 @@ VLLM_USE_FLASHINFER_SAMPLER_EFFECTIVE="$(apply_bool_override VLLM_USE_FLASHINFER
 if [[ -n "${VLLM_ATTENTION_BACKEND_OVERRIDE}" ]]; then
   VLLM_ATTENTION_BACKEND_EFFECTIVE="${VLLM_ATTENTION_BACKEND_OVERRIDE}"
 fi
+if [[ -z "${VLLM_ATTENTION_BACKEND_EFFECTIVE}" ]]; then
+  # Do not let an empty optional override inherited from the queue wrapper reach
+  # vLLM. vLLM 0.10 treats VLLM_ATTENTION_BACKEND="" as an explicit invalid
+  # backend rather than as "unset".
+  unset VLLM_ATTENTION_BACKEND || true
+fi
 if (( MAX_LORAS < MAX_NUM_SEQS )); then
   echo "[ERROR] max_loras=${MAX_LORAS} is smaller than max_num_seqs=${MAX_NUM_SEQS}." >&2
   echo "        Set VLLM_MAX_LORAS>=VLLM_MAX_NUM_SEQS for formal multi-LoRA runs." >&2

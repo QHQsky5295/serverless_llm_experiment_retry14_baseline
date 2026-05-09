@@ -18,6 +18,10 @@ default_run_tag() {
     printf '%s\n' "llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1"
     return
   fi
+  if [[ "${model}" == "llama32_3b_main_modelscope" && "${workload}" == "llama32_3b_auto500_formal4000_s8" && "${requests}" == "4000" && "${adapters}" == "500" && "${seed}" == "42" ]]; then
+    printf '%s\n' "llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8"
+    return
+  fi
   printf '%s_r%s_a%s_seed%s_%s\n' "${model}" "${requests}" "${adapters}" "${seed}" "${workload}" \
     | tr -c 'A-Za-z0-9_.-' '_'
 }
@@ -74,7 +78,58 @@ write_round_env() {
   } >"${ROUND_ENV_FILE}"
 }
 
-write_round_env
+validate_or_write_round_env() {
+  if [[ "${FORCE_RERUN}" != "1" && -f "${STATE_DIR}/00_prep.done" && -f "${ROUND_ENV_FILE}" ]]; then
+    local existing=()
+    mapfile -t existing < <(
+      bash -c '
+        source "$1"
+        printf "%s\n" \
+          "${SLLM_RUN_TAG:-}" \
+          "${SLLM_MODEL_PROFILE:-}" \
+          "${SLLM_DATASET_PROFILE:-}" \
+          "${SLLM_WORKLOAD_PROFILE:-}" \
+          "${SLLM_TOTAL_REQUESTS:-}" \
+          "${SLLM_SELECTED_NUM_ADAPTERS:-}" \
+          "${SLLM_SAMPLING_SEED:-}" \
+          "${SLLM_TIME_SCALE_FACTOR:-}"
+      ' bash "${ROUND_ENV_FILE}"
+    )
+    local names=(
+      SLLM_RUN_TAG
+      SLLM_MODEL_PROFILE
+      SLLM_DATASET_PROFILE
+      SLLM_WORKLOAD_PROFILE
+      SLLM_TOTAL_REQUESTS
+      SLLM_SELECTED_NUM_ADAPTERS
+      SLLM_SAMPLING_SEED
+      SLLM_TIME_SCALE_FACTOR
+    )
+    local current=(
+      "${RUN_TAG}"
+      "${MODEL_PROFILE}"
+      "${DATASET_PROFILE}"
+      "${WORKLOAD_PROFILE}"
+      "${TOTAL_REQUESTS}"
+      "${SELECTED_NUM_ADAPTERS}"
+      "${SAMPLING_SEED}"
+      "${TIME_SCALE_FACTOR}"
+    )
+    local i
+    for i in "${!names[@]}"; do
+      if [[ "${existing[$i]:-}" != "${current[$i]}" ]]; then
+        echo "[ERROR] ${ROUND_DIR} already has prepared shared artifacts, but ${names[$i]} differs." >&2
+        echo "        round.env has '${existing[$i]:-}', current run requested '${current[$i]}'." >&2
+        echo "        Resume with the original round.env values, or use FAIR_ROUND_FORCE=1 with a clean/new round directory." >&2
+        exit 1
+      fi
+    done
+    return 0
+  fi
+  write_round_env
+}
+
+validate_or_write_round_env
 
 log() {
   printf '[%s] %s\n' "$(date '+%F %T')" "$*"
@@ -596,6 +651,29 @@ run_vllm() {
     vllm_disable_frontend_mp="${vllm_disable_frontend_mp:-${VLLM_QWEN7_DISABLE_FRONTEND_MULTIPROCESSING:-1}}"
     log "vLLM Qwen2.5-7B safe topology override: dp=${vllm_dp} tp=${vllm_tp} max_num_seqs=${vllm_max_num_seqs} max_loras=${vllm_max_loras} max_cpu_loras=${vllm_max_cpu_loras} max_batched_tokens=${vllm_max_num_batched_tokens} lora_registration_mode=${vllm_lora_registration_mode} dynamic_lora_routing=${vllm_dynamic_lora_routing} hot_pair_threshold=${vllm_dynamic_lora_hot_pair_threshold} hot_pair_max=${vllm_dynamic_lora_hot_pair_max_adapters} dynamic_lora_max_loaded_per_endpoint=${vllm_dynamic_lora_max_loaded_per_endpoint} disable_frontend_mp=${vllm_disable_frontend_mp} on gpu_ids=${GPU_IDS}"
   fi
+  if [[ -z "${vllm_dp}" && -z "${vllm_tp}" && "${MODEL_PROFILE}" == llama32_*_modelscope ]]; then
+    # Llama-3.2 small-model profiles are evaluated with the same 500-adapter
+    # universe as the other systems. Static --lora-modules registration exposes
+    # all sampled adapters to every OpenAI API replica and leaves a large
+    # host-side footprint throughout the replay; on the 4x3090 testbed this can
+    # reduce MemAvailable to the fail-fast guard even though requests are still
+    # succeeding. Use vLLM's runtime LoRA API instead, preserving the trace,
+    # adapter subset, DP/TP topology, and per-replica serving caps while loading
+    # only the adapters that are actually reached by each endpoint.
+    vllm_dp="${VLLM_LLAMA32_SAFE_DP:-4}"
+    vllm_tp="${VLLM_LLAMA32_SAFE_TP:-1}"
+    vllm_max_num_seqs="${vllm_max_num_seqs:-${VLLM_LLAMA32_SAFE_MAX_NUM_SEQS:-8}}"
+    vllm_max_loras="${vllm_max_loras:-${VLLM_LLAMA32_SAFE_MAX_LORAS:-8}}"
+    vllm_max_num_batched_tokens="${vllm_max_num_batched_tokens:-${VLLM_LLAMA32_SAFE_MAX_NUM_BATCHED_TOKENS:-4096}}"
+    vllm_max_cpu_loras="${vllm_max_cpu_loras:-${VLLM_LLAMA32_SAFE_MAX_CPU_LORAS:-24}}"
+    vllm_lora_registration_mode="${VLLM_LLAMA32_LORA_REGISTRATION_MODE:-dynamic}"
+    vllm_dynamic_lora_routing="${VLLM_LLAMA32_DYNAMIC_LORA_ROUTING:-adapter_hash}"
+    vllm_dynamic_lora_hot_pair_threshold="${vllm_dynamic_lora_hot_pair_threshold:-${VLLM_LLAMA32_DYNAMIC_LORA_HOT_PAIR_THRESHOLD:-8}}"
+    vllm_dynamic_lora_hot_pair_max_adapters="${vllm_dynamic_lora_hot_pair_max_adapters:-${VLLM_LLAMA32_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS:-32}}"
+    vllm_dynamic_lora_max_loaded_per_endpoint="${vllm_dynamic_lora_max_loaded_per_endpoint:-${VLLM_LLAMA32_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT:-${vllm_max_cpu_loras}}}"
+    vllm_disable_frontend_mp="${vllm_disable_frontend_mp:-${VLLM_LLAMA32_DISABLE_FRONTEND_MULTIPROCESSING:-1}}"
+    log "vLLM Llama-3.2 safe topology override: dp=${vllm_dp} tp=${vllm_tp} max_num_seqs=${vllm_max_num_seqs} max_loras=${vllm_max_loras} max_cpu_loras=${vllm_max_cpu_loras} max_batched_tokens=${vllm_max_num_batched_tokens} lora_registration_mode=${vllm_lora_registration_mode} dynamic_lora_routing=${vllm_dynamic_lora_routing} hot_pair_threshold=${vllm_dynamic_lora_hot_pair_threshold} hot_pair_max=${vllm_dynamic_lora_hot_pair_max_adapters} dynamic_lora_max_loaded_per_endpoint=${vllm_dynamic_lora_max_loaded_per_endpoint} disable_frontend_mp=${vllm_disable_frontend_mp} on gpu_ids=${GPU_IDS}"
+  fi
   if [[ -z "${vllm_dp}" && -z "${vllm_tp}" && "${MODEL_PROFILE}" == "llama2_13b_tp2_v2_publicmix" ]]; then
     # Llama-2-13B uses two TP=2 vLLM replicas on the four-GPU testbed.  The
     # V0 eager path is correct but excessively serializes long-prefill
@@ -621,14 +699,14 @@ run_vllm() {
     log "vLLM Llama-2-13B topology override: dp=${vllm_dp} tp=${vllm_tp} max_num_seqs=${vllm_max_num_seqs} max_loras=${vllm_max_loras} max_cpu_loras=${vllm_max_cpu_loras} max_batched_tokens=${vllm_max_num_batched_tokens} lora_registration_mode=${vllm_lora_registration_mode} enforce_eager=${vllm_enforce_eager} chunked_prefill=${vllm_enable_chunked_prefill} prefix_caching=${vllm_enable_prefix_caching} on gpu_ids=${GPU_IDS}"
   fi
   if [[ -z "${vllm_lora_registration_mode}" ]]; then
-    if [[ "${MODEL_PROFILE}" == qwen_* ]]; then
+    if [[ "${MODEL_PROFILE}" == qwen_* || "${MODEL_PROFILE}" == llama32_*_modelscope ]]; then
       vllm_lora_registration_mode="dynamic"
     else
       vllm_lora_registration_mode="static"
     fi
   fi
   if [[ -z "${vllm_dynamic_lora_routing}" ]]; then
-    if [[ "${vllm_lora_registration_mode}" == "dynamic" && "${MODEL_PROFILE}" == qwen_* ]]; then
+    if [[ "${vllm_lora_registration_mode}" == "dynamic" && ( "${MODEL_PROFILE}" == qwen_* || "${MODEL_PROFILE}" == llama32_*_modelscope ) ]]; then
       vllm_dynamic_lora_routing="adapter_hash"
     else
       vllm_dynamic_lora_routing="round_robin"
@@ -644,12 +722,12 @@ run_vllm() {
     fi
   fi
   if [[ -z "${vllm_disable_frontend_mp}" ]]; then
-    if [[ "${vllm_lora_registration_mode}" == "dynamic" && "${MODEL_PROFILE}" == qwen_* ]]; then
+    if [[ "${vllm_lora_registration_mode}" == "dynamic" && ( "${MODEL_PROFILE}" == qwen_* || "${MODEL_PROFILE}" == llama32_*_modelscope ) ]]; then
       # Qwen-family profiles use vLLM's V0/eager OpenAI API path in this
-      # environment. Runtime LoRA loading is stable with the single-process
-      # frontend and avoids the extra host-side footprint observed with
-      # frontend multiprocessing, while keeping the same DP/TP topology and
-      # serving caps.
+      # environment; Llama-3.2 small-model profiles follow the same runtime
+      # LoRA path to avoid static per-replica registration of the 500-adapter
+      # pool. The single-process frontend avoids an extra host-side footprint
+      # while keeping the same DP/TP topology and serving caps.
       vllm_disable_frontend_mp="${VLLM_QWEN_DISABLE_FRONTEND_MULTIPROCESSING:-1}"
     else
       vllm_disable_frontend_mp="0"

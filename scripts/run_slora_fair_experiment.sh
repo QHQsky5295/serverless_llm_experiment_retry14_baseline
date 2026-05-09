@@ -246,6 +246,7 @@ PY
 
 readarray -t _CFG < <(
   PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${HELPER_PYTHON}" - "${ROOT_DIR}" "${CONFIG_PATH}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${SLORA_TENSOR_PARALLEL_SIZE}" "${SLORA_DATA_PARALLEL_REPLICAS}" "${SLORA_GPU_IDS}" <<'PY'
+import json
 import sys
 from pathlib import Path
 
@@ -282,6 +283,12 @@ max_output_cap = int(model_cfg.get("max_output_tokens_cap", 0) or 0)
 reserve = max(32, max_output_cap if max_output_cap > 0 else 32)
 max_req_input_len = int(model_cfg.get("max_input_len") or max(32, max_model_len - reserve - 8))
 max_req_total_len = max(max_model_len, max_req_input_len + max(1, reserve))
+hf_model_path = Path(str(model_cfg.get("name", "")))
+hf_config = {}
+if hf_model_path.is_dir() and (hf_model_path / "config.json").exists():
+    hf_config = json.loads((hf_model_path / "config.json").read_text(encoding="utf-8"))
+num_attention_heads = int(hf_config.get("num_attention_heads", model_cfg.get("num_attention_heads", 0) or 0) or 0)
+num_key_value_heads = int(hf_config.get("num_key_value_heads", model_cfg.get("num_key_value_heads", num_attention_heads) or num_attention_heads) or num_attention_heads)
 
 print(float(cost_model.get("base_cost_usd", 0.001)))
 print(float(cost_model.get("input_token_cost_usd", 0.0000015)))
@@ -295,10 +302,12 @@ print(tp)
 print(dp)
 print(max_req_input_len)
 print(max_req_total_len)
+print(num_attention_heads)
+print(num_key_value_heads)
 PY
 )
 
-if (( ${#_CFG[@]} != 12 )); then
+if (( ${#_CFG[@]} != 14 )); then
   echo "[ERROR] failed to resolve S-LoRA fair-run parameters from ${CONFIG_PATH}" >&2
   exit 1
 fi
@@ -316,6 +325,8 @@ TP_EFFECTIVE="${_CFG[8]}"
 DP_REPLICAS="${_CFG[9]}"
 SLORA_MAX_REQ_INPUT_LEN="${SLORA_MAX_REQ_INPUT_LEN:-${_CFG[10]}}"
 SLORA_MAX_REQ_TOTAL_LEN="${SLORA_MAX_REQ_TOTAL_LEN:-${_CFG[11]}}"
+SLORA_NUM_ATTENTION_HEADS="${_CFG[12]}"
+SLORA_NUM_KEY_VALUE_HEADS="${_CFG[13]}"
 SLORA_BATCH_MAX_TOKENS="${SLORA_BATCH_MAX_TOKENS:-${SLORA_MAX_REQ_TOTAL_LEN}}"
 
 SLORA_TOPOLOGY_LABEL="dp${DP_REPLICAS}_tp${TP_EFFECTIVE}"
@@ -323,11 +334,17 @@ RESULT_TAG="${SLORA_RESULT_TAG:-${RUN_TAG}_slora_${SLORA_TOPOLOGY_LABEL}}"
 if [[ "${SLORA_USE_BMM}" == "auto" ]]; then
   if (( TP_EFFECTIVE > 1 )); then
     SLORA_BMM_EFFECTIVE="1"
+    SLORA_BMM_REASON="tensor_parallel"
+  elif (( SLORA_NUM_KEY_VALUE_HEADS > 0 && SLORA_NUM_ATTENTION_HEADS > 0 && SLORA_NUM_KEY_VALUE_HEADS != SLORA_NUM_ATTENTION_HEADS )); then
+    SLORA_BMM_EFFECTIVE="1"
+    SLORA_BMM_REASON="gqa"
   else
     SLORA_BMM_EFFECTIVE="0"
+    SLORA_BMM_REASON="packed_bgmv"
   fi
 else
   SLORA_BMM_EFFECTIVE="${SLORA_USE_BMM}"
+  SLORA_BMM_REASON="user_override"
 fi
 if [[ -z "${SLORA_READY_WAIT_S}" ]]; then
   if (( TP_EFFECTIVE > 1 )); then
@@ -431,7 +448,8 @@ echo "      cost_model(base/in/out)=${BASE_COST_USD}/${INPUT_TOKEN_COST_USD}/${O
 echo "      ttft_slo_ms=${TTFT_SLO_MS}"
 echo "      model=${MODEL_PATH}"
 echo "      topology=${SLORA_TOPOLOGY_LABEL} gpu_ids=${SLORA_GPU_IDS}"
-echo "      bmm=${SLORA_BMM_EFFECTIVE} (requested=${SLORA_USE_BMM})"
+echo "      heads=${SLORA_NUM_ATTENTION_HEADS} kv_heads=${SLORA_NUM_KEY_VALUE_HEADS}"
+echo "      bmm=${SLORA_BMM_EFFECTIVE} (requested=${SLORA_USE_BMM}, reason=${SLORA_BMM_REASON})"
 echo "      ready_wait_s=${SLORA_READY_WAIT_S}"
 echo "      launch_spec=${LAUNCH_SPEC_PATH}"
 echo "      adapter_map=${ADAPTER_VALUE_MAP_PATH}"
