@@ -4394,6 +4394,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
     def test_predict_scale_up_handoff_plan_trims_incumbent_progress_and_caps_prefix_by_headroom(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.coord_cfg = {"max_concurrent_loads": 2}
+        runner._background_planning_us = []
         runner._scale_up_target_runtime_headroom_mb = lambda: 700.0
         runner._scale_up_bootstrap_latency_ms = lambda: 120.0
         runner._scale_up_initial_admission_request_budget = lambda: 2
@@ -4519,6 +4520,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
     def test_predict_scale_up_handoff_plan_uses_router_aware_first_service_prefix(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.coord_cfg = {"max_concurrent_loads": 1}
+        runner._background_planning_us = []
         runner._scale_up_target_runtime_headroom_mb = lambda: 60.0
         runner._scale_up_bootstrap_latency_ms = lambda: 0.0
         runner._scale_up_initial_admission_request_budget = lambda: 1
@@ -4598,6 +4600,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
     def test_predict_scale_up_handoff_plan_keeps_empty_prefix_when_route_aware_runtime_gets_no_first_service(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.coord_cfg = {"max_concurrent_loads": 1}
+        runner._background_planning_us = []
         runner._scale_up_target_runtime_headroom_mb = lambda: 60.0
         runner._scale_up_bootstrap_latency_ms = lambda: 47000.0
         runner._scale_up_initial_admission_request_budget = lambda: 1
@@ -5042,7 +5045,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertEqual(plans[0]["first_service_request_count"], 0)
         self.assertEqual(plans[0]["plan_load_latency_ms"], 0.0)
 
-    def test_refresh_scale_up_runtime_handoff_plan_preserves_original_budget_when_refresh_collapses(self) -> None:
+    def test_refresh_scale_up_runtime_handoff_plan_releases_original_budget_when_refresh_collapses(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner._active_replay_t0 = 1.0
         runner._arrived_request_count = lambda replay_t0: 32
@@ -5086,19 +5089,14 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             runtime_startup_latency_ms=30000.0,
         )
 
-        self.assertEqual(refreshed["planned_adapters"], ["finance", "support"])
-        self.assertEqual(
-            refreshed["ordered_handoff_adapters"], ["finance", "support"]
-        )
-        self.assertEqual(refreshed["first_service_request_count"], 2)
-        self.assertEqual(refreshed["first_service_adapter_count"], 2)
-        self.assertEqual(refreshed["first_service_scanned_request_count"], 2)
+        self.assertEqual(refreshed["planned_adapters"], [])
+        self.assertEqual(refreshed["ordered_handoff_adapters"], [])
+        self.assertEqual(refreshed["first_service_request_count"], 0)
+        self.assertEqual(refreshed["first_service_adapter_count"], 0)
+        self.assertEqual(refreshed["first_service_scanned_request_count"], 0)
         self.assertEqual(refreshed["bootstrap_latency_ms"], 30000.0)
-        self.assertEqual(refreshed["plan_load_latency_ms"], 50.0)
-        self.assertEqual(refreshed["ready_delay_ms"], 30050.0)
-        self.assertEqual(
-            refreshed["exact_prefix_bytes"], 2 * 128 * 1024 * 1024
-        )
+        self.assertEqual(refreshed["plan_load_latency_ms"], 0.0)
+        self.assertEqual(refreshed["ready_delay_ms"], 30000.0)
 
     def test_scale_up_first_service_request_budget_matches_initial_admission_slice(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)

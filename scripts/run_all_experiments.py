@@ -7364,16 +7364,23 @@ class ScenarioRunner:
                 0,
                 int(refreshed_plan.get("first_service_request_count", 0) or 0),
             )
-            if not refreshed_planned_adapters and original_planned_adapters:
-                refreshed_planned_adapters = list(original_planned_adapters)
-                refreshed_plan["planned_adapters"] = list(refreshed_planned_adapters)
-                preserved_planned_prefix = True
-            if not refreshed_ordered_handoff and original_ordered_handoff:
-                refreshed_ordered_handoff = list(original_ordered_handoff)
-                refreshed_plan["ordered_handoff_adapters"] = list(
-                    refreshed_ordered_handoff
-                )
-                preserved_planned_prefix = True
+            # Startup can take long enough for incumbent runtimes to drain the
+            # queue that originally justified a handoff reservation. In that
+            # case, keeping the old planned prefix as a hard routing reservation
+            # makes the fresh runtime adapter-locked and can leave it idle for
+            # most of the replay. Preserve the old prefix only when the refreshed
+            # ready-time view still contains a first-service window.
+            if refreshed_first_service_budget > 0:
+                if not refreshed_planned_adapters and original_planned_adapters:
+                    refreshed_planned_adapters = list(original_planned_adapters)
+                    refreshed_plan["planned_adapters"] = list(refreshed_planned_adapters)
+                    preserved_planned_prefix = True
+                if not refreshed_ordered_handoff and original_ordered_handoff:
+                    refreshed_ordered_handoff = list(original_ordered_handoff)
+                    refreshed_plan["ordered_handoff_adapters"] = list(
+                        refreshed_ordered_handoff
+                    )
+                    preserved_planned_prefix = True
             if refreshed_first_service_budget <= 0 and refreshed_planned_adapters:
                 refreshed_first_service_budget = max(1, original_first_service_budget)
                 refreshed_plan["first_service_request_count"] = (
