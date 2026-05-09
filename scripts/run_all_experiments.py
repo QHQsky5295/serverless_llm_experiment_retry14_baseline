@@ -7548,10 +7548,16 @@ class ScenarioRunner:
         pending = max(0, int(pending_scale_up_instances or 0))
         if pending <= 0:
             return False
-        predicted_waiting = self._scale_up_handoff_predicted_waiting_count(
-            handoff_plan
+        plan = dict(handoff_plan or {})
+        queue_at_ready = max(
+            0,
+            int(
+                plan.get("queue_at_ready_request_count", 0)
+                or plan.get("projected_queue_at_ready_request_count", 0)
+                or 0
+            ),
         )
-        if predicted_waiting > 0:
+        if queue_at_ready > 0:
             return False
         visible_work = max(0, int(backlog or 0)) + max(
             0, int(active_requests or 0)

@@ -4672,7 +4672,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         empty_ready_plan = {
             "queue_at_ready_request_count": 0,
-            "projected_arrived_request_count": 12,
+            "projected_arrived_request_count": 15,
             "incumbent_started_request_count": 12,
         }
         self.assertTrue(
