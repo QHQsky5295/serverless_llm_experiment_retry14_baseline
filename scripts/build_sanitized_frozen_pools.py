@@ -18,6 +18,7 @@ from safetensors.torch import save_file as safe_save_file
 DEFAULT_MAIN_REPO = Path("/home/qhq/serverless_llm_experiment_retry14_baseline")
 DEFAULT_OUTPUT_ROOT = Path("/home/qhq/serverless_llm_baselines/artifacts/frozen_sanitized")
 DEFAULT_PROFILES = [
+    "llama32_1b_main_modelscope",
     "llama32_3b_main_modelscope",
     "llama2_7b_main_v2_publicmix",
     "llama2_13b_tp2_v2_publicmix",
