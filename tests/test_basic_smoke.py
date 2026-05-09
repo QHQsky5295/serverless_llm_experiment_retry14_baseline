@@ -4679,8 +4679,8 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             runner._pending_scale_up_covers_ready_projection(
                 handoff_plan=empty_ready_plan,
                 pending_scale_up_instances=1,
-                backlog=1,
-                active_requests=1,
+                backlog=6,
+                active_requests=6,
             )
         )
 

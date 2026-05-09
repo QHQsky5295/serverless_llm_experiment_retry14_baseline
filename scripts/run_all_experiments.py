@@ -7559,8 +7559,9 @@ class ScenarioRunner:
         )
         if queue_at_ready > 0:
             return False
-        visible_work = max(0, int(backlog or 0)) + max(
-            0, int(active_requests or 0)
+        visible_work = max(
+            max(0, int(backlog or 0)),
+            max(0, int(active_requests or 0)),
         )
         if visible_work <= 0:
             return True
