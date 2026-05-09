@@ -7537,16 +7537,18 @@ class ScenarioRunner:
         )
         return max(queue_at_ready, projected_arrived - incumbent_started)
 
-    def _pending_scale_up_covers_ready_projection(
+    def _scale_up_capacity_covers_ready_projection(
         self,
         *,
         handoff_plan: Optional[Dict[str, Any]],
+        current_instances: int,
         pending_scale_up_instances: int,
         backlog: int,
         active_requests: int,
     ) -> bool:
+        current = max(0, int(current_instances or 0))
         pending = max(0, int(pending_scale_up_instances or 0))
-        if pending <= 0:
+        if current <= 1 and pending <= 0:
             return False
         plan = dict(handoff_plan or {})
         queue_at_ready = max(
@@ -7566,7 +7568,8 @@ class ScenarioRunner:
         if visible_work <= 0:
             return True
         runtime_cap = max(1, int(self._runtime_forward_capacity_limit() or 1))
-        return visible_work <= pending * runtime_cap
+        covered_capacity = max(1, current) * runtime_cap
+        return visible_work <= covered_capacity
 
     def _build_scale_up_runtime_handoff_plans(
         self,
@@ -9547,8 +9550,9 @@ class ScenarioRunner:
             submitted_traces=candidate_traces,
         )
         handoff_plan = dict(getattr(self, "_last_scale_up_handoff_plan", {}) or {})
-        if self._pending_scale_up_covers_ready_projection(
+        if self._scale_up_capacity_covers_ready_projection(
             handoff_plan=handoff_plan,
+            current_instances=current_instances,
             pending_scale_up_instances=pending_scale_up_instances,
             backlog=backlog,
             active_requests=active_requests,

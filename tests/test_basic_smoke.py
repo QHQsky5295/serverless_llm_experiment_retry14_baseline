@@ -4666,7 +4666,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         self.assertEqual([trace.adapter_id for trace in prefix], ["a1"])
 
-    def test_pending_scale_up_covers_empty_ready_projection(self) -> None:
+    def test_scale_up_capacity_covers_empty_ready_projection(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner._runtime_forward_capacity_limit = lambda: 8
 
@@ -4676,8 +4676,9 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             "incumbent_started_request_count": 12,
         }
         self.assertTrue(
-            runner._pending_scale_up_covers_ready_projection(
+            runner._scale_up_capacity_covers_ready_projection(
                 handoff_plan=empty_ready_plan,
+                current_instances=2,
                 pending_scale_up_instances=1,
                 backlog=6,
                 active_requests=6,
@@ -4690,19 +4691,30 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             "incumbent_started_request_count": 12,
         }
         self.assertFalse(
-            runner._pending_scale_up_covers_ready_projection(
+            runner._scale_up_capacity_covers_ready_projection(
                 handoff_plan=waiting_plan,
+                current_instances=2,
                 pending_scale_up_instances=1,
                 backlog=1,
                 active_requests=1,
             )
         )
         self.assertFalse(
-            runner._pending_scale_up_covers_ready_projection(
+            runner._scale_up_capacity_covers_ready_projection(
                 handoff_plan=empty_ready_plan,
+                current_instances=1,
                 pending_scale_up_instances=0,
                 backlog=1,
                 active_requests=1,
+            )
+        )
+        self.assertTrue(
+            runner._scale_up_capacity_covers_ready_projection(
+                handoff_plan=empty_ready_plan,
+                current_instances=2,
+                pending_scale_up_instances=0,
+                backlog=3,
+                active_requests=3,
             )
         )
 
