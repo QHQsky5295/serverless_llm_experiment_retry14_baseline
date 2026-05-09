@@ -493,7 +493,7 @@ def build_lifecycle_figure(models: Sequence[ModelRound], out_dir: Path) -> None:
         fontsize=6.7,
         ncols=3,
         loc="upper center",
-        bbox_to_anchor=(0.61, 0.817),
+        bbox_to_anchor=(0.61, 0.802),
         columnspacing=0.52,
         handlelength=1.1,
         borderaxespad=0.0,
