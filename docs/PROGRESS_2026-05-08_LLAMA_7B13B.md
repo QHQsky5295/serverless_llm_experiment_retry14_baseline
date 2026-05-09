@@ -101,3 +101,51 @@ SGLang 13B 的平均 E2E 约 3382.2 ms，CE 约 81.84。PrimeLoRA 13B 的最好�
 1. 当前最终合并表和 Fig. 7 已可用于论文草稿，但论文文字必须如实表达：PrimeLoRA 在 7B 上 CE 第一；在 13B 上 Cost/req 最低且明显优于 vLLM、S-LoRA、ServerlessLLM，但 CE 略低于 SGLang。
 2. 若继续追求 13B CE 第一，只能继续做 PrimeLoRA 自身公平调参或后端 service-path 优化；不能调差其他系统、修改指标口径或使用不等价历史结果。
 3. S-LoRA 13B 可作为本机 4x RTX 3090 上的 TP4/BMM 公开代码兼容结果；论文中若担心该行过慢影响叙述，可在正文说明这是受 24GB GPU 与兼容 BMM 路径限制的 13B 结果。
+
+## 2026-05-09 补充：S-LoRA 13B 与 3B 替代方案判断
+
+### S-LoRA 13B 是否适合进入主表
+
+当前 S-LoRA Llama-2 13B 结果完成了 4000/4000 请求，失败数为 0，且没有
+`trace_expected` token fallback。因此它不是失败 run，也不是 replay 统计崩溃。
+但是该结果的 TTFT/E2E 主要发生在 service path 上，`dispatch_wait` 平均只有约
+15.7 ms；TTFT Avg 约 5.93e6 ms、TPOT Avg 约 367.9 ms、CE 约 0.012。
+
+结合 `S-LoRA_project/docs/SLoRA_REPRO_PLAN.md` 中的复现边界，该 run 使用
+DP1/TP4 与 BMM 兼容路径，不是 7B 正式复现使用的 DP4/TP1 fast path，也不是官方
+论文中完整 TP optimized kernel 路径的等价复现。若把这一行直接作为主表中的
+普通 “S-LoRA” 13B baseline，会让读者更像看到一个失效系统，而不是公平主表结果。
+
+当前建议：
+
+- Llama-2 7B 主表继续保留 S-LoRA，作为正式 multi-LoRA serverful baseline。
+- Llama-2 13B 若保留 S-LoRA，只能标注为 `S-LoRA-TP/BMM` 或放入附录/诊断表；
+  不建议在合并主表中伪装成完整 S-LoRA fast-kernel 13B 结果。
+- 若主表必须要求每个模型都有同构五系统对比，优先考虑换成能让 S-LoRA 走 TP1
+  路径的小模型，而不是继续把 13B TP/BMM 结果放进主表。
+
+### Llama-family 3B 替代方案
+
+官方 Llama-family 3B 选择是 `meta-llama/Llama-3.2-3B-Instruct` 或
+`meta-llama/Llama-3.2-3B`。官方 Hugging Face 页面显示该模型可用于
+Transformers、vLLM 和 SGLang，但属于 gated model。当前本机没有本地 Llama 3.2
+3B 权重；用现有 HF 账号检查时，访问官方仓库被拒绝，因此不能在没有权限的情况下
+直接下载并开始正式实验。
+
+如果后续获得 Meta/Hugging Face 权限，推荐新增一个 `llama32_3b_*` profile：
+
+- TP=1、DP/replica 数最多 4，避免 S-LoRA 13B 的 TP+BMM 兼容路径；
+- workload 沿用 4000 requests、500 adapters、s8、Zipf=1.0、hot48、rotation=500；
+- 先跑 16/100 request smoke gate，确认 vLLM、SGLang、S-LoRA、ServerlessLLM 和
+  PrimeLoRA 都能完成且 token source 没有 fallback，再跑完整 4000-request round；
+- 论文文字应表述为 “additional Llama-family backbone”，而不是 13B 那种更大模型
+  scalability，因为 3B 替代 13B 后不再证明大模型扩展性。
+
+### Qwen2.5-3B 的可用性
+
+本机已有 `/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-3B-Instruct`
+权重，但 retry14 仓库下对应目录目前只是占位目录。Qwen 3B 可以作为四系统
+PrimeLoRA/vLLM/SGLang/ServerlessLLM 的补充鲁棒性实验；但当前 baseline harness
+明确跳过 Qwen-family S-LoRA，因为 S-LoRA 接入层只支持 Llama/Llama2 后端，Qwen2
+需要新增核心模型实现。除非单独实现并验证 S-LoRA Qwen backend，否则 Qwen 3B
+不能替代 13B 成为包含 S-LoRA 的五系统主表。
