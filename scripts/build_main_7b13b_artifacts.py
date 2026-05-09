@@ -41,6 +41,7 @@ SYSTEM_LABELS = ppf.SYSTEM_LABELS
 MODEL_KEY_LABELS = {
     "llama2_7b": "Llama-2 7B",
     "llama2_13b": "Llama-2 13B",
+    "llama32_1b": "Llama-3.2 1B",
     "llama32_3b": "Llama-3.2 3B",
 }
 
@@ -589,6 +590,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Build combined Llama-family main comparison artifacts.")
     parser.add_argument("--round-7b", required=True, type=Path)
     parser.add_argument("--round-13b", type=Path)
+    parser.add_argument("--round-1b", type=Path)
     parser.add_argument("--round-3b", type=Path)
     parser.add_argument(
         "--system-round-override",
@@ -620,10 +622,9 @@ def main() -> None:
     overrides = _parse_system_round_overrides(args.system_round_override)
     summary_overrides = _parse_system_summary_overrides(args.system_summary_override)
     allow_missing_systems = set(args.allow_missing_system)
-    if args.round_13b and args.round_3b:
-        raise SystemExit("Use either --round-13b or --round-3b for the second model group, not both.")
-    if not args.round_13b and not args.round_3b:
-        raise SystemExit("One second model group is required: provide --round-13b or --round-3b.")
+    second_rounds = [bool(args.round_13b), bool(args.round_1b), bool(args.round_3b)]
+    if sum(second_rounds) != 1:
+        raise SystemExit("Provide exactly one second model group: --round-13b, --round-1b, or --round-3b.")
 
     models = [
         load_model_round(
@@ -635,7 +636,18 @@ def main() -> None:
             allow_missing_systems=allow_missing_systems,
         ),
     ]
-    if args.round_3b:
+    if args.round_1b:
+        models.append(
+            load_model_round(
+                "llama32_1b",
+                MODEL_KEY_LABELS["llama32_1b"],
+                args.round_1b.resolve(),
+                system_round_overrides=overrides.get("llama32_1b", {}),
+                system_summary_overrides=summary_overrides.get("llama32_1b", {}),
+                allow_missing_systems=allow_missing_systems,
+            )
+        )
+    elif args.round_3b:
         models.append(
             load_model_round(
                 "llama32_3b",

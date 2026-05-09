@@ -69,6 +69,34 @@ model_profiles:  # 可复用的模型 profile 集合
     storage:
       remote_dir: "artifacts/frozen/llama32_3b_a500_v1_modelscope"
 
+  llama32_1b_main_modelscope:  # Llama-3.2 1B 单卡 TP=1 小模型 profile（ModelScope 镜像）
+    model:
+      name: "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-1B-Instruct"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1, 2, 3]
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.62
+      max_model_len: 1024
+      max_loras: 8
+      max_cpu_loras: 32
+      max_lora_rank: 64
+      enable_lora: true
+      enforce_eager: "auto"
+      dtype: "float16"
+      max_num_seqs: 8
+      max_num_batched_tokens: 4096
+      max_output_tokens_cap: null
+      max_input_len: null
+      runtime_concurrency_cap: 8
+      enable_chunked_prefill: false
+      enable_prefix_caching: false
+    hardware:
+      model_weights_mb: 2304
+      kv_per_1k_tokens_mb: 0.5
+    storage:
+      remote_dir: "artifacts/frozen/llama32_1b_a500_v1_modelscope"
+
   qwen_3b_main:  # Qwen 3B 单卡主线模型 profile 名称
     model:  # 模型配置块，或当前选中的 model profile 名称
       name: "/home/qhq/serverless_llm_experiment/models/Qwen--Qwen2.5-3B-Instruct"  # 本 profile 对应的模型路径或模型名
@@ -486,6 +514,36 @@ dataset_profiles:  # 可复用的数据集 profile 集合
 # ---------------------------------------------------------------------------
 workload_profiles:  # 可复用的工作负载 profile 集合
   llama32_3b_auto500_formal4000_s8:  # Llama-3.2 3B 正式主横向 workload（4000 requests，500 adapters，s8）
+    lora_adapters:
+      selected_num_adapters: 500
+      quick_num_adapters: 100
+      full_num_adapters: 500
+      apply_scale_preset: false
+    workload:
+      concurrency: 4
+      time_scale_factor: 8.0
+      lora_request_ratio: 1.0
+      active_adapter_cap: 48
+      hotset_rotation_requests: 500
+    resource_coordination:
+      instance_mode: "auto"
+      max_instances: 4
+      effective_capacity_admission_enabled: true
+      max_concurrent_loads: 3
+      scale_up_predictive_target_enabled: true
+      scale_up_startup_parallelism: "auto"
+      scale_cooldown_s: 2.0
+      scale_eval_interval_s: 2.0
+      arrival_window_s: 2.0
+      scale_up_alpha: 0.15
+      scale_up_t_min: 0.5
+      scale_down_duration_s: "auto"
+      scale_down_startup_break_even_s: 0.0
+      scale_down_break_even_factor: 1.0
+      scale_down_cooldown_s: "auto"
+      scale_down_beta: 0.5
+
+  llama32_1b_auto500_formal4000_s8:  # Llama-3.2 1B 正式主横向 workload（4000 requests，500 adapters，s8）
     lora_adapters:
       selected_num_adapters: 500
       quick_num_adapters: 100
