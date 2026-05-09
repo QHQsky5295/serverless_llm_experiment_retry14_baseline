@@ -619,10 +619,23 @@ class ExperimentStack:
         coordinator: Optional[Any] = None,
         preferred_gpu_adapters: Optional[Collection[str]] = None,
     ) -> Optional[Dict[str, Any]]:
-        if not self._dynamic_forwarding_enabled or not self._gpu_dynamic_forwarding_enabled:
+        dynamic_forwarding_enabled = bool(
+            getattr(self, "_dynamic_forwarding_enabled", False)
+        )
+        gpu_dynamic_forwarding_enabled = bool(
+            getattr(
+                self,
+                "_gpu_dynamic_forwarding_enabled",
+                dynamic_forwarding_enabled,
+            )
+        )
+        if not dynamic_forwarding_enabled or not gpu_dynamic_forwarding_enabled:
             return None
         self.sync_local_tier_paths()
-        if self._tier_pressure(StorageTier.GPU, coordinator=coordinator) >= self._gpu_forward_pressure_cutoff:
+        gpu_forward_pressure_cutoff = float(
+            getattr(self, "_gpu_forward_pressure_cutoff", 0.90) or 0.90
+        )
+        if self._tier_pressure(StorageTier.GPU, coordinator=coordinator) >= gpu_forward_pressure_cutoff:
             return None
         resident = set(gpu_resident_adapters or set())
         preferred_sequence: List[str] = []

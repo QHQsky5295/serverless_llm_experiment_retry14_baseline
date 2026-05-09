@@ -4764,6 +4764,17 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         self.assertEqual(refined, 4)
 
+        empty_ready_refined = runner._refined_scale_up_target_instances(
+            current_instances=2,
+            decision=SimpleNamespace(target_instances=3),
+            handoff_plan={
+                "queue_at_ready_request_count": 0,
+                "projected_arrived_request_count": 50,
+                "incumbent_started_request_count": 10,
+            },
+        )
+        self.assertEqual(empty_ready_refined, 3)
+
         runner.coord_cfg = {"scale_up_predictive_target_enabled": False}
         conservative = runner._refined_scale_up_target_instances(
             current_instances=1,

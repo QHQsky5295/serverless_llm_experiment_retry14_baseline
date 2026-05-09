@@ -7503,6 +7503,10 @@ class ScenarioRunner:
         # service-ready capacity lagging the predicted queue frontier. Refine the
         # target from that predicted ready-time queue, but keep the result bounded
         # by the physical pool and the normal autoscaler decision.
+        queue_at_ready = self._scale_up_handoff_queue_at_ready_count(handoff_plan)
+        if queue_at_ready <= 0:
+            return min(max_instances, base_target)
+
         predicted_waiting = self._scale_up_handoff_predicted_waiting_count(
             handoff_plan
         )
@@ -7514,12 +7518,12 @@ class ScenarioRunner:
         predictive_target = max(base_target, min(max_instances, required_instances))
         return min(max_instances, predictive_target)
 
-    def _scale_up_handoff_predicted_waiting_count(
+    def _scale_up_handoff_queue_at_ready_count(
         self,
         handoff_plan: Optional[Dict[str, Any]],
     ) -> int:
         plan = dict(handoff_plan or {})
-        queue_at_ready = max(
+        return max(
             0,
             int(
                 plan.get("queue_at_ready_request_count", 0)
@@ -7527,6 +7531,13 @@ class ScenarioRunner:
                 or 0
             ),
         )
+
+    def _scale_up_handoff_predicted_waiting_count(
+        self,
+        handoff_plan: Optional[Dict[str, Any]],
+    ) -> int:
+        plan = dict(handoff_plan or {})
+        queue_at_ready = self._scale_up_handoff_queue_at_ready_count(handoff_plan)
         projected_arrived = max(
             0,
             int(plan.get("projected_arrived_request_count", 0) or 0),
@@ -7550,15 +7561,7 @@ class ScenarioRunner:
         pending = max(0, int(pending_scale_up_instances or 0))
         if current <= 1 and pending <= 0:
             return False
-        plan = dict(handoff_plan or {})
-        queue_at_ready = max(
-            0,
-            int(
-                plan.get("queue_at_ready_request_count", 0)
-                or plan.get("projected_queue_at_ready_request_count", 0)
-                or 0
-            ),
-        )
+        queue_at_ready = self._scale_up_handoff_queue_at_ready_count(handoff_plan)
         if queue_at_ready > 0:
             return False
         visible_work = max(
