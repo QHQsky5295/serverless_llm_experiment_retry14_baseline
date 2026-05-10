@@ -499,18 +499,43 @@ def build_lifecycle_figure(models: Sequence[ModelRound], out_dir: Path) -> None:
             ax.axhline(center + 2.86, color="#B8B8B8", linewidth=0.5, linestyle=":")
         ax.set_xlim(xmin, xmax)
     for text, center in group_centers:
-        axes[0].text(
-            -0.64,
-            center,
-            text,
-            transform=axes[0].get_yaxis_transform(),
-            ha="right",
-            va="center",
-            fontsize=7.2,
-            fontweight="bold",
-            linespacing=0.92,
-            clip_on=False,
-        )
+        lines = text.split("\n", 1)
+        x_label = -0.63
+        if len(lines) == 2:
+            axes[0].text(
+                x_label,
+                center - 0.30,
+                lines[0],
+                transform=axes[0].get_yaxis_transform(),
+                ha="center",
+                va="center",
+                fontsize=7.2,
+                fontweight="bold",
+                clip_on=False,
+            )
+            axes[0].text(
+                x_label,
+                center + 0.30,
+                lines[1],
+                transform=axes[0].get_yaxis_transform(),
+                ha="center",
+                va="center",
+                fontsize=7.2,
+                fontweight="bold",
+                clip_on=False,
+            )
+        else:
+            axes[0].text(
+                x_label,
+                center,
+                text,
+                transform=axes[0].get_yaxis_transform(),
+                ha="center",
+                va="center",
+                fontsize=7.2,
+                fontweight="bold",
+                clip_on=False,
+            )
 
     fig.legend(
         legend_handles,
