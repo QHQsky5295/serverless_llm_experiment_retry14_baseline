@@ -83,6 +83,13 @@ def _ordered_systems(systems: Sequence[ppf.MainSystemData]) -> list[ppf.MainSyst
     return [by_key[key] for key in DISPLAY_ORDER if key in by_key]
 
 
+def _two_line_model_label(label: str) -> str:
+    parts = label.rsplit(" ", 1)
+    if len(parts) == 2:
+        return f"{parts[0]}\n{parts[1]}"
+    return label
+
+
 def _write_csv(path: Path, rows: Sequence[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fields: list[str] = []
@@ -436,11 +443,11 @@ def build_lifecycle_figure(models: Sequence[ModelRound], out_dir: Path) -> None:
             systems.append(system)
             y_positions.append(y)
             y += 1.0
-        group_centers.append((model.label.replace("Llama-2 ", ""), (start + y - 1.0) / 2.0))
+        group_centers.append((_two_line_model_label(model.label), (start + y - 1.0) / 2.0))
         y += 0.58
 
     y_arr = np.asarray(y_positions, dtype=float)
-    fig, axes = plt.subplots(1, 2, figsize=(3.50, 3.38), constrained_layout=False)
+    fig, axes = plt.subplots(1, 2, figsize=(3.50, 3.26), constrained_layout=False)
     # Keep the paper figure compact: the tiny per-request invocation charge is
     # folded into the active component, while the CSV retains the raw split.
     components = [
@@ -493,7 +500,7 @@ def build_lifecycle_figure(models: Sequence[ModelRound], out_dir: Path) -> None:
         ax.set_xlim(xmin, xmax)
     for text, center in group_centers:
         axes[0].text(
-            -0.72,
+            -0.64,
             center,
             text,
             transform=axes[0].get_yaxis_transform(),
@@ -501,6 +508,7 @@ def build_lifecycle_figure(models: Sequence[ModelRound], out_dir: Path) -> None:
             va="center",
             fontsize=7.2,
             fontweight="bold",
+            linespacing=0.92,
             clip_on=False,
         )
 
@@ -511,12 +519,12 @@ def build_lifecycle_figure(models: Sequence[ModelRound], out_dir: Path) -> None:
         fontsize=6.7,
         ncols=3,
         loc="upper center",
-        bbox_to_anchor=(0.61, 0.982),
+        bbox_to_anchor=(0.60, 0.914),
         columnspacing=0.52,
         handlelength=1.1,
         borderaxespad=0.0,
     )
-    fig.subplots_adjust(left=0.43, right=0.99, top=0.862, bottom=0.126, wspace=0.23)
+    fig.subplots_adjust(left=0.405, right=0.99, top=0.835, bottom=0.128, wspace=0.23)
 
     pdf = out_dir / "fig7_lifecycle_cost.pdf"
     fig.savefig(pdf, bbox_inches="tight", pad_inches=0.015)
