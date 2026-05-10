@@ -53,7 +53,11 @@ if [[ ! -d "${SOURCE}" ]]; then
 fi
 
 ssh_cmd=(ssh -p "${REMOTE_PORT}" -o StrictHostKeyChecking=accept-new)
-rsync_cmd=(rsync -a --info=progress2 -e "${ssh_cmd[*]}")
+# -L dereferences adapter support-file symlinks.  The frozen pools often store
+# model config/tokenizer support files as absolute symlinks into the local model
+# cache; preserving those links on a separate remote node would make the served
+# artifact non-portable.
+rsync_cmd=(rsync -aL --info=progress2 -e "${ssh_cmd[*]}")
 
 "${ssh_cmd[@]}" "${REMOTE_USER}@${REMOTE_HOST}" "mkdir -p '${REMOTE_DIR}'"
 

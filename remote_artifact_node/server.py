@@ -122,7 +122,17 @@ class ArtifactHandler(BaseHTTPRequestHandler):
         try:
             with tarfile.open(archive, "w:gz") as tar:
                 for item in sorted(artifact_dir.rglob("*")):
-                    tar.add(item, arcname=item.relative_to(artifact_dir))
+                    arcname = item.relative_to(artifact_dir)
+                    if item.is_symlink():
+                        resolved = item.resolve(strict=True)
+                        if resolved.is_file():
+                            tar.add(resolved, arcname=arcname, recursive=False)
+                        elif resolved.is_dir():
+                            for child in sorted(resolved.rglob("*")):
+                                child_arcname = arcname / child.relative_to(resolved)
+                                tar.add(child, arcname=child_arcname, recursive=False)
+                        continue
+                    tar.add(item, arcname=arcname, recursive=False)
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "application/gzip")
             self.send_header("Content-Length", str(archive.stat().st_size))

@@ -50,6 +50,9 @@ llama32_3b_a500_v1_modelscope/
 ```
 
 可以用本地脚本分发工件。该脚本不保存密码，SSH 密码需要交互输入：
+脚本使用 `rsync -aL`，会把本地冻结工件中的绝对符号链接解引用为普通文件。
+这是必要的，因为 3B/7B 冻结 adapter 目录里的 tokenizer/config support
+files 可能是指向 GPU 节点模型目录的绝对 symlink，直接搬到 remote 节点后会失效。
 
 ```bash
 cd /home/qhq/serverless_llm_experiment_retry14_baseline

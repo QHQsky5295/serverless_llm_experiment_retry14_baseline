@@ -30,7 +30,9 @@ scripts/stage_remote_artifacts.sh \
 ```
 
 The staging helper uses interactive SSH or SSH keys.  It never stores a
-password in the repository.
+password in the repository.  It dereferences support-file symlinks while
+copying, because the frozen local adapter pools may contain absolute symlinks
+into the GPU node's model cache.
 
 Start the server:
 
