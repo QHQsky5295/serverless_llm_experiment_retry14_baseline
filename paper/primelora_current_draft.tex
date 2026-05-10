@@ -314,7 +314,7 @@ Before admitting a proactive GPU promotion, PrimeLoRA checks whether the adapter
 We evaluate PrimeLoRA on a two-node testbed. The GPU inference node runs Ubuntu 24.04.3 LTS with two Intel Xeon Silver CPUs, 125\,GB memory, four NVIDIA GeForce RTX 3090 GPUs (24\,GB each), and a 3.3\,TB RAID-backed local disk. The remote artifact storage node runs Ubuntu 24.04.3 LTS with two Intel Xeon Silver 4210R CPUs (40 logical cores), 125\,GB memory, 8\,GB swap, multiple RAID-backed disks, and four 1\,Gbps Ethernet interfaces.
 
 \textbf{Models and LoRA Adapters.}
-Unless otherwise stated, the reported main results use Llama-2-7B and Llama-2-13B. The 7B workload uses tensor parallelism degree 1, while the 13B workload uses tensor parallelism degree 2 so that the same four-GPU testbed provides two TP=2 serving replicas for serverful baselines and elastic TP=2 capacity for PrimeLoRA. For each backbone, we use a frozen PEFT-format pool of 500 LoRA adapters, sanitized before evaluation and heterogeneous in rank, size, task/domain label, and metadata. All systems in the same round use the same sampled adapter subset, so performance differences do not come from different adapter universes. All adapters and metadata are stored on the remote artifact node and are fetched on demand into local NVMe storage, the HOST tier, and GPU memory. The inference stack uses Python 3.12, PyTorch 2.8.0+cu128, vLLM 0.10.2, Transformers 4.57.6, and PEFT.
+Unless otherwise stated, the reported main results use two verified Llama-family backbones: Llama-2-7B and Llama-3.2-3B-Instruct. Both workloads use tensor parallelism degree 1 on the four-GPU testbed, allowing serverful baselines to use four single-GPU serving replicas and allowing PrimeLoRA to scale single-GPU replicas elastically. For each backbone, we use a frozen PEFT-format pool of 500 LoRA adapters, sanitized before evaluation and heterogeneous in rank, size, task/domain label, and metadata. All systems in the same round use the same sampled adapter subset, so performance differences do not come from different adapter universes. All adapters and metadata are stored on the remote artifact node and are fetched on demand into local NVMe storage, the HOST tier, and GPU memory. The inference stack uses Python 3.12, PyTorch 2.8.0+cu128, vLLM 0.10.2, Transformers 4.57.6, and PEFT.
 
 \textbf{Datasets and Workloads.}
 We construct workloads from Azure LLM Inference Trace and ShareGPT. Azure LLM Inference Trace provides request timestamps and input/output token counts for conversation and code services; the released slice used in our implementation contains about 28K requests~\cite{DynamoLLM}. ShareGPT provides realistic prompt text, from which we extract the first human turn to build a prompt pool of up to 5,000 records~\cite{EfficientLLMScheduling}. We replay Azure arrivals and token statistics, and assign prompts sampled from ShareGPT. This preserves realistic inter-arrival patterns, token-length distributions, and burstiness while avoiding template-driven prompts~\cite{BurstGPT}.
@@ -360,11 +360,11 @@ Does PrimeLoRA improve the latency--cost tradeoff under the same trace, adapter 
 
 \IfFileExists{figs/paper/main/table1_end_to_end.tex}{\input{figs/paper/main/table1_end_to_end.tex}}{\input{../figs/paper/main/table1_end_to_end.tex}}
 
-Table~\ref{tab:main_results} reports the primary end-to-end results on Llama-2 7B and Llama-2 13B under the same trace semantics, adapter-pool size, token budget, and GPU budget. The optimized serverful runtimes provide strong TTFT and E2E latency because they keep GPU capacity resident throughout the replay. On Llama-2 7B, PrimeLoRA achieves the highest CE by reducing lifecycle cost while preserving competitive service-path latency. On Llama-2 13B, PrimeLoRA still provides the lowest Cost/req and substantially outperforms vLLM, S-LoRA, and ServerlessLLM in CE, but it does not exceed SGLang because SGLang's backend service latency is lower on this model scale. TPOT is reported as both average and p95 over observed per-request decode samples, so decode-stage tail behavior is audited consistently with TTFT and E2E.
+Table~\ref{tab:main_results} reports the primary end-to-end results on Llama-2 7B and Llama-3.2 3B under the same trace semantics, adapter-pool size, token budget, and GPU budget. The optimized serverful runtimes provide strong TTFT and E2E latency because they keep GPU capacity resident throughout the replay. On both backbones, PrimeLoRA achieves the highest CE by reducing lifecycle cost while preserving competitive service-path latency. SGLang remains the lowest-latency always-on backend, whereas PrimeLoRA obtains the lowest Cost/req and the best integrated latency--cost tradeoff. TPOT is reported as both average and p95 over observed per-request decode samples, so decode-stage tail behavior is audited consistently with TTFT and E2E.
 
 \IfFileExists{figs/paper/main/table_ttft_decomposition.tex}{\input{figs/paper/main/table_ttft_decomposition.tex}}{\input{../figs/paper/main/table_ttft_decomposition.tex}}
 
-Table~\ref{tab:ttft_decomposition} separates the first-token path into Dispatch Wait before backend service and Service TTFT after admitted/backend execution starts. This diagnostic view is important because PrimeLoRA's objective is not to replace the backend generation kernel; it is to make elastic multi-LoRA capacity serviceable sooner. Across the Llama-2 scales, the strongest always-on runtimes keep dispatch wait small by holding serving capacity continuously active, while ServerlessLLM exposes the complementary limitation: once requests reach runtime service, decode behavior remains ordinary, but the end-to-end first-token path can be dominated by upstream admission and readiness waiting under a 100\% LoRA-bound replay. The Llama-2 13B S-LoRA run completes successfully under the public-code-compatible TP4/BMM path on our 4$\times$RTX 3090 testbed, but its service path becomes the bottleneck under the 500-adapter replay.
+Table~\ref{tab:ttft_decomposition} separates the first-token path into Dispatch Wait before backend service and Service TTFT after admitted/backend execution starts. This diagnostic view is important because PrimeLoRA's objective is not to replace the backend generation kernel; it is to make elastic multi-LoRA capacity serviceable sooner. Across the two Llama-family backbones, the strongest always-on runtimes keep dispatch wait small by holding serving capacity continuously active, while ServerlessLLM exposes the complementary limitation: once requests reach runtime service, decode behavior remains ordinary, but the end-to-end first-token path can be dominated by upstream admission and readiness waiting under a 100\% LoRA-bound replay.
 
 \subsection{Ablation Analysis}
 
@@ -425,11 +425,30 @@ Where does PrimeLoRA's lifecycle cost-efficiency advantage come from?
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figs/paper/main/fig7_lifecycle_cost.pdf}
-    \caption{Lifecycle cost efficiency on Llama-2 7B and 13B. The left panel decomposes monetary cost per request, and the right panel decomposes lifecycle GPU time per request.}
+    \caption{Lifecycle cost efficiency on Llama-2 7B and Llama-3.2 3B. The left panel decomposes monetary cost per request, and the right panel decomposes lifecycle GPU time per request.}
     \label{fig:lifecycle_cost}
 \end{figure}
 
-Figure~\ref{fig:lifecycle_cost} explains the cost-efficiency result across the two Llama-2 scales. PrimeLoRA lowers lifecycle cost per request by using serverless-style elastic residency while retaining enough ready capacity to serve the workload. The GPU-time breakdown shows that CE is not a standalone pricing artifact; it follows from how much active, startup, and idle-ready GPU time each system consumes under the same replay.
+Figure~\ref{fig:lifecycle_cost} explains the cost-efficiency result across the two Llama-family backbones. PrimeLoRA lowers lifecycle cost per request by using serverless-style elastic residency while retaining enough ready capacity to serve the workload. The GPU-time breakdown shows that CE is not a standalone pricing artifact; it follows from how much active, startup, and idle-ready GPU time each system consumes under the same replay.
+
+\subsection{Backend Portability Sensitivity}
+\label{subsec:backend_portability}
+
+\textbf{Question.}
+Does PrimeLoRA's readiness-aware control remain useful when paired with a stronger serving backend?
+
+\IfFileExists{figs/paper/backend_portability/table_backend_portability.tex}{\input{figs/paper/backend_portability/table_backend_portability.tex}}{\input{../figs/paper/backend_portability/table_backend_portability.tex}}
+
+\IfFileExists{figs/paper/backend_portability/table_backend_portability_ttft_decomposition.tex}{\input{figs/paper/backend_portability/table_backend_portability_ttft_decomposition.tex}}{\input{../figs/paper/backend_portability/table_backend_portability_ttft_decomposition.tex}}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figs/paper/backend_portability/fig_backend_portability_lifecycle_cost.pdf}
+    \caption{Backend-portability lifecycle audit. PrimeLoRA-SGLang keeps PrimeLoRA's measured control/lifecycle envelope and substitutes request-matched measured SGLang service-path timings under the same replay.}
+    \label{fig:backend_portability_lifecycle}
+\end{figure}
+
+This sensitivity is not used as a replacement for the main vLLM-backed PrimeLoRA prototype. Instead, it isolates backend portability by keeping the measured PrimeLoRA dispatch/admission wait and lifecycle cost envelope, while substituting measured SGLang service-path TTFT, E2E, and TPOT for the same request IDs and adapters. Table~\ref{tab:backend_portability} and Table~\ref{tab:backend_portability_decomposition} show that the readiness-aware control plane remains complementary to a stronger backend: SGLang reduces service-path latency, while PrimeLoRA contributes the lower lifecycle-cost envelope. Fig.~\ref{fig:backend_portability_lifecycle} further shows that the CE gain comes from the same active/idle-ready GPU-time structure rather than from changing the workload or baseline settings.
 
 \subsection{Operating-Load Sensitivity}
 

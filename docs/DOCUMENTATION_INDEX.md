@@ -18,6 +18,9 @@ experiment evidence.
   execution order for paper plots.
 - `PAPER_LATEX_INSERTIONS.md`: ready-to-paste LaTeX figure/table insertion
   snippets and EuroSys-style paragraph replacements for the current draft.
+- `PRIMELORA_SGLANG_BACKEND_PORTABILITY.md`: isolated backend-portability
+  sensitivity for PrimeLoRA-SGLang, including input files, generated artifacts,
+  and wording constraints.
 - `PROJECT_PROGRESS.md`: current high-level project status.
 - `SESSION_HANDOFF_2026-04-27.md`: current restart prompt, live tmux status,
   queue recovery command, and next-step checklist for a new session.

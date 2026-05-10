@@ -436,7 +436,42 @@ S-LoRA 等 multi-LoRA 系统论文经常用 adapter 数量/请求率作为横轴
 `table_fig9_adapter_pool_sensitivity_metrics.tex` 列出 TTFT avg/p95、E2E avg/p95、
 TPOT avg/p95、Throughput、Cost/req 和 CE，满足完整主指标审计。
 
-## 11. 最终写作提醒
+## 11. Backend Portability Sensitivity 插入
+
+### 插入位置
+
+放在 Lifecycle Cost Efficiency 后、Operating-Load Sensitivity 前。该小节是增强实验或
+appendix sensitivity，不替代主表中的 vLLM-backed PrimeLoRA 正式结果。
+
+### 插入片段
+
+```latex
+\subsection{Backend Portability Sensitivity}
+\label{subsec:backend_portability}
+
+\textbf{Question.}
+Does PrimeLoRA's readiness-aware control remain useful when paired with a stronger serving backend?
+
+\IfFileExists{figs/paper/backend_portability/table_backend_portability.tex}{\input{figs/paper/backend_portability/table_backend_portability.tex}}{\input{../figs/paper/backend_portability/table_backend_portability.tex}}
+
+\IfFileExists{figs/paper/backend_portability/table_backend_portability_ttft_decomposition.tex}{\input{figs/paper/backend_portability/table_backend_portability_ttft_decomposition.tex}}{\input{../figs/paper/backend_portability/table_backend_portability_ttft_decomposition.tex}}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figs/paper/backend_portability/fig_backend_portability_lifecycle_cost.pdf}
+    \caption{Backend-portability lifecycle audit. PrimeLoRA-SGLang keeps PrimeLoRA's measured control/lifecycle envelope and substitutes request-matched measured SGLang service-path timings under the same replay.}
+    \label{fig:backend_portability_lifecycle}
+\end{figure}
+```
+
+### 口径提醒
+
+`PrimeLoRA-SGLang` 当前是 request-matched projection：保留 PrimeLoRA-vLLM 的
+dispatch/admission wait 和 lifecycle cost envelope，替换为 SGLang 的
+service-path TTFT/E2E/TPOT。正文必须写清楚它是 backend portability sensitivity，
+不能写成完整 SGLang-backed runtime 主结果。
+
+## 12. 最终写作提醒
 
 - `IEEEtran` 可以继续用于当前草稿，但如果投稿 EuroSys，应最终切换到 EuroSys
   提供的模板；本文档的片段不依赖 IEEE 专有命令。
