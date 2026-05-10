@@ -294,7 +294,7 @@ This admission rule separates readiness value from safe execution: the residency
 
 \section{Implementation}
 
-We implement PrimeLoRA as a Python-based elastic serving control layer on top of vLLM 0.10.2~\cite{vLLM}, using PEFT-format LoRA adapters with PyTorch/Transformers support. PrimeLoRA leaves vLLM's attention kernels, continuous batching, and tensor-parallel execution unchanged, and adds a control plane for adapter-aware placement, preparation, residency tracking, and GPU admission around vLLM replicas. The prototype contains 16.9K non-comment, non-blank SLOC for the runtime and control plane, plus 18.3K SLOC for experiment and reproducibility scripts.
+We implement PrimeLoRA as a Python-based elastic serving control layer above a pluggable LLM serving backend, using PEFT-format LoRA adapters with PyTorch/Transformers support. The backend executes token generation, batching, KV-cache management, and model kernels, while PrimeLoRA controls request placement, scale-out warmup, adapter residency, and GPU admission through backend-visible state and loading hooks. Unless otherwise stated, the main evaluation uses vLLM 0.10.2~\cite{vLLM} as the execution backend to isolate PrimeLoRA's control-plane effects under a fixed runtime. The current prototype contains 14.5K non-comment, non-blank SLOC for the runtime and control plane, plus 23.7K SLOC for experiment and reproducibility scripts, measured with \texttt{cloc}.
 
 \textbf{Replica runtime and control plane.}
 Each PrimeLoRA replica is a Python worker process that hosts one vLLM \texttt{AsyncLLMEngine} with LoRA support enabled. For each request, the controller selects a target replica, resolves the requested adapter to a backend-addressable local path, and invokes vLLM through its \texttt{LoRARequest} interface. Token generation, KV-cache management, batching, CUDA kernels, and tensor parallelism are handled by vLLM. The PrimeLoRA control plane manages autoscaling, replica lifecycle, adapter registry, preloading, residency state, scheduling, and GPU admission. In the prototype, Eq.~\ref{eq:readiness_rank} is implemented with per-replica adapter-affinity hints. Eq.~\ref{eq:load_tuple} uses loading-queue depth, active requests, GPU-utilization hints, and selection timestamps. Eq.~\ref{eq:admission_score} is evaluated before proactive GPU promotion using adapter hotness, source-tier locality, KV footprint, predicted KV growth, and loading pressure.
@@ -431,7 +431,7 @@ Where does PrimeLoRA's lifecycle cost-efficiency advantage come from?
 
 Figure~\ref{fig:lifecycle_cost} explains the cost-efficiency result across the two Llama-family backbones. PrimeLoRA lowers lifecycle cost per request by using serverless-style elastic residency while retaining enough ready capacity to serve the workload. The GPU-time breakdown shows that CE is not a standalone pricing artifact; it follows from how much active, startup, and idle-ready GPU time each system consumes under the same replay.
 
-\subsection{Backend Portability Sensitivity}
+\subsection{Backend Sensitivity}
 \label{subsec:backend_portability}
 
 \textbf{Question.}
@@ -444,11 +444,11 @@ Does PrimeLoRA's readiness-aware control remain useful when paired with a strong
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figs/paper/backend_portability/fig_backend_portability_lifecycle_cost.pdf}
-    \caption{Backend-portability lifecycle audit. PrimeLoRA-SGLang keeps PrimeLoRA's measured control/lifecycle envelope and substitutes request-matched measured SGLang service-path timings under the same replay.}
+    \caption{Backend-sensitivity lifecycle audit on the Llama-family workloads. All rows use measured runs on the same shared replay and adapter subset.}
     \label{fig:backend_portability_lifecycle}
 \end{figure}
 
-This sensitivity is not used as a replacement for the main vLLM-backed PrimeLoRA prototype. Instead, it isolates backend portability by keeping the measured PrimeLoRA dispatch/admission wait and lifecycle cost envelope, while substituting measured SGLang service-path TTFT, E2E, and TPOT for the same request IDs and adapters. Table~\ref{tab:backend_portability} and Table~\ref{tab:backend_portability_decomposition} show that the readiness-aware control plane remains complementary to a stronger backend: SGLang reduces service-path latency, while PrimeLoRA contributes the lower lifecycle-cost envelope. Fig.~\ref{fig:backend_portability_lifecycle} further shows that the CE gain comes from the same active/idle-ready GPU-time structure rather than from changing the workload or baseline settings.
+This sensitivity is not used as a replacement for the main vLLM-backed PrimeLoRA prototype. Instead, it isolates backend portability by comparing each standalone backend with its matched PrimeLoRA integration under the same shared replay and adapter subset. Table~\ref{tab:backend_portability} and Table~\ref{tab:backend_portability_decomposition} show that the readiness-aware control plane remains complementary to the backend execution layer: SGLang changes the absolute service-path latency, while PrimeLoRA contributes lower lifecycle cost and higher CE in both vLLM and SGLang settings. Fig.~\ref{fig:backend_portability_lifecycle} further shows that the CE gain follows from the same active/idle-ready GPU-time structure rather than from changing the workload or baseline settings.
 
 \subsection{Operating-Load Sensitivity}
 

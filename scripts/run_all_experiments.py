@@ -838,7 +838,7 @@ def _effective_runtime_concurrency_cap(model_cfg: Optional[Dict[str, Any]]) -> i
     """Return the system-level runtime admission cap that the backend can honor.
 
     ``runtime_concurrency_cap`` is the capacity seen by the router, dispatcher,
-    and subprocess RPC pool. For vLLM it must never exceed ``max_num_seqs``:
+    and subprocess RPC pool. For vLLM/SGLang it must never exceed ``max_num_seqs``:
     otherwise the system admits more online requests than the engine can
     schedule, hiding queueing inside vLLM/RPC and making TTFT attribution
     misleading.
@@ -851,7 +851,7 @@ def _effective_runtime_concurrency_cap(model_cfg: Optional[Dict[str, Any]]) -> i
         cap = 1
 
     backend = str(cfg.get("backend", "vllm") or "vllm").lower()
-    if backend == "vllm":
+    if backend in {"vllm", "sglang"}:
         try:
             max_num_seqs = int(cfg.get("max_num_seqs", cap) or cap)
         except Exception:
@@ -2234,6 +2234,60 @@ def _kill_stale_gpu_processes():
     gc.collect()
 
 
+def _terminate_processes_by_cmdline_marker(
+    marker: Path | str,
+    *,
+    exclude_pids: Optional[Collection[int]] = None,
+    grace_s: float = 3.0,
+) -> int:
+    """Terminate processes whose command line contains an exact ownership marker.
+
+    SGLang launches scheduler/detokenizer children that can outlive the parent
+    if the dedicated worker is killed during startup or shutdown.  We keep the
+    marker as a worker-owned work directory rather than a broad process name so
+    cleanup cannot touch unrelated SGLang baselines running on the same host.
+    """
+    marker_text = str(marker)
+    if not marker_text:
+        return 0
+    exclude = {int(pid) for pid in (exclude_pids or [])}
+    exclude.add(os.getpid())
+    try:
+        import psutil
+    except ImportError:
+        return 0
+
+    targets = []
+    for proc in psutil.process_iter(["pid", "cmdline"]):
+        try:
+            pid = int(proc.info.get("pid") or proc.pid)
+            if pid in exclude:
+                continue
+            cmdline = proc.info.get("cmdline") or []
+            cmd = " ".join(str(item) for item in cmdline)
+            if marker_text in cmd:
+                targets.append(proc)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+        except Exception:
+            continue
+
+    for proc in targets:
+        try:
+            proc.terminate()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+    gone, alive = psutil.wait_procs(targets, timeout=max(0.1, float(grace_s)))
+    for proc in alive:
+        try:
+            proc.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+    if alive:
+        psutil.wait_procs(alive, timeout=1.0)
+    return len(targets)
+
+
 def _kill_stale_dedicated_worker_process_groups(*, psutil: Any = None, my_pid: Optional[int] = None) -> int:
     """Kill only persisted dedicated-worker process groups from previous runs."""
     killed = 0
@@ -2265,6 +2319,13 @@ def _kill_stale_dedicated_worker_process_groups(*, psutil: Any = None, my_pid: O
                 continue
         except Exception:
             pass
+        sglang_marker = process_meta.parent / "sglang"
+        if sglang_marker.exists():
+            killed += _terminate_processes_by_cmdline_marker(
+                sglang_marker,
+                exclude_pids={my_pid},
+                grace_s=1.0,
+            )
     return killed
 
 
@@ -2332,6 +2393,8 @@ def _engine_mode_info(backend: str) -> str:
     backend = str(backend or "").lower()
     if backend == "vllm":
         return "Real GPU + Real LoRA (vLLM async serving path)"
+    if backend == "sglang":
+        return "Real GPU + Real LoRA (PrimeLoRA control plane + SGLang native serving path)"
     if backend == "transformers":
         return "Real GPU + Real LoRA (Transformers+PEFT fallback path)"
     return f"Real GPU + Real LoRA ({backend})"
@@ -2369,10 +2432,12 @@ def _avg_success_dispatch_wait_ms(raw_list: List[Any]) -> Optional[float]:
 
 class InferenceEngine:
     """
-    Wraps vLLM AsyncLLMEngine (or Transformers+PEFT fallback) with real LoRA.
+    Wraps vLLM AsyncLLMEngine, SGLang server, or Transformers+PEFT fallback
+    with real LoRA.
 
-    Supports two backends via YAML `model.backend`:
+    Supports three backends via YAML `model.backend`:
       "vllm"          - vLLM V1 async engine (default, fast)
+      "sglang"        - SGLang native /generate server with dynamic LoRA
       "transformers"  - HuggingFace Transformers + PEFT (stable fallback)
     """
 
@@ -2401,6 +2466,12 @@ class InferenceEngine:
         self.startup_latency_ms: float = 0.0
         self._last_engine_create_error: str = ""
         self.last_timing: Dict[str, float] = {}
+        self._sglang_process: Optional[subprocess.Popen] = None
+        self._sglang_base_url: str = ""
+        self._sglang_workdir: Optional[Path] = None
+        self._sglang_log_path: Optional[Path] = None
+        self._sglang_loaded_loras: Dict[str, str] = {}
+        self._sglang_lora_lock = asyncio.Lock()
 
     def _maybe_kill_stale_gpu_processes(self) -> None:
         if not bool(self.model_cfg.get("skip_stale_gpu_cleanup", False)):
@@ -2641,6 +2712,201 @@ class InferenceEngine:
             await asyncio.sleep(max(0.1, float(poll_s)))
         return best_ratio
 
+    @staticmethod
+    def _reserve_loopback_port() -> int:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            sock.bind(("127.0.0.1", 0))
+            return int(sock.getsockname()[1])
+        finally:
+            sock.close()
+
+    def _resolve_sglang_python(self) -> str:
+        explicit_python = str(os.environ.get("SGLANG_PYTHON", "") or "").strip()
+        if explicit_python:
+            return explicit_python
+        venv = str(
+            os.environ.get(
+                "SGLANG_VENV",
+                self.model_cfg.get("sglang_venv", "/home/qhq/.venvs/sglang_py310"),
+            )
+            or ""
+        ).strip()
+        if venv:
+            candidate = Path(venv).expanduser() / "bin" / "python"
+            if candidate.exists():
+                return str(candidate)
+        return sys.executable
+
+    def _build_sglang_launch_spec(self, *, port: int) -> Dict[str, Any]:
+        max_loras = max(1, int(self.model_cfg.get("max_loras", 4) or 4))
+        max_cpu_loras = max(
+            max_loras,
+            int(self.model_cfg.get("max_cpu_loras", max(24, max_loras)) or max(24, max_loras)),
+        )
+        max_batched_tokens = int(self.model_cfg.get("max_num_batched_tokens", 1024) or 1024)
+        chunked = self.model_cfg.get("enable_chunked_prefill")
+        chunked_prefill_size = max_batched_tokens if bool(chunked) else -1
+        spec: Dict[str, Any] = {
+            "model-path": self.model_cfg.get("name", "Qwen/Qwen2.5-3B-Instruct"),
+            "host": "127.0.0.1",
+            "port": int(port),
+            "served-model-name": str(self.model_cfg.get("served_model_name") or "primelora-sglang"),
+            "trust-remote-code": True,
+            "tp": max(1, int(self.model_cfg.get("tensor_parallel_size", 1) or 1)),
+            "context-length": int(self.model_cfg.get("max_model_len", 2048) or 2048),
+            "mem-fraction-static": float(self.model_cfg.get("gpu_memory_utilization", 0.85) or 0.85),
+            "dtype": str(self.model_cfg.get("dtype", "float16") or "float16"),
+            "enable-lora": True,
+            "max-lora-rank": int(self.model_cfg.get("max_lora_rank", 64) or 64),
+            "lora-target-modules": ["all"],
+            "max-loras-per-batch": max_loras,
+            "max-loaded-loras": max_cpu_loras,
+            "chunked-prefill-size": int(chunked_prefill_size),
+            "enable-metrics": True,
+            "enable-request-time-stats-logging": True,
+            "log-level": str(os.environ.get("FAASLORA_SGLANG_LOG_LEVEL", "warning") or "warning"),
+        }
+        lora_backend = str(self.model_cfg.get("sglang_lora_backend") or "").strip()
+        if lora_backend:
+            spec["lora-backend"] = lora_backend
+        max_running = self.model_cfg.get("sglang_max_running_requests")
+        if max_running is not None:
+            spec["max-running-requests"] = max(1, int(max_running or 1))
+        if self.model_cfg.get("enable_prefix_caching") is False:
+            spec["disable-radix-cache"] = True
+        if bool(self.model_cfg.get("sglang_disable_cuda_graph", False)):
+            spec["disable-cuda-graph"] = True
+        return spec
+
+    async def _wait_for_sglang_ready(self, timeout_s: float) -> None:
+        import requests
+
+        deadline = time.monotonic() + max(1.0, float(timeout_s))
+        url = f"{self._sglang_base_url.rstrip('/')}/v1/models"
+        last_error = ""
+        while time.monotonic() < deadline:
+            proc = self._sglang_process
+            if proc is not None and proc.poll() is not None:
+                log_tail = ""
+                try:
+                    if self._sglang_log_path and self._sglang_log_path.exists():
+                        log_tail = "\n".join(self._sglang_log_path.read_text(errors="ignore").splitlines()[-40:])
+                except Exception:
+                    pass
+                raise RuntimeError(
+                    f"SGLang server exited during startup (rc={proc.returncode}). "
+                    f"Last error: {last_error}. Log tail:\n{log_tail}"
+                )
+            try:
+                resp = await asyncio.to_thread(requests.get, url, timeout=2.0)
+                if resp.status_code == 200:
+                    return
+                last_error = f"HTTP {resp.status_code}: {resp.text[:200]}"
+            except Exception as exc:
+                last_error = f"{type(exc).__name__}: {exc}"
+            await asyncio.sleep(0.75)
+        raise TimeoutError(f"SGLang server did not become ready within {timeout_s:.1f}s: {last_error}")
+
+    async def _initialize_sglang(self, init_started_at: float) -> None:
+        model = self.model_cfg.get("name", "Qwen/Qwen2.5-3B-Instruct")
+        tp = max(1, int(self.model_cfg.get("tensor_parallel_size", 1) or 1))
+        visible_devices = self._resolve_vllm_visible_devices(tp)
+        port = self._reserve_loopback_port()
+        workdir_base_raw = str(self.model_cfg.get("sglang_workdir_base", "") or "").strip()
+        if workdir_base_raw:
+            workdir_base = Path(workdir_base_raw).expanduser()
+            workdir_base.mkdir(parents=True, exist_ok=True)
+            workdir = Path(tempfile.mkdtemp(prefix="server_", dir=str(workdir_base)))
+        else:
+            workdir = Path(tempfile.mkdtemp(prefix="faaslora_sglang_", dir="/tmp"))
+        metrics_dir = workdir / "metrics"
+        metrics_dir.mkdir(parents=True, exist_ok=True)
+        launch_spec = self._build_sglang_launch_spec(port=port)
+        spec_path = workdir / "launch.yaml"
+        log_path = workdir / "sglang_server.log"
+        spec_path.write_text(yaml.safe_dump(launch_spec, sort_keys=False), encoding="utf-8")
+
+        sglang_python = self._resolve_sglang_python()
+        if not Path(sglang_python).exists():
+            raise RuntimeError(f"SGLang python not found: {sglang_python}")
+
+        env = os.environ.copy()
+        env.setdefault("PYTHONNOUSERSITE", "1")
+        env.setdefault("PYTHONUNBUFFERED", "1")
+        env.setdefault("TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD", "1")
+        # Do not resolve the venv python symlink here: resolving
+        # /path/to/venv/bin/python points to /usr/bin/python3.x and drops the
+        # venv bin directory that contains runtime JIT tools such as ninja.
+        sglang_bin = str(Path(sglang_python).expanduser().parent)
+        env["PATH"] = f"{sglang_bin}:{env.get('PATH', '')}"
+        if visible_devices:
+            env["CUDA_VISIBLE_DEVICES"] = str(visible_devices)
+            env["FAASLORA_VISIBLE_DEVICES"] = str(visible_devices)
+        env.update(_build_local_tp_runtime_env_updates(tp=tp, executor_backend="mp" if tp > 1 else None))
+
+        cmd = [
+            sglang_python,
+            "-m",
+            "sglang.launch_server",
+            "--config",
+            str(spec_path),
+            "--export-metrics-to-file",
+            "--export-metrics-to-file-dir",
+            str(metrics_dir),
+        ]
+        if bool(self.model_cfg.get("sglang_enable_lora_overlap_loading", False)):
+            cmd.append("--enable-lora-overlap-loading")
+
+        log_fh = open(log_path, "w", encoding="utf-8")
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                stdout=log_fh,
+                stderr=subprocess.STDOUT,
+                env=env,
+                cwd=str(REPO_ROOT),
+                start_new_session=True,
+                text=True,
+            )
+        finally:
+            log_fh.close()
+
+        self._sglang_process = proc
+        self._sglang_base_url = f"http://127.0.0.1:{port}"
+        self._sglang_workdir = workdir
+        self._sglang_log_path = log_path
+        self._sglang_loaded_loras.clear()
+        self._active_tp = tp
+
+        print("  Initialising SGLang server:")
+        print(f"    model              = {model}")
+        print(f"    GPU                = {GPU_NAME} (x{GPU_COUNT})")
+        print(f"    tensor_parallel    = {tp}")
+        print(f"    base_url           = {self._sglang_base_url}")
+        print(f"    max_model_len      = {launch_spec['context-length']}")
+        if "max-running-requests" in launch_spec:
+            print(f"    max_running_reqs   = {launch_spec['max-running-requests']}")
+        else:
+            print("    max_running_reqs   = SGLang default")
+        print(f"    max_loras_per_batch= {launch_spec['max-loras-per-batch']}")
+        print(f"    max_loaded_loras   = {launch_spec['max-loaded-loras']}")
+        print(f"    max_lora_rank      = {launch_spec['max-lora-rank']}")
+        print(f"    dtype              = {launch_spec['dtype']}")
+        if visible_devices:
+            print(f"    visible_devices    = {visible_devices}")
+        print(f"    log                = {log_path}")
+
+        timeout_s = float(os.environ.get("FAASLORA_SGLANG_START_TIMEOUT_S", self.model_cfg.get("sglang_start_timeout_s", 300)) or 300)
+        try:
+            await self._wait_for_sglang_ready(timeout_s=timeout_s)
+        except Exception:
+            await self._terminate_sglang_process(force=True)
+            raise
+        self.startup_latency_ms = max(0.0, (time.perf_counter() - init_started_at) * 1000.0)
+        self._engine_dead = False
+        print(f"  OK: SGLang server ready (TP={tp}, dynamic LoRA)")
+
     async def initialize(self):
         init_started_at = time.perf_counter()
         self._last_engine_create_error = ""
@@ -2652,6 +2918,10 @@ class InferenceEngine:
         if self.backend == "transformers":
             await self._initialize_transformers()
             self.startup_latency_ms = max(0.0, (time.perf_counter() - init_started_at) * 1000.0)
+            return
+
+        if self.backend == "sglang":
+            await self._initialize_sglang(init_started_at)
             return
 
         model    = self.model_cfg.get("name", "Qwen/Qwen2.5-3B-Instruct")
@@ -2880,6 +3150,15 @@ class InferenceEngine:
             except Exception:
                 pass
             return
+        if self.backend == "sglang":
+            await self._terminate_sglang_process(force=False)
+            self._sglang_loaded_loras.clear()
+            self._sglang_base_url = ""
+            self._engine_dead = True
+            keep_logs = os.environ.get("FAASLORA_KEEP_SGLANG_LOGS", "").strip().lower() in {"1", "true", "yes", "on"}
+            if self._sglang_workdir and not keep_logs:
+                shutil.rmtree(self._sglang_workdir, ignore_errors=True)
+            return
         if self.engine is not None:
             try:
                 inner_engine = getattr(self.engine, "engine", None)
@@ -2897,6 +3176,53 @@ class InferenceEngine:
         self.engine = None
         self._engine_dead = True
 
+    async def _terminate_sglang_process(self, *, force: bool = False) -> None:
+        proc = self._sglang_process
+        workdir = self._sglang_workdir
+        self._sglang_process = None
+        if proc is None:
+            if workdir is not None:
+                _terminate_processes_by_cmdline_marker(workdir, grace_s=1.0)
+            return
+        already_exited = False
+        try:
+            if proc.poll() is not None:
+                already_exited = True
+        except Exception:
+            pass
+        if not already_exited:
+            sig = signal.SIGKILL if force else signal.SIGTERM
+            try:
+                pgid = os.getpgid(proc.pid)
+                os.killpg(pgid, sig)
+            except Exception:
+                try:
+                    proc.send_signal(sig)
+                except Exception:
+                    pass
+            try:
+                await asyncio.to_thread(proc.wait, 5 if force else 15)
+            except Exception:
+                if not force:
+                    try:
+                        pgid = os.getpgid(proc.pid)
+                        os.killpg(pgid, signal.SIGKILL)
+                    except Exception:
+                        try:
+                            proc.kill()
+                        except Exception:
+                            pass
+                    try:
+                        await asyncio.to_thread(proc.wait, 5)
+                    except Exception:
+                        pass
+        if workdir is not None:
+            await asyncio.to_thread(
+                _terminate_processes_by_cmdline_marker,
+                workdir,
+                grace_s=1.0 if force else 2.0,
+            )
+
     async def reinitialize(self):
         """Reinitialize engine after a crash."""
         if not CUDA_AVAILABLE:
@@ -2905,6 +3231,11 @@ class InferenceEngine:
             await self.shutdown()
             await asyncio.sleep(1)
             await self._initialize_transformers()
+            return
+        if self.backend == "sglang":
+            await self.shutdown()
+            await asyncio.sleep(1)
+            await self._initialize_sglang(time.perf_counter())
             return
         if not _lazy_import_vllm():
             return
@@ -3141,6 +3472,243 @@ class InferenceEngine:
                 prompt, lora_path, adapter_id, max_tokens, temperature, top_p,
             )
 
+    def _sglang_post_json_sync(self, endpoint: str, payload: Dict[str, Any], *, timeout_s: float) -> Dict[str, Any]:
+        import requests
+
+        url = f"{self._sglang_base_url.rstrip('/')}/{endpoint.lstrip('/')}"
+        resp = requests.post(url, json=payload, timeout=max(1.0, float(timeout_s)))
+        if resp.status_code != 200:
+            raise RuntimeError(f"SGLang {endpoint} failed HTTP {resp.status_code}: {resp.text[:500]}")
+        try:
+            obj = resp.json()
+        except Exception:
+            obj = {"raw_text": resp.text}
+        if isinstance(obj, dict) and obj.get("error"):
+            raise RuntimeError(f"SGLang {endpoint} error: {obj.get('error')}")
+        return obj if isinstance(obj, dict) else {"response": obj}
+
+    async def _ensure_sglang_lora_loaded(self, lora_path: Optional[str], adapter_id: Optional[str]) -> Optional[str]:
+        if not lora_path or not adapter_id:
+            return None
+        adapter_name = str(adapter_id)
+        adapter_path = str(lora_path)
+        timeout_s = float(os.environ.get("FAASLORA_SGLANG_LORA_API_TIMEOUT_S", "120") or 120)
+        async with self._sglang_lora_lock:
+            if adapter_name in self._sglang_loaded_loras:
+                return adapter_name
+            try:
+                await asyncio.to_thread(
+                    self._sglang_post_json_sync,
+                    "/load_lora_adapter",
+                    {"lora_name": adapter_name, "lora_path": adapter_path},
+                    timeout_s=timeout_s,
+                )
+            except RuntimeError as exc:
+                message = str(exc)
+                if "already loaded" not in message or adapter_name not in message:
+                    raise
+            self._sglang_loaded_loras[adapter_name] = adapter_path
+        return adapter_name
+
+    @staticmethod
+    def _sglang_text_fragment(obj: Any) -> str:
+        if not isinstance(obj, dict):
+            return ""
+        parts: List[str] = []
+        text = obj.get("text")
+        if isinstance(text, str):
+            parts.append(text)
+        elif isinstance(text, list):
+            parts.extend(str(item) for item in text if isinstance(item, str))
+        generated_text = obj.get("generated_text")
+        if isinstance(generated_text, str):
+            parts.append(generated_text)
+        token = obj.get("token")
+        if isinstance(token, dict) and isinstance(token.get("text"), str):
+            parts.append(token["text"])
+        return "".join(parts)
+
+    @staticmethod
+    def _sglang_meta_metrics(meta_info: Dict[str, Any]) -> Dict[str, Any]:
+        def _latency_ms(start: Any, end: Any) -> Optional[float]:
+            try:
+                start_f = float(start)
+                end_f = float(end)
+            except Exception:
+                return None
+            if not math.isfinite(start_f) or not math.isfinite(end_f) or end_f < start_f:
+                return None
+            return (end_f - start_f) * 1000.0
+
+        metrics: Dict[str, Any] = {}
+        if meta_info.get("prompt_tokens") is not None:
+            metrics["prompt_tokens"] = int(meta_info.get("prompt_tokens") or 0)
+        if meta_info.get("completion_tokens") is not None:
+            metrics["completion_tokens"] = int(meta_info.get("completion_tokens") or 0)
+        received = meta_info.get("request_received_ts")
+        first = meta_info.get("response_sent_to_client_ts")
+        finished = meta_info.get("request_finished_ts")
+        ttft_ms = _latency_ms(received, first)
+        e2e_ms = _latency_ms(received, finished if finished is not None else first)
+        if ttft_ms is not None:
+            metrics["ttft_ms"] = ttft_ms
+        if e2e_ms is not None:
+            metrics["e2e_ms"] = e2e_ms
+        decode_tps = _safe_float(meta_info.get("decode_throughput"), 0.0)
+        if decode_tps > 0.0:
+            metrics["tpot_ms"] = 1000.0 / decode_tps
+        return metrics
+
+    def _sync_generate_sglang(
+        self,
+        *,
+        prompt: str,
+        lora_name: Optional[str],
+        max_tokens: int,
+        input_tokens: int,
+        temperature: float,
+        top_p: float,
+        generation_seed: Optional[int],
+    ) -> Tuple[float, float, int, Dict[str, float]]:
+        import requests
+
+        if not self._sglang_base_url:
+            raise RuntimeError("SGLang server is not initialized")
+        sampling_params: Dict[str, Any] = {
+            "temperature": float(temperature),
+            "top_p": float(top_p),
+            "max_new_tokens": max(1, int(max_tokens)),
+        }
+        if generation_seed is not None:
+            sampling_params["sampling_seed"] = int(generation_seed)
+        actual_input_tokens = max(1, int(input_tokens or 1))
+        try:
+            tokenizer = self._get_prompt_guard_tokenizer()
+            input_ids = tokenizer.encode(prompt, add_special_tokens=False)
+            actual_input_tokens = max(1, len(input_ids))
+        except Exception:
+            input_ids = None
+        body: Dict[str, Any] = {
+            "sampling_params": sampling_params,
+            "stream": True,
+        }
+        if input_ids is not None:
+            body["input_ids"] = input_ids
+        else:
+            body["text"] = prompt
+        if lora_name:
+            body["lora_path"] = str(lora_name)
+
+        timeout_s = float(os.environ.get("FAASLORA_SGLANG_GENERATE_TIMEOUT_S", self.model_cfg.get("sglang_generate_timeout_s", 7200)) or 7200)
+        url = f"{self._sglang_base_url.rstrip('/')}/generate"
+        t0 = time.perf_counter()
+        first_t: Optional[float] = None
+        text_parts: List[str] = []
+        meta_metrics: Dict[str, Any] = {}
+        raw_preview = ""
+        try:
+            with requests.post(url, json=body, stream=True, timeout=timeout_s) as resp:
+                raw_chunks: List[str] = []
+                for chunk in resp.iter_content(chunk_size=None, decode_unicode=True):
+                    if not chunk:
+                        continue
+                    if first_t is None and str(chunk).strip():
+                        first_t = time.perf_counter()
+                    raw_chunks.append(str(chunk))
+                raw_text = "".join(raw_chunks).strip()
+                raw_preview = raw_text[:500]
+                if resp.status_code != 200:
+                    raise RuntimeError(f"SGLang /generate HTTP {resp.status_code}: {raw_preview}")
+                stripped = raw_text.lstrip()
+                payloads: List[Any] = []
+                if stripped.startswith(("{", "[")):
+                    payloads.append(json.loads(raw_text))
+                else:
+                    for line in raw_text.splitlines():
+                        line = line.strip()
+                        if not line.startswith("data:"):
+                            continue
+                        payload = line[len("data:") :].strip()
+                        if not payload or payload == "[DONE]":
+                            continue
+                        try:
+                            payloads.append(json.loads(payload))
+                        except json.JSONDecodeError:
+                            continue
+                for obj in payloads:
+                    if isinstance(obj, list):
+                        for item in obj:
+                            fragment = self._sglang_text_fragment(item)
+                            if fragment:
+                                text_parts.append(fragment)
+                            if isinstance(item, dict) and isinstance(item.get("meta_info"), dict):
+                                meta_metrics.update(self._sglang_meta_metrics(item["meta_info"]))
+                    elif isinstance(obj, dict):
+                        fragment = self._sglang_text_fragment(obj)
+                        if fragment:
+                            text_parts.append(fragment)
+                        if isinstance(obj.get("meta_info"), dict):
+                            meta_metrics.update(self._sglang_meta_metrics(obj["meta_info"]))
+                        if obj.get("error"):
+                            raise RuntimeError(f"SGLang /generate error: {obj.get('error')}")
+        except Exception as exc:
+            raise RuntimeError(f"SGLang generate failed: {exc}; raw={raw_preview}") from exc
+
+        t1 = time.perf_counter()
+        wall_ms = max(0.0, (t1 - t0) * 1000.0)
+        ttft_ms = _positive_or_fallback(meta_metrics.get("ttft_ms"), (first_t - t0) * 1000.0 if first_t is not None else wall_ms)
+        e2e_ms = _positive_or_fallback(meta_metrics.get("e2e_ms"), wall_ms)
+        generated_text = "".join(text_parts)
+        output_tokens = int(meta_metrics.get("completion_tokens") or 0)
+        if output_tokens <= 0:
+            try:
+                tokenizer = self._get_prompt_guard_tokenizer()
+                output_tokens = max(1, len(tokenizer.encode(generated_text, add_special_tokens=False)))
+            except Exception:
+                output_tokens = max(1, int(max_tokens))
+        tpot_ms = _positive_or_fallback(
+            meta_metrics.get("tpot_ms"),
+            max(0.0, e2e_ms - ttft_ms) / max(output_tokens - 1, 1),
+        )
+        timing = {
+            "runtime_estimated_e2e_ms": float(e2e_ms),
+            "worker_wall_e2e_ms": float(wall_ms),
+            "parent_rpc_wall_ms": float(wall_ms),
+            "parent_rpc_overhead_ms": 0.0,
+            "actual_prompt_tokens": float(meta_metrics.get("prompt_tokens") or actual_input_tokens),
+            "sglang_api_ttft_ms": float((first_t - t0) * 1000.0 if first_t is not None else ttft_ms),
+        }
+        return float(ttft_ms), float(tpot_ms), int(output_tokens), timing
+
+    async def _generate_sglang(
+        self,
+        prompt: str,
+        lora_path: Optional[str],
+        adapter_id: Optional[str],
+        max_tokens: int,
+        input_tokens: int,
+        temperature: float,
+        top_p: float,
+        generation_seed: Optional[int],
+    ) -> Tuple[float, float, int]:
+        proc = self._sglang_process
+        if not proc or proc.poll() is not None or self._engine_dead:
+            self._engine_dead = True
+            raise RuntimeError(f"SGLang server is not running (rc={getattr(proc, 'returncode', None)})")
+        lora_name = await self._ensure_sglang_lora_loaded(lora_path, adapter_id)
+        ttft_ms, tpot_ms, out_tokens, timing = await asyncio.to_thread(
+            self._sync_generate_sglang,
+            prompt=prompt,
+            lora_name=lora_name,
+            max_tokens=max_tokens,
+            input_tokens=input_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            generation_seed=generation_seed,
+        )
+        self.last_timing = dict(timing)
+        return ttft_ms, tpot_ms, out_tokens
+
     @staticmethod
     def _derive_vllm_latency_metrics(
         *,
@@ -3227,6 +3795,37 @@ class InferenceEngine:
             if return_timing:
                 return ttft_ms, tpot_ms, out_tokens, dict(self.last_timing or {})
             return ttft_ms, tpot_ms, out_tokens
+
+        if self.backend == "sglang":
+            try:
+                if _prepared_request is not None:
+                    prompt = _prepared_request.prompt
+                    input_tokens = _prepared_request.input_tokens
+                    safe_max_tokens = _prepared_request.max_tokens
+                else:
+                    prompt, input_tokens, safe_max_tokens = self._prepare_vllm_prompt(
+                        prompt=prompt,
+                        max_tokens=max_tokens,
+                        input_tokens_hint=input_tokens,
+                    )
+                ttft_ms, tpot_ms, out_tokens = await self._generate_sglang(
+                    prompt=prompt,
+                    lora_path=lora_path,
+                    adapter_id=adapter_id,
+                    max_tokens=safe_max_tokens,
+                    input_tokens=input_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                    generation_seed=generation_seed,
+                )
+                if return_timing:
+                    return ttft_ms, tpot_ms, out_tokens, dict(self.last_timing or {})
+                return ttft_ms, tpot_ms, out_tokens
+            except Exception as exc:
+                exc_s = str(exc).lower()
+                if _is_fatal_engine_error_message(exc_s) or "server is not running" in exc_s:
+                    self._engine_dead = True
+                raise RuntimeError(f"SGLang: {exc}") from exc
 
         if self.engine is None or self._engine_dead:
             raise RuntimeError("vLLM engine is not initialised or dead")
@@ -3359,6 +3958,22 @@ class InferenceEngine:
         Runs a minimal generate (1 token) with this LoRA; TTFT includes vLLM internal load.
         Returns (ttft_ms_including_load, success).
         """
+        if self.backend == "sglang":
+            if self._engine_dead or self._sglang_process is None:
+                return 0.0, False
+            try:
+                ttft_ms, _, _ = await self.generate(
+                    prompt="Hi",
+                    lora_path=lora_path,
+                    adapter_id=adapter_id,
+                    max_tokens=1,
+                    input_tokens=2,
+                    temperature=0.0,
+                    top_p=1.0,
+                )
+                return ttft_ms, True
+            except Exception:
+                return 0.0, False
         if self.backend != "vllm" or self.engine is None or self._engine_dead:
             return 0.0, False
         try:
@@ -3395,6 +4010,18 @@ class InferenceEngine:
                     return True
                 except Exception:
                     return False
+        if self.backend == "sglang":
+            try:
+                await asyncio.to_thread(
+                    self._sglang_post_json_sync,
+                    "/unload_lora_adapter",
+                    {"lora_name": str(adapter_id)},
+                    timeout_s=float(os.environ.get("FAASLORA_SGLANG_LORA_API_TIMEOUT_S", "120") or 120),
+                )
+                self._sglang_loaded_loras.pop(str(adapter_id), None)
+                return True
+            except Exception:
+                return False
         if self.backend != "vllm" or self.engine is None or self._engine_dead:
             return False
         remove_fn = getattr(self.engine, "remove_lora", None)
@@ -3545,6 +4172,10 @@ class SubprocessInferenceEngineProxy:
         )
 
         worker_root = Path(tempfile.mkdtemp(prefix="faaslora_worker_", dir="/tmp"))
+        if str(local_model_cfg.get("backend", "") or "").lower() == "sglang":
+            sglang_workdir_base = worker_root / "sglang"
+            sglang_workdir_base.mkdir(parents=True, exist_ok=True)
+            local_model_cfg["sglang_workdir_base"] = str(sglang_workdir_base)
         payload_path = worker_root / "payload.json"
         ready_path = worker_root / "ready.json"
         log_path = worker_root / "worker.log"
@@ -3583,8 +4214,15 @@ class SubprocessInferenceEngineProxy:
         cls._write_process_meta(worker_root, process)
 
         async def _terminate_startup_process() -> None:
+            sglang_marker = worker_root / "sglang"
             try:
                 if process.poll() is not None:
+                    if sglang_marker.exists():
+                        await asyncio.to_thread(
+                            _terminate_processes_by_cmdline_marker,
+                            sglang_marker,
+                            grace_s=1.0,
+                        )
                     return
             except Exception:
                 pass
@@ -3594,6 +4232,12 @@ class SubprocessInferenceEngineProxy:
                 await asyncio.to_thread(process.wait, 5)
             except Exception:
                 pass
+            if sglang_marker.exists():
+                await asyncio.to_thread(
+                    _terminate_processes_by_cmdline_marker,
+                    sglang_marker,
+                    grace_s=1.0,
+                )
             try:
                 if process.poll() is None:
                     pgid = os.getpgid(process.pid)
@@ -3856,10 +4500,23 @@ class SubprocessInferenceEngineProxy:
 
     async def _terminate_process_tree(self, *, force: bool = False) -> None:
         proc = self._process
+        sglang_marker = self._workdir / "sglang"
         if proc is None:
+            if sglang_marker.exists():
+                await asyncio.to_thread(
+                    _terminate_processes_by_cmdline_marker,
+                    sglang_marker,
+                    grace_s=1.0,
+                )
             return
         try:
             if proc.poll() is not None:
+                if sglang_marker.exists():
+                    await asyncio.to_thread(
+                        _terminate_processes_by_cmdline_marker,
+                        sglang_marker,
+                        grace_s=1.0,
+                    )
                 return
         except Exception:
             pass
@@ -3879,6 +4536,12 @@ class SubprocessInferenceEngineProxy:
             await asyncio.to_thread(proc.wait, 5 if force else 10)
         except Exception:
             pass
+        if sglang_marker.exists():
+            await asyncio.to_thread(
+                _terminate_processes_by_cmdline_marker,
+                sglang_marker,
+                grace_s=1.0 if force else 2.0,
+            )
         if force:
             return
         try:
@@ -13277,16 +13940,16 @@ def _should_spawn_dedicated_engine_subprocess(
     instance_mode: str,
 ) -> bool:
     """
-    Dedicated vLLM scale-out must use process isolation.
+    Dedicated runtime scale-out must use process isolation.
 
-    Once the primary engine has initialized CUDA in the current Python process,
-    spinning up a second vLLM engine with a different CUDA_VISIBLE_DEVICES mask
-    in the same process is unreliable for both TP=1 and TP>1 runtimes. Use a
-    subprocess-backed proxy so each dedicated runtime owns an exact physical GPU
-    group.
+    Once a serving backend has initialized CUDA in the current Python process,
+    spinning up a second runtime with a different CUDA_VISIBLE_DEVICES mask in
+    the same process is unreliable for both TP=1 and TP>1 runtimes. Use a
+    subprocess-backed proxy so each dedicated runtime owns an exact physical
+    GPU group.
     """
     backend = str(model_cfg.get("backend", "vllm")).lower()
-    return backend == "vllm" and str(instance_mode).lower() in ("auto", "dedicated")
+    return backend in {"vllm", "sglang"} and str(instance_mode).lower() in ("auto", "dedicated")
 
 
 def _should_defer_primary_engine_initialization(
@@ -13302,9 +13965,9 @@ def _should_defer_primary_engine_initialization(
 
     FaaSLoRA's auto/dedicated mode models physical serverless replicas. If the
     scale-out replicas are isolated in subprocesses but the primary replica is
-    hosted inside the controller process, the primary vLLM async loop competes
-    with scheduling, live monitoring, warmup, and autoscaling callbacks. That is
-    not the same runtime topology as the scale-out replicas, and it can turn the
+    hosted inside the controller process, the primary runtime loop competes with
+    scheduling, live monitoring, warmup, and autoscaling callbacks. That is not
+    the same runtime topology as the scale-out replicas, and it can turn the
     primary into a hidden bottleneck. Defer init so the scenario can replace the
     primary with the same subprocess-backed runtime used by scale-out.
     """
@@ -15512,7 +16175,7 @@ async def main_async(
     if backend == "transformers":
         wl_cfg_yaml = dict(wl_cfg_yaml) if wl_cfg_yaml else {}
         wl_cfg_yaml["concurrency"] = 1
-    elif backend == "vllm":
+    elif backend in {"vllm", "sglang"}:
         wl_cfg_yaml = dict(wl_cfg_yaml) if wl_cfg_yaml else {}
         wl_cfg_yaml["concurrency"] = max(1, int(wl_cfg_yaml.get("concurrency", 8) or 1))
     results_file = output_dir / exp_cfg.get("results_file", "experiment_results.json")
@@ -15855,7 +16518,7 @@ async def main_async(
         )
         if defer_primary_engine_init:
             print(
-                "[4/5] Deferring primary vLLM runtime init: selected scenario uses "
+                f"[4/5] Deferring primary {backend} runtime init: selected scenario uses "
                 "subprocess-isolated dedicated runtimes."
             )
         else:
@@ -16110,7 +16773,7 @@ async def main_async(
                     device_id=primary_device_id,
                 )
                 print(
-                    "  [Runtime isolation] Primary vLLM runtime uses the same "
+                    f"  [Runtime isolation] Primary {backend} runtime uses the same "
                     "subprocess-backed path as scale-out replicas "
                     f"(device_id={primary_device_id}, runtime_gpus={primary_runtime_gpu_ids or [primary_device_id]})."
                 )
@@ -16425,7 +17088,7 @@ def main():
                         help="Override selected dataset profile from config, e.g. azure_sharegpt_rep500")
     parser.add_argument("--workload-profile", default=None,
                         help="Override selected workload profile from config, e.g. qwen_14b_tp2_a500_main")
-    parser.add_argument("--backend", choices=["vllm", "transformers"], default=None,
+    parser.add_argument("--backend", choices=["vllm", "sglang", "transformers"], default=None,
                         help="Override backend for this run and apply matching backend profile")
     parser.add_argument("--full-stack", action="store_true",
                         help="Use full FaaSLoRA stack (default: on for faaslora_* scenarios)")

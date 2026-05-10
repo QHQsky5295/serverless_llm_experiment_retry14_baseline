@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
 """Build PrimeLoRA-SGLang backend portability artifacts.
 
-This script intentionally does not modify or rerun the formal main-experiment
-chain.  It builds an isolated sensitivity artifact by combining:
-
-* measured SGLang service-path timings on the shared replay, and
-* measured PrimeLoRA-vLLM control-path/lifecycle behavior on the same replay.
-
-The resulting PrimeLoRA-SGLang row is therefore a request-matched backend
-portability projection, not a replacement for the vLLM-backed PrimeLoRA main
-prototype.
+This script does not rerun the formal main-experiment chain.  It reads measured
+SGLang, vLLM, PrimeLoRA-vLLM, and PrimeLoRA-SGLang results that were produced
+on the same shared replay and adapter subset, then emits the paper table and
+lifecycle figure for the backend-portability extension.
 """
 
 from __future__ import annotations
@@ -46,6 +41,16 @@ DEFAULT_3B_PRIME = Path(
     "experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_"
     "llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_max2_auto.json"
 )
+DEFAULT_7B_PRIME_SGLANG = Path(
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/"
+    "experiment_results_full_sglang_auto_a500_r4000_c4_faaslora_full_"
+    "llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_primelora_sglang_actual_v1.json"
+)
+DEFAULT_3B_PRIME_SGLANG = Path(
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/"
+    "experiment_results_full_sglang_auto_a500_r4000_c4_faaslora_full_"
+    "llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_primelora_sglang_actual_v1.json"
+)
 
 
 @dataclass(frozen=True)
@@ -54,6 +59,7 @@ class SourceSet:
     model_label: str
     round_dir: Path
     sglang_summary: Path
+    prime_sglang_summary: Path
     vllm_summary: Path
     prime_vllm_summary: Path
 
@@ -70,7 +76,7 @@ class PortabilityRow:
     diagnostics: dict[str, float]
 
 
-SYSTEM_ORDER = ("sglang", "primelora_sglang", "vllm", "primelora_vllm")
+SYSTEM_ORDER = ("vllm", "primelora_vllm", "sglang", "primelora_sglang")
 SYSTEM_LABELS = {
     "sglang": "SGLang",
     "primelora_sglang": "PrimeLoRA-SGLang",
@@ -78,61 +84,23 @@ SYSTEM_LABELS = {
     "primelora_vllm": "PrimeLoRA-vLLM",
 }
 SYSTEM_COLORS = {
-    "sglang": "#6E9CCF",
-    "primelora_sglang": "#4F9D69",
     "vllm": "#85C1B9",
     "primelora_vllm": "#D88C5A",
+    "sglang": "#6E9CCF",
+    "primelora_sglang": "#4F9D69",
 }
-
-
-def _load_json(path: Path) -> dict[str, Any]:
-    if not path.exists():
-        raise SystemExit(f"missing JSON: {path}")
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def _summary(payload: dict[str, Any], preferred: str | None = None) -> dict[str, Any]:
-    summaries = payload.get("scenario_summaries") or {}
-    if preferred and preferred in summaries:
-        return summaries[preferred]
-    if len(summaries) != 1:
-        raise SystemExit(f"expected exactly one scenario summary, got {list(summaries)}")
-    return next(iter(summaries.values()))
-
-
-def _requests(payload: dict[str, Any], preferred: str | None = None) -> list[dict[str, Any]]:
-    details = payload.get("detailed_results") or {}
-    if preferred and preferred in details:
-        return list(details[preferred].get("requests") or [])
-    if len(details) != 1:
-        raise SystemExit(f"expected exactly one detailed result, got {list(details)}")
-    return list(next(iter(details.values())).get("requests") or [])
-
-
-def _as_float(value: Any, field: str) -> float:
-    if value is None:
-        raise SystemExit(f"missing required numeric field: {field}")
-    try:
-        out = float(value)
-    except (TypeError, ValueError) as exc:
-        raise SystemExit(f"{field}: expected numeric value, got {value!r}") from exc
-    if not math.isfinite(out):
-        raise SystemExit(f"{field}: non-finite value {out!r}")
-    return out
-
-
-def _percentile(values: Sequence[float], q: float) -> float:
-    clean = [float(v) for v in values if v is not None and math.isfinite(float(v))]
-    if not clean:
-        raise SystemExit(f"cannot compute p{q} over an empty value list")
-    return float(np.percentile(np.asarray(clean, dtype=float), q))
-
-
-def _mean(values: Sequence[float]) -> float:
-    clean = [float(v) for v in values if v is not None and math.isfinite(float(v))]
-    if not clean:
-        raise SystemExit("cannot compute mean over an empty value list")
-    return float(np.mean(np.asarray(clean, dtype=float)))
+BACKEND_LABELS = {
+    "vllm": "vLLM",
+    "primelora_vllm": "vLLM",
+    "sglang": "SGLang",
+    "primelora_sglang": "SGLang",
+}
+SYSTEM_SHORT_LABELS = {
+    "vllm": "Standalone",
+    "primelora_vllm": "PrimeLoRA",
+    "sglang": "Standalone",
+    "primelora_sglang": "PrimeLoRA",
+}
 
 
 def _write_csv(path: Path, rows: Sequence[dict[str, Any]]) -> None:
@@ -152,16 +120,24 @@ def _round_run_tag(round_dir: Path) -> str:
     return main_artifacts._round_run_tag(round_dir)
 
 
-def _source_set(model_key: str, model_label: str, round_dir: Path, prime_override: Path | None = None) -> SourceSet:
+def _source_set(
+    model_key: str,
+    model_label: str,
+    round_dir: Path,
+    *,
+    prime_sglang_summary: Path,
+    prime_vllm_override: Path | None = None,
+) -> SourceSet:
     run_tag = _round_run_tag(round_dir)
     sglang = ppf._main_summary_path(round_dir, run_tag, "sglang")
     vllm = ppf._main_summary_path(round_dir, run_tag, "vllm")
-    prime = prime_override or ppf._main_summary_path(round_dir, run_tag, "faaslora")
+    prime = prime_vllm_override or ppf._main_summary_path(round_dir, run_tag, "faaslora")
     return SourceSet(
         model_key=model_key,
         model_label=model_label,
         round_dir=round_dir,
         sglang_summary=sglang,
+        prime_sglang_summary=prime_sglang_summary,
         vllm_summary=vllm,
         prime_vllm_summary=prime,
     )
@@ -182,281 +158,11 @@ def _measured_row(model: SourceSet, system_key: str, source: Path, measured_key:
     )
 
 
-def _token_count(req: dict[str, Any]) -> float:
-    for key in ("completion_tokens", "output_tokens", "generated_tokens", "observed_output_tokens"):
-        if req.get(key) is not None:
-            return float(req[key])
-    usage = req.get("usage") or {}
-    if usage.get("completion_tokens") is not None:
-        return float(usage["completion_tokens"])
-    return 0.0
-
-
-def _scheduled_offset(req: dict[str, Any], fallback: dict[str, Any]) -> float:
-    for key in ("scheduled_arrival_offset_s", "arrival_time_s"):
-        if req.get(key) is not None:
-            return float(req[key])
-    for key in ("arrival_time_s", "scheduled_arrival_offset_s"):
-        if fallback.get(key) is not None:
-            return float(fallback[key])
-    return 0.0
-
-
-def _validate_request_pair(idx: int, prime_req: dict[str, Any], backend_req: dict[str, Any]) -> None:
-    if prime_req.get("request_id") != backend_req.get("request_id"):
-        raise SystemExit(
-            f"request_id mismatch at index {idx}: "
-            f"{prime_req.get('request_id')!r} vs {backend_req.get('request_id')!r}"
-        )
-    if prime_req.get("adapter_id") != backend_req.get("adapter_id"):
-        raise SystemExit(
-            f"adapter_id mismatch at {prime_req.get('request_id')}: "
-            f"{prime_req.get('adapter_id')!r} vs {backend_req.get('adapter_id')!r}"
-        )
-    if prime_req.get("success") is not True or backend_req.get("success") is not True:
-        raise SystemExit(f"unsuccessful request cannot be used for portability projection: {prime_req.get('request_id')}")
-
-
-def _copy_prime_cost_components(metrics: dict[str, float]) -> dict[str, float]:
-    keys = [
-        "completed",
-        "cost_req_usd",
-        "cost_startup_usd",
-        "cost_active_usd",
-        "cost_idle_ready_usd",
-        "cost_invocation_usd",
-        "monetary_cost_total_usd",
-        "monetary_active_charge_gpu_seconds",
-        "monetary_idle_charge_gpu_seconds",
-        "infra_active_gpu_seconds",
-        "infra_idle_ready_gpu_seconds",
-        "infra_startup_gpu_seconds",
-        "serverless_invocation_cost_per_request_usd",
-        "cost_1mtok_usd",
-    ]
-    return {key: float(metrics[key]) for key in keys if key in metrics}
-
-
-def _derive_primelora_sglang(model: SourceSet, out_results_dir: Path) -> PortabilityRow:
-    backend_payload = _load_json(model.sglang_summary)
-    prime_payload = _load_json(model.prime_vllm_summary)
-    backend_summary = _summary(backend_payload)
-    prime_summary = _summary(prime_payload, "faaslora_full")
-    backend_reqs = _requests(backend_payload)
-    prime_reqs = _requests(prime_payload, "faaslora_full")
-    if len(backend_reqs) != len(prime_reqs):
-        raise SystemExit(
-            f"{model.model_key}: request-count mismatch for PrimeLoRA-SGLang projection: "
-            f"backend={len(backend_reqs)} prime={len(prime_reqs)}"
-        )
-
-    derived_requests: list[dict[str, Any]] = []
-    ttft_values: list[float] = []
-    e2e_values: list[float] = []
-    service_ttft_values: list[float] = []
-    service_e2e_values: list[float] = []
-    dispatch_values: list[float] = []
-    tpot_values: list[float] = []
-    output_tokens = 0.0
-    latest_completion = 0.0
-
-    for idx, (prime_req, backend_req) in enumerate(zip(prime_reqs, backend_reqs)):
-        _validate_request_pair(idx, prime_req, backend_req)
-        dispatch_ms = _as_float(
-            prime_req.get("dispatch_admission_wait_ms"),
-            f"{model.model_key}.{prime_req.get('request_id')}.dispatch_admission_wait_ms",
-        )
-        service_ttft_ms = _as_float(
-            backend_req.get("service_ttft_ms"),
-            f"{model.model_key}.{backend_req.get('request_id')}.sglang_service_ttft_ms",
-        )
-        service_e2e_ms = _as_float(
-            backend_req.get("service_e2e_ms"),
-            f"{model.model_key}.{backend_req.get('request_id')}.sglang_service_e2e_ms",
-        )
-        tpot_raw = backend_req.get("tpot_ms")
-        tpot_ms = float(tpot_raw) if tpot_raw is not None else None
-        overall_ttft_ms = dispatch_ms + service_ttft_ms
-        overall_e2e_ms = dispatch_ms + service_e2e_ms
-        tokens = _token_count(backend_req)
-        scheduled_s = _scheduled_offset(prime_req, backend_req)
-        completion_s = scheduled_s + overall_e2e_ms / 1000.0
-        latest_completion = max(latest_completion, completion_s)
-        output_tokens += tokens
-
-        ttft_values.append(overall_ttft_ms)
-        e2e_values.append(overall_e2e_ms)
-        service_ttft_values.append(service_ttft_ms)
-        service_e2e_values.append(service_e2e_ms)
-        dispatch_values.append(dispatch_ms)
-        if tpot_ms is not None and math.isfinite(tpot_ms):
-            tpot_values.append(tpot_ms)
-        derived_requests.append(
-            {
-                "request_id": prime_req.get("request_id"),
-                "adapter_id": prime_req.get("adapter_id"),
-                "success": True,
-                "scheduled_arrival_offset_s": scheduled_s,
-                "completion_offset_s": completion_s,
-                "dispatch_admission_wait_ms": dispatch_ms,
-                "service_ttft_ms": service_ttft_ms,
-                "service_e2e_ms": service_e2e_ms,
-                "overall_ttft_ms": overall_ttft_ms,
-                "overall_e2e_ms": overall_e2e_ms,
-                "ttft_ms": overall_ttft_ms,
-                "e2e_ms": overall_e2e_ms,
-                "tpot_ms": tpot_ms,
-                "tpot_observed": tpot_ms is not None,
-                "completion_tokens": tokens,
-                "output_tokens": tokens,
-                "prime_control_source": str(model.prime_vllm_summary),
-                "sglang_backend_source": str(model.sglang_summary),
-                "derived_backend_substitution": True,
-            }
-        )
-
-    prime_metrics = main_artifacts._metrics_from_summary(model.prime_vllm_summary, "faaslora")
-    copied_costs = _copy_prime_cost_components(prime_metrics)
-    completed = float(len(derived_requests))
-    elapsed_sec = latest_completion
-    tok_s = output_tokens / max(elapsed_sec, 1e-12)
-    cost_req = copied_costs["cost_req_usd"]
-    e2e_avg = _mean(e2e_values)
-    ce = 1.0 / ((e2e_avg / 1000.0) * cost_req)
-
-    metrics = {
-        **copied_costs,
-        "completed": completed,
-        "ttft_avg_ms": _mean(ttft_values),
-        "ttft_p95_ms": _percentile(ttft_values, 95),
-        "e2e_avg_ms": e2e_avg,
-        "e2e_p95_ms": _percentile(e2e_values, 95),
-        "tpot_avg_ms": _mean(tpot_values),
-        "tpot_p95_ms": _percentile(tpot_values, 95),
-        "tok_s": tok_s,
-        "ce": ce,
-        "total_output_tokens": output_tokens,
-        "elapsed_sec": elapsed_sec,
-        "cost_1mtok_usd": cost_req * completed / max(output_tokens, 1e-12) * 1_000_000.0,
-    }
-    diagnostics = {
-        "service_ttft_ms": _mean(service_ttft_values),
-        "dispatch_wait_ms": _mean(dispatch_values),
-        "service_e2e_ms": _mean(service_e2e_values),
-    }
-
-    summary = {
-        "scenario_name": "primelora_sglang_portability",
-        "baseline_type": "primelora_sglang",
-        "metric_schema_version": "e2e_v3",
-        "completed_requests": int(completed),
-        "total_requests": int(completed),
-        "failed_requests": 0,
-        "avg_overall_ttft_ms": metrics["ttft_avg_ms"],
-        "p95_overall_ttft_ms": metrics["ttft_p95_ms"],
-        "avg_overall_e2e_ms": metrics["e2e_avg_ms"],
-        "p95_overall_e2e_ms": metrics["e2e_p95_ms"],
-        "avg_service_ttft_ms": diagnostics["service_ttft_ms"],
-        "p95_service_ttft_ms": _percentile(service_ttft_values, 95),
-        "avg_service_e2e_ms": diagnostics["service_e2e_ms"],
-        "p95_service_e2e_ms": _percentile(service_e2e_values, 95),
-        "avg_dispatch_admission_wait_ms": diagnostics["dispatch_wait_ms"],
-        "p95_dispatch_admission_wait_ms": _percentile(dispatch_values, 95),
-        "avg_tpot_ms": metrics["tpot_avg_ms"],
-        "p95_tpot_ms": metrics["tpot_p95_ms"],
-        "throughput_tok_per_s": metrics["tok_s"],
-        "total_output_tokens": output_tokens,
-        "monetary_cost_per_request_usd": cost_req,
-        "avg_cost_usd": cost_req,
-        "monetary_cost_total_usd": copied_costs.get("monetary_cost_total_usd", cost_req * completed),
-        "monetary_ce": ce,
-        "ce": ce,
-        "infra_active_gpu_seconds": copied_costs["infra_active_gpu_seconds"],
-        "infra_idle_ready_gpu_seconds": copied_costs["infra_idle_ready_gpu_seconds"],
-        "infra_startup_gpu_seconds": copied_costs["infra_startup_gpu_seconds"],
-        "monetary_active_charge_gpu_seconds": copied_costs.get("monetary_active_charge_gpu_seconds"),
-        "monetary_idle_charge_gpu_seconds": copied_costs.get("monetary_idle_charge_gpu_seconds"),
-        "serverless_invocation_cost_per_request_usd": copied_costs.get("serverless_invocation_cost_per_request_usd", 0.0),
-        "serverless_idle_gpu_cost_factor": prime_summary.get("serverless_idle_gpu_cost_factor"),
-        "projection_note": (
-            "Request-matched backend portability projection: PrimeLoRA control-path "
-            "wait/lifecycle cost envelope plus measured SGLang service-path timings."
-        ),
-    }
-    comparison_row = {
-        "scenario": "primelora_sglang_portability",
-        "completed": int(completed),
-        "TTFT_avg_ms": round(metrics["ttft_avg_ms"], 4),
-        "TTFT_P95_ms": round(metrics["ttft_p95_ms"], 4),
-        "TTFT_e2e_avg_ms": round(metrics["ttft_avg_ms"], 4),
-        "TTFT_e2e_P95_ms": round(metrics["ttft_p95_ms"], 4),
-        "TTFT_service_avg_ms": round(diagnostics["service_ttft_ms"], 4),
-        "Dispatch_admission_wait_avg_ms": round(diagnostics["dispatch_wait_ms"], 4),
-        "E2E_avg_ms": round(metrics["e2e_avg_ms"], 4),
-        "E2E_P95_ms": round(metrics["e2e_p95_ms"], 4),
-        "E2E_service_avg_ms": round(diagnostics["service_e2e_ms"], 4),
-        "TPOT_avg_ms": round(metrics["tpot_avg_ms"], 4),
-        "TPOT_P95_ms": round(metrics["tpot_p95_ms"], 4),
-        "throughput_TOKPS": round(metrics["tok_s"], 6),
-        "avg_cost_USD": round(cost_req, 8),
-        "CE": round(ce, 6),
-        "monetary_ce": round(ce, 6),
-        "method": "request_matched_portability_projection",
-    }
-    payload = {
-        "schema_version": "1.0",
-        "metric_schema_version": "e2e_v3",
-        "metadata": {
-            "artifact": "PrimeLoRA-SGLang backend portability projection",
-            "model_key": model.model_key,
-            "model_label": model.model_label,
-            "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-            "round_dir": str(model.round_dir),
-            "prime_control_source": str(model.prime_vllm_summary),
-            "sglang_backend_source": str(model.sglang_summary),
-            "vllm_baseline_source": str(model.vllm_summary),
-            "method": (
-                "Per-request projection using PrimeLoRA-vLLM dispatch/admission wait "
-                "and lifecycle cost with SGLang measured service_ttft/service_e2e/tpot "
-                "for the same request_id and adapter_id."
-            ),
-            "not_formal_runtime_replacement": True,
-        },
-        "comparison_table": [comparison_row],
-        "scenario_summaries": {"primelora_sglang_portability": summary},
-        "detailed_results": {
-            "primelora_sglang_portability": {
-                "scenario_name": "primelora_sglang_portability",
-                "baseline_type": "primelora_sglang",
-                "total": int(completed),
-                "completed": int(completed),
-                "failed": 0,
-                "elapsed_sec": elapsed_sec,
-                "requests": derived_requests,
-            }
-        },
-    }
-    out_results_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_results_dir / f"{model.model_key}_primelora_sglang_portability.json"
-    out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
-
-    return PortabilityRow(
-        model_key=model.model_key,
-        model_label=model.model_label,
-        system_key="primelora_sglang",
-        system_label=SYSTEM_LABELS["primelora_sglang"],
-        source=out_path,
-        method="request-matched projection",
-        metrics=metrics,
-        diagnostics=diagnostics,
-    )
-
-
-def _rows_for_models(models: Sequence[SourceSet], out_results_dir: Path) -> list[PortabilityRow]:
+def _rows_for_models(models: Sequence[SourceSet]) -> list[PortabilityRow]:
     rows: list[PortabilityRow] = []
     for model in models:
         rows.append(_measured_row(model, "sglang", model.sglang_summary, "sglang"))
-        rows.append(_derive_primelora_sglang(model, out_results_dir))
+        rows.append(_measured_row(model, "primelora_sglang", model.prime_sglang_summary, "faaslora"))
         rows.append(_measured_row(model, "vllm", model.vllm_summary, "vllm"))
         rows.append(_measured_row(model, "primelora_vllm", model.prime_vllm_summary, "faaslora"))
     return rows
@@ -507,20 +213,15 @@ def write_main_table(rows: Sequence[PortabilityRow], out_dir: Path) -> None:
         "% Auto-generated by scripts/build_backend_portability_artifacts.py.",
         "\\begin{table*}[t]",
         "\\centering",
-        "\\caption{Backend portability sensitivity using SGLang and vLLM service paths. PrimeLoRA-SGLang is a request-matched projection that keeps PrimeLoRA's measured control/lifecycle envelope and substitutes measured SGLang service-path timings for the same replay.}",
+        "\\caption{Backend sensitivity using measured vLLM-backed and SGLang-backed PrimeLoRA runs on the same shared replay and adapter subset.}",
         "\\label{tab:backend_portability}",
-        "\\scriptsize",
-        "\\setlength{\\tabcolsep}{1.9pt}",
-        "\\renewcommand{\\arraystretch}{1.10}",
-        "\\begin{tabular}{lrrrrrrrrr}",
+        "\\footnotesize",
+        "\\setlength{\\tabcolsep}{3.8pt}",
+        "\\renewcommand{\\arraystretch}{1.12}",
+        "\\begin{tabular}{lllrrrr}",
         "\\toprule",
-        "System & "
+        "Model & Backend & System & "
         "\\shortstack{TTFT Avg\\\\(ms)} & "
-        "\\shortstack{TTFT P95\\\\(ms)} & "
-        "\\shortstack{E2E Avg\\\\(ms)} & "
-        "\\shortstack{E2E P95\\\\(ms)} & "
-        "\\shortstack{TPOT Avg\\\\(ms)} & "
-        "\\shortstack{TPOT P95\\\\(ms)} & "
         "\\shortstack{Throughput\\\\(Tok/s)} & "
         "\\shortstack{Cost/req\\\\(mUSD)} & "
         "\\shortstack{CE\\\\$(\\bar{L}\\bar{C})^{-1}$} \\\\",
@@ -529,31 +230,23 @@ def write_main_table(rows: Sequence[PortabilityRow], out_dir: Path) -> None:
     for mi, model_key in enumerate(by_model):
         if mi:
             lines.append("\\midrule")
-        lines.append(f"\\multicolumn{{10}}{{l}}{{\\emph{{{model_labels[model_key]}}}}} \\\\")
         best = {
             "ttft_avg_ms": _best_keys(rows, model_key, "ttft_avg_ms"),
-            "ttft_p95_ms": _best_keys(rows, model_key, "ttft_p95_ms"),
-            "e2e_avg_ms": _best_keys(rows, model_key, "e2e_avg_ms"),
-            "e2e_p95_ms": _best_keys(rows, model_key, "e2e_p95_ms"),
-            "tpot_avg_ms": _best_keys(rows, model_key, "tpot_avg_ms"),
-            "tpot_p95_ms": _best_keys(rows, model_key, "tpot_p95_ms"),
             "tok_s": _best_keys(rows, model_key, "tok_s", higher=True),
             "cost_req_usd": _best_keys(rows, model_key, "cost_req_usd"),
             "ce": _best_keys(rows, model_key, "ce", higher=True),
         }
         ordered = sorted(by_model[model_key], key=lambda row: SYSTEM_ORDER.index(row.system_key))
-        for row in ordered:
+        for ri, row in enumerate(ordered):
             m = row.metrics
+            model_cell = model_labels[model_key] if ri == 0 else ""
             lines.append(
                 " & ".join(
                     [
-                        row.system_label,
+                        model_cell,
+                        BACKEND_LABELS[row.system_key],
+                        SYSTEM_SHORT_LABELS[row.system_key],
                         _fmt_ms(m["ttft_avg_ms"], bold=row.system_key in best["ttft_avg_ms"]),
-                        _fmt_ms(m["ttft_p95_ms"], bold=row.system_key in best["ttft_p95_ms"]),
-                        _fmt_ms(m["e2e_avg_ms"], bold=row.system_key in best["e2e_avg_ms"]),
-                        _fmt_ms(m["e2e_p95_ms"], bold=row.system_key in best["e2e_p95_ms"]),
-                        _fmt(m["tpot_avg_ms"], "{:.1f}", bold=row.system_key in best["tpot_avg_ms"]),
-                        _fmt(m["tpot_p95_ms"], "{:.1f}", bold=row.system_key in best["tpot_p95_ms"]),
                         _fmt(m["tok_s"], "{:.1f}", bold=row.system_key in best["tok_s"]),
                         _fmt(m["cost_req_usd"] * 1000.0, "{:.3f}", bold=row.system_key in best["cost_req_usd"]),
                         _fmt(m["ce"], "{:.2f}", bold=row.system_key in best["ce"]),
@@ -588,7 +281,7 @@ def write_decomposition_table(rows: Sequence[PortabilityRow], out_dir: Path) -> 
         "% Auto-generated by scripts/build_backend_portability_artifacts.py.",
         "\\begin{table*}[t]",
         "\\centering",
-        "\\caption{Backend-portability first-token decomposition. PrimeLoRA-SGLang keeps the measured PrimeLoRA dispatch wait and uses request-matched SGLang service TTFT.}",
+        "\\caption{Backend-portability first-token decomposition using measured SGLang-backed and vLLM-backed PrimeLoRA runs.}",
         "\\label{tab:backend_portability_decomposition}",
         "\\footnotesize",
         "\\setlength{\\tabcolsep}{3.0pt}",
@@ -751,14 +444,14 @@ def write_lifecycle_figure(rows: Sequence[PortabilityRow], out_dir: Path) -> Non
     plt.close(fig)
 
 
-def write_manifest(rows: Sequence[PortabilityRow], out_dir: Path, results_dir: Path) -> None:
+def write_manifest(rows: Sequence[PortabilityRow], out_dir: Path) -> None:
     payload = {
         "artifact": "primelora_sglang_backend_portability",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "method": (
-            "Measured SGLang/vLLM baselines and PrimeLoRA-vLLM results are reused. "
-            "PrimeLoRA-SGLang is generated by request-matched substitution of SGLang "
-            "service timings into PrimeLoRA's measured control/lifecycle envelope."
+            "Measured SGLang/vLLM baselines, PrimeLoRA-vLLM, and PrimeLoRA-SGLang "
+            "runs are read from result JSON files produced on the same shared replay "
+            "and adapter subset."
         ),
         "rows": [
             {
@@ -776,7 +469,11 @@ def write_manifest(rows: Sequence[PortabilityRow], out_dir: Path, results_dir: P
             "table": str(out_dir / "table_backend_portability.tex"),
             "decomposition": str(out_dir / "table_backend_portability_ttft_decomposition.tex"),
             "figure": str(out_dir / "fig_backend_portability_lifecycle_cost.pdf"),
-            "derived_results_dir": str(results_dir),
+            "prime_sglang_results": [
+                str(row.source)
+                for row in rows
+                if row.system_key == "primelora_sglang"
+            ],
         },
     }
     text = json.dumps(payload, indent=2, ensure_ascii=False)
@@ -789,13 +486,13 @@ def write_manifest(rows: Sequence[PortabilityRow], out_dir: Path, results_dir: P
         (out_dir / name).write_text(text, encoding="utf-8")
 
 
-def build(models: Sequence[SourceSet], out_dir: Path, results_dir: Path, copy_root_fig: bool = True) -> list[PortabilityRow]:
+def build(models: Sequence[SourceSet], out_dir: Path, copy_root_fig: bool = True) -> list[PortabilityRow]:
     out_dir.mkdir(parents=True, exist_ok=True)
-    rows = _rows_for_models(models, results_dir)
+    rows = _rows_for_models(models)
     write_main_table(rows, out_dir)
     write_decomposition_table(rows, out_dir)
     write_lifecycle_figure(rows, out_dir)
-    write_manifest(rows, out_dir, results_dir)
+    write_manifest(rows, out_dir)
     if copy_root_fig:
         root_fig = Path("figs") / "fig_backend_portability_lifecycle_cost.pdf"
         root_fig.parent.mkdir(parents=True, exist_ok=True)
@@ -807,16 +504,35 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Build PrimeLoRA-SGLang backend portability artifacts.")
     parser.add_argument("--round-7b", type=Path, default=DEFAULT_7B_ROUND)
     parser.add_argument("--round-3b", type=Path, default=DEFAULT_3B_ROUND)
+    parser.add_argument("--prime-sglang-7b-summary", type=Path, default=DEFAULT_7B_PRIME_SGLANG)
+    parser.add_argument("--prime-sglang-3b-summary", type=Path, default=DEFAULT_3B_PRIME_SGLANG)
+    parser.add_argument(
+        "--prime-7b-summary",
+        type=Path,
+        default=None,
+        help="Optional PrimeLoRA-vLLM 7B override; defaults to the baseline round faaslora summary.",
+    )
     parser.add_argument("--prime-3b-summary", type=Path, default=DEFAULT_3B_PRIME)
     parser.add_argument("--out-dir", type=Path, default=Path("figs/paper/backend_portability"))
-    parser.add_argument("--results-dir", type=Path, default=Path("figs/paper/backend_portability/derived_results"))
     args = parser.parse_args()
 
     models = [
-        _source_set("llama2_7b", "Llama-2 7B", args.round_7b.resolve()),
-        _source_set("llama32_3b", "Llama-3.2 3B", args.round_3b.resolve(), args.prime_3b_summary.resolve()),
+        _source_set(
+            "llama2_7b",
+            "Llama-2 7B",
+            args.round_7b.resolve(),
+            prime_sglang_summary=args.prime_sglang_7b_summary.resolve(),
+            prime_vllm_override=args.prime_7b_summary.resolve() if args.prime_7b_summary else None,
+        ),
+        _source_set(
+            "llama32_3b",
+            "Llama-3.2 3B",
+            args.round_3b.resolve(),
+            prime_sglang_summary=args.prime_sglang_3b_summary.resolve(),
+            prime_vllm_override=args.prime_3b_summary.resolve(),
+        ),
     ]
-    rows = build(models, args.out_dir.resolve(), args.results_dir.resolve())
+    rows = build(models, args.out_dir.resolve())
     print(f"wrote backend portability artifacts to {args.out_dir.resolve()}")
     for row in rows:
         print(

@@ -1159,6 +1159,21 @@ model:  # 模型配置块，或当前选中的 model profile 名称
   # runtime_concurrency_cap: 2
 
 backend_profiles:  # 按推理后端切换的覆写 profile 集合
+  sglang:  # PrimeLoRA 控制面 + SGLang native serving 后端 profile
+    model:
+      backend: "sglang"
+      sglang_venv: "/home/qhq/.venvs/sglang_py310"
+      # Keep the SGLang serving envelope aligned with the fair SGLang baseline:
+      # no forced LoRA backend, CUDA graph left enabled, and the full shared
+      # adapter subset registered as loadable CPU-side LoRA state.
+      sglang_lora_backend: null
+      sglang_disable_cuda_graph: false
+      sglang_enable_lora_overlap_loading: false
+      sglang_start_timeout_s: 360
+      sglang_generate_timeout_s: 7200
+      max_cpu_loras: 500
+    resource_coordination:
+      instance_mode: "auto"
   transformers:  # Transformers + PEFT 稳定回退后端 profile
     model:  # 模型配置块，或当前选中的 model profile 名称
       backend: "transformers"  # 推理后端类型，如 vllm / transformers

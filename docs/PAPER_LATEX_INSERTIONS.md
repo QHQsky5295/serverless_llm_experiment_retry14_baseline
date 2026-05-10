@@ -436,21 +436,20 @@ S-LoRA 等 multi-LoRA 系统论文经常用 adapter 数量/请求率作为横轴
 `table_fig9_adapter_pool_sensitivity_metrics.tex` 列出 TTFT avg/p95、E2E avg/p95、
 TPOT avg/p95、Throughput、Cost/req 和 CE，满足完整主指标审计。
 
-## 11. Backend Portability Sensitivity 插入
+## 11. Backend Sensitivity 插入
 
 ### 插入位置
 
-放在 Lifecycle Cost Efficiency 后、Operating-Load Sensitivity 前。该小节是增强实验或
-appendix sensitivity，不替代主表中的 vLLM-backed PrimeLoRA 正式结果。
+放在 Evaluation 后部，例如 Scalability Experiments 后或 Control-Path Overhead 后。
+该小节是 backend sensitivity，不替代主表中的 vLLM-backed PrimeLoRA 正式结果。
 
 ### 插入片段
 
 ```latex
-\subsection{Backend Portability Sensitivity}
-\label{subsec:backend_portability}
+\subsection{Backend Sensitivity}
+\label{subsec:backend_sensitivity}
 
-\textbf{Question.}
-Does PrimeLoRA's readiness-aware control remain useful when paired with a stronger serving backend?
+PrimeLoRA targets adapter-ready elastic control rather than a specific token-generation runtime. We therefore evaluate whether its gains persist across serving backends by integrating the same control plane with vLLM and SGLang, and comparing each integration with its corresponding standalone backend on the Llama-2-7B and Llama-3.2-3B workloads. This experiment is not intended to re-rank serving engines; it isolates whether readiness-aware placement, scale-out warmup, hierarchical residency, and GPU admission remain beneficial when the backend execution layer changes.
 
 \IfFileExists{figs/paper/backend_portability/table_backend_portability.tex}{\input{figs/paper/backend_portability/table_backend_portability.tex}}{\input{../figs/paper/backend_portability/table_backend_portability.tex}}
 
@@ -459,17 +458,18 @@ Does PrimeLoRA's readiness-aware control remain useful when paired with a strong
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figs/paper/backend_portability/fig_backend_portability_lifecycle_cost.pdf}
-    \caption{Backend-portability lifecycle audit. PrimeLoRA-SGLang keeps PrimeLoRA's measured control/lifecycle envelope and substitutes request-matched measured SGLang service-path timings under the same replay.}
+    \caption{Backend-sensitivity lifecycle audit on the Llama-family workloads. All rows use measured runs on the same shared replay and adapter subset.}
     \label{fig:backend_portability_lifecycle}
 \end{figure}
+
+Across both backbones, PrimeLoRA improves CE and reduces Cost/req over the matched backend in both vLLM and SGLang settings. SGLang changes the absolute execution point, while PrimeLoRA provides an additive control-plane gain by reducing adapter-readiness delay and lifecycle waste. These results support that PrimeLoRA is a backend-portable serverless control plane rather than a vLLM-specific runtime optimization.
 ```
 
 ### 口径提醒
 
-`PrimeLoRA-SGLang` 当前是 request-matched projection：保留 PrimeLoRA-vLLM 的
-dispatch/admission wait 和 lifecycle cost envelope，替换为 SGLang 的
-service-path TTFT/E2E/TPOT。正文必须写清楚它是 backend portability sensitivity，
-不能写成完整 SGLang-backed runtime 主结果。
+`PrimeLoRA-SGLang` 当前已经是真实 measured run：PrimeLoRA 控制面保持不变，
+replica backend 替换为 SGLang native serving server。它是 backend sensitivity，
+不是主实验替代；主实验仍以 vLLM-backed PrimeLoRA 为默认实现。
 
 ## 12. 最终写作提醒
 
