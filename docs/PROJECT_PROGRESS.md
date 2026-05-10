@@ -10,8 +10,35 @@ April handoff snapshots have been removed from the active documentation set.
 - Repository: `/home/qhq/serverless_llm_experiment_retry14_baseline`.
 - Branch: `retry14_continuous_queue_v2`.
 - Formal comparison harness: `/home/qhq/serverless_llm_baselines`.
-- Current main round: `llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1`.
-- Latest 500-request closure: `llama2_7b_r500_a500_seed42_s8_predictive1_faaslora`.
+- Final paper state document: `docs/FINAL_PAPER_STATE_2026-05-10.md`.
+- Final paper data snapshot: `paper_results/final_v2/`.
+- Final main workloads: Llama-2 7B and Llama-3.2 3B, each with 4000 requests,
+  500 LoRA adapters, and s8 replay scale.
+- Final backend-sensitivity extension: measured PrimeLoRA-SGLang on both 7B
+  and 3B.
+
+## Final Paper Snapshot: 2026-05-10
+
+The final paper-facing state is now:
+
+- Main comparison table:
+  `figs/paper/main/table1_end_to_end.tex`.
+- Diagnostic TTFT decomposition:
+  `figs/paper/main/table_ttft_decomposition.tex`.
+- Lifecycle cost figure:
+  `figs/paper/main/fig7_lifecycle_cost.pdf`.
+- Backend-sensitivity table:
+  `figs/paper/backend_portability/table_backend_portability.tex`.
+- Backend-sensitivity lifecycle figure:
+  `figs/paper/backend_portability/fig_backend_portability_lifecycle_cost.pdf`.
+
+PrimeLoRA is CE-first in the final main table on both selected backbones.
+SGLang remains the raw-latency winner; the paper wording should emphasize
+lifecycle cost efficiency and adapter-readiness control rather than claiming
+all-latency dominance.
+
+The older queue notes below are kept for auditability. They are not the current
+execution plan unless a new experiment explicitly reopens them.
 
 ## Queue Status: 2026-04-28 03:41 CST
 

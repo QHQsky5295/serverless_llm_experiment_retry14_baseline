@@ -6,6 +6,16 @@ represent the active paper workflow.
 
 ## Current Recommended Workflow
 
+The current final paper snapshot is already complete for the selected
+Llama-family main workloads. For the final state, use:
+
+- `docs/FINAL_PAPER_STATE_2026-05-10.md`
+- `paper_results/final_v2/`
+
+The commands below remain the entry points for future reruns or new sensitivity
+experiments. They are not required to reproduce the already generated final
+tables unless new data are intentionally collected.
+
 For formal cross-system comparison, use the baseline harness:
 
 ```bash
@@ -22,16 +32,17 @@ These scripts generate or reuse the shared trace and adapter subset, run each
 system sequentially, clean known residual processes between systems, and store
 all results in one timestamped round directory.
 
-## Current Main Round
+## Current Main Rounds
 
 ```text
-RUN_TAG=llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1
-MODEL_PROFILE=llama2_7b_main_v2_publicmix
-DATASET_PROFILE=azure_sharegpt_rep4000
-WORKLOAD_PROFILE=llama2_7b_auto500_formal4000_s8
 TOTAL_REQUESTS=4000
 SELECTED_NUM_ADAPTERS=500
+TIME_SCALE=8
+MODELS=Llama-2 7B, Llama-3.2 3B
 ```
+
+The final source summaries for these rounds are preserved under
+`paper_results/final_v2/raw_json_gz/`.
 
 ## FaaSLoRA-Only Debug
 
@@ -74,12 +85,13 @@ The command emits `fig2_mismatch.pdf`, `fig3_tier.pdf`,
 
 ## Results
 
-Paper comparison results are taken from:
+Final paper-facing generated results are tracked under:
 
 ```text
-/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/<round>/
+figs/paper/
+paper_results/final_v2/
 ```
 
-FaaSLoRA internal result JSONs under this repository are useful for system
-debugging, but the paper cross-system table should use the baseline round
-directory so all systems are tied to the same artifacts and cost model.
+FaaSLoRA internal result JSONs under `results/` are useful for system debugging,
+but they are ignored by git. Only curated final source summaries should be
+snapshotted into `paper_results/final_v2/`.

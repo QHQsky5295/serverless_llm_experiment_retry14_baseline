@@ -17,6 +17,10 @@ FaaSLoRA snapshot.
 - `configs/`
 - `tests/`
 - current `docs/`
+- current `paper/` draft files
+- current `figs/paper/` paper-facing generated tables, figures, CSVs, and
+  manifests
+- curated final data snapshot: `paper_results/final_v2/`
 - root `README.md`, `EXPERIMENT_GUIDE.md`, `PROJECT_STRUCTURE.md`
 
 ## What Does Not Belong In FaaSLoRA
@@ -24,6 +28,8 @@ FaaSLoRA snapshot.
 - Baseline upstream repositories.
 - Timestamped baseline result directories.
 - Large generated model or LoRA artifacts.
+- Uncurated `results/` symlink contents.
+- Failed/debug/old exploratory result dumps.
 - Historical handoff documents that have been superseded by the current docs.
 
 ## Sync Rule
@@ -35,6 +41,28 @@ git -C /home/qhq/serverless_llm_experiment_retry14_baseline status --short
 ```
 
 Do not push accidental generated results, large artifacts, or obsolete docs.
+
+The only final experiment data currently intended for GitHub is the curated
+snapshot under:
+
+```text
+paper_results/final_v2/
+```
+
+It contains compressed copies of the final source JSON summaries for Llama-2 7B,
+Llama-3.2 3B, and measured PrimeLoRA-SGLang backend sensitivity. Do not add
+whole timestamped result directories unless a new final snapshot is explicitly
+created and documented.
+
+## Latest Known Sync Scope: 2026-05-10
+
+- Branch: `retry14_continuous_queue_v2`.
+- Measured PrimeLoRA-SGLang backend-sensitivity implementation and artifacts are
+  tracked.
+- Final data snapshot tracked by the repository: `paper_results/final_v2/`.
+- Known local file that may remain dirty but should not be committed unless
+  intentionally regenerated:
+  `configs/generated/lora_manifest_1000.json`.
 
 ## Latest Known Sync Before 2026-04-27 Handoff Update
 

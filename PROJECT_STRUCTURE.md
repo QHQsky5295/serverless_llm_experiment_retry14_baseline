@@ -10,6 +10,9 @@ serverless_llm_experiment_retry14_baseline/
   configs/         Model, dataset, workload, cost, and coordination profiles
   tests/           Smoke and regression tests
   docs/            Current FaaSLoRA documentation
+  paper/           Tracked paper draft
+  figs/paper/      Paper-facing generated figures, tables, CSVs, manifests
+  paper_results/   Curated final paper data snapshots
   results/         FaaSLoRA-local outputs for debugging
   README.md        Current project overview
 ```
@@ -22,6 +25,19 @@ serverless_llm_experiment_retry14_baseline/
 - `faaslora/memory/`: adapter residency, GPU memory monitoring, and tier state.
 - `faaslora/scheduling/`: routing and resource coordination.
 - `scripts/run_all_experiments.py`: FaaSLoRA scenario runner.
+
+## Paper Data Snapshot
+
+The current recoverable final paper data snapshot is:
+
+```text
+paper_results/final_v2/
+```
+
+It includes compressed final source JSON summaries, table CSV/TEX files, figure
+data, and manifests for the Llama-2 7B, Llama-3.2 3B, and measured
+PrimeLoRA-SGLang backend-sensitivity results. It intentionally excludes old
+failed/debug/exploratory result directories.
 
 ## Cross-System Boundary
 

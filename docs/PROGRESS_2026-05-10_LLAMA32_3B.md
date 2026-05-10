@@ -10,6 +10,11 @@
   `/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2`。
 - 已完成 PrimeLoRA-only 3B s8 复跑，并用 shared trace/subset 哈希校验方式合并进主表：
   `/home/qhq/serverless_llm_experiment_retry14_baseline/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_max2_auto.json`。
+- 已完成真实 PrimeLoRA-SGLang backend-sensitivity 3B s8 run，完成 4000/4000
+  请求、失败数 0：
+  `/home/qhq/serverless_llm_experiment_retry14_baseline/results/experiment_results_full_sglang_auto_a500_r4000_c4_faaslora_full_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_primelora_sglang_actual_v1.json`。
+- 最终可恢复数据快照已保存到 `paper_results/final_v2/`，不包含历史 13B、1B、
+  Qwen 或 debug/失败轮次。
 
 ## 最终 3B 结果判断
 
@@ -75,3 +80,7 @@ Llama-3.2 3B 使用 GQA：`num_attention_heads=24`，`num_key_value_heads=8`。S
 ## 论文写作口径
 
 建议在 Overall Performance 中写成：Llama-3.2 3B 是轻量基座扩展，验证 PrimeLoRA 在更小模型上仍能通过 elastic lifecycle control 获得更好的 CE；SGLang 保持最低 raw latency，PrimeLoRA 获得最低 Cost/req 和最高 CE。这样比声称 PrimeLoRA “全指标最优”更稳，也符合当前真实数据。
+
+Backend Sensitivity 中可以补充：PrimeLoRA-SGLang 在 Llama-3.2 3B 上的 CE
+为 579.92，Cost/req 为 1.166 mUSD，TTFT Avg 为 133.8 ms。这说明当
+PrimeLoRA 控制面接入更强 SGLang backend 后，生命周期成本优势仍能保留。

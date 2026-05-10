@@ -77,6 +77,10 @@ python3 scripts/build_backend_portability_artifacts.py
 - `figs/fig_backend_portability_lifecycle_cost.pdf`
 - `figs/paper/backend_portability/backend_portability_manifest.json`
 
+这些输出和对应最终源 JSON summary 的压缩副本也已纳入最终数据快照：
+
+- `paper_results/final_v2/`
+
 ## 当前结果摘要
 
 | Model | Backend | System | TTFT Avg | Throughput | Cost/req | CE | 口径 |

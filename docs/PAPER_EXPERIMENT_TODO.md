@@ -10,7 +10,38 @@
 
 ## 0. 硬性约束
 
-### 0.0 已完成队列：2026-04-29
+### 0.0 Final paper snapshot: 2026-05-10
+
+当前最终论文快照已收敛到两个主基座模型：
+
+- Llama-2 7B
+- Llama-3.2 3B
+
+二者均使用 4000 requests、500 LoRA adapters、100% LoRA-bound requests、
+Zipf exponent 1.0、hot-set cap 48、hot-set rotation 500 requests、s8 replay
+scale 和 `e2e_v3` 指标。最终可恢复数据快照位于：
+
+```text
+paper_results/final_v2/
+```
+
+该快照包含最终主表、TTFT 分解表、backend sensitivity 表、生命周期图数据，
+以及对应最终源 JSON summary 的 gzip 压缩副本。历史 Llama-2 13B、Llama-3.2
+1B、Qwen、debug 和失败轮次不纳入最终论文快照。
+
+最终主表和 backend sensitivity 均已经完成：
+
+- `figs/paper/main/table1_end_to_end.tex`
+- `figs/paper/main/table_ttft_decomposition.tex`
+- `figs/paper/main/fig7_lifecycle_cost.pdf`
+- `figs/paper/backend_portability/table_backend_portability.tex`
+- `figs/paper/backend_portability/table_backend_portability_ttft_decomposition.tex`
+- `figs/paper/backend_portability/fig_backend_portability_lifecycle_cost.pdf`
+
+后续如果要新增实验，必须先明确它是 appendix/sensitivity 还是替换主表；不能
+把旧探索轮次混入最终主表。
+
+### 0.0.1 已完成队列：2026-04-29
 
 `load_operating_p0` 正式长实验已经完成：
 

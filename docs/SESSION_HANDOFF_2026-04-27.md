@@ -1,9 +1,12 @@
 # Session Handoff: 2026-04-27
 
-This document is the current restart point for the PrimeLoRA/FaaSLoRA paper and
-experiment workflow. It intentionally records both the paper state and the
-running terminal state so a new Codex session can continue without reconstructing
-the project from chat history.
+> Historical handoff note, superseded on 2026-05-10. For the current paper
+> state and final recoverable data snapshot, use
+> `docs/FINAL_PAPER_STATE_2026-05-10.md` and `paper_results/final_v2/`.
+
+This document was the restart point for the PrimeLoRA/FaaSLoRA paper and
+experiment workflow on 2026-04-27. It is kept only as historical evidence of the
+paper state and running terminal state at that time.
 
 ## 1. Repositories And Branches
 

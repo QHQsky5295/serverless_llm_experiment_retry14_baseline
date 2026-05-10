@@ -1,5 +1,11 @@
 # 2026-05-08 Llama-2 7B/13B 论文实验进度
 
+> Historical note, updated 2026-05-10: this file records the 13B exploration
+> path and should not be used as the final paper state. The final main paper
+> snapshot uses Llama-2 7B plus Llama-3.2 3B, and the recoverable final data
+> snapshot is `paper_results/final_v2/`. See
+> `docs/FINAL_PAPER_STATE_2026-05-10.md`.
+
 本文档记录 PrimeLoRA/FaaSLoRA 在 `retry14_continuous_queue_v2` 分支上的当前论文实验进度，重点是 Llama-2 7B 与 13B 主对比合并、Fig. 7 紧凑化、PrimeLoRA 13B 调参和后续输出。
 
 ## 当前原则

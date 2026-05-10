@@ -7,6 +7,15 @@
 
 ## 0. 写作口径与同类论文校准
 
+Current final snapshot, 2026-05-10:
+
+- Main comparison uses Llama-2 7B and Llama-3.2 3B, both with 4000 requests,
+  500 adapters, and s8 replay scale.
+- Final source-data snapshot: `paper_results/final_v2/`.
+- PrimeLoRA-SGLang backend sensitivity is a measured implementation/run.
+- Historical 13B/1B/Qwen/debug rounds are not part of the final main paper
+  tables.
+
 参考同类系统论文的组织方式，主文应遵守下面的证据边界：
 
 - ServerlessLLM 的 OSDI 论文将机制 microbenchmarks 与真实 trace 场景分开

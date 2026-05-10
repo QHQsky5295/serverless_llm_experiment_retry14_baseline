@@ -1,8 +1,11 @@
 # PrimeLoRA/FaaSLoRA Session Handoff - 2026-04-25
 
-This is the current handoff document for continuing PrimeLoRA/FaaSLoRA work
-from a new Codex session. It supersedes old March handoff snapshots for the
-current paper-comparison phase.
+> Historical handoff note, superseded on 2026-05-10. For the current paper
+> state and final recoverable data snapshot, use
+> `docs/FINAL_PAPER_STATE_2026-05-10.md` and `paper_results/final_v2/`.
+
+This was the handoff document for continuing PrimeLoRA/FaaSLoRA work from a new
+Codex session on 2026-04-25. It is kept only for auditability.
 
 ## Authoritative Workspaces
 

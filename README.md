@@ -13,6 +13,8 @@ inference.
 - Main runtime env: `LLM_vllm0102`
 - Formal metric schema: `e2e_v3`
 - Formal comparison harness: `/home/qhq/serverless_llm_baselines`
+- Current paper state: `docs/FINAL_PAPER_STATE_2026-05-10.md`
+- Final recoverable data snapshot: `paper_results/final_v2/`
 
 This repository owns the FaaSLoRA system implementation. Cross-system replay,
 baseline runners, timestamped round directories, and final comparison tables are
@@ -28,31 +30,19 @@ owned by the baseline harness.
 
 ## Current Paper Experiment Path
 
-The current formal main comparison is:
+The current formal main comparison uses two Llama-family workloads:
 
 ```text
-Llama-2 7B / 4000 requests / 500 adapters /
+Llama-2 7B and Llama-3.2 3B /
+4000 requests / 500 adapters / 100% LoRA requests /
 Zipf hotness / hot set cap 48 / hotset rotation 500 / time_scale=8
 ```
 
-The full five-system round is launched from the baseline workspace:
-
-```bash
-/home/qhq/serverless_llm_baselines/scripts/run_full_fair_round.sh
-```
-
-Interrupted rounds should be resumed from anywhere with:
-
-```bash
-/home/qhq/serverless_llm_baselines/scripts/resume_fair_round_tmux.sh
-```
-
-The active round stores all shared artifacts, raw per-system results, logs, and
-comparison outputs under:
-
-```text
-/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/
-```
+The final paper-facing tables and figure data are stored under `figs/paper/`.
+The curated source-data snapshot is stored under `paper_results/final_v2/`,
+including compressed raw JSON summaries for the final 7B/3B main rows and the
+measured PrimeLoRA-SGLang backend-sensitivity rows. Historical 13B, 1B, Qwen,
+failed, and debug rounds are not part of the final paper snapshot.
 
 ## Main Paper Metrics
 
@@ -72,9 +62,14 @@ unless every baseline can observe the same field.
 
 ## Canonical Documentation
 
+- `docs/FINAL_PAPER_STATE_2026-05-10.md`: current paper-facing status and final
+  data map.
 - `docs/PAPER_EXPERIMENT_TODO.md`: paper experiment plan and figure checklist.
 - `docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md`: current system design.
 - `docs/PROJECT_PROGRESS.md`: current project status.
+- `docs/PAPER_MAIN_TABLE_DATA_7B_3B.md`: readable final main-table data.
+- `docs/PRIMELORA_SGLANG_BACKEND_PORTABILITY.md`: measured PrimeLoRA-SGLang
+  backend-sensitivity extension.
 - `docs/ENVIRONMENT.md`: current runtime environment.
 - `docs/CODEX_INTERACTION_RULES.md`: local copy pointing to the authoritative
   interaction rules in the baseline workspace.

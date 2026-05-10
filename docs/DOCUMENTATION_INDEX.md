@@ -1,8 +1,8 @@
 # Documentation Index
 
-This index lists the active FaaSLoRA documents after the April 24 cleanup. Use
-these files for current project state; use `对比实验日志.md` only as historical
-experiment evidence.
+This index lists the active FaaSLoRA documents after the final 2026-05-10 paper
+snapshot. Use these files for current project state; use `对比实验日志.md` and
+older progress files only as historical experiment evidence.
 
 ## Canonical Documents
 
@@ -11,6 +11,8 @@ experiment evidence.
 - `../PROJECT_STRUCTURE.md`: current repository layout.
 - `../paper/primelora_current_draft.tex`: current tracked paper draft used for
   future text/figure insertion reviews.
+- `FINAL_PAPER_STATE_2026-05-10.md`: current paper-facing status, final workload
+  choice, final data snapshot, and GitHub sync scope.
 - `ENVIRONMENT.md`: current runtime assumptions.
 - `TECHNICAL_ROUTE_AND_IMPLEMENTATION.md`: current system design overview.
 - `PAPER_EXPERIMENT_TODO.md`: paper experiment plan and figure checklist.
@@ -18,12 +20,12 @@ experiment evidence.
   execution order for paper plots.
 - `PAPER_LATEX_INSERTIONS.md`: ready-to-paste LaTeX figure/table insertion
   snippets and EuroSys-style paragraph replacements for the current draft.
-- `PRIMELORA_SGLANG_BACKEND_PORTABILITY.md`: isolated backend-portability
-  sensitivity for PrimeLoRA-SGLang, including input files, generated artifacts,
+- `PAPER_MAIN_TABLE_DATA_7B_3B.md`: readable final main-table and TTFT
+  decomposition values for Llama-2 7B and Llama-3.2 3B.
+- `PRIMELORA_SGLANG_BACKEND_PORTABILITY.md`: measured backend-sensitivity
+  extension for PrimeLoRA-SGLang, including input files, generated artifacts,
   and wording constraints.
 - `PROJECT_PROGRESS.md`: current high-level project status.
-- `SESSION_HANDOFF_2026-04-27.md`: current restart prompt, live tmux status,
-  queue recovery command, and next-step checklist for a new session.
 - `VLLM_RTX3090_LORA.md`: current vLLM/LoRA runtime notes.
 - `CODEX_INTERACTION_RULES.md`: local copy pointing to the authoritative
   collaboration rules in the baseline workspace.
@@ -33,6 +35,20 @@ experiment evidence.
 - `对比实验日志.md`: keep as a chronological record of debugging and comparison
   analysis. It may contain old metric names and old audit scripts; do not use
   old sections as current execution instructions.
+- `PROGRESS_2026-05-08_LLAMA_7B13B.md`: historical 13B exploration. The final
+  paper snapshot uses Llama-2 7B plus Llama-3.2 3B instead.
+- `PROGRESS_2026-05-10_LLAMA32_3B.md`: 3B bring-up and finalization record.
+  Use `FINAL_PAPER_STATE_2026-05-10.md` for the concise current status.
+- `SESSION_HANDOFF_2026-04-27.md`: historical restart prompt from the adapter
+  pool queue period. Do not use it as the current terminal state.
+- `SESSION_HANDOFF_2026-04-25.md`: older historical restart prompt.
+
+## Final Data Snapshot
+
+- `../paper_results/final_v2/`: curated final paper data, including compressed
+  raw JSON summaries and table/figure CSV/TEX files. This is the data directory
+  that should be synced to GitHub. It intentionally excludes failed/debug/old
+  exploratory rounds.
 
 ## Removed As Obsolete
 

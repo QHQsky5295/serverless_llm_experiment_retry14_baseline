@@ -10,6 +10,13 @@
 
 所有结果均使用 4000 requests、500 LoRA adapters、s8 replay。Llama-3.2 3B 的 PrimeLoRA 行来自 PrimeLoRA-only 优化复跑，并通过 shared trace 与 shared adapter subset 哈希校验后合并。
 
+最终可恢复数据快照位于：
+
+- `paper_results/final_v2/`
+
+该快照包含本表的 CSV/TEX、figure data、manifest，以及最终源 JSON summary 的
+`.json.gz` 压缩副本。历史 13B、1B、Qwen、debug、失败轮次没有纳入该快照。
+
 ## Main Comparison
 
 Latency and TPOT are in milliseconds. Cost/req is in mUSD. Throughput is in tokens/s.
@@ -52,3 +59,23 @@ TTFT, Service TTFT, Dispatch Wait, and TPOT are in milliseconds.
   `/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2`
 - Llama-3.2 3B PrimeLoRA override source:
   `/home/qhq/serverless_llm_experiment_retry14_baseline/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_max2_auto.json`
+
+## Backend Sensitivity Summary
+
+PrimeLoRA-SGLang is a measured run. The authoritative files are:
+
+- `figs/paper/backend_portability/table_backend_portability.tex`
+- `figs/paper/backend_portability/table_backend_portability_data.csv`
+- `figs/paper/backend_portability/table_backend_portability_ttft_decomposition.tex`
+- `figs/paper/backend_portability/table_backend_portability_ttft_decomposition_data.csv`
+
+| Model | Backend | System | TTFT Avg | Throughput | Cost/req | CE |
+|---|---|---|---:|---:|---:|---:|
+| Llama-2 7B | vLLM | Standalone | 517.4 | 104.5 | 3.641 | 85.20 |
+| Llama-2 7B | vLLM | PrimeLoRA | 564.0 | 102.8 | 2.567 | 123.02 |
+| Llama-2 7B | SGLang | Standalone | 229.8 | 105.6 | 3.638 | 115.28 |
+| Llama-2 7B | SGLang | PrimeLoRA | 301.8 | 104.6 | 2.296 | 176.23 |
+| Llama-3.2 3B | vLLM | Standalone | 312.5 | 112.8 | 3.581 | 116.11 |
+| Llama-3.2 3B | vLLM | PrimeLoRA | 881.3 | 112.9 | 1.409 | 241.20 |
+| Llama-3.2 3B | SGLang | Standalone | 120.9 | 113.1 | 3.626 | 199.88 |
+| Llama-3.2 3B | SGLang | PrimeLoRA | 133.8 | 113.0 | 1.166 | 579.92 |
