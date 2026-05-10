@@ -500,7 +500,7 @@ def build_lifecycle_figure(models: Sequence[ModelRound], out_dir: Path) -> None:
         ax.set_xlim(xmin, xmax)
     for text, center in group_centers:
         lines = text.split("\n", 1)
-        x_label = -0.63
+        x_label = -0.72
         if len(lines) == 2:
             axes[0].text(
                 x_label,
