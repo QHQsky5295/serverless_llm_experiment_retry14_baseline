@@ -1,0 +1,15 @@
+[Unit]
+Description=PrimeLoRA remote LoRA artifact node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/primelora
+Environment=PRIME_REMOTE_TOKEN=
+ExecStart=/usr/bin/python3 /opt/primelora/remote_artifact_node/server.py --root /data/primelora_remote_artifacts/llama32_3b --host 0.0.0.0 --port 18080
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

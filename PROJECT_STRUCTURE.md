@@ -8,6 +8,8 @@ serverless_llm_experiment_retry14_baseline/
   faaslora/        Core FaaSLoRA system modules
   scripts/         FaaSLoRA experiment and shared-artifact wrappers
   configs/         Model, dataset, workload, cost, and coordination profiles
+  remote_artifact_node/
+                   Optional HTTP artifact service for a separate remote node
   tests/           Smoke and regression tests
   docs/            Current FaaSLoRA documentation
   paper/           Tracked paper draft
@@ -25,6 +27,11 @@ serverless_llm_experiment_retry14_baseline/
 - `faaslora/memory/`: adapter residency, GPU memory monitoring, and tier state.
 - `faaslora/scheduling/`: routing and resource coordination.
 - `scripts/run_all_experiments.py`: FaaSLoRA scenario runner.
+- `remote_artifact_node/server.py`: optional two-node LoRA artifact server;
+  disabled by default and used only when the remote-transfer environment switch
+  is enabled.
+- `scripts/remote_artifact_client.py`: smoke client for the remote artifact
+  node.
 
 ## Paper Data Snapshot
 

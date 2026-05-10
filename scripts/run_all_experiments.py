@@ -148,6 +148,16 @@ try:
     from faaslora.utils.model_assets import ensure_adapter_support_files
 except ImportError:
     ensure_adapter_support_files = None  # type: ignore[assignment]
+try:
+    from faaslora.storage.http_artifact_store import (
+        HttpArtifactStoreClient,
+        RemoteArtifactError,
+        endpoint_from_env as _remote_artifact_from_env,
+    )
+except ImportError:
+    HttpArtifactStoreClient = None  # type: ignore[assignment]
+    RemoteArtifactError = RuntimeError  # type: ignore[assignment]
+    _remote_artifact_from_env = None  # type: ignore[assignment]
 
 # Ensure REPO_ROOT (and sitecustomize.py inside it) are visible to all subprocesses,
 # including the vLLM EngineCore worker. This allows us to global-patch torch.load
@@ -5402,6 +5412,14 @@ class ScenarioRunner:
         self._lru_order:  List[str]       = []
         self._lru_max:    int             = preload_cfg.get("lru_cache_size", 4)
         self._access_count: Dict[str, int] = defaultdict(int)
+        self._remote_artifact_client = None
+        if _remote_artifact_from_env is not None:
+            self._remote_artifact_client = _remote_artifact_from_env()
+        if self._remote_artifact_client is not None:
+            print(
+                "    Remote artifact transfer enabled: "
+                f"{getattr(self._remote_artifact_client, 'endpoint', '<unknown>')}"
+            )
 
         # Dynamic scaling state (workload-adaptive thresholds)
         cc = self.coord_cfg
@@ -11475,17 +11493,20 @@ class ScenarioRunner:
         total_io = 0.0
 
         for aid, info in sorted(hot.items(), key=lambda x: -x[1].get("hotness", 0)):
-            src = self.remote_dir / aid
             dst = self.nvme_dir / aid
-            if not src.exists():
+            if self._remote_artifact_client is None and not (self.remote_dir / aid).exists():
                 continue
             if dst.exists():
                 self._nvme_cache[aid] = str(dst)
                 continue
-            ok, io_ms = copy_with_timing(src, dst)
+            ok, io_ms = self._materialize_remote_adapter(aid, dst)
             # Simulate remote?NVME bandwidth for initial preload
             size_mb   = info.get("size_mb", _dir_size_mb(dst))
-            sleep_s   = size_mb / self.bw_mbps if self.bw_mbps > 0 else 0
+            sleep_s   = (
+                size_mb / self.bw_mbps
+                if self._remote_artifact_client is None and self.bw_mbps > 0
+                else 0
+            )
             if sleep_s > 0.001:
                 await asyncio.sleep(sleep_s)
                 io_ms += sleep_s * 1000
@@ -11516,9 +11537,18 @@ class ScenarioRunner:
             host_dir.mkdir(parents=True, exist_ok=True)
 
         async def copy_fn(aid: str, src: str, dst: str):
-            ok, io_ms = copy_with_timing(Path(src), Path(dst))
+            src_path = Path(src)
+            remote_src = (self._stack.remote_dir / aid).resolve()
+            if self._remote_artifact_client is not None and src_path.resolve() == remote_src:
+                ok, io_ms = self._materialize_remote_adapter(aid, Path(dst))
+            else:
+                ok, io_ms = copy_with_timing(src_path, Path(dst))
             size_mb = self.adapter_info.get(aid, {}).get("size_mb", 30)
-            sleep_s = size_mb / self.bw_mbps if self.bw_mbps > 0 else 0
+            sleep_s = (
+                size_mb / self.bw_mbps
+                if self._remote_artifact_client is None and src_path.resolve() == remote_src and self.bw_mbps > 0
+                else 0
+            )
             if sleep_s > 0.001:
                 await asyncio.sleep(sleep_s)
                 io_ms += sleep_s * 1000
@@ -11537,7 +11567,7 @@ class ScenarioRunner:
         for aid in plan_nvme.selected_artifacts:
             src = self._stack.remote_dir / aid
             dst = self._stack.nvme_dir / aid
-            if not src.exists():
+            if self._remote_artifact_client is None and not src.exists():
                 continue
             ok, io_ms = await copy_fn(aid, str(src), str(dst))
             if ok:
@@ -13081,17 +13111,47 @@ class ScenarioRunner:
         # Cold start: always download from remote
         return await self._download_from_remote(adapter_id, size_mb)
 
+    def _materialize_remote_adapter(self, adapter_id: str, dst: Path) -> Tuple[bool, float]:
+        """Materialize an adapter from the configured remote origin into NVMe.
+
+        Default behavior is the historical local frozen-directory copy.  When
+        FAASLORA_REMOTE_ARTIFACT_ENABLED=1, this performs a real HTTP transfer
+        from the remote artifact node instead and does not silently fall back to
+        local files; this keeps two-node tests honest while preserving the
+        formal experiment path when the switch is disabled.
+        """
+
+        if self._remote_artifact_client is not None:
+            try:
+                ok, elapsed_ms, size_bytes = self._remote_artifact_client.download_artifact(
+                    adapter_id,
+                    str(dst),
+                )
+                if ok:
+                    print(
+                        "    remote artifact fetch "
+                        f"{adapter_id}: {size_bytes / 1024**2:.1f} MB, {elapsed_ms:.1f} ms"
+                    )
+                return bool(ok), float(elapsed_ms)
+            except Exception as exc:
+                print(f"    remote artifact fetch failed for {adapter_id}: {exc}")
+                return False, 0.0
+
+        src = self.remote_dir / adapter_id
+        if not src.exists():
+            return False, 0.0
+        return copy_with_timing(src, dst)
+
     def _ensure_local(self, adapter_id: str) -> Optional[str]:
         """Ensure adapter exists locally for S-LoRA / ServerlessLLM baselines."""
         if adapter_id in self._nvme_cache:
             return self._nvme_cache[adapter_id]
-        src = self.remote_dir / adapter_id
         dst = self.nvme_dir / adapter_id
         self.nvme_dir.mkdir(parents=True, exist_ok=True)
-        if not src.exists():
+        if self._remote_artifact_client is None and not (self.remote_dir / adapter_id).exists():
             return None
         if not dst.exists():
-            ok, _ = copy_with_timing(src, dst)
+            ok, _ = self._materialize_remote_adapter(adapter_id, dst)
             if not ok:
                 return None
         self._nvme_cache[adapter_id] = str(dst)
@@ -13101,19 +13161,18 @@ class ScenarioRunner:
         self, adapter_id: str, size_mb: float
     ) -> Tuple[Optional[str], Optional[str], float, str, float, float]:
         """Real remote download with bandwidth throttling."""
-        src = self.remote_dir / adapter_id
         dst = self.nvme_dir / adapter_id
         self.nvme_dir.mkdir(parents=True, exist_ok=True)
 
-        if not src.exists():
+        if self._remote_artifact_client is None and not (self.remote_dir / adapter_id).exists():
             return adapter_id, None, 0.0, "remote", 0.0, 0.0
 
-        ok, copy_ms = copy_with_timing(src, dst)
+        ok, copy_ms = self._materialize_remote_adapter(adapter_id, dst)
         if not ok:
             return adapter_id, None, 0.0, "remote", 0.0, 0.0
 
         # Bandwidth simulation
-        if self.bw_mbps > 0:
+        if self._remote_artifact_client is None and self.bw_mbps > 0:
             sleep_s = size_mb / self.bw_mbps
             if sleep_s > 0.001:
                 await asyncio.sleep(sleep_s)

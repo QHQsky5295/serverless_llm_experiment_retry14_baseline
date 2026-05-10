@@ -44,6 +44,20 @@ MODELS=Llama-2 7B, Llama-3.2 3B
 The final source summaries for these rounds are preserved under
 `paper_results/final_v2/raw_json_gz/`.
 
+## Optional Remote Artifact Smoke Test
+
+The normal paper workflow above keeps using local frozen LoRA directories.  To
+test a strict two-node remote-artifact path without changing the default
+workflow, follow `docs/REMOTE_ARTIFACT_DEPLOYMENT.md` and explicitly set:
+
+```bash
+export FAASLORA_REMOTE_ARTIFACT_ENABLED=1
+export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://10.199.227.174:18080
+```
+
+Unset those variables before formal reruns unless the goal is specifically to
+measure remote-transfer behavior.
+
 ## FaaSLoRA-Only Debug
 
 Use the full round runner whenever possible. If a FaaSLoRA-only debug run is

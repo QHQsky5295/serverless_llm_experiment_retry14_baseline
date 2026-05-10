@@ -77,6 +77,21 @@ It contains only final paper-facing source data: compressed JSON summaries,
 table CSV/TEX files, figure data, and manifests. Historical failed/debug rounds
 are intentionally excluded.
 
+## Optional Remote Artifact Deployment
+
+The repository now includes a default-off two-node remote artifact path for
+deployment realism:
+
+- `remote_artifact_node/server.py`
+- `scripts/remote_artifact_client.py`
+- `configs/remote_artifact_example.yaml`
+- `docs/REMOTE_ARTIFACT_DEPLOYMENT.md`
+
+This extension is not used to compute the final paper metrics. Existing formal
+runs keep using local frozen artifact directories unless
+`FAASLORA_REMOTE_ARTIFACT_ENABLED=1` and
+`FAASLORA_REMOTE_ARTIFACT_ENDPOINT=...` are explicitly set.
+
 ## Current Paper Draft
 
 Current tracked draft:

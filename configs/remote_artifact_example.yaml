@@ -1,0 +1,32 @@
+# Optional two-node remote artifact configuration.
+#
+# This file is intentionally not imported by configs/experiments.yaml.  The
+# formal paper experiment chain remains unchanged unless the environment switch
+# below is explicitly enabled.
+#
+# Remote node example:
+#   python remote_artifact_node/server.py \
+#     --root /data/primelora_remote_artifacts/llama32_3b_a500_v1_modelscope \
+#     --host 0.0.0.0 --port 18080
+#
+# Local node opt-in:
+#   export FAASLORA_REMOTE_ARTIFACT_ENABLED=1
+#   export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://10.199.227.174:18080
+#   # Optional, only if PRIME_REMOTE_TOKEN is set on the remote server:
+#   export PRIME_REMOTE_TOKEN=<runtime-token-not-committed>
+
+storage:
+  remote:
+    provider: "http"
+    endpoint_url: "http://10.199.227.174:18080"
+    token_env: "PRIME_REMOTE_TOKEN"
+    timeout_s: 300
+    # LAN artifact nodes should normally bypass ALL_PROXY/http_proxy.
+    use_env_proxy: false
+
+  # Local NVMe target used by smoke tests or opt-in runs.
+  nvme_cache_dir: "artifacts/nvme_cache_remote_demo"
+
+  # Historical local frozen directory fallback.  It is still used whenever
+  # FAASLORA_REMOTE_ARTIFACT_ENABLED is unset/false.
+  remote_dir: "artifacts/frozen/llama32_3b_a500_v1_modelscope"

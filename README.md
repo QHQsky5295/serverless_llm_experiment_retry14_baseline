@@ -28,6 +28,22 @@ owned by the baseline harness.
 3. Coordinated resource control for LoRA loading, KV cache pressure, and online
    inference.
 
+## Optional Two-Node Remote Artifacts
+
+The final paper experiments are closed and continue to use local frozen artifact
+directories by default.  For deployment realism and conference artifact
+packaging, the repository also includes an opt-in remote artifact node:
+
+- `remote_artifact_node/`: lightweight HTTP service for a remote machine that
+  stores LoRA adapter directories.
+- `scripts/remote_artifact_client.py`: local smoke client for health, manifest,
+  and adapter fetch checks.
+- `configs/remote_artifact_example.yaml` and
+  `docs/REMOTE_ARTIFACT_DEPLOYMENT.md`: two-node setup instructions.
+
+Remote transfer is disabled unless `FAASLORA_REMOTE_ARTIFACT_ENABLED=1` is set,
+so existing formal experiment commands are not affected.
+
 ## Current Paper Experiment Path
 
 The current formal main comparison uses two Llama-family workloads:
@@ -70,6 +86,8 @@ unless every baseline can observe the same field.
 - `docs/PAPER_MAIN_TABLE_DATA_7B_3B.md`: readable final main-table data.
 - `docs/PRIMELORA_SGLANG_BACKEND_PORTABILITY.md`: measured PrimeLoRA-SGLang
   backend-sensitivity extension.
+- `docs/REMOTE_ARTIFACT_DEPLOYMENT.md`: optional two-node remote LoRA artifact
+  deployment path.
 - `docs/ENVIRONMENT.md`: current runtime environment.
 - `docs/CODEX_INTERACTION_RULES.md`: local copy pointing to the authoritative
   interaction rules in the baseline workspace.

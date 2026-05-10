@@ -16,6 +16,10 @@ April handoff snapshots have been removed from the active documentation set.
   500 LoRA adapters, and s8 replay scale.
 - Final backend-sensitivity extension: measured PrimeLoRA-SGLang on both 7B
   and 3B.
+- Optional deployment realism extension: default-off two-node remote LoRA
+  artifact node, documented in `docs/REMOTE_ARTIFACT_DEPLOYMENT.md`. It is not
+  part of the frozen paper metrics and does not alter the formal local frozen
+  artifact path unless `FAASLORA_REMOTE_ARTIFACT_ENABLED=1` is set.
 
 ## Final Paper Snapshot: 2026-05-10
 

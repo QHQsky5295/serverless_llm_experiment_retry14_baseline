@@ -25,6 +25,9 @@ older progress files only as historical experiment evidence.
 - `PRIMELORA_SGLANG_BACKEND_PORTABILITY.md`: measured backend-sensitivity
   extension for PrimeLoRA-SGLang, including input files, generated artifacts,
   and wording constraints.
+- `REMOTE_ARTIFACT_DEPLOYMENT.md`: optional two-node remote LoRA artifact
+  service and local opt-in fetch path; default-off and not part of the frozen
+  paper result chain.
 - `PROJECT_PROGRESS.md`: current high-level project status.
 - `VLLM_RTX3090_LORA.md`: current vLLM/LoRA runtime notes.
 - `CODEX_INTERACTION_RULES.md`: local copy pointing to the authoritative
