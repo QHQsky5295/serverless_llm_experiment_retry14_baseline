@@ -4713,6 +4713,16 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
                 handoff_plan=empty_ready_plan,
                 current_instances=1,
                 pending_scale_up_instances=0,
+                backlog=1,
+                active_requests=1,
+                busy_ratio=0.75,
+            )
+        )
+        self.assertFalse(
+            runner._scale_up_capacity_covers_ready_projection(
+                handoff_plan=empty_ready_plan,
+                current_instances=1,
+                pending_scale_up_instances=0,
                 backlog=9,
                 active_requests=9,
             )
@@ -7808,15 +7818,24 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner._scale_down_duration_s = 45.0
         runner._scale_down_startup_break_even_s = 0.0
         runner._scale_down_break_even_factor = 1.0
+        runner._scale_down_cooldown_s = 12.0
+        runner._scale_down_cooldown_auto = False
         runner._low_load_since = 0.0
         runner._active_loras_ewma = 0.0
         runner._live_waiting_traces_by_id = {}
         runner._live_started_lora_counts = defaultdict(int)
         runner._live_scale_eval_last_at = 0.0
         runner._live_scale_overrides = None
+        runner._last_live_scale_up_completed_at = 0.0
+        runner._last_live_scale_down_completed_at = 0.0
         runner._arrival_rps = lambda _replay_t0: 0.2
         runner._arrived_request_count = lambda _replay_t0: 8
         runner._autoscaler_gpu_signal = lambda: 5.0
+        runner._pending_scale_up_count = lambda: 0
+        runner._select_scale_down_candidate_slot = (
+            lambda min_idle_s=None: SimpleNamespace(instance_id="inst_idle")
+        )
+        runner._runtime_total_capacity_after_removal = lambda remaining_instances: 2
         runner._scale_down_one_instance = (
             lambda require_idle=False: scale_down_calls.append(require_idle)
             or asyncio.sleep(0, result={"instance_id": "inst_2"})
@@ -7848,6 +7867,60 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertFalse(triggered)
         self.assertEqual(scale_down_calls, [])
         self.assertEqual(result.scale_down_events, 0)
+
+    def test_idle_slot_scale_down_under_visible_pressure_requires_remaining_capacity(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._primary_instance_id = "inst_1"
+        runner._scale_down_duration_s = 12.0
+        runner._scale_down_startup_break_even_s = 0.0
+        runner._scale_down_break_even_factor = 1.0
+        runner._scale_down_cooldown_s = 12.0
+        runner._scale_down_cooldown_auto = False
+        runner._last_live_scale_up_completed_at = 0.0
+        runner._last_live_scale_down_completed_at = 0.0
+        runner._pending_scale_up_count = lambda: 0
+        idle_slot = SimpleNamespace(
+            instance_id="inst_2",
+            active_requests=0,
+            load_queue_depth=0,
+            runtime_forwarding_active=0,
+            last_selected_at=120.0,
+            last_idle_at=150.0,
+            created_at=150.0,
+        )
+        runner.instance_pool = SimpleNamespace(
+            min_instances=1,
+            count=lambda: 2,
+            get_slots=lambda: [
+                SimpleNamespace(
+                    instance_id="inst_1",
+                    active_requests=1,
+                    load_queue_depth=0,
+                    runtime_forwarding_active=0,
+                    last_selected_at=199.0,
+                    last_idle_at=199.0,
+                    created_at=100.0,
+                ),
+                idle_slot,
+            ],
+        )
+
+        with patch("scripts.run_all_experiments.time.time", return_value=200.0):
+            with patch("scripts.run_all_experiments.time.perf_counter", return_value=200.0):
+                runner._runtime_total_capacity_after_removal = lambda remaining_instances: 3
+                self.assertTrue(
+                    runner._can_scale_down_idle_slot_under_visible_pressure(
+                        backlog=2,
+                        active_requests=1,
+                    )
+                )
+                runner._runtime_total_capacity_after_removal = lambda remaining_instances: 2
+                self.assertFalse(
+                    runner._can_scale_down_idle_slot_under_visible_pressure(
+                        backlog=2,
+                        active_requests=1,
+                    )
+                )
 
     def test_live_scale_control_can_release_idle_slot_under_pressure_when_capacity_remains(self) -> None:
         scale_down_calls = []

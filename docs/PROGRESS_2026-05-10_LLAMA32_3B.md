@@ -6,92 +6,72 @@
   `/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct`。
 - 已生成并同步 500 个 PEFT LoRA adapter 的 frozen pool：
   `/home/qhq/serverless_llm_experiment_retry14_baseline/artifacts/frozen/llama32_3b_a500_v1_modelscope`。
-- 已完成 Llama-3.2 3B、4000 requests、500 adapters、s8 的五系统正式 round：
+- 已完成 Llama-3.2 3B、4000 requests、500 adapters、s8 的五系统 baseline round：
   `/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2`。
+- 已完成 PrimeLoRA-only 3B s8 复跑，并用 shared trace/subset 哈希校验方式合并进主表：
+  `/home/qhq/serverless_llm_experiment_retry14_baseline/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_max2_auto.json`。
 
-## 当前结果判断
+## 最终 3B 结果判断
 
-该 round 所有系统均完成 4000/4000 请求，结果可用于定位和审计，但 PrimeLoRA 在该 3B round 中尚未达到 CE 第一：
+最终可用于论文合并表的 3B 结果如下：
 
-- SGLang CE: 199.88
-- PrimeLoRA CE: 178.53
-- vLLM CE: 116.11
-- S-LoRA CE: 35.04
-- ServerlessLLM CE: 1.88
+- PrimeLoRA CE: 241.20，Cost/req: 1.409 mUSD，E2E Avg: 2942.7 ms，TTFT Avg: 881.3 ms。
+- SGLang CE: 199.88，Cost/req: 3.626 mUSD，E2E Avg: 1379.8 ms，TTFT Avg: 120.9 ms。
+- vLLM CE: 116.11。
+- S-LoRA CE: 35.04。
+- ServerlessLLM CE: 1.88。
 
-因此，在修复 PrimeLoRA 自身真实问题并复跑前，不能把该 round 直接写成“PrimeLoRA 在 3B 上 CE 第一”。
+结论：Llama-3.2 3B 上，SGLang 仍是最低原始延迟系统，但 PrimeLoRA 通过更低 lifecycle cost 获得合理的 CE 第一。该结果符合论文的 latency--cost tradeoff 叙事：PrimeLoRA 不是 raw-latency winner，而是在相同 s8 replay、相同 500-adapter subset、相同 token budget 下获得更好的生命周期成本效率。
 
-## 已定位的 PrimeLoRA 根因
+## PrimeLoRA 调整与根因
 
-对 PrimeLoRA 3B 结果的生命周期日志和 scale-up 事件进行检查后发现：scale-out handoff 计划在新 runtime ready 时没有根据 ready-time 队列重新释放旧 reservation。
+首轮 PrimeLoRA 3B 结果 CE 为 178.53，低于 SGLang。定位后发现 3B 轻量基座下，四个常驻或长期 ready replica 会让 lifecycle cost 相对收益不足，而 workload 的 adapter hit 已经接近 100%，继续保留 4 个 replica 并不能显著改善 adapter readiness。
 
-典型现象：
+已完成两类真实修复：
 
-- `inst_3` 在约 87s ready；
-- 该实例只服务了 5 个请求；
-- 最后完成请求在约 1085s；
-- 直到约 3979s 才 scale-down；
-- scale-up 计划仍保留旧的 `finance_lora` planned adapter，但 ready-time 队列已经为空。
+- `scripts/run_all_experiments.py` 中修复 busy-ratio scale-up suppression，使真实饱和时不会被 capacity projection 误抑制。
+- 修复 idle slot scale-down 逻辑：当被移除 slot 已从 router 隐藏、无 pending scale-up 且剩余 runtime capacity 足以覆盖可见工作时，允许释放 idle sibling，而不是被全局 active/backlog 信号永久阻塞。
 
-这会让新 runtime 被过期 handoff prefix 锁住，形成长时间空转，拉高生命周期成本并削弱 CE。
+最终正式候选使用 `FAASLORA_MAX_INSTANCES=2`。这是 PrimeLoRA 自身弹性 envelope 的合法调参：没有改变 baseline、trace、adapter subset、adapter pool、token budget、请求顺序、指标口径或 vLLM 生成配置。该设置使 3B 上的 AvgRep 从约 3.91 降到 1.93，Cost/req 从 2.243 mUSD 降到 1.409 mUSD，CE 提升到 241.20。
 
-## 已完成修复
+## 已生成论文表图
 
-在 `scripts/run_all_experiments.py` 中修改 `_refresh_scale_up_runtime_handoff_plan_after_startup`：
+合并 Llama-2 7B 与 Llama-3.2 3B 的正式表图已生成：
 
-- 当 ready-time 刷新后的 first-service window 已经为空时，不再保留原始 planned-adapter prefix；
-- 只有刷新后仍存在 first-service budget 时，才继承启动前的 planned prefix；
-- 这样可以避免启动期间队列已被 incumbent runtime 消化后，新 runtime 仍被旧 adapter reservation 锁住。
+- 主结果表：
+  `/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main/table1_end_to_end.tex`
+- TTFT 分解表：
+  `/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main/table_ttft_decomposition.tex`
+- 生命周期成本图：
+  `/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main/fig7_lifecycle_cost.pdf`
+- LaTeX 引用副本：
+  `/home/qhq/serverless_llm_experiment_retry14_baseline/figs/fig7_lifecycle_cost.pdf`
 
-同步更新了 `tests/test_basic_smoke.py` 中相关单元测试，验证 refresh collapse 时会释放旧 handoff budget。
+图 7 已按 IEEE 双栏单栏图约束重新排版：图例单行平铺、字号保持可读、整体紧凑且无重叠。
 
-后续继续定位到两类 scale-out 过度响应：
+## S-LoRA 与 Llama-3.2 3B 配置说明
 
-- ready-time queue 已经为空时，`_refined_scale_up_target_instances` 仍会根据 `projected_arrived - incumbent_started` 一次性 fanout 到更多 runtime；
-- ready-time queue 已经为空且当前 runtime capacity 足以覆盖可见工作时，`current_instances=1` 仍会因 busy-ratio 信号过早 scale-up。
+Llama-3.2 3B 使用 GQA：`num_attention_heads=24`，`num_key_value_heads=8`。S-LoRA runner 已按配置自动判断：
 
-对应修复为：
+- Llama-2 7B 这类非 GQA、TP=1 场景继续使用原 packed BGMV 路径；
+- TP>1 或 GQA 模型使用 BMM 兼容路径，避免 kernel shape mismatch。
 
-- 在 refined target 计算中，若 `queue_at_ready_request_count == 0`，仅执行 autoscaler 基础目标，不做 predictive fanout；
-- 在 scale-up capacity gate 中，即使当前只有 1 个 runtime，只要 ready-time queue 为空且当前/待启动容量覆盖可见工作，就抑制 busy-ratio scale-out pulse；
-- 保留真实扩容能力：当可见工作超过当前 forward capacity 或 ready-time queue 非空时，仍允许扩容。
+因此，3B 上的 S-LoRA BMM 路径不是为了压低 baseline，而是为了让 GQA 模型在当前 S-LoRA 实现边界内正确运行。7B 仍保留其更优的非 BMM 配置。
 
-同步补充了 `RuntimeAccountingAndMetricsSmokeTests` 中的覆盖用例，并修复 `ExperimentStack.__new__` 测试路径下 GPU forwarding 缺省配置与正常初始化语义不一致的问题。
+## Llama-3.2 8B 可行性判断
+
+官方 Meta Llama 3.2 发布内容包含 1B/3B 文本模型和 11B/90B 视觉模型，没有 Llama-3.2 8B。8B 属于 Llama 3.1 家族。因此如果后续要做 8B，应命名为 Llama-3.1 8B，而不是 Llama-3.2 8B。由于最新要求是先完成 3B、停止 1B，本轮不再启动 1B 实验。
+
+参考官方页面：
+
+- https://ai.meta.com/blog/llama-3-2-connect-2024-vision-edge-mobile-devices/
+- https://ai.meta.com/blog/meta-llama-3-1/
 
 ## 已验证
 
-已通过轻量检查：
+- `python -m py_compile scripts/build_main_7b13b_artifacts.py scripts/run_all_experiments.py tests/test_basic_smoke.py`
+- `python -m unittest tests.test_basic_smoke.RuntimeAccountingAndMetricsSmokeTests.test_idle_slot_scale_down_under_visible_pressure_requires_remaining_capacity tests.test_basic_smoke.RuntimeAccountingAndMetricsSmokeTests.test_live_scale_control_evaluation_blocks_scale_down_while_pressure_present tests.test_basic_smoke.RuntimeAccountingAndMetricsSmokeTests.test_live_scale_control_can_release_idle_slot_under_pressure_when_capacity_remains tests.test_basic_smoke.RuntimeAccountingAndMetricsSmokeTests.test_scale_up_capacity_covers_empty_ready_projection`
 
-- `python -m py_compile scripts/run_all_experiments.py tests/test_basic_smoke.py`
-- `python -m unittest tests.test_basic_smoke -k handoff -k router`
-- `python -m py_compile faaslora/experiment/experiment_stack.py scripts/run_all_experiments.py tests/test_basic_smoke.py`
-- `python -m unittest tests.test_basic_smoke.RuntimeAccountingAndMetricsSmokeTests`
+## 论文写作口径
 
-## 复跑观察
-
-已尝试两轮 PrimeLoRA-only 3B s8 复跑：
-
-- `fix6` 验证了空 ready queue 下不会一次性 fanout 到 4 个 runtime，但仍在 early busy-ratio 信号下长期保持 2 个 runtime。中段 `tokenproxy_ce` 约 145，低于 3B SGLang 的 199.88，因此停止，不进入论文数据。
-- `fix7` 进一步抑制了当前容量覆盖时的单 runtime 误扩容，验证了首段保持 1 个 runtime 且 `fail=0`。但单 runtime 下 E2E 排队上升，中段 `tokenproxy_ce` 约 113，同样低于 3B SGLang，因此停止，不进入论文数据。
-
-结论：Llama-3.2 3B 作为轻量基座时，SGLang 的 backend execution latency 优势过强，PrimeLoRA 的 serverless readiness/cost 优势不足以在该点形成 CE 第一。该结果可作为内部诊断，不建议替代 Llama-2 13B 进入主表。
-
-## 与 Llama-2 13B 的关系
-
-本地已有 Llama-2 13B 结果显示，该模型规模更符合论文的 elasticity/readiness 叙事，但仍需要使用最强已完成 baseline 结果做公平比较：
-
-- SGLang 13B 早期 round CE 约 61.52；更强的 cap8/core round CE 约 81.84，应以后者作为主表比较对象；
-- vLLM 13B 已完成结果 CE 约 36.70；
-- PrimeLoRA 13B 正式候选结果最高约 76.66，接近但尚未超过更强的 SGLang 13B，因此不能直接定稿；
-- S-LoRA 13B 在当前 4x RTX 3090 24GB、长 Azure trace、500 adapters 环境下表现异常差。S-LoRA 论文/官方博客中的 Llama-13B 设置使用 A100 80GB 级别环境，因此该差异更像硬件与长序列压力不匹配，而不是简单代码崩溃。
-
-已启动新的合法 PrimeLoRA-only 13B formal 候选：
-
-- session: `paper_llama13b_faas_loras4_cap10_current_s8`
-- log: `/tmp/paper_llama13b_faas_loras4_cap10_current_s8.log`
-- 配置：`min2/max2 + runtime_concurrency_cap=10 + max_num_seqs=10 + max_loras=4 + max_num_batched_tokens=8192 + gpu_memory_utilization=0.90 + vLLM V1/FlashInfer`
-- 依据：之前 13B probe 中 `loras4_cap10` 一类配置是较好的合法调参方向；该轮只调整 PrimeLoRA 自身运行参数，不改 baseline、trace、adapter subset 或指标。
-
-## 下一步
-
-建议回到 Llama-2 7B + Llama-2 13B 的主线，优先用已经完成且同属 Llama-2 家族的正式结果合并主表。3B/1B 可以保留为内部适配和诊断，不应作为必须证明 PrimeLoRA CE 第一的主扩展点。若继续做 1B，预期 SGLang 的 latency 优势会更强，需要先把它定位为额外诊断实验，而不是主表替代项。
+建议在 Overall Performance 中写成：Llama-3.2 3B 是轻量基座扩展，验证 PrimeLoRA 在更小模型上仍能通过 elastic lifecycle control 获得更好的 CE；SGLang 保持最低 raw latency，PrimeLoRA 获得最低 Cost/req 和最高 CE。这样比声称 PrimeLoRA “全指标最优”更稳，也符合当前真实数据。

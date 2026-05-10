@@ -189,12 +189,29 @@ def _parse_system_summary_overrides(specs: Sequence[str]) -> dict[str, dict[str,
 def _validate_summary_override_path(round_dir: Path, source: Path, *, model_key: str, system_key: str) -> None:
     try:
         source.relative_to(round_dir)
+        return
     except ValueError as exc:
-        raise SystemExit(
-            f"{model_key}:{system_key}: summary override must be inside the corresponding round directory. "
-            f"Use --system-round-override for a complete separate round with its own shared-artifact hashes. "
-            f"round={round_dir} source={source}"
-        ) from exc
+        payload = ppf._load_json(source)
+        metadata = payload.get("metadata") or {}
+        trace_path = metadata.get("shared_trace_path")
+        subset_path = metadata.get("shared_adapter_subset_path")
+        if not trace_path or not subset_path:
+            raise SystemExit(
+                f"{model_key}:{system_key}: external summary override must record "
+                f"metadata.shared_trace_path and metadata.shared_adapter_subset_path. "
+                f"Use --system-round-override for a complete separate round with its own shared-artifact hashes. "
+                f"round={round_dir} source={source}"
+            ) from exc
+        base = _shared_artifact_hashes(round_dir)
+        observed = {
+            "trace": _sha256(Path(trace_path).expanduser().resolve()),
+            "adapter_subset": _sha256(Path(subset_path).expanduser().resolve()),
+        }
+        if observed != base:
+            raise SystemExit(
+                f"{model_key}:{system_key}: external summary override does not use the same "
+                f"shared trace/adapter subset as {round_dir}. source={source}"
+            ) from exc
 
 
 def _metrics_from_summary(source: Path, key: str) -> dict[str, float]:
@@ -423,7 +440,7 @@ def build_lifecycle_figure(models: Sequence[ModelRound], out_dir: Path) -> None:
         y += 0.58
 
     y_arr = np.asarray(y_positions, dtype=float)
-    fig, axes = plt.subplots(1, 2, figsize=(3.50, 3.34), constrained_layout=False)
+    fig, axes = plt.subplots(1, 2, figsize=(3.50, 3.38), constrained_layout=False)
     # Keep the paper figure compact: the tiny per-request invocation charge is
     # folded into the active component, while the CSV retains the raw split.
     components = [
@@ -494,15 +511,15 @@ def build_lifecycle_figure(models: Sequence[ModelRound], out_dir: Path) -> None:
         fontsize=6.7,
         ncols=3,
         loc="upper center",
-        bbox_to_anchor=(0.61, 0.802),
+        bbox_to_anchor=(0.61, 0.982),
         columnspacing=0.52,
         handlelength=1.1,
         borderaxespad=0.0,
     )
-    fig.subplots_adjust(left=0.43, right=0.99, top=0.792, bottom=0.128, wspace=0.23)
+    fig.subplots_adjust(left=0.43, right=0.99, top=0.862, bottom=0.126, wspace=0.23)
 
     pdf = out_dir / "fig7_lifecycle_cost.pdf"
-    fig.savefig(pdf, bbox_inches="tight")
+    fig.savefig(pdf, bbox_inches="tight", pad_inches=0.015)
     plt.close(fig)
 
 

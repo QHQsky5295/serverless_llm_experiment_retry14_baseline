@@ -7556,6 +7556,7 @@ class ScenarioRunner:
         pending_scale_up_instances: int,
         backlog: int,
         active_requests: int,
+        busy_ratio: float = 0.0,
     ) -> bool:
         current = max(0, int(current_instances or 0))
         pending = max(0, int(pending_scale_up_instances or 0))
@@ -7570,6 +7571,17 @@ class ScenarioRunner:
         )
         if visible_work <= 0:
             return True
+        # Request-count capacity is not sufficient for token-heavy traces. A
+        # single runtime can have only a few visible requests while still being
+        # continuously occupied by long prefill/decode work. If the autoscaler
+        # already reports service saturation, do not suppress the scale-out
+        # pulse solely because the ready-time queue projection is empty.
+        try:
+            busy = float(busy_ratio or 0.0)
+        except Exception:
+            busy = 0.0
+        if busy >= 0.75:
+            return False
         runtime_cap = max(1, int(self._runtime_forward_capacity_limit() or 1))
         covered_capacity = max(1, current) * runtime_cap
         return visible_work <= covered_capacity
@@ -9342,18 +9354,13 @@ class ScenarioRunner:
     ) -> bool:
         """Allow serverless-style per-replica TTL without waiting for global idle.
 
-        Scale-down must be drain-safe in the formal replay. A replica may look
-        idle in one control-loop snapshot while new requests are still becoming
-        runnable, so visible backlog/active work blocks reclamation.
+        Scale-down must be drain-safe in the formal replay. The guard is
+        slot-level rather than globally blocking on any visible request: request
+        coroutines reserve a runtime lane before their first await, and
+        InstancePool removal makes the slot invisible to later routing. Thus an
+        idle sibling can be reclaimed while other runtimes are still serving, as
+        long as the remaining runtime lanes cover the visible work.
         """
-        # Direct AsyncLLMEngine runtimes are not safe to tear down while the
-        # replay still has visible work. A request can reserve a runtime between
-        # successive control-loop observations, and shutting the worker down in
-        # that drain window turns valid in-flight requests into failures. Keep
-        # the live controller conservative; normal benchmark cleanup still
-        # accounts for idle-retention cost without killing active requests.
-        if max(0, int(backlog or 0)) > 0 or max(0, int(active_requests or 0)) > 0:
-            return False
         if self.instance_pool is None:
             return False
         if now_monotonic is None:
@@ -9373,7 +9380,7 @@ class ScenarioRunner:
         if candidate is None:
             return False
         remaining_capacity = self._runtime_total_capacity_after_removal(actual_instances - 1)
-        visible_work = max(0, int(backlog or 0), int(active_requests or 0))
+        visible_work = max(0, int(backlog or 0)) + max(0, int(active_requests or 0))
         return visible_work <= remaining_capacity
 
     async def _maybe_run_live_scale_control_evaluation(
@@ -9559,6 +9566,7 @@ class ScenarioRunner:
             pending_scale_up_instances=pending_scale_up_instances,
             backlog=backlog,
             active_requests=active_requests,
+            busy_ratio=busy_ratio,
         ):
             # The current and pending runtime capacity already covers the
             # ready-time queue projection. Suppress busy-ratio scale-out pulses

@@ -1,6 +1,6 @@
 {
   "artifact": "main_llama_family_tables_and_lifecycle_figure",
-  "generated_at_utc": "2026-05-09T20:58:16.959065+00:00",
+  "generated_at_utc": "2026-05-10T04:03:44.133634+00:00",
   "models": [
     {
       "label": "Llama-2 7B",
@@ -14,14 +14,14 @@
       ]
     },
     {
-      "label": "Llama-2 13B",
-      "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260507_llama13b_main_cap8_core_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8",
+      "label": "Llama-3.2 3B",
+      "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2",
       "sources": [
-        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260508_llama13b_faas_min2_cap8_v1flash_formal_llama2_13b_faas_min2_cap8_loras8_v1flash_formal_a500_seed42_s8/raw/faaslora/llama2_13b_faas_min2_cap8_loras8_v1flash_formal_a500_seed42_s8_faaslora_result.json",
-        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260507_llama13b_main_cap8_core_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8/raw/replay/llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8_sglang_dp_tpprofile_summary.json",
-        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260507_llama13b_main_cap8_core_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8/raw/replay/llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8_vllm_dp2_tp2_summary.json",
-        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260507_llama13b_main_cap8_core_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8/raw/replay/llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8_slora_dp1_tp4_summary.json",
-        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260507_llama13b_main_cap8_core_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8/raw/replay/llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_main_cap8_serverlessllm_summary.json"
+        "/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_max2_auto.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_sglang_dp_tpprofile_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_vllm_dp4_tp1_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_serverlessllm_summary.json"
       ]
     }
   ],
