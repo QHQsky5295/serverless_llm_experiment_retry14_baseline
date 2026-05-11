@@ -52,7 +52,7 @@ workflow, follow `docs/REMOTE_ARTIFACT_DEPLOYMENT.md` and explicitly set:
 
 ```bash
 export FAASLORA_REMOTE_ARTIFACT_ENABLED=1
-export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://10.199.227.174:18080
+export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
 ```
 
 Unset those variables before formal reruns unless the goal is specifically to

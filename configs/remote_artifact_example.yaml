@@ -11,14 +11,14 @@
 #
 # Local node opt-in:
 #   export FAASLORA_REMOTE_ARTIFACT_ENABLED=1
-#   export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://10.199.227.174:18080
+#   export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
 #   # Optional, only if PRIME_REMOTE_TOKEN is set on the remote server:
 #   export PRIME_REMOTE_TOKEN=<runtime-token-not-committed>
 
 storage:
   remote:
     provider: "http"
-    endpoint_url: "http://10.199.227.174:18080"
+    endpoint_url: "http://192.168.4.174:18080"
     token_env: "PRIME_REMOTE_TOKEN"
     timeout_s: 300
     # LAN artifact nodes should normally bypass ALL_PROXY/http_proxy.

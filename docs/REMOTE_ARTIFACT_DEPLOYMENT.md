@@ -21,10 +21,12 @@ baseline harness，另一个节点作为 remote artifact node 保存 LoRA adapte
 当前计划的 remote artifact node：
 
 ```text
-host: 10.199.227.174
+ssh/jump host: 10.199.227.174
 ssh port: 8122
 ssh user: lab14
-artifact service port: 18080
+artifact HTTP host on the experiment LAN: 192.168.4.174
+GPU node on the experiment LAN: 192.168.4.178
+artifact HTTP port: 18080
 ```
 
 密码不记录在本文档中。部署时使用交互式 SSH/SCP 输入。
@@ -111,14 +113,15 @@ remote_artifact_node/systemd/primelora-remote-artifacts.service.example
 
 ```bash
 cd /home/qhq/serverless_llm_experiment_retry14_baseline
-export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://10.199.227.174:18080
+export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
 python3 scripts/remote_artifact_client.py health
 python3 scripts/remote_artifact_client.py list --limit 5
 python3 scripts/remote_artifact_client.py smoke --dst-root /tmp/primelora_remote_fetch
 ```
 
 本地环境如果设置了 `ALL_PROXY`，client 默认会绕过环境代理，直接连接 LAN
-remote 节点，避免把 `10.199.*` 流量误发到外部代理。
+remote 节点。当前 SSH 入口是 `10.199.227.174:8122`，但 artifact HTTP
+实测应走 LAN 地址 `192.168.4.174:18080`。
 
 如果远端开启 token：
 
@@ -132,7 +135,7 @@ export PRIME_REMOTE_TOKEN='<runtime-token-not-committed>'
 
 ```bash
 export FAASLORA_REMOTE_ARTIFACT_ENABLED=1
-export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://10.199.227.174:18080
+export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
 ```
 
 然后按原实验入口运行即可。不开这个开关时，旧实验链路完全不变。

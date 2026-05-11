@@ -62,7 +62,7 @@ Do not commit passwords or runtime tokens.  The server accepts either
 Smoke-test the remote store:
 
 ```bash
-export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://10.199.227.174:18080
+export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
 python3 scripts/remote_artifact_client.py health
 python3 scripts/remote_artifact_client.py list --limit 5
 python3 scripts/remote_artifact_client.py smoke --dst-root /tmp/primelora_remote_fetch
@@ -72,7 +72,7 @@ Enable remote transfer in an opt-in run:
 
 ```bash
 export FAASLORA_REMOTE_ARTIFACT_ENABLED=1
-export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://10.199.227.174:18080
+export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
 python3 scripts/run_all_experiments.py --config configs/experiments.yaml --quick
 ```
 
