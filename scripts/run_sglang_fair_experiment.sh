@@ -26,6 +26,14 @@ SGLANG_GPU_IDS="${SGLANG_GPU_IDS:-0,1,2,3}"
 SGLANG_TENSOR_PARALLEL_SIZE="${SGLANG_TENSOR_PARALLEL_SIZE:-}"
 SGLANG_DATA_PARALLEL_REPLICAS="${SGLANG_DATA_PARALLEL_REPLICAS:-}"
 SGLANG_SLEEP_SCALE="${SGLANG_SLEEP_SCALE:-1.0}"
+SGLANG_LORA_REGISTRATION_MODE="${SGLANG_LORA_REGISTRATION_MODE:-static}"
+SGLANG_REMOTE_ARTIFACT_ENDPOINT="${SGLANG_REMOTE_ARTIFACT_ENDPOINT:-${BASELINE_REMOTE_ARTIFACT_ENDPOINT:-${FAASLORA_REMOTE_ARTIFACT_ENDPOINT:-}}}"
+SGLANG_REMOTE_ARTIFACT_CACHE_DIR="${SGLANG_REMOTE_ARTIFACT_CACHE_DIR:-${ROOT_DIR}/results/remote_artifact_cache/${MODEL_PROFILE}/sglang/${RUN_TAG}}"
+SGLANG_REMOTE_ARTIFACT_BANDWIDTH_MBPS="${SGLANG_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-${BASELINE_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-250}}"
+SGLANG_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT="${SGLANG_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT:-0}"
+SGLANG_MAX_REPLAY_REQUESTS="${SGLANG_MAX_REPLAY_REQUESTS:-0}"
+SGLANG_ABORT_AFTER_FAILURES="${SGLANG_ABORT_AFTER_FAILURES:-0}"
+SGLANG_ABORT_FAILURES_MIN_DONE="${SGLANG_ABORT_FAILURES_MIN_DONE:-1}"
 default_client_timeout_s() {
   case "${MODEL_PROFILE}" in
     *13b*|*14b*|*13B*|*14B*)
@@ -191,7 +199,7 @@ PROMPT_GUARD_MAX_INPUT_LEN="${_METRIC_CFG[6]}"
 PROMPT_GUARD_MAX_OUTPUT_TOKENS_CAP="${_METRIC_CFG[7]}"
 
 echo "[2/5] Building SGLang launch spec from shared subset"
-PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" - "${CONFIG_PATH}" "${MAIN_REPO}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${SHARED_ADAPTER_SUBSET_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_PATHS_JSON}" "${SGLANG_HOST}" "${SGLANG_PORT}" "${SGLANG_TENSOR_PARALLEL_SIZE}" <<'PY'
+PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" - "${CONFIG_PATH}" "${MAIN_REPO}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${SHARED_ADAPTER_SUBSET_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_PATHS_JSON}" "${SGLANG_HOST}" "${SGLANG_PORT}" "${SGLANG_TENSOR_PARALLEL_SIZE}" "${SGLANG_LORA_REGISTRATION_MODE}" "${SGLANG_REMOTE_ARTIFACT_CACHE_DIR}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -242,6 +250,8 @@ lora_paths_json = Path(sys.argv[8]).resolve()
 host = sys.argv[9]
 port = int(sys.argv[10])
 tp_override = str(sys.argv[11] or "").strip()
+registration_mode = str(sys.argv[12] or "static").strip().lower()
+remote_cache_dir = Path(sys.argv[13]).expanduser().resolve()
 
 cfg = yaml.safe_load(cfg_path.read_text()) or {}
 model_cfg, _adapters_cfg, _datasets_cfg, _workload_cfg, _coord_cfg = _resolve_profiles(
@@ -253,8 +263,11 @@ remote_dir = Path(subset_payload["remote_dir"]).resolve()
 lora_entries = []
 for item in subset_payload.get("adapters", []):
     adapter_id = str(item["id"])
-    adapter_path = remote_dir / adapter_id
-    if not adapter_path.exists():
+    if registration_mode == "dynamic_remote":
+        adapter_path = remote_cache_dir / adapter_id
+    else:
+        adapter_path = remote_dir / adapter_id
+    if registration_mode != "dynamic_remote" and not adapter_path.exists():
         raise SystemExit(f"missing adapter path for SGLang launch: {adapter_path}")
     lora_entries.append(f"{adapter_id}={adapter_path}")
 
@@ -302,6 +315,14 @@ echo "      lora_paths_json=${LORA_PATHS_JSON}"
 echo "      server_log=${SERVER_LOG_PATH}"
 echo "      sglang_gpu_ids=${SGLANG_GPU_IDS}"
 echo "      sglang_tensor_parallel_size=${SGLANG_TENSOR_PARALLEL_SIZE:-profile_default}"
+echo "      sglang_lora_registration_mode=${SGLANG_LORA_REGISTRATION_MODE}"
+if [[ "${SGLANG_LORA_REGISTRATION_MODE}" == "dynamic_remote" ]]; then
+  rm -rf "${SGLANG_REMOTE_ARTIFACT_CACHE_DIR}"
+  mkdir -p "${SGLANG_REMOTE_ARTIFACT_CACHE_DIR}"
+  echo "      sglang_remote_artifact_endpoint=${SGLANG_REMOTE_ARTIFACT_ENDPOINT}"
+  echo "      sglang_remote_artifact_cache_dir=${SGLANG_REMOTE_ARTIFACT_CACHE_DIR}"
+  echo "      sglang_remote_artifact_bandwidth_mib_s=${SGLANG_REMOTE_ARTIFACT_BANDWIDTH_MBPS}"
+fi
 
 echo "[3/5] Starting isolated SGLang server(s)"
 rm -f "${SERVER_LOG_PATH}" "${LOG_DIR}/${RUN_TAG}_sglang_server_"*.log
@@ -377,10 +398,14 @@ PY
   rm -rf "${replica_metrics}"
   mkdir -p "${replica_metrics}"
   launch_epoch="$(PYTHONNOUSERSITE=1 "${SGLANG_VENV}/bin/python" -c 'import time; print(f"{time.time():.6f}")')"
+  LAUNCH_EXTRA_ARGS=()
+  if [[ "${SGLANG_LORA_REGISTRATION_MODE}" != "dynamic_remote" ]]; then
+    LAUNCH_EXTRA_ARGS+=(--lora-paths "${SGLANG_LORA_PATHS[@]}")
+  fi
   CUDA_VISIBLE_DEVICES="${replica_gpu_mask}" PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 \
     "${SGLANG_VENV}/bin/python" -m sglang.launch_server \
     --config "${replica_spec}" \
-    --lora-paths "${SGLANG_LORA_PATHS[@]}" \
+    "${LAUNCH_EXTRA_ARGS[@]}" \
     --export-metrics-to-file \
     --export-metrics-to-file-dir "${replica_metrics}" \
     > "${replica_log}" 2>&1 &
@@ -462,6 +487,23 @@ echo "      sglang_startup_sec=${SGLANG_SERVER_STARTUP_SEC}"
 echo "      sglang_base_urls=${SGLANG_BASE_URL_LIST}"
 
 echo "[4/5] Replaying shared trace with unified live metrics"
+REPLAY_EXTRA_ARGS=()
+if [[ "${SGLANG_LORA_REGISTRATION_MODE}" == "dynamic_remote" ]]; then
+  if [[ -z "${SGLANG_REMOTE_ARTIFACT_ENDPOINT}" ]]; then
+    echo "[ERROR] SGLANG_LORA_REGISTRATION_MODE=dynamic_remote requires SGLANG_REMOTE_ARTIFACT_ENDPOINT" >&2
+    exit 1
+  fi
+  REPLAY_EXTRA_ARGS+=(
+    --dynamic-lora-modules "${LORA_PATHS_JSON}"
+    --dynamic-lora-load-path "/load_lora_adapter"
+    --dynamic-lora-unload-path "/unload_lora_adapter"
+    --dynamic-lora-timeout-s "${SGLANG_TIMEOUT_S}"
+    --dynamic-lora-remote-endpoint "${SGLANG_REMOTE_ARTIFACT_ENDPOINT}"
+    --dynamic-lora-remote-timeout-s "${SGLANG_TIMEOUT_S}"
+    --dynamic-lora-remote-bandwidth-mbps "${SGLANG_REMOTE_ARTIFACT_BANDWIDTH_MBPS}"
+    --dynamic-lora-max-loaded-per-endpoint "${SGLANG_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT}"
+  )
+fi
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
   "${ROOT_DIR}/scripts/replay_openai_trace.py" \
   --trace "${SHARED_TRACE_PATH}" \
@@ -486,13 +528,23 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
   --drop-body-field "request_id" \
   --drop-body-field "lora_adapter_name" \
   --label "${RUN_TAG}" \
-  --output "${REPLAY_PATH}"
+  --max-requests "${SGLANG_MAX_REPLAY_REQUESTS}" \
+  --abort-after-failures "${SGLANG_ABORT_AFTER_FAILURES}" \
+  --abort-failures-min-done "${SGLANG_ABORT_FAILURES_MIN_DONE}" \
+  --output "${REPLAY_PATH}" \
+  "${REPLAY_EXTRA_ARGS[@]}"
 
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
   "${ROOT_DIR}/scripts/validate_replay_results.py" \
   --system "SGLang" \
   --replay "${REPLAY_PATH}" \
-  --expected-total "${TOTAL_REQUESTS}"
+  --expected-total "$(
+    if [[ "${SGLANG_MAX_REPLAY_REQUESTS}" != "0" ]]; then
+      printf '%s\n' "${SGLANG_MAX_REPLAY_REQUESTS}"
+    else
+      printf '%s\n' "${TOTAL_REQUESTS}"
+    fi
+  )"
 
 echo "[5/5] Summarizing replay into the shared paper metric schema"
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \

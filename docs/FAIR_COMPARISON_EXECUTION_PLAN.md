@@ -715,3 +715,359 @@ bash scripts/run_paper_long_experiment_queue.sh
 ```
 
 已完成且 compare 完整的 round 不会重跑；已完成但缺系统的 round 会自动补齐。
+
+## 2026-05-11 local-sim remote fairness rerun
+
+目标：修正本地模拟 remote 工件链路的 baseline 公平性。此前 PrimeLoRA
+路径已经承担 remote artifact 准备成本，但部分 baseline 仍更接近“本地已可见
+工件目录”口径；这会让 PrimeLoRA 在 cold/readiness 阶段凭空多承担一段
+remote 传输延迟。新的 remote-fair round 要求所有 baseline 在 GPU/HOST/NVMe
+不可用时也必须经过 remote 源准备 adapter。
+
+注意：remote-fair 不是“每个请求都从远程重新下载 adapter”。同类系统和工业
+实践通常把远程对象仓库或模型仓库作为 backing store，同时在 worker 节点保留
+本地缓存或启动期 staging。例如 ServerlessLLM 论文强调利用 GPU 服务器附近的
+本地存储和内存来减少 remote checkpoint downloads，并按 locality 做调度；
+NVIDIA Dynamo LoRA 文档支持从 `file://`、`s3://`、`hf://` 动态加载 adapter，
+同时将已下载 adapters 本地缓存以避免重复下载；S-LoRA 官方语义是“all adapters
+in main memory, active adapters to GPU”，而不是每次请求都访问远端。因而公平
+口径应是：所有系统都从同一 remote backing store 出发，first-touch/cache-miss
+或启动期 registry 准备要计入 lifecycle/TTFT 路径；一旦该系统语义允许本地缓存，
+重复命中就不应强行重新走远程。PrimeLoRA 的论文贡献也不应表述为“唯一拥有
+缓存”，而应表述为将 remote/NVMe/HOST/GPU residency 与 selected-replica routing、
+scale-out handoff 和 GPU admission 协调起来，从而减少 service-readiness gap。
+参考入口：vLLM LoRA 文档（startup 与 runtime LoRA loading、S3 resolver）、
+SGLang LoRA 文档（`max_loaded_loras`、LRU eviction）、ServerlessLLM Store
+文档（DRAM/SSD/HDD multi-tier loading）和 ServerlessLLM OSDI/Arxiv 论文
+（near-GPU storage 减少 remote checkpoint downloads）。
+对应公开链接：
+`https://docs.vllm.ai/en/latest/features/lora/`、
+`https://docs.sglang.io/docs/advanced_features/lora`、
+`https://docs.nvidia.com/dynamo/latest/user-guides/lo-ra-adapters`、
+`https://github.com/ServerlessLLM/ServerlessLLM`。
+
+根因修复：旧的 `file://` local-sim 逻辑虽然按带宽 sleep，但 sleep 之后仍做
+真实本地目录复制。这样会引入本地磁盘与 OS page cache 顺序效应：同一个
+500-adapter subset，先跑的系统可能承担真实 copy 时间，后跑的系统可能受益于
+热缓存。当前修复将 local-sim materialization 改为“按源大小 sleep +
+hardlink/symlink materialization”，只保留可控的带宽延迟，不再把本地复制速度
+混入远程传输模型。真实 HTTP remote 路径不变。
+
+新增/修改入口：
+
+- `scripts/materialize_remote_adapter_subset.py`：用于需要启动前完整 adapter
+  registry 的 baseline，例如 S-LoRA。local-sim 下按源大小 sleep 后用
+  hardlink/symlink 物化目录，并把这段准备计入 startup/lifecycle。S-LoRA
+  官方 router/model 初始化会遍历所有 `--lora-dirs` 读取 LoRA config/weights，
+  因此不能在不改核心机制的情况下改成请求期 remote miss。
+- `scripts/replay_openai_trace.py`：用于支持动态 LoRA load 的 runtime，例如
+  SGLang 和 vLLM。首次触达 adapter 时按 remote endpoint 拉取到 round-local
+  cache；local-sim 同样只模拟带宽延迟并用 link 物化。2026-05-12 进一步
+  增加 `--request-remote-adapter-map`，用于 ServerlessLLM-vLLM 这类“router
+  在每个请求中传入 backend-visible LoRA path”的系统：deploy 阶段只注册空
+  cache 目标路径，请求首次触达 adapter 时再从 remote 拉取，耗时进入
+  dispatch/admission wait。
+- `scripts/run_remote_fair_main_rounds.sh`：固定按模型顺序运行
+  Llama-2 7B、Llama-2 13B、Llama-3.2 3B；按系统顺序运行
+  SGLang、ServerlessLLM、vLLM、S-LoRA。PrimeLoRA-vLLM 和
+  PrimeLoRA-SGLang 不在本轮重跑，后处理时使用已经闭环的 PrimeLoRA 结果。
+
+验证：
+
+```bash
+python3 -m py_compile scripts/replay_openai_trace.py scripts/materialize_remote_adapter_subset.py
+bash -n scripts/run_remote_fair_main_rounds.sh scripts/run_vllm_fair_experiment.sh \
+  scripts/run_sglang_fair_experiment.sh scripts/run_serverlessllm_fair_experiment.sh \
+  scripts/run_slora_fair_experiment.sh
+```
+
+单 adapter smoke 显示一个约 20.9 MiB adapter 在 250 MiB/s local-sim 下约
+83 ms 完成，符合带宽模型，materialization mode 为 link 而不是本地 copy。
+
+`paper_remote_fair_local_v2` 在 2026-05-12 被中止并标记为诊断轮：SGLang/vLLM
+已经是请求期 `dynamic_remote`，但 ServerlessLLM 仍是启动前整池 staging。
+正式 local-sim rerun 从 `local_sim_v3` 开始，旧的
+`11_remote_fair_main_local_sim_v2` 和更早的 `11_remote_fair_main` 都不能进入
+论文表图。
+
+当前有效执行轮次：
+
+```bash
+REMOTE_FAIR_MODE=local-sim \
+REMOTE_FAIR_SECTION=11_remote_fair_main_local_sim_v4 \
+REMOTE_FAIR_MODEL_LIST="llama2_7b llama2_13b llama32_3b" \
+REMOTE_FAIR_SYSTEMS="sglang serverlessllm vllm slora" \
+REMOTE_FAIR_BANDWIDTH_MBPS=250 \
+REMOTE_FAIR_STAGE_WORKERS=1 \
+KILL_KNOWN_GPU_RESIDUALS=1 \
+bash scripts/run_remote_fair_main_rounds.sh
+```
+
+运行中的 tmux：
+
+```bash
+tmux attach -t paper_remote_fair_local_v4
+tail -f /tmp/paper_remote_fair_local_v4.log
+```
+
+上一轮 `11_remote_fair_main/20260511_182342_*` 使用旧 local copy 逻辑，只能
+作为诊断废数据，不能进入论文表图。
+
+### 2026-05-12 local-sim v3 诊断结论与 v4 正式规则
+
+`local_sim_v3` 完成了 Llama-2 7B baseline 诊断，并完成了 Llama-2 13B 的
+SGLang 与 ServerlessLLM 阶段，但 vLLM 在 13B `dynamic_remote` 请求期 LoRA
+加载路径上卡住。该失败不是 replay 结果，不能进入论文表图。
+
+横向日志证据：
+
+- vLLM 13B TP2 服务器仍能响应 `/v1/models`，但 replay 只完成少量请求后长期
+  不再前进，未写出有效 summary。
+- vLLM server log 已显示前几个 adapter 通过 `/v1/load_lora_adapter`
+  运行期加载成功，随后请求路径无进展。
+- 同一 adapter subset 在 SGLang、ServerlessLLM 和 7B vLLM remote-fair 中可用，
+  因此根因不是工件损坏或 shared trace 错误。
+- vLLM 自身日志提示运行期动态加载/卸载 LoRA 主要面向 local development；
+  13B TP2 长 replay 下该路径不适合作为正式 baseline 路径。
+
+正式修复规则：
+
+- `dynamic_remote` 保留为 vLLM 诊断路径；除已经证明静态注册会触发资源边界的
+  Llama-3.2 3B 外，不作为 remote-fair 正式默认。
+- vLLM remote-fair 正式默认改为 `static_remote`：先按同一 remote endpoint
+  将 selected adapter subset 物化到 round-local cache，再用官方稳定的
+  `--lora-modules` 静态注册路径启动 vLLM。
+- 旧 Llama-2 7B main vLLM 没有显式 `lora_registration_mode` 字段，但实际启动
+  仍是 500 个 selected adapters 的 `--lora-modules` 静态注册；旧 Llama-3.2 3B
+  main vLLM 才是显式 dynamic LoRA。不要把“字段缺失”误判为 dynamic。
+- vLLM remote staging 时间通过 `VLLM_REMOTE_STAGE_SEC` 传给 summarizer 的
+  `--predeploy-startup-sec`，计入 lifecycle/cost，而不是被隐藏在实验前处理。
+- S-LoRA 也同样将 remote staging 时间通过 `--predeploy-startup-sec` 计入
+  lifecycle。S-LoRA 官方启动期必须读取完整 `--lora-dirs` registry，因此它的
+  remote-fair 口径是 remote 到 host/local tier 的启动期准备。
+- `run_slora_fair_experiment.sh` 从 v4 patch 起把 S-LoRA 的 runtime startup
+  和 remote artifact stage 分开传给 summarizer：`--static-startup-sec` 只记录
+  S-LoRA server ready 时间，`--predeploy-startup-sec` 记录 remote stage 时间。
+  这样避免后续补跑把 remote stage 同时算进 static startup 和 predeploy startup。
+
+因此，`local_sim_v3` 需要按系统细分使用，而不是整轮废弃。有效保留项：
+
+- Llama-2 7B 的 SGLang、ServerlessLLM、S-LoRA 均已完成 4000/4000 且满足
+  当前 remote-fair 口径。S-LoRA 虽然旧 summary 中
+  `predeploy_startup_sec=0`，但当轮 runner 已把 `remote_stage_sec` 加入
+  `static_startup_sec`，因此 cost/lifecycle 没有漏计。
+- Llama-2 13B 的 SGLang、ServerlessLLM 已完成 4000/4000，可保留。
+
+需要补跑项：
+
+- Llama-2 7B vLLM：v3 使用 `dynamic_remote` 并完成，但正式规则已改为
+  `static_remote`，为避免同一论文表中 vLLM 7B/13B 使用不同 LoRA 注册路径，
+  需要补一个 7B `static_remote` vLLM 结果。
+- Llama-2 13B vLLM：v3 `dynamic_remote` 卡住，无有效 summary，必须补跑
+  `static_remote`。
+- Llama-2 13B S-LoRA：v3 未运行到该阶段，必须补跑。
+- Llama-3.2 3B：后续已完成 SGLang、ServerlessLLM 和 vLLM，其中 vLLM
+  `static_remote` 触发 host-memory guard 后改为模型粒度 `dynamic_remote`；
+  剩余 S-LoRA 正在补齐/验证。
+
+新的补缺候选数据从 `11_remote_fair_main_local_sim_v4_patch` 开始，按上述最小
+集合执行，不再重跑已经有效的 SGLang/ServerlessLLM/S-LoRA 7B 或
+SGLang/ServerlessLLM 13B。后续生成表图时将 v3 有效结果、v4 patch 补缺结果
+和已闭环 PrimeLoRA 结果合并，并在 manifest 中记录每个系统的来源路径。
+
+2026-05-12 13:54 已完成第一项补缺：Llama-2 7B vLLM `static_remote`。
+该 round 位于：
+
+`results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_124128_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1`
+
+有效性检查：
+
+- replay `ok=4000/4000`，`fail=0`；
+- `validate_replay_results.py` 通过，无 `trace_expected` token fallback；
+- TTFT avg/p95 = 501.18/1179.94 ms；
+- service TTFT avg = 487.81 ms，dispatch wait avg = 13.38 ms；
+- E2E avg = 3153.23 ms，TPOT avg = 26.00 ms，Tok/s = 104.61；
+- Cost/req = 3.671 mUSD，CE = 86.39。
+
+与旧闭环 vLLM 对比：旧 Llama-2 7B main vLLM 为 TTFT avg 517.36 ms、
+E2E avg 3223.25 ms、TPOT 26.57 ms、Tok/s 104.54、Cost/req 3.641 mUSD、
+CE 85.20；因此 `static_remote` 补缺结果与旧主线同量级且未损坏 vLLM
+性能。与 `local_sim_v3 dynamic_remote` 对比，dispatch wait 从 40.25 ms
+回到 13.38 ms，说明 vLLM 的正式 remote-fair 口径应使用 `static_remote`，
+而不是不稳定的 request-time dynamic registration。
+
+2026-05-12 15:06，第二项补缺 Llama-2 13B vLLM `static_remote` 完成：
+
+- 路径：
+  `results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_135444_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1`
+- replay `ok=4000/4000`，`fail=0`，无 token fallback；
+- remote stage = 75.21 s，写入 `predeploy_startup_sec`；
+- TTFT avg/p95 = 3187.10/17941.12 ms；
+- service TTFT avg = 3172.49 ms，dispatch wait avg = 14.61 ms；
+- E2E avg = 8333.40 ms，TPOT avg = 70.35 ms，Tok/s = 98.82；
+- Cost/req = 3.736 mUSD，CE = 32.12。
+
+与同一 Llama-2 13B `local_sim_v3` 的有效 baseline 对比：SGLang 为
+TTFT avg 430.33 ms、service TTFT 402.07 ms、dispatch wait 28.26 ms、
+E2E avg 3262.26 ms、TPOT 33.13 ms、Tok/s 101.83、Cost/req 3.581 mUSD、
+CE 85.61；ServerlessLLM 为 TTFT avg 236128.50 ms、service TTFT
+501.29 ms、dispatch wait 235627.22 ms、E2E avg 239429.97 ms、TPOT
+32.59 ms、Tok/s 91.84、Cost/req 3.365 mUSD、CE 1.24。vLLM 13B 的
+dispatch wait 很低，说明 remote-fair patch 没有引入新的排队问题；它的差距
+主要来自 vLLM 在当前 13B/TP2/LoRA 配置下的 service TTFT 和 TPOT，而不是
+artifact 传输口径。该结果有效，但论文若合并 13B 需结合 PrimeLoRA 13B
+是否能取得合理 CE 第一来决定。
+
+2026-05-12 19:27，第三项补缺 Llama-2 13B S-LoRA `local-sim remote-fair`
+完成：
+
+- 路径：
+  `results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_135444_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1`
+- replay `ok=4000/4000`，`fail=0`，`validate_replay_results.py` 通过；
+- 无 `trace_expected` token fallback；
+- 配置为官方兼容折中 `DP=1, TP=4, BMM=1`；
+- TTFT avg/p95 = 5.232e6/9.943e6 ms；
+- service TTFT avg = 5.232e6 ms，dispatch wait avg = 24.18 ms；
+- E2E avg/p95 = 5.274e6/9.994e6 ms，TPOT avg = 340.95 ms；
+- Cost/req = 13.124 mUSD，CE = 0.0144。
+
+与旧 `03_main_comparison/20260507_llama13b_main_cap8_core_*` 的 13B S-LoRA
+结果相比，新的 remote-fair 补缺略好但仍同属“有效但极慢”区间：旧结果为
+TTFT avg 5.926e6 ms、E2E avg 5.972e6 ms、TPOT 367.89 ms、Cost/req
+14.008 mUSD、CE 0.012。两轮共同说明瓶颈不是 remote-fair patch，也不是
+replay 崩溃，而是当前 4x RTX 3090 上 S-LoRA 公开实现的 13B TP4/BMM
+服务路径本身。该结果可用于复现边界和附录说明；若主文合并 13B，仍必须以
+PrimeLoRA 13B 是否能在同口径下取得合理 CE 第一作为纳入条件。
+
+### True-remote SGLang diagnostic
+
+已完成的 `10_remote_artifact_diagnostic/20260511_162422_*` 使用真实远程
+artifact node 测试 Llama-3.2-3B 的 SGLang-DP4。与同一 3B workload 的本地
+main SGLang 结果相比：
+
+| Setting | TTFT avg | Service TTFT avg | Dispatch wait avg | E2E avg | TPOT avg | Tok/s | CE |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Local artifact path | 120.87 ms | 103.78 ms | 17.09 ms | 1379.85 ms | 11.00 ms | 113.09 | 199.88 |
+| True remote artifact | 227.90 ms | 105.56 ms | 122.34 ms | 1487.18 ms | 11.08 ms | 112.91 | 187.63 |
+
+结论：真实远程 remote 主要增加 adapter readiness/dispatch 阶段等待，backend
+service TTFT、TPOT 和 token throughput 基本不变。这说明 remote artifact
+链路没有改坏 SGLang 的生成性能，也说明 local-sim remote 在所有系统同口径
+启用时可以作为可控的远程传输模型；正式论文表图仍以重新闭环的
+`local_sim_v3` 结果为准。
+
+2026-05-12 20:37，Llama-3.2 3B SGLang `local-sim remote-fair` 补缺完成：
+
+- 路径：
+  `results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_192609_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1`
+- replay `ok=4000/4000`，`fail=0`，`validate_replay_results.py` 通过；
+- 无 `trace_expected` token fallback；
+- TTFT avg = 144.27 ms，service TTFT avg = 104.36 ms，dispatch wait avg =
+  39.91 ms；
+- E2E avg = 1401.83 ms，TPOT avg = 10.99 ms，Tok/s = 113.09；
+- Cost/req = 3.636 mUSD，CE = 196.20。
+
+与旧 3B 本地 artifact SGLang 主结果相比，旧结果为 TTFT avg 120.87 ms、
+service TTFT 103.78 ms、dispatch wait 17.09 ms、E2E avg 1379.85 ms、
+TPOT 11.00 ms、Tok/s 113.09、Cost/req 3.626 mUSD、CE 199.88。两者的
+service TTFT、TPOT 和吞吐几乎一致，local-sim remote-fair 主要把首次
+adapter 准备体现在 dispatch/readiness 侧。与真实 remote 诊断相比，真实
+remote 的 dispatch wait 更高（122.34 ms）且 CE 更低（187.63），方向一致。
+
+2026-05-12 21:49，Llama-3.2 3B ServerlessLLM `local-sim remote-fair`
+补缺完成：
+
+- 路径：
+  `results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_192609_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1`
+- replay `ok=4000/4000`，`fail=0`，`validate_replay_results.py` 通过；
+- 无 `trace_expected` token fallback；
+- TTFT avg/p95 = 236435.81/469526.08 ms；
+- service TTFT avg = 502.26 ms，dispatch wait avg = 235933.55 ms；
+- E2E avg/p95 = 238086.45/471037.56 ms，TPOT avg = 14.91 ms；
+- Tok/s = 107.34，Cost/req = 2.278 mUSD，CE = 1.8438。
+
+与旧 3B main ServerlessLLM 对比，旧结果为 TTFT avg 235944.29 ms、
+service TTFT 485.66 ms、dispatch wait 235458.63 ms、E2E avg 237592.78 ms、
+TPOT 14.90 ms、Tok/s 107.38、Cost/req 2.244 mUSD、CE 1.8759。两者几乎
+完全同型：ServerlessLLM 的 backend service path 正常，差距仍由
+dispatch/admission backlog 主导。local-sim remote-fair 没有引入新的失败模式，
+也没有改变该 baseline 的基本趋势。
+
+2026-05-12 21:52，修复 vLLM remote-fair 补跑配置优先级：
+
+- 旧主线中 Llama-3.2 3B standalone vLLM 的 launch spec 使用
+  `lora_registration_mode: dynamic`，这是为了避免 500-LoRA 静态注册在
+  4x RTX 3090 上造成过高 host-memory/启动压力。
+- remote-fair 正式口径在 2026-05-12 已改为 vLLM `static_remote`：先从同一
+  remote endpoint 将 selected 500 adapters materialize 到 round-local cache，
+  再通过官方 `--lora-modules` 启动 vLLM，并把 remote stage 记入 lifecycle。
+- 发现 `run_full_fair_round.sh` 的 Llama-3.2 safe topology override 会在
+  已显式传入 `VLLM_LORA_REGISTRATION_MODE=static_remote` 时覆盖回 `dynamic`。
+  该逻辑已修复为“显式实验口径优先，模型默认只在未指定时生效”。
+- 因此，3B vLLM `static_remote` 补跑重启为新 round
+  `20260512_215256_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1`。
+  旧的 3B dynamic 主线仍是有效历史结果，但不混入 remote-fair 正式表。
+- 该 `static_remote` 尝试在 2389/4000 时触发 host-memory fail-fast guard：
+  `MemAvailable=32753 MiB < 32768 MiB`。这是预期中的根因确认：3B vLLM
+  静态注册 500 adapters 会把主机内存压到安全阈值边缘，不能通过调低 guard
+  硬跑。正式 3B vLLM remote-fair 因此改为模型粒度 `dynamic_remote`：首次触达
+  adapter 时从同一 remote endpoint 拉取到 round-local cache，同时保留 7B/13B
+  已验证的 `static_remote`。新 round 为
+  `20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1`。
+
+2026-05-12 23:47，Llama-3.2 3B vLLM `dynamic_remote` 补缺完成：
+
+- 路径：
+  `/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1`
+- replay `ok=4000/4000`，`fail=0`，无 `trace_expected` token fallback；
+- fleet 记录 `lora_registration_mode: dynamic_remote`、`dynamic_lora_routing: adapter_hash`、
+  `dynamic_lora_max_loaded_per_endpoint: 24`；
+- TTFT avg/p95 = 323.34/975.57 ms；
+- service TTFT avg = 299.41 ms，dispatch wait avg = 23.93 ms；
+- E2E avg/p95 = 2421.49/5653.53 ms，TPOT avg = 20.02 ms；
+- Tok/s = 112.83，Cost/req = 3.593 mUSD，CE = 114.95。
+
+与旧 3B main vLLM 对比，旧结果为 TTFT avg 312.47 ms、service TTFT
+295.40 ms、dispatch wait 17.07 ms、E2E avg 2405.04 ms、TPOT 20.13 ms、
+Tok/s 112.79、Cost/req 3.581 mUSD、CE 116.11。新结果只增加了小幅
+request-time remote materialization/dispatch 成本，service path 和 TPOT 基本
+一致，说明 `dynamic_remote` 是当前 3B/vLLM/500-LoRA/4x3090 组合的正确
+remote-fair 口径。该结论只适用于 Llama-3.2 3B；Llama-2 7B 与 Llama-2 13B
+仍使用已验证的 `static_remote`。
+
+2026-05-13 01:01，Llama-3.2 3B S-LoRA `local-sim remote-fair` 补缺完成：
+
+- 路径：
+  `/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1`
+- replay `ok=4000/4000`，`fail=0`，`validate_replay_results.py` 通过；
+- 无 `trace_expected` token fallback；
+- TTFT avg/p95 = 289.23/465.89 ms；
+- service TTFT avg = 273.04 ms，dispatch wait avg = 16.19 ms；
+- E2E avg/p95 = 7273.13/18260.11 ms，TPOT avg = 126.64 ms；
+- Tok/s = 119.20，Cost/req = 3.691 mUSD，CE = 37.25。
+
+与旧 3B main S-LoRA 对比，旧结果为 TTFT avg/p95 308.72/556.92 ms、
+service TTFT avg 292.69 ms、dispatch wait avg 16.03 ms、E2E avg/p95
+7877.40/20244.87 ms、TPOT avg 137.31 ms、Tok/s 118.96、Cost/req
+3.623 mUSD、CE 35.04。新结果在 TTFT、E2E、TPOT 上略好，成本略高，
+总体仍是同量级有效结果；remote-fair patch 没有破坏 S-LoRA 3B 路径。
+
+2026-05-13 已生成不覆盖旧结果的 Llama-2 7B + Llama-3.2 3B
+`local-sim remote-fair` 论文候选表图：
+
+- 输出目录：
+  `/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main_remote_fair_local_sim_v4_7b3b`
+- 表格：
+  `table1_end_to_end.tex`、`table_ttft_decomposition.tex`
+- 图：
+  `fig7_lifecycle_cost.pdf`
+- 数据：
+  `table1_end_to_end_data.csv`、`table_ttft_decomposition_data.csv`、
+  `fig7_lifecycle_cost_data.csv`
+
+该目录只保存本轮 remote-fair local-sim 的有效最终合并结果，不覆盖旧主线图表。
+其中 Llama-2 7B 使用已验证的 SGLang/ServerlessLLM/S-LoRA local-sim v3、
+vLLM static_remote v4、PrimeLoRA 旧闭环主线；Llama-3.2 3B 使用
+SGLang/ServerlessLLM local-sim v4、vLLM dynamic_remote v4、S-LoRA
+dynamic batch round、PrimeLoRA 旧闭环调优主线。两个模型的表内 PrimeLoRA
+CE 均为第一：7B 为 123.02，3B 为 241.20。

@@ -63,6 +63,11 @@ VLLM_DYNAMIC_LORA_ROUTING="${VLLM_DYNAMIC_LORA_ROUTING:-round_robin}"
 VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD="${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD:-8}"
 VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS="${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS:-32}"
 VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT="${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT:-auto}"
+VLLM_DYNAMIC_LORA_TIMEOUT_S="${VLLM_DYNAMIC_LORA_TIMEOUT_S:-${VLLM_TIMEOUT_S}}"
+VLLM_REMOTE_ARTIFACT_ENDPOINT="${VLLM_REMOTE_ARTIFACT_ENDPOINT:-${BASELINE_REMOTE_ARTIFACT_ENDPOINT:-${FAASLORA_REMOTE_ARTIFACT_ENDPOINT:-}}}"
+VLLM_REMOTE_ARTIFACT_CACHE_DIR="${VLLM_REMOTE_ARTIFACT_CACHE_DIR:-${ROOT_DIR}/results/remote_artifact_cache/${MODEL_PROFILE}/vllm/${RUN_TAG}}"
+VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS="${VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-${BASELINE_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-250}}"
+VLLM_REMOTE_ARTIFACT_STAGE_WORKERS="${VLLM_REMOTE_ARTIFACT_STAGE_WORKERS:-${BASELINE_REMOTE_ARTIFACT_STAGE_WORKERS:-1}}"
 VLLM_DISABLE_FRONTEND_MULTIPROCESSING="${VLLM_DISABLE_FRONTEND_MULTIPROCESSING:-0}"
 VLLM_ABORT_AFTER_FAILURES="${VLLM_ABORT_AFTER_FAILURES:-8}"
 VLLM_ABORT_FAILURES_MIN_DONE="${VLLM_ABORT_FAILURES_MIN_DONE:-32}"
@@ -90,12 +95,16 @@ if [[ ! -x "${VLLM_PYTHON}" ]]; then
   exit 1
 fi
 case "${VLLM_LORA_REGISTRATION_MODE}" in
-  static|dynamic) ;;
+  static|dynamic|dynamic_remote|static_remote) ;;
   *)
-    echo "[ERROR] VLLM_LORA_REGISTRATION_MODE must be static or dynamic, got ${VLLM_LORA_REGISTRATION_MODE}" >&2
+    echo "[ERROR] VLLM_LORA_REGISTRATION_MODE must be static, dynamic, dynamic_remote, or static_remote; got ${VLLM_LORA_REGISTRATION_MODE}" >&2
     exit 1
     ;;
 esac
+if [[ ( "${VLLM_LORA_REGISTRATION_MODE}" == "dynamic_remote" || "${VLLM_LORA_REGISTRATION_MODE}" == "static_remote" ) && -z "${VLLM_REMOTE_ARTIFACT_ENDPOINT}" ]]; then
+  echo "[ERROR] VLLM_LORA_REGISTRATION_MODE=${VLLM_LORA_REGISTRATION_MODE} requires VLLM_REMOTE_ARTIFACT_ENDPOINT or BASELINE_REMOTE_ARTIFACT_ENDPOINT" >&2
+  exit 1
+fi
 case "${VLLM_DYNAMIC_LORA_ROUTING}" in
   round_robin|adapter_hash|adapter_pair_hash|adaptive_hot_pair_hash) ;;
   *)
@@ -650,9 +659,39 @@ resolve_dynamic_lora_max_loaded_per_endpoint() {
 }
 
 VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT_EFFECTIVE="$(resolve_dynamic_lora_max_loaded_per_endpoint)"
+VLLM_REMOTE_STAGE_SEC="0.0"
+VLLM_LORA_REGISTRATION_MODE_EFFECTIVE="${VLLM_LORA_REGISTRATION_MODE}"
+if [[ "${VLLM_LORA_REGISTRATION_MODE}" == "static_remote" ]]; then
+  echo "[remote-stage] Materializing vLLM adapter subset from ${VLLM_REMOTE_ARTIFACT_ENDPOINT}"
+  rm -rf "${VLLM_REMOTE_ARTIFACT_CACHE_DIR}"
+  STAGED_ADAPTER_SUBSET_PATH="${SHARED_INPUT_DIR}/${RESULT_TAG}_remote_staged_adapter_subset.json"
+  PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
+    "${ROOT_DIR}/scripts/materialize_remote_adapter_subset.py" \
+    --main-repo "${MAIN_REPO}" \
+    --adapter-subset "${SHARED_ADAPTER_SUBSET_PATH}" \
+    --endpoint "${VLLM_REMOTE_ARTIFACT_ENDPOINT}" \
+    --output-dir "${VLLM_REMOTE_ARTIFACT_CACHE_DIR}" \
+    --output-subset "${STAGED_ADAPTER_SUBSET_PATH}" \
+    --workers "${VLLM_REMOTE_ARTIFACT_STAGE_WORKERS}" \
+    --bandwidth-mbps "${VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS}"
+  SHARED_ADAPTER_SUBSET_PATH="${STAGED_ADAPTER_SUBSET_PATH}"
+  VLLM_REMOTE_STAGE_SEC="$(
+    PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${SHARED_ADAPTER_SUBSET_PATH}" <<'PY'
+import json, sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+elapsed_ms = float((payload.get("remote_materialization") or {}).get("elapsed_ms", 0.0) or 0.0)
+print(f"{elapsed_ms / 1000.0:.6f}")
+PY
+  )"
+  VLLM_LORA_REGISTRATION_MODE_EFFECTIVE="static"
+  echo "      staged_adapter_subset=${SHARED_ADAPTER_SUBSET_PATH}"
+  echo "      staged_adapter_cache=${VLLM_REMOTE_ARTIFACT_CACHE_DIR}"
+  echo "      staged_adapter_bandwidth_mib_s=${VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS}"
+  echo "      staged_adapter_sec=${VLLM_REMOTE_STAGE_SEC}"
+fi
 
 echo "[2/5] Building vLLM launch spec from shared subset"
-PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${SHARED_ADAPTER_SUBSET_PATH}" "${MODEL_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_MODULES_JSON}" "${LORA_MODULES_TXT}" "${TP_EFFECTIVE}" "${DP_REPLICAS}" "${VLLM_GPU_IDS}" "${VLLM_HOST}" "${VLLM_PORT}" "${VLLM_PORT_STRIDE}" "${GPU_MEMORY_UTILIZATION}" "${DTYPE}" "${MAX_LORAS}" "${MAX_CPU_LORAS}" "${MAX_LORA_RANK}" "${MAX_NUM_SEQS}" "${MAX_NUM_BATCHED_TOKENS}" "${ENABLE_CHUNKED_PREFILL}" "${ENABLE_PREFIX_CACHING}" "${ENFORCE_EAGER}" "${VLLM_USE_V1_EFFECTIVE}" "${VLLM_ATTENTION_BACKEND_EFFECTIVE}" "${VLLM_USE_FLASHINFER_SAMPLER_EFFECTIVE}" "${PROMPT_GUARD_MAX_MODEL_LEN}" "${VLLM_LORA_REGISTRATION_MODE}" "${VLLM_DYNAMIC_LORA_ROUTING}" "${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD}" "${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS}" "${VLLM_DISABLE_FRONTEND_MULTIPROCESSING}" "${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT_EFFECTIVE}" <<'PY'
+PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${SHARED_ADAPTER_SUBSET_PATH}" "${MODEL_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_MODULES_JSON}" "${LORA_MODULES_TXT}" "${TP_EFFECTIVE}" "${DP_REPLICAS}" "${VLLM_GPU_IDS}" "${VLLM_HOST}" "${VLLM_PORT}" "${VLLM_PORT_STRIDE}" "${GPU_MEMORY_UTILIZATION}" "${DTYPE}" "${MAX_LORAS}" "${MAX_CPU_LORAS}" "${MAX_LORA_RANK}" "${MAX_NUM_SEQS}" "${MAX_NUM_BATCHED_TOKENS}" "${ENABLE_CHUNKED_PREFILL}" "${ENABLE_PREFIX_CACHING}" "${ENFORCE_EAGER}" "${VLLM_USE_V1_EFFECTIVE}" "${VLLM_ATTENTION_BACKEND_EFFECTIVE}" "${VLLM_USE_FLASHINFER_SAMPLER_EFFECTIVE}" "${PROMPT_GUARD_MAX_MODEL_LEN}" "${VLLM_LORA_REGISTRATION_MODE_EFFECTIVE}" "${VLLM_DYNAMIC_LORA_ROUTING}" "${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD}" "${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS}" "${VLLM_DISABLE_FRONTEND_MULTIPROCESSING}" "${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT_EFFECTIVE}" "${VLLM_REMOTE_ARTIFACT_CACHE_DIR}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -690,6 +729,7 @@ dynamic_lora_hot_pair_threshold = int(sys.argv[28])
 dynamic_lora_hot_pair_max_adapters = int(sys.argv[29])
 disable_frontend_multiprocessing = bool(int(sys.argv[30]))
 dynamic_lora_max_loaded_per_endpoint = int(sys.argv[31])
+remote_cache_dir = Path(sys.argv[32]).expanduser().resolve()
 if port_stride < 4:
     raise SystemExit(f"VLLM_PORT_STRIDE must leave room for vLLM internal ports, got {port_stride}")
 
@@ -698,8 +738,11 @@ remote_dir = Path(payload["remote_dir"]).resolve()
 modules = []
 for item in payload.get("adapters", []):
     adapter_id = str(item["id"])
-    adapter_path = remote_dir / adapter_id
-    if not adapter_path.exists():
+    if lora_registration_mode == "dynamic_remote":
+        adapter_path = remote_cache_dir / adapter_id
+    else:
+        adapter_path = remote_dir / adapter_id
+    if lora_registration_mode != "dynamic_remote" and not adapter_path.exists():
         raise SystemExit(f"missing adapter path for vLLM launch: {adapter_path}")
     modules.append(f"{adapter_id}={adapter_path}")
 
@@ -770,7 +813,14 @@ echo "      model=${MODEL_PATH}"
 echo "      topology=${VLLM_TOPOLOGY_LABEL} gpu_ids=${VLLM_GPU_IDS}"
 echo "      max_loras=${MAX_LORAS} max_cpu_loras=${MAX_CPU_LORAS}/${SELECTED_NUM_ADAPTERS} max_lora_rank=${MAX_LORA_RANK}"
 echo "      max_num_seqs=${MAX_NUM_SEQS} max_num_batched_tokens=${MAX_NUM_BATCHED_TOKENS}"
-echo "      lora_registration_mode=${VLLM_LORA_REGISTRATION_MODE} dynamic_lora_routing=${VLLM_DYNAMIC_LORA_ROUTING} hot_pair_threshold=${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD} hot_pair_max=${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS} dynamic_lora_max_loaded_per_endpoint=${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT_EFFECTIVE}"
+echo "      lora_registration_mode=${VLLM_LORA_REGISTRATION_MODE} effective=${VLLM_LORA_REGISTRATION_MODE_EFFECTIVE} dynamic_lora_routing=${VLLM_DYNAMIC_LORA_ROUTING} hot_pair_threshold=${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD} hot_pair_max=${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS} dynamic_lora_max_loaded_per_endpoint=${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT_EFFECTIVE} dynamic_lora_timeout_s=${VLLM_DYNAMIC_LORA_TIMEOUT_S}"
+if [[ "${VLLM_LORA_REGISTRATION_MODE}" == "dynamic_remote" ]]; then
+  rm -rf "${VLLM_REMOTE_ARTIFACT_CACHE_DIR}"
+  mkdir -p "${VLLM_REMOTE_ARTIFACT_CACHE_DIR}"
+  echo "      vllm_remote_artifact_endpoint=${VLLM_REMOTE_ARTIFACT_ENDPOINT}"
+  echo "      vllm_remote_artifact_cache_dir=${VLLM_REMOTE_ARTIFACT_CACHE_DIR}"
+  echo "      vllm_remote_artifact_bandwidth_mib_s=${VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS}"
+fi
 echo "      disable_frontend_multiprocessing=${VLLM_DISABLE_FRONTEND_MULTIPROCESSING}"
 echo "      host_memory_guard_hard=${VLLM_HOST_MIN_MEM_GB}GiB warn=${VLLM_HOST_WARN_MEM_GB}GiB watch_interval=${VLLM_MEM_WATCH_INTERVAL_S}s"
 echo "      smoke_only=${VLLM_SMOKE_ONLY} smoke_max_tokens=${VLLM_SMOKE_MAX_TOKENS}"
@@ -862,7 +912,7 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
   if [[ -n "${VLLM_ATTENTION_BACKEND_EFFECTIVE}" ]]; then
     env_args+=(VLLM_ATTENTION_BACKEND="${VLLM_ATTENTION_BACKEND_EFFECTIVE}")
   fi
-  if [[ "${VLLM_LORA_REGISTRATION_MODE}" == "dynamic" ]]; then
+  if [[ "${VLLM_LORA_REGISTRATION_MODE_EFFECTIVE}" == "dynamic" || "${VLLM_LORA_REGISTRATION_MODE_EFFECTIVE}" == "dynamic_remote" ]]; then
     env_args+=(VLLM_ALLOW_RUNTIME_LORA_UPDATING=True)
   fi
   server_cmd=(
@@ -884,7 +934,7 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
     --max-lora-rank "${MAX_LORA_RANK}"
     --disable-log-requests
   )
-  if [[ "${VLLM_LORA_REGISTRATION_MODE}" == "static" ]]; then
+  if [[ "${VLLM_LORA_REGISTRATION_MODE_EFFECTIVE}" == "static" ]]; then
     server_cmd+=(--lora-modules "${VLLM_LORA_MODULES[@]}")
   fi
   if [[ "${VLLM_DISABLE_FRONTEND_MULTIPROCESSING}" == "1" ]]; then
@@ -951,7 +1001,7 @@ echo "      vllm_base_urls=${VLLM_BASE_URL_LIST}"
 
 if [[ "${VLLM_SMOKE_ONLY}" == "1" ]]; then
   echo "[smoke] Sending one short LoRA request to each vLLM replica"
-  PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${VLLM_BASE_URL_LIST}" "${LORA_MODULES_TXT}" "${VLLM_SMOKE_MAX_TOKENS}" "${VLLM_LORA_REGISTRATION_MODE}" <<'PY'
+  PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${VLLM_BASE_URL_LIST}" "${LORA_MODULES_TXT}" "${VLLM_SMOKE_MAX_TOKENS}" "${VLLM_LORA_REGISTRATION_MODE_EFFECTIVE}" "${VLLM_DYNAMIC_LORA_TIMEOUT_S}" <<'PY'
 import json
 import sys
 import urllib.error
@@ -966,6 +1016,7 @@ modules = [
 ]
 max_tokens = int(sys.argv[3])
 registration_mode = sys.argv[4]
+dynamic_lora_timeout_s = float(sys.argv[5])
 if not base_urls:
     raise SystemExit("no vLLM base URLs for smoke test")
 if not modules:
@@ -982,7 +1033,7 @@ for idx, base_url in enumerate(base_urls):
             method="POST",
         )
         try:
-            with urllib.request.urlopen(load_req, timeout=180) as resp:
+            with urllib.request.urlopen(load_req, timeout=dynamic_lora_timeout_s) as resp:
                 if resp.status not in (200, 201, 204):
                     body = resp.read().decode("utf-8", errors="replace")
                     raise RuntimeError(f"HTTP {resp.status}: {body[:500]}")
@@ -1006,7 +1057,7 @@ for idx, base_url in enumerate(base_urls):
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=180) as resp:
+        with urllib.request.urlopen(req, timeout=dynamic_lora_timeout_s) as resp:
             body = resp.read().decode("utf-8", errors="replace")
             if resp.status != 200:
                 raise RuntimeError(f"HTTP {resp.status}: {body[:500]}")
@@ -1031,14 +1082,22 @@ REPLAY_EXTRA_ARGS=()
 if [[ "${VLLM_INCLUDE_STREAM_USAGE}" == "1" ]]; then
   REPLAY_EXTRA_ARGS+=(--include-stream-usage)
 fi
-if [[ "${VLLM_LORA_REGISTRATION_MODE}" == "dynamic" ]]; then
+if [[ "${VLLM_LORA_REGISTRATION_MODE_EFFECTIVE}" == "dynamic" || "${VLLM_LORA_REGISTRATION_MODE_EFFECTIVE}" == "dynamic_remote" ]]; then
   REPLAY_EXTRA_ARGS+=(
     --dynamic-lora-modules "${LORA_MODULES_TXT}"
+    --dynamic-lora-timeout-s "${VLLM_DYNAMIC_LORA_TIMEOUT_S}"
     --dynamic-lora-routing "${VLLM_DYNAMIC_LORA_ROUTING}"
     --dynamic-lora-hot-pair-threshold "${VLLM_DYNAMIC_LORA_HOT_PAIR_THRESHOLD}"
     --dynamic-lora-hot-pair-max-adapters "${VLLM_DYNAMIC_LORA_HOT_PAIR_MAX_ADAPTERS}"
     --dynamic-lora-max-loaded-per-endpoint "${VLLM_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT_EFFECTIVE}"
   )
+  if [[ "${VLLM_LORA_REGISTRATION_MODE_EFFECTIVE}" == "dynamic_remote" ]]; then
+    REPLAY_EXTRA_ARGS+=(
+      --dynamic-lora-remote-endpoint "${VLLM_REMOTE_ARTIFACT_ENDPOINT}"
+      --dynamic-lora-remote-timeout-s "${VLLM_TIMEOUT_S}"
+      --dynamic-lora-remote-bandwidth-mbps "${VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS}"
+    )
+  fi
 fi
 set +e
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
@@ -1173,6 +1232,7 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
   --instance-mode "static_runtime" \
   --routing-policy "fcfs_batching" \
   --static-startup-sec "${VLLM_SERVER_STARTUP_SEC}" \
+  --predeploy-startup-sec "${VLLM_REMOTE_STAGE_SEC}" \
   --output "${SUMMARY_PATH}"
 
 echo

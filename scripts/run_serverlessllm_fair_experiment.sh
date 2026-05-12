@@ -37,10 +37,15 @@ EMPTY_SUCCESS_RETRIES="${SLLM_EMPTY_SUCCESS_RETRIES:-2}"
 EMPTY_SUCCESS_RETRY_DELAY_S="${SLLM_EMPTY_SUCCESS_RETRY_DELAY_S:-1.0}"
 VLLM_PROBE_TIMEOUT_S="${SLLM_VLLM_PROBE_TIMEOUT_S:-120}"
 LIMIT_ADAPTERS="${SLLM_LIMIT_ADAPTERS:-}"
+RUN_TAG="${SLLM_RUN_TAG:-${SERVING_MODEL_NAME}_r${TOTAL_REQUESTS}_a${SELECTED_NUM_ADAPTERS}_seed${SAMPLING_SEED}}"
+REMOTE_ARTIFACT_STAGE_ENDPOINT="${SLLM_REMOTE_ARTIFACT_STAGE_ENDPOINT:-${BASELINE_REMOTE_ARTIFACT_STAGE_ENDPOINT:-}}"
+REMOTE_ARTIFACT_STAGE_CACHE_DIR="${SLLM_REMOTE_ARTIFACT_STAGE_CACHE_DIR:-${ROOT_DIR}/results/remote_artifact_cache/${MODEL_PROFILE}/serverlessllm/${RUN_TAG}}"
+REMOTE_ARTIFACT_STAGE_WORKERS="${SLLM_REMOTE_ARTIFACT_STAGE_WORKERS:-1}"
+REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS="${SLLM_REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS:-${BASELINE_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-250}}"
+REMOTE_ARTIFACT_STAGE_MODE="${SLLM_REMOTE_ARTIFACT_STAGE_MODE:-dynamic}"
 SHARED_TRACE_PATH="${SLLM_SHARED_TRACE_PATH:?SLLM_SHARED_TRACE_PATH is required}"
 SHARED_ADAPTER_SUBSET_PATH="${SLLM_SHARED_ADAPTER_SUBSET_PATH:?SLLM_SHARED_ADAPTER_SUBSET_PATH is required}"
 
-RUN_TAG="${SLLM_RUN_TAG:-${SERVING_MODEL_NAME}_r${TOTAL_REQUESTS}_a${SELECTED_NUM_ADAPTERS}_seed${SAMPLING_SEED}}"
 RESULT_TAG="${SLLM_RESULT_TAG:-${RUN_TAG}_serverlessllm}"
 TRACE_PATH="${SHARED_TRACE_PATH}"
 ADAPTER_SUBSET_PATH="${SHARED_ADAPTER_SUBSET_PATH}"
@@ -127,6 +132,72 @@ probe_vllm_backend() {
   grep -Ev '^(ERROR conda\\.cli\\.main_run:execute|TRACE conda\\.|==> )' "${probe_log}" | tail -n 40 >&2 || true
   rm -f "${probe_log}"
   return 1
+}
+
+prefetch_serverlessllm_probe_adapter() {
+  if [[ -z "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}" ]]; then
+    return 0
+  fi
+  run_python_in_env sllm_head_official - "${ROOT_DIR}" "${TRACE_PATH}" "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}" "${REMOTE_ARTIFACT_STAGE_ENDPOINT}" "${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS}" "${TIMEOUT_S}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1]).resolve()
+trace_path = Path(sys.argv[2]).resolve()
+adapter_map_path = Path(sys.argv[3]).resolve()
+endpoint = sys.argv[4]
+bandwidth_mbps = float(sys.argv[5] or 0.0)
+timeout_s = float(sys.argv[6] or 300.0)
+
+sys.path.insert(0, str(root / "scripts"))
+from replay_openai_trace import RemoteArtifactFetcher  # type: ignore
+
+trace = json.loads(trace_path.read_text(encoding="utf-8"))
+adapter_map = json.loads(adapter_map_path.read_text(encoding="utf-8"))
+adapter_id = ""
+best_tokens = -1
+for req in trace.get("requests", []) or []:
+    body = req.get("body") or {}
+    candidate = str(body.get("lora_adapter_name") or req.get("adapter_id") or "").strip()
+    if not candidate or candidate not in adapter_map:
+        continue
+    prompt_tokens = int(req.get("prompt_input_tokens", 0) or 0)
+    if prompt_tokens > best_tokens:
+        adapter_id = candidate
+        best_tokens = prompt_tokens
+if not adapter_id:
+    raise SystemExit("cannot find a probe adapter in trace and remote adapter map")
+fetcher = RemoteArtifactFetcher(
+    endpoint=endpoint,
+    timeout_s=timeout_s,
+    token_env="PRIME_REMOTE_TOKEN",
+    bandwidth_mbps=bandwidth_mbps,
+)
+metrics = fetcher.ensure(adapter_id, adapter_map[adapter_id])
+print(json.dumps({"adapter_id": adapter_id, **metrics}, indent=2))
+PY
+}
+
+reset_serverlessllm_request_remote_cache() {
+  if [[ -z "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}" ]]; then
+    return 0
+  fi
+  run_python_in_env sllm_head_official - "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}" <<'PY'
+import json
+import shutil
+import sys
+from pathlib import Path
+
+adapter_map = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+parents = {str(Path(path).expanduser().resolve().parent) for path in adapter_map.values()}
+for parent_s in parents:
+    parent = Path(parent_s)
+    if parent.exists():
+        shutil.rmtree(parent)
+    parent.mkdir(parents=True, exist_ok=True)
+print(f"reset_request_remote_cache_dirs={len(parents)}")
+PY
 }
 
 configure_runtime_for_backend() {
@@ -343,6 +414,95 @@ echo "      backend=${BACKEND}"
 echo "      replay_timeout_s=${TIMEOUT_S}"
 echo "      empty_success_retries=${EMPTY_SUCCESS_RETRIES} delay_s=${EMPTY_SUCCESS_RETRY_DELAY_S}"
 
+REMOTE_STAGE_SEC="0.0"
+SLLM_REQUEST_REMOTE_ADAPTER_MAP=""
+if [[ -n "${REMOTE_ARTIFACT_STAGE_ENDPOINT}" ]]; then
+  case "${REMOTE_ARTIFACT_STAGE_MODE}" in
+    dynamic|stage) ;;
+    *)
+      echo "[ERROR] SLLM_REMOTE_ARTIFACT_STAGE_MODE must be dynamic or stage; got ${REMOTE_ARTIFACT_STAGE_MODE}" >&2
+      exit 1
+      ;;
+  esac
+  if [[ "${REMOTE_ARTIFACT_STAGE_MODE}" == "stage" ]]; then
+    echo "[remote-stage] Materializing ServerlessLLM adapter subset from ${REMOTE_ARTIFACT_STAGE_ENDPOINT}"
+    rm -rf "${REMOTE_ARTIFACT_STAGE_CACHE_DIR}"
+    STAGED_ADAPTER_SUBSET_PATH="${SHARED_INPUT_DIR}/${RESULT_TAG}_remote_staged_adapter_subset.json"
+    run_python_in_env sllm_head_official \
+      "${ROOT_DIR}/scripts/materialize_remote_adapter_subset.py" \
+      --main-repo "${MAIN_REPO}" \
+      --adapter-subset "${ADAPTER_SUBSET_PATH}" \
+      --endpoint "${REMOTE_ARTIFACT_STAGE_ENDPOINT}" \
+      --output-dir "${REMOTE_ARTIFACT_STAGE_CACHE_DIR}" \
+      --output-subset "${STAGED_ADAPTER_SUBSET_PATH}" \
+      --workers "${REMOTE_ARTIFACT_STAGE_WORKERS}" \
+      --bandwidth-mbps "${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS}"
+    ADAPTER_SUBSET_PATH="${STAGED_ADAPTER_SUBSET_PATH}"
+    REMOTE_STAGE_SEC="$(
+      run_python_in_env sllm_head_official - "${ADAPTER_SUBSET_PATH}" <<'PY'
+import json, sys
+payload = json.load(open(sys.argv[1], "r", encoding="utf-8"))
+ms = float((payload.get("remote_materialization") or {}).get("elapsed_ms") or 0.0)
+print(f"{ms / 1000.0:.6f}")
+PY
+    )"
+    echo "      staged_adapter_subset=${ADAPTER_SUBSET_PATH}"
+    echo "      staged_adapter_cache=${REMOTE_ARTIFACT_STAGE_CACHE_DIR}"
+    echo "      staged_adapter_bandwidth_mib_s=${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS}"
+    echo "      staged_adapter_sec=${REMOTE_STAGE_SEC}"
+  else
+    echo "[remote-dynamic] Configuring ServerlessLLM request-path adapter materialization from ${REMOTE_ARTIFACT_STAGE_ENDPOINT}"
+    rm -rf "${REMOTE_ARTIFACT_STAGE_CACHE_DIR}"
+    DYNAMIC_ADAPTER_SUBSET_PATH="${SHARED_INPUT_DIR}/${RESULT_TAG}_remote_dynamic_adapter_subset.json"
+    SLLM_REQUEST_REMOTE_ADAPTER_MAP="${SHARED_INPUT_DIR}/${RESULT_TAG}_remote_dynamic_adapter_map.json"
+    run_python_in_env sllm_head_official - "${ADAPTER_SUBSET_PATH}" "${REMOTE_ARTIFACT_STAGE_CACHE_DIR}" "${DYNAMIC_ADAPTER_SUBSET_PATH}" "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}" "${REMOTE_ARTIFACT_STAGE_ENDPOINT}" <<'PY'
+import json
+import shutil
+import sys
+from pathlib import Path
+
+subset_path = Path(sys.argv[1]).resolve()
+cache_dir = Path(sys.argv[2]).resolve()
+out_subset = Path(sys.argv[3]).resolve()
+out_map = Path(sys.argv[4]).resolve()
+endpoint = sys.argv[5]
+
+payload = json.loads(subset_path.read_text(encoding="utf-8"))
+if cache_dir.exists():
+    shutil.rmtree(cache_dir)
+cache_dir.mkdir(parents=True, exist_ok=True)
+adapter_map = {}
+for item in payload.get("adapters", []) or []:
+    adapter_id = str(item.get("id") or "").strip()
+    if not adapter_id:
+        continue
+    target = cache_dir / adapter_id
+    target.mkdir(parents=True, exist_ok=True)
+    adapter_map[adapter_id] = str(target)
+if not adapter_map:
+    raise SystemExit("adapter subset contains no adapter ids")
+repaired = dict(payload)
+repaired["remote_dir"] = str(cache_dir)
+repaired["source_remote_dir"] = payload.get("remote_dir")
+repaired["remote_artifact_endpoint"] = endpoint
+repaired["remote_materialization"] = {
+    "mode": "request_path_dynamic",
+    "adapter_count": len(adapter_map),
+    "output_dir": str(cache_dir),
+}
+out_subset.parent.mkdir(parents=True, exist_ok=True)
+out_subset.write_text(json.dumps(repaired, indent=2), encoding="utf-8")
+out_map.write_text(json.dumps(adapter_map, indent=2, sort_keys=True), encoding="utf-8")
+print(json.dumps({"adapter_count": len(adapter_map), "cache_dir": str(cache_dir), "map": str(out_map)}))
+PY
+    ADAPTER_SUBSET_PATH="${DYNAMIC_ADAPTER_SUBSET_PATH}"
+    echo "      request_remote_subset=${ADAPTER_SUBSET_PATH}"
+    echo "      request_remote_map=${SLLM_REQUEST_REMOTE_ADAPTER_MAP}"
+    echo "      request_remote_cache=${REMOTE_ARTIFACT_STAGE_CACHE_DIR}"
+    echo "      request_remote_bandwidth_mib_s=${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS}"
+  fi
+fi
+
 if [[ "${BACKEND}" == "vllm" || "${BACKEND}" == "auto" ]]; then
   VLLM_RUNTIME_ENV="${VLLM_ENV_NAME}"
   if [[ ! -d "/home/qhq/anaconda3/envs/${VLLM_RUNTIME_ENV}" ]] || ! env_has_vllm "${VLLM_RUNTIME_ENV}"; then
@@ -366,6 +526,7 @@ fi
 
 if [[ "${ACTUAL_BACKEND}" == "vllm" ]]; then
   echo "[2.5/5] Probing vLLM LoRA correctness on a real shared-trace request"
+  prefetch_serverlessllm_probe_adapter
   if probe_vllm_backend 1; then
     update_deploy_vllm_use_v1 1
     echo "      selected_vllm_engine=V1"
@@ -383,6 +544,7 @@ if [[ "${ACTUAL_BACKEND}" == "vllm" ]]; then
     echo "[2.6/5] Regenerating deploy config for transformers fallback"
     generate_deploy "${ACTUAL_BACKEND}"
   fi
+  reset_serverlessllm_request_remote_cache
 fi
 
 BACKEND="${ACTUAL_BACKEND}"
@@ -402,6 +564,15 @@ echo "[4/5] Deploying model + sampled LoRA subset"
 bash "${ROOT_DIR}/scripts/deploy_serverlessllm_model.sh" "${DEPLOY_PATH}"
 
 echo "[5/5] Replaying shared trace with live metrics"
+SLLM_REPLAY_EXTRA_ARGS=()
+if [[ -n "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}" ]]; then
+  SLLM_REPLAY_EXTRA_ARGS+=(
+    --request-remote-adapter-map "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}"
+    --request-remote-endpoint "${REMOTE_ARTIFACT_STAGE_ENDPOINT}"
+    --request-remote-timeout-s "${TIMEOUT_S}"
+    --request-remote-bandwidth-mbps "${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS}"
+  )
+fi
 run_python_in_env sllm_head_official \
   "${ROOT_DIR}/scripts/replay_openai_trace.py" \
   --trace "${TRACE_PATH}" \
@@ -422,7 +593,8 @@ run_python_in_env sllm_head_official \
   --generation-seed "${GENERATION_SEED}" \
   --require-server-metrics \
   --label "${RUN_TAG}" \
-  --output "${REPLAY_PATH}"
+  --output "${REPLAY_PATH}" \
+  "${SLLM_REPLAY_EXTRA_ARGS[@]}"
 
 run_python_in_env sllm_head_official \
   "${ROOT_DIR}/scripts/validate_replay_results.py" \
@@ -442,6 +614,7 @@ run_python_in_env sllm_head_official \
   --adapter-subset "${ADAPTER_SUBSET_PATH}" \
   --replay "${REPLAY_PATH}" \
   --deploy "${DEPLOY_PATH}" \
+  --predeploy-startup-sec "${REMOTE_STAGE_SEC}" \
   --scenario-name "serverlessllm_fair" \
   --backend-label "serverlessllm_${BACKEND}" \
   --output "${SUMMARY_PATH}"

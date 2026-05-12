@@ -643,6 +643,42 @@ git diff --check
   vLLM 日志报告 1024-token 最大并发约 11.69x，因此 `seq/lora=8` 是当前
   13B TP=2 baseline 的实测执行包络。该修复不改变 trace、adapter pool、
   token budget 或 LoRA 选择语义，只修正 13B TP=2 baseline 的硬件执行包络。
+- remote-fair 正式路径不得无条件使用 vLLM 运行期 `dynamic_remote` LoRA 注册。
+  2026-05-12 的 Llama-2 13B TP2 诊断显示，vLLM OpenAI server 的
+  `/v1/load_lora_adapter` 请求期加载路径可在长 replay 中卡住：server 仍响应
+  `/v1/models`，但 replay 不再前进且无有效 summary。vLLM 日志也明确提示该
+  动态加载/卸载路径面向 local development。Llama-2 7B/13B 的正式 remote-fair
+  baseline 因此使用
+  `VLLM_LORA_REGISTRATION_MODE=static_remote`：先从同一 remote endpoint 将
+  selected adapter subset 物化到 round-local cache，再用官方 `--lora-modules`
+  静态注册路径启动 vLLM。remote staging 时间必须通过 `--predeploy-startup-sec`
+  计入 lifecycle/cost。`dynamic_remote` 只能在存在明确资源边界并完成 gate 的
+  模型上作为正式例外。
+- 旧 Llama-2 7B main vLLM replay 没有显式记录 `lora_registration_mode` 字段，
+  但启动方式是暴露 selected 500 adapters 的 `--lora-modules` 静态注册路径；
+  因此它在语义上属于 static baseline，而不是 dynamic baseline。旧 Llama-3.2
+  3B main vLLM 才显式记录 `dynamic_lora_enabled=True` 和动态 LoRA modules
+  文件。
+- 2026-05-12 `static_remote` 已在 Llama-2 7B 与 Llama-2 13B vLLM 正式补缺中
+  通过 4000/4000 replay gate。7B 结果与旧主线 vLLM 同量级；13B 结果的
+  dispatch wait 仍为十几毫秒，说明 remote-fair patch 没有引入新的排队瓶颈。
+  13B 的较高 TTFT/TPOT 来自 vLLM 在当前 13B/TP2/LoRA 配置下的 service path，
+  不是 artifact 传输口径。
+- 旧 Llama-3.2 3B main vLLM 使用 `dynamic` LoRA registration，是为了降低
+  500-LoRA 静态注册在 4x RTX 3090 上的 host-memory/启动压力；该结果仍是
+  非 remote-fair 主线的有效历史数据。remote-fair 正式轮若显式传入
+  `VLLM_LORA_REGISTRATION_MODE=static_remote`，模型 safe-topology 默认不得
+  覆盖该选择。2026-05-12 已修复 `run_full_fair_round.sh` 中 Llama-3.2/Qwen
+  safe override 的优先级：显式实验口径优先，模型默认只在未指定时生效。
+- 2026-05-12 的 Llama-3.2 3B `static_remote` 诊断在 2389/4000 时触发
+  host-memory fail-fast guard：`MemAvailable=32753 MiB < 32768 MiB`。这是
+  3B + vLLM + 500 static LoRA modules 在本 4x3090 节点上的资源边界，不得通过
+  降低 guard 或继续写污染结果来绕过。该模型的 remote-fair vLLM 正式口径为
+  `VLLM_LORA_REGISTRATION_MODE=dynamic_remote`，并已完成 4000/4000：
+  TTFT avg/p95 323.34/975.57 ms，service TTFT avg 299.41 ms，dispatch wait
+  avg 23.93 ms，TPOT 20.02 ms，Tok/s 112.83，Cost/req 3.593 mUSD，CE 114.95。
+  因此模型粒度默认是：Llama-2 7B/13B 使用 `static_remote`；Llama-3.2 3B
+  使用 `dynamic_remote`。
 
 ### SGLang
 
@@ -690,9 +726,49 @@ git diff --check
 - S-LoRA runner 必须使用独立 process group 启动 replica，并在超时或失败时
   清理整个 TP worker tree。否则健康检查超时会留下四个 CUDA worker 持续占用
   GPU，污染后续系统实验。
+- remote-fair S-LoRA 必须把 remote staging 时间计入 lifecycle。S-LoRA 官方
+  启动路径会遍历 `--lora-dirs` 读取 adapter config/weights，若改为请求期拉取
+  需要改核心 adapter registry/paging 机制，违反 baseline 复现规则。因此它的
+  公平 remote 口径是 remote 到 host/local tier 的启动期准备，且该准备时间必须
+  写入 summary 的 `predeploy_startup_sec`。
+- 2026-05-13 已完成 Llama-3.2 3B S-LoRA `local-sim remote-fair` 正式补缺：
+  replay `ok=4000/4000`，无 `trace_expected` fallback，TTFT avg/p95
+  289.23/465.89 ms，service TTFT avg 273.04 ms，dispatch wait avg
+  16.19 ms，E2E avg/p95 7273.13/18260.11 ms，TPOT avg 126.64 ms，
+  Tok/s 119.20，Cost/req 3.691 mUSD，CE 37.25。与旧 3B S-LoRA 主线
+  同量级且略好，说明 remote-fair patch 没有破坏 S-LoRA 3B 路径。
 - S-LoRA 环境必须使用 `nvidia/label/cuda-11.8.0`，禁止默认 `nvidia` channel
   混装 CUDA 12/13 组件。
 - 真实结果必须先通过 shared-subset GPU replay 和 replay success/token-source gate。
+
+## 16.5 Remote artifact fairness 口径
+
+remote-fair 的公平性不是“每个请求都必须重新从远程下载 adapter”。同类系统和
+工业实践通常采用 remote backing store 加本地 staging/cache：vLLM 支持启动期
+`--lora-modules` 和运行期 `/v1/load_lora_adapter`，并可通过 resolver 从远程源
+取得 adapter；SGLang 暴露 `max_loaded_loras` 与 eviction 语义；NVIDIA Dynamo
+LoRA 文档支持 `file://`、`s3://`、`hf://` 源并缓存已下载 adapter；ServerlessLLM
+论文与文档也强调用 near-GPU DRAM/SSD/HDD 减少 remote checkpoint download。
+参考公开入口：
+`https://docs.vllm.ai/en/latest/features/lora/`、
+`https://docs.sglang.io/docs/advanced_features/lora`、
+`https://docs.nvidia.com/dynamo/latest/user-guides/lo-ra-adapters`、
+`https://github.com/ServerlessLLM/ServerlessLLM`。
+
+因此本项目采用的公平口径是：
+
+1. 所有系统从同一个 selected adapter subset 和同一个 remote backing store 出发；
+2. 首次触达、cache miss 或启动期 registry/staging 的 remote 准备成本必须进入
+   lifecycle/TTFT 路径；
+3. 系统语义允许本地缓存或 host/GPU resident adapter 时，不强制每个请求重复
+   远程下载；
+4. PrimeLoRA 的创新表述为协调 remote/NVMe/HOST/GPU residency、selected-replica
+   routing、scale-out handoff 和 GPU admission 来减少 service-readiness gap，
+   而不是声称只有 PrimeLoRA 可以缓存 adapter。
+
+当前 local-sim remote-fair 的最终候选合并表图保存在：
+`/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main_remote_fair_local_sim_v4_7b3b`。
+该目录不覆盖旧主线结果；进入论文前仍需按第 17 节检查清单确认。
 
 ### ServerlessLLM
 

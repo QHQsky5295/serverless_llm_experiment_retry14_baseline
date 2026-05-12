@@ -422,6 +422,23 @@ def _static_runtime_lifecycle(
     ]
 
 
+def _shift_lifecycle_offsets(lifecycles: List[Dict[str, Any]], shift_s: float) -> List[Dict[str, Any]]:
+    shift = max(0.0, float(shift_s or 0.0))
+    shifted: List[Dict[str, Any]] = []
+    for raw in lifecycles or []:
+        item = dict(raw or {})
+        if shift > 0.0:
+            for key in ("created_offset_s", "ready_offset_s", "removed_offset_s", "last_finished_offset_s"):
+                if item.get(key) is None:
+                    continue
+                try:
+                    item[key] = float(item[key]) + shift
+                except Exception:
+                    pass
+        shifted.append(item)
+    return shifted
+
+
 def _reconstruct_serverless_instance_lifecycles(
     *,
     results: List[Dict[str, Any]],
@@ -973,6 +990,16 @@ def main() -> int:
     ap.add_argument("--instance-mode", default="auto")
     ap.add_argument("--routing-policy", default="round_robin")
     ap.add_argument("--static-startup-sec", type=float, default=0.0)
+    ap.add_argument(
+        "--predeploy-startup-sec",
+        type=float,
+        default=0.0,
+        help=(
+            "Additional pre-replay startup/staging time, used when a fair "
+            "remote-artifact round has to materialize artifacts before the "
+            "baseline runtime can launch."
+        ),
+    )
     args = ap.parse_args()
 
     main_repo = args.main_repo.resolve()
@@ -1105,6 +1132,7 @@ def main() -> int:
     gpu_hit_rate = _known_bool_rate(ok, "gpu_ready_request")
     infra_gpu_cost_per_second_usd = _gpu_cost_per_second_usd(cost_model)
     static_startup_sec = max(0.0, float(args.static_startup_sec or 0.0))
+    predeploy_startup_sec = max(0.0, float(args.predeploy_startup_sec or 0.0))
     deployment_idle_tail_s = _cost_model_deployment_idle_tail_s(cost_model)
     serverless_idle_retention_s = _cost_model_serverless_idle_retention_s(cost_model)
     infra_billing_elapsed_sec = elapsed_sec
@@ -1142,14 +1170,14 @@ def main() -> int:
         )
         instance_lifecycle_log = _static_runtime_lifecycle(
             elapsed_sec=elapsed_sec,
-            startup_sec=static_startup_sec,
+            startup_sec=static_startup_sec + predeploy_startup_sec,
             gpu_count=runtime_gpu_count,
             label=str(args.scenario_name),
             model_name=str(model_cfg.get("name", "")),
             replica_count=data_parallel_replicas,
             gpu_per_replica=tensor_parallel_size,
         )
-        infra_billing_elapsed_sec = elapsed_sec + static_startup_sec
+        infra_billing_elapsed_sec = elapsed_sec + static_startup_sec + predeploy_startup_sec
     else:
         tensor_parallel_size = int(backend_cfg.get("tensor_parallel_size", deploy.get("tensor_parallel_size", model_cfg.get("tensor_parallel_size", 1))) or 1)
         data_parallel_replicas = 1
@@ -1168,6 +1196,23 @@ def main() -> int:
             gpu_count=runtime_gpu_count,
             model_name=str(model_cfg.get("name", "")),
         )
+        if predeploy_startup_sec > 0.0:
+            instance_lifecycle_log = [
+                {
+                    "instance_id": f"{args.scenario_name}_remote_artifact_stage",
+                    "runtime_kind": "serverless_predeploy_remote_artifact_stage",
+                    "gpu_count": runtime_gpu_count,
+                    "model_name": str(model_cfg.get("name", "")),
+                    "lifecycle_source": "remote_artifact_predeploy_stage",
+                    "created_offset_s": 0.0,
+                    "ready_offset_s": predeploy_startup_sec,
+                    "removed_offset_s": predeploy_startup_sec,
+                    "last_finished_offset_s": predeploy_startup_sec,
+                    "remove_reason": "scale_down",
+                },
+                *_shift_lifecycle_offsets(instance_lifecycle_log, predeploy_startup_sec),
+            ]
+            infra_billing_elapsed_sec = elapsed_sec + predeploy_startup_sec
     infra_summary = _summarize_infra_from_lifecycles(
         instance_lifecycle_log,
         elapsed_sec=infra_billing_elapsed_sec,
@@ -1191,7 +1236,9 @@ def main() -> int:
         lifecycles=infra_summary["instance_lifecycle_log"],
         elapsed_sec=elapsed_sec + deployment_idle_tail_s,
         ttft_slo_ms=ttft_slo_ms,
-        static_startup_sec=static_startup_sec if static_serverful_baseline else 0.0,
+        static_startup_sec=(static_startup_sec + predeploy_startup_sec)
+        if static_serverful_baseline
+        else predeploy_startup_sec,
         max_allocated_gpus=max_billing_gpus,
         max_allocated_replicas=max_billing_replicas,
         target_url_to_instance_id=target_url_to_instance_id,
@@ -1749,6 +1796,7 @@ def main() -> int:
                 "scope": "deployment_lifecycle_with_idle_tail",
                 "billing_unit": "gpu_second",
                 "static_startup_sec": round(static_startup_sec, 6),
+                "predeploy_startup_sec": round(predeploy_startup_sec, 6),
                 "deployment_idle_tail_s": round(deployment_idle_tail_s, 6),
                 "serverless_idle_retention_s": round(serverless_idle_retention_s, 6),
                 "infra_billing_elapsed_sec": round(infra_summary["infra_billing_elapsed_sec"], 6),

@@ -49,6 +49,10 @@ default_client_timeout_s() {
 }
 SLORA_TIMEOUT_S="${SLORA_TIMEOUT_S:-$(default_client_timeout_s)}"
 SLORA_DRY_RUN="${SLORA_DRY_RUN:-0}"
+SLORA_REMOTE_ARTIFACT_STAGE_ENDPOINT="${SLORA_REMOTE_ARTIFACT_STAGE_ENDPOINT:-${BASELINE_REMOTE_ARTIFACT_STAGE_ENDPOINT:-}}"
+SLORA_REMOTE_ARTIFACT_STAGE_CACHE_DIR="${SLORA_REMOTE_ARTIFACT_STAGE_CACHE_DIR:-${ROOT_DIR}/results/remote_artifact_cache/${MODEL_PROFILE}/slora/${RUN_TAG}}"
+SLORA_REMOTE_ARTIFACT_STAGE_WORKERS="${SLORA_REMOTE_ARTIFACT_STAGE_WORKERS:-1}"
+SLORA_REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS="${SLORA_REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS:-${BASELINE_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-250}}"
 
 mkdir -p "${RESULT_DIR}" "${LOG_DIR}" "${SHARED_INPUT_DIR}"
 
@@ -361,6 +365,35 @@ FLEET_SPEC_PATH="${SHARED_INPUT_DIR}/${RESULT_TAG}_fleet.yaml"
 ADAPTER_VALUE_MAP_PATH="${SHARED_INPUT_DIR}/${RESULT_TAG}_adapter_value_map.json"
 LORA_DIRS_TXT="${SHARED_INPUT_DIR}/${RESULT_TAG}_lora_dirs.txt"
 SERVER_LOG_PREFIX="${LOG_DIR}/${RESULT_TAG}_server"
+SLORA_REMOTE_STAGE_SEC="0.0"
+
+if [[ -n "${SLORA_REMOTE_ARTIFACT_STAGE_ENDPOINT}" ]]; then
+  echo "[remote-stage] Materializing S-LoRA adapter subset from ${SLORA_REMOTE_ARTIFACT_STAGE_ENDPOINT}"
+  rm -rf "${SLORA_REMOTE_ARTIFACT_STAGE_CACHE_DIR}"
+  STAGED_ADAPTER_SUBSET_PATH="${SHARED_INPUT_DIR}/${RESULT_TAG}_remote_staged_adapter_subset.json"
+  PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${HELPER_PYTHON}" \
+    "${ROOT_DIR}/scripts/materialize_remote_adapter_subset.py" \
+    --main-repo "${MAIN_REPO}" \
+    --adapter-subset "${SHARED_ADAPTER_SUBSET_PATH}" \
+    --endpoint "${SLORA_REMOTE_ARTIFACT_STAGE_ENDPOINT}" \
+    --output-dir "${SLORA_REMOTE_ARTIFACT_STAGE_CACHE_DIR}" \
+    --output-subset "${STAGED_ADAPTER_SUBSET_PATH}" \
+    --workers "${SLORA_REMOTE_ARTIFACT_STAGE_WORKERS}" \
+    --bandwidth-mbps "${SLORA_REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS}"
+  SHARED_ADAPTER_SUBSET_PATH="${STAGED_ADAPTER_SUBSET_PATH}"
+  SLORA_REMOTE_STAGE_SEC="$(
+    PYTHONNOUSERSITE=1 "${HELPER_PYTHON}" - "${SHARED_ADAPTER_SUBSET_PATH}" <<'PY'
+import json, sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+elapsed_ms = float((payload.get("remote_materialization") or {}).get("elapsed_ms", 0.0) or 0.0)
+print(f"{elapsed_ms / 1000.0:.6f}")
+PY
+  )"
+  echo "      staged_adapter_subset=${SHARED_ADAPTER_SUBSET_PATH}"
+  echo "      staged_adapter_cache=${SLORA_REMOTE_ARTIFACT_STAGE_CACHE_DIR}"
+  echo "      staged_adapter_bandwidth_mib_s=${SLORA_REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS}"
+  echo "      staged_adapter_sec=${SLORA_REMOTE_STAGE_SEC}"
+fi
 
 echo "[2/5] Building S-LoRA launch spec from shared subset"
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${HELPER_PYTHON}" - "${SHARED_ADAPTER_SUBSET_PATH}" "${MODEL_PATH}" "${LAUNCH_SPEC_PATH}" "${FLEET_SPEC_PATH}" "${ADAPTER_VALUE_MAP_PATH}" "${LORA_DIRS_TXT}" "${TP_EFFECTIVE}" "${DP_REPLICAS}" "${SLORA_GPU_IDS}" "${SLORA_HOST}" "${SLORA_PORT}" "${SLORA_PORT_STRIDE}" "${SLORA_MAX_TOTAL_TOKEN_NUM}" "${SLORA_MAX_REQ_INPUT_LEN}" "${SLORA_MAX_REQ_TOTAL_LEN}" "${SLORA_BATCH_MAX_TOKENS}" <<'PY'
@@ -575,21 +608,32 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
   echo "      replica=${replica_idx} startup_sec=${startup_sec}"
 done
 
-SLORA_SERVER_STARTUP_SEC="$(
+SLORA_SERVER_RUNTIME_STARTUP_SEC="$(
   PYTHONNOUSERSITE=1 "${HELPER_PYTHON}" - "${SLORA_STARTUP_SECS[@]}" <<'PY'
 import sys
 values = [float(v) for v in sys.argv[1:]]
 print(f"{(max(values) if values else 0.0):.6f}")
 PY
 )"
-PYTHONNOUSERSITE=1 "${HELPER_PYTHON}" - "${LAUNCH_SPEC_PATH}" "${FLEET_SPEC_PATH}" "${SLORA_SERVER_STARTUP_SEC}" <<'PY'
+SLORA_SERVER_STARTUP_SEC="$(
+  PYTHONNOUSERSITE=1 "${HELPER_PYTHON}" - "${SLORA_REMOTE_STAGE_SEC}" "${SLORA_SERVER_RUNTIME_STARTUP_SEC}" <<'PY'
+import sys
+print(f"{float(sys.argv[1]) + float(sys.argv[2]):.6f}")
+PY
+)"
+PYTHONNOUSERSITE=1 "${HELPER_PYTHON}" - "${LAUNCH_SPEC_PATH}" "${FLEET_SPEC_PATH}" "${SLORA_SERVER_RUNTIME_STARTUP_SEC}" "${SLORA_REMOTE_STAGE_SEC}" "${SLORA_SERVER_STARTUP_SEC}" <<'PY'
 import sys
 from pathlib import Path
 import yaml
 fleet = yaml.safe_load(Path(sys.argv[1]).read_text()) or {}
 fleet["static_startup_sec"] = float(sys.argv[3])
+fleet["predeploy_startup_sec"] = float(sys.argv[4])
+fleet["remote_artifact_stage_sec"] = float(sys.argv[4])
+fleet["total_startup_sec"] = float(sys.argv[5])
 Path(sys.argv[2]).write_text(yaml.safe_dump(fleet, sort_keys=False), encoding="utf-8")
 PY
+echo "      slora_runtime_startup_sec=${SLORA_SERVER_RUNTIME_STARTUP_SEC}"
+echo "      slora_remote_stage_sec=${SLORA_REMOTE_STAGE_SEC}"
 echo "      slora_startup_sec=${SLORA_SERVER_STARTUP_SEC}"
 
 echo "[4/5] Replaying shared trace with unified live metrics"
@@ -698,7 +742,8 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${HELPER_PYTHON}" \
   --system-name "S-LoRA" \
   --instance-mode "static_runtime" \
   --routing-policy "fcfs_batching" \
-  --static-startup-sec "${SLORA_SERVER_STARTUP_SEC}" \
+  --static-startup-sec "${SLORA_SERVER_RUNTIME_STARTUP_SEC}" \
+  --predeploy-startup-sec "${SLORA_REMOTE_STAGE_SEC}" \
   --output "${SUMMARY_PATH}"
 
 echo

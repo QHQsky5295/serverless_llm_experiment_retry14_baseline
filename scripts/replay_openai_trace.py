@@ -7,9 +7,13 @@ import json
 import math
 import os
 import re
+import shutil
 import sys
 import threading
+import tarfile
+import tempfile
 import time
+import urllib.parse
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -39,7 +43,7 @@ METRIC_DEF_SERVICE_E2E = (
 
 
 class DynamicLoRALoader:
-    """Thread-safe per-endpoint LoRA loader for vLLM's runtime LoRA API."""
+    """Thread-safe per-endpoint LoRA loader for runtime LoRA APIs."""
 
     def __init__(
         self,
@@ -47,10 +51,16 @@ class DynamicLoRALoader:
         modules: Dict[str, str],
         timeout_s: float,
         max_loaded_per_endpoint: int,
+        load_path: str = "/v1/load_lora_adapter",
+        unload_path: str = "/v1/unload_lora_adapter",
+        remote_fetcher: Optional["RemoteArtifactFetcher"] = None,
     ) -> None:
         self._modules = dict(modules)
         self._timeout_s = max(1.0, float(timeout_s))
         self._max_loaded_per_endpoint = max(0, int(max_loaded_per_endpoint or 0))
+        self._load_path = "/" + str(load_path or "/v1/load_lora_adapter").lstrip("/")
+        self._unload_path = "/" + str(unload_path or "/v1/unload_lora_adapter").lstrip("/")
+        self._remote_fetcher = remote_fetcher
         self._loaded: Dict[str, OrderedDict[str, None]] = {}
         self._active: Dict[str, Dict[str, int]] = {}
         self._locks: Dict[str, threading.Lock] = {}
@@ -66,7 +76,7 @@ class DynamicLoRALoader:
             return lock
 
     def _unload_adapter(self, key: str, adapter: str) -> float:
-        endpoint = f"{key}/v1/unload_lora_adapter"
+        endpoint = f"{key}{self._unload_path}"
         payload = {"lora_name": adapter}
         t0 = time.perf_counter()
         try:
@@ -126,6 +136,9 @@ class DynamicLoRALoader:
         key = base_url.rstrip("/")
         lock = self._endpoint_lock(key)
         with lock:
+            remote_metrics: Dict[str, Any] = {}
+            if self._remote_fetcher is not None:
+                remote_metrics = self._remote_fetcher.ensure(adapter, path)
             loaded = self._loaded.setdefault(key, OrderedDict())
             active = self._active.setdefault(key, {})
             if adapter in loaded:
@@ -138,9 +151,10 @@ class DynamicLoRALoader:
                     "dynamic_lora_unload_ms": 0.0,
                     "dynamic_lora_resident_count": len(loaded),
                     "dynamic_lora_max_resident": self._max_loaded_per_endpoint,
+                    **remote_metrics,
                 }
             eviction_metrics = self._evict_inactive(key, loaded)
-            endpoint = f"{key}/v1/load_lora_adapter"
+            endpoint = f"{key}{self._load_path}"
             payload = {"lora_name": adapter, "lora_path": path}
             t0 = time.perf_counter()
             try:
@@ -163,6 +177,7 @@ class DynamicLoRALoader:
                         "dynamic_lora_resident_count": len(loaded),
                         "dynamic_lora_max_resident": self._max_loaded_per_endpoint,
                         **eviction_metrics,
+                        **remote_metrics,
                     }
                 raise RuntimeError(
                     f"dynamic LoRA load failed for {adapter} on {key}: HTTP {resp.status_code}: {body}"
@@ -176,6 +191,7 @@ class DynamicLoRALoader:
                 "dynamic_lora_resident_count": len(loaded),
                 "dynamic_lora_max_resident": self._max_loaded_per_endpoint,
                 **eviction_metrics,
+                **remote_metrics,
             }
 
     def release(self, base_url: str, adapter_id: Optional[str]) -> None:
@@ -191,6 +207,221 @@ class DynamicLoRALoader:
                 active.pop(adapter, None)
             else:
                 active[adapter] = count - 1
+
+
+def _load_adapter_path_map(path: Path) -> Dict[str, str]:
+    raw = path.read_text(encoding="utf-8").strip()
+    if not raw:
+        raise RuntimeError(f"adapter path map is empty: {path}")
+    mapping: Dict[str, str] = {}
+    if raw.startswith("{"):
+        payload = json.loads(raw)
+        if not isinstance(payload, dict):
+            raise RuntimeError(f"adapter path map JSON must be an object: {path}")
+        for key, value in payload.items():
+            mapping[str(key)] = str(value)
+    elif raw.startswith("["):
+        payload = json.loads(raw)
+        if not isinstance(payload, list):
+            raise RuntimeError(f"adapter path map JSON must be a list: {path}")
+        for item in payload:
+            if isinstance(item, str) and "=" in item:
+                name, value = item.split("=", 1)
+            elif isinstance(item, dict):
+                name = item.get("name") or item.get("id") or item.get("adapter_id")
+                value = item.get("path") or item.get("lora_path") or item.get("lora_dir")
+            else:
+                name = value = None
+            if not name or not value:
+                raise RuntimeError(f"invalid adapter path map entry in {path}: {item!r}")
+            mapping[str(name)] = str(value)
+    else:
+        for line in raw.splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" not in line:
+                raise RuntimeError(f"invalid adapter path map line in {path}: {line!r}")
+            name, value = line.split("=", 1)
+            mapping[str(name)] = str(value)
+    if not mapping:
+        raise RuntimeError(f"adapter path map has no entries: {path}")
+    return mapping
+
+
+class RemoteArtifactFetcher:
+    """Materialize LoRA adapters from a remote source on demand.
+
+    The endpoint may be an HTTP artifact node (``http://host:port``) or a
+    local simulated remote root (``file:///path/to/frozen_pool``).  The latter
+    is intentionally supported for remote-fair local diagnostics: it starts
+    from an empty local cache, copies the adapter from the configured remote
+    pool on first touch, and optionally sleeps according to the same
+    MiB-per-second bandwidth model used by the PrimeLoRA runner.
+    """
+
+    def __init__(
+        self,
+        *,
+        endpoint: str,
+        timeout_s: float,
+        token_env: str,
+        bandwidth_mbps: float = 0.0,
+    ) -> None:
+        endpoint = str(endpoint or "").strip().rstrip("/")
+        if not endpoint:
+            raise RuntimeError("remote artifact endpoint must be non-empty")
+        self._endpoint = endpoint
+        self._parsed_endpoint = urllib.parse.urlparse(endpoint)
+        self._timeout_s = max(1.0, float(timeout_s or 300.0))
+        self._token = os.getenv(str(token_env or "PRIME_REMOTE_TOKEN"), "")
+        self._bandwidth_mbps = max(0.0, float(bandwidth_mbps or 0.0))
+        self._session = requests.Session()
+        self._session.trust_env = False
+        self._locks: Dict[str, threading.Lock] = {}
+        self._global_lock = threading.Lock()
+
+    def _lock_for(self, adapter_id: str) -> threading.Lock:
+        with self._global_lock:
+            lock = self._locks.get(adapter_id)
+            if lock is None:
+                lock = threading.Lock()
+                self._locks[adapter_id] = lock
+            return lock
+
+    def ensure(self, adapter_id: str, target_path: str) -> Dict[str, Any]:
+        adapter = str(adapter_id or "").strip()
+        target = Path(target_path).expanduser().resolve()
+        if _looks_like_materialized_adapter(target):
+            return {
+                "remote_lora_fetched": False,
+                "remote_lora_fetch_ms": 0.0,
+                "remote_lora_bytes": _path_size(target),
+                "remote_lora_endpoint": self._endpoint,
+            }
+        lock = self._lock_for(adapter)
+        with lock:
+            if _looks_like_materialized_adapter(target):
+                return {
+                    "remote_lora_fetched": False,
+                    "remote_lora_fetch_ms": 0.0,
+                    "remote_lora_bytes": _path_size(target),
+                    "remote_lora_endpoint": self._endpoint,
+                }
+            target.parent.mkdir(parents=True, exist_ok=True)
+            tmp_root = Path(tempfile.mkdtemp(prefix="remote-lora-fetch-"))
+            archive = tmp_root / f"{adapter}.tar.gz"
+            extract_dir = tmp_root / "extract"
+            extract_dir.mkdir(parents=True, exist_ok=True)
+            t0 = time.perf_counter()
+            try:
+                parsed = self._parsed_endpoint
+                size_bytes = 0
+                local_sim_mode = ""
+                if parsed.scheme == "file":
+                    src_root = Path(urllib.parse.unquote(parsed.path)).expanduser().resolve()
+                    src = src_root / adapter
+                    if not _looks_like_materialized_adapter(src):
+                        raise RuntimeError(f"missing simulated remote adapter: {src}")
+                    size_bytes = _path_size(src)
+                    if self._bandwidth_mbps > 0 and size_bytes > 0:
+                        # Match the existing PrimeLoRA local-remote simulation:
+                        # bandwidth_mbps is treated as MiB/s despite the legacy
+                        # name, so an adapter of X MiB sleeps X / bandwidth.
+                        time.sleep((size_bytes / (1024.0 * 1024.0)) / self._bandwidth_mbps)
+                    local_sim_mode = _linktree(src, extract_dir)
+                else:
+                    url = f"{self._endpoint}/artifacts/{urllib.parse.quote(adapter, safe='')}.tar.gz"
+                    headers = {"Accept": "application/gzip"}
+                    if self._token:
+                        headers["Authorization"] = f"Bearer {self._token}"
+                    with self._session.get(url, headers=headers, timeout=self._timeout_s, stream=True) as resp:
+                        resp.raise_for_status()
+                        with archive.open("wb") as fh:
+                            for chunk in resp.iter_content(chunk_size=1024 * 1024):
+                                if chunk:
+                                    fh.write(chunk)
+                    with tarfile.open(archive, "r:gz") as tar:
+                        _safe_extract_tar(tar, extract_dir)
+                    size_bytes = _path_size(extract_dir)
+                if target.exists():
+                    if target.is_dir():
+                        shutil.rmtree(target)
+                    else:
+                        target.unlink()
+                shutil.move(str(extract_dir), str(target))
+                elapsed_ms = (time.perf_counter() - t0) * 1000.0
+                return {
+                    "remote_lora_fetched": True,
+                    "remote_lora_fetch_ms": elapsed_ms,
+                    "remote_lora_bytes": size_bytes or _path_size(target),
+                    "remote_lora_endpoint": self._endpoint,
+                    "remote_lora_local_sim_mode": local_sim_mode,
+                }
+            finally:
+                shutil.rmtree(tmp_root, ignore_errors=True)
+
+
+def _looks_like_materialized_adapter(path: Path) -> bool:
+    if not path.exists() or not path.is_dir():
+        return False
+    return (path / "adapter_config.json").exists() and any(
+        child.name.startswith("adapter_") or child.suffix in {".safetensors", ".bin"}
+        for child in path.iterdir()
+    )
+
+
+def _path_size(path: Path) -> int:
+    if not path.exists():
+        return 0
+    if path.is_file():
+        return int(path.stat().st_size)
+    total = 0
+    for child in path.rglob("*"):
+        if child.is_file():
+            total += int(child.stat().st_size)
+    return total
+
+
+def _linktree(src: Path, dst: Path) -> str:
+    """Mirror a local simulated remote tree without charging disk copy as I/O."""
+    if dst.exists():
+        shutil.rmtree(dst) if dst.is_dir() else dst.unlink()
+    dst.mkdir(parents=True, exist_ok=True)
+    mode = "hardlink"
+    for item in src.rglob("*"):
+        rel = item.relative_to(src)
+        out = dst / rel
+        if item.is_dir():
+            out.mkdir(parents=True, exist_ok=True)
+            continue
+        out.parent.mkdir(parents=True, exist_ok=True)
+        if item.is_symlink():
+            os.symlink(os.readlink(item), out)
+            mode = "symlink" if mode == "hardlink" else mode
+            continue
+        try:
+            os.link(item, out)
+        except OSError:
+            try:
+                os.symlink(item, out)
+                mode = "symlink"
+            except OSError:
+                shutil.copy2(item, out)
+                mode = "copy"
+    return mode
+
+
+def _safe_extract_tar(tar: tarfile.TarFile, target: Path) -> None:
+    root = target.resolve()
+    for member in tar.getmembers():
+        dest = (target / member.name).resolve()
+        if dest != root and not str(dest).startswith(str(root) + os.sep):
+            raise RuntimeError(f"unsafe archive member path: {member.name}")
+    try:
+        tar.extractall(target)
+    except TypeError:
+        tar.extractall(target)
 
 
 def _percentile(values: List[float], q: float) -> float:
@@ -1430,6 +1661,76 @@ def main() -> int:
         help="Timeout for vLLM runtime LoRA load requests.",
     )
     ap.add_argument(
+        "--dynamic-lora-load-path",
+        default="/v1/load_lora_adapter",
+        help="Runtime LoRA load endpoint path. vLLM uses /v1/load_lora_adapter; SGLang uses /load_lora_adapter.",
+    )
+    ap.add_argument(
+        "--dynamic-lora-unload-path",
+        default="/v1/unload_lora_adapter",
+        help="Runtime LoRA unload endpoint path. vLLM uses /v1/unload_lora_adapter; SGLang uses /unload_lora_adapter.",
+    )
+    ap.add_argument(
+        "--dynamic-lora-remote-endpoint",
+        default="",
+        help="Optional PrimeLoRA HTTP artifact endpoint used to materialize missing adapter paths before runtime loading.",
+    )
+    ap.add_argument(
+        "--dynamic-lora-remote-timeout-s",
+        type=float,
+        default=300.0,
+        help="Timeout for remote artifact downloads used by --dynamic-lora-remote-endpoint.",
+    )
+    ap.add_argument(
+        "--dynamic-lora-remote-token-env",
+        default="PRIME_REMOTE_TOKEN",
+        help="Environment variable containing the optional bearer token for the remote artifact endpoint.",
+    )
+    ap.add_argument(
+        "--dynamic-lora-remote-bandwidth-mbps",
+        type=float,
+        default=0.0,
+        help=(
+            "Optional MiB/s bandwidth used when --dynamic-lora-remote-endpoint "
+            "is file://... for local remote simulation. The name keeps legacy "
+            "compatibility with the PrimeLoRA bandwidth_mbps setting."
+        ),
+    )
+    ap.add_argument(
+        "--request-remote-adapter-map",
+        type=Path,
+        default=None,
+        help=(
+            "Optional adapter_id -> local target path map. When set together "
+            "with --request-remote-endpoint, the replay materializes a missing "
+            "adapter before sending the request without invoking a runtime "
+            "LoRA load API. This is used for systems whose router passes a "
+            "backend-visible LoRA path on each request."
+        ),
+    )
+    ap.add_argument(
+        "--request-remote-endpoint",
+        default="",
+        help="Remote artifact endpoint used with --request-remote-adapter-map.",
+    )
+    ap.add_argument(
+        "--request-remote-timeout-s",
+        type=float,
+        default=300.0,
+        help="Timeout for request-path remote adapter materialization.",
+    )
+    ap.add_argument(
+        "--request-remote-token-env",
+        default="PRIME_REMOTE_TOKEN",
+        help="Environment variable containing the optional bearer token for request-path remote fetches.",
+    )
+    ap.add_argument(
+        "--request-remote-bandwidth-mbps",
+        type=float,
+        default=0.0,
+        help="Optional MiB/s bandwidth for file:// request-path remote simulation.",
+    )
+    ap.add_argument(
         "--dynamic-lora-routing",
         choices=("round_robin", "adapter_hash", "adapter_pair_hash", "adaptive_hot_pair_hash"),
         default="round_robin",
@@ -1510,26 +1811,37 @@ def main() -> int:
             raise RuntimeError(f"adapter value map must be a JSON object: {args.adapter_value_map}")
         adapter_value_map = {str(key): str(value) for key, value in raw_map.items()}
     dynamic_lora_loader: Optional[DynamicLoRALoader] = None
+    request_remote_fetcher: Optional[RemoteArtifactFetcher] = None
+    request_remote_map: Dict[str, str] = {}
+    if args.request_remote_adapter_map:
+        if not str(args.request_remote_endpoint or "").strip():
+            raise RuntimeError("--request-remote-adapter-map requires --request-remote-endpoint")
+        request_remote_map = _load_adapter_path_map(args.request_remote_adapter_map)
+        request_remote_fetcher = RemoteArtifactFetcher(
+            endpoint=str(args.request_remote_endpoint),
+            timeout_s=float(args.request_remote_timeout_s or 300.0),
+            token_env=str(args.request_remote_token_env or "PRIME_REMOTE_TOKEN"),
+            bandwidth_mbps=float(args.request_remote_bandwidth_mbps or 0.0),
+        )
     if args.dynamic_lora_modules:
-        module_map: Dict[str, str] = {}
-        for line in args.dynamic_lora_modules.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            if "=" not in line:
-                raise RuntimeError(f"invalid dynamic LoRA module entry: {line!r}")
-            name, path = line.split("=", 1)
-            name = name.strip()
-            path = path.strip()
-            if not name or not path:
-                raise RuntimeError(f"invalid dynamic LoRA module entry: {line!r}")
-            module_map[name] = path
+        module_map = _load_adapter_path_map(args.dynamic_lora_modules)
         if not module_map:
             raise RuntimeError(f"dynamic LoRA module map is empty: {args.dynamic_lora_modules}")
+        remote_fetcher = None
+        if str(args.dynamic_lora_remote_endpoint or "").strip():
+            remote_fetcher = RemoteArtifactFetcher(
+                endpoint=str(args.dynamic_lora_remote_endpoint),
+                timeout_s=float(args.dynamic_lora_remote_timeout_s or 300.0),
+                token_env=str(args.dynamic_lora_remote_token_env or "PRIME_REMOTE_TOKEN"),
+                bandwidth_mbps=float(args.dynamic_lora_remote_bandwidth_mbps or 0.0),
+            )
         dynamic_lora_loader = DynamicLoRALoader(
             modules=module_map,
             timeout_s=float(args.dynamic_lora_timeout_s or 180.0),
             max_loaded_per_endpoint=int(args.dynamic_lora_max_loaded_per_endpoint or 0),
+            load_path=str(args.dynamic_lora_load_path),
+            unload_path=str(args.dynamic_lora_unload_path),
+            remote_fetcher=remote_fetcher,
         )
 
     results: List[Optional[Dict[str, Any]]] = [None] * len(requests_list)
@@ -1578,6 +1890,108 @@ def main() -> int:
             )
         else:
             target_base_url = base_urls[index % len(base_urls)]
+        request_remote_metrics: Dict[str, Any] = {}
+        if request_remote_fetcher is not None:
+            adapter_key = str(adapter_id_for_dynamic or "").strip()
+            target_path = request_remote_map.get(adapter_key)
+            if not target_path:
+                completion_offset_s = time.perf_counter() - start_time
+                scheduled_offset_s = float(item["arrival_time_s"])
+                failed_e2e_ms = max(0.0, (completion_offset_s - scheduled_offset_s) * 1000.0)
+                result = {
+                    "request_id": item.get("request_id"),
+                    "generation_seed": _derive_request_generation_seed(
+                        args.generation_seed,
+                        item.get("request_id"),
+                        index,
+                    ),
+                    "arrival_time_s": scheduled_offset_s,
+                    "dispatch_offset_s": completion_offset_s,
+                    "completion_offset_s": completion_offset_s,
+                    "adapter_id": item.get("adapter_id"),
+                    "ttft_ms": None,
+                    "e2e_ms": failed_e2e_ms,
+                    "overall_ttft_ms": None,
+                    "overall_e2e_ms": failed_e2e_ms,
+                    "service_ttft_ms": None,
+                    "service_e2e_ms": None,
+                    "dispatch_admission_wait_ms": None,
+                    "replay_dispatch_wait_ms": None,
+                    "status_code": None,
+                    "success": False,
+                    "prompt_tokens": int(item.get("expected_input_tokens", 0) or 0),
+                    "completion_tokens": 0,
+                    "total_tokens": int(item.get("expected_input_tokens", 0) or 0),
+                    "cost_usd": 0.0,
+                    "error": f"adapter {adapter_key!r} is absent from request remote adapter map",
+                    "target_base_url": target_base_url,
+                }
+                with lock:
+                    results[index] = result
+                    live = _build_live_stats(results, ttft_slo_ms=float(args.ttft_slo_ms))
+                    print(
+                        f"[ERROR] request remote adapter map miss for request={result['request_id']} "
+                        f"adapter={adapter_key}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                    if (
+                        int(args.abort_after_failures or 0) > 0
+                        and live["done"] >= max(1, int(args.abort_failures_min_done or 1))
+                        and live["failed"] >= int(args.abort_after_failures)
+                    ):
+                        os._exit(80)
+                return
+            try:
+                request_remote_metrics = request_remote_fetcher.ensure(adapter_key, target_path)
+            except Exception as exc:  # noqa: BLE001
+                completion_offset_s = time.perf_counter() - start_time
+                scheduled_offset_s = float(item["arrival_time_s"])
+                failed_e2e_ms = max(0.0, (completion_offset_s - scheduled_offset_s) * 1000.0)
+                result = {
+                    "request_id": item.get("request_id"),
+                    "generation_seed": _derive_request_generation_seed(
+                        args.generation_seed,
+                        item.get("request_id"),
+                        index,
+                    ),
+                    "arrival_time_s": scheduled_offset_s,
+                    "dispatch_offset_s": completion_offset_s,
+                    "completion_offset_s": completion_offset_s,
+                    "adapter_id": item.get("adapter_id"),
+                    "ttft_ms": None,
+                    "e2e_ms": failed_e2e_ms,
+                    "overall_ttft_ms": None,
+                    "overall_e2e_ms": failed_e2e_ms,
+                    "service_ttft_ms": None,
+                    "service_e2e_ms": None,
+                    "dispatch_admission_wait_ms": None,
+                    "replay_dispatch_wait_ms": None,
+                    "status_code": None,
+                    "success": False,
+                    "prompt_tokens": int(item.get("expected_input_tokens", 0) or 0),
+                    "completion_tokens": 0,
+                    "total_tokens": int(item.get("expected_input_tokens", 0) or 0),
+                    "cost_usd": 0.0,
+                    "error": str(exc),
+                    "target_base_url": target_base_url,
+                }
+                with lock:
+                    results[index] = result
+                    live = _build_live_stats(results, ttft_slo_ms=float(args.ttft_slo_ms))
+                    print(
+                        f"[ERROR] request remote adapter fetch failed for request={result['request_id']} "
+                        f"adapter={adapter_key}: {exc}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                    if (
+                        int(args.abort_after_failures or 0) > 0
+                        and live["done"] >= max(1, int(args.abort_failures_min_done or 1))
+                        and live["failed"] >= int(args.abort_after_failures)
+                    ):
+                        os._exit(80)
+                return
         dynamic_lora_metrics: Dict[str, Any] = {}
         dynamic_lora_acquired = False
         if dynamic_lora_loader is not None:
@@ -1684,6 +2098,7 @@ def main() -> int:
                     target_base_url,
                     str(adapter_id_for_dynamic) if adapter_id_for_dynamic is not None else None,
                 )
+        result.update(request_remote_metrics)
         result.update(dynamic_lora_metrics)
         result["target_base_url"] = target_base_url
         with lock:
