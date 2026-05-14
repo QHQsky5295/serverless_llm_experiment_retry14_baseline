@@ -414,3 +414,17 @@ Additional completed step:
   dispatch/admission/startup-readiness, not backend generation.
 - The active queue has moved to `load_s12 / vLLM / Llama-2-7B`, materializing the
   500-adapter subset from the true remote endpoint before replay.
+
+Additional completed step:
+
+- `load_s12 / vLLM / Llama-2-7B`: `4000/4000` completed, `fail=0`, no
+  `trace_expected` fallback.
+- vLLM materialized all 500 adapters from `http://192.168.4.174:18081` before
+  replay; staging took `549.049 s` and used the round-local `remote_cache/vllm`
+  directory.
+- Compared with the latest closed-loop s12 vLLM run, request-path metrics remain
+  the same order: TTFT Avg `408.4 -> 406.5 ms`, Service TTFT `393.4 -> 393.2 ms`,
+  Dispatch Wait `15.0 -> 13.3 ms`, E2E Avg `3020.7 -> 2979.1 ms`, TPOT
+  `25.7 -> 25.3 ms`. CE changes `62.76 -> 58.53` because the true-remote
+  staging cost is included in lifecycle cost.
+- The active queue has moved to `load_s12 / S-LoRA / Llama-2-7B`.
