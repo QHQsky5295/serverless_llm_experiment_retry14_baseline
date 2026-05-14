@@ -379,3 +379,26 @@ Current Fig. 5 interpretation:
    request and cleaned up GPU/process state. The failed
    `paper_backbone_robustness_v2` tmux window is an old static-launch record and
    should not be reused as evidence for the current configuration.
+
+## 2026-05-14 True-Remote Full-Figure Mirror
+
+The active non-overwriting true-remote mirror queue is
+`20260514_real_remote_fullfigs_v1`, running in tmux session
+`true_remote_full_figs_v1`.
+
+Current completed step:
+
+- `load_s12 / SGLang / Llama-2-7B`: `4000/4000` completed, `fail=0`, no
+  `trace_expected` fallback.
+- Compared with the latest closed-loop s12 SGLang run, the true-remote run keeps
+  TPOT and throughput essentially unchanged, while TTFT Avg increases from
+  about `229 ms` to `279 ms` because dispatch wait increases from about `15 ms`
+  to `59 ms`. CE changes modestly from about `82` to `80.35`.
+
+The queue is now running `load_s12 / ServerlessLLM / Llama-2-7B` with request-path
+remote adapter materialization from `http://192.168.4.174:18081`.
+
+Important repository rule: FaaSLoRA changes and final true-remote figure/data
+snapshots must be pushed to `faaslora_origin retry14_continuous_queue_v2`; the
+`origin` remote in this checkout points to the baseline harness repository and
+must not be used for FaaSLoRA V2 synchronization.
