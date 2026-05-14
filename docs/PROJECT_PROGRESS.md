@@ -458,3 +458,21 @@ Additional completed step:
 - The active queue is expected to continue to the remaining true-remote
   operating-load, adapter-pool, ablation/readiness/control-path, and final
   figure-build stages.
+
+Additional completed step:
+
+- `load_s10 / SGLang / Llama-2-7B`: `4000/4000` completed, `fail=0`, no
+  `trace_expected` fallback.
+- Metrics: TTFT Avg `289.0 ms`, TTFT P95 `475.1 ms`, Service TTFT
+  `228.8 ms`, Dispatch Wait `60.2 ms`, E2E Avg `2396.9 ms`, E2E P95
+  `5567.7 ms`, TPOT `19.6 ms`, Throughput `84.13 tok/s`, Cost/req
+  `4.445 mUSD`, CE `93.86`.
+- Compared with the latest closed-loop s10 SGLang run, TTFT Avg changes
+  `228.8 -> 289.0 ms` and Dispatch Wait `15.2 -> 60.2 ms`, while Service TTFT
+  remains close (`213.5 -> 228.8 ms`), TPOT stays `19.6 ms`, and CE changes
+  `95.89 -> 93.86`. This matches the true-remote pattern observed at s12:
+  request-path generation remains stable, while remote-artifact realism adds
+  modest upstream/staging cost.
+- The active queue has moved to `load_s10 / ServerlessLLM / Llama-2-7B`; the
+  probe has already confirmed a real remote LoRA fetch from
+  `http://192.168.4.174:18081`.
