@@ -20,6 +20,12 @@ April handoff snapshots have been removed from the active documentation set.
   artifact node, documented in `docs/REMOTE_ARTIFACT_DEPLOYMENT.md`. It is not
   part of the frozen paper metrics and does not alter the formal local frozen
   artifact path unless `FAASLORA_REMOTE_ARTIFACT_ENABLED=1` is set.
+- Current remote-realism extension: `scripts/run_true_remote_full_figures_queue.sh`
+  is the non-overwriting queue for regenerating the full paper figure/table
+  mirror under real HTTP remote artifacts for all systems. Outputs go to
+  `figs_remote_full_real_remote_v1/` and
+  `paper_results/final_remote_full_real_remote_v1/`; the original `figs/`
+  directory is left untouched.
 
 ## Final Paper Snapshot: 2026-05-10
 
