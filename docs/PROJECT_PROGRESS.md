@@ -493,3 +493,20 @@ Additional completed step:
 - The active queue has moved to `load_s10 / vLLM / Llama-2-7B`, which is
   materializing the 500-adapter subset from the true remote endpoint before
   replay.
+
+Additional completed step:
+
+- `load_s10 / vLLM / Llama-2-7B`: `4000/4000` completed, `fail=0`, no
+  `trace_expected` fallback.
+- vLLM materialized all 500 adapters from `http://192.168.4.174:18081` before
+  replay; staging took about `539.3 s` and every logged batch was
+  `cached=False`.
+- Metrics: TTFT Avg `424.1 ms`, TTFT P95 `536.6 ms`, Service TTFT `411.0 ms`,
+  Dispatch Wait `13.0 ms`, E2E Avg `3024.6 ms`, E2E P95 `7043.9 ms`, TPOT
+  `25.5 ms`, Throughput `83.64 tok/s`, Cost/req `4.900 mUSD`, CE `67.48`.
+- Compared with the latest closed-loop s10 vLLM run, request-path latency is
+  stable or better: TTFT Avg `495.3 -> 424.1 ms`, Service TTFT
+  `476.1 -> 411.0 ms`, Dispatch Wait `19.2 -> 13.0 ms`, E2E Avg
+  `3145.3 -> 3024.6 ms`, TPOT `26.0 -> 25.5 ms`. CE changes
+  `71.52 -> 67.48` because true-remote staging increases lifecycle cost.
+- The active queue has moved to the remaining `load_s10` systems.
