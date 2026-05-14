@@ -535,3 +535,24 @@ Additional completed step:
   `/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260514_real_remote_fullfigs_v1_load_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1/compare/`.
 - The active queue has moved to the adapter-pool sensitivity mirror, starting
   with `a100 / SGLang / Llama-2-7B`.
+
+Additional completed step:
+
+- `adapter_pool a100 / SGLang / Llama-2-7B`: `4000/4000` completed, `fail=0`,
+  no `trace_expected` fallback.
+- This round uses the true remote endpoint `http://192.168.4.174:18081` with
+  `sglang_lora_registration_mode=dynamic_remote` and a round-local
+  `remote_cache/sglang`.
+- Metrics: TTFT Avg `278.3 ms`, TTFT P95 `384.6 ms`, Service TTFT
+  `247.9 ms`, Dispatch Wait `30.4 ms`, E2E Avg `2406.0 ms`, E2E P95
+  `5597.7 ms`, TPOT `19.7 ms`, Throughput `105.12 tok/s`, Cost/req
+  `3.602 mUSD`, CE `115.37`.
+- Compared with the latest closed-loop a100 SGLang run, the trend is stable:
+  TTFT Avg `225.6 -> 278.3 ms`, TTFT P95 `300.6 -> 384.6 ms`, Service TTFT
+  `210.4 -> 247.9 ms`, Dispatch Wait `15.3 -> 30.4 ms`, E2E Avg
+  `2374.9 -> 2406.0 ms`, TPOT `19.9 -> 19.7 ms`, Throughput
+  `105.64 -> 105.12 tok/s`, Cost/req `3.587 -> 3.602 mUSD`, CE
+  `117.39 -> 115.37`. The small delta is consistent with true-remote
+  materialization/control realism and does not change the system ordering.
+- The active queue has moved to `adapter_pool a100 / ServerlessLLM /
+  Llama-2-7B`; its probe has confirmed a real remote LoRA fetch.
