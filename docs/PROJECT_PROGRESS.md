@@ -579,3 +579,26 @@ Additional completed step:
 - The active queue has moved to `adapter_pool a100 / vLLM / Llama-2-7B`.
   vLLM already materialized 100 adapters from the true remote endpoint into the
   round-local `remote_cache/vllm` and is replaying with `fail=0`.
+
+Additional completed step:
+
+- `adapter_pool a100 / vLLM / Llama-2-7B`: `4000/4000` completed, `fail=0`,
+  no `trace_expected` fallback.
+- vLLM materialized all 100 adapters from `http://192.168.4.174:18081` into
+  the round-local `remote_cache/vllm` before replay; staging took about
+  `105.1 s`.
+- Metrics: TTFT Avg `450.5 ms`, TTFT P95 `1088.2 ms`, Service TTFT
+  `437.2 ms`, Dispatch Wait `13.3 ms`, E2E Avg `3087.8 ms`, E2E P95
+  `7133.9 ms`, TPOT `25.9 ms`, Throughput `104.62 tok/s`, Cost/req
+  `3.702 mUSD`, CE `87.48`.
+- Compared with the latest closed-loop a100 vLLM run, request-path metrics are
+  stable or slightly better: TTFT Avg `462.5 -> 450.5 ms`, TTFT P95
+  `1123.3 -> 1088.2 ms`, Service TTFT `449.2 -> 437.2 ms`, Dispatch Wait
+  `13.3 -> 13.3 ms`, E2E Avg `3111.3 -> 3087.8 ms`, TPOT
+  `26.0 -> 25.9 ms`, Throughput `104.59 -> 104.62 tok/s`. Cost/req changes
+  `3.601 -> 3.702 mUSD` and CE changes `89.26 -> 87.48`, which is consistent
+  with true-remote staging entering lifecycle accounting.
+- The active queue has moved to `adapter_pool a100 / S-LoRA / Llama-2-7B`.
+  S-LoRA is using the normal packed-BGMV path for Llama-2-7B (`bmm=0`,
+  requested `auto`, reason `packed_bgmv`) and has staged 100 adapters from the
+  true remote endpoint.
