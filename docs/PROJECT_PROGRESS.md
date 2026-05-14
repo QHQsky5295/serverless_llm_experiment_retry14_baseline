@@ -648,3 +648,26 @@ Additional completed step:
 - The active queue has moved to `adapter_pool a200 / ServerlessLLM /
   Llama-2-7B`; its probe confirmed a real remote fetch of `medical_lora`
   from `http://192.168.4.174:18081`.
+
+Additional completed step:
+
+- `adapter_pool a200 / ServerlessLLM / Llama-2-7B`: `4000/4000` completed,
+  `fail=0`, no `trace_expected` fallback.
+- The real-remote probe fetched `medical_lora` from
+  `http://192.168.4.174:18081` (`2367.7 ms`, `20938679` bytes).
+- Metrics: TTFT Avg `236534.7 ms`, TTFT P95 `469859.1 ms`, Service TTFT
+  `395.9 ms`, Dispatch Wait `236138.9 ms`, E2E Avg `239100.8 ms`,
+  E2E P95 `472865.9 ms`, TPOT `25.1 ms`, Throughput `98.42 tok/s`,
+  Cost/req `2.675 mUSD`, CE `1.56`.
+- Compared with the latest closed-loop a200 ServerlessLLM run, the trend is
+  effectively unchanged: TTFT Avg `236449.9 -> 236534.7 ms`, TTFT P95
+  `470263.8 -> 469859.1 ms`, Service TTFT `394.3 -> 395.9 ms`,
+  Dispatch Wait `236055.6 -> 236138.9 ms`, E2E Avg
+  `239021.7 -> 239100.8 ms`, TPOT `25.1 -> 25.1 ms`, Throughput
+  `98.38 -> 98.42 tok/s`, Cost/req `2.672 -> 2.675 mUSD`, CE
+  `1.57 -> 1.56`. The dominant bottleneck remains upstream
+  admission/scale-out readiness, not backend generation or the real-remote
+  artifact fetch itself.
+- The active queue has moved to `adapter_pool a200 / vLLM / Llama-2-7B`,
+  materializing 200 adapters from the same true-remote endpoint into the
+  round-local `remote_cache/vllm`.
