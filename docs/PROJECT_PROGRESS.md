@@ -627,3 +627,24 @@ Additional completed step:
   vLLM `87.48`, S-LoRA `79.41`, ServerlessLLM `1.57`.
 - The active queue has advanced to `adapter_pool a200 / Llama-2-7B` with the
   same true-remote endpoint and bandwidth setting.
+
+Additional completed step:
+
+- `adapter_pool a200 / SGLang / Llama-2-7B`: `4000/4000` completed, `fail=0`,
+  no `trace_expected` fallback.
+- Configuration: `sglang_lora_registration_mode=dynamic_remote`, true remote
+  endpoint `http://192.168.4.174:18081`, round-local `remote_cache/sglang`.
+- Metrics: TTFT Avg `289.3 ms`, TTFT P95 `532.7 ms`, Service TTFT
+  `251.6 ms`, Dispatch Wait `37.7 ms`, E2E Avg `2403.9 ms`, E2E P95
+  `5602.2 ms`, TPOT `19.7 ms`, Throughput `104.41 tok/s`, Cost/req
+  `3.577 mUSD`, CE `116.30`.
+- Compared with the latest closed-loop a200 SGLang run, throughput and cost are
+  effectively unchanged while true-remote adds a small upstream/TTFT cost:
+  TTFT Avg `227.0 -> 289.3 ms`, TTFT P95 `303.0 -> 532.7 ms`, Service TTFT
+  `211.8 -> 251.6 ms`, Dispatch Wait `15.2 -> 37.7 ms`, E2E Avg
+  `2351.3 -> 2403.9 ms`, TPOT `19.9 -> 19.7 ms`, Throughput
+  `104.38 -> 104.41 tok/s`, Cost/req `3.584 -> 3.577 mUSD`, CE
+  `118.67 -> 116.30`. The system ordering and adapter-pool trend are stable.
+- The active queue has moved to `adapter_pool a200 / ServerlessLLM /
+  Llama-2-7B`; its probe confirmed a real remote fetch of `medical_lora`
+  from `http://192.168.4.174:18081`.
