@@ -402,3 +402,15 @@ Important repository rule: FaaSLoRA changes and final true-remote figure/data
 snapshots must be pushed to `faaslora_origin retry14_continuous_queue_v2`; the
 `origin` remote in this checkout points to the baseline harness repository and
 must not be used for FaaSLoRA V2 synchronization.
+
+Additional completed step:
+
+- `load_s12 / ServerlessLLM / Llama-2-7B`: `4000/4000` completed, `fail=0`, no
+  `trace_expected` fallback.
+- Compared with the latest closed-loop s12 ServerlessLLM run, true-remote
+  changes are small: TTFT Avg `10950.1 -> 11220.7 ms`, Service TTFT
+  `400.1 -> 403.9 ms`, Dispatch Wait `10550.0 -> 10816.9 ms`, Cost/req
+  `3.248 -> 3.258 mUSD`, CE `22.83 -> 22.32`. The bottleneck remains upstream
+  dispatch/admission/startup-readiness, not backend generation.
+- The active queue has moved to `load_s12 / vLLM / Llama-2-7B`, materializing the
+  500-adapter subset from the true remote endpoint before replay.
