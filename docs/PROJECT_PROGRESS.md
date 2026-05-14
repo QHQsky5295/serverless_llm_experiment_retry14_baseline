@@ -428,3 +428,33 @@ Additional completed step:
   `25.7 -> 25.3 ms`. CE changes `62.76 -> 58.53` because the true-remote
   staging cost is included in lifecycle cost.
 - The active queue has moved to `load_s12 / S-LoRA / Llama-2-7B`.
+
+Additional completed step:
+
+- `load_s12 / S-LoRA / Llama-2-7B`: `4000/4000` completed, `fail=0`, no
+  `trace_expected` fallback.
+- S-LoRA used the normal Llama-2-7B packed-BGMV path (`bmm=0`, requested
+  `auto`, reason `packed_bgmv`) rather than the 13B BMM workaround.
+- S-LoRA materialized all 500 adapters from `http://192.168.4.174:18081` before
+  replay; staging took about `543.8 s` and used the round-local
+  `remote_cache/slora` directory.
+- Compared with the latest closed-loop s12 S-LoRA run, request-path behavior is
+  stable and even slightly faster in this run: TTFT Avg `560.4 -> 264.9 ms`,
+  TTFT P95 `826.8 -> 334.8 ms`, Service TTFT `544.5 -> 246.7 ms`, Dispatch
+  Wait `15.9 -> 18.2 ms`, E2E Avg `3948.4 -> 3477.1 ms`, TPOT
+  `29.2 -> 27.8 ms`, Throughput `77.57 -> 77.66 tok/s`. Cost/req increases
+  `5.362 -> 5.838 mUSD` and CE changes `47.23 -> 49.26` because true-remote
+  staging is included in lifecycle accounting.
+
+Additional completed step:
+
+- `load_s12 / FaaSLoRA-PrimeLoRA-vLLM / Llama-2-7B`: `4000/4000` completed and
+  validated in the shared five-system compare.
+- s12 true-remote compare metrics: TTFT Avg `502.5 ms`, E2E Avg `3028.0 ms`,
+  TPOT `28.2 ms`, Throughput `67.71 tok/s`, Cost/req `3.114 mUSD`, CE
+  `106.13`.
+- The s12 five-system compare has been written under:
+  `/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260514_real_remote_fullfigs_v1_load_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1/compare/`.
+- The active queue is expected to continue to the remaining true-remote
+  operating-load, adapter-pool, ablation/readiness/control-path, and final
+  figure-build stages.
