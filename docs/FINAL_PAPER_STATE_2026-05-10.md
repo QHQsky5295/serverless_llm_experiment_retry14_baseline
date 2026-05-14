@@ -115,3 +115,30 @@ Before pushing, verify that only intentional files are staged. The local
 generated file `configs/generated/lora_manifest_1000.json` may be dirty from
 experiments and should not be committed unless it is intentionally regenerated
 for the final artifact pool.
+
+## Update: 2026-05-14 True-Remote Remote-Fair Snapshot
+
+真实两节点 remote artifact 复查已完成，且没有覆盖旧 `final_v2` 和旧 `figs/`
+结果。新增可恢复输出为：
+
+- `paper_results/final_remote_fair_real_remote_v1/`
+- `figs/paper/main_remote_fair_real_remote_v1_7b3b/`
+- `figs/paper/backend_portability_real_remote_v1_7b3b/`
+- `figs_remote/`
+
+`figs_remote/` 是与原 `figs/` 并行的全量镜像包：主比较与 backend portability
+使用 true-remote 数据，其它没有 true-remote formal run 的图表保留旧闭环版本。
+
+趋势判断：不建议把当前论文主数据整体替换成 true-remote。true-remote 保持了
+一开始闭环数据的主要排序与机制解释：7B/3B 中 PrimeLoRA 仍为 CE 第一，
+SGLang 仍是低原始延迟代表，ServerlessLLM 仍由 dispatch/admission backlog
+主导。true-remote 主要放大 cold/startup/first-touch tail 和部分 staging cost，
+适合作为 remote artifact realism / robustness evidence，而不是替换稳定主表。
+
+true-remote 7B+3B 主表中：
+
+- Llama-2 7B：PrimeLoRA CE `118.84`，SGLang CE `114.47`。
+- Llama-3.2 3B：PrimeLoRA CE `212.55`，SGLang CE `185.66`。
+
+13B true-remote 已完成但只作为诊断数据保留：PrimeLoRA-vLLM CE `60.35`，
+SGLang CE `85.83`，因此不合并进当前主论文主表。

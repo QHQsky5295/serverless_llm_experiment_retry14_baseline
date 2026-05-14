@@ -217,6 +217,28 @@ S-LoRA
 
 Punica is retained as a scoped Llama-2 7B auxiliary baseline only.
 
+## True-Remote Remote-Fair Status: 2026-05-14
+
+真实两节点 remote artifact 复查已闭环，且没有覆盖旧 `final_v2` 数据：
+
+- curated snapshot:
+  `paper_results/final_remote_fair_real_remote_v1/`
+- full figure/table mirror:
+  `figs_remote/`
+- main true-remote tables/figure:
+  `figs/paper/main_remote_fair_real_remote_v1_7b3b/`
+- backend portability true-remote tables/figure:
+  `figs/paper/backend_portability_real_remote_v1_7b3b/`
+
+有效主表候选仍是 Llama-2 7B + Llama-3.2 3B。true-remote 口径下
+PrimeLoRA-vLLM 分别取得 CE `118.84` 和 `212.55`，均为对应模型组第一。
+Llama-2 13B true-remote 数据保留为诊断，不合并进主表，因为当前同口径下
+SGLang CE `85.83` 高于 PrimeLoRA-vLLM CE `60.35`。
+
+所有 true-remote formal summary 均满足 `completed=4000/4000`、`fail=0`、
+无 `trace_expected` fallback。失败的 SGLang 13B partial round 已标记为
+`INVALID_DO_NOT_USE.txt`，不进入表图或 snapshot。
+
 ## Model Source Paths
 
 The active paper profiles read backbone weights from the older shared model

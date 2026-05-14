@@ -1,0 +1,33 @@
+{
+  "artifact": "main_llama_family_tables_and_lifecycle_figure",
+  "generated_at_utc": "2026-05-14T02:00:45.554660+00:00",
+  "models": [
+    {
+      "label": "Llama-2 7B",
+      "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_012813_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1",
+      "sources": [
+        "/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real_remote_v1_faaslora_vllm_real_remote_v1.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_012813_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_sglang_dp_tpprofile_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_012813_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_vllm_dp4_tp1_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_012813_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_012813_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_serverlessllm_summary.json"
+      ]
+    },
+    {
+      "label": "Llama-3.2 3B",
+      "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1",
+      "sources": [
+        "/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real_remote_v1_faaslora_vllm_real_remote_v1.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_sglang_dp_tpprofile_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_vllm_dp4_tp1_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_serverlessllm_summary.json"
+      ]
+    }
+  ],
+  "outputs": {
+    "table1": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main_remote_fair_real_remote_v1_7b3b/table1_end_to_end.tex",
+    "ttft_decomposition": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main_remote_fair_real_remote_v1_7b3b/table_ttft_decomposition.tex",
+    "fig7": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main_remote_fair_real_remote_v1_7b3b/fig7_lifecycle_cost.pdf"
+  }
+}

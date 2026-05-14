@@ -1,0 +1,2 @@
+fig_scaleout_first_service.pdf: Skipped as a paper figure because scaleup_first_service has fewer than 20 samples per scenario (minimum observed n=6).
+fig_control_plane_overhead.pdf: Skipped because archived results do not contain routing_decision_us, gpu_admission_decision_us, or control_plane_total_us.

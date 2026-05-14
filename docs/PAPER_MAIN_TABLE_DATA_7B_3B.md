@@ -79,3 +79,35 @@ PrimeLoRA-SGLang is a measured run. The authoritative files are:
 | Llama-3.2 3B | vLLM | PrimeLoRA | 881.3 | 112.9 | 1.409 | 241.20 |
 | Llama-3.2 3B | SGLang | Standalone | 120.9 | 113.1 | 3.626 | 199.88 |
 | Llama-3.2 3B | SGLang | PrimeLoRA | 133.8 | 113.0 | 1.166 | 579.92 |
+
+## True-Remote Remote-Fair Candidate: 2026-05-14
+
+新增真实两节点 remote artifact 复查结果，不覆盖旧主表目录：
+
+- `figs/paper/main_remote_fair_real_remote_v1_7b3b/table1_end_to_end.tex`
+- `figs/paper/main_remote_fair_real_remote_v1_7b3b/table1_end_to_end_data.csv`
+- `figs/paper/main_remote_fair_real_remote_v1_7b3b/table_ttft_decomposition.tex`
+- `figs/paper/main_remote_fair_real_remote_v1_7b3b/fig7_lifecycle_cost.pdf`
+- `figs_remote/paper/main/`
+- `paper_results/final_remote_fair_real_remote_v1/`
+
+true-remote 口径下，7B 和 3B 仍满足 PrimeLoRA CE 第一；13B 只保留为诊断：
+
+| Model | System | TTFT Avg | E2E Avg | TPOT Avg | Throughput | Cost/req | CE |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Llama-2 7B | SGLang | 274.5 | 2427.4 | 20.0 | 105.4 | 3.599 | 114.47 |
+| Llama-2 7B | vLLM | 500.7 | 3151.0 | 26.1 | 104.6 | 4.066 | 78.04 |
+| Llama-2 7B | S-LoRA | 325.5 | 3790.5 | 29.9 | 116.4 | 4.151 | 63.56 |
+| Llama-2 7B | ServerlessLLM | 236575.7 | 239156.8 | 25.1 | 98.5 | 2.692 | 1.55 |
+| Llama-2 7B | PrimeLoRA | 657.2 | 3265.4 | 29.8 | 102.0 | 2.577 | 118.84 |
+| Llama-3.2 3B | SGLang | 228.6 | 1485.5 | 11.1 | 112.9 | 3.626 | 185.66 |
+| Llama-3.2 3B | vLLM | 455.3 | 2564.3 | 20.3 | 112.8 | 3.609 | 108.04 |
+| Llama-3.2 3B | S-LoRA | 305.9 | 7758.0 | 134.0 | 119.2 | 4.681 | 27.54 |
+| Llama-3.2 3B | ServerlessLLM | 237443.8 | 239093.6 | 14.9 | 107.2 | 2.291 | 1.83 |
+| Llama-3.2 3B | PrimeLoRA | 1087.2 | 3286.2 | 34.9 | 112.9 | 1.432 | 212.55 |
+
+结论：如果论文已经采用一开始闭环的稳定主表，没有必要整体替换成 true-remote。
+true-remote 更适合作为真实性增强和 robustness evidence。完整差异见：
+
+- `figs_remote/remote_trend_analysis.csv`
+- `figs_remote/paper/main/compare_vs_local_sim.md`

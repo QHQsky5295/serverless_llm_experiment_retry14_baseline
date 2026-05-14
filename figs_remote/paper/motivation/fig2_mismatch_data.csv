@@ -1,0 +1,9 @@
+panel,system,benchmark,category,field,count,avg_ms,p95_ms,startup_affected_count,first_service_count,total_requests
+all_request_ttft_path,ServerlessLLM,Llama-2-7B / 4000 requests / 500 adapters / Zipf 1.0 / hot set 48 / rotation 500 / time scale 8,All requests,overall_ttft_ms,4000,235998.65813856953,469501.74410357134,,,
+all_request_ttft_path,ServerlessLLM,Llama-2-7B / 4000 requests / 500 adapters / Zipf 1.0 / hot set 48 / rotation 500 / time scale 8,Admission/dispatch wait,dispatch_admission_wait_ms,4000,235580.4134867155,469179.4897624116,,,
+all_request_ttft_path,ServerlessLLM,Llama-2-7B / 4000 requests / 500 adapters / Zipf 1.0 / hot set 48 / rotation 500 / time scale 8,Runtime TTFT,runtime_ttft_ms,4000,418.24465185403824,592.172110080719,,,
+startup_path,ServerlessLLM,Llama-2-7B / 4000 requests / 500 adapters / Zipf 1.0 / hot set 48 / rotation 500 / time scale 8,Startup affected,overall_ttft_ms,29,32374.73167558572,48498.12983662414,,,
+startup_path,ServerlessLLM,Llama-2-7B / 4000 requests / 500 adapters / Zipf 1.0 / hot set 48 / rotation 500 / time scale 8,Cold-start latency,cold_start_latency_ms,29,53434.391498565674,57732.04674720764,,,
+startup_path,ServerlessLLM,Llama-2-7B / 4000 requests / 500 adapters / Zipf 1.0 / hot set 48 / rotation 500 / time scale 8,Admission/dispatch wait,dispatch_admission_wait_ms,29,32032.03417851383,48233.76406819152,,,
+startup_path,ServerlessLLM,Llama-2-7B / 4000 requests / 500 adapters / Zipf 1.0 / hot set 48 / rotation 500 / time scale 8,Runtime TTFT,runtime_ttft_ms,29,342.697497071891,515.8886909484862,,,
+startup_counts,ServerlessLLM,Llama-2-7B / 4000 requests / 500 adapters / Zipf 1.0 / hot set 48 / rotation 500 / time scale 8,,,,,,29,4,4000

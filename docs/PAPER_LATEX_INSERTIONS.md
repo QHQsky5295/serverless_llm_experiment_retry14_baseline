@@ -12,9 +12,19 @@ Current final snapshot, 2026-05-10:
 - Main comparison uses Llama-2 7B and Llama-3.2 3B, both with 4000 requests,
   500 adapters, and s8 replay scale.
 - Final source-data snapshot: `paper_results/final_v2/`.
+- True-remote remote-fair source-data snapshot:
+  `paper_results/final_remote_fair_real_remote_v1/`.
+- True-remote non-overwriting full figure/table mirror: `figs_remote/`.
 - PrimeLoRA-SGLang backend sensitivity is a measured implementation/run.
 - Historical 13B/1B/Qwen/debug rounds are not part of the final main paper
   tables.
+
+2026-05-14 note: if the paper chooses to emphasize true two-node remote artifact
+realism, use the non-overwriting paths `figs_remote/`,
+`figs/paper/main_remote_fair_real_remote_v1_7b3b/`, and
+`figs/paper/backend_portability_real_remote_v1_7b3b/`. The older
+`figs/paper/main/` and `figs/paper/backend_portability/` paths remain the
+local-sim closed-loop paper snapshot.
 
 参考同类系统论文的组织方式，主文应遵守下面的证据边界：
 

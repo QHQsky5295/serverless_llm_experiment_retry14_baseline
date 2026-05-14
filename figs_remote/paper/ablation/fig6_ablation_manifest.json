@@ -1,0 +1,34 @@
+{
+  "figure": "fig6_ablation",
+  "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1",
+  "generated_at_utc": "2026-04-29T02:21:27.017120+00:00",
+  "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/ablation/fig6_ablation.pdf",
+  "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/ablation/fig6_ablation_data.csv",
+  "sources": [
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1_faaslora_nvme_result.json",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1_faaslora_no_coord_result.json",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1_faaslora_full_result.json"
+  ],
+  "model": "Llama-2-7B",
+  "scenario_labels": [
+    "NVMe",
+    "NoCoord",
+    "Full"
+  ],
+  "reference": "NVMe",
+  "layout": "single-column transposed matrix; rows are implemented variants and columns are metrics",
+  "fields_used": [
+    "avg_overall_ttft_ms",
+    "p95_overall_ttft_ms",
+    "avg_overall_e2e_ms",
+    "p95_overall_e2e_ms",
+    "avg_tpot_ms",
+    "request_level_tpot_ms_p95",
+    "throughput_tok_per_s",
+    "avg_dispatch_wait_ms",
+    "avg_lora_io_ms",
+    "monetary_cost_per_request_usd",
+    "monetary_ce"
+  ],
+  "cell_semantics": "Each cell reports absolute value plus signed change relative to NVMe; positive change means better."
+}

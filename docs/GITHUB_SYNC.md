@@ -77,3 +77,19 @@ The operating-load queue `20260427_112832_load_operating_p0` completed on
 `2026-04-28 03:41 CST`. Push only paper-facing derived artifacts from that
 queue unless raw result directories have been explicitly audited for size and
 paper relevance.
+
+## Latest Known Sync Scope: 2026-05-14
+
+In addition to `paper_results/final_v2/`, the true-remote remote-fair snapshot
+and full non-overwriting figure mirror should be tracked:
+
+- `paper_results/final_remote_fair_real_remote_v1/`
+- `figs_remote/`
+- `figs/paper/main_remote_fair_real_remote_v1_7b3b/`
+- `figs/paper/backend_portability_real_remote_v1_7b3b/`
+
+The snapshot contains only compressed final summary JSON files, generated
+CSV/TEX/PDF artifacts, manifests, checksums, and local-sim comparison tables.
+Do not commit whole timestamped result directories or failed/debug rounds.
+Continue to leave `configs/generated/lora_manifest_1000.json` unstaged unless
+it is intentionally regenerated for a separate manifest update.

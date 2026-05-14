@@ -2748,11 +2748,17 @@ class InferenceEngine:
                 return str(candidate)
         return sys.executable
 
-    def _build_sglang_launch_spec(self, *, port: int) -> Dict[str, Any]:
+    def _build_sglang_launch_spec(self, *, port: int, nccl_port: int) -> Dict[str, Any]:
+        max_running = self.model_cfg.get(
+            "sglang_max_running_requests",
+            self.model_cfg.get("max_num_seqs"),
+        )
+        max_running_requests = max(1, int(max_running or 1)) if max_running is not None else 0
         max_loras = max(1, int(self.model_cfg.get("max_loras", 4) or 4))
+        max_loras_per_batch = max(max_loras, max_running_requests or 1)
         max_cpu_loras = max(
-            max_loras,
-            int(self.model_cfg.get("max_cpu_loras", max(24, max_loras)) or max(24, max_loras)),
+            max_loras_per_batch,
+            int(self.model_cfg.get("max_cpu_loras", max(24, max_loras_per_batch)) or max(24, max_loras_per_batch)),
         )
         max_batched_tokens = int(self.model_cfg.get("max_num_batched_tokens", 1024) or 1024)
         chunked = self.model_cfg.get("enable_chunked_prefill")
@@ -2761,6 +2767,7 @@ class InferenceEngine:
             "model-path": self.model_cfg.get("name", "Qwen/Qwen2.5-3B-Instruct"),
             "host": "127.0.0.1",
             "port": int(port),
+            "nccl-port": int(nccl_port),
             "served-model-name": str(self.model_cfg.get("served_model_name") or "primelora-sglang"),
             "trust-remote-code": True,
             "tp": max(1, int(self.model_cfg.get("tensor_parallel_size", 1) or 1)),
@@ -2770,7 +2777,7 @@ class InferenceEngine:
             "enable-lora": True,
             "max-lora-rank": int(self.model_cfg.get("max_lora_rank", 64) or 64),
             "lora-target-modules": ["all"],
-            "max-loras-per-batch": max_loras,
+            "max-loras-per-batch": max_loras_per_batch,
             "max-loaded-loras": max_cpu_loras,
             "chunked-prefill-size": int(chunked_prefill_size),
             "enable-metrics": True,
@@ -2780,9 +2787,8 @@ class InferenceEngine:
         lora_backend = str(self.model_cfg.get("sglang_lora_backend") or "").strip()
         if lora_backend:
             spec["lora-backend"] = lora_backend
-        max_running = self.model_cfg.get("sglang_max_running_requests")
-        if max_running is not None:
-            spec["max-running-requests"] = max(1, int(max_running or 1))
+        if max_running_requests > 0:
+            spec["max-running-requests"] = max_running_requests
         if self.model_cfg.get("enable_prefix_caching") is False:
             spec["disable-radix-cache"] = True
         if bool(self.model_cfg.get("sglang_disable_cuda_graph", False)):
@@ -2823,6 +2829,7 @@ class InferenceEngine:
         tp = max(1, int(self.model_cfg.get("tensor_parallel_size", 1) or 1))
         visible_devices = self._resolve_vllm_visible_devices(tp)
         port = self._reserve_loopback_port()
+        nccl_port = self._reserve_loopback_port()
         workdir_base_raw = str(self.model_cfg.get("sglang_workdir_base", "") or "").strip()
         if workdir_base_raw:
             workdir_base = Path(workdir_base_raw).expanduser()
@@ -2832,7 +2839,7 @@ class InferenceEngine:
             workdir = Path(tempfile.mkdtemp(prefix="faaslora_sglang_", dir="/tmp"))
         metrics_dir = workdir / "metrics"
         metrics_dir.mkdir(parents=True, exist_ok=True)
-        launch_spec = self._build_sglang_launch_spec(port=port)
+        launch_spec = self._build_sglang_launch_spec(port=port, nccl_port=nccl_port)
         spec_path = workdir / "launch.yaml"
         log_path = workdir / "sglang_server.log"
         spec_path.write_text(yaml.safe_dump(launch_spec, sort_keys=False), encoding="utf-8")
@@ -2894,6 +2901,7 @@ class InferenceEngine:
         print(f"    GPU                = {GPU_NAME} (x{GPU_COUNT})")
         print(f"    tensor_parallel    = {tp}")
         print(f"    base_url           = {self._sglang_base_url}")
+        print(f"    nccl_port          = {nccl_port}")
         print(f"    max_model_len      = {launch_spec['context-length']}")
         if "max-running-requests" in launch_spec:
             print(f"    max_running_reqs   = {launch_spec['max-running-requests']}")

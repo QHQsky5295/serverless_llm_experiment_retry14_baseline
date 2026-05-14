@@ -1,0 +1,9 @@
+panel,category,count,ttft_avg_ms,ttft_p95_ms,metric,rate
+request_category_ttft,GPU-ready,3832,521.474427494578,906.4754657403677,,
+request_category_ttft,"Scale-up
+affected",114,852.8356762205173,2326.48463181976,,
+request_category_ttft,"First
+service",6,6326.74484012144,10814.441992391949,,
+scaleup_readiness_rate,,,,,Runtime GPU-hit,0.95956
+scaleup_readiness_rate,,,,,First-service GPU-hit,0.666667
+scaleup_readiness_rate,,,,,First-service planned match,0.666667

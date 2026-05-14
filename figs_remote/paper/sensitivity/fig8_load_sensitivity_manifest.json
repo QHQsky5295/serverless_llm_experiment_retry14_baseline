@@ -1,0 +1,15 @@
+{
+  "figure": "fig8_load_sensitivity",
+  "generated_at_utc": "2026-04-29T07:34:42.891629+00:00",
+  "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig8_load_sensitivity.pdf",
+  "trend_pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig8_load_sensitivity_trends.pdf",
+  "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig8_load_sensitivity_data.csv",
+  "metric_values_csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/fig8_load_sensitivity_metric_values.csv",
+  "table_tex": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/table_fig8_load_sensitivity_metrics.tex",
+  "round_dirs": [
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260427_112832_load_operating_p0_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1"
+  ],
+  "note": "Panels (a) and (b) compare all five systems on CE and lifecycle cost across average trace replay rates of 0.67, 0.81, and 1.01 req/s on the fixed 4-GPU testbed. This is deployment-local replay intensity, not fleet-wide production QPS. Panel (c) reports concrete metric values for all five systems and all three load points; all cell values are rounded to three decimals, and colors mark within-metric, within-load favorability with lower-is-better for latency/cost and higher-is-better for CE/throughput. Units: TTFT/E2E in seconds, TPOT in ms, throughput in tok/s, and cost in milli-USD. The accompanying table reports all primary metrics for all systems and load points. The trend_pdf contains only panels (a) and (b) for a cleaner main-text option paired with the LaTeX table."
+}

@@ -1,0 +1,8 @@
+# Remote-Fair Result Comparison
+
+| Model | System | Completed | TTFT Avg Δ | E2E Avg Δ | Cost Δ | CE Δ | Source |
+|---|---:|---:|---:|---:|---:|---:|---|
+| Llama-2 13B | ServerlessLLM | 4000/4000 | n/a | n/a | n/a | n/a | `/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_074336_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_serverlessllm_summary.json` |
+| Llama-2 13B | SGLang | 4000/4000 | n/a | n/a | n/a | n/a | `/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_074336_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_sglang_dp_tpprofile_summary.json` |
+| Llama-2 13B | S-LoRA | 4000/4000 | n/a | n/a | n/a | n/a | `/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_074336_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp1_tp4_summary.json` |
+| Llama-2 13B | vLLM | 4000/4000 | n/a | n/a | n/a | n/a | `/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_074336_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_vllm_dp2_tp2_summary.json` |

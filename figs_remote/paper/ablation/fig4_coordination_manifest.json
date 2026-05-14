@@ -1,0 +1,11 @@
+{
+  "figure": "fig4_coordination",
+  "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1",
+  "generated_at_utc": "2026-04-27T15:55:24.635402+00:00",
+  "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/ablation/fig4_coordination.pdf",
+  "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/ablation/fig4_coordination_data.csv",
+  "sources": [
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1_faaslora_no_coord_result.json",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1_faaslora_full_result.json"
+  ]
+}

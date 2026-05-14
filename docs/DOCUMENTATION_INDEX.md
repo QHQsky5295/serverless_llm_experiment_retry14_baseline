@@ -52,6 +52,14 @@ older progress files only as historical experiment evidence.
   raw JSON summaries and table/figure CSV/TEX files. This is the data directory
   that should be synced to GitHub. It intentionally excludes failed/debug/old
   exploratory rounds.
+- `../paper_results/final_remote_fair_real_remote_v1/`: non-overwriting
+  true-remote remote-fair snapshot, including compressed source summaries,
+  generated main/backend-portability tables and figures, comparison files, and
+  checksums.
+- `../figs_remote/`: full non-overwriting figure/table mirror. Main comparison
+  and backend portability use true-remote data; other figure families are copied
+  from the closed-loop `figs/` snapshot because they were not rerun under
+  true-remote.
 
 ## Removed As Obsolete
 

@@ -138,3 +138,30 @@ vLLM-specific runtime optimization.
 若使用简单“非空且非 `#` 开头”口径，则 `faaslora/` 为 17.0K，`scripts/`
 为 24.3K。论文中建议采用 `cloc` 口径，并写明 “measured with
 \texttt{cloc}”。
+
+## 2026-05-14 True-Remote Backend Portability 复查
+
+真实两节点 remote artifact 口径下，backend portability 表图单独生成在：
+
+- `figs/paper/backend_portability_real_remote_v1_7b3b/table_backend_portability.tex`
+- `figs/paper/backend_portability_real_remote_v1_7b3b/table_backend_portability_data.csv`
+- `figs/paper/backend_portability_real_remote_v1_7b3b/table_backend_portability_ttft_decomposition.tex`
+- `figs/paper/backend_portability_real_remote_v1_7b3b/fig_backend_portability_lifecycle_cost.pdf`
+- `figs_remote/paper/backend_portability/`
+
+true-remote 结果：
+
+| Model | Backend | System | TTFT Avg | Throughput | Cost/req | CE |
+|---|---|---|---:|---:|---:|---:|
+| Llama-2 7B | vLLM | Standalone | 500.7 ms | 104.6 tok/s | 4.066 mUSD | 78.04 |
+| Llama-2 7B | vLLM | PrimeLoRA | 657.2 ms | 102.0 tok/s | 2.577 mUSD | 118.84 |
+| Llama-2 7B | SGLang | Standalone | 274.5 ms | 105.4 tok/s | 3.599 mUSD | 114.47 |
+| Llama-2 7B | SGLang | PrimeLoRA | 339.3 ms | 105.3 tok/s | 2.281 mUSD | 173.73 |
+| Llama-3.2 3B | vLLM | Standalone | 455.3 ms | 112.8 tok/s | 3.609 mUSD | 108.04 |
+| Llama-3.2 3B | vLLM | PrimeLoRA | 1087.2 ms | 112.9 tok/s | 1.432 mUSD | 212.55 |
+| Llama-3.2 3B | SGLang | Standalone | 228.6 ms | 112.9 tok/s | 3.626 mUSD | 185.66 |
+| Llama-3.2 3B | SGLang | PrimeLoRA | 327.6 ms | 113.0 tok/s | 1.213 mUSD | 466.57 |
+
+解释边界不变：这是 backend sensitivity，不替换 vLLM-backed 主实验；它说明
+PrimeLoRA 的 readiness-aware control plane 在 vLLM 和 SGLang matched backend
+下都能降低 lifecycle cost 并提高 CE。

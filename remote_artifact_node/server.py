@@ -124,7 +124,18 @@ class ArtifactHandler(BaseHTTPRequestHandler):
                 for item in sorted(artifact_dir.rglob("*")):
                     arcname = item.relative_to(artifact_dir)
                     if item.is_symlink():
-                        resolved = item.resolve(strict=True)
+                        # Frozen adapter pools may contain absolute support-file
+                        # symlinks into the staging host's model cache.  Those
+                        # links are not part of the LoRA payload and may be
+                        # dangling on a real remote artifact node.  Never let a
+                        # non-portable symlink abort the artifact response.
+                        try:
+                            resolved = item.resolve(strict=True)
+                        except FileNotFoundError:
+                            continue
+                        root = artifact_dir.resolve()
+                        if resolved != root and not str(resolved).startswith(str(root) + os.sep):
+                            continue
                         if resolved.is_file():
                             tar.add(resolved, arcname=arcname, recursive=False)
                         elif resolved.is_dir():
