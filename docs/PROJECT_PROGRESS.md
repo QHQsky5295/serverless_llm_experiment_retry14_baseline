@@ -476,3 +476,20 @@ Additional completed step:
 - The active queue has moved to `load_s10 / ServerlessLLM / Llama-2-7B`; the
   probe has already confirmed a real remote LoRA fetch from
   `http://192.168.4.174:18081`.
+
+Additional completed step:
+
+- `load_s10 / ServerlessLLM / Llama-2-7B`: `4000/4000` completed, `fail=0`, no
+  `trace_expected` fallback.
+- Metrics: TTFT Avg `38994.4 ms`, TTFT P95 `102383.7 ms`, Service TTFT
+  `413.6 ms`, Dispatch Wait `38580.8 ms`, E2E Avg `41535.7 ms`, TPOT
+  `24.9 ms`, Throughput `82.47 tok/s`, Cost/req `2.941 mUSD`, CE `8.19`.
+- Compared with the latest closed-loop s10 ServerlessLLM run, the true-remote
+  metrics remain nearly identical: TTFT Avg `38764.6 -> 38994.4 ms`, Service
+  TTFT `428.3 -> 413.6 ms`, Dispatch Wait `38336.4 -> 38580.8 ms`, E2E Avg
+  `41312.7 -> 41535.7 ms`, TPOT `25.0 -> 24.9 ms`, CE `8.20 -> 8.19`. The
+  bottleneck remains the ServerlessLLM upstream admission/scale-out path, not
+  backend token generation.
+- The active queue has moved to `load_s10 / vLLM / Llama-2-7B`, which is
+  materializing the 500-adapter subset from the true remote endpoint before
+  replay.
