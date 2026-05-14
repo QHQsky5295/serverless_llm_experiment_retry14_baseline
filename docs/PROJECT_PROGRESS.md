@@ -556,3 +556,26 @@ Additional completed step:
   materialization/control realism and does not change the system ordering.
 - The active queue has moved to `adapter_pool a100 / ServerlessLLM /
   Llama-2-7B`; its probe has confirmed a real remote LoRA fetch.
+
+Additional completed step:
+
+- `adapter_pool a100 / ServerlessLLM / Llama-2-7B`: `4000/4000`
+  completed, `fail=0`, no `trace_expected` fallback.
+- Probe confirmed a real remote artifact fetch before replay:
+  `finance_lora_0013` from `http://192.168.4.174:18081`, fetch time
+  `1008.3 ms`, payload `20938675` bytes.
+- Metrics: TTFT Avg `236283.2 ms`, TTFT P95 `469439.8 ms`, Service TTFT
+  `366.2 ms`, Dispatch Wait `235917.0 ms`, E2E Avg `238846.5 ms`, E2E P95
+  `472218.2 ms`, TPOT `25.0 ms`, Throughput `98.43 tok/s`, Cost/req
+  `2.660 mUSD`, CE `1.57`.
+- Compared with the latest closed-loop a100 ServerlessLLM run, the trend is
+  effectively unchanged: TTFT Avg `236174.0 -> 236283.2 ms`, Service TTFT
+  `367.5 -> 366.2 ms`, Dispatch Wait `235806.5 -> 235917.0 ms`, E2E Avg
+  `238742.2 -> 238846.5 ms`, TPOT `25.1 -> 25.0 ms`, Throughput
+  `98.40 -> 98.43 tok/s`, Cost/req `2.657 -> 2.660 mUSD`, CE
+  `1.58 -> 1.57`. This confirms that the ServerlessLLM bottleneck in this
+  adapter-pool point remains upstream admission/scale-out readiness, not token
+  generation or the remote artifact transport itself.
+- The active queue has moved to `adapter_pool a100 / vLLM / Llama-2-7B`.
+  vLLM already materialized 100 adapters from the true remote endpoint into the
+  round-local `remote_cache/vllm` and is replaying with `fail=0`.
