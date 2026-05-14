@@ -602,3 +602,28 @@ Additional completed step:
   S-LoRA is using the normal packed-BGMV path for Llama-2-7B (`bmm=0`,
   requested `auto`, reason `packed_bgmv`) and has staged 100 adapters from the
   true remote endpoint.
+
+Additional completed step:
+
+- `adapter_pool a100 / S-LoRA / Llama-2-7B`: `4000/4000` completed,
+  `fail=0`, no `trace_expected` fallback.
+- S-LoRA used the normal Llama-2-7B packed-BGMV path (`bmm=0`, requested
+  `auto`, reason `packed_bgmv`) and materialized all 100 adapters from
+  `http://192.168.4.174:18081` into the round-local `remote_cache/slora`;
+  staging took about `105.7 s`.
+- Metrics: TTFT Avg `260.9 ms`, TTFT P95 `335.9 ms`, Service TTFT
+  `245.8 ms`, Dispatch Wait `15.0 ms`, E2E Avg `3421.7 ms`, E2E P95
+  `7609.2 ms`, TPOT `27.2 ms`, Throughput `116.49 tok/s`, Cost/req
+  `3.680 mUSD`, CE `79.41`.
+- Compared with the latest closed-loop a100 S-LoRA run, the trend is stable:
+  TTFT Avg `262.5 -> 260.9 ms`, TTFT P95 `340.0 -> 335.9 ms`, Service TTFT
+  `247.3 -> 245.8 ms`, Dispatch Wait `15.2 -> 15.0 ms`, E2E Avg
+  `3511.7 -> 3421.7 ms`, TPOT `28.0 -> 27.2 ms`, Throughput
+  `116.49 -> 116.49 tok/s`, Cost/req `3.596 -> 3.680 mUSD`, CE
+  `79.19 -> 79.41`. True-remote staging does not alter the S-LoRA request-path
+  behavior at this adapter-pool point.
+- The full `adapter_pool a100` five-system true-remote round is complete.
+  PrimeLoRA-vLLM remains first in CE: PrimeLoRA `131.80`, SGLang `115.37`,
+  vLLM `87.48`, S-LoRA `79.41`, ServerlessLLM `1.57`.
+- The active queue has advanced to `adapter_pool a200 / Llama-2-7B` with the
+  same true-remote endpoint and bandwidth setting.
