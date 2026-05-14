@@ -43,6 +43,11 @@
 - `NVMe` 层必须对应本地持久化存储路径；
 - `REMOTE` 层必须对应远端源仓库、对象存储模拟目录或跨节点传输路径；
 - 成本中的 active/idle/lifecycle GPU seconds 必须来自真实 runtime lifecycle 或统一模拟审计，而不是硬编码常量。
+- 真实两节点 artifact node 必须能处理 frozen pool 中的 adapter 支持文件
+  symlink。若源池含有指向 staging 主机模型缓存的绝对 symlink，remote server
+  打包时必须跳过不可解析或越界 symlink，或 staging 时使用 dereference 复制；
+  禁止让 dangling symlink 以 `Empty reply`、半空 tarball 或静默 fallback 进入
+  正式 replay。
 
 对于 PrimeLoRA/FaaSLoRA，`HOST` adapter tier 通过 vLLM `LoRARequest`
 仍需要普通文件路径，因此正式实现使用 `/dev/shm/faaslora_host_cache`
@@ -157,6 +162,41 @@ shared trace 必须记录：
 EOS、`ignore_eos`、`min_tokens`、prompt guard 或 server tokenizer 语义差异。
 这类审计不是为了美化某个系统，而是为了防止输出长度差异被误解释为运行时
 性能差异。
+
+### 4.1 Remote artifact 公平性规则
+
+`remote-fair` 实验的公平目标是让所有系统面对同一个远端工件源，而不是让某个
+系统额外承担一条 remote path。执行时必须遵守以下口径：
+
+1. 所有系统使用同一个 shared trace、shared adapter subset 和同一个 remote
+   backing store。`local-sim` 用 `file://` remote endpoint 加统一带宽节流，
+   `real-remote` 用两节点 HTTP artifact endpoint；两者都必须写入独立 result
+   tag，不能覆盖已经闭环的数据。
+2. 如果系统本地 NVMe/HOST/GPU 或运行时 LoRA registry 中没有目标 adapter，
+   cold/first-touch materialization 必须从 remote endpoint 发生，并把该时间计入
+   对应系统生命周期或请求路径。禁止 baseline 直接读取本地 frozen pool 绕过
+   remote。
+3. materialization 之后，系统可以使用自己的本地缓存或运行时 residency 机制。
+   不能强制每个请求都重新从 remote 下载同一个 adapter；这既不符合实际工业
+   serving，也会破坏各系统原本的缓存/内存管理语义。
+4. 对静态 serverful baseline，允许在启动前从 remote stage 整个 selected subset，
+   但 staging 时间必须计入 lifecycle cost。对动态 LoRA baseline，允许在请求首次
+   触达某 adapter 时从 remote materialize 到本地 cache，再通过运行时 API 加载。
+   对 S-LoRA，remote stage 后进入其论文语义中的 host/main-memory adapter pool；
+   对 ServerlessLLM，request-path 或 startup-path remote materialization 必须与
+   其 checkpoint/locality 语义一致。
+5. PrimeLoRA 的创新不应建立在“只有它走 remote”的不公平假设上，而应体现在
+   remote/NVMe/HOST/GPU residency、routing、scale-out preparation 和 GPU admission
+   的联动减少重复 remote fetch 与 service-readiness gap。
+
+该口径与同类系统和工业实践一致：KServe 的 storage initializer 会先把远端模型
+工件下载到 model server 可访问的本地目录，LocalModelCache 也支持把模型从远端
+源预下载到本地 NVMe；vLLM 的 LoRAResolver 支持从本地或 S3 等 remote source
+解析并加载 LoRA；SGLang 支持动态 LoRA loading、GPU pinning 与 LoRA memory pool；
+S-LoRA 的论文语义是把大量 adapter 放在 main memory，再把当前 batch 需要的
+adapter fetch 到 GPU；ServerlessLLM 也以减少 remote checkpoint downloads 和利用
+near-GPU local storage 为核心。因此，本项目 remote-fair 的正确比较对象是
+“共同 remote backing store + 各系统自身缓存/加载机制”，不是“每请求强制远程读取”。
 
 ## 5. LoRA 选择语义
 
@@ -750,10 +790,11 @@ remote-fair 的公平性不是“每个请求都必须重新从远程下载 adap
 LoRA 文档支持 `file://`、`s3://`、`hf://` 源并缓存已下载 adapter；ServerlessLLM
 论文与文档也强调用 near-GPU DRAM/SSD/HDD 减少 remote checkpoint download。
 参考公开入口：
-`https://docs.vllm.ai/en/latest/features/lora/`、
-`https://docs.sglang.io/docs/advanced_features/lora`、
-`https://docs.nvidia.com/dynamo/latest/user-guides/lo-ra-adapters`、
-`https://github.com/ServerlessLLM/ServerlessLLM`。
+`https://docs.vllm.ai/en/stable/features/lora/`、
+`https://sgl-project.github.io/advanced_features/lora.html`、
+`https://docs.nvidia.com/dynamo/user-guides/lo-ra-adapters`、
+`https://github.com/ServerlessLLM/ServerlessLLM` 与
+`https://arxiv.org/abs/2401.14351`。
 
 因此本项目采用的公平口径是：
 
@@ -766,9 +807,26 @@ LoRA 文档支持 `file://`、`s3://`、`hf://` 源并缓存已下载 adapter；
    routing、scale-out handoff 和 GPU admission 来减少 service-readiness gap，
    而不是声称只有 PrimeLoRA 可以缓存 adapter。
 
+该规则和公开系统实践一致。KServe `LocalModelCache` 从远端源下载模型到节点本地
+NVMe/cache 后服务；vLLM 的 LoRA serving 可通过 adapter path 或 resolver 把
+LoRA materialize 为本地可加载路径；SGLang 的 LoRA serving 使用
+`max_loras_per_batch`、`max_loaded_loras` 和运行时加载语义；S-LoRA 原文将
+adapter 放在主机内存并把当前 running queries 使用的 adapter fetch 到 GPU；
+ServerlessLLM 也用多层本地存储减少远端 checkpoint download。因此 remote-fair
+不应把其它系统改成“每请求远程下载”，而应保证 cold/startup/first-touch 不能
+绕过 remote backing store，同时保留各系统原生 caching/residency 能力。
+
 当前 local-sim remote-fair 的最终候选合并表图保存在：
 `/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/main_remote_fair_local_sim_v4_7b3b`。
 该目录不覆盖旧主线结果；进入论文前仍需按第 17 节检查清单确认。
+
+2026-05-13 true-remote artifact 复查增加一条执行规则：真实两节点实验只用于
+验证 remote backing store 的真实性，不覆盖 local-sim 闭环图表。每个系统完成后
+必须与 local-sim 闭环 CSV 做差异对比；有效结果需满足 `ok=4000/4000`、
+`fail=0`、无 `trace_expected` fallback。Llama-2 7B true-remote baseline
+已按该规则完成，SGLang、ServerlessLLM、vLLM、S-LoRA 均通过；其中 vLLM 和
+S-LoRA 的 CE 下降主要来自真实跨节点 500-adapter staging 进入 serverful
+lifecycle 成本，而不是 replay service path 崩坏。
 
 ### ServerlessLLM
 
@@ -816,3 +874,69 @@ LoRA 文档支持 `file://`、`s3://`、`hf://` 源并缓存已下载 adapter；
 16. 文档已记录复现边界和已知限制。
 
 如果任何一项不满足，必须先修复链路，不能进入结果分析。
+
+## 18. SGLang 端口复现规则
+
+SGLang 启动时必须显式设置内部 `nccl-port`，不能依赖 runtime 自己用
+`get_free_port()` 随机选择。原因是 HTTP/Uvicorn 端口在 engine 初始化完成后
+才绑定，而内部 NCCL/torch distributed 端口会更早选择；如果随机选中计划中的
+HTTP 端口，例如 `8353`，scheduler 会先监听该端口，随后 Uvicorn 报
+`address already in use`。这是启动端口分配竞态，不是 LoRA、remote artifact
+或 GPU OOM 问题。
+
+正式 baseline runner 的规则：
+
+- 每个 SGLang replica 的 HTTP port 仍按 `SGLANG_PORT + replica_idx` 分配；
+- 每个 replica 的 `nccl-port` 固定为 `http_port + 10000`；
+- 如需覆盖，使用 `SGLANG_NCCL_PORT_BASE`，按 replica index 递增；
+- 任何 SGLang 结果如果没有记录 launch spec 中的 `nccl-port`，不得进入正式表。
+
+PrimeLoRA-SGLang 后端也必须在 launch spec 中显式写入一个与 HTTP port 不同的
+`nccl-port`，避免同一竞态污染 backend portability 实验。
+
+使用 `run_full_fair_round.sh` 做 SGLang smoke 时，可以设置
+`SGLANG_MAX_REPLAY_REQUESTS`。summary gate 应按该值验证 completed request，
+但正式论文结果必须仍使用完整 `SLLM_TOTAL_REQUESTS=4000`。
+
+## 19. SGLang many-LoRA 并发规则
+
+SGLang 的 `max-loras-per-batch` 语义是 running batch 内允许同时出现的 adapter
+数量上限，并且包含 base-only request。many-LoRA formal replay 中每个请求都
+绑定 LoRA，因此这个值必须覆盖运行时最大并发请求数。Llama-2 13B TP2 场景中，
+如果只设置 `max-loras-per-batch=8`，但没有显式传入
+`max-running-requests=model.max_num_seqs`，burst 时 running batch 可能累积超过
+8 个不同 LoRA uid，SGLang scheduler 会触发
+`assert len(cur_uids) <= self.max_loras_per_batch` 并退出。
+
+正式规则：
+
+- launch spec 必须写入 `max-running-requests=model.max_num_seqs`；
+- `max-loras-per-batch` 默认取 `max(model.max_loras, max-running-requests)`；
+- `max-loaded-loras` 必须大于等于 `max-loras-per-batch`；
+- replay 期间必须监控 SGLang replica PID，任一 replica 死亡即终止 replay；
+- SGLang formal 默认 `SGLANG_ABORT_AFTER_FAILURES=1`，任何请求失败都不得继续
+  作为正式结果运行。
+
+该规则是 SGLang 参数语义对齐，不是降低或削弱 baseline。若要变更
+`SGLANG_MAX_LORAS_PER_BATCH` 或 `SGLANG_MAX_RUNNING_REQUESTS`，必须在实验日志中
+记录模型、trace、GPU budget 和原因。
+
+## 20. True-Remote Remote-Fair 完成状态
+
+2026-05-14，`12_remote_fair_main_real_remote_v1` 已完成 7B、13B、3B 的
+四 baseline 正式复查。所有可用 summary 必须满足：
+
+- `completed=4000/4000`
+- `fail=0`
+- 无 `trace_expected` fallback
+- 与 local-sim remote-fair 闭环 CSV 生成差异对比
+
+有效比较文件位于：
+
+```text
+results/paper_experiments/12_remote_fair_main_real_remote_v1/_comparisons/
+```
+
+在论文主表中，当前只使用 7B 与 3B 的 true-remote 合并候选；13B 保留为诊断，
+因为同口径下 PrimeLoRA-vLLM 尚未超过 SGLang 的 CE。任何后续 13B 主表写法
+必须重新满足这一条件，不能通过修改指标或削弱 baseline 实现。

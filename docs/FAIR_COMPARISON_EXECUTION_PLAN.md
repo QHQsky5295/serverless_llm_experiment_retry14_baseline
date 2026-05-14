@@ -741,8 +741,11 @@ SGLang LoRA 文档（`max_loaded_loras`、LRU eviction）、ServerlessLLM Store
 文档（DRAM/SSD/HDD multi-tier loading）和 ServerlessLLM OSDI/Arxiv 论文
 （near-GPU storage 减少 remote checkpoint downloads）。
 对应公开链接：
-`https://docs.vllm.ai/en/latest/features/lora/`、
-`https://docs.sglang.io/docs/advanced_features/lora`、
+`https://docs.vllm.ai/en/stable/features/lora/`、
+`https://sgl-project.github.io/advanced_features/lora.html`、
+`https://docs.nvidia.com/dynamo/user-guides/lo-ra-adapters`、
+`https://github.com/ServerlessLLM/ServerlessLLM` 与
+`https://arxiv.org/abs/2401.14351`。
 `https://docs.nvidia.com/dynamo/latest/user-guides/lo-ra-adapters`、
 `https://github.com/ServerlessLLM/ServerlessLLM`。
 
@@ -1071,3 +1074,197 @@ vLLM static_remote v4、PrimeLoRA 旧闭环主线；Llama-3.2 3B 使用
 SGLang/ServerlessLLM local-sim v4、vLLM dynamic_remote v4、S-LoRA
 dynamic batch round、PrimeLoRA 旧闭环调优主线。两个模型的表内 PrimeLoRA
 CE 均为第一：7B 为 123.02，3B 为 241.20。
+
+## 2026-05-13 true-remote artifact validation
+
+真实两节点 remote artifact 复查使用 GPU 节点 `192.168.4.178` 和 artifact
+HTTP 节点 `192.168.4.174`。endpoint 对应关系：
+
+- Llama-2 7B: `http://192.168.4.174:18081`
+- Llama-2 13B: `http://192.168.4.174:18082`
+- Llama-3.2 3B: `http://192.168.4.174:18080`
+
+baseline 队列：
+
+```bash
+tmux attach -t remote_fair_real_v1
+tail -f /tmp/remote_fair_real_v1.log
+```
+
+只读对比 watcher：
+
+```bash
+tmux attach -t remote_fair_compare_watch_v1
+tail -f /tmp/remote_fair_real_v1_compare_watch.log
+```
+
+该 watcher 每 5 分钟读取已生成 summary，并与
+`figs/paper/main_remote_fair_local_sim_v4_7b3b/table1_end_to_end_data.csv`
+对比；只写 `/tmp` 中的 compare log/csv/md，不修改实验数据。
+
+2026-05-13 06:36，Llama-2 7B true-remote baseline round 已闭环：
+
+- SGLang：4000/4000，0 fail，TTFT Avg 274.48 ms，E2E Avg 2427.36 ms，
+  Cost/req 3.599 mUSD，CE 114.47。相比 local-sim：TTFT Avg +14.99%，
+  E2E Avg +1.80%，Cost/req +0.61%，CE -2.37%。
+- ServerlessLLM：4000/4000，0 fail，TTFT Avg 236575.70 ms，
+  E2E Avg 239156.82 ms，Cost/req 2.692 mUSD，CE 1.55。相比 local-sim：
+  TTFT Avg +0.18%，E2E Avg +0.18%，Cost/req +0.13%，CE -0.31%。
+- vLLM：4000/4000，0 fail，TTFT Avg 500.68 ms，E2E Avg 3151.02 ms，
+  Cost/req 4.066 mUSD，CE 78.04。相比 local-sim：TTFT Avg -0.10%，
+  E2E Avg -0.07%，Cost/req +10.77%，CE -9.66%。
+- S-LoRA：4000/4000，0 fail，TTFT Avg 325.50 ms，E2E Avg 3790.54 ms，
+  Cost/req 4.151 mUSD，CE 63.56。相比 local-sim：TTFT Avg +23.27%，
+  E2E Avg +8.73%，Cost/req +10.80%，CE -17.00%。
+
+四个系统均无 `trace_expected` fallback。true-remote 对 serverful 静态/staging
+系统的 Cost/req 影响更明显，但没有破坏 service path；ServerlessLLM 的主要
+瓶颈仍是 dispatch/admission backlog。队列随后进入 Llama-2 13B true-remote
+round。
+
+2026-05-13 06:40，Llama-2 13B true-remote SGLang 首轮被立即标记为无效：
+早期 `finance_lora` 请求出现 `RemoteDisconnected`，replay 已产生失败请求，
+不满足正式结果 gate。根因不是 SGLang generation 或 GPU OOM，而是远端 artifact
+节点打包 `finance_lora` 时遇到该目录中的绝对 symlink
+`/home/qhq/serverless_llm_experiment/models/...`；真实 remote 节点没有该路径，
+旧 artifact server 对 symlink 执行 `resolve(strict=True)` 导致
+`FileNotFoundError`，HTTP 连接以 `Empty reply` 断开。已修复
+`remote_artifact_node/server.py`：打包时跳过不可解析或越过 artifact root 的
+非可移植 symlink，只发送 LoRA adapter payload 与本地真实文件。该修改不改变
+实验 trace、adapter subset、routing、admission 或统计口径，只修复真实远端工件
+服务的可移植性。修复后必须先用同一 13B trace/subset 做 `SGLang_MAX_REPLAY_REQUESTS`
+smoke 且 `fail=0`，再恢复 4000-request 正式队列。
+
+2026-05-13 07:00，13B SGLang true-remote smoke 又暴露一个独立的启动竞态：
+SGLang 在未显式设置 `nccl-port` 时会通过 `get_free_port()` 随机选择内部
+NCCL/torch distributed 通信端口，而 HTTP/Uvicorn 端口要等 engine 初始化后才
+绑定。该随机端口可能碰巧选中计划中的 HTTP 端口 `8353`，导致 scheduler 先
+监听 `127.0.0.1:8353`，随后 Uvicorn 报
+`[Errno 98] address already in use`。这不是 remote artifact、LoRA 权重或
+GPU OOM 问题，而是 SGLang 启动端口分配竞态；此前正式 round 能运行只是因为
+随机端口没有撞上 HTTP 端口。已修复 `scripts/run_sglang_fair_experiment.sh`：
+每个 replica 生成 launch spec 时显式写入 `nccl-port`，默认取
+`http_port + 10000`，也可用 `SGLANG_NCCL_PORT_BASE` 覆盖。后续所有
+SGLang fair runs 都必须保留该规则。
+
+随后使用完整 `run_full_fair_round.sh` 包装执行同一 13B trace/subset 的
+`SGLANG_MAX_REPLAY_REQUESTS=120` smoke：两个 TP2 replicas 均成功启动，
+launch spec 中分别记录 `port=8353,nccl-port=18353` 与
+`port=8354,nccl-port=18354`；replay 结果 `ok=120/120, fail=0`，且无
+`trace_expected` fallback。为方便后续 smoke，`run_full_fair_round.sh`
+的 summary gate 已支持 `SGLANG_MAX_REPLAY_REQUESTS`，正式 4000-request
+round 不受影响。
+
+2026-05-13 07:20，恢复 13B true-remote 正式 SGLang 后又发现第三个独立根因：
+replica r0 在约 300+ 请求后退出，后续 replay 对 `127.0.0.1:8353` 的
+`/load_lora_adapter` 调用出现 `Connection refused`，该轮已停止并标记为无效。
+r0 server log 的真正异常是 SGLang scheduler 内部断言
+`assert len(cur_uids) <= self.max_loras_per_batch`。这说明该 replica 的
+运行 batch 中同时出现的 LoRA uid 数超过了启动时声明的
+`max-loras-per-batch`。根因不是真实 remote 下载、artifact 内容或 GPU OOM，
+而是 fair harness 只设置了 `max-loras-per-batch`，没有把 profile 中的
+`max_num_seqs` 同步传给 SGLang 的 `max-running-requests`；13B TP2 解码更慢，
+burst 阶段 running requests 可超过 LoRA batch 上限，从而触发断言。
+
+修复规则：
+
+- SGLang launch spec 必须写入 `max-running-requests=model.max_num_seqs`；
+- `max-loras-per-batch` 必须至少覆盖 `max(max_loras, max-running-requests)`；
+- replay 期间必须监控 SGLang replica PID，任一 replica 退出即终止 replay；
+- formal SGLang 默认 `SGLANG_ABORT_AFTER_FAILURES=1`，任何请求失败都 fail-fast，
+  不允许继续写半污染结果。
+
+该修复对齐 SGLang 官方参数语义：`max-loras-per-batch` 是 running batch 内
+可同时出现的 adapter 数上限，必须与 running request 上限一致。修复后先执行
+同一 13B true-remote trace/subset 的 `SGLANG_MAX_REPLAY_REQUESTS=700` smoke，
+必须越过原先 300+ 请求断言区且 `fail=0` 后，才能恢复 4000-request 正式队列。
+
+2026-05-13 07:41，`12_remote_fair_smoke_real_remote_sglang_fix3` 已通过：
+同一 13B true-remote trace/subset 的 SGLang smoke 完成 `ok=700/700`、
+`fail=0`，无 `AssertionError`、无 `Connection refused`、无
+`trace_expected` fallback。失败的 partial formal round 已写入
+`INVALID_DO_NOT_USE.txt`，不得用于论文表图。随后恢复
+`12_remote_fair_main_real_remote_v1` 的 13B/3B 4000-request 正式队列。
+
+2026-05-13 08:51，修复后的 Llama-2 13B true-remote SGLang 正式阶段已完成：
+
+- round：
+  `results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_074336_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1`
+- summary：
+  `raw/replay/llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_sglang_dp_tpprofile_summary.json`
+- replay gate：`completed=4000/4000`，`fail=0`，无 `trace_expected` fallback；
+- 核心结果：TTFT Avg 493.81 ms，TTFT P95 1471.09 ms，E2E Avg 3253.71 ms，
+  E2E P95 7666.36 ms，TPOT Avg 31.61 ms，Tok/s 100.50，
+  Cost/req 3.581 mUSD，CE 85.83。
+
+与最近的 13B local-sim remote-fair SGLang 有效轮
+`11_remote_fair_main_local_sim_v3/20260512_084402_*` 对比：TTFT Avg +14.75%，
+TTFT P95 +89.78%，E2E Avg -0.26%，Cost/req 基本不变，CE +0.26%。因此真实
+remote 主要影响 first-touch/readiness tail，没有破坏 SGLang 的 service path
+或总吞吐趋势。该阶段结果有效；队列已进入 Llama-2 13B true-remote
+ServerlessLLM 阶段。
+
+2026-05-13 10:03，Llama-2 13B true-remote ServerlessLLM 阶段已完成：
+
+- round：
+  `results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_074336_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1`
+- summary：
+  `raw/replay/llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_serverlessllm_summary.json`
+- replay gate：`completed=4000/4000`，`fail=0`，无 `trace_expected` fallback；
+- 核心结果：TTFT Avg 236555.75 ms，TTFT P95 470160.22 ms，
+  Service TTFT Avg 501.33 ms，Dispatch Wait Avg 236054.43 ms，
+  E2E Avg 239834.22 ms，TPOT Avg 32.44 ms，Tok/s 91.78，
+  Cost/req 3.366 mUSD，CE 1.239。
+
+与最近的 13B local-sim remote-fair ServerlessLLM 有效轮
+`11_remote_fair_main_local_sim_v3/20260512_084402_*` 对比：TTFT Avg +0.18%，
+E2E Avg +0.17%，Cost/req +0.01%，CE -0.18%，Service TTFT +0.01%，Tok/s
+-0.07%。因此 true-remote 与 local-sim 在 ServerlessLLM 上趋势一致：主要瓶颈
+仍是 serverless admission/backlog，而不是真实 remote artifact 传输本身。
+该阶段结果有效；队列已进入 Llama-2 13B true-remote vLLM 阶段。
+
+2026-05-13 11:25，Llama-2 13B true-remote vLLM 阶段已完成：
+
+- round：
+  `results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_074336_llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1`
+- summary：
+  `raw/replay/llama2_13b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_vllm_dp2_tp2_summary.json`
+- replay gate：`completed=4000/4000`，`fail=0`，无 `trace_expected` fallback；
+- 核心结果：TTFT Avg 17389.09 ms，TTFT P95 85658.39 ms，
+  Service TTFT Avg 17374.06 ms，Dispatch Wait Avg 15.03 ms，
+  E2E Avg 23962.66 ms，TPOT Avg 85.15 ms，Tok/s 98.99，
+  Cost/req 4.154 mUSD，CE 10.047。
+
+与最近的 13B `local-sim remote-fair` vLLM 有效轮
+`11_remote_fair_main_local_sim_v4_patch/20260512_135444_*` 对比：TTFT Avg
++445.6%，E2E Avg +187.5%，TPOT +20.9%，Tok/s +0.17%，Cost/req +11.2%，
+CE -68.7%。该轮有效但不替代已闭环 local-sim 主结果；它说明在真实远程冷
+artifact staging 下，13B vLLM 的主要放大项出现在 service path 内部队列/LoRA
+load 长尾，而不是上游 dispatch/admission wait，也不是请求失败。队列随后进入
+Llama-2 13B true-remote S-LoRA 阶段。
+
+2026-05-14，`12_remote_fair_main_real_remote_v1` 已全部闭环：
+
+- 7B、13B、3B 三个 true-remote baseline round 均完成 SGLang、
+  ServerlessLLM、vLLM、S-LoRA。
+- 每个正式 summary 均满足 `completed=4000/4000`、`fail=0`，且没有
+  `trace_expected` fallback。
+- 对比文件保存在
+  `results/paper_experiments/12_remote_fair_main_real_remote_v1/_comparisons/`。
+- 7B 与 3B true-remote 主表由 FaaSLoRA 仓库合并生成在
+  `figs/paper/main_remote_fair_real_remote_v1_7b3b/` 与 `figs_remote/`；
+  13B 只作为诊断数据保留。
+
+最终 baseline 侧 true-remote 摘要：
+
+- 7B SGLang/vLLM/S-LoRA/ServerlessLLM CE 分别为 `114.47`、`78.04`、
+  `63.56`、`1.55`。
+- 13B SGLang/vLLM/S-LoRA/ServerlessLLM CE 分别为 `85.83`、`10.05`、
+  `0.013`、`1.24`。13B 不进入当前主表。
+- 3B SGLang/vLLM/S-LoRA/ServerlessLLM CE 分别为 `185.66`、`108.04`、
+  `27.54`、`1.83`。
+
+该 true-remote 队列修复了三个根因并记录为复现规则：remote artifact server
+跳过不可移植 symlink，SGLang 显式设置 `nccl-port`，SGLang many-LoRA 的
+`max-running-requests` 与 `max-loras-per-batch` 对齐。以后所有同类 round
+必须保留这些规则。

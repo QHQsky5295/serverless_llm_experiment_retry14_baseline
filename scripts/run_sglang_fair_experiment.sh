@@ -25,14 +25,18 @@ SGLANG_PORT="${SGLANG_PORT:-8353}"
 SGLANG_GPU_IDS="${SGLANG_GPU_IDS:-0,1,2,3}"
 SGLANG_TENSOR_PARALLEL_SIZE="${SGLANG_TENSOR_PARALLEL_SIZE:-}"
 SGLANG_DATA_PARALLEL_REPLICAS="${SGLANG_DATA_PARALLEL_REPLICAS:-}"
+SGLANG_NCCL_PORT_BASE="${SGLANG_NCCL_PORT_BASE:-}"
+SGLANG_NCCL_PORT_OFFSET="${SGLANG_NCCL_PORT_OFFSET:-10000}"
 SGLANG_SLEEP_SCALE="${SGLANG_SLEEP_SCALE:-1.0}"
 SGLANG_LORA_REGISTRATION_MODE="${SGLANG_LORA_REGISTRATION_MODE:-static}"
 SGLANG_REMOTE_ARTIFACT_ENDPOINT="${SGLANG_REMOTE_ARTIFACT_ENDPOINT:-${BASELINE_REMOTE_ARTIFACT_ENDPOINT:-${FAASLORA_REMOTE_ARTIFACT_ENDPOINT:-}}}"
 SGLANG_REMOTE_ARTIFACT_CACHE_DIR="${SGLANG_REMOTE_ARTIFACT_CACHE_DIR:-${ROOT_DIR}/results/remote_artifact_cache/${MODEL_PROFILE}/sglang/${RUN_TAG}}"
 SGLANG_REMOTE_ARTIFACT_BANDWIDTH_MBPS="${SGLANG_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-${BASELINE_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-250}}"
 SGLANG_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT="${SGLANG_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT:-0}"
+SGLANG_MAX_LORAS_PER_BATCH="${SGLANG_MAX_LORAS_PER_BATCH:-}"
+SGLANG_MAX_RUNNING_REQUESTS="${SGLANG_MAX_RUNNING_REQUESTS:-}"
 SGLANG_MAX_REPLAY_REQUESTS="${SGLANG_MAX_REPLAY_REQUESTS:-0}"
-SGLANG_ABORT_AFTER_FAILURES="${SGLANG_ABORT_AFTER_FAILURES:-0}"
+SGLANG_ABORT_AFTER_FAILURES="${SGLANG_ABORT_AFTER_FAILURES:-1}"
 SGLANG_ABORT_FAILURES_MIN_DONE="${SGLANG_ABORT_FAILURES_MIN_DONE:-1}"
 default_client_timeout_s() {
   case "${MODEL_PROFILE}" in
@@ -199,7 +203,7 @@ PROMPT_GUARD_MAX_INPUT_LEN="${_METRIC_CFG[6]}"
 PROMPT_GUARD_MAX_OUTPUT_TOKENS_CAP="${_METRIC_CFG[7]}"
 
 echo "[2/5] Building SGLang launch spec from shared subset"
-PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" - "${CONFIG_PATH}" "${MAIN_REPO}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${SHARED_ADAPTER_SUBSET_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_PATHS_JSON}" "${SGLANG_HOST}" "${SGLANG_PORT}" "${SGLANG_TENSOR_PARALLEL_SIZE}" "${SGLANG_LORA_REGISTRATION_MODE}" "${SGLANG_REMOTE_ARTIFACT_CACHE_DIR}" <<'PY'
+PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" - "${CONFIG_PATH}" "${MAIN_REPO}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${SHARED_ADAPTER_SUBSET_PATH}" "${LAUNCH_SPEC_PATH}" "${LORA_PATHS_JSON}" "${SGLANG_HOST}" "${SGLANG_PORT}" "${SGLANG_TENSOR_PARALLEL_SIZE}" "${SGLANG_LORA_REGISTRATION_MODE}" "${SGLANG_REMOTE_ARTIFACT_CACHE_DIR}" "${SGLANG_MAX_LORAS_PER_BATCH}" "${SGLANG_MAX_RUNNING_REQUESTS}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -252,6 +256,8 @@ port = int(sys.argv[10])
 tp_override = str(sys.argv[11] or "").strip()
 registration_mode = str(sys.argv[12] or "static").strip().lower()
 remote_cache_dir = Path(sys.argv[13]).expanduser().resolve()
+max_loras_per_batch_override = str(sys.argv[14] or "").strip()
+max_running_requests_override = str(sys.argv[15] or "").strip()
 
 cfg = yaml.safe_load(cfg_path.read_text()) or {}
 model_cfg, _adapters_cfg, _datasets_cfg, _workload_cfg, _coord_cfg = _resolve_profiles(
@@ -272,6 +278,18 @@ for item in subset_payload.get("adapters", []):
     lora_entries.append(f"{adapter_id}={adapter_path}")
 
 tp_size = int(tp_override) if tp_override else int(model_cfg.get("tensor_parallel_size", 1) or 1)
+profile_max_running = int(model_cfg.get("max_num_seqs", 0) or 0)
+max_running_requests = (
+    int(max_running_requests_override)
+    if max_running_requests_override
+    else profile_max_running
+)
+profile_max_loras = int(model_cfg.get("max_loras", 4) or 4)
+max_loras_per_batch = (
+    int(max_loras_per_batch_override)
+    if max_loras_per_batch_override
+    else max(profile_max_loras, max_running_requests, 1)
+)
 launch = {
     "model-path": str(model_cfg["name"]),
     "host": host,
@@ -285,14 +303,13 @@ launch = {
     "enable-lora": True,
     "max-lora-rank": int(model_cfg.get("max_lora_rank", 64) or 64),
     "lora-target-modules": "all",
-    "max-loras-per-batch": min(
-        len(lora_entries),
-        int(model_cfg.get("max_loras", 4) or 4),
-    ) or 1,
+    "max-loras-per-batch": min(len(lora_entries), max_loras_per_batch) or 1,
     "max-loaded-loras": len(lora_entries),
     "enable-metrics": True,
     "enable-request-time-stats-logging": True,
 }
+if max_running_requests > 0:
+    launch["max-running-requests"] = max_running_requests
 
 if bool(model_cfg.get("enable_chunked_prefill", True)):
     launch["chunked-prefill-size"] = int(model_cfg.get("max_num_batched_tokens", 4096) or 4096)
@@ -316,6 +333,8 @@ echo "      server_log=${SERVER_LOG_PATH}"
 echo "      sglang_gpu_ids=${SGLANG_GPU_IDS}"
 echo "      sglang_tensor_parallel_size=${SGLANG_TENSOR_PARALLEL_SIZE:-profile_default}"
 echo "      sglang_lora_registration_mode=${SGLANG_LORA_REGISTRATION_MODE}"
+echo "      sglang_max_loras_per_batch=${SGLANG_MAX_LORAS_PER_BATCH:-profile/runtime_aligned}"
+echo "      sglang_max_running_requests=${SGLANG_MAX_RUNNING_REQUESTS:-profile_max_num_seqs}"
 if [[ "${SGLANG_LORA_REGISTRATION_MODE}" == "dynamic_remote" ]]; then
   rm -rf "${SGLANG_REMOTE_ARTIFACT_CACHE_DIR}"
   mkdir -p "${SGLANG_REMOTE_ARTIFACT_CACHE_DIR}"
@@ -377,6 +396,11 @@ SGLANG_STARTUP_SECS=()
 
 for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
   replica_port=$((SGLANG_PORT + replica_idx))
+  if [[ -n "${SGLANG_NCCL_PORT_BASE}" ]]; then
+    replica_nccl_port=$((SGLANG_NCCL_PORT_BASE + replica_idx))
+  else
+    replica_nccl_port=$((replica_port + SGLANG_NCCL_PORT_OFFSET))
+  fi
   replica_spec="${SHARED_INPUT_DIR}/${RUN_TAG}_sglang_launch_r${replica_idx}.yaml"
   replica_log="${LOG_DIR}/${RUN_TAG}_sglang_server_r${replica_idx}.log"
   replica_metrics="${LOG_DIR}/${RUN_TAG}_sglang_metrics_r${replica_idx}"
@@ -385,13 +409,14 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
     gpu_slice+=("${GPU_ID_ARRAY[$((replica_idx * TP_EFFECTIVE + local_idx))]}")
   done
   replica_gpu_mask="$(IFS=,; echo "${gpu_slice[*]}")"
-  PYTHONNOUSERSITE=1 "${SGLANG_VENV}/bin/python" - "${LAUNCH_SPEC_PATH}" "${replica_spec}" "${replica_port}" <<'PY'
+  PYTHONNOUSERSITE=1 "${SGLANG_VENV}/bin/python" - "${LAUNCH_SPEC_PATH}" "${replica_spec}" "${replica_port}" "${replica_nccl_port}" <<'PY'
 import sys
 from pathlib import Path
 import yaml
 
 payload = yaml.safe_load(Path(sys.argv[1]).read_text()) or {}
 payload["port"] = int(sys.argv[3])
+payload["nccl-port"] = int(sys.argv[4])
 Path(sys.argv[2]).write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
 PY
   rm -f "${replica_log}"
@@ -414,7 +439,7 @@ PY
   SGLANG_BASE_URLS+=("http://${SGLANG_HOST}:${replica_port}")
   SGLANG_REPLICA_PORTS+=("${replica_port}")
   SGLANG_REPLICA_GPU_MASKS+=("${replica_gpu_mask}")
-  echo "      replica=${replica_idx} pid=${replica_pid} port=${replica_port} gpu_mask=${replica_gpu_mask}"
+  echo "      replica=${replica_idx} pid=${replica_pid} port=${replica_port} nccl_port=${replica_nccl_port} gpu_mask=${replica_gpu_mask}"
   ready=0
   for _ in $(seq 1 240); do
     if curl -s "http://${SGLANG_HOST}:${replica_port}/v1/models" >/tmp/sglang_models_${RUN_TAG}_${replica_idx}.json 2>/dev/null; then
@@ -504,6 +529,7 @@ if [[ "${SGLANG_LORA_REGISTRATION_MODE}" == "dynamic_remote" ]]; then
     --dynamic-lora-max-loaded-per-endpoint "${SGLANG_DYNAMIC_LORA_MAX_LOADED_PER_ENDPOINT}"
   )
 fi
+set +e
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
   "${ROOT_DIR}/scripts/replay_openai_trace.py" \
   --trace "${SHARED_TRACE_PATH}" \
@@ -532,7 +558,30 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
   --abort-after-failures "${SGLANG_ABORT_AFTER_FAILURES}" \
   --abort-failures-min-done "${SGLANG_ABORT_FAILURES_MIN_DONE}" \
   --output "${REPLAY_PATH}" \
-  "${REPLAY_EXTRA_ARGS[@]}"
+  "${REPLAY_EXTRA_ARGS[@]}" &
+REPLAY_PID=$!
+(
+  while kill -0 "${REPLAY_PID}" 2>/dev/null; do
+    for pid in ${SGLANG_SERVER_PIDS}; do
+      if ! kill -0 "${pid}" 2>/dev/null; then
+        echo "[ERROR] SGLang replica pid=${pid} exited during replay; terminating replay pid=${REPLAY_PID}" >&2
+        kill "${REPLAY_PID}" 2>/dev/null || true
+        exit 0
+      fi
+    done
+    sleep 2
+  done
+) &
+SGLANG_REPLAY_MONITOR_PID=$!
+wait "${REPLAY_PID}"
+REPLAY_STATUS=$?
+kill "${SGLANG_REPLAY_MONITOR_PID}" 2>/dev/null || true
+wait "${SGLANG_REPLAY_MONITOR_PID}" 2>/dev/null || true
+set -e
+if [[ "${REPLAY_STATUS}" -ne 0 ]]; then
+  echo "[ERROR] SGLang replay failed with status=${REPLAY_STATUS}" >&2
+  exit "${REPLAY_STATUS}"
+fi
 
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${SGLANG_VENV}/bin/python" \
   "${ROOT_DIR}/scripts/validate_replay_results.py" \

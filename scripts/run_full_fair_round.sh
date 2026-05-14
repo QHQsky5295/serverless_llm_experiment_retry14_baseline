@@ -465,7 +465,11 @@ summary_path_for_system() {
 validate_summary() {
   local system="$1"
   local path="$2"
-  python3 - "${system}" "${path}" "${TOTAL_REQUESTS}" <<'PY'
+  local expected_total="${TOTAL_REQUESTS}"
+  if [[ "${system}" == "SGLang" && "${SGLANG_MAX_REPLAY_REQUESTS:-0}" != "0" ]]; then
+    expected_total="${SGLANG_MAX_REPLAY_REQUESTS}"
+  fi
+  python3 - "${system}" "${path}" "${expected_total}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -489,10 +493,12 @@ else:
 completed = int(summary.get("completed_requests", summary.get("completed", -1)) or -1)
 total = int(summary.get("total_requests", summary.get("total", expected_total)) or expected_total)
 failed = int(summary.get("failed_requests", max(total - completed, 0)) or 0)
-if total != expected_total:
-    raise SystemExit(f"[ERROR] {system} total mismatch: expected {expected_total}, got {total}")
-if completed != total or failed != 0:
-    raise SystemExit(f"[ERROR] {system} incomplete result: completed={completed}, total={total}, failed={failed}")
+if total < expected_total:
+    raise SystemExit(f"[ERROR] {system} total mismatch: expected at least {expected_total}, got {total}")
+if completed != expected_total or failed != 0:
+    raise SystemExit(
+        f"[ERROR] {system} incomplete result: completed={completed}, expected_completed={expected_total}, total={total}, failed={failed}"
+    )
 for source_key in ("prompt_token_source_counts", "completion_token_source_counts", "metrics_source_counts"):
     counts = summary.get(source_key) or {}
     if isinstance(counts, dict) and counts.get("trace_expected", 0):
@@ -512,7 +518,7 @@ for key, value in checks.items():
         raise SystemExit(f"[ERROR] {system} missing numeric {key}: {value!r}")
     if numeric <= 0.0:
         raise SystemExit(f"[ERROR] {system} non-positive {key}: {numeric}")
-print(f"[validated] {system}: completed={completed}/{total} path={path}")
+print(f"[validated] {system}: completed={completed}/{expected_total} trace_total={total} path={path}")
 PY
 }
 
