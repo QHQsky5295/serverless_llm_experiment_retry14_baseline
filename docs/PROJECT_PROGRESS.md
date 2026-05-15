@@ -709,3 +709,38 @@ Additional completed step:
   materializing 200 adapters from the same true-remote endpoint into the
   round-local `remote_cache/slora`; Llama-2-7B continues to use the normal
   packed-BGMV S-LoRA path.
+
+Additional completed true-remote adapter-pool steps:
+
+- `adapter_pool a300 / SGLang / Llama-2-7B`: `4000/4000` completed,
+  `fail=0`, no `trace_expected` fallback. Configuration:
+  `sglang_lora_registration_mode=dynamic_remote`, endpoint
+  `http://192.168.4.174:18081`, round-local `remote_cache/sglang`. Metrics:
+  TTFT Avg `301.6 ms`, TTFT P95 `747.2 ms`, Service TTFT `256.1 ms`,
+  Dispatch Wait `45.5 ms`, E2E Avg `2443.1 ms`, E2E P95 `5603.1 ms`,
+  TPOT `19.7 ms`, Throughput `105.78 tok/s`, Cost/req `3.577 mUSD`,
+  CE `114.42`. Compared with the latest closed-loop a300 SGLang run, the
+  true-remote setting mainly adds light upstream/TTFT cost while preserving
+  E2E tail, throughput, and the system ordering.
+- `adapter_pool a300 / ServerlessLLM / Llama-2-7B`: `4000/4000` completed,
+  `fail=0`, no `trace_expected` fallback. The real-remote probe fetched
+  `medical_lora` from `http://192.168.4.174:18081` in `2391.8 ms`
+  (`20938679` bytes). Metrics: TTFT Avg `236675.7 ms`, TTFT P95
+  `470495.6 ms`, Service TTFT `398.5 ms`, Dispatch Wait `236277.2 ms`,
+  E2E Avg `239243.1 ms`, E2E P95 `473331.7 ms`, TPOT `25.0 ms`,
+  Throughput `98.39 tok/s`, Cost/req `2.677 mUSD`, CE `1.56`. The trend
+  remains dominated by upstream admission/scale-out readiness, not backend
+  generation or remote artifact transport.
+- `adapter_pool a300 / vLLM / Llama-2-7B`: `4000/4000` completed, `fail=0`,
+  no `trace_expected` fallback. vLLM materialized all 300 adapters from
+  `http://192.168.4.174:18081` into the round-local `remote_cache/vllm`.
+  Metrics: TTFT Avg `484.6 ms`, TTFT P95 `1139.0 ms`, Service TTFT
+  `471.2 ms`, Dispatch Wait `13.4 ms`, E2E Avg `3127.7 ms`, E2E P95
+  `7191.3 ms`, TPOT `25.9 ms`, Throughput `104.57 tok/s`, Cost/req
+  `3.887 mUSD`, CE `82.26`. Compared with the latest closed-loop a300 vLLM
+  run, service-path behavior is essentially unchanged; the CE drop is from
+  true-remote staging being counted in lifecycle accounting.
+- Active queue: `adapter_pool a300 / S-LoRA / Llama-2-7B` is materializing
+  300 adapters from the same true-remote endpoint into `remote_cache/slora`.
+  Llama-2-7B continues to use the normal packed-BGMV S-LoRA path, not the
+  13B diagnostic BMM path.
