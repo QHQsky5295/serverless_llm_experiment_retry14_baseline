@@ -671,3 +671,25 @@ Additional completed step:
 - The active queue has moved to `adapter_pool a200 / vLLM / Llama-2-7B`,
   materializing 200 adapters from the same true-remote endpoint into the
   round-local `remote_cache/vllm`.
+
+Additional completed step:
+
+- `adapter_pool a200 / vLLM / Llama-2-7B`: `4000/4000` completed, `fail=0`,
+  no `trace_expected` fallback.
+- vLLM materialized all 200 adapters from `http://192.168.4.174:18081` into
+  the round-local `remote_cache/vllm` before replay.
+- Metrics: TTFT Avg `471.7 ms`, TTFT P95 `1104.1 ms`, Service TTFT
+  `458.3 ms`, Dispatch Wait `13.4 ms`, E2E Avg `3109.0 ms`, E2E P95
+  `7166.4 ms`, TPOT `25.8 ms`, Throughput `104.58 tok/s`, Cost/req
+  `3.792 mUSD`, CE `84.83`.
+- Compared with the latest closed-loop a200 vLLM run, request-path behavior is
+  stable: TTFT Avg `477.8 -> 471.7 ms`, TTFT P95 `1124.4 -> 1104.1 ms`,
+  Service TTFT `464.6 -> 458.3 ms`, Dispatch Wait `13.3 -> 13.4 ms`,
+  E2E Avg `3134.2 -> 3109.0 ms`, TPOT `26.0 -> 25.8 ms`, Throughput
+  `104.56 -> 104.58 tok/s`, Cost/req `3.606 -> 3.792 mUSD`, CE
+  `88.48 -> 84.83`. The CE drop is attributable to true-remote staging entering
+  lifecycle accounting, not to a degraded online replay path.
+- The active queue has moved to `adapter_pool a200 / S-LoRA / Llama-2-7B`,
+  materializing 200 adapters from the same true-remote endpoint into the
+  round-local `remote_cache/slora`; Llama-2-7B continues to use the normal
+  packed-BGMV S-LoRA path.
