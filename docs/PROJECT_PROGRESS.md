@@ -780,3 +780,17 @@ Additional completed true-remote adapter-pool step:
   fetching while preserving E2E tail, decode behavior, throughput, and the
   expected trend.
 - Active queue: `adapter_pool a400 / ServerlessLLM / Llama-2-7B`.
+
+Additional completed true-remote adapter-pool step:
+
+- `adapter_pool a400 / ServerlessLLM / Llama-2-7B`: `4000/4000` completed,
+  `fail=0`, no `trace_expected` fallback. The real-remote probe fetched
+  `medical_lora` from `http://192.168.4.174:18081` in `2379.1 ms`
+  (`20938679` bytes). Metrics: TTFT Avg `236925.6 ms`, TTFT P95
+  `470634.5 ms`, Service TTFT `405.6 ms`, Dispatch Wait `236520.1 ms`,
+  E2E Avg `239497.2 ms`, E2E P95 `473567.6 ms`, TPOT `25.1 ms`,
+  Throughput `98.41 tok/s`, Cost/req `2.683 mUSD`, CE `1.56`. Compared with
+  the latest closed-loop a400 ServerlessLLM run, the trend is essentially
+  unchanged; the bottleneck remains upstream admission/scale-out readiness.
+- Active queue: `adapter_pool a400 / vLLM / Llama-2-7B`, materializing
+  400 adapters from `http://192.168.4.174:18081` into `remote_cache/vllm`.
