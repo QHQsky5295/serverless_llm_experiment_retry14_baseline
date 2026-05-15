@@ -765,3 +765,18 @@ Additional completed true-remote adapter-pool step:
   paper trend under true-remote artifact transfer.
 - Active queue: `adapter_pool a400 / SGLang / Llama-2-7B`, using
   `http://192.168.4.174:18081`, `250 MiB/s`, and `dynamic_remote`.
+
+Additional completed true-remote adapter-pool step:
+
+- `adapter_pool a400 / SGLang / Llama-2-7B`: `4000/4000` completed,
+  `fail=0`, no `trace_expected` fallback. Configuration:
+  `sglang_lora_registration_mode=dynamic_remote`, endpoint
+  `http://192.168.4.174:18081`, round-local `remote_cache/sglang`.
+  Metrics: TTFT Avg `305.4 ms`, TTFT P95 `976.2 ms`, Service TTFT
+  `252.9 ms`, Dispatch Wait `52.5 ms`, E2E Avg `2438.4 ms`, E2E P95
+  `5618.3 ms`, TPOT `19.7 ms`, Throughput `105.25 tok/s`, Cost/req
+  `3.596 mUSD`, CE `114.05`. Compared with the latest closed-loop a400
+  SGLang run, true remote mainly raises TTFT/dispatch from dynamic artifact
+  fetching while preserving E2E tail, decode behavior, throughput, and the
+  expected trend.
+- Active queue: `adapter_pool a400 / ServerlessLLM / Llama-2-7B`.
