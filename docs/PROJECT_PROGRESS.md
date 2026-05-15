@@ -30,13 +30,16 @@ April handoff snapshots have been removed from the active documentation set.
   merged main table, TTFT decomposition, lifecycle figure, motivation,
   ablation, readiness, control-path, backend-portability, and sensitivity
   artifacts.
-- True-remote full-figure queue checkpoint on 2026-05-15 09:43 CST:
+- True-remote full-figure queue checkpoint on 2026-05-15 10:55 CST:
   the Llama-2-7B adapter-pool `a100` and `a200` five-system rounds are
   complete and valid. `a200` keeps the same system ordering as the frozen
   closed-loop data: PrimeLoRA-vLLM CE `129.21` remains first, followed by
   SGLang `116.30`, vLLM `84.83`, S-LoRA `76.67`, and ServerlessLLM `1.56`.
-  The active queue has advanced to `adapter_pool a300 / SGLang /
-  Llama-2-7B`, using `dynamic_remote` from `http://192.168.4.174:18081`.
+  The `a300 / SGLang` true-remote point is also complete (`4000/4000`,
+  `fail=0`, CE `114.42`) and remains trend-consistent with the frozen
+  closed-loop SGLang point. The active queue has advanced to
+  `adapter_pool a300 / ServerlessLLM / Llama-2-7B`, using request-path true
+  remote LoRA materialization from `http://192.168.4.174:18081`.
 
 ## Final Paper Snapshot: 2026-05-10
 
