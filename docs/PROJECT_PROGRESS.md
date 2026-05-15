@@ -744,3 +744,24 @@ Additional completed true-remote adapter-pool steps:
   300 adapters from the same true-remote endpoint into `remote_cache/slora`.
   Llama-2-7B continues to use the normal packed-BGMV S-LoRA path, not the
   13B diagnostic BMM path.
+
+Additional completed true-remote adapter-pool step:
+
+- `adapter_pool a300 / S-LoRA / Llama-2-7B`: `4000/4000` completed, `fail=0`,
+  no `trace_expected` fallback. S-LoRA materialized all 300 adapters from
+  `http://192.168.4.174:18081` into the round-local `remote_cache/slora`
+  in `319.8 s` at the staged `250 MiB/s` bandwidth. Configuration:
+  `dp4_tp1`, `bmm=0 (requested=auto, reason=packed_bgmv)`, so this is the
+  normal Llama-2-7B packed-BGMV path rather than the 13B diagnostic BMM path.
+  Metrics: TTFT Avg `264.0 ms`, TTFT P95 about `341 ms`, Service TTFT
+  `248.5 ms`, Dispatch Wait `15.5 ms`, E2E Avg `3508.3 ms`, E2E P95 about
+  `7918 ms`, TPOT `28.0 ms`, Throughput `116.49 tok/s`, Cost/req
+  `3.901 mUSD`, CE `73.07`. Compared with the latest closed-loop a300
+  S-LoRA run, the service path is essentially unchanged; the CE drop is from
+  true-remote staging/lifecycle accounting.
+- The full `adapter_pool a300 / Llama-2-7B` true-remote five-system point is
+  now complete. CE ranking: PrimeLoRA-vLLM `129.44` first, SGLang `114.42`,
+  vLLM `82.26`, S-LoRA `73.07`, ServerlessLLM `1.56`. This preserves the
+  paper trend under true-remote artifact transfer.
+- Active queue: `adapter_pool a400 / SGLang / Llama-2-7B`, using
+  `http://192.168.4.174:18081`, `250 MiB/s`, and `dynamic_remote`.
