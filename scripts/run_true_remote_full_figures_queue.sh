@@ -178,6 +178,20 @@ build_figures() {
     --system-summary-override "llama32_3b:faaslora:${PRIME_VLLM_3B}" \
     --out-dir "${PAPER_FIGS_ROOT}/main"
 
+  # The combined main builder intentionally owns Table 1, TTFT decomposition,
+  # and Fig. 7.  Generate the single-round teaser and normalized appendix-style
+  # figure separately so the true-remote mirror remains complete without
+  # overwriting the merged Llama-2-7B + Llama-3.2-3B artifacts.
+  "${PYTHON_BIN}" scripts/plot_paper_figures.py \
+    --round-dir "${ROUND_7B}" \
+    --figure fig1_intro \
+    --out-dir "${PAPER_FIGS_ROOT}/main"
+
+  "${PYTHON_BIN}" scripts/plot_paper_figures.py \
+    --round-dir "${ROUND_7B}" \
+    --figure fig5_normalized \
+    --out-dir "${PAPER_FIGS_ROOT}/main"
+
   "${PYTHON_BIN}" scripts/build_backend_portability_artifacts.py \
     --round-7b "${ROUND_7B}" \
     --round-3b "${ROUND_3B}" \

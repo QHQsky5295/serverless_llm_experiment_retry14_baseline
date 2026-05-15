@@ -25,7 +25,11 @@ April handoff snapshots have been removed from the active documentation set.
   mirror under real HTTP remote artifacts for all systems. Outputs go to
   `figs_remote_full_real_remote_v1/` and
   `paper_results/final_remote_full_real_remote_v1/`; the original `figs/`
-  directory is left untouched.
+  directory is left untouched. The build stage now explicitly includes the
+  single-round Fig. 1 teaser and Fig. 5 normalized figure in addition to the
+  merged main table, TTFT decomposition, lifecycle figure, motivation,
+  ablation, readiness, control-path, backend-portability, and sensitivity
+  artifacts.
 - True-remote full-figure queue checkpoint on 2026-05-15 09:43 CST:
   the Llama-2-7B adapter-pool `a100` and `a200` five-system rounds are
   complete and valid. `a200` keeps the same system ordering as the frozen
