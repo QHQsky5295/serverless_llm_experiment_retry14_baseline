@@ -887,3 +887,15 @@ True-remote adapter-pool endpoint correction, 2026-05-18:
 - `scripts/run_true_remote_full_figures_queue.sh` now uses the standard
   `adapter_pool_p0` profile (`a100-a400`) and reuses the canonical true-remote
   main `a500` round when building adapter-pool and load figures.
+
+True-remote ablation progress, 2026-05-18:
+
+- `faaslora_nvme` in
+  `14_remote_fair_ablation_real_remote_full_figs_v1/20260514_real_remote_fullfigs_v1_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_real_remote_fullfigs_v1`
+  completed with `4000/4000` requests and `0` failures. Metrics: TTFT Avg
+  `669.7 ms`, TTFT P95 `1805.5 ms`, E2E Avg `3296.2 ms`, E2E P95
+  `7317.3 ms`, TPOT `30.9 ms`, Throughput `102.35 tok/s`, Cost/req
+  `2.588 mUSD`, CE `117.21`.
+- The queue has advanced to `faaslora_no_coord` and is still running. No
+  baseline rerun is active; this stage only fills true-remote PrimeLoRA
+  mechanism figures.
