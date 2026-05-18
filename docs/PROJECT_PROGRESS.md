@@ -818,3 +818,30 @@ Power-loss recovery note, 2026-05-18 11:00 CST:
   `REMOTE_FULL_FIGS_QUEUE_ID=20260514_real_remote_fullfigs_v1`. The output is
   written to
   `results/remote_full_figs_queues/20260514_real_remote_fullfigs_v1/logs/resume_after_powerloss*.log`.
+
+Post-recovery true-remote adapter-pool progress, 2026-05-18:
+
+- The remote artifact endpoints were restored externally and the full-figure
+  queue resumed with the original queue id
+  `20260514_real_remote_fullfigs_v1`, skipping the already completed
+  load-sensitivity steps and adapter-pool a100/a200/a300 plus a400
+  SGLang/ServerlessLLM.
+- `adapter_pool a400 / vLLM / Llama-2-7B` completed after recovery:
+  `4000/4000` requests, `fail=0`, no `trace_expected` fallback. The run
+  materialized all 400 adapters from the true-remote endpoint
+  `http://192.168.4.174:18081` into the round-local `remote_cache/vllm`
+  (`459.4 s` staging time). Summary:
+  `/home/qhq/serverless_llm_baselines/results/paper_experiments/07_sensitivity_adapter_pool/20260514_real_remote_fullfigs_v1_adpool_llama2_7b_r4000_a400_seed42_z1p0_hot40_rot500_s8_sensadpool_v1/raw/replay/llama2_7b_r4000_a400_seed42_z1p0_hot40_rot500_s8_sensadpool_v1_vllm_dp4_tp1_summary.json`.
+  Metrics: TTFT Avg `491.4 ms`, TTFT P95 `1121.6 ms`, Service TTFT
+  `478.1 ms`, Dispatch Wait `13.3 ms`, E2E Avg `3133.9 ms`, E2E P95
+  `7184.9 ms`, TPOT `25.9 ms`, Throughput `104.55 tok/s`, Cost/req
+  `4.058 mUSD`, CE `78.64`.
+- Compared with the latest closed-loop a400 vLLM run, service-path behavior is
+  essentially unchanged: TTFT Avg `494.3 -> 491.4 ms`, TTFT P95
+  `1172.5 -> 1121.6 ms`, E2E Avg `3163.1 -> 3133.9 ms`, TPOT
+  `26.17 -> 25.9 ms`, Throughput `104.56 -> 104.55 tok/s`. The CE decrease
+  `87.43 -> 78.64` comes from true-remote staging/lifecycle accounting rather
+  than degraded backend inference.
+- Active queue: `adapter_pool a400 / S-LoRA / Llama-2-7B`, materializing
+  400 adapters from `http://192.168.4.174:18081` into the round-local
+  `remote_cache/slora`.
