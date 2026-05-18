@@ -486,3 +486,48 @@ JSON 必须记录：
 这类真实性规则同样适用于其它系统层抽象：如果论文声称是 GPU/Host/NVMe/
 Remote 分层、serverless active/idle 差分计费、真实 first-token timing，
 代码中必须存在可审计的物理路径、事件时间戳或成本来源。
+
+## 12. 2026-05-18 当前项目交接规则
+
+后续新会话继续 PrimeLoRA/FaaSLoRA 时，先读主仓交接文档：
+
+```text
+/home/qhq/serverless_llm_experiment_retry14_baseline/docs/SESSION_HANDOFF_2026-05-18.md
+```
+
+然后检查：
+
+```bash
+cd /home/qhq/serverless_llm_experiment_retry14_baseline
+git status --short --branch
+tmux ls || true
+nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader,nounits
+```
+
+当前固定事实：
+
+- 论文当前范围内的主实验、3B/7B 合并表、PrimeLoRA-SGLang backend
+  portability、service-readiness、control-path、sensitivity 和 true-remote
+  mirror 都已闭环。
+- 默认论文数据是主仓 `figs/` 和 `paper_results/final_v2/`。
+- true-remote 镜像是主仓 `figs_remote_full_real_remote_v1/` 和
+  `paper_results/final_remote_full_real_remote_v1/`，不自动替换默认论文数据。
+- `a500` 是默认主实验点，adapter-pool sensitivity 只额外使用
+  `a100-a400`；`a500` 复用 canonical main round。
+- 不覆盖主仓 `figs/`，除非用户明确要求替换主论文图。
+- 不提交远端密码或任何凭据。
+- 主仓 `configs/generated/lora_manifest_1000.json` 有历史未提交改动，
+  不要混入无关提交。
+
+如果用户要求继续调研新的 Serverless+LLM inference baseline，先做候选复现
+可行性表，不直接启动长实验。候选表至少包含：
+
+- 论文/系统名；
+- 年份/会议；
+- 代码地址；
+- 是否开源且能构建；
+- 是否真的做 LLM inference，而不是泛 GPU scheduling；
+- 是否支持或可公平适配 LoRA/adapter workload；
+- 是否能映射 `e2e_v3`；
+- 适配工作量；
+- 建议进入主表、附录或不采用。
