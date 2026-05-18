@@ -50,14 +50,14 @@ fi
 
 cache_root="${ROUND_DIR:-${BASELINES_ROOT}/results/remote_artifact_cache/${MODEL_PROFILE}/true_remote_full_figs/${SLLM_RUN_TAG:-run}}/remote_cache"
 
-export NO_PROXY="${NO_PROXY:-192.168.4.174,10.199.227.174,127.0.0.1,localhost,::1}"
-export no_proxy="${no_proxy:-${NO_PROXY}}"
-export HTTP_PROXY="${HTTP_PROXY:-}"
-export HTTPS_PROXY="${HTTPS_PROXY:-}"
-export ALL_PROXY="${ALL_PROXY:-}"
-export http_proxy="${http_proxy:-}"
-export https_proxy="${https_proxy:-}"
-export all_proxy="${all_proxy:-}"
+REMOTE_NO_PROXY_HOSTS="192.168.4.174,10.199.227.174,127.0.0.1,localhost,::1"
+if [[ -n "${NO_PROXY:-}" ]]; then
+  export NO_PROXY="${NO_PROXY},${REMOTE_NO_PROXY_HOSTS}"
+else
+  export NO_PROXY="${REMOTE_NO_PROXY_HOSTS}"
+fi
+export no_proxy="${NO_PROXY}"
+export HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy=
 
 export BASELINE_REMOTE_ARTIFACT_ENDPOINT="${BASELINE_REMOTE_ARTIFACT_ENDPOINT:-${endpoint}}"
 export BASELINE_REMOTE_ARTIFACT_STAGE_ENDPOINT="${BASELINE_REMOTE_ARTIFACT_STAGE_ENDPOINT:-${endpoint}}"
