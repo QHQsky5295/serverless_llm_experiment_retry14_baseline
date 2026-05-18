@@ -120,7 +120,7 @@ run_adapter_pool_queue() {
     SLLM_BASELINES_ROOT="${BASELINES_ROOT}" \
     SLLM_MAIN_REPO="${MAIN_REPO}" \
     PAPER_QUEUE_ID="${QUEUE_ID}_adpool" \
-    PAPER_QUEUE_PROFILE="adapter_pool_full_p0" \
+    PAPER_QUEUE_PROFILE="adapter_pool_p0" \
     PAPER_QUEUE_SYSTEMS="sglang serverlessllm vllm slora faaslora" \
     PAPER_QUEUE_RUNNER="${BASELINE_WRAPPER}" \
     bash "${BASELINES_ROOT}/scripts/run_paper_long_experiment_queue.sh"
@@ -164,7 +164,9 @@ build_figures() {
   local ad_a200="${BASELINES_ROOT}/results/paper_experiments/07_sensitivity_adapter_pool/${QUEUE_ID}_adpool_llama2_7b_r4000_a200_seed42_z1p0_hot24_rot500_s8_sensadpool_v1"
   local ad_a300="${BASELINES_ROOT}/results/paper_experiments/07_sensitivity_adapter_pool/${QUEUE_ID}_adpool_llama2_7b_r4000_a300_seed42_z1p0_hot32_rot500_s8_sensadpool_v1"
   local ad_a400="${BASELINES_ROOT}/results/paper_experiments/07_sensitivity_adapter_pool/${QUEUE_ID}_adpool_llama2_7b_r4000_a400_seed42_z1p0_hot40_rot500_s8_sensadpool_v1"
-  local ad_a500="${BASELINES_ROOT}/results/paper_experiments/07_sensitivity_adapter_pool/${QUEUE_ID}_adpool_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_sensadpool_v1"
+  # a500 is the default main workload. Reuse the canonical true-remote main
+  # round instead of rerunning an identical adapter-pool endpoint.
+  local ad_a500="${ROUND_7B}"
   local ablation_round="${BASELINES_ROOT}/results/paper_experiments/14_remote_fair_ablation_real_remote_full_figs_v1/${QUEUE_ID}_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_real_remote_fullfigs_v1"
 
   require_dir "${load_s12}"

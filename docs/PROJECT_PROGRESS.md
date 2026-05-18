@@ -872,3 +872,18 @@ Additional post-recovery true-remote adapter-pool progress:
   paper trend under true-remote artifact transfer.
 - Active queue: `adapter_pool a500 / SGLang / Llama-2-7B`, using
   `dynamic_remote` against `http://192.168.4.174:18081`.
+
+True-remote adapter-pool endpoint correction, 2026-05-18:
+
+- The `a500` adapter-pool point is the default/main workload, not an additional
+  sensitivity point. A valid true-remote main round already exists at
+  `results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_012813_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1`.
+  It uses the same 4,000-request replay, 500-adapter pool, hot-set rotation,
+  and true remote endpoint. Rerunning `a500` inside the adapter-pool queue would
+  duplicate the main experiment and waste time.
+- The accidental duplicate `adapter_pool a500 / SGLang` run was stopped before
+  producing a formal summary. No figure/table should consume that partial
+  directory.
+- `scripts/run_true_remote_full_figures_queue.sh` now uses the standard
+  `adapter_pool_p0` profile (`a100-a400`) and reuses the canonical true-remote
+  main `a500` round when building adapter-pool and load figures.
