@@ -899,3 +899,9 @@ True-remote ablation progress, 2026-05-18:
 - The queue has advanced to `faaslora_no_coord` and is still running. No
   baseline rerun is active; this stage only fills true-remote PrimeLoRA
   mechanism figures.
+- `faaslora_no_coord` completed with `4000/4000` requests and `0` failures.
+  Metrics: TTFT Avg `619.2 ms`, TTFT P95 `1604.8 ms`, E2E Avg `3238.4 ms`,
+  E2E P95 `7209.2 ms`, TPOT `30.4 ms`, Throughput `102.80 tok/s`, Cost/req
+  `2.568 mUSD`, CE `120.24`.
+- The queue has advanced to `faaslora_full`, the final true-remote ablation
+  scenario.
