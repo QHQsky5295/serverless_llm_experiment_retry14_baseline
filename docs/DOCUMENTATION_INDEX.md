@@ -1,8 +1,9 @@
 # Documentation Index
 
-This index lists the active FaaSLoRA documents after the final 2026-05-10 paper
-snapshot. Use these files for current project state; use `对比实验日志.md` and
-older progress files only as historical experiment evidence.
+This index lists the active FaaSLoRA documents after the final 2026-05-18 paper
+and true-remote snapshot. Use these files for current project state; use
+`对比实验日志.md` and older progress files only as historical experiment
+evidence.
 
 ## Canonical Documents
 
@@ -13,6 +14,10 @@ older progress files only as historical experiment evidence.
   future text/figure insertion reviews.
 - `FINAL_PAPER_STATE_2026-05-10.md`: current paper-facing status, final workload
   choice, final data snapshot, and GitHub sync scope.
+- `SESSION_HANDOFF_2026-05-18.md`: current no-context-loss handoff document.
+  Start here in a new Codex session. It records the final experiment state,
+  data directories, true-remote mirror, a500/default workload rule, and a
+  ready-to-paste restart prompt.
 - `ENVIRONMENT.md`: current runtime assumptions.
 - `TECHNICAL_ROUTE_AND_IMPLEMENTATION.md`: current system design overview.
 - `PAPER_EXPERIMENT_TODO.md`: paper experiment plan and figure checklist.
@@ -52,14 +57,15 @@ older progress files only as historical experiment evidence.
   raw JSON summaries and table/figure CSV/TEX files. This is the data directory
   that should be synced to GitHub. It intentionally excludes failed/debug/old
   exploratory rounds.
-- `../paper_results/final_remote_fair_real_remote_v1/`: non-overwriting
-  true-remote remote-fair snapshot, including compressed source summaries,
-  generated main/backend-portability tables and figures, comparison files, and
-  checksums.
-- `../figs_remote/`: full non-overwriting figure/table mirror. Main comparison
-  and backend portability use true-remote data; other figure families are copied
-  from the closed-loop `figs/` snapshot because they were not rerun under
-  true-remote.
+- `../paper_results/final_remote_full_real_remote_v1/`: non-overwriting
+  true-remote full-figure snapshot, including compressed PrimeLoRA source
+  summaries, generated tables/figures, sensitivity outputs, readiness/control
+  audit artifacts, and checksums.
+- `../figs_remote_full_real_remote_v1/`: full non-overwriting true-remote
+  figure/table mirror. It includes main, motivation, ablation, readiness,
+  control-path, backend-portability, and sensitivity artifacts. It must not
+  overwrite the default `../figs/` paper snapshot unless the user explicitly
+  changes the paper data policy.
 
 ## Removed As Obsolete
 

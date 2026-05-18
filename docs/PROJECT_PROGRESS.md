@@ -926,3 +926,18 @@ True-remote full-figures queue completion, 2026-05-18:
   true-remote mirror now includes `paper/sensitivity/fig8_load_sensitivity*`,
   `paper/sensitivity/fig8_load_sensitivity_trends.pdf`, and
   `paper/sensitivity/fig9_adapter_pool_sensitivity*`.
+
+Current handoff state, 2026-05-18:
+
+- All experiments in the current paper scope are closed. There is no running
+  tmux experiment session and all GPUs were idle at the final check.
+- The current no-context-loss restart document is
+  `docs/SESSION_HANDOFF_2026-05-18.md`.
+- The default paper result chain remains `figs/` plus `paper_results/final_v2/`.
+  The true-remote mirror is separate and non-overwriting:
+  `figs_remote_full_real_remote_v1/` plus
+  `paper_results/final_remote_full_real_remote_v1/`.
+- Future work on additional Serverless+LLM inference baselines should begin
+  with a reproducibility and fairness survey table. Do not start long runs or
+  alter the closed paper result set until a candidate passes that gate and the
+  user approves it.
