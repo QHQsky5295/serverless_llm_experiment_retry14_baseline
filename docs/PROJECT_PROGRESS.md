@@ -794,3 +794,27 @@ Additional completed true-remote adapter-pool step:
   unchanged; the bottleneck remains upstream admission/scale-out readiness.
 - Active queue: `adapter_pool a400 / vLLM / Llama-2-7B`, materializing
   400 adapters from `http://192.168.4.174:18081` into `remote_cache/vllm`.
+
+Power-loss recovery note, 2026-05-18 11:00 CST:
+
+- The machine rebooted before `adapter_pool a400 / vLLM / Llama-2-7B`
+  produced a formal summary. No `*_vllm_*_summary.json` exists for the a400
+  true-remote round, so that step must be resumed.
+- Completed true-remote full-figure data remain on disk through
+  `adapter_pool a400 / ServerlessLLM / Llama-2-7B`; the queue markers and
+  per-round state allow the runner to skip completed rounds/systems rather
+  than rerunning valid data.
+- Local GPUs and experiment ports are clean after reboot. The
+  `project-xtjs-blocker` service is active.
+- The remote artifact HTTP endpoints are currently down:
+  `http://192.168.4.174:18081`, `:18082`, and `:18080` do not answer
+  `/health`. SSH from this machine to `10.199.227.174:{22,8122}` reaches the
+  TCP port but is closed before the SSH banner/key exchange, so Codex cannot
+  restart the remote artifact services directly from this host.
+- A local waiting/resume tmux session has been started:
+  `true_remote_full_figs_v1_resume`. It checks the three remote endpoints once
+  per minute and, after they are healthy, automatically reruns
+  `scripts/run_true_remote_full_figures_queue.sh` with
+  `REMOTE_FULL_FIGS_QUEUE_ID=20260514_real_remote_fullfigs_v1`. The output is
+  written to
+  `results/remote_full_figs_queues/20260514_real_remote_fullfigs_v1/logs/resume_after_powerloss*.log`.
