@@ -845,3 +845,30 @@ Post-recovery true-remote adapter-pool progress, 2026-05-18:
 - Active queue: `adapter_pool a400 / S-LoRA / Llama-2-7B`, materializing
   400 adapters from `http://192.168.4.174:18081` into the round-local
   `remote_cache/slora`.
+
+Additional post-recovery true-remote adapter-pool progress:
+
+- `adapter_pool a400 / S-LoRA / Llama-2-7B` completed: `4000/4000`
+  requests, `fail=0`, no `trace_expected` fallback. The run materialized all
+  400 adapters from `http://192.168.4.174:18081` into `remote_cache/slora`
+  (`424.4 s` staging time). Configuration: `dp4_tp1`,
+  `bmm=0 (requested=auto, reason=packed_bgmv)`, which is the normal Llama-2-7B
+  S-LoRA path.
+  Summary:
+  `/home/qhq/serverless_llm_baselines/results/paper_experiments/07_sensitivity_adapter_pool/20260514_real_remote_fullfigs_v1_adpool_llama2_7b_r4000_a400_seed42_z1p0_hot40_rot500_s8_sensadpool_v1/raw/replay/llama2_7b_r4000_a400_seed42_z1p0_hot40_rot500_s8_sensadpool_v1_slora_dp4_tp1_summary.json`.
+  Metrics: TTFT Avg `262.1 ms`, TTFT P95 `338.2 ms`, Service TTFT
+  `247.0 ms`, Dispatch Wait `15.1 ms`, E2E Avg `3471.5 ms`, E2E P95
+  `7772.3 ms`, TPOT `27.7 ms`, Throughput `116.49 tok/s`, Cost/req
+  `4.001 mUSD`, CE `71.99`.
+- Compared with the latest closed-loop a400 S-LoRA run, service-path behavior
+  is nearly identical: TTFT Avg `261.8 -> 262.1 ms`, TTFT P95
+  `338.2 -> 338.2 ms`, Service TTFT `246.6 -> 247.0 ms`, Dispatch Wait
+  `15.2 -> 15.1 ms`, E2E Avg `3459.1 -> 3471.5 ms`, TPOT
+  `27.55 -> 27.7 ms`, Throughput `116.49 -> 116.49 tok/s`. The CE decrease
+  `79.29 -> 71.99` is from true-remote staging/lifecycle accounting.
+- The full `adapter_pool a400 / Llama-2-7B` true-remote five-system point is
+  now complete. CE ranking: PrimeLoRA-vLLM `126.54` first, SGLang `114.05`,
+  vLLM `78.64`, S-LoRA `71.99`, ServerlessLLM `1.56`. This preserves the
+  paper trend under true-remote artifact transfer.
+- Active queue: `adapter_pool a500 / SGLang / Llama-2-7B`, using
+  `dynamic_remote` against `http://192.168.4.174:18081`.
