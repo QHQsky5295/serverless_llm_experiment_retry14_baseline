@@ -1,0 +1,38 @@
+{
+  "analysis": "control_path_overhead",
+  "scope": "PrimeLoRA-only diagnostic audit; not a cross-system comparison",
+  "source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/14_remote_fair_ablation_real_remote_full_figs_v1/20260514_real_remote_fullfigs_v1_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_real_remote_fullfigs_v1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_real_remote_fullfigs_v1_faaslora_full_result.json",
+  "operations": [
+    {
+      "operation": "Routing + tier lookup",
+      "avg_ms": 0.10119800500000001,
+      "p95_ms": 0.19003794999999998,
+      "events": 4000
+    },
+    {
+      "operation": "Adapter-path resolution",
+      "avg_ms": 23.93756020485893,
+      "p95_ms": 5.9402044499999995,
+      "events": 4000
+    },
+    {
+      "operation": "GPU-admission check",
+      "avg_ms": 3.919776954545455,
+      "p95_ms": 27.124839949999984,
+      "events": 220
+    },
+    {
+      "operation": "Online control total",
+      "avg_ms": 24.25434594235893,
+      "p95_ms": 6.191651749999994,
+      "events": 4000
+    },
+    {
+      "operation": "Background handoff plan",
+      "avg_ms": 3.0705975,
+      "p95_ms": 6.2703408,
+      "events": 6
+    }
+  ],
+  "field_note": "Online control total is routing_decision_us + adapter_path_resolution_us + gpu_admission_decision_us. Background handoff planning is reported separately when present."
+}

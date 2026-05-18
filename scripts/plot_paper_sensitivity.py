@@ -19,6 +19,7 @@ import numpy as np
 
 from plot_paper_figures import (
     LEGEND_FONTSIZE,
+    MainSystemData,
     SYSTEM_COLORS,
     SYSTEM_LABELS,
     SYSTEM_ORDER,
@@ -26,6 +27,8 @@ from plot_paper_figures import (
     _as_float,
     _load_json,
     _main_round_data,
+    _main_row_from_summary,
+    _main_summary_path,
     _row_dict,
     _style_axes,
     _style_xgrid_axes,
@@ -95,6 +98,8 @@ def _strict_rps(round_dir: Path) -> float:
     for row in rows:
         if _system_key(str(row.get("System"))) == "faaslora":
             return _as_float(row.get("RPS"), f"{round_dir}.faaslora.RPS")
+    if rows:
+        return _as_float(rows[0].get("RPS"), f"{round_dir}.fallback.RPS")
     raise SystemExit(f"{round_dir}: missing FaaSLoRA strict RPS")
 
 
@@ -112,10 +117,98 @@ def _adapter_pool_size(round_dir: Path) -> int:
     raise SystemExit(f"{round_dir}: cannot infer adapter pool size from run_tag or round.env")
 
 
-def _collect(round_dirs: Sequence[Path]) -> List[Dict[str, Any]]:
+OverrideMap = Dict[tuple[str, str], Path]
+
+
+def _parse_overrides(values: Sequence[str] | None) -> OverrideMap:
+    overrides: OverrideMap = {}
+    for value in values or []:
+        parts = value.split(":", 2)
+        if len(parts) != 3:
+            raise SystemExit(
+                "--system-summary-override must use '<round_dir>:<system_key>:<summary_json>'"
+            )
+        round_dir, system_key, summary_path = parts
+        key = _system_key(system_key)
+        if key not in SYSTEM_ORDER:
+            raise SystemExit(f"unknown system in override: {system_key}")
+        path = Path(summary_path).resolve()
+        if not path.exists():
+            raise SystemExit(f"override summary does not exist: {path}")
+        overrides[(str(Path(round_dir).resolve()), key)] = path
+    return overrides
+
+
+def _main_round_data_with_overrides(round_dir: Path, overrides: OverrideMap) -> List[MainSystemData]:
+    round_dir = round_dir.resolve()
+    local_overrides = {
+        system_key: path
+        for (override_round, system_key), path in overrides.items()
+        if override_round == str(round_dir)
+    }
+    if not local_overrides:
+        return _main_round_data(round_dir)
+
+    manifest = _load_json(round_dir / "MANIFEST.json")
+    if manifest.get("metric_schema_version") != "e2e_v3":
+        raise SystemExit(f"{round_dir / 'MANIFEST.json'}: metric_schema_version must be e2e_v3")
+    run_tag = str(manifest.get("run_tag") or "")
+    if not run_tag:
+        raise SystemExit(f"{round_dir / 'MANIFEST.json'}: missing run_tag")
+
+    systems: List[MainSystemData] = []
+    for key in SYSTEM_ORDER:
+        source = local_overrides.get(key) or _main_summary_path(round_dir, run_tag, key)
+        raw = _main_row_from_summary(source, key)
+        completed = int(_as_float(raw.get("completed"), f"{key}.completed"))
+        total = int(_as_float(raw.get("total"), f"{key}.total"))
+        if completed <= 0 or completed != total:
+            raise SystemExit(f"{source}: invalid completion completed={completed} total={total}")
+        metrics = {
+            "completed": float(completed),
+            "ttft_avg_ms": _as_float(raw.get("TTFT_avg_ms"), f"{key}.TTFT_avg_ms"),
+            "ttft_p95_ms": _as_float(raw.get("TTFT_p95_ms"), f"{key}.TTFT_p95_ms"),
+            "e2e_avg_ms": _as_float(raw.get("E2E_avg_ms"), f"{key}.E2E_avg_ms"),
+            "e2e_p95_ms": _as_float(raw.get("E2E_p95_ms"), f"{key}.E2E_p95_ms"),
+            "tpot_avg_ms": _as_float(raw.get("TPOT_avg_ms"), f"{key}.TPOT_avg_ms"),
+            "tpot_p95_ms": _as_float(raw.get("TPOT_p95_ms"), f"{key}.TPOT_p95_ms"),
+            "tok_s": _as_float(raw.get("Tok_s"), f"{key}.Tok_s"),
+            "cost_req_usd": _as_float(raw.get("Cost_req_usd"), f"{key}.Cost_req_usd"),
+            "ce": _as_float(raw.get("CE"), f"{key}.CE"),
+            "cost_1mtok_usd": _as_float(raw.get("cost_per_1m_total_tokens_usd"), f"{key}.cost_per_1m_total_tokens_usd"),
+            "monetary_cost_total_usd": _as_float(raw.get("monetary_cost_total_usd"), f"{key}.monetary_cost_total_usd"),
+            "monetary_active_charge_gpu_seconds": _as_float(raw.get("monetary_active_charge_gpu_seconds"), f"{key}.monetary_active_charge_gpu_seconds"),
+            "monetary_idle_charge_gpu_seconds": _as_float(raw.get("monetary_idle_charge_gpu_seconds"), f"{key}.monetary_idle_charge_gpu_seconds"),
+            "infra_active_gpu_seconds": _as_float(raw.get("infra_active_gpu_seconds"), f"{key}.infra_active_gpu_seconds"),
+            "infra_idle_ready_gpu_seconds": _as_float(raw.get("infra_idle_ready_gpu_seconds"), f"{key}.infra_idle_ready_gpu_seconds"),
+            "infra_startup_gpu_seconds": _as_float(raw.get("infra_startup_gpu_seconds"), f"{key}.infra_startup_gpu_seconds"),
+            "serverless_invocation_cost_per_request_usd": _as_float(raw.get("serverless_invocation_cost_per_request_usd"), f"{key}.serverless_invocation_cost_per_request_usd"),
+        }
+        active_rate = metrics["monetary_cost_total_usd"] / max(
+            metrics["monetary_active_charge_gpu_seconds"] + metrics["monetary_idle_charge_gpu_seconds"],
+            1e-12,
+        )
+        startup = metrics["infra_startup_gpu_seconds"] * active_rate / metrics["completed"]
+        idle = metrics["monetary_idle_charge_gpu_seconds"] * active_rate / metrics["completed"]
+        invocation = metrics["serverless_invocation_cost_per_request_usd"]
+        active = max(metrics["cost_req_usd"] - startup - idle - invocation, 0.0)
+        metrics.update(
+            {
+                "tpot_ms": metrics["tpot_avg_ms"],
+                "cost_startup_usd": startup,
+                "cost_active_usd": active,
+                "cost_idle_ready_usd": idle,
+                "cost_invocation_usd": invocation,
+            }
+        )
+        systems.append(MainSystemData(key=key, label=SYSTEM_LABELS[key], source=source, metrics=metrics))
+    return systems
+
+
+def _collect(round_dirs: Sequence[Path], overrides: OverrideMap) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     for round_dir in round_dirs:
-        systems = _main_round_data(round_dir)
+        systems = _main_round_data_with_overrides(round_dir, overrides)
         scale = _time_scale(round_dir)
         rps = _strict_rps(round_dir)
         for system in systems:
@@ -132,10 +225,10 @@ def _collect(round_dirs: Sequence[Path]) -> List[Dict[str, Any]]:
     return rows
 
 
-def _collect_adapter_pool(round_dirs: Sequence[Path]) -> List[Dict[str, Any]]:
+def _collect_adapter_pool(round_dirs: Sequence[Path], overrides: OverrideMap) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     for round_dir in round_dirs:
-        systems = _main_round_data(round_dir)
+        systems = _main_round_data_with_overrides(round_dir, overrides)
         adapter_pool = _adapter_pool_size(round_dir)
         scale = _time_scale(round_dir)
         for system in systems:
@@ -458,8 +551,8 @@ def _plot_adapter_pool_lines(
     _add_axis_arrows(ax)
 
 
-def plot_adapter_pool_sensitivity(round_dirs: Sequence[Path], out_dir: Path) -> None:
-    rows = _collect_adapter_pool([Path(path).resolve() for path in round_dirs])
+def plot_adapter_pool_sensitivity(round_dirs: Sequence[Path], out_dir: Path, overrides: OverrideMap) -> None:
+    rows = _collect_adapter_pool([Path(path).resolve() for path in round_dirs], overrides)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     fig, axes = plt.subplots(1, 2, figsize=(3.62, 1.76), constrained_layout=False)
@@ -508,8 +601,8 @@ def plot_adapter_pool_sensitivity(round_dirs: Sequence[Path], out_dir: Path) -> 
     manifest.write_text(json.dumps(manifest_payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
-def plot_load_sensitivity(round_dirs: Sequence[Path], out_dir: Path) -> None:
-    rows = _collect([Path(path).resolve() for path in round_dirs])
+def plot_load_sensitivity(round_dirs: Sequence[Path], out_dir: Path, overrides: OverrideMap) -> None:
+    rows = _collect([Path(path).resolve() for path in round_dirs], overrides)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     fig = plt.figure(figsize=(7.16, 4.60), constrained_layout=False)
@@ -555,12 +648,18 @@ def main() -> None:
     parser.add_argument("--round-dir", action="append", required=True, type=Path, help="Completed fair round directory; pass once per load point.")
     parser.add_argument("--out-dir", type=Path, default=Path("figs/paper/sensitivity"))
     parser.add_argument("--figure", choices=["load", "adapter_pool"], default="load")
+    parser.add_argument(
+        "--system-summary-override",
+        action="append",
+        help="Override one system summary for one round as '<round_dir>:<system_key>:<summary_json>'.",
+    )
     args = parser.parse_args()
+    overrides = _parse_overrides(args.system_summary_override)
     if args.figure == "adapter_pool":
-        plot_adapter_pool_sensitivity(args.round_dir, args.out_dir.resolve())
+        plot_adapter_pool_sensitivity(args.round_dir, args.out_dir.resolve(), overrides)
         print(f"generated fig9_adapter_pool_sensitivity -> {args.out_dir.resolve()}")
     else:
-        plot_load_sensitivity(args.round_dir, args.out_dir.resolve())
+        plot_load_sensitivity(args.round_dir, args.out_dir.resolve(), overrides)
         print(f"generated fig8_load_sensitivity -> {args.out_dir.resolve()}")
 
 

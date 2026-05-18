@@ -1,0 +1,16 @@
+\begin{table}[t]
+\centering
+\caption{Service-readiness analysis on the representative Llama-2-7B multi-LoRA workload.}
+\label{tab:service_readiness}
+\setlength{\tabcolsep}{2.4pt}
+\renewcommand{\arraystretch}{1.10}
+\begin{tabular}{lrrrrrrr}
+\hline
+System & \shortstack{GPU\\(\%)} & \shortstack{HOST/NVMe\\(\%)} & \shortstack{Remote\\(\%)} & \shortstack{Mismatch\\(\%)} & \shortstack{TTFT p95\\GPU (ms)} & \shortstack{TTFT p95\\Non-GPU (ms)} & \shortstack{Prep p95\\Non-GPU (ms)} \\
+\hline
+PrimeLoRA-NVMe & 94.90 & 2.42 & 2.67 & 5.10 & 1668.2 & 4399.3 & 52.2 \\
+PrimeLoRA-NoCoord & 94.75 & 3.10 & 2.15 & 5.25 & 1438.8 & 4740.0 & 52.2 \\
+PrimeLoRA & 94.58 & 3.27 & 2.15 & 5.42 & 1576.4 & 3142.9 & 52.2 \\
+\hline
+\end{tabular}
+\end{table}

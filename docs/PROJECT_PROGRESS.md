@@ -905,3 +905,24 @@ True-remote ablation progress, 2026-05-18:
   `2.568 mUSD`, CE `120.24`.
 - The queue has advanced to `faaslora_full`, the final true-remote ablation
   scenario.
+
+True-remote full-figures queue completion, 2026-05-18:
+
+- `faaslora_full` completed with `4000/4000` requests and `0` failures.
+  Metrics: TTFT Avg `658.3 ms`, TTFT P95 `1729.0 ms`, E2E Avg `3253.3 ms`,
+  E2E P95 `7240.5 ms`, TPOT `30.2 ms`, Throughput `101.62 tok/s`, Cost/req
+  `2.563 mUSD`, CE `119.92`.
+- The true-remote full-figures queue finished all stages:
+  `00_remote_health`, `10_load_queue`, `20_adapter_pool_queue`,
+  `30_ablation_queue`, and `40_build_figures`.
+- New remote-only artifacts were generated under
+  `figs_remote_full_real_remote_v1/` and
+  `paper_results/final_remote_full_real_remote_v1/`. The existing `figs/`
+  paper figures were restored to avoid overwriting the prior closed-loop
+  artifact set.
+- Sensitivity figures use the canonical true-remote main `a500` point with an
+  explicit PrimeLoRA summary override, because that round's baseline compare
+  JSON intentionally does not contain a `faaslora` row. The generated
+  true-remote mirror now includes `paper/sensitivity/fig8_load_sensitivity*`,
+  `paper/sensitivity/fig8_load_sensitivity_trends.pdf`, and
+  `paper/sensitivity/fig9_adapter_pool_sensitivity*`.

@@ -1,0 +1,4 @@
+scenario,label,ttft_avg_ms,ttft_p95_ms,e2e_avg_ms,e2e_p95_ms,tpot_avg_ms,tpot_p95_ms,lora_io_ms,ce,cost_per_req_usd,panel,reference,target,ttft_avg_ms_improvement_pct,ttft_p95_ms_improvement_pct,e2e_avg_ms_improvement_pct,e2e_p95_ms_improvement_pct,tpot_avg_ms_improvement_pct,tpot_p95_ms_improvement_pct,lora_io_ms_improvement_pct,cost_per_req_usd_improvement_pct,ce_improvement_pct
+faaslora_no_coord,NoCoord,619.1912,1604.832,3238.3542,7209.1774,30.4281,43.65570413927863,2.4634,120.237568,0.00256824,,,,,,,,,,,,
+faaslora_full,Full,658.32,1728.9765,3253.3322,7240.519,30.1738,45.77503865612016,2.5807,119.922451,0.00256313,,,,,,,,,,,,
+,,,,,,,,,,,coordination_change,NoCoord,Full,-5.943735569328002,-7.180230616205597,-0.4603895046438766,-0.4328639977327686,0.8427841372316447,-4.629891266204689,-4.545278412833731,0.19936561937943242,-0.26207865415242004

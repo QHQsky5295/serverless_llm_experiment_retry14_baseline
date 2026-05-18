@@ -230,6 +230,7 @@ build_figures() {
     --round-dir "${load_s12}" \
     --round-dir "${load_s10}" \
     --round-dir "${ad_a500}" \
+    --system-summary-override "${ad_a500}:faaslora:${PRIME_VLLM_7B}" \
     --figure load \
     --out-dir "${PAPER_FIGS_ROOT}/sensitivity"
 
@@ -239,6 +240,7 @@ build_figures() {
     --round-dir "${ad_a300}" \
     --round-dir "${ad_a400}" \
     --round-dir "${ad_a500}" \
+    --system-summary-override "${ad_a500}:faaslora:${PRIME_VLLM_7B}" \
     --figure adapter_pool \
     --out-dir "${PAPER_FIGS_ROOT}/sensitivity"
 

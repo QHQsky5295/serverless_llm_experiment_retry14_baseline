@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\caption{Control-path overhead of PrimeLoRA. All values are in milliseconds. Online total is measured per request; GPU-admission and background-planning rows report triggered events.}
+\label{tab:control_path_overhead}
+\footnotesize
+\setlength{\tabcolsep}{2.6pt}
+\renewcommand{\arraystretch}{1.10}
+\begin{tabular}{lrrr}
+\toprule
+Operation & Avg & P95 & Events \\
+\midrule
+Routing + tier lookup & 0.101 & 0.190 & 4000 \\
+Adapter-path resolution & 23.938 & 5.940 & 4000 \\
+GPU-admission check & 3.920 & 27.125 & 220 \\
+Online control total & 24.254 & 6.192 & 4000 \\
+Background handoff plan & 3.071 & 6.270 & 6 \\
+\bottomrule
+\end{tabular}
+\end{table}

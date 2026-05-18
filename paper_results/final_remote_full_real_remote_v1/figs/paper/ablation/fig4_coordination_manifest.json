@@ -1,0 +1,11 @@
+{
+  "figure": "fig4_coordination",
+  "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/14_remote_fair_ablation_real_remote_full_figs_v1/20260514_real_remote_fullfigs_v1_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_real_remote_fullfigs_v1",
+  "generated_at_utc": "2026-05-18T09:31:31.357469+00:00",
+  "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs_remote_full_real_remote_v1/paper/ablation/fig4_coordination.pdf",
+  "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs_remote_full_real_remote_v1/paper/ablation/fig4_coordination_data.csv",
+  "sources": [
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/14_remote_fair_ablation_real_remote_full_figs_v1/20260514_real_remote_fullfigs_v1_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_real_remote_fullfigs_v1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_real_remote_fullfigs_v1_faaslora_no_coord_result.json",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/14_remote_fair_ablation_real_remote_full_figs_v1/20260514_real_remote_fullfigs_v1_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_real_remote_fullfigs_v1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_real_remote_fullfigs_v1_faaslora_full_result.json"
+  ]
+}

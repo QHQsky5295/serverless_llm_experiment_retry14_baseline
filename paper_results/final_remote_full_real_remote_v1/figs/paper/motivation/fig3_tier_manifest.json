@@ -1,0 +1,27 @@
+{
+  "figure": "fig3_tier",
+  "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_012813_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1",
+  "generated_at_utc": "2026-05-18T09:31:30.092906+00:00",
+  "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs_remote_full_real_remote_v1/paper/motivation/fig3_tier.pdf",
+  "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/figs_remote_full_real_remote_v1/paper/motivation/fig3_tier_data.csv",
+  "sources": [
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_012813_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_replay.json"
+  ],
+  "system": "S-LoRA",
+  "baseline_or_own_system": "external_baseline",
+  "evidence_role": "external multi-LoRA/runtime motivation",
+  "figure_layout": "IEEE single-column PDF intended for includegraphics width=\\columnwidth",
+  "model": "Llama-2-7B",
+  "request_count": 4000,
+  "adapter_pool_size": 500,
+  "trace_id": "llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1",
+  "fields_used": [
+    "arrival_time_s",
+    "request_id",
+    "adapter_id",
+    "overall_ttft_ms"
+  ],
+  "benchmark": "Llama-2-7B, 4000 requests, 500 adapters, Zipf=1.0, hot set=48, rotation=500, time scale=8",
+  "category_definition": "Adapter reuse buckets are derived only from the adapter_id sequence: first touch, hot reuse <=16 requests, warm reuse 17-64 requests, and cold reuse >64 requests.",
+  "limitations": "The figure does not claim per-request cache tier or transfer latency; current baseline replays do not export those fields."
+}

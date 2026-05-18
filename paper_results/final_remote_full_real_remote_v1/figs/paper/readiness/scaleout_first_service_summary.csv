@@ -1,0 +1,4 @@
+scenario,label,first_service_n,planned_match_n,planned_miss_n,planned_match_rate_pct,gpu_ready_rate_pct,remote_cold_rate_pct,ttft_p50_match_ms,ttft_p95_match_ms,ttft_p50_miss_ms,ttft_p95_miss_ms
+faaslora_nvme,PrimeLoRA-NVMe,6,2,4,33.333333333333336,66.66666666666667,0.0,10300.646538804358,10408.330483953796,4856.124449304843,9469.365884099352
+faaslora_no_coord,PrimeLoRA-NoCoord,4,2,2,50.0,50.0,0.0,9728.066249801486,9835.163944855594,9334.007135526917,9358.07653896045
+faaslora_full,PrimeLoRA,4,4,0,100.0,100.0,0.0,9334.884869804227,9844.37211004315,nan,nan
