@@ -86,8 +86,13 @@ require_dir() {
 }
 
 remote_health() {
-  export NO_PROXY="${NO_PROXY:-192.168.4.174,10.199.227.174,127.0.0.1,localhost,::1}"
-  export no_proxy="${no_proxy:-${NO_PROXY}}"
+  local remote_no_proxy_hosts="192.168.4.174,10.199.227.174,127.0.0.1,localhost,::1"
+  if [[ -n "${NO_PROXY:-}" ]]; then
+    export NO_PROXY="${NO_PROXY},${remote_no_proxy_hosts}"
+  else
+    export NO_PROXY="${remote_no_proxy_hosts}"
+  fi
+  export no_proxy="${NO_PROXY}"
   export HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy=
   local endpoint=""
   for endpoint in http://192.168.4.174:18081 http://192.168.4.174:18082 http://192.168.4.174:18080; do
