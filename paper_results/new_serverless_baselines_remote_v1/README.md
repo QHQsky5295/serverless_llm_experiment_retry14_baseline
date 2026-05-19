@@ -1,13 +1,14 @@
 # New Serverless Baselines Remote V1
 
-This is a non-overwriting curated bundle for the 2026-05-18
-ServerlessLLM-new true-remote candidate experiment. It does not replace the
-default paper data in `paper_results/final_v2/` or the default figures in
-`figs/`.
+This is a non-overwriting curated bundle for the 2026-05-18 new serverless
+baseline campaign. It contains the ServerlessLLM-new true-remote candidate
+experiment and gate evidence for later systems. It does not replace the default
+paper data in `paper_results/final_v2/` or the default figures in `figs/`.
 
 ## Scope
 
-- System: `ServerlessLLM-new`
+- Formal candidate system: `ServerlessLLM-new`
+- Gate-only system: `Medusa`
 - Upstream commit: `9f50241baa5386e06a9321c51f19a9ef5f964c2b`
 - Harness: `/home/qhq/serverless_llm_baselines`
 - Result section:
@@ -22,6 +23,9 @@ default paper data in `paper_results/final_v2/` or the default figures in
 - `tables/serverlessllm_new_metrics.csv`: table-ready copy of the same metrics.
 - `source_summaries/*.json.gz`: compressed source summary JSON files from the
   formal replays.
+- `gates/medusa/`: Medusa official and local-adaptation gate evidence. Medusa
+  builds/imports after local path adaptation, but is not a formal result row on
+  this machine because the SPDK runtime prerequisites are absent.
 - `SHA256SUMS`: checksums for the bundle.
 
 ## Inclusion Decision

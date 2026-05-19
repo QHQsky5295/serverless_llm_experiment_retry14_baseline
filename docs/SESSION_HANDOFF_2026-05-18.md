@@ -170,9 +170,14 @@ gate evidence:    /home/qhq/serverless_llm_experiment_retry14_baseline/paper_res
 
 Decision: do not include Medusa in formal tables/figures on this machine. The
 official build reached `vllm._C` after CUDA include-path repair, but failed at
-`csrc/cuda_graph.cu(131)` due a CUDA Graph API signature mismatch. The official
-tree also hard-codes absent SPDK/DPDK/GDRCopy paths and `/home/zsx` model
-paths, so no valid true-remote LoRA `e2e_v3` replay was launched.
+`csrc/cuda_graph.cu(131)` due a CUDA Graph API signature mismatch. A follow-up
+local adaptation patched that call, parameterized SPDK/DPDK/GDRCopy paths,
+built local SPDK-Medusa and GDRCopy userspace libraries, and successfully
+built/imported Medusa `vllm._C` / `_moe_C`. Formal runtime is still blocked on
+this machine: default SPDK init fails with `HugePages_Total=0`, no visible
+NVMe/Optane device exists for SPDK I/O, `/dev/gdrdrv` is absent, and
+passwordless sudo is unavailable for driver/PCI/hugepage setup. No valid
+true-remote LoRA `e2e_v3` replay was launched.
 
 ## 5. Important Experiment Decisions
 

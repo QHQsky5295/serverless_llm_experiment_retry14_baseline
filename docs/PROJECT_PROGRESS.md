@@ -34,9 +34,11 @@ April handoff snapshots have been removed from the active documentation set.
   non-overwriting true-remote candidate after the main mirror closed. Its
   curated bundle is `paper_results/new_serverless_baselines_remote_v1/`; it is
   not merged into the default `paper_results/final_v2/` or `figs/` snapshot.
-  Medusa was then gated and closed as not formally reproducible on the current
-  machine because the official build fails before runtime and requires absent
-  SPDK/DPDK/GDRCopy dependencies.
+  Medusa was then gated. A local adaptation can build/import Medusa `_C` with
+  locally built SPDK-Medusa and GDRCopy userspace libraries, but it remains
+  excluded from formal tables/figures because this machine lacks default
+  hugepages, visible NVMe/Optane devices, `/dev/gdrdrv`, and passwordless sudo
+  for driver/PCI/hugepage setup.
 - True-remote full-figure queue checkpoint on 2026-05-15 12:05 CST:
   the Llama-2-7B adapter-pool `a100` and `a200` five-system rounds are
   complete and valid. `a200` keeps the same system ordering as the frozen
