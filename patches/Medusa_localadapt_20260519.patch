@@ -151,4 +151,3 @@ index 47522fa..063c8c8 100644
 +        extra_link_args=LDFLAGS1
      )
      ext_modules.append(vllm_extension)
-
