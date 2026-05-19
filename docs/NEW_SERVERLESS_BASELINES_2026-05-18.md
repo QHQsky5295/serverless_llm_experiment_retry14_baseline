@@ -81,6 +81,40 @@ Do not start a long Medusa or FaaScale formal run until their build/runtime
 gate proves they can consume the Llama-2 7B and Llama-3.2 3B LoRA workload
 without changing the closed true-remote workload variables.
 
+## dLoRA Gate
+
+Status: closed local build/import gate, not adopted for formal table/figures.
+
+- Upstream: `https://github.com/LLMServe/dLoRA-artifact`
+- Upstream commit: `75f1c439446fe194b1df8a24982ef9067841fab5`
+- Local entry: `DLoRA_project/`
+- Local source: `vendor_new_baselines/dLoRA_artifact_main_20260519`
+- Evidence summary: `DLoRA_project/evidence/gate_2026-05-19.json`
+- Compatibility patch: `DLoRA_project/patches/modern_ray_import_compat.patch`
+- Build env: `dlora_medusa_clone_20260519`
+- Import result: `vllm.__version__ == 0.1.4`
+
+Local adaptation:
+
+- first official-style environment path hit repeated network `IncompleteRead`
+  failures while downloading CUDA/PyTorch packages, so an isolated clone of the
+  existing cu121 Medusa env was created instead of modifying that env;
+- `pip install -e` required `--no-deps --no-build-isolation` to avoid pulling
+  a second torch build from the network;
+- CUDA extension build required local CUDA 12.1 header/library precedence over
+  mixed CUDA 13.x headers in the cloned env;
+- Ray 2.51.2 imports were made tolerant of absent `ray.air` optional deps.
+
+Formal blocker:
+
+- dLoRA's artifact source supports Llama-2 style models and LoRA scheduling,
+  but no Llama-3.2 source path was found;
+- no native modern real-PEFT loader was found for the closed
+  `adapter_model.safetensors` adapter set;
+- no native `e2e_v3` replay path exists;
+- the source has dummy/random/zero LoRA tensor paths, so using those tensors
+  would not be a fair formal comparison against the true-remote LoRA workload.
+
 ## Medusa Gate
 
 Status: closed local build/import gate, not adopted for formal table/figures on
