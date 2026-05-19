@@ -69,9 +69,22 @@
 - 当前上游基线 commit：`9db210fcb6979f7c1f73f9819a77e0edb6c5e343`
 - RDMA helper path：`/home/qhq/serverless_llm_baselines/vendor_new_baselines/rdma-p2p_main_20260518`
 - RDMA helper commit：`ed83237439d2103141fbc7c9b97f348055b6cb53`
-- 当前状态：排在 Medusa 之后继续 official build / LoRA / true-remote gate。
-  已知风险包括 RDMA assumptions、hard-coded multi-node paths、Llama-2-only
-  model slicing and missing LoRA/adapter workload path。
+- 项目入口：`/home/qhq/serverless_llm_baselines/FaaScale_project`
+- 当前 patch 文件：
+  - [RDMA_P2P_localadapt_20260519.patch](/home/qhq/serverless_llm_baselines/patches/RDMA_P2P_localadapt_20260519.patch)
+- 当前状态：2026-05-19 official import / IPC / RDMA-P2P / LoRA /
+  true-remote feasibility gate 已闭口为“当前机器不可进入正式对比”。官方
+  checkout 原始导入失败于 `test_bed_local` 包名不匹配；隔离 local-adapt
+  clone 通过 symlink shim 和 `protobuf==3.20.3` 修复最小 import。IPC
+  extension 已 build/import。RDMA-P2P helper 在补齐 Derecho v2.4.0 build
+  metadata、pybind11、conda `rdma-core` headers，并 patch CUDA 13
+  `cuCtxCreate` 签名后，可 build/import `rdmc_shn` Python binding。
+- 仍不进入正式表/图的原因：`wrapper_initialize()` runtime gate 发现
+  `0 device(s)` 并返回 `False`；本机没有 `/dev/infiniband`，sysfs 下没有
+  可用 IB device，且无 passwordless sudo 做 driver/device setup。源码能力
+  侧也只有 Llama-2 7B 静态路径，没有 Llama-3.2 3B config，也没有 LoRA/PEFT
+  workload path。因此不能在当前机器上生成共享 trace、共享 adapter subset、
+  true-remote artifact 口径下的 `e2e_v3` LoRA replay。
 
 ### S-LoRA
 

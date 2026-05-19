@@ -54,6 +54,20 @@ Medusa was also gated in this campaign:
   LoRA replay was launched because this machine lacks Medusa's SPDK runtime
   prerequisites.
 
+FaaScale/LambdaScale was gated after Medusa:
+
+- project entry: `../FaaScale_project/`
+- LambdaScale upstream clone:
+  `../vendor_new_baselines/lambda-scale_main_20260518/` at commit
+  `9db210fcb6979f7c1f73f9819a77e0edb6c5e343`
+- RDMA-P2P upstream clone:
+  `../vendor_new_baselines/rdma-p2p_main_20260518/` at commit
+  `ed83237439d2103141fbc7c9b97f348055b6cb53`
+- status: local import, IPC extension, and targeted RDMA-P2P Python binding
+  build/import gate closed; no formal true-remote LoRA replay was launched
+  because the machine exposes no usable InfiniBand device and the source lacks
+  ready Llama-3.2 3B plus LoRA/PEFT workload support.
+
 ## Active Environment Notes
 
 - `../environments/ServerlessLLM.md`

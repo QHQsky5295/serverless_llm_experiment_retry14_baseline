@@ -56,7 +56,7 @@ Interpretation:
 
 ## Next Ordered Gates
 
-The next systems remain in the requested order:
+The requested ordered campaign is now closed:
 
 1. Medusa official reproduction and LoRA/true-remote feasibility gate.
    Closed on 2026-05-19 as a local build/import success but not a formal
@@ -68,7 +68,14 @@ The next systems remain in the requested order:
    system state that is absent here: configured hugepages by default,
    SPDK-accessible NVMe/Optane devices, and GDRCopy kernel device setup.
 2. FaaScale/LambdaScale official reproduction and LoRA/true-remote feasibility
-   gate.
+   gate. Closed on 2026-05-19 as a local import/IPC/RDMA-binding success but
+   not a formal runtime candidate on the current machine. The official package
+   import path and protobuf runtime were repaired in an isolated env, the IPC
+   extension builds/imports, and the RDMA-P2P `rdmc_shn` binding builds/imports
+   after local dependency and CUDA 13 adaptation. Runtime initialization still
+   finds zero IB devices because `/dev/infiniband` is absent and no usable
+   InfiniBand class device is exposed. The source also lacks a ready
+   Llama-3.2 3B config and LoRA/PEFT workload path.
 
 Do not start a long Medusa or FaaScale formal run until their build/runtime
 gate proves they can consume the Llama-2 7B and Llama-3.2 3B LoRA workload
@@ -104,3 +111,34 @@ this machine.
 - LoRA note: inherited vLLM LoRA request code is present, but no valid
   true-remote `e2e_v3` LoRA replay can be produced until the SPDK runtime
   requirements and Llama-2 7B / Llama-3.2 3B workload adapter are satisfied.
+
+## FaaScale / LambdaScale Gate
+
+Status: closed local import/build gate, not adopted for formal table/figures
+on this machine.
+
+- LambdaScale upstream commit: `9db210fcb6979f7c1f73f9819a77e0edb6c5e343`
+- RDMA-P2P upstream commit: `ed83237439d2103141fbc7c9b97f348055b6cb53`
+- Local entry: `FaaScale_project/`
+- Build log root:
+  `results/logs/new_serverless_baselines_remote_v1/faascale/gate/`
+- Local adaptation env: `faascale_20260519`
+- Local RDMA-P2P patch:
+  `patches/RDMA_P2P_localadapt_20260519.patch`
+- Official raw package import fails with `ModuleNotFoundError:
+  test_bed_local`. An isolated symlink shim fixes the package layout.
+- The generated protobuf files require `protobuf==3.20.x`; after minimal
+  dependency installation, utility import succeeds and reports Llama-2 7B
+  support but no Llama-3.2 3B config.
+- The LambdaScale IPC extension builds/imports after setting the torch library
+  runtime path.
+- RDMA-P2P can build the targeted `rdmc_shn` Python binding after local
+  Derecho metadata, pybind11, rdma-core headers, and CUDA 13 `cuCtxCreate`
+  adaptation. Full helper build still has a nonessential `persistent_test`
+  OpenSSL link/API failure.
+- Runtime blocker: `wrapper_initialize()` finds zero IB devices and returns
+  `False`; `/dev/infiniband` is absent, `/sys/class/infiniband` exposes no
+  usable device, and passwordless sudo is unavailable for driver/device setup.
+- LoRA note: no LoRA/PEFT/QLoRA path was found in targeted source search. A
+  fair true-remote LoRA `e2e_v3` replay would require nontrivial model and
+  workload adaptation in addition to RDMA runtime availability.
