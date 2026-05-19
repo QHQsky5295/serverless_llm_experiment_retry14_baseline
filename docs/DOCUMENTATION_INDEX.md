@@ -13,6 +13,8 @@ execution source.
 - `BASELINE_MATRIX.md`: current baseline status and inclusion boundary.
 - `UPSTREAM_REPO_STATE.md`: upstream commit and patch tracking.
 - `CODEX_INTERACTION_RULES.md`: collaboration and root-cause analysis rules.
+- `NEW_SERVERLESS_BASELINES_2026-05-18.md`: ordered ServerlessLLM-new,
+  Medusa, and FaaScale reproduction campaign notes.
 
 ## Current True-Remote Result Scope
 
@@ -27,6 +29,20 @@ the completed 2026-05-14 true-remote remote-fair run:
 
 The FaaSLoRA repository owns the merged paper tables, figures, PrimeLoRA source
 summaries, and curated snapshot for this true-remote validation.
+
+## New Serverless Baseline Candidate Scope
+
+The 2026-05-18 ServerlessLLM-new true-remote candidate is isolated from the old
+ServerlessLLM baseline:
+
+- project entry: `../ServerlessLLM_new_project/`
+- upstream clone: `../vendor_new_baselines/ServerlessLLM_new_main_20260518/`
+  at commit `9f50241baa5386e06a9321c51f19a9ef5f964c2b`
+- result section: `results/paper_experiments/15_new_serverless_baselines_remote_v1/`
+- status: closed and validated for 7B/3B, pending paper-table integration
+  policy.
+
+The old `ServerlessLLM_project/` and all default paper data remain unchanged.
 
 ## Active Environment Notes
 

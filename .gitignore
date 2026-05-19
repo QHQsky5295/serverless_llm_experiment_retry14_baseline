@@ -23,6 +23,7 @@ repos/S-LoRA/
 repos/skypilot/
 repos/Punica/
 repos/SGLang/
+vendor_new_baselines/
 artifacts/
 
 # Keep the project symlink tree, scripts, docs, and patch files.

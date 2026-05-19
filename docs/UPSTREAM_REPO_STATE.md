@@ -28,6 +28,40 @@
   router、store manager 和 CLI。不要对该目录执行 reset/checkout；如需复核，
   先保存或审阅现有 diff。
 
+### ServerlessLLM-new 2026-05-18
+
+- 上游仓库：`https://github.com/ServerlessLLM/ServerlessLLM.git`
+- 本地路径：`/home/qhq/serverless_llm_baselines/vendor_new_baselines/ServerlessLLM_new_main_20260518`
+- 当前上游基线 commit：`9f50241baa5386e06a9321c51f19a9ef5f964c2b`
+- 项目入口：`/home/qhq/serverless_llm_baselines/ServerlessLLM_new_project`
+- 当前本地状态：保持为独立官方 clone，外层仓库通过 `.gitignore` 排除
+  `vendor_new_baselines/`，避免把整份上游源码和嵌套 `.git` 提交进 harness。
+- 当前复现范围：使用 `sllm_vllm0102_newserverless_20260518` 环境和外层
+  `scripts/run_serverlessllm_new_remote_formal_queue.sh`，在 true-remote
+  7B/3B shared trace + shared LoRA subset 上完成 `e2e_v3` 候选结果。
+- 数据边界：不覆盖旧 `ServerlessLLM_project/`、旧 ServerlessLLM result
+  directories、`figs/` 或 `paper_results/final_v2/`。
+
+### Medusa 2026-05-18 gate
+
+- 上游仓库：官方 Medusa clone
+- 本地路径：`/home/qhq/serverless_llm_baselines/vendor_new_baselines/Medusa_main_20260518`
+- 当前上游基线 commit：`6581d2e5ec8fa4ecdabcdb50560982a78ea3ca89`
+- 当前状态：等待 ServerlessLLM-new 闭口上传后继续 official build / LoRA /
+  true-remote feasibility gate。已知风险包括 CUDA/library pinning and
+  official SPDK/DPDK/gdrapi dependencies。
+
+### FaaScale / LambdaScale 2026-05-18 gate
+
+- 上游仓库：official LambdaScale/FaaScale clone
+- 本地路径：`/home/qhq/serverless_llm_baselines/vendor_new_baselines/lambda-scale_main_20260518`
+- 当前上游基线 commit：`9db210fcb6979f7c1f73f9819a77e0edb6c5e343`
+- RDMA helper path：`/home/qhq/serverless_llm_baselines/vendor_new_baselines/rdma-p2p_main_20260518`
+- RDMA helper commit：`ed83237439d2103141fbc7c9b97f348055b6cb53`
+- 当前状态：排在 Medusa 之后继续 official build / LoRA / true-remote gate。
+  已知风险包括 RDMA assumptions、hard-coded multi-node paths、Llama-2-only
+  model slicing and missing LoRA/adapter workload path。
+
 ### S-LoRA
 
 - 上游仓库：`https://github.com/S-LoRA/S-LoRA.git`

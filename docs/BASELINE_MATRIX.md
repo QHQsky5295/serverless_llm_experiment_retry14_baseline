@@ -14,6 +14,12 @@ confusing the formal experiment path.
 | `S-LoRA` | Serverful multi-LoRA paper baseline | `/home/qhq/serverless_llm_baselines/S-LoRA_project` | Upstream source under `repos/S-LoRA`; wrapper-level adaptation only | Active baseline after CUDA 11.8 environment and native prompt-budget guard |
 | `Punica` | Scoped auxiliary many-LoRA baseline | `/home/qhq/serverless_llm_baselines/Punica_project` | Upstream source under `repos/Punica`; wrapper-level adaptation only | Limited Llama-2 7B auxiliary result only, not full main-table coverage |
 
+## New Formal Candidates
+
+| System | Role | Local Entry | Upstream Handling | Current Status |
+|---|---|---|---|---|
+| `ServerlessLLM-new` | Current upstream ServerlessLLM serverless LLM baseline | `/home/qhq/serverless_llm_baselines/ServerlessLLM_new_project` | Upstream source kept in ignored `vendor_new_baselines/`; no old ServerlessLLM code or data overwritten | True-remote 7B/3B LoRA workload closed and validated as a candidate row; not yet merged into default paper tables/figures |
+
 ## Not Active In The Current Main Harness
 
 | System | Reason |
@@ -22,6 +28,8 @@ confusing the formal experiment path.
 | `Llumnix` | Not currently connected to the shared trace / shared adapter / `e2e_v3` harness. |
 | `dLoRA` | Related to adapter orchestration, but currently left for related work / discussion unless a complete reproducible path is added. |
 | `ServerlessLoRA` / `P-LoRA` | No complete local official-code reproduction path in the current workspace. Do not claim formal reproduction. |
+| `Medusa` | Ordered next for reproduction; official build/LoRA/true-remote gate is not closed yet. |
+| `FaaScale` / `LambdaScale` | Ordered after Medusa; official build/LoRA/true-remote gate is not closed yet. |
 
 ## Formal Main Round
 
