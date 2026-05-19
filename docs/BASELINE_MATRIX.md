@@ -28,7 +28,7 @@ confusing the formal experiment path.
 | `Llumnix` | Not currently connected to the shared trace / shared adapter / `e2e_v3` harness. |
 | `dLoRA` | Related to adapter orchestration, but currently left for related work / discussion unless a complete reproducible path is added. |
 | `ServerlessLoRA` / `P-LoRA` | No complete local official-code reproduction path in the current workspace. Do not claim formal reproduction. |
-| `Medusa` | Ordered next for reproduction; official build/LoRA/true-remote gate is not closed yet. |
+| `Medusa` | 2026-05-19 gate closed as not formally reproducible on this machine: official build fails before runtime, and required SPDK/DPDK/GDRCopy stack is absent. |
 | `FaaScale` / `LambdaScale` | Ordered after Medusa; official build/LoRA/true-remote gate is not closed yet. |
 
 ## Formal Main Round

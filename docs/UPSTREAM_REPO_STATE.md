@@ -47,9 +47,14 @@
 - 上游仓库：官方 Medusa clone
 - 本地路径：`/home/qhq/serverless_llm_baselines/vendor_new_baselines/Medusa_main_20260518`
 - 当前上游基线 commit：`6581d2e5ec8fa4ecdabcdb50560982a78ea3ca89`
-- 当前状态：等待 ServerlessLLM-new 闭口上传后继续 official build / LoRA /
-  true-remote feasibility gate。已知风险包括 CUDA/library pinning and
-  official SPDK/DPDK/gdrapi dependencies。
+- 项目入口：`/home/qhq/serverless_llm_baselines/Medusa_project`
+- 当前状态：2026-05-19 official build / LoRA / true-remote feasibility gate
+  已闭口为“当前机器不可正式复现”。在补充 conda CUDA target include/library
+  paths 后，`vllm._moe_C` 可编译，但 `vllm._C` 在
+  `csrc/cuda_graph.cu(131)` 因 CUDA Graph API 签名不匹配失败；同时官方源码
+  仍硬编码 `/home/zsx/spdk`、SPDK/DPDK/GDRCopy link flags 和 `/home/zsx`
+  模型路径。本机缺少这些官方硬件/系统依赖，因此不能生成真实 remote LoRA
+  `e2e_v3` replay。
 
 ### FaaScale / LambdaScale 2026-05-18 gate
 

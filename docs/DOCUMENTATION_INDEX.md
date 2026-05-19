@@ -44,6 +44,14 @@ ServerlessLLM baseline:
 
 The old `ServerlessLLM_project/` and all default paper data remain unchanged.
 
+Medusa was also gated in this campaign:
+
+- project entry: `../Medusa_project/`
+- upstream clone: `../vendor_new_baselines/Medusa_main_20260518/` at commit
+  `6581d2e5ec8fa4ecdabcdb50560982a78ea3ca89`
+- status: official build gate closed as not formally reproducible on the
+  current machine; no true-remote LoRA replay was launched.
+
 ## Active Environment Notes
 
 - `../environments/ServerlessLLM.md`

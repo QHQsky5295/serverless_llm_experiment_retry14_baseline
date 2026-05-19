@@ -59,9 +59,34 @@ Interpretation:
 The next systems remain in the requested order:
 
 1. Medusa official reproduction and LoRA/true-remote feasibility gate.
+   Closed on 2026-05-19 as not formally reproducible on the current machine:
+   official build reached `vllm._C` but failed at `csrc/cuda_graph.cu` due a
+   CUDA Graph API signature mismatch, and the official source also requires
+   absent SPDK/DPDK/GDRCopy paths under `/home/zsx/spdk`.
 2. FaaScale/LambdaScale official reproduction and LoRA/true-remote feasibility
    gate.
 
 Do not start a long Medusa or FaaScale formal run until their build/runtime
 gate proves they can consume the Llama-2 7B and Llama-3.2 3B LoRA workload
 without changing the closed true-remote workload variables.
+
+## Medusa Gate
+
+Status: closed feasibility gate, not adopted for formal table/figures on this
+machine.
+
+- Upstream commit: `6581d2e5ec8fa4ecdabcdb50560982a78ea3ca89`
+- Local entry: `Medusa_project/`
+- Build log root:
+  `results/logs/new_serverless_baselines_remote_v1/medusa/gate/`
+- First gate: `cusparse.h` not found until conda CUDA target include paths were
+  added.
+- Second gate: `vllm._moe_C` compiled, `vllm._C` failed at
+  `csrc/cuda_graph.cu(131)` because the local CUDA Graph header expects
+  `CUgraphEdgeData *` where the official source passes `size_t *`.
+- Static blockers: no `/home/zsx/spdk`, no SPDK/DPDK/GDRCopy libs, no official
+  Optane/SPDK disk setup, official model scripts hard-code `/home/zsx` paths
+  and OpenLLaMA/Qwen/Yi/Falcon model names rather than the requested Llama-2
+  7B and Llama-3.2 3B workloads.
+- LoRA note: inherited vLLM LoRA request code is present, but the runtime cannot
+  be built, so no valid true-remote `e2e_v3` LoRA replay can be produced.
