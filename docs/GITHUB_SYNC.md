@@ -96,15 +96,16 @@ it is intentionally regenerated for a separate manifest update.
 
 ## Latest Known Sync Scope: 2026-05-19
 
-The ServerlessLLM-new reproduction and Medusa local-adaptation gate are tracked
-as a separate, non-overwriting candidate bundle:
+The ServerlessLLM-new reproduction plus Medusa and FaaScale/LambdaScale
+local-adaptation gates are tracked as a separate, non-overwriting candidate
+bundle:
 
 - `paper_results/new_serverless_baselines_remote_v1/`
 - related documentation updates in `docs/`
 
 This bundle contains compressed source summaries, compact metrics, upstream
-patches, and gate evidence for systems that cannot enter formal replay. It does
-not replace `paper_results/final_v2/`,
+patches, and gate evidence for systems that cannot enter formal replay on this
+machine. It does not replace `paper_results/final_v2/`,
 `paper_results/final_remote_full_real_remote_v1/`, or any files under `figs/`.
 Continue to leave
 `configs/generated/lora_manifest_1000.json` unstaged unless the user explicitly

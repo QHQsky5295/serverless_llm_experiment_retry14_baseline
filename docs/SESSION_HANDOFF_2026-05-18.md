@@ -179,6 +179,27 @@ NVMe/Optane device exists for SPDK I/O, `/dev/gdrdrv` is absent, and
 passwordless sudo is unavailable for driver/PCI/hugepage setup. No valid
 true-remote LoRA `e2e_v3` replay was launched.
 
+FaaScale/LambdaScale gate after Medusa:
+
+```text
+baseline project: /home/qhq/serverless_llm_baselines/FaaScale_project
+LambdaScale commit: 9db210fcb6979f7c1f73f9819a77e0edb6c5e343
+RDMA-P2P commit:    ed83237439d2103141fbc7c9b97f348055b6cb53
+gate evidence:      /home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/new_serverless_baselines_remote_v1/gates/faascale/
+```
+
+Decision: do not include FaaScale/LambdaScale in formal tables/figures on this
+machine. The raw official package import fails because `test_bed_local` is not
+importable from the checked-out layout; an isolated local-adapt clone fixes the
+layout with symlinks and pins `protobuf==3.20.3`. LambdaScale IPC builds and
+imports. RDMA-P2P builds/imports the targeted `rdmc_shn` Python binding after
+local Derecho metadata, pybind11, conda `rdma-core` headers, and a CUDA 13
+`cuCtxCreate` patch. Formal runtime is still blocked: `wrapper_initialize()`
+finds zero IB devices and returns `False`, `/dev/infiniband` is absent, no
+usable InfiniBand device is exposed, and passwordless sudo is unavailable. The
+source also has no ready Llama-3.2 3B config and no LoRA/PEFT workload path, so
+no valid true-remote LoRA `e2e_v3` replay was launched.
+
 ## 5. Important Experiment Decisions
 
 ### a500 is the default main workload

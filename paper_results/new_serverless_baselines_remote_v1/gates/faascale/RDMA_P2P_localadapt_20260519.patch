@@ -1,0 +1,19 @@
+diff --git a/include/derecho/core/detail/cuda_manager.hpp b/include/derecho/core/detail/cuda_manager.hpp
+index 1724fba..f076029 100644
+--- a/include/derecho/core/detail/cuda_manager.hpp
++++ b/include/derecho/core/detail/cuda_manager.hpp
+@@ -61,8 +61,13 @@ class CudaManager {
+                 result = cuDeviceGet(&device, 0);
+                 CHECK_CUDA_ERROR(result);
+
+-                // Create a CUDA context
++                // Create a CUDA context. CUDA 13 routes cuCtxCreate to the
++                // v4 API, which inserts an optional CUctxCreateParams pointer.
++#if defined(CUDA_VERSION) && CUDA_VERSION >= 13000
++                result = cuCtxCreate(&context, nullptr, 0, device);
++#else
+                 result = cuCtxCreate(&context, 0, device);
++#endif
+                 CHECK_CUDA_ERROR(result);
+
+                 initialized = true;

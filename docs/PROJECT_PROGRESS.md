@@ -950,3 +950,20 @@ Current handoff state, 2026-05-18:
   with a reproducibility and fairness survey table. Do not start long runs or
   alter the closed paper result set until a candidate passes that gate and the
   user approves it.
+
+New serverless baseline campaign status, 2026-05-19:
+
+- `ServerlessLLM-new` closed as a true-remote candidate row under
+  `paper_results/new_serverless_baselines_remote_v1/`; it does not replace the
+  old `ServerlessLLM` row.
+- `Medusa` closed as a local build/import gate only. The local adaptation builds
+  and imports `vllm._C` / `_moe_C`, but the current machine lacks Medusa's
+  SPDK/NVMe/hugepage/GDRCopy runtime prerequisites.
+- `FaaScale/LambdaScale` closed as a local import/IPC/RDMA-binding gate only.
+  The isolated env fixes package/protobuf issues, IPC builds/imports, and the
+  targeted RDMA-P2P binding builds/imports, but runtime initialization finds
+  zero usable IB devices. The source also lacks ready Llama-3.2 3B and
+  LoRA/PEFT workload support.
+- No new gate overwrote `figs/`, `paper_results/final_v2/`, or the
+  true-remote mirror. Treat Medusa and FaaScale as appendix/gate evidence, not
+  formal performance rows, until their runtime and workload gates pass.

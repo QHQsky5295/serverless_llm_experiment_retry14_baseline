@@ -8,7 +8,7 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
 ## Scope
 
 - Formal candidate system: `ServerlessLLM-new`
-- Gate-only system: `Medusa`
+- Gate-only systems: `Medusa`, `FaaScale/LambdaScale`
 - Upstream commit: `9f50241baa5386e06a9321c51f19a9ef5f964c2b`
 - Harness: `/home/qhq/serverless_llm_baselines`
 - Result section:
@@ -26,14 +26,25 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
 - `gates/medusa/`: Medusa official and local-adaptation gate evidence. Medusa
   builds/imports after local path adaptation, but is not a formal result row on
   this machine because the SPDK runtime prerequisites are absent.
+- `gates/faascale/`: FaaScale/LambdaScale official and local-adaptation gate
+  evidence. LambdaScale imports and IPC/RDMA-P2P bindings build/import after
+  isolated repair, but it is not a formal result row on this machine because
+  the RDMA device stack is not exposed and the source lacks ready
+  Llama-3.2 3B plus LoRA/PEFT workload support.
 - `SHA256SUMS`: checksums for the bundle.
 
 ## Inclusion Decision
 
-These results are valid candidate rows for a future formal comparison table or
-appendix because both backbones completed `4000/4000` requests with no replay
-failures and no `trace_expected` token fallback. They should be labeled
-`ServerlessLLM-new` and kept separate from the older `ServerlessLLM` baseline.
+The ServerlessLLM-new results are valid candidate rows for a future formal
+comparison table or appendix because both backbones completed `4000/4000`
+requests with no replay failures and no `trace_expected` token fallback. They
+should be labeled `ServerlessLLM-new` and kept separate from the older
+`ServerlessLLM` baseline.
+
+Medusa and FaaScale/LambdaScale are gate-only evidence on this machine. Do not
+promote them to formal rows unless their runtime prerequisites are satisfied
+and the closed true-remote LoRA workload can be replayed into `e2e_v3` without
+changing workload variables.
 
 The old Llama-2 7B first run is superseded by
 `20260518_serverlessllm_new_remote_v1_clean7b` because that rerun had no
