@@ -48,13 +48,19 @@
 - 本地路径：`/home/qhq/serverless_llm_baselines/vendor_new_baselines/Medusa_main_20260518`
 - 当前上游基线 commit：`6581d2e5ec8fa4ecdabcdb50560982a78ea3ca89`
 - 项目入口：`/home/qhq/serverless_llm_baselines/Medusa_project`
+- 当前 patch 文件：
+  - [Medusa_localadapt_20260519.patch](/home/qhq/serverless_llm_baselines/patches/Medusa_localadapt_20260519.patch)
 - 当前状态：2026-05-19 official build / LoRA / true-remote feasibility gate
-  已闭口为“当前机器不可正式复现”。在补充 conda CUDA target include/library
-  paths 后，`vllm._moe_C` 可编译，但 `vllm._C` 在
-  `csrc/cuda_graph.cu(131)` 因 CUDA Graph API 签名不匹配失败；同时官方源码
-  仍硬编码 `/home/zsx/spdk`、SPDK/DPDK/GDRCopy link flags 和 `/home/zsx`
-  模型路径。本机缺少这些官方硬件/系统依赖，因此不能生成真实 remote LoRA
-  `e2e_v3` replay。
+  已闭口为“当前机器不可进入正式对比”。未修改官方源码时，补充 conda CUDA
+  target include/library paths 后，`vllm._moe_C` 可编译，但 `vllm._C` 在
+  `csrc/cuda_graph.cu(131)` 因 CUDA Graph API 签名不匹配失败。随后执行本地
+  适配：修复 CUDA Graph 调用、将 `/home/zsx/spdk` 和 GDRCopy 路径改为环境
+  变量、使用独立 `medusa_localadapt_20260519` 环境编译本地 SPDK-Medusa 与
+  GDRCopy userspace 库，`vllm._C` 和 `_moe_C` 已可 build/import。
+- 仍不进入正式表/图的原因：默认 SPDK init 因 `HugePages_Total=0` 失败；
+  `MEDUSA_SPDK_NO_HUGE=1` 只能作为 smoke bypass；本机无可见 NVMe/Optane
+  设备、无 `/dev/gdrdrv`，且无 passwordless sudo 做 hugepage/driver/PCI
+  binding。因此不能生成真实 remote LoRA `e2e_v3` replay。
 
 ### FaaScale / LambdaScale 2026-05-18 gate
 

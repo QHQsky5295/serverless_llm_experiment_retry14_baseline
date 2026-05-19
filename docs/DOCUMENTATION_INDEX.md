@@ -49,8 +49,10 @@ Medusa was also gated in this campaign:
 - project entry: `../Medusa_project/`
 - upstream clone: `../vendor_new_baselines/Medusa_main_20260518/` at commit
   `6581d2e5ec8fa4ecdabcdb50560982a78ea3ca89`
-- status: official build gate closed as not formally reproducible on the
-  current machine; no true-remote LoRA replay was launched.
+- status: local adaptation build/import gate closed; `vllm._C` builds/imports
+  after `patches/Medusa_localadapt_20260519.patch`, but no formal true-remote
+  LoRA replay was launched because this machine lacks Medusa's SPDK runtime
+  prerequisites.
 
 ## Active Environment Notes
 
