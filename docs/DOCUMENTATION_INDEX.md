@@ -61,6 +61,9 @@ evidence.
   true-remote full-figure snapshot, including compressed PrimeLoRA source
   summaries, generated tables/figures, sensitivity outputs, readiness/control
   audit artifacts, and checksums.
+- `../paper_results/new_serverless_baselines_remote_v1/`: non-overwriting
+  ServerlessLLM-new true-remote candidate bundle. It contains compressed source
+  summaries, compact metrics, and checksums, but does not replace `final_v2/`.
 - `../figs_remote_full_real_remote_v1/`: full non-overwriting true-remote
   figure/table mirror. It includes main, motivation, ablation, readiness,
   control-path, backend-portability, and sensitivity artifacts. It must not

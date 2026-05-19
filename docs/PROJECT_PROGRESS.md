@@ -30,6 +30,10 @@ April handoff snapshots have been removed from the active documentation set.
   merged main table, TTFT decomposition, lifecycle figure, motivation,
   ablation, readiness, control-path, backend-portability, and sensitivity
   artifacts.
+- New serverless baseline extension: ServerlessLLM-new was reproduced as a
+  non-overwriting true-remote candidate after the main mirror closed. Its
+  curated bundle is `paper_results/new_serverless_baselines_remote_v1/`; it is
+  not merged into the default `paper_results/final_v2/` or `figs/` snapshot.
 - True-remote full-figure queue checkpoint on 2026-05-15 12:05 CST:
   the Llama-2-7B adapter-pool `a100` and `a200` five-system rounds are
   complete and valid. `a200` keeps the same system ordering as the frozen

@@ -93,3 +93,17 @@ CSV/TEX/PDF artifacts, manifests, checksums, and local-sim comparison tables.
 Do not commit whole timestamped result directories or failed/debug rounds.
 Continue to leave `configs/generated/lora_manifest_1000.json` unstaged unless
 it is intentionally regenerated for a separate manifest update.
+
+## Latest Known Sync Scope: 2026-05-19
+
+The ServerlessLLM-new reproduction is tracked as a separate, non-overwriting
+candidate bundle:
+
+- `paper_results/new_serverless_baselines_remote_v1/`
+- related documentation updates in `docs/`
+
+This bundle contains compressed source summaries and compact metrics only. It
+does not replace `paper_results/final_v2/`, `paper_results/final_remote_full_real_remote_v1/`,
+or any files under `figs/`. Continue to leave
+`configs/generated/lora_manifest_1000.json` unstaged unless the user explicitly
+requests a generated manifest update.

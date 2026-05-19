@@ -134,6 +134,32 @@ Expected completed markers:
 40_build_figures.done
 ```
 
+## 4.1 New Serverless Baseline Candidate After Handoff
+
+ServerlessLLM-new was reproduced after the 2026-05-18 handoff as a separate
+true-remote candidate. It does not overwrite the old ServerlessLLM baseline or
+the default paper data.
+
+```text
+baseline project: /home/qhq/serverless_llm_baselines/ServerlessLLM_new_project
+upstream commit:  9f50241baa5386e06a9321c51f19a9ef5f964c2b
+result section:   /home/qhq/serverless_llm_baselines/results/paper_experiments/15_new_serverless_baselines_remote_v1/
+curated bundle:   /home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/new_serverless_baselines_remote_v1/
+```
+
+Validated outputs:
+
+- Llama-2 7B clean queue `20260518_serverlessllm_new_remote_v1_clean7b`:
+  `4000/4000`, no `trace_expected` fallback, TTFT avg `237136.08 ms`, service
+  TTFT avg `408.59 ms`, CE `1.5581`.
+- Llama-3.2 3B queue `20260518_serverlessllm_new_remote_v1`:
+  `4000/4000`, no `trace_expected` fallback, TTFT avg `237811.23 ms`, service
+  TTFT avg `498.50 ms`, CE `1.8560`.
+
+Treat it as a `ServerlessLLM-new` candidate row. Do not silently replace the
+old `ServerlessLLM` row or regenerate default `figs/` unless the paper data
+policy is explicitly changed.
+
 ## 5. Important Experiment Decisions
 
 ### a500 is the default main workload
@@ -265,4 +291,3 @@ nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader,n
 论文/系统名、年份/会议、是否开源、代码地址、是否支持 LLM inference、是否支持 LoRA/adapter、是否能映射 e2e_v3、适配代价、是否推荐作为主表/附录/不采用。
 不要直接跑长实验，先给候选排序和理由。
 ```
-
