@@ -38,7 +38,12 @@ April handoff snapshots have been removed from the active documentation set.
   locally built SPDK-Medusa and GDRCopy userspace libraries, but it remains
   excluded from formal tables/figures because this machine lacks default
   hugepages, visible NVMe/Optane devices, `/dev/gdrdrv`, and passwordless sudo
-  for driver/PCI/hugepage setup.
+  for driver/PCI/hugepage setup. FaaScale/LambdaScale was gated next and is
+  excluded because no usable InfiniBand device is exposed and no LoRA/Llama-3.2
+  path is present. dLoRA was then gated on 2026-05-19: local build/import passes
+  after a narrow Ray/CUDA layout adaptation, but formal replay is blocked
+  because the artifact lacks a real PEFT adapter loader for the closed adapter
+  set, Llama-3.2 support, and an `e2e_v3` replay path.
 - True-remote full-figure queue checkpoint on 2026-05-15 12:05 CST:
   the Llama-2-7B adapter-pool `a100` and `a200` five-system rounds are
   complete and valid. `a200` keeps the same system ordering as the frozen

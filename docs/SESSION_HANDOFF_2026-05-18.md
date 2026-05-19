@@ -200,6 +200,24 @@ usable InfiniBand device is exposed, and passwordless sudo is unavailable. The
 source also has no ready Llama-3.2 3B config and no LoRA/PEFT workload path, so
 no valid true-remote LoRA `e2e_v3` replay was launched.
 
+dLoRA gate after the new baseline survey:
+
+```text
+baseline project: /home/qhq/serverless_llm_baselines/DLoRA_project
+dLoRA commit:      75f1c439446fe194b1df8a24982ef9067841fab5
+gate evidence:     /home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/new_serverless_baselines_remote_v1/gates/dlora/
+```
+
+Decision: do not include dLoRA in formal tables/figures yet. The artifact is
+highly relevant to adapter orchestration and now builds/imports locally in the
+isolated `dlora_medusa_clone_20260519` environment (`vllm.__version__ ==
+0.1.4`) after CUDA 12.1 header/library precedence and a narrow modern-Ray
+import compatibility patch. However, the source gate found no Llama-3.2 path,
+no native real-PEFT loader for the closed `adapter_model.safetensors` adapter
+set, and no native `e2e_v3` replay path. The source also has dummy/random/zero
+LoRA tensor paths, so running the formal table with those tensors would be an
+invalid comparison against the true-remote LoRA workload.
+
 ## 5. Important Experiment Decisions
 
 ### a500 is the default main workload

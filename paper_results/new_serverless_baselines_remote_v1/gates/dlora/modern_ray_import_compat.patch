@@ -1,0 +1,62 @@
+diff --git a/vllm/engine/engine_manager.py b/vllm/engine/engine_manager.py
+index 5f5be9b..95b189e 100644
+--- a/vllm/engine/engine_manager.py
++++ b/vllm/engine/engine_manager.py
+@@ -18 +18,5 @@ from vllm.engine.ray_utils import ray
+-from ray.air.util.torch_dist import init_torch_dist_process_group
++try:
++    from ray.air.util.torch_dist import init_torch_dist_process_group
++except (ImportError, ModuleNotFoundError):
++    def init_torch_dist_process_group(*args, **kwargs):
++        raise ImportError("ray.air torch distributed helpers are unavailable")
+@@ -458 +462 @@ class EngineManager:
+-            ray.get(engine.engine.set_output.remote(output))
+\ No newline at end of file
++            ray.get(engine.engine.set_output.remote(output))
+diff --git a/vllm/engine/llm_engine.py b/vllm/engine/llm_engine.py
+index 8f7bc50..a0864d8 100644
+--- a/vllm/engine/llm_engine.py
++++ b/vllm/engine/llm_engine.py
+@@ -22 +22,5 @@ if ray:
+-    from ray.air.util.torch_dist import init_torch_dist_process_group
++    try:
++        from ray.air.util.torch_dist import init_torch_dist_process_group
++    except (ImportError, ModuleNotFoundError):
++        def init_torch_dist_process_group(*args, **kwargs):
++            raise ImportError("ray.air torch distributed helpers are unavailable")
+@@ -755 +759 @@ class LLMEngine:
+-                return ready
+\ No newline at end of file
++                return ready
+diff --git a/vllm/engine/ray_utils.py b/vllm/engine/ray_utils.py
+index c42e154..b41793f 100644
+--- a/vllm/engine/ray_utils.py
++++ b/vllm/engine/ray_utils.py
+@@ -7,0 +8,4 @@ try:
++except ImportError:
++    ray = None
++
++try:
+@@ -8,0 +13,3 @@ try:
++except (ImportError, ModuleNotFoundError):
++    class TorchDistributedWorker:  # pylint: disable=too-few-public-methods
++        """Compatibility fallback for modern Ray installs without ray.air deps."""
+@@ -9,0 +17,3 @@ try:
++        pass
++
++if ray is not None:
+@@ -27,2 +37 @@ try:
+-except ImportError:
+-    ray = None
++else:
+diff --git a/vllm/entrypoints/llm.py b/vllm/entrypoints/llm.py
+index a06242f..3a4a9f7 100644
+--- a/vllm/entrypoints/llm.py
++++ b/vllm/entrypoints/llm.py
+@@ -19 +19,5 @@ from vllm.engine.ray_utils import RayWorker, ray
+-from ray.air.util.torch_dist import init_torch_dist_process_group
++try:
++    from ray.air.util.torch_dist import init_torch_dist_process_group
++except (ImportError, ModuleNotFoundError):
++    def init_torch_dist_process_group(*args, **kwargs):
++        raise ImportError("ray.air torch distributed helpers are unavailable")
