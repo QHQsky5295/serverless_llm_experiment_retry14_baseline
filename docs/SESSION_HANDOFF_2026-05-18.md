@@ -160,6 +160,20 @@ Treat it as a `ServerlessLLM-new` candidate row. Do not silently replace the
 old `ServerlessLLM` row or regenerate default `figs/` unless the paper data
 policy is explicitly changed.
 
+Medusa gate after ServerlessLLM-new:
+
+```text
+baseline project: /home/qhq/serverless_llm_baselines/Medusa_project
+upstream commit:  6581d2e5ec8fa4ecdabcdb50560982a78ea3ca89
+gate evidence:    /home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/new_serverless_baselines_remote_v1/gates/medusa/
+```
+
+Decision: do not include Medusa in formal tables/figures on this machine. The
+official build reached `vllm._C` after CUDA include-path repair, but failed at
+`csrc/cuda_graph.cu(131)` due a CUDA Graph API signature mismatch. The official
+tree also hard-codes absent SPDK/DPDK/GDRCopy paths and `/home/zsx` model
+paths, so no valid true-remote LoRA `e2e_v3` replay was launched.
+
 ## 5. Important Experiment Decisions
 
 ### a500 is the default main workload

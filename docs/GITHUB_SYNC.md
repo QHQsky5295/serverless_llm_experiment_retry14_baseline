@@ -102,8 +102,9 @@ candidate bundle:
 - `paper_results/new_serverless_baselines_remote_v1/`
 - related documentation updates in `docs/`
 
-This bundle contains compressed source summaries and compact metrics only. It
-does not replace `paper_results/final_v2/`, `paper_results/final_remote_full_real_remote_v1/`,
-or any files under `figs/`. Continue to leave
+This bundle contains compressed source summaries, compact metrics, and gate
+evidence for systems that cannot enter formal replay. It does not replace
+`paper_results/final_v2/`, `paper_results/final_remote_full_real_remote_v1/`, or
+any files under `figs/`. Continue to leave
 `configs/generated/lora_manifest_1000.json` unstaged unless the user explicitly
 requests a generated manifest update.
