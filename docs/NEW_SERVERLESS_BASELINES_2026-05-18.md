@@ -67,6 +67,9 @@ The requested ordered campaign is now closed:
    successfully imported `vllm._C`. Runtime still requires current-machine
    system state that is absent here: configured hugepages by default,
    SPDK-accessible NVMe/Optane devices, and GDRCopy kernel device setup.
+   A 2026-05-21 clean-machine recheck confirmed the same runtime boundary:
+   `HugePages_Total=0`, `/dev/gdrdrv` is absent, no NVMe/Optane block device is
+   visible, `/sys/class/uio` is absent, and passwordless sudo is unavailable.
 2. FaaScale/LambdaScale official reproduction and LoRA/true-remote feasibility
    gate. Closed on 2026-05-19 as a local import/IPC/RDMA-binding success but
    not a formal runtime candidate on the current machine. The official package
@@ -76,6 +79,10 @@ The requested ordered campaign is now closed:
    finds zero IB devices because `/dev/infiniband` is absent and no usable
    InfiniBand class device is exposed. The source also lacks a ready
    Llama-3.2 3B config and LoRA/PEFT workload path.
+   A 2026-05-21 clean-machine recheck confirmed `/dev/infiniband` is still
+   absent; `/sys/class/infiniband` has no usable device; only PCI-level
+   Broadcom RDMA-capable Ethernet controllers are visible; and passwordless
+   sudo is unavailable.
 
 Do not start a long Medusa or FaaScale formal run until their build/runtime
 gate proves they can consume the Llama-2 7B and Llama-3.2 3B LoRA workload

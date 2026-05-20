@@ -43,8 +43,14 @@ finds zero IB devices and returns `False`, and passwordless sudo is unavailable
 for driver/device setup. Static capability checks also found no LoRA/PEFT path
 and no Llama-3.2 3B model config.
 
+The 2026-05-21 runtime recheck confirms the same boundary on the clean machine:
+`/dev/infiniband` is still absent, `/sys/class/infiniband` exposes no usable
+device, only PCI-level Broadcom RDMA-capable Ethernet controllers are visible,
+and `sudo -n true` still requires a password.
+
 Detailed notes:
 
 ```text
 FaaScale_project/docs/GATE_2026-05-19.md
+FaaScale_project/docs/RUNTIME_RECHECK_2026-05-21.md
 ```

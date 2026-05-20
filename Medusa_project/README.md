@@ -31,9 +31,15 @@ SPDK I/O, no `/dev/gdrdrv`, and no passwordless sudo for hugepage/driver/PCI
 binding setup. Therefore no formal true-remote LoRA replay was launched. The
 result is a closed build/import gate, not a performance row.
 
+The 2026-05-21 runtime recheck confirms the blocker is still present after the
+dLoRA run cleaned up: `HugePages_Total=0`, `/dev/gdrdrv` is absent, no NVMe or
+Optane device is visible, `/sys/class/uio` is absent, `/dev/vfio/vfio` has no
+bound device node, and `sudo -n true` still requires a password.
+
 Detailed notes:
 
 ```text
 Medusa_project/docs/GATE_2026-05-19.md
 Medusa_project/docs/LOCALADAPT_2026-05-19.md
+Medusa_project/docs/RUNTIME_RECHECK_2026-05-21.md
 ```
