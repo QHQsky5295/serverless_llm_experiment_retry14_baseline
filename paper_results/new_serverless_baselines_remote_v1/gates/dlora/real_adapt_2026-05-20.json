@@ -1,0 +1,31 @@
+{
+  "system": "dLoRA",
+  "date": "2026-05-20",
+  "status": "real-adapter smoke passed; not yet formal-table ready",
+  "baseline_repo_evidence": "/home/qhq/serverless_llm_baselines/DLoRA_project/evidence/real_adapt_2026-05-20.json",
+  "baseline_repo_patch": "/home/qhq/serverless_llm_baselines/DLoRA_project/patches/real_peft_llama32_e2e_compat_20260520.patch",
+  "scope": "Minimal compatibility adaptation to run upstream dLoRA on the local RTX 3090 machine with the closed PrimeLoRA true-remote workload inputs.",
+  "non_goals": [
+    "No rewrite of dLoRA scheduling, migration, or adapter orchestration.",
+    "No replacement of dLoRA with PrimeLoRA/FaaSLoRA control logic.",
+    "No overwrite of figs/, paper_results/final_v2/, or true-remote mirror data."
+  ],
+  "passed_gates": {
+    "real_peft_loader_llama2_7b_limit2": true,
+    "real_peft_loader_llama32_3b_limit2": true,
+    "llama32_3b_dummy_base_real_adapter_replay_limit2_ok_total": "2/2",
+    "llama32_3b_real_base_real_adapter_replay_limit2_ok_total": "2/2"
+  },
+  "important_hashes": {
+    "real_peft_llama32_e2e_compat_20260520.patch": "6c576e89b3b82d4e3eaa2d2f176da74f408a2ef6bbe987f5ecead7f72b8c163d",
+    "dlora_real_loader_llama2_7b_limit2.json": "270676b63c5167c23b402891857fd95b02465adeddf37e73d83d5012b479e22e",
+    "dlora_real_loader_llama32_3b_limit2.json": "320ef38e2ab660a1a329e0ef8b759233573394a26b352f69c17d5360a9d0bf09",
+    "dlora_real3b_smoke_limit2_replay_20260520.json": "f4490fe6a00b623e6546fc8a9df2d70ecaf90f35c8d504e0ac0c704ce191be38"
+  },
+  "next_required_before_formal_table": [
+    "Scale the same real-weight path beyond 2 adapters without changing dLoRA core logic.",
+    "Validate Llama-3.2 3B full 4000-request/500-adapter replay.",
+    "Validate Llama-2 7B full 4000-request/500-adapter replay.",
+    "Reject the row if the full run requires rewriting dLoRA rather than hardware/workload compatibility adaptation."
+  ]
+}

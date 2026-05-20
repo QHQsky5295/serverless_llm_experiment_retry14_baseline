@@ -41,9 +41,13 @@ April handoff snapshots have been removed from the active documentation set.
   for driver/PCI/hugepage setup. FaaScale/LambdaScale was gated next and is
   excluded because no usable InfiniBand device is exposed and no LoRA/Llama-3.2
   path is present. dLoRA was then gated on 2026-05-19: local build/import passes
-  after a narrow Ray/CUDA layout adaptation, but formal replay is blocked
-  because the artifact lacks a real PEFT adapter loader for the closed adapter
-  set, Llama-3.2 support, and an `e2e_v3` replay path.
+  after a narrow Ray/CUDA layout adaptation. On 2026-05-20 the dLoRA gate was
+  reopened under a stricter "adapt to our hardware/workload, do not rewrite the
+  system" boundary. A minimal real-PEFT adapter loader and replay compatibility
+  patch now passes Llama-2 7B / Llama-3.2 3B loader probes and a real-weight
+  Llama-3.2 3B 2-request replay gate with closed true-remote trace/adapters.
+  It is still not a formal table row until the same path scales to full
+  4000-request/500-adapter 3B and 7B runs.
 - True-remote full-figure queue checkpoint on 2026-05-15 12:05 CST:
   the Llama-2-7B adapter-pool `a100` and `a200` five-system rounds are
   complete and valid. `a200` keeps the same system ordering as the frozen
