@@ -33,14 +33,15 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
   the RDMA device stack is not exposed and the source lacks ready
   Llama-3.2 3B plus LoRA/PEFT workload support.
 - `gates/dlora/`: dLoRA build/import, real-adapter scale-gate, formal preflight,
-  one full Llama-3.2 3B dispatch-only replay evidence file, and one official
-  period-migration short gate. dLoRA can consume real PEFT adapters through the
+  one full Llama-3.2 3B dispatch-only replay evidence file, and official
+  period-migration short gates. dLoRA can consume real PEFT adapters through the
   local compatibility layer; `migration_type=1` completed `4000/4000` on the
-  500-adapter true-remote workload, and `migration_type=3` completed a
-  128-request/500-adapter gate. This is not the official dLoRA result row yet:
-  upstream `migration_type=1` is RR/dispatch-only, and the current
-  `migration_type=3` gate is viable but slow, so the fair dLoRA row still
-  requires tuned full 3B and 7B replays.
+  500-adapter true-remote workload, and `migration_type=3` completed
+  128-request/500-adapter gates at `max_num_seqs=1` and `max_num_seqs=2`. This
+  is not the official dLoRA result row yet: upstream `migration_type=1` is
+  RR/dispatch-only, and the current `migration_type=3` gates are viable but
+  still service-wait dominated, so the fair dLoRA row still requires tuned full
+  3B and 7B replays.
 - `gates/loquetier/`: Loquetier local-adaptation patch, compact gate outputs,
   and real-adapter evidence. Loquetier currently passes Llama-3.2 3B through
   256 adapters / 1024 filtered requests and Llama-2 7B through 128 adapters /
@@ -70,7 +71,7 @@ should be labeled `ServerlessLLM-new` and kept separate from the older
 
 dLoRA, Loquetier, AIBrix, HydraServe, Medusa, and FaaScale/LambdaScale are not
 formal main rows in this bundle. dLoRA now has one completed dispatch-only full
-replay and one official `migration_type=3` short gate, but it remains outside
+replay and two official `migration_type=3` short gates, but it remains outside
 the formal table until a tuned upstream `migration_type=3` full replay passes.
 Do not promote any of these systems to formal rows unless their runtime and
 scale requirements are satisfied and the closed true-remote LoRA workload can

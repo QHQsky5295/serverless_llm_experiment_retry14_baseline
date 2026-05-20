@@ -224,11 +224,17 @@ Current dLoRA evidence:
   passes as `migration_type=1` / `dlora_dispatch_only`: `ok=4000/4000`, no
   `trace_expected` fallback, TTFT avg `1283513.75 ms`, TTFT p95
   `4142829.11 ms`, throughput `63.843 tok/s`, CE `0.2465`.
+- Llama-3.2 3B official `migration_type=3` short gates pass at 500 adapters
+  and first 128 scheduled requests. `max_num_seqs=1` gives TTFT avg `29544.29
+  ms`, p95 `116423.03 ms`; `max_num_seqs=2` improves to TTFT avg `24674.56
+  ms`, p95 `59104.07 ms`, throughput `81.885 tok/s`, but service-side engine
+  wait still dominates.
 
 That full run is appendix/ablation evidence only. It is not the official dLoRA
 row because upstream `migration_type=1` is dispatch-only/RR; the poor tail was
 caused by static placement skew, not OOM. A fair dLoRA candidate still requires
-upstream `migration_type=3` validation and the full Llama-2 7B replay.
+a tuned upstream `migration_type=3` full 3B replay and the full Llama-2 7B
+replay.
 
 ## 5. Important Experiment Decisions
 
@@ -302,11 +308,11 @@ dLoRA:
 - The Llama-3.2 3B `migration_type=1` dispatch-only full replay closed
   `4000/4000` with no token fallback, but it is appendix/ablation evidence, not
   the official dLoRA row.
-- The first official `migration_type=3` / `dlora_period_mig` short gate closed
-  on 2026-05-21: 3B, 500 adapters, first 128 scheduled true-remote requests,
-  `ok=128/128`, no token fallback, not an in-replay OOM. It is viable but slow
-  under the 2-GPU, `max_num_seqs=1` envelope (`TTFT_e2e` avg 29.5s, p95
-  116.4s), so run short `max_num_seqs` and 4-GPU topology gates before the full
+- Official `migration_type=3` / `dlora_period_mig` short gates closed on
+  2026-05-21: 3B, 500 adapters, first 128 scheduled true-remote requests,
+  `ok=128/128`, no token fallback, not in-replay OOM. `max_num_seqs=2` improves
+  the 2-GPU tail over `max_num_seqs=1` but remains service-wait dominated, so
+  continue short `max_num_seqs` and 4-GPU topology gates before the full
   official 4000-request replay.
 
 S-LoRA:

@@ -1063,6 +1063,16 @@ New dLoRA real-adapter gate update, 2026-05-20:
   wait under the 2-GPU, `max_num_seqs=1` envelope. Next step is short
   configuration gates (`max_num_seqs`, then 4-GPU topology if memory permits)
   before the full official 4000-request dLoRA replay.
+- The second upstream `migration_type=3` short gate also passes with the same
+  workload and only a wrapper/runtime envelope change to `max_num_seqs=2`:
+  queue `20260521_dlora_remote_mig3_gate128_g2u92_s2_v1`, `ok=128/128`,
+  `fail=0`, no `trace_expected` fallback, `e2e_v3`, not in-replay OOM. It
+  improves the 2-GPU tail (`TTFT_e2e` avg `24674.56 ms`, p95 `59104.07 ms`,
+  p99 `67024.53 ms`, throughput `81.885 tok/s`, CE `2.9840`) but remains
+  dominated by service-side engine wait rather than remote materialization or
+  adapter adjustment. The dLoRA wrapper now records the effective runtime
+  envelope in deploy/manifest metadata and launch logs; continue with
+  `max_num_seqs=4` and 4-GPU topology gates before any full official replay.
 
 New Loquetier real-adapter gate update, 2026-05-20:
 
