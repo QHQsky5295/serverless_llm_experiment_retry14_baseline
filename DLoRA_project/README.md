@@ -48,9 +48,14 @@ heavy host-memory/swap pressure; Ray's default object store was about 38.6GB.
 The bounded-object-store rerun connected to the pre-started Ray cluster, so the
 object-store control itself was active, but the DP4/TP1 topology still failed
 before HTTP readiness because four dLoRA/vLLM engines duplicated startup state
-and Ray killed a worker under host-memory pressure. The next wrapper-only gate
-should still use all four GPUs while reducing engine duplication with
-`num_groups=2, tensor_parallel_size=2`.
+and Ray killed a worker under host-memory pressure. The wrapper-only DP2/TP2
+four-GPU topology gate then reached HTTP readiness and completed `128/128`
+requests without token fallback or OOM, but it was slower and more expensive
+than the best 2-GPU `max_num_seqs=4` gate (`TTFT_e2e` avg 18.6s vs 14.5s,
+p95 33.1s vs 26.5s, CE 1.97 vs 5.34). The fair full 3B formal replay should
+therefore use the best measured wrapper-only dLoRA envelope: DP2/TP1,
+`max_num_seqs=4`, upstream `migration_type=3`, 500 real remote adapters, and
+no core dLoRA code changes.
 
 Tracked evidence:
 
@@ -73,6 +78,8 @@ Tracked evidence:
 - official period-migration 3B 4-GPU bounded-Ray object-store startup memory
   gate:
   `evidence/formal_period_mig_gate128_g4_s4_swap2_obj8_hostoom_3b_2026-05-21.json`
+- official period-migration 3B 4-GPU DP2/TP2 topology gate:
+  `evidence/formal_period_mig_gate128_g2tp2_g4_s4_3b_2026-05-21.json`
 - real-adapter compatibility patch:
   `patches/real_peft_llama32_e2e_compat_20260520.patch`
 - formal 500-adapter runtime compatibility patch:

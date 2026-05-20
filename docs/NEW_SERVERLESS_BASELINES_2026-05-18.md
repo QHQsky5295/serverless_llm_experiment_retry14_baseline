@@ -84,8 +84,9 @@ without changing the closed true-remote workload variables.
 ## dLoRA Gate
 
 Status: real-adapter scale-gate evidence, one 3B dispatch-only full replay,
-and three official period-migration short gates closed through 2026-05-21; not
-yet adopted for formal table/figures as the official dLoRA row.
+three official period-migration short gates, and four-GPU topology gates closed
+through 2026-05-21; not yet adopted for formal table/figures as the official
+dLoRA row.
 
 - Upstream: `https://github.com/LLMServe/dLoRA-artifact`
 - Upstream commit: `75f1c439446fe194b1df8a24982ef9067841fab5`
@@ -102,6 +103,8 @@ yet adopted for formal table/figures as the official dLoRA row.
   `DLoRA_project/evidence/formal_period_mig_gate128_s2_3b_2026-05-21.json`
 - Official period-migration 3B `max_num_seqs=4` short gate:
   `DLoRA_project/evidence/formal_period_mig_gate128_s4_3b_2026-05-21.json`
+- Official period-migration 3B 4-GPU DP2/TP2 topology gate:
+  `DLoRA_project/evidence/formal_period_mig_gate128_g2tp2_g4_s4_3b_2026-05-21.json`
 - Compatibility patch: `DLoRA_project/patches/modern_ray_import_compat.patch`
 - Real-adapter patch:
   `DLoRA_project/patches/real_peft_llama32_e2e_compat_20260520.patch`
@@ -176,11 +179,15 @@ Formal blocker:
   startup envelope itself: four independent vLLM/Ray engines duplicate model
   and adapter-runtime state on a 125GB host. This is not CUDA OOM, not remote
   materialization failure, and not a measured replay result.
-- The next fair optimization is topology-level and still wrapper-only: keep the
-  4-GPU budget, upstream `migration_type=3`, 500 real remote adapters, and the
-  same 128-request gate, but try `num_groups=2, tensor_parallel_size=2` to
-  reduce dLoRA engine duplication without changing scheduling or migration
-  code.
+- The wrapper-only `num_groups=2, tensor_parallel_size=2` four-GPU topology
+  gate reached HTTP readiness and completed `ok=128/128`, `fail=0`, no token
+  fallback, no CUDA OOM, and no host OOM. It is a valid topology gate, but it
+  is not the best formal replay envelope: `TTFT_e2e` avg worsened to
+  `18630.69 ms` versus `14517.67 ms` for the 2-GPU DP2/TP1
+  `max_num_seqs=4` gate, p95 worsened to `33096.62 ms` versus `26510.79 ms`,
+  and CE dropped to `1.9696` versus `5.3354`. The root cause is not a local
+  patch bug: TP2 avoids DP4/TP1 startup duplication, but it spends two GPUs per
+  logical dLoRA group and service-side engine wait still dominates.
 - The dLoRA wrapper now writes `max_num_seqs`, `max_num_batched_tokens`,
   `gpu_memory_utilization`, `gpu_capacity`, and `swap_space_gb` into
   deploy/manifest metadata and launch logs so future envelope sweeps are
@@ -189,9 +196,11 @@ Formal blocker:
   enabled.
 - Do not enter dLoRA into formal tables until a no-dummy, no-`trace_expected`,
   full 3B run with upstream `migration_type=3` and a full 7B run pass without
-  rewriting dLoRA scheduling or migration. Before that full replay, run short
-  wrapper/runtime gates for `max_num_seqs` and 4-GPU topology so the comparison
-  uses dLoRA's best reasonable local envelope.
+  rewriting dLoRA scheduling or migration. The current fair full-3B envelope is
+  the best measured wrapper-only setting, DP2/TP1 with `max_num_seqs=4`, because
+  the valid four-GPU DP2/TP2 gate is measurably worse and further improvement
+  would require changing dLoRA scheduling, batching, memory layout, or migration
+  internals.
 
 ## Loquetier Gate
 
