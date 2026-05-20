@@ -95,7 +95,15 @@ write_deploy_json() {
   local num_groups="$4"
   local tensor_parallel="$5"
   local gpu_ids="$6"
-  python - "$output_path" "$model_profile" "$model_path" "$num_groups" "$tensor_parallel" "$gpu_ids" <<'PY'
+  local gpu_memory_utilization="$7"
+  local max_num_seqs="$8"
+  local max_num_batched_tokens="$9"
+  local gpu_capacity="${10}"
+  local migration_type="${11}"
+  local routing_policy="${12}"
+  python - "$output_path" "$model_profile" "$model_path" "$num_groups" "$tensor_parallel" "$gpu_ids" \
+    "$gpu_memory_utilization" "$max_num_seqs" "$max_num_batched_tokens" "$gpu_capacity" \
+    "$migration_type" "$routing_policy" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -103,6 +111,8 @@ from pathlib import Path
 num_groups = int(sys.argv[4])
 tp = int(sys.argv[5])
 gpu_ids = [x for x in sys.argv[6].split(",") if x != ""]
+max_num_seqs = int(sys.argv[8])
+gpu_capacity = int(sys.argv[10])
 payload = {
     "system": "dlora",
     "model_profile": sys.argv[2],
@@ -115,6 +125,21 @@ payload = {
     "tensor_parallel_size": tp,
     "parallelism_topology": f"dlora_num_groups{num_groups}_tp{tp}",
     "gpu_ids": gpu_ids,
+    "max_num_seqs": max_num_seqs,
+    "runtime_concurrency_cap": max_num_seqs,
+    "max_loras": gpu_capacity,
+    "backend_config": {
+        "max_num_seqs": max_num_seqs,
+        "runtime_concurrency_cap": max_num_seqs,
+        "max_num_batched_tokens": int(sys.argv[9]),
+        "gpu_memory_utilization": float(sys.argv[7]),
+        "max_loras": gpu_capacity,
+        "dlora_gpu_capacity": gpu_capacity,
+        "dlora_num_models": 500,
+        "dlora_exec_type": 3,
+        "dlora_migration_type": int(sys.argv[11]),
+        "routing_policy": sys.argv[12],
+    },
 }
 Path(sys.argv[1]).write_text(json.dumps(payload, indent=2), encoding="utf-8")
 PY
@@ -139,12 +164,20 @@ write_manifest() {
   local materialize_log="${16}"
   local startup_sec="${17}"
   local predeploy_sec="${18}"
+  local num_groups="${19}"
+  local tensor_parallel="${20}"
+  local gpu_ids="${21}"
+  local gpu_memory_utilization="${22}"
+  local max_num_seqs="${23}"
+  local max_num_batched_tokens="${24}"
+  local gpu_capacity="${25}"
   python - "$output_path" "$label" "$model_profile" "$workload_profile" "$run_tag" \
     "$source_round" "$trace_path" "$original_subset_path" "$materialized_subset_path" \
     "$endpoint" "$replay_path" "$summary_path" "$deploy_path" "$server_log" "$replay_log" \
-    "$materialize_log" "$startup_sec" "$predeploy_sec" "$QUEUE_ID" "$DLORA_REPO" \
-    "$DLORA_ENV" "$DLORA_MIGRATION_TYPE" "$DLORA_ROUTING_POLICY" \
-    "${DLORA_MAX_REQUESTS:-}" <<'PY'
+    "$materialize_log" "$startup_sec" "$predeploy_sec" "$num_groups" "$tensor_parallel" \
+    "$gpu_ids" "$gpu_memory_utilization" "$max_num_seqs" "$max_num_batched_tokens" \
+    "$gpu_capacity" "$QUEUE_ID" "$DLORA_REPO" "$DLORA_ENV" "$DLORA_MIGRATION_TYPE" \
+    "$DLORA_ROUTING_POLICY" "${DLORA_MAX_REQUESTS:-}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -152,7 +185,7 @@ from pathlib import Path
 payload = {
     "metric_schema_version": "e2e_v3",
     "system": "dlora",
-    "queue_id": sys.argv[19],
+    "queue_id": sys.argv[26],
     "label": sys.argv[2],
     "model_profile": sys.argv[3],
     "dataset_profile": "azure_sharegpt_rep4000",
@@ -175,12 +208,21 @@ payload = {
     "materialize_log": sys.argv[16],
     "static_startup_sec": float(sys.argv[17]),
     "predeploy_startup_sec": float(sys.argv[18]),
-    "dlora_repo": sys.argv[20],
-    "dlora_env": sys.argv[21],
+    "runtime_config": {
+        "num_groups": int(sys.argv[19]),
+        "tensor_parallel_size": int(sys.argv[20]),
+        "gpu_ids": [part for part in sys.argv[21].split(",") if part],
+        "gpu_memory_utilization": float(sys.argv[22]),
+        "max_num_seqs": int(sys.argv[23]),
+        "max_num_batched_tokens": int(sys.argv[24]),
+        "gpu_capacity": int(sys.argv[25]),
+    },
+    "dlora_repo": sys.argv[27],
+    "dlora_env": sys.argv[28],
     "dlora_exec_type": 3,
-    "dlora_migration_type": int(sys.argv[22]),
-    "routing_policy": sys.argv[23],
-    "max_requests_gate": int(sys.argv[24]) if sys.argv[24] else None,
+    "dlora_migration_type": int(sys.argv[29]),
+    "routing_policy": sys.argv[30],
+    "max_requests_gate": int(sys.argv[31]) if sys.argv[31] else None,
     "adaptation_boundary": (
         "hardware/workload wrapper only: real remote materialization, adapter-id map, "
         "real PEFT loader, e2e_v3 replay compatibility, and selected-adapter LoRA "
@@ -238,7 +280,7 @@ run_one() {
     python "${BASELINES_ROOT}/scripts/validate_replay_results.py" \
       --system "dLoRA" \
       --replay "${replay_path}" \
-      --expected-total 4000 >/dev/null 2>&1 && {
+      --expected-total "${expected_total}" >/dev/null 2>&1 && {
         echo "[skip] ${label}: existing valid summary ${summary_path}"
         return 0
       }
@@ -250,6 +292,7 @@ run_one() {
   echo "      endpoint=${endpoint}"
   echo "      output_round=${round_dir}"
   echo "      dlora_topology=num_groups${num_groups}_tp${tensor_parallel}_gpus${gpu_ids}_${DLORA_MIGRATION_LABEL}"
+  echo "      runtime_cfg=gpu_memory_utilization=${gpu_memory_utilization} max_num_seqs=${max_num_seqs} max_num_batched_tokens=${max_num_batched_tokens} gpu_capacity=${DLORA_GPU_CAPACITY:-8}"
 
   local pre_t0 pre_t1 predeploy_sec
   pre_t0="$(date +%s.%N)"
@@ -275,7 +318,10 @@ PY
 )"
 
   write_adapter_map "${materialized_subset_path}" "${adapter_map_path}"
-  write_deploy_json "${deploy_path}" "${model_profile}" "${model_path}" "${num_groups}" "${tensor_parallel}" "${gpu_ids}"
+  write_deploy_json "${deploy_path}" "${model_profile}" "${model_path}" "${num_groups}" \
+    "${tensor_parallel}" "${gpu_ids}" "${gpu_memory_utilization}" "${max_num_seqs}" \
+    "${max_num_batched_tokens}" "${DLORA_GPU_CAPACITY:-8}" "${DLORA_MIGRATION_TYPE}" \
+    "${DLORA_ROUTING_POLICY}"
 
   env PYTHONNOUSERSITE=1 "${CONDA_BIN}" run -n "${DLORA_ENV}" ray stop --force >/dev/null 2>&1 || true
 
@@ -373,7 +419,9 @@ PY
     "${run_tag}" "${source_round}" "${trace_path}" "${original_subset_path}" \
     "${materialized_subset_path}" "${endpoint}" "${replay_path}" "${summary_path}" \
     "${deploy_path}" "${server_log}" "${replay_log}" "${materialize_log}" \
-    "${startup_sec}" "${predeploy_sec}"
+    "${startup_sec}" "${predeploy_sec}" "${num_groups}" "${tensor_parallel}" "${gpu_ids}" \
+    "${gpu_memory_utilization}" "${max_num_seqs}" "${max_num_batched_tokens}" \
+    "${DLORA_GPU_CAPACITY:-8}"
 
   stop_dlora_runtime "${server_pid}"
   trap - EXIT

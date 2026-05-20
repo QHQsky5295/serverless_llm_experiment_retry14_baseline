@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "system": "dLoRA",
+  "date": "2026-05-21",
+  "queue_id": "20260521_dlora_remote_mig3_gate128_g2u92_s2_v1",
+  "upstream_commit": "75f1c439446fe194b1df8a24982ef9067841fab5",
+  "workload": {
+    "model": "Llama-3.2-3B-Instruct",
+    "trace": "llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1",
+    "total_trace_requests": 4000,
+    "replayed_requests": 128,
+    "selected_adapters": 500,
+    "remote_endpoint": "http://192.168.4.174:18080",
+    "metric_schema_version": "e2e_v3"
+  },
+  "runtime_config": {
+    "migration_type": 3,
+    "routing_policy": "dlora_period_mig",
+    "num_groups": 2,
+    "tensor_parallel_size": 1,
+    "gpu_ids": [
+      "0",
+      "1"
+    ],
+    "gpu_memory_utilization": 0.92,
+    "max_num_seqs": 2,
+    "max_num_batched_tokens": 1024,
+    "gpu_capacity": 8
+  },
+  "validation": {
+    "ok": 128,
+    "total": 128,
+    "failed": 0,
+    "trace_expected_token_fallback": false,
+    "in_replay_oom": false,
+    "shutdown_note": "Raylet/AsyncEngineDeadError lines appear after replay completion while the wrapper stops Ray; treat as shutdown noise, not a replay failure.",
+    "dmesg_access": "not permitted on this machine"
+  },
+  "metrics": {
+    "ttft_e2e_avg_ms": 24674.5602,
+    "ttft_e2e_p50_ms": 20924.0994,
+    "ttft_e2e_p95_ms": 59104.0716,
+    "ttft_e2e_p99_ms": 67024.5306,
+    "ttft_service_avg_ms": 24613.3422,
+    "ttft_service_p95_ms": 59089.7133,
+    "dispatch_admission_wait_avg_ms": 61.2179,
+    "dispatch_admission_wait_p95_ms": 28.218,
+    "e2e_avg_ms": 24674.8707,
+    "throughput_rps": 0.471343,
+    "throughput_tok_per_s": 81.884822,
+    "slo_attainment": 0.171875,
+    "cost_per_request_usd": 0.01358153,
+    "ce": 2.983983,
+    "infra_gpu_seconds_total": 2086.123014,
+    "goodput_tokens_per_gpu_second": 0.814909
+  },
+  "comparison_to_s1_gate": {
+    "s1_queue_id": "20260521_dlora_remote_mig3_gate128_g2u92_v1",
+    "s1_max_num_seqs": 1,
+    "s1_ttft_e2e_avg_ms": 29544.2874,
+    "s1_ttft_e2e_p95_ms": 116423.0345,
+    "s1_ttft_e2e_p99_ms": 180540.6465,
+    "s1_throughput_tok_per_s": 78.199428,
+    "interpretation": "Raising max_num_seqs from 1 to 2 improves tail latency and throughput without changing dLoRA scheduling or migration, but service-side engine wait is still the dominant bottleneck."
+  },
+  "server_log_root_cause": {
+    "s2_engine_wait_dominates": true,
+    "s2_engine0": {
+      "requests": 63,
+      "wait_avg_s": 12.439,
+      "wait_p95_s": 33.756,
+      "exec_avg_s": 6.474,
+      "exec_p95_s": 14.821
+    },
+    "s2_engine1": {
+      "requests": 65,
+      "wait_avg_s": 24.354,
+      "wait_p95_s": 53.319,
+      "exec_avg_s": 5.764,
+      "exec_p95_s": 14.243
+    },
+    "adapter_adjustment": {
+      "count": 111,
+      "avg_s": 0.019473,
+      "p95_s": 0.028964
+    }
+  },
+  "metadata_audit": {
+    "issue": "The wrapper previously did not write runtime max_num_seqs/max_num_batched_tokens/gpu_memory_utilization/gpu_capacity into deploy metadata, so the summarizer inherited profile defaults.",
+    "repair": "The s2 deploy metadata was repaired from the launch envelope and the summary was regenerated; replay data and headline metrics are unchanged.",
+    "future_fix": "run_dlora_remote_formal.sh now writes runtime config into deploy/manifest and prints it in launch logs."
+  },
+  "decision": {
+    "formal_table_ready": false,
+    "reason": "The gate is valid and not OOM, but still too slow to represent a best-effort dLoRA formal row. Continue wrapper/runtime envelope sweep before any full 4000-request official replay.",
+    "next_fair_steps": [
+      "Run the same 128-request gate with max_num_seqs=4 if memory permits.",
+      "Run a 4-GPU num_groups=4 gate so dLoRA can use the same 4-GPU budget as the closed remote experiments.",
+      "Choose the best stable no-core-change envelope before launching the full 3B/4000 official migration_type=3 replay."
+    ]
+  }
+}

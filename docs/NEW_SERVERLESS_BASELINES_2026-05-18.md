@@ -84,8 +84,8 @@ without changing the closed true-remote workload variables.
 ## dLoRA Gate
 
 Status: real-adapter scale-gate evidence, one 3B dispatch-only full replay,
-and one official period-migration short gate closed through 2026-05-21; not yet
-adopted for formal table/figures as the official dLoRA row.
+and two official period-migration short gates closed through 2026-05-21; not
+yet adopted for formal table/figures as the official dLoRA row.
 
 - Upstream: `https://github.com/LLMServe/dLoRA-artifact`
 - Upstream commit: `75f1c439446fe194b1df8a24982ef9067841fab5`
@@ -98,6 +98,8 @@ adopted for formal table/figures as the official dLoRA row.
   `DLoRA_project/evidence/formal_dispatch_only_3b_2026-05-20.json`
 - Official period-migration 3B short gate:
   `DLoRA_project/evidence/formal_period_mig_gate128_3b_2026-05-21.json`
+- Official period-migration 3B `max_num_seqs=2` short gate:
+  `DLoRA_project/evidence/formal_period_mig_gate128_s2_3b_2026-05-21.json`
 - Compatibility patch: `DLoRA_project/patches/modern_ray_import_compat.patch`
 - Real-adapter patch:
   `DLoRA_project/patches/real_peft_llama32_e2e_compat_20260520.patch`
@@ -141,9 +143,17 @@ Formal blocker:
 - The first official upstream `migration_type=3` / `dlora_period_mig` gate also
   passes on the same 3B true-remote workload variables: 500 adapters, first 128
   scheduled requests, `ok=128/128`, `fail=0`, no token fallback, and no
-  in-replay OOM. Its current 2-GPU `max_num_seqs=1` envelope is viable but
-  slow (`TTFT_e2e` avg 29544.29 ms, p95 116423.03 ms), so it is evidence for
+  in-replay OOM. Its 2-GPU `max_num_seqs=1` envelope is viable but slow
+  (`TTFT_e2e` avg 29544.29 ms, p95 116423.03 ms), so it is evidence for
   viability and tuning, not yet a formal table row.
+- A second official `migration_type=3` gate with only wrapper/runtime envelope
+  change to `max_num_seqs=2` also passes (`ok=128/128`, no token fallback, no
+  in-replay OOM). It improves the tail (`TTFT_e2e` avg 24674.56 ms, p95
+  59104.07 ms, p99 67024.53 ms, 81.885 tok/s), but service-side engine wait
+  still dominates execution. This is not yet the best-effort formal row.
+- The dLoRA wrapper now writes `max_num_seqs`, `max_num_batched_tokens`,
+  `gpu_memory_utilization`, and `gpu_capacity` into deploy/manifest metadata
+  and launch logs so future envelope sweeps are auditable.
 - Do not enter dLoRA into formal tables until a no-dummy, no-`trace_expected`,
   full 3B run with upstream `migration_type=3` and a full 7B run pass without
   rewriting dLoRA scheduling or migration. Before that full replay, run short

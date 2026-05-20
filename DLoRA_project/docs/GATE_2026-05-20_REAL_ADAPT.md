@@ -219,3 +219,61 @@ main table yet. The poor tail is dominated by service-side engine wait under
 the current 2-GPU, `max_num_seqs=1` envelope, so the next fair step is a short
 configuration sweep (`max_num_seqs` and 4-GPU topology) before launching a full
 4000-request official replay.
+
+## Official Period-Migration `max_num_seqs=2` Gate
+
+The next no-core-change wrapper/runtime gate completed with the same true-remote
+workload variables:
+
+```text
+queue: 20260521_dlora_remote_mig3_gate128_g2u92_s2_v1
+label: dlora_llama32_3b_period_mig_remote_formal
+migration_type: 3
+routing_policy: dlora_period_mig
+num_groups: 2
+gpu_ids: 0,1
+gpu_memory_utilization: 0.92
+max_num_seqs: 2
+max_num_batched_tokens: 1024
+replayed_requests: 128
+```
+
+Validation:
+
+- Replay: `ok=128/128`, `fail=0`.
+- Metric schema: `e2e_v3`.
+- Token audit: no `trace_expected` fallback.
+- Error scan: no in-replay CUDA OOM or failed replay.
+- Shutdown note: Raylet/AsyncEngineDeadError messages still appear while the
+  wrapper stops Ray after replay completion; keep them visible, but do not
+  classify this gate as an OOM.
+- Metadata audit: the wrapper previously omitted runtime envelope fields from
+  deploy metadata, causing the summarizer to inherit profile defaults. The s2
+  deploy metadata was repaired from the launch envelope and the summary was
+  regenerated without changing replay data or headline metrics. Future runs now
+  write the runtime envelope into deploy/manifest and launch logs.
+
+Headline metrics:
+
+| Metric | Value |
+|---|---:|
+| TTFT e2e avg | 24674.56 ms |
+| TTFT e2e p50 | 20924.10 ms |
+| TTFT e2e p95 | 59104.07 ms |
+| TTFT e2e p99 | 67024.53 ms |
+| E2E e2e avg | 24674.87 ms |
+| Throughput | 0.471 rps / 81.885 tok/s |
+| SLO attainment | 0.1719 |
+| Cost/req | 0.0135815 USD |
+| CE | 2.9840 |
+| Infra GPU seconds | 2086.123014 |
+
+Root cause: this is a real improvement over `max_num_seqs=1`, especially in the
+tail (`p95` drops from 116.4s to 59.1s and `p99` drops from 180.5s to 67.0s),
+but the remaining delay is still service-side engine wait. Server-log parsing
+shows engine wait dominating execution time (`engine0` wait avg 12.4s vs exec
+avg 6.5s; `engine1` wait avg 24.4s vs exec avg 5.8s). Adapter adjustment itself
+is small (`avg 0.019s`, `p95 0.029s`), so the next fair step is not an adapter
+loader rewrite. Continue with wrapper/runtime envelope gates: `max_num_seqs=4`
+if memory permits, then a 4-GPU `num_groups=4` topology before launching a full
+4000-request official replay.

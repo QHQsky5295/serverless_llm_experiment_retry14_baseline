@@ -26,15 +26,17 @@ the 500-adapter true-remote workload, but it used upstream `migration_type=1`
 (`dlora_dispatch_only`). Keep that result as closed appendix/ablation evidence
 for dispatch-only behavior, not as the official dLoRA row.
 
-The first official strategy gate using upstream `migration_type=3`
-(`dlora_period_mig`) also completed on the same true-remote trace subset:
+The official strategy gates using upstream `migration_type=3`
+(`dlora_period_mig`) also complete on the same true-remote trace subset:
 Llama-3.2 3B, 500 adapters, first 128 scheduled requests, `ok=128/128`,
-`fail=0`, and no `trace_expected` token fallback. It is not an OOM. The
+`fail=0`, and no `trace_expected` token fallback. They are not OOMs. The
 post-replay Raylet/AsyncEngineDeadError messages happen during runtime stop.
-However, performance is weak under the current 2-GPU, `max_num_seqs=1`
-envelope (`TTFT_e2e` avg 29.5s, p95 116.4s), so a fair main-table dLoRA
-candidate still requires configuration gates and a full upstream
-`migration_type=3` replay, plus the Llama-2 7B full replay.
+The first 2-GPU `max_num_seqs=1` envelope was weak (`TTFT_e2e` avg 29.5s,
+p95 116.4s). A second 2-GPU `max_num_seqs=2` gate is better (`TTFT_e2e` avg
+24.7s, p95 59.1s, 81.9 tok/s), but the server logs still show service-side
+engine wait dominating actual execution. A fair main-table dLoRA candidate
+therefore still requires short no-core-change configuration gates and a full
+upstream `migration_type=3` replay, plus the Llama-2 7B full replay.
 
 Tracked evidence:
 
@@ -46,6 +48,8 @@ Tracked evidence:
   `evidence/formal_dispatch_only_3b_2026-05-20.json`
 - official period-migration 3B 128-request gate:
   `evidence/formal_period_mig_gate128_3b_2026-05-21.json`
+- official period-migration 3B 128-request `max_num_seqs=2` gate:
+  `evidence/formal_period_mig_gate128_s2_3b_2026-05-21.json`
 - real-adapter compatibility patch:
   `patches/real_peft_llama32_e2e_compat_20260520.patch`
 - formal 500-adapter runtime compatibility patch:
