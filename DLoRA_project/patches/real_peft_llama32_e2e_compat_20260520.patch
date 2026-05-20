@@ -1,0 +1,572 @@
+diff --git a/vllm/config.py b/vllm/config.py
+index c3db76e..cb1e1f7 100644
+--- a/vllm/config.py
++++ b/vllm/config.py
+@@ -1,4 +1,4 @@
+-from typing import Optional
++from typing import List, Optional
+ 
+ import torch
+ from transformers import PretrainedConfig
+@@ -262,10 +262,19 @@ class LoRaConfig:
+         gpu_capacity: Maximum number of lora weights.
+     """
+ 
+-    def __init__(self, max_r: int, num_models: int, gpu_capacity: int) -> None:
++    def __init__(
++        self,
++        max_r: int,
++        num_models: int,
++        gpu_capacity: int,
++        adapter_paths: Optional[List[str]] = None,
++        adapter_ids: Optional[List[str]] = None,
++    ) -> None:
+         self.max_r = max_r
+         self.num_models = num_models
+         self.gpu_capacity = gpu_capacity
++        self.adapter_paths = adapter_paths or []
++        self.adapter_ids = adapter_ids or []
+ 
+ 
+ _STR_DTYPE_TO_TORCH_DTYPE = {
+diff --git a/vllm/engine/arg_utils.py b/vllm/engine/arg_utils.py
+index 45be792..bc5e365 100644
+--- a/vllm/engine/arg_utils.py
++++ b/vllm/engine/arg_utils.py
+@@ -1,6 +1,8 @@
+ import argparse
+ import dataclasses
++import json
+ from dataclasses import dataclass
++from pathlib import Path
+ from typing import Optional, Tuple, List
+ 
+ from vllm.config import (CacheConfig, ModelConfig, ParallelConfig,
+@@ -34,6 +36,9 @@ class EngineArgs:
+     num_model_per_group: int = 1
+     max_r: int = 16
+     gpu_capacity: int = 16
++    lora_adapter_subset: Optional[str] = None
++    lora_adapter_root: Optional[str] = None
++    lora_adapter_limit: int = 0
+     disable_log_stats: bool = True
+ 
+     def __post_init__(self):
+@@ -79,7 +84,12 @@ class EngineArgs:
+                             'usage by up to 2x.')
+         parser.add_argument('--use-dummy-weights',
+                             action='store_true',
++                            default=EngineArgs.use_dummy_weights,
+                             help='use dummy values for model weights')
++        parser.add_argument('--no-use-dummy-weights',
++                            dest='use_dummy_weights',
++                            action='store_false',
++                            help='load real model weights instead of dummy values')
+         # TODO(woosuk): Support FP32.
+         parser.add_argument(
+             '--dtype',
+@@ -162,6 +172,18 @@ class EngineArgs:
+                             type=int,
+                             default=EngineArgs.gpu_capacity,
+                             help='gpu capacity of lora weights')
++        parser.add_argument('--lora-adapter-subset',
++                            type=str,
++                            default=EngineArgs.lora_adapter_subset,
++                            help='PrimeLoRA adapter subset JSON to load')
++        parser.add_argument('--lora-adapter-root',
++                            type=str,
++                            default=EngineArgs.lora_adapter_root,
++                            help='override adapter root directory')
++        parser.add_argument('--lora-adapter-limit',
++                            type=int,
++                            default=EngineArgs.lora_adapter_limit,
++                            help='limit loaded adapters for smoke tests')
+         parser.add_argument('--disable-log-stats',
+                             action='store_true',
+                             help='disable logging statistics')
+@@ -195,10 +217,42 @@ class EngineArgs:
+                                            self.max_num_seqs,
+                                            model_config.get_max_model_len(),
+                                            self.policy)
+-        lora_config = LoRaConfig(self.max_r, self.num_models, self.gpu_capacity)
++        adapter_ids, adapter_paths = _resolve_adapter_subset(
++            self.lora_adapter_subset,
++            self.lora_adapter_root,
++            self.lora_adapter_limit,
++        )
++        lora_config = LoRaConfig(self.max_r, self.num_models, self.gpu_capacity,
++                                 adapter_paths, adapter_ids)
+         return model_config, cache_config, parallel_config, scheduler_config, lora_config
+ 
+ 
++def _resolve_adapter_subset(
++    subset_path: Optional[str],
++    adapter_root: Optional[str],
++    adapter_limit: int,
++) -> Tuple[List[str], List[str]]:
++    if subset_path is None:
++        return [], []
++
++    subset = json.loads(Path(subset_path).read_text(encoding="utf-8"))
++    root = Path(adapter_root or subset.get("remote_dir") or "")
++    if not root:
++        raise ValueError("adapter root is required when subset has no remote_dir")
++
++    adapters = subset.get("adapters", [])
++    if adapter_limit > 0:
++        adapters = adapters[:adapter_limit]
++
++    adapter_ids = []
++    adapter_paths = []
++    for adapter in adapters:
++        adapter_id = adapter["id"]
++        adapter_ids.append(adapter_id)
++        adapter_paths.append(str(root / adapter_id))
++    return adapter_ids, adapter_paths
++
++
+ @dataclass
+ class AsyncEngineArgs(EngineArgs):
+     """Arguments for asynchronous vLLM engine."""
+diff --git a/vllm/engine/engine_manager.py b/vllm/engine/engine_manager.py
+index 5f5be9b..0d2a813 100644
+--- a/vllm/engine/engine_manager.py
++++ b/vllm/engine/engine_manager.py
+@@ -14,8 +14,7 @@ from vllm.sequence import (Sequence, SequenceGroup, SequenceGroupMetadata,
+                            SequenceStatus, RequestMetadata)
+ from vllm.engine.migration_ilp import MigrationILP
+ 
+-from vllm.engine.ray_utils import ray
+-from ray.air.util.torch_dist import init_torch_dist_process_group
++from vllm.engine.ray_utils import init_torch_dist_process_group, ray
+ 
+ _GB = 1 << 30
+ PCIE_BANDWIDTH = 32 * _GB
+@@ -455,4 +454,4 @@ class EngineManager:
+     def set_output(self, output) -> None:
+         """Set the output of the engine."""
+         for engine in self.engines:
+-            ray.get(engine.engine.set_output.remote(output))
+\ No newline at end of file
++            ray.get(engine.engine.set_output.remote(output))
+diff --git a/vllm/engine/llm_engine.py b/vllm/engine/llm_engine.py
+index 8f7bc50..bb4628b 100644
+--- a/vllm/engine/llm_engine.py
++++ b/vllm/engine/llm_engine.py
+@@ -8,7 +8,12 @@ from vllm.config import (CacheConfig, ModelConfig, ParallelConfig,
+                          SchedulerConfig, LoRaConfig, ExecType)
+ from vllm.core.scheduler import Scheduler, SchedulerOutputs
+ from vllm.engine.arg_utils import EngineArgs
+-from vllm.engine.ray_utils import RayWorker, initialize_cluster, ray
++from vllm.engine.ray_utils import (
++    RayWorker,
++    init_torch_dist_process_group,
++    initialize_cluster,
++    ray,
++)
+ from vllm.logger import init_logger
+ from vllm.outputs import RequestOutput
+ from vllm.sampling_params import SamplingParams
+@@ -19,7 +24,6 @@ from vllm.transformers_utils.tokenizer import (detokenize_incrementally,
+ from vllm.utils import Counter
+ 
+ if ray:
+-    from ray.air.util.torch_dist import init_torch_dist_process_group
+     from ray.util.scheduling_strategies import PlacementGroupSchedulingStrategy
+ 
+ if TYPE_CHECKING:
+@@ -752,4 +756,4 @@ class LLMEngine:
+         else:
+                 stage = batch[stage_id]
+                 ready, _ = ray.wait(stage, timeout=0.0)
+-                return ready
+\ No newline at end of file
++                return ready
+diff --git a/vllm/engine/ray_utils.py b/vllm/engine/ray_utils.py
+index c42e154..f77a842 100644
+--- a/vllm/engine/ray_utils.py
++++ b/vllm/engine/ray_utils.py
+@@ -1,3 +1,4 @@
++import os
+ import socket
+ from typing import Optional, Tuple, List, TYPE_CHECKING
+ 
+@@ -5,8 +6,38 @@ from vllm.config import ParallelConfig
+ 
+ try:
+     import ray
+-    from ray.air.util.torch_dist import TorchDistributedWorker
++except ImportError:
++    ray = None
+ 
++try:
++    from ray.air.util.torch_dist import (
++        TorchDistributedWorker,
++        init_torch_dist_process_group,
++    )
++except (ImportError, ModuleNotFoundError):
++    class TorchDistributedWorker:  # pylint: disable=too-few-public-methods
++        """Compatibility fallback for modern Ray installs without ray.air deps."""
++
++        pass
++
++    def init_torch_dist_process_group(workers, backend="nccl"):
++        if not workers:
++            return
++        ip = ray.get(workers[0].get_node_ip.remote())
++        port = get_open_port()
++        init_method = f"tcp://{ip}:{port}"
++        refs = []
++        world_size = len(workers)
++        for rank, worker in enumerate(workers):
++            refs.append(worker.init_torch_dist_process_group.remote(
++                rank,
++                world_size,
++                init_method,
++                backend,
++            ))
++        ray.get(refs)
++
++if ray is not None:
+     class RayWorker(TorchDistributedWorker):
+         """Ray wrapper for vllm.worker.Worker, allowing Worker to be
+         lazliy initialized after Ray sets CUDA_VISIBLE_DEVICES."""
+@@ -14,6 +45,23 @@ try:
+         def __init__(self) -> None:
+             self.worker = None
+ 
++        def get_node_ip(self):
++            return ray.util.get_node_ip_address()
++
++        def init_torch_dist_process_group(self, rank, world_size, init_method, backend):
++            import torch.distributed as dist
++
++            os.environ["RANK"] = str(rank)
++            os.environ["WORLD_SIZE"] = str(world_size)
++            os.environ["LOCAL_RANK"] = "0"
++            if not dist.is_initialized():
++                dist.init_process_group(
++                    backend=backend,
++                    world_size=world_size,
++                    rank=rank,
++                    init_method=init_method,
++                )
++
+         def init_worker(self, worker_init_fn):
+             self.worker = worker_init_fn()
+ 
+@@ -24,8 +72,7 @@ try:
+             executor = getattr(self, method)
+             return executor(*args, **kwargs)
+ 
+-except ImportError:
+-    ray = None
++else:
+     TorchDistributedWorker = None
+     RayWorker = None  # pylint: disable=invalid-name
+ 
+diff --git a/vllm/entrypoints/api_server.py b/vllm/entrypoints/api_server.py
+index 3006f78..ff9d385 100644
+--- a/vllm/entrypoints/api_server.py
++++ b/vllm/entrypoints/api_server.py
+@@ -21,6 +21,33 @@ app = FastAPI()
+ engine_manager = None
+ 
+ 
++def _request_output_payload(request_output):
++    prompt = request_output.prompt
++    text_outputs = [
++        prompt + output.text for output in request_output.outputs
++    ]
++    generated_outputs = [
++        output.text for output in request_output.outputs
++    ]
++    completion_tokens = 0
++    if request_output.outputs:
++        completion_tokens = max(
++            len(output.token_ids) for output in request_output.outputs
++        )
++    prompt_tokens = len(request_output.prompt_token_ids)
++    return {
++        "text": text_outputs,
++        "generated_text": generated_outputs,
++        "usage": {
++            "prompt_tokens": prompt_tokens,
++            "completion_tokens": completion_tokens,
++            "total_tokens": prompt_tokens + completion_tokens,
++        },
++        "request_id": request_output.request_id,
++        "finished": request_output.finished,
++    }
++
++
+ @app.post("/generate")
+ async def generate(request: Request) -> Response:
+     """Generate completion for the request.
+@@ -49,11 +76,7 @@ async def generate(request: Request) -> Response:
+     # Streaming case
+     async def stream_results() -> AsyncGenerator[bytes, None]:
+         async for request_output in results_generator:
+-            prompt = request_output.prompt
+-            text_outputs = [
+-                prompt + output.text for output in request_output.outputs
+-            ]
+-            ret = {"text": text_outputs}
++            ret = _request_output_payload(request_output)
+             yield (json.dumps(ret) + "\0").encode("utf-8")
+ 
+     async def abort_request() -> None:
+@@ -75,9 +98,7 @@ async def generate(request: Request) -> Response:
+         final_output = request_output
+ 
+     assert final_output is not None
+-    prompt = final_output.prompt
+-    text_outputs = [prompt + output.text for output in final_output.outputs]
+-    ret = {"text": text_outputs}
++    ret = _request_output_payload(final_output)
+     return JSONResponse(ret)
+ 
+ 
+@@ -98,4 +119,4 @@ if __name__ == "__main__":
+                 host=args.host,
+                 port=args.port,
+                 log_level="debug",
+-                timeout_keep_alive=TIMEOUT_KEEP_ALIVE)
+\ No newline at end of file
++                timeout_keep_alive=TIMEOUT_KEEP_ALIVE)
+diff --git a/vllm/entrypoints/llm.py b/vllm/entrypoints/llm.py
+index a06242f..8f5f50b 100644
+--- a/vllm/entrypoints/llm.py
++++ b/vllm/entrypoints/llm.py
+@@ -15,8 +15,7 @@ from vllm.sampling_params import SamplingParams
+ from vllm.utils import Counter
+ from vllm.config import ExecType
+ 
+-from vllm.engine.ray_utils import RayWorker, ray
+-from ray.air.util.torch_dist import init_torch_dist_process_group
++from vllm.engine.ray_utils import RayWorker, init_torch_dist_process_group, ray
+ 
+ 
+ class LLM:
+diff --git a/vllm/worker/lora_engine.py b/vllm/worker/lora_engine.py
+index 695e05a..9de12a3 100644
+--- a/vllm/worker/lora_engine.py
++++ b/vllm/worker/lora_engine.py
+@@ -1,4 +1,7 @@
+ """LoRa engine class for managing LoRa weight."""
++import json
++import re
++from pathlib import Path
+ from typing import Dict, List, Tuple
+ 
+ from transformers import PretrainedConfig, OPTConfig, LlamaConfig
+@@ -6,6 +9,10 @@ from transformers import PretrainedConfig, OPTConfig, LlamaConfig
+ import torch
+ from vllm.config import LoRaConfig, ModelConfig, ParallelConfig
+ from vllm.logger import init_logger
++from vllm.model_executor.parallel_utils.parallel_state import (
++    get_pipeline_model_parallel_rank,
++    get_tensor_model_parallel_rank,
++)
+ 
+ logger = init_logger(__name__)
+ 
+@@ -143,6 +150,10 @@ class LoRaEngine:
+         dtype_size = _get_dtype_size(self.model_config.dtype)
+         return dtype_size * sum([self.lora_A_shapes[i][0] * self.lora_A_shapes[i][1] + self.lora_B_shapes[i][0] * self.lora_B_shapes[i][1] for i in range(self.lora_cnt)]) * self.num_hidden_layers
+ 
++    def load_peft_adapters(self) -> None:
++        raise NotImplementedError(
++            f"PEFT adapter loading is not implemented for {type(self).__name__}")
++
+ 
+ class OPTLoRaEngine(LoRaEngine):
+ 
+@@ -241,6 +252,107 @@ class LlamaLoRaEngine(LoRaEngine):
+             
+         self.adjust_lora_adapter(lora_types, lora_types)
+ 
++    def load_peft_adapters(self) -> None:
++        adapter_paths = self.lora_config.adapter_paths
++        if not adapter_paths:
++            return
++        if len(adapter_paths) > self.lora_config.num_models:
++            raise ValueError(
++                f"got {len(adapter_paths)} adapter paths for "
++                f"{self.lora_config.num_models} configured LoRA models")
++
++        try:
++            from safetensors.torch import load_file
++        except ImportError as exc:
++            raise ImportError(
++                "safetensors is required for loading real PEFT adapters") from exc
++
++        pp_rank = get_pipeline_model_parallel_rank()
++        tp_rank = get_tensor_model_parallel_rank()
++        tp_size = self.parallel_config.tensor_parallel_size
++        layer_offset = pp_rank * self.num_hidden_layers
++        q_cols = self.total_num_heads * self.head_dim // tp_size
++        kv_cols = self.total_num_kv_heads * self.head_dim // tp_size
++        o_a_cols = self.total_num_heads * self.head_dim // tp_size
++        q_full_cols = self.total_num_heads * self.head_dim
++        kv_full_cols = self.total_num_kv_heads * self.head_dim
++        o_full_cols = self.total_num_heads * self.head_dim
++
++        loaded = 0
++        for adapter_idx, adapter_path in enumerate(adapter_paths):
++            path = Path(adapter_path)
++            config_path = path / "adapter_config.json"
++            weight_path = path / "adapter_model.safetensors"
++            if not config_path.exists() or not weight_path.exists():
++                raise FileNotFoundError(
++                    f"missing adapter_config.json or adapter_model.safetensors in {path}")
++
++            adapter_config = json.loads(config_path.read_text(encoding="utf-8"))
++            rank = int(adapter_config.get("r", self.lora_config.max_r))
++            alpha = float(adapter_config.get("lora_alpha", rank))
++            if rank > self.lora_config.max_r:
++                raise ValueError(
++                    f"adapter {path.name} rank {rank} exceeds max_r {self.lora_config.max_r}")
++            scale = alpha / rank if rank > 0 else 0.0
++            tensors = load_file(str(weight_path), device="cpu")
++
++            for local_layer in range(self.num_hidden_layers):
++                layer = layer_offset + local_layer
++                qkv_lora, o_lora, _, _ = self.cpu_lora_weights[local_layer]
++
++                qkv_lora.lora_As[adapter_idx].zero_()
++                qkv_lora.lora_Bs[adapter_idx].zero_()
++                o_lora.lora_As[adapter_idx].zero_()
++                o_lora.lora_Bs[adapter_idx].zero_()
++
++                q_a = _get_lora_tensor(tensors, layer, "q_proj", "A")
++                k_a = _get_lora_tensor(tensors, layer, "k_proj", "A")
++                v_a = _get_lora_tensor(tensors, layer, "v_proj", "A")
++                q_b = _get_lora_tensor(tensors, layer, "q_proj", "B")
++                k_b = _get_lora_tensor(tensors, layer, "k_proj", "B")
++                v_b = _get_lora_tensor(tensors, layer, "v_proj", "B")
++                o_a = _get_lora_tensor(tensors, layer, "o_proj", "A")
++                o_b = _get_lora_tensor(tensors, layer, "o_proj", "B")
++
++                qkv_a = qkv_lora.lora_As[adapter_idx]
++                qkv_b = qkv_lora.lora_Bs[adapter_idx]
++                _copy_checked(qkv_a[:, 0:rank], q_a.t(), "q_proj.lora_A")
++                _copy_checked(qkv_a[:, self.lora_config.max_r:self.lora_config.max_r + rank],
++                              k_a.t(), "k_proj.lora_A")
++                _copy_checked(qkv_a[:, 2 * self.lora_config.max_r:2 * self.lora_config.max_r + rank],
++                              v_a.t(), "v_proj.lora_A")
++
++                q_start = q_cols * tp_rank
++                k_start = kv_cols * tp_rank
++                v_start = kv_cols * tp_rank
++                _copy_checked(qkv_b[0:rank, 0:q_cols],
++                              q_b[q_start:q_start + q_cols].t() * scale,
++                              "q_proj.lora_B")
++                _copy_checked(qkv_b[self.lora_config.max_r:self.lora_config.max_r + rank,
++                                    q_cols:q_cols + kv_cols],
++                              k_b[k_start:k_start + kv_cols].t() * scale,
++                              "k_proj.lora_B")
++                _copy_checked(qkv_b[2 * self.lora_config.max_r:2 * self.lora_config.max_r + rank,
++                                    q_cols + kv_cols:q_cols + 2 * kv_cols],
++                              v_b[v_start:v_start + kv_cols].t() * scale,
++                              "v_proj.lora_B")
++
++                o_start = o_a_cols * tp_rank
++                _copy_checked(o_lora.lora_As[adapter_idx, :, 0:rank],
++                              o_a[:, o_start:o_start + o_a_cols].t(),
++                              "o_proj.lora_A")
++                _copy_checked(o_lora.lora_Bs[adapter_idx, 0:rank, :],
++                              o_b.t() * scale,
++                              "o_proj.lora_B")
++
++                _assert_expected_shape(q_b, (q_full_cols, rank), "q_proj.lora_B")
++                _assert_expected_shape(k_b, (kv_full_cols, rank), "k_proj.lora_B")
++                _assert_expected_shape(v_b, (kv_full_cols, rank), "v_proj.lora_B")
++                _assert_expected_shape(o_a, (rank, o_full_cols), "o_proj.lora_A")
++            loaded += 1
++
++        logger.info("Loaded %d real PEFT LoRA adapters into dLoRA CPU pool", loaded)
++
+ 
+ 
+ _MODEL_LORA_MAPPING = {
+@@ -251,3 +363,36 @@ _MODEL_LORA_MAPPING = {
+ 
+ def _get_dtype_size(dtype: torch.dtype) -> int:
+     return torch.tensor([], dtype=dtype).element_size()
++
++
++_LORA_KEY_RE = re.compile(
++    r"layers\.(?P<layer>\d+)\..*?(?P<module>q_proj|k_proj|v_proj|o_proj)"
++    r"\.lora_(?P<kind>A|B)\.weight$")
++
++
++def _get_lora_tensor(tensors: Dict[str, torch.Tensor],
++                     layer: int,
++                     module: str,
++                     kind: str) -> torch.Tensor:
++    for name, tensor in tensors.items():
++        match = _LORA_KEY_RE.search(name)
++        if match is None:
++            continue
++        if int(match.group("layer")) == layer and match.group("module") == module and match.group("kind") == kind:
++            return tensor.contiguous()
++    raise KeyError(f"missing layer {layer} {module}.lora_{kind}.weight")
++
++
++def _copy_checked(dst: torch.Tensor, src: torch.Tensor, label: str) -> None:
++    if tuple(dst.shape) != tuple(src.shape):
++        raise ValueError(
++            f"shape mismatch for {label}: dst={tuple(dst.shape)} src={tuple(src.shape)}")
++    dst.copy_(src.to(dtype=dst.dtype), non_blocking=True)
++
++
++def _assert_expected_shape(tensor: torch.Tensor,
++                           shape: Tuple[int, int],
++                           label: str) -> None:
++    if tuple(tensor.shape) != tuple(shape):
++        raise ValueError(
++            f"unexpected shape for {label}: got={tuple(tensor.shape)} expected={shape}")
+diff --git a/vllm/worker/worker.py b/vllm/worker/worker.py
+index f26ba11..e4acc66 100644
+--- a/vllm/worker/worker.py
++++ b/vllm/worker/worker.py
+@@ -22,7 +22,13 @@ from vllm.worker import lora_engine
+ 
+ from torch.profiler import profile, record_function, ProfilerActivity
+ 
+-from peft import create_lora_model, LoraConfig, TaskType, inject_adapter_in_model
++try:
++    from peft import create_lora_model, LoraConfig, TaskType, inject_adapter_in_model
++except ImportError:
++    create_lora_model = None
++    LoraConfig = None
++    TaskType = None
++    inject_adapter_in_model = None
+ from transformers import PretrainedConfig
+ 
+ from vllm.logger import init_logger
+@@ -105,6 +111,8 @@ class Worker:
+             self.model = self.models[start_model_id]
+             self.gpu_model_ids = [i+start_model_id for i in range(self.num_model_on_gpu)]
+         elif self.exec_type == ExecType.PEFT:
++            if create_lora_model is None:
++                raise ImportError("peft is required when exec_type is PEFT")
+             #TODO: hard-coded multiple models
+             start_model_id = 0 # engine_id * self.num_models
+             self.model = get_model(self.model_config, parallel_config=self.parallel_config, is_peft=True)
+@@ -122,6 +130,7 @@ class Worker:
+             self.model = get_model(self.model_config, parallel_config=self.parallel_config)
+             self.lora_engine = lora_engine._MODEL_LORA_MAPPING[self.model_config.hf_config.model_type](
+                 self.model_config.hf_config, self.model_config, self.lora_config, self.parallel_config, self.device)
++            self.lora_engine.load_peft_adapters()
+ 
+         self.cpu_key_cache: List[torch.tensor] = []
+         self.cpu_value_cache: List[torch.tensor] = []
+@@ -603,4 +612,4 @@ def _get_num_model_in_gpu(config: PretrainedConfig):
+     if "7b" in name:
+         return 4
+     else:
+-        return 2
+\ No newline at end of file
++        return 2

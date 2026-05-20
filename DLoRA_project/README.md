@@ -12,13 +12,18 @@ The reproduction target is the already closed true-remote PrimeLoRA workload:
 Llama-2 7B and Llama-3.2 3B, 4000 requests, 500 adapters, shared trace,
 shared adapter subset, remote artifacts, and `e2e_v3` metrics.
 
-Current result: dLoRA is highly relevant as a LoRA orchestration system and now
-passes the local build/import gate on this machine after a narrow compatibility
-patch. It still cannot enter the formal comparison table because the artifact
-does not expose a real PEFT adapter loader for our closed adapter subset, has no
-Llama-3.2 source path, and has no native `e2e_v3` replay wrapper.
+Current result: dLoRA is highly relevant as a LoRA orchestration system. The
+first 2026-05-19 gate only proved local build/import. The 2026-05-20 local
+adaptation adds a narrow real-PEFT adapter loader and replay compatibility
+layer, and now passes a real-weight Llama-3.2 3B smoke gate using the closed
+true-remote trace and real adapter files. It still cannot enter the formal
+comparison table until the same path is scaled to the full 4000-request,
+500-adapter 3B and 7B runs.
 
 Tracked evidence:
 
 - gate summary: `evidence/gate_2026-05-19.json`
 - local compatibility patch: `patches/modern_ray_import_compat.patch`
+- real-adapter smoke summary: `evidence/real_adapt_2026-05-20.json`
+- real-adapter compatibility patch:
+  `patches/real_peft_llama32_e2e_compat_20260520.patch`

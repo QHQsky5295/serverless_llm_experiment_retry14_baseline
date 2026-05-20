@@ -1,0 +1,75 @@
+{
+  "system": "dLoRA",
+  "date": "2026-05-20",
+  "scope": "minimal local adaptation for the closed PrimeLoRA true-remote workload",
+  "upstream": "https://github.com/LLMServe/dLoRA-artifact",
+  "upstream_commit": "75f1c439446fe194b1df8a24982ef9067841fab5",
+  "local_source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/dLoRA_artifact_main_20260519",
+  "environment": {
+    "conda_env": "dlora_medusa_clone_20260519",
+    "python": "3.9.25",
+    "torch": "2.1.2+cu121",
+    "nvcc": "12.1.105",
+    "extra_runtime_deps": [
+      "xformers==0.0.23.post1",
+      "transformers==4.45.2",
+      "tokenizers==0.20.3",
+      "pyarrow==16.1.0",
+      "pandas==2.2.2",
+      "pulp==2.7.0"
+    ]
+  },
+  "closed_workload_inputs": {
+    "llama2_7b_subset": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_012813_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_adapter_subset.json",
+    "llama32_3b_trace": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_trace.json",
+    "llama32_3b_subset": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_adapter_subset.json",
+    "metric_schema": "e2e_v3"
+  },
+  "minimal_adaptations": [
+    "Modern-Ray fallback for the removed ray.air.util.torch_dist import.",
+    "Explicit --no-use-dummy-weights flag while keeping dLoRA's default dummy-weight smoke path.",
+    "Adapter subset CLI flags that map the closed adapter subset to dLoRA integer model_id slots.",
+    "Real PEFT adapter_model.safetensors loader for Llama q/k/v/o LoRA weights, including Llama-3.2 grouped-query shapes.",
+    "HTTP response payload additions for generated_text and usage so the existing e2e_v3 replay wrapper can audit token sources.",
+    "Replay parser compatibility for dLoRA's JSON-plus-NUL streaming format."
+  ],
+  "non_goals": [
+    "No replacement of dLoRA's adapter orchestration or scheduling algorithm.",
+    "No rewrite into PrimeLoRA/FaaSLoRA control logic.",
+    "No overwrite of existing closed paper data or figures."
+  ],
+  "gates": {
+    "real_loader_llama2_7b_limit2": {
+      "status": "passed",
+      "path": "results/paper_experiments/15_new_serverless_baselines_remote_v1/gates/dlora/dlora_real_loader_llama2_7b_limit2.json",
+      "sha256": "270676b63c5167c23b402891857fd95b02465adeddf37e73d83d5012b479e22e"
+    },
+    "real_loader_llama32_3b_limit2": {
+      "status": "passed",
+      "path": "results/paper_experiments/15_new_serverless_baselines_remote_v1/gates/dlora/dlora_real_loader_llama32_3b_limit2.json",
+      "sha256": "320ef38e2ab660a1a329e0ef8b759233573394a26b352f69c17d5360a9d0bf09"
+    },
+    "dummy_base_real_adapter_replay_3b_limit2": {
+      "status": "passed",
+      "ok": 2,
+      "total": 2,
+      "path": "results/paper_experiments/15_new_serverless_baselines_remote_v1/gates/dlora/dlora_smoke_3b_limit2_replay_20260520.json",
+      "sha256": "6eaddc0cfbcda994eaf35f9d20844b6af7879ba9cad8aa73714c39d11cbe0c8f"
+    },
+    "real_base_real_adapter_replay_3b_limit2": {
+      "status": "passed",
+      "ok": 2,
+      "total": 2,
+      "path": "results/paper_experiments/15_new_serverless_baselines_remote_v1/gates/dlora/dlora_real3b_smoke_limit2_replay_20260520.json",
+      "sha256": "f4490fe6a00b623e6546fc8a9df2d70ecaf90f35c8d504e0ac0c704ce191be38"
+    }
+  },
+  "patch": {
+    "path": "DLoRA_project/patches/real_peft_llama32_e2e_compat_20260520.patch",
+    "sha256": "6c576e89b3b82d4e3eaa2d2f176da74f408a2ef6bbe987f5ecead7f72b8c163d"
+  },
+  "current_decision": {
+    "formal_table": "not yet",
+    "reason": "The minimal real-weight Llama-3.2 3B gate is now valid, but the formal 4000-request/500-adapter runs for both 3B and 7B still need scale-up validation under the same closed true-remote workload."
+  }
+}

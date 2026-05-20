@@ -1063,6 +1063,8 @@ def _replay_one(
                 for chunk in resp.iter_content(chunk_size=None, decode_unicode=True):
                     if not chunk:
                         continue
+                    if isinstance(chunk, bytes):
+                        chunk = chunk.decode(resp.encoding or "utf-8", errors="replace")
                     # TTFT should start at the first non-empty response payload,
                     # not at an empty keepalive/whitespace chunk.
                     if api_ttft_ms is None and str(chunk).strip():
@@ -1076,10 +1078,29 @@ def _replay_one(
                     error = raw_text[:1000] or f"HTTP {status_code}"
                 elif raw_text:
                     stripped_raw_text = raw_text.lstrip()
-                    if stripped_raw_text.startswith(("{", "[")):
+                    if "\0" in raw_text:
+                        payloads = [
+                            part.strip()
+                            for part in raw_text.split("\0")
+                            if part.strip()
+                        ]
+                    elif stripped_raw_text.startswith(("{", "[")):
+                        payloads = [raw_text]
+                    else:
+                        payloads = []
+                        for line in raw_text.splitlines():
+                            line = line.strip()
+                            if not line.startswith("data:"):
+                                continue
+                            payloads.append(line[len("data:") :].strip())
+                    if stripped_raw_text.startswith(("{", "[")) and not payloads:
                         stream_event_count = 1
+                    for payload in payloads:
+                        if payload == "[DONE]":
+                            break
+                        stream_event_count += 1
                         try:
-                            obj = json.loads(raw_text)
+                            obj = json.loads(payload)
                             payload_error, payload_usage, payload_metrics_source = (
                                 _apply_response_payload(
                                     obj,
@@ -1094,33 +1115,7 @@ def _replay_one(
                             if payload_metrics_source:
                                 metrics_source = payload_metrics_source
                         except json.JSONDecodeError:
-                            pass
-                    else:
-                        for line in raw_text.splitlines():
-                            line = line.strip()
-                            if not line.startswith("data:"):
-                                continue
-                            payload = line[len("data:") :].strip()
-                            if payload == "[DONE]":
-                                break
-                            stream_event_count += 1
-                            try:
-                                obj = json.loads(payload)
-                                payload_error, payload_usage, payload_metrics_source = (
-                                    _apply_response_payload(
-                                        obj,
-                                        generated_text_parts=generated_text_parts,
-                                        server_metrics=server_metrics,
-                                    )
-                                )
-                                if payload_error:
-                                    error = payload_error
-                                if payload_usage:
-                                    usage = payload_usage
-                                if payload_metrics_source:
-                                    metrics_source = payload_metrics_source
-                            except json.JSONDecodeError:
-                                continue
+                            continue
             api_e2e_ms = (time.perf_counter() - t0) * 1000.0
         except Exception as exc:  # noqa: BLE001
             api_e2e_ms = (time.perf_counter() - t0) * 1000.0
