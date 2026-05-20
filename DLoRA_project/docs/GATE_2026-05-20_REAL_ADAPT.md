@@ -99,3 +99,18 @@ workload:
 - no dummy weights;
 - no trace-token fallback;
 - stable runtime under the same closed true-remote workload variables.
+
+## Formal Preflight
+
+The 500-adapter preflight is recorded in:
+
+```text
+DLoRA_project/evidence/formal_preflight_2026-05-20.json
+```
+
+Key result: do not launch a formal long run in the current machine state. An
+external `/app/.venv/bin/python` process occupies substantial memory on all four
+GPUs. With dLoRA's original initialization, 500 adapters require multi-GPU
+placement to avoid rewriting the scheduling/placement path. Single-GPU 3B is
+impossible because the 500-adapter LoRA pool alone exceeds a 24GB 3090, while
+the current external occupancy makes the multi-GPU path unsafe to start now.

@@ -28,5 +28,6 @@ Tracked evidence:
 - gate summary: `evidence/gate_2026-05-19.json`
 - local compatibility patch: `patches/modern_ray_import_compat.patch`
 - real-adapter smoke summary: `evidence/real_adapt_2026-05-20.json`
+- formal 500-adapter preflight: `evidence/formal_preflight_2026-05-20.json`
 - real-adapter compatibility patch:
   `patches/real_peft_llama32_e2e_compat_20260520.patch`
