@@ -38,10 +38,12 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
   local compatibility layer; `migration_type=1` completed `4000/4000` on the
   500-adapter true-remote workload, and `migration_type=3` completed
   128-request/500-adapter gates at `max_num_seqs=1`, `max_num_seqs=2`, and
-  `max_num_seqs=4`. This is not the official dLoRA result row yet: upstream
-  `migration_type=1` is RR/dispatch-only, and the best current
-  `migration_type=3` 2-GPU gate still needs a 4-GPU topology check before tuned
-  full 3B and 7B replays.
+  `max_num_seqs=4`. The first 4-GPU topology gate failed before replay from Ray
+  host-memory pressure at the default `swap_space_gb=8`; the next fair gate
+  lowers that wrapper CPU swap envelope. This is not the official dLoRA result
+  row yet: upstream `migration_type=1` is RR/dispatch-only, and
+  `migration_type=3` still needs a stable topology before tuned full 3B and 7B
+  replays.
 - `gates/loquetier/`: Loquetier local-adaptation patch, compact gate outputs,
   and real-adapter evidence. Loquetier currently passes Llama-3.2 3B through
   256 adapters / 1024 filtered requests and Llama-2 7B through 128 adapters /
@@ -71,9 +73,9 @@ should be labeled `ServerlessLLM-new` and kept separate from the older
 
 dLoRA, Loquetier, AIBrix, HydraServe, Medusa, and FaaScale/LambdaScale are not
 formal main rows in this bundle. dLoRA now has one completed dispatch-only full
-replay and three official `migration_type=3` short gates, but it remains
-outside the formal table until a tuned upstream `migration_type=3` full replay
-passes.
+replay, three official `migration_type=3` short replay gates, and one closed
+4-GPU startup memory-envelope gate. It remains outside the formal table until a
+tuned upstream `migration_type=3` full replay passes.
 Do not promote any of these systems to formal rows unless their runtime and
 scale requirements are satisfied and the closed true-remote LoRA workload can
 be replayed into `e2e_v3` without changing workload variables.

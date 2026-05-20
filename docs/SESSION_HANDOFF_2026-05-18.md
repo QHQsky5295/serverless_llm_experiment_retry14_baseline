@@ -230,12 +230,18 @@ Current dLoRA evidence:
   ms`, p95 `59104.07 ms`, throughput `81.885 tok/s`; `max_num_seqs=4` is the
   best 2-GPU gate so far with TTFT avg `14517.67 ms`, p95 `26510.79 ms`, and
   throughput `92.127 tok/s`.
+- The first 4-GPU `num_groups=4`, `max_num_seqs=4` startup gate did not reach
+  replay. Remote materialization completed for `500/500` adapters, then Ray
+  killed a worker because host memory reached `124.16GB / 125.38GB` at the
+  `0.99` threshold under the default `swap_space_gb=8`. This is host-memory
+  envelope evidence, not CUDA OOM and not a measured dLoRA replay.
 
 That full run is appendix/ablation evidence only. It is not the official dLoRA
 row because upstream `migration_type=1` is dispatch-only/RR; the poor tail was
 caused by static placement skew, not OOM. A fair dLoRA candidate still requires
 a tuned upstream `migration_type=3` full 3B replay and the full Llama-2 7B
-replay.
+replay. The immediate next step is a 4-GPU short gate with a reduced
+`DLORA_SWAP_SPACE_GB` envelope before considering Ray memory-monitor changes.
 
 ## 5. Important Experiment Decisions
 
