@@ -1034,8 +1034,8 @@ New Loquetier real-adapter gate update, 2026-05-20:
   RTX 3090 CUDA 12.1 kernel build with Llama-3.2 group size 3, and mixed-rank
   PEFT adapter handling based on actual LoRA tensor shapes.
 - Real-weight closed-trace gates pass for Llama-3.2 3B through 64 adapters /
-  256 filtered requests (`ok=256/256`) and for Llama-2 7B through 16 adapters /
-  64 filtered requests (`ok=64/64`), with prompt tokens from tokenizer and
+  256 filtered requests (`ok=256/256`) and for Llama-2 7B through 64 adapters /
+  128 filtered requests (`ok=128/128`), with prompt tokens from tokenizer and
   completion tokens from Loquetier-observed generation.
 - Evidence is tracked in
   `/home/qhq/serverless_llm_baselines/Loquetier_project/evidence/real_adapt_2026-05-20.json`
