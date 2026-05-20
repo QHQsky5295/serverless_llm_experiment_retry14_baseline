@@ -43,6 +43,11 @@ Replay gates:
   `ok=2/2`, no `trace_expected` token fallback.
 - Real base weights plus real closed adapters, Llama-3.2 3B, 2 requests:
   `ok=2/2`, no `trace_expected` token fallback.
+- Real base weights plus first 16 closed adapters, Llama-3.2 3B, 64 filtered
+  closed-trace requests: `ok=64/64`, no `trace_expected` token fallback. The
+  filtered gate touched 15 distinct adapter ids and the worker log showed dLoRA
+  adapter adjustment through the configured `model_id` slots, including a
+  transition to all `[0..15]` slots.
 
 The real-weight server command used:
 
@@ -63,8 +68,8 @@ script, and an adapter value map from closed adapter id to dLoRA `model_id`.
 ## Decision
 
 dLoRA is no longer blocked at "cannot load real adapters" for the small 3B gate.
-It still cannot enter the formal table until the same adaptation is scaled to
-the formal workload:
+It also passes a 16-adapter filtered 3B replay gate. It still cannot enter the
+formal table until the same adaptation is scaled to the formal workload:
 
 - Llama-3.2 3B, 4000 requests, 500 adapters;
 - Llama-2 7B, 4000 requests, 500 adapters;
