@@ -24,6 +24,13 @@ Current state:
   KV cache envelope, but Ray's default object store was about `38.6GB` and the
   four worker startup still entered host-memory/swap pressure. The next fair
   4-GPU gate bounds Ray object-store memory from the wrapper.
+- The bounded-Ray object-store rerun confirmed the wrapper fix was active
+  (`object_store_memory=8589934592` and `RAY_ADDRESS=auto`), but DP4/TP1 still
+  failed before replay. Four dLoRA/vLLM engines duplicated startup state and Ray
+  killed a worker under host-memory pressure. This is still not a CUDA OOM, not
+  a remote artifact failure, and not a measured replay result.
+- The next fair dLoRA topology gate keeps the 4-GPU budget while reducing
+  startup duplication via `num_groups=2, tensor_parallel_size=2`.
 - The next fair dLoRA step is to run short runtime/topology gates, then a full
   `migration_type=3` replay without rewriting dLoRA scheduling or migration.
 
@@ -47,3 +54,6 @@ Files:
   of the first 4-GPU startup memory-envelope gate.
 - `formal_period_mig_gate128_g4_s4_swap2_hostoom_3b_2026-05-21.json`: compact
   record of the 4-GPU `swap_space_gb=2` startup memory-envelope gate.
+- `formal_period_mig_gate128_g4_s4_swap2_obj8_hostoom_3b_2026-05-21.json`:
+  compact record of the 4-GPU bounded-Ray object-store startup
+  memory-envelope gate.
