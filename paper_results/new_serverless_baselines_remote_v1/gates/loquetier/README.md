@@ -3,8 +3,8 @@
 This directory mirrors the non-overwriting Loquetier gate evidence from
 `/home/qhq/serverless_llm_baselines/Loquetier_project/`.
 
-Loquetier currently passes real-adapter filtered gates through 64 adapters /
-256 requests on Llama-3.2 3B and 64 adapters / 128 requests on Llama-2 7B. It
+Loquetier currently passes real-adapter filtered gates through 128 adapters /
+512 requests on Llama-3.2 3B and 64 adapters / 128 requests on Llama-2 7B. It
 is not a formal comparison row until it completes the full 4000-request /
 500-adapter workload without replacing Loquetier's SMLM kernels or mixed-LoRA
 serving path.

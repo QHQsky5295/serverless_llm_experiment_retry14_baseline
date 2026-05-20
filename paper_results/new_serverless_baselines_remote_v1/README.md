@@ -37,7 +37,7 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
   4000-request / 500-adapter run passes.
 - `gates/loquetier/`: Loquetier local-adaptation patch, compact gate outputs,
   and real-adapter evidence. Loquetier currently passes Llama-3.2 3B through
-  64 adapters / 256 filtered requests and Llama-2 7B through 64 adapters /
+  128 adapters / 512 filtered requests and Llama-2 7B through 64 adapters /
   128 filtered requests, but is not a formal result row until the full closed
   workload passes without replacing its SMLM/mixed-LoRA logic.
 - `SHA256SUMS`: checksums for the bundle.
