@@ -19,7 +19,7 @@ confusing the formal experiment path.
 | System | Role | Local Entry | Upstream Handling | Current Status |
 |---|---|---|---|---|
 | `ServerlessLLM-new` | Current upstream ServerlessLLM serverless LLM baseline | `/home/qhq/serverless_llm_baselines/ServerlessLLM_new_project` | Upstream source kept in ignored `vendor_new_baselines/`; no old ServerlessLLM code or data overwritten | True-remote 7B/3B LoRA workload closed and validated as a candidate row; not yet merged into default paper tables/figures |
-| `dLoRA` | Multi-LoRA orchestration candidate | `/home/qhq/serverless_llm_baselines/DLoRA_project` | Upstream source kept in ignored `vendor_new_baselines/`; local import/build compatibility patch tracked under `DLoRA_project/patches/` | 2026-05-19 build/import gate passed (`vllm==0.1.4`), but formal replay blocked: no real PEFT adapter loader for the closed adapter set, no Llama-3.2 path, no native `e2e_v3` replay |
+| `dLoRA` | Multi-LoRA orchestration candidate | `/home/qhq/serverless_llm_baselines/DLoRA_project` | Upstream source kept in ignored `vendor_new_baselines/`; compatibility patches tracked under `DLoRA_project/patches/` without replacing scheduling/migration | 2026-05-20 real-adapter gates pass for Llama-3.2 3B through 128 adapters / 512 filtered requests and for Llama-2 7B at 2 adapters / 16 requests. Formal 500-adapter runs are not launched yet; current GPU occupancy blocks safe multi-GPU placement, so not a formal-table row. |
 
 ## Not Active In The Current Main Harness
 
@@ -28,8 +28,8 @@ confusing the formal experiment path.
 | `SkyServe` | Useful related work for serving orchestration, but not currently reproduced as a same-trace many-LoRA baseline. |
 | `Llumnix` | Not currently connected to the shared trace / shared adapter / `e2e_v3` harness. |
 | `ServerlessLoRA` / `P-LoRA` | No complete local official-code reproduction path in the current workspace. Do not claim formal reproduction. |
-| `Medusa` | 2026-05-19 gate closed as not formally reproducible on this machine: official build fails before runtime, and required SPDK/DPDK/GDRCopy stack is absent. |
-| `FaaScale` / `LambdaScale` | Ordered after Medusa; official build/LoRA/true-remote gate is not closed yet. |
+| `Medusa` | 2026-05-19 gate closed as not formally reproducible on this machine: local build/import can be adapted, but required SPDK/NVMe/hugepage/GDRCopy runtime stack is absent. |
+| `FaaScale` / `LambdaScale` | 2026-05-19 gate closed as appendix/gate evidence only: local import/IPC/RDMA binding can be adapted, but runtime finds zero usable IB devices and there is no ready Llama-3.2/LoRA workload path. |
 
 ## Formal Main Round
 

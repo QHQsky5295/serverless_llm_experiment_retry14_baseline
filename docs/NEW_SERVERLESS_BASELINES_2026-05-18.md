@@ -83,14 +83,19 @@ without changing the closed true-remote workload variables.
 
 ## dLoRA Gate
 
-Status: closed local build/import gate, not adopted for formal table/figures.
+Status: real-adapter scale-gate evidence closed through 2026-05-20, not yet
+adopted for formal table/figures.
 
 - Upstream: `https://github.com/LLMServe/dLoRA-artifact`
 - Upstream commit: `75f1c439446fe194b1df8a24982ef9067841fab5`
 - Local entry: `DLoRA_project/`
 - Local source: `vendor_new_baselines/dLoRA_artifact_main_20260519`
 - Evidence summary: `DLoRA_project/evidence/gate_2026-05-19.json`
+- Real-adapter evidence: `DLoRA_project/evidence/real_adapt_2026-05-20.json`
+- Formal preflight: `DLoRA_project/evidence/formal_preflight_2026-05-20.json`
 - Compatibility patch: `DLoRA_project/patches/modern_ray_import_compat.patch`
+- Real-adapter patch:
+  `DLoRA_project/patches/real_peft_llama32_e2e_compat_20260520.patch`
 - Build env: `dlora_medusa_clone_20260519`
 - Import result: `vllm.__version__ == 0.1.4`
 
@@ -104,16 +109,23 @@ Local adaptation:
 - CUDA extension build required local CUDA 12.1 header/library precedence over
   mixed CUDA 13.x headers in the cloned env;
 - Ray 2.51.2 imports were made tolerant of absent `ray.air` optional deps.
+- 2026-05-20 real-adapter adaptation added a narrow PEFT
+  `adapter_model.safetensors` loader for Llama q/k/v/o LoRA weights, Llama-3.2
+  grouped-query shapes, adapter-subset-to-`model_id` mapping, explicit
+  `--no-use-dummy-weights`, and replay parsing for dLoRA JSON+NUL responses.
+  dLoRA scheduling, migration, and adapter orchestration were not replaced.
 
 Formal blocker:
 
-- dLoRA's artifact source supports Llama-2 style models and LoRA scheduling,
-  but no Llama-3.2 source path was found;
-- no native modern real-PEFT loader was found for the closed
-  `adapter_model.safetensors` adapter set;
-- no native `e2e_v3` replay path exists;
-- the source has dummy/random/zero LoRA tensor paths, so using those tensors
-  would not be a fair formal comparison against the true-remote LoRA workload.
+- The earlier "no real PEFT loader / no Llama-3.2 path" blocker is resolved for
+  the local adaptation, but only as a compatibility layer.
+- Real-weight Llama-3.2 3B filtered gates pass through 128 adapters / 512
+  requests; real-weight Llama-2 7B passes a 2-adapter / 16-request gate.
+- Formal 4000-request / 500-adapter runs are not yet launched. The preflight
+  says current external GPU memory occupancy makes multi-GPU dLoRA placement
+  unsafe to start, and single-GPU 3B/500 is impossible because the LoRA GPU pool
+  alone exceeds a 24GB RTX 3090. Do not enter dLoRA into formal tables until a
+  no-dummy, no-`trace_expected`, full 3B/7B run passes without rewriting dLoRA.
 
 ## Medusa Gate
 
