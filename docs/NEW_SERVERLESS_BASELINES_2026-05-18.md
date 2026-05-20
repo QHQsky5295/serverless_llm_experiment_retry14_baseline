@@ -181,6 +181,59 @@ Formal blocker:
   materialization or placement design. Do not enter Loquetier into formal
   tables unless an upstream-compatible path passes the no-fallback full replay.
 
+## AIBrix Gate
+
+Status: build/runtime-LoRA component gate closed on 2026-05-20; not adopted for
+formal table/figures on this machine.
+
+- Upstream: `https://github.com/vllm-project/aibrix`
+- Upstream tag: `v0.6.0`
+- Upstream commit: `52405d78c63c68df5be9e8bdc5e21ccd6c4abde2`
+- Local entry: `AIBrix_project/`
+- Local source: `vendor_new_baselines/AIBrix_v0.6.0_20260520`
+- Build env: `aibrix_20260520`
+- Python runtime env: `aibrix_py_20260520`
+- Evidence summary: `AIBrix_project/evidence/gate_2026-05-20.json`
+
+Local adaptation:
+
+- cloned upstream release into an ignored vendor directory so no prior baseline
+  code or data is overwritten;
+- created isolated Go 1.22.6 and Python 3.11 environments;
+- built upstream `controller-manager`;
+- built upstream `gateway-plugins` in no-ZMQ mode;
+- fixed the ZMQ build as a local dependency issue by using `/usr/bin/gcc` and
+  user-space `zeromq`, `libsodium`, and `pkg-config` in the isolated env;
+- installed/imported the upstream Python `aibrix` runtime package from source;
+- launched a short local component gate where AIBrix runtime called a vLLM
+  0.10.2 server's dynamic LoRA API with the real
+  `llama32_3b_a500_v1_modelscope/code_lora` adapter.
+
+Closed component gate:
+
+- AIBrix runtime `/ready` returned HTTP 200.
+- AIBrix runtime `/v1/lora_adapter/load` returned HTTP 200 for the real
+  `code_lora` path.
+- vLLM `/v1/models` showed `code_lora` with parent `base`.
+- A completion request using `model=code_lora` returned HTTP 200 with
+  `prompt_tokens=5`, `completion_tokens=4`.
+- AIBrix runtime `/v1/lora_adapter/unload` returned HTTP 200 and vLLM removed
+  the adapter.
+
+Formal blocker:
+
+- This component gate does not replace AIBrix's actual Kubernetes control
+  plane. A formal AIBrix run requires CRDs, controller-manager, Envoy gateway,
+  gateway-plugins, GPU vLLM pods, runtime sidecars, and `ModelAdapter`
+  resources.
+- Current machine state blocks that platform path: `/usr/local/bin/kubectl`
+  and `/usr/local/bin/helm` are root-only, Docker socket access is denied,
+  `kind`/`minikube` are absent, and passwordless sudo is unavailable.
+- Therefore AIBrix should be treated as appendix/gate evidence only until a
+  GPU Kubernetes runtime is available for the same true-remote 3B/7B LoRA
+  workload. Do not enter AIBrix into formal tables based only on the runtime
+  sidecar gate.
+
 ## Medusa Gate
 
 Status: closed local build/import gate, not adopted for formal table/figures on

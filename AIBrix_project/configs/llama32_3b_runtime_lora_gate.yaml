@@ -1,0 +1,27 @@
+base_model: /home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct
+adapter: /home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/code_lora
+vllm_env: /home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518
+aibrix_runtime_env: /home/qhq/anaconda3/envs/aibrix_py_20260520
+gpu: 3
+vllm_endpoint: http://127.0.0.1:18880
+aibrix_runtime_endpoint: http://127.0.0.1:18881
+vllm_args:
+  served_model_name: base
+  dtype: float16
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.55
+  max_model_len: 1024
+  max_num_seqs: 1
+  max_num_batched_tokens: 1024
+  enable_lora: true
+  max_loras: 1
+  max_cpu_loras: 8
+  max_lora_rank: 16
+  enforce_eager: true
+runtime_env:
+  INFERENCE_ENGINE: vllm
+  INFERENCE_ENGINE_VERSION: 0.10.2
+  INFERENCE_ENGINE_ENDPOINT: http://127.0.0.1:18880
+result:
+  smoke_json: results/logs/new_serverless_baselines_remote_v1/aibrix/gate/runtime_lora_smoke_20260520.json
+  passed: true
