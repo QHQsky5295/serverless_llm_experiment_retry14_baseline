@@ -1019,3 +1019,26 @@ New dLoRA real-adapter gate update, 2026-05-20:
   dLoRA needs multi-GPU placement for 500 adapters without rewriting its core
   scheduling. Single-GPU 3B/500 is impossible because the LoRA GPU pool alone
   exceeds a 24GB 3090.
+
+New Loquetier real-adapter gate update, 2026-05-20:
+
+- Scope remains narrow: adapt upstream Loquetier to this machine and the
+  closed true-remote workload, not rewrite its SMLM kernels, virtual model, or
+  mixed-LoRA forward path.
+- The local adaptation uses isolated env `loquetier_20260520`, upstream commit
+  `aae33baeeb19777129c1ccbff99a898d4a0e2c63`, and an ignored vendor checkout
+  under `/home/qhq/serverless_llm_baselines/vendor_new_baselines/`.
+- Required local fixes are recorded in
+  `Loquetier_project/patches/loquetier_local_compat_20260520.patch`: Python
+  3.9 annotation compatibility, PEFT active-adapter/import compatibility,
+  RTX 3090 CUDA 12.1 kernel build with Llama-3.2 group size 3, and mixed-rank
+  PEFT adapter handling based on actual LoRA tensor shapes.
+- Real-weight closed-trace gates pass for both backbones through 16 adapters:
+  Llama-3.2 3B `ok=64/64` and Llama-2 7B `ok=64/64`, with prompt tokens from
+  tokenizer and completion tokens from Loquetier-observed generation.
+- Evidence is tracked in
+  `/home/qhq/serverless_llm_baselines/Loquetier_project/evidence/real_adapt_2026-05-20.json`
+  and mirrored in
+  `paper_results/new_serverless_baselines_remote_v1/gates/loquetier/`.
+  Loquetier remains gate-only until it passes the full 4000-request /
+  500-adapter workload without replacing its core logic.

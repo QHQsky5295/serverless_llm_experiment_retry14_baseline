@@ -1,0 +1,102 @@
+diff --git a/kernel_src/src/loquetier/utils/kvcache.py b/kernel_src/src/loquetier/utils/kvcache.py
+index d27c6d1..06b6bf8 100644
+--- a/kernel_src/src/loquetier/utils/kvcache.py
++++ b/kernel_src/src/loquetier/utils/kvcache.py
+@@ -0,0 +1,2 @@
++from __future__ import annotations
++
+diff --git a/src/loquetier_src/models/mixed_lora.py b/src/loquetier_src/models/mixed_lora.py
+index df0dea1..7204c6c 100644
+--- a/src/loquetier_src/models/mixed_lora.py
++++ b/src/loquetier_src/models/mixed_lora.py
+@@ -65,0 +66,20 @@ class MixedLoraContext:
++
++def _active_adapter_name(lora_model: LoraModel) -> str:
++    active_adapter = lora_model.active_adapter
++    if isinstance(active_adapter, (list, tuple)):
++        return active_adapter[0]
++    return active_adapter
++
++
++def _max_lora_rank(lora_model: LoraModel) -> int:
++    active_adapter = _active_adapter_name(lora_model)
++    ranks = [lora_model.peft_config[active_adapter].r]
++    for target_module_name in lora_model.targeted_module_names:
++        lora_layer = _get_submodules(lora_model.model, target_module_name)[1]
++        if active_adapter in lora_layer.lora_A:
++            ranks.append(lora_layer.lora_A[active_adapter].weight.size(0))
++        if active_adapter in lora_layer.lora_B:
++            ranks.append(lora_layer.lora_B[active_adapter].weight.size(1))
++    return max(ranks)
++
++
+@@ -275 +295 @@ class MixedLoraModel(nn.Module):
+-            self.rank = max(self.rank, lora_model.peft_config[lora_model.active_adapter].r)
++            self.rank = max(self.rank, _max_lora_rank(lora_model))
+@@ -290 +310 @@ class MixedLoraModel(nn.Module):
+-                    lora_layer.lora_A[lora_models[lora_name].active_adapter].weight,
++                    lora_layer.lora_A[_active_adapter_name(lora_models[lora_name])].weight,
+@@ -292 +312 @@ class MixedLoraModel(nn.Module):
+-                    scaling=lora_layer.scaling[lora_models[lora_name].active_adapter]
++                    scaling=lora_layer.scaling[_active_adapter_name(lora_models[lora_name])]
+@@ -296 +316 @@ class MixedLoraModel(nn.Module):
+-                    lora_layer.lora_B[lora_models[lora_name].active_adapter].weight,
++                    lora_layer.lora_B[_active_adapter_name(lora_models[lora_name])].weight,
+@@ -299 +319 @@ class MixedLoraModel(nn.Module):
+-                    scaling=lora_layer.scaling[lora_models[lora_name].active_adapter]
++                    scaling=lora_layer.scaling[_active_adapter_name(lora_models[lora_name])]
+@@ -302 +322 @@ class MixedLoraModel(nn.Module):
+-                lora_layer.lora_dropout[lora_models[lora_name].active_adapter],
++                lora_layer.lora_dropout[_active_adapter_name(lora_models[lora_name])],
+@@ -304 +324 @@ class MixedLoraModel(nn.Module):
+-                lora_layer.scaling[lora_models[lora_name].active_adapter]
++                lora_layer.scaling[_active_adapter_name(lora_models[lora_name])]
+@@ -341 +361 @@ class MixedLoraModel(nn.Module):
+-            r = lora_model.peft_config[lora_model.active_adapter].r
++            r = _max_lora_rank(lora_model)
+@@ -363 +383 @@ class MixedLoraModel(nn.Module):
+-                    lora_layer.lora_A[lora_models[lora_name].active_adapter].weight,
++                    lora_layer.lora_A[_active_adapter_name(lora_models[lora_name])].weight,
+@@ -365 +385 @@ class MixedLoraModel(nn.Module):
+-                    scaling=lora_layer.scaling[lora_models[lora_name].active_adapter]
++                    scaling=lora_layer.scaling[_active_adapter_name(lora_models[lora_name])]
+@@ -369 +389 @@ class MixedLoraModel(nn.Module):
+-                    lora_layer.lora_B[lora_models[lora_name].active_adapter].weight,
++                    lora_layer.lora_B[_active_adapter_name(lora_models[lora_name])].weight,
+@@ -372 +392 @@ class MixedLoraModel(nn.Module):
+-                    scaling=lora_layer.scaling[lora_models[lora_name].active_adapter]
++                    scaling=lora_layer.scaling[_active_adapter_name(lora_models[lora_name])]
+@@ -375 +395 @@ class MixedLoraModel(nn.Module):
+-                lora_layer.lora_dropout[lora_models[lora_name].active_adapter],
++                lora_layer.lora_dropout[_active_adapter_name(lora_models[lora_name])],
+@@ -377 +397 @@ class MixedLoraModel(nn.Module):
+-                lora_layer.scaling[lora_models[lora_name].active_adapter]
++                lora_layer.scaling[_active_adapter_name(lora_models[lora_name])]
+@@ -508,0 +529,2 @@ class MixedLoraModel(nn.Module):
++        if scaling is not None:
++            weight = weight * scaling
+@@ -510,4 +532 @@ class MixedLoraModel(nn.Module):
+-            if scaling is None:
+-                return weight.to(dtype=self.dtype, device=device).contiguous()
+-            else:
+-                return (weight * scaling).to(dtype=self.dtype, device=device).contiguous()
++            return weight.to(dtype=self.dtype, device=device).contiguous()
+@@ -517,4 +536,4 @@ class MixedLoraModel(nn.Module):
+-        if scaling is None:
+-            new_weight[:weight.size(0), :weight.size(1)].copy_(weight, non_blocking=True)
+-        else:
+-            new_weight[:weight.size(0), :weight.size(1)].copy_(weight * scaling, non_blocking=True)
++        source = weight.to(dtype=self.dtype, device=device).contiguous()
++        copy_slices = [slice(None)] * source.dim()
++        copy_slices[rank_dim] = slice(0, source.size(rank_dim))
++        new_weight[tuple(copy_slices)].copy_(source, non_blocking=True)
+diff --git a/src/loquetier_src/virtual_model.py b/src/loquetier_src/virtual_model.py
+index 987b6bd..c4fa69f 100644
+--- a/src/loquetier_src/virtual_model.py
++++ b/src/loquetier_src/virtual_model.py
+@@ -567 +567,4 @@ from peft.config import PeftConfig
+-from peft.mapping import MODEL_TYPE_TO_PEFT_MODEL_MAPPING
++try:
++    from peft.mapping import MODEL_TYPE_TO_PEFT_MODEL_MAPPING
++except ImportError:
++    from peft.auto import MODEL_TYPE_TO_PEFT_MODEL_MAPPING

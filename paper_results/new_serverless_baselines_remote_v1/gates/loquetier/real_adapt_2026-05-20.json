@@ -1,0 +1,128 @@
+{
+  "system": "Loquetier",
+  "status": "real-adapter scale gate passed through 16 adapters on both closed backbones; not a formal table row yet",
+  "date": "2026-05-20",
+  "upstream": {
+    "url": "https://github.com/NJUDeepEngine/Loquetier",
+    "commit": "aae33baeeb19777129c1ccbff99a898d4a0e2c63",
+    "local_source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520"
+  },
+  "environment": {
+    "conda_env": "/home/qhq/anaconda3/envs/loquetier_20260520",
+    "python": "3.9.25",
+    "torch": "2.1.2+cu121",
+    "transformers": "4.45.2",
+    "peft": "0.17.1",
+    "cuda_home": "/home/qhq/anaconda3/envs/loquetier_20260520",
+    "torch_cuda_arch_list": "8.6",
+    "loquetier_group_sizes": "1,2,3,4,8"
+  },
+  "adaptation_boundary": [
+    "isolated dependency environment and CUDA 12.1 build flags for RTX 3090",
+    "SMLM/FlashInfer kernel build includes Llama-3.2 3B GQA group size 3",
+    "PEFT/Transformers API compatibility for active_adapter and moved MODEL_TYPE_TO_PEFT_MODEL_MAPPING",
+    "rank-pattern compatibility by deriving LoRA rank from actual lora_A/lora_B tensor shapes",
+    "closed trace and adapter-subset mapping into Loquetier offline request workflow"
+  ],
+  "not_changed": [
+    "Loquetier virtual model path",
+    "MixedLoraModel serving forward path",
+    "SMLM CUDA kernels",
+    "PrimeLoRA/FaaSLoRA scheduling or cache logic was not transplanted"
+  ],
+  "patches": [
+    {
+      "path": "Loquetier_project/patches/loquetier_local_compat_20260520.patch",
+      "sha256": "135412206787ccc8894fb311eae46899ddfc4085bf07c311f7728bcb5e84f618"
+    }
+  ],
+  "shared_inputs": {
+    "llama32_3b": {
+      "base_model": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+      "adapter_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+      "trace": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_trace.json",
+      "adapter_subset": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_adapter_subset.json"
+    },
+    "llama2_7b": {
+      "base_model": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+      "adapter_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix",
+      "trace": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_012813_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_trace.json",
+      "adapter_subset": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_012813_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_adapter_subset.json"
+    }
+  },
+  "gates": [
+    {
+      "name": "llama32_3b_limit2_filtered16",
+      "model": "Llama-3.2-3B-Instruct",
+      "selected_adapters": 2,
+      "requests": 16,
+      "ok": 16,
+      "failed": 0,
+      "completion_tokens": 32,
+      "token_sources": {
+        "prompt": "tokenizer",
+        "completion": "loquetier_observed"
+      },
+      "result_path": "results/paper_experiments/15_new_serverless_baselines_remote_v1/gates/loquetier/loquetier_llama32_3b_limit2_filtered16_gate_20260520.json",
+      "sha256": "6538c487e8c4c004a7339d4fcf0ee5e37b6dd8fde787a4c8623c26e37e702bd5"
+    },
+    {
+      "name": "llama2_7b_limit2_filtered16",
+      "model": "Llama-2-7B",
+      "selected_adapters": 2,
+      "requests": 16,
+      "ok": 16,
+      "failed": 0,
+      "completion_tokens": 32,
+      "token_sources": {
+        "prompt": "tokenizer",
+        "completion": "loquetier_observed"
+      },
+      "result_path": "results/paper_experiments/15_new_serverless_baselines_remote_v1/gates/loquetier/loquetier_llama2_7b_limit2_filtered16_gate_20260520.json",
+      "sha256": "438d4d6e9ae2695bf2361bd62b591a523ee635f7c429ee5806e40399f1b3dc22"
+    },
+    {
+      "name": "llama32_3b_limit16_filtered64",
+      "model": "Llama-3.2-3B-Instruct",
+      "selected_adapters": 16,
+      "requests": 64,
+      "ok": 64,
+      "failed": 0,
+      "completion_tokens": 128,
+      "ttft_ms_avg": 2512.271796936602,
+      "e2e_ms_avg": 2558.470994938034,
+      "token_sources": {
+        "prompt": "tokenizer",
+        "completion": "loquetier_observed"
+      },
+      "result_path": "results/paper_experiments/15_new_serverless_baselines_remote_v1/gates/loquetier/loquetier_llama32_3b_limit16_filtered64_gate_20260520.json",
+      "sha256": "ad51908afe273241750bfe8e92b31ceeb4863c2ca9ca51ed976ce8fc860b2e05"
+    },
+    {
+      "name": "llama2_7b_limit16_filtered64",
+      "model": "Llama-2-7B",
+      "selected_adapters": 16,
+      "requests": 64,
+      "ok": 64,
+      "failed": 0,
+      "completion_tokens": 127,
+      "ttft_ms_avg": 5484.809082156289,
+      "e2e_ms_avg": 5620.213609250186,
+      "token_sources": {
+        "prompt": "tokenizer",
+        "completion": "loquetier_observed"
+      },
+      "result_path": "results/paper_experiments/15_new_serverless_baselines_remote_v1/gates/loquetier/loquetier_llama2_7b_limit16_filtered64_gate_20260520.json",
+      "sha256": "bdea361409c892604b8b16d4ed575dfc0f91fb93a67e41b68945a98f2c7f4ef2"
+    }
+  ],
+  "formal_table_decision": {
+    "recommendation": "appendix scale-gate evidence for now",
+    "reason": "Loquetier can consume real PEFT adapters and both closed traces through 16 adapters, but it has not yet completed the full 4000-request / 500-adapter true-remote workload and is an offline single-GPU multi-LoRA runner rather than a serverless control plane."
+  },
+  "next_steps": [
+    "run larger 3B gates such as 64 adapters / 256 requests if GPU memory allows",
+    "probe 7B larger-adapter memory limits without changing Loquetier core logic",
+    "promote only if full closed workload can be replayed with no trace_expected fallback"
+  ]
+}

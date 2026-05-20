@@ -8,7 +8,7 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
 ## Scope
 
 - Formal candidate system: `ServerlessLLM-new`
-- Gate-only systems: `Medusa`, `FaaScale/LambdaScale`
+- Gate-only systems: `dLoRA`, `Loquetier`, `Medusa`, `FaaScale/LambdaScale`
 - Upstream commit: `9f50241baa5386e06a9321c51f19a9ef5f964c2b`
 - Harness: `/home/qhq/serverless_llm_baselines`
 - Result section:
@@ -31,6 +31,15 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
   isolated repair, but it is not a formal result row on this machine because
   the RDMA device stack is not exposed and the source lacks ready
   Llama-3.2 3B plus LoRA/PEFT workload support.
+- `gates/dlora/`: dLoRA build/import, real-adapter scale-gate, and formal
+  preflight evidence. dLoRA can consume real PEFT adapters through the local
+  compatibility layer, but is not a formal result row until a full
+  4000-request / 500-adapter run passes.
+- `gates/loquetier/`: Loquetier local-adaptation patch, compact gate outputs,
+  and real-adapter evidence. Loquetier currently passes both closed backbones
+  through 16 adapters / 64 filtered requests, but is not a formal result row
+  until the full closed workload passes without replacing its SMLM/mixed-LoRA
+  logic.
 - `SHA256SUMS`: checksums for the bundle.
 
 ## Inclusion Decision
@@ -41,10 +50,10 @@ requests with no replay failures and no `trace_expected` token fallback. They
 should be labeled `ServerlessLLM-new` and kept separate from the older
 `ServerlessLLM` baseline.
 
-Medusa and FaaScale/LambdaScale are gate-only evidence on this machine. Do not
-promote them to formal rows unless their runtime prerequisites are satisfied
-and the closed true-remote LoRA workload can be replayed into `e2e_v3` without
-changing workload variables.
+dLoRA, Loquetier, Medusa, and FaaScale/LambdaScale are gate-only evidence on
+this machine. Do not promote them to formal rows unless their runtime and scale
+requirements are satisfied and the closed true-remote LoRA workload can be
+replayed into `e2e_v3` without changing workload variables.
 
 The old Llama-2 7B first run is superseded by
 `20260518_serverlessllm_new_remote_v1_clean7b` because that rerun had no
