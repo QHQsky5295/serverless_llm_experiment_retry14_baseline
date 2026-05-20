@@ -130,7 +130,8 @@ Formal blocker:
 ## Loquetier Gate
 
 Status: real-adapter scale-gate evidence closed through 256 adapters on
-Llama-3.2 3B and 128 adapters on Llama-2 7B, not yet adopted for formal
+Llama-3.2 3B and 128 adapters on Llama-2 7B. The 3B/500-adapter formal
+preflight OOMs on a single RTX 3090, so Loquetier is not adopted for formal
 table/figures.
 
 - Upstream: `https://github.com/NJUDeepEngine/Loquetier`
@@ -138,6 +139,8 @@ table/figures.
 - Local entry: `Loquetier_project/`
 - Local source: `vendor_new_baselines/Loquetier_main_20260520`
 - Evidence summary: `Loquetier_project/evidence/real_adapt_2026-05-20.json`
+- Formal preflight:
+  `Loquetier_project/evidence/formal_preflight_2026-05-20.json`
 - Compatibility patch:
   `Loquetier_project/patches/loquetier_local_compat_20260520.patch`
 - Build env: `loquetier_20260520`
@@ -165,15 +168,18 @@ Closed gates:
 - Llama-3.2 3B, 128 adapters / 512 filtered requests: `ok=512/512`.
 - Llama-2 7B, 128 adapters / 256 filtered requests: `ok=256/256`.
 - Llama-3.2 3B, 256 adapters / 1024 filtered requests: `ok=1024/1024`.
+- Llama-3.2 3B, 500 adapters / 16-request preflight: OOM during
+  `MixedLoraModel` adapter weight materialization before replay JSON output.
 
 Formal blocker:
 
 - Loquetier can now consume real PEFT adapters from the closed true-remote
   artifact set and replay both backbone traces through its mixed-LoRA path.
 - It remains an offline single-GPU multi-LoRA runner rather than a serverless
-  control plane, and it has not completed the full 4000-request / 500-adapter
-  workload. Do not enter Loquetier into formal tables until that no-fallback
-  replay passes without replacing Loquetier's core SMLM/mixed-LoRA logic.
+  control plane. On this 24GB RTX 3090 hardware, the 500-adapter closed
+  workload cannot be loaded without changing Loquetier's core adapter
+  materialization or placement design. Do not enter Loquetier into formal
+  tables unless an upstream-compatible path passes the no-fallback full replay.
 
 ## Medusa Gate
 

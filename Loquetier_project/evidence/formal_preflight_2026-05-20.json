@@ -1,0 +1,48 @@
+{
+  "system": "Loquetier",
+  "status": "formal 500-adapter preflight failed on single RTX 3090 due CUDA OOM",
+  "date": "2026-05-20",
+  "upstream_commit": "aae33baeeb19777129c1ccbff99a898d4a0e2c63",
+  "environment": "/home/qhq/anaconda3/envs/loquetier_20260520",
+  "preflight": {
+    "name": "llama32_3b_limit500_filtered16_preflight",
+    "model": "Llama-3.2-3B-Instruct",
+    "selected_adapters": 500,
+    "requests": 16,
+    "max_batch_size": 1,
+    "max_new_tokens_cap": 1,
+    "result_json_written": false,
+    "failure": "torch.cuda.OutOfMemoryError during MixedLoraModel adapter weight preparation",
+    "oom_detail": {
+      "attempted_allocation_mib": 2.0,
+      "gpu_total_gib": 23.56,
+      "gpu_free_mib": 1.38,
+      "process_memory_gib": 23.54,
+      "pytorch_allocated_gib": 23.19,
+      "pytorch_reserved_unallocated_mib": 52.07
+    },
+    "log_path": "results/logs/new_serverless_baselines_remote_v1/loquetier/gates/loquetier_llama32_3b_limit500_filtered16_preflight_20260520.log",
+    "log_sha256": "a62808271377e3e4d683073892ff99d4dca88c1a4808a27f25f89fde3ab814c2",
+    "mirrored_log_gz": "paper_results/new_serverless_baselines_remote_v1/gates/loquetier/loquetier_llama32_3b_limit500_filtered16_preflight_20260520.log.gz",
+    "mirrored_log_gz_sha256": "3c1f08a3690d7a741e825710fee61964dfcb99b487df1097c50aba8b9cfd9473"
+  },
+  "passed_scale_gates": [
+    {
+      "name": "llama32_3b_limit256_filtered1024",
+      "ok": 1024,
+      "total": 1024,
+      "sha256": "f60586f61fb42f7191f165e28e1a7cda25071003d8dbbc51241adb18e155d2a6"
+    },
+    {
+      "name": "llama2_7b_limit128_filtered256",
+      "ok": 256,
+      "total": 256,
+      "sha256": "f9d687494bfff476ba57d9cbd8539921010f0fbaa0af6465a1513a491f03ab43"
+    }
+  ],
+  "decision": {
+    "formal_row": false,
+    "reason": "Loquetier's upstream artifact is a single-GPU offline multi-LoRA runner and cannot load the 500-adapter closed Llama-3.2 3B workload on a 24GB RTX 3090 without changing its core adapter placement/weight materialization design.",
+    "paper_use": "appendix scale-gate evidence only unless a non-core, upstream-compatible multi-GPU placement path is available"
+  }
+}

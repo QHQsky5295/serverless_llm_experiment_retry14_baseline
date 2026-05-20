@@ -203,11 +203,11 @@
   ],
   "formal_table_decision": {
     "recommendation": "appendix scale-gate evidence for now",
-    "reason": "Loquetier can consume real PEFT adapters and the closed Llama-3.2 3B trace through 256 adapters plus the Llama-2 7B trace through 128 adapters, but it has not yet completed the full 4000-request / 500-adapter true-remote workload and is an offline single-GPU multi-LoRA runner rather than a serverless control plane."
+    "reason": "Loquetier can consume real PEFT adapters and the closed Llama-3.2 3B trace through 256 adapters plus the Llama-2 7B trace through 128 adapters. However, a 3B/500-adapter single-GPU preflight OOMed during MixedLoraModel adapter weight preparation, before any 4000-request formal replay could start."
   },
   "next_steps": [
-    "run 3B 500-adapter preflight before any formal 4000-request attempt",
-    "probe 7B larger-adapter memory limits without changing Loquetier core logic",
-    "promote only if full closed workload can be replayed with no trace_expected fallback"
+    "do not launch a full Loquetier 4000-request / 500-adapter formal run on a single 24GB RTX 3090",
+    "only revisit formal promotion if an upstream-compatible multi-GPU or sharded adapter placement path is available without replacing Loquetier core logic",
+    "keep current result as appendix scale-gate evidence"
   ]
 }
