@@ -48,8 +48,9 @@ April handoff snapshots have been removed from the active documentation set.
   Llama-3.2 3B filtered replay gates through 64 adapters and 256 requests with
   closed true-remote trace/adapters. The passing 64-adapter run kept dLoRA's
   scheduling/migration unchanged and only adjusted the local 3090 hardware
-  budget. It is still not a formal table row until the same path scales to full
-  4000-request/500-adapter 3B and 7B runs.
+  budget. A real-weight Llama-2 7B filtered replay gate also passes at 2
+  adapters and 16 requests. dLoRA is still not a formal table row until the same
+  path scales to full 4000-request/500-adapter 3B and 7B runs.
 - True-remote full-figure queue checkpoint on 2026-05-15 12:05 CST:
   the Llama-2-7B adapter-pool `a100` and `a200` five-system rounds are
   complete and valid. `a200` keeps the same system ordering as the frozen
@@ -998,3 +999,8 @@ New dLoRA real-adapter gate update, 2026-05-20:
   `paper_results/new_serverless_baselines_remote_v1/gates/dlora/real_adapt_2026-05-20.json`.
   dLoRA is still not in the formal comparison table until full 4000-request /
   500-adapter Llama-3.2 3B and Llama-2 7B runs pass.
+- The Llama-2 7B real-weight path now has a small replay gate too:
+  `ok=16/16` on the first 2 closed adapters and a 16-request filtered trace,
+  with both `finance_lora` and `medical_lora` observed and token sources
+  `usage/usage`. This proves 7B can consume the same real-PEFT loader and
+  replay compatibility layer, but does not yet make dLoRA a formal row.

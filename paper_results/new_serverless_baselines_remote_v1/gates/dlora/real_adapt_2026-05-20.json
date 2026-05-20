@@ -1,7 +1,7 @@
 {
   "system": "dLoRA",
   "date": "2026-05-20",
-  "status": "real-adapter filtered scale gates passed through 64 adapters; not yet formal-table ready",
+  "status": "real-adapter filtered scale gates passed for 3B through 64 adapters and 7B through 2 adapters; not yet formal-table ready",
   "baseline_repo_evidence": "/home/qhq/serverless_llm_baselines/DLoRA_project/evidence/real_adapt_2026-05-20.json",
   "baseline_repo_patch": "/home/qhq/serverless_llm_baselines/DLoRA_project/patches/real_peft_llama32_e2e_compat_20260520.patch",
   "scope": "Minimal compatibility adaptation to run upstream dLoRA on the local RTX 3090 machine with the closed PrimeLoRA true-remote workload inputs.",
@@ -16,7 +16,8 @@
     "llama32_3b_dummy_base_real_adapter_replay_limit2_ok_total": "2/2",
     "llama32_3b_real_base_real_adapter_replay_limit2_ok_total": "2/2",
     "llama32_3b_real_base_real_adapter_replay_limit16_filtered64_ok_total": "64/64",
-    "llama32_3b_real_base_real_adapter_replay_limit64_filtered256_u60_seq2_ok_total": "256/256"
+    "llama32_3b_real_base_real_adapter_replay_limit64_filtered256_u60_seq2_ok_total": "256/256",
+    "llama2_7b_real_base_real_adapter_replay_limit2_filtered16_ok_total": "16/16"
   },
   "important_hashes": {
     "real_peft_llama32_e2e_compat_20260520.patch": "6c576e89b3b82d4e3eaa2d2f176da74f408a2ef6bbe987f5ecead7f72b8c163d",
@@ -26,9 +27,12 @@
     "dlora_real3b_limit16_filtered64_replay_20260520.json": "fa6ae94dec82277d14d1f7bbf9f223b63e67406a096a9f430b34cc86e37603ea",
     "dlora_real3b_limit64_u60_seq2_filtered256_replay_20260520.json": "2bdfb2851cd90f20477b12b7ef786fb55dff4aad23d7906cfcef4c1669cbd495",
     "dlora_llama32_3b_limit64_filtered256_trace_20260520.json": "bb89fd2054943b381237ed23dee70a5b67e0d3d40fc15c6d10b551b73d6a5ca8",
-    "dlora_llama32_3b_limit64_adapter_value_map.json": "307cca9d906f46d29886d336b4e2f392c94a11caeadb47b82f7afb84c093f32b"
+    "dlora_llama32_3b_limit64_adapter_value_map.json": "307cca9d906f46d29886d336b4e2f392c94a11caeadb47b82f7afb84c093f32b",
+    "dlora_real7b_limit2_filtered16_replay_20260520.json": "954df2a401b9fdace30b00a8a097bff20f9dfe6870bbdd63fb20f19f4184ddbf",
+    "dlora_llama2_7b_limit2_filtered16_trace_20260520.json": "0a2332fdf3a5c5c58f38e1a12d469507a172422bc8e0a87002bc57b460234c58",
+    "dlora_llama2_7b_limit2_adapter_value_map.json": "8b582b4aaf0a58093a749587f04a31b589c7dec12bfc9014c0991e506210d367"
   },
-  "runtime_adaptation_note": "The first 64-adapter launch with gpu_memory_utilization=0.40 and profiling batch seqs=4/tokens=512 loaded the CPU pool but did not open the HTTP port. The passing launch kept upstream dLoRA scheduling/migration unchanged and only adjusted local hardware budget to gpu_memory_utilization=0.60 plus profiling batch seqs=2/tokens=256.",
+  "runtime_adaptation_note": "The first 3B 64-adapter launch with gpu_memory_utilization=0.40 and profiling batch seqs=4/tokens=512 loaded the CPU pool but did not open the HTTP port. The passing 3B launch kept upstream dLoRA scheduling/migration unchanged and only adjusted local hardware budget to gpu_memory_utilization=0.60 plus profiling batch seqs=2/tokens=256. The 7B 2-adapter gate used the same boundary with gpu_memory_utilization=0.60 and seqs=1/tokens=256.",
   "next_required_before_formal_table": [
     "Validate Llama-3.2 3B full 4000-request/500-adapter replay.",
     "Validate Llama-2 7B full 4000-request/500-adapter replay.",
