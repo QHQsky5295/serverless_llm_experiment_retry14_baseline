@@ -48,6 +48,10 @@ Local adaptation continuation:
   pass as a smoke test, but this is not a paper-equivalent Medusa run.
 - Current machine still has no visible NVMe/Optane device, no `/dev/gdrdrv`,
   and no passwordless sudo for hugepage/driver/PCI binding.
+- A 2026-05-21 clean-machine recheck confirmed the same runtime boundary:
+  `HugePages_Total=0`, `/dev/gdrdrv` is absent, no NVMe/Optane block device is
+  visible, `/sys/class/uio` is absent, `/dev/vfio/vfio` has no bound device
+  node, and passwordless sudo is unavailable.
 
 ## Files
 
@@ -73,4 +77,5 @@ Local adaptation continuation:
 - `20260519_medusa_localadapt_env_explicit_after.txt.gz`: conda explicit env
   list for `medusa_localadapt_20260519`.
 - `Medusa_localadapt_20260519.patch`: local Medusa source patch.
+- `RUNTIME_RECHECK_2026-05-21.md`: clean-machine runtime/device recheck.
 - `SHA256SUMS`: checksum for the compressed log.

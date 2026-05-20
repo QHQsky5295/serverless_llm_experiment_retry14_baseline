@@ -37,6 +37,10 @@ Evidence:
 - RDMA runtime initialization still finds zero IB devices and returns `False`.
   `/dev/infiniband` is absent, the InfiniBand sysfs class exposes no usable
   device, and passwordless sudo is unavailable for driver/device setup.
+- A 2026-05-21 clean-machine recheck confirmed `/dev/infiniband` is still
+  absent; `/sys/class/infiniband` has no usable device; only PCI-level Broadcom
+  RDMA-capable Ethernet controllers are visible; and passwordless sudo is
+  unavailable.
 
 ## Files
 
@@ -62,4 +66,5 @@ Evidence:
 - `20260519_rdmap2p_runtime_init_no_infiniband.log.gz`: runtime gate showing
   zero IB devices.
 - `RDMA_P2P_localadapt_20260519.patch`: CUDA 13 local adaptation patch.
+- `RUNTIME_RECHECK_2026-05-21.md`: clean-machine runtime/device recheck.
 - `SHA256SUMS`: checksums for this gate bundle.
