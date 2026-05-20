@@ -29,10 +29,14 @@ Current state:
   failed before replay. Four dLoRA/vLLM engines duplicated startup state and Ray
   killed a worker under host-memory pressure. This is still not a CUDA OOM, not
   a remote artifact failure, and not a measured replay result.
-- The next fair dLoRA topology gate keeps the 4-GPU budget while reducing
-  startup duplication via `num_groups=2, tensor_parallel_size=2`.
-- The next fair dLoRA step is to run short runtime/topology gates, then a full
-  `migration_type=3` replay without rewriting dLoRA scheduling or migration.
+- The wrapper-only DP2/TP2 four-GPU topology gate then reached HTTP readiness
+  and completed `128/128` requests with no token fallback, no CUDA OOM, and no
+  host OOM. It is valid but worse than the best 2-GPU `max_num_seqs=4` gate:
+  `TTFT_e2e` avg `18630.69 ms` versus `14517.67 ms`, p95 `33096.62 ms` versus
+  `26510.79 ms`, and CE `1.9696` versus `5.3354`.
+- The next fair dLoRA step is a full `migration_type=3` replay using the best
+  measured wrapper-only envelope, DP2/TP1 with `max_num_seqs=4`, without
+  rewriting dLoRA scheduling or migration.
 
 Files:
 
@@ -57,3 +61,5 @@ Files:
 - `formal_period_mig_gate128_g4_s4_swap2_obj8_hostoom_3b_2026-05-21.json`:
   compact record of the 4-GPU bounded-Ray object-store startup
   memory-envelope gate.
+- `formal_period_mig_gate128_g2tp2_g4_s4_3b_2026-05-21.json`: compact record
+  of the successful but non-selected four-GPU DP2/TP2 topology gate.
