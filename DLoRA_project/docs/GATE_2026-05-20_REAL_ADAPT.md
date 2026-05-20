@@ -1,8 +1,10 @@
 # dLoRA Real-Adapter Adaptation Gate: 2026-05-20
 
 Status: reopened from gate-only; minimal real-adapter compatibility now passes
-for Llama-3.2 3B up to a 64-adapter filtered gate, but this is not yet a
-formal-table row.
+for Llama-3.2 3B up to a 128-adapter filtered gate and also has one full
+3B/4000-request/500-adapter dispatch-only replay. This is still not yet a
+formal-table dLoRA row because the full replay used upstream `migration_type=1`
+instead of the official dLoRA migration policy.
 
 This pass keeps the adaptation boundary narrow. The goal is to let upstream
 dLoRA run on the local RTX 3090 machine and consume the closed PrimeLoRA
@@ -27,6 +29,7 @@ Tracked patch:
 
 ```text
 DLoRA_project/patches/real_peft_llama32_e2e_compat_20260520.patch
+DLoRA_project/patches/formal_500_adapter_runtime_compat_20260520.patch
 ```
 
 ## Evidence
@@ -86,19 +89,67 @@ python -m vllm.entrypoints.api_server \
 The replay used the closed true-remote trace, the existing `e2e_v3` replay
 script, and an adapter value map from closed adapter id to dLoRA `model_id`.
 
+## Full Dispatch-Only Replay
+
+After the GPUs were free, the Llama-3.2 3B full true-remote replay was launched
+with 500 adapters and 4000 requests:
+
+```text
+queue: 20260520_dlora_remote_formal_g2u92_mig1_sparse_t7200_v1
+label: dlora_llama32_3b_dispatch_only_remote_formal
+migration_type: 1
+routing_policy: dlora_dispatch_only
+num_groups: 2
+gpu_ids: 0,1
+gpu_memory_utilization: 0.92
+max_num_seqs: 1
+max_num_batched_tokens: 1024
+```
+
+Validation:
+
+- Replay: `ok=4000/4000`, `fail=0`.
+- Metric schema: `e2e_v3`.
+- Token audit: no `trace_expected` fallback.
+- Error scan: no in-replay CUDA OOM, Traceback, ReadTimeout, or ActorDied.
+- Shutdown note: Raylet termination messages appeared only after replay and
+  summary validation had completed while the wrapper was stopping the runtime.
+
+Headline metrics:
+
+| Metric | Value |
+|---|---:|
+| TTFT e2e avg | 1283513.75 ms |
+| TTFT e2e p95 | 4142829.11 ms |
+| E2E e2e avg | 1283514.04 ms |
+| Throughput | 0.5569 rps / 63.843 tok/s |
+| SLO attainment | 0.015 |
+| Cost/req | 0.0031612 USD |
+| CE | 0.2465 |
+| Infra GPU seconds | 15173.574111 |
+
+Interpretation: this result is valid closed dispatch-only evidence, but the
+effect is poor and should not be presented as dLoRA's best strategy. The long
+tail was dominated by queue wait on `engine_id 0`; GPU1 went idle while GPU0
+drained requests. This matches the expected behavior of static dispatch-only
+placement under a 500-adapter Zipf/hot workload. It was not an OOM or remote
+artifact failure.
+
 ## Decision
 
 dLoRA is no longer blocked at "cannot load real adapters" for the small 3B gate.
 It also passes 16-adapter, 64-adapter, and 128-adapter filtered 3B replay gates.
-It passes a real-weight 7B filtered replay gate at 2 adapters. It still cannot
-enter the formal table until the same adaptation is scaled to the formal
-workload:
+It passes a real-weight 7B filtered replay gate at 2 adapters. The first
+3B/500 full replay is closed as dispatch-only ablation evidence. It still
+cannot enter the formal table as dLoRA until the official strategy is validated:
 
-- Llama-3.2 3B, 4000 requests, 500 adapters;
+- Llama-3.2 3B, 4000 requests, 500 adapters, upstream
+  `migration_type=3`;
 - Llama-2 7B, 4000 requests, 500 adapters;
 - no dummy weights;
 - no trace-token fallback;
-- stable runtime under the same closed true-remote workload variables.
+- stable runtime under the same closed true-remote workload variables;
+- no replacement of dLoRA scheduling or migration logic.
 
 ## Formal Preflight
 
@@ -114,3 +165,7 @@ GPUs. With dLoRA's original initialization, 500 adapters require multi-GPU
 placement to avoid rewriting the scheduling/placement path. Single-GPU 3B is
 impossible because the 500-adapter LoRA pool alone exceeds a 24GB 3090, while
 the current external occupancy makes the multi-GPU path unsafe to start now.
+
+This preflight is now historical: after the external GPU memory cleared, the
+3B/500 dispatch-only run above completed successfully. It does not supersede
+the need for official `migration_type=3` validation.

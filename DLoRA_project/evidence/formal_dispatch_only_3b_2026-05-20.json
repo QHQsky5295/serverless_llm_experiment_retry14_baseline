@@ -1,0 +1,87 @@
+{
+  "system": "dLoRA",
+  "date": "2026-05-20",
+  "scope": "closed true-remote formal replay on Llama-3.2 3B, 4000 requests, 500 adapters",
+  "status": "completed_dispatch_only_ablation",
+  "formal_table_decision": "do_not_use_as_official_dLoRA_row",
+  "reason": "This run used upstream migration_type=1, which the dLoRA artifact labels as RR/dispatch-only rather than the official dLoRA migration strategy. It is valid closed evidence for the shared workload, but not a best-effort dLoRA main-table result.",
+  "queue_id": "20260520_dlora_remote_formal_g2u92_mig1_sparse_t7200_v1",
+  "label": "dlora_llama32_3b_dispatch_only_remote_formal",
+  "upstream_commit": "75f1c439446fe194b1df8a24982ef9067841fab5",
+  "environment": "dlora_medusa_clone_20260519",
+  "closed_workload": {
+    "model_profile": "llama32_3b_main_modelscope",
+    "workload_profile": "llama32_3b_auto500_formal4000_s8",
+    "requests": 4000,
+    "adapters": 500,
+    "seed": 42,
+    "zipf": 1.0,
+    "hot_rotation": 500,
+    "time_scale": "s8",
+    "remote_endpoint": "http://192.168.4.174:18080",
+    "metric_schema": "e2e_v3"
+  },
+  "runtime_configuration": {
+    "dlora_migration_type": 1,
+    "routing_policy": "dlora_dispatch_only",
+    "num_groups": 2,
+    "gpu_ids": "0,1",
+    "tensor_parallel": 1,
+    "gpu_memory_utilization": 0.92,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 1024,
+    "replay_timeout_s": 7200,
+    "remote_materialization_workers": 4
+  },
+  "result_paths": {
+    "round_dir": "results/paper_experiments/15_new_serverless_baselines_remote_v1/20260520_dlora_remote_formal_g2u92_mig1_sparse_t7200_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora",
+    "manifest": "results/paper_experiments/15_new_serverless_baselines_remote_v1/20260520_dlora_remote_formal_g2u92_mig1_sparse_t7200_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora/MANIFEST.json",
+    "replay": "results/paper_experiments/15_new_serverless_baselines_remote_v1/20260520_dlora_remote_formal_g2u92_mig1_sparse_t7200_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora_replay.json",
+    "summary": "results/paper_experiments/15_new_serverless_baselines_remote_v1/20260520_dlora_remote_formal_g2u92_mig1_sparse_t7200_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora_summary.json",
+    "replay_log": "results/logs/new_serverless_baselines_remote_v1/dlora/formal/20260520_dlora_remote_formal_g2u92_mig1_sparse_t7200_v1/llama32_3b_replay.log",
+    "server_log": "results/logs/new_serverless_baselines_remote_v1/dlora/formal/20260520_dlora_remote_formal_g2u92_mig1_sparse_t7200_v1/llama32_3b_server.log"
+  },
+  "sha256": {
+    "MANIFEST.json": "6241915afe4b3673b88ca78289209055b5b005385c43942e3ec854d0f1b0bd92",
+    "replay.json": "326823532259e4a574054f094457f699a340070615390e96d90f4ea8ef5dfdd1",
+    "summary.json": "1878fbed6473d873898be08d1ae1439b1bc3f6466c9c4e0fdd1865aaafa5e68f",
+    "replay.log": "90c4b5e1bf31ef18845642ef4bf76d5183eda588c6bb5bcd0a575eaa7c9d9e0d",
+    "server.log": "040a74143b2fab1f6ffbbe3f3e423897b9f81e7f52a2c4f0d426af3baa687486"
+  },
+  "validation": {
+    "ok": 4000,
+    "total": 4000,
+    "fail": 0,
+    "no_trace_expected_token_fallback": true,
+    "error_scan": "no replay RequestException/ReadTimeout/CUDA OOM/Traceback/ActorDied before completion",
+    "shutdown_note": "Raylet termination messages appeared only after replay completion while the wrapper was stopping the runtime; final replay and summary validation had already passed."
+  },
+  "headline_metrics": {
+    "ttft_e2e_avg_ms": 1283513.75,
+    "ttft_e2e_p50_ms": 490989.18,
+    "ttft_e2e_p95_ms": 4142829.11,
+    "ttft_e2e_p99_ms": 5239628.36,
+    "ttft_service_avg_ms": 1283492.96,
+    "dispatch_admission_wait_avg_ms": 20.79,
+    "e2e_e2e_avg_ms": 1283514.04,
+    "throughput_rps": 0.5569,
+    "throughput_tok_s": 63.843,
+    "slo_attainment": 0.015,
+    "slo_goodput_tok_s": 0.9576,
+    "cost_per_request_usd": 0.0031612,
+    "cost_per_1m_total_tokens_usd": 3.67548258,
+    "ce": 0.2465,
+    "infra_gpu_seconds_total": 15173.574111,
+    "infra_active_gpu_seconds": 14302.404678,
+    "infra_idle_ready_gpu_seconds": 661.978696,
+    "output_tokens_per_gpu_second": 30.219182,
+    "goodput_tokens_per_gpu_second": 0.227896
+  },
+  "root_cause_interpretation": {
+    "not_oom": true,
+    "poor_result_is_expected_for_this_policy": true,
+    "evidence": "During the long tail GPU1 was idle while GPU0 drained engine_id 0 requests with multi-thousand-second wait_time and only seconds of exec_time.",
+    "root_cause": "static dispatch-only placement under the 500-adapter hot/Zipf workload creates load skew; queue wait dominates, not model execution or remote materialization.",
+    "next_fair_step": "Run short gates and then full replay with upstream official migration_type=3, keeping changes limited to wrapper/runtime parameters such as group count, gpu_memory_utilization, max_num_seqs, and max_num_batched_tokens."
+  }
+}

@@ -16,12 +16,17 @@ Current result: dLoRA is highly relevant as a LoRA orchestration system. The
 first 2026-05-19 gate only proved local build/import. The 2026-05-20 local
 adaptation adds a narrow real-PEFT adapter loader and replay compatibility
 layer, and now passes a real-weight Llama-3.2 3B smoke gate using the closed
-true-remote trace and real adapter files. It has also passed 16-adapter and
-64-adapter and 128-adapter filtered Llama-3.2 3B replay gates without rewriting
-dLoRA's core scheduling or migration logic, plus a real-weight Llama-2 7B
-filtered replay gate at 2 adapters. It still cannot enter the formal comparison
-table until the same path is scaled to the full 4000-request, 500-adapter 3B
-and 7B runs.
+true-remote trace and real adapter files. It has also passed 16-adapter,
+64-adapter, and 128-adapter filtered Llama-3.2 3B replay gates without
+rewriting dLoRA's core scheduling or migration logic, plus a real-weight
+Llama-2 7B filtered replay gate at 2 adapters.
+
+The first full Llama-3.2 3B formal replay also completed `4000/4000` requests
+with the 500-adapter true-remote workload, but it used upstream
+`migration_type=1` (`dlora_dispatch_only`). Keep that result as closed
+appendix/ablation evidence for dispatch-only behavior, not as the official
+dLoRA row. A fair main-table dLoRA candidate still requires upstream
+`migration_type=3` gates and full replay, plus the Llama-2 7B full replay.
 
 Tracked evidence:
 
@@ -29,5 +34,11 @@ Tracked evidence:
 - local compatibility patch: `patches/modern_ray_import_compat.patch`
 - real-adapter smoke summary: `evidence/real_adapt_2026-05-20.json`
 - formal 500-adapter preflight: `evidence/formal_preflight_2026-05-20.json`
+- formal dispatch-only 3B replay:
+  `evidence/formal_dispatch_only_3b_2026-05-20.json`
 - real-adapter compatibility patch:
   `patches/real_peft_llama32_e2e_compat_20260520.patch`
+- formal 500-adapter runtime compatibility patch:
+  `patches/formal_500_adapter_runtime_compat_20260520.patch`
+- formal replay wrapper:
+  `scripts/run_dlora_remote_formal.sh`

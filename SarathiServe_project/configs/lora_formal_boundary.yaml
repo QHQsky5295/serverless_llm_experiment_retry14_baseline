@@ -1,0 +1,46 @@
+system: Sarathi-Serve
+date: 2026-05-20
+scope: local gate and formal-inclusion boundary
+
+closed_prime_lora_workload:
+  models:
+    - llama2_7b
+    - llama32_3b
+  requests_per_model: 4000
+  adapters_per_model: 500
+  artifacts: true_remote_real_remote_v1
+  schema: e2e_v3
+
+branches_checked:
+  osdi_artifact:
+    branch: osdi-sarathi-serve
+    commit: ceaa0660ea2487976101a8167aad5c8046e85b27
+    torch_requirement: "torch == 2.3"
+    tested_cuda_from_readme: "CUDA 12.1 on A100 and A40"
+  main:
+    branch: main
+    commit: 96f9911790ecc00af12ee9fae47cb8fa9ba0d199
+    torch_requirement: "torch == 2.9.0"
+    tested_cuda_from_readme: "CUDA 12.3 on H100 and A100"
+
+adapter_audit:
+  osdi_lora_terms: 0
+  osdi_adapter_terms: 0
+  osdi_peft_terms: 0
+  main_lora_terms: 1
+  main_enable_lora_terms: 0
+  main_lora_request_terms: 0
+  main_peft_terms: 0
+  fair_lora_replay_ready: false
+
+formal_boundary:
+  allowed_adaptation:
+    - isolated build or import environment
+    - local CUDA architecture/compiler compatibility
+    - trace-format bridge if the scheduler and model path remain intact
+  not_allowed_for_formal_claim:
+    - implementing new LoRA model layers for Sarathi
+    - adding a new PEFT adapter loader
+    - adding adapter-aware request routing/scheduling
+    - reporting merged full-model checkpoints as LoRA requests
+    - reporting vanilla vLLM chunked-prefill as Sarathi-Serve

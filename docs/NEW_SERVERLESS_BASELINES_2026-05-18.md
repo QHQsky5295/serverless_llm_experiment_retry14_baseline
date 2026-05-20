@@ -83,8 +83,9 @@ without changing the closed true-remote workload variables.
 
 ## dLoRA Gate
 
-Status: real-adapter scale-gate evidence closed through 2026-05-20, not yet
-adopted for formal table/figures.
+Status: real-adapter scale-gate evidence plus one 3B dispatch-only full replay
+closed through 2026-05-20; not yet adopted for formal table/figures as the
+official dLoRA row.
 
 - Upstream: `https://github.com/LLMServe/dLoRA-artifact`
 - Upstream commit: `75f1c439446fe194b1df8a24982ef9067841fab5`
@@ -93,9 +94,13 @@ adopted for formal table/figures.
 - Evidence summary: `DLoRA_project/evidence/gate_2026-05-19.json`
 - Real-adapter evidence: `DLoRA_project/evidence/real_adapt_2026-05-20.json`
 - Formal preflight: `DLoRA_project/evidence/formal_preflight_2026-05-20.json`
+- Full dispatch-only 3B replay:
+  `DLoRA_project/evidence/formal_dispatch_only_3b_2026-05-20.json`
 - Compatibility patch: `DLoRA_project/patches/modern_ray_import_compat.patch`
 - Real-adapter patch:
   `DLoRA_project/patches/real_peft_llama32_e2e_compat_20260520.patch`
+- Formal runtime compatibility patch:
+  `DLoRA_project/patches/formal_500_adapter_runtime_compat_20260520.patch`
 - Build env: `dlora_medusa_clone_20260519`
 - Import result: `vllm.__version__ == 0.1.4`
 
@@ -121,11 +126,19 @@ Formal blocker:
   the local adaptation, but only as a compatibility layer.
 - Real-weight Llama-3.2 3B filtered gates pass through 128 adapters / 512
   requests; real-weight Llama-2 7B passes a 2-adapter / 16-request gate.
-- Formal 4000-request / 500-adapter runs are not yet launched. The preflight
-  says current external GPU memory occupancy makes multi-GPU dLoRA placement
-  unsafe to start, and single-GPU 3B/500 is impossible because the LoRA GPU pool
-  alone exceeds a 24GB RTX 3090. Do not enter dLoRA into formal tables until a
-  no-dummy, no-`trace_expected`, full 3B/7B run passes without rewriting dLoRA.
+- Llama-3.2 3B has one full 4000-request / 500-adapter true-remote replay:
+  `ok=4000/4000`, no `trace_expected` fallback, `e2e_v3`. It used
+  `migration_type=1` / `dlora_dispatch_only`, 2 groups on GPUs 0 and 1,
+  `gpu_memory_utilization=0.92`, `max_num_seqs=1`, and
+  `max_num_batched_tokens=1024`.
+- That dispatch-only result is intentionally not the official dLoRA row. Its
+  TTFT avg is `1283513.75 ms`, TTFT p95 is `4142829.11 ms`, throughput is
+  `63.843 tok/s`, and CE is `0.2465`. The poor result is explained by static
+  placement skew: the tail was drained by `engine_id 0` while the other GPU was
+  idle. It is not an OOM or failed remote artifact path.
+- Do not enter dLoRA into formal tables until a no-dummy, no-`trace_expected`,
+  full 3B run with upstream `migration_type=3` and a full 7B run pass without
+  rewriting dLoRA scheduling or migration.
 
 ## Loquetier Gate
 
@@ -274,6 +287,42 @@ Formal blocker:
 - Therefore HydraServe is appendix/gate evidence only. Do not enter it into
   formal tables unless a real GPU Kubernetes deployment can replay the
   unchanged true-remote 3B/7B LoRA workload into `e2e_v3`.
+
+## Sarathi-Serve Gate
+
+Status: source/package metadata and LoRA-workload audit closed on 2026-05-20;
+not adopted for formal table/figures.
+
+- Upstream: `https://github.com/microsoft/sarathi-serve`
+- OSDI artifact branch: `osdi-sarathi-serve`
+- OSDI artifact commit: `ceaa0660ea2487976101a8167aad5c8046e85b27`
+- Main commit checked: `96f9911790ecc00af12ee9fae47cb8fa9ba0d199`
+- Local entry: `SarathiServe_project/`
+- Local OSDI source: `vendor_new_baselines/SarathiServe_osdi_20260520`
+- Local main source: `vendor_new_baselines/SarathiServe_main_20260520`
+- Evidence summary: `SarathiServe_project/evidence/gate_2026-05-20.json`
+
+Closed checks:
+
+- OSDI artifact metadata resolves as `sarathi 0.1.7`;
+- main branch metadata resolves as `sarathi 0.1.8`;
+- OSDI artifact README targets CUDA 12.1 on A100/A40 with torch 2.3;
+- main branch README targets CUDA 12.3 on H100/A100 and now lists torch 2.9.0;
+- source scan finds zero LoRA/adapter/PEFT terms in the OSDI branch;
+- main branch has one `lora` hit, `LoRAModulePath`, but no
+  `enable_lora`, `LoRARequest`, `lora_modules`, PEFT loader, or adapter-aware
+  scheduler.
+
+Formal blocker:
+
+- Sarathi-Serve is valuable scheduling related work, but the faithful OSDI
+  artifact does not support the closed PrimeLoRA LoRA workload. Adding that
+  support would require new model-executor LoRA layers, adapter loading,
+  request adapter identity, and scheduler/API semantics. That is building a
+  LoRA serving system for Sarathi-Serve rather than adapting it to local paths.
+- Therefore Sarathi-Serve is appendix/gate evidence only. Do not enter it into
+  formal tables unless an upstream-compatible LoRA path can replay the
+  unchanged true-remote 3B/7B workload into `e2e_v3`.
 
 ## Medusa Gate
 

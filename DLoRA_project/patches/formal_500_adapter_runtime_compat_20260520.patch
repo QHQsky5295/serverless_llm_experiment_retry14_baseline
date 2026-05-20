@@ -1,0 +1,228 @@
+diff --git a/vllm/engine/engine_manager.py b/vllm/engine/engine_manager.py
+index 5f5be9b..a723b3b 100644
+--- a/vllm/engine/engine_manager.py
++++ b/vllm/engine/engine_manager.py
+@@ -14,8 +14,7 @@ from vllm.sequence import (Sequence, SequenceGroup, SequenceGroupMetadata,
+                            SequenceStatus, RequestMetadata)
+ from vllm.engine.migration_ilp import MigrationILP
+
+-from vllm.engine.ray_utils import ray
+-from ray.air.util.torch_dist import init_torch_dist_process_group
++from vllm.engine.ray_utils import init_torch_dist_process_group, ray
+
+ _GB = 1 << 30
+ PCIE_BANDWIDTH = 32 * _GB
+@@ -257,6 +256,28 @@ class EngineManager:
+         num_lora_replicas = 0
+         best_bt = 0
+         update_flag = True
++        engine_model_sets = {
++            engine_id: set(model_ids)
++            for engine_id, model_ids in self.engine_model_mapping.items()
++        }
++
++        def calc_min_bt_fast() -> float:
++            min_bt = math.inf
++            for lora_type in range(self.num_models):
++                total_throughput = 0
++                for engine_id in range(self.num_groups):
++                    if lora_type in engine_model_sets[engine_id]:
++                        total_throughput += self.available_gpu_memorys[engine_id]
++                min_bt = min(min_bt, total_throughput / expected_lora_distribution[lora_type])
++            return min_bt
++
++        if is_init:
++            print(
++                "dLoRA placement init start",
++                "num_models", self.num_models,
++                "num_groups", self.num_groups,
++                "migration_type", self.migration_type,
++                flush=True)
+
+         engine_ids = [i for i in range(self.num_groups)]
+         models_not_allocated = [i for i in range(self.num_models) if len(self.model_engine_mapping[i]) == 0]
+@@ -279,11 +300,12 @@ class EngineManager:
+                 engine_ids = sorted(engine_ids, key=lambda engine_id: engine_lora_capacity[engine_id] - len(self.engine_model_mapping[engine_id]), reverse=True)
+                 engine_ids = [id for id in engine_ids if engine_lora_capacity[id] > len(self.engine_model_mapping[id])]
+             for engine_id in engine_ids:
+-                if next_lora_type in self.engine_model_mapping[engine_id]:
++                if next_lora_type in engine_model_sets[engine_id]:
+                     continue
+                 self.engine_model_mapping[engine_id].append(next_lora_type)
++                engine_model_sets[engine_id].add(next_lora_type)
+                 self.available_gpu_memorys[engine_id] -= self.lora_weight_sizes[engine_id]
+-                new_bt = self.calc_min_bt(expected_lora_distribution)
++                new_bt = calc_min_bt_fast()
+                 if new_bt >= best_bt:
+                     current_lora_distribution[next_lora_type] += 1
+                     num_lora_replicas += 1
+@@ -294,37 +316,50 @@ class EngineManager:
+                     break
+                 else:
+                     self.engine_model_mapping[engine_id].remove(next_lora_type)
++                    engine_model_sets[engine_id].remove(next_lora_type)
+                     self.available_gpu_memorys[engine_id] += self.lora_weight_sizes[engine_id]
+-                    if models_not_allocated:
+-                        update_flag = True
+
+         if is_init:
+-                min_replicas = self.num_groups + self.num_models - 1
+-                if self.migration_type == MigrationType.PERIOD_MIG:
+-                    next_engine_id = 0
+-                    next_lora_type = random.randint(0, self.num_models-1) # random int
+-                    while num_lora_replicas < min_replicas:
+-                        while len(self.engine_model_mapping[next_engine_id]) >= self.num_models or next_lora_type in self.engine_model_mapping[next_engine_id]:
+-                            next_engine_id = (next_engine_id + 1) % self.num_groups
+-                        self.engine_model_mapping[next_engine_id].append(next_lora_type)
+-                        self.available_gpu_memorys[next_engine_id] -= self.lora_weight_sizes[next_engine_id]
++            min_replicas = self.num_groups + self.num_models - 1
++            if self.migration_type == MigrationType.PERIOD_MIG:
++                next_engine_id = 0
++                next_lora_type = random.randint(0, self.num_models-1) # random int
++                while num_lora_replicas < min_replicas:
++                    skipped_engines = 0
++                    while len(self.engine_model_mapping[next_engine_id]) >= self.num_models or next_lora_type in engine_model_sets[next_engine_id]:
+                         next_engine_id = (next_engine_id + 1) % self.num_groups
+-                        current_lora_distribution[next_lora_type] += 1
+-                        num_lora_replicas += 1
+-                else:
+-                    next_engine_id = 0
+-                    next_lora_type = 0
+-                    while num_lora_replicas < min_replicas:
+-                        while len(self.engine_model_mapping[next_engine_id]) >= self.num_models:
+-                            next_engine_id = (next_engine_id + 1) % self.num_groups
+-                        while next_lora_type in self.engine_model_mapping[next_engine_id]:
++                        skipped_engines += 1
++                        if skipped_engines >= self.num_groups:
+                             next_lora_type = (next_lora_type + 1) % self.num_models
+-                        self.engine_model_mapping[next_engine_id].append(next_lora_type)
+-                        self.available_gpu_memorys[next_engine_id] -= self.lora_weight_sizes[next_engine_id]
++                            skipped_engines = 0
++                    self.engine_model_mapping[next_engine_id].append(next_lora_type)
++                    engine_model_sets[next_engine_id].add(next_lora_type)
++                    self.available_gpu_memorys[next_engine_id] -= self.lora_weight_sizes[next_engine_id]
++                    next_engine_id = (next_engine_id + 1) % self.num_groups
++                    current_lora_distribution[next_lora_type] += 1
++                    num_lora_replicas += 1
++            else:
++                next_engine_id = 0
++                next_lora_type = 0
++                while num_lora_replicas < min_replicas:
++                    while len(self.engine_model_mapping[next_engine_id]) >= self.num_models:
+                         next_engine_id = (next_engine_id + 1) % self.num_groups
++                    while next_lora_type in engine_model_sets[next_engine_id]:
+                         next_lora_type = (next_lora_type + 1) % self.num_models
+-                        current_lora_distribution[next_lora_type] += 1
+-                        num_lora_replicas += 1
++                    self.engine_model_mapping[next_engine_id].append(next_lora_type)
++                    engine_model_sets[next_engine_id].add(next_lora_type)
++                    self.available_gpu_memorys[next_engine_id] -= self.lora_weight_sizes[next_engine_id]
++                    next_engine_id = (next_engine_id + 1) % self.num_groups
++                    next_lora_type = (next_lora_type + 1) % self.num_models
++                    current_lora_distribution[next_lora_type] += 1
++                    num_lora_replicas += 1
++
++            print(
++                "dLoRA placement init done",
++                "num_lora_replicas", num_lora_replicas,
++                "engine_lora_counts",
++                [len(self.engine_model_mapping[i]) for i in range(self.num_groups)],
++                flush=True)
+
+
+         self.model_engine_mapping = {i: [] for i in range(self.num_models)}
+@@ -455,4 +490,4 @@ class EngineManager:
+     def set_output(self, output) -> None:
+         """Set the output of the engine."""
+         for engine in self.engines:
+-            ray.get(engine.engine.set_output.remote(output))
+\ No newline at end of file
++            ray.get(engine.engine.set_output.remote(output))
+diff --git a/vllm/model_executor/parallel_utils/tensor_parallel/layers.py b/vllm/model_executor/parallel_utils/tensor_parallel/layers.py
+index 3097189..2b33556 100644
+--- a/vllm/model_executor/parallel_utils/tensor_parallel/layers.py
++++ b/vllm/model_executor/parallel_utils/tensor_parallel/layers.py
+@@ -34,6 +34,28 @@ _MODEL_PARALLEL_ATTRIBUTE_DEFAULTS = {'tensor_model_parallel': False,
+                                       'partition_dim': -1,
+                                       'partition_stride': 1}
+
++
++def _selected_lora_einsum(x: torch.Tensor, adapter_mapping: torch.Tensor,
++                          active_lora_As: torch.Tensor,
++                          active_lora_Bs: torch.Tensor) -> torch.Tensor:
++    active_columns = torch.nonzero(adapter_mapping.any(dim=0),
++                                   as_tuple=False).flatten()
++    if active_columns.numel() == 0:
++        out_features = active_lora_Bs.shape[-1]
++        return torch.zeros((x.shape[0], out_features),
++                           dtype=x.dtype,
++                           device=x.device)
++    if active_columns.numel() == adapter_mapping.shape[1]:
++        return torch.einsum('bk, bi, ikr, ird->bd',
++                            x, adapter_mapping, active_lora_As,
++                            active_lora_Bs)
++    return torch.einsum('bk, bi, ikr, ird->bd',
++                        x,
++                        adapter_mapping.index_select(1, active_columns),
++                        active_lora_As.index_select(0, active_columns),
++                        active_lora_Bs.index_select(0, active_columns))
++
++
+ def param_is_not_tensor_parallel_duplicate(param):
+     return (hasattr(param, 'tensor_model_parallel') and
+             param.tensor_model_parallel) or (
+@@ -396,12 +418,9 @@ class LoRaColumnParallelLinear(ColumnParallelLinear):
+         self.to(self.weight.device)
+
+     def all_lora(self, x: torch.Tensor, adapter_mapping: torch.Tensor, lora_weight: LoRaWeight):
+-        return torch.einsum('bk, bi, ikr, ird->bd',
+-                x,
+-                adapter_mapping,
+-                lora_weight.active_lora_As, # [:len(lora_weight.active_idx)],
+-                lora_weight.active_lora_Bs # [:len(lora_weight.active_idx)]
+-            )
++        return _selected_lora_einsum(x, adapter_mapping,
++                                     lora_weight.active_lora_As,
++                                     lora_weight.active_lora_Bs)
+
+     def forward(self, input_: torch.Tensor, adapter_mapping: torch.Tensor, lora_weight: Optional[LoRaWeight]):
+         bias = self.bias if not self.skip_bias_add else None
+@@ -507,12 +526,9 @@ class QKV_LoRaColumnParallelLinear(ColumnParallelLinear):
+         self.to(self.weight.device)
+
+     def all_lora(self, x: torch.Tensor, adapter_mapping: torch.Tensor, lora_weight: LoRaWeight):
+-        return torch.einsum('bk, bi, ikr, ird->bd',
+-                x,
+-                adapter_mapping,
+-                lora_weight.active_lora_As, # [:len(lora_weight.active_idx)],
+-                lora_weight.active_lora_Bs # [:len(lora_weight.active_idx)]
+-            )
++        return _selected_lora_einsum(x, adapter_mapping,
++                                     lora_weight.active_lora_As,
++                                     lora_weight.active_lora_Bs)
+
+     def forward(self, input_: torch.Tensor, adapter_mapping: torch.Tensor, lora_weight: Optional[LoRaWeight]):
+         bias = self.bias if not self.skip_bias_add else None
+@@ -746,12 +762,9 @@ class LoRaRowParallelLinear(RowParallelLinear):
+         self.to(self.weight.device)
+
+     def all_lora(self, x: torch.Tensor, adapter_mapping: torch.Tensor, lora_weight: LoRaWeight):
+-        return torch.einsum('bk, bi, ikr, ird->bd',
+-                x,
+-                adapter_mapping,
+-                lora_weight.active_lora_As, # [:len(lora_weight.active_idx)],
+-                lora_weight.active_lora_Bs # [:len(lora_weight.active_idx)]
+-            )
++        return _selected_lora_einsum(x, adapter_mapping,
++                                     lora_weight.active_lora_As,
++                                     lora_weight.active_lora_Bs)
+
+     def forward(self, input_: torch.Tensor, adapter_mapping: torch.Tensor, lora_weight: Optional[LoRaWeight]):
+         # Set up backprop all-reduce.
+@@ -777,4 +790,4 @@ class LoRaRowParallelLinear(RowParallelLinear):
+         else:
+             output = output_
+             output_bias = self.bias
+-        return output, output_bias
+\ No newline at end of file
++        return output, output_bias
