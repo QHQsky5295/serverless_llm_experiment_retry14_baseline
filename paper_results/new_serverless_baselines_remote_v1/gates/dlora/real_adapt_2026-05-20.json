@@ -14,13 +14,15 @@
     "real_peft_loader_llama2_7b_limit2": true,
     "real_peft_loader_llama32_3b_limit2": true,
     "llama32_3b_dummy_base_real_adapter_replay_limit2_ok_total": "2/2",
-    "llama32_3b_real_base_real_adapter_replay_limit2_ok_total": "2/2"
+    "llama32_3b_real_base_real_adapter_replay_limit2_ok_total": "2/2",
+    "llama32_3b_real_base_real_adapter_replay_limit16_filtered64_ok_total": "64/64"
   },
   "important_hashes": {
     "real_peft_llama32_e2e_compat_20260520.patch": "6c576e89b3b82d4e3eaa2d2f176da74f408a2ef6bbe987f5ecead7f72b8c163d",
     "dlora_real_loader_llama2_7b_limit2.json": "270676b63c5167c23b402891857fd95b02465adeddf37e73d83d5012b479e22e",
     "dlora_real_loader_llama32_3b_limit2.json": "320ef38e2ab660a1a329e0ef8b759233573394a26b352f69c17d5360a9d0bf09",
-    "dlora_real3b_smoke_limit2_replay_20260520.json": "f4490fe6a00b623e6546fc8a9df2d70ecaf90f35c8d504e0ac0c704ce191be38"
+    "dlora_real3b_smoke_limit2_replay_20260520.json": "f4490fe6a00b623e6546fc8a9df2d70ecaf90f35c8d504e0ac0c704ce191be38",
+    "dlora_real3b_limit16_filtered64_replay_20260520.json": "fa6ae94dec82277d14d1f7bbf9f223b63e67406a096a9f430b34cc86e37603ea"
   },
   "next_required_before_formal_table": [
     "Scale the same real-weight path beyond 2 adapters without changing dLoRA core logic.",
