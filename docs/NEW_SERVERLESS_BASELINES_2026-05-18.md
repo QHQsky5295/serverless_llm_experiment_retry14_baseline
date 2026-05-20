@@ -234,6 +234,47 @@ Formal blocker:
   workload. Do not enter AIBrix into formal tables based only on the runtime
   sidecar gate.
 
+## HydraServe Gate
+
+Status: control-plane import and LoRA-interface audit closed on 2026-05-20;
+not adopted for formal table/figures on this machine.
+
+- Upstream: `https://github.com/LLMServe/hydraserve`
+- Upstream commit: `8ae605de354ccfa2e9095514cdb4a9e9c56aa56b`
+- Local entry: `HydraServe_project/`
+- Local source: `vendor_new_baselines/HydraServe_main_20260520`
+- Control env: `hydraserve_py_20260520`
+- Evidence summary: `HydraServe_project/evidence/gate_2026-05-20.json`
+
+Closed checks:
+
+- official source cloned at commit `8ae605de354ccfa2e9095514cdb4a9e9c56aa56b`;
+- isolated Python control-plane dependencies installed and run with
+  `PYTHONNOUSERSITE=1`;
+- `main`, `scheduler`, `resource_manager`, `engine`, `ModelInfo`, and
+  `ImageInfo` import successfully;
+- official Docker image build path fails because the current user cannot
+  access `/var/run/docker.sock`;
+- official `src/main.py` and `src/start_storage_server.py` fail before service
+  launch because no usable Kubernetes config is available;
+- embedded vLLM 0.4.2 source parses static LoRA arguments
+  `--enable-lora` and `--lora-modules`.
+
+Formal blocker:
+
+- HydraServe's official system is a Kubernetes deployment with storage-server
+  pods, GPU vLLM pods, node labels, and GPU-share scheduling. This machine
+  exposes neither a usable Kubernetes runtime nor Docker access to `qhq`.
+- The embedded vLLM source has static LoRA support, but HydraServe's worker app
+  does not wire LoRA arguments into the K8s pod runtime, and the
+  `Request -> Instance -> ChatEngine` path sends a fixed base-model name rather
+  than preserving per-request adapter identity. Supporting the closed
+  PrimeLoRA LoRA workload would require scheduler/request semantic changes, not
+  just local path or library adaptation.
+- Therefore HydraServe is appendix/gate evidence only. Do not enter it into
+  formal tables unless a real GPU Kubernetes deployment can replay the
+  unchanged true-remote 3B/7B LoRA workload into `e2e_v3`.
+
 ## Medusa Gate
 
 Status: closed local build/import gate, not adopted for formal table/figures on

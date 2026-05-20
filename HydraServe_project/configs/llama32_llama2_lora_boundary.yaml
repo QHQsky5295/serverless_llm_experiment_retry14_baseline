@@ -1,0 +1,38 @@
+system: HydraServe
+date: 2026-05-20
+scope: local gate and formal-inclusion boundary
+
+closed_prime_lora_workload:
+  models:
+    - llama2_7b
+    - llama32_3b
+  requests_per_model: 4000
+  adapters_per_model: 500
+  artifacts: true_remote_real_remote_v1
+  schema: e2e_v3
+
+upstream_expected_runtime:
+  orchestration: Kubernetes
+  gpu_runtime: GPU pods launched through Kubernetes deployments
+  storage: remote and local storage-server pods
+  image_build: Docker or prebuilt HydraServe images
+  endpoint_port: 9090
+  worker_port: 8080
+
+local_gate_boundary:
+  allowed_adaptation:
+    - isolated Python dependency environment
+    - local source audit
+    - configuration/provenance recording
+    - thin compatibility patches only if they preserve HydraServe scheduling
+  not_allowed_for_formal_claim:
+    - replacing Kubernetes scheduling with a custom local runner
+    - treating merged base+adapter checkpoints as LoRA requests
+    - dropping adapter identity from the workload
+    - reporting naked vLLM as HydraServe
+
+adapter_audit:
+  vllm_source_static_lora_args: true
+  hydraserve_pod_app_passes_lora_args: false
+  scheduler_preserves_request_adapter_identity: false
+  formal_lora_replay_ready: false
