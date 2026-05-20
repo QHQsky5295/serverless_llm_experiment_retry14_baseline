@@ -45,12 +45,14 @@ April handoff snapshots have been removed from the active documentation set.
   reopened under a stricter "adapt to our hardware/workload, do not rewrite the
   system" boundary. A minimal real-PEFT adapter loader and replay compatibility
   patch now passes Llama-2 7B / Llama-3.2 3B loader probes plus real-weight
-  Llama-3.2 3B filtered replay gates through 64 adapters and 256 requests with
+  Llama-3.2 3B filtered replay gates through 128 adapters and 512 requests with
   closed true-remote trace/adapters. The passing 64-adapter run kept dLoRA's
   scheduling/migration unchanged and only adjusted the local 3090 hardware
-  budget. A real-weight Llama-2 7B filtered replay gate also passes at 2
-  adapters and 16 requests. dLoRA is still not a formal table row until the same
-  path scales to full 4000-request/500-adapter 3B and 7B runs.
+  budget; the 128-adapter run first OOMed at too high a KV-cache budget and
+  then passed after lowering `gpu_memory_utilization` to `0.57`. A real-weight
+  Llama-2 7B filtered replay gate also passes at 2 adapters and 16 requests.
+  dLoRA is still not a formal table row until the same path scales to full
+  4000-request/500-adapter 3B and 7B runs.
 - True-remote full-figure queue checkpoint on 2026-05-15 12:05 CST:
   the Llama-2-7B adapter-pool `a100` and `a200` five-system rounds are
   complete and valid. `a200` keeps the same system ordering as the frozen
@@ -1004,3 +1006,9 @@ New dLoRA real-adapter gate update, 2026-05-20:
   with both `finance_lora` and `medical_lora` observed and token sources
   `usage/usage`. This proves 7B can consume the same real-PEFT loader and
   replay compatibility layer, but does not yet make dLoRA a formal row.
+- The Llama-3.2 3B scale gate now reaches 128 adapters and 512 filtered
+  requests: `ok=512/512`, no `trace_expected` fallback, 47 distinct adapters
+  observed. A `gpu_memory_utilization=0.64` launch OOMed during GPU LoRA slot
+  allocation after reserving 1004 KV blocks; `gpu_memory_utilization=0.57` with
+  `max_num_seqs=1` and `max_num_batched_tokens=256` passed without changing
+  dLoRA core logic.
