@@ -8,7 +8,7 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
 ## Scope
 
 - Formal candidate system: `ServerlessLLM-new`
-- Gate-only systems: `dLoRA`, `Loquetier`, `AIBrix`, `Medusa`,
+- Gate-only systems: `dLoRA`, `Loquetier`, `AIBrix`, `HydraServe`, `Medusa`,
   `FaaScale/LambdaScale`
 - Upstream commit: `9f50241baa5386e06a9321c51f19a9ef5f964c2b`
 - Harness: `/home/qhq/serverless_llm_baselines`
@@ -48,6 +48,11 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
   adapter through vLLM's dynamic LoRA API. It is not a formal result row because
   full AIBrix requires a Kubernetes GPU control plane that this machine cannot
   run from the current user account.
+- `gates/hydraserve/`: HydraServe control-plane import, platform gate, and
+  LoRA-interface audit evidence. HydraServe's embedded vLLM source exposes
+  static LoRA arguments, but the full system requires an unavailable
+  Docker/Kubernetes GPU runtime, and the scheduler path does not preserve
+  per-request adapter identity for the closed PrimeLoRA LoRA workload.
 - `SHA256SUMS`: checksums for the bundle.
 
 ## Inclusion Decision
@@ -58,7 +63,7 @@ requests with no replay failures and no `trace_expected` token fallback. They
 should be labeled `ServerlessLLM-new` and kept separate from the older
 `ServerlessLLM` baseline.
 
-dLoRA, Loquetier, AIBrix, Medusa, and FaaScale/LambdaScale are gate-only
+dLoRA, Loquetier, AIBrix, HydraServe, Medusa, and FaaScale/LambdaScale are gate-only
 evidence on this machine. Do not promote them to formal rows unless their
 runtime and scale requirements are satisfied and the closed true-remote LoRA
 workload can be replayed into `e2e_v3` without changing workload variables.

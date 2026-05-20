@@ -63,7 +63,13 @@ April handoff snapshots have been removed from the active documentation set.
   cannot enter formal tables on this machine because the full system requires a
   Kubernetes GPU control plane, while `kubectl`/`helm` are root-only, Docker
   socket access is denied, `kind` is absent, and passwordless sudo is
-  unavailable.
+  unavailable. HydraServe was then gated from upstream commit
+  `8ae605de354ccfa2e9095514cdb4a9e9c56aa56b`: its Python control modules import
+  in isolated env `hydraserve_py_20260520`, and the embedded vLLM 0.4.2 source
+  still parses static LoRA arguments. It is excluded from formal tables because
+  the official system requires a Docker/Kubernetes GPU deployment unavailable
+  to `qhq`, and its scheduler request path does not preserve per-request
+  adapter identity without semantic changes.
 - True-remote full-figure queue checkpoint on 2026-05-15 12:05 CST:
   the Llama-2-7B adapter-pool `a100` and `a200` five-system rounds are
   complete and valid. `a200` keeps the same system ordering as the frozen

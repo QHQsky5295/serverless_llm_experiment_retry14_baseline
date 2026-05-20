@@ -1,0 +1,92 @@
+{
+  "system": "HydraServe",
+  "date": "2026-05-20",
+  "decision": "appendix_gate_only",
+  "formal_table_ready": false,
+  "upstream": {
+    "repo": "https://github.com/LLMServe/hydraserve",
+    "commit": "8ae605de354ccfa2e9095514cdb4a9e9c56aa56b",
+    "venue": "NSDI 2026",
+    "paper_url": "https://www.usenix.org/conference/nsdi26/presentation/lou",
+    "base_engine": "modified vLLM v0.4.2"
+  },
+  "local": {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520",
+    "control_env": "/home/qhq/anaconda3/envs/hydraserve_py_20260520",
+    "user_site_disabled_for_gate": true,
+    "result_scope": "results/paper_experiments/15_new_serverless_baselines_remote_v1/gates/hydraserve"
+  },
+  "official_requirements": [
+    "Kubernetes v1.30.7+",
+    "GPU inference node",
+    "remote storage node",
+    "Docker images or prebuilt HydraServe images",
+    "GPU sharing labels/scheduler support"
+  ],
+  "gate_results": {
+    "git_clone": {
+      "status": "pass",
+      "head": "8ae605de354ccfa2e9095514cdb4a9e9c56aa56b"
+    },
+    "control_module_import": {
+      "status": "pass",
+      "modules": [
+        "main",
+        "scheduler",
+        "resource_manager",
+        "engine",
+        "ModelInfo",
+        "ImageInfo"
+      ],
+      "sha256": "ee1b84548a2ae930eca00aadcc8a37633440dc9403d4716882f45ba36bcbb337"
+    },
+    "official_docker_build": {
+      "status": "blocked",
+      "reason": "current user cannot access /var/run/docker.sock",
+      "sha256": "02bd48bed66b8932646cb9dd0cc7e0dccbd533eee9514a91fb4804924275917a"
+    },
+    "hydraserve_endpoint_start": {
+      "status": "blocked",
+      "reason": "kubernetes config is unavailable for current user",
+      "sha256": "1534a8ac15a34f2b87bce63d08834a2fa229aae20bd1edaa1af2c1e611df93ab"
+    },
+    "storage_server_start": {
+      "status": "blocked",
+      "reason": "kubernetes config is unavailable for current user",
+      "sha256": "c94c0b63a8e49971f272b417cb9908d636184abe4615223fb21d18fb2c9e4c7d"
+    },
+    "vllm_source_lora_interface": {
+      "status": "pass",
+      "details": "HydraServe's embedded vLLM 0.4.2 source parses --enable-lora and --lora-modules.",
+      "sha256": "3f7e5ca0d6fbb5a1890359cc06703a72a627b1dba5e8ad2902eb3c43052b4ea1"
+    }
+  },
+  "lora_workload_audit": {
+    "closed_workload_models": [
+      "Llama-2 7B",
+      "Llama-3.2 3B"
+    ],
+    "closed_workload_requests_per_model": 4000,
+    "closed_workload_adapters_per_model": 500,
+    "embedded_vllm_has_static_lora_support": true,
+    "hydraserve_worker_app_wires_lora_args": false,
+    "scheduler_preserves_per_request_adapter_identity": false,
+    "fair_lora_replay_ready": false,
+    "reason": "A faithful LoRA replay would require changing HydraServe scheduler/request semantics or reporting merged full-model checkpoints, neither of which is an acceptable formal comparison."
+  },
+  "machine_blockers": {
+    "docker_socket": "permission denied",
+    "kubectl": "/usr/local/bin/kubectl permission denied",
+    "helm": "/usr/local/bin/helm permission denied",
+    "kind": "not found",
+    "minikube": "not found",
+    "kubeconfig": "no configuration found"
+  },
+  "logs": {
+    "control_import": "results/logs/new_serverless_baselines_remote_v1/hydraserve/gate/control_import_20260520.log",
+    "docker_build_denied": "results/logs/new_serverless_baselines_remote_v1/hydraserve/gate/docker_build_denied_20260520.log",
+    "main_no_kube": "results/logs/new_serverless_baselines_remote_v1/hydraserve/gate/main_no_kube_20260520.log",
+    "storage_no_kube": "results/logs/new_serverless_baselines_remote_v1/hydraserve/gate/storage_no_kube_20260520.log",
+    "vllm_lora_interface": "results/logs/new_serverless_baselines_remote_v1/hydraserve/gate/vllm_lora_interface_20260520.log"
+  }
+}
