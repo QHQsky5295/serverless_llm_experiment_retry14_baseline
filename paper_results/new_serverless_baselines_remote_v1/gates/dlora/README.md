@@ -45,6 +45,11 @@ Current state:
   the object-store debug dump was still `0 / 8.58993GB`. This is a startup
   topology memory-envelope failure, not CUDA OOM, not remote artifact failure,
   and not a measured replay result.
+- The follow-up Llama-2 7B one-group TP4 gate moved past adapter-pool loading
+  and placement, but failed before HTTP readiness with `# GPU blocks: 0,
+  # CPU blocks: 1024` and `No available memory for the cache blocks`. This is
+  a GPU KV-cache envelope gate, not host OOM, CUDA OOM, remote artifact
+  failure, or measured replay output.
 - The full dLoRA paper row remains pending until the matching Llama-2 7B
   true-remote full replay closes under an auditable wrapper-only envelope.
 
@@ -77,3 +82,5 @@ Files:
   selected 3B official full replay candidate.
 - `formal_period_mig_gate128_7b_g2tp2_swap2_obj8_hostoom_2026-05-21.json`:
   compact record of the 7B DP2/TP2 startup memory-envelope gate.
+- `formal_period_mig_gate128_7b_g1tp4_gpu_blocks0_2026-05-21.json`: compact
+  record of the 7B G1/TP4 zero-GPU-cache-block gate.
