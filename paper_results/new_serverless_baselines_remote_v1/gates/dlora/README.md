@@ -59,8 +59,13 @@ Current state:
   `# GPU blocks: 0, # CPU blocks: 1024`. Remote materialization, real adapter
   loading, and placement completed, so the remaining wrapper-only lever is the
   minimal `gpu_capacity=1` envelope with `gpu_memory_utilization=0.99`.
-- The full dLoRA paper row remains pending until the matching Llama-2 7B
-  true-remote full replay closes under an auditable wrapper-only envelope.
+- The final wrapper-only G1/TP4 gate used `gpu_capacity=1` with
+  `gpu_memory_utilization=0.99` and still produced `# GPU blocks: 0,
+  # CPU blocks: 1024` after remote materialization, real adapter loading, and
+  placement. This closes dLoRA 7B as infeasible on this 4x3090 machine without
+  core dLoRA/vLLM memory-layout changes. The successful 3B full replay remains
+  limited or appendix evidence; dLoRA should not enter the full 3B+7B main
+  comparison row.
 
 Files:
 
@@ -98,3 +103,6 @@ Files:
   gate.
 - `formal_period_mig_gate128_7b_g1tp4_u95_cap2_gpu_blocks0_2026-05-21.json`:
   compact record of the 7B G1/TP4 `gpu_capacity=2` zero-GPU-cache-block gate.
+- `formal_period_mig_gate128_7b_g1tp4_u99_cap1_gpu_blocks0_2026-05-21.json`:
+  compact record of the final 7B G1/TP4 `gpu_capacity=1`
+  zero-GPU-cache-block gate.
