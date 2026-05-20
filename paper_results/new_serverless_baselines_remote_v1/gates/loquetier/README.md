@@ -3,10 +3,11 @@
 This directory mirrors the non-overwriting Loquetier gate evidence from
 `/home/qhq/serverless_llm_baselines/Loquetier_project/`.
 
-Loquetier currently passes real-adapter filtered gates for both closed
-backbones through 16 adapters / 64 requests. It is not a formal comparison row
-until it completes the full 4000-request / 500-adapter workload without
-replacing Loquetier's SMLM kernels or mixed-LoRA serving path.
+Loquetier currently passes real-adapter filtered gates through 64 adapters /
+256 requests on Llama-3.2 3B and 16 adapters / 64 requests on Llama-2 7B. It is
+not a formal comparison row until it completes the full 4000-request /
+500-adapter workload without replacing Loquetier's SMLM kernels or mixed-LoRA
+serving path.
 
 Files:
 
