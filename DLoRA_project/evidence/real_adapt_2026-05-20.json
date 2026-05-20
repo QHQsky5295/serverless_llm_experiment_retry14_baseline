@@ -97,6 +97,18 @@
       "filtered_trace_sha256": "0a2332fdf3a5c5c58f38e1a12d469507a172422bc8e0a87002bc57b460234c58",
       "adapter_value_map_sha256": "8b582b4aaf0a58093a749587f04a31b589c7dec12bfc9014c0991e506210d367",
       "runtime_adaptation": "Kept dLoRA scheduling/migration unchanged; used real Llama-2 7B weights on GPU3 with --gpu-memory-utilization 0.60 and profiling batch --max-num-seqs 1 / --max-num-batched-tokens 256."
+    },
+    "real_base_real_adapter_replay_3b_limit128_filtered512_u57_seq1": {
+      "status": "passed",
+      "ok": 512,
+      "total": 512,
+      "unique_adapters_observed": 47,
+      "token_sources": "usage/usage for all 512 requests",
+      "path": "results/paper_experiments/15_new_serverless_baselines_remote_v1/gates/dlora/dlora_real3b_limit128_u57_seq1_filtered512_replay_20260520.json",
+      "sha256": "c0e0269c1af63dcfd2aa484f3f45888f3350b8ebeac29ded248e445913233384",
+      "filtered_trace_sha256": "dfa0519f3a068c2bfeb9052523c4b5196283996781e9915dce619118a16294d6",
+      "adapter_value_map_sha256": "19974e72b7a879076848ac7661ac18916a00ec00f946dc209ab724b9e4569369",
+      "runtime_adaptation": "The first 128-adapter launch at --gpu-memory-utilization 0.64 loaded the CPU pool but OOMed during GPU LoRA slot allocation after reserving 1004 KV blocks. The passing launch kept dLoRA unchanged and reduced --gpu-memory-utilization to 0.57 with --max-num-seqs 1 / --max-num-batched-tokens 256 to reserve less KV cache on the local RTX 3090."
     }
   },
   "patch": {
@@ -105,6 +117,6 @@
   },
   "current_decision": {
     "formal_table": "not yet",
-    "reason": "The real-weight Llama-3.2 3B path now passes 2-adapter, 16-adapter, and 64-adapter scale-up gates, and the real-weight Llama-2 7B path passes a 2-adapter filtered replay gate. The formal 4000-request/500-adapter runs for both 3B and 7B still need validation under the same closed true-remote workload."
+    "reason": "The real-weight Llama-3.2 3B path now passes 2-adapter, 16-adapter, 64-adapter, and 128-adapter scale-up gates, and the real-weight Llama-2 7B path passes a 2-adapter filtered replay gate. The formal 4000-request/500-adapter runs for both 3B and 7B still need validation under the same closed true-remote workload."
   }
 }
