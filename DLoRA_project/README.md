@@ -59,7 +59,14 @@ no core dLoRA code changes. That full Llama-3.2 3B replay is now closed:
 `ok=4000/4000`, `fail=0`, no token fallback, `TTFT_e2e` avg 11.16s, p95
 27.28s, 115.67 tok/s, CE 45.52. This is the selected dLoRA 3B formal
 candidate. The full dLoRA paper row still requires the matching Llama-2 7B
-true-remote full replay before table/figure inclusion.
+true-remote full replay before table/figure inclusion. The first Llama-2 7B
+four-GPU DP2/TP2 gate materialized all `500/500` remote adapters but failed
+before HTTP readiness: Ray reported host-memory pressure, the GCS server
+aborted, and the object store was still bounded and empty at shutdown. That is
+a 7B startup topology memory-envelope failure, not CUDA OOM, not remote
+artifact failure, and not a replay-quality result. The next fair wrapper-only
+adaptation is to reduce duplicated engine state with one dLoRA group and
+`tensor_parallel_size=4` on all four GPUs before declaring 7B infeasible.
 
 Tracked evidence:
 
@@ -86,6 +93,8 @@ Tracked evidence:
   `evidence/formal_period_mig_gate128_g2tp2_g4_s4_3b_2026-05-21.json`
 - official period-migration 3B full 4000-request replay:
   `evidence/formal_period_mig_full4000_3b_2026-05-21.json`
+- official period-migration 7B 4-GPU DP2/TP2 startup memory gate:
+  `evidence/formal_period_mig_gate128_7b_g2tp2_swap2_obj8_hostoom_2026-05-21.json`
 - real-adapter compatibility patch:
   `patches/real_peft_llama32_e2e_compat_20260520.patch`
 - formal 500-adapter runtime compatibility patch:

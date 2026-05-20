@@ -84,10 +84,10 @@ without changing the closed true-remote workload variables.
 ## dLoRA Gate
 
 Status: real-adapter scale-gate evidence, one 3B dispatch-only full replay,
-three official period-migration short gates, four-GPU topology gates, and the
-selected 3B period-migration full replay closed through 2026-05-21; not yet
-adopted for formal table/figures as the official dLoRA row because the matching
-7B full replay is still pending.
+three official period-migration short gates, four-GPU topology gates, the
+selected 3B period-migration full replay, and one closed 7B DP2/TP2 startup
+memory gate through 2026-05-21; not yet adopted for formal table/figures as the
+official dLoRA row because the matching 7B full replay is still pending.
 
 - Upstream: `https://github.com/LLMServe/dLoRA-artifact`
 - Upstream commit: `75f1c439446fe194b1df8a24982ef9067841fab5`
@@ -108,6 +108,8 @@ adopted for formal table/figures as the official dLoRA row because the matching
   `DLoRA_project/evidence/formal_period_mig_gate128_g2tp2_g4_s4_3b_2026-05-21.json`
 - Official period-migration 3B full replay:
   `DLoRA_project/evidence/formal_period_mig_full4000_3b_2026-05-21.json`
+- Official period-migration 7B DP2/TP2 startup memory gate:
+  `DLoRA_project/evidence/formal_period_mig_gate128_7b_g2tp2_swap2_obj8_hostoom_2026-05-21.json`
 - Compatibility patch: `DLoRA_project/patches/modern_ray_import_compat.patch`
 - Real-adapter patch:
   `DLoRA_project/patches/real_peft_llama32_e2e_compat_20260520.patch`
@@ -201,6 +203,14 @@ Formal blocker:
   tokens/GPU-s `4.0734`. The Raylet/AsyncEngineDeadError messages at the end
   occur after replay and summary are written while the wrapper stops Ray/vLLM;
   record them as shutdown noise, not replay failure.
+- The first Llama-2 7B official `migration_type=3` four-GPU DP2/TP2 gate did
+  not reach HTTP readiness. It materialized all `500/500` remote adapters from
+  the true remote endpoint, pre-started Ray with `object_store_memory=8GiB`,
+  and launched two TP2 Llama-2 7B dLoRA/vLLM engines, but Ray reported host
+  memory pressure, evicted a worker, and GCS aborted before the API server
+  became ready. The Ray object store was not the root cause (`0 / 8.58993GB` at
+  the debug dump), and there was no CUDA GPU OOM or replay request. This is a
+  7B startup topology memory-envelope gate, not a formal replay result.
 - The dLoRA wrapper now writes `max_num_seqs`, `max_num_batched_tokens`,
   `gpu_memory_utilization`, `gpu_capacity`, and `swap_space_gb` into
   deploy/manifest metadata and launch logs so future envelope sweeps are
@@ -211,7 +221,9 @@ Formal blocker:
   full 3B run with upstream `migration_type=3` and a full 7B run pass without
   rewriting dLoRA scheduling or migration. The full 3B requirement is now met;
   the remaining blocker is the Llama-2 7B true-remote full replay under an
-  auditable wrapper-only dLoRA envelope.
+  auditable wrapper-only dLoRA envelope. The next wrapper-only 7B adaptation is
+  a one-group TP4 gate on all four GPUs to reduce duplicated engine startup
+  state without changing dLoRA scheduling or migration internals.
 
 ## Loquetier Gate
 
