@@ -38,8 +38,9 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
 - `gates/loquetier/`: Loquetier local-adaptation patch, compact gate outputs,
   and real-adapter evidence. Loquetier currently passes Llama-3.2 3B through
   256 adapters / 1024 filtered requests and Llama-2 7B through 128 adapters /
-  256 filtered requests, but is not a formal result row until the full closed
-  workload passes without replacing its SMLM/mixed-LoRA logic.
+  256 filtered requests, but is not a formal result row because the 3B/500
+  adapter preflight OOMs while materializing mixed-LoRA adapter weights on a
+  24GB RTX 3090.
 - `SHA256SUMS`: checksums for the bundle.
 
 ## Inclusion Decision

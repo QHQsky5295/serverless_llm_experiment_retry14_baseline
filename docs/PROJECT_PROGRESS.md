@@ -1041,5 +1041,9 @@ New Loquetier real-adapter gate update, 2026-05-20:
   `/home/qhq/serverless_llm_baselines/Loquetier_project/evidence/real_adapt_2026-05-20.json`
   and mirrored in
   `paper_results/new_serverless_baselines_remote_v1/gates/loquetier/`.
-  Loquetier remains gate-only until it passes the full 4000-request /
-  500-adapter workload without replacing its core logic.
+- The 3B/500-adapter preflight is tracked in
+  `/home/qhq/serverless_llm_baselines/Loquetier_project/evidence/formal_preflight_2026-05-20.json`.
+  It fails with CUDA OOM during `MixedLoraModel` adapter weight materialization:
+  the process used 23.54 GiB on a 23.56 GiB RTX 3090 and had only 1.38 MiB free
+  when a 2 MiB allocation was attempted. Loquetier therefore remains appendix
+  scale-gate evidence on this hardware, not a formal comparison row.
