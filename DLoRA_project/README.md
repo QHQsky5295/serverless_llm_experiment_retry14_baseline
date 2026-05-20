@@ -72,8 +72,11 @@ completed dLoRA placement, but vLLM reported `# GPU blocks: 0, # CPU blocks:
 1024` and failed cache initialization before HTTP readiness. The next
 wrapper-only attempt raised `gpu_memory_utilization` to `0.95`, but it still
 reported zero GPU cache blocks after loading all adapters and placement. The
-next fair wrapper-only adaptation is therefore reducing dLoRA GPU adapter
-capacity while keeping the CPU pool at 500 adapters.
+next wrapper-only attempt reduced dLoRA GPU adapter capacity to `2`, but it
+still reported zero GPU cache blocks after loading all adapters and placement.
+The remaining fair wrapper-only adaptation is therefore the minimal
+`gpu_capacity=1` envelope with `gpu_memory_utilization=0.99`, while keeping the
+CPU pool at 500 adapters.
 
 Tracked evidence:
 
@@ -107,6 +110,9 @@ Tracked evidence:
 - official period-migration 7B 4-GPU G1/TP4 `gpu_memory_utilization=0.95`
   zero-GPU-cache-block gate:
   `evidence/formal_period_mig_gate128_7b_g1tp4_u95_gpu_blocks0_2026-05-21.json`
+- official period-migration 7B 4-GPU G1/TP4 `gpu_capacity=2`
+  zero-GPU-cache-block gate:
+  `evidence/formal_period_mig_gate128_7b_g1tp4_u95_cap2_gpu_blocks0_2026-05-21.json`
 - real-adapter compatibility patch:
   `patches/real_peft_llama32_e2e_compat_20260520.patch`
 - formal 500-adapter runtime compatibility patch:
