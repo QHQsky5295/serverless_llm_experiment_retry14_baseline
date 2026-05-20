@@ -44,9 +44,11 @@ April handoff snapshots have been removed from the active documentation set.
   after a narrow Ray/CUDA layout adaptation. On 2026-05-20 the dLoRA gate was
   reopened under a stricter "adapt to our hardware/workload, do not rewrite the
   system" boundary. A minimal real-PEFT adapter loader and replay compatibility
-  patch now passes Llama-2 7B / Llama-3.2 3B loader probes and a real-weight
-  Llama-3.2 3B 2-request replay gate with closed true-remote trace/adapters.
-  It is still not a formal table row until the same path scales to full
+  patch now passes Llama-2 7B / Llama-3.2 3B loader probes plus real-weight
+  Llama-3.2 3B filtered replay gates through 64 adapters and 256 requests with
+  closed true-remote trace/adapters. The passing 64-adapter run kept dLoRA's
+  scheduling/migration unchanged and only adjusted the local 3090 hardware
+  budget. It is still not a formal table row until the same path scales to full
   4000-request/500-adapter 3B and 7B runs.
 - True-remote full-figure queue checkpoint on 2026-05-15 12:05 CST:
   the Llama-2-7B adapter-pool `a100` and `a200` five-system rounds are
@@ -976,3 +978,23 @@ New serverless baseline campaign status, 2026-05-19:
 - No new gate overwrote `figs/`, `paper_results/final_v2/`, or the
   true-remote mirror. Treat Medusa and FaaScale as appendix/gate evidence, not
   formal performance rows, until their runtime and workload gates pass.
+
+New dLoRA real-adapter gate update, 2026-05-20:
+
+- Scope remains narrow: adapt upstream dLoRA to this machine and the closed
+  workload, not rewrite its scheduling, migration, or adapter orchestration.
+- The Llama-3.2 3B real-weight path now passes the first 64 closed adapters on
+  a 256-request filtered trace: `ok=256/256`, no `trace_expected` token
+  fallback, 42 distinct adapters observed, prompt/completion token sources both
+  `usage`.
+- The initial 64-adapter launch at `gpu_memory_utilization=0.40` with profiling
+  batch `seqs=4/tokens=512` loaded the CPU adapter pool but did not open the
+  HTTP port. The passing run kept dLoRA logic unchanged and used
+  `gpu_memory_utilization=0.60`, `max_num_seqs=2`, and
+  `max_num_batched_tokens=256`, which is recorded as local hardware adaptation.
+- Evidence is tracked in
+  `/home/qhq/serverless_llm_baselines/DLoRA_project/evidence/real_adapt_2026-05-20.json`
+  and mirrored in
+  `paper_results/new_serverless_baselines_remote_v1/gates/dlora/real_adapt_2026-05-20.json`.
+  dLoRA is still not in the formal comparison table until full 4000-request /
+  500-adapter Llama-3.2 3B and Llama-2 7B runs pass.
