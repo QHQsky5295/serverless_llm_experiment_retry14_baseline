@@ -85,8 +85,8 @@ without changing the closed true-remote workload variables.
 
 Status: real-adapter scale-gate evidence, one 3B dispatch-only full replay,
 three official period-migration short gates, four-GPU topology gates, the
-selected 3B period-migration full replay, and one closed 7B DP2/TP2 startup
-memory gate through 2026-05-21; not yet adopted for formal table/figures as the
+selected 3B period-migration full replay, and two closed 7B startup/memory
+gates through 2026-05-21; not yet adopted for formal table/figures as the
 official dLoRA row because the matching 7B full replay is still pending.
 
 - Upstream: `https://github.com/LLMServe/dLoRA-artifact`
@@ -110,6 +110,8 @@ official dLoRA row because the matching 7B full replay is still pending.
   `DLoRA_project/evidence/formal_period_mig_full4000_3b_2026-05-21.json`
 - Official period-migration 7B DP2/TP2 startup memory gate:
   `DLoRA_project/evidence/formal_period_mig_gate128_7b_g2tp2_swap2_obj8_hostoom_2026-05-21.json`
+- Official period-migration 7B G1/TP4 zero-GPU-cache-block gate:
+  `DLoRA_project/evidence/formal_period_mig_gate128_7b_g1tp4_gpu_blocks0_2026-05-21.json`
 - Compatibility patch: `DLoRA_project/patches/modern_ray_import_compat.patch`
 - Real-adapter patch:
   `DLoRA_project/patches/real_peft_llama32_e2e_compat_20260520.patch`
@@ -211,6 +213,14 @@ Formal blocker:
   became ready. The Ray object store was not the root cause (`0 / 8.58993GB` at
   the debug dump), and there was no CUDA GPU OOM or replay request. This is a
   7B startup topology memory-envelope gate, not a formal replay result.
+- The follow-up one-group TP4 7B gate moved past the DP2/TP2 failure point. It
+  materialized all `500/500` adapters, loaded all `500` real PEFT adapters into
+  the dLoRA CPU pool on the TP4 workers, and completed placement with
+  `engine_lora_counts [500]`. It then failed before HTTP readiness during
+  cache initialization because vLLM reported `# GPU blocks: 0, # CPU blocks:
+  1024` and raised `No available memory for the cache blocks`. This is not host
+  OOM, CUDA OOM, remote failure, or replay failure; it is the Llama-2 7B GPU
+  KV-cache envelope under the current wrapper settings.
 - The dLoRA wrapper now writes `max_num_seqs`, `max_num_batched_tokens`,
   `gpu_memory_utilization`, `gpu_capacity`, and `swap_space_gb` into
   deploy/manifest metadata and launch logs so future envelope sweeps are
@@ -222,8 +232,9 @@ Formal blocker:
   rewriting dLoRA scheduling or migration. The full 3B requirement is now met;
   the remaining blocker is the Llama-2 7B true-remote full replay under an
   auditable wrapper-only dLoRA envelope. The next wrapper-only 7B adaptation is
-  a one-group TP4 gate on all four GPUs to reduce duplicated engine startup
-  state without changing dLoRA scheduling or migration internals.
+  the same one-group TP4 gate with a higher GPU-memory-utilization envelope;
+  if that still leaves zero GPU cache blocks, reduce dLoRA GPU adapter capacity
+  before declaring the 500-adapter 7B workload infeasible without core changes.
 
 ## Loquetier Gate
 

@@ -66,7 +66,12 @@ aborted, and the object store was still bounded and empty at shutdown. That is
 a 7B startup topology memory-envelope failure, not CUDA OOM, not remote
 artifact failure, and not a replay-quality result. The next fair wrapper-only
 adaptation is to reduce duplicated engine state with one dLoRA group and
-`tensor_parallel_size=4` on all four GPUs before declaring 7B infeasible.
+`tensor_parallel_size=4` on all four GPUs before declaring 7B infeasible. That
+TP4 gate moved the failure forward: it loaded all `500` real PEFT adapters and
+completed dLoRA placement, but vLLM reported `# GPU blocks: 0, # CPU blocks:
+1024` and failed cache initialization before HTTP readiness. The next
+wrapper-only attempt should tune the GPU memory envelope before reducing dLoRA
+GPU adapter capacity.
 
 Tracked evidence:
 
@@ -95,6 +100,8 @@ Tracked evidence:
   `evidence/formal_period_mig_full4000_3b_2026-05-21.json`
 - official period-migration 7B 4-GPU DP2/TP2 startup memory gate:
   `evidence/formal_period_mig_gate128_7b_g2tp2_swap2_obj8_hostoom_2026-05-21.json`
+- official period-migration 7B 4-GPU G1/TP4 zero-GPU-cache-block gate:
+  `evidence/formal_period_mig_gate128_7b_g1tp4_gpu_blocks0_2026-05-21.json`
 - real-adapter compatibility patch:
   `patches/real_peft_llama32_e2e_compat_20260520.patch`
 - formal 500-adapter runtime compatibility patch:
