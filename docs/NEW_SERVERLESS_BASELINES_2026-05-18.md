@@ -84,9 +84,10 @@ without changing the closed true-remote workload variables.
 ## dLoRA Gate
 
 Status: real-adapter scale-gate evidence, one 3B dispatch-only full replay,
-three official period-migration short gates, and four-GPU topology gates closed
-through 2026-05-21; not yet adopted for formal table/figures as the official
-dLoRA row.
+three official period-migration short gates, four-GPU topology gates, and the
+selected 3B period-migration full replay closed through 2026-05-21; not yet
+adopted for formal table/figures as the official dLoRA row because the matching
+7B full replay is still pending.
 
 - Upstream: `https://github.com/LLMServe/dLoRA-artifact`
 - Upstream commit: `75f1c439446fe194b1df8a24982ef9067841fab5`
@@ -105,6 +106,8 @@ dLoRA row.
   `DLoRA_project/evidence/formal_period_mig_gate128_s4_3b_2026-05-21.json`
 - Official period-migration 3B 4-GPU DP2/TP2 topology gate:
   `DLoRA_project/evidence/formal_period_mig_gate128_g2tp2_g4_s4_3b_2026-05-21.json`
+- Official period-migration 3B full replay:
+  `DLoRA_project/evidence/formal_period_mig_full4000_3b_2026-05-21.json`
 - Compatibility patch: `DLoRA_project/patches/modern_ray_import_compat.patch`
 - Real-adapter patch:
   `DLoRA_project/patches/real_peft_llama32_e2e_compat_20260520.patch`
@@ -188,6 +191,16 @@ Formal blocker:
   and CE dropped to `1.9696` versus `5.3354`. The root cause is not a local
   patch bug: TP2 avoids DP4/TP1 startup duplication, but it spends two GPUs per
   logical dLoRA group and service-side engine wait still dominates.
+- The selected 3B official full replay then used the best measured wrapper-only
+  envelope, DP2/TP1 with `max_num_seqs=4`, on the complete 4000-request
+  Llama-3.2 3B true-remote trace. It completed `ok=4000/4000`, `fail=0`, no
+  `trace_expected` fallback, no CUDA OOM, no host OOM, and no core dLoRA code
+  changes. Final metrics: `TTFT_e2e` avg `11162.43 ms`, p50 `9308.08 ms`, p95
+  `27280.54 ms`, p99 `36419.18 ms`, throughput `115.666 tok/s`, SLO attainment
+  `0.27075`, infra cost/request `$0.00196784`, CE `45.5240`, and goodput
+  tokens/GPU-s `4.0734`. The Raylet/AsyncEngineDeadError messages at the end
+  occur after replay and summary are written while the wrapper stops Ray/vLLM;
+  record them as shutdown noise, not replay failure.
 - The dLoRA wrapper now writes `max_num_seqs`, `max_num_batched_tokens`,
   `gpu_memory_utilization`, `gpu_capacity`, and `swap_space_gb` into
   deploy/manifest metadata and launch logs so future envelope sweeps are
@@ -196,11 +209,9 @@ Formal blocker:
   enabled.
 - Do not enter dLoRA into formal tables until a no-dummy, no-`trace_expected`,
   full 3B run with upstream `migration_type=3` and a full 7B run pass without
-  rewriting dLoRA scheduling or migration. The current fair full-3B envelope is
-  the best measured wrapper-only setting, DP2/TP1 with `max_num_seqs=4`, because
-  the valid four-GPU DP2/TP2 gate is measurably worse and further improvement
-  would require changing dLoRA scheduling, batching, memory layout, or migration
-  internals.
+  rewriting dLoRA scheduling or migration. The full 3B requirement is now met;
+  the remaining blocker is the Llama-2 7B true-remote full replay under an
+  auditable wrapper-only dLoRA envelope.
 
 ## Loquetier Gate
 

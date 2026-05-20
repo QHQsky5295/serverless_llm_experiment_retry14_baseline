@@ -55,7 +55,11 @@ than the best 2-GPU `max_num_seqs=4` gate (`TTFT_e2e` avg 18.6s vs 14.5s,
 p95 33.1s vs 26.5s, CE 1.97 vs 5.34). The fair full 3B formal replay should
 therefore use the best measured wrapper-only dLoRA envelope: DP2/TP1,
 `max_num_seqs=4`, upstream `migration_type=3`, 500 real remote adapters, and
-no core dLoRA code changes.
+no core dLoRA code changes. That full Llama-3.2 3B replay is now closed:
+`ok=4000/4000`, `fail=0`, no token fallback, `TTFT_e2e` avg 11.16s, p95
+27.28s, 115.67 tok/s, CE 45.52. This is the selected dLoRA 3B formal
+candidate. The full dLoRA paper row still requires the matching Llama-2 7B
+true-remote full replay before table/figure inclusion.
 
 Tracked evidence:
 
@@ -80,6 +84,8 @@ Tracked evidence:
   `evidence/formal_period_mig_gate128_g4_s4_swap2_obj8_hostoom_3b_2026-05-21.json`
 - official period-migration 3B 4-GPU DP2/TP2 topology gate:
   `evidence/formal_period_mig_gate128_g2tp2_g4_s4_3b_2026-05-21.json`
+- official period-migration 3B full 4000-request replay:
+  `evidence/formal_period_mig_full4000_3b_2026-05-21.json`
 - real-adapter compatibility patch:
   `patches/real_peft_llama32_e2e_compat_20260520.patch`
 - formal 500-adapter runtime compatibility patch:

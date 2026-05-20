@@ -1,0 +1,165 @@
+{
+  "date": "2026-05-21",
+  "system": "dLoRA",
+  "upstream_commit": "75f1c439446fe194b1df8a24982ef9067841fab5",
+  "queue_id": "20260521_dlora_remote_mig3_full4000_g2u92_s4_v1",
+  "result_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/15_new_serverless_baselines_remote_v1/20260521_dlora_remote_mig3_full4000_g2u92_s4_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora",
+  "logs": {
+    "launcher": "/tmp/dlora_remote_mig3_full4000_g2u92_s4.log",
+    "server": "/home/qhq/serverless_llm_baselines/results/logs/new_serverless_baselines_remote_v1/dlora/formal/20260521_dlora_remote_mig3_full4000_g2u92_s4_v1/llama32_3b_server.log",
+    "replay": "/home/qhq/serverless_llm_baselines/results/logs/new_serverless_baselines_remote_v1/dlora/formal/20260521_dlora_remote_mig3_full4000_g2u92_s4_v1/llama32_3b_replay.log"
+  },
+  "artifacts": {
+    "manifest": "/home/qhq/serverless_llm_baselines/results/paper_experiments/15_new_serverless_baselines_remote_v1/20260521_dlora_remote_mig3_full4000_g2u92_s4_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora/MANIFEST.json",
+    "replay_json": "/home/qhq/serverless_llm_baselines/results/paper_experiments/15_new_serverless_baselines_remote_v1/20260521_dlora_remote_mig3_full4000_g2u92_s4_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora_replay.json",
+    "summary_json": "/home/qhq/serverless_llm_baselines/results/paper_experiments/15_new_serverless_baselines_remote_v1/20260521_dlora_remote_mig3_full4000_g2u92_s4_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora_summary.json"
+  },
+  "workload": {
+    "model": "llama32_3b",
+    "model_profile": "llama32_3b_main_modelscope",
+    "workload_profile": "llama32_3b_auto500_formal4000_s8",
+    "trace": "llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1",
+    "total_trace_requests": 4000,
+    "replayed_requests": 4000,
+    "selected_num_adapters": 500,
+    "remote_mode": "remote_fair_real_remote_v1",
+    "metric_schema_version": "e2e_v3"
+  },
+  "runtime_config": {
+    "migration_type": 3,
+    "routing_policy": "dlora_period_mig",
+    "num_groups": 2,
+    "tensor_parallel_size": 1,
+    "gpu_ids": [
+      0,
+      1
+    ],
+    "gpu_memory_utilization": 0.92,
+    "max_num_seqs": 4,
+    "max_num_batched_tokens": 1024,
+    "gpu_capacity": 8,
+    "swap_space_gb": 8,
+    "ray_object_store_memory_bytes": null,
+    "ray_num_cpus": null
+  },
+  "validation": {
+    "http_ready": true,
+    "replay_ok": 4000,
+    "replay_failed": 0,
+    "trace_expected_token_fallback": false,
+    "token_sources": {
+      "prompt_token_source_counts": {
+        "usage": 4000
+      },
+      "completion_token_source_counts": {
+        "usage": 4000
+      },
+      "metrics_source_counts": {
+        "missing": 4000
+      }
+    },
+    "is_cuda_gpu_oom": false,
+    "is_host_oom": false,
+    "remote_materialization_failed": false,
+    "core_code_rewritten": false,
+    "shutdown_noise_after_success": true
+  },
+  "startup": {
+    "remote_materialization_sec": 324.3178174495697,
+    "static_startup_sec": 134.2290494441986
+  },
+  "server_log_evidence": {
+    "ray_started_line": 1,
+    "tp1_engine_init_lines": [
+      4,
+      7
+    ],
+    "loaded_500_real_peft_adapter_lines": [
+      62,
+      63
+    ],
+    "placement_init_line": 64,
+    "placement_done_line": 65,
+    "gpu_cpu_block_lines": [
+      66,
+      67
+    ],
+    "http_ready_lines": [
+      70,
+      71,
+      72
+    ]
+  },
+  "launcher_log_evidence": {
+    "final_live_lines": [
+      5187,
+      5188,
+      5189
+    ],
+    "replay_json_written_line": 5191,
+    "replay_success_check_line": 5201,
+    "no_trace_expected_check_line": 5202,
+    "summary_line": 5203,
+    "summary_written_line": 5204,
+    "done_line": 5205
+  },
+  "metrics": {
+    "completed_requests": 4000,
+    "failed_requests": 0,
+    "elapsed_sec": 3964.2713,
+    "ttft_e2e_avg_ms": 11162.4256,
+    "ttft_e2e_p50_ms": 9308.0777,
+    "ttft_e2e_p95_ms": 27280.5416,
+    "ttft_e2e_p99_ms": 36419.1772,
+    "ttft_service_avg_ms": 11141.6214,
+    "ttft_service_p95_ms": 27261.7911,
+    "dispatch_admission_wait_avg_ms": 20.8042,
+    "dispatch_admission_wait_p50_ms": 20.0029,
+    "dispatch_admission_wait_p95_ms": 29.2082,
+    "dispatch_admission_wait_p99_ms": null,
+    "e2e_avg_ms": 11162.7033,
+    "e2e_p95_ms": 27280.8701,
+    "throughput_rps": 1.009013,
+    "throughput_tok_per_s": 115.666402,
+    "slo_attainment": 0.27075,
+    "slo_goodput_rps": 0.27319,
+    "slo_goodput_tok_per_s": 31.316678,
+    "total_input_tokens": 2981735,
+    "total_output_tokens": 458533,
+    "total_tokens": 3440268,
+    "cost_per_request_usd": 0.00196784,
+    "cost_per_1m_total_tokens_usd": 2.28800885,
+    "ce": 45.524023,
+    "infra_gpu_seconds_total": 9445.63637,
+    "infra_startup_gpu_seconds": 917.093734,
+    "infra_ready_gpu_seconds": 8528.542636,
+    "infra_active_gpu_seconds": 7801.368888,
+    "infra_idle_ready_gpu_seconds": 727.173748,
+    "completed_requests_per_gpu_second": 0.423476,
+    "output_tokens_per_gpu_second": 48.544426,
+    "goodput_tokens_per_gpu_second": 4.073415,
+    "token_proxy_cost_per_request_usd": 0.00234742,
+    "token_proxy_ce": 38.16281,
+    "tpot_observed_request_ratio": 0.0
+  },
+  "comparison_to_128_request_gate": {
+    "queue_id": "20260521_dlora_remote_mig3_gate128_g2u92_s4_v1",
+    "ttft_e2e_avg_ms": 14517.6744,
+    "ttft_e2e_p95_ms": 26510.7888,
+    "ttft_e2e_p99_ms": 28836.8616,
+    "throughput_tok_per_s": 92.127445,
+    "ce": 5.335413,
+    "note": "The full 4000-request run is selected as the formal 3B candidate. Its p95/p99 differ from the short gate because it is the complete scheduled trace rather than the first 128 requests only."
+  },
+  "interpretation": {
+    "primary": "This is a successful full Llama-3.2 3B true-remote dLoRA period-migration replay under the best measured wrapper-only envelope.",
+    "quality": "The result is substantially better than the earlier dispatch-only full replay and is stable across 4000 requests. Remaining tail latency is service-side dLoRA/vLLM engine wait, not adapter materialization, local token fallback, CUDA OOM, or host OOM.",
+    "shutdown_noise": "Raylet/AsyncEngineDeadError messages appear only after replay and summary were written while the wrapper stopped the runtime. They are shutdown noise and do not invalidate the measured replay."
+  },
+  "decision": {
+    "formal_3b_candidate": true,
+    "formal_table_ready": false,
+    "reason": "The 3B side is now a valid formal candidate. The full dLoRA table row still needs the matching no-dummy, no-trace_expected Llama-2 7B true-remote full replay under an auditable wrapper-only envelope.",
+    "next_step": "Run and close the Llama-2 7B dLoRA migration_type=3 true-remote formal replay before deciding final paper table/figure inclusion."
+  }
+}
