@@ -20,6 +20,10 @@ Current state:
   `124.16GB / 125.38GB` host memory with the default `swap_space_gb=8`. This is
   recorded as a startup memory-envelope gate, not as a CUDA OOM or measured
   replay result.
+- A `swap_space_gb=2` rerun also failed before replay. It reduced the dLoRA CPU
+  KV cache envelope, but Ray's default object store was about `38.6GB` and the
+  four worker startup still entered host-memory/swap pressure. The next fair
+  4-GPU gate bounds Ray object-store memory from the wrapper.
 - The next fair dLoRA step is to run short runtime/topology gates, then a full
   `migration_type=3` replay without rewriting dLoRA scheduling or migration.
 
@@ -41,3 +45,5 @@ Files:
   official period-migration 3B/128-request/500-adapter `max_num_seqs=4` gate.
 - `formal_period_mig_gate128_g4_s4_hostoom_3b_2026-05-21.json`: compact record
   of the first 4-GPU startup memory-envelope gate.
+- `formal_period_mig_gate128_g4_s4_swap2_hostoom_3b_2026-05-21.json`: compact
+  record of the 4-GPU `swap_space_gb=2` startup memory-envelope gate.

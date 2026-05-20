@@ -55,9 +55,12 @@ April handoff snapshots have been removed from the active documentation set.
   true-remote prefix at `max_num_seqs` 1, 2, and 4; `max_num_seqs=4` is the
   best 2-GPU envelope observed so far. The first 4-GPU topology gate failed
   before replay because Ray killed a worker at `124.16GB / 125.38GB` host
-  memory with default `swap_space_gb=8`, so the next fair gate lowers the CPU
-  swap envelope. dLoRA is still not a formal table row until the same path
-  scales to full 4000-request/500-adapter 3B and 7B runs. Loquetier was then adapted through
+  memory with default `swap_space_gb=8`. The `swap_space_gb=2` rerun also
+  failed before replay because Ray's default object store and four concurrent
+  workers still exhausted host-memory headroom, so the next fair gate bounds
+  Ray object-store memory from the wrapper. dLoRA is still not a formal table
+  row until the same path scales to full 4000-request/500-adapter 3B and 7B
+  runs. Loquetier was then adapted through
   its official SMLM/mixed-LoRA path and passes real-adapter gates through
   Llama-3.2 3B 256 adapters / 1024 filtered requests and Llama-2 7B 128
   adapters / 256 filtered requests, but its 3B/500-adapter preflight OOMs on a
@@ -1096,6 +1099,14 @@ New dLoRA real-adapter gate update, 2026-05-20:
   or a measured dLoRA replay. The wrapper now records `swap_space_gb` and fixes
   `MANIFEST.replayed_requests`; the next fair gate lowers `DLORA_SWAP_SPACE_GB`
   before considering Ray memory-monitor changes.
+- The `swap_space_gb=2` rerun also closed before replay: queue
+  `20260521_dlora_remote_mig3_gate128_g4u92_s4_swap2_v1`, remote materialized
+  `500/500` adapters, GPUs reached only about `7.4GB/GPU`, and Ray later
+  reported GCS disconnect plus worker memory-pressure kill. Host-memory
+  observations showed available memory around `1.1GiB`, swap used around
+  `17GiB`, and Ray's default object store around `38.6GB`. The next wrapper-only
+  gate pre-starts Ray with bounded object-store memory and records that envelope
+  in deploy/manifest metadata.
 
 New Loquetier real-adapter gate update, 2026-05-20:
 

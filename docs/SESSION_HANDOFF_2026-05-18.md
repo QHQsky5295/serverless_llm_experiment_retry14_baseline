@@ -235,13 +235,19 @@ Current dLoRA evidence:
   killed a worker because host memory reached `124.16GB / 125.38GB` at the
   `0.99` threshold under the default `swap_space_gb=8`. This is host-memory
   envelope evidence, not CUDA OOM and not a measured dLoRA replay.
+- The `swap_space_gb=2` rerun also failed before replay. It reduced dLoRA CPU
+  KV cache pressure but Ray's default object store still reserved about
+  `38.6GB`, and the four workers entered severe host-memory/swap pressure
+  before service readiness. The next wrapper-only adaptation pre-starts Ray
+  with bounded object-store memory and `RAY_ADDRESS=auto`.
 
 That full run is appendix/ablation evidence only. It is not the official dLoRA
 row because upstream `migration_type=1` is dispatch-only/RR; the poor tail was
 caused by static placement skew, not OOM. A fair dLoRA candidate still requires
 a tuned upstream `migration_type=3` full 3B replay and the full Llama-2 7B
 replay. The immediate next step is a 4-GPU short gate with a reduced
-`DLORA_SWAP_SPACE_GB` envelope before considering Ray memory-monitor changes.
+`DLORA_SWAP_SPACE_GB` and bounded `DLORA_RAY_OBJECT_STORE_MEMORY_BYTES` envelope
+before considering Ray memory-monitor changes.
 
 ## 5. Important Experiment Decisions
 
