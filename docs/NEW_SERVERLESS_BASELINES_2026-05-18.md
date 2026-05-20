@@ -127,6 +127,48 @@ Formal blocker:
   alone exceeds a 24GB RTX 3090. Do not enter dLoRA into formal tables until a
   no-dummy, no-`trace_expected`, full 3B/7B run passes without rewriting dLoRA.
 
+## Loquetier Gate
+
+Status: real-adapter scale-gate evidence closed through 16 adapters on both
+closed backbones, not yet adopted for formal table/figures.
+
+- Upstream: `https://github.com/NJUDeepEngine/Loquetier`
+- Upstream commit: `aae33baeeb19777129c1ccbff99a898d4a0e2c63`
+- Local entry: `Loquetier_project/`
+- Local source: `vendor_new_baselines/Loquetier_main_20260520`
+- Evidence summary: `Loquetier_project/evidence/real_adapt_2026-05-20.json`
+- Compatibility patch:
+  `Loquetier_project/patches/loquetier_local_compat_20260520.patch`
+- Build env: `loquetier_20260520`
+
+Local adaptation:
+
+- isolated Loquetier in a cloned CUDA 12.1 / torch 2.1.2 environment instead
+  of modifying existing closed experiment environments;
+- initialized upstream CUTLASS and built SMLM kernels for RTX 3090 `sm_86`;
+- rebuilt Loquetier kernels with `LOQUETIER_GROUP_SIZES=1,2,3,4,8` so
+  Llama-3.2 3B's GQA group size 3 has a real dispatch path;
+- added Python 3.9 annotation compatibility and PEFT 0.17 import/active-adapter
+  compatibility;
+- fixed mixed-rank PEFT adapter handling by deriving rank from actual
+  `lora_A`/`lora_B` tensor shapes and padding along the correct rank dimension.
+
+Closed gates:
+
+- Llama-3.2 3B, 2 adapters / 16 filtered requests: `ok=16/16`.
+- Llama-2 7B, 2 adapters / 16 filtered requests: `ok=16/16`.
+- Llama-3.2 3B, 16 adapters / 64 filtered requests: `ok=64/64`.
+- Llama-2 7B, 16 adapters / 64 filtered requests: `ok=64/64`.
+
+Formal blocker:
+
+- Loquetier can now consume real PEFT adapters from the closed true-remote
+  artifact set and replay both backbone traces through its mixed-LoRA path.
+- It remains an offline single-GPU multi-LoRA runner rather than a serverless
+  control plane, and it has not completed the full 4000-request / 500-adapter
+  workload. Do not enter Loquetier into formal tables until that no-fallback
+  replay passes without replacing Loquetier's core SMLM/mixed-LoRA logic.
+
 ## Medusa Gate
 
 Status: closed local build/import gate, not adopted for formal table/figures on
