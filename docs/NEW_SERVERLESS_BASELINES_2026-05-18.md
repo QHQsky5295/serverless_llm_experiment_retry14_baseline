@@ -85,9 +85,10 @@ without changing the closed true-remote workload variables.
 
 Status: real-adapter scale-gate evidence, one 3B dispatch-only full replay,
 three official period-migration short gates, four-GPU topology gates, the
-selected 3B period-migration full replay, and four closed 7B startup/memory
-gates through 2026-05-21; not yet adopted for formal table/figures as the
-official dLoRA row because the matching 7B full replay is still pending.
+selected 3B period-migration full replay, and five closed 7B startup/cache
+gates through 2026-05-21. dLoRA is not adopted as a full formal table/figure
+row on this 4x3090 machine because the matching Llama-2 7B true-remote gate
+cannot reach HTTP readiness without core memory-layout changes.
 
 - Upstream: `https://github.com/LLMServe/dLoRA-artifact`
 - Upstream commit: `75f1c439446fe194b1df8a24982ef9067841fab5`
@@ -118,6 +119,9 @@ official dLoRA row because the matching 7B full replay is still pending.
 - Official period-migration 7B G1/TP4 `gpu_capacity=2`
   zero-GPU-cache-block gate:
   `DLoRA_project/evidence/formal_period_mig_gate128_7b_g1tp4_u95_cap2_gpu_blocks0_2026-05-21.json`
+- Official period-migration 7B G1/TP4 final `gpu_capacity=1`
+  zero-GPU-cache-block gate:
+  `DLoRA_project/evidence/formal_period_mig_gate128_7b_g1tp4_u99_cap1_gpu_blocks0_2026-05-21.json`
 - Compatibility patch: `DLoRA_project/patches/modern_ray_import_compat.patch`
 - Real-adapter patch:
   `DLoRA_project/patches/real_peft_llama32_e2e_compat_20260520.patch`
@@ -239,20 +243,25 @@ Formal blocker:
   placement all completed, then vLLM still reported `# GPU blocks: 0,
   # CPU blocks: 1024`. This narrows the remaining non-core adaptation to the
   minimal `gpu_capacity=1` envelope with `gpu_memory_utilization=0.99`.
+- The final wrapper-only G1/TP4 gate used `gpu_capacity=1` with
+  `gpu_memory_utilization=0.99`. It again materialized all `500/500` remote
+  adapters, loaded all `500` real PEFT adapters, completed dLoRA placement,
+  and failed before HTTP readiness with `# GPU blocks: 0, # CPU blocks: 1024`.
+  This exhausts the non-core memory-envelope levers tried for dLoRA 7B on the
+  unchanged 500-adapter true-remote workload.
 - The dLoRA wrapper now writes `max_num_seqs`, `max_num_batched_tokens`,
   `gpu_memory_utilization`, `gpu_capacity`, and `swap_space_gb` into
   deploy/manifest metadata and launch logs so future envelope sweeps are
   auditable. It also fixes `MANIFEST.replayed_requests`, and records optional
   `ray_object_store_memory_bytes` / `ray_num_cpus` when the bounded-Ray path is
   enabled.
-- Do not enter dLoRA into formal tables until a no-dummy, no-`trace_expected`,
-  full 3B run with upstream `migration_type=3` and a full 7B run pass without
-  rewriting dLoRA scheduling or migration. The full 3B requirement is now met;
-  the remaining blocker is the Llama-2 7B true-remote full replay under an
-  auditable wrapper-only dLoRA envelope. The next wrapper-only 7B adaptation is
-  the final one-group TP4 gate with `gpu_memory_utilization=0.99` and
-  `gpu_capacity=1` before declaring the 500-adapter 7B workload infeasible
-  without core changes.
+- Do not enter dLoRA as a full formal 3B+7B comparison row under the current
+  4x3090 hardware and unchanged 500-adapter true-remote workload. The 3B
+  `migration_type=3` full replay is valid limited or appendix evidence, but
+  the 7B gate cannot reach HTTP readiness after exhausting wrapper-only
+  topology and memory-envelope levers. A 7B full 4000-request replay is not
+  launched because it cannot produce a valid `e2e_v3` result without the server
+  becoming ready.
 
 ## Loquetier Gate
 

@@ -74,9 +74,16 @@ wrapper-only attempt raised `gpu_memory_utilization` to `0.95`, but it still
 reported zero GPU cache blocks after loading all adapters and placement. The
 next wrapper-only attempt reduced dLoRA GPU adapter capacity to `2`, but it
 still reported zero GPU cache blocks after loading all adapters and placement.
-The remaining fair wrapper-only adaptation is therefore the minimal
-`gpu_capacity=1` envelope with `gpu_memory_utilization=0.99`, while keeping the
-CPU pool at 500 adapters.
+The final fair wrapper-only adaptation used the minimal `gpu_capacity=1`
+envelope with `gpu_memory_utilization=0.99`, while keeping the CPU pool at 500
+adapters. It again materialized all remote adapters, loaded all 500 adapters,
+completed placement, and failed at cache initialization with `# GPU blocks: 0`.
+This closes the Llama-2 7B dLoRA formal gate as infeasible on this 4x3090
+machine without core dLoRA/vLLM memory-layout changes. Do not start a 7B full
+4000-request replay for dLoRA under this workload; it cannot produce a valid
+`e2e_v3` replay because the server never reaches HTTP readiness. The selected
+3B full replay remains valid limited evidence, but dLoRA should not enter the
+full 3B+7B main comparison row.
 
 Tracked evidence:
 
@@ -113,6 +120,9 @@ Tracked evidence:
 - official period-migration 7B 4-GPU G1/TP4 `gpu_capacity=2`
   zero-GPU-cache-block gate:
   `evidence/formal_period_mig_gate128_7b_g1tp4_u95_cap2_gpu_blocks0_2026-05-21.json`
+- official period-migration 7B 4-GPU G1/TP4 final `gpu_capacity=1`
+  zero-GPU-cache-block gate:
+  `evidence/formal_period_mig_gate128_7b_g1tp4_u99_cap1_gpu_blocks0_2026-05-21.json`
 - real-adapter compatibility patch:
   `patches/real_peft_llama32_e2e_compat_20260520.patch`
 - formal 500-adapter runtime compatibility patch:
