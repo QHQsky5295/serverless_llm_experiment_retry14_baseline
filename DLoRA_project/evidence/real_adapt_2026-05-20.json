@@ -73,6 +73,18 @@
       "sha256": "fa6ae94dec82277d14d1f7bbf9f223b63e67406a096a9f430b34cc86e37603ea",
       "filtered_trace_sha256": "fe538f61ee937e348915834fe43b5ca274ee139ae13b7555987183be9da18953",
       "adapter_value_map_sha256": "84593eff1afad2b46e7133ccbe6f853d193d435de430063bac5822b40d3147b2"
+    },
+    "real_base_real_adapter_replay_3b_limit64_filtered256_u60_seq2": {
+      "status": "passed",
+      "ok": 256,
+      "total": 256,
+      "unique_adapters_observed": 42,
+      "token_sources": "usage/usage for all 256 requests",
+      "path": "results/paper_experiments/15_new_serverless_baselines_remote_v1/gates/dlora/dlora_real3b_limit64_u60_seq2_filtered256_replay_20260520.json",
+      "sha256": "2bdfb2851cd90f20477b12b7ef786fb55dff4aad23d7906cfcef4c1669cbd495",
+      "filtered_trace_sha256": "bb89fd2054943b381237ed23dee70a5b67e0d3d40fc15c6d10b551b73d6a5ca8",
+      "adapter_value_map_sha256": "307cca9d906f46d29886d336b4e2f392c94a11caeadb47b82f7afb84c093f32b",
+      "runtime_adaptation": "Kept dLoRA scheduling/migration unchanged; raised --gpu-memory-utilization to 0.60 and reduced profiling batch to --max-num-seqs 2 / --max-num-batched-tokens 256 so the original single-engine initialization can place 64 adapters on the local RTX 3090."
     }
   },
   "patch": {
@@ -81,6 +93,6 @@
   },
   "current_decision": {
     "formal_table": "not yet",
-    "reason": "The real-weight Llama-3.2 3B path now passes 2-adapter and 16-adapter scale-up gates, but the formal 4000-request/500-adapter runs for both 3B and 7B still need validation under the same closed true-remote workload."
+    "reason": "The real-weight Llama-3.2 3B path now passes 2-adapter, 16-adapter, and 64-adapter scale-up gates, but the formal 4000-request/500-adapter runs for both 3B and 7B still need validation under the same closed true-remote workload."
   }
 }
