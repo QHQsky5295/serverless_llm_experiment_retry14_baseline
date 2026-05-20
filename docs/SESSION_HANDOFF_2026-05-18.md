@@ -212,11 +212,23 @@ Decision: do not include dLoRA in formal tables/figures yet. The artifact is
 highly relevant to adapter orchestration and now builds/imports locally in the
 isolated `dlora_medusa_clone_20260519` environment (`vllm.__version__ ==
 0.1.4`) after CUDA 12.1 header/library precedence and a narrow modern-Ray
-import compatibility patch. However, the source gate found no Llama-3.2 path,
-no native real-PEFT loader for the closed `adapter_model.safetensors` adapter
-set, and no native `e2e_v3` replay path. The source also has dummy/random/zero
-LoRA tensor paths, so running the formal table with those tensors would be an
-invalid comparison against the true-remote LoRA workload.
+import compatibility patch. A narrow compatibility layer now loads the closed
+real PEFT adapters, handles Llama-3.2 grouped-query shapes, and emits `e2e_v3`
+replay data without replacing dLoRA scheduling or migration.
+
+Current dLoRA evidence:
+
+- Llama-3.2 3B filtered gates pass through 128 adapters / 512 requests.
+- Llama-2 7B filtered gate passes at 2 adapters / 16 requests.
+- Llama-3.2 3B full true-remote replay with 4000 requests and 500 adapters
+  passes as `migration_type=1` / `dlora_dispatch_only`: `ok=4000/4000`, no
+  `trace_expected` fallback, TTFT avg `1283513.75 ms`, TTFT p95
+  `4142829.11 ms`, throughput `63.843 tok/s`, CE `0.2465`.
+
+That full run is appendix/ablation evidence only. It is not the official dLoRA
+row because upstream `migration_type=1` is dispatch-only/RR; the poor tail was
+caused by static placement skew, not OOM. A fair dLoRA candidate still requires
+upstream `migration_type=3` validation and the full Llama-2 7B replay.
 
 ## 5. Important Experiment Decisions
 

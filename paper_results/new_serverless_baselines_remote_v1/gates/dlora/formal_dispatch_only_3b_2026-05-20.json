@@ -1,0 +1,46 @@
+{
+  "system": "dLoRA",
+  "date": "2026-05-20",
+  "status": "completed dispatch-only full true-remote replay; not an official dLoRA main-table row",
+  "baseline_repo_evidence": "/home/qhq/serverless_llm_baselines/DLoRA_project/evidence/formal_dispatch_only_3b_2026-05-20.json",
+  "queue_id": "20260520_dlora_remote_formal_g2u92_mig1_sparse_t7200_v1",
+  "label": "dlora_llama32_3b_dispatch_only_remote_formal",
+  "workload": "Llama-3.2 3B, 4000 requests, 500 adapters, seed 42, Zipf 1.0, hot rotation 500, s8, true remote endpoint http://192.168.4.174:18080",
+  "runtime_configuration": {
+    "dlora_migration_type": 1,
+    "routing_policy": "dlora_dispatch_only",
+    "num_groups": 2,
+    "gpu_ids": "0,1",
+    "gpu_memory_utilization": 0.92,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 1024
+  },
+  "validation": {
+    "ok_total": "4000/4000",
+    "failures": 0,
+    "metric_schema_version": "e2e_v3",
+    "no_trace_expected_token_fallback": true,
+    "not_oom": true
+  },
+  "headline_metrics": {
+    "ttft_e2e_avg_ms": 1283513.75,
+    "ttft_e2e_p95_ms": 4142829.11,
+    "ttft_e2e_p99_ms": 5239628.36,
+    "e2e_e2e_avg_ms": 1283514.04,
+    "throughput_rps": 0.5569,
+    "throughput_tok_s": 63.843,
+    "slo_attainment": 0.015,
+    "cost_per_request_usd": 0.0031612,
+    "ce": 0.2465,
+    "infra_gpu_seconds_total": 15173.574111,
+    "goodput_tokens_per_gpu_second": 0.227896
+  },
+  "sha256": {
+    "MANIFEST.json": "6241915afe4b3673b88ca78289209055b5b005385c43942e3ec854d0f1b0bd92",
+    "replay.json": "326823532259e4a574054f094457f699a340070615390e96d90f4ea8ef5dfdd1",
+    "summary.json": "1878fbed6473d873898be08d1ae1439b1bc3f6466c9c4e0fdd1865aaafa5e68f",
+    "replay.log": "90c4b5e1bf31ef18845642ef4bf76d5183eda588c6bb5bcd0a575eaa7c9d9e0d",
+    "server.log": "040a74143b2fab1f6ffbbe3f3e423897b9f81e7f52a2c4f0d426af3baa687486"
+  },
+  "decision": "Keep this as appendix/ablation evidence for dLoRA dispatch-only behavior. The fair official dLoRA candidate still requires migration_type=3 gates and full 4000-request replay without core scheduling rewrites."
+}

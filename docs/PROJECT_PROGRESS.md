@@ -1036,6 +1036,21 @@ New dLoRA real-adapter gate update, 2026-05-20:
   dLoRA needs multi-GPU placement for 500 adapters without rewriting its core
   scheduling. Single-GPU 3B/500 is impossible because the LoRA GPU pool alone
   exceeds a 24GB 3090.
+- After the external GPU memory cleared, a full Llama-3.2 3B dLoRA
+  dispatch-only run completed on the closed true-remote workload:
+  queue `20260520_dlora_remote_formal_g2u92_mig1_sparse_t7200_v1`,
+  `ok=4000/4000`, `fail=0`, no `trace_expected` fallback, `e2e_v3`.
+  It used `migration_type=1` / `dlora_dispatch_only`, 2 groups on GPUs 0 and 1,
+  `gpu_memory_utilization=0.92`, `max_num_seqs=1`, and
+  `max_num_batched_tokens=1024`.
+- This full run is not a dLoRA formal-table row: TTFT avg is `1283513.75 ms`,
+  TTFT p95 is `4142829.11 ms`, throughput is `63.843 tok/s`, and CE is
+  `0.2465`. The root cause is dispatch-only static placement skew under the
+  500-adapter hot/Zipf workload; GPU1 became idle while GPU0 drained the long
+  tail. It is valid appendix/ablation evidence, not the official dLoRA strategy.
+- The next fair dLoRA step is upstream `migration_type=3` short gates followed
+  by full 4000-request replay, with only wrapper/runtime parameter adaptation
+  and no scheduling/migration rewrite.
 
 New Loquetier real-adapter gate update, 2026-05-20:
 

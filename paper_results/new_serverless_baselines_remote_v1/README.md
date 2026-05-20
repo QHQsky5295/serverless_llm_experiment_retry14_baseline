@@ -32,10 +32,13 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
   isolated repair, but it is not a formal result row on this machine because
   the RDMA device stack is not exposed and the source lacks ready
   Llama-3.2 3B plus LoRA/PEFT workload support.
-- `gates/dlora/`: dLoRA build/import, real-adapter scale-gate, and formal
-  preflight evidence. dLoRA can consume real PEFT adapters through the local
-  compatibility layer, but is not a formal result row until a full
-  4000-request / 500-adapter run passes.
+- `gates/dlora/`: dLoRA build/import, real-adapter scale-gate, formal preflight,
+  and one full Llama-3.2 3B dispatch-only replay evidence file. dLoRA can
+  consume real PEFT adapters through the local compatibility layer, and
+  `migration_type=1` completed `4000/4000` on the 500-adapter true-remote
+  workload. This is not the official dLoRA result row because upstream
+  `migration_type=1` is RR/dispatch-only; the fair dLoRA row still requires
+  `migration_type=3` and the 7B full replay.
 - `gates/loquetier/`: Loquetier local-adaptation patch, compact gate outputs,
   and real-adapter evidence. Loquetier currently passes Llama-3.2 3B through
   256 adapters / 1024 filtered requests and Llama-2 7B through 128 adapters /
@@ -63,10 +66,13 @@ requests with no replay failures and no `trace_expected` token fallback. They
 should be labeled `ServerlessLLM-new` and kept separate from the older
 `ServerlessLLM` baseline.
 
-dLoRA, Loquetier, AIBrix, HydraServe, Medusa, and FaaScale/LambdaScale are gate-only
-evidence on this machine. Do not promote them to formal rows unless their
-runtime and scale requirements are satisfied and the closed true-remote LoRA
-workload can be replayed into `e2e_v3` without changing workload variables.
+dLoRA, Loquetier, AIBrix, HydraServe, Medusa, and FaaScale/LambdaScale are not
+formal main rows in this bundle. dLoRA now has one completed dispatch-only full
+replay, but it remains appendix/ablation evidence until upstream
+`migration_type=3` passes. Do not promote any of these systems to formal rows
+unless their runtime and scale requirements are satisfied and the closed
+true-remote LoRA workload can be replayed into `e2e_v3` without changing
+workload variables.
 
 The old Llama-2 7B first run is superseded by
 `20260518_serverlessllm_new_remote_v1_clean7b` because that rerun had no
