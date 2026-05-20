@@ -163,10 +163,18 @@ Formal blocker:
   Ray killed a worker because host memory reached `124.16GB / 125.38GB` at the
   `0.99` node-memory threshold. This is a wrapper/runtime memory-envelope gate
   at default `swap_space_gb=8`, not a CUDA OOM and not a measured replay result.
+- The `swap_space_gb=2` 4-GPU rerun also did not reach HTTP readiness. It
+  reduced the dLoRA CPU KV cache envelope but still hit severe host-memory/swap
+  pressure because Ray's default object store reserved about `38.6GB` and four
+  workers loaded model/adapter state concurrently. The next wrapper-only gate
+  pre-starts Ray with bounded object-store memory and connects via
+  `RAY_ADDRESS=auto`.
 - The dLoRA wrapper now writes `max_num_seqs`, `max_num_batched_tokens`,
   `gpu_memory_utilization`, `gpu_capacity`, and `swap_space_gb` into
   deploy/manifest metadata and launch logs so future envelope sweeps are
-  auditable. It also fixes `MANIFEST.replayed_requests`.
+  auditable. It also fixes `MANIFEST.replayed_requests`, and records optional
+  `ray_object_store_memory_bytes` / `ray_num_cpus` when the bounded-Ray path is
+  enabled.
 - Do not enter dLoRA into formal tables until a no-dummy, no-`trace_expected`,
   full 3B run with upstream `migration_type=3` and a full 7B run pass without
   rewriting dLoRA scheduling or migration. Before that full replay, run short

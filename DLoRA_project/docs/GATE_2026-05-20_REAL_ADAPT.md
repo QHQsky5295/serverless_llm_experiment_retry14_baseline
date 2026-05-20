@@ -378,3 +378,54 @@ Next fair step: rerun the same 4-GPU 128-request true-remote gate with
 `max_num_batched_tokens=1024`, and `gpu_memory_utilization=0.92`. Only if that
 still fails should we consider Ray memory-monitor changes, because disabling
 the monitor would hide the host-memory pressure rather than reducing it.
+
+## Official Period-Migration 4-GPU `swap_space_gb=2` Startup Memory Gate
+
+The reduced dLoRA CPU KV swap gate also closed before replay:
+
+```text
+queue: 20260521_dlora_remote_mig3_gate128_g4u92_s4_swap2_v1
+migration_type: 3
+routing_policy: dlora_period_mig
+num_groups: 4
+gpu_ids: 0,1,2,3
+gpu_memory_utilization: 0.92
+max_num_seqs: 4
+max_num_batched_tokens: 1024
+swap_space_gb: 2
+planned_replayed_requests: 128
+actual_replayed_requests: 0
+```
+
+Validation:
+
+- Remote materialization completed again: `500/500` adapters, elapsed
+  `321742.148 ms`.
+- The HTTP server never became ready, so no replay requests were issued.
+- This is not CUDA GPU OOM. During startup GPUs reached only about
+  `7.4GB/GPU`, then were released.
+- Host memory entered severe pressure: observed available memory fell to about
+  `1.1GiB`, swap used rose to about `17GiB`, and Ray's default object store was
+  `38571159552` bytes.
+- Server log evidence: workers failed to connect to GCS, Ray reported one
+  worker killed due to memory pressure, and `EngineManager` failed with
+  `ActorUnavailableError`.
+
+Root cause refinement: lowering dLoRA `--swap-space` fixed only one component
+of the 4-group startup envelope. The 4-group path still starts four vLLM/Ray
+engines concurrently, while Ray's default local object store reserves a large
+shared-memory segment and workers load model/adapter state. That combination
+still exhausts the host-memory headroom before readiness.
+
+Harness update: the wrapper now supports a bounded Ray pre-start path through
+`DLORA_RAY_OBJECT_STORE_MEMORY_BYTES` and connects dLoRA with `RAY_ADDRESS=auto`.
+It records `ray_object_store_memory_bytes` and `ray_num_cpus` in deploy JSON
+and MANIFEST. This is wrapper/env control only; no dLoRA scheduling, migration,
+or adapter-orchestration code is changed.
+
+Next fair step: rerun the same 4-GPU gate with `DLORA_SWAP_SPACE_GB=2` and
+`DLORA_RAY_OBJECT_STORE_MEMORY_BYTES=8589934592` before giving up on the
+4-group topology. If this still fails before service readiness, the fair
+conclusion is that 4-group dLoRA is not feasible on this 125GB host without
+core memory-layout changes, and the best valid 2-GPU envelope should be used
+for the next full replay candidate.

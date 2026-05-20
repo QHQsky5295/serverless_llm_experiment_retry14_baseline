@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "system": "dLoRA",
+  "date": "2026-05-21",
+  "queue_id": "20260521_dlora_remote_mig3_gate128_g4u92_s4_swap2_v1",
+  "upstream_commit": "75f1c439446fe194b1df8a24982ef9067841fab5",
+  "workload": {
+    "model": "Llama-3.2-3B-Instruct",
+    "trace": "llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1",
+    "total_trace_requests": 4000,
+    "planned_replayed_requests": 128,
+    "actual_replayed_requests": 0,
+    "selected_adapters": 500,
+    "remote_endpoint": "http://192.168.4.174:18080",
+    "metric_schema_version": "e2e_v3"
+  },
+  "runtime_config": {
+    "migration_type": 3,
+    "routing_policy": "dlora_period_mig",
+    "num_groups": 4,
+    "tensor_parallel_size": 1,
+    "gpu_ids": [
+      "0",
+      "1",
+      "2",
+      "3"
+    ],
+    "gpu_memory_utilization": 0.92,
+    "max_num_seqs": 4,
+    "max_num_batched_tokens": 1024,
+    "gpu_capacity": 8,
+    "swap_space_gb": 2,
+    "ray_memory_usage_threshold": 0.99,
+    "ray_object_store_memory_bytes": "default"
+  },
+  "remote_materialization": {
+    "completed": true,
+    "materialized_adapters": 500,
+    "expected_adapters": 500,
+    "elapsed_ms": 321742.148,
+    "output_subset": "/home/qhq/serverless_llm_baselines/results/paper_experiments/15_new_serverless_baselines_remote_v1/20260521_dlora_remote_mig3_gate128_g4u92_s4_swap2_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora_remote_adapter_subset.json"
+  },
+  "failure": {
+    "phase": "server_startup_before_http_ready",
+    "server_ready": false,
+    "replay_launched": false,
+    "error_class": "ray_host_memory_pressure_actor_unavailable",
+    "is_cuda_gpu_oom": false,
+    "is_replay_failure": false,
+    "log": "/home/qhq/serverless_llm_baselines/results/logs/new_serverless_baselines_remote_v1/dlora/formal/20260521_dlora_remote_mig3_gate128_g4u92_s4_swap2_v1/llama32_3b_server.log",
+    "evidence_lines": {
+      "gcs_disconnect_start": 70,
+      "raylet_memory_pressure_line": 73,
+      "worker_exit_detail_lines": [
+        76,
+        77
+      ],
+      "traceback_start": 78,
+      "actor_unavailable_line": 95,
+      "failed_command_line": 105
+    },
+    "observer_snapshot_during_startup": {
+      "gpu_memory_mib_per_gpu": [
+        7441,
+        7437,
+        7441,
+        7439
+      ],
+      "mem_available_gib_min_observed": 1.1,
+      "swap_used_gib_max_observed": 17.0,
+      "ray_default_object_store_memory_bytes_observed": 38571159552,
+      "largest_ray_worker_rss_gb_observed": [
+        21.5,
+        20.6,
+        11.3,
+        2.5
+      ]
+    }
+  },
+  "root_cause": {
+    "primary": "Reducing dLoRA --swap-space from 8GB to 2GB was not sufficient for the 4-group startup envelope. The run still entered severe host-memory pressure before HTTP readiness, Ray/GCS connectivity broke, and Ray reported a worker killed due to memory pressure.",
+    "not_primary": [
+      "Not a CUDA GPU OOM: the GPUs loaded only about 7.4GB each before the failure and were released afterward.",
+      "Not a remote materialization issue: all 500 adapters were fetched before server launch.",
+      "Not a measured dLoRA scheduling result: no replay request was issued."
+    ],
+    "mechanism": "The 4-group dLoRA topology starts four vLLM/Ray engines at once. Even with swap_space_gb=2, Ray's default object store reserved about 38.6GB and workers concurrently loaded model/adapter state, pushing the host into heavy shared-memory/swap pressure before readiness.",
+    "next_fix_scope": "Wrapper/env only: pre-start Ray with a bounded object store and connect dLoRA via RAY_ADDRESS=auto, while recording the Ray object-store envelope in deploy metadata and MANIFEST."
+  },
+  "decision": {
+    "formal_table_ready": false,
+    "record_as_system_failure": false,
+    "reason": "This is another closed startup memory-envelope gate. It shows that dLoRA's 4-GPU envelope needs Ray object-store control in addition to dLoRA swap-space control before performance can be judged.",
+    "next_fair_steps": [
+      "Rerun the same 4-GPU/128-request true-remote gate with DLORA_SWAP_SPACE_GB=2 and a bounded Ray object store, e.g. DLORA_RAY_OBJECT_STORE_MEMORY_BYTES=8589934592.",
+      "Keep dLoRA migration_type=3, max_num_seqs=4, max_num_batched_tokens=1024, gpu_memory_utilization=0.92, and 500 real remote adapters.",
+      "If the bounded-object-store gate still fails before readiness, treat 4-group dLoRA on this 125GB host as infeasible without core memory-layout changes and use the best valid 2-GPU envelope for the next full replay candidate."
+    ]
+  }
+}

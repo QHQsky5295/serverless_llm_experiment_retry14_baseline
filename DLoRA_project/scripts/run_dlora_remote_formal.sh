@@ -106,6 +106,7 @@ write_deploy_json() {
     "$gpu_memory_utilization" "$max_num_seqs" "$max_num_batched_tokens" "$gpu_capacity" \
     "$migration_type" "$routing_policy" "$swap_space_gb" <<'PY'
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -114,6 +115,8 @@ tp = int(sys.argv[5])
 gpu_ids = [x for x in sys.argv[6].split(",") if x != ""]
 max_num_seqs = int(sys.argv[8])
 gpu_capacity = int(sys.argv[10])
+ray_object_store = os.environ.get("DLORA_RAY_OBJECT_STORE_MEMORY_BYTES")
+ray_num_cpus = os.environ.get("DLORA_RAY_NUM_CPUS")
 payload = {
     "system": "dlora",
     "model_profile": sys.argv[2],
@@ -130,12 +133,16 @@ payload = {
     "runtime_concurrency_cap": max_num_seqs,
     "max_loras": gpu_capacity,
     "swap_space_gb": int(sys.argv[13]),
+    "ray_object_store_memory_bytes": int(ray_object_store) if ray_object_store else None,
+    "ray_num_cpus": int(ray_num_cpus) if ray_num_cpus else None,
     "backend_config": {
         "max_num_seqs": max_num_seqs,
         "runtime_concurrency_cap": max_num_seqs,
         "max_num_batched_tokens": int(sys.argv[9]),
         "gpu_memory_utilization": float(sys.argv[7]),
         "swap_space_gb": int(sys.argv[13]),
+        "ray_object_store_memory_bytes": int(ray_object_store) if ray_object_store else None,
+        "ray_num_cpus": int(ray_num_cpus) if ray_num_cpus else None,
         "max_loras": gpu_capacity,
         "dlora_gpu_capacity": gpu_capacity,
         "dlora_num_models": 500,
@@ -183,10 +190,13 @@ write_manifest() {
     "$gpu_capacity" "$swap_space_gb" "$QUEUE_ID" "$DLORA_REPO" "$DLORA_ENV" "$DLORA_MIGRATION_TYPE" \
     "$DLORA_ROUTING_POLICY" "${DLORA_MAX_REQUESTS:-}" <<'PY'
 import json
+import os
 import sys
 from pathlib import Path
 
 max_requests_gate = int(sys.argv[32]) if sys.argv[32] else None
+ray_object_store = os.environ.get("DLORA_RAY_OBJECT_STORE_MEMORY_BYTES")
+ray_num_cpus = os.environ.get("DLORA_RAY_NUM_CPUS")
 payload = {
     "metric_schema_version": "e2e_v3",
     "system": "dlora",
@@ -222,6 +232,8 @@ payload = {
         "max_num_batched_tokens": int(sys.argv[24]),
         "gpu_capacity": int(sys.argv[25]),
         "swap_space_gb": int(sys.argv[26]),
+        "ray_object_store_memory_bytes": int(ray_object_store) if ray_object_store else None,
+        "ray_num_cpus": int(ray_num_cpus) if ray_num_cpus else None,
     },
     "dlora_repo": sys.argv[28],
     "dlora_env": sys.argv[29],
@@ -298,7 +310,7 @@ run_one() {
   echo "      endpoint=${endpoint}"
   echo "      output_round=${round_dir}"
   echo "      dlora_topology=num_groups${num_groups}_tp${tensor_parallel}_gpus${gpu_ids}_${DLORA_MIGRATION_LABEL}"
-  echo "      runtime_cfg=gpu_memory_utilization=${gpu_memory_utilization} max_num_seqs=${max_num_seqs} max_num_batched_tokens=${max_num_batched_tokens} gpu_capacity=${DLORA_GPU_CAPACITY:-8} swap_space_gb=${DLORA_SWAP_SPACE_GB:-8}"
+  echo "      runtime_cfg=gpu_memory_utilization=${gpu_memory_utilization} max_num_seqs=${max_num_seqs} max_num_batched_tokens=${max_num_batched_tokens} gpu_capacity=${DLORA_GPU_CAPACITY:-8} swap_space_gb=${DLORA_SWAP_SPACE_GB:-8} ray_object_store_memory_bytes=${DLORA_RAY_OBJECT_STORE_MEMORY_BYTES:-default} ray_num_cpus=${DLORA_RAY_NUM_CPUS:-default}"
 
   local pre_t0 pre_t1 predeploy_sec
   pre_t0="$(date +%s.%N)"
@@ -330,13 +342,28 @@ PY
     "${DLORA_ROUTING_POLICY}" "${DLORA_SWAP_SPACE_GB:-8}"
 
   env PYTHONNOUSERSITE=1 "${CONDA_BIN}" run -n "${DLORA_ENV}" ray stop --force >/dev/null 2>&1 || true
+  local ray_env_args=()
+  if [[ -n "${DLORA_RAY_OBJECT_STORE_MEMORY_BYTES:-}" ]]; then
+    local ray_gpu_count
+    IFS=',' read -r -a ray_gpu_array <<< "${gpu_ids}"
+    ray_gpu_count="${#ray_gpu_array[@]}"
+    echo "      ray_prestart=object_store_memory_bytes=${DLORA_RAY_OBJECT_STORE_MEMORY_BYTES} num_gpus=${ray_gpu_count} num_cpus=${DLORA_RAY_NUM_CPUS:-16}"
+    env PYTHONNOUSERSITE=1 "${CONDA_BIN}" run --no-capture-output -n "${DLORA_ENV}" \
+      ray start --head \
+        --num-gpus "${ray_gpu_count}" \
+        --num-cpus "${DLORA_RAY_NUM_CPUS:-16}" \
+        --object-store-memory "${DLORA_RAY_OBJECT_STORE_MEMORY_BYTES}" \
+        --include-dashboard=false \
+        --disable-usage-stats
+    ray_env_args=(RAY_ADDRESS=auto)
+  fi
 
   local server_pid startup_t0 startup_t1 startup_sec
   startup_t0="$(date +%s.%N)"
   (
     cd "${DLORA_REPO}"
     env PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 CUDA_VISIBLE_DEVICES="${gpu_ids}" \
-      RAY_DEDUP_LOGS=0 TOKENIZERS_PARALLELISM=true \
+      "${ray_env_args[@]}" RAY_DEDUP_LOGS=0 TOKENIZERS_PARALLELISM=true \
       "${CONDA_BIN}" run --no-capture-output -n "${DLORA_ENV}" \
         python -m vllm.entrypoints.api_server \
           --model "${model_path}" \
