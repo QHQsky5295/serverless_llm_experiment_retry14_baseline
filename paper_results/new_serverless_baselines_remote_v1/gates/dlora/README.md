@@ -54,6 +54,11 @@ Current state:
   `# GPU blocks: 0, # CPU blocks: 1024`, so the next wrapper-only 7B lever is
   lowering dLoRA GPU adapter capacity while keeping 500 remote adapters in the
   CPU pool.
+- Reducing `gpu_capacity` to `2` under the same G1/TP4,
+  `gpu_memory_utilization=0.95`, 500-adapter envelope still produced
+  `# GPU blocks: 0, # CPU blocks: 1024`. Remote materialization, real adapter
+  loading, and placement completed, so the remaining wrapper-only lever is the
+  minimal `gpu_capacity=1` envelope with `gpu_memory_utilization=0.99`.
 - The full dLoRA paper row remains pending until the matching Llama-2 7B
   true-remote full replay closes under an auditable wrapper-only envelope.
 
@@ -91,3 +96,5 @@ Files:
 - `formal_period_mig_gate128_7b_g1tp4_u95_gpu_blocks0_2026-05-21.json`:
   compact record of the 7B G1/TP4 high-GPU-utilization zero-GPU-cache-block
   gate.
+- `formal_period_mig_gate128_7b_g1tp4_u95_cap2_gpu_blocks0_2026-05-21.json`:
+  compact record of the 7B G1/TP4 `gpu_capacity=2` zero-GPU-cache-block gate.
