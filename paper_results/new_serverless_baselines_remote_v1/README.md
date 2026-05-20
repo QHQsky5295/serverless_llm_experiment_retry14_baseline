@@ -8,7 +8,8 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
 ## Scope
 
 - Formal candidate system: `ServerlessLLM-new`
-- Gate-only systems: `dLoRA`, `Loquetier`, `Medusa`, `FaaScale/LambdaScale`
+- Gate-only systems: `dLoRA`, `Loquetier`, `AIBrix`, `Medusa`,
+  `FaaScale/LambdaScale`
 - Upstream commit: `9f50241baa5386e06a9321c51f19a9ef5f964c2b`
 - Harness: `/home/qhq/serverless_llm_baselines`
 - Result section:
@@ -41,6 +42,12 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
   256 filtered requests, but is not a formal result row because the 3B/500
   adapter preflight OOMs while materializing mixed-LoRA adapter weights on a
   24GB RTX 3090.
+- `gates/aibrix/`: AIBrix build and runtime-LoRA component gate evidence.
+  AIBrix controller-manager, gateway-plugins, and Python runtime build/import
+  locally, and the runtime sidecar can load/unload a real Llama-3.2 3B LoRA
+  adapter through vLLM's dynamic LoRA API. It is not a formal result row because
+  full AIBrix requires a Kubernetes GPU control plane that this machine cannot
+  run from the current user account.
 - `SHA256SUMS`: checksums for the bundle.
 
 ## Inclusion Decision
@@ -51,10 +58,10 @@ requests with no replay failures and no `trace_expected` token fallback. They
 should be labeled `ServerlessLLM-new` and kept separate from the older
 `ServerlessLLM` baseline.
 
-dLoRA, Loquetier, Medusa, and FaaScale/LambdaScale are gate-only evidence on
-this machine. Do not promote them to formal rows unless their runtime and scale
-requirements are satisfied and the closed true-remote LoRA workload can be
-replayed into `e2e_v3` without changing workload variables.
+dLoRA, Loquetier, AIBrix, Medusa, and FaaScale/LambdaScale are gate-only
+evidence on this machine. Do not promote them to formal rows unless their
+runtime and scale requirements are satisfied and the closed true-remote LoRA
+workload can be replayed into `e2e_v3` without changing workload variables.
 
 The old Llama-2 7B first run is superseded by
 `20260518_serverlessllm_new_remote_v1_clean7b` because that rerun had no

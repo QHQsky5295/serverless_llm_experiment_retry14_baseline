@@ -52,7 +52,18 @@ April handoff snapshots have been removed from the active documentation set.
   then passed after lowering `gpu_memory_utilization` to `0.57`. A real-weight
   Llama-2 7B filtered replay gate also passes at 2 adapters and 16 requests.
   dLoRA is still not a formal table row until the same path scales to full
-  4000-request/500-adapter 3B and 7B runs.
+  4000-request/500-adapter 3B and 7B runs. Loquetier was then adapted through
+  its official SMLM/mixed-LoRA path and passes real-adapter gates through
+  Llama-3.2 3B 256 adapters / 1024 filtered requests and Llama-2 7B 128
+  adapters / 256 filtered requests, but its 3B/500-adapter preflight OOMs on a
+  single 24GB RTX 3090 while materializing adapter weights. AIBrix v0.6.0 was
+  gated next: controller-manager, gateway-plugins, and Python runtime build or
+  import in isolated environments, and the AIBrix runtime sidecar successfully
+  loads/unloads a real Llama-3.2 3B LoRA adapter into local vLLM. AIBrix still
+  cannot enter formal tables on this machine because the full system requires a
+  Kubernetes GPU control plane, while `kubectl`/`helm` are root-only, Docker
+  socket access is denied, `kind` is absent, and passwordless sudo is
+  unavailable.
 - True-remote full-figure queue checkpoint on 2026-05-15 12:05 CST:
   the Llama-2-7B adapter-pool `a100` and `a200` five-system rounds are
   complete and valid. `a200` keeps the same system ordering as the frozen

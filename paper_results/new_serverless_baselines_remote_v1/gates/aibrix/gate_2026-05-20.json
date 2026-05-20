@@ -1,0 +1,58 @@
+{
+  "system": "AIBrix",
+  "date": "2026-05-20",
+  "status": "build_runtime_lora_component_gate_closed_not_formal",
+  "upstream": {
+    "repo": "https://github.com/vllm-project/aibrix",
+    "tag": "v0.6.0",
+    "commit": "52405d78c63c68df5be9e8bdc5e21ccd6c4abde2"
+  },
+  "local": {
+    "source": "vendor_new_baselines/AIBrix_v0.6.0_20260520",
+    "go_env": "/home/qhq/anaconda3/envs/aibrix_20260520",
+    "python_env": "/home/qhq/anaconda3/envs/aibrix_py_20260520",
+    "vllm_env": "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518"
+  },
+  "build": {
+    "go_version": "go1.22.6 linux/amd64",
+    "controller_manager": {
+      "result": "pass",
+      "sha256": "ea21af7204d43c3e9e95e1461d50b02f37ed10dc765786b632f2c6ec4540c488"
+    },
+    "gateway_plugins_nozmq": {
+      "result": "pass"
+    },
+    "gateway_plugins_zmq": {
+      "result": "pass_after_local_user_space_zeromq_libs",
+      "sha256": "72a94916b4bbc60c26edeab797ee168dbbb0f3439101877877332ed8c37f0ef2"
+    }
+  },
+  "runtime_lora_component_gate": {
+    "scope": "AIBrix runtime sidecar plus local vLLM dynamic LoRA API; not full Kubernetes AIBrix",
+    "base_model": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+    "adapter": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/code_lora",
+    "vllm_version": "0.10.2",
+    "gpu": 3,
+    "runtime_ready_http": 200,
+    "runtime_load_http": 200,
+    "completion_http": 200,
+    "runtime_unload_http": 200,
+    "completion_usage": {
+      "prompt_tokens": 5,
+      "completion_tokens": 4,
+      "total_tokens": 9
+    },
+    "passed": true,
+    "smoke_json_sha256": "e144947ffc01bbaa6f9b0da6ecbee62b7dd2edd46a3a959aa953d4ed63240c80"
+  },
+  "formal_blocker": {
+    "reason": "Full AIBrix needs Kubernetes CRDs/controller/gateway and GPU vLLM pods. Current user cannot run or create that platform on this machine.",
+    "kubectl": "/usr/local/bin/kubectl is root-only",
+    "helm": "/usr/local/bin/helm is root-only",
+    "docker": "permission denied on /var/run/docker.sock",
+    "kind": "not installed",
+    "sudo": "password required",
+    "classification": "platform_runtime_blocker_not_adapter_api_blocker"
+  },
+  "paper_recommendation": "appendix_gate_evidence_only_until_gpu_kubernetes_runtime_is_available"
+}
