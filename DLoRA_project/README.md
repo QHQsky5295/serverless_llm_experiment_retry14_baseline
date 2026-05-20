@@ -18,9 +18,9 @@ adaptation adds a narrow real-PEFT adapter loader and replay compatibility
 layer, and now passes a real-weight Llama-3.2 3B smoke gate using the closed
 true-remote trace and real adapter files. It has also passed 16-adapter and
 64-adapter filtered Llama-3.2 3B replay gates without rewriting dLoRA's core
-scheduling or migration logic. It still cannot enter the formal comparison
-table until the same path is scaled to the full 4000-request, 500-adapter 3B
-and 7B runs.
+scheduling or migration logic, plus a real-weight Llama-2 7B filtered replay
+gate at 2 adapters. It still cannot enter the formal comparison table until the
+same path is scaled to the full 4000-request, 500-adapter 3B and 7B runs.
 
 Tracked evidence:
 

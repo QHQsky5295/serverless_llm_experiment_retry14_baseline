@@ -57,6 +57,11 @@ Replay gates:
   The passing launch kept dLoRA scheduling and migration unchanged, and only
   adapted the local hardware budget to `gpu_memory_utilization=0.60` with
   profiling batch `seqs=2/tokens=256`.
+- Real base weights plus first 2 closed adapters, Llama-2 7B, 16 filtered
+  closed-trace requests: `ok=16/16`, no `trace_expected` token fallback. The
+  filtered gate touched both `finance_lora` and `medical_lora` and used only a
+  local 3090 profiling-budget adaptation (`gpu_memory_utilization=0.60`,
+  `seqs=1/tokens=256`).
 
 The real-weight server command used:
 
@@ -78,7 +83,8 @@ script, and an adapter value map from closed adapter id to dLoRA `model_id`.
 
 dLoRA is no longer blocked at "cannot load real adapters" for the small 3B gate.
 It also passes 16-adapter and 64-adapter filtered 3B replay gates. It still
-cannot enter the formal table until the same adaptation is scaled to the formal
+passes a real-weight 7B filtered replay gate at 2 adapters. It still cannot
+enter the formal table until the same adaptation is scaled to the formal
 workload:
 
 - Llama-3.2 3B, 4000 requests, 500 adapters;
