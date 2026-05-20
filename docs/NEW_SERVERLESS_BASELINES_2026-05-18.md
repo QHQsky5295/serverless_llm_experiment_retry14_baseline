@@ -169,6 +169,18 @@ Formal blocker:
   workers loaded model/adapter state concurrently. The next wrapper-only gate
   pre-starts Ray with bounded object-store memory and connects via
   `RAY_ADDRESS=auto`.
+- The bounded-Ray object-store rerun also did not reach HTTP readiness. It
+  confirmed the wrapper-level Ray fix was active (`object_store_memory` bounded
+  to `8GiB` and dLoRA connected through `RAY_ADDRESS=auto`), but Ray still
+  killed a worker before replay. The root cause is now the DP4/TP1 dLoRA
+  startup envelope itself: four independent vLLM/Ray engines duplicate model
+  and adapter-runtime state on a 125GB host. This is not CUDA OOM, not remote
+  materialization failure, and not a measured replay result.
+- The next fair optimization is topology-level and still wrapper-only: keep the
+  4-GPU budget, upstream `migration_type=3`, 500 real remote adapters, and the
+  same 128-request gate, but try `num_groups=2, tensor_parallel_size=2` to
+  reduce dLoRA engine duplication without changing scheduling or migration
+  code.
 - The dLoRA wrapper now writes `max_num_seqs`, `max_num_batched_tokens`,
   `gpu_memory_utilization`, `gpu_capacity`, and `swap_space_gb` into
   deploy/manifest metadata and launch logs so future envelope sweeps are

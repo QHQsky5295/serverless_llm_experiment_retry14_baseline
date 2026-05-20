@@ -44,8 +44,13 @@ memory while using `num_groups=4`, `max_num_seqs=4`, and the wrapper default
 remote-materialization failure. The fair next attempt is the same 4-GPU gate
 with a lower dLoRA/vLLM CPU KV swap envelope before considering more invasive
 runtime changes. The `swap_space_gb=2` attempt also failed before replay after
-heavy host-memory/swap pressure; Ray's default object store was about 38.6GB,
-so the next wrapper-only gate bounds Ray object-store memory explicitly.
+heavy host-memory/swap pressure; Ray's default object store was about 38.6GB.
+The bounded-object-store rerun connected to the pre-started Ray cluster, so the
+object-store control itself was active, but the DP4/TP1 topology still failed
+before HTTP readiness because four dLoRA/vLLM engines duplicated startup state
+and Ray killed a worker under host-memory pressure. The next wrapper-only gate
+should still use all four GPUs while reducing engine duplication with
+`num_groups=2, tensor_parallel_size=2`.
 
 Tracked evidence:
 
@@ -65,6 +70,9 @@ Tracked evidence:
   `evidence/formal_period_mig_gate128_g4_s4_hostoom_3b_2026-05-21.json`
 - official period-migration 3B 4-GPU `swap_space_gb=2` startup memory gate:
   `evidence/formal_period_mig_gate128_g4_s4_swap2_hostoom_3b_2026-05-21.json`
+- official period-migration 3B 4-GPU bounded-Ray object-store startup memory
+  gate:
+  `evidence/formal_period_mig_gate128_g4_s4_swap2_obj8_hostoom_3b_2026-05-21.json`
 - real-adapter compatibility patch:
   `patches/real_peft_llama32_e2e_compat_20260520.patch`
 - formal 500-adapter runtime compatibility patch:
