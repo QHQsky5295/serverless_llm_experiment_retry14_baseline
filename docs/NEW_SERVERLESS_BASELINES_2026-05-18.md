@@ -84,7 +84,7 @@ without changing the closed true-remote workload variables.
 ## dLoRA Gate
 
 Status: real-adapter scale-gate evidence, one 3B dispatch-only full replay,
-and two official period-migration short gates closed through 2026-05-21; not
+and three official period-migration short gates closed through 2026-05-21; not
 yet adopted for formal table/figures as the official dLoRA row.
 
 - Upstream: `https://github.com/LLMServe/dLoRA-artifact`
@@ -100,6 +100,8 @@ yet adopted for formal table/figures as the official dLoRA row.
   `DLoRA_project/evidence/formal_period_mig_gate128_3b_2026-05-21.json`
 - Official period-migration 3B `max_num_seqs=2` short gate:
   `DLoRA_project/evidence/formal_period_mig_gate128_s2_3b_2026-05-21.json`
+- Official period-migration 3B `max_num_seqs=4` short gate:
+  `DLoRA_project/evidence/formal_period_mig_gate128_s4_3b_2026-05-21.json`
 - Compatibility patch: `DLoRA_project/patches/modern_ray_import_compat.patch`
 - Real-adapter patch:
   `DLoRA_project/patches/real_peft_llama32_e2e_compat_20260520.patch`
@@ -151,6 +153,11 @@ Formal blocker:
   in-replay OOM). It improves the tail (`TTFT_e2e` avg 24674.56 ms, p95
   59104.07 ms, p99 67024.53 ms, 81.885 tok/s), but service-side engine wait
   still dominates execution. This is not yet the best-effort formal row.
+- A third official `migration_type=3` 2-GPU gate with `max_num_seqs=4` also
+  passes (`ok=128/128`, no token fallback, no in-replay OOM). It is currently
+  the best 2-GPU envelope (`TTFT_e2e` avg 14517.67 ms, p95 26510.79 ms, p99
+  28836.86 ms, 92.127 tok/s), reducing engine wait without touching dLoRA
+  scheduling or migration.
 - The dLoRA wrapper now writes `max_num_seqs`, `max_num_batched_tokens`,
   `gpu_memory_utilization`, and `gpu_capacity` into deploy/manifest metadata
   and launch logs so future envelope sweeps are auditable.

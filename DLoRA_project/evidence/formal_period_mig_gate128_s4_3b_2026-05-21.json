@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "system": "dLoRA",
+  "date": "2026-05-21",
+  "queue_id": "20260521_dlora_remote_mig3_gate128_g2u92_s4_v1",
+  "upstream_commit": "75f1c439446fe194b1df8a24982ef9067841fab5",
+  "workload": {
+    "model": "Llama-3.2-3B-Instruct",
+    "trace": "llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1",
+    "total_trace_requests": 4000,
+    "replayed_requests": 128,
+    "selected_adapters": 500,
+    "remote_endpoint": "http://192.168.4.174:18080",
+    "metric_schema_version": "e2e_v3"
+  },
+  "runtime_config": {
+    "migration_type": 3,
+    "routing_policy": "dlora_period_mig",
+    "num_groups": 2,
+    "tensor_parallel_size": 1,
+    "gpu_ids": [
+      "0",
+      "1"
+    ],
+    "gpu_memory_utilization": 0.92,
+    "max_num_seqs": 4,
+    "max_num_batched_tokens": 1024,
+    "gpu_capacity": 8
+  },
+  "validation": {
+    "ok": 128,
+    "total": 128,
+    "failed": 0,
+    "trace_expected_token_fallback": false,
+    "in_replay_oom": false,
+    "shutdown_note": "Raylet/AsyncEngineDeadError lines appear after replay and summary completion while the wrapper stops Ray; treat as shutdown noise, not a replay failure."
+  },
+  "metrics": {
+    "ttft_e2e_avg_ms": 14517.6744,
+    "ttft_e2e_p50_ms": 15082.0194,
+    "ttft_e2e_p95_ms": 26510.7888,
+    "ttft_e2e_p99_ms": 28836.8616,
+    "ttft_service_avg_ms": 14453.8256,
+    "ttft_service_p95_ms": 26490.9934,
+    "dispatch_admission_wait_avg_ms": 63.8488,
+    "dispatch_admission_wait_p95_ms": 27.7527,
+    "e2e_avg_ms": 14517.9867,
+    "throughput_rps": 0.530301,
+    "throughput_tok_per_s": 92.127445,
+    "slo_attainment": 0.148438,
+    "cost_per_request_usd": 0.01290999,
+    "ce": 5.335413,
+    "infra_gpu_seconds_total": 1982.974377,
+    "goodput_tokens_per_gpu_second": 0.661902
+  },
+  "comparison_to_lower_seq_gates": {
+    "max_num_seqs_1": {
+      "queue_id": "20260521_dlora_remote_mig3_gate128_g2u92_v1",
+      "ttft_e2e_avg_ms": 29544.2874,
+      "ttft_e2e_p95_ms": 116423.0345,
+      "ttft_e2e_p99_ms": 180540.6465,
+      "throughput_tok_per_s": 78.199428
+    },
+    "max_num_seqs_2": {
+      "queue_id": "20260521_dlora_remote_mig3_gate128_g2u92_s2_v1",
+      "ttft_e2e_avg_ms": 24674.5602,
+      "ttft_e2e_p95_ms": 59104.0716,
+      "ttft_e2e_p99_ms": 67024.5306,
+      "throughput_tok_per_s": 81.884822
+    },
+    "interpretation": "max_num_seqs=4 is the best 2-GPU envelope observed so far. It lowers service-side queue wait and improves latency/tok/s without changing dLoRA scheduling or migration."
+  },
+  "server_log_root_cause": {
+    "s4_engine_wait_still_dominates_less": true,
+    "s4_engine0": {
+      "requests": 63,
+      "wait_avg_s": 2.757,
+      "wait_p95_s": 7.282,
+      "exec_avg_s": 8.741,
+      "exec_p95_s": 16.014
+    },
+    "s4_engine1": {
+      "requests": 65,
+      "wait_avg_s": 7.781,
+      "wait_p95_s": 14.646,
+      "exec_avg_s": 9.519,
+      "exec_p95_s": 15.796
+    },
+    "adapter_adjustment": {
+      "count": 32,
+      "avg_s": 0.052113,
+      "p95_s": 0.033535
+    }
+  },
+  "decision": {
+    "formal_table_ready": false,
+    "reason": "The gate is valid and materially better than max_num_seqs=1/2, but it is still only a 128-request gate on 2 GPUs. Continue with a 4-GPU topology gate before choosing the full 4000-request official replay envelope.",
+    "next_fair_steps": [
+      "Run a 4-GPU num_groups=4 gate using the same 500-adapter/128-request true-remote slice.",
+      "If the 4-GPU gate is stable and better, use it for the full 3B/4000 migration_type=3 replay.",
+      "Then run the corresponding Llama-2 7B official replay gate/full replay."
+    ]
+  }
+}

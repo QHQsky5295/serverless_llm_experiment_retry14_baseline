@@ -277,3 +277,54 @@ is small (`avg 0.019s`, `p95 0.029s`), so the next fair step is not an adapter
 loader rewrite. Continue with wrapper/runtime envelope gates: `max_num_seqs=4`
 if memory permits, then a 4-GPU `num_groups=4` topology before launching a full
 4000-request official replay.
+
+## Official Period-Migration `max_num_seqs=4` Gate
+
+The next 2-GPU envelope gate completed successfully:
+
+```text
+queue: 20260521_dlora_remote_mig3_gate128_g2u92_s4_v1
+label: dlora_llama32_3b_period_mig_remote_formal
+migration_type: 3
+routing_policy: dlora_period_mig
+num_groups: 2
+gpu_ids: 0,1
+gpu_memory_utilization: 0.92
+max_num_seqs: 4
+max_num_batched_tokens: 1024
+replayed_requests: 128
+```
+
+Validation:
+
+- Replay: `ok=128/128`, `fail=0`.
+- Metric schema: `e2e_v3`.
+- Token audit: no `trace_expected` fallback.
+- Error scan: no in-replay CUDA OOM or failed replay.
+- Shutdown note: Raylet/AsyncEngineDeadError messages again appear after replay
+  and summary completion while the wrapper stops Ray; record them as shutdown
+  noise, not as replay failure.
+
+Headline metrics:
+
+| Metric | Value |
+|---|---:|
+| TTFT e2e avg | 14517.67 ms |
+| TTFT e2e p50 | 15082.02 ms |
+| TTFT e2e p95 | 26510.79 ms |
+| TTFT e2e p99 | 28836.86 ms |
+| E2E e2e avg | 14517.99 ms |
+| Throughput | 0.530 rps / 92.127 tok/s |
+| SLO attainment | 0.1484 |
+| Cost/req | 0.0129100 USD |
+| CE | 5.3354 |
+| Infra GPU seconds | 1982.974377 |
+
+Root cause update: `max_num_seqs=4` is the best 2-GPU envelope observed so far.
+It materially reduces the service-side queue wait that dominated the earlier
+gates: `engine0` wait avg drops to `2.76s` and `engine1` wait avg drops to
+`7.78s`, while execution avg rises to about `9s`. This is the expected tradeoff:
+larger batches reduce internal wait at the cost of per-batch execution time.
+The 2-GPU memory envelope is tight but stable at ~23GB/GPU. The next fair step
+is a 4-GPU `num_groups=4` topology gate so dLoRA can use the same 4-GPU budget
+before choosing the full 4000-request official replay configuration.

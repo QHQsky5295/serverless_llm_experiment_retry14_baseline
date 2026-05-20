@@ -32,11 +32,12 @@ Llama-3.2 3B, 500 adapters, first 128 scheduled requests, `ok=128/128`,
 `fail=0`, and no `trace_expected` token fallback. They are not OOMs. The
 post-replay Raylet/AsyncEngineDeadError messages happen during runtime stop.
 The first 2-GPU `max_num_seqs=1` envelope was weak (`TTFT_e2e` avg 29.5s,
-p95 116.4s). A second 2-GPU `max_num_seqs=2` gate is better (`TTFT_e2e` avg
-24.7s, p95 59.1s, 81.9 tok/s), but the server logs still show service-side
-engine wait dominating actual execution. A fair main-table dLoRA candidate
-therefore still requires short no-core-change configuration gates and a full
-upstream `migration_type=3` replay, plus the Llama-2 7B full replay.
+p95 116.4s). `max_num_seqs=2` improved the tail (`TTFT_e2e` avg 24.7s,
+p95 59.1s, 81.9 tok/s), and `max_num_seqs=4` is currently the best 2-GPU
+envelope (`TTFT_e2e` avg 14.5s, p95 26.5s, 92.1 tok/s). The remaining
+latency is still service-side engine wait, so a fair main-table dLoRA
+candidate still requires a 4-GPU topology gate and a full upstream
+`migration_type=3` replay, plus the Llama-2 7B full replay.
 
 Tracked evidence:
 
@@ -50,6 +51,8 @@ Tracked evidence:
   `evidence/formal_period_mig_gate128_3b_2026-05-21.json`
 - official period-migration 3B 128-request `max_num_seqs=2` gate:
   `evidence/formal_period_mig_gate128_s2_3b_2026-05-21.json`
+- official period-migration 3B 128-request `max_num_seqs=4` gate:
+  `evidence/formal_period_mig_gate128_s4_3b_2026-05-21.json`
 - real-adapter compatibility patch:
   `patches/real_peft_llama32_e2e_compat_20260520.patch`
 - formal 500-adapter runtime compatibility patch:
