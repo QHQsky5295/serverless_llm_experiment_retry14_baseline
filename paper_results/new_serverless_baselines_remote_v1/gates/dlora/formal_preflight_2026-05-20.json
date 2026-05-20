@@ -1,0 +1,102 @@
+{
+  "system": "dLoRA",
+  "date": "2026-05-20",
+  "scope": "formal 4000-request/500-adapter preflight after successful 2/16/64/128 adapter gates",
+  "boundary": "hardware/workload adaptation only; no rewrite of dLoRA scheduling, migration, or adapter orchestration",
+  "current_gpu_state": [
+    {
+      "index": 0,
+      "memory_used_mib": 16957,
+      "memory_total_mib": 24576,
+      "utilization_gpu_pct": 0
+    },
+    {
+      "index": 1,
+      "memory_used_mib": 19551,
+      "memory_total_mib": 24576,
+      "utilization_gpu_pct": 0
+    },
+    {
+      "index": 2,
+      "memory_used_mib": 13415,
+      "memory_total_mib": 24576,
+      "utilization_gpu_pct": 0
+    },
+    {
+      "index": 3,
+      "memory_used_mib": 8255,
+      "memory_total_mib": 24576,
+      "utilization_gpu_pct": 0
+    }
+  ],
+  "current_compute_processes": [
+    {
+      "gpu_uuid": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+      "pid": 157107,
+      "process_name": "/app/.venv/bin/python",
+      "used_memory_mib": 16934
+    },
+    {
+      "gpu_uuid": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+      "pid": 157107,
+      "process_name": "/app/.venv/bin/python",
+      "used_memory_mib": 19528
+    },
+    {
+      "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+      "pid": 157107,
+      "process_name": "/app/.venv/bin/python",
+      "used_memory_mib": 13392
+    },
+    {
+      "gpu_uuid": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+      "pid": 157107,
+      "process_name": "/app/.venv/bin/python",
+      "used_memory_mib": 8232
+    }
+  ],
+  "per_adapter_gpu_lora_pool_mib_max_r16_dtype2": {
+    "llama32_3b": {
+      "tp1": 52.5,
+      "tp2": 34.125,
+      "tp4": 24.938
+    },
+    "llama2_7b": {
+      "tp1": 96.25,
+      "tp2": 60.125,
+      "tp4": 42.062
+    }
+  },
+  "observed_scale_gates": {
+    "llama32_3b_limit64_u60_seq2": "passed 256/256",
+    "llama32_3b_limit128_u64_seq1": "failed OOM after 1004 KV blocks; CPU pool loaded",
+    "llama32_3b_limit128_u57_seq1": "passed 512/512 with 39 GPU blocks",
+    "llama2_7b_limit2_u60_seq1": "passed 16/16"
+  },
+  "formal_500_feasibility": {
+    "llama32_3b_tp1_num_groups4_500_adapters_free_gpu_estimate": {
+      "adapters_per_group_ceil": 125,
+      "lora_pool_per_gpu_mib": 6562.5,
+      "assessment": "plausible only if all four RTX 3090 GPUs are free; current external process occupies substantial memory on every GPU, so do not launch now."
+    },
+    "llama32_3b_tp1_single_gpu_500_adapters": {
+      "lora_pool_mib": 26250.0,
+      "assessment": "not feasible on one 24GB RTX 3090 because the LoRA GPU pool alone exceeds device memory before base model and KV cache."
+    },
+    "llama2_7b_tp1_num_groups4_500_adapters_free_gpu_estimate": {
+      "adapters_per_group_ceil": 125,
+      "lora_pool_per_gpu_mib": 12031.2,
+      "assessment": "unlikely with TP1 on 4x24GB because LoRA pool plus real 7B base leaves little or no room for KV cache."
+    },
+    "llama2_7b_tp2_num_groups2_500_adapters_free_gpu_estimate": {
+      "adapters_per_group_ceil": 250,
+      "lora_pool_per_gpu_mib": 15031.2,
+      "assessment": "possible candidate only on four free GPUs with TP2 and two dLoRA groups; this remains unlaunched because current external process occupies all GPUs and killing it is out of scope."
+    }
+  },
+  "decision_now": {
+    "start_formal_long_run_now": false,
+    "reason": "Current machine has an external /app/.venv/bin/python process using 8-19GB on every GPU. dLoRA 500-adapter formal runs require multi-GPU placement to avoid rewriting core scheduling; launching now would either OOM or interfere with existing closed experiment services.",
+    "next_safe_action": "Do not kill external services. Either wait for four free GPUs, or move to the next candidate while retaining dLoRA as passed scale-gate evidence but not formal-table ready."
+  }
+}

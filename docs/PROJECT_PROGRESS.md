@@ -1012,3 +1012,10 @@ New dLoRA real-adapter gate update, 2026-05-20:
   allocation after reserving 1004 KV blocks; `gpu_memory_utilization=0.57` with
   `max_num_seqs=1` and `max_num_batched_tokens=256` passed without changing
   dLoRA core logic.
+- A dLoRA formal 500-adapter preflight is mirrored at
+  `paper_results/new_serverless_baselines_remote_v1/gates/dlora/formal_preflight_2026-05-20.json`.
+  It says not to start a formal long run in the current machine state: an
+  external `/app/.venv/bin/python` process occupies 8-19GB on every GPU, and
+  dLoRA needs multi-GPU placement for 500 adapters without rewriting its core
+  scheduling. Single-GPU 3B/500 is impossible because the LoRA GPU pool alone
+  exceeds a 24GB 3090.
