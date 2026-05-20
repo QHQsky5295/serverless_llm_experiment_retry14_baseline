@@ -39,6 +39,12 @@ Current state:
   `4000/4000` requests with no token fallback, no CUDA OOM, no host OOM, and no
   dLoRA core rewrite. Final metrics: `TTFT_e2e` avg `11162.43 ms`, p95
   `27280.54 ms`, p99 `36419.18 ms`, `115.666 tok/s`, CE `45.5240`.
+- The first Llama-2 7B DP2/TP2 four-GPU gate materialized all `500/500` true
+  remote adapters and used a bounded 8GiB Ray object store, but it failed
+  before HTTP readiness. Ray reported host-memory pressure, GCS aborted, and
+  the object-store debug dump was still `0 / 8.58993GB`. This is a startup
+  topology memory-envelope failure, not CUDA OOM, not remote artifact failure,
+  and not a measured replay result.
 - The full dLoRA paper row remains pending until the matching Llama-2 7B
   true-remote full replay closes under an auditable wrapper-only envelope.
 
@@ -69,3 +75,5 @@ Files:
   of the successful but non-selected four-GPU DP2/TP2 topology gate.
 - `formal_period_mig_full4000_3b_2026-05-21.json`: compact record of the
   selected 3B official full replay candidate.
+- `formal_period_mig_gate128_7b_g2tp2_swap2_obj8_hostoom_2026-05-21.json`:
+  compact record of the 7B DP2/TP2 startup memory-envelope gate.
