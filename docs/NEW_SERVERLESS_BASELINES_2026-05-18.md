@@ -129,8 +129,9 @@ Formal blocker:
 
 ## Loquetier Gate
 
-Status: real-adapter scale-gate evidence closed through 16 adapters on both
-closed backbones, not yet adopted for formal table/figures.
+Status: real-adapter scale-gate evidence closed through 64 adapters on
+Llama-3.2 3B and 16 adapters on Llama-2 7B, not yet adopted for formal
+table/figures.
 
 - Upstream: `https://github.com/NJUDeepEngine/Loquetier`
 - Upstream commit: `aae33baeeb19777129c1ccbff99a898d4a0e2c63`
@@ -159,6 +160,7 @@ Closed gates:
 - Llama-2 7B, 2 adapters / 16 filtered requests: `ok=16/16`.
 - Llama-3.2 3B, 16 adapters / 64 filtered requests: `ok=64/64`.
 - Llama-2 7B, 16 adapters / 64 filtered requests: `ok=64/64`.
+- Llama-3.2 3B, 64 adapters / 256 filtered requests: `ok=256/256`.
 
 Formal blocker:
 
