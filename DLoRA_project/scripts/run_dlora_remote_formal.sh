@@ -143,7 +143,8 @@ write_manifest() {
     "$source_round" "$trace_path" "$original_subset_path" "$materialized_subset_path" \
     "$endpoint" "$replay_path" "$summary_path" "$deploy_path" "$server_log" "$replay_log" \
     "$materialize_log" "$startup_sec" "$predeploy_sec" "$QUEUE_ID" "$DLORA_REPO" \
-    "$DLORA_ENV" "$DLORA_MIGRATION_TYPE" "$DLORA_ROUTING_POLICY" <<'PY'
+    "$DLORA_ENV" "$DLORA_MIGRATION_TYPE" "$DLORA_ROUTING_POLICY" \
+    "${DLORA_MAX_REQUESTS:-}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -158,6 +159,7 @@ payload = {
     "workload_profile": sys.argv[4],
     "run_tag": sys.argv[5],
     "total_requests": 4000,
+    "replayed_requests": int(sys.argv[24]) if sys.argv[24] else 4000,
     "selected_num_adapters": 500,
     "sampling_seed": 42,
     "source_round": sys.argv[6],
@@ -178,6 +180,7 @@ payload = {
     "dlora_exec_type": 3,
     "dlora_migration_type": int(sys.argv[22]),
     "routing_policy": sys.argv[23],
+    "max_requests_gate": int(sys.argv[24]) if sys.argv[24] else None,
     "adaptation_boundary": (
         "hardware/workload wrapper only: real remote materialization, adapter-id map, "
         "real PEFT loader, e2e_v3 replay compatibility, and selected-adapter LoRA "
@@ -205,6 +208,13 @@ run_one() {
   local max_num_seqs="${13}"
   local max_num_batched_tokens="${14}"
   local startup_timeout_s="${15}"
+  local max_requests="${DLORA_MAX_REQUESTS:-}"
+  local expected_total="4000"
+  local replay_limit_args=()
+  if [[ -n "${max_requests}" ]]; then
+    expected_total="${max_requests}"
+    replay_limit_args=(--max-requests "${max_requests}")
+  fi
 
   local round_dir="${RESULT_ROOT}/${QUEUE_ID}_${label}_${run_tag}_dlora"
   local shared_dir="${round_dir}/shared_inputs"
@@ -331,12 +341,13 @@ PY
       --drop-body-field "lora_adapter_name" \
       --abort-after-failures "${DLORA_ABORT_AFTER_FAILURES:-1}" \
       --abort-failures-min-done "${DLORA_ABORT_FAILURES_MIN_DONE:-1}" \
+      "${replay_limit_args[@]}" \
       2>&1 | tee "${replay_log}"
 
   python "${BASELINES_ROOT}/scripts/validate_replay_results.py" \
     --system "dLoRA" \
     --replay "${replay_path}" \
-    --expected-total 4000
+    --expected-total "${expected_total}"
 
   python "${BASELINES_ROOT}/scripts/summarize_serverlessllm_replay.py" \
     --main-repo "${MAIN_REPO}" \

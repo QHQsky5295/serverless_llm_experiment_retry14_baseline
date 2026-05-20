@@ -1,10 +1,11 @@
 # dLoRA Real-Adapter Adaptation Gate: 2026-05-20
 
 Status: reopened from gate-only; minimal real-adapter compatibility now passes
-for Llama-3.2 3B up to a 128-adapter filtered gate and also has one full
-3B/4000-request/500-adapter dispatch-only replay. This is still not yet a
-formal-table dLoRA row because the full replay used upstream `migration_type=1`
-instead of the official dLoRA migration policy.
+for Llama-3.2 3B up to a 128-adapter filtered gate, has one full
+3B/4000-request/500-adapter dispatch-only replay, and now has one official
+`migration_type=3` 128-request/500-adapter gate. This is still not yet a
+formal-table dLoRA row because the official migration policy has not completed
+the full 4000-request replay in a tuned local envelope.
 
 This pass keeps the adaptation boundary narrow. The goal is to let upstream
 dLoRA run on the local RTX 3090 machine and consume the closed PrimeLoRA
@@ -169,3 +170,52 @@ the current external occupancy makes the multi-GPU path unsafe to start now.
 This preflight is now historical: after the external GPU memory cleared, the
 3B/500 dispatch-only run above completed successfully. It does not supersede
 the need for official `migration_type=3` validation.
+
+## Official Period-Migration Gate
+
+The first upstream official strategy gate completed after the dispatch-only
+run:
+
+```text
+queue: 20260521_dlora_remote_mig3_gate128_g2u92_v1
+label: dlora_llama32_3b_period_mig_remote_formal
+migration_type: 3
+routing_policy: dlora_period_mig
+num_groups: 2
+gpu_ids: 0,1
+gpu_memory_utilization: 0.92
+max_num_seqs: 1
+max_num_batched_tokens: 1024
+replayed_requests: 128
+```
+
+Validation:
+
+- Replay: `ok=128/128`, `fail=0`.
+- Metric schema: `e2e_v3`.
+- Token audit: no `trace_expected` fallback.
+- Error scan: no in-replay CUDA OOM, Traceback, or ActorDied.
+- Shutdown note: Raylet/AsyncEngineDeadError messages appear after replay
+  completion while the wrapper stops Ray; keep this visible, but do not classify
+  the gate as an OOM or failed replay.
+
+Headline metrics:
+
+| Metric | Value |
+|---|---:|
+| TTFT e2e avg | 29544.29 ms |
+| TTFT e2e p95 | 116423.03 ms |
+| E2E e2e avg | 29544.61 ms |
+| Throughput | 0.45 rps / 78.199 tok/s |
+| SLO attainment | 0.1406 |
+| Cost/req | 0.0136396 USD |
+| CE | 2.4815 |
+| Infra GPU seconds | 2095.04743 |
+
+Interpretation: this gate proves official dLoRA period migration can consume
+the true-remote 500-adapter workload without changing the core scheduler or
+migration logic. The effect is still weak and should not be promoted to the
+main table yet. The poor tail is dominated by service-side engine wait under
+the current 2-GPU, `max_num_seqs=1` envelope, so the next fair step is a short
+configuration sweep (`max_num_seqs` and 4-GPU topology) before launching a full
+4000-request official replay.
