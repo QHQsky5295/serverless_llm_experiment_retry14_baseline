@@ -227,8 +227,9 @@ Current dLoRA evidence:
 - Llama-3.2 3B official `migration_type=3` short gates pass at 500 adapters
   and first 128 scheduled requests. `max_num_seqs=1` gives TTFT avg `29544.29
   ms`, p95 `116423.03 ms`; `max_num_seqs=2` improves to TTFT avg `24674.56
-  ms`, p95 `59104.07 ms`, throughput `81.885 tok/s`, but service-side engine
-  wait still dominates.
+  ms`, p95 `59104.07 ms`, throughput `81.885 tok/s`; `max_num_seqs=4` is the
+  best 2-GPU gate so far with TTFT avg `14517.67 ms`, p95 `26510.79 ms`, and
+  throughput `92.127 tok/s`.
 
 That full run is appendix/ablation evidence only. It is not the official dLoRA
 row because upstream `migration_type=1` is dispatch-only/RR; the poor tail was
@@ -310,10 +311,9 @@ dLoRA:
   the official dLoRA row.
 - Official `migration_type=3` / `dlora_period_mig` short gates closed on
   2026-05-21: 3B, 500 adapters, first 128 scheduled true-remote requests,
-  `ok=128/128`, no token fallback, not in-replay OOM. `max_num_seqs=2` improves
-  the 2-GPU tail over `max_num_seqs=1` but remains service-wait dominated, so
-  continue short `max_num_seqs` and 4-GPU topology gates before the full
-  official 4000-request replay.
+  `ok=128/128`, no token fallback, not in-replay OOM. `max_num_seqs=4` is the
+  best 2-GPU envelope observed so far, but a 4-GPU topology gate is still needed
+  before the full official 4000-request replay.
 
 S-LoRA:
 

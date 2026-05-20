@@ -13,8 +13,9 @@ Current state:
   is appendix/ablation evidence rather than the official dLoRA main-table row.
 - Upstream `migration_type=3` (`dlora_period_mig`) gates completed `128/128`
   on the 3B/500-adapter true-remote workload with no token fallback. The
-  2-GPU `max_num_seqs=2` gate improves the tail over `max_num_seqs=1`, but
-  service-side engine wait still dominates.
+  2-GPU `max_num_seqs=4` gate is currently the best local envelope, improving
+  over `max_num_seqs=1` and `max_num_seqs=2`, but a 4-GPU topology gate is
+  still needed before full replay.
 - The next fair dLoRA step is to run short runtime/topology gates, then a full
   `migration_type=3` replay without rewriting dLoRA scheduling or migration.
 
@@ -32,3 +33,5 @@ Files:
 - `formal_period_mig_gate128_s2_3b_2026-05-21.json`: compact record of the
   official period-migration 3B/128-request/500-adapter `max_num_seqs=2` gate
   plus the metadata-audit repair.
+- `formal_period_mig_gate128_s4_3b_2026-05-21.json`: compact record of the
+  official period-migration 3B/128-request/500-adapter `max_num_seqs=4` gate.
