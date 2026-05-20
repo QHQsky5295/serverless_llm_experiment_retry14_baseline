@@ -1051,6 +1051,18 @@ New dLoRA real-adapter gate update, 2026-05-20:
 - The next fair dLoRA step is upstream `migration_type=3` short gates followed
   by full 4000-request replay, with only wrapper/runtime parameter adaptation
   and no scheduling/migration rewrite.
+- The first upstream `migration_type=3` / `dlora_period_mig` short gate now
+  passes on the same true-remote workload variables: Llama-3.2 3B, 500
+  adapters, first 128 scheduled requests, queue
+  `20260521_dlora_remote_mig3_gate128_g2u92_v1`, `ok=128/128`, `fail=0`,
+  no `trace_expected` fallback, `e2e_v3`. It is not an in-replay OOM; the
+  Raylet/AsyncEngineDeadError messages appear during runtime shutdown after the
+  replay is written and validated. Current performance is viable but weak:
+  TTFT avg `29544.29 ms`, TTFT p95 `116423.03 ms`, throughput
+  `0.45 rps / 78.199 tok/s`, CE `2.4815`. Root cause is service-side engine
+  wait under the 2-GPU, `max_num_seqs=1` envelope. Next step is short
+  configuration gates (`max_num_seqs`, then 4-GPU topology if memory permits)
+  before the full official 4000-request dLoRA replay.
 
 New Loquetier real-adapter gate update, 2026-05-20:
 

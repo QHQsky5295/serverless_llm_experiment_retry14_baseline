@@ -33,12 +33,14 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
   the RDMA device stack is not exposed and the source lacks ready
   Llama-3.2 3B plus LoRA/PEFT workload support.
 - `gates/dlora/`: dLoRA build/import, real-adapter scale-gate, formal preflight,
-  and one full Llama-3.2 3B dispatch-only replay evidence file. dLoRA can
-  consume real PEFT adapters through the local compatibility layer, and
-  `migration_type=1` completed `4000/4000` on the 500-adapter true-remote
-  workload. This is not the official dLoRA result row because upstream
-  `migration_type=1` is RR/dispatch-only; the fair dLoRA row still requires
-  `migration_type=3` and the 7B full replay.
+  one full Llama-3.2 3B dispatch-only replay evidence file, and one official
+  period-migration short gate. dLoRA can consume real PEFT adapters through the
+  local compatibility layer; `migration_type=1` completed `4000/4000` on the
+  500-adapter true-remote workload, and `migration_type=3` completed a
+  128-request/500-adapter gate. This is not the official dLoRA result row yet:
+  upstream `migration_type=1` is RR/dispatch-only, and the current
+  `migration_type=3` gate is viable but slow, so the fair dLoRA row still
+  requires tuned full 3B and 7B replays.
 - `gates/loquetier/`: Loquetier local-adaptation patch, compact gate outputs,
   and real-adapter evidence. Loquetier currently passes Llama-3.2 3B through
   256 adapters / 1024 filtered requests and Llama-2 7B through 128 adapters /
@@ -68,11 +70,11 @@ should be labeled `ServerlessLLM-new` and kept separate from the older
 
 dLoRA, Loquetier, AIBrix, HydraServe, Medusa, and FaaScale/LambdaScale are not
 formal main rows in this bundle. dLoRA now has one completed dispatch-only full
-replay, but it remains appendix/ablation evidence until upstream
-`migration_type=3` passes. Do not promote any of these systems to formal rows
-unless their runtime and scale requirements are satisfied and the closed
-true-remote LoRA workload can be replayed into `e2e_v3` without changing
-workload variables.
+replay and one official `migration_type=3` short gate, but it remains outside
+the formal table until a tuned upstream `migration_type=3` full replay passes.
+Do not promote any of these systems to formal rows unless their runtime and
+scale requirements are satisfied and the closed true-remote LoRA workload can
+be replayed into `e2e_v3` without changing workload variables.
 
 The old Llama-2 7B first run is superseded by
 `20260518_serverlessllm_new_remote_v1_clean7b` because that rerun had no

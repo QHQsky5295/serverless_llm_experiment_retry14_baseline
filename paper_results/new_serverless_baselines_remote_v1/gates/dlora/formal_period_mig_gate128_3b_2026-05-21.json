@@ -1,0 +1,80 @@
+{
+  "system": "dLoRA",
+  "evidence_type": "official_migration_short_gate",
+  "status": "passed_gate_not_full_formal_row",
+  "date": "2026-05-21",
+  "queue_id": "20260521_dlora_remote_mig3_gate128_g2u92_v1",
+  "label": "dlora_llama32_3b_period_mig_remote_formal",
+  "upstream_strategy": {
+    "exec_type": 3,
+    "migration_type": 3,
+    "routing_policy": "dlora_period_mig"
+  },
+  "workload": {
+    "model_profile": "llama32_3b_main_modelscope",
+    "dataset_profile": "azure_sharegpt_rep4000",
+    "workload_profile": "llama32_3b_auto500_formal4000_s8",
+    "run_tag": "llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1",
+    "total_trace_requests": 4000,
+    "replayed_requests": 128,
+    "selected_num_adapters": 500,
+    "sampling_seed": 42,
+    "remote_artifact_endpoint": "http://192.168.4.174:18080"
+  },
+  "runtime_config": {
+    "num_groups": 2,
+    "tensor_parallel_size": 1,
+    "gpu_ids": [
+      0,
+      1
+    ],
+    "gpu_memory_utilization": 0.92,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 1024,
+    "remote_workers": 4,
+    "replay_timeout_s": 3600,
+    "max_requests_gate": 128
+  },
+  "paths": {
+    "baselines_result_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/15_new_serverless_baselines_remote_v1/20260521_dlora_remote_mig3_gate128_g2u92_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora",
+    "baselines_replay_json": "/home/qhq/serverless_llm_baselines/results/paper_experiments/15_new_serverless_baselines_remote_v1/20260521_dlora_remote_mig3_gate128_g2u92_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora_replay.json",
+    "baselines_summary_json": "/home/qhq/serverless_llm_baselines/results/paper_experiments/15_new_serverless_baselines_remote_v1/20260521_dlora_remote_mig3_gate128_g2u92_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora_summary.json"
+  },
+  "validation": {
+    "metric_schema_version": "e2e_v3",
+    "ok": 128,
+    "fail": 0,
+    "expected_total": 128,
+    "trace_expected_token_fallback": false,
+    "in_replay_cuda_oom": false,
+    "in_replay_traceback": false,
+    "in_replay_actor_died": false
+  },
+  "metrics": {
+    "ttft_e2e_avg_ms": 29544.29,
+    "ttft_e2e_p50_ms": 13813.44,
+    "ttft_e2e_p95_ms": 116423.03,
+    "ttft_e2e_p99_ms": 180540.65,
+    "ttft_service_avg_ms": 29393.12,
+    "e2e_e2e_avg_ms": 29544.61,
+    "throughput_rps": 0.45,
+    "throughput_output_tok_s": 78.199,
+    "slo_attainment": 0.1406,
+    "cost_per_request_usd": 0.0136396,
+    "ce": 2.4815,
+    "cost_per_1m_total_tokens_usd": 16.05858091,
+    "infra_gpu_seconds_total": 2095.04743,
+    "infra_gpu_seconds_active": 508.266651,
+    "infra_gpu_seconds_idle_ready": 660.458739,
+    "goodput_tokens_per_gpu_second": 0.851532,
+    "static_startup_sec": 139.716244,
+    "predeploy_startup_sec": 323.444776
+  },
+  "interpretation": {
+    "oom_assessment": "Not an in-replay OOM. Both GPUs stayed near 23GB used during replay and the 128 requests validated before runtime shutdown.",
+    "shutdown_note": "Raylet/AsyncEngineDeadError messages appear after replay completion when the wrapper stops the Ray runtime; keep them documented, but do not classify the gate as an OOM or failed replay.",
+    "quality_assessment": "The gate is functionally valid but performance is weak under the current 2-GPU, max_num_seqs=1 envelope. The tail is dominated by service-side engine wait, not remote materialization or adapter-id fallback.",
+    "paper_use": "Use as official migration viability evidence only. Do not promote dLoRA to the formal comparison table until a tuned migration_type=3 full 4000-request replay passes."
+  },
+  "next_fair_step": "Run short configuration gates without changing dLoRA core scheduling: first higher max_num_seqs on the same 2-GPU envelope, then a 4-GPU envelope if memory permits; choose the best stable configuration before launching the full 4000-request official dLoRA replay."
+}

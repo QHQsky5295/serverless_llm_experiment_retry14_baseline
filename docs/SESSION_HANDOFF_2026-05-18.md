@@ -294,6 +294,21 @@ ServerlessLLM:
 - If adding newer serverless LLM baselines, do not delete ServerlessLLM without
   a paper-level decision. Add candidates through a reproducibility gate first.
 
+dLoRA:
+
+- dLoRA real-adapter compatibility now reaches the closed true-remote workload
+  through wrapper/runtime adaptation only. Do not rewrite dLoRA scheduling,
+  migration, or adapter orchestration.
+- The Llama-3.2 3B `migration_type=1` dispatch-only full replay closed
+  `4000/4000` with no token fallback, but it is appendix/ablation evidence, not
+  the official dLoRA row.
+- The first official `migration_type=3` / `dlora_period_mig` short gate closed
+  on 2026-05-21: 3B, 500 adapters, first 128 scheduled true-remote requests,
+  `ok=128/128`, no token fallback, not an in-replay OOM. It is viable but slow
+  under the 2-GPU, `max_num_seqs=1` envelope (`TTFT_e2e` avg 29.5s, p95
+  116.4s), so run short `max_num_seqs` and 4-GPU topology gates before the full
+  official 4000-request replay.
+
 S-LoRA:
 
 - Llama-2 7B path uses DP4/TP1 and the normal packed-BGMV path:

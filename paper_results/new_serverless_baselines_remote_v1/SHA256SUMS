@@ -1,4 +1,4 @@
-885a1e4e0c89a74923f01caf279d78c98589abd60844dcbf5dfb162c0748b6b6  ./README.md
+64fd189a7f047acfca0e10d9a6527fa21d3e293b631d9bf83704180be934bc6e  ./README.md
 2e33528e9b5d771bf4568597987a647fb5869ee023bf51c1f24efe326b627c3c  ./gates/aibrix/README.md
 e38c4b4b5545cfb815631fa018cc718f1a019db7f52ed4032269cd39103ad4b4  ./gates/aibrix/SHA256SUMS
 7ce608f1539ffd1c070ad01850f3351f29f73392c180e82145f12d9469965729  ./gates/aibrix/aibrix_runtime_lora_gate_20260520.log.gz
@@ -7,8 +7,9 @@ da43de70cee01a5a81c91a1dce58184c95d9b21478162d24b9451c282aa2e91c  ./gates/aibrix
 c9f2cc5d443a360d3834247bfb41f7da8bc13efcf3ed401d1443336534fb00cc  ./gates/aibrix/gate_2026-05-20.json
 e144947ffc01bbaa6f9b0da6ecbee62b7dd2edd46a3a959aa953d4ed63240c80  ./gates/aibrix/runtime_lora_smoke_20260520.json
 3396390dae132064930632817b16ea4d8f6d09b82e829633b4bec0b70f56efbf  ./gates/aibrix/vllm_runtime_lora_gate_server_20260520.log.gz
-701b5631574cafe1bc1c4f9b761c95e537ad1d750df6833c9b8feca64f289a05  ./gates/dlora/README.md
+f1ee7785f01afcf8c3ccdc0793d326137115ddb9b0582fde90ae330ccd168215  ./gates/dlora/README.md
 111ebf9716bb5be9bed4cdda2785cde3e5e1a4af5fb0e6d8620cd5ef553e5725  ./gates/dlora/formal_dispatch_only_3b_2026-05-20.json
+ec82c0e12be4c7479394a6e5790210a2da3d08693957d5f604d8464ba8b62439  ./gates/dlora/formal_period_mig_gate128_3b_2026-05-21.json
 e3a443716972c97d9103e45bfe813f8fab1cd7081c2b2e6aecb9affec274ad35  ./gates/dlora/formal_preflight_2026-05-20.json
 d5a84e3bce7ef79a02d4841966d84607c530a15e55364a4d6b55087f89e051a3  ./gates/dlora/gate_2026-05-19.json
 bed9891a1b8efc4e8621851f634d9c30a4b3b2829a9c1a41d17a8a2c9bf5b45c  ./gates/dlora/modern_ray_import_compat.patch
