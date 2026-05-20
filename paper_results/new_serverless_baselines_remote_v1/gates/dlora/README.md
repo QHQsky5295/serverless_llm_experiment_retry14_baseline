@@ -34,9 +34,13 @@ Current state:
   host OOM. It is valid but worse than the best 2-GPU `max_num_seqs=4` gate:
   `TTFT_e2e` avg `18630.69 ms` versus `14517.67 ms`, p95 `33096.62 ms` versus
   `26510.79 ms`, and CE `1.9696` versus `5.3354`.
-- The next fair dLoRA step is a full `migration_type=3` replay using the best
-  measured wrapper-only envelope, DP2/TP1 with `max_num_seqs=4`, without
-  rewriting dLoRA scheduling or migration.
+- The selected 3B full `migration_type=3` replay used the best measured
+  wrapper-only envelope, DP2/TP1 with `max_num_seqs=4`, and completed
+  `4000/4000` requests with no token fallback, no CUDA OOM, no host OOM, and no
+  dLoRA core rewrite. Final metrics: `TTFT_e2e` avg `11162.43 ms`, p95
+  `27280.54 ms`, p99 `36419.18 ms`, `115.666 tok/s`, CE `45.5240`.
+- The full dLoRA paper row remains pending until the matching Llama-2 7B
+  true-remote full replay closes under an auditable wrapper-only envelope.
 
 Files:
 
@@ -63,3 +67,5 @@ Files:
   memory-envelope gate.
 - `formal_period_mig_gate128_g2tp2_g4_s4_3b_2026-05-21.json`: compact record
   of the successful but non-selected four-GPU DP2/TP2 topology gate.
+- `formal_period_mig_full4000_3b_2026-05-21.json`: compact record of the
+  selected 3B official full replay candidate.
