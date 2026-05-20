@@ -158,9 +158,15 @@ Formal blocker:
   the best 2-GPU envelope (`TTFT_e2e` avg 14517.67 ms, p95 26510.79 ms, p99
   28836.86 ms, 92.127 tok/s), reducing engine wait without touching dLoRA
   scheduling or migration.
+- The first official `migration_type=3` 4-GPU topology gate did not reach HTTP
+  readiness. Remote materialization completed for all `500/500` adapters, then
+  Ray killed a worker because host memory reached `124.16GB / 125.38GB` at the
+  `0.99` node-memory threshold. This is a wrapper/runtime memory-envelope gate
+  at default `swap_space_gb=8`, not a CUDA OOM and not a measured replay result.
 - The dLoRA wrapper now writes `max_num_seqs`, `max_num_batched_tokens`,
-  `gpu_memory_utilization`, and `gpu_capacity` into deploy/manifest metadata
-  and launch logs so future envelope sweeps are auditable.
+  `gpu_memory_utilization`, `gpu_capacity`, and `swap_space_gb` into
+  deploy/manifest metadata and launch logs so future envelope sweeps are
+  auditable. It also fixes `MANIFEST.replayed_requests`.
 - Do not enter dLoRA into formal tables until a no-dummy, no-`trace_expected`,
   full 3B run with upstream `migration_type=3` and a full 7B run pass without
   rewriting dLoRA scheduling or migration. Before that full replay, run short

@@ -328,3 +328,53 @@ larger batches reduce internal wait at the cost of per-batch execution time.
 The 2-GPU memory envelope is tight but stable at ~23GB/GPU. The next fair step
 is a 4-GPU `num_groups=4` topology gate so dLoRA can use the same 4-GPU budget
 before choosing the full 4000-request official replay configuration.
+
+## Official Period-Migration 4-GPU Startup Memory Gate
+
+The first 4-GPU topology gate closed before replay:
+
+```text
+queue: 20260521_dlora_remote_mig3_gate128_g4u92_s4_v1
+label: dlora_llama32_3b_period_mig_remote_formal
+migration_type: 3
+routing_policy: dlora_period_mig
+num_groups: 4
+gpu_ids: 0,1,2,3
+gpu_memory_utilization: 0.92
+max_num_seqs: 4
+max_num_batched_tokens: 1024
+swap_space_gb: 8
+planned_replayed_requests: 128
+actual_replayed_requests: 0
+```
+
+Validation:
+
+- Remote materialization completed: `500/500` adapters, elapsed
+  `318679.405 ms`.
+- The HTTP server never became ready, so no replay requests were issued.
+- This is not CUDA GPU OOM. The failure is a Ray host-memory monitor kill
+  during worker initialization.
+- Log evidence: the server log reports `ray.exceptions.OutOfMemoryError` with
+  node memory `124.16GB / 125.38GB (0.990259)`, above the configured Ray
+  threshold `0.99`; top Ray workers were using `8.86`, `7.21`, `4.75`, and
+  `3.82GB`.
+
+Root cause: in this dLoRA/vLLM fork, `--swap-space` is CPU KV cache space per
+engine. The 4-group topology plus the wrapper default `swap_space_gb=8`
+reserved a large host-side cache envelope while four Ray workers also loaded
+model and adapter state, so the node crossed Ray's host-memory kill threshold
+before service readiness. This is an envelope/startup-memory issue, not a
+remote adapter issue or a measured dLoRA scheduling result.
+
+Harness audit fix: the formal wrapper now records `swap_space_gb` in launch
+logs, deploy JSON, and MANIFEST, and fixes `MANIFEST.replayed_requests` so the
+active memory envelope is observable in later gates. This is metadata and
+wrapper observability only; it does not change dLoRA scheduling, migration, or
+adapter orchestration.
+
+Next fair step: rerun the same 4-GPU 128-request true-remote gate with
+`DLORA_SWAP_SPACE_GB=2`, keeping `migration_type=3`, `max_num_seqs=4`,
+`max_num_batched_tokens=1024`, and `gpu_memory_utilization=0.92`. Only if that
+still fails should we consider Ray memory-monitor changes, because disabling
+the monitor would hide the host-memory pressure rather than reducing it.

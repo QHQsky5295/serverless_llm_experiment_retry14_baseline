@@ -36,8 +36,14 @@ p95 116.4s). `max_num_seqs=2` improved the tail (`TTFT_e2e` avg 24.7s,
 p95 59.1s, 81.9 tok/s), and `max_num_seqs=4` is currently the best 2-GPU
 envelope (`TTFT_e2e` avg 14.5s, p95 26.5s, 92.1 tok/s). The remaining
 latency is still service-side engine wait, so a fair main-table dLoRA
-candidate still requires a 4-GPU topology gate and a full upstream
-`migration_type=3` replay, plus the Llama-2 7B full replay.
+candidate still requires a stable 4-GPU topology gate and a full upstream
+`migration_type=3` replay, plus the Llama-2 7B full replay. The first 4-GPU
+startup gate did not reach replay: Ray killed a worker at 124.16/125.38GB host
+memory while using `num_groups=4`, `max_num_seqs=4`, and the wrapper default
+`swap_space_gb=8`. This is a host-memory envelope failure, not a CUDA OOM or a
+remote-materialization failure. The fair next attempt is the same 4-GPU gate
+with a lower dLoRA/vLLM CPU KV swap envelope before considering more invasive
+runtime changes.
 
 Tracked evidence:
 
@@ -53,6 +59,8 @@ Tracked evidence:
   `evidence/formal_period_mig_gate128_s2_3b_2026-05-21.json`
 - official period-migration 3B 128-request `max_num_seqs=4` gate:
   `evidence/formal_period_mig_gate128_s4_3b_2026-05-21.json`
+- official period-migration 3B 4-GPU startup memory gate:
+  `evidence/formal_period_mig_gate128_g4_s4_hostoom_3b_2026-05-21.json`
 - real-adapter compatibility patch:
   `patches/real_peft_llama32_e2e_compat_20260520.patch`
 - formal 500-adapter runtime compatibility patch:
