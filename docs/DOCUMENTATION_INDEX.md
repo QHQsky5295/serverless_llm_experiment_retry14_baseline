@@ -44,7 +44,7 @@ evidence.
 - `SERVERLESSLLM_NEW_OPTIMIZATION_ANALYSIS_2026-05-21.md`: 中文版
   ServerlessLLM-new true-remote LoRA 负载性能诊断和不改核心代码的
   warm-min4 优化验证记录；包含 3B/7B 正式 4000 请求结果、7B 外部
-  GPU 显存占用说明和是否进入论文表格的判断。
+  GPU 显存占用说明、公平性裁决和其他 serverless 语义内优化方向检查。
 - `VLLM_RTX3090_LORA.md`: current vLLM/LoRA runtime notes.
 - `CODEX_INTERACTION_RULES.md`: local copy pointing to the authoritative
   collaboration rules in the baseline workspace.

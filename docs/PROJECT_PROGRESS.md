@@ -1015,23 +1015,24 @@ New serverless baseline campaign status, 2026-05-19:
 
 ServerlessLLM-new optimization status, 2026-05-21:
 
-- `ServerlessLLM-new-warm-min4-t32` is now closed for both 3B and 7B under the
-  non-overwriting section `17_serverlessllm_new_warm_min4_t32_remote_v1`.
-  It keeps the same true-remote traces, adapter subsets, and endpoints as the
-  closed mirror, and does not overwrite the original section 15
-  ServerlessLLM-new results.
-- 3B formal 4000 completed `4000/4000`: TTFT avg improved from `237811 ms` to
-  `235911 ms`, SLO from `221/4000` to `247/4000`, and `scaleup_affected` from
-  `35/4000` to `0/4000`. The gain is real but small.
-- 7B formal 4000 completed `4000/4000`: TTFT avg improved from `238034 ms` to
-  `236595 ms`, SLO from `203/4000` to `257/4000`, and `scaleup_affected` from
-  `28/4000` to `0/4000`. During the 7B run, root process `2481319`
-  (`/app/.venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8080`)
-  occupied about `6.6GB` on each GPU, so the 7B result is complete but not a
-  clean main-table datapoint.
-- Current inclusion judgment: keep original `ServerlessLLM-new` as the
-  candidate paper row if needed; keep `ServerlessLLM-new-warm-min4-t32` as
-  appendix/diagnostic evidence unless a clean 7B rerun is explicitly approved.
+- `ServerlessLLM-new-warm-min4-t32` 已在不覆盖旧结果的 section
+  `17_serverlessllm_new_warm_min4_t32_remote_v1` 下完成 3B/7B 4000 请求记录。
+- 公平性裁决：warm-min4 是不合理的 baseline 优化，不能作为任何性能对比表中的
+  数据行。`min_instances=4 + post-deploy wait 90s` 预创建并预热全部四个后端，
+  等价于把 ServerlessLLM-new 从按需扩缩的 serverless 系统改成常驻满配的
+  serverful 部署。它绕过了冷启动和 scale-up，而不是在 serverless 约束下解决这些
+  问题。
+- warm-min4 数据只保留为诊断证据：3B/7B full 4000 中 TTFT 只改善约
+  `0.8%/0.6%`，说明主要瓶颈是稳态 dispatch/server queue 积压，而不是启动期
+  冷启动。7B 运行期间还存在外部 root `uvicorn` 进程占用 GPU 显存，因此该条更不能
+  作为干净主表数据。
+- 当前没有发现保持 serverless 语义且值得再启动正式 remote 4000 请求的
+  ServerlessLLM-new 参数优化：降低 `target` 会同时降低单实例排队包络并仍受 1s
+  创建节奏限制；提高 `keep_alive` 对连续高压 trace 无帮助且趋向常驻；只等待默认
+  `min_instances=1` 就绪的收益被 warm-min4 上界证明不足以改变结论；改 router
+  轮询/并行分配/预测扩容则属于核心代码修改。
+- 原始 ServerlessLLM-new（不改部署策略、不改官方核心代码、按需扩缩）是该系统唯一
+  公平的候选对比行。
 
 New dLoRA real-adapter gate update, 2026-05-20:
 
