@@ -40,6 +40,10 @@ evidence.
   that separates strict paper-system gates from practical serverless/autoscaling
   and adapter-serving candidates, prioritizing Ray Serve + vLLM and LoRAX for
   the next optional gates.
+- `SERVERLESS_LLM_PAPER_BASELINE_REPRODUCIBILITY_2020_2026.md`: detailed
+  2020-2026 serverless LLM inference paper-system survey with paper/code URLs
+  and the exact reason each candidate can or cannot become a formal 3B+7B
+  true-remote baseline in the current environment.
 - `VLLM_RTX3090_LORA.md`: current vLLM/LoRA runtime notes.
 - `CODEX_INTERACTION_RULES.md`: local copy pointing to the authoritative
   collaboration rules in the baseline workspace.
