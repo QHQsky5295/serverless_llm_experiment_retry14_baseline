@@ -1,11 +1,12 @@
 # ServerlessLLM-new 优化分析（2026-05-21）
 
-本文记录 ServerlessLLM-new 在 true-remote LoRA 负载上的性能诊断和不改官方核心代码的优化尝试。当前优化结论来自 3B 和 7B 的 128 请求小规模验证；它不能替代已经闭口的 4000 请求正式 ServerlessLLM-new baseline，也不能覆盖 `figs/` 或 `paper_results/final_v2/`。
+本文记录 ServerlessLLM-new 在 true-remote LoRA 负载上的性能诊断和不改官方核心代码的优化尝试。当前优化结论来自 3B/7B 小规模验证，以及 3B 的 4000 请求正式验证；它不能替代已经闭口的 4000 请求正式 ServerlessLLM-new baseline，也不能覆盖 `figs/` 或 `paper_results/final_v2/`。
 
 ## 实验边界
 
 - 官方代码目录：`/home/qhq/serverless_llm_baselines/vendor_new_baselines/ServerlessLLM_new_main_20260518`
-- 本轮新结果目录：`/home/qhq/serverless_llm_baselines/results/paper_experiments/16_serverlessllm_new_optimization_probe_v1/`
+- 本轮小规模验证结果目录：`/home/qhq/serverless_llm_baselines/results/paper_experiments/16_serverlessllm_new_optimization_probe_v1/`
+- 本轮正式 4000 请求结果目录：`/home/qhq/serverless_llm_baselines/results/paper_experiments/17_serverlessllm_new_warm_min4_t32_remote_v1/`
 - 真实远程 LoRA endpoint：
   - Llama-3.2 3B：`http://192.168.4.174:18080`
   - Llama-2 7B：`http://192.168.4.174:18081`
@@ -105,17 +106,33 @@
 - 与 `min4、无等待、V0` 相比，post-deploy wait 去掉了剩余的启动期请求影响，同时 TPOT 回到 25 ms 左右，和原始 V1 路径一致。
 - 该结果仍不是 4000 请求正式结果；它只证明 `ServerlessLLM-new-warm-min4` 值得进入单独目录的完整正式实验。
 
+## 3B 正式 4000 请求结果
+
+本轮正式实验使用独立 section `17_serverlessllm_new_warm_min4_t32_remote_v1`，queue id 为 `20260521_warmmin4_t32_wait90_formal4000_v1_3b`，仍然使用已经闭口的 3B true-remote trace、adapter 子集和远程 LoRA endpoint。该结果不覆盖第 15 节原始 ServerlessLLM-new 结果。
+
+| 3B 4000 请求变体 | ok | TTFT_e2e avg | TTFT_e2e P50 | TTFT_e2e P95 | dispatch/admission avg | server_queue avg | service TTFT avg | service E2E avg | TPOT avg | SLO@5s | scaleup_affected | remote_fetched |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 原始 ServerlessLLM-new | 4000/4000 | 237811 ms | 243668 ms | 472400 ms | 237313 ms | 237208 ms | 499 ms | 2145 ms | 14.89 ms | 221/4000 | 35/4000 | 132/4000 |
+| warm-min4、wait90、target=32 | 4000/4000 | 235911 ms | 241780 ms | 469690 ms | 235392 ms | 235291 ms | 519 ms | 2165 ms | 14.92 ms | 247/4000 | 0/4000 | 132/4000 |
+
+结果解释：
+
+- `warm-min4、wait90、target=32` 在完整 4000 请求中保持 0 failure，并把 `scaleup_affected` 从 35/4000 降到 0/4000，说明预创建实例和显式等待确实去掉了启动期请求影响。
+- 完整 trace 下，TTFT_e2e 均值只从 237811 ms 降到 235911 ms，改善约 0.8%；P95 从 472400 ms 降到 469690 ms，改善约 0.6%。
+- service TTFT 和 TPOT 基本保持在同一量级，说明后端 vLLM 推理本身没有异常；主要等待仍然发生在请求进入后端前后的排队路径。
+- 因此，3B 正式 4000 结果可以作为 `ServerlessLLM-new-warm-min4-t32` 的单独优化变体记录，但不宜宣称它解决了 ServerlessLLM-new 在该正式负载下的主要性能问题。
+
 ## 是否能进入论文正式表
 
 当前判断：
 
 - 原始 ServerlessLLM-new 4000 请求结果已经闭口，可以作为“官方实现直接适配 true-remote LoRA workload 后的表现”候选，但性能很差，是否进主表取决于论文叙事。
 - `min4 + post-deploy wait` 是合理优化方向，因为它不改核心代码，只调公开/可解释的 deployment 策略；但它改变了资源策略，等价于保留 4 个常驻实例，所以必须单独命名，例如 `ServerlessLLM-new-warm-min4`。
-- 3B 和 7B 的 128 请求都已经证明该方向对启动阶段有效；3B 512 请求进一步显示，它不能解决正式 trace 中长期积压的吞吐问题。
-- 若继续跑 4000 请求，应使用单独目录和单独命名，例如 `ServerlessLLM-new-warm-min4-t32`，并准备把它解释为“去掉启动期影响后的最佳配置尝试”，而不是性能强 baseline。
+- 3B 和 7B 的 128 请求都已经证明该方向对启动阶段有效；3B 512 请求和 3B 4000 请求进一步显示，它不能解决正式 trace 中长期积压的吞吐问题。
+- 3B 的正式 4000 结果已闭口，建议暂时只作为附录或消融式对照；是否进入主表，需要等待 7B 同配置 4000 请求结果也闭口后再统一判断。
 
 推荐后续顺序：
 
-1. 运行 3B/7B 4000 请求正式 `ServerlessLLM-new-warm-min4-t32` 变体，使用新的 section 或 queue id，不覆盖第 15 节结果。
+1. 运行 7B 4000 请求正式 `ServerlessLLM-new-warm-min4-t32` 变体，使用新的 section 或 queue id，不覆盖第 15 节结果。
 2. 解析完整 4000 请求结果，确认成本、TTFT、TPOT、SLO、remote fetch 指标是否都合理。
 3. 更新对比表时保留两行：原始 `ServerlessLLM-new` 和优化配置 `ServerlessLLM-new-warm-min4`；不要用优化配置覆盖原始 baseline。
