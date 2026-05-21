@@ -71,6 +71,23 @@
 - 服务内推理速度基本稳定，TPOT 约 14.7 ms；改善主要来自减少请求进入 ready backend 前的等待。
 - 该结果说明 ServerlessLLM-new 不是完全没有优化空间；合理的非核心改动是把“最小常驻实例 + 明确预热等待 + 成本计入”作为一个单独配置变体，而不是替换原始 ServerlessLLM-new baseline。
 
+## 3B target 参数验证
+
+在尝试启动 3B 4000 请求正式 `ServerlessLLM-new-warm-min4` 时，前 400 个请求附近出现持续 backlog，TTFT 又被排队时间拉高。因此继续用相同 trace 的前 512 个请求验证 `target` 参数。这里的 `target` 是 ServerlessLLM-new deploy config 的公开参数：它既参与 autoscaling 目标计算，也作为每个实例的最大请求队列长度。官方 `start_instance()` 中 Ray actor `max_concurrency=10` 是代码里的固定值，本轮没有修改它。
+
+| 3B 512 请求变体 | ok | target | TTFT_e2e avg | TTFT_e2e P50 | TTFT_e2e P95 | dispatch/admission avg | server_queue avg | service TTFT avg | TPOT avg | SLO@5s | scaleup_affected |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 原始 ServerlessLLM-new 前 512 | 512/512 | 8 | 24195 ms | 20951 ms | 55449 ms | 23720 ms | 23450 ms | 475 ms | 15.41 ms | 158/512 | 35/512 |
+| warm-min4、wait90、target=16 | 512/512 | 16 | 23006 ms | 19817 ms | 55561 ms | 22522 ms | 22263 ms | 484 ms | 14.90 ms | 186/512 | 0/512 |
+| warm-min4、wait90、target=32 | 512/512 | 32 | 22768 ms | 19477 ms | 55092 ms | 22283 ms | 22022 ms | 486 ms | 14.90 ms | 187/512 | 0/512 |
+
+结论：
+
+- `target=16/32` 都能保持 0 failure，并消除 scaleup 影响，但无法显著降低 512 请求窗口里的排队时间。
+- `target=32` 在该窗口内略好于 `target=16`，但差距只有约 1%；它不能改变 4 个 3090 后端的实际吞吐上限。
+- 继续把 `target` 调得更高没有明确合理性，因为 Ray actor 的 `max_concurrency=10` 是官方代码中的固定值；超过该值后，更多请求只是进入 actor 或 vLLM 内部等待，不等价于更多并发执行。
+- 这说明 full-trace 性能差的主要原因已经从“启动时序”转为“ServerlessLLM-new 官方路由和 4 后端吞吐不足以支撑该正式 trace 的到达率”。不修改官方核心代码时，合理可做的优化基本到 `warm-min4 + wait90 + target=16/32` 为止。
+
 ## 7B 小规模验证结果
 
 三组都使用相同 7B true-remote trace 的前 128 个请求、相同 adapter 子集、相同远程 endpoint。其中 `min4、post-deploy wait 90s、V1` 是在 `SLLM_VLLM_PROBE_TIMEOUT_S=300` 下确认 vLLM V1 LoRA 正确性后运行的结果。
@@ -94,11 +111,11 @@
 
 - 原始 ServerlessLLM-new 4000 请求结果已经闭口，可以作为“官方实现直接适配 true-remote LoRA workload 后的表现”候选，但性能很差，是否进主表取决于论文叙事。
 - `min4 + post-deploy wait` 是合理优化方向，因为它不改核心代码，只调公开/可解释的 deployment 策略；但它改变了资源策略，等价于保留 4 个常驻实例，所以必须单独命名，例如 `ServerlessLLM-new-warm-min4`。
-- 3B 和 7B 的 128 请求都已经证明该方向有效；还不能进入正式表，因为不是完整 4000 请求。
-- 下一步应启动单独目录的 3B+7B 4000 请求正式实验，保留原始 ServerlessLLM-new 数据，不覆盖第 15 节结果。
+- 3B 和 7B 的 128 请求都已经证明该方向对启动阶段有效；3B 512 请求进一步显示，它不能解决正式 trace 中长期积压的吞吐问题。
+- 若继续跑 4000 请求，应使用单独目录和单独命名，例如 `ServerlessLLM-new-warm-min4-t32`，并准备把它解释为“去掉启动期影响后的最佳配置尝试”，而不是性能强 baseline。
 
 推荐后续顺序：
 
-1. 运行 3B/7B 4000 请求正式 `ServerlessLLM-new-warm-min4` 变体，使用新的 section 或 queue id，不覆盖第 15 节结果。
+1. 运行 3B/7B 4000 请求正式 `ServerlessLLM-new-warm-min4-t32` 变体，使用新的 section 或 queue id，不覆盖第 15 节结果。
 2. 解析完整 4000 请求结果，确认成本、TTFT、TPOT、SLO、remote fetch 指标是否都合理。
 3. 更新对比表时保留两行：原始 `ServerlessLLM-new` 和优化配置 `ServerlessLLM-new-warm-min4`；不要用优化配置覆盖原始 baseline。
