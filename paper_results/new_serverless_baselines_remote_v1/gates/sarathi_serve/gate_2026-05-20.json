@@ -1,0 +1,72 @@
+{
+  "system": "Sarathi-Serve",
+  "date": "2026-05-20",
+  "decision": "appendix_gate_only",
+  "formal_table_ready": false,
+  "upstream": {
+    "repo": "https://github.com/microsoft/sarathi-serve",
+    "venue": "OSDI 2024",
+    "paper_url": "https://www.usenix.org/conference/osdi24/presentation/agrawal",
+    "osdi_branch": "osdi-sarathi-serve",
+    "osdi_commit": "ceaa0660ea2487976101a8167aad5c8046e85b27",
+    "main_commit": "96f9911790ecc00af12ee9fae47cb8fa9ba0d199"
+  },
+  "local": {
+    "osdi_source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SarathiServe_osdi_20260520",
+    "main_source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SarathiServe_main_20260520",
+    "gate_runtime_python": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+    "user_site_disabled_for_gate": true
+  },
+  "gate_results": {
+    "osdi_setup_metadata": {
+      "status": "pass",
+      "package": "sarathi",
+      "version": "0.1.7",
+      "sha256": "7d5c5c7d27faa6970b6b49db13a19ad1c16f4e78f092118b82cb64a995e620c4"
+    },
+    "main_setup_metadata": {
+      "status": "pass",
+      "package": "sarathi",
+      "version": "0.1.8",
+      "sha256": "664c4d7ac59a62f523a5a225fff7d8e96b6e05df8f1793caf6c9b1957456213d"
+    },
+    "source_lora_scan": {
+      "status": "blocked_for_lora_workload",
+      "osdi": {
+        "lora": 0,
+        "adapter": 0,
+        "peft": 0,
+        "LoRARequest": 0,
+        "enable_lora": 0,
+        "lora_modules": 0
+      },
+      "main": {
+        "lora": 1,
+        "adapter": 0,
+        "peft": 0,
+        "LoRARequest": 0,
+        "enable_lora": 0,
+        "lora_modules": 0
+      },
+      "sha256": "fc84b2157367768ef8990bade1035cf3d8a441105b3c6cadb121d186b5bb8f6c"
+    }
+  },
+  "lora_workload_audit": {
+    "closed_workload_models": [
+      "Llama-2 7B",
+      "Llama-3.2 3B"
+    ],
+    "closed_workload_requests_per_model": 4000,
+    "closed_workload_adapters_per_model": 500,
+    "has_peft_loader": false,
+    "has_lora_model_layers": false,
+    "has_adapter_aware_scheduler": false,
+    "fair_lora_replay_ready": false,
+    "reason": "Adding the PrimeLoRA workload would require implementing LoRA loading, model-layer injection, request adapter identity, and scheduler/API semantics inside Sarathi-Serve."
+  },
+  "logs": {
+    "osdi_setup_metadata": "results/logs/new_serverless_baselines_remote_v1/sarathi_serve/gate/osdi_setup_metadata_20260520.log",
+    "main_setup_metadata": "results/logs/new_serverless_baselines_remote_v1/sarathi_serve/gate/main_setup_metadata_20260520.log",
+    "source_lora_scan": "results/logs/new_serverless_baselines_remote_v1/sarathi_serve/gate/source_lora_scan_20260520.log"
+  }
+}

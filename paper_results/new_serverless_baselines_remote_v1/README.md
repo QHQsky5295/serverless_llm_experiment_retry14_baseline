@@ -10,9 +10,9 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
 - Formal candidate system: `ServerlessLLM-new`
 - Limited single-backbone evidence: `dLoRA` Llama-3.2 3B official
   period-migration full replay.
-- Gate-only systems: `Loquetier`, `AIBrix`, `HydraServe`, `Medusa`,
-  `FaaScale/LambdaScale`; `dLoRA` Llama-2 7B is closed as an infeasible
-  wrapper-only gate on this machine.
+- Gate-only systems: `Loquetier`, `AIBrix`, `HydraServe`, `Sarathi-Serve`,
+  `Medusa`, `FaaScale/LambdaScale`; `dLoRA` Llama-2 7B is closed as an
+  infeasible wrapper-only gate on this machine.
 - Upstream commit: `9f50241baa5386e06a9321c51f19a9ef5f964c2b`
 - Harness: `/home/qhq/serverless_llm_baselines`
 - Result section:
@@ -27,7 +27,7 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
 - `tables/serverlessllm_new_metrics.csv`: table-ready copy of the same metrics.
 - `tables/new_serverless_baselines_inclusion_status_2026-05-21.csv`: current
   paper-use decision matrix for ServerlessLLM-new, dLoRA, Loquetier, AIBrix,
-  HydraServe, Medusa, and FaaScale/LambdaScale.
+  HydraServe, Sarathi-Serve, Medusa, and FaaScale/LambdaScale.
 - `source_summaries/*.json.gz`: compressed source summary JSON files from the
   formal replays.
 - `gates/medusa/`: Medusa official and local-adaptation gate evidence. Medusa
@@ -66,6 +66,12 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
   static LoRA arguments, but the full system requires an unavailable
   Docker/Kubernetes GPU runtime, and the scheduler path does not preserve
   per-request adapter identity for the closed PrimeLoRA LoRA workload.
+- `gates/sarathi_serve/`: Sarathi-Serve package/source and LoRA-workload audit.
+  The faithful OSDI branch has no LoRA/adapter/PEFT path; the newer main branch
+  has only an unused `LoRAModulePath` dataclass and lacks `enable_lora`,
+  `LoRARequest`, PEFT loading, and adapter-aware scheduling. Adding the closed
+  PrimeLoRA workload would be a new LoRA serving implementation, so this remains
+  appendix/gate evidence only.
 - `SHA256SUMS`: checksums for the bundle.
 
 ## Inclusion Decision
@@ -76,13 +82,13 @@ requests with no replay failures and no `trace_expected` token fallback. They
 should be labeled `ServerlessLLM-new` and kept separate from the older
 `ServerlessLLM` baseline.
 
-dLoRA, Loquetier, AIBrix, HydraServe, Medusa, and FaaScale/LambdaScale are not
-full formal main rows in this bundle. dLoRA now has a valid Llama-3.2 3B
-official period-migration full replay (`4000/4000`, no token fallback, CE
-`45.5240`), but the Llama-2 7B formal path cannot reach HTTP readiness under
-the unchanged 500-adapter true-remote workload without changing dLoRA/vLLM core
-memory layout. Treat dLoRA as appendix or limited single-backbone evidence, not
-as a full 3B+7B comparison row.
+dLoRA, Loquetier, AIBrix, HydraServe, Sarathi-Serve, Medusa, and
+FaaScale/LambdaScale are not full formal main rows in this bundle. dLoRA now
+has a valid Llama-3.2 3B official period-migration full replay (`4000/4000`, no
+token fallback, CE `45.5240`), but the Llama-2 7B formal path cannot reach HTTP
+readiness under the unchanged 500-adapter true-remote workload without changing
+dLoRA/vLLM core memory layout. Treat dLoRA as appendix or limited
+single-backbone evidence, not as a full 3B+7B comparison row.
 Do not promote any of these systems to formal rows unless their runtime and
 scale requirements are satisfied and the closed true-remote LoRA workload can
 be replayed into `e2e_v3` without changing workload variables.

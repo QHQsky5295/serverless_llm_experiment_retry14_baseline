@@ -78,7 +78,12 @@ April handoff snapshots have been removed from the active documentation set.
   still parses static LoRA arguments. It is excluded from formal tables because
   the official system requires a Docker/Kubernetes GPU deployment unavailable
   to `qhq`, and its scheduler request path does not preserve per-request
-  adapter identity without semantic changes.
+  adapter identity without semantic changes. Sarathi-Serve was audited next:
+  the faithful OSDI artifact branch has no LoRA/adapter/PEFT path, while the
+  newer main branch only has an unused `LoRAModulePath` dataclass and no
+  `enable_lora`, `LoRARequest`, PEFT loading, or adapter-aware scheduler. It is
+  appendix/gate evidence only because supporting the closed 500-adapter
+  workload would require adding new LoRA serving semantics to Sarathi-Serve.
 - True-remote full-figure queue checkpoint on 2026-05-15 12:05 CST:
   the Llama-2-7B adapter-pool `a100` and `a200` five-system rounds are
   complete and valid. `a200` keeps the same system ordering as the frozen

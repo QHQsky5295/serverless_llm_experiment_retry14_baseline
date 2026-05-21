@@ -97,8 +97,9 @@ it is intentionally regenerated for a separate manifest update.
 ## Latest Known Sync Scope: 2026-05-21
 
 The ServerlessLLM-new reproduction, dLoRA official 3B full replay plus 7B
-infeasibility gates, and Medusa/FaaScale/LambdaScale local-adaptation rechecks
-are tracked as a separate, non-overwriting candidate bundle:
+infeasibility gates, AIBrix/HydraServe/Sarathi gate evidence, and
+Medusa/FaaScale/LambdaScale local-adaptation rechecks are tracked as a
+separate, non-overwriting candidate bundle:
 
 - `paper_results/new_serverless_baselines_remote_v1/`
 - related documentation updates in `docs/`
