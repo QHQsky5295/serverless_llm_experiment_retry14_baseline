@@ -49,7 +49,7 @@
 - Huawei Ascend NPU 生产运行时；
 - 用户可操作的 Kubernetes/GPU pod 控制面，以及系统完整 controller、CRD、scheduler、runtime sidecar。
 
-之前的本地门禁已经分别在 FaaScale、Medusa、HydraServe/AIBrix 及相近候选上确认了这些约束。
+之前的本地适配检查已经分别在 FaaScale、Medusa、HydraServe/AIBrix 及相近候选上确认了这些约束。
 
 ## 阻塞类型总表
 
@@ -64,10 +64,10 @@
 | Medusa | 设备/OS 运行时 | 不能只靠软件路径修复 | 缺 SPDK、hugepages、GDRCopy、NVMe/Optane、UIO/VFIO/root setup。 |
 | FaaScale/lambdaScale | RDMA/IB 硬件与驱动栈 | 本机无法靠软件补出 | 还缺现成 Llama-3.2 3B + PEFT LoRA workload path。 |
 | HydraServe/ParaServe | 平台运行时 + 核心请求语义 | 部分能搭环境，但 adapter 语义要改核心 | 缺 Kubernetes/GPU pod；per-request adapter identity 不在现有路径里。 |
-| AIBrix | 平台运行时权限 | 有 K8s/GPU pod 后可重门禁 | 当前只有组件级 gate，不能声称完整 AIBrix。 |
+| AIBrix | 平台运行时权限 | 有 K8s/GPU pod 后可重适配检查 | 当前只有组件级 gate，不能声称完整 AIBrix。 |
 | Sarathi-Serve | 核心功能缺失 | 不能靠 wrapper | 论文分支无 LoRA/adapter/PEFT path。 |
 | DeepServe | 异构硬件平台 + 无公开代码 | 本机不能等价适配 | Ascend NPU/华为云平台，不是 NVIDIA 3090。 |
-| TIDAL / ServerlessLoRA / Predictive-LoRA / PipeBoost / SLINFER / Tangram / MoEless | 无公开官方代码 | 自己实现不算复现 | 需要实现论文核心贡献，只能等代码公开后再门禁。 |
+| TIDAL / ServerlessLoRA / Predictive-LoRA / PipeBoost / SLINFER / Tangram / MoEless | 无公开官方代码 | 自己实现不算复现 | 需要实现论文核心贡献，只能等代码公开后再适配检查。 |
 | ServerlessPD | RDMA/内核/设备机制 + 无代码 | 普通软件适配不够 | 即使代码出现，也大概率受 RDMA/OS kernel 机制限制。 |
 | INFaaS / FaaSwap / Torpor / HAS-GPU | 负载语义不匹配 | 需要新增 LLM/LoRA serving path | 可作历史或泛 serverless 背景，不适合正式 Llama multi-LoRA 主表。 |
 
@@ -76,14 +76,14 @@
 | 论文/系统 | 年份/venue 状态 | 论文/代码网址 | 代码状态 | 为什么当前不能成为新的完整正式基线 |
 |---|---:|---|---|---|
 | ServerlessLLM | OSDI 2024 | 论文页：`https://luomai.github.io/publication/2024-osdi-serverlessllm/`；arXiv：`https://arxiv.org/abs/2401.14351`；代码：`https://github.com/ServerlessLLM/ServerlessLLM` | 开源；在我们的隔离 campaign 中已经能完成足够构建和运行 | 这是例外，不是失败项。`ServerlessLLM-new` 已经作为独立候选行完成 3B 和 7B 真实远程完整 replay。不要自动替换旧 ServerlessLLM 数据。 |
-| ParaServe / HydraServe | 2025 arXiv，NSDI 2026 prepub | arXiv：`https://arxiv.org/abs/2502.15524`；NSDI prepub：`https://www.usenix.org/system/files/conference/nsdi26/nsdi26spring_lou_prepub.pdf`；代码组织/仓库：`https://github.com/LLMServe/hydraserve` | 开源；已经做过本地源码/导入门禁 | 系统定位是 public-cloud/Kubernetes cold-start。我们的本地门禁发现其内嵌 vLLM 有静态 LoRA 接口，但请求路径不能保留每个请求的 adapter identity。把动态 adapter 语义加入 scheduler/request path 属于核心语义改动，不是 wrapper。完整 HydraServe 也需要当前没有的 Kubernetes GPU 部署环境。 |
-| lambdaScale / FaaScale | 2025 arXiv，MLSys 2026 paper | arXiv：`https://arxiv.org/abs/2502.09922`；PDF：`https://www.ruichuan.org/papers/faascale-mlsys26.pdf`；代码引用：`https://github.com/lambda-scale/lambda-scale`，`https://github.com/lambda-scale/rdma-p2p` | 已在 baseline workspace 做过代码/artifact 门禁 | 论文核心机制是跨节点 RDMA multicast 和 execute-while-load。本机没有可用 InfiniBand/RDMA 设备。现有源码路径也没有现成 Llama-3.2 3B + 真实 PEFT LoRA workload 接口。去掉 RDMA 或自行补 LoRA path 都会改变核心系统。 |
+| ParaServe / HydraServe | 2025 arXiv，NSDI 2026 prepub | arXiv：`https://arxiv.org/abs/2502.15524`；NSDI prepub：`https://www.usenix.org/system/files/conference/nsdi26/nsdi26spring_lou_prepub.pdf`；代码组织/仓库：`https://github.com/LLMServe/hydraserve` | 开源；已经做过本地源码/导入适配检查 | 系统定位是 public-cloud/Kubernetes cold-start。我们的本地适配检查发现其内嵌 vLLM 有静态 LoRA 接口，但请求路径不能保留每个请求的 adapter identity。把动态 adapter 语义加入 scheduler/request path 属于核心语义改动，不是 wrapper。完整 HydraServe 也需要当前没有的 Kubernetes GPU 部署环境。 |
+| lambdaScale / FaaScale | 2025 arXiv，MLSys 2026 paper | arXiv：`https://arxiv.org/abs/2502.09922`；PDF：`https://www.ruichuan.org/papers/faascale-mlsys26.pdf`；代码引用：`https://github.com/lambda-scale/lambda-scale`，`https://github.com/lambda-scale/rdma-p2p` | 已在 baseline workspace 做过代码/artifact 适配检查 | 论文核心机制是跨节点 RDMA multicast 和 execute-while-load。本机没有可用 InfiniBand/RDMA 设备。现有源码路径也没有现成 Llama-3.2 3B + 真实 PEFT LoRA workload 接口。去掉 RDMA 或自行补 LoRA path 都会改变核心系统。 |
 | Medusa: Accelerating Serverless LLM Inference with Materialization | ASPLOS 2025 | ASPLOS program：`https://www.asplos-conference.org/asplos2025/program.html`；DBLP：`https://dblp.org/rec/conf/asplos/ZengXGCL25.html`；PDF：`https://minhui-xie.github.io/papers/asplos25-medusa.pdf`；代码：`https://github.com/thustorage/Medusa` | 开源；本地构建/导入适配已达到 `_C`/`_moe_C` import gate | Medusa 核心是围绕 CUDA graph/KV-cache restore 和 SPDK-backed storage 的状态物化。官方需求包含 CUDA/driver 敏感组合、SPDK、hugepages、Optane/SPDK disks。本机缺 hugepage/SPDK/GDRCopy/device/root 栈。路径或库修复是公平适配；移除 SPDK/materialization 不是。不能在这里做正式 LoRA true-remote replay。 |
 | TIDAL | 2025 arXiv | arXiv：`https://arxiv.org/abs/2503.06421`；PDF：`https://mivenhan.github.io/publication/2025tidal/2025tidal.pdf` | 2026-05-21 搜索未找到公开官方代码 | TIDAL 依赖追踪细粒度 LLM execution path，并生成 adaptive FaaS function template。复现它需要我们实现核心 tracing/template 机制。论文提到类似动态 LoRA 初始化，但没有可运行 artifact 能直接适配我们的 adapter 负载。 |
 | DeepFlow / DEEPSERVE | 2025 arXiv，USENIX ATC 2025 | arXiv：`https://arxiv.org/abs/2501.14417`；USENIX 页面：`https://www.usenix.org/conference/atc25/presentation/hu-junhao`；PDF：`https://www.usenix.org/system/files/atc25-hu-junhao.pdf` | 未找到公开官方代码 | 系统是 Huawei Cloud 生产平台，核心包含 in-house FlowServe engine、NPU-centric execution、SPMD parallelism 和 NPU-fork。本机是 NVIDIA RTX 3090，不是 Ascend NPU。重写 FlowServe/NPU-fork 或翻译成 vLLM 会变成新系统。 |
-| ServerlessLoRA | 2025 arXiv | arXiv：`https://arxiv.org/abs/2505.14468` | 未找到公开官方代码 | 主题高度相关，直接面向 serverless LoRA inference。但没有代码时，复现 secure backbone sharing、comprehensive LoRA pre-loading、contention-aware batching、offloading 都是在重做论文核心贡献。若未来放代码，应作为高优先级门禁。 |
+| ServerlessLoRA | 2025 arXiv | arXiv：`https://arxiv.org/abs/2505.14468` | 未找到公开官方代码 | 主题高度相关，直接面向 serverless LoRA inference。但没有代码时，复现 secure backbone sharing、comprehensive LoRA pre-loading、contention-aware batching、offloading 都是在重做论文核心贡献。若未来放代码，应作为高优先级适配检查。 |
 | Predictive-LoRA / P-LoRA | 2025 arXiv/preprint | arXiv：`https://arxiv.org/abs/2512.20210`；搜索中另有 ResearchSquare PDF 镜像 | 未找到公开官方代码 | 同样高度相关。需要实现 traffic predictor、proactive adapter prefetch、page-based adapter memory manager，这些就是论文主要贡献；自己实现不能算忠实复现。 |
-| PipeBoost | 2025 arXiv | arXiv：`https://arxiv.org/abs/2503.17707` | 未找到公开官方代码 | 论文相关，并提到 serverless multi-GPU cluster 与类似 LoRA 的 shared-base workload。没有代码时，fault-tolerant pipeline-parallel model loading/inference/recovery 都要核心重实现。若官方代码出现，应重新门禁。 |
+| PipeBoost | 2025 arXiv | arXiv：`https://arxiv.org/abs/2503.17707` | 未找到公开官方代码 | 论文相关，并提到 serverless multi-GPU cluster 与类似 LoRA 的 shared-base workload。没有代码时，fault-tolerant pipeline-parallel model loading/inference/recovery 都要核心重实现。若官方代码出现，应重新适配检查。 |
 | ServerlessPD | ICWS 2025 | 索引/摘要：`https://eurekamag.com/research/099/293/099293167.php`；J-GLOBAL：`https://jglobal.jst.go.jp/en/public/202502268613365190` | 未找到公开官方代码 | 设计依赖 RDMA remote fork、OS/kernel integrated primitives、GPU context interception、zero-copy state transfer。本机缺 RDMA/IB 和特权 kernel/device setup。即使有代码，也很可能像 FaaScale/Medusa 一样被运行时设备阻塞。 |
 | SLINFER | HPCA 2026 | HPCA 页面：`https://2026.hpca-conf.org/details/hpca-2026-main-conference/8/Towards-Resource-Efficient-Serverless-LLM-Inference-with-SLINFER`；arXiv：`https://arxiv.org/abs/2507.00507` | 未找到公开官方代码 | SLINFER 面向私有小/中模型 serverless LLM，在 CPU 与 A100 异构环境上做资源共享。它不专门做 LoRA，也未找到 artifact。实现 token-level compute sharing、hazard-aware memory scaling、consolidation 是核心工作。 |
 | Tangram | 2025 arXiv | arXiv：`https://arxiv.org/abs/2512.01357` | 未找到公开官方代码 | 论文面向 serverless LLM loading，通过 GPU memory reuse 和 affinity 降低加载开销。没有代码。自己实现 GPU-memory reuse/affinity scheduling 会变成新系统。 |
