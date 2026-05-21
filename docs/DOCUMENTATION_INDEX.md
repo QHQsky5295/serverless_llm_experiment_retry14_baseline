@@ -10,15 +10,18 @@ execution source.
 - `CURRENT_QUEUE_HANDOFF_2026-04-27.md`: current tmux queue status, monitor
   command, and resume command for the active operating-load sensitivity run.
 - `SYSTEM_REPRODUCTION_RULES.md`: rules for adding or maintaining baselines.
-- `BASELINE_MATRIX.md`: current baseline status and inclusion boundary.
+- `BASELINE_MATRIX.md`: 当前基线状态和纳入边界。
 - `UPSTREAM_REPO_STATE.md`: upstream commit and patch tracking.
 - `CODEX_INTERACTION_RULES.md`: collaboration and root-cause analysis rules.
-- `NEW_SERVERLESS_BASELINES_2026-05-18.md`: ordered ServerlessLLM-new,
-  Medusa, and FaaScale reproduction campaign notes.
-- `SERVERLESS_LLM_PAPER_BASELINE_REPRODUCIBILITY_2020_2026.md`: 2020-2026
-  serverless LLM inference paper-system survey with paper/code URLs and the
-  exact reason each candidate can or cannot become a formal 3B+7B true-remote
-  PrimeLoRA/FaaSLoRA baseline in the current environment.
+- `NEW_SERVERLESS_BASELINES_2026-05-18.md`: ServerlessLLM-new、Medusa、
+  FaaScale 按顺序复现的 campaign 记录。
+- `BASELINE_ADAPTATION_LIMITS_AND_NEW_SURVEY_2026-05-21.md`: 中文版基线适配
+  边界和新增候选调查，区分严格论文系统、工程系统基线、adapter-serving
+  基线和只能进入附录/相关工作的系统。
+- `SERVERLESS_LLM_PAPER_BASELINE_REPRODUCIBILITY_2020_2026.md`: 中文版
+  2020-2026 无服务器大模型推理论文系统调查，列出论文/代码网址，并说明每个
+  候选为什么能或不能在当前环境下成为正式 3B+7B true-remote
+  PrimeLoRA/FaaSLoRA 基线。
 
 ## Current True-Remote Result Scope
 
