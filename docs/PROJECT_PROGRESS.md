@@ -1013,6 +1013,26 @@ New serverless baseline campaign status, 2026-05-19:
   true-remote mirror. Treat Medusa and FaaScale as appendix/gate evidence, not
   formal performance rows, until their runtime and workload gates pass.
 
+ServerlessLLM-new optimization status, 2026-05-21:
+
+- `ServerlessLLM-new-warm-min4-t32` is now closed for both 3B and 7B under the
+  non-overwriting section `17_serverlessllm_new_warm_min4_t32_remote_v1`.
+  It keeps the same true-remote traces, adapter subsets, and endpoints as the
+  closed mirror, and does not overwrite the original section 15
+  ServerlessLLM-new results.
+- 3B formal 4000 completed `4000/4000`: TTFT avg improved from `237811 ms` to
+  `235911 ms`, SLO from `221/4000` to `247/4000`, and `scaleup_affected` from
+  `35/4000` to `0/4000`. The gain is real but small.
+- 7B formal 4000 completed `4000/4000`: TTFT avg improved from `238034 ms` to
+  `236595 ms`, SLO from `203/4000` to `257/4000`, and `scaleup_affected` from
+  `28/4000` to `0/4000`. During the 7B run, root process `2481319`
+  (`/app/.venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8080`)
+  occupied about `6.6GB` on each GPU, so the 7B result is complete but not a
+  clean main-table datapoint.
+- Current inclusion judgment: keep original `ServerlessLLM-new` as the
+  candidate paper row if needed; keep `ServerlessLLM-new-warm-min4-t32` as
+  appendix/diagnostic evidence unless a clean 7B rerun is explicitly approved.
+
 New dLoRA real-adapter gate update, 2026-05-20:
 
 - Scope remains narrow: adapt upstream dLoRA to this machine and the closed
