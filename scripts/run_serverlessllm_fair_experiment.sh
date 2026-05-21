@@ -37,6 +37,12 @@ EMPTY_SUCCESS_RETRIES="${SLLM_EMPTY_SUCCESS_RETRIES:-2}"
 EMPTY_SUCCESS_RETRY_DELAY_S="${SLLM_EMPTY_SUCCESS_RETRY_DELAY_S:-1.0}"
 VLLM_PROBE_TIMEOUT_S="${SLLM_VLLM_PROBE_TIMEOUT_S:-120}"
 LIMIT_ADAPTERS="${SLLM_LIMIT_ADAPTERS:-}"
+DEPLOY_MIN_INSTANCES="${SLLM_DEPLOY_MIN_INSTANCES:-}"
+DEPLOY_MAX_INSTANCES="${SLLM_DEPLOY_MAX_INSTANCES:-}"
+DEPLOY_TARGET="${SLLM_DEPLOY_TARGET:-}"
+DEPLOY_KEEP_ALIVE="${SLLM_DEPLOY_KEEP_ALIVE:-}"
+REPLAY_MAX_REQUESTS="${SLLM_REPLAY_MAX_REQUESTS:-}"
+POST_DEPLOY_WAIT_S="${SLLM_POST_DEPLOY_WAIT_S:-0}"
 RUN_TAG="${SLLM_RUN_TAG:-${SERVING_MODEL_NAME}_r${TOTAL_REQUESTS}_a${SELECTED_NUM_ADAPTERS}_seed${SAMPLING_SEED}}"
 REMOTE_ARTIFACT_STAGE_ENDPOINT="${SLLM_REMOTE_ARTIFACT_STAGE_ENDPOINT:-${BASELINE_REMOTE_ARTIFACT_STAGE_ENDPOINT:-}}"
 REMOTE_ARTIFACT_STAGE_CACHE_DIR="${SLLM_REMOTE_ARTIFACT_STAGE_CACHE_DIR:-${ROOT_DIR}/results/remote_artifact_cache/${MODEL_PROFILE}/serverlessllm/${RUN_TAG}}"
@@ -105,6 +111,18 @@ generate_deploy() {
   fi
   if [[ -n "${LIMIT_ADAPTERS}" ]]; then
     gen_cmd+=(--limit-adapters "${LIMIT_ADAPTERS}")
+  fi
+  if [[ -n "${DEPLOY_MIN_INSTANCES}" ]]; then
+    gen_cmd+=(--min-instances "${DEPLOY_MIN_INSTANCES}")
+  fi
+  if [[ -n "${DEPLOY_MAX_INSTANCES}" ]]; then
+    gen_cmd+=(--max-instances "${DEPLOY_MAX_INSTANCES}")
+  fi
+  if [[ -n "${DEPLOY_TARGET}" ]]; then
+    gen_cmd+=(--target "${DEPLOY_TARGET}")
+  fi
+  if [[ -n "${DEPLOY_KEEP_ALIVE}" ]]; then
+    gen_cmd+=(--keep-alive "${DEPLOY_KEEP_ALIVE}")
   fi
   run_python_in_env sllm_head_official "${gen_cmd[@]}"
 }
@@ -412,6 +430,9 @@ echo "      ttft_slo_ms=${TTFT_SLO_MS}"
 echo "      prompt_guard(model/max_len/max_input/output_cap)=${PROMPT_GUARD_TOKENIZER_MODEL}/${PROMPT_GUARD_MAX_MODEL_LEN}/${PROMPT_GUARD_MAX_INPUT_LEN}/${PROMPT_GUARD_MAX_OUTPUT_TOKENS_CAP}"
 echo "      backend=${BACKEND}"
 echo "      replay_timeout_s=${TIMEOUT_S}"
+echo "      replay_max_requests=${REPLAY_MAX_REQUESTS:-0}"
+echo "      deploy_overrides(min/max/target/keep_alive)=${DEPLOY_MIN_INSTANCES:-default}/${DEPLOY_MAX_INSTANCES:-default}/${DEPLOY_TARGET:-default}/${DEPLOY_KEEP_ALIVE:-default}"
+echo "      post_deploy_wait_s=${POST_DEPLOY_WAIT_S}"
 echo "      empty_success_retries=${EMPTY_SUCCESS_RETRIES} delay_s=${EMPTY_SUCCESS_RETRY_DELAY_S}"
 
 REMOTE_STAGE_SEC="0.0"
@@ -562,6 +583,10 @@ STACK_STARTED=1
 SLLM_WORKER_GPUS="${WORKER_GPUS}" bash "${ROOT_DIR}/scripts/start_serverlessllm_stack.sh"
 echo "[4/5] Deploying model + sampled LoRA subset"
 bash "${ROOT_DIR}/scripts/deploy_serverlessllm_model.sh" "${DEPLOY_PATH}"
+if [[ "${POST_DEPLOY_WAIT_S}" != "0" && "${POST_DEPLOY_WAIT_S}" != "0.0" ]]; then
+  echo "[4.5/5] Waiting ${POST_DEPLOY_WAIT_S}s for pre-created backends to finish loading"
+  sleep "${POST_DEPLOY_WAIT_S}"
+fi
 
 echo "[5/5] Replaying shared trace with live metrics"
 SLLM_REPLAY_EXTRA_ARGS=()
@@ -572,6 +597,9 @@ if [[ -n "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}" ]]; then
     --request-remote-timeout-s "${TIMEOUT_S}"
     --request-remote-bandwidth-mbps "${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS}"
   )
+fi
+if [[ -n "${REPLAY_MAX_REQUESTS}" && "${REPLAY_MAX_REQUESTS}" != "0" ]]; then
+  SLLM_REPLAY_EXTRA_ARGS+=(--max-requests "${REPLAY_MAX_REQUESTS}")
 fi
 run_python_in_env sllm_head_official \
   "${ROOT_DIR}/scripts/replay_openai_trace.py" \
@@ -596,13 +624,26 @@ run_python_in_env sllm_head_official \
   --output "${REPLAY_PATH}" \
   "${SLLM_REPLAY_EXTRA_ARGS[@]}"
 
+VALIDATE_EXPECTED_TOTAL="${TOTAL_REQUESTS}"
+if [[ -n "${REPLAY_MAX_REQUESTS}" && "${REPLAY_MAX_REQUESTS}" != "0" ]]; then
+  VALIDATE_EXPECTED_TOTAL="${REPLAY_MAX_REQUESTS}"
+fi
 run_python_in_env sllm_head_official \
   "${ROOT_DIR}/scripts/validate_replay_results.py" \
   --system "ServerlessLLM" \
   --replay "${REPLAY_PATH}" \
-  --expected-total "${TOTAL_REQUESTS}"
+  --expected-total "${VALIDATE_EXPECTED_TOTAL}"
 
 echo "[post] Summarizing replay into the shared paper metric schema"
+SUMMARY_PREDEPLOY_STARTUP_SEC="$(
+  run_python_in_env sllm_head_official - "${REMOTE_STAGE_SEC}" "${POST_DEPLOY_WAIT_S}" <<'PY'
+import sys
+
+remote_stage = float(sys.argv[1] or 0.0)
+post_deploy_wait = float(sys.argv[2] or 0.0)
+print(f"{remote_stage + post_deploy_wait:.6f}")
+PY
+)"
 run_python_in_env sllm_head_official \
   "${ROOT_DIR}/scripts/summarize_serverlessllm_replay.py" \
   --main-repo "${MAIN_REPO}" \
@@ -614,7 +655,7 @@ run_python_in_env sllm_head_official \
   --adapter-subset "${ADAPTER_SUBSET_PATH}" \
   --replay "${REPLAY_PATH}" \
   --deploy "${DEPLOY_PATH}" \
-  --predeploy-startup-sec "${REMOTE_STAGE_SEC}" \
+  --predeploy-startup-sec "${SUMMARY_PREDEPLOY_STARTUP_SEC}" \
   --scenario-name "serverlessllm_fair" \
   --backend-label "serverlessllm_${BACKEND}" \
   --output "${SUMMARY_PATH}"

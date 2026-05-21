@@ -254,6 +254,8 @@ def main() -> int:
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--backend", default="vllm")
     ap.add_argument("--min-instances", type=int, default=None)
+    ap.add_argument("--max-instances", type=int, default=None)
+    ap.add_argument("--target", type=int, default=None)
     ap.add_argument("--keep-alive", type=int, default=None)
     ap.add_argument("--serving-model-name", default=None)
     ap.add_argument("--limit-adapters", type=int, default=None)
@@ -346,8 +348,16 @@ def main() -> int:
             lora_adapters[adapter_id] = str(adapter_path)
 
     num_gpus = int(model_cfg.get("tensor_parallel_size", 1) or 1)
-    max_instances = int(coord_cfg.get("max_instances", 1) or 1)
-    target = int(model_cfg.get("runtime_concurrency_cap", 1) or 1)
+    max_instances = int(
+        args.max_instances
+        if args.max_instances is not None
+        else (coord_cfg.get("max_instances", 1) or 1)
+    )
+    target = int(
+        args.target
+        if args.target is not None
+        else (model_cfg.get("runtime_concurrency_cap", 1) or 1)
+    )
     min_instances = int(
         args.min_instances
         if args.min_instances is not None
@@ -358,6 +368,10 @@ def main() -> int:
         if args.keep_alive is not None
         else (coord_cfg.get("idle_timeout_s", 0) or 0)
     )
+    if max_instances <= 0:
+        raise RuntimeError("--max-instances must be > 0")
+    if target <= 0:
+        raise RuntimeError("--target must be > 0")
     available_worker_gpus = args.available_worker_gpus
     realizable_max_instances = None
     if available_worker_gpus:

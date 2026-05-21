@@ -22,6 +22,9 @@ execution source.
   2020-2026 无服务器大模型推理论文系统调查，列出论文/代码网址，并说明每个
   候选为什么能或不能在当前环境下成为正式 3B+7B true-remote
   PrimeLoRA/FaaSLoRA 基线。
+- `SERVERLESSLLM_NEW_OPTIMIZATION_ANALYSIS_2026-05-21.md`: 中文版
+  ServerlessLLM-new true-remote LoRA 负载性能诊断和不改核心代码的
+  warm-min4 优化验证记录。
 
 ## Current True-Remote Result Scope
 
