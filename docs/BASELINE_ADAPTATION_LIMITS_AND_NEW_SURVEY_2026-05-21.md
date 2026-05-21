@@ -11,10 +11,22 @@ paper-facing decision.
 
 ## Bottom Line
 
-There are still valid comparison systems, but there is not currently another
-open, buildable, same-workload system that can be promoted directly into the
-full 3B+7B / 4000-request / 500-adapter main comparison table after
-ServerlessLLM-new.
+It is not correct to say that ServerlessLLM is the only possible comparison
+system in the 2020-2026 serverless LLM inference space. The important
+distinction is between:
+
+1. serverless LLM inference papers;
+2. public code that can be built locally;
+3. exact compatibility with the closed 3B+7B / 4000-request / 500-adapter
+   PrimeLoRA/FaaSLoRA workload.
+
+Many systems pass the first filter, fewer pass the second, and only a very
+small subset pass the third. ServerlessLLM-new is currently the only newly
+gated paper system that has closed the exact full true-remote workload on both
+backbones. That does not mean the paper must stop at ServerlessLLM: it means
+additional candidates need to be labeled carefully as practical platform
+baselines, appendix gates, or related-work-only systems depending on what they
+can actually run.
 
 Current usable results:
 
@@ -50,7 +62,16 @@ be a fair main-table comparison.
 
 ## New Online Search Result
 
-Best new candidate:
+Best practical serverless/autoscaling candidate if the paper allows an
+engineering-system baseline:
+
+- Ray Serve + vLLM: open production LLM serving platform, likely runnable on
+  this single 4x3090 machine without a Kubernetes cluster; Ray Serve LLM docs
+  describe OpenAI-compatible serving, autoscaling, and model multiplexing/LoRA
+  routing. The fair gate would be vLLM LoRA under Ray Serve with the same
+  `e2e_v3` request adapter IDs.
+
+Best adapter-serving candidate:
 
 - LoRAX / Predibase: open-source multi-LoRA inference server with dynamic
   adapter loading, heterogeneous continuous batching, adapter exchange
@@ -62,26 +83,55 @@ Secondary or future-only candidates:
 
 - HuggingFace TGI Multi-LoRA: possible adapter-serving gate, likely heavier and
   overlapping with LoRAX/TGI lineage.
+- KServe/Knative + vLLM: valid platform direction, but blocked by current
+  Kubernetes/GPU pod permissions, like AIBrix/HydraServe.
 - llm-d and NVIDIA Dynamo: open platform stacks with LoRA-related routing or
   loading features, but Kubernetes/container/datacenter assumptions make them
   future appendix gates only on this machine.
-- ServerlessLoRA, Predictive-LoRA/P-LoRA, Toppings, LoRAServe, InfiniLoRA:
-  highly relevant papers, but no public official code was located in the
-  2026-05-21 search.
-- DeepServe, TIDAL, AWS serverless-llama samples: not reproducible as fair
-  3B+7B/500-adapter LoRA baselines in the current workspace.
+- TIDAL, SLINFER/LLM-Mesh, Tangram, ServerlessLoRA, Predictive-LoRA/P-LoRA,
+  Toppings, LoRAServe, InfiniLoRA, DeepServe, MoEless: highly relevant
+  serverless/adapter-serving papers, but no public official code suitable for a
+  faithful local reproduction was located in the 2026-05-21 search.
+- INFaaS, FaaSwap, HAS-GPU, and AWS serverless-llama samples: useful historical
+  or platform context, but not fair main-table Llama-2/Llama-3.2 multi-LoRA
+  baselines without major new implementation.
 
 ## Recommended Next Gate
 
-If one more reproduction attempt is desired, start with LoRAX, but label it as
-an additional multi-LoRA serving baseline rather than a serverless cold-start
-baseline. The gate should be:
+If one more reproduction attempt is desired and engineering baselines are
+allowed, start with Ray Serve + vLLM because it is the most feasible
+serverless/autoscaling path on the current machine:
+
+1. isolated Ray Serve/vLLM import and non-Kubernetes deployment gate;
+2. Llama-3.2 3B real PEFT adapter smoke through vLLM LoRA;
+3. Llama-2 7B real PEFT adapter smoke through vLLM LoRA;
+4. small closed-trace replay with real adapter IDs and no token fallback;
+5. only then consider a 4000-request true-remote run.
+
+If the paper wants an adapter-serving rather than serverless/autoscaling
+baseline, LoRAX is next. The LoRAX gate should be:
 
 1. isolated build/import;
 2. Llama-3.2 3B real PEFT adapter smoke;
 3. Llama-2 7B real PEFT adapter smoke;
 4. small closed-trace replay with real adapter IDs and no token fallback;
 5. only then consider a 4000-request true-remote run.
+
+Online source anchors checked on 2026-05-21:
+
+- ServerlessLLM: `https://github.com/ServerlessLLM/ServerlessLLM`
+- Ray Serve LLM: `https://docs.ray.io/en/latest/serve/llm`
+- LoRAX: `https://github.com/predibase/lorax`
+- TGI Multi-LoRA: `https://huggingface.co/blog/multi-lora-serving`
+- HydraServe: `https://www.usenix.org/system/files/conference/nsdi26/nsdi26spring_lou_prepub.pdf`
+- FaaScale: `https://www.ruichuan.org/papers/faascale-mlsys26.pdf`
+- TIDAL: `https://arxiv.org/abs/2503.06421`
+- ServerlessLoRA: `https://arxiv.org/abs/2505.14468`
+- SLINFER: `https://arxiv.org/abs/2507.00507`
+- Tangram: `https://arxiv.org/abs/2512.01357`
+- Toppings: `https://www.usenix.org/conference/atc25/presentation/li-suyi-toppings`
+- FaaSwap: `https://arxiv.org/abs/2306.03622`
+- InfiniLoRA: `https://arxiv.org/abs/2604.07173`
 
 Do not rerun Medusa, FaaScale, HydraServe, AIBrix, Sarathi-Serve, Loquetier, or
 dLoRA 7B unless the missing prerequisites or upstream semantics change.

@@ -37,7 +37,9 @@ evidence.
 - `BASELINE_ADAPTATION_LIMITS_AND_NEW_SURVEY_2026-05-21.md`: summary of why
   the gated new baselines cannot be pushed further into a full 3B+7B formal
   row without changing their core design, plus the 2026-05-21 online survey
-  that selects LoRAX as the best remaining gate candidate.
+  that separates strict paper-system gates from practical serverless/autoscaling
+  and adapter-serving candidates, prioritizing Ray Serve + vLLM and LoRAX for
+  the next optional gates.
 - `VLLM_RTX3090_LORA.md`: current vLLM/LoRA runtime notes.
 - `CODEX_INTERACTION_RULES.md`: local copy pointing to the authoritative
   collaboration rules in the baseline workspace.
