@@ -1,6 +1,6 @@
 # ServerlessLLM-new 优化分析（2026-05-21）
 
-本文记录 ServerlessLLM-new 在 true-remote LoRA 负载上的性能诊断和不改官方核心代码的优化尝试。当前优化结论来自 3B/7B 小规模验证，以及 3B 的 4000 请求正式验证；它不能替代已经闭口的 4000 请求正式 ServerlessLLM-new baseline，也不能覆盖 `figs/` 或 `paper_results/final_v2/`。
+本文记录 ServerlessLLM-new 在 true-remote LoRA 负载上的性能诊断和不改官方核心代码的优化尝试。当前优化结论来自 3B/7B 小规模验证，以及 3B/7B 的 4000 请求正式验证；它不能替代已经闭口的 4000 请求正式 ServerlessLLM-new baseline，也不能覆盖 `figs/` 或 `paper_results/final_v2/`。
 
 ## 实验边界
 
@@ -14,6 +14,7 @@
   - 3B：`12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b.../shared_artifacts/`
   - 7B：`12_remote_fair_main_real_remote_v1/20260513_012813_llama2_7b.../shared_artifacts/`
 - 本轮没有修改 ServerlessLLM-new 的 router、backend、controller 核心逻辑；只改了本仓库复现实验 wrapper，使 deployment 参数和小规模验证参数显式可控。
+- 7B 正式 4000 请求运行期间，机器上同时存在一个 root 进程 `/app/.venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8080`，PID `2481319`，每张 GPU 占用约 6.6GB 显存。ServerlessLLM 运行结束后该进程仍然存在。因此 7B warm-min4-t32 结果虽然完整落盘，但应标注为“受外部进程占用显存影响”，不应作为干净主表数据直接使用。
 
 ## 原始 4000 请求表现
 
@@ -21,7 +22,7 @@
 
 | 模型 | TTFT_e2e avg | TTFT_service avg | dispatch/admission avg | TPOT avg | SLO@5s |
 |---|---:|---:|---:|---:|---:|
-| Llama-2 7B | 237136 ms | 409 ms | 236727 ms | 25.05 ms | 5.25% |
+| Llama-2 7B | 238034 ms | 408 ms | 237626 ms | 25.07 ms | 5.08% |
 | Llama-3.2 3B | 237811 ms | 499 ms | 237313 ms | 14.89 ms | 5.53% |
 
 这说明问题不是 GPU decode 速度，也不是远程 adapter 获取本身；主要是 ServerlessLLM-new 的请求调度和实例就绪路径在该 workload 下形成长时间排队。
@@ -122,17 +123,38 @@
 - service TTFT 和 TPOT 基本保持在同一量级，说明后端 vLLM 推理本身没有异常；主要等待仍然发生在请求进入后端前后的排队路径。
 - 因此，3B 正式 4000 结果可以作为 `ServerlessLLM-new-warm-min4-t32` 的单独优化变体记录，但不宜宣称它解决了 ServerlessLLM-new 在该正式负载下的主要性能问题。
 
+## 7B 正式 4000 请求结果
+
+本轮正式实验使用独立 section `17_serverlessllm_new_warm_min4_t32_remote_v1`，queue id 为 `20260521_warmmin4_t32_wait90_formal4000_v1_7b`，仍然使用已经闭口的 7B true-remote trace、adapter 子集和远程 LoRA endpoint。该结果不覆盖第 15 节原始 ServerlessLLM-new 结果。
+
+结果路径：
+
+- `/home/qhq/serverless_llm_baselines/results/paper_experiments/17_serverlessllm_new_warm_min4_t32_remote_v1/20260521_warmmin4_t32_wait90_formal4000_v1_7b_llama2_7b_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_serverlessllm_new/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_serverlessllm_new_replay.json`
+
+| 7B 4000 请求变体 | ok | TTFT_e2e avg | TTFT_e2e P50 | TTFT_e2e P95 | dispatch/admission avg | server_queue avg | service TTFT avg | service E2E avg | TPOT avg | SLO@5s | scaleup_affected | remote_fetched |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 原始 ServerlessLLM-new | 4000/4000 | 238034 ms | 244064 ms | 472991 ms | 237626 ms | 237575 ms | 408 ms | 2980 ms | 25.07 ms | 203/4000 | 28/4000 | 132/4000 |
+| warm-min4、wait90、target=32 | 4000/4000 | 236595 ms | 242772 ms | 471069 ms | 236175 ms | 236121 ms | 420 ms | 3008 ms | 25.29 ms | 257/4000 | 0/4000 | 132/4000 |
+
+结果解释：
+
+- 7B warm-min4、wait90、target=32 在完整 4000 请求中保持 0 failure，并把 `scaleup_affected` 从 28/4000 降到 0/4000。
+- TTFT_e2e 均值从 238034 ms 降到 236595 ms，改善约 0.6%；P95 从 472991 ms 降到 471069 ms，改善约 0.4%。这说明该优化去掉了启动期请求影响，但没有解决完整 trace 下长期排队。
+- service TTFT 从 408 ms 增至 420 ms，TPOT 从 25.07 ms 增至 25.29 ms，服务内推理速度没有实质改善。
+- 本次运行期间有 root 进程 `2481319` 同时占用四张 GPU 的显存，约每卡 6.6GB。该干扰没有导致失败，但会改变可用显存和调度环境；因此这条 7B warm-min4-t32 结果只能作为“可完成、趋势可信但非干净环境”的诊断记录，不能直接进入主论文正式对比表。
+
 ## 是否能进入论文正式表
 
 当前判断：
 
 - 原始 ServerlessLLM-new 4000 请求结果已经闭口，可以作为“官方实现直接适配 true-remote LoRA workload 后的表现”候选，但性能很差，是否进主表取决于论文叙事。
 - `min4 + post-deploy wait` 是合理优化方向，因为它不改核心代码，只调公开/可解释的 deployment 策略；但它改变了资源策略，等价于保留 4 个常驻实例，所以必须单独命名，例如 `ServerlessLLM-new-warm-min4`。
-- 3B 和 7B 的 128 请求都已经证明该方向对启动阶段有效；3B 512 请求和 3B 4000 请求进一步显示，它不能解决正式 trace 中长期积压的吞吐问题。
-- 3B 的正式 4000 结果已闭口，建议暂时只作为附录或消融式对照；是否进入主表，需要等待 7B 同配置 4000 请求结果也闭口后再统一判断。
+- 3B 和 7B 的 128 请求都已经证明该方向对启动阶段有效；3B 512 请求、3B 4000 请求和 7B 4000 请求进一步显示，它不能解决正式 trace 中长期积压的吞吐问题。
+- 3B 的正式 4000 结果是干净闭口结果，但改善幅度很小；7B 的正式 4000 结果完整闭口但有外部 root 进程占用 GPU 显存。两者都不适合替换原始 ServerlessLLM-new，也不建议直接进入主论文主表。
+- 若论文需要展示“ServerlessLLM-new 经过合理非核心调参后的上限”，建议把 `ServerlessLLM-new-warm-min4-t32` 放入附录或诊断表，并明确写出资源策略：4 个常驻实例、post-deploy wait 90s、启动等待计入成本、不修改官方核心代码。
 
 推荐后续顺序：
 
-1. 运行 7B 4000 请求正式 `ServerlessLLM-new-warm-min4-t32` 变体，使用新的 section 或 queue id，不覆盖第 15 节结果。
-2. 解析完整 4000 请求结果，确认成本、TTFT、TPOT、SLO、remote fetch 指标是否都合理。
-3. 更新对比表时保留两行：原始 `ServerlessLLM-new` 和优化配置 `ServerlessLLM-new-warm-min4`；不要用优化配置覆盖原始 baseline。
+1. 如果需要一个干净 7B 优化变体，必须先处理 root `uvicorn` 进程占用 GPU 的问题，再用相同 section 新 queue id 重跑；不要覆盖本次结果目录。
+2. 如果不再重跑，当前建议是：主论文表只保留原始 `ServerlessLLM-new` 或者完全不放该优化变体；附录可以列 `ServerlessLLM-new-warm-min4-t32`，并加注“7B 运行期间有外部 GPU 显存占用”。
+3. 更新任何图表时保留两行语义：原始 `ServerlessLLM-new` 和优化配置 `ServerlessLLM-new-warm-min4-t32`；不要用优化配置覆盖原始 baseline。
