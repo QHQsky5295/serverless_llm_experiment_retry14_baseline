@@ -33,22 +33,20 @@ Llama-3.2 3B, 500 adapters, first 128 scheduled requests, `ok=128/128`,
 post-replay Raylet/AsyncEngineDeadError messages happen during runtime stop.
 The first 2-GPU `max_num_seqs=1` envelope was weak (`TTFT_e2e` avg 29.5s,
 p95 116.4s). `max_num_seqs=2` improved the tail (`TTFT_e2e` avg 24.7s,
-p95 59.1s, 81.9 tok/s), and `max_num_seqs=4` is currently the best 2-GPU
-envelope (`TTFT_e2e` avg 14.5s, p95 26.5s, 92.1 tok/s). The remaining
-latency is still service-side engine wait, so a fair main-table dLoRA
-candidate still requires a stable 4-GPU topology gate and a full upstream
-`migration_type=3` replay, plus the Llama-2 7B full replay. The first 4-GPU
-startup gate did not reach replay: Ray killed a worker at 124.16/125.38GB host
-memory while using `num_groups=4`, `max_num_seqs=4`, and the wrapper default
-`swap_space_gb=8`. This is a host-memory envelope failure, not a CUDA OOM or a
-remote-materialization failure. The fair next attempt is the same 4-GPU gate
-with a lower dLoRA/vLLM CPU KV swap envelope before considering more invasive
-runtime changes. The `swap_space_gb=2` attempt also failed before replay after
-heavy host-memory/swap pressure; Ray's default object store was about 38.6GB.
-The bounded-object-store rerun connected to the pre-started Ray cluster, so the
-object-store control itself was active, but the DP4/TP1 topology still failed
-before HTTP readiness because four dLoRA/vLLM engines duplicated startup state
-and Ray killed a worker under host-memory pressure. The wrapper-only DP2/TP2
+p95 59.1s, 81.9 tok/s), and `max_num_seqs=4` is the best 2-GPU envelope
+(`TTFT_e2e` avg 14.5s, p95 26.5s, 92.1 tok/s). The remaining latency was
+service-side engine wait, so the reproduction then checked 4-GPU topologies
+before selecting a full replay envelope. The first DP4/TP1 startup gate did not
+reach replay: Ray killed a worker at 124.16/125.38GB host memory while using
+`num_groups=4`, `max_num_seqs=4`, and the wrapper default `swap_space_gb=8`.
+This is a host-memory envelope failure, not a CUDA OOM or a
+remote-materialization failure. The `swap_space_gb=2` attempt also failed
+before replay after heavy host-memory/swap pressure; Ray's default object store
+was about 38.6GB. The bounded-object-store rerun connected to the pre-started
+Ray cluster, so the object-store control itself was active, but the DP4/TP1
+topology still failed before HTTP readiness because four dLoRA/vLLM engines
+duplicated startup state and Ray killed a worker under host-memory pressure.
+The wrapper-only DP2/TP2
 four-GPU topology gate then reached HTTP readiness and completed `128/128`
 requests without token fallback or OOM, but it was slower and more expensive
 than the best 2-GPU `max_num_seqs=4` gate (`TTFT_e2e` avg 18.6s vs 14.5s,
