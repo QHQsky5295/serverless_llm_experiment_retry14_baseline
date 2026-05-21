@@ -208,13 +208,14 @@ dLoRA commit:      75f1c439446fe194b1df8a24982ef9067841fab5
 gate evidence:     /home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/new_serverless_baselines_remote_v1/gates/dlora/
 ```
 
-Decision: do not include dLoRA in formal tables/figures yet. The artifact is
-highly relevant to adapter orchestration and now builds/imports locally in the
-isolated `dlora_medusa_clone_20260519` environment (`vllm.__version__ ==
-0.1.4`) after CUDA 12.1 header/library precedence and a narrow modern-Ray
-import compatibility patch. A narrow compatibility layer now loads the closed
-real PEFT adapters, handles Llama-3.2 grouped-query shapes, and emits `e2e_v3`
-replay data without replacing dLoRA scheduling or migration.
+Decision: do not include dLoRA as a full 3B+7B formal main-row on this
+machine. The artifact is highly relevant to adapter orchestration and
+builds/imports locally in the isolated `dlora_medusa_clone_20260519`
+environment (`vllm.__version__ == 0.1.4`) after CUDA 12.1 header/library
+precedence and a narrow modern-Ray import compatibility patch. A narrow
+compatibility layer loads the closed real PEFT adapters, handles Llama-3.2
+grouped-query shapes, and emits `e2e_v3` replay data without replacing dLoRA
+scheduling or migration.
 
 Current dLoRA evidence:
 
@@ -230,24 +231,28 @@ Current dLoRA evidence:
   ms`, p95 `59104.07 ms`, throughput `81.885 tok/s`; `max_num_seqs=4` is the
   best 2-GPU gate so far with TTFT avg `14517.67 ms`, p95 `26510.79 ms`, and
   throughput `92.127 tok/s`.
-- The first 4-GPU `num_groups=4`, `max_num_seqs=4` startup gate did not reach
-  replay. Remote materialization completed for `500/500` adapters, then Ray
-  killed a worker because host memory reached `124.16GB / 125.38GB` at the
-  `0.99` threshold under the default `swap_space_gb=8`. This is host-memory
-  envelope evidence, not CUDA OOM and not a measured dLoRA replay.
-- The `swap_space_gb=2` rerun also failed before replay. It reduced dLoRA CPU
-  KV cache pressure but Ray's default object store still reserved about
-  `38.6GB`, and the four workers entered severe host-memory/swap pressure
-  before service readiness. The next wrapper-only adaptation pre-starts Ray
-  with bounded object-store memory and `RAY_ADDRESS=auto`.
+- The first 4-GPU `num_groups=4`, `max_num_seqs=4` startup gates did not reach
+  replay. Remote materialization completed for `500/500` adapters, but DP4/TP1
+  duplicated enough startup state to trigger Ray host-memory pressure even
+  after lowering `swap_space_gb` and bounding the Ray object store.
+- A wrapper-only DP2/TP2 4-GPU gate reached HTTP readiness and completed
+  `128/128`, but it was slower and more expensive than the 2-GPU DP2/TP1
+  `max_num_seqs=4` envelope.
+- The selected Llama-3.2 3B official `migration_type=3` full replay completed
+  `4000/4000` requests with no token fallback, no CUDA OOM, no host OOM, and
+  no dLoRA core rewrite. Metrics: TTFT avg `11162.43 ms`, p95 `27280.54 ms`,
+  throughput `115.666 tok/s`, CE `45.5240`.
+- Llama-2 7B was driven through DP2/TP2 and G1/TP4 wrapper envelopes. The final
+  G1/TP4 gate used `gpu_capacity=1` and `gpu_memory_utilization=0.99`; all
+  `500/500` remote adapters materialized and loaded, placement completed, but
+  vLLM still reported `# GPU blocks: 0, # CPU blocks: 1024` before HTTP
+  readiness. This is not remote failure, CUDA OOM, or host OOM.
 
-That full run is appendix/ablation evidence only. It is not the official dLoRA
-row because upstream `migration_type=1` is dispatch-only/RR; the poor tail was
-caused by static placement skew, not OOM. A fair dLoRA candidate still requires
-a tuned upstream `migration_type=3` full 3B replay and the full Llama-2 7B
-replay. The immediate next step is a 4-GPU short gate with a reduced
-`DLORA_SWAP_SPACE_GB` and bounded `DLORA_RAY_OBJECT_STORE_MEMORY_BYTES` envelope
-before considering Ray memory-monitor changes.
+The dispatch-only full run is appendix/ablation evidence only because upstream
+`migration_type=1` is dispatch-only/RR. The official 3B period-migration full
+replay is valid limited single-backbone evidence. dLoRA should not enter the
+full 3B+7B main comparison row on this 4x3090 machine because the 7B gate would
+require core dLoRA/vLLM memory-layout changes to reach readiness.
 
 ## 5. Important Experiment Decisions
 
@@ -324,8 +329,12 @@ dLoRA:
 - Official `migration_type=3` / `dlora_period_mig` short gates closed on
   2026-05-21: 3B, 500 adapters, first 128 scheduled true-remote requests,
   `ok=128/128`, no token fallback, not in-replay OOM. `max_num_seqs=4` is the
-  best 2-GPU envelope observed so far, but a 4-GPU topology gate is still needed
-  before the full official 4000-request replay.
+  best 2-GPU envelope observed.
+- The 3B official full replay using that envelope closed `4000/4000` with CE
+  `45.5240`. The 7B wrapper-only gates closed as infeasible (`# GPU blocks: 0`
+  in the final G1/TP4 minimal-capacity envelope), so do not launch a 7B full
+  replay unless the user explicitly permits core dLoRA/vLLM memory-layout
+  changes.
 
 S-LoRA:
 

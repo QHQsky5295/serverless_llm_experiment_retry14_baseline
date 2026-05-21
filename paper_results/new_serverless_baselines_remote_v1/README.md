@@ -8,8 +8,11 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
 ## Scope
 
 - Formal candidate system: `ServerlessLLM-new`
-- Gate-only systems: `dLoRA`, `Loquetier`, `AIBrix`, `HydraServe`, `Medusa`,
-  `FaaScale/LambdaScale`
+- Limited single-backbone evidence: `dLoRA` Llama-3.2 3B official
+  period-migration full replay.
+- Gate-only systems: `Loquetier`, `AIBrix`, `HydraServe`, `Medusa`,
+  `FaaScale/LambdaScale`; `dLoRA` Llama-2 7B is closed as an infeasible
+  wrapper-only gate on this machine.
 - Upstream commit: `9f50241baa5386e06a9321c51f19a9ef5f964c2b`
 - Harness: `/home/qhq/serverless_llm_baselines`
 - Result section:
@@ -22,6 +25,9 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
 
 - `tables/serverlessllm_new_metrics.json`: compact metrics and provenance.
 - `tables/serverlessllm_new_metrics.csv`: table-ready copy of the same metrics.
+- `tables/new_serverless_baselines_inclusion_status_2026-05-21.csv`: current
+  paper-use decision matrix for ServerlessLLM-new, dLoRA, Loquetier, AIBrix,
+  HydraServe, Medusa, and FaaScale/LambdaScale.
 - `source_summaries/*.json.gz`: compressed source summary JSON files from the
   formal replays.
 - `gates/medusa/`: Medusa official and local-adaptation gate evidence. Medusa
@@ -32,19 +38,17 @@ paper data in `paper_results/final_v2/` or the default figures in `figs/`.
   isolated repair, but it is not a formal result row on this machine because
   the RDMA device stack is not exposed and the source lacks ready
   Llama-3.2 3B plus LoRA/PEFT workload support.
-- `gates/dlora/`: dLoRA build/import, real-adapter scale-gate, formal preflight,
-  one full Llama-3.2 3B dispatch-only replay evidence file, and official
-  period-migration short gates. dLoRA can consume real PEFT adapters through the
-  local compatibility layer; `migration_type=1` completed `4000/4000` on the
-  500-adapter true-remote workload, and `migration_type=3` completed
-  128-request/500-adapter gates at `max_num_seqs=1`, `max_num_seqs=2`, and
-  `max_num_seqs=4`. The first 4-GPU topology gate failed before replay from Ray
-  host-memory pressure at the default `swap_space_gb=8`; the next fair gate
-  lowered that wrapper CPU swap envelope to `2GB` but still failed under Ray's
-  default object-store sizing. The next fair gate bounds Ray object-store
-  memory from the wrapper. This is not the official dLoRA result row yet:
-  upstream `migration_type=1` is RR/dispatch-only, and `migration_type=3` still
-  needs a stable topology before tuned full 3B and 7B replays.
+- `gates/dlora/`: dLoRA build/import, real-adapter scale gates, dispatch-only
+  full replay evidence, official period-migration short gates, the selected
+  Llama-3.2 3B official full replay, and Llama-2 7B infeasibility gates. dLoRA
+  can consume real PEFT adapters through the local compatibility layer.
+  `migration_type=3` completed the 3B true-remote workload with `4000/4000`
+  requests and no token fallback under the best wrapper-only DP2/TP1 envelope.
+  The matching 7B path was driven through DP2/TP2 and G1/TP4 wrapper envelopes;
+  the final G1/TP4 `gpu_capacity=1`, `gpu_memory_utilization=0.99` gate still
+  produced `# GPU blocks: 0, # CPU blocks: 1024` after all `500/500` remote
+  adapters materialized and loaded. dLoRA therefore is limited/appendix
+  evidence here, not a full 3B+7B main comparison row.
 - `gates/loquetier/`: Loquetier local-adaptation patch, compact gate outputs,
   and real-adapter evidence. Loquetier currently passes Llama-3.2 3B through
   256 adapters / 1024 filtered requests and Llama-2 7B through 128 adapters /
@@ -73,10 +77,12 @@ should be labeled `ServerlessLLM-new` and kept separate from the older
 `ServerlessLLM` baseline.
 
 dLoRA, Loquetier, AIBrix, HydraServe, Medusa, and FaaScale/LambdaScale are not
-formal main rows in this bundle. dLoRA now has one completed dispatch-only full
-replay, three official `migration_type=3` short replay gates, and one closed
-4-GPU startup memory-envelope sequence. It remains outside the formal table
-until a tuned upstream `migration_type=3` full replay passes.
+full formal main rows in this bundle. dLoRA now has a valid Llama-3.2 3B
+official period-migration full replay (`4000/4000`, no token fallback, CE
+`45.5240`), but the Llama-2 7B formal path cannot reach HTTP readiness under
+the unchanged 500-adapter true-remote workload without changing dLoRA/vLLM core
+memory layout. Treat dLoRA as appendix or limited single-backbone evidence, not
+as a full 3B+7B comparison row.
 Do not promote any of these systems to formal rows unless their runtime and
 scale requirements are satisfied and the closed true-remote LoRA workload can
 be replayed into `e2e_v3` without changing workload variables.

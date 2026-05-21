@@ -1135,3 +1135,29 @@ New Loquetier real-adapter gate update, 2026-05-20:
   the process used 23.54 GiB on a 23.56 GiB RTX 3090 and had only 1.38 MiB free
   when a 2 MiB allocation was attempted. Loquetier therefore remains appendix
   scale-gate evidence on this hardware, not a formal comparison row.
+
+New dLoRA formal replay closure, 2026-05-21:
+
+- The wrapper-only bounded Ray object-store rerun confirmed the 4-GPU DP4/TP1
+  fix was active but still failed before replay from host-memory pressure. The
+  successful 4-GPU DP2/TP2 gate reached HTTP readiness and completed `128/128`,
+  but was slower and costlier than the best 2-GPU DP2/TP1 `max_num_seqs=4`
+  gate.
+- The selected dLoRA official `migration_type=3` full Llama-3.2 3B replay used
+  DP2/TP1, `max_num_seqs=4`, 500 real remote adapters, and the closed
+  4000-request true-remote trace. It completed `4000/4000` with `fail=0`, no
+  `trace_expected` fallback, no CUDA OOM, no host OOM, and no dLoRA core
+  rewrite. Headline metrics: TTFT avg `11162.43 ms`, p95 `27280.54 ms`, p99
+  `36419.18 ms`, throughput `115.666 tok/s`, CE `45.5240`.
+- The matching Llama-2 7B path was driven through DP2/TP2 host-memory gates and
+  G1/TP4 cache gates. The final wrapper-only envelope
+  (`gpu_capacity=1`, `gpu_memory_utilization=0.99`, bounded 8GiB Ray object
+  store) materialized and loaded all `500/500` remote adapters, but vLLM still
+  reported `# GPU blocks: 0, # CPU blocks: 1024` before HTTP readiness. This
+  closes dLoRA 7B as infeasible on the current 4x3090 machine without core
+  dLoRA/vLLM memory-layout changes.
+- Inclusion decision: dLoRA is valid as appendix or limited single-backbone 3B
+  evidence, but should not enter the full 3B+7B main comparison row. Medusa and
+  FaaScale were rechecked on the clean machine state on 2026-05-21 and remain
+  blocked by missing runtime devices/prerequisites rather than by build-only
+  path issues.
