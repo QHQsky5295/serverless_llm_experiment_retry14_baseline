@@ -53,14 +53,15 @@ April handoff snapshots have been removed from the active documentation set.
   Llama-2 7B filtered replay gate also passes at 2 adapters and 16 requests.
   dLoRA official `migration_type=3` gates now pass the 3B/500-adapter
   true-remote prefix at `max_num_seqs` 1, 2, and 4; `max_num_seqs=4` is the
-  best 2-GPU envelope observed so far. The first 4-GPU topology gate failed
-  before replay because Ray killed a worker at `124.16GB / 125.38GB` host
-  memory with default `swap_space_gb=8`. The `swap_space_gb=2` rerun also
-  failed before replay because Ray's default object store and four concurrent
-  workers still exhausted host-memory headroom, so the next fair gate bounds
-  Ray object-store memory from the wrapper. dLoRA is still not a formal table
-  row until the same path scales to full 4000-request/500-adapter 3B and 7B
-  runs. Loquetier was then adapted through
+  best 2-GPU envelope observed. A 4-GPU DP2/TP2 gate reached readiness but was
+  slower and costlier, so the selected 3B full replay used DP2/TP1 and
+  completed `4000/4000` with no token fallback and CE `45.5240`. The matching
+  7B path was driven through DP2/TP2 and G1/TP4 wrapper-only envelopes; the
+  final G1/TP4 `gpu_capacity=1`, `gpu_memory_utilization=0.99` gate still
+  produced `# GPU blocks: 0, # CPU blocks: 1024` before HTTP readiness after
+  all `500/500` remote adapters loaded. Therefore dLoRA is appendix or limited
+  3B evidence, not a full 3B+7B formal row on this 4x3090 machine. Loquetier
+  was then adapted through
   its official SMLM/mixed-LoRA path and passes real-adapter gates through
   Llama-3.2 3B 256 adapters / 1024 filtered requests and Llama-2 7B 128
   adapters / 256 filtered requests, but its 3B/500-adapter preflight OOMs on a

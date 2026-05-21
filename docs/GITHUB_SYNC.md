@@ -94,18 +94,19 @@ Do not commit whole timestamped result directories or failed/debug rounds.
 Continue to leave `configs/generated/lora_manifest_1000.json` unstaged unless
 it is intentionally regenerated for a separate manifest update.
 
-## Latest Known Sync Scope: 2026-05-19
+## Latest Known Sync Scope: 2026-05-21
 
-The ServerlessLLM-new reproduction plus Medusa and FaaScale/LambdaScale
-local-adaptation gates are tracked as a separate, non-overwriting candidate
-bundle:
+The ServerlessLLM-new reproduction, dLoRA official 3B full replay plus 7B
+infeasibility gates, and Medusa/FaaScale/LambdaScale local-adaptation rechecks
+are tracked as a separate, non-overwriting candidate bundle:
 
 - `paper_results/new_serverless_baselines_remote_v1/`
 - related documentation updates in `docs/`
 
-This bundle contains compressed source summaries, compact metrics, upstream
-patches, and gate evidence for systems that cannot enter formal replay on this
-machine. It does not replace `paper_results/final_v2/`,
+This bundle contains compressed source summaries, compact metrics, an
+inclusion-status table, upstream patches, and gate evidence for systems that
+cannot enter full formal replay on this machine. It does not replace
+`paper_results/final_v2/`,
 `paper_results/final_remote_full_real_remote_v1/`, or any files under `figs/`.
 Continue to leave
 `configs/generated/lora_manifest_1000.json` unstaged unless the user explicitly

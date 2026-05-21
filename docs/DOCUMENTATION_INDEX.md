@@ -63,10 +63,11 @@ evidence.
   audit artifacts, and checksums.
 - `../paper_results/new_serverless_baselines_remote_v1/`: non-overwriting
   ServerlessLLM-new true-remote candidate bundle. It contains compressed source
-  summaries, compact metrics, dLoRA real-adapter scale gates plus dispatch-only
-  and period-migration envelope evidence, Loquetier scale gates, Medusa and
-  FaaScale/LambdaScale official/local-adaptation gate evidence, and checksums,
-  but does not replace `final_v2/`.
+  summaries, compact metrics, an inclusion-status table, dLoRA real-adapter
+  scale gates plus dispatch-only, official 3B period-migration full replay, and
+  7B infeasibility evidence, Loquetier scale gates, Medusa and
+  FaaScale/LambdaScale official/local-adaptation gate evidence, and checksums.
+  It does not replace `final_v2/`.
 - `../figs_remote_full_real_remote_v1/`: full non-overwriting true-remote
   figure/table mirror. It includes main, motivation, ablation, readiness,
   control-path, backend-portability, and sensitivity artifacts. It must not
