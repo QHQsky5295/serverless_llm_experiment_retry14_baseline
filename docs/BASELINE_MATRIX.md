@@ -35,6 +35,10 @@ confusing the formal experiment path.
 | `Preble` | 2026-05-21 triage: open ICLR 2025 prefix-cache routing system, but not native LoRA/serverless adapter lifecycle. Possible future appendix gate only after adapter-identity audit. |
 | `MuxServe` | 2026-05-21 triage: open multiple-full-LLM multiplexing system. It is not a LoRA adapter workload; treating adapters as full models would change the experiment. |
 | `PowerInfer` | 2026-05-21 triage: open SOSP 2024 consumer-GPU hybrid sparse-inference engine, but not a serverless or dynamic LoRA workload fit for the closed 3B/7B PEFT traces. |
+| `LoRAX` | 2026-05-21 triage: best remaining practical new gate candidate. It is open-source multi-LoRA serving with dynamic adapter loading and an OpenAI-compatible API, but it is not a serverless cold-start system. Gate only before any formal claim. |
+| `TGI Multi-LoRA` | 2026-05-21 triage: possible secondary adapter-serving gate if LoRAX fails, but likely operationally heavier and not serverless. |
+| `ServerlessLoRA` / `P-LoRA` / `Toppings` / `LoRAServe` / `InfiniLoRA` | 2026-05-21 triage: highly relevant papers, but no public official code located during this search. Related work only until code appears. |
+| `llm-d` / `NVIDIA Dynamo` | 2026-05-21 triage: open platform stacks with LoRA-related routing/loading features, but Kubernetes/container/datacenter deployment requirements make them future appendix gates only on the current machine. |
 | `Medusa` | 2026-05-19 gate closed as not formally reproducible on this machine: local build/import can be adapted, but required SPDK/NVMe/hugepage/GDRCopy runtime stack is absent. |
 | `FaaScale` / `LambdaScale` | 2026-05-19 gate closed as appendix/gate evidence only: local import/IPC/RDMA binding can be adapted, but runtime finds zero usable IB devices and there is no ready Llama-3.2/LoRA workload path. |
 
