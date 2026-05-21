@@ -1,6 +1,6 @@
 # ServerlessLLM-new 优化分析（2026-05-21）
 
-本文记录 ServerlessLLM-new 在 true-remote LoRA 负载上的性能诊断和不改官方核心代码的优化尝试。当前结论只针对 128 请求小规模验证；它不能替代已经闭口的 4000 请求正式 ServerlessLLM-new baseline，也不能覆盖 `figs/` 或 `paper_results/final_v2/`。
+本文记录 ServerlessLLM-new 在 true-remote LoRA 负载上的性能诊断和不改官方核心代码的优化尝试。当前优化结论来自 3B 和 7B 的 128 请求小规模验证；它不能替代已经闭口的 4000 请求正式 ServerlessLLM-new baseline，也不能覆盖 `figs/` 或 `paper_results/final_v2/`。
 
 ## 实验边界
 
@@ -71,16 +71,22 @@
 - 服务内推理速度基本稳定，TPOT 约 14.7 ms；改善主要来自减少请求进入 ready backend 前的等待。
 - 该结果说明 ServerlessLLM-new 不是完全没有优化空间；合理的非核心改动是把“最小常驻实例 + 明确预热等待 + 成本计入”作为一个单独配置变体，而不是替换原始 ServerlessLLM-new baseline。
 
-## 7B 当前状态
+## 7B 小规模验证结果
 
-已完成的 7B `min_instances=4, keep_alive=600` 128 请求验证没有加 post-deploy wait，且该轮 vLLM V1 probe 超时后回退到 V0。因此它只能作为方向性证据，不能直接作为 7B 正式优化结论。
+三组都使用相同 7B true-remote trace 的前 128 个请求、相同 adapter 子集、相同远程 endpoint。其中 `min4、post-deploy wait 90s、V1` 是在 `SLLM_VLLM_PROBE_TIMEOUT_S=300` 下确认 vLLM V1 LoRA 正确性后运行的结果。
 
 | 7B 变体 | ok | TTFT_e2e avg | TTFT_e2e P95 | dispatch/admission avg | server_queue avg | service TTFT avg | TPOT avg | SLO@5s | scaleup_affected |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 原始 ServerlessLLM-new 前 128 | 128/128 | 10941 ms | 32830 ms | 10594 ms | 10155 ms | 347 ms | 25.31 ms | 76/128 | 27/128 |
 | min4、无等待、V0 | 128/128 | 3930 ms | 10224 ms | 3545 ms | 2944 ms | 385 ms | 26.31 ms | 111/128 | 8/128 |
+| min4、post-deploy wait 90s、V1 | 128/128 | 2379 ms | 4537 ms | 2025 ms | 1652 ms | 354 ms | 25.03 ms | 126/128 | 0/128 |
 
-下一步需要用 `SLLM_VLLM_PROBE_TIMEOUT_S=300` 保持 V1 可比性，并加 `SLLM_POST_DEPLOY_WAIT_S=90` 或更长等待，重新跑 7B 128 请求验证。
+结果解释：
+
+- 7B 在保持 vLLM V1 的情况下也能从该策略受益，说明 3B 结果不是偶然。
+- 与原始前 128 请求相比，TTFT 均值从 10941 ms 降到 2379 ms，P95 从 32830 ms 降到 4537 ms；`scaleup_affected` 从 27/128 降到 0/128。
+- 与 `min4、无等待、V0` 相比，post-deploy wait 去掉了剩余的启动期请求影响，同时 TPOT 回到 25 ms 左右，和原始 V1 路径一致。
+- 该结果仍不是 4000 请求正式结果；它只证明 `ServerlessLLM-new-warm-min4` 值得进入单独目录的完整正式实验。
 
 ## 是否能进入论文正式表
 
@@ -88,11 +94,11 @@
 
 - 原始 ServerlessLLM-new 4000 请求结果已经闭口，可以作为“官方实现直接适配 true-remote LoRA workload 后的表现”候选，但性能很差，是否进主表取决于论文叙事。
 - `min4 + post-deploy wait` 是合理优化方向，因为它不改核心代码，只调公开/可解释的 deployment 策略；但它改变了资源策略，等价于保留 4 个常驻实例，所以必须单独命名，例如 `ServerlessLLM-new-warm-min4`。
-- 3B 128 请求已经证明该方向有效；还不能进入正式表，因为不是完整 4000 请求。
-- 若 7B 128 请求也验证有效，应启动单独目录的 3B+7B 4000 请求正式实验，保留原始 ServerlessLLM-new 数据，不覆盖第 15 节结果。
+- 3B 和 7B 的 128 请求都已经证明该方向有效；还不能进入正式表，因为不是完整 4000 请求。
+- 下一步应启动单独目录的 3B+7B 4000 请求正式实验，保留原始 ServerlessLLM-new 数据，不覆盖第 15 节结果。
 
 推荐后续顺序：
 
-1. 7B `min4 + post-deploy wait` 128 请求验证，优先保持 vLLM V1。
-2. 若 7B 成功且指标合理，运行 3B/7B 4000 请求正式 `ServerlessLLM-new-warm-min4` 变体。
+1. 运行 3B/7B 4000 请求正式 `ServerlessLLM-new-warm-min4` 变体，使用新的 section 或 queue id，不覆盖第 15 节结果。
+2. 解析完整 4000 请求结果，确认成本、TTFT、TPOT、SLO、remote fetch 指标是否都合理。
 3. 更新对比表时保留两行：原始 `ServerlessLLM-new` 和优化配置 `ServerlessLLM-new-warm-min4`；不要用优化配置覆盖原始 baseline。
