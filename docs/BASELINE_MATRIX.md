@@ -32,6 +32,9 @@ confusing the formal experiment path.
 | `SkyServe` | Useful related work for serving orchestration, but not currently reproduced as a same-trace many-LoRA baseline. |
 | `Llumnix` | Not currently connected to the shared trace / shared adapter / `e2e_v3` harness. |
 | `ServerlessLoRA` / `P-LoRA` | No complete local official-code reproduction path in the current workspace. Do not claim formal reproduction. |
+| `Preble` | 2026-05-21 triage: open ICLR 2025 prefix-cache routing system, but not native LoRA/serverless adapter lifecycle. Possible future appendix gate only after adapter-identity audit. |
+| `MuxServe` | 2026-05-21 triage: open multiple-full-LLM multiplexing system. It is not a LoRA adapter workload; treating adapters as full models would change the experiment. |
+| `PowerInfer` | 2026-05-21 triage: open SOSP 2024 consumer-GPU hybrid sparse-inference engine, but not a serverless or dynamic LoRA workload fit for the closed 3B/7B PEFT traces. |
 | `Medusa` | 2026-05-19 gate closed as not formally reproducible on this machine: local build/import can be adapted, but required SPDK/NVMe/hugepage/GDRCopy runtime stack is absent. |
 | `FaaScale` / `LambdaScale` | 2026-05-19 gate closed as appendix/gate evidence only: local import/IPC/RDMA binding can be adapted, but runtime finds zero usable IB devices and there is no ready Llama-3.2/LoRA workload path. |
 
