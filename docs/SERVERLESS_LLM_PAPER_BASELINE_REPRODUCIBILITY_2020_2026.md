@@ -51,6 +51,26 @@
 
 之前的本地门禁已经分别在 FaaScale、Medusa、HydraServe/AIBrix 及相近候选上确认了这些约束。
 
+## 阻塞类型总表
+
+这张表把候选失败原因拆成“硬件/运行时缺失、普通软件适配、核心系统改动、无公开代码”四类。判断标准是：如果只需要依赖 pin、路径修复、API 兼容、wrapper 接入 `e2e_v3`，算普通软件适配；如果要替换论文的调度器、内存管理、远程加载机制、adapter 语义或设备机制，就不算公平复现。
+
+| 系统 | 阻塞类型 | 软件能否解决 | 说明 |
+|---|---|---|---|
+| `ServerlessLLM-new` | 无阻塞 | 已解决 | 已完成 3B/7B true-remote 正式 replay。 |
+| dLoRA 3B | 普通软件兼容 | 已解决 | 可作为 limited evidence，但它不是无服务器大模型论文系统。 |
+| dLoRA 7B | 显存包络与核心内存布局 | 普通适配不够 | 需要改 dLoRA/vLLM cache allocation、adapter placement 或内存管理。 |
+| Loquetier | 显存包络与缺分片 adapter placement | 普通适配不够 | 要让 3B/500 adapter 在 24GB 3090 上正式跑，需要核心级 adapter 放置改造。 |
+| Medusa | 设备/OS 运行时 | 不能只靠软件路径修复 | 缺 SPDK、hugepages、GDRCopy、NVMe/Optane、UIO/VFIO/root setup。 |
+| FaaScale/lambdaScale | RDMA/IB 硬件与驱动栈 | 本机无法靠软件补出 | 还缺现成 Llama-3.2 3B + PEFT LoRA workload path。 |
+| HydraServe/ParaServe | 平台运行时 + 核心请求语义 | 部分能搭环境，但 adapter 语义要改核心 | 缺 Kubernetes/GPU pod；per-request adapter identity 不在现有路径里。 |
+| AIBrix | 平台运行时权限 | 有 K8s/GPU pod 后可重门禁 | 当前只有组件级 gate，不能声称完整 AIBrix。 |
+| Sarathi-Serve | 核心功能缺失 | 不能靠 wrapper | 论文分支无 LoRA/adapter/PEFT path。 |
+| DeepServe | 异构硬件平台 + 无公开代码 | 本机不能等价适配 | Ascend NPU/华为云平台，不是 NVIDIA 3090。 |
+| TIDAL / ServerlessLoRA / Predictive-LoRA / PipeBoost / SLINFER / Tangram / MoEless | 无公开官方代码 | 自己实现不算复现 | 需要实现论文核心贡献，只能等代码公开后再门禁。 |
+| ServerlessPD | RDMA/内核/设备机制 + 无代码 | 普通软件适配不够 | 即使代码出现，也大概率受 RDMA/OS kernel 机制限制。 |
+| INFaaS / FaaSwap / Torpor / HAS-GPU | 负载语义不匹配 | 需要新增 LLM/LoRA serving path | 可作历史或泛 serverless 背景，不适合正式 Llama multi-LoRA 主表。 |
+
 ## 论文系统表
 
 | 论文/系统 | 年份/venue 状态 | 论文/代码网址 | 代码状态 | 为什么当前不能成为新的完整正式基线 |

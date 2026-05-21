@@ -24,6 +24,29 @@
 
 当前缺少的是另一个“公开、可构建、同负载、能同时跑 3B/7B、能加载 500 个真实 PEFT adapter、能输出 `e2e_v3`、且不需要改核心设计”的系统。同硬件只是公平性的必要条件，不是充分条件；系统还必须保留请求语义、adapter 身份、工件生命周期，以及 3B+7B/4000 请求/500 adapter 负载。
 
+## 硬件、软件与核心改动分类总表
+
+这张表专门回答“缺的是硬件还是软件，软件能不能适配”的问题。这里的“可适配”指不改变论文系统核心机制的本地适配；如果需要重写调度器、adapter 管理、内存管理、RDMA/SPDK 替代机制，就不算公平复现。
+
+| 系统 | 当前状态 | 主要缺失类型 | 软件适配是否足够 | 结论 |
+|---|---|---|---|---|
+| `ServerlessLLM-new` | 已闭口 3B/7B true-remote 正式 replay | 无 | 已完成 | 可作为新增论文系统候选。 |
+| vLLM / SGLang / S-LoRA / 旧 ServerlessLLM / PrimeLoRA | 原主线闭口基线 | 无 | 已完成 | 已在默认论文数据中，不属于新增待复现问题。 |
+| dLoRA 3B | 官方 `migration_type=3` 完整 replay 已闭口 | 普通软件兼容问题已经解决 | 已完成 | 可作 3B limited evidence 或附录证据。 |
+| dLoRA 7B | 无法达到 HTTP readiness | 显存容量与 dLoRA/vLLM 核心内存布局 | 普通软件适配不够 | 需要改 cache allocation、adapter placement、rank/量化或内存管理，属于核心改动。 |
+| Loquetier | 真实 adapter 门禁通过，但 3B/500 adapter 预检 OOM | 24GB 显存包络不足，加上缺上游分片 adapter 放置 | 普通软件适配不够 | 要做多 GPU/分片 adapter placement 才能正式跑，属于核心实现。 |
+| Medusa | `_C`/`_moe_C` import gate 已通过 | 运行时设备栈：SPDK、hugepages、GDRCopy、NVMe/Optane、UIO/VFIO/root setup | 仅改路径/库不够 | 缺的是设备/OS 运行时；移除 SPDK/materialization 会破坏论文机制。 |
+| FaaScale/LambdaScale | IPC/RDMA-P2P binding gate 已通过 | RDMA/IB 硬件与驱动栈，且缺现成 LoRA workload path | 硬件部分无法靠软件补出；LoRA path 又会是核心扩展 | 当前本机不能做正式 replay。 |
+| ServerlessPD | 只做论文/来源调查 | RDMA remote fork、GPU context interception、OS/kernel 机制 | 普通软件适配不够 | 即使代码出现，也大概率需要 RDMA/内核/设备支持。 |
+| HydraServe/ParaServe | 控制面和源码门禁已做 | Kubernetes/GPU pod 运行环境，以及 per-request adapter identity 语义 | K8s 是平台问题；adapter identity 是核心语义问题 | 只搭环境还不够；加入动态 adapter 请求语义会改核心。 |
+| AIBrix | 组件和 runtime sidecar 门禁已做 | Kubernetes/Docker/GPU pod 权限 | 理论上可在有权限环境中继续 | 当前本机权限不够；裸 vLLM+sidecar 不能声称是 AIBrix。 |
+| Sarathi-Serve | 源码审计完成 | 论文分支没有 LoRA/adapter/PEFT path | 需要核心实现 | 加 LoRA loader/layer/scheduler 会变成新系统。 |
+| DeepServe | 论文调查 | Ascend NPU/华为云生产平台，无公开可移植代码 | 本机 NVIDIA 3090 无法软件适配成等价系统 | 不能作为本机正式基线。 |
+| TIDAL / ServerlessLoRA / Predictive-LoRA / PipeBoost / SLINFER / Tangram / MoEless | 论文调查 | 主要缺公开官方代码；部分还依赖不同运行时或负载形态 | 自己实现不算复现 | 只能相关工作或未来代码公开后再门禁。 |
+| INFaaS / FaaSwap / Torpor / HAS-GPU | 历史或泛 serverless/GPU inference 系统 | 缺 Llama/vLLM/LoRA 语义 | 需要新增核心 LLM serving path | 不适合主表，可作历史/附录背景。 |
+| Ray Serve + vLLM | 工程系统候选 | 非论文系统，不是硬件阻塞 | 可以软件适配 | 可作为工程化 serverless/autoscaling baseline，但不能写成单篇论文系统复现。 |
+| LoRAX / TGI Multi-LoRA | 工程/adapter-serving 候选 | 非 serverless cold-start 论文系统 | 可以软件门禁 | 可作为 multi-LoRA serving baseline，不是无服务器论文系统主表复现。 |
+
 ## 为什么之前的系统不是过早放弃
 
 | 系统 | 已经尝试过的适配 | 阻止进入正式 3B+7B 对比的原因 | 是否还能继续适配 |
