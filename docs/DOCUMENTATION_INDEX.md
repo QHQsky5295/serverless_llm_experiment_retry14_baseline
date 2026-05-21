@@ -34,6 +34,10 @@ evidence.
   service and local opt-in fetch path; default-off and not part of the frozen
   paper result chain.
 - `PROJECT_PROGRESS.md`: current high-level project status.
+- `BASELINE_ADAPTATION_LIMITS_AND_NEW_SURVEY_2026-05-21.md`: summary of why
+  the gated new baselines cannot be pushed further into a full 3B+7B formal
+  row without changing their core design, plus the 2026-05-21 online survey
+  that selects LoRAX as the best remaining gate candidate.
 - `VLLM_RTX3090_LORA.md`: current vLLM/LoRA runtime notes.
 - `CODEX_INTERACTION_RULES.md`: local copy pointing to the authoritative
   collaboration rules in the baseline workspace.
