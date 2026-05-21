@@ -15,6 +15,10 @@ execution source.
 - `CODEX_INTERACTION_RULES.md`: collaboration and root-cause analysis rules.
 - `NEW_SERVERLESS_BASELINES_2026-05-18.md`: ordered ServerlessLLM-new,
   Medusa, and FaaScale reproduction campaign notes.
+- `SERVERLESS_LLM_PAPER_BASELINE_REPRODUCIBILITY_2020_2026.md`: 2020-2026
+  serverless LLM inference paper-system survey with paper/code URLs and the
+  exact reason each candidate can or cannot become a formal 3B+7B true-remote
+  PrimeLoRA/FaaSLoRA baseline in the current environment.
 
 ## Current True-Remote Result Scope
 
