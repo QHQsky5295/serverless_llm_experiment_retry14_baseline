@@ -980,6 +980,14 @@ True-remote full-figures queue completion, 2026-05-18:
   true-remote mirror now includes `paper/sensitivity/fig8_load_sensitivity*`,
   `paper/sensitivity/fig8_load_sensitivity_trends.pdf`, and
   `paper/sensitivity/fig9_adapter_pool_sensitivity*`.
+- Follow-up completion on 2026-05-22: the remote mirror's paper-facing main
+  directory was checked against the default paper figure set and the missing
+  single-round `fig1_intro_teaser.*` and `fig5_main_normalized.*` artifacts were
+  regenerated from the same true-remote Llama-2 7B round with the PrimeLoRA
+  true-remote summary override. The artifacts were mirrored into
+  `paper_results/final_remote_full_real_remote_v1/figs/paper/main/`, and the
+  `SHA256SUMS` files now validate without self-referential checksum failures.
+  This did not overwrite `figs/` or `paper_results/final_v2/`.
 
 Current handoff state, 2026-05-18:
 

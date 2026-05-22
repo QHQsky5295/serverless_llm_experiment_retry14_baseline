@@ -191,11 +191,13 @@ build_figures() {
   # overwriting the merged Llama-2-7B + Llama-3.2-3B artifacts.
   "${PYTHON_BIN}" scripts/plot_paper_figures.py \
     --round-dir "${ROUND_7B}" \
+    --system-summary-override "faaslora:${PRIME_VLLM_7B}" \
     --figure fig1_intro \
     --out-dir "${PAPER_FIGS_ROOT}/main"
 
   "${PYTHON_BIN}" scripts/plot_paper_figures.py \
     --round-dir "${ROUND_7B}" \
+    --system-summary-override "faaslora:${PRIME_VLLM_7B}" \
     --figure fig5_normalized \
     --out-dir "${PAPER_FIGS_ROOT}/main"
 

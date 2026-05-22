@@ -73,6 +73,7 @@ SYSTEM_LABELS = {
     "slora": "S-LoRA",
     "serverlessllm": "ServerlessLLM",
 }
+MAIN_SUMMARY_OVERRIDES: Dict[str, Path] = {}
 SYSTEM_COLORS = {
     "faaslora": "#78B87A",
     "sglang": "#7FA7D9",
@@ -685,13 +686,14 @@ def _main_round_data(round_dir: Path) -> List[MainSystemData]:
 
     strict_rows = [_row_dict(compare.get("strict_headers") or [], row) for row in compare.get("strict_rows") or []]
     present_keys = {_system_key(str(row.get("System"))) for row in strict_rows}
+    present_keys.update(MAIN_SUMMARY_OVERRIDES.keys())
     missing = [key for key in SYSTEM_ORDER if key not in present_keys]
     if missing:
         raise SystemExit(f"{compare_path}: missing systems in strict_rows: {missing}")
 
     systems: List[MainSystemData] = []
     for key in SYSTEM_ORDER:
-        source = _main_summary_path(round_dir, run_tag, key)
+        source = MAIN_SUMMARY_OVERRIDES.get(key) or _main_summary_path(round_dir, run_tag, key)
         raw = _main_row_from_summary(source, key)
         completed = int(_as_float(raw.get("completed"), f"{key}.completed"))
         total = int(_as_float(raw.get("total"), f"{key}.total"))
@@ -1340,6 +1342,8 @@ def _best_baseline(systems: Sequence[MainSystemData], metric: str, *, higher: bo
 def plot_fig1(round_dir: Path, out_dir: Path) -> None:
     systems = _main_round_data(round_dir)
     rows = _main_csv_rows(systems)
+    cost_musd_values = [system.metrics["cost_req_usd"] * 1000.0 for system in systems]
+    ce_values = [system.metrics["ce"] for system in systems]
     for system in systems:
         rows.append(
             {
@@ -1389,8 +1393,11 @@ def plot_fig1(round_dir: Path, out_dir: Path) -> None:
             bbox={"boxstyle": "round,pad=0.06", "facecolor": "white", "edgecolor": "none", "alpha": 0.78},
         )
 
-    ax.set_xlim(2.35, 3.92)
-    ax.set_ylim(0, 136)
+    x_span = max(cost_musd_values) - min(cost_musd_values)
+    x_pad_left = max(0.08, x_span * 0.08)
+    x_pad_right = max(0.18, x_span * 0.18)
+    ax.set_xlim(max(0.0, min(cost_musd_values) - x_pad_left), max(cost_musd_values) + x_pad_right)
+    ax.set_ylim(0, max(10.0, max(ce_values) * 1.18))
     ax.set_xlabel("Cost/req (mUSD)")
     ax.set_ylabel("CE")
     ax.grid(axis="both", color="#D9D9D9", linewidth=0.55, alpha=0.80)
@@ -1767,12 +1774,38 @@ def main() -> None:
         default="all",
         help=f"Figure name, main_all, motivation_all, ablation_all, or all. Choices: {', '.join(PLOTTERS)}",
     )
+    parser.add_argument(
+        "--system-summary-override",
+        action="append",
+        default=[],
+        help=(
+            "Override one main-table system summary. Use SYSTEM_KEY:SUMMARY_JSON, "
+            "or MODEL_KEY:SYSTEM_KEY:SUMMARY_JSON for compatibility with the combined main builder."
+        ),
+    )
     parser.add_argument("--out-dir", type=Path, default=Path("figs/paper/ablation"))
     args = parser.parse_args()
 
     round_dir = args.round_dir.resolve()
     out_dir = args.out_dir.resolve()
     _require_file(round_dir / "MANIFEST.json")
+    MAIN_SUMMARY_OVERRIDES.clear()
+    for spec in args.system_summary_override:
+        parts = spec.split(":", 2)
+        if len(parts) == 2:
+            system_key, path_text = parts
+        elif len(parts) == 3:
+            _, system_key, path_text = parts
+        else:
+            raise SystemExit(
+                "--system-summary-override must use SYSTEM_KEY:SUMMARY_JSON "
+                "or MODEL_KEY:SYSTEM_KEY:SUMMARY_JSON"
+            )
+        if system_key not in SYSTEM_ORDER:
+            raise SystemExit(f"{spec}: unknown system key {system_key!r}")
+        path = Path(path_text).expanduser().resolve()
+        _require_file(path)
+        MAIN_SUMMARY_OVERRIDES[system_key] = path
 
     if args.figure == "all":
         selected: List[str] = []

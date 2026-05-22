@@ -81,7 +81,10 @@ evidence.
   evidence, and checksums. It does not replace `final_v2/`.
 - `../figs_remote_full_real_remote_v1/`: full non-overwriting true-remote
   figure/table mirror. It includes main, motivation, ablation, readiness,
-  control-path, backend-portability, and sensitivity artifacts. It must not
+  control-path, backend-portability, and sensitivity artifacts. As of
+  2026-05-22, the paper-facing main directory also includes the single-round
+  `fig1_intro_teaser.*` and `fig5_main_normalized.*` artifacts mirrored into
+  `../paper_results/final_remote_full_real_remote_v1/figs/`. It must not
   overwrite the default `../figs/` paper snapshot unless the user explicitly
   changes the paper data policy.
 
