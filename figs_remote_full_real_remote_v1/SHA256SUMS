@@ -1,4 +1,3 @@
-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./SHA256SUMS
 c8d0c15ba39923b091a88f1126625bc68743d38cc02ae05e6b281ea5679a046a  ./paper/ablation/fig4_coordination.pdf
 be3fb9fadb5b2eb353681204a4d7fb206acf1b708b70c063d268db64987e02b8  ./paper/ablation/fig4_coordination_data.csv
 ea3efc873a1faa330eebb9d8a7463ccd2698884c2468571a690a389e3049f138  ./paper/ablation/fig4_coordination_manifest.json
