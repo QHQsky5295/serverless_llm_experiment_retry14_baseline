@@ -13,6 +13,7 @@ inference.
 - Main runtime env: `LLM_vllm0102`
 - Formal metric schema: `e2e_v3`
 - Formal comparison harness: `/home/qhq/serverless_llm_baselines`
+- Latest handoff: `docs/SESSION_HANDOFF_2026-05-25.md`
 - Current paper state: `docs/FINAL_PAPER_STATE_2026-05-10.md`
 - Final recoverable data snapshot: `paper_results/final_v2/`
 
@@ -60,6 +61,13 @@ including compressed raw JSON summaries for the final 7B/3B main rows and the
 measured PrimeLoRA-SGLang backend-sensitivity rows. Historical 13B, 1B, Qwen,
 failed, and debug rounds are not part of the final paper snapshot.
 
+The full true-remote realism mirror is tracked separately under
+`figs_remote_full_real_remote_v1/` and
+`paper_results/final_remote_full_real_remote_v1/`. As of 2026-05-22, that
+mirror has the same paper-facing figure/table coverage as the current draft
+inputs, but it does not replace the default `figs/` and `paper_results/final_v2/`
+unless the paper data policy is explicitly changed.
+
 ## Main Paper Metrics
 
 The main comparison table should use:
@@ -80,6 +88,8 @@ unless every baseline can observe the same field.
 
 - `docs/FINAL_PAPER_STATE_2026-05-10.md`: current paper-facing status and final
   data map.
+- `docs/SESSION_HANDOFF_2026-05-25.md`: latest restart point and default-vs-
+  true-remote data policy.
 - `docs/PAPER_EXPERIMENT_TODO.md`: paper experiment plan and figure checklist.
 - `docs/TECHNICAL_ROUTE_AND_IMPLEMENTATION.md`: current system design.
 - `docs/PROJECT_PROGRESS.md`: current project status.

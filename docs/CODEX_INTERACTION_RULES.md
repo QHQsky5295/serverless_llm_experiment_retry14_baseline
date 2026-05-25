@@ -26,11 +26,11 @@
 
 保留本副本的目的，是让 FaaSLoRA 主实验仓在脱离 baseline 工作区时也能看到同一套协作约束。
 
-## 2026-05-18 之后的新会话交接规则
+## 2026-05-25 之后的新会话交接规则
 
 新会话如果继续 PrimeLoRA/FaaSLoRA 项目，必须先读：
 
-1. `docs/SESSION_HANDOFF_2026-05-18.md`
+1. `docs/SESSION_HANDOFF_2026-05-25.md`
 2. `docs/DOCUMENTATION_INDEX.md`
 3. `docs/PROJECT_PROGRESS.md`
 4. `docs/对比实验日志.md` 末尾
@@ -48,13 +48,18 @@ nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader,n
 
 - 默认论文数据是 `figs/` 和 `paper_results/final_v2/`。
 - 真实 remote 镜像是 `figs_remote_full_real_remote_v1/` 和
-  `paper_results/final_remote_full_real_remote_v1/`。
+  `paper_results/final_remote_full_real_remote_v1/`；截至 2026-05-22 已补齐
+  paper-facing Fig.1、Fig.5、主表、TTFT 分解、Fig.7、motivation、ablation、
+  readiness、control-path、backend-portability 和 sensitivity 图表，但尚未替换
+  默认论文输入路径。
 - `a500` 是默认主实验规模，不能在 adapter-pool sensitivity 中无理由重跑；
   sensitivity 只额外跑 `a100-a400`，`a500` 复用 canonical main round。
 - 不能覆盖 `figs/` 中的旧闭环图，除非用户明确要求替换主论文图。
 - 不提交远端密码、代理凭据或机器登录信息。
 - 当前 `configs/generated/lora_manifest_1000.json` 存在历史未提交改动，
   不要把它混进无关提交。
+- ServerlessLLM-new warm-min4 是不公平的诊断实验：它把按需扩缩的
+  serverless 系统变成 4 个常驻实例的 serverful 部署，不能进入任何性能对比表。
 
 如果用户要求调研新的 Serverless+LLM inference baseline，先做候选系统复现
 可行性表，不要直接启动长实验。候选系统必须说明：是否开源、是否能构建、

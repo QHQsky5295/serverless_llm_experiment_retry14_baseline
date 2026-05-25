@@ -21,6 +21,11 @@ FaaSLoRA snapshot.
 - current `figs/paper/` paper-facing generated tables, figures, CSVs, and
   manifests
 - curated final data snapshot: `paper_results/final_v2/`
+- non-overwriting true-remote mirror:
+  `figs_remote_full_real_remote_v1/` and
+  `paper_results/final_remote_full_real_remote_v1/`
+- new serverless baseline candidate bundle:
+  `paper_results/new_serverless_baselines_remote_v1/`
 - root `README.md`, `EXPERIMENT_GUIDE.md`, `PROJECT_STRUCTURE.md`
 
 ## What Does Not Belong In FaaSLoRA
@@ -42,8 +47,8 @@ git -C /home/qhq/serverless_llm_experiment_retry14_baseline status --short
 
 Do not push accidental generated results, large artifacts, or obsolete docs.
 
-The only final experiment data currently intended for GitHub is the curated
-snapshot under:
+The default final experiment data currently intended for the paper draft is the
+curated snapshot under:
 
 ```text
 paper_results/final_v2/
@@ -53,6 +58,10 @@ It contains compressed copies of the final source JSON summaries for Llama-2 7B,
 Llama-3.2 3B, and measured PrimeLoRA-SGLang backend sensitivity. Do not add
 whole timestamped result directories unless a new final snapshot is explicitly
 created and documented.
+
+The true-remote and new-baseline bundles listed above are tracked only as
+non-overwriting mirrors/evidence bundles. They do not replace default paper
+inputs unless the user explicitly changes the paper data policy.
 
 ## Latest Known Sync Scope: 2026-05-10
 
@@ -80,19 +89,17 @@ paper relevance.
 
 ## Latest Known Sync Scope: 2026-05-14
 
-In addition to `paper_results/final_v2/`, the true-remote remote-fair snapshot
-and full non-overwriting figure mirror should be tracked:
+Historical note: this was the first true-remote remote-fair snapshot layout.
+It has since been superseded by the 2026-05-25 full mirror scope below.
 
-- `paper_results/final_remote_fair_real_remote_v1/`
-- `figs_remote/`
-- `figs/paper/main_remote_fair_real_remote_v1_7b3b/`
-- `figs/paper/backend_portability_real_remote_v1_7b3b/`
+Current equivalent paths are:
 
-The snapshot contains only compressed final summary JSON files, generated
-CSV/TEX/PDF artifacts, manifests, checksums, and local-sim comparison tables.
+- `paper_results/final_remote_full_real_remote_v1/`
+- `figs_remote_full_real_remote_v1/`
+
 Do not commit whole timestamped result directories or failed/debug rounds.
-Continue to leave `configs/generated/lora_manifest_1000.json` unstaged unless
-it is intentionally regenerated for a separate manifest update.
+Continue to leave `configs/generated/lora_manifest_1000.json` unstaged unless it
+is intentionally regenerated for a separate manifest update.
 
 ## Latest Known Sync Scope: 2026-05-21
 
@@ -112,3 +119,19 @@ cannot enter full formal replay on this machine. It does not replace
 Continue to leave
 `configs/generated/lora_manifest_1000.json` unstaged unless the user explicitly
 requests a generated manifest update.
+
+## Latest Known Sync Scope: 2026-05-25
+
+Documentation has been aligned around
+`docs/SESSION_HANDOFF_2026-05-25.md` as the latest restart entry. The
+true-remote full mirror is complete and tracked under:
+
+- `figs_remote_full_real_remote_v1/`
+- `paper_results/final_remote_full_real_remote_v1/`
+
+The paper-facing remote mirror includes Fig.1, Fig.5, main tables, TTFT
+decomposition, Fig.7, motivation, ablation, readiness, control-path,
+backend-portability, and sensitivity artifacts. It remains non-overwriting.
+
+Continue to leave `configs/generated/lora_manifest_1000.json` unstaged unless
+the user explicitly requests a generated manifest update.

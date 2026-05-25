@@ -1,5 +1,9 @@
 # Final Paper State, 2026-05-10
 
+> Latest project handoff is `docs/SESSION_HANDOFF_2026-05-25.md`. This file
+> remains the concise default-paper-data state. It does not mean the later
+> true-remote mirror has replaced default paper inputs.
+
 This document is the current entry point for the paper-facing state of the
 PrimeLoRA/FaaSLoRA project on branch `retry14_continuous_queue_v2`.
 
@@ -116,18 +120,19 @@ generated file `configs/generated/lora_manifest_1000.json` may be dirty from
 experiments and should not be committed unless it is intentionally regenerated
 for the final artifact pool.
 
-## Update: 2026-05-14 True-Remote Remote-Fair Snapshot
+## Update: 2026-05-25 True-Remote Mirror Status
 
-真实两节点 remote artifact 复查已完成，且没有覆盖旧 `final_v2` 和旧 `figs/`
-结果。新增可恢复输出为：
+真实两节点 remote artifact 复查和后续 full-figure mirror 已完成，且没有覆盖旧
+`final_v2` 和旧 `figs/` 结果。当前可恢复输出为：
 
-- `paper_results/final_remote_fair_real_remote_v1/`
-- `figs/paper/main_remote_fair_real_remote_v1_7b3b/`
-- `figs/paper/backend_portability_real_remote_v1_7b3b/`
-- `figs_remote/`
+- `figs_remote_full_real_remote_v1/`
+- `paper_results/final_remote_full_real_remote_v1/`
 
-`figs_remote/` 是与原 `figs/` 并行的全量镜像包：主比较与 backend portability
-使用 true-remote 数据，其它没有 true-remote formal run 的图表保留旧闭环版本。
+`figs_remote_full_real_remote_v1/` 是与原 `figs/` 并行的全量 true-remote
+paper-facing 镜像包。截至 2026-05-22，它已补齐当前 paper draft 引用的
+Fig.1、Fig.5、主表、TTFT 分解、Fig.7、motivation、ablation、readiness、
+control-path、backend-portability 和 sensitivity 图表。它仍然是非覆盖镜像，
+尚未替换默认 `figs/` 或 `paper_results/final_v2/`。
 
 趋势判断：不建议把当前论文主数据整体替换成 true-remote。true-remote 保持了
 一开始闭环数据的主要排序与机制解释：7B/3B 中 PrimeLoRA 仍为 CE 第一，

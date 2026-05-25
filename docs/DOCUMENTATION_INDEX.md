@@ -1,7 +1,7 @@
 # Documentation Index
 
-This index lists the active FaaSLoRA documents after the final 2026-05-18 paper
-and true-remote snapshot. Use these files for current project state; use
+This index lists the active FaaSLoRA documents after the 2026-05-25 documentation
+alignment pass. Use these files for current project state; use
 `对比实验日志.md` and older progress files only as historical experiment
 evidence.
 
@@ -12,12 +12,13 @@ evidence.
 - `../PROJECT_STRUCTURE.md`: current repository layout.
 - `../paper/primelora_current_draft.tex`: current tracked paper draft used for
   future text/figure insertion reviews.
+- `SESSION_HANDOFF_2026-05-25.md`: current no-context-loss handoff document.
+  Start here in a new Codex session. It records the latest default-vs-remote
+  data policy, complete true-remote mirror state, ServerlessLLM-new warm-min4
+  fairness decision, new baseline gating outcomes, and ready-to-paste restart
+  prompt.
 - `FINAL_PAPER_STATE_2026-05-10.md`: current paper-facing status, final workload
   choice, final data snapshot, and GitHub sync scope.
-- `SESSION_HANDOFF_2026-05-18.md`: current no-context-loss handoff document.
-  Start here in a new Codex session. It records the final experiment state,
-  data directories, true-remote mirror, a500/default workload rule, and a
-  ready-to-paste restart prompt.
 - `ENVIRONMENT.md`: current runtime assumptions.
 - `TECHNICAL_ROUTE_AND_IMPLEMENTATION.md`: current system design overview.
 - `PAPER_EXPERIMENT_TODO.md`: paper experiment plan and figure checklist.
@@ -61,6 +62,8 @@ evidence.
 - `SESSION_HANDOFF_2026-04-27.md`: historical restart prompt from the adapter
   pool queue period. Do not use it as the current terminal state.
 - `SESSION_HANDOFF_2026-04-25.md`: older historical restart prompt.
+- `SESSION_HANDOFF_2026-05-18.md`: historical restart prompt from the first
+  true-remote mirror closure. Superseded by `SESSION_HANDOFF_2026-05-25.md`.
 
 ## Final Data Snapshot
 

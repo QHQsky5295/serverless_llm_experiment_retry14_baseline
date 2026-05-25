@@ -266,12 +266,13 @@ GPU admission 逻辑。
 
 ## 2026-05-14 True-Remote Formal Validation
 
-真实 remote 复查已完成，不覆盖 local-sim 闭环结果。新表图和快照：
+真实 remote 复查与 full-figure mirror 已完成，不覆盖 local-sim 闭环结果。当前
+新表图和快照：
 
-- `figs_remote/`
-- `figs/paper/main_remote_fair_real_remote_v1_7b3b/`
-- `figs/paper/backend_portability_real_remote_v1_7b3b/`
-- `paper_results/final_remote_fair_real_remote_v1/`
+- `figs_remote_full_real_remote_v1/`
+- `figs_remote_full_real_remote_v1/paper/main/`
+- `figs_remote_full_real_remote_v1/paper/backend_portability/`
+- `paper_results/final_remote_full_real_remote_v1/`
 
 baseline true-remote round：
 

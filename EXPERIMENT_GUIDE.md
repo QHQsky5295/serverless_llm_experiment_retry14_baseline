@@ -9,8 +9,15 @@ represent the active paper workflow.
 The current final paper snapshot is already complete for the selected
 Llama-family main workloads. For the final state, use:
 
+- `docs/SESSION_HANDOFF_2026-05-25.md`
 - `docs/FINAL_PAPER_STATE_2026-05-10.md`
 - `paper_results/final_v2/`
+
+The complete true-remote mirror is also closed and tracked under
+`figs_remote_full_real_remote_v1/` and
+`paper_results/final_remote_full_real_remote_v1/`. It is a non-overwriting
+mirror; do not use it to replace default paper inputs unless the user explicitly
+changes the paper data policy.
 
 The commands below remain the entry points for future reruns or new sensitivity
 experiments. They are not required to reproduce the already generated final
@@ -104,6 +111,13 @@ Final paper-facing generated results are tracked under:
 ```text
 figs/paper/
 paper_results/final_v2/
+```
+
+Non-overwriting true-remote generated results are tracked under:
+
+```text
+figs_remote_full_real_remote_v1/
+paper_results/final_remote_full_real_remote_v1/
 ```
 
 FaaSLoRA internal result JSONs under `results/` are useful for system debugging,

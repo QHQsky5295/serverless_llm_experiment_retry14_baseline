@@ -10,6 +10,7 @@ April handoff snapshots have been removed from the active documentation set.
 - Repository: `/home/qhq/serverless_llm_experiment_retry14_baseline`.
 - Branch: `retry14_continuous_queue_v2`.
 - Formal comparison harness: `/home/qhq/serverless_llm_baselines`.
+- Current handoff entry: `docs/SESSION_HANDOFF_2026-05-25.md`.
 - Final paper state document: `docs/FINAL_PAPER_STATE_2026-05-10.md`.
 - Final paper data snapshot: `paper_results/final_v2/`.
 - Final main workloads: Llama-2 7B and Llama-3.2 3B, each with 4000 requests,
@@ -84,18 +85,14 @@ April handoff snapshots have been removed from the active documentation set.
   `enable_lora`, `LoRARequest`, PEFT loading, or adapter-aware scheduler. It is
   appendix/gate evidence only because supporting the closed 500-adapter
   workload would require adding new LoRA serving semantics to Sarathi-Serve.
-- True-remote full-figure queue checkpoint on 2026-05-15 12:05 CST:
-  the Llama-2-7B adapter-pool `a100` and `a200` five-system rounds are
-  complete and valid. `a200` keeps the same system ordering as the frozen
-  closed-loop data: PrimeLoRA-vLLM CE `129.21` remains first, followed by
-  SGLang `116.30`, vLLM `84.83`, S-LoRA `76.67`, and ServerlessLLM `1.56`.
-  The `a300 / SGLang` and `a300 / ServerlessLLM` true-remote points are also
-  complete (`4000/4000`, `fail=0`, no token fallback) and remain
-  trend-consistent with their frozen closed-loop counterparts. `a300`
-  ServerlessLLM has CE `1.56`, with TTFT dominated by upstream dispatch wait
-  rather than service TTFT. The active queue has advanced to
-  `adapter_pool a300 / vLLM / Llama-2-7B`, materializing adapters from
-  `http://192.168.4.174:18081` into a round-local cache before replay.
+- True-remote full-figure queue is closed. The older 2026-05-15 mid-queue
+  checkpoint is retained later in this file only as history; do not treat any
+  older queue-progress sentence below as current state. The final
+  true-remote mirror is `figs_remote_full_real_remote_v1/` plus
+  `paper_results/final_remote_full_real_remote_v1/`, and as of 2026-05-22 its
+  paper-facing figure/table set is aligned with every `figs/paper/...` input
+  referenced by `paper/primelora_current_draft.tex`. It remains non-overwriting
+  and does not replace `figs/` or `paper_results/final_v2/`.
 
 ## Final Paper Snapshot: 2026-05-10
 
@@ -156,7 +153,11 @@ Adapter-pool sensitivity has completed and is now available as Fig. 9 candidate 
 - generated full-metric table:
   `/home/qhq/serverless_llm_experiment_retry14_baseline/figs/paper/sensitivity/table_fig9_adapter_pool_sensitivity_metrics.tex`.
 
-## Current Queue: 08_backbone_robustness
+## Historical Queue: 08_backbone_robustness
+
+This section is historical. It is not an active queue and is not part of the
+current paper data policy unless the user explicitly reopens backbone
+robustness.
 
 Backbone robustness is the next appropriate long-running experiment once the
 current Llama-2 7B figure set is stable.
@@ -293,18 +294,19 @@ S-LoRA
 
 Punica is retained as a scoped Llama-2 7B auxiliary baseline only.
 
-## True-Remote Remote-Fair Status: 2026-05-14
+## True-Remote Full Mirror Status: updated 2026-05-25
 
-真实两节点 remote artifact 复查已闭环，且没有覆盖旧 `final_v2` 数据：
+真实两节点 remote artifact 复查和 full-figure mirror 已闭环，且没有覆盖旧
+`final_v2` 数据：
 
 - curated snapshot:
-  `paper_results/final_remote_fair_real_remote_v1/`
+  `paper_results/final_remote_full_real_remote_v1/`
 - full figure/table mirror:
-  `figs_remote/`
-- main true-remote tables/figure:
-  `figs/paper/main_remote_fair_real_remote_v1_7b3b/`
+  `figs_remote_full_real_remote_v1/`
+- main true-remote tables/figures:
+  `figs_remote_full_real_remote_v1/paper/main/`
 - backend portability true-remote tables/figure:
-  `figs/paper/backend_portability_real_remote_v1_7b3b/`
+  `figs_remote_full_real_remote_v1/paper/backend_portability/`
 
 有效主表候选仍是 Llama-2 7B + Llama-3.2 3B。true-remote 口径下
 PrimeLoRA-vLLM 分别取得 CE `118.84` 和 `212.55`，均为对应模型组第一。
@@ -465,8 +467,9 @@ Current completed step:
   about `229 ms` to `279 ms` because dispatch wait increases from about `15 ms`
   to `59 ms`. CE changes modestly from about `82` to `80.35`.
 
-The queue is now running `load_s12 / ServerlessLLM / Llama-2-7B` with request-path
-remote adapter materialization from `http://192.168.4.174:18081`.
+At that historical checkpoint, the queue was running
+`load_s12 / ServerlessLLM / Llama-2-7B` with request-path remote adapter
+materialization from `http://192.168.4.174:18081`.
 
 Important repository rule: FaaSLoRA changes and final true-remote figure/data
 snapshots must be pushed to `faaslora_origin retry14_continuous_queue_v2`; the
@@ -482,8 +485,9 @@ Additional completed step:
   `400.1 -> 403.9 ms`, Dispatch Wait `10550.0 -> 10816.9 ms`, Cost/req
   `3.248 -> 3.258 mUSD`, CE `22.83 -> 22.32`. The bottleneck remains upstream
   dispatch/admission/startup-readiness, not backend generation.
-- The active queue has moved to `load_s12 / vLLM / Llama-2-7B`, materializing the
-  500-adapter subset from the true remote endpoint before replay.
+- At that historical checkpoint, the queue moved to `load_s12 / vLLM /
+  Llama-2-7B`, materializing the 500-adapter subset from the true remote
+  endpoint before replay.
 
 Additional completed step:
 
@@ -497,7 +501,8 @@ Additional completed step:
   Dispatch Wait `15.0 -> 13.3 ms`, E2E Avg `3020.7 -> 2979.1 ms`, TPOT
   `25.7 -> 25.3 ms`. CE changes `62.76 -> 58.53` because the true-remote
   staging cost is included in lifecycle cost.
-- The active queue has moved to `load_s12 / S-LoRA / Llama-2-7B`.
+- At that historical checkpoint, the queue moved to
+  `load_s12 / S-LoRA / Llama-2-7B`.
 
 Additional completed step:
 
@@ -525,9 +530,9 @@ Additional completed step:
   `106.13`.
 - The s12 five-system compare has been written under:
   `/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260514_real_remote_fullfigs_v1_load_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s12_sensloadop_v1/compare/`.
-- The active queue is expected to continue to the remaining true-remote
-  operating-load, adapter-pool, ablation/readiness/control-path, and final
-  figure-build stages.
+- At that historical checkpoint, the remaining plan was to continue to the
+  true-remote operating-load, adapter-pool, ablation/readiness/control-path,
+  and final figure-build stages.
 
 Additional completed step:
 
@@ -543,9 +548,9 @@ Additional completed step:
   `95.89 -> 93.86`. This matches the true-remote pattern observed at s12:
   request-path generation remains stable, while remote-artifact realism adds
   modest upstream/staging cost.
-- The active queue has moved to `load_s10 / ServerlessLLM / Llama-2-7B`; the
-  probe has already confirmed a real remote LoRA fetch from
-  `http://192.168.4.174:18081`.
+- At that historical checkpoint, the queue moved to
+  `load_s10 / ServerlessLLM / Llama-2-7B`; the probe had already confirmed a
+  real remote LoRA fetch from `http://192.168.4.174:18081`.
 
 Additional completed step:
 
@@ -560,9 +565,9 @@ Additional completed step:
   `41312.7 -> 41535.7 ms`, TPOT `25.0 -> 24.9 ms`, CE `8.20 -> 8.19`. The
   bottleneck remains the ServerlessLLM upstream admission/scale-out path, not
   backend token generation.
-- The active queue has moved to `load_s10 / vLLM / Llama-2-7B`, which is
-  materializing the 500-adapter subset from the true remote endpoint before
-  replay.
+- At that historical checkpoint, the queue moved to
+  `load_s10 / vLLM / Llama-2-7B`, materializing the 500-adapter subset from the
+  true remote endpoint before replay.
 
 Additional completed step:
 
@@ -579,7 +584,8 @@ Additional completed step:
   `476.1 -> 411.0 ms`, Dispatch Wait `19.2 -> 13.0 ms`, E2E Avg
   `3145.3 -> 3024.6 ms`, TPOT `26.0 -> 25.5 ms`. CE changes
   `71.52 -> 67.48` because true-remote staging increases lifecycle cost.
-- The active queue has moved to the remaining `load_s10` systems.
+- At that historical checkpoint, the queue moved to the remaining `load_s10`
+  systems.
 
 Additional completed step:
 
@@ -603,8 +609,8 @@ Additional completed step:
   expected because true-remote staging is included in lifecycle accounting.
 - The `load_s10` five-system true-remote compare has been written under:
   `/home/qhq/serverless_llm_baselines/results/paper_experiments/06_sensitivity_load_operating/20260514_real_remote_fullfigs_v1_load_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s10_sensloadop_v1/compare/`.
-- The active queue has moved to the adapter-pool sensitivity mirror, starting
-  with `a100 / SGLang / Llama-2-7B`.
+- At that historical checkpoint, the queue moved to the adapter-pool
+  sensitivity mirror, starting with `a100 / SGLang / Llama-2-7B`.
 
 Additional completed step:
 
@@ -624,8 +630,9 @@ Additional completed step:
   `105.64 -> 105.12 tok/s`, Cost/req `3.587 -> 3.602 mUSD`, CE
   `117.39 -> 115.37`. The small delta is consistent with true-remote
   materialization/control realism and does not change the system ordering.
-- The active queue has moved to `adapter_pool a100 / ServerlessLLM /
-  Llama-2-7B`; its probe has confirmed a real remote LoRA fetch.
+- At that historical checkpoint, the queue moved to
+  `adapter_pool a100 / ServerlessLLM / Llama-2-7B`; its probe had confirmed a
+  real remote LoRA fetch.
 
 Additional completed step:
 
@@ -646,9 +653,10 @@ Additional completed step:
   `1.58 -> 1.57`. This confirms that the ServerlessLLM bottleneck in this
   adapter-pool point remains upstream admission/scale-out readiness, not token
   generation or the remote artifact transport itself.
-- The active queue has moved to `adapter_pool a100 / vLLM / Llama-2-7B`.
-  vLLM already materialized 100 adapters from the true remote endpoint into the
-  round-local `remote_cache/vllm` and is replaying with `fail=0`.
+- At that historical checkpoint, the queue moved to
+  `adapter_pool a100 / vLLM / Llama-2-7B`. vLLM had already materialized 100
+  adapters from the true remote endpoint into the round-local
+  `remote_cache/vllm` and was replaying with `fail=0`.
 
 Additional completed step:
 
@@ -668,10 +676,10 @@ Additional completed step:
   `26.0 -> 25.9 ms`, Throughput `104.59 -> 104.62 tok/s`. Cost/req changes
   `3.601 -> 3.702 mUSD` and CE changes `89.26 -> 87.48`, which is consistent
   with true-remote staging entering lifecycle accounting.
-- The active queue has moved to `adapter_pool a100 / S-LoRA / Llama-2-7B`.
-  S-LoRA is using the normal packed-BGMV path for Llama-2-7B (`bmm=0`,
-  requested `auto`, reason `packed_bgmv`) and has staged 100 adapters from the
-  true remote endpoint.
+- At that historical checkpoint, the queue moved to
+  `adapter_pool a100 / S-LoRA / Llama-2-7B`. S-LoRA was using the normal
+  packed-BGMV path for Llama-2-7B (`bmm=0`, requested `auto`, reason
+  `packed_bgmv`) and had staged 100 adapters from the true remote endpoint.
 
 Additional completed step:
 
@@ -695,8 +703,9 @@ Additional completed step:
 - The full `adapter_pool a100` five-system true-remote round is complete.
   PrimeLoRA-vLLM remains first in CE: PrimeLoRA `131.80`, SGLang `115.37`,
   vLLM `87.48`, S-LoRA `79.41`, ServerlessLLM `1.57`.
-- The active queue has advanced to `adapter_pool a200 / Llama-2-7B` with the
-  same true-remote endpoint and bandwidth setting.
+- At that historical checkpoint, the queue advanced to
+  `adapter_pool a200 / Llama-2-7B` with the same true-remote endpoint and
+  bandwidth setting.
 
 Additional completed step:
 
@@ -715,9 +724,9 @@ Additional completed step:
   `2351.3 -> 2403.9 ms`, TPOT `19.9 -> 19.7 ms`, Throughput
   `104.38 -> 104.41 tok/s`, Cost/req `3.584 -> 3.577 mUSD`, CE
   `118.67 -> 116.30`. The system ordering and adapter-pool trend are stable.
-- The active queue has moved to `adapter_pool a200 / ServerlessLLM /
-  Llama-2-7B`; its probe confirmed a real remote fetch of `medical_lora`
-  from `http://192.168.4.174:18081`.
+- At that historical checkpoint, the queue moved to
+  `adapter_pool a200 / ServerlessLLM / Llama-2-7B`; its probe confirmed a real
+  remote fetch of `medical_lora` from `http://192.168.4.174:18081`.
 
 Additional completed step:
 
@@ -738,9 +747,9 @@ Additional completed step:
   `1.57 -> 1.56`. The dominant bottleneck remains upstream
   admission/scale-out readiness, not backend generation or the real-remote
   artifact fetch itself.
-- The active queue has moved to `adapter_pool a200 / vLLM / Llama-2-7B`,
-  materializing 200 adapters from the same true-remote endpoint into the
-  round-local `remote_cache/vllm`.
+- At that historical checkpoint, the queue moved to
+  `adapter_pool a200 / vLLM / Llama-2-7B`, materializing 200 adapters from the
+  same true-remote endpoint into the round-local `remote_cache/vllm`.
 
 Additional completed step:
 
@@ -759,10 +768,10 @@ Additional completed step:
   `104.56 -> 104.58 tok/s`, Cost/req `3.606 -> 3.792 mUSD`, CE
   `88.48 -> 84.83`. The CE drop is attributable to true-remote staging entering
   lifecycle accounting, not to a degraded online replay path.
-- The active queue has moved to `adapter_pool a200 / S-LoRA / Llama-2-7B`,
-  materializing 200 adapters from the same true-remote endpoint into the
-  round-local `remote_cache/slora`; Llama-2-7B continues to use the normal
-  packed-BGMV S-LoRA path.
+- At that historical checkpoint, the queue moved to
+  `adapter_pool a200 / S-LoRA / Llama-2-7B`, materializing 200 adapters from the
+  same true-remote endpoint into the round-local `remote_cache/slora`;
+  Llama-2-7B continued to use the normal packed-BGMV S-LoRA path.
 
 Additional completed true-remote adapter-pool steps:
 
@@ -950,13 +959,15 @@ True-remote ablation progress, 2026-05-18:
   `669.7 ms`, TTFT P95 `1805.5 ms`, E2E Avg `3296.2 ms`, E2E P95
   `7317.3 ms`, TPOT `30.9 ms`, Throughput `102.35 tok/s`, Cost/req
   `2.588 mUSD`, CE `117.21`.
-- The queue has advanced to `faaslora_no_coord` and is still running. No
-  baseline rerun is active; this stage only fills true-remote PrimeLoRA
-  mechanism figures.
+- The queue then advanced to `faaslora_no_coord`; no baseline rerun was active,
+  because this stage only filled true-remote PrimeLoRA mechanism figures.
 - `faaslora_no_coord` completed with `4000/4000` requests and `0` failures.
   Metrics: TTFT Avg `619.2 ms`, TTFT P95 `1604.8 ms`, E2E Avg `3238.4 ms`,
   E2E P95 `7209.2 ms`, TPOT `30.4 ms`, Throughput `102.80 tok/s`, Cost/req
   `2.568 mUSD`, CE `120.24`.
+- `faaslora_full` then completed with `4000/4000` requests and `0` failures;
+  the full true-remote figure mirror was built and later aligned on
+  2026-05-22 with Fig.1/Fig.5 and checksum fixes.
 - The queue has advanced to `faaslora_full`, the final true-remote ablation
   scenario.
 
@@ -989,12 +1000,13 @@ True-remote full-figures queue completion, 2026-05-18:
   `SHA256SUMS` files now validate without self-referential checksum failures.
   This did not overwrite `figs/` or `paper_results/final_v2/`.
 
-Current handoff state, 2026-05-18:
+Current handoff state, updated 2026-05-25:
 
 - All experiments in the current paper scope are closed. There is no running
-  tmux experiment session and all GPUs were idle at the final check.
+  tmux experiment session and GPUs were idle at the latest documentation
+  alignment check.
 - The current no-context-loss restart document is
-  `docs/SESSION_HANDOFF_2026-05-18.md`.
+  `docs/SESSION_HANDOFF_2026-05-25.md`.
 - The default paper result chain remains `figs/` plus `paper_results/final_v2/`.
   The true-remote mirror is separate and non-overwriting:
   `figs_remote_full_real_remote_v1/` plus

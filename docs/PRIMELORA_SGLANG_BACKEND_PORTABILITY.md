@@ -141,13 +141,14 @@ vLLM-specific runtime optimization.
 
 ## 2026-05-14 True-Remote Backend Portability 复查
 
-真实两节点 remote artifact 口径下，backend portability 表图单独生成在：
+真实两节点 remote artifact 口径下，backend portability 表图已合入完整
+true-remote mirror。当前路径为：
 
-- `figs/paper/backend_portability_real_remote_v1_7b3b/table_backend_portability.tex`
-- `figs/paper/backend_portability_real_remote_v1_7b3b/table_backend_portability_data.csv`
-- `figs/paper/backend_portability_real_remote_v1_7b3b/table_backend_portability_ttft_decomposition.tex`
-- `figs/paper/backend_portability_real_remote_v1_7b3b/fig_backend_portability_lifecycle_cost.pdf`
-- `figs_remote/paper/backend_portability/`
+- `figs_remote_full_real_remote_v1/paper/backend_portability/table_backend_portability.tex`
+- `figs_remote_full_real_remote_v1/paper/backend_portability/table_backend_portability_data.csv`
+- `figs_remote_full_real_remote_v1/paper/backend_portability/table_backend_portability_ttft_decomposition.tex`
+- `figs_remote_full_real_remote_v1/paper/backend_portability/fig_backend_portability_lifecycle_cost.pdf`
+- `paper_results/final_remote_full_real_remote_v1/figs/paper/backend_portability/`
 
 true-remote 结果：
 

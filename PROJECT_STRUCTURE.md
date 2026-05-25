@@ -14,6 +14,8 @@ serverless_llm_experiment_retry14_baseline/
   docs/            Current FaaSLoRA documentation
   paper/           Tracked paper draft
   figs/paper/      Paper-facing generated figures, tables, CSVs, manifests
+  figs_remote_full_real_remote_v1/
+                   Non-overwriting true-remote paper-facing mirror
   paper_results/   Curated final paper data snapshots
   results/         FaaSLoRA-local outputs for debugging
   README.md        Current project overview
@@ -45,6 +47,16 @@ It includes compressed final source JSON summaries, table CSV/TEX files, figure
 data, and manifests for the Llama-2 7B, Llama-3.2 3B, and measured
 PrimeLoRA-SGLang backend-sensitivity results. It intentionally excludes old
 failed/debug/exploratory result directories.
+
+The complete true-remote mirror is:
+
+```text
+figs_remote_full_real_remote_v1/
+paper_results/final_remote_full_real_remote_v1/
+```
+
+It is tracked as a non-overwriting realism mirror and is not the default paper
+input path unless the user explicitly requests replacement.
 
 ## Cross-System Boundary
 

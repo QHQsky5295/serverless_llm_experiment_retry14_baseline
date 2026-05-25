@@ -1,8 +1,12 @@
 # Session Handoff: 2026-05-18
 
-This is the current restart point for PrimeLoRA/FaaSLoRA after the 3B/7B
-closed-loop paper experiments, backend portability extension, and true-remote
-artifact mirror were completed.
+> Superseded as the current restart entry by
+> `docs/SESSION_HANDOFF_2026-05-25.md`. Keep this file as the 2026-05-18
+> historical snapshot. New sessions should start from the 2026-05-25 handoff.
+
+This was the restart point for PrimeLoRA/FaaSLoRA after the 3B/7B closed-loop
+paper experiments, backend portability extension, and first true-remote
+artifact mirror were completed. It is no longer the latest restart point.
 
 ## 1. Repositories And Branches
 
@@ -369,14 +373,15 @@ For new Serverless+LLM inference systems, use this gate before any code work:
 Do not start long experiments for a new candidate until this gate is written
 down and the user approves the candidate.
 
-## 8. Safe Startup Prompt For The Next Session
+## 8. Historical Startup Prompt
 
-Use the prompt below in a fresh Codex session.
+This prompt is kept for auditability only. New sessions should use
+`docs/SESSION_HANDOFF_2026-05-25.md`.
 
 ```text
 你是 Codex，在 /home/qhq 上继续 PrimeLoRA/FaaSLoRA 项目。请先阅读：
 
-1. /home/qhq/serverless_llm_experiment_retry14_baseline/docs/SESSION_HANDOFF_2026-05-18.md
+1. /home/qhq/serverless_llm_experiment_retry14_baseline/docs/SESSION_HANDOFF_2026-05-25.md
 2. /home/qhq/serverless_llm_experiment_retry14_baseline/docs/CODEX_INTERACTION_RULES.md
 3. /home/qhq/serverless_llm_experiment_retry14_baseline/docs/DOCUMENTATION_INDEX.md
 4. /home/qhq/serverless_llm_experiment_retry14_baseline/docs/PROJECT_PROGRESS.md

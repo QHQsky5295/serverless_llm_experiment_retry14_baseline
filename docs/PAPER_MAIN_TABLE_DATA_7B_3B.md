@@ -8,6 +8,11 @@
 - `figs/paper/main/table_ttft_decomposition_data.csv`
 - `figs/paper/main/fig7_lifecycle_cost_data.csv`
 
+最新项目入口是 `docs/SESSION_HANDOFF_2026-05-25.md`。本文件记录默认
+`figs/` / `paper_results/final_v2/` 主表数据；完整 true-remote mirror 位于
+`figs_remote_full_real_remote_v1/` 和
+`paper_results/final_remote_full_real_remote_v1/`，尚未替换默认论文输入。
+
 所有结果均使用 4000 requests、500 LoRA adapters、s8 replay。Llama-3.2 3B 的 PrimeLoRA 行来自 PrimeLoRA-only 优化复跑，并通过 shared trace 与 shared adapter subset 哈希校验后合并。
 
 最终可恢复数据快照位于：
@@ -80,18 +85,19 @@ PrimeLoRA-SGLang is a measured run. The authoritative files are:
 | Llama-3.2 3B | SGLang | Standalone | 120.9 | 113.1 | 3.626 | 199.88 |
 | Llama-3.2 3B | SGLang | PrimeLoRA | 133.8 | 113.0 | 1.166 | 579.92 |
 
-## True-Remote Remote-Fair Candidate: 2026-05-14
+## True-Remote Full Mirror: 2026-05-25
 
-新增真实两节点 remote artifact 复查结果，不覆盖旧主表目录：
+新增真实两节点 remote artifact 复查结果，不覆盖旧主表目录。早期
+`main_remote_fair_real_remote_v1_7b3b` candidate 目录后来被完整 full-figure
+mirror 取代；当前完整 mirror 为：
 
-- `figs/paper/main_remote_fair_real_remote_v1_7b3b/table1_end_to_end.tex`
-- `figs/paper/main_remote_fair_real_remote_v1_7b3b/table1_end_to_end_data.csv`
-- `figs/paper/main_remote_fair_real_remote_v1_7b3b/table_ttft_decomposition.tex`
-- `figs/paper/main_remote_fair_real_remote_v1_7b3b/fig7_lifecycle_cost.pdf`
-- `figs_remote/paper/main/`
-- `paper_results/final_remote_fair_real_remote_v1/`
+- `figs_remote_full_real_remote_v1/paper/main/table1_end_to_end.tex`
+- `figs_remote_full_real_remote_v1/paper/main/table1_end_to_end_data.csv`
+- `figs_remote_full_real_remote_v1/paper/main/table_ttft_decomposition.tex`
+- `figs_remote_full_real_remote_v1/paper/main/fig7_lifecycle_cost.pdf`
+- `paper_results/final_remote_full_real_remote_v1/`
 
-true-remote 口径下，7B 和 3B 仍满足 PrimeLoRA CE 第一；13B 只保留为诊断：
+true-remote 口径下，7B 和 3B 仍满足 PrimeLoRA CE 第一：
 
 | Model | System | TTFT Avg | E2E Avg | TPOT Avg | Throughput | Cost/req | CE |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -109,5 +115,5 @@ true-remote 口径下，7B 和 3B 仍满足 PrimeLoRA CE 第一；13B 只保留�
 结论：如果论文已经采用一开始闭环的稳定主表，没有必要整体替换成 true-remote。
 true-remote 更适合作为真实性增强和 robustness evidence。完整差异见：
 
-- `figs_remote/remote_trend_analysis.csv`
-- `figs_remote/paper/main/compare_vs_local_sim.md`
+- `figs_remote_full_real_remote_v1/paper/main/table1_end_to_end_data.csv`
+- `figs_remote_full_real_remote_v1/paper/main/table_ttft_decomposition_data.csv`
