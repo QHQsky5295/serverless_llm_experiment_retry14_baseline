@@ -1,14 +1,14 @@
 # Documentation Index
 
-This index lists the active baseline-harness documents after the April 24
-cleanup. If a document is not listed here, do not treat it as a current
-execution source.
+This index lists the active baseline-harness documents after the 2026-05-25
+documentation alignment pass. If a document is not listed here, do not treat it
+as a current execution source.
 
 ## Canonical Documents
 
 - `FAIR_COMPARISON_EXECUTION_PLAN.md`: current cross-system execution rules.
-- `CURRENT_QUEUE_HANDOFF_2026-04-27.md`: current tmux queue status, monitor
-  command, and resume command for the active operating-load sensitivity run.
+- `CURRENT_QUEUE_HANDOFF_2026-04-27.md`: historical tmux queue status from the
+  operating-load/adapter-pool period. It is not an active queue handoff.
 - `SYSTEM_REPRODUCTION_RULES.md`: rules for adding or maintaining baselines.
 - `BASELINE_MATRIX.md`: 当前基线状态和纳入边界。
 - `UPSTREAM_REPO_STATE.md`: upstream commit and patch tracking.
@@ -39,7 +39,18 @@ the completed 2026-05-14 true-remote remote-fair run:
   `results/paper_experiments/12_remote_fair_main_real_remote_v1/_comparisons/`
 
 The FaaSLoRA repository owns the merged paper tables, figures, PrimeLoRA source
-summaries, and curated snapshot for this true-remote validation.
+summaries, and curated snapshot for this true-remote validation. The latest
+main-repo handoff is:
+
+```text
+/home/qhq/serverless_llm_experiment_retry14_baseline/docs/SESSION_HANDOFF_2026-05-25.md
+```
+
+As of 2026-05-22, the FaaSLoRA true-remote mirror
+`figs_remote_full_real_remote_v1/` and
+`paper_results/final_remote_full_real_remote_v1/` has a complete paper-facing
+figure/table set aligned with the current draft inputs. It remains
+non-overwriting and does not replace default `figs/` or `paper_results/final_v2/`.
 
 ## New Serverless Baseline Candidate Scope
 
@@ -50,8 +61,9 @@ ServerlessLLM baseline:
 - upstream clone: `../vendor_new_baselines/ServerlessLLM_new_main_20260518/`
   at commit `9f50241baa5386e06a9321c51f19a9ef5f964c2b`
 - result section: `results/paper_experiments/15_new_serverless_baselines_remote_v1/`
-- status: closed and validated for 7B/3B, pending paper-table integration
-  policy.
+- status: closed and validated for 7B/3B as a candidate bundle. It does not
+  replace the old ServerlessLLM row or the default paper data unless the user
+  explicitly changes the paper data policy.
 
 The old `ServerlessLLM_project/` and all default paper data remain unchanged.
 
@@ -78,6 +90,11 @@ FaaScale/LambdaScale was gated after Medusa:
   build/import gate closed; no formal true-remote LoRA replay was launched
   because the machine exposes no usable InfiniBand device and the source lacks
   ready Llama-3.2 3B plus LoRA/PEFT workload support.
+
+Additional post-campaign gates are also tracked in the FaaSLoRA curated bundle:
+dLoRA, Loquetier, AIBrix, HydraServe, and Sarathi-Serve. Current conclusion:
+none of these systems enters a full 3B+7B formal main comparison row on the
+current 4x3090 machine without crossing the core-code/semantic-rewrite boundary.
 
 ## Active Environment Notes
 

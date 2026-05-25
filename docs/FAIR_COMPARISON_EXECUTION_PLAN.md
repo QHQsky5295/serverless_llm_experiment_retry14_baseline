@@ -1251,9 +1251,11 @@ Llama-2 13B true-remote S-LoRA 阶段。
   `trace_expected` fallback。
 - 对比文件保存在
   `results/paper_experiments/12_remote_fair_main_real_remote_v1/_comparisons/`。
-- 7B 与 3B true-remote 主表由 FaaSLoRA 仓库合并生成在
-  `figs/paper/main_remote_fair_real_remote_v1_7b3b/` 与 `figs_remote/`；
-  13B 只作为诊断数据保留。
+- 7B 与 3B true-remote 主表由 FaaSLoRA 仓库合并生成；当前完整 mirror 位于
+  `figs_remote_full_real_remote_v1/` 与
+  `paper_results/final_remote_full_real_remote_v1/`。早期
+  `figs/paper/main_remote_fair_real_remote_v1_7b3b/` / `figs_remote/` 路径只保留为
+  历史 candidate 记录；13B 只作为诊断数据保留。
 
 最终 baseline 侧 true-remote 摘要：
 

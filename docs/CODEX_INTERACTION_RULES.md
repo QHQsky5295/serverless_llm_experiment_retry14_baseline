@@ -487,12 +487,12 @@ JSON 必须记录：
 Remote 分层、serverless active/idle 差分计费、真实 first-token timing，
 代码中必须存在可审计的物理路径、事件时间戳或成本来源。
 
-## 12. 2026-05-18 当前项目交接规则
+## 12. 2026-05-25 当前项目交接规则
 
 后续新会话继续 PrimeLoRA/FaaSLoRA 时，先读主仓交接文档：
 
 ```text
-/home/qhq/serverless_llm_experiment_retry14_baseline/docs/SESSION_HANDOFF_2026-05-18.md
+/home/qhq/serverless_llm_experiment_retry14_baseline/docs/SESSION_HANDOFF_2026-05-25.md
 ```
 
 然后检查：
@@ -511,13 +511,17 @@ nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader,n
   mirror 都已闭环。
 - 默认论文数据是主仓 `figs/` 和 `paper_results/final_v2/`。
 - true-remote 镜像是主仓 `figs_remote_full_real_remote_v1/` 和
-  `paper_results/final_remote_full_real_remote_v1/`，不自动替换默认论文数据。
+  `paper_results/final_remote_full_real_remote_v1/`；截至 2026-05-22 已补齐
+  paper-facing Fig.1、Fig.5、主表、TTFT 分解、Fig.7、motivation、ablation、
+  readiness、control-path、backend-portability 和 sensitivity 图表，但不自动替换
+  默认论文数据。
 - `a500` 是默认主实验点，adapter-pool sensitivity 只额外使用
   `a100-a400`；`a500` 复用 canonical main round。
 - 不覆盖主仓 `figs/`，除非用户明确要求替换主论文图。
 - 不提交远端密码或任何凭据。
 - 主仓 `configs/generated/lora_manifest_1000.json` 有历史未提交改动，
   不要混入无关提交。
+- ServerlessLLM-new warm-min4 是不公平的诊断实验，不能进入任何性能对比表。
 
 如果用户要求继续调研新的 Serverless+LLM inference baseline，先做候选复现
 可行性表，不直接启动长实验。候选表至少包含：

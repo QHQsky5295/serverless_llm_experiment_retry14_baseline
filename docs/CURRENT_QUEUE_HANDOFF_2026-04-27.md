@@ -1,4 +1,8 @@
-# Current Queue Handoff: 2026-04-27
+# Historical Queue Handoff: 2026-04-27
+
+> Historical queue handoff. This queue is no longer active. For the current
+> PrimeLoRA/FaaSLoRA project state, start from
+> `/home/qhq/serverless_llm_experiment_retry14_baseline/docs/SESSION_HANDOFF_2026-05-25.md`.
 
 This note records the live baseline-harness state for the PrimeLoRA paper
 experiments. The broader paper handoff lives in:
@@ -7,7 +11,7 @@ experiments. The broader paper handoff lives in:
 /home/qhq/serverless_llm_experiment_retry14_baseline/docs/SESSION_HANDOFF_2026-04-27.md
 ```
 
-## Active Queue
+## Historical Active Queue
 
 As of `2026-04-28 09:59 CST`, the next long queue is running in tmux:
 
