@@ -41,7 +41,9 @@ models:
     selected_target_concurrency: 16
     calibration_table: paper_artifacts/relayserve_v4/serverlessllm_3b_calibration.csv
     calibration_status: frozen_complete
-    formal_status: pending
+    formal_status: complete
+    formal_run: results/relayserve_continuation/serverlessllm/20260613_serverlessllm_3b_formal4000_t16_k60_v1
+    formal_table: paper_artifacts/relayserve_v4/serverlessllm_formal4000.csv
   7b:
     paper_slo:
       ttft_p95_ms: 440.0
@@ -54,4 +56,6 @@ models:
     selected_target_concurrency: 8
     calibration_table: paper_artifacts/relayserve_v4/serverlessllm_7b_calibration.csv
     calibration_status: frozen_complete
-    formal_status: pending
+    formal_status: complete
+    formal_run: results/relayserve_continuation/serverlessllm/20260613_serverlessllm_7b_formal4000_t8_k60_v1
+    formal_table: paper_artifacts/relayserve_v4/serverlessllm_formal4000.csv
