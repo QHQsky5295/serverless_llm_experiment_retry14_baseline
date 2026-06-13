@@ -284,6 +284,14 @@ def main() -> int:
         default=True,
         help="Stage selected LoRA adapters into the ServerlessLLM storage tree before generating the deploy config.",
     )
+    ap.add_argument(
+        "--base-model-only",
+        action="store_true",
+        help=(
+            "Generate a base-model-only deployment. This explicitly disables "
+            "LoRA and makes --adapter-subset-path optional."
+        ),
+    )
     args = ap.parse_args()
 
     main_repo = args.main_repo.resolve()
@@ -295,31 +303,47 @@ def main() -> int:
         cfg, args.model_profile, args.workload_profile
     )
 
-    if args.adapter_subset_path is None:
+    if args.base_model_only and args.adapter_subset_path is not None:
+        raise RuntimeError(
+            "--adapter-subset-path must not be provided with --base-model-only"
+        )
+    if not args.base_model_only and args.adapter_subset_path is None:
         raise RuntimeError(
             "--adapter-subset-path is required for fair comparison deploy generation"
         )
-    subset_payload = _load_adapter_subset(args.adapter_subset_path.resolve())
-    selected_adapters = list(subset_payload["adapters"])
-    if args.selected_num_adapters is not None and len(selected_adapters) != int(args.selected_num_adapters):
-        raise RuntimeError(
-            f"adapter subset artifact contains {len(selected_adapters)} adapters, "
-            f"but --selected-num-adapters requested {int(args.selected_num_adapters)}"
-        )
-    if args.limit_adapters is not None:
-        if args.limit_adapters <= 0:
-            raise RuntimeError("--limit-adapters must be > 0 when provided")
-        selected_adapters = selected_adapters[: args.limit_adapters]
-
-    subset_remote_dir = subset_payload.get("remote_dir")
-    if subset_remote_dir:
-        remote_dir = Path(str(subset_remote_dir))
-        if not remote_dir.is_absolute():
-            remote_dir = main_repo / remote_dir
+    if args.base_model_only:
+        if args.selected_num_adapters not in (None, 0):
+            raise RuntimeError(
+                "--selected-num-adapters must be omitted or 0 with --base-model-only"
+            )
+        if args.limit_adapters is not None:
+            raise RuntimeError(
+                "--limit-adapters is incompatible with --base-model-only"
+            )
+        selected_adapters: List[Dict[str, Any]] = []
+        remote_dir = main_repo
     else:
-        remote_dir = Path(storage_cfg.get("remote_dir", "artifacts/remote"))
-        if not remote_dir.is_absolute():
-            remote_dir = main_repo / remote_dir
+        subset_payload = _load_adapter_subset(args.adapter_subset_path.resolve())
+        selected_adapters = list(subset_payload["adapters"])
+        if args.selected_num_adapters is not None and len(selected_adapters) != int(args.selected_num_adapters):
+            raise RuntimeError(
+                f"adapter subset artifact contains {len(selected_adapters)} adapters, "
+                f"but --selected-num-adapters requested {int(args.selected_num_adapters)}"
+            )
+        if args.limit_adapters is not None:
+            if args.limit_adapters <= 0:
+                raise RuntimeError("--limit-adapters must be > 0 when provided")
+            selected_adapters = selected_adapters[: args.limit_adapters]
+
+        subset_remote_dir = subset_payload.get("remote_dir")
+        if subset_remote_dir:
+            remote_dir = Path(str(subset_remote_dir))
+            if not remote_dir.is_absolute():
+                remote_dir = main_repo / remote_dir
+        else:
+            remote_dir = Path(storage_cfg.get("remote_dir", "artifacts/remote"))
+            if not remote_dir.is_absolute():
+                remote_dir = main_repo / remote_dir
     remote_dir = remote_dir.resolve()
 
     serving_model_name = str(args.serving_model_name or args.model_profile)
@@ -331,7 +355,9 @@ def main() -> int:
         backend == "vllm"
         and _should_disable_lora_embeddings(selected_ids, remote_dir)
     )
-    if args.stage_loras:
+    if args.base_model_only:
+        lora_adapters = {}
+    elif args.stage_loras:
         lora_adapters = _stage_serverlessllm_loras(
             adapter_ids=selected_ids,
             remote_dir=remote_dir,
@@ -392,9 +418,9 @@ def main() -> int:
         "max_model_len": int(model_cfg.get("max_model_len", 0) or 0),
         "max_input_len": int(model_cfg.get("max_input_len", 0) or 0),
         "max_output_tokens_cap": int(model_cfg.get("max_output_tokens_cap", 0) or 0),
-        "enable_lora": True,
+        "enable_lora": not args.base_model_only,
         "lora_adapters": lora_adapters,
-        "require_lora_for_inference": True,
+        "require_lora_for_inference": not args.base_model_only,
     }
     if backend == "transformers":
         backend_config["hf_model_class"] = str(
@@ -427,20 +453,31 @@ def main() -> int:
                 "vllm_use_flashinfer_sampler": model_cfg.get(
                     "vllm_use_flashinfer_sampler"
                 ),
-                "max_loras": int(
-                    model_cfg.get("max_loras", max(1, min(len(lora_adapters), 1))) or 1
-                ),
-                "max_lora_rank": int(model_cfg.get("max_lora_rank", 16) or 16),
                 "distributed_executor_backend": model_cfg.get(
                     "distributed_executor_backend"
                 ),
                 "use_direct_model_path": True,
                 "skip_store_model_registration": True,
                 "skip_store_lora_registration": True,
-                "lora_runtime": "vllm_request",
-                "disable_lora_embeddings": disable_lora_embeddings,
             }
         )
+        if not args.base_model_only:
+            backend_config.update(
+                {
+                    "max_loras": int(
+                        model_cfg.get(
+                            "max_loras",
+                            max(1, min(len(lora_adapters), 1)),
+                        )
+                        or 1
+                    ),
+                    "max_lora_rank": int(
+                        model_cfg.get("max_lora_rank", 16) or 16
+                    ),
+                    "lora_runtime": "vllm_request",
+                    "disable_lora_embeddings": disable_lora_embeddings,
+                }
+            )
         if backend_config.get("distributed_executor_backend") in (None, ""):
             backend_config.pop("distributed_executor_backend", None)
         for nullable_key in (
@@ -470,7 +507,11 @@ def main() -> int:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(deploy_cfg, indent=2), encoding="utf-8")
     print(f"wrote deploy config -> {args.output}")
-    print(f"backend={backend} num_gpus={num_gpus} max_instances={max_instances} adapters={len(lora_adapters)}")
+    print(
+        f"backend={backend} num_gpus={num_gpus} "
+        f"max_instances={max_instances} adapters={len(lora_adapters)} "
+        f"base_model_only={args.base_model_only}"
+    )
     if realizable_max_instances is not None:
         print(
             "available_worker_gpus="

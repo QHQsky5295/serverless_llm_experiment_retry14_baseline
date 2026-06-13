@@ -19,7 +19,8 @@ for _vllm_env_key in \
   VLLM_ATTENTION_BACKEND \
   VLLM_USE_FLASHINFER_SAMPLER \
   VLLM_NO_USAGE_STATS \
-  VLLM_DISABLE_LORA_EMBEDDINGS
+  VLLM_DISABLE_LORA_EMBEDDINGS \
+  SLLM_REQUEST_POLL_INTERVAL_S
 do
   _vllm_env_value="${!_vllm_env_key:-}"
   if [[ -n "${_vllm_env_value}" ]]; then

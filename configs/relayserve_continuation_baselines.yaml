@@ -1,0 +1,83 @@
+model: {}
+lora_adapters: {}
+datasets: {}
+workload: {}
+resource_coordination: {}
+storage: {}
+
+model_profiles:
+  relayserve_llama32_3b:
+    model:
+      name: /home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct
+      backend: vllm
+      visible_device_ids: [0, 1, 2, 3]
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.82
+      max_model_len: 3072
+      max_num_seqs: 16
+      max_num_batched_tokens: 8192
+      runtime_concurrency_cap: 16
+      enable_chunked_prefill: false
+      enable_prefix_caching: false
+      enforce_eager: auto
+      dtype: float16
+
+  relayserve_llama2_7b:
+    model:
+      name: /home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf
+      backend: vllm
+      visible_device_ids: [0, 1, 2, 3]
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.82
+      max_model_len: 3072
+      max_num_seqs: 16
+      max_num_batched_tokens: 4096
+      runtime_concurrency_cap: 16
+      enable_chunked_prefill: true
+      enable_prefix_caching: false
+      enforce_eager: auto
+      dtype: float16
+      vllm_use_v1: true
+      vllm_attention_backend: FLASH_ATTN
+      vllm_use_flashinfer_sampler: true
+
+dataset_profiles:
+  relayserve_formal4000:
+    datasets:
+      arrival_source: BurstGPT-v2
+      prompt_source: ShareGPT
+      token_source: frozen_trace
+    workload:
+      total_requests: 4000
+
+workload_profiles:
+  relayserve_3b_paper_nominal:
+    workload:
+      total_requests: 4000
+      ttft_slo_ms: 180.0
+      tpot_slo_ms: 14.0
+      trace_rate_scale: 1.0
+    resource_coordination:
+      instance_mode: auto
+      min_instances: 1
+      max_instances: 4
+      idle_timeout_s: 300
+
+  relayserve_7b_paper_nominal:
+    workload:
+      total_requests: 4000
+      ttft_slo_ms: 440.0
+      tpot_slo_ms: 32.0
+      trace_rate_scale: 1.0
+    resource_coordination:
+      instance_mode: auto
+      min_instances: 1
+      max_instances: 4
+      idle_timeout_s: 300
+
+cost_model:
+  gpu_cost_per_second_usd: 0.0008
+  deployment_idle_tail_s: 300
+  serverless_idle_retention_s: 300
+  serverless_idle_gpu_cost_factor: 0.23809523809523808
+  serverless_invocation_cost_per_request_usd: 0.0

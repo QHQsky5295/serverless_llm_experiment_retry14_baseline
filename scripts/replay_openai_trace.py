@@ -1845,6 +1845,23 @@ def main() -> int:
     dynamic_routing_lock = threading.Lock()
     dynamic_adapter_counts: Dict[str, int] = {}
     dynamic_hot_pair_adapters: set[str] = set()
+    client_prewarm_started = time.perf_counter()
+    if args.prompt_guard_tokenizer_model:
+        tokenizer = _get_prompt_guard_tokenizer(
+            str(args.prompt_guard_tokenizer_model)
+        )
+        tokenizer.encode("replay-client-prewarm", add_special_tokens=False)
+        first_messages = (requests_list[0].get("body") or {}).get("messages")
+        if isinstance(first_messages, list) and first_messages:
+            try:
+                tokenizer.apply_chat_template(
+                    first_messages,
+                    add_generation_prompt=True,
+                    tokenize=False,
+                )
+            except Exception:
+                pass
+    client_prewarm_sec = time.perf_counter() - client_prewarm_started
     start_time = time.perf_counter()
     last_live_print_at = 0.0
     arrival_schedule = [float(item["arrival_time_s"]) * max(args.sleep_scale, 0.0) for item in requests_list]
@@ -2211,6 +2228,7 @@ def main() -> int:
             else ("round_robin" if len(base_urls) > 1 else "single_endpoint")
         ),
         "sleep_scale": args.sleep_scale,
+        "client_prewarm_sec_excluded_from_workload_clock": client_prewarm_sec,
         "label": args.label,
         "generation_seed": args.generation_seed,
         "max_requests": int(args.max_requests or 0),
