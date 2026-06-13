@@ -1,0 +1,44 @@
+schema: relayserve_slinfer_calibration_policy_v1
+
+comparison_contract:
+  trace_role: calibration512_rate100_disjoint
+  rate_scale: 1.0
+  gpu_budget: 4
+  base_model_only: true
+  system_mode: official_sota_gpu_only
+  node_memory_gb: 23.0
+  monitor_tail_rule: keep_alive_s_plus_2
+  cost_model: relayserve_lifecycle_monetary_v1
+
+selection_policy:
+  description: >-
+    Select the candidate with the smallest worst normalized P95 SLO ratio.
+    Break ties by higher joint TTFT/TPOT attainment, then higher CE, then
+    shorter keep-alive.
+  ordered_keys:
+    - worst_normalized_p95_violation_ascending
+    - joint_slo_attainment_descending
+    - ce_descending
+    - keep_alive_s_ascending
+  p95_ratio_formula: max(ttft_p95_ms / ttft_slo_ms, tpot_p95_ms / tpot_slo_ms)
+  formal_rule: >-
+    A calibration selection does not imply a gate pass. Formal results must
+    separately report whether both paper P95 targets pass.
+
+models:
+  3b:
+    paper_slo:
+      ttft_p95_ms: 180.0
+      tpot_p95_ms: 14.0
+    keep_alive_candidates_s: [1, 10, 30, 60]
+    selected_keep_alive_s: null
+    calibration_status: pending
+    formal_status: pending
+  7b:
+    paper_slo:
+      ttft_p95_ms: 440.0
+      tpot_p95_ms: 32.0
+    keep_alive_candidates_s: [1, 10, 30, 60]
+    selected_keep_alive_s: null
+    calibration_status: pending
+    formal_status: pending

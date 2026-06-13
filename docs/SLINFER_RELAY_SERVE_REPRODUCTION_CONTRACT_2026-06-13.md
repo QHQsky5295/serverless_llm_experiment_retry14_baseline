@@ -1,0 +1,67 @@
+# SLINFER RelayServe-Workload Reproduction Contract
+
+Date: 2026-06-13
+
+## Upstream identity
+
+- Repository: `https://github.com/BarrinXu/SLINFER.git`
+- Upstream commit: `483a276178efcea9c761deae802e82de6443b1`
+- Scheduler mode: official `sota`
+- Deployment mode: GPU-only
+- GPU budget: four RTX 3090 GPUs
+
+## Necessary compatibility adaptations
+
+The reproduction preserves SLINFER scheduling, preemption, migration, model
+lifecycle, and worker-count policies. The tracked compatibility patch only:
+
+1. exposes the frozen paper TTFT/TPOT thresholds through the existing
+   configuration endpoint;
+2. passes exact frozen prompt token IDs instead of SLINFER's synthetic token
+   table;
+3. retains microsecond timing precision in the returned TTFT/TPOT metrics.
+
+The patch is stored at `patches/slinfer_relayserve_compat.patch` and is applied
+idempotently by `scripts/apply_slinfer_relayserve_patch.sh`.
+
+The local hardware adaptation changes each official pool template's node
+memory capacity from the A100-80GB value to 23 GB for RTX 3090. It keeps the
+official worker counts:
+
+| Model | Workers per GPU | Total logical workers |
+|---|---:|---:|
+| Llama-3.2 3B | 8 | 32 |
+| Llama-2 7B | 4 | 16 |
+
+No scheduling algorithm or power-model coefficient is changed.
+
+## Model and workload identity
+
+- Llama-3.2 3B uses the same
+  `LLM-Research--Llama-3.2-3B-Instruct` model as RelayServe.
+- Llama-2 7B uses the same `meta-llama--Llama-2-7b-hf` model as RelayServe.
+- The preparation step requires the source and converted `config.json` files
+  to have identical SHA-256 hashes.
+- Calibration uses the disjoint 512-request chronological trace.
+- Formal evaluation uses the frozen 4000-request chronological trace.
+- Both use rate 1.00x and paper-nominal TTFT/TPOT targets.
+
+## Calibration policy
+
+The only selected system parameter is SLINFER's official keep-alive time.
+Candidates are `1`, `10`, `30`, and `60` seconds for both models. The winner
+minimizes the worst normalized P95 SLO ratio, then maximizes joint attainment
+and CE, then prefers the shorter keep-alive.
+
+Formal4000 data cannot select or alter the candidate.
+
+## Evidence and cost
+
+The replay records every request, exact prompt/output token counts,
+scheduled-arrival TTFT, service TTFT, TPOT, E2E, and the official gateway
+monitor output. The monitor uses SLINFER's one-second cadence.
+
+Lifecycle cost charges startup and active GPU-seconds at full price and
+ready-idle GPU-seconds at the frozen serverless idle factor. Monitoring
+continues for `keep_alive + 2` seconds after the final request so the selected
+retention policy is represented in cost.
