@@ -35,6 +35,12 @@ official worker counts:
 
 No scheduling algorithm or power-model coefficient is changed.
 
+The materialized pool template also uses the package-relative
+`from .models_info_template ...` import. The upstream GPU-only templates use
+an unqualified import that fails when `gateway.py` is launched from the
+documented `scheduler/` directory, while upstream debug templates already use
+the package-relative form.
+
 ## Model and workload identity
 
 - Llama-3.2 3B uses the same

@@ -26,7 +26,7 @@ MODEL_SPEC = {
 
 def _pool_config(model_type: str, workers_per_gpu: int, node_memory_gb: float) -> str:
     lines = [
-        "from models_info_template import models_info_template",
+        "from .models_info_template import models_info_template",
         "",
         "models_info = models_info_template",
         "",
@@ -126,7 +126,12 @@ def main() -> int:
             (
                 "node_memory_capacity_GB changed from the official A100-80GB "
                 "template value 78 to the local RTX 3090 usable budget"
-            )
+            ),
+            (
+                "generated pool template uses the package-relative "
+                "models_info_template import required by the documented "
+                "scheduler launch directory"
+            ),
         ],
     }
     (args.snapshot_dir / "hardware_adaptation.json").write_text(

@@ -56,6 +56,10 @@ class SlinferHarnessTest(unittest.TestCase):
         self.assertEqual(config_7b.count("models_info['llama-2-7b']"), 16)
         self.assertEqual(config_3b.count("'node_memory_capacity_GB': 23.0"), 4)
         self.assertEqual(config_7b.count("'node_memory_capacity_GB': 23.0"), 4)
+        self.assertIn(
+            "from .models_info_template import models_info_template",
+            config_3b,
+        )
 
     def test_gpu_lifecycle_handles_non_contiguous_allocations(self) -> None:
         module = _load_script("summarize_slinfer_replay.py")
