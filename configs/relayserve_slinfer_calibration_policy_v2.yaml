@@ -1,0 +1,70 @@
+schema: relayserve_slinfer_calibration_policy_v2
+
+supersedes:
+  policy: configs/relayserve_slinfer_calibration_policy_v1.yaml
+  reason: >-
+    The v1 harness incorrectly mapped the external paper TTFT/TPOT targets
+    onto SLINFER's internal input-aware scheduling deadline. V2 restores the
+    official SLINFER defaults and keeps paper SLOs evaluation-only.
+
+comparison_contract:
+  trace_family: final_disjoint_calibration512_v4
+  rate_scales: [0.67, 1.00, 1.30]
+  gpu_budget: 4
+  gpu_type: RTX_3090_24GB
+  base_model_only: true
+  system_mode: official_sota_gpu_only
+  node_memory_gb: 23.0
+  store_mem_pool_size_gb: 20.0
+  monitor_tail_rule: keep_alive_s_plus_2
+  cost_model: relayserve_lifecycle_monetary_v1
+  scheduler_deadline:
+    source: official_slinfer_defaults
+    ttft_baseline_s: 0.475
+    ttft_max_threshold_s: 7.6
+    tpot_s: 0.2375
+    separate_from_external_paper_slo: true
+
+evidence:
+  cross_rate_matrix: paper_artifacts/relayserve_v4/slinfer_cross_rate_calibration_v2.csv
+  cross_rate_matrix_sha256: b37c75a339e34dfd8492ea6a2a154f57b52fd31d197e2e9e98a7d03ea7bc1d77
+  result: passed_clean_3072_of_3072
+
+selection_policy:
+  description: >-
+    Select only configurations that complete all three disjoint 512-request
+    rates with zero failures and without a memory-guard breach. Freeze the
+    smallest measured-safe logical-worker topology that preserves physical
+    model capacity on 24GB GPUs, then select the smoke-tested keep-alive with
+    the best latency-cost tradeoff. Formal4000 runs use the nominal trace once
+    and do not tune on formal evidence.
+  formal_rule: >-
+    Clean calibration is an execution gate, not a paper-SLO pass. Formal
+    results must separately report clean 4000/4000 completion, TTFT P95,
+    TPOT P95, CE, and both paper target booleans.
+
+models:
+  3b:
+    paper_slo:
+      ttft_p95_ms: 180.0
+      tpot_p95_ms: 14.0
+    selected_workers_per_gpu: 2
+    selected_keep_alive_s: 10
+    calibration_status: passed_clean_1536_of_1536
+    calibration_p95_status: failed_paper_targets_at_all_three_rates
+    ce_range: [242.159427, 357.034166]
+    formal_status: pending_single_nominal_formal4000
+  7b:
+    paper_slo:
+      ttft_p95_ms: 440.0
+      tpot_p95_ms: 32.0
+    selected_workers_per_gpu: 1
+    selected_keep_alive_s: 10
+    topology_reason: >-
+      One 12.6GB model plus KV capacity nearly fills a 24GB RTX 3090.
+      Additional logical workers cannot create a second safe resident model
+      per GPU and would add host-memory and GPU-OOM risk.
+    calibration_status: passed_clean_1536_of_1536
+    calibration_p95_status: failed_paper_targets_at_all_three_rates
+    ce_range: [32.652657, 97.327259]
+    formal_status: pending_single_nominal_formal4000

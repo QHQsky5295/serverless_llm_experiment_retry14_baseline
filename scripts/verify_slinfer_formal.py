@@ -95,6 +95,8 @@ def verify_row(row: dict[str, str]) -> None:
     adaptation = json.loads(
         (Path(manifest["frozen_config_dir"]) / "hardware_adaptation.json").read_text()
     )
+    if int(row["workers_per_gpu"]) != int(adaptation["workers_per_gpu"]):
+        raise AssertionError(f"{model_key}: worker topology mismatch")
     identity = adaptation["model_identity"]
     if identity["config_identity_verified"] is not True:
         raise AssertionError(f"{model_key}: model identity not verified")

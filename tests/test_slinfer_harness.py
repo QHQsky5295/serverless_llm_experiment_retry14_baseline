@@ -204,20 +204,11 @@ class SlinferHarnessTest(unittest.TestCase):
             },
         )
 
-    def test_formal_gate_builder_marks_blocked_model_ineligible(self) -> None:
+    def test_formal_gate_eligibility_is_independent_of_paper_slo(self) -> None:
         module = _load_script("build_slinfer_formal_gate_table.py")
-        policy = {
-            "models": {
-                "7b": {
-                    "calibration_status": "failed_no_zero_failure_candidate",
-                    "formal_status": "blocked_by_calibration_gate",
-                }
-            }
-        }
-        row = module.blocked_row("7b", policy)
-        self.assertEqual(row["formal_attempted"], "false")
-        self.assertEqual(row["external_main_comparison_eligible"], "false")
-        self.assertEqual(row["raw_records_path"], "")
+        manifest = {"formal_main_comparison_eligible": True}
+        self.assertTrue(module.comparison_eligible(manifest, 0))
+        self.assertFalse(module.comparison_eligible(manifest, 1))
 
 
 if __name__ == "__main__":

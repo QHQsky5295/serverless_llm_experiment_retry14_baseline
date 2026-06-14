@@ -30,6 +30,7 @@ FIELDNAMES = [
     "gpu_budget",
     "system_mode",
     "keep_alive_s",
+    "workers_per_gpu",
     "node_memory_gb",
     "monitor_tail_s",
     "total_requests",
@@ -106,6 +107,7 @@ def build_row(model_key: str, run_dir: Path, policy: dict) -> dict[str, object]:
     model, ttft_slo, tpot_slo = MODEL_SPECS[model_key]
     contract = policy["comparison_contract"]
     selected_keep_alive = policy["models"][model_key]["selected_keep_alive_s"]
+    selected_workers = policy["models"][model_key]["selected_workers_per_gpu"]
     if selected_keep_alive is None:
         raise ValueError(f"{model_key}: calibration policy is not frozen")
     raw_path = run_dir / "raw_records.json"
@@ -141,6 +143,11 @@ def build_row(model_key: str, run_dir: Path, policy: dict) -> dict[str, object]:
     identity = adaptation["model_identity"]
     if identity["config_identity_verified"] is not True:
         raise ValueError(f"{run_dir}: model identity is not verified")
+    if int(adaptation["workers_per_gpu"]) != int(selected_workers):
+        raise ValueError(
+            f"{run_dir}: workers_per_gpu={adaptation['workers_per_gpu']}, "
+            f"frozen={selected_workers}"
+        )
     return {
         "system": "SLINFER",
         "system_key": "slinfer",
@@ -153,6 +160,7 @@ def build_row(model_key: str, run_dir: Path, policy: dict) -> dict[str, object]:
         "gpu_budget": int(contract["gpu_budget"]),
         "system_mode": contract["system_mode"],
         "keep_alive_s": float(manifest["keep_alive_s"]),
+        "workers_per_gpu": int(adaptation["workers_per_gpu"]),
         "node_memory_gb": float(manifest["node_memory_gb"]),
         "monitor_tail_s": float(manifest["monitor_tail_s"]),
         "total_requests": int(scenario["total_requests"]),
@@ -205,7 +213,7 @@ def main() -> None:
     parser.add_argument(
         "--policy",
         type=Path,
-        default=Path("configs/relayserve_slinfer_calibration_policy_v1.yaml"),
+        default=Path("configs/relayserve_slinfer_calibration_policy_v2.yaml"),
     )
     parser.add_argument("--run", action="append", type=parse_run, required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -214,8 +222,8 @@ def main() -> None:
     if set(indexed) != set(MODEL_SPECS) or len(args.run) != len(MODEL_SPECS):
         raise SystemExit("exactly one 3b run and one 7b run are required")
     policy = yaml.safe_load(args.policy.read_text()) or {}
-    if policy.get("schema") != "relayserve_slinfer_calibration_policy_v1":
-        raise SystemExit("unexpected SLINFER calibration policy schema")
+    if policy.get("schema") != "relayserve_slinfer_calibration_policy_v2":
+        raise SystemExit("formal table requires the corrected v2 policy")
     rows = [
         build_row(model_key, indexed[model_key], policy)
         for model_key in ("3b", "7b")

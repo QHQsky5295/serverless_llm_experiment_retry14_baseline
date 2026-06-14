@@ -206,6 +206,9 @@ source_paths = [
     root_path / "patches/slinfer_relayserve_compat.patch",
 ]
 snapshot_path = Path(snapshot_dir)
+hardware_adaptation = json.loads(
+    (snapshot_path / "hardware_adaptation.json").read_text()
+)
 payload = {
     "schema": "relayserve_external_slinfer_run_v1",
     "created_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -233,6 +236,7 @@ payload = {
     "monitor_tail_s": float(monitor_tail_s),
     "store_mem_pool_size_gb": float(store_mem_pool_size_gb),
     "min_available_memory_gb": float(min_available_memory_gb),
+    "workers_per_gpu": int(hardware_adaptation["workers_per_gpu"]),
     "scheduler_deadline_contract": {
         "source": "official_slinfer_defaults",
         "ttft_baseline_s": float(scheduler_ttft_baseline_s),
