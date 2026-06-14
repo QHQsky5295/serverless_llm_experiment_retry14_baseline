@@ -61,3 +61,16 @@ index 728d7a8..a5cdafa 100644
                  'tolerate_time': round(self.tolerate_time, 3),
                  'cold_start': self.TTFT_cold_start,
                  'handled_workers': self.handled_workers}
+diff --git a/SLINFER_core/tools/vllm_backend_starter.py b/SLINFER_core/tools/vllm_backend_starter.py
+--- a/SLINFER_core/tools/vllm_backend_starter.py
++++ b/SLINFER_core/tools/vllm_backend_starter.py
+@@ -68,7 +68,8 @@ elif args.device == 'gpu':
+         f'python -m vllm.entrypoints.openai.api_server '
+         f'--port {args.port} --max-model-len {max_model_len} '
+         f'--model {args.model} '
+-        f'--enforce-eager --gpu-memory-utilization 0.975 {block_num_override_command} --block-size 16 '
++        f'--enforce-eager --gpu-memory-utilization 0.975 --swap-space 1 '
++        f'{block_num_override_command} --block-size 16 '
+         f'{loader_override_command} '
+     )
+     env_vars.update(

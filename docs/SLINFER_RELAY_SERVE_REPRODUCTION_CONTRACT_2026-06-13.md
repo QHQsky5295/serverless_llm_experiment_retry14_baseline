@@ -64,6 +64,12 @@ placement decisions, or GPU execution. A continuous guard records
 the isolated experiment if available host memory falls below 32 GB. The
 memory trace and thresholds are included in every run manifest.
 
+Each GPU-only vLLM worker uses 1 GiB of CPU swap space instead of vLLM's
+generic 4 GiB default. A worker has approximately 0.44 GiB of GPU KV cache in
+this configuration, so 1 GiB preserves more CPU swap capacity than its full
+GPU KV allocation while avoiding 24 GiB of unused host reservation across the
+eight 3B workers.
+
 The environment follows the upstream README's `pyairports` instruction:
 the incorrect PyPI placeholder is replaced by
 `ozeliger/pyairports@f611ee5a5a82b4e98b22641bb99693d862c802e4`.

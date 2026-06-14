@@ -27,6 +27,10 @@ class SlinferHarnessTest(unittest.TestCase):
         self.assertIn("SLINFER_STORE_MEM_POOL_SIZE_GB:-20", start_script)
         self.assertIn("SLINFER_MIN_AVAILABLE_MEMORY_GB:-32", start_script)
         self.assertIn("/health", start_script)
+        compat_patch = (
+            ROOT / "patches/slinfer_relayserve_compat.patch"
+        ).read_text()
+        self.assertIn("--swap-space 1", compat_patch)
         self.assertIn("memory_guard.csv", run_script)
         subprocess.run(
             ["bash", "-n", str(ROOT / "scripts/start_slinfer_stack.sh")],
