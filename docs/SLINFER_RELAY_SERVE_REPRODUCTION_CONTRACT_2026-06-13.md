@@ -25,15 +25,21 @@ The patch is stored at `patches/slinfer_relayserve_compat.patch` and is applied
 idempotently by `scripts/apply_slinfer_relayserve_patch.sh`.
 
 The local hardware adaptation changes each official pool template's node
-memory capacity from the A100-80GB value to 23 GB for RTX 3090. It keeps the
-official worker counts:
+memory capacity from the A100-80GB value to 23 GB for RTX 3090. The upstream
+logical worker counts are not host-memory safe on this shared 125 GiB server:
+32 unloaded 3B vLLM processes plus the checkpoint store exhausted host
+memory. The frozen topology therefore uses the number of physically possible
+model slots plus one cold spare:
 
-| Model | Workers per GPU | Total logical workers |
-|---|---:|---:|
-| Llama-3.2 3B | 8 | 32 |
-| Llama-2 7B | 4 | 16 |
+| Model | Physical slots/GPU | Workers/GPU | Total logical workers |
+|---|---:|---:|---:|
+| Llama-3.2 3B | 3 | 4 | 16 |
+| Llama-2 7B | 1 | 2 | 8 |
 
-No scheduling algorithm or power-model coefficient is changed.
+This retains enough workers for every physically possible resident model plus
+a cold replacement. No scheduling algorithm, GPU memory capacity, model
+memory estimate, or power-model coefficient is changed. Results are labeled
+as a hardware-adapted reproduction rather than an exact A100 topology replay.
 
 The materialized pool template also uses the package-relative
 `from .models_info_template ...` import. The upstream GPU-only templates use
@@ -49,7 +55,7 @@ That setting caused a host-level OOM on this 125 GiB shared testbed on
 
 The frozen local launch uses a 24 GB store pool. This is larger than the
 18 GB converted 7B checkpoint and does not alter SLINFER's scheduler, model
-placement, worker count, or GPU execution. A continuous guard records
+placement decisions, or GPU execution. A continuous guard records
 `MemAvailable`, total memory, and free swap every two seconds. It terminates
 the isolated experiment if available host memory falls below 32 GB. The
 memory trace and thresholds are included in every run manifest.

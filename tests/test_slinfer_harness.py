@@ -70,12 +70,12 @@ class SlinferHarnessTest(unittest.TestCase):
         self.assertEqual(lifecycle["allocated_gpu_seconds"], 3.0)
         self.assertEqual(lifecycle["peak_allocated_gpus"], 1.0)
 
-    def test_pool_config_preserves_official_worker_counts(self) -> None:
+    def test_pool_config_uses_capacity_bounded_worker_counts(self) -> None:
         module = _load_script("prepare_slinfer_relayserve.py")
-        config_3b = module._pool_config("llama-3.2-3b", 8, 23.0)
-        config_7b = module._pool_config("llama-2-7b", 4, 23.0)
-        self.assertEqual(config_3b.count("models_info['llama-3.2-3b']"), 32)
-        self.assertEqual(config_7b.count("models_info['llama-2-7b']"), 16)
+        config_3b = module._pool_config("llama-3.2-3b", 4, 23.0)
+        config_7b = module._pool_config("llama-2-7b", 2, 23.0)
+        self.assertEqual(config_3b.count("models_info['llama-3.2-3b']"), 16)
+        self.assertEqual(config_7b.count("models_info['llama-2-7b']"), 8)
         self.assertEqual(config_3b.count("'node_memory_capacity_GB': 23.0"), 4)
         self.assertEqual(config_7b.count("'node_memory_capacity_GB': 23.0"), 4)
         self.assertIn(

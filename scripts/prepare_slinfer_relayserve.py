@@ -13,12 +13,14 @@ from pathlib import Path
 MODEL_SPEC = {
     "3b": {
         "model_type": "llama-3.2-3b",
-        "workers_per_gpu": 8,
+        "workers_per_gpu": 4,
+        "physical_model_slots_per_gpu": 3,
         "hf_dir": "Llama-3.2-3B-Instruct",
     },
     "7b": {
         "model_type": "llama-2-7b",
-        "workers_per_gpu": 4,
+        "workers_per_gpu": 2,
+        "physical_model_slots_per_gpu": 1,
         "hf_dir": "Llama-2-7b-chat-hf",
     },
 }
@@ -111,6 +113,7 @@ def main() -> int:
         "gpu_type": "RTX 3090 24GB",
         "configured_node_memory_capacity_gb": args.node_memory_gb,
         "workers_per_gpu": spec["workers_per_gpu"],
+        "physical_model_slots_per_gpu": spec["physical_model_slots_per_gpu"],
         "official_template_path": str(source),
         "materialized_template_path": str(target),
         "hf_model_path": str(hf_path.resolve()),
@@ -131,6 +134,11 @@ def main() -> int:
                 "generated pool template uses the package-relative "
                 "models_info_template import required by the documented "
                 "scheduler launch directory"
+            ),
+            (
+                "logical workers per GPU are capped at physical model slots "
+                "plus one cold spare to avoid host OOM from unloaded vLLM "
+                "processes on the shared 125 GiB testbed"
             ),
         ],
     }

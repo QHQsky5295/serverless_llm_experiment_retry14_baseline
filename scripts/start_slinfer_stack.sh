@@ -14,11 +14,11 @@ MIN_AVAILABLE_MEMORY_GB="${SLINFER_MIN_AVAILABLE_MEMORY_GB:-32}"
 case "${MODEL_KEY}" in
   3b)
     MODEL_TYPE="llama-3.2-3b"
-    WORKER_NUM=8
+    WORKER_NUM=4
     ;;
   7b)
     MODEL_TYPE="llama-2-7b"
-    WORKER_NUM=4
+    WORKER_NUM=2
     ;;
   *)
     echo "SLINFER_MODEL_KEY must be 3b or 7b" >&2
