@@ -114,6 +114,7 @@ def main() -> int:
     parser.add_argument("--model-key", choices=["3b", "7b"], required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--scenario-name", default="slinfer_relayserve_continuation")
+    parser.add_argument("--allow-failures", action="store_true")
     args = parser.parse_args()
 
     replay = json.loads(args.replay.read_text(encoding="utf-8"))
@@ -195,6 +196,7 @@ def main() -> int:
         "total_requests": len(results),
         "completed_requests": len(ok),
         "failed_requests": len(failed),
+        "success_rate": _rounded(len(ok) / len(results) if results else 0.0),
         "elapsed_sec": _rounded(elapsed_s),
         "avg_ttft_ms": _rounded(_avg(ttft)),
         "p95_ttft_ms": _rounded(_pct(ttft, 95)),
@@ -215,7 +217,9 @@ def main() -> int:
         "total_completion_tokens": completion_tokens,
         "ttft_slo_ms": ttft_slo_ms,
         "tpot_slo_ms": tpot_slo_ms,
-        "slo_attainment": _rounded(len(slo_good) / len(ok) if ok else 0.0),
+        "slo_attainment": _rounded(
+            len(slo_good) / len(results) if results else 0.0
+        ),
         "slo_goodput_rps": _rounded(len(slo_good) / elapsed_s if elapsed_s > 0 else 0.0),
         "startup_gpu_seconds": lifecycle["startup_gpu_seconds"],
         "active_gpu_seconds": lifecycle["active_gpu_seconds"],
@@ -264,7 +268,8 @@ def main() -> int:
         f"ttft_p95={scenario['p95_ttft_ms']}ms "
         f"tpot_avg={scenario['avg_tpot_ms']}ms CE={scenario['ce']}"
     )
-    return 0 if len(ok) == len(results) and results else 1
+    clean = len(ok) == len(results) and bool(results)
+    return 0 if clean or (args.allow_failures and results) else 1
 
 
 if __name__ == "__main__":

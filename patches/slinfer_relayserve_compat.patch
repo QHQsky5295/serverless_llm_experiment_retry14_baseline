@@ -1,7 +1,20 @@
 diff --git a/SLINFER_core/scheduler/gateway.py b/SLINFER_core/scheduler/gateway.py
-index cb2d6df..b59336b 100644
+index cb2d6df..4e3ac2e 100644
 --- a/SLINFER_core/scheduler/gateway.py
 +++ b/SLINFER_core/scheduler/gateway.py
+@@ -112,7 +112,11 @@ async def create_completion(request: Request):
+                 # violate DDL, drop request
+                 logger.info(f'failed request: {request_tracker.get_info()}')
+                 pool_manager.delete_request(request_tracker)
+-                return JSONResponse({'result': False})
++                return JSONResponse({
++                    'result': False,
++                    'failure_reason': 'deadline_violation',
++                    'request_info': request_tracker.get_info(),
++                })
+         # Start exec, wait for termination
+         logger.info(f'schedule request: {request_tracker.get_info()}')
+         await request_tracker.terminate_event.wait()
 @@ -185,6 +185,18 @@ async def set_config(request: Request):
              new_minimal_tokens_per_instance = body['minimal_tokens_per_instance']
              assert new_minimal_tokens_per_instance >= 0

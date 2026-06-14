@@ -17,6 +17,7 @@ MONITOR_TAIL_S="${SLINFER_MONITOR_TAIL_S:-$((KEEP_ALIVE_S + 2))}"
 STORE_MEM_POOL_SIZE_GB="${SLINFER_STORE_MEM_POOL_SIZE_GB:-20}"
 MIN_AVAILABLE_MEMORY_GB="${SLINFER_MIN_AVAILABLE_MEMORY_GB:-32}"
 MEMORY_SAMPLE_INTERVAL_S="${SLINFER_MEMORY_SAMPLE_INTERVAL_S:-2}"
+ALLOW_FAILED_REQUESTS="${SLINFER_ALLOW_FAILED_REQUESTS:-0}"
 
 case "${MODEL_KEY}" in
   3b)
@@ -263,8 +264,15 @@ PY
 
 echo "[4/7] Replay frozen continuation workload"
 REPLAY_ARGS=()
+VALIDATE_ARGS=()
+SUMMARY_ARGS=()
 if [[ "${MAX_REQUESTS}" != "0" ]]; then
   REPLAY_ARGS+=(--max-requests "${MAX_REQUESTS}")
+fi
+if [[ "${ALLOW_FAILED_REQUESTS}" == "1" ]]; then
+  REPLAY_ARGS+=(--allow-failures)
+  VALIDATE_ARGS+=(--allow-failures)
+  SUMMARY_ARGS+=(--allow-failures)
 fi
 "${ENV_DIR}/bin/python" "${ROOT_DIR}/scripts/replay_slinfer_trace.py" \
   --trace "${TRACE_PATH}" \
@@ -299,7 +307,8 @@ echo "[5/7] Validate raw records"
 "${ENV_DIR}/bin/python" "${ROOT_DIR}/scripts/validate_replay_results.py" \
   --system SLINFER \
   --replay "${RAW_PATH}" \
-  --expected-total "${EXPECTED_TOTAL}"
+  --expected-total "${EXPECTED_TOTAL}" \
+  "${VALIDATE_ARGS[@]}"
 
 echo "[6/7] Summarize with the frozen lifecycle cost model"
 "${ENV_DIR}/bin/python" "${ROOT_DIR}/scripts/summarize_slinfer_replay.py" \
@@ -307,7 +316,8 @@ echo "[6/7] Summarize with the frozen lifecycle cost model"
   --config "${CONFIG_PATH}" \
   --model-key "${MODEL_KEY}" \
   --scenario-name slinfer_relayserve_continuation \
-  --output "${SUMMARY_PATH}"
+  --output "${SUMMARY_PATH}" \
+  "${SUMMARY_ARGS[@]}"
 
 echo "[7/7] Finalize manifest hashes"
 "${ENV_DIR}/bin/python" - \

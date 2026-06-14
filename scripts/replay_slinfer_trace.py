@@ -7,6 +7,8 @@ import argparse
 import asyncio
 import json
 import math
+import os
+import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -114,6 +116,13 @@ async def _post_json(
         return {}
 
 
+def _write_json_atomic(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    temporary.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    temporary.replace(path)
+
+
 async def _main_async(args: argparse.Namespace) -> int:
     trace_payload = json.loads(args.trace.read_text(encoding="utf-8"))
     trace_requests = list(trace_payload.get("requests") or [])
@@ -148,6 +157,48 @@ async def _main_async(args: argparse.Namespace) -> int:
     results_lock = asyncio.Lock()
     start_perf = time.perf_counter()
     last_arrival = max(item["arrival_time_s"] for item in prepared)
+    observed_config: dict[str, Any] = {}
+    gateway_logs: dict[str, Any] = {}
+
+    def output_payload(*, final: bool) -> dict[str, Any]:
+        elapsed_s = time.perf_counter() - start_perf
+        ordered_results = sorted(results, key=lambda record: int(record["index"]))
+        return {
+            "metric_schema_version": "e2e_v3",
+            "metric_definitions": {
+                "primary_ttft": (
+                    "scheduled trace arrival to SLINFER-observed first generated token"
+                ),
+                "primary_e2e": (
+                    "scheduled trace arrival to client-observed response completion"
+                ),
+                "service_ttft": "SLINFER gateway receipt to first generated token",
+                "service_e2e": (
+                    "SLINFER TTFT + TPOT * max(completion_tokens - 1, 0)"
+                ),
+                "tpot": "SLINFER-observed inter-token generation time",
+            },
+            "trace_source": str(args.trace.resolve()),
+            "gateway_url": args.gateway_url,
+            "label": args.label,
+            "model_type": args.model_type,
+            "model_id": args.model_id,
+            "tokenizer": str(args.tokenizer),
+            "max_model_len": args.max_model_len,
+            "max_output_tokens_cap": args.max_output_tokens_cap,
+            "ttft_slo_ms": args.ttft_slo_ms,
+            "tpot_slo_ms": args.tpot_slo_ms,
+            "keep_alive_s": args.keep_alive_s,
+            "client_prewarm_sec_excluded_from_workload_clock": client_prewarm_sec,
+            "elapsed_sec": elapsed_s,
+            "monitor_tail_s": args.monitor_tail_s,
+            "gateway_config": observed_config,
+            "gateway_logs": gateway_logs,
+            "checkpoint": not final,
+            "expected_requests": len(prepared),
+            "completed_records": len(ordered_results),
+            "results": ordered_results,
+        }
 
     async with aiohttp.ClientSession(timeout=timeout, connector=connector) as session:
         config_payload = {
@@ -198,7 +249,11 @@ async def _main_async(args: argparse.Namespace) -> int:
                     json=payload,
                 ) as response:
                     status_code = response.status
-                    response_payload = await response.json()
+                    response_text = await response.text()
+                    try:
+                        response_payload = json.loads(response_text)
+                    except json.JSONDecodeError:
+                        response_payload = {"response_text": response_text[:1000]}
                     success = response.status == 200 and response_payload.get("result") is True
                     if not success:
                         error = json.dumps(response_payload, ensure_ascii=False)[:1000]
@@ -243,6 +298,7 @@ async def _main_async(args: argparse.Namespace) -> int:
                 "success": success,
                 "status_code": status_code,
                 "error": error,
+                "failure_reason": response_payload.get("failure_reason"),
                 "ttft_ms": overall_ttft_ms,
                 "service_ttft_ms": service_ttft_ms,
                 "tpot_ms": service_tpot_ms,
@@ -266,6 +322,25 @@ async def _main_async(args: argparse.Namespace) -> int:
                 results.append(record)
                 counters["done"] += 1
                 counters["ok" if success else "fail"] += 1
+                should_checkpoint = (
+                    not success
+                    or counters["done"] % args.checkpoint_interval == 0
+                    or counters["done"] == len(prepared)
+                )
+                if should_checkpoint:
+                    _write_json_atomic(
+                        args.output,
+                        output_payload(final=False),
+                    )
+            if not success:
+                print(
+                    "[slinfer-failure] "
+                    f"index={item['index']} request_id={item['request_id']} "
+                    f"status={status_code} reason={record['failure_reason']} "
+                    f"error={error}",
+                    file=sys.stderr,
+                    flush=True,
+                )
 
         async def print_progress(tasks: list[asyncio.Task[None]]) -> None:
             while any(not task.done() for task in tasks):
@@ -300,48 +375,12 @@ async def _main_async(args: argparse.Namespace) -> int:
             await asyncio.sleep(args.monitor_tail_s)
         gateway_logs = await _post_json(session, f"{args.gateway_url}/end_monitor")
 
-    elapsed_s = time.perf_counter() - start_perf
-    results.sort(key=lambda record: int(record["index"]))
-    output = {
-        "metric_schema_version": "e2e_v3",
-        "metric_definitions": {
-            "primary_ttft": (
-                "scheduled trace arrival to SLINFER-observed first generated token"
-            ),
-            "primary_e2e": (
-                "scheduled trace arrival to client-observed response completion"
-            ),
-            "service_ttft": "SLINFER gateway receipt to first generated token",
-            "service_e2e": (
-                "SLINFER TTFT + TPOT * max(completion_tokens - 1, 0)"
-            ),
-            "tpot": "SLINFER-observed inter-token generation time",
-        },
-        "trace_source": str(args.trace.resolve()),
-        "gateway_url": args.gateway_url,
-        "label": args.label,
-        "model_type": args.model_type,
-        "model_id": args.model_id,
-        "tokenizer": str(args.tokenizer),
-        "max_model_len": args.max_model_len,
-        "max_output_tokens_cap": args.max_output_tokens_cap,
-        "ttft_slo_ms": args.ttft_slo_ms,
-        "tpot_slo_ms": args.tpot_slo_ms,
-        "keep_alive_s": args.keep_alive_s,
-        "client_prewarm_sec_excluded_from_workload_clock": client_prewarm_sec,
-        "elapsed_sec": elapsed_s,
-        "monitor_tail_s": args.monitor_tail_s,
-        "gateway_config": observed_config,
-        "gateway_logs": gateway_logs,
-        "results": results,
-    }
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
+    _write_json_atomic(args.output, output_payload(final=True))
     print(
         f"[slinfer] wrote {len(results)} records "
         f"({counters['ok']} ok, {counters['fail']} failed) to {args.output}"
     )
-    return 0 if counters["fail"] == 0 else 1
+    return 0 if counters["fail"] == 0 or args.allow_failures else 1
 
 
 def main() -> int:
@@ -363,6 +402,8 @@ def main() -> int:
     parser.add_argument("--connector-limit", type=int, default=1024)
     parser.add_argument("--monitor-tail-s", type=float, default=5.0)
     parser.add_argument("--progress-interval-s", type=float, default=2.0)
+    parser.add_argument("--checkpoint-interval", type=int, default=10)
+    parser.add_argument("--allow-failures", action="store_true")
     return asyncio.run(_main_async(parser.parse_args()))
 
 

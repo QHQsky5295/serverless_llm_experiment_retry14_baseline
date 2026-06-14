@@ -41,24 +41,34 @@ def verify_row(row: dict[str, str]) -> tuple[float, float, float, int]:
         else next(iter(scenario_summaries.values()))
     )
     requests = [item for item in raw["results"] if item.get("success")]
+    total = len(raw["results"])
+    failed = total - len(requests)
     ttfts = [float(item["ttft_ms"]) for item in requests]
     tpots = [float(item["tpot_ms"]) for item in requests]
     ttft_slo = float(row["ttft_slo_ms"])
     tpot_slo = float(row["tpot_slo_ms"])
     ttft_p95 = percentile(ttfts, 0.95)
     tpot_p95 = percentile(tpots, 0.95)
-    ttft_attainment = sum(value <= ttft_slo for value in ttfts) / len(ttfts)
-    tpot_attainment = sum(value <= tpot_slo for value in tpots) / len(tpots)
+    ttft_attainment = sum(value <= ttft_slo for value in ttfts) / total
+    tpot_attainment = sum(value <= tpot_slo for value in tpots) / total
     joint_attainment = sum(
         ttft <= ttft_slo and tpot <= tpot_slo
         for ttft, tpot in zip(ttfts, tpots, strict=True)
-    ) / len(requests)
+    ) / total
 
     close(float(row["ttft_p95_ms"]), ttft_p95)
     close(float(row["tpot_p95_ms"]), tpot_p95)
     close(float(row["ttft_slo_attainment"]), ttft_attainment)
     close(float(row["tpot_slo_attainment"]), tpot_attainment)
     close(float(row["joint_slo_attainment"]), joint_attainment)
+    if int(row["completed"]) != len(requests) or int(row["total"]) != total:
+        raise AssertionError("calibration request counts do not match raw evidence")
+    if int(row["failed"]) != failed:
+        raise AssertionError("calibration failure count does not match raw evidence")
+    close(float(row["success_rate"]), len(requests) / total)
+    eligible = row["eligible_zero_failure"] == "true"
+    if eligible != (failed == 0):
+        raise AssertionError("zero-failure eligibility mismatch")
     close(float(row["e2e_avg_ms"]), float(scenario["avg_e2e_ms"]))
     close(float(row["ce"]), float(scenario["ce"]))
     close(
@@ -87,7 +97,12 @@ def main() -> None:
     selected = [row for _, row in ranking if row["selected"] == "true"]
     if len(selected) != 1:
         raise AssertionError(f"expected one selected row, found {len(selected)}")
-    winner = min(ranking, key=lambda item: item[0])[1]
+    eligible = [
+        item for item in ranking if item[1]["eligible_zero_failure"] == "true"
+    ]
+    if not eligible:
+        raise AssertionError("no zero-failure calibration candidate")
+    winner = min(eligible, key=lambda item: item[0])[1]
     if winner["keep_alive_s"] != selected[0]["keep_alive_s"]:
         raise AssertionError(
             "selected keep-alive does not match the frozen policy: "

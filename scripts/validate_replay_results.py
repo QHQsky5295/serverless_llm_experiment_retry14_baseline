@@ -39,6 +39,11 @@ def _main() -> int:
         default=0,
         help="Expected number of requests. 0 disables this cardinality check.",
     )
+    parser.add_argument(
+        "--allow-failures",
+        action="store_true",
+        help="Record serving failures without rejecting a calibration candidate.",
+    )
     args = parser.parse_args()
 
     system = args.system
@@ -62,8 +67,9 @@ def _main() -> int:
     if len(ok) != total:
         failed = [item for item in results if not bool(item.get("success"))]
         print(
-            f"[ERROR] {system} replay success mismatch: ok={len(ok)} total={total}. "
-            "This is a serving/replay failure, not a valid performance result.",
+            f"[{'WARN' if args.allow_failures else 'ERROR'}] "
+            f"{system} replay success mismatch: ok={len(ok)} total={total}. "
+            "Serving failures remain part of the recorded result.",
             file=sys.stderr,
         )
         for item in failed[:8]:
@@ -72,10 +78,12 @@ def _main() -> int:
                 f"request_id={item.get('request_id')} "
                 f"adapter_id={item.get('adapter_id')} "
                 f"status={item.get('status_code')} "
+                f"reason={item.get('failure_reason')} "
                 f"error={_short(item.get('error'))}",
                 file=sys.stderr,
             )
-        return 1
+        if not args.allow_failures:
+            return 1
 
     bad_token_source = [item for item in ok if _token_source_is_trace_expected(item)]
     if bad_token_source:

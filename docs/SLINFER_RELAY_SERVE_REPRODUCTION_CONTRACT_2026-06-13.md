@@ -89,10 +89,14 @@ the incorrect PyPI placeholder is replaced by
 
 The only selected system parameter is SLINFER's official keep-alive time.
 Candidates are `1`, `10`, `30`, and `60` seconds for both models. The winner
-minimizes the worst normalized P95 SLO ratio, then maximizes joint attainment
-and CE, then prefers the shorter keep-alive.
+must first complete all 512 requests without a serving failure. Among eligible
+candidates it minimizes the worst normalized P95 SLO ratio, then maximizes
+joint attainment and CE, then prefers the shorter keep-alive. Candidates
+dropped by SLINFER's native deadline policy remain visible in the audit table
+but cannot be selected.
 
-Formal4000 data cannot select or alter the candidate.
+Formal4000 data cannot select or alter the candidate and remains a strict
+4000/4000 zero-failure gate.
 
 ## Evidence and cost
 

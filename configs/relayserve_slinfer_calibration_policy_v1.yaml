@@ -12,18 +12,21 @@ comparison_contract:
 
 selection_policy:
   description: >-
-    Select the candidate with the smallest worst normalized P95 SLO ratio.
+    First require a complete 512/512 zero-failure calibration replay. Among
+    eligible candidates, select the smallest worst normalized P95 SLO ratio.
     Break ties by higher joint TTFT/TPOT attainment, then higher CE, then
-    shorter keep-alive.
+    shorter keep-alive. Failed candidates remain in the audit table.
   ordered_keys:
+    - eligible_zero_failure_required
     - worst_normalized_p95_violation_ascending
     - joint_slo_attainment_descending
     - ce_descending
     - keep_alive_s_ascending
   p95_ratio_formula: max(ttft_p95_ms / ttft_slo_ms, tpot_p95_ms / tpot_slo_ms)
   formal_rule: >-
-    A calibration selection does not imply a gate pass. Formal results must
-    separately report whether both paper P95 targets pass.
+    A calibration selection does not imply a gate pass. Formal results require
+    a clean 4000/4000 replay and must separately report whether both paper P95
+    targets pass.
 
 models:
   3b:

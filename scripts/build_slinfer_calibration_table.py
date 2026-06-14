@@ -14,6 +14,9 @@ FIELDNAMES = [
     "monitor_tail_s",
     "completed",
     "total",
+    "failed",
+    "success_rate",
+    "eligible_zero_failure",
     "ttft_slo_ms",
     "tpot_slo_ms",
     "ttft_p95_ms",
@@ -93,19 +96,22 @@ def build_row(
     ]
     ttft_p95 = percentile(ttfts, 0.95)
     tpot_p95 = percentile(tpots, 0.95)
+    total = len(raw["results"])
+    completed = len(requests)
+    failed = total - completed
     ttft_attainment = sum(
         value <= args.ttft_slo_ms for value in ttfts
-    ) / len(ttfts)
+    ) / total
     tpot_attainment = sum(
         value <= args.tpot_slo_ms for value in tpots
-    ) / len(tpots)
+    ) / total
     joint_attainment = sum(
         item.get("ttft_ms") is not None
         and item.get("tpot_ms") is not None
         and float(item["ttft_ms"]) <= args.ttft_slo_ms
         and float(item["tpot_ms"]) <= args.tpot_slo_ms
         for item in requests
-    ) / len(requests)
+    ) / total
     worst_ratio = max(
         ttft_p95 / args.ttft_slo_ms,
         tpot_p95 / args.tpot_slo_ms,
@@ -119,6 +125,9 @@ def build_row(
         "monitor_tail_s": float(manifest["monitor_tail_s"]),
         "completed": int(scenario["completed_requests"]),
         "total": int(scenario["total_requests"]),
+        "failed": failed,
+        "success_rate": completed / total,
+        "eligible_zero_failure": completed == total,
         "ttft_slo_ms": args.ttft_slo_ms,
         "tpot_slo_ms": args.tpot_slo_ms,
         "ttft_p95_ms": ttft_p95,
@@ -169,7 +178,10 @@ def main() -> None:
         build_row(args, keep_alive_s, run_dir)
         for keep_alive_s, run_dir in sorted(args.candidate)
     ]
-    winner = min(rows, key=ranking_key)
+    eligible = [row for row in rows if bool(row["eligible_zero_failure"])]
+    if not eligible:
+        raise SystemExit("no zero-failure SLINFER calibration candidate")
+    winner = min(eligible, key=ranking_key)
     winner["selected"] = True
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -183,6 +195,9 @@ def main() -> None:
         writer.writerows(
             {
                 **row,
+                "eligible_zero_failure": str(
+                    bool(row["eligible_zero_failure"])
+                ).lower(),
                 "selected": str(bool(row["selected"])).lower(),
             }
             for row in rows

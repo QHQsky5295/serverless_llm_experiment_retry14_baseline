@@ -31,7 +31,9 @@ class SlinferHarnessTest(unittest.TestCase):
             ROOT / "patches/slinfer_relayserve_compat.patch"
         ).read_text()
         self.assertIn("--swap-space 1", compat_patch)
+        self.assertIn("'failure_reason': 'deadline_violation'", compat_patch)
         self.assertIn("memory_guard.csv", run_script)
+        self.assertIn("SLINFER_ALLOW_FAILED_REQUESTS", run_script)
         subprocess.run(
             ["bash", "-n", str(ROOT / "scripts/start_slinfer_stack.sh")],
             check=True,
@@ -108,6 +110,25 @@ class SlinferHarnessTest(unittest.TestCase):
         self.assertEqual(lifecycle["active_gpu_seconds"], 1.0)
         self.assertEqual(lifecycle["idle_gpu_seconds"], 0.0)
         self.assertEqual(lifecycle["allocated_gpu_seconds"], 1.0)
+
+    def test_calibration_policy_excludes_failed_candidates(self) -> None:
+        module = _load_script("build_slinfer_calibration_table.py")
+        failed = {
+            "worst_normalized_p95_violation": 0.5,
+            "joint_slo_attainment": 0.99,
+            "ce": 999.0,
+            "keep_alive_s": 60,
+            "eligible_zero_failure": False,
+        }
+        clean = {
+            "worst_normalized_p95_violation": 2.0,
+            "joint_slo_attainment": 0.5,
+            "ce": 1.0,
+            "keep_alive_s": 1,
+            "eligible_zero_failure": True,
+        }
+        eligible = [row for row in (failed, clean) if row["eligible_zero_failure"]]
+        self.assertIs(min(eligible, key=module.ranking_key), clean)
 
 
 if __name__ == "__main__":
