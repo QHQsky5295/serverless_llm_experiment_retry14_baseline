@@ -13,13 +13,13 @@ from pathlib import Path
 MODEL_SPEC = {
     "3b": {
         "model_type": "llama-3.2-3b",
-        "workers_per_gpu": 4,
+        "workers_per_gpu": 2,
         "physical_model_slots_per_gpu": 3,
         "hf_dir": "Llama-3.2-3B-Instruct",
     },
     "7b": {
         "model_type": "llama-2-7b",
-        "workers_per_gpu": 2,
+        "workers_per_gpu": 1,
         "physical_model_slots_per_gpu": 1,
         "hf_dir": "Llama-2-7b-chat-hf",
     },
@@ -136,9 +136,9 @@ def main() -> int:
                 "scheduler launch directory"
             ),
             (
-                "logical workers per GPU are capped at physical model slots "
-                "plus one cold spare to avoid host OOM from unloaded vLLM "
-                "processes on the shared 125 GiB testbed"
+                "logical workers per GPU are capped at the measured safe "
+                "host-memory topology (3B=2, 7B=1) to avoid OOM from the "
+                "CPU-resident state of unloaded vLLM processes"
             ),
         ],
     }

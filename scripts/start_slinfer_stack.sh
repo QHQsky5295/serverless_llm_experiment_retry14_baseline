@@ -8,17 +8,17 @@ MODEL_KEY="${SLINFER_MODEL_KEY:?set SLINFER_MODEL_KEY=3b|7b}"
 STACK_PREFIX="${SLINFER_STACK_PREFIX:-slinfer_${MODEL_KEY}}"
 LOG_DIR="${SLINFER_LOG_DIR:-${ROOT_DIR}/logs/${STACK_PREFIX}}"
 READY_TIMEOUT_S="${SLINFER_READY_TIMEOUT_S:-900}"
-STORE_MEM_POOL_SIZE_GB="${SLINFER_STORE_MEM_POOL_SIZE_GB:-24}"
+STORE_MEM_POOL_SIZE_GB="${SLINFER_STORE_MEM_POOL_SIZE_GB:-20}"
 MIN_AVAILABLE_MEMORY_GB="${SLINFER_MIN_AVAILABLE_MEMORY_GB:-32}"
 
 case "${MODEL_KEY}" in
   3b)
     MODEL_TYPE="llama-3.2-3b"
-    WORKER_NUM=4
+    WORKER_NUM=2
     ;;
   7b)
     MODEL_TYPE="llama-2-7b"
-    WORKER_NUM=2
+    WORKER_NUM=1
     ;;
   *)
     echo "SLINFER_MODEL_KEY must be 3b or 7b" >&2
@@ -112,6 +112,33 @@ for gpu in 0 1 2 3; do
      python vllm_batch_starter.py --model '${MODEL_TYPE}' --device gpu \
        --worker_num '${WORKER_NUM}' --port '${base_port}' --gpu '${gpu}' \
        > '${LOG_DIR}/gpu${gpu}_wrapper.log' 2>&1"
+done
+
+worker_deadline=$((SECONDS + READY_TIMEOUT_S))
+while true; do
+  all_workers_ready=1
+  for gpu in 0 1 2 3; do
+    base_port=$((8000 + gpu * 100))
+    for ((worker = 0; worker < WORKER_NUM; worker++)); do
+      if ! curl -sf "http://127.0.0.1:$((base_port + worker))/health" \
+        >/dev/null; then
+        all_workers_ready=0
+      fi
+    done
+    if ! tmux has-session -t "${STACK_PREFIX}_gpu${gpu}" 2>/dev/null; then
+      echo "SLINFER GPU ${gpu} worker wrapper exited before readiness" >&2
+      exit 73
+    fi
+  done
+  if (( all_workers_ready == 1 )); then
+    break
+  fi
+  require_memory_headroom "worker-api-startup"
+  if (( SECONDS >= worker_deadline )); then
+    echo "timed out waiting for SLINFER worker APIs" >&2
+    exit 74
+  fi
+  sleep 2
 done
 
 tmux new-session -d -s "${STACK_PREFIX}_gateway" \

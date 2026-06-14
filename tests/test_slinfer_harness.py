@@ -24,8 +24,9 @@ class SlinferHarnessTest(unittest.TestCase):
         run_script = (
             ROOT / "scripts/run_slinfer_relayserve_continuation.sh"
         ).read_text()
-        self.assertIn("SLINFER_STORE_MEM_POOL_SIZE_GB:-24", start_script)
+        self.assertIn("SLINFER_STORE_MEM_POOL_SIZE_GB:-20", start_script)
         self.assertIn("SLINFER_MIN_AVAILABLE_MEMORY_GB:-32", start_script)
+        self.assertIn("/health", start_script)
         self.assertIn("memory_guard.csv", run_script)
         subprocess.run(
             ["bash", "-n", str(ROOT / "scripts/start_slinfer_stack.sh")],
@@ -72,10 +73,10 @@ class SlinferHarnessTest(unittest.TestCase):
 
     def test_pool_config_uses_capacity_bounded_worker_counts(self) -> None:
         module = _load_script("prepare_slinfer_relayserve.py")
-        config_3b = module._pool_config("llama-3.2-3b", 4, 23.0)
-        config_7b = module._pool_config("llama-2-7b", 2, 23.0)
-        self.assertEqual(config_3b.count("models_info['llama-3.2-3b']"), 16)
-        self.assertEqual(config_7b.count("models_info['llama-2-7b']"), 8)
+        config_3b = module._pool_config("llama-3.2-3b", 2, 23.0)
+        config_7b = module._pool_config("llama-2-7b", 1, 23.0)
+        self.assertEqual(config_3b.count("models_info['llama-3.2-3b']"), 8)
+        self.assertEqual(config_7b.count("models_info['llama-2-7b']"), 4)
         self.assertEqual(config_3b.count("'node_memory_capacity_GB': 23.0"), 4)
         self.assertEqual(config_7b.count("'node_memory_capacity_GB': 23.0"), 4)
         self.assertIn(
