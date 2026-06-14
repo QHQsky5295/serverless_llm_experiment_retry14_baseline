@@ -95,13 +95,26 @@ def main() -> None:
         rows = list(csv.DictReader(handle))
     ranking = [(verify_row(row), row) for row in rows]
     selected = [row for _, row in ranking if row["selected"] == "true"]
-    if len(selected) != 1:
-        raise AssertionError(f"expected one selected row, found {len(selected)}")
     eligible = [
         item for item in ranking if item[1]["eligible_zero_failure"] == "true"
     ]
     if not eligible:
-        raise AssertionError("no zero-failure calibration candidate")
+        if selected:
+            raise AssertionError(
+                "a candidate was selected despite no zero-failure candidate"
+            )
+        model_keys = {row["model_key"] for _, row in ranking}
+        if len(model_keys) != 1:
+            raise AssertionError("calibration table contains multiple models")
+        print(
+            "PASS "
+            f"model={next(iter(model_keys))} "
+            "selected_keep_alive_s=none "
+            f"candidates={len(rows)} status=no_zero_failure_candidate"
+        )
+        return
+    if len(selected) != 1:
+        raise AssertionError(f"expected one selected row, found {len(selected)}")
     winner = min(eligible, key=lambda item: item[0])[1]
     if winner["keep_alive_s"] != selected[0]["keep_alive_s"]:
         raise AssertionError(

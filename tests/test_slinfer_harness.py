@@ -130,6 +130,22 @@ class SlinferHarnessTest(unittest.TestCase):
         eligible = [row for row in (failed, clean) if row["eligible_zero_failure"]]
         self.assertIs(min(eligible, key=module.ranking_key), clean)
 
+    def test_calibration_policy_allows_audited_no_selection(self) -> None:
+        module = _load_script("build_slinfer_calibration_table.py")
+        failed = [
+            {
+                "worst_normalized_p95_violation": ratio,
+                "joint_slo_attainment": 0.9,
+                "ce": 80.0,
+                "keep_alive_s": keep_alive,
+                "eligible_zero_failure": False,
+            }
+            for ratio, keep_alive in ((1.0, 1), (0.9, 10))
+        ]
+        eligible = [row for row in failed if row["eligible_zero_failure"]]
+        winner = min(eligible, key=module.ranking_key) if eligible else None
+        self.assertIsNone(winner)
+
 
 if __name__ == "__main__":
     unittest.main()

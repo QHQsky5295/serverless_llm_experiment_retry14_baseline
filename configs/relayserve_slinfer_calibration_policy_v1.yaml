@@ -34,8 +34,8 @@ models:
       ttft_p95_ms: 180.0
       tpot_p95_ms: 14.0
     keep_alive_candidates_s: [1, 10, 30, 60]
-    selected_keep_alive_s: null
-    calibration_status: pending
+    selected_keep_alive_s: 1
+    calibration_status: passed_zero_failure_512_of_512
     formal_status: pending
   7b:
     paper_slo:
@@ -43,5 +43,5 @@ models:
       tpot_p95_ms: 32.0
     keep_alive_candidates_s: [1, 10, 30, 60]
     selected_keep_alive_s: null
-    calibration_status: pending
-    formal_status: pending
+    calibration_status: failed_no_zero_failure_candidate
+    formal_status: blocked_by_calibration_gate

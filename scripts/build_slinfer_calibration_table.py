@@ -179,10 +179,9 @@ def main() -> None:
         for keep_alive_s, run_dir in sorted(args.candidate)
     ]
     eligible = [row for row in rows if bool(row["eligible_zero_failure"])]
-    if not eligible:
-        raise SystemExit("no zero-failure SLINFER calibration candidate")
-    winner = min(eligible, key=ranking_key)
-    winner["selected"] = True
+    winner = min(eligible, key=ranking_key) if eligible else None
+    if winner is not None:
+        winner["selected"] = True
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w", newline="") as handle:
@@ -202,9 +201,10 @@ def main() -> None:
             }
             for row in rows
         )
+    selected = winner["keep_alive_s"] if winner is not None else "none"
     print(
         f"wrote {args.output} candidates={len(rows)} "
-        f"selected_keep_alive_s={winner['keep_alive_s']}"
+        f"selected_keep_alive_s={selected}"
     )
 
 
