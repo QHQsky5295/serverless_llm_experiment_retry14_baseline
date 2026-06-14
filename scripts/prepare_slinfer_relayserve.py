@@ -65,11 +65,23 @@ def main() -> int:
     parser.add_argument("--project-root", type=Path, required=True)
     parser.add_argument("--model-key", choices=sorted(MODEL_SPEC), required=True)
     parser.add_argument("--node-memory-gb", type=float, default=23.0)
+    parser.add_argument(
+        "--workers-per-gpu",
+        type=int,
+        default=0,
+        help="0 uses the measured-safe default for the selected model.",
+    )
     parser.add_argument("--snapshot-dir", type=Path, required=True)
     args = parser.parse_args()
 
     project = args.project_root.resolve()
     spec = MODEL_SPEC[args.model_key]
+    workers_per_gpu = args.workers_per_gpu or spec["workers_per_gpu"]
+    official_workers_per_gpu = 8 if args.model_key == "3b" else 4
+    if not 1 <= workers_per_gpu <= official_workers_per_gpu:
+        raise RuntimeError(
+            f"workers_per_gpu must be in [1, {official_workers_per_gpu}]"
+        )
     template_dir = project / "SLINFER_core/scheduler/config_template"
     target = template_dir / "pools_info_template.py"
     source = template_dir / f"pools_info_template_{args.model_key.upper()}_0C4G.py"
@@ -95,7 +107,7 @@ def main() -> int:
 
     rendered = _pool_config(
         spec["model_type"],
-        spec["workers_per_gpu"],
+        workers_per_gpu,
         args.node_memory_gb,
     )
     target.write_text(rendered, encoding="utf-8")
@@ -112,7 +124,9 @@ def main() -> int:
         "gpu_count": 4,
         "gpu_type": "RTX 3090 24GB",
         "configured_node_memory_capacity_gb": args.node_memory_gb,
-        "workers_per_gpu": spec["workers_per_gpu"],
+        "workers_per_gpu": workers_per_gpu,
+        "measured_safe_default_workers_per_gpu": spec["workers_per_gpu"],
+        "official_template_workers_per_gpu": official_workers_per_gpu,
         "physical_model_slots_per_gpu": spec["physical_model_slots_per_gpu"],
         "official_template_path": str(source),
         "materialized_template_path": str(target),
@@ -136,9 +150,9 @@ def main() -> int:
                 "scheduler launch directory"
             ),
             (
-                "logical workers per GPU are capped at the measured safe "
-                "host-memory topology (3B=2, 7B=1) to avoid OOM from the "
-                "CPU-resident state of unloaded vLLM processes"
+                "logical workers per GPU are explicitly bounded below the "
+                "official A100 template count and protected by the host-memory "
+                "guard; measured-safe defaults are 3B=2 and 7B=1"
             ),
         ],
     }
@@ -148,7 +162,7 @@ def main() -> int:
     )
     print(
         f"[slinfer-prepare] model={args.model_key} "
-        f"workers/gpu={spec['workers_per_gpu']} node_memory={args.node_memory_gb}GB"
+        f"workers/gpu={workers_per_gpu} node_memory={args.node_memory_gb}GB"
     )
     return 0
 

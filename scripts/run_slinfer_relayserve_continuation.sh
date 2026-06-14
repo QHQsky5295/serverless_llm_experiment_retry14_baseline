@@ -18,6 +18,10 @@ STORE_MEM_POOL_SIZE_GB="${SLINFER_STORE_MEM_POOL_SIZE_GB:-20}"
 MIN_AVAILABLE_MEMORY_GB="${SLINFER_MIN_AVAILABLE_MEMORY_GB:-32}"
 MEMORY_SAMPLE_INTERVAL_S="${SLINFER_MEMORY_SAMPLE_INTERVAL_S:-2}"
 ALLOW_FAILED_REQUESTS="${SLINFER_ALLOW_FAILED_REQUESTS:-0}"
+SCHEDULER_TTFT_BASELINE_S="${SLINFER_SCHEDULER_TTFT_BASELINE_S:-0.475}"
+SCHEDULER_TTFT_MAX_THRESHOLD_S="${SLINFER_SCHEDULER_TTFT_MAX_THRESHOLD_S:-7.6}"
+SCHEDULER_TPOT_S="${SLINFER_SCHEDULER_TPOT_S:-0.2375}"
+WORKERS_PER_GPU="${SLINFER_WORKERS_PER_GPU:-0}"
 
 case "${MODEL_KEY}" in
   3b)
@@ -135,6 +139,7 @@ echo "[1/7] Materialize audited 4x3090 SLINFER topology"
   --project-root "${PROJECT_BASE}" \
   --model-key "${MODEL_KEY}" \
   --node-memory-gb "${NODE_MEMORY_GB}" \
+  --workers-per-gpu "${WORKERS_PER_GPU}" \
   --snapshot-dir "${SNAPSHOT_DIR}"
 
 echo "[2/7] Record immutable inputs"
@@ -143,7 +148,8 @@ echo "[2/7] Record immutable inputs"
   "${ROOT_DIR}" "${RELAY_ROOT}" "${RUN_TAG}" "${MODEL_KEY}" "${MAX_REQUESTS}" \
   "${TRACE_ROLE}" "${NODE_MEMORY_GB}" "${KEEP_ALIVE_S}" \
   "${MONITOR_TAIL_S}" "${SNAPSHOT_DIR}" "${STORE_MEM_POOL_SIZE_GB}" \
-  "${MIN_AVAILABLE_MEMORY_GB}" <<'PY'
+  "${MIN_AVAILABLE_MEMORY_GB}" "${SCHEDULER_TTFT_BASELINE_S}" \
+  "${SCHEDULER_TTFT_MAX_THRESHOLD_S}" "${SCHEDULER_TPOT_S}" <<'PY'
 import hashlib
 import json
 import subprocess
@@ -168,6 +174,9 @@ from pathlib import Path
     snapshot_dir,
     store_mem_pool_size_gb,
     min_available_memory_gb,
+    scheduler_ttft_baseline_s,
+    scheduler_ttft_max_threshold_s,
+    scheduler_tpot_s,
 ) = sys.argv[1:]
 
 def sha(path):
@@ -223,6 +232,17 @@ payload = {
     "monitor_tail_s": float(monitor_tail_s),
     "store_mem_pool_size_gb": float(store_mem_pool_size_gb),
     "min_available_memory_gb": float(min_available_memory_gb),
+    "scheduler_deadline_contract": {
+        "source": "official_slinfer_defaults",
+        "ttft_baseline_s": float(scheduler_ttft_baseline_s),
+        "ttft_max_threshold_s": float(scheduler_ttft_max_threshold_s),
+        "tpot_s": float(scheduler_tpot_s),
+        "formula": (
+            "min(max(ttft_baseline_s, input_tokens / 512 * 0.95), "
+            "ttft_max_threshold_s)"
+        ),
+        "separate_from_external_paper_slo": True,
+    },
     "frozen_config_dir": snapshot_dir,
     "frozen_config_sha256": {
         path.name: sha(path)
@@ -237,6 +257,7 @@ payload = {
         "lora_enabled": False,
         "system_mode": "official sota scheduler, GPU-only",
         "cost_model": "RelayServe lifecycle monetary model",
+        "scheduler_internal_deadline": "official SLINFER input-aware defaults",
     },
 }
 Path(manifest_path).write_text(json.dumps(payload, indent=2) + "\n")
@@ -285,6 +306,9 @@ fi
   --max-model-len 3072 \
   --ttft-slo-ms "${TTFT_SLO_MS}" \
   --tpot-slo-ms "${TPOT_SLO_MS}" \
+  --scheduler-ttft-baseline-s "${SCHEDULER_TTFT_BASELINE_S}" \
+  --scheduler-ttft-max-threshold-s "${SCHEDULER_TTFT_MAX_THRESHOLD_S}" \
+  --scheduler-tpot-s "${SCHEDULER_TPOT_S}" \
   --keep-alive-s "${KEEP_ALIVE_S}" \
   --timeout-s "${TIMEOUT_S}" \
   --monitor-tail-s "${MONITOR_TAIL_S}" \

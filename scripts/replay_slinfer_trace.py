@@ -188,6 +188,12 @@ async def _main_async(args: argparse.Namespace) -> int:
             "max_output_tokens_cap": args.max_output_tokens_cap,
             "ttft_slo_ms": args.ttft_slo_ms,
             "tpot_slo_ms": args.tpot_slo_ms,
+            "scheduler_deadline_contract": {
+                "ttft_baseline_s": args.scheduler_ttft_baseline_s,
+                "ttft_max_threshold_s": args.scheduler_ttft_max_threshold_s,
+                "tpot_s": args.scheduler_tpot_s,
+                "separate_from_external_paper_slo": True,
+            },
             "keep_alive_s": args.keep_alive_s,
             "client_prewarm_sec_excluded_from_workload_clock": client_prewarm_sec,
             "elapsed_sec": elapsed_s,
@@ -206,9 +212,9 @@ async def _main_async(args: argparse.Namespace) -> int:
             "enable_cpu": False,
             "keep_alive_time": args.keep_alive_s,
             "enable_detailed_logging": True,
-            "TTFT_baseline": args.ttft_slo_ms / 1000.0,
-            "TTFT_max_threshold": args.ttft_slo_ms / 1000.0,
-            "TPOT": args.tpot_slo_ms / 1000.0,
+            "TTFT_baseline": args.scheduler_ttft_baseline_s,
+            "TTFT_max_threshold": args.scheduler_ttft_max_threshold_s,
+            "TPOT": args.scheduler_tpot_s,
         }
         configured = await _post_json(
             session,
@@ -397,6 +403,13 @@ def main() -> int:
     parser.add_argument("--max-output-tokens-cap", type=int, default=0)
     parser.add_argument("--ttft-slo-ms", type=float, required=True)
     parser.add_argument("--tpot-slo-ms", type=float, required=True)
+    parser.add_argument("--scheduler-ttft-baseline-s", type=float, default=0.475)
+    parser.add_argument(
+        "--scheduler-ttft-max-threshold-s",
+        type=float,
+        default=7.6,
+    )
+    parser.add_argument("--scheduler-tpot-s", type=float, default=0.2375)
     parser.add_argument("--keep-alive-s", type=float, default=1.0)
     parser.add_argument("--timeout-s", type=float, default=1800.0)
     parser.add_argument("--connector-limit", type=int, default=1024)

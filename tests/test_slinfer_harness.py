@@ -36,6 +36,11 @@ class SlinferHarnessTest(unittest.TestCase):
         self.assertIn("SLINFER_ALLOW_FAILED_REQUESTS", run_script)
         self.assertIn("VALIDATION_EXIT_CODE", run_script)
         self.assertIn("finalize_slinfer_run_artifacts.py", run_script)
+        self.assertIn(
+            "SLINFER_SCHEDULER_TTFT_MAX_THRESHOLD_S:-7.6",
+            run_script,
+        )
+        self.assertIn("SLINFER_SCHEDULER_TPOT_S:-0.2375", run_script)
         subprocess.run(
             ["bash", "-n", str(ROOT / "scripts/start_slinfer_stack.sh")],
             check=True,
@@ -99,6 +104,18 @@ class SlinferHarnessTest(unittest.TestCase):
             "from .models_info_template import models_info_template",
             config_3b,
         )
+
+    def test_official_scheduler_deadline_is_separate_from_paper_slo(self) -> None:
+        replay_script = (ROOT / "scripts/replay_slinfer_trace.py").read_text()
+        self.assertNotIn(
+            "args.ttft_slo_ms / 1000.0",
+            replay_script,
+        )
+        self.assertIn(
+            '"TTFT_max_threshold": args.scheduler_ttft_max_threshold_s',
+            replay_script,
+        )
+        self.assertIn("separate_from_external_paper_slo", replay_script)
 
     def test_gpu_lifecycle_handles_non_contiguous_allocations(self) -> None:
         module = _load_script("summarize_slinfer_replay.py")
