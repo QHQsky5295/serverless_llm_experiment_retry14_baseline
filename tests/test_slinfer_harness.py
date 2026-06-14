@@ -34,6 +34,8 @@ class SlinferHarnessTest(unittest.TestCase):
         self.assertIn("'failure_reason': 'deadline_violation'", compat_patch)
         self.assertIn("memory_guard.csv", run_script)
         self.assertIn("SLINFER_ALLOW_FAILED_REQUESTS", run_script)
+        self.assertIn("VALIDATION_EXIT_CODE", run_script)
+        self.assertIn("finalize_slinfer_run_artifacts.py", run_script)
         subprocess.run(
             ["bash", "-n", str(ROOT / "scripts/start_slinfer_stack.sh")],
             check=True,
@@ -145,6 +147,40 @@ class SlinferHarnessTest(unittest.TestCase):
         eligible = [row for row in failed if row["eligible_zero_failure"]]
         winner = min(eligible, key=module.ranking_key) if eligible else None
         self.assertIsNone(winner)
+
+    def test_formal_finalizer_preserves_failure_counts(self) -> None:
+        module = _load_script("finalize_slinfer_run_artifacts.py")
+        raw = {
+            "results": [
+                {"success": True},
+                {"success": False, "failure_reason": "deadline_violation"},
+                {"success": False, "failure_reason": "deadline_violation"},
+            ]
+        }
+        self.assertEqual(
+            module.analyze(raw),
+            {
+                "total_requests": 3,
+                "ok_requests": 1,
+                "failed_requests": 2,
+                "failure_reasons": {"deadline_violation": 2},
+            },
+        )
+
+    def test_formal_gate_builder_marks_blocked_model_ineligible(self) -> None:
+        module = _load_script("build_slinfer_formal_gate_table.py")
+        policy = {
+            "models": {
+                "7b": {
+                    "calibration_status": "failed_no_zero_failure_candidate",
+                    "formal_status": "blocked_by_calibration_gate",
+                }
+            }
+        }
+        row = module.blocked_row("7b", policy)
+        self.assertEqual(row["formal_attempted"], "false")
+        self.assertEqual(row["external_main_comparison_eligible"], "false")
+        self.assertEqual(row["raw_records_path"], "")
 
 
 if __name__ == "__main__":

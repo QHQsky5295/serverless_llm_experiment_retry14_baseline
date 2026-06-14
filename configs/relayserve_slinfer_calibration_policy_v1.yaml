@@ -36,7 +36,9 @@ models:
     keep_alive_candidates_s: [1, 10, 30, 60]
     selected_keep_alive_s: 1
     calibration_status: passed_zero_failure_512_of_512
-    formal_status: pending
+    formal_status: failed_3755_of_4000_deadline_violations
+    formal_run: >-
+      results/relayserve_continuation/slinfer/20260614_slinfer_3b_formal4000_k1_v1
   7b:
     paper_slo:
       ttft_p95_ms: 440.0

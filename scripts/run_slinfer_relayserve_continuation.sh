@@ -304,42 +304,45 @@ PY
 )"
 
 echo "[5/7] Validate raw records"
+set +e
 "${ENV_DIR}/bin/python" "${ROOT_DIR}/scripts/validate_replay_results.py" \
   --system SLINFER \
   --replay "${RAW_PATH}" \
   --expected-total "${EXPECTED_TOTAL}" \
   "${VALIDATE_ARGS[@]}"
+VALIDATION_EXIT_CODE=$?
+set -e
 
 echo "[6/7] Summarize with the frozen lifecycle cost model"
+AUDIT_SUMMARY_ARGS=("${SUMMARY_ARGS[@]}")
+if [[ "${VALIDATION_EXIT_CODE}" != "0" ]]; then
+  AUDIT_SUMMARY_ARGS+=(--allow-failures)
+fi
 "${ENV_DIR}/bin/python" "${ROOT_DIR}/scripts/summarize_slinfer_replay.py" \
   --replay "${RAW_PATH}" \
   --config "${CONFIG_PATH}" \
   --model-key "${MODEL_KEY}" \
   --scenario-name slinfer_relayserve_continuation \
   --output "${SUMMARY_PATH}" \
-  "${SUMMARY_ARGS[@]}"
+  "${AUDIT_SUMMARY_ARGS[@]}"
 
 echo "[7/7] Finalize manifest hashes"
-"${ENV_DIR}/bin/python" - \
-  "${MANIFEST_PATH}" "${RAW_PATH}" "${SUMMARY_PATH}" \
-  "${MEMORY_GUARD_PATH}" <<'PY'
-import hashlib
-import json
-import sys
-from pathlib import Path
-
-manifest_path, raw_path, summary_path, memory_guard_path = map(Path, sys.argv[1:])
-manifest = json.loads(manifest_path.read_text())
-for key, path in [
-    ("raw_records", raw_path),
-    ("source_summary", summary_path),
-    ("memory_guard", memory_guard_path),
-]:
-    manifest[f"{key}_path"] = str(path.resolve())
-    manifest[f"{key}_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
-manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
-PY
+VALIDATION_MODE="strict_zero_failure"
+if [[ "${ALLOW_FAILED_REQUESTS}" == "1" ]]; then
+  VALIDATION_MODE="allow_failures"
+fi
+"${ENV_DIR}/bin/python" "${ROOT_DIR}/scripts/finalize_slinfer_run_artifacts.py" \
+  --manifest "${MANIFEST_PATH}" \
+  --raw "${RAW_PATH}" \
+  --summary "${SUMMARY_PATH}" \
+  --memory-guard "${MEMORY_GUARD_PATH}" \
+  --validation-exit-code "${VALIDATION_EXIT_CODE}" \
+  --validation-mode "${VALIDATION_MODE}"
 
 echo "run_dir=${RUN_DIR}"
 echo "raw_records_path=${RAW_PATH}"
 echo "source_summary_path=${SUMMARY_PATH}"
+if [[ "${VALIDATION_EXIT_CODE}" != "0" ]]; then
+  echo "SLINFER strict formal validation failed; audit artifacts were preserved." >&2
+  exit "${VALIDATION_EXIT_CODE}"
+fi
