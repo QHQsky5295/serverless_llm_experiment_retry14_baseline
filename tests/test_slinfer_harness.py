@@ -26,6 +26,16 @@ class SlinferHarnessTest(unittest.TestCase):
         ).read_text()
         self.assertIn("SLINFER_STORE_MEM_POOL_SIZE_GB:-20", start_script)
         self.assertIn("SLINFER_MIN_AVAILABLE_MEMORY_GB:-32", start_script)
+        self.assertIn(
+            'REQUESTED_WORKER_NUM="${SLINFER_WORKERS_PER_GPU:-0}"',
+            start_script,
+        )
+        self.assertIn('if [[ "${REQUESTED_WORKER_NUM}" == "0" ]]', start_script)
+        self.assertIn("WORKER_NUM > MAX_WORKER_NUM", start_script)
+        self.assertIn(
+            'export SLINFER_WORKERS_PER_GPU="${WORKERS_PER_GPU}"',
+            run_script,
+        )
         self.assertIn("/health", start_script)
         compat_patch = (
             ROOT / "patches/slinfer_relayserve_compat.patch"

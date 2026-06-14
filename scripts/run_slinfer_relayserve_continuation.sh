@@ -77,6 +77,7 @@ export SLINFER_ENV_DIR="${ENV_DIR}"
 export SLINFER_MODEL_KEY="${MODEL_KEY}"
 export SLINFER_STACK_PREFIX="${STACK_PREFIX}"
 export SLINFER_LOG_DIR="${LOG_DIR}"
+export SLINFER_WORKERS_PER_GPU="${WORKERS_PER_GPU}"
 
 cleanup() {
   local exit_code=$?

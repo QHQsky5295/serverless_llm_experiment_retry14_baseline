@@ -14,17 +14,33 @@ MIN_AVAILABLE_MEMORY_GB="${SLINFER_MIN_AVAILABLE_MEMORY_GB:-32}"
 case "${MODEL_KEY}" in
   3b)
     MODEL_TYPE="llama-3.2-3b"
-    WORKER_NUM=2
+    DEFAULT_WORKER_NUM=2
+    MAX_WORKER_NUM=8
     ;;
   7b)
     MODEL_TYPE="llama-2-7b"
-    WORKER_NUM=1
+    DEFAULT_WORKER_NUM=1
+    MAX_WORKER_NUM=4
     ;;
   *)
     echo "SLINFER_MODEL_KEY must be 3b or 7b" >&2
     exit 2
     ;;
 esac
+
+REQUESTED_WORKER_NUM="${SLINFER_WORKERS_PER_GPU:-0}"
+if [[ "${REQUESTED_WORKER_NUM}" == "0" ]]; then
+  WORKER_NUM="${DEFAULT_WORKER_NUM}"
+else
+  WORKER_NUM="${REQUESTED_WORKER_NUM}"
+fi
+if [[ ! "${WORKER_NUM}" =~ ^[1-9][0-9]*$ ]] \
+  || (( WORKER_NUM > MAX_WORKER_NUM )); then
+  echo \
+    "SLINFER_WORKERS_PER_GPU must be an integer in [1, ${MAX_WORKER_NUM}] " \
+    "for ${MODEL_KEY}; got ${WORKER_NUM}" >&2
+  exit 2
+fi
 
 mkdir -p "${LOG_DIR}"
 
