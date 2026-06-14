@@ -115,6 +115,16 @@ class SlinferHarnessTest(unittest.TestCase):
             config_3b,
         )
 
+    def test_rate_matrix_run_parser_preserves_model_rate_and_path(self) -> None:
+        module = _load_script("build_slinfer_rate_matrix.py")
+        model_key, rate_scale, run_dir = module.parse_run(
+            "3b:0.67=/tmp/slinfer-rate"
+        )
+        self.assertEqual(model_key, "3b")
+        self.assertEqual(rate_scale, 0.67)
+        self.assertEqual(run_dir, Path("/tmp/slinfer-rate"))
+        self.assertEqual(module.EXPECTED_RATES, {0.67, 1.0, 1.3})
+
     def test_official_scheduler_deadline_is_separate_from_paper_slo(self) -> None:
         replay_script = (ROOT / "scripts/replay_slinfer_trace.py").read_text()
         self.assertNotIn(
