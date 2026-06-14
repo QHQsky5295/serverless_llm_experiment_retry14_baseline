@@ -44,6 +44,14 @@ class SlinferHarnessTest(unittest.TestCase):
             ],
             check=True,
         )
+        subprocess.run(
+            [
+                "bash",
+                "-n",
+                str(ROOT / "scripts/run_slinfer_calibration_suite.sh"),
+            ],
+            check=True,
+        )
 
     def test_gpu_lifecycle_classifies_startup_active_idle(self) -> None:
         module = _load_script("summarize_slinfer_replay.py")
