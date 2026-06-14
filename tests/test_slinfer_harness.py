@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -18,6 +19,27 @@ def _load_script(name: str):
 
 
 class SlinferHarnessTest(unittest.TestCase):
+    def test_host_memory_defaults_keep_a_safety_reserve(self) -> None:
+        start_script = (ROOT / "scripts/start_slinfer_stack.sh").read_text()
+        run_script = (
+            ROOT / "scripts/run_slinfer_relayserve_continuation.sh"
+        ).read_text()
+        self.assertIn("SLINFER_STORE_MEM_POOL_SIZE_GB:-24", start_script)
+        self.assertIn("SLINFER_MIN_AVAILABLE_MEMORY_GB:-32", start_script)
+        self.assertIn("memory_guard.csv", run_script)
+        subprocess.run(
+            ["bash", "-n", str(ROOT / "scripts/start_slinfer_stack.sh")],
+            check=True,
+        )
+        subprocess.run(
+            [
+                "bash",
+                "-n",
+                str(ROOT / "scripts/run_slinfer_relayserve_continuation.sh"),
+            ],
+            check=True,
+        )
+
     def test_gpu_lifecycle_classifies_startup_active_idle(self) -> None:
         module = _load_script("summarize_slinfer_replay.py")
         logs = {

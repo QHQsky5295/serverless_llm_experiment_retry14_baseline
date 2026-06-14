@@ -14,6 +14,9 @@ NODE_MEMORY_GB="${SLINFER_NODE_MEMORY_GB:-23.0}"
 KEEP_ALIVE_S="${SLINFER_KEEP_ALIVE_S:-1}"
 TIMEOUT_S="${SLINFER_TIMEOUT_S:-1800}"
 MONITOR_TAIL_S="${SLINFER_MONITOR_TAIL_S:-$((KEEP_ALIVE_S + 2))}"
+STORE_MEM_POOL_SIZE_GB="${SLINFER_STORE_MEM_POOL_SIZE_GB:-24}"
+MIN_AVAILABLE_MEMORY_GB="${SLINFER_MIN_AVAILABLE_MEMORY_GB:-32}"
+MEMORY_SAMPLE_INTERVAL_S="${SLINFER_MEMORY_SAMPLE_INTERVAL_S:-2}"
 
 case "${MODEL_KEY}" in
   3b)
@@ -45,6 +48,8 @@ MANIFEST_PATH="${RUN_DIR}/manifest.json"
 LOG_DIR="${RUN_DIR}/logs"
 SNAPSHOT_DIR="${RUN_DIR}/frozen_config"
 STACK_PREFIX="$(printf '%s' "slinfer_${RUN_TAG}" | tr -c 'A-Za-z0-9_.-' '_')"
+MEMORY_GUARD_PATH="${LOG_DIR}/memory_guard.csv"
+MEMORY_GUARD_PID=""
 
 if [[ -e "${RUN_DIR}" ]]; then
   echo "refusing to overwrite existing SLINFER run directory: ${RUN_DIR}" >&2
@@ -70,6 +75,10 @@ export SLINFER_LOG_DIR="${LOG_DIR}"
 
 cleanup() {
   local exit_code=$?
+  if [[ -n "${MEMORY_GUARD_PID}" ]]; then
+    kill "${MEMORY_GUARD_PID}" 2>/dev/null || true
+    wait "${MEMORY_GUARD_PID}" 2>/dev/null || true
+  fi
   for session in \
     "${STACK_PREFIX}_gateway" \
     "${STACK_PREFIX}_gpu0" \
@@ -89,6 +98,34 @@ cleanup() {
 }
 trap cleanup EXIT
 
+start_memory_guard() {
+  local runner_pid="$$"
+  (
+    echo "timestamp_epoch,mem_available_kb,mem_total_kb,swap_free_kb"
+    while true; do
+      read -r available_kb total_kb swap_free_kb < <(
+        awk '
+          /MemTotal:/ {total=$2}
+          /MemAvailable:/ {available=$2}
+          /SwapFree:/ {swapfree=$2}
+          END {print available, total, swapfree}
+        ' /proc/meminfo
+      )
+      printf '%s,%s,%s,%s\n' \
+        "$(date +%s)" "${available_kb}" "${total_kb}" "${swap_free_kb}"
+      if (( available_kb < MIN_AVAILABLE_MEMORY_GB * 1024 * 1024 )); then
+        echo \
+          "memory_guard_breach: available_kb=${available_kb}, " \
+          "reserve_gb=${MIN_AVAILABLE_MEMORY_GB}" >&2
+        kill -TERM "${runner_pid}" 2>/dev/null || true
+        exit 90
+      fi
+      sleep "${MEMORY_SAMPLE_INTERVAL_S}"
+    done
+  ) >"${MEMORY_GUARD_PATH}" 2>"${LOG_DIR}/memory_guard.err" &
+  MEMORY_GUARD_PID=$!
+}
+
 echo "[0/7] Verify reproducible SLINFER compatibility patch"
 bash "${ROOT_DIR}/scripts/apply_slinfer_relayserve_patch.sh"
 
@@ -104,7 +141,8 @@ echo "[2/7] Record immutable inputs"
   "${MANIFEST_PATH}" "${TRACE_PATH}" "${CONFIG_PATH}" "${PROJECT_BASE}" \
   "${ROOT_DIR}" "${RELAY_ROOT}" "${RUN_TAG}" "${MODEL_KEY}" "${MAX_REQUESTS}" \
   "${TRACE_ROLE}" "${NODE_MEMORY_GB}" "${KEEP_ALIVE_S}" \
-  "${MONITOR_TAIL_S}" "${SNAPSHOT_DIR}" <<'PY'
+  "${MONITOR_TAIL_S}" "${SNAPSHOT_DIR}" "${STORE_MEM_POOL_SIZE_GB}" \
+  "${MIN_AVAILABLE_MEMORY_GB}" <<'PY'
 import hashlib
 import json
 import subprocess
@@ -127,6 +165,8 @@ from pathlib import Path
     keep_alive_s,
     monitor_tail_s,
     snapshot_dir,
+    store_mem_pool_size_gb,
+    min_available_memory_gb,
 ) = sys.argv[1:]
 
 def sha(path):
@@ -180,6 +220,8 @@ payload = {
     "node_memory_gb": float(node_memory_gb),
     "keep_alive_s": float(keep_alive_s),
     "monitor_tail_s": float(monitor_tail_s),
+    "store_mem_pool_size_gb": float(store_mem_pool_size_gb),
+    "min_available_memory_gb": float(min_available_memory_gb),
     "frozen_config_dir": snapshot_dir,
     "frozen_config_sha256": {
         path.name: sha(path)
@@ -198,6 +240,8 @@ payload = {
 }
 Path(manifest_path).write_text(json.dumps(payload, indent=2) + "\n")
 PY
+
+start_memory_guard
 
 echo "[3/7] Start official SLINFER GPU-only stack"
 STACK_START_MONOTONIC="$("${ENV_DIR}/bin/python" -c 'import time; print(time.monotonic())')"
@@ -267,17 +311,19 @@ echo "[6/7] Summarize with the frozen lifecycle cost model"
 
 echo "[7/7] Finalize manifest hashes"
 "${ENV_DIR}/bin/python" - \
-  "${MANIFEST_PATH}" "${RAW_PATH}" "${SUMMARY_PATH}" <<'PY'
+  "${MANIFEST_PATH}" "${RAW_PATH}" "${SUMMARY_PATH}" \
+  "${MEMORY_GUARD_PATH}" <<'PY'
 import hashlib
 import json
 import sys
 from pathlib import Path
 
-manifest_path, raw_path, summary_path = map(Path, sys.argv[1:])
+manifest_path, raw_path, summary_path, memory_guard_path = map(Path, sys.argv[1:])
 manifest = json.loads(manifest_path.read_text())
 for key, path in [
     ("raw_records", raw_path),
     ("source_summary", summary_path),
+    ("memory_guard", memory_guard_path),
 ]:
     manifest[f"{key}_path"] = str(path.resolve())
     manifest[f"{key}_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()

@@ -41,6 +41,23 @@ an unqualified import that fails when `gateway.py` is launched from the
 documented `scheduler/` directory, while upstream debug templates already use
 the package-relative form.
 
+## Host-memory safety adaptation
+
+The upstream launch recipe reserves a 64 GB pinned checkpoint-store pool.
+That setting caused a host-level OOM on this 125 GiB shared testbed on
+2026-06-13, so those failed smoke runs are excluded from all reported data.
+
+The frozen local launch uses a 24 GB store pool. This is larger than the
+18 GB converted 7B checkpoint and does not alter SLINFER's scheduler, model
+placement, worker count, or GPU execution. A continuous guard records
+`MemAvailable`, total memory, and free swap every two seconds. It terminates
+the isolated experiment if available host memory falls below 32 GB. The
+memory trace and thresholds are included in every run manifest.
+
+The environment follows the upstream README's `pyairports` instruction:
+the incorrect PyPI placeholder is replaced by
+`ozeliger/pyairports@f611ee5a5a82b4e98b22641bb99693d862c802e4`.
+
 ## Model and workload identity
 
 - Llama-3.2 3B uses the same

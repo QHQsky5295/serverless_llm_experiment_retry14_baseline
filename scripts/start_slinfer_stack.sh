@@ -8,7 +8,8 @@ MODEL_KEY="${SLINFER_MODEL_KEY:?set SLINFER_MODEL_KEY=3b|7b}"
 STACK_PREFIX="${SLINFER_STACK_PREFIX:-slinfer_${MODEL_KEY}}"
 LOG_DIR="${SLINFER_LOG_DIR:-${ROOT_DIR}/logs/${STACK_PREFIX}}"
 READY_TIMEOUT_S="${SLINFER_READY_TIMEOUT_S:-900}"
-STORE_MEM_POOL_SIZE_GB="${SLINFER_STORE_MEM_POOL_SIZE_GB:-64}"
+STORE_MEM_POOL_SIZE_GB="${SLINFER_STORE_MEM_POOL_SIZE_GB:-24}"
+MIN_AVAILABLE_MEMORY_GB="${SLINFER_MIN_AVAILABLE_MEMORY_GB:-32}"
 
 case "${MODEL_KEY}" in
   3b)
@@ -26,6 +27,23 @@ case "${MODEL_KEY}" in
 esac
 
 mkdir -p "${LOG_DIR}"
+
+available_memory_gb() {
+  awk '/MemAvailable:/ {printf "%d\n", $2 / 1024 / 1024}' /proc/meminfo
+}
+
+require_memory_headroom() {
+  local stage="$1"
+  local available_gb
+  available_gb="$(available_memory_gb)"
+  if (( available_gb < MIN_AVAILABLE_MEMORY_GB )); then
+    echo \
+      "SLINFER memory guard failed at ${stage}: " \
+      "${available_gb}GB available < ${MIN_AVAILABLE_MEMORY_GB}GB reserve" \
+      >&2
+    return 1
+  fi
+}
 
 export PROJECT_BASE
 export PATH="${ENV_DIR}/bin:${PATH}"
@@ -65,6 +83,8 @@ for session in "${sessions[@]}"; do
   fi
 done
 
+require_memory_headroom "preflight"
+
 tmux new-session -d -s "${STACK_PREFIX}_store" \
   "export PATH='${PATH}' PROJECT_BASE='${PROJECT_BASE}' LD_LIBRARY_PATH='${LD_LIBRARY_PATH}'; \
    sllm-store-server --storage_path '${PROJECT_BASE}/gpu_models' \
@@ -73,12 +93,15 @@ tmux new-session -d -s "${STACK_PREFIX}_store" \
 
 store_deadline=$((SECONDS + READY_TIMEOUT_S))
 while ! rg -q "Server listening on .*8073" "${LOG_DIR}/store.log" 2>/dev/null; do
+  require_memory_headroom "model-store-startup"
   if (( SECONDS >= store_deadline )); then
     echo "timed out waiting for SLINFER model store" >&2
     exit 70
   fi
   sleep 1
 done
+
+require_memory_headroom "post-model-store"
 
 for gpu in 0 1 2 3; do
   base_port=$((8000 + gpu * 100))
@@ -98,6 +121,7 @@ tmux new-session -d -s "${STACK_PREFIX}_gateway" \
 
 gateway_deadline=$((SECONDS + READY_TIMEOUT_S))
 while ! curl -sf -X POST http://127.0.0.1:7000/get_config >/dev/null; do
+  require_memory_headroom "worker-gateway-startup"
   if (( SECONDS >= gateway_deadline )); then
     echo "timed out waiting for SLINFER gateway" >&2
     exit 71
@@ -109,4 +133,5 @@ while ! curl -sf -X POST http://127.0.0.1:7000/get_config >/dev/null; do
   sleep 2
 done
 
+require_memory_headroom "stack-ready"
 echo "SLINFER ${MODEL_KEY} GPU-only stack is ready at http://127.0.0.1:7000."
