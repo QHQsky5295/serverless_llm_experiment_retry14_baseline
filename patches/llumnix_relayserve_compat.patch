@@ -112,3 +112,22 @@ diff --git a/llumnix/scaler.py b/llumnix/scaler.py
                  logger.info("Init server and instance done, instance_id: {}, instance_type: {}.".format(instance_id, instance_type))
              except Exception as e: # pylint: disable=broad-except
                  if isinstance(e, ray.exceptions.RayActorError):
+diff --git a/llumnix/utils.py b/llumnix/utils.py
+--- a/llumnix/utils.py
++++ b/llumnix/utils.py
+@@ -182,5 +182,14 @@ def get_llumnix_env_vars():
+     except ImportError:
+         pass
+     for key, value in env_vars.items():
+-        if key in llumnix_env_vars_keys:
++        normalized_key = (
++            key.removeprefix("LLUMNIX_")
++            if key.startswith("LLUMNIX_")
++            else key
++        )
++        if (
++            key in llumnix_env_vars_keys
++            or normalized_key in llumnix_env_vars_keys
++            or key.startswith("LLUMNIX_")
++        ):
+             llumnix_env_vars[key] = value

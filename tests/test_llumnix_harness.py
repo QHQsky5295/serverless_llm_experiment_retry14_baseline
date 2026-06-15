@@ -142,6 +142,14 @@ class LlumnixHarnessTests(unittest.TestCase):
         self.assertIn("ray\" stop --force", runner)
         self.assertIn("refusing to overwrite existing Llumnix run directory", runner)
 
+    def test_compat_patch_propagates_declared_llumnix_env_vars(self):
+        patch = (
+            ROOT / "patches/llumnix_relayserve_compat.patch"
+        ).read_text(encoding="utf-8")
+        self.assertIn('key.removeprefix("LLUMNIX_")', patch)
+        self.assertIn("normalized_key in llumnix_env_vars_keys", patch)
+        self.assertIn('or key.startswith("LLUMNIX_")', patch)
+
     def test_service_health_rejects_degraded_startup(self):
         text = "\n".join(
             [
