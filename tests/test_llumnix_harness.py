@@ -160,6 +160,16 @@ class LlumnixHarnessTests(unittest.TestCase):
             "DEFAULT_WAIT_PLACEMENT_GROUP_TIMEOUT",
             patch,
         )
+        self.assertIn(
+            "INSTANCE_READY_TIMEOUT as DEFAULT_INSTANCE_READY_TIMEOUT",
+            patch,
+        )
+        self.assertIn(
+            "UTILITY_CALL_TIMEOUT as DEFAULT_UTILITY_CALL_TIMEOUT",
+            patch,
+        )
+        self.assertIn("str(DEFAULT_INSTANCE_READY_TIMEOUT)", patch)
+        self.assertIn("str(DEFAULT_UTILITY_CALL_TIMEOUT)", patch)
 
     def test_service_health_rejects_degraded_startup(self):
         text = "\n".join(
