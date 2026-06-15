@@ -149,6 +149,10 @@ class LlumnixHarnessTests(unittest.TestCase):
         self.assertIn('key.removeprefix("LLUMNIX_")', patch)
         self.assertIn("normalized_key in llumnix_env_vars_keys", patch)
         self.assertIn('or key.startswith("LLUMNIX_")', patch)
+        self.assertEqual(
+            patch.count('runtime_env={"env_vars": get_llumnix_env_vars()}'),
+            3,
+        )
 
     def test_service_health_rejects_degraded_startup(self):
         text = "\n".join(

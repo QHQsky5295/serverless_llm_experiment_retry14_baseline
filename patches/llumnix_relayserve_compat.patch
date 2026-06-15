@@ -73,10 +73,48 @@ diff --git a/llumnix/backends/vllm/executor.py b/llumnix/backends/vllm/executor.
              return (ip != driver_ip, ip_counts[ip], ip)
  
          # After sorting, the workers on the same node will be
+diff --git a/llumnix/llumlet/llumlet.py b/llumnix/llumlet/llumlet.py
+--- a/llumnix/llumlet/llumlet.py
++++ b/llumnix/llumlet/llumlet.py
+@@ -36,5 +36,6 @@ from llumnix.ray_utils import (
+ from llumnix.constants import CHECK_ENGINE_STATE_INTERVAL
+ from llumnix.metrics.llumlet_metrics import LlumletMetrics
+ from llumnix.utils import (MigrationType, RequestIDType, BackendType, InstanceContext,
+-                           InstanceType, UnitStatus, exception_wrapper_async)
++                           InstanceType, UnitStatus, exception_wrapper_async,
++                           get_llumnix_env_vars)
+ from llumnix.constants import NUM_GPUS_VLLM_GPU_ACTOR, NUM_GPUS_BLADELLM_GPU_ACTOR
+@@ -128,6 +129,7 @@ class Llumlet:
+             namespace='llumnix',
+             lifetime="detached"
+         )(cls).options(
++            runtime_env={"env_vars": get_llumnix_env_vars()},
+             scheduling_strategy=PlacementGroupSchedulingStrategy(
+                 placement_group=placement_group,
+                 placement_group_bundle_index=bundle_index,
 diff --git a/llumnix/manager.py b/llumnix/manager.py
 --- a/llumnix/manager.py
 +++ b/llumnix/manager.py
-@@ -308,7 +308,8 @@ class Manager:
+@@ -36,6 +36,7 @@ from llumnix.metrics.manager_metrics import ManagerMetrics
+ from llumnix.request_processing_context import RequestProcessingContext
+ from llumnix.utils import (
+     random_uuid,
++    get_llumnix_env_vars,
+     asyncio_wait_for_ray_remote_call_with_timeout,
+     RequestIDType,
+     log_instance_exception,
+@@ -217,7 +218,9 @@ class Manager:
+             name=get_llumnix_actor_name(LlumnixActor.MANAGER),
+             namespace="llumnix",
+             lifetime="detached"
+-        )(cls)
++        )(cls).options(
++            runtime_env={"env_vars": get_llumnix_env_vars()}
++        )
+         manager = manager_class.remote(
+             entrypoints_args,
+             manager_args,
+@@ -308,7 +311,8 @@ class Manager:
      ) -> InstanceContext:
          try:
              engine_context, instance_info = await asyncio_wait_for_ray_remote_call_with_timeout(
@@ -97,7 +135,26 @@ diff --git a/llumnix/scaler.py b/llumnix/scaler.py
  import random
  from typing import List, Tuple, Union, Iterable, Dict
  
-@@ -637,7 +638,13 @@ class Scaler:
+@@ -34,6 +35,7 @@ from llumnix.arg_utils import (
+ )
+ from llumnix.utils import (
+     get_service_resouces,
++    get_llumnix_env_vars,
+     random_uuid,
+     get_service_instance_type,
+     asyncio_wait_for_ray_remote_call_with_timeout,
+@@ -226,7 +228,9 @@ class Scaler:
+             name=get_llumnix_actor_name(LlumnixActor.SCALER),
+             namespace="llumnix",
+             lifetime="detached"
+-        )(cls)
++        )(cls).options(
++            runtime_env={"env_vars": get_llumnix_env_vars()}
++        )
+         scaler = scaler_class.remote(
+             entrypoints_args,
+             manager_args,
+@@ -637,7 +641,13 @@ class Scaler:
                      instance.is_ready, timeout=float(llumnix_envs.INSTANCE_READY_TIMEOUT)
                  )
                  self._scale_up(instance_id, instance, instance_type)
