@@ -199,6 +199,7 @@ async def run(args: argparse.Namespace) -> int:
             "max_output_tokens_cap": args.max_output_tokens_cap,
             "ttft_slo_ms": args.ttft_slo_ms,
             "tpot_slo_ms": args.tpot_slo_ms,
+            "internal_trace_breakdown_enabled": args.enable_trace_breakdown,
             "client_prewarm_sec_excluded_from_workload_clock": client_prewarm_sec,
             "elapsed_sec": time.perf_counter() - start_perf,
             "checkpoint": not final,
@@ -232,10 +233,15 @@ async def run(args: argparse.Namespace) -> int:
             service_tpot_ms = None
             service_e2e_ms = None
             try:
+                headers = (
+                    {TRACE_HEADER: "true"}
+                    if args.enable_trace_breakdown
+                    else {}
+                )
                 async with session.post(
                     endpoint,
                     json=body,
-                    headers={TRACE_HEADER: "true"},
+                    headers=headers,
                 ) as response:
                     status_code = response.status
                     response_text = await response.text()
@@ -401,6 +407,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--connector-limit", type=int, default=0)
     parser.add_argument("--checkpoint-interval", type=int, default=32)
     parser.add_argument("--progress-interval-s", type=float, default=2.0)
+    parser.add_argument("--enable-trace-breakdown", action="store_true")
     parser.add_argument("--ttft-slo-ms", type=float, required=True)
     parser.add_argument("--tpot-slo-ms", type=float, required=True)
     parser.add_argument("--allow-failures", action="store_true")

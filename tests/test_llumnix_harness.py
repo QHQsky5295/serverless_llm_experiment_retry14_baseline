@@ -128,11 +128,15 @@ class LlumnixHarnessTests(unittest.TestCase):
         self.assertIn("LLUMNIX_INIT_WORKER_RPC_TIMEOUT", runner)
         self.assertIn("LLUMNIX_SCALE_UP_RPC_TIMEOUT", runner)
         self.assertIn("LLUMNIX_INSTANCE_READY_TIMEOUT", runner)
+        self.assertIn("LLUMNIX_RAY_WORKER_REGISTER_TIMEOUT_S", runner)
+        self.assertIn("RAY_worker_register_timeout_seconds", runner)
         self.assertIn("LLUMNIX_WAIT_PLACEMENT_GROUP_TIMEOUT", runner)
         self.assertIn("LLUMNIX_UTILITY_CALL_TIMEOUT", runner)
         self.assertIn("LLUMNIX_SERVICE_STABILIZATION_S", runner)
         self.assertIn("LLUMNIX_FULL_PATH_PROBE_TIMEOUT_S", runner)
         self.assertIn("LLUMNIX_FULL_PATH_PROBE_ATTEMPTS", runner)
+        self.assertIn("LLUMNIX_CHECKPOINT_INTERVAL", runner)
+        self.assertIn('--checkpoint-interval "${CHECKPOINT_INTERVAL}"', runner)
         self.assertIn("apply_llumnix_relayserve_patch.sh", runner)
         self.assertIn("probe_llumnix_service.py", runner)
         self.assertIn("validate_llumnix_service_health.py", runner)
@@ -142,6 +146,17 @@ class LlumnixHarnessTests(unittest.TestCase):
         self.assertIn("MAX_GPU_TEMPERATURE_C", runner)
         self.assertIn("ray\" stop --force", runner)
         self.assertIn("refusing to overwrite existing Llumnix run directory", runner)
+
+    def test_formal_replay_does_not_enable_large_internal_trace_by_default(self):
+        replay = (
+            ROOT / "scripts/replay_llumnix_trace.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("--enable-trace-breakdown", replay)
+        self.assertIn("if args.enable_trace_breakdown", replay)
+        runner = (
+            ROOT / "scripts/run_llumnix_relayserve_continuation.sh"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("--enable-trace-breakdown", runner)
 
     def test_compat_patch_propagates_declared_llumnix_env_vars(self):
         patch = (

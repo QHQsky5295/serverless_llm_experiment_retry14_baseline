@@ -22,8 +22,10 @@ SERVICE_STABILIZATION_S="${LLUMNIX_SERVICE_STABILIZATION_S:-10}"
 FULL_PATH_PROBE_TIMEOUT_S="${LLUMNIX_FULL_PATH_PROBE_TIMEOUT_S:-15}"
 FULL_PATH_PROBE_ATTEMPTS="${LLUMNIX_FULL_PATH_PROBE_ATTEMPTS:-3}"
 REQUEST_TIMEOUT_S="${LLUMNIX_REQUEST_TIMEOUT_S:-1800}"
+CHECKPOINT_INTERVAL="${LLUMNIX_CHECKPOINT_INTERVAL:-256}"
 INIT_INSTANCES_TIMEOUT_S="${LLUMNIX_INIT_INSTANCES_TIMEOUT:-900}"
 INIT_WORKER_RPC_TIMEOUT_S="${LLUMNIX_INIT_WORKER_RPC_TIMEOUT:-300}"
+RAY_WORKER_REGISTER_TIMEOUT_S="${LLUMNIX_RAY_WORKER_REGISTER_TIMEOUT_S:-180}"
 SCALE_UP_RPC_TIMEOUT_S="${LLUMNIX_SCALE_UP_RPC_TIMEOUT:-300}"
 INSTANCE_READY_TIMEOUT_S="${LLUMNIX_INSTANCE_READY_TIMEOUT:-600}"
 PLACEMENT_GROUP_TIMEOUT_S="${LLUMNIX_WAIT_PLACEMENT_GROUP_TIMEOUT:-60}"
@@ -200,6 +202,7 @@ HEAD_NODE=1
 HEAD_NODE_IP=127.0.0.1
 LLUMNIX_INIT_INSTANCES_TIMEOUT=${INIT_INSTANCES_TIMEOUT_S}
 LLUMNIX_INIT_WORKER_RPC_TIMEOUT=${INIT_WORKER_RPC_TIMEOUT_S}
+RAY_worker_register_timeout_seconds=${RAY_WORKER_REGISTER_TIMEOUT_S}
 LLUMNIX_SCALE_UP_RPC_TIMEOUT=${SCALE_UP_RPC_TIMEOUT_S}
 LLUMNIX_INSTANCE_READY_TIMEOUT=${INSTANCE_READY_TIMEOUT_S}
 LLUMNIX_WAIT_PLACEMENT_GROUP_TIMEOUT=${PLACEMENT_GROUP_TIMEOUT_S}
@@ -217,11 +220,13 @@ EOF
   "${MAX_NUM_SEQS}" "${MAX_MODEL_LEN}" "${ENFORCE_EAGER}" \
   "${ENABLE_ROUTINE_MIGRATION}" "${MIN_AVAILABLE_MEMORY_GB}" \
   "${MAX_GPU_TEMPERATURE_C}" "${INIT_INSTANCES_TIMEOUT_S}" \
-  "${INIT_WORKER_RPC_TIMEOUT_S}" "${SCALE_UP_RPC_TIMEOUT_S}" \
+  "${INIT_WORKER_RPC_TIMEOUT_S}" "${RAY_WORKER_REGISTER_TIMEOUT_S}" \
+  "${SCALE_UP_RPC_TIMEOUT_S}" \
   "${INSTANCE_READY_TIMEOUT_S}" "${PLACEMENT_GROUP_TIMEOUT_S}" \
   "${UTILITY_CALL_TIMEOUT_S}" \
   "${SERVICE_STABILIZATION_S}" "${FULL_PATH_PROBE_TIMEOUT_S}" \
-  "${FULL_PATH_PROBE_ATTEMPTS}" "${SNAPSHOT_DIR}" <<'PY'
+  "${FULL_PATH_PROBE_ATTEMPTS}" "${CHECKPOINT_INTERVAL}" \
+  "${SNAPSHOT_DIR}" <<'PY'
 import hashlib
 import json
 import subprocess
@@ -236,9 +241,11 @@ from pathlib import Path
     max_model_len, enforce_eager, enable_routine_migration,
     min_available_memory_gb, max_gpu_temperature_c,
     init_instances_timeout_s, init_worker_rpc_timeout_s,
+    ray_worker_register_timeout_s,
     scale_up_rpc_timeout_s, instance_ready_timeout_s,
     placement_group_timeout_s, utility_call_timeout_s, service_stabilization_s,
-    full_path_probe_timeout_s, full_path_probe_attempts, snapshot_dir,
+    full_path_probe_timeout_s, full_path_probe_attempts, checkpoint_interval,
+    snapshot_dir,
 ) = sys.argv[1:]
 
 def sha(path):
@@ -293,6 +300,9 @@ payload = {
         "enforce_eager": enforce_eager == "1",
         "init_instances_timeout_s": float(init_instances_timeout_s),
         "init_worker_rpc_timeout_s": float(init_worker_rpc_timeout_s),
+        "ray_worker_register_timeout_s": float(
+            ray_worker_register_timeout_s
+        ),
         "scale_up_rpc_timeout_s": float(scale_up_rpc_timeout_s),
         "instance_ready_timeout_s": float(instance_ready_timeout_s),
         "placement_group_timeout_s": float(placement_group_timeout_s),
@@ -300,6 +310,7 @@ payload = {
         "service_stabilization_s": float(service_stabilization_s),
         "full_path_probe_timeout_s": float(full_path_probe_timeout_s),
         "full_path_probe_attempts": int(full_path_probe_attempts),
+        "checkpoint_interval": int(checkpoint_interval),
     },
     "resource_guard": {
         "min_available_memory_gb": float(min_available_memory_gb),
@@ -333,6 +344,7 @@ setsid env \
   PATH="${ENV_DIR}/bin:${PATH}" \
   LLUMNIX_INIT_INSTANCES_TIMEOUT="${INIT_INSTANCES_TIMEOUT_S}" \
   LLUMNIX_INIT_WORKER_RPC_TIMEOUT="${INIT_WORKER_RPC_TIMEOUT_S}" \
+  RAY_worker_register_timeout_seconds="${RAY_WORKER_REGISTER_TIMEOUT_S}" \
   LLUMNIX_SCALE_UP_RPC_TIMEOUT="${SCALE_UP_RPC_TIMEOUT_S}" \
   LLUMNIX_INSTANCE_READY_TIMEOUT="${INSTANCE_READY_TIMEOUT_S}" \
   LLUMNIX_WAIT_PLACEMENT_GROUP_TIMEOUT="${PLACEMENT_GROUP_TIMEOUT_S}" \
@@ -441,6 +453,7 @@ PYTHONNOUSERSITE=1 "${ENV_DIR}/bin/python" \
   --ttft-slo-ms "${TTFT_SLO_MS}" \
   --tpot-slo-ms "${TPOT_SLO_MS}" \
   --timeout-s "${REQUEST_TIMEOUT_S}" \
+  --checkpoint-interval "${CHECKPOINT_INTERVAL}" \
   "${REPLAY_ARGS[@]}" \
   2>&1 | tee "${LOG_DIR}/replay.log"
 REPLAY_EXIT_CODE=${PIPESTATUS[0]}
