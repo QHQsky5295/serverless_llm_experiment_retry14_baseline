@@ -1,0 +1,21 @@
+diff --git a/instance.py b/instance.py
+index 7c01e11..c1737ac 100644
+--- a/instance.py
++++ b/instance.py
+@@ -679,7 +679,15 @@ class SplitwiseInstance(ORCAInstance):
+     def task_arrival(self, task):
+         task.instance = self
+         task.arrive()
+-
++        # The prompt phase emits the first token, so a one-token response
++        # creates a zero-length decode task. Complete it immediately instead
++        # of scheduling a zero-duration iteration with no Event handle.
++        if isinstance(task, TokenTask) and task.token_size == 0:
++            task.run()
++            task.complete()
++            self.completed_queue.append(task)
++            task.executor.finish_task(task, self)
++            return
+         # add task to request pool and pending queue
+         self.add_to_pool(task)
+         self.add_pending_task(task)

@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="${SPLITWISE_BASELINES_ROOT:-/home/qhq/serverless_llm_baselines}"
 RELAY_ROOT="${RELAY_ROOT:-/home/qhq/relayserve_serverless_llm}"
-PROJECT_ROOT="${SPLITWISE_PROJECT_ROOT:-${ROOT_DIR}/vendor_new_baselines/splitwise-sim_main_20260614}"
+PROJECT_ROOT="${SPLITWISE_PROJECT_ROOT:-${ROOT_DIR}/workspaces/splitwise_official_20260615}"
 ENV_DIR="${SPLITWISE_ENV_DIR:-/home/qhq/anaconda3/envs/splitwise_official_20260615}"
 MODEL_KEY="${1:?usage: $0 3b|7b [max_requests] [run_tag]}"
 MAX_REQUESTS="${2:-4000}"
@@ -53,7 +53,11 @@ done
 
 mkdir -p "${INPUT_DIR}" "${SIM_DIR}" "${SNAPSHOT_DIR}" "${LOG_DIR}"
 
-echo "[1/5] Convert the frozen RelayServe trace to the official CSV schema"
+echo "[0/6] Verify the reproducible one-token compatibility patch"
+SPLITWISE_PROJECT_ROOT="${PROJECT_ROOT}" \
+  bash "${ROOT_DIR}/scripts/apply_splitwise_relayserve_patch.sh"
+
+echo "[1/6] Convert the frozen RelayServe trace to the official CSV schema"
 "${ENV_DIR}/bin/python" "${ROOT_DIR}/scripts/prepare_splitwise_trace.py" \
   --input "${TRACE_PATH}" \
   --output "${TRACE_CSV}" \
@@ -61,7 +65,7 @@ echo "[1/5] Convert the frozen RelayServe trace to the official CSV schema"
   --max-requests "${MAX_REQUESTS}" \
   --arrival-offset-s "${ARRIVAL_OFFSET_S}"
 
-echo "[2/5] Freeze official-source and environment provenance"
+echo "[2/6] Freeze official-source and environment provenance"
 git -C "${PROJECT_ROOT}" rev-parse HEAD >"${SNAPSHOT_DIR}/splitwise_git_commit.txt"
 git -C "${PROJECT_ROOT}" status --short >"${SNAPSHOT_DIR}/splitwise_git_status.txt"
 "${ENV_DIR}/bin/python" -m pip freeze >"${SNAPSHOT_DIR}/pip_freeze.txt"
@@ -79,7 +83,7 @@ COMMAND=(
   performance_model=db
   applications.0.model_architecture=llama2-70b
   applications.0.model_size=llama2-70b-fp16
-  applications.0.scheduler=kv_token_jsq
+  applications.0.scheduler=mixed_pool
   "trace.dir=${INPUT_DIR}"
   trace.filename=relayserve_formal
   "end_time=${END_TIME_S}"
@@ -137,15 +141,28 @@ payload = {
     "splitwise_git_commit": git_head(project_root),
     "baseline_harness_git_commit": git_head(baseline_root),
     "relayserve_git_commit": git_head(relay_root),
+    "compatibility_patch": {
+        "path": str(
+            Path(baseline_root) / "patches/splitwise_relayserve_compat.patch"
+        ),
+        "sha256": sha(
+            Path(baseline_root) / "patches/splitwise_relayserve_compat.patch"
+        ),
+        "scope": (
+            "Complete the zero-length decode task created by the official "
+            "simulator for one-token responses; no scheduling or performance "
+            "model logic is changed."
+        ),
+    },
     "simulator_output_dir": sim_dir,
     "official_profile": {
         "model_architecture": "llama2-70b",
         "model_size": "llama2-70b-fp16",
         "cluster": "half_half",
         "start_state": "splitwise",
-        "prompt_instance": "1x DGX-H100 TP8",
-        "token_instance": "1x DGX-A100 TP8",
-        "scheduler": "kv_token_jsq",
+        "initial_prompt_instance": "1x DGX-A100 TP8",
+        "initial_token_instance": "1x DGX-H100 TP8",
+        "scheduler": "mixed_pool",
         "performance_model": "official database",
     },
     "formal_main_comparison_eligible": False,
@@ -157,13 +174,13 @@ Path(manifest_path).write_text(
 )
 PY
 
-echo "[3/5] Run the unmodified official Splitwise simulator"
+echo "[3/6] Run the official simulator with the frozen compatibility patch"
 (
   cd "${PROJECT_ROOT}"
   PYTHONNOUSERSITE=1 "${COMMAND[@]}"
 ) >"${LOG_DIR}/simulator.log" 2>&1
 
-echo "[4/5] Summarize simulator evidence with a non-testbed eligibility label"
+echo "[4/6] Summarize simulator evidence with a non-testbed eligibility label"
 "${ENV_DIR}/bin/python" "${ROOT_DIR}/scripts/summarize_splitwise_sim.py" \
   --detailed "${SIM_DIR}/detailed/0.csv" \
   --manifest "${MANIFEST_PATH}" \
@@ -171,10 +188,13 @@ echo "[4/5] Summarize simulator evidence with a non-testbed eligibility label"
   --model-key "${MODEL_KEY}" \
   --expected-requests "${MAX_REQUESTS}"
 
-echo "[5/5] Verify the official checkout remained untouched"
+echo "[5/6] Verify the workspace contains only the frozen patch"
 git -C "${PROJECT_ROOT}" status --short >"${SNAPSHOT_DIR}/splitwise_git_status_after.txt"
 cmp \
   "${SNAPSHOT_DIR}/splitwise_git_status.txt" \
   "${SNAPSHOT_DIR}/splitwise_git_status_after.txt"
+git -C "${PROJECT_ROOT}" apply --reverse --check \
+  "${ROOT_DIR}/patches/splitwise_relayserve_compat.patch"
+echo "[6/6] Splitwise simulator evidence is reproducible"
 printf '0\n' >"${RUN_DIR}/.exit"
 echo "Splitwise simulator evidence complete: ${RUN_DIR}"

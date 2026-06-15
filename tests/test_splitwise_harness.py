@@ -81,7 +81,16 @@ class SplitwiseHarnessTests(unittest.TestCase):
                     }
                 )
             manifest.write_text(
-                json.dumps({"trace_role": "smoke"}),
+                json.dumps(
+                    {
+                        "trace_role": "smoke",
+                        "compatibility_patch": {
+                            "path": "patch.diff",
+                            "sha256": "test",
+                            "scope": "test",
+                        },
+                    }
+                ),
                 encoding="utf-8",
             )
             argv = [
@@ -114,9 +123,22 @@ class SplitwiseHarnessTests(unittest.TestCase):
         self.assertIn("llama2-70b-fp16", runner)
         self.assertIn("cluster=half_half", runner)
         self.assertIn("start_state=splitwise", runner)
-        self.assertIn("applications.0.scheduler=kv_token_jsq", runner)
+        self.assertIn("applications.0.scheduler=mixed_pool", runner)
         self.assertIn("formal_main_comparison_eligible", runner)
+        self.assertIn("apply_splitwise_relayserve_patch.sh", runner)
+        self.assertIn("splitwise_relayserve_compat.patch", runner)
+        self.assertIn('"compatibility_patch"', runner)
         self.assertIn("refusing to overwrite", runner)
+
+    def test_compat_patch_handles_single_token_responses(self):
+        patch = (
+            ROOT / "patches/splitwise_relayserve_compat.patch"
+        ).read_text(encoding="utf-8")
+        self.assertIn("class SplitwiseInstance(ORCAInstance)", patch)
+        self.assertIn("@@ -679,7 +679,15 @@", patch)
+        self.assertIn("isinstance(task, TokenTask)", patch)
+        self.assertIn("task.token_size == 0", patch)
+        self.assertIn("task.executor.finish_task(task, self)", patch)
 
 
 if __name__ == "__main__":

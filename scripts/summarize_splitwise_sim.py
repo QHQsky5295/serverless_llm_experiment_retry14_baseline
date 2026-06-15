@@ -75,11 +75,16 @@ def main() -> int:
         "failed_or_incomplete_requests": args.expected_requests - completed,
         "official_model_profile": "llama2-70b-fp16",
         "official_hardware_profile": {
-            "prompt": "1x DGX-H100, TP=8",
-            "token": "1x DGX-A100, TP=8",
+            "initial_prompt": "1x DGX-A100, TP=8",
+            "initial_token": "1x DGX-H100, TP=8",
             "total_gpus": 16,
+            "pool_behavior": (
+                "mixed_pool may temporarily reuse prompt/token instances "
+                "for the opposite phase under load"
+            ),
         },
-        "official_scheduler": "kv_token_jsq",
+        "official_scheduler": "mixed_pool",
+        "compatibility_patch": manifest["compatibility_patch"],
         "metrics": {
             "ttft_ms": stats(ttft_ms),
             "official_tbt_ms": stats(tbt_ms),
