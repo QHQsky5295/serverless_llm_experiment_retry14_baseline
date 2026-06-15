@@ -128,6 +128,7 @@ class LlumnixHarnessTests(unittest.TestCase):
         self.assertIn("LLUMNIX_INIT_WORKER_RPC_TIMEOUT", runner)
         self.assertIn("LLUMNIX_SCALE_UP_RPC_TIMEOUT", runner)
         self.assertIn("LLUMNIX_INSTANCE_READY_TIMEOUT", runner)
+        self.assertIn("LLUMNIX_WAIT_PLACEMENT_GROUP_TIMEOUT", runner)
         self.assertIn("LLUMNIX_UTILITY_CALL_TIMEOUT", runner)
         self.assertIn("LLUMNIX_SERVICE_STABILIZATION_S", runner)
         self.assertIn("LLUMNIX_FULL_PATH_PROBE_TIMEOUT_S", runner)
@@ -153,6 +154,7 @@ class LlumnixHarnessTests(unittest.TestCase):
             patch.count('runtime_env={"env_vars": get_llumnix_env_vars()}'),
             2,
         )
+        self.assertIn("llumnix_envs.WAIT_PLACEMENT_GROUP_TIMEOUT", patch)
 
     def test_service_health_rejects_degraded_startup(self):
         text = "\n".join(

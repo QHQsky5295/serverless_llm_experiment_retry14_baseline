@@ -26,6 +26,7 @@ INIT_INSTANCES_TIMEOUT_S="${LLUMNIX_INIT_INSTANCES_TIMEOUT:-900}"
 INIT_WORKER_RPC_TIMEOUT_S="${LLUMNIX_INIT_WORKER_RPC_TIMEOUT:-300}"
 SCALE_UP_RPC_TIMEOUT_S="${LLUMNIX_SCALE_UP_RPC_TIMEOUT:-300}"
 INSTANCE_READY_TIMEOUT_S="${LLUMNIX_INSTANCE_READY_TIMEOUT:-600}"
+PLACEMENT_GROUP_TIMEOUT_S="${LLUMNIX_WAIT_PLACEMENT_GROUP_TIMEOUT:-60}"
 UTILITY_CALL_TIMEOUT_S="${LLUMNIX_UTILITY_CALL_TIMEOUT:-300}"
 MIN_AVAILABLE_MEMORY_GB="${LLUMNIX_MIN_AVAILABLE_MEMORY_GB:-32}"
 MAX_GPU_TEMPERATURE_C="${LLUMNIX_MAX_GPU_TEMPERATURE_C:-88}"
@@ -201,6 +202,7 @@ LLUMNIX_INIT_INSTANCES_TIMEOUT=${INIT_INSTANCES_TIMEOUT_S}
 LLUMNIX_INIT_WORKER_RPC_TIMEOUT=${INIT_WORKER_RPC_TIMEOUT_S}
 LLUMNIX_SCALE_UP_RPC_TIMEOUT=${SCALE_UP_RPC_TIMEOUT_S}
 LLUMNIX_INSTANCE_READY_TIMEOUT=${INSTANCE_READY_TIMEOUT_S}
+LLUMNIX_WAIT_PLACEMENT_GROUP_TIMEOUT=${PLACEMENT_GROUP_TIMEOUT_S}
 LLUMNIX_UTILITY_CALL_TIMEOUT=${UTILITY_CALL_TIMEOUT_S}
 LLUMNIX_SERVICE_STABILIZATION_S=${SERVICE_STABILIZATION_S}
 LLUMNIX_FULL_PATH_PROBE_TIMEOUT_S=${FULL_PATH_PROBE_TIMEOUT_S}
@@ -216,7 +218,8 @@ EOF
   "${ENABLE_ROUTINE_MIGRATION}" "${MIN_AVAILABLE_MEMORY_GB}" \
   "${MAX_GPU_TEMPERATURE_C}" "${INIT_INSTANCES_TIMEOUT_S}" \
   "${INIT_WORKER_RPC_TIMEOUT_S}" "${SCALE_UP_RPC_TIMEOUT_S}" \
-  "${INSTANCE_READY_TIMEOUT_S}" "${UTILITY_CALL_TIMEOUT_S}" \
+  "${INSTANCE_READY_TIMEOUT_S}" "${PLACEMENT_GROUP_TIMEOUT_S}" \
+  "${UTILITY_CALL_TIMEOUT_S}" \
   "${SERVICE_STABILIZATION_S}" "${FULL_PATH_PROBE_TIMEOUT_S}" \
   "${FULL_PATH_PROBE_ATTEMPTS}" "${SNAPSHOT_DIR}" <<'PY'
 import hashlib
@@ -234,7 +237,7 @@ from pathlib import Path
     min_available_memory_gb, max_gpu_temperature_c,
     init_instances_timeout_s, init_worker_rpc_timeout_s,
     scale_up_rpc_timeout_s, instance_ready_timeout_s,
-    utility_call_timeout_s, service_stabilization_s,
+    placement_group_timeout_s, utility_call_timeout_s, service_stabilization_s,
     full_path_probe_timeout_s, full_path_probe_attempts, snapshot_dir,
 ) = sys.argv[1:]
 
@@ -292,6 +295,7 @@ payload = {
         "init_worker_rpc_timeout_s": float(init_worker_rpc_timeout_s),
         "scale_up_rpc_timeout_s": float(scale_up_rpc_timeout_s),
         "instance_ready_timeout_s": float(instance_ready_timeout_s),
+        "placement_group_timeout_s": float(placement_group_timeout_s),
         "utility_call_timeout_s": float(utility_call_timeout_s),
         "service_stabilization_s": float(service_stabilization_s),
         "full_path_probe_timeout_s": float(full_path_probe_timeout_s),
@@ -331,6 +335,7 @@ setsid env \
   LLUMNIX_INIT_WORKER_RPC_TIMEOUT="${INIT_WORKER_RPC_TIMEOUT_S}" \
   LLUMNIX_SCALE_UP_RPC_TIMEOUT="${SCALE_UP_RPC_TIMEOUT_S}" \
   LLUMNIX_INSTANCE_READY_TIMEOUT="${INSTANCE_READY_TIMEOUT_S}" \
+  LLUMNIX_WAIT_PLACEMENT_GROUP_TIMEOUT="${PLACEMENT_GROUP_TIMEOUT_S}" \
   LLUMNIX_UTILITY_CALL_TIMEOUT="${UTILITY_CALL_TIMEOUT_S}" \
   HEAD_NODE=1 \
   HEAD_NODE_IP=127.0.0.1 \

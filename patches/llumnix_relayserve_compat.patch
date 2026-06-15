@@ -105,6 +105,27 @@ diff --git a/llumnix/manager.py b/llumnix/manager.py
              )
              self.instance_context[ins_id] = engine_context
              self.global_scheduler.instance_info[ins_id] = instance_info
+diff --git a/llumnix/ray_utils.py b/llumnix/ray_utils.py
+--- a/llumnix/ray_utils.py
++++ b/llumnix/ray_utils.py
+@@ -35,4 +35,4 @@ import ray.exceptions
+ from llumnix.logging.logger import init_logger
+-from llumnix.constants import WAIT_PLACEMENT_GROUP_TIMEOUT
++from llumnix import envs as llumnix_envs
+ from llumnix.utils import (InstanceType, log_instance_exception,
+                            asyncio_wait_for_ray_remote_call_with_timeout)
+@@ -210,7 +210,10 @@ def initialize_placement_group(
+         # if they cannot be provisioned.
+         if block:
+             try:
+-                ray.get(current_placement_group.ready(), timeout=WAIT_PLACEMENT_GROUP_TIMEOUT)
++                ray.get(
++                    current_placement_group.ready(),
++                    timeout=float(llumnix_envs.WAIT_PLACEMENT_GROUP_TIMEOUT),
++                )
+             except ray.exceptions.GetTimeoutError:
+                 logger.warning("Waiting for new placement group {} ready timeout.".format(placement_group_name))
+                 return None
 diff --git a/llumnix/scaler.py b/llumnix/scaler.py
 --- a/llumnix/scaler.py
 +++ b/llumnix/scaler.py
@@ -124,7 +145,15 @@ diff --git a/llumnix/scaler.py b/llumnix/scaler.py
      random_uuid,
      get_service_instance_type,
      asyncio_wait_for_ray_remote_call_with_timeout,
-@@ -226,7 +228,9 @@ class Scaler:
+@@ -65,7 +67,6 @@ from llumnix.ray_utils import (
+ )
+ from llumnix.internal_config import PDDConfig
+ from llumnix.constants import (
+-    WAIT_PLACEMENT_GROUP_TIMEOUT,
+     AUTO_SCALE_UP_INTERVAL,
+     CHECK_DEPLOYMENT_STATES_INTERVAL,
+     WATCH_DEPLOYMENT_INTERVAL,
+@@ -226,7 +227,9 @@ class Scaler:
              name=get_llumnix_actor_name(LlumnixActor.SCALER),
              namespace="llumnix",
              lifetime="detached"
@@ -135,7 +164,19 @@ diff --git a/llumnix/scaler.py b/llumnix/scaler.py
          scaler = scaler_class.remote(
              entrypoints_args,
              manager_args,
-@@ -637,7 +641,13 @@ class Scaler:
+@@ -290,7 +293,10 @@ class Scaler:
+                         service_name=service_name,
+                     )
+                 try:
+-                    await asyncio.wait_for(new_pg.ready(), timeout=WAIT_PLACEMENT_GROUP_TIMEOUT)
++                    await asyncio.wait_for(
++                        new_pg.ready(),
++                        timeout=float(llumnix_envs.WAIT_PLACEMENT_GROUP_TIMEOUT),
++                    )
+                 except asyncio.TimeoutError:
+                     logger.debug("Waiting for new placement group {} ready timeout.".format(new_unit_id))
+                     # After timeout, the new placement group might be pending,
+@@ -637,7 +643,13 @@ class Scaler:
                      instance.is_ready, timeout=float(llumnix_envs.INSTANCE_READY_TIMEOUT)
                  )
                  self._scale_up(instance_id, instance, instance_type)
