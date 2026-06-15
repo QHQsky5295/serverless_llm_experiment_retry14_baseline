@@ -111,6 +111,16 @@ def verify_row(row: dict[str, str]) -> None:
         float(row["infra_gpu_seconds_total"]),
         float(lifecycle["infra_gpu_seconds_total"]),
     )
+    close(
+        float(row["client_prewarm_sec"]),
+        float(raw["client_prewarm_sec_excluded_from_workload_clock"]),
+    )
+    expected_gpu_seconds = (
+        float(row["predeploy_startup_sec"])
+        + float(row["client_prewarm_sec"])
+        + float(raw["elapsed_sec"])
+    ) * int(row["gpu_budget"])
+    close(float(row["infra_gpu_seconds_total"]), expected_gpu_seconds)
     if (row["paper_slo_gate_pass"] == "true") != paper_pass:
         raise AssertionError(f"{model_key}: paper SLO gate mismatch")
 

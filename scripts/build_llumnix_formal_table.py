@@ -43,6 +43,7 @@ FIELDS = [
     "monetary_cost_total_usd",
     "infra_gpu_seconds_total",
     "predeploy_startup_sec",
+    "client_prewarm_sec",
     "trace_path",
     "trace_sha256",
     "raw_records_path",
@@ -146,6 +147,9 @@ def build_row(model_key: str, run_dir: Path) -> dict[str, object]:
         "monetary_cost_total_usd": lifecycle["monetary_cost_total_usd"],
         "infra_gpu_seconds_total": lifecycle["infra_gpu_seconds_total"],
         "predeploy_startup_sec": manifest["initial_runtime_startup_sec"],
+        "client_prewarm_sec": summary[
+            "client_prewarm_sec_excluded_from_workload_clock"
+        ],
         "trace_path": manifest["trace_path"],
         "trace_sha256": manifest["trace_sha256"],
         "raw_records_path": str(raw_path),

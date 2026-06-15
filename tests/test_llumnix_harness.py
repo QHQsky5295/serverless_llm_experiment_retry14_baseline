@@ -64,6 +64,7 @@ class LlumnixHarnessTests(unittest.TestCase):
                     {
                         "expected_requests": 4000,
                         "elapsed_sec": 9.0,
+                        "client_prewarm_sec_excluded_from_workload_clock": 2.5,
                         "ttft_slo_ms": 180.0,
                         "tpot_slo_ms": 14.0,
                         "results": [dict(record) for _ in range(4000)],
@@ -93,12 +94,24 @@ class LlumnixHarnessTests(unittest.TestCase):
 
             summary = json.loads(output_path.read_text(encoding="utf-8"))
             cost = summary["lifecycle_cost"]
-            self.assertEqual(cost["infra_gpu_seconds_total"], 40.0)
+            self.assertEqual(cost["infra_gpu_seconds_total"], 50.0)
             self.assertTrue(
-                math.isclose(cost["monetary_cost_per_request_usd"], 0.00001)
+                math.isclose(cost["monetary_cost_per_request_usd"], 0.0000125)
             )
             self.assertTrue(
-                math.isclose(cost["monetary_ce"], 666666.6666666666)
+                math.isclose(cost["monetary_ce"], 533333.3333333334)
+            )
+            self.assertEqual(
+                summary["client_prewarm_sec_excluded_from_workload_clock"],
+                2.5,
+            )
+            self.assertEqual(
+                summary["scenario_summaries"][0]["deployment_duration_sec"],
+                12.5,
+            )
+            self.assertEqual(
+                summary["scenario_summaries"][0]["client_prewarm_sec"],
+                2.5,
             )
             self.assertTrue(summary["strict_zero_failure_pass"])
             self.assertTrue(summary["formal_main_comparison_eligible"])

@@ -27,7 +27,13 @@ class LlumnixFormalTableTests(unittest.TestCase):
                 for _ in range(4000)
             ]
             (run_dir / "raw_records.json").write_text(
-                json.dumps({"results": records}),
+                json.dumps(
+                    {
+                        "elapsed_sec": 90.0,
+                        "client_prewarm_sec_excluded_from_workload_clock": 5.0,
+                        "results": records,
+                    }
+                ),
                 encoding="utf-8",
             )
             (run_dir / "source_summary.json").write_text(
@@ -35,6 +41,7 @@ class LlumnixFormalTableTests(unittest.TestCase):
                     {
                         "formal_main_comparison_eligible": True,
                         "paper_slo_gate_pass": True,
+                        "client_prewarm_sec_excluded_from_workload_clock": 5.0,
                         "lifecycle_cost": {
                             "monetary_ce": 100.0,
                             "monetary_cost_per_request_usd": 0.0001,

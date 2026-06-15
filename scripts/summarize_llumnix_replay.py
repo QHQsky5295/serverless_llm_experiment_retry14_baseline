@@ -72,10 +72,13 @@ def main() -> int:
     failed = [record for record in results if not record.get("success")]
     expected = int(replay.get("expected_requests") or len(results))
     elapsed_sec = float(replay.get("elapsed_sec") or 0.0)
+    client_prewarm_sec = float(
+        replay.get("client_prewarm_sec_excluded_from_workload_clock") or 0.0
+    )
     deployment_duration_sec = (
         float(args.deployment_duration_sec)
         if args.deployment_duration_sec > 0
-        else float(args.startup_sec) + elapsed_sec
+        else float(args.startup_sec) + client_prewarm_sec + elapsed_sec
     )
     gpu_seconds = max(0.0, deployment_duration_sec) * max(0, args.gpu_budget)
     monetary_total = gpu_seconds * max(0.0, args.gpu_cost_per_second_usd)
@@ -139,6 +142,7 @@ def main() -> int:
         "gpu_budget": args.gpu_budget,
         "deployment_duration_sec": deployment_duration_sec,
         "startup_sec": float(args.startup_sec),
+        "client_prewarm_sec": client_prewarm_sec,
         "gpu_seconds_total": gpu_seconds,
         "monetary_cost_total_usd": monetary_total,
         "monetary_cost_per_request_usd": monetary_per_request,
@@ -162,6 +166,7 @@ def main() -> int:
         "paper_slo_gate_pass": paper_slo_pass,
         "failure_reasons": dict(Counter(failure_reason(record) for record in failed)),
         "measured_replay_duration_s": elapsed_sec,
+        "client_prewarm_sec_excluded_from_workload_clock": client_prewarm_sec,
         "prompt_tokens": {"total": prompt_tokens},
         "completion_tokens": {"total": completion_tokens},
         "lifecycle_cost": {
