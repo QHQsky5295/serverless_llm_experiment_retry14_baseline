@@ -73,25 +73,6 @@ diff --git a/llumnix/backends/vllm/executor.py b/llumnix/backends/vllm/executor.
              return (ip != driver_ip, ip_counts[ip], ip)
  
          # After sorting, the workers on the same node will be
-diff --git a/llumnix/llumlet/llumlet.py b/llumnix/llumlet/llumlet.py
---- a/llumnix/llumlet/llumlet.py
-+++ b/llumnix/llumlet/llumlet.py
-@@ -36,5 +36,6 @@ from llumnix.ray_utils import (
- from llumnix.constants import CHECK_ENGINE_STATE_INTERVAL
- from llumnix.metrics.llumlet_metrics import LlumletMetrics
- from llumnix.utils import (MigrationType, RequestIDType, BackendType, InstanceContext,
--                           InstanceType, UnitStatus, exception_wrapper_async)
-+                           InstanceType, UnitStatus, exception_wrapper_async,
-+                           get_llumnix_env_vars)
- from llumnix.constants import NUM_GPUS_VLLM_GPU_ACTOR, NUM_GPUS_BLADELLM_GPU_ACTOR
-@@ -128,6 +129,7 @@ class Llumlet:
-             namespace='llumnix',
-             lifetime="detached"
-         )(cls).options(
-+            runtime_env={"env_vars": get_llumnix_env_vars()},
-             scheduling_strategy=PlacementGroupSchedulingStrategy(
-                 placement_group=placement_group,
-                 placement_group_bundle_index=bundle_index,
 diff --git a/llumnix/manager.py b/llumnix/manager.py
 --- a/llumnix/manager.py
 +++ b/llumnix/manager.py
