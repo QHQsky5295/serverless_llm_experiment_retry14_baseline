@@ -155,6 +155,11 @@ class LlumnixHarnessTests(unittest.TestCase):
             2,
         )
         self.assertIn("llumnix_envs.WAIT_PLACEMENT_GROUP_TIMEOUT", patch)
+        self.assertIn(
+            "WAIT_PLACEMENT_GROUP_TIMEOUT as "
+            "DEFAULT_WAIT_PLACEMENT_GROUP_TIMEOUT",
+            patch,
+        )
 
     def test_service_health_rejects_degraded_startup(self):
         text = "\n".join(
