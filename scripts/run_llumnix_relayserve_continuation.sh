@@ -18,7 +18,15 @@ MAX_MODEL_LEN="${LLUMNIX_MAX_MODEL_LEN:-3072}"
 ENFORCE_EAGER="${LLUMNIX_ENFORCE_EAGER:-1}"
 ENABLE_ROUTINE_MIGRATION="${LLUMNIX_ENABLE_ROUTINE_MIGRATION:-1}"
 SERVICE_READY_TIMEOUT_S="${LLUMNIX_SERVICE_READY_TIMEOUT_S:-900}"
+SERVICE_STABILIZATION_S="${LLUMNIX_SERVICE_STABILIZATION_S:-10}"
+FULL_PATH_PROBE_TIMEOUT_S="${LLUMNIX_FULL_PATH_PROBE_TIMEOUT_S:-15}"
+FULL_PATH_PROBE_ATTEMPTS="${LLUMNIX_FULL_PATH_PROBE_ATTEMPTS:-3}"
 REQUEST_TIMEOUT_S="${LLUMNIX_REQUEST_TIMEOUT_S:-1800}"
+INIT_INSTANCES_TIMEOUT_S="${LLUMNIX_INIT_INSTANCES_TIMEOUT:-900}"
+INIT_WORKER_RPC_TIMEOUT_S="${LLUMNIX_INIT_WORKER_RPC_TIMEOUT:-300}"
+SCALE_UP_RPC_TIMEOUT_S="${LLUMNIX_SCALE_UP_RPC_TIMEOUT:-300}"
+INSTANCE_READY_TIMEOUT_S="${LLUMNIX_INSTANCE_READY_TIMEOUT:-600}"
+UTILITY_CALL_TIMEOUT_S="${LLUMNIX_UTILITY_CALL_TIMEOUT:-300}"
 MIN_AVAILABLE_MEMORY_GB="${LLUMNIX_MIN_AVAILABLE_MEMORY_GB:-32}"
 MAX_GPU_TEMPERATURE_C="${LLUMNIX_MAX_GPU_TEMPERATURE_C:-88}"
 RESOURCE_SAMPLE_INTERVAL_S="${LLUMNIX_RESOURCE_SAMPLE_INTERVAL_S:-2}"
@@ -53,6 +61,8 @@ MANIFEST_PATH="${RUN_DIR}/manifest.json"
 LOG_DIR="${RUN_DIR}/logs"
 SNAPSHOT_DIR="${RUN_DIR}/frozen_config"
 RESOURCE_GUARD_PATH="${LOG_DIR}/resource_guard.csv"
+SERVICE_HEALTH_PATH="${LOG_DIR}/service_health.json"
+FULL_PATH_PROBE_PATH="${LOG_DIR}/full_path_probe.json"
 SERVICE_PID=""
 RESOURCE_GUARD_PID=""
 STARTUP_SEC="0"
@@ -136,6 +146,10 @@ start_resource_guard() {
   RESOURCE_GUARD_PID=$!
 }
 
+echo "Verify reproducible Llumnix host compatibility patch"
+LLUMNIX_PROJECT_ROOT="${PROJECT_ROOT}" \
+  bash "${ROOT_DIR}/scripts/apply_llumnix_relayserve_patch.sh"
+
 echo "[0/7] Verify isolated official Llumnix environment"
 PYTHONNOUSERSITE=1 "${ENV_DIR}/bin/python" - <<'PY'
 import llumnix
@@ -178,6 +192,20 @@ fi
 printf '%q ' "${ENV_DIR}/bin/python" "${SERVICE_ARGS[@]}" \
   >"${SNAPSHOT_DIR}/service_command.sh"
 printf '\n' >>"${SNAPSHOT_DIR}/service_command.sh"
+cat >"${SNAPSHOT_DIR}/service_environment.txt" <<EOF
+PYTHONNOUSERSITE=1
+PATH_PREFIX=${ENV_DIR}/bin
+HEAD_NODE=1
+HEAD_NODE_IP=127.0.0.1
+LLUMNIX_INIT_INSTANCES_TIMEOUT=${INIT_INSTANCES_TIMEOUT_S}
+LLUMNIX_INIT_WORKER_RPC_TIMEOUT=${INIT_WORKER_RPC_TIMEOUT_S}
+LLUMNIX_SCALE_UP_RPC_TIMEOUT=${SCALE_UP_RPC_TIMEOUT_S}
+LLUMNIX_INSTANCE_READY_TIMEOUT=${INSTANCE_READY_TIMEOUT_S}
+LLUMNIX_UTILITY_CALL_TIMEOUT=${UTILITY_CALL_TIMEOUT_S}
+LLUMNIX_SERVICE_STABILIZATION_S=${SERVICE_STABILIZATION_S}
+LLUMNIX_FULL_PATH_PROBE_TIMEOUT_S=${FULL_PATH_PROBE_TIMEOUT_S}
+LLUMNIX_FULL_PATH_PROBE_ATTEMPTS=${FULL_PATH_PROBE_ATTEMPTS}
+EOF
 
 "${ENV_DIR}/bin/python" - \
   "${MANIFEST_PATH}" "${TRACE_PATH}" "${MODEL_PATH}" "${PROJECT_ROOT}" \
@@ -186,7 +214,11 @@ printf '\n' >>"${SNAPSHOT_DIR}/service_command.sh"
   "${GPU_MEMORY_UTILIZATION}" "${MIGRATION_BUFFER_BLOCKS}" \
   "${MAX_NUM_SEQS}" "${MAX_MODEL_LEN}" "${ENFORCE_EAGER}" \
   "${ENABLE_ROUTINE_MIGRATION}" "${MIN_AVAILABLE_MEMORY_GB}" \
-  "${MAX_GPU_TEMPERATURE_C}" "${SNAPSHOT_DIR}" <<'PY'
+  "${MAX_GPU_TEMPERATURE_C}" "${INIT_INSTANCES_TIMEOUT_S}" \
+  "${INIT_WORKER_RPC_TIMEOUT_S}" "${SCALE_UP_RPC_TIMEOUT_S}" \
+  "${INSTANCE_READY_TIMEOUT_S}" "${UTILITY_CALL_TIMEOUT_S}" \
+  "${SERVICE_STABILIZATION_S}" "${FULL_PATH_PROBE_TIMEOUT_S}" \
+  "${FULL_PATH_PROBE_ATTEMPTS}" "${SNAPSHOT_DIR}" <<'PY'
 import hashlib
 import json
 import subprocess
@@ -199,7 +231,11 @@ from pathlib import Path
     run_tag, model_key, max_requests, trace_role, port, initial_instances,
     gpu_memory_utilization, migration_buffer_blocks, max_num_seqs,
     max_model_len, enforce_eager, enable_routine_migration,
-    min_available_memory_gb, max_gpu_temperature_c, snapshot_dir,
+    min_available_memory_gb, max_gpu_temperature_c,
+    init_instances_timeout_s, init_worker_rpc_timeout_s,
+    scale_up_rpc_timeout_s, instance_ready_timeout_s,
+    utility_call_timeout_s, service_stabilization_s,
+    full_path_probe_timeout_s, full_path_probe_attempts, snapshot_dir,
 ) = sys.argv[1:]
 
 def sha(path):
@@ -212,9 +248,13 @@ def git_head(path):
 
 root_path = Path(root)
 source_paths = [
+    root_path / "patches/llumnix_relayserve_compat.patch",
+    root_path / "scripts/apply_llumnix_relayserve_patch.sh",
     root_path / "scripts/replay_llumnix_trace.py",
+    root_path / "scripts/probe_llumnix_service.py",
     root_path / "scripts/run_llumnix_relayserve_continuation.sh",
     root_path / "scripts/summarize_llumnix_replay.py",
+    root_path / "scripts/validate_llumnix_service_health.py",
 ]
 snapshot_path = Path(snapshot_dir)
 payload = {
@@ -248,6 +288,14 @@ payload = {
         "max_num_seqs": int(max_num_seqs),
         "max_model_len": int(max_model_len),
         "enforce_eager": enforce_eager == "1",
+        "init_instances_timeout_s": float(init_instances_timeout_s),
+        "init_worker_rpc_timeout_s": float(init_worker_rpc_timeout_s),
+        "scale_up_rpc_timeout_s": float(scale_up_rpc_timeout_s),
+        "instance_ready_timeout_s": float(instance_ready_timeout_s),
+        "utility_call_timeout_s": float(utility_call_timeout_s),
+        "service_stabilization_s": float(service_stabilization_s),
+        "full_path_probe_timeout_s": float(full_path_probe_timeout_s),
+        "full_path_probe_attempts": int(full_path_probe_attempts),
     },
     "resource_guard": {
         "min_available_memory_gb": float(min_available_memory_gb),
@@ -278,6 +326,12 @@ echo "[2/7] Start official Llumnix four-instance service"
 START_MONOTONIC="$("${ENV_DIR}/bin/python" -c 'import time; print(time.monotonic())')"
 setsid env \
   PYTHONNOUSERSITE=1 \
+  PATH="${ENV_DIR}/bin:${PATH}" \
+  LLUMNIX_INIT_INSTANCES_TIMEOUT="${INIT_INSTANCES_TIMEOUT_S}" \
+  LLUMNIX_INIT_WORKER_RPC_TIMEOUT="${INIT_WORKER_RPC_TIMEOUT_S}" \
+  LLUMNIX_SCALE_UP_RPC_TIMEOUT="${SCALE_UP_RPC_TIMEOUT_S}" \
+  LLUMNIX_INSTANCE_READY_TIMEOUT="${INSTANCE_READY_TIMEOUT_S}" \
+  LLUMNIX_UTILITY_CALL_TIMEOUT="${UTILITY_CALL_TIMEOUT_S}" \
   HEAD_NODE=1 \
   HEAD_NODE_IP=127.0.0.1 \
   "${ENV_DIR}/bin/python" "${SERVICE_ARGS[@]}" \
@@ -292,7 +346,22 @@ while true; do
     exit 20
   fi
   if curl -fsS "http://127.0.0.1:${PORT}/is_ready" | grep -qi true; then
-    break
+    set +e
+    "${ENV_DIR}/bin/python" \
+      "${ROOT_DIR}/scripts/validate_llumnix_service_health.py" \
+      --service-log "${LOG_DIR}/service.log" \
+      --expected-instances "${INITIAL_INSTANCES}" \
+      --phase preflight
+    HEALTH_PREFLIGHT_EXIT_CODE=$?
+    set -e
+    if [[ "${HEALTH_PREFLIGHT_EXIT_CODE}" == "0" ]]; then
+      OBSERVED_READY_INSTANCES="${INITIAL_INSTANCES}"
+      break
+    fi
+    if (( HEALTH_PREFLIGHT_EXIT_CODE >= 20 )); then
+      echo "Llumnix service failed the four-instance preflight gate" >&2
+      exit 24
+    fi
   fi
   if (( SECONDS >= deadline )); then
     echo "Llumnix service readiness timed out" >&2
@@ -301,12 +370,34 @@ while true; do
   fi
   sleep 2
 done
+
+echo "Wait ${SERVICE_STABILIZATION_S}s for the official output queue loop"
+sleep "${SERVICE_STABILIZATION_S}"
+echo "Verify full request/output path before measured replay"
+set +e
+PYTHONNOUSERSITE=1 "${ENV_DIR}/bin/python" \
+  "${ROOT_DIR}/scripts/probe_llumnix_service.py" \
+  --base-url "http://127.0.0.1:${PORT}" \
+  --timeout-s "${FULL_PATH_PROBE_TIMEOUT_S}" \
+  --attempts "${FULL_PATH_PROBE_ATTEMPTS}" \
+  --output "${FULL_PATH_PROBE_PATH}"
+FULL_PATH_PROBE_EXIT_CODE=$?
+set -e
+if [[ "${FULL_PATH_PROBE_EXIT_CODE}" != "0" ]]; then
+  echo "Llumnix full request/output path probe failed" >&2
+  exit 25
+fi
+
+MEASUREMENT_SERVICE_LOG_OFFSET="$(stat -c '%s' "${LOG_DIR}/service.log")"
 STARTUP_SEC="$(
   "${ENV_DIR}/bin/python" -c \
     "import time; print(time.monotonic() - float('${START_MONOTONIC}'))"
 )"
 "${ENV_DIR}/bin/python" - \
-  "${MANIFEST_PATH}" "${STARTUP_SEC}" "${SERVICE_PID}" <<'PY'
+  "${MANIFEST_PATH}" "${STARTUP_SEC}" "${SERVICE_PID}" \
+  "${OBSERVED_READY_INSTANCES}" "${FULL_PATH_PROBE_PATH}" \
+  "${MEASUREMENT_SERVICE_LOG_OFFSET}" <<'PY'
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -315,6 +406,13 @@ path = Path(sys.argv[1])
 payload = json.loads(path.read_text())
 payload["initial_runtime_startup_sec"] = float(sys.argv[2])
 payload["service_pid"] = int(sys.argv[3])
+payload["observed_ready_instances"] = int(sys.argv[4])
+probe_path = Path(sys.argv[5])
+payload["full_path_probe_path"] = str(probe_path)
+payload["full_path_probe_sha256"] = hashlib.sha256(
+    probe_path.read_bytes()
+).hexdigest()
+payload["measurement_service_log_offset_bytes"] = int(sys.argv[6])
 path.write_text(json.dumps(payload, indent=2) + "\n")
 PY
 
@@ -341,6 +439,17 @@ PYTHONNOUSERSITE=1 "${ENV_DIR}/bin/python" \
   "${REPLAY_ARGS[@]}" \
   2>&1 | tee "${LOG_DIR}/replay.log"
 REPLAY_EXIT_CODE=${PIPESTATUS[0]}
+set -e
+
+set +e
+"${ENV_DIR}/bin/python" \
+  "${ROOT_DIR}/scripts/validate_llumnix_service_health.py" \
+  --service-log "${LOG_DIR}/service.log" \
+  --expected-instances "${INITIAL_INSTANCES}" \
+  --phase final \
+  --runtime-offset "${MEASUREMENT_SERVICE_LOG_OFFSET}" \
+  --output "${SERVICE_HEALTH_PATH}"
+SERVICE_HEALTH_EXIT_CODE=$?
 set -e
 
 EXPECTED_TOTAL="$(
@@ -383,7 +492,8 @@ echo "[6/7] Finalize artifact hashes"
 "${ENV_DIR}/bin/python" - \
   "${MANIFEST_PATH}" "${RAW_PATH}" "${SUMMARY_PATH}" \
   "${RESOURCE_GUARD_PATH}" "${REPLAY_EXIT_CODE}" \
-  "${VALIDATION_EXIT_CODE}" <<'PY'
+  "${VALIDATION_EXIT_CODE}" "${SERVICE_HEALTH_PATH}" \
+  "${SERVICE_HEALTH_EXIT_CODE}" <<'PY'
 import hashlib
 import json
 import sys
@@ -392,6 +502,8 @@ from pathlib import Path
 manifest_path, raw_path, summary_path, guard_path = map(Path, sys.argv[1:5])
 replay_exit_code = int(sys.argv[5])
 validation_exit_code = int(sys.argv[6])
+service_health_path = Path(sys.argv[7])
+service_health_exit_code = int(sys.argv[8])
 
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -410,9 +522,16 @@ payload.update({
     "resource_guard_sha256": sha(guard_path),
     "resource_guard_min_available_kb": min(int(row[1]) for row in rows),
     "resource_guard_max_gpu_temperature_c": max(int(row[4]) for row in rows),
+    "service_health_path": str(service_health_path),
+    "service_health_sha256": sha(service_health_path),
+    "service_health_exit_code": service_health_exit_code,
     "replay_exit_code": replay_exit_code,
     "validation_exit_code": validation_exit_code,
-    "strict_zero_failure_pass": validation_exit_code == 0,
+    "strict_zero_failure_pass": (
+        replay_exit_code == 0
+        and validation_exit_code == 0
+        and service_health_exit_code == 0
+    ),
 })
 manifest_path.write_text(json.dumps(payload, indent=2) + "\n")
 PY
@@ -426,4 +545,7 @@ if [[ "${REPLAY_EXIT_CODE}" != "0" ]]; then
 fi
 if [[ "${VALIDATION_EXIT_CODE}" != "0" ]]; then
   exit "${VALIDATION_EXIT_CODE}"
+fi
+if [[ "${SERVICE_HEALTH_EXIT_CODE}" != "0" ]]; then
+  exit "${SERVICE_HEALTH_EXIT_CODE}"
 fi

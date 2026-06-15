@@ -1,0 +1,114 @@
+diff --git a/llumnix/entrypoints/setup.py b/llumnix/entrypoints/setup.py
+index dc9c6d2..90f48f0 100644
+--- a/llumnix/entrypoints/setup.py
++++ b/llumnix/entrypoints/setup.py
+@@ -143,7 +143,10 @@ def init_llumnix_components(entrypoints_args: EntrypointsArgs,
+     request_output_queue_type: QueueType = QueueType(entrypoints_args.request_output_queue_type)
+     node_id = ray.get_runtime_context().get_node_id()
+     instance_ids, instances = ray.get(
+-        scaler.init_instances.remote(request_output_queue_type, instance_args, engine_args, node_id), timeout=10.0,
++        scaler.init_instances.remote(
++            request_output_queue_type, instance_args, engine_args, node_id
++        ),
++        timeout=float(os.getenv("LLUMNIX_INIT_INSTANCES_TIMEOUT", "10.0")),
+     )
+ 
+     available_instance_ids = []
+diff --git a/llumnix/backends/vllm/executor.py b/llumnix/backends/vllm/executor.py
+--- a/llumnix/backends/vllm/executor.py
++++ b/llumnix/backends/vllm/executor.py
+@@ -11,6 +11,7 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
++import os
+ import time
+ from collections import defaultdict
+ from itertools import islice, repeat
+@@ -62,6 +63,9 @@ class LlumnixRayGPUExecutor(RayGPUExecutorAsync):
+ 
+         # Create the workers.
+         driver_ip = get_ip()
++        init_worker_rpc_timeout = float(
++            os.getenv("LLUMNIX_INIT_WORKER_RPC_TIMEOUT", "10.0")
++        )
+         worker_wrapper_kwargs = self._get_worker_wrapper_args()
+         for bundle_id, bundle in enumerate(placement_group.bundle_specs):
+             if bundle.get("PREFILL_GPU") or bundle.get("DECODE_GPU"):
+@@ -86,7 +90,10 @@ class LlumnixRayGPUExecutor(RayGPUExecutorAsync):
+             if self.use_ray_spmd_worker:
+                 self.workers.append(worker)
+             else:
+-                worker_ip = ray_get_with_timeout(worker.get_node_ip.remote())
++                worker_ip = ray_get_with_timeout(
++                    worker.get_node_ip.remote(),
++                    timeout=init_worker_rpc_timeout,
++                )
+                 if worker_ip == driver_ip and self.driver_dummy_worker is None:
+                     # If the worker is on the same node as the driver, we use it
+                     # as the resource holder for the driver process.
+@@ -106,7 +113,10 @@ class LlumnixRayGPUExecutor(RayGPUExecutorAsync):
+                 "GPU node.")
+ 
+         worker_ips = [
+-            ray_get_with_timeout(worker.get_node_ip.remote())  # type: ignore[attr-defined]
++            ray_get_with_timeout(  # type: ignore[attr-defined]
++                worker.get_node_ip.remote(),
++                timeout=init_worker_rpc_timeout,
++            )
+             for worker in self.workers
+         ]
+         ip_counts: Dict[str, int] = {}
+@@ -123,9 +133,12 @@ class LlumnixRayGPUExecutor(RayGPUExecutorAsync):
+             2. Then, if the worker is on a node with fewer workers, it should
+                 be placed first.
+             3. Finally, if the work is on a node with smaller IP address, it
+                 should be placed first.
+             """
+-            ip = ray_get_with_timeout(worker.get_node_ip.remote())
++            ip = ray_get_with_timeout(
++                worker.get_node_ip.remote(),
++                timeout=init_worker_rpc_timeout,
++            )
+             return (ip != driver_ip, ip_counts[ip], ip)
+ 
+         # After sorting, the workers on the same node will be
+diff --git a/llumnix/manager.py b/llumnix/manager.py
+--- a/llumnix/manager.py
++++ b/llumnix/manager.py
+@@ -308,7 +308,8 @@ class Manager:
+     ) -> InstanceContext:
+         try:
+             engine_context, instance_info = await asyncio_wait_for_ray_remote_call_with_timeout(
+-                instance_actor.get_engine_context_and_instance_info
++                instance_actor.get_engine_context_and_instance_info,
++                timeout=float(os.getenv("LLUMNIX_SCALE_UP_RPC_TIMEOUT", "10.0")),
+             )
+             self.instance_context[ins_id] = engine_context
+             self.global_scheduler.instance_info[ins_id] = instance_info
+diff --git a/llumnix/scaler.py b/llumnix/scaler.py
+--- a/llumnix/scaler.py
++++ b/llumnix/scaler.py
+@@ -12,6 +12,7 @@
+ # limitations under the License.
+ 
+ import asyncio
++import os
+ import random
+ from typing import List, Tuple, Union, Iterable, Dict
+ 
+@@ -637,7 +638,13 @@ class Scaler:
+                     instance.is_ready, timeout=float(llumnix_envs.INSTANCE_READY_TIMEOUT)
+                 )
+                 self._scale_up(instance_id, instance, instance_type)
+-                await asyncio_wait_for_ray_remote_call_with_timeout(self.manager.scale_up, instance_id, instance, instance_type)
++                await asyncio_wait_for_ray_remote_call_with_timeout(
++                    self.manager.scale_up,
++                    instance_id,
++                    instance,
++                    instance_type,
++                    timeout=float(os.getenv("LLUMNIX_SCALE_UP_RPC_TIMEOUT", "10.0")),
++                )
+                 logger.info("Init server and instance done, instance_id: {}, instance_type: {}.".format(instance_id, instance_type))
+             except Exception as e: # pylint: disable=broad-except
+                 if isinstance(e, ray.exceptions.RayActorError):

@@ -8,6 +8,7 @@ from unittest import mock
 
 from scripts.replay_llumnix_trace import parse_token_latencies, percentile
 from scripts.summarize_llumnix_replay import main as summarize_main
+from scripts.validate_llumnix_service_health import build_report, classify
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -109,11 +110,90 @@ class LlumnixHarnessTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("--initial-instances \"${INITIAL_INSTANCES}\"", runner)
         self.assertIn("--migration-backend rayrpc", runner)
+        self.assertIn('PATH="${ENV_DIR}/bin:${PATH}"', runner)
+        self.assertIn("LLUMNIX_INIT_INSTANCES_TIMEOUT", runner)
+        self.assertIn("LLUMNIX_INIT_WORKER_RPC_TIMEOUT", runner)
+        self.assertIn("LLUMNIX_SCALE_UP_RPC_TIMEOUT", runner)
+        self.assertIn("LLUMNIX_INSTANCE_READY_TIMEOUT", runner)
+        self.assertIn("LLUMNIX_UTILITY_CALL_TIMEOUT", runner)
+        self.assertIn("LLUMNIX_SERVICE_STABILIZATION_S", runner)
+        self.assertIn("LLUMNIX_FULL_PATH_PROBE_TIMEOUT_S", runner)
+        self.assertIn("LLUMNIX_FULL_PATH_PROBE_ATTEMPTS", runner)
+        self.assertIn("apply_llumnix_relayserve_patch.sh", runner)
+        self.assertIn("probe_llumnix_service.py", runner)
+        self.assertIn("validate_llumnix_service_health.py", runner)
+        self.assertIn('"observed_ready_instances"', runner)
         self.assertIn("--enable-routine-migration", runner)
         self.assertIn("MIN_AVAILABLE_MEMORY_GB", runner)
         self.assertIn("MAX_GPU_TEMPERATURE_C", runner)
         self.assertIn("ray\" stop --force", runner)
         self.assertIn("refusing to overwrite existing Llumnix run directory", runner)
+
+    def test_service_health_rejects_degraded_startup(self):
+        text = "\n".join(
+            [
+                "Init Llumnix components done, 4 instances are ready",
+                "global_scheduler.py:191] num_instances: 1",
+                "Failed to scale up instance deadbeef",
+                "Client received request request-1",
+            ]
+        )
+        report = build_report(text, expected=4, phase="final")
+        exit_code, _ = classify(report)
+        self.assertEqual(exit_code, 20)
+
+    def test_service_health_accepts_four_instance_run(self):
+        text = "\n".join(
+            [
+                "Init Llumnix components done, 4 instances are ready",
+                "global_scheduler.py:191] num_instances: 4",
+                "Client received request request-1",
+            ]
+        )
+        report = build_report(text, expected=4, phase="final")
+        exit_code, _ = classify(report)
+        self.assertEqual(exit_code, 0)
+
+    def test_service_health_rejects_output_forwarder_failure(self):
+        text = "\n".join(
+            [
+                "Init Llumnix components done, 4 instances are ready",
+                "global_scheduler.py:191] num_instances: 4",
+                "Client received request request-1",
+                "Failed to send one way rpc request",
+                "Unable to put items into queue",
+                "output_forwarder.py:87] Server deadbeef is dead",
+            ]
+        )
+        report = build_report(text, expected=4, phase="final")
+        exit_code, _ = classify(report)
+        self.assertEqual(exit_code, 23)
+
+    def test_service_health_scopes_failures_to_measured_runtime(self):
+        startup = "\n".join(
+            [
+                "Init Llumnix components done, 4 instances are ready",
+                "global_scheduler.py:191] num_instances: 4",
+                "Client received request readiness-probe",
+                "Failed to send one way rpc request",
+            ]
+        ) + "\n"
+        runtime = "\n".join(
+            [
+                "Client received request formal-request",
+                "Engine finished request formal-request",
+            ]
+        )
+        text = startup + runtime
+        report = build_report(
+            text,
+            expected=4,
+            phase="final",
+            runtime_offset=len(startup.encode("utf-8")),
+        )
+        exit_code, _ = classify(report)
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(report["runtime_failures"], [])
 
 
 if __name__ == "__main__":
