@@ -936,6 +936,7 @@ def _replay_one(
     empty_success_retry_delay_s: float,
     min_output_tokens: int,
     include_stream_usage: bool,
+    force_stream: bool,
 ) -> Dict[str, Any]:
     body = dict(item["body"])
     request_seed = _derive_request_generation_seed(
@@ -1010,6 +1011,8 @@ def _replay_one(
         except (TypeError, ValueError):
             min_tokens = max(1, int(min_output_tokens))
         body["min_tokens"] = max(int(body.get("min_tokens", 0) or 0), min_tokens)
+    if force_stream and not (sglang_native_generate or slora_native_generate):
+        body["stream"] = True
     if include_stream_usage and bool(body.get("stream", False)):
         stream_options = body.get("stream_options")
         if not isinstance(stream_options, dict):
@@ -1639,6 +1642,14 @@ def main() -> int:
         ),
     )
     ap.add_argument(
+        "--force-stream",
+        action="store_true",
+        help=(
+            "Force OpenAI-compatible requests to use streaming responses so "
+            "client-observed TTFT and TPOT remain measurable."
+        ),
+    )
+    ap.add_argument(
         "--dynamic-lora-modules",
         type=Path,
         default=None,
@@ -2103,6 +2114,7 @@ def main() -> int:
                 empty_success_retry_delay_s=float(args.empty_success_retry_delay_s or 0.0),
                 min_output_tokens=int(args.min_output_tokens or 0),
                 include_stream_usage=bool(args.include_stream_usage),
+                force_stream=bool(args.force_stream),
             )
         finally:
             if dynamic_lora_loader is not None and dynamic_lora_acquired:
@@ -2210,6 +2222,7 @@ def main() -> int:
         thread.join()
 
     final_results = [r for r in results if r is not None]
+    elapsed_sec = time.perf_counter() - start_time
     output = {
         "metric_schema_version": "e2e_v3",
         "metric_definitions": {
@@ -2229,6 +2242,9 @@ def main() -> int:
         ),
         "sleep_scale": args.sleep_scale,
         "client_prewarm_sec_excluded_from_workload_clock": client_prewarm_sec,
+        "elapsed_sec": elapsed_sec,
+        "expected_requests": len(requests_list),
+        "completed_records": len(final_results),
         "label": args.label,
         "generation_seed": args.generation_seed,
         "max_requests": int(args.max_requests or 0),
@@ -2239,6 +2255,7 @@ def main() -> int:
         "empty_success_retry_delay_s": float(args.empty_success_retry_delay_s or 0.0),
         "min_output_tokens": int(args.min_output_tokens or 0),
         "include_stream_usage": bool(args.include_stream_usage),
+        "force_stream": bool(args.force_stream),
         "dynamic_lora_modules": str(args.dynamic_lora_modules) if args.dynamic_lora_modules else None,
         "dynamic_lora_enabled": dynamic_lora_loader is not None,
         "dynamic_lora_routing": str(args.dynamic_lora_routing),
