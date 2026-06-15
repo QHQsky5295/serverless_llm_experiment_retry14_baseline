@@ -300,6 +300,7 @@ if [[ "${ALLOW_FAILED_REQUESTS}" == "1" ]]; then
   VALIDATE_ARGS+=(--allow-failures)
   SUMMARY_ARGS+=(--allow-failures)
 fi
+set +e
 "${ENV_DIR}/bin/python" "${ROOT_DIR}/scripts/replay_slinfer_trace.py" \
   --trace "${TRACE_PATH}" \
   --output "${RAW_PATH}" \
@@ -319,6 +320,13 @@ fi
   --monitor-tail-s "${MONITOR_TAIL_S}" \
   "${REPLAY_ARGS[@]}" \
   2>&1 | tee "${LOG_DIR}/replay.log"
+REPLAY_EXIT_CODE="${PIPESTATUS[0]}"
+set -e
+
+if [[ ! -s "${RAW_PATH}" ]]; then
+  echo "SLINFER replay did not produce raw evidence." >&2
+  exit "${REPLAY_EXIT_CODE}"
+fi
 
 EXPECTED_TOTAL="$(
   "${ENV_DIR}/bin/python" - "${TRACE_PATH}" "${MAX_REQUESTS}" <<'PY'
@@ -341,6 +349,9 @@ set +e
   "${VALIDATE_ARGS[@]}"
 VALIDATION_EXIT_CODE=$?
 set -e
+if [[ "${REPLAY_EXIT_CODE}" != "0" && "${VALIDATION_EXIT_CODE}" == "0" ]]; then
+  VALIDATION_EXIT_CODE="${REPLAY_EXIT_CODE}"
+fi
 
 echo "[6/7] Summarize with the frozen lifecycle cost model"
 AUDIT_SUMMARY_ARGS=("${SUMMARY_ARGS[@]}")

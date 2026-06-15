@@ -44,6 +44,11 @@ class SlinferHarnessTest(unittest.TestCase):
         self.assertIn("'failure_reason': 'deadline_violation'", compat_patch)
         self.assertIn("memory_guard.csv", run_script)
         self.assertIn("SLINFER_ALLOW_FAILED_REQUESTS", run_script)
+        self.assertIn('REPLAY_EXIT_CODE="${PIPESTATUS[0]}"', run_script)
+        self.assertIn(
+            'if [[ ! -s "${RAW_PATH}" ]]',
+            run_script,
+        )
         self.assertIn("VALIDATION_EXIT_CODE", run_script)
         self.assertIn("finalize_slinfer_run_artifacts.py", run_script)
         self.assertIn(

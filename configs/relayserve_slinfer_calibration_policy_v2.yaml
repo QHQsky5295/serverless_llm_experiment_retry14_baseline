@@ -29,6 +29,11 @@ evidence:
   cross_rate_matrix: paper_artifacts/relayserve_v4/slinfer_cross_rate_calibration_v2.csv
   cross_rate_matrix_sha256: b37c75a339e34dfd8492ea6a2a154f57b52fd31d197e2e9e98a7d03ea7bc1d77
   result: passed_clean_3072_of_3072
+  formal_gate_table: paper_artifacts/relayserve_v4/slinfer_formal_gate_results.csv
+  formal_result: >-
+    3B completed clean 4000/4000 and is external-main eligible; 7B
+    completed 3976/4000 with 24 native deadline_violation results and is
+    excluded from the external main comparison.
 
 selection_policy:
   description: >-
@@ -53,7 +58,15 @@ models:
     calibration_status: passed_clean_1536_of_1536
     calibration_p95_status: failed_paper_targets_at_all_three_rates
     ce_range: [242.159427, 357.034166]
-    formal_status: pending_single_nominal_formal4000
+    formal_status: completed_clean_formal4000
+    formal_requests: 4000
+    formal_ok_requests: 4000
+    formal_failed_requests: 0
+    formal_ttft_p95_ms: 359.64025249331246
+    formal_tpot_p95_ms: 59.462549999999986
+    formal_ce: 259.965506
+    formal_paper_slo_gate_pass: false
+    external_main_comparison_eligible: true
   7b:
     paper_slo:
       ttft_p95_ms: 440.0
@@ -67,4 +80,14 @@ models:
     calibration_status: passed_clean_1536_of_1536
     calibration_p95_status: failed_paper_targets_at_all_three_rates
     ce_range: [32.652657, 97.327259]
-    formal_status: pending_single_nominal_formal4000
+    formal_status: failed_strict_validation
+    formal_requests: 4000
+    formal_ok_requests: 3976
+    formal_failed_requests: 24
+    formal_failure_reasons:
+      deadline_violation: 24
+    formal_ttft_p95_ms: 1373.5939631528013
+    formal_tpot_p95_ms: 123.153
+    formal_ce_diagnostic_only: 72.688786
+    formal_paper_slo_gate_pass: false
+    external_main_comparison_eligible: false

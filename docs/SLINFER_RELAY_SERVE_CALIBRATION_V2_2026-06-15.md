@@ -56,6 +56,27 @@ is a valid external-baseline result, not a reason to relax the targets.
 
 ## Formal Gate
 
-The frozen V2 configuration now permits one nominal formal4000 run per model.
-No formal result may be used to tune worker topology, keep-alive, scheduler
-deadline values, or paper SLOs.
+The frozen V2 configuration was used exactly once for the nominal formal4000
+run per model. No formal result was used to tune worker topology, keep-alive,
+scheduler deadline values, or paper SLOs.
+
+| Model | Completed | Native failures | TTFT P95 | TPOT P95 | CE | External-main eligible |
+|---|---:|---:|---:|---:|---:|---|
+| Llama-3.2-3B | 4000/4000 | 0 | 359.640ms | 59.463ms | 259.965506 | yes |
+| Llama-2-7B | 3976/4000 | 24 `deadline_violation` | 1373.594ms | 123.153ms | 72.688786 diagnostic only | no |
+
+The 3B run is execution-clean and therefore qualifies for the external
+comparison evidence pool, although it fails the separate RelayServe paper
+SLO. The 7B run fails the strict zero-failure contract and is represented only
+in the feasibility and gate-results tables. Its CE is computed over successful
+requests for diagnosis and must not be used as a main-comparison value.
+
+The 7B replay itself produced all 4000 immutable raw records. A shell
+control-flow bug caused the strict nonzero replay exit to bypass summary
+finalization. The existing raw evidence was finalized offline without replaying
+the trace or changing any frozen parameter. The runner now captures the replay
+pipeline status and always completes validation, summary, and manifest
+finalization when raw evidence exists.
+
+The audited result is
+`paper_artifacts/relayserve_v4/slinfer_formal_gate_results.csv`.
