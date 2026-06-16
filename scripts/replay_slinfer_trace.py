@@ -194,6 +194,10 @@ async def _main_async(args: argparse.Namespace) -> int:
                 "tpot_s": args.scheduler_tpot_s,
                 "separate_from_external_paper_slo": True,
             },
+            "scheduler_runtime_config": {
+                "enable_defragmentation": args.enable_defragmentation,
+                "pool_priority": args.pool_priority,
+            },
             "keep_alive_s": args.keep_alive_s,
             "client_prewarm_sec_excluded_from_workload_clock": client_prewarm_sec,
             "elapsed_sec": elapsed_s,
@@ -211,11 +215,14 @@ async def _main_async(args: argparse.Namespace) -> int:
             "system": "sota",
             "enable_cpu": False,
             "keep_alive_time": args.keep_alive_s,
+            "enable_defragmentation": args.enable_defragmentation,
             "enable_detailed_logging": True,
             "TTFT_baseline": args.scheduler_ttft_baseline_s,
             "TTFT_max_threshold": args.scheduler_ttft_max_threshold_s,
             "TPOT": args.scheduler_tpot_s,
         }
+        if args.pool_priority:
+            config_payload["pool_priority"] = args.pool_priority
         configured = await _post_json(
             session,
             f"{args.gateway_url}/set_config",
@@ -410,6 +417,17 @@ def main() -> int:
         default=7.6,
     )
     parser.add_argument("--scheduler-tpot-s", type=float, default=0.2375)
+    parser.add_argument(
+        "--disable-defragmentation",
+        dest="enable_defragmentation",
+        action="store_false",
+        help=(
+            "Use SLINFER's official load-balance mode instead of the default "
+            "defragmentation/packing mode."
+        ),
+    )
+    parser.set_defaults(enable_defragmentation=True)
+    parser.add_argument("--pool-priority", choices=["cpu", "gpu"], default=None)
     parser.add_argument("--keep-alive-s", type=float, default=1.0)
     parser.add_argument("--timeout-s", type=float, default=1800.0)
     parser.add_argument("--connector-limit", type=int, default=1024)

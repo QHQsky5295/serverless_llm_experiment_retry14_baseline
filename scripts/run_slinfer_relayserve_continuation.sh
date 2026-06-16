@@ -21,6 +21,8 @@ ALLOW_FAILED_REQUESTS="${SLINFER_ALLOW_FAILED_REQUESTS:-0}"
 SCHEDULER_TTFT_BASELINE_S="${SLINFER_SCHEDULER_TTFT_BASELINE_S:-0.475}"
 SCHEDULER_TTFT_MAX_THRESHOLD_S="${SLINFER_SCHEDULER_TTFT_MAX_THRESHOLD_S:-7.6}"
 SCHEDULER_TPOT_S="${SLINFER_SCHEDULER_TPOT_S:-0.2375}"
+ENABLE_DEFRAGMENTATION="${SLINFER_ENABLE_DEFRAGMENTATION:-1}"
+POOL_PRIORITY="${SLINFER_POOL_PRIORITY:-}"
 WORKERS_PER_GPU="${SLINFER_WORKERS_PER_GPU:-0}"
 
 case "${MODEL_KEY}" in
@@ -150,7 +152,8 @@ echo "[2/7] Record immutable inputs"
   "${TRACE_ROLE}" "${NODE_MEMORY_GB}" "${KEEP_ALIVE_S}" \
   "${MONITOR_TAIL_S}" "${SNAPSHOT_DIR}" "${STORE_MEM_POOL_SIZE_GB}" \
   "${MIN_AVAILABLE_MEMORY_GB}" "${SCHEDULER_TTFT_BASELINE_S}" \
-  "${SCHEDULER_TTFT_MAX_THRESHOLD_S}" "${SCHEDULER_TPOT_S}" <<'PY'
+  "${SCHEDULER_TTFT_MAX_THRESHOLD_S}" "${SCHEDULER_TPOT_S}" \
+  "${ENABLE_DEFRAGMENTATION}" "${POOL_PRIORITY}" <<'PY'
 import hashlib
 import json
 import subprocess
@@ -178,6 +181,8 @@ from pathlib import Path
     scheduler_ttft_baseline_s,
     scheduler_ttft_max_threshold_s,
     scheduler_tpot_s,
+    enable_defragmentation,
+    pool_priority,
 ) = sys.argv[1:]
 
 def sha(path):
@@ -205,6 +210,18 @@ source_paths = [
     root_path / "scripts/summarize_slinfer_replay.py",
     root_path / "patches/slinfer_relayserve_compat.patch",
 ]
+official_scheduler_defaults = (
+    float(scheduler_ttft_baseline_s) == 0.475
+    and float(scheduler_ttft_max_threshold_s) == 7.6
+    and float(scheduler_tpot_s) == 0.2375
+    and enable_defragmentation == "1"
+    and pool_priority == ""
+)
+deadline_source = (
+    "official_slinfer_defaults"
+    if official_scheduler_defaults
+    else "tuned_slinfer_scheduler_runtime_config"
+)
 snapshot_path = Path(snapshot_dir)
 hardware_adaptation = json.loads(
     (snapshot_path / "hardware_adaptation.json").read_text()
@@ -238,7 +255,7 @@ payload = {
     "min_available_memory_gb": float(min_available_memory_gb),
     "workers_per_gpu": int(hardware_adaptation["workers_per_gpu"]),
     "scheduler_deadline_contract": {
-        "source": "official_slinfer_defaults",
+        "source": deadline_source,
         "ttft_baseline_s": float(scheduler_ttft_baseline_s),
         "ttft_max_threshold_s": float(scheduler_ttft_max_threshold_s),
         "tpot_s": float(scheduler_tpot_s),
@@ -247,6 +264,10 @@ payload = {
             "ttft_max_threshold_s)"
         ),
         "separate_from_external_paper_slo": True,
+    },
+    "scheduler_runtime_config": {
+        "enable_defragmentation": enable_defragmentation == "1",
+        "pool_priority": pool_priority or None,
     },
     "frozen_config_dir": snapshot_dir,
     "frozen_config_sha256": {
@@ -262,7 +283,7 @@ payload = {
         "lora_enabled": False,
         "system_mode": "official sota scheduler, GPU-only",
         "cost_model": "RelayServe lifecycle monetary model",
-        "scheduler_internal_deadline": "official SLINFER input-aware defaults",
+        "scheduler_internal_deadline": deadline_source,
     },
 }
 Path(manifest_path).write_text(json.dumps(payload, indent=2) + "\n")
@@ -299,6 +320,12 @@ if [[ "${ALLOW_FAILED_REQUESTS}" == "1" ]]; then
   REPLAY_ARGS+=(--allow-failures)
   VALIDATE_ARGS+=(--allow-failures)
   SUMMARY_ARGS+=(--allow-failures)
+fi
+if [[ "${ENABLE_DEFRAGMENTATION}" == "0" ]]; then
+  REPLAY_ARGS+=(--disable-defragmentation)
+fi
+if [[ -n "${POOL_PRIORITY}" ]]; then
+  REPLAY_ARGS+=(--pool-priority "${POOL_PRIORITY}")
 fi
 set +e
 "${ENV_DIR}/bin/python" "${ROOT_DIR}/scripts/replay_slinfer_trace.py" \

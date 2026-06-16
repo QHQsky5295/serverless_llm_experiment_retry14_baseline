@@ -56,6 +56,9 @@ class SlinferHarnessTest(unittest.TestCase):
             run_script,
         )
         self.assertIn("SLINFER_SCHEDULER_TPOT_S:-0.2375", run_script)
+        self.assertIn("SLINFER_ENABLE_DEFRAGMENTATION:-1", run_script)
+        self.assertIn("tuned_slinfer_scheduler_runtime_config", run_script)
+        self.assertIn("--disable-defragmentation", run_script)
         subprocess.run(
             ["bash", "-n", str(ROOT / "scripts/start_slinfer_stack.sh")],
             check=True,
@@ -141,6 +144,8 @@ class SlinferHarnessTest(unittest.TestCase):
             replay_script,
         )
         self.assertIn("separate_from_external_paper_slo", replay_script)
+        self.assertIn('"enable_defragmentation": args.enable_defragmentation', replay_script)
+        self.assertIn("--disable-defragmentation", replay_script)
 
     def test_gpu_lifecycle_handles_non_contiguous_allocations(self) -> None:
         module = _load_script("summarize_slinfer_replay.py")
