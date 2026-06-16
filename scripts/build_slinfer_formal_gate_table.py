@@ -37,6 +37,11 @@ FIELDS = [
     "strict_zero_failure_pass",
     "paper_slo_gate_pass",
     "external_main_comparison_eligible",
+    "scheduler_deadline_source",
+    "scheduler_ttft_baseline_s",
+    "scheduler_ttft_max_threshold_s",
+    "scheduler_tpot_s",
+    "scheduler_enable_defragmentation",
     "raw_records_path",
     "raw_records_sha256",
     "source_summary_path",
@@ -105,6 +110,8 @@ def attempted_row(model_key: str, run_dir: Path, policy: dict) -> dict[str, obje
     main_eligible = comparison_eligible(manifest, len(failed))
     if main_eligible != strict_pass:
         raise ValueError(f"{run_dir}: formal eligibility and strict status disagree")
+    deadline = dict(manifest.get("scheduler_deadline_contract") or {})
+    runtime = dict(manifest.get("scheduler_runtime_config") or {})
     note = (
         "Clean formal4000 execution; eligible for the external main comparison. "
         + (
@@ -144,6 +151,13 @@ def attempted_row(model_key: str, run_dir: Path, policy: dict) -> dict[str, obje
         "strict_zero_failure_pass": str(strict_pass).lower(),
         "paper_slo_gate_pass": str(paper_slo_pass).lower(),
         "external_main_comparison_eligible": str(main_eligible).lower(),
+        "scheduler_deadline_source": deadline.get("source") or "",
+        "scheduler_ttft_baseline_s": deadline.get("ttft_baseline_s"),
+        "scheduler_ttft_max_threshold_s": deadline.get("ttft_max_threshold_s"),
+        "scheduler_tpot_s": deadline.get("tpot_s"),
+        "scheduler_enable_defragmentation": str(
+            bool(runtime.get("enable_defragmentation"))
+        ).lower(),
         "raw_records_path": str(raw_path.resolve()),
         "raw_records_sha256": sha256(raw_path),
         "source_summary_path": str(summary_path.resolve()),

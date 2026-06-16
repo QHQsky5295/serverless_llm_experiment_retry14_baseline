@@ -219,6 +219,20 @@ class SlinferHarnessTest(unittest.TestCase):
         manifest = {"formal_main_comparison_eligible": True}
         self.assertTrue(module.comparison_eligible(manifest, 0))
         self.assertFalse(module.comparison_eligible(manifest, 1))
+        self.assertIn("scheduler_deadline_source", module.FIELDS)
+        self.assertIn("scheduler_enable_defragmentation", module.FIELDS)
+
+    def test_formal4000_table_has_external_main_evidence_fields(self) -> None:
+        module = _load_script("build_slinfer_formal4000_table.py")
+        for field in (
+            "system_key",
+            "formal_requests",
+            "trace_role",
+            "raw_records_sha256",
+            "source_summary_sha256",
+            "manifest_sha256",
+        ):
+            self.assertIn(field, module.FIELDS)
 
 
 if __name__ == "__main__":
