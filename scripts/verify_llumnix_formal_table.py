@@ -14,6 +14,7 @@ MODELS = {
     "3b": ("Llama-3.2 3B", 180.0, 14.0),
     "7b": ("Llama-2 7B", 440.0, 32.0),
 }
+FORMAL_TRACE_ROLE = "formal4000"
 
 
 def percentile(values: list[float], quantile: float) -> float:
@@ -52,14 +53,25 @@ def verify_row(row: dict[str, str]) -> None:
         raise AssertionError(f"{model_key}: unexpected system")
     if row["model"] != model:
         raise AssertionError(f"{model_key}: model label mismatch")
-    if row["trace_role"] != "formal4000":
+    if row["trace_role"] != FORMAL_TRACE_ROLE:
         raise AssertionError(f"{model_key}: trace role mismatch")
+    manifest_trace_role = row.get("manifest_trace_role")
+    if not manifest_trace_role or not manifest_trace_role.startswith(FORMAL_TRACE_ROLE):
+        raise AssertionError(f"{model_key}: manifest trace role mismatch")
     if float(row["replay_rate"]) != 1.0:
         raise AssertionError(f"{model_key}: replay rate mismatch")
     if row["slo_profile"] != "paper_nominal":
         raise AssertionError(f"{model_key}: SLO profile mismatch")
     if int(row["formal_requests"]) != 4000 or int(row["gpu_budget"]) != 4:
         raise AssertionError(f"{model_key}: formal contract mismatch")
+    if row.get("llumnix_variant") not in {
+        "official_routine_migration",
+        "official_no_routine_migration",
+    }:
+        raise AssertionError(f"{model_key}: Llumnix variant mismatch")
+    routine_enabled = row.get("routine_migration_enabled")
+    if routine_enabled not in {"true", "false"}:
+        raise AssertionError(f"{model_key}: routine migration flag mismatch")
 
     raw_path = evidence(row, "raw_records")
     summary_path = evidence(row, "source_summary")
@@ -73,8 +85,24 @@ def verify_row(row: dict[str, str]) -> None:
     failed = [record for record in results if not record.get("success")]
     if len(results) != 4000 or len(ok) != 4000 or failed:
         raise AssertionError(f"{model_key}: formal execution is not clean")
-    if manifest["trace_role"] != "formal4000" or int(manifest["max_requests"]) != 4000:
+    if (
+        manifest["trace_role"] != manifest_trace_role
+        or not str(manifest["trace_role"]).startswith(FORMAL_TRACE_ROLE)
+        or int(manifest["max_requests"]) != 4000
+    ):
         raise AssertionError(f"{model_key}: manifest formal contract mismatch")
+    manifest_routine_enabled = bool(
+        manifest.get("launch_profile", {}).get("enable_routine_migration")
+    )
+    if (routine_enabled == "true") != manifest_routine_enabled:
+        raise AssertionError(f"{model_key}: routine migration evidence mismatch")
+    expected_variant = (
+        "official_routine_migration"
+        if manifest_routine_enabled
+        else "official_no_routine_migration"
+    )
+    if row["llumnix_variant"] != expected_variant:
+        raise AssertionError(f"{model_key}: Llumnix variant evidence mismatch")
     if Path(manifest["trace_path"]).resolve() != trace_path.resolve():
         raise AssertionError(f"{model_key}: trace path mismatch")
     if manifest["trace_sha256"] != row["trace_sha256"]:

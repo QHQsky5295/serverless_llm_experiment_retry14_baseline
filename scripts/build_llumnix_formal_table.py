@@ -15,6 +15,7 @@ MODELS = {
     "3b": ("Llama-3.2 3B", 180.0, 14.0),
     "7b": ("Llama-2 7B", 440.0, 32.0),
 }
+FORMAL_TRACE_ROLE = "formal4000"
 
 FIELDS = [
     "system",
@@ -23,9 +24,12 @@ FIELDS = [
     "model_key",
     "formal_requests",
     "trace_role",
+    "manifest_trace_role",
     "replay_rate",
     "slo_profile",
     "gpu_budget",
+    "llumnix_variant",
+    "routine_migration_enabled",
     "total_requests",
     "ok_requests",
     "failed_requests",
@@ -89,7 +93,8 @@ def build_row(model_key: str, run_dir: Path) -> dict[str, object]:
 
     if manifest.get("system") != "Llumnix":
         raise ValueError(f"{run_dir}: unexpected system")
-    if manifest.get("trace_role") != "formal4000":
+    manifest_trace_role = str(manifest.get("trace_role") or "")
+    if not manifest_trace_role.startswith(FORMAL_TRACE_ROLE):
         raise ValueError(f"{run_dir}: trace role is not formal4000")
     if int(manifest.get("max_requests") or 0) != 4000:
         raise ValueError(f"{run_dir}: formal request count is not 4000")
@@ -108,8 +113,12 @@ def build_row(model_key: str, run_dir: Path) -> dict[str, object]:
         raise ValueError(f"{run_dir}: expected four Llumnix instances")
     if launch["migration_backend"] != "rayrpc":
         raise ValueError(f"{run_dir}: unexpected migration backend")
-    if not bool(launch["enable_routine_migration"]):
-        raise ValueError(f"{run_dir}: routine migration is disabled")
+    routine_migration_enabled = bool(launch["enable_routine_migration"])
+    llumnix_variant = (
+        "official_routine_migration"
+        if routine_migration_enabled
+        else "official_no_routine_migration"
+    )
     if float(scenario["ttft_target_ms"]) != ttft_target:
         raise ValueError(f"{run_dir}: TTFT target mismatch")
     if float(scenario["tpot_target_ms"]) != tpot_target:
@@ -122,10 +131,13 @@ def build_row(model_key: str, run_dir: Path) -> dict[str, object]:
         "model": model,
         "model_key": model_key,
         "formal_requests": 4000,
-        "trace_role": manifest["trace_role"],
+        "trace_role": FORMAL_TRACE_ROLE,
+        "manifest_trace_role": manifest_trace_role,
         "replay_rate": 1.0,
         "slo_profile": "paper_nominal",
         "gpu_budget": 4,
+        "llumnix_variant": llumnix_variant,
+        "routine_migration_enabled": str(routine_migration_enabled).lower(),
         "total_requests": len(results),
         "ok_requests": len(ok),
         "failed_requests": len(failed),
