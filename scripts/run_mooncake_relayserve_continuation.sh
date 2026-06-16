@@ -6,6 +6,11 @@ RELAY_ROOT="${RELAY_ROOT:-/home/qhq/relayserve_serverless_llm}"
 VLLM_ROOT="${MOONCAKE_VLLM_ROOT:-${ROOT_DIR}/workspaces/mooncake_vllm_official_20260615}"
 MOONCAKE_ROOT="${MOONCAKE_SOURCE_ROOT:-${ROOT_DIR}/vendor_new_baselines/Mooncake_main_20260615}"
 ENV_DIR="${MOONCAKE_ENV_DIR:-/home/qhq/.venvs/mooncake_official_20260615}"
+if [[ -x "${ENV_DIR}/bin/vllm" ]]; then
+  VLLM_CMD=("${ENV_DIR}/bin/vllm")
+else
+  VLLM_CMD=("${ENV_DIR}/bin/python" -m vllm.entrypoints.cli.main)
+fi
 MODEL_KEY="${1:?usage: $0 3b|7b [max_requests] [run_tag]}"
 MAX_REQUESTS="${2:-0}"
 RUN_TAG="${3:-$(date -u +%Y%m%dT%H%M%SZ)_mooncake_${MODEL_KEY}_r${MAX_REQUESTS}}"
@@ -19,6 +24,7 @@ DECODE_GPUS=(${MOONCAKE_DECODE_GPUS:-2 3})
 GPU_MEMORY_UTILIZATION="${MOONCAKE_GPU_MEMORY_UTILIZATION:-0.84}"
 MAX_NUM_SEQS="${MOONCAKE_MAX_NUM_SEQS:-64}"
 MAX_MODEL_LEN="${MOONCAKE_MAX_MODEL_LEN:-3072}"
+DTYPE="${MOONCAKE_DTYPE:-float16}"
 SERVICE_READY_TIMEOUT_S="${MOONCAKE_SERVICE_READY_TIMEOUT_S:-900}"
 SERVICE_STABILIZATION_S="${MOONCAKE_SERVICE_STABILIZATION_S:-10}"
 REQUEST_TIMEOUT_S="${MOONCAKE_REQUEST_TIMEOUT_S:-1800}"
@@ -78,7 +84,6 @@ for required in \
   "${TRACE_PATH}" \
   "${MODEL_PATH}/config.json" \
   "${ENV_DIR}/bin/python" \
-  "${ENV_DIR}/bin/vllm" \
   "${PROXY_SCRIPT}"
 do
   if [[ ! -e "${required}" ]]; then
@@ -181,6 +186,7 @@ cat >"${SNAPSHOT_DIR}/launch_profile.json" <<EOF
   "gpu_memory_utilization": ${GPU_MEMORY_UTILIZATION},
   "max_num_seqs": ${MAX_NUM_SEQS},
   "max_model_len": ${MAX_MODEL_LEN},
+  "dtype": "${DTYPE}",
   "enforce_eager": true
 }
 EOF
@@ -270,6 +276,7 @@ COMMON_ARGS=(
   --host 127.0.0.1
   --served-model-name "${SERVED_MODEL_NAME}"
   --max-model-len "${MAX_MODEL_LEN}"
+  --dtype "${DTYPE}"
   --gpu-memory-utilization "${GPU_MEMORY_UTILIZATION}"
   --max-num-seqs "${MAX_NUM_SEQS}"
   --enforce-eager
@@ -283,7 +290,7 @@ for index in 0 1; do
     PYTHONNOUSERSITE=1 \
     CUDA_VISIBLE_DEVICES="${PREFILL_GPUS[$index]}" \
     VLLM_MOONCAKE_BOOTSTRAP_PORT="${BOOTSTRAP_PORTS[$index]}" \
-    "${ENV_DIR}/bin/vllm" "${COMMON_ARGS[@]}" \
+    "${VLLM_CMD[@]}" "${COMMON_ARGS[@]}" \
     --port "${PREFILL_PORTS[$index]}" \
     --kv-transfer-config "${KV_PRODUCER_CONFIG}" \
     >"${LOG_DIR}/prefill$((index + 1)).log" 2>&1 &
@@ -295,7 +302,7 @@ for index in 0 1; do
   setsid env \
     PYTHONNOUSERSITE=1 \
     CUDA_VISIBLE_DEVICES="${DECODE_GPUS[$index]}" \
-    "${ENV_DIR}/bin/vllm" "${COMMON_ARGS[@]}" \
+    "${VLLM_CMD[@]}" "${COMMON_ARGS[@]}" \
     --port "${DECODE_PORTS[$index]}" \
     --kv-transfer-config "${KV_CONSUMER_CONFIG}" \
     >"${LOG_DIR}/decode$((index + 1)).log" 2>&1 &

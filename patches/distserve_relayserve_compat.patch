@@ -1,0 +1,142 @@
+diff --git a/distserve/api_server/distserve_api_server.py b/distserve/api_server/distserve_api_server.py
+index 5492904..b18a899 100644
+--- a/distserve/api_server/distserve_api_server.py
++++ b/distserve/api_server/distserve_api_server.py
+@@ -99,8 +99,14 @@ async def generate(request: Request) -> Response:
+
+         request_events = engine.get_and_pop_request_lifetime_events(request_id)
+         text_output = prompt + ''.join([step_output[0].new_token for step_output in final_outputs])
++        token_ids = (
++            list(final_outputs[-1][0].request.generated_token_ids)
++            if final_outputs
++            else []
++        )
+         ret = {
+             "text": text_output,
++            "token_ids": token_ids,
+             "timestamps": [step_output[1] for step_output in final_outputs],
+             "lifetime_events": json_encode_lifetime_events(request_events)
+         }
+diff --git a/distserve/downloader/converter.py b/distserve/downloader/converter.py
+index 4ebe758..550d197 100644
+--- a/distserve/downloader/converter.py
++++ b/distserve/downloader/converter.py
+@@ -27,12 +27,52 @@ import tqdm
+ import argparse
+
+-from glob import glob
++from pathlib import Path
+ from torch import nn
+ from typing import Callable, Dict, Optional, Tuple
+ from distserve.logger import init_logger
+
+ logger = init_logger(__name__)
+
++
++def discover_weight_files(input_path: str) -> Tuple[str, list[str]]:
++    """Return one complete Hugging Face weight format from a model directory."""
++    root = Path(input_path)
++    safetensor_files = sorted(str(path) for path in root.glob("*.safetensors"))
++    if safetensor_files:
++        return "safetensors", safetensor_files
++
++    bin_files = sorted(str(path) for path in root.glob("*.bin"))
++    if bin_files:
++        return "bin", bin_files
++
++    raise ValueError(
++        f"Input {input_path} does not contain *.safetensors or *.bin weights"
++    )
++
++
++def load_hf_state_dict(input_path: str) -> Dict[str, torch.Tensor]:
++    """Load all shards from one Hugging Face checkpoint into a state dict."""
++    weight_format, weight_files = discover_weight_files(input_path)
++    state_dict: Dict[str, torch.Tensor] = {}
++
++    if weight_format == "safetensors":
++        try:
++            from safetensors.torch import load_file
++        except ImportError as exc:
++            raise RuntimeError(
++                "safetensors is required to convert this checkpoint"
++            ) from exc
++
++        for file in weight_files:
++            print(f"Loading {file}")
++            state_dict.update(load_file(file, device="cpu"))
++    else:
++        for file in weight_files:
++            print(f"Loading {file}")
++            state_dict.update(torch.load(file, map_location=torch.device("cpu")))
++
++    return state_dict
++
+ #######################
+ #    Preprocessors    #
+ #######################
+@@ -116,11 +156,15 @@ def preprocess_llama2(tensor_dict: Dict[str, torch.Tensor])\
+     K_WEIGHT = PREFIX + "layers.{0}.self_attn.k_proj.weight"
+     V_WEIGHT = PREFIX + "layers.{0}.self_attn.v_proj.weight"
+     O_WEIGHT = PREFIX + "layers.{0}.self_attn.o_proj.weight"
++    EMBED_TOKENS = PREFIX + "embed_tokens.weight"
++    LM_HEAD = "lm_head.weight"
+
+     num_layers = max(int(regex.findall(x)[0]) for x in filter(regex.match, tensor_dict)) + 1
+
+     head_dim = 128
+     num_q_heads = tensor_dict[Q_WEIGHT.format(0)].size(0) // head_dim
++    if LM_HEAD not in tensor_dict:
++        tensor_dict[LM_HEAD] = tensor_dict[EMBED_TOKENS]
+
+     # Coallesce wq, qk, qv into one tensor, layers.{i}.attention.wqkv.weight
+     for i in range(num_layers):
+@@ -417,22 +461,9 @@ def convert_weights(
+     os.makedirs(output, exist_ok=True)
+     print(f"Converting {input} into torch.jit.script format")
+
+-    # Load the state dict (tensor_dict)
+-    # If the whole model is saved in a single file, then load the state dict directly
+-    # otherwise, load them separately and merge them into a single state dict
+-    bin_files = glob(os.path.join(input, '*.bin'))
+-    #logger.info(f"Find bin files : {bin_files}.")
+-    #input_files = glob(input)
+-    if len(bin_files) == 0:
+-        ValueError(f"Input {input} does not match any files")
+-        print(f"Input {input} does not match any files")
+-        exit(1)
+-
+-    # Load file(s)
+-    state_dict = {}
+-    for file in bin_files:
+-        print(f"Loading {file}")
+-        state_dict.update(torch.load(file, torch.device("cpu")))
++    # Load all shards from one checkpoint format. Prefer safetensors when both
++    # formats are present because partial legacy .bin exports are common.
++    state_dict = load_hf_state_dict(input)
+
+     # Change dtype
+     for key in state_dict:
+diff --git a/distserve/downloader/downloader.py b/distserve/downloader/downloader.py
+index 049c730..91e2a03 100644
+--- a/distserve/downloader/downloader.py
++++ b/distserve/downloader/downloader.py
+@@ -54,11 +54,16 @@ def prepare_hf_model_weigths(
+     cache_dir: Optional[str] = None
+ ) -> str:
+     """Download model weights from huggingface."""
+-    allow_patterns = "*.bin"
++    allow_patterns = [
++        "*.safetensors",
++        "*.safetensors.index.json",
++        "*.bin",
++        "*.bin.index.json",
++    ]
+     hf_folder = snapshot_download(model_name,
+                                     allow_patterns=allow_patterns,
+                                     cache_dir=cache_dir)
+-    return os.path.join(hf_folder, allow_patterns)
++    return hf_folder
+
+ def download_and_convert_weights(model_config: ModelConfig) -> str:
+     """(interface) Function for downloading and converting weights.
