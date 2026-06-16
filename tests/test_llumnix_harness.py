@@ -128,6 +128,10 @@ class LlumnixHarnessTests(unittest.TestCase):
         self.assertIn("LLUMNIX_INIT_WORKER_RPC_TIMEOUT", runner)
         self.assertIn("LLUMNIX_SCALE_UP_RPC_TIMEOUT", runner)
         self.assertIn("LLUMNIX_INSTANCE_READY_TIMEOUT", runner)
+        self.assertIn(
+            'INSTANCE_READY_TIMEOUT_S="${LLUMNIX_INSTANCE_READY_TIMEOUT:-1200}"',
+            runner,
+        )
         self.assertIn("LLUMNIX_RAY_WORKER_REGISTER_TIMEOUT_S", runner)
         self.assertIn("RAY_worker_register_timeout_seconds", runner)
         self.assertIn("LLUMNIX_WAIT_PLACEMENT_GROUP_TIMEOUT", runner)
@@ -137,6 +141,18 @@ class LlumnixHarnessTests(unittest.TestCase):
         self.assertIn("LLUMNIX_FULL_PATH_PROBE_ATTEMPTS", runner)
         self.assertIn("LLUMNIX_CHECKPOINT_INTERVAL", runner)
         self.assertIn('--checkpoint-interval "${CHECKPOINT_INTERVAL}"', runner)
+        self.assertIn(
+            'REQUEST_OUTPUT_QUEUE_TYPE="${LLUMNIX_REQUEST_OUTPUT_QUEUE_TYPE:-rayqueue}"',
+            runner,
+        )
+        self.assertIn(
+            '--request-output-queue-type "${REQUEST_OUTPUT_QUEUE_TYPE}"',
+            runner,
+        )
+        self.assertIn(
+            "LLUMNIX_REQUEST_OUTPUT_QUEUE_TYPE=${REQUEST_OUTPUT_QUEUE_TYPE}",
+            runner,
+        )
         self.assertIn("apply_llumnix_relayserve_patch.sh", runner)
         self.assertIn("probe_llumnix_service.py", runner)
         self.assertIn("validate_llumnix_service_health.py", runner)

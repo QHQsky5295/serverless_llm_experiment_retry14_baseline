@@ -23,11 +23,12 @@ FULL_PATH_PROBE_TIMEOUT_S="${LLUMNIX_FULL_PATH_PROBE_TIMEOUT_S:-15}"
 FULL_PATH_PROBE_ATTEMPTS="${LLUMNIX_FULL_PATH_PROBE_ATTEMPTS:-3}"
 REQUEST_TIMEOUT_S="${LLUMNIX_REQUEST_TIMEOUT_S:-1800}"
 CHECKPOINT_INTERVAL="${LLUMNIX_CHECKPOINT_INTERVAL:-256}"
+REQUEST_OUTPUT_QUEUE_TYPE="${LLUMNIX_REQUEST_OUTPUT_QUEUE_TYPE:-rayqueue}"
 INIT_INSTANCES_TIMEOUT_S="${LLUMNIX_INIT_INSTANCES_TIMEOUT:-900}"
 INIT_WORKER_RPC_TIMEOUT_S="${LLUMNIX_INIT_WORKER_RPC_TIMEOUT:-300}"
 RAY_WORKER_REGISTER_TIMEOUT_S="${LLUMNIX_RAY_WORKER_REGISTER_TIMEOUT_S:-180}"
 SCALE_UP_RPC_TIMEOUT_S="${LLUMNIX_SCALE_UP_RPC_TIMEOUT:-300}"
-INSTANCE_READY_TIMEOUT_S="${LLUMNIX_INSTANCE_READY_TIMEOUT:-600}"
+INSTANCE_READY_TIMEOUT_S="${LLUMNIX_INSTANCE_READY_TIMEOUT:-1200}"
 PLACEMENT_GROUP_TIMEOUT_S="${LLUMNIX_WAIT_PLACEMENT_GROUP_TIMEOUT:-60}"
 UTILITY_CALL_TIMEOUT_S="${LLUMNIX_UTILITY_CALL_TIMEOUT:-300}"
 MIN_AVAILABLE_MEMORY_GB="${LLUMNIX_MIN_AVAILABLE_MEMORY_GB:-32}"
@@ -35,6 +36,14 @@ MAX_GPU_TEMPERATURE_C="${LLUMNIX_MAX_GPU_TEMPERATURE_C:-88}"
 RESOURCE_SAMPLE_INTERVAL_S="${LLUMNIX_RESOURCE_SAMPLE_INTERVAL_S:-2}"
 GPU_COST_PER_SECOND_USD="${LLUMNIX_GPU_COST_PER_SECOND_USD:-0.0008}"
 ALLOW_FAILED_REQUESTS="${LLUMNIX_ALLOW_FAILED_REQUESTS:-0}"
+
+case "${REQUEST_OUTPUT_QUEUE_TYPE}" in
+  rayqueue|zmq) ;;
+  *)
+    echo "LLUMNIX_REQUEST_OUTPUT_QUEUE_TYPE must be rayqueue or zmq" >&2
+    exit 2
+    ;;
+esac
 
 case "${MODEL_KEY}" in
   3b)
@@ -185,6 +194,7 @@ SERVICE_ARGS=(
   --max-model-len "${MAX_MODEL_LEN}"
   --gpu-memory-utilization "${GPU_MEMORY_UTILIZATION}"
   --max-num-seqs "${MAX_NUM_SEQS}"
+  --request-output-queue-type "${REQUEST_OUTPUT_QUEUE_TYPE}"
 )
 if [[ "${ENABLE_ROUTINE_MIGRATION}" == "1" ]]; then
   SERVICE_ARGS+=(--enable-routine-migration)
@@ -210,6 +220,7 @@ LLUMNIX_UTILITY_CALL_TIMEOUT=${UTILITY_CALL_TIMEOUT_S}
 LLUMNIX_SERVICE_STABILIZATION_S=${SERVICE_STABILIZATION_S}
 LLUMNIX_FULL_PATH_PROBE_TIMEOUT_S=${FULL_PATH_PROBE_TIMEOUT_S}
 LLUMNIX_FULL_PATH_PROBE_ATTEMPTS=${FULL_PATH_PROBE_ATTEMPTS}
+LLUMNIX_REQUEST_OUTPUT_QUEUE_TYPE=${REQUEST_OUTPUT_QUEUE_TYPE}
 EOF
 
 "${ENV_DIR}/bin/python" - \
@@ -226,6 +237,7 @@ EOF
   "${UTILITY_CALL_TIMEOUT_S}" \
   "${SERVICE_STABILIZATION_S}" "${FULL_PATH_PROBE_TIMEOUT_S}" \
   "${FULL_PATH_PROBE_ATTEMPTS}" "${CHECKPOINT_INTERVAL}" \
+  "${REQUEST_OUTPUT_QUEUE_TYPE}" \
   "${SNAPSHOT_DIR}" <<'PY'
 import hashlib
 import json
@@ -245,7 +257,7 @@ from pathlib import Path
     scale_up_rpc_timeout_s, instance_ready_timeout_s,
     placement_group_timeout_s, utility_call_timeout_s, service_stabilization_s,
     full_path_probe_timeout_s, full_path_probe_attempts, checkpoint_interval,
-    snapshot_dir,
+    request_output_queue_type, snapshot_dir,
 ) = sys.argv[1:]
 
 def sha(path):
@@ -311,6 +323,7 @@ payload = {
         "full_path_probe_timeout_s": float(full_path_probe_timeout_s),
         "full_path_probe_attempts": int(full_path_probe_attempts),
         "checkpoint_interval": int(checkpoint_interval),
+        "request_output_queue_type": request_output_queue_type,
     },
     "resource_guard": {
         "min_available_memory_gb": float(min_available_memory_gb),
