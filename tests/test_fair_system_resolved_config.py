@@ -87,7 +87,7 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
             ]
         )
 
-    def _build(self, args, env=None):
+    def _build(self, args, env=None, worktrees=None):
         clean = {
             "source_clean_for_formal": True,
             "baseline_tracked_dirty_paths": [],
@@ -100,10 +100,91 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
             "faaslora_tracked_clean_for_formal": True,
             "untracked_files_checked": False,
         }
+        default_worktree = {
+            "commit": "c" * 40,
+            "tracked_dirty_paths": [],
+            "has_tracked_patch": False,
+            "head_to_worktree_binary_diff_sha256": module.hashlib.sha256(b"").hexdigest(),
+            "head_to_worktree_binary_diff_bytes": 0,
+            "staged_binary_diff_sha256": module.hashlib.sha256(b"").hexdigest(),
+            "staged_binary_diff_bytes": 0,
+            "unstaged_binary_diff_sha256": module.hashlib.sha256(b"").hexdigest(),
+            "unstaged_binary_diff_bytes": 0,
+            "dirty_tracked_files": {},
+            "unmerged_entries": [],
+            "untracked_files_included": False,
+        }
+        identities = worktrees or [default_worktree, default_worktree]
         with mock.patch.object(module, "_source_identity", return_value={"source": "a" * 64}), mock.patch.object(
             module, "_git_commit", return_value="b" * 40
+        ), mock.patch.object(
+            module, "_git_worktree_identity", side_effect=identities
         ), mock.patch.object(module, "source_cleanliness", return_value=clean):
             return module.build_sidecar(args, env or {})
+
+    def test_upstream_patch_identity_records_content_and_changes_system_hash(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            repo = root / "upstream"
+            repo.mkdir()
+            module.subprocess.run(["git", "init", "-q", str(repo)], check=True)
+            module.subprocess.run(
+                ["git", "-C", str(repo), "config", "user.email", "test@example.invalid"],
+                check=True,
+            )
+            module.subprocess.run(
+                ["git", "-C", str(repo), "config", "user.name", "test"],
+                check=True,
+            )
+            source = repo / "runtime.py"
+            source.write_text("value = 1\n", encoding="utf-8")
+            module.subprocess.run(["git", "-C", str(repo), "add", "runtime.py"], check=True)
+            module.subprocess.run(
+                ["git", "-C", str(repo), "commit", "-q", "-m", "base"],
+                check=True,
+            )
+            source.write_text("value = 2\n", encoding="utf-8")
+            identity_a = module._git_worktree_identity(repo)
+            self.assertEqual(identity_a["tracked_dirty_paths"], ["runtime.py"])
+            self.assertTrue(identity_a["has_tracked_patch"])
+            self.assertEqual(
+                identity_a["dirty_tracked_files"]["runtime.py"]["content_sha256"],
+                module.hashlib.sha256(source.read_bytes()).hexdigest(),
+            )
+
+            source.write_text("value = 3\n", encoding="utf-8")
+            identity_b = module._git_worktree_identity(repo)
+            self.assertNotEqual(
+                identity_a["head_to_worktree_binary_diff_sha256"],
+                identity_b["head_to_worktree_binary_diff_sha256"],
+            )
+
+            fixed = {
+                "commit": "d" * 40,
+                "tracked_dirty_paths": [],
+                "has_tracked_patch": False,
+                "head_to_worktree_binary_diff_sha256": module.hashlib.sha256(b"").hexdigest(),
+                "head_to_worktree_binary_diff_bytes": 0,
+                "staged_binary_diff_sha256": module.hashlib.sha256(b"").hexdigest(),
+                "staged_binary_diff_bytes": 0,
+                "unstaged_binary_diff_sha256": module.hashlib.sha256(b"").hexdigest(),
+                "unstaged_binary_diff_bytes": 0,
+                "dirty_tracked_files": {},
+                "unmerged_entries": [],
+                "untracked_files_included": False,
+            }
+            sidecar_a = self._build(
+                self._args(root, seed=41, total=1000, role="validation"),
+                worktrees=[identity_a, fixed],
+            )
+            sidecar_b = self._build(
+                self._args(root, seed=41, total=1000, role="validation"),
+                worktrees=[identity_b, fixed],
+            )
+            self.assertNotEqual(
+                sidecar_a["system_resolved_config_sha256"],
+                sidecar_b["system_resolved_config_sha256"],
+            )
 
     def test_hash_excludes_seed_trace_subset_order_tag_and_trace_length(self):
         with tempfile.TemporaryDirectory() as tmp:

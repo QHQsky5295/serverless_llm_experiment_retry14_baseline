@@ -13,7 +13,11 @@ The sidecar has two different hashes. They must not be conflated.
   ServerlessLLM-new system tuning/runtime configuration. It covers the resolved
   model, runtime topology and serving caps, Prime mechanism/scenario settings,
   autoscaling/admission settings, relevant environment overrides, wrapper
-  source identities, and upstream system revisions.
+  source identities, and upstream system revisions. Because the checked-out
+  S-LoRA and ServerlessLLM trees carry compatibility patches, their identity
+  also includes the canonical tracked binary-diff SHA, dirty-path list, and
+  final SHA/size of every modified tracked file. A commit id alone is never
+  treated as sufficient provenance for those runtimes.
 - `full_run_identity_sha256` identifies one concrete run. It additionally
   covers trace and adapter-subset hashes, sampling seed, request count, run tag,
   execution order, trace time-scale, bandwidth, and C4 workload axes.

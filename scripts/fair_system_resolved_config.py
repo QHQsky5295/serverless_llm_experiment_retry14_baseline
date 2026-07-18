@@ -119,6 +119,172 @@ def _git_commit(path: Path) -> str:
         return ""
 
 
+def _git_output(path: Path, arguments: Sequence[str]) -> bytes:
+    path = path.resolve()
+    try:
+        return subprocess.check_output(
+            [
+                "git",
+                "-c",
+                "color.ui=false",
+                "-c",
+                "core.quotePath=true",
+                "-C",
+                str(path),
+                *arguments,
+            ],
+            stderr=subprocess.DEVNULL,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise RuntimeError(
+            f"git command failed for worktree identity: repo={path} args={arguments}"
+        ) from exc
+
+
+def _nul_git_paths(data: bytes) -> list[str]:
+    return sorted(
+        {
+            item.decode("utf-8", errors="surrogateescape")
+            for item in data.split(b"\0")
+            if item
+        }
+    )
+
+
+def _dirty_file_content_identity(repo: Path, relative_path: str) -> Dict[str, Any]:
+    candidate = repo / relative_path
+    if not candidate.exists() and not candidate.is_symlink():
+        return {"kind": "deleted", "bytes": 0, "content_sha256": None}
+    if candidate.is_symlink():
+        content = os.fsencode(os.readlink(candidate))
+        return {
+            "kind": "symlink",
+            "bytes": len(content),
+            "content_sha256": hashlib.sha256(content).hexdigest(),
+        }
+    if candidate.is_file():
+        digest = hashlib.sha256()
+        size = 0
+        with candidate.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                size += len(chunk)
+                digest.update(chunk)
+        return {
+            "kind": "regular",
+            "bytes": size,
+            "content_sha256": digest.hexdigest(),
+        }
+    if candidate.is_dir() and (candidate / ".git").exists():
+        nested_payload = {
+            "commit": _git_commit(candidate),
+            "head_to_worktree_binary_diff_sha256": hashlib.sha256(
+                _git_output(
+                    candidate,
+                    [
+                        "diff",
+                        "--no-color",
+                        "--binary",
+                        "--full-index",
+                        "--no-ext-diff",
+                        "--no-textconv",
+                        "--no-renames",
+                        "HEAD",
+                        "--",
+                    ],
+                )
+            ).hexdigest(),
+        }
+        content = _canonical_bytes(nested_payload)
+        return {
+            "kind": "git_directory",
+            "bytes": len(content),
+            "content_sha256": hashlib.sha256(content).hexdigest(),
+            "git_identity": nested_payload,
+        }
+    raise RuntimeError(
+        f"unsupported tracked worktree entry while hashing {repo}: {relative_path}"
+    )
+
+
+def _git_worktree_identity(repo: Path) -> Dict[str, Any]:
+    """Bind a nested upstream checkout to its tracked local patch exactly.
+
+    Untracked files are intentionally outside this identity.  Runtime patches in
+    the tracked worktree are represented by the canonical HEAD-to-worktree
+    binary diff and raw SHA-256 for every dirty tracked file.  Staged and
+    unstaged diff hashes are retained separately for auditability.
+    """
+
+    repo = repo.resolve()
+    commit = _git_commit(repo)
+    if not commit:
+        raise RuntimeError(f"cannot resolve git HEAD for nested repository: {repo}")
+
+    unmerged = _git_output(repo, ["ls-files", "--unmerged", "-z"])
+    if unmerged:
+        entries = []
+        for record in unmerged.split(b"\0"):
+            if not record:
+                continue
+            path = record.split(b"\t", 1)[-1]
+            entries.append(path.decode("utf-8", errors="surrogateescape"))
+        raise RuntimeError(
+            f"nested repository has unmerged tracked entries: repo={repo} "
+            f"paths={sorted(set(entries))}"
+        )
+
+    common_diff_args = [
+        "--no-color",
+        "--binary",
+        "--full-index",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--no-renames",
+    ]
+    head_to_worktree = _git_output(
+        repo, ["diff", *common_diff_args, "HEAD", "--"]
+    )
+    staged = _git_output(
+        repo, ["diff", "--cached", *common_diff_args, "HEAD", "--"]
+    )
+    unstaged = _git_output(repo, ["diff", *common_diff_args, "--"])
+
+    path_sets = (
+        _nul_git_paths(
+            _git_output(repo, ["diff", "--no-renames", "--name-only", "-z", "HEAD", "--"])
+        ),
+        _nul_git_paths(
+            _git_output(
+                repo,
+                ["diff", "--cached", "--no-renames", "--name-only", "-z", "HEAD", "--"],
+            )
+        ),
+        _nul_git_paths(
+            _git_output(repo, ["diff", "--no-renames", "--name-only", "-z", "--"])
+        ),
+    )
+    dirty_paths = sorted({path for paths in path_sets for path in paths})
+    dirty_files = {
+        path: _dirty_file_content_identity(repo, path) for path in dirty_paths
+    }
+    return {
+        "commit": commit,
+        "tracked_dirty_paths": dirty_paths,
+        "has_tracked_patch": bool(dirty_paths),
+        "head_to_worktree_binary_diff_sha256": hashlib.sha256(
+            head_to_worktree
+        ).hexdigest(),
+        "head_to_worktree_binary_diff_bytes": len(head_to_worktree),
+        "staged_binary_diff_sha256": hashlib.sha256(staged).hexdigest(),
+        "staged_binary_diff_bytes": len(staged),
+        "unstaged_binary_diff_sha256": hashlib.sha256(unstaged).hexdigest(),
+        "unstaged_binary_diff_bytes": len(unstaged),
+        "dirty_tracked_files": dirty_files,
+        "unmerged_entries": [],
+        "untracked_files_included": False,
+    }
+
+
 def _tracked_dirty_paths(path: Path) -> list[str]:
     """Return tracked changes only; deliberately ignore cache/untracked files."""
     path = path.resolve()
@@ -575,7 +741,9 @@ def build_hashed_config(
             baselines_root / "scripts" / "summarize_serverlessllm_replay.py",
         )
     )
-    slora["upstream_commit"] = _git_commit(baselines_root / "repos" / "S-LoRA")
+    slora_worktree = _git_worktree_identity(baselines_root / "repos" / "S-LoRA")
+    slora["upstream_commit"] = slora_worktree["commit"]
+    slora["upstream_worktree_identity"] = slora_worktree
     serverless = _resolved_serverless(
         profiles,
         env,
@@ -592,7 +760,11 @@ def build_hashed_config(
             baselines_root / "scripts" / "deploy_serverlessllm_model.sh",
         )
     )
-    serverless["upstream_commit"] = _git_commit(baselines_root / "repos" / "ServerlessLLM")
+    serverless_worktree = _git_worktree_identity(
+        baselines_root / "repos" / "ServerlessLLM"
+    )
+    serverless["upstream_commit"] = serverless_worktree["commit"]
+    serverless["upstream_worktree_identity"] = serverless_worktree
 
     hashed = _normalize_for_hash(
         {
