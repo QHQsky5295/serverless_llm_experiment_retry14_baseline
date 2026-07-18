@@ -136,6 +136,12 @@ def _percentile(values: List[float], p: float) -> float | None:
     return float(ordered[idx])
 
 
+def _format_optional_float(value: float | None, digits: int = 3) -> str:
+    if value is None:
+        return "n/a"
+    return f"{float(value):.{digits}f}"
+
+
 def _max_count_in_window(arrivals: List[float], window_s: float) -> int:
     if not arrivals or window_s <= 0:
         return 0
@@ -432,11 +438,12 @@ def main() -> int:
     args.output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     print(f"exported {len(requests)} requests -> {args.output}")
     print(f"selected adapters: {selected_num}")
+    avg_rps_label = _format_optional_float(load_profile["avg_rps"])
     print(
         "load profile -> "
         f"time_scale={effective_time_scale:.3f} "
         f"span={load_profile['span_s']:.1f}s "
-        f"avg_rps={load_profile['avg_rps']:.3f} "
+        f"avg_rps={avg_rps_label} "
         f"peak_1s={load_profile['window_peaks']['1s']['max_rps']:.3f}rps "
         f"peak_5s={load_profile['window_peaks']['5s']['max_rps']:.3f}rps "
         f"unique_adapters={load_profile['unique_adapters_in_trace']}"

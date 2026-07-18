@@ -22,6 +22,7 @@ HOTSET_ROTATION_MODE="${SLLM_HOTSET_ROTATION_MODE:-}"
 HOTSET_OVERLAP_FRACTION="${SLLM_HOTSET_OVERLAP_FRACTION:-}"
 FAASLORA_SCENARIO="${FAIR_FAASLORA_SCENARIO:-faaslora_full}"
 FORMAL_RUN="${FAIR_FORMAL_RUN:-0}"
+CAMPAIGN_KIND="${FAIR_CAMPAIGN_KIND:-}"
 RESOLVED_CONFIG_FAMILY="${FAIR_RESOLVED_CONFIG_FAMILY:-}"
 
 case "${FORMAL_RUN}" in
@@ -149,6 +150,7 @@ write_round_env() {
     printf 'export SLLM_HOTSET_OVERLAP_FRACTION=%q\n' "${HOTSET_OVERLAP_FRACTION}"
     printf 'export FAIR_FAASLORA_SCENARIO=%q\n' "${FAASLORA_SCENARIO}"
     printf 'export FAIR_ROUND_EXECUTION_ORDER=%q\n' "${EXECUTION_ORDER}"
+    printf 'export FAIR_CAMPAIGN_KIND=%q\n' "${CAMPAIGN_KIND}"
     printf 'export FAIR_FORMAL_RUN=%q\n' "${FORMAL_RUN}"
     printf 'export FAIR_TRACE_ROLE=%q\n' "${TRACE_ROLE}"
     printf 'export FAIR_RESOLVED_CONFIG_FAMILY=%q\n' "${RESOLVED_CONFIG_FAMILY}"
@@ -182,6 +184,7 @@ validate_or_write_round_env() {
           "${SLLM_HOTSET_OVERLAP_FRACTION:-}" \
           "${FAIR_FAASLORA_SCENARIO:-faaslora_full}" \
           "${FAIR_ROUND_EXECUTION_ORDER:-sglang serverlessllm vllm slora faaslora}" \
+          "${FAIR_CAMPAIGN_KIND:-}" \
           "${FAIR_FORMAL_RUN:-0}" \
           "${FAIR_TRACE_ROLE:-legacy}" \
           "${FAIR_RESOLVED_CONFIG_FAMILY:-}" \
@@ -208,6 +211,7 @@ validate_or_write_round_env() {
       SLLM_HOTSET_OVERLAP_FRACTION
       FAIR_FAASLORA_SCENARIO
       FAIR_ROUND_EXECUTION_ORDER
+      FAIR_CAMPAIGN_KIND
       FAIR_FORMAL_RUN
       FAIR_TRACE_ROLE
       FAIR_RESOLVED_CONFIG_FAMILY
@@ -233,6 +237,7 @@ validate_or_write_round_env() {
       "${HOTSET_OVERLAP_FRACTION}"
       "${FAASLORA_SCENARIO}"
       "${EXECUTION_ORDER}"
+      "${CAMPAIGN_KIND}"
       "${FORMAL_RUN}"
       "${TRACE_ROLE}"
       "${RESOLVED_CONFIG_FAMILY}"
@@ -317,6 +322,7 @@ prepare_resolved_config_gate() {
     --trace-path "${TRACE_PATH}" \
     --adapter-subset-path "${ADAPTER_SUBSET_PATH}" \
     --execution-order "${EXECUTION_ORDER}" \
+    --campaign-kind "${CAMPAIGN_KIND}" \
     --output "${RESOLVED_CONFIG_PATH}" \
     --registry "${RESOLVED_CONFIG_REGISTRY}"
 }
@@ -335,6 +341,17 @@ if not re.fullmatch(r"[0-9a-f]{64}", value):
     raise SystemExit(f"[ERROR] invalid system_resolved_config_sha256 in {path}: {value!r}")
 print(value)
 PY
+}
+
+mark_successful_validation_if_complete() {
+  if [[ "${FORMAL_RUN}" != "1" || "${TRACE_ROLE}" != "validation" ]]; then
+    return 0
+  fi
+  python3 "${BASELINES_ROOT}/scripts/fair_system_resolved_config.py" \
+    mark-validation-complete \
+    --sidecar "${RESOLVED_CONFIG_PATH}" \
+    --registry "${RESOLVED_CONFIG_REGISTRY}" \
+    --manifest "${ROUND_DIR}/MANIFEST.json"
 }
 
 validate_v2_protocol_controls() {
@@ -366,11 +383,42 @@ validate_v2_protocol_controls() {
     seen+="${system} "
   done
   for system in ${SYSTEMS}; do
-    if [[ "${allowed}" == *" ${system} "* && "${seen}" != *" ${system} "* ]]; then
+    if [[ "${allowed}" != *" ${system} "* ]]; then
+      echo "[ERROR] unknown system in FAIR_ROUND_SYSTEMS: ${system}" >&2
+      return 1
+    fi
+    if [[ "${seen}" != *" ${system} "* ]]; then
       echo "[ERROR] selected system ${system} is absent from FAIR_ROUND_EXECUTION_ORDER" >&2
       return 1
     fi
   done
+
+  PYTHONPATH="${BASELINES_ROOT}/scripts${PYTHONPATH:+:${PYTHONPATH}}" \
+    python3 - "${CAMPAIGN_KIND}" "${FORMAL_RUN}" "${TRACE_ROLE}" \
+      "${MODEL_PROFILE}" "${SAMPLING_SEED}" "${FAASLORA_SCENARIO}" \
+      "${SYSTEMS}" "${EXECUTION_ORDER}" "${GENERATION_CONTRACT}" <<'PY'
+import sys
+
+from fair_system_resolved_config import validate_campaign_protocol
+
+result = validate_campaign_protocol(
+    campaign_kind=sys.argv[1],
+    formal_run=bool(int(sys.argv[2])),
+    trace_role=sys.argv[3],
+    model_profile=sys.argv[4],
+    sampling_seed=int(sys.argv[5]),
+    faaslora_scenario=sys.argv[6],
+    systems=sys.argv[7].split(),
+    execution_order=sys.argv[8].split(),
+    generation_contract=sys.argv[9],
+)
+print(
+    "[campaign-gate] "
+    f"kind={result['campaign_kind'] or 'exploratory'} "
+    f"publication_protocol_enforced="
+    f"{str(result['publication_protocol_enforced']).lower()}"
+)
+PY
 }
 
 default_client_timeout_s() {
@@ -1677,7 +1725,7 @@ write_manifest() {
   )"
   local frozen_settings_sha=""
   frozen_settings_sha="$(faaslora_frozen_settings_sha256)"
-  python3 - "${ROUND_DIR}" "${RUN_TAG}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" "${SAMPLING_SEED}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" "${SYSTEMS}" "${supported_systems}" "${unsupported_systems}" "${GENERATION_CONTRACT}" "${FIXED_OUTPUT_MAX_TOKENS}" "${FIXED_PROMPT_MAX_TOKENS}" "${STORAGE_BANDWIDTH_MIB_S}" "${ZIPF_EXPONENT}" "${ACTIVE_ADAPTER_CAP}" "${HOTSET_ROTATION_REQUESTS}" "${HOTSET_ROTATION_MODE}" "${HOTSET_OVERLAP_FRACTION}" "${FAASLORA_SCENARIO}" "${EXECUTION_ORDER}" "${frozen_settings_sha}" <<'PY'
+  python3 - "${ROUND_DIR}" "${RUN_TAG}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" "${SAMPLING_SEED}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" "${SYSTEMS}" "${supported_systems}" "${unsupported_systems}" "${GENERATION_CONTRACT}" "${FIXED_OUTPUT_MAX_TOKENS}" "${FIXED_PROMPT_MAX_TOKENS}" "${STORAGE_BANDWIDTH_MIB_S}" "${ZIPF_EXPONENT}" "${ACTIVE_ADAPTER_CAP}" "${HOTSET_ROTATION_REQUESTS}" "${HOTSET_ROTATION_MODE}" "${HOTSET_OVERLAP_FRACTION}" "${FAASLORA_SCENARIO}" "${EXECUTION_ORDER}" "${frozen_settings_sha}" "${CAMPAIGN_KIND}" <<'PY'
 import hashlib
 import json
 import os
@@ -1734,6 +1782,7 @@ payload = {
     "faaslora_scenario": sys.argv[23],
     "execution_order": sys.argv[24].split(),
     "faaslora_frozen_settings_sha256": sys.argv[25],
+    "campaign_kind": sys.argv[26] or None,
 }
 resolved_config_path = round_dir / "protocol" / "system_resolved_config.json"
 if not resolved_config_path.is_file():
@@ -1743,6 +1792,8 @@ if int(resolved_config.get("sampling_seed", -1)) != payload["sampling_seed"]:
     raise SystemExit("[ERROR] resolved-config sidecar sampling seed mismatch")
 if str(resolved_config.get("model_profile") or "") != payload["model_profile"]:
     raise SystemExit("[ERROR] resolved-config sidecar model profile mismatch")
+if (resolved_config.get("campaign_kind") or None) != payload["campaign_kind"]:
+    raise SystemExit("[ERROR] resolved-config sidecar campaign kind mismatch")
 resolved_hash = str(resolved_config.get("system_resolved_config_sha256") or "")
 if len(resolved_hash) != 64 or any(ch not in "0123456789abcdef" for ch in resolved_hash):
     raise SystemExit("[ERROR] invalid system_resolved_config_sha256 in sidecar")
@@ -1872,6 +1923,7 @@ main() {
   log "round_dir=${ROUND_DIR}"
   log "run_tag=${RUN_TAG}"
   log "formal_run=${FORMAL_RUN} trace_role=${TRACE_ROLE}"
+  log "campaign_kind=${CAMPAIGN_KIND:-exploratory}"
   log "execution_order=${EXECUTION_ORDER}"
   log "resume_file=${ROUND_ENV_FILE}"
   run_prep
@@ -1890,6 +1942,7 @@ main() {
   run_compare
   validate_trace_role_and_formal_sources
   write_manifest
+  mark_successful_validation_if_complete
   log "round complete: ${ROUND_DIR}"
   log "comparison: ${COMPARE_DIR}/${RUN_TAG}_five_system_compare.txt"
 }

@@ -51,15 +51,37 @@ The default registry is:
 <FAIR_ROUND_ROOT>/_protocol/system_resolved_config_registry.json
 ```
 
-Seed 41 may register multiple validation candidates. A held-out configuration
-is accepted only if its hash was already observed in a seed-41 validation
-record for the same family. The first accepted held-out run atomically freezes
-that selected validation hash. Later held-out seeds and sensitivity points in
-that family must match. Therefore neither a new formal-only tuning choice nor a
-switch between two validation candidates after seeing seed 43 can pass.
+Seed 41 may register multiple validation candidates, but registration happens
+before the GPU systems run and is not proof of success. A candidate enters the
+separate `successful_validation` registry only after its formal manifest says
+`status=complete` and the manifest/sidecar path, byte SHA, family, resolved
+configuration, seed, role, source gate, and campaign kind all match. A held-out
+configuration is accepted only if its hash has this completed seed-41 record
+for the same family. The first accepted held-out run atomically freezes that
+selected validation hash. Later held-out seeds and sensitivity points in that
+family must match. Therefore a failed/partial validation, a new formal-only
+tuning choice, or a switch between validation candidates after seeing seed 43
+cannot pass.
 The family includes the model and Prime scenario, but not bandwidth or C4
 workload axes. File locking and atomic replacement prevent concurrent launchers
 from establishing different frozen hashes.
+
+## Campaign-kind gate
+
+Every formal `v2_*` fair round must set one publication protocol:
+
+| `FAIR_CAMPAIGN_KIND` | Exact systems | Contract |
+|---|---|---|
+| `v2_full_vs_serverless` | `faaslora`, `serverlessllm` | `legacy` |
+| `v2_c5_matched_output` | `faaslora`, `slora` | `fixed_length_greedy_v1` |
+
+Both require `FAIR_FAASLORA_SCENARIO=v2_full`, one of the frozen Llama 7B/3B
+profiles, and the predeclared model/seed execution order. Extra systems,
+missing systems, a reversed order, or a contract mismatch fail before GPU
+launch. Seed 42 follows the registered smoke order; seeds 43--45 alternate
+which system runs first, with the 3B schedule reversed from 7B. The campaign
+kind is stored in `round.env`, the resolved-config family/full-run identity,
+and `MANIFEST.json`.
 
 ## Formal source gate
 
@@ -73,8 +95,9 @@ publication:
 - untracked files, including baseline `cache/`, are intentionally ignored.
 
 Formal execution fails closed if these conditions are not met. The round
-manifest records `formal_run`, `trace_role`, `source_clean_for_formal`,
-`system_resolved_config_sha256`, and `full_run_identity_sha256`.
+manifest records `campaign_kind`, `formal_run`, `trace_role`,
+`source_clean_for_formal`, `system_resolved_config_sha256`, and
+`full_run_identity_sha256`.
 
 The fair runner propagates the resolved-config audit to PrimeLoRA with:
 
@@ -94,6 +117,11 @@ SSE generator consumes them. The upstream single-slot mailbox can overwrite
 unread token events when detokenization runs ahead of the HTTP consumer. The
 correction does not change generation length, scheduling, batching, paging, or
 adapter placement; it only prevents loss of already-produced native token IDs.
-The exact patched file is covered by `upstream_worktree_identity`, and
+All local S-LoRA compatibility changes are preserved losslessly in
+`patches/S-LoRA_local_changes.patch.gz`; its decompressed SHA-256 is
+`7a0f48f60c225789014ad960ec3ab1cf6388611b7650a4f656f1208c981c2d60`.
+Reverse-apply checking against the live worktree proves that artifact matches
+its tracked diff byte-for-byte. The same diff and final file bytes are covered
+by `upstream_worktree_identity`, and
 `tests/test_fixed_length_generation_contract.py` contains a burst regression
 that fails under the single-slot behavior.

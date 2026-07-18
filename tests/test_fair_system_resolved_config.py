@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -33,6 +34,10 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
         zipf: str = "",
         rotation: str = "",
         time_scale: str = "",
+        formal: str = "0",
+        campaign_kind: str = "",
+        model_profile: str = "llama2_7b_main_v2_publicmix",
+        generation_contract: str = "fixed_length_greedy_v1",
     ):
         return module.parse_args(
             [
@@ -41,7 +46,7 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                 "--main-repo",
                 str(MAIN_REPO),
                 "--model-profile",
-                "llama2_7b_main_v2_publicmix",
+                model_profile,
                 "--dataset-profile",
                 "azure_sharegpt_rep4000",
                 "--workload-profile",
@@ -54,10 +59,12 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                 str(seed),
                 "--time-scale-factor",
                 time_scale,
+                "--formal-run",
+                formal,
                 "--trace-role",
                 role,
                 "--generation-contract",
-                "fixed_length_greedy_v1",
+                generation_contract,
                 "--fixed-output-max-tokens",
                 "256",
                 "--fixed-prompt-max-tokens",
@@ -80,6 +87,8 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                 subset_path,
                 "--execution-order",
                 execution_order,
+                "--campaign-kind",
+                campaign_kind,
                 "--output",
                 str(root / output_name),
                 "--registry",
@@ -121,6 +130,49 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
             module, "_git_worktree_identity", side_effect=identities
         ), mock.patch.object(module, "source_cleanliness", return_value=clean):
             return module.build_sidecar(args, env or {})
+
+    def _write_and_mark_validation(
+        self,
+        sidecar,
+        registry_path: Path,
+        *,
+        status: str = "complete",
+        manifest_name: str | None = None,
+    ):
+        sidecar_path = Path(sidecar["sidecar_path"])
+        sidecar_path.parent.mkdir(parents=True, exist_ok=True)
+        sidecar_path.write_text(
+            json.dumps(sidecar, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        manifest_path = sidecar_path.parent / (
+            manifest_name or f"{sidecar_path.stem}-MANIFEST.json"
+        )
+        manifest = {
+            "status": status,
+            "formal_run": True,
+            "source_clean_for_formal": True,
+            "trace_role": "validation",
+            "sampling_seed": 41,
+            "campaign_kind": sidecar.get("campaign_kind"),
+            "system_resolved_config_path": str(sidecar_path.resolve()),
+            "system_resolved_config_sidecar_sha256": module._file_sha256(
+                sidecar_path
+            ),
+            "system_resolved_config_family_id": sidecar[
+                "configuration_family_id"
+            ],
+            "system_resolved_config_sha256": sidecar[
+                "system_resolved_config_sha256"
+            ],
+        }
+        manifest_path.write_text(
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        return module.mark_successful_validation(
+            sidecar_path=sidecar_path,
+            registry_path=registry_path,
+            manifest_path=manifest_path,
+        )
 
     def test_upstream_patch_identity_records_content_and_changes_system_hash(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -368,6 +420,7 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                     total=1000,
                     role="validation",
                     output_name="validation-a.json",
+                    formal="1",
                 ),
                 {},
             )
@@ -378,6 +431,7 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                     total=1000,
                     role="validation",
                     output_name="validation-b.json",
+                    formal="1",
                 ),
                 {"SLLM_DEPLOY_TARGET": "9"},
             )
@@ -394,8 +448,11 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                 ),
                 {"SLLM_DEPLOY_TARGET": "9"},
             )
-            module.register_sidecar(validation_a, root / "registry.json")
-            module.register_sidecar(validation_b, root / "registry.json")
+            registry_path = root / "registry.json"
+            module.register_sidecar(validation_a, registry_path)
+            module.register_sidecar(validation_b, registry_path)
+            self._write_and_mark_validation(validation_a, registry_path)
+            self._write_and_mark_validation(validation_b, registry_path)
             module.register_sidecar(seed43, root / "registry.json")
             with self.assertRaisesRegex(ValueError, "held-out resolved configuration changed"):
                 module.register_sidecar(seed44, root / "registry.json")
@@ -406,7 +463,7 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
             seed43 = self._build(
                 self._args(root, seed=43, total=4000, role="heldout"), {}
             )
-            with self.assertRaisesRegex(ValueError, "not observed on seed 41 validation"):
+            with self.assertRaisesRegex(ValueError, "not completed successfully"):
                 module.register_sidecar(seed43, root / "registry.json")
 
             validation = self._build(
@@ -416,11 +473,14 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                     total=1000,
                     role="validation",
                     output_name="validation.json",
+                    formal="1",
                 ),
                 {"SLLM_DEPLOY_TARGET": "11"},
             )
-            module.register_sidecar(validation, root / "registry.json")
-            with self.assertRaisesRegex(ValueError, "not observed on seed 41 validation"):
+            registry_path = root / "registry.json"
+            module.register_sidecar(validation, registry_path)
+            self._write_and_mark_validation(validation, registry_path)
+            with self.assertRaisesRegex(ValueError, "not completed successfully"):
                 module.register_sidecar(seed43, root / "registry.json")
 
             matching_validation = self._build(
@@ -430,6 +490,7 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                     total=1000,
                     role="validation",
                     output_name="matching-validation.json",
+                    formal="1",
                 ),
                 {},
             )
@@ -443,11 +504,156 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                 ),
                 {},
             )
-            module.register_sidecar(matching_validation, root / "registry.json")
+            module.register_sidecar(matching_validation, registry_path)
+            self._write_and_mark_validation(matching_validation, registry_path)
             module.register_sidecar(seed43, root / "registry.json")
             registry = module.register_sidecar(seed44, root / "registry.json")
             heldout = registry["families"][seed43["configuration_family_id"]]["heldout"]
             self.assertEqual(heldout["seeds"], [43, 44])
+
+    def test_registered_but_incomplete_validation_does_not_unlock_heldout(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            registry_path = root / "registry.json"
+            validation = self._build(
+                self._args(
+                    root,
+                    seed=41,
+                    total=1000,
+                    role="validation",
+                    output_name="validation.json",
+                    formal="1",
+                ),
+                {},
+            )
+            heldout = self._build(
+                self._args(root, seed=43, total=4000, role="heldout"), {}
+            )
+            module.register_sidecar(validation, registry_path)
+            with self.assertRaisesRegex(ValueError, "not completed successfully"):
+                module.register_sidecar(heldout, registry_path)
+            with self.assertRaisesRegex(ValueError, "status=complete"):
+                self._write_and_mark_validation(
+                    validation, registry_path, status="incomplete"
+                )
+            registry = self._write_and_mark_validation(validation, registry_path)
+            successes = registry["families"][validation["configuration_family_id"]][
+                "successful_validation"
+            ]
+            self.assertEqual(len(successes), 1)
+            module.register_sidecar(heldout, registry_path)
+
+    def test_successful_validation_rejects_manifest_sidecar_sha_drift(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            registry_path = root / "registry.json"
+            validation = self._build(
+                self._args(
+                    root,
+                    seed=41,
+                    total=1000,
+                    role="validation",
+                    output_name="validation.json",
+                    formal="1",
+                ),
+                {},
+            )
+            module.register_sidecar(validation, registry_path)
+            sidecar_path = Path(validation["sidecar_path"])
+            sidecar_path.write_text(json.dumps(validation), encoding="utf-8")
+            manifest_path = root / "MANIFEST.json"
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "status": "complete",
+                        "formal_run": True,
+                        "source_clean_for_formal": True,
+                        "trace_role": "validation",
+                        "sampling_seed": 41,
+                        "campaign_kind": validation.get("campaign_kind"),
+                        "system_resolved_config_path": str(sidecar_path.resolve()),
+                        "system_resolved_config_sidecar_sha256": "0" * 64,
+                        "system_resolved_config_family_id": validation[
+                            "configuration_family_id"
+                        ],
+                        "system_resolved_config_sha256": validation[
+                            "system_resolved_config_sha256"
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "sidecar SHA"):
+                module.mark_successful_validation(
+                    sidecar_path=sidecar_path,
+                    registry_path=registry_path,
+                    manifest_path=manifest_path,
+                )
+
+    def test_campaign_protocol_enforces_exact_systems_contract_and_order(self):
+        main = module.validate_campaign_protocol(
+            campaign_kind="v2_full_vs_serverless",
+            formal_run=True,
+            trace_role="heldout",
+            model_profile="llama2_7b_main_v2_publicmix",
+            sampling_seed=43,
+            faaslora_scenario="v2_full",
+            systems=["serverlessllm", "faaslora"],
+            execution_order=["faaslora", "serverlessllm"],
+            generation_contract="legacy",
+        )
+        self.assertEqual(
+            main["expected_execution_order"], ["faaslora", "serverlessllm"]
+        )
+        c5 = module.validate_campaign_protocol(
+            campaign_kind="v2_c5_matched_output",
+            formal_run=True,
+            trace_role="heldout",
+            model_profile="llama32_3b_main_modelscope",
+            sampling_seed=44,
+            faaslora_scenario="v2_full",
+            systems=["slora", "faaslora"],
+            execution_order=["slora", "faaslora"],
+            generation_contract="fixed_length_greedy_v1",
+        )
+        self.assertEqual(c5["expected_execution_order"], ["slora", "faaslora"])
+
+        with self.assertRaisesRegex(ValueError, "exact systems"):
+            module.validate_campaign_protocol(
+                campaign_kind="v2_c5_matched_output",
+                formal_run=True,
+                trace_role="heldout",
+                model_profile="llama2_7b_main_v2_publicmix",
+                sampling_seed=43,
+                faaslora_scenario="v2_full",
+                systems=["slora", "faaslora", "serverlessllm"],
+                execution_order=["slora", "faaslora", "serverlessllm"],
+                generation_contract="fixed_length_greedy_v1",
+            )
+        with self.assertRaisesRegex(ValueError, "execution order mismatch"):
+            module.validate_campaign_protocol(
+                campaign_kind="v2_full_vs_serverless",
+                formal_run=True,
+                trace_role="heldout",
+                model_profile="llama2_7b_main_v2_publicmix",
+                sampling_seed=43,
+                faaslora_scenario="v2_full",
+                systems=["serverlessllm", "faaslora"],
+                execution_order=["serverlessllm", "faaslora"],
+                generation_contract="legacy",
+            )
+        with self.assertRaisesRegex(ValueError, "requires FAIR_CAMPAIGN_KIND"):
+            module.validate_campaign_protocol(
+                campaign_kind="",
+                formal_run=True,
+                trace_role="heldout",
+                model_profile="llama2_7b_main_v2_publicmix",
+                sampling_seed=43,
+                faaslora_scenario="v2_full",
+                systems=["faaslora"],
+                execution_order=["faaslora"],
+                generation_contract="legacy",
+            )
 
     def test_formal_source_gate_ignores_untracked_and_allows_only_faas_manifest(self):
         with mock.patch.object(

@@ -6,9 +6,11 @@ identity belongs to the round provenance and therefore is not part of the
 hashed payload.  In particular, sampling seed, trace/subset paths or hashes,
 execution order, and run tags are recorded only in the unhashed audit section.
 
-For a held-out configuration family, the first seed creates a registry entry.
-Later held-out seeds must present the same hash.  The registry update is locked
-and atomic so two launchers cannot silently establish different configurations.
+A held-out launch is accepted only after a matching seed-41 formal validation
+has completed and its manifest/sidecar bytes have been promoted.  The first
+held-out seed freezes that successful hash; later held-out seeds must match.
+Registry updates are locked and atomic so concurrent launchers cannot silently
+establish different configurations.
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ import hashlib
 import json
 import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, Iterable, Mapping, MutableMapping, Sequence
@@ -40,6 +43,10 @@ SEED_TRACE_ROLES = {
     43: "heldout",
     44: "heldout",
     45: "heldout",
+}
+V2_CAMPAIGN_KINDS = {
+    "v2_full_vs_serverless",
+    "v2_c5_matched_output",
 }
 FORBIDDEN_HASH_KEYS = {
     "seed",
@@ -820,6 +827,129 @@ def validate_trace_role(seed: int, trace_role: str, scenario: str, total_request
     return observed
 
 
+def validate_campaign_protocol(
+    *,
+    campaign_kind: str,
+    formal_run: bool,
+    trace_role: str,
+    model_profile: str,
+    sampling_seed: int,
+    faaslora_scenario: str,
+    systems: Sequence[str],
+    execution_order: Sequence[str],
+    generation_contract: str,
+) -> Dict[str, Any]:
+    """Validate exact system/contract/order semantics for V2 paired campaigns.
+
+    Exploratory non-formal rounds may omit a campaign kind.  Every formal V2
+    round must opt into a publication protocol, and an opted-in protocol is
+    checked even for smoke runs.
+    """
+
+    kind = str(campaign_kind or "").strip()
+    system_list = [str(item) for item in systems]
+    order_list = [str(item) for item in execution_order]
+    if len(system_list) != len(set(system_list)):
+        raise ValueError(f"campaign systems contain duplicates: {system_list}")
+    if len(order_list) != len(set(order_list)):
+        raise ValueError(f"campaign execution order contains duplicates: {order_list}")
+
+    is_v2 = faaslora_scenario in STRICT_V2_SCENARIOS
+    if formal_run and is_v2 and kind not in V2_CAMPAIGN_KINDS:
+        raise ValueError(
+            "formal V2 round requires FAIR_CAMPAIGN_KIND in "
+            f"{sorted(V2_CAMPAIGN_KINDS)}; got {kind!r}"
+        )
+    if not kind:
+        return {
+            "campaign_kind": None,
+            "publication_protocol_enforced": False,
+            "expected_execution_order": None,
+        }
+    if set(order_list) != set(system_list):
+        raise ValueError(
+            "campaign execution order must be an exact permutation of selected systems: "
+            f"systems={system_list} execution_order={order_list}"
+        )
+    if kind not in V2_CAMPAIGN_KINDS:
+        raise ValueError(f"unsupported FAIR_CAMPAIGN_KIND={kind!r}")
+    if faaslora_scenario != "v2_full":
+        raise ValueError(
+            f"{kind} requires FAIR_FAASLORA_SCENARIO=v2_full; "
+            f"got {faaslora_scenario!r}"
+        )
+
+    model_key_by_profile = {
+        "llama2_7b_main_v2_publicmix": "7b",
+        "llama32_3b_main_modelscope": "3b",
+    }
+    try:
+        model_key = model_key_by_profile[model_profile]
+    except KeyError as exc:
+        raise ValueError(
+            f"{kind} permits only the frozen 7B/3B model profiles; got {model_profile!r}"
+        ) from exc
+
+    seed = int(sampling_seed)
+    if seed not in SEED_TRACE_ROLES:
+        raise ValueError(f"{kind} has no predeclared execution order for seed {seed}")
+    expected_role = SEED_TRACE_ROLES[seed]
+    if str(trace_role) != expected_role:
+        raise ValueError(
+            f"{kind} trace role mismatch for seed {seed}: "
+            f"expected={expected_role!r} observed={trace_role!r}"
+        )
+
+    if kind == "v2_full_vs_serverless":
+        expected_systems = {"faaslora", "serverlessllm"}
+        if generation_contract != "legacy":
+            raise ValueError(
+                "v2_full_vs_serverless requires generation_contract=legacy"
+            )
+        seven_b_first = "faaslora" if seed % 2 else "serverlessllm"
+        if model_key == "3b":
+            seven_b_first = (
+                "serverlessllm" if seven_b_first == "faaslora" else "faaslora"
+            )
+        expected_order = [
+            seven_b_first,
+            "serverlessllm" if seven_b_first == "faaslora" else "faaslora",
+        ]
+    else:
+        expected_systems = {"faaslora", "slora"}
+        if generation_contract != "fixed_length_greedy_v1":
+            raise ValueError(
+                "v2_c5_matched_output requires "
+                "generation_contract=fixed_length_greedy_v1"
+            )
+        # The seed-42 smoke order was predeclared with S-LoRA first for 7B and
+        # Prime first for 3B.  Held-out seeds alternate by seed, with the 3B
+        # schedule reversed, so each system is balanced across model/seed.
+        if seed == 42:
+            first = "slora" if model_key == "7b" else "faaslora"
+        else:
+            first = "slora" if seed % 2 else "faaslora"
+            if model_key == "3b":
+                first = "faaslora" if first == "slora" else "slora"
+        expected_order = [first, "faaslora" if first == "slora" else "slora"]
+
+    if set(system_list) != expected_systems or len(system_list) != 2:
+        raise ValueError(
+            f"{kind} requires exact systems={sorted(expected_systems)}; "
+            f"got {system_list}"
+        )
+    if order_list != expected_order:
+        raise ValueError(
+            f"{kind} execution order mismatch for model={model_key} seed={seed}: "
+            f"expected={expected_order} observed={order_list}"
+        )
+    return {
+        "campaign_kind": kind,
+        "publication_protocol_enforced": True,
+        "expected_execution_order": expected_order,
+    }
+
+
 def _atomic_write_json(path: Path, payload: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=str(path.parent))
@@ -857,6 +987,7 @@ def register_sidecar(sidecar: Mapping[str, Any], registry_path: Path) -> Dict[st
                 "configuration_family": sidecar["configuration_family"],
                 "model_profile": sidecar["model_profile"],
                 "validation": [],
+                "successful_validation": [],
                 "smoke": [],
                 "heldout": {
                     "system_resolved_config_sha256": None,
@@ -867,6 +998,9 @@ def register_sidecar(sidecar: Mapping[str, Any], registry_path: Path) -> Dict[st
         )
         if family.get("configuration_family") != sidecar["configuration_family"]:
             raise ValueError(f"configuration-family hash collision: {family_id}")
+        # Backward-compatible extension of registries written before successful
+        # completion became a separate publication gate.
+        family.setdefault("successful_validation", [])
         role = str(sidecar["trace_role"])
         record = {
             "seed": int(sidecar["sampling_seed"]),
@@ -879,14 +1013,15 @@ def register_sidecar(sidecar: Mapping[str, Any], registry_path: Path) -> Dict[st
             observed_hash = str(sidecar["system_resolved_config_sha256"])
             validation_hashes = {
                 str(item.get("system_resolved_config_sha256") or "")
-                for item in family.get("validation", [])
+                for item in family.get("successful_validation", [])
                 if int(item.get("seed", -1)) == 41
             }
             if observed_hash not in validation_hashes:
                 raise ValueError(
-                    "held-out configuration was not observed on seed 41 validation: "
+                    "held-out configuration was not completed successfully on seed 41 "
+                    "validation: "
                     f"family={family_id} observed={observed_hash} "
-                    f"validation_hashes={sorted(validation_hashes)}"
+                    f"successful_validation_hashes={sorted(validation_hashes)}"
                 )
             if frozen_hash not in (None, observed_hash):
                 raise ValueError(
@@ -921,6 +1056,124 @@ def register_sidecar(sidecar: Mapping[str, Any], registry_path: Path) -> Dict[st
         return registry
 
 
+def mark_successful_validation(
+    *,
+    sidecar_path: Path,
+    registry_path: Path,
+    manifest_path: Path,
+) -> Dict[str, Any]:
+    """Promote a registered seed-41 sidecar only after a complete formal round."""
+
+    sidecar_path = sidecar_path.resolve()
+    registry_path = registry_path.resolve()
+    manifest_path = manifest_path.resolve()
+    if not sidecar_path.is_file():
+        raise ValueError(f"missing validation sidecar: {sidecar_path}")
+    if not manifest_path.is_file():
+        raise ValueError(f"missing validation manifest: {manifest_path}")
+    sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    if str(sidecar.get("trace_role") or "") != "validation":
+        raise ValueError("successful validation marker requires trace_role=validation")
+    if int(sidecar.get("sampling_seed", -1)) != 41:
+        raise ValueError("successful validation marker requires seed 41")
+    if sidecar.get("formal_run") is not True:
+        raise ValueError("successful validation marker requires formal_run=true")
+    if sidecar.get("source_clean_for_formal") is not True:
+        raise ValueError("successful validation sidecar must pass the formal source gate")
+    recorded_sidecar = Path(str(sidecar.get("sidecar_path") or "")).resolve()
+    if recorded_sidecar != sidecar_path:
+        raise ValueError(
+            f"validation sidecar path mismatch: recorded={recorded_sidecar} "
+            f"actual={sidecar_path}"
+        )
+
+    if str(manifest.get("status") or "") != "complete":
+        raise ValueError("successful validation requires MANIFEST status=complete")
+    if manifest.get("formal_run") is not True:
+        raise ValueError("successful validation manifest requires formal_run=true")
+    if manifest.get("source_clean_for_formal") is not True:
+        raise ValueError("successful validation manifest failed the formal source gate")
+    if str(manifest.get("trace_role") or "") != "validation":
+        raise ValueError("successful validation manifest requires trace_role=validation")
+    if int(manifest.get("sampling_seed", -1)) != 41:
+        raise ValueError("successful validation manifest requires seed 41")
+
+    sidecar_sha256 = _file_sha256(sidecar_path)
+    manifest_sidecar_path = Path(
+        str(manifest.get("system_resolved_config_path") or "")
+    ).resolve()
+    if manifest_sidecar_path != sidecar_path:
+        raise ValueError(
+            "manifest references a different resolved-config sidecar: "
+            f"manifest={manifest_sidecar_path} actual={sidecar_path}"
+        )
+    if str(manifest.get("system_resolved_config_sidecar_sha256") or "") != sidecar_sha256:
+        raise ValueError("manifest resolved-config sidecar SHA does not match current bytes")
+
+    family_id = str(sidecar.get("configuration_family_id") or "")
+    config_sha256 = str(sidecar.get("system_resolved_config_sha256") or "")
+    if str(manifest.get("system_resolved_config_family_id") or "") != family_id:
+        raise ValueError("manifest/sidecar configuration-family mismatch")
+    if str(manifest.get("system_resolved_config_sha256") or "") != config_sha256:
+        raise ValueError("manifest/sidecar resolved-config hash mismatch")
+    if str(manifest.get("campaign_kind") or "") != str(
+        sidecar.get("campaign_kind") or ""
+    ):
+        raise ValueError("manifest/sidecar campaign-kind mismatch")
+
+    manifest_sha256 = _file_sha256(manifest_path)
+    success_record = {
+        "seed": 41,
+        "system_resolved_config_sha256": config_sha256,
+        "sidecar": str(sidecar_path),
+        "sidecar_sha256": sidecar_sha256,
+        "manifest": str(manifest_path),
+        "manifest_sha256": manifest_sha256,
+        "campaign_kind": str(sidecar.get("campaign_kind") or ""),
+    }
+
+    registry_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = registry_path.with_suffix(registry_path.suffix + ".lock")
+    with lock_path.open("a+", encoding="utf-8") as lock_handle:
+        fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX)
+        if not registry_path.is_file():
+            raise ValueError(
+                f"validation sidecar was not registered before completion: {registry_path}"
+            )
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        if registry.get("schema_version") != REGISTRY_SCHEMA_VERSION:
+            raise ValueError(f"unsupported config registry schema: {registry_path}")
+        family = (registry.get("families") or {}).get(family_id)
+        if not isinstance(family, MutableMapping):
+            raise ValueError(f"validation configuration family is absent: {family_id}")
+        registered = any(
+            int(item.get("seed", -1)) == 41
+            and str(item.get("system_resolved_config_sha256") or "") == config_sha256
+            and Path(str(item.get("sidecar") or "")).resolve() == sidecar_path
+            for item in family.get("validation", [])
+        )
+        if not registered:
+            raise ValueError(
+                "successful validation sidecar has no matching pre-run registry record"
+            )
+        successes = family.setdefault("successful_validation", [])
+        previous_same_sidecar = [
+            item
+            for item in successes
+            if Path(str(item.get("sidecar") or "")).resolve() == sidecar_path
+        ]
+        if previous_same_sidecar and success_record not in previous_same_sidecar:
+            raise ValueError(
+                "validation sidecar was already promoted with different manifest bytes"
+            )
+        if success_record not in successes:
+            successes.append(success_record)
+        _atomic_write_json(registry_path, registry)
+        return registry
+
+
 def build_sidecar(args: argparse.Namespace, env: Mapping[str, str]) -> Dict[str, Any]:
     role = validate_trace_role(
         args.sampling_seed,
@@ -950,6 +1203,7 @@ def build_sidecar(args: argparse.Namespace, env: Mapping[str, str]) -> Dict[str,
         env=env,
     )
     family = {
+        "campaign_kind": args.campaign_kind or None,
         "model_profile": args.model_profile,
         "dataset_profile": args.dataset_profile,
         "workload_profile": args.workload_profile,
@@ -1028,6 +1282,7 @@ def build_sidecar(args: argparse.Namespace, env: Mapping[str, str]) -> Dict[str,
         "storage_bandwidth_mib_s": float(args.storage_bandwidth_mib_s),
         "workload_overrides": effective_workload_axes,
         "faaslora_scenario": args.faaslora_scenario,
+        "campaign_kind": args.campaign_kind or None,
     }
     source_status = source_cleanliness(args.baselines_root, args.main_repo)
     formal_run = bool(int(args.formal_run))
@@ -1039,6 +1294,7 @@ def build_sidecar(args: argparse.Namespace, env: Mapping[str, str]) -> Dict[str,
         )
     return {
         "schema_version": SCHEMA_VERSION,
+        "campaign_kind": args.campaign_kind or None,
         "formal_run": formal_run,
         "trace_role": role,
         "sampling_seed": int(args.sampling_seed),
@@ -1108,13 +1364,36 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--trace-path", default="")
     parser.add_argument("--adapter-subset-path", default="")
     parser.add_argument("--execution-order", default="")
+    parser.add_argument("--campaign-kind", default="")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--registry", type=Path, required=True)
     return parser.parse_args(argv)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    args = parse_args(argv)
+    arguments = list(argv) if argv is not None else sys.argv[1:]
+    if arguments and arguments[0] == "mark-validation-complete":
+        parser = argparse.ArgumentParser(
+            description="Promote a complete formal seed-41 validation round"
+        )
+        parser.add_argument("--sidecar", type=Path, required=True)
+        parser.add_argument("--registry", type=Path, required=True)
+        parser.add_argument("--manifest", type=Path, required=True)
+        completion_args = parser.parse_args(arguments[1:])
+        registry = mark_successful_validation(
+            sidecar_path=completion_args.sidecar,
+            registry_path=completion_args.registry,
+            manifest_path=completion_args.manifest,
+        )
+        print(
+            "[resolved-config] successful validation registered "
+            f"sidecar={completion_args.sidecar.resolve()} "
+            f"manifest={completion_args.manifest.resolve()} "
+            f"families={len(registry.get('families', {}))}"
+        )
+        return 0
+
+    args = parse_args(arguments)
     sidecar = build_sidecar(args, os.environ)
     _atomic_write_json(args.output.resolve(), sidecar)
     try:

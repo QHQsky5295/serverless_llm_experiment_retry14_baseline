@@ -389,7 +389,7 @@ class SloraStreamFifoRegressionTest(unittest.IsolatedAsyncioTestCase):
             for request_id, length in request_lengths.items()
         }
         first_outputs = {
-            request_id: asyncio.create_task(anext(output))
+                request_id: asyncio.create_task(output.__anext__())
             for request_id, output in outputs.items()
         }
         for _ in range(100):
@@ -406,10 +406,12 @@ class SloraStreamFifoRegressionTest(unittest.IsolatedAsyncioTestCase):
                 ]
                 for _ in range(length - 1):
                     observed.append(
-                        await asyncio.wait_for(anext(outputs[request_id]), timeout=1)
+                        await asyncio.wait_for(
+                            outputs[request_id].__anext__(), timeout=1
+                        )
                     )
                 with self.assertRaises(StopAsyncIteration):
-                    await asyncio.wait_for(anext(outputs[request_id]), timeout=1)
+                    await asyncio.wait_for(outputs[request_id].__anext__(), timeout=1)
                 self.assertEqual(
                     [item[1]["id"] for item in observed],
                     token_ids[request_id],
@@ -461,7 +463,7 @@ class SloraStreamFifoRegressionTest(unittest.IsolatedAsyncioTestCase):
         manager.send_to_router = Sender()
 
         output = manager.generate("adapter", "prompt", SamplingParams(), "abort-me")
-        first_output = asyncio.create_task(anext(output))
+        first_output = asyncio.create_task(output.__anext__())
         for _ in range(100):
             if "abort-me" in manager.req_id_to_out_inf:
                 break
@@ -471,7 +473,7 @@ class SloraStreamFifoRegressionTest(unittest.IsolatedAsyncioTestCase):
         await manager.abort("abort-me")
         self.assertEqual(await asyncio.wait_for(first_output, timeout=1), ("", {}, -1))
         with self.assertRaises(StopAsyncIteration):
-            await asyncio.wait_for(anext(output), timeout=1)
+            await asyncio.wait_for(output.__anext__(), timeout=1)
         self.assertNotIn("abort-me", manager.req_id_to_out_inf)
         self.assertEqual(manager.send_to_router.messages[-1], {"req_id": "abort-me"})
 

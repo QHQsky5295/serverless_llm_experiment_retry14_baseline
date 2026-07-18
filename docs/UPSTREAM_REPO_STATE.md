@@ -92,11 +92,19 @@
 - 本地分支：`main`
 - 本地路径：`/home/qhq/serverless_llm_baselines/repos/S-LoRA`
 - 当前上游基线 commit：`c1ddf488781ea7f551cd0bb07bfd097124c93411`
-- 当前本地状态：通过外层 wrapper 接入公平实验链；本地工作树当前有少量
-  official server 适配修改（detokenization/router/model_rpc），不要回退。
+- 当前本地状态：通过外层 wrapper 接入公平实验链；本地工作树有 10 个 tracked
+  compatibility files，覆盖模型权重/BMM 兼容、detokenization/router/model_rpc，
+  以及 C5 所需的 HTTP per-request FIFO token-event 修正。完整 binary diff 固化在
+  `patches/S-LoRA_local_changes.patch.gz`（压缩文件 SHA-256
+  `037eed2e9f8529fcb0e76ce48952375504fae10bac9fa5d0292575863b621f38`；
+  解压后 binary diff SHA-256
+  `7a0f48f60c225789014ad960ec3ab1cf6388611b7650a4f656f1208c981c2d60`），
+  并由 formal resolved-config 继续记录实时 worktree diff 和逐文件内容 SHA；
+  不要回退或只按上游 commit 复现。
 - 当前复现范围：`slora_official_cu118` 独立环境、官方 CUDA 11.8 extension、
   native `/generate_stream` replay、S-LoRA token budget guard、`e2e_v3` summary
-  已接入当前 fair round；不修改上游核心 serving 机制。
+  已接入当前 fair round。FIFO 修正只保存已经由 detokenizer 产生的事件，不改变
+  scheduler、batching、paging、adapter placement 或生成长度。
 
 ### Punica
 
