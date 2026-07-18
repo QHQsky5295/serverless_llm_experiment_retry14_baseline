@@ -22,6 +22,9 @@ TOTAL_REQUESTS="${SLLM_TOTAL_REQUESTS:?SLLM_TOTAL_REQUESTS is required}"
 SELECTED_NUM_ADAPTERS="${SLLM_SELECTED_NUM_ADAPTERS:?SLLM_SELECTED_NUM_ADAPTERS is required}"
 SAMPLING_SEED="${SLLM_SAMPLING_SEED:-42}"
 GENERATION_SEED="${SLLM_GENERATION_SEED:-${SAMPLING_SEED}}"
+GENERATION_CONTRACT="${SLLM_GENERATION_CONTRACT:-${FAIR_GENERATION_CONTRACT:-legacy}}"
+FIXED_OUTPUT_MAX_TOKENS="${SLLM_FIXED_OUTPUT_MAX_TOKENS:-${FAIR_FIXED_OUTPUT_MAX_TOKENS:-256}}"
+FIXED_PROMPT_MAX_TOKENS="${SLLM_FIXED_PROMPT_MAX_TOKENS:-${FAIR_FIXED_PROMPT_MAX_TOKENS:-759}}"
 RUN_TAG="${SLLM_RUN_TAG:-${MODEL_PROFILE}_r${TOTAL_REQUESTS}_a${SELECTED_NUM_ADAPTERS}_seed${SAMPLING_SEED}}"
 SHARED_TRACE_PATH="${SLLM_SHARED_TRACE_PATH:?SLLM_SHARED_TRACE_PATH is required}"
 SHARED_ADAPTER_SUBSET_PATH="${SLLM_SHARED_ADAPTER_SUBSET_PATH:?SLLM_SHARED_ADAPTER_SUBSET_PATH is required}"
@@ -53,6 +56,25 @@ SLORA_REMOTE_ARTIFACT_STAGE_ENDPOINT="${SLORA_REMOTE_ARTIFACT_STAGE_ENDPOINT:-${
 SLORA_REMOTE_ARTIFACT_STAGE_CACHE_DIR="${SLORA_REMOTE_ARTIFACT_STAGE_CACHE_DIR:-${ROOT_DIR}/results/remote_artifact_cache/${MODEL_PROFILE}/slora/${RUN_TAG}}"
 SLORA_REMOTE_ARTIFACT_STAGE_WORKERS="${SLORA_REMOTE_ARTIFACT_STAGE_WORKERS:-1}"
 SLORA_REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS="${SLORA_REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS:-${BASELINE_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-250}}"
+
+case "${GENERATION_CONTRACT}" in
+  legacy|fixed_length_greedy_v1)
+    ;;
+  *)
+    echo "[ERROR] unsupported SLLM_GENERATION_CONTRACT=${GENERATION_CONTRACT}" >&2
+    exit 1
+    ;;
+esac
+if [[ "${GENERATION_CONTRACT}" == "fixed_length_greedy_v1" ]]; then
+  if ! [[ "${FIXED_OUTPUT_MAX_TOKENS}" =~ ^[1-9][0-9]*$ ]]; then
+    echo "[ERROR] SLLM_FIXED_OUTPUT_MAX_TOKENS must be a positive integer" >&2
+    exit 1
+  fi
+  if ! [[ "${FIXED_PROMPT_MAX_TOKENS}" =~ ^[1-9][0-9]*$ ]]; then
+    echo "[ERROR] SLLM_FIXED_PROMPT_MAX_TOKENS must be a positive integer" >&2
+    exit 1
+  fi
+fi
 
 mkdir -p "${RESULT_DIR}" "${LOG_DIR}" "${SHARED_INPUT_DIR}"
 
@@ -334,7 +356,11 @@ SLORA_NUM_KEY_VALUE_HEADS="${_CFG[13]}"
 SLORA_BATCH_MAX_TOKENS="${SLORA_BATCH_MAX_TOKENS:-${SLORA_MAX_REQ_TOTAL_LEN}}"
 
 SLORA_TOPOLOGY_LABEL="dp${DP_REPLICAS}_tp${TP_EFFECTIVE}"
-RESULT_TAG="${SLORA_RESULT_TAG:-${RUN_TAG}_slora_${SLORA_TOPOLOGY_LABEL}}"
+GENERATION_CONTRACT_TAG=""
+if [[ "${GENERATION_CONTRACT}" == "fixed_length_greedy_v1" ]]; then
+  GENERATION_CONTRACT_TAG="_fixedlen_greedy_v1"
+fi
+RESULT_TAG="${SLORA_RESULT_TAG:-${RUN_TAG}_slora_${SLORA_TOPOLOGY_LABEL}${GENERATION_CONTRACT_TAG}}"
 if [[ "${SLORA_USE_BMM}" == "auto" ]]; then
   if (( TP_EFFECTIVE > 1 )); then
     SLORA_BMM_EFFECTIVE="1"
@@ -484,6 +510,7 @@ echo "      topology=${SLORA_TOPOLOGY_LABEL} gpu_ids=${SLORA_GPU_IDS}"
 echo "      heads=${SLORA_NUM_ATTENTION_HEADS} kv_heads=${SLORA_NUM_KEY_VALUE_HEADS}"
 echo "      bmm=${SLORA_BMM_EFFECTIVE} (requested=${SLORA_USE_BMM}, reason=${SLORA_BMM_REASON})"
 echo "      ready_wait_s=${SLORA_READY_WAIT_S}"
+echo "      generation_contract=${GENERATION_CONTRACT} fixed_output_cap=${FIXED_OUTPUT_MAX_TOKENS} fixed_prompt_cap=${FIXED_PROMPT_MAX_TOKENS}"
 echo "      launch_spec=${LAUNCH_SPEC_PATH}"
 echo "      adapter_map=${ADAPTER_VALUE_MAP_PATH}"
 echo "      replay=${REPLAY_PATH}"
@@ -637,6 +664,19 @@ echo "      slora_remote_stage_sec=${SLORA_REMOTE_STAGE_SEC}"
 echo "      slora_startup_sec=${SLORA_SERVER_STARTUP_SEC}"
 
 echo "[4/5] Replaying shared trace with unified live metrics"
+REPLAY_CONTRACT_ARGS=(
+  --generation-contract "${GENERATION_CONTRACT}"
+  --fixed-output-max-tokens "${FIXED_OUTPUT_MAX_TOKENS}"
+  --fixed-prompt-max-tokens "${FIXED_PROMPT_MAX_TOKENS}"
+)
+VALIDATOR_CONTRACT_ARGS=()
+if [[ "${GENERATION_CONTRACT}" == "fixed_length_greedy_v1" ]]; then
+  VALIDATOR_CONTRACT_ARGS=(
+    --require-generation-contract "${GENERATION_CONTRACT}"
+    --fixed-output-max-tokens "${FIXED_OUTPUT_MAX_TOKENS}"
+    --fixed-prompt-max-tokens "${FIXED_PROMPT_MAX_TOKENS}"
+  )
+fi
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${HELPER_PYTHON}" \
   "${ROOT_DIR}/scripts/replay_openai_trace.py" \
   --trace "${SHARED_TRACE_PATH}" \
@@ -662,6 +702,7 @@ PY
   --output-token-cost-usd "${OUTPUT_TOKEN_COST_USD}" \
   --ttft-slo-ms "${TTFT_SLO_MS}" \
   --generation-seed "${GENERATION_SEED}" \
+  "${REPLAY_CONTRACT_ARGS[@]}" \
   --adapter-source-field "adapter_id" \
   --adapter-target-field "lora_dir" \
   --adapter-value-map "${ADAPTER_VALUE_MAP_PATH}" \
@@ -674,7 +715,8 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${HELPER_PYTHON}" \
   "${ROOT_DIR}/scripts/validate_replay_results.py" \
   --system "S-LoRA" \
   --replay "${REPLAY_PATH}" \
-  --expected-total "${TOTAL_REQUESTS}"
+  --expected-total "${TOTAL_REQUESTS}" \
+  "${VALIDATOR_CONTRACT_ARGS[@]}"
 
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${HELPER_PYTHON}" - "${REPLAY_PATH}" <<'PY'
 import json

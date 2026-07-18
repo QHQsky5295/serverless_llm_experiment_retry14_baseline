@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 from collections import Counter
@@ -119,6 +120,115 @@ def _load_structured_file(path: Optional[Path]) -> Dict[str, Any]:
     except Exception:
         parsed = yaml.safe_load(raw) or {}
         return parsed if isinstance(parsed, dict) else {}
+
+
+def _sha256_file(path: Optional[Path]) -> Optional[str]:
+    if path is None or not path.is_file():
+        return None
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _finite_nonnegative(value: Any, default: float = 0.0) -> float:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return float(default)
+    if not math.isfinite(parsed) or parsed < 0.0:
+        return float(default)
+    return parsed
+
+
+def _summarize_aggregate_bandwidth(
+    replay: Dict[str, Any],
+    results: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Aggregate the request-path reservation audit into the paper schema."""
+
+    replay_configs = replay.get("remote_artifact_bandwidth") or {}
+    config_candidates = [
+        value
+        for value in (
+            replay_configs.get("request_path"),
+            replay_configs.get("dynamic_lora"),
+        )
+        if isinstance(value, dict)
+    ]
+    configured_candidates = {
+        _finite_nonnegative(item.get("configured_bandwidth_mib_s"))
+        for item in config_candidates
+    }
+    mode_candidates = {
+        str(item.get("limit_mode") or "").strip()
+        for item in config_candidates
+        if str(item.get("limit_mode") or "").strip()
+    }
+
+    fetched = [item for item in results if bool(item.get("remote_lora_fetched"))]
+    request_modes = {
+        str(item.get("remote_lora_bandwidth_limit_mode") or "").strip()
+        for item in fetched
+        if str(item.get("remote_lora_bandwidth_limit_mode") or "").strip()
+        not in {"cache_hit_no_transfer"}
+    }
+    request_configured = {
+        _finite_nonnegative(item.get("remote_lora_bandwidth_configured_mib_s"))
+        for item in fetched
+        if item.get("remote_lora_bandwidth_configured_mib_s") is not None
+    }
+    configured_candidates.update(request_configured)
+    mode_candidates.update(request_modes)
+
+    if len(configured_candidates) > 1:
+        raise ValueError(
+            "mixed remote-artifact bandwidth rates in one replay: "
+            f"{sorted(configured_candidates)}"
+        )
+    if len(mode_candidates) > 1:
+        raise ValueError(
+            "mixed remote-artifact bandwidth modes in one replay: "
+            f"{sorted(mode_candidates)}"
+        )
+
+    configured_mib_s = next(iter(configured_candidates), 0.0)
+    limit_mode = next(iter(mode_candidates), "not_configured")
+    total_bytes = sum(
+        int(
+            item.get("remote_lora_bandwidth_bytes")
+            if item.get("remote_lora_bandwidth_bytes") is not None
+            else item.get("remote_lora_bytes", 0)
+            or 0
+        )
+        for item in fetched
+    )
+    reservation_span_s = sum(
+        _finite_nonnegative(item.get("remote_lora_bandwidth_reserved_transfer_ms"))
+        / 1000.0
+        for item in fetched
+    )
+    total_injected_wait_s = sum(
+        _finite_nonnegative(item.get("remote_lora_bandwidth_wait_ms")) / 1000.0
+        for item in fetched
+    )
+    achieved_reserved_mib_s = (
+        (total_bytes / (1024.0 * 1024.0)) / reservation_span_s
+        if total_bytes > 0 and reservation_span_s > 0.0
+        else 0.0
+    )
+    configured_gbit_s = configured_mib_s * 1024.0 * 1024.0 * 8.0 / 1_000_000_000.0
+    return {
+        "limit_mode": limit_mode,
+        "configured_mib_s": configured_mib_s,
+        "configured_gbit_s": configured_gbit_s,
+        "transfer_count": len(fetched),
+        "total_bytes": total_bytes,
+        "reservation_span_s": reservation_span_s,
+        "total_injected_wait_s": total_injected_wait_s,
+        "achieved_reserved_mib_s": achieved_reserved_mib_s,
+    }
 
 
 def _gpu_cost_per_second_usd(cost_model: Dict[str, Any]) -> float:
@@ -977,7 +1087,21 @@ def main() -> int:
     ap.add_argument("--config", type=Path, default=None)
     ap.add_argument("--replay", type=Path, required=True)
     ap.add_argument("--trace", type=Path, required=True)
-    ap.add_argument("--adapter-subset", type=Path, default=None)
+    ap.add_argument(
+        "--adapter-subset",
+        type=Path,
+        default=None,
+        help="Original shared adapter-subset artifact used for cross-system provenance.",
+    )
+    ap.add_argument(
+        "--runtime-adapter-subset",
+        type=Path,
+        default=None,
+        help=(
+            "Runtime subset after optional staging/request-path rewriting. "
+            "Defaults to --adapter-subset when no rewrite is needed."
+        ),
+    )
     ap.add_argument("--deploy", type=Path, default=None)
     ap.add_argument("--model-profile", required=True)
     ap.add_argument("--dataset-profile", required=True)
@@ -1015,6 +1139,16 @@ def main() -> int:
     deploy = _load_structured_file(args.deploy.resolve()) if args.deploy else {}
 
     results = list(replay.get("results", []) or [])
+    aggregate_bandwidth = _summarize_aggregate_bandwidth(replay, results)
+    shared_trace_sha256 = _sha256_file(args.trace.resolve())
+    shared_adapter_subset_path = args.adapter_subset.resolve() if args.adapter_subset else None
+    runtime_adapter_subset_path = (
+        args.runtime_adapter_subset.resolve()
+        if args.runtime_adapter_subset
+        else shared_adapter_subset_path
+    )
+    shared_adapter_subset_sha256 = _sha256_file(shared_adapter_subset_path)
+    runtime_adapter_subset_sha256 = _sha256_file(runtime_adapter_subset_path)
     total = int(trace.get("total_requests", len(results)) or len(results))
     ok = [r for r in results if bool(r.get("success"))]
     failed = [r for r in results if not bool(r.get("success"))]
@@ -1774,8 +1908,30 @@ def main() -> int:
             "dataset_profile": args.dataset_profile,
             "workload_profile": args.workload_profile,
             "trace_source": str(args.trace),
-            "adapter_subset_path": str(args.adapter_subset) if args.adapter_subset else None,
+            "shared_trace_sha256": shared_trace_sha256,
+            # adapter_subset_path remains the original shared artifact for
+            # compatibility with existing cross-system provenance readers.
+            "adapter_subset_path": (
+                str(shared_adapter_subset_path) if shared_adapter_subset_path else None
+            ),
+            "shared_adapter_subset_path": (
+                str(shared_adapter_subset_path) if shared_adapter_subset_path else None
+            ),
+            "shared_adapter_subset_sha256": shared_adapter_subset_sha256,
+            "runtime_adapter_subset_path": (
+                str(runtime_adapter_subset_path) if runtime_adapter_subset_path else None
+            ),
+            "runtime_adapter_subset_sha256": runtime_adapter_subset_sha256,
+            "runtime_adapter_subset_rewritten": bool(
+                shared_adapter_subset_path
+                and runtime_adapter_subset_path
+                and shared_adapter_subset_path != runtime_adapter_subset_path
+            ),
             "replay_source": str(args.replay),
+            "bandwidth_mib_s": aggregate_bandwidth["configured_mib_s"],
+            "bandwidth_gbit_s": aggregate_bandwidth["configured_gbit_s"],
+            "bandwidth_limit_mode": aggregate_bandwidth["limit_mode"],
+            "aggregate_bandwidth": aggregate_bandwidth,
             "deploy_config": str(args.deploy) if args.deploy else None,
             "model_name": str(model_cfg.get("name")),
             "max_model_len": effective_max_model_len,

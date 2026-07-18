@@ -196,6 +196,12 @@ def _build_load_profile(
             else None
         ),
         "hotset_rotation_requests": int(workload_cfg.get("hotset_rotation_requests", 0) or 0),
+        "hotset_rotation_mode": str(
+            workload_cfg.get("hotset_rotation_mode", "legacy") or "legacy"
+        ),
+        "hotset_overlap_fraction": float(
+            workload_cfg.get("hotset_overlap_fraction", 0.75) or 0.0
+        ),
     }
 
 
@@ -234,6 +240,15 @@ def main() -> int:
         ),
     )
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--zipf-exponent", type=float, default=None)
+    ap.add_argument("--active-adapter-cap", type=int, default=None)
+    ap.add_argument("--hotset-rotation-requests", type=int, default=None)
+    ap.add_argument(
+        "--hotset-rotation-mode",
+        choices=["legacy", "stationary", "abrupt", "gradual"],
+        default=None,
+    )
+    ap.add_argument("--hotset-overlap-fraction", type=float, default=None)
     args = ap.parse_args()
 
     main_repo = args.main_repo.resolve()
@@ -247,6 +262,16 @@ def main() -> int:
     model_cfg, adapters_cfg, datasets_cfg, workload_cfg, _coord_cfg, storage_cfg = _resolve_profiles(
         cfg, args.model_profile, args.dataset_profile, args.workload_profile
     )
+    workload_cfg = dict(workload_cfg)
+    for key, value in (
+        ("zipf_exponent", args.zipf_exponent),
+        ("active_adapter_cap", args.active_adapter_cap),
+        ("hotset_rotation_requests", args.hotset_rotation_requests),
+        ("hotset_rotation_mode", args.hotset_rotation_mode),
+        ("hotset_overlap_fraction", args.hotset_overlap_fraction),
+    ):
+        if value is not None:
+            workload_cfg[key] = value
 
     selected_num = int(
         args.selected_num_adapters
@@ -310,6 +335,12 @@ def main() -> int:
         lora_request_ratio=lora_request_ratio,
         active_adapter_cap=workload_cfg.get("active_adapter_cap"),
         hotset_rotation_requests=int(workload_cfg.get("hotset_rotation_requests", 0) or 0),
+        hotset_rotation_mode=str(
+            workload_cfg.get("hotset_rotation_mode", "legacy") or "legacy"
+        ),
+        hotset_overlap_fraction=float(
+            workload_cfg.get("hotset_overlap_fraction", 0.75) or 0.0
+        ),
         domain_map=domain_map,
         seed=int(args.seed),
     )

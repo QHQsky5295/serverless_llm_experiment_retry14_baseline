@@ -11,6 +11,64 @@ TOTAL_REQUESTS="${SLLM_TOTAL_REQUESTS:-4000}"
 SELECTED_NUM_ADAPTERS="${SLLM_SELECTED_NUM_ADAPTERS:-500}"
 SAMPLING_SEED="${SLLM_SAMPLING_SEED:-42}"
 TIME_SCALE_FACTOR="${SLLM_TIME_SCALE_FACTOR:-}"
+GENERATION_CONTRACT="${FAIR_GENERATION_CONTRACT:-legacy}"
+FIXED_OUTPUT_MAX_TOKENS="${FAIR_FIXED_OUTPUT_MAX_TOKENS:-256}"
+FIXED_PROMPT_MAX_TOKENS="${FAIR_FIXED_PROMPT_MAX_TOKENS:-759}"
+STORAGE_BANDWIDTH_MIB_S="${FAIR_STORAGE_BANDWIDTH_MIB_S:-${BASELINE_REMOTE_ARTIFACT_BANDWIDTH_MIB_S:-${BASELINE_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-250}}}"
+ZIPF_EXPONENT="${SLLM_ZIPF_EXPONENT:-}"
+ACTIVE_ADAPTER_CAP="${SLLM_ACTIVE_ADAPTER_CAP:-}"
+HOTSET_ROTATION_REQUESTS="${SLLM_HOTSET_ROTATION_REQUESTS:-}"
+HOTSET_ROTATION_MODE="${SLLM_HOTSET_ROTATION_MODE:-}"
+HOTSET_OVERLAP_FRACTION="${SLLM_HOTSET_OVERLAP_FRACTION:-}"
+FAASLORA_SCENARIO="${FAIR_FAASLORA_SCENARIO:-faaslora_full}"
+FORMAL_RUN="${FAIR_FORMAL_RUN:-0}"
+RESOLVED_CONFIG_FAMILY="${FAIR_RESOLVED_CONFIG_FAMILY:-}"
+
+case "${FORMAL_RUN}" in
+  0|1) ;;
+  *)
+    echo "[ERROR] FAIR_FORMAL_RUN must be 0 or 1; got ${FORMAL_RUN}" >&2
+    exit 1
+    ;;
+esac
+
+infer_trace_role() {
+  if [[ "${FAASLORA_SCENARIO}" != v2_* ]]; then
+    printf '%s\n' legacy
+    return 0
+  fi
+  case "${SAMPLING_SEED}" in
+    41) printf '%s\n' validation ;;
+    42) printf '%s\n' smoke ;;
+    43|44|45) printf '%s\n' heldout ;;
+    *) printf '%s\n' invalid ;;
+  esac
+}
+
+TRACE_ROLE="${FAIR_TRACE_ROLE:-$(infer_trace_role)}"
+
+case "${GENERATION_CONTRACT}" in
+  legacy|fixed_length_greedy_v1)
+    ;;
+  *)
+    echo "[ERROR] unsupported FAIR_GENERATION_CONTRACT=${GENERATION_CONTRACT}" >&2
+    exit 1
+    ;;
+esac
+if [[ "${GENERATION_CONTRACT}" == "fixed_length_greedy_v1" ]]; then
+  if ! [[ "${FIXED_OUTPUT_MAX_TOKENS}" =~ ^[1-9][0-9]*$ ]]; then
+    echo "[ERROR] FAIR_FIXED_OUTPUT_MAX_TOKENS must be a positive integer" >&2
+    exit 1
+  fi
+  if ! [[ "${FIXED_PROMPT_MAX_TOKENS}" =~ ^[1-9][0-9]*$ ]]; then
+    echo "[ERROR] FAIR_FIXED_PROMPT_MAX_TOKENS must be a positive integer" >&2
+    exit 1
+  fi
+fi
+if ! [[ "${STORAGE_BANDWIDTH_MIB_S}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+  echo "[ERROR] FAIR_STORAGE_BANDWIDTH_MIB_S must be a non-negative number" >&2
+  exit 1
+fi
 
 default_run_tag() {
   local model="$1" workload="$2" requests="$3" adapters="$4" seed="$5"
@@ -32,8 +90,10 @@ ROUND_ROOT="${FAIR_ROUND_ROOT:-${BASELINES_ROOT}/results/paper_experiments/${ROU
 ROUND_LABEL="${FAIR_ROUND_LABEL:-${RUN_TAG}}"
 ROUND_TIMESTAMP="${FAIR_ROUND_TIMESTAMP:-$(date +%Y%m%d_%H%M%S)}"
 ROUND_DIR="${FAIR_ROUND_DIR:-${ROUND_ROOT}/${ROUND_TIMESTAMP}_${ROUND_LABEL}}"
+RESOLVED_CONFIG_REGISTRY="${FAIR_RESOLVED_CONFIG_REGISTRY:-${ROUND_ROOT}/_protocol/system_resolved_config_registry.json}"
 
 SYSTEMS="${FAIR_ROUND_SYSTEMS:-sglang serverlessllm vllm slora faaslora}"
+EXECUTION_ORDER="${FAIR_ROUND_EXECUTION_ORDER:-sglang serverlessllm vllm slora faaslora}"
 GPU_IDS="${FAIR_ROUND_GPU_IDS:-0,1,2,3}"
 STRICT_GPU_IDLE="${FAIR_ROUND_STRICT_GPU_IDLE:-1}"
 CLEANUP_TIMEOUT_S="${FAIR_ROUND_CLEANUP_TIMEOUT_S:-180}"
@@ -50,6 +110,8 @@ RAW_FAAS_DIR="${ROUND_DIR}/raw/faaslora"
 STEP_LOG_DIR="${ROUND_DIR}/logs"
 STATE_DIR="${ROUND_DIR}/state"
 COMPARE_DIR="${ROUND_DIR}/compare"
+PROTOCOL_DIR="${ROUND_DIR}/protocol"
+RESOLVED_CONFIG_PATH="${PROTOCOL_DIR}/system_resolved_config.json"
 
 mkdir -p \
   "${ROUND_DIR}" \
@@ -60,7 +122,8 @@ mkdir -p \
   "${RAW_FAAS_DIR}" \
   "${STEP_LOG_DIR}" \
   "${STATE_DIR}" \
-  "${COMPARE_DIR}"
+  "${COMPARE_DIR}" \
+  "${PROTOCOL_DIR}"
 
 ROUND_ENV_FILE="${ROUND_DIR}/round.env"
 
@@ -75,6 +138,21 @@ write_round_env() {
     printf 'export SLLM_SELECTED_NUM_ADAPTERS=%q\n' "${SELECTED_NUM_ADAPTERS}"
     printf 'export SLLM_SAMPLING_SEED=%q\n' "${SAMPLING_SEED}"
     printf 'export SLLM_TIME_SCALE_FACTOR=%q\n' "${TIME_SCALE_FACTOR}"
+    printf 'export FAIR_GENERATION_CONTRACT=%q\n' "${GENERATION_CONTRACT}"
+    printf 'export FAIR_FIXED_OUTPUT_MAX_TOKENS=%q\n' "${FIXED_OUTPUT_MAX_TOKENS}"
+    printf 'export FAIR_FIXED_PROMPT_MAX_TOKENS=%q\n' "${FIXED_PROMPT_MAX_TOKENS}"
+    printf 'export FAIR_STORAGE_BANDWIDTH_MIB_S=%q\n' "${STORAGE_BANDWIDTH_MIB_S}"
+    printf 'export SLLM_ZIPF_EXPONENT=%q\n' "${ZIPF_EXPONENT}"
+    printf 'export SLLM_ACTIVE_ADAPTER_CAP=%q\n' "${ACTIVE_ADAPTER_CAP}"
+    printf 'export SLLM_HOTSET_ROTATION_REQUESTS=%q\n' "${HOTSET_ROTATION_REQUESTS}"
+    printf 'export SLLM_HOTSET_ROTATION_MODE=%q\n' "${HOTSET_ROTATION_MODE}"
+    printf 'export SLLM_HOTSET_OVERLAP_FRACTION=%q\n' "${HOTSET_OVERLAP_FRACTION}"
+    printf 'export FAIR_FAASLORA_SCENARIO=%q\n' "${FAASLORA_SCENARIO}"
+    printf 'export FAIR_ROUND_EXECUTION_ORDER=%q\n' "${EXECUTION_ORDER}"
+    printf 'export FAIR_FORMAL_RUN=%q\n' "${FORMAL_RUN}"
+    printf 'export FAIR_TRACE_ROLE=%q\n' "${TRACE_ROLE}"
+    printf 'export FAIR_RESOLVED_CONFIG_FAMILY=%q\n' "${RESOLVED_CONFIG_FAMILY}"
+    printf 'export FAIR_RESOLVED_CONFIG_REGISTRY=%q\n' "${RESOLVED_CONFIG_REGISTRY}"
   } >"${ROUND_ENV_FILE}"
 }
 
@@ -92,7 +170,22 @@ validate_or_write_round_env() {
           "${SLLM_TOTAL_REQUESTS:-}" \
           "${SLLM_SELECTED_NUM_ADAPTERS:-}" \
           "${SLLM_SAMPLING_SEED:-}" \
-          "${SLLM_TIME_SCALE_FACTOR:-}"
+          "${SLLM_TIME_SCALE_FACTOR:-}" \
+          "${FAIR_GENERATION_CONTRACT:-legacy}" \
+          "${FAIR_FIXED_OUTPUT_MAX_TOKENS:-256}" \
+          "${FAIR_FIXED_PROMPT_MAX_TOKENS:-759}" \
+          "${FAIR_STORAGE_BANDWIDTH_MIB_S:-250}" \
+          "${SLLM_ZIPF_EXPONENT:-}" \
+          "${SLLM_ACTIVE_ADAPTER_CAP:-}" \
+          "${SLLM_HOTSET_ROTATION_REQUESTS:-}" \
+          "${SLLM_HOTSET_ROTATION_MODE:-}" \
+          "${SLLM_HOTSET_OVERLAP_FRACTION:-}" \
+          "${FAIR_FAASLORA_SCENARIO:-faaslora_full}" \
+          "${FAIR_ROUND_EXECUTION_ORDER:-sglang serverlessllm vllm slora faaslora}" \
+          "${FAIR_FORMAL_RUN:-0}" \
+          "${FAIR_TRACE_ROLE:-legacy}" \
+          "${FAIR_RESOLVED_CONFIG_FAMILY:-}" \
+          "${FAIR_RESOLVED_CONFIG_REGISTRY:-}"
       ' bash "${ROUND_ENV_FILE}"
     )
     local names=(
@@ -104,6 +197,21 @@ validate_or_write_round_env() {
       SLLM_SELECTED_NUM_ADAPTERS
       SLLM_SAMPLING_SEED
       SLLM_TIME_SCALE_FACTOR
+      FAIR_GENERATION_CONTRACT
+      FAIR_FIXED_OUTPUT_MAX_TOKENS
+      FAIR_FIXED_PROMPT_MAX_TOKENS
+      FAIR_STORAGE_BANDWIDTH_MIB_S
+      SLLM_ZIPF_EXPONENT
+      SLLM_ACTIVE_ADAPTER_CAP
+      SLLM_HOTSET_ROTATION_REQUESTS
+      SLLM_HOTSET_ROTATION_MODE
+      SLLM_HOTSET_OVERLAP_FRACTION
+      FAIR_FAASLORA_SCENARIO
+      FAIR_ROUND_EXECUTION_ORDER
+      FAIR_FORMAL_RUN
+      FAIR_TRACE_ROLE
+      FAIR_RESOLVED_CONFIG_FAMILY
+      FAIR_RESOLVED_CONFIG_REGISTRY
     )
     local current=(
       "${RUN_TAG}"
@@ -114,6 +222,21 @@ validate_or_write_round_env() {
       "${SELECTED_NUM_ADAPTERS}"
       "${SAMPLING_SEED}"
       "${TIME_SCALE_FACTOR}"
+      "${GENERATION_CONTRACT}"
+      "${FIXED_OUTPUT_MAX_TOKENS}"
+      "${FIXED_PROMPT_MAX_TOKENS}"
+      "${STORAGE_BANDWIDTH_MIB_S}"
+      "${ZIPF_EXPONENT}"
+      "${ACTIVE_ADAPTER_CAP}"
+      "${HOTSET_ROTATION_REQUESTS}"
+      "${HOTSET_ROTATION_MODE}"
+      "${HOTSET_OVERLAP_FRACTION}"
+      "${FAASLORA_SCENARIO}"
+      "${EXECUTION_ORDER}"
+      "${FORMAL_RUN}"
+      "${TRACE_ROLE}"
+      "${RESOLVED_CONFIG_FAMILY}"
+      "${RESOLVED_CONFIG_REGISTRY}"
     )
     local i
     for i in "${!names[@]}"; do
@@ -133,6 +256,121 @@ validate_or_write_round_env
 
 log() {
   printf '[%s] %s\n' "$(date '+%F %T')" "$*"
+}
+
+validate_trace_role_and_formal_sources() {
+  PYTHONPATH="${BASELINES_ROOT}/scripts${PYTHONPATH:+:${PYTHONPATH}}" \
+    python3 - "${BASELINES_ROOT}" "${MAIN_REPO}" "${SAMPLING_SEED}" \
+      "${TRACE_ROLE}" "${FAASLORA_SCENARIO}" "${TOTAL_REQUESTS}" \
+      "${FORMAL_RUN}" <<'PY'
+import sys
+from pathlib import Path
+
+from fair_system_resolved_config import (
+    require_formal_source_cleanliness,
+    source_cleanliness,
+    validate_trace_role,
+)
+
+baselines_root = Path(sys.argv[1])
+main_repo = Path(sys.argv[2])
+role = validate_trace_role(int(sys.argv[3]), sys.argv[4], sys.argv[5], int(sys.argv[6]))
+formal_run = bool(int(sys.argv[7]))
+status = (
+    require_formal_source_cleanliness(baselines_root, main_repo)
+    if formal_run
+    else source_cleanliness(baselines_root, main_repo)
+)
+print(
+    f"[protocol-gate] formal_run={int(formal_run)} trace_role={role} "
+    f"source_clean_for_formal={str(status['source_clean_for_formal']).lower()}"
+)
+PY
+}
+
+prepare_resolved_config_gate() {
+  python3 "${BASELINES_ROOT}/scripts/fair_system_resolved_config.py" \
+    --baselines-root "${BASELINES_ROOT}" \
+    --main-repo "${MAIN_REPO}" \
+    --model-profile "${MODEL_PROFILE}" \
+    --dataset-profile "${DATASET_PROFILE}" \
+    --workload-profile "${WORKLOAD_PROFILE}" \
+    --total-requests "${TOTAL_REQUESTS}" \
+    --selected-num-adapters "${SELECTED_NUM_ADAPTERS}" \
+    --sampling-seed "${SAMPLING_SEED}" \
+    --time-scale-factor "${TIME_SCALE_FACTOR}" \
+    --formal-run "${FORMAL_RUN}" \
+    --trace-role "${TRACE_ROLE}" \
+    --generation-contract "${GENERATION_CONTRACT}" \
+    --fixed-output-max-tokens "${FIXED_OUTPUT_MAX_TOKENS}" \
+    --fixed-prompt-max-tokens "${FIXED_PROMPT_MAX_TOKENS}" \
+    --storage-bandwidth-mib-s "${STORAGE_BANDWIDTH_MIB_S}" \
+    --zipf-exponent "${ZIPF_EXPONENT}" \
+    --active-adapter-cap "${ACTIVE_ADAPTER_CAP}" \
+    --hotset-rotation-requests "${HOTSET_ROTATION_REQUESTS}" \
+    --hotset-rotation-mode "${HOTSET_ROTATION_MODE}" \
+    --hotset-overlap-fraction "${HOTSET_OVERLAP_FRACTION}" \
+    --faaslora-scenario "${FAASLORA_SCENARIO}" \
+    --gpu-ids "${GPU_IDS}" \
+    --configuration-family "${RESOLVED_CONFIG_FAMILY}" \
+    --run-tag "${RUN_TAG}" \
+    --trace-path "${TRACE_PATH}" \
+    --adapter-subset-path "${ADAPTER_SUBSET_PATH}" \
+    --execution-order "${EXECUTION_ORDER}" \
+    --output "${RESOLVED_CONFIG_PATH}" \
+    --registry "${RESOLVED_CONFIG_REGISTRY}"
+}
+
+resolved_config_sha256() {
+  python3 - "${RESOLVED_CONFIG_PATH}" <<'PY'
+import json
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+payload = json.loads(path.read_text(encoding="utf-8"))
+value = str(payload.get("system_resolved_config_sha256") or "")
+if not re.fullmatch(r"[0-9a-f]{64}", value):
+    raise SystemExit(f"[ERROR] invalid system_resolved_config_sha256 in {path}: {value!r}")
+print(value)
+PY
+}
+
+validate_v2_protocol_controls() {
+  case "${FAASLORA_SCENARIO}" in
+    faaslora_full|v2_elastic_only|v2_hit_aware_preparation|v2_hierarchical_no_coord|v2_full)
+      ;;
+    *)
+      echo "[ERROR] unsupported FAIR_FAASLORA_SCENARIO=${FAASLORA_SCENARIO}" >&2
+      return 1
+      ;;
+  esac
+  if [[ "${FAASLORA_SCENARIO}" == v2_* && "${FORCE_RERUN}" == "1" ]]; then
+    echo "[ERROR] V2 protocol forbids FAIR_ROUND_FORCE=1; use a fresh unique round directory." >&2
+    return 1
+  fi
+
+  local allowed=" sglang serverlessllm vllm slora faaslora "
+  local seen=" "
+  local system=""
+  for system in ${EXECUTION_ORDER}; do
+    if [[ "${allowed}" != *" ${system} "* ]]; then
+      echo "[ERROR] unknown system in FAIR_ROUND_EXECUTION_ORDER: ${system}" >&2
+      return 1
+    fi
+    if [[ "${seen}" == *" ${system} "* ]]; then
+      echo "[ERROR] duplicate system in FAIR_ROUND_EXECUTION_ORDER: ${system}" >&2
+      return 1
+    fi
+    seen+="${system} "
+  done
+  for system in ${SYSTEMS}; do
+    if [[ "${allowed}" == *" ${system} "* && "${seen}" != *" ${system} "* ]]; then
+      echo "[ERROR] selected system ${system} is absent from FAIR_ROUND_EXECUTION_ORDER" >&2
+      return 1
+    fi
+  done
 }
 
 default_client_timeout_s() {
@@ -469,7 +707,8 @@ validate_summary() {
   if [[ "${system}" == "SGLang" && "${SGLANG_MAX_REPLAY_REQUESTS:-0}" != "0" ]]; then
     expected_total="${SGLANG_MAX_REPLAY_REQUESTS}"
   fi
-  python3 - "${system}" "${path}" "${expected_total}" <<'PY'
+  python3 - "${system}" "${path}" "${expected_total}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" <<'PY'
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -477,11 +716,33 @@ from pathlib import Path
 system = sys.argv[1]
 path = Path(sys.argv[2])
 expected_total = int(sys.argv[3])
+trace_path = Path(sys.argv[4]).resolve()
+subset_path = Path(sys.argv[5]).resolve()
+
+def sha256(candidate: Path) -> str:
+    digest = hashlib.sha256()
+    with candidate.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
 if not path.exists():
     raise SystemExit(f"[ERROR] missing summary for {system}: {path}")
 data = json.loads(path.read_text(encoding="utf-8"))
 if data.get("metric_schema_version") != "e2e_v3":
     raise SystemExit(f"[ERROR] {system} metric_schema_version is not e2e_v3: {data.get('metric_schema_version')}")
+if system == "ServerlessLLM":
+    metadata = data.get("metadata") or {}
+    for field, expected in (
+        ("shared_trace_sha256", sha256(trace_path)),
+        ("shared_adapter_subset_sha256", sha256(subset_path)),
+    ):
+        observed = str(metadata.get(field) or "")
+        if observed != expected:
+            raise SystemExit(
+                f"[ERROR] ServerlessLLM {field} mismatch: "
+                f"expected={expected} observed={observed or '<missing>'}"
+            )
 summaries = data.get("scenario_summaries")
 if isinstance(summaries, dict) and summaries:
     summary = next(iter(summaries.values()))
@@ -522,6 +783,353 @@ print(f"[validated] {system}: completed={completed}/{expected_total} trace_total
 PY
 }
 
+validate_faaslora_generation_contract() {
+  local path="$1"
+  if [[ "${GENERATION_CONTRACT}" != "fixed_length_greedy_v1" ]]; then
+    return 0
+  fi
+  python3 - "${path}" "${TOTAL_REQUESTS}" "${FIXED_OUTPUT_MAX_TOKENS}" "${FIXED_PROMPT_MAX_TOKENS}" <<'PY'
+import hashlib
+import json
+import math
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+expected_total = int(sys.argv[2])
+output_cap = int(sys.argv[3])
+prompt_cap = int(sys.argv[4])
+data = json.loads(path.read_text(encoding="utf-8"))
+metadata = data.get("metadata") or {}
+contract = str(metadata.get("generation_contract") or "")
+if contract != "fixed_length_greedy_v1":
+    raise SystemExit(
+        f"[ERROR] FaaSLoRA generation_contract mismatch: {contract!r}"
+    )
+if int(metadata.get("fixed_output_max_tokens") or 0) != output_cap:
+    raise SystemExit("[ERROR] FaaSLoRA fixed output cap mismatch")
+if int(metadata.get("fixed_prompt_max_tokens") or 0) != prompt_cap:
+    raise SystemExit("[ERROR] FaaSLoRA fixed prompt cap mismatch")
+
+detailed = data.get("detailed_results") or {}
+if len(detailed) != 1:
+    raise SystemExit(
+        f"[ERROR] fixed-contract FaaSLoRA result must contain one scenario, got {list(detailed)}"
+    )
+scenario_name, scenario = next(iter(detailed.items()))
+requests = list((scenario or {}).get("requests") or [])
+if len(requests) != expected_total:
+    raise SystemExit(
+        f"[ERROR] FaaSLoRA fixed-contract request count mismatch: "
+        f"observed={len(requests)} expected={expected_total}"
+    )
+
+sha256_re = re.compile(r"^[0-9a-f]{64}$")
+errors = []
+seen = set()
+for request in requests:
+    request_id = str(request.get("request_id") or "")
+    prefix = f"request_id={request_id or '<missing>'}"
+    if not request_id or request_id in seen:
+        errors.append(f"{prefix}: missing or duplicate request id")
+    seen.add(request_id)
+    if not bool(request.get("success")):
+        errors.append(f"{prefix}: request is not successful")
+    if str(request.get("generation_contract") or "") != contract:
+        errors.append(f"{prefix}: generation contract mismatch")
+    try:
+        source = int(request.get("source_expected_output_tokens"))
+        requested = int(request.get("requested_completion_tokens"))
+        completion = int(request.get("completion_tokens"))
+        prompt_tokens = int(request.get("canonical_prompt_tokens"))
+    except (TypeError, ValueError):
+        errors.append(f"{prefix}: invalid token-count field")
+        continue
+    expected_target = min(source, output_cap)
+    if source <= 0 or requested != expected_target or completion != requested:
+        errors.append(
+            f"{prefix}: source/requested/completion mismatch "
+            f"source={source} requested={requested} completion={completion}"
+        )
+    if prompt_tokens <= 0 or prompt_tokens > prompt_cap:
+        errors.append(f"{prefix}: prompt tokens outside [1, {prompt_cap}]")
+    if str(request.get("completion_token_source") or "") != "vllm_token_ids":
+        errors.append(f"{prefix}: completion token source is not vllm_token_ids")
+    if request.get("output_contract_match") is not True:
+        errors.append(f"{prefix}: output_contract_match is not true")
+    for field in ("canonical_prompt_sha256", "completion_token_ids_sha256"):
+        if not sha256_re.fullmatch(str(request.get(field) or "")):
+            errors.append(f"{prefix}: invalid {field}")
+
+    def finite(field):
+        try:
+            value = float(request.get(field))
+        except (TypeError, ValueError):
+            return None
+        return value if math.isfinite(value) else None
+
+    e2e = finite("e2e_ms")
+    dispatch = finite("dispatch_admission_wait_ms")
+    service_e2e = finite("service_e2e_ms")
+    if e2e is None or dispatch is None or service_e2e is None:
+        errors.append(f"{prefix}: missing E2E decomposition")
+    elif abs(e2e - (dispatch + service_e2e)) > 1.0:
+        errors.append(f"{prefix}: E2E decomposition error exceeds 1 ms")
+
+    if completion > 1:
+        tpot = finite("tpot_ms")
+        service_e2e_for_tpot = finite("service_e2e_ms")
+        service_ttft_for_tpot = finite("service_ttft_ms")
+        if tpot is None or service_e2e_for_tpot is None or service_ttft_for_tpot is None:
+            errors.append(f"{prefix}: missing TPOT recomputation fields")
+        else:
+            recomputed = max(
+                0.0, service_e2e_for_tpot - service_ttft_for_tpot
+            ) / (completion - 1)
+            if abs(tpot - recomputed) > 1.0:
+                errors.append(f"{prefix}: TPOT recomputation error exceeds 1 ms")
+
+request_map = [
+    {
+        "request_id": request.get("request_id"),
+        "adapter_id": request.get("adapter_id"),
+        "arrival_time_s": request.get("scheduled_arrival_offset_s"),
+        "source_expected_output_tokens": request.get("source_expected_output_tokens"),
+        "requested_completion_tokens": request.get("requested_completion_tokens"),
+        "canonical_prompt_sha256": request.get("canonical_prompt_sha256"),
+        "canonical_prompt_tokens": request.get("canonical_prompt_tokens"),
+    }
+    for request in requests
+]
+expected_map_sha = hashlib.sha256(
+    json.dumps(
+        request_map,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+).hexdigest()
+observed_map_sha = str(
+    (metadata.get("generation_contract_request_map_sha256") or {}).get(scenario_name)
+    or ""
+)
+if observed_map_sha != expected_map_sha:
+    errors.append("generation contract request-map SHA-256 mismatch")
+
+if errors:
+    print(
+        f"[ERROR] FaaSLoRA fixed generation contract failed: errors={len(errors)}",
+        file=sys.stderr,
+    )
+    for error in errors[:20]:
+        print(f"  {error}", file=sys.stderr)
+    raise SystemExit(1)
+print(
+    f"[check] FaaSLoRA fixed generation contract: {len(requests)} requests "
+    "match target/token/hash/decomposition gates."
+)
+PY
+}
+
+validate_faaslora_identity() {
+  local path="$1"
+  local expected_tag="$2"
+  local expected_settings_sha="$3"
+  python3 - "${path}" "${FAASLORA_SCENARIO}" "${expected_tag}" \
+    "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" "${TOTAL_REQUESTS}" \
+    "${expected_settings_sha}" "${STORAGE_BANDWIDTH_MIB_S}" \
+    "$(resolved_config_sha256)" "${TRACE_ROLE}" "${FORMAL_RUN}" <<'PY'
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+expected_scenario = sys.argv[2]
+expected_tag = sys.argv[3]
+trace_path = Path(sys.argv[4])
+subset_path = Path(sys.argv[5])
+expected_total = int(sys.argv[6])
+expected_settings_sha = sys.argv[7]
+expected_bandwidth_mib_s = float(sys.argv[8])
+expected_resolved_config_sha = sys.argv[9]
+expected_trace_role = sys.argv[10]
+expected_formal_run = bool(int(sys.argv[11]))
+
+def sha256(candidate: Path) -> str:
+    digest = hashlib.sha256()
+    with candidate.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+data = json.loads(path.read_text(encoding="utf-8"))
+metadata = data.get("metadata") or {}
+if str(metadata.get("results_tag") or "") != expected_tag:
+    raise SystemExit(
+        f"[ERROR] FaaSLoRA result tag mismatch: expected={expected_tag!r} "
+        f"observed={metadata.get('results_tag')!r}"
+    )
+for field, expected in (
+    ("shared_trace_sha256", sha256(trace_path)),
+    ("shared_adapter_subset_sha256", sha256(subset_path)),
+):
+    observed = str(metadata.get(field) or "")
+    if observed != expected:
+        raise SystemExit(
+            f"[ERROR] FaaSLoRA {field} mismatch: expected={expected} observed={observed or '<missing>'}"
+        )
+if int(metadata.get("total_requests") or -1) != expected_total:
+    raise SystemExit("[ERROR] FaaSLoRA metadata total_requests mismatch")
+if str(metadata.get("run_frozen_settings_sha256") or "") != expected_settings_sha:
+    raise SystemExit("[ERROR] FaaSLoRA frozen-settings SHA-256 mismatch")
+if str(metadata.get("system_resolved_config_sha256") or "") != expected_resolved_config_sha:
+    raise SystemExit("[ERROR] FaaSLoRA system-resolved-config SHA-256 mismatch")
+if str(metadata.get("trace_role") or "") != expected_trace_role:
+    raise SystemExit("[ERROR] FaaSLoRA trace_role metadata mismatch")
+if metadata.get("formal_run") is not expected_formal_run:
+    raise SystemExit("[ERROR] FaaSLoRA formal_run metadata mismatch")
+if float(metadata.get("bandwidth_mib_s", -1)) != expected_bandwidth_mib_s:
+    raise SystemExit("[ERROR] FaaSLoRA bandwidth metadata mismatch")
+
+for key in ("scenario_summaries", "detailed_results"):
+    names = sorted((data.get(key) or {}).keys())
+    if names != [expected_scenario]:
+        raise SystemExit(
+            f"[ERROR] FaaSLoRA {key} must contain exactly {expected_scenario!r}; got {names}"
+        )
+coordination = (metadata.get("scenario_coordination") or {}).get(expected_scenario) or {}
+if expected_scenario.startswith("v2_") and not bool(
+    coordination.get("cold_cache_reset_before_run")
+):
+    raise SystemExit("[ERROR] V2 FaaSLoRA result lacks cold-cache reset evidence")
+print(
+    f"[check] FaaSLoRA identity: scenario={expected_scenario} tag={expected_tag} "
+    "trace/subset/frozen-settings/resolved-config SHA-256 matched"
+)
+PY
+}
+
+trace_remote_endpoint() {
+  python3 - "${TRACE_PATH}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+trace_path = Path(sys.argv[1])
+payload = json.loads(trace_path.read_text(encoding="utf-8"))
+remote_dir = str(payload.get("remote_dir") or "").strip()
+if not remote_dir:
+    raise SystemExit(f"[ERROR] trace has no remote_dir: {trace_path}")
+path = Path(remote_dir).expanduser().resolve()
+if not path.is_dir():
+    raise SystemExit(f"[ERROR] trace remote_dir is not a directory: {path}")
+print(path.as_uri())
+PY
+}
+
+faaslora_frozen_settings_sha256() {
+  python3 - \
+    "${MAIN_REPO}" "${BASELINES_ROOT}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" \
+    "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" \
+    "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" "${SAMPLING_SEED}" \
+    "${TIME_SCALE_FACTOR}" "${GENERATION_CONTRACT}" "${FIXED_OUTPUT_MAX_TOKENS}" \
+    "${FIXED_PROMPT_MAX_TOKENS}" "${STORAGE_BANDWIDTH_MIB_S}" \
+    "${ZIPF_EXPONENT}" "${ACTIVE_ADAPTER_CAP}" "${HOTSET_ROTATION_REQUESTS}" \
+    "${HOTSET_ROTATION_MODE}" "${HOTSET_OVERLAP_FRACTION}" \
+    "${FAASLORA_SCENARIO}" "${EXECUTION_ORDER}" "${GPU_IDS}" <<'PY'
+import hashlib
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+main_repo = Path(sys.argv[1])
+baselines_root = Path(sys.argv[2])
+
+def file_sha(path):
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+def git_commit(path):
+    return subprocess.check_output(
+        ["git", "-C", str(path), "rev-parse", "HEAD"], text=True
+    ).strip()
+
+payload = {
+    "faaslora_git_commit": git_commit(main_repo),
+    "baseline_git_commit": git_commit(baselines_root),
+    "faaslora_config_sha256": file_sha(main_repo / "configs" / "experiments.yaml"),
+    "shared_trace_sha256": file_sha(sys.argv[3]),
+    "shared_adapter_subset_sha256": file_sha(sys.argv[4]),
+    "model_profile": sys.argv[5],
+    "dataset_profile": sys.argv[6],
+    "workload_profile": sys.argv[7],
+    "total_requests": int(sys.argv[8]),
+    "selected_num_adapters": int(sys.argv[9]),
+    "sampling_seed": int(sys.argv[10]),
+    "time_scale_factor": sys.argv[11] or None,
+    "generation_contract": sys.argv[12],
+    "fixed_output_max_tokens": int(sys.argv[13]),
+    "fixed_prompt_max_tokens": int(sys.argv[14]),
+    "storage_bandwidth_mib_s": float(sys.argv[15]),
+    "zipf_exponent": sys.argv[16] or None,
+    "active_adapter_cap": sys.argv[17] or None,
+    "hotset_rotation_requests": sys.argv[18] or None,
+    "hotset_rotation_mode": sys.argv[19] or None,
+    "hotset_overlap_fraction": sys.argv[20] or None,
+    "faaslora_scenario": sys.argv[21],
+    "execution_order": sys.argv[22].split(),
+    "gpu_ids": sys.argv[23],
+}
+canonical = json.dumps(
+    payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+).encode("utf-8")
+print(hashlib.sha256(canonical).hexdigest())
+PY
+}
+
+validate_serverlessllm_bandwidth_evidence() {
+  local path="$1"
+  python3 - "${path}" "${STORAGE_BANDWIDTH_MIB_S}" <<'PY'
+import json
+import math
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+configured = float(sys.argv[2])
+data = json.loads(path.read_text(encoding="utf-8"))
+metadata = data.get("metadata") or {}
+aggregate = metadata.get("aggregate_bandwidth") or {}
+observed = float(aggregate.get("configured_mib_s", -1))
+if not math.isclose(observed, configured, rel_tol=0.0, abs_tol=1e-9):
+    raise SystemExit(
+        f"[ERROR] ServerlessLLM bandwidth mismatch: expected={configured} observed={observed}"
+    )
+transfer_count = int(aggregate.get("transfer_count", 0) or 0)
+total_bytes = int(aggregate.get("total_bytes", 0) or 0)
+mode = str(aggregate.get("limit_mode") or "")
+expected_mode = "file_no_delay" if configured == 0.0 else "file_aggregate_reservation"
+if mode != expected_mode:
+    raise SystemExit(
+        f"[ERROR] ServerlessLLM limiter mode mismatch: expected={expected_mode} observed={mode!r}"
+    )
+if transfer_count <= 0 or total_bytes <= 0:
+    raise SystemExit(
+        "[ERROR] ServerlessLLM dynamic remote fetch did not trigger; refusing bandwidth evidence"
+    )
+print(
+    f"[check] ServerlessLLM aggregate fetch: mode={mode} transfers={transfer_count} "
+    f"bytes={total_bytes} configured={configured} MiB/s"
+)
+PY
+}
+
 run_prep() {
   local stage="00_prep"
   if is_done "${stage}"; then
@@ -539,6 +1147,11 @@ run_prep() {
     SLLM_SELECTED_NUM_ADAPTERS="${SELECTED_NUM_ADAPTERS}" \
     SLLM_SAMPLING_SEED="${SAMPLING_SEED}" \
     SLLM_TIME_SCALE_FACTOR="${TIME_SCALE_FACTOR}" \
+    SLLM_ZIPF_EXPONENT="${ZIPF_EXPONENT}" \
+    SLLM_ACTIVE_ADAPTER_CAP="${ACTIVE_ADAPTER_CAP}" \
+    SLLM_HOTSET_ROTATION_REQUESTS="${HOTSET_ROTATION_REQUESTS}" \
+    SLLM_HOTSET_ROTATION_MODE="${HOTSET_ROTATION_MODE}" \
+    SLLM_HOTSET_OVERLAP_FRACTION="${HOTSET_OVERLAP_FRACTION}" \
     SLLM_RUN_TAG="${RUN_TAG}" \
     bash "${BASELINES_ROOT}/scripts/prepare_shared_round_artifacts.sh"
   [[ -f "${TRACE_PATH}" ]] || { echo "[ERROR] missing trace: ${TRACE_PATH}" >&2; return 1; }
@@ -584,6 +1197,11 @@ run_serverlessllm() {
     return 0
   fi
   local serverless_timeout_s="${SLLM_TIMEOUT_S:-$(default_client_timeout_s)}"
+  local remote_endpoint="${SLLM_REMOTE_ARTIFACT_STAGE_ENDPOINT:-}"
+  if [[ -z "${remote_endpoint}" ]]; then
+    remote_endpoint="$(trace_remote_endpoint)"
+  fi
+  local remote_cache_dir="${ROUND_DIR}/cache/serverlessllm"
   log "ServerlessLLM client timeout=${serverless_timeout_s}s for model_profile=${MODEL_PROFILE}"
   pre_system_clean_check "ServerlessLLM"
   run_logged "${stage}" env \
@@ -601,11 +1219,19 @@ run_serverlessllm() {
     SLLM_RUN_TAG="${RUN_TAG}" \
     SLLM_SHARED_TRACE_PATH="${TRACE_PATH}" \
     SLLM_SHARED_ADAPTER_SUBSET_PATH="${ADAPTER_SUBSET_PATH}" \
+    SLLM_REMOTE_ARTIFACT_STAGE_ENDPOINT="${remote_endpoint}" \
+    SLLM_REMOTE_ARTIFACT_STAGE_MODE=dynamic \
+    SLLM_REMOTE_ARTIFACT_STAGE_CACHE_DIR="${remote_cache_dir}" \
+    SLLM_REMOTE_ARTIFACT_STAGE_BANDWIDTH_MIB_S="${STORAGE_BANDWIDTH_MIB_S}" \
+    FAIR_SYSTEM_RESOLVED_CONFIG_SHA256="$(resolved_config_sha256)" \
+    FAIR_TRACE_ROLE="${TRACE_ROLE}" \
+    FAIR_FORMAL_RUN="${FORMAL_RUN}" \
     SLLM_BACKEND="${SLLM_BACKEND:-vllm}" \
     SLLM_WORKER_GPUS="${GPU_IDS}" \
     SLLM_TIMEOUT_S="${serverless_timeout_s}" \
     bash "${BASELINES_ROOT}/scripts/run_serverlessllm_fair_experiment.sh"
   validate_summary "ServerlessLLM" "$(summary_path_for_system serverlessllm)"
+  validate_serverlessllm_bandwidth_evidence "$(summary_path_for_system serverlessllm)"
   post_system_clean_check "ServerlessLLM"
   mark_done "${stage}"
 }
@@ -810,6 +1436,12 @@ run_slora() {
     SLLM_RUN_TAG="${RUN_TAG}" \
     SLLM_SHARED_TRACE_PATH="${TRACE_PATH}" \
     SLLM_SHARED_ADAPTER_SUBSET_PATH="${ADAPTER_SUBSET_PATH}" \
+    SLLM_GENERATION_CONTRACT="${GENERATION_CONTRACT}" \
+    SLLM_FIXED_OUTPUT_MAX_TOKENS="${FIXED_OUTPUT_MAX_TOKENS}" \
+    SLLM_FIXED_PROMPT_MAX_TOKENS="${FIXED_PROMPT_MAX_TOKENS}" \
+    FAIR_SYSTEM_RESOLVED_CONFIG_SHA256="$(resolved_config_sha256)" \
+    FAIR_TRACE_ROLE="${TRACE_ROLE}" \
+    FAIR_FORMAL_RUN="${FORMAL_RUN}" \
     SLORA_GPU_IDS="${GPU_IDS}" \
     SLORA_DATA_PARALLEL_REPLICAS="${SLORA_DATA_PARALLEL_REPLICAS:-}" \
     SLORA_TENSOR_PARALLEL_SIZE="${SLORA_TENSOR_PARALLEL_SIZE:-}" \
@@ -825,7 +1457,7 @@ find_latest_faaslora_result() {
   # MAIN_REPO/results is a symlink in the current FaaSLoRA checkout. Use -L so
   # post-run collection follows the real result directory instead of treating the
   # symlink itself as a terminal file.
-  find -L "${MAIN_REPO}/results" -maxdepth 3 -type f -name "*${tag}*.json" -printf '%T@ %p\n' 2>/dev/null \
+  find -L "${MAIN_REPO}/results" -maxdepth 3 -type f -name "*_${tag}.json" -printf '%T@ %p\n' 2>/dev/null \
     | sort -n \
     | awk 'END{print substr($0, index($0,$2))}'
 }
@@ -834,6 +1466,7 @@ collect_faaslora_result() {
   local stage="$1"
   local faas_tag="$2"
   local faas_copy="$3"
+  local frozen_settings_sha="$4"
   local latest
   latest="$(find_latest_faaslora_result "${faas_tag}")"
   if [[ -z "${latest}" || ! -f "${latest}" ]]; then
@@ -842,7 +1475,9 @@ collect_faaslora_result() {
   log "collecting FaaSLoRA result: ${latest}"
   cp -f "${latest}" "${faas_copy}"
   printf '%s\n' "${latest}" >"${RAW_FAAS_DIR}/${RUN_TAG}_faaslora_source_path.txt"
-  if validate_summary "FaaSLoRA" "${faas_copy}"; then
+  if validate_faaslora_identity "${faas_copy}" "${faas_tag}" "${frozen_settings_sha}" \
+    && validate_summary "FaaSLoRA" "${faas_copy}" \
+    && validate_faaslora_generation_contract "${faas_copy}"; then
     post_system_clean_check "FaaSLoRA"
     mark_done "${stage}"
     return 0
@@ -852,14 +1487,19 @@ collect_faaslora_result() {
 
 run_faaslora() {
   local stage="50_faaslora"
-  local faas_tag="${RUN_TAG}_faaslora"
+  local frozen_settings_sha=""
+  frozen_settings_sha="$(faaslora_frozen_settings_sha256)"
+  local faas_tag="${RUN_TAG}_faaslora_${FAASLORA_SCENARIO}_cfg${frozen_settings_sha:0:12}"
+  if [[ "${GENERATION_CONTRACT}" == "fixed_length_greedy_v1" ]]; then
+    faas_tag="${RUN_TAG}_faaslora_${FAASLORA_SCENARIO}_fixedlen_greedy_v1_cfg${frozen_settings_sha:0:12}"
+  fi
   local faas_copy
   faas_copy="$(summary_path_for_system faaslora)"
   if is_done "${stage}"; then
     log "skip ${stage}; marker exists"
     return 0
   fi
-  if collect_faaslora_result "${stage}" "${faas_tag}" "${faas_copy}"; then
+  if collect_faaslora_result "${stage}" "${faas_tag}" "${faas_copy}" "${frozen_settings_sha}"; then
     log "skip ${stage}; valid existing FaaSLoRA result was collected"
     return 0
   fi
@@ -872,15 +1512,83 @@ run_faaslora() {
     FAASLORA_SHARED_TRACE_PATH="${TRACE_PATH}" \
     FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${ADAPTER_SUBSET_PATH}" \
     FAASLORA_RESULTS_TAG="${faas_tag}" \
+    FAASLORA_RUN_FROZEN_SETTINGS_SHA256="${frozen_settings_sha}" \
+    FAASLORA_SYSTEM_RESOLVED_CONFIG_SHA256="$(resolved_config_sha256)" \
+    FAASLORA_TRACE_ROLE="${TRACE_ROLE}" \
+    FAASLORA_FORMAL_RUN="${FORMAL_RUN}" \
+    FAASLORA_GENERATION_CONTRACT="${GENERATION_CONTRACT}" \
+    FAASLORA_FIXED_OUTPUT_MAX_TOKENS="${FIXED_OUTPUT_MAX_TOKENS}" \
+    FAASLORA_FIXED_PROMPT_MAX_TOKENS="${FIXED_PROMPT_MAX_TOKENS}" \
+    FAASLORA_STORAGE_BANDWIDTH_MIB_S="${STORAGE_BANDWIDTH_MIB_S}" \
+    FAASLORA_NVME_CACHE_DIR="${ROUND_DIR}/cache/faaslora_nvme" \
+    FAASLORA_HOST_CACHE_DIR="/dev/shm/faaslora_eurosys27_v2/${RUN_TAG}_${FAASLORA_SCENARIO}" \
+    FAASLORA_ZIPF_EXPONENT="${ZIPF_EXPONENT}" \
+    FAASLORA_ACTIVE_ADAPTER_CAP="${ACTIVE_ADAPTER_CAP}" \
+    FAASLORA_HOTSET_ROTATION_REQUESTS="${HOTSET_ROTATION_REQUESTS}" \
+    FAASLORA_HOTSET_ROTATION_MODE="${HOTSET_ROTATION_MODE}" \
+    FAASLORA_HOTSET_OVERLAP_FRACTION="${HOTSET_OVERLAP_FRACTION}" \
+    FAASLORA_SCENARIO="${FAASLORA_SCENARIO}" \
     PYTHONUNBUFFERED=1 \
     bash "${MAIN_REPO}/scripts/run_faaslora_shared_artifact_experiment.sh" \
       --num-adapters "${SELECTED_NUM_ADAPTERS}" \
       --full-stack
-  if ! collect_faaslora_result "${stage}" "${faas_tag}" "${faas_copy}"; then
+  if ! collect_faaslora_result "${stage}" "${faas_tag}" "${faas_copy}" "${frozen_settings_sha}"; then
     echo "[ERROR] unable to locate FaaSLoRA result for tag=${faas_tag}" >&2
     post_system_clean_check "FaaSLoRA" || true
     return 1
   fi
+}
+
+validate_cross_system_generation_contract() {
+  if [[ "${GENERATION_CONTRACT}" != "fixed_length_greedy_v1" ]]; then
+    return 0
+  fi
+  case " ${SYSTEMS} " in
+    *" slora "*) ;;
+    *) return 0 ;;
+  esac
+  case " ${SYSTEMS} " in
+    *" faaslora "*) ;;
+    *) return 0 ;;
+  esac
+  local slora_replay=""
+  local faaslora_result=""
+  slora_replay="$(latest_summary_match \
+    "${RAW_REPLAY_DIR}/${RUN_TAG}_slora_*fixedlen*_replay.json" "")"
+  faaslora_result="$(summary_path_for_system faaslora)"
+  python3 - "${slora_replay}" "${faaslora_result}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+slora_path = Path(sys.argv[1])
+faaslora_path = Path(sys.argv[2])
+if not slora_path.is_file() or not faaslora_path.is_file():
+    raise SystemExit(
+        f"[ERROR] missing fixed-contract cross-system input: "
+        f"slora={slora_path} faaslora={faaslora_path}"
+    )
+slora = json.loads(slora_path.read_text(encoding="utf-8"))
+faaslora = json.loads(faaslora_path.read_text(encoding="utf-8"))
+slora_sha = str(slora.get("generation_contract_request_map_sha256") or "")
+faas_map = (faaslora.get("metadata") or {}).get(
+    "generation_contract_request_map_sha256"
+) or {}
+if len(faas_map) != 1:
+    raise SystemExit(
+        f"[ERROR] FaaSLoRA generation-contract map is not single-scenario: {faas_map}"
+    )
+faaslora_sha = str(next(iter(faas_map.values())) or "")
+if not slora_sha or slora_sha != faaslora_sha:
+    raise SystemExit(
+        "[ERROR] PrimeLoRA/S-LoRA request target/prompt map mismatch: "
+        f"slora={slora_sha!r} faaslora={faaslora_sha!r}"
+    )
+print(
+    "[check] PrimeLoRA/S-LoRA fixed generation contract uses an identical "
+    f"request target/prompt map: {slora_sha}"
+)
+PY
 }
 
 run_compare() {
@@ -890,6 +1598,7 @@ run_compare() {
     mark_done "${stage}"
     return 0
   fi
+  validate_cross_system_generation_contract
   local expected_systems=""
   expected_systems="$(selected_supported_systems faaslora sglang serverlessllm vllm slora | xargs)"
   if is_done "${stage}"; then
@@ -966,13 +1675,27 @@ write_manifest() {
       fi
     done | xargs
   )"
-  python3 - "${ROUND_DIR}" "${RUN_TAG}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" "${SAMPLING_SEED}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" "${SYSTEMS}" "${supported_systems}" "${unsupported_systems}" <<'PY'
+  local frozen_settings_sha=""
+  frozen_settings_sha="$(faaslora_frozen_settings_sha256)"
+  python3 - "${ROUND_DIR}" "${RUN_TAG}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" "${SAMPLING_SEED}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" "${SYSTEMS}" "${supported_systems}" "${unsupported_systems}" "${GENERATION_CONTRACT}" "${FIXED_OUTPUT_MAX_TOKENS}" "${FIXED_PROMPT_MAX_TOKENS}" "${STORAGE_BANDWIDTH_MIB_S}" "${ZIPF_EXPONENT}" "${ACTIVE_ADAPTER_CAP}" "${HOTSET_ROTATION_REQUESTS}" "${HOTSET_ROTATION_MODE}" "${HOTSET_OVERLAP_FRACTION}" "${FAASLORA_SCENARIO}" "${EXECUTION_ORDER}" "${frozen_settings_sha}" <<'PY'
+import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 round_dir = Path(sys.argv[1])
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+trace_path = Path(sys.argv[9])
+subset_path = Path(sys.argv[10])
 payload = {
     "run_tag": sys.argv[2],
     "model_profile": sys.argv[3],
@@ -981,8 +1704,10 @@ payload = {
     "total_requests": int(sys.argv[6]),
     "selected_num_adapters": int(sys.argv[7]),
     "sampling_seed": int(sys.argv[8]),
-    "shared_trace_path": sys.argv[9],
-    "shared_adapter_subset_path": sys.argv[10],
+    "shared_trace_path": str(trace_path),
+    "shared_trace_sha256": sha256(trace_path),
+    "shared_adapter_subset_path": str(subset_path),
+    "shared_adapter_subset_sha256": sha256(subset_path),
     "systems": sys.argv[11].split(),
     "supported_systems": sys.argv[12].split(),
     "unsupported_systems": sys.argv[13].split(),
@@ -991,15 +1716,137 @@ payload = {
     "state_dir": str(round_dir / "state"),
     "compare_json": str(round_dir / "compare" / f"{sys.argv[2]}_five_system_compare.json"),
     "compare_txt": str(round_dir / "compare" / f"{sys.argv[2]}_five_system_compare.txt"),
+    "generation_contract": sys.argv[14],
+    "fixed_output_max_tokens": int(sys.argv[15]),
+    "fixed_prompt_max_tokens": int(sys.argv[16]),
+    "bandwidth_mib_s": float(sys.argv[17]),
+    "bandwidth_gbit_s": float(sys.argv[17]) * 1024.0 * 1024.0 * 8.0 / 1_000_000_000.0,
+    "bandwidth_limit_mode": (
+        "no-delay" if float(sys.argv[17]) == 0.0 else "aggregate_application_layer_local_sim"
+    ),
+    "workload_overrides": {
+        "zipf_exponent": sys.argv[18] or None,
+        "active_adapter_cap": sys.argv[19] or None,
+        "hotset_rotation_requests": sys.argv[20] or None,
+        "hotset_rotation_mode": sys.argv[21] or None,
+        "hotset_overlap_fraction": sys.argv[22] or None,
+    },
+    "faaslora_scenario": sys.argv[23],
+    "execution_order": sys.argv[24].split(),
+    "faaslora_frozen_settings_sha256": sys.argv[25],
 }
+resolved_config_path = round_dir / "protocol" / "system_resolved_config.json"
+if not resolved_config_path.is_file():
+    raise SystemExit(f"[ERROR] missing resolved-config sidecar: {resolved_config_path}")
+resolved_config = json.loads(resolved_config_path.read_text(encoding="utf-8"))
+if int(resolved_config.get("sampling_seed", -1)) != payload["sampling_seed"]:
+    raise SystemExit("[ERROR] resolved-config sidecar sampling seed mismatch")
+if str(resolved_config.get("model_profile") or "") != payload["model_profile"]:
+    raise SystemExit("[ERROR] resolved-config sidecar model profile mismatch")
+resolved_hash = str(resolved_config.get("system_resolved_config_sha256") or "")
+if len(resolved_hash) != 64 or any(ch not in "0123456789abcdef" for ch in resolved_hash):
+    raise SystemExit("[ERROR] invalid system_resolved_config_sha256 in sidecar")
+full_run_hash = str(resolved_config.get("full_run_identity_sha256") or "")
+if len(full_run_hash) != 64 or any(ch not in "0123456789abcdef" for ch in full_run_hash):
+    raise SystemExit("[ERROR] invalid full_run_identity_sha256 in sidecar")
+payload.update(
+    {
+        "formal_run": bool(resolved_config.get("formal_run")),
+        "trace_role": str(resolved_config.get("trace_role") or ""),
+        "source_clean_for_formal": bool(resolved_config.get("source_clean_for_formal")),
+        "source_cleanliness": resolved_config.get("source_cleanliness") or {},
+        "system_resolved_config_sha256": resolved_hash,
+        "system_resolved_config_path": str(resolved_config_path),
+        "system_resolved_config_sidecar_sha256": sha256(resolved_config_path),
+        "system_resolved_config_sidecar_bytes": resolved_config_path.stat().st_size,
+        "system_resolved_config_family_id": str(
+            resolved_config.get("configuration_family_id") or ""
+        ),
+        "full_run_identity_sha256": full_run_hash,
+        "system_resolved_config_registry_path": str(
+            resolved_config.get("registry_path") or ""
+        ),
+    }
+)
+if payload["formal_run"] and not payload["source_clean_for_formal"]:
+    raise SystemExit("[ERROR] formal manifest refuses non-clean tracked source state")
 for name, cwd in (("baseline_git", "/home/qhq/serverless_llm_baselines"), ("faaslora_git", "/home/qhq/serverless_llm_experiment_retry14_baseline")):
     try:
         commit = subprocess.check_output(["git", "-C", cwd, "rev-parse", "HEAD"], text=True).strip()
         branch = subprocess.check_output(["git", "-C", cwd, "branch", "--show-current"], text=True).strip()
+        status = subprocess.check_output(
+            ["git", "-C", cwd, "status", "--short", "--untracked-files=no"],
+            text=True,
+        ).strip().splitlines()
     except Exception:
         commit = ""
         branch = ""
-    payload[name] = {"path": cwd, "branch": branch, "commit": commit}
+        status = []
+    payload[name] = {
+        "path": cwd,
+        "branch": branch,
+        "commit": commit,
+        "tracked_dirty_paths": status,
+    }
+
+source_files = {}
+raw_sources = []
+for root_name in ("raw", "compare", "logs"):
+    root = round_dir / root_name
+    if not root.exists():
+        continue
+    for path in sorted(item for item in root.rglob("*") if item.is_file()):
+        source_files[str(path.relative_to(round_dir))] = {
+            "bytes": path.stat().st_size,
+            "sha256": sha256(path),
+        }
+        if root_name == "raw":
+            raw_sources.append(
+                {
+                    "path": str(path.resolve()),
+                    "relative_path": str(path.relative_to(round_dir)),
+                    "bytes": path.stat().st_size,
+                    "sha256": sha256(path),
+                }
+            )
+payload["source_files"] = source_files
+payload["raw_sources"] = raw_sources
+
+state_files = sorted(path.name for path in (round_dir / "state").glob("*.done"))
+payload["state_markers"] = state_files
+stage_by_system = {
+    "sglang": "10_sglang.done",
+    "serverlessllm": "20_serverlessllm.done",
+    "vllm": "30_vllm.done",
+    "slora": "40_slora.done",
+    "faaslora": "50_faaslora.done",
+}
+selected_supported = payload["supported_systems"]
+required_markers = ["00_prep.done"] + [stage_by_system[item] for item in selected_supported]
+if selected_supported:
+    required_markers.append("90_compare.done")
+payload["required_state_markers"] = required_markers
+payload["status"] = (
+    "complete" if all(marker in state_files for marker in required_markers) else "incomplete"
+)
+
+try:
+    gpu_rows = subprocess.check_output(
+        [
+            "nvidia-smi",
+            "--query-gpu=index,name,uuid,driver_version,memory.total",
+            "--format=csv,noheader,nounits",
+        ],
+        text=True,
+        stderr=subprocess.DEVNULL,
+    ).strip().splitlines()
+except Exception:
+    gpu_rows = []
+payload["hardware"] = {
+    "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
+    "gpu_rows": gpu_rows,
+    "topology_note": "See the campaign preservation hardware-topology preflight; runtime TP/DP is recorded in each system summary.",
+}
 (round_dir / "MANIFEST.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
 print(round_dir / "MANIFEST.json")
 PY
@@ -1020,22 +1867,28 @@ run_system_if_selected() {
 }
 
 main() {
+  validate_v2_protocol_controls
+  validate_trace_role_and_formal_sources
   log "round_dir=${ROUND_DIR}"
   log "run_tag=${RUN_TAG}"
+  log "formal_run=${FORMAL_RUN} trace_role=${TRACE_ROLE}"
+  log "execution_order=${EXECUTION_ORDER}"
   log "resume_file=${ROUND_ENV_FILE}"
   run_prep
+  prepare_resolved_config_gate
   if [[ "${DRY_RUN}" == "1" ]]; then
     log "dry-run complete after shared artifact preparation; selected systems=${SYSTEMS}"
     log "dry-run does not launch serving systems, replay requests, validate summaries, or write compare tables"
+    validate_trace_role_and_formal_sources
     write_manifest
     return 0
   fi
-  run_system_if_selected sglang
-  run_system_if_selected serverlessllm
-  run_system_if_selected vllm
-  run_system_if_selected slora
-  run_system_if_selected faaslora
+  local system=""
+  for system in ${EXECUTION_ORDER}; do
+    run_system_if_selected "${system}"
+  done
   run_compare
+  validate_trace_role_and_formal_sources
   write_manifest
   log "round complete: ${ROUND_DIR}"
   log "comparison: ${COMPARE_DIR}/${RUN_TAG}_five_system_compare.txt"

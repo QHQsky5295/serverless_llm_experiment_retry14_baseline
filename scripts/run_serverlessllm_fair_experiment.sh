@@ -47,14 +47,19 @@ RUN_TAG="${SLLM_RUN_TAG:-${SERVING_MODEL_NAME}_r${TOTAL_REQUESTS}_a${SELECTED_NU
 REMOTE_ARTIFACT_STAGE_ENDPOINT="${SLLM_REMOTE_ARTIFACT_STAGE_ENDPOINT:-${BASELINE_REMOTE_ARTIFACT_STAGE_ENDPOINT:-}}"
 REMOTE_ARTIFACT_STAGE_CACHE_DIR="${SLLM_REMOTE_ARTIFACT_STAGE_CACHE_DIR:-${ROOT_DIR}/results/remote_artifact_cache/${MODEL_PROFILE}/serverlessllm/${RUN_TAG}}"
 REMOTE_ARTIFACT_STAGE_WORKERS="${SLLM_REMOTE_ARTIFACT_STAGE_WORKERS:-1}"
-REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS="${SLLM_REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS:-${BASELINE_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-250}}"
+REMOTE_ARTIFACT_STAGE_BANDWIDTH_MIB_S="${SLLM_REMOTE_ARTIFACT_STAGE_BANDWIDTH_MIB_S:-${SLLM_REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS:-${BASELINE_REMOTE_ARTIFACT_BANDWIDTH_MIB_S:-${BASELINE_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-250}}}}"
+# Compatibility for stage helpers that still expose the historical --bandwidth-mbps
+# spelling. The value has always represented MiB/s, not megabits/s.
+REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS="${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MIB_S}"
 REMOTE_ARTIFACT_STAGE_MODE="${SLLM_REMOTE_ARTIFACT_STAGE_MODE:-dynamic}"
 SHARED_TRACE_PATH="${SLLM_SHARED_TRACE_PATH:?SLLM_SHARED_TRACE_PATH is required}"
 SHARED_ADAPTER_SUBSET_PATH="${SLLM_SHARED_ADAPTER_SUBSET_PATH:?SLLM_SHARED_ADAPTER_SUBSET_PATH is required}"
 
 RESULT_TAG="${SLLM_RESULT_TAG:-${RUN_TAG}_serverlessllm}"
 TRACE_PATH="${SHARED_TRACE_PATH}"
-ADAPTER_SUBSET_PATH="${SHARED_ADAPTER_SUBSET_PATH}"
+ORIGINAL_ADAPTER_SUBSET_PATH="${SHARED_ADAPTER_SUBSET_PATH}"
+ORIGINAL_ADAPTER_SUBSET_SHA256=""
+ADAPTER_SUBSET_PATH="${ORIGINAL_ADAPTER_SUBSET_PATH}"
 DEPLOY_PATH="${SHARED_INPUT_DIR}/${RESULT_TAG}_deploy.json"
 REPLAY_PATH="${RESULT_DIR}/${RESULT_TAG}_replay.json"
 SUMMARY_PATH="${RESULT_DIR}/${RESULT_TAG}_summary.json"
@@ -156,7 +161,7 @@ prefetch_serverlessllm_probe_adapter() {
   if [[ -z "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}" ]]; then
     return 0
   fi
-  run_python_in_env sllm_head_official - "${ROOT_DIR}" "${TRACE_PATH}" "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}" "${REMOTE_ARTIFACT_STAGE_ENDPOINT}" "${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS}" "${TIMEOUT_S}" <<'PY'
+  run_python_in_env sllm_head_official - "${ROOT_DIR}" "${TRACE_PATH}" "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}" "${REMOTE_ARTIFACT_STAGE_ENDPOINT}" "${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MIB_S}" "${TIMEOUT_S}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -165,7 +170,7 @@ root = Path(sys.argv[1]).resolve()
 trace_path = Path(sys.argv[2]).resolve()
 adapter_map_path = Path(sys.argv[3]).resolve()
 endpoint = sys.argv[4]
-bandwidth_mbps = float(sys.argv[5] or 0.0)
+bandwidth_mib_s = float(sys.argv[5] or 0.0)
 timeout_s = float(sys.argv[6] or 300.0)
 
 sys.path.insert(0, str(root / "scripts"))
@@ -190,7 +195,7 @@ fetcher = RemoteArtifactFetcher(
     endpoint=endpoint,
     timeout_s=timeout_s,
     token_env="PRIME_REMOTE_TOKEN",
-    bandwidth_mbps=bandwidth_mbps,
+    bandwidth_mib_s=bandwidth_mib_s,
 )
 metrics = fetcher.ensure(adapter_id, adapter_map[adapter_id])
 print(json.dumps({"adapter_id": adapter_id, **metrics}, indent=2))
@@ -305,6 +310,29 @@ if [[ ! -f "${ADAPTER_SUBSET_PATH}" ]]; then
   echo "[ERROR] shared adapter subset artifact not found: ${ADAPTER_SUBSET_PATH}" >&2
   exit 1
 fi
+ORIGINAL_ADAPTER_SUBSET_PATH="$(
+  run_python_in_env sllm_head_official - "${ORIGINAL_ADAPTER_SUBSET_PATH}" <<'PY'
+import sys
+from pathlib import Path
+
+print(Path(sys.argv[1]).expanduser().resolve())
+PY
+)"
+ADAPTER_SUBSET_PATH="${ORIGINAL_ADAPTER_SUBSET_PATH}"
+ORIGINAL_ADAPTER_SUBSET_SHA256="$(
+  run_python_in_env sllm_head_official - "${ORIGINAL_ADAPTER_SUBSET_PATH}" <<'PY'
+import hashlib
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+digest = hashlib.sha256()
+with path.open("rb") as handle:
+    for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+        digest.update(chunk)
+print(digest.hexdigest())
+PY
+)"
 
 echo "[1/5] Validating shared trace and adapter subset"
 run_python_in_env sllm_head_official \
@@ -469,7 +497,7 @@ PY
     )"
     echo "      staged_adapter_subset=${ADAPTER_SUBSET_PATH}"
     echo "      staged_adapter_cache=${REMOTE_ARTIFACT_STAGE_CACHE_DIR}"
-    echo "      staged_adapter_bandwidth_mib_s=${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS}"
+    echo "      staged_adapter_bandwidth_mib_s=${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MIB_S}"
     echo "      staged_adapter_sec=${REMOTE_STAGE_SEC}"
   else
     echo "[remote-dynamic] Configuring ServerlessLLM request-path adapter materialization from ${REMOTE_ARTIFACT_STAGE_ENDPOINT}"
@@ -520,7 +548,7 @@ PY
     echo "      request_remote_subset=${ADAPTER_SUBSET_PATH}"
     echo "      request_remote_map=${SLLM_REQUEST_REMOTE_ADAPTER_MAP}"
     echo "      request_remote_cache=${REMOTE_ARTIFACT_STAGE_CACHE_DIR}"
-    echo "      request_remote_bandwidth_mib_s=${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS}"
+    echo "      request_remote_bandwidth_mib_s=${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MIB_S}"
   fi
 fi
 
@@ -595,7 +623,7 @@ if [[ -n "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}" ]]; then
     --request-remote-adapter-map "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}"
     --request-remote-endpoint "${REMOTE_ARTIFACT_STAGE_ENDPOINT}"
     --request-remote-timeout-s "${TIMEOUT_S}"
-    --request-remote-bandwidth-mbps "${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MBPS}"
+    --request-remote-bandwidth-mib-s "${REMOTE_ARTIFACT_STAGE_BANDWIDTH_MIB_S}"
   )
 fi
 if [[ -n "${REPLAY_MAX_REQUESTS}" && "${REPLAY_MAX_REQUESTS}" != "0" ]]; then
@@ -635,6 +663,27 @@ run_python_in_env sllm_head_official \
   --expected-total "${VALIDATE_EXPECTED_TOTAL}"
 
 echo "[post] Summarizing replay into the shared paper metric schema"
+CURRENT_ORIGINAL_ADAPTER_SUBSET_SHA256="$(
+  run_python_in_env sllm_head_official - "${ORIGINAL_ADAPTER_SUBSET_PATH}" <<'PY'
+import hashlib
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+digest = hashlib.sha256()
+with path.open("rb") as handle:
+    for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+        digest.update(chunk)
+print(digest.hexdigest())
+PY
+)"
+if [[ "${CURRENT_ORIGINAL_ADAPTER_SUBSET_SHA256}" != "${ORIGINAL_ADAPTER_SUBSET_SHA256}" ]]; then
+  echo "[ERROR] original shared adapter subset changed during the ServerlessLLM run" >&2
+  echo "        path=${ORIGINAL_ADAPTER_SUBSET_PATH}" >&2
+  echo "        expected_sha256=${ORIGINAL_ADAPTER_SUBSET_SHA256}" >&2
+  echo "        observed_sha256=${CURRENT_ORIGINAL_ADAPTER_SUBSET_SHA256}" >&2
+  exit 1
+fi
 SUMMARY_PREDEPLOY_STARTUP_SEC="$(
   run_python_in_env sllm_head_official - "${REMOTE_STAGE_SEC}" "${POST_DEPLOY_WAIT_S}" <<'PY'
 import sys
@@ -652,7 +701,8 @@ run_python_in_env sllm_head_official \
   --dataset-profile "${DATASET_PROFILE}" \
   --workload-profile "${WORKLOAD_PROFILE}" \
   --trace "${TRACE_PATH}" \
-  --adapter-subset "${ADAPTER_SUBSET_PATH}" \
+  --adapter-subset "${ORIGINAL_ADAPTER_SUBSET_PATH}" \
+  --runtime-adapter-subset "${ADAPTER_SUBSET_PATH}" \
   --replay "${REPLAY_PATH}" \
   --deploy "${DEPLOY_PATH}" \
   --predeploy-startup-sec "${SUMMARY_PREDEPLOY_STARTUP_SEC}" \

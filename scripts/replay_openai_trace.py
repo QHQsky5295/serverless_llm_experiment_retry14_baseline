@@ -21,6 +21,8 @@ from typing import Any, Dict, List, Optional
 import requests
 
 LIVE_PRINT_INTERVAL_S = 2.0
+GENERATION_CONTRACT_LEGACY = "legacy"
+GENERATION_CONTRACT_FIXED_LENGTH_GREEDY_V1 = "fixed_length_greedy_v1"
 _PROMPT_GUARD_TOKENIZER_CACHE: Dict[str, Any] = {}
 _PROMPT_GUARD_TOKENIZER_LOCK = threading.Lock()
 METRIC_DEF_PRIMARY_TTFT = (
@@ -249,6 +251,67 @@ def _load_adapter_path_map(path: Path) -> Dict[str, str]:
     return mapping
 
 
+class _AggregateBandwidthReservationLimiter:
+    """Reserve one process-wide file-simulation bandwidth timeline.
+
+    Each reservation occupies ``bytes / rate`` seconds on a shared logical
+    link. Callers sleep until the end of their reservation, so four concurrent
+    fetches cannot each consume the full configured rate independently.
+    """
+
+    def __init__(self, bandwidth_mib_s: float) -> None:
+        self.bandwidth_mib_s = max(0.0, float(bandwidth_mib_s or 0.0))
+        self._lock = threading.Lock()
+        self._next_available_at = 0.0
+
+    def reserve(self, size_bytes: int) -> Dict[str, float]:
+        size = max(0, int(size_bytes or 0))
+        if self.bandwidth_mib_s <= 0.0 or size <= 0:
+            return {
+                "wait_s": 0.0,
+                "queue_s": 0.0,
+                "transfer_s": 0.0,
+            }
+        transfer_s = (size / (1024.0 * 1024.0)) / self.bandwidth_mib_s
+        arrived_at = time.perf_counter()
+        with self._lock:
+            reservation_start = max(arrived_at, self._next_available_at)
+            reservation_end = reservation_start + transfer_s
+            self._next_available_at = reservation_end
+        requested_wait_s = max(0.0, reservation_end - arrived_at)
+        wait_started = time.perf_counter()
+        if requested_wait_s > 0.0:
+            time.sleep(requested_wait_s)
+        actual_wait_s = max(0.0, time.perf_counter() - wait_started)
+        return {
+            "wait_s": actual_wait_s,
+            "queue_s": max(0.0, reservation_start - arrived_at),
+            "transfer_s": transfer_s,
+        }
+
+
+_AGGREGATE_LIMITER_REGISTRY: Dict[
+    tuple[str, float], _AggregateBandwidthReservationLimiter
+] = {}
+_AGGREGATE_LIMITER_REGISTRY_LOCK = threading.Lock()
+
+
+def _shared_aggregate_limiter(
+    endpoint: str,
+    bandwidth_mib_s: float,
+) -> _AggregateBandwidthReservationLimiter:
+    rate = max(0.0, float(bandwidth_mib_s or 0.0))
+    if rate <= 0.0:
+        return _AggregateBandwidthReservationLimiter(0.0)
+    key = (str(endpoint).rstrip("/"), rate)
+    with _AGGREGATE_LIMITER_REGISTRY_LOCK:
+        limiter = _AGGREGATE_LIMITER_REGISTRY.get(key)
+        if limiter is None:
+            limiter = _AggregateBandwidthReservationLimiter(rate)
+            _AGGREGATE_LIMITER_REGISTRY[key] = limiter
+        return limiter
+
+
 class RemoteArtifactFetcher:
     """Materialize LoRA adapters from a remote source on demand.
 
@@ -267,6 +330,7 @@ class RemoteArtifactFetcher:
         timeout_s: float,
         token_env: str,
         bandwidth_mbps: float = 0.0,
+        bandwidth_mib_s: Optional[float] = None,
     ) -> None:
         endpoint = str(endpoint or "").strip().rstrip("/")
         if not endpoint:
@@ -275,11 +339,89 @@ class RemoteArtifactFetcher:
         self._parsed_endpoint = urllib.parse.urlparse(endpoint)
         self._timeout_s = max(1.0, float(timeout_s or 300.0))
         self._token = os.getenv(str(token_env or "PRIME_REMOTE_TOKEN"), "")
-        self._bandwidth_mbps = max(0.0, float(bandwidth_mbps or 0.0))
+        requested_bandwidth = (
+            float(bandwidth_mib_s)
+            if bandwidth_mib_s is not None
+            else float(bandwidth_mbps or 0.0)
+        )
+        self._requested_bandwidth_mib_s = max(0.0, requested_bandwidth)
+        self._configured_bandwidth_mib_s = (
+            self._requested_bandwidth_mib_s
+            if self._parsed_endpoint.scheme == "file"
+            else 0.0
+        )
+        self._bandwidth_limiter = _shared_aggregate_limiter(
+            self._endpoint,
+            self._configured_bandwidth_mib_s,
+        )
         self._session = requests.Session()
         self._session.trust_env = False
         self._locks: Dict[str, threading.Lock] = {}
         self._global_lock = threading.Lock()
+
+    def configuration_metadata(self) -> Dict[str, Any]:
+        scheme = str(self._parsed_endpoint.scheme or "").lower()
+        if scheme == "file":
+            limit_mode = (
+                "file_aggregate_reservation"
+                if self._configured_bandwidth_mib_s > 0.0
+                else "file_no_delay"
+            )
+        elif scheme in ("http", "https"):
+            limit_mode = "http_unthrottled"
+        else:
+            limit_mode = "network_unthrottled"
+        return {
+            "endpoint": self._endpoint,
+            "endpoint_scheme": scheme,
+            "bandwidth_unit": "MiB/s",
+            "requested_bandwidth_mib_s": self._requested_bandwidth_mib_s,
+            "configured_bandwidth_mib_s": self._configured_bandwidth_mib_s,
+            "limit_mode": limit_mode,
+            "http_client_limit_applied": False,
+        }
+
+    def _transfer_metadata(
+        self,
+        *,
+        fetched: bool,
+        size_bytes: int,
+        elapsed_s: float,
+        wait_s: float,
+        queue_s: float,
+        reserved_transfer_s: float,
+    ) -> Dict[str, Any]:
+        config = self.configuration_metadata()
+        achieved_mib_s = 0.0
+        if fetched and size_bytes > 0 and elapsed_s > 0.0:
+            achieved_mib_s = (size_bytes / (1024.0 * 1024.0)) / elapsed_s
+        return {
+            "remote_lora_bandwidth_requested_mib_s": config[
+                "requested_bandwidth_mib_s"
+            ],
+            "remote_lora_bandwidth_configured_mib_s": config[
+                "configured_bandwidth_mib_s"
+            ],
+            "remote_lora_bandwidth_achieved_mib_s": achieved_mib_s,
+            "remote_lora_bandwidth_bytes": max(0, int(size_bytes or 0)),
+            "remote_lora_bandwidth_achieved_basis": (
+                "none"
+                if not fetched
+                else (
+                    "source_bytes_over_fetch_wall"
+                    if config["endpoint_scheme"] == "file"
+                    else "wire_bytes_over_fetch_wall"
+                )
+            ),
+            "remote_lora_bandwidth_wait_ms": max(0.0, wait_s) * 1000.0,
+            "remote_lora_bandwidth_queue_ms": max(0.0, queue_s) * 1000.0,
+            "remote_lora_bandwidth_reserved_transfer_ms": (
+                max(0.0, reserved_transfer_s) * 1000.0
+            ),
+            "remote_lora_bandwidth_limit_mode": (
+                "cache_hit_no_transfer" if not fetched else config["limit_mode"]
+            ),
+        }
 
     def _lock_for(self, adapter_id: str) -> threading.Lock:
         with self._global_lock:
@@ -293,20 +435,38 @@ class RemoteArtifactFetcher:
         adapter = str(adapter_id or "").strip()
         target = Path(target_path).expanduser().resolve()
         if _looks_like_materialized_adapter(target):
+            size_bytes = _path_size(target)
             return {
                 "remote_lora_fetched": False,
                 "remote_lora_fetch_ms": 0.0,
-                "remote_lora_bytes": _path_size(target),
+                "remote_lora_bytes": size_bytes,
                 "remote_lora_endpoint": self._endpoint,
+                **self._transfer_metadata(
+                    fetched=False,
+                    size_bytes=0,
+                    elapsed_s=0.0,
+                    wait_s=0.0,
+                    queue_s=0.0,
+                    reserved_transfer_s=0.0,
+                ),
             }
         lock = self._lock_for(adapter)
         with lock:
             if _looks_like_materialized_adapter(target):
+                size_bytes = _path_size(target)
                 return {
                     "remote_lora_fetched": False,
                     "remote_lora_fetch_ms": 0.0,
-                    "remote_lora_bytes": _path_size(target),
+                    "remote_lora_bytes": size_bytes,
                     "remote_lora_endpoint": self._endpoint,
+                    **self._transfer_metadata(
+                        fetched=False,
+                        size_bytes=0,
+                        elapsed_s=0.0,
+                        wait_s=0.0,
+                        queue_s=0.0,
+                        reserved_transfer_s=0.0,
+                    ),
                 }
             target.parent.mkdir(parents=True, exist_ok=True)
             tmp_root = Path(tempfile.mkdtemp(prefix="remote-lora-fetch-"))
@@ -317,18 +477,22 @@ class RemoteArtifactFetcher:
             try:
                 parsed = self._parsed_endpoint
                 size_bytes = 0
+                bandwidth_bytes = 0
                 local_sim_mode = ""
+                bandwidth_wait_s = 0.0
+                bandwidth_queue_s = 0.0
+                reserved_transfer_s = 0.0
                 if parsed.scheme == "file":
                     src_root = Path(urllib.parse.unquote(parsed.path)).expanduser().resolve()
                     src = src_root / adapter
                     if not _looks_like_materialized_adapter(src):
                         raise RuntimeError(f"missing simulated remote adapter: {src}")
                     size_bytes = _path_size(src)
-                    if self._bandwidth_mbps > 0 and size_bytes > 0:
-                        # Match the existing PrimeLoRA local-remote simulation:
-                        # bandwidth_mbps is treated as MiB/s despite the legacy
-                        # name, so an adapter of X MiB sleeps X / bandwidth.
-                        time.sleep((size_bytes / (1024.0 * 1024.0)) / self._bandwidth_mbps)
+                    bandwidth_bytes = size_bytes
+                    reservation = self._bandwidth_limiter.reserve(size_bytes)
+                    bandwidth_wait_s = float(reservation["wait_s"])
+                    bandwidth_queue_s = float(reservation["queue_s"])
+                    reserved_transfer_s = float(reservation["transfer_s"])
                     local_sim_mode = _linktree(src, extract_dir)
                 else:
                     url = f"{self._endpoint}/artifacts/{urllib.parse.quote(adapter, safe='')}.tar.gz"
@@ -341,6 +505,7 @@ class RemoteArtifactFetcher:
                             for chunk in resp.iter_content(chunk_size=1024 * 1024):
                                 if chunk:
                                     fh.write(chunk)
+                                    bandwidth_bytes += len(chunk)
                     with tarfile.open(archive, "r:gz") as tar:
                         _safe_extract_tar(tar, extract_dir)
                     size_bytes = _path_size(extract_dir)
@@ -351,12 +516,21 @@ class RemoteArtifactFetcher:
                         target.unlink()
                 shutil.move(str(extract_dir), str(target))
                 elapsed_ms = (time.perf_counter() - t0) * 1000.0
+                transferred_bytes = size_bytes or _path_size(target)
                 return {
                     "remote_lora_fetched": True,
                     "remote_lora_fetch_ms": elapsed_ms,
-                    "remote_lora_bytes": size_bytes or _path_size(target),
+                    "remote_lora_bytes": transferred_bytes,
                     "remote_lora_endpoint": self._endpoint,
                     "remote_lora_local_sim_mode": local_sim_mode,
+                    **self._transfer_metadata(
+                        fetched=True,
+                        size_bytes=bandwidth_bytes,
+                        elapsed_s=elapsed_ms / 1000.0,
+                        wait_s=bandwidth_wait_s,
+                        queue_s=bandwidth_queue_s,
+                        reserved_transfer_s=reserved_transfer_s,
+                    ),
                 }
             finally:
                 shutil.rmtree(tmp_root, ignore_errors=True)
@@ -509,6 +683,36 @@ def _parse_base_urls(primary: str, extra_csv: Optional[str]) -> List[str]:
 def _stable_hash_int(value: str) -> int:
     digest = hashlib.sha1(value.encode("utf-8")).digest()
     return int.from_bytes(digest[:8], "big", signed=False)
+
+
+def _sha256_text(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _sha256_canonical_json(value: Any) -> str:
+    encoded = json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _fixed_length_target(source_expected_output_tokens: Any, cap: int) -> int:
+    try:
+        source = int(source_expected_output_tokens)
+    except (TypeError, ValueError) as exc:
+        raise RuntimeError(
+            "fixed_length_greedy_v1 requires integer expected_output_tokens on every request"
+        ) from exc
+    if source <= 0:
+        raise RuntimeError(
+            "fixed_length_greedy_v1 requires expected_output_tokens > 0 on every request"
+        )
+    if int(cap) <= 0:
+        raise RuntimeError("fixed_length_greedy_v1 requires --fixed-output-max-tokens > 0")
+    return min(source, int(cap))
 
 
 def _choose_dynamic_lora_base_url(
@@ -677,6 +881,8 @@ def _apply_response_payload(
     obj: Any,
     *,
     generated_text_parts: List[str],
+    generated_token_ids: List[int],
+    native_token_stats: Dict[str, int],
     server_metrics: Dict[str, Any],
 ) -> tuple[Optional[str], Dict[str, Any], Optional[str]]:
     """Extract text, usage, and metrics from one OpenAI-compatible payload."""
@@ -685,6 +891,19 @@ def _apply_response_payload(
     fragment = _extract_generated_text_fragment(obj)
     if fragment:
         generated_text_parts.append(fragment)
+    token = obj.get("token")
+    if isinstance(token, dict):
+        native_token_stats["token_events"] = native_token_stats.get("token_events", 0) + 1
+        token_id = token.get("id")
+        if isinstance(token_id, int) and not isinstance(token_id, bool):
+            generated_token_ids.append(token_id)
+            native_token_stats["integer_token_ids"] = (
+                native_token_stats.get("integer_token_ids", 0) + 1
+            )
+        else:
+            native_token_stats["invalid_token_ids"] = (
+                native_token_stats.get("invalid_token_ids", 0) + 1
+            )
     error = str(obj.get("error")) if obj.get("error") else None
     usage = obj["usage"] if isinstance(obj.get("usage"), dict) else {}
     metrics_source = None
@@ -753,6 +972,7 @@ def _apply_faaslora_style_prompt_guard(
                     add_special_tokens=tokenizer_add_special_tokens,
                 )
                 token_ids = reencoded[: max(1, min(len(reencoded), int(prompt_budget)))]
+                prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
                 break
             token_ids = token_ids[overflow:]
         actual_input_tokens = max(1, len(token_ids))
@@ -937,8 +1157,31 @@ def _replay_one(
     min_output_tokens: int,
     include_stream_usage: bool,
     force_stream: bool,
+    generation_contract: str,
+    fixed_output_max_tokens: int,
+    fixed_prompt_max_tokens: int,
 ) -> Dict[str, Any]:
     body = dict(item["body"])
+    fixed_length_contract = (
+        generation_contract == GENERATION_CONTRACT_FIXED_LENGTH_GREEDY_V1
+    )
+    source_expected_output_tokens = item.get("expected_output_tokens")
+    requested_completion_tokens: Optional[int] = None
+    canonical_prompt_sha256: Optional[str] = None
+    if fixed_length_contract:
+        requested_completion_tokens = _fixed_length_target(
+            source_expected_output_tokens,
+            fixed_output_max_tokens,
+        )
+        source_expected_output_tokens = int(source_expected_output_tokens)
+        # The public contract is greedy (temperature=0). S-LoRA represents
+        # greedy generation internally as do_sample=false/top_k=1 and normalizes
+        # temperature to 1.0 before validation.
+        body["temperature"] = 0.0
+        body["top_p"] = 1.0
+        body["ignore_eos"] = True
+        for stop_field in ("stop", "stop_sequences", "stop_token_ids"):
+            body.pop(stop_field, None)
     request_seed = _derive_request_generation_seed(
         generation_seed,
         item.get("request_id"),
@@ -957,22 +1200,55 @@ def _replay_one(
                 list(messages),
                 tokenizer_model=prompt_guard_tokenizer_model,
             )
-            requested_output_tokens = int(
-                body.get("max_tokens")
-                or body.get("max_completion_tokens")
-                or item.get("expected_output_tokens")
-                or 1
+            requested_output_tokens = (
+                int(requested_completion_tokens)
+                if requested_completion_tokens is not None
+                else int(
+                    body.get("max_tokens")
+                    or body.get("max_completion_tokens")
+                    or item.get("expected_output_tokens")
+                    or 1
+                )
             )
+            effective_max_input_len = int(prompt_guard_max_input_len or 0)
+            if fixed_length_contract:
+                if int(fixed_prompt_max_tokens) <= 0:
+                    raise RuntimeError(
+                        "fixed_length_greedy_v1 requires --fixed-prompt-max-tokens > 0"
+                    )
+                effective_max_input_len = (
+                    min(effective_max_input_len, int(fixed_prompt_max_tokens))
+                    if effective_max_input_len > 0
+                    else int(fixed_prompt_max_tokens)
+                )
             prompt, safe_max_tokens, guarded_prompt_tokens = _apply_faaslora_style_prompt_guard(
                 prompt=prompt,
                 requested_output_tokens=requested_output_tokens,
                 tokenizer_model=prompt_guard_tokenizer_model,
                 max_model_len=prompt_guard_max_model_len,
-                max_input_len=prompt_guard_max_input_len,
-                max_output_tokens_cap=prompt_guard_max_output_tokens_cap,
-                tokenizer_add_special_tokens=bool(slora_native_generate),
+                max_input_len=effective_max_input_len,
+                max_output_tokens_cap=(
+                    int(fixed_output_max_tokens)
+                    if fixed_length_contract
+                    else prompt_guard_max_output_tokens_cap
+                ),
+                # The cross-system contract hashes prompt *content*.  A native
+                # S-LoRA backend may add BOS internally, but including that
+                # synthetic token in only this client's truncation changes the
+                # actual prompt string and invalidates the matched-input claim.
+                # Preserve the legacy path, while fixed_length_greedy_v1 uses
+                # the same no-special-token guard as PrimeLoRA.
+                tokenizer_add_special_tokens=(
+                    bool(slora_native_generate) and not fixed_length_contract
+                ),
             )
             guard_max_tokens = int(safe_max_tokens)
+            canonical_prompt_sha256 = _sha256_text(prompt)
+            if fixed_length_contract and guard_max_tokens != requested_completion_tokens:
+                raise RuntimeError(
+                    "fixed_length_greedy_v1 prompt guard reduced requested output tokens: "
+                    f"target={requested_completion_tokens} guarded={guard_max_tokens}"
+                )
             if guarded_prompt_tokens is not None:
                 local_prompt_tokens_override = int(guarded_prompt_tokens)
             if sglang_native_generate:
@@ -1038,6 +1314,8 @@ def _replay_one(
     usage: Dict[str, Any] = {}
     error: Optional[str] = None
     generated_text_parts: List[str] = []
+    generated_token_ids: List[int] = []
+    native_token_stats: Dict[str, int] = {}
     stream_event_count = 0
     server_metrics: Dict[str, Any] = {}
     metrics_source: Optional[str] = None
@@ -1055,6 +1333,8 @@ def _replay_one(
         usage = {}
         error = None
         generated_text_parts = []
+        generated_token_ids = []
+        native_token_stats = {}
         stream_event_count = 0
         server_metrics = {}
         metrics_source = None
@@ -1108,6 +1388,8 @@ def _replay_one(
                                 _apply_response_payload(
                                     obj,
                                     generated_text_parts=generated_text_parts,
+                                    generated_token_ids=generated_token_ids,
+                                    native_token_stats=native_token_stats,
                                     server_metrics=server_metrics,
                                 )
                             )
@@ -1169,7 +1451,9 @@ def _replay_one(
         prompt_token_source = "server_metrics" if server_prompt_tokens is not None else (
             "local_guarded_prompt" if local_prompt_tokens_override is not None else "trace_expected"
         )
-    if usage_completion_tokens is None:
+    if fixed_length_contract and slora_native_generate:
+        completion_token_source = "slora_native_sse_token_id"
+    elif usage_completion_tokens is None:
         completion_token_source = "server_metrics" if server_completion_tokens is not None else (
             (
                 "local_generated_text_empty"
@@ -1190,18 +1474,21 @@ def _replay_one(
         )
         or 0
     )
-    completion_tokens = int(
-        (usage or {}).get(
-            "completion_tokens",
-            server_metrics.get(
+    if fixed_length_contract and slora_native_generate:
+        completion_tokens = len(generated_token_ids)
+    else:
+        completion_tokens = int(
+            (usage or {}).get(
                 "completion_tokens",
-                local_completion_tokens_override
-                if local_completion_tokens_override is not None
-                else item.get("expected_output_tokens", 0),
-            ),
+                server_metrics.get(
+                    "completion_tokens",
+                    local_completion_tokens_override
+                    if local_completion_tokens_override is not None
+                    else item.get("expected_output_tokens", 0),
+                ),
+            )
+            or 0
         )
-        or 0
-    )
     total_tokens = int((usage or {}).get("total_tokens", prompt_tokens + completion_tokens) or 0)
     cost_usd = _calc_cost(
         prompt_tokens,
@@ -1356,9 +1643,27 @@ def _replay_one(
                 metric_warnings.append("observable decode-window tpot_ms unavailable for this request")
     metric_warning = "; ".join(metric_warnings) if metric_warnings else None
 
+    output_contract_match = None
+    completion_token_ids_sha256 = None
+    if fixed_length_contract:
+        completion_token_ids_sha256 = _sha256_canonical_json(generated_token_ids)
+        output_contract_match = bool(
+            error is None
+            and status_code == 200
+            and requested_completion_tokens is not None
+            and completion_tokens == requested_completion_tokens
+            and native_token_stats.get("invalid_token_ids", 0) == 0
+        )
+
     return {
         "request_id": item["request_id"],
         "generation_seed": request_seed,
+        "generation_contract": generation_contract,
+        "source_expected_output_tokens": source_expected_output_tokens,
+        "requested_completion_tokens": requested_completion_tokens,
+        "canonical_prompt_sha256": canonical_prompt_sha256,
+        "completion_token_ids_sha256": completion_token_ids_sha256,
+        "output_contract_match": output_contract_match,
         "arrival_time_s": scheduled_offset_s,
         "dispatch_offset_s": dispatch_offset_s,
         "completion_offset_s": completion_offset_s,
@@ -1400,6 +1705,10 @@ def _replay_one(
         "total_tokens": total_tokens,
         "prompt_token_source": prompt_token_source,
         "completion_token_source": completion_token_source,
+        "completion_tokens_text_audit": local_completion_tokens_override,
+        "native_sse_token_event_count": native_token_stats.get("token_events", 0),
+        "native_sse_integer_token_id_count": native_token_stats.get("integer_token_ids", 0),
+        "native_sse_invalid_token_id_count": native_token_stats.get("invalid_token_ids", 0),
         "guard_prompt_tokens": local_prompt_tokens_override,
         "guard_max_tokens": guard_max_tokens,
         "request_attempts": request_attempts,
@@ -1693,13 +2002,22 @@ def main() -> int:
         help="Environment variable containing the optional bearer token for the remote artifact endpoint.",
     )
     ap.add_argument(
+        "--dynamic-lora-remote-bandwidth-mib-s",
+        type=float,
+        default=None,
+        help=(
+            "Aggregate application-level MiB/s limit for file:// dynamic-LoRA "
+            "remote simulation. Zero means no delay. HTTP(S) remains unthrottled."
+        ),
+    )
+    ap.add_argument(
         "--dynamic-lora-remote-bandwidth-mbps",
         type=float,
         default=0.0,
         help=(
-            "Optional MiB/s bandwidth used when --dynamic-lora-remote-endpoint "
-            "is file://... for local remote simulation. The name keeps legacy "
-            "compatibility with the PrimeLoRA bandwidth_mbps setting."
+            "Deprecated compatibility alias for "
+            "--dynamic-lora-remote-bandwidth-mib-s. Despite its name, this value "
+            "has always represented MiB/s."
         ),
     )
     ap.add_argument(
@@ -1731,10 +2049,22 @@ def main() -> int:
         help="Environment variable containing the optional bearer token for request-path remote fetches.",
     )
     ap.add_argument(
+        "--request-remote-bandwidth-mib-s",
+        type=float,
+        default=None,
+        help=(
+            "Aggregate application-level MiB/s limit for file:// request-path "
+            "remote simulation. Zero means no delay. HTTP(S) remains unthrottled."
+        ),
+    )
+    ap.add_argument(
         "--request-remote-bandwidth-mbps",
         type=float,
         default=0.0,
-        help="Optional MiB/s bandwidth for file:// request-path remote simulation.",
+        help=(
+            "Deprecated compatibility alias for --request-remote-bandwidth-mib-s; "
+            "the value is interpreted as MiB/s."
+        ),
     )
     ap.add_argument(
         "--dynamic-lora-routing",
@@ -1782,6 +2112,31 @@ def main() -> int:
         help="Optional base sampling seed; each request derives a stable per-request seed from request_id.",
     )
     ap.add_argument(
+        "--generation-contract",
+        choices=(
+            GENERATION_CONTRACT_LEGACY,
+            GENERATION_CONTRACT_FIXED_LENGTH_GREEDY_V1,
+        ),
+        default=GENERATION_CONTRACT_LEGACY,
+        help=(
+            "Generation semantics recorded in the replay. fixed_length_greedy_v1 "
+            "uses min(trace expected_output_tokens, cap), greedy decoding, "
+            "ignore_eos=true, and no stop sequences."
+        ),
+    )
+    ap.add_argument(
+        "--fixed-output-max-tokens",
+        type=int,
+        default=256,
+        help="Output-token cap for fixed_length_greedy_v1.",
+    )
+    ap.add_argument(
+        "--fixed-prompt-max-tokens",
+        type=int,
+        default=759,
+        help="Maximum guarded prompt tokens for fixed_length_greedy_v1.",
+    )
+    ap.add_argument(
         "--max-requests",
         type=int,
         default=0,
@@ -1809,6 +2164,35 @@ def main() -> int:
         raise RuntimeError("trace contains no requests")
     if args.sglang_native_generate and args.slora_native_generate:
         raise RuntimeError("--sglang-native-generate and --slora-native-generate are mutually exclusive")
+    if args.generation_contract == GENERATION_CONTRACT_FIXED_LENGTH_GREEDY_V1:
+        if not args.slora_native_generate:
+            raise RuntimeError(
+                "this replay client's fixed_length_greedy_v1 contract currently requires "
+                "--slora-native-generate so integer SSE token.id values are authoritative"
+            )
+        if not args.convert_chat_to_prompt:
+            raise RuntimeError(
+                "fixed_length_greedy_v1 requires --convert-chat-to-prompt"
+            )
+        if not args.prompt_guard_tokenizer_model:
+            raise RuntimeError(
+                "fixed_length_greedy_v1 requires --prompt-guard-tokenizer-model"
+            )
+        if int(args.fixed_output_max_tokens or 0) <= 0:
+            raise RuntimeError("--fixed-output-max-tokens must be > 0")
+        if int(args.fixed_prompt_max_tokens or 0) <= 0:
+            raise RuntimeError("--fixed-prompt-max-tokens must be > 0")
+        for item in requests_list:
+            _fixed_length_target(
+                item.get("expected_output_tokens"),
+                int(args.fixed_output_max_tokens),
+            )
+            messages = (item.get("body") or {}).get("messages")
+            if not isinstance(messages, list) or not messages:
+                raise RuntimeError(
+                    "fixed_length_greedy_v1 requires a non-empty body.messages list "
+                    f"for request {item.get('request_id')!r}"
+                )
     base_urls = _parse_base_urls(args.base_url, args.base_url_list)
     adapter_value_map: Dict[str, str] = {}
     if args.adapter_value_map:
@@ -1817,6 +2201,7 @@ def main() -> int:
             raise RuntimeError(f"adapter value map must be a JSON object: {args.adapter_value_map}")
         adapter_value_map = {str(key): str(value) for key, value in raw_map.items()}
     dynamic_lora_loader: Optional[DynamicLoRALoader] = None
+    dynamic_remote_fetcher: Optional[RemoteArtifactFetcher] = None
     request_remote_fetcher: Optional[RemoteArtifactFetcher] = None
     request_remote_map: Dict[str, str] = {}
     if args.request_remote_adapter_map:
@@ -1828,18 +2213,27 @@ def main() -> int:
             timeout_s=float(args.request_remote_timeout_s or 300.0),
             token_env=str(args.request_remote_token_env or "PRIME_REMOTE_TOKEN"),
             bandwidth_mbps=float(args.request_remote_bandwidth_mbps or 0.0),
+            bandwidth_mib_s=(
+                float(args.request_remote_bandwidth_mib_s)
+                if args.request_remote_bandwidth_mib_s is not None
+                else None
+            ),
         )
     if args.dynamic_lora_modules:
         module_map = _load_adapter_path_map(args.dynamic_lora_modules)
         if not module_map:
             raise RuntimeError(f"dynamic LoRA module map is empty: {args.dynamic_lora_modules}")
-        remote_fetcher = None
         if str(args.dynamic_lora_remote_endpoint or "").strip():
-            remote_fetcher = RemoteArtifactFetcher(
+            dynamic_remote_fetcher = RemoteArtifactFetcher(
                 endpoint=str(args.dynamic_lora_remote_endpoint),
                 timeout_s=float(args.dynamic_lora_remote_timeout_s or 300.0),
                 token_env=str(args.dynamic_lora_remote_token_env or "PRIME_REMOTE_TOKEN"),
                 bandwidth_mbps=float(args.dynamic_lora_remote_bandwidth_mbps or 0.0),
+                bandwidth_mib_s=(
+                    float(args.dynamic_lora_remote_bandwidth_mib_s)
+                    if args.dynamic_lora_remote_bandwidth_mib_s is not None
+                    else None
+                ),
             )
         dynamic_lora_loader = DynamicLoRALoader(
             modules=module_map,
@@ -1847,7 +2241,7 @@ def main() -> int:
             max_loaded_per_endpoint=int(args.dynamic_lora_max_loaded_per_endpoint or 0),
             load_path=str(args.dynamic_lora_load_path),
             unload_path=str(args.dynamic_lora_unload_path),
-            remote_fetcher=remote_fetcher,
+            remote_fetcher=dynamic_remote_fetcher,
         )
 
     results: List[Optional[Dict[str, Any]]] = [None] * len(requests_list)
@@ -2115,6 +2509,9 @@ def main() -> int:
                 min_output_tokens=int(args.min_output_tokens or 0),
                 include_stream_usage=bool(args.include_stream_usage),
                 force_stream=bool(args.force_stream),
+                generation_contract=str(args.generation_contract),
+                fixed_output_max_tokens=int(args.fixed_output_max_tokens),
+                fixed_prompt_max_tokens=int(args.fixed_prompt_max_tokens),
             )
         finally:
             if dynamic_lora_loader is not None and dynamic_lora_acquired:
@@ -2223,6 +2620,18 @@ def main() -> int:
 
     final_results = [r for r in results if r is not None]
     elapsed_sec = time.perf_counter() - start_time
+    generation_contract_request_map = [
+        {
+            "request_id": result.get("request_id"),
+            "adapter_id": result.get("adapter_id"),
+            "arrival_time_s": result.get("arrival_time_s"),
+            "source_expected_output_tokens": result.get("source_expected_output_tokens"),
+            "requested_completion_tokens": result.get("requested_completion_tokens"),
+            "canonical_prompt_sha256": result.get("canonical_prompt_sha256"),
+            "canonical_prompt_tokens": result.get("guard_prompt_tokens"),
+        }
+        for result in final_results
+    ]
     output = {
         "metric_schema_version": "e2e_v3",
         "metric_definitions": {
@@ -2247,6 +2656,44 @@ def main() -> int:
         "completed_records": len(final_results),
         "label": args.label,
         "generation_seed": args.generation_seed,
+        "generation_contract": str(args.generation_contract),
+        "generation_contract_policy": {
+            "target_formula": (
+                "min(source_expected_output_tokens, fixed_output_max_tokens)"
+                if args.generation_contract == GENERATION_CONTRACT_FIXED_LENGTH_GREEDY_V1
+                else None
+            ),
+            "fixed_output_max_tokens": int(args.fixed_output_max_tokens),
+            "fixed_prompt_max_tokens": int(args.fixed_prompt_max_tokens),
+            "temperature": (
+                0.0
+                if args.generation_contract == GENERATION_CONTRACT_FIXED_LENGTH_GREEDY_V1
+                else None
+            ),
+            "top_p": (
+                1.0
+                if args.generation_contract == GENERATION_CONTRACT_FIXED_LENGTH_GREEDY_V1
+                else None
+            ),
+            "ignore_eos": (
+                True
+                if args.generation_contract == GENERATION_CONTRACT_FIXED_LENGTH_GREEDY_V1
+                else None
+            ),
+            "stop_sequences": (
+                []
+                if args.generation_contract == GENERATION_CONTRACT_FIXED_LENGTH_GREEDY_V1
+                else None
+            ),
+            "completion_token_source": (
+                "slora_native_sse_token_id"
+                if args.generation_contract == GENERATION_CONTRACT_FIXED_LENGTH_GREEDY_V1
+                else None
+            ),
+        },
+        "generation_contract_request_map_sha256": _sha256_canonical_json(
+            generation_contract_request_map
+        ),
         "max_requests": int(args.max_requests or 0),
         "abort_after_failures": int(args.abort_after_failures or 0),
         "abort_failures_min_done": int(args.abort_failures_min_done or 1),
@@ -2265,6 +2712,18 @@ def main() -> int:
             args.dynamic_lora_max_loaded_per_endpoint or 0
         ),
         "dynamic_lora_hot_pair_adapters": sorted(dynamic_hot_pair_adapters),
+        "remote_artifact_bandwidth": {
+            "request_path": (
+                request_remote_fetcher.configuration_metadata()
+                if request_remote_fetcher is not None
+                else None
+            ),
+            "dynamic_lora": (
+                dynamic_remote_fetcher.configuration_metadata()
+                if dynamic_remote_fetcher is not None
+                else None
+            ),
+        },
         "cost_model": {
             "base_cost_usd": float(args.base_cost_usd),
             "input_token_cost_usd": float(args.input_token_cost_usd),

@@ -7,6 +7,8 @@ as a current execution source.
 ## Canonical Documents
 
 - `FAIR_COMPARISON_EXECUTION_PLAN.md`: current cross-system execution rules.
+- `EUROSYS27_V2_FORMAL_CONFIG_GATE.md`: seed-role, frozen system configuration,
+  full run identity, and formal tracked-source gates for V2 experiments.
 - `CURRENT_QUEUE_HANDOFF_2026-04-27.md`: historical tmux queue status from the
   operating-load/adapter-pool period. It is not an active queue handoff.
 - `SYSTEM_REPRODUCTION_RULES.md`: rules for adding or maintaining baselines.
