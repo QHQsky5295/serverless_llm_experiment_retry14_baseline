@@ -10,8 +10,12 @@ from __future__ import annotations
 
 import argparse
 import csv
+import gzip
+import hashlib
 import json
 import math
+import re
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -22,6 +26,19 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+
+try:  # Direct ``python scripts/...`` execution.
+    from eurosys27_v2_provenance import (
+        FormalAnalysisIdentity,
+        build_formal_provenance_index,
+        validate_formal_analysis_sources,
+    )
+except ModuleNotFoundError:  # Package import used by the test suite.
+    from scripts.eurosys27_v2_provenance import (
+        FormalAnalysisIdentity,
+        build_formal_provenance_index,
+        validate_formal_analysis_sources,
+    )
 
 
 def _configure_matplotlib() -> None:
@@ -124,6 +141,55 @@ class MainSystemData:
     metrics: Dict[str, float]
 
 
+V2_ABLATION_SCENARIOS = (
+    "v2_elastic_only",
+    "v2_hit_aware_preparation",
+    "v2_hierarchical_no_coord",
+    "v2_full",
+)
+V2_ABLATION_LABELS = {
+    "v2_elastic_only": "ElasticOnly",
+    "v2_hit_aware_preparation": "+Hit-aware prep.",
+    "v2_hierarchical_no_coord": "+Hierarchy",
+    "v2_full": "Full (+Admission)",
+}
+V2_ABLATION_COLORS = {
+    "v2_elastic_only": "#A8A8A8",
+    "v2_hit_aware_preparation": "#7FA7D9",
+    "v2_hierarchical_no_coord": "#F2B36D",
+    "v2_full": "#78B87A",
+}
+V2_ABLATION_FEATURE_GATES = {
+    "v2_elastic_only": (False, False, False, False, False),
+    "v2_hit_aware_preparation": (True, True, False, False, False),
+    "v2_hierarchical_no_coord": (True, True, True, False, False),
+    "v2_full": (True, True, True, True, True),
+}
+V2_ABLATION_METRICS = (
+    ("p95_overall_ttft_ms", "P95 TTFT (ms)", False),
+    ("avg_overall_e2e_ms", "Average E2E (ms)", False),
+    ("monetary_cost_per_request_usd", "Cost/request (USD)", False),
+    ("monetary_ce", "CE", True),
+)
+
+V2_FORMAL_SEEDS = (43, 44, 45)
+
+
+@dataclass(frozen=True)
+class V2AblationResult:
+    model: str
+    scenario: str
+    seed: int
+    run_tag: str
+    source: Path
+    completed: int
+    shared_trace_sha256: str
+    shared_adapter_subset_sha256: str
+    generation_contract: str
+    generation_contract_request_map_sha256: str
+    metrics: Dict[str, float]
+
+
 def _require_file(path: Path) -> None:
     if not path.exists():
         raise SystemExit(f"required file not found: {path}")
@@ -144,6 +210,16 @@ def _as_float(value: Any, label: str) -> float:
     if not math.isfinite(out):
         raise SystemExit(f"non-finite field {label}: {value!r}")
     return out
+
+
+def _optional_float(value: Any) -> float:
+    if value is None or value == "":
+        return float("nan")
+    try:
+        out = float(value)
+    except Exception:
+        return float("nan")
+    return out if math.isfinite(out) else float("nan")
 
 
 def _summary_float(scenario: ScenarioData, key: str) -> float:
@@ -298,9 +374,771 @@ def _improvement_pct(baseline: float, value: float, *, higher_is_better: bool) -
         raise SystemExit("cannot compute relative improvement with zero baseline")
     if higher_is_better:
         return (value / baseline - 1.0) * 100.0
-    if value == 0:
-        raise SystemExit("cannot compute lower-is-better improvement with zero value")
-    return (baseline / value - 1.0) * 100.0
+    return ((baseline - value) / baseline) * 100.0
+
+
+def _v2_read_json(path: Path) -> Dict[str, Any]:
+    try:
+        if path.suffix == ".gz":
+            with gzip.open(path, "rt", encoding="utf-8") as handle:
+                payload = json.load(handle)
+        else:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise SystemExit(f"cannot parse V2 result {path}: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise SystemExit(f"V2 result must be a JSON object: {path}")
+    return payload
+
+
+def _manifest_json_references(manifest: Path) -> List[Path]:
+    try:
+        payload = _v2_read_json(manifest)
+    except SystemExit:
+        return []
+    references: List[Path] = []
+
+    def visit(value: Any) -> None:
+        if isinstance(value, dict):
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+        elif isinstance(value, str) and (value.endswith(".json") or value.endswith(".json.gz")):
+            raw = Path(value).expanduser()
+            candidates = [raw] if raw.is_absolute() else [manifest.parent / raw, raw]
+            for candidate in candidates:
+                if candidate.is_file():
+                    references.append(candidate.resolve())
+                    break
+
+    visit(payload)
+    return references
+
+
+def _v2_result_candidates(inputs: Sequence[Path]) -> List[Path]:
+    candidates: set[Path] = set()
+    for raw_input in inputs:
+        input_path = raw_input.expanduser().resolve()
+        if input_path.is_file():
+            candidates.add(input_path)
+            if input_path.name == "MANIFEST.json":
+                candidates.update(_manifest_json_references(input_path))
+            continue
+        if not input_path.is_dir():
+            raise SystemExit(f"V2 ablation input does not exist: {input_path}")
+        candidates.update(path.resolve() for path in input_path.rglob("*_result.json"))
+        candidates.update(path.resolve() for path in input_path.rglob("*_result.json.gz"))
+        manifests = list(input_path.rglob("MANIFEST.json"))
+        for manifest in manifests:
+            candidates.update(_manifest_json_references(manifest))
+    return sorted(candidates)
+
+
+def _v2_model_identity(payload: Dict[str, Any], path: Path) -> str:
+    metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+    selection = metadata.get("profile_selection") if isinstance(metadata.get("profile_selection"), dict) else {}
+    raw = selection.get("model") or metadata.get("model_profile") or metadata.get("model") or payload.get("model")
+    if raw:
+        text = str(raw).strip().rstrip("/")
+        return Path(text).name or text
+    for part in reversed(path.parts):
+        if re.search(r"(?:llama|model).*(?:3b|7b|13b)", part, flags=re.IGNORECASE):
+            return part
+    raise SystemExit(f"cannot determine model identity for V2 result: {path}")
+
+
+def _v2_seed(payload: Dict[str, Any], path: Path, run_tag: str) -> int:
+    metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+    direct = (
+        metadata.get("generation_seed"),
+        metadata.get("workload_seed"),
+        metadata.get("seed"),
+        payload.get("generation_seed"),
+        payload.get("seed"),
+    )
+    for raw in direct:
+        if raw is not None and str(raw).strip() != "":
+            try:
+                return int(raw)
+            except Exception:
+                pass
+    search_text = "_".join((run_tag, *path.parts))
+    match = re.search(r"(?:^|[_/.-])seed[_-]?(\d+)(?:$|[_/.-])", search_text, flags=re.IGNORECASE)
+    if match:
+        return int(match.group(1))
+    raise SystemExit(f"cannot determine seed for V2 result {path}; record metadata.seed/generation_seed")
+
+
+def _v2_metric(detail: Dict[str, Any], summary: Dict[str, Any], key: str, label: str) -> float:
+    aliases = {
+        "p95_overall_ttft_ms": ("p95_overall_ttft_ms", "TTFT_e2e_P95_ms"),
+        "avg_overall_e2e_ms": ("avg_overall_e2e_ms", "E2E_e2e_avg_ms", "E2E_avg_ms"),
+        "monetary_cost_per_request_usd": ("monetary_cost_per_request_usd", "Monetary_cost_per_request_usd"),
+        "monetary_ce": ("monetary_ce", "Monetary_CE", "CE"),
+    }
+    for alias in aliases[key]:
+        if detail.get(alias) is not None:
+            return _as_float(detail.get(alias), f"{label}.{alias}")
+        if summary.get(alias) is not None:
+            return _as_float(summary.get(alias), f"{label}.{alias}")
+    raise SystemExit(f"{label}: missing V2 ablation metric {key}")
+
+
+def _v2_sha256(value: Any, label: str) -> str:
+    digest = str(value or "").strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", digest):
+        raise SystemExit(f"{label}: missing or invalid SHA-256 digest")
+    return digest
+
+
+def _v2_generation_contract_map_sha256(requests: Sequence[Dict[str, Any]]) -> str:
+    rows = [
+        {
+            "request_id": request.get("request_id"),
+            "adapter_id": request.get("adapter_id"),
+            "arrival_time_s": request.get("scheduled_arrival_offset_s"),
+            "source_expected_output_tokens": int(
+                request.get("source_expected_output_tokens", 0) or 0
+            ),
+            "requested_completion_tokens": int(
+                request.get("requested_completion_tokens", 0) or 0
+            ),
+            "canonical_prompt_sha256": str(
+                request.get("canonical_prompt_sha256", "") or ""
+            ),
+            "canonical_prompt_tokens": int(
+                request.get("canonical_prompt_tokens", 0) or 0
+            ),
+        }
+        for request in requests
+    ]
+    encoded = json.dumps(
+        rows,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _v2_ablation_audit(
+    *,
+    metadata: Dict[str, Any],
+    detail: Dict[str, Any],
+    scenario: str,
+    completed: int,
+    label: str,
+) -> tuple[str, str, str, str]:
+    """Fail closed on provenance, generation, dispatch, and mechanism evidence."""
+    trace_sha = _v2_sha256(metadata.get("shared_trace_sha256"), f"{label}.shared_trace_sha256")
+    subset_sha = _v2_sha256(
+        metadata.get("shared_adapter_subset_sha256"),
+        f"{label}.shared_adapter_subset_sha256",
+    )
+
+    contract = str(metadata.get("generation_contract") or "").strip().lower()
+    if contract not in {"legacy", "fixed_length_greedy_v1"}:
+        raise SystemExit(
+            f"{label}: missing or unsupported generation_contract={contract!r}"
+        )
+    contract_maps = metadata.get("generation_contract_request_map_sha256")
+    if not isinstance(contract_maps, dict):
+        raise SystemExit(f"{label}: missing generation_contract_request_map_sha256 mapping")
+    recorded_contract_map_sha = _v2_sha256(
+        contract_maps.get(scenario),
+        f"{label}.generation_contract_request_map_sha256[{scenario}]",
+    )
+
+    requests = detail.get("requests")
+    if not isinstance(requests, list) or len(requests) != completed:
+        observed = len(requests) if isinstance(requests, list) else "missing"
+        raise SystemExit(
+            f"{label}: request-level records must cover every completed request; "
+            f"observed={observed}, completed={completed}"
+        )
+    legal_tiers = {"gpu", "host", "nvme", "remote"}
+    actual_dispatch_counts = {tier: 0 for tier in sorted(legal_tiers)}
+    for index, request in enumerate(requests):
+        if not isinstance(request, dict):
+            raise SystemExit(f"{label}: request[{index}] is not an object")
+        if not bool(request.get("success")):
+            raise SystemExit(f"{label}: request[{index}] is not successful")
+        if not str(request.get("adapter_id") or "").strip():
+            raise SystemExit(f"{label}: request[{index}] is missing adapter_id")
+        request_contract = str(request.get("generation_contract") or "").strip().lower()
+        if request_contract != contract:
+            raise SystemExit(
+                f"{label}: request[{index}] generation_contract={request_contract!r} "
+                f"does not match metadata={contract!r}"
+            )
+        tier = str(request.get("readiness_tier_before_dispatch") or "").strip().lower()
+        if tier not in legal_tiers:
+            raise SystemExit(
+                f"{label}: incomplete dispatch-time readiness tier at request[{index}]: {tier!r}"
+            )
+        actual_dispatch_counts[tier] += 1
+        if contract == "fixed_length_greedy_v1":
+            _v2_sha256(
+                request.get("canonical_prompt_sha256"),
+                f"{label}:request[{index}].canonical_prompt_sha256",
+            )
+            target = int(request.get("requested_completion_tokens", 0) or 0)
+            actual = int(request.get("completion_tokens", 0) or 0)
+            if target <= 0 or actual != target or request.get("output_contract_match") is not True:
+                raise SystemExit(
+                    f"{label}: fixed generation contract mismatch at request[{index}]: "
+                    f"actual_tokens={actual}, target_tokens={target}"
+                )
+    recomputed_contract_map_sha = _v2_generation_contract_map_sha256(requests)
+    if recorded_contract_map_sha != recomputed_contract_map_sha:
+        raise SystemExit(
+            f"{label}: generation contract request-map SHA mismatch: "
+            f"recorded={recorded_contract_map_sha}, recomputed={recomputed_contract_map_sha}"
+        )
+
+    scenario_coordination = metadata.get("scenario_coordination")
+    coordination = (
+        scenario_coordination.get(scenario)
+        if isinstance(scenario_coordination, dict)
+        and isinstance(scenario_coordination.get(scenario), dict)
+        else None
+    )
+    if not isinstance(coordination, dict):
+        raise SystemExit(f"{label}: missing scenario_coordination audit block")
+    gates = coordination.get("feature_gates")
+    if not isinstance(gates, dict):
+        raise SystemExit(f"{label}: missing feature_gates audit block")
+    gate_names = (
+        "readiness_routing_enabled",
+        "scale_up_handoff_enabled",
+        "hierarchical_residency_enabled",
+        "coordination_enabled",
+        "effective_capacity_admission_enabled",
+    )
+    actual_gates = tuple(bool(gates.get(name)) for name in gate_names)
+    expected_gates = V2_ABLATION_FEATURE_GATES[scenario]
+    if actual_gates != expected_gates:
+        raise SystemExit(
+            f"{label}: feature gate mismatch; expected={expected_gates}, actual={actual_gates}"
+        )
+    activation = coordination.get("feature_activation")
+    if not isinstance(activation, dict):
+        raise SystemExit(f"{label}: missing feature_activation audit block")
+
+    def count(name: str) -> int:
+        try:
+            value = int(activation.get(name, 0) or 0)
+        except Exception as exc:
+            raise SystemExit(f"{label}: invalid activation counter {name}") from exc
+        if value < 0:
+            raise SystemExit(f"{label}: negative activation counter {name}={value}")
+        return value
+
+    if count("successful_request_count") != completed or count("routing_decision_count") != completed:
+        raise SystemExit(f"{label}: routing/success activation counts do not cover completed requests")
+    if count("routing_selection_attempt_count") < completed:
+        raise SystemExit(f"{label}: routing selection attempts are incomplete")
+    readiness_count = count("readiness_aware_routing_decision_count")
+    load_only_count = count("load_only_routing_decision_count")
+    if expected_gates[0]:
+        if readiness_count != completed or load_only_count != 0:
+            raise SystemExit(f"{label}: readiness-aware routing activation is inconsistent")
+    elif load_only_count != completed or readiness_count != 0:
+        raise SystemExit(f"{label}: ElasticOnly routing is not purely load-only")
+
+    planned_handoffs = count("scale_up_events_with_planned_adapters")
+    first_service_count = count("scaleup_first_service_request_count")
+    planned_match_count = count("scaleup_first_service_planned_match_count")
+    if expected_gates[1]:
+        if (
+            count("scale_up_event_count") <= 0
+            or planned_handoffs <= 0
+            or first_service_count <= 0
+            or planned_match_count <= 0
+        ):
+            raise SystemExit(f"{label}: scale-out handoff enabled but never triggered")
+        if count("initial_or_current_nvme_adapter_count") <= 0:
+            raise SystemExit(f"{label}: hit-aware preparation enabled but NVMe was never populated")
+    elif planned_handoffs != 0 or first_service_count != 0 or planned_match_count != 0:
+        raise SystemExit(f"{label}: disabled scale-out handoff recorded planned/served activity")
+
+    hierarchy_specific = (
+        count("host_promotion_completed_count")
+        + count("runtime_gpu_forward_success_count")
+    )
+    if expected_gates[2]:
+        if count("initial_or_current_host_adapter_count") <= 0:
+            raise SystemExit(f"{label}: hierarchy enabled but HOST tier was never populated")
+        if count("initial_or_current_nvme_adapter_count") <= 0:
+            raise SystemExit(f"{label}: hierarchy enabled but NVMe tier was never populated")
+        if hierarchy_specific <= 0:
+            raise SystemExit(f"{label}: hierarchy enabled but no online tier transition completed")
+    elif any(
+        count(name) != 0
+        for name in (
+            "initial_or_current_host_adapter_count",
+            "host_promotion_scheduled_count",
+            "host_promotion_completed_count",
+            "runtime_gpu_forward_attempt_count",
+            "runtime_gpu_forward_success_count",
+        )
+    ):
+        raise SystemExit(f"{label}: disabled hierarchy recorded hierarchy-specific activation")
+
+    admission_count = count("gpu_admission_decision_count")
+    admission_requests = count("gpu_admission_observed_request_count")
+    if expected_gates[4]:
+        if admission_count <= 0 or admission_requests <= 0:
+            raise SystemExit(f"{label}: effective-capacity admission enabled but never triggered")
+    elif admission_count != 0 or admission_requests != 0:
+        raise SystemExit(f"{label}: disabled admission recorded admission decisions")
+
+    recorded_dispatch = activation.get("dispatch_tier_counts")
+    if not isinstance(recorded_dispatch, dict):
+        raise SystemExit(f"{label}: missing dispatch_tier_counts")
+    normalized_dispatch = {
+        tier: int(recorded_dispatch.get(tier, 0) or 0) for tier in sorted(legal_tiers)
+    }
+    if normalized_dispatch != actual_dispatch_counts:
+        raise SystemExit(
+            f"{label}: dispatch tier counts disagree with request records; "
+            f"recorded={normalized_dispatch}, actual={actual_dispatch_counts}"
+        )
+    return trace_sha, subset_sha, contract, recorded_contract_map_sha
+
+
+def _v2_formal_model_key(model: str) -> str:
+    """Map recorded model labels to the two model identities in the V2 protocol."""
+    normalized = re.sub(r"[^a-z0-9]+", "", str(model).lower())
+    if "3b" in normalized:
+        return "3b"
+    if "7b" in normalized:
+        return "7b"
+    raise SystemExit(
+        f"formal matrix contains unsupported model identity {model!r}; expected one 7B and one 3B model"
+    )
+
+
+def _format_v2_matrix_identity(identity: tuple[str, str, int]) -> str:
+    model, scenario, seed = identity
+    return f"model={model},scenario={scenario},seed={seed}"
+
+
+def validate_v2_ablation_formal_matrix(
+    results: Sequence[V2AblationResult],
+) -> None:
+    """Require the exact A2/A3 held-out matrix declared in the V2 protocol.
+
+    The formal analysis is deliberately all-or-nothing.  A partial campaign is
+    still useful during exploration, but it must be plotted without
+    ``--formal-matrix`` and cannot accidentally be published as the formal
+    Fig. 9 dataset.
+    """
+    expected: set[tuple[str, str, int]] = {
+        ("7b", scenario, seed)
+        for scenario in V2_ABLATION_SCENARIOS
+        for seed in V2_FORMAL_SEEDS
+    }
+    expected.update(
+        ("3b", scenario, seed)
+        for scenario in ("v2_elastic_only", "v2_full")
+        for seed in V2_FORMAL_SEEDS
+    )
+
+    observed_counts: Dict[tuple[str, str, int], int] = defaultdict(int)
+    for result in results:
+        identity = (
+            _v2_formal_model_key(result.model),
+            result.scenario,
+            result.seed,
+        )
+        observed_counts[identity] += 1
+
+    observed = set(observed_counts)
+    missing = sorted(expected - observed)
+    extra = sorted(observed - expected)
+    duplicates = sorted(
+        identity for identity, count in observed_counts.items() if count != 1
+    )
+    if missing or extra or duplicates:
+        parts = ["formal A2/A3 matrix identity mismatch"]
+        if missing:
+            parts.append(
+                "missing=["
+                + "; ".join(_format_v2_matrix_identity(item) for item in missing)
+                + "]"
+            )
+        if extra:
+            parts.append(
+                "extra=["
+                + "; ".join(_format_v2_matrix_identity(item) for item in extra)
+                + "]"
+            )
+        if duplicates:
+            parts.append(
+                "duplicate=["
+                + "; ".join(
+                    f"{_format_v2_matrix_identity(item)} x{observed_counts[item]}"
+                    for item in duplicates
+                )
+                + "]"
+            )
+        raise SystemExit("; ".join(parts))
+
+
+def load_v2_ablation_results(
+    inputs: Sequence[Path], *, formal_matrix: bool = False
+) -> List[V2AblationResult]:
+    results: Dict[tuple[str, str, int], V2AblationResult] = {}
+    candidates = _v2_result_candidates(inputs)
+    for path in candidates:
+        payload = _v2_read_json(path)
+        detailed = payload.get("detailed_results")
+        if not isinstance(detailed, dict):
+            continue
+        if not any(isinstance(detailed.get(scenario), dict) for scenario in V2_ABLATION_SCENARIOS):
+            continue
+        metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+        run_tag = str(metadata.get("results_tag") or metadata.get("run_tag") or payload.get("run_tag") or path.stem)
+        model = _v2_model_identity(payload, path)
+        seed = _v2_seed(payload, path, run_tag)
+        scenario_summaries = payload.get("scenario_summaries") if isinstance(payload.get("scenario_summaries"), dict) else {}
+        for scenario in V2_ABLATION_SCENARIOS:
+            detail = detailed.get(scenario)
+            if not isinstance(detail, dict):
+                continue
+            summary = scenario_summaries.get(scenario) if isinstance(scenario_summaries.get(scenario), dict) else {}
+            total = int(_as_float(detail.get("total", summary.get("total_requests")), f"{path}:{scenario}.total"))
+            completed = int(_as_float(detail.get("completed", summary.get("completed_requests")), f"{path}:{scenario}.completed"))
+            if total <= 0 or completed != total:
+                raise SystemExit(f"{path}:{scenario}: incomplete result completed={completed} total={total}")
+            label = f"{path}:{scenario}"
+            trace_sha, subset_sha, contract, contract_map_sha = _v2_ablation_audit(
+                metadata=metadata,
+                detail=detail,
+                scenario=scenario,
+                completed=completed,
+                label=label,
+            )
+            metrics = {
+                key: _v2_metric(detail, summary, key, label)
+                for key, _, _ in V2_ABLATION_METRICS
+            }
+            identity = (model, scenario, seed)
+            if identity in results:
+                raise SystemExit(
+                    "duplicate V2 ablation identity "
+                    f"(model={model!r}, scenario={scenario!r}, seed={seed}): "
+                    f"{results[identity].source} and {path}"
+                )
+            results[identity] = V2AblationResult(
+                model=model,
+                scenario=scenario,
+                seed=seed,
+                run_tag=run_tag,
+                source=path,
+                completed=completed,
+                shared_trace_sha256=trace_sha,
+                shared_adapter_subset_sha256=subset_sha,
+                generation_contract=contract,
+                generation_contract_request_map_sha256=contract_map_sha,
+                metrics=metrics,
+            )
+    if not results:
+        raise SystemExit(
+            "no V2 ablation scenarios found; expected one of " + ", ".join(V2_ABLATION_SCENARIOS)
+        )
+    models = sorted({result.model for result in results.values()})
+    for model in models:
+        if not any(
+            result.model == model and result.scenario == "v2_elastic_only"
+            for result in results.values()
+        ):
+            raise SystemExit(f"{model}: missing v2_elastic_only reference")
+    provenance_groups: Dict[tuple[str, int], List[V2AblationResult]] = defaultdict(list)
+    for result in results.values():
+        provenance_groups[(result.model, result.seed)].append(result)
+    for (model, seed), group in sorted(provenance_groups.items()):
+        trace_hashes = {result.shared_trace_sha256 for result in group}
+        subset_hashes = {result.shared_adapter_subset_sha256 for result in group}
+        contracts = {result.generation_contract for result in group}
+        contract_map_hashes = {
+            result.generation_contract_request_map_sha256 for result in group
+        }
+        completions = {result.completed for result in group}
+        if (
+            len(trace_hashes) != 1
+            or len(subset_hashes) != 1
+            or len(contracts) != 1
+            or len(contract_map_hashes) != 1
+            or len(completions) != 1
+        ):
+            raise SystemExit(
+                f"V2 ablation comparability failed for model={model!r}, seed={seed}: "
+                f"trace_hashes={trace_hashes}, subset_hashes={subset_hashes}, "
+                f"generation_contracts={contracts}, contract_map_hashes={contract_map_hashes}, "
+                f"completions={completions}"
+            )
+    ordered = sorted(
+        results.values(),
+        key=lambda item: (
+            item.model,
+            V2_ABLATION_SCENARIOS.index(item.scenario),
+            item.seed,
+        ),
+    )
+    if formal_matrix:
+        validate_v2_ablation_formal_matrix(ordered)
+    return ordered
+
+
+def _v2_t95(run_count: int) -> float:
+    critical = {2: 12.706, 3: 4.303, 4: 3.182, 5: 2.776, 6: 2.571, 7: 2.447, 8: 2.365, 9: 2.306, 10: 2.262}
+    if run_count < 2:
+        return float("nan")
+    return critical.get(run_count, 1.96)
+
+
+def _v2_mean_ci95(values: Sequence[float]) -> tuple[float, float, float]:
+    array = np.asarray(values, dtype=float)
+    if len(array) == 0 or not np.all(np.isfinite(array)):
+        raise SystemExit("V2 CI requires non-empty finite seed-level values")
+    avg = float(np.mean(array))
+    if len(array) == 1:
+        return avg, float("nan"), float("nan")
+    std = float(np.std(array, ddof=1))
+    return avg, std, _v2_t95(len(array)) * std / math.sqrt(len(array))
+
+
+def _safe_slug(value: str) -> str:
+    return re.sub(r"[^A-Za-z0-9._-]+", "_", value).strip("_") or "model"
+
+
+def plot_v2_fig9_ablation(
+    inputs: Sequence[Path], out_dir: Path, *, formal_matrix: bool = False
+) -> None:
+    provenance_index = (
+        build_formal_provenance_index(inputs) if formal_matrix else None
+    )
+    results = load_v2_ablation_results(inputs, formal_matrix=formal_matrix)
+    if provenance_index is not None:
+        validate_formal_analysis_sources(
+            provenance_index,
+            (
+                FormalAnalysisIdentity(
+                    source=result.source,
+                    model=_v2_formal_model_key(result.model),
+                    variant=result.scenario,
+                    seed=result.seed,
+                )
+                for result in results
+            ),
+            analysis_label="A2/A3 V2 Fig. 9",
+        )
+    if out_dir.exists() and any(out_dir.iterdir()):
+        raise SystemExit(f"refusing to overwrite non-empty V2 Fig. 9 output directory: {out_dir}")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    models = sorted({result.model for result in results})
+
+    per_seed_rows: List[Dict[str, Any]] = []
+    for result in results:
+        per_seed_rows.append(
+            {
+                "model": result.model,
+                "scenario": result.scenario,
+                "scenario_label": V2_ABLATION_LABELS[result.scenario],
+                "seed": result.seed,
+                "run_tag": result.run_tag,
+                "source": str(result.source),
+                "completed": result.completed,
+                "shared_trace_sha256": result.shared_trace_sha256,
+                "shared_adapter_subset_sha256": result.shared_adapter_subset_sha256,
+                "generation_contract": result.generation_contract,
+                "generation_contract_request_map_sha256": (
+                    result.generation_contract_request_map_sha256
+                ),
+                **result.metrics,
+            }
+        )
+
+    absolute_rows: List[Dict[str, Any]] = []
+    relative_seed_rows: List[Dict[str, Any]] = []
+    relative_rows: List[Dict[str, Any]] = []
+    for model in models:
+        model_results = [result for result in results if result.model == model]
+        reference_by_seed = {
+            result.seed: result
+            for result in model_results
+            if result.scenario == "v2_elastic_only"
+        }
+        for scenario in V2_ABLATION_SCENARIOS:
+            scenario_results = [result for result in model_results if result.scenario == scenario]
+            if not scenario_results:
+                continue
+            for metric, _, higher_is_better in V2_ABLATION_METRICS:
+                values = [result.metrics[metric] for result in scenario_results]
+                avg, std, half_width = _v2_mean_ci95(values)
+                absolute_rows.append(
+                    {
+                        "model": model,
+                        "scenario": scenario,
+                        "scenario_label": V2_ABLATION_LABELS[scenario],
+                        "metric": metric,
+                        "higher_is_better": higher_is_better,
+                        "seed_count": len(values),
+                        "seeds": ";".join(str(result.seed) for result in scenario_results),
+                        "mean": avg,
+                        "std": std,
+                        "ci95_half_width": half_width,
+                    }
+                )
+                relative_values: List[float] = []
+                paired_seeds: List[int] = []
+                for result in scenario_results:
+                    reference = reference_by_seed.get(result.seed)
+                    if reference is None:
+                        continue
+                    relative = _improvement_pct(
+                        reference.metrics[metric],
+                        result.metrics[metric],
+                        higher_is_better=higher_is_better,
+                    )
+                    relative_values.append(relative)
+                    paired_seeds.append(result.seed)
+                    relative_seed_rows.append(
+                        {
+                            "model": model,
+                            "scenario": scenario,
+                            "scenario_label": V2_ABLATION_LABELS[scenario],
+                            "seed": result.seed,
+                            "metric": metric,
+                            "reference_scenario": "v2_elastic_only",
+                            "reference_value": reference.metrics[metric],
+                            "value": result.metrics[metric],
+                            "improvement_pct": relative,
+                            "higher_is_better": higher_is_better,
+                        }
+                    )
+                if relative_values:
+                    rel_avg, rel_std, rel_half = _v2_mean_ci95(relative_values)
+                    relative_rows.append(
+                        {
+                            "model": model,
+                            "scenario": scenario,
+                            "scenario_label": V2_ABLATION_LABELS[scenario],
+                            "metric": metric,
+                            "reference_scenario": "v2_elastic_only",
+                            "paired_seed_count": len(relative_values),
+                            "paired_seeds": ";".join(map(str, paired_seeds)),
+                            "improvement_pct_mean": rel_avg,
+                            "improvement_pct_std": rel_std,
+                            "improvement_pct_ci95_half_width": rel_half,
+                            "higher_is_better": higher_is_better,
+                        }
+                    )
+
+    per_seed_csv = out_dir / "fig9_v2_ablation_per_seed.csv"
+    absolute_csv = out_dir / "fig9_v2_ablation_absolute_summary.csv"
+    relative_seed_csv = out_dir / "fig9_v2_ablation_relative_per_seed.csv"
+    relative_csv = out_dir / "fig9_v2_ablation_relative_summary.csv"
+    _write_csv(per_seed_csv, per_seed_rows)
+    _write_csv(absolute_csv, absolute_rows)
+    _write_csv(relative_seed_csv, relative_seed_rows)
+    _write_csv(relative_csv, relative_rows)
+
+    generated_pdfs: List[str] = []
+    for model in models:
+        scenarios = [
+            scenario
+            for scenario in V2_ABLATION_SCENARIOS
+            if any(row["model"] == model and row["scenario"] == scenario for row in absolute_rows)
+        ]
+        fig, axes = plt.subplots(2, 2, figsize=(7.16, 5.2), constrained_layout=True)
+        for ax, (metric, axis_label, _) in zip(axes.flat, V2_ABLATION_METRICS):
+            rows = [
+                next(
+                    row
+                    for row in absolute_rows
+                    if row["model"] == model and row["scenario"] == scenario and row["metric"] == metric
+                )
+                for scenario in scenarios
+            ]
+            x = np.arange(len(rows))
+            means = np.asarray([float(row["mean"]) for row in rows])
+            errors = np.asarray([
+                0.0 if not math.isfinite(float(row["ci95_half_width"])) else float(row["ci95_half_width"])
+                for row in rows
+            ])
+            bars = ax.bar(
+                x,
+                means,
+                yerr=errors,
+                capsize=3.0,
+                color=[V2_ABLATION_COLORS[scenario] for scenario in scenarios],
+                edgecolor="#444444",
+                linewidth=0.4,
+            )
+            ax.set_xticks(x, [V2_ABLATION_LABELS[scenario] for scenario in scenarios], rotation=18, ha="right")
+            ax.set_ylabel(axis_label)
+            ax.grid(axis="y", alpha=0.25)
+            ax.set_axisbelow(True)
+            for bar, row in zip(bars, rows):
+                value = float(row["mean"])
+                text = f"{value:.4g}\n(n={int(row['seed_count'])})"
+                ax.annotate(text, (bar.get_x() + bar.get_width() / 2.0, bar.get_height()), xytext=(0, 4), textcoords="offset points", ha="center", va="bottom", fontsize=7.2)
+        fig.suptitle(f"V2 elasticity and adapter-management ablation — {model}", fontsize=10.5)
+        filename = "fig9_v2_ablation.pdf" if len(models) == 1 else f"fig9_v2_ablation_{_safe_slug(model)}.pdf"
+        fig.savefig(out_dir / filename, bbox_inches="tight")
+        plt.close(fig)
+        generated_pdfs.append(filename)
+
+    manifest = {
+        "figure": "fig9_v2_ablation",
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "inputs": [str(Path(path).expanduser().resolve()) for path in inputs],
+        "sources": sorted({str(result.source) for result in results}),
+        "models": models,
+        "formal_matrix": formal_matrix,
+        "scenario_order": list(V2_ABLATION_SCENARIOS),
+        "seed_is_statistical_unit": True,
+        "ci": "two-sided 95% Student-t over independent seeds; absent for n=1",
+        "absolute_metrics": [metric for metric, _, _ in V2_ABLATION_METRICS],
+        "relative_reference": "v2_elastic_only matched on model and seed",
+        "relative_formulas": {
+            "lower_is_better": "(reference - value) / reference * 100",
+            "higher_is_better": "(value - reference) / reference * 100",
+        },
+        "strict_checks": [
+            "shared trace/subset SHA-256 values are present and identical within model/seed",
+            "generation contract and recomputed request-map SHA agree for every scenario",
+            "all completed LoRA requests carry a valid pre-dispatch readiness tier",
+            "request-level dispatch tier counts equal the recorded activation counters",
+            "feature gates exactly match the four cumulative paper-mechanism scenarios",
+            "each enabled mechanism has positive activation evidence and disabled mechanisms do not leak",
+            *(
+                [
+                    "formal A2/A3 identity set exactly matches 7B four-scenario x seeds 43/44/45 plus 3B ElasticOnly/Full x seeds 43/44/45",
+                    "formal campaign manifests are complete, heldout, source-clean, and tied to non-empty commits",
+                    "every analyzed raw JSON matches its manifest byte count and SHA-256 record",
+                    "system_resolved_config_sha256 is valid and invariant across seeds within each model/scenario",
+                ]
+                if formal_matrix
+                else []
+            ),
+        ],
+        "pdfs": generated_pdfs,
+        "csvs": [
+            per_seed_csv.name,
+            absolute_csv.name,
+            relative_seed_csv.name,
+            relative_csv.name,
+        ],
+    }
+    (out_dir / "fig9_v2_ablation_manifest.json").write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
 
 def _plot_ecdf(ax: plt.Axes, values: Sequence[float], *, label: str, color: str) -> None:
@@ -628,12 +1466,20 @@ def _main_row_from_summary(path: Path, key: str) -> Dict[str, Any]:
             "Cost_req_usd": summary.get("monetary_cost_per_request_usd"),
             "CE": summary.get("monetary_ce"),
             "cost_per_1m_total_tokens_usd": summary.get("cost_per_1m_total_tokens_usd"),
+            "cost_per_1m_output_tokens_usd": summary.get("cost_per_1m_output_tokens_usd"),
             "monetary_cost_total_usd": summary.get("monetary_cost_total_usd"),
             "monetary_active_charge_gpu_seconds": summary.get("monetary_active_charge_gpu_seconds"),
             "monetary_idle_charge_gpu_seconds": summary.get("monetary_idle_charge_gpu_seconds"),
             "infra_active_gpu_seconds": summary.get("infra_active_gpu_seconds"),
             "infra_idle_ready_gpu_seconds": summary.get("infra_idle_ready_gpu_seconds"),
             "infra_startup_gpu_seconds": summary.get("infra_startup_gpu_seconds"),
+            "infra_gpu_seconds_total": summary.get("infra_gpu_seconds_total"),
+            "infra_ce": summary.get("infra_ce"),
+            "slo_attainment": summary.get("slo_attainment"),
+            "slo_goodput_rps": summary.get("slo_goodput_rps"),
+            "slo_goodput_tok_per_s": summary.get("slo_goodput_tok_per_s"),
+            "goodput_requests_per_gpu_second": summary.get("goodput_requests_per_gpu_second"),
+            "goodput_tokens_per_gpu_second": summary.get("goodput_tokens_per_gpu_second"),
             "serverless_invocation_cost_per_request_usd": summary.get("serverless_invocation_cost_per_request_usd"),
             "monetary_pricing_runtime_class": summary.get("monetary_pricing_runtime_class"),
         }
@@ -660,12 +1506,20 @@ def _main_row_from_summary(path: Path, key: str) -> Dict[str, Any]:
         "Cost_req_usd": row.get("monetary_cost_per_request_usd"),
         "CE": row.get("monetary_ce"),
         "cost_per_1m_total_tokens_usd": row.get("cost_per_1m_total_tokens_usd"),
+        "cost_per_1m_output_tokens_usd": row.get("cost_per_1m_output_tokens_usd"),
         "monetary_cost_total_usd": row.get("monetary_cost_total_usd"),
         "monetary_active_charge_gpu_seconds": row.get("monetary_active_charge_gpu_seconds"),
         "monetary_idle_charge_gpu_seconds": row.get("monetary_idle_charge_gpu_seconds"),
         "infra_active_gpu_seconds": row.get("infra_active_gpu_seconds"),
         "infra_idle_ready_gpu_seconds": row.get("infra_idle_ready_gpu_seconds"),
         "infra_startup_gpu_seconds": row.get("infra_startup_gpu_seconds"),
+        "infra_gpu_seconds_total": row.get("infra_gpu_seconds_total"),
+        "infra_ce": row.get("Infra_CE") or row.get("infra_ce"),
+        "slo_attainment": row.get("SLO_attainment") or row.get("slo_attainment"),
+        "slo_goodput_rps": row.get("SLO_goodput_RPS") or row.get("slo_goodput_rps"),
+        "slo_goodput_tok_per_s": row.get("SLO_goodput_TOKPS") or row.get("slo_goodput_tok_per_s"),
+        "goodput_requests_per_gpu_second": row.get("goodput_requests_per_gpu_second"),
+        "goodput_tokens_per_gpu_second": row.get("goodput_tokens_per_gpu_second"),
         "serverless_invocation_cost_per_request_usd": row.get("serverless_invocation_cost_per_request_usd"),
         "monetary_pricing_runtime_class": row.get("monetary_pricing_runtime_class"),
     }
@@ -712,15 +1566,25 @@ def _main_round_data(round_dir: Path) -> List[MainSystemData]:
             "cost_req_usd": _as_float(raw.get("Cost_req_usd"), f"{key}.Cost_req_usd"),
             "ce": _as_float(raw.get("CE"), f"{key}.CE"),
             "cost_1mtok_usd": _as_float(raw.get("cost_per_1m_total_tokens_usd"), f"{key}.cost_per_1m_total_tokens_usd"),
+            "cost_1m_output_tok_usd": _optional_float(raw.get("cost_per_1m_output_tokens_usd")),
             "monetary_cost_total_usd": _as_float(raw.get("monetary_cost_total_usd"), f"{key}.monetary_cost_total_usd"),
             "monetary_active_charge_gpu_seconds": _as_float(raw.get("monetary_active_charge_gpu_seconds"), f"{key}.monetary_active_charge_gpu_seconds"),
             "monetary_idle_charge_gpu_seconds": _as_float(raw.get("monetary_idle_charge_gpu_seconds"), f"{key}.monetary_idle_charge_gpu_seconds"),
             "infra_active_gpu_seconds": _as_float(raw.get("infra_active_gpu_seconds"), f"{key}.infra_active_gpu_seconds"),
             "infra_idle_ready_gpu_seconds": _as_float(raw.get("infra_idle_ready_gpu_seconds"), f"{key}.infra_idle_ready_gpu_seconds"),
             "infra_startup_gpu_seconds": _as_float(raw.get("infra_startup_gpu_seconds"), f"{key}.infra_startup_gpu_seconds"),
+            "infra_gpu_seconds_total": _optional_float(raw.get("infra_gpu_seconds_total")),
+            "infra_ce": _optional_float(raw.get("infra_ce")),
+            "slo_attainment": _optional_float(raw.get("slo_attainment")),
+            "slo_goodput_rps": _optional_float(raw.get("slo_goodput_rps")),
+            "slo_goodput_tok_per_s": _optional_float(raw.get("slo_goodput_tok_per_s")),
+            "goodput_requests_per_gpu_second": _optional_float(raw.get("goodput_requests_per_gpu_second")),
+            "goodput_tokens_per_gpu_second": _optional_float(raw.get("goodput_tokens_per_gpu_second")),
             "serverless_invocation_cost_per_request_usd": _as_float(raw.get("serverless_invocation_cost_per_request_usd"), f"{key}.serverless_invocation_cost_per_request_usd"),
+            "is_serverless": 1.0 if str(raw.get("monetary_pricing_runtime_class") or "").strip().lower() == "serverless" else 0.0,
         }
-        active_rate = metrics["monetary_cost_total_usd"] / max(
+        invocation_total = metrics["serverless_invocation_cost_per_request_usd"] * metrics["completed"]
+        active_rate = max(metrics["monetary_cost_total_usd"] - invocation_total, 0.0) / max(
             metrics["monetary_active_charge_gpu_seconds"] + metrics["monetary_idle_charge_gpu_seconds"], 1e-12
         )
         startup = metrics["infra_startup_gpu_seconds"] * active_rate / metrics["completed"]
@@ -734,6 +1598,12 @@ def _main_round_data(round_dir: Path) -> List[MainSystemData]:
                 "cost_active_usd": active,
                 "cost_idle_ready_usd": idle,
                 "cost_invocation_usd": invocation,
+                "gpu_cost_rate_usd_per_s": active_rate,
+                "gpu_seconds_per_request": metrics["infra_gpu_seconds_total"] / metrics["completed"],
+                "slo_goodput_requests_per_dollar": (
+                    metrics["completed"] * metrics["slo_attainment"]
+                    / metrics["monetary_cost_total_usd"]
+                ),
             }
         )
         systems.append(MainSystemData(key, SYSTEM_LABELS[key], source, metrics))
@@ -1647,6 +2517,258 @@ def plot_fig5(round_dir: Path, out_dir: Path) -> None:
     _write_manifest(manifest, "fig5_main_normalized", round_dir, pdf, csv_path, [s.source for s in systems])
 
 
+CE_SUPPLEMENT_REQUIRED_METRICS = (
+    "completed",
+    "e2e_avg_ms",
+    "cost_req_usd",
+    "ce",
+    "infra_ce",
+    "infra_gpu_seconds_total",
+    "infra_startup_gpu_seconds",
+    "infra_active_gpu_seconds",
+    "infra_idle_ready_gpu_seconds",
+    "slo_attainment",
+    "slo_goodput_rps",
+    "slo_goodput_tok_per_s",
+    "goodput_requests_per_gpu_second",
+    "goodput_tokens_per_gpu_second",
+    "cost_1mtok_usd",
+    "cost_1m_output_tok_usd",
+    "gpu_cost_rate_usd_per_s",
+)
+
+
+def _require_ce_supplement_metrics(systems: Sequence[MainSystemData]) -> None:
+    missing: List[str] = []
+    for system in systems:
+        for key in CE_SUPPLEMENT_REQUIRED_METRICS:
+            value = system.metrics.get(key)
+            if value is None or not math.isfinite(float(value)):
+                missing.append(f"{system.key}.{key}")
+    if missing:
+        raise SystemExit(
+            "CE supplementary analysis requires complete e2e_v3 lifecycle metrics; "
+            "missing/non-finite: " + ", ".join(missing)
+        )
+
+
+def _cost_at_idle_factor(system: MainSystemData, idle_factor: float) -> float:
+    metrics = system.metrics
+    if metrics.get("is_serverless", 0.0) < 0.5:
+        return metrics["cost_req_usd"]
+    gpu_seconds = (
+        metrics["infra_startup_gpu_seconds"]
+        + metrics["infra_active_gpu_seconds"]
+        + idle_factor * metrics["infra_idle_ready_gpu_seconds"]
+    )
+    return (
+        gpu_seconds * metrics["gpu_cost_rate_usd_per_s"] / metrics["completed"]
+        + metrics["cost_invocation_usd"]
+    )
+
+
+def _break_even_idle_factor(target: MainSystemData, reference: MainSystemData) -> float:
+    """Solve L_target*C_target(f) == L_reference*C_reference(f)."""
+    target_base = _cost_at_idle_factor(target, 0.0)
+    reference_base = _cost_at_idle_factor(reference, 0.0)
+    target_slope = _cost_at_idle_factor(target, 1.0) - target_base
+    reference_slope = _cost_at_idle_factor(reference, 1.0) - reference_base
+    target_latency = target.metrics["e2e_avg_ms"] / 1000.0
+    reference_latency = reference.metrics["e2e_avg_ms"] / 1000.0
+    denominator = target_latency * target_slope - reference_latency * reference_slope
+    if abs(denominator) < 1e-15:
+        return float("nan")
+    return (
+        reference_latency * reference_base - target_latency * target_base
+    ) / denominator
+
+
+def plot_ce_supplement(round_dir: Path, out_dir: Path) -> None:
+    """Generate the reviewer-facing CE robustness package without changing headline CE."""
+    systems = _main_round_data(round_dir)
+    _require_ce_supplement_metrics(systems)
+    prime = next(system for system in systems if system.key == "faaslora")
+
+    metric_rows: List[Dict[str, Any]] = []
+    for system in systems:
+        metrics = system.metrics
+        metric_rows.append(
+            {
+                "system_key": system.key,
+                "system": system.label,
+                "source": str(system.source),
+                "avg_e2e_s": metrics["e2e_avg_ms"] / 1000.0,
+                "cost_per_request_usd": metrics["cost_req_usd"],
+                "monetary_ce": metrics["ce"],
+                "infra_ce": metrics["infra_ce"],
+                "gpu_seconds_per_request": metrics["gpu_seconds_per_request"],
+                "startup_gpu_seconds": metrics["infra_startup_gpu_seconds"],
+                "active_gpu_seconds": metrics["infra_active_gpu_seconds"],
+                "idle_ready_gpu_seconds": metrics["infra_idle_ready_gpu_seconds"],
+                "slo_attainment": metrics["slo_attainment"],
+                "slo_goodput_rps": metrics["slo_goodput_rps"],
+                "slo_goodput_tok_per_s": metrics["slo_goodput_tok_per_s"],
+                "slo_goodput_requests_per_dollar": metrics["slo_goodput_requests_per_dollar"],
+                "goodput_requests_per_gpu_second": metrics["goodput_requests_per_gpu_second"],
+                "goodput_tokens_per_gpu_second": metrics["goodput_tokens_per_gpu_second"],
+                "cost_per_1m_total_tokens_usd": metrics["cost_1mtok_usd"],
+                "cost_per_1m_output_tokens_usd": metrics["cost_1m_output_tok_usd"],
+            }
+        )
+
+    generalized_rows: List[Dict[str, Any]] = []
+    for alpha in (0.5, 1.0, 2.0):
+        for beta in (0.5, 1.0, 2.0):
+            scored = []
+            for system in systems:
+                latency_s = system.metrics["e2e_avg_ms"] / 1000.0
+                cost = system.metrics["cost_req_usd"]
+                score = 1.0 / ((latency_s**alpha) * (cost**beta))
+                scored.append((system, score))
+            ranks = {
+                system.key: rank
+                for rank, (system, _) in enumerate(
+                    sorted(scored, key=lambda item: item[1], reverse=True), start=1
+                )
+            }
+            for system, score in scored:
+                generalized_rows.append(
+                    {
+                        "alpha_latency": alpha,
+                        "beta_cost": beta,
+                        "system_key": system.key,
+                        "system": system.label,
+                        "generalized_ce": score,
+                        "rank": ranks[system.key],
+                    }
+                )
+
+    contribution_rows: List[Dict[str, Any]] = []
+    for reference in systems:
+        if reference.key == prime.key:
+            continue
+        latency_log = math.log(
+            (reference.metrics["e2e_avg_ms"] / 1000.0)
+            / (prime.metrics["e2e_avg_ms"] / 1000.0)
+        )
+        cost_log = math.log(reference.metrics["cost_req_usd"] / prime.metrics["cost_req_usd"])
+        total_log = latency_log + cost_log
+        denominator = abs(latency_log) + abs(cost_log)
+        contribution_rows.append(
+            {
+                "target": prime.label,
+                "reference_key": reference.key,
+                "reference": reference.label,
+                "latency_log_contribution": latency_log,
+                "cost_log_contribution": cost_log,
+                "total_log_ce_ratio": total_log,
+                "observed_log_ce_ratio": math.log(prime.metrics["ce"] / reference.metrics["ce"]),
+                "latency_absolute_share_pct": 100.0 * abs(latency_log) / denominator if denominator else 0.0,
+                "cost_absolute_share_pct": 100.0 * abs(cost_log) / denominator if denominator else 0.0,
+                "dominant_absolute_factor": "latency" if abs(latency_log) >= abs(cost_log) else "cost",
+            }
+        )
+
+    idle_rows: List[Dict[str, Any]] = []
+    for idle_factor in (0.0, 0.238095, 0.5, 0.75, 1.0):
+        for system in systems:
+            cost = _cost_at_idle_factor(system, idle_factor)
+            latency_s = system.metrics["e2e_avg_ms"] / 1000.0
+            idle_rows.append(
+                {
+                    "idle_billing_factor": idle_factor,
+                    "system_key": system.key,
+                    "system": system.label,
+                    "runtime_class": "serverless" if system.metrics["is_serverless"] >= 0.5 else "serverful_fixed",
+                    "cost_per_request_usd": cost,
+                    "ce": 1.0 / (latency_s * cost),
+                }
+            )
+
+    break_even_rows = []
+    for reference_key in ("sglang", "serverlessllm"):
+        reference = next(system for system in systems if system.key == reference_key)
+        factor = _break_even_idle_factor(prime, reference)
+        break_even_rows.append(
+            {
+                "target": prime.label,
+                "reference_key": reference.key,
+                "reference": reference.label,
+                "break_even_idle_billing_factor": factor,
+                "within_analyzed_0_to_1": math.isfinite(factor) and 0.0 <= factor <= 1.0,
+            }
+        )
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    metrics_csv = out_dir / "ce_supplementary_metrics.csv"
+    generalized_csv = out_dir / "ce_generalized_sensitivity.csv"
+    contribution_csv = out_dir / "ce_log_contribution.csv"
+    idle_csv = out_dir / "ce_idle_factor_sensitivity.csv"
+    break_even_csv = out_dir / "ce_idle_factor_break_even.csv"
+    _write_csv(metrics_csv, metric_rows)
+    _write_csv(generalized_csv, generalized_rows)
+    _write_csv(contribution_csv, contribution_rows)
+    _write_csv(idle_csv, idle_rows)
+    _write_csv(break_even_csv, break_even_rows)
+
+    fig, axes = plt.subplots(1, 2, figsize=(7.16, 2.75), constrained_layout=True)
+    for system in systems:
+        axes[0].scatter(
+            system.metrics["cost_req_usd"] * 1000.0,
+            system.metrics["e2e_avg_ms"] / 1000.0,
+            s=45 if system.key == "faaslora" else 34,
+            color=SYSTEM_COLORS[system.key],
+            edgecolor="#333333",
+            linewidth=0.4,
+            label=system.label,
+        )
+    axes[0].set_xlabel("Cost/req (mUSD; lower is better)")
+    axes[0].set_ylabel("Average E2E (s; lower is better)")
+    axes[0].set_title("(a) Cost--latency Pareto view")
+    axes[0].grid(alpha=0.25)
+    axes[0].legend(frameon=False, fontsize=7.5)
+
+    y = np.arange(len(contribution_rows))
+    latency_values = [float(row["latency_log_contribution"]) for row in contribution_rows]
+    cost_values = [float(row["cost_log_contribution"]) for row in contribution_rows]
+    axes[1].barh(y, latency_values, color=METRIC_COLORS["e2e"], label="Latency")
+    axes[1].barh(y, cost_values, left=latency_values, color=METRIC_COLORS["cost"], label="Cost")
+    axes[1].axvline(0.0, color="#555555", linewidth=0.7)
+    axes[1].set_yticks(y, [str(row["reference"]) for row in contribution_rows])
+    axes[1].invert_yaxis()
+    axes[1].set_xlabel(r"Contribution to $\ln(CE_{Prime}/CE_{reference})$")
+    axes[1].set_title("(b) CE log-contribution audit")
+    axes[1].grid(axis="x", alpha=0.25)
+    axes[1].legend(frameon=False, fontsize=8.0)
+
+    pdf = out_dir / "fig_ce_supplementary.pdf"
+    fig.savefig(pdf, bbox_inches="tight")
+    plt.close(fig)
+    manifest = out_dir / "ce_supplementary_manifest.json"
+    _write_manifest(
+        manifest,
+        "ce_supplementary",
+        round_dir,
+        pdf,
+        metrics_csv,
+        [system.source for system in systems],
+        extra={
+            "supplementary_csvs": [
+                str(generalized_csv),
+                str(contribution_csv),
+                str(idle_csv),
+                str(break_even_csv),
+            ],
+            "headline_ce_unchanged": True,
+            "generalized_ce_definition": "1 / (average_E2E_seconds^alpha * cost_per_request_USD^beta)",
+            "log_contribution_identity": "ln(CE_Prime/CE_ref) = ln(L_ref/L_Prime) + ln(C_ref/C_Prime)",
+            "idle_factor_policy": (
+                "Only systems labeled serverless are recomputed; serverful system cost remains fixed."
+            ),
+        },
+    )
+
+
 def plot_fig7(round_dir: Path, out_dir: Path) -> None:
     systems = _main_round_data(round_dir)
     rows = _main_csv_rows(systems)
@@ -1757,6 +2879,7 @@ PLOTTERS: Dict[str, Callable[[Path, Path], None]] = {
     "fig5": plot_fig5,
     "fig6_ablation": plot_fig6,
     "fig6": plot_fig6,
+    "ce_supplementary": plot_ce_supplement,
     "fig7_cost": plot_fig7,
     "fig7": plot_fig7,
 }
@@ -1768,11 +2891,24 @@ ABLATION_FIGURES = ("fig4_coordination", "fig6_ablation")
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate PrimeLoRA paper figures from result JSONs.")
-    parser.add_argument("--round-dir", required=True, type=Path)
+    parser.add_argument("--round-dir", type=Path, help="Completed legacy round directory.")
+    parser.add_argument(
+        "--input",
+        action="append",
+        type=Path,
+        default=[],
+        help=(
+            "V2 Fig. 9 result JSON, MANIFEST.json, or round/campaign root. "
+            "Repeat for multiple seeds."
+        ),
+    )
     parser.add_argument(
         "--figure",
         default="all",
-        help=f"Figure name, main_all, motivation_all, ablation_all, or all. Choices: {', '.join(PLOTTERS)}",
+        help=(
+            "Figure name, main_all, motivation_all, ablation_all, all, or "
+            f"fig9_v2_ablation. Choices: {', '.join(PLOTTERS)}"
+        ),
     )
     parser.add_argument(
         "--system-summary-override",
@@ -1783,11 +2919,48 @@ def main() -> None:
             "or MODEL_KEY:SYSTEM_KEY:SUMMARY_JSON for compatibility with the combined main builder."
         ),
     )
-    parser.add_argument("--out-dir", type=Path, default=Path("figs/paper/ablation"))
+    parser.add_argument(
+        "--out-dir",
+        "--output-dir",
+        dest="out_dir",
+        required=True,
+        type=Path,
+        help="Explicit output directory; no legacy figure directory is selected implicitly.",
+    )
+    parser.add_argument(
+        "--formal-matrix",
+        action="store_true",
+        help=(
+            "For V2 Fig. 9, require the exact held-out model/scenario/seed "
+            "matrix before generating any artifact."
+        ),
+    )
     args = parser.parse_args()
 
-    round_dir = args.round_dir.resolve()
     out_dir = args.out_dir.resolve()
+    if args.figure in {"fig9_v2_ablation", "v2_fig9", "v2_ablation"}:
+        inputs = list(args.input)
+        if args.round_dir is not None:
+            inputs.append(args.round_dir)
+        if not inputs:
+            raise SystemExit("fig9_v2_ablation requires at least one --input or --round-dir")
+        if args.system_summary_override:
+            raise SystemExit("--system-summary-override is not valid for fig9_v2_ablation")
+        plot_v2_fig9_ablation(
+            inputs,
+            out_dir,
+            formal_matrix=args.formal_matrix,
+        )
+        print(f"generated fig9_v2_ablation -> {out_dir}")
+        return
+
+    if args.input:
+        raise SystemExit("--input is only valid with --figure fig9_v2_ablation")
+    if args.formal_matrix:
+        raise SystemExit("--formal-matrix is only valid with --figure fig9_v2_ablation")
+    if args.round_dir is None:
+        raise SystemExit("--round-dir is required for legacy paper figures")
+    round_dir = args.round_dir.resolve()
     _require_file(round_dir / "MANIFEST.json")
     MAIN_SUMMARY_OVERRIDES.clear()
     for spec in args.system_summary_override:

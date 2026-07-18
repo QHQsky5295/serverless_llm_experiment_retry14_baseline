@@ -1,0 +1,24 @@
+{
+  "figure": "ce_supplementary",
+  "round_dir": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1",
+  "generated_at_utc": "2026-07-16T09:00:46.617849+00:00",
+  "pdf": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/eurosys27_v2/a4_ce/legacy_7b_seed42/fig_ce_supplementary.pdf",
+  "csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/eurosys27_v2/a4_ce/legacy_7b_seed42/ce_supplementary_metrics.csv",
+  "sources": [
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_faaslora_result.json",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_sglang_dp4_tp1_summary.json",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_vllm_dp4_tp1_summary.json",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_summary.json",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/raw/replay/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_serverlessllm_summary.json"
+  ],
+  "supplementary_csvs": [
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/eurosys27_v2/a4_ce/legacy_7b_seed42/ce_generalized_sensitivity.csv",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/eurosys27_v2/a4_ce/legacy_7b_seed42/ce_log_contribution.csv",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/eurosys27_v2/a4_ce/legacy_7b_seed42/ce_idle_factor_sensitivity.csv",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/eurosys27_v2/a4_ce/legacy_7b_seed42/ce_idle_factor_break_even.csv"
+  ],
+  "headline_ce_unchanged": true,
+  "generalized_ce_definition": "1 / (average_E2E_seconds^alpha * cost_per_request_USD^beta)",
+  "log_contribution_identity": "ln(CE_Prime/CE_ref) = ln(L_ref/L_Prime) + ln(C_ref/C_Prime)",
+  "idle_factor_policy": "Only systems labeled serverless are recomputed; serverful system cost remains fixed."
+}

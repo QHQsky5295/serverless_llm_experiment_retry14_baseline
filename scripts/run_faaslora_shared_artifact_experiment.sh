@@ -15,6 +15,16 @@ export FAASLORA_PROFILE_WORKLOAD="${FAASLORA_PROFILE_WORKLOAD:?FAASLORA_PROFILE_
 export FAASLORA_SHARED_TRACE_PATH="${FAASLORA_SHARED_TRACE_PATH:?FAASLORA_SHARED_TRACE_PATH is required}"
 export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_ADAPTER_SUBSET_PATH:?FAASLORA_SHARED_ADAPTER_SUBSET_PATH is required}"
 export FAASLORA_RESULTS_TAG="${FAASLORA_RESULTS_TAG:?FAASLORA_RESULTS_TAG is required}"
+FAASLORA_SCENARIO="${FAASLORA_SCENARIO:-faaslora_full}"
+
+case "${FAASLORA_SCENARIO}" in
+  faaslora_full|v2_elastic_only|v2_hit_aware_preparation|v2_hierarchical_no_coord|v2_full)
+    ;;
+  *)
+    echo "[ERROR] unsupported FAASLORA_SCENARIO=${FAASLORA_SCENARIO}" >&2
+    exit 1
+    ;;
+esac
 
 if [[ ! -f "${FAASLORA_SHARED_TRACE_PATH}" ]]; then
   echo "[ERROR] shared trace artifact not found: ${FAASLORA_SHARED_TRACE_PATH}" >&2
@@ -82,4 +92,4 @@ if not trace_ids.issubset(subset_ids):
 PY
 
 cd "${ROOT_DIR}"
-exec "${RUNNER}" --config configs/experiments.yaml --scenario faaslora_full --backend vllm "$@"
+exec "${RUNNER}" --config configs/experiments.yaml --scenario "${FAASLORA_SCENARIO}" --backend vllm "$@"

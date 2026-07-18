@@ -1,0 +1,2 @@
+model,scenario,run_tag,label,first_service_n,planned_match_n,planned_miss_n,planned_match_rate_pct,gpu_ready_rate_pct,remote_cold_rate_pct,ttft_p50_match_ms,ttft_p95_match_ms,ttft_p50_miss_ms,ttft_p95_miss_ms
+llama32_3b_main_modelscope,faaslora_full,llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_max2_auto,PrimeLoRA,8,1,7,12.5,12.5,0.0,123.86005034204572,123.86005034204572,677.9016653308645,1469.6422116714527

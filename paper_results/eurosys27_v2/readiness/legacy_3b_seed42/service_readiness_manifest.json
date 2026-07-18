@@ -1,0 +1,38 @@
+{
+  "analysis": "service_readiness",
+  "input_sources": [
+    {
+      "model": "llama32_3b_main_modelscope",
+      "scenario": "faaslora_full",
+      "run_tag": "llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_max2_auto",
+      "source": "/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_max2_auto.json",
+      "requests_used": 4000,
+      "dispatch_tier_records": 4000
+    }
+  ],
+  "filter": "success == True and adapter_id non-empty",
+  "tier_field": "readiness_tier_before_dispatch",
+  "dispatch_before_tier_available": true,
+  "field_caveat": null,
+  "require_dispatch_tier": true,
+  "aggregate_runs": false,
+  "run_level_aggregation": {
+    "csv": "service_readiness_across_runs.csv",
+    "unit": "independent (model, scenario, run_tag) result",
+    "ci": "two-sided 95% Student-t over run-level metrics"
+  },
+  "transition_audit": {
+    "summary": "readiness_tier_transitions.csv",
+    "changed_records": "readiness_potentially_stale_signals.csv",
+    "interpretation": "A dispatch/service tier change is a potentially stale signal, not proof of staleness: a valid promotion or eviction may occur after dispatch."
+  },
+  "generated": [
+    "fig_service_readiness_summary.pdf",
+    "fig_mechanism_gap_ablation.pdf",
+    "fig_ttft_breakdown_readiness.pdf"
+  ],
+  "skipped": {
+    "fig_scaleout_first_service.pdf": "Skipped as a paper figure because scaleup_first_service has fewer than 20 samples per scenario (minimum observed n=8).",
+    "fig_control_plane_overhead.pdf": "Skipped because archived results do not contain routing_decision_us, gpu_admission_decision_us, or control_plane_total_us."
+  }
+}

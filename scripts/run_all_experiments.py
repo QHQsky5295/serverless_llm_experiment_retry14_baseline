@@ -49,6 +49,7 @@ import asyncio
 import concurrent.futures
 import copy
 import gc
+import hashlib
 import inspect
 import json
 import warnings
@@ -778,6 +779,91 @@ class RequestResult:
     adapter_path_resolution_us: float = 0.0
     gpu_admission_decision_us: float = 0.0
     control_path_total_us: float = 0.0
+    generation_contract: str = "legacy"
+    source_expected_output_tokens: int = 0
+    requested_completion_tokens: int = 0
+    completion_tokens: int = 0
+    completion_token_source: str = ""
+    completion_token_ids_sha256: str = ""
+    canonical_prompt_sha256: str = ""
+    canonical_prompt_tokens: int = 0
+    output_contract_match: bool = True
+
+
+class AggregateBandwidthLimiter:
+    """Process-local aggregate transfer limiter used by frozen local-sim runs.
+
+    Each transfer reserves a contiguous interval on one shared virtual link.  A
+    concurrent group therefore consumes ``sum(bytes) / rate`` wall time rather
+    than receiving the configured rate independently per request.  A zero rate
+    intentionally means no injected delay (the optimistic local upper bound).
+    """
+
+    def __init__(self, rate_mib_s: float):
+        self.rate_mib_s = max(0.0, float(rate_mib_s or 0.0))
+        self._lock = asyncio.Lock()
+        self._next_available_at = 0.0
+        self._first_reservation_at: Optional[float] = None
+        self._last_reservation_at: Optional[float] = None
+        self.transfer_count = 0
+        self.total_bytes = 0
+        self.total_injected_wait_s = 0.0
+
+    async def throttle(self, size_bytes: int) -> float:
+        size_bytes = max(0, int(size_bytes or 0))
+        if size_bytes <= 0:
+            return 0.0
+        if self.rate_mib_s <= 0.0:
+            # ``no-delay`` means that the application-layer delay injection is
+            # disabled, not that no remote transfer took place.  Preserve byte
+            # and transfer accounting so the optimistic upper-bound point stays
+            # auditable and cannot be confused with an all-cache-hit run.
+            async with self._lock:
+                now = time.perf_counter()
+                if self._first_reservation_at is None:
+                    self._first_reservation_at = now
+                self._last_reservation_at = now
+                self.transfer_count += 1
+                self.total_bytes += size_bytes
+            return 0.0
+        duration_s = (size_bytes / float(1024 ** 2)) / self.rate_mib_s
+        async with self._lock:
+            now = time.perf_counter()
+            start_at = max(now, self._next_available_at)
+            finish_at = start_at + duration_s
+            self._next_available_at = finish_at
+            if self._first_reservation_at is None:
+                self._first_reservation_at = start_at
+            self._last_reservation_at = finish_at
+            self.transfer_count += 1
+            self.total_bytes += size_bytes
+            wait_s = max(0.0, finish_at - now)
+            self.total_injected_wait_s += wait_s
+        if wait_s > 0.001:
+            await asyncio.sleep(wait_s)
+        return wait_s * 1000.0
+
+    def snapshot(self) -> Dict[str, Any]:
+        span_s = 0.0
+        if self._first_reservation_at is not None and self._last_reservation_at is not None:
+            span_s = max(0.0, self._last_reservation_at - self._first_reservation_at)
+        achieved_mib_s = (
+            (self.total_bytes / float(1024 ** 2)) / span_s if span_s > 0.0 else 0.0
+        )
+        return {
+            "limit_mode": (
+                "aggregate_application_layer_local_sim"
+                if self.rate_mib_s > 0.0
+                else "local_sim_no_delay"
+            ),
+            "configured_mib_s": self.rate_mib_s,
+            "configured_gbit_s": self.rate_mib_s * (1024.0 ** 2) * 8.0 / 1e9,
+            "transfer_count": self.transfer_count,
+            "total_bytes": self.total_bytes,
+            "reservation_span_s": span_s,
+            "total_injected_wait_s": self.total_injected_wait_s,
+            "achieved_reserved_mib_s": achieved_mib_s,
+        }
 
 
 def _positive_or_fallback(primary: Any, fallback: Any = 0.0) -> float:
@@ -801,6 +887,52 @@ def _safe_float(value: Any, fallback: float = 0.0) -> float:
     if not math.isfinite(parsed):
         return float(fallback)
     return parsed
+
+
+def _sha256_file(path_like: Any) -> Optional[str]:
+    if path_like in (None, ""):
+        return None
+    path = Path(str(path_like)).expanduser()
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+    if not path.exists() or not path.is_file():
+        return None
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _generation_contract_request_map_sha256(result: "ScenarioResult") -> str:
+    rows = [
+        {
+            "request_id": request.request_id,
+            "adapter_id": request.adapter_id,
+            "arrival_time_s": getattr(request, "scheduled_arrival_offset_s", None),
+            "source_expected_output_tokens": int(
+                getattr(request, "source_expected_output_tokens", 0) or 0
+            ),
+            "requested_completion_tokens": int(
+                getattr(request, "requested_completion_tokens", 0) or 0
+            ),
+            "canonical_prompt_sha256": str(
+                getattr(request, "canonical_prompt_sha256", "") or ""
+            ),
+            "canonical_prompt_tokens": int(
+                getattr(request, "canonical_prompt_tokens", 0) or 0
+            ),
+        }
+        for request in result.requests
+    ]
+    return hashlib.sha256(
+        json.dumps(
+            rows,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
 
 
 def _attach_parent_rpc_breakdown(
@@ -1193,6 +1325,15 @@ class ScenarioResult:
     infra_max_billing_gpus: float = 0.0
     deployment_idle_tail_s: float = 0.0
     serverless_idle_retention_s: float = 0.0
+    initial_preload_wall_s: float = 0.0
+    initial_preload_bytes: int = 0
+    initial_preload_transfer_count: int = 0
+    initial_preload_injected_wait_s: float = 0.0
+    initial_preload_gpu_count: int = 0
+    initial_preload_gpu_seconds: float = 0.0
+    primary_engine_initialization_wall_s: float = 0.0
+    pre_replay_deployment_wall_s: float = 0.0
+    pre_replay_deployment_gpu_seconds: float = 0.0
     qpr: float = 0.0
     qpr_tokps_ttft_legacy: float = 0.0
     qpr_rps_legacy: float = 0.0
@@ -1856,6 +1997,9 @@ def _merge_coordinator_metrics(all_metrics: List[Dict]) -> Dict:
     n = len(all_metrics)
     return {
         "contention_events": sum(m.get("contention_events", 0) for m in all_metrics),
+        "gpu_admission_decisions": sum(
+            m.get("gpu_admission_decisions", 0) for m in all_metrics
+        ),
         "gpu_ready_hits": sum(m.get("gpu_ready_hits", 0) for m in all_metrics),
         "warm_pool_hits": sum(m.get("warm_pool_hits", 0) for m in all_metrics),
         "avg_contention_penalty_ms": sum(m.get("avg_contention_penalty_ms", 0.0) for m in all_metrics) / n,
@@ -1895,6 +2039,10 @@ _SCENARIO_RESULT_NUMERIC_KEYS = (
     "monetary_idle_charge_gpu_seconds", "serverless_idle_gpu_cost_factor",
     "serverless_invocation_cost_total_usd", "serverless_invocation_cost_per_request_usd",
     "infra_billing_elapsed_sec", "infra_max_billing_gpus", "deployment_idle_tail_s", "serverless_idle_retention_s",
+    "initial_preload_wall_s", "initial_preload_bytes", "initial_preload_transfer_count",
+    "initial_preload_injected_wait_s", "initial_preload_gpu_count", "initial_preload_gpu_seconds",
+    "primary_engine_initialization_wall_s", "pre_replay_deployment_wall_s",
+    "pre_replay_deployment_gpu_seconds",
     "qpr", "qpr_tokps_ttft_legacy", "qpr_rps_legacy",
     "cost_effectiveness_e2e", "slo_goodput_rps", "slo_goodput_tok_per_s",
     "cache_hit_rate", "gpu_hit_rate", "avg_lora_io_ms",
@@ -2084,6 +2232,15 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         infra_max_billing_gpus=agg_dict.get("infra_max_billing_gpus", first.infra_max_billing_gpus),
         deployment_idle_tail_s=agg_dict.get("deployment_idle_tail_s", first.deployment_idle_tail_s),
         serverless_idle_retention_s=agg_dict.get("serverless_idle_retention_s", first.serverless_idle_retention_s),
+        initial_preload_wall_s=agg_dict.get("initial_preload_wall_s", first.initial_preload_wall_s),
+        initial_preload_bytes=int(round(agg_dict.get("initial_preload_bytes", first.initial_preload_bytes))),
+        initial_preload_transfer_count=int(round(agg_dict.get("initial_preload_transfer_count", first.initial_preload_transfer_count))),
+        initial_preload_injected_wait_s=agg_dict.get("initial_preload_injected_wait_s", first.initial_preload_injected_wait_s),
+        initial_preload_gpu_count=int(round(agg_dict.get("initial_preload_gpu_count", first.initial_preload_gpu_count))),
+        initial_preload_gpu_seconds=agg_dict.get("initial_preload_gpu_seconds", first.initial_preload_gpu_seconds),
+        primary_engine_initialization_wall_s=agg_dict.get("primary_engine_initialization_wall_s", first.primary_engine_initialization_wall_s),
+        pre_replay_deployment_wall_s=agg_dict.get("pre_replay_deployment_wall_s", first.pre_replay_deployment_wall_s),
+        pre_replay_deployment_gpu_seconds=agg_dict.get("pre_replay_deployment_gpu_seconds", first.pre_replay_deployment_gpu_seconds),
         qpr=agg_dict.get("qpr", first.qpr),
         qpr_tokps_ttft_legacy=agg_dict.get(
             "qpr_tokps_ttft_legacy",
@@ -2543,6 +2700,28 @@ class InferenceEngine:
             if len(token_ids) > prompt_budget:
                 token_ids = token_ids[-prompt_budget:]
                 prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
+            if self.model_cfg.get("generation_contract") == "fixed_length_greedy_v1":
+                # A decode at a hard token boundary is not always idempotent:
+                # re-encoding the emitted string can produce one or more extra
+                # tokens.  The matched-output contract is defined over prompt
+                # content tokens (no synthetic BOS), so validate the final
+                # string with that exact tokenizer convention.  The baseline
+                # replay client applies the same loop before hashing/sending.
+                while True:
+                    reencoded = tokenizer.encode(prompt, add_special_tokens=False)
+                    if len(reencoded) <= prompt_budget:
+                        token_ids = reencoded
+                        break
+                    overflow = max(1, len(reencoded) - prompt_budget)
+                    if len(token_ids) <= overflow:
+                        token_ids = token_ids[-1:]
+                        prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
+                        reencoded = tokenizer.encode(prompt, add_special_tokens=False)
+                        token_ids = reencoded[: max(1, min(len(reencoded), prompt_budget))]
+                        prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
+                        break
+                    token_ids = token_ids[overflow:]
+                    prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
             actual_input_tokens = max(1, len(token_ids))
             safe_max_tokens = min(max_tokens, max(1, max_len - actual_input_tokens - 8))
             return prompt, actual_input_tokens, safe_max_tokens
@@ -3864,19 +4043,31 @@ class InferenceEngine:
                 "top_p": top_p,
                 "max_tokens": safe_max_tokens,
             }
+            generation_contract = str(
+                self.model_cfg.get("generation_contract", "legacy") or "legacy"
+            ).strip().lower()
+            if generation_contract == "fixed_length_greedy_v1":
+                sampling_kwargs.update(
+                    {
+                        "temperature": 0.0,
+                        "top_p": 1.0,
+                        "ignore_eos": True,
+                        "stop": [],
+                    }
+                )
             if generation_seed is not None:
                 sampling_kwargs["seed"] = int(generation_seed)
             sp = SamplingParams(**sampling_kwargs)
 
             lora_req = None
             if self._lora_in_engine and lora_path and adapter_id:
-                import hashlib
                 int_id = (int(hashlib.md5(adapter_id.encode()).hexdigest(), 16) % 999999) + 1
                 lora_req = LoRARequest(lora_name=adapter_id, lora_int_id=int_id, lora_path=lora_path)
 
             t0 = time.perf_counter()
             first_t = None
             tok_count = 0
+            final_token_ids: List[int] = []
             actual_prompt_tokens = max(1, int(input_tokens or 1))
             last_metrics = None
             async for out in self.engine.generate(
@@ -3893,6 +4084,10 @@ class InferenceEngine:
                     if first_t is None and len(getattr(current_output, "token_ids", []) or []) > 0:
                         first_t = time.perf_counter()
                     tok_count = len(getattr(current_output, "token_ids", []) or [])
+                    final_token_ids = [
+                        int(token_id)
+                        for token_id in (getattr(current_output, "token_ids", []) or [])
+                    ]
 
             t1 = time.perf_counter()
             ttft_ms, tpot_ms = self._derive_vllm_latency_metrics(
@@ -3912,6 +4107,9 @@ class InferenceEngine:
                 "parent_rpc_wall_ms": worker_wall_e2e_ms,
                 "parent_rpc_overhead_ms": 0.0,
                 "actual_prompt_tokens": actual_prompt_tokens,
+                "completion_token_ids_sha256": hashlib.sha256(
+                    json.dumps(final_token_ids, separators=(",", ":")).encode("utf-8")
+                ).hexdigest(),
             }
             self.last_timing = dict(timing)
             if return_timing:
@@ -4744,6 +4942,21 @@ def _dir_size_mb(p: Path) -> float:
     return total / 1024**2
 
 
+def _path_size_bytes(path: Path) -> int:
+    if not path.exists():
+        return 0
+    total = 0
+    children = path.rglob("*") if path.is_dir() else [path]
+    for child in children:
+        if not child.is_file():
+            continue
+        try:
+            total += int(child.stat().st_size)
+        except OSError:
+            continue
+    return max(0, total)
+
+
 def copy_with_timing(src: Path, dst: Path) -> Tuple[bool, float]:
     t0 = time.perf_counter()
     try:
@@ -4753,6 +4966,56 @@ def copy_with_timing(src: Path, dst: Path) -> Tuple[bool, float]:
         return True, (time.perf_counter() - t0) * 1000
     except Exception:
         return False, (time.perf_counter() - t0) * 1000
+
+
+def linktree_with_timing(src: Path, dst: Path) -> Tuple[bool, float, str]:
+    """Mirror a local-sim remote tree without charging disk-copy throughput.
+
+    The aggregate limiter models the Remote->NVMe link.  Hard-linking after the
+    reservation matches the ServerlessLLM file:// fetcher and avoids adding a
+    second, system-specific full disk copy on top of the configured transfer.
+    """
+    t0 = time.perf_counter()
+    mode = "hardlink"
+    try:
+        if dst.exists():
+            shutil.rmtree(dst) if dst.is_dir() else dst.unlink()
+        if src.is_file():
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                os.link(src, dst)
+            except OSError:
+                try:
+                    os.symlink(src, dst)
+                    mode = "symlink"
+                except OSError:
+                    shutil.copy2(src, dst)
+                    mode = "copy"
+            return True, (time.perf_counter() - t0) * 1000.0, mode
+        dst.mkdir(parents=True, exist_ok=True)
+        for item in src.rglob("*"):
+            target = dst / item.relative_to(src)
+            if item.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if item.is_symlink():
+                os.symlink(os.readlink(item), target)
+                if mode == "hardlink":
+                    mode = "symlink"
+                continue
+            try:
+                os.link(item, target)
+            except OSError:
+                try:
+                    os.symlink(item, target)
+                    mode = "symlink"
+                except OSError:
+                    shutil.copy2(item, target)
+                    mode = "copy"
+        return True, (time.perf_counter() - t0) * 1000.0, mode
+    except Exception:
+        return False, (time.perf_counter() - t0) * 1000.0, mode
 
 
 def _calc_cost(cost_model: Dict, in_tok: int, out_tok: int) -> float:
@@ -4996,6 +5259,7 @@ def _summarize_infra_cost_from_lifecycles(
     deployment_idle_tail_s: float = 300.0,
     serverless_idle_retention_s: float = 300.0,
     max_billing_gpus: Optional[float] = None,
+    pre_replay_startup_s: float = 0.0,
 ) -> Dict[str, Any]:
     normalized: List[Dict[str, Any]] = []
     total_gpu_seconds = 0.0
@@ -5004,7 +5268,10 @@ def _summarize_infra_cost_from_lifecycles(
     safe_elapsed = max(0.0, float(elapsed_sec or 0.0))
     safe_tail = max(0.0, float(deployment_idle_tail_s or 0.0))
     safe_retention = max(0.0, float(serverless_idle_retention_s or 0.0))
-    billing_elapsed = safe_elapsed + safe_tail
+    safe_pre_replay = max(0.0, float(pre_replay_startup_s or 0.0))
+    billing_start_offset = -safe_pre_replay
+    billing_end_offset = safe_elapsed + safe_tail
+    billing_elapsed = billing_end_offset - billing_start_offset
     lifetime_intervals: List[Tuple[float, float, float]] = []
     startup_intervals: List[Tuple[float, float, float]] = []
     ready_intervals: List[Tuple[float, float, float]] = []
@@ -5017,7 +5284,7 @@ def _summarize_infra_cost_from_lifecycles(
         runtime_kind = str(item.get("runtime_kind") or "").lower()
         remove_reason = str(item.get("remove_reason") or "").lower()
         gpu_count = max(1, int(item.get("gpu_count", 1) or 1))
-        created_offset_s = max(0.0, float(item.get("created_offset_s", 0.0) or 0.0))
+        created_offset_s = float(item.get("created_offset_s", 0.0) or 0.0)
         ready_offset_s = item.get("ready_offset_s")
         if ready_offset_s is None:
             ready_offset_s = created_offset_s
@@ -5032,11 +5299,15 @@ def _summarize_infra_cost_from_lifecycles(
         except Exception:
             last_finished_offset_s = None
 
-        created_offset_s = min(created_offset_s, billing_elapsed)
-        ready_offset_s = min(max(created_offset_s, ready_offset_s), billing_elapsed)
+        created_offset_s = min(
+            max(billing_start_offset, created_offset_s), billing_end_offset
+        )
+        ready_offset_s = min(
+            max(created_offset_s, ready_offset_s), billing_end_offset
+        )
 
         if "static_serverful" in runtime_kind:
-            billing_removed_offset_s = billing_elapsed
+            billing_removed_offset_s = billing_end_offset
         elif remove_reason == "scale_down":
             billing_removed_offset_s = removed_offset_s
         else:
@@ -5051,7 +5322,9 @@ def _summarize_infra_cost_from_lifecycles(
             )
             billing_removed_offset_s = live_until + safe_retention
 
-        removed_offset_s = min(max(ready_offset_s, billing_removed_offset_s), billing_elapsed)
+        removed_offset_s = min(
+            max(ready_offset_s, billing_removed_offset_s), billing_end_offset
+        )
 
         lifetime_sec = max(0.0, removed_offset_s - created_offset_s)
         startup_sec = max(0.0, ready_offset_s - created_offset_s)
@@ -5126,6 +5399,9 @@ def _summarize_infra_cost_from_lifecycles(
         "infra_ce": infra_ce,
         "gpu_cost_per_second_usd": max(0.0, float(gpu_cost_per_second_usd or 0.0)),
         "infra_billing_elapsed_sec": billing_elapsed,
+        "billing_start_offset_s": billing_start_offset,
+        "billing_end_offset_s": billing_end_offset,
+        "pre_replay_startup_s": safe_pre_replay,
         "deployment_idle_tail_s": safe_tail,
         "serverless_idle_retention_s": safe_retention,
         "infra_max_billing_gpus": max(0.0, float(max_billing_gpus or 0.0)),
@@ -5411,6 +5687,27 @@ class ScenarioRunner:
         self.preload_cfg   = preload_cfg
         self.wl_cfg        = workload_cfg
         self.coord_cfg     = coord_cfg or {}
+        generation_contract = str(
+            self.wl_cfg.get("generation_contract", "legacy") or "legacy"
+        ).strip().lower()
+        if generation_contract not in {"legacy", "fixed_length_greedy_v1"}:
+            raise ValueError(
+                f"Unsupported generation_contract={generation_contract!r}; "
+                "expected legacy or fixed_length_greedy_v1"
+            )
+        self._generation_contract = generation_contract
+        self.model_cfg["generation_contract"] = generation_contract
+        if getattr(self.engine, "model_cfg", None) is not None:
+            self.engine.model_cfg["generation_contract"] = generation_contract
+        self._coordination_enabled = bool(
+            self.coord_cfg.get("coordination_enabled", baseline_type == "faaslora_full")
+        )
+        self._scale_up_handoff_enabled = bool(
+            self.coord_cfg.get("scale_up_handoff_enabled", True)
+        )
+        self._hierarchical_residency_enabled = bool(
+            self.preload_cfg.get("hierarchical_residency_enabled", True)
+        )
         self._stack        = experiment_stack  # full ResidencyManager + PreloadingManager (C1/C2/C3)
         self.engine_factory = engine_factory  # B1: 可选；提供时 scale-up 可 add_instance(新 engine, 新 coordinator)
 
@@ -5421,6 +5718,14 @@ class ScenarioRunner:
         self._lru_max:    int             = preload_cfg.get("lru_cache_size", 4)
         self._access_count: Dict[str, int] = defaultdict(int)
         self._remote_artifact_client = None
+        self._bandwidth_limiter = AggregateBandwidthLimiter(self.bw_mbps)
+        self._remote_materialize_locks: Dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        self._local_sim_materialization_mode = (
+            "reserve_then_hardlink_v1"
+            if str(self.name or "").startswith("v2_")
+            else "copy_then_reserve_legacy"
+        )
+        self._local_sim_materialization_counts: Dict[str, int] = defaultdict(int)
         if _remote_artifact_from_env is not None:
             self._remote_artifact_client = _remote_artifact_from_env()
         if self._remote_artifact_client is not None:
@@ -5494,10 +5799,19 @@ class ScenarioRunner:
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
         self._run_started_at = 0.0
+        self._initial_preload_wall_s = 0.0
+        self._initial_preload_bytes = 0
+        self._initial_preload_transfer_count = 0
+        self._initial_preload_injected_wait_s = 0.0
+        self._initial_preload_gpu_count = self._runtime_gpu_count_for_cfg(self.model_cfg)
+        self._primary_engine_initialization_wall_s = 0.0
+        self._pre_replay_deployment_wall_s = 0.0
         self._gpu_environment_guard_last_at = 0.0
         self._gpu_environment_guard_interval_s = 30.0
         self._dynamic_forwarding_enabled = bool(self.preload_cfg.get("dynamic_forwarding_enabled", True))
         self._runtime_gpu_forward_tasks: Dict[tuple, asyncio.Task] = {}
+        self._runtime_gpu_forward_attempt_count: int = 0
+        self._runtime_gpu_forward_success_count: int = 0
         self._live_scale_up_events: List[Dict[str, Any]] = []
         self._observed_scale_up_cold_start_latencies_ms: List[float] = []
         self._observed_scale_up_runtime_startup_latencies_ms: List[float] = []
@@ -5540,7 +5854,9 @@ class ScenarioRunner:
         self._runtime_hints_last_refresh_by_slot: Dict[str, float] = {}
 
         # Resource coordinator (contribution 3); when _stack is set, coordinator comes from stack
-        coord_enabled = (baseline_type == "faaslora_full")
+        coord_enabled = (
+            baseline_type == "faaslora_full" and self._coordination_enabled
+        )
         if self._stack is not None:
             self.coordinator = self._stack.coordinator
         else:
@@ -5667,12 +5983,16 @@ class ScenarioRunner:
             if lifecycle_source and not record.get("lifecycle_source"):
                 record["lifecycle_source"] = str(lifecycle_source)
         if created_offset_s is not None:
-            created_value = max(0.0, float(created_offset_s or 0.0))
+            created_value = float(created_offset_s or 0.0)
+            if not math.isfinite(created_value):
+                raise ValueError("created_offset_s must be finite")
             existing = record.get("created_offset_s")
             if existing is None or created_value < float(existing):
                 record["created_offset_s"] = created_value
         if ready_offset_s is not None:
-            ready_value = max(0.0, float(ready_offset_s or 0.0))
+            ready_value = float(ready_offset_s or 0.0)
+            if not math.isfinite(ready_value):
+                raise ValueError("ready_offset_s must be finite")
             created_value = float(record.get("created_offset_s") or 0.0)
             ready_value = max(created_value, ready_value)
             existing = record.get("ready_offset_s")
@@ -5727,9 +6047,16 @@ class ScenarioRunner:
                 runtime_kind=runtime_kind,
                 gpu_count=self._runtime_gpu_count_for_cfg(model_cfg),
                 device_id=getattr(slot, "device_id", None),
-                created_offset_s=0.0,
+                created_offset_s=-max(
+                    0.0,
+                    float(
+                        getattr(self, "_pre_replay_deployment_wall_s", 0.0)
+                        or getattr(self, "_initial_preload_wall_s", 0.0)
+                        or 0.0
+                    ),
+                ),
                 ready_offset_s=0.0,
-                lifecycle_source="run_start",
+                lifecycle_source="initial_preload_then_run_start",
                 model_name=(model_cfg or {}).get("name") if isinstance(model_cfg, dict) else None,
             )
 
@@ -5782,6 +6109,11 @@ class ScenarioRunner:
             deployment_idle_tail_s=_cost_model_deployment_idle_tail_s(self.cost_model),
             serverless_idle_retention_s=_cost_model_serverless_idle_retention_s(self.cost_model),
             max_billing_gpus=max_billing_gpus,
+            pre_replay_startup_s=float(
+                getattr(self, "_pre_replay_deployment_wall_s", 0.0)
+                or getattr(self, "_initial_preload_wall_s", 0.0)
+                or 0.0
+            ),
         )
         result.instance_lifecycle_log = summary["instance_lifecycle_log"]
         result.infra_gpu_seconds_total = summary["infra_gpu_seconds_total"]
@@ -5794,6 +6126,42 @@ class ScenarioRunner:
         result.infra_max_billing_gpus = summary["infra_max_billing_gpus"]
         result.deployment_idle_tail_s = summary["deployment_idle_tail_s"]
         result.serverless_idle_retention_s = summary["serverless_idle_retention_s"]
+        result.initial_preload_wall_s = max(
+            0.0, float(getattr(self, "_initial_preload_wall_s", 0.0) or 0.0)
+        )
+        result.initial_preload_bytes = max(
+            0, int(getattr(self, "_initial_preload_bytes", 0) or 0)
+        )
+        result.initial_preload_transfer_count = max(
+            0, int(getattr(self, "_initial_preload_transfer_count", 0) or 0)
+        )
+        result.initial_preload_injected_wait_s = max(
+            0.0,
+            float(getattr(self, "_initial_preload_injected_wait_s", 0.0) or 0.0),
+        )
+        result.initial_preload_gpu_count = max(
+            0, int(getattr(self, "_initial_preload_gpu_count", 0) or 0)
+        )
+        result.initial_preload_gpu_seconds = (
+            result.initial_preload_wall_s * result.initial_preload_gpu_count
+        )
+        result.primary_engine_initialization_wall_s = max(
+            0.0,
+            float(
+                getattr(self, "_primary_engine_initialization_wall_s", 0.0)
+                or 0.0
+            ),
+        )
+        result.pre_replay_deployment_wall_s = max(
+            result.initial_preload_wall_s,
+            float(
+                getattr(self, "_pre_replay_deployment_wall_s", 0.0)
+                or result.initial_preload_wall_s
+            ),
+        )
+        result.pre_replay_deployment_gpu_seconds = (
+            result.pre_replay_deployment_wall_s * result.initial_preload_gpu_count
+        )
 
         resource_summary = _summarize_runtime_resource_efficiency(
             result.instance_lifecycle_log,
@@ -5857,6 +6225,13 @@ class ScenarioRunner:
             requested = int(getattr(trace, "prompt_output_tokens", 0) or 0)
         if requested <= 0:
             requested = int(default_max_tokens or 0)
+        contract = str((getattr(self, "wl_cfg", {}) or {}).get("generation_contract", "legacy") or "legacy").strip().lower()
+        if contract == "fixed_length_greedy_v1":
+            fixed_cap = max(
+                1,
+                int((getattr(self, "wl_cfg", {}) or {}).get("fixed_output_max_tokens", 256) or 256),
+            )
+            requested = min(requested, fixed_cap)
         return max(1, requested)
 
     def _prepare_request_execution_plan(
@@ -5882,8 +6257,17 @@ class ScenarioRunner:
                 )
                 if isinstance(plan, RequestExecutionPlan):
                     return plan
-            except Exception:
-                pass
+            except Exception as exc:
+                if self._generation_contract == "fixed_length_greedy_v1":
+                    raise RuntimeError(
+                        "fixed_length_greedy_v1 request preparation failed; "
+                        "fallback prompt/token plans are forbidden"
+                    ) from exc
+            if self._generation_contract == "fixed_length_greedy_v1":
+                raise RuntimeError(
+                    "fixed_length_greedy_v1 request preparation did not return "
+                    "a RequestExecutionPlan; fallback is forbidden"
+                )
         model_cfg = getattr(engine, "model_cfg", {}) or {}
         cap = int(model_cfg.get("max_output_tokens_cap", 0) or 0) if isinstance(model_cfg, dict) else 0
         max_tokens = requested_output_tokens
@@ -6473,6 +6857,9 @@ class ScenarioRunner:
             if not self._runtime_forward_has_capacity(slot, coordinator):
                 return
             adapter_id = candidate["adapter_id"]
+            self._runtime_gpu_forward_attempt_count = int(
+                getattr(self, "_runtime_gpu_forward_attempt_count", 0) or 0
+            ) + 1
             local_path = candidate["path"]
             source_tier = str(candidate.get("source_tier", "nvme") or "nvme")
             size_mb = float(candidate.get("size_mb", 0.0) or 0.0)
@@ -6570,6 +6957,9 @@ class ScenarioRunner:
                         adapter_id, StorageTier.GPU, force=True
                     )
                 self._mark_slot_adapter_tier(slot, adapter_id, "gpu")
+                self._runtime_gpu_forward_success_count = int(
+                    getattr(self, "_runtime_gpu_forward_success_count", 0) or 0
+                ) + 1
                 return True
 
             if semaphore is not None:
@@ -7822,6 +8212,8 @@ class ScenarioRunner:
         submitted_traces: Optional[List[Any]] = None,
         bootstrap_latency_ms_override: Optional[float] = None,
     ) -> Dict[str, Any]:
+        if not bool(getattr(self, "_scale_up_handoff_enabled", True)):
+            return {}
         planning_started_ns = time.perf_counter_ns()
         headroom_bytes = max(
             0,
@@ -10324,7 +10716,7 @@ class ScenarioRunner:
             f"headroom={float(preload_budget.get('target_headroom_bytes', 0) or 0) / (1024.0 * 1024.0):.1f}MB",
             flush=True,
         )
-        if len(runtime_handoff_plans) <= 1:
+        if bool(getattr(self, "_scale_up_handoff_enabled", True)) and len(runtime_handoff_plans) <= 1:
             await self._stack.trigger_scaling_preload(
                 preload_capacity_bytes,
                 preferred_gpu_adapters=preferred_gpu_adapters,
@@ -11479,6 +11871,11 @@ class ScenarioRunner:
                                    "backbone_only", "lru_nvme"):
             return
         if not self.preload_cfg.get("enabled", True):
+            # Elastic-only/readiness-only variants still need the stack's
+            # registry and autoscaler, but must not create any initial tier or
+            # handoff state that would contaminate the ablation.
+            if self._stack is not None:
+                self._stack._ensure_registered()
             return
         # faaslora_full + transformers: 子进程内做 preload，主进程跳过（避免未 init 的 engine 被 warmup 调用）
         if self.baseline_type == "faaslora_full" and getattr(self.engine, "backend", "") == "transformers":
@@ -11507,17 +11904,7 @@ class ScenarioRunner:
             if dst.exists():
                 self._nvme_cache[aid] = str(dst)
                 continue
-            ok, io_ms = self._materialize_remote_adapter(aid, dst)
-            # Simulate remote?NVME bandwidth for initial preload
-            size_mb   = info.get("size_mb", _dir_size_mb(dst))
-            sleep_s   = (
-                size_mb / self.bw_mbps
-                if self._remote_artifact_client is None and self.bw_mbps > 0
-                else 0
-            )
-            if sleep_s > 0.001:
-                await asyncio.sleep(sleep_s)
-                io_ms += sleep_s * 1000
+            ok, io_ms = await self._materialize_remote_adapter_async(aid, dst)
             if ok:
                 self._nvme_cache[aid] = str(dst)
                 total_io += io_ms
@@ -11547,19 +11934,12 @@ class ScenarioRunner:
         async def copy_fn(aid: str, src: str, dst: str):
             src_path = Path(src)
             remote_src = (self._stack.remote_dir / aid).resolve()
-            if self._remote_artifact_client is not None and src_path.resolve() == remote_src:
-                ok, io_ms = self._materialize_remote_adapter(aid, Path(dst))
+            if src_path.resolve() == remote_src:
+                ok, io_ms = await self._materialize_remote_adapter_async(
+                    aid, Path(dst)
+                )
             else:
                 ok, io_ms = copy_with_timing(src_path, Path(dst))
-            size_mb = self.adapter_info.get(aid, {}).get("size_mb", 30)
-            sleep_s = (
-                size_mb / self.bw_mbps
-                if self._remote_artifact_client is None and src_path.resolve() == remote_src and self.bw_mbps > 0
-                else 0
-            )
-            if sleep_s > 0.001:
-                await asyncio.sleep(sleep_s)
-                io_ms += sleep_s * 1000
             return ok, io_ms
 
         self._stack._ensure_registered()
@@ -11588,6 +11968,31 @@ class ScenarioRunner:
             for slot in self.instance_pool.get_slots():
                 self._prime_slot_cache_view(slot, include_gpu=False)
         print(f"    Stage 1 (remote→NVMe): {len(plan_nvme.selected_artifacts)} adapters, total_io={total_io:.0f}ms")
+
+        if not bool(getattr(self, "_hierarchical_residency_enabled", True)):
+            # Mechanism 1 in the paper stops at hit-aware NVMe preparation plus
+            # scale-out handoff.  HOST/GPU tier planning and online migration
+            # belong to Mechanism 2 and must not leak into this cumulative row.
+            preferred_gpu_adapters = self._scale_up_warmup_preferred_gpu_adapters()
+            preload_capacity_bytes = self._scale_up_preload_capacity_bytes(
+                preferred_gpu_adapters
+            )
+            plan_id = None
+            if bool(getattr(self, "_scale_up_handoff_enabled", True)):
+                plan_id = await self._stack.trigger_scaling_preload(
+                    preload_capacity_bytes,
+                    preferred_gpu_adapters=preferred_gpu_adapters,
+                )
+            print(
+                "    Mechanism-1 boundary: NVMe preparation + scale-out "
+                f"handoff only (plan_id={plan_id or 'none'}); HOST/GPU "
+                "hierarchical migration disabled."
+            )
+            print(
+                f"    Preload done  total_io={total_io:.0f}ms  "
+                f"nvme={len(self._nvme_cache)}  host=0"
+            )
+            return
 
         # Stage 2: NVMe → HOST (memory)
         capacity_host = int(self.preload_cfg.get("host_capacity_mb", 4096) * 1024 * 1024)
@@ -11636,10 +12041,12 @@ class ScenarioRunner:
         preferred_gpu_adapters = self._scale_up_warmup_preferred_gpu_adapters()
         preload_capacity_bytes = self._scale_up_preload_capacity_bytes(preferred_gpu_adapters)
         preload_budget = dict(getattr(self, "_last_scale_up_preload_budget", {}) or {})
-        plan_id = await self._stack.trigger_scaling_preload(
-            preload_capacity_bytes,
-            preferred_gpu_adapters=preferred_gpu_adapters,
-        )
+        plan_id = None
+        if bool(getattr(self, "_scale_up_handoff_enabled", True)):
+            plan_id = await self._stack.trigger_scaling_preload(
+                preload_capacity_bytes,
+                preferred_gpu_adapters=preferred_gpu_adapters,
+            )
         if plan_id:
             print(
                 f"    Scale-up preload triggered (plan_id={plan_id}, "
@@ -11768,7 +12175,9 @@ class ScenarioRunner:
 
     async def run(self) -> Tuple[ScenarioResult, Dict]:
         # 按场景设置 transformers 后端 GPU 内最多 LoRA 数（贴近真实系统）
-        coord_enabled = (self.baseline_type == "faaslora_full")
+        coord_enabled = (
+            self.baseline_type == "faaslora_full" and self._coordination_enabled
+        )
         if self.engine.backend == "transformers":
             self.engine.set_hf_max_adapters_for_scenario(
                 self.baseline_type, self.coord_cfg, self.engine.model_cfg
@@ -12794,6 +13203,21 @@ class ScenarioRunner:
                 int(_safe_float(engine_timing.get("actual_prompt_tokens"), request_plan.input_tokens)),
             )
             cost       = _calc_cost(self.cost_model, actual_input_tokens, out_tokens)
+            source_expected_output_tokens = max(
+                1, int(getattr(trace, "expected_output_tokens", 0) or request_plan.max_tokens)
+            )
+            completion_token_source = (
+                "vllm_token_ids" if str(getattr(_engine, "backend", "vllm")).lower() == "vllm"
+                else f"{str(getattr(_engine, 'backend', 'engine')).lower()}_reported_tokens"
+            )
+            canonical_prompt_sha256 = hashlib.sha256(
+                request_plan.prompt.encode("utf-8")
+            ).hexdigest()
+            output_contract_match = (
+                int(out_tokens or 0) == int(request_plan.max_tokens or 0)
+                if str(getattr(self, "_generation_contract", "legacy")) == "fixed_length_greedy_v1"
+                else True
+            )
 
             if adapter_id:
                 self._access_count[adapter_id] += 1
@@ -12909,6 +13333,17 @@ class ScenarioRunner:
                 adapter_path_resolution_us=adapter_path_resolution_us,
                 gpu_admission_decision_us=gpu_admission_decision_us,
                 control_path_total_us=control_path_total_us,
+                generation_contract=str(getattr(self, "_generation_contract", "legacy")),
+                source_expected_output_tokens=source_expected_output_tokens,
+                requested_completion_tokens=int(request_plan.max_tokens or 0),
+                completion_tokens=int(out_tokens or 0),
+                completion_token_source=completion_token_source,
+                completion_token_ids_sha256=str(
+                    engine_timing.get("completion_token_ids_sha256", "") or ""
+                ),
+                canonical_prompt_sha256=canonical_prompt_sha256,
+                canonical_prompt_tokens=max(1, int(request_plan.input_tokens or 1)),
+                output_contract_match=output_contract_match,
             )
 
         except Exception as exc:
@@ -13048,7 +13483,7 @@ class ScenarioRunner:
         if self._stack is not None and btype in ("faaslora_nvme", "faaslora_no_coord", "faaslora_full"):
             path, cache_tier, lora_io_ms, contention_ms, defer_ms = await self._stack.resolve_lora(
                 adapter_id, size_mb, is_burst,
-                ensure_local_fn=lambda a: self._ensure_local(a),
+                ensure_local_fn=lambda a: self._ensure_local_async(a),
                 coordinator=coord,
             )
             return adapter_id, path, lora_io_ms, cache_tier, contention_ms, defer_ms
@@ -13150,6 +13585,53 @@ class ScenarioRunner:
             return False, 0.0
         return copy_with_timing(src, dst)
 
+    async def _materialize_remote_adapter_async(
+        self,
+        adapter_id: str,
+        dst: Path,
+    ) -> Tuple[bool, float]:
+        """Materialize one Remote->NVMe miss with one auditable link charge.
+
+        Formal V2 local-sim runs reserve the shared aggregate link using the
+        exact artifact bytes *before* materialization, then hard-link the frozen
+        tree.  This is the same application-layer contract used by the
+        ServerlessLLM-new file:// fetcher.  Historical non-V2 scenarios retain
+        their copy-then-delay behavior for backward compatibility.
+        """
+
+        if self._remote_artifact_client is not None:
+            return self._materialize_remote_adapter(adapter_id, dst)
+
+        src = self.remote_dir / adapter_id
+        if not src.exists():
+            return False, 0.0
+        size_bytes = _path_size_bytes(src)
+        if size_bytes <= 0:
+            return False, 0.0
+
+        if self._local_sim_materialization_mode == "reserve_then_hardlink_v1":
+            injected_wait_ms = await self._bandwidth_limiter.throttle(size_bytes)
+            ok, materialize_ms, observed_mode = linktree_with_timing(src, dst)
+            self._local_sim_materialization_counts[str(observed_mode)] += 1
+            return bool(ok), float(injected_wait_ms + materialize_ms)
+
+        ok, materialize_ms = copy_with_timing(src, dst)
+        if not ok:
+            return False, float(materialize_ms)
+        # Legacy runs historically used manifest MiB. Keep that contract out of
+        # V2 while still making the old path explicit in result metadata.
+        legacy_size_mb = float(
+            self.adapter_info.get(adapter_id, {}).get("size_mb", 0.0) or 0.0
+        )
+        charged_bytes = (
+            int(legacy_size_mb * 1024 * 1024)
+            if legacy_size_mb > 0.0
+            else size_bytes
+        )
+        injected_wait_ms = await self._bandwidth_limiter.throttle(charged_bytes)
+        self._local_sim_materialization_counts["copy"] += 1
+        return True, float(materialize_ms + injected_wait_ms)
+
     def _ensure_local(self, adapter_id: str) -> Optional[str]:
         """Ensure adapter exists locally for S-LoRA / ServerlessLLM baselines."""
         if adapter_id in self._nvme_cache:
@@ -13165,6 +13647,25 @@ class ScenarioRunner:
         self._nvme_cache[adapter_id] = str(dst)
         return str(dst)
 
+    async def _ensure_local_async(self, adapter_id: str) -> Tuple[Optional[str], float]:
+        """Async local materialization with the shared link limiter applied."""
+        async with self._remote_materialize_locks[str(adapter_id)]:
+            if adapter_id in self._nvme_cache:
+                return self._nvme_cache[adapter_id], 0.0
+            dst = self.nvme_dir / adapter_id
+            self.nvme_dir.mkdir(parents=True, exist_ok=True)
+            if self._remote_artifact_client is None and not (self.remote_dir / adapter_id).exists():
+                return None, 0.0
+            transfer_ms = 0.0
+            if not dst.exists():
+                ok, transfer_ms = await self._materialize_remote_adapter_async(
+                    adapter_id, dst
+                )
+                if not ok:
+                    return None, 0.0
+            self._nvme_cache[adapter_id] = str(dst)
+            return str(dst), float(transfer_ms)
+
     async def _download_from_remote(
         self, adapter_id: str, size_mb: float
     ) -> Tuple[Optional[str], Optional[str], float, str, float, float]:
@@ -13175,16 +13676,9 @@ class ScenarioRunner:
         if self._remote_artifact_client is None and not (self.remote_dir / adapter_id).exists():
             return adapter_id, None, 0.0, "remote", 0.0, 0.0
 
-        ok, copy_ms = self._materialize_remote_adapter(adapter_id, dst)
+        ok, copy_ms = await self._materialize_remote_adapter_async(adapter_id, dst)
         if not ok:
             return adapter_id, None, 0.0, "remote", 0.0, 0.0
-
-        # Bandwidth simulation
-        if self._remote_artifact_client is None and self.bw_mbps > 0:
-            sleep_s = size_mb / self.bw_mbps
-            if sleep_s > 0.001:
-                await asyncio.sleep(sleep_s)
-                copy_ms += sleep_s * 1000
 
         # LRU management for lru_nvme
         if self.baseline_type == "lru_nvme":
@@ -13644,6 +14138,7 @@ def _apply_explicit_env_overrides(
     _apply("FAASLORA_GPU_MEMORY_UTILIZATION", model_cfg, "gpu_memory_utilization", float)
     _apply("FAASLORA_RUNTIME_CONCURRENCY_CAP", model_cfg, "runtime_concurrency_cap", int)
     _apply("FAASLORA_MAX_MODEL_LEN", model_cfg, "max_model_len", int)
+    _apply("FAASLORA_MAX_INPUT_LEN", model_cfg, "max_input_len", int)
     _apply("FAASLORA_MAX_NUM_SEQS", model_cfg, "max_num_seqs", int)
     _apply("FAASLORA_MAX_LORAS", model_cfg, "max_loras", int)
     _apply("FAASLORA_MAX_CPU_LORAS", model_cfg, "max_cpu_loras", int)
@@ -13695,6 +14190,19 @@ def _apply_explicit_env_overrides(
         float,
     )
     _apply("FAASLORA_MAX_CONCURRENT_LOADS", coord_cfg, "max_concurrent_loads", int)
+    _apply("FAASLORA_ROUTING_POLICY", coord_cfg, "routing_policy", lambda v: str(v).strip().lower())
+    _apply(
+        "FAASLORA_COORDINATION_ENABLED",
+        coord_cfg,
+        "coordination_enabled",
+        _parse_env_bool,
+    )
+    _apply(
+        "FAASLORA_SCALE_UP_HANDOFF_ENABLED",
+        coord_cfg,
+        "scale_up_handoff_enabled",
+        _parse_env_bool,
+    )
     _apply("FAASLORA_LORA_LOAD_RESERVE_RATIO", coord_cfg, "lora_load_reserve_ratio", float)
     _apply(
         "FAASLORA_EFFECTIVE_CAPACITY_ADMISSION",
@@ -13709,6 +14217,47 @@ def _apply_explicit_env_overrides(
     _apply("FAASLORA_QUICK_CONCURRENCY", wl_cfg_yaml, "quick_concurrency", int)
     _apply("FAASLORA_TIME_SCALE_FACTOR", wl_cfg_yaml, "time_scale_factor", float)
     _apply("FAASLORA_GENERATION_SEED", wl_cfg_yaml, "generation_seed", int)
+    _apply("FAASLORA_WORKLOAD_SEED", wl_cfg_yaml, "workload_seed", int)
+    _apply("FAASLORA_ZIPF_EXPONENT", wl_cfg_yaml, "zipf_exponent", float)
+    _apply("FAASLORA_ACTIVE_ADAPTER_CAP", wl_cfg_yaml, "active_adapter_cap", int)
+    _apply(
+        "FAASLORA_HOTSET_ROTATION_REQUESTS",
+        wl_cfg_yaml,
+        "hotset_rotation_requests",
+        int,
+    )
+    _apply(
+        "FAASLORA_HOTSET_ROTATION_MODE",
+        wl_cfg_yaml,
+        "hotset_rotation_mode",
+        lambda v: str(v).strip().lower(),
+    )
+    _apply(
+        "FAASLORA_HOTSET_OVERLAP_FRACTION",
+        wl_cfg_yaml,
+        "hotset_overlap_fraction",
+        float,
+    )
+    _apply("FAASLORA_MULTI_CYCLE_PHASES", wl_cfg_yaml, "multi_cycle_phases", int)
+    _apply("FAASLORA_IDLE_BETWEEN_PHASES_S", wl_cfg_yaml, "idle_between_phases_s", float)
+    _apply(
+        "FAASLORA_GENERATION_CONTRACT",
+        wl_cfg_yaml,
+        "generation_contract",
+        lambda v: str(v).strip().lower(),
+    )
+    _apply(
+        "FAASLORA_FIXED_OUTPUT_MAX_TOKENS",
+        wl_cfg_yaml,
+        "fixed_output_max_tokens",
+        int,
+    )
+    _apply(
+        "FAASLORA_FIXED_PROMPT_MAX_TOKENS",
+        wl_cfg_yaml,
+        "fixed_prompt_max_tokens",
+        int,
+    )
 
     return model_cfg, wl_cfg_yaml, coord_cfg, hw_cfg, applied
 
@@ -13728,6 +14277,11 @@ def _apply_adapter_storage_env_overrides(
     if host_cache_dir is not None:
         storage_cfg["host_cache_dir"] = host_cache_dir
         applied["FAASLORA_HOST_CACHE_DIR"] = host_cache_dir
+
+    nvme_cache_dir = _read_env_override("FAASLORA_NVME_CACHE_DIR")
+    if nvme_cache_dir is not None:
+        storage_cfg["nvme_cache_dir"] = nvme_cache_dir
+        applied["FAASLORA_NVME_CACHE_DIR"] = nvme_cache_dir
 
     require_memory_backed_host_cache = _read_env_override("FAASLORA_REQUIRE_MEMORY_BACKED_HOST_CACHE")
     if require_memory_backed_host_cache is not None:
@@ -13751,6 +14305,23 @@ def _apply_adapter_storage_env_overrides(
     if prep_mode is not None:
         adapters_cfg["preparation_mode"] = prep_mode
         applied["FAASLORA_LORA_PREPARATION_MODE"] = prep_mode
+
+    bandwidth_mib_s = _read_env_override("FAASLORA_STORAGE_BANDWIDTH_MIB_S")
+    legacy_bandwidth = _read_env_override("FAASLORA_STORAGE_BANDWIDTH_MBPS")
+    selected_bandwidth = bandwidth_mib_s if bandwidth_mib_s is not None else legacy_bandwidth
+    if selected_bandwidth is not None:
+        try:
+            storage_cfg["bandwidth_mbps"] = max(0.0, float(selected_bandwidth))
+        except Exception as exc:
+            source_name = (
+                "FAASLORA_STORAGE_BANDWIDTH_MIB_S"
+                if bandwidth_mib_s is not None
+                else "FAASLORA_STORAGE_BANDWIDTH_MBPS"
+            )
+            raise ValueError(f"Invalid {source_name}={selected_bandwidth!r}: {exc}") from exc
+        applied[
+            "FAASLORA_STORAGE_BANDWIDTH_MIB_S"
+        ] = storage_cfg["bandwidth_mbps"]
 
     return adapters_cfg, storage_cfg, applied
 
@@ -13784,6 +14355,11 @@ def _apply_preloading_env_overrides(preload_cfg: Dict[str, Any]) -> Tuple[Dict[s
     _apply("FAASLORA_HOST_CAPACITY_MB", "host_capacity_mb", float)
     _apply("FAASLORA_MAX_CONCURRENT_OPERATIONS", "max_concurrent_operations", int)
     _apply("FAASLORA_DYNAMIC_FORWARDING_ENABLED", "dynamic_forwarding_enabled", _parse_env_bool)
+    _apply(
+        "FAASLORA_HIERARCHICAL_RESIDENCY_ENABLED",
+        "hierarchical_residency_enabled",
+        _parse_env_bool,
+    )
     _apply("FAASLORA_GPU_DYNAMIC_FORWARDING_ENABLED", "gpu_dynamic_forwarding_enabled", _parse_env_bool)
     _apply(
         "FAASLORA_HOST_PROMOTION_ON_NVME_HIT_ENABLED",
@@ -14890,7 +15466,7 @@ def print_results(results: List[ScenarioResult], bw_mbps: float,
     print(f"{DLINE}")
     print(f"  Dataset : {dataset_info}")
     print(f"  Engine  : {mode_info}")
-    print(f"  Network : {bw_mbps:.0f} Mbps (remote -> NVMe)")
+    print(f"  Network : {bw_mbps:.4g} MiB/s aggregate local-sim (remote -> NVMe)")
     if has_multi_run:
         print("  Report  : mean ± std (over multiple runs)")
     print(f"{LINE}")
@@ -15293,6 +15869,15 @@ def _build_comparison_table(results: List[ScenarioResult]) -> List[Dict]:
             "infra_max_billing_gpus": round(r.infra_max_billing_gpus, 6),
             "deployment_idle_tail_s": round(r.deployment_idle_tail_s, 6),
             "serverless_idle_retention_s": round(r.serverless_idle_retention_s, 6),
+            "initial_preload_wall_s": round(r.initial_preload_wall_s, 6),
+            "initial_preload_bytes": int(r.initial_preload_bytes),
+            "initial_preload_transfer_count": int(r.initial_preload_transfer_count),
+            "initial_preload_injected_wait_s": round(r.initial_preload_injected_wait_s, 6),
+            "initial_preload_gpu_count": int(r.initial_preload_gpu_count),
+            "initial_preload_gpu_seconds": round(r.initial_preload_gpu_seconds, 6),
+            "primary_engine_initialization_wall_s": round(r.primary_engine_initialization_wall_s, 6),
+            "pre_replay_deployment_wall_s": round(r.pre_replay_deployment_wall_s, 6),
+            "pre_replay_deployment_gpu_seconds": round(r.pre_replay_deployment_gpu_seconds, 6),
             "CE":      round(r.qpr, 4),
             "Monetary_CE": round(r.monetary_ce, 4),
             "Infra_CE": round(r.infra_ce, 4),
@@ -15475,6 +16060,15 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "infra_max_billing_gpus": round(r.infra_max_billing_gpus, 6),
             "deployment_idle_tail_s": round(r.deployment_idle_tail_s, 6),
             "serverless_idle_retention_s": round(r.serverless_idle_retention_s, 6),
+            "initial_preload_wall_s": round(r.initial_preload_wall_s, 6),
+            "initial_preload_bytes": int(r.initial_preload_bytes),
+            "initial_preload_transfer_count": int(r.initial_preload_transfer_count),
+            "initial_preload_injected_wait_s": round(r.initial_preload_injected_wait_s, 6),
+            "initial_preload_gpu_count": int(r.initial_preload_gpu_count),
+            "initial_preload_gpu_seconds": round(r.initial_preload_gpu_seconds, 6),
+            "primary_engine_initialization_wall_s": round(r.primary_engine_initialization_wall_s, 6),
+            "pre_replay_deployment_wall_s": round(r.pre_replay_deployment_wall_s, 6),
+            "pre_replay_deployment_gpu_seconds": round(r.pre_replay_deployment_gpu_seconds, 6),
             "ce": round(r.qpr, 6),
             "qpr": round(r.qpr, 6),
             "qpr_tokps_ttft_legacy": round(r.qpr_tokps_ttft_legacy, 6),
@@ -15592,6 +16186,15 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "infra_max_billing_gpus": round(r.infra_max_billing_gpus, 6),
             "deployment_idle_tail_s": round(r.deployment_idle_tail_s, 6),
             "serverless_idle_retention_s": round(r.serverless_idle_retention_s, 6),
+            "initial_preload_wall_s": round(r.initial_preload_wall_s, 6),
+            "initial_preload_bytes": int(r.initial_preload_bytes),
+            "initial_preload_transfer_count": int(r.initial_preload_transfer_count),
+            "initial_preload_injected_wait_s": round(r.initial_preload_injected_wait_s, 6),
+            "initial_preload_gpu_count": int(r.initial_preload_gpu_count),
+            "initial_preload_gpu_seconds": round(r.initial_preload_gpu_seconds, 6),
+            "primary_engine_initialization_wall_s": round(r.primary_engine_initialization_wall_s, 6),
+            "pre_replay_deployment_wall_s": round(r.pre_replay_deployment_wall_s, 6),
+            "pre_replay_deployment_gpu_seconds": round(r.pre_replay_deployment_gpu_seconds, 6),
             "total_input_tokens": int(r.total_input_tokens),
             "total_output_tokens": int(r.total_output_tokens),
             "total_tokens": int(r.total_tokens),
@@ -16079,6 +16682,14 @@ async def main_async(
     datasets_cfg = copy.deepcopy(cfg.get("datasets", {}))
     wl_cfg_yaml  = copy.deepcopy(cfg.get("workload", {}))
     scenarios    = copy.deepcopy(cfg.get("scenarios", []))
+    revision_v2_scenarios = copy.deepcopy(cfg.get("revision_v2_scenarios", []))
+    if only_scenario:
+        selected_v2 = [
+            sc for sc in revision_v2_scenarios
+            if str(sc.get("name", "")) == str(only_scenario)
+        ]
+        if selected_v2:
+            scenarios.extend(selected_v2)
     storage_cfg  = copy.deepcopy(cfg.get("storage", {}))
     hw_cfg       = copy.deepcopy(cfg.get("hardware", {}))
     cost_model   = copy.deepcopy(cfg.get("cost_model", {}))
@@ -16199,6 +16810,33 @@ async def main_async(
     )
     applied_env_overrides.update(applied_adapter_storage_overrides)
     results_tag = _read_env_override("FAASLORA_RESULTS_TAG")
+    system_resolved_config_sha256 = str(
+        os.environ.get("FAASLORA_SYSTEM_RESOLVED_CONFIG_SHA256", "") or ""
+    ).strip().lower()
+    trace_role = str(
+        os.environ.get("FAASLORA_TRACE_ROLE", "legacy") or "legacy"
+    ).strip().lower()
+    formal_run = str(
+        os.environ.get("FAASLORA_FORMAL_RUN", "0") or "0"
+    ).strip().lower() in {"1", "true", "yes", "on"}
+    if system_resolved_config_sha256 and not re.fullmatch(
+        r"[0-9a-f]{64}", system_resolved_config_sha256
+    ):
+        raise ValueError(
+            "FAASLORA_SYSTEM_RESOLVED_CONFIG_SHA256 must be a 64-character "
+            "lower/upper-case hexadecimal SHA-256"
+        )
+    if trace_role not in {"validation", "smoke", "heldout", "exploratory", "legacy"}:
+        raise ValueError(
+            f"Unsupported FAASLORA_TRACE_ROLE={trace_role!r}; expected "
+            "validation/smoke/heldout/exploratory/legacy"
+        )
+    if formal_run and (
+        trace_role != "heldout" or not system_resolved_config_sha256
+    ):
+        raise ValueError(
+            "formal FaaSLoRA runs require trace_role=heldout and a resolved-config SHA"
+        )
 
     bw_mbps    = float(storage_cfg.get("bandwidth_mbps", 100))
     remote_dir = REPO_ROOT / storage_cfg.get("remote_dir", "artifacts/remote")
@@ -16266,7 +16904,10 @@ async def main_async(
     print(f"  Model   : {model_name}")
     print(f"  GPU     : {'Yes - ' + GPU_NAME if CUDA_AVAILABLE else 'No GPU detected'}")
     print(f"  Backend : {backend}")
-    print(f"  BW      : {bw_mbps if bw_mbps > 0 else 'unlimited'} Mbps")
+    print(
+        f"  BW      : {bw_mbps if bw_mbps > 0 else 'no-delay'} MiB/s "
+        "(aggregate application-layer local-sim)"
+    )
     if scalable_mode:
         manifest_label = str(manifest_path) if manifest_path else "n/a"
         print(f"  Adapters: {selected_adapter_count} selected via manifest")
@@ -16410,6 +17051,27 @@ async def main_async(
     lora_ratio       = wl_cfg_yaml.get("lora_request_ratio", 0.85)
     active_adapter_cap = wl_cfg_yaml.get("active_adapter_cap")
     hotset_rotation_requests = int(wl_cfg_yaml.get("hotset_rotation_requests", 0) or 0)
+    hotset_rotation_mode = str(
+        wl_cfg_yaml.get("hotset_rotation_mode", "legacy") or "legacy"
+    ).strip().lower()
+    hotset_overlap_fraction = float(
+        wl_cfg_yaml.get("hotset_overlap_fraction", 0.75) or 0.0
+    )
+    workload_seed = int(wl_cfg_yaml.get("workload_seed", 42) or 42)
+    expected_seed_roles = {
+        41: "validation",
+        42: "smoke",
+        43: "heldout",
+        44: "heldout",
+        45: "heldout",
+    }
+    if trace_role in {"validation", "smoke", "heldout"}:
+        expected_role = expected_seed_roles.get(workload_seed)
+        if expected_role != trace_role:
+            raise ValueError(
+                f"trace_role={trace_role!r} is incompatible with "
+                f"workload_seed={workload_seed}; expected={expected_role!r}"
+            )
 
     if quick and shared_trace_path_override is None:
         total_requests = min(total_requests, 50)
@@ -16464,8 +17126,10 @@ async def main_async(
             lora_request_ratio=lora_ratio,
             active_adapter_cap=active_adapter_cap,
             hotset_rotation_requests=hotset_rotation_requests,
+            hotset_rotation_mode=hotset_rotation_mode,
+            hotset_overlap_fraction=hotset_overlap_fraction,
             domain_map=domain_map,
-            seed=42,
+            seed=workload_seed,
         )
         _assert_all_requests_bind_lora(traces, context="Azure LLM real trace workload generation")
         trace_src = "Azure LLM real trace"
@@ -16480,13 +17144,15 @@ async def main_async(
             zipf_exponent=zipf_exp,
             active_adapter_cap=active_adapter_cap,
             hotset_rotation_requests=hotset_rotation_requests,
+            hotset_rotation_mode=hotset_rotation_mode,
+            hotset_overlap_fraction=hotset_overlap_fraction,
             enable_hotness_evolution=wl_cfg_yaml.get("enable_hotness_evolution", True),
             epoch_requests=wl_cfg_yaml.get("epoch_requests", 25),
             enable_burst=False,
             use_azure_trace_tokens=use_azure_tokens,
             adapter_domain_map=domain_map,
         )
-        gen    = WorkloadGenerator(adapter_ids, wl_cfg, seed=42, dataset=dataset)
+        gen    = WorkloadGenerator(adapter_ids, wl_cfg, seed=workload_seed, dataset=dataset)
         traces = gen.generate()
         _assert_all_requests_bind_lora(traces, context="synthetic workload generation")
         if use_azure_tokens:
@@ -16558,7 +17224,11 @@ async def main_async(
                 f"{sampling_stats.get('sample_burst_ratio', 0):.3f}"
             )
     if active_adapter_cap:
-        print(f"  ActiveSet : cap={int(active_adapter_cap)}  rotate_every={hotset_rotation_requests or 'off'} reqs")
+        print(
+            f"  ActiveSet : cap={int(active_adapter_cap)}  "
+            f"rotate_every={hotset_rotation_requests or 'off'} reqs  "
+            f"mode={hotset_rotation_mode} overlap={hotset_overlap_fraction:.2f}"
+        )
     if use_azure_tokens:
         print(f"  Tokens    : avg ctx={ctx_mean:.0f}  "
               f"(p50={azure_stat['context_tokens']['p50']:.0f}  "
@@ -16576,6 +17246,8 @@ async def main_async(
     # ---- 4. Init engine ----
     engine = InferenceEngine(model_cfg, cost_model)
     engine_inited = False
+    primary_engine_deployment_started_at: Optional[float] = None
+    primary_engine_initialization_wall_s = 0.0
     if engine.backend != "transformers":
         defer_primary_engine_init = _should_defer_primary_engine_initialization(
             model_cfg,
@@ -16590,12 +17262,17 @@ async def main_async(
             )
         else:
             print("[4/5] Initialising inference engine ...")
+            primary_engine_deployment_started_at = time.perf_counter()
             _assert_clean_gpu_environment(
                 _resolve_runtime_gpu_device_ids(model_cfg, device_id=model_cfg.get("device_id")),
                 context="engine_init",
                 root_pid=os.getpid(),
             )
             await engine.initialize()
+            primary_engine_initialization_wall_s = max(
+                0.0,
+                time.perf_counter() - primary_engine_deployment_started_at,
+            )
             engine_inited = True
     else:
         print("[4/5] Transformers backend: engine will init when first needed (cold_start/backbone use subprocess).")
@@ -16638,8 +17315,17 @@ async def main_async(
             "/dev/shm/faaslora_host_cache",
         )
         sc_nvme = sc_nvme_base / sname
-        sc_nvme.mkdir(parents=True, exist_ok=True)
         sc_host = sc_host_base / sname
+        v2_cold_cache_reset = str(sname).startswith("v2_")
+        if v2_cold_cache_reset:
+            # Revision runs pre-register cold-cache semantics.  In particular,
+            # no-preload variants must not inherit an NVMe path from a prior
+            # seed merely because their preload() branch intentionally does
+            # nothing.  These are disposable cache directories, never result
+            # directories; raw/curated evidence remains untouched.
+            shutil.rmtree(sc_nvme, ignore_errors=True)
+            shutil.rmtree(sc_host, ignore_errors=True)
+        sc_nvme.mkdir(parents=True, exist_ok=True)
         host_cache_meta: Dict[str, Any] = {
             "host_cache_dir": str(sc_host),
             "host_cache_memory_backed_required": bool(
@@ -16679,6 +17365,23 @@ async def main_async(
             "routing_policy": str(sc_coord.get("routing_policy", "adapter_affinity")).lower(),
             "max_concurrent_loads": int(sc_coord.get("max_concurrent_loads", 1) or 1),
             "warm_pool_size": int(sc_coord.get("warm_pool_size", 0) or 0),
+            "feature_gates": {
+                "readiness_routing_enabled": str(
+                    sc_coord.get("routing_policy", "adapter_affinity")
+                ).strip().lower() == "adapter_affinity",
+                "scale_up_handoff_enabled": bool(
+                    sc_coord.get("scale_up_handoff_enabled", True)
+                ),
+                "hierarchical_residency_enabled": bool(
+                    preload_cfg.get("hierarchical_residency_enabled", True)
+                ),
+                "coordination_enabled": bool(
+                    sc_coord.get("coordination_enabled", btype == "faaslora_full")
+                ),
+                "effective_capacity_admission_enabled": bool(
+                    sc_coord.get("effective_capacity_admission_enabled", False)
+                ),
+            },
             "arrival_window_s": float(sc_coord.get("arrival_window_s", 5.0)),
             "scale_eval_interval_s": float(sc_coord.get("scale_eval_interval_s", 15.0)),
             "scale_cooldown_s": float(sc_coord.get("scale_cooldown_s", 0.0) or 0.0),
@@ -16705,6 +17408,7 @@ async def main_async(
         scenario_coordination_meta[sname].update(
             {
                 "nvme_cache_dir": str(sc_nvme),
+                "cold_cache_reset_before_run": v2_cold_cache_reset,
                 "host_capacity_mb": host_capacity_mb,
                 **host_cache_meta,
             }
@@ -16713,6 +17417,17 @@ async def main_async(
         hw_merged = {**hw_cfg, **sc.get("hardware_override", {})}
         instance_mode = str(sc_coord.get("instance_mode", "shared")).lower()
         runner_model_cfg = copy.deepcopy(model_cfg)
+        runner_generation_contract = str(
+            wl_cfg_yaml.get("generation_contract", "legacy") or "legacy"
+        ).strip().lower()
+        runner_model_cfg["generation_contract"] = runner_generation_contract
+        if runner_generation_contract == "fixed_length_greedy_v1":
+            runner_model_cfg["max_input_len"] = max(
+                1, int(wl_cfg_yaml.get("fixed_prompt_max_tokens", 759) or 759)
+            )
+            runner_model_cfg["max_output_tokens_cap"] = max(
+                1, int(wl_cfg_yaml.get("fixed_output_max_tokens", 256) or 256)
+            )
         runner_model_cfg.update(copy.deepcopy(sc_coord.get("instance_model_overrides", {})))
         runner_model_cfg = _normalize_runtime_concurrency_cap(runner_model_cfg)
         scenario_coordination_meta[sname].update(
@@ -16756,7 +17471,10 @@ async def main_async(
                     nvme_dir=sc_nvme,
                     host_dir=sc_host,
                     host_capacity_mb=host_capacity_mb,
-                    coordination_enabled=(btype == "faaslora_full"),
+                    coordination_enabled=(
+                        btype == "faaslora_full"
+                        and bool(sc_coord.get("coordination_enabled", True))
+                    ),
                 )
                 if run_idx == 0:
                     print("  [Full stack] ResidencyManager + PreloadingManager + scale-aware (C1: GPU/HOST/NVME tiers)")
@@ -16784,7 +17502,10 @@ async def main_async(
                     cost_cfg=cost_model,
                     coord_cfg_local=sc_coord,
                     hw_cfg_local=hw_merged,
-                    coord_enabled_local=(btype == "faaslora_full"),
+                    coord_enabled_local=(
+                        btype == "faaslora_full"
+                        and bool(sc_coord.get("coordination_enabled", True))
+                    ),
                 ):
                     local_model_cfg = copy.deepcopy(model_cfg)
                     if device_id is not None:
@@ -16844,11 +17565,16 @@ async def main_async(
                     "subprocess-backed path as scale-out replicas "
                     f"(device_id={primary_device_id}, runtime_gpus={primary_runtime_gpu_ids or [primary_device_id]})."
                 )
+                primary_engine_deployment_started_at = time.perf_counter()
                 engine = await SubprocessInferenceEngineProxy.spawn(
                     model_cfg=primary_model_cfg,
                     cost_model=cost_model,
                     device_id=primary_device_id,
                     runtime_gpu_ids=primary_runtime_gpu_ids,
+                )
+                primary_engine_initialization_wall_s = max(
+                    0.0,
+                    time.perf_counter() - primary_engine_deployment_started_at,
                 )
                 engine_inited = True
 
@@ -16872,7 +17598,7 @@ async def main_async(
                 cost_model=cost_model,
                 engine=engine,
                 runner_model_cfg=runner_model_cfg,
-                preload_cfg=sc.get("preloading", {}),
+                preload_cfg=preload_cfg,
                 workload_cfg=runner_workload_cfg,
                 coord_cfg=sc_coord,
                 experiment_stack=experiment_stack,
@@ -16884,12 +17610,17 @@ async def main_async(
                 needs_engine = False  # 子进程隔离，主进程不加载模型
             if needs_engine and not engine_inited:
                 print("[4/5] Initialising inference engine (required for this scenario) ...")
+                primary_engine_deployment_started_at = time.perf_counter()
                 _assert_clean_gpu_environment(
                     _resolve_runtime_gpu_device_ids(model_cfg, device_id=model_cfg.get("device_id")),
                     context="engine_reinit_for_scenario",
                     root_pid=os.getpid(),
                 )
                 await engine.initialize()
+                primary_engine_initialization_wall_s = max(
+                    0.0,
+                    time.perf_counter() - primary_engine_deployment_started_at,
+                )
                 engine_inited = True
             if engine_inited and engine._engine_dead:
                 engine._reinit_attempted = False
@@ -16898,7 +17629,51 @@ async def main_async(
             try:
                 print("  [Phase 1] Preloading ...")
                 runner._assert_clean_gpu_environment(context="scenario_preload", force=True)
+                preload_limiter_before = runner._bandwidth_limiter.snapshot()
+                preload_started_at = time.perf_counter()
                 await runner.preload()
+                preload_ended_at = time.perf_counter()
+                preload_limiter_after = runner._bandwidth_limiter.snapshot()
+                runner._initial_preload_wall_s = max(
+                    0.0, preload_ended_at - preload_started_at
+                )
+                runner._initial_preload_bytes = max(
+                    0,
+                    int(preload_limiter_after.get("total_bytes", 0) or 0)
+                    - int(preload_limiter_before.get("total_bytes", 0) or 0),
+                )
+                runner._initial_preload_transfer_count = max(
+                    0,
+                    int(preload_limiter_after.get("transfer_count", 0) or 0)
+                    - int(preload_limiter_before.get("transfer_count", 0) or 0),
+                )
+                runner._initial_preload_injected_wait_s = max(
+                    0.0,
+                    float(
+                        preload_limiter_after.get("total_injected_wait_s", 0.0)
+                        or 0.0
+                    )
+                    - float(
+                        preload_limiter_before.get("total_injected_wait_s", 0.0)
+                        or 0.0
+                    ),
+                )
+                runner._primary_engine_initialization_wall_s = max(
+                    0.0, float(primary_engine_initialization_wall_s or 0.0)
+                )
+                if (
+                    str(sname).startswith("v2_")
+                    and only_scenario == sname
+                    and primary_engine_deployment_started_at is not None
+                ):
+                    runner._pre_replay_deployment_wall_s = max(
+                        runner._initial_preload_wall_s,
+                        preload_ended_at - primary_engine_deployment_started_at,
+                    )
+                else:
+                    runner._pre_replay_deployment_wall_s = (
+                        runner._initial_preload_wall_s
+                    )
 
                 print(f"  [Phase 2] Serving {len(traces)} requests ...")
                 if btype == "backbone_only" and engine.backend == "transformers":
@@ -16930,6 +17705,176 @@ async def main_async(
                         float(getattr(runner, "_trace_scale_down_floor_s", 0.0) or 0.0),
                         6,
                     ),
+                    "aggregate_bandwidth": {
+                        **runner._bandwidth_limiter.snapshot(),
+                        "materialization_mode": runner._local_sim_materialization_mode,
+                        "materialization_counts": dict(
+                            sorted(runner._local_sim_materialization_counts.items())
+                        ),
+                    },
+                    "initial_preload_accounting": {
+                        "wall_s": round(runner._initial_preload_wall_s, 6),
+                        "bytes": int(runner._initial_preload_bytes),
+                        "transfer_count": int(runner._initial_preload_transfer_count),
+                        "injected_wait_s": round(
+                            runner._initial_preload_injected_wait_s, 6
+                        ),
+                        "gpu_count": int(runner._initial_preload_gpu_count),
+                        "gpu_seconds": round(
+                            runner._initial_preload_wall_s
+                            * runner._initial_preload_gpu_count,
+                            6,
+                        ),
+                        "included_in_lifecycle_cost": True,
+                        "included_in_request_latency": False,
+                    },
+                    "pre_replay_deployment_accounting": {
+                        "wall_s": round(
+                            runner._pre_replay_deployment_wall_s, 6
+                        ),
+                        "primary_engine_initialization_wall_s": round(
+                            runner._primary_engine_initialization_wall_s, 6
+                        ),
+                        "gpu_count": int(runner._initial_preload_gpu_count),
+                        "gpu_seconds": round(
+                            runner._pre_replay_deployment_wall_s
+                            * runner._initial_preload_gpu_count,
+                            6,
+                        ),
+                        "scope": (
+                            "primary_engine_initialization_through_preload"
+                            if runner._pre_replay_deployment_wall_s
+                            > runner._initial_preload_wall_s
+                            else "initial_preload_only"
+                        ),
+                        "included_in_lifecycle_cost": True,
+                        "included_in_request_latency": False,
+                    },
+                    "feature_activation": {
+                        "successful_request_count": int(result.completed),
+                        "routing_decision_count": int(result.completed),
+                        "routing_selection_attempt_count": int(
+                            getattr(runner.router, "selection_count", result.completed) or 0
+                        ) if runner.router is not None else int(result.completed),
+                        "readiness_aware_routing_decision_count": int(
+                            getattr(runner.router, "readiness_aware_selection_count", 0) or 0
+                        ) if runner.router is not None else 0,
+                        "load_only_routing_decision_count": int(
+                            getattr(runner.router, "load_only_selection_count", 0) or 0
+                        ) if runner.router is not None else 0,
+                        "scale_up_event_count": len(result.scale_up_events),
+                        "scale_up_events_with_planned_adapters": sum(
+                            1
+                            for event in result.scale_up_events
+                            if list(
+                                event.get("planned_adapters", [])
+                                or (event.get("handoff_plan") or {}).get(
+                                    "planned_adapters", []
+                                )
+                                or []
+                            )
+                        ),
+                        "scaleup_first_service_request_count": sum(
+                            1
+                            for request in result.requests
+                            if request.success
+                            and bool(getattr(request, "scaleup_first_service", False))
+                        ),
+                        "scaleup_first_service_planned_match_count": sum(
+                            1
+                            for request in result.requests
+                            if request.success
+                            and bool(getattr(request, "scaleup_first_service", False))
+                            and bool(
+                                getattr(
+                                    request,
+                                    "scaleup_planned_adapter_match",
+                                    False,
+                                )
+                            )
+                        ),
+                        "scaleup_first_service_planned_match_rate": float(
+                            result.scaleup_first_service_planned_match_rate
+                        ),
+                        "background_planning_event_count": int(
+                            result.background_planning_event_count
+                        ),
+                        "gpu_admission_observed_request_count": sum(
+                            1
+                            for request in result.requests
+                            if float(getattr(request, "gpu_admission_decision_us", 0.0) or 0.0) > 0.0
+                        ),
+                        "gpu_admission_decision_count": sum(
+                            int(view.get("gpu_admission_decisions", 0) or 0)
+                            for view in runner._coordinator_metric_views()
+                        ),
+                        "dispatch_tier_counts": {
+                            tier: sum(
+                                1
+                                for request in result.requests
+                                if request.success
+                                and str(
+                                    getattr(request, "readiness_tier_before_dispatch", "") or ""
+                                ).strip().lower() == tier
+                            )
+                            for tier in ("gpu", "host", "nvme", "remote")
+                        },
+                        "service_source_tier_counts": {
+                            tier: sum(
+                                1
+                                for request in result.requests
+                                if request.success
+                                and str(getattr(request, "cache_tier", "") or "").strip().lower() == tier
+                            )
+                            for tier in ("gpu", "host", "nvme", "remote")
+                        },
+                        "dispatch_to_service_transition_count": sum(
+                            1
+                            for request in result.requests
+                            if request.success
+                            and request.adapter_id
+                            and str(
+                                getattr(request, "readiness_tier_before_dispatch", "") or ""
+                            ).strip().lower()
+                            != str(getattr(request, "cache_tier", "") or "").strip().lower()
+                        ),
+                        "initial_or_current_nvme_adapter_count": len(
+                            getattr(runner._stack, "_nvme_paths", {}) or {}
+                        ) if runner._stack is not None else len(runner._nvme_cache),
+                        "initial_or_current_host_adapter_count": len(
+                            getattr(runner._stack, "_host_paths", {}) or {}
+                        ) if runner._stack is not None else 0,
+                        "host_promotion_scheduled_count": int(
+                            getattr(runner._stack, "_host_promotion_scheduled_count", 0) or 0
+                        ) if runner._stack is not None else 0,
+                        "host_promotion_completed_count": int(
+                            getattr(runner._stack, "_host_promotion_completed_count", 0) or 0
+                        ) if runner._stack is not None else 0,
+                        "runtime_gpu_forward_attempt_count": int(
+                            getattr(runner, "_runtime_gpu_forward_attempt_count", 0) or 0
+                        ),
+                        "runtime_gpu_forward_success_count": int(
+                            getattr(runner, "_runtime_gpu_forward_success_count", 0) or 0
+                        ),
+                        "hierarchy_specific_online_transition_count": (
+                            int(
+                                getattr(
+                                    runner._stack,
+                                    "_host_promotion_completed_count",
+                                    0,
+                                )
+                                or 0
+                            )
+                            + int(
+                                getattr(
+                                    runner,
+                                    "_runtime_gpu_forward_success_count",
+                                    0,
+                                )
+                                or 0
+                            )
+                        ) if runner._stack is not None else 0,
+                    },
                 }
             )
 
@@ -17079,9 +18024,32 @@ async def main_async(
             **_runtime_mode_summary(model_cfg),
             "applied_env_overrides": applied_env_overrides,
             "results_tag": results_tag,
+            "run_frozen_settings_sha256": str(
+                os.environ.get("FAASLORA_RUN_FROZEN_SETTINGS_SHA256", "") or ""
+            ).strip(),
+            "system_resolved_config_sha256": system_resolved_config_sha256,
+            "trace_role": trace_role,
+            "formal_run": formal_run,
             "bandwidth_mbps": bw_mbps,
+            "bandwidth_mib_s": bw_mbps,
+            "bandwidth_gbit_s": bw_mbps * (1024.0 ** 2) * 8.0 / 1e9,
+            "bandwidth_limit_mode": (
+                "aggregate_application_layer_local_sim"
+                if bw_mbps > 0.0
+                else "local_sim_no_delay"
+            ),
             "total_requests": len(traces),
             "generation_seed": wl_cfg_yaml.get("generation_seed"),
+            "workload_seed": workload_seed,
+            "generation_contract": str(
+                wl_cfg_yaml.get("generation_contract", "legacy") or "legacy"
+            ).strip().lower(),
+            "fixed_output_max_tokens": int(
+                wl_cfg_yaml.get("fixed_output_max_tokens", 256) or 256
+            ),
+            "fixed_prompt_max_tokens": int(
+                wl_cfg_yaml.get("fixed_prompt_max_tokens", 759) or 759
+            ),
             "sampling_strategy": sampling_strategy,
             "sampling_stats": sampling_stats,
             "configured_time_scale_factor": configured_time_scale,
@@ -17090,6 +18058,8 @@ async def main_async(
             "num_adapters": len(adapter_ids),
             "active_adapter_cap": int(active_adapter_cap) if active_adapter_cap else None,
             "hotset_rotation_requests": hotset_rotation_requests,
+            "hotset_rotation_mode": hotset_rotation_mode,
+            "hotset_overlap_fraction": hotset_overlap_fraction,
             "instance_mode": str(coord_cfg.get("instance_mode", "shared")).lower(),
             "min_instances": int(coord_cfg.get("min_instances", 1)),
             "max_instances": int(coord_cfg.get("max_instances", 1)),
@@ -17106,6 +18076,7 @@ async def main_async(
             "preset_name": preset_name,
             "profile_selection": applied_profile_selection,
             "shared_trace_path": str(shared_trace_path_override) if shared_trace_path_override is not None else None,
+            "shared_trace_sha256": _sha256_file(shared_trace_path_override),
             "shared_trace_metadata": shared_trace_metadata,
             "shared_trace_configured_time_scale_factor": shared_trace_metadata.get("configured_time_scale_factor"),
             "shared_trace_effective_time_scale_factor": shared_trace_metadata.get("effective_time_scale_factor"),
@@ -17115,6 +18086,13 @@ async def main_async(
                 if shared_adapter_subset_path_override is not None
                 else None
             ),
+            "shared_adapter_subset_sha256": _sha256_file(
+                shared_adapter_subset_path_override
+            ),
+            "generation_contract_request_map_sha256": {
+                result.scenario_name: _generation_contract_request_map_sha256(result)
+                for result in all_results
+            },
             "num_runs": num_runs,
             "confidence_level": confidence_level,
             "arrival_source": arrival_source,

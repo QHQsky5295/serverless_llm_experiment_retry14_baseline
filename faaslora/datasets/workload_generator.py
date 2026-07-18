@@ -59,6 +59,8 @@ class WorkloadConfig:
     zipf_exponent: float = 1.0        # α: Zipf distribution exponent
     active_adapter_cap: Optional[int] = None
     hotset_rotation_requests: int = 0
+    hotset_rotation_mode: str = "legacy"
+    hotset_overlap_fraction: float = 0.75
 
     # Hotness evolution (piecewise-stationary)
     enable_hotness_evolution: bool = True
@@ -91,6 +93,30 @@ class WorkloadConfig:
 
     # Adapter domain to task mapping
     adapter_domain_map: Dict[str, str] = field(default_factory=dict)
+
+
+def _hotset_rotation_stride(
+    active_cap: int,
+    *,
+    rotation_mode: str,
+    overlap_fraction: float,
+) -> int:
+    """Return the adapter-window stride without changing legacy semantics."""
+    active_cap = max(1, int(active_cap or 1))
+    mode = str(rotation_mode or "legacy").strip().lower()
+    if mode == "legacy":
+        return max(1, active_cap // 4)
+    if mode == "stationary":
+        return 0
+    if mode == "abrupt":
+        return active_cap
+    if mode == "gradual":
+        overlap = min(1.0, max(0.0, float(overlap_fraction)))
+        return max(1, int(round(active_cap * (1.0 - overlap))))
+    raise ValueError(
+        f"Unsupported hotset_rotation_mode={rotation_mode!r}; "
+        "expected legacy, stationary, abrupt, or gradual"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -186,8 +212,13 @@ class WorkloadGenerator:
                     active_cap = min(int(cfg.active_adapter_cap), len(self.adapter_ids))
                 if active_cap and active_cap < len(self.adapter_ids):
                     rotation_every = max(0, int(cfg.hotset_rotation_requests or 0))
-                    rotation_stride = max(1, active_cap // 4)
-                    if rotation_every > 0:
+                    rotation_mode = str(cfg.hotset_rotation_mode or "legacy").strip().lower()
+                    rotation_stride = _hotset_rotation_stride(
+                        active_cap,
+                        rotation_mode=rotation_mode,
+                        overlap_fraction=cfg.hotset_overlap_fraction,
+                    )
+                    if rotation_every > 0 and rotation_mode != "stationary":
                         window_index = i // rotation_every
                         start = (window_index * rotation_stride) % len(self.adapter_ids)
                     else:

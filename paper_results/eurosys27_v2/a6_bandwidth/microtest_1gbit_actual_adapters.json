@@ -1,0 +1,314 @@
+{
+  "all_gates_pass": true,
+  "baseline_git_commit": "6976a0a165318b15b37bf8f6a9a5b45288fd1260",
+  "cases": [
+    {
+      "adapter_ids": [
+        "gaming_lora_0010",
+        "gaming_lora_0022",
+        "gaming_lora_0034",
+        "gaming_lora_0046"
+      ],
+      "adapter_sizes_bytes": {
+        "gaming_lora_0010": 28015916,
+        "gaming_lora_0022": 28015916,
+        "gaming_lora_0034": 28015916,
+        "gaming_lora_0046": 28015916
+      },
+      "aggregate_achieved_mib_s": 117.80756457098498,
+      "concurrency": 4,
+      "configured_bandwidth_mib_s": 119.2093,
+      "expected_min_wall_s": 0.896509233417021,
+      "gate_pass": true,
+      "label": "small",
+      "limit_modes": [
+        "file_aggregate_reservation"
+      ],
+      "remote_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+      "repeat": 1,
+      "requested_size_mib_per_adapter": 26.718059539794922,
+      "source_kind": "actual_frozen_adapter_dirs",
+      "total_bytes": 112063664,
+      "total_injected_wait_ms": 2241.117584053427,
+      "wall_s": 0.9071763646788895
+    },
+    {
+      "adapter_ids": [
+        "gaming_lora_0010",
+        "gaming_lora_0022",
+        "gaming_lora_0034",
+        "gaming_lora_0046"
+      ],
+      "adapter_sizes_bytes": {
+        "gaming_lora_0010": 28015916,
+        "gaming_lora_0022": 28015916,
+        "gaming_lora_0034": 28015916,
+        "gaming_lora_0046": 28015916
+      },
+      "aggregate_achieved_mib_s": 117.91624982179728,
+      "concurrency": 4,
+      "configured_bandwidth_mib_s": 119.2093,
+      "expected_min_wall_s": 0.896509233417021,
+      "gate_pass": true,
+      "label": "small",
+      "limit_modes": [
+        "file_aggregate_reservation"
+      ],
+      "remote_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+      "repeat": 2,
+      "requested_size_mib_per_adapter": 26.718059539794922,
+      "source_kind": "actual_frozen_adapter_dirs",
+      "total_bytes": 112063664,
+      "total_injected_wait_ms": 2240.344187710434,
+      "wall_s": 0.9063402060419321
+    },
+    {
+      "adapter_ids": [
+        "gaming_lora_0010",
+        "gaming_lora_0022",
+        "gaming_lora_0034",
+        "gaming_lora_0046"
+      ],
+      "adapter_sizes_bytes": {
+        "gaming_lora_0010": 28015916,
+        "gaming_lora_0022": 28015916,
+        "gaming_lora_0034": 28015916,
+        "gaming_lora_0046": 28015916
+      },
+      "aggregate_achieved_mib_s": 117.86843014599357,
+      "concurrency": 4,
+      "configured_bandwidth_mib_s": 119.2093,
+      "expected_min_wall_s": 0.896509233417021,
+      "gate_pass": true,
+      "label": "small",
+      "limit_modes": [
+        "file_aggregate_reservation"
+      ],
+      "remote_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+      "repeat": 3,
+      "requested_size_mib_per_adapter": 26.718059539794922,
+      "source_kind": "actual_frozen_adapter_dirs",
+      "total_bytes": 112063664,
+      "total_injected_wait_ms": 2240.7725104130805,
+      "wall_s": 0.9067079117521644
+    },
+    {
+      "adapter_ids": [
+        "writing_lora_0491",
+        "medical_lora",
+        "medical_lora_0014",
+        "medical_lora_0026"
+      ],
+      "adapter_sizes_bytes": {
+        "medical_lora": 38501676,
+        "medical_lora_0014": 38501676,
+        "medical_lora_0026": 38501676,
+        "writing_lora_0491": 37453100
+      },
+      "aggregate_achieved_mib_s": 118.21580715375109,
+      "concurrency": 4,
+      "configured_bandwidth_mib_s": 119.2093,
+      "expected_min_wall_s": 1.223664916740386,
+      "gate_pass": true,
+      "label": "medium",
+      "limit_modes": [
+        "file_aggregate_reservation"
+      ],
+      "remote_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+      "repeat": 1,
+      "requested_size_mib_per_adapter": 36.46805953979492,
+      "source_kind": "actual_frozen_adapter_dirs",
+      "total_bytes": 152958128,
+      "total_injected_wait_ms": 3070.829402189702,
+      "wall_s": 1.233948671258986
+    },
+    {
+      "adapter_ids": [
+        "writing_lora_0491",
+        "medical_lora",
+        "medical_lora_0014",
+        "medical_lora_0026"
+      ],
+      "adapter_sizes_bytes": {
+        "medical_lora": 38501676,
+        "medical_lora_0014": 38501676,
+        "medical_lora_0026": 38501676,
+        "writing_lora_0491": 37453100
+      },
+      "aggregate_achieved_mib_s": 118.1743607085994,
+      "concurrency": 4,
+      "configured_bandwidth_mib_s": 119.2093,
+      "expected_min_wall_s": 1.223664916740386,
+      "gate_pass": true,
+      "label": "medium",
+      "limit_modes": [
+        "file_aggregate_reservation"
+      ],
+      "remote_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+      "repeat": 2,
+      "requested_size_mib_per_adapter": 36.46805953979492,
+      "source_kind": "actual_frozen_adapter_dirs",
+      "total_bytes": 152958128,
+      "total_injected_wait_ms": 3055.13746291399,
+      "wall_s": 1.2343814452178776
+    },
+    {
+      "adapter_ids": [
+        "writing_lora_0491",
+        "medical_lora",
+        "medical_lora_0014",
+        "medical_lora_0026"
+      ],
+      "adapter_sizes_bytes": {
+        "medical_lora": 38501676,
+        "medical_lora_0014": 38501676,
+        "medical_lora_0026": 38501676,
+        "writing_lora_0491": 37453100
+      },
+      "aggregate_achieved_mib_s": 118.23158658232462,
+      "concurrency": 4,
+      "configured_bandwidth_mib_s": 119.2093,
+      "expected_min_wall_s": 1.223664916740386,
+      "gate_pass": true,
+      "label": "medium",
+      "limit_modes": [
+        "file_aggregate_reservation"
+      ],
+      "remote_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+      "repeat": 3,
+      "requested_size_mib_per_adapter": 36.46805953979492,
+      "source_kind": "actual_frozen_adapter_dirs",
+      "total_bytes": 152958128,
+      "total_injected_wait_ms": 3054.4413872994483,
+      "wall_s": 1.233783985953778
+    },
+    {
+      "adapter_ids": [
+        "code_lora_0459",
+        "code_lora_0471",
+        "code_lora_0483",
+        "code_lora_0495"
+      ],
+      "adapter_sizes_bytes": {
+        "code_lora_0459": 56327468,
+        "code_lora_0471": 56327468,
+        "code_lora_0483": 56327468,
+        "code_lora_0495": 56327468
+      },
+      "aggregate_achieved_mib_s": 118.53010013975775,
+      "concurrency": 4,
+      "configured_bandwidth_mib_s": 119.2093,
+      "expected_min_wall_s": 1.8024788180048008,
+      "gate_pass": true,
+      "label": "large",
+      "limit_modes": [
+        "file_aggregate_reservation"
+      ],
+      "remote_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+      "repeat": 1,
+      "requested_size_mib_per_adapter": 53.71805953979492,
+      "source_kind": "actual_frozen_adapter_dirs",
+      "total_bytes": 225309872,
+      "total_injected_wait_ms": 4504.856147337705,
+      "wall_s": 1.812807362060994
+    },
+    {
+      "adapter_ids": [
+        "code_lora_0459",
+        "code_lora_0471",
+        "code_lora_0483",
+        "code_lora_0495"
+      ],
+      "adapter_sizes_bytes": {
+        "code_lora_0459": 56327468,
+        "code_lora_0471": 56327468,
+        "code_lora_0483": 56327468,
+        "code_lora_0495": 56327468
+      },
+      "aggregate_achieved_mib_s": 118.53614333087431,
+      "concurrency": 4,
+      "configured_bandwidth_mib_s": 119.2093,
+      "expected_min_wall_s": 1.8024788180048008,
+      "gate_pass": true,
+      "label": "large",
+      "limit_modes": [
+        "file_aggregate_reservation"
+      ],
+      "remote_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+      "repeat": 2,
+      "requested_size_mib_per_adapter": 53.71805953979492,
+      "source_kind": "actual_frozen_adapter_dirs",
+      "total_bytes": 225309872,
+      "total_injected_wait_ms": 4504.458969924599,
+      "wall_s": 1.8127149417996407
+    },
+    {
+      "adapter_ids": [
+        "code_lora_0459",
+        "code_lora_0471",
+        "code_lora_0483",
+        "code_lora_0495"
+      ],
+      "adapter_sizes_bytes": {
+        "code_lora_0459": 56327468,
+        "code_lora_0471": 56327468,
+        "code_lora_0483": 56327468,
+        "code_lora_0495": 56327468
+      },
+      "aggregate_achieved_mib_s": 118.50444632910819,
+      "concurrency": 4,
+      "configured_bandwidth_mib_s": 119.2093,
+      "expected_min_wall_s": 1.8024788180048008,
+      "gate_pass": true,
+      "label": "large",
+      "limit_modes": [
+        "file_aggregate_reservation"
+      ],
+      "remote_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+      "repeat": 3,
+      "requested_size_mib_per_adapter": 53.71805953979492,
+      "source_kind": "actual_frozen_adapter_dirs",
+      "total_bytes": 225309872,
+      "total_injected_wait_ms": 4505.665951874107,
+      "wall_s": 1.8131997981108725
+    }
+  ],
+  "concurrency": 4,
+  "configured_bandwidth_mib_s": 119.2093,
+  "endpoint_scheme": "file",
+  "generated_at_utc": "2026-07-18T08:49:45.379089+00:00",
+  "limiter_scope": "one process/shared RemoteArtifactFetcher",
+  "platform": "Linux-6.8.0-106-generic-x86_64-with-glibc2.35",
+  "python_version": "3.13.5",
+  "remote_dir": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+  "repeats": 3,
+  "schema_version": "aggregate_bandwidth_microtest_v1",
+  "script_sha256": "f87604db2f88cfd9db29dda227fe4bea574a6e9953e443120c6ee95bc066a5f0",
+  "selected_actual_adapter_groups": {
+    "large": [
+      "code_lora_0459",
+      "code_lora_0471",
+      "code_lora_0483",
+      "code_lora_0495"
+    ],
+    "medium": [
+      "writing_lora_0491",
+      "medical_lora",
+      "medical_lora_0014",
+      "medical_lora_0026"
+    ],
+    "small": [
+      "gaming_lora_0010",
+      "gaming_lora_0022",
+      "gaming_lora_0034",
+      "gaming_lora_0046"
+    ]
+  },
+  "sizes_mib": {
+    "large": 53.71805953979492,
+    "medium": 36.46805953979492,
+    "small": 26.718059539794922
+  },
+  "source_kind": "actual_frozen_adapter_dirs",
+  "synthetic_requested_sizes_mib": null
+}

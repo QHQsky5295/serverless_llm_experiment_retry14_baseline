@@ -500,6 +500,9 @@ class Router:
         self._rr_index = 0
         self.runtime_concurrency_cap = max(1, int(runtime_concurrency_cap or 1))
         self.max_active_loras = max(0, int(max_active_loras or 0))
+        self.selection_count = 0
+        self.readiness_aware_selection_count = 0
+        self.load_only_selection_count = 0
         self.logger = get_logger(__name__)
 
     @staticmethod
@@ -709,6 +712,22 @@ class Router:
             slot.created_at,
         )
 
+    def _least_connections_key(self, slot: InstanceSlot) -> tuple:
+        """Load-only key with no adapter readiness or handoff information.
+
+        This is the clean elastic baseline used by the EuroSys V2 ablation.
+        It intentionally excludes predicted tier, LoRA affinity, service-cost
+        estimates, and scale-out handoff reservations.
+        """
+        return (
+            self._runtime_capacity_penalty(slot),
+            max(0, int(getattr(slot, "active_requests", 0) or 0)),
+            max(0, int(getattr(slot, "load_queue_depth", 0) or 0)),
+            float(getattr(slot, "gpu_utilization_pct", 0.0) or 0.0),
+            float(getattr(slot, "last_selected_at", 0.0) or 0.0),
+            float(getattr(slot, "created_at", 0.0) or 0.0),
+        )
+
     def select_instance(
         self,
         adapter_id: Optional[str] = None,
@@ -718,10 +737,15 @@ class Router:
         slots = self.pool.get_slots()
         if not slots:
             return None
+        self.selection_count += 1
         if self.policy == "round_robin":
             self._rr_index = (self._rr_index + 1) % len(slots)
             return slots[self._rr_index]
-        if self.policy in ("least_connections", "adapter_affinity"):
+        if self.policy == "least_connections":
+            self.load_only_selection_count += 1
+            return min(slots, key=self._least_connections_key)
+        if self.policy == "adapter_affinity":
+            self.readiness_aware_selection_count += 1
             selected = min(
                 slots, key=lambda s: self._routing_key(s, adapter_id, adapter_size_mb)
             )

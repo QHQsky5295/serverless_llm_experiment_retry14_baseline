@@ -14,7 +14,7 @@ import unittest
 from collections import defaultdict
 from types import SimpleNamespace
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 
@@ -31,7 +31,10 @@ from faaslora.datasets.huggingface_adapter import HuggingFaceAdapter
 from faaslora.datasets.azure_functions_adapter import AzureFunctionsAdapter
 from faaslora.datasets.azure_llm_adapter import AzureLLMAdapter
 from faaslora.datasets.dataset_loader import ShareGPTRecord, WorkloadDataset
-from faaslora.datasets.workload_generator import RequestTrace
+from faaslora.datasets.workload_generator import (
+    RequestTrace,
+    _hotset_rotation_stride,
+)
 from faaslora.registry.artifact_registry import ArtifactRegistry
 from faaslora.scheduling.resource_coordinator import ResourceCoordinator
 from faaslora.serving.inference_engine import InferenceEngine
@@ -62,6 +65,7 @@ from scripts.prepare_publicmix_pool import (
     scan_public_adapter_pool,
 )
 from scripts.run_all_experiments import (
+    AggregateBandwidthLimiter,
     InferenceEngine as ScriptInferenceEngine,
     RequestExecutionPlan,
     RequestResult,
@@ -134,9 +138,9 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(model["visible_device_ids"], [0, 1, 2, 3])
         self.assertEqual(model["max_model_len"], 1024)
         self.assertEqual(model["max_loras"], 6)
-        self.assertEqual(model["max_num_seqs"], 2)
-        self.assertEqual(model["max_num_batched_tokens"], 1024)
-        self.assertEqual(model["runtime_concurrency_cap"], 2)
+        self.assertEqual(model["max_num_seqs"], 3)
+        self.assertEqual(model["max_num_batched_tokens"], 3072)
+        self.assertEqual(model["runtime_concurrency_cap"], 3)
         self.assertFalse(model["enable_chunked_prefill"])
         self.assertFalse(model["enable_prefix_caching"])
         self.assertEqual(lora_cfg["full_num_adapters"], 500)
@@ -2031,6 +2035,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
     def test_explicit_nvme_hit_schedules_host_promotion_without_utility_gate(self) -> None:
         stack = ExperimentStack.__new__(ExperimentStack)
+        stack._dynamic_forwarding_enabled = True
         stack.config = SimpleNamespace(
             get=lambda key, default=None: {"max_concurrent_operations": 2}
             if key == "preloading"
@@ -2062,6 +2067,16 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
         self.assertTrue(scheduled)
         self.assertIn("finance_lora", stack._pending_host_promotions)
+
+    def test_explicit_nvme_hit_respects_disabled_hierarchy_gate(self) -> None:
+        stack = ExperimentStack.__new__(ExperimentStack)
+        stack._dynamic_forwarding_enabled = False
+        stack.sync_local_tier_paths = Mock(
+            side_effect=AssertionError("disabled mechanism must stop before tier lookup")
+        )
+
+        self.assertFalse(stack._schedule_host_promotion_from_nvme("finance_lora"))
+        stack.sync_local_tier_paths.assert_not_called()
 
     def test_knapsack_host_plan_uses_scaled_units_and_returns_candidates(self) -> None:
         with TemporaryDirectory() as tmpdir:
@@ -3801,6 +3816,26 @@ class DependencyFailFastTests(unittest.TestCase):
 
 
 class DatasetParsingTests(unittest.TestCase):
+    def test_v2_hotset_rotation_modes_preserve_legacy_and_define_overlap(self) -> None:
+        self.assertEqual(
+            _hotset_rotation_stride(48, rotation_mode="legacy", overlap_fraction=0.0),
+            12,
+        )
+        self.assertEqual(
+            _hotset_rotation_stride(48, rotation_mode="abrupt", overlap_fraction=0.9),
+            48,
+        )
+        self.assertEqual(
+            _hotset_rotation_stride(48, rotation_mode="gradual", overlap_fraction=0.5),
+            24,
+        )
+        self.assertEqual(
+            _hotset_rotation_stride(48, rotation_mode="stationary", overlap_fraction=0.5),
+            0,
+        )
+        with self.assertRaisesRegex(ValueError, "Unsupported hotset_rotation_mode"):
+            _hotset_rotation_stride(48, rotation_mode="invalid", overlap_fraction=0.5)
+
     def test_workload_dataset_can_disable_azure_and_force_embedded_prompts(self) -> None:
         dataset = WorkloadDataset()
 
@@ -3999,6 +4034,24 @@ class DatasetParsingTests(unittest.TestCase):
 
 
 class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
+    def test_aggregate_bandwidth_limiter_caps_concurrent_transfers(self) -> None:
+        async def exercise():
+            limiter = AggregateBandwidthLimiter(10.0)
+            started = time.perf_counter()
+            await asyncio.gather(
+                *[limiter.throttle(256 * 1024) for _ in range(4)]
+            )
+            elapsed = time.perf_counter() - started
+            return limiter.snapshot(), elapsed
+
+        snapshot, elapsed = asyncio.run(exercise())
+
+        self.assertEqual(snapshot["transfer_count"], 4)
+        self.assertEqual(snapshot["total_bytes"], 1024 * 1024)
+        self.assertGreaterEqual(elapsed, 0.09)
+        self.assertLess(elapsed, 0.5)
+        self.assertAlmostEqual(snapshot["achieved_reserved_mib_s"], 10.0, places=5)
+
     def test_foreign_gpu_consumers_filter_own_process_family_and_small_residuals(self) -> None:
         offenders = _foreign_gpu_consumers_from_rows(
             [0, 1],
@@ -4245,6 +4298,9 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
                 "parent_rpc_wall_ms": 1000.0,
                 "parent_rpc_overhead_ms": 0.0,
                 "actual_prompt_tokens": 4,
+                "completion_token_ids_sha256": (
+                    "a9e21884f5dbdb8d6b78b7e7df3763f14a58d8a672b311f73efcf9fa05cd4b46"
+                ),
             },
         )
 
@@ -4505,7 +4561,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         }
         pool = SimpleNamespace(get_slots=lambda: [incumbent])
         runner.instance_pool = pool
-        runner.router = Router(pool, policy="least_connections", runtime_concurrency_cap=2)
+        runner.router = Router(pool, policy="adapter_affinity", runtime_concurrency_cap=2)
         routed = runner._route_aware_scale_up_first_service_prefix_traces(
             [
                 SimpleNamespace(adapter_id="finance"),
@@ -4583,7 +4639,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         }
         pool = SimpleNamespace(get_slots=lambda: [incumbent])
         runner.instance_pool = pool
-        runner.router = Router(pool, policy="least_connections", runtime_concurrency_cap=2)
+        runner.router = Router(pool, policy="adapter_affinity", runtime_concurrency_cap=2)
 
         plan = runner._predict_scale_up_handoff_plan(
             replay_t0=0.0,
@@ -6008,7 +6064,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         slow.record_runtime_ttft(4500.0, is_backbone=True)
         fast.record_runtime_ttft(120.0, is_backbone=True)
         pool = SimpleNamespace(get_slots=lambda: [slow, fast])
-        router = Router(pool, policy="least_connections", runtime_concurrency_cap=2)
+        router = Router(pool, policy="adapter_affinity", runtime_concurrency_cap=2)
 
         selected = router.select_instance(None)
 
@@ -6044,7 +6100,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         )
         lora_only.active_requests = 1
         pool = SimpleNamespace(get_slots=lambda: [backbone_only, lora_only])
-        router = Router(pool, policy="least_connections", runtime_concurrency_cap=2)
+        router = Router(pool, policy="adapter_affinity", runtime_concurrency_cap=2)
 
         selected = router.select_instance(None)
 
@@ -6203,12 +6259,31 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             tail_service_ms=1200.0,
         )
         pool = SimpleNamespace(get_slots=lambda: [low_ttft_high_tail, balanced])
-        router = Router(pool, policy="least_connections")
+        router = Router(pool, policy="adapter_affinity")
 
         selected = router.select_instance(None)
 
         self.assertIsNotNone(selected)
         self.assertEqual(selected.instance_id, "inst_balanced")
+
+    def test_least_connections_ignores_adapter_readiness_and_handoff_state(self) -> None:
+        idle_remote = InstanceSlot("inst_idle_remote", None, None)
+        busy_gpu = InstanceSlot("inst_busy_gpu", None, None)
+        idle_remote.mark_adapter_tier("adapter_a", "remote")
+        busy_gpu.mark_adapter_tier("adapter_a", "gpu")
+        busy_gpu.active_requests = 1
+        busy_gpu.scaleup_handoff_planned_adapters = ["adapter_a"]
+        busy_gpu.scaleup_handoff_planned_adapter_ranks = {"adapter_a": 0}
+        busy_gpu.scaleup_handoff_request_budget = 2
+        busy_gpu.scaleup_handoff_assigned_requests = 0
+        pool = SimpleNamespace(get_slots=lambda: [busy_gpu, idle_remote])
+        router = Router(pool, policy="least_connections", runtime_concurrency_cap=2)
+
+        selected = router.select_instance("adapter_a", adapter_size_mb=30.0)
+
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.instance_id, "inst_idle_remote")
+        self.assertEqual(busy_gpu.scaleup_handoff_assigned_requests, 0)
 
     def test_router_does_not_trade_gpu_hit_for_small_load_difference(self) -> None:
         host_slot = InstanceSlot("inst_host", None, None)
@@ -8769,6 +8844,59 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertAlmostEqual(summary["infra_gpu_seconds_total"], 20.0)
         self.assertAlmostEqual(summary["infra_startup_gpu_seconds"], 3.0)
         self.assertAlmostEqual(summary["infra_ready_gpu_seconds"], 17.0)
+
+    def test_infra_cost_summary_bills_pre_replay_preload_as_startup(self) -> None:
+        summary = _summarize_infra_cost_from_lifecycles(
+            [
+                {
+                    "instance_id": "inst_a",
+                    "gpu_count": 1,
+                    "created_offset_s": -4.0,
+                    "ready_offset_s": 0.0,
+                    "removed_offset_s": 20.0,
+                }
+            ],
+            elapsed_sec=20.0,
+            completed_requests=5,
+            total_requests=5,
+            avg_e2e_ms=1000.0,
+            gpu_cost_per_second_usd=1.0,
+            deployment_idle_tail_s=0.0,
+            serverless_idle_retention_s=0.0,
+            pre_replay_startup_s=4.0,
+        )
+
+        lifecycle = summary["instance_lifecycle_log"][0]
+        self.assertAlmostEqual(lifecycle["created_offset_s"], -4.0)
+        self.assertAlmostEqual(lifecycle["ready_offset_s"], 0.0)
+        self.assertAlmostEqual(summary["infra_billing_elapsed_sec"], 24.0)
+        self.assertAlmostEqual(summary["infra_gpu_seconds_total"], 24.0)
+        self.assertAlmostEqual(summary["infra_startup_gpu_seconds"], 4.0)
+        self.assertAlmostEqual(summary["infra_ready_gpu_seconds"], 20.0)
+
+    def test_runner_lifecycle_uses_full_pre_replay_deployment_window(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._run_started_at = time.perf_counter()
+        runner._initial_preload_wall_s = 2.0
+        runner._pre_replay_deployment_wall_s = 9.0
+        runner._instance_lifecycle_records = {}
+        runner._primary_instance_id = "inst_primary"
+        runner._instance_mode = "dedicated"
+        runner.model_cfg = {"name": "model", "tensor_parallel_size": 1}
+        slot = SimpleNamespace(
+            instance_id="inst_primary",
+            owns_engine=True,
+            engine=SimpleNamespace(model_cfg=runner.model_cfg),
+            device_id=0,
+        )
+        runner.instance_pool = SimpleNamespace(get_slots=lambda: [slot])
+
+        runner._begin_instance_lifecycle_tracking()
+
+        record = runner._instance_lifecycle_records["inst_primary"]
+        self.assertAlmostEqual(record["created_offset_s"], -9.0)
+        self.assertAlmostEqual(record["ready_offset_s"], 0.0)
+        self.assertEqual(record["lifecycle_source"], "initial_preload_then_run_start")
 
 
 if __name__ == "__main__":

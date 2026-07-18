@@ -326,6 +326,8 @@ class AzureTraceReplay:
         lora_request_ratio: float = 1.0,
         active_adapter_cap: Optional[int] = None,
         hotset_rotation_requests: int = 0,
+        hotset_rotation_mode: str = "legacy",
+        hotset_overlap_fraction: float = 0.75,
         domain_map: Optional[Dict[str, Any]] = None,
         seed: int = 42,
     ) -> List[Any]:    # returns List[RequestTrace] — imported at runtime to avoid circular
@@ -341,7 +343,7 @@ class AzureTraceReplay:
           representative  = preserve inter-arrival CDF, token-length CDF,
                             and burst ratio approximately
         """
-        from .workload_generator import RequestTrace
+        from .workload_generator import RequestTrace, _hotset_rotation_stride
 
         rng = random.Random(seed)
         records = self.loader.load()
@@ -404,9 +406,14 @@ class AzureTraceReplay:
         if active_adapter_cap is not None and active_adapter_cap > 0:
             active_cap = min(int(active_adapter_cap), n_adapters) if n_adapters > 0 else None
         rotation_every = max(0, int(hotset_rotation_requests or 0))
+        rotation_mode = str(hotset_rotation_mode or "legacy").strip().lower()
         rotation_stride = 0
         if active_cap and active_cap < n_adapters:
-            rotation_stride = max(1, active_cap // 4)
+            rotation_stride = _hotset_rotation_stride(
+                active_cap,
+                rotation_mode=rotation_mode,
+                overlap_fraction=hotset_overlap_fraction,
+            )
 
         traces = []
         for i, rec in enumerate(selected):
@@ -419,7 +426,7 @@ class AzureTraceReplay:
                 sample_ids = adapter_ids
                 sample_weights = zipf_w
                 if active_cap and active_cap < n_adapters:
-                    if rotation_every > 0:
+                    if rotation_every > 0 and rotation_mode != "stationary":
                         window_index = i // rotation_every
                         start = (window_index * rotation_stride) % n_adapters
                     else:
@@ -740,6 +747,8 @@ class WorkloadDataset:
         lora_request_ratio: float = 1.0,
         active_adapter_cap: Optional[int] = None,
         hotset_rotation_requests: int = 0,
+        hotset_rotation_mode: str = "legacy",
+        hotset_overlap_fraction: float = 0.75,
         domain_map: Optional[Dict] = None,
         seed: int = 42,
     ):
@@ -764,6 +773,8 @@ class WorkloadDataset:
             lora_request_ratio=lora_request_ratio,
             active_adapter_cap=active_adapter_cap,
             hotset_rotation_requests=hotset_rotation_requests,
+            hotset_rotation_mode=hotset_rotation_mode,
+            hotset_overlap_fraction=hotset_overlap_fraction,
             domain_map=domain_map,
             seed=seed,
         )

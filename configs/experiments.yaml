@@ -1447,10 +1447,11 @@ storage:  # 远端/本地缓存目录与带宽模拟配置块
   memory_backed_host_cache_fs_types: ["tmpfs", "ramfs"]  # 可接受的 HOST 内存层文件系统
   host_cache_capacity_margin: 1.10  # HOST 层可用空间必须覆盖 host_capacity_mb 并保留安全余量
 
-  # 带宽模拟（模拟远端对象存储 → 本地 NVMe 的网络传输，代码中按 MB/s 换算延迟）
-  # 同 region（如 S3/Blob 与实例同区）：约 100–500 MB/s（≈1–4 Gbps），取 250 更贴近典型云环境
+  # 带宽模拟（模拟远端对象存储 → 本地 NVMe 的共享链路，代码中按 MiB/s 换算延迟）
+  # key 名为历史兼容保留；正式 V2 使用 FAASLORA_STORAGE_BANDWIDTH_MIB_S 覆盖并记录正确单位。
+  # 同 region（如 S3/Blob 与实例同区）：约 100–500 MiB/s；取 250 只复现原模拟点，不代表本机物理链路。
   # 跨 region/受限：可设为 50–100；0 = 不限速（仅测本地拷贝）
-  bandwidth_mbps: 250  # 远端到本地的模拟带宽（MB/s）
+  bandwidth_mbps: 250  # legacy key；实际语义为聚合 MiB/s，0 = no-delay 乐观上界
 
 # ---------------------------------------------------------------------------
 # 数据源配置（由 YAML 控制数据集选择）
@@ -1482,6 +1483,9 @@ workload:  # 工作负载配置块，或当前选中的 workload profile 名称
   zipf_exponent: 1.0  # Zipf 热度分布指数，越大表示越长尾
   active_adapter_cap: 16          # 当前活跃热点集合规模；大于此数的 adapter 通过热集轮换进入活跃窗
   hotset_rotation_requests: 120   # 每处理 N 个请求滚动热点窗
+  hotset_rotation_mode: "legacy"  # legacy 保持旧 75% overlap；V2 可选 stationary/abrupt/gradual
+  hotset_overlap_fraction: 0.75    # gradual 模式下相邻热点集合的目标重叠比例
+  workload_seed: 42                # adapter 分配与 trace 抽样种子；正式 V2 留出使用 43/44/45
 
   # 当前默认主线并发：与 runtime_concurrency_cap 对齐
   concurrency: 8  # 请求并发度
@@ -1494,6 +1498,9 @@ workload:  # 工作负载配置块，或当前选中的 workload profile 名称
   max_tokens: 128  # 单次生成默认最大 token 数
   temperature: 0.7  # 采样温度
   top_p: 0.9  # top-p 采样阈值
+  generation_contract: "legacy"   # V2 C5 opt-in: fixed_length_greedy_v1
+  fixed_output_max_tokens: 256
+  fixed_prompt_max_tokens: 759
 
   # E1: 多周期评估（scale-up → 请求 → scale-down → 再 scale-up）
   multi_cycle_phases: 1            # 1=单周期（默认），2+ 则分 phase 并在 phase 间 scale_down
@@ -1787,6 +1794,89 @@ scenarios:  # 本次要运行的实验场景列表
       代表 TTFT 的理论下限（无 LoRA 加载开销）。
     preloading:  # 预加载与本地多层驻留配置块
       enabled: false  # 是否启用当前功能块
+
+# EuroSys'27 V2 reviewer-response scenarios are deliberately kept out of the
+# default scenario list. They are selected explicitly with --scenario so legacy
+# paper rounds cannot accidentally expand or overwrite their matrix.
+revision_v2_scenarios:
+  - name: "v2_elastic_only"
+    baseline_type: "faaslora_full"
+    description: "Elastic autoscaling with load-only routing and backend on-demand LoRA loading."
+    preloading:
+      enabled: false
+      hierarchical_residency_enabled: false
+      dynamic_forwarding_enabled: false
+      gpu_dynamic_forwarding_enabled: false
+      host_promotion_on_nvme_hit_enabled: false
+      nvme_capacity_mb: 20480
+      host_capacity_mb: 4096
+    resource_coordination:
+      routing_policy: "least_connections"
+      coordination_enabled: false
+      scale_up_handoff_enabled: false
+      effective_capacity_admission_enabled: false
+
+  - name: "v2_hit_aware_preparation"
+    baseline_type: "faaslora_full"
+    description: "ElasticOnly plus paper Mechanism 1: hit-aware placement, NVMe preparation, and scale-out handoff."
+    preloading:
+      enabled: true
+      hierarchical_residency_enabled: false
+      dynamic_forwarding_enabled: false
+      gpu_dynamic_forwarding_enabled: false
+      host_promotion_on_nvme_hit_enabled: false
+      min_hotness: 0.3
+      nvme_capacity_mb: 20480
+      host_capacity_mb: 4096
+      scale_up_preload_mb: 1024
+      strategy: "greedy"
+    resource_coordination:
+      routing_policy: "adapter_affinity"
+      coordination_enabled: false
+      scale_up_handoff_enabled: true
+      effective_capacity_admission_enabled: false
+
+  - name: "v2_hierarchical_no_coord"
+    baseline_type: "faaslora_full"
+    description: "Mechanisms 1+2: add GPU/HOST/NVMe residency and dynamic migration, without coordinated admission."
+    preloading:
+      enabled: true
+      hierarchical_residency_enabled: true
+      min_hotness: 0.3
+      gpu_warmup_hotness: 0.6
+      nvme_capacity_mb: 20480
+      host_capacity_mb: 4096
+      scale_up_preload_mb: 1024
+      strategy: "greedy"
+      dynamic_forwarding_enabled: true
+      gpu_dynamic_forwarding_enabled: true
+      host_promotion_on_nvme_hit_enabled: true
+    resource_coordination:
+      routing_policy: "adapter_affinity"
+      coordination_enabled: false
+      scale_up_handoff_enabled: true
+      effective_capacity_admission_enabled: false
+
+  - name: "v2_full"
+    baseline_type: "faaslora_full"
+    description: "Full cumulative V2 stack with effective-capacity GPU admission."
+    preloading:
+      enabled: true
+      hierarchical_residency_enabled: true
+      min_hotness: 0.3
+      gpu_warmup_hotness: 0.6
+      nvme_capacity_mb: 20480
+      host_capacity_mb: 4096
+      scale_up_preload_mb: 1024
+      strategy: "greedy"
+      dynamic_forwarding_enabled: true
+      gpu_dynamic_forwarding_enabled: true
+      host_promotion_on_nvme_hit_enabled: true
+    resource_coordination:
+      routing_policy: "adapter_affinity"
+      coordination_enabled: true
+      scale_up_handoff_enabled: true
+      effective_capacity_admission_enabled: true
 
 # =============================================================================
 # 消融实验配置（取消注释后运行）

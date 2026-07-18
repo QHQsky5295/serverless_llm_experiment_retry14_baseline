@@ -5,6 +5,7 @@ MAIN_REPO="${FAASLORA_MAIN_REPO:-/home/qhq/serverless_llm_experiment_retry14_bas
 BASELINES_ROOT="${FAASLORA_BASELINES_ROOT:-/home/qhq/serverless_llm_baselines}"
 RUNNER="${MAIN_REPO}/scripts/run_all_experiments_user_scope.sh"
 PYTHON_BIN="${FAASLORA_PYTHON:-/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python}"
+CONFIG_PATH="${FAASLORA_PAPER_ABLATION_CONFIG:-${MAIN_REPO}/configs/experiments.yaml}"
 
 MODEL_PROFILE="${FAASLORA_PROFILE_MODEL:-llama2_7b_main_v2_publicmix}"
 DATASET_PROFILE="${FAASLORA_PROFILE_DATASET:-azure_sharegpt_rep4000}"
@@ -12,6 +13,7 @@ WORKLOAD_PROFILE="${FAASLORA_PROFILE_WORKLOAD:-llama2_7b_auto500_formal4000_s8}"
 TOTAL_REQUESTS="${FAASLORA_TOTAL_REQUESTS:-4000}"
 SELECTED_NUM_ADAPTERS="${FAASLORA_SELECTED_NUM_ADAPTERS:-500}"
 SAMPLING_SEED="${FAASLORA_SAMPLING_SEED:-42}"
+STORAGE_BANDWIDTH_MIB_S="${FAASLORA_STORAGE_BANDWIDTH_MIB_S:-250}"
 
 SOURCE_RUN_TAG="${FAASLORA_SOURCE_RUN_TAG:-llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1}"
 SOURCE_ROUND_DIR="${FAASLORA_SOURCE_ROUND_DIR:-${BASELINES_ROOT}/results/paper_experiments/03_main_comparison/20260424_104050_${SOURCE_RUN_TAG}}"
@@ -25,12 +27,24 @@ FIGURE_TARGETS="${FAASLORA_PAPER_ABLATION_FIGURES:-Fig2 Fig3 Fig6 CoordinationSu
 ROUND_ROOT="${FAASLORA_PAPER_ABLATION_ROOT:-${BASELINES_ROOT}/results/paper_experiments/${SECTION_ID}}"
 ROUND_TIMESTAMP="${FAASLORA_PAPER_ABLATION_TIMESTAMP:-$(date +%Y%m%d_%H%M%S)}"
 ROUND_DIR="${FAASLORA_PAPER_ABLATION_ROUND_DIR:-${ROUND_ROOT}/${ROUND_TIMESTAMP}_${RUN_TAG}}"
-SCENARIOS_RAW="${FAASLORA_PAPER_ABLATION_SCENARIOS:-faaslora_nvme faaslora_no_coord faaslora_full}"
+SCENARIOS_RAW="${FAASLORA_PAPER_ABLATION_SCENARIOS:-v2_elastic_only v2_hit_aware_preparation v2_hierarchical_no_coord v2_full}"
 FORCE_RERUN="${FAASLORA_PAPER_ABLATION_FORCE:-0}"
 GPU_IDS="${FAASLORA_PAPER_ABLATION_GPU_IDS:-0,1,2,3}"
 REQUIRE_GPU_IDLE="${FAASLORA_PAPER_ABLATION_REQUIRE_GPU_IDLE:-1}"
 DRY_RUN="${FAASLORA_PAPER_ABLATION_DRY_RUN:-0}"
 ALLOW_INTERNAL_BASELINES="${FAASLORA_PAPER_ABLATION_ALLOW_INTERNAL_BASELINES:-0}"
+REQUIRE_FEATURE_TRIGGER="${FAASLORA_PAPER_ABLATION_REQUIRE_FEATURE_TRIGGER:-1}"
+FORMAL_RUN="${FAASLORA_PAPER_ABLATION_FORMAL:-0}"
+TRACE_ROLE="${FAASLORA_TRACE_ROLE:-auto}"
+
+if [[ "${TRACE_ROLE}" == "auto" ]]; then
+  case "${SAMPLING_SEED}" in
+    41) TRACE_ROLE="validation" ;;
+    42) TRACE_ROLE="smoke" ;;
+    43|44|45) TRACE_ROLE="heldout" ;;
+    *) TRACE_ROLE="exploratory" ;;
+  esac
+fi
 
 RAW_DIR="${ROUND_DIR}/raw/faaslora"
 LOG_DIR="${ROUND_DIR}/logs"
@@ -149,8 +163,12 @@ PY
 
 validate_scenarios() {
   local scenario=""
-  local allowed_faaslora=" faaslora_nvme faaslora_no_coord faaslora_full "
+  local allowed_faaslora=" faaslora_nvme faaslora_no_coord faaslora_full v2_elastic_only v2_hit_aware_preparation v2_hierarchical_no_coord v2_full "
   local allowed_internal=" cold_start slora_style serverlessllm "
+  if [[ "${FORCE_RERUN}" == "1" && " ${SCENARIOS_RAW} " == *" v2_"* ]]; then
+    log "[ERROR] V2 protocol forbids force-overwriting an ablation round; use a new unique round directory."
+    return 1
+  fi
   for scenario in "${SCENARIOS[@]}"; do
     [[ -z "${scenario}" ]] && continue
     if [[ "${allowed_faaslora}" == *" ${scenario} "* ]]; then
@@ -160,16 +178,133 @@ validate_scenarios() {
       continue
     fi
     log "[ERROR] scenario=${scenario} is not allowed in this paper ablation script."
-    log "Allowed by default: faaslora_nvme faaslora_no_coord faaslora_full."
+    log "Allowed by default: legacy FaaSLoRA ablations and explicit v2_* cumulative scenarios."
     log "Internal legacy references require FAASLORA_PAPER_ABLATION_ALLOW_INTERNAL_BASELINES=1 and must not be mixed with official baseline claims."
     return 1
   done
 }
 
+validate_source_and_seed_protocol() {
+  case "${TRACE_ROLE}" in
+    validation|smoke|heldout|exploratory) ;;
+    *)
+      log "[ERROR] unsupported FAASLORA_TRACE_ROLE=${TRACE_ROLE}"
+      return 1
+      ;;
+  esac
+  case "${TRACE_ROLE}:${SAMPLING_SEED}" in
+    validation:41|smoke:42|heldout:43|heldout:44|heldout:45|exploratory:*) ;;
+    *)
+      log "[ERROR] trace_role=${TRACE_ROLE} is incompatible with seed=${SAMPLING_SEED}"
+      return 1
+      ;;
+  esac
+  if [[ "${FORMAL_RUN}" != "1" ]]; then
+    return 0
+  fi
+  if [[ "${TRACE_ROLE}" != "heldout" ]]; then
+    log "[ERROR] formal ablation requires trace_role=heldout and seed 43/44/45"
+    return 1
+  fi
+  "${PYTHON_BIN}" - "${MAIN_REPO}" <<'PY'
+import subprocess
+import sys
+from pathlib import Path
+
+repo = Path(sys.argv[1])
+allowed = {"configs/generated/lora_manifest_1000.json"}
+rows = subprocess.check_output(
+    ["git", "-C", str(repo), "status", "--short", "--untracked-files=no"],
+    text=True,
+).splitlines()
+dirty = []
+for row in rows:
+    path = row[3:].strip()
+    if " -> " in path:
+        path = path.split(" -> ", 1)[1]
+    if path not in allowed:
+        dirty.append(row)
+if dirty:
+    raise SystemExit(
+        "formal ablation refuses tracked dirty source files (only the user-owned "
+        "configs/generated/lora_manifest_1000.json is allowlisted):\n"
+        + "\n".join(dirty)
+    )
+PY
+}
+
+faaslora_system_resolved_config_sha256() {
+  local scenario="$1"
+  "${PYTHON_BIN}" - \
+    "${MAIN_REPO}" "${CONFIG_PATH}" "${scenario}" \
+    "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" \
+    "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" \
+    "${STORAGE_BANDWIDTH_MIB_S}" "${GPU_IDS}" <<'PY'
+import hashlib
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+repo = Path(sys.argv[1])
+config = Path(sys.argv[2])
+commit = subprocess.check_output(
+    ["git", "-C", str(repo), "rev-parse", "HEAD"], text=True
+).strip()
+excluded_exact = {
+    "FAASLORA_RESULTS_TAG",
+    "FAASLORA_RUN_FROZEN_SETTINGS_SHA256",
+    "FAASLORA_SYSTEM_RESOLVED_CONFIG_SHA256",
+    "FAASLORA_TRACE_ROLE",
+    "FAASLORA_FORMAL_RUN",
+    "FAASLORA_SAMPLING_SEED",
+    "FAASLORA_WORKLOAD_SEED",
+    "FAASLORA_SHARED_TRACE_PATH",
+    "FAASLORA_SHARED_ADAPTER_SUBSET_PATH",
+    "FAASLORA_NVME_CACHE_DIR",
+    "FAASLORA_HOST_CACHE_DIR",
+}
+excluded_fragments = (
+    "RUN_TAG", "ROUND_DIR", "ROUND_ROOT", "ROUND_TIMESTAMP",
+    "SOURCE_ROUND", "SOURCE_RUN", "PAPER_ABLATION_ROOT",
+)
+tuning_env = {
+    key: value
+    for key, value in sorted(os.environ.items())
+    if key.startswith(("FAASLORA_", "VLLM_"))
+    and key not in excluded_exact
+    and not any(fragment in key for fragment in excluded_fragments)
+}
+payload = {
+    "schema": "faaslora_resolved_config_v1",
+    "source_commit": commit,
+    "config_sha256": hashlib.sha256(config.read_bytes()).hexdigest(),
+    "scenario": sys.argv[3],
+    "model_profile": sys.argv[4],
+    "dataset_profile": sys.argv[5],
+    "workload_profile": sys.argv[6],
+    "total_requests": int(sys.argv[7]),
+    "selected_num_adapters": int(sys.argv[8]),
+    "bandwidth_mib_s": float(sys.argv[9]),
+    "gpu_ids": sys.argv[10],
+    "tuning_env": tuning_env,
+}
+canonical = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+print(hashlib.sha256(canonical).hexdigest())
+PY
+}
+
 validate_result_json() {
   local result_path="$1"
   local scenario="$2"
-  "${PYTHON_BIN}" - "${result_path}" "${scenario}" "${TOTAL_REQUESTS}" <<'PY'
+  local resolved_config_sha=""
+  resolved_config_sha="$(faaslora_system_resolved_config_sha256 "${scenario}")"
+  "${PYTHON_BIN}" - "${result_path}" "${scenario}" "${TOTAL_REQUESTS}" \
+    "${REQUIRE_FEATURE_TRIGGER}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" \
+    "${RUN_TAG}_${scenario}" "${STORAGE_BANDWIDTH_MIB_S}" \
+    "${resolved_config_sha}" "${TRACE_ROLE}" "${FORMAL_RUN}" <<'PY'
+import hashlib
 import json
 import math
 import sys
@@ -178,15 +313,62 @@ from pathlib import Path
 path = Path(sys.argv[1])
 scenario = sys.argv[2]
 expected_total = int(sys.argv[3])
+require_trigger = sys.argv[4] == "1"
+trace_path = Path(sys.argv[5])
+subset_path = Path(sys.argv[6])
+expected_result_tag = sys.argv[7]
+expected_bandwidth_mib_s = float(sys.argv[8])
+expected_resolved_config_sha = sys.argv[9]
+expected_trace_role = sys.argv[10]
+expected_formal = sys.argv[11] == "1"
 obj = json.loads(path.read_text(encoding="utf-8"))
+
+def sha256(candidate):
+    digest = hashlib.sha256()
+    with candidate.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+metadata = obj.get("metadata") or {}
+if metadata.get("system_resolved_config_sha256") != expected_resolved_config_sha:
+    raise SystemExit(
+        f"{path}: resolved-config SHA mismatch: "
+        f"expected={expected_resolved_config_sha} "
+        f"actual={metadata.get('system_resolved_config_sha256')!r}"
+    )
+if str(metadata.get("trace_role") or "") != expected_trace_role:
+    raise SystemExit(f"{path}: trace_role mismatch")
+if bool(metadata.get("formal_run")) is not expected_formal:
+    raise SystemExit(f"{path}: formal_run mismatch")
+if str(metadata.get("results_tag") or "") != expected_result_tag:
+    raise SystemExit(
+        f"{path}: results_tag mismatch: expected={expected_result_tag!r} "
+        f"observed={metadata.get('results_tag')!r}"
+    )
+for field, expected in (
+    ("shared_trace_sha256", sha256(trace_path)),
+    ("shared_adapter_subset_sha256", sha256(subset_path)),
+):
+    if str(metadata.get(field) or "") != expected:
+        raise SystemExit(f"{path}: {field} mismatch or missing")
+if not math.isclose(
+    float(metadata.get("bandwidth_mib_s", -1)),
+    expected_bandwidth_mib_s,
+    rel_tol=0.0,
+    abs_tol=1e-9,
+):
+    raise SystemExit(f"{path}: aggregate bandwidth metadata mismatch")
 
 schema = obj.get("metric_schema_version")
 if schema != "e2e_v3":
     raise SystemExit(f"{path}: metric_schema_version must be e2e_v3, got {schema!r}")
 
 summaries = obj.get("scenario_summaries") or {}
-if scenario not in summaries:
-    raise SystemExit(f"{path}: missing scenario_summaries[{scenario!r}]")
+if sorted(summaries) != [scenario]:
+    raise SystemExit(
+        f"{path}: scenario_summaries must contain exactly {scenario!r}; got {sorted(summaries)}"
+    )
 summary = summaries[scenario]
 
 total = int(summary.get("total_requests", -1))
@@ -229,11 +411,129 @@ if host_required and not bool(summary.get("host_cache_memory_backed", False)):
     )
 
 details = obj.get("detailed_results") or {}
-if scenario not in details:
-    raise SystemExit(f"{path}: missing detailed_results[{scenario!r}]")
+if sorted(details) != [scenario]:
+    raise SystemExit(
+        f"{path}: detailed_results must contain exactly {scenario!r}; got {sorted(details)}"
+    )
 requests = details[scenario].get("requests") or []
 if len(requests) != total:
     raise SystemExit(f"{path}: detailed request count mismatch: expected {total}, got {len(requests)}")
+
+if scenario.startswith("v2_"):
+    expected_gates = {
+        "v2_elastic_only": (False, False, False, False, False),
+        "v2_hit_aware_preparation": (True, True, False, False, False),
+        "v2_hierarchical_no_coord": (True, True, True, False, False),
+        "v2_full": (True, True, True, True, True),
+    }
+    coord = (((metadata.get("scenario_coordination") or {}).get(scenario)) or {})
+    if not bool(coord.get("cold_cache_reset_before_run")):
+        raise SystemExit(f"{path}: missing cold-cache reset evidence")
+    gates = coord.get("feature_gates") or {}
+    actual = (
+        bool(gates.get("readiness_routing_enabled")),
+        bool(gates.get("scale_up_handoff_enabled")),
+        bool(gates.get("hierarchical_residency_enabled")),
+        bool(gates.get("coordination_enabled")),
+        bool(gates.get("effective_capacity_admission_enabled")),
+    )
+    if actual != expected_gates[scenario]:
+        raise SystemExit(
+            f"{path}: feature gate mismatch for {scenario}: "
+            f"expected={expected_gates[scenario]} actual={actual}"
+        )
+    successful_lora = [row for row in requests if row.get("success") and row.get("adapter_id")]
+    legal_tiers = {"gpu", "host", "nvme", "remote"}
+    invalid_tiers = [
+        row.get("request_id") for row in successful_lora
+        if str(row.get("readiness_tier_before_dispatch", "")).lower() not in legal_tiers
+    ]
+    if invalid_tiers:
+        raise SystemExit(
+            f"{path}: incomplete dispatch-time tier evidence for {len(invalid_tiers)} requests"
+        )
+    activation = coord.get("feature_activation") or {}
+    if require_trigger and expected_total >= 1000:
+        if int(activation.get("routing_decision_count", 0) or 0) != expected_total:
+            raise SystemExit(f"{path}: routing decision count did not cover every request")
+        readiness_count = int(
+            activation.get("readiness_aware_routing_decision_count", 0) or 0
+        )
+        load_only_count = int(
+            activation.get("load_only_routing_decision_count", 0) or 0
+        )
+        if gates.get("readiness_routing_enabled"):
+            if readiness_count < expected_total or load_only_count != 0:
+                raise SystemExit(f"{path}: readiness-aware routing trigger count mismatch")
+        elif load_only_count < expected_total or readiness_count != 0:
+            raise SystemExit(f"{path}: ElasticOnly did not use pure load-only routing")
+        if gates.get("scale_up_handoff_enabled") and int(
+            activation.get("scale_up_events_with_planned_adapters", 0) or 0
+        ) <= 0:
+            raise SystemExit(f"{path}: handoff enabled but no planned-adapter scale-up event triggered")
+        if gates.get("scale_up_handoff_enabled"):
+            first_service = int(
+                activation.get("scaleup_first_service_request_count", 0) or 0
+            )
+            planned_matches = int(
+                activation.get("scaleup_first_service_planned_match_count", 0) or 0
+            )
+            if first_service <= 0 or planned_matches <= 0:
+                raise SystemExit(
+                    f"{path}: handoff was planned but no matched first-service request was served"
+                )
+        elif any(
+            int(activation.get(name, 0) or 0) != 0
+            for name in (
+                "scale_up_events_with_planned_adapters",
+                "scaleup_first_service_request_count",
+                "scaleup_first_service_planned_match_count",
+            )
+        ):
+            raise SystemExit(f"{path}: disabled handoff recorded served/planned activity")
+        if gates.get("hierarchical_residency_enabled"):
+            host_count = int(activation.get("initial_or_current_host_adapter_count", 0) or 0)
+            nvme_count = int(activation.get("initial_or_current_nvme_adapter_count", 0) or 0)
+            transition_count = int(
+                activation.get("hierarchy_specific_online_transition_count", 0) or 0
+            )
+            if host_count <= 0 or nvme_count <= 0:
+                raise SystemExit(
+                    f"{path}: hierarchy enabled but HOST/NVMe tiers were not both populated"
+                )
+            if transition_count <= 0:
+                raise SystemExit(
+                    f"{path}: hierarchy enabled but no online HOST/GPU promotion completed"
+                )
+        elif any(
+            int(activation.get(name, 0) or 0) != 0
+            for name in (
+                "initial_or_current_host_adapter_count",
+                "host_promotion_scheduled_count",
+                "host_promotion_completed_count",
+                "runtime_gpu_forward_attempt_count",
+                "runtime_gpu_forward_success_count",
+                "hierarchy_specific_online_transition_count",
+            )
+        ):
+            raise SystemExit(f"{path}: disabled hierarchy recorded hierarchy-specific activity")
+        if gates.get("effective_capacity_admission_enabled"):
+            if int(activation.get("gpu_admission_decision_count", 0) or 0) <= 0:
+                raise SystemExit(f"{path}: admission enabled but no admission decision was observed")
+            if int(
+                activation.get("gpu_admission_observed_request_count", 0) or 0
+            ) <= 0:
+                raise SystemExit(
+                    f"{path}: admission decisions were not observed on an online request"
+                )
+        elif any(
+            int(activation.get(name, 0) or 0) != 0
+            for name in (
+                "gpu_admission_observed_request_count",
+                "gpu_admission_decision_count",
+            )
+        ):
+            raise SystemExit(f"{path}: disabled admission recorded admission activity")
 
 print(
     f"validated {scenario}: TTFT_avg={summary['avg_overall_ttft_ms']:.3f}ms "
@@ -251,7 +551,7 @@ find_result_json() {
   sanitized_tag="$(sanitize_label "${result_tag}")"
   # MAIN_REPO/results is a symlink in the retry14 workspace. Use -L so a
   # successfully written FaaSLoRA result is recoverable after a harness failure.
-  find -L "${MAIN_REPO}/results" -type f -name "*${scenario}*${sanitized_tag}*.json" -printf '%T@ %p\n' 2>/dev/null \
+  find -L "${MAIN_REPO}/results" -type f -name "*_${sanitized_tag}.json" -printf '%T@ %p\n' 2>/dev/null \
     | sort -nr \
     | awk 'NR==1 {sub(/^[^ ]+ /, ""); print}'
 }
@@ -281,12 +581,68 @@ write_round_env() {
     printf 'export FAASLORA_PROFILE_MODEL=%q\n' "${MODEL_PROFILE}"
     printf 'export FAASLORA_PROFILE_DATASET=%q\n' "${DATASET_PROFILE}"
     printf 'export FAASLORA_PROFILE_WORKLOAD=%q\n' "${WORKLOAD_PROFILE}"
+    printf 'export FAASLORA_TOTAL_REQUESTS=%q\n' "${TOTAL_REQUESTS}"
+    printf 'export FAASLORA_SELECTED_NUM_ADAPTERS=%q\n' "${SELECTED_NUM_ADAPTERS}"
+    printf 'export FAASLORA_SAMPLING_SEED=%q\n' "${SAMPLING_SEED}"
+    printf 'export FAASLORA_STORAGE_BANDWIDTH_MIB_S=%q\n' "${STORAGE_BANDWIDTH_MIB_S}"
     printf 'export FAASLORA_SOURCE_ROUND_DIR=%q\n' "${SOURCE_ROUND_DIR}"
     printf 'export FAASLORA_SOURCE_RUN_TAG=%q\n' "${SOURCE_RUN_TAG}"
     printf 'export FAASLORA_SHARED_TRACE_PATH=%q\n' "${TRACE_PATH}"
     printf 'export FAASLORA_SHARED_ADAPTER_SUBSET_PATH=%q\n' "${ADAPTER_SUBSET_PATH}"
-    printf 'export FAASLORA_PAPER_ABLATION_SCENARIOS=%q\n' "${SCENARIOS_RAW}"
+      printf 'export FAASLORA_PAPER_ABLATION_SCENARIOS=%q\n' "${SCENARIOS_RAW}"
+      printf 'export FAASLORA_PAPER_ABLATION_FORMAL=%q\n' "${FORMAL_RUN}"
+      printf 'export FAASLORA_TRACE_ROLE=%q\n' "${TRACE_ROLE}"
+    printf 'export FAASLORA_PAPER_ABLATION_CONFIG=%q\n' "${CONFIG_PATH}"
   } >"${ROUND_DIR}/round.env"
+}
+
+validate_or_write_round_env() {
+  local env_path="${ROUND_DIR}/round.env"
+  if [[ "${FORCE_RERUN}" != "1" && -f "${env_path}" ]]; then
+    local existing=()
+    mapfile -t existing < <(
+      bash -c '
+        source "$1"
+        printf "%s\n" \
+          "${FAASLORA_PAPER_ABLATION_RUN_TAG:-}" \
+          "${FAASLORA_PROFILE_MODEL:-}" \
+          "${FAASLORA_PROFILE_DATASET:-}" \
+          "${FAASLORA_PROFILE_WORKLOAD:-}" \
+          "${FAASLORA_TOTAL_REQUESTS:-}" \
+          "${FAASLORA_SELECTED_NUM_ADAPTERS:-}" \
+          "${FAASLORA_SAMPLING_SEED:-}" \
+          "${FAASLORA_STORAGE_BANDWIDTH_MIB_S:-}" \
+          "${FAASLORA_SHARED_TRACE_PATH:-}" \
+          "${FAASLORA_SHARED_ADAPTER_SUBSET_PATH:-}" \
+          "${FAASLORA_PAPER_ABLATION_SCENARIOS:-}" \
+          "${FAASLORA_PAPER_ABLATION_FORMAL:-0}" \
+          "${FAASLORA_TRACE_ROLE:-auto}"
+      ' bash "${env_path}"
+    )
+    local names=(
+      RUN_TAG MODEL_PROFILE DATASET_PROFILE WORKLOAD_PROFILE TOTAL_REQUESTS
+      SELECTED_NUM_ADAPTERS SAMPLING_SEED STORAGE_BANDWIDTH_MIB_S TRACE_PATH
+      ADAPTER_SUBSET_PATH SCENARIOS
+      FORMAL_RUN TRACE_ROLE
+    )
+    local current=(
+      "${RUN_TAG}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}"
+      "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" "${SAMPLING_SEED}"
+      "${STORAGE_BANDWIDTH_MIB_S}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}"
+      "${SCENARIOS_RAW}"
+      "${FORMAL_RUN}" "${TRACE_ROLE}"
+    )
+    local i
+    for i in "${!names[@]}"; do
+      if [[ "${existing[$i]:-}" != "${current[$i]}" ]]; then
+        log "[ERROR] frozen round mismatch for ${names[$i]}: existing='${existing[$i]:-}' current='${current[$i]}'"
+        log "Use a new round directory; do not overwrite an existing run-key."
+        return 1
+      fi
+    done
+    return 0
+  fi
+  write_round_env
 }
 
 write_manifest() {
@@ -304,7 +660,10 @@ write_manifest() {
     "${SECTION_ID}" \
     "${ROUND_PURPOSE}" \
     "${FIGURE_TARGETS}" \
-    "${MAIN_REPO}" <<'PY'
+    "${MAIN_REPO}" \
+    "${STORAGE_BANDWIDTH_MIB_S}" \
+    "${FORMAL_RUN}" \
+    "${TRACE_ROLE}" <<'PY'
 import csv
 import hashlib
 import json
@@ -326,6 +685,9 @@ section_id = sys.argv[11]
 purpose = sys.argv[12]
 figure_targets = sys.argv[13].split()
 main_repo = Path(sys.argv[14])
+bandwidth_mib_s = float(sys.argv[15])
+formal_run = sys.argv[16] == "1"
+trace_role = sys.argv[17]
 raw_dir = round_dir / "raw" / "faaslora"
 
 def sha256(path: Path) -> str:
@@ -362,7 +724,7 @@ def build_consistency_audit(entries):
         if entry.get("exists") and entry.get("summary")
     }
     audit = {
-        "baseline": "faaslora_full",
+        "baseline": "v2_full",
         "policy": (
             "Compare only scenarios from the same ablation round. "
             "Warnings are not automatic failures; they require explanation before plotting."
@@ -371,14 +733,14 @@ def build_consistency_audit(entries):
         "warnings": [],
         "comparisons": [],
     }
-    full = by_scenario.get("faaslora_full")
+    full = by_scenario.get("v2_full")
     if not full:
-        audit["missing"] = ["faaslora_full"]
+        audit["missing"] = ["v2_full"]
         return audit
     full_summary = full["summary"]
     audit["status"] = "ok"
     for scenario, entry in sorted(by_scenario.items()):
-        if scenario == "faaslora_full":
+        if scenario == "v2_full":
             continue
         row = {"scenario": scenario, "metrics": {}}
         for metric, (direction, tolerance) in metrics.items():
@@ -441,6 +803,11 @@ for scenario in scenarios:
         entry["source_path"] = source.read_text(encoding="utf-8").strip()
     if result.exists():
         obj = json.loads(result.read_text(encoding="utf-8"))
+        entry["bytes"] = result.stat().st_size
+        entry["sha256"] = sha256(result)
+        entry["system_resolved_config_sha256"] = (
+            (obj.get("metadata") or {}).get("system_resolved_config_sha256")
+        )
         summary = (obj.get("scenario_summaries") or {}).get(scenario, {})
         entry["summary"] = {
             "ttft_avg_ms": summary.get("avg_overall_ttft_ms"),
@@ -460,7 +827,27 @@ for scenario in scenarios:
         csv_rows.append({"scenario": scenario})
     entries.append(entry)
 
+tracked_status = (
+    git_value(["status", "--short", "--untracked-files=no"]) or ""
+).splitlines()
+allowed_dirty = {"configs/generated/lora_manifest_1000.json"}
+unexpected_dirty = []
+for row in tracked_status:
+    path = row[3:].strip()
+    if " -> " in path:
+        path = path.split(" -> ", 1)[1]
+    if path not in allowed_dirty:
+        unexpected_dirty.append(row)
+expected_state_markers = [f"scenario_{scenario}.done" for scenario in scenarios]
+actual_state_markers = sorted(path.name for path in (round_dir / "state").glob("*.done"))
+campaign_complete = bool(entries) and all(entry.get("exists") for entry in entries) and all(
+    marker in actual_state_markers for marker in expected_state_markers
+)
+
 manifest = {
+    "status": "complete" if campaign_complete else "incomplete",
+    "formal_run": formal_run,
+    "trace_role": trace_role,
     "run_tag": run_tag,
     "section_id": section_id,
     "purpose": purpose,
@@ -476,6 +863,9 @@ manifest = {
         "git_commit": git_value(["rev-parse", "HEAD"]),
         "git_branch": git_value(["branch", "--show-current"]),
         "git_status_short": git_value(["status", "--short"]),
+        "tracked_dirty_paths": tracked_status,
+        "unexpected_tracked_dirty_paths": unexpected_dirty,
+        "source_clean_for_formal": not unexpected_dirty,
     },
     "shared_trace": {
         "path": str(trace_path),
@@ -496,7 +886,10 @@ manifest = {
         "adapter_count": len(subset_payload.get("adapters", [])),
     },
     "scenarios": scenarios,
+    "bandwidth_mib_s": bandwidth_mib_s,
     "entries": entries,
+    "state_markers": actual_state_markers,
+    "required_state_markers": expected_state_markers,
 }
 (round_dir / "MANIFEST.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
 audit = build_consistency_audit(entries)
@@ -532,24 +925,30 @@ if [[ ! -x "${RUNNER}" ]]; then
   log "[ERROR] runner not found or not executable: ${RUNNER}"
   exit 1
 fi
+if [[ ! -f "${CONFIG_PATH}" ]]; then
+  log "[ERROR] config not found: ${CONFIG_PATH}"
+  exit 1
+fi
 if [[ ! -x "${PYTHON_BIN}" ]]; then
   log "[ERROR] Python not executable: ${PYTHON_BIN}"
   exit 1
 fi
 
 validate_shared_artifacts
+validate_or_write_round_env
 cp -f "${TRACE_PATH}" "${SHARED_DIR}/$(basename "${TRACE_PATH}")"
 cp -f "${ADAPTER_SUBSET_PATH}" "${SHARED_DIR}/$(basename "${ADAPTER_SUBSET_PATH}")"
-write_round_env
 
 read -r -a SCENARIOS <<< "${SCENARIOS_RAW}"
 validate_scenarios
+validate_source_and_seed_protocol
 log "round_dir=${ROUND_DIR}"
 log "run_tag=${RUN_TAG}"
 log "section=${SECTION_ID} purpose=${ROUND_PURPOSE} figures=${FIGURE_TARGETS}"
 log "scenarios=${SCENARIOS[*]}"
 log "trace=${TRACE_PATH}"
 log "adapter_subset=${ADAPTER_SUBSET_PATH}"
+log "trace_role=${TRACE_ROLE} formal=${FORMAL_RUN}"
 
 if [[ "${DRY_RUN}" == "1" ]]; then
   for scenario in "${SCENARIOS[@]}"; do
@@ -589,18 +988,29 @@ for scenario in "${SCENARIOS[@]}"; do
     export FAASLORA_PROFILE_MODEL="${MODEL_PROFILE}"
     export FAASLORA_PROFILE_DATASET="${DATASET_PROFILE}"
     export FAASLORA_PROFILE_WORKLOAD="${WORKLOAD_PROFILE}"
+    export FAASLORA_TOTAL_REQUESTS="${TOTAL_REQUESTS}"
+    export FAASLORA_WORKLOAD_SEED="${SAMPLING_SEED}"
     export FAASLORA_SHARED_TRACE_PATH="${TRACE_PATH}"
     export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${ADAPTER_SUBSET_PATH}"
     export FAASLORA_RESULTS_TAG="${result_tag}"
+    export FAASLORA_STORAGE_BANDWIDTH_MIB_S="${STORAGE_BANDWIDTH_MIB_S}"
+    export FAASLORA_NVME_CACHE_DIR="${ROUND_DIR}/cache/nvme"
+    export FAASLORA_HOST_CACHE_DIR="/dev/shm/faaslora_eurosys27_v2/${RUN_TAG}"
+    export FAASLORA_SYSTEM_RESOLVED_CONFIG_SHA256="$(
+      faaslora_system_resolved_config_sha256 "${scenario}"
+    )"
+    export FAASLORA_TRACE_ROLE="${TRACE_ROLE}"
+    export FAASLORA_FORMAL_RUN="${FORMAL_RUN}"
     export PYTHONUNBUFFERED=1
     cd "${MAIN_REPO}"
     run_logged "${stage}" "${RUNNER}" \
-      --config configs/experiments.yaml \
+      --config "${CONFIG_PATH}" \
       --scenario "${scenario}" \
       --backend vllm \
       --model-profile "${MODEL_PROFILE}" \
       --dataset-profile "${DATASET_PROFILE}" \
-      --workload-profile "${WORKLOAD_PROFILE}"
+      --workload-profile "${WORKLOAD_PROFILE}" \
+      --num-adapters "${SELECTED_NUM_ADAPTERS}"
   )
 
   result_path="$(find_result_json "${scenario}" "${result_tag}")"

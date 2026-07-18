@@ -6,6 +6,7 @@ can use the same components as the paper description (tiered residency, preload,
 """
 
 import asyncio
+import inspect
 import json
 import time
 from pathlib import Path
@@ -234,6 +235,9 @@ class ExperimentStack:
         self._host_paths: Dict[str, str] = {}
         self._pending_scaleup_gpu_artifacts: List[str] = []
         self._pending_host_promotions: Dict[str, asyncio.Task] = {}
+        self._host_promotion_scheduled_count: int = 0
+        self._host_promotion_completed_count: int = 0
+        self._host_promotion_failed_count: int = 0
         self._local_tier_paths_last_sync_at: float = 0.0
         self._local_tier_paths_sync_interval_s: float = max(
             0.0,
@@ -746,13 +750,28 @@ class ExperimentStack:
         try:
             admitted = await self.residency_manager.admit_artifact(adapter_id, StorageTier.HOST)
             if admitted:
+                self._host_promotion_completed_count = int(
+                    getattr(self, "_host_promotion_completed_count", 0) or 0
+                ) + 1
                 self.sync_local_tier_paths(force=True)
+            else:
+                self._host_promotion_failed_count = int(
+                    getattr(self, "_host_promotion_failed_count", 0) or 0
+                ) + 1
         except Exception as exc:
+            self._host_promotion_failed_count = int(
+                getattr(self, "_host_promotion_failed_count", 0) or 0
+            ) + 1
             self.logger.warning(f"host promotion {adapter_id}: {exc}")
         finally:
             self._pending_host_promotions.pop(adapter_id, None)
 
     def _schedule_host_promotion_from_nvme(self, adapter_id: Optional[str] = None) -> bool:
+        if not bool(getattr(self, "_dynamic_forwarding_enabled", False)):
+            # Mechanism-1/ElasticOnly ablation rows intentionally stop at NVMe.
+            # An explicit NVMe hit is a strong signal only when Mechanism 2 is
+            # enabled; it must not bypass the scenario feature gate.
+            return False
         self.sync_local_tier_paths()
         candidate = None
         if adapter_id and adapter_id in self._nvme_paths:
@@ -769,6 +788,9 @@ class ExperimentStack:
             return False
         task = asyncio.create_task(self._promote_nvme_hit_to_host(candidate))
         self._pending_host_promotions[candidate] = task
+        self._host_promotion_scheduled_count = int(
+            getattr(self, "_host_promotion_scheduled_count", 0) or 0
+        ) + 1
         return True
 
     def _select_scaleup_gpu_candidates(
@@ -1047,7 +1069,16 @@ class ExperimentStack:
             return nvme_path, "nvme", nvme_gpu_ms, contention_ms, defer_ms
 
         # 4) Remote: ensure_local copies to nvme (never direct remote→GPU), then load from nvme
-        path = ensure_local_fn(adapter_id)
+        materialized = ensure_local_fn(adapter_id)
+        if inspect.isawaitable(materialized):
+            materialized = await materialized
+        remote_io_ms = 0.0
+        if isinstance(materialized, tuple):
+            path = materialized[0]
+            if len(materialized) > 1:
+                remote_io_ms = max(0.0, float(materialized[1] or 0.0))
+        else:
+            path = materialized
         if path:
             self._repair_adapter_dir(path)
             self._nvme_paths[adapter_id] = path
@@ -1057,7 +1088,13 @@ class ExperimentStack:
         contention_ms, defer_ms = await coord.request_lora_load(
             adapter_id, size_mb, tier="nvme", is_burst=is_burst
         )
-        return path, "nvme" if path else "remote", nvme_gpu_ms, contention_ms, defer_ms
+        return (
+            path,
+            "remote" if path and remote_io_ms > 0.0 else ("nvme" if path else "remote"),
+            remote_io_ms + nvme_gpu_ms,
+            contention_ms,
+            defer_ms,
+        )
 
     async def trigger_scale_down(self, warm_pool_size: Optional[int] = None) -> set:
         return await self.coordinator.trigger_scale_down(warm_pool_size=warm_pool_size)

@@ -79,6 +79,7 @@ class CoordinationMetrics:
     total_defer_delay_ms: float = 0.0
     load_requests: int = 0
     queued_loads: int = 0
+    gpu_admission_decisions: int = 0
 
     # Scale-down metrics
     eviction_events: int = 0
@@ -448,6 +449,7 @@ class ResourceCoordinator:
             "contention_events": m.contention_events,
             "avg_contention_penalty_ms": m.avg_contention_penalty_ms(),
             "queued_loads": m.queued_loads,
+            "gpu_admission_decisions": m.gpu_admission_decisions,
             "avg_defer_delay_ms": m.avg_defer_delay_ms(),
             "eviction_events": m.eviction_events,
             "gpu_ready_hits": m.gpu_ready_hits,
@@ -490,6 +492,7 @@ class ResourceCoordinator:
         tier: str = "nvme",
         utility_override: Optional[float] = None,
     ) -> Dict[str, float]:
+        self.metrics.gpu_admission_decisions += 1
         started_ns = time.perf_counter_ns()
         try:
             return self._evaluate_gpu_admission_impl(
