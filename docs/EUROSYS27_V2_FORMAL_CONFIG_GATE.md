@@ -85,3 +85,15 @@ The fair runner propagates the resolved-config audit to PrimeLoRA with:
 PrimeLoRA result metadata must record these values verbatim. The runner also
 passes the generic `FAIR_SYSTEM_RESOLVED_CONFIG_SHA256`, `FAIR_TRACE_ROLE`, and
 `FAIR_FORMAL_RUN` variables to S-LoRA and ServerlessLLM-new wrappers.
+
+## S-LoRA fixed-length stream integrity
+
+The C5 fixed-output path includes a local compatibility correction in S-LoRA's
+HTTP manager: detokenizer updates are retained in a per-request FIFO until the
+SSE generator consumes them. The upstream single-slot mailbox can overwrite
+unread token events when detokenization runs ahead of the HTTP consumer. The
+correction does not change generation length, scheduling, batching, paging, or
+adapter placement; it only prevents loss of already-produced native token IDs.
+The exact patched file is covered by `upstream_worktree_identity`, and
+`tests/test_fixed_length_generation_contract.py` contains a burst regression
+that fails under the single-slot behavior.
