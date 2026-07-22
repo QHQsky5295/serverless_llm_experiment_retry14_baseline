@@ -1743,6 +1743,43 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertEqual(plan.input_tokens, 56)
         self.assertEqual(plan.max_tokens, 32)
 
+    def test_subprocess_proxy_preserves_completion_token_digest(self) -> None:
+        proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
+        digest = "ab" * 32
+
+        async def fake_rpc(*_args, **_kwargs):
+            return {
+                "ttft_ms": 11.0,
+                "tpot_ms": 2.0,
+                "output_tokens": 7,
+                "timing": {
+                    "worker_rpc_handler_wall_ms": 20.0,
+                    "actual_prompt_tokens": 5,
+                    "completion_token_ids_sha256": digest,
+                },
+            }
+
+        proxy._rpc = fake_rpc
+        with patch(
+            "scripts.run_all_experiments.time.perf_counter",
+            side_effect=[100.0, 100.05],
+        ):
+            ttft_ms, tpot_ms, output_tokens, timing = asyncio.run(
+                proxy.generate(
+                    prompt="canonical",
+                    lora_path=None,
+                    adapter_id="adapter-a",
+                    max_tokens=7,
+                    input_tokens=5,
+                    return_timing=True,
+                )
+            )
+
+        self.assertEqual((ttft_ms, tpot_ms, output_tokens), (11.0, 2.0, 7))
+        self.assertEqual(timing["completion_token_ids_sha256"], digest)
+        self.assertEqual(timing["actual_prompt_tokens"], 5.0)
+        self.assertAlmostEqual(timing["parent_rpc_wall_ms"], 50.0)
+
     def test_subprocess_proxy_rpc_reuses_persistent_channel(self) -> None:
         class FakeProcess:
             def poll(self):

@@ -2654,7 +2654,7 @@ class InferenceEngine:
         self._hf_executor: Optional[concurrent.futures.ThreadPoolExecutor] = None  # single-thread for GPU
         self.startup_latency_ms: float = 0.0
         self._last_engine_create_error: str = ""
-        self.last_timing: Dict[str, float] = {}
+        self.last_timing: Dict[str, Any] = {}
         self._sglang_process: Optional[subprocess.Popen] = None
         self._sglang_base_url: str = ""
         self._sglang_workdir: Optional[Path] = None
@@ -4319,7 +4319,7 @@ class SubprocessInferenceEngineProxy:
         self._engine_dead = False
         self._normal_shutdown_completed = False
         self._reinit_attempted = False
-        self.last_timing: Dict[str, float] = {}
+        self.last_timing: Dict[str, Any] = {}
         self._prompt_planner: Optional[InferenceEngine] = None
         self._workdir = workdir
         self._log_path = log_path
@@ -4826,8 +4826,11 @@ class SubprocessInferenceEngineProxy:
             if worker_wall_ms > 0.0
             else 0.0
         )
+        # Worker timing is mostly numeric, but fixed-output auditing also returns
+        # the SHA-256 of the native completion token-id sequence.  Coercing every
+        # value to float silently erased that digest at the subprocess boundary.
         self.last_timing = {
-            key: _safe_float(value, 0.0)
+            key: value if isinstance(value, str) else _safe_float(value, 0.0)
             for key, value in timing.items()
             if isinstance(key, str)
         }
@@ -16574,6 +16577,30 @@ def save_results(results: List[ScenarioResult], path: Path, meta: Dict):
 # Main
 # ==========================================================================
 
+def _validate_formal_run_provenance(
+    *,
+    formal_run: bool,
+    trace_role: str,
+    system_resolved_config_sha256: str,
+) -> None:
+    """Fail closed on publication runs that bypass configuration freezing.
+
+    Seed 41 is a formal validation stage: it establishes the configuration that
+    seeds 43--45 must reuse.  Both validation and held-out runs therefore need a
+    resolved configuration digest; smoke and exploratory traces are never formal.
+    """
+    if not formal_run:
+        return
+    if trace_role not in {"validation", "heldout"}:
+        raise ValueError(
+            "formal FaaSLoRA runs require trace_role=validation or heldout"
+        )
+    if not system_resolved_config_sha256:
+        raise ValueError(
+            "formal FaaSLoRA runs require a resolved-config SHA"
+        )
+
+
 def _start_psi_monitor() -> None:
     """Background thread: print relevant cgroup memory PSI every 5 s.
 
@@ -17044,12 +17071,11 @@ async def main_async(
             f"Unsupported FAASLORA_TRACE_ROLE={trace_role!r}; expected "
             "validation/smoke/heldout/exploratory/legacy"
         )
-    if formal_run and (
-        trace_role != "heldout" or not system_resolved_config_sha256
-    ):
-        raise ValueError(
-            "formal FaaSLoRA runs require trace_role=heldout and a resolved-config SHA"
-        )
+    _validate_formal_run_provenance(
+        formal_run=formal_run,
+        trace_role=trace_role,
+        system_resolved_config_sha256=system_resolved_config_sha256,
+    )
 
     bw_mbps    = float(storage_cfg.get("bandwidth_mbps", 100))
     remote_dir = REPO_ROOT / storage_cfg.get("remote_dir", "artifacts/remote")

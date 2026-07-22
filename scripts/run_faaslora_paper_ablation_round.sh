@@ -372,7 +372,7 @@ validate_result_json() {
     "${REQUIRE_FEATURE_TRIGGER}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" \
     "${RUN_TAG}_${scenario}" "${STORAGE_BANDWIDTH_MIB_S}" \
     "${resolved_config_sha}" "${TRACE_ROLE}" "${FORMAL_RUN}" \
-    "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}" <<'PY'
+    "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}" "${SAMPLING_SEED}" <<'PY'
 import hashlib
 import json
 import math
@@ -391,6 +391,7 @@ expected_resolved_config_sha = sys.argv[9]
 expected_trace_role = sys.argv[10]
 expected_formal = sys.argv[11] == "1"
 expected_non_feature_sha = sys.argv[12].strip().lower()
+expected_generation_seed = int(sys.argv[13])
 obj = json.loads(path.read_text(encoding="utf-8"))
 
 def sha256(candidate):
@@ -424,6 +425,10 @@ if str(metadata.get("trace_role") or "") != expected_trace_role:
     raise SystemExit(f"{path}: trace_role mismatch")
 if bool(metadata.get("formal_run")) is not expected_formal:
     raise SystemExit(f"{path}: formal_run mismatch")
+if int(metadata.get("generation_seed", -1)) != expected_generation_seed:
+    raise SystemExit(f"{path}: generation_seed mismatch")
+if int(metadata.get("workload_seed", -1)) != expected_generation_seed:
+    raise SystemExit(f"{path}: workload_seed mismatch")
 if str(metadata.get("results_tag") or "") != expected_result_tag:
     raise SystemExit(
         f"{path}: results_tag mismatch: expected={expected_result_tag!r} "
@@ -1045,6 +1050,7 @@ manifest = {
         "requests": len(trace_payload.get("requests", [])),
         "selected_num_adapters": trace_payload.get("selected_num_adapters"),
         "sampling_seed": trace_payload.get("sampling_seed"),
+        "generation_seed": trace_payload.get("sampling_seed"),
         "active_adapter_cap": trace_payload.get("active_adapter_cap")
             or (trace_payload.get("load_profile") or {}).get("active_adapter_cap"),
         "hotset_rotation_requests": trace_payload.get("hotset_rotation_requests")
@@ -1169,6 +1175,7 @@ for scenario in "${SCENARIOS[@]}"; do
     export FAASLORA_PROFILE_WORKLOAD="${WORKLOAD_PROFILE}"
     export FAASLORA_TOTAL_REQUESTS="${TOTAL_REQUESTS}"
     export FAASLORA_WORKLOAD_SEED="${SAMPLING_SEED}"
+    export FAASLORA_GENERATION_SEED="${SAMPLING_SEED}"
     export FAASLORA_SHARED_TRACE_PATH="${TRACE_PATH}"
     export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${ADAPTER_SUBSET_PATH}"
     export FAASLORA_RESULTS_TAG="${result_tag}"

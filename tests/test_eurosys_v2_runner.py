@@ -37,6 +37,7 @@ from scripts.run_all_experiments import (
     _non_feature_frozen_config_payload,
     _non_feature_frozen_config_sha256,
     _path_size_bytes,
+    _validate_formal_run_provenance,
 )
 
 
@@ -45,6 +46,49 @@ EXPERIMENTS_CONFIG = PROJECT_ROOT / "configs" / "experiments.yaml"
 
 
 class RevisionV2ScenarioTests(unittest.TestCase):
+    def test_ablation_runner_pins_generation_and_workload_seed(self) -> None:
+        runner = (PROJECT_ROOT / "scripts" / "run_faaslora_paper_ablation_round.sh").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            'export FAASLORA_WORKLOAD_SEED="${SAMPLING_SEED}"', runner
+        )
+        self.assertIn(
+            'export FAASLORA_GENERATION_SEED="${SAMPLING_SEED}"', runner
+        )
+
+    def test_formal_provenance_accepts_validation_and_heldout_only(self) -> None:
+        digest = "a" * 64
+        for role in ("validation", "heldout"):
+            _validate_formal_run_provenance(
+                formal_run=True,
+                trace_role=role,
+                system_resolved_config_sha256=digest,
+            )
+
+        with self.assertRaisesRegex(ValueError, "resolved-config SHA"):
+            _validate_formal_run_provenance(
+                formal_run=True,
+                trace_role="validation",
+                system_resolved_config_sha256="",
+            )
+        for role in ("smoke", "exploratory", "legacy"):
+            with self.subTest(role=role), self.assertRaisesRegex(
+                ValueError, "validation or heldout"
+            ):
+                _validate_formal_run_provenance(
+                    formal_run=True,
+                    trace_role=role,
+                    system_resolved_config_sha256=digest,
+                )
+
+        for role in ("validation", "smoke"):
+            _validate_formal_run_provenance(
+                formal_run=False,
+                trace_role=role,
+                system_resolved_config_sha256="",
+            )
+
     def test_revision_v2_scenarios_are_strictly_cumulative(self) -> None:
         with EXPERIMENTS_CONFIG.open("r", encoding="utf-8") as handle:
             config = yaml.safe_load(handle)
