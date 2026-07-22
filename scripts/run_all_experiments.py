@@ -13935,6 +13935,7 @@ _NON_FEATURE_ADAPTER_AXIS_FIELDS = frozenset(
         "_selected_adapter_count",
         "_manifest_path",
         "_shared_adapter_subset_path",
+        "_immutable_shared_adapter_subset",
     }
 )
 _NON_FEATURE_STORAGE_AXIS_FIELDS = frozenset(
@@ -14087,6 +14088,88 @@ def _resolve_adapter_scale(
             (adapters_cfg.get("scale_presets") or {}).get(str(target_count), {})
         )
     return resolved_cfg, selected_adapters, scale_preset, target_count, manifest_path, True
+
+
+def _resolve_adapter_selection(
+    adapters_cfg: Dict[str, Any],
+    model_name: str,
+    quick: bool,
+    shared_adapter_subset_path_override: Optional[str],
+) -> Tuple[
+    Dict[str, Any],
+    List[Dict[str, Any]],
+    Dict[str, Any],
+    int,
+    Optional[Path],
+    bool,
+    Optional[Path],
+]:
+    """Resolve the adapter set without mutating a manifest for shared rounds.
+
+    A fair-round adapter subset is already the immutable selection authority.
+    It must therefore be loaded before (and instead of) the scalable-manifest
+    resolver, whose compatibility refresh may rewrite the configured manifest.
+    Runs without a shared subset retain the legacy manifest behavior exactly.
+    """
+    if shared_adapter_subset_path_override is None:
+        (
+            resolved_cfg,
+            selected_adapters,
+            scale_preset,
+            selected_adapter_count,
+            manifest_path,
+            scalable_mode,
+        ) = _resolve_adapter_scale(adapters_cfg, model_name, quick)
+        return (
+            resolved_cfg,
+            selected_adapters,
+            scale_preset,
+            selected_adapter_count,
+            manifest_path,
+            scalable_mode,
+            None,
+        )
+
+    shared_path, selected_adapters = _load_shared_adapter_subset(
+        shared_adapter_subset_path_override
+    )
+    shared_payload = json.loads(shared_path.read_text(encoding="utf-8"))
+    shared_model_name = str(shared_payload.get("model_name", "") or "").strip()
+    if shared_model_name and shared_model_name != model_name:
+        raise RuntimeError(
+            f"shared adapter subset model_name={shared_model_name!r} "
+            f"does not match active model {model_name!r}"
+        )
+
+    selected_adapters = copy.deepcopy(selected_adapters)
+    selected_adapter_count = len(selected_adapters)
+    resolved_cfg = copy.deepcopy(adapters_cfg)
+    resolved_cfg["adapters"] = copy.deepcopy(selected_adapters)
+    resolved_cfg["_selected_adapter_count"] = selected_adapter_count
+    resolved_cfg["_shared_adapter_subset_path"] = str(shared_path)
+    resolved_cfg["_immutable_shared_adapter_subset"] = True
+    resolved_cfg.pop("manifest_path", None)
+    resolved_cfg.pop("_manifest_path", None)
+    if resolved_cfg.get("apply_scale_preset", True):
+        scale_preset = copy.deepcopy(
+            (resolved_cfg.get("scale_presets") or {}).get(
+                str(selected_adapter_count), {}
+            )
+        )
+    else:
+        scale_preset = {}
+
+    # Keep scaled result naming/preset behavior compatible, while returning no
+    # manifest source because the shared subset is the selection authority.
+    return (
+        resolved_cfg,
+        selected_adapters,
+        scale_preset,
+        selected_adapter_count,
+        None,
+        True,
+        shared_path,
+    )
 
 
 def _sanitize_label(value: Optional[Any]) -> str:
@@ -15127,6 +15210,20 @@ def _auto_prepare_peft_artifacts(
 
     if generation_mode not in {"peft", "peft_finetune"}:
         return
+
+    if bool(adapters_cfg.get("_immutable_shared_adapter_subset", False)):
+        subset_path = str(
+            adapters_cfg.get("_shared_adapter_subset_path") or "<unknown>"
+        )
+        sample = ", ".join(str(a.get("id", "?")) for a in pending_adapters[:5])
+        if len(pending_adapters) > 5:
+            sample += ", ..."
+        raise RuntimeError(
+            "immutable shared adapter subset contains missing or incompatible "
+            "artifacts; automatic preparation is disabled to prevent manifest "
+            f"mutation (subset={subset_path}, pending={sample}). "
+            "Pre-materialize the exact shared artifacts before running."
+        )
 
     manifest_path = str(
         adapters_cfg.get("_manifest_path")
@@ -16936,33 +17033,20 @@ async def main_async(
         model_cfg["name"] = initial_model_name
 
     model_name = model_cfg.get("name", "Qwen/Qwen2.5-0.5B-Instruct")
-    adapters_cfg, selected_adapters, scale_preset, selected_adapter_count, manifest_path, scalable_mode = (
-        _resolve_adapter_scale(adapters_cfg, model_name, quick)
+    (
+        adapters_cfg,
+        selected_adapters,
+        scale_preset,
+        selected_adapter_count,
+        manifest_path,
+        scalable_mode,
+        shared_adapter_subset_path,
+    ) = _resolve_adapter_selection(
+        adapters_cfg,
+        model_name,
+        quick,
+        shared_adapter_subset_path_override,
     )
-    shared_adapter_subset_path: Optional[Path] = None
-    if shared_adapter_subset_path_override is not None:
-        shared_adapter_subset_path, shared_selected_adapters = _load_shared_adapter_subset(
-            shared_adapter_subset_path_override
-        )
-        shared_model_name = str(
-            json.loads(shared_adapter_subset_path.read_text(encoding="utf-8")).get("model_name", "") or ""
-        ).strip()
-        if shared_model_name and shared_model_name != model_name:
-            raise RuntimeError(
-                f"shared adapter subset model_name={shared_model_name!r} does not match active model {model_name!r}"
-            )
-        selected_adapters = copy.deepcopy(shared_selected_adapters)
-        selected_adapter_count = len(selected_adapters)
-        adapters_cfg = copy.deepcopy(adapters_cfg)
-        adapters_cfg["adapters"] = copy.deepcopy(selected_adapters)
-        adapters_cfg["_selected_adapter_count"] = selected_adapter_count
-        adapters_cfg["_shared_adapter_subset_path"] = str(shared_adapter_subset_path)
-        if adapters_cfg.get("apply_scale_preset", True):
-            scale_preset = copy.deepcopy(
-                (adapters_cfg.get("scale_presets") or {}).get(str(selected_adapter_count), {})
-            )
-        else:
-            scale_preset = {}
     if scale_preset:
         exp_cfg = _deep_merge_dict(exp_cfg, scale_preset.get("experiment", {}))
         apply_scale_preset_model = bool(
@@ -17151,14 +17235,17 @@ async def main_async(
         f"  BW      : {bw_mbps if bw_mbps > 0 else 'no-delay'} MiB/s "
         "(aggregate application-layer local-sim)"
     )
-    if scalable_mode:
+    if scalable_mode and shared_adapter_subset_path is None:
         manifest_label = str(manifest_path) if manifest_path else "n/a"
         print(f"  Adapters: {selected_adapter_count} selected via manifest")
         print(f"  Manifest: {manifest_label}")
         if scale_preset:
             print(f"  Preset  : scale={selected_adapter_count}")
     if shared_adapter_subset_path is not None:
+        print(f"  Adapters: {selected_adapter_count} selected via shared subset")
         print(f"  SharedAdapters: {shared_adapter_subset_path}")
+        if scale_preset:
+            print(f"  Preset  : scale={selected_adapter_count}")
     if shared_trace_path_override is not None:
         print(f"  SharedTrace   : {shared_trace_path_override}")
     if applied_env_overrides:

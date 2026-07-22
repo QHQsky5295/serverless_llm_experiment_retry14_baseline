@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import asyncio
 import copy
+import hashlib
 import json
 import signal
 import subprocess
@@ -92,6 +93,7 @@ from scripts.run_all_experiments import (
     _effective_runtime_concurrency_cap,
     _normalize_runtime_concurrency_cap,
     _prepare_dedicated_subprocess_model_cfg,
+    _resolve_adapter_selection,
     _resolve_host_visible_device_ids,
     _resolve_runtime_gpu_device_ids,
     _resolve_vllm_enforce_eager,
@@ -457,6 +459,158 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
             self.assertEqual(resolved_path, subset_path.resolve())
             self.assertEqual([entry["id"] for entry in adapters], ["alpha_lora", "beta_lora"])
+
+    def test_shared_subset_bypasses_manifest_resolution_for_7b_and_3b(self) -> None:
+        from scripts import run_all_experiments as runner
+
+        model_names = (
+            "/models/meta-llama--Llama-2-7b-hf",
+            "/models/unsloth--Llama-3.2-3B-Instruct",
+        )
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            generated_manifest = root / "lora_manifest_1000.json"
+            generated_manifest.write_text(
+                json.dumps(
+                    {
+                        "model_name": "stale-model-that-would-trigger-refresh",
+                        "num_adapters": 1,
+                        "adapters": [{"id": "stale_lora"}],
+                    },
+                    sort_keys=True,
+                ),
+                encoding="utf-8",
+            )
+            before_sha = hashlib.sha256(generated_manifest.read_bytes()).hexdigest()
+
+            for index, model_name in enumerate(model_names):
+                with self.subTest(model_name=model_name):
+                    remote_dir = root / f"remote_{index}"
+                    subset_path = root / f"subset_{index}.json"
+                    subset_path.write_text(
+                        json.dumps(
+                            {
+                                "model_name": model_name,
+                                "remote_dir": str(remote_dir),
+                                "selected_num_adapters": 2,
+                                "adapters": [
+                                    {"id": "alpha_lora", "task_type": "finance"},
+                                    {"id": "beta_lora", "task_type": "support"},
+                                ],
+                            }
+                        ),
+                        encoding="utf-8",
+                    )
+                    adapters_cfg = {
+                        "manifest_path": str(generated_manifest),
+                        "auto_create_manifest": True,
+                        "full_num_adapters": 500,
+                        "scale_presets": {"2": {"model": {"max_loras": 2}}},
+                    }
+
+                    with patch.object(
+                        runner,
+                        "_resolve_adapter_scale",
+                        side_effect=AssertionError(
+                            "shared subset must bypass scalable manifest resolution"
+                        ),
+                    ):
+                        (
+                            resolved_cfg,
+                            selected_adapters,
+                            scale_preset,
+                            selected_count,
+                            manifest_path,
+                            scalable_mode,
+                            shared_path,
+                        ) = _resolve_adapter_selection(
+                            adapters_cfg,
+                            model_name,
+                            False,
+                            str(subset_path),
+                        )
+
+                    self.assertEqual(selected_count, 2)
+                    self.assertEqual(
+                        [entry["id"] for entry in selected_adapters],
+                        ["alpha_lora", "beta_lora"],
+                    )
+                    self.assertEqual(resolved_cfg["adapters"], selected_adapters)
+                    self.assertEqual(
+                        resolved_cfg["_shared_adapter_subset_path"],
+                        str(subset_path.resolve()),
+                    )
+                    self.assertTrue(resolved_cfg["_immutable_shared_adapter_subset"])
+                    self.assertNotIn("manifest_path", resolved_cfg)
+                    self.assertNotIn("_manifest_path", resolved_cfg)
+                    self.assertEqual(scale_preset, {"model": {"max_loras": 2}})
+                    self.assertIsNone(manifest_path)
+                    self.assertTrue(scalable_mode)
+                    self.assertEqual(shared_path, subset_path.resolve())
+                    self.assertEqual(
+                        hashlib.sha256(generated_manifest.read_bytes()).hexdigest(),
+                        before_sha,
+                    )
+
+    def test_pending_shared_adapter_fails_closed_without_generator_or_manifest_write(self) -> None:
+        from scripts import run_all_experiments as runner
+
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            generated_manifest = root / "lora_manifest_1000.json"
+            generated_manifest.write_text(
+                '{"sentinel":"must-remain-byte-identical"}\n', encoding="utf-8"
+            )
+            before_sha = hashlib.sha256(generated_manifest.read_bytes()).hexdigest()
+            adapters_cfg = {
+                "manifest_path": str(generated_manifest),
+                "generation_mode": "peft_finetune",
+                "preparation_mode": "one_shot",
+                "_immutable_shared_adapter_subset": True,
+                "_shared_adapter_subset_path": str(root / "shared_subset.json"),
+                "adapters": [{"id": "missing_lora", "lora_rank": 8}],
+            }
+
+            with patch.object(runner.subprocess, "run") as generator:
+                with self.assertRaisesRegex(
+                    RuntimeError,
+                    "immutable shared adapter subset.*automatic preparation is disabled",
+                ):
+                    runner.setup_remote_storage(
+                        adapters_cfg=adapters_cfg,
+                        remote_dir=root / "remote",
+                        model_name="dummy-model",
+                    )
+
+            generator.assert_not_called()
+            self.assertEqual(
+                hashlib.sha256(generated_manifest.read_bytes()).hexdigest(),
+                before_sha,
+            )
+
+    def test_adapter_selection_without_shared_subset_uses_legacy_resolver(self) -> None:
+        from scripts import run_all_experiments as runner
+
+        sentinel = (
+            {"adapters": [{"id": "legacy_lora"}]},
+            [{"id": "legacy_lora"}],
+            {"workload": {"concurrency": 1}},
+            1,
+            Path("/tmp/legacy-manifest.json"),
+            True,
+        )
+        with patch.object(runner, "_resolve_adapter_scale", return_value=sentinel) as resolver:
+            result = _resolve_adapter_selection(
+                {"manifest_path": "legacy.json"},
+                "legacy-model",
+                True,
+                None,
+            )
+
+        resolver.assert_called_once_with(
+            {"manifest_path": "legacy.json"}, "legacy-model", True
+        )
+        self.assertEqual(result, (*sentinel, None))
 
     def test_load_shared_trace_requests_reads_external_artifact(self) -> None:
         with TemporaryDirectory() as tmpdir:

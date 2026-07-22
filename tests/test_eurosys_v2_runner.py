@@ -6,6 +6,8 @@ import asyncio
 import hashlib
 import json
 import os
+import subprocess
+import sys
 import time
 import unittest
 from collections import defaultdict
@@ -74,6 +76,147 @@ class RevisionV2ScenarioTests(unittest.TestCase):
         self.assertIn("wait_gpu_idle", runner)
         self.assertIn("round_failed.current", runner)
 
+    def test_ablation_runner_binds_workload_axes_and_rejects_resume_drift(self) -> None:
+        script = PROJECT_ROOT / "scripts" / "run_faaslora_paper_ablation_round.sh"
+        runner_text = script.read_text(encoding="utf-8")
+        workload_axes = {
+            "FAASLORA_ZIPF_EXPONENT": "1.0",
+            "FAASLORA_ACTIVE_ADAPTER_CAP": "1",
+            "FAASLORA_HOTSET_ROTATION_REQUESTS": "500",
+            "FAASLORA_HOTSET_ROTATION_MODE": "legacy",
+            "FAASLORA_HOTSET_OVERLAP_FRACTION": "0.75",
+            "FAASLORA_TIME_SCALE_FACTOR": "8.0",
+        }
+        shell_variables = {
+            "FAASLORA_ZIPF_EXPONENT": "ZIPF_EXPONENT",
+            "FAASLORA_ACTIVE_ADAPTER_CAP": "ACTIVE_ADAPTER_CAP",
+            "FAASLORA_HOTSET_ROTATION_REQUESTS": "HOTSET_ROTATION_REQUESTS",
+            "FAASLORA_HOTSET_ROTATION_MODE": "HOTSET_ROTATION_MODE",
+            "FAASLORA_HOTSET_OVERLAP_FRACTION": "HOTSET_OVERLAP_FRACTION",
+            "FAASLORA_TIME_SCALE_FACTOR": "TIME_SCALE_FACTOR",
+        }
+        for env_name, shell_name in shell_variables.items():
+            self.assertIn(
+                f'export {env_name}="${{{shell_name}}}"', runner_text
+            )
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            trace_path = root / "trace.json"
+            subset_path = root / "subset.json"
+            round_dir = root / "round"
+            trace_payload = {
+                "model_profile": "test_model",
+                "dataset_profile": "test_dataset",
+                "workload_profile": "test_workload",
+                "selected_num_adapters": 1,
+                "sampling_seed": 42,
+                "configured_time_scale_factor": 8.0,
+                "effective_time_scale_factor": 8.0,
+                "load_profile": {
+                    "zipf_exponent": 1.0,
+                    "active_adapter_cap": 1,
+                    "hotset_rotation_requests": 500,
+                    "hotset_rotation_mode": "legacy",
+                    "hotset_overlap_fraction": 0.75,
+                    "configured_time_scale_factor": 8.0,
+                    "effective_time_scale_factor": 8.0,
+                },
+                "requests": [{"request_id": "r0", "adapter_id": "a0"}],
+            }
+            subset_payload = {
+                "model_profile": "test_model",
+                "dataset_profile": "test_dataset",
+                "workload_profile": "test_workload",
+                "selected_num_adapters": 1,
+                "sampling_seed": 42,
+                "adapters": [{"id": "a0"}],
+            }
+            trace_path.write_text(json.dumps(trace_payload), encoding="utf-8")
+            subset_path.write_text(json.dumps(subset_payload), encoding="utf-8")
+            env = {
+                **os.environ,
+                **workload_axes,
+                "FAASLORA_MAIN_REPO": str(PROJECT_ROOT),
+                "FAASLORA_PYTHON": sys.executable,
+                "FAASLORA_PAPER_ABLATION_CONFIG": str(EXPERIMENTS_CONFIG),
+                "FAASLORA_PROFILE_MODEL": "test_model",
+                "FAASLORA_PROFILE_DATASET": "test_dataset",
+                "FAASLORA_PROFILE_WORKLOAD": "test_workload",
+                "FAASLORA_TOTAL_REQUESTS": "1",
+                "FAASLORA_SELECTED_NUM_ADAPTERS": "1",
+                "FAASLORA_SAMPLING_SEED": "42",
+                "FAASLORA_SHARED_TRACE_PATH": str(trace_path),
+                "FAASLORA_SHARED_ADAPTER_SUBSET_PATH": str(subset_path),
+                "FAASLORA_PAPER_ABLATION_RUN_TAG": "axis_binding_smoke",
+                "FAASLORA_PAPER_ABLATION_ROUND_DIR": str(round_dir),
+                "FAASLORA_PAPER_ABLATION_SCENARIOS": "v2_full",
+                "FAASLORA_PAPER_ABLATION_DRY_RUN": "1",
+                "FAASLORA_PAPER_ABLATION_FORMAL": "0",
+                "FAASLORA_TRACE_ROLE": "smoke",
+                "FAASLORA_PAPER_ABLATION_REQUIRE_GPU_IDLE": "0",
+                "FAASLORA_PAPER_ABLATION_KILL_KNOWN_GPU_RESIDUALS": "0",
+                "FAASLORA_PAPER_ABLATION_REQUIRE_FEATURE_TRIGGER": "0",
+                "VLLM_LOGGING_LEVEL": "ERROR",
+                "FAASLORA_PAPER_ABLATION_VALIDATION_REGISTRY": str(
+                    root / "validation_registry.json"
+                ),
+            }
+            first = subprocess.run(
+                ["bash", str(script)],
+                env=env,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+
+            frozen_env = (round_dir / "round.env").read_text(encoding="utf-8")
+            for name, value in workload_axes.items():
+                self.assertIn(f"export {name}={value}", frozen_env)
+            manifest = json.loads(
+                (round_dir / "MANIFEST.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(
+                manifest["workload_axes"],
+                {
+                    "zipf_exponent": 1.0,
+                    "active_adapter_cap": 1,
+                    "hotset_rotation_requests": 500,
+                    "hotset_rotation_mode": "legacy",
+                    "hotset_overlap_fraction": 0.75,
+                    "time_scale_factor": 8.0,
+                },
+            )
+            self.assertEqual(manifest["shared_trace"]["zipf_exponent"], 1.0)
+            self.assertEqual(manifest["shared_trace"]["active_adapter_cap"], 1)
+            self.assertEqual(
+                manifest["shared_trace"]["hotset_rotation_requests"], 500
+            )
+            self.assertEqual(
+                manifest["shared_trace"]["hotset_rotation_mode"], "legacy"
+            )
+            self.assertEqual(
+                manifest["shared_trace"]["hotset_overlap_fraction"], 0.75
+            )
+            self.assertEqual(
+                manifest["shared_trace"]["configured_time_scale_factor"], 8.0
+            )
+            self.assertEqual(
+                manifest["shared_trace"]["effective_time_scale_factor"], 8.0
+            )
+
+            trace_payload["load_profile"]["zipf_exponent"] = 1.4
+            trace_path.write_text(json.dumps(trace_payload), encoding="utf-8")
+            drift = subprocess.run(
+                ["bash", str(script)],
+                env={**env, "FAASLORA_ZIPF_EXPONENT": "1.4"},
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertNotEqual(drift.returncode, 0)
+            self.assertIn("frozen round mismatch for ZIPF_EXPONENT", drift.stdout)
+
     def test_ablation_system_hash_excludes_workload_sensitivity_axes(self) -> None:
         runner = (PROJECT_ROOT / "scripts" / "run_faaslora_paper_ablation_round.sh").read_text(
             encoding="utf-8"
@@ -82,9 +225,11 @@ class RevisionV2ScenarioTests(unittest.TestCase):
         for workload_axis in (
             "FAASLORA_STORAGE_BANDWIDTH_MIB_S",
             "FAASLORA_ZIPF_EXPONENT",
+            "FAASLORA_ACTIVE_ADAPTER_CAP",
             "FAASLORA_HOTSET_ROTATION_REQUESTS",
             "FAASLORA_HOTSET_ROTATION_MODE",
             "FAASLORA_HOTSET_OVERLAP_FRACTION",
+            "FAASLORA_TIME_SCALE_FACTOR",
             "FAASLORA_MULTI_CYCLE_PHASES",
             "FAASLORA_IDLE_BETWEEN_PHASES_S",
         ):

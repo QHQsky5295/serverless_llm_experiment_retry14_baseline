@@ -14,6 +14,12 @@ TOTAL_REQUESTS="${FAASLORA_TOTAL_REQUESTS:-4000}"
 SELECTED_NUM_ADAPTERS="${FAASLORA_SELECTED_NUM_ADAPTERS:-500}"
 SAMPLING_SEED="${FAASLORA_SAMPLING_SEED:-42}"
 STORAGE_BANDWIDTH_MIB_S="${FAASLORA_STORAGE_BANDWIDTH_MIB_S:-250}"
+ZIPF_EXPONENT="${FAASLORA_ZIPF_EXPONENT:-1.0}"
+ACTIVE_ADAPTER_CAP="${FAASLORA_ACTIVE_ADAPTER_CAP:-48}"
+HOTSET_ROTATION_REQUESTS="${FAASLORA_HOTSET_ROTATION_REQUESTS:-500}"
+HOTSET_ROTATION_MODE="$(printf '%s' "${FAASLORA_HOTSET_ROTATION_MODE:-legacy}" | tr '[:upper:]' '[:lower:]')"
+HOTSET_OVERLAP_FRACTION="${FAASLORA_HOTSET_OVERLAP_FRACTION:-0.75}"
+TIME_SCALE_FACTOR="${FAASLORA_TIME_SCALE_FACTOR:-8.0}"
 
 SOURCE_RUN_TAG="${FAASLORA_SOURCE_RUN_TAG:-llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1}"
 SOURCE_ROUND_DIR="${FAASLORA_SOURCE_ROUND_DIR:-${BASELINES_ROOT}/results/paper_experiments/03_main_comparison/20260424_104050_${SOURCE_RUN_TAG}}"
@@ -165,8 +171,12 @@ wait_gpu_idle() {
 }
 
 validate_shared_artifacts() {
-  "${PYTHON_BIN}" - "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" "${SAMPLING_SEED}" <<'PY'
+  "${PYTHON_BIN}" - "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" "${SAMPLING_SEED}" \
+    "${ZIPF_EXPONENT}" "${ACTIVE_ADAPTER_CAP}" "${HOTSET_ROTATION_REQUESTS}" \
+    "${HOTSET_ROTATION_MODE}" "${HOTSET_OVERLAP_FRACTION}" "${TIME_SCALE_FACTOR}" \
+    "${FORMAL_RUN}" <<'PY'
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -176,6 +186,13 @@ model_profile, dataset_profile, workload_profile = sys.argv[3:6]
 total_requests = int(sys.argv[6])
 selected_num_adapters = int(sys.argv[7])
 sampling_seed = int(sys.argv[8])
+zipf_exponent = float(sys.argv[9])
+active_adapter_cap = int(sys.argv[10])
+hotset_rotation_requests = int(sys.argv[11])
+hotset_rotation_mode = sys.argv[12].strip().lower()
+hotset_overlap_fraction = float(sys.argv[13])
+time_scale_factor = float(sys.argv[14])
+formal_run = sys.argv[15] == "1"
 
 if not trace_path.exists():
     raise SystemExit(f"shared trace artifact not found: {trace_path}")
@@ -205,6 +222,77 @@ if int(trace.get("sampling_seed", -1)) != sampling_seed:
     raise SystemExit("trace sampling_seed mismatch")
 if int(subset.get("sampling_seed", -1)) != sampling_seed:
     raise SystemExit("subset sampling_seed mismatch")
+
+load_profile = trace.get("load_profile") or {}
+
+def require_float(field, expected, *, root_field=None):
+    values = [(f"load_profile.{field}", load_profile.get(field))]
+    if root_field:
+        values.append((root_field, trace.get(root_field)))
+    present = [(name, value) for name, value in values if value is not None]
+    if not present:
+        raise SystemExit(f"shared trace missing workload axis {field}")
+    for name, value in present:
+        if not math.isclose(float(value), expected, rel_tol=0.0, abs_tol=1e-9):
+            raise SystemExit(
+                f"shared trace {name} mismatch: expected {expected}, got {value}"
+            )
+
+def require_int(field, expected):
+    value = load_profile.get(field)
+    if value is None:
+        raise SystemExit(f"shared trace missing workload axis {field}")
+    if int(value) != expected:
+        raise SystemExit(
+            f"shared trace {field} mismatch: expected {expected}, got {value}"
+        )
+
+require_float("zipf_exponent", zipf_exponent)
+require_int("active_adapter_cap", active_adapter_cap)
+require_int("hotset_rotation_requests", hotset_rotation_requests)
+require_float(
+    "configured_time_scale_factor",
+    time_scale_factor,
+    root_field="configured_time_scale_factor",
+)
+require_float(
+    "effective_time_scale_factor",
+    time_scale_factor,
+    root_field="effective_time_scale_factor",
+)
+
+trace_rotation_mode = load_profile.get("hotset_rotation_mode")
+trace_overlap = load_profile.get("hotset_overlap_fraction")
+# Old non-formal compatibility traces predate these two explicit fields. Their
+# generator semantics were exactly legacy/0.75; formal V2 traces must record
+# both axes rather than relying on that inference.
+if trace_rotation_mode is None or trace_overlap is None:
+    if formal_run:
+        missing = [
+            name
+            for name, value in (
+                ("hotset_rotation_mode", trace_rotation_mode),
+                ("hotset_overlap_fraction", trace_overlap),
+            )
+            if value is None
+        ]
+        raise SystemExit(
+            "formal shared trace missing workload axes: " + ", ".join(missing)
+        )
+    trace_rotation_mode = trace_rotation_mode or "legacy"
+    trace_overlap = 0.75 if trace_overlap is None else trace_overlap
+if str(trace_rotation_mode).strip().lower() != hotset_rotation_mode:
+    raise SystemExit(
+        "shared trace hotset_rotation_mode mismatch: "
+        f"expected {hotset_rotation_mode}, got {trace_rotation_mode}"
+    )
+if not math.isclose(
+    float(trace_overlap), hotset_overlap_fraction, rel_tol=0.0, abs_tol=1e-9
+):
+    raise SystemExit(
+        "shared trace hotset_overlap_fraction mismatch: "
+        f"expected {hotset_overlap_fraction}, got {trace_overlap}"
+    )
 
 subset_ids = {str(item["id"]) for item in subset.get("adapters", []) if "id" in item}
 if len(subset_ids) != selected_num_adapters:
@@ -451,7 +539,10 @@ validate_result_json() {
     "${REQUIRE_FEATURE_TRIGGER}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" \
     "${RUN_TAG}_${scenario}" "${STORAGE_BANDWIDTH_MIB_S}" \
     "${resolved_config_sha}" "${TRACE_ROLE}" "${FORMAL_RUN}" \
-    "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}" "${SAMPLING_SEED}" <<'PY'
+    "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}" "${SAMPLING_SEED}" \
+    "${ZIPF_EXPONENT}" "${ACTIVE_ADAPTER_CAP}" "${HOTSET_ROTATION_REQUESTS}" \
+    "${HOTSET_ROTATION_MODE}" "${HOTSET_OVERLAP_FRACTION}" \
+    "${TIME_SCALE_FACTOR}" <<'PY'
 import hashlib
 import json
 import math
@@ -471,6 +562,12 @@ expected_trace_role = sys.argv[10]
 expected_formal = sys.argv[11] == "1"
 expected_non_feature_sha = sys.argv[12].strip().lower()
 expected_generation_seed = int(sys.argv[13])
+expected_zipf_exponent = float(sys.argv[14])
+expected_active_adapter_cap = int(sys.argv[15])
+expected_hotset_rotation_requests = int(sys.argv[16])
+expected_hotset_rotation_mode = sys.argv[17].strip().lower()
+expected_hotset_overlap_fraction = float(sys.argv[18])
+expected_time_scale_factor = float(sys.argv[19])
 obj = json.loads(path.read_text(encoding="utf-8"))
 
 def sha256(candidate):
@@ -526,6 +623,81 @@ if not math.isclose(
     abs_tol=1e-9,
 ):
     raise SystemExit(f"{path}: aggregate bandwidth metadata mismatch")
+
+def require_metadata_float(field, expected):
+    value = metadata.get(field)
+    if value is None or not math.isclose(
+        float(value), expected, rel_tol=0.0, abs_tol=1e-9
+    ):
+        raise SystemExit(
+            f"{path}: workload axis {field} mismatch: "
+            f"expected={expected} actual={value!r}"
+        )
+
+def require_metadata_int(field, expected):
+    value = metadata.get(field)
+    if value is None or int(value) != expected:
+        raise SystemExit(
+            f"{path}: workload axis {field} mismatch: "
+            f"expected={expected} actual={value!r}"
+        )
+
+require_metadata_float("zipf_exponent", expected_zipf_exponent)
+require_metadata_int("active_adapter_cap", expected_active_adapter_cap)
+require_metadata_int("hotset_rotation_requests", expected_hotset_rotation_requests)
+require_metadata_float(
+    "hotset_overlap_fraction", expected_hotset_overlap_fraction
+)
+require_metadata_float(
+    "configured_time_scale_factor", expected_time_scale_factor
+)
+require_metadata_float("effective_time_scale_factor", expected_time_scale_factor)
+if str(metadata.get("hotset_rotation_mode") or "").strip().lower() != expected_hotset_rotation_mode:
+    raise SystemExit(
+        f"{path}: workload axis hotset_rotation_mode mismatch: "
+        f"expected={expected_hotset_rotation_mode!r} "
+        f"actual={metadata.get('hotset_rotation_mode')!r}"
+    )
+
+shared_load_profile = metadata.get("shared_trace_load_profile") or {}
+for field, expected in (
+    ("zipf_exponent", expected_zipf_exponent),
+    ("hotset_overlap_fraction", expected_hotset_overlap_fraction),
+):
+    value = shared_load_profile.get(field)
+    if value is None or not math.isclose(
+        float(value), expected, rel_tol=0.0, abs_tol=1e-9
+    ):
+        raise SystemExit(
+            f"{path}: shared-trace workload axis {field} mismatch: "
+            f"expected={expected} actual={value!r}"
+        )
+for field, expected in (
+    ("active_adapter_cap", expected_active_adapter_cap),
+    ("hotset_rotation_requests", expected_hotset_rotation_requests),
+):
+    value = shared_load_profile.get(field)
+    if value is None or int(value) != expected:
+        raise SystemExit(
+            f"{path}: shared-trace workload axis {field} mismatch: "
+            f"expected={expected} actual={value!r}"
+        )
+if str(shared_load_profile.get("hotset_rotation_mode") or "").strip().lower() != expected_hotset_rotation_mode:
+    raise SystemExit(
+        f"{path}: shared-trace workload axis hotset_rotation_mode mismatch"
+    )
+for field in (
+    "shared_trace_configured_time_scale_factor",
+    "shared_trace_effective_time_scale_factor",
+):
+    value = metadata.get(field)
+    if value is None or not math.isclose(
+        float(value), expected_time_scale_factor, rel_tol=0.0, abs_tol=1e-9
+    ):
+        raise SystemExit(
+            f"{path}: {field} mismatch: "
+            f"expected={expected_time_scale_factor} actual={value!r}"
+        )
 
 schema = obj.get("metric_schema_version")
 if schema != "e2e_v3":
@@ -752,6 +924,12 @@ write_round_env() {
     printf 'export FAASLORA_SELECTED_NUM_ADAPTERS=%q\n' "${SELECTED_NUM_ADAPTERS}"
     printf 'export FAASLORA_SAMPLING_SEED=%q\n' "${SAMPLING_SEED}"
     printf 'export FAASLORA_STORAGE_BANDWIDTH_MIB_S=%q\n' "${STORAGE_BANDWIDTH_MIB_S}"
+    printf 'export FAASLORA_ZIPF_EXPONENT=%q\n' "${ZIPF_EXPONENT}"
+    printf 'export FAASLORA_ACTIVE_ADAPTER_CAP=%q\n' "${ACTIVE_ADAPTER_CAP}"
+    printf 'export FAASLORA_HOTSET_ROTATION_REQUESTS=%q\n' "${HOTSET_ROTATION_REQUESTS}"
+    printf 'export FAASLORA_HOTSET_ROTATION_MODE=%q\n' "${HOTSET_ROTATION_MODE}"
+    printf 'export FAASLORA_HOTSET_OVERLAP_FRACTION=%q\n' "${HOTSET_OVERLAP_FRACTION}"
+    printf 'export FAASLORA_TIME_SCALE_FACTOR=%q\n' "${TIME_SCALE_FACTOR}"
     printf 'export FAASLORA_SOURCE_ROUND_DIR=%q\n' "${SOURCE_ROUND_DIR}"
     printf 'export FAASLORA_SOURCE_RUN_TAG=%q\n' "${SOURCE_RUN_TAG}"
     printf 'export FAASLORA_SHARED_TRACE_PATH=%q\n' "${TRACE_PATH}"
@@ -786,6 +964,12 @@ validate_or_write_round_env() {
           "${FAASLORA_SELECTED_NUM_ADAPTERS:-}" \
           "${FAASLORA_SAMPLING_SEED:-}" \
           "${FAASLORA_STORAGE_BANDWIDTH_MIB_S:-}" \
+          "${FAASLORA_ZIPF_EXPONENT:-}" \
+          "${FAASLORA_ACTIVE_ADAPTER_CAP:-}" \
+          "${FAASLORA_HOTSET_ROTATION_REQUESTS:-}" \
+          "${FAASLORA_HOTSET_ROTATION_MODE:-}" \
+          "${FAASLORA_HOTSET_OVERLAP_FRACTION:-}" \
+          "${FAASLORA_TIME_SCALE_FACTOR:-}" \
           "${FAASLORA_SHARED_TRACE_PATH:-}" \
           "${FAASLORA_SHARED_ADAPTER_SUBSET_PATH:-}" \
           "${FAASLORA_PAPER_ABLATION_SCENARIOS:-}" \
@@ -802,8 +986,10 @@ validate_or_write_round_env() {
     )
     local names=(
       RUN_TAG MODEL_PROFILE DATASET_PROFILE WORKLOAD_PROFILE TOTAL_REQUESTS
-      SELECTED_NUM_ADAPTERS SAMPLING_SEED STORAGE_BANDWIDTH_MIB_S TRACE_PATH
-      ADAPTER_SUBSET_PATH SCENARIOS
+      SELECTED_NUM_ADAPTERS SAMPLING_SEED STORAGE_BANDWIDTH_MIB_S
+      ZIPF_EXPONENT ACTIVE_ADAPTER_CAP HOTSET_ROTATION_REQUESTS
+      HOTSET_ROTATION_MODE HOTSET_OVERLAP_FRACTION TIME_SCALE_FACTOR
+      TRACE_PATH ADAPTER_SUBSET_PATH SCENARIOS
       FORMAL_RUN TRACE_ROLE
       EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256
       VALIDATION_REGISTRY
@@ -813,7 +999,10 @@ validate_or_write_round_env() {
     local current=(
       "${RUN_TAG}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}"
       "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" "${SAMPLING_SEED}"
-      "${STORAGE_BANDWIDTH_MIB_S}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}"
+      "${STORAGE_BANDWIDTH_MIB_S}" "${ZIPF_EXPONENT}" "${ACTIVE_ADAPTER_CAP}"
+      "${HOTSET_ROTATION_REQUESTS}" "${HOTSET_ROTATION_MODE}"
+      "${HOTSET_OVERLAP_FRACTION}" "${TIME_SCALE_FACTOR}"
+      "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}"
       "${SCENARIOS_RAW}"
       "${FORMAL_RUN}" "${TRACE_ROLE}"
       "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}"
@@ -862,7 +1051,13 @@ write_manifest() {
     "${REQUIRE_FEATURE_TRIGGER}" \
     "${MULTI_CYCLE_PHASES}" \
     "${IDLE_BETWEEN_PHASES_S}" \
-    "${TUNING_ENV_SHA256}" <<'PY'
+    "${TUNING_ENV_SHA256}" \
+    "${ZIPF_EXPONENT}" \
+    "${ACTIVE_ADAPTER_CAP}" \
+    "${HOTSET_ROTATION_REQUESTS}" \
+    "${HOTSET_ROTATION_MODE}" \
+    "${HOTSET_OVERLAP_FRACTION}" \
+    "${TIME_SCALE_FACTOR}" <<'PY'
 import csv
 import hashlib
 import json
@@ -897,6 +1092,12 @@ require_feature_trigger = sys.argv[24] == "1"
 multi_cycle_phases = int(sys.argv[25]) if sys.argv[25] else None
 idle_between_phases_s = float(sys.argv[26]) if sys.argv[26] else None
 tuning_env_sha256 = sys.argv[27]
+zipf_exponent = float(sys.argv[28])
+active_adapter_cap = int(sys.argv[29])
+hotset_rotation_requests = int(sys.argv[30])
+hotset_rotation_mode = sys.argv[31].strip().lower()
+hotset_overlap_fraction = float(sys.argv[32])
+time_scale_factor = float(sys.argv[33])
 raw_dir = round_dir / "raw" / "faaslora"
 
 def sha256(path: Path) -> str:
@@ -1002,6 +1203,7 @@ def build_consistency_audit(entries):
 
 trace_payload = json.loads(trace_path.read_text(encoding="utf-8"))
 subset_payload = json.loads(subset_path.read_text(encoding="utf-8"))
+trace_load_profile = trace_payload.get("load_profile") or {}
 entries = []
 csv_rows = []
 for scenario in scenarios:
@@ -1157,6 +1359,19 @@ manifest = {
             or (trace_payload.get("load_profile") or {}).get("active_adapter_cap"),
         "hotset_rotation_requests": trace_payload.get("hotset_rotation_requests")
             or (trace_payload.get("load_profile") or {}).get("hotset_rotation_requests"),
+        "zipf_exponent": trace_load_profile.get("zipf_exponent"),
+        "hotset_rotation_mode": trace_load_profile.get("hotset_rotation_mode"),
+        "hotset_overlap_fraction": trace_load_profile.get(
+            "hotset_overlap_fraction"
+        ),
+        "configured_time_scale_factor": trace_payload.get(
+            "configured_time_scale_factor",
+            trace_load_profile.get("configured_time_scale_factor"),
+        ),
+        "effective_time_scale_factor": trace_payload.get(
+            "effective_time_scale_factor",
+            trace_load_profile.get("effective_time_scale_factor"),
+        ),
     },
     "shared_adapter_subset": {
         "path": str(subset_path),
@@ -1167,6 +1382,14 @@ manifest = {
     },
     "scenarios": scenarios,
     "bandwidth_mib_s": bandwidth_mib_s,
+    "workload_axes": {
+        "zipf_exponent": zipf_exponent,
+        "active_adapter_cap": active_adapter_cap,
+        "hotset_rotation_requests": hotset_rotation_requests,
+        "hotset_rotation_mode": hotset_rotation_mode,
+        "hotset_overlap_fraction": hotset_overlap_fraction,
+        "time_scale_factor": time_scale_factor,
+    },
     "mechanism_trigger_gate_required": require_feature_trigger,
     "multi_cycle_phases": multi_cycle_phases,
     "idle_between_phases_s": idle_between_phases_s,
@@ -1329,6 +1552,12 @@ for scenario in "${SCENARIOS[@]}"; do
     export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${ADAPTER_SUBSET_PATH}"
     export FAASLORA_RESULTS_TAG="${result_tag}"
     export FAASLORA_STORAGE_BANDWIDTH_MIB_S="${STORAGE_BANDWIDTH_MIB_S}"
+    export FAASLORA_ZIPF_EXPONENT="${ZIPF_EXPONENT}"
+    export FAASLORA_ACTIVE_ADAPTER_CAP="${ACTIVE_ADAPTER_CAP}"
+    export FAASLORA_HOTSET_ROTATION_REQUESTS="${HOTSET_ROTATION_REQUESTS}"
+    export FAASLORA_HOTSET_ROTATION_MODE="${HOTSET_ROTATION_MODE}"
+    export FAASLORA_HOTSET_OVERLAP_FRACTION="${HOTSET_OVERLAP_FRACTION}"
+    export FAASLORA_TIME_SCALE_FACTOR="${TIME_SCALE_FACTOR}"
     export FAASLORA_NVME_CACHE_DIR="${ROUND_DIR}/cache/nvme"
     export FAASLORA_HOST_CACHE_DIR="/dev/shm/faaslora_eurosys27_v2/${RUN_TAG}"
     export FAASLORA_SYSTEM_RESOLVED_CONFIG_SHA256="$(
