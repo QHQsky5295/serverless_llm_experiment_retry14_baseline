@@ -91,8 +91,11 @@ V2 解释以投稿论文的设计目标为起点，但不把设计目标自动�
 Standalone A2/A3 消融运行器把成功的 seed41 `v2_full` validation manifest
 登记到 family-scoped、加锁原子写入的 registry。登记前会核对 source commit、配置文件
 SHA、1,000-request trace、场景集合和 non-feature frozen hash；held-out 启动前必须从
-registry 解析唯一候选（多候选时要求显式选定），随后把 per-round immutable evidence
-写入 `protocol/seed41_validation_evidence.json`。已冻结 family 不能切换 hash。formal
+registry 解析唯一候选，随后把 per-round immutable evidence 写入
+`protocol/seed41_validation_evidence.json`。每个 family 的第一个成功正式 seed41 manifest
+即为唯一选定记录；第二个不同 hash（或不同 manifest）的正式 validation 会被拒绝。
+所有候选调参只能使用 non-formal scratch rounds/registry，不能在看到多个正式 seed41
+结果后再选择。已冻结 family 不能切换 hash。formal
 analyzer 会再次核对 evidence、seed41 manifest、validation 原始结果及其 byte/SHA，
 不会只信 held-out manifest 的摘要。该链只冻结非机制配置；四行机制 gate 仍由场景定义
 和触发计数独立审计。
