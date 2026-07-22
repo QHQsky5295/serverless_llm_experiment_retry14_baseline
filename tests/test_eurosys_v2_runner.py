@@ -57,6 +57,40 @@ class RevisionV2ScenarioTests(unittest.TestCase):
             'export FAASLORA_GENERATION_SEED="${SAMPLING_SEED}"', runner
         )
 
+    def test_ablation_runner_freezes_resume_and_post_cleanup_contract(self) -> None:
+        runner = (PROJECT_ROOT / "scripts" / "run_faaslora_paper_ablation_round.sh").read_text(
+            encoding="utf-8"
+        )
+        for frozen_field in (
+            "FAASLORA_PAPER_ABLATION_GPU_IDS",
+            "FAASLORA_PAPER_ABLATION_REQUIRE_FEATURE_TRIGGER",
+            "FAASLORA_MULTI_CYCLE_PHASES",
+            "FAASLORA_IDLE_BETWEEN_PHASES_S",
+            "FAASLORA_V2_TUNING_ENV_SHA256",
+        ):
+            self.assertIn(frozen_field, runner)
+        self.assertIn("trap cleanup_on_round_exit EXIT", runner)
+        self.assertIn("kill_known_gpu_residuals", runner)
+        self.assertIn("wait_gpu_idle", runner)
+        self.assertIn("round_failed.current", runner)
+
+    def test_ablation_system_hash_excludes_workload_sensitivity_axes(self) -> None:
+        runner = (PROJECT_ROOT / "scripts" / "run_faaslora_paper_ablation_round.sh").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('"schema": "faaslora_system_resolved_config_v2"', runner)
+        for workload_axis in (
+            "FAASLORA_STORAGE_BANDWIDTH_MIB_S",
+            "FAASLORA_ZIPF_EXPONENT",
+            "FAASLORA_HOTSET_ROTATION_REQUESTS",
+            "FAASLORA_HOTSET_ROTATION_MODE",
+            "FAASLORA_HOTSET_OVERLAP_FRACTION",
+            "FAASLORA_MULTI_CYCLE_PHASES",
+            "FAASLORA_IDLE_BETWEEN_PHASES_S",
+        ):
+            self.assertIn(f'"{workload_axis}"', runner)
+        self.assertIn('"tuning_env_sha256": sys.argv[6]', runner)
+
     def test_formal_provenance_accepts_validation_and_heldout_only(self) -> None:
         digest = "a" * 64
         for role in ("validation", "heldout"):

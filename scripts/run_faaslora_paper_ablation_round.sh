@@ -31,6 +31,8 @@ SCENARIOS_RAW="${FAASLORA_PAPER_ABLATION_SCENARIOS:-v2_elastic_only v2_hit_aware
 FORCE_RERUN="${FAASLORA_PAPER_ABLATION_FORCE:-0}"
 GPU_IDS="${FAASLORA_PAPER_ABLATION_GPU_IDS:-0,1,2,3}"
 REQUIRE_GPU_IDLE="${FAASLORA_PAPER_ABLATION_REQUIRE_GPU_IDLE:-1}"
+KILL_KNOWN_GPU_RESIDUALS="${FAASLORA_PAPER_ABLATION_KILL_KNOWN_GPU_RESIDUALS:-1}"
+CLEANUP_TIMEOUT_S="${FAASLORA_PAPER_ABLATION_CLEANUP_TIMEOUT_S:-180}"
 DRY_RUN="${FAASLORA_PAPER_ABLATION_DRY_RUN:-0}"
 ALLOW_INTERNAL_BASELINES="${FAASLORA_PAPER_ABLATION_ALLOW_INTERNAL_BASELINES:-0}"
 REQUIRE_FEATURE_TRIGGER="${FAASLORA_PAPER_ABLATION_REQUIRE_FEATURE_TRIGGER:-1}"
@@ -40,6 +42,9 @@ EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256="${FAASLORA_EXPECTED_NON_FEATURE_FROZE
 VALIDATION_REGISTRY="${FAASLORA_PAPER_ABLATION_VALIDATION_REGISTRY:-${ROUND_ROOT}/_protocol/non_feature_validation_registry.json}"
 VALIDATION_EVIDENCE_PATH="${ROUND_DIR}/protocol/seed41_validation_evidence.json"
 VALIDATION_REGISTRY_TOOL="${MAIN_REPO}/scripts/faaslora_ablation_validation_registry.py"
+MULTI_CYCLE_PHASES="${FAASLORA_MULTI_CYCLE_PHASES:-}"
+IDLE_BETWEEN_PHASES_S="${FAASLORA_IDLE_BETWEEN_PHASES_S:-}"
+TUNING_ENV_SHA256=""
 
 if [[ "${TRACE_ROLE}" == "auto" ]]; then
   case "${SAMPLING_SEED}" in
@@ -111,6 +116,52 @@ check_gpu_idle() {
   done
   log "Stop unrelated GPU jobs first, or set FAASLORA_PAPER_ABLATION_REQUIRE_GPU_IDLE=0 if this is intentional."
   return 1
+}
+
+kill_known_gpu_residuals() {
+  if [[ "${KILL_KNOWN_GPU_RESIDUALS}" != "1" ]]; then
+    return 0
+  fi
+  local pids=()
+  local pid=""
+  mapfile -t pids < <(gpu_residual_pids "${GPU_IDS}" || true)
+  for pid in "${pids[@]}"; do
+    [[ -z "${pid}" ]] && continue
+    local cmd=""
+    cmd="$(ps -p "${pid}" -o args= 2>/dev/null || true)"
+    case "${cmd}" in
+      *serverless_llm_experiment_retry14_baseline*|*faaslora*|*dedicated_engine_worker*)
+        log "cleaning known FaaSLoRA GPU residual pid=${pid}"
+        kill "${pid}" 2>/dev/null || true
+        ;;
+      *)
+        log "leaving non-round GPU process untouched pid=${pid} cmd=${cmd}"
+        ;;
+    esac
+  done
+}
+
+wait_gpu_idle() {
+  if [[ "${REQUIRE_GPU_IDLE}" != "1" ]]; then
+    return 0
+  fi
+  local deadline=$((SECONDS + CLEANUP_TIMEOUT_S))
+  local pids=()
+  while true; do
+    mapfile -t pids < <(gpu_residual_pids "${GPU_IDS}" || true)
+    if (( ${#pids[@]} == 0 )); then
+      log "GPU post-clean gate passed for ids=${GPU_IDS}"
+      return 0
+    fi
+    if (( SECONDS >= deadline )); then
+      log "[ERROR] GPU processes remain after cleanup timeout ids=${GPU_IDS} pids=${pids[*]}"
+      for pid in "${pids[@]}"; do
+        ps -fp "${pid}" || true
+      done
+      return 1
+    fi
+    sleep 3
+  done
 }
 
 validate_shared_artifacts() {
@@ -301,16 +352,73 @@ register_successful_validation_if_complete() {
     --generation-contract legacy
 }
 
+faaslora_tuning_env_sha256() {
+  "${PYTHON_BIN}" - <<'PY'
+import hashlib
+import json
+import os
+
+# These fields identify the trace, sensitivity point, output location, or
+# protocol role.  They belong to the full-run identity, not to the frozen
+# system tuning configuration shared across bandwidth/workload points.
+excluded_exact = {
+    "FAASLORA_RESULTS_TAG",
+    "FAASLORA_RUN_FROZEN_SETTINGS_SHA256",
+    "FAASLORA_SYSTEM_RESOLVED_CONFIG_SHA256",
+    "FAASLORA_EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256",
+    "FAASLORA_TRACE_ROLE",
+    "FAASLORA_FORMAL_RUN",
+    "FAASLORA_SAMPLING_SEED",
+    "FAASLORA_WORKLOAD_SEED",
+    "FAASLORA_GENERATION_SEED",
+    "FAASLORA_SHARED_TRACE_PATH",
+    "FAASLORA_SHARED_ADAPTER_SUBSET_PATH",
+    "FAASLORA_NVME_CACHE_DIR",
+    "FAASLORA_HOST_CACHE_DIR",
+    "FAASLORA_TOTAL_REQUESTS",
+    "FAASLORA_SELECTED_NUM_ADAPTERS",
+    "FAASLORA_STORAGE_BANDWIDTH_MIB_S",
+    "FAASLORA_STORAGE_BANDWIDTH_MBPS",
+    "FAASLORA_ZIPF_EXPONENT",
+    "FAASLORA_ACTIVE_ADAPTER_CAP",
+    "FAASLORA_HOTSET_ROTATION_REQUESTS",
+    "FAASLORA_HOTSET_ROTATION_MODE",
+    "FAASLORA_HOTSET_OVERLAP_FRACTION",
+    "FAASLORA_MULTI_CYCLE_PHASES",
+    "FAASLORA_IDLE_BETWEEN_PHASES_S",
+    "FAASLORA_GENERATION_CONTRACT",
+    "FAASLORA_FIXED_OUTPUT_MAX_TOKENS",
+    "FAASLORA_FIXED_PROMPT_MAX_TOKENS",
+    "FAASLORA_TIME_SCALE_FACTOR",
+    "FAASLORA_PROFILE_DATASET",
+    "FAASLORA_PROFILE_WORKLOAD",
+    "FAASLORA_V2_TUNING_ENV_SHA256",
+}
+excluded_fragments = (
+    "RUN_TAG", "ROUND_DIR", "ROUND_ROOT", "ROUND_TIMESTAMP",
+    "SOURCE_ROUND", "SOURCE_RUN", "PAPER_ABLATION_ROOT",
+    "VALIDATION_REGISTRY", "DRY_RUN", "FORCE",
+)
+payload = {
+    key: value
+    for key, value in sorted(os.environ.items())
+    if key.startswith(("FAASLORA_", "VLLM_"))
+    and not key.startswith("FAASLORA_PAPER_ABLATION_")
+    and key not in excluded_exact
+    and not any(fragment in key for fragment in excluded_fragments)
+}
+canonical = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+print(hashlib.sha256(canonical).hexdigest())
+PY
+}
+
 faaslora_system_resolved_config_sha256() {
   local scenario="$1"
   "${PYTHON_BIN}" - \
     "${MAIN_REPO}" "${CONFIG_PATH}" "${scenario}" \
-    "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}" \
-    "${TOTAL_REQUESTS}" "${SELECTED_NUM_ADAPTERS}" \
-    "${STORAGE_BANDWIDTH_MIB_S}" "${GPU_IDS}" <<'PY'
+    "${MODEL_PROFILE}" "${GPU_IDS}" "${TUNING_ENV_SHA256}" <<'PY'
 import hashlib
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -320,43 +428,14 @@ config = Path(sys.argv[2])
 commit = subprocess.check_output(
     ["git", "-C", str(repo), "rev-parse", "HEAD"], text=True
 ).strip()
-excluded_exact = {
-    "FAASLORA_RESULTS_TAG",
-    "FAASLORA_RUN_FROZEN_SETTINGS_SHA256",
-    "FAASLORA_SYSTEM_RESOLVED_CONFIG_SHA256",
-    "FAASLORA_TRACE_ROLE",
-    "FAASLORA_FORMAL_RUN",
-    "FAASLORA_SAMPLING_SEED",
-    "FAASLORA_WORKLOAD_SEED",
-    "FAASLORA_SHARED_TRACE_PATH",
-    "FAASLORA_SHARED_ADAPTER_SUBSET_PATH",
-    "FAASLORA_NVME_CACHE_DIR",
-    "FAASLORA_HOST_CACHE_DIR",
-}
-excluded_fragments = (
-    "RUN_TAG", "ROUND_DIR", "ROUND_ROOT", "ROUND_TIMESTAMP",
-    "SOURCE_ROUND", "SOURCE_RUN", "PAPER_ABLATION_ROOT",
-)
-tuning_env = {
-    key: value
-    for key, value in sorted(os.environ.items())
-    if key.startswith(("FAASLORA_", "VLLM_"))
-    and key not in excluded_exact
-    and not any(fragment in key for fragment in excluded_fragments)
-}
 payload = {
-    "schema": "faaslora_resolved_config_v1",
+    "schema": "faaslora_system_resolved_config_v2",
     "source_commit": commit,
     "config_sha256": hashlib.sha256(config.read_bytes()).hexdigest(),
     "scenario": sys.argv[3],
     "model_profile": sys.argv[4],
-    "dataset_profile": sys.argv[5],
-    "workload_profile": sys.argv[6],
-    "total_requests": int(sys.argv[7]),
-    "selected_num_adapters": int(sys.argv[8]),
-    "bandwidth_mib_s": float(sys.argv[9]),
-    "gpu_ids": sys.argv[10],
-    "tuning_env": tuning_env,
+    "gpu_ids": sys.argv[5],
+    "tuning_env_sha256": sys.argv[6],
 }
 canonical = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
 print(hashlib.sha256(canonical).hexdigest())
@@ -683,6 +762,11 @@ write_round_env() {
     printf 'export FAASLORA_EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256=%q\n' "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}"
     printf 'export FAASLORA_PAPER_ABLATION_VALIDATION_REGISTRY=%q\n' "${VALIDATION_REGISTRY}"
     printf 'export FAASLORA_PAPER_ABLATION_CONFIG=%q\n' "${CONFIG_PATH}"
+    printf 'export FAASLORA_PAPER_ABLATION_GPU_IDS=%q\n' "${GPU_IDS}"
+    printf 'export FAASLORA_PAPER_ABLATION_REQUIRE_FEATURE_TRIGGER=%q\n' "${REQUIRE_FEATURE_TRIGGER}"
+    printf 'export FAASLORA_MULTI_CYCLE_PHASES=%q\n' "${MULTI_CYCLE_PHASES}"
+    printf 'export FAASLORA_IDLE_BETWEEN_PHASES_S=%q\n' "${IDLE_BETWEEN_PHASES_S}"
+    printf 'export FAASLORA_V2_TUNING_ENV_SHA256=%q\n' "${TUNING_ENV_SHA256}"
   } >"${ROUND_DIR}/round.env"
 }
 
@@ -708,7 +792,12 @@ validate_or_write_round_env() {
           "${FAASLORA_PAPER_ABLATION_FORMAL:-0}" \
           "${FAASLORA_TRACE_ROLE:-auto}" \
           "${FAASLORA_EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256:-}" \
-          "${FAASLORA_PAPER_ABLATION_VALIDATION_REGISTRY:-}"
+          "${FAASLORA_PAPER_ABLATION_VALIDATION_REGISTRY:-}" \
+          "${FAASLORA_PAPER_ABLATION_GPU_IDS:-}" \
+          "${FAASLORA_PAPER_ABLATION_REQUIRE_FEATURE_TRIGGER:-}" \
+          "${FAASLORA_MULTI_CYCLE_PHASES:-}" \
+          "${FAASLORA_IDLE_BETWEEN_PHASES_S:-}" \
+          "${FAASLORA_V2_TUNING_ENV_SHA256:-}"
       ' bash "${env_path}"
     )
     local names=(
@@ -718,6 +807,8 @@ validate_or_write_round_env() {
       FORMAL_RUN TRACE_ROLE
       EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256
       VALIDATION_REGISTRY
+      GPU_IDS REQUIRE_FEATURE_TRIGGER MULTI_CYCLE_PHASES IDLE_BETWEEN_PHASES_S
+      TUNING_ENV_SHA256
     )
     local current=(
       "${RUN_TAG}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}"
@@ -727,6 +818,8 @@ validate_or_write_round_env() {
       "${FORMAL_RUN}" "${TRACE_ROLE}"
       "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}"
       "${VALIDATION_REGISTRY}"
+      "${GPU_IDS}" "${REQUIRE_FEATURE_TRIGGER}" "${MULTI_CYCLE_PHASES}"
+      "${IDLE_BETWEEN_PHASES_S}" "${TUNING_ENV_SHA256}"
     )
     local i
     for i in "${!names[@]}"; do
@@ -765,7 +858,11 @@ write_manifest() {
     "${VALIDATION_EVIDENCE_PATH}" \
     "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}" \
     "${GPU_IDS}" \
-    "${SELECTED_NUM_ADAPTERS}" <<'PY'
+    "${SELECTED_NUM_ADAPTERS}" \
+    "${REQUIRE_FEATURE_TRIGGER}" \
+    "${MULTI_CYCLE_PHASES}" \
+    "${IDLE_BETWEEN_PHASES_S}" \
+    "${TUNING_ENV_SHA256}" <<'PY'
 import csv
 import hashlib
 import json
@@ -796,6 +893,10 @@ validation_evidence_path = Path(sys.argv[20]).resolve()
 expected_non_feature_hash = sys.argv[21].strip().lower()
 gpu_ids = [item.strip() for item in sys.argv[22].split(",") if item.strip()]
 selected_num_adapters = int(sys.argv[23])
+require_feature_trigger = sys.argv[24] == "1"
+multi_cycle_phases = int(sys.argv[25]) if sys.argv[25] else None
+idle_between_phases_s = float(sys.argv[26]) if sys.argv[26] else None
+tuning_env_sha256 = sys.argv[27]
 raw_dir = round_dir / "raw" / "faaslora"
 
 def sha256(path: Path) -> str:
@@ -951,9 +1052,10 @@ for row in tracked_status:
         unexpected_dirty.append(row)
 expected_state_markers = [f"scenario_{scenario}.done" for scenario in scenarios]
 actual_state_markers = sorted(path.name for path in (round_dir / "state").glob("*.done"))
+failure_marker = round_dir / "state" / "round_failed.current"
 campaign_complete = bool(entries) and all(entry.get("exists") for entry in entries) and all(
     marker in actual_state_markers for marker in expected_state_markers
-)
+) and not failure_marker.exists()
 v2_entries = [entry for entry in entries if str(entry.get("scenario", "")).startswith("v2_")]
 non_feature_hashes = {
     str(entry.get("non_feature_frozen_config_sha256") or "").lower()
@@ -1065,6 +1167,10 @@ manifest = {
     },
     "scenarios": scenarios,
     "bandwidth_mib_s": bandwidth_mib_s,
+    "mechanism_trigger_gate_required": require_feature_trigger,
+    "multi_cycle_phases": multi_cycle_phases,
+    "idle_between_phases_s": idle_between_phases_s,
+    "tuning_env_sha256": tuning_env_sha256,
     "non_feature_frozen_config_sha256": (
         next(iter(non_feature_hashes)) if non_feature_hash_consistent else None
     ),
@@ -1072,6 +1178,11 @@ manifest = {
     "entries": entries,
     "state_markers": actual_state_markers,
     "required_state_markers": expected_state_markers,
+    "runner_failure": (
+        failure_marker.read_text(encoding="utf-8").strip()
+        if failure_marker.is_file()
+        else None
+    ),
 }
 (round_dir / "MANIFEST.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
 audit = build_consistency_audit(entries)
@@ -1103,6 +1214,35 @@ print(round_dir / "MANIFEST.json")
 PY
 }
 
+ROUND_EXIT_CLEANUP_RUNNING=0
+cleanup_on_round_exit() {
+  local status=$?
+  if (( ROUND_EXIT_CLEANUP_RUNNING != 0 )); then
+    return "${status}"
+  fi
+  ROUND_EXIT_CLEANUP_RUNNING=1
+  trap - EXIT INT TERM HUP
+  set +e
+  if (( status != 0 )); then
+    printf 'exit_status=%s timestamp=%s\n' \
+      "${status}" "$(date --iso-8601=seconds)" >"${STATE_DIR}/round_failed.current"
+    if [[ -f "${TRACE_PATH}" && -f "${ADAPTER_SUBSET_PATH}" ]]; then
+      write_manifest >>"${LOG_DIR}/failure_manifest.log" 2>&1 || true
+    fi
+  fi
+  kill_known_gpu_residuals || true
+  wait_gpu_idle
+  local cleanup_status=$?
+  if (( status == 0 && cleanup_status != 0 )); then
+    status="${cleanup_status}"
+  fi
+  ROUND_EXIT_CLEANUP_RUNNING=0
+  exit "${status}"
+}
+trap cleanup_on_round_exit EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM HUP
+
 if [[ ! -x "${RUNNER}" ]]; then
   log "[ERROR] runner not found or not executable: ${RUNNER}"
   exit 1
@@ -1122,6 +1262,11 @@ fi
 
 validate_shared_artifacts
 read -r -a SCENARIOS <<< "${SCENARIOS_RAW}"
+TUNING_ENV_SHA256="$(faaslora_tuning_env_sha256)"
+if [[ ! "${TUNING_ENV_SHA256}" =~ ^[0-9a-f]{64}$ ]]; then
+  log "[ERROR] failed to resolve frozen tuning-environment digest"
+  exit 1
+fi
 validate_scenarios
 validate_source_and_seed_protocol
 validate_or_write_round_env
@@ -1134,6 +1279,10 @@ log "scenarios=${SCENARIOS[*]}"
 log "trace=${TRACE_PATH}"
 log "adapter_subset=${ADAPTER_SUBSET_PATH}"
 log "trace_role=${TRACE_ROLE} formal=${FORMAL_RUN}"
+
+# A retry preserves the earlier incomplete MANIFEST/logs but starts with a
+# fresh current-attempt failure marker.
+rm -f "${STATE_DIR}/round_failed.current"
 
 if [[ "${DRY_RUN}" == "1" ]]; then
   for scenario in "${SCENARIOS[@]}"; do
@@ -1188,6 +1337,12 @@ for scenario in "${SCENARIOS[@]}"; do
     export FAASLORA_EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256="${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}"
     export FAASLORA_TRACE_ROLE="${TRACE_ROLE}"
     export FAASLORA_FORMAL_RUN="${FORMAL_RUN}"
+    if [[ -n "${MULTI_CYCLE_PHASES}" ]]; then
+      export FAASLORA_MULTI_CYCLE_PHASES="${MULTI_CYCLE_PHASES}"
+    fi
+    if [[ -n "${IDLE_BETWEEN_PHASES_S}" ]]; then
+      export FAASLORA_IDLE_BETWEEN_PHASES_S="${IDLE_BETWEEN_PHASES_S}"
+    fi
     export PYTHONUNBUFFERED=1
     cd "${MAIN_REPO}"
     run_logged "${stage}" "${RUNNER}" \
@@ -1199,6 +1354,9 @@ for scenario in "${SCENARIOS[@]}"; do
       --workload-profile "${WORKLOAD_PROFILE}" \
       --num-adapters "${SELECTED_NUM_ADAPTERS}"
   )
+
+  kill_known_gpu_residuals
+  wait_gpu_idle
 
   result_path="$(find_result_json "${scenario}" "${result_tag}")"
   if [[ -z "${result_path}" || ! -f "${result_path}" ]]; then
@@ -1212,6 +1370,7 @@ for scenario in "${SCENARIOS[@]}"; do
   log "stage=${stage} done result=${copied_result}"
 done
 
+rm -f "${STATE_DIR}/round_failed.current"
 write_manifest
 register_successful_validation_if_complete
 log "FaaSLoRA paper ablation round complete: ${ROUND_DIR}"
