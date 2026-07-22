@@ -123,6 +123,15 @@ needs an extra local cleanup command, add the smallest explicit argv command to
 the campaign config. Do not put a destructive, broad `pkill` shell expression
 in the config.
 
+Set `cleanup.prune_completed_cache=true` for storage-constrained campaigns.
+This is not a post hook: it runs only after the runner exits successfully, the
+post-run GPU idle check passes, and the orchestrator accepts `MANIFEST.json` as
+complete and correctly bound to the attempt. It removes only the attempt-local
+`cache/` directory below `<campaign_root>/attempts/`; raw results, logs,
+manifests, shared adapter artifacts, and failed-run caches are retained. Each
+operation leaves immutable intent and receipt JSON files with file/byte counts,
+an inventory digest, and the accepted manifest SHA-256. The default is false.
+
 ## Analyzer input exports
 
 An `analyzer_exports` entry names logical run IDs and relative glob selectors.

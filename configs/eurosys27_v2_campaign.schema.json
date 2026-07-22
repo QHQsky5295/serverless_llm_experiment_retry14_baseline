@@ -67,6 +67,7 @@
         },
         "timeout_seconds": {"type": "integer", "minimum": 0},
         "poll_seconds": {"type": "number", "exclusiveMinimum": 0},
+        "prune_completed_cache": {"type": "boolean"},
         "pre_commands": {"$ref": "#/$defs/commands"},
         "post_commands": {"$ref": "#/$defs/commands"}
       }

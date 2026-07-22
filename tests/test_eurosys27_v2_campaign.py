@@ -55,6 +55,23 @@ payload = {
 ALWAYS_FAIL_RUNNER = "raise SystemExit(9)"
 
 
+COMPLETE_WITH_CACHE_RUNNER = COMPLETE_RUNNER + r"""
+(root / "cache" / "adapter").mkdir(parents=True)
+(root / "cache" / "adapter" / "weights.bin").write_bytes(b"weights")
+"""
+
+
+FAIL_WITH_CACHE_RUNNER = r"""
+import os
+from pathlib import Path
+
+root = Path(os.environ["FAIR_ROUND_DIR"])
+(root / "cache").mkdir(parents=True)
+(root / "cache" / "partial.bin").write_bytes(b"partial")
+raise SystemExit(9)
+"""
+
+
 class CampaignTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
@@ -74,6 +91,7 @@ class CampaignTestCase(unittest.TestCase):
         reuse: bool = False,
         export: bool = False,
         run_env: dict[str, str] | None = None,
+        prune_completed_cache: bool = False,
     ) -> dict[str, object]:
         runs: list[dict[str, object]] = [
             {
@@ -116,6 +134,7 @@ class CampaignTestCase(unittest.TestCase):
                 "gpu_ids": [],
                 "timeout_seconds": 0,
                 "poll_seconds": 0.01,
+                "prune_completed_cache": prune_completed_cache,
                 "pre_commands": [],
                 "post_commands": [],
             },
@@ -292,6 +311,56 @@ class CampaignTestCase(unittest.TestCase):
             campaign.main(["--config", str(self.config_path), "run-next"]), 1
         )
         self.assertEqual(hook_log.read_text(), "pre\npost\n")
+
+    def test_completed_cache_prune_is_scoped_and_audited(self) -> None:
+        self.write_config(
+            self.config_payload(
+                runner=COMPLETE_WITH_CACHE_RUNNER,
+                prune_completed_cache=True,
+            )
+        )
+        self.assertEqual(
+            campaign.main(["--config", str(self.config_path), "run-next"]), 0
+        )
+        config = campaign.load_config(self.config_path)
+        state = campaign.campaign_status(config)["runs"]["run_one"]
+        attempt_dir = Path(state["attempt_dir"])
+        self.assertFalse((attempt_dir / "cache").exists())
+        self.assertTrue(
+            (attempt_dir / "raw" / "faaslora" / "test_faaslora_result.json").is_file()
+        )
+        receipt_path = next(
+            attempt_dir.glob("orchestrator_cache_prune_receipt_invocation_*.json")
+        )
+        receipt = json.loads(receipt_path.read_text())
+        self.assertEqual(receipt["status"], "pruned")
+        self.assertEqual(receipt["inventory"]["file_count"], 1)
+        self.assertEqual(receipt["inventory"]["logical_bytes"], 7)
+        self.assertEqual(
+            receipt["manifest_sha256"],
+            campaign._sha256_file(attempt_dir / "MANIFEST.json"),
+        )
+        event = campaign._read_ledger(config)[-1]
+        self.assertEqual(event["cache_prune_status"], "pruned")
+        self.assertEqual(event["cache_prune_receipt_path"], str(receipt_path))
+
+    def test_failed_run_cache_is_never_pruned(self) -> None:
+        self.write_config(
+            self.config_payload(
+                runner=FAIL_WITH_CACHE_RUNNER,
+                prune_completed_cache=True,
+            )
+        )
+        self.assertEqual(
+            campaign.main(["--config", str(self.config_path), "run-next"]), 1
+        )
+        config = campaign.load_config(self.config_path)
+        state = campaign.campaign_status(config)["runs"]["run_one"]
+        attempt_dir = Path(state["attempt_dir"])
+        self.assertTrue((attempt_dir / "cache" / "partial.bin").is_file())
+        self.assertEqual(
+            list(attempt_dir.glob("orchestrator_cache_prune_receipt_*.json")), []
+        )
 
     def test_initialized_config_is_immutable(self) -> None:
         payload = self.config_payload()

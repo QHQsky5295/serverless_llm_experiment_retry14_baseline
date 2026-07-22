@@ -34,6 +34,7 @@ RUN_KEY_SCHEMA_VERSION = "eurosys27_v2_campaign_run_key_v1"
 LEDGER_SCHEMA_VERSION = "eurosys27_v2_campaign_ledger_v1"
 ATTEMPT_SCHEMA_VERSION = "eurosys27_v2_campaign_attempt_v1"
 EXPORT_SCHEMA_VERSION = "eurosys27_v2_campaign_analyzer_inputs_v1"
+CACHE_PRUNE_SCHEMA_VERSION = "eurosys27_v2_cache_prune_receipt_v1"
 
 SAFE_INHERITED_ENV = {
     "CONDA_DEFAULT_ENV",
@@ -188,6 +189,7 @@ class CleanupSpec:
     gpu_ids: tuple[int, ...]
     timeout_seconds: int
     poll_seconds: float
+    prune_completed_cache: bool
     pre_commands: tuple[tuple[str, ...], ...]
     post_commands: tuple[tuple[str, ...], ...]
 
@@ -389,6 +391,7 @@ def load_config(path: Path) -> CampaignConfig:
             "gpu_ids",
             "timeout_seconds",
             "poll_seconds",
+            "prune_completed_cache",
             "pre_commands",
             "post_commands",
         },
@@ -422,6 +425,9 @@ def load_config(path: Path) -> CampaignConfig:
         or poll_seconds <= 0
     ):
         raise CampaignError("cleanup.poll_seconds must be positive")
+    prune_completed_cache = cleanup_raw.get("prune_completed_cache", False)
+    if not isinstance(prune_completed_cache, bool):
+        raise CampaignError("cleanup.prune_completed_cache must be boolean")
     command_groups: dict[str, tuple[tuple[str, ...], ...]] = {}
     for field in ("pre_commands", "post_commands"):
         commands_raw = cleanup_raw.get(field, [])
@@ -435,6 +441,7 @@ def load_config(path: Path) -> CampaignConfig:
         gpu_ids=gpu_ids,
         timeout_seconds=timeout_seconds,
         poll_seconds=float(poll_seconds),
+        prune_completed_cache=prune_completed_cache,
         pre_commands=command_groups["pre_commands"],
         post_commands=command_groups["post_commands"],
     )
@@ -1415,6 +1422,130 @@ def _verify_cleanup(
         time.sleep(config.cleanup.poll_seconds)
 
 
+def _cache_inventory(cache_path: Path) -> dict[str, Any]:
+    """Describe a cache tree without following symlinks or hashing model bytes."""
+    entries: list[tuple[str, str, int]] = []
+    file_count = 0
+    directory_count = 1
+    symlink_count = 0
+    logical_bytes = 0
+    allocated_bytes = 0
+    for root, directories, filenames in os.walk(cache_path, followlinks=False):
+        directories.sort()
+        root_path = Path(root)
+        for name in directories:
+            path = root_path / name
+            stat = path.lstat()
+            relative = path.relative_to(cache_path).as_posix()
+            if path.is_symlink():
+                kind = "symlink"
+                symlink_count += 1
+            elif path.is_dir():
+                kind = "directory"
+                directory_count += 1
+            else:
+                raise CampaignError(f"unsupported cache entry type: {path}")
+            entries.append((relative, kind, int(stat.st_size)))
+        for name in sorted(filenames):
+            path = root_path / name
+            stat = path.lstat()
+            relative = path.relative_to(cache_path).as_posix()
+            if path.is_symlink():
+                kind = "symlink"
+                symlink_count += 1
+            elif path.is_file():
+                kind = "file"
+                file_count += 1
+                logical_bytes += int(stat.st_size)
+                allocated_bytes += int(stat.st_blocks) * 512
+            else:
+                raise CampaignError(f"unsupported cache entry type: {path}")
+            entries.append((relative, kind, int(stat.st_size)))
+    return {
+        "file_count": file_count,
+        "directory_count": directory_count,
+        "symlink_count": symlink_count,
+        "logical_bytes": logical_bytes,
+        "allocated_bytes": allocated_bytes,
+        "inventory_sha256": _sha256_value(entries),
+    }
+
+
+def _prune_completed_cache(
+    config: CampaignConfig,
+    run: RunSpec,
+    attempt: Mapping[str, Any],
+    manifest_path: Path,
+    invocation_number: int,
+) -> tuple[Path, dict[str, Any]]:
+    """Remove only an accepted attempt's disposable cache and leave evidence."""
+    attempt_dir = Path(attempt["attempt_dir"])
+    attempts_root = (config.campaign_root / "attempts").resolve()
+    resolved_attempt = attempt_dir.resolve(strict=True)
+    if resolved_attempt != attempt_dir or not resolved_attempt.is_relative_to(
+        attempts_root
+    ):
+        raise CampaignError(
+            f"refusing cache prune outside canonical attempts root: {attempt_dir}"
+        )
+    cache_path = attempt_dir / "cache"
+    if os.path.lexists(cache_path) and cache_path.is_symlink():
+        raise CampaignError(f"refusing to prune symlinked cache root: {cache_path}")
+
+    suffix = f"invocation_{invocation_number:03d}.json"
+    intent_path = attempt_dir / f"orchestrator_cache_prune_intent_{suffix}"
+    receipt_path = attempt_dir / f"orchestrator_cache_prune_receipt_{suffix}"
+    if intent_path.exists() or receipt_path.exists():
+        raise CampaignError(
+            f"cache-prune evidence already exists for invocation {invocation_number}"
+        )
+
+    present = os.path.lexists(cache_path)
+    if present and not cache_path.is_dir():
+        raise CampaignError(f"cache path is not a directory: {cache_path}")
+    inventory = (
+        _cache_inventory(cache_path)
+        if present
+        else {
+            "file_count": 0,
+            "directory_count": 0,
+            "symlink_count": 0,
+            "logical_bytes": 0,
+            "allocated_bytes": 0,
+            "inventory_sha256": _sha256_value([]),
+        }
+    )
+    intent = {
+        "schema_version": CACHE_PRUNE_SCHEMA_VERSION,
+        "status": "intent",
+        "campaign_id": config.campaign_id,
+        "run_id": run.run_id,
+        "run_key": run.run_key,
+        "attempt_id": attempt["attempt_id"],
+        "invocation_number": invocation_number,
+        "cache_relative_path": "cache",
+        "cache_present": present,
+        "manifest_path": str(manifest_path),
+        "manifest_sha256": _sha256_file(manifest_path),
+        "inventory": inventory,
+        "created_at_utc": _utc_now(),
+    }
+    _atomic_json(intent_path, intent)
+    if present:
+        shutil.rmtree(cache_path)
+    if os.path.lexists(cache_path):
+        raise CampaignError(f"cache path still exists after prune: {cache_path}")
+    receipt = {
+        **intent,
+        "status": "pruned" if present else "already_absent",
+        "intent_path": str(intent_path),
+        "intent_sha256": _sha256_file(intent_path),
+        "completed_at_utc": _utc_now(),
+    }
+    _atomic_json(receipt_path, receipt)
+    return receipt_path, receipt
+
+
 def _stream_command(
     command: Sequence[str],
     *,
@@ -1587,11 +1718,30 @@ def _execute(
     )
     _atomic_json(evidence_path, cleanup_evidence)
     manifest_path: Path | None = None
+    cache_prune_receipt_path: Path | None = None
+    cache_prune_receipt: dict[str, Any] | None = None
     if failure is None:
         try:
             manifest_path, _ = _validate_attempt_manifest(config, run, attempt)
         except CampaignError as exc:
             failure = str(exc)
+        if (
+            failure is None
+            and manifest_path is not None
+            and config.cleanup.prune_completed_cache
+        ):
+            try:
+                cache_prune_receipt_path, cache_prune_receipt = (
+                    _prune_completed_cache(
+                        config,
+                        run,
+                        attempt,
+                        manifest_path,
+                        invocation_number,
+                    )
+                )
+            except (CampaignError, OSError) as exc:
+                failure = f"post-validation cache cleanup failed: {exc}"
     common = {
         "run_id": run.run_id,
         "run_key": run.run_key,
@@ -1607,6 +1757,22 @@ def _execute(
         "log_sha256": _sha256_file(log_path),
         "cleanup_evidence_path": str(evidence_path),
         "cleanup_evidence_sha256": _sha256_file(evidence_path),
+        "cache_prune_enabled": config.cleanup.prune_completed_cache,
+        "cache_prune_receipt_path": (
+            str(cache_prune_receipt_path)
+            if cache_prune_receipt_path is not None
+            else None
+        ),
+        "cache_prune_receipt_sha256": (
+            _sha256_file(cache_prune_receipt_path)
+            if cache_prune_receipt_path is not None
+            else None
+        ),
+        "cache_prune_status": (
+            cache_prune_receipt.get("status")
+            if cache_prune_receipt is not None
+            else None
+        ),
     }
     if failure is not None:
         _append_event(config, {"event": "attempt_failed", "reason": failure, **common})
@@ -1857,6 +2023,7 @@ def plan_payload(config: CampaignConfig) -> dict[str, Any]:
             "strict_gpu_idle": config.cleanup.strict_gpu_idle,
             "gpu_ids": list(config.cleanup.gpu_ids),
             "timeout_seconds": config.cleanup.timeout_seconds,
+            "prune_completed_cache": config.cleanup.prune_completed_cache,
             "pre_hook_count": len(config.cleanup.pre_commands),
             "post_hook_count": len(config.cleanup.post_commands),
         },

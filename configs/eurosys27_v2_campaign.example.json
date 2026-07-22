@@ -44,6 +44,7 @@
     "gpu_ids": [0, 1, 2, 3],
     "timeout_seconds": 180,
     "poll_seconds": 5,
+    "prune_completed_cache": true,
     "pre_commands": [],
     "post_commands": []
   },
