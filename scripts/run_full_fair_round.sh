@@ -1500,12 +1500,28 @@ run_slora() {
   mark_done "${stage}"
 }
 
+sanitize_faaslora_result_tag() {
+  # Keep this byte-for-byte compatible with run_all_experiments.py::_sanitize_label,
+  # which lowercases the results tag before embedding it in the output filename.
+  printf '%s' "$1" \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed -E 's/[^a-z0-9]+/_/g; s/^_+//; s/_+$//'
+}
+
 find_latest_faaslora_result() {
   local tag="$1"
+  local sanitized_tag=""
+  sanitized_tag="$(sanitize_faaslora_result_tag "${tag}")"
+  if [[ -z "${sanitized_tag}" ]]; then
+    return 1
+  fi
   # MAIN_REPO/results is a symlink in the current FaaSLoRA checkout. Use -L so
   # post-run collection follows the real result directory instead of treating the
-  # symlink itself as a terminal file.
-  find -L "${MAIN_REPO}/results" -maxdepth 3 -type f -name "*_${tag}.json" -printf '%T@ %p\n' 2>/dev/null \
+  # symlink itself as a terminal file. FaaSLoRA sanitizes/lowercases the tag in
+  # the filename while preserving the original tag in metadata; collection must
+  # therefore search for the sanitized filename and let the identity validator
+  # check the exact original metadata value.
+  find -L "${MAIN_REPO}/results" -maxdepth 3 -type f -name "*_${sanitized_tag}.json" -printf '%T@ %p\n' 2>/dev/null \
     | sort -n \
     | awk 'END{print substr($0, index($0,$2))}'
 }
