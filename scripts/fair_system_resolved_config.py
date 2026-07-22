@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import fcntl
+import gzip
 import hashlib
 import json
 import os
@@ -289,6 +290,38 @@ def _git_worktree_identity(repo: Path) -> Dict[str, Any]:
         "dirty_tracked_files": dirty_files,
         "unmerged_entries": [],
         "untracked_files_included": False,
+    }
+
+
+def _slora_patch_artifact_identity(
+    baselines_root: Path, slora_worktree: Path
+) -> Dict[str, Any]:
+    """Require the published compressed patch to reproduce the live checkout."""
+
+    artifact = (baselines_root / "patches" / "S-LoRA_local_changes.patch.gz").resolve()
+    if not artifact.is_file():
+        raise RuntimeError(f"missing S-LoRA compatibility patch artifact: {artifact}")
+    compressed = artifact.read_bytes()
+    try:
+        decompressed = gzip.decompress(compressed)
+    except (OSError, EOFError) as exc:
+        raise RuntimeError(f"invalid gzip S-LoRA patch artifact: {artifact}") from exc
+    observed = _git_output(slora_worktree, ["diff", "--binary"])
+    expected_sha = hashlib.sha256(decompressed).hexdigest()
+    observed_sha = hashlib.sha256(observed).hexdigest()
+    if decompressed != observed:
+        raise RuntimeError(
+            "S-LoRA worktree drifted from the published compatibility patch: "
+            f"artifact_diff_sha256={expected_sha} "
+            f"observed_diff_sha256={observed_sha}"
+        )
+    return {
+        "path": str(artifact),
+        "compressed_bytes": len(compressed),
+        "compressed_sha256": hashlib.sha256(compressed).hexdigest(),
+        "decompressed_diff_bytes": len(decompressed),
+        "decompressed_diff_sha256": expected_sha,
+        "matches_live_worktree": True,
     }
 
 
@@ -751,6 +784,9 @@ def build_hashed_config(
     slora_worktree = _git_worktree_identity(baselines_root / "repos" / "S-LoRA")
     slora["upstream_commit"] = slora_worktree["commit"]
     slora["upstream_worktree_identity"] = slora_worktree
+    slora["local_patch_artifact_identity"] = _slora_patch_artifact_identity(
+        baselines_root, baselines_root / "repos" / "S-LoRA"
+    )
     serverless = _resolved_serverless(
         profiles,
         env,

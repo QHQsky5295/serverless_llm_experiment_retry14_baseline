@@ -122,6 +122,9 @@ All local S-LoRA compatibility changes are preserved losslessly in
 `7a0f48f60c225789014ad960ec3ab1cf6388611b7650a4f656f1208c981c2d60`.
 Reverse-apply checking against the live worktree proves that artifact matches
 its tracked diff byte-for-byte. The same diff and final file bytes are covered
-by `upstream_worktree_identity`, and
+by `upstream_worktree_identity`. Sidecar construction now decompresses the
+published artifact and requires byte equality with the live `git diff --binary`;
+the compressed/decompressed SHAs are part of the resolved system identity. Thus
+a later unrecorded nested-source edit fails before GPU launch. In addition,
 `tests/test_fixed_length_generation_contract.py` contains a burst regression
 that fails under the single-slot behavior.

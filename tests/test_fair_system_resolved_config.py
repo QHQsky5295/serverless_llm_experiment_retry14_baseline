@@ -238,6 +238,46 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                 sidecar_b["system_resolved_config_sha256"],
             )
 
+    def test_slora_patch_artifact_must_match_live_tracked_diff(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            baselines_root = root / "baselines"
+            patch_dir = baselines_root / "patches"
+            patch_dir.mkdir(parents=True)
+            repo = root / "S-LoRA"
+            repo.mkdir()
+            module.subprocess.run(["git", "init", "-q", str(repo)], check=True)
+            module.subprocess.run(
+                ["git", "-C", str(repo), "config", "user.email", "test@example.invalid"],
+                check=True,
+            )
+            module.subprocess.run(
+                ["git", "-C", str(repo), "config", "user.name", "test"],
+                check=True,
+            )
+            source = repo / "runtime.py"
+            source.write_text("value = 1\n", encoding="utf-8")
+            module.subprocess.run(["git", "-C", str(repo), "add", "runtime.py"], check=True)
+            module.subprocess.run(
+                ["git", "-C", str(repo), "commit", "-q", "-m", "base"],
+                check=True,
+            )
+            source.write_text("value = 2\n", encoding="utf-8")
+            diff = module._git_output(repo, ["diff", "--binary"])
+            artifact = patch_dir / "S-LoRA_local_changes.patch.gz"
+            artifact.write_bytes(module.gzip.compress(diff, mtime=0))
+
+            identity = module._slora_patch_artifact_identity(baselines_root, repo)
+            self.assertTrue(identity["matches_live_worktree"])
+            self.assertEqual(
+                identity["decompressed_diff_sha256"],
+                module.hashlib.sha256(diff).hexdigest(),
+            )
+
+            source.write_text("value = 3\n", encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "worktree drifted"):
+                module._slora_patch_artifact_identity(baselines_root, repo)
+
     def test_hash_excludes_seed_trace_subset_order_tag_and_trace_length(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
