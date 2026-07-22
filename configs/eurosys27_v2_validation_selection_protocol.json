@@ -1,0 +1,68 @@
+{
+  "schema_version": "eurosys27_v2_global_envelope_selection_v1",
+  "trace_role": "validation",
+  "sampling_seed": 41,
+  "total_requests": 1000,
+  "families": {
+    "c5": {
+      "campaign_kind": "v2_c5_matched_output",
+      "generation_contract": "fixed_length_greedy_v1",
+      "prime_system": "faaslora",
+      "baseline_system": "slora"
+    },
+    "fvs": {
+      "campaign_kind": "v2_full_vs_serverless",
+      "generation_contract": "legacy",
+      "prime_system": "faaslora",
+      "baseline_system": "serverlessllm"
+    }
+  },
+  "envelope_fields": [
+    "FAASLORA_MIN_INSTANCES",
+    "FAASLORA_MAX_INSTANCES",
+    "FAASLORA_RUNTIME_CONCURRENCY_CAP",
+    "FAASLORA_MAX_NUM_SEQS",
+    "FAASLORA_MAX_LORAS",
+    "FAASLORA_MAX_NUM_BATCHED_TOKENS"
+  ],
+  "models": {
+    "llama2_7b": {
+      "model_profile": "llama2_7b_main_v2_publicmix",
+      "workload_profile": "llama2_7b_auto500_formal4000_s8",
+      "candidates": {
+        "P0": [1, 4, 2, 2, 4, 1024],
+        "P1": [1, 4, 4, 4, 4, 4096]
+      }
+    },
+    "llama32_3b": {
+      "model_profile": "llama32_3b_main_modelscope",
+      "workload_profile": "llama32_3b_auto500_formal4000_s8",
+      "candidates": {
+        "P0": [1, 4, 8, 8, 8, 4096]
+      }
+    }
+  },
+  "candidate_validity": {
+    "required_families": ["c5", "fvs"],
+    "completed_requests": 1000,
+    "failed_requests": 0,
+    "allow_fallback": false,
+    "constraints_per_family": {
+      "prime_avg_ttft_lte_baseline": true,
+      "prime_avg_e2e_lte_baseline": true,
+      "prime_p95_ttft_ratio_max": 1.05
+    }
+  },
+  "selection": {
+    "score": "min_over_families(CE_prime / CE_baseline)",
+    "direction": "maximize",
+    "tie_relative_tolerance": 0.01,
+    "tie_break": "lowest_candidate_label",
+    "no_eligible_candidate": "stop_before_heldout"
+  },
+  "cross_family_requirement": "one envelope per model; all six envelope fields must match across C5, FVS, A2, A6, C4, and readiness",
+  "forbidden_rescue_until_accounting_fix": {
+    "FAASLORA_MIN_INSTANCES": 2,
+    "reason": "additional initial runtime startup GPU seconds may begin before lifecycle accounting"
+  }
+}

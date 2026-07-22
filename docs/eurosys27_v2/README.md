@@ -49,7 +49,7 @@ V2 解释以投稿论文的设计目标为起点，但不把设计目标自动�
 
 | 编号 | 决定 | V2 交付物 | 可写结论的门槛 |
 |---|---|---|---|
-| A2：收益是否主要来自 elasticity | 采纳 | 按论文三类机制做四组累积消融：`ElasticOnly -> +HitAwarePreparation -> +HierarchicalResidency -> Full(+CoordinatedAdmission)` | 变体只差目标机制 gate；对应触发计数与开关一致；每个 7B 增量有 3 个 held-out seeds |
+| A2：收益是否主要来自 elasticity | 采纳 | 按论文三类机制做四组累积消融：`ElasticOnly -> +HitAwarePreparation -> +HierarchicalResidency -> Full(+CoordinatedAdmission)` | 变体只差目标机制 gate；对应触发计数与开关一致；关键端点用 3 个 held-out seeds，完整四行用 seed 43 |
 | A3：Fig. 9 解读 | 采纳 | 新建 V2 Fig. 9，显示绝对值、常规方向的相对差值和关键点 95% CI | lower-is-better 使用 `(reference-value)/reference`；不覆盖旧 Fig. 9 |
 | A4：CE 合理性 | 保留 CE，补充诊断 | CE 分解、Pareto、GPU-s/request、SLO-goodput/$、cost/token、参数/idle-factor sensitivity | 离线计算保留原始指标；不把单一 CE 当作完整 trade-off |
 | A5：dLoRA、Chameleon、ELORA | 部分采纳 | V2 新实验只使用一个 `ServerlessLLM-new` 行；其他系统给出可复现性记录 | 不自行重写论文核心；不把 3B-only 或 gate-only 结果包装成 3B+7B 正式基线 |
@@ -88,6 +88,30 @@ V2 解释以投稿论文的设计目标为起点，但不把设计目标自动�
 - 4,000 个请求只用于计算单次运行内的 latency distribution，不把请求当作 4,000 次独立实验重复。
 - 若正式结果不支持预期结论，只能：检查预注册门槛；修复共同的测量/语义 bug；回到 validation trace 对双方执行同等调参；冻结新版本后完整重跑 43/44/45。禁止只换 PrimeLoRA、筛 seed 或隐去失败结果。
 
+本轮在看到 validation 结果前只预声明以下 Prime runtime envelope：7B `P0 =
+(min=1,max=4,cap=2,seq=2,max_loras=4,batch=1024)` 与 `P1 =
+(1,4,4,4,4,4096)`；3B 只有 `P0 = (1,4,8,8,8,4096)`。六元组依次对应
+`FAASLORA_MIN_INSTANCES`、`MAX_INSTANCES`、`RUNTIME_CONCURRENCY_CAP`、
+`MAX_NUM_SEQS`、`MAX_LORAS`、`MAX_NUM_BATCHED_TOKENS`。3B 不把
+`min_instances=2` 当作候选，因为当前 lifecycle accounting 可能漏掉 replay 前额外
+runtime 的 startup GPU-s。
+
+上述候选、约束和 tie-break 的机器可读版本固定在
+[`configs/eurosys27_v2_validation_selection_protocol.json`](../../configs/eurosys27_v2_validation_selection_protocol.json)，
+并由 `scripts/select_eurosys27_v2_global_envelope.py` 对完整候选 cohort 自动执行；人工表格
+不能替代该选择输出。
+
+同一模型只选择一个全局 envelope，不能按 C5 fixed-output 与 FVS legacy workload
+分别选择。每个候选都必须在 seed 41、1,000 requests 的 C5（Prime/S-LoRA）和 FVS
+（Prime/ServerlessLLM-new）两个 family 上验证；3B 的唯一 P0 也必须通过两者。候选必须
+两边均 1,000/1,000、无 fallback，并在每个 family 同时满足 Prime 平均 TTFT 不高于
+baseline、平均 E2E 不高于 baseline、P95 TTFT 不高于 baseline 的 1.05 倍。合格候选中
+最大化两个 family 的最差 `CE_Prime/CE_baseline`；分数差不超过 1% 时选择 P0。若无候选
+合格则停止，不进入 held-out，也不从 seed 43--45 反向选参。C5 与 FVS 使用不同正式
+registry，但所选 envelope 的上述六字段必须一致；A2/A6/C4/readiness 继承同一
+model-global envelope。基线保持各自已冻结的官方 harness 配置，在不同 Prime 候选间
+不得改变。
+
 Standalone A2/A3 消融运行器把成功的 seed41 `v2_full` validation manifest
 登记到 family-scoped、加锁原子写入的 registry。登记前会核对 source commit、配置文件
 SHA、1,000-request trace、场景集合和 non-feature frozen hash；held-out 启动前必须从
@@ -125,11 +149,13 @@ autoscaler、billing 与 tuning 配置；同时排除 seed、request count、tra
 3. `+HierarchicalResidency`：在机制一之上加入机制二，即 GPU/HOST/NVMe 分层驻留与动态迁移；不启用协调准入。
 4. `Full(+CoordinatedAdmission)`：加入机制三，即 effective-capacity coordinated GPU admission。
 
-运行矩阵：
+运行矩阵（共 16 个 scenario-result）：
 
-- 7B seed 43/44/45：四个变体全部运行，以 seed-level paired difference 为每个机制增量计算均值和 95% t-CI。
+- 7B seed 43：四个变体全部运行。
+- 7B seed 44/45：`ElasticOnly`、`+HierarchicalResidency`、`Full`，用于总增益和 admission 端点的 seed-level 95% t-CI；不为 M1 额外增加两次运行。
 - 3B seed 43/44/45：`ElasticOnly`、`Full`。
 - 所有变体共享 Full 的 frozen non-feature 配置，不为每个变体单独调参。
+- 每个 `(model, seed, scenario)` 使用独立 standalone MANIFEST；分析器通过显式 MANIFEST 列表组合，避免复用时展开无关 scenario。
 
 机制触发门槛：
 

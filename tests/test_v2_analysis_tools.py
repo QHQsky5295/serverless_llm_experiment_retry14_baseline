@@ -380,11 +380,25 @@ def _write_sensitivity_result(
 
 def _write_formal_ablation_matrix(root: Path) -> None:
     matrix = {
-        "Llama-2-7B": plot_paper_figures.V2_ABLATION_SCENARIOS,
-        "Llama-3.2-3B": ("v2_elastic_only", "v2_full"),
+        "Llama-2-7B": {
+            43: plot_paper_figures.V2_ABLATION_SCENARIOS,
+            44: (
+                "v2_elastic_only",
+                "v2_hierarchical_no_coord",
+                "v2_full",
+            ),
+            45: (
+                "v2_elastic_only",
+                "v2_hierarchical_no_coord",
+                "v2_full",
+            ),
+        },
+        "Llama-3.2-3B": {
+            seed: ("v2_elastic_only", "v2_full") for seed in (43, 44, 45)
+        },
     }
-    for model, scenarios in matrix.items():
-        for seed in (43, 44, 45):
+    for model, seed_matrix in matrix.items():
+        for seed, scenarios in seed_matrix.items():
             for scenario_index, scenario in enumerate(scenarios):
                 _write_v2_ablation_result(
                     root
@@ -1026,7 +1040,7 @@ class FigureFormulaTests(unittest.TestCase):
             results = plot_paper_figures.load_v2_ablation_results(
                 [inputs], formal_matrix=True
             )
-            self.assertEqual(len(results), 18)
+            self.assertEqual(len(results), 16)
 
             with self.assertRaisesRegex(SystemExit, "formal A2/A3.*missing"):
                 plot_paper_figures.validate_v2_ablation_formal_matrix(results[:-1])

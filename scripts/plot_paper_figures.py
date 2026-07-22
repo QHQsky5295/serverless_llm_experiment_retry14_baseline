@@ -936,10 +936,17 @@ def validate_v2_ablation_formal_matrix(
     Fig. 9 dataset.
     """
     expected: set[tuple[str, str, int]] = {
-        ("llama2_7b", scenario, seed)
-        for scenario in V2_ABLATION_SCENARIOS
-        for seed in V2_FORMAL_SEEDS
+        ("llama2_7b", scenario, 43) for scenario in V2_ABLATION_SCENARIOS
     }
+    expected.update(
+        ("llama2_7b", scenario, seed)
+        for scenario in (
+            "v2_elastic_only",
+            "v2_hierarchical_no_coord",
+            "v2_full",
+        )
+        for seed in (44, 45)
+    )
     expected.update(
         ("llama32_3b", scenario, seed)
         for scenario in ("v2_elastic_only", "v2_full")
@@ -1517,7 +1524,7 @@ def plot_v2_fig9_ablation(
             "each enabled mechanism has positive activation evidence and disabled mechanisms do not leak",
             *(
                 [
-                    "formal A2/A3 identity set exactly matches 7B four-scenario x seeds 43/44/45 plus 3B ElasticOnly/Full x seeds 43/44/45",
+                    "formal A2/A3 identity set exactly matches 7B four scenarios on seed 43 plus ElasticOnly/Hierarchy/Full on seeds 44/45, and 3B ElasticOnly/Full on seeds 43/44/45",
                     "formal model identities are exactly Llama-2-7B and Llama-3.2-3B",
                     "formal axes are exactly 4000 requests, 500 adapters, 250 MiB/s, time-scale 8, legacy generation/rotation, Zipf 1, active cap 48, rotation 500, overlap 0.75",
                     "non_feature_frozen_config_sha256 is valid and invariant across all scenarios and seeds within each model",
