@@ -491,6 +491,7 @@ def _v2_model_identity(payload: Dict[str, Any], path: Path) -> str:
 def _v2_seed(payload: Dict[str, Any], path: Path, run_tag: str) -> int:
     metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
     direct = (
+        metadata.get("sampling_seed"),
         metadata.get("generation_seed"),
         metadata.get("workload_seed"),
         metadata.get("seed"),
