@@ -1,0 +1,157 @@
+{
+  "$schema": "./eurosys27_v2_campaign.schema.json",
+  "schema_version": "eurosys27_v2_campaign_v1",
+  "campaign_id": "c5_7b_formal_example",
+  "campaign_root": "/home/qhq/serverless_llm_baselines/results/paper_experiments/20_eurosys27_v2_campaigns/c5_7b_formal_example",
+  "environment": {
+    "inherit": [
+      "HOME",
+      "PATH",
+      "USER",
+      "LANG",
+      "CONDA_PREFIX",
+      "CONDA_DEFAULT_ENV",
+      "LD_LIBRARY_PATH",
+      "PYTHONPATH",
+      "HF_HOME",
+      "MODELSCOPE_CACHE"
+    ],
+    "values": {
+      "SLLM_BASELINES_ROOT": "/home/qhq/serverless_llm_baselines",
+      "SLLM_MAIN_REPO": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "PYTHONUNBUFFERED": "1"
+    }
+  },
+  "registries": {
+    "c5_formal": "/home/qhq/serverless_llm_baselines/results/paper_experiments/20_eurosys27_v2_campaigns/_protocol/c5_system_resolved_config_registry.json"
+  },
+  "source_repositories": {
+    "baselines": {
+      "path": "/home/qhq/serverless_llm_baselines",
+      "required_branch": "main",
+      "allowed_tracked_dirty_paths": []
+    },
+    "faaslora": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "required_branch": "retry14_continuous_queue_v2",
+      "allowed_tracked_dirty_paths": [
+        "configs/generated/lora_manifest_1000.json"
+      ]
+    }
+  },
+  "cleanup": {
+    "strict_gpu_idle": true,
+    "gpu_ids": [0, 1, 2, 3],
+    "timeout_seconds": 180,
+    "poll_seconds": 5,
+    "pre_commands": [],
+    "post_commands": []
+  },
+  "runs": [
+    {
+      "id": "c5_7b_validation_seed41",
+      "runner": [
+        "bash",
+        "/home/qhq/serverless_llm_baselines/scripts/run_full_fair_round.sh"
+      ],
+      "working_directory": "/home/qhq/serverless_llm_baselines",
+      "registry": "c5_formal",
+      "depends_on": [],
+      "env": {
+        "SLLM_MODEL_PROFILE": "llama2_7b_main_v2_publicmix",
+        "SLLM_DATASET_PROFILE": "azure_sharegpt_rep4000",
+        "SLLM_WORKLOAD_PROFILE": "llama2_7b_auto500_formal4000_s8",
+        "SLLM_TOTAL_REQUESTS": "1000",
+        "SLLM_SELECTED_NUM_ADAPTERS": "500",
+        "SLLM_SAMPLING_SEED": "41",
+        "FAIR_GENERATION_CONTRACT": "fixed_length_greedy_v1",
+        "FAIR_FIXED_OUTPUT_MAX_TOKENS": "256",
+        "FAIR_FIXED_PROMPT_MAX_TOKENS": "759",
+        "FAIR_STORAGE_BANDWIDTH_MIB_S": "250",
+        "SLLM_ZIPF_EXPONENT": "1.0",
+        "SLLM_ACTIVE_ADAPTER_CAP": "48",
+        "SLLM_HOTSET_ROTATION_REQUESTS": "500",
+        "SLLM_HOTSET_ROTATION_MODE": "legacy",
+        "SLLM_HOTSET_OVERLAP_FRACTION": "0.75",
+        "FAIR_FAASLORA_SCENARIO": "v2_full",
+        "FAIR_FORMAL_RUN": "1",
+        "FAIR_TRACE_ROLE": "validation",
+        "FAIR_CAMPAIGN_KIND": "v2_c5_matched_output",
+        "FAIR_RESOLVED_CONFIG_FAMILY": "eurosys27_v2_c5_7b",
+        "FAIR_ROUND_SYSTEMS": "faaslora slora",
+        "FAIR_ROUND_EXECUTION_ORDER": "slora faaslora",
+        "FAIR_ROUND_GPU_IDS": "0,1,2,3"
+      }
+    },
+    {
+      "id": "c5_7b_heldout_seed43",
+      "runner": [
+        "bash",
+        "/home/qhq/serverless_llm_baselines/scripts/run_full_fair_round.sh"
+      ],
+      "working_directory": "/home/qhq/serverless_llm_baselines",
+      "registry": "c5_formal",
+      "depends_on": ["c5_7b_validation_seed41"],
+      "env": {
+        "SLLM_MODEL_PROFILE": "llama2_7b_main_v2_publicmix",
+        "SLLM_DATASET_PROFILE": "azure_sharegpt_rep4000",
+        "SLLM_WORKLOAD_PROFILE": "llama2_7b_auto500_formal4000_s8",
+        "SLLM_TOTAL_REQUESTS": "4000",
+        "SLLM_SELECTED_NUM_ADAPTERS": "500",
+        "SLLM_SAMPLING_SEED": "43",
+        "FAIR_GENERATION_CONTRACT": "fixed_length_greedy_v1",
+        "FAIR_FIXED_OUTPUT_MAX_TOKENS": "256",
+        "FAIR_FIXED_PROMPT_MAX_TOKENS": "759",
+        "FAIR_STORAGE_BANDWIDTH_MIB_S": "250",
+        "SLLM_ZIPF_EXPONENT": "1.0",
+        "SLLM_ACTIVE_ADAPTER_CAP": "48",
+        "SLLM_HOTSET_ROTATION_REQUESTS": "500",
+        "SLLM_HOTSET_ROTATION_MODE": "legacy",
+        "SLLM_HOTSET_OVERLAP_FRACTION": "0.75",
+        "FAIR_FAASLORA_SCENARIO": "v2_full",
+        "FAIR_FORMAL_RUN": "1",
+        "FAIR_TRACE_ROLE": "heldout",
+        "FAIR_CAMPAIGN_KIND": "v2_c5_matched_output",
+        "FAIR_RESOLVED_CONFIG_FAMILY": "eurosys27_v2_c5_7b",
+        "FAIR_ROUND_SYSTEMS": "faaslora slora",
+        "FAIR_ROUND_EXECUTION_ORDER": "slora faaslora",
+        "FAIR_ROUND_GPU_IDS": "0,1,2,3"
+      }
+    },
+    {
+      "id": "c5_7b_heldout_seed43_for_fig9",
+      "reuse_of": "c5_7b_heldout_seed43",
+      "depends_on": ["c5_7b_heldout_seed43"]
+    }
+  ],
+  "analyzer_exports": [
+    {
+      "id": "c5_7b_heldout",
+      "run_ids": ["c5_7b_heldout_seed43"],
+      "output_directory": "/home/qhq/serverless_llm_baselines/results/paper_experiments/20_eurosys27_v2_campaigns/c5_7b_formal_example/analyzer_inputs/c5_7b_heldout",
+      "inputs": [
+        {"name": "manifest", "glob": "MANIFEST.json"},
+        {
+          "name": "faaslora_result",
+          "glob": "raw/faaslora/*_faaslora_result.json"
+        },
+        {
+          "name": "slora_summary",
+          "glob": "raw/replay/*_slora_*_summary.json"
+        }
+      ]
+    },
+    {
+      "id": "fig9_reuse_example",
+      "run_ids": ["c5_7b_heldout_seed43_for_fig9"],
+      "output_directory": "/home/qhq/serverless_llm_baselines/results/paper_experiments/20_eurosys27_v2_campaigns/c5_7b_formal_example/analyzer_inputs/fig9_reuse_example",
+      "inputs": [
+        {"name": "manifest", "glob": "MANIFEST.json"},
+        {
+          "name": "faaslora_result",
+          "glob": "raw/faaslora/*_faaslora_result.json"
+        }
+      ]
+    }
+  ]
+}
