@@ -87,6 +87,7 @@ from scripts.run_all_experiments import (
     _is_comparable_request,
     _load_shared_adapter_subset,
     _load_shared_trace_requests,
+    _merge_coordinator_metrics,
     _normalize_lora_preparation_mode,
     _effective_runtime_concurrency_cap,
     _normalize_runtime_concurrency_cap,
@@ -3563,6 +3564,69 @@ class CoordinationSmokeTests(unittest.TestCase):
         self.assertLess(dynamic_capacity, base_capacity)
         self.assertGreater(decision["future_reserve_mb"], 0.0)
         self.assertGreaterEqual(decision["working_set_pressure"], 0.0)
+
+    def test_gpu_admission_outcomes_are_exhaustive_and_mutually_exclusive(self) -> None:
+        coord = ResourceCoordinator(config={
+            "gpu_budget_mb": 1000,
+            "model_weights_mb": 100,
+            "lora_load_reserve_ratio": 0.0,
+        })
+
+        admitted = coord.evaluate_gpu_admission(
+            "fits", 32.0, tier="nvme", utility_override=1.0
+        )
+        deferred = coord.evaluate_gpu_admission(
+            "not-useful-now", 32.0, tier="nvme", utility_override=0.0
+        )
+        rejected = coord.evaluate_gpu_admission(
+            "too-large", 10_000.0, tier="nvme", utility_override=1.0
+        )
+
+        self.assertTrue(admitted["admit"])
+        self.assertFalse(deferred["should_attempt"])
+        self.assertTrue(rejected["should_attempt"])
+        self.assertFalse(rejected["admit"])
+        metrics = coord.get_summary_metrics()
+        self.assertEqual(metrics["gpu_admission_decisions"], 3)
+        self.assertEqual(metrics["gpu_admission_admits"], 1)
+        self.assertEqual(metrics["gpu_admission_defers"], 1)
+        self.assertEqual(metrics["gpu_admission_rejects"], 1)
+        self.assertEqual(
+            metrics["gpu_admission_admits"]
+            + metrics["gpu_admission_defers"]
+            + metrics["gpu_admission_rejects"],
+            metrics["gpu_admission_decisions"],
+        )
+
+    def test_gpu_admission_outcome_aggregation_preserves_invariant(self) -> None:
+        merged = _merge_coordinator_metrics([
+            {
+                "gpu_admission_decisions": 3,
+                "gpu_admission_admits": 1,
+                "gpu_admission_defers": 1,
+                "gpu_admission_rejects": 1,
+            },
+            {
+                "gpu_admission_decisions": 2,
+                "gpu_admission_admits": 2,
+                "gpu_admission_defers": 0,
+                "gpu_admission_rejects": 0,
+            },
+        ])
+        self.assertEqual(merged["gpu_admission_decisions"], 5)
+        self.assertEqual(merged["gpu_admission_admits"], 3)
+        self.assertEqual(merged["gpu_admission_defers"], 1)
+        self.assertEqual(merged["gpu_admission_rejects"], 1)
+
+        with self.assertRaisesRegex(RuntimeError, "outcome invariant"):
+            _merge_coordinator_metrics([
+                {
+                    "gpu_admission_decisions": 2,
+                    "gpu_admission_admits": 1,
+                    "gpu_admission_defers": 0,
+                    "gpu_admission_rejects": 0,
+                }
+            ])
 
     def test_notify_batch_tracks_decode_hint_in_active_tokens(self) -> None:
         coord = ResourceCoordinator(config={"kv_per_1k_tokens_mb": 2.0})

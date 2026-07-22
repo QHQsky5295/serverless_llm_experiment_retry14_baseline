@@ -1995,11 +1995,33 @@ def _merge_coordinator_metrics(all_metrics: List[Dict]) -> Dict:
     if not all_metrics:
         return {}
     n = len(all_metrics)
+    admission_decisions = sum(
+        int(m.get("gpu_admission_decisions", 0) or 0) for m in all_metrics
+    )
+    admission_admits = sum(
+        int(m.get("gpu_admission_admits", 0) or 0) for m in all_metrics
+    )
+    admission_defers = sum(
+        int(m.get("gpu_admission_defers", 0) or 0) for m in all_metrics
+    )
+    admission_rejects = sum(
+        int(m.get("gpu_admission_rejects", 0) or 0) for m in all_metrics
+    )
+    admission_outcome_total = (
+        admission_admits + admission_defers + admission_rejects
+    )
+    if admission_outcome_total != admission_decisions:
+        raise RuntimeError(
+            "GPU admission outcome invariant violated while aggregating "
+            f"coordinators: admit+defer+reject={admission_outcome_total}, "
+            f"decisions={admission_decisions}"
+        )
     return {
         "contention_events": sum(m.get("contention_events", 0) for m in all_metrics),
-        "gpu_admission_decisions": sum(
-            m.get("gpu_admission_decisions", 0) for m in all_metrics
-        ),
+        "gpu_admission_decisions": admission_decisions,
+        "gpu_admission_admits": admission_admits,
+        "gpu_admission_defers": admission_defers,
+        "gpu_admission_rejects": admission_rejects,
         "gpu_ready_hits": sum(m.get("gpu_ready_hits", 0) for m in all_metrics),
         "warm_pool_hits": sum(m.get("warm_pool_hits", 0) for m in all_metrics),
         "avg_contention_penalty_ms": sum(m.get("avg_contention_penalty_ms", 0.0) for m in all_metrics) / n,
@@ -6865,7 +6887,17 @@ class ScenarioRunner:
             size_mb = float(candidate.get("size_mb", 0.0) or 0.0)
             replace = candidate.get("replace") if isinstance(candidate.get("replace"), dict) else None
             admission_utility = float(candidate.get("admission_utility", 0.0) or 0.0)
-            if coordinator is not None and getattr(coordinator, "evaluate_gpu_admission", None):
+            if (
+                coordinator is not None
+                and bool(
+                    getattr(
+                        coordinator,
+                        "effective_capacity_admission_enabled",
+                        True,
+                    )
+                )
+                and getattr(coordinator, "evaluate_gpu_admission", None)
+            ):
                 decision = coordinator.evaluate_gpu_admission(
                     adapter_id,
                     size_mb,
@@ -13866,6 +13898,129 @@ def _deep_merge_dict(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str
     return merged
 
 
+# A2/A3 compares cumulative feature variants while holding every other
+# runtime choice fixed.  These are the only scenario-local *gates* allowed to
+# differ between those rows.  Thresholds and budgets remain covered: variants
+# that omit them inherit the frozen Full values before the gates are removed.
+_V2_ABLATION_COORDINATION_FEATURE_FIELDS = frozenset(
+    {
+        "routing_policy",
+        "scale_up_handoff_enabled",
+        "coordination_enabled",
+        "effective_capacity_admission_enabled",
+    }
+)
+_V2_ABLATION_PRELOADING_FEATURE_FIELDS = frozenset(
+    {
+        "enabled",
+        "hierarchical_residency_enabled",
+        "dynamic_forwarding_enabled",
+        "gpu_dynamic_forwarding_enabled",
+        "host_promotion_on_nvme_hit_enabled",
+    }
+)
+_NON_FEATURE_ADAPTER_AXIS_FIELDS = frozenset(
+    {
+        "adapters",
+        "selected_num_adapters",
+        "quick_num_adapters",
+        "full_num_adapters",
+        "_selected_adapter_count",
+        "_manifest_path",
+        "_shared_adapter_subset_path",
+    }
+)
+_NON_FEATURE_STORAGE_AXIS_FIELDS = frozenset(
+    {
+        "bandwidth_mbps",
+        "host_cache_dir",
+        "nvme_cache_dir",
+    }
+)
+_NON_FEATURE_EXPERIMENT_ARTIFACT_FIELDS = frozenset(
+    {"output_dir", "results_file"}
+)
+
+
+def _without_fields(payload: Dict[str, Any], excluded: Collection[str]) -> Dict[str, Any]:
+    return {
+        str(key): copy.deepcopy(value)
+        for key, value in payload.items()
+        if str(key) not in excluded
+    }
+
+
+def _non_feature_frozen_config_payload(
+    *,
+    experiment_cfg: Dict[str, Any],
+    model_cfg: Dict[str, Any],
+    adapters_cfg: Dict[str, Any],
+    storage_cfg: Dict[str, Any],
+    hardware_cfg: Dict[str, Any],
+    cost_model_cfg: Dict[str, Any],
+    base_coordination_cfg: Dict[str, Any],
+    full_scenario_cfg: Dict[str, Any],
+    scenario_cfg: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Return the canonical A2/A3 non-feature configuration.
+
+    Workload/dataset/request/seed/trace/subset axes are deliberately absent
+    from this API.  Adapter cardinality and per-run cache paths plus aggregate
+    storage bandwidth are removed explicitly.  The remaining payload covers
+    model/runtime, autoscaler, billing, tier capacities and other tuning.
+    """
+
+    # Full is the canonical frozen configuration.  Cumulative rows often omit
+    # thresholds for disabled mechanisms; inherit those values so absence does
+    # not masquerade as tuning drift, while an explicit per-row override still
+    # changes the digest and is rejected by formal analysis.
+    effective_scenario = _deep_merge_dict(full_scenario_cfg, scenario_cfg)
+    scenario_coordination = _deep_merge_dict(
+        base_coordination_cfg,
+        copy.deepcopy(effective_scenario.get("resource_coordination", {}) or {}),
+    )
+    scenario_preloading, _ = _apply_preloading_env_overrides(
+        copy.deepcopy(effective_scenario.get("preloading", {}) or {})
+    )
+    scenario_hardware = _deep_merge_dict(
+        hardware_cfg,
+        copy.deepcopy(effective_scenario.get("hardware_override", {}) or {}),
+    )
+    return {
+        "schema": "faaslora_non_feature_frozen_config_v1",
+        "experiment": _without_fields(
+            experiment_cfg, _NON_FEATURE_EXPERIMENT_ARTIFACT_FIELDS
+        ),
+        "model_runtime": copy.deepcopy(model_cfg),
+        "adapter_runtime": _without_fields(
+            adapters_cfg, _NON_FEATURE_ADAPTER_AXIS_FIELDS
+        ),
+        "storage_runtime": _without_fields(
+            storage_cfg, _NON_FEATURE_STORAGE_AXIS_FIELDS
+        ),
+        "hardware": scenario_hardware,
+        "billing": copy.deepcopy(cost_model_cfg),
+        "autoscaler_and_coordination": _without_fields(
+            scenario_coordination, _V2_ABLATION_COORDINATION_FEATURE_FIELDS
+        ),
+        "tier_capacity_and_non_feature_preloading": _without_fields(
+            scenario_preloading, _V2_ABLATION_PRELOADING_FEATURE_FIELDS
+        ),
+        "baseline_type": str(effective_scenario.get("baseline_type", "")),
+    }
+
+
+def _non_feature_frozen_config_sha256(**kwargs: Any) -> str:
+    payload = _non_feature_frozen_config_payload(**kwargs)
+    canonical = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
 def _resolve_adapter_scale(
     adapters_cfg: Dict[str, Any],
     model_name: str,
@@ -16813,6 +16968,64 @@ async def main_async(
     system_resolved_config_sha256 = str(
         os.environ.get("FAASLORA_SYSTEM_RESOLVED_CONFIG_SHA256", "") or ""
     ).strip().lower()
+    non_feature_frozen_config_sha256 = ""
+    selected_v2_scenario_cfg = next(
+        (
+            scenario
+            for scenario in scenarios
+            if str(scenario.get("name", "")) == str(only_scenario or "")
+            and str(scenario.get("name", "")).startswith("v2_")
+        ),
+        None,
+    )
+    if selected_v2_scenario_cfg is not None:
+        full_v2_scenario_cfg = next(
+            (
+                scenario
+                for scenario in revision_v2_scenarios
+                if str(scenario.get("name", "")) == "v2_full"
+            ),
+            None,
+        )
+        if full_v2_scenario_cfg is None:
+            raise ValueError(
+                "revision_v2_scenarios must define v2_full as the canonical "
+                "non-feature frozen configuration"
+            )
+        non_feature_frozen_config_sha256 = _non_feature_frozen_config_sha256(
+            experiment_cfg=exp_cfg,
+            model_cfg=model_cfg,
+            adapters_cfg=adapters_cfg,
+            storage_cfg=storage_cfg,
+            hardware_cfg=hw_cfg,
+            cost_model_cfg=cost_model,
+            base_coordination_cfg=coord_cfg,
+            full_scenario_cfg=full_v2_scenario_cfg,
+            scenario_cfg=selected_v2_scenario_cfg,
+        )
+    expected_non_feature_sha256 = str(
+        os.environ.get(
+            "FAASLORA_EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256", ""
+        )
+        or ""
+    ).strip().lower()
+    if expected_non_feature_sha256 and not re.fullmatch(
+        r"[0-9a-f]{64}", expected_non_feature_sha256
+    ):
+        raise ValueError(
+            "FAASLORA_EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256 must be a "
+            "64-character hexadecimal SHA-256"
+        )
+    if expected_non_feature_sha256 and (
+        not non_feature_frozen_config_sha256
+        or expected_non_feature_sha256 != non_feature_frozen_config_sha256
+    ):
+        raise ValueError(
+            "resolved non-feature configuration does not match the frozen "
+            "A2/A3 digest: "
+            f"expected={expected_non_feature_sha256} "
+            f"resolved={non_feature_frozen_config_sha256 or '<not-v2>'}"
+        )
     trace_role = str(
         os.environ.get("FAASLORA_TRACE_ROLE", "legacy") or "legacy"
     ).strip().lower()
@@ -17804,9 +18017,17 @@ async def main_async(
                             for request in result.requests
                             if float(getattr(request, "gpu_admission_decision_us", 0.0) or 0.0) > 0.0
                         ),
-                        "gpu_admission_decision_count": sum(
-                            int(view.get("gpu_admission_decisions", 0) or 0)
-                            for view in runner._coordinator_metric_views()
+                        "gpu_admission_decision_count": int(
+                            coord_m.get("gpu_admission_decisions", 0) or 0
+                        ),
+                        "gpu_admission_admit_count": int(
+                            coord_m.get("gpu_admission_admits", 0) or 0
+                        ),
+                        "gpu_admission_defer_count": int(
+                            coord_m.get("gpu_admission_defers", 0) or 0
+                        ),
+                        "gpu_admission_reject_count": int(
+                            coord_m.get("gpu_admission_rejects", 0) or 0
                         ),
                         "dispatch_tier_counts": {
                             tier: sum(
@@ -18028,6 +18249,14 @@ async def main_async(
                 os.environ.get("FAASLORA_RUN_FROZEN_SETTINGS_SHA256", "") or ""
             ).strip(),
             "system_resolved_config_sha256": system_resolved_config_sha256,
+            "non_feature_frozen_config_sha256": (
+                non_feature_frozen_config_sha256 or None
+            ),
+            "non_feature_frozen_config_schema": (
+                "faaslora_non_feature_frozen_config_v1"
+                if non_feature_frozen_config_sha256
+                else None
+            ),
             "trace_role": trace_role,
             "formal_run": formal_run,
             "bandwidth_mbps": bw_mbps,

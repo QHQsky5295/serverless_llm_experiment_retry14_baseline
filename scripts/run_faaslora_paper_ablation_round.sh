@@ -36,6 +36,10 @@ ALLOW_INTERNAL_BASELINES="${FAASLORA_PAPER_ABLATION_ALLOW_INTERNAL_BASELINES:-0}
 REQUIRE_FEATURE_TRIGGER="${FAASLORA_PAPER_ABLATION_REQUIRE_FEATURE_TRIGGER:-1}"
 FORMAL_RUN="${FAASLORA_PAPER_ABLATION_FORMAL:-0}"
 TRACE_ROLE="${FAASLORA_TRACE_ROLE:-auto}"
+EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256="${FAASLORA_EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256:-}"
+VALIDATION_REGISTRY="${FAASLORA_PAPER_ABLATION_VALIDATION_REGISTRY:-${ROUND_ROOT}/_protocol/non_feature_validation_registry.json}"
+VALIDATION_EVIDENCE_PATH="${ROUND_DIR}/protocol/seed41_validation_evidence.json"
+VALIDATION_REGISTRY_TOOL="${MAIN_REPO}/scripts/faaslora_ablation_validation_registry.py"
 
 if [[ "${TRACE_ROLE}" == "auto" ]]; then
   case "${SAMPLING_SEED}" in
@@ -50,8 +54,9 @@ RAW_DIR="${ROUND_DIR}/raw/faaslora"
 LOG_DIR="${ROUND_DIR}/logs"
 STATE_DIR="${ROUND_DIR}/state"
 SHARED_DIR="${ROUND_DIR}/shared_artifacts"
+PROTOCOL_DIR="${ROUND_DIR}/protocol"
 
-mkdir -p "${RAW_DIR}" "${LOG_DIR}" "${STATE_DIR}" "${SHARED_DIR}"
+mkdir -p "${RAW_DIR}" "${LOG_DIR}" "${STATE_DIR}" "${SHARED_DIR}" "${PROTOCOL_DIR}"
 
 log() {
   printf '[%s] %s\n' "$(date '+%F %T')" "$*"
@@ -185,6 +190,10 @@ validate_scenarios() {
 }
 
 validate_source_and_seed_protocol() {
+  if [[ -n "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}" && ! "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}" =~ ^[0-9a-fA-F]{64}$ ]]; then
+    log "[ERROR] FAASLORA_EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256 must be a 64-character SHA-256"
+    return 1
+  fi
   case "${TRACE_ROLE}" in
     validation|smoke|heldout|exploratory) ;;
     *)
@@ -202,9 +211,26 @@ validate_source_and_seed_protocol() {
   if [[ "${FORMAL_RUN}" != "1" ]]; then
     return 0
   fi
-  if [[ "${TRACE_ROLE}" != "heldout" ]]; then
-    log "[ERROR] formal ablation requires trace_role=heldout and seed 43/44/45"
+  if [[ "${DRY_RUN}" == "1" ]]; then
+    log "[ERROR] formal ablation cannot be a dry-run; use FORMAL=0 for protocol smoke"
     return 1
+  fi
+  case "${TRACE_ROLE}:${TOTAL_REQUESTS}" in
+    validation:1000|heldout:4000) ;;
+    *)
+      log "[ERROR] formal validation requires seed41/1000; heldout requires seeds43-45/4000"
+      return 1
+      ;;
+  esac
+  if [[ "${TRACE_ROLE}" == "validation" ]]; then
+    if (( ${#SCENARIOS[@]} != 1 )) || [[ "${SCENARIOS[0]}" != "v2_full" ]]; then
+      log "[ERROR] formal seed41 ablation validation must run exactly v2_full"
+      return 1
+    fi
+    if [[ -n "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}" ]]; then
+      log "[ERROR] seed41 validation must measure, not pre-impose, a frozen hash"
+      return 1
+    fi
   fi
   "${PYTHON_BIN}" - "${MAIN_REPO}" <<'PY'
 import subprocess
@@ -231,6 +257,48 @@ if dirty:
         + "\n".join(dirty)
     )
 PY
+
+  if [[ "${TRACE_ROLE}" == "heldout" ]]; then
+    EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256="$(
+      "${PYTHON_BIN}" "${VALIDATION_REGISTRY_TOOL}" resolve-heldout \
+        --registry "${VALIDATION_REGISTRY}" \
+        --evidence "${VALIDATION_EVIDENCE_PATH}" \
+        --repo "${MAIN_REPO}" \
+        --config "${CONFIG_PATH}" \
+        --sampling-seed "${SAMPLING_SEED}" \
+        --total-requests "${TOTAL_REQUESTS}" \
+        --round-dir "${ROUND_DIR}" \
+        --expected-non-feature-sha256 "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}" \
+        --model-profile "${MODEL_PROFILE}" \
+        --dataset-profile "${DATASET_PROFILE}" \
+        --workload-profile "${WORKLOAD_PROFILE}" \
+        --selected-num-adapters "${SELECTED_NUM_ADAPTERS}" \
+        --gpu-ids "${GPU_IDS}" \
+        --generation-contract legacy
+    )"
+    if [[ ! "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}" =~ ^[0-9a-f]{64}$ ]]; then
+      log "[ERROR] validation registry returned an invalid non-feature hash"
+      return 1
+    fi
+    log "seed41 validation gate selected non_feature_sha=${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}"
+  fi
+}
+
+register_successful_validation_if_complete() {
+  if [[ "${FORMAL_RUN}" != "1" || "${TRACE_ROLE}" != "validation" ]]; then
+    return 0
+  fi
+  "${PYTHON_BIN}" "${VALIDATION_REGISTRY_TOOL}" register-validation \
+    --registry "${VALIDATION_REGISTRY}" \
+    --manifest "${ROUND_DIR}/MANIFEST.json" \
+    --repo "${MAIN_REPO}" \
+    --config "${CONFIG_PATH}" \
+    --model-profile "${MODEL_PROFILE}" \
+    --dataset-profile "${DATASET_PROFILE}" \
+    --workload-profile "${WORKLOAD_PROFILE}" \
+    --selected-num-adapters "${SELECTED_NUM_ADAPTERS}" \
+    --gpu-ids "${GPU_IDS}" \
+    --generation-contract legacy
 }
 
 faaslora_system_resolved_config_sha256() {
@@ -303,7 +371,8 @@ validate_result_json() {
   "${PYTHON_BIN}" - "${result_path}" "${scenario}" "${TOTAL_REQUESTS}" \
     "${REQUIRE_FEATURE_TRIGGER}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}" \
     "${RUN_TAG}_${scenario}" "${STORAGE_BANDWIDTH_MIB_S}" \
-    "${resolved_config_sha}" "${TRACE_ROLE}" "${FORMAL_RUN}" <<'PY'
+    "${resolved_config_sha}" "${TRACE_ROLE}" "${FORMAL_RUN}" \
+    "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}" <<'PY'
 import hashlib
 import json
 import math
@@ -321,6 +390,7 @@ expected_bandwidth_mib_s = float(sys.argv[8])
 expected_resolved_config_sha = sys.argv[9]
 expected_trace_role = sys.argv[10]
 expected_formal = sys.argv[11] == "1"
+expected_non_feature_sha = sys.argv[12].strip().lower()
 obj = json.loads(path.read_text(encoding="utf-8"))
 
 def sha256(candidate):
@@ -336,6 +406,19 @@ if metadata.get("system_resolved_config_sha256") != expected_resolved_config_sha
         f"{path}: resolved-config SHA mismatch: "
         f"expected={expected_resolved_config_sha} "
         f"actual={metadata.get('system_resolved_config_sha256')!r}"
+    )
+non_feature_sha = str(metadata.get("non_feature_frozen_config_sha256") or "")
+if scenario.startswith("v2_") and not (
+    len(non_feature_sha) == 64
+    and all(ch in "0123456789abcdef" for ch in non_feature_sha.lower())
+):
+    raise SystemExit(
+        f"{path}: missing or invalid non_feature_frozen_config_sha256"
+    )
+if expected_non_feature_sha and non_feature_sha.lower() != expected_non_feature_sha:
+    raise SystemExit(
+        f"{path}: frozen non-feature SHA mismatch: "
+        f"expected={expected_non_feature_sha} actual={non_feature_sha.lower()}"
     )
 if str(metadata.get("trace_role") or "") != expected_trace_role:
     raise SystemExit(f"{path}: trace_role mismatch")
@@ -589,9 +672,11 @@ write_round_env() {
     printf 'export FAASLORA_SOURCE_RUN_TAG=%q\n' "${SOURCE_RUN_TAG}"
     printf 'export FAASLORA_SHARED_TRACE_PATH=%q\n' "${TRACE_PATH}"
     printf 'export FAASLORA_SHARED_ADAPTER_SUBSET_PATH=%q\n' "${ADAPTER_SUBSET_PATH}"
-      printf 'export FAASLORA_PAPER_ABLATION_SCENARIOS=%q\n' "${SCENARIOS_RAW}"
-      printf 'export FAASLORA_PAPER_ABLATION_FORMAL=%q\n' "${FORMAL_RUN}"
-      printf 'export FAASLORA_TRACE_ROLE=%q\n' "${TRACE_ROLE}"
+    printf 'export FAASLORA_PAPER_ABLATION_SCENARIOS=%q\n' "${SCENARIOS_RAW}"
+    printf 'export FAASLORA_PAPER_ABLATION_FORMAL=%q\n' "${FORMAL_RUN}"
+    printf 'export FAASLORA_TRACE_ROLE=%q\n' "${TRACE_ROLE}"
+    printf 'export FAASLORA_EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256=%q\n' "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}"
+    printf 'export FAASLORA_PAPER_ABLATION_VALIDATION_REGISTRY=%q\n' "${VALIDATION_REGISTRY}"
     printf 'export FAASLORA_PAPER_ABLATION_CONFIG=%q\n' "${CONFIG_PATH}"
   } >"${ROUND_DIR}/round.env"
 }
@@ -616,7 +701,9 @@ validate_or_write_round_env() {
           "${FAASLORA_SHARED_ADAPTER_SUBSET_PATH:-}" \
           "${FAASLORA_PAPER_ABLATION_SCENARIOS:-}" \
           "${FAASLORA_PAPER_ABLATION_FORMAL:-0}" \
-          "${FAASLORA_TRACE_ROLE:-auto}"
+          "${FAASLORA_TRACE_ROLE:-auto}" \
+          "${FAASLORA_EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256:-}" \
+          "${FAASLORA_PAPER_ABLATION_VALIDATION_REGISTRY:-}"
       ' bash "${env_path}"
     )
     local names=(
@@ -624,6 +711,8 @@ validate_or_write_round_env() {
       SELECTED_NUM_ADAPTERS SAMPLING_SEED STORAGE_BANDWIDTH_MIB_S TRACE_PATH
       ADAPTER_SUBSET_PATH SCENARIOS
       FORMAL_RUN TRACE_ROLE
+      EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256
+      VALIDATION_REGISTRY
     )
     local current=(
       "${RUN_TAG}" "${MODEL_PROFILE}" "${DATASET_PROFILE}" "${WORKLOAD_PROFILE}"
@@ -631,6 +720,8 @@ validate_or_write_round_env() {
       "${STORAGE_BANDWIDTH_MIB_S}" "${TRACE_PATH}" "${ADAPTER_SUBSET_PATH}"
       "${SCENARIOS_RAW}"
       "${FORMAL_RUN}" "${TRACE_ROLE}"
+      "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}"
+      "${VALIDATION_REGISTRY}"
     )
     local i
     for i in "${!names[@]}"; do
@@ -663,7 +754,13 @@ write_manifest() {
     "${MAIN_REPO}" \
     "${STORAGE_BANDWIDTH_MIB_S}" \
     "${FORMAL_RUN}" \
-    "${TRACE_ROLE}" <<'PY'
+    "${TRACE_ROLE}" \
+    "${CONFIG_PATH}" \
+    "${VALIDATION_REGISTRY}" \
+    "${VALIDATION_EVIDENCE_PATH}" \
+    "${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}" \
+    "${GPU_IDS}" \
+    "${SELECTED_NUM_ADAPTERS}" <<'PY'
 import csv
 import hashlib
 import json
@@ -688,6 +785,12 @@ main_repo = Path(sys.argv[14])
 bandwidth_mib_s = float(sys.argv[15])
 formal_run = sys.argv[16] == "1"
 trace_role = sys.argv[17]
+config_path = Path(sys.argv[18]).resolve()
+validation_registry_path = Path(sys.argv[19]).resolve()
+validation_evidence_path = Path(sys.argv[20]).resolve()
+expected_non_feature_hash = sys.argv[21].strip().lower()
+gpu_ids = [item.strip() for item in sys.argv[22].split(",") if item.strip()]
+selected_num_adapters = int(sys.argv[23])
 raw_dir = round_dir / "raw" / "faaslora"
 
 def sha256(path: Path) -> str:
@@ -808,6 +911,9 @@ for scenario in scenarios:
         entry["system_resolved_config_sha256"] = (
             (obj.get("metadata") or {}).get("system_resolved_config_sha256")
         )
+        entry["non_feature_frozen_config_sha256"] = (
+            (obj.get("metadata") or {}).get("non_feature_frozen_config_sha256")
+        )
         summary = (obj.get("scenario_summaries") or {}).get(scenario, {})
         entry["summary"] = {
             "ttft_avg_ms": summary.get("avg_overall_ttft_ms"),
@@ -843,6 +949,65 @@ actual_state_markers = sorted(path.name for path in (round_dir / "state").glob("
 campaign_complete = bool(entries) and all(entry.get("exists") for entry in entries) and all(
     marker in actual_state_markers for marker in expected_state_markers
 )
+v2_entries = [entry for entry in entries if str(entry.get("scenario", "")).startswith("v2_")]
+non_feature_hashes = {
+    str(entry.get("non_feature_frozen_config_sha256") or "").lower()
+    for entry in v2_entries
+}
+non_feature_hash_valid = bool(v2_entries) and all(
+    len(value) == 64 and all(ch in "0123456789abcdef" for ch in value)
+    for value in non_feature_hashes
+)
+non_feature_hash_consistent = non_feature_hash_valid and len(non_feature_hashes) == 1
+if v2_entries:
+    campaign_complete = campaign_complete and non_feature_hash_consistent
+configuration_family = {
+    "campaign_kind": "v2_a2_a3_ablation",
+    "model_profile": model_profile,
+    "dataset_profile": dataset_profile,
+    "workload_profile": workload_profile,
+    "selected_num_adapters": selected_num_adapters,
+    "gpu_ids": gpu_ids,
+    "generation_contract": "legacy",
+}
+validation_evidence = None
+if validation_evidence_path.is_file():
+    evidence_payload = json.loads(validation_evidence_path.read_text(encoding="utf-8"))
+    selected_hash = str(
+        evidence_payload.get("selected_non_feature_frozen_config_sha256") or ""
+    ).lower()
+    if selected_hash != expected_non_feature_hash:
+        raise SystemExit("held-out validation evidence selected hash mismatch")
+    validation_evidence = {
+        "path": str(validation_evidence_path),
+        "sha256": sha256(validation_evidence_path),
+        "bytes": validation_evidence_path.stat().st_size,
+        "selected_non_feature_frozen_config_sha256": selected_hash,
+        "successful_validation_manifest": (
+            (evidence_payload.get("successful_validation") or {}).get("manifest")
+        ),
+        "successful_validation_manifest_sha256": (
+            (evidence_payload.get("successful_validation") or {}).get("manifest_sha256")
+        ),
+        "successful_validation_manifest_bytes": (
+            (evidence_payload.get("successful_validation") or {}).get("manifest_bytes")
+        ),
+        "source_commit": evidence_payload.get("source_commit"),
+        "config_path": evidence_payload.get("config_path"),
+        "config_sha256": evidence_payload.get("config_sha256"),
+        "configuration_family_id": evidence_payload.get("configuration_family_id"),
+        "registry_path": str(validation_registry_path),
+        "registry_sha256_after_freeze": evidence_payload.get(
+            "registry_sha256_after_freeze"
+        ),
+    }
+if formal_run and trace_role == "heldout" and validation_evidence is None:
+    raise SystemExit("formal held-out manifest requires immutable seed41 validation evidence")
+if formal_run and trace_role == "heldout" and (
+    not non_feature_hash_consistent
+    or next(iter(non_feature_hashes)) != expected_non_feature_hash
+):
+    raise SystemExit("formal held-out results do not match the seed41 frozen non-feature hash")
 
 manifest = {
     "status": "complete" if campaign_complete else "incomplete",
@@ -858,6 +1023,13 @@ manifest = {
     "model_profile": model_profile,
     "dataset_profile": dataset_profile,
     "workload_profile": workload_profile,
+    "configuration_family": configuration_family,
+    "config_snapshot": {
+        "path": str(config_path),
+        "sha256": sha256(config_path),
+        "bytes": config_path.stat().st_size,
+    },
+    "seed41_validation_evidence": validation_evidence,
     "code_snapshot": {
         "repo": str(main_repo),
         "git_commit": git_value(["rev-parse", "HEAD"]),
@@ -887,6 +1059,10 @@ manifest = {
     },
     "scenarios": scenarios,
     "bandwidth_mib_s": bandwidth_mib_s,
+    "non_feature_frozen_config_sha256": (
+        next(iter(non_feature_hashes)) if non_feature_hash_consistent else None
+    ),
+    "non_feature_frozen_config_consistent": non_feature_hash_consistent,
     "entries": entries,
     "state_markers": actual_state_markers,
     "required_state_markers": expected_state_markers,
@@ -933,15 +1109,18 @@ if [[ ! -x "${PYTHON_BIN}" ]]; then
   log "[ERROR] Python not executable: ${PYTHON_BIN}"
   exit 1
 fi
+if [[ ! -f "${VALIDATION_REGISTRY_TOOL}" ]]; then
+  log "[ERROR] seed41 validation registry tool not found: ${VALIDATION_REGISTRY_TOOL}"
+  exit 1
+fi
 
 validate_shared_artifacts
-validate_or_write_round_env
-cp -f "${TRACE_PATH}" "${SHARED_DIR}/$(basename "${TRACE_PATH}")"
-cp -f "${ADAPTER_SUBSET_PATH}" "${SHARED_DIR}/$(basename "${ADAPTER_SUBSET_PATH}")"
-
 read -r -a SCENARIOS <<< "${SCENARIOS_RAW}"
 validate_scenarios
 validate_source_and_seed_protocol
+validate_or_write_round_env
+cp -f "${TRACE_PATH}" "${SHARED_DIR}/$(basename "${TRACE_PATH}")"
+cp -f "${ADAPTER_SUBSET_PATH}" "${SHARED_DIR}/$(basename "${ADAPTER_SUBSET_PATH}")"
 log "round_dir=${ROUND_DIR}"
 log "run_tag=${RUN_TAG}"
 log "section=${SECTION_ID} purpose=${ROUND_PURPOSE} figures=${FIGURE_TARGETS}"
@@ -999,6 +1178,7 @@ for scenario in "${SCENARIOS[@]}"; do
     export FAASLORA_SYSTEM_RESOLVED_CONFIG_SHA256="$(
       faaslora_system_resolved_config_sha256 "${scenario}"
     )"
+    export FAASLORA_EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256="${EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256}"
     export FAASLORA_TRACE_ROLE="${TRACE_ROLE}"
     export FAASLORA_FORMAL_RUN="${FORMAL_RUN}"
     export PYTHONUNBUFFERED=1
@@ -1026,4 +1206,5 @@ for scenario in "${SCENARIOS[@]}"; do
 done
 
 write_manifest
+register_successful_validation_if_complete
 log "FaaSLoRA paper ablation round complete: ${ROUND_DIR}"

@@ -34,6 +34,8 @@ from scripts.run_all_experiments import (
     _apply_adapter_storage_env_overrides,
     _apply_explicit_env_overrides,
     _generation_contract_request_map_sha256,
+    _non_feature_frozen_config_payload,
+    _non_feature_frozen_config_sha256,
     _path_size_bytes,
 )
 
@@ -106,6 +108,130 @@ class RevisionV2ScenarioTests(unittest.TestCase):
         for previous, current in zip(observed_features, observed_features[1:]):
             self.assertTrue(previous < current)
             self.assertEqual(len(current - previous), 1)
+
+    def test_non_feature_digest_is_stable_across_ablation_rows_and_axes(self) -> None:
+        with EXPERIMENTS_CONFIG.open("r", encoding="utf-8") as handle:
+            config = yaml.safe_load(handle)
+
+        common = {
+            "experiment_cfg": {
+                "num_runs": 1,
+                "confidence_level": 0.95,
+                "output_dir": "results/seed43",
+                "results_file": "seed43.json",
+            },
+            "model_cfg": {
+                "name": "meta-llama/Llama-2-7b-hf",
+                "backend": "vllm",
+                "runtime_concurrency_cap": 8,
+                "max_loras": 64,
+            },
+            "adapters_cfg": {
+                "preparation_mode": "local_frozen",
+                "selected_num_adapters": 500,
+                "_selected_adapter_count": 500,
+                "_shared_adapter_subset_path": "/trace/seed43-subset.json",
+                "adapters": [{"id": "seed43-a"}],
+            },
+            "storage_cfg": {
+                "remote_dir": "artifacts/remote",
+                "host_cache_dir": "/dev/shm/seed43",
+                "nvme_cache_dir": "/tmp/seed43",
+                "bandwidth_mbps": 250.0,
+                "require_memory_backed_host_cache": True,
+            },
+            "hardware_cfg": {"gpu_memory_mb": 24576},
+            "cost_model_cfg": {"serverless_idle_gpu_cost_factor": 0.238095},
+            "base_coordination_cfg": {
+                "min_instances": 1,
+                "max_instances": 4,
+                "scale_eval_interval_s": 15.0,
+            },
+            "full_scenario_cfg": config["revision_v2_scenarios"][-1],
+        }
+        digests = {
+            _non_feature_frozen_config_sha256(**common, scenario_cfg=scenario)
+            for scenario in config["revision_v2_scenarios"]
+        }
+        self.assertEqual(len(digests), 1)
+
+        axis_changed = json.loads(json.dumps(common))
+        axis_changed["experiment_cfg"].update(
+            {"output_dir": "results/seed45", "results_file": "seed45.json"}
+        )
+        axis_changed["adapters_cfg"].update(
+            {
+                "selected_num_adapters": 100,
+                "_selected_adapter_count": 100,
+                "_shared_adapter_subset_path": "/trace/seed45-subset.json",
+                "adapters": [{"id": "seed45-b"}],
+            }
+        )
+        axis_changed["storage_cfg"].update(
+            {
+                "host_cache_dir": "/dev/shm/seed45",
+                "nvme_cache_dir": "/tmp/seed45",
+                "bandwidth_mbps": 11.9209,
+            }
+        )
+        reference_scenario = config["revision_v2_scenarios"][-1]
+        self.assertEqual(
+            next(iter(digests)),
+            _non_feature_frozen_config_sha256(
+                **axis_changed, scenario_cfg=reference_scenario
+            ),
+        )
+
+        payload = _non_feature_frozen_config_payload(
+            **common, scenario_cfg=reference_scenario
+        )
+        canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        self.assertNotIn("seed43-a", canonical)
+        self.assertNotIn("bandwidth_mbps", canonical)
+        self.assertNotIn("routing_policy", canonical)
+        self.assertIn("runtime_concurrency_cap", canonical)
+        self.assertIn("serverless_idle_gpu_cost_factor", canonical)
+
+    def test_non_feature_digest_detects_runtime_autoscaler_billing_and_capacity_drift(self) -> None:
+        with EXPERIMENTS_CONFIG.open("r", encoding="utf-8") as handle:
+            scenario = yaml.safe_load(handle)["revision_v2_scenarios"][-1]
+        common = {
+            "experiment_cfg": {"num_runs": 1},
+            "model_cfg": {"backend": "vllm", "runtime_concurrency_cap": 8},
+            "adapters_cfg": {"preparation_mode": "local_frozen"},
+            "storage_cfg": {"remote_dir": "artifacts/remote"},
+            "hardware_cfg": {"gpu_memory_mb": 24576},
+            "cost_model_cfg": {"serverless_idle_gpu_cost_factor": 0.238095},
+            "base_coordination_cfg": {"min_instances": 1, "max_instances": 4},
+            "full_scenario_cfg": scenario,
+            "scenario_cfg": scenario,
+        }
+        reference = _non_feature_frozen_config_sha256(**common)
+        for section, key, value in (
+            ("model_cfg", "runtime_concurrency_cap", 9),
+            ("base_coordination_cfg", "max_instances", 3),
+            ("cost_model_cfg", "serverless_idle_gpu_cost_factor", 0.5),
+            ("hardware_cfg", "gpu_memory_mb", 24000),
+        ):
+            changed = json.loads(json.dumps(common))
+            changed[section][key] = value
+            self.assertNotEqual(
+                reference,
+                _non_feature_frozen_config_sha256(**changed),
+                msg=f"failed to detect drift in {section}.{key}",
+            )
+
+        capacity_changed = json.loads(json.dumps(common))
+        capacity_changed["scenario_cfg"]["preloading"]["host_capacity_mb"] = 2048
+        self.assertNotEqual(
+            reference, _non_feature_frozen_config_sha256(**capacity_changed)
+        )
+
+        tuning_changed = json.loads(json.dumps(common))
+        tuning_changed["scenario_cfg"]["preloading"]["min_hotness"] = 0.4
+        self.assertNotEqual(
+            reference, _non_feature_frozen_config_sha256(**tuning_changed)
+        )
 
     def test_router_policy_separates_load_only_from_readiness_and_handoff(self) -> None:
         coordinator = SimpleNamespace(

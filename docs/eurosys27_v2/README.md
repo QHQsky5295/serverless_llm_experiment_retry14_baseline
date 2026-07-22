@@ -1,6 +1,6 @@
 # EuroSys '27 V2 审稿意见处理与实验协议
 
-更新时间：2026-07-18
+更新时间：2026-07-22
 
 适用分支：`retry14_continuous_queue_v2`
 
@@ -20,7 +20,7 @@ V2 解释以投稿论文的设计目标为起点，但不把设计目标自动�
 4. 按 seed 统计 paired difference 与置信区间；
 5. 只报告门槛通过的完整运行，不按胜负筛选 seed 或系统配置。
 
-运行器把 seed 41/42/43--45 分别机器标记为 `validation`、`smoke`、`heldout`；正式模式只接受 43--45。每个系统另保存排除 seed、trace/subset 和执行顺序的 resolved-config SHA，正式三个 seed 必须一致。正式运行还要求 campaign manifest 为 `complete` 且代码来自 clean committed source；FaaSLoRA 只豁免用户已有的 `configs/generated/lora_manifest_1000.json` 修改。
+运行器把 seed 41/42/43--45 分别机器标记为 `validation`、`smoke`、`heldout`。正式模式只接受 seed 41 的 1,000-request validation，或 seeds 43--45 的 4,000-request held-out；seed 42 只能是非正式 smoke。每个系统另保存排除 seed、trace/subset 和执行顺序的 resolved-config SHA，正式三个 held-out seed 必须一致。正式运行还要求 campaign manifest 为 `complete` 且代码来自 clean committed source；FaaSLoRA 只豁免用户已有的 `configs/generated/lora_manifest_1000.json` 修改。
 
 ### 1.2 当前实现证据
 
@@ -60,7 +60,7 @@ V2 解释以投稿论文的设计目标为起点，但不把设计目标自动�
 | C1：queue/affinity signals | 文档采纳 | [queue/affinity 状态说明](C1_QUEUE_AFFINITY_STATE.md) | 明确存储、owner、event-driven/sampled 更新和 stale fallback |
 | C2：active-LoRA feasibility | 文档采纳 | [active-LoRA feasibility 定义](C2_ACTIVE_LORA_FEASIBILITY.md) | 与 residency、request concurrency、queue length 严格区分 |
 | C3：为何 admission 时再查 budget | 文档采纳 | [plan 与 admission 分层说明](C3_PLAN_VS_ADMISSION.md) | planner 只选择价值；admission 对 momentary feasibility 重新检查 |
-| C4：500 adapters/rotation 500 的代表性 | 采纳 | stationary、快/主/慢 abrupt rotation、Zipf、gradual-overlap sensitivity | 同一 arrival/token trace；报告实际 unique adapters 与 churn 指标 |
+| C4：500 adapters/rotation 500 的代表性 | 采纳 | 保留投稿的 legacy-overlap 主点，并增加 stationary、abrupt、Zipf、gradual-overlap sensitivity | 同一 arrival/token trace；报告实际 unique adapters 与 churn 指标 |
 | C5：Prime E2E 优于 S-LoRA | 重新验证 | `fixed_length_greedy_v1` matched-output 对比及 E2E 阶段分解 | 每请求 token/prompt 契约一致，4,000/4,000 成功，无 token fallback |
 | Readiness 是否真是 dispatch-time | 主动修正证据 | pre-dispatch tier audit 与 multi-cycle scale-out diagnostic | tier 字段完整率 100%，不变量冲突 0，first-service 样本满足预注册门槛 |
 | 新 GPU/NVLink | 部分回应 | runtime topology/NCCL/NVLink smoke metadata | 只说明实测拓扑；不推断 H100 性能 |
@@ -88,9 +88,34 @@ V2 解释以投稿论文的设计目标为起点，但不把设计目标自动�
 - 4,000 个请求只用于计算单次运行内的 latency distribution，不把请求当作 4,000 次独立实验重复。
 - 若正式结果不支持预期结论，只能：检查预注册门槛；修复共同的测量/语义 bug；回到 validation trace 对双方执行同等调参；冻结新版本后完整重跑 43/44/45。禁止只换 PrimeLoRA、筛 seed 或隐去失败结果。
 
+Standalone A2/A3 消融运行器把成功的 seed41 `v2_full` validation manifest
+登记到 family-scoped、加锁原子写入的 registry。登记前会核对 source commit、配置文件
+SHA、1,000-request trace、场景集合和 non-feature frozen hash；held-out 启动前必须从
+registry 解析唯一候选（多候选时要求显式选定），随后把 per-round immutable evidence
+写入 `protocol/seed41_validation_evidence.json`。已冻结 family 不能切换 hash。formal
+analyzer 会再次核对 evidence、seed41 manifest、validation 原始结果及其 byte/SHA，
+不会只信 held-out manifest 的摘要。该链只冻结非机制配置；四行机制 gate 仍由场景定义
+和触发计数独立审计。
+
+PrimeLoRA Full 与 ServerlessLLM-new 的正式主比较由
+`scripts/analyze_v2_full_vs_serverless.py` 单独发布。它只接受 completed held-out
+campaign manifests，并强制 2 models x 3 seeds x 2 systems 的 12 个 identity、
+`v2_full`/`serverlessllm_fair` 官方场景、上述投稿 legacy workload 轴、共享
+trace/subset SHA 以及跨 seed frozen-config 一致性；输出 per-run 原值、同 seed
+paired difference、方向统一的 improvement 和 95% t-CI。`serverlessllm_fair`
+是 ServerlessLLM-new 官方 harness 保留的结果-schema 场景名，不代表同时保留了
+一个旧 ServerlessLLM 比较行。
+
 ### 3.3 A2/A3 累积消融
 
-主点为 7B、4,000 requests、500-adapter universe、local-sim 250 MiB/s 和原主 workload：
+主点严格冻结为 7B、4,000 requests、500-adapter universe、local-sim
+250 MiB/s、time-scale 8 和投稿真实主 workload：Zipf 1.0、active-adapter
+cap 48、每 500 请求轮换、`rotation_mode=legacy`、相邻生成器 hot set
+目标 overlap 0.75，generation contract 为 `legacy`。四行必须记录同一个
+`non_feature_frozen_config_sha256`；该摘要排除下列机制开关，但覆盖其余 runtime、
+autoscaler、billing 与 tuning 配置；同时排除 seed、request count、trace、bandwidth
+和 workload sensitivity 轴，formal analyzer 遇到跨行漂移即拒绝发布。被摘要排除的
+实验轴仍由 formal matrix 逐项精确检查，不能借摘要排除而漂移。
 
 1. `ElasticOnly`：保留同一 autoscaler、runtime、billing 和 backend 按需 LoRA load；least-loaded routing；关闭 PrimeLoRA 的三类机制。
 2. `+HitAwarePreparation`：加入机制一，即 readiness-aware placement、NVMe preparation 与 scale-out handoff。三者共同构成论文中的“命中感知放置与扩容准备”，不再拆成多个伪机制行。
@@ -164,13 +189,26 @@ Fig. 9 四个主面板为 P95 TTFT、平均 E2E、Cost/request 和 CE；数据�
 
 1. stationary Zipf 1.0，无轮换；
 2. abrupt rotation 100；
-3. abrupt rotation 500（原主点）；
-4. abrupt rotation 2000；
-5. Zipf 0.6、rotation 500；
-6. Zipf 1.4、rotation 500；
-7. gradual rotation 500、相邻 hot set 50% overlap。
+3. `submitted_main_legacy_rot500_overlap75`：投稿主点，legacy rotation 500、目标 overlap 0.75；
+4. `abrupt_rot500_overlap0`：额外的完全突变 sensitivity 点，不冒充投稿主点；
+5. abrupt rotation 2000；
+6. Zipf 0.6、abrupt rotation 500；
+7. Zipf 1.4、abrupt rotation 500；
+8. gradual rotation 500、相邻 hot set 50% overlap。
 
-Full 与 ServerlessLLM-new 在七种 profile 上运行 seed 43；stationary、rotation 100、rotation 500 再运行 44/45，并在这三个关键 profile 加入 ElasticOnly。报告名义 universe 以外，还必须报告 actual unique adapters、effective adapter count、entropy/Gini、first-touch ratio、reuse-distance quantiles、基于实际观察 adapter 集合计算的相邻窗口 turnover，以及 remote miss ratio；该 turnover 不冒充生成器内部 hot-set ground truth。
+Formal C4 矩阵共有 37 个 identity。Full 与 ServerlessLLM-new 在八种
+profile 上运行 seed 43；stationary、rotation 100、投稿 legacy-rotation-500
+主点再运行 44/45，并在这三个关键 profile 加入 ElasticOnly seed 43/44/45。
+单独的 abrupt-500/overlap-0 只运行 seed 43。
+
+`final_v2` 投稿主 trace 的实际请求序列并不是相邻窗口完全不重叠：按 500
+请求划窗后，相邻窗口中“实际出现的 adapter 集合”的 Jaccard similarity 约为
+0.55--0.61（对应 observed-set turnover 约 0.39--0.45，均值约 0.416）。因此旧
+主点必须称为 `legacy rotation / overlap 0.75`，不得改称 abrupt。报告名义
+universe 以外，还必须报告 actual unique adapters、effective adapter count、
+entropy/Gini、first-touch ratio、reuse-distance quantiles、基于实际观察 adapter
+集合计算的相邻窗口 turnover，以及 remote miss ratio；该 observed-set turnover
+不冒充生成器内部 hot-set ground truth。
 
 ### 3.8 C5 PrimeLoRA--S-LoRA matched-output
 
@@ -197,8 +235,8 @@ Full 与 ServerlessLLM-new 在七种 profile 上运行 seed 43；stationary、ro
 
 ```text
 results/eurosys27_v2/<campaign_id>/<model>/<seed>/<run_tag>/
-paper_results/eurosys27_v2/{a2_a3_ablation,a4_ce,a6_bandwidth,c4_workload,c5_slora,readiness}/
-figs/eurosys27_v2/{a2_a3_ablation,a4_ce,a6_bandwidth,c4_workload,c5_slora,readiness}/
+paper_results/eurosys27_v2/{full_vs_serverless,a2_a3_ablation,a4_ce,a6_bandwidth,c4_workload,c5_slora,readiness}/
+figs/eurosys27_v2/{full_vs_serverless,a2_a3_ablation,a4_ce,a6_bandwidth,c4_workload,c5_slora,readiness}/
 ```
 
 发布前必须：

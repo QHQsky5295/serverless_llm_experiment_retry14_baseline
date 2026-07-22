@@ -140,9 +140,13 @@ def _write_v2_ablation_result(
     corrupt_contract_map: bool = False,
     missing_dispatch_tier: bool = False,
     corrupt_activation: bool = False,
+    total: int = 4,
+    non_feature_hash: str = "e" * 64,
+    bandwidth_mib_s: float = 250.0,
+    generation_contract: str = "legacy",
+    admission_outcomes: tuple[int, int, int] | None = None,
 ) -> None:
-    total = 4
-    contract = "legacy"
+    contract = generation_contract
     requests = []
     for index in range(total):
         requests.append(
@@ -191,6 +195,9 @@ def _write_v2_ablation_result(
         "v2_full": (True, True, True, True, True),
     }
     readiness, handoff, hierarchy, coordination, admission = gate_map[scenario]
+    if admission_outcomes is None:
+        admission_outcomes = (1, 0, 0) if admission else (0, 0, 0)
+    admission_admits, admission_defers, admission_rejects = admission_outcomes
     activation = {
         "successful_request_count": total,
         "routing_decision_count": total,
@@ -204,6 +211,9 @@ def _write_v2_ablation_result(
         "scaleup_first_service_planned_match_rate": 1.0 if handoff else 0.0,
         "gpu_admission_observed_request_count": 1 if admission else 0,
         "gpu_admission_decision_count": 1 if admission else 0,
+        "gpu_admission_admit_count": admission_admits,
+        "gpu_admission_defer_count": admission_defers,
+        "gpu_admission_reject_count": admission_rejects,
         "dispatch_tier_counts": {"gpu": total, "host": 0, "nvme": 0, "remote": 0},
         "dispatch_to_service_transition_count": 1 if hierarchy else 0,
         "initial_or_current_nvme_adapter_count": 2 if handoff else 0,
@@ -226,6 +236,23 @@ def _write_v2_ablation_result(
                     "shared_trace_sha256": trace_sha,
                     "shared_adapter_subset_sha256": subset_sha,
                     "generation_contract": contract,
+                    "non_feature_frozen_config_sha256": non_feature_hash,
+                    "num_adapters": 500,
+                    "bandwidth_mib_s": bandwidth_mib_s,
+                    "configured_time_scale_factor": 8.0,
+                    "effective_time_scale_factor": 8.0,
+                    "active_adapter_cap": 48,
+                    "hotset_rotation_requests": 500,
+                    "hotset_rotation_mode": "legacy",
+                    "hotset_overlap_fraction": 0.75,
+                    "shared_trace_load_profile": {
+                        "zipf_exponent": 1.0,
+                        "active_adapter_cap": 48,
+                        "hotset_rotation_requests": 500,
+                        "rotation_mode": "legacy",
+                        "hotset_overlap_fraction": 0.75,
+                        "num_adapters": 500,
+                    },
                     "generation_contract_request_map_sha256": {
                         scenario: contract_map_sha,
                     },
@@ -247,8 +274,11 @@ def _write_v2_ablation_result(
                         "total": total,
                         "completed": total,
                         "requests": requests,
+                        "avg_overall_ttft_ms": ttft_p95 * 0.7,
                         "p95_overall_ttft_ms": ttft_p95,
                         "avg_overall_e2e_ms": e2e_avg,
+                        "avg_tpot_ms": 12.0,
+                        "throughput_tok_per_s": 100.0 + ce / 100.0,
                         "monetary_cost_per_request_usd": cost,
                         "monetary_ce": ce,
                     }
@@ -368,6 +398,8 @@ def _write_formal_ablation_matrix(root: Path) -> None:
                     e2e_avg=200.0 - 5.0 * scenario_index,
                     cost=0.01 - 0.0001 * scenario_index,
                     ce=500.0 + 10.0 * scenario_index,
+                    total=4000,
+                    non_feature_hash=("e" if "7B" in model else "f") * 64,
                 )
 
 
@@ -443,13 +475,14 @@ def _write_formal_workload_matrix(root: Path) -> None:
         # The mode, not the retained interval field, disables rotation.
         "stationary": ("stationary", 500, 1.0, 0.0),
         "rotation100": ("abrupt", 100, 1.0, 0.0),
-        "rotation500": ("abrupt", 500, 1.0, 0.0),
+        "submitted_main_legacy_rotation500": ("legacy", 500, 1.0, 0.75),
+        "abrupt_rotation500_overlap0": ("abrupt", 500, 1.0, 0.0),
         "rotation2000": ("abrupt", 2000, 1.0, 0.0),
         "zipf06": ("abrupt", 500, 0.6, 0.0),
         "zipf14": ("abrupt", 500, 1.4, 0.0),
         "gradual": ("gradual", 500, 1.0, 0.5),
     }
-    replicated = {"stationary", "rotation100", "rotation500"}
+    replicated = {"stationary", "rotation100", "submitted_main_legacy_rotation500"}
     sequence = ["a", "a", "b", "a", "c", "b", "a", "c"]
     for profile_name, (mode, rotation, zipf, overlap) in profiles.items():
         full_seeds = (43, 44, 45) if profile_name in replicated else (43,)
@@ -862,6 +895,36 @@ class FigureFormulaTests(unittest.TestCase):
             self.assertAlmostEqual(float(ttft["improvement_pct_mean"]), 20.0)
             self.assertAlmostEqual(float(ce["improvement_pct_mean"]), 20.0)
             self.assertTrue((output / "fig9_v2_ablation.pdf").is_file())
+            with (output / "fig9_v2_ablation_adjacent_increment_summary.csv").open(
+                encoding="utf-8", newline=""
+            ) as handle:
+                adjacent = list(csv.DictReader(handle))
+            self.assertEqual({row["mechanism"] for row in adjacent}, {"M1", "M2", "M3"})
+            self.assertTrue(all(int(row["paired_seed_count"]) == 3 for row in adjacent))
+            references = {
+                row["mechanism"]: row["reference_scenario"]
+                for row in adjacent
+            }
+            self.assertEqual(references["M1"], "v2_elastic_only")
+            self.assertEqual(references["M2"], "v2_hit_aware_preparation")
+            self.assertEqual(references["M3"], "v2_hierarchical_no_coord")
+            with (output / "fig9_v2_ablation_per_seed.csv").open(
+                encoding="utf-8", newline=""
+            ) as handle:
+                full_table_row = next(csv.DictReader(handle))
+            for field in (
+                "avg_overall_ttft_ms",
+                "avg_tpot_ms",
+                "throughput_tok_per_s",
+                "routing_decision_count",
+                "scale_up_events_with_planned_adapters",
+                "host_promotion_completed_count",
+                "gpu_admission_decision_count",
+                "gpu_admission_admit_count",
+                "gpu_admission_defer_count",
+                "gpu_admission_reject_count",
+            ):
+                self.assertIn(field, full_table_row)
 
     def test_v2_fig9_rejects_provenance_dispatch_contract_and_activation_errors(self) -> None:
         def write_pair(root: Path, **full_overrides: object) -> Path:
@@ -909,6 +972,26 @@ class FigureFormulaTests(unittest.TestCase):
                 plot_paper_figures.load_v2_ablation_results(
                     [write_pair(Path(tmp), corrupt_activation=True)]
                 )
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(SystemExit, "admission outcome invariant"):
+                plot_paper_figures.load_v2_ablation_results(
+                    [write_pair(Path(tmp), admission_outcomes=(1, 1, 0))]
+                )
+        with tempfile.TemporaryDirectory() as tmp:
+            inputs = Path(tmp) / "inputs"
+            _write_v2_ablation_result(
+                inputs / "elastic_result.json",
+                model="model-7b",
+                scenario="v2_elastic_only",
+                seed=43,
+                ttft_p95=100.0,
+                e2e_avg=200.0,
+                cost=0.01,
+                ce=500.0,
+                admission_outcomes=(1, 0, 0),
+            )
+            with self.assertRaisesRegex(SystemExit, "disabled admission"):
+                plot_paper_figures.load_v2_ablation_results([inputs])
 
     def test_v2_formal_ablation_matrix_accepts_exact_and_rejects_missing_or_extra(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -930,6 +1013,41 @@ class FigureFormulaTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "formal A2/A3.*extra"):
                 plot_paper_figures.validate_v2_ablation_formal_matrix(
                     [*results, extra]
+                )
+
+    def test_v2_formal_ablation_rejects_wrong_axes_model_contract_and_nonfeature_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            inputs = Path(tmp) / "formal_ablation"
+            _write_formal_ablation_matrix(inputs)
+            results = plot_paper_figures.load_v2_ablation_results([inputs])
+
+            with self.assertRaisesRegex(SystemExit, "unsupported model identity"):
+                plot_paper_figures.validate_v2_ablation_formal_matrix(
+                    [replace(results[0], model="Qwen-2.5-7B"), *results[1:]]
+                )
+            with self.assertRaisesRegex(SystemExit, "expected 4000/4000"):
+                plot_paper_figures.validate_v2_ablation_formal_matrix(
+                    [replace(results[0], total=1000, completed=1000), *results[1:]]
+                )
+            wrong_axes = dict(results[0].formal_axes)
+            wrong_axes["bandwidth_mib_s"] = 119.2093
+            with self.assertRaisesRegex(SystemExit, "wrong bandwidth_mib_s"):
+                plot_paper_figures.validate_v2_ablation_formal_matrix(
+                    [replace(results[0], formal_axes=wrong_axes), *results[1:]]
+                )
+            with self.assertRaisesRegex(SystemExit, "generation_contract must be legacy"):
+                plot_paper_figures.validate_v2_ablation_formal_matrix(
+                    [replace(results[0], generation_contract="fixed_length_greedy_v1"), *results[1:]]
+                )
+            with self.assertRaisesRegex(SystemExit, "non-feature frozen configuration drift"):
+                plot_paper_figures.validate_v2_ablation_formal_matrix(
+                    [
+                        replace(
+                            results[0],
+                            non_feature_frozen_config_sha256="9" * 64,
+                        ),
+                        *results[1:],
+                    ]
                 )
 
 
@@ -965,7 +1083,7 @@ class SensitivityV2Tests(unittest.TestCase):
             observations = plot_paper_sensitivity.load_v2_sensitivity_observations(
                 [inputs]
             )
-            self.assertEqual(len(observations), 35)
+            self.assertEqual(len(observations), 37)
             plot_paper_sensitivity.validate_formal_workload_matrix(observations)
 
             with self.assertRaisesRegex(SystemExit, "formal C4.*missing"):
@@ -1174,10 +1292,143 @@ class FormalProvenanceGateTests(unittest.TestCase):
         records: list[tuple[Path, str]],
         **overrides: object,
     ) -> Path:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        non_feature_hash = str(
+            overrides.get("non_feature_frozen_config_sha256") or "e" * 64
+        )
+        heldout_seed = next(
+            (
+                seed
+                for seed in (43, 44, 45)
+                if f"seed{seed}" in str(path)
+                or any(f"seed{seed}" in str(source) for source, _ in records)
+            ),
+            43,
+        )
+        family = {
+            "campaign_kind": "v2_a2_a3_ablation",
+            "model_profile": "llama2_7b_main_v2_publicmix",
+            "dataset_profile": "azure_sharegpt_rep4000",
+            "workload_profile": "llama2_7b_auto500_formal4000_s8",
+            "selected_num_adapters": 500,
+            "gpu_ids": ["0", "1", "2", "3"],
+            "generation_contract": "legacy",
+        }
+        config = path.parent / "frozen_experiments.yaml"
+        config.write_text("profiles: {}\n", encoding="utf-8")
+        config_identity = {"path": str(config.resolve()), **self._integrity(config)}
+
+        protocol = path.parent / "protocol"
+        protocol.mkdir(parents=True, exist_ok=True)
+        validation_round = protocol / "seed41_validation"
+        validation_round.mkdir(parents=True, exist_ok=True)
+        validation_result = validation_round / "seed41_v2_full_result.json"
+        validation_result.write_text(
+            json.dumps(
+                {
+                    "metadata": {
+                        "formal_run": True,
+                        "trace_role": "validation",
+                        "non_feature_frozen_config_sha256": non_feature_hash,
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+        validation_manifest = validation_round / "MANIFEST.json"
+        validation_payload = {
+            "status": "complete",
+            "formal_run": True,
+            "trace_role": "validation",
+            "scenarios": ["v2_full"],
+            "configuration_family": family,
+            "config_snapshot": config_identity,
+            "non_feature_frozen_config_sha256": non_feature_hash,
+            "non_feature_frozen_config_consistent": True,
+            "code_snapshot": {
+                "git_commit": "faaslora-commit",
+                "source_clean_for_formal": True,
+            },
+            "shared_trace": {"sampling_seed": 41, "requests": 1000},
+            "entries": [
+                {
+                    "scenario": "v2_full",
+                    "result_json": str(validation_result.resolve()),
+                    "non_feature_frozen_config_sha256": non_feature_hash,
+                    **self._integrity(validation_result),
+                }
+            ],
+        }
+        validation_manifest.write_text(
+            json.dumps(validation_payload), encoding="utf-8"
+        )
+        successful_validation = {
+            "seed": 41,
+            "non_feature_frozen_config_sha256": non_feature_hash,
+            "manifest": str(validation_manifest.resolve()),
+            "manifest_sha256": hashlib.sha256(
+                validation_manifest.read_bytes()
+            ).hexdigest(),
+            "manifest_bytes": validation_manifest.stat().st_size,
+            "source_commit": "faaslora-commit",
+            "config_path": str(config.resolve()),
+            "config_sha256": config_identity["sha256"],
+        }
+        family_id = hashlib.sha256(
+            json.dumps(
+                family, sort_keys=True, separators=(",", ":")
+            ).encode("utf-8")
+        ).hexdigest()
+        evidence = protocol / "seed41_validation_evidence.json"
+        evidence_payload = {
+            "schema_version": "eurosys27_v2_faaslora_ablation_validation_evidence_v1",
+            "configuration_family": family,
+            "configuration_family_id": family_id,
+            "selected_non_feature_frozen_config_sha256": non_feature_hash,
+            "successful_validation": successful_validation,
+            "heldout_seed": heldout_seed,
+            "heldout_requests": 4000,
+            "heldout_round_dir": str(path.parent.resolve()),
+            "source_commit": "faaslora-commit",
+            "config_path": str(config.resolve()),
+            "config_sha256": config_identity["sha256"],
+            "registry_path": str((path.parent / "registry.json").resolve()),
+            "registry_sha256_after_freeze": "f" * 64,
+        }
+        evidence.write_text(json.dumps(evidence_payload), encoding="utf-8")
         payload = {
             "status": "complete",
             "formal_run": True,
             "trace_role": "heldout",
+            "round_dir": str(path.parent.resolve()),
+            "scenarios": [source.stem for source, _ in records],
+            "configuration_family": family,
+            "config_snapshot": config_identity,
+            "non_feature_frozen_config_sha256": non_feature_hash,
+            "non_feature_frozen_config_consistent": True,
+            "shared_trace": {"sampling_seed": heldout_seed, "requests": 4000},
+            "seed41_validation_evidence": {
+                "path": str(evidence.resolve()),
+                **self._integrity(evidence),
+                "selected_non_feature_frozen_config_sha256": non_feature_hash,
+                "successful_validation_manifest": str(
+                    validation_manifest.resolve()
+                ),
+                "successful_validation_manifest_sha256": successful_validation[
+                    "manifest_sha256"
+                ],
+                "successful_validation_manifest_bytes": successful_validation[
+                    "manifest_bytes"
+                ],
+                "source_commit": "faaslora-commit",
+                "config_path": str(config.resolve()),
+                "config_sha256": config_identity["sha256"],
+                "configuration_family_id": family_id,
+                "registry_path": evidence_payload["registry_path"],
+                "registry_sha256_after_freeze": evidence_payload[
+                    "registry_sha256_after_freeze"
+                ],
+            },
             "code_snapshot": {
                 "git_commit": "faaslora-commit",
                 "source_clean_for_formal": True,
@@ -1187,13 +1438,13 @@ class FormalProvenanceGateTests(unittest.TestCase):
                     "scenario": source.stem,
                     "result_json": str(source.resolve()),
                     "system_resolved_config_sha256": config_hash,
+                    "non_feature_frozen_config_sha256": non_feature_hash,
                     **self._integrity(source),
                 }
                 for source, config_hash in records
             ],
         }
         payload.update(overrides)
-        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(payload), encoding="utf-8")
         return path
 
@@ -1385,6 +1636,68 @@ class FormalProvenanceGateTests(unittest.TestCase):
                     ],
                     analysis_label="test",
                 )
+
+    def test_formal_provenance_revalidates_seed41_freeze_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "result.json"
+            source.write_text("{}", encoding="utf-8")
+
+            missing = self._write_ablation_manifest(
+                root / "missing" / "MANIFEST.json",
+                [(source, "a" * 64)],
+                seed41_validation_evidence=None,
+            )
+            with self.assertRaisesRegex(SystemExit, "missing seed41_validation_evidence"):
+                v2_provenance.build_formal_provenance_index([missing])
+
+            tampered_evidence_manifest = self._write_ablation_manifest(
+                root / "tampered_evidence" / "MANIFEST.json",
+                [(source, "a" * 64)],
+            )
+            tampered_payload = json.loads(
+                tampered_evidence_manifest.read_text(encoding="utf-8")
+            )
+            evidence_path = Path(tampered_payload["seed41_validation_evidence"]["path"])
+            evidence_path.write_text(
+                evidence_path.read_text(encoding="utf-8") + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(SystemExit, "byte-count mismatch|SHA-256 mismatch"):
+                v2_provenance.build_formal_provenance_index(
+                    [tampered_evidence_manifest]
+                )
+
+            tampered_validation_manifest = self._write_ablation_manifest(
+                root / "tampered_validation" / "MANIFEST.json",
+                [(source, "a" * 64)],
+            )
+            heldout = json.loads(
+                tampered_validation_manifest.read_text(encoding="utf-8")
+            )
+            validation_path = Path(
+                heldout["seed41_validation_evidence"][
+                    "successful_validation_manifest"
+                ]
+            )
+            validation_path.write_text(
+                validation_path.read_text(encoding="utf-8") + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(SystemExit, "byte-count mismatch|SHA-256 mismatch"):
+                v2_provenance.build_formal_provenance_index(
+                    [tampered_validation_manifest]
+                )
+
+            wrong_hash = self._write_ablation_manifest(
+                root / "wrong_hash" / "MANIFEST.json",
+                [(source, "a" * 64)],
+            )
+            wrong_payload = json.loads(wrong_hash.read_text(encoding="utf-8"))
+            wrong_payload["non_feature_frozen_config_sha256"] = "d" * 64
+            wrong_hash.write_text(json.dumps(wrong_payload), encoding="utf-8")
+            with self.assertRaisesRegex(SystemExit, "differs from seed41 selection"):
+                v2_provenance.build_formal_provenance_index([wrong_hash])
 
     def test_formal_plot_entry_points_preflight_manifests(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

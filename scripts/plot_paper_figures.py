@@ -171,6 +171,41 @@ V2_ABLATION_METRICS = (
     ("monetary_cost_per_request_usd", "Cost/request (USD)", False),
     ("monetary_ce", "CE", True),
 )
+V2_ABLATION_AUXILIARY_METRICS = (
+    ("avg_overall_ttft_ms", "Average TTFT (ms)", False),
+    ("avg_tpot_ms", "Average TPOT (ms)", False),
+    ("throughput_tok_per_s", "Throughput (token/s)", True),
+)
+V2_ABLATION_TABLE_METRICS = (
+    *V2_ABLATION_METRICS,
+    *V2_ABLATION_AUXILIARY_METRICS,
+)
+V2_ABLATION_TRIGGER_FIELDS = (
+    "routing_decision_count",
+    "readiness_aware_routing_decision_count",
+    "load_only_routing_decision_count",
+    "scale_up_event_count",
+    "scale_up_events_with_planned_adapters",
+    "scaleup_first_service_request_count",
+    "scaleup_first_service_planned_match_count",
+    "initial_or_current_nvme_adapter_count",
+    "initial_or_current_host_adapter_count",
+    "host_promotion_scheduled_count",
+    "host_promotion_completed_count",
+    "runtime_gpu_forward_attempt_count",
+    "runtime_gpu_forward_success_count",
+    "dispatch_to_service_transition_count",
+    "gpu_admission_observed_request_count",
+    "gpu_admission_decision_count",
+    "gpu_admission_admit_count",
+    "gpu_admission_defer_count",
+    "gpu_admission_reject_count",
+)
+V2_ABLATION_ADJACENT_REFERENCES = {
+    "v2_hit_aware_preparation": ("M1", "v2_elastic_only"),
+    "v2_hierarchical_no_coord": ("M2", "v2_hit_aware_preparation"),
+    "v2_full": ("M3", "v2_hierarchical_no_coord"),
+}
 
 V2_FORMAL_SEEDS = (43, 44, 45)
 
@@ -182,12 +217,16 @@ class V2AblationResult:
     seed: int
     run_tag: str
     source: Path
+    total: int
     completed: int
     shared_trace_sha256: str
     shared_adapter_subset_sha256: str
     generation_contract: str
     generation_contract_request_map_sha256: str
+    non_feature_frozen_config_sha256: str
+    formal_axes: Dict[str, Any]
     metrics: Dict[str, float]
+    triggers: Dict[str, int]
 
 
 def _require_file(path: Path) -> None:
@@ -474,7 +513,14 @@ def _v2_seed(payload: Dict[str, Any], path: Path, run_tag: str) -> int:
 def _v2_metric(detail: Dict[str, Any], summary: Dict[str, Any], key: str, label: str) -> float:
     aliases = {
         "p95_overall_ttft_ms": ("p95_overall_ttft_ms", "TTFT_e2e_P95_ms"),
+        "avg_overall_ttft_ms": ("avg_overall_ttft_ms", "TTFT_e2e_avg_ms", "TTFT_avg_ms"),
         "avg_overall_e2e_ms": ("avg_overall_e2e_ms", "E2E_e2e_avg_ms", "E2E_avg_ms"),
+        "avg_tpot_ms": ("avg_tpot_ms", "TPOT_avg_ms"),
+        "throughput_tok_per_s": (
+            "throughput_tok_per_s",
+            "throughput_TOKPS",
+            "Throughput_TOKPS",
+        ),
         "monetary_cost_per_request_usd": ("monetary_cost_per_request_usd", "Monetary_cost_per_request_usd"),
         "monetary_ce": ("monetary_ce", "Monetary_CE", "CE"),
     }
@@ -530,7 +576,7 @@ def _v2_ablation_audit(
     scenario: str,
     completed: int,
     label: str,
-) -> tuple[str, str, str, str]:
+) -> tuple[str, str, str, str, Dict[str, int]]:
     """Fail closed on provenance, generation, dispatch, and mechanism evidence."""
     trace_sha = _v2_sha256(metadata.get("shared_trace_sha256"), f"{label}.shared_trace_sha256")
     subset_sha = _v2_sha256(
@@ -689,10 +735,28 @@ def _v2_ablation_audit(
 
     admission_count = count("gpu_admission_decision_count")
     admission_requests = count("gpu_admission_observed_request_count")
+    admission_outcomes = {
+        "admit": count("gpu_admission_admit_count"),
+        "defer": count("gpu_admission_defer_count"),
+        "reject": count("gpu_admission_reject_count"),
+    }
+    admission_outcome_total = sum(admission_outcomes.values())
     if expected_gates[4]:
         if admission_count <= 0 or admission_requests <= 0:
             raise SystemExit(f"{label}: effective-capacity admission enabled but never triggered")
-    elif admission_count != 0 or admission_requests != 0:
+        if admission_outcome_total <= 0:
+            raise SystemExit(f"{label}: admission outcome total must be positive")
+        if admission_outcome_total != admission_count:
+            raise SystemExit(
+                f"{label}: admission outcome invariant violated; "
+                f"admit+defer+reject={admission_outcome_total}, "
+                f"decisions={admission_count}, outcomes={admission_outcomes}"
+            )
+    elif (
+        admission_count != 0
+        or admission_requests != 0
+        or admission_outcome_total != 0
+    ):
         raise SystemExit(f"{label}: disabled admission recorded admission decisions")
 
     recorded_dispatch = activation.get("dispatch_tier_counts")
@@ -706,18 +770,152 @@ def _v2_ablation_audit(
             f"{label}: dispatch tier counts disagree with request records; "
             f"recorded={normalized_dispatch}, actual={actual_dispatch_counts}"
         )
-    return trace_sha, subset_sha, contract, recorded_contract_map_sha
+    return (
+        trace_sha,
+        subset_sha,
+        contract,
+        recorded_contract_map_sha,
+        {name: count(name) for name in V2_ABLATION_TRIGGER_FIELDS},
+    )
+
+
+def _v2_dig(mapping: Any, *path: str) -> Any:
+    current = mapping
+    for key in path:
+        if not isinstance(current, dict) or key not in current:
+            return None
+        current = current[key]
+    return current
+
+
+def _v2_consistent_axis(
+    label: str,
+    candidates: Sequence[Any],
+    normalize: Callable[[Any], Any],
+) -> Any:
+    values: List[Any] = []
+    for candidate in candidates:
+        if candidate is None or str(candidate).strip() == "":
+            continue
+        try:
+            values.append(normalize(candidate))
+        except Exception as exc:
+            raise SystemExit(f"{label}: invalid formal-axis value {candidate!r}") from exc
+    if not values:
+        return None
+    if any(value != values[0] for value in values[1:]):
+        raise SystemExit(f"{label}: conflicting recorded values {values}")
+    return values[0]
+
+
+def _v2_ablation_formal_axes(metadata: Dict[str, Any], label: str) -> Dict[str, Any]:
+    profiles = [
+        candidate
+        for candidate in (
+            metadata.get("shared_trace_load_profile"),
+            _v2_dig(metadata, "shared_trace_metadata", "load_profile"),
+            _v2_dig(metadata, "sampling_stats", "shared_trace_metadata", "load_profile"),
+        )
+        if isinstance(candidate, dict)
+    ]
+
+    def profile_values(*names: str) -> List[Any]:
+        return [
+            profile.get(name)
+            for profile in profiles
+            for name in names
+            if profile.get(name) is not None
+        ]
+
+    return {
+        "selected_num_adapters": _v2_consistent_axis(
+            f"{label}.selected_num_adapters",
+            [
+                metadata.get("num_adapters"),
+                _v2_dig(metadata, "shared_trace_metadata", "selected_num_adapters"),
+                _v2_dig(
+                    metadata,
+                    "sampling_stats",
+                    "shared_trace_metadata",
+                    "selected_num_adapters",
+                ),
+            ],
+            int,
+        ),
+        "bandwidth_mib_s": _v2_consistent_axis(
+            f"{label}.bandwidth_mib_s",
+            [metadata.get("bandwidth_mib_s"), metadata.get("bandwidth_mbps")],
+            float,
+        ),
+        "configured_time_scale_factor": _v2_consistent_axis(
+            f"{label}.configured_time_scale_factor",
+            [
+                metadata.get("configured_time_scale_factor"),
+                metadata.get("shared_trace_configured_time_scale_factor"),
+                _v2_dig(metadata, "shared_trace_metadata", "configured_time_scale_factor"),
+            ],
+            float,
+        ),
+        "effective_time_scale_factor": _v2_consistent_axis(
+            f"{label}.effective_time_scale_factor",
+            [
+                metadata.get("effective_time_scale_factor"),
+                metadata.get("shared_trace_effective_time_scale_factor"),
+                _v2_dig(metadata, "shared_trace_metadata", "effective_time_scale_factor"),
+            ],
+            float,
+        ),
+        "zipf_exponent": _v2_consistent_axis(
+            f"{label}.zipf_exponent",
+            [metadata.get("zipf_exponent"), *profile_values("zipf_exponent")],
+            float,
+        ),
+        "active_adapter_cap": _v2_consistent_axis(
+            f"{label}.active_adapter_cap",
+            [metadata.get("active_adapter_cap"), *profile_values("active_adapter_cap")],
+            int,
+        ),
+        "hotset_rotation_requests": _v2_consistent_axis(
+            f"{label}.hotset_rotation_requests",
+            [
+                metadata.get("hotset_rotation_requests"),
+                *profile_values("hotset_rotation_requests", "rotation_requests"),
+            ],
+            int,
+        ),
+        "hotset_rotation_mode": _v2_consistent_axis(
+            f"{label}.hotset_rotation_mode",
+            [
+                metadata.get("hotset_rotation_mode"),
+                metadata.get("rotation_mode"),
+                *profile_values("rotation_mode", "hotset_rotation_mode"),
+            ],
+            lambda value: str(value).strip().lower(),
+        ),
+        "hotset_overlap_fraction": _v2_consistent_axis(
+            f"{label}.hotset_overlap_fraction",
+            [
+                metadata.get("hotset_overlap_fraction"),
+                *profile_values(
+                    "hotset_overlap_fraction",
+                    "rotation_overlap_fraction",
+                ),
+            ],
+            float,
+        ),
+    }
 
 
 def _v2_formal_model_key(model: str) -> str:
     """Map recorded model labels to the two model identities in the V2 protocol."""
     normalized = re.sub(r"[^a-z0-9]+", "", str(model).lower())
-    if "3b" in normalized:
-        return "3b"
-    if "7b" in normalized:
-        return "7b"
+    if "llama323b" in normalized:
+        return "llama32_3b"
+    if "llama27b" in normalized:
+        return "llama2_7b"
     raise SystemExit(
-        f"formal matrix contains unsupported model identity {model!r}; expected one 7B and one 3B model"
+        f"formal matrix contains unsupported model identity {model!r}; expected "
+        "Llama-2-7B or Llama-3.2-3B"
     )
 
 
@@ -737,12 +935,12 @@ def validate_v2_ablation_formal_matrix(
     Fig. 9 dataset.
     """
     expected: set[tuple[str, str, int]] = {
-        ("7b", scenario, seed)
+        ("llama2_7b", scenario, seed)
         for scenario in V2_ABLATION_SCENARIOS
         for seed in V2_FORMAL_SEEDS
     }
     expected.update(
-        ("3b", scenario, seed)
+        ("llama32_3b", scenario, seed)
         for scenario in ("v2_elastic_only", "v2_full")
         for seed in V2_FORMAL_SEEDS
     )
@@ -787,6 +985,66 @@ def validate_v2_ablation_formal_matrix(
             )
         raise SystemExit("; ".join(parts))
 
+    expected_axes = {
+        "selected_num_adapters": 500,
+        "bandwidth_mib_s": 250.0,
+        "configured_time_scale_factor": 8.0,
+        "effective_time_scale_factor": 8.0,
+        "zipf_exponent": 1.0,
+        "active_adapter_cap": 48,
+        "hotset_rotation_requests": 500,
+        "hotset_rotation_mode": "legacy",
+        "hotset_overlap_fraction": 0.75,
+    }
+    non_feature_by_model: Dict[str, set[str]] = defaultdict(set)
+    for result in results:
+        model_key = _v2_formal_model_key(result.model)
+        if result.total != 4000 or result.completed != 4000:
+            raise SystemExit(
+                f"formal A2/A3 {result.source}: expected 4000/4000 requests, "
+                f"observed {result.completed}/{result.total}"
+            )
+        if result.generation_contract != "legacy":
+            raise SystemExit(
+                f"formal A2/A3 {result.source}: generation_contract must be legacy"
+            )
+        for name, expected_value in expected_axes.items():
+            observed_value = result.formal_axes.get(name)
+            if isinstance(expected_value, float):
+                matches = observed_value is not None and math.isclose(
+                    float(observed_value),
+                    expected_value,
+                    rel_tol=0.0,
+                    abs_tol=1e-9,
+                )
+            else:
+                matches = observed_value == expected_value
+            if not matches:
+                raise SystemExit(
+                    f"formal A2/A3 {result.source}: wrong {name}; "
+                    f"expected={expected_value!r}, observed={observed_value!r}"
+                )
+        frozen_hash = _v2_sha256(
+            result.non_feature_frozen_config_sha256,
+            f"formal A2/A3 {result.source}.non_feature_frozen_config_sha256",
+        )
+        non_feature_by_model[model_key].add(frozen_hash)
+        for metric, _, _ in V2_ABLATION_TABLE_METRICS:
+            if metric not in result.metrics or not math.isfinite(result.metrics[metric]):
+                raise SystemExit(
+                    f"formal A2/A3 {result.source}: missing complete-table metric {metric}"
+                )
+    drift = {
+        model: sorted(hashes)
+        for model, hashes in non_feature_by_model.items()
+        if len(hashes) != 1
+    }
+    if drift:
+        raise SystemExit(
+            "formal A2/A3 cross-scenario non-feature frozen configuration drift: "
+            f"{drift}"
+        )
+
 
 def load_v2_ablation_results(
     inputs: Sequence[Path], *, formal_matrix: bool = False
@@ -815,7 +1073,13 @@ def load_v2_ablation_results(
             if total <= 0 or completed != total:
                 raise SystemExit(f"{path}:{scenario}: incomplete result completed={completed} total={total}")
             label = f"{path}:{scenario}"
-            trace_sha, subset_sha, contract, contract_map_sha = _v2_ablation_audit(
+            (
+                trace_sha,
+                subset_sha,
+                contract,
+                contract_map_sha,
+                trigger_counts,
+            ) = _v2_ablation_audit(
                 metadata=metadata,
                 detail=detail,
                 scenario=scenario,
@@ -824,7 +1088,7 @@ def load_v2_ablation_results(
             )
             metrics = {
                 key: _v2_metric(detail, summary, key, label)
-                for key, _, _ in V2_ABLATION_METRICS
+                for key, _, _ in V2_ABLATION_TABLE_METRICS
             }
             identity = (model, scenario, seed)
             if identity in results:
@@ -839,12 +1103,18 @@ def load_v2_ablation_results(
                 seed=seed,
                 run_tag=run_tag,
                 source=path,
+                total=total,
                 completed=completed,
                 shared_trace_sha256=trace_sha,
                 shared_adapter_subset_sha256=subset_sha,
                 generation_contract=contract,
                 generation_contract_request_map_sha256=contract_map_sha,
+                non_feature_frozen_config_sha256=str(
+                    metadata.get("non_feature_frozen_config_sha256") or ""
+                ).strip().lower(),
+                formal_axes=_v2_ablation_formal_axes(metadata, label),
                 metrics=metrics,
+                triggers=trigger_counts,
             )
     if not results:
         raise SystemExit(
@@ -952,6 +1222,7 @@ def plot_v2_fig9_ablation(
                 "seed": result.seed,
                 "run_tag": result.run_tag,
                 "source": str(result.source),
+                "total": result.total,
                 "completed": result.completed,
                 "shared_trace_sha256": result.shared_trace_sha256,
                 "shared_adapter_subset_sha256": result.shared_adapter_subset_sha256,
@@ -959,15 +1230,26 @@ def plot_v2_fig9_ablation(
                 "generation_contract_request_map_sha256": (
                     result.generation_contract_request_map_sha256
                 ),
+                "non_feature_frozen_config_sha256": (
+                    result.non_feature_frozen_config_sha256
+                ),
+                **result.formal_axes,
                 **result.metrics,
+                **result.triggers,
             }
         )
 
     absolute_rows: List[Dict[str, Any]] = []
     relative_seed_rows: List[Dict[str, Any]] = []
     relative_rows: List[Dict[str, Any]] = []
+    adjacent_seed_rows: List[Dict[str, Any]] = []
+    adjacent_rows: List[Dict[str, Any]] = []
+    complete_summary_rows: List[Dict[str, Any]] = []
     for model in models:
         model_results = [result for result in results if result.model == model]
+        result_by_scenario_seed = {
+            (result.scenario, result.seed): result for result in model_results
+        }
         reference_by_seed = {
             result.seed: result
             for result in model_results
@@ -1039,14 +1321,121 @@ def plot_v2_fig9_ablation(
                         }
                     )
 
+        for scenario in V2_ABLATION_SCENARIOS:
+            scenario_results = [
+                result for result in model_results if result.scenario == scenario
+            ]
+            if not scenario_results:
+                continue
+            for field, _, _ in V2_ABLATION_TABLE_METRICS:
+                values = [result.metrics[field] for result in scenario_results]
+                avg, std, half = _v2_mean_ci95(values)
+                complete_summary_rows.append(
+                    {
+                        "model": model,
+                        "scenario": scenario,
+                        "scenario_label": V2_ABLATION_LABELS[scenario],
+                        "field_kind": "metric",
+                        "field": field,
+                        "seed_count": len(values),
+                        "seeds": ";".join(str(result.seed) for result in scenario_results),
+                        "mean": avg,
+                        "std": std,
+                        "ci95_half_width": half,
+                    }
+                )
+            for field in V2_ABLATION_TRIGGER_FIELDS:
+                values = [float(result.triggers[field]) for result in scenario_results]
+                avg, std, half = _v2_mean_ci95(values)
+                complete_summary_rows.append(
+                    {
+                        "model": model,
+                        "scenario": scenario,
+                        "scenario_label": V2_ABLATION_LABELS[scenario],
+                        "field_kind": "mechanism_trigger",
+                        "field": field,
+                        "seed_count": len(values),
+                        "seeds": ";".join(str(result.seed) for result in scenario_results),
+                        "mean": avg,
+                        "std": std,
+                        "ci95_half_width": half,
+                    }
+                )
+
+        for scenario, (mechanism, reference_scenario) in V2_ABLATION_ADJACENT_REFERENCES.items():
+            for metric, _, higher_is_better in V2_ABLATION_TABLE_METRICS:
+                paired_values: List[float] = []
+                paired_improvements: List[float] = []
+                paired_seeds: List[int] = []
+                for seed in sorted({result.seed for result in model_results}):
+                    value_result = result_by_scenario_seed.get((scenario, seed))
+                    reference_result = result_by_scenario_seed.get(
+                        (reference_scenario, seed)
+                    )
+                    if value_result is None or reference_result is None:
+                        continue
+                    value = value_result.metrics[metric]
+                    reference_value = reference_result.metrics[metric]
+                    difference = value - reference_value
+                    improvement = _improvement_pct(
+                        reference_value,
+                        value,
+                        higher_is_better=higher_is_better,
+                    )
+                    paired_values.append(difference)
+                    paired_improvements.append(improvement)
+                    paired_seeds.append(seed)
+                    adjacent_seed_rows.append(
+                        {
+                            "model": model,
+                            "mechanism": mechanism,
+                            "scenario": scenario,
+                            "reference_scenario": reference_scenario,
+                            "seed": seed,
+                            "metric": metric,
+                            "higher_is_better": higher_is_better,
+                            "reference_value": reference_value,
+                            "value": value,
+                            "paired_difference_value_minus_reference": difference,
+                            "improvement_pct": improvement,
+                        }
+                    )
+                if paired_values:
+                    diff_avg, diff_std, diff_half = _v2_mean_ci95(paired_values)
+                    imp_avg, imp_std, imp_half = _v2_mean_ci95(paired_improvements)
+                    adjacent_rows.append(
+                        {
+                            "model": model,
+                            "mechanism": mechanism,
+                            "scenario": scenario,
+                            "reference_scenario": reference_scenario,
+                            "metric": metric,
+                            "higher_is_better": higher_is_better,
+                            "paired_seed_count": len(paired_values),
+                            "paired_seeds": ";".join(map(str, paired_seeds)),
+                            "paired_difference_mean": diff_avg,
+                            "paired_difference_std": diff_std,
+                            "paired_difference_ci95_half_width": diff_half,
+                            "improvement_pct_mean": imp_avg,
+                            "improvement_pct_std": imp_std,
+                            "improvement_pct_ci95_half_width": imp_half,
+                        }
+                    )
+
     per_seed_csv = out_dir / "fig9_v2_ablation_per_seed.csv"
+    complete_summary_csv = out_dir / "fig9_v2_ablation_complete_summary.csv"
     absolute_csv = out_dir / "fig9_v2_ablation_absolute_summary.csv"
     relative_seed_csv = out_dir / "fig9_v2_ablation_relative_per_seed.csv"
     relative_csv = out_dir / "fig9_v2_ablation_relative_summary.csv"
+    adjacent_seed_csv = out_dir / "fig9_v2_ablation_adjacent_increment_per_seed.csv"
+    adjacent_csv = out_dir / "fig9_v2_ablation_adjacent_increment_summary.csv"
     _write_csv(per_seed_csv, per_seed_rows)
+    _write_csv(complete_summary_csv, complete_summary_rows)
     _write_csv(absolute_csv, absolute_rows)
     _write_csv(relative_seed_csv, relative_seed_rows)
     _write_csv(relative_csv, relative_rows)
+    _write_csv(adjacent_seed_csv, adjacent_seed_rows)
+    _write_csv(adjacent_csv, adjacent_rows)
 
     generated_pdfs: List[str] = []
     for model in models:
@@ -1105,7 +1494,15 @@ def plot_v2_fig9_ablation(
         "seed_is_statistical_unit": True,
         "ci": "two-sided 95% Student-t over independent seeds; absent for n=1",
         "absolute_metrics": [metric for metric, _, _ in V2_ABLATION_METRICS],
+        "complete_table_metrics": [
+            metric for metric, _, _ in V2_ABLATION_TABLE_METRICS
+        ],
+        "complete_table_trigger_fields": list(V2_ABLATION_TRIGGER_FIELDS),
         "relative_reference": "v2_elastic_only matched on model and seed",
+        "adjacent_increment_references": {
+            scenario: {"mechanism": mechanism, "reference_scenario": reference}
+            for scenario, (mechanism, reference) in V2_ABLATION_ADJACENT_REFERENCES.items()
+        },
         "relative_formulas": {
             "lower_is_better": "(reference - value) / reference * 100",
             "higher_is_better": "(value - reference) / reference * 100",
@@ -1120,6 +1517,9 @@ def plot_v2_fig9_ablation(
             *(
                 [
                     "formal A2/A3 identity set exactly matches 7B four-scenario x seeds 43/44/45 plus 3B ElasticOnly/Full x seeds 43/44/45",
+                    "formal model identities are exactly Llama-2-7B and Llama-3.2-3B",
+                    "formal axes are exactly 4000 requests, 500 adapters, 250 MiB/s, time-scale 8, legacy generation/rotation, Zipf 1, active cap 48, rotation 500, overlap 0.75",
+                    "non_feature_frozen_config_sha256 is valid and invariant across all scenarios and seeds within each model",
                     "formal campaign manifests are complete, heldout, source-clean, and tied to non-empty commits",
                     "every analyzed raw JSON matches its manifest byte count and SHA-256 record",
                     "system_resolved_config_sha256 is valid and invariant across seeds within each model/scenario",
@@ -1131,9 +1531,12 @@ def plot_v2_fig9_ablation(
         "pdfs": generated_pdfs,
         "csvs": [
             per_seed_csv.name,
+            complete_summary_csv.name,
             absolute_csv.name,
             relative_seed_csv.name,
             relative_csv.name,
+            adjacent_seed_csv.name,
+            adjacent_csv.name,
         ],
     }
     (out_dir / "fig9_v2_ablation_manifest.json").write_text(

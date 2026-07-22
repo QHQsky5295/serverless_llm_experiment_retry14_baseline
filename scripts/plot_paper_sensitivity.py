@@ -117,7 +117,8 @@ FORMAL_BANDWIDTH_REPLICATED_KEYS = (
 FORMAL_WORKLOAD_PROFILES = (
     "stationary_zipf1",
     "abrupt_rotation100_zipf1",
-    "abrupt_rotation500_zipf1",
+    "submitted_main_legacy_rotation500_zipf1_overlap0.75",
+    "abrupt_rotation500_zipf1_overlap0",
     "abrupt_rotation2000_zipf1",
     "abrupt_rotation500_zipf0.6",
     "abrupt_rotation500_zipf1.4",
@@ -126,7 +127,7 @@ FORMAL_WORKLOAD_PROFILES = (
 FORMAL_WORKLOAD_REPLICATED_PROFILES = (
     "stationary_zipf1",
     "abrupt_rotation100_zipf1",
-    "abrupt_rotation500_zipf1",
+    "submitted_main_legacy_rotation500_zipf1_overlap0.75",
 )
 
 
@@ -443,11 +444,18 @@ def _formal_workload_profile_key(observation: V2SensitivityObservation) -> str:
     # legacy interval remains recorded in the frozen profile.
     if mode == "stationary" and close(zipf, 1.0) and close(overlap, 0.0):
         return "stationary_zipf1"
+    if (
+        mode == "legacy"
+        and rotation == 500
+        and close(zipf, 1.0)
+        and close(overlap, 0.75)
+    ):
+        return "submitted_main_legacy_rotation500_zipf1_overlap0.75"
     if mode == "abrupt" and close(overlap, 0.0):
         if rotation == 100 and close(zipf, 1.0):
             return "abrupt_rotation100_zipf1"
         if rotation == 500 and close(zipf, 1.0):
-            return "abrupt_rotation500_zipf1"
+            return "abrupt_rotation500_zipf1_overlap0"
         if rotation == 2000 and close(zipf, 1.0):
             return "abrupt_rotation2000_zipf1"
         if rotation == 500 and close(zipf, 0.6):
@@ -627,7 +635,7 @@ def load_v2_sensitivity_observations(inputs: Sequence[Path]) -> List[V2Sensitivi
 def validate_formal_workload_matrix(
     observations: Sequence[V2SensitivityObservation],
 ) -> None:
-    """Require the exact seven-profile C4 model/system/seed matrix."""
+    """Require the exact eight-profile, 37-identity C4 formal matrix."""
     expected: set[tuple[Any, ...]] = {
         ("7b", profile, 43, system)
         for profile in FORMAL_WORKLOAD_PROFILES
@@ -1146,9 +1154,11 @@ def plot_workload_sensitivity(
             "adapter sequence SHA-256 must also match"
         ),
         "formal_matrix_check": (
-            "exact C4 seven-profile Full/ServerlessLLM seed-43 matrix; "
-            "stationary/rotation-100/rotation-500 Full/ServerlessLLM seeds 44/45; "
-            "and ElasticOnly seeds 43/44/45 for those three profiles"
+            "exact C4 eight-profile/37-identity matrix: Full/ServerlessLLM seed 43 "
+            "at every profile; stationary, rotation-100, and submitted-main legacy "
+            "rotation-500/overlap-0.75 Full/ServerlessLLM seeds 44/45; and "
+            "ElasticOnly seeds 43/44/45 for those three replicated profiles; the "
+            "separate abrupt rotation-500/overlap-0 point is seed 43 only"
             if formal_matrix
             else "not requested"
         ),

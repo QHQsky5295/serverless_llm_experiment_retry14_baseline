@@ -6,6 +6,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from scripts import analyze_c5_matched_output as c5
 
@@ -83,6 +84,7 @@ def _write_result(
     dispatch_ms: float = 2.0,
     service_ttft_ms: float = 10.0,
     tpot_ms: float = 2.0,
+    model: str = "llama2_7b",
 ) -> None:
     requests = [
         _request(
@@ -94,10 +96,15 @@ def _write_result(
         )
         for index in range(expected_requests)
     ]
+    model_profile = (
+        "llama32_3b_main_modelscope"
+        if model == "llama32_3b"
+        else "llama2_7b_main_v2_publicmix"
+    )
     metadata = {
         "shared_trace_sha256": TRACE_SHA,
         "shared_adapter_subset_sha256": SUBSET_SHA,
-        "model_profile": "llama2_7b_main_v2_publicmix",
+        "model_profile": model_profile,
     }
     if system == "prime":
         metadata.update({"generation_contract": c5.CONTRACT, "generation_seed": seed})
@@ -105,6 +112,9 @@ def _write_result(
     else:
         metadata["sampling_seed"] = seed
         scenario = "slora_fair"
+    avg_e2e_ms = sum(float(request["e2e_ms"]) for request in requests) / len(requests)
+    monetary_cost = 0.02 if system == "prime" else 0.03
+    monetary_ce = 1.0 / (monetary_cost * (avg_e2e_ms / 1000.0))
     payload = {
         "metadata": metadata,
         "scenario_summaries": {
@@ -115,7 +125,10 @@ def _write_result(
                         if system == "prime"
                         else "slora_native_sse_token_id"
                     ): expected_requests
-                }
+                },
+                "throughput_tok_per_s": 120.0 if system == "prime" else 100.0,
+                "monetary_cost_per_request_usd": monetary_cost,
+                "monetary_ce": monetary_ce,
             }
         },
         "detailed_results": {
@@ -128,6 +141,138 @@ def _write_result(
         },
     }
     path.write_text(json.dumps(payload), encoding="utf-8")
+
+
+def _formal_order(model: str, seed: int) -> list[str]:
+    return list(c5.FORMAL_EXECUTION_ORDERS[(model, seed)])
+
+
+def _write_formal_round(root: Path, *, model: str, seed: int) -> tuple[Path, list[c5.RunSpec]]:
+    round_dir = root / f"{model}-seed{seed}"
+    prime_path = round_dir / "raw" / "faaslora" / "formal_faaslora_result.json"
+    slora_path = round_dir / "raw" / "replay" / "formal_slora_dp4_tp1_summary.json"
+    prime_path.parent.mkdir(parents=True)
+    slora_path.parent.mkdir(parents=True)
+    _write_result(prime_path, system="prime", seed=seed, expected_requests=1, model=model)
+    _write_result(slora_path, system="slora", seed=seed, expected_requests=1, model=model)
+
+    config_sha = _digest(f"formal-config-{model}")
+    execution_order = _formal_order(model, seed)
+    model_profile = (
+        "llama32_3b_main_modelscope"
+        if model == "llama32_3b"
+        else "llama2_7b_main_v2_publicmix"
+    )
+    full_identity = {
+        "system_resolved_config_sha256": config_sha,
+        "model_profile": model_profile,
+        "total_requests": c5.FORMAL_REQUESTS,
+        "time_scale_factor": c5.FORMAL_TIME_SCALE,
+        "selected_num_adapters": c5.FORMAL_ADAPTERS,
+        "sampling_seed": seed,
+        "trace_sha256": TRACE_SHA,
+        "adapter_subset_sha256": SUBSET_SHA,
+        "execution_order": execution_order,
+        "generation_contract": c5.CONTRACT,
+        "fixed_output_max_tokens": 256,
+        "fixed_prompt_max_tokens": 759,
+        "storage_bandwidth_mib_s": c5.FORMAL_BANDWIDTH_MIB_S,
+        "workload_overrides": dict(c5.FORMAL_WORKLOAD_AXES),
+        "faaslora_scenario": "v2_full",
+    }
+    full_identity_sha = c5._canonical_sha256(full_identity)
+    sidecar = round_dir / "protocol" / "system_resolved_config.json"
+    sidecar.parent.mkdir(parents=True)
+    sidecar.write_text(
+        json.dumps(
+            {
+                "formal_run": True,
+                "trace_role": "heldout",
+                "sampling_seed": seed,
+                "model_profile": model_profile,
+                "system_resolved_config_sha256": config_sha,
+                "full_run_identity": full_identity,
+                "full_run_identity_sha256": full_identity_sha,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    def record(path: Path) -> dict:
+        return {"bytes": path.stat().st_size, "sha256": c5._sha256_file(path)}
+
+    manifest = {
+        "status": "complete",
+        "formal_run": True,
+        "trace_role": "heldout",
+        "source_clean_for_formal": True,
+        "baseline_git": {"commit": "baseline-commit"},
+        "faaslora_git": {"commit": "faaslora-commit"},
+        "model_profile": model_profile,
+        "sampling_seed": seed,
+        "total_requests": c5.FORMAL_REQUESTS,
+        "selected_num_adapters": c5.FORMAL_ADAPTERS,
+        "shared_trace_sha256": TRACE_SHA,
+        "shared_adapter_subset_sha256": SUBSET_SHA,
+        "systems": ["slora", "faaslora"],
+        "supported_systems": ["slora", "faaslora"],
+        "generation_contract": c5.CONTRACT,
+        "fixed_output_max_tokens": 256,
+        "fixed_prompt_max_tokens": 759,
+        "bandwidth_mib_s": c5.FORMAL_BANDWIDTH_MIB_S,
+        "faaslora_scenario": "v2_full",
+        "execution_order": execution_order,
+        "system_resolved_config_sha256": config_sha,
+        "full_run_identity_sha256": full_identity_sha,
+        "system_resolved_config_path": str(sidecar),
+        "system_resolved_config_sidecar_sha256": c5._sha256_file(sidecar),
+        "system_resolved_config_sidecar_bytes": sidecar.stat().st_size,
+        "source_files": {
+            str(prime_path.relative_to(round_dir)): record(prime_path),
+            str(slora_path.relative_to(round_dir)): record(slora_path),
+        },
+    }
+    manifest_path = round_dir / "MANIFEST.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    return round_dir, c5.specs_from_round(round_dir)
+
+
+def _fake_formal_run(spec: c5.RunSpec, **_kwargs: object) -> c5.ValidatedRun:
+    system = c5._normalize_system(spec.system)
+    model = c5._canonical_model_identity(spec.model)
+    scenario = "v2_full" if system == "prime" else "slora_fair"
+    e2e = 20.0 if system == "prime" else 25.0
+    cost = 0.02 if system == "prime" else 0.03
+    metrics = {field: 1.0 for field in c5.RUN_METRIC_FIELDS}
+    metrics.update(
+        {
+            "dispatch_admission_mean_ms": 2.0 if system == "prime" else 3.0,
+            "service_ttft_mean_ms": 8.0 if system == "prime" else 10.0,
+            "decode_mean_ms": 10.0 if system == "prime" else 12.0,
+            "overall_ttft_mean_ms": 10.0 if system == "prime" else 13.0,
+            "service_e2e_mean_ms": 18.0 if system == "prime" else 22.0,
+            "e2e_mean_ms": e2e,
+            "throughput_tok_per_s": 120.0 if system == "prime" else 100.0,
+            "monetary_cost_per_request_usd": cost,
+            "monetary_ce": 1.0 / (cost * (e2e / 1000.0)),
+        }
+    )
+    request_map = [{"request_id": "formal-map"}]
+    return c5.ValidatedRun(
+        system=system,
+        model=model,
+        seed=spec.seed,
+        path=spec.path.resolve(),
+        scenario=scenario,
+        requests=[{}] * c5.FORMAL_REQUESTS,
+        request_map=request_map,
+        request_map_sha256=c5._canonical_sha256(request_map),
+        source_sha256=c5._sha256_file(spec.path),
+        trace_sha256=TRACE_SHA,
+        adapter_subset_sha256=SUBSET_SHA,
+        metrics=metrics,
+        round_manifest=spec.round_manifest.resolve() if spec.round_manifest else None,
+    )
 
 
 class C5MatchedOutputTests(unittest.TestCase):
@@ -191,6 +336,22 @@ class C5MatchedOutputTests(unittest.TestCase):
             self.assertEqual(e2e["ci_unit"], "seed")
             self.assertAlmostEqual(float(e2e["prime_minus_slora_mean"]), -7.0)
             self.assertGreaterEqual(float(e2e["slora_minus_prime_improvement_mean"]), 7.0)
+            throughput = next(
+                row
+                for row in rows
+                if row["model"] == "llama2_7b"
+                and row["metric"] == "throughput_tok_per_s"
+            )
+            self.assertEqual(throughput["metric_direction"], "higher-is-better")
+            self.assertAlmostEqual(float(throughput["prime_advantage_mean"]), 20.0)
+            cost = next(
+                row
+                for row in rows
+                if row["model"] == "llama2_7b"
+                and row["metric"] == "monetary_cost_per_request_usd"
+            )
+            self.assertEqual(cost["metric_direction"], "lower-is-better")
+            self.assertAlmostEqual(float(cost["prime_advantage_mean"]), 0.01)
 
     def test_cross_system_request_map_mismatch_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -300,6 +461,161 @@ class C5MatchedOutputTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(c5.ValidationError, "manifest is incomplete"):
                 c5.specs_from_round(round_dir)
+
+    def test_formal_mode_accepts_only_exact_two_model_matrix_and_emits_headlines(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            round_dirs: list[Path] = []
+            specs: list[c5.RunSpec] = []
+            for model in c5.FORMAL_MODELS:
+                for seed in c5.FORMAL_SEEDS:
+                    round_dir, round_specs = _write_formal_round(
+                        root, model=model, seed=seed
+                    )
+                    round_dirs.append(round_dir)
+                    specs.extend(round_specs)
+
+            with mock.patch.object(c5, "validate_run", side_effect=_fake_formal_run):
+                manifest = c5.analyze(
+                    specs,
+                    output_dir=root / "formal-publication",
+                    formal_mode=True,
+                    provenance_inputs=round_dirs,
+                )
+
+            self.assertTrue(manifest["formal_mode"])
+            self.assertEqual(len(manifest["runs"]), 12)
+            self.assertEqual(len(manifest["formal_provenance_manifests"]), 6)
+            self.assertEqual(
+                manifest["validation_gates"]["formal_prime_scenario"], "v2_full"
+            )
+            per_run = manifest["runs"][0]
+            for field in (
+                "throughput_tok_per_s",
+                "monetary_cost_per_request_usd",
+                "monetary_ce",
+            ):
+                self.assertIn(field, per_run)
+            ci_by_metric = {
+                row["metric"]: row
+                for row in manifest["paired_seed_statistics"]
+                if row["model"] == "llama2_7b"
+            }
+            self.assertEqual(
+                ci_by_metric["throughput_tok_per_s"]["metric_direction"],
+                "higher-is-better",
+            )
+            self.assertEqual(ci_by_metric["throughput_tok_per_s"]["n_seeds"], 3)
+            self.assertGreater(
+                ci_by_metric["throughput_tok_per_s"]["prime_advantage_mean"], 0
+            )
+
+    def test_formal_mode_rejects_loose_json_wrong_order_and_incomplete_matrix(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            round_dirs: list[Path] = []
+            specs: list[c5.RunSpec] = []
+            for model in c5.FORMAL_MODELS:
+                for seed in c5.FORMAL_SEEDS:
+                    round_dir, round_specs = _write_formal_round(
+                        root, model=model, seed=seed
+                    )
+                    round_dirs.append(round_dir)
+                    specs.extend(round_specs)
+
+            with self.assertRaisesRegex(SystemExit, "loose raw JSON input is forbidden"):
+                c5.analyze(
+                    specs,
+                    output_dir=root / "loose-out",
+                    formal_mode=True,
+                    provenance_inputs=[specs[0].path],
+                )
+
+            with mock.patch.object(c5, "validate_run", side_effect=_fake_formal_run):
+                with self.assertRaisesRegex(c5.ValidationError, "exactly 2 models"):
+                    c5.analyze(
+                        specs[:-2],
+                        output_dir=root / "missing-out",
+                        formal_mode=True,
+                        provenance_inputs=round_dirs,
+                    )
+            self.assertFalse((root / "missing-out").exists())
+
+            bad_manifest_path = round_dirs[0] / "MANIFEST.json"
+            bad_manifest = json.loads(bad_manifest_path.read_text(encoding="utf-8"))
+            bad_manifest["execution_order"] = list(
+                reversed(bad_manifest["execution_order"])
+            )
+            bad_manifest_path.write_text(json.dumps(bad_manifest), encoding="utf-8")
+            with mock.patch.object(c5, "validate_run", side_effect=_fake_formal_run):
+                with self.assertRaisesRegex(c5.ValidationError, "execution_order"):
+                    c5.analyze(
+                        specs,
+                        output_dir=root / "wrong-order-out",
+                        formal_mode=True,
+                        provenance_inputs=round_dirs,
+                    )
+            self.assertFalse((root / "wrong-order-out").exists())
+
+    def test_formal_mode_rejects_workload_axis_and_non_v2_full_prime(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            round_dirs: list[Path] = []
+            specs: list[c5.RunSpec] = []
+            for model in c5.FORMAL_MODELS:
+                for seed in c5.FORMAL_SEEDS:
+                    round_dir, round_specs = _write_formal_round(
+                        root, model=model, seed=seed
+                    )
+                    round_dirs.append(round_dir)
+                    specs.extend(round_specs)
+
+            manifest_path = round_dirs[0] / "MANIFEST.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            sidecar_path = Path(manifest["system_resolved_config_path"])
+            sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+            sidecar["full_run_identity"]["workload_overrides"]["zipf_exponent"] = 1.4
+            sidecar["full_run_identity_sha256"] = c5._canonical_sha256(
+                sidecar["full_run_identity"]
+            )
+            sidecar_path.write_text(json.dumps(sidecar), encoding="utf-8")
+            manifest["full_run_identity_sha256"] = sidecar["full_run_identity_sha256"]
+            manifest["system_resolved_config_sidecar_sha256"] = c5._sha256_file(sidecar_path)
+            manifest["system_resolved_config_sidecar_bytes"] = sidecar_path.stat().st_size
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            with mock.patch.object(c5, "validate_run", side_effect=_fake_formal_run):
+                with self.assertRaisesRegex(c5.ValidationError, "zipf_exponent"):
+                    c5.analyze(
+                        specs,
+                        output_dir=root / "bad-axis-out",
+                        formal_mode=True,
+                        provenance_inputs=round_dirs,
+                    )
+
+            def wrong_prime_scenario(spec: c5.RunSpec, **kwargs: object) -> c5.ValidatedRun:
+                run = _fake_formal_run(spec, **kwargs)
+                if run.system == "prime":
+                    run.scenario = "faaslora_full"
+                return run
+
+            # Restore the axis before exercising the independent scenario gate.
+            sidecar["full_run_identity"]["workload_overrides"]["zipf_exponent"] = 1.0
+            sidecar["full_run_identity_sha256"] = c5._canonical_sha256(
+                sidecar["full_run_identity"]
+            )
+            sidecar_path.write_text(json.dumps(sidecar), encoding="utf-8")
+            manifest["full_run_identity_sha256"] = sidecar["full_run_identity_sha256"]
+            manifest["system_resolved_config_sidecar_sha256"] = c5._sha256_file(sidecar_path)
+            manifest["system_resolved_config_sidecar_bytes"] = sidecar_path.stat().st_size
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            with mock.patch.object(c5, "validate_run", side_effect=wrong_prime_scenario):
+                with self.assertRaisesRegex(c5.ValidationError, "scenario='v2_full'"):
+                    c5.analyze(
+                        specs,
+                        output_dir=root / "bad-scenario-out",
+                        formal_mode=True,
+                        provenance_inputs=round_dirs,
+                    )
 
 
 if __name__ == "__main__":

@@ -80,6 +80,9 @@ class CoordinationMetrics:
     load_requests: int = 0
     queued_loads: int = 0
     gpu_admission_decisions: int = 0
+    gpu_admission_admits: int = 0
+    gpu_admission_defers: int = 0
+    gpu_admission_rejects: int = 0
 
     # Scale-down metrics
     eviction_events: int = 0
@@ -450,6 +453,9 @@ class ResourceCoordinator:
             "avg_contention_penalty_ms": m.avg_contention_penalty_ms(),
             "queued_loads": m.queued_loads,
             "gpu_admission_decisions": m.gpu_admission_decisions,
+            "gpu_admission_admits": m.gpu_admission_admits,
+            "gpu_admission_defers": m.gpu_admission_defers,
+            "gpu_admission_rejects": m.gpu_admission_rejects,
             "avg_defer_delay_ms": m.avg_defer_delay_ms(),
             "eviction_events": m.eviction_events,
             "gpu_ready_hits": m.gpu_ready_hits,
@@ -492,15 +498,26 @@ class ResourceCoordinator:
         tier: str = "nvme",
         utility_override: Optional[float] = None,
     ) -> Dict[str, float]:
-        self.metrics.gpu_admission_decisions += 1
         started_ns = time.perf_counter_ns()
         try:
-            return self._evaluate_gpu_admission_impl(
+            decision = self._evaluate_gpu_admission_impl(
                 adapter_id,
                 size_mb,
                 tier=tier,
                 utility_override=utility_override,
             )
+            # Every successfully evaluated decision has exactly one outcome.
+            # ``defer`` means the current pressure/utility snapshot says not to
+            # attempt a promotion; ``reject`` means promotion is worthwhile but
+            # the adapter does not fit the current effective capacity.
+            if bool(decision.get("admit", False)):
+                self.metrics.gpu_admission_admits += 1
+            elif not bool(decision.get("should_attempt", False)):
+                self.metrics.gpu_admission_defers += 1
+            else:
+                self.metrics.gpu_admission_rejects += 1
+            self.metrics.gpu_admission_decisions += 1
+            return decision
         finally:
             elapsed_us = max(0.0, (time.perf_counter_ns() - started_ns) / 1000.0)
             previous = max(0.0, float(_GPU_ADMISSION_DECISION_US.get(0.0) or 0.0))

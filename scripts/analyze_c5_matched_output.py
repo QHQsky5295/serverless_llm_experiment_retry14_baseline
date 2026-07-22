@@ -8,10 +8,13 @@ metrics, but they are never treated as independent experimental repetitions.
 The command accepts either completed fair-round directories or explicit result
 files::
 
-    python scripts/analyze_c5_matched_output.py \
-      --round-dir /path/to/seed43-round \
-      --round-dir /path/to/seed44-round \
-      --round-dir /path/to/seed45-round \
+    python scripts/analyze_c5_matched_output.py --formal \
+      --round-dir /path/to/7b-seed43-round \
+      --round-dir /path/to/7b-seed44-round \
+      --round-dir /path/to/7b-seed45-round \
+      --round-dir /path/to/3b-seed43-round \
+      --round-dir /path/to/3b-seed44-round \
+      --round-dir /path/to/3b-seed45-round \
       --output-dir paper_results/eurosys27_v2/c5_slora/formal
 
     python scripts/analyze_c5_matched_output.py \
@@ -19,8 +22,10 @@ files::
       --run slora llama2_7b 43 /path/to/slora_summary.json \
       --output-dir /new/output/directory
 
-``--output-dir`` must be absent or empty.  This deliberately prevents a V2
-analysis from silently overwriting an earlier publication artifact.
+Explicit ``--run`` inputs are diagnostic-only and are rejected by
+``--formal``.  ``--output-dir`` must be absent or empty.  This deliberately
+prevents a V2 analysis from silently overwriting an earlier publication
+artifact.
 """
 
 from __future__ import annotations
@@ -41,10 +46,46 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+try:
+    from eurosys27_v2_provenance import (
+        FormalAnalysisIdentity,
+        FormalProvenanceIndex,
+        build_formal_provenance_index,
+        validate_formal_analysis_sources,
+    )
+except ImportError:  # pragma: no cover - package import used by unit tests
+    from scripts.eurosys27_v2_provenance import (
+        FormalAnalysisIdentity,
+        FormalProvenanceIndex,
+        build_formal_provenance_index,
+        validate_formal_analysis_sources,
+    )
+
 
 CONTRACT = "fixed_length_greedy_v1"
 SYSTEM_LABELS = {"prime": "PrimeLoRA", "slora": "S-LoRA"}
 SHA256_LENGTH = 64
+FORMAL_MODELS = ("llama2_7b", "llama32_3b")
+FORMAL_SEEDS = (43, 44, 45)
+FORMAL_REQUESTS = 4000
+FORMAL_ADAPTERS = 500
+FORMAL_BANDWIDTH_MIB_S = 250.0
+FORMAL_TIME_SCALE = 8.0
+FORMAL_WORKLOAD_AXES = {
+    "zipf_exponent": 1.0,
+    "active_adapter_cap": 48,
+    "hotset_rotation_requests": 500,
+    "hotset_rotation_mode": "legacy",
+    "hotset_overlap_fraction": 0.75,
+}
+FORMAL_EXECUTION_ORDERS = {
+    ("llama2_7b", 43): ("slora", "faaslora"),
+    ("llama2_7b", 44): ("faaslora", "slora"),
+    ("llama2_7b", 45): ("slora", "faaslora"),
+    ("llama32_3b", 43): ("faaslora", "slora"),
+    ("llama32_3b", 44): ("slora", "faaslora"),
+    ("llama32_3b", 45): ("faaslora", "slora"),
+}
 
 # Student-t 0.975 quantiles.  Formal C5 uses three seeds (df=2); the wider
 # table keeps the analyzer useful for later repetitions without scipy.
@@ -109,6 +150,7 @@ class ValidatedRun:
     trace_sha256: str
     adapter_subset_sha256: str
     metrics: Dict[str, float]
+    round_manifest: Path | None = None
 
 
 RUN_METRIC_FIELDS = (
@@ -126,6 +168,9 @@ RUN_METRIC_FIELDS = (
     "e2e_p95_ms",
     "tpot_mean_ms",
     "tpot_p95_ms",
+    "throughput_tok_per_s",
+    "monetary_cost_per_request_usd",
+    "monetary_ce",
 )
 
 # These are the stage and headline metrics for which paired, seed-level
@@ -139,7 +184,12 @@ PAIRED_METRIC_FIELDS = (
     "tpot_mean_ms",
     "service_ttft_p95_ms",
     "e2e_p95_ms",
+    "throughput_tok_per_s",
+    "monetary_cost_per_request_usd",
+    "monetary_ce",
 )
+
+HIGHER_IS_BETTER_METRICS = {"throughput_tok_per_s", "monetary_ce"}
 
 
 def _read_json(path: Path) -> Dict[str, Any]:
@@ -549,6 +599,97 @@ def _validate_request(
     }
 
 
+def _headline_metrics(
+    payload: Mapping[str, Any],
+    *,
+    scenario: str,
+    result: Mapping[str, Any],
+    requests: Sequence[Mapping[str, Any]],
+    e2e_mean_ms: float,
+    source: Path,
+    formal_mode: bool,
+) -> Dict[str, float]:
+    summaries = payload.get("scenario_summaries")
+    summary: Mapping[str, Any] = {}
+    if isinstance(summaries, Mapping):
+        raw_summary = summaries.get(scenario)
+        if isinstance(raw_summary, Mapping):
+            summary = raw_summary
+
+    if formal_mode and not summary:
+        raise ValidationError(
+            f"{source}: formal C5 result has no scenario_summaries[{scenario!r}]"
+        )
+
+    throughput_value = summary.get("throughput_tok_per_s")
+    cost_value = summary.get("monetary_cost_per_request_usd")
+    ce_value = summary.get("monetary_ce")
+
+    # Exploratory/raw S-LoRA replay inputs predate the lifecycle-cost summary.
+    # Keep that diagnostic path usable, but formal mode below requires the
+    # paper-facing monetary fields and never silently substitutes token cost.
+    if not formal_mode:
+        if cost_value is None:
+            cost_value = summary.get("avg_cost_usd")
+        if ce_value is None:
+            ce_value = summary.get("ce")
+        if throughput_value is None:
+            elapsed = result.get("elapsed_sec")
+            if elapsed is None:
+                completion_offsets = [
+                    float(request.get("completion_offset_s"))
+                    for request in requests
+                    if request.get("completion_offset_s") is not None
+                ]
+                elapsed = max(completion_offsets) if completion_offsets else None
+            if elapsed not in (None, 0, 0.0):
+                throughput_value = sum(
+                    _integer(
+                        request.get("completion_tokens", request.get("output_tokens")),
+                        f"{source} exploratory completion_tokens",
+                        positive=True,
+                    )
+                    for request in requests
+                ) / float(elapsed)
+        if cost_value is None:
+            request_costs = [
+                float(request.get("cost_usd"))
+                for request in requests
+                if request.get("cost_usd") is not None
+            ]
+            if len(request_costs) == len(requests) and request_costs:
+                cost_value = statistics.fmean(request_costs)
+        if ce_value is None and cost_value not in (None, 0, 0.0):
+            ce_value = 1.0 / (float(cost_value) * (e2e_mean_ms / 1000.0))
+
+    required = {
+        "throughput_tok_per_s": throughput_value,
+        "monetary_cost_per_request_usd": cost_value,
+        "monetary_ce": ce_value,
+    }
+    metrics: Dict[str, float] = {}
+    for name, raw_value in required.items():
+        value = _finite_number(raw_value, f"{source} {scenario} {name}")
+        if value <= 0.0:
+            raise ValidationError(
+                f"{source}: {scenario} {name} must be positive, observed {value}"
+            )
+        metrics[name] = value
+
+    if formal_mode:
+        expected_ce = 1.0 / (
+            metrics["monetary_cost_per_request_usd"] * (e2e_mean_ms / 1000.0)
+        )
+        allowed_error = max(1e-3, abs(expected_ce) * 0.005)
+        if abs(metrics["monetary_ce"] - expected_ce) > allowed_error:
+            raise ValidationError(
+                f"{source}: monetary_ce is inconsistent with mean E2E and "
+                f"monetary Cost/request; observed={metrics['monetary_ce']:.9g}, "
+                f"recomputed={expected_ce:.9g}"
+            )
+    return metrics
+
+
 def validate_run(
     spec: RunSpec,
     *,
@@ -556,11 +697,19 @@ def validate_run(
     fixed_output_cap: int = 256,
     fixed_prompt_cap: int = 759,
     tolerance_ms: float = 1.0,
+    formal_mode: bool = False,
 ) -> ValidatedRun:
     system = _normalize_system(spec.system)
     source = spec.path.resolve()
     payload = _read_json(source)
     scenario, result, requests = _extract_result(payload, system, source)
+    if formal_mode:
+        expected_scenario = "v2_full" if system == "prime" else "slora_fair"
+        if scenario != expected_scenario:
+            raise ValidationError(
+                f"{source}: formal {SYSTEM_LABELS[system]} scenario must be "
+                f"{expected_scenario!r}, observed {scenario!r}"
+            )
     if len(requests) != len(result.get("requests") or []):
         raise ValidationError(f"{source}: one or more request records are not JSON objects")
 
@@ -647,13 +796,24 @@ def validate_run(
         metrics[f"{source_key.removesuffix('_ms')}_p95_ms"] = _percentile(samples[source_key], 95)
 
     # The generated names above intentionally match RUN_METRIC_FIELDS.
+    metrics.update(
+        _headline_metrics(
+            payload,
+            scenario=scenario,
+            result=result,
+            requests=requests,
+            e2e_mean_ms=metrics["e2e_mean_ms"],
+            source=source,
+            formal_mode=formal_mode,
+        )
+    )
     missing = [field for field in RUN_METRIC_FIELDS if field not in metrics]
     if missing:
         raise AssertionError(f"internal metric-name mismatch: {missing}")
 
     return ValidatedRun(
         system=system,
-        model=str(spec.model),
+        model=expected_model,
         seed=int(spec.seed),
         path=source,
         scenario=scenario,
@@ -664,6 +824,9 @@ def validate_run(
         trace_sha256=trace_sha,
         adapter_subset_sha256=subset_sha,
         metrics=metrics,
+        round_manifest=(
+            spec.round_manifest.resolve() if spec.round_manifest is not None else None
+        ),
     )
 
 
@@ -716,6 +879,264 @@ def validate_pairs(runs: Sequence[ValidatedRun]) -> Dict[Tuple[str, int], Dict[s
     return grouped
 
 
+def _formal_provenance_preflight(
+    specs: Sequence[RunSpec], provenance_inputs: Sequence[Path]
+) -> FormalProvenanceIndex:
+    if not provenance_inputs:
+        raise ValidationError(
+            "formal C5 mode requires campaign directories or MANIFEST.json inputs"
+        )
+    if not specs:
+        raise ValidationError("formal C5 mode received no run specifications")
+    index = build_formal_provenance_index(provenance_inputs)
+    indexed_manifests = set(index.manifest_paths)
+    for spec in specs:
+        source = spec.path.expanduser().resolve()
+        if spec.round_manifest is None:
+            raise ValidationError(
+                f"formal C5 forbids loose JSON RunSpec input: {source}; "
+                "load it through its fair-round MANIFEST.json"
+            )
+        manifest = spec.round_manifest.expanduser().resolve()
+        if manifest not in indexed_manifests:
+            raise ValidationError(
+                f"formal C5 RunSpec manifest is not among the provenance inputs: {manifest}"
+            )
+        coverage = index.records_by_source.get(source, ())
+        if len(coverage) != 1 or coverage[0].manifest_path != manifest:
+            raise ValidationError(
+                f"formal C5 source is not uniquely covered by its declared round manifest: "
+                f"source={source}, manifest={manifest}"
+            )
+    return index
+
+
+def _axis_number(value: Any, context: str) -> float:
+    return _finite_number(value, context)
+
+
+def _require_axis_number(value: Any, expected: float, context: str) -> None:
+    observed = _axis_number(value, context)
+    if not math.isclose(observed, float(expected), rel_tol=0.0, abs_tol=1e-9):
+        raise ValidationError(
+            f"{context} must be {expected:g} for formal C5, observed {observed:g}"
+        )
+
+
+def _require_axis_text(value: Any, expected: str, context: str) -> None:
+    observed = str(value or "").strip().lower()
+    if observed != expected:
+        raise ValidationError(
+            f"{context} must be {expected!r} for formal C5, observed {observed!r}"
+        )
+
+
+def _resolve_manifest_sidecar(manifest_path: Path, manifest: Mapping[str, Any]) -> Path:
+    raw_path = str(manifest.get("system_resolved_config_path") or "").strip()
+    if not raw_path:
+        raise ValidationError(
+            f"{manifest_path}: formal C5 manifest lacks system_resolved_config_path"
+        )
+    sidecar = Path(raw_path).expanduser()
+    if not sidecar.is_absolute():
+        sidecar = manifest_path.parent / sidecar
+    sidecar = sidecar.resolve()
+    expected_sidecar = (manifest_path.parent / "protocol" / "system_resolved_config.json").resolve()
+    if sidecar != expected_sidecar:
+        raise ValidationError(
+            f"{manifest_path}: formal C5 resolved-config sidecar must be {expected_sidecar}, "
+            f"observed {sidecar}"
+        )
+    if not sidecar.is_file():
+        raise ValidationError(f"{manifest_path}: resolved-config sidecar is missing: {sidecar}")
+    declared_sha = str(manifest.get("system_resolved_config_sidecar_sha256") or "")
+    if not _is_sha256(declared_sha) or _sha256_file(sidecar) != declared_sha:
+        raise ValidationError(
+            f"{manifest_path}: resolved-config sidecar SHA-256 does not match manifest"
+        )
+    declared_bytes = _integer(
+        manifest.get("system_resolved_config_sidecar_bytes"),
+        f"{manifest_path} system_resolved_config_sidecar_bytes",
+    )
+    if sidecar.stat().st_size != declared_bytes:
+        raise ValidationError(
+            f"{manifest_path}: resolved-config sidecar byte count does not match manifest"
+        )
+    return sidecar
+
+
+def _validate_formal_matrix_and_protocol(
+    runs: Sequence[ValidatedRun],
+    grouped: Mapping[Tuple[str, int], Mapping[str, ValidatedRun]],
+) -> None:
+    expected = {
+        (model, seed, system)
+        for model in FORMAL_MODELS
+        for seed in FORMAL_SEEDS
+        for system in ("prime", "slora")
+    }
+    observed_counts: Dict[Tuple[str, int, str], int] = {}
+    for run in runs:
+        identity = (run.model, int(run.seed), run.system)
+        observed_counts[identity] = observed_counts.get(identity, 0) + 1
+        expected_scenario = "v2_full" if run.system == "prime" else "slora_fair"
+        if run.scenario != expected_scenario:
+            raise ValidationError(
+                f"formal C5 requires {run.system} scenario={expected_scenario!r}; "
+                f"observed {run.scenario!r} in {run.path}"
+            )
+    observed = set(observed_counts)
+    duplicates = sorted(identity for identity, count in observed_counts.items() if count != 1)
+    if observed != expected or duplicates:
+        missing = sorted(expected - observed)
+        extra = sorted(observed - expected)
+        raise ValidationError(
+            "formal C5 matrix must be exactly 2 models x seeds 43/44/45 x "
+            f"Prime/S-LoRA; missing={missing}, extra={extra}, duplicates={duplicates}"
+        )
+
+    for (model, seed), systems in sorted(grouped.items()):
+        manifest_paths = {run.round_manifest for run in systems.values()}
+        if None in manifest_paths or len(manifest_paths) != 1:
+            raise ValidationError(
+                f"formal C5 model={model}, seed={seed} must use one shared fair-round manifest"
+            )
+        manifest_path = next(iter(manifest_paths))
+        assert manifest_path is not None
+        manifest = _read_json(manifest_path)
+
+        if set(str(item) for item in (manifest.get("systems") or [])) != {
+            "slora",
+            "faaslora",
+        }:
+            raise ValidationError(
+                f"{manifest_path}: formal C5 systems must be exactly slora/faaslora"
+            )
+        if set(str(item) for item in (manifest.get("supported_systems") or [])) != {
+            "slora",
+            "faaslora",
+        }:
+            raise ValidationError(
+                f"{manifest_path}: formal C5 supported_systems must be exactly slora/faaslora"
+            )
+        expected_order = FORMAL_EXECUTION_ORDERS[(model, seed)]
+        observed_order = tuple(str(item) for item in (manifest.get("execution_order") or []))
+        if observed_order != expected_order:
+            raise ValidationError(
+                f"{manifest_path}: formal C5 execution_order for model={model}, seed={seed} "
+                f"must be {list(expected_order)}, observed {list(observed_order)}"
+            )
+
+        if _canonical_model_identity(manifest.get("model_profile")) != model:
+            raise ValidationError(f"{manifest_path}: formal C5 model_profile mismatch")
+        if _integer(manifest.get("sampling_seed"), f"{manifest_path} sampling_seed") != seed:
+            raise ValidationError(f"{manifest_path}: formal C5 sampling_seed mismatch")
+        if _integer(manifest.get("total_requests"), f"{manifest_path} total_requests") != FORMAL_REQUESTS:
+            raise ValidationError(
+                f"{manifest_path}: formal C5 total_requests must be {FORMAL_REQUESTS}"
+            )
+        if _integer(
+            manifest.get("selected_num_adapters"),
+            f"{manifest_path} selected_num_adapters",
+        ) != FORMAL_ADAPTERS:
+            raise ValidationError(
+                f"{manifest_path}: formal C5 selected_num_adapters must be {FORMAL_ADAPTERS}"
+            )
+        _require_axis_number(
+            manifest.get("bandwidth_mib_s"),
+            FORMAL_BANDWIDTH_MIB_S,
+            f"{manifest_path} bandwidth_mib_s",
+        )
+        _require_axis_text(
+            manifest.get("generation_contract"), CONTRACT, f"{manifest_path} generation_contract"
+        )
+        if _integer(
+            manifest.get("fixed_output_max_tokens"),
+            f"{manifest_path} fixed_output_max_tokens",
+        ) != 256:
+            raise ValidationError(f"{manifest_path}: formal C5 fixed output cap must be 256")
+        if _integer(
+            manifest.get("fixed_prompt_max_tokens"),
+            f"{manifest_path} fixed_prompt_max_tokens",
+        ) != 759:
+            raise ValidationError(f"{manifest_path}: formal C5 fixed prompt cap must be 759")
+        _require_axis_text(
+            manifest.get("faaslora_scenario"), "v2_full", f"{manifest_path} faaslora_scenario"
+        )
+
+        sidecar_path = _resolve_manifest_sidecar(manifest_path, manifest)
+        sidecar = _read_json(sidecar_path)
+        if sidecar.get("formal_run") is not True or str(sidecar.get("trace_role")) != "heldout":
+            raise ValidationError(
+                f"{sidecar_path}: formal C5 sidecar must declare formal_run=true/trace_role=heldout"
+            )
+        manifest_config_sha = str(manifest.get("system_resolved_config_sha256") or "")
+        if (
+            not _is_sha256(manifest_config_sha)
+            or str(sidecar.get("system_resolved_config_sha256") or "") != manifest_config_sha
+        ):
+            raise ValidationError(
+                f"{sidecar_path}: system-resolved configuration SHA differs from manifest"
+            )
+        identity = sidecar.get("full_run_identity")
+        if not isinstance(identity, Mapping):
+            raise ValidationError(f"{sidecar_path}: missing full_run_identity")
+        identity_sha = _canonical_sha256(identity)
+        if (
+            str(sidecar.get("full_run_identity_sha256") or "") != identity_sha
+            or str(manifest.get("full_run_identity_sha256") or "") != identity_sha
+        ):
+            raise ValidationError(
+                f"{sidecar_path}: full_run_identity SHA-256 does not match sidecar/manifest"
+            )
+        if _canonical_model_identity(identity.get("model_profile")) != model:
+            raise ValidationError(f"{sidecar_path}: full-run model identity mismatch")
+        if _integer(identity.get("sampling_seed"), f"{sidecar_path} sampling_seed") != seed:
+            raise ValidationError(f"{sidecar_path}: full-run seed mismatch")
+        if _integer(identity.get("total_requests"), f"{sidecar_path} total_requests") != FORMAL_REQUESTS:
+            raise ValidationError(f"{sidecar_path}: full-run request count mismatch")
+        if _integer(
+            identity.get("selected_num_adapters"),
+            f"{sidecar_path} selected_num_adapters",
+        ) != FORMAL_ADAPTERS:
+            raise ValidationError(f"{sidecar_path}: full-run adapter count mismatch")
+        _require_axis_number(
+            identity.get("storage_bandwidth_mib_s"),
+            FORMAL_BANDWIDTH_MIB_S,
+            f"{sidecar_path} storage_bandwidth_mib_s",
+        )
+        _require_axis_number(
+            identity.get("time_scale_factor"),
+            FORMAL_TIME_SCALE,
+            f"{sidecar_path} time_scale_factor",
+        )
+        _require_axis_text(
+            identity.get("generation_contract"), CONTRACT, f"{sidecar_path} generation_contract"
+        )
+        _require_axis_text(
+            identity.get("faaslora_scenario"), "v2_full", f"{sidecar_path} faaslora_scenario"
+        )
+        if tuple(str(item) for item in (identity.get("execution_order") or [])) != expected_order:
+            raise ValidationError(f"{sidecar_path}: full-run execution_order mismatch")
+        workload = identity.get("workload_overrides")
+        if not isinstance(workload, Mapping):
+            raise ValidationError(f"{sidecar_path}: missing effective workload axes")
+        for name, expected_value in FORMAL_WORKLOAD_AXES.items():
+            context = f"{sidecar_path} workload_overrides.{name}"
+            if isinstance(expected_value, str):
+                _require_axis_text(workload.get(name), expected_value, context)
+            else:
+                _require_axis_number(workload.get(name), float(expected_value), context)
+
+        trace_sha = str(manifest.get("shared_trace_sha256") or "")
+        subset_sha = str(manifest.get("shared_adapter_subset_sha256") or "")
+        for run in systems.values():
+            if run.trace_sha256 != trace_sha or run.adapter_subset_sha256 != subset_sha:
+                raise ValidationError(
+                    f"{manifest_path}: result trace/subset SHA differs from fair-round manifest"
+                )
+
+
 def _per_run_rows(runs: Sequence[ValidatedRun]) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     for run in sorted(runs, key=lambda item: (item.model, item.seed, item.system)):
@@ -732,6 +1153,7 @@ def _per_run_rows(runs: Sequence[ValidatedRun]) -> List[Dict[str, Any]]:
             "shared_adapter_subset_sha256": run.adapter_subset_sha256,
             "source": str(run.path),
             "source_sha256": run.source_sha256,
+            "round_manifest": str(run.round_manifest) if run.round_manifest else None,
         }
         row.update(run.metrics)
         rows.append(row)
@@ -746,6 +1168,8 @@ def _paired_rows(
         for metric in PAIRED_METRIC_FIELDS:
             prime = float(systems["prime"].metrics[metric])
             slora = float(systems["slora"].metrics[metric])
+            higher_is_better = metric in HIGHER_IS_BETTER_METRICS
+            prime_advantage = prime - slora if higher_is_better else slora - prime
             rows.append(
                 {
                     "model": model,
@@ -755,7 +1179,9 @@ def _paired_rows(
                     "slora": slora,
                     "prime_minus_slora": prime - slora,
                     "slora_minus_prime_improvement": slora - prime,
-                    "prime_improvement_pct": ((slora - prime) / slora * 100.0) if slora else None,
+                    "metric_direction": "higher-is-better" if higher_is_better else "lower-is-better",
+                    "prime_advantage": prime_advantage,
+                    "prime_improvement_pct": (prime_advantage / slora * 100.0) if slora else None,
                     "ci_unit": "seed",
                 }
             )
@@ -776,11 +1202,13 @@ def _aggregate_rows(paired_rows: Sequence[Mapping[str, Any]]) -> List[Dict[str, 
         improvement_ci = _mean_ci95(
             [float(row["slora_minus_prime_improvement"]) for row in rows]
         )
+        advantage_ci = _mean_ci95([float(row["prime_advantage"]) for row in rows])
         slora_mean = float(slora_ci["mean"])
         output.append(
             {
                 "model": model,
                 "metric": metric,
+                "metric_direction": rows[0]["metric_direction"],
                 "n_seeds": len(seeds),
                 "seeds": ",".join(str(seed) for seed in seeds),
                 "ci_unit": "seed",
@@ -799,8 +1227,13 @@ def _aggregate_rows(paired_rows: Sequence[Mapping[str, Any]]) -> List[Dict[str, 
                 "slora_minus_prime_improvement_mean": improvement_ci["mean"],
                 "slora_minus_prime_improvement_ci95_low": improvement_ci["ci95_low"],
                 "slora_minus_prime_improvement_ci95_high": improvement_ci["ci95_high"],
+                "prime_advantage_mean": advantage_ci["mean"],
+                "prime_advantage_stddev": advantage_ci["stddev"],
+                "prime_advantage_ci95_half_width": advantage_ci["ci95_half_width"],
+                "prime_advantage_ci95_low": advantage_ci["ci95_low"],
+                "prime_advantage_ci95_high": advantage_ci["ci95_high"],
                 "prime_improvement_pct_of_slora_mean": (
-                    float(improvement_ci["mean"]) / slora_mean * 100.0 if slora_mean else None
+                    float(advantage_ci["mean"]) / slora_mean * 100.0 if slora_mean else None
                 ),
             }
         )
@@ -925,6 +1358,8 @@ def analyze(
     fixed_output_cap: int = 256,
     fixed_prompt_cap: int = 759,
     tolerance_ms: float = 1.0,
+    formal_mode: bool = False,
+    provenance_inputs: Sequence[Path] = (),
 ) -> Dict[str, Any]:
     if expected_requests <= 0:
         raise ValidationError("expected_requests must be positive")
@@ -935,6 +1370,23 @@ def analyze(
     if tolerance_ms < 0.0:
         raise ValidationError("tolerance_ms must be non-negative")
 
+    provenance_index: FormalProvenanceIndex | None = None
+    if formal_mode:
+        if expected_requests != FORMAL_REQUESTS:
+            raise ValidationError(
+                f"formal C5 requires expected_requests={FORMAL_REQUESTS}, "
+                f"observed {expected_requests}"
+            )
+        if expected_seeds is None or tuple(sorted(int(seed) for seed in expected_seeds)) != FORMAL_SEEDS:
+            raise ValidationError(
+                f"formal C5 requires exactly seeds {list(FORMAL_SEEDS)}"
+            )
+        if fixed_output_cap != 256 or fixed_prompt_cap != 759:
+            raise ValidationError(
+                "formal C5 requires fixed output/prompt caps 256/759"
+            )
+        provenance_index = _formal_provenance_preflight(specs, provenance_inputs)
+
     # All validation happens before the output directory is created.  An input
     # failure therefore cannot leave a misleading partial publication bundle.
     runs = [
@@ -944,10 +1396,27 @@ def analyze(
             fixed_output_cap=fixed_output_cap,
             fixed_prompt_cap=fixed_prompt_cap,
             tolerance_ms=tolerance_ms,
+            formal_mode=formal_mode,
         )
         for spec in specs
     ]
     grouped = validate_pairs(runs)
+    if formal_mode:
+        _validate_formal_matrix_and_protocol(runs, grouped)
+        assert provenance_index is not None
+        validate_formal_analysis_sources(
+            provenance_index,
+            (
+                FormalAnalysisIdentity(
+                    source=run.path,
+                    model=run.model,
+                    variant=run.system,
+                    seed=run.seed,
+                )
+                for run in runs
+            ),
+            analysis_label="EuroSys V2 C5 matched-output",
+        )
     if expected_seeds is not None:
         required_seeds = sorted({int(seed) for seed in expected_seeds})
         if len(required_seeds) < 2:
@@ -979,8 +1448,9 @@ def analyze(
         for model in sorted({model for model, _seed in grouped})
     }
     manifest: Dict[str, Any] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "analysis": "eurosys27_v2_c5_matched_output",
+        "formal_mode": formal_mode,
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "generation_contract": CONTRACT,
         "validation_gates": {
@@ -1004,14 +1474,50 @@ def analyze(
             "latency_identity_tolerance_ms": tolerance_ms,
             "tpot_recompute_tolerance_ms": tolerance_ms,
             "fallback_allowed": False,
+            "formal_provenance_required": formal_mode,
+            "formal_loose_json_allowed": False if formal_mode else None,
+            "formal_exact_matrix": (
+                "2 models x seeds 43/44/45 x PrimeLoRA/S-LoRA"
+                if formal_mode
+                else None
+            ),
+            "formal_prime_scenario": "v2_full" if formal_mode else None,
+            "formal_axes": (
+                {
+                    "requests": FORMAL_REQUESTS,
+                    "adapters": FORMAL_ADAPTERS,
+                    "bandwidth_mib_s": FORMAL_BANDWIDTH_MIB_S,
+                    "time_scale_factor": FORMAL_TIME_SCALE,
+                    **FORMAL_WORKLOAD_AXES,
+                }
+                if formal_mode
+                else None
+            ),
+            "formal_execution_orders": (
+                {
+                    f"{model}:seed{seed}": list(order)
+                    for (model, seed), order in FORMAL_EXECUTION_ORDERS.items()
+                }
+                if formal_mode
+                else None
+            ),
         },
         "statistical_method": {
             "replication_unit": "frozen workload seed",
             "request_records_are_independent_repetitions": False,
             "paired_difference": "PrimeLoRA minus S-LoRA for the same model and seed",
             "confidence_interval": "two-sided 95% Student-t interval over paired seed differences",
+            "metric_direction_handling": (
+                "prime_advantage is Prime-SLoRA for throughput/CE and "
+                "SLoRA-Prime for latency/cost"
+            ),
             "model_seed_sets": model_seed_sets,
         },
+        "formal_provenance_manifests": (
+            [str(path) for path in provenance_index.manifest_paths]
+            if provenance_index is not None
+            else []
+        ),
         "runs": per_run_rows,
         "paired_seed_statistics": aggregate_rows,
         "artifacts": {
@@ -1044,8 +1550,13 @@ def _canonical_model_from_profile(profile: str) -> str:
 
 
 def specs_from_round(round_dir: Path) -> List[RunSpec]:
-    round_path = round_dir.resolve()
-    manifest_path = round_path / "MANIFEST.json"
+    candidate = round_dir.resolve()
+    if candidate.is_file() and candidate.name == "MANIFEST.json":
+        manifest_path = candidate
+        round_path = candidate.parent
+    else:
+        round_path = candidate
+        manifest_path = round_path / "MANIFEST.json"
     manifest = _read_json(manifest_path)
     if str(manifest.get("status") or "") != "complete":
         raise ValidationError(
@@ -1117,11 +1628,24 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fixed-output-cap", type=int, default=256)
     parser.add_argument("--fixed-prompt-cap", type=int, default=759)
     parser.add_argument("--identity-tolerance-ms", type=float, default=1.0)
+    parser.add_argument(
+        "--formal",
+        action="store_true",
+        help=(
+            "Fail closed on the exact publication matrix and formal provenance. "
+            "Only --round-dir campaign directories/MANIFEST.json inputs are allowed."
+        ),
+    )
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
+    if args.formal and args.run:
+        raise SystemExit(
+            "formal C5 forbids --run loose JSON inputs; pass completed fair rounds "
+            "with --round-dir"
+        )
     specs = _parse_run_specs(args.run)
     for round_dir in args.round_dir:
         specs.extend(specs_from_round(round_dir))
@@ -1147,6 +1671,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             fixed_output_cap=args.fixed_output_cap,
             fixed_prompt_cap=args.fixed_prompt_cap,
             tolerance_ms=args.identity_tolerance_ms,
+            formal_mode=args.formal,
+            provenance_inputs=args.round_dir,
         )
     except ValidationError as exc:
         raise SystemExit(f"C5 validation failed: {exc}") from exc

@@ -689,12 +689,30 @@ class ExperimentStack:
                 source_tier,
                 coordinator=coord,
             )
-            decision = coord.evaluate_gpu_admission(
-                adapter_id,
-                size_mb,
-                tier="host" if source_tier == StorageTier.HOST else "nvme",
-                utility_override=admission_utility,
-            )
+            if bool(
+                getattr(coord, "effective_capacity_admission_enabled", True)
+            ):
+                decision = coord.evaluate_gpu_admission(
+                    adapter_id,
+                    size_mb,
+                    tier="host" if source_tier == StorageTier.HOST else "nvme",
+                    utility_override=admission_utility,
+                )
+            else:
+                # The hierarchy-only ablation still needs a basic instantaneous
+                # capacity check, but must not execute or claim coordinated
+                # effective-capacity admission (paper mechanism M3).
+                available_fn = getattr(coord, "_available_mb", None)
+                available_mb = (
+                    max(0.0, float(available_fn()))
+                    if callable(available_fn)
+                    else float("inf")
+                )
+                decision = {
+                    "admit": size_mb <= available_mb,
+                    "should_attempt": True,
+                    "effective_capacity_mb": available_mb,
+                }
             utility = self._forward_utility(adapter_id, source_tier, StorageTier.GPU, coordinator=coord)
             if utility <= 0:
                 continue
