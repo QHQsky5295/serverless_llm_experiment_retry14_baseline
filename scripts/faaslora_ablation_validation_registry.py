@@ -209,16 +209,25 @@ def register_successful_validation(
         if entry.get("configuration_family") != family:
             raise ValueError(f"configuration-family hash collision: {family_id}")
         successes = entry.setdefault("successful_validation", [])
-        previous_path = [
-            item
-            for item in successes
-            if Path(str(item.get("manifest") or "")).resolve()
-            == Path(record["manifest"]).resolve()
-        ]
-        if previous_path and record not in previous_path:
-            raise ValueError("validation manifest path was already registered with different bytes")
-        if record not in successes:
-            successes.append(record)
+        if successes:
+            if record in successes:
+                return registry
+            frozen_hashes = {
+                str(item.get("non_feature_frozen_config_sha256") or "")
+                for item in successes
+            }
+            observed_hash = str(record["non_feature_frozen_config_sha256"])
+            if observed_hash not in frozen_hashes:
+                raise ValueError(
+                    "formal seed-41 validation is already frozen to a different "
+                    "non-feature configuration; tune candidates only in non-formal "
+                    "scratch rounds"
+                )
+            raise ValueError(
+                "this configuration family already has a selected formal seed-41 "
+                "validation manifest; reuse its immutable record"
+            )
+        successes.append(record)
         _atomic_write_json(registry_path, registry)
         return registry
 
@@ -281,6 +290,11 @@ def resolve_heldout_validation(
             raise ValueError(
                 "no successful seed-41 validation matches the current source commit/config SHA"
             )
+        if len(compatible) != 1:
+            raise ValueError(
+                "held-out launch requires exactly one selected formal seed-41 "
+                f"validation record; found {len(compatible)}"
+            )
         frozen = str(entry.get("heldout_frozen_non_feature_sha256") or "")
         if frozen:
             selected_hash = _digest(frozen, "frozen held-out non-feature hash")
@@ -289,16 +303,9 @@ def resolve_heldout_validation(
         elif requested_hash:
             selected_hash = requested_hash
         else:
-            candidate_hashes = {
-                str(item.get("non_feature_frozen_config_sha256") or "")
-                for item in compatible
-            }
-            if len(candidate_hashes) != 1:
-                raise ValueError(
-                    "multiple successful validation hashes exist; explicitly select one "
-                    "with FAASLORA_EXPECTED_NON_FEATURE_FROZEN_CONFIG_SHA256"
-                )
-            selected_hash = next(iter(candidate_hashes))
+            selected_hash = str(
+                compatible[0].get("non_feature_frozen_config_sha256") or ""
+            )
         matching = [
             item
             for item in compatible

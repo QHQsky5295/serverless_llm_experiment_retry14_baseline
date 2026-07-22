@@ -173,12 +173,17 @@ class FaaSLoRAAblationValidationRegistryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "byte count changed"):
             self._resolve()
 
-    def test_multiple_hashes_require_selection_and_frozen_hash_cannot_switch(self) -> None:
-        self._register(self._manifest("candidate_a", "a" * 64))
-        self._register(self._manifest("candidate_b", "b" * 64))
-        with self.assertRaisesRegex(ValueError, "multiple successful validation hashes"):
-            self._resolve()
-        selected = self._resolve(expected="a" * 64)
+    def test_first_formal_validation_is_immutable_and_cannot_be_selected_post_hoc(self) -> None:
+        candidate_a = self._manifest("candidate_a", "a" * 64)
+        self._register(candidate_a)
+        # Exact resume/registration is idempotent.
+        self._register(candidate_a)
+        with self.assertRaisesRegex(ValueError, "already frozen to a different"):
+            self._register(self._manifest("candidate_b", "b" * 64))
+        with self.assertRaisesRegex(ValueError, "already has a selected formal"):
+            self._register(self._manifest("candidate_a_repeat", "a" * 64))
+
+        selected = self._resolve()
         self.assertEqual(
             selected["selected_non_feature_frozen_config_sha256"], "a" * 64
         )
