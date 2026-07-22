@@ -836,7 +836,8 @@ validate_faaslora_generation_contract() {
   if [[ "${GENERATION_CONTRACT}" != "fixed_length_greedy_v1" ]]; then
     return 0
   fi
-  python3 - "${path}" "${TOTAL_REQUESTS}" "${FIXED_OUTPUT_MAX_TOKENS}" "${FIXED_PROMPT_MAX_TOKENS}" <<'PY'
+  python3 - "${path}" "${TOTAL_REQUESTS}" "${FIXED_OUTPUT_MAX_TOKENS}" \
+    "${FIXED_PROMPT_MAX_TOKENS}" "${SAMPLING_SEED}" <<'PY'
 import hashlib
 import json
 import math
@@ -848,6 +849,7 @@ path = Path(sys.argv[1])
 expected_total = int(sys.argv[2])
 output_cap = int(sys.argv[3])
 prompt_cap = int(sys.argv[4])
+expected_seed = int(sys.argv[5])
 data = json.loads(path.read_text(encoding="utf-8"))
 metadata = data.get("metadata") or {}
 contract = str(metadata.get("generation_contract") or "")
@@ -859,6 +861,10 @@ if int(metadata.get("fixed_output_max_tokens") or 0) != output_cap:
     raise SystemExit("[ERROR] FaaSLoRA fixed output cap mismatch")
 if int(metadata.get("fixed_prompt_max_tokens") or 0) != prompt_cap:
     raise SystemExit("[ERROR] FaaSLoRA fixed prompt cap mismatch")
+if int(metadata.get("workload_seed", -1)) != expected_seed:
+    raise SystemExit("[ERROR] FaaSLoRA workload seed mismatch")
+if int(metadata.get("generation_seed", -1)) != expected_seed:
+    raise SystemExit("[ERROR] FaaSLoRA generation seed mismatch")
 
 detailed = data.get("detailed_results") or {}
 if len(detailed) != 1:
@@ -1573,6 +1579,8 @@ run_faaslora() {
     FAASLORA_PROFILE_DATASET="${DATASET_PROFILE}" \
     FAASLORA_PROFILE_WORKLOAD="${WORKLOAD_PROFILE}" \
     FAASLORA_TOTAL_REQUESTS="${TOTAL_REQUESTS}" \
+    FAASLORA_WORKLOAD_SEED="${SAMPLING_SEED}" \
+    FAASLORA_GENERATION_SEED="${SAMPLING_SEED}" \
     FAASLORA_SHARED_TRACE_PATH="${TRACE_PATH}" \
     FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${ADAPTER_SUBSET_PATH}" \
     FAASLORA_RESULTS_TAG="${faas_tag}" \

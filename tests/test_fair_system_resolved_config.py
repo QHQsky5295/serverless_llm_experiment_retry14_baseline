@@ -426,6 +426,7 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                 "SLLM_SHARED_ADAPTER_SUBSET_PATH": "/different-subset",
                 "SLLM_SAMPLING_SEED": "99",
                 "FAASLORA_RESULTS_TAG": "different",
+                "FAASLORA_WORKLOAD_SEED": "99",
                 "FAASLORA_GENERATION_SEED": "99",
                 "FAIR_ROUND_EXECUTION_ORDER": "slora faaslora",
             }
