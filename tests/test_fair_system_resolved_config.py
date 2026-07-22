@@ -26,19 +26,36 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
         total: int,
         role: str,
         run_tag: str = "run",
-        trace_path: str = "/trace.json",
-        subset_path: str = "/subset.json",
-        execution_order: str = "faaslora slora serverlessllm",
+        trace_path: str | None = None,
+        subset_path: str | None = None,
+        systems: str = "slora faaslora",
+        execution_order: str | None = None,
         output_name: str = "sidecar.json",
         bandwidth: str = "250",
         zipf: str = "",
         rotation: str = "",
         time_scale: str = "",
         formal: str = "0",
-        campaign_kind: str = "",
+        campaign_kind: str = "v2_c5_matched_output",
         model_profile: str = "llama2_7b_main_v2_publicmix",
         generation_contract: str = "fixed_length_greedy_v1",
     ):
+        root.mkdir(parents=True, exist_ok=True)
+        if trace_path is None:
+            trace = root / "trace.json"
+            if not trace.exists():
+                trace.write_text('{"requests": []}\n', encoding="utf-8")
+            trace_path = str(trace)
+        if subset_path is None:
+            subset = root / "subset.json"
+            if not subset.exists():
+                subset.write_text("[]\n", encoding="utf-8")
+            subset_path = str(subset)
+        if execution_order is None:
+            first = "slora" if seed == 42 or seed % 2 else "faaslora"
+            if model_profile == "llama32_3b_main_modelscope":
+                first = "faaslora" if first == "slora" else "slora"
+            execution_order = f"{first} {'faaslora' if first == 'slora' else 'slora'}"
         return module.parse_args(
             [
                 "--baselines-root",
@@ -85,6 +102,8 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                 trace_path,
                 "--adapter-subset-path",
                 subset_path,
+                "--systems",
+                systems,
                 "--execution-order",
                 execution_order,
                 "--campaign-kind",
@@ -124,11 +143,15 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
             "untracked_files_included": False,
         }
         identities = worktrees or [default_worktree, default_worktree]
-        with mock.patch.object(module, "_source_identity", return_value={"source": "a" * 64}), mock.patch.object(
+        with mock.patch.object(
+            module, "_source_identity", return_value={"source": "a" * 64}
+        ), mock.patch.object(
             module, "_git_commit", return_value="b" * 40
         ), mock.patch.object(
             module, "_git_worktree_identity", side_effect=identities
-        ), mock.patch.object(module, "source_cleanliness", return_value=clean):
+        ), mock.patch.object(
+            module, "source_cleanliness", return_value=clean
+        ):
             return module.build_sidecar(args, env or {})
 
     def _write_and_mark_validation(
@@ -153,17 +176,38 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
             "source_clean_for_formal": True,
             "trace_role": "validation",
             "sampling_seed": 41,
+            "total_requests": 1000,
             "campaign_kind": sidecar.get("campaign_kind"),
+            "model_profile": sidecar["model_profile"],
+            "systems": sidecar["systems"],
+            "execution_order": sidecar["full_run_identity"]["execution_order"],
+            "shared_trace_path": sidecar["excluded_from_hash_audit"]["trace_path"],
+            "shared_trace_sha256": sidecar["full_run_identity"]["trace_sha256"],
+            "shared_adapter_subset_path": sidecar["excluded_from_hash_audit"][
+                "adapter_subset_path"
+            ],
+            "shared_adapter_subset_sha256": sidecar["full_run_identity"][
+                "adapter_subset_sha256"
+            ],
             "system_resolved_config_path": str(sidecar_path.resolve()),
             "system_resolved_config_sidecar_sha256": module._file_sha256(
                 sidecar_path
             ),
+            "system_resolved_config_sidecar_bytes": sidecar_path.stat().st_size,
             "system_resolved_config_family_id": sidecar[
                 "configuration_family_id"
             ],
             "system_resolved_config_sha256": sidecar[
                 "system_resolved_config_sha256"
             ],
+            "baseline_git": {
+                "commit": sidecar["source_commits"]["baselines"],
+                "tracked_dirty_paths": [],
+            },
+            "faaslora_git": {
+                "commit": sidecar["source_commits"]["faaslora"],
+                "tracked_dirty_paths": [],
+            },
         }
         manifest_path.write_text(
             json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -477,7 +521,10 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                 {"SLLM_DEPLOY_TARGET": "9"},
             )
             seed43 = self._build(
-                self._args(root, seed=43, total=4000, role="heldout"), {}
+                self._args(
+                    root, seed=43, total=4000, role="heldout", formal="1"
+                ),
+                {},
             )
             seed44 = self._build(
                 self._args(
@@ -485,7 +532,8 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                     seed=44,
                     total=4000,
                     role="heldout",
-                    output_name="seed44.json",
+                    output_name="seed44/protocol/system_resolved_config.json",
+                    formal="1",
                 ),
                 {"SLLM_DEPLOY_TARGET": "9"},
             )
@@ -493,16 +541,20 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
             module.register_sidecar(validation_a, registry_path)
             module.register_sidecar(validation_b, registry_path)
             self._write_and_mark_validation(validation_a, registry_path)
-            self._write_and_mark_validation(validation_b, registry_path)
+            with self.assertRaisesRegex(ValueError, "already selected"):
+                self._write_and_mark_validation(validation_b, registry_path)
             module.register_sidecar(seed43, root / "registry.json")
-            with self.assertRaisesRegex(ValueError, "held-out resolved configuration changed"):
+            with self.assertRaisesRegex(ValueError, "not completed successfully"):
                 module.register_sidecar(seed44, root / "registry.json")
 
     def test_heldout_registry_requires_seed41_validation_match(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             seed43 = self._build(
-                self._args(root, seed=43, total=4000, role="heldout"), {}
+                self._args(
+                    root, seed=43, total=4000, role="heldout", formal="1"
+                ),
+                {},
             )
             with self.assertRaisesRegex(ValueError, "not completed successfully"):
                 module.register_sidecar(seed43, root / "registry.json")
@@ -524,9 +576,11 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "not completed successfully"):
                 module.register_sidecar(seed43, root / "registry.json")
 
+            matching_root = root / "matching"
+            matching_registry = matching_root / "registry.json"
             matching_validation = self._build(
                 self._args(
-                    root,
+                    matching_root,
                     seed=41,
                     total=1000,
                     role="validation",
@@ -537,19 +591,33 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
             )
             seed44 = self._build(
                 self._args(
-                    root,
+                    matching_root,
                     seed=44,
                     total=4000,
                     role="heldout",
-                    output_name="seed44.json",
+                    output_name="seed44/protocol/system_resolved_config.json",
+                    formal="1",
                 ),
                 {},
             )
-            module.register_sidecar(matching_validation, registry_path)
-            self._write_and_mark_validation(matching_validation, registry_path)
-            module.register_sidecar(seed43, root / "registry.json")
-            registry = module.register_sidecar(seed44, root / "registry.json")
-            heldout = registry["families"][seed43["configuration_family_id"]]["heldout"]
+            seed43_matching = self._build(
+                self._args(
+                    matching_root,
+                    seed=43,
+                    total=4000,
+                    role="heldout",
+                    output_name="seed43/protocol/system_resolved_config.json",
+                    formal="1",
+                ),
+                {},
+            )
+            module.register_sidecar(matching_validation, matching_registry)
+            self._write_and_mark_validation(matching_validation, matching_registry)
+            module.register_sidecar(seed43_matching, matching_registry)
+            registry = module.register_sidecar(seed44, matching_registry)
+            heldout = registry["families"][seed43_matching["configuration_family_id"]][
+                "heldout"
+            ]
             self.assertEqual(heldout["seeds"], [43, 44])
 
     def test_registered_but_incomplete_validation_does_not_unlock_heldout(self):
@@ -568,7 +636,10 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                 {},
             )
             heldout = self._build(
-                self._args(root, seed=43, total=4000, role="heldout"), {}
+                self._args(
+                    root, seed=43, total=4000, role="heldout", formal="1"
+                ),
+                {},
             )
             module.register_sidecar(validation, registry_path)
             with self.assertRaisesRegex(ValueError, "not completed successfully"):
@@ -630,6 +701,148 @@ class FairSystemResolvedConfigTests(unittest.TestCase):
                     registry_path=registry_path,
                     manifest_path=manifest_path,
                 )
+
+    def test_heldout_revalidates_seed41_bytes_and_writes_evidence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            registry_path = root / "registry.json"
+            validation = self._build(
+                self._args(
+                    root,
+                    seed=41,
+                    total=1000,
+                    role="validation",
+                    output_name="validation.json",
+                    formal="1",
+                ),
+                {},
+            )
+            heldout43 = self._build(
+                self._args(
+                    root,
+                    seed=43,
+                    total=4000,
+                    role="heldout",
+                    output_name="heldout43/protocol/system_resolved_config.json",
+                    formal="1",
+                ),
+                {},
+            )
+            heldout44 = self._build(
+                self._args(
+                    root,
+                    seed=44,
+                    total=4000,
+                    role="heldout",
+                    output_name="heldout44/protocol/system_resolved_config.json",
+                    formal="1",
+                ),
+                {},
+            )
+            module.register_sidecar(validation, registry_path)
+            self._write_and_mark_validation(validation, registry_path)
+            module.register_sidecar(heldout43, registry_path)
+
+            evidence_path = (
+                root / "heldout43" / "protocol" / "seed41_validation_evidence.json"
+            )
+            self.assertTrue(evidence_path.is_file())
+            evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+            self.assertEqual(
+                evidence["schema_version"],
+                module.VALIDATION_EVIDENCE_SCHEMA_VERSION,
+            )
+            self.assertEqual(evidence["heldout"]["sampling_seed"], 43)
+            self.assertEqual(evidence["seed41_validation"]["sampling_seed"], 41)
+            self.assertEqual(evidence["seed41_validation"]["total_requests"], 1000)
+
+            family = json.loads(registry_path.read_text(encoding="utf-8"))[
+                "families"
+            ][validation["configuration_family_id"]]
+            manifest_path = Path(family["successful_validation"][0]["manifest"])
+            manifest_path.write_text(
+                manifest_path.read_text(encoding="utf-8") + " ", encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ValueError, "manifest bytes"):
+                module.register_sidecar(heldout44, registry_path)
+            registry = json.loads(registry_path.read_text(encoding="utf-8"))
+            self.assertEqual(
+                registry["families"][validation["configuration_family_id"]][
+                    "heldout"
+                ]["seeds"],
+                [43],
+            )
+
+    def test_heldout_rejects_missing_selected_validation_sidecar(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            registry_path = root / "registry.json"
+            validation = self._build(
+                self._args(
+                    root,
+                    seed=41,
+                    total=1000,
+                    role="validation",
+                    output_name="validation.json",
+                    formal="1",
+                ),
+                {},
+            )
+            heldout = self._build(
+                self._args(
+                    root,
+                    seed=43,
+                    total=4000,
+                    role="heldout",
+                    output_name="heldout.json",
+                    formal="1",
+                ),
+                {},
+            )
+            module.register_sidecar(validation, registry_path)
+            self._write_and_mark_validation(validation, registry_path)
+            Path(validation["sidecar_path"]).unlink()
+            with self.assertRaisesRegex(ValueError, "validation sidecar is missing"):
+                module.register_sidecar(heldout, registry_path)
+
+    def test_resume_sidecar_is_immutable_for_config_and_full_identity(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            args = self._args(
+                root,
+                seed=41,
+                total=1000,
+                role="validation",
+                output_name="protocol/system_resolved_config.json",
+                formal="1",
+            )
+            original = self._build(args, {})
+            path = Path(original["sidecar_path"])
+            module.write_or_validate_immutable_sidecar(path, original)
+            original_bytes = path.read_bytes()
+            self.assertEqual(
+                module.write_or_validate_immutable_sidecar(path, original), original
+            )
+            self.assertEqual(path.read_bytes(), original_bytes)
+
+            config_drift = self._build(args, {"SLLM_DEPLOY_TARGET": "9"})
+            with self.assertRaisesRegex(ValueError, "resume identity drift"):
+                module.write_or_validate_immutable_sidecar(path, config_drift)
+            self.assertEqual(path.read_bytes(), original_bytes)
+
+            full_drift_args = self._args(
+                root,
+                seed=41,
+                total=1000,
+                role="validation",
+                output_name="protocol/system_resolved_config.json",
+                run_tag="different-run-tag",
+                formal="1",
+            )
+            full_drift = self._build(full_drift_args, {})
+            with self.assertRaisesRegex(ValueError, "resume identity drift"):
+                module.write_or_validate_immutable_sidecar(path, full_drift)
+            self.assertEqual(path.read_bytes(), original_bytes)
 
     def test_campaign_protocol_enforces_exact_systems_contract_and_order(self):
         main = module.validate_campaign_protocol(

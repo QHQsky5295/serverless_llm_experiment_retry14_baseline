@@ -34,7 +34,107 @@ def _faaslora_generation_contract_function() -> str:
     return text[start:end]
 
 
+def _round_env_functions() -> str:
+    text = RUNNER.read_text(encoding="utf-8")
+    start = text.index("write_round_env() {")
+    end = text.index("\nvalidate_or_write_round_env\n", start)
+    return text[start:end]
+
+
 class FairRunnerShellHelperTests(unittest.TestCase):
+    def test_runner_publishes_seed41_evidence_identity_in_heldout_manifest(self) -> None:
+        text = RUNNER.read_text(encoding="utf-8")
+        for field in (
+            "seed41_validation_evidence_path",
+            "seed41_validation_evidence_bytes",
+            "seed41_validation_evidence_sha256",
+        ):
+            self.assertIn(field, text)
+        self.assertIn('--systems "${SYSTEMS}"', text)
+
+    def test_formal_heldout_dry_run_refuses_before_creating_round(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            round_dir = Path(tmp) / "must-not-exist"
+            env = os.environ.copy()
+            env.update(
+                {
+                    "SLLM_SAMPLING_SEED": "43",
+                    "SLLM_TOTAL_REQUESTS": "4000",
+                    "FAIR_FAASLORA_SCENARIO": "v2_full",
+                    "FAIR_FORMAL_RUN": "1",
+                    "FAIR_TRACE_ROLE": "heldout",
+                    "FAIR_ROUND_DRY_RUN": "1",
+                    "FAIR_ROUND_DIR": str(round_dir),
+                }
+            )
+            result = subprocess.run(
+                ["bash", str(RUNNER)],
+                env=env,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("formal held-out rounds refuse dry-run", result.stderr)
+            self.assertFalse(round_dir.exists())
+
+    def test_round_env_resume_freezes_systems_and_gpu_ids(self) -> None:
+        for drift_assignment, expected_name in (
+            ('SYSTEMS="faaslora"', "FAIR_ROUND_SYSTEMS"),
+            ('GPU_IDS="0,1"', "FAIR_ROUND_GPU_IDS"),
+        ):
+            with self.subTest(expected_name=expected_name), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                script = (
+                    "set -euo pipefail\n"
+                    + _round_env_functions()
+                    + r'''
+ROUND_DIR="$1"
+STATE_DIR="${ROUND_DIR}/state"
+ROUND_ENV_FILE="${ROUND_DIR}/round.env"
+mkdir -p "${STATE_DIR}"
+FORCE_RERUN=0
+RUN_TAG=run
+MODEL_PROFILE=model
+DATASET_PROFILE=dataset
+WORKLOAD_PROFILE=workload
+TOTAL_REQUESTS=4000
+SELECTED_NUM_ADAPTERS=500
+SAMPLING_SEED=43
+TIME_SCALE_FACTOR=8
+GENERATION_CONTRACT=legacy
+FIXED_OUTPUT_MAX_TOKENS=256
+FIXED_PROMPT_MAX_TOKENS=759
+STORAGE_BANDWIDTH_MIB_S=250
+ZIPF_EXPONENT=1.0
+ACTIVE_ADAPTER_CAP=48
+HOTSET_ROTATION_REQUESTS=500
+HOTSET_ROTATION_MODE=legacy
+HOTSET_OVERLAP_FRACTION=0.75
+FAASLORA_SCENARIO=v2_full
+SYSTEMS="faaslora serverlessllm"
+EXECUTION_ORDER="faaslora serverlessllm"
+GPU_IDS="0,1,2,3"
+CAMPAIGN_KIND=v2_full_vs_serverless
+FORMAL_RUN=1
+TRACE_ROLE=heldout
+RESOLVED_CONFIG_FAMILY=frozen
+RESOLVED_CONFIG_REGISTRY=/tmp/registry.json
+write_round_env
+touch "${STATE_DIR}/00_prep.done"
+'''
+                    + drift_assignment
+                    + "\nvalidate_or_write_round_env\n"
+                )
+                result = subprocess.run(
+                    ["bash", "-c", script, "bash", str(root)],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(expected_name, result.stderr)
+
     def test_result_locator_matches_faaslora_lowercase_sanitized_filename(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

@@ -32,6 +32,9 @@ import yaml
 
 SCHEMA_VERSION = "eurosys27_v2_system_resolved_config_v1"
 REGISTRY_SCHEMA_VERSION = "eurosys27_v2_system_resolved_config_registry_v1"
+VALIDATION_EVIDENCE_SCHEMA_VERSION = (
+    "eurosys27_v2_seed41_validation_evidence_v1"
+)
 STRICT_V2_SCENARIOS = {
     "v2_elastic_only",
     "v2_hit_aware_preparation",
@@ -1003,8 +1006,486 @@ def _atomic_write_json(path: Path, payload: Mapping[str, Any]) -> None:
             pass
 
 
+def _load_json_mapping(path: Path, *, label: str) -> Dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"cannot read {label} JSON: {path}") from exc
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{label} must contain a JSON object: {path}")
+    return dict(value)
+
+
+def _validate_sidecar_internal_identity(
+    sidecar: Mapping[str, Any], *, label: str
+) -> None:
+    family = sidecar.get("configuration_family") or {}
+    hashed_config = sidecar.get("hashed_config") or {}
+    full_identity = sidecar.get("full_run_identity") or {}
+    if not all(
+        isinstance(value, Mapping)
+        for value in (family, hashed_config, full_identity)
+    ):
+        raise ValueError(f"{label} identity payloads must be JSON objects")
+    checks = (
+        (
+            sidecar.get("configuration_family_id"),
+            _canonical_sha256(family),
+            "configuration-family hash",
+        ),
+        (
+            sidecar.get("system_resolved_config_sha256"),
+            _canonical_sha256(hashed_config),
+            "system resolved-config hash",
+        ),
+        (
+            sidecar.get("full_run_identity_sha256"),
+            _canonical_sha256(full_identity),
+            "full-run identity hash",
+        ),
+        (
+            full_identity.get("system_resolved_config_sha256"),
+            sidecar.get("system_resolved_config_sha256"),
+            "full identity/config hash",
+        ),
+        (
+            full_identity.get("sampling_seed"),
+            sidecar.get("sampling_seed"),
+            "full identity/sampling seed",
+        ),
+        (
+            full_identity.get("model_profile"),
+            sidecar.get("model_profile"),
+            "full identity/model",
+        ),
+        (
+            full_identity.get("campaign_kind") or None,
+            sidecar.get("campaign_kind") or None,
+            "full identity/campaign",
+        ),
+        (
+            full_identity.get("systems"),
+            sidecar.get("systems"),
+            "full identity/systems",
+        ),
+        (
+            full_identity.get("source_commits"),
+            sidecar.get("source_commits"),
+            "full identity/source commits",
+        ),
+        (
+            family.get("model_profile"),
+            sidecar.get("model_profile"),
+            "family/model",
+        ),
+        (
+            family.get("campaign_kind") or None,
+            sidecar.get("campaign_kind") or None,
+            "family/campaign",
+        ),
+    )
+    for observed, expected, field in checks:
+        if observed != expected:
+            raise ValueError(
+                f"{label} {field} mismatch: expected={expected!r} "
+                f"observed={observed!r}"
+            )
+
+
+def write_or_validate_immutable_sidecar(
+    path: Path, candidate: Mapping[str, Any]
+) -> Dict[str, Any]:
+    """Create a sidecar once, or prove that a resume has the same identity.
+
+    A prepared round may already have completed system stages.  Replacing its
+    sidecar would let those stages be combined with a newly resolved
+    configuration.  Resume therefore accepts only the same family, system
+    configuration, and full-run identity, and deliberately leaves the original
+    bytes untouched.
+    """
+
+    path = path.resolve()
+    _validate_sidecar_internal_identity(candidate, label="requested sidecar")
+    if not path.exists():
+        _atomic_write_json(path, candidate)
+        return dict(candidate)
+    if not path.is_file():
+        raise ValueError(f"resolved-config sidecar is not a regular file: {path}")
+    existing = _load_json_mapping(path, label="existing resolved-config sidecar")
+    _validate_sidecar_internal_identity(existing, label="existing sidecar")
+    identity_fields = (
+        "schema_version",
+        "campaign_kind",
+        "formal_run",
+        "trace_role",
+        "sampling_seed",
+        "model_profile",
+        "configuration_family_id",
+        "system_resolved_config_sha256",
+        "full_run_identity_sha256",
+        "source_commits",
+        "sidecar_path",
+        "registry_path",
+    )
+    drift = {
+        key: {"existing": existing.get(key), "requested": candidate.get(key)}
+        for key in identity_fields
+        if existing.get(key) != candidate.get(key)
+    }
+    if drift:
+        raise ValueError(
+            "immutable resolved-config sidecar rejects resume identity drift: "
+            f"path={path} drift={json.dumps(drift, sort_keys=True)}"
+        )
+    return existing
+
+
+def _require_int(value: Any, expected: int, label: str) -> None:
+    try:
+        observed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{label} must equal {expected}; got {value!r}") from exc
+    if observed != expected:
+        raise ValueError(f"{label} must equal {expected}; got {observed}")
+
+
+def _require_equal(observed: Any, expected: Any, label: str) -> None:
+    if observed != expected:
+        raise ValueError(
+            f"{label} mismatch: expected={expected!r} observed={observed!r}"
+        )
+
+
+def _validated_seed41_evidence(
+    success_record: Mapping[str, Any], heldout_sidecar: Mapping[str, Any]
+) -> Dict[str, Any]:
+    """Re-read and validate the selected seed-41 bytes for every held-out launch."""
+
+    validation_sidecar_path = Path(
+        str(success_record.get("sidecar") or "")
+    ).resolve()
+    validation_manifest_path = Path(
+        str(success_record.get("manifest") or "")
+    ).resolve()
+    if not validation_sidecar_path.is_file():
+        raise ValueError(
+            f"selected seed-41 validation sidecar is missing: {validation_sidecar_path}"
+        )
+    if not validation_manifest_path.is_file():
+        raise ValueError(
+            f"selected seed-41 validation manifest is missing: {validation_manifest_path}"
+        )
+
+    sidecar_bytes = validation_sidecar_path.stat().st_size
+    manifest_bytes = validation_manifest_path.stat().st_size
+    sidecar_sha256 = _file_sha256(validation_sidecar_path)
+    manifest_sha256 = _file_sha256(validation_manifest_path)
+    _require_int(success_record.get("seed"), 41, "registry validation seed")
+    _require_equal(
+        int(success_record.get("sidecar_bytes", -1)),
+        sidecar_bytes,
+        "registry validation sidecar bytes",
+    )
+    _require_equal(
+        str(success_record.get("sidecar_sha256") or ""),
+        sidecar_sha256,
+        "registry validation sidecar SHA",
+    )
+    _require_equal(
+        int(success_record.get("manifest_bytes", -1)),
+        manifest_bytes,
+        "registry validation manifest bytes",
+    )
+    _require_equal(
+        str(success_record.get("manifest_sha256") or ""),
+        manifest_sha256,
+        "registry validation manifest SHA",
+    )
+
+    validation_sidecar = _load_json_mapping(
+        validation_sidecar_path, label="selected seed-41 validation sidecar"
+    )
+    validation_manifest = _load_json_mapping(
+        validation_manifest_path, label="selected seed-41 validation manifest"
+    )
+    _validate_sidecar_internal_identity(
+        validation_sidecar, label="selected seed-41 validation sidecar"
+    )
+    _require_equal(
+        Path(str(validation_sidecar.get("sidecar_path") or "")).resolve(),
+        validation_sidecar_path,
+        "validation sidecar recorded path",
+    )
+    _require_equal(
+        Path(str(validation_sidecar.get("registry_path") or "")).resolve(),
+        Path(str(heldout_sidecar.get("registry_path") or "")).resolve(),
+        "validation/held-out registry path",
+    )
+    _require_equal(validation_sidecar.get("formal_run"), True, "validation formal_run")
+    _require_equal(
+        validation_sidecar.get("source_clean_for_formal"),
+        True,
+        "validation source cleanliness",
+    )
+    _require_equal(
+        str(validation_sidecar.get("trace_role") or ""),
+        "validation",
+        "validation trace role",
+    )
+    _require_int(validation_sidecar.get("sampling_seed"), 41, "validation seed")
+    validation_identity = validation_sidecar.get("full_run_identity") or {}
+    if not isinstance(validation_identity, Mapping):
+        raise ValueError("validation full_run_identity must be an object")
+    _require_int(
+        validation_identity.get("total_requests"),
+        1000,
+        "validation request count",
+    )
+
+    family_id = str(heldout_sidecar.get("configuration_family_id") or "")
+    config_sha256 = str(heldout_sidecar.get("system_resolved_config_sha256") or "")
+    campaign_kind = heldout_sidecar.get("campaign_kind") or None
+    model_profile = str(heldout_sidecar.get("model_profile") or "")
+    for observed, expected, label in (
+        (
+            validation_sidecar.get("configuration_family_id"),
+            family_id,
+            "validation family",
+        ),
+        (
+            validation_sidecar.get("system_resolved_config_sha256"),
+            config_sha256,
+            "validation config SHA",
+        ),
+        (
+            validation_sidecar.get("campaign_kind") or None,
+            campaign_kind,
+            "validation campaign",
+        ),
+        (validation_sidecar.get("model_profile"), model_profile, "validation model"),
+        (
+            success_record.get("configuration_family_id"),
+            family_id,
+            "registry validation family",
+        ),
+        (
+            success_record.get("system_resolved_config_sha256"),
+            config_sha256,
+            "registry validation config SHA",
+        ),
+        (
+            success_record.get("campaign_kind") or None,
+            campaign_kind,
+            "registry validation campaign",
+        ),
+        (success_record.get("model_profile"), model_profile, "registry validation model"),
+    ):
+        _require_equal(observed, expected, label)
+
+    manifest_sidecar_path = Path(
+        str(validation_manifest.get("system_resolved_config_path") or "")
+    ).resolve()
+    _require_equal(
+        manifest_sidecar_path,
+        validation_sidecar_path,
+        "validation manifest sidecar path",
+    )
+    _require_equal(
+        validation_manifest.get("system_resolved_config_sidecar_sha256"),
+        sidecar_sha256,
+        "validation manifest sidecar SHA",
+    )
+    _require_equal(
+        int(validation_manifest.get("system_resolved_config_sidecar_bytes", -1)),
+        sidecar_bytes,
+        "validation manifest sidecar bytes",
+    )
+    _require_equal(validation_manifest.get("status"), "complete", "validation status")
+    _require_equal(validation_manifest.get("formal_run"), True, "manifest formal_run")
+    _require_equal(
+        validation_manifest.get("source_clean_for_formal"),
+        True,
+        "manifest source cleanliness",
+    )
+    _require_equal(
+        validation_manifest.get("trace_role"), "validation", "manifest trace role"
+    )
+    _require_int(validation_manifest.get("sampling_seed"), 41, "manifest seed")
+    _require_int(
+        validation_manifest.get("total_requests"),
+        1000,
+        "manifest validation request count",
+    )
+    for observed, expected, label in (
+        (
+            validation_manifest.get("system_resolved_config_family_id"),
+            family_id,
+            "manifest family",
+        ),
+        (
+            validation_manifest.get("system_resolved_config_sha256"),
+            config_sha256,
+            "manifest config SHA",
+        ),
+        (
+            validation_manifest.get("campaign_kind") or None,
+            campaign_kind,
+            "manifest campaign",
+        ),
+        (validation_manifest.get("model_profile"), model_profile, "manifest model"),
+    ):
+        _require_equal(observed, expected, label)
+
+    systems = validation_sidecar.get("systems") or []
+    execution_order = validation_identity.get("execution_order") or []
+    if not isinstance(systems, list) or not isinstance(execution_order, list):
+        raise ValueError("validation systems/execution_order must be arrays")
+    _require_equal(validation_manifest.get("systems"), systems, "manifest systems")
+    _require_equal(
+        validation_manifest.get("execution_order"),
+        execution_order,
+        "manifest execution order",
+    )
+    family = validation_sidecar.get("configuration_family") or {}
+    if not isinstance(family, Mapping):
+        raise ValueError("validation configuration_family must be an object")
+    validate_campaign_protocol(
+        campaign_kind=str(campaign_kind or ""),
+        formal_run=True,
+        trace_role="validation",
+        model_profile=model_profile,
+        sampling_seed=41,
+        faaslora_scenario=str(family.get("faaslora_scenario") or ""),
+        systems=[str(item) for item in systems],
+        execution_order=[str(item) for item in execution_order],
+        generation_contract=str(family.get("generation_contract") or ""),
+    )
+
+    source_commits = validation_sidecar.get("source_commits") or {}
+    heldout_source_commits = heldout_sidecar.get("source_commits") or {}
+    if not isinstance(source_commits, Mapping) or not isinstance(
+        heldout_source_commits, Mapping
+    ):
+        raise ValueError("validation/held-out source_commits must be objects")
+    _require_equal(
+        dict(source_commits),
+        dict(heldout_source_commits),
+        "validation/held-out source commits",
+    )
+    for manifest_key, source_key in (
+        ("baseline_git", "baselines"),
+        ("faaslora_git", "faaslora"),
+    ):
+        git_record = validation_manifest.get(manifest_key) or {}
+        if not isinstance(git_record, Mapping):
+            raise ValueError(f"validation manifest {manifest_key} must be an object")
+        commit = str(git_record.get("commit") or "")
+        if len(commit) != 40 or any(ch not in "0123456789abcdef" for ch in commit):
+            raise ValueError(f"validation manifest {manifest_key} commit is invalid")
+        _require_equal(
+            commit,
+            str(source_commits.get(source_key) or ""),
+            f"validation manifest {manifest_key} commit",
+        )
+
+    trace_path = Path(
+        str(validation_manifest.get("shared_trace_path") or "")
+    ).resolve()
+    subset_path = Path(
+        str(validation_manifest.get("shared_adapter_subset_path") or "")
+    ).resolve()
+    excluded_audit = validation_sidecar.get("excluded_from_hash_audit") or {}
+    if not isinstance(excluded_audit, Mapping):
+        raise ValueError("validation excluded_from_hash_audit must be an object")
+    _require_equal(
+        trace_path,
+        Path(str(excluded_audit.get("trace_path") or "")).resolve(),
+        "validation trace path",
+    )
+    _require_equal(
+        subset_path,
+        Path(str(excluded_audit.get("adapter_subset_path") or "")).resolve(),
+        "validation adapter subset path",
+    )
+    for path, manifest_key, identity_key, label in (
+        (trace_path, "shared_trace_sha256", "trace_sha256", "validation trace"),
+        (
+            subset_path,
+            "shared_adapter_subset_sha256",
+            "adapter_subset_sha256",
+            "validation adapter subset",
+        ),
+    ):
+        if not path.is_file():
+            raise ValueError(f"{label} artifact is missing: {path}")
+        observed_sha = _file_sha256(path)
+        _require_equal(
+            validation_manifest.get(manifest_key), observed_sha, f"{label} manifest SHA"
+        )
+        _require_equal(
+            validation_identity.get(identity_key), observed_sha, f"{label} sidecar SHA"
+        )
+
+    return {
+        "schema_version": VALIDATION_EVIDENCE_SCHEMA_VERSION,
+        "heldout": {
+            "sampling_seed": int(heldout_sidecar["sampling_seed"]),
+            "campaign_kind": campaign_kind,
+            "model_profile": model_profile,
+            "configuration_family_id": family_id,
+            "system_resolved_config_sha256": config_sha256,
+            "full_run_identity_sha256": heldout_sidecar.get(
+                "full_run_identity_sha256"
+            ),
+            "source_commits": dict(heldout_source_commits),
+        },
+        "seed41_validation": {
+            "sampling_seed": 41,
+            "total_requests": 1000,
+            "sidecar_path": str(validation_sidecar_path),
+            "sidecar_bytes": sidecar_bytes,
+            "sidecar_sha256": sidecar_sha256,
+            "manifest_path": str(validation_manifest_path),
+            "manifest_bytes": manifest_bytes,
+            "manifest_sha256": manifest_sha256,
+            "campaign_kind": campaign_kind,
+            "model_profile": model_profile,
+            "configuration_family_id": family_id,
+            "system_resolved_config_sha256": config_sha256,
+            "systems": systems,
+            "execution_order": execution_order,
+            "source_commits": dict(source_commits),
+            "shared_trace_path": str(trace_path),
+            "shared_trace_sha256": validation_manifest.get("shared_trace_sha256"),
+            "shared_adapter_subset_path": str(subset_path),
+            "shared_adapter_subset_sha256": validation_manifest.get(
+                "shared_adapter_subset_sha256"
+            ),
+        },
+    }
+
+
+def _write_or_validate_evidence(path: Path, evidence: Mapping[str, Any]) -> None:
+    if not path.exists():
+        _atomic_write_json(path, evidence)
+        return
+    existing = _load_json_mapping(path, label="seed-41 validation evidence")
+    if _canonical_bytes(existing) != _canonical_bytes(evidence):
+        raise ValueError(
+            "immutable seed-41 validation evidence rejects resume drift: "
+            f"path={path}"
+        )
+
+
 def register_sidecar(sidecar: Mapping[str, Any], registry_path: Path) -> Dict[str, Any]:
+    _validate_sidecar_internal_identity(sidecar, label="registry sidecar")
     registry_path = registry_path.resolve()
+    recorded_registry_path = Path(str(sidecar.get("registry_path") or "")).resolve()
+    if recorded_registry_path != registry_path:
+        raise ValueError(
+            "sidecar/registry path mismatch: "
+            f"sidecar={recorded_registry_path} requested={registry_path}"
+        )
     registry_path.parent.mkdir(parents=True, exist_ok=True)
     lock_path = registry_path.with_suffix(registry_path.suffix + ".lock")
     with lock_path.open("a+", encoding="utf-8") as lock_handle:
@@ -1041,18 +1522,61 @@ def register_sidecar(sidecar: Mapping[str, Any], registry_path: Path) -> Dict[st
         record = {
             "seed": int(sidecar["sampling_seed"]),
             "system_resolved_config_sha256": sidecar["system_resolved_config_sha256"],
+            "full_run_identity_sha256": sidecar["full_run_identity_sha256"],
             "sidecar": sidecar["sidecar_path"],
         }
         if role == "heldout":
             heldout = family["heldout"]
             frozen_hash = heldout.get("system_resolved_config_sha256")
             observed_hash = str(sidecar["system_resolved_config_sha256"])
-            validation_hashes = {
-                str(item.get("system_resolved_config_sha256") or "")
+            if sidecar.get("formal_run") is not True:
+                raise ValueError("held-out registry requires formal_run=true")
+            current_identity = sidecar.get("full_run_identity") or {}
+            if not isinstance(current_identity, Mapping):
+                raise ValueError("held-out full_run_identity must be an object")
+            _require_int(
+                current_identity.get("total_requests"),
+                4000,
+                "held-out request count",
+            )
+            current_systems = sidecar.get("systems") or []
+            if not isinstance(current_systems, list):
+                raise ValueError("held-out systems must be an array")
+            validate_campaign_protocol(
+                campaign_kind=str(sidecar.get("campaign_kind") or ""),
+                formal_run=bool(sidecar.get("formal_run")),
+                trace_role="heldout",
+                model_profile=str(sidecar.get("model_profile") or ""),
+                sampling_seed=int(sidecar.get("sampling_seed", -1)),
+                faaslora_scenario=str(
+                    (sidecar.get("configuration_family") or {}).get(
+                        "faaslora_scenario"
+                    )
+                ),
+                systems=[str(item) for item in current_systems],
+                execution_order=[
+                    str(item)
+                    for item in (current_identity.get("execution_order") or [])
+                ],
+                generation_contract=str(
+                    (sidecar.get("configuration_family") or {}).get(
+                        "generation_contract"
+                    )
+                ),
+            )
+            matching_validations = [
+                item
                 for item in family.get("successful_validation", [])
                 if int(item.get("seed", -1)) == 41
-            }
-            if observed_hash not in validation_hashes:
+                and str(item.get("system_resolved_config_sha256") or "")
+                == observed_hash
+            ]
+            if not matching_validations:
+                validation_hashes = {
+                    str(item.get("system_resolved_config_sha256") or "")
+                    for item in family.get("successful_validation", [])
+                    if int(item.get("seed", -1)) == 41
+                }
                 raise ValueError(
                     "held-out configuration was not completed successfully on seed 41 "
                     "validation: "
@@ -1065,6 +1589,19 @@ def register_sidecar(sidecar: Mapping[str, Any], registry_path: Path) -> Dict[st
                     f"family={family_id} frozen={frozen_hash} observed={observed_hash} "
                     f"seed={sidecar['sampling_seed']}"
                 )
+            if len(matching_validations) != 1:
+                raise ValueError(
+                    "held-out launch requires exactly one selected seed-41 validation "
+                    f"record; family={family_id} matches={len(matching_validations)}"
+                )
+            evidence = _validated_seed41_evidence(
+                matching_validations[0], sidecar
+            )
+            evidence_path = (
+                Path(str(sidecar["sidecar_path"])).resolve().parent
+                / "seed41_validation_evidence.json"
+            )
+            _write_or_validate_evidence(evidence_path, evidence)
             heldout["system_resolved_config_sha256"] = observed_hash
             seed = int(sidecar["sampling_seed"])
             previous_by_seed = {
@@ -1109,6 +1646,7 @@ def mark_successful_validation(
         raise ValueError(f"missing validation manifest: {manifest_path}")
     sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    _validate_sidecar_internal_identity(sidecar, label="validation sidecar")
 
     if str(sidecar.get("trace_role") or "") != "validation":
         raise ValueError("successful validation marker requires trace_role=validation")
@@ -1118,6 +1656,12 @@ def mark_successful_validation(
         raise ValueError("successful validation marker requires formal_run=true")
     if sidecar.get("source_clean_for_formal") is not True:
         raise ValueError("successful validation sidecar must pass the formal source gate")
+    recorded_registry = Path(str(sidecar.get("registry_path") or "")).resolve()
+    if recorded_registry != registry_path:
+        raise ValueError(
+            "validation sidecar/registry path mismatch: "
+            f"sidecar={recorded_registry} requested={registry_path}"
+        )
     recorded_sidecar = Path(str(sidecar.get("sidecar_path") or "")).resolve()
     if recorded_sidecar != sidecar_path:
         raise ValueError(
@@ -1137,6 +1681,7 @@ def mark_successful_validation(
         raise ValueError("successful validation manifest requires seed 41")
 
     sidecar_sha256 = _file_sha256(sidecar_path)
+    sidecar_bytes = sidecar_path.stat().st_size
     manifest_sidecar_path = Path(
         str(manifest.get("system_resolved_config_path") or "")
     ).resolve()
@@ -1147,6 +1692,8 @@ def mark_successful_validation(
         )
     if str(manifest.get("system_resolved_config_sidecar_sha256") or "") != sidecar_sha256:
         raise ValueError("manifest resolved-config sidecar SHA does not match current bytes")
+    if int(manifest.get("system_resolved_config_sidecar_bytes", -1)) != sidecar_bytes:
+        raise ValueError("manifest resolved-config sidecar byte count does not match current bytes")
 
     family_id = str(sidecar.get("configuration_family_id") or "")
     config_sha256 = str(sidecar.get("system_resolved_config_sha256") or "")
@@ -1160,15 +1707,24 @@ def mark_successful_validation(
         raise ValueError("manifest/sidecar campaign-kind mismatch")
 
     manifest_sha256 = _file_sha256(manifest_path)
+    manifest_bytes = manifest_path.stat().st_size
     success_record = {
         "seed": 41,
         "system_resolved_config_sha256": config_sha256,
+        "configuration_family_id": family_id,
+        "model_profile": str(sidecar.get("model_profile") or ""),
         "sidecar": str(sidecar_path),
+        "sidecar_bytes": sidecar_bytes,
         "sidecar_sha256": sidecar_sha256,
         "manifest": str(manifest_path),
+        "manifest_bytes": manifest_bytes,
         "manifest_sha256": manifest_sha256,
         "campaign_kind": str(sidecar.get("campaign_kind") or ""),
     }
+    # Run the same byte-level and protocol checks that every held-out launch
+    # will repeat.  Promotion therefore cannot create an unusable registry
+    # record in the first place.
+    _validated_seed41_evidence(success_record, sidecar)
 
     registry_path.parent.mkdir(parents=True, exist_ok=True)
     lock_path = registry_path.with_suffix(registry_path.suffix + ".lock")
@@ -1195,14 +1751,17 @@ def mark_successful_validation(
                 "successful validation sidecar has no matching pre-run registry record"
             )
         successes = family.setdefault("successful_validation", [])
-        previous_same_sidecar = [
-            item
-            for item in successes
-            if Path(str(item.get("sidecar") or "")).resolve() == sidecar_path
-        ]
-        if previous_same_sidecar and success_record not in previous_same_sidecar:
+        if successes and success_record not in successes:
+            selected_hashes = sorted(
+                {
+                    str(item.get("system_resolved_config_sha256") or "")
+                    for item in successes
+                }
+            )
             raise ValueError(
-                "validation sidecar was already promoted with different manifest bytes"
+                "a formal seed-41 validation was already selected for this family; "
+                "the official registry is immutable after selection: "
+                f"selected_hashes={selected_hashes} requested_hash={config_sha256}"
             )
         if success_record not in successes:
             successes.append(success_record)
@@ -1291,6 +1850,11 @@ def build_sidecar(args: argparse.Namespace, env: Mapping[str, str]) -> Dict[str,
             args.hotset_overlap_fraction, "hotset_overlap_fraction"
         ),
     }
+    source_commits = {
+        "baselines": _git_commit(args.baselines_root),
+        "faaslora": _git_commit(args.main_repo),
+    }
+    systems = args.systems.split()
     full_run_identity = {
         "system_resolved_config_sha256": config_hash,
         "model_profile": args.model_profile,
@@ -1311,6 +1875,7 @@ def build_sidecar(args: argparse.Namespace, env: Mapping[str, str]) -> Dict[str,
             else None
         ),
         "run_tag": args.run_tag,
+        "systems": systems,
         "execution_order": args.execution_order.split(),
         "generation_contract": args.generation_contract,
         "fixed_output_max_tokens": int(args.fixed_output_max_tokens),
@@ -1319,6 +1884,7 @@ def build_sidecar(args: argparse.Namespace, env: Mapping[str, str]) -> Dict[str,
         "workload_overrides": effective_workload_axes,
         "faaslora_scenario": args.faaslora_scenario,
         "campaign_kind": args.campaign_kind or None,
+        "source_commits": source_commits,
     }
     source_status = source_cleanliness(args.baselines_root, args.main_repo)
     formal_run = bool(int(args.formal_run))
@@ -1326,7 +1892,8 @@ def build_sidecar(args: argparse.Namespace, env: Mapping[str, str]) -> Dict[str,
         raise ValueError(
             "formal source gate failed while writing resolved-config sidecar: "
             f"baseline_tracked_dirty={source_status['baseline_tracked_dirty_paths']} "
-            f"faaslora_disallowed_tracked_dirty={source_status['faaslora_disallowed_tracked_dirty_paths']}"
+            "faaslora_disallowed_tracked_dirty="
+            f"{source_status['faaslora_disallowed_tracked_dirty_paths']}"
         )
     return {
         "schema_version": SCHEMA_VERSION,
@@ -1335,6 +1902,8 @@ def build_sidecar(args: argparse.Namespace, env: Mapping[str, str]) -> Dict[str,
         "trace_role": role,
         "sampling_seed": int(args.sampling_seed),
         "model_profile": args.model_profile,
+        "systems": systems,
+        "source_commits": source_commits,
         "configuration_family": family,
         "configuration_family_label": args.configuration_family or None,
         "configuration_family_id": _canonical_sha256(family),
@@ -1399,6 +1968,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--run-tag", default="")
     parser.add_argument("--trace-path", default="")
     parser.add_argument("--adapter-subset-path", default="")
+    parser.add_argument("--systems", required=True)
     parser.add_argument("--execution-order", default="")
     parser.add_argument("--campaign-kind", default="")
     parser.add_argument("--output", type=Path, required=True)
@@ -1430,8 +2000,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     args = parse_args(arguments)
-    sidecar = build_sidecar(args, os.environ)
-    _atomic_write_json(args.output.resolve(), sidecar)
+    candidate = build_sidecar(args, os.environ)
+    sidecar = write_or_validate_immutable_sidecar(args.output.resolve(), candidate)
     try:
         register_sidecar(sidecar, args.registry)
     except Exception:

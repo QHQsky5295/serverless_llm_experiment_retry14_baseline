@@ -102,6 +102,12 @@ FORCE_RERUN="${FAIR_ROUND_FORCE:-0}"
 KILL_KNOWN_GPU_RESIDUALS="${FAIR_ROUND_KILL_KNOWN_GPU_RESIDUALS:-1}"
 DRY_RUN="${FAIR_ROUND_DRY_RUN:-${PAPER_QUEUE_DRY_RUN:-0}}"
 
+if [[ "${FORMAL_RUN}" == "1" && "${TRACE_ROLE}" == "heldout" && "${DRY_RUN}" == "1" ]]; then
+  echo "[ERROR] formal held-out rounds refuse dry-run before artifact preparation or registry registration." >&2
+  echo "        Use the campaign planner for a read-only preview, then launch a real unique round." >&2
+  exit 1
+fi
+
 TRACE_PATH="${ROUND_DIR}/shared_artifacts/${RUN_TAG}_trace.json"
 ADAPTER_SUBSET_PATH="${ROUND_DIR}/shared_artifacts/${RUN_TAG}_adapter_subset.json"
 RAW_REPLAY_DIR="${ROUND_DIR}/raw/replay"
@@ -149,7 +155,9 @@ write_round_env() {
     printf 'export SLLM_HOTSET_ROTATION_MODE=%q\n' "${HOTSET_ROTATION_MODE}"
     printf 'export SLLM_HOTSET_OVERLAP_FRACTION=%q\n' "${HOTSET_OVERLAP_FRACTION}"
     printf 'export FAIR_FAASLORA_SCENARIO=%q\n' "${FAASLORA_SCENARIO}"
+    printf 'export FAIR_ROUND_SYSTEMS=%q\n' "${SYSTEMS}"
     printf 'export FAIR_ROUND_EXECUTION_ORDER=%q\n' "${EXECUTION_ORDER}"
+    printf 'export FAIR_ROUND_GPU_IDS=%q\n' "${GPU_IDS}"
     printf 'export FAIR_CAMPAIGN_KIND=%q\n' "${CAMPAIGN_KIND}"
     printf 'export FAIR_FORMAL_RUN=%q\n' "${FORMAL_RUN}"
     printf 'export FAIR_TRACE_ROLE=%q\n' "${TRACE_ROLE}"
@@ -159,6 +167,16 @@ write_round_env() {
 }
 
 validate_or_write_round_env() {
+  if [[ "${FAASLORA_SCENARIO}" == v2_* && "${FORCE_RERUN}" == "1" ]]; then
+    echo "[ERROR] V2 protocol forbids FAIR_ROUND_FORCE=1 before changing round.env." >&2
+    echo "        Use a fresh unique round directory." >&2
+    exit 1
+  fi
+  if [[ "${FORCE_RERUN}" != "1" && ! -f "${ROUND_ENV_FILE}" ]] \
+      && compgen -G "${STATE_DIR}/*.done" >/dev/null; then
+    echo "[ERROR] ${ROUND_DIR} has completed state markers but no round.env; refusing resume." >&2
+    exit 1
+  fi
   if [[ "${FORCE_RERUN}" != "1" && -f "${STATE_DIR}/00_prep.done" && -f "${ROUND_ENV_FILE}" ]]; then
     local existing=()
     mapfile -t existing < <(
@@ -183,7 +201,9 @@ validate_or_write_round_env() {
           "${SLLM_HOTSET_ROTATION_MODE:-}" \
           "${SLLM_HOTSET_OVERLAP_FRACTION:-}" \
           "${FAIR_FAASLORA_SCENARIO:-faaslora_full}" \
+          "${FAIR_ROUND_SYSTEMS:-sglang serverlessllm vllm slora faaslora}" \
           "${FAIR_ROUND_EXECUTION_ORDER:-sglang serverlessllm vllm slora faaslora}" \
+          "${FAIR_ROUND_GPU_IDS:-0,1,2,3}" \
           "${FAIR_CAMPAIGN_KIND:-}" \
           "${FAIR_FORMAL_RUN:-0}" \
           "${FAIR_TRACE_ROLE:-legacy}" \
@@ -210,7 +230,9 @@ validate_or_write_round_env() {
       SLLM_HOTSET_ROTATION_MODE
       SLLM_HOTSET_OVERLAP_FRACTION
       FAIR_FAASLORA_SCENARIO
+      FAIR_ROUND_SYSTEMS
       FAIR_ROUND_EXECUTION_ORDER
+      FAIR_ROUND_GPU_IDS
       FAIR_CAMPAIGN_KIND
       FAIR_FORMAL_RUN
       FAIR_TRACE_ROLE
@@ -236,7 +258,9 @@ validate_or_write_round_env() {
       "${HOTSET_ROTATION_MODE}"
       "${HOTSET_OVERLAP_FRACTION}"
       "${FAASLORA_SCENARIO}"
+      "${SYSTEMS}"
       "${EXECUTION_ORDER}"
+      "${GPU_IDS}"
       "${CAMPAIGN_KIND}"
       "${FORMAL_RUN}"
       "${TRACE_ROLE}"
@@ -321,6 +345,7 @@ prepare_resolved_config_gate() {
     --run-tag "${RUN_TAG}" \
     --trace-path "${TRACE_PATH}" \
     --adapter-subset-path "${ADAPTER_SUBSET_PATH}" \
+    --systems "${SYSTEMS}" \
     --execution-order "${EXECUTION_ORDER}" \
     --campaign-kind "${CAMPAIGN_KIND}" \
     --output "${RESOLVED_CONFIG_PATH}" \
@@ -1818,6 +1843,13 @@ if str(resolved_config.get("model_profile") or "") != payload["model_profile"]:
     raise SystemExit("[ERROR] resolved-config sidecar model profile mismatch")
 if (resolved_config.get("campaign_kind") or None) != payload["campaign_kind"]:
     raise SystemExit("[ERROR] resolved-config sidecar campaign kind mismatch")
+if resolved_config.get("systems") != payload["systems"]:
+    raise SystemExit("[ERROR] resolved-config sidecar selected systems mismatch")
+full_run_identity = resolved_config.get("full_run_identity") or {}
+if full_run_identity.get("systems") != payload["systems"]:
+    raise SystemExit("[ERROR] resolved-config full identity systems mismatch")
+if full_run_identity.get("execution_order") != payload["execution_order"]:
+    raise SystemExit("[ERROR] resolved-config full identity execution order mismatch")
 resolved_hash = str(resolved_config.get("system_resolved_config_sha256") or "")
 if len(resolved_hash) != 64 or any(ch not in "0123456789abcdef" for ch in resolved_hash):
     raise SystemExit("[ERROR] invalid system_resolved_config_sha256 in sidecar")
@@ -1845,6 +1877,39 @@ payload.update(
 )
 if payload["formal_run"] and not payload["source_clean_for_formal"]:
     raise SystemExit("[ERROR] formal manifest refuses non-clean tracked source state")
+validation_evidence_path = round_dir / "protocol" / "seed41_validation_evidence.json"
+if payload["formal_run"] and payload["trace_role"] == "heldout":
+    if not validation_evidence_path.is_file():
+        raise SystemExit(
+            f"[ERROR] held-out manifest requires seed-41 evidence: {validation_evidence_path}"
+        )
+    validation_evidence = json.loads(
+        validation_evidence_path.read_text(encoding="utf-8")
+    )
+    heldout_evidence = validation_evidence.get("heldout") or {}
+    if heldout_evidence.get("sampling_seed") != payload["sampling_seed"]:
+        raise SystemExit("[ERROR] seed-41 evidence held-out seed mismatch")
+    if heldout_evidence.get("configuration_family_id") != payload["system_resolved_config_family_id"]:
+        raise SystemExit("[ERROR] seed-41 evidence family mismatch")
+    if heldout_evidence.get("system_resolved_config_sha256") != resolved_hash:
+        raise SystemExit("[ERROR] seed-41 evidence resolved-config hash mismatch")
+    if heldout_evidence.get("full_run_identity_sha256") != full_run_hash:
+        raise SystemExit("[ERROR] seed-41 evidence full-run identity mismatch")
+    payload.update(
+        {
+            "seed41_validation_evidence_path": str(validation_evidence_path.resolve()),
+            "seed41_validation_evidence_bytes": validation_evidence_path.stat().st_size,
+            "seed41_validation_evidence_sha256": sha256(validation_evidence_path),
+        }
+    )
+else:
+    payload.update(
+        {
+            "seed41_validation_evidence_path": None,
+            "seed41_validation_evidence_bytes": None,
+            "seed41_validation_evidence_sha256": None,
+        }
+    )
 for name, cwd in (("baseline_git", "/home/qhq/serverless_llm_baselines"), ("faaslora_git", "/home/qhq/serverless_llm_experiment_retry14_baseline")):
     try:
         commit = subprocess.check_output(["git", "-C", cwd, "rev-parse", "HEAD"], text=True).strip()
@@ -1863,6 +1928,11 @@ for name, cwd in (("baseline_git", "/home/qhq/serverless_llm_baselines"), ("faas
         "commit": commit,
         "tracked_dirty_paths": status,
     }
+source_commits = resolved_config.get("source_commits") or {}
+if payload["baseline_git"]["commit"] != source_commits.get("baselines"):
+    raise SystemExit("[ERROR] resolved-config/baseline manifest commit mismatch")
+if payload["faaslora_git"]["commit"] != source_commits.get("faaslora"):
+    raise SystemExit("[ERROR] resolved-config/FaaSLoRA manifest commit mismatch")
 
 source_files = {}
 raw_sources = []
