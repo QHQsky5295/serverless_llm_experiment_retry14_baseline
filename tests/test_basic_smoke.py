@@ -1807,9 +1807,27 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         channel = SimpleNamespace(sock=sock, recv_buffer=bytearray())
         open_calls = []
         payloads = []
+        digest = "cd" * 32
         results = iter(
             [
-                (b'{"ok": true, "result": {"value": 1}}\n', 0.1, 0.2, time.time()),
+                (
+                    json.dumps(
+                        {
+                            "ok": True,
+                            "result": {
+                                "value": 1,
+                                "timing": {
+                                    "worker_rpc_handler_wall_ms": 2.5,
+                                    "completion_token_ids_sha256": digest,
+                                },
+                            },
+                        }
+                    ).encode("utf-8")
+                    + b"\n",
+                    0.1,
+                    0.2,
+                    time.time(),
+                ),
                 (b'{"ok": true, "result": {"value": 2}}\n', 0.1, 0.2, time.time()),
             ]
         )
@@ -1832,6 +1850,8 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
         self.assertEqual(first["value"], 1)
         self.assertEqual(second["value"], 2)
+        self.assertEqual(first["timing"]["completion_token_ids_sha256"], digest)
+        self.assertEqual(first["timing"]["worker_rpc_handler_wall_ms"], 2.5)
         self.assertIn("timing", first)
         self.assertIn("timing", second)
         self.assertEqual(open_calls, [("127.0.0.1", 9999)])

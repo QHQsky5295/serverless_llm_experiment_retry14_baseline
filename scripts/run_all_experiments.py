@@ -940,7 +940,7 @@ def _attach_parent_rpc_breakdown(
     *,
     channel_acquire_ms: float = 0.0,
     parent_response_read_wall_time: Optional[float] = None,
-) -> Dict[str, float]:
+) -> Dict[str, Any]:
     """Normalize parent/worker RPC timing into comparable sub-phases.
 
     ``parent_rpc_overhead_ms`` is a useful headline residual, but it mixes:
@@ -953,8 +953,12 @@ def _attach_parent_rpc_breakdown(
     should target slot/channel budgeting, parent event-loop starvation, or the
     RPC transport itself.
     """
+    # Timing payloads are predominantly numeric, but they also carry audit
+    # metadata such as the native completion-token digest.  Preserve strings
+    # across the worker JSON/RPC boundary; numeric consumers below already use
+    # ``_safe_float`` defensively.
     normalized = {
-        key: _safe_float(value, 0.0)
+        key: value if isinstance(value, str) else _safe_float(value, 0.0)
         for key, value in dict(timing or {}).items()
         if isinstance(key, str)
     }
@@ -18294,6 +18298,9 @@ async def main_async(
                 else "local_sim_no_delay"
             ),
             "total_requests": len(traces),
+            # Canonical campaign seed name used by cross-system analyzers.
+            # ``workload_seed`` remains for backwards compatibility.
+            "sampling_seed": workload_seed,
             "generation_seed": wl_cfg_yaml.get("generation_seed"),
             "workload_seed": workload_seed,
             "generation_contract": str(
