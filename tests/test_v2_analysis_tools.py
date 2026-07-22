@@ -653,6 +653,32 @@ class ReadinessV2Tests(unittest.TestCase):
                 )
             )
 
+    def test_diagnostic_gate_rejects_unnecessary_second_cold_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for run_tag, first_service in (("cold-1", 20), ("cold-2", 1)):
+                _write_result(
+                    root / f"{run_tag}_result.json",
+                    model="model-a",
+                    run_tag=run_tag,
+                    requests=_diagnostic_requests(
+                        40, first_service=first_service
+                    ),
+                    diagnostic={"total": 40, "generation_seed": 43},
+                )
+            report = readiness.validate_diagnostic_evidence(
+                readiness.load_scenarios(root),
+                aggregate_runs=True,
+                expected_total=40,
+            )
+            self.assertFalse(report["passed"])
+            self.assertTrue(
+                any(
+                    "second cold run was supplied" in error
+                    for error in report["integrity_errors"]
+                )
+            )
+
     def test_diagnostic_cli_first_service_shortfall_exits_and_requests_rerun(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -1293,6 +1319,8 @@ class FormalProvenanceGateTests(unittest.TestCase):
         **overrides: object,
     ) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
+        source_commit = str(overrides.pop("_source_commit", "faaslora-commit"))
+        family_override = overrides.pop("_configuration_family", None)
         non_feature_hash = str(
             overrides.get("non_feature_frozen_config_sha256") or "e" * 64
         )
@@ -1305,15 +1333,18 @@ class FormalProvenanceGateTests(unittest.TestCase):
             ),
             43,
         )
-        family = {
-            "campaign_kind": "v2_a2_a3_ablation",
-            "model_profile": "llama2_7b_main_v2_publicmix",
-            "dataset_profile": "azure_sharegpt_rep4000",
-            "workload_profile": "llama2_7b_auto500_formal4000_s8",
-            "selected_num_adapters": 500,
-            "gpu_ids": ["0", "1", "2", "3"],
-            "generation_contract": "legacy",
-        }
+        family = dict(
+            family_override
+            or {
+                "campaign_kind": "v2_a2_a3_ablation",
+                "model_profile": "llama2_7b_main_v2_publicmix",
+                "dataset_profile": "azure_sharegpt_rep4000",
+                "workload_profile": "llama2_7b_auto500_formal4000_s8",
+                "selected_num_adapters": 500,
+                "gpu_ids": ["0", "1", "2", "3"],
+                "generation_contract": "legacy",
+            }
+        )
         config = path.parent / "frozen_experiments.yaml"
         config.write_text("profiles: {}\n", encoding="utf-8")
         config_identity = {"path": str(config.resolve()), **self._integrity(config)}
@@ -1346,7 +1377,7 @@ class FormalProvenanceGateTests(unittest.TestCase):
             "non_feature_frozen_config_sha256": non_feature_hash,
             "non_feature_frozen_config_consistent": True,
             "code_snapshot": {
-                "git_commit": "faaslora-commit",
+                "git_commit": source_commit,
                 "source_clean_for_formal": True,
             },
             "shared_trace": {"sampling_seed": 41, "requests": 1000},
@@ -1370,7 +1401,7 @@ class FormalProvenanceGateTests(unittest.TestCase):
                 validation_manifest.read_bytes()
             ).hexdigest(),
             "manifest_bytes": validation_manifest.stat().st_size,
-            "source_commit": "faaslora-commit",
+            "source_commit": source_commit,
             "config_path": str(config.resolve()),
             "config_sha256": config_identity["sha256"],
         }
@@ -1389,7 +1420,7 @@ class FormalProvenanceGateTests(unittest.TestCase):
             "heldout_seed": heldout_seed,
             "heldout_requests": 4000,
             "heldout_round_dir": str(path.parent.resolve()),
-            "source_commit": "faaslora-commit",
+            "source_commit": source_commit,
             "config_path": str(config.resolve()),
             "config_sha256": config_identity["sha256"],
             "registry_path": str((path.parent / "registry.json").resolve()),
@@ -1420,7 +1451,7 @@ class FormalProvenanceGateTests(unittest.TestCase):
                 "successful_validation_manifest_bytes": successful_validation[
                     "manifest_bytes"
                 ],
-                "source_commit": "faaslora-commit",
+                "source_commit": source_commit,
                 "config_path": str(config.resolve()),
                 "config_sha256": config_identity["sha256"],
                 "configuration_family_id": family_id,
@@ -1430,13 +1461,14 @@ class FormalProvenanceGateTests(unittest.TestCase):
                 ],
             },
             "code_snapshot": {
-                "git_commit": "faaslora-commit",
+                "git_commit": source_commit,
                 "source_clean_for_formal": True,
             },
             "entries": [
                 {
                     "scenario": source.stem,
                     "result_json": str(source.resolve()),
+                    "exists": True,
                     "system_resolved_config_sha256": config_hash,
                     "non_feature_frozen_config_sha256": non_feature_hash,
                     **self._integrity(source),
@@ -1716,6 +1748,422 @@ class FormalProvenanceGateTests(unittest.TestCase):
                 plot_paper_sensitivity.plot_workload_sensitivity(
                     [loose], root / "c4", formal_matrix=True
                 )
+
+
+class FormalReadinessV2Tests(unittest.TestCase):
+    _integrity = staticmethod(FormalProvenanceGateTests._integrity)
+    _write_ablation_manifest = FormalProvenanceGateTests._write_ablation_manifest
+
+    @staticmethod
+    def _write_shared_artifacts(
+        root: Path,
+        *,
+        model_profile: str,
+        workload_profile: str,
+    ) -> tuple[Path, Path]:
+        root.mkdir(parents=True, exist_ok=True)
+        trace = root / "trace.json"
+        subset = root / "adapter_subset.json"
+        common = {
+            "model_profile": model_profile,
+            "dataset_profile": readiness.FORMAL_READINESS_DATASET_PROFILE,
+            "workload_profile": workload_profile,
+            "sampling_seed": readiness.FORMAL_READINESS_SEED,
+            "selected_num_adapters": readiness.FORMAL_READINESS_ADAPTERS,
+        }
+        trace.write_text(
+            json.dumps(
+                {
+                    **common,
+                    "requests": [
+                        {
+                            "request_id": f"request-{index}",
+                            "adapter_id": f"adapter-{index % 500}",
+                        }
+                        for index in range(readiness.FORMAL_READINESS_REQUESTS)
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        subset.write_text(
+            json.dumps(
+                {
+                    **common,
+                    "adapters": [
+                        {"id": f"adapter-{index}"}
+                        for index in range(readiness.FORMAL_READINESS_ADAPTERS)
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        return trace, subset
+
+    @staticmethod
+    def _write_formal_result(
+        path: Path,
+        *,
+        model_profile: str,
+        workload_profile: str,
+        model: str,
+        scenario: str,
+        run_tag: str,
+        trace_sha: str,
+        subset_sha: str,
+        config_sha: str,
+        first_service: int,
+        metadata_overrides: dict | None = None,
+    ) -> None:
+        requests = _diagnostic_requests(
+            readiness.FORMAL_READINESS_REQUESTS,
+            first_service=first_service,
+        )
+        for index, request in enumerate(requests):
+            if index % 10 != 0:
+                continue
+            request.update(
+                {
+                    "cache_tier": "host",
+                    "readiness_tier_before_dispatch": "host",
+                    "adapter_gpu_ready_before_dispatch": False,
+                    "adapter_local_ready_before_dispatch": True,
+                    "adapter_remote_cold_before_dispatch": False,
+                    "adapter_replica_mismatch": True,
+                    "remote_mismatch": False,
+                }
+            )
+        phase_size = (
+            readiness.FORMAL_READINESS_REQUESTS
+            // readiness.DIAGNOSTIC_EXPECTED_PHASES
+        )
+        expected_gates = readiness.FORMAL_READINESS_FEATURE_GATES[scenario]
+        gate_names = (
+            "readiness_routing_enabled",
+            "scale_up_handoff_enabled",
+            "hierarchical_residency_enabled",
+            "coordination_enabled",
+            "effective_capacity_admission_enabled",
+        )
+        metadata = {
+            "model": model,
+            "results_tag": run_tag,
+            "formal_run": True,
+            "trace_role": "heldout",
+            "sampling_seed": readiness.FORMAL_READINESS_SEED,
+            "workload_seed": readiness.FORMAL_READINESS_SEED,
+            "generation_seed": readiness.FORMAL_READINESS_SEED,
+            "total_requests": readiness.FORMAL_READINESS_REQUESTS,
+            "num_adapters": readiness.FORMAL_READINESS_ADAPTERS,
+            "generation_contract": readiness.FORMAL_READINESS_GENERATION_CONTRACT,
+            "bandwidth_mib_s": readiness.FORMAL_READINESS_BANDWIDTH_MIB_S,
+            "profile_selection": {
+                "model": model_profile,
+                "dataset": readiness.FORMAL_READINESS_DATASET_PROFILE,
+                "workload": workload_profile,
+            },
+            "shared_trace_sha256": trace_sha,
+            "shared_adapter_subset_sha256": subset_sha,
+            "system_resolved_config_sha256": config_sha,
+            "non_feature_frozen_config_sha256": "e" * 64,
+            "scenario_coordination": {
+                scenario: {
+                    "cold_cache_reset_before_run": True,
+                    "feature_gates": dict(zip(gate_names, expected_gates)),
+                    "feature_activation": {
+                        "scale_up_event_count": readiness.DIAGNOSTIC_MIN_SCALE_UP_EVENTS
+                    },
+                }
+            },
+        }
+        metadata.update(metadata_overrides or {})
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps(
+                {
+                    "metadata": metadata,
+                    "detailed_results": {
+                        scenario: {
+                            "total": readiness.FORMAL_READINESS_REQUESTS,
+                            "completed": readiness.FORMAL_READINESS_REQUESTS,
+                            "failed": 0,
+                            "requests": requests,
+                            "multi_cycle_phase_results": [
+                                {
+                                    "phase": phase,
+                                    "total": phase_size,
+                                    "completed": phase_size,
+                                }
+                                for phase in range(
+                                    readiness.DIAGNOSTIC_EXPECTED_PHASES
+                                )
+                            ],
+                            "scale_up_events": [
+                                {"event": index}
+                                for index in range(
+                                    readiness.DIAGNOSTIC_MIN_SCALE_UP_EVENTS
+                                )
+                            ],
+                        }
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    def _write_formal_matrix(
+        self,
+        root: Path,
+        *,
+        cold_runs: dict[tuple[str, str], list[int]] | None = None,
+        source_commit: str | None = None,
+        result_metadata_overrides: dict[tuple[str, str], dict] | None = None,
+    ) -> dict[tuple[str, str, int], Path]:
+        commit = source_commit or readiness._current_source_commit(
+            Path(readiness.__file__).resolve().parents[1]
+        )
+        manifests: dict[tuple[str, str, int], Path] = {}
+        for model_profile, spec in readiness.FORMAL_READINESS_MODELS.items():
+            model = str(spec["model"])
+            workload_profile = str(spec["workload_profile"])
+            trace, subset = self._write_shared_artifacts(
+                root / "shared" / model,
+                model_profile=model_profile,
+                workload_profile=workload_profile,
+            )
+            trace_sha = hashlib.sha256(trace.read_bytes()).hexdigest()
+            subset_sha = hashlib.sha256(subset.read_bytes()).hexdigest()
+            family = {
+                "campaign_kind": readiness.FORMAL_READINESS_CAMPAIGN_KIND,
+                "model_profile": model_profile,
+                "dataset_profile": readiness.FORMAL_READINESS_DATASET_PROFILE,
+                "workload_profile": workload_profile,
+                "selected_num_adapters": readiness.FORMAL_READINESS_ADAPTERS,
+                "gpu_ids": ["0", "1", "2", "3"],
+                "generation_contract": readiness.FORMAL_READINESS_GENERATION_CONTRACT,
+            }
+            for scenario in spec["scenarios"]:
+                first_service_counts = (cold_runs or {}).get(
+                    (model, str(scenario)), [readiness.DIAGNOSTIC_MIN_FIRST_SERVICE]
+                )
+                config_sha = hashlib.sha256(
+                    f"{model}:{scenario}:frozen-config".encode("utf-8")
+                ).hexdigest()
+                for cold_index, first_service in enumerate(
+                    first_service_counts, start=1
+                ):
+                    round_dir = (
+                        root
+                        / "rounds"
+                        / model
+                        / str(scenario)
+                        / f"seed43_cold{cold_index}"
+                    )
+                    result = round_dir / f"{scenario}.json"
+                    self._write_formal_result(
+                        result,
+                        model_profile=model_profile,
+                        workload_profile=workload_profile,
+                        model=model,
+                        scenario=str(scenario),
+                        run_tag=f"{model}_{scenario}_seed43_cold{cold_index}",
+                        trace_sha=trace_sha,
+                        subset_sha=subset_sha,
+                        config_sha=config_sha,
+                        first_service=int(first_service),
+                        metadata_overrides=(result_metadata_overrides or {}).get(
+                            (model, str(scenario))
+                        ),
+                    )
+                    manifest = self._write_ablation_manifest(
+                        round_dir / "MANIFEST.json",
+                        [(result, config_sha)],
+                        _source_commit=commit,
+                        _configuration_family=family,
+                        model_profile=model_profile,
+                        dataset_profile=readiness.FORMAL_READINESS_DATASET_PROFILE,
+                        workload_profile=workload_profile,
+                        shared_trace={
+                            "path": str(trace.resolve()),
+                            "sha256": trace_sha,
+                            "requests": readiness.FORMAL_READINESS_REQUESTS,
+                            "selected_num_adapters": readiness.FORMAL_READINESS_ADAPTERS,
+                            "sampling_seed": readiness.FORMAL_READINESS_SEED,
+                            "generation_seed": readiness.FORMAL_READINESS_SEED,
+                        },
+                        shared_adapter_subset={
+                            "path": str(subset.resolve()),
+                            "sha256": subset_sha,
+                            "selected_num_adapters": readiness.FORMAL_READINESS_ADAPTERS,
+                            "sampling_seed": readiness.FORMAL_READINESS_SEED,
+                            "adapter_count": readiness.FORMAL_READINESS_ADAPTERS,
+                        },
+                        bandwidth_mib_s=readiness.FORMAL_READINESS_BANDWIDTH_MIB_S,
+                        mechanism_trigger_gate_required=True,
+                        multi_cycle_phases=readiness.DIAGNOSTIC_EXPECTED_PHASES,
+                        idle_between_phases_s=2.0,
+                        tuning_env_sha256="9" * 64,
+                    )
+                    manifests[(model, str(scenario), cold_index)] = manifest
+        return manifests
+
+    def test_formal_readiness_accepts_exact_matrix_and_two_run_pooling(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifests = self._write_formal_matrix(
+                root,
+                cold_runs={
+                    ("llama2_7b", "v2_full"): [10, 10],
+                },
+            )
+            scenarios, provenance, formal = readiness.load_formal_v2_readiness_campaign(
+                list(manifests.values())
+            )
+            self.assertTrue(formal["passed"])
+            self.assertEqual(len(provenance.manifest_paths), 5)
+            self.assertEqual(len(scenarios), 5)
+            diagnostic = readiness.validate_diagnostic_evidence(
+                scenarios, aggregate_runs=True
+            )
+            self.assertTrue(diagnostic["passed"])
+            full_7b = next(
+                group
+                for group in diagnostic["groups"]
+                if group["model"] == "llama2_7b"
+                and group["variant"] == "v2_full"
+            )
+            self.assertEqual(full_7b["run_count"], 2)
+            self.assertEqual(full_7b["first_service_n"], 20)
+
+    def test_formal_readiness_rejects_missing_or_extra_matrix_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifests = self._write_formal_matrix(root)
+            missing = [
+                path
+                for (model, scenario, _cold), path in manifests.items()
+                if (model, scenario) != ("llama32_3b", "v2_full")
+            ]
+            with self.assertRaisesRegex(SystemExit, "readiness matrix mismatch"):
+                readiness.load_formal_v2_readiness_campaign(missing)
+
+            wrong = next(iter(manifests.values()))
+            payload = json.loads(wrong.read_text(encoding="utf-8"))
+            payload["scenarios"] = ["v2_hit_aware_preparation"]
+            payload["entries"][0]["scenario"] = "v2_hit_aware_preparation"
+            wrong.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(SystemExit, "unexpected .* readiness scenario"):
+                readiness.load_formal_v2_readiness_campaign(
+                    list(manifests.values())
+                )
+
+    def test_formal_readiness_rejects_result_seed_hash_and_source_drift(self) -> None:
+        cases = (
+            (
+                {("llama2_7b", "v2_full"): {"sampling_seed": 44}},
+                None,
+                "metadata.sampling_seed must be 43",
+            ),
+            (
+                {
+                    ("llama2_7b", "v2_full"): {
+                        "shared_trace_sha256": "0" * 64
+                    }
+                },
+                None,
+                "result/manifest shared trace SHA mismatch",
+            ),
+            ({}, "0" * 40, "does not match current FaaSLoRA HEAD"),
+        )
+        for index, (overrides, source_commit, message) in enumerate(cases):
+            with self.subTest(message=message), tempfile.TemporaryDirectory() as tmp:
+                manifests = self._write_formal_matrix(
+                    Path(tmp) / f"case{index}",
+                    source_commit=source_commit,
+                    result_metadata_overrides=overrides,
+                )
+                with self.assertRaisesRegex(SystemExit, message):
+                    readiness.load_formal_v2_readiness_campaign(
+                        list(manifests.values())
+                    )
+
+    def test_formal_readiness_revalidates_seed41_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            manifests = self._write_formal_matrix(Path(tmp))
+            manifest = next(iter(manifests.values()))
+            payload = json.loads(manifest.read_text(encoding="utf-8"))
+            Path(payload["seed41_validation_evidence"]["path"]).unlink()
+            with self.assertRaisesRegex(SystemExit, "recorded file is missing"):
+                readiness.load_formal_v2_readiness_campaign(
+                    list(manifests.values())
+                )
+
+    def test_formal_readiness_cli_requires_fresh_explicit_publish_dir(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            base_argv = [
+                "analyze_service_readiness.py",
+                "--input",
+                str(root / "campaign"),
+                "--output",
+                str(root / "output"),
+                "--formal-v2",
+            ]
+            with mock.patch("sys.argv", base_argv), self.assertRaisesRegex(
+                SystemExit, "2"
+            ):
+                readiness.main()
+
+            publish = root / "publish"
+            publish.mkdir()
+            (publish / "existing.pdf").write_text("old", encoding="utf-8")
+            with mock.patch(
+                "sys.argv", [*base_argv, "--publish-dir", str(publish)]
+            ), self.assertRaisesRegex(SystemExit, "non-empty formal readiness"):
+                readiness.main()
+
+    def test_formal_readiness_cli_writes_gated_outputs_and_fresh_publication(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifests = self._write_formal_matrix(root / "campaigns")
+            output = root / "paper_results" / "readiness"
+            publish = root / "figs" / "readiness"
+            argv = ["analyze_service_readiness.py"]
+            for manifest in manifests.values():
+                argv.extend(("--input", str(manifest)))
+            argv.extend(
+                (
+                    "--output",
+                    str(output),
+                    "--publish-dir",
+                    str(publish),
+                    "--formal-v2",
+                )
+            )
+            with mock.patch("sys.argv", argv):
+                readiness.main()
+            formal = json.loads(
+                (output / "readiness_formal_v2_gate.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            diagnostic = json.loads(
+                (output / "readiness_diagnostic_gate.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            analysis_manifest = json.loads(
+                (output / "service_readiness_manifest.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertTrue(formal["passed"])
+            self.assertTrue(diagnostic["passed"])
+            self.assertIsNone(analysis_manifest["field_caveat"])
+            self.assertTrue(
+                analysis_manifest["formal_campaign_gate"]["enabled"]
+            )
+            self.assertTrue((publish / "fig_service_readiness_summary.pdf").is_file())
 
 
 class FormalMatrixCliTests(unittest.TestCase):

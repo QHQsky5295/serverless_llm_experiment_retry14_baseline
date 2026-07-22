@@ -10,10 +10,11 @@ import hashlib
 import json
 import shutil
 import math
+import subprocess
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, DefaultDict, Dict, Iterable, List, Sequence, Tuple
+from typing import Any, DefaultDict, Dict, Iterable, List, Mapping, Sequence, Tuple
 
 import matplotlib
 
@@ -21,14 +22,42 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+try:
+    from eurosys27_v2_provenance import (
+        FormalAnalysisIdentity,
+        FormalProvenanceIndex,
+        build_formal_provenance_index,
+        validate_formal_analysis_sources,
+    )
+except ImportError:  # Package imports used by tests.
+    from scripts.eurosys27_v2_provenance import (
+        FormalAnalysisIdentity,
+        FormalProvenanceIndex,
+        build_formal_provenance_index,
+        validate_formal_analysis_sources,
+    )
 
-SCENARIO_ORDER = ("faaslora_nvme", "faaslora_no_coord", "faaslora_full")
+
+SCENARIO_ORDER = (
+    "v2_elastic_only",
+    "v2_hierarchical_no_coord",
+    "v2_full",
+    "faaslora_nvme",
+    "faaslora_no_coord",
+    "faaslora_full",
+)
 SCENARIO_LABELS = {
+    "v2_elastic_only": "ElasticOnly",
+    "v2_hierarchical_no_coord": "+HierarchicalResidency",
+    "v2_full": "PrimeLoRA",
     "faaslora_nvme": "PrimeLoRA-NVMe",
     "faaslora_no_coord": "PrimeLoRA-NoCoord",
     "faaslora_full": "PrimeLoRA",
 }
 SHORT_LABELS = {
+    "v2_elastic_only": "ElasticOnly",
+    "v2_hierarchical_no_coord": "+Hierarchy",
+    "v2_full": "PrimeLoRA",
     "faaslora_nvme": "NVMe",
     "faaslora_no_coord": "NoCoord",
     "faaslora_full": "PrimeLoRA",
@@ -53,6 +82,35 @@ DIAGNOSTIC_EXPECTED_PHASES = 8
 DIAGNOSTIC_MIN_SCALE_UP_EVENTS = 8
 DIAGNOSTIC_MIN_FIRST_SERVICE = 20
 DIAGNOSTIC_MAX_COLD_RUNS = 2
+
+FORMAL_READINESS_CAMPAIGN_KIND = "v2_a2_a3_ablation"
+FORMAL_READINESS_SEED = 43
+FORMAL_READINESS_REQUESTS = 4000
+FORMAL_READINESS_ADAPTERS = 500
+FORMAL_READINESS_BANDWIDTH_MIB_S = 250.0
+FORMAL_READINESS_GENERATION_CONTRACT = "legacy"
+FORMAL_READINESS_DATASET_PROFILE = "azure_sharegpt_rep4000"
+FORMAL_READINESS_MODELS: Mapping[str, Dict[str, Any]] = {
+    "llama2_7b_main_v2_publicmix": {
+        "model": "llama2_7b",
+        "workload_profile": "llama2_7b_auto500_formal4000_s8",
+        "scenarios": (
+            "v2_elastic_only",
+            "v2_hierarchical_no_coord",
+            "v2_full",
+        ),
+    },
+    "llama32_3b_main_modelscope": {
+        "model": "llama32_3b",
+        "workload_profile": "llama32_3b_auto500_formal4000_s8",
+        "scenarios": ("v2_full",),
+    },
+}
+FORMAL_READINESS_FEATURE_GATES: Mapping[str, Tuple[bool, bool, bool, bool, bool]] = {
+    "v2_elastic_only": (False, False, False, False, False),
+    "v2_hierarchical_no_coord": (True, True, True, False, False),
+    "v2_full": (True, True, True, True, True),
+}
 
 
 @dataclass
@@ -186,6 +244,608 @@ def _run_tag(payload: Dict[str, Any], path: Path) -> str:
     metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
     raw = metadata.get("results_tag") or metadata.get("run_tag") or payload.get("run_tag")
     return str(raw or path.stem.removesuffix(".json")).strip()
+
+
+def _formal_fail(message: str) -> None:
+    raise SystemExit(f"formal readiness gate failed: {message}")
+
+
+def _formal_sha256(value: Any, label: str) -> str:
+    digest = str(value or "").strip().lower()
+    if len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest):
+        _formal_fail(f"{label} must be a lowercase SHA-256 digest")
+    return digest
+
+
+def _formal_int(value: Any, label: str) -> int:
+    if isinstance(value, bool):
+        _formal_fail(f"{label} must be an integer")
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        _formal_fail(f"{label} must be an integer")
+    try:
+        exact = float(value) == float(number)
+    except (TypeError, ValueError):
+        exact = False
+    if not exact:
+        _formal_fail(f"{label} must be an integer")
+    return number
+
+
+def _formal_float(value: Any, label: str) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        _formal_fail(f"{label} must be numeric")
+    if not math.isfinite(number):
+        _formal_fail(f"{label} must be finite")
+    return number
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _resolve_manifest_path(manifest_path: Path, value: Any, label: str) -> Path:
+    raw = str(value or "").strip()
+    if not raw:
+        _formal_fail(f"{manifest_path}:{label} is empty")
+    path = Path(raw).expanduser()
+    if not path.is_absolute():
+        path = manifest_path.parent / path
+    return path.resolve()
+
+
+def _validate_manifest_artifact(
+    manifest_path: Path,
+    block: Any,
+    *,
+    label: str,
+) -> Tuple[Path, str, Dict[str, Any]]:
+    if not isinstance(block, dict):
+        _formal_fail(f"{manifest_path}:{label} must be an object")
+    artifact_path = _resolve_manifest_path(manifest_path, block.get("path"), f"{label}.path")
+    if not artifact_path.is_file():
+        _formal_fail(f"{manifest_path}:{label} file is missing: {artifact_path}")
+    expected_sha = _formal_sha256(block.get("sha256"), f"{manifest_path}:{label}.sha256")
+    actual_sha = _file_sha256(artifact_path)
+    if actual_sha != expected_sha:
+        _formal_fail(
+            f"{manifest_path}:{label} SHA-256 mismatch; "
+            f"recorded={expected_sha}, actual={actual_sha}"
+        )
+    return artifact_path, expected_sha, _read_json(artifact_path)
+
+
+def _current_source_commit(repo: Path) -> str:
+    try:
+        commit = subprocess.check_output(
+            ["git", "-C", str(repo.resolve()), "rev-parse", "HEAD"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except Exception as exc:
+        _formal_fail(f"cannot resolve current FaaSLoRA source revision: {exc}")
+    if len(commit) != 40 or any(char not in "0123456789abcdef" for char in commit.lower()):
+        _formal_fail(f"current FaaSLoRA source revision is invalid: {commit!r}")
+    return commit.lower()
+
+
+def _load_scenarios_from_sources(
+    sources: Sequence[Path],
+    *,
+    require_dispatch_tier: bool,
+    include_empty: bool,
+) -> List[ScenarioRecords]:
+    scenarios: List[ScenarioRecords] = []
+    seen: Dict[Tuple[str, str, str], Path] = {}
+    for source in sorted({Path(path).resolve() for path in sources}):
+        for scenario in load_scenarios(
+            source,
+            require_dispatch_tier=require_dispatch_tier,
+            include_empty=include_empty,
+        ):
+            key = (scenario.model, scenario.name, scenario.run_tag)
+            if key in seen:
+                _formal_fail(
+                    "duplicate result identity across inputs "
+                    f"{key!r}: {seen[key]} and {scenario.source}"
+                )
+            seen[key] = scenario.source
+            scenarios.append(scenario)
+    if not scenarios:
+        _formal_fail("no request-level readiness records were found")
+    rank = {name: index for index, name in enumerate(SCENARIO_ORDER)}
+    return sorted(
+        scenarios,
+        key=lambda item: (
+            item.model,
+            rank.get(item.name, len(rank)),
+            item.name,
+            item.run_tag,
+        ),
+    )
+
+
+def load_formal_v2_readiness_campaign(
+    inputs: Sequence[Path],
+    *,
+    repo: Path | None = None,
+) -> Tuple[List[ScenarioRecords], FormalProvenanceIndex, Dict[str, Any]]:
+    """Load and fail-closed validate the pre-registered dispatch-readiness matrix."""
+
+    resolved_inputs = [Path(path).expanduser().resolve() for path in inputs]
+    provenance = build_formal_provenance_index(resolved_inputs)
+    repo_path = (repo or Path(__file__).resolve().parents[1]).resolve()
+    current_commit = _current_source_commit(repo_path)
+
+    bindings: Dict[Path, Dict[str, Any]] = {}
+    manifest_reports: List[Dict[str, Any]] = []
+    evidence_paths: List[str] = []
+    trace_hashes_by_model: DefaultDict[str, set[str]] = defaultdict(set)
+    subset_hashes_by_model: DefaultDict[str, set[str]] = defaultdict(set)
+
+    for manifest_path in provenance.manifest_paths:
+        manifest = _read_json(manifest_path)
+        entries = manifest.get("entries")
+        if not isinstance(entries, list):
+            _formal_fail(
+                f"{manifest_path}: readiness formal mode accepts only FaaSLoRA "
+                "ablation manifests with entries[]"
+            )
+        family = manifest.get("configuration_family")
+        if not isinstance(family, dict):
+            _formal_fail(f"{manifest_path}: configuration_family must be an object")
+        if str(family.get("campaign_kind") or "") != FORMAL_READINESS_CAMPAIGN_KIND:
+            _formal_fail(
+                f"{manifest_path}: configuration_family.campaign_kind must be "
+                f"{FORMAL_READINESS_CAMPAIGN_KIND!r}"
+            )
+        model_profile = str(manifest.get("model_profile") or family.get("model_profile") or "")
+        model_spec = FORMAL_READINESS_MODELS.get(model_profile)
+        if model_spec is None:
+            _formal_fail(f"{manifest_path}: unsupported model_profile={model_profile!r}")
+        model = str(model_spec["model"])
+        expected_scenarios = tuple(str(item) for item in model_spec["scenarios"])
+        expected_workload = str(model_spec["workload_profile"])
+        expected_family = {
+            "campaign_kind": FORMAL_READINESS_CAMPAIGN_KIND,
+            "model_profile": model_profile,
+            "dataset_profile": FORMAL_READINESS_DATASET_PROFILE,
+            "workload_profile": expected_workload,
+            "selected_num_adapters": FORMAL_READINESS_ADAPTERS,
+            "generation_contract": FORMAL_READINESS_GENERATION_CONTRACT,
+        }
+        for field, expected in expected_family.items():
+            if family.get(field) != expected:
+                _formal_fail(
+                    f"{manifest_path}: configuration_family.{field}="
+                    f"{family.get(field)!r}, expected {expected!r}"
+                )
+        for field, expected in (
+            ("dataset_profile", FORMAL_READINESS_DATASET_PROFILE),
+            ("workload_profile", expected_workload),
+        ):
+            if str(manifest.get(field) or "") != expected:
+                _formal_fail(
+                    f"{manifest_path}: {field}={manifest.get(field)!r}, expected {expected!r}"
+                )
+        if _formal_int(
+            manifest.get("multi_cycle_phases"), f"{manifest_path}:multi_cycle_phases"
+        ) != DIAGNOSTIC_EXPECTED_PHASES:
+            _formal_fail(
+                f"{manifest_path}: multi_cycle_phases must be {DIAGNOSTIC_EXPECTED_PHASES}"
+            )
+        if not math.isclose(
+            _formal_float(
+                manifest.get("idle_between_phases_s"),
+                f"{manifest_path}:idle_between_phases_s",
+            ),
+            2.0,
+            rel_tol=0.0,
+            abs_tol=1e-9,
+        ):
+            _formal_fail(f"{manifest_path}: idle_between_phases_s must be 2.0")
+        if manifest.get("mechanism_trigger_gate_required") is not True:
+            _formal_fail(
+                f"{manifest_path}: mechanism_trigger_gate_required must be true"
+            )
+        _formal_sha256(
+            manifest.get("tuning_env_sha256"), f"{manifest_path}:tuning_env_sha256"
+        )
+        if not math.isclose(
+            _formal_float(
+                manifest.get("bandwidth_mib_s"), f"{manifest_path}:bandwidth_mib_s"
+            ),
+            FORMAL_READINESS_BANDWIDTH_MIB_S,
+            rel_tol=0.0,
+            abs_tol=1e-9,
+        ):
+            _formal_fail(
+                f"{manifest_path}: bandwidth_mib_s must be "
+                f"{FORMAL_READINESS_BANDWIDTH_MIB_S:g}"
+            )
+
+        snapshot = manifest.get("code_snapshot")
+        if not isinstance(snapshot, dict):
+            _formal_fail(f"{manifest_path}: code_snapshot must be an object")
+        recorded_commit = str(snapshot.get("git_commit") or "").strip().lower()
+        if recorded_commit != current_commit:
+            _formal_fail(
+                f"{manifest_path}: source commit {recorded_commit!r} does not match "
+                f"current FaaSLoRA HEAD {current_commit!r}"
+            )
+
+        trace_path, trace_sha, trace_payload = _validate_manifest_artifact(
+            manifest_path, manifest.get("shared_trace"), label="shared_trace"
+        )
+        subset_path, subset_sha, subset_payload = _validate_manifest_artifact(
+            manifest_path,
+            manifest.get("shared_adapter_subset"),
+            label="shared_adapter_subset",
+        )
+        trace = manifest["shared_trace"]
+        subset = manifest["shared_adapter_subset"]
+        for label, payload, block in (
+            ("shared_trace", trace_payload, trace),
+            ("shared_adapter_subset", subset_payload, subset),
+        ):
+            if _formal_int(
+                block.get("sampling_seed"), f"{manifest_path}:{label}.sampling_seed"
+            ) != FORMAL_READINESS_SEED:
+                _formal_fail(
+                    f"{manifest_path}:{label}.sampling_seed must be {FORMAL_READINESS_SEED}"
+                )
+            if _formal_int(
+                payload.get("sampling_seed"),
+                f"{manifest_path}:{label} artifact sampling_seed",
+            ) != FORMAL_READINESS_SEED:
+                _formal_fail(
+                    f"{manifest_path}:{label} artifact seed must be {FORMAL_READINESS_SEED}"
+                )
+            for field, expected in (
+                ("model_profile", model_profile),
+                ("dataset_profile", FORMAL_READINESS_DATASET_PROFILE),
+                ("workload_profile", expected_workload),
+            ):
+                if payload.get(field) != expected:
+                    _formal_fail(
+                        f"{manifest_path}:{label} artifact {field}="
+                        f"{payload.get(field)!r}, expected {expected!r}"
+                    )
+        if _formal_int(trace.get("requests"), f"{manifest_path}:shared_trace.requests") != FORMAL_READINESS_REQUESTS:
+            _formal_fail(
+                f"{manifest_path}: shared_trace.requests must be {FORMAL_READINESS_REQUESTS}"
+            )
+        raw_requests = trace_payload.get("requests")
+        if not isinstance(raw_requests, list) or len(raw_requests) != FORMAL_READINESS_REQUESTS:
+            _formal_fail(
+                f"{manifest_path}: shared trace artifact must contain exactly "
+                f"{FORMAL_READINESS_REQUESTS} requests"
+            )
+        if _formal_int(
+            trace.get("selected_num_adapters"),
+            f"{manifest_path}:shared_trace.selected_num_adapters",
+        ) != FORMAL_READINESS_ADAPTERS:
+            _formal_fail(
+                f"{manifest_path}: shared_trace.selected_num_adapters must be "
+                f"{FORMAL_READINESS_ADAPTERS}"
+            )
+        if _formal_int(
+            subset.get("selected_num_adapters"),
+            f"{manifest_path}:shared_adapter_subset.selected_num_adapters",
+        ) != FORMAL_READINESS_ADAPTERS:
+            _formal_fail(
+                f"{manifest_path}: shared_adapter_subset.selected_num_adapters must be "
+                f"{FORMAL_READINESS_ADAPTERS}"
+            )
+        adapters = subset_payload.get("adapters")
+        if not isinstance(adapters, list) or len(adapters) != FORMAL_READINESS_ADAPTERS:
+            _formal_fail(
+                f"{manifest_path}: shared adapter subset artifact must contain exactly "
+                f"{FORMAL_READINESS_ADAPTERS} adapters"
+            )
+        trace_hashes_by_model[model].add(trace_sha)
+        subset_hashes_by_model[model].add(subset_sha)
+
+        manifest_scenarios = manifest.get("scenarios")
+        if not isinstance(manifest_scenarios, list) or not manifest_scenarios:
+            _formal_fail(f"{manifest_path}: scenarios must be a non-empty list")
+        scenario_names = tuple(str(item) for item in manifest_scenarios)
+        if len(set(scenario_names)) != len(scenario_names):
+            _formal_fail(f"{manifest_path}: scenarios contains duplicates")
+        unknown = sorted(set(scenario_names) - set(expected_scenarios))
+        if unknown:
+            _formal_fail(
+                f"{manifest_path}: unexpected {model} readiness scenario(s): {unknown}"
+            )
+        if len(entries) != len(scenario_names):
+            _formal_fail(
+                f"{manifest_path}: entries/scenarios cardinality mismatch; "
+                f"entries={len(entries)}, scenarios={len(scenario_names)}"
+            )
+        entry_scenarios = [
+            str(entry.get("scenario") or "") if isinstance(entry, dict) else ""
+            for entry in entries
+        ]
+        if sorted(entry_scenarios) != sorted(scenario_names):
+            _formal_fail(f"{manifest_path}: entries do not exactly match scenarios")
+
+        evidence = manifest.get("seed41_validation_evidence")
+        if not isinstance(evidence, dict):
+            _formal_fail(f"{manifest_path}: seed41_validation_evidence is missing")
+        evidence_path = _resolve_manifest_path(
+            manifest_path, evidence.get("path"), "seed41_validation_evidence.path"
+        )
+        evidence_paths.append(str(evidence_path))
+        non_feature_hash = _formal_sha256(
+            manifest.get("non_feature_frozen_config_sha256"),
+            f"{manifest_path}:non_feature_frozen_config_sha256",
+        )
+
+        for index, entry in enumerate(entries):
+            if not isinstance(entry, dict):
+                _formal_fail(f"{manifest_path}:entries[{index}] must be an object")
+            if entry.get("exists") is not True:
+                _formal_fail(
+                    f"{manifest_path}:entries[{index}].exists must be true in a "
+                    "completed readiness campaign"
+                )
+            scenario_name = str(entry.get("scenario") or "")
+            source = _resolve_manifest_path(
+                manifest_path,
+                entry.get("result_json"),
+                f"entries[{index}].result_json",
+            )
+            if source in bindings:
+                _formal_fail(
+                    f"raw readiness result is covered by multiple campaign entries: {source}"
+                )
+            if source not in provenance.records_by_source:
+                _formal_fail(
+                    f"{manifest_path}: result has no validated provenance record: {source}"
+                )
+            config_sha = _formal_sha256(
+                entry.get("system_resolved_config_sha256"),
+                f"{manifest_path}:entries[{index}].system_resolved_config_sha256",
+            )
+            if _formal_sha256(
+                entry.get("non_feature_frozen_config_sha256"),
+                f"{manifest_path}:entries[{index}].non_feature_frozen_config_sha256",
+            ) != non_feature_hash:
+                _formal_fail(
+                    f"{manifest_path}:entries[{index}] non-feature config hash mismatch"
+                )
+            result = _read_json(source)
+            metadata = result.get("metadata")
+            if not isinstance(metadata, dict):
+                _formal_fail(f"{source}: metadata must be an object")
+            if metadata.get("formal_run") is not True:
+                _formal_fail(f"{source}: metadata.formal_run must be true")
+            if str(metadata.get("trace_role") or "").strip().lower() != "heldout":
+                _formal_fail(f"{source}: metadata.trace_role must be 'heldout'")
+            for field in ("sampling_seed", "workload_seed", "generation_seed"):
+                if _formal_int(metadata.get(field), f"{source}:metadata.{field}") != FORMAL_READINESS_SEED:
+                    _formal_fail(
+                        f"{source}: metadata.{field} must be {FORMAL_READINESS_SEED}"
+                    )
+            if _formal_int(
+                metadata.get("total_requests"), f"{source}:metadata.total_requests"
+            ) != FORMAL_READINESS_REQUESTS:
+                _formal_fail(
+                    f"{source}: metadata.total_requests must be {FORMAL_READINESS_REQUESTS}"
+                )
+            if _formal_int(
+                metadata.get("num_adapters"), f"{source}:metadata.num_adapters"
+            ) != FORMAL_READINESS_ADAPTERS:
+                _formal_fail(
+                    f"{source}: metadata.num_adapters must be {FORMAL_READINESS_ADAPTERS}"
+                )
+            if str(metadata.get("generation_contract") or "").strip().lower() != FORMAL_READINESS_GENERATION_CONTRACT:
+                _formal_fail(
+                    f"{source}: metadata.generation_contract must be "
+                    f"{FORMAL_READINESS_GENERATION_CONTRACT!r}"
+                )
+            if not math.isclose(
+                _formal_float(metadata.get("bandwidth_mib_s"), f"{source}:metadata.bandwidth_mib_s"),
+                FORMAL_READINESS_BANDWIDTH_MIB_S,
+                rel_tol=0.0,
+                abs_tol=1e-9,
+            ):
+                _formal_fail(
+                    f"{source}: metadata.bandwidth_mib_s must be "
+                    f"{FORMAL_READINESS_BANDWIDTH_MIB_S:g}"
+                )
+            selection = metadata.get("profile_selection")
+            if not isinstance(selection, dict):
+                _formal_fail(f"{source}: metadata.profile_selection must be an object")
+            for field, expected in (
+                ("model", model_profile),
+                ("dataset", FORMAL_READINESS_DATASET_PROFILE),
+                ("workload", expected_workload),
+            ):
+                if selection.get(field) != expected:
+                    _formal_fail(
+                        f"{source}: metadata.profile_selection.{field}="
+                        f"{selection.get(field)!r}, expected {expected!r}"
+                    )
+            if _formal_sha256(
+                metadata.get("shared_trace_sha256"),
+                f"{source}:metadata.shared_trace_sha256",
+            ) != trace_sha:
+                _formal_fail(f"{source}: result/manifest shared trace SHA mismatch")
+            if _formal_sha256(
+                metadata.get("shared_adapter_subset_sha256"),
+                f"{source}:metadata.shared_adapter_subset_sha256",
+            ) != subset_sha:
+                _formal_fail(f"{source}: result/manifest adapter subset SHA mismatch")
+            if _formal_sha256(
+                metadata.get("system_resolved_config_sha256"),
+                f"{source}:metadata.system_resolved_config_sha256",
+            ) != config_sha:
+                _formal_fail(f"{source}: result/manifest system config SHA mismatch")
+            if _formal_sha256(
+                metadata.get("non_feature_frozen_config_sha256"),
+                f"{source}:metadata.non_feature_frozen_config_sha256",
+            ) != non_feature_hash:
+                _formal_fail(f"{source}: result/manifest non-feature config SHA mismatch")
+            detailed = result.get("detailed_results")
+            if not isinstance(detailed, dict) or sorted(detailed) != [scenario_name]:
+                _formal_fail(
+                    f"{source}: detailed_results must contain exactly {scenario_name!r}"
+                )
+            coordination = metadata.get("scenario_coordination")
+            coordination = coordination.get(scenario_name) if isinstance(coordination, dict) else None
+            if not isinstance(coordination, dict):
+                _formal_fail(
+                    f"{source}: metadata.scenario_coordination.{scenario_name} is missing"
+                )
+            if coordination.get("cold_cache_reset_before_run") is not True:
+                _formal_fail(f"{source}: cold_cache_reset_before_run must be true")
+            gates = coordination.get("feature_gates")
+            if not isinstance(gates, dict):
+                _formal_fail(f"{source}: feature_gates must be an object")
+            observed_gates = (
+                as_bool(gates.get("readiness_routing_enabled")),
+                as_bool(gates.get("scale_up_handoff_enabled")),
+                as_bool(gates.get("hierarchical_residency_enabled")),
+                as_bool(gates.get("coordination_enabled")),
+                as_bool(gates.get("effective_capacity_admission_enabled")),
+            )
+            if observed_gates != FORMAL_READINESS_FEATURE_GATES[scenario_name]:
+                _formal_fail(
+                    f"{source}: feature-gate tuple {observed_gates!r} does not match "
+                    f"{scenario_name}"
+                )
+            bindings[source] = {
+                "manifest": manifest_path,
+                "model": model,
+                "model_profile": model_profile,
+                "scenario": scenario_name,
+                "seed": FORMAL_READINESS_SEED,
+                "trace_sha256": trace_sha,
+                "subset_sha256": subset_sha,
+                "system_resolved_config_sha256": config_sha,
+                "trace_path": trace_path,
+                "subset_path": subset_path,
+            }
+
+        manifest_reports.append(
+            {
+                "manifest": str(manifest_path),
+                "model": model,
+                "model_profile": model_profile,
+                "seed": FORMAL_READINESS_SEED,
+                "requests": FORMAL_READINESS_REQUESTS,
+                "scenarios": list(scenario_names),
+                "shared_trace_sha256": trace_sha,
+                "shared_adapter_subset_sha256": subset_sha,
+                "seed41_validation_evidence": str(evidence_path),
+                "source_commit": current_commit,
+            }
+        )
+
+    for model in ("llama2_7b", "llama32_3b"):
+        if trace_hashes_by_model[model] and len(trace_hashes_by_model[model]) != 1:
+            _formal_fail(
+                f"model={model}: cold runs/variants do not share one trace SHA: "
+                f"{sorted(trace_hashes_by_model[model])}"
+            )
+        if subset_hashes_by_model[model] and len(subset_hashes_by_model[model]) != 1:
+            _formal_fail(
+                f"model={model}: cold runs/variants do not share one adapter subset SHA: "
+                f"{sorted(subset_hashes_by_model[model])}"
+            )
+
+    scenarios = _load_scenarios_from_sources(
+        list(bindings), require_dispatch_tier=True, include_empty=True
+    )
+    by_source: Dict[Path, List[ScenarioRecords]] = defaultdict(list)
+    for scenario in scenarios:
+        by_source[scenario.source.resolve()].append(scenario)
+    identities: List[FormalAnalysisIdentity] = []
+    groups: DefaultDict[Tuple[str, str], List[ScenarioRecords]] = defaultdict(list)
+    normalized: List[ScenarioRecords] = []
+    for source, binding in sorted(bindings.items(), key=lambda item: str(item[0])):
+        loaded = by_source.get(source, [])
+        if len(loaded) != 1 or loaded[0].name != binding["scenario"]:
+            _formal_fail(
+                f"{source}: expected exactly one loaded scenario {binding['scenario']!r}, "
+                f"observed {[item.name for item in loaded]!r}"
+            )
+        scenario = loaded[0]
+        scenario.model = str(binding["model"])
+        normalized.append(scenario)
+        key = (scenario.model, scenario.name)
+        groups[key].append(scenario)
+        identities.append(
+            FormalAnalysisIdentity(
+                source=source,
+                model=scenario.model,
+                variant=scenario.name,
+                seed=FORMAL_READINESS_SEED,
+            )
+        )
+
+    expected_groups = {
+        (str(spec["model"]), str(scenario))
+        for spec in FORMAL_READINESS_MODELS.values()
+        for scenario in spec["scenarios"]
+    }
+    actual_groups = set(groups)
+    if actual_groups != expected_groups:
+        _formal_fail(
+            "readiness matrix mismatch; "
+            f"missing={sorted(expected_groups - actual_groups)}, "
+            f"unexpected={sorted(actual_groups - expected_groups)}"
+        )
+    for key, runs in sorted(groups.items()):
+        if not 1 <= len(runs) <= DIAGNOSTIC_MAX_COLD_RUNS:
+            _formal_fail(
+                f"model={key[0]},variant={key[1]} has {len(runs)} cold runs; "
+                f"expected one or at most {DIAGNOSTIC_MAX_COLD_RUNS}"
+            )
+
+    validate_formal_analysis_sources(
+        provenance,
+        identities,
+        analysis_label="V2 dispatch-time readiness",
+    )
+    normalized.sort(
+        key=lambda item: (
+            item.model,
+            SCENARIO_ORDER.index(item.name)
+            if item.name in SCENARIO_ORDER
+            else len(SCENARIO_ORDER),
+            item.run_tag,
+        )
+    )
+    report = {
+        "analysis": "eurosys27_v2_formal_dispatch_readiness_protocol",
+        "gate_version": "eurosys27_v2_readiness_formal_v1",
+        "passed": True,
+        "source_repo": str(repo_path),
+        "source_commit": current_commit,
+        "formal_seed": FORMAL_READINESS_SEED,
+        "requests_per_run": FORMAL_READINESS_REQUESTS,
+        "max_cold_runs_per_model_variant": DIAGNOSTIC_MAX_COLD_RUNS,
+        "required_matrix": [
+            {"model": model, "scenario": scenario}
+            for model, scenario in sorted(expected_groups)
+        ],
+        "observed_run_counts": [
+            {"model": model, "scenario": scenario, "run_count": len(groups[(model, scenario)])}
+            for model, scenario in sorted(expected_groups)
+        ],
+        "manifests": manifest_reports,
+        "seed41_validation_evidence": sorted(set(evidence_paths)),
+    }
+    return normalized, provenance, report
 
 
 def _strict_dispatch_errors(
@@ -622,6 +1282,16 @@ def aggregate_scenarios(scenarios: Sequence[ScenarioRecords]) -> List[ScenarioRe
                 ),
             )
         )
+    scenario_rank = {name: index for index, name in enumerate(SCENARIO_ORDER)}
+    model_rank = {"llama2_7b": 0, "llama32_3b": 1}
+    aggregated.sort(
+        key=lambda item: (
+            model_rank.get(item.model, len(model_rank)),
+            item.model,
+            scenario_rank.get(item.name, len(scenario_rank)),
+            item.name,
+        )
+    )
     return aggregated
 
 
@@ -802,6 +1472,15 @@ def validate_diagnostic_evidence(
             group_errors.extend(run_errors)
 
         first_service_total = sum(int(row["first_service_n"]) for row in run_reports)
+        if (
+            len(run_reports) > 1
+            and int(run_reports[0]["first_service_n"]) >= min_first_service
+        ):
+            group_errors.append(
+                f"{group_prefix}: a second cold run was supplied even though the "
+                f"first run already had {run_reports[0]['first_service_n']} first-service "
+                f"samples (threshold={min_first_service})"
+            )
         group_shortfall = first_service_total < min_first_service
         if group_shortfall:
             sample_shortfalls.append(
@@ -1380,7 +2059,24 @@ def plot_mechanism_matrix(out_path: Path, summary_rows: Sequence[Dict[str, Any]]
 
 
 def plot_full_cdf(out_path: Path, scenarios: Sequence[ScenarioRecords]) -> bool:
-    full = next((scenario for scenario in scenarios if scenario.name == "faaslora_full"), None)
+    full = next(
+        (
+            scenario
+            for scenario in scenarios
+            if scenario.name in {"v2_full", "faaslora_full"}
+            and scenario.model == "llama2_7b"
+        ),
+        None,
+    )
+    if full is None:
+        full = next(
+            (
+                scenario
+                for scenario in scenarios
+                if scenario.name in {"v2_full", "faaslora_full"}
+            ),
+            None,
+        )
     if full is None:
         return False
     fig, ax = plt.subplots(figsize=(3.45, 2.55))
@@ -1418,6 +2114,7 @@ def write_manifest(
     require_dispatch_tier: bool,
     aggregate_runs: bool,
     diagnostic_gate: Dict[str, Any] | None = None,
+    formal_campaign: Dict[str, Any] | None = None,
 ) -> None:
     all_dispatch = all(s.all_records_have_dispatch_tier for s in scenarios)
     no_dispatch = all(not s.used_dispatch_before_tier for s in scenarios)
@@ -1466,6 +2163,17 @@ def write_manifest(
             if diagnostic_gate is not None
             else {"enabled": False}
         ),
+        "formal_campaign_gate": (
+            {
+                "enabled": True,
+                "report": "readiness_formal_v2_gate.json",
+                "gate_version": formal_campaign.get("gate_version"),
+                "passed": formal_campaign.get("passed"),
+                "source_commit": formal_campaign.get("source_commit"),
+            }
+            if formal_campaign is not None
+            else {"enabled": False}
+        ),
         "run_level_aggregation": {
             "csv": "service_readiness_across_runs.csv",
             "unit": "independent (model, scenario, run_tag) result",
@@ -1487,6 +2195,8 @@ def write_manifest(
 
 def _prepare_output_dir(out_dir: Path) -> None:
     """Create a fresh analysis directory; never overwrite an earlier campaign."""
+    if out_dir.exists() and not out_dir.is_dir():
+        raise SystemExit(f"output path exists and is not a directory: {out_dir}")
     if out_dir.exists() and any(out_dir.iterdir()):
         raise SystemExit(
             f"refusing to overwrite non-empty output directory: {out_dir}; "
@@ -1495,7 +2205,20 @@ def _prepare_output_dir(out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
 
-def _publish_figures(out_dir: Path, publish_dir: Path, generated: Sequence[str]) -> None:
+def _publish_figures(
+    out_dir: Path,
+    publish_dir: Path,
+    generated: Sequence[str],
+    *,
+    require_fresh: bool = False,
+) -> None:
+    if publish_dir.exists() and not publish_dir.is_dir():
+        raise SystemExit(f"publish path exists and is not a directory: {publish_dir}")
+    if require_fresh and publish_dir.exists() and any(publish_dir.iterdir()):
+        raise SystemExit(
+            f"refusing to publish formal readiness figures into non-empty directory: "
+            f"{publish_dir}"
+        )
     publish_dir.mkdir(parents=True, exist_ok=True)
     collisions = [name for name in generated if (publish_dir / name).exists()]
     if collisions:
@@ -1511,7 +2234,16 @@ def _publish_figures(out_dir: Path, publish_dir: Path, generated: Sequence[str])
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True, type=Path, help="FaaSLoRA result file or completed round directory")
+    parser.add_argument(
+        "--input",
+        required=True,
+        action="append",
+        type=Path,
+        help=(
+            "FaaSLoRA result/campaign path. Repeat for multiple formal cold-run "
+            "campaigns; loose result JSON is forbidden with --formal-v2."
+        ),
+    )
     parser.add_argument("--output", required=True, type=Path, help="Output directory")
     parser.add_argument(
         "--require-dispatch-tier",
@@ -1542,24 +2274,72 @@ def main() -> None:
     parser.add_argument(
         "--publish-dir",
         type=Path,
-        help="Explicit optional figure publication directory; omitted means no copying.",
+        help=(
+            "Explicit figure publication directory. Optional for exploratory analysis; "
+            "required and required to be fresh/empty with --formal-v2."
+        ),
+    )
+    parser.add_argument(
+        "--formal-v2",
+        action="store_true",
+        help=(
+            "Fail-closed EuroSys'27 V2 dispatch-readiness mode. Inputs must be "
+            "completed formal campaign manifests and exactly cover 7B "
+            "ElasticOnly/+Hierarchy/Full plus 3B Full at held-out seed 43. This "
+            "mode implies dispatch, diagnostic, and multi-run aggregation gates."
+        ),
     )
     args = parser.parse_args()
 
     configure_matplotlib()
     out_dir = args.output.resolve()
-    _prepare_output_dir(out_dir)
+    input_paths = [path.resolve() for path in args.input]
+    if not args.formal_v2 and len(input_paths) != 1:
+        parser.error("repeat --input only with --formal-v2; use one common root otherwise")
+    publish_dir = args.publish_dir.resolve() if args.publish_dir is not None else None
+    if args.formal_v2:
+        if publish_dir is None:
+            parser.error("--formal-v2 requires an explicit fresh --publish-dir")
+        if publish_dir == out_dir:
+            parser.error("--output and --publish-dir must be different directories")
+        if publish_dir.exists() and not publish_dir.is_dir():
+            raise SystemExit(f"publish path exists and is not a directory: {publish_dir}")
+        if publish_dir.exists() and any(publish_dir.iterdir()):
+            raise SystemExit(
+                "refusing to use non-empty formal readiness publish directory: "
+                f"{publish_dir}"
+            )
+
+    formal_campaign: Dict[str, Any] | None = None
+    if args.formal_v2:
+        input_scenarios, _provenance, formal_campaign = (
+            load_formal_v2_readiness_campaign(input_paths)
+        )
+        effective_require_dispatch = True
+        effective_diagnostic = True
+        effective_aggregate = True
+        _prepare_output_dir(out_dir)
+        (out_dir / "readiness_formal_v2_gate.json").write_text(
+            json.dumps(formal_campaign, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+    else:
+        effective_require_dispatch = args.require_dispatch_tier
+        effective_diagnostic = args.diagnostic_gates
+        effective_aggregate = args.aggregate_runs
+        _prepare_output_dir(out_dir)
+        input_scenarios = load_scenarios(
+            input_paths[0],
+            require_dispatch_tier=(
+                effective_require_dispatch and not effective_diagnostic
+            ),
+            include_empty=effective_diagnostic,
+        )
     table_dir = out_dir / "tables"
 
-    input_scenarios = load_scenarios(
-        args.input.resolve(),
-        require_dispatch_tier=args.require_dispatch_tier and not args.diagnostic_gates,
-        include_empty=args.diagnostic_gates,
-    )
     diagnostic_gate: Dict[str, Any] | None = None
-    if args.diagnostic_gates:
+    if effective_diagnostic:
         diagnostic_gate = validate_diagnostic_evidence(
-            input_scenarios, aggregate_runs=args.aggregate_runs
+            input_scenarios, aggregate_runs=effective_aggregate
         )
         diagnostic_path = out_dir / "readiness_diagnostic_gate.json"
         diagnostic_path.write_text(
@@ -1573,7 +2353,11 @@ def main() -> None:
             )
     per_run_summary_rows = build_summary(input_scenarios)
     across_run_rows = build_across_run_summary(per_run_summary_rows)
-    scenarios = aggregate_scenarios(input_scenarios) if args.aggregate_runs else input_scenarios
+    scenarios = (
+        aggregate_scenarios(input_scenarios)
+        if effective_aggregate
+        else input_scenarios
+    )
     summary_rows = build_summary(scenarios)
     tier_rows = build_by_tier(scenarios)
     scaleout_rows = build_scaleout(scenarios)
@@ -1634,13 +2418,19 @@ def main() -> None:
         input_scenarios,
         generated,
         skipped,
-        require_dispatch_tier=args.require_dispatch_tier or args.diagnostic_gates,
-        aggregate_runs=args.aggregate_runs,
+        require_dispatch_tier=effective_require_dispatch or effective_diagnostic,
+        aggregate_runs=effective_aggregate,
         diagnostic_gate=diagnostic_gate,
+        formal_campaign=formal_campaign,
     )
 
-    if args.publish_dir is not None:
-        _publish_figures(out_dir, args.publish_dir.resolve(), generated)
+    if publish_dir is not None:
+        _publish_figures(
+            out_dir,
+            publish_dir,
+            generated,
+            require_fresh=args.formal_v2,
+        )
 
     print("Service-readiness summary")
     for row in summary_rows:
