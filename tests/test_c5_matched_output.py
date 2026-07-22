@@ -105,6 +105,7 @@ def _write_result(
         "shared_trace_sha256": TRACE_SHA,
         "shared_adapter_subset_sha256": SUBSET_SHA,
         "model_profile": model_profile,
+        "sampling_seed": seed,
     }
     if system == "prime":
         metadata.update({"generation_contract": c5.CONTRACT, "generation_seed": seed})
@@ -157,6 +158,8 @@ def _write_formal_round(root: Path, *, model: str, seed: int) -> tuple[Path, lis
     _write_result(slora_path, system="slora", seed=seed, expected_requests=1, model=model)
 
     config_sha = _digest(f"formal-config-{model}")
+    family_id = _digest(f"formal-family-{model}")
+    source_commits = {"baselines": "c" * 40, "faaslora": "d" * 40}
     execution_order = _formal_order(model, seed)
     model_profile = (
         "llama32_3b_main_modelscope"
@@ -189,10 +192,121 @@ def _write_formal_round(root: Path, *, model: str, seed: int) -> tuple[Path, lis
                 "formal_run": True,
                 "trace_role": "heldout",
                 "sampling_seed": seed,
+                "campaign_kind": c5.FORMAL_CAMPAIGN_KIND,
                 "model_profile": model_profile,
+                "configuration_family_id": family_id,
                 "system_resolved_config_sha256": config_sha,
                 "full_run_identity": full_identity,
                 "full_run_identity_sha256": full_identity_sha,
+                "source_commits": source_commits,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    # Keep the referenced seed-41 manifest outside the held-out round tree;
+    # formal provenance discovery intentionally treats every nested
+    # MANIFEST.json as a campaign input.
+    validation_dir = root / "_seed41_validation_fixtures" / f"{model}-for-seed{seed}"
+    validation_dir.mkdir(parents=True)
+    validation_trace = validation_dir / "trace.json"
+    validation_subset = validation_dir / "adapter_subset.json"
+    validation_trace.write_text('{"seed":41,"kind":"trace"}', encoding="utf-8")
+    validation_subset.write_text('{"seed":41,"kind":"subset"}', encoding="utf-8")
+    validation_order = (
+        ["slora", "faaslora"]
+        if model == "llama2_7b"
+        else ["faaslora", "slora"]
+    )
+    validation_identity = {
+        "total_requests": 1000,
+        "execution_order": validation_order,
+        "trace_sha256": c5._sha256_file(validation_trace),
+        "adapter_subset_sha256": c5._sha256_file(validation_subset),
+    }
+    validation_sidecar = validation_dir / "system_resolved_config.json"
+    validation_sidecar.write_text(
+        json.dumps(
+            {
+                "formal_run": True,
+                "source_clean_for_formal": True,
+                "trace_role": "validation",
+                "sampling_seed": 41,
+                "campaign_kind": c5.FORMAL_CAMPAIGN_KIND,
+                "model_profile": model_profile,
+                "configuration_family_id": family_id,
+                "system_resolved_config_sha256": config_sha,
+                "full_run_identity": validation_identity,
+                "source_commits": source_commits,
+            }
+        ),
+        encoding="utf-8",
+    )
+    validation_manifest = validation_dir / "MANIFEST.json"
+    validation_manifest.write_text(
+        json.dumps(
+            {
+                "status": "complete",
+                "formal_run": True,
+                "source_clean_for_formal": True,
+                "trace_role": "validation",
+                "sampling_seed": 41,
+                "campaign_kind": c5.FORMAL_CAMPAIGN_KIND,
+                "model_profile": model_profile,
+                "system_resolved_config_family_id": family_id,
+                "system_resolved_config_sha256": config_sha,
+                "systems": ["slora", "faaslora"],
+                "execution_order": validation_order,
+                "shared_trace_path": str(validation_trace),
+                "shared_trace_sha256": c5._sha256_file(validation_trace),
+                "shared_adapter_subset_path": str(validation_subset),
+                "shared_adapter_subset_sha256": c5._sha256_file(validation_subset),
+                "system_resolved_config_path": str(validation_sidecar),
+                "system_resolved_config_sidecar_sha256": c5._sha256_file(
+                    validation_sidecar
+                ),
+                "system_resolved_config_sidecar_bytes": validation_sidecar.stat().st_size,
+                "baseline_git": {"commit": source_commits["baselines"]},
+                "faaslora_git": {"commit": source_commits["faaslora"]},
+            }
+        ),
+        encoding="utf-8",
+    )
+    evidence = round_dir / "protocol" / "seed41_validation_evidence.json"
+    evidence.write_text(
+        json.dumps(
+            {
+                "schema_version": c5.SEED41_EVIDENCE_SCHEMA,
+                "heldout": {
+                    "sampling_seed": seed,
+                    "campaign_kind": c5.FORMAL_CAMPAIGN_KIND,
+                    "model_profile": model_profile,
+                    "configuration_family_id": family_id,
+                    "system_resolved_config_sha256": config_sha,
+                    "full_run_identity_sha256": full_identity_sha,
+                    "source_commits": source_commits,
+                },
+                "seed41_validation": {
+                    "sampling_seed": 41,
+                    "total_requests": 1000,
+                    "sidecar_path": str(validation_sidecar),
+                    "sidecar_bytes": validation_sidecar.stat().st_size,
+                    "sidecar_sha256": c5._sha256_file(validation_sidecar),
+                    "manifest_path": str(validation_manifest),
+                    "manifest_bytes": validation_manifest.stat().st_size,
+                    "manifest_sha256": c5._sha256_file(validation_manifest),
+                    "campaign_kind": c5.FORMAL_CAMPAIGN_KIND,
+                    "model_profile": model_profile,
+                    "configuration_family_id": family_id,
+                    "system_resolved_config_sha256": config_sha,
+                    "systems": ["slora", "faaslora"],
+                    "execution_order": validation_order,
+                    "source_commits": source_commits,
+                    "shared_trace_path": str(validation_trace),
+                    "shared_trace_sha256": c5._sha256_file(validation_trace),
+                    "shared_adapter_subset_path": str(validation_subset),
+                    "shared_adapter_subset_sha256": c5._sha256_file(validation_subset),
+                },
             }
         ),
         encoding="utf-8",
@@ -206,8 +320,9 @@ def _write_formal_round(root: Path, *, model: str, seed: int) -> tuple[Path, lis
         "formal_run": True,
         "trace_role": "heldout",
         "source_clean_for_formal": True,
-        "baseline_git": {"commit": "baseline-commit"},
-        "faaslora_git": {"commit": "faaslora-commit"},
+        "campaign_kind": c5.FORMAL_CAMPAIGN_KIND,
+        "baseline_git": {"commit": source_commits["baselines"]},
+        "faaslora_git": {"commit": source_commits["faaslora"]},
         "model_profile": model_profile,
         "sampling_seed": seed,
         "total_requests": c5.FORMAL_REQUESTS,
@@ -227,6 +342,9 @@ def _write_formal_round(root: Path, *, model: str, seed: int) -> tuple[Path, lis
         "system_resolved_config_path": str(sidecar),
         "system_resolved_config_sidecar_sha256": c5._sha256_file(sidecar),
         "system_resolved_config_sidecar_bytes": sidecar.stat().st_size,
+        "seed41_validation_evidence_path": str(evidence),
+        "seed41_validation_evidence_sha256": c5._sha256_file(evidence),
+        "seed41_validation_evidence_bytes": evidence.stat().st_size,
         "source_files": {
             str(prime_path.relative_to(round_dir)): record(prime_path),
             str(slora_path.relative_to(round_dir)): record(slora_path),
@@ -613,6 +731,71 @@ class C5MatchedOutputTests(unittest.TestCase):
                     c5.analyze(
                         specs,
                         output_dir=root / "bad-scenario-out",
+                        formal_mode=True,
+                        provenance_inputs=round_dirs,
+                    )
+
+    def test_formal_mode_rejects_campaign_and_seed41_evidence_tampering(self) -> None:
+        def build_matrix(root: Path) -> tuple[list[Path], list[c5.RunSpec]]:
+            round_dirs: list[Path] = []
+            specs: list[c5.RunSpec] = []
+            for model in c5.FORMAL_MODELS:
+                for seed in c5.FORMAL_SEEDS:
+                    round_dir, round_specs = _write_formal_round(
+                        root, model=model, seed=seed
+                    )
+                    round_dirs.append(round_dir)
+                    specs.extend(round_specs)
+            return round_dirs, specs
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            round_dirs, specs = build_matrix(root / "wrong-campaign")
+            manifest_path = round_dirs[0] / "MANIFEST.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["campaign_kind"] = "v2_full_vs_serverless"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            with mock.patch.object(c5, "validate_run", side_effect=_fake_formal_run):
+                with self.assertRaisesRegex(c5.ValidationError, "campaign_kind"):
+                    c5.analyze(
+                        specs,
+                        output_dir=root / "wrong-campaign-out",
+                        formal_mode=True,
+                        provenance_inputs=round_dirs,
+                    )
+
+            round_dirs, specs = build_matrix(root / "missing-evidence")
+            manifest_path = round_dirs[0] / "MANIFEST.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest.pop("seed41_validation_evidence_path")
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            with mock.patch.object(c5, "validate_run", side_effect=_fake_formal_run):
+                with self.assertRaisesRegex(c5.ValidationError, "seed41 validation evidence"):
+                    c5.analyze(
+                        specs,
+                        output_dir=root / "missing-evidence-out",
+                        formal_mode=True,
+                        provenance_inputs=round_dirs,
+                    )
+
+            round_dirs, specs = build_matrix(root / "damaged-seed41-artifact")
+            manifest = json.loads(
+                (round_dirs[0] / "MANIFEST.json").read_text(encoding="utf-8")
+            )
+            evidence = json.loads(
+                Path(manifest["seed41_validation_evidence_path"]).read_text(
+                    encoding="utf-8"
+                )
+            )
+            trace_path = Path(
+                evidence["seed41_validation"]["shared_trace_path"]
+            )
+            trace_path.write_text("tampered", encoding="utf-8")
+            with mock.patch.object(c5, "validate_run", side_effect=_fake_formal_run):
+                with self.assertRaisesRegex(c5.ValidationError, "bytes/SHA mismatch"):
+                    c5.analyze(
+                        specs,
+                        output_dir=root / "damaged-seed41-out",
                         formal_mode=True,
                         provenance_inputs=round_dirs,
                     )

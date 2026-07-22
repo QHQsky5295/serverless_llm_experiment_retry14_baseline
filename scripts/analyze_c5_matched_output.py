@@ -71,6 +71,8 @@ FORMAL_REQUESTS = 4000
 FORMAL_ADAPTERS = 500
 FORMAL_BANDWIDTH_MIB_S = 250.0
 FORMAL_TIME_SCALE = 8.0
+FORMAL_CAMPAIGN_KIND = "v2_c5_matched_output"
+SEED41_EVIDENCE_SCHEMA = "eurosys27_v2_seed41_validation_evidence_v1"
 FORMAL_WORKLOAD_AXES = {
     "zipf_exponent": 1.0,
     "active_adapter_cap": 48,
@@ -366,15 +368,23 @@ def _declared_contract(payload: Mapping[str, Any], requests: Sequence[Mapping[st
 
 def _declared_seed(payload: Mapping[str, Any]) -> int | None:
     metadata = payload.get("metadata") if isinstance(payload.get("metadata"), Mapping) else {}
-    candidates = (
-        payload.get("generation_seed"),
-        metadata.get("generation_seed"),
-        metadata.get("sampling_seed"),
-    )
-    for value in candidates:
-        if value not in (None, ""):
-            return _integer(value, "declared generation/sampling seed")
-    return None
+    candidates = {
+        "payload.generation_seed": payload.get("generation_seed"),
+        "metadata.generation_seed": metadata.get("generation_seed"),
+        "metadata.sampling_seed": metadata.get("sampling_seed"),
+        "metadata.workload_seed": metadata.get("workload_seed"),
+    }
+    declared = {
+        label: _integer(value, f"declared seed {label}")
+        for label, value in candidates.items()
+        if value not in (None, "")
+    }
+    if not declared:
+        return None
+    unique = set(declared.values())
+    if len(unique) != 1:
+        raise ValidationError(f"conflicting declared seeds: {declared}")
+    return next(iter(unique))
 
 
 def _canonical_model_identity(value: Any) -> str:
@@ -739,6 +749,17 @@ def validate_run(
         raise ValidationError(
             f"{source}: declared seed={declared_seed}, RunSpec seed={spec.seed}"
         )
+    if formal_mode:
+        metadata = payload.get("metadata")
+        if not isinstance(metadata, Mapping):
+            raise ValidationError(f"{source}: formal result metadata must be an object")
+        sampling_seed = _integer(
+            metadata.get("sampling_seed"), f"{source} metadata.sampling_seed"
+        )
+        if sampling_seed != int(spec.seed):
+            raise ValidationError(
+                f"{source}: metadata.sampling_seed={sampling_seed}, RunSpec seed={spec.seed}"
+            )
     declared_model = _declared_model(payload)
     expected_model = _canonical_model_identity(spec.model)
     if not declared_model:
@@ -965,6 +986,223 @@ def _resolve_manifest_sidecar(manifest_path: Path, manifest: Mapping[str, Any]) 
     return sidecar
 
 
+def _resolve_seed41_evidence(
+    manifest_path: Path,
+    manifest: Mapping[str, Any],
+    sidecar: Mapping[str, Any],
+    *,
+    model: str,
+    heldout_seed: int,
+) -> Path:
+    """Validate immutable seed-41 bytes referenced by a held-out C5 round."""
+
+    raw_path = str(manifest.get("seed41_validation_evidence_path") or "").strip()
+    if not raw_path:
+        raise ValidationError(
+            f"{manifest_path}: formal C5 manifest lacks seed41 validation evidence"
+        )
+    evidence_path = Path(raw_path).expanduser()
+    if not evidence_path.is_absolute():
+        evidence_path = manifest_path.parent / evidence_path
+    evidence_path = evidence_path.resolve()
+    expected_path = (
+        manifest_path.parent / "protocol" / "seed41_validation_evidence.json"
+    ).resolve()
+    if evidence_path != expected_path or not evidence_path.is_file():
+        raise ValidationError(
+            f"{manifest_path}: seed41 validation evidence must be {expected_path}"
+        )
+    expected_sha = str(manifest.get("seed41_validation_evidence_sha256") or "")
+    expected_bytes = _integer(
+        manifest.get("seed41_validation_evidence_bytes"),
+        f"{manifest_path} seed41_validation_evidence_bytes",
+    )
+    if (
+        not _is_sha256(expected_sha)
+        or _sha256_file(evidence_path) != expected_sha
+        or evidence_path.stat().st_size != expected_bytes
+    ):
+        raise ValidationError(
+            f"{manifest_path}: seed41 validation evidence bytes/SHA mismatch"
+        )
+
+    evidence = _read_json(evidence_path)
+    if evidence.get("schema_version") != SEED41_EVIDENCE_SCHEMA:
+        raise ValidationError(f"{evidence_path}: unsupported seed41 evidence schema")
+    heldout = evidence.get("heldout")
+    validation = evidence.get("seed41_validation")
+    if not isinstance(heldout, Mapping) or not isinstance(validation, Mapping):
+        raise ValidationError(f"{evidence_path}: heldout/seed41_validation must be objects")
+
+    model_profile = str(sidecar.get("model_profile") or "")
+    family_id = str(sidecar.get("configuration_family_id") or "")
+    config_sha = str(sidecar.get("system_resolved_config_sha256") or "")
+    full_identity_sha = str(sidecar.get("full_run_identity_sha256") or "")
+    source_commits = sidecar.get("source_commits")
+    if not isinstance(source_commits, Mapping):
+        raise ValidationError(f"{evidence_path}: held-out sidecar lacks source_commits")
+    heldout_expectations = {
+        "sampling_seed": heldout_seed,
+        "campaign_kind": FORMAL_CAMPAIGN_KIND,
+        "model_profile": model_profile,
+        "configuration_family_id": family_id,
+        "system_resolved_config_sha256": config_sha,
+        "full_run_identity_sha256": full_identity_sha,
+        "source_commits": dict(source_commits),
+    }
+    for key, expected in heldout_expectations.items():
+        if heldout.get(key) != expected:
+            raise ValidationError(
+                f"{evidence_path}: heldout.{key} differs from held-out sidecar"
+            )
+
+    expected_validation_order = (
+        ["slora", "faaslora"]
+        if model == "llama2_7b"
+        else ["faaslora", "slora"]
+    )
+    validation_expectations = {
+        "sampling_seed": 41,
+        "total_requests": 1000,
+        "campaign_kind": FORMAL_CAMPAIGN_KIND,
+        "model_profile": model_profile,
+        "configuration_family_id": family_id,
+        "system_resolved_config_sha256": config_sha,
+        "systems": ["slora", "faaslora"],
+        "execution_order": expected_validation_order,
+        "source_commits": dict(source_commits),
+    }
+    for key, expected in validation_expectations.items():
+        observed = validation.get(key)
+        if key == "systems":
+            if set(str(item) for item in (observed or [])) != set(expected):
+                raise ValidationError(f"{evidence_path}: seed41_validation.systems mismatch")
+        elif observed != expected:
+            raise ValidationError(
+                f"{evidence_path}: seed41_validation.{key} mismatch"
+            )
+
+    validation_sidecar_path = Path(
+        str(validation.get("sidecar_path") or "")
+    ).expanduser().resolve()
+    validation_manifest_path = Path(
+        str(validation.get("manifest_path") or "")
+    ).expanduser().resolve()
+    for path, prefix in (
+        (validation_sidecar_path, "sidecar"),
+        (validation_manifest_path, "manifest"),
+    ):
+        if not path.is_file():
+            raise ValidationError(f"{evidence_path}: seed41 {prefix} is missing: {path}")
+        recorded_bytes = _integer(
+            validation.get(f"{prefix}_bytes"),
+            f"{evidence_path} seed41_validation.{prefix}_bytes",
+        )
+        recorded_sha = str(validation.get(f"{prefix}_sha256") or "")
+        if (
+            path.stat().st_size != recorded_bytes
+            or not _is_sha256(recorded_sha)
+            or _sha256_file(path) != recorded_sha
+        ):
+            raise ValidationError(
+                f"{evidence_path}: seed41 {prefix} current bytes/SHA mismatch"
+            )
+
+    validation_sidecar = _read_json(validation_sidecar_path)
+    validation_manifest = _read_json(validation_manifest_path)
+    if (
+        validation_sidecar.get("formal_run") is not True
+        or str(validation_sidecar.get("trace_role") or "") != "validation"
+        or _integer(
+            validation_sidecar.get("sampling_seed"),
+            f"{validation_sidecar_path} sampling_seed",
+        )
+        != 41
+    ):
+        raise ValidationError(f"{validation_sidecar_path}: invalid formal seed41 sidecar")
+    validation_identity = validation_sidecar.get("full_run_identity")
+    if (
+        not isinstance(validation_identity, Mapping)
+        or _integer(
+            validation_identity.get("total_requests"),
+            f"{validation_sidecar_path} total_requests",
+        )
+        != 1000
+    ):
+        raise ValidationError(f"{validation_sidecar_path}: invalid seed41 full identity")
+    for key, expected in (
+        ("campaign_kind", FORMAL_CAMPAIGN_KIND),
+        ("model_profile", model_profile),
+        ("configuration_family_id", family_id),
+        ("system_resolved_config_sha256", config_sha),
+        ("source_commits", dict(source_commits)),
+    ):
+        if validation_sidecar.get(key) != expected:
+            raise ValidationError(f"{validation_sidecar_path}: {key} mismatch")
+    if (
+        validation_manifest.get("status") != "complete"
+        or validation_manifest.get("formal_run") is not True
+        or validation_manifest.get("source_clean_for_formal") is not True
+        or str(validation_manifest.get("trace_role") or "") != "validation"
+        or _integer(
+            validation_manifest.get("sampling_seed"),
+            f"{validation_manifest_path} sampling_seed",
+        )
+        != 41
+    ):
+        raise ValidationError(f"{validation_manifest_path}: invalid formal seed41 manifest")
+    for key, expected in (
+        ("campaign_kind", FORMAL_CAMPAIGN_KIND),
+        ("model_profile", model_profile),
+        ("system_resolved_config_family_id", family_id),
+        ("system_resolved_config_sha256", config_sha),
+        ("systems", ["slora", "faaslora"]),
+        ("execution_order", expected_validation_order),
+    ):
+        observed = validation_manifest.get(key)
+        if key == "systems":
+            if set(str(item) for item in (observed or [])) != set(expected):
+                raise ValidationError(f"{validation_manifest_path}: systems mismatch")
+        elif observed != expected:
+            raise ValidationError(f"{validation_manifest_path}: {key} mismatch")
+    if (
+        Path(str(validation_manifest.get("system_resolved_config_path") or "")).resolve()
+        != validation_sidecar_path
+        or str(validation_manifest.get("system_resolved_config_sidecar_sha256") or "")
+        != _sha256_file(validation_sidecar_path)
+        or _integer(
+            validation_manifest.get("system_resolved_config_sidecar_bytes"),
+            f"{validation_manifest_path} system_resolved_config_sidecar_bytes",
+        )
+        != validation_sidecar_path.stat().st_size
+    ):
+        raise ValidationError(
+            f"{validation_manifest_path}: seed41 manifest/sidecar binding mismatch"
+        )
+
+    for path_key, sha_key, manifest_sha_key in (
+        ("shared_trace_path", "shared_trace_sha256", "shared_trace_sha256"),
+        (
+            "shared_adapter_subset_path",
+            "shared_adapter_subset_sha256",
+            "shared_adapter_subset_sha256",
+        ),
+    ):
+        artifact_path = Path(str(validation.get(path_key) or "")).expanduser().resolve()
+        expected_artifact_sha = str(validation.get(sha_key) or "")
+        if (
+            not artifact_path.is_file()
+            or not _is_sha256(expected_artifact_sha)
+            or _sha256_file(artifact_path) != expected_artifact_sha
+            or str(validation_manifest.get(manifest_sha_key) or "")
+            != expected_artifact_sha
+        ):
+            raise ValidationError(
+                f"{evidence_path}: seed41 {path_key} bytes/SHA mismatch"
+            )
+    return evidence_path
+
+
 def _validate_formal_matrix_and_protocol(
     runs: Sequence[ValidatedRun],
     grouped: Mapping[Tuple[str, int], Mapping[str, ValidatedRun]],
@@ -1004,6 +1242,12 @@ def _validate_formal_matrix_and_protocol(
         manifest_path = next(iter(manifest_paths))
         assert manifest_path is not None
         manifest = _read_json(manifest_path)
+
+        if str(manifest.get("campaign_kind") or "") != FORMAL_CAMPAIGN_KIND:
+            raise ValidationError(
+                f"{manifest_path}: formal C5 campaign_kind must be "
+                f"{FORMAL_CAMPAIGN_KIND!r}"
+            )
 
         if set(str(item) for item in (manifest.get("systems") or [])) != {
             "slora",
@@ -1070,6 +1314,8 @@ def _validate_formal_matrix_and_protocol(
             raise ValidationError(
                 f"{sidecar_path}: formal C5 sidecar must declare formal_run=true/trace_role=heldout"
             )
+        if str(sidecar.get("campaign_kind") or "") != FORMAL_CAMPAIGN_KIND:
+            raise ValidationError(f"{sidecar_path}: formal C5 campaign_kind mismatch")
         manifest_config_sha = str(manifest.get("system_resolved_config_sha256") or "")
         if (
             not _is_sha256(manifest_config_sha)
@@ -1130,11 +1376,25 @@ def _validate_formal_matrix_and_protocol(
 
         trace_sha = str(manifest.get("shared_trace_sha256") or "")
         subset_sha = str(manifest.get("shared_adapter_subset_sha256") or "")
+        if (
+            str(identity.get("trace_sha256") or "") != trace_sha
+            or str(identity.get("adapter_subset_sha256") or "") != subset_sha
+        ):
+            raise ValidationError(
+                f"{sidecar_path}: full-run trace/subset SHA differs from manifest"
+            )
         for run in systems.values():
             if run.trace_sha256 != trace_sha or run.adapter_subset_sha256 != subset_sha:
                 raise ValidationError(
                     f"{manifest_path}: result trace/subset SHA differs from fair-round manifest"
                 )
+        _resolve_seed41_evidence(
+            manifest_path,
+            manifest,
+            sidecar,
+            model=model,
+            heldout_seed=seed,
+        )
 
 
 def _per_run_rows(runs: Sequence[ValidatedRun]) -> List[Dict[str, Any]]:
