@@ -3,7 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="${SLLM_BASELINES_ROOT:-/home/qhq/serverless_llm_baselines}"
 REPO_ROOT="${SLLM_REPO_ROOT:-${ROOT_DIR}/repos/ServerlessLLM}"
-CONDA_BASE="${CONDA_BASE:-$(conda info --base)}"
+CONDA_EXE_PATH="${CONDA_EXE:-/home/qhq/anaconda3/bin/conda}"
+CONDA_BASE="${CONDA_BASE:-$("${CONDA_EXE_PATH}" info --base)}"
 HEAD_ENV="${SLLM_HEAD_ENV:-sllm_head_official}"
 WORKER_ENV="${SLLM_WORKER_ENV:-sllm_worker_official}"
 WORKER_ENV_ROOT="${SLLM_WORKER_ENV_ROOT:-${CONDA_BASE}/envs/${WORKER_ENV}}"

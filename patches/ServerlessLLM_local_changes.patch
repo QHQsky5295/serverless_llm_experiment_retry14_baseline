@@ -1,18 +1,37 @@
 diff --git a/sllm/app_lib.py b/sllm/app_lib.py
-index c7dbe79..29d1a53 100644
+index c7dbe79..a689174 100644
 --- a/sllm/app_lib.py
 +++ b/sllm/app_lib.py
-@@ -16,6 +16,9 @@
+@@ -16,6 +16,10 @@
  #  limitations under the license.                                              #
  # ---------------------------------------------------------------------------- #
  from contextlib import asynccontextmanager
++import os
 +import time
 +import traceback
 +import uuid
  
  import ray
  import ray.exceptions
-@@ -52,10 +55,23 @@ def create_app() -> FastAPI:
+@@ -26,6 +30,17 @@ from sllm.logger import init_logger
+ logger = init_logger(__name__)
+ 
+ 
++def _m3_boot_id() -> str:
++    with open("/proc/sys/kernel/random/boot_id", "r", encoding="utf-8") as handle:
++        return handle.read().strip()
++
++
++_M3_BOOT_ID = _m3_boot_id()
++_M3_MONOTONIC_RESOLUTION_NS = max(
++    1, int(round(time.clock_getres(time.CLOCK_MONOTONIC) * 1_000_000_000))
++)
++
++
+ def create_app() -> FastAPI:
+     @asynccontextmanager
+     async def lifespan(app: FastAPI):
+@@ -52,10 +67,23 @@ def create_app() -> FastAPI:
              )
          try:
              await controller.register.remote(body)
@@ -37,15 +56,23 @@ index c7dbe79..29d1a53 100644
              )
  
          return {"status": "ok"}
-@@ -115,6 +131,12 @@ def create_app() -> FastAPI:
+@@ -114,7 +142,20 @@ def create_app() -> FastAPI:
+         return {"status": f"deleted model {model_name}"}
  
      async def inference_handler(request: Request, action: str):
++        ingress_monotonic_ns = time.monotonic_ns()
          body = await request.json()
 +        request_id = str(body.get("request_id") or f"chatcmpl-{uuid.uuid4()}")
 +        body["request_id"] = request_id
 +        internal_metrics = dict(body.get("_sllm_internal_metrics", {}) or {})
-+        internal_metrics.setdefault("request_received_at", time.time())
-+        internal_metrics.setdefault("request_id", request_id)
++        internal_metrics["request_received_at"] = time.time()
++        internal_metrics["request_id"] = request_id
++        internal_metrics["m3_ingress_monotonic_ns"] = ingress_monotonic_ns
++        internal_metrics["m3_ingress_boot_id"] = _M3_BOOT_ID
++        internal_metrics["m3_monotonic_resolution_ns"] = (
++            _M3_MONOTONIC_RESOLUTION_NS
++        )
++        internal_metrics["m3_ingress_pid"] = os.getpid()
 +        body["_sllm_internal_metrics"] = internal_metrics
          model_name = body.get("model")
          logger.info(f"Received request for model {model_name}")
@@ -697,7 +724,7 @@ index 52de3e6..543b256 100644
          # Generate response
          try:
 diff --git a/sllm/backends/vllm_backend.py b/sllm/backends/vllm_backend.py
-index bed58f8..af7825e 100644
+index bed58f8..29b3f4f 100644
 --- a/sllm/backends/vllm_backend.py
 +++ b/sllm/backends/vllm_backend.py
 @@ -26,6 +26,7 @@ from dataclasses import fields
@@ -719,10 +746,68 @@ index bed58f8..af7825e 100644
  
  from sllm.backends.backend_utils import (
      BackendStatus,
-@@ -46,6 +51,108 @@ from sllm.backends.backend_utils import (
+@@ -46,6 +51,184 @@ from sllm.backends.backend_utils import (
  logger = logging.getLogger("ray")
  
  
++def _m3_boot_id() -> str:
++    with open("/proc/sys/kernel/random/boot_id", "r", encoding="utf-8") as handle:
++        return handle.read().strip()
++
++
++_M3_BOOT_ID = _m3_boot_id()
++
++
++def _m3_clock_pair() -> Dict[str, int]:
++    wall_before_ns = time.time_ns()
++    monotonic_ns = time.monotonic_ns()
++    wall_after_ns = time.time_ns()
++    return {
++        "wall_midpoint_ns": (wall_before_ns + wall_after_ns) // 2,
++        "monotonic_ns": monotonic_ns,
++        "sampling_half_span_ns": (wall_after_ns - wall_before_ns + 1) // 2,
++    }
++
++
++def _m3_project_wall_timestamp(
++    timestamp_s: Any,
++    start_pair: Dict[str, int],
++    end_pair: Dict[str, int],
++) -> tuple[Optional[int], Optional[int]]:
++    if timestamp_s is None:
++        return None, None
++    try:
++        target_wall_ns = int(round(float(timestamp_s) * 1_000_000_000))
++    except (TypeError, ValueError, OverflowError):
++        return None, None
++    start_wall = int(start_pair["wall_midpoint_ns"])
++    end_wall = int(end_pair["wall_midpoint_ns"])
++    start_mono = int(start_pair["monotonic_ns"])
++    end_mono = int(end_pair["monotonic_ns"])
++    if (
++        end_wall <= start_wall
++        or end_mono < start_mono
++        or target_wall_ns < start_wall
++        or target_wall_ns > end_wall
++    ):
++        return None, None
++    numerator = target_wall_ns - start_wall
++    denominator = end_wall - start_wall
++    projected_ns = start_mono + int(
++        round(numerator * (end_mono - start_mono) / denominator)
++    )
++    start_offset = start_mono - start_wall
++    end_offset = end_mono - end_wall
++    error_bound_ns = (
++        max(
++            int(start_pair["sampling_half_span_ns"]),
++            int(end_pair["sampling_half_span_ns"]),
++        )
++        + abs(end_offset - start_offset)
++    )
++    return projected_ns, error_bound_ns
++
++
 +def _as_env_bool(value: Any) -> str:
 +    if isinstance(value, bool):
 +        return "1" if value else "0"
@@ -770,6 +855,7 @@ index bed58f8..af7825e 100644
 +        return None
 +
 +    arrival_time = getattr(metrics, "arrival_time", None)
++    first_scheduled_time = getattr(metrics, "first_scheduled_time", None)
 +    first_token_time = getattr(metrics, "first_token_time", None)
 +    last_token_time = getattr(metrics, "last_token_time", None)
 +    finished_time = getattr(metrics, "finished_time", None)
@@ -777,6 +863,10 @@ index bed58f8..af7825e 100644
 +        last_token_time = finished_time
 +
 +    completion_tokens = sum(len(result.token_ids) for result in output.outputs)
++    prompt_tokens = len(output.prompt_token_ids or [])
++    num_cached_tokens = getattr(output, "num_cached_tokens", None)
++    if num_cached_tokens is not None:
++        num_cached_tokens = max(0, int(num_cached_tokens))
 +
 +    ttft_ms = None
 +    if (
@@ -817,8 +907,21 @@ index bed58f8..af7825e 100644
 +        "tpot_ms": tpot_ms,
 +        "tpot_observed": tpot_observed,
 +        "completion_tokens_observed": completion_tokens,
++        "prompt_tokens_observed": prompt_tokens,
++        "num_cached_tokens": num_cached_tokens,
++        "prefix_cache_hit": (
++            bool(num_cached_tokens > 0)
++            if num_cached_tokens is not None
++            else None
++        ),
++        "cached_token_fraction": (
++            float(num_cached_tokens) / float(prompt_tokens)
++            if num_cached_tokens is not None and prompt_tokens > 0
++            else None
++        ),
 +        "stream_event_count": completion_tokens,
 +        "arrival_time": arrival_time,
++        "first_scheduled_time": first_scheduled_time,
 +        "first_token_time": first_token_time,
 +        "last_token_time": last_token_time,
 +        "finished_time": finished_time,
@@ -828,7 +931,7 @@ index bed58f8..af7825e 100644
  def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
      choices: List[Dict[str, Any]] = [
          {
-@@ -54,7 +161,7 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
+@@ -54,7 +237,7 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
                  "role": "assistant",
                  "content": result.text,
              },
@@ -837,17 +940,36 @@ index bed58f8..af7825e 100644
              "finish_reason": result.finish_reason,
          }
          for idx, result in enumerate(output.outputs)
-@@ -79,6 +186,9 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
+@@ -79,6 +262,28 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
              + sum(len(result.token_ids) for result in output.outputs),
          },
      }
-+    metrics = _extract_vllm_metrics(output)
-+    if metrics is not None:
-+        api_response["metrics"] = metrics
++    metrics = dict(_extract_vllm_metrics(output) or {})
++    num_cached_tokens = getattr(output, "num_cached_tokens", None)
++    if num_cached_tokens is not None:
++        num_cached_tokens = max(0, int(num_cached_tokens))
++    prompt_tokens = len(output.prompt_token_ids or [])
++    metrics.update(
++        {
++            "prompt_tokens_observed": prompt_tokens,
++            "num_cached_tokens": num_cached_tokens,
++            "prefix_cache_hit": (
++                bool(num_cached_tokens > 0)
++                if num_cached_tokens is not None
++                else None
++            ),
++            "cached_token_fraction": (
++                float(num_cached_tokens) / float(prompt_tokens)
++                if num_cached_tokens is not None and prompt_tokens > 0
++                else None
++            ),
++        }
++    )
++    api_response["metrics"] = metrics
      return api_response
  
  
-@@ -154,7 +264,16 @@ class VllmBackend(SllmBackend):
+@@ -154,7 +359,16 @@ class VllmBackend(SllmBackend):
          self.request_trace = LLMEngineStatusDict()
          # if trace_debug is True, request trace will not be deleted after completion
          self.trace_debug = backend_config.get("trace_debug", False)
@@ -864,7 +986,7 @@ index bed58f8..af7825e 100644
          self.enable_prefix_caching = backend_config.get(
              "enable_prefix_caching", True
          )
-@@ -169,6 +288,12 @@ class VllmBackend(SllmBackend):
+@@ -169,6 +383,12 @@ class VllmBackend(SllmBackend):
          torch_dtype = backend_config.get("torch_dtype")
          if torch_dtype is not None:
              filtered_engine_config["dtype"] = torch_dtype
@@ -877,15 +999,15 @@ index bed58f8..af7825e 100644
  
          if load_format is not None:
              filtered_engine_config["load_format"] = load_format
-@@ -193,6 +318,7 @@ class VllmBackend(SllmBackend):
+@@ -193,6 +413,7 @@ class VllmBackend(SllmBackend):
          logger.info(
              f"Creating new VLLM engine with config: {filtered_engine_config}"
          )
 +        logger.info(f"Applied VLLM runtime env: {self.vllm_runtime_env}")
-
+ 
          self.engine_args = AsyncEngineArgs(**filtered_engine_config)
-
-@@ -203,8 +329,116 @@ class VllmBackend(SllmBackend):
+ 
+@@ -203,8 +424,116 @@ class VllmBackend(SllmBackend):
              if self.status != BackendStatus.UNINITIALIZED:
                  return
              self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
@@ -1002,7 +1124,7 @@ index bed58f8..af7825e 100644
      async def generate(self, request_data: Dict[str, Any]):
          async with self.status_lock:
              if self.status != BackendStatus.RUNNING:
-@@ -215,28 +449,45 @@ class VllmBackend(SllmBackend):
+@@ -215,28 +544,47 @@ class VllmBackend(SllmBackend):
          if request_data is None:
              return {"error": "Request data is missing"}
  
@@ -1014,6 +1136,8 @@ index bed58f8..af7825e 100644
 -                for message in messages
 -                if "content" in message
 -            ]
++        backend_arrival_monotonic_ns = time.monotonic_ns()
++        clock_pair_start = _m3_clock_pair()
 +        internal_metrics = dict(
 +            request_data.pop("_sllm_internal_metrics", {}) or {}
          )
@@ -1063,7 +1187,7 @@ index bed58f8..af7825e 100644
  
          try:
              sampling_params = SamplingParams(**request_data)
-@@ -244,23 +495,108 @@ class VllmBackend(SllmBackend):
+@@ -244,23 +592,155 @@ class VllmBackend(SllmBackend):
              return {"error": f"Invalid sampling parameters: {e}"}
  
          results_generator = self.engine.generate(
@@ -1080,6 +1204,7 @@ index bed58f8..af7825e 100644
          final_output = None
 +        completion_tokens_observed = 0
 +        first_token_at = None
++        first_token_monotonic_ns = None
 +        last_token_at = None
 +        token_timestamps = []
          async for response_output in results_generator:
@@ -1092,6 +1217,7 @@ index bed58f8..af7825e 100644
 +                now = time.time()
 +                if first_token_at is None:
 +                    first_token_at = now
++                    first_token_monotonic_ns = time.monotonic_ns()
 +                last_token_at = now
 +                if delta == 1:
 +                    token_timestamps.append(now)
@@ -1100,11 +1226,10 @@ index bed58f8..af7825e 100644
  
          assert final_output is not None
 +        finished_at = time.time()
++        clock_pair_end = _m3_clock_pair()
  
          if not self.trace_debug:
              await self.request_trace.delete_request(request_id)
--
--        return process_output(final_output, model_name)
 +        response = process_output(final_output, model_name)
 +        if actual_input_tokens > 0:
 +            response.setdefault("usage", {})["prompt_tokens"] = actual_input_tokens
@@ -1157,6 +1282,44 @@ index bed58f8..af7825e 100644
 +        metrics["first_token_at"] = first_token_at
 +        metrics["last_token_at"] = last_token_at
 +        metrics["finished_at"] = finished_at
++        scheduled_monotonic_ns, projection_error_bound_ns = (
++            _m3_project_wall_timestamp(
++                metrics.get("first_scheduled_time"),
++                clock_pair_start,
++                clock_pair_end,
++            )
++        )
++        metrics["m3_ingress_monotonic_ns"] = internal_metrics.get(
++            "m3_ingress_monotonic_ns"
++        )
++        metrics["m3_enqueue_monotonic_ns"] = internal_metrics.get(
++            "m3_enqueue_monotonic_ns"
++        )
++        metrics["m3_runtime_ready_monotonic_ns"] = internal_metrics.get(
++            "m3_runtime_ready_monotonic_ns"
++        )
++        metrics["m3_backend_arrival_monotonic_ns"] = (
++            backend_arrival_monotonic_ns
++        )
++        metrics["m3_scheduled_monotonic_ns"] = scheduled_monotonic_ns
++        metrics["m3_first_token_monotonic_ns"] = first_token_monotonic_ns
++        metrics["m3_scheduled_projection_error_bound_ns"] = (
++            projection_error_bound_ns
++        )
++        metrics["m3_scheduled_projection_method"] = (
++            "linear_wall_to_monotonic_between_bracketing_pairs_v1"
++            if scheduled_monotonic_ns is not None
++            else None
++        )
++        metrics["m3_clock_pair_start"] = clock_pair_start
++        metrics["m3_clock_pair_end"] = clock_pair_end
++        metrics["m3_ingress_boot_id"] = internal_metrics.get(
++            "m3_ingress_boot_id"
++        )
++        metrics["m3_backend_boot_id"] = _M3_BOOT_ID
++        metrics["m3_monotonic_resolution_ns"] = internal_metrics.get(
++            "m3_monotonic_resolution_ns"
++        )
 +        metrics["queue_wait_ms"] = internal_metrics.get("queue_wait_ms")
 +        metrics["lora_load_ms"] = internal_metrics.get("lora_load_ms")
 +        metrics["cache_hit"] = internal_metrics.get("lora_cache_hit")
@@ -1167,9 +1330,16 @@ index bed58f8..af7825e 100644
 +        metrics["instance_id"] = internal_metrics.get("instance_id")
 +        metrics["instance_created_at"] = internal_metrics.get("instance_created_at")
 +        metrics["instance_ready_at"] = internal_metrics.get("instance_ready_at")
++        cached_tokens = metrics.get("num_cached_tokens")
++        metrics["cached_token_fraction"] = (
++            float(cached_tokens) / float(actual_input_tokens)
++            if cached_tokens is not None and actual_input_tokens > 0
++            else None
++        )
 +        response["metrics"] = metrics
 +        return response
-+
+ 
+-        return process_output(final_output, model_name)
 +    async def load_lora_adapter(self, lora_name: str, lora_path: str):
 +        return {"cache_hit": None, "load_ms": None}
  
@@ -1424,13 +1594,16 @@ index 23ccabb..d011de0 100644
          raise RuntimeError(
              f"Failed to save {adapter_name} for transformer backend: {e}"
 diff --git a/sllm/routers/roundrobin_router.py b/sllm/routers/roundrobin_router.py
-index e32012d..f86e27b 100644
+index e32012d..db05e05 100644
 --- a/sllm/routers/roundrobin_router.py
 +++ b/sllm/routers/roundrobin_router.py
-@@ -17,8 +17,9 @@
+@@ -16,9 +16,12 @@
+ #  limitations under the license.                                              #
  # ---------------------------------------------------------------------------- #
  import asyncio
++import json
  import logging
++import os
 +import time
  import uuid
 -from typing import Dict, List, Optional
@@ -1438,7 +1611,45 @@ index e32012d..f86e27b 100644
  
  import ray
  
-@@ -102,6 +103,7 @@ class RoundRobinRouter(SllmRouter):
+@@ -32,6 +35,26 @@ from .router_utils import SllmRouter
+ logger = init_logger(__name__)
+ 
+ 
++def _log_lifecycle_event(
++    event: str,
++    *,
++    model_name: str,
++    instance_id: str,
++    timestamp_s: Optional[float] = None,
++    monotonic_ns: Optional[int] = None,
++) -> None:
++    payload = {
++        "event": str(event),
++        "instance_id": str(instance_id),
++        "model": str(model_name),
++        "timestamp_s": float(timestamp_s if timestamp_s is not None else time.time()),
++        "monotonic_ns": int(
++            monotonic_ns if monotonic_ns is not None else time.monotonic_ns()
++        ),
++    }
++    logger.info("SLLM_LIFECYCLE_EVENT %s", json.dumps(payload, sort_keys=True))
++
++
+ async def auto_scaler(
+     auto_scaling_metrics: Dict[str, int], auto_scaling_config: Dict[str, int]
+ ) -> int:
+@@ -73,6 +96,10 @@ class RoundRobinRouter(SllmRouter):
+         self.router_config = router_config
+ 
+         self.loop_interval = 1
++        self.request_poll_interval = max(
++            0.001,
++            float(os.getenv("SLLM_REQUEST_POLL_INTERVAL_S", "1")),
++        )
+         self.loop = asyncio.get_running_loop()
+         self.request_queue = asyncio.Queue()  # type:ignore
+         # Inference instance pools
+@@ -102,6 +129,7 @@ class RoundRobinRouter(SllmRouter):
  
          self.enable_lora = enable_lora
          self.loaded_lora_adapters = lora_adapters
@@ -1446,7 +1657,7 @@ index e32012d..f86e27b 100644
          self.lora_lock = asyncio.Lock()
  
          self.auto_scaler = None
-@@ -132,6 +134,9 @@ class RoundRobinRouter(SllmRouter):
+@@ -132,6 +160,9 @@ class RoundRobinRouter(SllmRouter):
          if lora_adapters is not None:
              async with self.lora_lock:
                  self.loaded_lora_adapters = lora_adapters
@@ -1456,7 +1667,7 @@ index e32012d..f86e27b 100644
  
          logger.info(
              f"Model {self.model_name}'s auto scaling config updated to {auto_scaling_config}"
-@@ -141,11 +146,33 @@ class RoundRobinRouter(SllmRouter):
+@@ -141,11 +172,35 @@ class RoundRobinRouter(SllmRouter):
          pattern = "{model_name}_{id}"
          return pattern.format(model_name=self.model_name, id=uuid.uuid4())
  
@@ -1482,7 +1693,9 @@ index e32012d..f86e27b 100644
 +        internal_metrics.setdefault("request_id", request_id)
 +        internal_metrics.setdefault("request_received_at", time.time())
 +        enqueue_at = time.time()
++        enqueue_monotonic_ns = time.monotonic_ns()
 +        internal_metrics["router_enqueued_at"] = enqueue_at
++        internal_metrics["m3_enqueue_monotonic_ns"] = enqueue_monotonic_ns
 +        async with self.instance_management_lock:
 +            ready_instances_at_enqueue = len(self.ready_inference_instances)
 +        internal_metrics["ready_instances_at_enqueue"] = ready_instances_at_enqueue
@@ -1490,7 +1703,7 @@ index e32012d..f86e27b 100644
          async with self.request_count_lock:
              self.request_count += 1
  
-@@ -155,43 +182,106 @@ class RoundRobinRouter(SllmRouter):
+@@ -155,43 +210,115 @@ class RoundRobinRouter(SllmRouter):
          instance_allocation = self.loop.create_future()
          await self.request_queue.put(instance_allocation)
          logger.info(f"Enqueued {action} request for model {self.model_name}")
@@ -1519,15 +1732,18 @@ index e32012d..f86e27b 100644
 -        if action == "generate":
 -            result = await instance.backend_instance.generate.remote(
 -                request_data=request_data
--            )
--        elif action == "encode":
--            result = await instance.backend_instance.encode.remote(
--                request_data=request_data
 +        instance = None
 +        try:
 +            instance_id = await instance_allocation
 +            assigned_at = time.time()
++            assigned_monotonic_ns = time.monotonic_ns()
 +            internal_metrics["instance_assigned_at"] = assigned_at
++            internal_metrics["m3_instance_assigned_monotonic_ns"] = (
++                assigned_monotonic_ns
+             )
+-        elif action == "encode":
+-            result = await instance.backend_instance.encode.remote(
+-                request_data=request_data
 +            internal_metrics["queue_wait_ms"] = max(
 +                0.0, (assigned_at - enqueue_at) * 1000.0
              )
@@ -1547,19 +1763,24 @@ index e32012d..f86e27b 100644
 +                internal_metrics["instance_id"] = instance_id
 +                internal_metrics["instance_created_at"] = instance.created_at
 +                internal_metrics["instance_ready_at"] = instance.ready_at
++                internal_metrics["m3_instance_created_monotonic_ns"] = (
++                    instance.created_monotonic_ns
++                )
++                internal_metrics["m3_runtime_ready_monotonic_ns"] = (
++                    instance.ready_monotonic_ns
++                )
 +                scaleup_affected = bool(
-+                    instance.ready_at is not None
-+                    and enqueue_at <= float(instance.ready_at) + 1e-9
-+                    and (
-+                        instance.created_at is None
-+                        or enqueue_at >= float(instance.created_at) - 1e-9
-+                    )
++                    instance.ready_monotonic_ns is not None
++                    and enqueue_monotonic_ns <= instance.ready_monotonic_ns
 +                )
 +                internal_metrics["scaleup_affected"] = scaleup_affected
 +                scaleup_first_service = instance.first_request_id is None
 +                if scaleup_first_service:
 +                    instance.first_request_id = request_id
 +                    instance.first_request_assigned_at = assigned_at
++                    instance.first_request_assigned_monotonic_ns = (
++                        assigned_monotonic_ns
++                    )
 +                internal_metrics["scaleup_first_service"] = scaleup_first_service
 +                cold_start_latency_ms = None
 +                if (
@@ -1633,15 +1854,50 @@ index e32012d..f86e27b 100644
  
      async def fine_tuning(self, request_data: dict):
          logger.info(f"Starting fine-tuning for model {self.model_name}")
-@@ -387,6 +477,7 @@ class RoundRobinRouter(SllmRouter):
+@@ -301,7 +428,7 @@ class RoundRobinRouter(SllmRouter):
+                 # 1. get ready instances
+                 instance_options = None
+                 while not instance_options:
+-                    await asyncio.sleep(1)
++                    await asyncio.sleep(self.request_poll_interval)
+                     async with self.instance_management_lock:
+                         instance_options = list(
+                             self.ready_inference_instances.keys()
+@@ -326,7 +453,7 @@ class RoundRobinRouter(SllmRouter):
+                             f"Instance {instance_id} cannot add another request"
+                         )
+                 if not allocated:
+-                    await asyncio.sleep(self.loop_interval)
++                    await asyncio.sleep(self.request_poll_interval)
+ 
+     async def _auto_scaler_loop(self):
+         while True:
+@@ -383,13 +510,24 @@ class RoundRobinRouter(SllmRouter):
+         logger.info(
+             f"Creating new instance {instance_id} for model {self.model_name}, max queue length is {max_request_length}"
+         )
++        created_at = time.time()
++        created_monotonic_ns = time.monotonic_ns()
+         instance = InstanceHandle(
              instance_id=instance_id,
              max_queue_length=max_request_length,
              num_gpu=self.resource_requirements["num_gpus"],
-+            created_at=time.time(),
++            created_at=created_at,
++            created_monotonic_ns=created_monotonic_ns,
          )
          async with self.instance_management_lock:
              self.starting_inference_instances[instance_id] = instance
-@@ -452,10 +543,11 @@ class RoundRobinRouter(SllmRouter):
++        _log_lifecycle_event(
++            "created",
++            model_name=self.model_name,
++            instance_id=instance_id,
++            timestamp_s=instance.created_at,
++            monotonic_ns=instance.created_monotonic_ns,
++        )
+         self.loop.create_task(self._start_instance(instance_id))
+ 
+         return instance_id
+@@ -452,14 +590,26 @@ class RoundRobinRouter(SllmRouter):
              f"Started instance {instance_id} for model {self.model_name}"
          )
          instance.backend_instance = ray.get_actor(instance_id)
@@ -1651,9 +1907,58 @@ index e32012d..f86e27b 100644
              instance.node_id = startup_node
 -        await instance.backend_instance.init_backend.remote()
 +            instance.ready_at = time.time()
++            instance.ready_monotonic_ns = time.monotonic_ns()
  
          async with self.instance_management_lock:
              self.ready_inference_instances[instance_id] = instance
+             self.starting_inference_instances.pop(instance_id)
++        _log_lifecycle_event(
++            "ready",
++            model_name=self.model_name,
++            instance_id=instance_id,
++            timestamp_s=instance.ready_at,
++            monotonic_ns=instance.ready_monotonic_ns,
++        )
++        logger.info(
++            f"Instance {instance_id} is ready for model {self.model_name}"
++        )
+         return instance_id
+ 
+     async def _start_ft_instance(self, instance_id: str):
+@@ -541,6 +691,11 @@ class RoundRobinRouter(SllmRouter):
+                 logger.error(f"Instance {instance_id} not found")
+                 return
+             self.deleting_inference_instances[instance_id] = instance
++        _log_lifecycle_event(
++            "stop_requested",
++            model_name=self.model_name,
++            instance_id=instance_id,
++        )
+         logger.info(
+             f"Stopping instance {instance_id} for model {self.model_name}"
+         )
+@@ -559,6 +714,11 @@ class RoundRobinRouter(SllmRouter):
+         await self.model_loading_scheduler.deallocate_resource.remote(
+             self.model_name, instance_id, self.resource_requirements
+         )
++        _log_lifecycle_event(
++            "removed",
++            model_name=self.model_name,
++            instance_id=instance_id,
++        )
+ 
+     async def _shutdown_instance(self, instance_id: str, is_ft: bool = False):
+         logger.info(
+@@ -580,4 +740,9 @@ class RoundRobinRouter(SllmRouter):
+         await self.model_loading_scheduler.deallocate_resource.remote(
+             self.model_name, instance_id, self.resource_requirements
+         )
++        _log_lifecycle_event(
++            "force_removed",
++            model_name=self.model_name,
++            instance_id=instance_id,
++        )
+         return
 diff --git a/sllm/store_manager.py b/sllm/store_manager.py
 index 089082b..80e47da 100644
 --- a/sllm/store_manager.py
@@ -1802,7 +2107,7 @@ index 089082b..80e47da 100644
                  if backend == "transformers":
                      hf_model_class = backend_config.get("hf_model_class", None)
 diff --git a/sllm/utils.py b/sllm/utils.py
-index 6d5e48d..8d56c53 100644
+index 6d5e48d..1f4d8d0 100644
 --- a/sllm/utils.py
 +++ b/sllm/utils.py
 @@ -16,7 +16,7 @@
@@ -1835,13 +2140,16 @@ index 6d5e48d..8d56c53 100644
          if resources.get("control_node", 0) > 0:
              continue  # Skip the control node
  
-@@ -72,8 +74,12 @@ class InstanceHandle:
+@@ -72,8 +74,15 @@ class InstanceHandle:
      backend_instance: Optional[ray.actor.ActorHandle] = None
      ready: bool = False
      concurrency: int = 0
 +    created_at: Optional[float] = None
 +    ready_at: Optional[float] = None
++    created_monotonic_ns: Optional[int] = None
++    ready_monotonic_ns: Optional[int] = None
 +    first_request_assigned_at: Optional[float] = None
++    first_request_assigned_monotonic_ns: Optional[int] = None
 +    first_request_id: Optional[str] = None
  
 -    lock: asyncio.Lock = asyncio.Lock()
