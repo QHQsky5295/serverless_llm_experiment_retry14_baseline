@@ -724,10 +724,19 @@ index 52de3e6..543b256 100644
          # Generate response
          try:
 diff --git a/sllm/backends/vllm_backend.py b/sllm/backends/vllm_backend.py
-index bed58f8..29b3f4f 100644
+index bed58f8..56510c4 100644
 --- a/sllm/backends/vllm_backend.py
 +++ b/sllm/backends/vllm_backend.py
-@@ -26,6 +26,7 @@ from dataclasses import fields
+@@ -19,13 +19,16 @@ import asyncio
+ import gc
+ import inspect
+ import logging
++import math
+ import os
+ import time
+ import uuid
+ from dataclasses import fields
++from types import MethodType
  from typing import Any, Dict, List, Optional, Sequence, Union, cast
  
  import torch
@@ -735,7 +744,7 @@ index bed58f8..29b3f4f 100644
  from vllm import (
      AsyncEngineArgs,
      AsyncLLMEngine,
-@@ -37,6 +38,10 @@ from vllm import (
+@@ -37,6 +40,10 @@ from vllm import (
  )
  from vllm.inputs import TokensPrompt
  from vllm.utils import Counter
@@ -746,7 +755,7 @@ index bed58f8..29b3f4f 100644
  
  from sllm.backends.backend_utils import (
      BackendStatus,
-@@ -46,6 +51,184 @@ from sllm.backends.backend_utils import (
+@@ -46,6 +53,145 @@ from sllm.backends.backend_utils import (
  logger = logging.getLogger("ray")
  
  
@@ -758,54 +767,15 @@ index bed58f8..29b3f4f 100644
 +_M3_BOOT_ID = _m3_boot_id()
 +
 +
-+def _m3_clock_pair() -> Dict[str, int]:
-+    wall_before_ns = time.time_ns()
-+    monotonic_ns = time.monotonic_ns()
-+    wall_after_ns = time.time_ns()
-+    return {
-+        "wall_midpoint_ns": (wall_before_ns + wall_after_ns) // 2,
-+        "monotonic_ns": monotonic_ns,
-+        "sampling_half_span_ns": (wall_after_ns - wall_before_ns + 1) // 2,
-+    }
-+
-+
-+def _m3_project_wall_timestamp(
-+    timestamp_s: Any,
-+    start_pair: Dict[str, int],
-+    end_pair: Dict[str, int],
-+) -> tuple[Optional[int], Optional[int]]:
-+    if timestamp_s is None:
-+        return None, None
++def _m3_monotonic_seconds_to_ns(timestamp_s: Any) -> Optional[int]:
++    """Convert a native EngineCore CLOCK_MONOTONIC event to integer ns."""
 +    try:
-+        target_wall_ns = int(round(float(timestamp_s) * 1_000_000_000))
++        timestamp = float(timestamp_s)
 +    except (TypeError, ValueError, OverflowError):
-+        return None, None
-+    start_wall = int(start_pair["wall_midpoint_ns"])
-+    end_wall = int(end_pair["wall_midpoint_ns"])
-+    start_mono = int(start_pair["monotonic_ns"])
-+    end_mono = int(end_pair["monotonic_ns"])
-+    if (
-+        end_wall <= start_wall
-+        or end_mono < start_mono
-+        or target_wall_ns < start_wall
-+        or target_wall_ns > end_wall
-+    ):
-+        return None, None
-+    numerator = target_wall_ns - start_wall
-+    denominator = end_wall - start_wall
-+    projected_ns = start_mono + int(
-+        round(numerator * (end_mono - start_mono) / denominator)
-+    )
-+    start_offset = start_mono - start_wall
-+    end_offset = end_mono - end_wall
-+    error_bound_ns = (
-+        max(
-+            int(start_pair["sampling_half_span_ns"]),
-+            int(end_pair["sampling_half_span_ns"]),
-+        )
-+        + abs(end_offset - start_offset)
-+    )
-+    return projected_ns, error_bound_ns
++        return None
++    if not math.isfinite(timestamp) or timestamp < 0:
++        return None
++    return int(round(timestamp * 1_000_000_000))
 +
 +
 +def _as_env_bool(value: Any) -> str:
@@ -931,7 +901,7 @@ index bed58f8..29b3f4f 100644
  def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
      choices: List[Dict[str, Any]] = [
          {
-@@ -54,7 +237,7 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
+@@ -54,7 +200,7 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
                  "role": "assistant",
                  "content": result.text,
              },
@@ -940,7 +910,7 @@ index bed58f8..29b3f4f 100644
              "finish_reason": result.finish_reason,
          }
          for idx, result in enumerate(output.outputs)
-@@ -79,6 +262,28 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
+@@ -79,6 +225,28 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
              + sum(len(result.token_ids) for result in output.outputs),
          },
      }
@@ -969,10 +939,15 @@ index bed58f8..29b3f4f 100644
      return api_response
  
  
-@@ -154,7 +359,16 @@ class VllmBackend(SllmBackend):
+@@ -154,7 +322,21 @@ class VllmBackend(SllmBackend):
          self.request_trace = LLMEngineStatusDict()
          # if trace_debug is True, request trace will not be deleted after completion
          self.trace_debug = backend_config.get("trace_debug", False)
++        self.m3_capture_vllm_engine_events = bool(
++            backend_config.get("m3_capture_vllm_engine_events", False)
++        )
++        self._m3_v1_engine_events: Dict[str, Dict[str, Any]] = {}
++        self._m3_event_capture_installed = False
 +        self.vllm_runtime_env = _apply_vllm_runtime_env(backend_config)
          self.enforce_eager = backend_config.get("enforce_eager", False)
 +        self.enable_lora = bool(backend_config.get("enable_lora", False))
@@ -986,7 +961,7 @@ index bed58f8..29b3f4f 100644
          self.enable_prefix_caching = backend_config.get(
              "enable_prefix_caching", True
          )
-@@ -169,6 +383,12 @@ class VllmBackend(SllmBackend):
+@@ -169,6 +351,12 @@ class VllmBackend(SllmBackend):
          torch_dtype = backend_config.get("torch_dtype")
          if torch_dtype is not None:
              filtered_engine_config["dtype"] = torch_dtype
@@ -999,7 +974,7 @@ index bed58f8..29b3f4f 100644
  
          if load_format is not None:
              filtered_engine_config["load_format"] = load_format
-@@ -193,6 +413,7 @@ class VllmBackend(SllmBackend):
+@@ -193,6 +381,7 @@ class VllmBackend(SllmBackend):
          logger.info(
              f"Creating new VLLM engine with config: {filtered_engine_config}"
          )
@@ -1007,10 +982,11 @@ index bed58f8..29b3f4f 100644
  
          self.engine_args = AsyncEngineArgs(**filtered_engine_config)
  
-@@ -203,8 +424,116 @@ class VllmBackend(SllmBackend):
+@@ -203,8 +392,182 @@ class VllmBackend(SllmBackend):
              if self.status != BackendStatus.UNINITIALIZED:
                  return
              self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
++            self._install_m3_v1_event_capture()
 +            tokenizer_source = (
 +                self.pretrained_model_name_or_path
 +                or getattr(self.engine_args, "model", None)
@@ -1022,6 +998,71 @@ index bed58f8..29b3f4f 100644
 +                )
              self.status = BackendStatus.RUNNING
  
++    def _install_m3_v1_event_capture(self) -> None:
++        """Passively retain native V1 EngineCore request events.
++
++        The V1 scheduler already records QUEUED/SCHEDULED with its own
++        CLOCK_MONOTONIC clock.  RequestOutput does not expose those events, so
++        M3 captures them at the existing OutputProcessor boundary before the
++        RequestState is released.  The original processor is called exactly
++        once with unchanged arguments and unchanged outputs.
++        """
++        if not self.m3_capture_vllm_engine_events:
++            return
++        if self.engine is None:
++            raise RuntimeError("M3 event capture requires an initialized engine")
++        output_processor = getattr(self.engine, "output_processor", None)
++        if output_processor is None:
++            raise RuntimeError(
++                "M3 event capture requires the vLLM V1 OutputProcessor"
++            )
++        if not bool(getattr(output_processor, "log_stats", False)):
++            raise RuntimeError(
++                "M3 event capture requires native vLLM EngineCore events"
++            )
++        original_process_outputs = output_processor.process_outputs
++        backend = self
++
++        def capture_process_outputs(
++            processor,
++            engine_core_outputs,
++            engine_core_timestamp=None,
++            iteration_stats=None,
++        ):
++            for engine_output in engine_core_outputs:
++                request_id = str(engine_output.request_id)
++                request_events = backend._m3_v1_engine_events.setdefault(
++                    request_id, {}
++                )
++                for event in engine_output.events or ():
++                    event_type = getattr(event, "type", None)
++                    event_name = getattr(event_type, "name", str(event_type))
++                    if event_name not in {"QUEUED", "SCHEDULED", "PREEMPTED"}:
++                        continue
++                    event_key = event_name.lower()
++                    if event_key in request_events:
++                        continue
++                    monotonic_ns = _m3_monotonic_seconds_to_ns(
++                        getattr(event, "timestamp", None)
++                    )
++                    if monotonic_ns is None:
++                        continue
++                    request_events[event_key] = {
++                        "event_type": event_name,
++                        "monotonic_seconds": float(event.timestamp),
++                        "monotonic_ns": monotonic_ns,
++                    }
++            return original_process_outputs(
++                engine_core_outputs,
++                engine_core_timestamp,
++                iteration_stats,
++            )
++
++        output_processor.process_outputs = MethodType(
++            capture_process_outputs, output_processor
++        )
++        self._m3_event_capture_installed = True
++
 +    def _resolve_request_output_limit(self, requested_output_tokens: int) -> int:
 +        desired_tokens = max(1, int(requested_output_tokens or 0))
 +        cap = int(self.backend_config.get("max_output_tokens_cap", 0) or 0)
@@ -1124,11 +1165,17 @@ index bed58f8..29b3f4f 100644
      async def generate(self, request_data: Dict[str, Any]):
          async with self.status_lock:
              if self.status != BackendStatus.RUNNING:
-@@ -215,28 +544,47 @@ class VllmBackend(SllmBackend):
+@@ -215,28 +578,48 @@ class VllmBackend(SllmBackend):
          if request_data is None:
              return {"error": "Request data is missing"}
  
--        model_name: str = request_data.pop("model", "vllm-model")
++        backend_arrival_monotonic_ns = time.monotonic_ns()
++        internal_metrics = dict(
++            request_data.pop("_sllm_internal_metrics", {}) or {}
++        )
++        internal_metrics["backend_started_at"] = time.time()
++
+         model_name: str = request_data.pop("model", "vllm-model")
 -        messages: Dict[Dict[str, str], str] = request_data.pop("messages", [])
 -        construct_prompt: str = "\n".join(
 -            [
@@ -1136,13 +1183,8 @@ index bed58f8..29b3f4f 100644
 -                for message in messages
 -                if "content" in message
 -            ]
-+        backend_arrival_monotonic_ns = time.monotonic_ns()
-+        clock_pair_start = _m3_clock_pair()
-+        internal_metrics = dict(
-+            request_data.pop("_sllm_internal_metrics", {}) or {}
-         )
-+        internal_metrics["backend_started_at"] = time.time()
- 
+-        )
+-
 -        # If prompt is not provided, construct it from messages
 -        inputs: Union[str, TokensPrompt] = request_data.pop(
 -            "prompt", construct_prompt
@@ -1150,7 +1192,6 @@ index bed58f8..29b3f4f 100644
 -        if request_data.get("input_tokens") is not None:
 -            inputs = TokensPrompt(
 -                prompt_token_ids=request_data.pop("input_tokens"),
-+        model_name: str = request_data.pop("model", "vllm-model")
 +        messages: List[Dict[str, Any]] = request_data.pop("messages", [])
 +        requested_max_tokens = int(request_data.get("max_tokens", 256) or 256)
 +        request_data.pop("stream", None)
@@ -1174,6 +1215,8 @@ index bed58f8..29b3f4f 100644
          request_id: str = request_data.pop(
              "request_id", f"chatcmpl-{uuid.uuid4()}"
          )
++        if self.m3_capture_vllm_engine_events:
++            self._m3_v1_engine_events.pop(request_id, None)
 +        lora_adapter_name = request_data.pop("lora_adapter_name", None)
 +        lora_adapter_id = request_data.pop("lora_adapter_id", None)
 +        lora_adapter_path = request_data.pop("lora_adapter_path", None)
@@ -1187,7 +1230,7 @@ index bed58f8..29b3f4f 100644
  
          try:
              sampling_params = SamplingParams(**request_data)
-@@ -244,23 +592,155 @@ class VllmBackend(SllmBackend):
+@@ -244,23 +627,164 @@ class VllmBackend(SllmBackend):
              return {"error": f"Invalid sampling parameters: {e}"}
  
          results_generator = self.engine.generate(
@@ -1226,7 +1269,7 @@ index bed58f8..29b3f4f 100644
  
          assert final_output is not None
 +        finished_at = time.time()
-+        clock_pair_end = _m3_clock_pair()
++        m3_engine_events = self._m3_v1_engine_events.pop(request_id, {})
  
          if not self.trace_debug:
              await self.request_trace.delete_request(request_id)
@@ -1282,12 +1325,11 @@ index bed58f8..29b3f4f 100644
 +        metrics["first_token_at"] = first_token_at
 +        metrics["last_token_at"] = last_token_at
 +        metrics["finished_at"] = finished_at
-+        scheduled_monotonic_ns, projection_error_bound_ns = (
-+            _m3_project_wall_timestamp(
-+                metrics.get("first_scheduled_time"),
-+                clock_pair_start,
-+                clock_pair_end,
-+            )
++        scheduled_event = m3_engine_events.get("scheduled")
++        scheduled_monotonic_ns = (
++            int(scheduled_event["monotonic_ns"])
++            if scheduled_event is not None
++            else None
 +        )
 +        metrics["m3_ingress_monotonic_ns"] = internal_metrics.get(
 +            "m3_ingress_monotonic_ns"
@@ -1303,20 +1345,30 @@ index bed58f8..29b3f4f 100644
 +        )
 +        metrics["m3_scheduled_monotonic_ns"] = scheduled_monotonic_ns
 +        metrics["m3_first_token_monotonic_ns"] = first_token_monotonic_ns
-+        metrics["m3_scheduled_projection_error_bound_ns"] = (
-+            projection_error_bound_ns
++        metrics["m3_scheduled_event_error_bound_ns"] = (
++            0 if scheduled_monotonic_ns is not None else None
 +        )
-+        metrics["m3_scheduled_projection_method"] = (
-+            "linear_wall_to_monotonic_between_bracketing_pairs_v1"
++        metrics["m3_scheduled_event_source"] = (
++            "vllm_v1_engine_core_scheduled_event"
 +            if scheduled_monotonic_ns is not None
 +            else None
 +        )
-+        metrics["m3_clock_pair_start"] = clock_pair_start
-+        metrics["m3_clock_pair_end"] = clock_pair_end
++        metrics["m3_scheduled_event_monotonic_seconds"] = (
++            scheduled_event.get("monotonic_seconds")
++            if scheduled_event is not None
++            else None
++        )
++        metrics["m3_vllm_engine_events"] = m3_engine_events
++        metrics["m3_event_capture_installed"] = (
++            self._m3_event_capture_installed
++        )
 +        metrics["m3_ingress_boot_id"] = internal_metrics.get(
 +            "m3_ingress_boot_id"
 +        )
 +        metrics["m3_backend_boot_id"] = _M3_BOOT_ID
++        metrics["m3_scheduled_boot_id"] = (
++            _M3_BOOT_ID if scheduled_monotonic_ns is not None else None
++        )
 +        metrics["m3_monotonic_resolution_ns"] = internal_metrics.get(
 +            "m3_monotonic_resolution_ns"
 +        )
