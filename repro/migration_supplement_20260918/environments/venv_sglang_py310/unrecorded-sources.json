@@ -1,0 +1,28 @@
+{
+  "prefix": "/home/qhq/.venvs/sglang_py310",
+  "files": [
+    {
+      "path": "_cuda_bindings_redirector.pth",
+      "site_packages": "/home/qhq/.venvs/sglang_py310/lib/python3.10/site-packages",
+      "snapshot": "unrecorded_sources/python3.10/_cuda_bindings_redirector.pth",
+      "sha256": "28d86507e791da835cf8b9dd21fe98b579b77b3ca27e3ad27bae6239bc94f769",
+      "bytes": 195
+    },
+    {
+      "path": "distutils-precedence.pth",
+      "site_packages": "/home/qhq/.venvs/sglang_py310/lib/python3.10/site-packages",
+      "snapshot": "unrecorded_sources/python3.10/distutils-precedence.pth",
+      "sha256": "7ea7ffef3fe2a117ee12c68ed6553617f0d7fd2f0590257c25c484959a3b7373",
+      "bytes": 152
+    },
+    {
+      "path": "nvidia_cutlass_dsl.pth",
+      "site_packages": "/home/qhq/.venvs/sglang_py310/lib/python3.10/site-packages",
+      "snapshot": "unrecorded_sources/python3.10/nvidia_cutlass_dsl.pth",
+      "sha256": "ca9b44371adda32f6ee6e3bf090becc1b87f1c4a5602f1db535e616bf3fdf4fb",
+      "bytes": 34
+    }
+  ],
+  "excluded": [],
+  "note": "Includes package source additions absent from matching RECORD plus top-level startup/import hooks. Review old absolute paths in .pth and .egg-link files before restoring."
+}

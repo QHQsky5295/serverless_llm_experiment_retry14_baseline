@@ -1,0 +1,9 @@
+# Preserve backup bytes across Git clients and line-ending settings.
+* -text -filter
+# Original installed/source files retain their original whitespace.
+environments/**/record_source_overlays/** -whitespace
+environments/**/source_overlays/** -whitespace
+environments/**/unrecorded_sources/** -whitespace
+environments/**/activation_scripts/** -whitespace
+system/files/** -whitespace
+build_recipes/objects/** -whitespace

@@ -1,0 +1,18 @@
+{
+  "prefix": "/home/qhq/.venvs/punica_cu121_py310",
+  "interpreter_links": [
+    {
+      "path": "bin/python",
+      "target": "/home/qhq/anaconda3/envs/sllm_head_official/bin/python"
+    },
+    {
+      "path": "bin/python3",
+      "target": "python"
+    },
+    {
+      "path": "bin/python3.10",
+      "target": "python"
+    }
+  ],
+  "activation_files": []
+}

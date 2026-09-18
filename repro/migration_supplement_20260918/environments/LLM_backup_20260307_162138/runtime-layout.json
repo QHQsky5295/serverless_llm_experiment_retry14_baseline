@@ -1,0 +1,7 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138",
+  "interpreter_links": [],
+  "activation_files": [
+    "etc/conda/deactivate.d/llm_clean_cuda.sh"
+  ]
+}

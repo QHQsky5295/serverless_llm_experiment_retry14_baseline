@@ -1,0 +1,21 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/llumnix_official_20260615",
+  "files": [
+    {
+      "path": "__editable__.llumnix-0.1.dev1+g3fb6c03.d20260615.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/llumnix_official_20260615/lib/python3.10/site-packages",
+      "snapshot": "unrecorded_sources/python3.10/__editable__.llumnix-0.1.dev1+g3fb6c03.d20260615.pth",
+      "sha256": "6a891b256961127b2d4c0ffa424a33cb1e7929036075cce1ba15ca9fb47ce558",
+      "bytes": 129
+    },
+    {
+      "path": "distutils-precedence.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/llumnix_official_20260615/lib/python3.10/site-packages",
+      "snapshot": "unrecorded_sources/python3.10/distutils-precedence.pth",
+      "sha256": "2638ce9e2500e572a5e0de7faed6661eb569d1b696fcba07b0dd223da5f5d224",
+      "bytes": 151
+    }
+  ],
+  "excluded": [],
+  "note": "Includes package source additions absent from matching RECORD plus top-level startup/import hooks. Review old absolute paths in .pth and .egg-link files before restoring."
+}

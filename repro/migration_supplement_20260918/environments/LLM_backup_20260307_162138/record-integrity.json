@@ -1,0 +1,247 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138",
+  "checked_source_files": 127,
+  "changes": [],
+  "errors": [
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/__init__.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/config.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/mixed_model.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/optimizers/__init__.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/_buffer_dict.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/adalora/config.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/adalora/layer.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/adalora/model.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/adaption_prompt/__init__.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/adaption_prompt/config.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/adaption_prompt/layer.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/boft/config.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/boft/fbd/__init__.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/bone/config.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/c3a/config.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/c3a/layer.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/c3a/model.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/delora/__init__.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/hra/__init__.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/ia3/__init__.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/ia3/layer.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/ln_tuning/layer.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/loha/layer.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/lokr/model.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/lora/__init__.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/lora/bnb.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/lora/config.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/lora/eva.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/lora/inc.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/lora/torchao.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/miss/__init__.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/miss/model.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/osf/config.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/osf/layer.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/osf/utils.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/p_tuning/model.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/poly/config.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/poly/model.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/poly/router.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/prefix_tuning/__init__.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/prompt_tuning/model.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/road/config.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/road/layer.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/trainable_tokens/__init__.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/trainable_tokens/config.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/trainable_tokens/model.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/tuners_utils.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/vblora/__init__.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/vera/bnb.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/vera/model.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/waveft/config.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/waveft/constants.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/xlora/classifier.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/tuners/xlora/model.py",
+      "error": "FileNotFoundError"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages/peft/utils/incremental_pca.py",
+      "error": "FileNotFoundError"
+    }
+  ],
+  "scope": "SHA256 comparison of experiment dependency text/source files listed in pip RECORD. Not a binary/runtime archive or complete detection of unrecorded/Conda-only changes.",
+  "packages_in_scope": [
+    "aibrix",
+    "distserve",
+    "lightllm",
+    "llumnix",
+    "lmcache",
+    "loquetier",
+    "mooncake_transfer_engine",
+    "peft",
+    "punica",
+    "serverless_llm",
+    "serverless_llm_store",
+    "sglang",
+    "sllm",
+    "sllm_store",
+    "slora",
+    "transformers",
+    "vllm"
+  ]
+}

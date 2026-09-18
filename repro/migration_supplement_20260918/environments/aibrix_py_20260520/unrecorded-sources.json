@@ -1,0 +1,21 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/aibrix_py_20260520",
+  "files": [
+    {
+      "path": "aibrix.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/aibrix_py_20260520/lib/python3.11/site-packages",
+      "snapshot": "unrecorded_sources/python3.11/aibrix.pth",
+      "sha256": "186ea842bae1066b1bec1cd65a80d3873ed3d716ef2d7c26cefb58bf56551a01",
+      "bytes": 93
+    },
+    {
+      "path": "distutils-precedence.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/aibrix_py_20260520/lib/python3.11/site-packages",
+      "snapshot": "unrecorded_sources/python3.11/distutils-precedence.pth",
+      "sha256": "2638ce9e2500e572a5e0de7faed6661eb569d1b696fcba07b0dd223da5f5d224",
+      "bytes": 151
+    }
+  ],
+  "excluded": [],
+  "note": "Includes package source additions absent from matching RECORD plus top-level startup/import hooks. Review old absolute paths in .pth and .egg-link files before restoring."
+}

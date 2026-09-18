@@ -1,0 +1,26 @@
+{
+  "prefix": "/home/qhq/.venvs/punica_py310",
+  "checked_source_files": 0,
+  "changes": [],
+  "errors": [],
+  "scope": "SHA256 comparison of experiment dependency text/source files listed in pip RECORD. Not a binary/runtime archive or complete detection of unrecorded/Conda-only changes.",
+  "packages_in_scope": [
+    "aibrix",
+    "distserve",
+    "lightllm",
+    "llumnix",
+    "lmcache",
+    "loquetier",
+    "mooncake_transfer_engine",
+    "peft",
+    "punica",
+    "serverless_llm",
+    "serverless_llm_store",
+    "sglang",
+    "sllm",
+    "sllm_store",
+    "slora",
+    "transformers",
+    "vllm"
+  ]
+}

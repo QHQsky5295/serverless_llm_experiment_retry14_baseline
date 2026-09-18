@@ -1,0 +1,21 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/slinfer_official_20260612",
+  "files": [
+    {
+      "path": "__editable__.vllm-0.5.2+cu124.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/slinfer_official_20260612/lib/python3.11/site-packages",
+      "snapshot": "unrecorded_sources/python3.11/__editable__.vllm-0.5.2+cu124.pth",
+      "sha256": "053cd161d2c8f265d025d0e3da1b997ae608b88d9b4aab88e920b89229a2d513",
+      "bytes": 91
+    },
+    {
+      "path": "distutils-precedence.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/slinfer_official_20260612/lib/python3.11/site-packages",
+      "snapshot": "unrecorded_sources/python3.11/distutils-precedence.pth",
+      "sha256": "2638ce9e2500e572a5e0de7faed6661eb569d1b696fcba07b0dd223da5f5d224",
+      "bytes": 151
+    }
+  ],
+  "excluded": [],
+  "note": "Includes package source additions absent from matching RECORD plus top-level startup/import hooks. Review old absolute paths in .pth and .egg-link files before restoring."
+}

@@ -1,0 +1,29 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/dlora_20260519",
+  "interpreter_links": [
+    {
+      "path": "bin/python",
+      "target": "python3.9"
+    },
+    {
+      "path": "bin/python3",
+      "target": "python3.9"
+    },
+    {
+      "path": "bin/python3-config",
+      "target": "python3.9-config"
+    }
+  ],
+  "activation_files": [
+    "etc/conda/activate.d/activate-binutils_linux-64.sh",
+    "etc/conda/activate.d/activate-gcc_linux-64.sh",
+    "etc/conda/activate.d/activate-gxx_linux-64.sh",
+    "etc/conda/activate.d/libglib_activate.sh",
+    "etc/conda/activate.d/~cuda-nvcc_activate.sh",
+    "etc/conda/deactivate.d/deactivate-binutils_linux-64.sh",
+    "etc/conda/deactivate.d/deactivate-gcc_linux-64.sh",
+    "etc/conda/deactivate.d/deactivate-gxx_linux-64.sh",
+    "etc/conda/deactivate.d/libglib_deactivate.sh",
+    "etc/conda/deactivate.d/~cuda-nvcc_deactivate.sh"
+  ]
+}

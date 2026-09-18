@@ -1,0 +1,8 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/aibrix_20260520",
+  "interpreter_links": [],
+  "activation_files": [
+    "etc/conda/activate.d/activate_z60-go.sh",
+    "etc/conda/deactivate.d/deactivate_z60-go.sh"
+  ]
+}

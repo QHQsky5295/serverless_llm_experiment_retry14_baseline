@@ -1,0 +1,22 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/sllm_head_official",
+  "interpreter_links": [
+    {
+      "path": "bin/python",
+      "target": "python3.10"
+    },
+    {
+      "path": "bin/python3",
+      "target": "python3.10"
+    },
+    {
+      "path": "bin/python3-config",
+      "target": "python3.10-config"
+    },
+    {
+      "path": "bin/python3.1",
+      "target": "python3.10"
+    }
+  ],
+  "activation_files": []
+}

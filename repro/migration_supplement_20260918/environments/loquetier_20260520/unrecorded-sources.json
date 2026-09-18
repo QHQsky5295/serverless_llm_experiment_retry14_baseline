@@ -1,0 +1,21 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/loquetier_20260520",
+  "files": [
+    {
+      "path": "__editable__.vllm-0.1.4.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/loquetier_20260520/lib/python3.9/site-packages",
+      "snapshot": "unrecorded_sources/python3.9/__editable__.vllm-0.1.4.pth",
+      "sha256": "7dcab524ebea18d29054ac565270f03182ccd6402b285ee49ff5688e0088558e",
+      "bytes": 79
+    },
+    {
+      "path": "distutils-precedence.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/loquetier_20260520/lib/python3.9/site-packages",
+      "snapshot": "unrecorded_sources/python3.9/distutils-precedence.pth",
+      "sha256": "2638ce9e2500e572a5e0de7faed6661eb569d1b696fcba07b0dd223da5f5d224",
+      "bytes": 151
+    }
+  ],
+  "excluded": [],
+  "note": "Includes package source additions absent from matching RECORD plus top-level startup/import hooks. Review old absolute paths in .pth and .egg-link files before restoring."
+}

@@ -1,0 +1,45 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/sllm_vllm0102_official",
+  "checked_source_files": 3349,
+  "changes": [
+    {
+      "path": "vllm/model_executor/models/llama.py",
+      "site_packages": "/home/qhq/anaconda3/envs/sllm_vllm0102_official/lib/python3.12/site-packages",
+      "distribution": "vllm-0.10.2.dist-info",
+      "installed_original_hash": "sha256=sxPiiOhS2Y2WzAHwiY_0mvcsdXh6EH-jSE7Qf8CRTfI",
+      "snapshot_sha256": "231282afc57850184704a0ab064a83828701ab8662c9547042fbe4f987a4ea93",
+      "bytes": 27815,
+      "snapshot": "record_source_overlays/python3.12/vllm/model_executor/models/llama.py"
+    },
+    {
+      "path": "vllm/transformers_utils/tokenizers/mistral.py",
+      "site_packages": "/home/qhq/anaconda3/envs/sllm_vllm0102_official/lib/python3.12/site-packages",
+      "distribution": "vllm-0.10.2.dist-info",
+      "installed_original_hash": "sha256=y0b3NYxiG6fFaPGGAP74xhfR_3EDO_a--QBKEF0hfnY",
+      "snapshot_sha256": "db9cf31ee9c6c2ce4a9e9995182e7ae4a9562da3761c30492c595569e94459cd",
+      "bytes": 20826,
+      "snapshot": "record_source_overlays/python3.12/vllm/transformers_utils/tokenizers/mistral.py"
+    }
+  ],
+  "errors": [],
+  "scope": "SHA256 comparison of experiment dependency text/source files listed in pip RECORD. Not a binary/runtime archive or complete detection of unrecorded/Conda-only changes.",
+  "packages_in_scope": [
+    "aibrix",
+    "distserve",
+    "lightllm",
+    "llumnix",
+    "lmcache",
+    "loquetier",
+    "mooncake_transfer_engine",
+    "peft",
+    "punica",
+    "serverless_llm",
+    "serverless_llm_store",
+    "sglang",
+    "sllm",
+    "sllm_store",
+    "slora",
+    "transformers",
+    "vllm"
+  ]
+}

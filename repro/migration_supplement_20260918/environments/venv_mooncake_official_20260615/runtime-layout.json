@@ -1,0 +1,18 @@
+{
+  "prefix": "/home/qhq/.venvs/mooncake_official_20260615",
+  "interpreter_links": [
+    {
+      "path": "bin/python",
+      "target": "/home/qhq/anaconda3/envs/LLM/bin/python"
+    },
+    {
+      "path": "bin/python3",
+      "target": "python"
+    },
+    {
+      "path": "bin/python3.12",
+      "target": "python"
+    }
+  ],
+  "activation_files": []
+}

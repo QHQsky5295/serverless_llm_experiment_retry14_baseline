@@ -1,0 +1,28 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138",
+  "files": [
+    {
+      "path": "distutils-precedence.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages",
+      "snapshot": "unrecorded_sources/python3.12/distutils-precedence.pth",
+      "sha256": "2638ce9e2500e572a5e0de7faed6661eb569d1b696fcba07b0dd223da5f5d224",
+      "bytes": 151
+    },
+    {
+      "path": "nvidia_cutlass_dsl.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages",
+      "snapshot": "unrecorded_sources/python3.12/nvidia_cutlass_dsl.pth",
+      "sha256": "ca9b44371adda32f6ee6e3bf090becc1b87f1c4a5602f1db535e616bf3fdf4fb",
+      "bytes": 34
+    },
+    {
+      "path": "sitecustomize.py",
+      "site_packages": "/home/qhq/anaconda3/envs/LLM_backup_20260307_162138/lib/python3.12/site-packages",
+      "snapshot": "unrecorded_sources/python3.12/sitecustomize.py",
+      "sha256": "0f81ecd80fe496c0fcc95f194acfd0f9b050a4146fae48cb4bd2e82f14a6472e",
+      "bytes": 1640
+    }
+  ],
+  "excluded": [],
+  "note": "Includes package source additions absent from matching RECORD plus top-level startup/import hooks. Review old absolute paths in .pth and .egg-link files before restoring."
+}

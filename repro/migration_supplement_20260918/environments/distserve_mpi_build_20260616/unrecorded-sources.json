@@ -1,0 +1,6 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/distserve_mpi_build_20260616",
+  "files": [],
+  "excluded": [],
+  "note": "Includes package source additions absent from matching RECORD plus top-level startup/import hooks. Review old absolute paths in .pth and .egg-link files before restoring."
+}

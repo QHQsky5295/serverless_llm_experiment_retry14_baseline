@@ -1,0 +1,22 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/splitwise_official_20260615",
+  "interpreter_links": [
+    {
+      "path": "bin/python",
+      "target": "python3.11"
+    },
+    {
+      "path": "bin/python3",
+      "target": "python3.11"
+    },
+    {
+      "path": "bin/python3-config",
+      "target": "python3.11-config"
+    },
+    {
+      "path": "bin/python3.1",
+      "target": "python3.11"
+    }
+  ],
+  "activation_files": []
+}

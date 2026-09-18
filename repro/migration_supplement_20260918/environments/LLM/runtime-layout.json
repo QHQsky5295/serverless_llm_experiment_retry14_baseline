@@ -1,0 +1,25 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/LLM",
+  "interpreter_links": [
+    {
+      "path": "bin/python",
+      "target": "python3.12"
+    },
+    {
+      "path": "bin/python3",
+      "target": "python3.12"
+    },
+    {
+      "path": "bin/python3-config",
+      "target": "python3.12-config"
+    },
+    {
+      "path": "bin/python3.1",
+      "target": "python3.12"
+    }
+  ],
+  "activation_files": [
+    "etc/conda/activate.d/llm_clean_cuda.sh",
+    "etc/conda/deactivate.d/llm_clean_cuda.sh"
+  ]
+}

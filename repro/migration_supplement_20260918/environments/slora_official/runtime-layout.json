@@ -1,0 +1,21 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/slora_official",
+  "interpreter_links": [
+    {
+      "path": "bin/python",
+      "target": "python3.9"
+    },
+    {
+      "path": "bin/python3",
+      "target": "python3.9"
+    },
+    {
+      "path": "bin/python3-config",
+      "target": "python3.9-config"
+    }
+  ],
+  "activation_files": [
+    "etc/conda/activate.d/libglib_activate.sh",
+    "etc/conda/deactivate.d/libglib_deactivate.sh"
+  ]
+}

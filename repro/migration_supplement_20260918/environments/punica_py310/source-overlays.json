@@ -1,0 +1,56 @@
+[
+  {
+    "path": "sllm/app_lib.py",
+    "distribution": "serverless_llm-0.8.0.dist-info",
+    "installed_original_hash": "sha256=RiR2dEIJdARw_DLeEMwPqCWmnWSAMEWYLn-ArnI0_Z0",
+    "snapshot_sha256": "33a319e2f2be700d2aa20c68068312c028449ff7c962ea1fc8b64568f55587fb"
+  },
+  {
+    "path": "sllm/backends/__init__.py",
+    "distribution": "serverless_llm-0.8.0.dist-info",
+    "installed_original_hash": "sha256=6pECcuM0dcPz5c-qrStgMeXVBJZiB7oF8Gzx6DT-CV0",
+    "snapshot_sha256": "6239c243ed66bb2f48c703dae76b301c5a6de94fdb427737da3c8052c8bc7099"
+  },
+  {
+    "path": "sllm/backends/transformers_backend.py",
+    "distribution": "serverless_llm-0.8.0.dist-info",
+    "installed_original_hash": "sha256=H6LFwWyosiqU5IfU3xyaAe0h9w8_mKpva7dTX7XGZQE",
+    "snapshot_sha256": "f9fc876e529649e6140a29aaea6ced6baff7909fed044c1fcf3c0d1e7c86befc"
+  },
+  {
+    "path": "sllm/backends/vllm_backend.py",
+    "distribution": "serverless_llm-0.8.0.dist-info",
+    "installed_original_hash": "sha256=2u31OwfcTiA5P1PNyKNdd5QewMsjihoyzv_PnKdPn_Y",
+    "snapshot_sha256": "ab9bc8fc3d3c0f9fa1a77a8b7b58666ef989184f6c3b0583b5d2bf975bd5a701"
+  },
+  {
+    "path": "sllm/controller.py",
+    "distribution": "serverless_llm-0.8.0.dist-info",
+    "installed_original_hash": "sha256=is-cBi2vJEvk5YaG8b1puwTI1p2ag-7HvP1LeEcHXjQ",
+    "snapshot_sha256": "778733aabb6cee8a5024c2d7cfb7f8392a5ef5691f13735dede31aa811a1f009"
+  },
+  {
+    "path": "sllm/hardware_info_collector.py",
+    "distribution": "serverless_llm-0.8.0.dist-info",
+    "installed_original_hash": "sha256=Nw9zzkqOVFyzwbaoLWbosnwpja_HFgY4awZEmBSChUU",
+    "snapshot_sha256": "3c06db9742a1db20b84b0dcac958873e616c269f7e79716386b51bd39b4f4c8d"
+  },
+  {
+    "path": "sllm/routers/roundrobin_router.py",
+    "distribution": "serverless_llm-0.8.0.dist-info",
+    "installed_original_hash": "sha256=tZT4wojfYV-YuiyzWxUejvjJXiXE4GyVO110aOIf58o",
+    "snapshot_sha256": "0182bd4862c1c0e1c4bf5d00507704f05d3d5092c267b4670ff31a4c79b18843"
+  },
+  {
+    "path": "sllm/store_manager.py",
+    "distribution": "serverless_llm-0.8.0.dist-info",
+    "installed_original_hash": "sha256=KerArKvPz4IeQ9oPsibERRAH40VZ2K6SEuL4ddVdsqU",
+    "snapshot_sha256": "15c4f95bfda26e5fec9b274ad8742d17d45316d5bbdfbf5c681646e6f9ba2b47"
+  },
+  {
+    "path": "sllm/utils.py",
+    "distribution": "serverless_llm-0.8.0.dist-info",
+    "installed_original_hash": "sha256=4-vYA-4G9mZaqlHlhpEeEEml8sEYthLXUKJd7_fQCPw",
+    "snapshot_sha256": "5c1465b6490f8c76ec0cd738fbc0d8b8cbac71e1e34c792806afe1703118cf79"
+  }
+]

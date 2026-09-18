@@ -1,0 +1,21 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/sllm_worker_official",
+  "files": [
+    {
+      "path": "distutils-precedence.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/sllm_worker_official/lib/python3.10/site-packages",
+      "snapshot": "unrecorded_sources/python3.10/distutils-precedence.pth",
+      "sha256": "2638ce9e2500e572a5e0de7faed6661eb569d1b696fcba07b0dd223da5f5d224",
+      "bytes": 151
+    },
+    {
+      "path": "nvidia_cutlass_dsl.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/sllm_worker_official/lib/python3.10/site-packages",
+      "snapshot": "unrecorded_sources/python3.10/nvidia_cutlass_dsl.pth",
+      "sha256": "ca9b44371adda32f6ee6e3bf090becc1b87f1c4a5602f1db535e616bf3fdf4fb",
+      "bytes": 34
+    }
+  ],
+  "excluded": [],
+  "note": "Includes package source additions absent from matching RECORD plus top-level startup/import hooks. Review old absolute paths in .pth and .egg-link files before restoring."
+}

@@ -1,0 +1,21 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/slora_official_cu118",
+  "files": [
+    {
+      "path": "__editable__.slora-1.0.0.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/slora_official_cu118/lib/python3.9/site-packages",
+      "snapshot": "unrecorded_sources/python3.9/__editable__.slora-1.0.0.pth",
+      "sha256": "4dda49622617ae9b8c4a7098ff28fc4103fa5f8a59c0026f3e63e8912b481d5f",
+      "bytes": 81
+    },
+    {
+      "path": "distutils-precedence.pth",
+      "site_packages": "/home/qhq/anaconda3/envs/slora_official_cu118/lib/python3.9/site-packages",
+      "snapshot": "unrecorded_sources/python3.9/distutils-precedence.pth",
+      "sha256": "2638ce9e2500e572a5e0de7faed6661eb569d1b696fcba07b0dd223da5f5d224",
+      "bytes": 151
+    }
+  ],
+  "excluded": [],
+  "note": "Includes package source additions absent from matching RECORD plus top-level startup/import hooks. Review old absolute paths in .pth and .egg-link files before restoring."
+}

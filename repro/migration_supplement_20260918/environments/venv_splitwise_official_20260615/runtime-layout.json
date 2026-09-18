@@ -1,0 +1,18 @@
+{
+  "prefix": "/home/qhq/.venvs/splitwise_official_20260615",
+  "interpreter_links": [
+    {
+      "path": "bin/python",
+      "target": "python3"
+    },
+    {
+      "path": "bin/python3",
+      "target": "/home/qhq/anaconda3/bin/python3"
+    },
+    {
+      "path": "bin/python3.13",
+      "target": "python3"
+    }
+  ],
+  "activation_files": []
+}

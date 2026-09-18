@@ -1,0 +1,16 @@
+{
+  "prefix": "/home/qhq/anaconda3/envs/distserve_mpi_build_20260616",
+  "interpreter_links": [],
+  "activation_files": [
+    "etc/conda/activate.d/activate-binutils_linux-64.sh",
+    "etc/conda/activate.d/activate-gcc_linux-64.sh",
+    "etc/conda/activate.d/activate-gxx_linux-64.sh",
+    "etc/conda/activate.d/libfabric_activate.sh",
+    "etc/conda/activate.d/libxml2-split_activate.sh",
+    "etc/conda/activate.d/openmpi_activate.sh",
+    "etc/conda/activate.d/ucx-activate.sh",
+    "etc/conda/deactivate.d/deactivate-binutils_linux-64.sh",
+    "etc/conda/deactivate.d/deactivate-gcc_linux-64.sh",
+    "etc/conda/deactivate.d/deactivate-gxx_linux-64.sh"
+  ]
+}
