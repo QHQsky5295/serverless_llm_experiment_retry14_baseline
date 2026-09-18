@@ -1,0 +1,1 @@
+# update specs: ['python=3.10']

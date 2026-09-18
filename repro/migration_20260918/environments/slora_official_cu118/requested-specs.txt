@@ -1,0 +1,2 @@
+# update specs: ['python=3.9']
+# update specs: ['cuda']

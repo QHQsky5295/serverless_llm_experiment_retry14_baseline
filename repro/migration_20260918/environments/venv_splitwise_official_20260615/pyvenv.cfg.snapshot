@@ -1,0 +1,5 @@
+home = /home/qhq/anaconda3/bin
+include-system-site-packages = true
+version = 3.13.5
+executable = /home/qhq/anaconda3/bin/python3.13
+command = /home/qhq/anaconda3/bin/python3 -m venv --system-site-packages /home/qhq/.venvs/splitwise_official_20260615

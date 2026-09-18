@@ -1,0 +1,19 @@
+[
+  {
+    "name": "mooncake-transfer-engine-cuda13",
+    "version": "0.3.11.post1",
+    "direct_url": {
+      "archive_info": {
+        "hash": "sha256=1f0b62ef625bf017eb4f1717d7240bf72ba22cb9c0abd93fcd28ed53bbb492b9",
+        "hashes": {
+          "sha256": "1f0b62ef625bf017eb4f1717d7240bf72ba22cb9c0abd93fcd28ed53bbb492b9"
+        }
+      },
+      "url": "file:///tmp/mooncake_wheel_probe/mooncake_transfer_engine_cuda13-0.3.11.post1-cp312-cp312-manylinux_2_35_x86_64.whl"
+    }
+  },
+  {
+    "name": "pip",
+    "version": "25.0.1"
+  }
+]

@@ -1,0 +1,3 @@
+# update specs: ['python=3.10']
+# update specs: ['ninja', 'cmake']
+# update specs: ["cmake[version='<4.0']", 'ninja']

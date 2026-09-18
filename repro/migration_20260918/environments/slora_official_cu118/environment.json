@@ -1,0 +1,7 @@
+{
+  "original_prefix": "/home/qhq/anaconda3/envs/slora_official_cu118",
+  "conda_packages": 85,
+  "python_distributions": 58,
+  "source_overlays": 0,
+  "note": "Package metadata snapshot. pip-versions includes Conda-managed distributions; do not blindly install it over Conda. Local editable packages require source revisions and patches."
+}

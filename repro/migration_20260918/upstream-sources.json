@@ -1,0 +1,505 @@
+[
+  {
+    "source": "/home/qhq/serverless_llm_baselines/repos/DualMap",
+    "head": "24816acc70b8e8f4f6b47bc47b7ce0fdddddf40d",
+    "origin": "https://github.com/ASISys/DualMap.git",
+    "snapshot_id": "00_DualMap",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/repos/Preble",
+    "head": "1a35eae20c416f7062ca81775aab72890323fd97",
+    "origin": "https://github.com/WukLab/preble.git",
+    "snapshot_id": "01_Preble",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/repos/Punica",
+    "head": "591b59899f0a20760821785d06b331c8a2e5cb86",
+    "origin": "https://github.com/punica-ai/punica.git",
+    "snapshot_id": "02_Punica",
+    "patch_bytes": 257,
+    "untracked_source_files": [],
+    "patch": "upstream_patches/02_Punica.patch",
+    "patch_sha256": "c4ff8e7453868a6c34f3dd345ac61cb5f609c733ff6f020b30cda4b1c13f5e1e",
+    "credential_review": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/repos/Punica/third_party/cutlass",
+    "head": "5cd735c48ec194039edb647aa7b37f4ff470738e",
+    "origin": "https://github.com/NVIDIA/cutlass.git",
+    "snapshot_id": "03_cutlass",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/repos/Punica/third_party/flashinfer",
+    "head": "89a761fc31b795f6d6dd021498dced8bc75db44d",
+    "origin": "https://github.com/flashinfer-ai/flashinfer.git",
+    "snapshot_id": "04_flashinfer",
+    "patch_bytes": 331,
+    "untracked_source_files": [],
+    "patch": "upstream_patches/04_flashinfer.patch",
+    "patch_sha256": "6634b8181171fa9a18bb15c07c063b118cba89b8fee9dd6609b5d3430b1b88da",
+    "credential_review": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/repos/Punica/third_party/flashinfer/3rdparty/googletest",
+    "head": "40412d85124f7c6f3d88454583c4633e5e10fc8c",
+    "origin": "https://github.com/google/googletest.git",
+    "snapshot_id": "05_googletest",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/repos/Punica/third_party/flashinfer/3rdparty/nvbench",
+    "head": "f57aa9c993f4392a76650bc54513f571cd1128c9",
+    "origin": "https://github.com/NVIDIA/nvbench.git",
+    "snapshot_id": "06_nvbench",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/repos/Punica/third_party/nvbench",
+    "head": "39b2770b62ce1f4e0ebeb9af60d7c6de624633a5",
+    "origin": "https://github.com/NVIDIA/nvbench.git",
+    "snapshot_id": "07_nvbench",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/repos/S-LoRA",
+    "head": "c1ddf488781ea7f551cd0bb07bfd097124c93411",
+    "origin": "https://github.com/S-LoRA/S-LoRA.git",
+    "snapshot_id": "08_S-LoRA",
+    "patch_bytes": 43847,
+    "untracked_source_files": [],
+    "patch": "upstream_patches/08_S-LoRA.patch",
+    "patch_sha256": "7a0f48f60c225789014ad960ec3ab1cf6388611b7650a4f656f1208c981c2d60",
+    "credential_review": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/repos/SGLang",
+    "head": "7d7fdc13093ccc151ddb43a5e5a2e0017872464e",
+    "origin": "https://github.com/sgl-project/sglang",
+    "snapshot_id": "09_SGLang",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/repos/ServerlessLLM",
+    "head": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
+    "origin": "https://github.com/ServerlessLLM/ServerlessLLM.git",
+    "snapshot_id": "10_ServerlessLLM",
+    "patch_bytes": 99350,
+    "untracked_source_files": [],
+    "patch": "upstream_patches/10_ServerlessLLM.patch",
+    "patch_sha256": "597434bec555af91db960ff101b624718fe2c99e9c2b68586c640a2c9310afa9",
+    "credential_review": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/repos/skypilot",
+    "head": "ce5970ae46269cff18a22caf8102bf7dab097bd0",
+    "origin": "https://github.com/skypilot-org/skypilot.git",
+    "snapshot_id": "11_skypilot",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/repos/vllm-router",
+    "head": "1fbcde7443d75b36befb61bc081f64c2a1f13a4b",
+    "origin": "https://github.com/vllm-project/router.git",
+    "snapshot_id": "12_vllm-router",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/AIBrix_v0.6.0_20260520",
+    "head": "52405d78c63c68df5be9e8bdc5e21ccd6c4abde2",
+    "origin": "https://github.com/vllm-project/aibrix.git",
+    "snapshot_id": "13_AIBrix_v0_6_0_20260520",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Derecho_v2.4.0_for_rdmap2p_20260519",
+    "head": "7109b15a1dd48131350e2de3ed55376414ab8df8",
+    "origin": "https://github.com/Derecho-Project/derecho.git",
+    "snapshot_id": "14_Derecho_v2_4_0_for_rdmap2p_20260519",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/DistServe_main_20260614",
+    "head": "82831f1604cc6b10bebd360f6c437a07790dde9f",
+    "origin": "https://github.com/LLMServe/DistServe.git",
+    "snapshot_id": "15_DistServe_main_20260614",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520",
+    "head": "8ae605de354ccfa2e9095514cdb4a9e9c56aa56b",
+    "origin": "https://github.com/LLMServe/hydraserve.git",
+    "snapshot_id": "16_HydraServe_main_20260520",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Llumnix_main_20260615",
+    "head": "3fb6c0376b3b186a73f722abda8c410653d49d8e",
+    "origin": "https://github.com/AlibabaPAI/llumnix.git",
+    "snapshot_id": "17_Llumnix_main_20260615",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520",
+    "head": "aae33baeeb19777129c1ccbff99a898d4a0e2c63",
+    "origin": "https://github.com/NJUDeepEngine/Loquetier.git",
+    "snapshot_id": "18_Loquetier_main_20260520",
+    "patch_bytes": 8200,
+    "untracked_source_files": [],
+    "patch": "upstream_patches/18_Loquetier_main_20260520.patch",
+    "patch_sha256": "de476d06c318ba2be7f65dd9dba9bfb30a2f2c7e14e8bd6e35f30206ab041a39",
+    "credential_review": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/kernel_src/third_party/cutlass",
+    "head": "5cd735c48ec194039edb647aa7b37f4ff470738e",
+    "origin": "https://github.com/NVIDIA/cutlass.git",
+    "snapshot_id": "19_cutlass",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Medusa_main_20260518",
+    "head": "6581d2e5ec8fa4ecdabcdb50560982a78ea3ca89",
+    "origin": "https://github.com/thustorage/Medusa.git",
+    "snapshot_id": "20_Medusa_main_20260518",
+    "patch_bytes": 6237,
+    "untracked_source_files": [],
+    "patch": "upstream_patches/20_Medusa_main_20260518.patch",
+    "patch_sha256": "40c16aea3d8ea971d11e962610bbdf38da53121ce86bd3960fb9ede6dc725f65",
+    "credential_review": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Mooncake_main_20260615",
+    "head": "2e62dbac2c0e081106888312410580ce9ee2403f",
+    "origin": "https://github.com/kvcache-ai/Mooncake.git",
+    "snapshot_id": "21_Mooncake_main_20260615",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SLINFER_main_20260323",
+    "head": "483a276178efcea9c761deaeae802e82de6443b1",
+    "origin": "https://github.com/BarrinXu/SLINFER.git",
+    "snapshot_id": "22_SLINFER_main_20260323",
+    "patch_bytes": 6754,
+    "untracked_source_files": [],
+    "patch": "upstream_patches/22_SLINFER_main_20260323.patch",
+    "patch_sha256": "13adc432ac67ec10d64e7acbf8772988f8104887c7db3f70016d6417acf085e3",
+    "credential_review": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SPDK-Medusa_20260519",
+    "head": "3dd897f8406f0824d6de08d0cb21df9e0f9ed76c",
+    "origin": "https://github.com/ShaoxunZeng/SPDK-Medusa.git",
+    "snapshot_id": "23_SPDK-Medusa_20260519",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SPDK-Medusa_20260519/dpdk",
+    "head": "afe4186365c4435c51ed9a8fd2550ee16c6c17db",
+    "origin": "https://github.com/spdk/dpdk.git",
+    "snapshot_id": "24_dpdk",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SPDK-Medusa_20260519/intel-ipsec-mb",
+    "head": "935a3802883249ba3b12e566833994af7991e808",
+    "origin": "https://github.com/spdk/intel-ipsec-mb.git",
+    "snapshot_id": "25_intel-ipsec-mb",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SPDK-Medusa_20260519/isa-l",
+    "head": "6f420b14a1e3e091bc9d15f508a54f82c007483c",
+    "origin": "https://github.com/spdk/isa-l.git",
+    "snapshot_id": "26_isa-l",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SPDK-Medusa_20260519/isa-l-crypto",
+    "head": "08297dc3e76d65e1bad83a9c9f9e49059cf806b5",
+    "origin": "https://github.com/intel/isa-l_crypto",
+    "snapshot_id": "27_isa-l-crypto",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SPDK-Medusa_20260519/libvfio-user",
+    "head": "e817d2e67835a80761fd33c4a1ed445c3309f3e7",
+    "origin": "https://github.com/nutanix/libvfio-user.git",
+    "snapshot_id": "28_libvfio-user",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SPDK-Medusa_20260519/ocf",
+    "head": "d1d6d7cb5f55b616d2aa5123f84ce4ece10fdb0b",
+    "origin": "https://github.com/Open-CAS/ocf.git",
+    "snapshot_id": "29_ocf",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SPDK-Medusa_20260519/xnvme",
+    "head": "3834fd860d40b6a3608aae11f9ceb017a0c93b29",
+    "origin": "https://github.com/OpenMPDK/xNVMe.git",
+    "snapshot_id": "30_xnvme",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SarathiServe_main_20260520",
+    "head": "96f9911790ecc00af12ee9fae47cb8fa9ba0d199",
+    "origin": "https://github.com/microsoft/sarathi-serve.git",
+    "snapshot_id": "31_SarathiServe_main_20260520",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SarathiServe_osdi_20260520",
+    "head": "ceaa0660ea2487976101a8167aad5c8046e85b27",
+    "origin": "https://github.com/microsoft/sarathi-serve.git",
+    "snapshot_id": "32_SarathiServe_osdi_20260520",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/ServerlessLLM_new_main_20260518",
+    "head": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
+    "origin": "https://github.com/ServerlessLLM/ServerlessLLM.git",
+    "snapshot_id": "33_ServerlessLLM_new_main_20260518",
+    "patch_bytes": 84951,
+    "untracked_source_files": [],
+    "patch": "upstream_patches/33_ServerlessLLM_new_main_20260518.patch",
+    "patch_sha256": "297bfcd29c66b39ac187453e8313b373475607c3dbcecbffee4087c578582298",
+    "credential_review": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SwiftTransformer_main_20260615",
+    "head": "9948e31b371aac93caff73b8c0dc50cf77d890cb",
+    "origin": "https://github.com/LLMServe/SwiftTransformer.git",
+    "snapshot_id": "34_SwiftTransformer_main_20260615",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SwiftTransformer_main_20260615/src/csrc/kernel/xformers",
+    "head": "ad986981b141a218bf07bf968e920051ff2c7b41",
+    "origin": "https://github.com/facebookresearch/xformers.git",
+    "snapshot_id": "35_xformers",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SwiftTransformer_main_20260615/src/csrc/kernel/xformers/third_party/cutlass",
+    "head": "e0aaa3c3b38db9a89c31f04fef91e92123ad5e2e",
+    "origin": "https://github.com/NVIDIA/cutlass.git",
+    "snapshot_id": "36_cutlass",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SwiftTransformer_main_20260615/src/csrc/kernel/xformers/third_party/flash-attention",
+    "head": "92dd5703ecdb99aa4a4aee9817f28557907403a2",
+    "origin": "https://github.com/Dao-AILab/flash-attention.git",
+    "snapshot_id": "37_flash-attention",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SwiftTransformer_main_20260615/src/csrc/kernel/xformers/third_party/flash-attention/csrc/cutlass",
+    "head": "44c704eae85da352d277d6f092f41412772f70e4",
+    "origin": "https://github.com/NVIDIA/cutlass.git",
+    "snapshot_id": "38_cutlass",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/dLoRA_artifact_main_20260519",
+    "head": "75f1c439446fe194b1df8a24982ef9067841fab5",
+    "origin": "https://github.com/LLMServe/dLoRA-artifact.git",
+    "snapshot_id": "39_dLoRA_artifact_main_20260519",
+    "patch_bytes": 34678,
+    "untracked_source_files": [],
+    "patch": "upstream_patches/39_dLoRA_artifact_main_20260519.patch",
+    "patch_sha256": "369da34f212fe14593347db73a54466719d989fed18fede9f00f8ef6e9e6ae26",
+    "credential_review": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/gdrcopy_20260519",
+    "head": "737708f3b5955cb6ef6b47bba35600a31bce4222",
+    "origin": "https://github.com/NVIDIA/gdrcopy.git",
+    "snapshot_id": "40_gdrcopy_20260519",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/lambda-scale_localadapt_20260519",
+    "head": "9db210fcb6979f7c1f73f9819a77e0edb6c5e343",
+    "origin": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/lambda-scale_main_20260518",
+    "snapshot_id": "41_lambda-scale_localadapt_20260519",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/lambda-scale_main_20260518",
+    "head": "9db210fcb6979f7c1f73f9819a77e0edb6c5e343",
+    "origin": "https://github.com/lambda-scale/lambda-scale.git",
+    "snapshot_id": "42_lambda-scale_main_20260518",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/rdma-p2p_localadapt_20260519",
+    "head": "ed83237439d2103141fbc7c9b97f348055b6cb53",
+    "origin": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/rdma-p2p_main_20260518",
+    "snapshot_id": "43_rdma-p2p_localadapt_20260519",
+    "patch_bytes": 850,
+    "untracked_source_files": [
+      {
+        "path": "cmake/Modules/GetGitRevisionDescription.cmake",
+        "sha256": "3144feab0eb7a19a57137c05f0a3ad9fca12ee5f60c217c16baffcbc7ca34af6",
+        "snapshot": "upstream_untracked/43_rdma-p2p_localadapt_20260519/cmake/Modules/GetGitRevisionDescription.cmake"
+      },
+      {
+        "path": "config.h.in",
+        "sha256": "e827ac75a04d8684aa3895d33bca5d24a2084b0690845d43eea42d9b7003fed0",
+        "snapshot": "upstream_untracked/43_rdma-p2p_localadapt_20260519/config.h.in"
+      },
+      {
+        "path": "derechoConfig.cmake",
+        "sha256": "8c51788750efaaa3631f1b315b885b4064a9ab7fd3ae249a55da2f71d067f318",
+        "snapshot": "upstream_untracked/43_rdma-p2p_localadapt_20260519/derechoConfig.cmake"
+      }
+    ],
+    "patch": "upstream_patches/43_rdma-p2p_localadapt_20260519.patch",
+    "patch_sha256": "d09c072665066a651863670ac7da56456aa0d0bb994f3d34ec4e490880f7448c",
+    "credential_review": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/rdma-p2p_localadapt_20260519/extern/pybind11",
+    "head": "3e9dfa2866941655c56877882565e7577de6fc7b",
+    "origin": "https://github.com/pybind/pybind11.git",
+    "snapshot_id": "44_pybind11",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/rdma-p2p_main_20260518",
+    "head": "ed83237439d2103141fbc7c9b97f348055b6cb53",
+    "origin": "https://github.com/lambda-scale/rdma-p2p.git",
+    "snapshot_id": "45_rdma-p2p_main_20260518",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/splitwise-sim_main_20260614",
+    "head": "8f99e7dc9b407f4ce2488d03dd44c0b8b946dab0",
+    "origin": "https://github.com/Mutinifni/splitwise-sim.git",
+    "snapshot_id": "46_splitwise-sim_main_20260614",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/workspaces/distserve_official_20260615",
+    "head": "82831f1604cc6b10bebd360f6c437a07790dde9f",
+    "origin": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/DistServe_main_20260614",
+    "snapshot_id": "47_distserve_official_20260615",
+    "patch_bytes": 5752,
+    "untracked_source_files": [],
+    "patch": "upstream_patches/47_distserve_official_20260615.patch",
+    "patch_sha256": "2d1e38102922ee239d15daed64133bd0b73cf3ea52e80be1cf3b1f14d8c6aebd",
+    "credential_review": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/workspaces/distserve_official_20260615/SwiftTransformer",
+    "head": "9948e31b371aac93caff73b8c0dc50cf77d890cb",
+    "origin": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/SwiftTransformer_main_20260615",
+    "snapshot_id": "48_SwiftTransformer",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/workspaces/distserve_official_20260615/SwiftTransformer/src/csrc/kernel/xformers",
+    "head": "ad986981b141a218bf07bf968e920051ff2c7b41",
+    "origin": "https://github.com/facebookresearch/xformers.git",
+    "snapshot_id": "49_xformers",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/workspaces/distserve_official_20260615/SwiftTransformer/src/csrc/kernel/xformers/third_party/cutlass",
+    "head": "e0aaa3c3b38db9a89c31f04fef91e92123ad5e2e",
+    "origin": "https://github.com/NVIDIA/cutlass.git",
+    "snapshot_id": "50_cutlass",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/workspaces/distserve_official_20260615/SwiftTransformer/src/csrc/kernel/xformers/third_party/flash-attention",
+    "head": "92dd5703ecdb99aa4a4aee9817f28557907403a2",
+    "origin": "https://github.com/Dao-AILab/flash-attention.git",
+    "snapshot_id": "51_flash-attention",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/workspaces/distserve_official_20260615/SwiftTransformer/src/csrc/kernel/xformers/third_party/flash-attention/csrc/cutlass",
+    "head": "44c704eae85da352d277d6f092f41412772f70e4",
+    "origin": "https://github.com/NVIDIA/cutlass.git",
+    "snapshot_id": "52_cutlass",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/workspaces/llumnix_official_20260615",
+    "head": "3fb6c0376b3b186a73f722abda8c410653d49d8e",
+    "origin": "https://github.com/AlibabaPAI/llumnix.git",
+    "snapshot_id": "53_llumnix_official_20260615",
+    "patch_bytes": 11605,
+    "untracked_source_files": [],
+    "patch": "upstream_patches/53_llumnix_official_20260615.patch",
+    "patch_sha256": "992846cf9aa6befe67655e53dee81087b1857eadc1384d8c0125b04de10df9dd",
+    "credential_review": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/workspaces/mooncake_vllm_official_20260615",
+    "head": "afd089f231d714e7fd06b51e3bc7df7fe004c7f9",
+    "origin": "https://github.com/vllm-project/vllm.git",
+    "snapshot_id": "54_mooncake_vllm_official_20260615",
+    "patch_bytes": 0,
+    "untracked_source_files": []
+  },
+  {
+    "source": "/home/qhq/serverless_llm_baselines/workspaces/splitwise_official_20260615",
+    "head": "8f99e7dc9b407f4ce2488d03dd44c0b8b946dab0",
+    "origin": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/splitwise-sim_main_20260614",
+    "snapshot_id": "55_splitwise_official_20260615",
+    "patch_bytes": 841,
+    "untracked_source_files": [],
+    "patch": "upstream_patches/55_splitwise_official_20260615.patch",
+    "patch_sha256": "138ea4f6bb1a9356d2e3071ecc1ad00794d01f59841f4f63f0613e2590bcf75f",
+    "credential_review": []
+  }
+]

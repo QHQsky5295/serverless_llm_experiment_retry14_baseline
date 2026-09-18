@@ -1,0 +1,4 @@
+# update specs: ['python=3.9']
+# update specs: ['cuda-nvcc=11.8']
+# update specs: ['cuda-toolkit=11.8']
+# update specs: ['cuda-cudart-dev=11.8']

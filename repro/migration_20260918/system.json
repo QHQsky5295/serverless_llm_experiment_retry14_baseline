@@ -1,0 +1,25 @@
+{
+  "kernel": {
+    "returncode": 0,
+    "stdout": "Linux 6.8.0-106-generic x86_64 GNU/Linux\n"
+  },
+  "os": {
+    "returncode": 0,
+    "stdout": "PRETTY_NAME=\"Ubuntu 22.04.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"22.04\"\nVERSION=\"22.04.5 LTS (Jammy Jellyfish)\"\nVERSION_CODENAME=jammy\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nUBUNTU_CODENAME=jammy\n"
+  },
+  "gpu": {
+    "returncode": 0,
+    "stdout": "NVIDIA GeForce RTX 3090, GPU-8f51f82e-dce8-22cf-1693-e62b8464f946, 580.105.08, 24576 MiB\nNVIDIA GeForce RTX 3090, GPU-dadf0267-9617-8824-cddb-82fba48a7b97, 580.105.08, 24576 MiB\n"
+  },
+  "gcc": {
+    "returncode": 0,
+    "stdout": "gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nCopyright (C) 2021 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
+  },
+  "cmake": {
+    "error": "FileNotFoundError"
+  },
+  "python": {
+    "returncode": 0,
+    "stdout": "Python 3.10.12\n"
+  }
+}

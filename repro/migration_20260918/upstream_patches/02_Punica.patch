@@ -1,0 +1,6 @@
+diff --git a/third_party/flashinfer b/third_party/flashinfer
+--- a/third_party/flashinfer
++++ b/third_party/flashinfer
+@@ -1 +1 @@
+-Subproject commit 89a761fc31b795f6d6dd021498dced8bc75db44d
++Subproject commit 89a761fc31b795f6d6dd021498dced8bc75db44d-dirty

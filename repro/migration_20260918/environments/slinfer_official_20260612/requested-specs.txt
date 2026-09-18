@@ -1,0 +1,4 @@
+# update specs: ['python=3.11']
+# update specs: ['cuda-cudart-dev=12.4', 'cuda-nvcc=12.4']
+# update specs: ['cuda-nvcc=12.4', 'cuda-cudart-dev=12.4', 'cuda-cccl=12.4', 'cuda-cudart=12.4', 'cuda-version=12.4']
+# update specs: ['cuda-crt=12.4.131', 'cuda-cudart-static=12.4.127']

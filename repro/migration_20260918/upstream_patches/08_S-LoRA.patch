@@ -1,0 +1,850 @@
+diff --git a/slora/csrc/bgmv/bgmv_config.h b/slora/csrc/bgmv/bgmv_config.h
+index 0b1f3bd..34f62ac 100644
+--- a/slora/csrc/bgmv/bgmv_config.h
++++ b/slora/csrc/bgmv/bgmv_config.h
+@@ -12,6 +12,7 @@ void bgmv_kernel(T* __restrict__ Y, const T* __restrict__ X,
+ #define FOR_BGMV_WIDE(f, T, narrow) \
+     f(T, narrow, 768) \
+     f(T, narrow, 1024) \
++    f(T, narrow, 1280) \
+     f(T, narrow, 1664) \
+     f(T, narrow, 2048) \
+     f(T, narrow, 2560) \
+diff --git a/slora/models/bmm/lora_bmm_infer.py b/slora/models/bmm/lora_bmm_infer.py
+index fda206f..b1ef3ae 100644
+--- a/slora/models/bmm/lora_bmm_infer.py
++++ b/slora/models/bmm/lora_bmm_infer.py
+@@ -1,6 +1,7 @@
+ import numpy as np
+ import torch
+ import torch.nn as nn
++import torch.distributed as dist
+ from typing import final
+ 
+ from slora.common.infer_utils import init_bloc
+@@ -24,7 +25,14 @@ class LoraBmmInfer:
+ 
+         self.batch_lora_emb = None
+ 
+-        emb_dim = self.base_model.layers_infer[0].embed_dim_ 
++        layer0 = self.base_model.layers_infer[0]
++        emb_dim = layer0.embed_dim_
++        head_dim = self.base_model.head_dim_
++        self.q_embed_dim = layer0.tp_q_head_num_ * head_dim
++        self.k_embed_dim = self.base_model.tp_k_head_num_ * head_dim
++        self.v_embed_dim = self.base_model.tp_v_head_num_ * head_dim
++        self.o_input_dim = layer0.tp_o_head_num_ * head_dim
++        self.global_embed_dim = emb_dim
+ 
+         # lora_layer_dim = [adapter.layers[0].k_lora_A.shape[1] if adapter is not None else 0 for adapter in adapters]
+         lora_layer_dim = [adapter.r if adapter is not None else 0 for adapter in adapters]
+@@ -38,14 +46,15 @@ class LoraBmmInfer:
+         for layer_id in range(self.base_model.layers_num):
+             for i, adapter in enumerate(adapters):
+                 if adapter is None: continue
+-                batch_lora_A[layer_id,0,i,:,:lora_layer_dim[i]].copy_(adapter.layers[layer_id].q_lora_A)
+-                batch_lora_B[layer_id,0,i,:lora_layer_dim[i],:].copy_(adapter.layers[layer_id].q_lora_B)
+-                batch_lora_A[layer_id,1,i,:,:lora_layer_dim[i]].copy_(adapter.layers[layer_id].k_lora_A)
+-                batch_lora_B[layer_id,1,i,:lora_layer_dim[i],:].copy_(adapter.layers[layer_id].k_lora_B)
+-                batch_lora_A[layer_id,2,i,:,:lora_layer_dim[i]].copy_(adapter.layers[layer_id].v_lora_A)
+-                batch_lora_B[layer_id,2,i,:lora_layer_dim[i],:].copy_(adapter.layers[layer_id].v_lora_B)
+-                batch_lora_A[layer_id,3,i,:,:lora_layer_dim[i]].copy_(adapter.layers[layer_id].o_lora_A)
+-                batch_lora_B[layer_id,3,i,:lora_layer_dim[i],:].copy_(adapter.layers[layer_id].o_lora_B)
++                rank = lora_layer_dim[i]
++                batch_lora_A[layer_id,0,i,:adapter.layers[layer_id].q_lora_A.shape[0],:rank].copy_(adapter.layers[layer_id].q_lora_A)
++                batch_lora_B[layer_id,0,i,:rank,:adapter.layers[layer_id].q_lora_B.shape[1]].copy_(adapter.layers[layer_id].q_lora_B)
++                batch_lora_A[layer_id,1,i,:adapter.layers[layer_id].k_lora_A.shape[0],:rank].copy_(adapter.layers[layer_id].k_lora_A)
++                batch_lora_B[layer_id,1,i,:rank,:adapter.layers[layer_id].k_lora_B.shape[1]].copy_(adapter.layers[layer_id].k_lora_B)
++                batch_lora_A[layer_id,2,i,:adapter.layers[layer_id].v_lora_A.shape[0],:rank].copy_(adapter.layers[layer_id].v_lora_A)
++                batch_lora_B[layer_id,2,i,:rank,:adapter.layers[layer_id].v_lora_B.shape[1]].copy_(adapter.layers[layer_id].v_lora_B)
++                batch_lora_A[layer_id,3,i,:adapter.layers[layer_id].o_lora_A.shape[0],:rank].copy_(adapter.layers[layer_id].o_lora_A)
++                batch_lora_B[layer_id,3,i,:rank,:adapter.layers[layer_id].o_lora_B.shape[1]].copy_(adapter.layers[layer_id].o_lora_B)
+         self.batch_lora_A = batch_lora_A
+         self.batch_lora_B = batch_lora_B
+ 
+@@ -53,7 +62,7 @@ class LoraBmmInfer:
+ 
+     def init_batch_lora(self, batch_size, adapter_sep):
+ 
+-        emb_dim = self.base_model.layers_infer[0].embed_dim_ 
++        emb_dim = self.global_embed_dim
+ 
+         adapter_token_length = []
+         for i in range(self.adapter_num-1):
+@@ -240,8 +249,8 @@ class LoraBmmInfer:
+         o = layer_infer._context_attention_kernel(q, cache_k, cache_v, infer_state, layer_weight)
+         q = None
+         o = self._lora_get_o(layer_id, o, infer_state)
+-        # if self.world_size_ > 1:
+-        #     dist.all_reduce(o, op=dist.ReduceOp.SUM, async_op=False)
++        if self.base_model.world_size_ > 1:
++            dist.all_reduce(o, op=dist.ReduceOp.SUM, async_op=False)
+         # residual
+         input_embs.add_(o.view(-1, layer_infer.embed_dim_))
+         return
+@@ -269,8 +278,8 @@ class LoraBmmInfer:
+             o = self._lora_get_o(layer_id, o, infer_state)
+         else:
+             o = self._batch_lora_get_o(layer_id, o, infer_state)
+-        # if self.world_size_ > 1:
+-        #     dist.all_reduce(o, op=dist.ReduceOp.SUM, async_op=False)
++        if self.base_model.world_size_ > 1:
++            dist.all_reduce(o, op=dist.ReduceOp.SUM, async_op=False)
+         input_embs.add_(o.view(-1, layer_infer.embed_dim_))
+         return
+     
+@@ -290,28 +299,34 @@ class LoraBmmInfer:
+         # q (bs, H)
+         q = torch.mm(input_embs.view(-1, base_layer_infer.embed_dim_), base_layer_weight.q_weight_)
+ 
+-        delta_q = torch.bmm(torch.bmm(self.batch_lora_emb, self.batch_lora_A[layer_id,0]), self.batch_lora_B[layer_id,0]).view(self.adapter_num, -1, base_layer_infer.embed_dim_)
++        delta_q = torch.bmm(
++            torch.bmm(self.batch_lora_emb, self.batch_lora_A[layer_id,0]),
++            self.batch_lora_B[layer_id,0],
++        ).view(self.adapter_num, -1, self.global_embed_dim)
+ 
+         for i, adapter_scaling in enumerate(self.adapter_scalings):
+             if adapter_scaling is not None:
+                 start = infer_state.adapter_sep[i]
+                 end = infer_state.adapter_sep[i+1] if i+1 < len(infer_state.adapter_sep) else infer_state.batch_size
+-                q[start:end, :] += delta_q[i, :end-start, :] * adapter_scaling
++                q[start:end, :] += delta_q[i, :end-start, :self.q_embed_dim] * adapter_scaling
+ 
+-        rotary_emb_fwd(q.view(-1, base_model.tp_k_head_num_, base_model.head_dim_),
++        rotary_emb_fwd(q.view(-1, base_layer_infer.tp_q_head_num_, base_model.head_dim_),
+                           infer_state.position_cos, infer_state.position_sin)
+ 
+         # k (bs, H)
+         torch.mm(input_embs.view(-1, base_layer_infer.embed_dim_), base_layer_weight.k_weight_,
+                  out=cache_k.view(-1, base_model.tp_k_head_num_ * base_model.head_dim_))
+ 
+-        delta_k = torch.bmm(torch.bmm(self.batch_lora_emb, self.batch_lora_A[layer_id,1]), self.batch_lora_B[layer_id,1]).view(self.adapter_num, -1, base_layer_infer.embed_dim_)
++        delta_k = torch.bmm(
++            torch.bmm(self.batch_lora_emb, self.batch_lora_A[layer_id,1]),
++            self.batch_lora_B[layer_id,1],
++        ).view(self.adapter_num, -1, self.global_embed_dim)
+ 
+-        for i, adapter in enumerate(self.adapter_scalings):
++        for i, adapter_scaling in enumerate(self.adapter_scalings):
+             if adapter_scaling is not None:
+                 start = infer_state.adapter_sep[i]
+                 end = infer_state.adapter_sep[i+1] if i+1 < len(infer_state.adapter_sep) else infer_state.batch_size
+-                cache_k.view(-1, base_model.tp_k_head_num_ * base_model.head_dim_)[start:end, :] += delta_k[i, :end-start, :] * adapter_scaling
++                cache_k.view(-1, self.k_embed_dim)[start:end, :] += delta_k[i, :end-start, :self.k_embed_dim] * adapter_scaling
+ 
+         rotary_emb_fwd(cache_k, infer_state.position_cos, infer_state.position_sin)
+ 
+@@ -319,13 +334,16 @@ class LoraBmmInfer:
+         torch.mm(input_embs.view(-1, base_layer_infer.embed_dim_), base_layer_weight.v_weight_,
+                  out=cache_v.view(-1, base_model.tp_k_head_num_ * base_model.head_dim_))
+ 
+-        delta_v = torch.bmm(torch.bmm(self.batch_lora_emb, self.batch_lora_A[layer_id,2]), self.batch_lora_B[layer_id,2]).view(self.adapter_num, -1, base_layer_infer.embed_dim_)
++        delta_v = torch.bmm(
++            torch.bmm(self.batch_lora_emb, self.batch_lora_A[layer_id,2]),
++            self.batch_lora_B[layer_id,2],
++        ).view(self.adapter_num, -1, self.global_embed_dim)
+ 
+         for i, adapter_scaling in enumerate(self.adapter_scalings):
+             if adapter_scaling is not None:
+                 start = infer_state.adapter_sep[i]
+                 end = infer_state.adapter_sep[i+1] if i+1 < len(infer_state.adapter_sep) else infer_state.batch_size
+-                cache_v.view(-1, base_model.tp_k_head_num_ * base_model.head_dim_)[start:end, :] += delta_v[i, :end-start, :] * adapter_scaling
++                cache_v.view(-1, self.v_embed_dim)[start:end, :] += delta_v[i, :end-start, :self.v_embed_dim] * adapter_scaling
+ 
+         return q        
+ 
+@@ -347,11 +365,12 @@ class LoraBmmInfer:
+             else:
+                 end = infer_state.b_start_loc[infer_state.adapter_sep[i + 1]]
+             input_tensor = input_embs.view(-1, base_layer_infer.embed_dim_)[start: end, :]
+-            q[start: end, :] += torch.mm(torch.mm(input_tensor,
+-                                                  self.batch_lora_A[layer_id,0,i]),
+-                                         self.batch_lora_B[layer_id,0,i]) * adapter_scaling
++            q[start: end, :] += torch.mm(
++                torch.mm(input_tensor, self.batch_lora_A[layer_id,0,i]),
++                self.batch_lora_B[layer_id,0,i],
++            )[:, :self.q_embed_dim] * adapter_scaling
+ 
+-        rotary_emb_fwd(q.view(-1, base_model.tp_k_head_num_, base_model.head_dim_),
++        rotary_emb_fwd(q.view(-1, base_layer_infer.tp_q_head_num_, base_model.head_dim_),
+                        infer_state.position_cos, infer_state.position_sin)
+ 
+         # k (S, H)
+@@ -365,9 +384,10 @@ class LoraBmmInfer:
+             else:
+                 end = infer_state.b_start_loc[infer_state.adapter_sep[i + 1]]
+             input_tensor = input_embs.view(-1, base_layer_infer.embed_dim_)[start: end, :]
+-            k_lora = torch.mm(torch.mm(input_tensor,
+-                                       self.batch_lora_A[layer_id,1,i]),
+-                              self.batch_lora_B[layer_id,1,i]) * adapter_scaling
++            k_lora = torch.mm(
++                torch.mm(input_tensor, self.batch_lora_A[layer_id,1,i]),
++                self.batch_lora_B[layer_id,1,i],
++            )[:, :self.k_embed_dim] * adapter_scaling
+             cache_k[start: end, :, :] += k_lora.view(-1, base_model.tp_k_head_num_, base_model.head_dim_)
+ 
+         rotary_emb_fwd(cache_k, infer_state.position_cos, infer_state.position_sin)
+@@ -383,9 +403,10 @@ class LoraBmmInfer:
+             else:
+                 end = infer_state.b_start_loc[infer_state.adapter_sep[i + 1]]
+             input_tensor = input_embs.view(-1, base_layer_infer.embed_dim_)[start: end, :]
+-            v_lora = torch.mm(torch.mm(input_tensor,
+-                                       self.batch_lora_A[layer_id,2,i]),
+-                              self.batch_lora_B[layer_id,2,i]) * adapter_scaling
++            v_lora = torch.mm(
++                torch.mm(input_tensor, self.batch_lora_A[layer_id,2,i]),
++                self.batch_lora_B[layer_id,2,i],
++            )[:, :self.v_embed_dim] * adapter_scaling
+             cache_v[start: end, :, :] += v_lora.view(-1, base_model.tp_k_head_num_, base_model.head_dim_)
+         return q
+     
+@@ -395,16 +416,24 @@ class LoraBmmInfer:
+         base_layer_weight = base_model.trans_layers_weight[layer_id]
+         base_layer_infer = base_model.layers_infer[layer_id]
+         
+-        o = torch.mm(input.view(-1, base_model.tp_k_head_num_ * base_model.head_dim_),
++        o = torch.mm(input.view(-1, self.o_input_dim),
+                           base_layer_weight.o_weight_)
+         
+         for i, adapter_scaling in enumerate(self.adapter_scalings):
+             if adapter_scaling is not None:
+                 start = infer_state.adapter_sep[i]
+                 end = infer_state.adapter_sep[i+1] if i+1 < len(infer_state.adapter_sep) else infer_state.batch_size
+-                self.batch_lora_emb[i,:end-start,:].copy_(input.view(-1, base_layer_infer.embed_dim_)[start:end,:])
+-
+-        delta_o = torch.bmm(torch.bmm(self.batch_lora_emb, self.batch_lora_A[layer_id,3]), self.batch_lora_B[layer_id,3]).view(self.adapter_num, -1, base_layer_infer.embed_dim_)
++                self.batch_lora_emb[i,:end-start,:self.o_input_dim].copy_(
++                    input.view(-1, self.o_input_dim)[start:end,:]
++                )
++
++        delta_o = torch.bmm(
++            torch.bmm(
++                self.batch_lora_emb[:, :, :self.o_input_dim],
++                self.batch_lora_A[layer_id,3, :, :self.o_input_dim, :],
++            ),
++            self.batch_lora_B[layer_id,3],
++        ).view(self.adapter_num, -1, self.global_embed_dim)
+ 
+         for i, adapter_scaling in enumerate(self.adapter_scalings):
+             if adapter_scaling is not None:
+@@ -420,7 +449,7 @@ class LoraBmmInfer:
+         base_layer_weight = base_model.trans_layers_weight[layer_id]
+         base_layer_infer = base_model.layers_infer[layer_id]
+ 
+-        o = torch.mm(input.view(-1, base_model.tp_k_head_num_ * base_model.head_dim_),
++        o = torch.mm(input.view(-1, self.o_input_dim),
+                           base_layer_weight.o_weight_)
+         for i, adapter_scaling in enumerate(self.adapter_scalings):
+             if adapter_scaling is None: continue
+@@ -429,9 +458,12 @@ class LoraBmmInfer:
+                 end = o.shape[0]
+             else:
+                 end = infer_state.b_start_loc[infer_state.adapter_sep[i + 1]]
+-            input_tensor = input.view(-1, base_layer_infer.embed_dim_)[start: end, :]
+-            o[start: end, :] += torch.mm(torch.mm(input_tensor,
+-                                                  self.batch_lora_A[layer_id,3,i]),
+-                                        self.batch_lora_B[layer_id,3,i]) * adapter_scaling
++            input_tensor = input.view(-1, self.o_input_dim)[start: end, :]
++            o[start: end, :] += torch.mm(
++                torch.mm(
++                    input_tensor,
++                    self.batch_lora_A[layer_id,3,i, :self.o_input_dim, :],
++                ),
++                self.batch_lora_B[layer_id,3,i],
++            ) * adapter_scaling
+         return o
+-
+diff --git a/slora/models/llama/layer_weights/pre_and_post_layer_weight.py b/slora/models/llama/layer_weights/pre_and_post_layer_weight.py
+index f65f607..49574ee 100644
+--- a/slora/models/llama/layer_weights/pre_and_post_layer_weight.py
++++ b/slora/models/llama/layer_weights/pre_and_post_layer_weight.py
+@@ -37,6 +37,11 @@ class LlamaPreAndPostLayerWeight(PreAndPostLayerWeight):
+             # print(weights['lm_head.weight'].shape)
+             self.lm_head_weight_ = self._cuda(weights['lm_head.weight'][split_vob_size * self.tp_rank_: split_vob_size *
+                                                             (self.tp_rank_ + 1), :])
++        elif self.network_config_.get("tie_word_embeddings", False) and hasattr(self, "wte_weight_"):
++            # Llama 3.x checkpoints can omit an explicit lm_head.weight when
++            # output embeddings are tied. S-LoRA expects the sharded lm_head
++            # tensor, so reuse the already loaded token embedding shard.
++            self.lm_head_weight_ = self.wte_weight_
+         if 'model.norm.weight' in weights:
+             self.final_norm_weight_ = self._cuda(weights['model.norm.weight'])
+ 
+@@ -44,9 +49,9 @@ class LlamaPreAndPostLayerWeight(PreAndPostLayerWeight):
+     
+     def verify_load(self):
+         errors = "weights load not ok"
+-        weights = [self.wte_weight_, 
+-                   self.lm_head_weight_, 
+-                   self.final_norm_weight_]
++        weights = [getattr(self, "wte_weight_", None),
++                   getattr(self, "lm_head_weight_", None),
++                   getattr(self, "final_norm_weight_", None)]
+         for i in range(len(weights)):
+             assert weights[i] is not None, "index:" + str(i) + " " + errors
+         return 
+diff --git a/slora/models/peft/layer_weights/lora_layer_weight.py b/slora/models/peft/layer_weights/lora_layer_weight.py
+index 04ad172..1a5c013 100644
+--- a/slora/models/peft/layer_weights/lora_layer_weight.py
++++ b/slora/models/peft/layer_weights/lora_layer_weight.py
+@@ -26,6 +26,14 @@ class LoraLayerWeight:
+         # debug
+         self.no_lora_swap = no_lora_swap
+ 
++    def _local_attention_heads(self):
++        return self.network_config["num_attention_heads"] // self.world_size_
++
++    def _local_key_value_heads(self):
++        return self.network_config.get("num_key_value_heads", self.network_config["num_attention_heads"]) // self.world_size_
++
++    def _uses_grouped_query_attention(self):
++        return self.network_config.get("num_key_value_heads", self.network_config["num_attention_heads"]) != self.network_config["num_attention_heads"]
+ 
+     def load_to_torch(self, path):
+         numpy_type = {"fp32": np.float32, "fp16": np.float16}[self.data_type_]
+@@ -80,7 +88,7 @@ class LoraLayerWeight:
+                                             dtype=self.data_type_, device="cuda").transpose(0, 1).contiguous() * 2 - 1) * 1e-3).to("cpu")
+             self.o_lora_B = None
+ 
+-            num_head = self.network_config["num_attention_heads"]
++            num_head = self._local_attention_heads()
+             self.w_combined_home = torch.concat(
+                 [self.q_lora_A_home.T.reshape(rank, num_head, -1),
+                  self.k_lora_A_home.T.reshape(rank, num_head, -1),
+@@ -106,52 +114,65 @@ class LoraLayerWeight:
+ 
+         n_embed = self.network_config["hidden_size"]
+         split_n_embed = n_embed // self.world_size_
++        head_dim = n_embed // self.network_config["num_attention_heads"]
++        kv_embed = head_dim * self.network_config.get("num_key_value_heads", self.network_config["num_attention_heads"])
++        split_kv_embed = kv_embed // self.world_size_
+ 
+         prefix = list(weights.keys())[0]
+         prefix = prefix[:prefix.find("layers")] + f"layers.{self.layer_num_}.self_attn"
+         tp_idx = (split_n_embed * self.tp_rank_, split_n_embed * (self.tp_rank_ + 1))
++        kv_tp_idx = (split_kv_embed * self.tp_rank_, split_kv_embed * (self.tp_rank_ + 1))
++
++        # For tensor-parallel LoRA, column-parallel q/k/v projections need
++        # full input-side A and local output-side B. Row-parallel o needs
++        # local input-side A and full output-side B.
++        qkv_a_idx = (0, n_embed)
++        q_b_idx = tp_idx
++        kv_b_idx = kv_tp_idx
++        o_a_idx = tp_idx
++        o_b_idx = (0, n_embed)
+ 
+         # q_proj A, B
+         if f"{prefix}.q_proj.lora_A.weight" in weights:
+-            self.q_lora_A = weights[f"{prefix}.q_proj.lora_A.weight"][:, tp_idx[0]:tp_idx[1]]
++            self.q_lora_A = weights[f"{prefix}.q_proj.lora_A.weight"][:, qkv_a_idx[0]:qkv_a_idx[1]]
+             self.q_lora_A = self.q_lora_A.transpose(0, 1).contiguous().to(self.data_type_)
+             self.q_lora_A = self.q_lora_A.cuda()
+ 
+         if f"{prefix}.q_proj.lora_B.weight" in weights:
+-            self.q_lora_B = weights[f"{prefix}.q_proj.lora_B.weight"][tp_idx[0]:tp_idx[1], :]
++            self.q_lora_B = weights[f"{prefix}.q_proj.lora_B.weight"][q_b_idx[0]:q_b_idx[1], :]
+             self.q_lora_B = self.q_lora_B.transpose(0, 1).contiguous().to(self.data_type_)
+             self.q_lora_B = self.q_lora_B.cuda()
+ 
+         # k_proj A, B
+         if f"{prefix}.k_proj.lora_A.weight" in weights:
+-            self.k_lora_A = weights[f"{prefix}.k_proj.lora_A.weight"][:, tp_idx[0]:tp_idx[1]]
++            self.k_lora_A = weights[f"{prefix}.k_proj.lora_A.weight"][:, qkv_a_idx[0]:qkv_a_idx[1]]
+             self.k_lora_A = self.k_lora_A.transpose(0, 1).contiguous().to(self.data_type_)
+             self.k_lora_A = self.k_lora_A.cuda()
+ 
+         if f"{prefix}.k_proj.lora_B.weight" in weights:
+-            self.k_lora_B = weights[f"{prefix}.k_proj.lora_B.weight"][tp_idx[0]:tp_idx[1], :]
++            self.k_lora_B = weights[f"{prefix}.k_proj.lora_B.weight"][kv_b_idx[0]:kv_b_idx[1], :]
+             self.k_lora_B = self.k_lora_B.transpose(0, 1).contiguous().to(self.data_type_)
+             self.k_lora_B = self.k_lora_B.cuda()
+ 
+         # v_proj A, B
+         if f"{prefix}.v_proj.lora_A.weight" in weights:
+-            self.v_lora_A = weights[f"{prefix}.v_proj.lora_A.weight"][:, tp_idx[0]:tp_idx[1]]
++            self.v_lora_A = weights[f"{prefix}.v_proj.lora_A.weight"][:, qkv_a_idx[0]:qkv_a_idx[1]]
+             self.v_lora_A = self.v_lora_A.transpose(0, 1).contiguous().to(self.data_type_)
+             self.v_lora_A = self.v_lora_A.cuda()
+ 
+         if f"{prefix}.v_proj.lora_B.weight" in weights:
+-            self.v_lora_B = weights[f"{prefix}.v_proj.lora_B.weight"][tp_idx[0]:tp_idx[1], :]
++            self.v_lora_B = weights[f"{prefix}.v_proj.lora_B.weight"][kv_b_idx[0]:kv_b_idx[1], :]
+             self.v_lora_B = self.v_lora_B.transpose(0, 1).contiguous().to(self.data_type_)
+             self.v_lora_B = self.v_lora_B.cuda()
+ 
+         # o_proj A, B
+         if f"{prefix}.o_proj.lora_A.weight" in weights:
+-            self.o_lora_A = weights[f"{prefix}.o_proj.lora_A.weight"][:, tp_idx[0]:tp_idx[1]]
++            self.o_lora_A = weights[f"{prefix}.o_proj.lora_A.weight"][:, o_a_idx[0]:o_a_idx[1]]
+             self.o_lora_A = self.o_lora_A.transpose(0, 1).contiguous().to(self.data_type_)
+             self.o_lora_A = self.o_lora_A.cuda()
+ 
+         if f"{prefix}.o_proj.lora_B.weight" in weights:
+-            self.o_lora_B = weights[f"{prefix}.o_proj.lora_B.weight"][tp_idx[0]:tp_idx[1], :]
++            self.o_lora_B = weights[f"{prefix}.o_proj.lora_B.weight"][o_b_idx[0]:o_b_idx[1], :]
+             self.o_lora_B = self.o_lora_B.transpose(0, 1).contiguous().to(self.data_type_)
+             self.o_lora_B = self.o_lora_B.cuda()
+ 
+@@ -161,57 +182,72 @@ class LoraLayerWeight:
+     def load_hf_weights_cpu(self, weights):
+         n_embed = self.network_config["hidden_size"]
+         split_n_embed = n_embed // self.world_size_
++        head_dim = n_embed // self.network_config["num_attention_heads"]
++        kv_embed = head_dim * self.network_config.get("num_key_value_heads", self.network_config["num_attention_heads"])
++        split_kv_embed = kv_embed // self.world_size_
+ 
+         prefix = list(weights.keys())[0]
+         prefix = prefix[:prefix.find("layers")] + f"layers.{self.layer_num_}.self_attn"
+         tp_idx = (split_n_embed * self.tp_rank_, split_n_embed * (self.tp_rank_ + 1))
++        kv_tp_idx = (split_kv_embed * self.tp_rank_, split_kv_embed * (self.tp_rank_ + 1))
++
++        qkv_a_idx = (0, n_embed)
++        q_b_idx = tp_idx
++        kv_b_idx = kv_tp_idx
++        o_a_idx = tp_idx
++        o_b_idx = (0, n_embed)
+ 
+         # q_proj A, B
+         if f"{prefix}.q_proj.lora_A.weight" in weights:
+-            self.q_lora_A_home = weights[f"{prefix}.q_proj.lora_A.weight"][:, tp_idx[0]:tp_idx[1]]
++            self.q_lora_A_home = weights[f"{prefix}.q_proj.lora_A.weight"][:, qkv_a_idx[0]:qkv_a_idx[1]]
+             self.q_lora_A_home = self.q_lora_A_home.transpose(0, 1).contiguous().to(self.data_type_).pin_memory()
+             self.q_lora_A = None
+ 
+         if f"{prefix}.q_proj.lora_B.weight" in weights:
+-            self.q_lora_B_home = weights[f"{prefix}.q_proj.lora_B.weight"][tp_idx[0]:tp_idx[1], :]
++            self.q_lora_B_home = weights[f"{prefix}.q_proj.lora_B.weight"][q_b_idx[0]:q_b_idx[1], :]
+             self.q_lora_B_home = self.q_lora_B_home.transpose(0, 1).contiguous().to(self.data_type_).pin_memory()
+             self.q_lora_B = None
+ 
+         # k_proj A, B
+         if f"{prefix}.k_proj.lora_A.weight" in weights:
+-            self.k_lora_A_home = weights[f"{prefix}.k_proj.lora_A.weight"][:, tp_idx[0]:tp_idx[1]]
++            self.k_lora_A_home = weights[f"{prefix}.k_proj.lora_A.weight"][:, qkv_a_idx[0]:qkv_a_idx[1]]
+             self.k_lora_A_home = self.k_lora_A_home.transpose(0, 1).contiguous().to(self.data_type_).pin_memory()
+             self.k_lora_A = None
+ 
+         if f"{prefix}.k_proj.lora_B.weight" in weights:
+-            self.k_lora_B_home = weights[f"{prefix}.k_proj.lora_B.weight"][tp_idx[0]:tp_idx[1], :]
++            self.k_lora_B_home = weights[f"{prefix}.k_proj.lora_B.weight"][kv_b_idx[0]:kv_b_idx[1], :]
+             self.k_lora_B_home = self.k_lora_B_home.transpose(0, 1).contiguous().to(self.data_type_).pin_memory()
+             self.k_lora_B = None
+ 
+         # v_proj A, B
+         if f"{prefix}.v_proj.lora_A.weight" in weights:
+-            self.v_lora_A_home = weights[f"{prefix}.v_proj.lora_A.weight"][:, tp_idx[0]:tp_idx[1]]
++            self.v_lora_A_home = weights[f"{prefix}.v_proj.lora_A.weight"][:, qkv_a_idx[0]:qkv_a_idx[1]]
+             self.v_lora_A_home = self.v_lora_A_home.transpose(0, 1).contiguous().to(self.data_type_).pin_memory()
+             self.v_lora_A = None
+ 
+         if f"{prefix}.v_proj.lora_B.weight" in weights:
+-            self.v_lora_B_home = weights[f"{prefix}.v_proj.lora_B.weight"][tp_idx[0]:tp_idx[1], :]
++            self.v_lora_B_home = weights[f"{prefix}.v_proj.lora_B.weight"][kv_b_idx[0]:kv_b_idx[1], :]
+             self.v_lora_B_home = self.v_lora_B_home.transpose(0, 1).contiguous().to(self.data_type_).pin_memory()
+             self.v_lora_B = None
+ 
+         # o_proj A, B
+         if f"{prefix}.o_proj.lora_A.weight" in weights:
+-            self.o_lora_A_home = weights[f"{prefix}.o_proj.lora_A.weight"][:, tp_idx[0]:tp_idx[1]]
++            self.o_lora_A_home = weights[f"{prefix}.o_proj.lora_A.weight"][:, o_a_idx[0]:o_a_idx[1]]
+             self.o_lora_A_home = self.o_lora_A_home.transpose(0, 1).contiguous().to(self.data_type_).pin_memory()
+             self.o_lora_A = None
+ 
+         if f"{prefix}.o_proj.lora_B.weight" in weights:
+-            self.o_lora_B_home = weights[f"{prefix}.o_proj.lora_B.weight"][tp_idx[0]:tp_idx[1], :]
++            self.o_lora_B_home = weights[f"{prefix}.o_proj.lora_B.weight"][o_b_idx[0]:o_b_idx[1], :]
+             self.o_lora_B_home = self.o_lora_B_home.transpose(0, 1).contiguous().to(self.data_type_).pin_memory()
+             self.o_lora_B = None
+         
++        if self.world_size_ > 1 or self._uses_grouped_query_attention():
++            self.w_combined_home = None
++            self.w_combined = None
++            return
++
+         rank = self.lora_config["r"]
+-        num_head = self.network_config["num_attention_heads"]
++        num_head = self._local_attention_heads()
+         self.w_combined_home = torch.concat(
+             [self.q_lora_A_home.T.reshape(rank, num_head, -1),
+                 self.k_lora_A_home.T.reshape(rank, num_head, -1),
+@@ -229,6 +265,16 @@ class LoraLayerWeight:
+ 
+     def load_to_gpu(self, prefetch=False, bmm=False):
+         if not bmm:
++            if self.world_size_ > 1:
++                raise RuntimeError(
++                    "S-LoRA tensor-parallel LoRA requires the BMM adapter path; "
++                    "the packed BGMV adapter pool only supports world_size=1."
++                )
++            if self._uses_grouped_query_attention():
++                raise RuntimeError(
++                    "S-LoRA grouped-query attention LoRA requires the BMM adapter path; "
++                    "the packed BGMV adapter pool assumes q/k/v use the same head count."
++                )
+             if self.w_combined is None:
+                 if prefetch:
+                     self.w_combined = self.w_combined_home.to("cuda", non_blocking=True)
+diff --git a/slora/models/peft/lora_adapter.py b/slora/models/peft/lora_adapter.py
+index 995237c..be612a3 100644
+--- a/slora/models/peft/lora_adapter.py
++++ b/slora/models/peft/lora_adapter.py
+@@ -21,12 +21,24 @@ class LoraTpPartAdapter:
+ 
+     def __init__(self, tp_rank, world_size, lora_dir, network_config,
+                  swap=False, dummy=False, no_lora_swap=False, prefetch_stream=None):
+-        assert world_size == 1
+         self.tp_rank_ = tp_rank
+         self.world_size_ = world_size
+         self.lora_dir = lora_dir
+         self.network_config = network_config
+ 
++        if network_config["hidden_size"] % world_size != 0:
++            raise ValueError(
++                f"LoRA hidden_size={network_config['hidden_size']} is not divisible by tensor-parallel size {world_size}"
++            )
++        if network_config["num_attention_heads"] % world_size != 0:
++            raise ValueError(
++                f"LoRA num_attention_heads={network_config['num_attention_heads']} is not divisible by tensor-parallel size {world_size}"
++            )
++        if network_config.get("num_key_value_heads", network_config["num_attention_heads"]) % world_size != 0:
++            raise ValueError(
++                f"LoRA num_key_value_heads={network_config.get('num_key_value_heads')} is not divisible by tensor-parallel size {world_size}"
++            )
++
+         self.lora_config, lora_dir = get_lora_config(lora_dir, dummy)
+ 
+         self.r = self.lora_config["r"]
+@@ -46,7 +58,8 @@ class LoraTpPartAdapter:
+ 
+ 
+     def is_on_gpu(self,):
+-        return (self.layers[0].w_combined is not None)
++        layer0 = self.layers[0]
++        return (layer0.w_combined is not None or layer0.q_lora_A is not None)
+ 
+ 
+     def load_to_gpu(self, prefetch=False, bmm=False):
+@@ -62,4 +75,3 @@ class LoraTpPartAdapter:
+     def offload_from_gpu(self,):
+         for layer_weight in self.layers:
+             layer_weight.offload_from_gpu()
+-
+diff --git a/slora/models/peft/lora_unordered_batch_infer.py b/slora/models/peft/lora_unordered_batch_infer.py
+index 511017b..1515ec2 100644
+--- a/slora/models/peft/lora_unordered_batch_infer.py
++++ b/slora/models/peft/lora_unordered_batch_infer.py
+@@ -1,6 +1,7 @@
+ import numpy as np
+ import torch
+ import torch.nn as nn
++import torch.distributed as dist
+ from typing import final
+ 
+ from slora.common.infer_utils import init_bloc
+@@ -220,8 +221,8 @@ class LoraUnorderedBatchInfer:
+         o = layer_infer._context_attention_kernel(q, cache_k, cache_v, infer_state, layer_weight)
+         q = None
+         o = self._lora_get_o(layer_id, o, infer_state, no_lora_compute)
+-        # if self.world_size_ > 1:
+-        #     dist.all_reduce(o, op=dist.ReduceOp.SUM, async_op=False)
++        if self.base_model.world_size_ > 1:
++            dist.all_reduce(o, op=dist.ReduceOp.SUM, async_op=False)
+         # residual
+         input_embs.add_(o.view(-1, layer_infer.embed_dim_))
+         return
+@@ -244,8 +245,8 @@ class LoraUnorderedBatchInfer:
+         o = layer_infer._token_attention_kernel(q, infer_state, layer_weight)
+         q = None
+         o = self._batch_lora_get_o(layer_id, o, infer_state, no_lora_compute)
+-        # if self.world_size_ > 1:
+-        #     dist.all_reduce(o, op=dist.ReduceOp.SUM, async_op=False)
++        if self.base_model.world_size_ > 1:
++            dist.all_reduce(o, op=dist.ReduceOp.SUM, async_op=False)
+         input_embs.add_(o.view(-1, layer_infer.embed_dim_))
+         return
+     
+@@ -481,4 +482,3 @@ class LoraUnorderedBatchInfer:
+                             self.batch_req_bins, 3, self.infer_adapter.a_scaling)
+             # delta_oA = None
+         return o
+-
+diff --git a/slora/server/detokenization/manager.py b/slora/server/detokenization/manager.py
+index bda9250..46c8d06 100644
+--- a/slora/server/detokenization/manager.py
++++ b/slora/server/detokenization/manager.py
+@@ -85,6 +85,8 @@ def start_detokenization_process(args, detokenization_port, httpserver_port, pip
+         pipe_writer.send(str(e))
+         raise
+     pipe_writer.send('init ok')
+-    loop = asyncio.get_event_loop()
++    # Modern uvloop no longer creates an implicit current loop on first access.
++    loop = asyncio.new_event_loop()
++    asyncio.set_event_loop(loop)
+     loop.run_until_complete(router.handle_loop())
+     return
+diff --git a/slora/server/httpserver/manager.py b/slora/server/httpserver/manager.py
+index 05f5e42..852ff30 100644
+--- a/slora/server/httpserver/manager.py
++++ b/slora/server/httpserver/manager.py
+@@ -35,7 +35,10 @@ class HttpServerManager:
+             if dummy:
+                 self.tokenizer = get_tokenizer("huggyllama/llama-7b", tokenizor_mode) 
+ 
+-        self.req_id_to_out_inf = {}  # value type (out_str, metadata, finished, event)
++        # Keep every detokenizer update until the corresponding HTTP generator
++        # consumes it.  A single (out_str, metadata, ...) slot loses token
++        # events when the producer runs ahead of the SSE consumer.
++        self.req_id_to_out_inf = {}  # value type asyncio.Queue
+ 
+         self.total_token_num = total_token_num
+         self.max_req_input_len = max_req_input_len
+@@ -61,39 +64,46 @@ class HttpServerManager:
+         
+         sampling_params.stop_sentences_to_token_ids(self.tokenizer)
+ 
++        out_queue = asyncio.Queue()
++        if request_id in self.req_id_to_out_inf:
++            raise ValueError(f"duplicate request id {request_id}")
++        # Register before sending so an immediate router response cannot race
++        # with request state creation.
++        self.req_id_to_out_inf[request_id] = out_queue
+         self.send_to_router.send_pyobj((adapter_dir, prompt_ids, sampling_params, request_id))
+-        event = asyncio.Event()
+-        self.req_id_to_out_inf[request_id] = ("", {}, False, event)
+-        while True:
+-            try:
+-                await asyncio.wait_for(event.wait(), timeout=5)
+-            except asyncio.TimeoutError:
+-                pass
+-            event.clear()
+-            # request_id is aborted by the backend system for traffic control
+-            if request_id not in self.req_id_to_out_inf:
+-                yield "", {}, -1
+-                break
+-            out_str, metadata, finished, _ = self.req_id_to_out_inf[request_id]
+-            if len(metadata) != 0:
+-                self.req_id_to_out_inf[request_id] = ("", {}, finished, event)
+-                metadata["prompt_tokens"] = prompt_tokens
+-                yield out_str, metadata, finished
+-            if finished:
++        try:
++            while True:
+                 try:
+-                    del self.req_id_to_out_inf[request_id]
+-                except:
+-                    pass
+-                break
++                    out_str, metadata, finished, aborted = await asyncio.wait_for(
++                        out_queue.get(), timeout=5
++                    )
++                except asyncio.TimeoutError:
++                    # A backend traffic-control abort removes or replaces the
++                    # registered queue.  Preserve the existing abort signal to
++                    # the HTTP layer while avoiding busy polling.
++                    if self.req_id_to_out_inf.get(request_id) is not out_queue:
++                        yield "", {}, -1
++                        break
++                    continue
++                if aborted:
++                    yield "", {}, -1
++                    break
++                if len(metadata) != 0:
++                    metadata["prompt_tokens"] = prompt_tokens
++                    yield out_str, metadata, finished
++                if finished:
++                    break
++        finally:
++            if self.req_id_to_out_inf.get(request_id) is out_queue:
++                del self.req_id_to_out_inf[request_id]
+         return
+ 
+     async def abort(self, request_id):
+         abort_req = AbortReq(req_id=request_id)
+         self.send_to_router.send_pyobj(abort_req)
+-        try:
+-            del self.req_id_to_out_inf[request_id]
+-        except:
+-            pass
++        out_queue = self.req_id_to_out_inf.get(request_id)
++        if out_queue is not None:
++            out_queue.put_nowait(("", {}, False, True))
+         return
+ 
+     async def handle_loop(self):
+@@ -104,23 +114,21 @@ class HttpServerManager:
+                 for req_id, text, metadata, finished, abort in recv_ans.reqs_infs:
+                     try:
+                         if not abort:
+-                            _, _, _, event = self.req_id_to_out_inf[req_id]
+-                            self.req_id_to_out_inf[req_id] = (
+-                                text,
+-                                metadata,
+-                                finished,
+-                                event,
++                            out_queue = self.req_id_to_out_inf[req_id]
++                            out_queue.put_nowait(
++                                (text, metadata, finished, False)
+                             )
+-                            event.set()
+                         else:
+-                            del self.req_id_to_out_inf[req_id]
++                            out_queue = self.req_id_to_out_inf[req_id]
++                            out_queue.put_nowait(("", {}, False, True))
+                     except:
+                         pass
+             elif isinstance(recv_ans, BatchAbortReq):
+                 print("abort reqs:", recv_ans.reqs)
+                 for req_id in recv_ans.reqs:
+                     try:
+-                        del self.req_id_to_out_inf[req_id]
++                        out_queue = self.req_id_to_out_inf[req_id]
++                        out_queue.put_nowait(("", {}, False, True))
+                     except:
+                         pass
+ 
+diff --git a/slora/server/router/manager.py b/slora/server/router/manager.py
+index 1cf2e3a..17b8c28 100644
+--- a/slora/server/router/manager.py
++++ b/slora/server/router/manager.py
+@@ -55,7 +55,7 @@ class RouterManager:
+ 
+     def __init__(self, weightdir, adapter_dirs, load_way, world_size, eos_id,
+                  router_port, detokenization_port, model_rpc_ports,
+-                 input_params,
++                 input_params, nccl_port,
+                  mode=[], log_stats=True, log_stats_interval=10):
+         self.model_weightdir = weightdir
+         self.adapter_dirs = adapter_dirs
+@@ -63,6 +63,7 @@ class RouterManager:
+         self.load_way = load_way
+         self.mode = mode
+         self.input_params = input_params
++        self.nccl_port = int(nccl_port)
+ 
+         if self.input_params.prefetch:
+             self.prefetch_stream = torch.cuda.Stream()
+@@ -113,6 +114,7 @@ class RouterManager:
+                     self.mode,
+                     input_params=self.input_params,
+                     prefetch_stream=self.prefetch_stream,
++                    nccl_port=self.nccl_port,
+                 ))
+ 
+         await asyncio.gather(*init_model_ret)
+@@ -413,6 +415,7 @@ def start_router_process(args, router_port, detokenization_port, model_rpc_ports
+             detokenization_port=detokenization_port,
+             model_rpc_ports=model_rpc_ports,
+             input_params=input_params,
++            nccl_port=args.nccl_port,
+             mode=mode,
+             log_stats = not args.disable_log_stats,
+             log_stats_interval = args.log_stats_interval,
+@@ -432,7 +435,7 @@ def start_router_process(args, router_port, detokenization_port, model_rpc_ports
+     
+     except Exception as e:
+         import traceback
+-        err_str = '\n'.join(traceback.format_exception(e))
++        err_str = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+         pipe_writer.send(err_str)
+         router.clean_up()
+         raise
+diff --git a/slora/server/router/model_infer/model_rpc.py b/slora/server/router/model_infer/model_rpc.py
+index fc461c3..9b9cb65 100644
+--- a/slora/server/router/model_infer/model_rpc.py
++++ b/slora/server/router/model_infer/model_rpc.py
+@@ -33,13 +33,13 @@ class ModelRpcServer(rpyc.Service):
+ 
+     def exposed_init_model(self, rank_id, world_size, weight_dir, adapter_dirs,
+                            max_total_token_num, load_way, mode, input_params,
+-			   prefetch_stream):
++			   prefetch_stream, nccl_port):
+         import torch
+         import torch.distributed as dist
+         if world_size != 1:
+             trans_list = [obtain(e) for e in (rank_id, world_size, weight_dir, adapter_dirs,
+-                                              max_total_token_num, load_way, mode)]
+-            rank_id, world_size, weight_dir, adapter_dirs, max_total_token_num, load_way, mode = trans_list
++                                              max_total_token_num, load_way, mode, input_params, nccl_port)]
++            rank_id, world_size, weight_dir, adapter_dirs, max_total_token_num, load_way, mode, input_params, nccl_port = trans_list
+ 
+         self.tp_rank = rank_id
+         self.world_size = world_size
+@@ -50,7 +50,7 @@ class ModelRpcServer(rpyc.Service):
+ 
+         self.cache = {}
+ 
+-        dist.init_process_group('nccl', init_method=f'tcp://127.0.0.1:{setting["nccl_port"]}', rank=rank_id, world_size=world_size)
++        dist.init_process_group('nccl', init_method=f'tcp://127.0.0.1:{int(nccl_port)}', rank=rank_id, world_size=world_size)
+         torch.cuda.set_device(rank_id)
+ 
+         model_cfg = get_model_config(weight_dir, dummy=input_params.dummy)
+@@ -391,10 +391,10 @@ class ModelRpcClient:
+                     return ans.value
+                 return _func
+             self._init_model = async_wrap(self.model.init_model)
+-            self._load_adapters = rpyc.async_(self.model.load_adapters)
+-            self._offload_adapters = rpyc.async_(self.model.offload_adapters)
+-            self._unmerge_adapter = rpyc.async_(self.model.unmerge_adapter)
+-            self._merge_adapter = rpyc.async_(self.model.merge_adapter)
++            self._load_adapters = async_wrap(self.model.load_adapters)
++            self._offload_adapters = async_wrap(self.model.offload_adapters)
++            self._unmerge_adapter = async_wrap(self.model.unmerge_adapter)
++            self._merge_adapter = async_wrap(self.model.merge_adapter)
+             self._add_batch = async_wrap(self.model.add_batch)
+             self._prefill_batch = async_wrap(self.model.prefill_batch)
+             self._decode_batch = async_wrap(self.model.decode_batch)
+@@ -419,10 +419,10 @@ class ModelRpcClient:
+ 
+     async def init_model(self, rank_id, world_size, weight_dir, adapter_dirs,
+                          max_total_token_num, load_way, mode, input_params,
+-			 prefetch_stream):
++			 prefetch_stream, nccl_port):
+         ans : rpyc.AsyncResult = self._init_model(rank_id, world_size, weight_dir, adapter_dirs,
+                                                   max_total_token_num, load_way, mode, input_params,
+-						  prefetch_stream)
++						  prefetch_stream, nccl_port)
+         if self.use_rpc:
+             await ans
+             return
+@@ -431,17 +431,37 @@ class ModelRpcClient:
+ 
+ 
+     async def load_adapters(self, reqs, prefetch=False):
+-        self._load_adapters(reqs, prefetch=prefetch)
++        ans = self._load_adapters(reqs, prefetch=prefetch)
++        if self.use_rpc:
++            await ans
++            return
++        else:
++            return ans
+ 
+ 
+     async def offload_adapters(self, reserved_reqs=None, prefetch=False):
+-        self._offload_adapters(reserved_reqs, prefetch=prefetch)
++        ans = self._offload_adapters(reserved_reqs, prefetch=prefetch)
++        if self.use_rpc:
++            await ans
++            return
++        else:
++            return ans
+     
+     async def unmerge_adapter(self):
+-        self._unmerge_adapter()
++        ans = self._unmerge_adapter()
++        if self.use_rpc:
++            await ans
++            return
++        else:
++            return ans
+     
+     async def merge_adapter(self):
+-        self._merge_adapter()
++        ans = self._merge_adapter()
++        if self.use_rpc:
++            await ans
++            return
++        else:
++            return ans
+ 
+ 
+     async def init_batch(self, batch_id, reqs):

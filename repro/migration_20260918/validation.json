@@ -1,0 +1,42 @@
+{
+  "tests": [
+    {
+      "name": "baseline_smoke",
+      "cwd": "/home/qhq/serverless_llm_baselines",
+      "command": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-q",
+        "--basetemp=/home/qhq/migration_github_sync_20260918/testtmp/baseline",
+        "tests/test_fixed_length_generation_contract.py",
+        "tests/test_fair_runner_shell_helpers.py"
+      ],
+      "returncode": 1,
+      "log": "logs/baseline_smoke.log"
+    },
+    {
+      "name": "baseline_smoke",
+      "cwd": "/home/qhq/serverless_llm_baselines",
+      "command": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-q",
+        "--basetemp=/home/qhq/migration_github_sync_20260918/testtmp/baseline_smoke",
+        "tests/test_fixed_length_generation_contract.py",
+        "tests/test_fair_runner_shell_helpers.py"
+      ],
+      "returncode": 0,
+      "log": "logs/baseline_smoke.log"
+    }
+  ],
+  "preexisting_bundle_checks": [],
+  "scope": "CPU smoke and snapshot integrity only. No GPU experiment or fresh-server end-to-end reproduction was performed."
+}

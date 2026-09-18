@@ -1,0 +1,20 @@
+[
+  {
+    "name": "loquetier",
+    "version": "1.0.0",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/kernel_src"
+    }
+  },
+  {
+    "name": "vllm",
+    "version": "0.1.4",
+    "direct_url": {
+      "dir_info": {
+        "editable": true
+      },
+      "url": "file:///home/qhq/serverless_llm_baselines/vendor_new_baselines/dLoRA_artifact_main_20260519"
+    }
+  }
+]

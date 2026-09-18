@@ -1,0 +1,28 @@
+[
+  {
+    "name": "aibrix",
+    "version": "0.6.0",
+    "direct_url": {
+      "dir_info": {
+        "editable": true
+      },
+      "url": "file:///home/qhq/serverless_llm_baselines/vendor_new_baselines/AIBrix_v0.6.0_20260520/python/aibrix"
+    }
+  },
+  {
+    "name": "packaging",
+    "version": "26.2",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_packaging_1777103621/work"
+    }
+  },
+  {
+    "name": "pip",
+    "version": "26.1.1",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///home/conda/feedstock_root/build_artifacts/pip_1777924007781/work"
+    }
+  }
+]

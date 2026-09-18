@@ -1,0 +1,274 @@
+[
+  {
+    "name": "MarkupSafe",
+    "version": "3.0.2"
+  },
+  {
+    "name": "aioprometheus",
+    "version": "23.12.0"
+  },
+  {
+    "name": "annotated-doc",
+    "version": "0.0.4"
+  },
+  {
+    "name": "annotated-types",
+    "version": "0.7.0"
+  },
+  {
+    "name": "anyio",
+    "version": "4.12.1"
+  },
+  {
+    "name": "attrs",
+    "version": "26.1.0"
+  },
+  {
+    "name": "certifi",
+    "version": "2026.4.22"
+  },
+  {
+    "name": "charset-normalizer",
+    "version": "3.4.7"
+  },
+  {
+    "name": "click",
+    "version": "8.1.8"
+  },
+  {
+    "name": "cupy-cuda12x",
+    "version": "12.1.0"
+  },
+  {
+    "name": "exceptiongroup",
+    "version": "1.3.1"
+  },
+  {
+    "name": "fastapi",
+    "version": "0.128.8"
+  },
+  {
+    "name": "fastrlock",
+    "version": "0.8.3"
+  },
+  {
+    "name": "filelock",
+    "version": "3.19.1"
+  },
+  {
+    "name": "fsspec",
+    "version": "2025.10.0"
+  },
+  {
+    "name": "h11",
+    "version": "0.16.0"
+  },
+  {
+    "name": "hf-xet",
+    "version": "1.5.0"
+  },
+  {
+    "name": "httptools",
+    "version": "0.7.1"
+  },
+  {
+    "name": "huggingface_hub",
+    "version": "0.36.2"
+  },
+  {
+    "name": "idna",
+    "version": "3.15"
+  },
+  {
+    "name": "Jinja2",
+    "version": "3.1.6"
+  },
+  {
+    "name": "jsonschema",
+    "version": "4.25.1"
+  },
+  {
+    "name": "jsonschema-specifications",
+    "version": "2025.9.1"
+  },
+  {
+    "name": "meson",
+    "version": "1.8.4",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_meson_1755692983/work"
+    }
+  },
+  {
+    "name": "mpmath",
+    "version": "1.3.0"
+  },
+  {
+    "name": "msgpack",
+    "version": "1.1.2"
+  },
+  {
+    "name": "networkx",
+    "version": "3.2.1"
+  },
+  {
+    "name": "ninja",
+    "version": "1.13.0"
+  },
+  {
+    "name": "numpy",
+    "version": "1.26.4"
+  },
+  {
+    "name": "nvidia-cuda-nvcc-cu12",
+    "version": "12.1.105"
+  },
+  {
+    "name": "orjson",
+    "version": "3.11.5"
+  },
+  {
+    "name": "packaging",
+    "version": "26.2"
+  },
+  {
+    "name": "pip",
+    "version": "26.0.1",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///home/task_177498883471825/croot/pip_1774988882575/work"
+    }
+  },
+  {
+    "name": "protobuf",
+    "version": "5.27.0"
+  },
+  {
+    "name": "psutil",
+    "version": "7.2.2"
+  },
+  {
+    "name": "pydantic",
+    "version": "2.13.4"
+  },
+  {
+    "name": "pydantic_core",
+    "version": "2.46.4"
+  },
+  {
+    "name": "pyelftools",
+    "version": "0.32",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///home/conda/feedstock_root/build_artifacts/pyelftools_1744148257810/work"
+    }
+  },
+  {
+    "name": "pyinstrument",
+    "version": "5.1.2"
+  },
+  {
+    "name": "pynvml",
+    "version": "11.5.0"
+  },
+  {
+    "name": "python-dotenv",
+    "version": "1.2.1"
+  },
+  {
+    "name": "PyYAML",
+    "version": "6.0.3"
+  },
+  {
+    "name": "quantile-python",
+    "version": "1.1"
+  },
+  {
+    "name": "ray",
+    "version": "2.51.2"
+  },
+  {
+    "name": "referencing",
+    "version": "0.36.2"
+  },
+  {
+    "name": "regex",
+    "version": "2026.1.15"
+  },
+  {
+    "name": "requests",
+    "version": "2.32.5"
+  },
+  {
+    "name": "rpds-py",
+    "version": "0.27.1"
+  },
+  {
+    "name": "safetensors",
+    "version": "0.7.0"
+  },
+  {
+    "name": "sentencepiece",
+    "version": "0.2.1"
+  },
+  {
+    "name": "starlette",
+    "version": "0.49.3"
+  },
+  {
+    "name": "sympy",
+    "version": "1.14.0"
+  },
+  {
+    "name": "tokenizers",
+    "version": "0.19.1"
+  },
+  {
+    "name": "torch",
+    "version": "2.1.2+cu121"
+  },
+  {
+    "name": "tqdm",
+    "version": "4.67.3"
+  },
+  {
+    "name": "transformers",
+    "version": "4.41.1"
+  },
+  {
+    "name": "triton",
+    "version": "2.1.0"
+  },
+  {
+    "name": "typing_extensions",
+    "version": "4.15.0"
+  },
+  {
+    "name": "typing-inspection",
+    "version": "0.4.2"
+  },
+  {
+    "name": "urllib3",
+    "version": "2.6.3"
+  },
+  {
+    "name": "uvicorn",
+    "version": "0.39.0"
+  },
+  {
+    "name": "uvloop",
+    "version": "0.22.1"
+  },
+  {
+    "name": "watchfiles",
+    "version": "1.1.1"
+  },
+  {
+    "name": "websockets",
+    "version": "15.0.1"
+  },
+  {
+    "name": "wheel",
+    "version": "0.45.1"
+  }
+]

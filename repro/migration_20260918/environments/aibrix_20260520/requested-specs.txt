@@ -1,0 +1,2 @@
+# update specs: ['go=1.22.6']
+# update specs: ['pkg-config', 'libsodium', 'zeromq']

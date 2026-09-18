@@ -1,0 +1,5 @@
+home = /home/qhq/anaconda3/envs/LLM/bin
+include-system-site-packages = true
+version = 3.12.12
+executable = /home/qhq/anaconda3/envs/LLM/bin/python3.12
+command = /home/qhq/anaconda3/envs/LLM/bin/python -m venv --system-site-packages /home/qhq/.venvs/mooncake_official_20260615

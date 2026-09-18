@@ -1,0 +1,30 @@
+COMMAND ["/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/bin/python", "-m", "pip", "wheel", "--no-deps", "--no-build-isolation", "--wheel-dir", "/home/qhq/serverless_llm_baselines/installs/.serverless-llm-store-0.8.0-vllm0102-py312-v1.staging-nl26icvr/wheels", "/home/qhq/serverless_llm_baselines/installs/.serverless-llm-store-0.8.0-vllm0102-py312-v1.staging-nl26icvr/build_workspace/sllm_store"]
+Processing ./sllm_store
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: serverless-llm-store
+  Building wheel for serverless-llm-store (pyproject.toml): started
+  Building wheel for serverless-llm-store (pyproject.toml): still running...
+  Building wheel for serverless-llm-store (pyproject.toml): finished with status 'done'
+  Created wheel for serverless-llm-store: filename=serverless_llm_store-0.8.0-cp312-cp312-linux_x86_64.whl size=559637 sha256=41a557075e62aa798d3ac922f5f9609451317344eac94c7815b27620fd99fffc
+  Stored in directory: /tmp/pip-ephem-wheel-cache-jy0hhndr/wheels/56/45/cb/9b4a37dc18249c6fec87da8dfa45f9025d495648c51cd193a7
+Successfully built serverless-llm-store
+RETURN_CODE 0
+COMMAND ["/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/bin/python", "-m", "pip", "download", "--no-deps", "--only-binary=:all:", "--dest", "/home/qhq/serverless_llm_baselines/installs/.serverless-llm-store-0.8.0-vllm0102-py312-v1.staging-nl26icvr/wheels", "grpcio==1.76.0"]
+Collecting grpcio==1.76.0
+  Using cached grpcio-1.76.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (3.7 kB)
+Downloading grpcio-1.76.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (6.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 7.1 MB/s  0:00:01
+Saved /home/qhq/serverless_llm_baselines/installs/.serverless-llm-store-0.8.0-vllm0102-py312-v1.staging-nl26icvr/wheels/grpcio-1.76.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+Successfully downloaded grpcio
+RETURN_CODE 0
+COMMAND ["/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/bin/python", "-m", "pip", "install", "--no-index", "--no-deps", "--no-compile", "--target", "/home/qhq/serverless_llm_baselines/installs/.serverless-llm-store-0.8.0-vllm0102-py312-v1.staging-nl26icvr/site-packages", "/home/qhq/serverless_llm_baselines/installs/.serverless-llm-store-0.8.0-vllm0102-py312-v1.staging-nl26icvr/wheels/grpcio-1.76.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", "/home/qhq/serverless_llm_baselines/installs/.serverless-llm-store-0.8.0-vllm0102-py312-v1.staging-nl26icvr/wheels/serverless_llm_store-0.8.0-cp312-cp312-linux_x86_64.whl"]
+Processing /home/qhq/serverless_llm_baselines/installs/.serverless-llm-store-0.8.0-vllm0102-py312-v1.staging-nl26icvr/wheels/grpcio-1.76.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+Processing /home/qhq/serverless_llm_baselines/installs/.serverless-llm-store-0.8.0-vllm0102-py312-v1.staging-nl26icvr/wheels/serverless_llm_store-0.8.0-cp312-cp312-linux_x86_64.whl
+Installing collected packages: serverless-llm-store, grpcio
+
+Successfully installed grpcio-1.76.0 serverless-llm-store-0.8.0
+RETURN_CODE 0
+COMMAND ["/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/bin/python", "-c", "import sllm_store.client, sllm_store.torch; print('native_store_import_ok')"]
+native_store_import_ok
+RETURN_CODE 0

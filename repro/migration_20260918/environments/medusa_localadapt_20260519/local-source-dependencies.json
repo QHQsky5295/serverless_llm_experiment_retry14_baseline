@@ -1,0 +1,26 @@
+[
+  {
+    "name": "meson",
+    "version": "1.8.4",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_meson_1755692983/work"
+    }
+  },
+  {
+    "name": "pip",
+    "version": "26.0.1",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///home/task_177498883471825/croot/pip_1774988882575/work"
+    }
+  },
+  {
+    "name": "pyelftools",
+    "version": "0.32",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///home/conda/feedstock_root/build_artifacts/pyelftools_1744148257810/work"
+    }
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "original_prefix": "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519",
+  "conda_packages": 76,
+  "python_distributions": 73,
+  "source_overlays": 0,
+  "note": "Package metadata snapshot. pip-versions includes Conda-managed distributions; do not blindly install it over Conda. Local editable packages require source revisions and patches."
+}

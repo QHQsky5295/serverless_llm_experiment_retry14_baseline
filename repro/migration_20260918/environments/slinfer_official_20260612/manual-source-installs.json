@@ -1,0 +1,20 @@
+[
+  {
+    "name": "serverless-llm-store",
+    "version": "0.6.0",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///home/qhq/serverless_llm_baselines/vendor_new_baselines/SLINFER_main_20260323/ServerlessLLM_modify/sllm_store"
+    }
+  },
+  {
+    "name": "vllm",
+    "version": "0.5.2+cu124",
+    "direct_url": {
+      "dir_info": {
+        "editable": true
+      },
+      "url": "file:///home/qhq/serverless_llm_baselines/vendor_new_baselines/SLINFER_main_20260323/vLLM_modify"
+    }
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "name": "llumnix",
+    "version": "0.1.dev1+g3fb6c03.d20260615",
+    "direct_url": {
+      "dir_info": {
+        "editable": true
+      },
+      "url": "file:///home/qhq/serverless_llm_baselines/workspaces/llumnix_official_20260615"
+    }
+  },
+  {
+    "name": "pip",
+    "version": "26.1.1",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///home/task_178032272205047/croot/pip_1780323467325/work"
+    }
+  }
+]

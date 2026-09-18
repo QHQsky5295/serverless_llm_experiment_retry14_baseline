@@ -11,9 +11,13 @@ MAX_REQUESTS="${2:-64}"
 RUN_TAG="${3:-$(date -u +%Y%m%dT%H%M%SZ)_serverlessllm_${MODEL_KEY}_r${MAX_REQUESTS}}"
 WORKER_GPUS="${SLLM_WORKER_GPUS:-0,1,2,3}"
 MIN_INSTANCES="${SLLM_MIN_INSTANCES:-1}"
+INITIAL_MIN_INSTANCES="${SLLM_INITIAL_MIN_INSTANCES:-${MIN_INSTANCES}}"
 MAX_INSTANCES="${SLLM_MAX_INSTANCES:-4}"
 TARGET_CONCURRENCY="${SLLM_TARGET_CONCURRENCY:-16}"
 KEEP_ALIVE_S="${SLLM_KEEP_ALIVE_S:-300}"
+READY_INSTANCE_COUNT="${SLLM_READY_INSTANCE_COUNT:-${INITIAL_MIN_INSTANCES}}"
+UPDATE_AFTER_READY="${SLLM_UPDATE_AFTER_READY:-0}"
+PREFIX_CACHING_OVERRIDE="${SLLM_ENABLE_PREFIX_CACHING:-}"
 TIMEOUT_S="${SLLM_TIMEOUT_S:-1800}"
 READY_TIMEOUT_S="${SLLM_READY_TIMEOUT_S:-900}"
 AUTO_STOP="${SLLM_AUTO_STOP_STACK:-1}"
@@ -74,7 +78,7 @@ export SLLM_SERVE_SESSION="sllm_serve_${STACK_SUFFIX}"
 export SLLM_WORKER_SESSION_PREFIX="sllm_worker_${STACK_SUFFIX}"
 export SLLM_SERVE_LOG_PATH="${LOG_DIR}/serve.log"
 export SLLM_DEPLOY_CONFIG="${DEPLOY_PATH}"
-export SLLM_REQUEST_POLL_INTERVAL_S="${SLLM_REQUEST_POLL_INTERVAL_S:-0.005}"
+export SLLM_REQUEST_POLL_INTERVAL_S="${SLLM_REQUEST_POLL_INTERVAL_S:-1}"
 export VLLM_NO_USAGE_STATS=1
 
 cleanup() {
@@ -106,11 +110,25 @@ echo "[1/7] Generate base-model-only ServerlessLLM deployment"
   --base-model-only \
   --serving-model-name "${SERVING_MODEL_NAME}" \
   --available-worker-gpus "${WORKER_GPUS}" \
-  --min-instances "${MIN_INSTANCES}" \
+  --min-instances "${INITIAL_MIN_INSTANCES}" \
   --max-instances "${MAX_INSTANCES}" \
   --target "${TARGET_CONCURRENCY}" \
   --keep-alive "${KEEP_ALIVE_S}" \
   --output "${DEPLOY_PATH}"
+
+if [[ -n "${PREFIX_CACHING_OVERRIDE}" ]]; then
+  "${PYTHON_BIN}" - "${DEPLOY_PATH}" "${PREFIX_CACHING_OVERRIDE}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+enabled = sys.argv[2].strip().lower() in {"1", "true", "yes", "y", "on"}
+payload = json.loads(path.read_text())
+payload.setdefault("backend_config", {})["enable_prefix_caching"] = enabled
+path.write_text(json.dumps(payload, indent=2) + "\n")
+PY
+fi
 
 readarray -t VLLM_ENV_LINES < <(
   "${PYTHON_BIN}" - "${DEPLOY_PATH}" <<'PY'
@@ -133,7 +151,10 @@ echo "[2/7] Record immutable inputs"
   "${MANIFEST_PATH}" "${TRACE_PATH}" "${DEPLOY_PATH}" "${CONFIG_PATH}" \
   "${ROOT_DIR}" "${RELAY_ROOT}" "${RUN_TAG}" "${MODEL_KEY}" "${MAX_REQUESTS}" \
   "${PYTHON_ENV}" "${WORKER_GPUS}" "${SLLM_REQUEST_POLL_INTERVAL_S}" \
-  "${TRACE_ROLE}" <<'PY'
+  "${TRACE_ROLE}" "${INITIAL_MIN_INSTANCES}" "${MIN_INSTANCES}" \
+  "${MAX_INSTANCES}" "${TARGET_CONCURRENCY}" "${KEEP_ALIVE_S}" \
+  "${READY_INSTANCE_COUNT}" "${UPDATE_AFTER_READY}" \
+  "${PREFIX_CACHING_OVERRIDE}" <<'PY'
 import hashlib
 import json
 import subprocess
@@ -155,6 +176,14 @@ from pathlib import Path
     worker_gpus,
     request_poll_interval_s,
     trace_role,
+    initial_min_instances,
+    final_min_instances,
+    max_instances,
+    target_concurrency,
+    keep_alive_s,
+    ready_instance_count,
+    update_after_ready,
+    prefix_caching_override,
 ) = sys.argv[1:]
 
 def sha(path):
@@ -164,6 +193,12 @@ def git_head(path):
     return subprocess.check_output(
         ["git", "-C", path, "rev-parse", "HEAD"], text=True
     ).strip()
+
+def git_diff_sha(path):
+    diff = subprocess.check_output(
+        ["git", "-C", path, "diff", "--binary", "HEAD"], text=False
+    )
+    return hashlib.sha256(diff).hexdigest()
 
 payload = {
     "schema": "relayserve_external_serverlessllm_run_v1",
@@ -181,11 +216,31 @@ payload = {
     "config_sha256": sha(config_path),
     "serverlessllm_repo": str(Path(root) / "repos/ServerlessLLM"),
     "serverlessllm_git_commit": git_head(str(Path(root) / "repos/ServerlessLLM")),
+    "serverlessllm_worktree_diff_sha256": git_diff_sha(
+        str(Path(root) / "repos/ServerlessLLM")
+    ),
     "baseline_harness_git_commit": git_head(root),
+    "baseline_harness_worktree_diff_sha256": git_diff_sha(root),
     "relayserve_git_commit": git_head(relay_root),
     "runtime_env": python_env,
     "worker_gpus": worker_gpus,
     "request_poll_interval_s": float(request_poll_interval_s),
+    "lifecycle_protocol": {
+        "initial_min_instances": int(initial_min_instances),
+        "final_min_instances": int(final_min_instances),
+        "max_instances": int(max_instances),
+        "target_concurrency": int(target_concurrency),
+        "keep_alive_s": float(keep_alive_s),
+        "ready_instance_count": int(ready_instance_count),
+        "update_after_ready": update_after_ready.strip().lower()
+        in {"1", "true", "yes", "y", "on"},
+        "prefix_caching_override": (
+            None
+            if not prefix_caching_override.strip()
+            else prefix_caching_override.strip().lower()
+            in {"1", "true", "yes", "y", "on"}
+        ),
+    },
     "comparison_contract": {
         "workload": f"RelayServe frozen continuation trace ({trace_role}), rate=1.00x",
         "slo_profile": "paper_nominal",
@@ -210,12 +265,19 @@ bash "${ROOT_DIR}/scripts/deploy_serverlessllm_model.sh" "${DEPLOY_PATH}" \
 echo "[4.5/7] Wait for the initial runtime to become ready"
 READY_DEADLINE=$((SECONDS + READY_TIMEOUT_S))
 READY_PATTERN="Instance .* is ready for model ${SERVING_MODEL_NAME}"
-while ! rg -q "${READY_PATTERN}" "${SLLM_SERVE_LOG_PATH}" 2>/dev/null; do
+ready_instance_count() {
+  {
+    rg -o "${READY_PATTERN}" "${SLLM_SERVE_LOG_PATH}" 2>/dev/null || true
+  } | sort -u | wc -l | tr -d ' '
+}
+CURRENT_READY_COUNT="$(ready_instance_count)"
+while (( CURRENT_READY_COUNT < READY_INSTANCE_COUNT )); do
   if (( SECONDS >= READY_DEADLINE )); then
-    echo "timed out waiting for initial ServerlessLLM runtime readiness" >&2
+    echo "timed out waiting for ${READY_INSTANCE_COUNT} ServerlessLLM runtimes; observed ${CURRENT_READY_COUNT}" >&2
     exit 70
   fi
   sleep 1
+  CURRENT_READY_COUNT="$(ready_instance_count)"
 done
 PREDEPLOY_END_NS="$(date +%s%N)"
 PREDEPLOY_STARTUP_SEC="$(
@@ -225,6 +287,56 @@ print(f"{(int(sys.argv[2]) - int(sys.argv[1])) / 1_000_000_000.0:.6f}")
 PY
 )"
 echo "initial_runtime_startup_sec=${PREDEPLOY_STARTUP_SEC}"
+echo "initial_ready_instances=${CURRENT_READY_COUNT}"
+
+if [[ "${UPDATE_AFTER_READY}" == "1" ]]; then
+  echo "[4.6/7] Switch from prewarm policy to measured lifecycle policy"
+  UPDATE_RESPONSE_PATH="${RUN_DIR}/update_response.json"
+  "${PYTHON_BIN}" - \
+    "${DEPLOY_PATH}" "${UPDATE_RESPONSE_PATH}" "${SERVING_MODEL_NAME}" \
+    "${MIN_INSTANCES}" "${MAX_INSTANCES}" "${TARGET_CONCURRENCY}" \
+    "${KEEP_ALIVE_S}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+import requests
+
+(
+    deploy_path,
+    response_path,
+    model_name,
+    min_instances,
+    max_instances,
+    target,
+    keep_alive,
+) = sys.argv[1:]
+deploy = json.loads(Path(deploy_path).read_text())
+config = dict(deploy.get("auto_scaling_config", {}) or {})
+config.update(
+    {
+        "metric": "concurrency",
+        "min_instances": int(min_instances),
+        "max_instances": int(max_instances),
+        "target": int(target),
+        "keep_alive": float(keep_alive),
+    }
+)
+request_payload = {"model": model_name, "auto_scaling_config": config}
+response = requests.post(
+    "http://127.0.0.1:8343/update",
+    json=request_payload,
+    timeout=30,
+)
+record = {
+    "request": request_payload,
+    "status_code": response.status_code,
+    "response_text": response.text,
+}
+Path(response_path).write_text(json.dumps(record, indent=2) + "\n")
+response.raise_for_status()
+PY
+fi
 
 echo "[5/7] Replay frozen continuation workload"
 REPLAY_ARGS=()

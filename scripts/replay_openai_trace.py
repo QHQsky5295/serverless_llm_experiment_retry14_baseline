@@ -1532,6 +1532,17 @@ def _replay_one(
         else None
     )
     cold_start_latency_ms = server_metrics.get("cold_start_latency_ms")
+    num_cached_tokens = server_metrics.get("num_cached_tokens")
+    prefix_cache_hit = (
+        bool(server_metrics.get("prefix_cache_hit"))
+        if server_metrics.get("prefix_cache_hit") is not None
+        else (
+            bool(int(num_cached_tokens) > 0)
+            if num_cached_tokens is not None
+            else None
+        )
+    )
+    cached_token_fraction = server_metrics.get("cached_token_fraction")
     comparable_request = None
     warm_standard_request = None
     if cache_hit is not None and scaleup_affected is not None:
@@ -1657,6 +1668,11 @@ def _replay_one(
 
     return {
         "request_id": item["request_id"],
+        "conversation_id": item.get("conversation_id"),
+        "turn_id": item.get("turn_id"),
+        "parent_request_id": item.get("parent_request_id"),
+        "prefix_digest": item.get("prefix_digest"),
+        "state_dependency_kind": item.get("state_dependency_kind"),
         "generation_seed": request_seed,
         "generation_contract": generation_contract,
         "source_expected_output_tokens": source_expected_output_tokens,
@@ -1690,6 +1706,9 @@ def _replay_one(
         "scaleup_affected": scaleup_affected,
         "scaleup_first_service": scaleup_first_service,
         "cold_start_latency_ms": cold_start_latency_ms,
+        "num_cached_tokens": num_cached_tokens,
+        "prefix_cache_hit": prefix_cache_hit,
+        "cached_token_fraction": cached_token_fraction,
         "comparable_request": comparable_request,
         "warm_standard_request": warm_standard_request,
         "metrics_source": metrics_source,

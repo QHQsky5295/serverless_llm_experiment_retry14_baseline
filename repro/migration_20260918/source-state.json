@@ -1,0 +1,10 @@
+{
+  "source_directory": "/home/qhq/serverless_llm_baselines",
+  "head": "d85263e00e976cc61c8938e662d77a2b249cdf58",
+  "branch": "main",
+  "local_branches": [
+    "refs/heads/main d85263e00e976cc61c8938e662d77a2b249cdf58"
+  ],
+  "migration_remote": "https://github.com/QHQsky5295/serverless_llm_experiment_retry14_baseline.git",
+  "migration_branch": "migration/server-20260918"
+}

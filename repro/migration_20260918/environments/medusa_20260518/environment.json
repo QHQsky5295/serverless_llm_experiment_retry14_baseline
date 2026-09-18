@@ -1,0 +1,7 @@
+{
+  "original_prefix": "/home/qhq/anaconda3/envs/medusa_20260518",
+  "conda_packages": 76,
+  "python_distributions": 64,
+  "source_overlays": 0,
+  "note": "Package metadata snapshot. pip-versions includes Conda-managed distributions; do not blindly install it over Conda. Local editable packages require source revisions and patches."
+}

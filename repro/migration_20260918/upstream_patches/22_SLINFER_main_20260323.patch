@@ -1,0 +1,153 @@
+diff --git a/SLINFER_core/scheduler/config_template/pools_info_template.py b/SLINFER_core/scheduler/config_template/pools_info_template.py
+index cea6d58..fcf7b9c 100644
+--- a/SLINFER_core/scheduler/config_template/pools_info_template.py
++++ b/SLINFER_core/scheduler/config_template/pools_info_template.py
+@@ -1 +1,53 @@
+-pools_info_template = {}
+\ No newline at end of file
++from .models_info_template import models_info_template
++
++models_info = models_info_template
++
++pools_info_template = {
++    'gpu': {
++        0: {
++            'node_memory_capacity_GB': 23.0,
++            'node_ip': '127.0.0.1',
++            'gateway_ip': '127.0.0.1',
++            'dist_scheduler': False,
++            'base_port': 8000,
++            'node_label': 'gpu',
++            'workers': {
++                0: models_info['llama-2-7b'],
++            },
++        },
++        1: {
++            'node_memory_capacity_GB': 23.0,
++            'node_ip': '127.0.0.1',
++            'gateway_ip': '127.0.0.1',
++            'dist_scheduler': False,
++            'base_port': 8100,
++            'node_label': 'gpu',
++            'workers': {
++                0: models_info['llama-2-7b'],
++            },
++        },
++        2: {
++            'node_memory_capacity_GB': 23.0,
++            'node_ip': '127.0.0.1',
++            'gateway_ip': '127.0.0.1',
++            'dist_scheduler': False,
++            'base_port': 8200,
++            'node_label': 'gpu',
++            'workers': {
++                0: models_info['llama-2-7b'],
++            },
++        },
++        3: {
++            'node_memory_capacity_GB': 23.0,
++            'node_ip': '127.0.0.1',
++            'gateway_ip': '127.0.0.1',
++            'dist_scheduler': False,
++            'base_port': 8300,
++            'node_label': 'gpu',
++            'workers': {
++                0: models_info['llama-2-7b'],
++            },
++        },
++    },
++    'cpu': {},
++}
+diff --git a/SLINFER_core/scheduler/gateway.py b/SLINFER_core/scheduler/gateway.py
+index cb2d6df..ada14e3 100644
+--- a/SLINFER_core/scheduler/gateway.py
++++ b/SLINFER_core/scheduler/gateway.py
+@@ -113,7 +113,11 @@ async def create_completion(request: Request):
+                 # violate DDL, drop request
+                 logger.info(f'failed request: {request_tracker.get_info()}')
+                 pool_manager.delete_request(request_tracker)
+-                return JSONResponse({'result': False})
++                return JSONResponse({
++                    'result': False,
++                    'failure_reason': 'deadline_violation',
++                    'request_info': request_tracker.get_info(),
++                })
+         # Start exec, wait for termination
+         logger.info(f'schedule request: {request_tracker.get_info()}')
+         await request_tracker.terminate_event.wait()
+@@ -185,6 +189,18 @@ async def set_config(request: Request):
+             new_minimal_tokens_per_instance = body['minimal_tokens_per_instance']
+             assert new_minimal_tokens_per_instance >= 0
+             config.minimal_tokens_per_instance = new_minimal_tokens_per_instance
++        elif 'TTFT_baseline' == config_key:
++            new_ttft_baseline = float(body['TTFT_baseline'])
++            assert new_ttft_baseline > 0
++            config.TTFT_baseline = new_ttft_baseline
++        elif 'TTFT_max_threshold' == config_key:
++            new_ttft_max_threshold = float(body['TTFT_max_threshold'])
++            assert new_ttft_max_threshold > 0
++            config.TTFT_max_threshold = new_ttft_max_threshold
++        elif 'TPOT' == config_key:
++            new_tpot = float(body['TPOT'])
++            assert new_tpot > 0
++            config.TPOT = new_tpot
+         elif 'kv_scale_watermark' == config_key:
+             new_kv_scale_watermark = body['kv_scale_watermark']
+             assert 0 <= new_kv_scale_watermark <= 1
+@@ -218,6 +234,9 @@ async def get_config(request: Request):
+                          'enable_sharing': config.enable_sharing,
+                          'enable_detailed_logging': config.enable_detailed_logging,
+                          'minimal_tokens_per_instance': config.minimal_tokens_per_instance,
++                         'TTFT_baseline': config.TTFT_baseline,
++                         'TTFT_max_threshold': config.TTFT_max_threshold,
++                         'TPOT': config.TPOT,
+                          'kv_scale_watermark': config.kv_scale_watermark,
+                          'ddl_based_schedule': config.ddl_based_schedule})
+ 
+diff --git a/SLINFER_core/scheduler/request_info.py b/SLINFER_core/scheduler/request_info.py
+index 728d7a8..a5cdafa 100644
+--- a/SLINFER_core/scheduler/request_info.py
++++ b/SLINFER_core/scheduler/request_info.py
+@@ -19,7 +19,16 @@ class ReqTracker:
+         self.input_length = request_info['input_length']
+         self.expect_output_length = request_info['expect_output_length']
+         self.output_length = 0
+-        self.text = input_table[:self.input_length]
++        prompt_token_ids = request_info.get('prompt_token_ids')
++        if prompt_token_ids is None:
++            self.text = input_table[:self.input_length]
++        else:
++            self.text = [int(token_id) for token_id in prompt_token_ids]
++            if len(self.text) != self.input_length:
++                raise ValueError(
++                    f'prompt_token_ids length {len(self.text)} does not match '
++                    f'input_length {self.input_length}'
++                )
+         self.under_prefill = True
+ 
+         self.first_token_time = -1
+@@ -138,8 +147,8 @@ class ReqTracker:
+             TPOT = (self.finish_time - self.first_token_time) / (self.output_length - 1)
+         else:
+             TPOT = 0
+-        return {'TTFT': round(TTFT, 3),
+-                'TPOT': round(TPOT, 3),
++        return {'TTFT': round(TTFT, 6),
++                'TPOT': round(TPOT, 6),
+                 'tolerate_time': round(self.tolerate_time, 3),
+                 'cold_start': self.TTFT_cold_start,
+                 'handled_workers': self.handled_workers}
+diff --git a/SLINFER_core/tools/vllm_backend_starter.py b/SLINFER_core/tools/vllm_backend_starter.py
+index 9c41006..24d25ed 100644
+--- a/SLINFER_core/tools/vllm_backend_starter.py
++++ b/SLINFER_core/tools/vllm_backend_starter.py
+@@ -68,7 +68,8 @@ elif args.device == 'gpu':
+         f'python -m vllm.entrypoints.openai.api_server '
+         f'--port {args.port} --max-model-len {max_model_len} '
+         f'--model {args.model} '
+-        f'--enforce-eager --gpu-memory-utilization 0.975 {block_num_override_command} --block-size 16 '
++        f'--enforce-eager --gpu-memory-utilization 0.975 --swap-space 1 '
++        f'{block_num_override_command} --block-size 16 '
+         f'{loader_override_command} '
+     )
+     env_vars.update(

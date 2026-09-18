@@ -1,0 +1,9 @@
+Collecting uhashring==2.4
+  Downloading uhashring-2.4-py3-none-any.whl.metadata (11 kB)
+Collecting pympler==1.1
+  Downloading Pympler-1.1-py3-none-any.whl.metadata (3.6 kB)
+Downloading uhashring-2.4-py3-none-any.whl (11 kB)
+Downloading Pympler-1.1-py3-none-any.whl (165 kB)
+Installing collected packages: uhashring, pympler
+
+Successfully installed pympler-1.1 uhashring-2.4

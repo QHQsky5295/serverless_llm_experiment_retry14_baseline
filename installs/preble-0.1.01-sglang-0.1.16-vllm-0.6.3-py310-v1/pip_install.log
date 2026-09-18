@@ -1,0 +1,9 @@
+Collecting outlines==0.0.34
+  Using cached outlines-0.0.34-py3-none-any.whl.metadata (13 kB)
+Collecting rpyc==6.0.2
+  Using cached rpyc-6.0.2-py3-none-any.whl.metadata (3.5 kB)
+Using cached outlines-0.0.34-py3-none-any.whl (76 kB)
+Using cached rpyc-6.0.2-py3-none-any.whl (74 kB)
+Installing collected packages: rpyc, outlines
+
+Successfully installed outlines-0.0.34 rpyc-6.0.2

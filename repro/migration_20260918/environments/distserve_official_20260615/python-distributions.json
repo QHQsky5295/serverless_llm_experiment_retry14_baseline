@@ -1,0 +1,358 @@
+[
+  {
+    "name": "Jinja2",
+    "version": "3.1.3",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///croot/jinja2_1706733616596/work"
+    }
+  },
+  {
+    "name": "MarkupSafe",
+    "version": "2.1.3",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///croot/markupsafe_1704205993651/work"
+    }
+  },
+  {
+    "name": "PyYAML",
+    "version": "6.0.1",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///croot/pyyaml_1698096049011/work"
+    }
+  },
+  {
+    "name": "aiohttp",
+    "version": "3.9.5"
+  },
+  {
+    "name": "aiohttp-cors",
+    "version": "0.7.0"
+  },
+  {
+    "name": "aiosignal",
+    "version": "1.3.1"
+  },
+  {
+    "name": "annotated-types",
+    "version": "0.6.0"
+  },
+  {
+    "name": "anyio",
+    "version": "4.3.0"
+  },
+  {
+    "name": "async-timeout",
+    "version": "4.0.3"
+  },
+  {
+    "name": "attrs",
+    "version": "23.2.0"
+  },
+  {
+    "name": "cachetools",
+    "version": "5.3.3"
+  },
+  {
+    "name": "certifi",
+    "version": "2026.5.20"
+  },
+  {
+    "name": "charset-normalizer",
+    "version": "3.3.2"
+  },
+  {
+    "name": "click",
+    "version": "8.1.7"
+  },
+  {
+    "name": "cmake",
+    "version": "4.3.2"
+  },
+  {
+    "name": "colorful",
+    "version": "0.5.6"
+  },
+  {
+    "name": "distlib",
+    "version": "0.3.8"
+  },
+  {
+    "name": "exceptiongroup",
+    "version": "1.2.0"
+  },
+  {
+    "name": "fastapi",
+    "version": "0.110.1"
+  },
+  {
+    "name": "filelock",
+    "version": "3.13.1",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///croot/filelock_1700591183607/work"
+    }
+  },
+  {
+    "name": "frozenlist",
+    "version": "1.4.1"
+  },
+  {
+    "name": "gmpy2",
+    "version": "2.1.2",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///tmp/build/80754af9/gmpy2_1645455533097/work"
+    }
+  },
+  {
+    "name": "google-api-core",
+    "version": "2.18.0"
+  },
+  {
+    "name": "google-auth",
+    "version": "2.29.0"
+  },
+  {
+    "name": "googleapis-common-protos",
+    "version": "1.63.0"
+  },
+  {
+    "name": "grpcio",
+    "version": "1.62.1"
+  },
+  {
+    "name": "h11",
+    "version": "0.16.0"
+  },
+  {
+    "name": "huggingface-hub",
+    "version": "0.22.2"
+  },
+  {
+    "name": "idna",
+    "version": "3.7"
+  },
+  {
+    "name": "jsonschema",
+    "version": "4.21.1"
+  },
+  {
+    "name": "jsonschema-specifications",
+    "version": "2023.12.1"
+  },
+  {
+    "name": "mpi4py",
+    "version": "3.1.3",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///home/conda/feedstock_root/build_artifacts/mpi4py_1649057539620/work"
+    }
+  },
+  {
+    "name": "mpmath",
+    "version": "1.3.0",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///croot/mpmath_1690848262763/work"
+    }
+  },
+  {
+    "name": "msgpack",
+    "version": "1.0.8"
+  },
+  {
+    "name": "multidict",
+    "version": "6.0.5"
+  },
+  {
+    "name": "networkx",
+    "version": "3.1",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///croot/networkx_1690561992265/work"
+    }
+  },
+  {
+    "name": "ninja",
+    "version": "1.13.0"
+  },
+  {
+    "name": "numpy",
+    "version": "1.26.4"
+  },
+  {
+    "name": "nvidia-nccl-cu12",
+    "version": "2.30.7"
+  },
+  {
+    "name": "opencensus",
+    "version": "0.11.4"
+  },
+  {
+    "name": "opencensus-context",
+    "version": "0.1.3"
+  },
+  {
+    "name": "packaging",
+    "version": "24.0"
+  },
+  {
+    "name": "pandas",
+    "version": "2.2.2"
+  },
+  {
+    "name": "platformdirs",
+    "version": "4.2.0"
+  },
+  {
+    "name": "prometheus_client",
+    "version": "0.20.0"
+  },
+  {
+    "name": "proto-plus",
+    "version": "1.23.0"
+  },
+  {
+    "name": "protobuf",
+    "version": "4.25.3"
+  },
+  {
+    "name": "psutil",
+    "version": "5.9.0",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///opt/conda/conda-bld/psutil_1656431268089/work"
+    }
+  },
+  {
+    "name": "py-spy",
+    "version": "0.3.14"
+  },
+  {
+    "name": "pyasn1",
+    "version": "0.6.0"
+  },
+  {
+    "name": "pyasn1_modules",
+    "version": "0.4.0"
+  },
+  {
+    "name": "pydantic",
+    "version": "2.7.0"
+  },
+  {
+    "name": "pydantic_core",
+    "version": "2.18.1"
+  },
+  {
+    "name": "python-dateutil",
+    "version": "2.9.0.post0"
+  },
+  {
+    "name": "pytz",
+    "version": "2024.1"
+  },
+  {
+    "name": "ray",
+    "version": "2.10.0"
+  },
+  {
+    "name": "referencing",
+    "version": "0.34.0"
+  },
+  {
+    "name": "regex",
+    "version": "2024.4.16"
+  },
+  {
+    "name": "requests",
+    "version": "2.31.0"
+  },
+  {
+    "name": "rpds-py",
+    "version": "0.18.0"
+  },
+  {
+    "name": "rsa",
+    "version": "4.9"
+  },
+  {
+    "name": "safetensors",
+    "version": "0.4.3"
+  },
+  {
+    "name": "six",
+    "version": "1.16.0"
+  },
+  {
+    "name": "smart-open",
+    "version": "7.0.4"
+  },
+  {
+    "name": "sniffio",
+    "version": "1.3.1"
+  },
+  {
+    "name": "starlette",
+    "version": "0.37.2"
+  },
+  {
+    "name": "sympy",
+    "version": "1.12",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///croot/sympy_1701397643339/work"
+    }
+  },
+  {
+    "name": "tokenizers",
+    "version": "0.15.2"
+  },
+  {
+    "name": "tqdm",
+    "version": "4.68.2"
+  },
+  {
+    "name": "transformers",
+    "version": "4.39.3"
+  },
+  {
+    "name": "typing_extensions",
+    "version": "4.9.0",
+    "direct_url": {
+      "dir_info": {},
+      "url": "file:///croot/typing_extensions_1705599297034/work"
+    }
+  },
+  {
+    "name": "tzdata",
+    "version": "2024.1"
+  },
+  {
+    "name": "urllib3",
+    "version": "2.2.1"
+  },
+  {
+    "name": "uvicorn",
+    "version": "0.29.0"
+  },
+  {
+    "name": "virtualenv",
+    "version": "20.25.3"
+  },
+  {
+    "name": "wheel",
+    "version": "0.41.2"
+  },
+  {
+    "name": "wrapt",
+    "version": "1.16.0"
+  },
+  {
+    "name": "yarl",
+    "version": "1.9.4"
+  }
+]

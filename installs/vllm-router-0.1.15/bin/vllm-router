@@ -1,0 +1,6 @@
+#!/home/qhq/anaconda3/envs/LLM/bin/python3.12
+import sys
+from vllm_router.launch_router import main
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(main())

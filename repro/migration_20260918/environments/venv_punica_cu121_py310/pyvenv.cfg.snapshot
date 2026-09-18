@@ -1,0 +1,3 @@
+home = /home/qhq/anaconda3/envs/sllm_head_official/bin
+include-system-site-packages = false
+version = 3.10.20
