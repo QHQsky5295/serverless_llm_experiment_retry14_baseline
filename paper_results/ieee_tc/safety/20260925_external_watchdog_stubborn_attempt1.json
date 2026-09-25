@@ -1,0 +1,414 @@
+{
+  "kind": "external_watchdog_test",
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "production_launch_authorized": false,
+  "pass": true,
+  "max_service_bytes": 134217728,
+  "max_aux_bytes": 134217728,
+  "pressure_induced": false,
+  "mode": "stubborn",
+  "watchdog_stdout": "{\"event\": \"watchdog_ready\", \"watchdog_pid\": 1382687, \"aux\": {\"path\": \"/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-3cffb05fa143442eba651d8cb904170f.scope\", \"memory.current\": 10772480, \"memory.peak\": 11419648, \"memory.high\": 67108864, \"memory.max\": 134217728, \"memory.swap.current\": 0, \"memory.swap.max\": 0, \"memory.pressure\": \"some avg10=0.00 avg60=0.00 avg300=0.00 total=0\\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\", \"cpu.max\": null, \"cpu.stat\": \"usage_usec 76726\\nuser_usec 53506\\nsystem_usec 23219\\ncore_sched.force_idle_usec 0\", \"cpuset.cpus.effective\": null, \"cgroup.controllers\": \"memory pids\", \"memory.events\": {\"low\": 0, \"high\": 0, \"max\": 0, \"oom\": 0, \"oom_kill\": 0, \"oom_group_kill\": 0}}, \"service_identity\": {\"unit\": \"primelora-tc-test-05ffeb129708492ba082223d01846323.scope\", \"invocation_id\": \"d16a1c0d7451486dbff1cc2070f94825\", \"path\": \"/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope\", \"inode\": 2100307}, \"service\": {\"path\": \"/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope\", \"memory.current\": 13541376, \"memory.peak\": 13705216, \"memory.high\": 67108864, \"memory.max\": 134217728, \"memory.swap.current\": 0, \"memory.swap.max\": 0, \"memory.pressure\": \"some avg10=0.00 avg60=0.00 avg300=0.00 total=0\\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\", \"cpu.max\": null, \"cpu.stat\": \"usage_usec 88605\\nuser_usec 68693\\nsystem_usec 19911\\ncore_sched.force_idle_usec 0\", \"cpuset.cpus.effective\": null, \"cgroup.controllers\": \"memory pids\", \"memory.events\": {\"low\": 0, \"high\": 0, \"max\": 0, \"oom\": 0, \"oom_kill\": 0, \"oom_group_kill\": 0}}, \"test_trigger_enabled\": true}\n{\"event\": \"resource_sample\", \"monotonic\": 209629.806664779, \"sample\": 1, \"host\": {\"available_bytes\": 111233482752, \"swap_free_bytes\": 27605258240, \"memory_pressure\": \"some avg10=0.00 avg60=0.01 avg300=0.52 total=9556991644\\nfull avg10=0.00 avg60=0.01 avg300=0.52 total=9242850954\", \"full_avg10\": 0.0}, \"service\": {\"path\": \"/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope\", \"memory.current\": 13541376, \"memory.peak\": 13705216, \"memory.high\": 67108864, \"memory.max\": 134217728, \"memory.swap.current\": 0, \"memory.swap.max\": 0, \"memory.pressure\": \"some avg10=0.00 avg60=0.00 avg300=0.00 total=0\\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\", \"cpu.max\": null, \"cpu.stat\": \"usage_usec 88605\\nuser_usec 68693\\nsystem_usec 19911\\ncore_sched.force_idle_usec 0\", \"cpuset.cpus.effective\": null, \"cgroup.controllers\": \"memory pids\", \"memory.events\": {\"low\": 0, \"high\": 0, \"max\": 0, \"oom\": 0, \"oom_kill\": 0, \"oom_group_kill\": 0}}, \"filesystems\": [{\"path\": \"/home/qhq/serverless_llm_experiment_retry14_baseline\", \"free_bytes\": 363348082688, \"free_inodes\": 210182870}], \"decision\": {\"warning\": false, \"abort_reasons\": [], \"pressure_streak\": 0, \"classification\": null}}\n{\"event\": \"resource_sample\", \"monotonic\": 209630.820385331, \"sample\": 2, \"host\": {\"available_bytes\": 111287726080, \"swap_free_bytes\": 27605258240, \"memory_pressure\": \"some avg10=0.00 avg60=0.01 avg300=0.52 total=9556991644\\nfull avg10=0.00 avg60=0.01 avg300=0.52 total=9242850954\", \"full_avg10\": 0.0}, \"service\": {\"path\": \"/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope\", \"memory.current\": 13361152, \"memory.peak\": 13705216, \"memory.high\": 67108864, \"memory.max\": 134217728, \"memory.swap.current\": 0, \"memory.swap.max\": 0, \"memory.pressure\": \"some avg10=0.00 avg60=0.00 avg300=0.00 total=0\\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\", \"cpu.max\": null, \"cpu.stat\": \"usage_usec 88605\\nuser_usec 68693\\nsystem_usec 19911\\ncore_sched.force_idle_usec 0\", \"cpuset.cpus.effective\": null, \"cgroup.controllers\": \"memory pids\", \"memory.events\": {\"low\": 0, \"high\": 0, \"max\": 0, \"oom\": 0, \"oom_kill\": 0, \"oom_group_kill\": 0}}, \"filesystems\": [{\"path\": \"/home/qhq/serverless_llm_experiment_retry14_baseline\", \"free_bytes\": 363348082688, \"free_inodes\": 210182870}], \"decision\": {\"warning\": false, \"abort_reasons\": [], \"pressure_streak\": 0, \"classification\": null}}\n{\"event\": \"resource_sample\", \"monotonic\": 209631.834227669, \"sample\": 3, \"host\": {\"available_bytes\": 111331414016, \"swap_free_bytes\": 27605258240, \"memory_pressure\": \"some avg10=0.00 avg60=0.01 avg300=0.52 total=9556991644\\nfull avg10=0.00 avg60=0.01 avg300=0.51 total=9242850954\", \"full_avg10\": 0.0}, \"service\": {\"path\": \"/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope\", \"memory.current\": 13361152, \"memory.peak\": 13705216, \"memory.high\": 67108864, \"memory.max\": 134217728, \"memory.swap.current\": 0, \"memory.swap.max\": 0, \"memory.pressure\": \"some avg10=0.00 avg60=0.00 avg300=0.00 total=0\\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\", \"cpu.max\": null, \"cpu.stat\": \"usage_usec 88605\\nuser_usec 68693\\nsystem_usec 19911\\ncore_sched.force_idle_usec 0\", \"cpuset.cpus.effective\": null, \"cgroup.controllers\": \"memory pids\", \"memory.events\": {\"low\": 0, \"high\": 0, \"max\": 0, \"oom\": 0, \"oom_kill\": 0, \"oom_group_kill\": 0}}, \"filesystems\": [{\"path\": \"/home/qhq/serverless_llm_experiment_retry14_baseline\", \"free_bytes\": 363348082688, \"free_inodes\": 210182870}], \"decision\": {\"warning\": false, \"abort_reasons\": [\"synthetic_test_trigger\"], \"pressure_streak\": 0, \"classification\": \"test_only_not_resource_failure\"}}\n{\"event\": \"watchdog_abort\", \"decision\": {\"warning\": false, \"abort_reasons\": [\"synthetic_test_trigger\"], \"pressure_streak\": 0, \"classification\": \"test_only_not_resource_failure\"}, \"cleanup\": {\"targets\": [{\"pid\": 1382684, \"start_ticks\": 20962956, \"cgroup\": \"/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope\", \"affinity\": [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]}, {\"pid\": 1382685, \"start_ticks\": 20962965, \"cgroup\": \"/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope\", \"affinity\": [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]}], \"hard_kill\": true, \"released\": true}, \"samples\": 3, \"production_launch_authorized\": false}\n",
+  "watchdog_stderr": "Running scope as unit: primelora-tc-aux-3cffb05fa143442eba651d8cb904170f.scope\n",
+  "watchdog_returncode": 0,
+  "service_identity": {
+    "unit": "primelora-tc-test-05ffeb129708492ba082223d01846323.scope",
+    "invocation_id": "d16a1c0d7451486dbff1cc2070f94825",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope",
+    "inode": 2100307
+  },
+  "service_events": [
+    {
+      "event": "limits_verified",
+      "pid": 1382684,
+      "cgroup": {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope",
+        "memory.current": 10559488,
+        "memory.peak": 10559488,
+        "memory.high": 67108864,
+        "memory.max": 134217728,
+        "memory.swap.current": 0,
+        "memory.swap.max": 0,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 66906\nuser_usec 52147\nsystem_usec 14758\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      "affinity": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ]
+    },
+    {
+      "event": "cleanup_targets",
+      "pids": [
+        1382684,
+        1382685
+      ]
+    }
+  ],
+  "watchdog_events": [
+    {
+      "event": "watchdog_ready",
+      "watchdog_pid": 1382687,
+      "aux": {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-3cffb05fa143442eba651d8cb904170f.scope",
+        "memory.current": 10772480,
+        "memory.peak": 11419648,
+        "memory.high": 67108864,
+        "memory.max": 134217728,
+        "memory.swap.current": 0,
+        "memory.swap.max": 0,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 76726\nuser_usec 53506\nsystem_usec 23219\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      "service_identity": {
+        "unit": "primelora-tc-test-05ffeb129708492ba082223d01846323.scope",
+        "invocation_id": "d16a1c0d7451486dbff1cc2070f94825",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope",
+        "inode": 2100307
+      },
+      "service": {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope",
+        "memory.current": 13541376,
+        "memory.peak": 13705216,
+        "memory.high": 67108864,
+        "memory.max": 134217728,
+        "memory.swap.current": 0,
+        "memory.swap.max": 0,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 88605\nuser_usec 68693\nsystem_usec 19911\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      "test_trigger_enabled": true
+    },
+    {
+      "event": "resource_sample",
+      "monotonic": 209629.806664779,
+      "sample": 1,
+      "host": {
+        "available_bytes": 111233482752,
+        "swap_free_bytes": 27605258240,
+        "memory_pressure": "some avg10=0.00 avg60=0.01 avg300=0.52 total=9556991644\nfull avg10=0.00 avg60=0.01 avg300=0.52 total=9242850954",
+        "full_avg10": 0.0
+      },
+      "service": {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope",
+        "memory.current": 13541376,
+        "memory.peak": 13705216,
+        "memory.high": 67108864,
+        "memory.max": 134217728,
+        "memory.swap.current": 0,
+        "memory.swap.max": 0,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 88605\nuser_usec 68693\nsystem_usec 19911\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      "filesystems": [
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+          "free_bytes": 363348082688,
+          "free_inodes": 210182870
+        }
+      ],
+      "decision": {
+        "warning": false,
+        "abort_reasons": [],
+        "pressure_streak": 0,
+        "classification": null
+      }
+    },
+    {
+      "event": "resource_sample",
+      "monotonic": 209630.820385331,
+      "sample": 2,
+      "host": {
+        "available_bytes": 111287726080,
+        "swap_free_bytes": 27605258240,
+        "memory_pressure": "some avg10=0.00 avg60=0.01 avg300=0.52 total=9556991644\nfull avg10=0.00 avg60=0.01 avg300=0.52 total=9242850954",
+        "full_avg10": 0.0
+      },
+      "service": {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope",
+        "memory.current": 13361152,
+        "memory.peak": 13705216,
+        "memory.high": 67108864,
+        "memory.max": 134217728,
+        "memory.swap.current": 0,
+        "memory.swap.max": 0,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 88605\nuser_usec 68693\nsystem_usec 19911\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      "filesystems": [
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+          "free_bytes": 363348082688,
+          "free_inodes": 210182870
+        }
+      ],
+      "decision": {
+        "warning": false,
+        "abort_reasons": [],
+        "pressure_streak": 0,
+        "classification": null
+      }
+    },
+    {
+      "event": "resource_sample",
+      "monotonic": 209631.834227669,
+      "sample": 3,
+      "host": {
+        "available_bytes": 111331414016,
+        "swap_free_bytes": 27605258240,
+        "memory_pressure": "some avg10=0.00 avg60=0.01 avg300=0.52 total=9556991644\nfull avg10=0.00 avg60=0.01 avg300=0.51 total=9242850954",
+        "full_avg10": 0.0
+      },
+      "service": {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope",
+        "memory.current": 13361152,
+        "memory.peak": 13705216,
+        "memory.high": 67108864,
+        "memory.max": 134217728,
+        "memory.swap.current": 0,
+        "memory.swap.max": 0,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 88605\nuser_usec 68693\nsystem_usec 19911\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      "filesystems": [
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+          "free_bytes": 363348082688,
+          "free_inodes": 210182870
+        }
+      ],
+      "decision": {
+        "warning": false,
+        "abort_reasons": [
+          "synthetic_test_trigger"
+        ],
+        "pressure_streak": 0,
+        "classification": "test_only_not_resource_failure"
+      }
+    },
+    {
+      "event": "watchdog_abort",
+      "decision": {
+        "warning": false,
+        "abort_reasons": [
+          "synthetic_test_trigger"
+        ],
+        "pressure_streak": 0,
+        "classification": "test_only_not_resource_failure"
+      },
+      "cleanup": {
+        "targets": [
+          {
+            "pid": 1382684,
+            "start_ticks": 20962956,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope",
+            "affinity": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34,
+              35,
+              36,
+              37,
+              38,
+              39,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              46,
+              47
+            ]
+          },
+          {
+            "pid": 1382685,
+            "start_ticks": 20962965,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-05ffeb129708492ba082223d01846323.scope",
+            "affinity": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34,
+              35,
+              36,
+              37,
+              38,
+              39,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              46,
+              47
+            ]
+          }
+        ],
+        "hard_kill": true,
+        "released": true
+      },
+      "samples": 3,
+      "production_launch_authorized": false
+    }
+  ],
+  "remaining_test_pids": [],
+  "service_path_removed": true,
+  "not_proven": [
+    "native GPU workers and new scale-out workers",
+    "replay separation and heartbeat launch handshake",
+    "native Ray spill/resource telemetry",
+    "GPU allocation/release"
+  ]
+}

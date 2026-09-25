@@ -16,13 +16,13 @@
 | Block | Status | Evidence / next action |
 |---|---|---|
 | Approved plan persistence | Recorded | Full snapshot + source hash + AGENTS instructions |
-| Resource containment / safety | Basic primitives and native Ray inheritance passed; production gates pending | Two actual Ray 2.54 workers inherit limits and exit cleanly. Tiny-scope and socket-path failed attempts retained. CPU proof is affinity, not delegated cpuset |
+| Resource containment / safety | Primitive, native Ray inheritance and independent-watchdog tests passed; production gates pending | RESOURCE_QUALIFICATION.md. Both graceful and stubborn owned trees released. Model workers, launch handshake and replay separation still pending. CPU proof is affinity, not delegated cpuset |
 | Protected historical artifacts | Sealed and verified | `paper_results/ieee_tc/safety/20260925_execution_start_protected.json`; old results and selected user modifications unchanged |
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
 | P1 IEEE semantic alignment | Exact demand, benefit planning, service/routing contracts tested; native integration open | P1_FORMULA_IMPLEMENTATION.md. 13 new service/snapshot tests pass. Native profile/owner/event wiring and atomic admission remain open; no Full performance qualification |
-| P2 backend qualification | Pending | vLLM candidate must be checked locally |
+| P2 backend qualification | Dependency resolution started; no installation or model run yet | vLLM 0.30.0 dry-run in a 3/4 GiB, swap=0, two-logical-CPU build scope; log under results/ieee_tc/p2_backend_qualification/metadata_20260925/ |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
 | A1–A5, S1–S3 | Not started | Shared frozen policies required |
@@ -73,6 +73,9 @@ configs/relayserve_motivation_serverlessllm.yaml.
   pushed to V2; remote SHA verified.
 - Main exact-planning checkpoint `1a6c3096d355ac5659c391b75c9bca89cf47d228`
   pushed to V2; remote SHA verified.
+- Main IEEE service/routing contract `cf017928b051e603a458f1a758a6e1a1c248bb4e`
+  and baseline native-asset audit `16570c023a439c884624e7a5bdfa0d8577faf7a3`
+  pushed to respective repositories; remote SHAs verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
 
@@ -157,3 +160,16 @@ configs/relayserve_motivation_serverlessllm.yaml.
   All six existing vLLM files match restored preimages; seventh added loader is
   absent as expected. Do not overwrite the shared environment or borrow global
   cleanup commands from that other project's historical launcher.
+
+## Independent safety monitor checkpoint
+
+- Existing preflight script now provides an OS-resource watchdog in a separate
+  bounded auxiliary scope; production runner handshake not yet wired.
+- Sixteen policy tests pass. First live witness failed JSONL parsing (final pretty
+  JSON mixed into stream); failure receipt preserved, stream contract corrected.
+- Second witness: independent watcher, three actual samples, synthetic alarm,
+  service parent/child terminated gracefully; resource directory removed.
+- Stubborn witness: parent and child ignore TERM, owned cgroup.kill releases them
+  after the 10-second grace. No remaining test PIDs. No host pressure induced.
+- This is foundational safety evidence only. Actual model/GPU workers, replay
+  separation, native Ray telemetry, GPU lifecycle and launch handshake remain open.

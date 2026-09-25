@@ -1,0 +1,18 @@
+{
+  "kind": "external_watchdog_test",
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "production_launch_authorized": false,
+  "pass": false,
+  "max_service_bytes": 134217728,
+  "max_aux_bytes": 134217728,
+  "pressure_induced": false,
+  "error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+  "remaining_test_pids": [],
+  "service_path_removed": true,
+  "not_proven": [
+    "native GPU workers and new scale-out workers",
+    "replay separation and heartbeat launch handshake",
+    "native Ray spill/resource telemetry",
+    "GPU allocation/release"
+  ]
+}

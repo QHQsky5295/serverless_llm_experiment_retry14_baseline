@@ -72,6 +72,64 @@ class ProtocolGates(unittest.TestCase):
             self.assertEqual(run.call_count, 2)
             self.assertIn('stop', run.call_args.args[0])
 
+    def test_watchdog_warning_does_not_classify_service_failure(self):
+        watch = p.WatchdogDecision()
+        outcome = watch.observe(23*p.GIB, 1, [])
+        self.assertTrue(outcome['warning'])
+        self.assertEqual(outcome['abort_reasons'], [])
+        self.assertIsNone(outcome['classification'])
+        self.assertFalse(watch.observe(24*p.GIB, 1, [])['warning'])
+
+    def test_watchdog_stops_below_not_at_16_GiB(self):
+        watch = p.WatchdogDecision()
+        self.assertEqual(watch.observe(16*p.GIB, 0, [])['abort_reasons'], [])
+        outcome = watch.observe(16*p.GIB-1, 0, [])
+        self.assertIn('host_memory_below_stop', outcome['abort_reasons'])
+        self.assertEqual(outcome['classification'], 'safety_abort_unattributed')
+
+    def test_pressure_requires_ten_consecutive_joint_samples(self):
+        watch = p.WatchdogDecision()
+        for _ in range(9):
+            self.assertFalse(watch.observe(23*p.GIB, 10, [])['abort_reasons'])
+        self.assertEqual(watch.observe(24*p.GIB, 10, [])['pressure_streak'], 0)
+        for _ in range(9):
+            self.assertFalse(watch.observe(23*p.GIB, 10, [])['abort_reasons'])
+        self.assertIn('sustained_host_memory_pressure',
+                      watch.observe(23*p.GIB, 10, [])['abort_reasons'])
+
+    def test_disk_stop_and_inode_failure(self):
+        watch = p.WatchdogDecision()
+        disk = {'path':'/test', 'free_bytes':100*p.GIB, 'free_inodes':1}
+        self.assertFalse(watch.observe(100*p.GIB, 0, [disk])['abort_reasons'])
+        for bad in ({**disk, 'free_bytes':100*p.GIB-1}, {**disk, 'free_inodes':0}):
+            self.assertIn('filesystem_below_stop:/test',
+                          watch.observe(100*p.GIB, 0, [bad])['abort_reasons'])
+
+    def test_scope_requires_unambiguous_owned_uuid(self):
+        for unit in ('user@1001.service', 'ray.scope', 'primelora-tc-svc-name.scope'):
+            with self.assertRaises(ValueError):
+                p.scope_identity(unit)
+
+    def test_scope_identity_change_never_signals(self):
+        with tempfile.TemporaryDirectory() as d:
+            identity = {'path':d, 'unit':'test', 'inode':1, 'invocation_id':'a'}
+            with patch.object(p, 'scope_identity', return_value={**identity,'invocation_id':'b'}), \
+                 patch.object(p.signal, 'pidfd_send_signal') as send:
+                with self.assertRaises(RuntimeError):
+                    p.stop_scope_identity(identity)
+                send.assert_not_called()
+
+    def test_watchdog_cannot_share_service_ancestry(self):
+        with patch.object(p, 'cg_path', return_value=Path('/test/service/worker')):
+            with self.assertRaisesRegex(RuntimeError, 'outside service ancestry'):
+                p.watch_scope({'path':'/test/service'}, paths=[], emit=lambda _:None)
+
+    def test_sensor_invalidity_not_silent_zero(self):
+        watch = p.WatchdogDecision()
+        for available, psi in ((-1, 0), (100*p.GIB, float('nan')), (100*p.GIB, 101)):
+            with self.assertRaises(ValueError):
+                watch.observe(available, psi, [])
+
 
 if __name__ == '__main__':
     unittest.main()
