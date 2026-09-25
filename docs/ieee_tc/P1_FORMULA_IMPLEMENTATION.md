@@ -200,3 +200,52 @@ pool=400、occupied=100，idle 时 `avail=200,reuse=300,E=500`；复用 100 byte
 CPU adapter cache、GPU active slots 与 KV block pool 是不同状态，不能将
 `list_adapters()`、文件大小或全局 GPU 使用率直接代入以上字段。新版后端
 正在独立安装，未修改其安装文件；原生事件和 allocation owner 接入仍在主线上。
+
+## P1-D5：原生 token 计量已接入原 engine/RPC/controller（模型资格待完成）
+
+历史 runner 的 `_derive_vllm_latency_metrics` 使用完成通知求 decode，controller
+又用 service E2E 减 TTFT 重算 TPOT；两处都可能把最后 token 之后的通知开销
+计入解码。新版 V1 的字段也不同：`arrival_time` 是墙上时钟，`*_ts` 是
+engine-core 单调时钟。不能直接相减，更不能缺字段时默默使用文本 chunk。
+
+本次在原 metrics collector 与 runner 中接入 opt-in
+`model.timing_contract=ieee_tc_native_v1`，旧实验身份仍为 `legacy`：
+
+- 后端开启原生 stats；使用 queue/scheduled/first/last 的单调时间。
+- 原生累积 token ID 的数量、前缀和 metrics count 必须一致；尚无完整 terminal
+  或缺少原生字段就失败，不用 expected count、重分词或完成时间补齐。
+- 每次有新 token 时保存 scalar 时间；无新 token 的完成通知不延后 last。
+- 记录本机 boot/time-namespace 身份，并验证 worker/controller 边界顺序。
+  跨机时间不直接拼接；实际 engine-core worker 的相同 namespace 仍需 launch
+  census 证明，当前尚未宣称整个部署已通过时钟资格。
+- controller 的 TTFT、TPOT 使用原生首末 token；单 token TPOT 在新请求结果和
+  native payload 中为 null。历史数值 RPC tuple 保留 0 作为未观测占位，但
+  `native_tpot_ms=null`、`tpot_observed=false` 决定新统计，不能把占位算成优值。
+- `generate_prepared` 原先没有接受实际调用端传入的 `return_timing`；已修正
+  为与原 `generate`、子进程入口一致，保留历史默认行为。
+- native 合同禁止 engine 内递归隐藏重试；失败交给可记录 attempt/生命周期的
+  外层 owner。此处未禁用后端原生 KV preemption/rescheduling。
+
+| 测试问题 | 结果与边界 |
+|---|---|
+| 墙上时钟与单调时间混用 | 构造 wall arrival=1.8e9、native dispatch=100；只计算后者同域差 |
+| decode 与完成通知分离 | first=100.5、last=101.1、通知=102：TPOT=300 ms（3 tokens），通知=900 ms，不能把通知加进 decode |
+| 空 terminal 更新 | 保存最后一次新增 token 的时间，拒绝让 terminal 元数据延长 decode |
+| 单 token | TPOT=null，RPC 保留 null；多 token 合法零值不因“必须 >0”被删除 |
+| 原执行入口 | 实际 `generate_prepared`、RPC normalization 和 `_exec_request` 方法用 deterministic fake engine 验证，不是只测另一个参考实现 |
+| 阶段加和 | admission→engine entry→queue→schedule→first→last→worker complete→controller complete，误差低于 1 ms |
+
+13 个新增无 GPU 测试通过。第一次完整回归有一个旧 synthetic runner fixture
+缺少 `model_cfg`，已在 fixture 显式指定 legacy 合同；没有给生产路径增加
+缺失配置/时间的兜底。
+
+这些是实测接线的正确性测试，**不是 13 个推理实验**。尚待真实后端检查
+stats 的可变对象是否存在滞后、实际 clock namespace、完整调用开销与 token
+合同。外置回放的计划到达/提交事件及受保护 executable acquisition 仍未接入；
+pre-engine span 包含 resolve/transport，不能冒充纯 D。这些缺口关闭前不放行
+C5、Full 或主比较。旧聚合器也不能据此被整体标记为 TC-qualified。
+
+依据：vLLM 0.30.0
+[RequestStateStats](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/metrics/stats.py)
+和 [output processor](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/output_processor.py)。
+采用其真实时间定义，并非复用 API 中名称相似但起点不同的 TTFT。

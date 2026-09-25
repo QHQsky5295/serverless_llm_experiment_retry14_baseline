@@ -725,7 +725,7 @@ class RequestResult:
     ttft_ms: float
     contention_ms: float          # [C3] memory contention penalty
     defer_ms: float               # [C3] coordination queuing delay
-    tpot_ms: float
+    tpot_ms: Optional[float]
     e2e_ms: float
     input_tokens: int
     output_tokens: int
@@ -788,6 +788,8 @@ class RequestResult:
     canonical_prompt_sha256: str = ""
     canonical_prompt_tokens: int = 0
     output_contract_match: bool = True
+    timing_contract: str = "legacy"
+    native_token_timing: Dict[str, Any] = field(default_factory=dict)
 
 
 class AggregateBandwidthLimiter:
@@ -958,7 +960,7 @@ def _attach_parent_rpc_breakdown(
     # across the worker JSON/RPC boundary; numeric consumers below already use
     # ``_safe_float`` defensively.
     normalized = {
-        key: value if isinstance(value, str) else _safe_float(value, 0.0)
+        key: value if value is None or isinstance(value, str) else _safe_float(value, 0.0)
         for key, value in dict(timing or {}).items()
         if isinstance(key, str)
     }
@@ -1539,7 +1541,10 @@ class ScenarioResult:
         ]
         tpot = [
             float(r.tpot_ms) for r in tpot_eligible
-            if float(r.tpot_ms) > 0 and bool(getattr(r, "tpot_observed", True))
+            if r.tpot_ms is not None and bool(getattr(r, "tpot_observed", True))
+            and (float(r.tpot_ms) > 0 or
+                 (getattr(r, "timing_contract", "legacy") == "ieee_tc_native_v1"
+                  and float(r.tpot_ms) == 0))
         ]
         e2e  = [_request_overall_e2e_ms(r) for r in ok]
         service_e2e = [_request_service_e2e_ms(r) for r in ok]
@@ -3306,7 +3311,7 @@ class InferenceEngine:
                 max_model_len=max_len,
                 gpu_memory_utilization=gpu_util,
                 trust_remote_code=True,
-                disable_log_stats=True,
+                disable_log_stats=(self.model_cfg.get("timing_contract", "legacy") != "ieee_tc_native_v1"),
                 enforce_eager=eager,
                 max_num_seqs=self.model_cfg.get("max_num_seqs", 8),
                 max_num_batched_tokens=default_batched,
@@ -4002,6 +4007,12 @@ class InferenceEngine:
         return_timing: bool = False,
     ) -> Tuple[float, float, int]:
         """Returns (vllm_ttft_ms, tpot_ms, output_tokens[, timing]). Always real inference."""
+        timing_contract = self.model_cfg.get("timing_contract", "legacy")
+        if timing_contract not in {"legacy", "ieee_tc_native_v1"}:
+            raise ValueError(f"unsupported timing contract: {timing_contract}")
+        native_timing = timing_contract == "ieee_tc_native_v1"
+        if native_timing and self.backend != "vllm":
+            raise ValueError("native V1 timing is only qualified for the vLLM path")
         async with self._lock:
             self._counter += 1
             req_id = f"req_{self._counter}"
@@ -4091,6 +4102,10 @@ class InferenceEngine:
                 lora_req = LoRARequest(lora_name=adapter_id, lora_int_id=int_id, lora_path=lora_path)
 
             t0 = time.perf_counter()
+            timeline = None
+            if native_timing:
+                from faaslora.metrics.metrics_collector import NativeV1TokenTimeline, local_monotonic_clock_id
+                timeline = NativeV1TokenTimeline(t0, local_monotonic_clock_id())
             first_t = None
             tok_count = 0
             final_token_ids: List[int] = []
@@ -4106,23 +4121,38 @@ class InferenceEngine:
                 if prompt_token_ids is not None:
                     actual_prompt_tokens = max(1, len(prompt_token_ids))
                 if out.outputs:
+                    if native_timing and len(out.outputs) != 1:
+                        raise ValueError("IEEE native timing requires exactly one output sequence")
                     current_output = out.outputs[0]
-                    if first_t is None and len(getattr(current_output, "token_ids", []) or []) > 0:
+                    if not native_timing and first_t is None and len(getattr(current_output, "token_ids", []) or []) > 0:
                         first_t = time.perf_counter()
+                    if timeline is not None:
+                        timeline.observe(metrics, current_output.token_ids, finished=out.finished)
                     tok_count = len(getattr(current_output, "token_ids", []) or [])
                     final_token_ids = [
                         int(token_id)
                         for token_id in (getattr(current_output, "token_ids", []) or [])
                     ]
+                elif timeline is not None:
+                    timeline.observe(metrics, timeline.token_ids, finished=out.finished)
 
             t1 = time.perf_counter()
-            ttft_ms, tpot_ms = self._derive_vllm_latency_metrics(
-                request_metrics=last_metrics,
-                perf_started_at=t0,
-                perf_first_token_at=first_t,
-                perf_finished_at=t1,
-                output_tokens=tok_count,
-            )
+            native_fields = timeline.finalize(t1) if timeline is not None else {}
+            if native_timing:
+                ttft_ms = native_fields["native_ttft_ms"]
+                # Tuple transport remains numeric for historical RPC consumers.
+                # The auditable native_tpot_ms is null for a single output token.
+                tpot_ms = native_fields["native_tpot_ms"] if tok_count > 1 else 0.
+                if generation_contract == "fixed_length_greedy_v1" and tok_count != safe_max_tokens:
+                    raise ValueError("native output length violates fixed_length_greedy_v1")
+            else:
+                ttft_ms, tpot_ms = self._derive_vllm_latency_metrics(
+                    request_metrics=last_metrics,
+                    perf_started_at=t0,
+                    perf_first_token_at=first_t,
+                    perf_finished_at=t1,
+                    output_tokens=tok_count,
+                )
             runtime_estimated_e2e_ms = float(ttft_ms) + (
                 float(tpot_ms) * max(int(tok_count or 0) - 1, 0)
             )
@@ -4136,6 +4166,7 @@ class InferenceEngine:
                 "completion_token_ids_sha256": hashlib.sha256(
                     json.dumps(final_token_ids, separators=(",", ":")).encode("utf-8")
                 ).hexdigest(),
+                **native_fields,
             }
             self.last_timing = dict(timing)
             if return_timing:
@@ -4147,7 +4178,9 @@ class InferenceEngine:
             is_dead = _is_fatal_engine_error_message(exc_s) or any(
                 k in exc_s for k in ("dead", "cancelled", "died")
             )
-            allow_reinit = is_dead and not any(
+            # TC attempts must be visible to the outer lifecycle/retry owner;
+            # recursive hidden retries would reset dispatch and erase resource cost.
+            allow_reinit = not native_timing and is_dead and not any(
                 marker in exc_s for marker in ("cuda out of memory", "background loop has errored already")
             )
             if is_dead:
@@ -4176,6 +4209,7 @@ class InferenceEngine:
         temperature: float = 0.7,
         top_p: float = 0.9,
         generation_seed: Optional[int] = None,
+        return_timing: bool = False,
     ) -> Tuple[float, float, int]:
         return await self.generate(
             prompt=request_plan.prompt,
@@ -4187,6 +4221,7 @@ class InferenceEngine:
             top_p=top_p,
             generation_seed=generation_seed,
             _prepared_request=request_plan,
+            return_timing=return_timing,
         )
 
     @staticmethod
@@ -4834,7 +4869,7 @@ class SubprocessInferenceEngineProxy:
         # the SHA-256 of the native completion token-id sequence.  Coercing every
         # value to float silently erased that digest at the subprocess boundary.
         self.last_timing = {
-            key: value if isinstance(value, str) else _safe_float(value, 0.0)
+            key: value if value is None or isinstance(value, str) else _safe_float(value, 0.0)
             for key, value in timing.items()
             if isinstance(key, str)
         }
@@ -13150,6 +13185,15 @@ class ScenarioRunner:
                 vllm_ttft, tpot, out_tokens = generate_ret
                 per_request_timing = {}
             engine_timing = dict(per_request_timing or getattr(_engine, "last_timing", {}) or {})
+            timing_contract = self.model_cfg.get("timing_contract", "legacy")
+            native_token_timing: Dict[str, Any] = {}
+            if timing_contract == "ieee_tc_native_v1":
+                from faaslora.metrics.metrics_collector import NativeV1TokenTimeline, local_monotonic_clock_id
+                native_token_timing = NativeV1TokenTimeline.service_breakdown(
+                    engine_timing, admitted_at=admitted_perf_counter,
+                    completed_at=t_end, clock_id=local_monotonic_clock_id())
+                if int(native_token_timing["native_output_tokens"]) != int(out_tokens):
+                    raise ValueError("native output count changed across engine/controller boundary")
             if batch_started and _coord:
                 _coord.notify_batch_end(
                     request_plan.input_tokens,
@@ -13164,6 +13208,9 @@ class ScenarioRunner:
                 0.0,
                 (float(t_end) - float(admitted_perf_counter)) * 1000.0,
             )
+            if native_token_timing:
+                admitted_service_ttft_ms = native_token_timing["admitted_service_ttft_ms"]
+                admitted_service_e2e_ms = native_token_timing["admitted_service_e2e_ms"]
             if should_mark_gpu_after_inference:
                 try:
                     mark_gpu_allowed = True
@@ -13200,6 +13247,8 @@ class ScenarioRunner:
                 if int(out_tokens or 0) > 1
                 else 0.0
             )
+            if native_token_timing:
+                observed_tpot_ms = native_token_timing["native_tpot_ms"]
             runtime_estimated_e2e_ms = _safe_float(
                 engine_timing.get("runtime_estimated_e2e_ms"),
                 float(vllm_ttft) + float(tpot) * max(int(out_tokens or 0) - 1, 0),
@@ -13387,6 +13436,8 @@ class ScenarioRunner:
                 canonical_prompt_sha256=canonical_prompt_sha256,
                 canonical_prompt_tokens=max(1, int(request_plan.input_tokens or 1)),
                 output_contract_match=output_contract_match,
+                timing_contract=timing_contract,
+                native_token_timing=native_token_timing,
             )
 
         except Exception as exc:

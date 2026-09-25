@@ -52,7 +52,7 @@ configs/relayserve_motivation_serverlessllm.yaml.
 ## Immediate next actions
 
 0. Check the existing P2 install before starting anything heavy: `tmux -L tc-p2-0925-01 list-sessions`; log `paper_results/ieee_tc/p2_backend/vllm0300_install_attempt1.install.log`; final receipt same prefix `.json`. Do not recreate the venv, repeat downloads or run another model concurrently.
-1. Integrate IEEE planning primitives with measured source-class costs and resource-owner remaining budgets, then routing/admission. Do not declare the retained historical scorer to be IEEE-aligned. Continue P2 telemetry qualification after containment gates.
+1. Continue native owner integration: measured source-class costs, resource-owner remaining budgets, then atomic routing/admission. Native token-event timing is wired opt-in (P1-D5), but executable acquisition, actual engine clock census and external arrival/submission remain open. Do not declare the historical scorer IEEE-aligned.
 2. Integrate effective service-worker and external-watchdog checks into existing launchers; native single-raylet witness is not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
@@ -79,6 +79,9 @@ configs/relayserve_motivation_serverlessllm.yaml.
   pushed to respective repositories; remote SHAs verified.
 - Main independent-watchdog checkpoint `09e910a6faa908c0f9e6e66d7604056e53656671`
   pushed to V2; remote SHA verified.
+- Main backend dependency checkpoint `cf774c1c7bb8f6c352d9993eb7401e70975f679c`
+  and byte/block admission checkpoint `a08b4943b5826028fd5f4ec1f1774eb610c1aa56`
+  pushed to V2; remote SHAs verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
 
@@ -189,6 +192,9 @@ configs/relayserve_motivation_serverlessllm.yaml.
   interpreter). A first combined invocation had one fixture error because conda
   Python lacks `signal.pidfd_send_signal`; no runtime fallback was introduced and
   conda Python is not qualified to launch the external watchdog.
+- Watchdog now checks required PID-handle primitives before a witness launch or
+  emitting readiness; unsupported interpreters fail closed. Nineteen safety
+  tests pass in system Python. This is not a fallback to broad PID-based signals.
 - Admission evaluation does not claim a slot, evict victims or publish readiness.
   Native allocation owner/epoch transactions and scheduler hooks remain open.
 - At 23:42 local time, vLLM install is still active under the existing bounded
@@ -196,3 +202,22 @@ configs/relayserve_motivation_serverlessllm.yaml.
   not been used for performance. Do not launch a duplicate installation.
 - Next: native token-event timing/return path and resource-owner integration;
   actual production launch/replay separation gates still precede any GPU pilot.
+
+## P1 native token timing checkpoint
+
+- Thirteen new deterministic tests exercise native V1 first/last-token boundaries,
+  unchanged cumulative token IDs, explicit terminal, missing fields, clock mismatch,
+  completion-tail separation, single-token null, numeric RPC transport and actual
+  engine/prepared/controller methods. No GPU inference was run.
+- Opt-in `timing_contract=ieee_tc_native_v1` enables native stats and rejects
+  timing/count fallback. Native mode does not silently retry inside the engine.
+- First full regression had one failure from a legacy `__new__` fixture missing
+  `model_cfg`; fixture now explicitly supplies the legacy contract. Production
+  behavior was not weakened to accept missing timing.
+- Final functional regression: 351 tests pass, zero failures/errors/skips. Safety
+  suite: 19 pass in the qualified system interpreter. All 147 protected entries
+  remain unchanged; four GPUs show 15 MiB and zero utilization after the checks.
+- Remaining: native model event qualification, executable acquisition, atomic
+  owner/reference/reservation, external replay, aggregate/goodput/lifecycle gates.
+- Remote disk rechecked: 149094010880 bytes (~138.9 GiB), still below the agreed
+  150 GiB floor; no remote artifact service started or unrelated data deleted.

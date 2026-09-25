@@ -1380,6 +1380,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
     def test_exec_request_preserves_source_cache_tier_after_gpu_promotion(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.model_cfg = {"timing_contract": "legacy"}
         runner.router = None
         runner.engine = None
         runner._refresh_all_slot_runtime_hints = lambda: None

@@ -130,6 +130,13 @@ class ProtocolGates(unittest.TestCase):
             with self.assertRaises(ValueError):
                 watch.observe(available, psi, [])
 
+    def test_unsupported_interpreter_fails_before_launch_or_ready(self):
+        with patch.object(p.signal, 'pidfd_send_signal', None, create=True), \
+             patch.object(p.subprocess, 'Popen') as launch:
+            with self.assertRaisesRegex(RuntimeError, 'PID-handle signaling'):
+                p.watchdog_test()
+            launch.assert_not_called()
+
     def test_installation_cannot_run_outside_bounded_build_scope(self):
         with patch.object(p, 'cg_path', return_value=Path('/test/ordinary.scope')), \
              patch.object(p, 'cgroup_snapshot', return_value={}):

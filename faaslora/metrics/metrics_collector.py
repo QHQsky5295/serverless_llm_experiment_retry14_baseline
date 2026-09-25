@@ -7,6 +7,10 @@ Collects and reports system performance metrics including inference, memory, and
 import time
 import asyncio
 import threading
+import math
+import os
+from functools import lru_cache
+from pathlib import Path
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
 from enum import Enum
@@ -14,6 +18,145 @@ from collections import deque
 
 from ..utils.config import Config
 from ..utils.logger import get_logger
+
+
+@lru_cache(maxsize=1)
+def local_monotonic_clock_id() -> str:
+    """Identify the Linux clock used by local service/worker spans.
+
+    Native engine workers must also be verified in the same boot/time namespace
+    by the launch census. This ID is not a synchronization claim for remote hosts.
+    """
+    mono, perf = time.get_clock_info("monotonic"), time.get_clock_info("perf_counter")
+    if not mono.monotonic or not perf.monotonic or mono.implementation != perf.implementation:
+        raise RuntimeError("IEEE timing requires one verified monotonic/perf clock")
+    boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+    namespace = os.readlink('/proc/self/ns/time')
+    if not boot or not namespace:
+        raise RuntimeError("cannot establish local clock identity")
+    return f"linux-monotonic:{boot}:{namespace}"
+
+
+class NativeV1TokenTimeline:
+    """Strict vLLM V1 native-token timing, not text/chunk/finished-time inference.
+
+    vLLM RequestStateStats arrival_time is wall-clock; *_ts are engine-core
+    monotonic. Never subtract one from the other. We snapshot scalar fields while
+    consuming each cumulative token update: a later empty completion notification
+    must not move the last-token boundary. No metrics/clock/contract fallback.
+    """
+
+    def __init__(self, dispatched_at: float, clock_id: str):
+        if not math.isfinite(dispatched_at) or not clock_id:
+            raise ValueError("timeline needs dispatch time and clock identity")
+        self.dispatched_at = dispatched_at
+        self.clock_id = clock_id
+        self.token_ids: tuple[int, ...] = ()
+        self.queued_at: Optional[float] = None
+        self.scheduled_at: Optional[float] = None
+        self.first_at: Optional[float] = None
+        self.last_at: Optional[float] = None
+        self.finished = False
+
+    def observe(self, metrics: Any, token_ids, *, finished: bool) -> None:
+        if self.finished or type(finished) is not bool:
+            raise ValueError("invalid or duplicate terminal output")
+        ids = tuple(token_ids)
+        if any(type(token) is not int or token < 0 for token in ids):
+            raise ValueError("native token IDs must be nonnegative integers")
+        if len(ids) < len(self.token_ids) or ids[:len(self.token_ids)] != self.token_ids:
+            raise ValueError("IEEE timing requires unmodified cumulative native token IDs")
+        if ids:
+            if metrics is None:
+                raise ValueError("native V1 timing missing; log_stats must be enabled")
+            native_count = getattr(metrics, 'num_generation_tokens', None)
+            if type(native_count) is not int or native_count != len(ids):
+                raise ValueError("native metric/token count mismatch (possibly mutable delayed stats)")
+        if len(ids) > len(self.token_ids):
+            try:
+                queued, scheduled, first, last = (
+                    float(getattr(metrics, name)) for name in
+                    ('queued_ts', 'scheduled_ts', 'first_token_ts', 'last_token_ts'))
+            except (AttributeError, TypeError, ValueError) as exc:
+                raise ValueError("missing native V1 monotonic token timestamps") from exc
+            times = (self.dispatched_at, queued, scheduled, first, last)
+            if any(not math.isfinite(value) for value in times) or any(
+                left > right for left, right in zip(times, times[1:])
+            ):
+                raise ValueError("native timestamps violate dispatch/queue/schedule/first/last order")
+            if self.first_at is not None and (queued, scheduled, first) != (
+                self.queued_at, self.scheduled_at, self.first_at
+            ):
+                raise ValueError("native first-dispatch/token boundaries changed")
+            if self.last_at is not None and last < self.last_at:
+                raise ValueError("native last-token time moved backwards")
+            if len(ids) == 1 and first != last:
+                raise ValueError("one output token must have one native timestamp")
+            self.queued_at, self.scheduled_at = queued, scheduled
+            self.first_at, self.last_at = first, last
+            self.token_ids = ids
+        self.finished = finished
+
+    def finalize(self, completed_at: float) -> Dict[str, Any]:
+        if not self.finished or not self.token_ids or self.last_at is None or self.first_at is None:
+            raise ValueError("incomplete native token timeline")
+        if not math.isfinite(completed_at) or completed_at < self.last_at:
+            raise ValueError("completion precedes the native last token")
+        decode = (self.last_at - self.first_at) * 1000.
+        return {
+            'timing_contract': 'ieee_tc_native_v1',
+            'native_timing_source': 'vllm_v1_engine_core_token_events',
+            'native_clock_id': self.clock_id,
+            'native_dispatch_monotonic_s': self.dispatched_at,
+            'native_queued_monotonic_s': self.queued_at,
+            'native_scheduled_monotonic_s': self.scheduled_at,
+            'native_first_token_monotonic_s': self.first_at,
+            'native_last_token_monotonic_s': self.last_at,
+            'worker_completed_monotonic_s': completed_at,
+            'native_output_tokens': len(self.token_ids),
+            'native_ttft_ms': (self.first_at - self.dispatched_at) * 1000.,
+            'native_decode_ms': decode,
+            'native_tpot_ms': decode / (len(self.token_ids) - 1) if len(self.token_ids) > 1 else None,
+            'worker_completion_notification_ms': (completed_at - self.last_at) * 1000.,
+        }
+
+    @staticmethod
+    def service_breakdown(fields: Dict[str, Any], *, admitted_at: float,
+                          completed_at: float, clock_id: str) -> Dict[str, Any]:
+        """Join same-host controller and worker spans, without arrival inference.
+
+        Planned arrival/submission must come from the external replay protocol.
+        Pre-engine time includes resolve/transport; it is not falsely named pure
+        adapter acquisition. This does not yet produce the IEEE D/T/O profile.
+        """
+        if fields.get('timing_contract') != 'ieee_tc_native_v1' or fields.get('native_clock_id') != clock_id:
+            raise ValueError("missing native timing contract or mismatched host/time namespace")
+        keys = ('native_dispatch_monotonic_s', 'native_queued_monotonic_s',
+                'native_scheduled_monotonic_s', 'native_first_token_monotonic_s',
+                'native_last_token_monotonic_s', 'worker_completed_monotonic_s')
+        times = (admitted_at, *(fields[key] for key in keys), completed_at)
+        if any(not isinstance(value, (int, float)) or not math.isfinite(value) for value in times):
+            raise ValueError("native interval boundary is missing or non-finite")
+        if any(left > right for left, right in zip(times, times[1:])):
+            raise ValueError("controller/worker boundaries are inconsistent")
+        count = fields['native_output_tokens']
+        if int(count) != count or count < 1:
+            raise ValueError("invalid native output count")
+        first, last = fields['native_first_token_monotonic_s'], fields['native_last_token_monotonic_s']
+        decode = (last - first) * 1000.
+        expected_tpot = decode / (count - 1) if count > 1 else None
+        if fields['native_tpot_ms'] != expected_tpot:
+            raise ValueError("native TPOT disagrees with first/last token interval")
+        names = ('admission_to_engine_dispatch_ms', 'engine_entry_to_queue_ms',
+                 'native_engine_queue_ms', 'native_prefill_ms', 'native_decode_ms',
+                 'worker_completion_notification_ms', 'worker_to_controller_completion_ms')
+        result = {name: (right - left) * 1000.
+                  for name, left, right in zip(names, times, times[1:])}
+        return {**fields, **result,
+                'controller_admitted_monotonic_s': admitted_at,
+                'controller_completed_monotonic_s': completed_at,
+                'admitted_service_ttft_ms': (first - admitted_at) * 1000.,
+                'admitted_service_e2e_ms': (completed_at - admitted_at) * 1000.}
 
 
 class MetricType(Enum):

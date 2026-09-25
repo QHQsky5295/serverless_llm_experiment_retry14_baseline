@@ -58,9 +58,10 @@ transformers 4.57.6、triton 3.4.0。
 
 ## 原生计量接入注意事项
 
-现有 runner 的 `_derive_vllm_latency_metrics` 优先 finished timestamp，旧
-`generate_prepared`/子进程路径和 `last_timing` 仍需逐一核对。不得把完成通知
-延迟写入 IEEE 的 O，也不得用缺失 metrics 的零值生成优值。
+现有 runner 的 legacy `_derive_vllm_latency_metrics` 优先 finished timestamp。
+新的 opt-in `timing_contract=ieee_tc_native_v1` 已接入 engine、子进程返回和
+controller，严格按首末 token 分离完成通知开销；13 项无 GPU 测试通过，
+详见 P1-D5。真实新版 stats/时钟/开销资格仍未完成，不能据此放行推理实验。
 
 当前官方 [per-request metrics 文档](https://docs.vllm.ai/en/latest/features/per_request_metrics/)
 有显式开启开关，要求统计记录可用；API TTFT 边界从 scheduled 开始，并非

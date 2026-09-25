@@ -441,6 +441,11 @@ def host_sample() -> dict:
             'memory_pressure': psi.strip(), 'full_avg10': avg10}
 
 
+def require_watchdog_primitives() -> None:
+    if not callable(getattr(os, 'pidfd_open', None)) or not callable(getattr(signal, 'pidfd_send_signal', None)):
+        raise RuntimeError('watchdog interpreter lacks PID-handle signaling; use the qualified system Python')
+
+
 def watch_scope(identity: dict, *, paths: list[Path], emit,
                 test_abort_after: int | None = None) -> dict:
     """Independent auxiliary-scope monitor; production needs further GPU gates.
@@ -453,6 +458,7 @@ def watch_scope(identity: dict, *, paths: list[Path], emit,
     target = Path(identity['path'])
     if own_path.is_relative_to(target) or target.is_relative_to(own_path):
         raise RuntimeError('watchdog must be outside service ancestry')
+    require_watchdog_primitives()
     if not re.fullmatch(r'primelora-tc-aux-[a-f0-9]{32}\.scope', own_path.name):
         raise RuntimeError('watchdog must run in a dedicated auxiliary scope')
     aux = cgroup_snapshot(own_path)
@@ -520,6 +526,7 @@ def watchdog_test(mode='linger') -> dict:
     """Tiny service + real separate watchdog; synthetic alarm, no host pressure."""
     if mode not in {'linger', 'stubborn'}:
         raise ValueError('watchdog test supports graceful or stubborn witness')
+    require_watchdog_primitives()
     service_unit = 'primelora-tc-test-' + uuid.uuid4().hex + '.scope'
     aux_unit = 'primelora-tc-aux-' + uuid.uuid4().hex + '.scope'
     service = subprocess.Popen(scope_command(service_unit, mode), stdout=subprocess.PIPE,
