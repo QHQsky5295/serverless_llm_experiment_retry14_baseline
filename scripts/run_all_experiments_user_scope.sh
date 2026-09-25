@@ -17,6 +17,24 @@ fi
 
 cd "$ROOT_DIR"
 
+# TC qualification never takes the historical unbounded fallback. The auxiliary
+# scope covers supervisor + watcher (and the later external replay), while the
+# actual runner/descendants enter a separately verified service scope.
+if [[ "${FAASLORA_TC_QUALIFICATION:-0}" == "1" ]]; then
+  : "${FAASLORA_TC_LAUNCH_OUTPUT:?TC qualification requires a unique absolute receipt path}"
+  if [[ "${FAASLORA_DISABLE_SYSTEMD_SCOPE:-0}" == "1" ]]; then
+    echo "[ERROR] TC qualification cannot disable resource containment" >&2
+    exit 1
+  fi
+  TC_AUX_UNIT="primelora-tc-aux-$(/usr/bin/python3 -c 'import uuid; print(uuid.uuid4().hex)').scope"
+  exec systemd-run --user --scope --collect --unit="$TC_AUX_UNIT" \
+    -p MemoryHigh=3G -p MemoryMax=4G -p MemorySwapMax=0 \
+    taskset -c 2,3,26,27 /usr/bin/python3 "$ROOT_DIR/scripts/ieee_tc_preflight.py" \
+    gated-launch --output "$FAASLORA_TC_LAUNCH_OUTPUT" \
+    --predicted-growth-gib "${FAASLORA_TC_PREDICTED_GROWTH_GIB:-0}" \
+    --exec "$PYTHON_BIN" "$SCRIPT_PATH" "$@"
+fi
+
 SYSTEMD_ENV_ARGS=()
 for name in $(compgen -e); do
   case "$name" in

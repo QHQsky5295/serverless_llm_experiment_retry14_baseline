@@ -16,7 +16,7 @@
 | Block | Status | Evidence / next action |
 |---|---|---|
 | Approved plan persistence | Recorded | Full snapshot + source hash + AGENTS instructions |
-| Resource containment / safety | Primitive, native Ray inheritance and independent-watchdog tests passed; production gates pending | RESOURCE_QUALIFICATION.md. Both graceful and stubborn owned trees released. Model workers, launch handshake and replay separation still pending. CPU proof is affinity, not delegated cpuset |
+| Resource containment / safety | Native Ray inheritance, independent watchdog and actual pre-exec launch handshake tested; model/replay gates pending | RESOURCE_QUALIFICATION.md. Original wrapper now has strict TC qualification entry; actual native GPU census and external replay pending. CPU proof is affinity, not delegated cpuset |
 | Protected historical artifacts | Sealed and verified | `paper_results/ieee_tc/safety/20260925_execution_start_protected.json`; old results and selected user modifications unchanged |
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
@@ -85,6 +85,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Native token timing checkpoint `0013fca361c26643184689c34d0b147dc3176d57`
   pushed to V2; remote SHA verified.
 - Native observation checkpoint `ea439a0234ba9d151d90a6d17b20596b54621c47`
+  pushed to V2; remote SHA verified.
+- Native GPU reference checkpoint `cd5b68deb1e0d37764bb2b7b2bbf4cc07085c3fd`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -267,3 +269,25 @@ configs/relayserve_motivation_serverlessllm.yaml.
   readiness handshake and genuinely external replay. Continue native scheduler
   KV/iteration observations and controller reservations after that gate; do not
   stop the active installation or declare P1/Full complete from unit tests.
+
+## Pre-exec launch handshake checkpoint
+
+- Existing wrapper/preflight extended: one bounded auxiliary domain owns the
+  supervisor + independent watcher; model process waits in bounded service
+  domain until real watcher attachment and first valid resource sample.
+- Native engine initialization checks the receipt/worker identity before model
+  creation; managed path forbids global process cleanup and hidden fallback
+  config retries. Heavy launch refuses an active TC build/service.
+- First tiny witness correctly retained as failed: empty scope persisted after
+  both processes exited. Fixed lifecycle detection using cgroup populated state,
+  then safely stopped only that empty owned scope. Second witness passes; raw
+  receipts/logs preserved and hashed. Actual model/GPU qualification still open.
+- 24 safety and 377 functional tests pass, zero failures/skips; historical seal
+  verifies 147 unchanged entries; four GPUs idle, 15 MiB each.
+- Sep 26 00:40 local: installation is demonstrably progressing, now CUDA NVRTC
+  wheel (dependency 96 rather than prior 90); original bounded build remains
+  active. No duplicate downloads/environment or concurrent GPU run started.
+- Next: genuine auxiliary-process open-loop replay and fixed deployment-notice
+  origin. Do not merely move a sleeping timer while leaving the replay blocked
+  by service admission. Also keep actual native clock/resource census, live
+  scheduler/KV owner wiring and remote disk approval on the mainline checklist.

@@ -15,6 +15,8 @@ import os
 import re
 import signal
 import math
+import socket
+import struct
 from dataclasses import dataclass
 from pathlib import Path
 import select
@@ -483,6 +485,7 @@ def watch_scope(identity: dict, *, paths: list[Path], emit,
         if proc['affinity'] != sorted(SERVICE_CPUS):
             raise RuntimeError('actual service process escaped expected affinity')
     emit({'event': 'watchdog_ready', 'watchdog_pid': os.getpid(), 'aux': aux,
+          'watchdog_process': next(p for p in owned_pids(own_path) if p['pid'] == os.getpid()),
           'service_identity': identity, 'service': service,
           'test_trigger_enabled': test_abort_after is not None})
     decision, disk_sample, next_disk = WatchdogDecision(), [], 0.0
@@ -512,6 +515,8 @@ def watch_scope(identity: dict, *, paths: list[Path], emit,
                 return result
             time.sleep(max(0, POLICY['sample_seconds'] - (time.monotonic() - start)))
     except Exception as exc:
+        if isinstance(exc, FileNotFoundError) and not scope_still_owned(identity):
+            return {'event': 'service_domain_gone', 'samples': count}
         # Monitoring failure is not evidence of a service OOM. Stop only the
         # captured identity; identity changes themselves fail closed, no broad kill.
         cleanup = stop_scope_identity(identity, grace_seconds=10)
@@ -520,6 +525,264 @@ def watch_scope(identity: dict, *, paths: list[Path], emit,
         emit(result)
         raise
     return {'event': 'service_domain_gone', 'samples': count}
+
+
+def verify_watchdog_attachment(event: dict, identity: dict, auxiliary: Path) -> dict:
+    """Verify the actual watcher, not a stale ready file or a launcher PID."""
+    if (event.get('event') != 'watchdog_ready' or event.get('service_identity') != identity
+            or event.get('aux', {}).get('path') != str(auxiliary)):
+        raise RuntimeError('watchdog acknowledgement targets another resource domain')
+    proc = event['watchdog_process']
+    current = next((p for p in owned_pids(auxiliary) if p['pid'] == event['watchdog_pid']), None)
+    if current != proc or not scope_still_owned(identity):
+        raise RuntimeError('watchdog birth identity or live service identity differs')
+    if current['affinity'] != POLICY['aux_cpus']:
+        raise RuntimeError('watchdog affinity escaped auxiliary domain')
+    return current
+
+
+def launch_gate_worker(address: str, nonce: str, command: list[str], tiny: bool):
+    """Run before importing an inference environment; exec only after monitor ACK."""
+    path = cg_path()
+    expected = test_limits('inspect') if tiny else {
+        'memory.high': POLICY['service_high_bytes'],
+        'memory.max': POLICY['service_max_bytes'], 'memory.swap.max': POLICY['service_swap_max_bytes']}
+    snap = cgroup_snapshot(path)
+    prefix = 'test' if tiny else 'svc'
+    if not re.fullmatch('primelora-tc-'+prefix+'-[a-f0-9]{32}\\.scope', path.name):
+        raise RuntimeError('launch gate is outside its owned service scope')
+    if any(snap[key] != value for key, value in expected.items()):
+        raise RuntimeError('effective service limits differ before exec')
+    if set(os.sched_getaffinity(0)) != SERVICE_CPUS:
+        raise RuntimeError('effective service affinity differs before exec')
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as channel:
+        channel.settimeout(20)
+        channel.connect(address)
+        channel.sendall(json.dumps({'pid': os.getpid(), 'nonce': nonce,
+                                    'scope': snap, 'plan_sha256': check_plan()}).encode()+b'\n')
+        line = channel.makefile('rb').readline(65536)
+        if not line.endswith(b'\n'):
+            raise RuntimeError('missing complete launch acknowledgement')
+        receipt = json.loads(line)
+        if receipt.get('nonce') != nonce or receipt.get('allow_exec') is not True:
+            raise RuntimeError('launch was not authorized by the matching supervisor')
+        if receipt['service_identity'] != scope_identity(path.name):
+            raise RuntimeError('service incarnation changed before exec')
+        verify_watchdog_attachment(receipt['watchdog_ready'], receipt['service_identity'],
+                                   Path(receipt['auxiliary_path']))
+    os.environ['FAASLORA_TC_LAUNCH_RECEIPT'] = receipt['receipt_path']
+    os.execvpe(command[0], command, dict(os.environ))
+
+
+def verify_current_service() -> dict:
+    """Recheck before native model construction or creation of scale-out workers."""
+    if not os.environ.get('FAASLORA_TC_LAUNCH_RECEIPT'):
+        raise RuntimeError('missing guarded TC launch receipt before model construction')
+    path = Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT'])
+    receipt = json.loads(path.read_text())
+    identity = receipt['service_identity']
+    if (receipt['plan_sha256'] != check_plan() or not receipt['allow_exec']
+            or not cg_path().is_relative_to(Path(identity['path']))):
+        raise RuntimeError('current process is outside the admitted TC service')
+    verify_watchdog_attachment(receipt['watchdog_ready'], identity, Path(receipt['auxiliary_path']))
+    group = cgroup_snapshot(Path(identity['path']))
+    for name, value in {'memory.high': POLICY['service_high_bytes'],
+                        'memory.max': POLICY['service_max_bytes'],
+                        'memory.swap.max': POLICY['service_swap_max_bytes']}.items():
+        if group[name] != value:
+            raise RuntimeError('service resource contract changed after launch')
+    if not set(os.sched_getaffinity(0)).issubset(SERVICE_CPUS):
+        raise RuntimeError('service worker affinity escaped its permitted set')
+    return {'service_identity': identity, 'pid': os.getpid(), 'cgroup': str(cg_path()),
+            'affinity': sorted(os.sched_getaffinity(0)), 'production_launch_authorized': False}
+
+
+def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_growth=0) -> dict:
+    """Existing runner launch with a bounded gate and a real independent watcher.
+
+    The supervisor and watcher share the <=4 GiB auxiliary scope; serving is a
+    sibling scope. This is a qualification launcher, NOT a complete performance
+    campaign gate (external replay and native GPU lifecycle remain required).
+    """
+    require_watchdog_primitives()
+    auxiliary = cg_path()
+    aux = cgroup_snapshot(auxiliary)
+    if not re.fullmatch(r'primelora-tc-aux-[a-f0-9]{32}\.scope', auxiliary.name):
+        raise RuntimeError('launch supervisor must start in the shared auxiliary scope')
+    if (aux['memory.max'] != POLICY['aux_max_bytes'] or aux['memory.swap.max'] != 0
+            or set(os.sched_getaffinity(0)) != set(POLICY['aux_cpus'])):
+        raise RuntimeError('auxiliary limits must cover supervisor, watcher and later replay')
+    witness = [sys.executable, str(Path(__file__).resolve()), '_worker', '--mode', 'inspect']
+    if tiny and command != witness:
+        raise ValueError('tiny launcher only permits the fixed no-GPU inheritance witness')
+    if not command or not Path(command[0]).is_file() or not output.is_absolute():
+        raise ValueError('explicit executable and absolute new output path required')
+    if output.exists():
+        raise FileExistsError('preserve the previous launch receipt')
+    checks = None
+    if not tiny:
+        active = subprocess.check_output(['systemctl', '--user', 'list-units', '--type=scope',
+                    '--state=active', '--plain', '--no-legend'], text=True)
+        if re.search(r'primelora-tc-(?:build|svc)-[a-f0-9]{32}\.scope', active):
+            raise RuntimeError('another heavy setup/service is active; do not overlap')
+        checks = preflight([ROOT, output.parent], predicted_growth)
+        if not checks['preflight_pass']:
+            return {'kind': 'gated_service_launch', 'pass': False, 'preflight': checks,
+                    'classification': 'protocol_or_launcher_error', 'production_launch_authorized': False}
+    evidence = output.with_suffix('.launch')
+    evidence.mkdir(mode=0o700, parents=False, exist_ok=False)
+    unit = 'primelora-tc-'+('test' if tiny else 'svc')+'-'+uuid.uuid4().hex+'.scope'
+    limits = test_limits('inspect') if tiny else {
+        'memory.high': POLICY['service_high_bytes'], 'memory.max': POLICY['service_max_bytes'],
+        'memory.swap.max': POLICY['service_swap_max_bytes']}
+    result = {'kind': 'gated_service_launch', 'pass': False, 'tiny_witness': tiny,
+              'command': command, 'plan_sha256': check_plan(), 'preflight': checks,
+              'auxiliary': aux, 'service_unit': unit, 'production_launch_authorized': False}
+    identity = None
+    service = watcher = None
+    watch_buffer = b''
+    events = []
+    with tempfile.TemporaryDirectory(prefix='ptcg-') as tmp, \
+         (evidence/'service.log').open('xb') as service_log, \
+         (evidence/'watchdog.jsonl').open('xb') as watch_log, \
+         (evidence/'watchdog.stderr').open('xb') as watch_error, \
+         socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as listener:
+        address, nonce = str(Path(tmp)/'gate.sock'), uuid.uuid4().hex
+        listener.bind(address)
+        listener.listen(1)
+        listener.settimeout(20)
+        args = ['systemd-run', '--user', '--scope', '--collect', '--unit='+unit,
+                '-p', f'MemoryHigh={limits["memory.high"]}',
+                '-p', f'MemoryMax={limits["memory.max"]}',
+                '-p', f'MemorySwapMax={limits["memory.swap.max"]}',
+                'taskset', '-c', '4-23,28-47', sys.executable, str(Path(__file__).resolve()),
+                '_launch-gate', '--gate-socket', address, '--gate-nonce', nonce]
+        if tiny:
+            args += ['--tiny-witness']
+        args += ['--exec', *command]
+
+        def read_events(timeout=.2):
+            nonlocal watch_buffer
+            if not select.select([watcher.stdout], [], [], timeout)[0]:
+                return []
+            raw = os.read(watcher.stdout.fileno(), 65536)
+            watch_log.write(raw)
+            watch_log.flush()
+            watch_buffer += raw
+            fresh = []
+            while b'\n' in watch_buffer:
+                line, watch_buffer = watch_buffer.split(b'\n', 1)
+                if line:
+                    fresh.append(json.loads(line))
+            events.extend(fresh)
+            if len(watch_buffer) > 65536:
+                raise RuntimeError('oversized incomplete watchdog record')
+            return fresh
+
+        try:
+            service = subprocess.Popen(args, stdout=service_log, stderr=subprocess.STDOUT)
+            with listener.accept()[0] as channel:
+                channel.settimeout(20)
+                pid, uid, _ = struct.unpack('3i', channel.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))
+                line = channel.makefile('rb').readline(65536)
+                if not line.endswith(b'\n'):
+                    raise RuntimeError('missing complete gate request')
+                hello = json.loads(line)
+                identity = scope_identity(unit)
+                if (hello['nonce'] != nonce or hello['pid'] != pid or uid != os.getuid()
+                        or str(cg_path(pid)) != identity['path'] or hello['plan_sha256'] != check_plan()):
+                    raise RuntimeError('gate peer, resource identity or plan differs')
+                result['gate_request'] = hello
+                result['service_identity'] = identity
+                watch_args = [sys.executable, str(Path(__file__).resolve()), 'watchdog',
+                              '--service-unit', unit, '--invocation-id', identity['invocation_id'],
+                              '--path', str(ROOT), '--path', str(evidence)]
+                if tiny:
+                    watch_args += ['--test-abort-after', '100']
+                watcher = subprocess.Popen(watch_args, stdout=subprocess.PIPE, stderr=watch_error, bufsize=0)
+                ready, sampled = None, False
+                deadline = time.monotonic()+15
+                while time.monotonic() < deadline and not (ready and sampled):
+                    if watcher.poll() is not None:
+                        raise RuntimeError('watchdog exited before launch readiness')
+                    for event in read_events():
+                        if event['event'] == 'watchdog_ready':
+                            verify_watchdog_attachment(event, identity, auxiliary)
+                            ready = event
+                        elif event['event'] == 'resource_sample':
+                            if event['decision']['abort_reasons'] or event['decision']['warning']:
+                                raise RuntimeError('initial monitor sample forbids launch')
+                            sampled = True
+                        elif event['event'] in ('watchdog_abort', 'watchdog_error'):
+                            raise RuntimeError('watchdog refused launch')
+                if not (ready and sampled) or watcher.poll() is not None:
+                    raise RuntimeError('watchdog readiness deadline exceeded')
+                receipt = {'allow_exec': True, 'nonce': nonce, 'service_identity': identity,
+                           'watchdog_ready': ready, 'auxiliary_path': str(auxiliary),
+                           'receipt_path': str(evidence/'exec_receipt.json'), 'plan_sha256': check_plan(),
+                           'production_launch_authorized': False}
+                with (evidence/'exec_receipt.json').open('x') as f:
+                    json.dump(receipt, f, indent=2)
+                channel.sendall(json.dumps(receipt).encode()+b'\n')
+                result['exec_authorized_monotonic_s'] = time.monotonic()
+            stopped_at = None
+            while True:
+                fresh = read_events()
+                if any(e['event'] in ('watchdog_abort', 'watchdog_error') for e in fresh):
+                    raise RuntimeError('watchdog interrupted this launch')
+                live = scope_still_owned(identity)
+                if watcher.poll() is not None and live:
+                    raise RuntimeError('watchdog disappeared while service domain is live')
+                if service.poll() is not None:
+                    stopped_at = stopped_at or time.monotonic()
+                    if not live:
+                        break
+                    if counters(Path(identity['path'])/'cgroup.events')['populated'] == 0:
+                        # An empty transient scope may remain active until
+                        # explicitly stopped; emptiness is not a leaked worker.
+                        result['empty_scope_cleanup'] = stop_scope_identity(identity, grace_seconds=0)
+                        break
+                    if time.monotonic()-stopped_at > 60:
+                        raise RuntimeError('service descendants did not release after terminal')
+            result['service_returncode'] = service.wait(timeout=3)
+            watcher.wait(timeout=5)
+            read_events(0)
+            result['watchdog_returncode'] = watcher.returncode
+            result['pass'] = service.returncode == watcher.returncode == 0
+            if not result['pass']:
+                result['classification'] = 'qualification_command_failure'
+        except (Exception, KeyboardInterrupt) as exc:
+            result.update(error=str(exc), classification='protocol_or_launcher_error')
+        finally:
+            if identity is None and service is not None:
+                try:
+                    identity = scope_identity(unit)
+                except (FileNotFoundError, RuntimeError):
+                    pass
+            if identity is not None:
+                result['cleanup'] = stop_scope_identity(identity, grace_seconds=10)
+            if service is not None:
+                result['service_returncode'] = service.wait(timeout=5)
+            if watcher is not None:
+                try:
+                    watcher.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    watcher.terminate()  # Exact child handle, never a process-name match.
+                    watcher.wait(timeout=5)
+                read_events(0)
+                result['watchdog_returncode'] = watcher.returncode
+            result['watchdog_event_counts'] = {name: sum(e['event'] == name for e in events)
+                                              for name in sorted({e['event'] for e in events})}
+            interruptions = [e for e in events if e['event'] in ('watchdog_abort', 'watchdog_error')]
+            if interruptions:
+                result['pass'] = False
+                interruption = interruptions[-1]
+                result['classification'] = interruption.get('classification') or interruption.get(
+                    'decision', {}).get('classification', 'protocol_or_launcher_error')
+            result['service_path_removed'] = identity is not None and not Path(identity['path']).exists()
+            result['pass'] = result['pass'] and result['service_path_removed']
+    result['evidence_sha256'] = {p.name: digest(p) for p in evidence.iterdir() if p.is_file()}
+    return result
 
 
 def watchdog_test(mode='linger') -> dict:
@@ -735,7 +998,8 @@ def self_test(modes=('inspect', 'oom', 'linger'), python=None) -> dict:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
-                                         'watchdog', 'watchdog-test', 'install-candidate', '_worker'])
+                                         'watchdog', 'watchdog-test', 'install-candidate', '_worker',
+                                         'gated-launch', '_launch-gate'])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--seal', type=Path)
     parser.add_argument('--path', type=Path, action='append')
@@ -747,14 +1011,33 @@ def main():
     parser.add_argument('--test-abort-after', type=int, help='Only for tiny UUID test scope')
     parser.add_argument('--candidate-environment', type=Path)
     parser.add_argument('--requirements', type=Path)
+    parser.add_argument('--gate-socket')
+    parser.add_argument('--gate-nonce')
+    parser.add_argument('--tiny-witness', action='store_true')
+    parser.add_argument('--exec', dest='command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     if args.action == '_worker':
         worker(args.mode)
         return
+    if args.action == '_launch-gate':
+        if not args.gate_socket or not args.gate_nonce or not args.command:
+            parser.error('launch gate needs its private socket, nonce and executable')
+        launch_gate_worker(args.gate_socket, args.gate_nonce, args.command, args.tiny_witness)
+        return
     check_plan()
     if args.output and args.output.exists():
         parser.error('output exists; never overwrite an earlier evidence record')
-    if args.action == 'install-candidate':
+    if args.action == 'gated-launch':
+        if not args.output:
+            parser.error('gated launch requires a new output receipt')
+        command = args.command
+        if args.tiny_witness and not command:
+            command = [sys.executable, str(Path(__file__).resolve()), '_worker', '--mode', 'inspect']
+        if not command:
+            parser.error('gated launch requires an executable command')
+        result = gated_launch(command, args.output, tiny=args.tiny_witness,
+                              predicted_growth=int(args.predicted_growth_gib*GIB))
+    elif args.action == 'install-candidate':
         if not args.candidate_environment or not args.requirements or not args.output:
             parser.error('install-candidate requires explicit new environment, requirements and output')
         result = install_candidate(args.candidate_environment, args.requirements, args.output)

@@ -1,0 +1,93 @@
+{
+  "kind": "gated_service_launch",
+  "pass": false,
+  "tiny_witness": true,
+  "command": [
+    "/usr/bin/python3",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py",
+    "_worker",
+    "--mode",
+    "inspect"
+  ],
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "preflight": null,
+  "auxiliary": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-e18fd16953ab4ed5b2dfb2b583c489ba.scope",
+    "memory.current": 11759616,
+    "memory.peak": 11845632,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 72566\nuser_usec 50697\nsystem_usec 21869\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "service_unit": "primelora-tc-test-1d581ac26f7d437780d16c59435c97bb.scope",
+  "production_launch_authorized": false,
+  "gate_request": {
+    "pid": 1684560,
+    "nonce": "7b7b8801c9004b3483697628f1d2f528",
+    "scope": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-1d581ac26f7d437780d16c59435c97bb.scope",
+      "memory.current": 11870208,
+      "memory.peak": 11870208,
+      "memory.high": 67108864,
+      "memory.max": 134217728,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 77434\nuser_usec 64528\nsystem_usec 12905\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0"
+  },
+  "service_identity": {
+    "unit": "primelora-tc-test-1d581ac26f7d437780d16c59435c97bb.scope",
+    "invocation_id": "2627510973b243d4919d24e4a2eda252",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-1d581ac26f7d437780d16c59435c97bb.scope",
+    "inode": 2140363
+  },
+  "exec_authorized_monotonic_s": 214316.310647399,
+  "error": "service descendants did not release after terminal",
+  "classification": "protocol_or_launcher_error",
+  "cleanup": {
+    "targets": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "service_returncode": 0,
+  "watchdog_returncode": 0,
+  "watchdog_event_counts": {
+    "resource_sample": 60,
+    "service_domain_gone": 1,
+    "watchdog_ready": 1
+  },
+  "service_path_removed": true,
+  "evidence_sha256": {
+    "watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exec_receipt.json": "a2fc5602c7fa18470ada96225ecd26dc7d99a69cec3ad9e0e7addc1b22b74658",
+    "watchdog.jsonl": "9a9b164af84cf720c4e94a9c71334bdee182e1539add8db7556501a8de8d9462",
+    "service.log": "a5fbd1578fe6d708b843a49945f73e7599fba0e4d6b9a2deb31303777028d6f6"
+  }
+}

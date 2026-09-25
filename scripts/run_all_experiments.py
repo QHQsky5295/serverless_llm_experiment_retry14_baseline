@@ -2396,6 +2396,8 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
 
 def _kill_stale_gpu_processes():
     """Kill leftover vLLM / CUDA worker processes (using psutil, no pgrep)."""
+    if os.environ.get("FAASLORA_TC_LAUNCH_RECEIPT"):
+        raise RuntimeError("TC cleanup must use the owned service scope, not global process matching")
     killed = 0
     my_pid = os.getpid()
     patterns = ("vllm.worker", "vllm.v1.worker", "vllm.executor", "EngineCore", "Worker_TP")
@@ -2672,6 +2674,14 @@ class InferenceEngine:
         self._sglang_lora_lock = asyncio.Lock()
 
     def _maybe_kill_stale_gpu_processes(self) -> None:
+        if os.environ.get("FAASLORA_TC_LAUNCH_RECEIPT"):
+            from scripts.ieee_tc_preflight import verify_current_service
+            verify_current_service()
+            return
+        if (self.model_cfg.get("timing_contract") == "ieee_tc_native_v1"
+                or self.model_cfg.get("ieee_gpu_references", False)
+                or self.model_cfg.get("ieee_worker_observation", False)):
+            raise RuntimeError("native TC engine requires the guarded qualification launcher")
         if not bool(self.model_cfg.get("skip_stale_gpu_cleanup", False)):
             _kill_stale_gpu_processes()
 
@@ -3136,6 +3146,13 @@ class InferenceEngine:
         print(f"  OK: SGLang server ready (TP={tp}, dynamic LoRA)")
 
     async def initialize(self):
+        strict_launch = bool(os.environ.get("FAASLORA_TC_LAUNCH_RECEIPT")) or (
+            self.model_cfg.get("timing_contract") == "ieee_tc_native_v1"
+            or self.model_cfg.get("ieee_gpu_references", False)
+            or self.model_cfg.get("ieee_worker_observation", False))
+        if strict_launch:
+            from scripts.ieee_tc_preflight import verify_current_service
+            self._tc_launch_identity = verify_current_service()
         init_started_at = time.perf_counter()
         self._last_engine_create_error = ""
         if not CUDA_AVAILABLE:
@@ -3213,7 +3230,7 @@ class InferenceEngine:
             )
 
             # Try 2: disable chunked prefill & prefix caching if preferred path was not already there.
-            if engine is None and (
+            if engine is None and not strict_launch and (
                 runtime_settings["enable_chunked_prefill"] is not False
                 or runtime_settings["enable_prefix_caching"] is not False
             ):
@@ -3230,7 +3247,7 @@ class InferenceEngine:
             # active model profile instead of forcing every model into the same
             # low-memory fallback. This is especially important for TP>1 large
             # models where gpu_util=0.6 can eliminate KV cache headroom.
-            if engine is None:
+            if engine is None and not strict_launch:
                 self._maybe_kill_stale_gpu_processes()
                 try:
                     import torch
@@ -3355,6 +3372,9 @@ class InferenceEngine:
             detail = f"{type(exc).__name__}: {exc}"
             self._last_engine_create_error = detail
             print(f"  [WARN] vLLM engine creation failed ({desc}): {detail[:500]}")
+            if (os.environ.get("FAASLORA_TC_LAUNCH_RECEIPT")
+                    or self.model_cfg.get("timing_contract") == "ieee_tc_native_v1"):
+                raise RuntimeError(f"TC backend construction failed without config retry: {detail}") from exc
             self._maybe_kill_stale_gpu_processes()
             try:
                 import torch
@@ -4514,7 +4534,11 @@ class SubprocessInferenceEngineProxy:
     ) -> "SubprocessInferenceEngineProxy":
         spawn_started_at = time.perf_counter()
         if not cls._startup_cleanup_done:
-            _kill_stale_dedicated_worker_process_groups()
+            if os.environ.get("FAASLORA_TC_LAUNCH_RECEIPT"):
+                from scripts.ieee_tc_preflight import verify_current_service
+                verify_current_service()
+            else:
+                _kill_stale_dedicated_worker_process_groups()
             cls._startup_cleanup_done = True
 
         requested_device_id = int(device_id) if device_id is not None else None

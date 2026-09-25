@@ -151,6 +151,55 @@ class ProtocolGates(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'effective before environment'):
                 p.install_candidate(Path('/not-created'), Path('/not-read'), Path('/not-written'))
 
+    def test_launch_cannot_start_model_before_auxiliary_limits_exist(self):
+        with patch.object(p, 'cg_path', return_value=Path('/test/unbounded.scope')), \
+             patch.object(p, 'cgroup_snapshot', return_value={}), \
+             patch.object(p.subprocess, 'Popen') as launch:
+            with self.assertRaisesRegex(RuntimeError, 'shared auxiliary scope'):
+                p.gated_launch(['/usr/bin/python3'], Path('/not-written'))
+            launch.assert_not_called()
+
+    def test_tiny_gate_cannot_be_used_to_launch_an_unbounded_model(self):
+        group = Path('/test/primelora-tc-aux-'+'a'*32+'.scope')
+        with patch.object(p, 'cg_path', return_value=group), \
+             patch.object(p, 'cgroup_snapshot', return_value={'memory.max':4*p.GIB, 'memory.swap.max':0}), \
+             patch.object(p.os, 'sched_getaffinity', return_value=set(p.POLICY['aux_cpus'])), \
+             patch.object(p.subprocess, 'Popen') as launch:
+            with self.assertRaisesRegex(ValueError, 'fixed no-GPU inheritance witness'):
+                p.gated_launch(['/usr/bin/python3', 'model.py'], Path('/not-written'), tiny=True)
+            launch.assert_not_called()
+
+    def test_live_install_prevents_overlapping_model_launch(self):
+        group = Path('/test/primelora-tc-aux-'+'a'*32+'.scope')
+        with patch.object(p, 'cg_path', return_value=group), \
+             patch.object(p, 'cgroup_snapshot', return_value={'memory.max':4*p.GIB, 'memory.swap.max':0}), \
+             patch.object(p.os, 'sched_getaffinity', return_value=set(p.POLICY['aux_cpus'])), \
+             patch.object(p.subprocess, 'check_output', return_value='primelora-tc-build-'+'b'*32+'.scope active'), \
+             patch.object(p.subprocess, 'Popen') as launch:
+            with self.assertRaisesRegex(RuntimeError, 'another heavy setup'):
+                p.gated_launch(['/usr/bin/python3'], Path('/not-written'))
+            launch.assert_not_called()
+
+    def test_ready_receipt_must_match_actual_watcher_birth_and_domain(self):
+        identity = {'unit':'test', 'path':'/service', 'invocation_id':'one', 'inode':1}
+        auxiliary = Path('/aux')
+        proc = {'pid':123, 'start_ticks':5, 'affinity':p.POLICY['aux_cpus'], 'cgroup':'/aux'}
+        event = {'event':'watchdog_ready', 'service_identity':identity, 'watchdog_pid':123,
+                 'watchdog_process':proc, 'aux':{'path':'/aux'}}
+        with patch.object(p, 'owned_pids', return_value=[proc]), \
+             patch.object(p, 'scope_still_owned', return_value=True):
+            self.assertEqual(p.verify_watchdog_attachment(event, identity, auxiliary), proc)
+            with self.assertRaisesRegex(RuntimeError, 'another resource domain'):
+                p.verify_watchdog_attachment(event, dict(identity, invocation_id='two'), auxiliary)
+        with patch.object(p, 'owned_pids', return_value=[dict(proc, start_ticks=6)]):
+            with self.assertRaisesRegex(RuntimeError, 'birth identity'):
+                p.verify_watchdog_attachment(event, identity, auxiliary)
+
+    def test_missing_launch_receipt_is_not_authorization(self):
+        with patch.dict(p.os.environ, {}, clear=True):
+            with self.assertRaisesRegex(RuntimeError, 'missing guarded'):
+                p.verify_current_service()
+
 
 if __name__ == '__main__':
     unittest.main()
