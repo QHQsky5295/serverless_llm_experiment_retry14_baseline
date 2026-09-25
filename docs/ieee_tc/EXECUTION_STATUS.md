@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Mathematical contracts + native token/reference/scheduler and fixed-work interfaces tested; controller/resource integration open | P1_FORMULA_IMPLEMENTATION.md D1–D8. Async scheduler distinguishes current/stale in-flight KV; fixed work rejects hidden input/target/base-model substitutions. CUDA/clock/stream qualification, slow-tier references and atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts + native timing/scheduler, fixed-work and demand-load/reference transactions tested; controller/resource integration open | P1_FORMULA_IMPLEMENTATION.md D1–D9. Demand loading preserves native LRU and pins completed executable slots; dense native footprints include padding. CUDA/clock/stream qualification, slow-tier references and proactive atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -97,6 +97,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Physical GPU union/native census checkpoint `4ab1d1e9fbe7f2f64f0e0f8ce1e8aa954b71d2c7`
   pushed to V2; remote SHA verified.
 - Native async scheduler/KV checkpoint `aaa006f57c3af63ec64c6fba1f28a29f5df3a89f`
+  pushed to V2; remote SHA verified.
+- Fixed-work boundary checkpoint `6ec86c6676ba9dbf39a69c12b697ce51a664af64`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -421,3 +423,27 @@ configs/relayserve_motivation_serverlessllm.yaml.
   stream/worker qualification. Inspect common frozen input with the final
   tokenizer before baseline runs; Serverless remains first. Formal M1/M2,
   ablations, motivation and sensitivity evidence remain unmeasured.
+
+## Native demand-load transaction checkpoint
+
+- Existing native reference owner now has a separately named demand-load path:
+  original native loader/LRU -> current-stream completion -> CPU/GPU pin, without
+  yielding the worker thread between operations. Existing hit-only acquire still
+  never loads. Capacity conflicts have no eviction/load side effect.
+- Original source facts survive in the receipt; CPU-registered promotion is not
+  a GPU hit. Integer/name/path and dispatch lease identity are checked, including
+  retries, generation binding and post-eviction reuse. Native zero-module load
+  is rejected; failure never publishes readiness or pretends rollback succeeded.
+- Actual dense buffer layout is checked before deriving padded slot footprint.
+  Empty slot bytes are logical reuse inside a physically allocated pool, not
+  additional free device memory. Unknown views are not approximated by file size.
+- Thirteen added tests; full functional regression 447 pass with zero failures,
+  errors or skips. Separate system safety/census/replay 44 pass. All 147 protected
+  entries unchanged; four GPUs remain idle, 15 MiB each. No model inference.
+- Sep 26 02:23 local: original P2 installer still active at dependency 105,
+  ~1.91 GiB memory; local disk ~336 GiB, host available memory ~104 GiB. No second
+  install or concurrent model. Keep the same live installation and receipt paths.
+- This is not proactive admission or Full integration. Controller-side request/
+  adapter reservations, native physical/KV ownership, slow-tier references and
+  actual worker/clock/stream/model qualification remain the next mainline tasks.
+  Baseline order remains Serverless first; remote disk decision remains pending.

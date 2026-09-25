@@ -37,12 +37,15 @@ from ..utils.config import Config
 from ..utils.logger import get_logger
 
 
-def _ieee_lora_pool_inventory(manager: Any) -> Dict[str, Any]:
+def _ieee_lora_pool_inventory(manager: Any, *, require_uniform_slots: bool = False) -> Dict[str, Any]:
     """Inventory real tensor storage once; no file-size or rank-size proxy.
 
     This qualification probe supports the dense A/B stacked representation of
     the Llama runtimes. Unrecognized modules fail explicitly instead of being
-    omitted and understating the pool. Tensor *views* may share storage.
+    omitted and understating the pool. Tensor *views* may share storage. A
+    per-slot footprint is exposed only when every native tensor covers its
+    entire contiguous allocation and indexes the same leading slot dimension.
+    Dividing arbitrary aliased pool storage by max_loras is not evidence.
     """
     allocations: Dict[Tuple[str, int, int], Dict[str, Any]] = {}
     views: List[Dict[str, Any]] = []
@@ -67,7 +70,8 @@ def _ieee_lora_pool_inventory(manager: Any) -> Dict[str, Any]:
         views.append({'name': name, 'allocation_id': allocations[key]['allocation_id'],
                       'shape': list(value.shape), 'dtype': str(value.dtype),
                       'view_bytes': int(value.numel()) * int(value.element_size()),
-                      'storage_offset_elements': int(value.storage_offset())})
+                      'storage_offset_elements': int(value.storage_offset()),
+                      'contiguous': bool(value.is_contiguous())})
 
     if not manager.modules:
         raise ValueError('no native LoRA modules; adapter execution not established')
@@ -86,8 +90,22 @@ def _ieee_lora_pool_inventory(manager: Any) -> Dict[str, Any]:
     registered = sorted(manager.list_adapters())
     if not set(active).issubset(registered):
         raise ValueError('active GPU adapter lacks its native registered model')
+    physical = list(allocations.values())
+    uniform_slots = bool(slot_ids) and all(
+        view['shape'] and view['shape'][0] == len(slot_ids)
+        and view['contiguous'] and view['storage_offset_elements'] == 0
+        and view['view_bytes'] == physical[view['allocation_id']]['allocated_bytes']
+        and view['view_bytes'] % len(slot_ids) == 0 for view in views)
+    if require_uniform_slots and not uniform_slots:
+        raise ValueError('native LoRA views do not prove a uniform physical slot layout')
+    pool_bytes = sum(row['allocated_bytes'] for row in physical)
+    slot_bytes = pool_bytes // len(slot_ids) if uniform_slots else None
     return {'pool_allocations': list(allocations.values()), 'pool_tensor_views': views,
-            'pool_allocated_bytes': sum(row['allocated_bytes'] for row in allocations.values()),
+            'pool_allocated_bytes': pool_bytes,
+            'uniform_slot_layout': uniform_slots, 'slot_capacity_bytes': slot_bytes,
+            'occupied_slot_capacity_bytes': len(active) * slot_bytes if uniform_slots else None,
+            'empty_slot_capacity_bytes': slot_ids.count(None) * slot_bytes if uniform_slots else None,
+            'slot_capacity_scope': 'logical_assignment_inside_preallocated_native_pool',
             'lora_slots': len(slot_ids), 'slot_adapter_ids': list(slot_ids),
             'active_gpu_adapter_ids': list(active),
             'registered_cpu_adapter_ids': registered}
@@ -110,21 +128,42 @@ class IEEEWorkerObservationExtension:
         the native LoRA copies use the current execution stream. TP/PP > 1 needs
         a multi-worker commit protocol and is deliberately not authorized here.
         """
-        if operation not in ('snapshot', 'acquire', 'release', 'evict', 'begin_use', 'end_use'):
+        if operation not in ('snapshot', 'acquire', 'release', 'evict', 'begin_use', 'end_use',
+                             'demand_load_and_acquire'):
             raise ValueError('unknown GPU reference operation')
         if torch is None or self.device is None or self.device.type != 'cuda':
             raise RuntimeError('native CUDA worker is required')
         from .residency_manager import IEEEBackendGPUReferences
         from faaslora.metrics.metrics_collector import local_monotonic_clock_id
 
-        manager = self.model_runner.lora_manager._adapter_manager
+        native_loader = self.model_runner.lora_manager
+        manager = native_loader._adapter_manager
         if not hasattr(self, '_ieee_gpu_reference_owner'):
             def completion_fence():
                 with torch.cuda.device(self.device):
                     event = torch.cuda.Event()
                     event.record(torch.cuda.current_stream(self.device))
                     event.synchronize()
-            self._ieee_gpu_reference_owner = IEEEBackendGPUReferences(manager, completion_fence)
+            def demand_loader(*, adapter_int_id, lora_name, lora_path):
+                import vllm
+                if vllm.__version__ != '0.30.0':
+                    raise RuntimeError('native demand loading requires qualified vLLM 0.30.0')
+                from vllm.lora.request import LoRARequest
+                if self.model_runner.lora_manager is not native_loader:
+                    raise RuntimeError('native worker loader replaced during its reference lifetime')
+                # This opt-in demand path is qualified only for the dense,
+                # preallocated Llama slot representation. No rank/file-size
+                # approximation or grow-the-GPU-pool fallback is permitted.
+                _ieee_lora_pool_inventory(manager, require_uniform_slots=True)
+                request = LoRARequest(lora_name=lora_name, lora_int_id=adapter_int_id,
+                                      lora_path=lora_path, load_inplace=False)
+                native_loader.add_adapter(request)
+                loaded = manager.list_adapters()[adapter_int_id]
+                if not any(manager._get_lora_layer_weights(loaded, name)
+                           for name in manager.modules):
+                    raise RuntimeError('native adapter matched no executable LoRA module')
+            self._ieee_gpu_reference_owner = IEEEBackendGPUReferences(
+                manager, completion_fence, demand_loader=demand_loader)
         owner = self._ieee_gpu_reference_owner
         if owner.manager is not manager:
             raise RuntimeError('native LoRA manager replaced; worker reference epoch invalid')

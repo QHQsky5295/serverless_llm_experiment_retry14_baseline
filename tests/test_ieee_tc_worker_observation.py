@@ -16,11 +16,12 @@ class FakeDevice:
 
 
 class FakeTensor:
-    def __init__(self, pointer, size, *, shape=(2, 8, 16), offset=0):
+    def __init__(self, pointer, size, *, shape=(2, 8, 16), offset=0, contiguous=True):
         self.device = FakeDevice()
         self.dtype = 'float16'
         self.shape = shape
         self.pointer, self.size, self.offset = pointer, size, offset
+        self.contiguous = contiguous
     def untyped_storage(self):
         return SimpleNamespace(nbytes=lambda: self.size, data_ptr=lambda: self.pointer)
     def numel(self):
@@ -32,6 +33,8 @@ class FakeTensor:
         return 2
     def storage_offset(self):
         return self.offset
+    def is_contiguous(self):
+        return self.contiguous
 
 
 def manager():
@@ -64,6 +67,31 @@ class WorkerObservationContract(unittest.TestCase):
         self.assertEqual(result['registered_cpu_adapter_ids'], [7, 8])
         self.assertEqual(result['active_gpu_adapter_ids'], [7])
         self.assertEqual(result['slot_adapter_ids'], [7, None])
+        self.assertFalse(result['uniform_slot_layout'])
+        self.assertIsNone(result['slot_capacity_bytes'])
+
+    def test_dense_slot_footprint_counts_padding_and_pool_once(self):
+        native = manager()
+        a, b = FakeTensor(1000, 512), FakeTensor(2000, 512)
+        native.modules = {'layer': SimpleNamespace(lora_a_stacked=(a,), lora_b_stacked=(b,))}
+        with patch.object(monitor, 'torch', fake_torch()):
+            result = monitor._ieee_lora_pool_inventory(native, require_uniform_slots=True)
+        self.assertTrue(result['uniform_slot_layout'])
+        self.assertEqual(result['pool_allocated_bytes'], 1024)
+        self.assertEqual(result['slot_capacity_bytes'], 512)
+        self.assertEqual(result['occupied_slot_capacity_bytes'], 512)
+        self.assertEqual(result['empty_slot_capacity_bytes'], 512)
+
+    def test_partial_alias_or_noncontiguous_storage_cannot_be_divided_into_slots(self):
+        for tensor in (FakeTensor(1000, 1024), FakeTensor(1000, 512, offset=1),
+                       FakeTensor(1000, 512, contiguous=False),
+                       FakeTensor(1000, 512, shape=(1, 16, 16))):
+            with self.subTest(tensor=tensor), patch.object(monitor, 'torch', fake_torch()):
+                native = manager()
+                native.modules = {'layer': SimpleNamespace(lora_a_stacked=(tensor,),
+                    lora_b_stacked=(FakeTensor(2000, 512),))}
+                with self.assertRaisesRegex(ValueError, 'uniform physical slot'):
+                    monitor._ieee_lora_pool_inventory(native, require_uniform_slots=True)
 
     def test_unknown_representation_and_inconsistent_slot_mapping_are_errors(self):
         with patch.object(monitor, 'torch', fake_torch()):

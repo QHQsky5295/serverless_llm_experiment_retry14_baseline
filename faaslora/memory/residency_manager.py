@@ -28,14 +28,16 @@ class IEEEBackendGPUReferences:
 
     Called on vLLM's serialized worker execution thread, never on a polling
     thread. Native LRU pins prevent automatic eviction; explicit unloads must
-    use ``evict``. No loading, replacement choice or soft admission is hidden in
-    this class. A cold/moved adapter returns a conflict, not a fabricated hit.
+    use ``evict``. ``acquire`` never loads. The separately named demand-loading
+    transaction uses the native loader/LRU; it is NOT proactive soft admission.
+    A cold/moved adapter returns a conflict from the hit-only path.
     The caller must retain the lease until dependent backend work is terminal.
     """
 
-    def __init__(self, manager, completion_fence):
+    def __init__(self, manager, completion_fence, *, demand_loader=None):
         self.manager = manager
         self.completion_fence = completion_fence
+        self.demand_loader = demand_loader
         self.owner_id = uuid.uuid4().hex
         self.thread_id = threading.get_ident()
         self.epoch = 0
@@ -44,6 +46,9 @@ class IEEEBackendGPUReferences:
         self._released: Set[str] = set()
         self._references: Dict[int, Set[str]] = {}
         self._borrowed_pins: Dict[int, Tuple[bool, bool]] = {}
+        # Immutable identity within this worker incarnation. An eviction does
+        # not authorize reusing its integer ID for different weights/path.
+        self._sources: Dict[int, Tuple[str, str]] = {}
         self._poisoned = False
         for cache in self._caches():
             if not isinstance(cache.pinned_items, set) or not all(
@@ -180,14 +185,99 @@ class IEEEBackendGPUReferences:
         self.epoch += 1
         return {'released': True, 'already_released': False, **self.snapshot()}
 
+    def demand_load_and_acquire(self, *, lease_id: str, adapter_int_id: int,
+                                lora_name: str, lora_path: str,
+                                expected_owner_id: str, expected_epoch: int) -> Dict[str, Any]:
+        """Native demand load -> completion -> pin, on one serialized worker.
+
+        There is no await or controller-side load/query gap in this operation.
+        Pinned native caches protect previous requests; the native LRU chooses
+        only unpinned victims. Lack of capacity is a conflict with no loading or
+        eviction, not an OOM retry. A device/loader failure poisons this owner:
+        partially written native slots must never be published as ready.
+
+        CPU allocation remains subject to the actual service cgroup/native
+        loader. This claims only an executable adapter reference, not request
+        slots, KV capacity, HOST bytes or the paper's proactive E(t) admission.
+        """
+        if (not isinstance(lease_id, str) or not lease_id
+                or type(adapter_int_id) is not int or adapter_int_id <= 0
+                or type(expected_epoch) is not int or expected_epoch < 1):
+            raise ValueError('demand load requires a lease, native adapter ID and epoch')
+        if (not isinstance(lora_name, str) or not lora_name
+                or not isinstance(lora_path, str) or not Path(lora_path).is_absolute()):
+            raise ValueError('demand load requires adapter name and absolute materialized path')
+        slots = self._refresh()
+        if expected_owner_id != self.owner_id:
+            return {'acquired': False, 'reason': 'owner_changed', **self.snapshot()}
+        source = (lora_name, lora_path)
+        if adapter_int_id in self._sources and self._sources[adapter_int_id] != source:
+            raise ValueError('native integer ID reused for a different adapter source')
+        if lease_id in self._leases:
+            receipt = self._leases[lease_id]
+            if (receipt['adapter_int_id'] != adapter_int_id
+                    or receipt.get('acquisition_operation') != 'demand_load_and_acquire'
+                    or (receipt['lora_name'], receipt['lora_path']) != source):
+                raise ValueError('lease ID reused for a different demand load')
+            return dict(receipt)
+        if lease_id in self._released:
+            raise ValueError('released lease ID cannot be reused')
+        if expected_epoch != self.epoch:
+            return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
+        if not callable(self.demand_loader):
+            raise RuntimeError('native demand loader is not attached')
+        cpu, gpu = self._caches()
+        cpu_hit, gpu_hit = adapter_int_id in cpu, adapter_int_id in slots
+        if cpu_hit and adapter_int_id not in self._sources:
+            # A pre-existing native cache entry carries no path identity. Do
+            # not attach a new caller's name/path to it merely because IDs match.
+            return {'acquired': False, 'reason': 'unowned_native_adapter', **self.snapshot()}
+        if not gpu.pinned_items.issubset(cpu.pinned_items):
+            raise RuntimeError('native GPU pin lacks matching CPU eviction protection')
+        if not gpu_hit and None not in slots and not (set(gpu) - gpu.pinned_items):
+            return {'acquired': False, 'reason': 'all_gpu_slots_pinned', **self.snapshot()}
+        if (not cpu_hit and len(cpu) >= self.manager.capacity
+                and not (set(cpu) - cpu.pinned_items)):
+            return {'acquired': False, 'reason': 'all_cpu_entries_pinned', **self.snapshot()}
+        start = time.monotonic()
+        try:
+            if not gpu_hit:
+                self.demand_loader(adapter_int_id=adapter_int_id,
+                                   lora_name=lora_name, lora_path=lora_path)
+            slots = self._refresh()
+            if adapter_int_id not in slots:
+                raise RuntimeError('native demand load did not activate the requested adapter')
+            # The owner thread has not yielded. Refresh the epoch locally;
+            # this is not permission to retry a stale caller snapshot.
+            receipt = self.acquire(lease_id=lease_id, adapter_int_id=adapter_int_id,
+                                   expected_owner_id=self.owner_id, expected_epoch=self.epoch)
+            if not receipt['acquired']:
+                raise RuntimeError('native demand-load transaction lost its executable slot')
+        except BaseException:
+            self._poisoned = True
+            raise
+        self._sources[adapter_int_id] = source
+        receipt.update(acquisition_operation='demand_load_and_acquire',
+                       lora_name=lora_name, lora_path=lora_path,
+                       gpu_resident_before_load=gpu_hit, cpu_registered_before_load=cpu_hit,
+                       native_load_invoked=not gpu_hit,
+                       load_and_acquire_ms=(time.monotonic()-start)*1000.,
+                       proactive_admission_evaluated=False)
+        self._leases[lease_id].update(receipt)
+        return dict(receipt)
+
     def begin_use(self, *, lease_id: str, expected_owner_id: str,
-                  adapter_int_id: int, backend_request_id: str) -> Dict[str, Any]:
+                  adapter_int_id: int, backend_request_id: str,
+                  lora_name: Optional[str] = None, lora_path: Optional[str] = None) -> Dict[str, Any]:
         self._refresh()
         if expected_owner_id != self.owner_id or lease_id not in self._leases:
             raise ValueError('generation requires a live lease from this worker')
         receipt = self._leases[lease_id]
         if type(adapter_int_id) is not int or receipt['adapter_int_id'] != adapter_int_id:
             raise ValueError('generation adapter differs from leased adapter')
+        if (adapter_int_id in self._sources
+                and (lora_name, lora_path) != self._sources[adapter_int_id]):
+            raise ValueError('generation source differs from native demand-load reference')
         if not isinstance(backend_request_id, str) or not backend_request_id:
             raise ValueError('backend request identity is required')
         if receipt.get('backend_request_id') is not None:

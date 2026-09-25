@@ -4181,7 +4181,8 @@ class InferenceEngine:
                 reference_receipt = await self.ieee_gpu_reference(
                     operation="begin_use", lease_id=gpu_reference['lease_id'],
                     expected_owner_id=gpu_reference['owner_id'],
-                    adapter_int_id=int_id, backend_request_id=req_id)
+                    adapter_int_id=int_id, backend_request_id=req_id,
+                    lora_name=adapter_id, lora_path=lora_path)
             elif gpu_reference is not None:
                 raise ValueError("dispatch reference supplied outside its native adapter contract")
 
@@ -4389,7 +4390,8 @@ class InferenceEngine:
             raise RuntimeError("native references currently require TP=PP=1")
         if self.backend != "vllm" or self.engine is None or self._engine_dead:
             raise RuntimeError("native references require a live vLLM engine")
-        if operation not in ("snapshot", "acquire", "release", "evict", "begin_use", "end_use"):
+        if operation not in ("snapshot", "acquire", "release", "evict", "begin_use", "end_use",
+                             "demand_load_and_acquire"):
             raise ValueError("unknown GPU reference operation")
         rpc = getattr(self.engine, "collective_rpc", None)
         if not callable(rpc):

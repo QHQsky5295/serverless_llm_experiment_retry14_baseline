@@ -380,3 +380,42 @@ native scheduler/model 对象，不是实际后端或性能资格。本步骤交
 用户未提交修改，本次没有覆写；其残留错误路径与最终共同输入协议须在 baseline
 资格时通过独立可审计入口解决。不能因为 Prime 的单元测试通过就宣布全体系统
 可比，也不能把旧 natural-output 结果重新标记为 fixed-output。
+
+## P1-D9：原生按需加载与执行引用的同线程事务（非主动 admission）
+
+本步骤继续 P1，不改变 IEEE 公式、不引入新调度策略。D6 的 hit-only `acquire`
+只会保护已有 GPU 副本；若先经另一个 RPC 加载，再查询/保护，两个操作之间的
+原生 LRU 更新仍可能改变目标。可证伪假设是：把加载、完成确认和 pin 合成同一个
+串行 worker 操作，可消除这一局部间隙，但不会自动完成 controller 的请求准入。
+
+对照本地历史 `cd5b68d`、D6/D4 合同和官方 vLLM 0.30.0 的
+[worker loader](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)、
+[native manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/model_manager.py)
+及 [dense slot layout](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/layers/base_linear.py)：
+原生路径先校验/读入 CPU 权重，再按原 LRU 移除未 pin 项并激活 GPU；GPU 缓冲
+按最大 rank/slot 预分配。因此，CPU 注册、GPU 可执行和权重文件大小不能混为一谈。
+
+| 论文要求 / 风险 | 当前实际入口与验证 | 未完成的边界 |
+|---|---|---|
+| 加载期间保护已有请求 | `demand_load_and_acquire` 在同一 worker 线程调用原生 loader，随后完成 fence 和 CPU/GPU pin；保留原生 LRU | CUDA stream/thread 实机资格 |
+| 满池不能驱逐正在用的副本 | 原生 GPU 或 CPU 全部被 pin 时返回容量冲突；未开始加载、未改 victim | controller 排队/重新选择与取消收尾 |
+| 冷路径不能冒充原始 GPU hit | 回执分别记录 `gpu_resident_before_load`、`cpu_registered_before_load`、是否调用 loader 和加载至引用耗时 | reserve 后、resolve 前的全链路 dispatch 字段绑定 |
+| 身份和重试不能替换权重 | 同一整数 ID 的 name/path 在 worker 生命周期中固定；拒绝未受管理的旧 cache ID、跨 source 的 begin-use、已释放 lease 重用；重复同事务不再加载 | 全 500 adapter 内容 SHA / native 输出资格 |
+| 原生加载不能静默生成基座结果 | 禁用 load-in-place；加载后必须至少匹配一个可执行 LoRA module；异常不发布 ready，owner 失效 | 全 target-module/权重语义正确性，非仅非空模块 |
+| footprint 是实际槽位占用 | 检查 dense tensor 完整 contiguous storage、offset、第一维 slot 数后才提供 `slot_capacity_bytes`；包含 padding，物理 pool 只计一次 | proactive proposal 与物理 owner 预算、workspace 的连接 |
+
+同一池的空槽位字节仅表示**已分配池内可重新指派的容量**，不是新得到的 CUDA
+空闲字节。任意 partial view / 非 contiguous / 非 slot-first 表示可以保留为诊断
+inventory，但不能用总存储除 slot 数充当 admission footprint；新增按需路径拒绝
+这种未经核验的表示，不回退到 rank 或 checkpoint-size 估计。
+
+新增 13 项 CPU 合同检查（11 项原生缓存事务、2 项实际槽位布局），完整回归
+447 项通过；独立 safety/census/replay 44 项通过。使用真实旧环境 LRU 类型和
+假的加载/张量对象，未进行模型推理，不能宣称 vLLM 0.30 实机已兼容或性能提升。
+147 项历史 seal 全部未变，四 GPU 仍空闲。以本表交付本步骤，无虚构性能曲线。
+
+`request_admission_reserved=False` 和 `proactive_admission_evaluated=False` 明确保留：
+本操作是请求驱动的原生加载，不执行 E(t)、不授予 KV/request slot、HOST 字节或
+慢层级引用，也不代替 planner 的 victim/预算事务。全系统 Full 尚未连通此路径。
+下一步是 controller 原子 request/adapter reservation 与原生 owner 的连接，之后
+进行实际模型/时钟/stream/worker 资格；不得从单元测试直接跳到正式性能结论。
