@@ -596,6 +596,60 @@ def watchdog_test(mode='linger') -> dict:
     return output
 
 
+def install_candidate(environment: Path, requirements: Path, output: Path) -> dict:
+    """Binary-only isolated P2 dependency setup; no model/GPU qualification."""
+    path = cg_path()
+    before = cgroup_snapshot(path)
+    if not re.fullmatch(r'primelora-tc-build-[a-f0-9]{32}\.scope', path.name):
+        raise RuntimeError('candidate installation requires a dedicated bounded build scope')
+    if any(before[k] != v for k, v in {'memory.high':3*GIB, 'memory.max':4*GIB,
+                                      'memory.swap.max':0}.items()):
+        raise RuntimeError('build limits must be effective before environment creation')
+    if set(os.sched_getaffinity(0)) != {2, 26}:
+        raise RuntimeError('build uses one reserved auxiliary physical core, two SMT threads')
+    if environment.exists():
+        raise RuntimeError('candidate environment already exists; preserve failed/old attempts')
+    if not environment.is_absolute() or not requirements.is_file():
+        raise ValueError('explicit absolute environment and existing requirements required')
+    if shutil.disk_usage(environment.parent if environment.parent.exists() else ROOT).free < disk_required(80*GIB):
+        raise RuntimeError('candidate setup disk headroom insufficient')
+    if not all('--hash=sha256:' in line for line in requirements.read_text().splitlines()
+               if line and not line.startswith(('#', '--'))):
+        raise RuntimeError('every candidate package must be version/hash locked')
+    env = dict(os.environ, CUDA_VISIBLE_DEVICES='', MAX_JOBS='2',
+               PIP_DISABLE_PIP_VERSION_CHECK='1', PYTHONNOUSERSITE='1')
+    env.pop('PYTHONPATH', None)
+    env.pop('PYTHONHOME', None)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    log_path = output.with_suffix('.install.log')
+    pip_report = output.with_suffix('.pip.json')
+    if pip_report.exists():
+        raise RuntimeError('pip evidence path already exists')
+    python = environment / 'bin/python'
+    commands = [[sys.executable, '-m', 'venv', str(environment)],
+                [str(python), '-m', 'pip', '--isolated', 'install', '--require-hashes', '--no-cache-dir',
+                 '--only-binary=:all:', '--report', str(pip_report), '-r', str(requirements)],
+                [str(python), '-m', 'pip', '--isolated', 'check']]
+    result = {'kind':'isolated_backend_dependency_install', 'pass':False,
+              'model_qualification':False, 'production_launch_authorized':False,
+              'environment':str(environment), 'plan_sha256':check_plan(),
+              'requirements_sha256':digest(requirements), 'scope_before':before,
+              'predicted_incremental_peak_bytes':80*GIB, 'commands':commands,
+              'log_path':str(log_path), 'pip_report':str(pip_report), 'steps':[]}
+    with log_path.open('x') as log:
+        for command in commands:
+            run = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, env=env)
+            result['steps'].append({'command':command, 'returncode':run.returncode})
+            if run.returncode:
+                break
+        else:
+            result['pass'] = True
+    result['scope_after'] = cgroup_snapshot(path)
+    result['log_sha256'] = digest(log_path)
+    result['pip_report_sha256'] = digest(pip_report) if pip_report.exists() else None
+    return result
+
+
 def self_test(modes=('inspect', 'oom', 'linger'), python=None) -> dict:
     records = []
     for mode in modes:
@@ -674,7 +728,7 @@ def self_test(modes=('inspect', 'oom', 'linger'), python=None) -> dict:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
-                                         'watchdog', 'watchdog-test', '_worker'])
+                                         'watchdog', 'watchdog-test', 'install-candidate', '_worker'])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--seal', type=Path)
     parser.add_argument('--path', type=Path, action='append')
@@ -684,6 +738,8 @@ def main():
     parser.add_argument('--service-unit')
     parser.add_argument('--invocation-id')
     parser.add_argument('--test-abort-after', type=int, help='Only for tiny UUID test scope')
+    parser.add_argument('--candidate-environment', type=Path)
+    parser.add_argument('--requirements', type=Path)
     args = parser.parse_args()
     if args.action == '_worker':
         worker(args.mode)
@@ -691,7 +747,11 @@ def main():
     check_plan()
     if args.output and args.output.exists():
         parser.error('output exists; never overwrite an earlier evidence record')
-    if args.action == 'watchdog':
+    if args.action == 'install-candidate':
+        if not args.candidate_environment or not args.requirements or not args.output:
+            parser.error('install-candidate requires explicit new environment, requirements and output')
+        result = install_candidate(args.candidate_environment, args.requirements, args.output)
+    elif args.action == 'watchdog':
         if not args.service_unit or not args.invocation_id or args.output:
             parser.error('watchdog needs unit and invocation identity; stream stdout to an exclusive run log')
         identity = scope_identity(args.service_unit)

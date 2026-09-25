@@ -22,7 +22,7 @@
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
 | P1 IEEE semantic alignment | Exact demand, benefit planning, service/routing contracts tested; native integration open | P1_FORMULA_IMPLEMENTATION.md. 13 new service/snapshot tests pass. Native profile/owner/event wiring and atomic admission remain open; no Full performance qualification |
-| P2 backend qualification | Dependency resolution started; no installation or model run yet | vLLM 0.30.0 dry-run in a 3/4 GiB, swap=0, two-logical-CPU build scope; log under results/ieee_tc/p2_backend_qualification/metadata_20260925/ |
+| P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
 | A1–A5, S1–S3 | Not started | Shared frozen policies required |
@@ -51,6 +51,7 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
+0. Check the existing P2 install before starting anything heavy: `tmux -L tc-p2-0925-01 list-sessions`; log `paper_results/ieee_tc/p2_backend/vllm0300_install_attempt1.install.log`; final receipt same prefix `.json`. Do not recreate the venv, repeat downloads or run another model concurrently.
 1. Integrate IEEE planning primitives with measured source-class costs and resource-owner remaining budgets, then routing/admission. Do not declare the retained historical scorer to be IEEE-aligned. Continue P2 telemetry qualification after containment gates.
 2. Integrate effective service-worker and external-watchdog checks into existing launchers; native single-raylet witness is not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
@@ -76,6 +77,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Main IEEE service/routing contract `cf017928b051e603a458f1a758a6e1a1c248bb4e`
   and baseline native-asset audit `16570c023a439c884624e7a5bdfa0d8577faf7a3`
   pushed to respective repositories; remote SHAs verified.
+- Main independent-watchdog checkpoint `09e910a6faa908c0f9e6e66d7604056e53656671`
+  pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
 

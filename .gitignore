@@ -170,3 +170,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# P2 dependency download details stay local; curated lock and receipt are tracked.
+paper_results/ieee_tc/p2_backend/*.install.log
+paper_results/ieee_tc/p2_backend/*.pip.json
