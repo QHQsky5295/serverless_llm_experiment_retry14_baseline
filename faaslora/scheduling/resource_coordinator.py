@@ -1,29 +1,9 @@
-"""
-FaaSLoRA Resource Coordinator — Contribution 3
-================================================
+"""GPU loading coordination.
 
-Implements "扩缩容与显存分配的协同控制机制":
-
-  Scale-UP coordination:
-    - Pre-reserve a loading budget before burst requests arrive
-    - Progressive LoRA loading: at most `max_concurrent_loads` adapters load
-      simultaneously; others are queued
-    - Gate each load on real-time memory availability (kv_active + lora_in_use)
-    - KV cache and batch inference are NEVER preempted
-
-  Scale-DOWN coordination:
-    - After burst ends and `idle_timeout_s` elapses, trigger gradual eviction
-    - Score each adapter: score = freq × recency_decay
-    - Evict cold adapters (score < threshold), retain warm_pool_size hot ones
-    - With FaaSLoRA: next burst hits warm GPU adapters → near-zero TTFT
-    - Without FaaSLoRA: LRU eviction may evict hot adapters → cold start again
-
-Hardware calibration
---------------------
-  gpu_budget_mb       : total GPU memory (default 24 GB for A100 24GB / set 40960 for A100 40GB)
-  kv_per_1k_tokens_mb : KV cache per 1K tokens (Qwen2.5-0.5B ≈ 0.3 MB/1K; 7B ≈ 2 MB/1K)
-  pcie_bw_mbps        : PCIe 4.0 x16 ≈ 16000 MB/s
-  nvme_bw_mbps        : NVMe SSD ≈ 3000 MB/s
+The explicit IEEE path uses owner-provided byte/block snapshots and the paper's
+equations (8)/(9). The historical MB/working-set heuristics remain separately
+named for old configurations; they are not an IEEE fallback. Actual KV block
+allocation and preemption remain the backend's authority.
 """
 
 import asyncio
@@ -31,16 +11,274 @@ import contextvars
 import math
 import os
 import subprocess
+import threading
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from types import MappingProxyType
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 
 _GPU_ADMISSION_DECISION_US: contextvars.ContextVar[float] = contextvars.ContextVar(
     "faaslora_gpu_admission_decision_us",
     default=0.0,
 )
+
+
+def _nonnegative_int(name: str, value: int, *, positive: bool = False) -> None:
+    if type(value) is not int or value < int(positive):
+        raise ValueError(f"{name} must be a {'positive' if positive else 'nonnegative'} integer")
+
+
+@dataclass(frozen=True)
+class CompletedLengthSnapshot:
+    """Same-model/backend completion means at a single monotonic instant."""
+
+    model_backend_id: str
+    profile_id: str
+    captured_at: float
+    means: Mapping[int, float]
+
+    def __post_init__(self) -> None:
+        if not self.model_backend_id or not self.profile_id or not math.isfinite(self.captured_at):
+            raise ValueError("length snapshot requires model/profile identity and finite time")
+        values = dict(self.means)
+        if not values:
+            raise ValueError("same-model initialization profile must not be empty")
+        for bucket, mean in values.items():
+            _nonnegative_int("input bucket", bucket)
+            if not math.isfinite(mean) or mean <= 0:
+                raise ValueError("completed length means must be finite and positive")
+        object.__setattr__(self, "means", MappingProxyType(values))
+
+
+class CompletedLengthWindow:
+    """Exact arithmetic means of successful completions in (t-W,t].
+
+    An empty bucket uses the explicit frozen profile, not another bucket, an
+    EWMA, future target tokens, or a guessed zero. A run owns one fresh instance.
+    Native completion hooks supply unique request IDs and the same clock as the
+    backend allocation snapshot. Failed/cancelled attempts are not completions.
+    """
+
+    def __init__(self, *, window_s: float, model_backend_id: str,
+                 profile_id: str, profile_means: Mapping[int, float]):
+        if not math.isfinite(window_s) or window_s <= 0:
+            raise ValueError("completion window must be finite and positive")
+        initial = CompletedLengthSnapshot(model_backend_id, profile_id, 0., profile_means)
+        self.window_s = float(window_s)
+        self.model_backend_id = model_backend_id
+        self.profile_id = profile_id
+        self._profile = initial.means
+        self._events = deque()
+        self._counts: Dict[int, int] = defaultdict(int)
+        self._sums: Dict[int, int] = defaultdict(int)
+        self._completed_ids: set[str] = set()
+        self._last_at = -math.inf
+        self._lock = threading.RLock()
+
+    def _expire(self, now: float) -> None:
+        if not math.isfinite(now) or now < self._last_at:
+            raise ValueError("completion observations must use one monotonic clock")
+        self._last_at = now
+        while self._events and self._events[0][0] <= now - self.window_s:
+            _, bucket, tokens = self._events.popleft()
+            self._counts[bucket] -= 1
+            self._sums[bucket] -= tokens
+
+    def record_completed(self, request_id: str, bucket: int, output_tokens: int,
+                         *, completed_at: float) -> None:
+        _nonnegative_int("input bucket", bucket)
+        _nonnegative_int("completed output tokens", output_tokens, positive=True)
+        if not request_id:
+            raise ValueError("completion requires a request ID")
+        with self._lock:
+            if bucket not in self._profile:
+                raise KeyError(f"no same-model completion profile for bucket {bucket}")
+            if request_id in self._completed_ids:
+                raise ValueError("a request completion cannot be counted twice")
+            self._expire(completed_at)
+            self._completed_ids.add(request_id)
+            self._events.append((completed_at, bucket, output_tokens))
+            self._counts[bucket] += 1
+            self._sums[bucket] += output_tokens
+
+    def snapshot(self, *, now: float) -> CompletedLengthSnapshot:
+        with self._lock:
+            self._expire(now)
+            means = {bucket: self._sums[bucket] / self._counts[bucket]
+                     if self._counts[bucket] else value
+                     for bucket, value in self._profile.items()}
+            return CompletedLengthSnapshot(self.model_backend_id, self.profile_id, now, means)
+
+
+@dataclass(frozen=True)
+class AdmittedKVRequest:
+    """Unfinished request state, captured by the backend allocation owner."""
+
+    request_id: str
+    input_bucket: int
+    output_limit: int
+    generated_tokens: int
+    unprocessed_prompt_tokens: int
+    reserved_unused_token_positions: int
+
+    def __post_init__(self) -> None:
+        if not self.request_id:
+            raise ValueError("KV request requires an ID")
+        for name in ("input_bucket", "output_limit", "generated_tokens",
+                     "unprocessed_prompt_tokens", "reserved_unused_token_positions"):
+            _nonnegative_int(name, getattr(self, name))
+        if self.output_limit <= 0 or self.generated_tokens > self.output_limit:
+            raise ValueError("invalid declared/generated output length")
+
+
+@dataclass(frozen=True)
+class BackendAdmissionSnapshot:
+    """Owner-committed per-replica state; all sizes are bytes, not MB guesses.
+
+    physical_used_bytes includes the whole preallocated adapter pool exactly
+    once. Pool occupancy/reservations are logical assignments inside that used
+    allocation. physical_reserved_bytes contains *additional* storage/workspace.
+    The single full-attention KV layout is explicit; other layouts need an
+    audited native conversion, never an average block-size approximation.
+    """
+
+    model_backend_id: str
+    replica_id: str
+    epoch: int
+    captured_at: float
+    kv_layout: str
+    admitted: Tuple[AdmittedKVRequest, ...]
+    scheduled_tokens: int
+    iteration_token_budget: int
+    active_transfers: int
+    transfer_limit: int
+    kv_tokens_per_block: int
+    kv_bytes_per_block: int
+    kv_unreserved_free_blocks: int
+    physical_limit_bytes: int
+    physical_used_bytes: int
+    physical_reserved_bytes: int
+    adapter_pool_bytes: int
+    adapter_pool_occupied_bytes: int
+    adapter_pool_reserved_bytes: int
+
+    def __post_init__(self) -> None:
+        if not self.model_backend_id or not self.replica_id or not math.isfinite(self.captured_at):
+            raise ValueError("backend snapshot requires identity and finite time")
+        if self.kv_layout != "full_attention_single_group":
+            raise ValueError("KV layout needs an audited block conversion")
+        if type(self.admitted) is not tuple or any(
+            not isinstance(r, AdmittedKVRequest) for r in self.admitted
+        ):
+            raise ValueError("admitted requests must be an immutable typed tuple")
+        if len({r.request_id for r in self.admitted}) != len(self.admitted):
+            raise ValueError("duplicate admitted request")
+        for name in ("epoch", "scheduled_tokens", "active_transfers",
+                     "kv_unreserved_free_blocks", "physical_used_bytes",
+                     "physical_reserved_bytes", "adapter_pool_bytes",
+                     "adapter_pool_occupied_bytes", "adapter_pool_reserved_bytes"):
+            _nonnegative_int(name, getattr(self, name))
+        for name in ("iteration_token_budget", "transfer_limit", "kv_tokens_per_block",
+                     "kv_bytes_per_block", "physical_limit_bytes"):
+            _nonnegative_int(name, getattr(self, name), positive=True)
+        if self.physical_used_bytes + self.physical_reserved_bytes > self.physical_limit_bytes:
+            raise ValueError("physical used + reserved exceeds the replica budget")
+        if self.adapter_pool_bytes > self.physical_used_bytes:
+            raise ValueError("adapter pool must already be included in physical used storage")
+        if self.adapter_pool_occupied_bytes + self.adapter_pool_reserved_bytes > self.adapter_pool_bytes:
+            raise ValueError("adapter assignments exceed the allocated pool")
+
+    @property
+    def available_bytes(self) -> int:
+        return self.physical_limit_bytes - self.physical_used_bytes - self.physical_reserved_bytes
+
+    @property
+    def reusable_bytes(self) -> int:
+        return self.adapter_pool_bytes - self.adapter_pool_occupied_bytes - self.adapter_pool_reserved_bytes
+
+
+@dataclass(frozen=True)
+class AdapterAllocationProposal:
+    """Backend allocation plan, not a file-size-to-GPU-size inference."""
+
+    adapter_id: str
+    footprint_bytes: int
+    compatible_slot: bool
+    pool_reuse_bytes: int
+    additional_storage_bytes: int
+    transfer_workspace_bytes: int
+
+    def __post_init__(self) -> None:
+        if not self.adapter_id or type(self.compatible_slot) is not bool:
+            raise ValueError("allocation needs adapter identity and native slot compatibility")
+        _nonnegative_int("GPU footprint", self.footprint_bytes, positive=True)
+        for name in ("pool_reuse_bytes", "additional_storage_bytes", "transfer_workspace_bytes"):
+            _nonnegative_int(name, getattr(self, name))
+        if self.pool_reuse_bytes > self.footprint_bytes:
+            raise ValueError("reuse cannot exceed the candidate footprint")
+        if self.pool_reuse_bytes + self.additional_storage_bytes < self.footprint_bytes:
+            raise ValueError("proposed storage does not cover the candidate footprint")
+
+
+@dataclass(frozen=True)
+class IEEEAdmissionDecision:
+    replica_id: str
+    epoch: int
+    adapter_id: str
+    predicted_kv_bytes: int
+    batch_pressure: float
+    load_pressure: float
+    effective_capacity_bytes: float
+    physical_increment_bytes: int
+    admit: bool
+    reason: str
+
+
+def evaluate_ieee_admission(snapshot: BackendAdmissionSnapshot,
+                            lengths: CompletedLengthSnapshot,
+                            proposal: AdapterAllocationProposal, *,
+                            capacity_only: bool = False) -> IEEEAdmissionDecision:
+    """Equations (8)/(9), evaluated without mutating or claiming native capacity.
+
+    Replacement callers must provide the proposed after-victim-release state.
+    A True result is *not* a reservation: the owner must atomically validate the
+    epoch and claim the victims, compatible slot, pool and physical increment.
+    A deferred proposal must not evict its victims. Demand loading retains the
+    native backend's physical policy rather than being routed through this
+    proactive-only rule.
+    """
+    if snapshot.model_backend_id != lengths.model_backend_id or snapshot.captured_at != lengths.captured_at:
+        raise ValueError("KV means and allocation state must share model/backend and snapshot time")
+    if type(capacity_only) is not bool:
+        raise ValueError("capacity_only must be explicit bool")
+    needed_blocks = 0
+    for request in snapshot.admitted:
+        mean = lengths.means[request.input_bucket]  # missing profile is an error
+        remaining = min(request.output_limit - request.generated_tokens,
+                        max(1., mean - request.generated_tokens))
+        uncovered = max(0., request.unprocessed_prompt_tokens + remaining
+                        - request.reserved_unused_token_positions)
+        needed_blocks += math.ceil(uncovered / snapshot.kv_tokens_per_block)
+    predicted_kv = max(0, needed_blocks - snapshot.kv_unreserved_free_blocks) * snapshot.kv_bytes_per_block
+    batch = min(1., snapshot.scheduled_tokens / snapshot.iteration_token_budget)
+    load = min(1., snapshot.active_transfers / snapshot.transfer_limit)
+    effective = (snapshot.reusable_bytes + max(0, snapshot.available_bytes - predicted_kv)) * (1. - max(batch, load))
+    increment = proposal.additional_storage_bytes + proposal.transfer_workspace_bytes
+    if not proposal.compatible_slot:
+        reason = "incompatible_backend_slot"
+    elif proposal.pool_reuse_bytes > snapshot.reusable_bytes:
+        reason = "insufficient_unreserved_pool"
+    elif increment > snapshot.available_bytes:
+        reason = "insufficient_physical_headroom"
+    elif not capacity_only and proposal.footprint_bytes > effective:
+        reason = "defer_effective_capacity"
+    else:
+        reason = "admit"
+    return IEEEAdmissionDecision(snapshot.replica_id, snapshot.epoch, proposal.adapter_id,
+                                 predicted_kv, batch, load, effective, increment,
+                                 reason == "admit", reason)
 
 
 def _normalize_gpu_device_ids(raw_ids: Any) -> List[int]:
@@ -498,6 +736,7 @@ class ResourceCoordinator:
         tier: str = "nvme",
         utility_override: Optional[float] = None,
     ) -> Dict[str, float]:
+        """Historical working-set policy; not the IEEE admission entry point."""
         started_ns = time.perf_counter_ns()
         try:
             decision = self._evaluate_gpu_admission_impl(
@@ -522,6 +761,35 @@ class ResourceCoordinator:
             elapsed_us = max(0.0, (time.perf_counter_ns() - started_ns) / 1000.0)
             previous = max(0.0, float(_GPU_ADMISSION_DECISION_US.get(0.0) or 0.0))
             _GPU_ADMISSION_DECISION_US.set(previous + elapsed_us)
+
+    def evaluate_ieee_gpu_admission(
+        self,
+        snapshot: BackendAdmissionSnapshot,
+        lengths: CompletedLengthSnapshot,
+        proposal: AdapterAllocationProposal,
+        *,
+        capacity_only: bool = False,
+    ) -> IEEEAdmissionDecision:
+        """Count an exact, owner-snapshot decision without legacy heuristic inputs.
+
+        Native owner integration must reserve this decision before executing a
+        transfer. This function alone never publishes residency or evicts data.
+        """
+        started_ns = time.perf_counter_ns()
+        try:
+            decision = evaluate_ieee_admission(snapshot, lengths, proposal,
+                                               capacity_only=capacity_only)
+            self.metrics.gpu_admission_decisions += 1
+            if decision.admit:
+                self.metrics.gpu_admission_admits += 1
+            elif decision.reason == "defer_effective_capacity":
+                self.metrics.gpu_admission_defers += 1
+            else:
+                self.metrics.gpu_admission_rejects += 1
+            return decision
+        finally:
+            elapsed_us = (time.perf_counter_ns() - started_ns) / 1000.
+            _GPU_ADMISSION_DECISION_US.set(_GPU_ADMISSION_DECISION_US.get() + elapsed_us)
 
     def _evaluate_gpu_admission_impl(
         self,

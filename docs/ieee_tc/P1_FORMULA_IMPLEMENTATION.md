@@ -163,3 +163,40 @@ IEEE 选择。它们是机制正确性表，不需要性能图，也没有生成
 仍待关闭：runner 生成已提交的完整快照；后端提供 executable acquisition 事件；
 跨进程时钟域确认；真实 profile 标定；原子选择/预约及发生冲突后的重新选择。
 在这些条件满足前，不启用 `ieee_confirmed` 进行 Full 性能实验，不回退旧 policy。
+
+## P1-D4：KV 需求、复用容量和准入公式（计算通过，原生 owner 接入待完成）
+
+历史 `resource_coordinator.py` 的 `67a740c` 路径仍以 MB 近似 KV，并将
+显存占用、working-set gap 与实际加载压力混合；另有 `utility > pressure`
+条件。它与 IEEE 式 (8) 不同，不能通过阈值调参消除该语义差异。
+本次扩展原协调器的 `evaluate_ieee_gpu_admission`，历史入口明确标为 legacy，
+不悄悄改名，也不在原生信息缺失时回退历史公式。
+
+| 论文规范语义 | 本次实现与检查 | 尚待真实路径提供的事实 |
+|---|---|---|
+| 完成请求的输入长度桶均值，窗口 `(t-W,t]` | 精确 sum/count、边界到期；空桶使用有身份的同模型 profile；重复 completion 拒绝 | 原生成功完成事件、冻结分桶/profile |
+| 每请求剩余生成量与未处理 prompt，扣已预留空位，逐请求 ceil 到 block，最后扣 unreserved free blocks | 只接收不可变 admitted 状态；缺 bucket/KV layout 报错；不预读实际未来生成长度 | scheduler 的 admitted/processed/generated/allocated block 状态 |
+| `p=max(batch,load)` | 当前 iteration tokens/token budget 与活动 transfer/load limit，分别 clip；没有内存利用率阈值或额外 utility | 同 epoch iteration/transfer 事件 |
+| `E=(reuse+max(avail-KV,0))*(1-p)` | physical used 包含整个已分配 pool 一次；pool 的 occupied/reserved 不作为额外物理 bytes 重复扣除 | 原生 LoRA tensor storage、slot assignments、workspace 和预算 |
+| 物理安全、兼容 slot | additional storage＋workspace 必须不超 unreserved headroom；CapacityOnly 仍保留这些检查 | slot 形状兼容、实际分配/释放完成事件 |
+| 替换先接受再回收 | 计算只接受显式 after-victim-release proposal；不驱逐、不发布 GPU-ready | owner 原子 epoch 校验、victim/reference/slot/pool/physical reservation；取消释放 |
+
+确定性反例：两个请求分别缺 11 和 2 个 token，block 大小 16、还有一个
+unreserved free block。正确结果是 `ceil(11/16)+ceil(2/16)-1=1` 个新增 block；
+先合并再取整会误算为零。预分配池例：physical used=800、limit=1000、
+pool=400、occupied=100，idle 时 `avail=200,reuse=300,E=500`；复用 100 bytes
+不增加 physical used。数值仅是数学测试，不是 GPU 测量或新增服务负载。
+
+16 项检查通过，覆盖窗口不截断、单调时钟、快照不变、模型/profile 身份、
+逐请求取整、declared limit、未完成最少一个预测 token、已预留容量、物理
+边界和决策计数。接口返回可审计 decision，但 **True 不是 reservation**。
+尚未完成实际 owner 事务，因此不能放行 Full 或用其说明 admission 已降低 TPOT。
+
+联网核对 vLLM 0.30.0 的
+[worker manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)、
+[model manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/model_manager.py)、
+[KV manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/core/kv_cache_manager.py)
+及 [scheduler](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/core/sched/scheduler.py)：
+CPU adapter cache、GPU active slots 与 KV block pool 是不同状态，不能将
+`list_adapters()`、文件大小或全局 GPU 使用率直接代入以上字段。新版后端
+正在独立安装，未修改其安装文件；原生事件和 allocation owner 接入仍在主线上。

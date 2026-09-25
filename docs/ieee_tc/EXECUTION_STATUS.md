@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Exact demand, benefit planning, service/routing contracts tested; native integration open | P1_FORMULA_IMPLEMENTATION.md. 13 new service/snapshot tests pass. Native profile/owner/event wiring and atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Exact demand, benefit planning, service/routing and KV/admission calculations tested; native integration open | P1_FORMULA_IMPLEMENTATION.md. 16 new byte/block admission tests pass. Native profile/owner/event wiring and atomic reservation remain open; no Full performance qualification |
 | P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -176,3 +176,23 @@ configs/relayserve_motivation_serverlessllm.yaml.
   after the 10-second grace. No remaining test PIDs. No host pressure induced.
 - This is foundational safety evidence only. Actual model/GPU workers, replay
   separation, native Ray telemetry, GPU lifecycle and launch handshake remain open.
+
+## P1 byte/block admission checkpoint
+
+- Existing coordinator has a separately named IEEE entry point with explicit
+  immutable backend state; old MB/working-set heuristics are not a fallback.
+- Sixteen no-GPU tests pass: trailing completion means, per-request KV rounding,
+  unreserved free blocks, distinct pool reuse and physical reservations, exact
+  batch/load pressure, native slot and workspace bounds, CapacityOnly safety.
+- Functional regression: 338 tests pass in the inference Python, zero errors or
+  skips. Safety regression: 18 tests pass in system Python (the qualified watcher
+  interpreter). A first combined invocation had one fixture error because conda
+  Python lacks `signal.pidfd_send_signal`; no runtime fallback was introduced and
+  conda Python is not qualified to launch the external watchdog.
+- Admission evaluation does not claim a slot, evict victims or publish readiness.
+  Native allocation owner/epoch transactions and scheduler hooks remain open.
+- At 23:42 local time, vLLM install is still active under the existing bounded
+  build scope, progressing through dependencies; no final receipt yet. GPUs have
+  not been used for performance. Do not launch a duplicate installation.
+- Next: native token-event timing/return path and resource-owner integration;
+  actual production launch/replay separation gates still precede any GPU pilot.
