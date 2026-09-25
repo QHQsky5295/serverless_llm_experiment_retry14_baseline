@@ -1,0 +1,43 @@
+{
+  "kind": "historical_diagnostic_not_formal_comparison",
+  "runs_per_model": 1,
+  "ci": null,
+  "display_name": "Serverless",
+  "interpretation": "Queue/cadence evidence only; no measured repaired-model latency yet",
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/serverless_audit/20260925_historical_7b.json",
+      "sha256": "1cd73459d545fc183cea2e2187e9f57c0d97315b171975d2079be9a46b84065a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/serverless_audit/20260925_historical_3b.json",
+      "sha256": "b60d7459dd51aa83a2b5e41fa8ea9094471e0be0a650b0b2686b9568e4e7ff25"
+    }
+  ],
+  "script_sha256": "fae159281c02a5f9e739944a0cd4c041d60ff5150a6c2840b28565526e8cc6b0",
+  "qa": [
+    {
+      "figure": "queue",
+      "width_inches": 3.45,
+      "height_inches": 2.65,
+      "label_clipping": false,
+      "font_path": "/home/qhq/.local/share/fonts/msttcorefonts-times/times.ttf",
+      "manual_visual_review": "required"
+    },
+    {
+      "figure": "cadence",
+      "width_inches": 3.45,
+      "height_inches": 2.65,
+      "label_clipping": false,
+      "font_path": "/home/qhq/.local/share/fonts/msttcorefonts-times/times.ttf",
+      "manual_visual_review": "required"
+    }
+  ],
+  "files": {
+    "serverless_historical_cadence.pdf": "de72bcc7002f6c73a7e7ff018c26fd4b08892792a535cebe669d4a3a9dd56594",
+    "serverless_historical_cadence.png": "cd23ebe9e1960879786236e59414828dea9bf6226759d9d79dc670a8a29ea5d9",
+    "serverless_historical_queue.pdf": "71dd411ba9477a13ebbeceb6fd468ebbeae07318587857af08fb2a3e046bbba7",
+    "serverless_historical_queue.png": "ab7bf4c1ae01cf07f62e890ecc25e6d90ef09fafc7b30c8390caa7fcd95898b8",
+    "serverless_historical_summary.csv": "f4894753a4f84890d7f3b561b563f765dce2a3a0016379cdafa31247d768dc15"
+  }
+}

@@ -18,9 +18,9 @@
 | Approved plan persistence | Recorded | Full snapshot + source hash + AGENTS instructions |
 | Resource containment / safety | Basic primitives passed; production gates pending | Tiny scope inheritance, OOM and cleanup pass; failed soft-throttled attempt retained. CPU proof is affinity, not delegated cpuset |
 | Protected historical artifacts | Sealed and verified | `paper_results/ieee_tc/safety/20260925_execution_start_protected.json`; old results and selected user modifications unchanged |
-| Remote authentication / management | Pending | No dedicated key or service operation has been performed |
-| P0 main-table / Full provenance | Pending executable audit | Earlier analysis must be converted to source-linked evidence |
-| Serverless wait audit | Priority pending | Official unconditional one-second polling + old raw timing observed; no fix experiment yet |
+| Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
+| P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
+| Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
 | P1 IEEE semantic alignment | Pending | Audit existing V2 implementation rather than rebuilding |
 | P2 backend qualification | Pending | vLLM candidate must be checked locally |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
@@ -51,10 +51,40 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-1. Commit/push the tested safety/protocol checkpoint after smoke checks.
+1. Back up tested Serverless audit/repair, P0 source table and inspected diagnostic figures.
 2. Integrate effective service-worker and external-watchdog checks into existing launchers.
-3. Continue remote setup and source-linked Serverless diagnosis; no heavy GPU run
+3. Continue remote setup after its disk gate and P0/P1 read-only audits; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
+
+## Verified backups
+
+- Main `a022340f014ab2a115bbab79841638ec6c15d1ae` pushed to
+  `faaslora_origin/retry14_continuous_queue_v2`; remote SHA checked.
+- Baseline `2353e7e0c7af7cfd0bfb43a4913c9178da391e34` pushed to `origin/main`;
+  remote SHA checked. No pre-existing user changes staged.
+- Baseline audit/repair checkpoint `f40eff06ad1a31d17fe05b12405d74b8a6a7bf70`
+  pushed to `origin/main`; main audit bundle corresponds to this implementation.
+
+## Serverless evidence checkpoint (provisional model-level attribution)
+
+- Recomputed clean 7B and 3B raw logs, 4,000 successful recorded requests each.
+  Median backend-start gaps: 1.002267 s / 1.002198 s; router queue mean:
+  236.666 s / 237.200 s. Historical runs are R2 relative to the TC contract.
+- Official method with two ready replicas incurs one wait per request;
+  minimal repaired method preserves a,b,a,b RR and has no ready-path wait.
+- Six no-GPU method tests pass (ready, empty, full, cancellation). Full inference
+  cancellation/scale-down and real model pairs are still required.
+- Source environment not synchronized/overwritten; vendor's pre-existing staged
+  changes preserved; only incremental router change is new in its worktree.
+- Existing summarizer extended, not replaced. Plotting extends existing figure
+  script. Initial render attempt found matplotlib absent in the inference env;
+  use an existing plotting environment, do not install into frozen inference env.
+- Plotting uses existing conda base with matplotlib 3.10.0; installed Times New
+  Roman faces registered explicitly. Two r2 figures rendered and visually checked,
+  3.45-inch width, source data/hashes retained; old figures untouched.
+- Existing Serverless launcher uses global tmux and cleanup includes global
+  Ray-stop/pkill paths. Do NOT use that path for TC: isolate the session server,
+  contain actual workers and scope cleanup to this run before any model pilot.
 
 ## Completed evidence: foundational safety (not performance)
 

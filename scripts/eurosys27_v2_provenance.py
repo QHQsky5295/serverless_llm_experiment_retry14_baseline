@@ -760,3 +760,57 @@ def validate_formal_provenance(
         analysis_label=analysis_label,
     )
     return index
+
+
+def audit_legacy_full_pair(main: Path, ablation: Path, output: Path) -> dict:
+    """Compare legacy Full sources without rewriting either historical result.
+
+    Equality of input SHA is not equality of runs. This diagnostic deliberately
+    does not call old runs formal TC evidence or attribute variation to a single
+    observed state difference.
+    """
+    import csv
+    if output.exists():
+        raise ValueError('use a new audit directory; never overwrite provenance')
+    paths = {'main_table': main.resolve(), 'ablation_full': ablation.resolve()}
+    data = {k: _read_json(p) for k, p in paths.items()}
+    def differences(a, b, prefix=''):
+        if a == b:
+            return []
+        if isinstance(a, dict) and isinstance(b, dict):
+            return [row for key in sorted(a.keys() | b.keys())
+                    for row in differences(a.get(key), b.get(key), prefix+'.'+key)]
+        return [{'field':prefix.lstrip('.'), 'main_table':a, 'ablation_full':b}]
+    identities = {}
+    for name, doc in data.items():
+        meta = doc['metadata']
+        inputs = {}
+        for field in ('shared_trace_path', 'shared_adapter_subset_path'):
+            path = Path(meta[field])
+            inputs[field] = {'path':str(path), 'sha256':_sha256(path)}
+        requests = doc['detailed_results']['faaslora_full']['requests']
+        identities[name] = {'path':str(paths[name]), 'sha256':_sha256(paths[name]),
+            'experiment_time':meta['experiment_time'], 'inputs':inputs,
+            'request_count':len(requests),
+            'generation_seed':meta.get('generation_seed'),
+            'legacy_generation_contract':True}
+    a, b = (data[k]['scenario_summaries']['faaslora_full'] for k in paths)
+    rows = [{'metric':key, 'main_table':a.get(key), 'ablation_full':b.get(key),
+             'equal':a.get(key)==b.get(key)} for key in sorted(a.keys() | b.keys())
+            if not isinstance(a.get(key), (dict,list)) and not isinstance(b.get(key), (dict,list))]
+    payload = {'kind':'legacy_full_provenance_audit', 'identities':identities,
+        'same_trace': identities['main_table']['inputs']['shared_trace_path']['sha256'] == identities['ablation_full']['inputs']['shared_trace_path']['sha256'],
+        'same_subset': identities['main_table']['inputs']['shared_adapter_subset_path']['sha256'] == identities['ablation_full']['inputs']['shared_adapter_subset_path']['sha256'],
+        'same_result': _sha256(main)==_sha256(ablation),
+        'metadata_differences':differences(data['main_table']['metadata'], data['ablation_full']['metadata']),
+        'scalar_summary_rows':rows, 'reuse_for_tc_main':'R2',
+        'conclusion':'Different executions of Full on identical recorded shared inputs; use one canonical run-set for the same main-result claim. No single-cause attribution from this comparison.'}
+    output.mkdir(parents=True)
+    with (output/'audit.json').open('x') as f:
+        json.dump(payload,f,indent=2,ensure_ascii=False)
+        f.write('\n')
+    with (output/'all_scalar_metrics.csv').open('x',newline='') as f:
+        writer=csv.DictWriter(f,fieldnames=['metric','main_table','ablation_full','equal'],
+                              lineterminator='\n')
+        writer.writeheader(); writer.writerows(rows)
+    return payload

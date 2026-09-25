@@ -3300,6 +3300,95 @@ MOTIVATION_FIGURES = ("fig2_mismatch", "fig3_tier")
 ABLATION_FIGURES = ("fig4_coordination", "fig6_ablation")
 
 
+def plot_tc_serverless_wait_audit(inputs: Sequence[Path], out_dir: Path) -> None:
+    """Historical diagnosis only; preserve full data and never infer a CI."""
+    from matplotlib import font_manager
+    import subprocess
+    # The long-lived plotting env may cache its font list before installation.
+    # Register installed TNR faces explicitly; never substitute another family.
+    font_paths = subprocess.check_output(
+        ['fc-list', '-f', '%{file}\n', ':family=Times New Roman'], text=True).splitlines()
+    for path in font_paths:
+        if font_manager.FontProperties(fname=path).get_name() == 'Times New Roman':
+            font_manager.fontManager.addfont(path)
+    font = font_manager.findfont('Times New Roman', fallback_to_default=False)
+    if out_dir.exists() and any(out_dir.iterdir()):
+        raise SystemExit('audit output must be new/empty; no figure overwrite')
+    audits = [_load_json(p) for p in inputs]
+    labels = {'llama2_7b': '7B', 'llama32_3b': '3B'}
+    if len(audits) != 2 or {a.get('model_profile') for a in audits} != set(labels):
+        raise SystemExit('expected one clean historical audit per model')
+    for a in audits:
+        if a['kind'] != 'historical_serverless_dispatch_audit' or a['requests'] != 4000:
+            raise SystemExit('wrong audit type or incomplete historical run')
+        if hashlib.sha256(Path(a['replay_path']).read_bytes()).hexdigest() != a['replay_sha256']:
+            raise SystemExit('historical source SHA mismatch')
+    out_dir.mkdir(parents=True, exist_ok=True)
+    style = {'font.family': 'serif', 'font.serif': ['Times New Roman'],
+             'axes.labelsize': 10.5, 'xtick.labelsize': 9.5, 'ytick.labelsize': 9.5,
+             'legend.fontsize': 9.5, 'savefig.bbox': None, 'pdf.fonttype': 42}
+    qa = []
+    with plt.rc_context(style):
+        for kind, caption in [('queue', '(a) Serverless: accumulated wait'),
+                              ('cadence', '(b) Serverless: backend cadence')]:
+            fig, ax = plt.subplots(figsize=(3.45, 2.65))
+            fig.subplots_adjust(left=.19, right=.975, bottom=.29, top=.84)
+            for a, color, linestyle in zip(audits, ['#0072B2', '#D55E00'], ['-', '--']):
+                label = labels[a['model_profile']]
+                if kind == 'queue':
+                    rows = sorted(a['diagnostic_rows'], key=lambda r:r['arrival_time_s'])
+                    ax.plot([r['arrival_time_s'] for r in rows],
+                            [r['dispatch_wait_s'] for r in rows],
+                            color=color, linestyle=linestyle, lw=1.4, label=label)
+                else:
+                    _plot_ecdf(ax, a['backend_gaps_s'], color=color, label=label)
+                    ax.lines[-1].set_linestyle(linestyle)
+            _style_axes(ax)
+            if kind == 'queue':
+                ax.set_xlabel('Scheduled arrival (s)', labelpad=2)
+                ax.set_ylabel('Dispatch wait (s)', labelpad=2)
+                ax.set_ylim(bottom=0)
+            else:
+                ax.set_xscale('log')
+                ax.set_xticks([.5, 1, 2, 5], ['0.5', '1', '2', '5'])
+                ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+                ax.axvline(1, color='#666666', linestyle=':', lw=1)
+                ax.set_xlabel('Backend-start gap (s, log)', labelpad=2)
+                ax.set_ylabel('Cumulative fraction', labelpad=2)
+                ax.set_ylim(0, 1.02)
+            ax.legend(loc='lower center', bbox_to_anchor=(.5, 1.0), ncol=2,
+                      frameon=False, borderaxespad=.1, handlelength=1.6,
+                      columnspacing=1.4)
+            fig.text(.58, .975, 'Historical replay; 1 run/model', ha='center',
+                     va='top', fontsize=9)
+            fig.text(.19 + (.975-.19)/2, .04, caption, ha='center',
+                     weight='bold', fontsize=10.5)
+            fig.canvas.draw()
+            renderer = fig.canvas.get_renderer()
+            text = [ax.xaxis.label, ax.yaxis.label, *fig.texts]
+            boxes = [t.get_window_extent(renderer) for t in text]
+            if any(not fig.bbox.contains(b.x0,b.y0) or not fig.bbox.contains(b.x1,b.y1) for b in boxes):
+                raise SystemExit('clipped figure label')
+            qa.append({'figure': kind, 'width_inches': 3.45,
+                       'height_inches': 2.65, 'label_clipping': False,
+                       'font_path': font, 'manual_visual_review': 'required'})
+            stem = out_dir/f'serverless_historical_{kind}'
+            fig.savefig(stem.with_suffix('.pdf'), bbox_inches=None)
+            fig.savefig(stem.with_suffix('.png'), dpi=300, bbox_inches=None)
+            plt.close(fig)
+    table = [{'model':labels[a['model_profile']], 'requests':a['requests'],
+              **a['means'], **{'gap_'+k:v for k,v in a['backend_gap_seconds'].items()}}
+             for a in audits]
+    _write_csv(out_dir/'serverless_historical_summary.csv', table)
+    manifest = {'kind':'historical_diagnostic_not_formal_comparison',
+        'runs_per_model':1, 'ci':None, 'display_name':'Serverless',
+        'interpretation':'Queue/cadence evidence only; no measured repaired-model latency yet',
+        'sources':[{'path':str(p.resolve()),'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in inputs],
+        'script_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), 'qa':qa,
+        'files':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(out_dir.iterdir()) if p.is_file()}}
+    (out_dir/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate PrimeLoRA paper figures from result JSONs.")
     parser.add_argument("--round-dir", type=Path, help="Completed legacy round directory.")
@@ -3349,6 +3438,9 @@ def main() -> None:
     args = parser.parse_args()
 
     out_dir = args.out_dir.resolve()
+    if args.figure == 'tc_serverless_wait_audit':
+        plot_tc_serverless_wait_audit(args.input, out_dir)
+        return
     if args.figure in {"fig9_v2_ablation", "v2_fig9", "v2_ablation"}:
         inputs = list(args.input)
         if args.round_dir is not None:

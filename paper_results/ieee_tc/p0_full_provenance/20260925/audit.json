@@ -1,0 +1,1292 @@
+{
+  "kind": "legacy_full_provenance_audit",
+  "identities": {
+    "main_table": {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_faaslora_result.json",
+      "sha256": "ec5f66d206ec03cacdecfccc07b1c35a24004dfcaf06d1d93bd28e774df1b06a",
+      "experiment_time": "2026-04-26 01:32:31",
+      "inputs": {
+        "shared_trace_path": {
+          "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c"
+        },
+        "shared_adapter_subset_path": {
+          "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json",
+          "sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+        }
+      },
+      "request_count": 4000,
+      "generation_seed": null,
+      "legacy_generation_contract": true
+    },
+    "ablation_full": {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/04_ablation/20260426_131203_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1/raw/faaslora/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1_faaslora_full_result.json",
+      "sha256": "c7322968168d3ad5bd1348eccae2a9b68f5909a251cfd6a079bc59c3aff183a7",
+      "experiment_time": "2026-04-26 17:24:24",
+      "inputs": {
+        "shared_trace_path": {
+          "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c"
+        },
+        "shared_adapter_subset_path": {
+          "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json",
+          "sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+        }
+      },
+      "request_count": 4000,
+      "generation_seed": null,
+      "legacy_generation_contract": true
+    }
+  },
+  "same_trace": true,
+  "same_subset": true,
+  "same_result": false,
+  "metadata_differences": [
+    {
+      "field": "applied_env_overrides.FAASLORA_TOTAL_REQUESTS",
+      "main_table": 4000,
+      "ablation_full": null
+    },
+    {
+      "field": "experiment_time",
+      "main_table": "2026-04-26 01:32:31",
+      "ablation_full": "2026-04-26 17:24:24"
+    },
+    {
+      "field": "results_tag",
+      "main_table": "llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_faaslora",
+      "ablation_full": "llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_ablation_v1_faaslora_full"
+    },
+    {
+      "field": "scenario_coordination.faaslora_full.effective_scale_down_cooldown_s",
+      "main_table": 55.24095,
+      "ablation_full": 55.634687
+    },
+    {
+      "field": "scenario_coordination.faaslora_full.effective_scale_down_min_idle_s",
+      "main_table": 55.24095,
+      "ablation_full": 55.634687
+    },
+    {
+      "field": "scenario_coordination.faaslora_full.host_cache_available_mb",
+      "main_table": 62154.645,
+      "ablation_full": 54738.645
+    }
+  ],
+  "scalar_summary_rows": [
+    {
+      "metric": "active_adapter_cap",
+      "main_table": 48,
+      "ablation_full": 48,
+      "equal": true
+    },
+    {
+      "metric": "arrival_window_s",
+      "main_table": 2.0,
+      "ablation_full": 2.0,
+      "equal": true
+    },
+    {
+      "metric": "avg_admitted_service_e2e_ms",
+      "main_table": 3056.0779,
+      "ablation_full": 3029.5215,
+      "equal": false
+    },
+    {
+      "metric": "avg_admitted_service_ttft_ms",
+      "main_table": 452.8069,
+      "ablation_full": 445.4419,
+      "equal": false
+    },
+    {
+      "metric": "avg_arrival_release_lateness_ms",
+      "main_table": 21.7603,
+      "ablation_full": 18.0254,
+      "equal": false
+    },
+    {
+      "metric": "avg_cold_start_latency_ms",
+      "main_table": 55240.95,
+      "ablation_full": 55634.6866,
+      "equal": false
+    },
+    {
+      "metric": "avg_comparable_ttft_ms",
+      "main_table": 557.0596,
+      "ablation_full": 536.6559,
+      "equal": false
+    },
+    {
+      "metric": "avg_contention_ms",
+      "main_table": 0.0,
+      "ablation_full": 0.0,
+      "equal": true
+    },
+    {
+      "metric": "avg_cost_usd",
+      "main_table": 0.00256652,
+      "ablation_full": 0.00255519,
+      "equal": false
+    },
+    {
+      "metric": "avg_defer_ms",
+      "main_table": 0.0,
+      "ablation_full": 0.0,
+      "equal": true
+    },
+    {
+      "metric": "avg_dispatch_admission_wait_ms",
+      "main_table": 111.1438,
+      "ablation_full": 100.2252,
+      "equal": false
+    },
+    {
+      "metric": "avg_dispatch_window_wait_ms",
+      "main_table": 79.2563,
+      "ablation_full": 71.4116,
+      "equal": false
+    },
+    {
+      "metric": "avg_e2e_ms",
+      "main_table": 3167.2217,
+      "ablation_full": 3129.7466,
+      "equal": false
+    },
+    {
+      "metric": "avg_gpu_ready_ttft_ms",
+      "main_table": 537.1491,
+      "ablation_full": 521.4744,
+      "equal": false
+    },
+    {
+      "metric": "avg_ingress_queue_wait_ms",
+      "main_table": 89.3835,
+      "ablation_full": 82.1998,
+      "equal": false
+    },
+    {
+      "metric": "avg_lora_io_ms",
+      "main_table": 1.794,
+      "ablation_full": 1.7676,
+      "equal": false
+    },
+    {
+      "metric": "avg_overall_e2e_ms",
+      "main_table": 3167.2217,
+      "ablation_full": 3129.7466,
+      "equal": false
+    },
+    {
+      "metric": "avg_overall_ttft_ms",
+      "main_table": 563.9507,
+      "ablation_full": 545.667,
+      "equal": false
+    },
+    {
+      "metric": "avg_parent_rpc_channel_acquire_ms",
+      "main_table": 0.0431,
+      "ablation_full": 0.0418,
+      "equal": false
+    },
+    {
+      "metric": "avg_parent_rpc_overhead_ms",
+      "main_table": 21.8863,
+      "ablation_full": 17.209,
+      "equal": false
+    },
+    {
+      "metric": "avg_parent_rpc_response_pickup_delay_ms",
+      "main_table": 1.078,
+      "ablation_full": 1.1782,
+      "equal": false
+    },
+    {
+      "metric": "avg_parent_rpc_thread_resume_delay_ms",
+      "main_table": 13.4666,
+      "ablation_full": 9.8345,
+      "equal": false
+    },
+    {
+      "metric": "avg_pre_runtime_service_shell_ms",
+      "main_table": 6.5683,
+      "ablation_full": 4.1112,
+      "equal": false
+    },
+    {
+      "metric": "avg_runtime_estimated_e2e_ms",
+      "main_table": 3022.011,
+      "ablation_full": 3002.6055,
+      "equal": false
+    },
+    {
+      "metric": "avg_runtime_slot_wait_ms",
+      "main_table": 10.1272,
+      "ablation_full": 10.7881,
+      "equal": false
+    },
+    {
+      "metric": "avg_runtime_ttft_ms",
+      "main_table": 446.2387,
+      "ablation_full": 441.3307,
+      "equal": false
+    },
+    {
+      "metric": "avg_scaleup_affected_ttft_ms",
+      "main_table": 775.825,
+      "ablation_full": 852.8357,
+      "equal": false
+    },
+    {
+      "metric": "avg_scaleup_first_service_ttft_ms",
+      "main_table": 6589.9383,
+      "ablation_full": 6326.7448,
+      "equal": false
+    },
+    {
+      "metric": "avg_scaleup_runtime_ttft_ms",
+      "main_table": 544.4214,
+      "ablation_full": 529.6349,
+      "equal": false
+    },
+    {
+      "metric": "avg_serverless_overhead_ms",
+      "main_table": 112.9377,
+      "ablation_full": 101.9928,
+      "equal": false
+    },
+    {
+      "metric": "avg_service_e2e_ms",
+      "main_table": 3056.0779,
+      "ablation_full": 3029.5215,
+      "equal": false
+    },
+    {
+      "metric": "avg_service_overhead_ms",
+      "main_table": 1.794,
+      "ablation_full": 1.7676,
+      "equal": false
+    },
+    {
+      "metric": "avg_service_path_residual_ms",
+      "main_table": 34.067,
+      "ablation_full": 26.916,
+      "equal": false
+    },
+    {
+      "metric": "avg_service_ttft_ms",
+      "main_table": 452.8069,
+      "ablation_full": 445.4419,
+      "equal": false
+    },
+    {
+      "metric": "avg_tpot_ms",
+      "main_table": 28.6274,
+      "ablation_full": 27.6805,
+      "equal": false
+    },
+    {
+      "metric": "avg_ttft_ms",
+      "main_table": 563.9507,
+      "ablation_full": 545.667,
+      "equal": false
+    },
+    {
+      "metric": "avg_warm_standard_ttft_ms",
+      "main_table": 537.1491,
+      "ablation_full": 521.4744,
+      "equal": false
+    },
+    {
+      "metric": "avg_worker_engine_shell_ms",
+      "main_table": 5.4715,
+      "ablation_full": 5.4502,
+      "equal": false
+    },
+    {
+      "metric": "avg_worker_rpc_handler_wall_ms",
+      "main_table": 3027.4824,
+      "ablation_full": 3008.0556,
+      "equal": false
+    },
+    {
+      "metric": "avg_worker_rpc_queue_ms",
+      "main_table": 7.1486,
+      "ablation_full": 6.0068,
+      "equal": false
+    },
+    {
+      "metric": "avg_worker_wall_e2e_ms",
+      "main_table": 3027.4824,
+      "ablation_full": 3008.0556,
+      "equal": false
+    },
+    {
+      "metric": "backend",
+      "main_table": "vllm",
+      "ablation_full": "vllm",
+      "equal": true
+    },
+    {
+      "metric": "baseline_type",
+      "main_table": "faaslora_full",
+      "ablation_full": "faaslora_full",
+      "equal": true
+    },
+    {
+      "metric": "cache_hit_rate",
+      "main_table": 1.0,
+      "ablation_full": 1.0,
+      "equal": true
+    },
+    {
+      "metric": "ce",
+      "main_table": 123.02045,
+      "ablation_full": 125.045244,
+      "equal": false
+    },
+    {
+      "metric": "completed_requests",
+      "main_table": 4000,
+      "ablation_full": 4000,
+      "equal": true
+    },
+    {
+      "metric": "completed_requests_per_gpu_second",
+      "main_table": 0.239702,
+      "ablation_full": 0.239691,
+      "equal": false
+    },
+    {
+      "metric": "contention_events",
+      "main_table": 0,
+      "ablation_full": 0,
+      "equal": true
+    },
+    {
+      "metric": "cost_effectiveness_e2e",
+      "main_table": 123.02045,
+      "ablation_full": 125.045244,
+      "equal": false
+    },
+    {
+      "metric": "cost_per_1m_output_tokens_usd",
+      "main_table": 25.202,
+      "ablation_full": 25.1788,
+      "equal": false
+    },
+    {
+      "metric": "cost_per_1m_total_tokens_usd",
+      "main_table": 2.9741,
+      "ablation_full": 2.9622,
+      "equal": false
+    },
+    {
+      "metric": "deployment_idle_tail_s",
+      "main_table": 300.0,
+      "ablation_full": 300.0,
+      "equal": true
+    },
+    {
+      "metric": "elapsed_sec",
+      "main_table": 3964.4663,
+      "ablation_full": 3964.7826,
+      "equal": false
+    },
+    {
+      "metric": "failed_requests",
+      "main_table": 0,
+      "ablation_full": 0,
+      "equal": true
+    },
+    {
+      "metric": "goodput_requests_per_gpu_second",
+      "main_table": 0.238623,
+      "ablation_full": 0.238732,
+      "equal": false
+    },
+    {
+      "metric": "goodput_tokens_per_gpu_second",
+      "main_table": 24.214279,
+      "ablation_full": 24.16662,
+      "equal": false
+    },
+    {
+      "metric": "gpu_hit_rate",
+      "main_table": 0.9575,
+      "ablation_full": 0.958,
+      "equal": false
+    },
+    {
+      "metric": "gpu_ready_hits",
+      "main_table": 3830,
+      "ablation_full": 3832,
+      "equal": false
+    },
+    {
+      "metric": "host_cache_available_mb",
+      "main_table": 62154.645,
+      "ablation_full": 54738.645,
+      "equal": false
+    },
+    {
+      "metric": "host_cache_dir",
+      "main_table": "/dev/shm/faaslora_host_cache/faaslora_full",
+      "ablation_full": "/dev/shm/faaslora_host_cache/faaslora_full",
+      "equal": true
+    },
+    {
+      "metric": "host_cache_fs_type",
+      "main_table": "tmpfs",
+      "ablation_full": "tmpfs",
+      "equal": true
+    },
+    {
+      "metric": "host_cache_memory_backed",
+      "main_table": true,
+      "ablation_full": true,
+      "equal": true
+    },
+    {
+      "metric": "host_cache_memory_backed_required",
+      "main_table": true,
+      "ablation_full": true,
+      "equal": true
+    },
+    {
+      "metric": "host_cache_mount_point",
+      "main_table": "/dev/shm",
+      "ablation_full": "/dev/shm",
+      "equal": true
+    },
+    {
+      "metric": "host_cache_required_mb",
+      "main_table": 4505.6,
+      "ablation_full": 4505.6,
+      "equal": true
+    },
+    {
+      "metric": "host_capacity_mb",
+      "main_table": 4096.0,
+      "ablation_full": 4096.0,
+      "equal": true
+    },
+    {
+      "metric": "hotset_rotation_requests",
+      "main_table": 500,
+      "ablation_full": 500,
+      "equal": true
+    },
+    {
+      "metric": "infra_active_gpu_ratio",
+      "main_table": 0.646509,
+      "ablation_full": 0.642117,
+      "equal": false
+    },
+    {
+      "metric": "infra_active_gpu_seconds",
+      "main_table": 10788.55221,
+      "ablation_full": 10715.774645,
+      "equal": false
+    },
+    {
+      "metric": "infra_avg_allocated_gpus",
+      "main_table": 3.913124,
+      "ablation_full": 3.913021,
+      "equal": false
+    },
+    {
+      "metric": "infra_avg_ready_gpus",
+      "main_table": 3.874268,
+      "ablation_full": 3.873891,
+      "equal": false
+    },
+    {
+      "metric": "infra_avg_replicas",
+      "main_table": 3.913124,
+      "ablation_full": 3.913021,
+      "equal": false
+    },
+    {
+      "metric": "infra_billing_elapsed_sec",
+      "main_table": 4264.466327,
+      "ablation_full": 4264.78255,
+      "equal": false
+    },
+    {
+      "metric": "infra_ce",
+      "main_table": 90.818532,
+      "ablation_full": 91.901579,
+      "equal": false
+    },
+    {
+      "metric": "infra_cost_per_request_usd",
+      "main_table": 0.00347654,
+      "ablation_full": 0.00347671,
+      "equal": false
+    },
+    {
+      "metric": "infra_cost_total_usd",
+      "main_table": 13.90615449,
+      "ablation_full": 13.90682005,
+      "equal": false
+    },
+    {
+      "metric": "infra_gpu_seconds_total",
+      "main_table": 16687.385389,
+      "ablation_full": 16688.184055,
+      "equal": false
+    },
+    {
+      "metric": "infra_idle_ready_gpu_ratio",
+      "main_table": 0.343561,
+      "ablation_full": 0.347883,
+      "equal": false
+    },
+    {
+      "metric": "infra_idle_ready_gpu_seconds",
+      "main_table": 5733.133349,
+      "ablation_full": 5805.528268,
+      "equal": false
+    },
+    {
+      "metric": "infra_max_allocated_gpus",
+      "main_table": 4.0,
+      "ablation_full": 4.0,
+      "equal": true
+    },
+    {
+      "metric": "infra_max_billing_gpus",
+      "main_table": 4.0,
+      "ablation_full": 4.0,
+      "equal": true
+    },
+    {
+      "metric": "infra_max_ready_gpus",
+      "main_table": 4.0,
+      "ablation_full": 4.0,
+      "equal": true
+    },
+    {
+      "metric": "infra_max_replicas",
+      "main_table": 4.0,
+      "ablation_full": 4.0,
+      "equal": true
+    },
+    {
+      "metric": "infra_ready_active_gpu_ratio",
+      "main_table": 0.652993,
+      "ablation_full": 0.648603,
+      "equal": false
+    },
+    {
+      "metric": "infra_ready_gpu_seconds",
+      "main_table": 16521.685558,
+      "ablation_full": 16521.302915,
+      "equal": false
+    },
+    {
+      "metric": "infra_startup_gpu_ratio",
+      "main_table": 0.00993,
+      "ablation_full": 0.01,
+      "equal": false
+    },
+    {
+      "metric": "infra_startup_gpu_seconds",
+      "main_table": 165.699831,
+      "ablation_full": 166.88114,
+      "equal": false
+    },
+    {
+      "metric": "instance_mode",
+      "main_table": "auto",
+      "ablation_full": "auto",
+      "equal": true
+    },
+    {
+      "metric": "max_input_len",
+      "main_table": null,
+      "ablation_full": null,
+      "equal": true
+    },
+    {
+      "metric": "max_instances",
+      "main_table": 4,
+      "ablation_full": 4,
+      "equal": true
+    },
+    {
+      "metric": "max_loras",
+      "main_table": 4,
+      "ablation_full": 4,
+      "equal": true
+    },
+    {
+      "metric": "max_model_len",
+      "main_table": 1024,
+      "ablation_full": 1024,
+      "equal": true
+    },
+    {
+      "metric": "max_num_seqs",
+      "main_table": 2,
+      "ablation_full": 2,
+      "equal": true
+    },
+    {
+      "metric": "max_output_tokens_cap",
+      "main_table": null,
+      "ablation_full": null,
+      "equal": true
+    },
+    {
+      "metric": "metric_schema_version",
+      "main_table": "e2e_v3",
+      "ablation_full": "e2e_v3",
+      "equal": true
+    },
+    {
+      "metric": "min_instances",
+      "main_table": 1,
+      "ablation_full": 1,
+      "equal": true
+    },
+    {
+      "metric": "monetary_active_charge_gpu_seconds",
+      "main_table": 10954.252041,
+      "ablation_full": 10882.655786,
+      "equal": false
+    },
+    {
+      "metric": "monetary_ce",
+      "main_table": 123.02045,
+      "ablation_full": 125.045244,
+      "equal": false
+    },
+    {
+      "metric": "monetary_cost_per_request_usd",
+      "main_table": 0.00256652,
+      "ablation_full": 0.00255519,
+      "equal": false
+    },
+    {
+      "metric": "monetary_cost_total_usd",
+      "main_table": 10.26606983,
+      "ablation_full": 10.22077035,
+      "equal": false
+    },
+    {
+      "metric": "monetary_equivalent_gpu_seconds",
+      "main_table": 12319.283791,
+      "ablation_full": 12264.924421,
+      "equal": false
+    },
+    {
+      "metric": "monetary_idle_charge_gpu_seconds",
+      "main_table": 1365.03175,
+      "ablation_full": 1382.268635,
+      "equal": false
+    },
+    {
+      "metric": "monetary_pricing_runtime_class",
+      "main_table": "serverless",
+      "ablation_full": "serverless",
+      "equal": true
+    },
+    {
+      "metric": "num_adapters",
+      "main_table": 500,
+      "ablation_full": 500,
+      "equal": true
+    },
+    {
+      "metric": "nvme_cache_dir",
+      "main_table": "/home/qhq/serverless_llm_experiment_retry14_baseline/artifacts/nvme_cache/faaslora_full",
+      "ablation_full": "/home/qhq/serverless_llm_experiment_retry14_baseline/artifacts/nvme_cache/faaslora_full",
+      "equal": true
+    },
+    {
+      "metric": "output_tokens_per_gpu_second",
+      "main_table": 24.410714,
+      "ablation_full": 24.324216,
+      "equal": false
+    },
+    {
+      "metric": "p50_admitted_service_e2e_ms",
+      "main_table": 2421.6385,
+      "ablation_full": 2396.7865,
+      "equal": false
+    },
+    {
+      "metric": "p50_admitted_service_ttft_ms",
+      "main_table": 492.398,
+      "ablation_full": 482.2188,
+      "equal": false
+    },
+    {
+      "metric": "p50_arrival_release_lateness_ms",
+      "main_table": 0.9221,
+      "ablation_full": 0.9241,
+      "equal": false
+    },
+    {
+      "metric": "p50_dispatch_admission_wait_ms",
+      "main_table": 14.1092,
+      "ablation_full": 14.3128,
+      "equal": false
+    },
+    {
+      "metric": "p50_dispatch_window_wait_ms",
+      "main_table": 0.1901,
+      "ablation_full": 0.19,
+      "equal": false
+    },
+    {
+      "metric": "p50_e2e_ms",
+      "main_table": 2516.8076,
+      "ablation_full": 2462.9026,
+      "equal": false
+    },
+    {
+      "metric": "p50_ingress_queue_wait_ms",
+      "main_table": 10.5288,
+      "ablation_full": 11.0737,
+      "equal": false
+    },
+    {
+      "metric": "p50_overall_e2e_ms",
+      "main_table": 2516.8076,
+      "ablation_full": 2462.9026,
+      "equal": false
+    },
+    {
+      "metric": "p50_overall_ttft_ms",
+      "main_table": 515.8369,
+      "ablation_full": 507.0619,
+      "equal": false
+    },
+    {
+      "metric": "p50_runtime_slot_wait_ms",
+      "main_table": 8.5875,
+      "ablation_full": 8.8311,
+      "equal": false
+    },
+    {
+      "metric": "p50_service_e2e_ms",
+      "main_table": 2421.6385,
+      "ablation_full": 2396.7865,
+      "equal": false
+    },
+    {
+      "metric": "p50_service_ttft_ms",
+      "main_table": 492.398,
+      "ablation_full": 482.2188,
+      "equal": false
+    },
+    {
+      "metric": "p95_admitted_service_e2e_ms",
+      "main_table": 7125.0524,
+      "ablation_full": 7132.4289,
+      "equal": false
+    },
+    {
+      "metric": "p95_admitted_service_ttft_ms",
+      "main_table": 678.2495,
+      "ablation_full": 651.3511,
+      "equal": false
+    },
+    {
+      "metric": "p95_arrival_release_lateness_ms",
+      "main_table": 40.7383,
+      "ablation_full": 33.2923,
+      "equal": false
+    },
+    {
+      "metric": "p95_cold_start_latency_ms",
+      "main_table": 56591.5636,
+      "ablation_full": 56218.7397,
+      "equal": false
+    },
+    {
+      "metric": "p95_comparable_ttft_ms",
+      "main_table": 1011.9285,
+      "ablation_full": 936.3121,
+      "equal": false
+    },
+    {
+      "metric": "p95_dispatch_admission_wait_ms",
+      "main_table": 440.9116,
+      "ablation_full": 367.6428,
+      "equal": false
+    },
+    {
+      "metric": "p95_dispatch_window_wait_ms",
+      "main_table": 225.8467,
+      "ablation_full": 176.5556,
+      "equal": false
+    },
+    {
+      "metric": "p95_e2e_ms",
+      "main_table": 7206.746,
+      "ablation_full": 7188.5701,
+      "equal": false
+    },
+    {
+      "metric": "p95_gpu_ready_ttft_ms",
+      "main_table": 970.9006,
+      "ablation_full": 906.4755,
+      "equal": false
+    },
+    {
+      "metric": "p95_ingress_queue_wait_ms",
+      "main_table": 255.5105,
+      "ablation_full": 214.2485,
+      "equal": false
+    },
+    {
+      "metric": "p95_overall_e2e_ms",
+      "main_table": 7206.746,
+      "ablation_full": 7188.5701,
+      "equal": false
+    },
+    {
+      "metric": "p95_overall_ttft_ms",
+      "main_table": 1015.4881,
+      "ablation_full": 941.5925,
+      "equal": false
+    },
+    {
+      "metric": "p95_parent_rpc_channel_acquire_ms",
+      "main_table": 0.0108,
+      "ablation_full": 0.0122,
+      "equal": false
+    },
+    {
+      "metric": "p95_parent_rpc_overhead_ms",
+      "main_table": 129.9656,
+      "ablation_full": 70.4217,
+      "equal": false
+    },
+    {
+      "metric": "p95_parent_rpc_response_pickup_delay_ms",
+      "main_table": 6.5253,
+      "ablation_full": 5.7197,
+      "equal": false
+    },
+    {
+      "metric": "p95_parent_rpc_thread_resume_delay_ms",
+      "main_table": 20.942,
+      "ablation_full": 14.7347,
+      "equal": false
+    },
+    {
+      "metric": "p95_pre_runtime_service_shell_ms",
+      "main_table": 9.6494,
+      "ablation_full": 9.945,
+      "equal": false
+    },
+    {
+      "metric": "p95_runtime_estimated_e2e_ms",
+      "main_table": 7102.5319,
+      "ablation_full": 7110.8405,
+      "equal": false
+    },
+    {
+      "metric": "p95_runtime_slot_wait_ms",
+      "main_table": 17.6673,
+      "ablation_full": 18.1316,
+      "equal": false
+    },
+    {
+      "metric": "p95_runtime_ttft_ms",
+      "main_table": 656.5248,
+      "ablation_full": 648.1971,
+      "equal": false
+    },
+    {
+      "metric": "p95_scaleup_affected_ttft_ms",
+      "main_table": 1139.9903,
+      "ablation_full": 2326.4846,
+      "equal": false
+    },
+    {
+      "metric": "p95_scaleup_runtime_ttft_ms",
+      "main_table": 965.3426,
+      "ablation_full": 937.3407,
+      "equal": false
+    },
+    {
+      "metric": "p95_serverless_overhead_ms",
+      "main_table": 442.2027,
+      "ablation_full": 367.6428,
+      "equal": false
+    },
+    {
+      "metric": "p95_service_e2e_ms",
+      "main_table": 7125.0524,
+      "ablation_full": 7132.4289,
+      "equal": false
+    },
+    {
+      "metric": "p95_service_overhead_ms",
+      "main_table": 0.0,
+      "ablation_full": 0.0,
+      "equal": true
+    },
+    {
+      "metric": "p95_service_path_residual_ms",
+      "main_table": 177.6437,
+      "ablation_full": 79.4052,
+      "equal": false
+    },
+    {
+      "metric": "p95_service_ttft_ms",
+      "main_table": 678.2495,
+      "ablation_full": 651.3511,
+      "equal": false
+    },
+    {
+      "metric": "p95_ttft_ms",
+      "main_table": 1015.4881,
+      "ablation_full": 941.5925,
+      "equal": false
+    },
+    {
+      "metric": "p95_warm_standard_ttft_ms",
+      "main_table": 970.9006,
+      "ablation_full": 906.4755,
+      "equal": false
+    },
+    {
+      "metric": "p95_worker_engine_shell_ms",
+      "main_table": 9.9232,
+      "ablation_full": 9.8638,
+      "equal": false
+    },
+    {
+      "metric": "p95_worker_rpc_handler_wall_ms",
+      "main_table": 7108.1098,
+      "ablation_full": 7118.2877,
+      "equal": false
+    },
+    {
+      "metric": "p95_worker_rpc_queue_ms",
+      "main_table": 4.3705,
+      "ablation_full": 3.3533,
+      "equal": false
+    },
+    {
+      "metric": "p95_worker_wall_e2e_ms",
+      "main_table": 7108.1098,
+      "ablation_full": 7118.2877,
+      "equal": false
+    },
+    {
+      "metric": "p99_admitted_service_e2e_ms",
+      "main_table": 7635.5214,
+      "ablation_full": 7579.2003,
+      "equal": false
+    },
+    {
+      "metric": "p99_admitted_service_ttft_ms",
+      "main_table": 802.2001,
+      "ablation_full": 799.7927,
+      "equal": false
+    },
+    {
+      "metric": "p99_comparable_ttft_ms",
+      "main_table": 2713.5986,
+      "ablation_full": 2052.088,
+      "equal": false
+    },
+    {
+      "metric": "p99_e2e_ms",
+      "main_table": 8059.0175,
+      "ablation_full": 7985.2647,
+      "equal": false
+    },
+    {
+      "metric": "p99_overall_e2e_ms",
+      "main_table": 8059.0175,
+      "ablation_full": 7985.2647,
+      "equal": false
+    },
+    {
+      "metric": "p99_overall_ttft_ms",
+      "main_table": 2743.4136,
+      "ablation_full": 2311.6068,
+      "equal": false
+    },
+    {
+      "metric": "p99_service_e2e_ms",
+      "main_table": 7635.5214,
+      "ablation_full": 7579.2003,
+      "equal": false
+    },
+    {
+      "metric": "p99_service_ttft_ms",
+      "main_table": 802.2001,
+      "ablation_full": 799.7927,
+      "equal": false
+    },
+    {
+      "metric": "p99_ttft_ms",
+      "main_table": 2743.4136,
+      "ablation_full": 2311.6068,
+      "equal": false
+    },
+    {
+      "metric": "p99_warm_standard_ttft_ms",
+      "main_table": 2265.9305,
+      "ablation_full": 1836.3878,
+      "equal": false
+    },
+    {
+      "metric": "primary_e2e_definition",
+      "main_table": "scheduled trace arrival to system-observed response completion when available; otherwise client-observed completion",
+      "ablation_full": "scheduled trace arrival to system-observed response completion when available; otherwise client-observed completion",
+      "equal": true
+    },
+    {
+      "metric": "primary_ttft_definition",
+      "main_table": "scheduled trace arrival to system-observed first generated output token/chunk",
+      "ablation_full": "scheduled trace arrival to system-observed first generated output token/chunk",
+      "equal": true
+    },
+    {
+      "metric": "qpr",
+      "main_table": 123.02045,
+      "ablation_full": 125.045244,
+      "equal": false
+    },
+    {
+      "metric": "qpr_rps_legacy",
+      "main_table": 762.826746,
+      "ablation_full": 788.563316,
+      "equal": false
+    },
+    {
+      "metric": "qpr_tokps_ttft_legacy",
+      "main_table": 77684.55948,
+      "ablation_full": 80024.785286,
+      "equal": false
+    },
+    {
+      "metric": "requested_runtime_concurrency_cap",
+      "main_table": 2,
+      "ablation_full": 2,
+      "equal": true
+    },
+    {
+      "metric": "routing_policy",
+      "main_table": "adapter_affinity",
+      "ablation_full": "adapter_affinity",
+      "equal": true
+    },
+    {
+      "metric": "runtime_concurrency_cap",
+      "main_table": 2,
+      "ablation_full": 2,
+      "equal": true
+    },
+    {
+      "metric": "scale_down_events",
+      "main_table": 1,
+      "ablation_full": 1,
+      "equal": true
+    },
+    {
+      "metric": "scale_eval_interval_s",
+      "main_table": 2.0,
+      "ablation_full": 2.0,
+      "equal": true
+    },
+    {
+      "metric": "scaleup_first_service_gpu_hit_rate",
+      "main_table": 0.833333,
+      "ablation_full": 0.666667,
+      "equal": false
+    },
+    {
+      "metric": "scaleup_first_service_planned_match_rate",
+      "main_table": 0.666667,
+      "ablation_full": 0.666667,
+      "equal": true
+    },
+    {
+      "metric": "scaleup_first_service_request_count",
+      "main_table": 6,
+      "ablation_full": 6,
+      "equal": true
+    },
+    {
+      "metric": "scaleup_runtime_gpu_hit_rate",
+      "main_table": 0.956159,
+      "ablation_full": 0.95956,
+      "equal": false
+    },
+    {
+      "metric": "scaleup_runtime_lora_request_count",
+      "main_table": 2874,
+      "ablation_full": 2819,
+      "equal": false
+    },
+    {
+      "metric": "scenario_name",
+      "main_table": "faaslora_full",
+      "ablation_full": "faaslora_full",
+      "equal": true
+    },
+    {
+      "metric": "serverless_idle_gpu_cost_factor",
+      "main_table": 0.238095,
+      "ablation_full": 0.238095,
+      "equal": true
+    },
+    {
+      "metric": "serverless_idle_retention_s",
+      "main_table": 300.0,
+      "ablation_full": 300.0,
+      "equal": true
+    },
+    {
+      "metric": "serverless_invocation_cost_per_request_usd",
+      "main_table": 0.0,
+      "ablation_full": 0.0,
+      "equal": true
+    },
+    {
+      "metric": "serverless_invocation_cost_total_usd",
+      "main_table": 0.0,
+      "ablation_full": 0.0,
+      "equal": true
+    },
+    {
+      "metric": "service_e2e_definition",
+      "main_table": "service-path start to response completion; service-path start is the system-specific admitted/backend-execution start and excludes scheduled-arrival and upstream queue/admission wait",
+      "ablation_full": "service-path start to response completion; service-path start is the system-specific admitted/backend-execution start and excludes scheduled-arrival and upstream queue/admission wait",
+      "equal": true
+    },
+    {
+      "metric": "service_ttft_definition",
+      "main_table": "service-path start to first generated output token/chunk; service-path start is the system-specific admitted/backend-execution start and excludes scheduled-arrival and upstream queue/admission wait",
+      "ablation_full": "service-path start to first generated output token/chunk; service-path start is the system-specific admitted/backend-execution start and excludes scheduled-arrival and upstream queue/admission wait",
+      "equal": true
+    },
+    {
+      "metric": "slo_attainment",
+      "main_table": 0.9955,
+      "ablation_full": 0.996,
+      "equal": false
+    },
+    {
+      "metric": "slo_goodput_rps",
+      "main_table": 1.004423,
+      "ablation_full": 1.004847,
+      "equal": false
+    },
+    {
+      "metric": "slo_goodput_tok_per_s",
+      "main_table": 102.288149,
+      "ablation_full": 101.973636,
+      "equal": false
+    },
+    {
+      "metric": "slo_metric",
+      "main_table": "TTFT_e2e",
+      "ablation_full": "TTFT_e2e",
+      "equal": true
+    },
+    {
+      "metric": "throughput_rps",
+      "main_table": 1.008963,
+      "ablation_full": 1.008883,
+      "equal": false
+    },
+    {
+      "metric": "throughput_tok_per_s",
+      "main_table": 102.750526,
+      "ablation_full": 102.383169,
+      "equal": false
+    },
+    {
+      "metric": "token_avg_cost_usd",
+      "main_table": 0.00234535,
+      "ablation_full": 0.00234464,
+      "equal": false
+    },
+    {
+      "metric": "token_ce",
+      "main_table": 134.621163,
+      "ablation_full": 136.274465,
+      "equal": false
+    },
+    {
+      "metric": "token_proxy_cost_per_1m_output_tokens_usd",
+      "main_table": 23.0303,
+      "ablation_full": 23.1041,
+      "equal": false
+    },
+    {
+      "metric": "token_proxy_cost_per_1m_total_tokens_usd",
+      "main_table": 2.7178,
+      "ablation_full": 2.7181,
+      "equal": false
+    },
+    {
+      "metric": "token_total_cost_usd",
+      "main_table": 9.3814115,
+      "ablation_full": 9.3785635,
+      "equal": false
+    },
+    {
+      "metric": "total_cost_usd",
+      "main_table": 10.26606983,
+      "ablation_full": 10.22077035,
+      "equal": false
+    },
+    {
+      "metric": "total_input_tokens",
+      "main_table": 3044473,
+      "ablation_full": 3044473,
+      "equal": true
+    },
+    {
+      "metric": "total_output_tokens",
+      "main_table": 407351,
+      "ablation_full": 405927,
+      "equal": false
+    },
+    {
+      "metric": "total_requests",
+      "main_table": 4000,
+      "ablation_full": 4000,
+      "equal": true
+    },
+    {
+      "metric": "total_tokens",
+      "main_table": 3451824,
+      "ablation_full": 3450400,
+      "equal": false
+    },
+    {
+      "metric": "tpot_observed_request_ratio",
+      "main_table": 1.0,
+      "ablation_full": 1.0,
+      "equal": true
+    },
+    {
+      "metric": "ttft_slo_ms",
+      "main_table": 5000.0,
+      "ablation_full": 5000.0,
+      "equal": true
+    },
+    {
+      "metric": "warm_pool_hits",
+      "main_table": 0,
+      "ablation_full": 0,
+      "equal": true
+    }
+  ],
+  "reuse_for_tc_main": "R2",
+  "conclusion": "Different executions of Full on identical recorded shared inputs; use one canonical run-set for the same main-result claim. No single-cause attribution from this comparison."
+}
