@@ -290,3 +290,52 @@ CPU-only、backend incarnation、已有 pin、CUDA 异常回滚、旁路删除�
 
 图表选择为本节合同状态表，而非性能图。真实 CUDA event、模型输出、引用开销
 与性能影响尚未测量；没有声称本次检查减少 TTFT、降低 GPU-s 或提高联合 SLO。
+
+## P1-D7：原生 scheduler/KV 观测（已接线，模型及事务资格待完成）
+
+历史 D4 已证明 MB/working-set 近似不是论文的 KV 公式。本次进一步核查
+0.30.0 的原生异步执行：worker 的 LoRA/显存 RPC 看不到 engine-core 持有的
+请求队列和 block allocator；将两份独立采样直接拼成“同 epoch admission”
+仍不正确。因此先接入真正的 scheduler owner，并明确它只提供观测。
+
+沿用原 runner、子进程 worker/RPC，opt-in 配置为
+`model.ieee_scheduler_observation=true`，必须提供冻结的
+`model.ieee_input_upper_bounds`。以官方 `scheduler_cls` 扩展点继承
+`AsyncScheduler`，保留其 schedule、preemption、async execution 和 allocation
+实现，不通过退回同步调度取得易于解释但不同的性能路径。版本严格限定 0.30.0。
+
+| 论文规范语义 | 当前实现证据 | 尚待资格 |
+|---|---|---|
+| iteration pressure，由调度事件更新，idle 为零 | 记录原生 SchedulerOutput 身份；多轮在途时以最新未收尾调度轮的 token 数计 pressure；较老完成不将其清零 | 真实 engine-core/worker 时间线、观测开销 |
+| 实际完成与未处理 prompt | 从 computed 扣除仍属于当前 assignment 的在途 tokens；异步抢占的 stale share 单列，不误判负完成数 | 两模型 prefill/decode、抢占/恢复/取消实机检查 |
+| 已预留未用位置、unreserved free blocks | 当前请求的非空有效 block assignment；free 来自原生 block pool，不用“总 block－逐请求求和”代替；共享 prefix 不重复扣除 | 原生 pool/实际 tensor 的对应与高压验证 |
+| bytes/block | 一组 uniform FullAttentionSpec、TP/PP/CP=1；实际 page bytes×层数与单一 allocation size 相互核验；未知/混合/alias 布局拒绝 | 实际 7B/3B FP16 layout |
+| 同一时间域和来源 | 在 owner thread 读取，记录 incarnation、PID、monotonic clock、时点；前端核验 clock；跨进程 RPC 不吞错误 | 实际进程 census/clock qualification |
+| 原子 admission 与物理可行性 | 此接口不声称完成：`admission_reservation=false`；worker 分配和 scheduler 观察仍须进入同一事务 | 原子 owner、待提交请求的 reservation、physical workspace 与取消终态 |
+
+抢占注意：原生 `num_computed_tokens` 被重置，但旧
+`num_in_flight_tokens` 仍待返回，`num_stale_output_tokens` 标明其中不属于
+当前 KV assignment 的部分。当前已完成位置为
+`computed - (in_flight - stale)`。旧 block 的延迟释放仍由 native free pool
+计量，不能先算为空闲。样本同时保留 generated、stale、preemptions 和
+尚需重算的历史生成位置。后者**不偷偷加到论文的 unprocessed prompt**；
+论文预测不是硬物理容量保证，实际分配仍须由后端约束，后续 S9 分析此近似边界。
+
+private utility bridge 仅增加一个有冲突检查的 engine-core 观测方法；不覆写
+vLLM 安装文件，也不把该私有协议宣称为稳定公共 API。未启用时保持旧路径。
+原生队列未覆盖 controller 尚未提交的 admitted reservations，回执明确
+`native_unfinished_requests_only`；后续 owner 整合不能遗漏或双计这些请求。
+
+16 项无 GPU 检查覆盖旧轮完成、新轮压力、空调度、FIFO、线程身份、waiting/
+finished/shared-prefix、在途 preemption/resume、未知布局、原生输出保留、
+版本/命名冲突、实际构造参数、guarded launch、时钟与 RPC。它们使用假的
+native scheduler/model 对象，不是实际后端或性能资格。本步骤交付此状态表，
+不生成具有误导性的性能图。实际模型与完整回放仍待后端安装和资格完成。
+
+依据：官方 0.30.0 的
+[Request 状态](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/request.py)、
+[scheduler](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/core/sched/scheduler.py)、
+[AsyncScheduler](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/core/sched/async_scheduler.py)、
+[KV layout](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/core/kv_cache_utils.py)、
+[engine core](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core.py)
+及其 [utility client](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core_client.py)。

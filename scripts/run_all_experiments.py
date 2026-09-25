@@ -2682,7 +2682,8 @@ class InferenceEngine:
             return
         if (self.model_cfg.get("timing_contract") == "ieee_tc_native_v1"
                 or self.model_cfg.get("ieee_gpu_references", False)
-                or self.model_cfg.get("ieee_worker_observation", False)):
+                or self.model_cfg.get("ieee_worker_observation", False)
+                or self.model_cfg.get("ieee_scheduler_observation", False)):
             raise RuntimeError("native TC engine requires the guarded qualification launcher")
         if not bool(self.model_cfg.get("skip_stale_gpu_cleanup", False)):
             _kill_stale_gpu_processes()
@@ -3151,7 +3152,8 @@ class InferenceEngine:
         strict_launch = bool(os.environ.get("FAASLORA_TC_LAUNCH_RECEIPT")) or (
             self.model_cfg.get("timing_contract") == "ieee_tc_native_v1"
             or self.model_cfg.get("ieee_gpu_references", False)
-            or self.model_cfg.get("ieee_worker_observation", False))
+            or self.model_cfg.get("ieee_worker_observation", False)
+            or self.model_cfg.get("ieee_scheduler_observation", False))
         if strict_launch:
             from scripts.ieee_tc_preflight import verify_current_service
             self._tc_launch_identity = verify_current_service()
@@ -3338,6 +3340,16 @@ class InferenceEngine:
             if (self.model_cfg.get("ieee_worker_observation", False)
                     or self.model_cfg.get("ieee_gpu_references", False)):
                 kwargs["worker_extension_cls"] = "faaslora.memory.gpu_monitor.IEEEWorkerObservationExtension"
+            if self.model_cfg.get("ieee_scheduler_observation", False):
+                bounds = self.model_cfg["ieee_input_upper_bounds"]
+                if (not isinstance(bounds, (list, tuple)) or not bounds
+                        or any(type(n) is not int or n <= 0 for n in bounds)
+                        or list(bounds) != sorted(set(bounds))):
+                    raise ValueError("IEEE scheduler requires explicit sorted prompt upper bounds")
+                kwargs["scheduler_cls"] = "faaslora.scheduling.vllm_ieee_scheduler.IEEENativeAsyncScheduler"
+                kwargs["async_scheduling"] = True
+                kwargs["additional_config"] = {"ieee_tc_scheduler_observation": {
+                    "input_upper_bounds": list(bounds)}}
             if tokenizer_mode is not None:
                 kwargs["tokenizer_mode"] = tokenizer_mode
             if tp > 1:
@@ -3375,7 +3387,8 @@ class InferenceEngine:
             self._last_engine_create_error = detail
             print(f"  [WARN] vLLM engine creation failed ({desc}): {detail[:500]}")
             if (os.environ.get("FAASLORA_TC_LAUNCH_RECEIPT")
-                    or self.model_cfg.get("timing_contract") == "ieee_tc_native_v1"):
+                    or self.model_cfg.get("timing_contract") == "ieee_tc_native_v1"
+                    or self.model_cfg.get("ieee_scheduler_observation", False)):
                 raise RuntimeError(f"TC backend construction failed without config retry: {detail}") from exc
             self._maybe_kill_stale_gpu_processes()
             try:
@@ -4302,6 +4315,26 @@ class InferenceEngine:
             raise RuntimeError("worker observation count differs from configured TP")
         return {"workers": observations, "production_launch_authorized": False}
 
+    async def ieee_scheduler_observation(self) -> Dict[str, Any]:
+        """Read the native scheduler owner, never reconstruct KV from worker RAM."""
+        if not self.model_cfg.get("ieee_scheduler_observation", False):
+            raise RuntimeError("native scheduler observation was not enabled at engine creation")
+        if self.backend != "vllm" or self.engine is None or self._engine_dead:
+            raise RuntimeError("native scheduler observation requires a live vLLM engine")
+        core = getattr(self.engine, "engine_core", None)
+        rpc = getattr(core, "call_utility_async", None)
+        if not callable(rpc):
+            raise RuntimeError("backend lacks qualified native engine-core utility RPC")
+        observation = await rpc("ieee_scheduler_observation")
+        from faaslora.clock import local_monotonic_clock_id
+        if (not isinstance(observation, dict)
+                or observation.get("kind") != "ieee_native_scheduler_observation_v1"
+                or observation.get("clock_id") != local_monotonic_clock_id()
+                or observation.get("admission_reservation") is not False
+                or observation.get("production_launch_authorized") is not False):
+            raise RuntimeError("invalid native scheduler observation identity/clock/authority")
+        return observation
+
     async def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
         """Forward an explicit native owner operation; no inferred success."""
         if not self.model_cfg.get("ieee_gpu_references", False):
@@ -5051,6 +5084,9 @@ class SubprocessInferenceEngineProxy:
 
     async def ieee_worker_observation(self, *, synchronize: bool = False) -> Dict[str, Any]:
         return await self._rpc("ieee_worker_observation", synchronize=synchronize)
+
+    async def ieee_scheduler_observation(self) -> Dict[str, Any]:
+        return await self._rpc("ieee_scheduler_observation")
 
     async def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
         return await self._rpc("ieee_gpu_reference", operation=operation, **kwargs)

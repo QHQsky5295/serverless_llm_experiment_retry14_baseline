@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Mathematical contracts + native token/reference interfaces tested; controller/resource integration open | P1_FORMULA_IMPLEMENTATION.md D1–D6. GPU references bind actual engine requests and native LRU; CUDA/clock/stream qualification, slow-tier references and atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts + native token/reference/scheduler interfaces tested; controller/resource integration open | P1_FORMULA_IMPLEMENTATION.md D1–D7. GPU references bind actual engine requests and native LRU; async scheduler observes current/stale in-flight KV. CUDA/clock/stream qualification, slow-tier references and atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -93,6 +93,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Independent frozen-replay checkpoint `5bcb6a333c8ff2e809077af87c58be363c7f14b9`
   pushed to V2; remote SHA verified.
 - Startup-parallel ingress checkpoint `4fe05a5cab78bb6dc91ad6e2f85301cf9f330dbc`
+  pushed to V2; remote SHA verified.
+- Physical GPU union/native census checkpoint `4ab1d1e9fbe7f2f64f0e0f8ce1e8aa954b71d2c7`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -370,3 +372,28 @@ configs/relayserve_motivation_serverlessllm.yaml.
   actual model/clock/stream/worker qualification after the live P2 installation.
   Original install has finished the cuFFT download (dependency 100); no duplicate
   install or concurrent model. Remote disk decision and formal matrices pending.
+
+## Native scheduler/KV observation checkpoint
+
+- Existing runner/RPC now opt into an exact-version AsyncScheduler observer.
+  Official scheduling/allocation policy remains native; no synchronous scheduler
+  substitution. It reads owner-thread unfinished requests, real KV assignments,
+  block-pool free count and the latest unretired iteration's scheduled tokens.
+- Source review identified async preemption retaining stale in-flight output
+  after resetting computed progress. Observation now subtracts only current
+  in-flight work; deferred blocks remain owned in the native free pool. Historical
+  generated-prefix recomputation is separately visible, not silently added to
+  the paper's prompt term or claimed as a physical safety guarantee.
+- Sixteen no-GPU tests pass. Final full functional suite: 426 pass, zero errors,
+  failures or skips. System safety/census/replay suite: 44 pass. An earlier 425
+  pass run preceded the additional stale-preemption/resume case; use 426 as final.
+  All 147 sealed historical entries remain unchanged; four GPUs idle at 15 MiB.
+- This is not atomic admission: controller-side pending reservations, allocation
+  owner, slow-tier references and native model/stream/clock qualification are open.
+  P1-D7 provides the evidence/limitation table; no performance figure is fabricated.
+- Sep 26 01:55 local: original bounded P2 installation active on cuSOLVER (103),
+  ~1.64 GiB current memory, ~337 GiB local disk free, ~104 GiB available host RAM.
+  No duplicate installation, concurrent model run or regenerated workload.
+- Next mainline: actual backend qualification once install completes, plus owner
+  transaction integration and common generation/measurement qualification. Keep
+  Serverless first in baseline order; remote disk decision remains pending.

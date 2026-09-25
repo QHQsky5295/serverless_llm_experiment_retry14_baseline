@@ -13,10 +13,159 @@ import os
 import subprocess
 import threading
 import time
+import uuid
+from bisect import bisect_left
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, Dict, List, Mapping, Optional, Tuple
+
+
+class NativeIterationObservation:
+    """Observe native scheduling events without changing their scheduling policy.
+
+    Async vLLM may have several unretired iterations. An old completion must not
+    clear pressure for a newer scheduled iteration. The observer is owned by the
+    engine-core thread and retains actual SchedulerOutput identities, not token
+    count guesses or utilization samples. It grants no admission reservation.
+    """
+
+    def __init__(self):
+        self.owner_id = uuid.uuid4().hex
+        self.thread_id = threading.get_ident()
+        self._pending = deque()
+        self.scheduled_sequence = 0
+        self.completed_sequence = 0
+
+    def check_thread(self) -> None:
+        if threading.get_ident() != self.thread_id:
+            raise RuntimeError('native scheduler observation must run on its owner thread')
+
+    def scheduled(self, output) -> None:
+        self.check_thread()
+        count = output.total_num_scheduled_tokens
+        _nonnegative_int('native scheduled tokens', count)
+        if any(type(n) is not int or n <= 0 for n in output.num_scheduled_tokens.values()):
+            raise ValueError('invalid native per-request scheduled count')
+        if count != sum(output.num_scheduled_tokens.values()):
+            raise ValueError('native iteration total and per-request counts disagree')
+        if count:
+            if any(item[0] is output for item in self._pending):
+                raise ValueError('duplicate native scheduling event')
+            self._pending.append((output, count))
+            self.scheduled_sequence += 1
+
+    def completed(self, output) -> None:
+        self.check_thread()
+        if output.total_num_scheduled_tokens:
+            if not self._pending or self._pending[0][0] is not output:
+                raise ValueError('out-of-order or unobserved native iteration completion')
+            self._pending.popleft()
+            self.completed_sequence += 1
+
+    def snapshot(self) -> dict:
+        self.check_thread()
+        return {'scheduler_owner_id': self.owner_id,
+                'scheduled_sequence': self.scheduled_sequence,
+                'completed_sequence': self.completed_sequence,
+                'unretired_iterations': len(self._pending),
+                'scheduled_tokens': self._pending[-1][1] if self._pending else 0,
+                'batch_pressure_semantics': 'latest_scheduled_unretired_iteration'}
+
+
+def capture_native_kv_observation(scheduler, iterations: NativeIterationObservation,
+                                  *, input_upper_bounds: Tuple[int, ...]) -> dict:
+    """Read a qualified v0.30 single-group full-attention owner, not worker stats.
+
+    The native adapter checks exact backend version/spec/config before calling.
+    This returns only scheduler-owned facts. Combining it with a worker allocator
+    sample does NOT create an atomic admission snapshot; a native transaction
+    and physical reservations are still required for that operation.
+    """
+    step = iterations.snapshot()
+    if (not input_upper_bounds
+            or any(type(n) is not int or n <= 0 for n in input_upper_bounds)
+            or tuple(sorted(set(input_upper_bounds))) != input_upper_bounds):
+        raise ValueError('explicit frozen prompt upper bounds required')
+    config = scheduler.kv_cache_config
+    if len(config.kv_cache_groups) != 1 or len(config.kv_cache_tensors) != 1:
+        raise ValueError('native KV layout is not one uniform full-attention allocation')
+    group, tensor = config.kv_cache_groups[0], config.kv_cache_tensors[0]
+    spec = group.kv_cache_spec
+    tokens_per_block = spec.block_size
+    bytes_per_block = spec.page_size_bytes * len(group.layer_names)
+    for name, value in (('KV tokens per block', tokens_per_block),
+                        ('KV bytes per block', bytes_per_block), ('native blocks', config.num_blocks)):
+        _nonnegative_int(name, value, positive=True)
+    if (tensor.host_resident or group.host_resident or group.is_eagle_group
+            or set(tensor.layers) != set(group.layer_names)
+            or len(tensor.layers) != len(group.layer_names)
+            or len(set(group.layer_names)) != len(group.layer_names)
+            or tensor.size != bytes_per_block * config.num_blocks or tensor.offset != 0
+            or scheduler.block_size != tokens_per_block):
+        raise ValueError('native KV tensor/layout disagrees with uniform block conversion')
+    kv = scheduler.kv_cache_manager
+    free = kv.block_pool.get_num_free_blocks()
+    _nonnegative_int('unreserved native free blocks', free)
+    if free >= config.num_blocks:
+        raise ValueError('native null block cannot be counted as free capacity')
+    budget = scheduler.max_num_scheduled_tokens
+    _nonnegative_int('native iteration token budget', budget, positive=True)
+    if step['scheduled_tokens'] > budget:
+        raise ValueError('native scheduling count exceeds its iteration budget')
+    requests = []
+    for request_id, request in sorted(scheduler.requests.items()):
+        if request.request_id != request_id:
+            raise ValueError('native request identity mismatch')
+        if request.is_finished():
+            continue
+        prompt, generated = request.num_prompt_tokens, request.num_output_tokens
+        computed, in_flight = request.num_computed_tokens, request.num_in_flight_tokens
+        stale = request.num_stale_output_tokens
+        for name, value in (('prompt', prompt), ('generated', generated),
+                            ('computed', computed), ('in flight', in_flight),
+                            ('stale in flight', stale)):
+            _nonnegative_int(name, value)
+        # Preemption resets computed but retains old in-flight work until its
+        # output drains. Those stale positions no longer belong to this request's
+        # current KV assignment; native deferred-free blocks still own them.
+        if stale > in_flight or computed < in_flight - stale:
+            raise ValueError('native completed token count would be negative')
+        completed = computed - (in_flight - stale)
+        blocks = kv.get_blocks(request_id).blocks
+        if len(blocks) != 1 or any(b.is_null or b.ref_cnt <= 0 for b in blocks[0]):
+            raise ValueError('request KV contains unowned/null blocks')
+        if len({b.block_id for b in blocks[0]}) != len(blocks[0]):
+            raise ValueError('duplicate block within one full-attention request')
+        capacity = len(blocks[0]) * tokens_per_block
+        if capacity < computed:
+            raise ValueError('native computed/in-flight tokens lack reserved KV positions')
+        observation = AdmittedKVRequest(
+            request_id=request_id, input_bucket=bisect_left(input_upper_bounds, prompt),
+            output_limit=request.max_tokens, generated_tokens=generated,
+            unprocessed_prompt_tokens=max(0, prompt-completed),
+            reserved_unused_token_positions=capacity-completed)
+        requests.append({**observation.__dict__, 'native_completed_positions': completed,
+                         'native_in_flight_tokens': in_flight,
+                         'native_stale_in_flight_tokens': stale,
+                         'native_allocated_blocks': len(blocks[0]),
+                         # Generated history can need recomputation after preemption.
+                         # Keep this diagnostic separate: adding it to "prompt"
+                         # would silently change the paper's prediction formula.
+                         'native_uncomputed_generated_history': max(
+                             0, prompt + generated - max(prompt, completed)),
+                         'native_preemptions': request.num_preemptions})
+    from faaslora.clock import local_monotonic_clock_id
+    return {**step, 'kind': 'ieee_native_scheduler_observation_v1',
+            'clock_id': local_monotonic_clock_id(), 'captured_at': time.monotonic(),
+            'scheduler_pid': os.getpid(), 'input_upper_bounds': list(input_upper_bounds),
+            'kv_layout': 'full_attention_single_group', 'admitted': requests,
+            'admitted_scope': 'native_unfinished_requests_only',
+            'iteration_token_budget': budget, 'kv_tokens_per_block': tokens_per_block,
+            'kv_bytes_per_block': bytes_per_block, 'kv_unreserved_free_blocks': free,
+            'kv_pool_allocation_bytes': tensor.size,
+            'native_deferred_free_batches': len(scheduler.deferred_frees),
+            'admission_reservation': False, 'production_launch_authorized': False}
 
 
 _GPU_ADMISSION_DECISION_US: contextvars.ContextVar[float] = contextvars.ContextVar(
