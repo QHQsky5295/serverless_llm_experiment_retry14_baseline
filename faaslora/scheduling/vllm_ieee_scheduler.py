@@ -14,13 +14,25 @@ from vllm.v1.core.sched.async_scheduler import AsyncScheduler
 from vllm.v1.engine.core import EngineCore
 from vllm.v1.kv_cache_interface import FullAttentionSpec
 
-from .resource_coordinator import NativeIterationObservation, capture_native_kv_observation
+from .resource_coordinator import (NativeIterationObservation, NativeRequestRetirement,
+                                   capture_native_kv_observation)
 
 
 def _core_observation(core):
     if not isinstance(core.scheduler, IEEENativeAsyncScheduler):
         raise RuntimeError('IEEE observation is not enabled for this native scheduler')
     return core.scheduler.ieee_scheduler_observation()
+
+
+def _core_retirement(core, request_id, abort):
+    if not isinstance(core.scheduler, IEEENativeAsyncScheduler) or type(abort) is not bool:
+        raise RuntimeError('IEEE native retirement utility contract mismatch')
+    scheduler = core.scheduler
+    future = scheduler._ieee_retirement.wait(request_id)
+    if abort:
+        core.abort_requests([request_id])  # Original native cancellation, not a queue rewrite.
+    scheduler._ieee_retirement.advance(scheduler.requests, scheduler.processed_step_seq)
+    return future
 
 
 class IEEENativeAsyncScheduler(AsyncScheduler):
@@ -39,12 +51,28 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
         self._ieee_input_upper_bounds = tuple(config.additional_config[
             'ieee_tc_scheduler_observation']['input_upper_bounds'])
         self._ieee_iterations = NativeIterationObservation()
+        self._ieee_retirement = NativeRequestRetirement(self._ieee_iterations)
         # Validate actual layout immediately, before claiming this hook is ready.
         self.ieee_scheduler_observation()
         existing = getattr(EngineCore, 'ieee_scheduler_observation', None)
         if existing is not None and existing is not _core_observation:
             raise RuntimeError('native EngineCore utility bridge name collision')
         EngineCore.ieee_scheduler_observation = _core_observation
+        existing = getattr(EngineCore, 'ieee_request_retirement', None)
+        if existing is not None and existing is not _core_retirement:
+            raise RuntimeError('native EngineCore retirement bridge name collision')
+        EngineCore.ieee_request_retirement = _core_retirement
+
+    def add_request(self, request):
+        result = super().add_request(request)
+        self._ieee_retirement.added(request.request_id)
+        return result
+
+    def _free_request(self, request, *args, **kwargs):
+        result = super()._free_request(request, *args, **kwargs)
+        # Native _free_request_blocks uses sched_step_seq for deferred frees.
+        self._ieee_retirement.removed(request.request_id, self.sched_step_seq)
+        return result
 
     def schedule(self, *args, **kwargs):
         self._ieee_iterations.check_thread()
@@ -56,6 +84,7 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
         self._ieee_iterations.check_thread()
         output = super().update_from_output(scheduler_output, model_runner_output)
         self._ieee_iterations.completed(scheduler_output)
+        self._ieee_retirement.advance(self.requests, self.processed_step_seq)
         return output
 
     def ieee_scheduler_observation(self):

@@ -2693,6 +2693,7 @@ class InferenceEngine:
         self.backend = str(self.model_cfg.get("backend", "vllm")).lower()
         self.device_id = int(self.model_cfg.get("device_id", 0))
         self._counter = 0
+        self._ieee_generation_refs = {}
         self._lock = asyncio.Lock()
         self._reinit_lock = asyncio.Lock()
         self._engine_dead = False
@@ -3446,7 +3447,13 @@ class InferenceEngine:
                 os.environ["CUDA_VISIBLE_DEVICES"] = visible_devices
             try:
                 args = AsyncEngineArgs(**kwargs)
-                engine = AsyncLLMEngine.from_engine_args(args)
+                engine_cls = AsyncLLMEngine
+                if self.model_cfg.get('ieee_gpu_references', False):
+                    if not self.model_cfg.get('ieee_scheduler_observation', False):
+                        raise ValueError('native references require scheduler retirement observation')
+                    from faaslora.scheduling.vllm_ieee_frontend import IEEENativeAsyncLLM
+                    engine_cls = IEEENativeAsyncLLM
+                engine = engine_cls.from_engine_args(args)
             finally:
                 if prev_visible is None:
                     os.environ.pop("CUDA_VISIBLE_DEVICES", None)
@@ -4226,6 +4233,11 @@ class InferenceEngine:
                     expected_owner_id=gpu_reference['owner_id'],
                     adapter_int_id=int_id, backend_request_id=req_id,
                     lora_name=adapter_id, lora_path=lora_path)
+                lease_id = reference_receipt['lease_id']
+                if lease_id in self._ieee_generation_refs:
+                    raise ValueError('native lease cannot bind a second generation')
+                self._ieee_generation_refs[lease_id] = {
+                    'owner_id': reference_receipt['owner_id'], 'backend_request_id': req_id}
             elif gpu_reference is not None:
                 raise ValueError("dispatch reference supplied outside its native adapter contract")
 
@@ -4244,11 +4256,17 @@ class InferenceEngine:
             async for out in self.engine.generate(
                 prompt=prompt, sampling_params=sp, request_id=req_id, lora_request=lora_req
             ):
+                if native_timing and out.finished:
+                    # The native frontend can synthesize finished=True on abort;
+                    # only ordinary native completion can count as successful work.
+                    if (len(out.outputs) != 1
+                            or getattr(out.outputs[0], 'finish_reason', None) not in ('length', 'stop')):
+                        raise ValueError('non-success native finish reason; reference retained')
+                    if generation_contract == 'fixed_length_greedy_v1' and out.outputs[0].finish_reason != 'length':
+                        raise ValueError('fixed-output native completion must finish by length')
                 if reference_receipt is not None and out.finished:
+                    await self.ieee_retire_generation(gpu_reference=reference_receipt, abort=False)
                     backend_terminal = True
-                    await self.ieee_gpu_reference(
-                        operation="end_use", lease_id=reference_receipt['lease_id'],
-                        expected_owner_id=reference_receipt['owner_id'], backend_request_id=req_id)
                 metrics = getattr(out, "metrics", None)
                 if metrics is not None:
                     last_metrics = metrics
@@ -4446,6 +4464,25 @@ class InferenceEngine:
         if not isinstance(results, list) or len(results) != 1 or not isinstance(results[0], dict):
             raise RuntimeError("invalid single-worker reference acknowledgement")
         return results[0]
+
+    async def ieee_retire_generation(self, *, gpu_reference: Dict[str, Any], abort: bool) -> Dict[str, Any]:
+        """Settle one known request, never equate frontend abort with GPU completion."""
+        if not self.model_cfg.get('ieee_gpu_references', False) or type(abort) is not bool:
+            raise ValueError('native generation retirement contract required')
+        lease = gpu_reference['lease_id']
+        bound = self._ieee_generation_refs.get(lease)
+        if bound is None or bound['owner_id'] != gpu_reference['owner_id']:
+            raise ValueError('unknown native generation binding; reference retained')
+        if 'retirement' not in bound:
+            retirement = await self.engine.ieee_retire_request(bound['backend_request_id'], abort=abort)
+            if (retirement.get('retired') is not True
+                    or retirement.get('external_request_id') != bound['backend_request_id']):
+                raise ValueError('retirement did not acknowledge this bound request')
+            await self.ieee_gpu_reference(operation='end_use', lease_id=lease,
+                expected_owner_id=bound['owner_id'], backend_request_id=bound['backend_request_id'])
+            bound['retirement'] = dict(retirement)
+        return {'gpu_reference_owner_id': bound['owner_id'], 'gpu_reference_lease_id': lease,
+                'native_retirement': dict(bound['retirement'])}
 
     async def load_lora_to_gpu_and_measure(self, lora_path: str, adapter_id: str) -> Tuple[float, bool]:
         """
@@ -5206,6 +5243,9 @@ class SubprocessInferenceEngineProxy:
 
     async def ieee_scheduler_observation(self) -> Dict[str, Any]:
         return await self._rpc("ieee_scheduler_observation")
+
+    async def ieee_retire_generation(self, *, gpu_reference: Dict[str, Any], abort: bool) -> Dict[str, Any]:
+        return await self._rpc('ieee_retire_generation', gpu_reference=gpu_reference, abort=abort)
 
     async def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
         return await self._rpc("ieee_gpu_reference", operation=operation, **kwargs)
@@ -13517,8 +13557,28 @@ class ScenarioRunner:
         slot = reservation.slot
         native = self.model_cfg.get('timing_contract', 'legacy') == 'ieee_tc_native_v1'
         evidence = reservation.gpu_reference_evidence
+        if (native and reservation.generation_started and not reservation.native_terminal_observed
+                and evidence.get('state') == 'acquired' and 'retirement_receipt' not in evidence):
+            receipt = evidence['receipt']
+            try:
+                retired = await reservation.gpu_reference_engine.ieee_retire_generation(
+                    gpu_reference=receipt, abort=True)
+                if (not isinstance(retired, dict)
+                        or retired.get('gpu_reference_owner_id') != receipt['owner_id']
+                        or retired.get('gpu_reference_lease_id') != receipt['lease_id']
+                        or retired.get('native_retirement', {}).get('retired') is not True):
+                    raise ValueError('native retirement lacks this dispatch identity')
+                evidence['retirement_receipt'] = retired
+            except Exception as exc:
+                evidence['retirement_error'] = f'{type(exc).__name__}: {exc}'
+                self._retain_runtime_request_reservation(reservation)
+                return
+            except BaseException:
+                self._retain_runtime_request_reservation(reservation)
+                raise
         if (evidence.get('state') in ('acquiring', 'release_pending')
-                or (native and reservation.generation_started and not reservation.native_terminal_observed)):
+                or (native and reservation.generation_started and not reservation.native_terminal_observed
+                    and 'retirement_receipt' not in evidence)):
             # Sending abort / losing an RPC is not an engine-core terminal ack.
             # Keep capacity owned and withdraw this replica until native work
             # is reconciled or its actual worker has been stopped. No false free.

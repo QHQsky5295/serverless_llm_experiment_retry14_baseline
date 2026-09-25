@@ -16,6 +16,7 @@ import time
 import uuid
 from bisect import bisect_left
 from collections import defaultdict, deque
+from concurrent.futures import Future
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, Dict, List, Mapping, Optional, Tuple
@@ -73,6 +74,62 @@ class NativeIterationObservation:
                 'scheduled_request_ids': sorted(self._pending[-1][0].num_scheduled_tokens)
                     if self._pending else [],
                 'batch_pressure_semantics': 'latest_scheduled_unretired_iteration'}
+
+    def contains_request(self, request_id: str) -> bool:
+        self.check_thread()
+        return any(request_id in output.num_scheduled_tokens for output, _ in self._pending)
+
+
+class NativeRequestRetirement:
+    """Owner-thread completion receipts, including *all* in-flight iterations.
+
+    A frontend abort, absence from a queue, or an unrelated request's completion
+    cannot settle a request. Native removal records its deferred-KV fence; the
+    engine's completed executor output advances that fence. Futures keep the
+    EngineCore utility call nonblocking while its own event loop makes progress.
+    """
+
+    def __init__(self, iterations):
+        self.iterations = iterations
+        self.registered = set()
+        self.fences = {}
+        self.waiters = {}
+
+    def added(self, request_id):
+        self.iterations.check_thread()
+        if not isinstance(request_id, str) or not request_id or request_id in self.registered:
+            raise ValueError('missing or reused native request identity')
+        self.registered.add(request_id)
+
+    def removed(self, request_id, fence):
+        self.iterations.check_thread()
+        if request_id not in self.registered:
+            raise ValueError('unobserved native request removal')
+        _nonnegative_int('native retirement fence', fence)
+        self.fences[request_id] = fence
+
+    def wait(self, request_id):
+        self.iterations.check_thread()
+        if request_id not in self.registered:
+            raise ValueError('unobserved native request; absence is not retirement')
+        return self.waiters.setdefault(request_id, Future())
+
+    def advance(self, requests, processed_step_seq):
+        from faaslora.clock import local_monotonic_clock_id
+        self.iterations.check_thread()
+        _nonnegative_int('native processed sequence', processed_step_seq)
+        for request_id, future in self.waiters.items():
+            fence = self.fences.get(request_id)
+            if (future.done() or fence is None or request_id in requests
+                    or processed_step_seq < fence or self.iterations.contains_request(request_id)):
+                continue
+            future.set_result({
+                'kind': 'ieee_native_request_retirement_v1', 'retired': True,
+                'request_id': request_id, 'scheduler_owner_id': self.iterations.owner_id,
+                'retirement_fence': fence, 'processed_step_seq': processed_step_seq,
+                'retired_monotonic_s': time.monotonic(),
+                'clock_id': local_monotonic_clock_id(),
+            })
 
 
 def capture_native_kv_observation(scheduler, iterations: NativeIterationObservation,

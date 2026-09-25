@@ -255,7 +255,7 @@ S1 层级性能结论。native GPU pool 仍为预分配容量，非随每次驱�
 | memory/gpu_monitor.py | d3032ddbc1438e74b119d7cea371d0f37eea6843e9c89f2f7b3320205f3b4cf5 |
 | memory/residency_manager.py | 2c230bff24fb4c4bc87ef055493ead97d2a4bfa9520f26069dd3407de68a4643 |
 
-### 原生取消边界（源码审计，尚未实现/实测）
+### 原生取消边界（018e5a6 检查点的源码审计与反例）
 
 继续复用此入口和原始请求，不另建框架。下一步先验证两个真实请求并发时的
 原生 scheduler/KV 观测、共享/不同 adapter 引用与禁止活跃驱逐；再验证取消。
@@ -269,7 +269,7 @@ S1 层级性能结论。native GPU pool 仍为预分配容量，非随每次驱�
 取消集成不能把这类前端结束输出直接送入 `end_use` 或成功 TTFT/TPOT 统计。
 依据 [官方 output_processor 源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/output_processor.py)。
 已用既有三 token 测试夹具做反例：给 actual `generate_prepared` 的完成输出
-标注 `finish_reason=abort`，当前入口仍返回成功和 `native_terminal_observed=true`。
+标注 `finish_reason=abort`，当时入口仍返回成功和 `native_terminal_observed=true`。
 这证明当前接口缺少终止原因区分，不是一次实际 GPU 取消测量；原生取消资格
 仍未通过。反例输入与结果保存在 `20260926_frontend_abort_counterexample.json`。
 下一步需先拒绝这类通知作为正常终态，然后连接确切请求身份与后端在途完成，
@@ -281,6 +281,102 @@ S1 层级性能结论。native GPU pool 仍为预分配容量，非随每次驱�
 不在队列中”的观察不足以证明所有权已结束。设计应关联确切原生 ID、调度
 序列与完成事件，再执行引用释放；未知状态继续保留引用而不伪造成功。
 完整池、Full 控制器、真正 open-loop 与远端路径仍是后续独立资格门槛。
+
+### 请求取消与在途完成集成（2026-09-26，局部实测完成，边界仍开放）
+
+这一修改解决计量正确性，不宣称吞吐或时延优化，也不改变 IEEE 公式：
+
+1. 正常完成要求原生 `length/stop`；固定输出只接受 `length`。前端合成的
+   `abort`、错误或缺失原因不能算成功，即使 token 数正好等于目标。
+2. 小型、版本限定的 AsyncLLM 子类只记录原生 ADD 的 external/internal ID。
+   不关闭随机 ID，不修改采样、batch、cache 或调度策略。取消时等待已有 ADD
+   真正结束，防止一个延迟 ADD 在“已取消”后重新进入服务。
+3. 同一 scheduler 所有者记录原生 add/remove、全部在途 SchedulerOutput
+   和原生 deferred-KV fence。缺少已观察 add/remove、仍有相同 ID 的在途批次，
+   或 KV fence 未完成，都不能签发 retirement。不是只看最近一个 batch。
+4. EngineCore utility 返回 Future，随原生 executor 完成事件推进，不阻塞
+   自己的调度线程，不固定睡眠推断完成。收到确切请求回执后才 `end_use`；
+   正常完成同样经过此边界，随后 worker 引用释放保留既有 CUDA event fence。
+5. 既有控制器、子进程 RPC 和 proxy 增加同一请求归还入口。取消仍是失败/
+   取消结果，不因资源已归还而转为成功。未知绑定、丢失 acquisition 回复、
+   EngineCore 失败继续保留所有权，不能猜测释放；进程级退出仍由外部所有者计量。
+
+依据当次安装源码和 [官方 core 的异步批次与 utility Future 路径](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core.py)、
+[官方 scheduler 的 deferred block free](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/core/sched/scheduler.py)。
+无 GPU 回归：574 项功能、54 项安全通过。第一次针对性检查有一个测试夹具
+未设置普通完成原因，补上显式 `length` 后通过；没有放松生产校验。
+
+真实资格复用原四请求，在共享/不同 adapter 两组中等待两个请求都实际解码，
+再取消第一条。要求另一条仍在运行、保留独立引用并正确完成；共享 adapter
+不能卸载，不同 adapter 的取消一侧可以在 retirement 后卸载。采用 20 ms
+密集诊断采样，不纳入主性能统计。全量 Full、跨进程真实取消、排队/提交前
+取消、完整池及失联恢复的模型级资格不由这四请求代替。
+
+3B 首次真实取消检查的阶段结果（原始 attempt 不覆盖）：
+
+| 检查 | 共享 adapter | 不同 adapter |
+|---|---|---|
+| 实际两请求解码后取消一条 | 通过 | 通过 |
+| 取消后只剩另一条的引用 | 通过 | 通过 |
+| 被取消 adapter 的卸载探测 | 正确拒绝 | 正确允许 |
+| 另一条输出长度 | 59/59 | 217/217 |
+| 另一条输出 SHA 与旧正常完成对照 | 相同 | **不同，需审计** |
+| 最终引用、cache、GPU context 清理 | 通过 | 通过 |
+
+因此 curated 状态将 ownership 通过与完整输出资格分开，不把原始 qualifier
+的四个局部检查通过当成四条请求正确完成。两条是有意取消；其最终输出数量未知，
+不填零。当前不同-adapter 对照的输出差异需要进一步解释。下一次同设置只关闭
+“取消后主动卸载”探测，不修改模型、采样、token 目标、缓存容量或取消触发条件。
+[vLLM 0.30.0 batch-invariance 文档](https://docs.vllm.ai/en/v0.30.0/features/batch_invariance/)
+指出默认模式的输出不保证独立于批次构成，但这只能提出可检验解释，不能替代
+当前案例的验证；不为消除差异就悄悄打开可能改变性能的 batch-invariant 配置。
+
+3B retain-adapter 对照已结束：两条未取消请求的输出 SHA 与 cancel4 attempt1
+完全相同，仍分别为 59 和 217 tokens，prompt SHA 全部一致。两次均只剩另一
+请求的引用，最后清理完成。由此只能排除“差异必须由取消后的主动卸载产生”，
+不能据此声称已证明浮点批次效应、正确 adapter 或全部取消场景。
+两次检查的服务内存峰值分别为 4,952,301,568 / 4,933,423,104 bytes，
+各 60 次外部采样，high/max/OOM/OOM-kill 均为零；旧数据没有覆盖。
+
+| 来源 | 资源检查 | 输出审计 | 原始结果 SHA256 |
+|---|---|---|---|
+| 3B cancel4 attempt1 | 通过 | 不同-adapter 存活请求与无取消参考不同 | 6893ea227b435284de6a0e6affeff62f753fee9f8307296fb6cdceed9d2f4044 |
+| 3B cancelretain4 attempt1 | 通过 | 与 cancel4 两条存活请求均相同 | 29383c230f3fb6c534dc30cdf113fa7428fd636fa66af6048b5519f02e8f996c |
+
+输出审计未闭合的 curated JSON 明确 `pass=false`，并单独保留
+`ownership_checks_pass=true`、两条有意取消和两条固定长度完成。
+
+7B cancel4 attempt1 的两组均通过同样检查，存活请求为 59/59、217/217，
+两条输出 SHA 和全部 prompt SHA 与旧正常完成参考相同。取消后每组仅剩
+存活请求的引用；共享 adapter 卸载拒绝，不同 adapter 卸载成功，另一请求
+继续完成。54 次外部采样，峰值 5,033,377,792 bytes，high/max/OOM/OOM-kill
+均零，GPU context 清空且 scope 消失。原始结果 SHA256：
+`2322a5be2bbf448c18b55afcbb23a82ee5b710dfbe7ad162020536b44ccdeb97`。
+
+两模型本配置的原生 `defer_block_free` 路径未推进序列（回执 fence/processed
+均为 0），不能宣称实测触发了非零 deferred-KV fence。全部在途批次的确认
+仍由独立的 NativeIterationObservation 检查；非零 fence 的等待只在受控
+测试对象上验证。最终没有 native admitted request/在途 iteration 遗留。
+
+执行源身份（修改均限本仓库，没有改安装的 vLLM 文件）：
+
+| 文件 | SHA256 |
+|---|---|
+| scripts/run_all_experiments.py | 9534ac8d6fc4d8aca24170f56d139e2ba24ffb325ffeb7ac7a6e676f09680704 |
+| faaslora/scheduling/resource_coordinator.py | 0fc7da8bbb37ba7b377915a69ecd2ff1ca905c1c7fbf8f5f436b3a4a725bb678 |
+| faaslora/scheduling/vllm_ieee_scheduler.py | bf1bc75686acd51e5d65d6d2fd0cd827f4d1107d791aa9049d978601cc36b814 |
+| faaslora/scheduling/vllm_ieee_frontend.py | 2020beeedd381fb2d5aa0957ef9d63bb617e839dada3c77c9c672ab2516c1dca |
+| scripts/dedicated_engine_worker.py | 05dc860609be78aaea29efb361aed4c7d0cdaa94ea5e8e5bd7f75c708f6cab5d |
+| scripts/ieee_tc_preflight.py，3B cancel4 | a2c4bda7c96eb47d70cb933f08145e5bc8143eb84be0af0c439f63a246c807c9 |
+| scripts/ieee_tc_preflight.py，3B retain/7B cancel | 0cee556c523ddf80466bd6a104699e30da5ccd3a75848f95c5ede28a2255f41d |
+
+跨进程边界仍有具体待解决项：旧 proxy 在取消 socket roundtrip 时会设置
+`_engine_dead=true`，随后拒绝包含 retirement 的全部 RPC。因此新入口和
+fake-engine 控制器测试不等于真实断连恢复。必须区分“该 socket 不可信”和
+“原生 engine 已死亡”，为确切 dispatch 的对账提供独立、可核验的控制通道；
+不得复用被取消的 socket、重发生成请求、无证据清除失效标志或提前释放资源。
+这个问题不影响上述本地 InferenceEngine 的实测结论，但阻止宣称 Full
+跨进程取消已经合格。下一步与 3B 原生输出对照一起闭合，再进入完整池主线。
 
 ## 原生计量接入注意事项
 

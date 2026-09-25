@@ -1327,7 +1327,8 @@ def qualification_request_mapping(external_ids, mapping):
     return result
 
 
-async def qualify_concurrent_pairs(engine, plan, adapters, result):
+async def qualify_concurrent_pairs(engine, plan, adapters, result, *, cancel_first=False,
+                                   probe_cancel_eviction=True):
     """Two original pairs; preload references, then use unmodified native batching.
 
     This diagnostic samples frequently and probes prohibited eviction. Its latency
@@ -1372,6 +1373,8 @@ async def qualify_concurrent_pairs(engine, plan, adapters, result):
                     lora_path=path, adapter_id=aid, temperature=0., top_p=1.,
                     generation_seed=42, return_timing=True, gpu_reference=reference))
                  for prepared, path, aid, reference, _ in prepared_cases]
+        cancelled = False
+        external_ids = None
         try:
             async with asyncio.timeout(1800.):
                 while not all(task.done() for task in tasks):
@@ -1379,15 +1382,63 @@ async def qualify_concurrent_pairs(engine, plan, adapters, result):
                     mapping = {key: list(value) for key, value
                                in engine.engine.output_processor.external_req_ids.items()}
                     pair['samples'].append({'scheduler': native, 'frontend_mapping': mapping})
+                    if cancel_first and not cancelled:
+                        bindings = [engine._ieee_generation_refs.get(ref['lease_id'])
+                                    for _, _, _, ref, _ in prepared_cases]
+                        if all(bindings):
+                            ids = [binding['backend_request_id'] for binding in bindings]
+                            exact = qualification_request_mapping(ids, mapping)
+                            decoding = {r['request_id'] for r in native['admitted']
+                                        if r['generated_tokens'] > 0 and r['native_allocated_blocks'] > 0}
+                            if exact and set(exact.values()).issubset(decoding) and set(exact.values()).issubset(
+                                    native['scheduled_request_ids']):
+                                external_ids = ids
+                                pair['cancel_trigger'] = pair['samples'][-1]
+                                tasks[0].cancel()
+                                try:
+                                    await tasks[0]
+                                except asyncio.CancelledError:
+                                    pass
+                                else:
+                                    raise RuntimeError('cancelled request unexpectedly succeeded')
+                                _, _, aid, ref, case = prepared_cases[0]
+                                pair['retirement'] = await engine.ieee_retire_generation(gpu_reference=ref, abort=True)
+                                case['release'] = await engine.ieee_gpu_reference(operation='release',
+                                    lease_id=ref['lease_id'], expected_owner_id=ref['owner_id'])
+                                if case['release'].get('released') is not True or tasks[1].done():
+                                    raise RuntimeError('cancel release/surviving concurrent request not witnessed')
+                                pair['after_cancel'] = await engine.ieee_gpu_reference(operation='snapshot')
+                                survivor_ref = prepared_cases[1][3]
+                                expected_counts = {str(survivor_ref['adapter_int_id']): 1}
+                                counts = {str(k): v for k, v in pair['after_cancel']['reference_counts'].items()}
+                                if counts != expected_counts or pair['after_cancel']['live_leases'] != 1:
+                                    raise RuntimeError('cancel released another request or retained its own reference')
+                                shared = aid == prepared_cases[1][2]
+                                if probe_cancel_eviction:
+                                    pair['cancel_eviction_probe'] = await engine.ieee_gpu_reference(operation='evict',
+                                        adapter_int_id=engine._lora_int_id(aid))
+                                    if pair['cancel_eviction_probe']['evicted'] != (not shared):
+                                        raise RuntimeError('cancelled-adapter eviction violates remaining ownership')
+                                else:
+                                    pair['cancel_eviction_probe'] = {'not_run': 'retain_adapter_control'}
+                                case.update(outcome='cancelled', actual_tokens=None, pass_cancel_retirement=True,
+                                            **{'pass': True})
+                                cancelled = True
                     # Measurement cadence only; no delay in the backend/control policy.
                     await asyncio.sleep(.02)
-                outputs = await asyncio.gather(*tasks)
+                if cancel_first:
+                    if not cancelled:
+                        raise RuntimeError('no jointly decoding native batch witnessed before cancel')
+                    outputs = [None, await tasks[1]]
+                else:
+                    outputs = await asyncio.gather(*tasks)
         finally:
             for task in tasks:
                 if not task.done():
                     task.cancel()
             await asyncio.gather(*tasks, return_exceptions=True)
-        external_ids = [out[3]['backend_request_id'] for out in outputs]
+        if external_ids is None:
+            external_ids = [out[3]['backend_request_id'] for out in outputs]
         mappings = [qualification_request_mapping(external_ids, s['frontend_mapping']) for s in pair['samples']]
         stable = [m for m in mappings if m is not None]
         if not stable or any(m != stable[0] for m in stable):
@@ -1402,7 +1453,10 @@ async def qualify_concurrent_pairs(engine, plan, adapters, result):
         if not pair['same_native_batch_observed'] or not pair['both_have_native_kv_observed']:
             raise RuntimeError('real overlap/batch/KV not witnessed; do not infer it from two tasks')
         for (_, _, _, reference, case), output in zip(prepared_cases, outputs):
+            if output is None:
+                continue  # A cancelled request is not a successful fixed-work sample.
             case['actual_tokens'], case['timing'] = output[2], output[3]
+            case['outcome'] = 'completed'
             if output[2] != case['target_tokens'] or output[3]['native_terminal_observed'] is not True:
                 raise RuntimeError('concurrent native output/terminal differs from contract')
             case['release'] = await engine.ieee_gpu_reference(operation='release',
@@ -1433,7 +1487,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         raise RuntimeError('model qualification requires completed CUDA check in this environment')
     if type(count) is not int or not 1 <= count <= 100:
         raise ValueError('qualification uses a 1..100 request prefix, not a regenerated trace')
-    if mode not in ('sequential', 'concurrent_pairs') or (mode == 'concurrent_pairs' and count != 4):
+    if mode not in ('sequential', 'concurrent_pairs', 'cancel_pairs', 'cancel_pairs_retain_adapter') or (mode != 'sequential' and count != 4):
         raise ValueError('concurrent qualification requires exactly the original four-request prefix')
     result = {'kind': 'backend_native_model_prefix_qualification_v1', 'pass': False,
               'full_model_qualification': False, 'production_launch_authorized': False,
@@ -1443,8 +1497,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
               'profile': profile, 'stage': 'imports', 'requests': [],
               'input_mode': 'existing_trace_prefix_sequential_qualification',
               'artifact_mode': 'existing_local_frozen_qualification_only'}
-    if mode == 'concurrent_pairs':
-        result.update(kind='backend_native_concurrent_pairs_qualification_v1',
+    if mode != 'sequential':
+        result.update(kind=f'backend_native_{mode}_qualification_v1',
                       input_mode='existing_four_request_prefix_concurrent_pairs_qualification')
     engine = None
     try:
@@ -1498,9 +1552,11 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             validate_model_worker(worker, service, local_monotonic_clock_id())
         result['scheduler_before'] = await engine.ieee_scheduler_observation()
         result['sources_before'] = await engine.ieee_gpu_reference(operation='source_snapshot')
-        if mode == 'concurrent_pairs':
-            result['stage'] = 'concurrent_pairs'
-            await qualify_concurrent_pairs(engine, plan, adapters, result)
+        if mode != 'sequential':
+            result['stage'] = mode
+            await qualify_concurrent_pairs(engine, plan, adapters, result,
+                cancel_first=mode.startswith('cancel_pairs'),
+                probe_cancel_eviction=(mode != 'cancel_pairs_retain_adapter'))
         for entry in plan.entries if mode == 'sequential' else ():
             row = json.loads(entry.source_json)
             aid, target = row['adapter_id'], min(row['expected_output_tokens'], 256)
@@ -1674,7 +1730,8 @@ def main():
     parser.add_argument('--config', type=Path)
     parser.add_argument('--model-profile')
     parser.add_argument('--request-count', type=int, default=4)
-    parser.add_argument('--qualification-mode', choices=['sequential', 'concurrent_pairs'], default='sequential')
+    parser.add_argument('--qualification-mode', choices=['sequential', 'concurrent_pairs', 'cancel_pairs',
+                        'cancel_pairs_retain_adapter'], default='sequential')
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')

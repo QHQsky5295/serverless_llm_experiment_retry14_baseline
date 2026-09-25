@@ -99,12 +99,14 @@ class NativeTokenContract(unittest.TestCase):
 
 
 class EngineTimingIntegration(unittest.TestCase):
-    def engine(self, *, native=True, ids=(11, 12, 13), stats=None, finished=True):
+    def engine(self, *, native=True, ids=(11, 12, 13), stats=None, finished=True, finish_reason='length'):
         class FakeVllmEngine:
             async def generate(self, **kwargs):
-                yield SimpleNamespace(outputs=[SimpleNamespace(token_ids=list(ids))],
+                yield SimpleNamespace(outputs=[SimpleNamespace(token_ids=list(ids), finish_reason=finish_reason)],
                                       metrics=stats if stats is not None else metrics(),
                                       prompt_token_ids=[1, 2], finished=finished)
+            async def ieee_retire_request(self, external, *, abort):
+                return {'retired': True, 'external_request_id': external}
         engine = InferenceEngine({"backend": "vllm", "generation_contract": "fixed_length_greedy_v1",
                                   "timing_contract": "ieee_tc_native_v1" if native else "legacy"}, {})
         engine.engine = FakeVllmEngine()
@@ -138,6 +140,13 @@ class EngineTimingIntegration(unittest.TestCase):
             self.generate(self.engine(), target=4)
         with self.assertRaisesRegex(RuntimeError, 'incomplete native'):
             self.generate(self.engine(finished=False))
+
+    def test_frontend_abort_is_not_success_even_when_token_count_matches(self):
+        for reason in ('abort', 'error', None):
+            with self.subTest(reason=reason), self.assertRaisesRegex(RuntimeError, 'non-success native'):
+                self.generate(self.engine(finish_reason=reason))
+        with self.assertRaisesRegex(RuntimeError, 'finish by length'):
+            self.generate(self.engine(finish_reason='stop'))
 
     def test_actual_engine_does_not_retry_hidden_attempts(self):
         engine = self.engine()
@@ -315,7 +324,7 @@ class FixedWorkContract(unittest.TestCase):
         engine = helper.engine()
         class MissingPromptEngine:
             async def generate(self, **kwargs):
-                yield SimpleNamespace(outputs=[SimpleNamespace(token_ids=[11, 12, 13])],
+                yield SimpleNamespace(outputs=[SimpleNamespace(token_ids=[11, 12, 13], finish_reason='length')],
                                       metrics=metrics(), prompt_token_ids=None, finished=True)
         engine.engine = MissingPromptEngine()
         with self.assertRaisesRegex(RuntimeError, 'native prompt token IDs required'):

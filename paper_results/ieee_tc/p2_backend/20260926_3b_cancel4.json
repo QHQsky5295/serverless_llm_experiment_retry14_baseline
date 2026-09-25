@@ -1,0 +1,467 @@
+{
+  "kind": "p2_native_cancel4_summary_v1",
+  "model": "llama32_3b",
+  "pass": false,
+  "formal_performance_result": false,
+  "cancellation_scope": "in_decode_same_and_different_adapter_pairs_local_engine",
+  "full_controller_rpc_model_qualified": false,
+  "input_mode": "existing_four_request_prefix_concurrent_pairs_qualification",
+  "artifact_mode": "existing_local_frozen_qualification_only",
+  "n_plan": 4,
+  "n_correct": null,
+  "n_intentionally_cancelled": 2,
+  "completed_request_output_tokens": 276,
+  "cancelled_actual_output_tokens": null,
+  "survivor_output_and_all_prompt_hash_match_prior": false,
+  "max_e2e_error_ms": 0,
+  "max_tpot_error_ms": 0,
+  "adapter_caches_empty_after_cleanup": true,
+  "trace": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "6b796f614169a3e9d36d7b217560595a8bbb0a8e441e671ff821e104d6d1fd74",
+    "count": 4,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1
+  },
+  "model_config": {
+    "name": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+    "backend": "vllm",
+    "device_id": 0,
+    "visible_device_ids": [
+      0
+    ],
+    "tensor_parallel_size": 1,
+    "gpu_memory_utilization": 0.72,
+    "max_model_len": 1024,
+    "max_loras": 8,
+    "max_cpu_loras": 32,
+    "max_lora_rank": 64,
+    "enable_lora": true,
+    "enforce_eager": "auto",
+    "dtype": "float16",
+    "max_num_seqs": 8,
+    "max_num_batched_tokens": 4096,
+    "max_output_tokens_cap": 256,
+    "max_input_len": 759,
+    "runtime_concurrency_cap": 8,
+    "enable_chunked_prefill": false,
+    "enable_prefix_caching": false,
+    "timing_contract": "ieee_tc_native_v1",
+    "ieee_worker_observation": true,
+    "ieee_gpu_references": true,
+    "ieee_scheduler_observation": true,
+    "ieee_input_upper_bounds": [
+      759
+    ],
+    "generation_contract": "fixed_length_greedy_v1",
+    "canonical_prompt_renderer": "role_lines_v1"
+  },
+  "config_sha256": "f923c36d541046639ba70691106cf7841b322f850377bd8d719004adc959e45d",
+  "check_source_sha256": "a2c4bda7c96eb47d70cb933f08145e5bc8143eb84be0af0c439f63a246c807c9",
+  "pairs": [
+    {
+      "source_indices": [
+        0,
+        1
+      ],
+      "pass": true,
+      "retirement": {
+        "gpu_reference_owner_id": "8f3ff9c1fdbe405e821139542ff3bc8a",
+        "gpu_reference_lease_id": "batch-qualification/req_00000",
+        "native_retirement": {
+          "kind": "ieee_native_request_retirement_v1",
+          "retired": true,
+          "request_id": "req_1-98c77075",
+          "scheduler_owner_id": "b74890ff60b04247984b6ba16b591d55",
+          "retirement_fence": 0,
+          "processed_step_seq": 0,
+          "retired_monotonic_s": 236651.461217572,
+          "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+          "external_request_id": "req_1"
+        }
+      },
+      "after_cancel": {
+        "owner_id": "8f3ff9c1fdbe405e821139542ff3bc8a",
+        "epoch": 9,
+        "slot_adapter_ids": [
+          963725,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "reference_counts": {
+          "963725": 1
+        },
+        "live_leases": 1,
+        "released_leases": 1,
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+        "worker_pid": 3134591,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false
+      },
+      "cancel_eviction_probe": {
+        "evicted": false,
+        "reason": "referenced",
+        "owner_id": "8f3ff9c1fdbe405e821139542ff3bc8a",
+        "epoch": 9,
+        "slot_adapter_ids": [
+          963725,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "reference_counts": {
+          "963725": 1
+        },
+        "live_leases": 1,
+        "released_leases": 1,
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+        "worker_pid": 3134591,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false
+      },
+      "request_id_mapping": {
+        "req_1": "req_1-98c77075",
+        "req_2": "req_2-b090eea0"
+      },
+      "same_native_batch_observed": true,
+      "both_have_native_kv_observed": true,
+      "after_release": {
+        "owner_id": "8f3ff9c1fdbe405e821139542ff3bc8a",
+        "epoch": 12,
+        "slot_adapter_ids": [
+          963725,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "reference_counts": {},
+        "live_leases": 0,
+        "released_leases": 2,
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+        "worker_pid": 3134591,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false
+      },
+      "sample_count": 30,
+      "cancel_trigger": {
+        "scheduler": {
+          "scheduler_owner_id": "b74890ff60b04247984b6ba16b591d55",
+          "scheduled_sequence": 4,
+          "completed_sequence": 3,
+          "unretired_iterations": 1,
+          "scheduled_tokens": 2,
+          "scheduled_request_ids": [
+            "req_1-98c77075",
+            "req_2-b090eea0"
+          ],
+          "batch_pressure_semantics": "latest_scheduled_unretired_iteration",
+          "kind": "ieee_native_scheduler_observation_v1",
+          "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+          "captured_at": 236651.433313665,
+          "scheduler_pid": 3134591,
+          "input_upper_bounds": [
+            759
+          ],
+          "kv_layout": "full_attention_single_group",
+          "admitted": [
+            {
+              "request_id": "req_1-98c77075",
+              "input_bucket": 1,
+              "output_limit": 152,
+              "generated_tokens": 3,
+              "unprocessed_prompt_tokens": 0,
+              "reserved_unused_token_positions": 6,
+              "native_completed_positions": 762,
+              "native_in_flight_tokens": 1,
+              "native_stale_in_flight_tokens": 0,
+              "native_allocated_blocks": 48,
+              "native_uncomputed_generated_history": 1,
+              "native_preemptions": 0
+            },
+            {
+              "request_id": "req_2-b090eea0",
+              "input_bucket": 0,
+              "output_limit": 59,
+              "generated_tokens": 2,
+              "unprocessed_prompt_tokens": 0,
+              "reserved_unused_token_positions": 2,
+              "native_completed_positions": 478,
+              "native_in_flight_tokens": 1,
+              "native_stale_in_flight_tokens": 0,
+              "native_allocated_blocks": 30,
+              "native_uncomputed_generated_history": 1,
+              "native_preemptions": 0
+            }
+          ],
+          "admitted_scope": "native_unfinished_requests_only",
+          "iteration_token_budget": 4096,
+          "kv_tokens_per_block": 16,
+          "kv_bytes_per_block": 1835008,
+          "kv_unreserved_free_blocks": 5004,
+          "kv_pool_allocation_bytes": 9327345664,
+          "native_deferred_free_batches": 0,
+          "admission_reservation": false,
+          "production_launch_authorized": false
+        },
+        "frontend_mapping": {
+          "req_1": [
+            "req_1-98c77075"
+          ],
+          "req_2": [
+            "req_2-b090eea0"
+          ]
+        }
+      }
+    },
+    {
+      "source_indices": [
+        2,
+        3
+      ],
+      "pass": true,
+      "retirement": {
+        "gpu_reference_owner_id": "8f3ff9c1fdbe405e821139542ff3bc8a",
+        "gpu_reference_lease_id": "batch-qualification/req_00002",
+        "native_retirement": {
+          "kind": "ieee_native_request_retirement_v1",
+          "retired": true,
+          "request_id": "req_3-a06758fe",
+          "scheduler_owner_id": "b74890ff60b04247984b6ba16b591d55",
+          "retirement_fence": 0,
+          "processed_step_seq": 0,
+          "retired_monotonic_s": 236652.444207938,
+          "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+          "external_request_id": "req_3"
+        }
+      },
+      "after_cancel": {
+        "owner_id": "8f3ff9c1fdbe405e821139542ff3bc8a",
+        "epoch": 22,
+        "slot_adapter_ids": [
+          963725,
+          416753,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "reference_counts": {
+          "963725": 1
+        },
+        "live_leases": 1,
+        "released_leases": 3,
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+        "worker_pid": 3134591,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false
+      },
+      "cancel_eviction_probe": {
+        "evicted": true,
+        "reason": "removed",
+        "owner_id": "8f3ff9c1fdbe405e821139542ff3bc8a",
+        "epoch": 26,
+        "slot_adapter_ids": [
+          963725,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "reference_counts": {
+          "963725": 1
+        },
+        "live_leases": 1,
+        "released_leases": 3,
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+        "worker_pid": 3134591,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false
+      },
+      "request_id_mapping": {
+        "req_3": "req_3-a06758fe",
+        "req_4": "req_4-87d6b122"
+      },
+      "same_native_batch_observed": true,
+      "both_have_native_kv_observed": true,
+      "after_release": {
+        "owner_id": "8f3ff9c1fdbe405e821139542ff3bc8a",
+        "epoch": 29,
+        "slot_adapter_ids": [
+          963725,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "reference_counts": {},
+        "live_leases": 0,
+        "released_leases": 4,
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+        "worker_pid": 3134591,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false
+      },
+      "sample_count": 107,
+      "cancel_trigger": {
+        "scheduler": {
+          "scheduler_owner_id": "b74890ff60b04247984b6ba16b591d55",
+          "scheduled_sequence": 65,
+          "completed_sequence": 64,
+          "unretired_iterations": 1,
+          "scheduled_tokens": 2,
+          "scheduled_request_ids": [
+            "req_3-a06758fe",
+            "req_4-87d6b122"
+          ],
+          "batch_pressure_semantics": "latest_scheduled_unretired_iteration",
+          "kind": "ieee_native_scheduler_observation_v1",
+          "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+          "captured_at": 236652.412570981,
+          "scheduler_pid": 3134591,
+          "input_upper_bounds": [
+            759
+          ],
+          "kv_layout": "full_attention_single_group",
+          "admitted": [
+            {
+              "request_id": "req_3-a06758fe",
+              "input_bucket": 0,
+              "output_limit": 123,
+              "generated_tokens": 4,
+              "unprocessed_prompt_tokens": 0,
+              "reserved_unused_token_positions": 14,
+              "native_completed_positions": 306,
+              "native_in_flight_tokens": 1,
+              "native_stale_in_flight_tokens": 0,
+              "native_allocated_blocks": 20,
+              "native_uncomputed_generated_history": 1,
+              "native_preemptions": 0
+            },
+            {
+              "request_id": "req_4-87d6b122",
+              "input_bucket": 0,
+              "output_limit": 217,
+              "generated_tokens": 3,
+              "unprocessed_prompt_tokens": 0,
+              "reserved_unused_token_positions": 12,
+              "native_completed_positions": 324,
+              "native_in_flight_tokens": 1,
+              "native_stale_in_flight_tokens": 0,
+              "native_allocated_blocks": 21,
+              "native_uncomputed_generated_history": 1,
+              "native_preemptions": 0
+            }
+          ],
+          "admitted_scope": "native_unfinished_requests_only",
+          "iteration_token_budget": 4096,
+          "kv_tokens_per_block": 16,
+          "kv_bytes_per_block": 1835008,
+          "kv_unreserved_free_blocks": 5041,
+          "kv_pool_allocation_bytes": 9327345664,
+          "native_deferred_free_batches": 0,
+          "admission_reservation": false,
+          "production_launch_authorized": false
+        },
+        "frontend_mapping": {
+          "req_3": [
+            "req_3-a06758fe"
+          ],
+          "req_4": [
+            "req_4-87d6b122"
+          ]
+        }
+      }
+    }
+  ],
+  "scheduler_after": {
+    "scheduler_owner_id": "b74890ff60b04247984b6ba16b591d55",
+    "scheduled_sequence": 278,
+    "completed_sequence": 278,
+    "unretired_iterations": 0,
+    "scheduled_tokens": 0,
+    "scheduled_request_ids": [],
+    "batch_pressure_semantics": "latest_scheduled_unretired_iteration",
+    "kind": "ieee_native_scheduler_observation_v1",
+    "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+    "captured_at": 236655.230073162,
+    "scheduler_pid": 3134591,
+    "input_upper_bounds": [
+      759
+    ],
+    "kv_layout": "full_attention_single_group",
+    "admitted": [],
+    "admitted_scope": "native_unfinished_requests_only",
+    "iteration_token_budget": 4096,
+    "kv_tokens_per_block": 16,
+    "kv_bytes_per_block": 1835008,
+    "kv_unreserved_free_blocks": 5082,
+    "kv_pool_allocation_bytes": 9327345664,
+    "native_deferred_free_batches": 0,
+    "admission_reservation": false,
+    "production_launch_authorized": false
+  },
+  "resources": {
+    "samples": 60,
+    "peak_bytes": 4952301568,
+    "min_host_available_bytes": 106492940288,
+    "event_max": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "cleanup": {
+    "native_gpu_contexts_clear": true,
+    "scope_removed": true
+  },
+  "result_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama32_3b_cancel4_attempt1.json",
+  "result_sha256": "6893ea227b435284de6a0e6affeff62f753fee9f8307296fb6cdceed9d2f4044",
+  "launch_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama32_3b_cancel4_attempt1_launch.json",
+  "launch_sha256": "039290ce6cf470866b1de0e60c0adea0261853633b54ea721bf104611c60b25f",
+  "evidence_sha256": {
+    "watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exec_receipt.json": "91ffd62df83a39953e6b99f7d6a3817c324cf80f12db00103d7d94651b6c37e4",
+    "watchdog.jsonl": "2b9ed08fb0ced6a8994e81fe8c8a08a876f29545346c376ccfc4bb345096fe9d",
+    "service.log": "a449fdbfc049370531c7bc9a2ced570d46600dbd8bf31ed6b1a63667af07fabf"
+  },
+  "csv_sha256": "85025f1500fdd69a6896f443561839a91206cd45cd568e97a69b5378ed0b3de0",
+  "ownership_checks_pass": true,
+  "output_identity_review": "distinct-adapter survivor output hash differs; retirement passed, attribution pending retain-adapter control",
+  "n_completed_fixed_length": 2
+}

@@ -157,6 +157,9 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
                     elif cmd == "ieee_scheduler_observation":
                         result = await engine.ieee_scheduler_observation(**kwargs)
                         response = {"ok": True, "result": result}
+                    elif cmd == 'ieee_retire_generation':
+                        result = await engine.ieee_retire_generation(**kwargs)
+                        response = {"ok": True, "result": result}
                     elif cmd == "ieee_gpu_reference":
                         result = await engine.ieee_gpu_reference(**kwargs)
                         response = {"ok": True, "result": result}

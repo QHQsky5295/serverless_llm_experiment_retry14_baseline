@@ -22,7 +22,7 @@
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
 | P1 IEEE semantic alignment | Mathematical contracts, native references, managed file ownership/storage and preallocated content-verified HTTP transfers tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D19. Native fetch allocates archive/payload before body reads under the owner file budget, retains old copies and concurrent allocations. Full-pool qualification, all-tier physical reservations/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
-| P2 backend qualification | Actual 3B/7B 100-request sequential and two native concurrent pairs passed; cancel/pool qualification pending | P2_BACKEND_QUALIFICATION.md + 20260926_{3b,7b}_{smoke100,batch4}.{json,csv}. Actual same-batch/KV and retained-reference eviction checks pass; both normal-completion paths clean up. Earlier failed attempts retained. Not open-loop/remote or a main performance point |
+| P2 backend qualification | Actual sequential100/normal batch4 passed; local cancellation ownership passes both models, 3B output audit/RPC/pool gates open | P2_BACKEND_QUALIFICATION.md + smoke100/batch4/cancel4 summaries. 7B cancel survivors match old outputs; 3B distinct-adapter survivor differs, retain-adapter control matches cancel output. Not open-loop/remote/main performance |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
 | A1–A5, S1–S3 | Not started | Shared frozen policies required |
@@ -51,13 +51,17 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-0. P2 installation finished; do NOT reinstall. Environment `/home/qhq/.venvs/primelora_vllm0300_tc_20260925`. Both 3B/7B 100-request sequential and two actual concurrent pairs now pass; earlier failures retained. All four new scopes gone, GPU contexts clear. Next: native cancellation/release integration and actual qualification, then full pool and Full owner integration. Reuse `model_20260926/candidate_cache`; keep candidate/bin on PATH. Preserve exact external/internal native request-ID mapping before abort; frontend abort only sends ABORT and can synthesize out.finished with finish_reason=abort. Never pass that notification directly as native end_use proof. Native scheduler retirement and in-flight work must be reconciled. Do not jump to formal metrics, regenerate data, or return to unrelated primitives.
+0. P2 installation finished; do NOT reinstall. Environment `/home/qhq/.venvs/primelora_vllm0300_tc_20260925`. All three latest cancel/retain model runs finished; contexts clear and scopes removed. Local retirement/ownership passes both models. 7B survivors match prior output SHA; 3B different-adapter survivor differs, even without post-cancel eviction (both cancel modes have identical survivor hashes). Next bounded work: native-output attribution/reference check for 3B and real subprocess reconciliation: old proxy marks _engine_dead on cancelled socket and currently refuses even retirement RPC. Separate uncertain channel from native engine failure, preserve no-retry and exact-ID ownership. Then full pool and Full integration; no more repetitions of normal batch4. Reuse candidate_cache, candidate/bin on PATH, original assets/trace. Formal metrics remain unqualified.
 1. Continue native owner integration: measured source-class costs, resource-owner remaining budgets, atomic routing/admission. Native token/reference interfaces and startup-parallel external arrival/submission are opt-in and unit/witness tested, but actual engine clocks/streams/controller owners remain open. Do not declare the historical scorer IEEE-aligned.
 2. Qualify actual model/GPU workers and lifecycle under the existing guarded launcher; native single-raylet and tiny replay witnesses are not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
 ## Verified backups
+
+- Main real concurrent-batch checkpoint `018e5a6337e1a8ca618686a6124a7e88043aaa21`
+  pushed to V2; remote SHA verified. Both models' shared/different-adapter pairs
+  qualify normal completion; frontend-abort counterexample remains explicit.
 
 - Main two-model 100-request checkpoint `5e8736e31a4c837c272267fd83b95c23c21bf7d1`
   pushed to V2; remote SHA verified. Both sequential qualification runs and
@@ -950,3 +954,46 @@ configs/relayserve_motivation_serverlessllm.yaml.
   Both raw bundles, curated CSV, source trace/config/checker SHAs verified;
   147 protected entries and authoritative plan unchanged; four GPUs idle at
   15 MiB/0%. No raw weights/traces duplicated and no original results overwritten.
+
+## P2 native cancellation retirement checkpoint
+
+- Closed the synthetic-finished counterexample: native abort/error/missing finish
+  reason cannot count as successful fixed-output work. Exact native ADD IDs are
+  retained, and cancellation joins an in-progress submission. No ID-prefix guess,
+  fixed-sleep completion, hidden generation retry or native scheduler replacement.
+- Native owner waits for observed removal, all request-bearing in-flight batches
+  and the original deferred-KV fence before acknowledging end_use. Normal terminal
+  uses the same retirement boundary. Actual configuration's native fence is zero;
+  nonzero deferred-block fences are unit-tested, not claimed as model-triggered.
+- Three real runs completed: 3B cancel4, 3B retain-adapter control, 7B cancel4.
+  All ownership/retirement/reference and final cleanup checks pass. Each run has
+  two intentionally cancelled requests and two 59/217-token survivors; these are
+  NOT four correct fixed-work requests or new main performance measurements.
+- 7B survivor output hashes match prior sequential/normal-batch references.
+  3B different-adapter survivor hash differs, while shared-adapter survivor matches.
+  Removing the post-cancel eviction probe gives exactly the same two survivor
+  hashes as the first cancellation run. Thus eviction is not necessary for this
+  difference; native batch-dependent arithmetic is plausible from official docs,
+  NOT established as its cause. Curated 3B summaries keep overall pass=false and
+  ownership_checks_pass=true; no output-identity gate is silently relaxed.
+- Three service peaks: 4,952,301,568 / 4,933,423,104 / 5,033,377,792 bytes;
+  resource samples 60 / 60 / 54; high/max/OOM/OOM-kill all zero. Every run has
+  cleared native GPU contexts, removed scope, empty adapter cache/references and
+  empty final scheduler. Raw, launch, CSV SHAs verified; tables delivered before
+  next launches, all original attempts and prior output hashes retained.
+- Controller/RPC retirement entry and fake-engine cancellation checks added, but
+  actual proxy cancel still sets _engine_dead and rejects subsequent reconciliation
+  RPC. Do not declare cross-process cancellation qualified. Next: separate an
+  uncertain channel from native engine death with an explicit exact-ID control
+  exchange, retain unknown ownership/no replay, then test actual subprocess path.
+  Pair this with bounded native-output reference/identity audit for 3B, then move
+  to full-pool and Full owner integration. Avoid more normal batch4 repetitions.
+- No main comparison, ablation or sensitivity point completed. Baseline heavy
+  order remains Serverless first; remote disk floor decision still pending.
+  Candidate environment/compile cache retained; no regenerated trace/adapter,
+  driver change, unique-data cleanup or historical result overwrite.
+- Final regression: 574 functional checks pass in 21.926 s, 54 independent
+  safety/census/replay checks pass in 0.437 s, zero failures/skips. All three
+  raw/launch/log/CSV bundles verified; 147 protected entries and source plan
+  unchanged. Four GPUs at 15 MiB/0%; local free disk about 330 GiB. Named-file
+  staging excludes all user modifications; staged credential-pattern scan clear.

@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 from faaslora.clock import local_monotonic_clock_id
 from faaslora.scheduling.resource_coordinator import (
-    NativeIterationObservation, capture_native_kv_observation,
+    NativeIterationObservation, NativeRequestRetirement, capture_native_kv_observation,
 )
 from scripts import run_all_experiments as runner
 
@@ -49,6 +49,44 @@ def observe(s, steps=None):
 
 
 class SchedulerObservationContract(unittest.TestCase):
+    def test_retirement_requires_removal_all_iterations_and_native_kv_fence(self):
+        steps = NativeIterationObservation()
+        journal = NativeRequestRetirement(steps)
+        journal.added('a')
+        journal.added('b')
+        old, new = iteration(a=1, b=1), iteration(b=1)
+        steps.scheduled(old)
+        steps.scheduled(new)
+        future = journal.wait('a')
+        journal.removed('a', 2)
+        journal.advance({'b': object()}, 0)
+        self.assertFalse(future.done())  # latest batch misses a, older batch still owns it
+        steps.completed(old)
+        journal.advance({'b': object()}, 1)
+        self.assertFalse(future.done())  # native deferred-block fence still outstanding
+        steps.completed(new)
+        journal.advance({'b': object()}, 2)
+        self.assertTrue(future.result()['retired'])
+        self.assertEqual(future.result()['request_id'], 'a')
+        self.assertFalse(journal.wait('b').done())  # another request cannot be settled
+        self.assertIs(journal.wait('a'), future)
+
+    def test_absence_or_unknown_identity_cannot_grant_retirement(self):
+        journal = NativeRequestRetirement(NativeIterationObservation())
+        with self.assertRaisesRegex(ValueError, 'unobserved'):
+            journal.wait('unknown')
+        journal.added('a')
+        future = journal.wait('a')
+        journal.advance({}, 100)
+        self.assertFalse(future.done())
+        journal.removed('a', 0)
+        journal.advance({'a': object()}, 100)
+        self.assertFalse(future.done())
+        journal.advance({}, 100)
+        self.assertTrue(future.done())
+        with self.assertRaisesRegex(ValueError, 'reused'):
+            journal.added('a')
+
     def test_async_older_completion_does_not_zero_current_pressure(self):
         tracker = NativeIterationObservation()
         first, second = iteration(r=16), iteration(r=1, s=2)
@@ -193,6 +231,7 @@ class NativeHookWiring(unittest.TestCase):
                 self.parallel_config = NS(tensor_parallel_size=1, pipeline_parallel_size=1)
                 self.dcp_world_size = self.pcp_world_size = 1
                 self.connector = None
+                self.processed_step_seq = self.sched_step_seq = 0
                 self.kv_cache_config.kv_cache_groups[0].kv_cache_spec = FullAttentionSpec()
             def schedule(self):
                 self.native_schedule_calls = getattr(self, 'native_schedule_calls', 0) + 1
@@ -216,6 +255,25 @@ class NativeHookWiring(unittest.TestCase):
         with patch.dict(sys.modules, modules):
             spec.loader.exec_module(module)
         return module, AsyncScheduler, core
+
+    def test_native_retirement_bridge_waits_for_original_executor_completion(self):
+        module, native, core = self.load_adapter()
+        native.add_request = lambda self, request: self.requests.update({request.request_id: request})
+        native._free_request = lambda self, request: self.requests.pop(request.request_id)
+        hook = module.IEEENativeAsyncScheduler(scheduler())
+        hook.requests.clear()
+        hook.add_request(request('a'))
+        hook.next_native_output = iteration(a=1)
+        output = hook.schedule()
+        hook.sched_step_seq = 1
+        engine_core = core()
+        engine_core.scheduler = hook
+        engine_core.abort_requests = lambda ids: [hook._free_request(hook.requests[r]) for r in ids if r in hook.requests]
+        future = engine_core.ieee_request_retirement('a', True)
+        self.assertFalse(future.done())
+        hook.processed_step_seq = 1
+        hook.update_from_output(output, object())
+        self.assertTrue(future.result()['retired'])
 
     def test_hook_preserves_native_async_scheduler_output_and_utility_owner(self):
         module, native, core = self.load_adapter()
