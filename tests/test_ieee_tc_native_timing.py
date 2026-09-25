@@ -48,6 +48,7 @@ class NativeTokenContract(unittest.TestCase):
         transported = _attach_parent_rpc_breakdown(result)
         self.assertIsNone(transported['native_tpot_ms'])
         self.assertEqual(transported['native_clock_id'], 'c')
+        self.assertIs(transported['native_terminal_observed'], True)
 
     def test_missing_native_fields_never_fall_back_to_text_or_legacy(self):
         for stats in (None, SimpleNamespace(arrival_time=100., first_token_time=100.5),
@@ -159,6 +160,22 @@ class EngineTimingIntegration(unittest.TestCase):
         self.assertIsNone(result[3]['native_tpot_ms'])
         self.assertEqual(result[3]['native_clock_id'], 'clock-a')
 
+    def test_rpc_preserves_typed_terminal_acknowledgement(self):
+        for flag in (True, False, 1.0, None):
+            with self.subTest(flag=flag):
+                payload = json.loads(json.dumps({
+                    'ttft_ms': 500., 'tpot_ms': 0., 'output_tokens': 1,
+                    'timing': {'native_terminal_observed': flag}}))
+                # Both actual parent timing normalization sites must preserve
+                # the Boolean; numbers/null must not become acknowledgements.
+                payload['timing'] = _attach_parent_rpc_breakdown(payload['timing'])
+                proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
+                proxy._rpc = AsyncMock(return_value=payload)
+                result = asyncio.run(proxy.generate('p', None, None, 1, 1, return_timing=True))
+                observed = result[3]['native_terminal_observed']
+                self.assertEqual(type(observed), type(flag))
+                self.assertEqual(observed, flag)
+
     def test_native_zero_is_observed_but_single_token_is_not(self):
         result = ScenarioResult('native', 'faaslora_full', total=3)
         result.requests = [RequestResult(
@@ -187,6 +204,7 @@ class EngineTimingIntegration(unittest.TestCase):
                 return timing['native_ttft_ms'], timing['native_tpot_ms'], 2, timing
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.model_cfg = {'timing_contract': 'ieee_tc_native_v1'}
+        runner._unsettled_runtime_reservations = {}
         runner.router = None
         runner.engine = FakeEngine()
         runner.coordinator = None

@@ -419,3 +419,40 @@ inventory，但不能用总存储除 slot 数充当 admission footprint；新增
 慢层级引用，也不代替 planner 的 victim/预算事务。全系统 Full 尚未连通此路径。
 下一步是 controller 原子 request/adapter reservation 与原生 owner 的连接，之后
 进行实际模型/时钟/stream/worker 资格；不得从单元测试直接跳到正式性能结论。
+
+## P1-D10：请求预留从接纳到终态的完整生命周期
+
+检查 D9 checkpoint `d22721b` 的实际 `_exec_request` 路径发现：请求和 adapter
+计数在 resolve 前增加，而原 `try/finally` 只覆盖后续推理。制品获取失败、获取时
+取消或预留后的记录异常，都可能使容量永远不归还。先以实际 runner 方法和假的
+推理对象复现，三个检查均失败：结束后 `active_requests` 仍为 1（期望为 0）。
+这不是 GPU 性能实验，但会影响队列可行性和后续请求的等待，必须在比较前解决。
+
+可证伪假设：以成功预留为所有权起点，保留原始 request/adapter 身份，覆盖整个
+resolve→generate→结果处理过程，可在未提交推理的失败路径准确归还自身份额；
+已提交推理的取消则需要区分客户端终止与原生执行终态，不能直接归还容量。
+
+| 论文 / 测量要求 | 已实现并验证的行为 | 不应外推的内容 |
+|---|---|---|
+| pending admission 计入 active 可行性 | 原 runner 记录一次 reservation，原 adapter 身份不随 resolve 返回值改变；同 adapter 两请求取消一个时计数 2→1，而非清零 | 不是原生 KV/物理字节 reservation |
+| 失败、取消只释放自身所有权 | 最外层生命周期覆盖预留后所有操作；未开始生成时失败/取消会释放；重复 release 幂等，计数下溢报错 | 原生异步取消完成确认仍未接通 |
+| batch 负载不漏减、不重复减 | 成功、取消、结果处理错误均经同一 batch 结束入口；不会在成功后又因统计异常减第二次 | 该计数不替代 D7 的原生 iteration token 压力 |
+| 正确完成同一 adapter 工作 | fixed-output 拒绝 resolve 将请求变成 backbone 或丢失路径；在调用生成前失败 | 全池 native 权重正确性仍待实机资格 |
+| 客户端结束不冒充 GPU 结束 | native 路径仅接受当前请求的原生 terminal 标记；不借用共享 `last_timing`；未确认工作保留计数、停止向该副本派新请求，并写入结果元数据 | draining 不是 abort 完成证明；还需原生收尾/实际 worker 退出确认 |
+| 跨进程不改变证据类型 | 原生 timeline 只在 terminal 与计数校验后产生 Boolean；两个 RPC 归一化位置保留 Boolean/null/identity，不把 `1.0` 当作确认 | mock RPC 不是实际进程/时钟资格 |
+
+原生取消语义核对了 vLLM 0.30.0 的
+[AsyncLLM.generate/abort](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/async_llm.py)
+和 S-LoRA 的 [HTTP manager abort](https://raw.githubusercontent.com/S-LoRA/S-LoRA/main/slora/server/httpserver/manager.py)。
+取消信号的发送或前端 request map 删除，不能单独证明 worker 已停止访问 GPU 数据。
+本次不增加假定等待时间来替代原生确认，也不把未知执行状态改成空闲以继续实验。
+
+新增 13 项 reservation 检查和 1 项 typed-RPC 检查；完整功能回归 **461 项通过**，
+零失败、错误、skip。测试覆盖真实 runner 方法，但推理对象是假的，GPU 没有执行
+模型。中途先有 460 项通过，随后补查发现 Boolean 被通用 numeric conversion 转成
+float，最终结果以包含该修正的 461 项为准。本表是本步骤的正确性证据交付。
+
+边界仍明确保留：外层回放异常记录的原 request identity、原生取消后的真正终态
+对账、native source snapshot 与 controller 的原子连接、慢层级引用和主动 E(t)
+admission 尚待完成。`runtime_request_ownership` 只记录 controller 未结算项，不能
+代替物理 GPU 生命周期计量，不能以此宣布 Full 已合格或 G1/G2 已达到。

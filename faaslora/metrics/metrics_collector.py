@@ -211,6 +211,7 @@ class NativeV1TokenTimeline:
         decode = (self.last_at - self.first_at) * 1000.
         return {
             'timing_contract': 'ieee_tc_native_v1',
+            'native_terminal_observed': True,
             'native_timing_source': 'vllm_v1_engine_core_token_events',
             'native_clock_id': self.clock_id,
             'native_dispatch_monotonic_s': self.dispatched_at,

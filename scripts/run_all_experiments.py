@@ -958,11 +958,12 @@ def _attach_parent_rpc_breakdown(
     RPC transport itself.
     """
     # Timing payloads are predominantly numeric, but they also carry audit
-    # metadata such as the native completion-token digest.  Preserve strings
-    # across the worker JSON/RPC boundary; numeric consumers below already use
+    # metadata such as the native completion-token digest and terminal flag.
+    # Preserve strings and Booleans across the worker JSON/RPC boundary;
+    # numeric consumers below already use
     # ``_safe_float`` defensively.
     normalized = {
-        key: value if value is None or isinstance(value, str) else _safe_float(value, 0.0)
+        key: value if value is None or isinstance(value, (str, bool)) else _safe_float(value, 0.0)
         for key, value in dict(timing or {}).items()
         if isinstance(key, str)
     }
@@ -1078,6 +1079,36 @@ class RequestExecutionPlan:
     prompt: str
     input_tokens: int
     max_tokens: int
+
+
+@dataclass
+class RuntimeRequestReservation:
+    """Controller ownership from successful reserve, not just model invocation.
+
+    Adapter/source resolution may change its local variables or raise before
+    inference begins. Release still belongs to the original reservation. This
+    object does not claim a GPU reference, KV allocation or successful abort.
+    """
+    request_id: str
+    slot: Optional[Any] = None
+    adapter_id: Optional[str] = None
+    adapter_reserved: bool = False
+    inflight_key: Optional[str] = None
+    bound: bool = False
+    generation_started: bool = False
+    native_terminal_observed: bool = False
+    released: bool = False
+    batch_coordinator: Optional[Any] = None
+    batch_input_tokens: int = 0
+    batch_output_tokens: int = 0
+    batch_started: bool = False
+
+    def bind(self, slot, adapter_id, adapter_reserved: bool) -> None:
+        if self.bound:
+            raise RuntimeError('request reservation cannot be rebound')
+        self.slot, self.adapter_id = slot, adapter_id
+        self.adapter_reserved = adapter_reserved
+        self.bound = True
 
 
 DEFAULT_TTFT_SLO_MS = 5000.0
@@ -1408,6 +1439,7 @@ class ScenarioResult:
     avg_background_planning_us: float = 0.0
     p95_background_planning_us: float = 0.0
     background_planning_event_count: int = 0
+    runtime_request_ownership: Dict[str, Any] = field(default_factory=dict)
     avg_gpu_ready_ttft_ms: float = 0.0
     p95_gpu_ready_ttft_ms: float = 0.0
     avg_scaleup_affected_ttft_ms: float = 0.0
@@ -2168,6 +2200,9 @@ def aggregate_runs(runs: List[ScenarioResult], confidence_level: float = 0.95) -
         failed=int(round(agg_dict.get("failed", first.failed))),
         elapsed_sec=agg_dict.get("elapsed_sec", first.elapsed_sec),
         requests=[],  # 多轮聚合不保留逐请求明细
+        runtime_request_ownership=(
+            {'kind': 'run_set', 'runs': [r.runtime_request_ownership for r in runs]}
+            if any(r.runtime_request_ownership for r in runs) else {}),
         avg_ttft_ms=agg_dict.get("avg_ttft_ms", first.avg_ttft_ms),
         p50_ttft_ms=agg_dict.get("p50_ttft_ms", first.p50_ttft_ms),
         p95_ttft_ms=agg_dict.get("p95_ttft_ms", first.p95_ttft_ms),
@@ -5054,11 +5089,10 @@ class SubprocessInferenceEngineProxy:
             if worker_wall_ms > 0.0
             else 0.0
         )
-        # Worker timing is mostly numeric, but fixed-output auditing also returns
-        # the SHA-256 of the native completion token-id sequence.  Coercing every
-        # value to float silently erased that digest at the subprocess boundary.
+        # Auditing also carries token identity and a typed terminal flag.
+        # A numeric residual cannot substitute for a native terminal event.
         self.last_timing = {
-            key: value if value is None or isinstance(value, str) else _safe_float(value, 0.0)
+            key: value if value is None or isinstance(value, (str, bool)) else _safe_float(value, 0.0)
             for key, value in timing.items()
             if isinstance(key, str)
         }
@@ -6112,6 +6146,7 @@ class ScenarioRunner:
         self._dispatch_admitted_requests: int = 0
         self._dispatch_admission_condition: Optional[asyncio.Condition] = None
         self._runtime_slot_capacity_condition: Optional[asyncio.Condition] = None
+        self._unsettled_runtime_reservations: Dict[str, RuntimeRequestReservation] = {}
         self._active_replay_t0: Optional[float] = None
         self._slot_retire_lock = asyncio.Lock()
         # The replay dispatcher, autoscaler, and subprocess RPC completion all
@@ -6209,6 +6244,18 @@ class ScenarioRunner:
         return finite[lo] * (1.0 - frac) + finite[hi] * frac
 
     def _attach_control_path_background_metrics(self, result: ScenarioResult) -> None:
+        if getattr(self, 'model_cfg', {}).get('timing_contract') == 'ieee_tc_native_v1':
+            result.runtime_request_ownership = {
+                'kind': 'native_request_reservation_lifetime_v1',
+                'all_native_requests_settled': not self._unsettled_runtime_reservations,
+                'unsettled': [
+                    {'request_id': key, 'adapter_id': reservation.adapter_id,
+                     'instance_id': reservation.slot.instance_id if reservation.slot else None,
+                     'generation_started': reservation.generation_started,
+                     'native_terminal_observed': reservation.native_terminal_observed,
+                     'controller_capacity_released': reservation.released}
+                    for key, reservation in sorted(self._unsettled_runtime_reservations.items())],
+            }
         values = [
             float(v)
             for v in getattr(self, "_background_planning_us", [])
@@ -6966,6 +7013,8 @@ class ScenarioRunner:
     ) -> bool:
         if slot is None:
             return True
+        if getattr(slot, 'status', 'running') != 'running':
+            return False
         if max(0, int(getattr(slot, "runtime_forwarding_active", 0) or 0)) > 0:
             return False
         active_requests = max(0, int(getattr(slot, "active_requests", 0) or 0))
@@ -6998,6 +7047,8 @@ class ScenarioRunner:
         """
         if slot is None:
             return True, False
+        if getattr(slot, 'status', 'running') != 'running':
+            return False, False
         if max(0, int(getattr(slot, "runtime_forwarding_active", 0) or 0)) > 0:
             return False, False
         active_requests = max(0, int(getattr(slot, "active_requests", 0) or 0))
@@ -7009,14 +7060,11 @@ class ScenarioRunner:
             self._runtime_max_active_loras(),
         ):
             return False, False
-        slot.active_requests = active_requests + 1
         active_adapter_reserved = False
         if adapter_id and hasattr(slot, "begin_active_adapter"):
-            try:
-                slot.begin_active_adapter(adapter_id)
-                active_adapter_reserved = True
-            except Exception:
-                active_adapter_reserved = False
+            slot.begin_active_adapter(adapter_id)
+            active_adapter_reserved = True
+        slot.active_requests = active_requests + 1
         slot.last_selected_at = time.time()
         return True, active_adapter_reserved
 
@@ -13242,6 +13290,74 @@ class ScenarioRunner:
         admission_start_offset_s: Optional[float] = None,
         admitted_offset_s: Optional[float] = None,
     ) -> RequestResult:
+        reservation = RuntimeRequestReservation(str(trace.request_id))
+        try:
+            return await self._exec_request_in_reservation(
+                trace, max_tokens, temperature, _reservation=reservation,
+                request_plan=request_plan, dispatch_admission_wait_ms=dispatch_admission_wait_ms,
+                dispatch_window_wait_ms=dispatch_window_wait_ms,
+                arrival_release_lateness_ms=arrival_release_lateness_ms,
+                scheduled_arrival_offset_s=scheduled_arrival_offset_s,
+                arrival_released_offset_s=arrival_released_offset_s,
+                admission_start_offset_s=admission_start_offset_s, admitted_offset_s=admitted_offset_s)
+        finally:
+            await self._finish_runtime_request_reservation(reservation)
+
+    async def _finish_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
+        if not reservation.bound or reservation.released:
+            return
+        slot = reservation.slot
+        native = self.model_cfg.get('timing_contract', 'legacy') == 'ieee_tc_native_v1'
+        if native and reservation.generation_started and not reservation.native_terminal_observed:
+            # Sending abort / losing an RPC is not an engine-core terminal ack.
+            # Keep capacity owned and withdraw this replica until native work
+            # is reconciled or its actual worker has been stopped. No false free.
+            if slot is not None:
+                slot.status = 'draining'
+            if reservation.request_id in self._unsettled_runtime_reservations:
+                if self._unsettled_runtime_reservations[reservation.request_id] is not reservation:
+                    raise RuntimeError('request ID already has an unsettled reservation')
+            self._unsettled_runtime_reservations[reservation.request_id] = reservation
+            return
+        if reservation.batch_started:
+            reservation.batch_coordinator.notify_batch_end(
+                reservation.batch_input_tokens, reservation.batch_output_tokens)
+            reservation.batch_started = False
+        if slot is not None:
+            if type(slot.active_requests) is not int or slot.active_requests < 1:
+                raise RuntimeError('request reservation ownership counter underflow')
+            if reservation.inflight_key is not None and hasattr(slot, 'clear_inflight_request_estimate'):
+                slot.clear_inflight_request_estimate(reservation.inflight_key)
+            if reservation.adapter_reserved:
+                slot.end_active_adapter(reservation.adapter_id)
+            slot.active_requests -= 1
+            if slot.active_requests == 0:
+                slot.last_idle_at = time.time()
+        # Synchronous accounting is committed before any cancellable wake-up.
+        reservation.released = True
+        if native and self._unsettled_runtime_reservations.get(reservation.request_id) is reservation:
+            del self._unsettled_runtime_reservations[reservation.request_id]
+        if slot is not None:
+            self._refresh_slot_runtime_hints(slot)
+            await self._notify_dispatch_capacity_changed(notify_admission=False, slot_wake_all=False)
+        self._schedule_all_runtime_gpu_forward()
+
+    async def _exec_request_in_reservation(
+        self,
+        trace: RequestTrace,
+        max_tokens: int,
+        temperature: float,
+        *,
+        _reservation: RuntimeRequestReservation,
+        request_plan: Optional[RequestExecutionPlan] = None,
+        dispatch_admission_wait_ms: float = 0.0,
+        dispatch_window_wait_ms: float = 0.0,
+        arrival_release_lateness_ms: float = 0.0,
+        scheduled_arrival_offset_s: Optional[float] = None,
+        arrival_released_offset_s: Optional[float] = None,
+        admission_start_offset_s: Optional[float] = None,
+        admitted_offset_s: Optional[float] = None,
+    ) -> RequestResult:
         # B2: 由 Router 选择实例，与线上路径一致
         adapter_id = trace.adapter_id
         size_mb = float(self.adapter_info.get(adapter_id, {}).get("size_mb", 30.0)) if adapter_id else 30.0
@@ -13252,7 +13368,6 @@ class ScenarioRunner:
         selected_instance_age_s = 0.0
         runtime_slot_wait_started = time.perf_counter()
         slot = None
-        slot_active_reserved = False
         while True:
             await self._prune_dead_instance_slots()
             self._refresh_all_slot_runtime_hints()
@@ -13280,7 +13395,7 @@ class ScenarioRunner:
                 adapter_id,
             )
             if reserved:
-                slot_active_reserved = active_adapter_reserved
+                _reservation.bind(slot, adapter_id, active_adapter_reserved)
                 readiness_tier_before_dispatch = selected_readiness_tier
                 if slot is not None:
                     created_at = float(getattr(slot, "created_at", 0.0) or 0.0)
@@ -13309,11 +13424,11 @@ class ScenarioRunner:
         _engine = slot.engine if slot else self.engine
         _coord = slot.coordinator if slot else self.coordinator
         inflight_request_key: Optional[str] = None
-        active_adapter_registered = slot_active_reserved
         if slot is not None:
             inflight_request_key = str(
                 getattr(trace, "request_id", None) or f"trace_{id(trace)}"
             )
+            _reservation.inflight_key = inflight_request_key
             if hasattr(slot, "record_inflight_request_estimate"):
                 try:
                     predicted_total_busy_ms = self._slot_predicted_total_busy_ms(
@@ -13361,6 +13476,10 @@ class ScenarioRunner:
                     request_plan.input_tokens,
                     coordinator=_coord,
                 )
+            if (self.model_cfg.get('generation_contract') == 'fixed_length_greedy_v1'
+                    or getattr(self, '_generation_contract', 'legacy') == 'fixed_length_greedy_v1'):
+                if adapter_id != _reservation.adapter_id or (adapter_id and not local_path):
+                    raise ValueError('fixed-output resolution changed or lost the requested adapter')
             resolve_wall_us = max(
                 0.0,
                 (time.perf_counter_ns() - resolve_started_ns) / 1000.0,
@@ -13413,7 +13532,6 @@ class ScenarioRunner:
             "scaleup_first_service": False,
             "scaleup_planned_adapter_match": False,
         }
-        batch_started = False
         output_tokens_hint = max(0, int(request_plan.max_tokens or 0))
         try:
             scaleup_labels = self._begin_scaleup_runtime_request_labels(
@@ -13426,7 +13544,10 @@ class ScenarioRunner:
                     request_plan.input_tokens,
                     output_tokens_hint,
                 )
-                batch_started = True
+                _reservation.batch_coordinator = _coord
+                _reservation.batch_input_tokens = request_plan.input_tokens
+                _reservation.batch_output_tokens = output_tokens_hint
+                _reservation.batch_started = True
             t_start = time.perf_counter()
 
             def _call_accepts_kw(callable_obj: Any, kw_name: str) -> bool:
@@ -13449,11 +13570,13 @@ class ScenarioRunner:
                 }
                 if _call_accepts_kw(_engine.generate_prepared, "generation_seed"):
                     prepared_kwargs["generation_seed"] = generation_seed
+                _reservation.generation_started = True
                 generate_ret = await _engine.generate_prepared(**prepared_kwargs)
             else:
                 generate_kwargs: Dict[str, Any] = {"return_timing": True}
                 if _call_accepts_kw(_engine.generate, "generation_seed"):
                     generate_kwargs["generation_seed"] = generation_seed
+                _reservation.generation_started = True
                 generate_ret = await _engine.generate(
                     request_plan.prompt,
                     local_path,
@@ -13469,8 +13592,16 @@ class ScenarioRunner:
             else:
                 vllm_ttft, tpot, out_tokens = generate_ret
                 per_request_timing = {}
-            engine_timing = dict(per_request_timing or getattr(_engine, "last_timing", {}) or {})
             timing_contract = self.model_cfg.get("timing_contract", "legacy")
+            if timing_contract == 'ieee_tc_native_v1':
+                if not isinstance(per_request_timing, dict):
+                    raise ValueError('native request requires its own timing acknowledgement')
+                engine_timing = dict(per_request_timing)
+                _reservation.native_terminal_observed = engine_timing.get('native_terminal_observed') is True
+                if not _reservation.native_terminal_observed:
+                    raise ValueError('native request lacks terminal acknowledgement')
+            else:
+                engine_timing = dict(per_request_timing or getattr(_engine, "last_timing", {}) or {})
             native_token_timing: Dict[str, Any] = {}
             if timing_contract == "ieee_tc_native_v1":
                 from faaslora.metrics.metrics_collector import NativeV1TokenTimeline, local_monotonic_clock_id
@@ -13479,12 +13610,6 @@ class ScenarioRunner:
                     completed_at=t_end, clock_id=local_monotonic_clock_id())
                 if int(native_token_timing["native_output_tokens"]) != int(out_tokens):
                     raise ValueError("native output count changed across engine/controller boundary")
-            if batch_started and _coord:
-                _coord.notify_batch_end(
-                    request_plan.input_tokens,
-                    output_tokens_hint,
-                )
-
             admitted_service_ttft_ms = max(
                 0.0,
                 (float(t_start) - float(admitted_perf_counter)) * 1000.0 + float(vllm_ttft),
@@ -13733,14 +13858,6 @@ class ScenarioRunner:
                         await self._retire_failed_slot(slot, exc_text)
                 except Exception:
                     pass
-            try:
-                if batch_started and _coord:
-                    _coord.notify_batch_end(
-                        request_plan.input_tokens,
-                        output_tokens_hint,
-                    )
-            except Exception:
-                pass
             admitted_service_error_ms = lora_io_ms + contention_ms + defer_ms
             ingress_queue_wait_ms = max(
                 0.0,
@@ -13811,33 +13928,6 @@ class ScenarioRunner:
                 gpu_admission_decision_us=gpu_admission_decision_us,
                 control_path_total_us=control_path_total_us,
             )
-        finally:
-            if slot is not None:
-                if inflight_request_key is not None and hasattr(
-                    slot, "clear_inflight_request_estimate"
-                ):
-                    try:
-                        slot.clear_inflight_request_estimate(inflight_request_key)
-                    except Exception:
-                        pass
-                if active_adapter_registered and hasattr(slot, "end_active_adapter"):
-                    try:
-                        slot.end_active_adapter(adapter_id)
-                    except Exception:
-                        pass
-                slot.active_requests = max(0, slot.active_requests - 1)
-                if int(getattr(slot, "active_requests", 0) or 0) <= 0:
-                    try:
-                        slot.last_idle_at = time.time()
-                    except Exception:
-                        pass
-                self._refresh_slot_runtime_hints(slot)
-                await self._notify_dispatch_capacity_changed(
-                    notify_admission=False,
-                    slot_wake_all=False,
-                )
-            self._schedule_all_runtime_gpu_forward()
-
     async def _resolve_lora(
         self, adapter_id: str, is_burst: bool, input_tokens: int,
         coordinator: Optional[Any] = None,
@@ -16735,6 +16825,7 @@ def _build_scenario_summaries(results: List[ScenarioResult], meta: Dict[str, Any
             "avg_background_planning_us": round(r.avg_background_planning_us, 4),
             "p95_background_planning_us": round(r.p95_background_planning_us, 4),
             "background_planning_event_count": int(r.background_planning_event_count),
+            "runtime_request_ownership": r.runtime_request_ownership,
             "avg_gpu_ready_ttft_ms": round(r.avg_gpu_ready_ttft_ms, 4),
             "p95_gpu_ready_ttft_ms": round(r.p95_gpu_ready_ttft_ms, 4),
             "avg_scaleup_affected_ttft_ms": round(r.avg_scaleup_affected_ttft_ms, 4),
