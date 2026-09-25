@@ -216,7 +216,46 @@ S1 层级性能结论。native GPU pool 仍为预分配容量，非随每次驱�
 与引用未释放混为一谈。两模型前四条输出与此前各自成功的四请求检查一致。
 这些事实支持本机原生加载/更替路径的正确性，不支持跨系统延迟或 G1/G2 优越性。
 
-### 下一资格的原生取消边界（源码审计，尚未实现/实测）
+### 实际并发批次资格（两模型通过，非完整资格）
+
+现有模型资格入口增加显式 `--qualification-mode concurrent_pairs`，只使用
+原 trace 前四条：0/1 共享 finance adapter，2/3 使用 writing/finance。
+先取得各自引用，再同时提交；保留原生异步调度，不改变 batch/slot 配置。
+原生观测额外返回最近在途批次的确切 request IDs；前端映射在原生 owner 中
+读取并复制，既不猜随机后缀，也不关闭后端随机化。
+
+| 检查 | 3B batch4 attempt 1 | 7B batch4 attempt 1 |
+|---|---|---|
+| 两组原生同批次、各自持有 KV | 两组均实际观测 | 两组均实际观测 |
+| 共享 / 不同 adapter 引用 | 2 个共享引用 / 各 1 个引用 | 2 个共享引用 / 各 1 个引用 |
+| 持有引用时显式驱逐 | 四次全部拒绝，原因为 referenced | 四次全部拒绝，原因为 referenced |
+| 完成与原生 token | 4/4；152/59/123/217 | 4/4；152/59/123/217 |
+| 与先前串行 prompt/output SHA | 四条均一致 | 四条均一致 |
+| 最终 scheduler / reference / cache | 无请求、无在途批次、无延迟释放块；引用归零、adapter 清空 | 同左，均实际验证 |
+| E2E / TPOT 重算 | 最大误差均 0 ms | 最大误差均 0 ms |
+| 外置资源观测 | 62 样本；peak 4,989,104,128 bytes；high/max/OOM/OOM-kill 全零 | 56 样本；peak 5,029,855,232 bytes；high/max/OOM/OOM-kill 全零 |
+| GPU contexts / 服务资源域 | 均确认释放 | 均确认释放 |
+
+3B 两组分别有 76 / 111 次、7B 有 105 / 181 次资格观察。20 ms 观察周期只用于这个诊断，不参与在线
+策略，也不将这次受密集观察/驱逐探测影响的时延用于主表或 warm SLO 标定。
+原始回执与哈希、逐请求 CSV、摘要 JSON 位于 `20260926_{3b,7b}_batch4` 产物中。
+3B result SHA：`446114635f076305dfbc6ec79c56af96fd3ac3465d8c169e33c3e317870e1288`；
+7B result SHA：`0303d874d2b117e792371af24e81b5c34f3f5747584c32385599113b353da3ef`。
+这一步验证真正并发，不是仅凭两个 asyncio task 断言已形成 native batch。
+上述驱逐探测发生在取得引用后、提交生成前，不能称为在途取消时的卸载验证。
+
+两次运行使用同一份实际源文件（之后只更新文档和 curated 数据）：
+
+| 文件 | SHA256 |
+|---|---|
+| ieee_tc_preflight.py | aeeef76763b5b6c8a7dc497482b6bcb924a709203a6c01534fb00635592eaa3c |
+| run_all_experiments.py | cffa9292b7e44a890a64528dc5af5b8c8f0afb5e39ecf3f6bc6c59981947bfe4 |
+| scheduling/resource_coordinator.py | cc25fcbdc29303b71284216bfcad58703dfac7d85decabd39892e5919b743132 |
+| scheduling/vllm_ieee_scheduler.py | 7ce9265bf885cafda2bddc0ed56bc150b49dcd6f8353649d1e5c843cf429255d |
+| memory/gpu_monitor.py | d3032ddbc1438e74b119d7cea371d0f37eea6843e9c89f2f7b3320205f3b4cf5 |
+| memory/residency_manager.py | 2c230bff24fb4c4bc87ef055493ead97d2a4bfa9520f26069dd3407de68a4643 |
+
+### 原生取消边界（源码审计，尚未实现/实测）
 
 继续复用此入口和原始请求，不另建框架。下一步先验证两个真实请求并发时的
 原生 scheduler/KV 观测、共享/不同 adapter 引用与禁止活跃驱逐；再验证取消。
@@ -225,6 +264,16 @@ S1 层级性能结论。native GPU pool 仍为预分配容量，非随每次驱�
 取消生成器会请求 abort，但不能据此直接宣称设备工作完成。
 [core_client 的 abort_requests_async](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core_client.py)
 只发送 ABORT；后续必须取得调度所有者的请求终态和在途执行证据。
+此外，`OutputProcessor.abort_requests` 会在前端构造 `finish_reason=abort`
+的结束输出。因此 `out.finished` 本身不等于 EngineCore 的原生终态；正式
+取消集成不能把这类前端结束输出直接送入 `end_use` 或成功 TTFT/TPOT 统计。
+依据 [官方 output_processor 源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/output_processor.py)。
+已用既有三 token 测试夹具做反例：给 actual `generate_prepared` 的完成输出
+标注 `finish_reason=abort`，当前入口仍返回成功和 `native_terminal_observed=true`。
+这证明当前接口缺少终止原因区分，不是一次实际 GPU 取消测量；原生取消资格
+仍未通过。反例输入与结果保存在 `20260926_frontend_abort_counterexample.json`。
+下一步需先拒绝这类通知作为正常终态，然后连接确切请求身份与后端在途完成，
+而不是删除引用保护、睡眠固定时长后强行释放，或重新加载整个模型冒充请求级回收。
 
 默认原生内部 request ID 带随机后缀，与前端 ID 不同。应保留真实映射，不能靠
 字符串前缀猜测或关闭随机化；也不能用另一个成功请求的终态释放取消请求。

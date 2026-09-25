@@ -59,9 +59,11 @@ class SchedulerObservationContract(unittest.TestCase):
         state = tracker.snapshot()
         self.assertEqual((state['scheduled_tokens'], state['unretired_iterations']), (3, 1))
         self.assertEqual((state['scheduled_sequence'], state['completed_sequence']), (2, 1))
+        self.assertEqual(state['scheduled_request_ids'], ['r', 's'])
         tracker.completed(second)
         tracker.completed(iteration())
         self.assertEqual(tracker.snapshot()['scheduled_tokens'], 0)
+        self.assertEqual(tracker.snapshot()['scheduled_request_ids'], [])
 
     def test_iteration_identity_order_and_totals_are_checked(self):
         tracker = NativeIterationObservation()

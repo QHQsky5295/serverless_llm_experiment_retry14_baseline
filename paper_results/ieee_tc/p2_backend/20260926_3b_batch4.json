@@ -1,0 +1,366 @@
+{
+  "kind": "p2_native_batch4_summary_v1",
+  "model": "llama32_3b",
+  "pass": true,
+  "formal_performance_result": false,
+  "input_mode": "existing_four_request_prefix_concurrent_pairs_qualification",
+  "artifact_mode": "existing_local_frozen_qualification_only",
+  "n_plan": 4,
+  "n_correct": 4,
+  "actual_output_tokens": 551,
+  "unique_logical_adapters": 2,
+  "unique_weight_sha256": 1,
+  "source_before_native_load_counts": {
+    "local_file": 2,
+    "GPU": 2
+  },
+  "max_e2e_decomposition_error_ms": 0,
+  "max_tpot_recalculation_error_ms": 0,
+  "first_four_same_output_and_prompt_hash_as_prior": true,
+  "final_native_cpu_cache_count": 2,
+  "final_native_gpu_cache_count": 2,
+  "already_evicted_before_cleanup_count": 0,
+  "adapter_caches_empty_after_cleanup": true,
+  "native_pool_allocated_bytes": 1825046528,
+  "registered_host_tensor_storage_bytes": 18350080,
+  "trace": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "6b796f614169a3e9d36d7b217560595a8bbb0a8e441e671ff821e104d6d1fd74",
+    "count": 4,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1
+  },
+  "model_config": {
+    "name": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+    "backend": "vllm",
+    "device_id": 0,
+    "visible_device_ids": [
+      0
+    ],
+    "tensor_parallel_size": 1,
+    "gpu_memory_utilization": 0.72,
+    "max_model_len": 1024,
+    "max_loras": 8,
+    "max_cpu_loras": 32,
+    "max_lora_rank": 64,
+    "enable_lora": true,
+    "enforce_eager": "auto",
+    "dtype": "float16",
+    "max_num_seqs": 8,
+    "max_num_batched_tokens": 4096,
+    "max_output_tokens_cap": 256,
+    "max_input_len": 759,
+    "runtime_concurrency_cap": 8,
+    "enable_chunked_prefill": false,
+    "enable_prefix_caching": false,
+    "timing_contract": "ieee_tc_native_v1",
+    "ieee_worker_observation": true,
+    "ieee_gpu_references": true,
+    "ieee_scheduler_observation": true,
+    "ieee_input_upper_bounds": [
+      759
+    ],
+    "generation_contract": "fixed_length_greedy_v1",
+    "canonical_prompt_renderer": "role_lines_v1"
+  },
+  "config_sha256": "f923c36d541046639ba70691106cf7841b322f850377bd8d719004adc959e45d",
+  "check_source_sha256": "aeeef76763b5b6c8a7dc497482b6bcb924a709203a6c01534fb00635592eaa3c",
+  "startup_latency_ms": 37824.658142984845,
+  "resources": {
+    "samples": 62,
+    "peak_bytes": 4989104128,
+    "min_host_available_bytes": 106526670848,
+    "event_max": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "cleanup": {
+    "native_gpu_contexts_clear": true,
+    "scope_removed": true
+  },
+  "result_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama32_3b_batch4_attempt1.json",
+  "result_sha256": "446114635f076305dfbc6ec79c56af96fd3ac3465d8c169e33c3e317870e1288",
+  "launch_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama32_3b_batch4_attempt1_launch.json",
+  "launch_sha256": "c5e074d00d60928ce3e13b295f15991e05e8da9731d8074222a3af009ccba86c",
+  "evidence_sha256": {
+    "watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exec_receipt.json": "a975dc9df9ca57c6baf977733d21ef7b64fb9d453abbb5b242d184f2a65b0fe7",
+    "watchdog.jsonl": "0dcf9c5f1def6f809684a0263911cdf74679dbd7eaff2dd54075a8a569af3844",
+    "service.log": "d5161ae7d9020a580697f93a619a2bd98229fcbdb3ae2c9876e57e9bdb655279"
+  },
+  "csv_sha256": "86f5f042f1b9b1b15d039c27a42ae30412a853e7318777ddab0d9329f333443e",
+  "pairs": [
+    {
+      "source_indices": [
+        0,
+        1
+      ],
+      "pass": true,
+      "held_before": {
+        "owner_id": "d840932b76714781bf8933e1173771bb",
+        "epoch": 5,
+        "slot_adapter_ids": [
+          963725,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "reference_counts": {
+          "963725": 2
+        },
+        "live_leases": 2,
+        "released_leases": 0,
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+        "worker_pid": 3048065,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false
+      },
+      "eviction_probes": [
+        {
+          "evicted": false,
+          "reason": "referenced",
+          "owner_id": "d840932b76714781bf8933e1173771bb",
+          "epoch": 5,
+          "slot_adapter_ids": [
+            963725,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "reference_counts": {
+            "963725": 2
+          },
+          "live_leases": 2,
+          "released_leases": 0,
+          "snapshot_holds_reference": false,
+          "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+          "worker_pid": 3048065,
+          "worker_rank": 0,
+          "completion_fence_scope": "current_worker_cuda_stream",
+          "production_launch_authorized": false
+        },
+        {
+          "evicted": false,
+          "reason": "referenced",
+          "owner_id": "d840932b76714781bf8933e1173771bb",
+          "epoch": 5,
+          "slot_adapter_ids": [
+            963725,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "reference_counts": {
+            "963725": 2
+          },
+          "live_leases": 2,
+          "released_leases": 0,
+          "snapshot_holds_reference": false,
+          "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+          "worker_pid": 3048065,
+          "worker_rank": 0,
+          "completion_fence_scope": "current_worker_cuda_stream",
+          "production_launch_authorized": false
+        }
+      ],
+      "request_id_mapping": {
+        "req_1": "req_1-a1c34234",
+        "req_2": "req_2-a0be8add"
+      },
+      "same_native_batch_observed": true,
+      "both_have_native_kv_observed": true,
+      "after_release": {
+        "owner_id": "d840932b76714781bf8933e1173771bb",
+        "epoch": 12,
+        "slot_adapter_ids": [
+          963725,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "reference_counts": {},
+        "live_leases": 0,
+        "released_leases": 2,
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+        "worker_pid": 3048065,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false
+      },
+      "sample_count": 76
+    },
+    {
+      "source_indices": [
+        2,
+        3
+      ],
+      "pass": true,
+      "held_before": {
+        "owner_id": "d840932b76714781bf8933e1173771bb",
+        "epoch": 17,
+        "slot_adapter_ids": [
+          963725,
+          416753,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "reference_counts": {
+          "416753": 1,
+          "963725": 1
+        },
+        "live_leases": 2,
+        "released_leases": 2,
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+        "worker_pid": 3048065,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false
+      },
+      "eviction_probes": [
+        {
+          "evicted": false,
+          "reason": "referenced",
+          "owner_id": "d840932b76714781bf8933e1173771bb",
+          "epoch": 17,
+          "slot_adapter_ids": [
+            963725,
+            416753,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "reference_counts": {
+            "416753": 1,
+            "963725": 1
+          },
+          "live_leases": 2,
+          "released_leases": 2,
+          "snapshot_holds_reference": false,
+          "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+          "worker_pid": 3048065,
+          "worker_rank": 0,
+          "completion_fence_scope": "current_worker_cuda_stream",
+          "production_launch_authorized": false
+        },
+        {
+          "evicted": false,
+          "reason": "referenced",
+          "owner_id": "d840932b76714781bf8933e1173771bb",
+          "epoch": 17,
+          "slot_adapter_ids": [
+            963725,
+            416753,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "reference_counts": {
+            "416753": 1,
+            "963725": 1
+          },
+          "live_leases": 2,
+          "released_leases": 2,
+          "snapshot_holds_reference": false,
+          "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+          "worker_pid": 3048065,
+          "worker_rank": 0,
+          "completion_fence_scope": "current_worker_cuda_stream",
+          "production_launch_authorized": false
+        }
+      ],
+      "request_id_mapping": {
+        "req_3": "req_3-b48abdec",
+        "req_4": "req_4-b48c6d40"
+      },
+      "same_native_batch_observed": true,
+      "both_have_native_kv_observed": true,
+      "after_release": {
+        "owner_id": "d840932b76714781bf8933e1173771bb",
+        "epoch": 25,
+        "slot_adapter_ids": [
+          963725,
+          416753,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "reference_counts": {},
+        "live_leases": 0,
+        "released_leases": 4,
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+        "worker_pid": 3048065,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false
+      },
+      "sample_count": 111
+    }
+  ],
+  "scheduler_after": {
+    "scheduler_owner_id": "649343e8ed28436c83e65f002cbd37a8",
+    "scheduled_sequence": 370,
+    "completed_sequence": 370,
+    "unretired_iterations": 0,
+    "scheduled_tokens": 0,
+    "scheduled_request_ids": [],
+    "batch_pressure_semantics": "latest_scheduled_unretired_iteration",
+    "kind": "ieee_native_scheduler_observation_v1",
+    "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+    "captured_at": 235316.986607453,
+    "scheduler_pid": 3048065,
+    "input_upper_bounds": [
+      759
+    ],
+    "kv_layout": "full_attention_single_group",
+    "admitted": [],
+    "admitted_scope": "native_unfinished_requests_only",
+    "iteration_token_budget": 4096,
+    "kv_tokens_per_block": 16,
+    "kv_bytes_per_block": 1835008,
+    "kv_unreserved_free_blocks": 5082,
+    "kv_pool_allocation_bytes": 9327345664,
+    "native_deferred_free_batches": 0,
+    "admission_reservation": false,
+    "production_launch_authorized": false
+  },
+  "cancellation_qualified": false
+}

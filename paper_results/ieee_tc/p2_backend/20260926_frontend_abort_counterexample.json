@@ -1,0 +1,15 @@
+{
+  "kind": "frontend_abort_terminal_counterexample",
+  "real_model_run": false,
+  "formal_performance_result": false,
+  "engine_source_sha256": "cffa9292b7e44a890a64528dc5af5b8c8f0afb5e39ecf3f6bc6c59981947bfe4",
+  "fixture": "tests.test_ieee_tc_native_timing.EngineTimingIntegration",
+  "intervention": "Set completion.finish_reason to abort on the existing three-token finished fixture; call the actual InferenceEngine.generate_prepared through fixture.generate",
+  "input_finished": true,
+  "input_finish_reason": "abort",
+  "input_token_count": 3,
+  "target_tokens": 3,
+  "accepted_as_success": true,
+  "native_terminal_observed": true,
+  "conclusion": "The current engine does not distinguish a frontend abort notification from a normal native terminal. This counterexample does not measure actual CUDA retirement; cancellation integration must reject this as native completion and obtain real owner/iteration completion evidence."
+}

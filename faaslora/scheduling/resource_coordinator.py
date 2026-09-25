@@ -70,6 +70,8 @@ class NativeIterationObservation:
                 'completed_sequence': self.completed_sequence,
                 'unretired_iterations': len(self._pending),
                 'scheduled_tokens': self._pending[-1][1] if self._pending else 0,
+                'scheduled_request_ids': sorted(self._pending[-1][0].num_scheduled_tokens)
+                    if self._pending else [],
                 'batch_pressure_semantics': 'latest_scheduled_unretired_iteration'}
 
 

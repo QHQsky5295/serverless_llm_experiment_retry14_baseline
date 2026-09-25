@@ -22,7 +22,7 @@
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
 | P1 IEEE semantic alignment | Mathematical contracts, native references, managed file ownership/storage and preallocated content-verified HTTP transfers tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D19. Native fetch allocates archive/payload before body reads under the owner file budget, retains old copies and concurrent allocations. Full-pool qualification, all-tier physical reservations/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
-| P2 backend qualification | Actual 3B and 7B 100-request sequential native contracts passed; batch/cancel/pool qualification pending | P2_BACKEND_QUALIFICATION.md + 20260926_{3b,7b}_smoke100.{json,csv}. Each 100/100 and 17,369 native tokens, reference/eviction/time checks and actual resource cleanup pass. Earlier failed four-request attempts retained. Not open-loop/remote or a main performance point |
+| P2 backend qualification | Actual 3B/7B 100-request sequential and two native concurrent pairs passed; cancel/pool qualification pending | P2_BACKEND_QUALIFICATION.md + 20260926_{3b,7b}_{smoke100,batch4}.{json,csv}. Actual same-batch/KV and retained-reference eviction checks pass; both normal-completion paths clean up. Earlier failed attempts retained. Not open-loop/remote or a main performance point |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
 | A1–A5, S1–S3 | Not started | Shared frozen policies required |
@@ -51,13 +51,17 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-0. P2 installation finished; do NOT reinstall. Environment `/home/qhq/.venvs/primelora_vllm0300_tc_20260925`. Both 3B/7B 100-request sequential checks now pass; raw failed four-request attempts retained. 3B required plain-string version transport; 7B required candidate/bin prepended to PATH so the existing ninja could run. Both model scopes gone, GPU contexts clear. Next: bounded actual native batch/cancel qualification, then pool qualification and Full owner integration. Reuse `model_20260926/candidate_cache`; keep candidate/bin on PATH. Preserve exact external/internal native request-ID mapping before abort; frontend abort alone is not completion. Do not jump to formal metrics, regenerate data, or return to unrelated primitives.
+0. P2 installation finished; do NOT reinstall. Environment `/home/qhq/.venvs/primelora_vllm0300_tc_20260925`. Both 3B/7B 100-request sequential and two actual concurrent pairs now pass; earlier failures retained. All four new scopes gone, GPU contexts clear. Next: native cancellation/release integration and actual qualification, then full pool and Full owner integration. Reuse `model_20260926/candidate_cache`; keep candidate/bin on PATH. Preserve exact external/internal native request-ID mapping before abort; frontend abort only sends ABORT and can synthesize out.finished with finish_reason=abort. Never pass that notification directly as native end_use proof. Native scheduler retirement and in-flight work must be reconciled. Do not jump to formal metrics, regenerate data, or return to unrelated primitives.
 1. Continue native owner integration: measured source-class costs, resource-owner remaining budgets, atomic routing/admission. Native token/reference interfaces and startup-parallel external arrival/submission are opt-in and unit/witness tested, but actual engine clocks/streams/controller owners remain open. Do not declare the historical scorer IEEE-aligned.
 2. Qualify actual model/GPU workers and lifecycle under the existing guarded launcher; native single-raylet and tiny replay witnesses are not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
 ## Verified backups
+
+- Main two-model 100-request checkpoint `5e8736e31a4c837c272267fd83b95c23c21bf7d1`
+  pushed to V2; remote SHA verified. Both sequential qualification runs and
+  per-request curated data retained; next actual batch/cancel gate remains open.
 
 - Main real 3B/7B prefix checkpoint `00ff917b6cf3375f409c8eacf489534796fdf348`
   pushed to V2; remote SHA verified. Original four-request and failure evidence retained.
@@ -901,3 +905,48 @@ configs/relayserve_motivation_serverlessllm.yaml.
   The 147 protected historical entries and authoritative plan remain unchanged.
   Four GPUs idle at 15 MiB and 0% after the two completed runs. This checkpoint
   is ready for the requested V2 backup, not formal-performance authorization.
+
+## P2 actual native batch qualification checkpoint
+
+- Existing model qualifier now has explicit concurrent-pair mode over the old
+  first four requests: shared finance, then writing/finance. It pre-acquires
+  native references and observes exact randomized internal IDs in genuine
+  scheduled batches and KV assignments, not just two frontend tasks. No native
+  scheduler policy, cache capacity, workload or artifact changes.
+- 3B attempt 1 passes both pairs (76 / 111 diagnostic samples). All four native
+  outputs hit their 152/59/123/217 targets and match prior sequential prompt/
+  output hashes. Four held-adapter eviction probes reject as referenced. After
+  completion all references clear; scheduler requests, in-flight iterations and
+  deferred-free batches empty. Final adapter eviction and worker teardown pass.
+- External witness: 62 samples, peak 4,989,104,128 bytes, zero high/max/OOM/
+  OOM-kill; GPU contexts gone and scope removed. Request CSV, curated summary
+  and table delivered. This is NOT a main latency or throughput experiment:
+  20 ms diagnostic observations/probes are intrusive and kept separate.
+- 7B attempt 1 also passes both pairs (105 / 181 samples), 4/4 target outputs
+  and prior prompt/output hashes agree. Exact shared/different references and
+  same-batch/KV evidence present; four held-adapter evictions reject; final
+  references/scheduler/cache empty. External watcher: 56 samples, peak
+  5,029,855,232 bytes, high/max/OOM/OOM-kill zero; contexts clear, scope removed.
+  Its raw result SHA is
+  `0303d874d2b117e792371af24e81b5c34f3f5747584c32385599113b353da3ef`.
+- Next: cancellation retirement evidence and full-pool qualification. Official
+  OutputProcessor.abort_requests also synthesizes a frontend finished output
+  (finish_reason=abort), so out.finished alone must not pass as a native end_use
+  acknowledgement. This newly audited boundary must be fixed/qualified before
+  adding explicit abort; do not count cancelled work as successful generation.
+  Native frontend abort is not completion; retained
+  references on unknown cancellation are still not automatically reconciled.
+  No formal M1/M2 or ablation/sensitivity point has been run.
+- Existing three-token fake-output fixture, fed through actual generate_prepared,
+  reproduces acceptance of finish_reason=abort as success/native_terminal=true.
+  This is a protocol counterexample, NOT measured CUDA cancellation. Curated
+  counterexample/source hash retained. Next edit must distinguish normal native
+  completion from frontend synthetic abort, then implement exact-ID/iteration
+  retirement reconciliation. Do not use fixed sleep, unconditional end_use or
+  worker restart as the request-level solution. Keep real cancel tests pending.
+- Final regression: 565 functional checks pass (21.692 s); 54 independent safety/
+  census/replay checks pass. The newly identified abort counterexample is an
+  OPEN gap outside those passing assertions, not a passing cancellation gate.
+  Both raw bundles, curated CSV, source trace/config/checker SHAs verified;
+  147 protected entries and authoritative plan unchanged; four GPUs idle at
+  15 MiB/0%. No raw weights/traces duplicated and no original results overwritten.

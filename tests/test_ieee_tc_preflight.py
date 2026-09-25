@@ -8,6 +8,21 @@ from scripts import ieee_tc_preflight as p
 
 
 class ProtocolGates(unittest.TestCase):
+    def test_concurrent_qualification_copies_exact_native_mapping(self):
+        mapping = {'request-a': ['native-a-random'], 'request-b': ['native-b-random']}
+        result = p.qualification_request_mapping(['request-a', 'request-b'], mapping)
+        self.assertEqual(result, {'request-a': 'native-a-random', 'request-b': 'native-b-random'})
+        mapping['request-a'].clear()
+        self.assertEqual(result['request-a'], 'native-a-random')
+        self.assertIsNone(p.qualification_request_mapping(['request-a'], mapping))
+        self.assertIsNone(p.qualification_request_mapping(['missing'], mapping))
+
+    def test_concurrent_qualification_rejects_ambiguous_native_mapping(self):
+        for mapping in ({'a':['one','two']}, {'a':[None]}, {'a':['']},
+                        {'a':['same'], 'b':['same']}):
+            with self.subTest(mapping=mapping), self.assertRaises(RuntimeError):
+                p.qualification_request_mapping(list(mapping), mapping)
+
     def test_qualification_eviction_distinguishes_native_lru_absence_from_failure(self):
         p.validate_qualification_eviction({'evicted': True, 'reason': 'removed'}, present_before=True)
         p.validate_qualification_eviction({'evicted': False, 'reason': 'absent'}, present_before=False)

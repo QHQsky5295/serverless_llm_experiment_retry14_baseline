@@ -4315,6 +4315,7 @@ class InferenceEngine:
                 **native_fields,
             }
             if native_timing:
+                timing['backend_request_id'] = req_id
                 timing['native_prompt_token_ids_sha256'] = hashlib.sha256(
                     json.dumps(native_prompt_ids, separators=(",", ":")).encode("utf-8")).hexdigest()
             if reference_receipt is not None:

@@ -127,6 +127,7 @@ class EngineTimingIntegration(unittest.TestCase):
         self.assertEqual(count, 3)
         self.assertEqual(timing['timing_contract'], 'ieee_tc_native_v1')
         self.assertEqual(timing['native_output_tokens'], 3)
+        self.assertEqual(timing['backend_request_id'], 'req_1')
         self.assertAlmostEqual(timing['worker_wall_e2e_ms'], 2000.)
         self.assertAlmostEqual(timing['runtime_estimated_e2e_ms'], 1100.)
         self.assertEqual(timing['native_prompt_token_ids_sha256'],

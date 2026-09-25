@@ -1312,8 +1312,114 @@ def validate_qualification_eviction(receipt: dict, *, present_before: bool) -> N
         raise RuntimeError('native eviction reply contradicts the quiescent cache snapshot')
 
 
+def qualification_request_mapping(external_ids, mapping):
+    """Copy exact native identity while the output owner still holds the request."""
+    result = {}
+    for external in external_ids:
+        ids = list(mapping.get(external, ()))
+        if not ids:
+            return None  # Not registered yet, or already terminal; no guessed ID.
+        if len(ids) != 1 or not isinstance(ids[0], str) or not ids[0]:
+            raise RuntimeError('single-output qualification needs one exact native request ID')
+        result[external] = ids[0]
+    if len(set(result.values())) != len(result):
+        raise RuntimeError('different requests mapped to the same native ID')
+    return result
+
+
+async def qualify_concurrent_pairs(engine, plan, adapters, result):
+    """Two original pairs; preload references, then use unmodified native batching.
+
+    This diagnostic samples frequently and probes prohibited eviction. Its latency
+    is not a main performance point or monitoring-overhead qualification.
+    """
+    import asyncio
+    pairs = result['concurrent_pairs'] = []
+    for offset in (0, 2):
+        pair = {'source_indices': [offset, offset+1], 'pass': False, 'samples': []}
+        pairs.append(pair)
+        prepared_cases = []
+        for entry in plan.entries[offset:offset+2]:
+            row = json.loads(entry.source_json)
+            aid, target = row['adapter_id'], min(row['expected_output_tokens'], 256)
+            path = adapters[aid]['path']
+            prepared = engine.prepare_request('', target, row['expected_input_tokens'],
+                                              chat_messages=row['body']['messages'])
+            if prepared.max_tokens != target:
+                raise RuntimeError('concurrent qualification changed fixed output target')
+            snapshot = await engine.ieee_gpu_reference(operation='snapshot')
+            reference = await engine.ieee_gpu_reference(operation='demand_load_and_acquire',
+                lease_id='batch-qualification/'+entry.request_id,
+                adapter_int_id=engine._lora_int_id(aid), lora_name=aid, lora_path=path,
+                expected_owner_id=snapshot['owner_id'], expected_epoch=snapshot['epoch'])
+            if reference.get('acquired') is not True:
+                raise RuntimeError('concurrent qualification acquisition conflict; no retry')
+            case = {'request_id': entry.request_id, 'adapter_id': aid,
+                    'source_row_sha256': entry.source_sha256, 'target_tokens': target,
+                    'prompt_sha256': hashlib.sha256(prepared.prompt.encode()).hexdigest(),
+                    'input_content_tokens': prepared.input_tokens,
+                    'reference': reference, 'pass': False}
+            result['requests'].append(case)
+            prepared_cases.append((prepared, path, aid, reference, case))
+        pair['held_before'] = await engine.ieee_gpu_reference(operation='snapshot')
+        pair['eviction_probes'] = []
+        for _, _, aid, _, _ in prepared_cases:
+            probe = await engine.ieee_gpu_reference(operation='evict', adapter_int_id=engine._lora_int_id(aid))
+            pair['eviction_probes'].append(probe)
+            if probe.get('evicted') is not False or probe.get('reason') != 'referenced':
+                raise RuntimeError('referenced native adapter was evictable')
+        tasks = [asyncio.create_task(engine.generate_prepared(request_plan=prepared,
+                    lora_path=path, adapter_id=aid, temperature=0., top_p=1.,
+                    generation_seed=42, return_timing=True, gpu_reference=reference))
+                 for prepared, path, aid, reference, _ in prepared_cases]
+        try:
+            async with asyncio.timeout(1800.):
+                while not all(task.done() for task in tasks):
+                    native = await engine.ieee_scheduler_observation()
+                    mapping = {key: list(value) for key, value
+                               in engine.engine.output_processor.external_req_ids.items()}
+                    pair['samples'].append({'scheduler': native, 'frontend_mapping': mapping})
+                    # Measurement cadence only; no delay in the backend/control policy.
+                    await asyncio.sleep(.02)
+                outputs = await asyncio.gather(*tasks)
+        finally:
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+        external_ids = [out[3]['backend_request_id'] for out in outputs]
+        mappings = [qualification_request_mapping(external_ids, s['frontend_mapping']) for s in pair['samples']]
+        stable = [m for m in mappings if m is not None]
+        if not stable or any(m != stable[0] for m in stable):
+            raise RuntimeError('concurrent native request identity was not stably observed')
+        native_ids = set(stable[0].values())
+        pair['request_id_mapping'] = stable[0]
+        pair['same_native_batch_observed'] = any(
+            native_ids.issubset(s['scheduler']['scheduled_request_ids']) for s in pair['samples'])
+        pair['both_have_native_kv_observed'] = any(
+            native_ids.issubset({r['request_id'] for r in s['scheduler']['admitted']
+                                if r['native_allocated_blocks'] > 0}) for s in pair['samples'])
+        if not pair['same_native_batch_observed'] or not pair['both_have_native_kv_observed']:
+            raise RuntimeError('real overlap/batch/KV not witnessed; do not infer it from two tasks')
+        for (_, _, _, reference, case), output in zip(prepared_cases, outputs):
+            case['actual_tokens'], case['timing'] = output[2], output[3]
+            if output[2] != case['target_tokens'] or output[3]['native_terminal_observed'] is not True:
+                raise RuntimeError('concurrent native output/terminal differs from contract')
+            case['release'] = await engine.ieee_gpu_reference(operation='release',
+                lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'])
+            if case['release'].get('released') is not True:
+                raise RuntimeError('concurrent native reference was not released')
+            case['pass'] = True
+        pair['after_release'] = await engine.ieee_gpu_reference(operation='snapshot')
+        if pair['after_release']['live_leases'] or pair['after_release']['reference_counts']:
+            raise RuntimeError('concurrent reference leak')
+        pair['pass'] = True
+        print(json.dumps({'event': 'model_qualification_pair', 'indices': pair['source_indices'],
+                          'same_native_batch_observed': True, 'pass': True}), flush=True)
+
+
 async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
-                              trace: Path, count: int) -> dict:
+                              trace: Path, count: int, mode: str = 'sequential') -> dict:
     """Existing engine + old trace prefix, not a replacement performance runner.
 
     Sequential local-artifact qualification deliberately does not claim main
@@ -1327,6 +1433,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         raise RuntimeError('model qualification requires completed CUDA check in this environment')
     if type(count) is not int or not 1 <= count <= 100:
         raise ValueError('qualification uses a 1..100 request prefix, not a regenerated trace')
+    if mode not in ('sequential', 'concurrent_pairs') or (mode == 'concurrent_pairs' and count != 4):
+        raise ValueError('concurrent qualification requires exactly the original four-request prefix')
     result = {'kind': 'backend_native_model_prefix_qualification_v1', 'pass': False,
               'full_model_qualification': False, 'production_launch_authorized': False,
               'plan_sha256': check_plan(), 'service': service, 'environment': sys.prefix,
@@ -1335,6 +1443,9 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
               'profile': profile, 'stage': 'imports', 'requests': [],
               'input_mode': 'existing_trace_prefix_sequential_qualification',
               'artifact_mode': 'existing_local_frozen_qualification_only'}
+    if mode == 'concurrent_pairs':
+        result.update(kind='backend_native_concurrent_pairs_qualification_v1',
+                      input_mode='existing_four_request_prefix_concurrent_pairs_qualification')
     engine = None
     try:
         import asyncio
@@ -1387,7 +1498,10 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             validate_model_worker(worker, service, local_monotonic_clock_id())
         result['scheduler_before'] = await engine.ieee_scheduler_observation()
         result['sources_before'] = await engine.ieee_gpu_reference(operation='source_snapshot')
-        for entry in plan.entries:
+        if mode == 'concurrent_pairs':
+            result['stage'] = 'concurrent_pairs'
+            await qualify_concurrent_pairs(engine, plan, adapters, result)
+        for entry in plan.entries if mode == 'sequential' else ():
             row = json.loads(entry.source_json)
             aid, target = row['adapter_id'], min(row['expected_output_tokens'], 256)
             path = adapters[aid]['path']
@@ -1560,6 +1674,7 @@ def main():
     parser.add_argument('--config', type=Path)
     parser.add_argument('--model-profile')
     parser.add_argument('--request-count', type=int, default=4)
+    parser.add_argument('--qualification-mode', choices=['sequential', 'concurrent_pairs'], default='sequential')
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')
@@ -1608,7 +1723,7 @@ def main():
             parser.error('backend-model-check requires runtime receipt, config, model profile, trace and new output')
         import asyncio
         result = asyncio.run(backend_model_check(args.runtime_receipt, args.config,
-            args.model_profile, args.replay_trace, args.request_count))
+            args.model_profile, args.replay_trace, args.request_count, args.qualification_mode))
     elif args.action == 'install-candidate':
         if not args.candidate_environment or not args.requirements or not args.output:
             parser.error('install-candidate requires explicit new environment, requirements and output')
