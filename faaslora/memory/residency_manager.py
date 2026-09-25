@@ -12,6 +12,7 @@ import shutil
 import uuid
 import weakref
 import stat as stat_types
+import os
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
@@ -26,16 +27,22 @@ from ..utils.config import Config
 from ..utils.logger import get_logger
 
 
-def _local_file_inventory(roots):
+def _local_file_inventory(roots, *, writing_inodes=()):
     """Inventory linked storage, not RSS, content hashes, or reclaimable bytes.
 
-    Call under the cooperative file owner with no active writers in these roots.
+    Call under the cooperative file owner. Active writers must be listed and
+    restricted to overwriting their fixed-size, preallocated private files.
     Linux st_blocks measures allocated 512-byte blocks; st_size measures logical
     data. Keep both. Hard links share one inode allocation; equal content alone
     does not. Directory blocks are included, but inode/journal overhead, reflink
     extent sharing, page cache and unlinked-open files are outside this scope.
     """
     allocations, observations = {}, []
+    writing_inodes = set(writing_inodes)
+    def signature_for(info, key):
+        # Preallocated files may change content, never identity/size/allocation.
+        return (info.st_mode, info.st_size, info.st_blocks, info.st_nlink,
+                *((0, 0) if key in writing_inodes else (info.st_mtime_ns, info.st_ctime_ns)))
     for tier, root in roots.items():
         root = Path(root)
         pending = [root]
@@ -51,8 +58,7 @@ def _local_file_inventory(roots):
             if not hasattr(info, 'st_blocks'):
                 raise RuntimeError('managed file inventory requires allocated block observations')
             key = (info.st_dev, info.st_ino)
-            signature = (info.st_mode, info.st_size, info.st_blocks, info.st_nlink,
-                         info.st_mtime_ns, info.st_ctime_ns)
+            signature = signature_for(info, key)
             observations.append((path, key, signature))
             item = allocations.setdefault(key, dict(
                 device=info.st_dev, inode=info.st_ino, kind=kind,
@@ -72,8 +78,7 @@ def _local_file_inventory(roots):
     for path, key, signature in observations:
         info = path.lstat()
         if ((info.st_dev, info.st_ino) != key or
-                (info.st_mode, info.st_size, info.st_blocks, info.st_nlink,
-                 info.st_mtime_ns, info.st_ctime_ns) != signature):
+                signature_for(info, key) != signature):
             raise RuntimeError('managed inode changed while collecting footprint')
     items = list(allocations.values())
     for item in items:
@@ -102,7 +107,8 @@ class LocalSourceReferences:
     """Cooperative file-copy ownership, shared by local readers and reclaimers.
 
     This protects a resolved HOST/NVMe path during loading; it is NOT a content
-    verifier, a confirmed-tier publisher, or a capacity reservation. All physical
+    verifier or a confirmed-tier publisher. Native remote transfers can reserve
+    regular-file space by actual preallocation before any body is written. All physical
     mutations must use this same owner. Native CPU/GPU tensors have a separate
     owner and may outlive the file read. No async work runs while the lock is held.
     """
@@ -117,6 +123,9 @@ class LocalSourceReferences:
         self.leases = {}
         self.released = set()
         self.materializations = {}
+        self._transfer_workspaces = {}
+        self._prepared_transfers = {}
+        self._file_limits = {}
 
     def acquire(self, *, path: str, adapter_id: str, lease_id: str) -> Dict[str, Any]:
         with self.lock:
@@ -140,16 +149,128 @@ class LocalSourceReferences:
                                         if key not in ('allocations', 'tiers')})
 
     def inventory(self):
-        """Quiescent owner snapshot, including retained and private-stage paths.
+        """Owner snapshot, including retained and private-stage paths.
 
-        A transfer writes outside this lock. Its remaining growth is unknown
-        until a byte-reservation contract is attached, so do not publish a
-        partial scan as a complete capacity snapshot while it is active.
+        A transfer writes outside this lock. Unprepared transfers have unknown
+        remaining growth and prevent a capacity snapshot; fully preallocated
+        transfers may overwrite content but cannot change their storage footprint.
         """
         with self.lock:
-            if self.materializations:
+            if set(self.materializations) != set(self._prepared_transfers):
                 raise RuntimeError('file inventory requires quiescent managed writes')
-            return dict(owner_id=self.owner_id, **_local_file_inventory(self.roots))
+            view = self._file_inventory()
+            held = {key for record in self._prepared_transfers.values() for key in record['files']}
+            view['transfer_held_file_bytes'] = sum(item['allocated_bytes'] for item in view['allocations']
+                if (item['device'], item['inode']) in held)
+            # These bytes are already physically allocated, not a second future
+            # increment to add on top of allocated_file_bytes.
+            view['pending_file_increment_bytes'] = 0
+            return dict(owner_id=self.owner_id, **view)
+
+    def _file_inventory(self):
+        writing = {key for record in self._prepared_transfers.values() for key in record['files']}
+        view = _local_file_inventory(self.roots, writing_inodes=writing)
+        actual = {(item['device'], item['inode']): item for item in view['allocations']}
+        for record in self._prepared_transfers.values():
+            for key, expected in record['files'].items():
+                item = actual.get(key)
+                if item is None or (item['logical_bytes'], item['allocated_bytes'], item['link_count']) != expected:
+                    raise RuntimeError('reserved file changed identity, size or allocation')
+        return view
+
+    @contextmanager
+    def transfer_workspace(self, transfer_id):
+        """Create/clean metadata under the same owner as capacity checks.
+
+        Body writes run outside the lock. The context must end before its parent
+        materialization lifetime; cleanup failure keeps all actual paths charged.
+        """
+        from ..storage.http_artifact_store import staged_directory
+        with self.lock:
+            if transfer_id not in self.materializations or transfer_id in self._transfer_workspaces:
+                raise ValueError('workspace requires one active materialization')
+            context = staged_directory(self.materializations[transfer_id])
+            staging = context.__enter__()
+            self._transfer_workspaces[transfer_id] = staging
+        try:
+            yield staging
+        finally:
+            with self.lock:
+                try:
+                    context.__exit__(None, None, None)
+                finally:
+                    # Any retained recovery files become ordinary charged files;
+                    # no unlink/physical-release claim follows from retirement.
+                    self._prepared_transfers.pop(transfer_id, None)
+                    del self._transfer_workspaces[transfer_id]
+
+    def prepare_transfer(self, transfer_id, staging, archive_bytes, expected, *, limit_bytes):
+        """Reserve archive + payload as real allocated files before network reads.
+
+        Scope is allocated regular-file bytes of this tier, including old copies
+        and other transfers. Directory/inode/journal metadata, page cache and HOST
+        tensors are separate resource budgets. No sparse-file fallback is allowed.
+        Qualified filesystem allocation granularity must match observed blocks.
+        """
+        from ..storage.http_artifact_store import _canonical_member_name
+        with self.lock:
+            staging = Path(staging)
+            if (self._transfer_workspaces.get(transfer_id) != staging or
+                    transfer_id in self._prepared_transfers):
+                raise ValueError('space reservation requires its unique managed workspace')
+            if set(self.materializations) - set(self._transfer_workspaces):
+                raise RuntimeError('unbudgeted materialization prevents capacity reservation')
+            if type(limit_bytes) is not int or limit_bytes < 0 or type(archive_bytes) is not int or archive_bytes <= 0:
+                raise ValueError('file budget and archive size require explicit nonnegative integer bytes')
+            target = self.materializations[transfer_id]
+            tier = next(tier for tier, root in self.roots.items() if target.parent == root)
+            if tier in self._file_limits and self._file_limits[tier] != limit_bytes:
+                raise ValueError('file owner budget cannot change between transfers')
+            self._file_limits[tier] = limit_bytes
+            paths = {staging.parent / 'artifact.tar.gz': archive_bytes}
+            for name, (size, _) in expected.items():
+                _canonical_member_name(name)
+                if type(size) is not int or size < 0:
+                    raise ValueError('frozen file size must be a nonnegative integer')
+                paths[staging / name] = size
+            if not expected:
+                raise ValueError('space reservation requires frozen payload files')
+            unit = os.statvfs(target.parent).f_frsize
+            if unit <= 0:
+                raise RuntimeError('filesystem allocation unit is unavailable')
+            required = sum(((size + unit - 1) // unit) * unit for size in paths.values())
+            before = self._file_inventory()['tiers'][tier]['allocated_file_bytes']
+            if before + required > limit_bytes:
+                raise RuntimeError('local file capacity conflict: retained copies plus transfer exceed tier budget')
+            files = {}
+            for path, size in paths.items():
+                path.parent.mkdir(parents=True, exist_ok=True)
+                with path.open('xb') as stream:
+                    if size:
+                        os.posix_fallocate(stream.fileno(), 0, size)
+                    info = os.fstat(stream.fileno())
+                allocated = 512 * info.st_blocks
+                if info.st_size != size or allocated != ((size + unit - 1) // unit) * unit:
+                    raise RuntimeError('filesystem preallocation does not match qualified file footprint')
+                files[(info.st_dev, info.st_ino)] = (size, allocated, info.st_nlink)
+            self._prepared_transfers[transfer_id] = dict(files=files, tier=tier)
+            after = self._file_inventory()['tiers'][tier]['allocated_file_bytes']
+            if after != before + required or after > limit_bytes:
+                raise RuntimeError('reserved file allocation differs from owner capacity transaction')
+            return dict(scope='preallocated_regular_files_v1', owner_id=self.owner_id,
+                        transfer_id=transfer_id, tier=tier, limit_bytes=limit_bytes,
+                        used_file_bytes_before=before, reserved_file_bytes=required,
+                        allocated_file_bytes_after=after, pending_file_increment_bytes=0,
+                        filesystem_allocation_unit_bytes=unit)
+
+    def publish_transfer(self, transfer_id, staging, target, publish):
+        with self.lock:
+            if (self._transfer_workspaces.get(transfer_id) != Path(staging) or
+                    self.materializations.get(transfer_id) != Path(target).resolve() or
+                    transfer_id not in self._prepared_transfers):
+                raise ValueError('publication requires a prepared transfer on its original target')
+            self._file_inventory()  # Last check before making completed bytes visible.
+            publish(staging, target)
 
     def release(self, *, lease_id: str, expected_owner_id: str) -> None:
         with self.lock:
@@ -174,22 +295,29 @@ class LocalSourceReferences:
             raise ValueError('materialization destination is outside managed tiers')
         transfer_id = uuid.uuid4().hex
         with self.lock:
+            if target in self.materializations.values():
+                raise RuntimeError('materialization destination already has an active transfer')
             self.materializations[transfer_id] = target
         try:
             yield transfer_id
         finally:
             with self.lock:
+                if transfer_id in self._transfer_workspaces:
+                    raise RuntimeError('materialization cannot end before its workspace cleanup')
                 del self.materializations[transfer_id]
 
     @contextmanager
-    def mutation(self, path):
+    def mutation(self, path, *, transfer_id=None):
         """Keep check+copy/delete atomic with respect to reference acquisition."""
         with self.lock:
             target = Path(path).resolve()
             busy = any(target == Path(value[1]) or target in Path(value[1]).parents
                        or Path(value[1]) in target.parents for value in self.leases.values())
-            busy = busy or any(target in destination.parents
-                               for destination in self.materializations.values())
+            busy = busy or any(target in destination.parents or (
+                target == destination and key in self._prepared_transfers and key != transfer_id)
+                for key, destination in self.materializations.items())
+            busy = busy or any(target == staging.parent or target in staging.parent.parents
+                or staging.parent in target.parents for staging in self._transfer_workspaces.values())
             yield not busy
 
 
@@ -710,13 +838,13 @@ class ResidencyManager:
             raise RuntimeError('external LocalCache does not share the managed source owner')
         return self.local_source_references.inventory()
 
-    def publish_local_source(self, staging: Path, target: Path) -> None:
+    def publish_local_source(self, staging: Path, target: Path, *, transfer_id=None) -> None:
         """Completed file publication shares synchronization with read leases."""
         from ..storage.http_artifact_store import publish_directory
         target = Path(target)
         if target.resolve().parent not in self.local_source_references.roots.values():
             raise ValueError('publication destination is outside managed tier roots')
-        with self.local_source_references.mutation(target) as allowed:
+        with self.local_source_references.mutation(target, transfer_id=transfer_id) as allowed:
             if not allowed:
                 raise RuntimeError('publication conflicts with a live source reference')
             publish_directory(staging, target)

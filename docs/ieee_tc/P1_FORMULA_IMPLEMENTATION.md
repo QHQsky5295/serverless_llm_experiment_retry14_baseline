@@ -835,3 +835,63 @@ epoch 与 pre-decision registry。当前可在写 archive 前取得线上声明�
 并已有可信逐文件大小和受限写入，但它们仍必须连接物理 owner 的容量事务，
 不能从本步推出“整个传输已保证不超预算”。继续沿这一主线完成，不新增
 第二套 fetch/实验框架，也不以本检查替代 M1/M2、消融或 motivation。
+
+## P1-D19：下载前预分配实际文件空间，统一计入旧副本和并发传输
+
+D18 已获得可信 payload 文件大小，但收到 HTTP 长度仍不等于获得空间。
+本步在原 owner/fetcher 内接入真正的写前分配：先在同一锁内检查受管 tier
+全部已有普通文件（含旧目标、其他 transfer、未清理残留），再为压缩包及每个
+payload 文件执行 `posix_fallocate`。开始读 body 前，核验每个实际 inode 的
+逻辑长度和分配块数；不通过 `truncate` 或稀疏文件伪装预留。
+
+依据 [Python 的 posix_fallocate 接口](https://docs.python.org/3.12/library/os.html#os.posix_fallocate)
+及 [Linux/POSIX 预分配语义](https://man7.org/linux/man-pages/man3/posix_fallocate.3.html)，
+私有文件独占写入，已有区间只覆盖、不截断、不增长。本机 `/home/qhq` 位于
+ext4；逐文件分配粒度从该文件系统读取，并在分配后验证实际块数，未知或不匹配
+的表示不准入。结合此前核对的 vLLM 原生本地加载流程，旧有效副本一直保留到
+新内容校验及受管发布成功，不能提前拿旧副本空间去批准下载。
+
+设分配粒度为 \(g\)，压缩包长度为 \(b\)，冻结文件长度为 \(s_f\)，本次新增
+普通文件分配为
+\[
+P=g\lceil b/g\rceil+\sum_f g\lceil s_f/g\rceil.
+\]
+检查当前实际普通文件块数 \(U_{file}\) 满足 \(U_{file}+P\le B_{file}\)。
+已获准 transfer 的空间已由文件系统实际分配，包含在后续 \(U_{file}\) 内，
+不能再把其 `reserved_file_bytes` 加一次。此值是写前回执，不是完成后的额外
+待分配量。文件预算按 owner 冻结；容量冲突不改变预算、不重新估计较小 footprint。
+
+| 条件 | 实际检查结果 / 实现行为 | 边界 |
+|---|---|---|
+| 旧副本 + archive + payload 同时存在 | 三者同时进入文件预算 | 不用最终 payload 大小代替峰值 |
+| 两线程竞争仅够一项 transfer 的容量 | 一项预分配成功，另一项容量冲突 | 不是按每个 fetch 各给一份剩余量 |
+| 容量不足 | 原 runner 在第一次 body read 前拒绝，旧目标不变 | 已发 HTTP 请求可能触发远端打包，该成本不能抹去 |
+| 已预分配的文件正在写 | 允许内容时间戳变化，仍严格检查 inode、长度、块数、link count | 不把未知 writer 的扫描当完整快照 |
+| 同目标重复 transfer | owner 明确冲突，不建立第二 workspace | 原请求锁负责正常同 adapter 请求串行复用；通用 pending queue 尚待接入 |
+| 取消后 writer 未结束 | 实际线程仍持有已分配空间，不能重用或清理其目录 | 延续 D16 的真实 Future join |
+| cleanup 失败 | 残留文件被下次实际扫描继续计入 | 删除 reservation 记录不代表物理空间已释放 |
+| 不支持预分配或块数不匹配 | 不接收 body，不采用稀疏/猜测性兜底 | 不是证明任意文件系统都已合格 |
+| 发布 | 同 owner 校验容量身份、读引用和目标后，使用原发布协议 | 仍非 crash-durable registry transaction |
+
+native runner 原有 NVMe ceiling 传给该 owner，不引入按模型名称估计 adapter
+大小或按正式点调整并发的新系数。HTTP 写入使用已分配文件的 `r+b`，避免 `wb`
+截断预留；strict SHA 和长度检查仍完整执行。transfer 证据增加文件预算、预留
+块数、既有块数、owner/transfer 身份和分配粒度。
+
+**范围明确限定为受管普通文件的实际 allocated blocks。**目录、inode、journal、
+page cache、unlink 后仍存活的外部引用、native CPU tensors 和 GPU/KV 预算不能
+由本接口替代。目录仍由 D17 inventory 观测，但不并入这个普通文件容量池。
+预分配失败的部分文件由原 workspace 清理，失败证据保留；外置磁盘与 cgroup
+保护继续适用。legacy local-copy/preload 的空间准入、跨 tier 共享预算归属、
+native HOST/GPU 联合事务和容量冲突后的调度等待仍是 Full 资格的开放项。
+
+新增 9 项检查，包含真实双线程与小型真实文件预分配，并加强原 HTTP runner
+成功/取消回执检查。最先两项旧实现因缺接口失败；第一次相关回归有一项测试
+fixture 缺失 `patch` 导入，已修正，未削弱运行时合同。最终完整功能回归
+**564 项通过**，独立 safety/census/replay **44 项通过**，无失败/错误/skip。
+本表是容量正确性证据，不是
+性能收益图。扫描/预分配实际开销须在模型资格中测量，不能宣称免费或更快。
+
+下一主线：原 P2 安装完成即优先验证真实后端、worker/clock/stream；继续把
+内容 epoch、冷源成本和剩余预算送入决策前快照，并完成 native admission、
+已知冲突等待、abort/release 与 GPU 生命周期。Serverless 仍是首个 baseline。

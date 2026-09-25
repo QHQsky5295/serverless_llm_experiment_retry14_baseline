@@ -210,7 +210,7 @@ class HttpArtifactStoreClient:
 
     def download_artifact(self, artifact_id: str, target_path: str, *,
                           publish=None, cancel_event=None, require_content_manifest=False,
-                          evidence=None) -> Tuple[bool, float, int]:
+                          evidence=None, workspace=None, reserve_files=None) -> Tuple[bool, float, int]:
         """Download and extract one adapter directory into ``target_path``.
 
         Returns ``(ok, elapsed_ms, size_bytes)``.  The tarball is downloaded to a
@@ -226,6 +226,8 @@ class HttpArtifactStoreClient:
             if self._content_manifest is None or artifact_id not in self._content_manifest:
                 raise RemoteArtifactError('native transfer requires a frozen content manifest for this adapter')
             expected = self._content_manifest[artifact_id]
+        if (workspace is None) != (reserve_files is None) or (reserve_files is not None and expected is None):
+            raise ValueError('file reservation requires a managed workspace and frozen content')
         evidence = evidence if evidence is not None else {}
         evidence.update(artifact_id=artifact_id, content_manifest_sha256=(
             self.content_manifest_sha256 if expected is not None else None),
@@ -236,7 +238,7 @@ class HttpArtifactStoreClient:
             if cancel_event is not None and cancel_event.is_set():
                 raise RemoteArtifactError(f'artifact transfer cancelled: {artifact_id}')
         try:
-            with staged_directory(target) as staging:
+            with (workspace(target) if workspace is not None else staged_directory(target)) as staging:
                 archive = staging.parent / 'artifact.tar.gz'
                 check_cancelled()
                 req = self._request(f"/artifacts/{quoted}.tar.gz")
@@ -249,7 +251,9 @@ class HttpArtifactStoreClient:
                         length = int(raw)
                         evidence['archive_bytes_declared'] = length
                         evidence['payload_bytes_expected'] = sum(size for size, _ in expected.values())
-                    with archive.open('wb') as fh:
+                    if reserve_files is not None:
+                        evidence['file_reservation'] = reserve_files(staging, length, expected)
+                    with archive.open('r+b' if reserve_files is not None else 'wb') as fh:
                         while True:
                             check_cancelled()
                             chunk = resp.read(1024 * 1024)
@@ -262,12 +266,13 @@ class HttpArtifactStoreClient:
                     if length is not None and evidence['transferred_bytes'] != length:
                         raise RemoteArtifactError('artifact body is shorter than declared Content-Length')
                 check_cancelled()
-                staging.mkdir()
+                staging.mkdir(exist_ok=reserve_files is not None)
                 with tarfile.open(archive, 'r:gz') as tar:
                     if expected is None:
                         _safe_extract(tar, staging)
                     else:
-                        _extract_verified(tar, staging, expected, check_cancelled)
+                        _extract_verified(tar, staging, expected, check_cancelled,
+                                          preallocated=reserve_files is not None)
                         evidence['content_verified'] = True
                 check_cancelled()
                 size_bytes = _path_size(staging)
@@ -326,7 +331,7 @@ def _canonical_member_name(name):
     return name
 
 
-def _extract_verified(tar, target, expected, check_cancelled):
+def _extract_verified(tar, target, expected, check_cancelled, *, preallocated=False):
     """Materialize only the frozen regular-file payload, hashing while writing.
 
     Do not use extractall: entry sizes are checked *before* writing a file, and
@@ -358,7 +363,9 @@ def _extract_verified(tar, target, expected, check_cancelled):
         path = target / name
         path.parent.mkdir(parents=True, exist_ok=True)
         digest, remaining = hashlib.sha256(), size
-        with tar.extractfile(member) as source, path.open('xb') as destination:
+        with tar.extractfile(member) as source, path.open('r+b' if preallocated else 'xb') as destination:
+            if preallocated and os.fstat(destination.fileno()).st_size != size:
+                raise RemoteArtifactError('preallocated file size differs from frozen manifest')
             while remaining:
                 check_cancelled()
                 chunk = source.read(min(1024 * 1024, remaining))

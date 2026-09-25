@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 from types import MethodType, SimpleNamespace
 import unittest
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 from faaslora.experiment.instance_pool import InstanceSlot
 from scripts.run_all_experiments import (
@@ -306,6 +306,130 @@ class LocalSourceOwnership(unittest.TestCase):
     def release(self, receipt):
         self.manager.release_local_source(lease_id=receipt['lease_id'], expected_owner_id=receipt['owner_id'])
 
+    def test_remote_space_is_held_before_body_and_includes_previous_copy(self):
+        owner = self.manager.local_source_references
+        files = {'adapter_model.safetensors': (17, '0' * 64)}
+        before = owner.inventory()['tiers']['nvme']['allocated_file_bytes']
+        with owner.materializing(self.source) as transfer:
+            with owner.transfer_workspace(transfer) as staging:
+                receipt = owner.prepare_transfer(transfer, staging, 123, files,
+                                                 limit_bytes=before + 8192)
+                self.assertEqual(receipt['reserved_file_bytes'], 8192)
+                self.assertEqual(receipt['used_file_bytes_before'], before)
+                self.assertEqual((staging.parent / 'artifact.tar.gz').stat().st_size, 123)
+                self.assertEqual((staging / 'adapter_model.safetensors').stat().st_size, 17)
+                view = owner.inventory()
+                self.assertEqual(view['transfer_held_file_bytes'], 8192)
+                self.assertEqual(view['tiers']['nvme']['allocated_file_bytes'], before + 8192)
+                self.assertEqual((self.source / 'weights').read_bytes(), b'tiny-test-fixture')
+        self.assertEqual(owner.inventory()['allocated_file_bytes'], before)
+
+    def test_concurrent_transfers_cannot_spend_the_same_remaining_space(self):
+        owner = self.manager.local_source_references
+        files = {'weights': (17, '0' * 64)}
+        before = owner.inventory()['tiers']['nvme']['allocated_file_bytes']
+        with owner.materializing(self.source) as first, owner.materializing(self.nvme / 'b') as second:
+            with owner.transfer_workspace(first) as one, owner.transfer_workspace(second) as two:
+                owner.prepare_transfer(first, one, 123, files, limit_bytes=before + 8192)
+                with self.assertRaisesRegex(RuntimeError, 'capacity conflict'):
+                    owner.prepare_transfer(second, two, 123, files, limit_bytes=before + 8192)
+                self.assertFalse((two.parent / 'artifact.tar.gz').exists())
+
+    def test_preallocation_failure_is_not_replaced_with_sparse_truncate(self):
+        owner = self.manager.local_source_references
+        with owner.materializing(self.source) as transfer:
+            with owner.transfer_workspace(transfer) as staging:
+                with patch('os.posix_fallocate', side_effect=OSError('unsupported filesystem')):
+                    with self.assertRaisesRegex(OSError, 'unsupported filesystem'):
+                        owner.prepare_transfer(transfer, staging, 123, {'weights': (17, '0' * 64)},
+                                               limit_bytes=32768)
+        self.assertEqual(sorted(p.name for p in self.nvme.iterdir()), ['a'])
+
+    def test_preallocated_writer_changes_content_not_allocation_identity(self):
+        owner = self.manager.local_source_references
+        with owner.materializing(self.source) as transfer:
+            with owner.transfer_workspace(transfer) as staging:
+                owner.prepare_transfer(transfer, staging, 123, {'weights': (17, '0' * 64)},
+                                       limit_bytes=32768)
+                with (staging / 'weights').open('r+b') as writer:
+                    writer.write(b'changed')
+                owner.inventory()  # Managed content timestamps may change.
+                with (staging / 'weights').open('ab') as writer:
+                    writer.write(b'illegal growth')
+                with self.assertRaisesRegex(RuntimeError, 'reserved file changed'):
+                    owner.inventory()
+
+    def test_two_writer_threads_reserve_one_available_transfer(self):
+        owner = self.manager.local_source_references
+        before = owner.inventory()['tiers']['nvme']['allocated_file_bytes']
+        ready, allocated = threading.Barrier(2), threading.Barrier(2)
+        outcomes, errors = [], []
+        def transfer(name):
+            try:
+                with owner.materializing(self.nvme / name) as token:
+                    with owner.transfer_workspace(token) as staging:
+                        ready.wait(2)
+                        try:
+                            owner.prepare_transfer(token, staging, 123, {'weights': (17, '0' * 64)},
+                                                   limit_bytes=before + 8192)
+                            outcomes.append('reserved')
+                        except RuntimeError as error:
+                            if 'capacity conflict' not in str(error):
+                                raise
+                            outcomes.append('conflict')
+                        finally:
+                            allocated.wait(2)  # Neither releases before both decisions.
+            except BaseException as error:
+                errors.append(error)
+        workers = [threading.Thread(target=transfer, args=(name,)) for name in ('b', 'c')]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join(3)
+        self.assertFalse(any(worker.is_alive() for worker in workers))
+        self.assertFalse(errors, errors)
+        self.assertCountEqual(outcomes, ['reserved', 'conflict'])
+        self.assertEqual(owner.inventory()['allocated_file_bytes'], before)
+
+    def test_transfer_budget_is_frozen_and_private_writer_cannot_be_reclaimed(self):
+        owner = self.manager.local_source_references
+        with owner.materializing(self.source) as transfer:
+            with owner.transfer_workspace(transfer) as staging:
+                owner.prepare_transfer(transfer, staging, 123, {'weights': (17, '0' * 64)},
+                                       limit_bytes=32768)
+                self.assertFalse(self.manager._delete_path(staging.parent))
+                self.assertFalse(self.manager._delete_path(self.source))
+        with owner.materializing(self.source) as transfer:
+            with owner.transfer_workspace(transfer) as staging:
+                with self.assertRaisesRegex(ValueError, 'budget cannot change'):
+                    owner.prepare_transfer(transfer, staging, 123, {'weights': (17, '0' * 64)},
+                                           limit_bytes=65536)
+
+    def test_failed_workspace_cleanup_leaves_real_bytes_in_next_budget(self):
+        owner = self.manager.local_source_references
+        before = owner.inventory()['allocated_file_bytes']
+        with patch('shutil.rmtree', side_effect=OSError('cleanup failure')):
+            with self.assertRaisesRegex(OSError, 'cleanup failure'):
+                with owner.materializing(self.source) as transfer:
+                    with owner.transfer_workspace(transfer) as staging:
+                        owner.prepare_transfer(transfer, staging, 123, {'weights': (17, '0' * 64)},
+                                               limit_bytes=before + 8192)
+        self.assertFalse(owner.materializations)
+        self.assertEqual(owner.inventory()['allocated_file_bytes'], before + 8192)
+        with owner.materializing(self.nvme / 'b') as transfer:
+            with owner.transfer_workspace(transfer) as staging:
+                with self.assertRaisesRegex(RuntimeError, 'capacity conflict'):
+                    owner.prepare_transfer(transfer, staging, 123, {'weights': (17, '0' * 64)},
+                                           limit_bytes=before + 8192)
+
+    def test_duplicate_target_does_not_allocate_another_workspace(self):
+        owner = self.manager.local_source_references
+        with owner.materializing(self.source):
+            with self.assertRaisesRegex(RuntimeError, 'already has an active transfer'):
+                with owner.materializing(self.source):
+                    self.fail('duplicate destination was admitted')
+            self.assertEqual(len(owner.materializations), 1)
+
     def test_inventory_counts_retained_copies_and_private_workspace(self):
         import shutil
         shutil.copytree(self.source, self.host / 'a')
@@ -544,6 +668,36 @@ class LocalSourceOwnership(unittest.TestCase):
 
 
 class ControllerNativeReferenceLifecycle(unittest.TestCase):
+    def test_native_http_capacity_conflict_rejects_before_reading_body(self):
+        from faaslora.memory.residency_manager import ResidencyManager
+        from faaslora.registry.schema import StorageTier
+        from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+        from tests.test_http_artifact_store import archive_bytes, content_manifest, SizedResponse
+        runner, *_ = native_reference_fixture()
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'a'
+            source.mkdir()
+            (source / 'old').write_bytes(b'previous-copy')
+            manager = ResidencyManager({'memory': {'nvme': {'cache_dir': directory}}}, Mock(), Mock())
+            used = manager.local_file_inventory()['allocated_file_bytes']
+            manager.tier_capacities[StorageTier.NVME].total_bytes = used + 4096
+            runner._stack = SimpleNamespace(residency_manager=manager)
+            client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+            client.configure_content_manifest(content_manifest())
+            response = SizedResponse(archive_bytes())
+            response.read = Mock(wraps=response.read)
+            client._opener = Mock()
+            client._opener.open.return_value = response
+            runner._remote_artifact_client = client
+            with self.assertRaisesRegex(RuntimeError, 'capacity conflict'):
+                asyncio.run(runner._materialize_remote_adapter_async('a', source))
+            response.read.assert_not_called()
+            self.assertEqual((source / 'old').read_bytes(), b'previous-copy')
+            self.assertFalse(manager.local_source_references.materializations)
+            self.assertEqual(manager.local_file_inventory()['allocated_file_bytes'], used)
+            self.assertEqual(runner._remote_transfer_evidence[-1]['state'], 'not_published')
+            self.assertEqual(runner._remote_transfer_evidence[-1]['transferred_bytes'], 0)
+
     def test_remote_writer_runs_off_loop_and_joins_actual_thread_on_repeated_cancel(self):
         async def check():
             entered, proceed, exited = (threading.Event() for _ in range(3))
@@ -609,6 +763,10 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
             self.assertEqual([row['state'] for row in runner._remote_transfer_evidence],
                              ['not_published', 'published'])
             self.assertTrue(runner._remote_transfer_evidence[-1]['content_verified'])
+            reservation = runner._remote_transfer_evidence[-1]['file_reservation']
+            self.assertEqual(reservation['scope'], 'preallocated_regular_files_v1')
+            self.assertEqual(reservation['reserved_file_bytes'], 8192)
+            self.assertEqual(reservation['used_file_bytes_before'], 4096)
             self.assertNotEqual(runner._remote_transfer_evidence[0]['transfer_id'],
                                 runner._remote_transfer_evidence[1]['transfer_id'])
             self.assertEqual(runner._remote_transfer_evidence[-1]['local_source_owner_id'],
@@ -647,6 +805,7 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
                     await asyncio.sleep(.01)
                     self.assertFalse(task.done())
                     self.assertTrue(manager.local_source_references.materializations)
+                    self.assertEqual(manager.local_file_inventory()['transfer_held_file_bytes'], 8192)
                     self.assertFalse(manager._delete_path(directory))
                 finally:
                     proceed.set()

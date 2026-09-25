@@ -14300,12 +14300,21 @@ class ScenarioRunner:
                     if self._stack is None:
                         raise RuntimeError('native managed artifact transfer requires the physical source owner')
                     owner = self._stack.residency_manager
-                    with owner.local_source_references.materializing(dst) as transfer_id:
+                    references = owner.local_source_references
+                    with references.materializing(dst) as transfer_id:
                         transfer_evidence.update(transfer_id=transfer_id,
                             local_source_owner_id=owner.local_source_references.owner_id,
                             target_path=str(dst))
                         ok, elapsed_ms, size_bytes = self._remote_artifact_client.download_artifact(
-                            adapter_id, str(dst), publish=owner.publish_local_source,
+                            adapter_id, str(dst),
+                            workspace=lambda target: references.transfer_workspace(transfer_id),
+                            reserve_files=lambda staging, archive_bytes, files: references.prepare_transfer(
+                                transfer_id, staging, archive_bytes, files,
+                                limit_bytes=int(owner.tier_capacities[StorageTier.NVME].total_bytes)),
+                            publish=lambda staging, target: references.publish_transfer(
+                                transfer_id, staging, target,
+                                lambda source, destination: owner.publish_local_source(
+                                    source, destination, transfer_id=transfer_id)),
                             cancel_event=cancel_event, require_content_manifest=True,
                             evidence=transfer_evidence)
                 else:

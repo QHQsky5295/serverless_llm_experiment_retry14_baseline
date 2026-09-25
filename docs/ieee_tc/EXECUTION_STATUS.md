@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Mathematical contracts, native references, managed file ownership/storage and frozen-content HTTP publication tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D18. Native fetch checks frozen file identities while writing, saves owner/transfer IDs and byte evidence. Full-pool content qualification, physical reservations/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts, native references, managed file ownership/storage and preallocated content-verified HTTP transfers tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D19. Native fetch allocates archive/payload before body reads under the owner file budget, retains old copies and concurrent allocations. Full-pool qualification, all-tier physical reservations/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -117,6 +117,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Completed-file publication checkpoint `0b8ac0542b627ef2bda4728cee7976b9d4aa781e`
   pushed to V2; remote SHA verified.
 - Linked-file storage checkpoint `e781ac3287afeb9e1c1dc31bd9bf997d475fa50b`
+  pushed to V2; remote SHA verified.
+- Frozen-content transfer checkpoint `83646886fb0107d9ef204088dc60ae6f3fce02c6`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -742,3 +744,39 @@ configs/relayserve_motivation_serverlessllm.yaml.
   GPU lifetime ownership. Backend model/worker/stream/clock qualification follows
   the existing installation. Serverless remains first among baseline runs; remote
   disk decision and all formal comparison/ablation/sensitivity matrices pending.
+
+## Preallocated transfer-capacity checkpoint
+
+- Native remote runner now shares a managed workspace and actual regular-file
+  preallocation transaction with the file owner. Before reading body bytes it
+  accounts retained destinations, all concurrent transfers and failed cleanup
+  remnants; reserves archive + frozen payload files using posix_fallocate; and
+  verifies their actual allocation blocks. No sparse truncate or smaller guessed
+  footprint fallback. One owner ceiling stays fixed between transfers.
+- Two actual threads competing for one transfer's remaining space yield one
+  reservation and one capacity conflict. Duplicate destinations reject. Strict
+  writers overwrite only their preallocated ranges; current inode/size/blocks
+  remain checked before publication. Cancellation retains physical allocation
+  until the real writer ends and workspace cleanup completes. Failed cleanup
+  remains charged by subsequent real scans, not zeroed by a metadata decrement.
+- Scope is allocated regular-file bytes, not full filesystem metadata, HOST RSS,
+  native tensor/KV memory or the complete GPU inequality. Legacy local-copy
+  admission, cross-tier owner assignment, queued conflict handling, whole-run
+  disk growth qualification and all-tier registry transactions remain open.
+  The initial scan/preallocation overhead needs actual-model qualification.
+- Nine new no-GPU checks. First two prechange checks failed on the missing API;
+  first related run had a missing patch import in one test fixture, now corrected.
+  Final functional regression: 564 pass, zero errors/failures/skips. Independent
+  safety/census/replay: 44 pass. The 147 protected entries and original plan SHA
+  remain unchanged; four GPUs idle, 15 MiB each. D19 contains the evidence table.
+  No new 7B/3B performance result, adapter pool, workload or ranking was generated.
+- Sep 26 05:05 local: same P2 installer active on its final vLLM dependency (198),
+  high 1040, max/OOM/OOM-kill zero. Disk ~335 GiB free, host available RAM ~104
+  GiB. No second installation, concurrent model, driver change or unique-data
+  cleanup. Continue this live attempt, not a reinstallation.
+- Next: as soon as installation completes prioritize actual backend/import/
+  worker/clock/stream qualification under the existing guarded launcher. Continue
+  source-content epochs, cold-source cost composition, pre-decision snapshots,
+  native admission/conflict waiting, abort/release and GPU physical lifetime.
+  Serverless remains first among baseline model tests; remote disk decision and
+  all M1/M2, ablation, motivation and sensitivity matrices remain outstanding.
