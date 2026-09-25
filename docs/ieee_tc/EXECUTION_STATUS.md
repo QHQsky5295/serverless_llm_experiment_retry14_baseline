@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Mathematical contracts + native token/reference/scheduler interfaces tested; controller/resource integration open | P1_FORMULA_IMPLEMENTATION.md D1–D7. GPU references bind actual engine requests and native LRU; async scheduler observes current/stale in-flight KV. CUDA/clock/stream qualification, slow-tier references and atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts + native token/reference/scheduler and fixed-work interfaces tested; controller/resource integration open | P1_FORMULA_IMPLEMENTATION.md D1–D8. Async scheduler distinguishes current/stale in-flight KV; fixed work rejects hidden input/target/base-model substitutions. CUDA/clock/stream qualification, slow-tier references and atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -95,6 +95,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Startup-parallel ingress checkpoint `4fe05a5cab78bb6dc91ad6e2f85301cf9f330dbc`
   pushed to V2; remote SHA verified.
 - Physical GPU union/native census checkpoint `4ab1d1e9fbe7f2f64f0e0f8ce1e8aa954b71d2c7`
+  pushed to V2; remote SHA verified.
+- Native async scheduler/KV checkpoint `aaa006f57c3af63ec64c6fba1f28a29f5df3a89f`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -397,3 +399,25 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Next mainline: actual backend qualification once install completes, plus owner
   transaction integration and common generation/measurement qualification. Keep
   Serverless first in baseline order; remote disk decision remains pending.
+
+## Fixed-work boundary checkpoint
+
+- Closed legacy fallback inside fixed-output prompt preparation, missing source
+  target substitution, output-target shrink and disabled-LoRA base-model output.
+  Native chat rendering is explicitly frozen rather than chosen after exception.
+  Existing subprocess RPC now preserves the canonical prepared request unchanged.
+- Native input token IDs are required and SHA-recorded alongside output IDs.
+  This is input evidence, not proof of adapter correctness or cross-system parity.
+  HTTP transport/frozen-tokenizer/full-pool qualification remain open. Baseline's
+  dirty replay file was inspected, never modified or staged in this checkpoint.
+- Eight added no-GPU tests; full functional suite 434 passed without errors,
+  failures or skips. First targeted run: one fixture expected a later missing-
+  reference error while LoRA was disabled; fixture now tests enabled LoRA and a
+  missing reference explicitly. Safety/census/replay tests and historical seal
+  are verified separately before backup. No model performance run occurred.
+- Original install has progressed to cuSPARSE dependency 104 after completing
+  cuSOLVER. Keep its live scope; do not restart, duplicate or overlap model work.
+- Next: finish native owner/controller integration, then actual backend/clock/
+  stream/worker qualification. Inspect common frozen input with the final
+  tokenizer before baseline runs; Serverless remains first. Formal M1/M2,
+  ablations, motivation and sensitivity evidence remain unmeasured.

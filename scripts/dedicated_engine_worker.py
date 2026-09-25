@@ -54,6 +54,20 @@ def _restore_env_updates(previous: Dict[str, Optional[str]]) -> None:
             os.environ[key] = value
 
 
+def _decode_prepared_request(kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    """Preserve the parent canonical plan; never guard/truncate it a second time."""
+    if '_prepared_request' not in kwargs:
+        return kwargs
+    from scripts.run_all_experiments import RequestExecutionPlan
+    values = kwargs['_prepared_request']
+    if (not isinstance(values, dict) or set(values) != {'prompt', 'input_tokens', 'max_tokens'}
+            or not isinstance(values['prompt'], str)
+            or any(type(values[key]) is not int or values[key] <= 0 for key in ('input_tokens', 'max_tokens'))
+            or any(values[key] != kwargs.get(key) for key in values)):
+        raise ValueError('prepared request identity differs across RPC boundary')
+    return {**kwargs, '_prepared_request': RequestExecutionPlan(**values)}
+
+
 async def _run_worker(payload_path: Path, ready_path: Path) -> None:
     payload = json.loads(payload_path.read_text(encoding="utf-8"))
     repo_root = Path(payload["repo_root"]).resolve()
@@ -112,7 +126,7 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
                     if cmd == "generate":
                         started_at = time.perf_counter()
                         generate_started_wall_time = time.time()
-                        generate_ret = await engine.generate(**kwargs)
+                        generate_ret = await engine.generate(**_decode_prepared_request(kwargs))
                         worker_wall_ms = max(0.0, (time.perf_counter() - started_at) * 1000.0)
                         worker_response_ready_wall_time = time.time()
                         if isinstance(generate_ret, tuple) and len(generate_ret) == 4:

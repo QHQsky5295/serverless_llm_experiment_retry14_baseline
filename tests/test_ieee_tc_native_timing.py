@@ -1,10 +1,12 @@
 """Native clock/token contracts using deterministic events, never GPU timing claims."""
 import asyncio
+import hashlib
+import json
 import math
 import time
 from types import SimpleNamespace
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 from faaslora.metrics.metrics_collector import NativeV1TokenTimeline
 from scripts.run_all_experiments import (
@@ -126,6 +128,8 @@ class EngineTimingIntegration(unittest.TestCase):
         self.assertEqual(timing['native_output_tokens'], 3)
         self.assertAlmostEqual(timing['worker_wall_e2e_ms'], 2000.)
         self.assertAlmostEqual(timing['runtime_estimated_e2e_ms'], 1100.)
+        self.assertEqual(timing['native_prompt_token_ids_sha256'],
+                         hashlib.sha256(b'[1,2]').hexdigest())
 
     def test_actual_engine_rejects_wrong_fixed_output_and_missing_terminal(self):
         with self.assertRaisesRegex(RuntimeError, 'output length violates'):
@@ -207,6 +211,100 @@ class EngineTimingIntegration(unittest.TestCase):
         self.assertAlmostEqual(result.tpot_ms, 1.)
         self.assertGreater(result.service_e2e_ms-result.service_ttft_ms, result.tpot_ms)
         self.assertAlmostEqual(result.native_token_timing['worker_completion_notification_ms'], 4.)
+
+
+class FixedWorkContract(unittest.TestCase):
+    def engine(self, **overrides):
+        config = {'generation_contract': 'fixed_length_greedy_v1', 'max_model_len': 1024,
+                  'max_input_len': 759, 'max_output_tokens_cap': 256}
+        config.update(overrides)
+        engine = InferenceEngine(config, {})
+        engine._prompt_guard_tokenizer = SimpleNamespace(
+            encode=lambda text, add_special_tokens=False: ([1] if add_special_tokens else []) +
+                [ord(char) for char in text],
+            decode=lambda ids, skip_special_tokens=False: ''.join(chr(token) for token in ids))
+        return engine
+
+    def test_tokenizer_failure_cannot_become_character_estimate(self):
+        engine = self.engine()
+        engine._get_prompt_guard_tokenizer = Mock(side_effect=ValueError('tokenizer unavailable'))
+        with self.assertRaisesRegex(RuntimeError, 'fallback forbidden'):
+            engine.prepare_request('text', 3, 999)
+
+    def test_common_output_target_cannot_shrink_at_model_or_context_guard(self):
+        with self.assertRaisesRegex(ValueError, 'common fixed-output target'):
+            self.engine(max_output_tokens_cap=2).prepare_request('text', 3, 4)
+        with self.assertRaisesRegex(RuntimeError, 'fallback forbidden'):
+            self.engine(max_model_len=34, max_input_len=32).prepare_request('x'*32, 30, 32)
+        plan = self.engine().prepare_request('x'*900, 256, 999)
+        self.assertEqual((len(plan.prompt), plan.input_tokens, plan.max_tokens), (759, 759, 256))
+
+    def test_normalization_is_explicit_and_degenerate_boundary_does_not_guess(self):
+        engine = self.engine(max_input_len=4)
+        engine._prompt_guard_tokenizer.decode = lambda ids, **kw: ''.join(chr(token) for token in ids).upper()
+        self.assertEqual(engine.prepare_request('abc', 3, 3).prompt, 'ABC')
+        engine._prompt_guard_tokenizer.decode = lambda ids, **kw: 'x'*9
+        with self.assertRaisesRegex(RuntimeError, 'fallback forbidden'):
+            engine.prepare_request('abc', 3, 3)
+
+    def test_source_target_is_required_not_filled_from_other_fields(self):
+        scenario = ScenarioRunner.__new__(ScenarioRunner)
+        scenario.wl_cfg = {'generation_contract': 'fixed_length_greedy_v1'}
+        for source in (None, 0, -1, True, 1.5, '5'):
+            trace = SimpleNamespace(expected_output_tokens=source, prompt_output_tokens=20)
+            with self.subTest(source=source), self.assertRaises(ValueError):
+                scenario._trace_requested_output_tokens(trace, 100)
+        self.assertEqual(scenario._trace_requested_output_tokens(
+            SimpleNamespace(expected_output_tokens=300), 100), 256)
+
+    def test_missing_request_preparer_is_not_an_implicit_legacy_path(self):
+        scenario = ScenarioRunner.__new__(ScenarioRunner)
+        scenario._generation_contract = 'fixed_length_greedy_v1'
+        scenario.wl_cfg = {'generation_contract': 'fixed_length_greedy_v1'}
+        trace = SimpleNamespace(expected_output_tokens=3, prompt='text', expected_input_tokens=4)
+        with self.assertRaisesRegex(RuntimeError, 'real prompt/token request preparer'):
+            scenario._prepare_request_execution_plan(SimpleNamespace(), trace, 3)
+
+    def test_native_chat_renderer_is_frozen_not_selected_by_exception(self):
+        messages = [{'role': 'user', 'content': 'hello'}]
+        engine = self.engine(timing_contract='ieee_tc_native_v1')
+        with self.assertRaisesRegex(ValueError, 'frozen canonical_prompt_renderer'):
+            engine.prepare_request('unused', 3, 4, chat_messages=messages)
+        engine.model_cfg['canonical_prompt_renderer'] = 'role_lines_v1'
+        self.assertEqual(engine.prepare_request('unused', 3, 4, chat_messages=messages).prompt, 'User: hello')
+        engine.model_cfg['canonical_prompt_renderer'] = 'tokenizer_chat_template'
+        engine._prompt_guard_tokenizer.apply_chat_template = Mock(side_effect=ValueError('bad template'))
+        with self.assertRaisesRegex(ValueError, 'bad template'):
+            engine.prepare_request('unused', 3, 4, chat_messages=messages)
+
+    def test_prepared_prompt_survives_actual_proxy_and_worker_decoder_once(self):
+        from scripts.dedicated_engine_worker import _decode_prepared_request
+        proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
+        proxy._rpc = AsyncMock(return_value={'ttft_ms': 1., 'tpot_ms': 1., 'output_tokens': 3,
+                                            'timing': {'worker_wall_e2e_ms': 3.}})
+        plan = RequestExecutionPlan('canonical once', 2, 3)
+        asyncio.run(proxy.generate_prepared(request_plan=plan, lora_path=None, adapter_id=None))
+        payload = json.loads(json.dumps(proxy._rpc.call_args.kwargs))
+        decoded = _decode_prepared_request(payload)
+        self.assertEqual(decoded['_prepared_request'], plan)
+        payload['prompt'] = 'changed across boundary'
+        with self.assertRaisesRegex(ValueError, 'identity differs'):
+            _decode_prepared_request(payload)
+
+    def test_missing_native_prompt_and_base_model_substitution_reject(self):
+        helper = EngineTimingIntegration()
+        engine = helper.engine()
+        class MissingPromptEngine:
+            async def generate(self, **kwargs):
+                yield SimpleNamespace(outputs=[SimpleNamespace(token_ids=[11, 12, 13])],
+                                      metrics=metrics(), prompt_token_ids=None, finished=True)
+        engine.engine = MissingPromptEngine()
+        with self.assertRaisesRegex(RuntimeError, 'native prompt token IDs required'):
+            helper.generate(engine)
+        with patch('scripts.run_all_experiments.SamplingParams', side_effect=lambda **kw: SimpleNamespace(**kw)):
+            with self.assertRaisesRegex(RuntimeError, 'cannot fall back to the base model'):
+                asyncio.run(engine.generate_prepared(request_plan=RequestExecutionPlan('p', 1, 3),
+                    lora_path='/existing/adapter', adapter_id='a'))
 
 
 if __name__ == '__main__':

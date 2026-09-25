@@ -220,8 +220,11 @@ class NativeReferences(unittest.TestCase):
     def test_generation_cannot_silently_bypass_reference_contract(self):
         engine = native_timing_fixture.EngineTimingIntegration().engine()
         engine.model_cfg['ieee_gpu_references'] = True
+        engine._lora_in_engine = True
         engine._prepare_vllm_prompt = lambda **_: ('hello', 2, 3)
         with patch('scripts.run_all_experiments.SamplingParams',
+                   side_effect=lambda **kw: SimpleNamespace(**kw)), \
+             patch('scripts.run_all_experiments.LoRARequest',
                    side_effect=lambda **kw: SimpleNamespace(**kw)):
             with self.assertRaisesRegex(RuntimeError, 'requires its dispatch reference'):
                 asyncio.run(engine.generate('hello', '/existing/adapter', 'adapter', 3, 2))

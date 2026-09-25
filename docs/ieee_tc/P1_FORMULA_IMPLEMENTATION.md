@@ -339,3 +339,44 @@ native scheduler/model 对象，不是实际后端或性能资格。本步骤交
 [KV layout](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/core/kv_cache_utils.py)、
 [engine core](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core.py)
 及其 [utility client](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core_client.py)。
+
+## P1-D8：固定工作量的错误路径与跨进程输入（代码合同通过，共同比较待资格）
+
+历史 `31a56f3` 已加入 fixed-output，但继续检查其实际调用链发现：
+
+1. 外层禁止 fallback，并没有消除 `_prepare_vllm_prompt` 内部捕获分词错误后
+   按字符/输入 hint 继续的路径。
+2. 源 expected-output 缺失时还可能从另一个字段或默认 max-token 补值；
+   prompt guard 和 model cap 又可能减少目标，变成“正确完成较少工作”。
+3. parent 已准备好的 prompt 经 subprocess `generate_prepared` 后没有携带
+   prepared 标记，worker 会重新 guard；decode/re-encode 并非必然幂等。
+4. 仅在引用模式检查 LoRA，其他 fixed-output 调用若 LoRA 未启用可能生成基座输出。
+
+修正在原 runner/worker 上完成，不另建 replay framework，不改历史结果：
+
+| 共同协议要求 | 实际变更与证据 | 仍待验证 |
+|---|---|---|
+| `target=min(source_expected,cap)` | 源值/cap 必须为正整数；不能从其他字段补齐；模型/上下文不能偷偷改目标 | 既有完整 trace 的冻结输入审计 |
+| canonical prompt | 真实分词、确定 decode/re-encode、非空 token、含特殊 token 的上下文检查；不能按字符兜底，退化边界不能编造 token | 最终后端 tokenizer 与所有 baseline 的逐请求 SHA |
+| chat rendering 一致 | native fixed 合同显式冻结 `tokenizer_chat_template` 或 `role_lines_v1`；不按某次模板报错自动换格式 | 两模型共同 renderer 配置与 HTTP baseline 接入 |
+| 子进程不改变输入 | 原 RPC 携带 prepared 三字段，worker 核验与请求一致后直接使用；不重复 guard | 原生 engine 真正接收到的 token 序列 |
+| 正确 adapter | fixed-output 有 adapter/path 时必须构造 native LoRARequest；禁用 LoRA 不能当成功基座输出 | native adapter/weight 身份、正确加载及全池覆盖 |
+| 原生输入/输出证据 | 原生 prompt token IDs 必须存在且在 stream 中不变，保存其 SHA；保留已有 native output SHA/count | 跨系统特殊 token 一致性，不只比较字符串 hash |
+
+输入参考了本机 baseline replay 的既有 canonical decode/re-encode 语义，以及
+官方 vLLM 0.30.0 [TokenizeParams](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/renderers/params.py)
+的 context/special-token 检查。S-LoRA 的
+[HTTP manager](https://raw.githubusercontent.com/S-LoRA/S-LoRA/main/slora/server/httpserver/manager.py)
+和 [router](https://raw.githubusercontent.com/S-LoRA/S-LoRA/main/slora/server/router/manager.py)
+分开传递 prompt IDs、adapter 与采样参数；这些身份不能由文本重分词或预期
+输出数替代。最终仍须核验本地冻结 commit，而非用 upstream main 推断已运行行为。
+
+新增 8 项无 GPU 合同测试，完整功能回归 434 项通过，无失败/skip。第一轮
+37 项定向测试有一个旧 fixture 关闭 LoRA，因而更早被新基座替代检查拒绝；
+已将该 fixture 显式设为有 LoRA、无引用，继续检验其原定引用缺失问题。
+没有删除错误检查来使测试通过。
+
+以上不代表已完成 C5 matched-output 性能实验。baseline replay 文件本身含有
+用户未提交修改，本次没有覆写；其残留错误路径与最终共同输入协议须在 baseline
+资格时通过独立可审计入口解决。不能因为 Prime 的单元测试通过就宣布全体系统
+可比，也不能把旧 natural-output 结果重新标记为 fixed-output。

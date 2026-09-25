@@ -2728,7 +2728,13 @@ class InferenceEngine:
         max_tokens: int,
         input_tokens_hint: int,
     ) -> Tuple[str, int, int]:
+        fixed = self.model_cfg.get("generation_contract") == "fixed_length_greedy_v1"
+        if fixed and (type(max_tokens) is not int or max_tokens <= 0):
+            raise ValueError("fixed-output target must be a positive integer")
+        declared_target = max_tokens
         max_tokens = self._resolve_request_output_limit(max_tokens)
+        if fixed and max_tokens != declared_target:
+            raise ValueError("model output cap cannot change the common fixed-output target")
         max_len = int(self.model_cfg.get("max_model_len", 2048))
         max_input_len = max(0, int(self.model_cfg.get("max_input_len", 0) or 0))
         reserve = max(32, min(int(max_tokens), 256))
@@ -2744,7 +2750,7 @@ class InferenceEngine:
             if len(token_ids) > prompt_budget:
                 token_ids = token_ids[-prompt_budget:]
                 prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
-            if self.model_cfg.get("generation_contract") == "fixed_length_greedy_v1":
+            if fixed:
                 # A decode at a hard token boundary is not always idempotent:
                 # re-encoding the emitted string can produce one or more extra
                 # tokens.  The matched-output contract is defined over prompt
@@ -2752,24 +2758,30 @@ class InferenceEngine:
                 # string with that exact tokenizer convention.  The baseline
                 # replay client applies the same loop before hashing/sending.
                 while True:
+                    prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
                     reencoded = tokenizer.encode(prompt, add_special_tokens=False)
                     if len(reencoded) <= prompt_budget:
                         token_ids = reencoded
                         break
                     overflow = max(1, len(reencoded) - prompt_budget)
                     if len(token_ids) <= overflow:
-                        token_ids = token_ids[-1:]
-                        prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
-                        reencoded = tokenizer.encode(prompt, add_special_tokens=False)
-                        token_ids = reencoded[: max(1, min(len(reencoded), prompt_budget))]
-                        prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
-                        break
+                        raise ValueError("canonical prompt cannot satisfy its token budget")
                     token_ids = token_ids[overflow:]
                     prompt = tokenizer.decode(token_ids, skip_special_tokens=False)
             actual_input_tokens = max(1, len(token_ids))
             safe_max_tokens = min(max_tokens, max(1, max_len - actual_input_tokens - 8))
+            if fixed:
+                if not token_ids or any(type(token) is not int or token < 0 for token in token_ids):
+                    raise ValueError("canonical prompt requires real nonempty token IDs")
+                if safe_max_tokens != declared_target:
+                    raise ValueError("prompt guard cannot reduce the common fixed-output target")
+                native_ids = tokenizer.encode(prompt, add_special_tokens=True)
+                if not native_ids or len(native_ids) + declared_target > max_len:
+                    raise ValueError("canonical prompt plus special tokens and target exceeds context")
             return prompt, actual_input_tokens, safe_max_tokens
-        except Exception:
+        except Exception as exc:
+            if fixed:
+                raise RuntimeError("fixed-output prompt preparation failed; token/character fallback forbidden") from exc
             max_chars = min(max_len * 4, 8192)
             if len(prompt) > max_chars:
                 prompt = prompt[-max_chars:]
@@ -2816,6 +2828,23 @@ class InferenceEngine:
     ) -> str:
         if not messages:
             return fallback_prompt
+        strict = (self.model_cfg.get("generation_contract") == "fixed_length_greedy_v1"
+                  and self.model_cfg.get("timing_contract") == "ieee_tc_native_v1")
+        renderer = self.model_cfg.get("canonical_prompt_renderer")
+        if strict:
+            if renderer == "tokenizer_chat_template":
+                tokenizer = self._hf_tokenizer or self._get_prompt_guard_tokenizer()
+                rendered = tokenizer.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
+                if not isinstance(rendered, str) or not rendered.strip():
+                    raise ValueError("frozen chat renderer produced no prompt")
+                return rendered
+            if renderer != "role_lines_v1":
+                raise ValueError("native fixed-output chat input requires a frozen canonical_prompt_renderer")
+            # Explicit common rendering recipe, not a fallback after template failure.
+            if any(not isinstance(item, dict) or not isinstance(item.get('content'), str)
+                   or not isinstance(item.get('role'), str) for item in messages):
+                raise ValueError("role_lines_v1 requires text role/content messages")
+            return "\n".join(f"{item['role'].strip().capitalize()}: {item['content']}" for item in messages)
         try:
             tokenizer = self._hf_tokenizer or self._get_prompt_guard_tokenizer()
             rendered = tokenizer.apply_chat_template(
@@ -4131,6 +4160,7 @@ class InferenceEngine:
                         "top_p": 1.0,
                         "ignore_eos": True,
                         "stop": [],
+                        "stop_token_ids": [],
                     }
                 )
             if generation_seed is not None:
@@ -4141,6 +4171,8 @@ class InferenceEngine:
             if self._lora_in_engine and lora_path and adapter_id:
                 int_id = self._lora_int_id(adapter_id)
                 lora_req = LoRARequest(lora_name=adapter_id, lora_int_id=int_id, lora_path=lora_path)
+            if generation_contract == "fixed_length_greedy_v1" and (adapter_id or lora_path) and lora_req is None:
+                raise ValueError("fixed-output adapter request cannot fall back to the base model")
 
             reference_receipt = None
             if self.model_cfg.get("ieee_gpu_references", False) and adapter_id:
@@ -4161,6 +4193,7 @@ class InferenceEngine:
             first_t = None
             tok_count = 0
             final_token_ids: List[int] = []
+            native_prompt_ids = None
             actual_prompt_tokens = max(1, int(input_tokens or 1))
             last_metrics = None
             backend_terminal = False
@@ -4177,6 +4210,13 @@ class InferenceEngine:
                     last_metrics = metrics
                 prompt_token_ids = getattr(out, "prompt_token_ids", None)
                 if prompt_token_ids is not None:
+                    if native_timing:
+                        ids = list(prompt_token_ids)
+                        if not ids or any(type(token) is not int or token < 0 for token in ids):
+                            raise ValueError("missing/invalid native prompt token IDs")
+                        if native_prompt_ids is not None and native_prompt_ids != ids:
+                            raise ValueError("native prompt token IDs changed during generation")
+                        native_prompt_ids = ids
                     actual_prompt_tokens = max(1, len(prompt_token_ids))
                 if out.outputs:
                     if native_timing and len(out.outputs) != 1:
@@ -4199,6 +4239,8 @@ class InferenceEngine:
                 raise ValueError("backend stream ended without terminal acknowledgement; reference retained")
             native_fields = timeline.finalize(t1) if timeline is not None else {}
             if native_timing:
+                if native_prompt_ids is None:
+                    raise ValueError("native prompt token IDs required; input hint is not evidence")
                 ttft_ms = native_fields["native_ttft_ms"]
                 # Tuple transport remains numeric for historical RPC consumers.
                 # The auditable native_tpot_ms is null for a single output token.
@@ -4228,6 +4270,9 @@ class InferenceEngine:
                 ).hexdigest(),
                 **native_fields,
             }
+            if native_timing:
+                timing['native_prompt_token_ids_sha256'] = hashlib.sha256(
+                    json.dumps(native_prompt_ids, separators=(",", ":")).encode("utf-8")).hexdigest()
             if reference_receipt is not None:
                 timing.update(gpu_reference_owner_id=reference_receipt['owner_id'],
                               gpu_reference_lease_id=reference_receipt['lease_id'],
@@ -4975,6 +5020,7 @@ class SubprocessInferenceEngineProxy:
         generation_seed: Optional[int] = None,
         return_timing: bool = False,
         gpu_reference: Optional[Dict[str, Any]] = None,
+        _prepared_request: Optional[RequestExecutionPlan] = None,
     ) -> Tuple[float, float, int]:
         rpc_started_at = time.perf_counter()
         result = await self._rpc(
@@ -4989,6 +5035,10 @@ class SubprocessInferenceEngineProxy:
             generation_seed=generation_seed,
             return_timing=return_timing,
             **({"gpu_reference": gpu_reference} if gpu_reference is not None else {}),
+            **({"_prepared_request": {"prompt": _prepared_request.prompt,
+                                      "input_tokens": _prepared_request.input_tokens,
+                                      "max_tokens": _prepared_request.max_tokens}}
+               if _prepared_request is not None else {}),
         )
         parent_rpc_wall_ms = max(0.0, (time.perf_counter() - rpc_started_at) * 1000.0)
         timing = dict(result.get("timing") or {})
@@ -5071,6 +5121,7 @@ class SubprocessInferenceEngineProxy:
             top_p=top_p,
             generation_seed=generation_seed,
             return_timing=return_timing,
+            _prepared_request=request_plan,
             **({"gpu_reference": gpu_reference} if gpu_reference is not None else {}),
         )
 
@@ -6451,18 +6502,18 @@ class ScenarioRunner:
         return max(1, int(getattr(trace, "expected_input_tokens", 0) or 1))
 
     def _trace_requested_output_tokens(self, trace: Any, default_max_tokens: int) -> int:
+        contract = str((getattr(self, "wl_cfg", {}) or {}).get("generation_contract", "legacy") or "legacy").strip().lower()
+        if contract == "fixed_length_greedy_v1":
+            source = getattr(trace, "expected_output_tokens", None)
+            cap = (getattr(self, "wl_cfg", {}) or {}).get("fixed_output_max_tokens", 256)
+            if type(source) is not int or source <= 0 or type(cap) is not int or cap <= 0:
+                raise ValueError("fixed-output contract requires positive integer source expected output and cap")
+            return min(source, cap)
         requested = int(getattr(trace, "expected_output_tokens", 0) or 0)
         if requested <= 0:
             requested = int(getattr(trace, "prompt_output_tokens", 0) or 0)
         if requested <= 0:
             requested = int(default_max_tokens or 0)
-        contract = str((getattr(self, "wl_cfg", {}) or {}).get("generation_contract", "legacy") or "legacy").strip().lower()
-        if contract == "fixed_length_greedy_v1":
-            fixed_cap = max(
-                1,
-                int((getattr(self, "wl_cfg", {}) or {}).get("fixed_output_max_tokens", 256) or 256),
-            )
-            requested = min(requested, fixed_cap)
         return max(1, requested)
 
     def _prepare_request_execution_plan(
@@ -6499,6 +6550,8 @@ class ScenarioRunner:
                     "fixed_length_greedy_v1 request preparation did not return "
                     "a RequestExecutionPlan; fallback is forbidden"
                 )
+        if getattr(self, "_generation_contract", "legacy") == "fixed_length_greedy_v1":
+            raise RuntimeError("fixed-output contract requires a real prompt/token request preparer")
         model_cfg = getattr(engine, "model_cfg", {}) or {}
         cap = int(model_cfg.get("max_output_tokens_cap", 0) or 0) if isinstance(model_cfg, dict) else 0
         max_tokens = requested_output_tokens
