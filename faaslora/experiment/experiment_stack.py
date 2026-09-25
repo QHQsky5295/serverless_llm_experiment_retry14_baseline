@@ -190,6 +190,7 @@ class ExperimentStack:
             )
         hotness_window_s = _derive_online_hotness_window_s(coord_cfg, preload_cfg)
         self.hotness_tracker = HotnessTracker(self.registry, window_seconds=hotness_window_s)
+        self.preloading_planner.demand_snapshot_provider = self.hotness_tracker.snapshot
 
         # AutoScaler 决策逻辑供实验原样复用（不 start 后台任务，仅用 make_scaling_decision_with_metrics）
         min_instances = int(coord_cfg.get("min_instances", 1))
@@ -371,9 +372,12 @@ class ExperimentStack:
         except Exception:
             return
 
+    def record_arrival(self, adapter_id: str) -> None:
+        """Observe demand before queuing; loading must not define popularity."""
+        self.hotness_tracker.record_arrival(adapter_id)
+
     def record_access(self, adapter_id: str, load_time_ms: float = 0.0, hit: bool = True) -> None:
-        """Single access-stat entrypoint used by the experiment runner."""
-        self.hotness_tracker.record_access(adapter_id)
+        """Record resolved-path measurements, without counting a second arrival."""
         self.registry.update_access_stats(adapter_id, load_time_ms=load_time_ms, hit=hit)
         self._schedule_host_promotion_from_nvme(adapter_id)
 
@@ -393,21 +397,9 @@ class ExperimentStack:
         return float(adapter_info.get(adapter_id, {}).get("hotness", 0.0) or 0.0)
 
     def _online_artifact_hotness(self, adapter_id: str) -> float:
-        metadata = self._artifact_metadata(adapter_id)
-        registry_hotness = 0.0
-        if metadata is not None:
-            observed_access = (
-                float(getattr(metadata, "last_accessed_at", 0.0) or 0.0) > 0.0
-                or int(getattr(metadata, "access_count", 0) or 0) > 0
-                or int(getattr(metadata, "hit_count", 0) or 0) > 0
-                or int(getattr(metadata, "miss_count", 0) or 0) > 0
-            )
-            if observed_access:
-                registry_hotness = float(getattr(metadata, "hotness_score", 0.0) or 0.0)
-        tracker = getattr(self, "hotness_tracker", None)
-        get_hotness = getattr(tracker, "get_hotness", None)
-        tracker_hotness = float(get_hotness(adapter_id) or 0.0) if callable(get_hotness) else 0.0
-        return max(registry_hotness, tracker_hotness)
+        # Cached registry scores can outlive the window. Never max them with
+        # the exact current distribution or silently use a static prior.
+        return self.hotness_tracker.get_hotness(adapter_id)
 
     def _artifact_hotness(self, adapter_id: str) -> float:
         return max(self._online_artifact_hotness(adapter_id), self._static_artifact_hotness(adapter_id))

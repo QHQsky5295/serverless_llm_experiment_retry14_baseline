@@ -2455,6 +2455,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             asyncio.run(stack.residency_manager.admit_artifact(adapter_a, StorageTier.HOST))
             asyncio.run(stack.residency_manager.admit_artifact(adapter_b, StorageTier.NVME))
             stack.sync_local_tier_paths()
+            stack.record_arrival(adapter_a)
             stack.record_access(adapter_a, load_time_ms=0.0, hit=True)
 
             class FakeCoord:
@@ -2523,6 +2524,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             asyncio.run(stack.residency_manager.admit_artifact(adapter_hot, StorageTier.HOST))
             asyncio.run(stack.residency_manager.admit_artifact(adapter_weak, StorageTier.NVME))
             stack.sync_local_tier_paths()
+            stack.record_arrival(adapter_hot)
             stack.record_access(adapter_hot, load_time_ms=0.0, hit=True)
 
             class FakeCoord:
@@ -2697,6 +2699,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             stack._ensure_registered()
             asyncio.run(stack.residency_manager.admit_artifact(adapter_hot, StorageTier.HOST))
             stack.sync_local_tier_paths()
+            stack.record_arrival(adapter_hot)
             stack.record_access(adapter_hot, load_time_ms=0.0, hit=True)
 
             observed = {}
@@ -2778,6 +2781,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             asyncio.run(stack.residency_manager.admit_artifact(adapter_hot, StorageTier.HOST))
             asyncio.run(stack.residency_manager.admit_artifact(adapter_cold, StorageTier.HOST))
             stack.sync_local_tier_paths()
+            stack.record_arrival(adapter_cold)
             stack.record_access(adapter_cold, load_time_ms=0.0, hit=True)
 
             class FakeCoord:
@@ -8501,6 +8505,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         stack._nvme_paths = {}
         stack.registry = SimpleNamespace(get_artifact=lambda aid: metas.get(aid))
         stack.preloading_planner = SimpleNamespace(min_hotness_threshold=0.9)
+        stack.hotness_tracker = SimpleNamespace(window_seconds=300.0, get_hotness=lambda aid: metas[aid].hotness_score)
 
         selected = stack._select_scaleup_gpu_candidates(64 * 1024 * 1024)
 
@@ -8527,6 +8532,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         stack._host_paths = {"live_gpu": "/tmp/live_gpu", "recent_only": "/tmp/recent_only"}
         stack._nvme_paths = {}
         stack.registry = SimpleNamespace(get_artifact=lambda aid: metas.get(aid))
+        stack.hotness_tracker = SimpleNamespace(window_seconds=300.0, get_hotness=lambda aid: metas[aid].hotness_score)
 
         selected = stack._select_scaleup_gpu_candidates(
             32 * 1024 * 1024,
@@ -8556,6 +8562,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         stack._host_paths = {"frontier_a": "/tmp/frontier_a", "recent_b": "/tmp/recent_b"}
         stack._nvme_paths = {}
         stack.registry = SimpleNamespace(get_artifact=lambda aid: metas.get(aid))
+        stack.hotness_tracker = SimpleNamespace(window_seconds=300.0, get_hotness=lambda aid: metas[aid].hotness_score)
 
         selected = stack._select_scaleup_gpu_candidates(
             32 * 1024 * 1024,
@@ -8588,6 +8595,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         stack._nvme_paths = {}
         stack.registry = SimpleNamespace(get_artifact=lambda aid: metas.get(aid))
 
+        stack.hotness_tracker = SimpleNamespace(window_seconds=300.0, get_hotness=lambda aid: metas[aid].hotness_score)
         selected = stack._select_scaleup_gpu_candidates(
             32 * 1024 * 1024,
             preferred_gpu_adapters=["frontier_first", "frontier_second"],
@@ -8655,7 +8663,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         stack._host_paths = {"hot_recent": "/tmp/hot_recent", "cold_newer": "/tmp/cold_newer"}
         stack._nvme_paths = {}
         stack.registry = SimpleNamespace(get_artifact=lambda aid: metas.get(aid))
-        stack.hotness_tracker = SimpleNamespace(window_seconds=300.0, get_hotness=lambda aid: 0.0)
+        stack.hotness_tracker = SimpleNamespace(window_seconds=300.0, get_hotness=lambda aid: metas[aid].hotness_score)
         stack.adapter_info = {"hot_recent": {"hotness": 0.95}, "cold_newer": {"hotness": 0.05}}
 
         selected = stack._select_scaleup_gpu_candidates(32 * 1024 * 1024)
@@ -8732,7 +8740,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         stack._host_paths = {"recent_a": "/tmp/recent_a", "stale_b": "/tmp/stale_b"}
         stack._nvme_paths = {}
         stack.registry = SimpleNamespace(get_artifact=lambda aid: metas.get(aid))
-        stack.hotness_tracker = SimpleNamespace(window_seconds=300.0)
+        stack.hotness_tracker = SimpleNamespace(window_seconds=300.0, get_hotness=lambda aid: metas[aid].hotness_score)
 
         selected = stack._select_scaleup_gpu_candidates(64 * 1024 * 1024)
 

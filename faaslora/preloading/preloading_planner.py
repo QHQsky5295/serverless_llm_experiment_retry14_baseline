@@ -137,6 +137,7 @@ class PreloadingPlanner:
         # Plan tracking
         self.active_plans: Dict[str, PreloadingPlan] = {}
         self.plan_history: List[PreloadingPlanResult] = []
+        self.demand_snapshot_provider = None
         
         self.logger.info(f"Preloading planner initialized with strategy: {self.strategy.value}")
     
@@ -211,6 +212,7 @@ class PreloadingPlanner:
             List of preloading candidates
         """
         candidates = []
+        demand = self.demand_snapshot_provider() if self.demand_snapshot_provider else None
         
         # Get all artifacts from lower tiers
         source_tiers = self._get_source_tiers(target_tier)
@@ -224,7 +226,9 @@ class PreloadingPlanner:
                 artifact_id = metadata.artifact_id
                 
                 # Apply filtering criteria
-                if not self._is_preloading_candidate(metadata, target_tier, scaling_event):
+                hotness = demand.fraction(artifact_id) if demand is not None else metadata.hotness_score
+                if not self._is_preloading_candidate(metadata, target_tier, scaling_event,
+                                                     hotness_score=hotness):
                     continue
                 
                 # Create candidate
@@ -232,7 +236,7 @@ class PreloadingPlanner:
                     artifact_id=artifact_id,
                     size_bytes=metadata.size_bytes,
                     value_per_byte=metadata.value_per_byte,
-                    hotness_score=metadata.hotness_score,
+                    hotness_score=hotness,
                     predicted_load_time_ms=metadata.predicted_load_time_ms,
                     current_tier=metadata.storage_tier,
                     target_tier=target_tier
@@ -261,7 +265,8 @@ class PreloadingPlanner:
     def _is_preloading_candidate(self, 
                                metadata: ArtifactMetadata,
                                target_tier: StorageTier,
-                               scaling_event: Optional[Dict[str, Any]] = None) -> bool:
+                               scaling_event: Optional[Dict[str, Any]] = None,
+                               *, hotness_score: Optional[float] = None) -> bool:
         """
         Check if an artifact is a candidate for preloading
         
@@ -278,7 +283,7 @@ class PreloadingPlanner:
             return False
         
         # Must meet minimum hotness threshold
-        if metadata.hotness_score < self.min_hotness_threshold:
+        if (metadata.hotness_score if hotness_score is None else hotness_score) < self.min_hotness_threshold:
             return False
         
         # Must meet minimum value threshold

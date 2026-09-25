@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Pending | Audit existing V2 implementation rather than rebuilding |
+| P1 IEEE semantic alignment | Nine-equation audit recorded; exact arrival demand implemented and tested | P1_FORMULA_IMPLEMENTATION.md. 297 combined tests pass. Routing/class EWMA, planner objective, admission and physical reservations remain open; no Full performance qualification |
 | P2 backend qualification | Pending | vLLM candidate must be checked locally |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,9 +51,9 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-1. Integrate effective service-worker and external-watchdog checks into existing launchers; native single-raylet witness is not the full deployment gate.
-2. Audit/qualify Serverless native checkpoint path before the original/repaired model pair. Historical actual engine config uses load_format=auto, not serverless_llm.
-3. Continue remote setup after its disk gate and P0/P1 read-only audits; no heavy GPU run
+1. Align F/DP and routing/admission using the nine-equation audit. Demand checkpoint passed all 297 tests. This advances the mainline while remote disk approval is pending.
+2. Integrate effective service-worker and external-watchdog checks into existing launchers; native single-raylet witness is not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
+3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
 ## Verified backups
@@ -66,6 +66,9 @@ configs/relayserve_motivation_serverlessllm.yaml.
   pushed to `origin/main`; main audit bundle corresponds to this implementation.
 - Main diagnostic bundle `9e7a73209b8da4a9006c1e2951fc26038301b167`
   pushed to V2; remote SHA verified.
+- Main native-worker safety checkpoint `040296e6ee424a3f9ff37c40ca39da7ee4b8432c`
+  and baseline loader audit `45698053fb48ab2219ccde9253e4754e28d68a63`
+  pushed to their respective branches; remote SHAs verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
 
@@ -103,3 +106,18 @@ configs/relayserve_motivation_serverlessllm.yaml.
   worker PIDs and their scope were absent after cleanup. First attempt failed
   from AF_UNIX path length before worker launch; retained as launcher error.
 - No formal GPU run has started. No performance claim follows from these checks.
+
+## P1 demand checkpoint
+
+- Exact ingress-based window fractions replace per-adapter accumulating EWMA /
+  doubled registry values; immutable epoch snapshot available to the planner.
+- No-GPU reproduction: two equal arrivals previously returned .2/.2 from getter
+  and 1/1 from registry; expiry did not clear getter/top-k. Expected .5/.5 then 0/0.
+- First full regression had five fixture errors: synthetic stacks bypassed
+  construction and omitted the authoritative demand provider. Fixtures now provide
+  it explicitly; no production fallback was added to make tests pass.
+- 288 existing smoke + 9 exact-demand tests = 297 passed, zero skips/failures.
+- All 147 sealed historical entries unchanged after tests. Models were mocked;
+  four real GPUs remained idle. No workload/adapter regeneration occurred.
+- Nine-formula gap table is an evidence table, not an experimental performance
+  figure. No claim that P1, Full qualification or optimization target is complete.

@@ -12268,6 +12268,10 @@ class ScenarioRunner:
                 (float(arrival_released_at) - float(scheduled_arrival_at)) * 1000.0,
             )
             self._observe_live_arrived_lora(getattr(trace, "adapter_id", None))
+            if trace.adapter_id and self._stack is not None:
+                # Eq. (4) observes arrivals, including requests waiting for
+                # admission or a remote fetch. Backend retries do not come here.
+                self._stack.record_arrival(trace.adapter_id)
             self._observe_live_waiting_trace(trace)
             # Let the dispatcher keep releasing due trace arrivals before this
             # request starts the heavier dispatch/runtime path on the shared
