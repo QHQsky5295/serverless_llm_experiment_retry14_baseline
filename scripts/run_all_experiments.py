@@ -63,6 +63,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 from bisect import bisect_right
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
@@ -793,6 +794,7 @@ class RequestResult:
     arrival_contract: str = "legacy_internal_timer"
     external_arrival_timing: Dict[str, Any] = field(default_factory=dict)
     failure_observation: Dict[str, Any] = field(default_factory=dict)
+    gpu_reference_evidence: Dict[str, Any] = field(default_factory=dict)
 
 
 class AggregateBandwidthLimiter:
@@ -1087,8 +1089,10 @@ class RuntimeRequestReservation:
     """Controller ownership from successful reserve, not just model invocation.
 
     Adapter/source resolution may change its local variables or raise before
-    inference begins. Release still belongs to the original reservation. This
-    object does not claim a GPU reference, KV allocation or successful abort.
+    inference begins. Release still belongs to the original reservation.
+    Native references, when enabled, are recorded separately from controller
+    slots. An interrupted RPC is not evidence that its native work was undone.
+    This object does not claim KV allocation or successful abort.
     """
     request_id: str
     slot: Optional[Any] = None
@@ -1103,6 +1107,8 @@ class RuntimeRequestReservation:
     batch_input_tokens: int = 0
     batch_output_tokens: int = 0
     batch_started: bool = False
+    gpu_reference_engine: Optional[Any] = None
+    gpu_reference_evidence: Dict[str, Any] = field(default_factory=dict)
 
     def bind(self, slot, adapter_id, adapter_reserved: bool) -> None:
         if self.bound:
@@ -4855,10 +4861,27 @@ class SubprocessInferenceEngineProxy:
                 channel,
                 rpc_channel_acquire_ms=rpc_channel_acquire_ms,
             )
+        except asyncio.CancelledError:
+            # asyncio.to_thread cancellation does not stop send/recv. This
+            # channel still belongs to that roundtrip and cannot serve another
+            # request. Withdraw the transport, without claiming native abort.
+            if channel is not None:
+                abandoned, channel = channel, None
+                self._engine_dead = True
+                await self._drop_rpc_channel(abandoned)
+            raise
         except Exception as first_exc:
             if channel is not None:
-                await self._drop_rpc_channel(channel)
-                channel = None
+                abandoned, channel = channel, None
+                await self._drop_rpc_channel(abandoned)
+            if getattr(self, 'model_cfg', {}).get('timing_contract') == 'ieee_tc_native_v1':
+                # Native generate/begin-use may have committed before the reply
+                # was lost. The controller owns the unresolved attempt; neither
+                # blind resubmission nor closing the socket proves completion.
+                self._engine_dead = True
+                raise RuntimeError(self._with_worker_log_context(
+                    f'subprocess_native_rpc_failed_no_retry: {type(first_exc).__name__}: {first_exc}'
+                )) from None
             if cmd == "shutdown":
                 raise
             if self._process.poll() is None and not self._engine_dead:
@@ -4969,6 +4992,12 @@ class SubprocessInferenceEngineProxy:
         self,
         channel: _BlockingRPCChannel,
     ) -> None:
+        # Wake an outstanding recv/send before closing. close alone need not
+        # interrupt another thread blocked on this socket on Linux.
+        try:
+            channel.sock.shutdown(socket.SHUT_RDWR)
+        except (OSError, AttributeError):
+            pass
         try:
             await asyncio.to_thread(channel.sock.close)
         except Exception:
@@ -6254,6 +6283,7 @@ class ScenarioRunner:
                      'instance_id': reservation.slot.instance_id if reservation.slot else None,
                      'generation_started': reservation.generation_started,
                      'native_terminal_observed': reservation.native_terminal_observed,
+                     'gpu_reference_evidence': dict(reservation.gpu_reference_evidence),
                      'controller_capacity_released': reservation.released}
                     for key, reservation in sorted(self._unsettled_runtime_reservations.items())],
             }
@@ -13354,22 +13384,109 @@ class ScenarioRunner:
         finally:
             await self._finish_runtime_request_reservation(reservation)
 
+    async def _acquire_runtime_gpu_reference(
+        self, reservation: RuntimeRequestReservation, engine, adapter_id: str, local_path: str,
+    ) -> Dict[str, Any]:
+        """Connect one selected request to the native load/reference owner.
+
+        This revalidates the selected worker after path resolution, not the
+        router's historical tier hint. Its receipt must never be relabelled as
+        a pre-dispatch snapshot or as proactive E(t) admission. Full routing
+        still requires its separately committed source/cost snapshot.
+        """
+        from faaslora.clock import local_monotonic_clock_id
+        if self.model_cfg.get('timing_contract') != 'ieee_tc_native_v1':
+            raise ValueError('native reference ownership requires native request timing')
+        if not reservation.bound or reservation.gpu_reference_evidence:
+            raise ValueError('native reference requires one fresh controller reservation')
+        if (not adapter_id or adapter_id != reservation.adapter_id
+                or not isinstance(local_path, str) or not Path(local_path).is_absolute()):
+            raise ValueError('native reference requires the original adapter and absolute source')
+        clock_id = local_monotonic_clock_id()
+        def validate_snapshot(value):
+            if (not isinstance(value, dict) or value.get('clock_id') != clock_id
+                    or not isinstance(value.get('owner_id'), str) or not value['owner_id']
+                    or type(value.get('epoch')) is not int or value['epoch'] < 1):
+                raise ValueError('native reference snapshot lacks worker/epoch/clock identity')
+        snapshot = await engine.ieee_gpu_reference(operation='snapshot')
+        validate_snapshot(snapshot)
+        intent = {'lease_id': uuid.uuid4().hex,
+                  'adapter_int_id': InferenceEngine._lora_int_id(adapter_id),
+                  'lora_name': adapter_id, 'lora_path': local_path,
+                  'expected_owner_id': snapshot['owner_id'], 'expected_epoch': snapshot['epoch']}
+        evidence = reservation.gpu_reference_evidence
+        evidence.update(kind='native_selected_request_reference_v1', state='acquiring',
+                        intent=intent, snapshot_before_acquisition=dict(snapshot),
+                        confirmed_dispatch_snapshot=False, proactive_admission_evaluated=False,
+                        stale_rechecks=0)
+        reservation.gpu_reference_engine = engine
+        while True:
+            # Record intent BEFORE awaiting: cancellation can lose a reply even
+            # after the worker has pinned the adapter. Never return its capacity.
+            evidence['state'] = 'acquiring'
+            receipt = await engine.ieee_gpu_reference(operation='demand_load_and_acquire', **intent)
+            validate_snapshot(receipt)
+            if type(receipt.get('acquired')) is not bool:
+                raise ValueError('native acquisition response lacks an explicit outcome')
+            if receipt['acquired']:
+                for field in ('lease_id', 'adapter_int_id', 'lora_name', 'lora_path'):
+                    if receipt.get(field) != intent[field]:
+                        raise ValueError('native acquisition receipt changed request/source identity')
+                if receipt['owner_id'] != intent['expected_owner_id']:
+                    raise ValueError('native acquisition receipt changed worker identity')
+                acquired_at = receipt.get('acquired_monotonic_s')
+                if (type(acquired_at) not in (int, float) or not math.isfinite(acquired_at)
+                        or acquired_at <= 0 or acquired_at > time.monotonic()):
+                    raise ValueError('native acquisition receipt has invalid completion time')
+                evidence.update(state='acquired', receipt=dict(receipt))
+                return receipt
+            evidence['last_conflict'] = dict(receipt)
+            if (receipt.get('reason') == 'stale_snapshot'
+                    and receipt['owner_id'] == intent['expected_owner_id']
+                    and receipt['epoch'] > intent['expected_epoch']):
+                # Native owner supplies the next epoch; no fixed sleep, hidden
+                # loading, guessed readiness, or same stale-command retry.
+                intent['expected_epoch'] = receipt['epoch']
+                evidence['stale_rechecks'] += 1
+                continue
+            evidence['state'] = 'rejected'
+            raise RuntimeError(f"native reference acquisition conflict: {receipt.get('reason')}")
+
+    def _retain_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
+        if reservation.slot is not None:
+            reservation.slot.status = 'draining'
+        previous = self._unsettled_runtime_reservations.get(reservation.request_id)
+        if previous is not None and previous is not reservation:
+            raise RuntimeError('request ID already has an unsettled reservation')
+        self._unsettled_runtime_reservations[reservation.request_id] = reservation
+
     async def _finish_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
         if not reservation.bound or reservation.released:
             return
         slot = reservation.slot
         native = self.model_cfg.get('timing_contract', 'legacy') == 'ieee_tc_native_v1'
-        if native and reservation.generation_started and not reservation.native_terminal_observed:
+        evidence = reservation.gpu_reference_evidence
+        if (evidence.get('state') in ('acquiring', 'release_pending')
+                or (native and reservation.generation_started and not reservation.native_terminal_observed)):
             # Sending abort / losing an RPC is not an engine-core terminal ack.
             # Keep capacity owned and withdraw this replica until native work
             # is reconciled or its actual worker has been stopped. No false free.
-            if slot is not None:
-                slot.status = 'draining'
-            if reservation.request_id in self._unsettled_runtime_reservations:
-                if self._unsettled_runtime_reservations[reservation.request_id] is not reservation:
-                    raise RuntimeError('request ID already has an unsettled reservation')
-            self._unsettled_runtime_reservations[reservation.request_id] = reservation
+            self._retain_runtime_request_reservation(reservation)
             return
+        if evidence.get('state') == 'acquired':
+            receipt = evidence['receipt']
+            evidence['state'] = 'release_pending'
+            try:
+                released = await reservation.gpu_reference_engine.ieee_gpu_reference(
+                    operation='release', lease_id=receipt['lease_id'],
+                    expected_owner_id=receipt['owner_id'])
+                if (not isinstance(released, dict) or released.get('released') is not True
+                        or released.get('owner_id') != receipt['owner_id']):
+                    raise RuntimeError('native reference release lacks matching acknowledgement')
+                evidence.update(state='released', release_receipt=dict(released))
+            except BaseException:
+                self._retain_runtime_request_reservation(reservation)
+                raise
         if reservation.batch_started:
             reservation.batch_coordinator.notify_batch_end(
                 reservation.batch_input_tokens, reservation.batch_output_tokens)
@@ -13528,7 +13645,8 @@ class ScenarioRunner:
                     coordinator=_coord,
                 )
             if (self.model_cfg.get('generation_contract') == 'fixed_length_greedy_v1'
-                    or getattr(self, '_generation_contract', 'legacy') == 'fixed_length_greedy_v1'):
+                    or getattr(self, '_generation_contract', 'legacy') == 'fixed_length_greedy_v1'
+                    or self.model_cfg.get('ieee_gpu_references', False)):
                 if adapter_id != _reservation.adapter_id or (adapter_id and not local_path):
                     raise ValueError('fixed-output resolution changed or lost the requested adapter')
             resolve_wall_us = max(
@@ -13557,6 +13675,7 @@ class ScenarioRunner:
         should_mark_gpu_after_inference = (
             bool(adapter_id)
             and bool(local_path)
+            and not self.model_cfg.get('ieee_gpu_references', False)
             and self._stack is not None
             and self.baseline_type in ("faaslora_nvme", "faaslora_no_coord", "faaslora_full")
             and cache_tier in ("nvme", "host")
@@ -13591,6 +13710,10 @@ class ScenarioRunner:
         )
         canonical_prompt_sha256 = hashlib.sha256(request_plan.prompt.encode('utf-8')).hexdigest()
         try:
+            gpu_reference = None
+            if self.model_cfg.get('ieee_gpu_references', False) and adapter_id:
+                gpu_reference = await self._acquire_runtime_gpu_reference(
+                    _reservation, _engine, adapter_id, local_path)
             scaleup_labels = self._begin_scaleup_runtime_request_labels(
                 slot=slot,
                 adapter_id=adapter_id,
@@ -13627,12 +13750,16 @@ class ScenarioRunner:
                 }
                 if _call_accepts_kw(_engine.generate_prepared, "generation_seed"):
                     prepared_kwargs["generation_seed"] = generation_seed
+                if gpu_reference is not None:
+                    prepared_kwargs['gpu_reference'] = gpu_reference
                 _reservation.generation_started = True
                 generate_ret = await _engine.generate_prepared(**prepared_kwargs)
             else:
                 generate_kwargs: Dict[str, Any] = {"return_timing": True}
                 if _call_accepts_kw(_engine.generate, "generation_seed"):
                     generate_kwargs["generation_seed"] = generation_seed
+                if gpu_reference is not None:
+                    generate_kwargs['gpu_reference'] = gpu_reference
                 _reservation.generation_started = True
                 generate_ret = await _engine.generate(
                     request_plan.prompt,
@@ -13654,6 +13781,11 @@ class ScenarioRunner:
                 if not isinstance(per_request_timing, dict):
                     raise ValueError('native request requires its own timing acknowledgement')
                 engine_timing = dict(per_request_timing)
+                if gpu_reference is not None and any(
+                    engine_timing.get('gpu_reference_' + field) != gpu_reference[field]
+                    for field in ('owner_id', 'lease_id', 'adapter_int_id')
+                ):
+                    raise ValueError('native terminal acknowledgement belongs to another GPU reference')
                 _reservation.native_terminal_observed = engine_timing.get('native_terminal_observed') is True
                 if not _reservation.native_terminal_observed:
                     raise ValueError('native request lacks terminal acknowledgement')
@@ -13899,6 +14031,7 @@ class ScenarioRunner:
                 output_contract_match=output_contract_match,
                 timing_contract=timing_contract,
                 native_token_timing=native_token_timing,
+                gpu_reference_evidence=_reservation.gpu_reference_evidence,
             )
 
         except Exception as exc:
@@ -13975,6 +14108,7 @@ class ScenarioRunner:
                 output_contract_match=False,
                 tpot_observed=False,
                 timing_contract=self.model_cfg.get('timing_contract', 'legacy'),
+                gpu_reference_evidence=_reservation.gpu_reference_evidence,
                 failure_observation=({
                     'kind': 'native_request_execution_error_v1',
                     'exception_type': type(exc).__name__,

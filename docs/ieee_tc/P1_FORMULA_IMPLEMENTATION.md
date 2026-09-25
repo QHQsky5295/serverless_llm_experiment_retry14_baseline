@@ -3,7 +3,7 @@
 本表不是性能结果，也不表示 Full 已完成 IEEE 对齐。主比较必须等所有关键
 合同关闭；不得把旧代码的指标移植到新设计上。论文源文件未改动。
 
-本文件前面的首次审计表保留历史发现；逐项最新进展见 D1–D6。测试通过不等于
+本文件前面的首次审计表保留历史发现；逐项最新进展见 D1–D12。测试通过不等于
 真实模型资格，更不等于全部九式已在 Full 闭环接通。
 
 ## 规范来源
@@ -492,3 +492,52 @@ request ID，而不是静默跳过。已预处理的输入计划直接复用，�
 submitted/native-terminal/good 事件账本，以及物理 GPU owner 对账。旧 aggregate
 的全失败默认数值不是新的 G1/G2 合格统计；失败记录 null 也不是成本为零。
 本次完成后返回 owner/source/admission 主线，不增加额外性能矩阵或调整 SLO。
+
+## P1-D12：所选请求的原生引用连接与通信取消所有权
+
+本步检查 `91c9feb` 的实际 runner：底层已有 D6/D9 的引用接口，但
+`_exec_request` 没有取得或传入 `gpu_reference`。因此接口测试通过不能证明
+请求真的受到了保护。三个修改前检查分别复现未取得引用、未释放引用，以及
+取消路径根本未到达原生 acquisition 的情况；两项断言失败、一项等待超时。
+
+可证伪假设：把 selected-request reservation、原生 load/reference、generation
+和 terminal/release 绑定为同一请求生命周期，可以保护实际执行期间的副本；
+丢失回执时必须保留未知所有权，不能把一次客户端异常当作物理释放。
+
+对照官方 [vLLM 0.30.0 loader](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+与 [AsyncLLM](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/async_llm.py)：
+沿用原生加载和缓存，不把 CPU 注册变成 GPU-ready。原生取消入口与实际 worker
+执行仍是不同层次；本步骤不以调用 abort 代替 GPU 终态证明。
+
+| 实际路径 / 风险 | 当前实现与验证 | 仍未完成的边界 |
+|---|---|---|
+| 执行前没有取得原生引用 | 在所选副本完成路径解析后，获取 worker/epoch/clock 回执，原生 load-and-acquire 后才传入生成；校验 adapter/name/path/lease | 这不是 reserve 后、resolve 前的 dispatch 快照；共同 routing/source epoch 尚待连接 |
+| GPU hit 与本次加载混淆 | 保留 native 原始 GPU/CPU source 状态和 load 回执；不再在推理成功后凭旧规则补记 GPU-ready | HOST/NVMe 所有权和实际源类别仍待接入 |
+| acquisition 期间取消或回执损坏 | 发出可变操作前保留 intent；无法确认结果时保留 controller 计数、引用身份并撤回该副本 | 后端 reconciliation/实际 worker 退出确认未完成 |
+| 陈旧 epoch | 只使用原生明确拒绝且返回的新 epoch 重查；不重用旧 epoch、不 sleep 猜 ready | 物理容量冲突目前显式失败，尚需连接正式 dispatcher 排队/重选，不是已合格 Full |
+| 多请求共享一个 adapter | 两个独立 lease；计数 2→1→0；第一请求释放不撤销另一请求的 pin | 同样需真实 CUDA stream 资格 |
+| 其他请求的终态被误用 | terminal 必须匹配 owner、lease、native adapter ID；native owner 还可以拒绝 active-request release | 完整终态账本和安全中止 journal 未完成 |
+| 结果处理失败或推理前失败 | 已知未开始生成、或匹配终态已返回时释放；只有原生 release 回执确认后归还 controller 容量 | 释放了引用不等于释放整张 GPU |
+| release 回执丢失 | 即使测试中的 worker 实际已释放，controller 仍保留 `release_pending`，不捏造确认 | 后续明确对账，而非按超时清零 |
+
+同一路径又复现两个通信层问题：原 `_rpc` 在丢失响应后再次执行操作；取消
+`asyncio.to_thread` 后仍把正在收发的连接归还池。修改前分别观测到两次执行
+（期望一次）和一次错误归还（期望零次）。Python 的
+[Future 取消语义](https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.Future.cancel)
+也明确区分未开始的工作与已经运行的调用。
+
+native 协议现已禁用通信层盲重试；取消连接先 shutdown，退出复用池并撤回该
+transport，但不据此宣布 native work 已结束。真实本地 socket-pair 检查确认
+阻塞接收被唤醒、连接未被复用；没有启动模型或远端服务。
+
+本步新增 **15 项检查**（12 项 controller/native reference，3 项通信所有权）。
+最终完整功能回归 **485 项通过**，独立 safety/census/replay **44 项通过**，均无
+失败、错误或 skip。首次完整回归有一项测试 fixture 缺少 `_rpc_channels`；补齐
+实际对象字段后通过，没有为生产对象增加容错默认值。147 项历史 seal 未变。
+本表是正确性证据，不画性能曲线；仍未测得任何新增 TTFT/GPU-s/SLO 收益。
+
+所有新行为仍属 opt-in native 路径；`confirmed_dispatch_snapshot=False`、
+`proactive_admission_evaluated=False` 明确保留。不得把本次 resolve 后的 acquisition
+时间强写为论文 GPU-hit 的 D=0，不能替代 admission-time class/区间与 committed
+router snapshot。后续回到上述 owner/source/admission 连接，以及安装完成后的
+实际模型、时钟、CUDA stream 和 worker 资格；Serverless 仍是 baseline 首项。

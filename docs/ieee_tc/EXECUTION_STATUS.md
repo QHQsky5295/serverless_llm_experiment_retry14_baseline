@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Mathematical contracts + native timing/scheduler, fixed-work, references, request lifetime and failure identity tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D11. Unknown native completion retains ownership; failed tasks keep offered identity and missing measurements. CUDA/clock/stream qualification, abort reconciliation, slow-tier references and proactive atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts + native timing/scheduler, fixed-work, selected-request references, lifetime and failure identity tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D12. Actual request path now acquires/passes/releases native leases; unknown completion or lost replies retain ownership. Committed routing/source snapshot, CUDA/clock/stream qualification, abort reconciliation, slow-tier references and proactive atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -103,6 +103,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Native demand-load checkpoint `d22721bd6f8966a55e657a3e1dd93e414b94651d`
   pushed to V2; remote SHA verified.
 - Controller request-lifetime checkpoint `e238f603281223eae411202a38962488b3e14000`
+  pushed to V2; remote SHA verified.
+- Offered-failure identity checkpoint `91c9feb258a1c5e649cb808286446b85a7b65c2e`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -505,3 +507,33 @@ configs/relayserve_motivation_serverlessllm.yaml.
   worker/clock/stream qualification follows installation. Serverless remains
   first among baseline model runs. Remote disk decision and all formal matrices
   remain outstanding; do not treat correctness tests as completed experiments.
+
+## Selected-request native reference checkpoint
+
+- Three prechange actual-runner checks reproduced the missing controller-to-
+  native reference path (two failures and one timeout). Selected requests now
+  acquire a source-bound native lease before generation, validate per-request
+  terminal identity, and return controller capacity only after native release.
+- Stale epochs use the explicitly returned native epoch; unknown acquisition/
+  release replies retain ownership and withdraw the replica. Two same-adapter
+  requests retain independent shares. Resolve-after-acquisition evidence is NOT
+  a committed pre-dispatch snapshot; no GPU-hit D=0 or Full qualification claim.
+- Two more prechange checks reproduced transport duplicate execution and reuse
+  of a cancelled in-flight connection. Native RPC no longer blindly retries;
+  shutdown removes the interrupted socket from reuse, not native work from the
+  physical ledger. Actual local socket-pair cancellation check passes.
+- Fifteen added checks; final functional regression 485 pass, no failures/errors/
+  skips. Separate safety/census/replay suite: 44 pass. First full regression had
+  one incomplete test fixture; corrected explicitly, no production fallback.
+  All 147 historical seal entries unchanged. D12 contains the evidence table;
+  no new model performance experiment, trace, adapter or baseline ranking.
+- Sep 26 03:17 local: original bounded P2 installer remains active, now OpenCV
+  dependency 120 after NVVM; current memory about 2.5 GiB, local free disk about
+  336 GiB, available RAM about 104 GiB. Four GPUs idle at 15 MiB. No duplicate
+  install or concurrent model; continue observing the same attempt.
+- Next: committed native source/cost snapshots and controller routing/admission
+  integration. Known capacity conflicts still need dispatcher wait/reselection;
+  unknown native work needs actual terminal/release reconciliation, not guessed
+  timeouts. Keep slow-tier references, proactive E(t), native model/stream/clock
+  qualification and physical GPU allocation-owner events open. Serverless first
+  among baseline runs; remote disk decision and formal matrices still pending.
