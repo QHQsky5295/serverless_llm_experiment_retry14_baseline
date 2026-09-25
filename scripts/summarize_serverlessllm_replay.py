@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 import math
+import statistics
 from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -28,6 +29,58 @@ METRIC_DEF_SERVICE_E2E = (
     "admitted/backend-execution start and excludes scheduled-arrival and upstream "
     "queue/admission wait"
 )
+
+
+def audit_dispatch_timing(replay_path: Path) -> Dict[str, Any]:
+    """Read-only historical diagnosis, not a conversion to the IEEE TC contract.
+
+    Server-side gaps use one time domain. Preserve missing telemetry rather than
+    infer ready replica counts, GPU saturation, or counterfactual latency.
+    """
+    replay = json.loads(replay_path.read_text())
+    rows = replay['results']
+    if len(rows) < 2:
+        raise ValueError('cadence audit requires at least two requests')
+    required = ('arrival_time_s', 'dispatch_admission_wait_ms',
+                'replay_dispatch_wait_ms', 'server_queue_wait_ms', 'service_ttft_ms')
+    for row in rows:
+        if not row.get('success'):
+            raise ValueError('historical audit requires complete successful rows')
+        if any(not isinstance(row.get(k), (float, int)) or
+               not math.isfinite(row[k]) for k in required):
+            raise ValueError('missing/non-finite timing fields')
+        metrics = row.get('server_metrics', {})
+        for key in ('backend_started_at', 'finished_at', 'queue_wait_ms'):
+            if not isinstance(metrics.get(key), (float, int)) or not math.isfinite(metrics[key]):
+                raise ValueError(f'missing server timing: {key}')
+    starts = sorted(row['server_metrics']['backend_started_at'] for row in rows)
+    gaps = [b-a for a, b in zip(starts, starts[1:])]
+    def type1(values, q):
+        return sorted(values)[max(0, math.ceil(len(values)*q)-1)]
+    means = {k: statistics.mean(row[k] for row in rows) for k in required[1:]}
+    means['router_queue_wait_ms'] = statistics.mean(
+        row['server_metrics']['queue_wait_ms'] for row in rows)
+    return {
+        'kind': 'historical_serverless_dispatch_audit', 'display_name': 'Serverless',
+        'replay_path': str(replay_path.resolve()), 'replay_sha256': _sha256_file(replay_path),
+        'requests': len(rows), 'reuse_class_for_tc_main': 'R2',
+        'reuse_reason': 'Historical input/generation/initialization/resource contract differs; diagnosis only',
+        'means': means,
+        'backend_gap_seconds': {'count': len(gaps), 'mean': statistics.mean(gaps),
+            'p50_type1': type1(gaps, .5), 'p95_type1': type1(gaps, .95),
+            'fraction_ge_0_99': sum(x >= .99 for x in gaps)/len(gaps)},
+        'arrival_span_seconds': max(row['arrival_time_s'] for row in rows)-min(row['arrival_time_s'] for row in rows),
+        'backend_start_span_seconds': starts[-1]-starts[0],
+        'ready_at_enqueue_field_count': sum('ready_instances_at_enqueue' in row['server_metrics'] for row in rows),
+        'counterfactual_performance_measured': False,
+        'diagnostic_rows': [{
+            'request_id': row['request_id'], 'arrival_time_s': row['arrival_time_s'],
+            'dispatch_wait_s': row['dispatch_admission_wait_ms']/1000,
+            'service_ttft_s': row['service_ttft_ms']/1000,
+            'backend_start_relative_s': row['server_metrics']['backend_started_at']-starts[0],
+        } for row in rows],
+        'backend_gaps_s': gaps,
+    }
 
 
 def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
@@ -1086,7 +1139,9 @@ def main() -> int:
     ap.add_argument("--main-repo", type=Path, default=Path("/home/qhq/serverless_llm_experiment_retry14_baseline"))
     ap.add_argument("--config", type=Path, default=None)
     ap.add_argument("--replay", type=Path, required=True)
-    ap.add_argument("--trace", type=Path, required=True)
+    ap.add_argument("--trace", type=Path)
+    ap.add_argument("--timing-audit-only", action="store_true",
+                    help="Read-only historical queue/cadence audit; not a TC main result.")
     ap.add_argument(
         "--adapter-subset",
         type=Path,
@@ -1103,9 +1158,9 @@ def main() -> int:
         ),
     )
     ap.add_argument("--deploy", type=Path, default=None)
-    ap.add_argument("--model-profile", required=True)
-    ap.add_argument("--dataset-profile", required=True)
-    ap.add_argument("--workload-profile", required=True)
+    ap.add_argument("--model-profile")
+    ap.add_argument("--dataset-profile")
+    ap.add_argument("--workload-profile")
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--scenario-name", default="serverlessllm_fair")
     ap.add_argument("--baseline-type", default="serverlessllm")
@@ -1125,6 +1180,20 @@ def main() -> int:
         ),
     )
     args = ap.parse_args()
+
+    if args.timing_audit_only:
+        result = audit_dispatch_timing(args.replay)
+        result['model_profile'] = args.model_profile
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        with args.output.open('x') as f:
+            json.dump(result, f, indent=2)
+            f.write('\n')
+        print(json.dumps({k:v for k,v in result.items()
+                          if k not in {'diagnostic_rows', 'backend_gaps_s'}}, indent=2))
+        return 0
+    for name in ('trace', 'model_profile', 'dataset_profile', 'workload_profile'):
+        if getattr(args, name) is None:
+            ap.error('--'+name.replace('_', '-')+' is required for a paper summary')
 
     main_repo = args.main_repo.resolve()
     cfg_path = args.config.resolve() if args.config else (main_repo / "configs/experiments.yaml")

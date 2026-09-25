@@ -1,0 +1,45 @@
+diff --git a/sllm/routers/roundrobin_router.py b/sllm/routers/roundrobin_router.py
+index f86e27b..7cb3021 100644
+--- a/sllm/routers/roundrobin_router.py
++++ b/sllm/routers/roundrobin_router.py
+@@ -385,18 +385,23 @@ class RoundRobinRouter(SllmRouter):
+         round_robin_index = 0
+         while True:
+             instance_allocation = await self.request_queue.get()
++            if instance_allocation.done():
++                continue
+             allocated = False
+             logger.info(f"A request is waiting for model {self.model_name}")
+-            while not allocated:
++            while not allocated and not instance_allocation.done():
+                 # 1. get ready instances
+                 instance_options = None
+-                while not instance_options:
+-                    await asyncio.sleep(1)
++                while not instance_options and not instance_allocation.done():
+                     async with self.instance_management_lock:
+                         instance_options = list(
+                             self.ready_inference_instances.keys()
+                         )
+                     logger.info(f"{instance_options}")
++                    if not instance_options:
++                        await asyncio.sleep(1)
++                if instance_allocation.done():
++                    break
+                 logger.info(f"Got ready instances {instance_options}")
+                 instance_id = instance_options[
+                     round_robin_index % len(instance_options)
+@@ -410,7 +415,12 @@ class RoundRobinRouter(SllmRouter):
+                     if await instance.check_request_queue():
+                         allocated = await instance.add_requests(1)
+                         if allocated:
+-                            instance_allocation.set_result(instance_id)
++                            # Cancellation may occur at either awaited capacity
++                            # check. Never leak a slot or kill the router loop.
++                            if instance_allocation.done():
++                                await instance.add_requests(-1)
++                            else:
++                                instance_allocation.set_result(instance_id)
+                     else:
+                         logger.info(
+                             f"Instance {instance_id} cannot add another request"

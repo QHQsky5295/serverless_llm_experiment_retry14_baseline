@@ -1,0 +1,231 @@
+diff --git a/sllm/routers/roundrobin_router.py b/sllm/routers/roundrobin_router.py
+index e32012d..f86e27b 100644
+--- a/sllm/routers/roundrobin_router.py
++++ b/sllm/routers/roundrobin_router.py
+@@ -17,8 +17,9 @@
+ # ---------------------------------------------------------------------------- #
+ import asyncio
+ import logging
++import time
+ import uuid
+-from typing import Dict, List, Optional
++from typing import Any, Dict, List, Optional
+ 
+ import ray
+ 
+@@ -102,6 +103,7 @@ class RoundRobinRouter(SllmRouter):
+ 
+         self.enable_lora = enable_lora
+         self.loaded_lora_adapters = lora_adapters
++        self.lora_numeric_ids = self._build_lora_numeric_ids(lora_adapters or {})
+         self.lora_lock = asyncio.Lock()
+ 
+         self.auto_scaler = None
+@@ -132,6 +134,9 @@ class RoundRobinRouter(SllmRouter):
+         if lora_adapters is not None:
+             async with self.lora_lock:
+                 self.loaded_lora_adapters = lora_adapters
++                self.lora_numeric_ids = self._build_lora_numeric_ids(
++                    lora_adapters
++                )
+ 
+         logger.info(
+             f"Model {self.model_name}'s auto scaling config updated to {auto_scaling_config}"
+@@ -141,11 +146,33 @@ class RoundRobinRouter(SllmRouter):
+         pattern = "{model_name}_{id}"
+         return pattern.format(model_name=self.model_name, id=uuid.uuid4())
+ 
++    @staticmethod
++    def _build_lora_numeric_ids(lora_adapters: Dict[str, str]) -> Dict[str, int]:
++        return {
++            adapter_name: idx
++            for idx, adapter_name in enumerate(
++                sorted((lora_adapters or {}).keys()), start=1
++            )
++        }
++
+     async def inference(self, request_data: dict, action: str):
+         async with self.running_lock:
+             if not self.running:
+                 return {"error": "Instance stopped"}
+ 
++        request_id = str(request_data.get("request_id") or f"chatcmpl-{uuid.uuid4()}")
++        request_data["request_id"] = request_id
++        internal_metrics: Dict[str, Any] = dict(
++            request_data.get("_sllm_internal_metrics", {}) or {}
++        )
++        internal_metrics.setdefault("request_id", request_id)
++        internal_metrics.setdefault("request_received_at", time.time())
++        enqueue_at = time.time()
++        internal_metrics["router_enqueued_at"] = enqueue_at
++        async with self.instance_management_lock:
++            ready_instances_at_enqueue = len(self.ready_inference_instances)
++        internal_metrics["ready_instances_at_enqueue"] = ready_instances_at_enqueue
++
+         async with self.request_count_lock:
+             self.request_count += 1
+ 
+@@ -155,43 +182,106 @@ class RoundRobinRouter(SllmRouter):
+         instance_allocation = self.loop.create_future()
+         await self.request_queue.put(instance_allocation)
+         logger.info(f"Enqueued {action} request for model {self.model_name}")
+-
+-        instance_id = await instance_allocation
+-        logger.info(f"{request_data}, type: {type(request_data)}")
+-        async with self.instance_management_lock:
+-            if instance_id not in self.ready_inference_instances:
+-                logger.error(f"Instance {instance_id} not found")
+-                return {"error": "Instance not found"}
+-            instance = self.ready_inference_instances[instance_id]
+-
+-        # sanity check
+-        if self.enable_lora and "lora_adapter_name" in request_data:
+-            lora_adapter_name = request_data["lora_adapter_name"]
+-            if lora_adapter_name not in self.loaded_lora_adapters:
+-                logger.error(f"Lora adapter {lora_adapter_name} not found")
+-                return {"error": f"Lora adapter {lora_adapter_name} not found"}
+-            await instance.backend_instance.load_lora_adapter.remote(
+-                lora_name=lora_adapter_name,
+-                lora_path=self.loaded_lora_adapters[lora_adapter_name],
+-            )
+-        # NOTE: `.remote(request_data)` does not work, don't know why.
+-        # Looks like a known issue:
+-        # https://github.com/ray-project/ray/issues/26283#issuecomment-1780691475
+-        if action == "generate":
+-            result = await instance.backend_instance.generate.remote(
+-                request_data=request_data
+-            )
+-        elif action == "encode":
+-            result = await instance.backend_instance.encode.remote(
+-                request_data=request_data
++        instance = None
++        try:
++            instance_id = await instance_allocation
++            assigned_at = time.time()
++            internal_metrics["instance_assigned_at"] = assigned_at
++            internal_metrics["queue_wait_ms"] = max(
++                0.0, (assigned_at - enqueue_at) * 1000.0
+             )
+-        else:
+-            result = {"error": "Invalid action"}
+-        logger.info(f"Finished processing request")
+-        await instance.add_requests(-1)
+-        async with self.request_count_lock:
+-            self.request_count -= 1
+-        return result
++            logger.info(f"{request_data}, type: {type(request_data)}")
++            async with self.instance_management_lock:
++                if instance_id not in self.ready_inference_instances:
++                    logger.error(f"Instance {instance_id} not found")
++                    return {"error": "Instance not found"}
++                instance = self.ready_inference_instances[instance_id]
++                internal_metrics["instance_id"] = instance_id
++                internal_metrics["instance_created_at"] = instance.created_at
++                internal_metrics["instance_ready_at"] = instance.ready_at
++                scaleup_affected = bool(
++                    instance.ready_at is not None
++                    and enqueue_at <= float(instance.ready_at) + 1e-9
++                    and (
++                        instance.created_at is None
++                        or enqueue_at >= float(instance.created_at) - 1e-9
++                    )
++                )
++                internal_metrics["scaleup_affected"] = scaleup_affected
++                scaleup_first_service = instance.first_request_id is None
++                if scaleup_first_service:
++                    instance.first_request_id = request_id
++                    instance.first_request_assigned_at = assigned_at
++                internal_metrics["scaleup_first_service"] = scaleup_first_service
++                cold_start_latency_ms = None
++                if (
++                    scaleup_first_service
++                    and instance.created_at is not None
++                    and instance.ready_at is not None
++                    and float(instance.ready_at) >= float(instance.created_at)
++                ):
++                    cold_start_latency_ms = (
++                        float(instance.ready_at) - float(instance.created_at)
++                    ) * 1000.0
++                internal_metrics["cold_start_latency_ms"] = cold_start_latency_ms
++
++            if self.enable_lora:
++                lora_adapter_name = request_data.get("lora_adapter_name")
++                require_lora = bool(
++                    self.backend_config.get("require_lora_for_inference", False)
++                )
++                if require_lora and not lora_adapter_name:
++                    return {
++                        "error": "LoRA adapter is required for this deployment but the request did not provide lora_adapter_name"
++                    }
++                if lora_adapter_name is not None:
++                    if lora_adapter_name not in self.loaded_lora_adapters:
++                        logger.error(f"Lora adapter {lora_adapter_name} not found")
++                        return {"error": f"Lora adapter {lora_adapter_name} not found"}
++                    lora_adapter_path = self.loaded_lora_adapters[lora_adapter_name]
++                    if self.backend == "transformers":
++                        load_result = await instance.backend_instance.load_lora_adapter.remote(
++                            lora_name=lora_adapter_name,
++                            lora_path=lora_adapter_path,
++                        )
++                        load_result = dict(load_result or {})
++                        internal_metrics["lora_cache_hit"] = load_result.get(
++                            "cache_hit"
++                        )
++                        internal_metrics["lora_load_ms"] = (
++                            float(load_result["load_ms"])
++                            if load_result.get("load_ms") is not None
++                            else None
++                        )
++                    elif self.backend == "vllm":
++                        request_data["lora_adapter_path"] = lora_adapter_path
++                        request_data["lora_adapter_id"] = self.lora_numeric_ids.get(
++                            lora_adapter_name
++                        )
++                        internal_metrics["lora_cache_hit"] = None
++                        internal_metrics["lora_load_ms"] = None
++            request_data["_sllm_internal_metrics"] = internal_metrics
++
++            # NOTE: `.remote(request_data)` does not work, don't know why.
++            # Looks like a known issue:
++            # https://github.com/ray-project/ray/issues/26283#issuecomment-1780691475
++            if action == "generate":
++                result = await instance.backend_instance.generate.remote(
++                    request_data=request_data
++                )
++            elif action == "encode":
++                result = await instance.backend_instance.encode.remote(
++                    request_data=request_data
++                )
++            else:
++                result = {"error": "Invalid action"}
++            logger.info(f"Finished processing request")
++            return result
++        finally:
++            if instance is not None:
++                await instance.add_requests(-1)
++            async with self.request_count_lock:
++                self.request_count -= 1
+ 
+     async def fine_tuning(self, request_data: dict):
+         logger.info(f"Starting fine-tuning for model {self.model_name}")
+@@ -387,6 +477,7 @@ class RoundRobinRouter(SllmRouter):
+             instance_id=instance_id,
+             max_queue_length=max_request_length,
+             num_gpu=self.resource_requirements["num_gpus"],
++            created_at=time.time(),
+         )
+         async with self.instance_management_lock:
+             self.starting_inference_instances[instance_id] = instance
+@@ -452,10 +543,11 @@ class RoundRobinRouter(SllmRouter):
+             f"Started instance {instance_id} for model {self.model_name}"
+         )
+         instance.backend_instance = ray.get_actor(instance_id)
++        await instance.backend_instance.init_backend.remote()
+         async with instance.lock:
+             instance.ready = True
+             instance.node_id = startup_node
+-        await instance.backend_instance.init_backend.remote()
++            instance.ready_at = time.time()
+ 
+         async with self.instance_management_lock:
+             self.ready_inference_instances[instance_id] = instance
