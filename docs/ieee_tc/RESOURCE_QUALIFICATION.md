@@ -41,9 +41,9 @@
 
 ## 仍未通过的正式启动门槛
 
-1. 独立回放已接入辅助资源域并完成接收端阻塞微测，见
-   `EXTERNAL_REPLAY_QUALIFICATION.md`；启动期间的服务入口并行接收仍待完成。
-   监控 readiness 已接入并完成微型全过程验证；实际模型资格未完成。
+1. 独立回放和启动期间服务入口接收均已接入并通过微测，见
+   `EXTERNAL_REPLAY_QUALIFICATION.md`。监控 readiness 已接入；实际模型初始化
+   是否阻塞服务入口、跨进程时间和资源资格仍需真实 worker 验证。
 2. 实际 Ray/容器/vLLM 模型进程、扩容产生的子进程和 GPU UUID 全部核验。
 3. 推理机合计 Ray object store、spill/retry 的原生记录；GPU 占用/释放积分。
 4. 逐文件系统 quota 和峰值；远端磁盘门槛仍有待用户确认，未擅自降低。
@@ -95,7 +95,7 @@ FAASLORA_PYTHON=/absolute/qualified/environment/bin/python \
 bash scripts/run_all_experiments_user_scope.sh <existing-runner-arguments>
 ```
 
-这不是正式实验放行命令：模型环境仍在安装，native worker census、启动期间
-的并行接收、GPU/Ray 计量和真实模型清理资格仍待完成。没有启动任何模型，
+这不是正式实验放行命令：模型环境仍在安装，native worker census、GPU/Ray
+计量和真实模型初始化/清理资格仍待完成。没有启动任何模型，
 没有把 128 MiB witness 的峰值当作服务内存消耗。资格结果采用本节状态表，
 不绘制缺乏性能含义的曲线。

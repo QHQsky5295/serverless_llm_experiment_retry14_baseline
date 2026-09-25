@@ -5848,6 +5848,7 @@ class ScenarioRunner:
         experiment_stack: Optional[Any] = None,
         engine_factory: Optional[Callable[..., Awaitable[Tuple[Any, Any]]]] = None,
         runner_model_cfg: Optional[Dict] = None,
+        external_replay: Optional[Any] = None,
     ):
         self.name          = name
         self.baseline_type = baseline_type
@@ -5869,7 +5870,7 @@ class ScenarioRunner:
         self.preload_cfg   = preload_cfg
         self.wl_cfg        = workload_cfg
         self.coord_cfg     = coord_cfg or {}
-        self._configure_external_replay()
+        self._configure_external_replay(external_replay)
         generation_contract = str(
             self.wl_cfg.get("generation_contract", "legacy") or "legacy"
         ).strip().lower()
@@ -6081,6 +6082,17 @@ class ScenarioRunner:
             for slot in self.instance_pool.get_slots():
                 self._prime_slot_cache_view(slot, include_gpu=self._slot_should_include_gpu(slot))
             self._sync_stack_gpu_accounting()
+
+        if self._external_replay is not None:
+            self._external_trace_by_id = {trace.request_id: trace for trace in self.traces}
+            self._external_replay.subscribe(self._observe_external_ingress)
+
+    def _observe_external_ingress(self, record):
+        trace = self._external_trace_by_id[record['request_id']]
+        self._observe_live_arrived_lora(trace.adapter_id)
+        self._observe_live_waiting_trace(trace)
+        if trace.adapter_id and self._stack is not None:
+            self._stack.record_arrival(trace.adapter_id, observed_at=record['server_received_s'])
 
     def _runtime_gpu_count_for_cfg(self, cfg: Optional[Dict[str, Any]] = None) -> int:
         effective_cfg = cfg if isinstance(cfg, dict) else getattr(self, "model_cfg", {})
@@ -12405,21 +12417,24 @@ class ScenarioRunner:
     # Phase 2: run workload
     # ------------------------------------------------------------------
 
-    def _configure_external_replay(self):
+    def _configure_external_replay(self, supplied=None):
         self._external_replay = None
         launch_receipt = os.environ.get('FAASLORA_TC_LAUNCH_RECEIPT')
         if launch_receipt:
             context = json.loads(Path(launch_receipt).read_text()).get('external_replay')
             if context is not None:
-                from faaslora.datasets.workload_generator import FrozenReplayPlan, ExternalReplayIngress
                 if context['tiny_witness'] or int(self.wl_cfg.get('multi_cycle_phases', 1)) != 1:
                     raise ValueError('model replay requires a continuous full-trace origin')
-                frozen = FrozenReplayPlan.load(context['plan']['source_path'],
-                                                profile=context['plan']['profile'])
+                if supplied is None or supplied.context != context:
+                    raise RuntimeError('external ingress must start before model initialization')
+                frozen = supplied.plan
                 if [t.request_id for t in self.traces] != [e.request_id for e in frozen.entries]:
                     raise ValueError('service request map differs from external replay')
-                self._external_replay = ExternalReplayIngress(frozen, context)
+                supplied.raise_if_failed()
+                self._external_replay = supplied
                 self._external_replay_offsets = {e.request_id: e.offset_s for e in frozen.entries}
+        if supplied is not None and self._external_replay is None:
+            raise ValueError('supplied replay is not bound to this guarded launch')
 
     async def run(self) -> Tuple[ScenarioResult, Dict]:
         # 按场景设置 transformers 后端 GPU 内最多 LoRA 数（贴近真实系统）
@@ -12477,12 +12492,13 @@ class ScenarioRunner:
                 0.0,
                 (float(arrival_released_at) - float(scheduled_arrival_at)) * 1000.0,
             )
-            self._observe_live_arrived_lora(getattr(trace, "adapter_id", None))
-            if trace.adapter_id and self._stack is not None:
+            if self._external_replay is None:
+                self._observe_live_arrived_lora(getattr(trace, "adapter_id", None))
+                self._observe_live_waiting_trace(trace)
+            if self._external_replay is None and trace.adapter_id and self._stack is not None:
                 # Eq. (4) observes arrivals, including requests waiting for
                 # admission or a remote fetch. Backend retries do not come here.
                 self._stack.record_arrival(trace.adapter_id)
-            self._observe_live_waiting_trace(trace)
             # Let the dispatcher keep releasing due trace arrivals before this
             # request starts the heavier dispatch/runtime path on the shared
             # control loop.
@@ -17175,7 +17191,7 @@ def _warm_page_cache_early(model_path: str) -> None:
         time.sleep(3)
 
 
-async def main_async(
+async def _main_async_impl(
     cfg_path: str,
     quick: bool = False,
     only_scenario: Optional[str] = None,
@@ -17186,6 +17202,7 @@ async def main_async(
     model_profile_override: Optional[str] = None,
     dataset_profile_override: Optional[str] = None,
     workload_profile_override: Optional[str] = None,
+    external_replay: Optional[Any] = None,
 ):
     with open(cfg_path, "r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
@@ -18177,6 +18194,7 @@ async def main_async(
                 coord_cfg=sc_coord,
                 experiment_stack=experiment_stack,
                 engine_factory=engine_factory,
+                external_replay=external_replay,
             )
 
             needs_engine = btype not in ("backbone_only", "cold_start")
@@ -18703,6 +18721,44 @@ async def main_async(
 
     await engine.shutdown()
     print("\n  Experiment complete.")
+
+
+async def main_async(*args, **kwargs):
+    """Accept and preserve arrived work while existing startup runs in parallel."""
+    if os.environ.get('FAASLORA_TC_EXTERNAL_REPLAY') != '1':
+        return await _main_async_impl(*args, **kwargs)
+    from scripts.ieee_tc_preflight import verify_current_service
+    from faaslora.datasets.workload_generator import FrozenReplayPlan, ExternalReplayIngress
+    identity = verify_current_service()
+    receipt_path = Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT'])
+    context = json.loads(receipt_path.read_text())['external_replay']
+    if context['tiny_witness']:
+        raise ValueError('a tiny replay witness cannot authorize model initialization')
+    plan = FrozenReplayPlan.load(context['plan']['source_path'], profile=context['plan']['profile'])
+    with (receipt_path.parent/'service_ingress.jsonl').open('x') as log:
+        def emit(event):
+            log.write(json.dumps(event, separators=(',', ':'))+'\n')
+            log.flush()
+        emit({'event': 'service_ingress_identity', **identity})
+        ingress = ExternalReplayIngress(plan, context, emit=emit)
+        work = None
+        try:
+            # Header/clock/input verification completes BEFORE any startup path.
+            await ingress.start()
+            work = asyncio.create_task(_main_async_impl(*args, **kwargs, external_replay=ingress))
+            await asyncio.wait({work, ingress.background_task}, return_when=asyncio.FIRST_COMPLETED)
+            ingress.raise_if_failed()
+            result = await work
+            ingress.raise_if_failed()
+            if not ingress.complete:
+                raise RuntimeError('model run ended before complete external offered input')
+            return result
+        finally:
+            if work is not None:
+                if not work.done():
+                    work.cancel()
+                await asyncio.gather(work, return_exceptions=True)
+            await ingress.close()
 
 
 def main():

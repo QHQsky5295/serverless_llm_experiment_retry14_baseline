@@ -103,6 +103,58 @@ class OpenLoopTransport(unittest.IsolatedAsyncioTestCase):
             self.assertLessEqual(r['client_submit_s'], r['server_received_s'])
         self.assertGreater(ingress.records['0']['server_received_s']-self.origin['replay_t0_s'], .06)
 
+    async def test_reception_during_startup_precedes_service_consumption(self):
+        publisher = await self.start_publisher()
+        events = []
+        ingress = ExternalReplayIngress(self.plan, self.context, emit=events.append)
+        await ingress.start()
+        await asyncio.sleep(.08)  # Startup pending, no request consumer yet.
+        self.assertEqual(len(ingress.records), 5)
+        self.assertTrue(ingress.complete)
+        self.assertFalse(any(e['event']=='request_dequeued' for e in events))
+        ready = time.perf_counter()
+        async for i, record in ingress.receive():
+            self.assertLess(record['server_received_s'], ready)
+            self.assertGreaterEqual(record['service_dequeued_s'], ready)
+        await publisher
+        await ingress.close()
+        self.assertEqual(sum(e['event']=='request_received' for e in events), 5)
+        self.assertEqual(sum(e['event']=='request_dequeued' for e in events), 5)
+
+    async def test_observer_gets_prior_received_history_once_then_live_arrivals(self):
+        publisher = await self.start_publisher()
+        ingress = ExternalReplayIngress(self.plan, self.context)
+        await ingress.start()
+        while len(ingress.records) < 2:
+            await asyncio.sleep(.001)
+        observed = []
+        ingress.subscribe(observed.append)
+        with self.assertRaisesRegex(ValueError, 'already attached'):
+            ingress.subscribe(observed.append)
+        async for _ in ingress.receive():
+            pass
+        self.assertEqual([r['request_id'] for r in observed], ['0','1','2','3','4'])
+        self.assertNotIn('service_dequeued_s', observed[0])
+        self.assertEqual([r['server_received_s'] for r in observed], ingress.observed_times)
+        with self.assertRaisesRegex(RuntimeError, 'one service consumer'):
+            async for _ in ingress.receive():
+                pass
+        await publisher
+        await ingress.close()
+
+    async def test_close_during_startup_preserves_observed_prefix(self):
+        publisher = await self.start_publisher()
+        events = []
+        ingress = ExternalReplayIngress(self.plan, self.context, emit=events.append)
+        await ingress.start()
+        await ingress.close()
+        self.assertEqual(events[-1]['event'], 'service_ingress_terminal')
+        self.assertEqual(events[-1]['N_plan'], 5)
+        self.assertFalse(events[-1]['complete'])
+        self.assertEqual(events[-1]['N_received'], len(ingress.records))
+        publisher.cancel()
+        await asyncio.gather(publisher, return_exceptions=True)
+
     async def test_clock_or_plan_mismatch_is_not_silent_fallback(self):
         for changed in (dict(self.context, clock_id='another-host'),
                         dict(self.context, plan=dict(self.plan.identity(), count=4))):

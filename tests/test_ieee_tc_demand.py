@@ -34,6 +34,23 @@ class ExactDemandTests(unittest.TestCase):
         self.assertEqual(self.tracker.get_top_k(3), [])
         self.assertEqual(self.tracker.snapshot().total_arrivals, 0)
 
+    def test_late_startup_attachment_keeps_original_arrival_age(self):
+        self.now = 120
+        self.tracker.record_arrival('expired', observed_at=100)
+        self.tracker.record_arrival('left-boundary', observed_at=110)
+        self.tracker.record_arrival('live', observed_at=111)
+        snap = self.tracker.snapshot()
+        self.assertEqual(dict(snap.counts), {'live':1})
+        self.now = 121
+        self.assertEqual(self.tracker.snapshot().total_arrivals, 0)
+
+    def test_delayed_observation_must_be_ordered_and_not_future(self):
+        self.tracker.record_arrival('a', observed_at=95)
+        for value in (94, 101, float('nan')):
+            with self.assertRaisesRegex(ValueError, 'not in the future'):
+                self.tracker.record_arrival('b', observed_at=value)
+        self.assertEqual(dict(self.tracker.snapshot().counts), {'a':1})
+
     def test_no_silent_5000_arrival_truncation(self):
         for i in range(6000):
             self.tracker.record_arrival('a' if i < 3000 else 'b')

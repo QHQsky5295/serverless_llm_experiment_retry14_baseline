@@ -65,14 +65,57 @@ curated 回执和 `external_replay_summary.json` 保存 SHA。第一次失败不
 
 ## 仍未证明的部分
 
-1. 当前接收在原 runner 的服务阶段开始；初始化/预热期间的延迟保留为连接/提交
-   等待。后续须将入口接收与启动并行并计入服务资源域，明确客户端等待与服务队列，
-   不能把当前阶段分解冒充完成的启动/队列归因。
+1. 启动并行接收已接入并通过下节无 GPU 检查，但实际模型初始化中的 event-loop
+   阻塞和新 worker 的时钟/资源仍须资格；不能把微测代替模型阶段归因。
 2. HTTP 基线须复用同到达/内容/时间合同并独立做端点注入资格。本地 IPC 不等于
    HTTP 客户端开销；需要分别报告 transport，确认它不是排名驱动因素。
 3. 实际 native 模型 cgroup/clock/GPU census、物理占用积分、控制器资源 owner、
    正式 timeout 和结果汇总资格仍未完成。`production_launch_authorized=false`。
 4. 没有运行 4,000 请求模型性能比较、M1/M2、消融或 sensitivity；不宣称胜出。
 
-后续返回 P1/P2 主线：启动期间真实服务接收、原生 worker 与资源观测、原子
+后续返回 P1/P2 主线：原生 worker 与资源观测、原子
 admission/reservation，再做 Serverless 资格和公平对照，不扩大此微测矩阵。
+
+## 启动期间接收与需求时间（2026-09-26）
+
+前一节点明确保留的问题现已在原入口修正：`main_async` 首先验证服务身份并
+启动入口接收，然后执行原来的配置、数据审计、模型初始化、preload 和回放。
+接收任务在服务资源域中保留有限 offered 集的已收请求，不移入外置监控域。
+
+依据是把“到达/接受请求”与“实例可执行”分开。Serverless 的公开
+[`inference`/`start` 实现](https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/9f50241baa5386e06a9321c51f19a9ef5f964c2b/sllm/routers/roundrobin_router.py)
+先登记需求并入队，再等待实例分配。这里借鉴该职责划分，不把它的调度策略
+移植到 Prime，也不借此修饰此前观察到的轮询问题。
+
+具体合同：
+
+- transport 已校验的 `server_received_s` 与 `service_dequeued_s` 分开。
+- 服务入口每次接收即追加 `service_ingress.jsonl`，包括模型失败之前的已收工作；
+  不等请求成功后才保存到达证据。
+- startup 与 receiver 生命周期共同监督；receiver 失败终止本轮，main 失败取消
+  接收，保留 `N_plan/N_received` 和 incomplete，不假造成功。
+- 仅一个权威需求观察者和一个请求消费者。挂接观察者时只补已收历史，然后
+  处理实时事件；既有 run_one 不再重复计算同一外部请求的到达。
+- `HotnessTracker.record_arrival(observed_at=...)` 保留原接收时间，不能将 startup
+  期间已经过期的需求更新为“现在刚到”。未来时间和乱序记录拒绝；左开右闭
+  的论文需求窗口不变。已发布不可变快照不会被追溯修改。
+- 异步队列只在同一服务 event loop 内使用，不假定线程安全。实际同步模型
+  初始化若阻塞该 loop，其滞后仍保留；是否需要进一步隔离由真实资格观测决定。
+
+新增实际微测仍用同一旧 trace 前 32 请求，8x，只将服务初始化模拟为 2 秒
+异步等待，然后才消费请求。保留一次 1.5 秒同步服务阻塞以检查外部计时独立。
+
+| 观测 | 结果 |
+|---|---|
+| 全量接收 | 32/32 |
+| 模拟 ready 前已接收 | 3 条：`req_00000/1/2` |
+| 消费时刻 | 全部在模拟 ready 后，没有提前完成模型工作 |
+| 接收至消费最长等待 | 2207.611 ms，包含启动/排队，未从用户等待中扣除 |
+| 外部产生最大滞后 | 3.077 ms，单次微测，不是普遍上界 |
+| 服务内存峰值 | 119,566,336 bytes；high/max/OOM 均零 |
+| 收尾 | publisher/service 正常退出，所属资源域释放 |
+
+证据为 `startup_ingress_attempt1.json` 与 `startup_ingress_summary.json`，原始
+日志 SHA 核对通过。398 项功能回归、24 项安全测试通过；新增检查包括启动
+期间接收、历史/实时到达只计一次、过期请求不变新、错误传播和取消。
+此表仅证明测量前提，仍没有模型性能/资源优势结论。

@@ -46,6 +46,7 @@ class HotnessTracker:
         self._counts = Counter()
         self._lock = RLock()
         self._last_observed_at = float('-inf')
+        self._last_arrival_at = float('-inf')
 
     def _now(self) -> float:
         now = float(self._clock())
@@ -61,14 +62,20 @@ class HotnessTracker:
             if self._counts[adapter_id] == 0:
                 del self._counts[adapter_id]
 
-    def record_arrival(self, adapter_id: str) -> None:
+    def record_arrival(self, adapter_id: str, *, observed_at: Optional[float] = None) -> None:
         if not isinstance(adapter_id, str) or not adapter_id:
             raise ValueError('arrival requires a nonempty adapter identity')
         with self._lock:
             now = self._now()
+            arrived = now if observed_at is None else float(observed_at)
+            if not math.isfinite(arrived) or arrived > now or arrived < self._last_arrival_at:
+                raise ValueError('arrival must be observed, ordered and not in the future')
+            self._last_arrival_at = arrived
             self._expire(now)
-            self._window.append((now, adapter_id))
-            self._counts[adapter_id] += 1
+            # Late attachment after startup must not rejuvenate expired demand.
+            if arrived > now-self.window_seconds:
+                self._window.append((arrived, adapter_id))
+                self._counts[adapter_id] += 1
 
     def record_access(self, adapter_id: str) -> None:
         """Compatibility alias for callers reporting arrivals (not completions)."""

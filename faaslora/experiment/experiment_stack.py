@@ -372,9 +372,9 @@ class ExperimentStack:
         except Exception:
             return
 
-    def record_arrival(self, adapter_id: str) -> None:
+    def record_arrival(self, adapter_id: str, *, observed_at: Optional[float] = None) -> None:
         """Observe demand before queuing; loading must not define popularity."""
-        self.hotness_tracker.record_arrival(adapter_id)
+        self.hotness_tracker.record_arrival(adapter_id, observed_at=observed_at)
 
     def record_access(self, adapter_id: str, load_time_ms: float = 0.0, hit: bool = True) -> None:
         """Record resolved-path measurements, without counting a second arrival."""

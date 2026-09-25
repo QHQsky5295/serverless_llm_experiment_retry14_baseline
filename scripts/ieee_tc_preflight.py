@@ -880,14 +880,23 @@ def replay_witness():
     ingress = ExternalReplayIngress(plan, context)
 
     async def consume():
-        async for index, record in ingress.receive():
-            # Block this service event loop, not the separately launched producer.
-            if index == 0:
-                time.sleep(1.5)
-        print(json.dumps({'event': 'replay_witness_complete', 'count': len(ingress.records),
-                          'complete': ingress.complete, 'pid': os.getpid(),
-                          'cgroup': str(cg_path()), 'affinity': sorted(os.sched_getaffinity(0)),
-                          'records': ingress.records}), flush=True)
+        try:
+            await ingress.start()
+            # Simulated asynchronous initialization, not a model performance run.
+            # Reception must precede service consumption and consume service RAM.
+            await asyncio.sleep(2.)
+            ready = time.perf_counter()
+            received_before_ready = len(ingress.records)
+            async for index, record in ingress.receive():
+                if index == 0:
+                    time.sleep(1.5)  # Intentional service-loop stall, publisher stays external.
+            print(json.dumps({'event': 'replay_witness_complete', 'count': len(ingress.records),
+                              'complete': ingress.complete, 'pid': os.getpid(),
+                              'simulated_ready_s': ready, 'received_before_ready': received_before_ready,
+                              'cgroup': str(cg_path()), 'affinity': sorted(os.sched_getaffinity(0)),
+                              'records': ingress.records}), flush=True)
+        finally:
+            await ingress.close()
     asyncio.run(consume())
 
 

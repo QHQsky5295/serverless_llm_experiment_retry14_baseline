@@ -16,7 +16,7 @@
 | Block | Status | Evidence / next action |
 |---|---|---|
 | Approved plan persistence | Recorded | Full snapshot + source hash + AGENTS instructions |
-| Resource containment / safety | Native Ray inheritance, watchdog/launch handshake and independent replay witness tested; model/early ingress gates pending | RESOURCE_QUALIFICATION.md + EXTERNAL_REPLAY_QUALIFICATION.md. Actual native GPU census and startup-parallel ingress remain open. CPU proof is affinity, not delegated cpuset |
+| Resource containment / safety | Native Ray inheritance, watchdog/launch handshake, independent replay and startup ingress witnesses tested; model gates pending | RESOURCE_QUALIFICATION.md + EXTERNAL_REPLAY_QUALIFICATION.md. Actual native GPU census/init/lifecycle remain open. CPU proof is affinity, not delegated cpuset |
 | Protected historical artifacts | Sealed and verified | `paper_results/ieee_tc/safety/20260925_execution_start_protected.json`; old results and selected user modifications unchanged |
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
@@ -52,7 +52,7 @@ configs/relayserve_motivation_serverlessllm.yaml.
 ## Immediate next actions
 
 0. Check the existing P2 install before starting anything heavy: `tmux -L tc-p2-0925-01 list-sessions`; log `paper_results/ieee_tc/p2_backend/vllm0300_install_attempt1.install.log`; final receipt same prefix `.json`. Do not recreate the venv, repeat downloads or run another model concurrently.
-1. Complete startup-parallel service ingress, then native owner integration: measured source-class costs, resource-owner remaining budgets, atomic routing/admission. Native token/reference interfaces and external arrival/submission are opt-in and unit/witness tested, but actual engine clocks/streams/controller owners remain open. Do not declare the historical scorer IEEE-aligned.
+1. Continue native owner integration: measured source-class costs, resource-owner remaining budgets, atomic routing/admission. Native token/reference interfaces and startup-parallel external arrival/submission are opt-in and unit/witness tested, but actual engine clocks/streams/controller owners remain open. Do not declare the historical scorer IEEE-aligned.
 2. Qualify actual model/GPU workers and lifecycle under the existing guarded launcher; native single-raylet and tiny replay witnesses are not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
@@ -89,6 +89,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Native GPU reference checkpoint `cd5b68deb1e0d37764bb2b7b2bbf4cc07085c3fd`
   pushed to V2; remote SHA verified.
 - Guarded-launch checkpoint `e6e76955a8ba20a9ab5b96bb2cc204db9b734426`
+  pushed to V2; remote SHA verified.
+- Independent frozen-replay checkpoint `5bcb6a333c8ff2e809077af87c58be363c7f14b9`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -320,3 +322,25 @@ configs/relayserve_motivation_serverlessllm.yaml.
   native model/process/clock qualification and live admission owner integration.
   HTTP baselines need identical input timing but separately audited transport;
   current IPC witness is not full common-protocol qualification. See dedicated doc.
+
+## Startup-parallel ingress checkpoint
+
+- Existing main entry now connects and validates service ingress before executing
+  the original initialization path. Reception and consumption are independent
+  tasks in the service budget, not auxiliary service work hidden from accounting.
+- Actual observed arrivals feed the demand window at original receipt times;
+  startup backlog is replayed to one observer once, not made artificially fresh
+  or counted again at request dispatch. Future/unsorted timestamp inputs reject.
+- Actual no-GPU witness: 32/32 existing requests, three received before simulated
+  ready, all consumed afterwards; max queued wait 2207.611 ms retained. Peak
+  service memory 119566336 bytes, no high/max/OOM; all owned processes released.
+- Final functional regression 398 pass, no failures/errors/skips. System safety
+  24 pass; all 11 external-replay tests also pass in system Python. Source/raw
+  receipt SHA checks pass. Qualification table/curated summary delivered.
+- Sep 26 01:11 local: P2 install still live on dependency 98, memory ~1.17 GiB;
+  disk ~338 GiB. No heavy concurrent model/build, data regeneration or performance
+  campaign. Retain prior failed replay witness; this is a different startup gate.
+- Next: native resource/scheduler owner integration and physical GPU lifetime
+  measurement, then actual 0.30 compatibility/worker/clock/stream qualification
+  after installation completes. Common HTTP input transport, remote disk decision,
+  Serverless native qualification and main experiments remain open.

@@ -2,11 +2,16 @@
 import asyncio
 import os
 import time
+import json
+from pathlib import Path
+import tempfile
 from types import SimpleNamespace
 import unittest
 from unittest.mock import AsyncMock, Mock, patch
 
 from scripts import run_all_experiments as runner
+from faaslora.clock import local_monotonic_clock_id
+from faaslora.datasets.workload_generator import FrozenReplayPlan, publish_frozen_replay
 
 
 class ManagedEngineLaunch(unittest.TestCase):
@@ -54,6 +59,17 @@ class ExternalArrivalControl(unittest.TestCase):
     def test_external_mode_cannot_use_internal_timer(self):
         with self.assertRaisesRegex(RuntimeError, 'cannot fall back'):
             asyncio.run(self.runner._await_trace_arrival(SimpleNamespace(arrival_time=0), 0))
+
+    def test_observation_not_late_dispatch_updates_demand(self):
+        r = self.runner
+        trace = SimpleNamespace(request_id='a', adapter_id='adapter-a')
+        r._external_trace_by_id = {'a':trace}
+        r._observe_live_arrived_lora = Mock()
+        r._observe_live_waiting_trace = Mock()
+        r._stack = SimpleNamespace(record_arrival=Mock())
+        r._observe_external_ingress({'request_id':'a', 'server_received_s':12.})
+        r._stack.record_arrival.assert_called_once_with('adapter-a', observed_at=12.)
+        r._observe_live_waiting_trace.assert_called_once_with(trace)
 
 class ManagedEngineFailure(unittest.TestCase):
     def test_global_cleanup_is_forbidden_inside_managed_launch(self):
@@ -159,6 +175,45 @@ class ExternalDispatcherIntegration(unittest.IsolatedAsyncioTestCase):
                 total_requests=3, result=SimpleNamespace(scale_up_events=[], scale_down_events=0),
                 coord_enabled=False)
         self.assertEqual(cancelled, [0])
+
+    async def test_main_starts_receiving_before_initialization_and_logs_every_receipt(self):
+        with tempfile.TemporaryDirectory(prefix='ptci-') as tmp:
+            root = Path(tmp)
+            source = root/'source.json'
+            source.write_text(json.dumps({'requests':[
+                {'request_id':str(i), 'arrival_time_s':i*.01, 'adapter_id':'adapter-a'} for i in range(3)]}))
+            plan = FrozenReplayPlan.load(source)
+            now = time.perf_counter()
+            origin = {'clock_id':local_monotonic_clock_id(), 'deployment_notice_s':now,
+                      'replay_t0_s':now+.005}
+            context = {**origin, 'plan':plan.identity(), 'address':str(root/'socket'),
+                       'nonce':'test', 'frame_limit':16384, 'tiny_witness':False}
+            receipt = root/'exec_receipt.json'
+            receipt.write_text(json.dumps({'external_replay':context}))
+            events = []
+            async def start():
+                return origin
+            publisher = asyncio.create_task(publish_frozen_replay(plan, context['address'],
+                                              'test', start, events.append))
+            while not events:
+                await asyncio.sleep(.001)
+            async def initialize_then_serve(*args, external_replay, **kwargs):
+                self.assertFalse(external_replay.background_task.done())
+                await asyncio.sleep(.05)  # Backend still starting; frontend must receive.
+                self.assertEqual(len(external_replay.records), 3)
+                async for _ in external_replay.receive():
+                    pass
+                return 'served'
+            with patch.dict(os.environ, {'FAASLORA_TC_EXTERNAL_REPLAY':'1',
+                                         'FAASLORA_TC_LAUNCH_RECEIPT':str(receipt)}), \
+                 patch('scripts.ieee_tc_preflight.verify_current_service', return_value={'pid':0}), \
+                 patch.object(runner, '_main_async_impl', side_effect=initialize_then_serve):
+                self.assertEqual(await runner.main_async('unused-config'), 'served')
+            await publisher
+            log = [json.loads(x) for x in (root/'service_ingress.jsonl').read_text().splitlines()]
+            self.assertEqual(sum(x['event']=='request_received' for x in log), 3)
+            self.assertEqual(sum(x['event']=='request_dequeued' for x in log), 3)
+            self.assertTrue(next(x for x in log if x['event']=='service_ingress_terminal')['complete'])
 
 
 if __name__ == '__main__':

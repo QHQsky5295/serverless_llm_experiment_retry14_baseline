@@ -224,15 +224,84 @@ async def publish_frozen_replay(plan, address, nonce, receive_start, emit):
 
 class ExternalReplayIngress:
     """Service-side receipt of due requests; no look-ahead arrival-rate oracle."""
-    def __init__(self, plan, context):
+    def __init__(self, plan, context, *, emit=None):
         self.plan, self.context = plan, context
         if context['plan'] != plan.identity() or context['clock_id'] != local_monotonic_clock_id():
             raise ValueError('external replay trace/view/clock differs from service')
         self.observed_times = []
         self.records = {}
         self.complete = False
+        self._emit = emit if emit is not None else lambda event: None
+        self._queue = asyncio.Queue(maxsize=len(plan.entries)+1)
+        self._pump_task = None
+        self._ready = None
+        self._error = None
+        self._consumer_claimed = False
+        self._observer = None
+
+    def subscribe(self, observer):
+        """One authoritative service observer; replay only actually received history."""
+        if self._observer is not None:
+            raise ValueError('arrival observer is already attached; avoid double counting')
+        for record in self.records.values():
+            observer(dict(record))
+        self._observer = observer
+
+    async def start(self):
+        if self._pump_task is None:
+            self._ready = asyncio.get_running_loop().create_future()
+            self._pump_task = asyncio.create_task(self._pump())
+        await self._ready
+        self.raise_if_failed()
+
+    @property
+    def background_task(self):
+        if self._pump_task is None:
+            raise RuntimeError('service ingress has not started')
+        return self._pump_task
+
+    def raise_if_failed(self):
+        if self._error is not None:
+            raise self._error
+
+    async def _pump(self):
+        try:
+            async for item in self._read_transport():
+                self._queue.put_nowait(item)
+        except BaseException as exc:
+            self._error = exc
+            if not self._ready.done():
+                self._ready.set_exception(exc)
+        finally:
+            self._queue.put_nowait(None)
+            self._emit({'event': 'service_ingress_terminal', 'N_plan': len(self.plan.entries),
+                        'N_received': len(self.records), 'complete': self.complete,
+                        'error': type(self._error).__name__ if self._error else None})
 
     async def receive(self):
+        if self._consumer_claimed:
+            raise RuntimeError('one service consumer per frozen replay; no second execution')
+        self._consumer_claimed = True
+        await self.start()
+        while True:
+            item = await self._queue.get()
+            if item is None:
+                self.raise_if_failed()
+                return
+            index, record = item
+            record['service_dequeued_s'] = time.perf_counter()
+            self._emit({'event': 'request_dequeued', **record})
+            yield index, record
+
+    async def close(self):
+        if self._pump_task is not None:
+            if not self._pump_task.done():
+                self._pump_task.cancel()
+            await self._pump_task
+            if self._ready.done() and not self._ready.cancelled():
+                self._ready.exception()
+
+    async def _read_transport(self):
         reader, writer = await asyncio.open_unix_connection(
             self.context['address'], limit=self.context['frame_limit'])
         try:
@@ -244,6 +313,9 @@ class ExternalReplayIngress:
             for name in ('plan', 'clock_id', 'deployment_notice_s', 'replay_t0_s'):
                 if header.get(name) != self.context[name]:
                     raise ValueError('publisher origin differs from guarded launch')
+            self._emit({'event': 'service_ingress_started', 'clock_id': self.context['clock_id'],
+                        'connected_s': time.perf_counter(), 'N_plan': len(self.plan.entries)})
+            self._ready.set_result(True)
             for index, entry in enumerate(self.plan.entries):
                 packet = json.loads(await reader.readline())
                 received = time.perf_counter()
@@ -263,6 +335,9 @@ class ExternalReplayIngress:
                 record['server_received_s'] = received
                 self.observed_times.append(received)
                 self.records[entry.request_id] = record
+                self._emit({'event': 'request_received', **record})
+                if self._observer is not None:
+                    self._observer(dict(record))
                 yield index, record
             end = json.loads(await reader.readline())
             if end != {'event': 'replay_end', 'N_plan': len(self.plan.entries),
