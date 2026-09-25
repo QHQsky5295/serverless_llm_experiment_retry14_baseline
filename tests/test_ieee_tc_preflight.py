@@ -65,6 +65,8 @@ class ProtocolGates(unittest.TestCase):
         self.assertEqual(p.POLICY['service_high_bytes'], 72*p.GIB)
         self.assertEqual(p.test_limits('ray')['memory.max'], 3*p.GIB)
         self.assertIn('MemoryMax=3072M', p.scope_command('test', 'ray'))
+        self.assertEqual(p.test_limits('replay'), {'memory.high':192*p.MIB,
+                         'memory.max':256*p.MIB, 'memory.swap.max':0})
 
     def test_cleanup_stops_empty_owned_scope(self):
         with patch.object(p.subprocess, 'run') as run:

@@ -23,8 +23,13 @@ Features
 import random
 import time
 import asyncio
+import hashlib
+import json
+import math
+from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
+from ..clock import local_monotonic_clock_id
 
 # ---------------------------------------------------------------------------
 # Data classes
@@ -44,6 +49,229 @@ class RequestTrace:
     prompt_input_tokens: Optional[int] = None
     prompt_output_tokens: Optional[int] = None
     is_burst: bool = False       # Part of a simulated burst / scale-up event
+
+
+@dataclass(frozen=True)
+class FrozenReplayEntry:
+    request_id: str
+    offset_s: float
+    source_json: str
+    source_sha256: str
+
+
+@dataclass(frozen=True)
+class FrozenReplayPlan:
+    """Read-only view of an existing trace; never generates requests or weights.
+
+    W1 changes only the arrival index by the approved formula. Prefix/rate
+    options are explicit diagnostic views, not new independent trace seeds.
+    """
+    path: str
+    source_sha256: str
+    entries: Tuple[FrozenReplayEntry, ...]
+    profile: str
+    rate_scale: float
+    source_count: int
+
+    @classmethod
+    def load(cls, path, *, profile='W0', count=None, rate_scale=1.0):
+        source = Path(path).resolve(strict=True)
+        raw = source.read_bytes()
+        rows = json.loads(raw)['requests']
+        if not rows or not math.isfinite(rate_scale) or rate_scale <= 0:
+            raise ValueError('replay requires a nonempty frozen trace and positive finite rate')
+        if profile not in {'W0', 'W1'}:
+            raise ValueError('unqualified replay transform; W2 requires its frozen adapter map')
+        indexed = []
+        for i, row in enumerate(rows):
+            rid = str(row.get('request_id', f'req_{i:05d}'))
+            arrival = float(row.get('arrival_time_s', row.get('arrival_time', 0)))
+            if not rid or not math.isfinite(arrival) or arrival < 0:
+                raise ValueError('invalid frozen request identity/arrival')
+            indexed.append((arrival, rid, row))
+        indexed.sort(key=lambda x: (x[0], x[1]))
+        if len({r[1] for r in indexed}) != len(indexed):
+            raise ValueError('duplicate request ID in frozen trace')
+        if count is not None:
+            if not isinstance(count, int) or not 0 < count <= len(indexed):
+                raise ValueError('diagnostic prefix exceeds existing trace')
+            indexed = indexed[:count]
+        base, phase_base, previous = indexed[0][0], 0., 0.
+        entries = []
+        for i, (arrival, rid, row) in enumerate(indexed):
+            if profile == 'W1' and i % 500 == 0:
+                base = arrival
+                phase_base = 0. if i == 0 else previous+30.
+            offset = ((arrival-base)/2+phase_base) if profile == 'W1' else arrival-base
+            previous = offset
+            canonical = json.dumps(row, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
+            entries.append(FrozenReplayEntry(rid, offset/rate_scale, canonical,
+                           hashlib.sha256(canonical.encode()).hexdigest()))
+        return cls(str(source), hashlib.sha256(raw).hexdigest(), tuple(entries),
+                   profile, rate_scale, len(rows))
+
+    def identity(self):
+        view = [[e.request_id, e.offset_s, e.source_sha256] for e in self.entries]
+        return {'source_path': self.path, 'source_sha256': self.source_sha256,
+                'view_sha256': hashlib.sha256(json.dumps(view, separators=(',', ':')).encode()).hexdigest(),
+                'count': len(self.entries), 'source_count': self.source_count,
+                'profile': self.profile, 'rate_scale': self.rate_scale}
+
+
+async def publish_frozen_replay(plan, address, nonce, receive_start, emit):
+    """Auxiliary-process open loop; transport never blocks the arrival producer.
+
+    A finite trace bounds the pending queue. No request is released early, no
+    connection/admission limit changes its planned time, and no response is
+    awaited. Backpressure appears in queued-to-submit spans. Service ingress is
+    recorded by the receiver, NOT inferred from successful socket writes.
+    """
+    queue = asyncio.Queue()
+    connected = asyncio.get_running_loop().create_future()
+    counts = {'N_plan': len(plan.entries), 'N_arrived': 0, 'N_submitted': 0}
+    clock_id = local_monotonic_clock_id()
+    context = None
+    producer = sender = group = None
+    writer = None
+    frame_limit = max(len(e.source_json.encode()) for e in plan.entries)+8192
+
+    async def accept(reader, candidate):
+        try:
+            if connected.done():
+                raise ValueError('only one service consumer is permitted per replay')
+            hello = json.loads(await asyncio.wait_for(reader.readline(), timeout=10))
+            if hello != {'nonce': nonce, 'view_sha256': plan.identity()['view_sha256'], 'clock_id': clock_id}:
+                raise ValueError('replay consumer identity/clock differs')
+            if connected.done():
+                raise ValueError('duplicate replay consumer')
+            connected.set_result(candidate)
+        except Exception as exc:
+            candidate.close()
+            if not connected.done():
+                connected.set_exception(exc)
+
+    server = await asyncio.start_unix_server(accept, path=address, limit=frame_limit)
+    emit({'event': 'replay_ready', 'plan': plan.identity(), 'clock_id': clock_id,
+          'frame_limit': frame_limit})
+    try:
+        context = await receive_start()
+        notice, t0 = context['deployment_notice_s'], context['replay_t0_s']
+        if (context.get('clock_id') != clock_id or not all(map(math.isfinite, (notice, t0)))
+                or t0 < notice or notice > time.perf_counter()):
+            raise ValueError('invalid deployment-notice origin/clock')
+
+        async def produce():
+            for index, entry in enumerate(plan.entries):
+                planned = t0+entry.offset_s
+                await asyncio.sleep(max(0., planned-time.perf_counter()))
+                created = time.perf_counter()
+                event = {'index': index, 'request_id': entry.request_id,
+                         'planned_arrival_s': planned, 'task_created_s': created,
+                         'source_item_sha256': entry.source_sha256}
+                counts['N_arrived'] += 1
+                emit({'event': 'request_created', **event})
+                queue.put_nowait((event, entry.source_json))
+            queue.put_nowait(None)
+
+        async def send():
+            nonlocal writer
+            writer = await connected
+            writer.write((json.dumps({'event': 'replay_header', **context,
+                                     'plan': plan.identity(), 'frame_limit': frame_limit})+'\n').encode())
+            await writer.drain()
+            while True:
+                item = await queue.get()
+                if item is None:
+                    break
+                event, payload = item
+                submitted = time.perf_counter()
+                event = {**event, 'client_submit_s': submitted}
+                # Full frozen request is transported, not just a timer/index hint.
+                packet = {'event': 'request', **event, 'source_request': json.loads(payload)}
+                writer.write((json.dumps(packet, separators=(',', ':'), ensure_ascii=False)+'\n').encode())
+                await writer.drain()
+                counts['N_submitted'] += 1
+                emit({'event': 'request_submitted', **event, 'socket_drain_s': time.perf_counter()})
+            writer.write((json.dumps({'event': 'replay_end', **counts})+'\n').encode())
+            await writer.drain()
+
+        producer = asyncio.create_task(produce())
+        sender = asyncio.create_task(send())
+        # A finite launcher/qualification deadline is independent of readiness.
+        timeout = max(0., t0-time.perf_counter())+plan.entries[-1].offset_s+1800.
+        group = asyncio.gather(producer, sender)
+        await asyncio.wait_for(group, timeout)
+        emit({'event': 'replay_complete', **counts, 'clock_id': clock_id})
+        return counts
+    except BaseException as exc:
+        emit({'event': 'replay_incomplete', **counts, 'error': type(exc).__name__+': '+str(exc)})
+        raise
+    finally:
+        for task in (producer, sender):
+            if task is not None and not task.done():
+                task.cancel()
+        await asyncio.gather(*(t for t in (producer, sender) if t is not None), return_exceptions=True)
+        if group is not None:
+            await asyncio.gather(group, return_exceptions=True)
+        if connected.done() and not connected.cancelled():
+            connected.exception()
+        if writer is not None:
+            writer.close()
+            await writer.wait_closed()
+        server.close()
+        await server.wait_closed()
+
+
+class ExternalReplayIngress:
+    """Service-side receipt of due requests; no look-ahead arrival-rate oracle."""
+    def __init__(self, plan, context):
+        self.plan, self.context = plan, context
+        if context['plan'] != plan.identity() or context['clock_id'] != local_monotonic_clock_id():
+            raise ValueError('external replay trace/view/clock differs from service')
+        self.observed_times = []
+        self.records = {}
+        self.complete = False
+
+    async def receive(self):
+        reader, writer = await asyncio.open_unix_connection(
+            self.context['address'], limit=self.context['frame_limit'])
+        try:
+            writer.write((json.dumps({'nonce': self.context['nonce'],
+                 'view_sha256': self.plan.identity()['view_sha256'],
+                 'clock_id': local_monotonic_clock_id()})+'\n').encode())
+            await writer.drain()
+            header = json.loads(await reader.readline())
+            for name in ('plan', 'clock_id', 'deployment_notice_s', 'replay_t0_s'):
+                if header.get(name) != self.context[name]:
+                    raise ValueError('publisher origin differs from guarded launch')
+            for index, entry in enumerate(self.plan.entries):
+                packet = json.loads(await reader.readline())
+                received = time.perf_counter()
+                payload = json.dumps(packet.get('source_request'), sort_keys=True,
+                                     separators=(',', ':'), ensure_ascii=False)
+                expected_time = self.context['replay_t0_s']+entry.offset_s
+                times = [packet.get(name, math.nan) for name in
+                         ('planned_arrival_s', 'task_created_s', 'client_submit_s')]+[received]
+                if (packet.get('event') != 'request' or packet.get('index') != index
+                        or packet.get('request_id') != entry.request_id
+                        or packet.get('source_item_sha256') != entry.source_sha256
+                        or hashlib.sha256(payload.encode()).hexdigest() != entry.source_sha256
+                        or times[0] != expected_time or not all(map(math.isfinite, times))
+                        or times != sorted(times)):
+                    raise ValueError('invalid/duplicate/early external request or changed content')
+                record = {k: v for k, v in packet.items() if k not in {'source_request', 'event'}}
+                record['server_received_s'] = received
+                self.observed_times.append(received)
+                self.records[entry.request_id] = record
+                yield index, record
+            end = json.loads(await reader.readline())
+            if end != {'event': 'replay_end', 'N_plan': len(self.plan.entries),
+                       'N_arrived': len(self.plan.entries), 'N_submitted': len(self.plan.entries)}:
+                raise ValueError('incomplete external replay denominator')
+            self.complete = True
+        finally:
+            writer.close()
+            await writer.wait_closed()
 
 
 @dataclass

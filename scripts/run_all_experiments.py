@@ -790,6 +790,8 @@ class RequestResult:
     output_contract_match: bool = True
     timing_contract: str = "legacy"
     native_token_timing: Dict[str, Any] = field(default_factory=dict)
+    arrival_contract: str = "legacy_internal_timer"
+    external_arrival_timing: Dict[str, Any] = field(default_factory=dict)
 
 
 class AggregateBandwidthLimiter:
@@ -5867,6 +5869,7 @@ class ScenarioRunner:
         self.preload_cfg   = preload_cfg
         self.wl_cfg        = workload_cfg
         self.coord_cfg     = coord_cfg or {}
+        self._configure_external_replay()
         generation_contract = str(
             self.wl_cfg.get("generation_contract", "legacy") or "legacy"
         ).strip().lower()
@@ -6586,7 +6589,12 @@ class ScenarioRunner:
         later raised to the observed/predicted runtime restart cost, so changing
         base models does not require hand-tuning an idle TTL for each model.
         """
-        arrivals = sorted(float(v) for v in (getattr(self, "_scheduled_arrivals", []) or []))
+        if getattr(self, '_external_replay', None) is not None:
+            # A replay file is not lawful demand history. Only received arrivals
+            # may inform this heuristic; before observations use the control period.
+            arrivals = self._external_replay.observed_times
+        else:
+            arrivals = sorted(float(v) for v in (getattr(self, "_scheduled_arrivals", []) or []))
         gaps = [
             max(0.0, float(curr) - float(prev))
             for prev, curr in zip(arrivals, arrivals[1:])
@@ -7460,6 +7468,9 @@ class ScenarioRunner:
         counts.pop(adapter_id, None)
 
     def _arrived_request_count_at_elapsed_s(self, elapsed_s: float) -> int:
+        if getattr(self, '_external_replay', None) is not None:
+            return bisect_right(self._external_replay.observed_times,
+                                self._external_replay.context['replay_t0_s']+max(0., elapsed_s))
         arrivals = list(getattr(self, "_scheduled_arrivals", []) or [])
         if not arrivals:
             return 0
@@ -7598,6 +7609,9 @@ class ScenarioRunner:
             visible_traces=visible_traces,
             submitted_traces=submitted_traces,
         )
+        if getattr(self, '_external_replay', None) is not None:
+            # Bootstrap latency is not permission to peek at future adapters.
+            return waiting_queue, len(self._external_replay.observed_times)
         traces = list(getattr(self, "traces", []) or [])
         projected_arrived = max(0, int(arrived_request_count or 0))
         if replay_t0 is not None and getattr(self, "_scheduled_arrivals", None):
@@ -10259,18 +10273,29 @@ class ScenarioRunner:
         return None
 
     def _scheduled_offset(self, trace: RequestTrace) -> float:
+        if getattr(self, '_external_replay', None) is not None:
+            return self._external_replay_offsets[str(trace.request_id)]
         return max(0.0, trace.arrival_time - self._arrival_base)
 
     async def _await_trace_arrival(self, trace: RequestTrace, replay_t0: float) -> None:
+        if getattr(self, '_external_replay', None) is not None:
+            raise RuntimeError('external replay cannot fall back to the service event-loop timer')
         wait = self._scheduled_offset(trace) - (time.perf_counter() - replay_t0)
         if wait > 0:
             await asyncio.sleep(wait)
 
     def _arrived_request_count(self, replay_t0: float) -> int:
+        if getattr(self, '_external_replay', None) is not None:
+            return len(self._external_replay.observed_times)
         elapsed = max(0.0, time.perf_counter() - replay_t0)
         return bisect_right(self._scheduled_arrivals, elapsed)
 
     def _arrival_rps(self, replay_t0: float) -> float:
+        if getattr(self, '_external_replay', None) is not None:
+            received = self._external_replay.observed_times
+            window_s = max(self._arrival_window_s, 1.0)
+            lo = bisect_right(received, time.perf_counter()-window_s)
+            return (len(received)-lo)/window_s
         if not self._scheduled_arrivals:
             return 0.0
         elapsed = max(0.0, time.perf_counter() - replay_t0)
@@ -11088,6 +11113,17 @@ class ScenarioRunner:
 
         async def _dispatch_traces() -> None:
             nonlocal launched_count
+            external = getattr(self, '_external_replay', None)
+            if external is not None:
+                if trace_start_index != 0 or len(traces) != len(external.plan.entries):
+                    raise ValueError('external replay cannot reset at phase/drain boundaries')
+                async for local_idx, record in external.receive():
+                    task = asyncio.create_task(run_one_fn(local_idx, traces[local_idx],
+                        arrival_released_at=record['server_received_s']))
+                    active_tasks.add(task)
+                    task_to_idx[task] = local_idx
+                    launched_count += 1
+                return
             for local_idx, trace in enumerate(traces):
                 await self._await_trace_arrival(trace, replay_t0)
                 arrival_released_at = time.perf_counter()
@@ -11179,9 +11215,9 @@ class ScenarioRunner:
                     scale_down_count=result.scale_down_events,
                 )
 
-            if not dispatcher.done():
-                await dispatcher
-
+            # A fast failed publisher may finish between controller polls.
+            # Always retrieve its exception; never manufacture missing results.
+            await dispatcher
             raw: List[Any] = []
             for idx in range(len(traces)):
                 raw.append(
@@ -11193,6 +11229,12 @@ class ScenarioRunner:
             return raw, time.perf_counter()
         finally:
             self._active_replay_t0 = None
+            if not dispatcher.done():
+                dispatcher.cancel()
+            for task in active_tasks:
+                if not task.done():
+                    task.cancel()
+            await asyncio.gather(dispatcher, *active_tasks, return_exceptions=True)
 
     def _prime_slot_cache_view(self, slot: Any, include_gpu: bool) -> None:
         if slot is None:
@@ -12363,6 +12405,22 @@ class ScenarioRunner:
     # Phase 2: run workload
     # ------------------------------------------------------------------
 
+    def _configure_external_replay(self):
+        self._external_replay = None
+        launch_receipt = os.environ.get('FAASLORA_TC_LAUNCH_RECEIPT')
+        if launch_receipt:
+            context = json.loads(Path(launch_receipt).read_text()).get('external_replay')
+            if context is not None:
+                from faaslora.datasets.workload_generator import FrozenReplayPlan, ExternalReplayIngress
+                if context['tiny_witness'] or int(self.wl_cfg.get('multi_cycle_phases', 1)) != 1:
+                    raise ValueError('model replay requires a continuous full-trace origin')
+                frozen = FrozenReplayPlan.load(context['plan']['source_path'],
+                                                profile=context['plan']['profile'])
+                if [t.request_id for t in self.traces] != [e.request_id for e in frozen.entries]:
+                    raise ValueError('service request map differs from external replay')
+                self._external_replay = ExternalReplayIngress(frozen, context)
+                self._external_replay_offsets = {e.request_id: e.offset_s for e in frozen.entries}
+
     async def run(self) -> Tuple[ScenarioResult, Dict]:
         # 按场景设置 transformers 后端 GPU 内最多 LoRA 数（贴近真实系统）
         coord_enabled = (
@@ -12401,7 +12459,8 @@ class ScenarioRunner:
             self.traces,
             max_tokens,
         )
-        replay_t0 = time.perf_counter()
+        replay_t0 = (self._external_replay.context['replay_t0_s']
+                     if self._external_replay is not None else time.perf_counter())
 
         async def run_one(
             i: int,
@@ -12457,6 +12516,9 @@ class ScenarioRunner:
                         admitted_offset_s=max(0.0, admitted_at - replay_t0),
                         arrival_released_offset_s=max(0.0, arrival_released_at - replay_t0),
                     )
+                    if self._external_replay is not None:
+                        out.arrival_contract = 'external_frozen_trace_v1'
+                        out.external_arrival_timing = dict(self._external_replay.records[trace.request_id])
                     return out
                 finally:
                     self._release_live_started_lora(getattr(trace, "adapter_id", None))
@@ -17340,6 +17402,17 @@ async def main_async(
     remote_dir = REPO_ROOT / storage_cfg.get("remote_dir", "artifacts/remote")
     output_dir = REPO_ROOT / exp_cfg.get("output_dir", "results")
     num_runs = max(1, int(exp_cfg.get("num_runs", 1)))
+    if os.environ.get('FAASLORA_TC_EXTERNAL_REPLAY') == '1':
+        if (num_runs != 1 or not only_scenario or not shared_trace_path_override
+                or int(wl_cfg_yaml.get('multi_cycle_phases', 1)) != 1 or quick):
+            raise ValueError('external replay requires one explicit scenario/run and the full shared trace')
+        receipt_path = os.environ.get('FAASLORA_TC_LAUNCH_RECEIPT')
+        if not receipt_path:
+            raise RuntimeError('external replay requires the guarded auxiliary launcher')
+        context = json.loads(Path(receipt_path).read_text()).get('external_replay')
+        if (not context or context['plan']['source_path'] != str(Path(shared_trace_path_override).resolve())
+                or context['plan']['source_sha256'] != _sha256_file(shared_trace_path_override)):
+            raise ValueError('runner shared input differs from auxiliary frozen replay')
     confidence_level = float(exp_cfg.get("confidence_level", 0.95))
     model_name = model_cfg.get("name", "Qwen/Qwen2.5-0.5B-Instruct")
     backend = str(model_cfg.get("backend", "vllm")).lower()

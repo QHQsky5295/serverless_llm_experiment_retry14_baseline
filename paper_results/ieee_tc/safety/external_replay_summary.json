@@ -1,0 +1,34 @@
+{
+  "kind": "external_replay_witness_summary",
+  "status": "pass_with_prior_failed_attempt_preserved",
+  "performance_evidence": false,
+  "production_launch_authorized": false,
+  "source_trace_reused": true,
+  "request_count": 32,
+  "diagnostic_rate_scale": 8.0,
+  "diagnostic_prepare_seconds": 0.2,
+  "production_prepare_seconds_unchanged": 60.0,
+  "clock_advance_between_first_receipts_s": 1.5020982929854654,
+  "created_while_receiver_stalled": ["req_00001"],
+  "submitted_while_receiver_stalled": ["req_00001"],
+  "creation_lateness_max_ms": 2.527265198295936,
+  "creation_lateness_mean_ms": 1.1624494663919904,
+  "service_received_minus_planned_max_ms": 217.36496922676452,
+  "service_memory_peak_bytes": 119590912,
+  "memory_events_last": {"low": 0, "high": 0, "max": 0, "oom": 0, "oom_kill": 0, "oom_group_kill": 0},
+  "watcher_sample_count": 11,
+  "attempt1": {
+    "status": "failed",
+    "reason": "64 MiB memory.high throttled parsing of the existing 28 MB full trace before receiver connection; owned service stopped; no model or host OOM",
+    "receipt": "external_replay_attempt1.json",
+    "sha256": "32acba193f6ce87ca05b5dfc550d6559d261544430edf785f9cb82eed8bd87e2"
+  },
+  "attempt2": {
+    "status": "passed",
+    "receipt": "external_replay_attempt2.json",
+    "sha256": "13ea2e1323d912d6a4ab3522d2fd82fe4f505290a780851bc7f7e0ab82508ae4",
+    "service_path_removed": true,
+    "service_returncode": 0,
+    "replay_returncode": 0
+  }
+}

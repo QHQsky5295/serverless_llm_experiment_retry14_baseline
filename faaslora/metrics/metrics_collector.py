@@ -9,7 +9,6 @@ import asyncio
 import threading
 import math
 import os
-from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
@@ -18,23 +17,7 @@ from collections import deque
 
 from ..utils.config import Config
 from ..utils.logger import get_logger
-
-
-@lru_cache(maxsize=1)
-def local_monotonic_clock_id() -> str:
-    """Identify the Linux clock used by local service/worker spans.
-
-    Native engine workers must also be verified in the same boot/time namespace
-    by the launch census. This ID is not a synchronization claim for remote hosts.
-    """
-    mono, perf = time.get_clock_info("monotonic"), time.get_clock_info("perf_counter")
-    if not mono.monotonic or not perf.monotonic or mono.implementation != perf.implementation:
-        raise RuntimeError("IEEE timing requires one verified monotonic/perf clock")
-    boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
-    namespace = os.readlink('/proc/self/ns/time')
-    if not boot or not namespace:
-        raise RuntimeError("cannot establish local clock identity")
-    return f"linux-monotonic:{boot}:{namespace}"
+from ..clock import local_monotonic_clock_id
 
 
 class NativeV1TokenTimeline:

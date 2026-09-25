@@ -16,7 +16,7 @@
 | Block | Status | Evidence / next action |
 |---|---|---|
 | Approved plan persistence | Recorded | Full snapshot + source hash + AGENTS instructions |
-| Resource containment / safety | Native Ray inheritance, independent watchdog and actual pre-exec launch handshake tested; model/replay gates pending | RESOURCE_QUALIFICATION.md. Original wrapper now has strict TC qualification entry; actual native GPU census and external replay pending. CPU proof is affinity, not delegated cpuset |
+| Resource containment / safety | Native Ray inheritance, watchdog/launch handshake and independent replay witness tested; model/early ingress gates pending | RESOURCE_QUALIFICATION.md + EXTERNAL_REPLAY_QUALIFICATION.md. Actual native GPU census and startup-parallel ingress remain open. CPU proof is affinity, not delegated cpuset |
 | Protected historical artifacts | Sealed and verified | `paper_results/ieee_tc/safety/20260925_execution_start_protected.json`; old results and selected user modifications unchanged |
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
@@ -52,8 +52,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 ## Immediate next actions
 
 0. Check the existing P2 install before starting anything heavy: `tmux -L tc-p2-0925-01 list-sessions`; log `paper_results/ieee_tc/p2_backend/vllm0300_install_attempt1.install.log`; final receipt same prefix `.json`. Do not recreate the venv, repeat downloads or run another model concurrently.
-1. Continue native owner integration: measured source-class costs, resource-owner remaining budgets, then atomic routing/admission. Native token-event timing is wired opt-in (P1-D5), but executable acquisition, actual engine clock census and external arrival/submission remain open. Do not declare the historical scorer IEEE-aligned.
-2. Integrate effective service-worker and external-watchdog checks into existing launchers; native single-raylet witness is not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
+1. Complete startup-parallel service ingress, then native owner integration: measured source-class costs, resource-owner remaining budgets, atomic routing/admission. Native token/reference interfaces and external arrival/submission are opt-in and unit/witness tested, but actual engine clocks/streams/controller owners remain open. Do not declare the historical scorer IEEE-aligned.
+2. Qualify actual model/GPU workers and lifecycle under the existing guarded launcher; native single-raylet and tiny replay witnesses are not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
@@ -87,6 +87,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Native observation checkpoint `ea439a0234ba9d151d90a6d17b20596b54621c47`
   pushed to V2; remote SHA verified.
 - Native GPU reference checkpoint `cd5b68deb1e0d37764bb2b7b2bbf4cc07085c3fd`
+  pushed to V2; remote SHA verified.
+- Guarded-launch checkpoint `e6e76955a8ba20a9ab5b96bb2cc204db9b734426`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -291,3 +293,30 @@ configs/relayserve_motivation_serverlessllm.yaml.
   origin. Do not merely move a sleeping timer while leaving the replay blocked
   by service admission. Also keep actual native clock/resource census, live
   scheduler/KV owner wiring and remote disk approval on the mainline checklist.
+
+## Independent frozen-arrival checkpoint
+
+- Existing workload module/launcher/runner extended, no new experiment framework.
+  Fixed deployment notice + 60-second production origin; separately bounded
+  publisher, full original request transport, source/view/content SHA, same local
+  native clock. W0/W1 supported; W2 frozen adapter map still required.
+- Historical full-trace idle-floor and future-ready adapter look-ahead disabled
+  on this TC path. Backlog/demand-rate/candidate control uses received arrivals;
+  transport failure never silently returns to a service-local timer.
+- Actual 32-request prefix of existing seed42 trace, 8x diagnostic speed: first
+  witness throttled parsing under an empty-process 64 MiB high limit; owned stop,
+  failed receipt preserved. Replay-specific 192/256 MiB witness passes, 32/32,
+  peak 119590912 bytes, high/max/OOM zero, processes released.
+- During a 1.50-second receiver stall the independent process still created and
+  submitted the due request; max creation lateness 2.527 ms. This is a measurement
+  precondition, NOT a model latency/throughput result. Table/summary delivered.
+- Final functional regression: 391 passed, zero failures/errors/skips. Safety
+  suite: 24 passed; the eight frozen-replay tests also pass in system Python.
+  Receipt/raw SHA checks and all 147 protected historical entries verified.
+- Sep 26 00:59 local: original candidate installation still active on cuDNN
+  dependency 98; current memory ~1.04 GiB, no duplicate install. Four GPUs idle,
+  15 MiB each; disk ~338 GiB free. No model campaign started.
+- Next: receive requests inside the service domain during initialization, then
+  native model/process/clock qualification and live admission owner integration.
+  HTTP baselines need identical input timing but separately audited transport;
+  current IPC witness is not full common-protocol qualification. See dedicated doc.

@@ -1,0 +1,150 @@
+"""Frozen open-loop transport tests; fixtures are not experimental workloads."""
+import asyncio
+import json
+import math
+from pathlib import Path
+import tempfile
+import time
+import unittest
+
+from faaslora.clock import local_monotonic_clock_id
+from faaslora.datasets.workload_generator import (
+    FrozenReplayPlan, ExternalReplayIngress, publish_frozen_replay,
+)
+
+
+class FrozenViews(unittest.TestCase):
+    def load_rows(self, rows, **kwargs):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d)/'trace.json'
+            path.write_text(json.dumps({'requests': rows}))
+            return FrozenReplayPlan.load(path, **kwargs)
+
+    def test_sort_identity_and_content_hash_without_rewriting_source(self):
+        rows = [{'request_id':'b', 'arrival_time_s':12, 'body':{'prompt':'second'}},
+                {'request_id':'a', 'arrival_time_s':10, 'body':{'prompt':'first'}}]
+        plan = self.load_rows(rows)
+        self.assertEqual([e.request_id for e in plan.entries], ['a', 'b'])
+        self.assertEqual([e.offset_s for e in plan.entries], [0, 2])
+        self.assertEqual(json.loads(plan.entries[0].source_json), rows[1])
+        self.assertEqual(plan.identity()['source_count'], 2)
+
+    def test_w1_exact_phase_formula_not_service_drain(self):
+        rows = [{'request_id':str(i), 'arrival_time_s':2*i+10} for i in range(1002)]
+        w1 = self.load_rows(rows, profile='W1')
+        self.assertEqual([w1.entries[i].offset_s for i in (0, 499, 500, 999, 1000, 1001)],
+                         [0, 499, 529, 1028, 1058, 1059])
+
+    def test_prefix_and_rate_are_declared_views_not_new_input(self):
+        rows = [{'request_id':str(i), 'arrival_time_s':2*i} for i in range(4)]
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d)/'trace.json'
+            path.write_text(json.dumps({'requests': rows}))
+            a = FrozenReplayPlan.load(path)
+            b = FrozenReplayPlan.load(path, count=2, rate_scale=8.)
+            self.assertEqual(a.source_sha256, b.source_sha256)
+            self.assertNotEqual(a.identity()['view_sha256'], b.identity()['view_sha256'])
+            self.assertEqual(b.entries[-1].offset_s, .25)
+            self.assertEqual(b.identity()['source_count'], 4)
+
+    def test_invalid_trace_or_transform_rejected(self):
+        row = {'request_id':'one', 'arrival_time_s':0}
+        for rows, kwargs in [([], {}), ([row,row], {}), ([dict(row, arrival_time_s=math.nan)], {}),
+                             ([row], {'rate_scale':0}), ([row], {'count':2}),
+                             ([row], {'profile':'W2'})]:
+            with self.assertRaises(ValueError):
+                self.load_rows(rows, **kwargs)
+
+
+class OpenLoopTransport(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        self.tmp = tempfile.TemporaryDirectory(prefix='ptcr-')
+        self.root = Path(self.tmp.name)
+        path = self.root/'trace.json'
+        path.write_text(json.dumps({'requests':[
+            {'request_id':str(i), 'arrival_time_s':i*.01, 'adapter_id':'adapter-a',
+             'body':{'prompt':'fixture'}} for i in range(5)]}))
+        self.plan = FrozenReplayPlan.load(path)
+        self.events = []
+        now = time.perf_counter()
+        self.origin = {'deployment_notice_s':now, 'replay_t0_s':now+.005,
+                       'clock_id':local_monotonic_clock_id()}
+        self.context = {**self.origin, 'plan':self.plan.identity(), 'nonce':'test',
+                        'address':str(self.root/'socket'), 'frame_limit':16384}
+
+    async def asyncTearDown(self):
+        self.tmp.cleanup()
+
+    async def start_publisher(self):
+        async def origin():
+            return self.origin
+        task = asyncio.create_task(publish_frozen_replay(self.plan, self.context['address'],
+                                                       'test', origin, self.events.append))
+        while not self.events:
+            await asyncio.sleep(.001)
+        return task
+
+    async def test_late_service_does_not_shift_arrivals_or_clock_origin(self):
+        publisher = await self.start_publisher()
+        await asyncio.sleep(.08)
+        created = [e for e in self.events if e['event']=='request_created']
+        self.assertEqual(len(created), 5)
+        self.assertFalse(any(e['event']=='request_submitted' for e in self.events))
+        ingress = ExternalReplayIngress(self.plan, self.context)
+        async for _, _ in ingress.receive():
+            await asyncio.sleep(.005)
+        counts = await publisher
+        self.assertEqual(counts, {'N_plan':5, 'N_arrived':5, 'N_submitted':5})
+        self.assertTrue(ingress.complete)
+        for i, e in enumerate(created):
+            self.assertEqual(e['planned_arrival_s'], self.origin['replay_t0_s']+i*.01)
+            r = ingress.records[str(i)]
+            self.assertLessEqual(r['task_created_s'], r['client_submit_s'])
+            self.assertLessEqual(r['client_submit_s'], r['server_received_s'])
+        self.assertGreater(ingress.records['0']['server_received_s']-self.origin['replay_t0_s'], .06)
+
+    async def test_clock_or_plan_mismatch_is_not_silent_fallback(self):
+        for changed in (dict(self.context, clock_id='another-host'),
+                        dict(self.context, plan=dict(self.plan.identity(), count=4))):
+            with self.assertRaisesRegex(ValueError, 'trace/view/clock'):
+                ExternalReplayIngress(self.plan, changed)
+
+    async def test_cancel_keeps_full_planned_denominator(self):
+        publisher = await self.start_publisher()
+        publisher.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await publisher
+        final = self.events[-1]
+        self.assertEqual(final['event'], 'replay_incomplete')
+        self.assertEqual(final['N_plan'], 5)
+        self.assertEqual(final['N_submitted'], 0)
+        self.assertLess(final['N_arrived'], 5)
+
+    async def test_early_or_changed_payload_is_rejected(self):
+        async def bad_handler(reader, writer):
+            await reader.readline()
+            writer.write((json.dumps({'event':'replay_header', **self.origin,
+                                     'plan':self.plan.identity()})+'\n').encode())
+            writer.write((json.dumps({'event':'request', 'index':0, 'request_id':'0',
+                'source_item_sha256':self.plan.entries[0].source_sha256,
+                'source_request':{'body':{'prompt':'wrong'}},
+                'planned_arrival_s':self.origin['replay_t0_s'],
+                'task_created_s':self.origin['replay_t0_s'],
+                'client_submit_s':self.origin['replay_t0_s']})+'\n').encode())
+            await writer.drain()
+            writer.close()
+        server = await asyncio.start_unix_server(bad_handler, self.context['address'])
+        try:
+            ingress = ExternalReplayIngress(self.plan, self.context)
+            with self.assertRaisesRegex(ValueError, 'changed content'):
+                async for _ in ingress.receive():
+                    pass
+            self.assertFalse(ingress.complete)
+            self.assertEqual(len(ingress.records), 0)
+        finally:
+            server.close()
+            await server.wait_closed()
+
+
+if __name__ == '__main__':
+    unittest.main()

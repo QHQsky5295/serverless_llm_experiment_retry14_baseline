@@ -1,0 +1,121 @@
+{
+  "kind": "gated_service_launch",
+  "pass": true,
+  "tiny_witness": true,
+  "command": [
+    "/usr/bin/python3",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py",
+    "_replay-witness"
+  ],
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "preflight": null,
+  "auxiliary": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d2f514ddc5844899ab538f28dc1aff18.scope",
+    "memory.current": 12271616,
+    "memory.peak": 12357632,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 81787\nuser_usec 67824\nsystem_usec 13963\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "service_unit": "primelora-tc-test-58e716e70f224f8fbb7e8e9345ca9594.scope",
+  "production_launch_authorized": false,
+  "replay_process": {
+    "pid": 1773241,
+    "start_ticks": 21569519,
+    "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d2f514ddc5844899ab538f28dc1aff18.scope",
+    "affinity": [
+      2,
+      3,
+      26,
+      27
+    ]
+  },
+  "gate_request": {
+    "pid": 1773274,
+    "nonce": "9482771d056746c5b89266a2fe406a45",
+    "scope": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-58e716e70f224f8fbb7e8e9345ca9594.scope",
+      "memory.current": 12361728,
+      "memory.peak": 12361728,
+      "memory.high": 201326592,
+      "memory.max": 268435456,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 75370\nuser_usec 57519\nsystem_usec 17850\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0"
+  },
+  "service_identity": {
+    "unit": "primelora-tc-test-58e716e70f224f8fbb7e8e9345ca9594.scope",
+    "invocation_id": "d7a4ad8cad5c42778f958672a02c8192",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-58e716e70f224f8fbb7e8e9345ca9594.scope",
+    "inode": 2151880
+  },
+  "external_replay": {
+    "deployment_notice_s": 215695.744555115,
+    "replay_t0_s": 215695.944555115,
+    "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+    "plan": {
+      "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+      "view_sha256": "c530c8e74e462db5ec64555ba060680a28907527e1cd9cc8cb757191076d6b09",
+      "count": 32,
+      "source_count": 4000,
+      "profile": "W0",
+      "rate_scale": 8.0
+    }
+  },
+  "exec_authorized_monotonic_s": 215695.745826239,
+  "empty_scope_cleanup": {
+    "targets": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "service_returncode": 0,
+  "watchdog_returncode": 0,
+  "cleanup": {
+    "already_gone": true,
+    "released": true,
+    "targets": []
+  },
+  "replay_returncode": 0,
+  "watchdog_event_counts": {
+    "resource_sample": 11,
+    "service_domain_gone": 1,
+    "watchdog_ready": 1
+  },
+  "service_path_removed": true,
+  "evidence_sha256": {
+    "watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "replay.jsonl": "c3d671b3ccc3b113d14db35141129588bb10b10ff5abf2df9c2f449b47929542",
+    "exec_receipt.json": "5d91c14944928a0939266c7b5c487a4ca36366f7b90ab8b5b85f6216dd9272d5",
+    "watchdog.jsonl": "f82fa0ce3eec9bc133fcf9d13fa00324f9fdfca3ddb19a9751d66bbc15ad7546",
+    "service.log": "d7ff8ada2351031086bec3949f485d61327108a3009c6984ea813bf8c27936c1"
+  }
+}

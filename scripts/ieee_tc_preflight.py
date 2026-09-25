@@ -190,8 +190,9 @@ def verify_seal(path: Path) -> dict:
 
 
 def test_limits(mode: str) -> dict:
-    return {'memory.high': (2048 if mode == 'ray' else 128 if mode == 'oom' else 64)*MIB,
-            'memory.max': (3072 if mode == 'ray' else 128)*MIB, 'memory.swap.max': 0}
+    return {'memory.high': (2048 if mode == 'ray' else 192 if mode == 'replay' else 128 if mode == 'oom' else 64)*MIB,
+            'memory.max': (3072 if mode == 'ray' else 256 if mode == 'replay' else 128)*MIB,
+            'memory.swap.max': 0}
 
 
 def worker(mode: str):
@@ -476,9 +477,9 @@ def watch_scope(identity: dict, *, paths: list[Path], emit,
                  'memory.swap.max': POLICY['service_swap_max_bytes']})
     if test_abort_after is not None:
         if (not identity['unit'].startswith('primelora-tc-test-') or
-                service['memory.max'] != 128*MIB or test_abort_after < 1):
+                service['memory.max'] not in (128*MIB, 256*MIB) or test_abort_after < 1):
             raise RuntimeError('synthetic watchdog trigger only allowed for tiny test scope')
-        expected = test_limits('linger')
+        expected = test_limits('replay' if service['memory.max'] == 256*MIB else 'linger')
     if any(service[k] != value for k, value in expected.items()):
         raise RuntimeError('service resource limits do not match its protocol')
     for proc in owned_pids(target):
@@ -544,7 +545,8 @@ def verify_watchdog_attachment(event: dict, identity: dict, auxiliary: Path) -> 
 def launch_gate_worker(address: str, nonce: str, command: list[str], tiny: bool):
     """Run before importing an inference environment; exec only after monitor ACK."""
     path = cg_path()
-    expected = test_limits('inspect') if tiny else {
+    tiny_mode = 'replay' if command[-1:] == ['_replay-witness'] else 'inspect'
+    expected = test_limits(tiny_mode) if tiny else {
         'memory.high': POLICY['service_high_bytes'],
         'memory.max': POLICY['service_max_bytes'], 'memory.swap.max': POLICY['service_swap_max_bytes']}
     snap = cgroup_snapshot(path)
@@ -597,7 +599,8 @@ def verify_current_service() -> dict:
             'affinity': sorted(os.sched_getaffinity(0)), 'production_launch_authorized': False}
 
 
-def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_growth=0) -> dict:
+def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_growth=0,
+                 replay_trace=None, replay_profile='W0') -> dict:
     """Existing runner launch with a bounded gate and a real independent watcher.
 
     The supervisor and watcher share the <=4 GiB auxiliary scope; serving is a
@@ -613,6 +616,8 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
             or set(os.sched_getaffinity(0)) != set(POLICY['aux_cpus'])):
         raise RuntimeError('auxiliary limits must cover supervisor, watcher and later replay')
     witness = [sys.executable, str(Path(__file__).resolve()), '_worker', '--mode', 'inspect']
+    if replay_trace is not None:
+        witness = [sys.executable, str(Path(__file__).resolve()), '_replay-witness']
     if tiny and command != witness:
         raise ValueError('tiny launcher only permits the fixed no-GPU inheritance witness')
     if not command or not Path(command[0]).is_file() or not output.is_absolute():
@@ -632,14 +637,14 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
     evidence = output.with_suffix('.launch')
     evidence.mkdir(mode=0o700, parents=False, exist_ok=False)
     unit = 'primelora-tc-'+('test' if tiny else 'svc')+'-'+uuid.uuid4().hex+'.scope'
-    limits = test_limits('inspect') if tiny else {
+    limits = test_limits('replay' if replay_trace is not None else 'inspect') if tiny else {
         'memory.high': POLICY['service_high_bytes'], 'memory.max': POLICY['service_max_bytes'],
         'memory.swap.max': POLICY['service_swap_max_bytes']}
     result = {'kind': 'gated_service_launch', 'pass': False, 'tiny_witness': tiny,
               'command': command, 'plan_sha256': check_plan(), 'preflight': checks,
               'auxiliary': aux, 'service_unit': unit, 'production_launch_authorized': False}
     identity = None
-    service = watcher = None
+    service = watcher = publisher = None
     watch_buffer = b''
     events = []
     with tempfile.TemporaryDirectory(prefix='ptcg-') as tmp, \
@@ -680,6 +685,25 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
             return fresh
 
         try:
+            replay_ready = None
+            if replay_trace is not None:
+                publish_args = [sys.executable, str(Path(__file__).resolve()), '_replay-publisher',
+                                '--replay-trace', str(Path(replay_trace).resolve(strict=True)),
+                                '--replay-profile', replay_profile,
+                                '--gate-socket', str(Path(tmp)/'replay.sock'), '--gate-nonce', nonce,
+                                '--output', str(evidence/'replay.jsonl')]
+                if tiny:
+                    publish_args.append('--tiny-witness')
+                publisher = subprocess.Popen(publish_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                             stderr=watch_error, text=True, bufsize=1)
+                if not select.select([publisher.stdout], [], [], 15)[0]:
+                    raise RuntimeError('external replay failed to become ready before deployment')
+                replay_ready = json.loads(publisher.stdout.readline())
+                if replay_ready['event'] != 'replay_ready':
+                    raise RuntimeError('external replay did not validate its frozen trace')
+                result['replay_process'] = next(p for p in owned_pids(auxiliary) if p['pid'] == publisher.pid)
+                if result['replay_process']['affinity'] != POLICY['aux_cpus']:
+                    raise RuntimeError('actual replay process escaped auxiliary affinity')
             service = subprocess.Popen(args, stdout=service_log, stderr=subprocess.STDOUT)
             with listener.accept()[0] as channel:
                 channel.settimeout(20)
@@ -721,6 +745,19 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                            'watchdog_ready': ready, 'auxiliary_path': str(auxiliary),
                            'receipt_path': str(evidence/'exec_receipt.json'), 'plan_sha256': check_plan(),
                            'production_launch_authorized': False}
+                if replay_ready is not None:
+                    notice = time.perf_counter()
+                    origin = {'deployment_notice_s': notice,
+                              'replay_t0_s': notice+(0.2 if tiny else 60.),
+                              'clock_id': replay_ready['clock_id']}
+                    receipt['external_replay'] = {
+                        **origin, 'address': str(Path(tmp)/'replay.sock'), 'nonce': nonce,
+                        'plan': replay_ready['plan'], 'frame_limit': replay_ready['frame_limit'],
+                        'tiny_witness': tiny, 'publisher_process': result['replay_process']}
+                    publisher.stdin.write(json.dumps(origin)+'\n')
+                    publisher.stdin.flush()
+                    publisher.stdin.close()
+                    result['external_replay'] = {**origin, 'plan': replay_ready['plan']}
                 with (evidence/'exec_receipt.json').open('x') as f:
                     json.dump(receipt, f, indent=2)
                 channel.sendall(json.dumps(receipt).encode()+b'\n')
@@ -730,6 +767,8 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                 fresh = read_events()
                 if any(e['event'] in ('watchdog_abort', 'watchdog_error') for e in fresh):
                     raise RuntimeError('watchdog interrupted this launch')
+                if publisher is not None and publisher.poll() not in (None, 0):
+                    raise RuntimeError('external replay failed; no silent internal timer fallback')
                 live = scope_still_owned(identity)
                 if watcher.poll() is not None and live:
                     raise RuntimeError('watchdog disappeared while service domain is live')
@@ -749,6 +788,9 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
             read_events(0)
             result['watchdog_returncode'] = watcher.returncode
             result['pass'] = service.returncode == watcher.returncode == 0
+            if publisher is not None and service.returncode == 0:
+                publisher.wait(timeout=5)
+                result['pass'] = result['pass'] and publisher.returncode == 0
             if not result['pass']:
                 result['classification'] = 'qualification_command_failure'
         except (Exception, KeyboardInterrupt) as exc:
@@ -771,6 +813,16 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                     watcher.wait(timeout=5)
                 read_events(0)
                 result['watchdog_returncode'] = watcher.returncode
+            if publisher is not None:
+                if publisher.poll() is None:
+                    publisher.terminate()
+                try:
+                    publisher.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    publisher.kill()  # Exact owned subprocess, never broad matching.
+                    publisher.wait(timeout=5)
+                result['replay_returncode'] = publisher.returncode
+                result['pass'] = result['pass'] and publisher.returncode == 0
             result['watchdog_event_counts'] = {name: sum(e['event'] == name for e in events)
                                               for name in sorted({e['event'] for e in events})}
             interruptions = [e for e in events if e['event'] in ('watchdog_abort', 'watchdog_error')]
@@ -783,6 +835,60 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
             result['pass'] = result['pass'] and result['service_path_removed']
     result['evidence_sha256'] = {p.name: digest(p) for p in evidence.iterdir() if p.is_file()}
     return result
+
+
+def replay_publisher(args):
+    """The existing launcher's auxiliary child; stdlib only, no model imports."""
+    import asyncio
+    sys.path.insert(0, str(ROOT))
+    from faaslora.datasets.workload_generator import FrozenReplayPlan, publish_frozen_replay
+    plan = FrozenReplayPlan.load(args.replay_trace, profile=args.replay_profile,
+                                count=32 if args.tiny_witness else None,
+                                rate_scale=8. if args.tiny_witness else 1.)
+    if cgroup_snapshot(cg_path())['memory.max'] != POLICY['aux_max_bytes']:
+        raise RuntimeError('external publisher must be inside shared bounded auxiliary scope')
+    with args.output.open('x') as log:
+        def emit(event):
+            log.write(json.dumps(event, separators=(',', ':'))+'\n')
+            log.flush()
+            if event['event'] == 'replay_ready':
+                print(json.dumps(event), flush=True)
+
+        async def start():
+            line = await asyncio.to_thread(sys.stdin.readline)
+            return json.loads(line)
+
+        async def run():
+            task = asyncio.current_task()
+            asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, task.cancel)
+            await publish_frozen_replay(plan, args.gate_socket, args.gate_nonce, start, emit)
+
+        asyncio.run(run())
+
+
+def replay_witness():
+    """Tiny service-side receiver deliberately stalls; uses real frozen inputs."""
+    import asyncio
+    sys.path.insert(0, str(ROOT))
+    from faaslora.datasets.workload_generator import FrozenReplayPlan, ExternalReplayIngress
+    receipt = json.loads(Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT']).read_text())
+    context = receipt['external_replay']
+    if not context['tiny_witness'] or cgroup_snapshot(cg_path())['memory.max'] != 256*MIB:
+        raise RuntimeError('replay witness only accepts its tiny bounded domain')
+    plan = FrozenReplayPlan.load(context['plan']['source_path'], profile=context['plan']['profile'],
+                                count=32, rate_scale=8.)
+    ingress = ExternalReplayIngress(plan, context)
+
+    async def consume():
+        async for index, record in ingress.receive():
+            # Block this service event loop, not the separately launched producer.
+            if index == 0:
+                time.sleep(1.5)
+        print(json.dumps({'event': 'replay_witness_complete', 'count': len(ingress.records),
+                          'complete': ingress.complete, 'pid': os.getpid(),
+                          'cgroup': str(cg_path()), 'affinity': sorted(os.sched_getaffinity(0)),
+                          'records': ingress.records}), flush=True)
+    asyncio.run(consume())
 
 
 def watchdog_test(mode='linger') -> dict:
@@ -999,7 +1105,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
                                          'watchdog', 'watchdog-test', 'install-candidate', '_worker',
-                                         'gated-launch', '_launch-gate'])
+                                         'gated-launch', '_launch-gate', '_replay-publisher', '_replay-witness'])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--seal', type=Path)
     parser.add_argument('--path', type=Path, action='append')
@@ -1014,8 +1120,16 @@ def main():
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')
+    parser.add_argument('--replay-trace', type=Path)
+    parser.add_argument('--replay-profile', choices=['W0', 'W1'], default='W0')
     parser.add_argument('--exec', dest='command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
+    if args.action == '_replay-publisher':
+        replay_publisher(args)
+        return
+    if args.action == '_replay-witness':
+        replay_witness()
+        return
     if args.action == '_worker':
         worker(args.mode)
         return
@@ -1033,10 +1147,13 @@ def main():
         command = args.command
         if args.tiny_witness and not command:
             command = [sys.executable, str(Path(__file__).resolve()), '_worker', '--mode', 'inspect']
+            if args.replay_trace is not None:
+                command = [sys.executable, str(Path(__file__).resolve()), '_replay-witness']
         if not command:
             parser.error('gated launch requires an executable command')
         result = gated_launch(command, args.output, tiny=args.tiny_witness,
-                              predicted_growth=int(args.predicted_growth_gib*GIB))
+                              predicted_growth=int(args.predicted_growth_gib*GIB),
+                              replay_trace=args.replay_trace, replay_profile=args.replay_profile)
     elif args.action == 'install-candidate':
         if not args.candidate_environment or not args.requirements or not args.output:
             parser.error('install-candidate requires explicit new environment, requirements and output')

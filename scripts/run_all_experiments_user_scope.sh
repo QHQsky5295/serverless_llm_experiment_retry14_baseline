@@ -27,11 +27,17 @@ if [[ "${FAASLORA_TC_QUALIFICATION:-0}" == "1" ]]; then
     exit 1
   fi
   TC_AUX_UNIT="primelora-tc-aux-$(/usr/bin/python3 -c 'import uuid; print(uuid.uuid4().hex)').scope"
+  TC_REPLAY_ARGS=()
+  if [[ "${FAASLORA_TC_EXTERNAL_REPLAY:-0}" == "1" ]]; then
+    : "${FAASLORA_SHARED_TRACE_PATH:?External replay requires the existing frozen trace}"
+    TC_REPLAY_ARGS=(--replay-trace "$FAASLORA_SHARED_TRACE_PATH" --replay-profile "${FAASLORA_TC_REPLAY_PROFILE:-W0}")
+  fi
   exec systemd-run --user --scope --collect --unit="$TC_AUX_UNIT" \
     -p MemoryHigh=3G -p MemoryMax=4G -p MemorySwapMax=0 \
     taskset -c 2,3,26,27 /usr/bin/python3 "$ROOT_DIR/scripts/ieee_tc_preflight.py" \
     gated-launch --output "$FAASLORA_TC_LAUNCH_OUTPUT" \
     --predicted-growth-gib "${FAASLORA_TC_PREDICTED_GROWTH_GIB:-0}" \
+    "${TC_REPLAY_ARGS[@]}" \
     --exec "$PYTHON_BIN" "$SCRIPT_PATH" "$@"
 fi
 
