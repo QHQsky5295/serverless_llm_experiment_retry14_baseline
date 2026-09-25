@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Mathematical contracts, native observations/references, cooperative file ownership and staged HTTP/local publication tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D16. Selected native requests protect file reads; true-remote writes publish through the same owner, cancel joins actual writer. Content/physical budgets/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts, native observations/references, managed file ownership/publication and measured linked-file storage tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D17. Selected native reads carry measured file footprint; linked storage deduplicates inodes and retains lower/staged copies. Content/physical reservations/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -113,6 +113,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Native storage/observation-class checkpoint `c0724e91316af7b7721a9b6f03b5756db5c32487`
   pushed to V2; remote SHA verified.
 - Managed file-read checkpoint `92ad342553dc82f35fbd6677e98f32a1908cfb93`
+  pushed to V2; remote SHA verified.
+- Completed-file publication checkpoint `0b8ac0542b627ef2bda4728cee7976b9d4aa781e`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -673,3 +675,36 @@ configs/relayserve_motivation_serverlessllm.yaml.
   storage separately from unlink. Qualify real backend/worker/clock/stream when
   installation completes. Serverless remains first in baseline order; remote
   disk decision, formal comparisons, ablations and sensitivities still pending.
+
+## Linked-file storage observation checkpoint
+
+- Read-only existing 3B artifact inspection confirms different file representations
+  and hardlink count 6 for its config/data/safetensors files. No pool was copied,
+  rehashed or regenerated. Legacy fastest-tier metadata accounting is not a
+  physical used/reserved ledger; it remains explicitly unqualified for that role.
+- The same managed file owner now inventories logical bytes and actual Linux
+  allocated blocks separately, deduplicates device/inode sharing, includes lower
+  copies and quiescent private workspaces, and marks cross-tier subtotals when
+  nonadditive. Selected-request read receipts carry a compact source footprint,
+  without copying the complete filesystem inventory into every request.
+- Active materialization rejects a supposedly complete capacity snapshot until
+  its remaining growth is represented by a reservation. Links/special files,
+  missing roots, overlapping roots and observed scan-time mutation do not become
+  zero/guessed capacity. External hardlinks are visible; unlink is not evidence
+  of physical release. Page cache, mmap, CPU tensors, inode/journal overhead and
+  shared extents remain separate. This is NOT complete physical admission.
+- Nine added no-GPU checks; the first two prechange checks failed because the
+  required observation API was absent, not because a model OOM was reproduced.
+  Final functional regression: 547 pass, zero errors/failures/skips. Independent
+  safety/census/replay: 44 pass. D17 has the evidence table and primary-source
+  rationale. No formal performance point, ablation or ranking was generated.
+- Sep 26 04:33 local: same bounded P2 installer active on Triton (190), after
+  completing torch and transformers. Memory high 528, max/OOM/OOM-kill zero;
+  disk about 335 GiB free, available RAM about 104 GiB. No new installer, concurrent
+  model job, driver change or modification to protected historical results.
+- Next: verified source content/representation and transfer-peak reservation,
+  then real used/reserved publication, measured source costs and pre-decision
+  routing/admission. The inventory is not a replacement for that transaction.
+  Keep actual model/worker/stream/clock qualification, native abort reconciliation
+  and GPU allocation-owner events on the mainline. Serverless remains first in
+  baseline order; remote disk decision and all formal matrices remain pending.

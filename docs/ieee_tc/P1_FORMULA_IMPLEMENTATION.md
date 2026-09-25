@@ -725,3 +725,63 @@ reserved+staging 字节、completed-source registry 与 epoch 的联合发布、
 同步本地 copy 仍未做异步性能优化；当前线程池/staging 峰值与 publication
 开销必须在资格阶段测量。继续回到完整来源/成本—路由/admission 连接，不把
 该表当作 A3、S1/S2、Full 或真实远端全池资格已完成。
+
+## P1-D17：文件表示的实测占用、共享与观测范围
+
+延续 D14 的原生 tensor footprint 与 D15/D16 的文件所有权，检查旧容量账本。
+`TierCapacity.used_bytes` 仍按 `ArtifactMetadata.size_bytes` 在最快 tier 转移时
+增减；这不能表达保留的低层副本、多个文件表示、共享 inode 和下载暂存。
+不把这个旧账本直接当作 IEEE 的物理 used/reserved 证据。
+
+只读核查既有 3B 工件 `code_lora_0015`，三个实际文件如下；未读取/复制整池：
+
+| 文件 | 逻辑字节 | 已分配 512-byte blocks | 硬链接计数 |
+|---|---:|---:|---:|
+| adapter_config.json | 546 | 8 | 6 |
+| adapter_data.bin | 28805398 | 56264 | 6 |
+| adapter_model.safetensors | 18379976 | 35904 | 6 |
+
+这证明工件的文件表示不能统一套用一个名义 adapter 大小，也不能根据逻辑
+adapter 个数直接累加物理文件占用；并未推断这三个文件都是 native loader 的
+实际读取集合。其余指向 backbone/tokenizer 的支持链接属于原冻结池，未修改。
+受管物化目录的 inventory 不跟随这类链接，避免把外部模型算进本 owner。
+
+依据 [Python 3.12 stat](https://docs.python.org/3.12/library/os.html#os.stat_result)
+区分 `st_size` 与 `512*st_blocks`；依据
+[Linux memory.stat](https://docs.kernel.org/admin-guide/cgroup-v2.html)
+区分文件占用、page cache、tmpfs、mmap 和匿名 tensor。
+[vLLM 0.30.0 的官方 loader](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/worker_manager.py)
+先从本地 checkpoint 建立 CPU model 再激活 GPU；LRU 路径先成功加载新 adapter
+才回收旧项，因此临时峰值还可能超过其 steady-state CPU adapter 个数上限。
+本步只解决可观察量，不用最终缓存大小冒充加载峰值或 HOST 总内存。
+
+| 条件 / 检查 | 本步结果 | 范围限制 |
+|---|---|---|
+| 低层副本仍存在 | 扫描原 owner 的 HOST/NVMe 目录，不只扫描 registry 的最快 tier | 实际 HOST tmpfs 资格仍需原部署检查 |
+| 同 inode 的多个硬链接 | 按 device/inode 去重，共享分配只计一次 | 内容相同而 inode 不同不做猜测性去重 |
+| 跨 tier 共享 inode | owner 总量去重，显式标记 tier 小计不可直接相加 | 具体 operator budget 归属与 reservation 仍待接入 |
+| 稀疏文件 | 同时保留逻辑大小和实际 allocated blocks | 不以其中一种代替另一种，也不声称覆盖 reflink extent 去重 |
+| 暂存/恢复目录 | 静止时与原目标一起计入，不能按隐藏目录名漏掉 | 活跃 transfer 没有剩余增长预留时拒绝完整容量快照 |
+| 外部硬链接 | 记录 owner 外的 link 数 | unlink 不代表底层块或 mmap 已释放 |
+| 选中请求读取文件 | 在现有读引用内测量此源，摘要进入原 request evidence | 不逐请求重复整个文件树，不等于内容 SHA 验证 |
+| 符号链接、特殊文件、缺失根目录 | 明确拒绝，不填零、不追踪外部路径 | 原冻结池不因此被修改；受管目录需要合法物化 |
+| 扫描期间非合作式修改 | stat 身份/大小/块数/时间发生变化则拒绝该次扫描 | 不是对任意外部写者的锁或完整内容防篡改保证 |
+
+实现复用 `LocalSourceReferences` 和 `ResidencyManager`；native runner 原有
+文件引用回执自然携带该源的占用摘要。完整 inventory 是需要时调用的静止
+观测，不在每个请求中扫描全池。完整目录块纳入分配数，但 inode/journal
+额外开销、已 unlink 仍打开的文件、共享 extent、CPU allocator、page cache
+没有被虚构成已经测全；`physical_release_proven`、`content_verified` 和
+`capacity_reserved` 均明确为 false。不能把这个接口的结果单独用于批准一项
+可能继续增长的物化任务。
+
+新增 **9 项检查**；前两项在修改前因为没有该观测接口而报错，不声称它们已
+复现一次模型 OOM。修改后以小型实际文件验证双副本、暂存、hardlink、稀疏
+文件、缺失/越界表示和修改冲突；实际 runner 测试验证摘要在文件释放后仍留在
+请求证据中。未生成工件池、负载或真实模型输出。完整功能回归 **547 项通过**，
+独立 safety/census/replay **44 项通过**，均无失败/错误/skip。本表为本次交付，
+不画伪性能收益图。
+
+下一步仍是把验证后的内容/表示和传输峰值连接到 owner 字节 reservation，
+再在发布/释放时更新真实 used/reserved；接入冷源成本、决策前候选快照和
+原子 routing/admission。未完成全套物理容量保证、Full 或任何正式性能实验。

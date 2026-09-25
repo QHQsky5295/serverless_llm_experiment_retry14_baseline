@@ -305,6 +305,114 @@ class LocalSourceOwnership(unittest.TestCase):
     def release(self, receipt):
         self.manager.release_local_source(lease_id=receipt['lease_id'], expected_owner_id=receipt['owner_id'])
 
+    def test_inventory_counts_retained_copies_and_private_workspace(self):
+        import shutil
+        shutil.copytree(self.source, self.host / 'a')
+        workspace = self.nvme / '.a.staging-test'
+        workspace.mkdir()
+        (workspace / 'archive').write_bytes(b'partial-archive')
+        view = self.manager.local_file_inventory()
+        size = (self.source / 'weights').stat().st_size
+        self.assertEqual(view['logical_file_bytes'], 2 * size + 15)
+        self.assertEqual(view['tiers']['host']['logical_file_bytes'], size)
+        self.assertEqual(view['tiers']['nvme']['logical_file_bytes'], size + 15)
+        self.assertFalse(view['capacity_reserved'])
+        self.assertFalse(view['physical_release_proven'])
+
+    def test_inventory_deduplicates_shared_inodes_but_not_equal_content(self):
+        import os
+        import shutil
+        second = self.nvme / 'b'
+        second.mkdir()
+        os.link(self.source / 'weights', second / 'weights')
+        third = self.host / 'c'
+        shutil.copytree(self.source, third)
+        view = self.manager.local_file_inventory()
+        size = (self.source / 'weights').stat().st_size
+        self.assertEqual(view['logical_file_bytes'], 2 * size)
+        self.assertEqual(view['file_path_bytes'], 3 * size)
+        self.assertEqual(view['unique_file_count'], 2)
+        shared = [item for item in view['allocations'] if len(item['paths']) == 2]
+        self.assertEqual(len(shared), 1)
+        self.assertEqual(shared[0]['external_link_count'], 0)
+
+    def test_cross_tier_hardlinks_are_one_owner_allocation_not_additive_tiers(self):
+        import os
+        target = self.host / 'a'
+        target.mkdir()
+        os.link(self.source / 'weights', target / 'weights')
+        view = self.manager.local_file_inventory()
+        size = (self.source / 'weights').stat().st_size
+        self.assertEqual(view['logical_file_bytes'], size)
+        self.assertFalse(view['tier_totals_additive'])
+        self.assertEqual(view['tiers']['host']['file_path_bytes'], size)
+        self.assertEqual(view['tiers']['nvme']['file_path_bytes'], size)
+
+    def test_sparse_file_retains_logical_and_allocated_sizes_separately(self):
+        sparse = self.source / 'sparse'
+        with sparse.open('wb') as handle:
+            handle.truncate(1024 * 1024)
+        view = self.manager.local_file_inventory()
+        item = next(item for item in view['allocations'] if str(sparse) in item['paths'])
+        self.assertEqual(item['logical_bytes'], 1024 * 1024)
+        self.assertEqual(item['allocated_bytes'], sparse.stat().st_blocks * 512)
+        self.assertLess(item['allocated_bytes'], item['logical_bytes'])
+
+    def test_external_hardlink_is_not_reported_as_reclaimable_capacity(self):
+        import os
+        os.link(self.source / 'weights', self.root / 'external-weights')
+        view = self.manager.local_file_inventory()
+        item = next(item for item in view['allocations'] if item['kind'] == 'file')
+        self.assertEqual(item['external_link_count'], 1)
+        self.assertFalse(view['physical_release_proven'])
+        self.assertTrue(self.manager._delete_path(str(self.source)))
+        self.assertEqual((self.root / 'external-weights').read_bytes(), b'tiny-test-fixture')
+
+    def test_live_transfer_cannot_be_labelled_a_complete_capacity_snapshot(self):
+        with self.manager.local_source_references.materializing(self.source):
+            with self.assertRaisesRegex(RuntimeError, 'quiescent'):
+                self.manager.local_file_inventory()
+            self.release(self.acquire())  # Old completed source still readable.
+        self.assertGreater(self.manager.local_file_inventory()['allocated_bytes'], 0)
+
+    def test_acquired_source_carries_measured_file_representation_not_model_size(self):
+        receipt = self.acquire()
+        footprint = receipt['file_footprint']
+        self.assertEqual(footprint['logical_file_bytes'], len(b'tiny-test-fixture'))
+        self.assertEqual(footprint['unique_file_count'], 1)
+        self.assertEqual(footprint['scope'], 'linked_inode_storage_v1')
+        self.assertFalse(footprint['content_verified'])
+        self.assertNotIn('allocations', footprint)  # Do not repeat full trees per request.
+
+    def test_file_links_missing_roots_and_nested_roots_are_not_hidden(self):
+        from faaslora.memory.residency_manager import LocalSourceReferences
+        with self.assertRaisesRegex(ValueError, 'nonoverlapping'):
+            LocalSourceReferences({'nvme': self.nvme, 'host': self.source})
+        (self.source / 'linked').symlink_to(self.root / 'missing')
+        with self.assertRaisesRegex(ValueError, 'links/special'):
+            self.acquire()
+        self.assertFalse(self.manager.local_source_references.leases)
+        (self.source / 'linked').unlink()
+        self.host.rmdir()
+        with self.assertRaises(FileNotFoundError):
+            self.manager.local_file_inventory()
+
+    def test_noncooperative_file_change_invalidates_footprint_scan(self):
+        from unittest.mock import patch
+        original = Path.lstat
+        weights = self.source / 'weights'
+        observed = 0
+        def changing(path, *args, **kwargs):
+            nonlocal observed
+            if path == weights:
+                observed += 1
+                if observed == 2:
+                    weights.write_bytes(b'changed-during-scan')
+            return original(path, *args, **kwargs)
+        with patch.object(Path, 'lstat', changing):
+            with self.assertRaisesRegex(RuntimeError, 'changed while collecting'):
+                self.manager.local_file_inventory()
+
     def test_two_readers_release_only_their_own_share(self):
         first, second = self.acquire('first'), self.acquire('second')
         self.release(first)
@@ -611,6 +719,8 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
             result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
             self.assertIn('acknowledged copy', result.error)
             self.assertEqual(result.gpu_reference_evidence['local_source_reference']['state'], 'released')
+            self.assertEqual(result.gpu_reference_evidence['local_source_reference']['file_footprint']
+                             ['logical_file_bytes'], len(b'tiny-test-fixture'))
             self.assertEqual(owner.snapshot()['live_leases'], 0)
 
     def test_measured_footprints_reach_request_without_duplicating_tensor_inventory(self):

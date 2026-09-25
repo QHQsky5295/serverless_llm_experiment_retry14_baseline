@@ -11,6 +11,7 @@ import threading
 import shutil
 import uuid
 import weakref
+import stat as stat_types
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
@@ -25,6 +26,78 @@ from ..utils.config import Config
 from ..utils.logger import get_logger
 
 
+def _local_file_inventory(roots):
+    """Inventory linked storage, not RSS, content hashes, or reclaimable bytes.
+
+    Call under the cooperative file owner with no active writers in these roots.
+    Linux st_blocks measures allocated 512-byte blocks; st_size measures logical
+    data. Keep both. Hard links share one inode allocation; equal content alone
+    does not. Directory blocks are included, but inode/journal overhead, reflink
+    extent sharing, page cache and unlinked-open files are outside this scope.
+    """
+    allocations, observations = {}, []
+    for tier, root in roots.items():
+        root = Path(root)
+        pending = [root]
+        while pending:
+            path = pending.pop()
+            info = path.lstat()  # Do not silently follow links outside the owner.
+            if stat_types.S_ISREG(info.st_mode):
+                kind = 'file'
+            elif stat_types.S_ISDIR(info.st_mode):
+                kind = 'directory'
+            else:
+                raise ValueError(f'managed file inventory rejects links/special files: {path}')
+            if not hasattr(info, 'st_blocks'):
+                raise RuntimeError('managed file inventory requires allocated block observations')
+            key = (info.st_dev, info.st_ino)
+            signature = (info.st_mode, info.st_size, info.st_blocks, info.st_nlink,
+                         info.st_mtime_ns, info.st_ctime_ns)
+            observations.append((path, key, signature))
+            item = allocations.setdefault(key, dict(
+                device=info.st_dev, inode=info.st_ino, kind=kind,
+                logical_bytes=info.st_size if kind == 'file' else 0,
+                allocated_bytes=512 * info.st_blocks, link_count=info.st_nlink,
+                signature=signature, paths=[], path_tiers=[], tiers=[]))
+            if item['signature'] != signature:
+                raise RuntimeError('managed inode changed while collecting footprint')
+            item['paths'].append(str(path))
+            item['path_tiers'].append(tier)
+            if tier not in item['tiers']:
+                item['tiers'].append(tier)
+            if kind == 'directory':
+                pending.extend(sorted(path.iterdir(), reverse=True))
+    # Detect noncooperative mutation during the scan. This is not a lock against
+    # external writers; only the managed owner supplies that synchronization.
+    for path, key, signature in observations:
+        info = path.lstat()
+        if ((info.st_dev, info.st_ino) != key or
+                (info.st_mode, info.st_size, info.st_blocks, info.st_nlink,
+                 info.st_mtime_ns, info.st_ctime_ns) != signature):
+            raise RuntimeError('managed inode changed while collecting footprint')
+    items = list(allocations.values())
+    for item in items:
+        del item['signature']
+        item['external_link_count'] = (item['link_count'] - len(item['paths'])
+                                       if item['kind'] == 'file' else None)
+        if item['external_link_count'] is not None and item['external_link_count'] < 0:
+            raise RuntimeError('managed inventory contains overlapping roots or duplicate paths')
+    def totals(selected, tier=None):
+        files = [item for item in selected if item['kind'] == 'file']
+        return dict(logical_file_bytes=sum(item['logical_bytes'] for item in files),
+                    file_path_bytes=sum(item['logical_bytes'] * (
+                        len(item['paths']) if tier is None else item['path_tiers'].count(tier))
+                                        for item in files),
+                    allocated_bytes=sum(item['allocated_bytes'] for item in selected),
+                    allocated_file_bytes=sum(item['allocated_bytes'] for item in files),
+                    unique_file_count=len(files))
+    return dict(scope='linked_inode_storage_v1', **totals(items), allocations=items,
+                tiers={tier: totals([item for item in items if tier in item['tiers']], tier)
+                       for tier in roots},
+                tier_totals_additive=all(len(item['tiers']) == 1 for item in items),
+                content_verified=False, capacity_reserved=False, physical_release_proven=False)
+
+
 class LocalSourceReferences:
     """Cooperative file-copy ownership, shared by local readers and reclaimers.
 
@@ -36,8 +109,9 @@ class LocalSourceReferences:
 
     def __init__(self, roots):
         self.roots = {tier: Path(path).resolve() for tier, path in roots.items() if path}
-        if len(set(self.roots.values())) != len(self.roots):
-            raise ValueError('HOST/NVMe owners require distinct roots')
+        if (len(set(self.roots.values())) != len(self.roots) or
+                any(a in b.parents for a in self.roots.values() for b in self.roots.values())):
+            raise ValueError('HOST/NVMe owners require distinct nonoverlapping roots')
         self.owner_id = uuid.uuid4().hex
         self.lock = threading.RLock()
         self.leases = {}
@@ -57,10 +131,25 @@ class LocalSourceReferences:
             previous = self.leases.get(lease_id)
             if previous is not None and previous != identity:
                 raise ValueError('source lease cannot be rebound to another copy')
+            footprint = _local_file_inventory({matches[0]: source})
             self.leases[lease_id] = identity
             return dict(owner_id=self.owner_id, lease_id=lease_id, adapter_id=adapter_id,
                         path=str(source), tier=matches[0], device=stat.st_dev, inode=stat.st_ino,
-                        state='held', content_verified=False, capacity_reserved=False)
+                        state='held', content_verified=False, capacity_reserved=False,
+                        file_footprint={key: value for key, value in footprint.items()
+                                        if key not in ('allocations', 'tiers')})
+
+    def inventory(self):
+        """Quiescent owner snapshot, including retained and private-stage paths.
+
+        A transfer writes outside this lock. Its remaining growth is unknown
+        until a byte-reservation contract is attached, so do not publish a
+        partial scan as a complete capacity snapshot while it is active.
+        """
+        with self.lock:
+            if self.materializations:
+                raise RuntimeError('file inventory requires quiescent managed writes')
+            return dict(owner_id=self.owner_id, **_local_file_inventory(self.roots))
 
     def release(self, *, lease_id: str, expected_owner_id: str) -> None:
         with self.lock:
@@ -614,6 +703,12 @@ class ResidencyManager:
     def release_local_source(self, *, lease_id: str, expected_owner_id: str):
         self.local_source_references.release(
             lease_id=lease_id, expected_owner_id=expected_owner_id)
+
+    def local_file_inventory(self):
+        """Measured file storage; never substitute the legacy metadata ledger."""
+        if self.storage_manager is not None:
+            raise RuntimeError('external LocalCache does not share the managed source owner')
+        return self.local_source_references.inventory()
 
     def publish_local_source(self, staging: Path, target: Path) -> None:
         """Completed file publication shares synchronization with read leases."""
