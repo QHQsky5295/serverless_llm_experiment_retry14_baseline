@@ -80,6 +80,41 @@ resolve loader fidelity.
 The clean deployment configs retain min=1/max=4/keep_alive=10, target=2 (7B)
 and target=8 (3B). They are historical facts, not new frozen optima.
 
+## Existing native-loader assets recovered (read-only audit, 2026-09-25)
+
+Another local project's historical qualification provides a native 3B loader
+compatibility witness, not a PrimeLoRA TC measurement:
+
+`/home/qhq/relayserve_serverless_llm/paper_results/relayserve_v4_3/full_common/native_smoke_natural_store_devices_20260923/serverlessllm/`
+
+Receipt SHA256: `fbdd1838df16213323653fbab74cc16802dd2f8e3bc6cad54ba58a7622613eb6`.
+It records four HTTP-success requests, four native engines ready/reclaimed,
+store registration/host loading, zero direct-path fallback and zero RelayServe
+policy signals. Native commit is `0fd00cadaa8d495d53984f04777a3aec8137b363b77587d1221feac97da7c94e`,
+not the older TC router-audit commit. Neither four responses nor GPU engine
+startup proves complete 500-adapter support or the new generation contract.
+
+| Existing asset | Evidence and reuse boundary |
+|---|---|
+| `models/vllm/v43-sllm-native-smoke-llama32-3b/rank_0/tensor.data_0` | Existing 6,425,499,648-byte native checkpoint; verify model identity before use; do not reconvert or duplicate blindly |
+| `installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/` | Python 3.12 build receipt PASS, SHA `d403ee96cffd7216ef0aa01c688da9a78838f177ca33a4d9fb91982d77f4ff13`; both wheel bytes rehashed and match receipt |
+| Native store wheel | SHA `41a557075e62aa798d3ac922f5f9609451317344eac94c7815b27620fd99fffc` |
+| grpcio 1.76.0 wheel | SHA `980a846182ce88c4f2f7e2c22c56aefd515daeb36149d1c897f83cf57999e0b6` |
+| vLLM 0.10.2 loader compatibility overlay | Official serialization/load hooks ported to changed code locations; original patch SHA `0d5f9e4e1ea8901538b7a75bf3ac5caa706519bc9e2bbcb91d99aa8ce022f357` |
+
+The loader environment was restored after that smoke. All six current source
+files match the recorded preimages; the newly added loader file is absent, as
+the restore receipt specifies. Thus native-loader support is **not currently
+enabled merely because the environment exists**. Use version-checked reversible
+adaptation only after reading the original installer and validating ownership.
+
+The earlier `native_smoke_natural_queue_corrected_20260923` attempt failed:
+the store exposed only one GPU, and other-GPU copies were invalid despite success
+statuses. Do not reuse that attempt as qualified. Check actual store-visible
+GPU UUIDs against workers. Existing cleanup uses global Ray-stop commands and is
+not safe for TC unchanged. No other project's files or environments were modified
+by this audit; no model weights, trace, pool or checkpoint were copied.
+
 ## Reproduction
 
 ```bash
