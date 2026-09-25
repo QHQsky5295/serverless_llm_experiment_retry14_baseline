@@ -10,6 +10,7 @@ import asyncio
 import threading
 import shutil
 import uuid
+import weakref
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
@@ -49,13 +50,42 @@ class IEEEBackendGPUReferences:
         # Immutable identity within this worker incarnation. An eviction does
         # not authorize reusing its integer ID for different weights/path.
         self._sources: Dict[int, Tuple[str, str]] = {}
+        # Identity must not itself retain evicted CPU weights. A native integer
+        # ID and slot position alone cannot distinguish replacement/reuse.
+        self._source_objects: Dict[int, weakref.ReferenceType] = {}
+        self._gpu_confirmations: Dict[int, Tuple[int, float]] = {}
         self._poisoned = False
+        self._poison_reason = 'GPU reference owner invalidated'
         for cache in self._caches():
             if not isinstance(cache.pinned_items, set) or not all(
-                callable(getattr(cache, name, None)) for name in ('pin', '_unpin')
+                callable(getattr(cache, name, None)) for name in ('pin', '_unpin', '_on_remove')
             ):
                 raise TypeError('native cache pin/unpin contract is unavailable')
         self._refresh()
+        for cache in self._caches():
+            self._observe_native_removal(cache)
+
+    def _observe_native_removal(self, cache):
+        """Withdraw publication before the native callback reclaims a slot.
+
+        Per-cache observation preserves the original victim and removal policy.
+        It also sees a remove/reactivate cycle with the same ID/slot between two
+        snapshots. Polling the final slot map alone would miss that invalidation.
+        """
+        original = cache._on_remove
+
+        def removed(key, value):
+            if threading.get_ident() != self.thread_id:
+                self._poisoned = True
+                raise RuntimeError('native cache removal outside its worker thread')
+            self._gpu_confirmations.pop(key, None)
+            self.epoch += 1
+            if key in self._references:
+                self._poisoned = True
+                self._poison_reason = 'backend invalidated a referenced adapter'
+            original(key, value)
+
+        cache._on_remove = removed
 
     def _caches(self):
         return self.manager._registered_adapters, self.manager._active_adapters
@@ -64,8 +94,14 @@ class IEEEBackendGPUReferences:
         if threading.get_ident() != self.thread_id:
             raise RuntimeError('GPU reference owner called outside its worker thread')
         if self._poisoned:
-            raise RuntimeError('GPU reference owner invalidated; worker recovery required')
+            raise RuntimeError(f'{self._poison_reason}; worker recovery required')
         cpu, gpu = self._caches()
+        # The read-only cache view does not touch native LRU ordering/statistics.
+        for aid in cpu:
+            reference = self._source_objects.get(aid)
+            if reference is not None and cpu.cache[aid] is not reference():
+                self._poisoned = True
+                raise RuntimeError('native adapter source object replaced outside its owner')
         slots = tuple(self.manager.lora_index_to_id)
         active = set(gpu)
         mapped = [aid for aid in slots if aid is not None]
@@ -78,6 +114,9 @@ class IEEEBackendGPUReferences:
                     or any(slots[self._leases[key]['slot']] != aid for key in references)):
                 self._poisoned = True
                 raise RuntimeError('backend invalidated a referenced adapter')
+        for aid, (slot, _) in tuple(self._gpu_confirmations.items()):
+            if slots[slot] != aid:
+                del self._gpu_confirmations[aid]
         state = (slots, tuple(sorted(cpu)), tuple(sorted(cpu.pinned_items)),
                  tuple(sorted(gpu.pinned_items)))
         if state != self._native_state:
@@ -91,6 +130,40 @@ class IEEEBackendGPUReferences:
                 'slot_adapter_ids': list(slots),
                 'reference_counts': {str(aid): len(refs) for aid, refs in self._references.items()},
                 'live_leases': len(self._leases), 'released_leases': len(self._released),
+                'snapshot_holds_reference': False}
+
+    def source_snapshot(self) -> Dict[str, Any]:
+        """Completed, source-bound copies, without acquiring or touching LRU.
+
+        This received state may become stale before dispatch. The selected
+        request still needs native revalidation/acquisition; a snapshot is not
+        a reference. Absence here says nothing about managed HOST/NVMe copies.
+        """
+        slots = self._refresh()
+        cpu, _ = self._caches()
+        sources = []
+        for aid in sorted(cpu):
+            if aid not in self._sources:
+                continue
+            native = cpu.cache[aid]
+            rank = native.rank
+            if type(rank) is not int or rank <= 0:
+                raise RuntimeError('native source rank is not a positive integer')
+            name, path = self._sources[aid]
+            confirmation = self._gpu_confirmations.get(aid)
+            sources.append({'adapter_int_id': aid, 'adapter_id': name,
+                            'lora_path': path, 'rank': rank, 'cpu_registered': True,
+                            'gpu_slot': confirmation[0] if confirmation else None,
+                            'gpu_confirmed_monotonic_s': confirmation[1] if confirmation else None})
+        unknown = sorted(set(cpu) - set(self._sources))
+        unconfirmed = sorted(aid for aid in slots
+                             if aid is not None and aid not in self._gpu_confirmations)
+        return {'kind': 'native_lora_sources_v1', 'owner_id': self.owner_id,
+                'epoch': self.epoch, 'captured_monotonic_s': time.monotonic(),
+                'slot_adapter_ids': list(slots), 'registered_cpu_adapter_ids': sorted(cpu),
+                'sources': sources, 'unknown_native_adapter_ids': unknown,
+                'unconfirmed_gpu_adapter_ids': unconfirmed,
+                'complete_for_native_caches': not unknown and not unconfirmed,
                 'snapshot_holds_reference': False}
 
     def acquire(self, *, lease_id: str, adapter_int_id: int,
@@ -147,6 +220,7 @@ class IEEEBackendGPUReferences:
             self._references[adapter_int_id] = set()
         self._references[adapter_int_id].add(lease_id)
         self._leases[lease_id] = receipt
+        self._gpu_confirmations[adapter_int_id] = (receipt['slot'], acquired_at)
         self.epoch += 1
         self._refresh()
         receipt['epoch'] = self.epoch
@@ -244,6 +318,12 @@ class IEEEBackendGPUReferences:
             if not gpu_hit:
                 self.demand_loader(adapter_int_id=adapter_int_id,
                                    lora_name=lora_name, lora_path=lora_path)
+                # Only an owned load may establish a new native object for this
+                # immutable name/path. Do this before checking the new state;
+                # an unrelated replacement must never gain this authorization.
+                if adapter_int_id not in cpu:
+                    raise RuntimeError('native demand load did not register the requested adapter')
+                self._source_objects[adapter_int_id] = weakref.ref(cpu.cache[adapter_int_id])
             slots = self._refresh()
             if adapter_int_id not in slots:
                 raise RuntimeError('native demand load did not activate the requested adapter')

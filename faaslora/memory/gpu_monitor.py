@@ -128,7 +128,7 @@ class IEEEWorkerObservationExtension:
         the native LoRA copies use the current execution stream. TP/PP > 1 needs
         a multi-worker commit protocol and is deliberately not authorized here.
         """
-        if operation not in ('snapshot', 'acquire', 'release', 'evict', 'begin_use', 'end_use',
+        if operation not in ('snapshot', 'source_snapshot', 'acquire', 'release', 'evict', 'begin_use', 'end_use',
                              'demand_load_and_acquire'):
             raise ValueError('unknown GPU reference operation')
         if torch is None or self.device is None or self.device.type != 'cuda':

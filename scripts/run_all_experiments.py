@@ -4432,7 +4432,7 @@ class InferenceEngine:
             raise RuntimeError("native references currently require TP=PP=1")
         if self.backend != "vllm" or self.engine is None or self._engine_dead:
             raise RuntimeError("native references require a live vLLM engine")
-        if operation not in ("snapshot", "acquire", "release", "evict", "begin_use", "end_use",
+        if operation not in ("snapshot", "source_snapshot", "acquire", "release", "evict", "begin_use", "end_use",
                              "demand_load_and_acquire"):
             raise ValueError("unknown GPU reference operation")
         rpc = getattr(self.engine, "collective_rpc", None)
@@ -13408,8 +13408,14 @@ class ScenarioRunner:
                     or not isinstance(value.get('owner_id'), str) or not value['owner_id']
                     or type(value.get('epoch')) is not int or value['epoch'] < 1):
                 raise ValueError('native reference snapshot lacks worker/epoch/clock identity')
-        snapshot = await engine.ieee_gpu_reference(operation='snapshot')
+        snapshot = await engine.ieee_gpu_reference(operation='source_snapshot')
         validate_snapshot(snapshot)
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        source_state = NativeSourceSnapshot.from_native(
+            snapshot, expected_clock_id=clock_id, received_monotonic_s=time.monotonic())
+        if reservation.slot is None or reservation.slot.engine is not engine:
+            raise ValueError('native source snapshot is not bound to the selected runtime')
+        reservation.slot.commit_native_sources(source_state)
         intent = {'lease_id': uuid.uuid4().hex,
                   'adapter_int_id': InferenceEngine._lora_int_id(adapter_id),
                   'lora_name': adapter_id, 'lora_path': local_path,

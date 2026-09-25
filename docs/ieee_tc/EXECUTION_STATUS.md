@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Mathematical contracts + native timing/scheduler, fixed-work, selected-request references, lifetime and failure identity tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D12. Actual request path now acquires/passes/releases native leases; unknown completion or lost replies retain ownership. Committed routing/source snapshot, CUDA/clock/stream qualification, abort reconciliation, slow-tier references and proactive atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts + native timing/scheduler, source identity, fixed-work, selected-request references, lifetime and failure identity tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D13. Native completed-source snapshots now reach selected InstanceSlot; actual requests acquire/pass/release native leases. Pre-decision multi-replica source/cost composition, CUDA/clock/stream qualification, abort reconciliation, slow-tier references and proactive atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -105,6 +105,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Controller request-lifetime checkpoint `e238f603281223eae411202a38962488b3e14000`
   pushed to V2; remote SHA verified.
 - Offered-failure identity checkpoint `91c9feb258a1c5e649cb808286446b85a7b65c2e`
+  pushed to V2; remote SHA verified.
+- Selected-request reference checkpoint `7b75ea53636c86b69221047bc5778a703ad2cee6`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -537,3 +539,34 @@ configs/relayserve_motivation_serverlessllm.yaml.
   timeouts. Keep slow-tier references, proactive E(t), native model/stream/clock
   qualification and physical GPU allocation-owner events open. Serverless first
   among baseline runs; remote disk decision and formal matrices still pending.
+
+## Native source identity/publication checkpoint
+
+- Before modification, one test reproduced silent same-ID CPU object replacement;
+  another failed because completed source snapshots did not exist. Native owner
+  now binds weak object identity, publishes GPU sources after its completion
+  fence and withdraws them before the original native removal callback clears
+  the slot. Native victim choice is unchanged; valid CPU sources remain visible.
+- Remove/reactivate with the same ID/slot cannot keep its prior GPU confirmation.
+  Metadata does not retain evicted CPU weights. Snapshots do not pin, touch LRU
+  order or infer source names for unowned native IDs; absence is not Remote.
+- Existing worker/engine RPC and selected-request path commit an immutable,
+  validated owner/epoch/clock view to InstanceSlot. Delayed old views cannot
+  replace newer state. This is still resolve-after-selection observation, NOT
+  pre-dispatch routing or D=0 evidence. Multi-replica source/cost assembly and
+  live routing/admission remain unfinished; old hints are not relabelled.
+- Seventeen added no-GPU checks; final full functional regression 502 pass,
+  zero failures/errors/skips; separate safety/census/replay 44 pass. Intermediate
+  missing-entry exception and invalidation-reason differences are documented in
+  D13. The 147 protected entries are unchanged. No model performance result,
+  new trace/adapter, formal comparison or measured ranking was produced.
+- Sep 26 03:36 local: original P2 installation active at tokenspeed-triton (182),
+  after completing TileLang and tokenizers. All memory high/max/OOM counters
+  remain zero; local free disk ~335.5 GiB, available RAM ~103.5 GiB, four GPUs
+  idle at 15 MiB. No duplicate installation or concurrent model.
+- Next: actual source-class footprint/cost composition and pre-decision routing,
+  owner reservations and known-conflict re-selection. Retain native abort/release
+  reconciliation, slow-tier references, proactive E(t), physical GPU allocation
+  events and actual 0.30 model/clock/stream/worker qualification on the mainline.
+  Serverless remains first among baseline model runs. Remote service disk gate
+  and all formal M1/M2, ablation and sensitivity matrices remain pending.

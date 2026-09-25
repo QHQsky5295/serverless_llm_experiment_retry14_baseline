@@ -265,7 +265,7 @@ class RequestOwnershipLifetime(unittest.TestCase):
 def native_reference_fixture():
     from faaslora.clock import local_monotonic_clock_id
     from faaslora.memory.residency_manager import IEEEBackendGPUReferences
-    from tests.test_ieee_tc_gpu_references import NativeManager
+    from tests.test_ieee_tc_gpu_references import NativeManager, NativeAdapter
     runner, slot, trace, plan = fixture()
     runner.model_cfg.update(timing_contract='ieee_tc_native_v1', ieee_gpu_references=True)
     manager = NativeManager()
@@ -273,7 +273,7 @@ def native_reference_fixture():
         manager.remove_adapter(aid)
     def load(**kwargs):
         aid = kwargs['adapter_int_id']
-        manager._registered_adapters[aid] = object()
+        manager._registered_adapters[aid] = NativeAdapter()
         manager.activate(aid)
     owner = IEEEBackendGPUReferences(manager, Mock(), demand_loader=load)
     async def rpc(*, operation, **kwargs):
@@ -309,6 +309,8 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
         self.assertEqual(result.gpu_reference_evidence['state'], 'released')
         self.assertFalse(result.gpu_reference_evidence['confirmed_dispatch_snapshot'])
         self.assertFalse(result.gpu_reference_evidence['receipt']['gpu_resident_before_load'])
+        self.assertEqual(slot.native_source_state.owner_id, owner.owner_id)
+        self.assertFalse(slot.native_source_state.sources)  # Captured before this cold load.
 
     def test_cancel_during_acquire_retains_unknown_native_ownership(self):
         runner, slot, trace, plan, owner, rpc = native_reference_fixture()
@@ -359,6 +361,8 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
     def test_worker_conflict_does_not_load_or_generate_or_claim_an_unknown_lease(self):
         runner, slot, trace, plan, owner, rpc = native_reference_fixture()
         async def reject(*, operation, **kwargs):
+            if operation == 'source_snapshot':
+                return await rpc(operation=operation)
             snapshot = await rpc(operation='snapshot')
             return snapshot if operation == 'snapshot' else {
                 **snapshot, 'acquired': False, 'reason': 'all_gpu_slots_pinned'}

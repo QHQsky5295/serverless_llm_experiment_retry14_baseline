@@ -7,7 +7,7 @@ from types import SimpleNamespace
 from faaslora.experiment.instance_pool import (
     InstancePool, ReplicaRoutingSnapshot, Router, ServiceClassBins,
     ServiceComponents, ServiceCostModel, ServiceIntervalObservation,
-    ServiceObservationClass,
+    ServiceObservationClass, NativeSourceSnapshot, InstanceSlot,
 )
 
 
@@ -23,6 +23,96 @@ def candidate(replica='a', **changes):
                   service_class=klass(), service=ServiceComponents(10., 20., 30.))
     fields.update(changes)
     return ReplicaRoutingSnapshot(**fields)
+
+
+def source_payload():
+    return dict(kind='native_lora_sources_v1', owner_id='owner', epoch=1, clock_id='clock',
+                captured_monotonic_s=10., slot_adapter_ids=[4, None],
+                registered_cpu_adapter_ids=[4], unknown_native_adapter_ids=[],
+                unconfirmed_gpu_adapter_ids=[], complete_for_native_caches=True,
+                snapshot_holds_reference=False,
+                sources=[dict(adapter_int_id=4, adapter_id='a', lora_path='/existing/a',
+                              rank=8, cpu_registered=True, gpu_slot=0,
+                              gpu_confirmed_monotonic_s=9.)])
+
+
+class CommittedNativeSources(unittest.TestCase):
+    def parse(self, payload=None):
+        return NativeSourceSnapshot.from_native(payload or source_payload(),
+            expected_clock_id='clock', received_monotonic_s=20.)
+
+    def test_input_mutation_cannot_change_the_committed_state(self):
+        payload = source_payload()
+        state = self.parse(payload)
+        payload['sources'][0]['adapter_id'] = 'changed'
+        payload['slot_adapter_ids'].clear()
+        self.assertEqual(state.sources[0].adapter_id, 'a')
+        self.assertEqual(state.slot_adapter_ids, (4, None))
+        with self.assertRaises(dataclasses.FrozenInstanceError):
+            state.sources[0].rank = 16
+
+    def test_native_miss_is_not_a_remote_claim_and_cpu_source_survives(self):
+        payload = source_payload()
+        payload['slot_adapter_ids'] = [None, None]
+        payload['sources'][0].update(gpu_slot=None, gpu_confirmed_monotonic_s=None)
+        state = self.parse(payload)
+        self.assertEqual(state.find(adapter_id='a', adapter_int_id=4, lora_path='/existing/a').tier, 'host')
+        self.assertIsNone(state.find(adapter_id='b', adapter_int_id=5, lora_path='/existing/b'))
+
+    def test_unowned_native_id_is_not_attached_to_an_arbitrary_adapter(self):
+        payload = source_payload()
+        payload.update(sources=[], unknown_native_adapter_ids=[4], complete_for_native_caches=False)
+        state = self.parse(payload)
+        with self.assertRaisesRegex(ValueError, 'without confirmed source'):
+            state.find(adapter_id='a', adapter_int_id=4, lora_path='/existing/a')
+
+    def test_source_lookup_rejects_native_id_name_and_path_collisions(self):
+        state = self.parse()
+        for changes in ({'adapter_id': 'b'}, {'adapter_int_id': 5}, {'lora_path': '/wrong'}):
+            with self.subTest(changes=changes), self.assertRaisesRegex(ValueError, 'identity'):
+                state.find(**(dict(adapter_id='a', adapter_int_id=4, lora_path='/existing/a') | changes))
+
+    def test_raw_slot_without_completed_copy_cannot_be_gpu_ready(self):
+        payload = source_payload()
+        payload['sources'][0]['gpu_confirmed_monotonic_s'] = None
+        with self.assertRaisesRegex(ValueError, 'completed-copy'):
+            self.parse(payload)
+        payload['sources'][0]['gpu_slot'] = None
+        payload.update(unconfirmed_gpu_adapter_ids=[4], complete_for_native_caches=False)
+        self.assertEqual(self.parse(payload).sources[0].tier, 'host')
+
+    def test_wrong_clock_future_copy_and_inconsistent_coverage_reject(self):
+        for change in ({'clock_id': 'other'}, {'captured_monotonic_s': 30.},
+                       {'registered_cpu_adapter_ids': []}, {'unknown_native_adapter_ids': [4]},
+                       {'complete_for_native_caches': False}, {'epoch': True}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                self.parse(source_payload() | change)
+        payload = source_payload()
+        payload['sources'][0]['gpu_confirmed_monotonic_s'] = 11.
+        with self.assertRaises(ValueError):
+            self.parse(payload)
+
+    def test_delayed_reply_does_not_replace_newer_state_or_mutate_legacy_hints(self):
+        slot = InstanceSlot('replica', object(), object())
+        first = self.parse()
+        slot.commit_native_sources(first)
+        newer = dataclasses.replace(first, epoch=2, captured_monotonic_s=11.)
+        self.assertTrue(slot.commit_native_sources(newer))
+        self.assertFalse(slot.commit_native_sources(first))
+        self.assertIs(slot.native_source_state, newer)
+        self.assertFalse(slot.gpu_resident_adapters)
+        self.assertFalse(slot.host_cached_adapters)
+
+    def test_owner_change_and_same_epoch_different_content_require_reconciliation(self):
+        slot = InstanceSlot('replica', object(), object())
+        first = self.parse()
+        slot.commit_native_sources(first)
+        with self.assertRaisesRegex(ValueError, 'owner changed'):
+            slot.commit_native_sources(dataclasses.replace(first, owner_id='new-worker'))
+        changed = dataclasses.replace(first, sources=(dataclasses.replace(first.sources[0], rank=16),))
+        with self.assertRaisesRegex(ValueError, 'same native epoch'):
+            slot.commit_native_sources(changed)
+        self.assertIs(slot.native_source_state, first)
 
 
 class ServiceMeasurementContract(unittest.TestCase):

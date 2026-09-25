@@ -541,3 +541,39 @@ transport，但不据此宣布 native work 已结束。真实本地 socket-pair 
 时间强写为论文 GPU-hit 的 D=0，不能替代 admission-time class/区间与 committed
 router snapshot。后续回到上述 owner/source/admission 连接，以及安装完成后的
 实际模型、时钟、CUDA stream 和 worker 资格；Serverless 仍是 baseline 首项。
+
+## P1-D13：原生副本身份、完成发布与不可变接收视图
+
+`7b75ea5` 的 native owner 已绑定整数编号与 name/path，但没有绑定实际 CPU
+LoRAModel 对象。修改前的检查复现：同一整数 ID 对应的对象被替换后，仍可取得
+旧来源的引用；第二项检查确认尚无 source snapshot 接口（一项失败、一项错误）。
+这是 A3/S2 中 confirmed-state 比较的前置语义问题，不是一个已测性能瓶颈。
+
+本步可证伪假设：只有在实际对象身份一致、设备加载完成、原生回收尚未发生时，
+该副本才能进入 confirmed GPU 视图；撤销 GPU 视图不应顺带否认仍有效的 CPU 副本。
+对照 [vLLM 0.30.0 LoRA manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/model_manager.py)
+的分离 CPU/GPU 缓存及回收回调，保留原生 victim selection，在原回调前撤销发布。
+[原生 LRU](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/utils/cache.py)
+的只读 cache 视图用于观测，避免读取状态本身改变 LRU 顺序或命中计数。
+
+| 状态变化 / 检查 | 实现证据 | 不得据此推断 |
+|---|---|---|
+| 相同编号换成另一个实际对象 | 对本 worker 拥有的对象保存弱引用；当前 CPU entry 不同即拒绝沿用身份 | 仅 name/path 相同不等于实际权重正确；工件 SHA/生成资格仍要检查 |
+| GPU 加载已分配槽位但尚未完成 | 在已有 completion fence 成功后发布 GPU 确认 | 仅 slot map 不等于 executable；真实 CUDA stream 仍待资格验证 |
+| 原生 GPU 驱逐 | 原生回调清槽位前撤销确认；仍在 CPU cache 的副本继续作为 HOST 来源 | 未宣称整个受管 HOST 层已连接 |
+| 同 ID、同槽位移除后又激活 | 事件撤销旧确认，即使两次轮询的映射完全相同；新 acquisition 重新确认 | 不用最终映射相同掩盖中间失效 |
+| CPU 权重驱逐与合法重载 | 元数据不持有强引用，测试确认旧对象可释放；本 owner 完成的新加载可建立新对象身份 | 不是增加一个隐藏的权重缓存 |
+| 未经本 owner 确认的原生编号 | 明确记录 unknown source 与 unconfirmed GPU 两类集合 | 不按整数编号猜 adapter 名称，不将缺失 native source 直接判为 Remote |
+| controller 收到状态 | 校验 owner/epoch/clock、slot/CPU 覆盖和完成时间，转为不可变副本；晚到旧 epoch 不覆盖新状态 | 只读快照不持引用，不等于跨副本物理同时快照或 dispatch reservation |
+| 所选请求路径 | 通过既有 worker/engine RPC 获取并提交给对应 InstanceSlot，再走 D12 acquisition | 当前仍发生在 resolve 后，不冒称论文要求的 pre-dispatch snapshot |
+
+本步新增 17 项检查；最终完整功能回归 **502 项通过**，独立 safety/census/replay
+**44 项通过**，无失败、错误、skip。中途一次针对性回归暴露两处异常表达差异：
+空 loader 未生成 CPU entry 时先抛 KeyError，以及更早发现非法删除后丢失原错误原因。
+当前分别显式报告未注册对象、保留 invalidation 原因，没有增加加载/推理兜底。
+147 项保护清单全部未变。本表作为本步骤交付；没有运行模型，不画性能收益图。
+
+仍需完成：决策前组合各副本来源、实际 HOST/NVMe 引用、原生 footprint 与测得的
+D/T/O 类别成本、容量冲突的排队/重选及主动 admission 原子事务。当前不可变视图
+只接入了 selected-request 的观测路径，`Router.ieee_confirmed` 尚未由完整实测
+候选集驱动。不能把 502 项通过写成 Full、A3 或 S2 实验已完成。

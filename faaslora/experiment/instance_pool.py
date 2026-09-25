@@ -11,9 +11,118 @@ from bisect import bisect_left
 from dataclasses import dataclass, field, replace
 from threading import RLock
 from types import MappingProxyType
+from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Set
 
 from ..utils.logger import get_logger
+
+
+@dataclass(frozen=True)
+class NativeAdapterSource:
+    adapter_int_id: int
+    adapter_id: str
+    lora_path: str
+    rank: int
+    gpu_slot: Optional[int]
+    gpu_confirmed_monotonic_s: Optional[float]
+
+    @property
+    def tier(self) -> str:
+        return 'gpu' if self.gpu_slot is not None else 'host'
+
+
+@dataclass(frozen=True)
+class NativeSourceSnapshot:
+    """Immutable received native state, not a dispatch or physical reservation.
+
+    Managed HOST/NVMe sources are separate owners. A missing native entry does
+    not mean Remote, and unowned native IDs must not become arbitrary names.
+    """
+    owner_id: str
+    epoch: int
+    clock_id: str
+    captured_monotonic_s: float
+    slot_adapter_ids: tuple
+    registered_cpu_adapter_ids: tuple
+    sources: tuple[NativeAdapterSource, ...]
+    unknown_native_adapter_ids: tuple
+    unconfirmed_gpu_adapter_ids: tuple
+
+    @classmethod
+    def from_native(cls, payload, *, expected_clock_id: str, received_monotonic_s: float):
+        def positive_int(value):
+            return type(value) is int and value > 0
+
+        def instant(value):
+            return type(value) in (int, float) and math.isfinite(value) and value > 0
+
+        if (not isinstance(payload, dict) or payload.get('kind') != 'native_lora_sources_v1'
+                or payload.get('clock_id') != expected_clock_id or not expected_clock_id
+                or payload.get('snapshot_holds_reference') is not False
+                or not isinstance(payload.get('owner_id'), str) or not payload['owner_id']
+                or not positive_int(payload.get('epoch'))):
+            raise ValueError('native source snapshot lacks owner/epoch/clock identity')
+        captured = payload.get('captured_monotonic_s')
+        if not instant(captured) or not instant(received_monotonic_s) or captured > received_monotonic_s:
+            raise ValueError('native source snapshot has invalid capture/receipt time')
+        for key in ('slot_adapter_ids', 'registered_cpu_adapter_ids', 'sources',
+                    'unknown_native_adapter_ids', 'unconfirmed_gpu_adapter_ids'):
+            if not isinstance(payload.get(key), list):
+                raise ValueError(f'native source snapshot requires a list: {key}')
+        slots = tuple(payload['slot_adapter_ids'])
+        mapped = tuple(aid for aid in slots if aid is not None)
+        registered = tuple(payload['registered_cpu_adapter_ids'])
+        unknown = tuple(payload['unknown_native_adapter_ids'])
+        unconfirmed = tuple(payload['unconfirmed_gpu_adapter_ids'])
+        for ids in (mapped, registered, unknown, unconfirmed):
+            if any(not positive_int(aid) for aid in ids) or len(set(ids)) != len(ids):
+                raise ValueError('native source snapshot has invalid/duplicate integer IDs')
+        if not slots or not set(mapped).issubset(registered):
+            raise ValueError('native source slot/CPU mapping is inconsistent')
+        sources = []
+        for row in payload['sources']:
+            if (not isinstance(row, dict) or not positive_int(row.get('adapter_int_id'))
+                    or not isinstance(row.get('adapter_id'), str) or not row['adapter_id']
+                    or not isinstance(row.get('lora_path'), str) or not Path(row['lora_path']).is_absolute()
+                    or not positive_int(row.get('rank')) or row.get('cpu_registered') is not True):
+                raise ValueError('native source identity/rank/CPU evidence is invalid')
+            slot, confirmed = row.get('gpu_slot'), row.get('gpu_confirmed_monotonic_s')
+            if 'gpu_slot' not in row or 'gpu_confirmed_monotonic_s' not in row:
+                raise ValueError('native source must explicitly declare GPU completion evidence')
+            if slot is None:
+                if confirmed is not None:
+                    raise ValueError('GPU confirmation without a native slot')
+            elif (type(slot) is not int or not 0 <= slot < len(slots)
+                  or slots[slot] != row['adapter_int_id']
+                  or not instant(confirmed) or confirmed > captured):
+                raise ValueError('GPU source lacks matching slot/completed-copy evidence')
+            sources.append(NativeAdapterSource(row['adapter_int_id'], row['adapter_id'],
+                row['lora_path'], row['rank'], slot, confirmed))
+        known = {row.adapter_int_id for row in sources}
+        names = {row.adapter_id for row in sources}
+        gpu_known = {row.adapter_int_id for row in sources if row.gpu_slot is not None}
+        # A completed anonymous hit can be known to the GPU owner yet remain
+        # unowned by any name/path. The separate unknown-ID set preserves that.
+        if (len(known) != len(sources) or len(names) != len(sources)
+                or not known.issubset(registered) or set(unknown) != set(registered) - known
+                or not set(unconfirmed).issubset(mapped)
+                or gpu_known & set(unconfirmed)
+                or (set(mapped) - gpu_known - set(unknown)) != set(unconfirmed) - set(unknown)
+                or payload.get('complete_for_native_caches') is not (not unknown and not unconfirmed)):
+            raise ValueError('native source snapshot coverage is inconsistent')
+        return cls(payload['owner_id'], payload['epoch'], expected_clock_id, captured,
+                   slots, registered, tuple(sources), unknown, unconfirmed)
+
+    def find(self, *, adapter_id: str, adapter_int_id: int, lora_path: str) -> Optional[NativeAdapterSource]:
+        for source in self.sources:
+            if source.adapter_int_id == adapter_int_id or source.adapter_id == adapter_id:
+                if (source.adapter_int_id, source.adapter_id, source.lora_path) != (
+                        adapter_int_id, adapter_id, lora_path):
+                    raise ValueError('native source lookup changed adapter identity')
+                return source
+        if adapter_int_id in self.unknown_native_adapter_ids:
+            raise ValueError('native adapter exists without confirmed source identity')
+        return None
 
 
 @dataclass(frozen=True)
@@ -313,6 +422,27 @@ class InstanceSlot:
     inflight_request_deadlines: Dict[str, float] = field(default_factory=dict)
     runtime_forwarding_active: int = 0
     runtime_forwarding_started_at: float = 0.0
+    native_source_state: Optional[NativeSourceSnapshot] = None
+
+    def commit_native_sources(self, snapshot: NativeSourceSnapshot) -> bool:
+        """Commit a received view without mutating legacy hints or taking pins."""
+        if not isinstance(snapshot, NativeSourceSnapshot):
+            raise TypeError('native source commit requires a validated immutable snapshot')
+        previous = self.native_source_state
+        if previous is not None:
+            if snapshot.owner_id != previous.owner_id or snapshot.clock_id != previous.clock_id:
+                raise ValueError('native source owner changed; explicit replica recovery required')
+            if snapshot.epoch < previous.epoch:
+                return False
+            if snapshot.epoch == previous.epoch:
+                if replace(snapshot, captured_monotonic_s=previous.captured_monotonic_s) != previous:
+                    raise ValueError('same native epoch reported different source state')
+                if snapshot.captured_monotonic_s <= previous.captured_monotonic_s:
+                    return False
+            elif snapshot.captured_monotonic_s < previous.captured_monotonic_s:
+                raise ValueError('new native epoch predates the committed state')
+        self.native_source_state = snapshot
+        return True
 
     def runtime_group_key(self) -> tuple:
         """Group logical slots that share one physical runtime."""

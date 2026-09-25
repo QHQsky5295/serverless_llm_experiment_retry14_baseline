@@ -7,6 +7,7 @@ import asyncio
 from contextlib import nullcontext
 from types import SimpleNamespace
 import threading
+import weakref
 import unittest
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -65,6 +66,12 @@ class NativeManager:
         self.lora_index_to_id[index] = aid
 
 
+class NativeAdapter:
+    """Weak-referenceable native-model identity, without allocating weights."""
+    def __init__(self, rank=8):
+        self.rank = rank
+
+
 class NativeDemandTransactions(unittest.TestCase):
     """CPU-only native-cache contract; no claim about CUDA copy correctness."""
     def setUp(self):
@@ -79,7 +86,7 @@ class NativeDemandTransactions(unittest.TestCase):
                 self.cpu_loads.append(aid)
                 if len(self.manager._registered_adapters) >= self.manager.capacity:
                     self.manager._registered_adapters.remove_oldest()
-                self.manager._registered_adapters[aid] = object()
+                self.manager._registered_adapters[aid] = NativeAdapter()
             if aid not in self.manager._active_adapters:
                 self.manager.activate(aid)
         self.loader = native_load
@@ -240,6 +247,10 @@ class NativeDemandTransactions(unittest.TestCase):
             inventory.assert_called_once_with(self.manager, require_uniform_slots=True)
             event.record.assert_called_once_with('native-stream')
             event.synchronize.assert_called_once_with()
+            sources = worker.ieee_gpu_reference(operation='source_snapshot')
+            self.assertEqual(sources['sources'][0]['adapter_id'], 'adapter-4')
+            self.assertIn('clock_id', sources)
+            event.synchronize.assert_called_once_with()  # Observation adds no fence.
 
     def test_actual_engine_rpc_forwards_demand_transaction(self):
         engine = InferenceEngine({'ieee_gpu_references': True}, {})
@@ -250,6 +261,108 @@ class NativeDemandTransactions(unittest.TestCase):
                     expected_owner_id='owner', expected_epoch=1)
         self.assertEqual(asyncio.run(engine.ieee_gpu_reference(**args)), receipt)
         engine.engine.collective_rpc.assert_awaited_once_with('ieee_gpu_reference', kwargs=args)
+        engine.engine.collective_rpc.reset_mock()
+        self.assertEqual(asyncio.run(engine.ieee_gpu_reference(operation='source_snapshot')), receipt)
+        engine.engine.collective_rpc.assert_awaited_once_with(
+            'ieee_gpu_reference', kwargs={'operation': 'source_snapshot'})
+
+    def test_replaced_cpu_object_cannot_keep_the_prior_source_identity(self):
+        self.demand()
+        self.release('cold-1')
+        self.manager._registered_adapters[4] = NativeAdapter()
+        with self.assertRaisesRegex(RuntimeError, 'source object'):
+            self.demand('replacement')
+
+    def test_source_snapshot_distinguishes_owned_copies_and_unowned_ids(self):
+        self.demand()
+        snapshot = self.owner.source_snapshot()
+        self.assertEqual(snapshot['kind'], 'native_lora_sources_v1')
+        self.assertFalse(snapshot['snapshot_holds_reference'])
+        sources = snapshot['sources']
+        self.assertEqual(len(sources), 1)
+        self.assertEqual(sources[0]['adapter_id'], 'adapter-4')
+        self.assertEqual(sources[0]['gpu_slot'], 0)
+        self.assertTrue(sources[0]['cpu_registered'])
+        self.assertEqual(sources[0]['rank'], 8)
+        self.assertGreater(sources[0]['gpu_confirmed_monotonic_s'], 0.)
+        self.assertEqual(snapshot['unknown_native_adapter_ids'], [2, 3])
+        self.assertFalse(snapshot['complete_for_native_caches'])
+
+    def test_deactivation_withdraws_gpu_but_keeps_actual_cpu_source(self):
+        self.demand()
+        self.release('cold-1')
+        before = self.owner.source_snapshot()
+        self.manager.deactivate(4)
+        after = self.owner.source_snapshot()
+        self.assertGreater(after['epoch'], before['epoch'])
+        self.assertTrue(after['sources'][0]['cpu_registered'])
+        self.assertIsNone(after['sources'][0]['gpu_slot'])
+        self.assertIsNone(after['sources'][0]['gpu_confirmed_monotonic_s'])
+
+    def test_remove_reactivate_same_id_and_slot_is_not_confirmed_by_polling(self):
+        self.demand()
+        self.release('cold-1')
+        before = self.owner.source_snapshot()
+        self.manager.deactivate(4)
+        self.manager.activate(4)
+        after = self.owner.source_snapshot()
+        self.assertEqual(after['slot_adapter_ids'], before['slot_adapter_ids'])
+        self.assertGreater(after['epoch'], before['epoch'])
+        self.assertIsNone(after['sources'][0]['gpu_slot'])
+        self.assertIn(4, after['unconfirmed_gpu_adapter_ids'])
+        self.demand('fresh')
+        confirmed = self.owner.source_snapshot()['sources'][0]
+        self.assertEqual(confirmed['gpu_slot'], before['sources'][0]['gpu_slot'])
+
+    def test_publication_withdrawal_precedes_native_slot_clear(self):
+        self.demand()
+        self.release('cold-1')
+        native_clear = self.manager._active_adapters.removed
+        def observed_clear(aid):
+            self.assertNotIn(aid, self.owner._gpu_confirmations)
+            self.assertIn(aid, self.manager.lora_index_to_id)
+            native_clear(aid)
+        self.manager._active_adapters.removed = observed_clear
+        self.manager.deactivate(4)
+
+    def test_snapshot_neither_pins_nor_touches_lru_and_is_detached(self):
+        self.demand()
+        self.release('cold-1')
+        order = list(self.manager._registered_adapters.cache)
+        before = self.owner.snapshot()
+        snapshot = self.owner.source_snapshot()
+        snapshot['sources'][0]['adapter_id'] = 'tampered'
+        snapshot['slot_adapter_ids'].clear()
+        self.assertEqual(self.owner.snapshot(), before)
+        self.assertEqual(list(self.manager._registered_adapters.cache), order)
+        self.assertFalse(self.manager._registered_adapters.pinned_items)
+        self.assertEqual(self.owner.source_snapshot()['sources'][0]['adapter_id'], 'adapter-4')
+
+    def test_metadata_does_not_hold_evicted_weights_and_owned_reload_is_valid(self):
+        self.demand()
+        self.release('cold-1')
+        ref = weakref.ref(self.manager._registered_adapters.cache[4])
+        self.owner.evict(adapter_int_id=4)
+        self.assertIsNone(ref())
+        self.assertFalse(self.owner.source_snapshot()['sources'])
+        self.assertTrue(self.demand('reload')['acquired'])
+        self.assertEqual(self.owner.source_snapshot()['sources'][0]['adapter_id'], 'adapter-4')
+
+    def test_failed_fence_does_not_publish_completed_source(self):
+        self.fence.side_effect = RuntimeError('incomplete device copy')
+        with self.assertRaisesRegex(RuntimeError, 'incomplete device copy'):
+            self.demand()
+        self.assertFalse(self.owner._sources)
+        self.assertFalse(self.owner._gpu_confirmations)
+
+    def test_source_publication_is_after_fence_not_after_slot_assignment(self):
+        def observe():
+            self.assertIn(4, self.manager.lora_index_to_id)
+            self.assertNotIn(4, self.owner._sources)
+            self.assertNotIn(4, self.owner._gpu_confirmations)
+        self.fence.side_effect = observe
+        self.demand()
+        self.assertIsNotNone(self.owner.source_snapshot()['sources'][0]['gpu_slot'])
 
 
 class NativeReferences(unittest.TestCase):
