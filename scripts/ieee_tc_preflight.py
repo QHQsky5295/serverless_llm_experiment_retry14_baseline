@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -385,6 +386,138 @@ def owned_pids(path: Path) -> list[dict]:
     return list(found.values())
 
 
+def load_nvml_binding(path: Path, expected_sha256: str):
+    """Reuse an explicit hash-locked official binding, without importing CUDA.
+
+    The qualified system Python runs the independent watchdog. Do not import an
+    inference environment (torch/vLLM), edit it, or silently substitute nvidia-smi
+    when the selected binding/driver API is unavailable.
+    """
+    path = path.resolve(strict=True)
+    source = path.read_bytes()
+    if (path.name != 'pynvml.py' or not re.fullmatch('[a-f0-9]{64}', expected_sha256)
+            or hashlib.sha256(source).hexdigest() != expected_sha256 or path.stat().st_mode & 0o002
+            or path.stat().st_uid not in (0, os.getuid())):
+        raise RuntimeError('NVML binding must be an explicit protected hash-locked pynvml.py')
+    name = 'primelora_tc_nvml_' + expected_sha256
+    if name in sys.modules:
+        return sys.modules[name]
+    spec = importlib.util.spec_from_file_location(name, path)
+    api = importlib.util.module_from_spec(spec)
+    # The official binding registers exception classes through sys.modules.
+    # Execute exactly the hashed bytes, not a second potentially changed read.
+    sys.modules[name] = api
+    try:
+        exec(compile(source, str(path), 'exec'), api.__dict__)
+    except BaseException:
+        del sys.modules[name]
+        raise
+    return api
+
+
+def gpu_process_identity(pid: int) -> dict | None:
+    """Read birth identity around cgroup/affinity; a racing PID stays unknown."""
+    stat_path = Path(f'/proc/{pid}/stat')
+    try:
+        first = stat_path.read_text().rsplit(') ', 1)[1].split()
+        uid = stat_path.stat().st_uid
+        group, affinity = str(cg_path(pid)), sorted(os.sched_getaffinity(pid))
+        second = stat_path.read_text().rsplit(') ', 1)[1].split()
+        if first[19] != second[19]:
+            return None
+        return {'pid': pid, 'start_ticks': int(first[19]), 'uid': uid,
+                'cgroup': group, 'affinity': affinity}
+    except (FileNotFoundError, ProcessLookupError):
+        return None
+
+
+class NativeGPUCensus:
+    """Read-only native UUID/process census, not allocation-time integration.
+
+    Query spans bound observation time, not short-lived events between samples.
+    No GPU context, CUDA import, reset, cache clearing or process signaling.
+    """
+    def __init__(self, api, *, process_identity=gpu_process_identity):
+        self.api, self.process_identity = api, process_identity
+        self.known_owned = set()
+        self.api.nvmlInit()
+        self.closed = False
+
+    def close(self):
+        if not self.closed:
+            self.api.nvmlShutdown()
+            self.closed = True
+
+    def sample(self, service_path: Path | None = None) -> dict:
+        if self.closed:
+            raise RuntimeError('NVML census is closed')
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from faaslora.clock import local_monotonic_clock_id
+        start = time.monotonic()
+        devices, uncertain, escaped, held = [], [], [], []
+        for index in range(self.api.nvmlDeviceGetCount()):
+            handle = self.api.nvmlDeviceGetHandleByIndex(index)
+            gpu_uuid = self.api.nvmlDeviceGetUUID(handle)
+            if isinstance(gpu_uuid, bytes):
+                gpu_uuid = gpu_uuid.decode('ascii')
+            if not gpu_uuid.startswith('GPU-'):
+                raise RuntimeError('physical GPU UUID required; MIG is not qualified')
+            memory = self.api.nvmlDeviceGetMemoryInfo(handle, version=self.api.nvmlMemory_v2)
+            util = self.api.nvmlDeviceGetUtilizationRates(handle)
+            processes = []
+            # The exact v3 APIs must work; unsupported is not an empty process set.
+            for kind, query in (
+                    ('compute', self.api.nvmlDeviceGetComputeRunningProcesses_v3),
+                    ('graphics', self.api.nvmlDeviceGetGraphicsRunningProcesses_v3)):
+                for process in query(handle):
+                    identity = self.process_identity(process.pid)
+                    member = identity is not None and service_path is not None and Path(
+                        identity['cgroup']).is_relative_to(service_path)
+                    birth = None if identity is None else (identity['pid'], identity['start_ticks'])
+                    if member:
+                        self.known_owned.add(birth)
+                    was_owned = birth in self.known_owned
+                    row = {'pid': int(process.pid), 'kind': kind,
+                           'used_gpu_memory_bytes': process.usedGpuMemory,
+                           'identity': identity, 'service_member': member,
+                           'previously_owned': was_owned}
+                    processes.append(row)
+                    if identity is None:
+                        uncertain.append({'gpu_uuid': gpu_uuid, 'pid': process.pid, 'kind': kind})
+                    if member or was_owned:
+                        held.append(gpu_uuid)
+                    if was_owned and not member:
+                        escaped.append({'gpu_uuid': gpu_uuid, **row})
+            devices.append({'gpu_uuid': gpu_uuid, 'index': index,
+                            'memory_api': 'nvmlDeviceGetMemoryInfo_v2_raw_fields',
+                            'memory_total_bytes': int(memory.total),
+                            'memory_used_bytes': int(memory.used),
+                            'memory_free_bytes': int(memory.free),
+                            'memory_driver_reserved_bytes': int(memory.reserved),
+                            'gpu_utilization_percent': int(util.gpu), 'processes': processes})
+        if not devices or len({d['gpu_uuid'] for d in devices}) != len(devices):
+            raise RuntimeError('empty or duplicate physical GPU census')
+        return {'source': 'nvml_v3_compute_and_graphics', 'clock_id': local_monotonic_clock_id(),
+                'query_start_s': start, 'query_end_s': time.monotonic(), 'devices': devices,
+                'service_held_gpu_uuids': sorted(set(held)), 'unresolved_processes': uncertain,
+                'escaped_owned_processes': escaped,
+                'foreign_compute_processes': [dict(gpu_uuid=d['gpu_uuid'], **p)
+                    for d in devices for p in d['processes']
+                    if p['kind'] == 'compute' and p['identity'] is not None
+                    and not p['service_member'] and not p['previously_owned']],
+                'service_native_contexts_clear': not held and not uncertain,
+                'proves_physical_lease_release': False}
+
+
+def require_idle_gpu_census(sample: dict) -> None:
+    # Stable graphics/display processes are captured, not killed. Any compute
+    # process, even with zero utilization or reported zero memory, blocks launch.
+    if sample['unresolved_processes'] or any(p['kind'] == 'compute'
+            for d in sample['devices'] for p in d['processes']):
+        raise RuntimeError('native GPU compute occupancy/identity prevents a clean launch')
+
+
 def stop_scope_identity(identity: dict, grace_seconds: float = 10) -> dict:
     """TERM via PID handles, then pinned cgroup.kill; no global pkill/ray-stop."""
     if not 0 <= grace_seconds <= 60:
@@ -450,12 +583,13 @@ def require_watchdog_primitives() -> None:
 
 
 def watch_scope(identity: dict, *, paths: list[Path], emit,
-                test_abort_after: int | None = None) -> dict:
+                test_abort_after: int | None = None,
+                nvml_binding: Path | None = None, nvml_sha256: str | None = None) -> dict:
     """Independent auxiliary-scope monitor; production needs further GPU gates.
 
-    This monitors OS resource safety only. GPU allocation/release and Ray spill
-    attribution remain native-runner responsibilities; it does not grant a
-    performance launch merely because host pressure was low.
+    OS safety plus native GPU process census. Allocation-owner integration and
+    Ray spill attribution remain native-runner responsibilities; native contexts
+    disappearing alone does not prove that a physical device lease was returned.
     """
     own_path = cg_path()
     target = Path(identity['path'])
@@ -485,9 +619,25 @@ def watch_scope(identity: dict, *, paths: list[Path], emit,
     for proc in owned_pids(target):
         if proc['affinity'] != sorted(SERVICE_CPUS):
             raise RuntimeError('actual service process escaped expected affinity')
+    if test_abort_after is None and (nvml_binding is None or nvml_sha256 is None):
+        raise RuntimeError('native launch requires its hash-locked NVML census binding')
+    census, first_gpu = None, None
+    if nvml_binding is not None or nvml_sha256 is not None:
+        if nvml_binding is None or nvml_sha256 is None:
+            raise ValueError('NVML binding and SHA must be supplied together')
+        census = NativeGPUCensus(load_nvml_binding(nvml_binding, nvml_sha256))
+        try:
+            first_gpu = census.sample(target)
+            require_idle_gpu_census(first_gpu)
+        except BaseException:
+            census.close()
+            raise
     emit({'event': 'watchdog_ready', 'watchdog_pid': os.getpid(), 'aux': aux,
           'watchdog_process': next(p for p in owned_pids(own_path) if p['pid'] == os.getpid()),
           'service_identity': identity, 'service': service,
+          'gpu_initial': first_gpu,
+          'nvml_binding_sha256': nvml_sha256,
+          'nvml_binding_path': str(nvml_binding.resolve()) if nvml_binding is not None else None,
           'test_trigger_enabled': test_abort_after is not None})
     decision, disk_sample, next_disk = WatchdogDecision(), [], 0.0
     count = 0
@@ -500,13 +650,22 @@ def watch_scope(identity: dict, *, paths: list[Path], emit,
                                 'free_inodes': os.statvfs(p).f_favail} for p in paths]
                 next_disk = start + 30
             resource = cgroup_snapshot(target)
+            gpu = census.sample(target) if census is not None else None
+            if gpu is not None and gpu['escaped_owned_processes']:
+                emit({'event': 'gpu_containment_failure', 'gpu': gpu})
+                raise RuntimeError('previously owned GPU worker escaped its service domain')
             outcome = decision.observe(host['available_bytes'], host['full_avg10'], disk_sample)
+            if gpu is not None and gpu['foreign_compute_processes']:
+                outcome = {**outcome,
+                           'abort_reasons': outcome['abort_reasons'] + ['gpu_compute_outside_service_scope'],
+                           'classification': 'safety_abort_unattributed'}
             count += 1
             if test_abort_after is not None and count >= test_abort_after:
                 outcome = {**outcome, 'abort_reasons': ['synthetic_test_trigger'],
                            'classification': 'test_only_not_resource_failure'}
             emit({'event': 'resource_sample', 'monotonic': start, 'sample': count,
                   'host': host, 'service': resource, 'filesystems': disk_sample,
+                  'gpu': gpu,
                   'decision': outcome})
             if outcome['abort_reasons']:
                 cleanup = stop_scope_identity(identity, grace_seconds=10)
@@ -525,6 +684,18 @@ def watch_scope(identity: dict, *, paths: list[Path], emit,
                   'classification': 'protocol_or_launcher_error', 'samples': count}
         emit(result)
         raise
+    finally:
+        if census is not None:
+            try:
+                final_gpu = census.sample(target)
+                emit({'event': 'gpu_terminal_census', 'gpu': final_gpu})
+                if not final_gpu['service_native_contexts_clear']:
+                    emit({'event': 'watchdog_error',
+                          'error': 'native GPU context release is unconfirmed',
+                          'classification': 'safety_abort_unattributed', 'samples': count})
+                    raise RuntimeError('native GPU context release is unconfirmed; no GPU reset allowed')
+            finally:
+                census.close()
     return {'event': 'service_domain_gone', 'samples': count}
 
 
@@ -721,6 +892,12 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                 watch_args = [sys.executable, str(Path(__file__).resolve()), 'watchdog',
                               '--service-unit', unit, '--invocation-id', identity['invocation_id'],
                               '--path', str(ROOT), '--path', str(evidence)]
+                binding, binding_sha = (os.environ.get('FAASLORA_TC_NVML_BINDING'),
+                                        os.environ.get('FAASLORA_TC_NVML_SHA256'))
+                if not tiny or binding or binding_sha:
+                    if not binding or not binding_sha:
+                        raise RuntimeError('explicit NVML binding and SHA required before native launch')
+                    watch_args += ['--nvml-binding', binding, '--nvml-sha256', binding_sha]
                 if tiny:
                     watch_args += ['--test-abort-after', '100']
                 watcher = subprocess.Popen(watch_args, stdout=subprocess.PIPE, stderr=watch_error, bufsize=0)
@@ -831,6 +1008,11 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                 interruption = interruptions[-1]
                 result['classification'] = interruption.get('classification') or interruption.get(
                     'decision', {}).get('classification', 'protocol_or_launcher_error')
+            if not tiny:
+                terminal_gpu = [e for e in events if e['event'] == 'gpu_terminal_census']
+                result['native_gpu_context_release_confirmed'] = bool(terminal_gpu and
+                    terminal_gpu[-1]['gpu']['service_native_contexts_clear'])
+                result['pass'] = result['pass'] and result['native_gpu_context_release_confirmed']
             result['service_path_removed'] = identity is not None and not Path(identity['path']).exists()
             result['pass'] = result['pass'] and result['service_path_removed']
     result['evidence_sha256'] = {p.name: digest(p) for p in evidence.iterdir() if p.is_file()}
@@ -1131,6 +1313,8 @@ def main():
     parser.add_argument('--tiny-witness', action='store_true')
     parser.add_argument('--replay-trace', type=Path)
     parser.add_argument('--replay-profile', choices=['W0', 'W1'], default='W0')
+    parser.add_argument('--nvml-binding', type=Path)
+    parser.add_argument('--nvml-sha256')
     parser.add_argument('--exec', dest='command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     if args.action == '_replay-publisher':
@@ -1175,7 +1359,8 @@ def main():
             parser.error('invocation identity mismatch; refusing attachment')
         result = watch_scope(identity, paths=args.path or [ROOT],
                              emit=lambda event: print(json.dumps(event), flush=True),
-                             test_abort_after=args.test_abort_after)
+                             test_abort_after=args.test_abort_after,
+                             nvml_binding=args.nvml_binding, nvml_sha256=args.nvml_sha256)
         if result['event'] == 'service_domain_gone':
             print(json.dumps(result), flush=True)
         # Streaming command is JSONL throughout, not a final pretty JSON object.

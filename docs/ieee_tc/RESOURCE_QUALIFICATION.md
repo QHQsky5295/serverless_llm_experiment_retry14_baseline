@@ -91,6 +91,8 @@ witness 只允许固定 `_worker --mode inspect`，不能借 tiny 开关启动�
 FAASLORA_TC_QUALIFICATION=1 \
 FAASLORA_TC_LAUNCH_OUTPUT=/absolute/new/campaign/launch.json \
 FAASLORA_TC_PREDICTED_GROWTH_GIB=<audited-incremental-peak> \
+FAASLORA_TC_NVML_BINDING=/absolute/qualified/pynvml.py \
+FAASLORA_TC_NVML_SHA256=<verified-binding-sha256> \
 FAASLORA_PYTHON=/absolute/qualified/environment/bin/python \
 bash scripts/run_all_experiments_user_scope.sh <existing-runner-arguments>
 ```
@@ -99,3 +101,8 @@ bash scripts/run_all_experiments_user_scope.sh <existing-runner-arguments>
 计量和真实模型初始化/清理资格仍待完成。没有启动任何模型，
 没有把 128 MiB witness 的峰值当作服务内存消耗。资格结果采用本节状态表，
 不绘制缺乏性能含义的曲线。
+
+独立 native GPU census 已通过四卡空闲观测与既有 32 请求微测，详见
+`PHYSICAL_GPU_MEASUREMENT.md`。周期观测用于核查 PID/UUID，不冒充精确 GPU
+占用积分。物理 lease 的并集和四个互斥时间窗已通过代数测试，但真实模型
+allocation owner、扩容 worker 和释放事件仍需接入并验证。

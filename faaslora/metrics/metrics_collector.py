@@ -20,6 +20,129 @@ from ..utils.logger import get_logger
 from ..clock import local_monotonic_clock_id
 
 
+class PhysicalGPULedger:
+    """Union of resource-owner leases on physical UUIDs (IEEE plan 4.5).
+
+    This is an event reducer, NOT an allocator or a polling-based estimator.
+    Only the actual allocation owner may issue acquire/release events; the
+    caller must independently qualify that owner and audit native GPU workers.
+    CUDA visibility, utilization, ready flags and model.shutdown() are not
+    allocation/release evidence. Legacy instance-cost records are not accepted.
+    """
+
+    def __init__(self, *, clock_id: str, deployment_notice_s: float):
+        if not clock_id or not math.isfinite(deployment_notice_s):
+            raise ValueError('physical ledger needs a clock and deployment origin')
+        self.clock_id = clock_id
+        self.origin = deployment_notice_s
+        self._last_event_s = deployment_notice_s
+        self._leases: Dict[str, Dict[str, Any]] = {}
+        self._events: List[Dict[str, Any]] = []
+
+    def _validate_event(self, at: float, clock_id: str, evidence_id: str) -> None:
+        if (clock_id != self.clock_id or not math.isfinite(at)
+                or at < self._last_event_s or not evidence_id):
+            raise ValueError('unordered event, clock mismatch or missing owner evidence')
+
+    def acquire(self, *, lease_id: str, owner_id: str, gpu_uuids,
+                at: float, clock_id: str, evidence_id: str) -> None:
+        self._validate_event(at, clock_id, evidence_id)
+        devices = tuple(gpu_uuids)
+        if (not lease_id or lease_id in self._leases or not owner_id or not devices
+                or len(set(devices)) != len(devices)
+                or any(not isinstance(d, str) or not d.startswith('GPU-') for d in devices)):
+            raise ValueError('unique lease and physical GPU UUIDs required; no logical index/MIG proxy')
+        self._leases[lease_id] = {'lease_id': lease_id, 'owner_id': owner_id,
+                                  'gpu_uuids': devices, 'acquired_s': at,
+                                  'released_s': None, 'acquire_evidence': evidence_id}
+        self._events.append({'event': 'acquire', 'lease_id': lease_id, 'at': at,
+                             'evidence_id': evidence_id})
+        self._last_event_s = at
+
+    def release(self, *, lease_id: str, owner_id: str, at: float,
+                clock_id: str, evidence_id: str) -> None:
+        self._validate_event(at, clock_id, evidence_id)
+        lease = self._leases.get(lease_id)
+        if lease is None or lease['owner_id'] != owner_id or lease['released_s'] is not None:
+            raise ValueError('unknown, foreign or already released physical lease')
+        lease['released_s'], lease['release_evidence'] = at, evidence_id
+        self._events.append({'event': 'release', 'lease_id': lease_id, 'at': at,
+                             'evidence_id': evidence_id})
+        self._last_event_s = at
+
+    def summarize(self, *, observed_until_s: float, arrival_start_s: float,
+                  arrival_end_s: float, last_terminal_s: Optional[float],
+                  n_plan: int, n_terminal: int, n_correct: int) -> Dict[str, Any]:
+        """Full U only after every terminal AND actual lease release; else U_obs.
+
+        Exactness here is algebraic, conditional on qualified owner events. A
+        missing release stays right-censored; neither an idle sample nor a
+        request-completion timestamp closes it. Zero correct => null ratio.
+        """
+        boundaries = (observed_until_s, arrival_start_s, arrival_end_s)
+        if (any(not math.isfinite(x) for x in boundaries)
+                or observed_until_s < self._last_event_s
+                or not self.origin <= arrival_start_s <= arrival_end_s):
+            raise ValueError('invalid physical observation/arrival boundaries')
+        if (any(type(n) is not int for n in (n_plan, n_terminal, n_correct))
+                or not 0 <= n_correct <= n_terminal <= n_plan or n_plan <= 0):
+            raise ValueError('invalid full offered/terminal/correct counts')
+        if n_terminal == n_plan and last_terminal_s is None:
+            raise ValueError('complete terminal population needs its actual last terminal')
+        if last_terminal_s is not None and (not math.isfinite(last_terminal_s)
+                or not arrival_start_s <= last_terminal_s <= observed_until_s):
+            raise ValueError('invalid last terminal boundary')
+        if n_terminal != n_plan and last_terminal_s is not None:
+            raise ValueError('partial terminals cannot define the cleanup window')
+        if n_terminal == n_plan and observed_until_s < arrival_end_s:
+            raise ValueError('all offered requests cannot terminate before arrivals end')
+        # With incomplete requests, all post-arrival observation remains drain.
+        terminal_boundary = (max(arrival_end_s, last_terminal_s)
+                             if last_terminal_s is not None else observed_until_s)
+        windows = (
+            ('pre_arrival', self.origin, arrival_start_s),
+            ('arrival', arrival_start_s, arrival_end_s),
+            ('drain', arrival_end_s, terminal_boundary),
+            ('cleanup', terminal_boundary, observed_until_s),
+        )
+        intervals: Dict[str, List[tuple]] = {}
+        for lease in self._leases.values():
+            end = lease['released_s'] if lease['released_s'] is not None else observed_until_s
+            for device in lease['gpu_uuids']:
+                intervals.setdefault(device, []).append((lease['acquired_s'], end))
+        unions = {}
+        for device, spans in intervals.items():
+            merged = []
+            for start, end in sorted(spans):
+                if merged and start <= merged[-1][1]:
+                    merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+                else:
+                    merged.append((start, end))
+            unions[device] = merged
+        totals = {name: math.fsum(max(0., min(end, right, observed_until_s)
+                                      - max(start, left))
+                                  for spans in unions.values() for start, end in spans)
+                  for name, left, right in windows}
+        total = math.fsum(end-start for spans in unions.values() for start, end in spans)
+        if n_correct and total <= 0:
+            raise ValueError('correct GPU inference lacks positive physical allocation evidence')
+        if not math.isclose(math.fsum(totals.values()), total, rel_tol=1e-12, abs_tol=1e-9):
+            raise ValueError('physical union and mutually exclusive windows disagree')
+        open_ids = sorted(k for k, v in self._leases.items() if v['released_s'] is None)
+        complete = n_terminal == n_plan and not open_ids
+        return {'contract': 'physical_gpu_owner_union_v1', 'clock_id': self.clock_id,
+                'measurement_complete': complete, 'n_plan': n_plan,
+                'n_terminal': n_terminal, 'n_correct': n_correct,
+                'observed_until_s': observed_until_s, 'gpu_seconds_observed': total,
+                'gpu_seconds': total if complete else None,
+                'gpu_seconds_per_correct_request': total/n_correct if complete and n_correct else None,
+                'gpu_seconds_per_offered_observed': total/n_plan,
+                'window_gpu_seconds': totals, 'device_intervals': unions,
+                'open_lease_ids': open_ids, 'owner_event_count': len(self._events),
+                'eligible_correctness': complete and n_correct == n_plan,
+                'owner_and_native_census_qualification_required': True}
+
+
 class NativeV1TokenTimeline:
     """Strict vLLM V1 native-token timing, not text/chunk/finished-time inference.
 

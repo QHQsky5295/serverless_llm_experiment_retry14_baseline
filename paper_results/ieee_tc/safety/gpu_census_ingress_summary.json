@@ -1,0 +1,24 @@
+{
+  "kind": "native_gpu_census_no_model_witness",
+  "receipt": "gpu_census_ingress_attempt1.json",
+  "receipt_sha256": "3fc3e1e7b50817e84fa3f1bf173b86faaa987ebd62c07feb8683d12a7458c4cf",
+  "passed": true,
+  "native_gpu_count": 4,
+  "requests_received": 32,
+  "requests_received_before_simulated_ready": 3,
+  "resource_samples": 11,
+  "periodic_gpu_query_ms": {
+    "min": 2.868159004719928,
+    "median": 3.905936988303438,
+    "max": 5.217765981797129
+  },
+  "initial_gpu_query_ms": 43.799092003609985,
+  "service_peak_bytes": 120496128,
+  "service_high_events": 0,
+  "service_max_events": 0,
+  "service_oom_events": 0,
+  "service_path_removed": true,
+  "service_native_contexts_clear": true,
+  "physical_owner_and_gpu_worker_qualification": false,
+  "production_launch_authorized": false
+}

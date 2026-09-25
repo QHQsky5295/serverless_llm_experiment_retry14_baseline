@@ -16,7 +16,7 @@
 | Block | Status | Evidence / next action |
 |---|---|---|
 | Approved plan persistence | Recorded | Full snapshot + source hash + AGENTS instructions |
-| Resource containment / safety | Native Ray inheritance, watchdog/launch handshake, independent replay and startup ingress witnesses tested; model gates pending | RESOURCE_QUALIFICATION.md + EXTERNAL_REPLAY_QUALIFICATION.md. Actual native GPU census/init/lifecycle remain open. CPU proof is affinity, not delegated cpuset |
+| Resource containment / safety | Native Ray inheritance, guarded external replay/startup ingress and idle native GPU census witnesses tested; model gates pending | RESOURCE_QUALIFICATION.md + EXTERNAL_REPLAY_QUALIFICATION.md + PHYSICAL_GPU_MEASUREMENT.md. Physical owner-event/native model lifetime integration remains open. CPU proof is affinity, not delegated cpuset |
 | Protected historical artifacts | Sealed and verified | `paper_results/ieee_tc/safety/20260925_execution_start_protected.json`; old results and selected user modifications unchanged |
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
@@ -91,6 +91,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Guarded-launch checkpoint `e6e76955a8ba20a9ab5b96bb2cc204db9b734426`
   pushed to V2; remote SHA verified.
 - Independent frozen-replay checkpoint `5bcb6a333c8ff2e809077af87c58be363c7f14b9`
+  pushed to V2; remote SHA verified.
+- Startup-parallel ingress checkpoint `4fe05a5cab78bb6dc91ad6e2f85301cf9f330dbc`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -344,3 +346,27 @@ configs/relayserve_motivation_serverlessllm.yaml.
   measurement, then actual 0.30 compatibility/worker/clock/stream qualification
   after installation completes. Common HTTP input transport, remote disk decision,
   Serverless native qualification and main experiments remain open.
+
+## Physical-time algebra and native census checkpoint
+
+- Existing metrics collector now has physical UUID lease-union arithmetic and
+  four mutually exclusive windows. Twelve tests pass, including overlap, TP,
+  retained context/lease, zero correct, censored counts and absent owner evidence.
+  It is not yet connected to a qualified actual device allocator; legacy billing
+  is unchanged and cannot supply new G1/G2 results.
+- Existing independent watchdog reads native NVML v3 compute/graphics processes,
+  PID birth/cgroup/affinity and raw v2 memory. The exact existing binding is
+  SHA-locked and reused without importing CUDA or modifying environments.
+- Actual idle/no-model witness: four physical UUIDs, 32/32 old requests received,
+  11 periodic GPU observations, 2.868/3.906/5.218 ms min/median/max query duration;
+  initial observation 43.799 ms. Peak service 120496128 bytes, high/max/OOM zero,
+  owned scope gone and native contexts clear. This is not loaded-model overhead
+  or model-release evidence. State table/curated summary and raw SHA delivered.
+- First direct binding import failure (missing sys.modules registration) and
+  v1/v2 memory-field distinction are documented, not hidden. Nine census tests,
+  24 safety tests, 11 independent replay tests; 410 functional tests pass with no
+  failures/errors/skips. Preserve previous evidence and all historical data.
+- Next: native scheduler/KV owner, allocation-owner events and atomic admission;
+  actual model/clock/stream/worker qualification after the live P2 installation.
+  Original install has finished the cuFFT download (dependency 100); no duplicate
+  install or concurrent model. Remote disk decision and formal matrices pending.

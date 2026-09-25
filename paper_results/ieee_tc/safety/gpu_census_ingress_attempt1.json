@@ -1,0 +1,122 @@
+{
+  "kind": "gated_service_launch",
+  "pass": true,
+  "tiny_witness": true,
+  "command": [
+    "/usr/bin/python3",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py",
+    "_replay-witness"
+  ],
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "preflight": null,
+  "auxiliary": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d9b3691957fd4251931daa07520bce55.scope",
+    "memory.current": 12857344,
+    "memory.peak": 12861440,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 80801\nuser_usec 54864\nsystem_usec 25936\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "service_unit": "primelora-tc-test-0afcc459704b4687967636e4ecff88b3.scope",
+  "production_launch_authorized": false,
+  "replay_process": {
+    "pid": 1900603,
+    "start_ticks": 21766057,
+    "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d9b3691957fd4251931daa07520bce55.scope",
+    "affinity": [
+      2,
+      3,
+      26,
+      27
+    ]
+  },
+  "gate_request": {
+    "pid": 1900620,
+    "nonce": "a8f0dc27797d4843b117e2a2fdfa9cd2",
+    "scope": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-0afcc459704b4687967636e4ecff88b3.scope",
+      "memory.current": 12595200,
+      "memory.peak": 12595200,
+      "memory.high": 201326592,
+      "memory.max": 268435456,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 79294\nuser_usec 65418\nsystem_usec 13876\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0"
+  },
+  "service_identity": {
+    "unit": "primelora-tc-test-0afcc459704b4687967636e4ecff88b3.scope",
+    "invocation_id": "3e90af7470b74ad98a2ca751d62af61f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-0afcc459704b4687967636e4ecff88b3.scope",
+    "inode": 2168374
+  },
+  "external_replay": {
+    "deployment_notice_s": 217661.411678129,
+    "replay_t0_s": 217661.611678129,
+    "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+    "plan": {
+      "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+      "view_sha256": "c530c8e74e462db5ec64555ba060680a28907527e1cd9cc8cb757191076d6b09",
+      "count": 32,
+      "source_count": 4000,
+      "profile": "W0",
+      "rate_scale": 8.0
+    }
+  },
+  "exec_authorized_monotonic_s": 217661.41306296,
+  "empty_scope_cleanup": {
+    "targets": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "service_returncode": 0,
+  "watchdog_returncode": 0,
+  "cleanup": {
+    "already_gone": true,
+    "released": true,
+    "targets": []
+  },
+  "replay_returncode": 0,
+  "watchdog_event_counts": {
+    "gpu_terminal_census": 1,
+    "resource_sample": 11,
+    "service_domain_gone": 1,
+    "watchdog_ready": 1
+  },
+  "service_path_removed": true,
+  "evidence_sha256": {
+    "watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "replay.jsonl": "350fce51910a9d885b18b8166afb899c0a1ef3af7c12d2bf1c259a7f68e27d8d",
+    "exec_receipt.json": "75499feffc1bb90c40603d0c04d0eee637db268961b123dd158c2142b0a7a3b7",
+    "watchdog.jsonl": "d9297b0d9cc0abf2d83a6b13613a1c0b7cb7641278710f94b7d6bc5b14a2ad85",
+    "service.log": "4979b8d0ae7aa1dacdda11038d3527cb178b070147466a2fab7ec2b16479d037"
+  }
+}
