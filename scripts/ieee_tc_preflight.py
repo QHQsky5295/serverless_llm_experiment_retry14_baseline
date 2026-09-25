@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """IEEE TC resource/provenance gates. No GPU launch or automatic OOM retry.
 
-The self-test uses a 128 MiB cgroup, never the experiment's 80 GiB envelope.
+The primitive self-test uses 128 MiB; the no-GPU native-Ray witness uses 3 GiB.
+Neither uses the experiment's 80 GiB envelope.
 Passing it proves user-scope primitives, NOT Docker/Ray containment or a working
 production watchdog. Those are separate gates in EXECUTION_STATUS.md.
 """
@@ -16,6 +17,7 @@ import select
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 
@@ -181,13 +183,17 @@ def verify_seal(path: Path) -> dict:
             'entry_count': len(new), 'plan_sha256': check_plan()}
 
 
+def test_limits(mode: str) -> dict:
+    return {'memory.high': (2048 if mode == 'ray' else 128 if mode == 'oom' else 64)*MIB,
+            'memory.max': (3072 if mode == 'ray' else 128)*MIB, 'memory.swap.max': 0}
+
+
 def worker(mode: str):
     path = cg_path()
     snap = cgroup_snapshot(path)
     # Isolate the hard-limit witness: a lower high limit can throttle the
     # allocation before it reaches max. This is NOT the production envelope.
-    expected = {'memory.high': (128 if mode == 'oom' else 64)*MIB,
-                'memory.max': 128*MIB, 'memory.swap.max': 0}
+    expected = test_limits(mode)
     for name, value in expected.items():
         if snap[name] != value:
             raise RuntimeError(f'effective {name} mismatch; refusing test allocation')
@@ -222,14 +228,51 @@ def worker(mode: str):
                                  stderr=subprocess.DEVNULL)
         print(json.dumps({'event': 'cleanup_targets', 'pids': [os.getpid(), child.pid]}), flush=True)
         child.wait()
+    elif mode == 'ray':
+        # Native Ray workers, no inference engine and no GPUs. This tests
+        # inheritance, not a complete Serverless multi-raylet deployment.
+        os.environ['CUDA_VISIBLE_DEVICES'] = ''
+        import ray
+        # AF_UNIX paths include Ray's own session/socket suffix. Use a short
+        # unique directory rather than a long campaign path for those sockets.
+        temp = tempfile.mkdtemp(prefix='tc-ray-')
+        print(json.dumps({'event':'ray_start', 'ray_temp_dir':temp,
+                          'ray_version':ray.__version__}), flush=True)
+        try:
+            ray.init(address='local', num_cpus=2, num_gpus=0,
+                     include_dashboard=False, object_store_memory=128*MIB,
+                     _memory=1024*MIB, _temp_dir=temp, _node_ip_address='127.0.0.1')
+            @ray.remote(num_cpus=1, num_gpus=0, max_restarts=0)
+            class Witness:
+                def report(self):
+                    return {'pid':os.getpid(), 'cgroup':cgroup_snapshot(cg_path()),
+                            'affinity':sorted(os.sched_getaffinity(0))}
+            actors = [Witness.remote(), Witness.remote()]
+            reports = ray.get([a.report.remote() for a in actors], timeout=45)
+            if len({r['pid'] for r in reports}) != 2:
+                raise RuntimeError('expected two distinct native Ray worker processes')
+            for report in reports:
+                if report['cgroup']['path'] != str(path):
+                    raise RuntimeError('Ray worker escaped the owned resource group')
+                if report['affinity'] != sorted(SERVICE_CPUS):
+                    raise RuntimeError('Ray worker CPU affinity differs')
+                for name, value in expected.items():
+                    if report['cgroup'][name] != value:
+                        raise RuntimeError('Ray worker effective limit differs')
+            print(json.dumps({'event':'ray_inheritance_verified', 'ray_version':ray.__version__,
+                              'workers':reports, 'ray_temp_dir':temp,
+                              'object_store_bytes':128*MIB, 'gpu_count':0}), flush=True)
+        finally:
+            ray.shutdown()
 
 
-def scope_command(unit: str, mode: str) -> list[str]:
+def scope_command(unit: str, mode: str, python: str | None = None) -> list[str]:
+    limits = test_limits(mode)
     return ['systemd-run', '--user', '--scope', '--collect', '--unit='+unit,
-            '-p', 'MemoryHigh=128M' if mode == 'oom' else 'MemoryHigh=64M',
-            '-p', 'MemoryMax=128M', '-p', 'MemorySwapMax=0',
+            '-p', f'MemoryHigh={limits["memory.high"]//MIB}M',
+            '-p', f'MemoryMax={limits["memory.max"]//MIB}M', '-p', 'MemorySwapMax=0',
             '-p', 'AllowedCPUs=4-23,28-47',
-            '/usr/bin/taskset', '-c', '4-23,28-47', sys.executable,
+            '/usr/bin/taskset', '-c', '4-23,28-47', python or sys.executable,
             str(Path(__file__).resolve()), '_worker', '--mode', mode]
 
 
@@ -242,11 +285,11 @@ def stop_own_unit(unit: str):
     subprocess.run(['systemctl', '--user', 'stop', unit], capture_output=True, timeout=10)
 
 
-def self_test() -> dict:
+def self_test(modes=('inspect', 'oom', 'linger'), python=None) -> dict:
     records = []
-    for mode in ('inspect', 'oom', 'linger'):
+    for mode in modes:
         unit = 'primelora-tc-test-' + uuid.uuid4().hex + '.scope'
-        proc = subprocess.Popen(scope_command(unit, mode), stdout=subprocess.PIPE,
+        proc = subprocess.Popen(scope_command(unit, mode, python), stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, bufsize=0)
         lines = []
         stdout, stderr = b'', b''
@@ -282,11 +325,12 @@ def self_test() -> dict:
                                 'targets': targets, 'events': [json.loads(s) for s in b''.join(lines).splitlines()],
                                 'stderr': stderr.decode(), 'returncode': proc.returncode})
             else:
-                stdout, stderr = proc.communicate(timeout=50)
+                stdout, stderr = proc.communicate(timeout=90 if mode == 'ray' else 50)
                 if proc.returncode:
                     raise RuntimeError(f'{mode} witness failed: {stderr} {stdout}')
-                events = [json.loads(s) for s in stdout.splitlines()]
-                required = 'contained_oom_verified' if mode == 'oom' else 'child_inheritance_verified'
+                events = [json.loads(s) for s in stdout.splitlines() if s.startswith(b'{')]
+                required = {'oom':'contained_oom_verified', 'inspect':'child_inheritance_verified',
+                            'ray':'ray_inheritance_verified'}[mode]
                 if not any(e.get('event') == required for e in events):
                     raise RuntimeError('missing witness event')
                 records.append({'mode': mode, 'pass': True, 'unit': unit,
@@ -307,22 +351,24 @@ def self_test() -> dict:
         if failed:
             break
     return {'kind': 'small_scope_self_test', 'pass': not failed, 'records': records,
-            'plan_sha256': check_plan(), 'max_test_memory_bytes': 128*MIB,
+            'plan_sha256': check_plan(),
+            'max_test_memory_bytes': max(test_limits(m)['memory.max'] for m in modes),
             'cpu_proof': 'inherited task affinity; not cpuset controller enforcement',
-            'hard_limit_witness_high_equals_max': True,
+            'hard_limit_witness_high_equals_max': 'oom' in modes,
             'production_launch_authorized': False,
-            'not_proven': ['Docker/Pod/Ray worker containment', 'production external watchdog',
+            'not_proven': ['complete Docker/Pod/Serverless multi-raylet and model-worker containment', 'production external watchdog',
                            'replay/service separation', 'GPU lifecycle cleanup']}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', '_worker'])
+    parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test', '_worker'])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--seal', type=Path)
     parser.add_argument('--path', type=Path, action='append')
     parser.add_argument('--predicted-growth-gib', type=float, default=0)
-    parser.add_argument('--mode', choices=['inspect', 'oom', 'linger'])
+    parser.add_argument('--mode', choices=['inspect', 'oom', 'linger', 'ray'])
+    parser.add_argument('--python', help='Existing interpreter for the native Ray witness')
     args = parser.parse_args()
     if args.action == '_worker':
         worker(args.mode)
@@ -338,6 +384,10 @@ def main():
         result = seal()
     elif args.action == 'self-test':
         result = self_test()
+    elif args.action == 'ray-test':
+        if not args.python or not Path(args.python).is_file():
+            parser.error('ray-test requires an explicit existing --python')
+        result = self_test(modes=('ray',), python=args.python)
     else:
         result = preflight(args.path or [ROOT], int(args.predicted_growth_gib * GIB))
     output = json.dumps(result, ensure_ascii=False, indent=2) + '\n'

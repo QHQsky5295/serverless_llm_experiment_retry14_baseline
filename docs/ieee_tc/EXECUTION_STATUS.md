@@ -16,7 +16,7 @@
 | Block | Status | Evidence / next action |
 |---|---|---|
 | Approved plan persistence | Recorded | Full snapshot + source hash + AGENTS instructions |
-| Resource containment / safety | Basic primitives passed; production gates pending | Tiny scope inheritance, OOM and cleanup pass; failed soft-throttled attempt retained. CPU proof is affinity, not delegated cpuset |
+| Resource containment / safety | Basic primitives and native Ray inheritance passed; production gates pending | Two actual Ray 2.54 workers inherit limits and exit cleanly. Tiny-scope and socket-path failed attempts retained. CPU proof is affinity, not delegated cpuset |
 | Protected historical artifacts | Sealed and verified | `paper_results/ieee_tc/safety/20260925_execution_start_protected.json`; old results and selected user modifications unchanged |
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
@@ -51,8 +51,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-1. Back up tested Serverless audit/repair, P0 source table and inspected diagnostic figures.
-2. Integrate effective service-worker and external-watchdog checks into existing launchers.
+1. Integrate effective service-worker and external-watchdog checks into existing launchers; native single-raylet witness is not the full deployment gate.
+2. Audit/qualify Serverless native checkpoint path before the original/repaired model pair. Historical actual engine config uses load_format=auto, not serverless_llm.
 3. Continue remote setup after its disk gate and P0/P1 read-only audits; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
@@ -64,6 +64,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
   remote SHA checked. No pre-existing user changes staged.
 - Baseline audit/repair checkpoint `f40eff06ad1a31d17fe05b12405d74b8a6a7bf70`
   pushed to `origin/main`; main audit bundle corresponds to this implementation.
+- Main diagnostic bundle `9e7a73209b8da4a9006c1e2951fc26038301b167`
+  pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
 
@@ -96,4 +98,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
   in-scope OOM kill, child inheritance and cleanup. Production limits unchanged.
 - Delegated controllers currently expose memory/pids, not cpuset; do not claim
   CPU controller isolation from accepted systemd properties alone.
+- Native Ray 2.54.0 witness: two distinct actors in a 2/3 GiB high/max scope,
+  128 MiB object store, no GPUs; actual PID cgroups and affinity agree. Both
+  worker PIDs and their scope were absent after cleanup. First attempt failed
+  from AF_UNIX path length before worker launch; retained as launcher error.
 - No formal GPU run has started. No performance claim follows from these checks.
