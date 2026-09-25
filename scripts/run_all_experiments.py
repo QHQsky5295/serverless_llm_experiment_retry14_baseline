@@ -6056,6 +6056,7 @@ class ScenarioRunner:
         self._lru_max:    int             = preload_cfg.get("lru_cache_size", 4)
         self._access_count: Dict[str, int] = defaultdict(int)
         self._remote_artifact_client = None
+        self._remote_transfer_evidence: List[Dict[str, Any]] = []
         self._bandwidth_limiter = AggregateBandwidthLimiter(self.bw_mbps)
         self._remote_materialize_locks: Dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
         self._local_sim_materialization_mode = (
@@ -6067,6 +6068,12 @@ class ScenarioRunner:
         if _remote_artifact_from_env is not None:
             self._remote_artifact_client = _remote_artifact_from_env()
         if self._remote_artifact_client is not None:
+            if self.model_cfg.get('ieee_gpu_references', False):
+                manifest_path = self.model_cfg.get('artifact_content_manifest_path')
+                if not manifest_path:
+                    raise ValueError('native remote transfer requires artifact_content_manifest_path')
+                with Path(manifest_path).open(encoding='utf-8') as manifest_file:
+                    self._remote_artifact_client.configure_content_manifest(json.load(manifest_file))
             print(
                 "    Remote artifact transfer enabled: "
                 f"{getattr(self._remote_artifact_client, 'endpoint', '<unknown>')}"
@@ -14286,16 +14293,21 @@ class ScenarioRunner:
         """
 
         if self._remote_artifact_client is not None:
+            transfer_evidence = {'artifact_id': adapter_id, 'state': 'not_started'}
             try:
                 native = self.model_cfg.get('ieee_gpu_references', False)
                 if native:
                     if self._stack is None:
                         raise RuntimeError('native managed artifact transfer requires the physical source owner')
                     owner = self._stack.residency_manager
-                    with owner.local_source_references.materializing(dst):
+                    with owner.local_source_references.materializing(dst) as transfer_id:
+                        transfer_evidence.update(transfer_id=transfer_id,
+                            local_source_owner_id=owner.local_source_references.owner_id,
+                            target_path=str(dst))
                         ok, elapsed_ms, size_bytes = self._remote_artifact_client.download_artifact(
                             adapter_id, str(dst), publish=owner.publish_local_source,
-                            cancel_event=cancel_event)
+                            cancel_event=cancel_event, require_content_manifest=True,
+                            evidence=transfer_evidence)
                 else:
                     ok, elapsed_ms, size_bytes = self._remote_artifact_client.download_artifact(
                         adapter_id, str(dst))
@@ -14310,6 +14322,9 @@ class ScenarioRunner:
                     raise  # Preserve physical transfer/owner failure, never fabricate zero-time work.
                 print(f"    remote artifact fetch failed for {adapter_id}: {exc}")
                 return False, 0.0
+            finally:
+                if self.model_cfg.get('ieee_gpu_references', False):
+                    self._remote_transfer_evidence.append(dict(transfer_evidence))
 
         src = self.remote_dir / adapter_id
         if not src.exists():
@@ -18781,6 +18796,7 @@ async def _main_async_impl(
                             sorted(runner._local_sim_materialization_counts.items())
                         ),
                     },
+                    "remote_artifact_transfers": list(runner._remote_transfer_evidence),
                     "initial_preload_accounting": {
                         "wall_s": round(runner._initial_preload_wall_s, 6),
                         "bytes": int(runner._initial_preload_bytes),

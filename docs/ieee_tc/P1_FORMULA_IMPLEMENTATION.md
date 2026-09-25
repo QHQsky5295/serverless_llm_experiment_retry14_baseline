@@ -785,3 +785,53 @@ adapter 个数直接累加物理文件占用；并未推断这三个文件都是
 下一步仍是把验证后的内容/表示和传输峰值连接到 owner 字节 reservation，
 再在发布/释放时更新真实 used/reserved；接入冷源成本、决策前候选快照和
 原子 routing/admission。未完成全套物理容量保证、Full 或任何正式性能实验。
+
+## P1-D18：远端物化绑定冻结内容清单，逐文件限制写入并校验
+
+检查 D17 后的下一依赖：旧 HTTP `/manifest` 只有 ID/可选 size；现存 3B 的
+`.publicmix_generation_manifest.json` 是来源、名义大小、rank 和编号清单，
+不是逐文件内容 SHA。不能把这两种清单当成物理写入大小或同工件证明。
+原 fetcher 仅判断“解包后非空”，因此需要显式引入已有权重的静态内容索引，
+而不是信任本次下载自行声明的权重身份。
+
+实现依据 [Python 3.12 tar extraction filters](https://docs.python.org/3.12/library/tarfile.html#extraction-filters)：
+路径过滤不等于内容或资源上限验证；档案可以包含重复成员、链接、稀疏表示。
+同时核查 [vLLM 0.30.0 本地 LoRA 加载流程](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/worker_manager.py)，
+文件身份校验和 loader 的 PEFT/模块合法性是两个不同前提，均不能代替实际生成
+时的 adapter 正确性检查。本步不改 loader 的原生推理算法或论文公式。
+
+| 情况 | 本步行为 | 不能据此宣称 |
+|---|---|---|
+| native true-remote 没有冻结内容清单 | 在网络/目标写入前拒绝下载 | 没有用远端 name-only 清单或名义 size 兜底 |
+| 清单文件 | `artifact_content_v1`：每 adapter ID 的完整相对文件路径、整数 size_bytes、SHA256 | 内容索引是已有工件元数据，不是重建 adapter/负载 |
+| 相同清单重排 | 规范排序后得到相同 SHA；配置后不能换成不同内容 | digest 是索引身份，不是本次压缩包 hash |
+| HTTP body | 必须有正 Content-Length；记录真正读到的线上字节，长度不符则不发布 | 头部来自远端，不是已经取得的磁盘预算 |
+| 普通文件 member | 大小先与冻结值一致才写；边写边 SHA，不再解包后额外读一遍权重 | 校验开销计入这次物化时间，不称免费工作 |
+| 额外、重复、缺失、错大小或错 SHA | 拒绝，清理本次私有目录，旧有效目标保留 | 不把成功解包或同长度当正确内容 |
+| 链接、稀疏文件、非规范路径 | strict representation 明确拒绝 | 该版本资格限于普通文件物化，不能假装已覆盖任意 archive 表示 |
+| 校验成功但 publication 有引用冲突 | 保存 content_verified=true、state=not_published；旧目标保留 | 内容正确不等于已完成发布/变为可路由来源 |
+| 成功发布 | 保存索引 SHA、线上/解包字节、发布状态与耗时 | 不是 selected-replica dispatch tier 快照 |
+
+原 client 增加 `configure_content_manifest()`；native runner 从按模型配置的
+`artifact_content_manifest_path` 读取静态 JSON，实际 HTTP 调用强制内容校验。
+目录可见但尚未经过本路径下载的旧 cache 不因此自动得到 confirmed 状态。
+原 native transfer 的异步线程、实际取消 join 和同 owner 发布保持不变；其
+每次 transfer 回执进入本轮 coordination metadata，包含失败的 not_published。
+全局中止时的增量 journal 仍未接入，不能承诺已有完整中止证据落盘。
+
+本步没有替换远端原服务，没有启动 174，也没有复制或重哈希完整池。现有全池
+清单不能直接冒充这个内容索引；后续资格步骤需优先复用可核验的历史 SHA，
+缺失的才从既有权重按唯一文件去重、受限扫描产生小型元数据。各 baseline
+的真实远程路径也须满足同一内容合同，不能将此 Prime 接入称为共同资格完成。
+
+新增 8 项检查，含多种失败子例；原先两项检查在旧接口上失败，非模型 OOM。
+35 项 HTTP/原 runner 检查通过，包含原 loopback server 的真实 HTTP 下载和
+原先的取消/读引用冲突测试。小型 payload 不是合法训练权重，故只证明传输
+合同；7B/3B 实际全池 LoRA 功能覆盖仍待执行。
+
+明确未完成：`used+reserved` 的原子空间预留与排队，archive/temp/目录与
+解包峰值、全局 cgroup 内存、已 unlink backing 的存活、publisher 的内容
+epoch 与 pre-decision registry。当前可在写 archive 前取得线上声明大小，
+并已有可信逐文件大小和受限写入，但它们仍必须连接物理 owner 的容量事务，
+不能从本步推出“整个传输已保证不超预算”。继续沿这一主线完成，不新增
+第二套 fetch/实验框架，也不以本检查替代 M1/M2、消融或 motivation。

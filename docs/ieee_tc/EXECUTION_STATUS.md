@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Mathematical contracts, native observations/references, managed file ownership/publication and measured linked-file storage tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D17. Selected native reads carry measured file footprint; linked storage deduplicates inodes and retains lower/staged copies. Content/physical reservations/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts, native references, managed file ownership/storage and frozen-content HTTP publication tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D18. Native fetch checks frozen file identities while writing, saves owner/transfer IDs and byte evidence. Full-pool content qualification, physical reservations/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -115,6 +115,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Managed file-read checkpoint `92ad342553dc82f35fbd6677e98f32a1908cfb93`
   pushed to V2; remote SHA verified.
 - Completed-file publication checkpoint `0b8ac0542b627ef2bda4728cee7976b9d4aa781e`
+  pushed to V2; remote SHA verified.
+- Linked-file storage checkpoint `e781ac3287afeb9e1c1dc31bd9bf997d475fa50b`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -708,3 +710,35 @@ configs/relayserve_motivation_serverlessllm.yaml.
   Keep actual model/worker/stream/clock qualification, native abort reconciliation
   and GPU allocation-owner events on the mainline. Serverless remains first in
   baseline order; remote disk decision and all formal matrices remain pending.
+
+## Frozen-content HTTP materialization checkpoint
+
+- Existing name/nominal-size manifests are not content identities. The original
+  HTTP client now accepts an immutable canonical file index (relative paths,
+  exact sizes, SHA256) from existing qualified artifacts; native runner requires
+  `artifact_content_manifest_path` and never falls back to the name-only list.
+- Strict extraction hashes while writing, checks each file size before writing,
+  rejects missing/extra/duplicate files, bad content, links/sparse representations
+  and noncanonical paths, and publishes only a complete verified payload. HTTP
+  declared/body length mismatch fails. Previous valid target remains on failure.
+- Actual native fetch saves owner/transfer ID, index SHA, real wire bytes,
+  expected/verified payload bytes and publication state in coordination metadata.
+  Cancellation still joins actual writer; verified content with publication
+  conflict stays `not_published`, not falsely ready. Native adapter application,
+  full-pool content generation/reuse, cache-hit registry and partial-run durable
+  journal remain separate gates. No remote 174 service or whole-pool hashing.
+- Eight added tests plus stricter existing loopback and real-runner integration
+  checks. Targeted 35 pass; full functional regression 555 pass, zero failures,
+  errors or skips. Independent safety/census/replay 44 pass; 147 protected entries
+  and plan SHA unchanged. D18 contains the evidence/limitation table. This is
+  byte-transfer correctness, not a new GPU performance result or system ranking.
+- Sep 26 04:44 local: original P2 installation still active on Triton (190),
+  memory high 720, max/OOM/OOM-kill zero; disk about 335 GiB free. No duplicate
+  installation or parallel model work. Continue the same live handle.
+- Next: bind this trusted write footprint and archive size to actual owner byte
+  reservations/remaining budgets; archive/header observations alone are NOT
+  permission to exceed the tier budget. Then content/epoch publication and live
+  source/cost routing/admission integration, with native abort reconciliation and
+  GPU lifetime ownership. Backend model/worker/stream/clock qualification follows
+  the existing installation. Serverless remains first among baseline runs; remote
+  disk decision and all formal comparison/ablation/sensitivity matrices pending.

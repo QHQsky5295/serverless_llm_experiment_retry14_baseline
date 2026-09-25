@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import threading
 import io
+import hashlib
 import tarfile
 import tempfile
 import unittest
@@ -12,13 +13,28 @@ from faaslora.storage.http_artifact_store import HttpArtifactStoreClient, Remote
 from remote_artifact_node.server import ArtifactHandler, ArtifactServer
 
 
-def archive_bytes():
+def content_manifest(artifact_id='a', files=None):
+    files = files if files is not None else {'adapter_model.safetensors': b'tiny-test-fixture'}
+    return {'format': 'artifact_content_v1', 'artifacts': [dict(
+        id=artifact_id, files=[dict(path=name, size_bytes=len(data),
+                                    sha256=hashlib.sha256(data).hexdigest())
+                              for name, data in files.items()])]}
+
+
+class SizedResponse(io.BytesIO):
+    def __init__(self, data):
+        super().__init__(data)
+        self.headers = {'Content-Length': str(len(data))}
+
+
+def archive_bytes(files=None):
+    files = files if files is not None else [('adapter_model.safetensors', b'tiny-test-fixture')]
     output = io.BytesIO()
     with tarfile.open(fileobj=output, mode='w:gz') as archive:
-        item = tarfile.TarInfo('adapter_model.safetensors')
-        data = b'tiny-test-fixture'
-        item.size = len(data)
-        archive.addfile(item, io.BytesIO(data))
+        for name, data in files:
+            item = tarfile.TarInfo(name)
+            item.size = len(data)
+            archive.addfile(item, io.BytesIO(data))
     return output.getvalue()
 
 
@@ -119,6 +135,107 @@ class AtomicArtifactPublication(unittest.TestCase):
     def test_existing_loopback_server_roundtrip(self):
         test_http_artifact_store_roundtrip(self.root)
 
+    def test_native_transfer_requires_frozen_manifest_before_network_or_writes(self):
+        self.client._opener.open.return_value = SizedResponse(archive_bytes())
+        with self.assertRaisesRegex(RemoteArtifactError, 'frozen content manifest'):
+            self.client.download_artifact('a', str(self.target), require_content_manifest=True)
+        self.client._opener.open.assert_not_called()
+        self.assertEqual((self.target / 'old').read_bytes(), b'previous-valid-copy')
+
+    def test_verified_transfer_rejects_same_length_wrong_content_without_publication(self):
+        self.client.configure_content_manifest(content_manifest(
+            files={'adapter_model.safetensors': b'wrong-test-bytes!'}))
+        self.client._opener.open.return_value = SizedResponse(archive_bytes())
+        publisher = Mock()
+        with self.assertRaisesRegex(RemoteArtifactError, 'content SHA'):
+            self.client.download_artifact('a', str(self.target), publish=publisher,
+                                          require_content_manifest=True)
+        publisher.assert_not_called()
+        self.assertEqual((self.target / 'old').read_bytes(), b'previous-valid-copy')
+
+    def test_frozen_manifest_is_immutable_order_independent_and_not_a_size_hint(self):
+        payload = content_manifest(files={'b': b'B', 'a': b'A'})
+        digest = self.client.configure_content_manifest(payload)
+        payload['artifacts'][0]['files'].reverse()
+        self.assertEqual(self.client.configure_content_manifest(payload), digest)
+        payload['artifacts'][0]['files'][0]['size_bytes'] += 1
+        with self.assertRaisesRegex(ValueError, 'already frozen'):
+            self.client.configure_content_manifest(payload)
+        self.assertEqual(self.client._content_manifest['a']['a'][0], 1)
+        with self.assertRaises(TypeError):
+            self.client._content_manifest['a']['a'] = (2, '0' * 64)
+
+    def test_invalid_manifest_paths_and_file_identities_are_rejected(self):
+        for name in ('../x', '/x', './x', 'a//x', 'a\\x', 'a/../x', ''):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                self.client.configure_content_manifest(content_manifest(files={name: b'data'}))
+        payload = content_manifest()
+        payload['artifacts'][0]['files'].append(dict(payload['artifacts'][0]['files'][0]))
+        with self.assertRaisesRegex(ValueError, 'duplicate'):
+            self.client.configure_content_manifest(payload)
+        with self.assertRaisesRegex(ValueError, 'both file and directory'):
+            self.client.configure_content_manifest(content_manifest(files={'a': b'A', 'a/b': b'B'}))
+
+    def test_verified_transfer_requires_exact_http_body_length(self):
+        self.client.configure_content_manifest(content_manifest())
+        for header in (None, '', '-1', '0', '1', str(len(archive_bytes()) + 1)):
+            with self.subTest(header=header):
+                response = SizedResponse(archive_bytes())
+                response.headers = {} if header is None else {'Content-Length': header}
+                self.client._opener.open.return_value = response
+                evidence = {}
+                with self.assertRaisesRegex(RemoteArtifactError, 'Content-Length'):
+                    self.client.download_artifact('a', str(self.target), require_content_manifest=True,
+                                                  evidence=evidence)
+                self.assertEqual(evidence['state'], 'not_published')
+                self.assertEqual((self.target / 'old').read_bytes(), b'previous-valid-copy')
+                self.assertEqual(sorted(p.name for p in self.root.iterdir()), ['a'])
+
+    def test_unexpected_duplicate_missing_or_wrong_size_member_cannot_publish(self):
+        self.client.configure_content_manifest(content_manifest())
+        member = ('adapter_model.safetensors', b'tiny-test-fixture')
+        for entries in ([member, ('extra', b'x')], [member, member], [],
+                        [('adapter_model.safetensors', b'short')], [('../escape', b'data')]):
+            with self.subTest(entries=entries):
+                self.client._opener.open.return_value = SizedResponse(archive_bytes(entries))
+                with self.assertRaises(RemoteArtifactError):
+                    self.client.download_artifact('a', str(self.target), require_content_manifest=True)
+                self.assertEqual((self.target / 'old').read_bytes(), b'previous-valid-copy')
+                self.assertEqual(sorted(p.name for p in self.root.iterdir()), ['a'])
+
+    def test_link_cannot_redefine_frozen_regular_file(self):
+        self.client.configure_content_manifest(content_manifest())
+        output = io.BytesIO()
+        with tarfile.open(fileobj=output, mode='w:gz') as archive:
+            member = tarfile.TarInfo('adapter_model.safetensors')
+            member.type = tarfile.SYMTYPE
+            member.linkname = '../old'
+            archive.addfile(member)
+        self.client._opener.open.return_value = SizedResponse(output.getvalue())
+        with self.assertRaisesRegex(RemoteArtifactError, 'regular nonsparse'):
+            self.client.download_artifact('a', str(self.target), require_content_manifest=True)
+        self.assertEqual((self.target / 'old').read_bytes(), b'previous-valid-copy')
+
+    def test_verified_nested_files_publish_with_auditable_byte_counts(self):
+        payload = {'nested/a': b'A', 'nested/b': b'BB'}
+        digest = self.client.configure_content_manifest(content_manifest(files=payload))
+        body = archive_bytes(list(payload.items()))
+        self.client._opener.open.return_value = SizedResponse(body)
+        evidence = {}
+        ok, elapsed, size = self.client.download_artifact('a', str(self.target),
+            require_content_manifest=True, evidence=evidence)
+        self.assertTrue(ok)
+        self.assertGreater(elapsed, 0)
+        self.assertEqual(size, 3)
+        self.assertEqual(evidence['state'], 'published')
+        self.assertEqual(evidence['transferred_bytes'], len(body))
+        self.assertEqual(evidence['archive_bytes_declared'], len(body))
+        self.assertEqual(evidence['payload_bytes_expected'], 3)
+        self.assertEqual(evidence['payload_bytes_verified'], 3)
+        self.assertTrue(evidence['content_verified'])
+        self.assertEqual(evidence['content_manifest_sha256'], digest)
+        self.assertEqual((self.target / 'nested' / 'b').read_bytes(), b'BB')
+
 
 def test_http_artifact_store_roundtrip(tmp_path: Path) -> None:
     root = tmp_path / "remote"
@@ -133,14 +250,20 @@ def test_http_artifact_store_roundtrip(tmp_path: Path) -> None:
     try:
         endpoint = f"http://127.0.0.1:{server.server_port}"
         client = HttpArtifactStoreClient(endpoint=endpoint, timeout_s=10)
+        client.configure_content_manifest(content_manifest('demo_lora', {
+            'adapter_config.json': b'{"base_model_name_or_path":"demo"}\n',
+            'adapter_model.safetensors': b'demo\n'}))
         assert client.health()["ok"] is True
         assert client.list_artifacts() == ["demo_lora"]
         target = tmp_path / "fetch" / "demo_lora"
-        ok, _elapsed_ms, size_bytes = client.download_artifact("demo_lora", str(target))
+        evidence = {}
+        ok, _elapsed_ms, size_bytes = client.download_artifact("demo_lora", str(target),
+            require_content_manifest=True, evidence=evidence)
         assert ok
         assert size_bytes > 0
         assert (target / "adapter_config.json").exists()
         assert (target / "adapter_model.safetensors").exists()
+        assert evidence['content_verified'] and evidence['state'] == 'published'
     finally:
         server.shutdown()
         server.server_close()

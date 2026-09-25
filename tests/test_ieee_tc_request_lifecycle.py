@@ -26,6 +26,7 @@ def fixture():
     runner.cost_model = {}
     runner._stack = None
     runner._unsettled_runtime_reservations = {}
+    runner._remote_transfer_evidence = []
     runner.adapter_info = {'adapter-a': {'size_mb': 30.}}
     runner._prune_dead_instance_slots = AsyncMock()
     runner._refresh_all_slot_runtime_hints = Mock()
@@ -580,7 +581,7 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
     def test_native_http_publication_obeys_read_owner_and_does_not_hide_failure(self):
         from faaslora.memory.residency_manager import ResidencyManager
         from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
-        from tests.test_http_artifact_store import archive_bytes
+        from tests.test_http_artifact_store import archive_bytes, content_manifest, SizedResponse
         import io
         runner, slot, trace, plan, owner, rpc = native_reference_fixture()
         with tempfile.TemporaryDirectory() as directory:
@@ -591,8 +592,9 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
             reference = manager.acquire_local_source(path=str(source), adapter_id='a', lease_id='reader')
             runner._stack = SimpleNamespace(residency_manager=manager)
             client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+            client.configure_content_manifest(content_manifest())
             client._opener = Mock()
-            client._opener.open.side_effect = lambda *a, **k: io.BytesIO(archive_bytes())
+            client._opener.open.side_effect = lambda *a, **k: SizedResponse(archive_bytes())
             runner._remote_artifact_client = client
             with self.assertRaisesRegex(RuntimeError, 'live source reference'):
                 asyncio.run(runner._materialize_remote_adapter_async('a', source))
@@ -604,11 +606,18 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
             self.assertGreater(elapsed, 0)
             self.assertTrue((source / 'adapter_model.safetensors').exists())
             self.assertEqual(sorted(p.name for p in Path(directory).iterdir()), ['a'])
+            self.assertEqual([row['state'] for row in runner._remote_transfer_evidence],
+                             ['not_published', 'published'])
+            self.assertTrue(runner._remote_transfer_evidence[-1]['content_verified'])
+            self.assertNotEqual(runner._remote_transfer_evidence[0]['transfer_id'],
+                                runner._remote_transfer_evidence[1]['transfer_id'])
+            self.assertEqual(runner._remote_transfer_evidence[-1]['local_source_owner_id'],
+                             manager.local_source_references.owner_id)
 
     def test_actual_http_client_cancel_waits_for_reader_and_cleans_without_publication(self):
         from faaslora.memory.residency_manager import ResidencyManager
         from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
-        from tests.test_http_artifact_store import archive_bytes
+        from tests.test_http_artifact_store import archive_bytes, content_manifest, SizedResponse
         import io
         runner, slot, trace, plan, owner, rpc = native_reference_fixture()
         with tempfile.TemporaryDirectory() as directory:
@@ -618,8 +627,9 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
             manager = ResidencyManager({'memory': {'nvme': {'cache_dir': directory}}}, Mock(), Mock())
             runner._stack = SimpleNamespace(residency_manager=manager)
             client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+            client.configure_content_manifest(content_manifest())
             entered, proceed = threading.Event(), threading.Event()
-            class HeldResponse(io.BytesIO):
+            class HeldResponse(SizedResponse):
                 def read(inner, *args):
                     entered.set()
                     if not proceed.wait(2):
