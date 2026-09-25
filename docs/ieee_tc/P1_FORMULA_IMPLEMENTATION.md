@@ -80,3 +80,46 @@ arrival hook 先于 admission，以及输入/时钟校验。
 2. 建立 admission-time class 与 D/T/O 原生事件，按式 (3) 实现选择与预约。
 3. 接后端 iteration/KV/pool 观测后修正式 (8)/(9)，不可先用猜测数值填充。
 4. 其间完成外置监控/实际 worker containment；通过后才进行 P2 模型资格。
+
+## P1-D2：收益规划计算与容量边界（已测试，实测输入接入待完成）
+
+历史 DP 的最近实质修改在 `9e49932`：从字节状态改为 MiB，但保留
+`max(1, capacity // MiB)`。在本次修改前直接调用实际旧函数，得到：
+
+| 检查项 | 旧实现实际输出 | 论文约束 / 新计算 |
+|---|---:|---:|
+| 剩余预算 | 524,288 bytes | 相同 |
+| 单工件大小 | 786,432 bytes | 相同 |
+| 被选择总字节 | 786,432 bytes | 0 bytes |
+| 是否越预算 | 是 | 否 |
+
+这是确定性容量违反，不是性能观测。不能靠执行端事后拒绝来把规划器称为正确。
+
+沿用现有 `PreloadingPlanner` 与 `KnapsackItem`：
+
+- `PreparationCandidate` 保存不可变的 source/target、footprint、h 与准备成本；
+  `benefit_ms=h*max(d_source-d_target,0)`，`density=benefit/bytes`。
+- `select_ieee_insertions` 处理 GPU→HOST→NVMe，排除更快层已选择目标。
+- `select_ieee_handoff` 对正收益 pair 做密度扫描，按 adapter ID/tier 稳定决胜，
+  每 adapter 只有一个最终目标。
+- 两者要求三个层的显式剩余预算；同一 adapter 的矛盾需求/源状态或重复目标
+  会报错，不自动合并猜测。执行时引用与 reservation 仍由资源 owner 负责。
+- DP 使用 ceil(weight/MiB)、floor(capacity/MiB)、单个 packed objective 行和
+  byte traceback；不再分配 n 个 Python-float objective 行。
+- `max_dp_buffer_bytes` 是算表资源边界，默认 16 MiB，可在冻结前由 operator
+  配置；不是优化性能排名的参数，也不是整个 planner 的 RSS 上限。
+- 超过表缓冲预算走论文允许的原字节密度扫描，并记录实际 algorithm。
+- 既有历史入口复用修正后的容量 kernel，但**保留显式历史 objective 身份**。
+  它不因此成为 IEEE F 路径。TC 入口尚不能用旧 scorer 作为默默兜底。
+
+十二项单元测试通过，包括 80 个八候选问题的所有子集枚举、非整数 MiB
+占用、空/零预算、唯一性、稳定 tie-break、强制大表 scan、零收益和非法输入。
+这里的数学测试样例不是新增 serving workload，未生成模型或 LoRA 工件。
+
+实现参考：使用 [Python 官方 packed array 语义](https://docs.python.org/3/library/array.html)
+降低 objective 表示的内存开销；算法语义来自 IEEE 式 (4)–(7)，不作为新算法
+贡献。对 [vLLM 0.30.0 KV 管理接口](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/core/kv_cache_manager.py)
+的初查确认后续必须对接真实块分配信息，不能把离线候选选择当作物理准入。
+
+当前剩余：测量类/profile 来源、共享 footprint/remaining-budget owner、真实
+pending-movement 执行路径的接入。没有接入完成就不放行 Full 正式实验。

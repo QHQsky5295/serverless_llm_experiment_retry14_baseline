@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Nine-equation audit recorded; exact arrival demand implemented and tested | P1_FORMULA_IMPLEMENTATION.md. 297 combined tests pass. Routing/class EWMA, planner objective, admission and physical reservations remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Exact arrival demand tested; IEEE planning primitives tested, integration open | P1_FORMULA_IMPLEMENTATION.md. 309 combined tests pass incl. exhaustive subsets. Native profile/owner wiring, routing, admission remain open; no Full performance qualification |
 | P2 backend qualification | Pending | vLLM candidate must be checked locally |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,7 +51,7 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-1. Align F/DP and routing/admission using the nine-equation audit. Demand checkpoint passed all 297 tests. This advances the mainline while remote disk approval is pending.
+1. Integrate IEEE planning primitives with measured source-class costs and resource-owner remaining budgets, then routing/admission. Do not declare the retained historical scorer to be IEEE-aligned. Continue P2 telemetry qualification after containment gates.
 2. Integrate effective service-worker and external-watchdog checks into existing launchers; native single-raylet witness is not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
@@ -69,6 +69,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Main native-worker safety checkpoint `040296e6ee424a3f9ff37c40ca39da7ee4b8432c`
   and baseline loader audit `45698053fb48ab2219ccde9253e4754e28d68a63`
   pushed to their respective branches; remote SHAs verified.
+- Main exact-demand checkpoint `b9c326958d864c3a061b7eb7049220a7aedadb67`
+  pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
 
@@ -121,3 +123,16 @@ configs/relayserve_motivation_serverlessllm.yaml.
   four real GPUs remained idle. No workload/adapter regeneration occurred.
 - Nine-formula gap table is an evidence table, not an experimental performance
   figure. No claim that P1, Full qualification or optimization target is complete.
+
+## P1 planning primitive checkpoint
+
+- Reproduced old sub-MiB capacity error: selected 786432 bytes with only 524288
+  bytes remaining. New conservative kernel selects none for this counterexample.
+- Existing planner extended with immutable measured-cost/demand candidates,
+  conditional tier insertion and one-target handoff scan. No new experiment runner.
+- Twelve tests passed, including exhaustive subsets for 80 small mathematical
+  problems. Combined regression: 309 tests passed, zero errors/failures/skips.
+- These are planning primitives, not full live integration. Runtime path still
+  needs confirmed per-replica source profiles/footprints and owner reservations.
+  Retained legacy scorer is explicitly not IEEE-qualified; no fallback inference
+  of missing costs or physical state is permitted for TC qualification.

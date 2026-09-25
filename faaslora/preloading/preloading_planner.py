@@ -6,6 +6,8 @@ based on hotness prediction and value-per-byte optimization.
 """
 
 import time
+import math
+from array import array
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
@@ -86,6 +88,46 @@ class KnapsackItem:
         self.value_per_weight = self.value / self.weight if self.weight > 0 else 0.0
 
 
+@dataclass(frozen=True)
+class PreparationCandidate:
+    """Frozen IEEE planning input, not an estimate synthesized from tier names.
+
+    Loading costs must come from a supported measured/profiled class. Footprint
+    is actual target occupancy. This object cannot replace execution-time
+    source/reference checks or capacity reservations.
+    """
+    artifact_id: str
+    source_tier: StorageTier
+    target_tier: StorageTier
+    footprint_bytes: int
+    demand_fraction: float
+    source_load_ms: float
+    target_load_ms: float
+
+    def __post_init__(self):
+        tiers = [StorageTier.REMOTE, StorageTier.NVME, StorageTier.HOST, StorageTier.GPU]
+        if not self.artifact_id or self.source_tier not in tiers or self.target_tier not in tiers:
+            raise ValueError('candidate requires a known identity and tiers')
+        if tiers.index(self.source_tier) >= tiers.index(self.target_tier):
+            raise ValueError('preparation target must be faster than the valid source')
+        if type(self.footprint_bytes) is not int or self.footprint_bytes <= 0:
+            raise ValueError('target footprint must be a positive byte count')
+        if not math.isfinite(self.demand_fraction) or not 0 <= self.demand_fraction <= 1:
+            raise ValueError('demand must be a finite arrival fraction')
+        if any(not math.isfinite(x) or x < 0 for x in (self.source_load_ms, self.target_load_ms)):
+            raise ValueError('missing/invalid preparation profile, not a zero-cost path')
+        if self.target_tier == StorageTier.GPU and self.target_load_ms != 0:
+            raise ValueError('executable GPU target has zero remaining load time')
+
+    @property
+    def benefit_ms(self) -> float:
+        return self.demand_fraction * max(0.0, self.source_load_ms - self.target_load_ms)
+
+    @property
+    def density(self) -> float:
+        return self.benefit_ms / self.footprint_bytes
+
+
 @dataclass
 class PreloadingPlanResult:
     """Result of preloading plan generation"""
@@ -129,6 +171,11 @@ class PreloadingPlanner:
         self.max_plan_size_gb = preloading_config.get('max_plan_size_gb', 10)
         self.min_hotness_threshold = preloading_config.get('min_hotness_threshold', 0.1)
         self.value_threshold = preloading_config.get('value_threshold', 0.01)
+        # Operator memory bound, not a fitted performance coefficient. This
+        # limits packed objective + traceback buffers, not the whole process.
+        self.max_dp_buffer_bytes = int(preloading_config.get('max_dp_buffer_bytes', 16 * 1024**2))
+        if self.max_dp_buffer_bytes < 0:
+            raise ValueError('max_dp_buffer_bytes must be nonnegative')
         
         # Mathematical models
         self.value_calculator = ValuePerByteCalculator()
@@ -358,50 +405,128 @@ class PreloadingPlanner:
         Returns:
             Selected candidates
         """
-        if not candidates:
-            return []
-        
-        # Byte-level DP is not tractable for GiB-scale capacities. Convert the
-        # problem to MiB units so HOST/NVMe planning remains exact enough while
-        # staying bounded in memory.
-        unit_bytes = 1024 ** 2  # 1 MiB
-        cap_units = max(1, capacity_bytes // unit_bytes)
+        # Historical caller retains its historical objective explicitly. It is
+        # NOT the IEEE F objective: new IEEE plans enter select_ieee_insertions.
+        unit = 1024**2
+        items = [KnapsackItem(c.artifact_id, c.size_bytes,
+                             float(c.priority_score) * ((c.size_bytes + unit - 1)//unit))
+                 for c in candidates]
+        chosen, _ = self.select_benefit_items(items, capacity_bytes)
+        selected = {x.artifact_id for x in chosen}
+        return [c for c in candidates if c.artifact_id in selected]
 
-        # Very large plans still fall back to greedy to keep planning bounded.
-        if cap_units > 16384 or len(candidates) > 1000:  # 16 GiB in MiB units
-            return self._greedy_knapsack_approximation(candidates, capacity_bytes)
+    def select_benefit_items(self, items: List[KnapsackItem], capacity_bytes: int):
+        """0/1 sum-value insertion with conservative MiB rounding (IEEE 6–7).
 
-        items = []
+        Values are supplied by the caller. IEEE callers supply F, not density
+        times rounded weight. The documented large-table scan uses raw bytes.
+        """
+        if type(capacity_bytes) is not int or capacity_bytes < 0:
+            raise ValueError('remaining capacity must be nonnegative integer bytes')
+        seen = set()
+        for item in items:
+            if not item.artifact_id or item.artifact_id in seen:
+                raise ValueError('duplicate/empty candidate identity')
+            seen.add(item.artifact_id)
+            if type(item.weight) is not int or item.weight <= 0:
+                raise ValueError('footprints must be positive integer bytes')
+            if not math.isfinite(item.value) or item.value < 0:
+                raise ValueError('benefits must be finite and nonnegative')
+        items = sorted((x for x in items if x.value > 0 and x.weight <= capacity_bytes),
+                       key=lambda x: x.artifact_id)
+        unit = 1024**2
+        cap = capacity_bytes // unit
+        # array.itemsize is checked, not assumed from Python object sizes.
+        buffer_bytes = (cap + 1) * (array('d').itemsize + len(items))
+        metadata = {'algorithm': 'conservative_mib_dp', 'capacity_bytes': capacity_bytes,
+                    'unit_bytes': unit, 'capacity_units': cap,
+                    'dp_buffer_bytes': buffer_bytes, 'selected_bytes': 0, 'total_value': 0.0}
+        if not items or cap == 0:
+            metadata['dp_buffer_bytes'] = 0
+            return [], metadata
+        if buffer_bytes > self.max_dp_buffer_bytes:
+            chosen, remaining = [], capacity_bytes
+            for item in sorted(items, key=lambda x: (-x.value_per_weight, x.artifact_id)):
+                if item.weight <= remaining:
+                    chosen.append(item)
+                    remaining -= item.weight
+            metadata['algorithm'] = 'raw_byte_density_scan'
+            metadata['dp_buffer_bytes'] = 0
+        else:
+            # Descending in-place objective updates enforce 0/1 usage. Each
+            # item's decision row reconstructs the prior row without n float rows.
+            objective = array('d', [0.0]) * (cap + 1)
+            decisions = []
+            weights = [(x.weight + unit - 1)//unit for x in items]
+            for item, weight in zip(items, weights):
+                row = bytearray(cap + 1)
+                for w in range(cap, weight - 1, -1):
+                    proposed = objective[w-weight] + item.value
+                    if proposed > objective[w]:
+                        objective[w] = proposed
+                        row[w] = 1
+                decisions.append(row)
+            chosen, w = [], cap
+            for idx in range(len(items)-1, -1, -1):
+                if decisions[idx][w]:
+                    chosen.append(items[idx])
+                    w -= weights[idx]
+            chosen.reverse()
+        metadata['selected_bytes'] = sum(x.weight for x in chosen)
+        metadata['total_value'] = sum(x.value for x in chosen)
+        if metadata['selected_bytes'] > capacity_bytes:
+            raise AssertionError('insertion exceeds physical remaining byte budget')
+        return chosen, metadata
+
+    @staticmethod
+    def _validate_ieee_epoch(candidates, budgets):
+        tiers = (StorageTier.GPU, StorageTier.HOST, StorageTier.NVME)
+        if set(budgets) != set(tiers):
+            raise ValueError('explicit remaining budgets required for all three local tiers')
+        if any(type(x) is not int or x < 0 for x in budgets.values()):
+            raise ValueError('remaining budgets must be nonnegative integer bytes')
+        seen, sources = set(), {}
         for c in candidates:
-            weight_units = max(1, (c.size_bytes + unit_bytes - 1) // unit_bytes)
-            value = float(c.priority_score) * float(weight_units)
-            items.append((weight_units, value))
+            key = (c.artifact_id, c.target_tier)
+            if key in seen:
+                raise ValueError('duplicate adapter/target pair in planning epoch')
+            seen.add(key)
+            state = (c.source_tier, c.source_load_ms, c.demand_fraction)
+            if c.artifact_id in sources and sources[c.artifact_id] != state:
+                raise ValueError('one adapter has conflicting source/demand snapshots')
+            sources[c.artifact_id] = state
+        return tiers
 
-        n = len(items)
-        dp = [[0.0] * (cap_units + 1) for _ in range(n + 1)]
-        keep = [[False] * (cap_units + 1) for _ in range(n + 1)]
+    def select_ieee_insertions(self, candidates: List[PreparationCandidate], budgets: Dict):
+        """Conditional GPU→HOST→NVMe insertion sets; not global optimality.
 
-        for i in range(1, n + 1):
-            weight_units, value = items[i - 1]
-            for w in range(cap_units + 1):
-                best = dp[i - 1][w]
-                if weight_units <= w:
-                    candidate_value = dp[i - 1][w - weight_units] + value
-                    if candidate_value > best:
-                        dp[i][w] = candidate_value
-                        keep[i][w] = True
-                        continue
-                dp[i][w] = best
+        Caller freezes measured costs, demand, source and *remaining* budgets
+        before this call. Reservations/staging must already be subtracted.
+        """
+        tiers = self._validate_ieee_epoch(candidates, budgets)
+        selected, used_adapters, diagnostics = {}, set(), {}
+        for tier in tiers:
+            by_id = {c.artifact_id: c for c in candidates
+                     if c.target_tier == tier and c.artifact_id not in used_adapters and c.benefit_ms > 0}
+            items = [KnapsackItem(c.artifact_id, c.footprint_bytes, c.benefit_ms) for c in by_id.values()]
+            chosen, meta = self.select_benefit_items(items, budgets[tier])
+            selected[tier] = [by_id[x.artifact_id] for x in chosen]
+            diagnostics[tier.value] = meta
+            used_adapters.update(x.artifact_id for x in chosen)
+        return selected, diagnostics
 
-        selected_indices: List[int] = []
-        w = cap_units
-        for i in range(n, 0, -1):
-            if keep[i][w]:
-                selected_indices.append(i - 1)
-                w -= items[i - 1][0]
-
-        selected_indices.reverse()
-        return [candidates[i] for i in selected_indices]
+    def select_ieee_handoff(self, candidates: List[PreparationCandidate], budgets: Dict):
+        """Eq. (5) density scan with one final target per adapter."""
+        tiers = self._validate_ieee_epoch(candidates, budgets)
+        remaining = dict(budgets)
+        selected, used = {tier: [] for tier in tiers}, set()
+        for c in sorted(candidates, key=lambda c: (-c.density, c.artifact_id, tiers.index(c.target_tier))):
+            if c.benefit_ms <= 0 or c.artifact_id in used or c.footprint_bytes > remaining[c.target_tier]:
+                continue
+            selected[c.target_tier].append(c)
+            remaining[c.target_tier] -= c.footprint_bytes
+            used.add(c.artifact_id)
+        return selected, remaining
     
     def _greedy_knapsack_approximation(self, 
                                      candidates: List[PreloadingCandidate],
