@@ -3316,6 +3316,8 @@ class InferenceEngine:
                 max_num_seqs=self.model_cfg.get("max_num_seqs", 8),
                 max_num_batched_tokens=default_batched,
             )
+            if self.model_cfg.get("ieee_worker_observation", False):
+                kwargs["worker_extension_cls"] = "faaslora.memory.gpu_monitor.IEEEWorkerObservationExtension"
             if tokenizer_mode is not None:
                 kwargs["tokenizer_mode"] = tokenizer_mode
             if tp > 1:
@@ -4229,6 +4231,25 @@ class InferenceEngine:
         import hashlib
         return (int(hashlib.md5(adapter_id.encode()).hexdigest(), 16) % 999999) + 1
 
+    async def ieee_worker_observation(self, *, synchronize: bool = False) -> Dict[str, Any]:
+        """Strict qualification RPC; unlike shutdown helpers, never swallows errors."""
+        if not self.model_cfg.get("ieee_worker_observation", False):
+            raise RuntimeError("native worker observation was not enabled at engine creation")
+        if self.backend != "vllm" or self.engine is None or self._engine_dead:
+            raise RuntimeError("native worker observation requires a live vLLM engine")
+        rpc = getattr(self.engine, "collective_rpc", None)
+        if not callable(rpc):
+            raise RuntimeError("backend lacks native worker collective RPC")
+        observations = rpc("ieee_worker_observation", kwargs={"synchronize": synchronize})
+        if inspect.isawaitable(observations):
+            observations = await observations
+        if not isinstance(observations, list) or not observations:
+            raise RuntimeError("empty or invalid native worker observations")
+        expected = int(self.model_cfg.get("tensor_parallel_size", 1))
+        if len(observations) != expected:
+            raise RuntimeError("worker observation count differs from configured TP")
+        return {"workers": observations, "production_launch_authorized": False}
+
     async def load_lora_to_gpu_and_measure(self, lora_path: str, adapter_id: str) -> Tuple[float, bool]:
         """
         D1: Trigger vLLM LoRA load and measure time until first token (real load latency).
@@ -4942,6 +4963,9 @@ class SubprocessInferenceEngineProxy:
             adapter_id=adapter_id,
         )
         return float(result.get("load_ms", 0.0)), bool(result.get("ok", False))
+
+    async def ieee_worker_observation(self, *, synchronize: bool = False) -> Dict[str, Any]:
+        return await self._rpc("ieee_worker_observation", synchronize=synchronize)
 
     async def shutdown(self) -> None:
         keep_logs = self._keep_worker_logs_requested()

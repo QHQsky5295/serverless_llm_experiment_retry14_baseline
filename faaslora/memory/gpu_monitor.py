@@ -7,6 +7,8 @@ memory usage, peak allocation, and KV cache statistics.
 
 import time
 import threading
+import os
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
 from collections import deque
@@ -33,6 +35,109 @@ def _cuda_available() -> bool:
 
 from ..utils.config import Config
 from ..utils.logger import get_logger
+
+
+def _ieee_lora_pool_inventory(manager: Any) -> Dict[str, Any]:
+    """Inventory real tensor storage once; no file-size or rank-size proxy.
+
+    This qualification probe supports the dense A/B stacked representation of
+    the Llama runtimes. Unrecognized modules fail explicitly instead of being
+    omitted and understating the pool. Tensor *views* may share storage.
+    """
+    allocations: Dict[Tuple[str, int, int], Dict[str, Any]] = {}
+    views: List[Dict[str, Any]] = []
+
+    def add(value: Any, name: str) -> None:
+        if isinstance(value, (tuple, list)):
+            if not value:
+                raise ValueError(f"empty native LoRA tensor collection: {name}")
+            for index, tensor in enumerate(value):
+                add(tensor, f"{name}[{index}]")
+            return
+        if torch is None or not torch.is_tensor(value) or value.device.type != 'cuda':
+            raise ValueError(f"expected native CUDA LoRA tensor: {name}")
+        storage = value.untyped_storage()
+        storage_bytes = int(storage.nbytes())
+        if storage_bytes <= 0:
+            raise ValueError(f"empty physical LoRA allocation: {name}")
+        key = (str(value.device), int(storage.data_ptr()), storage_bytes)
+        if key not in allocations:
+            allocations[key] = {'allocation_id': len(allocations),
+                                'device': str(value.device), 'allocated_bytes': storage_bytes}
+        views.append({'name': name, 'allocation_id': allocations[key]['allocation_id'],
+                      'shape': list(value.shape), 'dtype': str(value.dtype),
+                      'view_bytes': int(value.numel()) * int(value.element_size()),
+                      'storage_offset_elements': int(value.storage_offset())})
+
+    if not manager.modules:
+        raise ValueError('no native LoRA modules; adapter execution not established')
+    for name, module in sorted(manager.modules.items()):
+        for attribute in ('lora_a_stacked', 'lora_b_stacked'):
+            if not hasattr(module, attribute):
+                raise ValueError(f'unsupported LoRA representation: {name}.{attribute}')
+            add(getattr(module, attribute), f'{name}.{attribute}')
+    slot_ids = tuple(manager.lora_index_to_id)
+    if len(slot_ids) != int(manager.lora_slots):
+        raise ValueError('native LoRA slot configuration/mapping disagree')
+    active = tuple(sorted(manager._active_adapters))
+    mapped = tuple(sorted(aid for aid in slot_ids if aid is not None))
+    if len(set(mapped)) != len(mapped) or active != mapped:
+        raise ValueError('native active set and slot mapping disagree')
+    registered = sorted(manager.list_adapters())
+    if not set(active).issubset(registered):
+        raise ValueError('active GPU adapter lacks its native registered model')
+    return {'pool_allocations': list(allocations.values()), 'pool_tensor_views': views,
+            'pool_allocated_bytes': sum(row['allocated_bytes'] for row in allocations.values()),
+            'lora_slots': len(slot_ids), 'slot_adapter_ids': list(slot_ids),
+            'active_gpu_adapter_ids': list(active),
+            'registered_cpu_adapter_ids': registered}
+
+
+class IEEEWorkerObservationExtension:
+    """Read-only native worker qualification via vLLM worker_extension_cls.
+
+    No scheduler, eviction, admission or inference method is overridden. An
+    unsynchronized slot mapping is NOT confirmed readiness or a dispatch lease.
+    The optional device barrier is for isolated qualification/profiling only;
+    never call it as per-request monitoring in a performance campaign.
+    """
+
+    def ieee_worker_observation(self, *, synchronize: bool = False) -> Dict[str, Any]:
+        if type(synchronize) is not bool:
+            raise ValueError('synchronize must be an explicit boolean')
+        if torch is None or self.device is None or self.device.type != 'cuda':
+            raise RuntimeError('native CUDA worker is required')
+        from faaslora.metrics.metrics_collector import local_monotonic_clock_id
+        import vllm
+
+        runner = self.model_runner
+        manager = runner.lora_manager._adapter_manager
+        if synchronize:
+            torch.cuda.synchronize(self.device)
+        with torch.cuda.device(self.device):
+            free_bytes, total_bytes = torch.cuda.mem_get_info(self.device)
+            allocated_bytes = torch.cuda.memory_allocated(self.device)
+            reserved_bytes = torch.cuda.memory_reserved(self.device)
+        pool = _ieee_lora_pool_inventory(manager)
+        if pool['pool_allocated_bytes'] > allocated_bytes:
+            raise ValueError('LoRA storage inventory exceeds native allocator occupancy')
+        return {
+            'kind': 'ieee_native_worker_qualification_observation',
+            'pid': os.getpid(), 'uid': os.getuid(), 'parent_pid': os.getppid(),
+            'cgroup': Path('/proc/self/cgroup').read_text().strip(),
+            'affinity': sorted(os.sched_getaffinity(0)),
+            'clock_id': local_monotonic_clock_id(), 'captured_monotonic_s': time.monotonic(),
+            'backend_version': vllm.__version__, 'torch_version': torch.__version__,
+            'cuda_visible_devices': os.environ.get('CUDA_VISIBLE_DEVICES'),
+            'visible_gpu_count': torch.cuda.device_count(), 'local_device': str(self.device),
+            'worker_rank': int(self.rank),
+            'device_total_bytes': int(total_bytes), 'device_free_bytes': int(free_bytes),
+            'torch_allocated_bytes': int(allocated_bytes), 'torch_reserved_bytes': int(reserved_bytes),
+            'device_barrier_used': synchronize,
+            'dispatch_reference_held': False,
+            'production_admission_snapshot': False,
+            **pool,
+        }
 
 
 @dataclass

@@ -82,6 +82,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Main backend dependency checkpoint `cf774c1c7bb8f6c352d9993eb7401e70975f679c`
   and byte/block admission checkpoint `a08b4943b5826028fd5f4ec1f1774eb610c1aa56`
   pushed to V2; remote SHAs verified.
+- Native token timing checkpoint `0013fca361c26643184689c34d0b147dc3176d57`
+  pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
 
@@ -221,3 +223,20 @@ configs/relayserve_motivation_serverlessllm.yaml.
   owner/reference/reservation, external replay, aggregate/goodput/lifecycle gates.
 - Remote disk rechecked: 149094010880 bytes (~138.9 GiB), still below the agreed
   150 GiB floor; no remote artifact service started or unrelated data deleted.
+
+## P2 native worker observation wiring
+
+- Existing GPU monitor now supplies a read-only official vLLM worker extension;
+  engine/RPC/proxy transport preserves nested identity and physical storage facts.
+- Five no-GPU tests pass. Whole tensor storage is deduplicated across views;
+  registered CPU adapters and GPU slot assignments are explicitly distinct.
+- Functional regression after wiring: 356 pass, zero failures/errors/skips;
+  147 protected historical entries unchanged, all four GPUs idle (15 MiB each).
+- Unsynchronized slot maps are not confirmed readiness; even barrier diagnostic
+  observations do not hold dispatch references/reservations or grant launch.
+- Real CUDA observation, model identity, clock/cgroup census and resource-owner
+  integration remain pending. No performance experiment or additional workload
+  was generated for these tests.
+- At Sep 26 00:02 local, existing P2 installation is still downloading its
+  hash-locked CUDA dependency. Scope is active, all memory high/max/OOM counters
+  remain zero; no second install or model run started.

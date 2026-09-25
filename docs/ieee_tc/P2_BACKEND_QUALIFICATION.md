@@ -72,3 +72,28 @@ controller，严格按首末 token 分离完成通知开销；13 项无 GPU 测�
 仍需按计划测试：FP16 两模型、mixed rank/modules、动态 LoRA、adapter
 identity、CUDA Graph、batch/cancel、原生 token、真实 slot/eviction、KV block、
 正确释放以及 warm 指标。实际 worker 限制和监控握手通过前不启动模型比较。
+
+## 原生 worker 观察接口（已接线，真实模型调用待资格）
+
+沿用 `gpu_monitor.py`，新增官方 `worker_extension_cls` 允许的只读扩展，
+通过既有 engine collective RPC、dedicated worker 和 proxy 返回数据。
+配置 `model.ieee_worker_observation=true` 才安装扩展；默认历史路径不变。
+参考 [vLLM 0.30.0 WorkerWrapperBase 的 extension 接口](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/worker/worker_base.py)。
+
+读取：原生 worker PID/UID/cgroup/affinity、boot/time namespace、后端版本、
+可见 GPU 与 local device、实际 CUDA mem-info、PyTorch allocated/reserved、
+LoRA CPU registry、active GPU set 与 slot mapping。
+
+LoRA A/B tensor 的 shape、dtype、view size 与底层 storage 分开记录，共享
+storage 去重。不是用文件大小或 rank 估算显存，也不把整池分配再按多个 view
+重复相加。当前仅接受已审计的 dense stacked A/B 表示；未知模块报错，不漏计。
+
+默认不做 GPU synchronize。可显式 barrier 进行独立资格/剖析，但不把这种
+同步放进每请求监控。无论是否 barrier，该快照没有 dispatch 引用或原子
+reservation，始终标 `production_admission_snapshot=false`；不得直接冒充
+IEEE confirmed tier 的租约证据。
+
+五项 fake-tensor/实际 RPC 方法测试通过，覆盖 storage alias、CPU/GPU 区分、
+slot 不一致、未知表示、同步标记、嵌套字段运输和错误不吞掉。它们没有加载
+模型，也没有证明原生 worker 已满足资源包络。下一次真实模型资格必须读取
+这些事实，验证后才能将其接入 owner；不能先把代理提示映射成 GPU-ready。

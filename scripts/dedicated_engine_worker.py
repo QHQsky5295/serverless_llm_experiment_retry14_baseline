@@ -137,6 +137,9 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
                     elif cmd == "load_lora_to_gpu_and_measure":
                         load_ms, ok = await engine.load_lora_to_gpu_and_measure(**kwargs)
                         response = {"ok": True, "result": {"load_ms": load_ms, "ok": ok}}
+                    elif cmd == "ieee_worker_observation":
+                        result = await engine.ieee_worker_observation(**kwargs)
+                        response = {"ok": True, "result": result}
                     elif cmd == "shutdown":
                         response = {"ok": True}
                         stop_event.set()
