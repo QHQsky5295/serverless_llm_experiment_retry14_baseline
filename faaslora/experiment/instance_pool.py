@@ -25,10 +25,30 @@ class NativeAdapterSource:
     rank: int
     gpu_slot: Optional[int]
     gpu_confirmed_monotonic_s: Optional[float]
+    host_storage_bytes: Optional[int] = None
+    host_representation: Optional[str] = None
+    gpu_slot_capacity_bytes: Optional[int] = None
+    gpu_representation: Optional[str] = None
 
     @property
     def tier(self) -> str:
         return 'gpu' if self.gpu_slot is not None else 'host'
+
+    def service_class(self, bins, *, prompt_tokens: int, declared_output_tokens: int,
+                      admitted_after_accept: int):
+        """Eq. (2) native-source class using measured allocation representation.
+
+        A readiness-only snapshot is useful evidence, but cannot initialize a
+        footprint-dependent cost class. There is no file-size/rank-size fallback.
+        """
+        footprint = self.gpu_slot_capacity_bytes if self.tier == 'gpu' else self.host_storage_bytes
+        representation = self.gpu_representation if self.tier == 'gpu' else self.host_representation
+        if footprint is None or representation is None:
+            raise ValueError('native source lacks measured footprint/representation for service class')
+        return bins.classify(tier=self.tier, prompt_tokens=prompt_tokens,
+            declared_output_tokens=declared_output_tokens, adapter_rank=self.rank,
+            footprint_bytes=footprint, representation=representation,
+            admitted_after_accept=admitted_after_accept)
 
 
 @dataclass(frozen=True)
@@ -47,6 +67,85 @@ class NativeSourceSnapshot:
     sources: tuple[NativeAdapterSource, ...]
     unknown_native_adapter_ids: tuple
     unconfirmed_gpu_adapter_ids: tuple
+    host_tensor_storage_bytes: Optional[int] = None
+    gpu_pool_storage_bytes: Optional[int] = None
+
+    @staticmethod
+    def _footprints(payload, slots, registered):
+        """Validate storage unions separately from per-adapter footprint sums."""
+        if payload is None:
+            return {}, None, None  # Readiness-only view: service_class explicitly rejects it.
+        if (not isinstance(payload, dict)
+                or payload.get('uniform_slot_layout') is not True
+                or payload.get('host_footprint_scope') != 'native_registered_tensor_storage_capacity'
+                or payload.get('host_budget_reserved') is not False
+                or payload.get('host_allocator_overhead_included') is not False
+                or payload.get('slot_adapter_ids') != list(slots)
+                or payload.get('registered_cpu_adapter_ids') != list(registered)):
+            raise ValueError('native footprints differ from source snapshot/qualified representation')
+        slot_bytes, gpu_bytes = payload.get('slot_capacity_bytes'), payload.get('pool_allocated_bytes')
+        if (type(slot_bytes) is not int or slot_bytes <= 0 or type(gpu_bytes) is not int
+                or gpu_bytes != slot_bytes * len(slots)):
+            raise ValueError('native GPU pool/slot capacities are inconsistent')
+        allocations = payload.get('host_allocations')
+        adapters = payload.get('host_adapter_footprints')
+        gpu_views = payload.get('pool_tensor_views')
+        if not all(isinstance(v, list) for v in (allocations, adapters, gpu_views)) or not gpu_views:
+            raise ValueError('native footprint tables are missing')
+        def bytes_value(value):
+            return type(value) is int and value > 0
+        for index, allocation in enumerate(allocations):
+            if (not isinstance(allocation, dict) or type(allocation.get('allocation_id')) is not int
+                    or allocation['allocation_id'] != index
+                    or not bytes_value(allocation.get('allocated_bytes'))
+                    or type(allocation.get('pinned')) is not bool):
+                raise ValueError('invalid native HOST allocation capacity')
+        host_bytes = sum(a['allocated_bytes'] for a in allocations)
+        if type(payload.get('host_tensor_storage_bytes')) is not int or payload['host_tensor_storage_bytes'] != host_bytes:
+            raise ValueError('native HOST total is not the distinct storage union')
+        if any(not isinstance(v, dict) or not isinstance(v.get('dtype'), str) or not v['dtype']
+               for v in gpu_views):
+            raise ValueError('native GPU representation has no dtype')
+        gpu_dtypes = {v['dtype'] for v in gpu_views}
+        gpu_representation = 'native_gpu_dense_slot_v1:' + ','.join(sorted(gpu_dtypes))
+        result, owners = {}, {index: set() for index in range(len(allocations))}
+        for adapter in adapters:
+            if not isinstance(adapter, dict):
+                raise ValueError('invalid native HOST adapter footprint')
+            aid, ids = adapter.get('adapter_int_id'), adapter.get('allocation_ids')
+            if (type(aid) is not int or aid not in registered or aid in result
+                    or not isinstance(ids, list) or not ids
+                    or any(type(index) is not int or index not in owners for index in ids)
+                    or len(set(ids)) != len(ids)):
+                raise ValueError('native HOST adapter allocation edges are inconsistent')
+            capacity = sum(allocations[index]['allocated_bytes'] for index in ids)
+            dtypes = adapter.get('dtypes')
+            if (type(adapter.get('storage_bytes')) is not int or adapter['storage_bytes'] != capacity
+                    or adapter.get('representation') != 'native_cpu_dense_ab_v1'
+                    or type(adapter.get('has_packed_modules')) is not bool
+                    or not isinstance(dtypes, list) or not dtypes
+                    or any(not isinstance(dtype, str) or not dtype for dtype in dtypes)):
+                raise ValueError('invalid native HOST footprint/representation')
+            for index in ids:
+                owners[index].add(aid)
+            host_representation = 'native_cpu_dense_ab_v1:' + ','.join(sorted(set(dtypes)))
+            pinning = {allocations[index]['pinned'] for index in ids}
+            host_representation += ':' + ('pinned' if pinning == {True} else
+                                          'unpinned' if pinning == {False} else 'mixed_pinning')
+            if adapter['has_packed_modules']:
+                host_representation += ':packed'
+            result[aid] = (capacity, host_representation, slot_bytes, gpu_representation)
+        if set(result) != set(registered):
+            raise ValueError('native HOST footprints do not cover the CPU cache')
+        for index, allocation in enumerate(allocations):
+            if not owners[index] or allocation.get('adapter_ids') != sorted(owners[index]):
+                raise ValueError('native HOST shared allocation owners disagree')
+        for adapter in adapters:
+            exclusive = sum(allocations[index]['allocated_bytes'] for index in adapter['allocation_ids']
+                            if owners[index] == {adapter['adapter_int_id']})
+            if type(adapter.get('exclusive_storage_bytes')) is not int or adapter['exclusive_storage_bytes'] != exclusive:
+                raise ValueError('native HOST exclusive capacity incorrectly includes sharing')
+        return result, host_bytes, gpu_bytes
 
     @classmethod
     def from_native(cls, payload, *, expected_clock_id: str, received_monotonic_s: float):
@@ -79,6 +178,7 @@ class NativeSourceSnapshot:
                 raise ValueError('native source snapshot has invalid/duplicate integer IDs')
         if not slots or not set(mapped).issubset(registered):
             raise ValueError('native source slot/CPU mapping is inconsistent')
+        footprints, host_bytes, gpu_bytes = cls._footprints(payload.get('native_footprints'), slots, registered)
         sources = []
         for row in payload['sources']:
             if (not isinstance(row, dict) or not positive_int(row.get('adapter_int_id'))
@@ -97,7 +197,8 @@ class NativeSourceSnapshot:
                   or not instant(confirmed) or confirmed > captured):
                 raise ValueError('GPU source lacks matching slot/completed-copy evidence')
             sources.append(NativeAdapterSource(row['adapter_int_id'], row['adapter_id'],
-                row['lora_path'], row['rank'], slot, confirmed))
+                row['lora_path'], row['rank'], slot, confirmed,
+                *footprints.get(row['adapter_int_id'], (None, None, None, None))))
         known = {row.adapter_int_id for row in sources}
         names = {row.adapter_id for row in sources}
         gpu_known = {row.adapter_int_id for row in sources if row.gpu_slot is not None}
@@ -111,7 +212,7 @@ class NativeSourceSnapshot:
                 or payload.get('complete_for_native_caches') is not (not unknown and not unconfirmed)):
             raise ValueError('native source snapshot coverage is inconsistent')
         return cls(payload['owner_id'], payload['epoch'], expected_clock_id, captured,
-                   slots, registered, tuple(sources), unknown, unconfirmed)
+                   slots, registered, tuple(sources), unknown, unconfirmed, host_bytes, gpu_bytes)
 
     def find(self, *, adapter_id: str, adapter_int_id: int, lora_path: str) -> Optional[NativeAdapterSource]:
         for source in self.sources:

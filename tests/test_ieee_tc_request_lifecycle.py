@@ -283,6 +283,30 @@ def native_reference_fixture():
 
 
 class ControllerNativeReferenceLifecycle(unittest.TestCase):
+    def test_measured_footprints_reach_request_without_duplicating_tensor_inventory(self):
+        runner, slot, trace, plan, owner, rpc = native_reference_fixture()
+        runner._begin_scaleup_runtime_request_labels.side_effect = ValueError('pre-generation stop')
+        async def measured(*, operation, **kwargs):
+            value = await rpc(operation=operation, **kwargs)
+            if operation == 'source_snapshot':
+                value['native_footprints'] = dict(uniform_slot_layout=True,
+                    host_footprint_scope='native_registered_tensor_storage_capacity',
+                    host_budget_reserved=False, host_allocator_overhead_included=False,
+                    slot_adapter_ids=[None, None], registered_cpu_adapter_ids=[],
+                    slot_capacity_bytes=32, pool_allocated_bytes=64,
+                    host_tensor_storage_bytes=0, host_allocations=[], host_adapter_footprints=[],
+                    pool_tensor_views=[dict(dtype='torch.float16')])
+            return value
+        slot.engine.ieee_gpu_reference.side_effect = measured
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        snapshot = result.gpu_reference_evidence['snapshot_before_acquisition']
+        self.assertNotIn('native_footprints', snapshot)
+        self.assertIsNone(snapshot['selected_source_footprint'])  # Correctly cold before this load.
+        self.assertEqual(snapshot['host_tensor_storage_bytes'], 0)
+        self.assertEqual(snapshot['gpu_pool_storage_bytes'], 64)
+        self.assertEqual(slot.native_source_state.gpu_pool_storage_bytes, 64)
+        self.assertEqual(result.gpu_reference_evidence['state'], 'released')
+
     def test_actual_runner_acquires_before_generation_and_releases_after_terminal(self):
         runner, slot, trace, plan, owner, rpc = native_reference_fixture()
         async def generate(**kwargs):

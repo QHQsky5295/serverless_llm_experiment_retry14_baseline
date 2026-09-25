@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Mathematical contracts + native timing/scheduler, source identity, fixed-work, selected-request references, lifetime and failure identity tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D13. Native completed-source snapshots now reach selected InstanceSlot; actual requests acquire/pass/release native leases. Pre-decision multi-replica source/cost composition, CUDA/clock/stream qualification, abort reconciliation, slow-tier references and proactive atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts + native timing/scheduler, source identity/footprint classes, fixed-work, selected-request references, lifetime and failure identity tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D14. Native completed-source/actual-storage snapshots now reach selected InstanceSlot; actual requests acquire/pass/release native leases. Pre-decision multi-replica source/cost composition, CUDA/clock/stream qualification, abort reconciliation, slow-tier references and proactive atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -107,6 +107,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Offered-failure identity checkpoint `91c9feb258a1c5e649cb808286446b85a7b65c2e`
   pushed to V2; remote SHA verified.
 - Selected-request reference checkpoint `7b75ea53636c86b69221047bc5778a703ad2cee6`
+  pushed to V2; remote SHA verified.
+- Native source-publication checkpoint `4b2adaf3f7e79c303a2d963fe02ed34093dcf76a`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -570,3 +572,34 @@ configs/relayserve_motivation_serverlessllm.yaml.
   events and actual 0.30 model/clock/stream/worker qualification on the mainline.
   Serverless remains first among baseline model runs. Remote service disk gate
   and all formal M1/M2, ablation and sensitivity matrices remain pending.
+
+## Native source footprint / observation-class checkpoint
+
+- Existing worker monitor inventories actual CPU A/B tensor storage and sharing,
+  alongside the previously checked GPU dense pool. Tiny real CPU tensors verify
+  768 bytes total for adapters whose individual footprints sum to 1280, only
+  256 bytes removed with the first adapter, and 512 bytes retained by 16 bytes of
+  views. These are arithmetic witnesses, NOT actual 7B/3B footprint measurements.
+- Source RPC carries the native inventory into the immutable controller view.
+  Source classes use actual HOST storage or padded GPU slot bytes, rank, dtype,
+  packed/pinning representation and the existing request/load bins. Missing
+  measured footprint rejects cost classification; no default file-size estimate.
+  HOST storage capacity is not RSS, allocator overhead or a budget reservation.
+- Detailed tensor inventories are not duplicated into every request's evidence;
+  selected-source description and owner totals remain. Actual observation/RPC
+  cost and update cadence still require model-level qualification before freezing
+  a Full configuration. Multi-replica routing is not yet driven by this view.
+- Twelve added checks; final functional regression 514 pass, no failures/errors/
+  skips; separate safety/census/replay 44 pass. Prior 513 pass did not include the
+  final request-evidence transport check. All 147 protected entries unchanged,
+  four GPUs idle at 15 MiB; no inference or new adapter/workload data generated.
+- Sep 26 03:53 local: same P2 installer alive at torch dependency 183, following
+  completed tokenspeed-triton. Memory high/max/OOM events remain zero; disk about
+  335 GiB free, host available memory about 104 GiB. No second install, driver
+  change or concurrent model job. Remote disk decision remains pending.
+- Next mainline: managed HOST/NVMe source references and cold-source metadata,
+  real source-cost initialization/composition, pre-decision routing and atomic
+  reservation/admission. Native abort/release reconciliation and physical GPU
+  owner integration remain required. After setup, qualify actual 0.30 model,
+  worker, clock and stream. Serverless stays first among baseline model runs;
+  formal M1/M2, ablations, motivation and sensitivities are still unmeasured.

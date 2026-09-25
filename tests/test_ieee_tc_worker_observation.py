@@ -9,6 +9,86 @@ from faaslora.memory import gpu_monitor as monitor
 from scripts.run_all_experiments import InferenceEngine, SubprocessInferenceEngineProxy
 
 
+class NativeHostFootprint(unittest.TestCase):
+    def native_models(self):
+        # Actual tiny CPU storages and views; never initialize CUDA.
+        import torch
+        storage = torch.empty((8, 32), dtype=torch.float16, device='cpu')
+        shared = SimpleNamespace(lora_a=storage[:4], lora_b=storage[4:].T)
+        private = SimpleNamespace(lora_a=torch.empty((4, 16), dtype=torch.float16),
+                                  lora_b=torch.empty((16, 4), dtype=torch.float16))
+        models = {7: SimpleNamespace(id=7, rank=4, loras={'shared': shared, 'private': private}),
+                  8: SimpleNamespace(id=8, rank=4, loras={'shared': shared})}
+        return SimpleNamespace(list_adapters=lambda: dict(models)), models
+
+    def test_shared_allocations_count_once_and_view_bytes_are_not_residency(self):
+        native, models = self.native_models()
+        result = monitor._ieee_lora_host_inventory(native)
+        self.assertEqual(result['host_tensor_storage_bytes'], 768)
+        self.assertEqual([r['storage_bytes'] for r in result['host_adapter_footprints']], [768, 512])
+        self.assertEqual([r['exclusive_storage_bytes'] for r in result['host_adapter_footprints']], [256, 0])
+        self.assertEqual(len(result['host_allocations']), 3)
+
+    def test_partial_views_retain_whole_storage_not_just_numel(self):
+        native, models = self.native_models()
+        shared = models[8].loras['shared']
+        shared.lora_a = shared.lora_a[:1, :4]
+        shared.lora_b = shared.lora_b[:4, :1]
+        result = monitor._ieee_lora_host_inventory(native)
+        views = [v for v in result['host_tensor_views'] if v['adapter_int_id'] == 8]
+        self.assertEqual(sum(v['view_bytes'] for v in views), 16)
+        self.assertEqual(result['host_adapter_footprints'][1]['storage_bytes'], 512)
+        self.assertEqual(result['host_tensor_storage_bytes'], 768)
+
+    def test_packed_missing_submodule_is_not_missing_adapter(self):
+        native, models = self.native_models()
+        layer = models[8].loras['shared']
+        packed = SimpleNamespace(lora_a=[layer.lora_a, None], lora_b=[layer.lora_b, None])
+        models[8].loras = {'qkv': packed}
+        result = monitor._ieee_lora_host_inventory(native)
+        self.assertTrue(result['host_adapter_footprints'][1]['has_packed_modules'])
+        self.assertEqual(result['host_tensor_storage_bytes'], 768)
+        packed.lora_a[1] = layer.lora_a
+        with self.assertRaisesRegex(ValueError, 'incomplete A/B'):
+            monitor._ieee_lora_host_inventory(native)
+
+    def test_removing_shared_adapter_does_not_claim_reclaimable_shared_bytes(self):
+        native, models = self.native_models()
+        del models[7]
+        result = monitor._ieee_lora_host_inventory(native)
+        self.assertEqual(result['host_tensor_storage_bytes'], 512)
+        self.assertEqual(result['host_adapter_footprints'][0]['exclusive_storage_bytes'], 512)
+
+    def test_unsupported_extra_tensor_and_placeholder_are_not_omitted(self):
+        import torch
+        native, models = self.native_models()
+        models[8].loras['shared'].bias = torch.empty((4,))
+        with self.assertRaisesRegex(ValueError, 'unsupported.*bias'):
+            monitor._ieee_lora_host_inventory(native)
+        del models[8].loras['shared'].bias
+        models[8].loras = {'empty': SimpleNamespace(lora_a=None, lora_b=None)}
+        with self.assertRaisesRegex(ValueError, 'incomplete A/B'):
+            monitor._ieee_lora_host_inventory(native)
+
+    def test_non_cpu_non_dense_and_3d_representations_fail_explicitly(self):
+        import torch
+        for tensor in (torch.empty((4, 8), device='meta'), torch.empty((2, 4, 8)),
+                       torch.empty((4, 8)).to_sparse()):
+            native, models = self.native_models()
+            models[8].loras['shared'].lora_a = tensor
+            with self.subTest(device=tensor.device, layout=tensor.layout), self.assertRaises(ValueError):
+                monitor._ieee_lora_host_inventory(native)
+
+    def test_empty_cache_is_zero_without_inventing_adapter_footprints(self):
+        native, models = self.native_models()
+        models.clear()
+        result = monitor._ieee_lora_host_inventory(native)
+        self.assertEqual(result['host_tensor_storage_bytes'], 0)
+        self.assertEqual(result['host_adapter_footprints'], [])
+        self.assertFalse(result['host_budget_reserved'])
+        self.assertFalse(result['host_allocator_overhead_included'])
+
+
 class FakeDevice:
     type = 'cuda'
     def __str__(self):
@@ -37,20 +117,39 @@ class FakeTensor:
         return self.contiguous
 
 
+class FakeCPUDevice:
+    type = 'cpu'
+    def __str__(self):
+        return 'cpu'
+
+
+class FakeCPUTensor(FakeTensor):
+    layout = 'strided'
+    def __init__(self, pointer, size, *, shape=(8, 16)):
+        super().__init__(pointer, size, shape=shape)
+        self.device = FakeCPUDevice()
+    def is_pinned(self):
+        return False
+    def stride(self):
+        return (self.shape[1], 1)
+
+
 def manager():
     # Two views in a shared A pool must not count as two physical allocations.
     a = FakeTensor(1000, 1024)
     a_view = FakeTensor(1000, 1024, shape=(1, 8, 16), offset=128)
     b = FakeTensor(2000, 512)
+    host = SimpleNamespace(lora_a=FakeCPUTensor(3000, 256), lora_b=FakeCPUTensor(4000, 256))
     return SimpleNamespace(modules={
         'layer': SimpleNamespace(lora_a_stacked=[a, a_view], lora_b_stacked=(b,))},
         lora_index_to_id=[7, None], lora_slots=2, _active_adapters={7: object()},
-        list_adapters=lambda: {7: object(), 8: object()})
+        list_adapters=lambda: {aid: SimpleNamespace(id=aid, rank=8, loras={'layer': host})
+                              for aid in (7, 8)})
 
 
 def fake_torch():
     return SimpleNamespace(
-        is_tensor=lambda x: isinstance(x, FakeTensor), __version__='test',
+        is_tensor=lambda x: isinstance(x, FakeTensor), __version__='test', strided='strided',
         cuda=SimpleNamespace(synchronize=Mock(), device=lambda _: nullcontext(),
                              mem_get_info=lambda _: (1000, 10000),
                              memory_allocated=lambda _: 8000,
@@ -125,6 +224,8 @@ class WorkerObservationContract(unittest.TestCase):
             self.assertEqual(result['torch_allocated_bytes'], 8000)
             self.assertEqual(result['torch_reserved_bytes'], 8500)
             self.assertEqual(result['device_free_bytes'], 1000)
+            self.assertEqual(result['host_tensor_storage_bytes'], 512)
+            self.assertEqual([r['storage_bytes'] for r in result['host_adapter_footprints']], [512, 512])
             self.assertIn('0::', result['cgroup'])
             self.assertTrue(result['affinity'])
             barrier = worker.ieee_worker_observation(synchronize=True)

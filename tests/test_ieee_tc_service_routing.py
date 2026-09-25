@@ -36,6 +36,21 @@ def source_payload():
                               gpu_confirmed_monotonic_s=9.)])
 
 
+def measured_source_payload():
+    payload = source_payload()
+    payload['native_footprints'] = dict(uniform_slot_layout=True,
+        host_footprint_scope='native_registered_tensor_storage_capacity', host_budget_reserved=False,
+        host_allocator_overhead_included=False, slot_adapter_ids=[4, None],
+        registered_cpu_adapter_ids=[4], slot_capacity_bytes=1024, pool_allocated_bytes=2048,
+        host_tensor_storage_bytes=512, host_allocations=[dict(allocation_id=0,
+            allocated_bytes=512, adapter_ids=[4], pinned=False)],
+        host_adapter_footprints=[dict(adapter_int_id=4, allocation_ids=[0], storage_bytes=512,
+            exclusive_storage_bytes=512, dtypes=['torch.float16'],
+            representation='native_cpu_dense_ab_v1', has_packed_modules=False)],
+        pool_tensor_views=[dict(dtype='torch.float16')])
+    return payload
+
+
 class CommittedNativeSources(unittest.TestCase):
     def parse(self, payload=None):
         return NativeSourceSnapshot.from_native(payload or source_payload(),
@@ -113,6 +128,63 @@ class CommittedNativeSources(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'same native epoch'):
             slot.commit_native_sources(changed)
         self.assertIs(slot.native_source_state, first)
+
+    def test_native_source_class_uses_gpu_slot_or_actual_host_storage(self):
+        payload = measured_source_payload()
+        bins = ServiceClassBins((16,), (32,), (8,), (512,), (1,))
+        features = dict(prompt_tokens=16, declared_output_tokens=32, admitted_after_accept=2)
+        state = self.parse(payload)
+        gpu = state.sources[0].service_class(bins, **features)
+        self.assertEqual((gpu.tier, gpu.footprint_bin, gpu.admitted_bin), ('gpu', 1, 1))
+        self.assertEqual(gpu.representation, 'native_gpu_dense_slot_v1:torch.float16')
+        self.assertEqual(state.host_tensor_storage_bytes, 512)
+        self.assertEqual(state.gpu_pool_storage_bytes, 2048)
+        payload['sources'][0].update(gpu_slot=None, gpu_confirmed_monotonic_s=None)
+        payload.update(slot_adapter_ids=[None, None])
+        payload['native_footprints']['slot_adapter_ids'] = [None, None]
+        host = self.parse(payload).sources[0].service_class(bins, **features)
+        self.assertEqual((host.tier, host.footprint_bin), ('host', 0))
+        self.assertEqual(host.representation, 'native_cpu_dense_ab_v1:torch.float16:unpinned')
+        payload['native_footprints']['host_allocations'][0]['pinned'] = True
+        pinned = self.parse(payload).sources[0].service_class(bins, **features)
+        self.assertNotEqual(host, pinned)
+        self.assertTrue(pinned.representation.endswith(':pinned'))
+
+    def test_readiness_only_snapshot_cannot_invent_service_cost_class(self):
+        with self.assertRaisesRegex(ValueError, 'lacks measured footprint'):
+            self.parse().sources[0].service_class(ServiceClassBins((), (), (), (), ()),
+                prompt_tokens=8, declared_output_tokens=8, admitted_after_accept=1)
+
+    def test_malformed_storage_totals_edges_or_wrong_native_state_reject(self):
+        for field, value in (('host_tensor_storage_bytes', 1024), ('pool_allocated_bytes', 1024),
+                             ('slot_adapter_ids', [None, None]), ('registered_cpu_adapter_ids', []),
+                             ('uniform_slot_layout', False)):
+            payload = measured_source_payload()
+            payload['native_footprints'][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.parse(payload)
+        for field, value in (('allocation_ids', [0, 0]), ('exclusive_storage_bytes', 0),
+                             ('storage_bytes', 123), ('dtypes', [])):
+            payload = measured_source_payload()
+            payload['native_footprints']['host_adapter_footprints'][0][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.parse(payload)
+
+    def test_shared_host_storage_total_is_not_sum_of_adapter_footprints(self):
+        payload = measured_source_payload()
+        payload.update(registered_cpu_adapter_ids=[4, 5], unknown_native_adapter_ids=[5],
+                       complete_for_native_caches=False)
+        fp = payload['native_footprints']
+        fp['registered_cpu_adapter_ids'] = [4, 5]
+        fp['host_allocations'][0]['adapter_ids'] = [4, 5]
+        fp['host_adapter_footprints'][0]['exclusive_storage_bytes'] = 0
+        fp['host_adapter_footprints'].append(fp['host_adapter_footprints'][0] | {'adapter_int_id': 5})
+        state = self.parse(payload)
+        self.assertEqual(state.host_tensor_storage_bytes, 512)
+        self.assertEqual(state.sources[0].host_storage_bytes, 512)
+        payload['native_footprints']['host_tensor_storage_bytes'] = 1024
+        with self.assertRaisesRegex(ValueError, 'distinct storage union'):
+            self.parse(payload)
 
 
 class ServiceMeasurementContract(unittest.TestCase):

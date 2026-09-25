@@ -577,3 +577,59 @@ LoRAModel 对象。修改前的检查复现：同一整数 ID 对应的对象被
 D/T/O 类别成本、容量冲突的排队/重选及主动 admission 原子事务。当前不可变视图
 只接入了 selected-request 的观测路径，`Router.ieee_confirmed` 尚未由完整实测
 候选集驱动。不能把 502 项通过写成 Full、A3 或 S2 实验已完成。
+
+## P1-D14：实际 HOST 存储、GPU 槽位与观测类别
+
+D9 已核对 dense GPU pool，D13 已核对实际 source identity，但尚无原生 CPU
+tensor storage 清单。修改前的针对性检查因接口不存在而失败；本步补齐实际
+容量来源，不以旧 `adapter_info.size_mb` 或默认文件大小生成 IEEE 成本类别。
+
+官方 [vLLM 0.30.0 LoRAModel](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/lora_model.py)
+允许 clone 共享底层 tensor；[packed LoRA weights](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/lora_weights.py)
+也可复用 tensor 并保留缺省子模块。其
+[worker loader](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+先建立 CPU 表示。因此可证伪的计量假设是：对 tensor view 求和或逐 adapter
+直接求和，都可能误算 owner 的实际存储容量；单独删除一个 adapter 也未必能
+回收其全部引用容量。
+
+扩展现有 `gpu_monitor.py`，读取原生 `list_adapters()` 和 A/B 的 backing
+storage；不读取新工件、不复制权重、不用假想的 rank→字节公式。下面均为小型
+真实 PyTorch CPU tensor 的正确性检查，不是 7B/3B 的实测内存占用：
+
+| 构造 / 条件 | 实测或应有容量（byte） | 需要区分的语义 |
+|---|---:|---|
+| adapter 7 引用共享 512＋独有 256 | 768 | 该 adapter 的完整表示 footprint |
+| adapter 8 引用同一共享部分 | 512 | 两 adapter 的 footprint 和为 1280，但不是物理总量 |
+| 同时注册 7/8 | **768** | 共享 allocation 只记一次 |
+| 删除 7，仅 8 留存 | **512** | 删除 7 只减少 256，不能宣称回收 768 |
+| 8 的两个很小 view 合计仅 16 | backing storage 仍为 **512** | view.numel 不等于保留的 storage capacity |
+| 已验证的 GPU 两槽位表示（独立数学 fixture） | pool 2048，每槽 1024 | 空槽是池内逻辑容量，不是新增 CUDA free bytes |
+
+原生观测保留 allocation、view、adapter 之间的关系与 dtype/pinning。A/B
+不完整、空模块、未审计的 3D/非 CPU/稀疏表示、额外未计入的 tensor 字段明确
+报错，不静默漏计。`exclusive_storage_bytes` 只表达不存在其他注册 adapter
+引用，**不证明执行引用已经释放**。HOST allocator overhead、Python/RSS、
+tmpfs/page cache、staging 和其他服务内存仍另行计量，不能由本表代替 80 GiB
+资源包络或 HOST 物理 reservation。
+
+已有 worker observation 和 source-snapshot RPC 现在返回同一原生状态下的
+HOST/GPU footprint。controller 校验 storage union、共享边、exclusive 容量
+及 GPU slot 对应，保存不可变的来源描述。`service_class()` 使用当前最快有效
+native tier 的实测 footprint、rank、dtype、packed/pinning 表示，以及原有
+prompt/declared-output/post-admission bins；继续调用 D3 的同一个分类器，未改
+行间公式、EWMA 或 routing key。仅有 readiness 的旧视图不能生成 footprint
+成本类别，缺失测量不会被补零或套入默认大小。
+
+详细 tensor 清单留在资源/资格观测中；逐请求记录只保存已验证来源、选中副本的
+footprint 与 owner 总量，不复制整个 tensor 清单数千次。真实 worker 的完整
+观测/RPC 开销尚未测量；资格阶段需检验更新开销和 cadence，再冻结正式配置。
+
+本步新增 **12 项检查**（7 项 HOST 实际 tensor、4 项类别/共享校验、1 项真实
+runner 方法中的 footprint 运输与日志大小合同）。完整功能回归 **514 项通过**，
+独立 safety/census/replay **44 项通过**，均无失败、错误或 skip；147 项历史
+保护清单未变。中途 513 项通过的结果不包含最后的请求证据检查，以 514 为准。
+
+仍未完成：HOST/NVMe managed-copy 所有权与实际文件引用、冷源 footprint/profile、
+测得的 D/T/O 初始化、决策前多副本 composition、原子主动 admission、取消终态
+对账与物理 GPU owner。没有据此启用 Full 或宣称吞吐/延迟/GPU-s 改善；下一步
+回到实际可执行的来源/成本与请求调度连接，安装完成后优先真实模型资格。

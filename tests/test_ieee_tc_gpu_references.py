@@ -233,6 +233,7 @@ class NativeDemandTransactions(unittest.TestCase):
             Event=Mock(return_value=event), current_stream=Mock(return_value='native-stream')))
         with patch.object(gpu_monitor, 'torch', torch), \
              patch.object(gpu_monitor, '_ieee_lora_pool_inventory') as inventory, \
+             patch.object(gpu_monitor, '_ieee_lora_host_inventory', return_value={'host_tensor_storage_bytes': 16}), \
              patch.dict('sys.modules', {
             'vllm': SimpleNamespace(__version__='0.30.0'),
             'vllm.lora.request': SimpleNamespace(LoRARequest=lambda **kw: SimpleNamespace(**kw))}):
@@ -247,9 +248,12 @@ class NativeDemandTransactions(unittest.TestCase):
             inventory.assert_called_once_with(self.manager, require_uniform_slots=True)
             event.record.assert_called_once_with('native-stream')
             event.synchronize.assert_called_once_with()
+            inventory.return_value = {'slot_capacity_bytes': 32}
             sources = worker.ieee_gpu_reference(operation='source_snapshot')
             self.assertEqual(sources['sources'][0]['adapter_id'], 'adapter-4')
             self.assertIn('clock_id', sources)
+            self.assertEqual(sources['native_footprints'], {'host_tensor_storage_bytes': 16,
+                                                           'slot_capacity_bytes': 32})
             event.synchronize.assert_called_once_with()  # Observation adds no fence.
 
     def test_actual_engine_rpc_forwards_demand_transaction(self):

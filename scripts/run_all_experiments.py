@@ -13420,9 +13420,18 @@ class ScenarioRunner:
                   'adapter_int_id': InferenceEngine._lora_int_id(adapter_id),
                   'lora_name': adapter_id, 'lora_path': local_path,
                   'expected_owner_id': snapshot['owner_id'], 'expected_epoch': snapshot['epoch']}
+        # Keep the selected source and worker totals in per-request evidence.
+        # The detailed tensor/alias inventory belongs to qualification/resource
+        # observations, not a duplicate many-megabyte table for every request.
+        snapshot_evidence = {key: value for key, value in snapshot.items() if key != 'native_footprints'}
+        selected_source = next((source for source in source_state.sources
+                                if source.adapter_int_id == intent['adapter_int_id']), None)
+        snapshot_evidence['selected_source_footprint'] = asdict(selected_source) if selected_source else None
+        snapshot_evidence['host_tensor_storage_bytes'] = source_state.host_tensor_storage_bytes
+        snapshot_evidence['gpu_pool_storage_bytes'] = source_state.gpu_pool_storage_bytes
         evidence = reservation.gpu_reference_evidence
         evidence.update(kind='native_selected_request_reference_v1', state='acquiring',
-                        intent=intent, snapshot_before_acquisition=dict(snapshot),
+                        intent=intent, snapshot_before_acquisition=snapshot_evidence,
                         confirmed_dispatch_snapshot=False, proactive_admission_evaluated=False,
                         stale_rechecks=0)
         reservation.gpu_reference_engine = engine

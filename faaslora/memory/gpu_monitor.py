@@ -37,6 +37,109 @@ from ..utils.config import Config
 from ..utils.logger import get_logger
 
 
+def _ieee_lora_host_inventory(manager: Any) -> Dict[str, Any]:
+    """Storage reachable from dense native CPU adapters, without materialization.
+
+    A LoRAModel clone/packed layer may share a storage. Charge its capacity once
+    per worker, retain adapter-to-allocation edges, and do not confuse a view's
+    numel with the backing storage. This excludes allocator overhead, staging,
+    tmpfs files and page cache; it is not process RSS or a HOST-budget lease.
+    """
+    models = manager.list_adapters()  # Native read-only cache copy, no LRU touch.
+    allocations = {}
+    views = []
+    adapters = []
+
+    def contains_tensor(value):
+        if torch.is_tensor(value):
+            return True
+        if isinstance(value, (list, tuple)):
+            return any(contains_tensor(v) for v in value)
+        if isinstance(value, dict):
+            return any(contains_tensor(v) for v in value.values())
+        return False
+
+    def add(tensor, aid, name):
+        if (not torch.is_tensor(tensor) or tensor.device.type != 'cpu'
+                or tensor.layout != torch.strided or len(tensor.shape) != 2
+                or tensor.numel() <= 0):
+            raise ValueError(f'expected nonempty dense native CPU LoRA tensor: {name}')
+        storage = tensor.untyped_storage()
+        pointer, capacity = int(storage.data_ptr()), int(storage.nbytes())
+        if pointer <= 0 or capacity <= 0:
+            raise ValueError(f'empty native CPU LoRA storage: {name}')
+        key = (str(tensor.device), pointer)
+        if key not in allocations:
+            allocations[key] = {'allocation_id': len(allocations), 'device': str(tensor.device),
+                'allocated_bytes': capacity, 'pinned': bool(tensor.is_pinned()), 'adapter_ids': []}
+        allocation = allocations[key]
+        if allocation['allocated_bytes'] != capacity or allocation['pinned'] != bool(tensor.is_pinned()):
+            raise ValueError('aliased native CPU storage has inconsistent capacity/pinning')
+        if aid not in allocation['adapter_ids']:
+            allocation['adapter_ids'].append(aid)
+        views.append({'adapter_int_id': aid, 'name': name,
+            'allocation_id': allocation['allocation_id'], 'shape': list(tensor.shape),
+            'stride': list(tensor.stride()), 'dtype': str(tensor.dtype),
+            'view_bytes': int(tensor.numel()) * int(tensor.element_size()),
+            'storage_offset_elements': int(tensor.storage_offset())})
+        return allocation['allocation_id']
+
+    if torch is None:
+        raise RuntimeError('native HOST inventory requires torch')
+    for aid, model in sorted(models.items()):
+        if (type(aid) is not int or aid <= 0 or type(model.id) is not int or model.id != aid
+                or type(model.rank) is not int or model.rank <= 0
+                or not isinstance(model.loras, dict) or not model.loras):
+            raise ValueError('native HOST model identity/rank/modules are invalid')
+        if getattr(model, 'is_3d_lora_weight', False):
+            raise ValueError('3D native HOST representation is not qualified')
+        used, packed = set(), False
+        for name, layer in sorted(model.loras.items()):
+            if not isinstance(name, str) or not name:
+                raise ValueError('native HOST module name is invalid')
+            if not hasattr(layer, 'lora_a') or not hasattr(layer, 'lora_b'):
+                raise ValueError('native HOST representation lacks A/B tensors')
+            for key, value in vars(layer).items():
+                if key not in ('lora_a', 'lora_b') and contains_tensor(value):
+                    raise ValueError(f'unsupported native HOST tensor field: {key}')
+            a, b = layer.lora_a, layer.lora_b
+            is_packed = isinstance(a, (list, tuple))
+            if is_packed != isinstance(b, (list, tuple)):
+                raise ValueError('native packed HOST A/B representations disagree')
+            aa, bb = (a, b) if is_packed else ([a], [b])
+            if not aa or len(aa) != len(bb):
+                raise ValueError('native packed HOST A/B lengths disagree')
+            present = False
+            for index, (left, right) in enumerate(zip(aa, bb)):
+                if left is None and right is None and is_packed:
+                    continue  # Official packed missing submodule, not a zero-size adapter.
+                if left is None or right is None:
+                    raise ValueError('native HOST adapter has an incomplete A/B pair')
+                present = True
+                used.add(add(left, aid, f'{name}.lora_a[{index}]'))
+                used.add(add(right, aid, f'{name}.lora_b[{index}]'))
+            if not present:
+                raise ValueError('native HOST module contains no usable A/B pair')
+            packed |= is_packed
+        adapters.append({'adapter_int_id': aid, 'rank': model.rank, 'allocation_ids': sorted(used),
+                         'representation': 'native_cpu_dense_ab_v1', 'has_packed_modules': packed})
+    physical = list(allocations.values())
+    for adapter in adapters:
+        used = [physical[index] for index in adapter['allocation_ids']]
+        adapter['storage_bytes'] = sum(row['allocated_bytes'] for row in used)
+        # A single eviction cannot reclaim storage still referenced by another
+        # registered adapter. Actual release also depends on execution references.
+        adapter['exclusive_storage_bytes'] = sum(row['allocated_bytes'] for row in used
+                                                if len(row['adapter_ids']) == 1)
+        adapter['dtypes'] = sorted({v['dtype'] for v in views
+                                   if v['adapter_int_id'] == adapter['adapter_int_id']})
+    return {'host_allocations': physical, 'host_tensor_views': views,
+            'host_adapter_footprints': adapters,
+            'host_tensor_storage_bytes': sum(row['allocated_bytes'] for row in physical),
+            'host_footprint_scope': 'native_registered_tensor_storage_capacity',
+            'host_allocator_overhead_included': False, 'host_budget_reserved': False}
+
+
 def _ieee_lora_pool_inventory(manager: Any, *, require_uniform_slots: bool = False) -> Dict[str, Any]:
     """Inventory real tensor storage once; no file-size or rank-size proxy.
 
@@ -168,6 +271,12 @@ class IEEEWorkerObservationExtension:
         if owner.manager is not manager:
             raise RuntimeError('native LoRA manager replaced; worker reference epoch invalid')
         result = getattr(owner, operation)(**kwargs)
+        if operation == 'source_snapshot':
+            # Same serialized owner invocation: neither source identity nor
+            # cache membership can change between these two read-only views.
+            result['native_footprints'] = {
+                **_ieee_lora_host_inventory(manager),
+                **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
         return {**result, 'clock_id': local_monotonic_clock_id(),
                 'worker_pid': os.getpid(), 'worker_rank': int(self.rank),
                 'completion_fence_scope': 'current_worker_cuda_stream',
@@ -190,6 +299,7 @@ class IEEEWorkerObservationExtension:
             allocated_bytes = torch.cuda.memory_allocated(self.device)
             reserved_bytes = torch.cuda.memory_reserved(self.device)
         pool = _ieee_lora_pool_inventory(manager)
+        host = _ieee_lora_host_inventory(manager)
         if pool['pool_allocated_bytes'] > allocated_bytes:
             raise ValueError('LoRA storage inventory exceeds native allocator occupancy')
         return {
@@ -208,6 +318,7 @@ class IEEEWorkerObservationExtension:
             'dispatch_reference_held': False,
             'production_admission_snapshot': False,
             **pool,
+            **host,
         }
 
 
