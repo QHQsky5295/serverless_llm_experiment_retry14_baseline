@@ -61,6 +61,25 @@ bottleneck hypothesis. They do not quantify the repaired end-to-end gain,
 prove GPU saturation, or measure the paper's native checkpoint-startup path.
 The old output lacks ready-at-enqueue telemetry; do not invent it.
 
+## Loader fidelity finding (2026-09-25)
+
+Both clean historical deployment JSONs specify `backend_config.load_format=auto`
+and local `pretrained_model_name_or_path`, with LoRA enabled. The 7B serve log
+also records the actual engine config using `auto` (lines 71/76 in the clean
+run's serve log). The adapted backend only selects `serverless_llm` when no
+explicit load format is supplied. Thus these runs did not use that specialized
+checkpoint-loader path; their ~56–59 s engine startup is not a faithful
+measurement of the paper's optimized checkpoint startup.
+
+This is separate from the ~237 s average request dispatch wait. Before TC model
+qualification, inspect and, if feasible, enable the native checkpoint mechanism
+without replacing its policy. Otherwise report the reproduction boundary, not
+an unqualified full-system claim. A ready-first router repair alone does not
+resolve loader fidelity.
+
+The clean deployment configs retain min=1/max=4/keep_alive=10, target=2 (7B)
+and target=8 (3B). They are historical facts, not new frozen optima.
+
 ## Reproduction
 
 ```bash
