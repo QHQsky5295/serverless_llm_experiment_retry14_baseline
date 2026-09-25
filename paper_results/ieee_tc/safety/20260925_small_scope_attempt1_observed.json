@@ -1,0 +1,16 @@
+{
+  "kind": "small_scope_failure_observation",
+  "pass": false,
+  "record_origin": "Preserved from execution output and readback of the owned cgroup after the first test; not a reconstructed successful test",
+  "unit": "primelora-tc-test-25e326a16c9c40149a781d3de337f1f7.scope",
+  "memory_high_bytes": 67108864,
+  "memory_max_bytes": 134217728,
+  "memory_swap_max_bytes": 0,
+  "allocation_bytes": 201326592,
+  "timeout_seconds": 40,
+  "observed_events": {"low": 0, "high": 1737, "max": 0, "oom": 0, "oom_kill": 0, "oom_group_kill": 0},
+  "populated_after_failure": 0,
+  "classification": "protocol_or_launcher_error",
+  "interpretation": "Lower soft limit throttled allocation before a hard-limit OOM witness. This is not evidence that memory.max failed.",
+  "production_launch_authorized": false
+}
