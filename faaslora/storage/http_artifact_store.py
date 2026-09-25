@@ -1,8 +1,7 @@
 """HTTP artifact-store helpers for opt-in two-node LoRA transfer.
 
-The formal paper experiments keep using local frozen artifact directories by
-default.  This module provides an explicit remote-transfer path for deployment
-tests and two-node demos: a remote node exposes adapter directories as
+Historical experiments used local frozen artifact directories; IEEE TC's
+opt-in true-remote path uses this client. A remote node exposes adapter directories as
 ``.tar.gz`` objects, and the local node materializes one adapter into its NVMe
 cache on demand.
 """
@@ -18,12 +17,61 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 
 class RemoteArtifactError(RuntimeError):
     """Raised when a remote artifact operation fails."""
+
+
+@contextmanager
+def staged_directory(target: Path):
+    """Private same-filesystem workspace; never expose unfinished extraction.
+
+    A failed restoration must retain the previous copy for recovery. Its path
+    is reported by publish_directory; it must not be erased by final cleanup.
+    """
+    target = Path(target)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    workspace = Path(tempfile.mkdtemp(prefix=f'.{target.name}.staging-', dir=target.parent))
+    try:
+        yield workspace / 'payload'
+    finally:
+        if not (workspace / 'previous').exists():
+            shutil.rmtree(workspace)
+
+
+def publish_directory(staging: Path, target: Path) -> None:
+    """Publish completed bytes. Managed callers hold the reclamation owner lock.
+
+    Each rename is atomic, but replacing a nonempty directory requires two
+    renames; this is not an atomic exchange for unsynchronized filesystem readers.
+    No successful publication is reported after a failed rename/restoration.
+    """
+    staging, target = Path(staging), Path(target)
+    if (not staging.is_dir() or staging.parent.parent.resolve() != target.parent.resolve()
+            or staging == target or target.is_symlink()):
+        raise ValueError('publication requires a private sibling workspace and a non-symlink destination')
+    previous = staging.parent / 'previous'
+    if previous.exists():
+        raise ValueError('publication workspace already holds a previous copy')
+    if target.exists():
+        target.rename(previous)
+    try:
+        staging.rename(target)
+    except BaseException:
+        if previous.exists():
+            try:
+                previous.rename(target)
+            except OSError as exc:
+                raise RemoteArtifactError(f'publication restoration failed; previous copy retained at {previous}') from exc
+        raise
+    if previous.is_dir():
+        shutil.rmtree(previous)
+    elif previous.exists():
+        previous.unlink()
 
 
 def env_flag(name: str, default: bool = False) -> bool:
@@ -108,29 +156,44 @@ class HttpArtifactStoreClient:
         except TimeoutError as exc:
             raise RemoteArtifactError(f"remote HEAD timed out for {artifact_id}") from exc
 
-    def download_artifact(self, artifact_id: str, target_path: str) -> Tuple[bool, float, int]:
+    def download_artifact(self, artifact_id: str, target_path: str, *,
+                          publish=None, cancel_event=None) -> Tuple[bool, float, int]:
         """Download and extract one adapter directory into ``target_path``.
 
         Returns ``(ok, elapsed_ms, size_bytes)``.  The tarball is downloaded to a
-        temporary file first, then extracted with path traversal checks.
+        private sibling workspace first, then extracted with path traversal
+        checks. Only completed extraction reaches the publication callback.
+        Filesystem completeness is not a LoRA/content-SHA qualification.
         """
 
+        quoted = _quote_artifact_id(artifact_id)  # Validate before constructing local paths.
         target = Path(target_path)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        tmp_dir = Path(tempfile.mkdtemp(prefix="primelora-http-artifact-"))
-        archive = tmp_dir / f"{artifact_id}.tar.gz"
         t0 = time.perf_counter()
+        def check_cancelled():
+            if cancel_event is not None and cancel_event.is_set():
+                raise RemoteArtifactError(f'artifact transfer cancelled: {artifact_id}')
         try:
-            req = self._request(f"/artifacts/{_quote_artifact_id(artifact_id)}.tar.gz")
-            with self._opener.open(req, timeout=self.timeout_s) as resp, archive.open("wb") as fh:
-                shutil.copyfileobj(resp, fh, length=1024 * 1024)
-            if target.exists():
-                shutil.rmtree(target) if target.is_dir() else target.unlink()
-            target.mkdir(parents=True, exist_ok=True)
-            with tarfile.open(archive, "r:gz") as tar:
-                _safe_extract(tar, target)
-            elapsed_ms = (time.perf_counter() - t0) * 1000.0
-            return True, elapsed_ms, _path_size(target)
+            with staged_directory(target) as staging:
+                archive = staging.parent / 'artifact.tar.gz'
+                check_cancelled()
+                req = self._request(f"/artifacts/{quoted}.tar.gz")
+                with self._opener.open(req, timeout=self.timeout_s) as resp, archive.open('wb') as fh:
+                    while True:
+                        check_cancelled()
+                        chunk = resp.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        fh.write(chunk)
+                check_cancelled()
+                staging.mkdir()
+                with tarfile.open(archive, 'r:gz') as tar:
+                    _safe_extract(tar, staging)
+                check_cancelled()
+                size_bytes = _path_size(staging)
+                if size_bytes <= 0:
+                    raise RemoteArtifactError('empty artifact extraction cannot be published')
+                (publish or publish_directory)(staging, target)
+                return True, (time.perf_counter() - t0) * 1000.0, size_bytes
         except urllib.error.HTTPError as exc:
             raise RemoteArtifactError(
                 f"download failed for {artifact_id}: HTTP {exc.code}"
@@ -139,8 +202,6 @@ class HttpArtifactStoreClient:
             raise RemoteArtifactError(f"download failed for {artifact_id}: {exc}") from exc
         except TimeoutError as exc:
             raise RemoteArtifactError(f"download timed out for {artifact_id}") from exc
-        finally:
-            shutil.rmtree(tmp_dir, ignore_errors=True)
 
     def _json_request(self, path: str) -> Dict[str, Any]:
         req = self._request(path)

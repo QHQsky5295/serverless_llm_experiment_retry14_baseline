@@ -677,3 +677,51 @@ reservation 和 confirmed publication 没有因此升级为 IEEE 合格状态。
 快照、路由与原子 admission；完成 native 取消对账和物理 GPU 生命周期。现有
 `_ensure_local_async` 的 per-adapter fetch 锁不能替代上述所有权。不要在它们
 完成前把本步合作式引用称为所有 HOST/NVMe 路径均已受到保护。
+
+## P1-D16：完成后发布、失败保留旧副本、取消等待实际写入结束
+
+延续 D15 的同一来源生命周期问题，检查实际 HTTP fetcher 和初始 tier copy。
+修改前两项文件测试均复现旧副本已丢失：下载代码在解包前删除目标目录，因此
+损坏 archive 或中途解包失败会毁掉旧的有效来源。另一个直接实现事实是，
+名为 async 的 HTTP 路径仍在调用线程内执行 urllib 下载，阻塞同一调度循环。
+这些是正确性/执行路径证据，不是已经量化的 TTFT 收益。
+
+实现依据 [Python 3.12 文件重命名语义](https://docs.python.org/3.12/library/os.html#os.replace)、
+[异步取消和 shield](https://docs.python.org/3.12/library/asyncio-task.html#shielding-from-cancellation)、
+[已运行 Future 的取消语义](https://docs.python.org/3.12/library/concurrent.futures.html#concurrent.futures.Future.cancel)。
+本步假设：把私有准备与受同步保护的发布分开，既能保留有效旧源，又不需要把
+网络 I/O 锁在请求调度循环；取消必须按实际写入生命周期收尾。
+
+| 条件 | 实现与检查结果 | 不能据此宣称 |
+|---|---|---|
+| 下载/解包尚未结束 | 同一文件系统的私有 sibling workspace；目标仍为旧有效副本 | 私有 staging 不等于免费容量，仍需纳入后续 budget reservation |
+| 损坏/中断/空 archive | 不发布，不提前删除旧目标；清理本次私有临时文件 | 尚未验证完整 LoRA 内容 SHA、rank 或生成正确性 |
+| 完成后的 publication | 真正 native 路径调用 manager 的同一个引用/回收 owner | 两次 rename 不是面向无锁 filesystem readers 的单一原子 exchange |
+| 目标还有加载读引用 | publication 明确冲突，旧副本保留；不把错误变成零毫秒成功 | 当前冲突仍需上层排队/重选，不是完成了完整调度策略 |
+| rename 失败 | 在 owner 临界区恢复旧副本；恢复也失败则保留 recovery 路径并报错 | 没有完成掉电持久性/crash recovery 资格 |
+| HTTP 正在读取时取消请求 | 工作线程收到取消标志；等待实际 Future 终止后才释放 per-adapter 调用范围 | 发送 cancel 不是工作已经结束；阻塞系统调用仍由 timeout/watchdog 约束 |
+| 重复取消 | 仍不释放活跃写入；线程结束后传播原取消 | 不把取消请求算作成功 fetch |
+| tier 目录整体回收 | 活跃 materialization 保留其所属 tier；旧目标仍可取得读引用 | transfer 生命周期登记不是物理字节预留 |
+| 普通 NVMe→HOST/初始 copy | 使用同一 staged publication；失败保留旧目标；初始 reset 遵守已有引用 | legacy path hints 仍不是 confirmed source registry |
+
+改动复用现有 HTTP client、ResidencyManager、ExperimentStack 和 runner。真正
+native HTTP 路径在原服务资源域内执行阻塞 I/O，不转移到外置监控资源域；旧
+local-sim 路径没有被冒称真实远程。native fetch 异常直接保留，不落到本地工件
+或 `(False,0ms)` 的错误掩盖路径。未改九个行间公式、公开 workload 或 baseline
+策略。同期没有新的模型性能运行。
+
+新增 **13 项检查**：8 项 HTTP/publication（含既有小型 loopback server 的
+真实 HTTP roundtrip）、2 项本地所有权/失败 copy、3 项实际 runner 的线程、
+取消与 owner 集成。取消测试用受控 response 对象，不冒称远端 174 已通过。
+首次 system Python 测试因该解释器缺 numpy 而无法导入项目；随后使用既有稳定
+推理环境，不安装依赖。修改前两个反例均失败；修改后 **538 项完整功能回归**
+通过（含 62 项相关检查），零失败/错误/skip。安全与历史保护校验另见执行记录。
+
+未完成的必要边界：内容 SHA/representation/profile、所有 tier 物理 used+
+reserved+staging 字节、completed-source registry 与 epoch 的联合发布、文件
+失效后原生 CPU/GPU 来源的协调，以及 native 取消终态和 GPU allocation owner。
+删除路径不等于实际 backing storage 已释放：还需核查 mmap、page cache 和
+原生 pinned CPU tensor 的存活关系，不能把 unlink 直接当作物理预算腾空。
+同步本地 copy 仍未做异步性能优化；当前线程池/staging 峰值与 publication
+开销必须在资格阶段测量。继续回到完整来源/成本—路由/admission 连接，不把
+该表当作 A3、S1/S2、Full 或真实远端全池资格已完成。

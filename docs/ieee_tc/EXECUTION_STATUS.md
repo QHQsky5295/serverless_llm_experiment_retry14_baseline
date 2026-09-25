@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Mathematical contracts + native timing/scheduler, source identity/footprint classes, fixed-work, selected-request native and cooperative managed-file references tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D15. Completed native snapshots reach selected InstanceSlot; requests acquire/pass/release native leases and protect manager-owned file reads. Remote/direct-copy publication and budgets, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts, native observations/references, cooperative file ownership and staged HTTP/local publication tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D16. Selected native requests protect file reads; true-remote writes publish through the same owner, cancel joins actual writer. Content/physical budgets/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -111,6 +111,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Native source-publication checkpoint `4b2adaf3f7e79c303a2d963fe02ed34093dcf76a`
   pushed to V2; remote SHA verified.
 - Native storage/observation-class checkpoint `c0724e91316af7b7721a9b6f03b5756db5c32487`
+  pushed to V2; remote SHA verified.
+- Managed file-read checkpoint `92ad342553dc82f35fbd6677e98f32a1908cfb93`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -637,3 +639,37 @@ configs/relayserve_motivation_serverlessllm.yaml.
   as setup completes. Pre-decision measured costs/routing and atomic admission
   remain necessary before Full. Keep Serverless first among baseline model runs;
   remote disk gate and all formal M1/M2, ablation and sensitivity matrices pending.
+
+## Completed-file publication / actual transfer lifetime checkpoint
+
+- Two prechange tests reproduced loss of the previous valid directory on invalid
+  archive and interrupted extraction. HTTP and managed local directory copies
+  now stage privately on the destination filesystem, then publish through the
+  same source owner. Rename failure restores the previous copy; failed restore
+  preserves its recovery directory and reports failure rather than deleting it.
+- Native HTTP uses an in-service worker thread, so blocking urllib is no longer
+  directly run in the request event loop. Cancellation is cooperative and joins
+  the actual executor Future; repeated cancellation cannot release a live writer.
+  Active materialization prevents whole-tier reset, while old copies remain
+  readable and active read leases can reject replacement. No simulated delay.
+- Initial full-stack tier reset/copy and ExperimentStack's direct preload copy
+  now use existing manager ownership/publication. Caller-provided legacy copy
+  callbacks, old tier hints and unqualified legacy scenarios are not promoted
+  to confirmed-state evidence. Native transfer exceptions are not replaced with
+  local fallback or a zero-time failure value.
+- Thirteen added checks; final functional regression 538 pass, no errors/failures/
+  skips. The related 62 tests include a tiny real loopback HTTP roundtrip; other
+  cancellation tests control the response object. This is not 174 remote-server
+  qualification or a GPU performance experiment. First system-Python import
+  failed on absent numpy; stable existing env used without dependency installation.
+- Independent safety/census/replay 44 pass. The 147 protected entries and plan
+  SHA remain unchanged; all four GPUs idle at 15 MiB after validation.
+- Sep 26 04:18 local: original P2 scope active at torch dependency 183; 304 high
+  events, zero max/OOM/OOM-kill. Free disk ~335 GiB, host available memory ~104
+  GiB. Same installer retained, no duplicate environment or concurrent model.
+- Next: physical source capacity/content/registry publication, measured cold
+  source classes and pre-decision routing/admission; native abort reconciliation
+  and physical GPU ownership remain open. Account retained mmap/page-cache/tensor
+  storage separately from unlink. Qualify real backend/worker/clock/stream when
+  installation completes. Serverless remains first in baseline order; remote
+  disk decision, formal comparisons, ablations and sensitivities still pending.

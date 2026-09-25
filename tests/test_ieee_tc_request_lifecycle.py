@@ -373,6 +373,30 @@ class LocalSourceOwnership(unittest.TestCase):
         self.assertEqual(self.manager.tier_capacities[StorageTier.NVME].used_bytes, 17)
         self.release(receipt)
 
+    def test_private_transfer_retains_tier_but_leaves_old_copy_readable(self):
+        owner = self.manager.local_source_references
+        with owner.materializing(self.source):
+            self.assertEqual(len(owner.materializations), 1)
+            self.assertFalse(self.manager._delete_path(str(self.nvme)))
+            self.release(self.acquire())
+        self.assertFalse(owner.materializations)
+        self.assertTrue(self.manager._delete_path(str(self.nvme)))
+
+    def test_failed_tier_copy_preserves_destination_and_removes_private_stage(self):
+        from unittest.mock import patch
+        from faaslora.registry.schema import StorageTier
+        target = self.host / 'a'
+        target.mkdir()
+        (target / 'old').write_bytes(b'valid-before-copy')
+        def partial(src, dst):
+            dst.mkdir()
+            (dst / 'partial').write_bytes(b'incomplete')
+            raise OSError('copy failed')
+        with patch('faaslora.memory.residency_manager.shutil.copytree', side_effect=partial):
+            self.assertIsNone(self.manager._materialize_into_tier_dir('a', str(self.source), StorageTier.HOST))
+        self.assertEqual((target / 'old').read_bytes(), b'valid-before-copy')
+        self.assertEqual(sorted(p.name for p in self.host.iterdir()), ['a'])
+
     def test_copy_excludes_concurrent_source_reclamation_until_completion(self):
         import shutil
         from unittest.mock import patch
@@ -411,6 +435,110 @@ class LocalSourceOwnership(unittest.TestCase):
 
 
 class ControllerNativeReferenceLifecycle(unittest.TestCase):
+    def test_remote_writer_runs_off_loop_and_joins_actual_thread_on_repeated_cancel(self):
+        async def check():
+            entered, proceed, exited = (threading.Event() for _ in range(3))
+            controller_thread = threading.get_ident()
+            observed = {}
+            def io_work(cancellation):
+                observed['thread'] = threading.get_ident()
+                observed['cancellation'] = cancellation
+                entered.set()
+                try:
+                    if not proceed.wait(2):
+                        raise RuntimeError('test barrier timeout')
+                    return 'completed'
+                finally:
+                    exited.set()
+            task = asyncio.create_task(ScenarioRunner._owned_artifact_io(io_work))
+            try:
+                while not entered.is_set():
+                    await asyncio.sleep(0)
+                self.assertNotEqual(observed['thread'], controller_thread)
+                task.cancel()
+                await asyncio.sleep(.01)
+                self.assertTrue(observed['cancellation'].is_set())
+                self.assertFalse(task.done())
+                task.cancel()
+                await asyncio.sleep(.01)
+                self.assertFalse(task.done())
+            finally:
+                proceed.set()
+                with self.assertRaises(asyncio.CancelledError):
+                    await task
+            self.assertTrue(exited.is_set())
+        asyncio.run(check())
+
+    def test_native_http_publication_obeys_read_owner_and_does_not_hide_failure(self):
+        from faaslora.memory.residency_manager import ResidencyManager
+        from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+        from tests.test_http_artifact_store import archive_bytes
+        import io
+        runner, slot, trace, plan, owner, rpc = native_reference_fixture()
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'a'
+            source.mkdir()
+            (source / 'old').write_bytes(b'previous-copy')
+            manager = ResidencyManager({'memory': {'nvme': {'cache_dir': directory}}}, Mock(), Mock())
+            reference = manager.acquire_local_source(path=str(source), adapter_id='a', lease_id='reader')
+            runner._stack = SimpleNamespace(residency_manager=manager)
+            client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+            client._opener = Mock()
+            client._opener.open.side_effect = lambda *a, **k: io.BytesIO(archive_bytes())
+            runner._remote_artifact_client = client
+            with self.assertRaisesRegex(RuntimeError, 'live source reference'):
+                asyncio.run(runner._materialize_remote_adapter_async('a', source))
+            self.assertEqual((source / 'old').read_bytes(), b'previous-copy')
+            self.assertFalse(manager.local_source_references.materializations)
+            manager.release_local_source(lease_id='reader', expected_owner_id=reference['owner_id'])
+            ok, elapsed = asyncio.run(runner._materialize_remote_adapter_async('a', source))
+            self.assertTrue(ok)
+            self.assertGreater(elapsed, 0)
+            self.assertTrue((source / 'adapter_model.safetensors').exists())
+            self.assertEqual(sorted(p.name for p in Path(directory).iterdir()), ['a'])
+
+    def test_actual_http_client_cancel_waits_for_reader_and_cleans_without_publication(self):
+        from faaslora.memory.residency_manager import ResidencyManager
+        from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+        from tests.test_http_artifact_store import archive_bytes
+        import io
+        runner, slot, trace, plan, owner, rpc = native_reference_fixture()
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'a'
+            source.mkdir()
+            (source / 'old').write_bytes(b'previous-copy')
+            manager = ResidencyManager({'memory': {'nvme': {'cache_dir': directory}}}, Mock(), Mock())
+            runner._stack = SimpleNamespace(residency_manager=manager)
+            client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+            entered, proceed = threading.Event(), threading.Event()
+            class HeldResponse(io.BytesIO):
+                def read(inner, *args):
+                    entered.set()
+                    if not proceed.wait(2):
+                        raise RuntimeError('test barrier timeout')
+                    return super().read(*args)
+            client._opener = Mock()
+            client._opener.open.return_value = HeldResponse(archive_bytes())
+            runner._remote_artifact_client = client
+            async def check():
+                task = asyncio.create_task(runner._materialize_remote_adapter_async('a', source))
+                try:
+                    while not entered.is_set():
+                        await asyncio.sleep(0)
+                    task.cancel()
+                    await asyncio.sleep(.01)
+                    self.assertFalse(task.done())
+                    self.assertTrue(manager.local_source_references.materializations)
+                    self.assertFalse(manager._delete_path(directory))
+                finally:
+                    proceed.set()
+                    with self.assertRaises(asyncio.CancelledError):
+                        await task
+            asyncio.run(check())
+            self.assertFalse(manager.local_source_references.materializations)
+            self.assertEqual((source / 'old').read_bytes(), b'previous-copy')
+            self.assertEqual(sorted(p.name for p in Path(directory).iterdir()), ['a'])
+
     def test_lost_load_reply_retains_managed_file_until_native_reconciliation(self):
         from faaslora.memory.residency_manager import ResidencyManager
         runner, slot, trace, plan, owner, rpc = native_reference_fixture()

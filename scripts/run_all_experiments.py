@@ -12401,11 +12401,13 @@ class ScenarioRunner:
         """C1 完整：三层级联预加载 远端→硬盘(NVMe)→内存(HOST)→GPU，最热在 GPU、次热在内存、再次在硬盘。"""
         await self._stack.start()
         if self.nvme_dir.exists():
-            shutil.rmtree(self.nvme_dir, ignore_errors=True)
+            if not self._stack.residency_manager._delete_path(str(self.nvme_dir)):
+                raise RuntimeError('initial NVMe reset conflicts with live physical ownership')
         self.nvme_dir.mkdir(parents=True, exist_ok=True)
         host_dir = getattr(self._stack, "host_dir", None)
         if host_dir and host_dir.exists():
-            shutil.rmtree(host_dir, ignore_errors=True)
+            if not self._stack.residency_manager._delete_path(str(host_dir)):
+                raise RuntimeError('initial HOST reset conflicts with live physical ownership')
         if host_dir:
             host_dir.mkdir(parents=True, exist_ok=True)
 
@@ -12417,7 +12419,13 @@ class ScenarioRunner:
                     aid, Path(dst)
                 )
             else:
-                ok, io_ms = copy_with_timing(src_path, Path(dst))
+                target_tier = self._stack._path_tier_hint(dst)
+                if target_tier not in ('host', 'nvme'):
+                    raise ValueError('preload copy destination is outside managed tiers')
+                started = time.perf_counter()
+                copied = self._stack.residency_manager._materialize_into_tier_dir(
+                    aid, str(src_path), StorageTier(target_tier))
+                ok, io_ms = copied == str(dst), (time.perf_counter() - started) * 1000
             return ok, io_ms
 
         self._stack._ensure_registered()
@@ -14266,22 +14274,31 @@ class ScenarioRunner:
         # Cold start: always download from remote
         return await self._download_from_remote(adapter_id, size_mb)
 
-    def _materialize_remote_adapter(self, adapter_id: str, dst: Path) -> Tuple[bool, float]:
+    def _materialize_remote_adapter(self, adapter_id: str, dst: Path, *, cancel_event=None) -> Tuple[bool, float]:
         """Materialize an adapter from the configured remote origin into NVMe.
 
         Default behavior is the historical local frozen-directory copy.  When
         FAASLORA_REMOTE_ARTIFACT_ENABLED=1, this performs a real HTTP transfer
         from the remote artifact node instead and does not silently fall back to
         local files; this keeps two-node tests honest while preserving the
-        formal experiment path when the switch is disabled.
+        historical replay path when the switch is disabled. IEEE TC's primary
+        protocol requires the true remote path.
         """
 
         if self._remote_artifact_client is not None:
             try:
-                ok, elapsed_ms, size_bytes = self._remote_artifact_client.download_artifact(
-                    adapter_id,
-                    str(dst),
-                )
+                native = self.model_cfg.get('ieee_gpu_references', False)
+                if native:
+                    if self._stack is None:
+                        raise RuntimeError('native managed artifact transfer requires the physical source owner')
+                    owner = self._stack.residency_manager
+                    with owner.local_source_references.materializing(dst):
+                        ok, elapsed_ms, size_bytes = self._remote_artifact_client.download_artifact(
+                            adapter_id, str(dst), publish=owner.publish_local_source,
+                            cancel_event=cancel_event)
+                else:
+                    ok, elapsed_ms, size_bytes = self._remote_artifact_client.download_artifact(
+                        adapter_id, str(dst))
                 if ok:
                     print(
                         "    remote artifact fetch "
@@ -14289,6 +14306,8 @@ class ScenarioRunner:
                     )
                 return bool(ok), float(elapsed_ms)
             except Exception as exc:
+                if self.model_cfg.get('ieee_gpu_references', False):
+                    raise  # Preserve physical transfer/owner failure, never fabricate zero-time work.
                 print(f"    remote artifact fetch failed for {adapter_id}: {exc}")
                 return False, 0.0
 
@@ -14296,6 +14315,35 @@ class ScenarioRunner:
         if not src.exists():
             return False, 0.0
         return copy_with_timing(src, dst)
+
+    @staticmethod
+    async def _owned_artifact_io(operation):
+        """Run blocking transfer in the service domain and join it on cancel.
+
+        Cancelling an await cannot stop a running thread. Keep its actual future
+        alive, request cooperative cancellation, and do not return to cache
+        cleanup/per-adapter-lock release before the writer really terminates.
+        External watchdog remains responsible for a wedged whole service.
+        """
+        import threading
+        cancel_event = threading.Event()
+        future = asyncio.get_running_loop().run_in_executor(None, operation, cancel_event)
+        try:
+            return await asyncio.shield(future)
+        except asyncio.CancelledError:
+            cancel_event.set()
+            while not future.done():
+                try:
+                    await asyncio.shield(future)
+                except asyncio.CancelledError:
+                    continue  # Repeated cancellation still cannot release a live writer.
+                except Exception:
+                    break
+            # Observe late worker failure; the caller's cancellation is the
+            # request outcome, not a successful materialization receipt.
+            if not future.cancelled():
+                future.exception()
+            raise
 
     async def _materialize_remote_adapter_async(
         self,
@@ -14312,6 +14360,10 @@ class ScenarioRunner:
         """
 
         if self._remote_artifact_client is not None:
+            if self.model_cfg.get('ieee_gpu_references', False):
+                return await self._owned_artifact_io(
+                    lambda cancellation: self._materialize_remote_adapter(
+                        adapter_id, dst, cancel_event=cancellation))
             return self._materialize_remote_adapter(adapter_id, dst)
 
         src = self.remote_dir / adapter_id

@@ -945,13 +945,10 @@ class ExperimentStack:
             if copy_to_nvme_fn:
                 ok, io_ms = await copy_to_nvme_fn(aid, str(src), str(dst))
             else:
-                import shutil
                 t0 = time.perf_counter()
-                if dst.exists():
-                    shutil.rmtree(dst, ignore_errors=True)
-                shutil.copytree(src, dst)
+                copied = self.residency_manager._materialize_into_tier_dir(aid, str(src), StorageTier.NVME)
                 io_ms = (time.perf_counter() - t0) * 1000
-                ok = True
+                ok = copied == str(dst)
             if ok:
                 self._repair_adapter_dir(str(dst))
                 self._nvme_paths[aid] = str(dst)

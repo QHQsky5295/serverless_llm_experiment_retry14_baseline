@@ -42,6 +42,7 @@ class LocalSourceReferences:
         self.lock = threading.RLock()
         self.leases = {}
         self.released = set()
+        self.materializations = {}
 
     def acquire(self, *, path: str, adapter_id: str, lease_id: str) -> Dict[str, Any]:
         with self.lock:
@@ -73,12 +74,33 @@ class LocalSourceReferences:
             self.released.add(lease_id)
 
     @contextmanager
+    def materializing(self, target):
+        """Retain the containing tier while a private workspace is being written.
+
+        Old destination bytes remain readable. This is transfer lifetime, not
+        physical capacity admission, and does not hold a lock across network I/O.
+        """
+        target = Path(target).resolve()
+        if target.parent not in self.roots.values():
+            raise ValueError('materialization destination is outside managed tiers')
+        transfer_id = uuid.uuid4().hex
+        with self.lock:
+            self.materializations[transfer_id] = target
+        try:
+            yield transfer_id
+        finally:
+            with self.lock:
+                del self.materializations[transfer_id]
+
+    @contextmanager
     def mutation(self, path):
         """Keep check+copy/delete atomic with respect to reference acquisition."""
         with self.lock:
             target = Path(path).resolve()
             busy = any(target == Path(value[1]) or target in Path(value[1]).parents
                        or Path(value[1]) in target.parents for value in self.leases.values())
+            busy = busy or any(target in destination.parents
+                               for destination in self.materializations.values())
             yield not busy
 
 
@@ -592,6 +614,17 @@ class ResidencyManager:
     def release_local_source(self, *, lease_id: str, expected_owner_id: str):
         self.local_source_references.release(
             lease_id=lease_id, expected_owner_id=expected_owner_id)
+
+    def publish_local_source(self, staging: Path, target: Path) -> None:
+        """Completed file publication shares synchronization with read leases."""
+        from ..storage.http_artifact_store import publish_directory
+        target = Path(target)
+        if target.resolve().parent not in self.local_source_references.roots.values():
+            raise ValueError('publication destination is outside managed tier roots')
+        with self.local_source_references.mutation(target) as allowed:
+            if not allowed:
+                raise RuntimeError('publication conflicts with a live source reference')
+            publish_directory(staging, target)
 
     async def start(self):
         """Start the residency manager"""
@@ -1343,14 +1376,14 @@ class ResidencyManager:
         dest = tier_dir / artifact_id
         dest.parent.mkdir(parents=True, exist_ok=True)
         try:
-            if dest.exists():
-                if dest.is_dir():
-                    shutil.rmtree(dest, ignore_errors=True)
-                else:
-                    dest.unlink()
             if src.is_dir():
-                shutil.copytree(src, dest)
+                from ..storage.http_artifact_store import staged_directory
+                with staged_directory(dest) as staging:
+                    shutil.copytree(src, staging)
+                    self.publish_local_source(staging, dest)
             else:
+                # Legacy single-file path; IEEE source references require the
+                # PEFT directory representation and do not qualify this branch.
                 shutil.copy2(src, dest)
         except Exception as exc:
             self.logger.error(
