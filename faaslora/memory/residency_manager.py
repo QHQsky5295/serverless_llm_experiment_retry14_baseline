@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
+from contextlib import contextmanager
 
 from .gpu_monitor import GPUMemoryMonitor
 from ..registry.schema import ArtifactMetadata, StorageTier, ArtifactStatus
@@ -22,6 +23,63 @@ from ..registry.artifact_registry import ArtifactRegistry
 from ..utils.math_models import ValuePerByteCalculator, EWMAEstimator, GPUMemoryEstimator
 from ..utils.config import Config
 from ..utils.logger import get_logger
+
+
+class LocalSourceReferences:
+    """Cooperative file-copy ownership, shared by local readers and reclaimers.
+
+    This protects a resolved HOST/NVMe path during loading; it is NOT a content
+    verifier, a confirmed-tier publisher, or a capacity reservation. All physical
+    mutations must use this same owner. Native CPU/GPU tensors have a separate
+    owner and may outlive the file read. No async work runs while the lock is held.
+    """
+
+    def __init__(self, roots):
+        self.roots = {tier: Path(path).resolve() for tier, path in roots.items() if path}
+        if len(set(self.roots.values())) != len(self.roots):
+            raise ValueError('HOST/NVMe owners require distinct roots')
+        self.owner_id = uuid.uuid4().hex
+        self.lock = threading.RLock()
+        self.leases = {}
+        self.released = set()
+
+    def acquire(self, *, path: str, adapter_id: str, lease_id: str) -> Dict[str, Any]:
+        with self.lock:
+            source = Path(path).resolve(strict=True)
+            matches = [tier for tier, root in self.roots.items() if source.parent == root]
+            if len(matches) != 1 or not source.is_dir():
+                raise ValueError('source must be an existing adapter directory in one managed tier')
+            if not adapter_id or not lease_id or lease_id in self.released:
+                raise ValueError('source reference requires an unused lease and adapter identity')
+            stat = source.stat()
+            identity = (adapter_id, str(source), matches[0], stat.st_dev, stat.st_ino)
+            previous = self.leases.get(lease_id)
+            if previous is not None and previous != identity:
+                raise ValueError('source lease cannot be rebound to another copy')
+            self.leases[lease_id] = identity
+            return dict(owner_id=self.owner_id, lease_id=lease_id, adapter_id=adapter_id,
+                        path=str(source), tier=matches[0], device=stat.st_dev, inode=stat.st_ino,
+                        state='held', content_verified=False, capacity_reserved=False)
+
+    def release(self, *, lease_id: str, expected_owner_id: str) -> None:
+        with self.lock:
+            if expected_owner_id != self.owner_id:
+                raise ValueError('local source owner changed')
+            if lease_id in self.released:
+                return
+            if lease_id not in self.leases:
+                raise ValueError('unknown local source lease')
+            del self.leases[lease_id]
+            self.released.add(lease_id)
+
+    @contextmanager
+    def mutation(self, path):
+        """Keep check+copy/delete atomic with respect to reference acquisition."""
+        with self.lock:
+            target = Path(path).resolve()
+            busy = any(target == Path(value[1]) or target in Path(value[1]).parents
+                       or Path(value[1]) in target.parents for value in self.leases.values())
+            yield not busy
 
 
 class IEEEBackendGPUReferences:
@@ -515,6 +573,8 @@ class ResidencyManager:
         nvme_dir = nvme_cfg.get("cache_dir") or storage_config.get("local", {}).get("cache_dir")
         self.host_cache_dir = Path(host_dir) if host_dir else None
         self.nvme_cache_dir = Path(nvme_dir) if nvme_dir else None
+        self.local_source_references = LocalSourceReferences({
+            'host': self.host_cache_dir, 'nvme': self.nvme_cache_dir})
         self._tracked_gpu_device_ids: Optional[Tuple[int, ...]] = None
         
         self.logger.info("Residency manager initialized")
@@ -522,6 +582,16 @@ class ResidencyManager:
     def set_storage_manager(self, storage_manager):
         """Inject StorageManager dependency after construction."""
         self.storage_manager = storage_manager
+
+    def acquire_local_source(self, *, path: str, adapter_id: str, lease_id: str):
+        if self.storage_manager is not None:
+            raise RuntimeError('external LocalCache does not share the managed source owner')
+        return self.local_source_references.acquire(
+            path=path, adapter_id=adapter_id, lease_id=lease_id)
+
+    def release_local_source(self, *, lease_id: str, expected_owner_id: str):
+        self.local_source_references.release(
+            lease_id=lease_id, expected_owner_id=expected_owner_id)
 
     async def start(self):
         """Start the residency manager"""
@@ -1198,9 +1268,9 @@ class ResidencyManager:
         elif source_tier == StorageTier.NVME and target_tier == StorageTier.REMOTE:
             # Remove local file to free disk space
             if self.storage_manager:
-                await self.storage_manager.local_cache.delete_artifact(artifact_id)
+                return await self.storage_manager.local_cache.delete_artifact(artifact_id)
             elif current_path:
-                self._delete_path(current_path)
+                return self._delete_path(current_path)
 
         return True
 
@@ -1243,6 +1313,22 @@ class ResidencyManager:
         tier_dir = self._tier_cache_dir(target_tier)
         if tier_dir is None:
             return source_path or None
+        # The same lock also retains the source throughout this synchronous
+        # copy. A referenced destination must not be removed/replaced.
+        with self.local_source_references.mutation(tier_dir / artifact_id) as allowed:
+            if not allowed:
+                destination = tier_dir / artifact_id
+                if source_path and Path(source_path).resolve() == destination.resolve() and destination.exists():
+                    return str(destination)  # Existing copy; no mutation or new allocation.
+                return None
+            return self._materialize_into_tier_dir_locked(artifact_id, source_path, target_tier)
+
+    def _materialize_into_tier_dir_locked(
+        self, artifact_id: str, source_path: Optional[str], target_tier: StorageTier,
+    ) -> Optional[str]:
+        tier_dir = self._tier_cache_dir(target_tier)
+        if tier_dir is None:
+            return source_path or None
 
         src = Path(source_path) if source_path else None
         if src is None or not src.exists():
@@ -1273,16 +1359,20 @@ class ResidencyManager:
             return None
         return str(dest)
 
-    @staticmethod
-    def _delete_path(path: str) -> None:
-        try:
-            target = Path(path)
-            if target.is_dir():
-                shutil.rmtree(target, ignore_errors=True)
-            elif target.exists():
-                target.unlink()
-        except Exception:
-            pass
+    def _delete_path(self, path: str) -> bool:
+        with self.local_source_references.mutation(path) as allowed:
+            if not allowed:
+                return False
+            try:
+                target = Path(path)
+                if target.is_dir():
+                    shutil.rmtree(target)
+                elif target.exists():
+                    target.unlink()
+                return True
+            except OSError as exc:
+                self.logger.error(f'Local source deletion failed for {path}: {exc}')
+                return False
     
     def _estimate_load_time(self, size_bytes: int, target_tier: StorageTier) -> float:
         """Estimate loading time in milliseconds"""

@@ -1109,6 +1109,7 @@ class RuntimeRequestReservation:
     batch_started: bool = False
     gpu_reference_engine: Optional[Any] = None
     gpu_reference_evidence: Dict[str, Any] = field(default_factory=dict)
+    local_source_owner: Optional[Any] = None
 
     def bind(self, slot, adapter_id, adapter_reserved: bool) -> None:
         if self.bound:
@@ -13402,6 +13403,14 @@ class ScenarioRunner:
         if (not adapter_id or adapter_id != reservation.adapter_id
                 or not isinstance(local_path, str) or not Path(local_path).is_absolute()):
             raise ValueError('native reference requires the original adapter and absolute source')
+        if self._stack is not None:
+            # Protect physical input before the first cancellable native RPC.
+            # This is a read reference, not a claim of confirmed dispatch tier.
+            local_owner = self._stack.residency_manager
+            source_reference = local_owner.acquire_local_source(
+                path=local_path, adapter_id=adapter_id, lease_id=uuid.uuid4().hex)
+            reservation.local_source_owner = local_owner
+            reservation.gpu_reference_evidence['local_source_reference'] = source_reference
         clock_id = local_monotonic_clock_id()
         def validate_snapshot(value):
             if (not isinstance(value, dict) or value.get('clock_id') != clock_id
@@ -13454,6 +13463,9 @@ class ScenarioRunner:
                         or acquired_at <= 0 or acquired_at > time.monotonic()):
                     raise ValueError('native acquisition receipt has invalid completion time')
                 evidence.update(state='acquired', receipt=dict(receipt))
+                # The backend acknowledged completed loading/copying. File input
+                # is no longer read; native tensor leases own subsequent work.
+                self._release_runtime_local_source(reservation)
                 return receipt
             evidence['last_conflict'] = dict(receipt)
             if (receipt.get('reason') == 'stale_snapshot'
@@ -13466,6 +13478,14 @@ class ScenarioRunner:
                 continue
             evidence['state'] = 'rejected'
             raise RuntimeError(f"native reference acquisition conflict: {receipt.get('reason')}")
+
+    @staticmethod
+    def _release_runtime_local_source(reservation: RuntimeRequestReservation) -> None:
+        reference = reservation.gpu_reference_evidence.get('local_source_reference')
+        if reference is not None and reference['state'] == 'held':
+            reservation.local_source_owner.release_local_source(
+                lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'])
+            reference['state'] = 'released'
 
     def _retain_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
         if reservation.slot is not None:
@@ -13502,6 +13522,7 @@ class ScenarioRunner:
             except BaseException:
                 self._retain_runtime_request_reservation(reservation)
                 raise
+        self._release_runtime_local_source(reservation)
         if reservation.batch_started:
             reservation.batch_coordinator.notify_batch_end(
                 reservation.batch_input_tokens, reservation.batch_output_tokens)

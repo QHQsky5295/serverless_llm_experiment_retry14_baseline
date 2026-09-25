@@ -633,3 +633,47 @@ runner 方法中的 footprint 运输与日志大小合同）。完整功能回�
 测得的 D/T/O 初始化、决策前多副本 composition、原子主动 admission、取消终态
 对账与物理 GPU owner。没有据此启用 Full 或宣称吞吐/延迟/GPU-s 改善；下一步
 回到实际可执行的来源/成本与请求调度连接，安装完成后优先真实模型资格。
+
+## P1-D15：请求加载期间的受管文件副本引用
+
+对照 IEEE §3.1 的“execution/transfer references protect physical copies”，
+以及现有 `resolve_lora → native demand_load_and_acquire` 路径，发现旧实现返回
+HOST/NVMe 目录后，并未让物理回收方知道该目录正在被读取。修改前的真实 runner
+方法检查复现：模拟后端开始加载时，`ResidencyManager._delete_path` 已可删除
+对应临时目录；检查失败在“源仍存在”，不是因生成速度发生变化。
+
+本步假设是：只要读取与回收共享同一所有权同步，加载期间就不能删除或替换
+其源；收到加载完成确认后，应解除文件引用，而不是无理由延长到整次生成。
+核查 [vLLM 0.30.0 worker loader](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+的本地 checkpoint → CPU model → GPU activation 顺序；保留其原生加载流程，
+由 D9/D12 已有的完成确认区分文件读取和随后 native tensor 的生命周期。
+
+| 检查 / 条件 | 本步结果 | 边界 |
+|---|---|---|
+| 请求已解析路径、尚未调用可取消的 native RPC | 原 manager 发放带 owner/lease/path/device/inode 的文件引用 | 这是读引用，不是内容 SHA 验证或 confirmed tier 发布 |
+| 加载未完成时删除目录、子文件或父目录 | 同一回收 owner 拒绝，原数据保留 | 不能阻止未接入该 owner 的外部进程或旧旁路直接写文件 |
+| 两请求引用同一物理目录 | 各自释放一份；重复释放幂等，最后一份结束后才可回收 | 不按引用数多算一个物理副本；容量记账仍需独立接入 |
+| 替换正在读取的目标 | 返回未执行；同一已存在副本的无修改复用仍可成功 | 未增加 sleep、降级路径或伪成功 |
+| 同步 tier copy 与另一线程回收 source | 既有复制过程与回收共用锁，复制完成前源不能被删 | 该锁尚无模型级开销测量，不据此宣称异步复制优化 |
+| native 完成加载/拷贝确认 | 立即解除文件引用；native CPU/GPU lease 继续保护生成 | 真实 CUDA stream 完成语义仍需 P2 模型资格 |
+| 只读 source snapshot 失败 | 释放文件引用，不虚构已经启动 native load | 与 load 回复丢失不同 |
+| load 回复丢失 / 取消 | 保留文件引用、native 未决所有权和原请求身份 | 仍需终态对账；不能用 timeout 自动当成已经停止读取 |
+| 物理删除失败或引用冲突 | eviction 返回失败，原 tier 集合和 used bytes 不提前扣除 | 不把目录存在性当完整容量模型 |
+
+实现扩展现有 `ResidencyManager` 与 runner 请求生命周期，不另建缓存/实验框架。
+非本 owner 管理的 `StorageManager.LocalCache` 暂拒绝申请此引用，避免其独立
+cleanup 删除文件却仍称“已保护”。legacy tier hints、文件内容验证、容量
+reservation 和 confirmed publication 没有因此升级为 IEEE 合格状态。
+
+新增 **11 项检查**，包括真实临时小文件、两个线程和实际 runner 方法；未生成
+模型/adapter 池或负载。首次全请求检查遇到本项目 logger 不支持标准 logging
+的多位置参数（47 项中一项错误），已改为其既有接口；最终 49 项请求/文件检查
+与完整 **525 项功能回归全部通过**，独立 safety/census/replay **44 项通过**，
+均无错误、失败、skip。147 项历史保护清单和计划 SHA 未变。本表是本步骤交付，
+不制作性能增益图，不声称完成 A3/S2 或正式 Full。
+
+下一主线仍包括：将真实远程 materialization、旧预加载直接 copy 路径与全部
+合法回收统一到物理 owner；完成内容/容量/发布事务及冷源 profile，连接决策前
+快照、路由与原子 admission；完成 native 取消对账和物理 GPU 生命周期。现有
+`_ensure_local_async` 的 per-adapter fetch 锁不能替代上述所有权。不要在它们
+完成前把本步合作式引用称为所有 HOST/NVMe 路径均已受到保护。

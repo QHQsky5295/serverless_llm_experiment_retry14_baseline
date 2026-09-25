@@ -4,8 +4,10 @@ from dataclasses import asdict, replace
 import hashlib
 import json
 import socket
+import tempfile
 import threading
 import time
+from pathlib import Path
 from types import MethodType, SimpleNamespace
 import unittest
 from unittest.mock import AsyncMock, Mock
@@ -282,7 +284,207 @@ def native_reference_fixture():
     return runner, slot, trace, plan, owner, rpc
 
 
+class LocalSourceOwnership(unittest.TestCase):
+    def setUp(self):
+        from faaslora.memory.residency_manager import ResidencyManager
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.host, self.nvme = self.root / 'host', self.root / 'nvme'
+        self.host.mkdir()
+        self.nvme.mkdir()
+        self.source = self.nvme / 'a'
+        self.source.mkdir()
+        (self.source / 'weights').write_bytes(b'tiny-test-fixture')
+        self.manager = ResidencyManager({'memory': {
+            'host': {'cache_dir': str(self.host)}, 'nvme': {'cache_dir': str(self.nvme)}}}, Mock(), Mock())
+
+    def acquire(self, lease_id='r', path=None):
+        return self.manager.acquire_local_source(path=str(path or self.source), adapter_id='a', lease_id=lease_id)
+
+    def release(self, receipt):
+        self.manager.release_local_source(lease_id=receipt['lease_id'], expected_owner_id=receipt['owner_id'])
+
+    def test_two_readers_release_only_their_own_share(self):
+        first, second = self.acquire('first'), self.acquire('second')
+        self.release(first)
+        self.release(first)
+        self.assertFalse(self.manager._delete_path(str(self.source)))
+        self.assertTrue((self.source / 'weights').exists())
+        self.release(second)
+        self.assertTrue(self.manager._delete_path(str(self.source)))
+
+    def test_parent_and_child_mutations_cannot_bypass_live_reference(self):
+        self.acquire()
+        self.assertFalse(self.manager._delete_path(str(self.nvme)))
+        self.assertFalse(self.manager._delete_path(str(self.source / 'weights')))
+        self.assertTrue((self.source / 'weights').exists())
+
+    def test_replacement_is_deferred_but_same_copy_and_other_tier_remain_usable(self):
+        from faaslora.registry.schema import StorageTier
+        receipt = self.acquire()
+        other = self.host / 'a'
+        other.mkdir()
+        (other / 'weights').write_bytes(b'replacement-fixture')
+        self.assertIsNone(self.manager._materialize_into_tier_dir('a', str(other), StorageTier.NVME))
+        self.assertEqual((self.source / 'weights').read_bytes(), b'tiny-test-fixture')
+        self.assertEqual(self.manager._materialize_into_tier_dir('a', str(self.source), StorageTier.NVME), str(self.source))
+        self.assertEqual(self.manager._materialize_into_tier_dir('a', str(self.source), StorageTier.HOST), str(other))
+        self.release(receipt)
+        self.assertEqual(self.manager._materialize_into_tier_dir('a', str(other), StorageTier.NVME), str(self.source))
+
+    def test_lease_identity_cannot_be_rebound_or_revived(self):
+        receipt = self.acquire()
+        self.assertEqual(receipt, self.acquire())
+        with self.assertRaisesRegex(ValueError, 'owner changed'):
+            self.manager.release_local_source(lease_id='r', expected_owner_id='wrong')
+        (self.nvme / 'b').mkdir()
+        with self.assertRaisesRegex(ValueError, 'rebound'):
+            self.acquire(path=self.nvme / 'b')
+        self.release(receipt)
+        with self.assertRaisesRegex(ValueError, 'unused lease'):
+            self.acquire()
+
+    def test_unmanaged_or_missing_source_is_not_silently_registered(self):
+        with self.assertRaisesRegex(ValueError, 'managed tier'):
+            self.acquire(path=self.root)
+        with self.assertRaises(FileNotFoundError):
+            self.acquire(path=self.nvme / 'missing')
+        self.manager.set_storage_manager(Mock())
+        with self.assertRaisesRegex(RuntimeError, 'does not share'):
+            self.acquire()
+
+    def test_failed_physical_delete_does_not_publish_success(self):
+        from unittest.mock import patch
+        with patch('faaslora.memory.residency_manager.shutil.rmtree', side_effect=OSError('busy')):
+            self.assertFalse(self.manager._delete_path(str(self.source)))
+        self.assertTrue(self.source.exists())
+
+    def test_rejected_eviction_leaves_tier_accounting_unchanged(self):
+        from faaslora.registry.schema import StorageTier
+        receipt = self.acquire()
+        metadata = SimpleNamespace(storage_tier=StorageTier.NVME, size_bytes=17,
+                                   storage_path=str(self.source))
+        self.manager.registry.get_artifact.return_value = metadata
+        self.manager.tier_artifacts[StorageTier.NVME].add('a')
+        self.manager.tier_capacities[StorageTier.NVME].used_bytes = 17
+        self.assertFalse(asyncio.run(self.manager.evict_artifact('a', StorageTier.REMOTE)))
+        self.assertIn('a', self.manager.tier_artifacts[StorageTier.NVME])
+        self.assertEqual(self.manager.tier_capacities[StorageTier.NVME].used_bytes, 17)
+        self.release(receipt)
+
+    def test_copy_excludes_concurrent_source_reclamation_until_completion(self):
+        import shutil
+        from unittest.mock import patch
+        from faaslora.registry.schema import StorageTier
+        original = shutil.copytree
+        entered, proceed, attempting, finished = (threading.Event() for _ in range(4))
+        results = {}
+        def copying(src, dst):
+            entered.set()
+            if not proceed.wait(2):
+                raise RuntimeError('test copy barrier timeout')
+            return original(src, dst)
+        def transfer():
+            results['copy'] = self.manager._materialize_into_tier_dir('a', str(self.source), StorageTier.HOST)
+        def reclaim():
+            attempting.set()
+            results['delete'] = self.manager._delete_path(str(self.source))
+            finished.set()
+        with patch('faaslora.memory.residency_manager.shutil.copytree', side_effect=copying):
+            copy_thread = threading.Thread(target=transfer)
+            delete_thread = threading.Thread(target=reclaim)
+            copy_thread.start()
+            try:
+                self.assertTrue(entered.wait(1))
+                delete_thread.start()
+                self.assertTrue(attempting.wait(1))
+                self.assertFalse(finished.wait(.02))
+            finally:
+                proceed.set()
+                copy_thread.join(2)
+                if delete_thread.ident is not None:
+                    delete_thread.join(2)
+        self.assertEqual(results['copy'], str(self.host / 'a'))
+        self.assertTrue(results['delete'])
+        self.assertEqual((self.host / 'a' / 'weights').read_bytes(), b'tiny-test-fixture')
+
+
 class ControllerNativeReferenceLifecycle(unittest.TestCase):
+    def test_lost_load_reply_retains_managed_file_until_native_reconciliation(self):
+        from faaslora.memory.residency_manager import ResidencyManager
+        runner, slot, trace, plan, owner, rpc = native_reference_fixture()
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'adapter-a'
+            source.mkdir()
+            manager = ResidencyManager({'memory': {'nvme': {'cache_dir': directory}}}, Mock(), Mock())
+            runner._stack = SimpleNamespace(residency_manager=manager, record_access=Mock())
+            runner._resolve_lora.return_value = ('adapter-a', str(source), 1., 'nvme', 0., 0.)
+            async def check():
+                entered = asyncio.Event()
+                async def lost(*, operation, **kwargs):
+                    value = await rpc(operation=operation, **kwargs)
+                    if operation == 'demand_load_and_acquire':
+                        entered.set()
+                        await asyncio.Future()
+                    return value
+                slot.engine.ieee_gpu_reference.side_effect = lost
+                task = asyncio.create_task(runner._exec_request(trace, 4, 0., request_plan=plan))
+                await asyncio.wait_for(entered.wait(), .5)
+                task.cancel()
+                with self.assertRaises(asyncio.CancelledError):
+                    await task
+            asyncio.run(check())
+            pending = runner._unsettled_runtime_reservations[trace.request_id]
+            self.assertEqual(pending.gpu_reference_evidence['local_source_reference']['state'], 'held')
+            self.assertFalse(manager._delete_path(str(source)))
+            self.assertTrue(source.exists())
+            self.assertEqual(owner.snapshot()['live_leases'], 1)
+
+    def test_read_only_snapshot_failure_releases_file_without_claiming_native_work(self):
+        from faaslora.memory.residency_manager import ResidencyManager
+        runner, slot, trace, plan, owner, rpc = native_reference_fixture()
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'adapter-a'
+            source.mkdir()
+            manager = ResidencyManager({'memory': {'nvme': {'cache_dir': directory}}}, Mock(), Mock())
+            runner._stack = SimpleNamespace(residency_manager=manager, record_access=Mock())
+            runner._resolve_lora.return_value = ('adapter-a', str(source), 1., 'nvme', 0., 0.)
+            slot.engine.ieee_gpu_reference.side_effect = RuntimeError('snapshot unavailable')
+            result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+            self.assertEqual(result.gpu_reference_evidence['local_source_reference']['state'], 'released')
+            self.assertTrue(manager._delete_path(str(source)))
+            self.assertEqual(slot.active_requests, 0)
+            self.assertEqual(owner.snapshot()['live_leases'], 0)
+
+    def test_managed_file_is_retained_during_native_load_and_released_at_ack(self):
+        from faaslora.memory.residency_manager import ResidencyManager
+        runner, slot, trace, plan, owner, rpc = native_reference_fixture()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'nvme' / 'adapter-a'
+            source.mkdir(parents=True)
+            (source / 'weights').write_bytes(b'tiny-test-fixture')
+            manager = ResidencyManager({'memory': {
+                'host': {'cache_dir': str(root / 'host')},
+                'nvme': {'cache_dir': str(root / 'nvme')}}}, Mock(), Mock())
+            runner._stack = SimpleNamespace(residency_manager=manager, record_access=Mock())
+            runner._resolve_lora.return_value = ('adapter-a', str(source), 1., 'nvme', 0., 0.)
+            async def observing(*, operation, **kwargs):
+                if operation == 'demand_load_and_acquire':
+                    self.assertFalse(manager._delete_path(str(source)))
+                    self.assertTrue(source.exists())
+                return await rpc(operation=operation, **kwargs)
+            slot.engine.ieee_gpu_reference.side_effect = observing
+            def after_load(**kwargs):
+                self.assertTrue(manager._delete_path(str(source)))
+                raise ValueError('stop after acknowledged copy')
+            runner._begin_scaleup_runtime_request_labels.side_effect = after_load
+            result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+            self.assertIn('acknowledged copy', result.error)
+            self.assertEqual(result.gpu_reference_evidence['local_source_reference']['state'], 'released')
+            self.assertEqual(owner.snapshot()['live_leases'], 0)
+
     def test_measured_footprints_reach_request_without_duplicating_tensor_inventory(self):
         runner, slot, trace, plan, owner, rpc = native_reference_fixture()
         runner._begin_scaleup_runtime_request_labels.side_effect = ValueError('pre-generation stop')
