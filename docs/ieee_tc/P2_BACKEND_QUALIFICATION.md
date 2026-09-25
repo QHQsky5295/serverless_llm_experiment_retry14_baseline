@@ -97,3 +97,30 @@ IEEE confirmed tier 的租约证据。
 slot 不一致、未知表示、同步标记、嵌套字段运输和错误不吞掉。它们没有加载
 模型，也没有证明原生 worker 已满足资源包络。下一次真实模型资格必须读取
 这些事实，验证后才能将其接入 owner；不能先把代理提示映射成 GPU-ready。
+
+## 原生 GPU 引用接入（模型资格前的独立合同）
+
+`model.ieee_gpu_references=true` 安装同一个 worker extension，并在真正的
+worker CPU/GPU LRU 上维护请求引用；不是只修改 router 的 resident set。
+同一份扩展的 observation 仍只读，不因启用引用功能而自动成为受保护快照。
+
+- 当前限定每个 runtime TP=PP=1；多 runtime 横向扩容不等于 TP>1。
+- snapshot 不持有引用；acquire 必须提交 worker incarnation 和 epoch。
+- CPU-only、不再驻留或过期快照返回 conflict，不通过隐式 load 变成“原 GPU hit”。
+- 第一个引用保护 native CPU/GPU cache；多个请求共享；最后一个引用只解除
+  本 owner 的 pin，保留已有外部 pin。pin 不是本系统独创算法。
+- 在 worker 当前 CUDA stream 上记录并等待 event，计入 acquisition 开销；
+  不进行全设备同步。必须在真实资格中确认本机 dense LoRA copy/execute 的
+  stream 和线程顺序，不能仅凭 fake event 测试宣称 readiness 已完成验证。
+- 现有 engine/prepared/RPC 通道要求 generation 提交对应 adapter 的引用，
+  并将原生 backend request ID 绑定到 lease。未见 native terminal 时不能释放。
+  异常/取消不会假称 backend 已结束：保留引用直到明确终态或整 worker 回收。
+- 显式卸载通过同一 owner；不能绕过 owner 调 remove、load_inplace 或 pin。
+  正常 cache replacement 使用后端 LRU；检测到已有引用被旁路失效时，owner
+  invalidated，停止使用该 worker，不把它重新解释为 ordinary cache miss。
+
+这一步不实现 cold-load admission、active-request reservation、victim transaction
+或慢层共享引用。没有将上述条件偷换为 True；回执明确
+`request_admission_reserved=false`、`production_launch_authorized=false`。
+后续真实模型资格用这些现有入口验证 hold/use/release/eviction，再完成控制器
+快照与资源预约接入。没有使用本步骤数据声称 TTFT 或 GPU-s 已改善。

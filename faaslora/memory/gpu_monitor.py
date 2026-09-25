@@ -94,13 +94,45 @@ def _ieee_lora_pool_inventory(manager: Any) -> Dict[str, Any]:
 
 
 class IEEEWorkerObservationExtension:
-    """Read-only native worker qualification via vLLM worker_extension_cls.
+    """Native qualification and opt-in reference operations via worker extension.
 
     No scheduler, eviction, admission or inference method is overridden. An
-    unsynchronized slot mapping is NOT confirmed readiness or a dispatch lease.
+    unsynchronized observation is NOT confirmed readiness or a dispatch lease.
     The optional device barrier is for isolated qualification/profiling only;
     never call it as per-request monitoring in a performance campaign.
     """
+
+    def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
+        """Single-worker native reference transaction, not an admission decision.
+
+        The owning engine must use this entry point for explicit evictions and
+        must not submit load-in-place updates. Model qualification must confirm
+        the native LoRA copies use the current execution stream. TP/PP > 1 needs
+        a multi-worker commit protocol and is deliberately not authorized here.
+        """
+        if operation not in ('snapshot', 'acquire', 'release', 'evict', 'begin_use', 'end_use'):
+            raise ValueError('unknown GPU reference operation')
+        if torch is None or self.device is None or self.device.type != 'cuda':
+            raise RuntimeError('native CUDA worker is required')
+        from .residency_manager import IEEEBackendGPUReferences
+        from faaslora.metrics.metrics_collector import local_monotonic_clock_id
+
+        manager = self.model_runner.lora_manager._adapter_manager
+        if not hasattr(self, '_ieee_gpu_reference_owner'):
+            def completion_fence():
+                with torch.cuda.device(self.device):
+                    event = torch.cuda.Event()
+                    event.record(torch.cuda.current_stream(self.device))
+                    event.synchronize()
+            self._ieee_gpu_reference_owner = IEEEBackendGPUReferences(manager, completion_fence)
+        owner = self._ieee_gpu_reference_owner
+        if owner.manager is not manager:
+            raise RuntimeError('native LoRA manager replaced; worker reference epoch invalid')
+        result = getattr(owner, operation)(**kwargs)
+        return {**result, 'clock_id': local_monotonic_clock_id(),
+                'worker_pid': os.getpid(), 'worker_rank': int(self.rank),
+                'completion_fence_scope': 'current_worker_cuda_stream',
+                'production_launch_authorized': False}
 
     def ieee_worker_observation(self, *, synchronize: bool = False) -> Dict[str, Any]:
         if type(synchronize) is not bool:

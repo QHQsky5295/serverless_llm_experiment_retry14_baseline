@@ -3316,7 +3316,8 @@ class InferenceEngine:
                 max_num_seqs=self.model_cfg.get("max_num_seqs", 8),
                 max_num_batched_tokens=default_batched,
             )
-            if self.model_cfg.get("ieee_worker_observation", False):
+            if (self.model_cfg.get("ieee_worker_observation", False)
+                    or self.model_cfg.get("ieee_gpu_references", False)):
                 kwargs["worker_extension_cls"] = "faaslora.memory.gpu_monitor.IEEEWorkerObservationExtension"
             if tokenizer_mode is not None:
                 kwargs["tokenizer_mode"] = tokenizer_mode
@@ -4007,6 +4008,7 @@ class InferenceEngine:
         generation_seed: Optional[int] = None,
         _prepared_request: Optional[RequestExecutionPlan] = None,
         return_timing: bool = False,
+        gpu_reference: Optional[Dict[str, Any]] = None,
     ) -> Tuple[float, float, int]:
         """Returns (vllm_ttft_ms, tpot_ms, output_tokens[, timing]). Always real inference."""
         timing_contract = self.model_cfg.get("timing_contract", "legacy")
@@ -4015,6 +4017,8 @@ class InferenceEngine:
         native_timing = timing_contract == "ieee_tc_native_v1"
         if native_timing and self.backend != "vllm":
             raise ValueError("native V1 timing is only qualified for the vLLM path")
+        if self.model_cfg.get("ieee_gpu_references", False) and not native_timing:
+            raise ValueError("native GPU references require the native V1 terminal/timing contract")
         async with self._lock:
             self._counter += 1
             req_id = f"req_{self._counter}"
@@ -4100,8 +4104,19 @@ class InferenceEngine:
 
             lora_req = None
             if self._lora_in_engine and lora_path and adapter_id:
-                int_id = (int(hashlib.md5(adapter_id.encode()).hexdigest(), 16) % 999999) + 1
+                int_id = self._lora_int_id(adapter_id)
                 lora_req = LoRARequest(lora_name=adapter_id, lora_int_id=int_id, lora_path=lora_path)
+
+            reference_receipt = None
+            if self.model_cfg.get("ieee_gpu_references", False) and adapter_id:
+                if lora_req is None or not isinstance(gpu_reference, dict):
+                    raise ValueError("native adapter generation requires its dispatch reference")
+                reference_receipt = await self.ieee_gpu_reference(
+                    operation="begin_use", lease_id=gpu_reference['lease_id'],
+                    expected_owner_id=gpu_reference['owner_id'],
+                    adapter_int_id=int_id, backend_request_id=req_id)
+            elif gpu_reference is not None:
+                raise ValueError("dispatch reference supplied outside its native adapter contract")
 
             t0 = time.perf_counter()
             timeline = None
@@ -4113,9 +4128,15 @@ class InferenceEngine:
             final_token_ids: List[int] = []
             actual_prompt_tokens = max(1, int(input_tokens or 1))
             last_metrics = None
+            backend_terminal = False
             async for out in self.engine.generate(
                 prompt=prompt, sampling_params=sp, request_id=req_id, lora_request=lora_req
             ):
+                if reference_receipt is not None and out.finished:
+                    backend_terminal = True
+                    await self.ieee_gpu_reference(
+                        operation="end_use", lease_id=reference_receipt['lease_id'],
+                        expected_owner_id=reference_receipt['owner_id'], backend_request_id=req_id)
                 metrics = getattr(out, "metrics", None)
                 if metrics is not None:
                     last_metrics = metrics
@@ -4139,6 +4160,8 @@ class InferenceEngine:
                     timeline.observe(metrics, timeline.token_ids, finished=out.finished)
 
             t1 = time.perf_counter()
+            if reference_receipt is not None and not backend_terminal:
+                raise ValueError("backend stream ended without terminal acknowledgement; reference retained")
             native_fields = timeline.finalize(t1) if timeline is not None else {}
             if native_timing:
                 ttft_ms = native_fields["native_ttft_ms"]
@@ -4170,6 +4193,11 @@ class InferenceEngine:
                 ).hexdigest(),
                 **native_fields,
             }
+            if reference_receipt is not None:
+                timing.update(gpu_reference_owner_id=reference_receipt['owner_id'],
+                              gpu_reference_lease_id=reference_receipt['lease_id'],
+                              gpu_reference_adapter_int_id=reference_receipt['adapter_int_id'],
+                              gpu_reference_acquired_monotonic_s=reference_receipt['acquired_monotonic_s'])
             self.last_timing = dict(timing)
             if return_timing:
                 return ttft_ms, tpot_ms, tok_count, timing
@@ -4212,6 +4240,7 @@ class InferenceEngine:
         top_p: float = 0.9,
         generation_seed: Optional[int] = None,
         return_timing: bool = False,
+        gpu_reference: Optional[Dict[str, Any]] = None,
     ) -> Tuple[float, float, int]:
         return await self.generate(
             prompt=request_plan.prompt,
@@ -4224,6 +4253,7 @@ class InferenceEngine:
             generation_seed=generation_seed,
             _prepared_request=request_plan,
             return_timing=return_timing,
+            **({"gpu_reference": gpu_reference} if gpu_reference is not None else {}),
         )
 
     @staticmethod
@@ -4249,6 +4279,27 @@ class InferenceEngine:
         if len(observations) != expected:
             raise RuntimeError("worker observation count differs from configured TP")
         return {"workers": observations, "production_launch_authorized": False}
+
+    async def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
+        """Forward an explicit native owner operation; no inferred success."""
+        if not self.model_cfg.get("ieee_gpu_references", False):
+            raise RuntimeError("native GPU reference owner was not enabled")
+        if (int(self.model_cfg.get("tensor_parallel_size", 1)) != 1
+                or int(self.model_cfg.get("pipeline_parallel_size", 1)) != 1):
+            raise RuntimeError("native references currently require TP=PP=1")
+        if self.backend != "vllm" or self.engine is None or self._engine_dead:
+            raise RuntimeError("native references require a live vLLM engine")
+        if operation not in ("snapshot", "acquire", "release", "evict", "begin_use", "end_use"):
+            raise ValueError("unknown GPU reference operation")
+        rpc = getattr(self.engine, "collective_rpc", None)
+        if not callable(rpc):
+            raise RuntimeError("backend lacks native worker collective RPC")
+        results = rpc("ieee_gpu_reference", kwargs={"operation": operation, **kwargs})
+        if inspect.isawaitable(results):
+            results = await results
+        if not isinstance(results, list) or len(results) != 1 or not isinstance(results[0], dict):
+            raise RuntimeError("invalid single-worker reference acknowledgement")
+        return results[0]
 
     async def load_lora_to_gpu_and_measure(self, lora_path: str, adapter_id: str) -> Tuple[float, bool]:
         """
@@ -4291,6 +4342,10 @@ class InferenceEngine:
     async def unload_lora_adapter(self, adapter_id: str) -> bool:
         if not adapter_id:
             return True
+        if self.model_cfg.get("ieee_gpu_references", False):
+            result = await self.ieee_gpu_reference(
+                operation="evict", adapter_int_id=self._lora_int_id(adapter_id))
+            return result["evicted"] or result["reason"] == "absent"
         if self.backend == "transformers":
             async with self._lock:
                 if adapter_id not in self._hf_loaded_adapters:
@@ -4860,6 +4915,7 @@ class SubprocessInferenceEngineProxy:
         *,
         generation_seed: Optional[int] = None,
         return_timing: bool = False,
+        gpu_reference: Optional[Dict[str, Any]] = None,
     ) -> Tuple[float, float, int]:
         rpc_started_at = time.perf_counter()
         result = await self._rpc(
@@ -4873,6 +4929,7 @@ class SubprocessInferenceEngineProxy:
             top_p=top_p,
             generation_seed=generation_seed,
             return_timing=return_timing,
+            **({"gpu_reference": gpu_reference} if gpu_reference is not None else {}),
         )
         parent_rpc_wall_ms = max(0.0, (time.perf_counter() - rpc_started_at) * 1000.0)
         timing = dict(result.get("timing") or {})
@@ -4943,6 +5000,7 @@ class SubprocessInferenceEngineProxy:
         top_p: float = 0.9,
         generation_seed: Optional[int] = None,
         return_timing: bool = False,
+        gpu_reference: Optional[Dict[str, Any]] = None,
     ) -> Tuple[float, float, int]:
         return await self.generate(
             prompt=request_plan.prompt,
@@ -4954,6 +5012,7 @@ class SubprocessInferenceEngineProxy:
             top_p=top_p,
             generation_seed=generation_seed,
             return_timing=return_timing,
+            **({"gpu_reference": gpu_reference} if gpu_reference is not None else {}),
         )
 
     async def load_lora_to_gpu_and_measure(self, lora_path: str, adapter_id: str) -> Tuple[float, bool]:
@@ -4966,6 +5025,15 @@ class SubprocessInferenceEngineProxy:
 
     async def ieee_worker_observation(self, *, synchronize: bool = False) -> Dict[str, Any]:
         return await self._rpc("ieee_worker_observation", synchronize=synchronize)
+
+    async def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
+        return await self._rpc("ieee_gpu_reference", operation=operation, **kwargs)
+
+    async def unload_lora_adapter(self, adapter_id: str) -> bool:
+        result = await self._rpc("unload_lora_adapter", adapter_id=adapter_id)
+        if type(result.get("unloaded")) is not bool:
+            raise RuntimeError("missing native unload acknowledgement")
+        return result["unloaded"]
 
     async def shutdown(self) -> None:
         keep_logs = self._keep_worker_logs_requested()

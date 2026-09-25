@@ -3,6 +3,9 @@
 本表不是性能结果，也不表示 Full 已完成 IEEE 对齐。主比较必须等所有关键
 合同关闭；不得把旧代码的指标移植到新设计上。论文源文件未改动。
 
+本文件前面的首次审计表保留历史发现；逐项最新进展见 D1–D6。测试通过不等于
+真实模型资格，更不等于全部九式已在 Full 闭环接通。
+
 ## 规范来源
 
 - IEEE PDF：`/home/qhq/storage_audit_20260915/PrimeLoRA_IEEE.pdf`，
@@ -249,3 +252,41 @@ C5、Full 或主比较。旧聚合器也不能据此被整体标记为 TC-qualif
 [RequestStateStats](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/metrics/stats.py)
 和 [output processor](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/output_processor.py)。
 采用其真实时间定义，并非复用 API 中名称相似但起点不同的 TTFT。
+
+## P1-D6：原生 GPU 引用及真实生成入口绑定（已接线，CUDA 资格待完成）
+
+本次假设：**router 的 resident hint 与原生 cache eviction 无共同 owner 时，
+“选中时命中”不能保证“使用前仍可执行”。** 依据不是推测：历史入口的
+slot hints、native `remove_lora` 及子进程调用分别维护状态；仅测最快 tier
+或 `list_adapters()` 无法证明引用在整个 dispatch 路径有效。
+
+联网核对 vLLM 0.30.0 的
+[worker manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)、
+[model manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/model_manager.py)
+和 [LRU cache](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/utils/cache.py)：
+CPU/GPU 缓存分开；原生 pin 可阻止 LRU 驱逐，但显式 remove 仍能删除 pinned
+项。因而“只加 pin 就完成 confirmed propagation”也不成立。实现采用原生
+cache 的引用保护，并将显式卸载及真实 generation 绑定纳入同一所有权合同。
+
+| 论文规范语义 | 当前实现证据 | 仍未关闭 |
+|---|---|---|
+| snapshot→选择→取得引用，冲突重选 | `IEEEBackendGPUReferences` 在 native worker 持有 incarnation/epoch；旧 epoch、CPU-only、已失效返回拒绝，不加载后假称原命中 | controller 全候选同 epoch 快照、active-request reservation 和冲突重选 |
+| 引用有效期间不可回收 | native CPU/GPU LRU pin；多请求计数；explicit unload 走 owner；旁路失效使 owner invalidated | 所有主动准备/替换路径接入，同线程与真实模型压力资格 |
+| executable acquisition 完成才发布 | worker 当前 CUDA stream event 完成后返回 acquire 时间；不以 `list_adapters` 代替 GPU | dense LoRA copy/execute 的实机 stream 资格与纯 D 成本更新 |
+| 引用与实际请求相同 | existing generate/prepared/proxy 接受同 adapter lease，绑定 native request ID；native terminal 才允许释放 | 完整 controller 租约生命周期、取消的原生 abort 终态接入 |
+| 取消、重复通信、释放 | acquire/release 重试不重复增减；不能复用已释放 dispatch ID；尚未终态不假释放；device 异常使 owner 不再可用 | backend 失效时整 worker 回收及生命周期积分 |
+
+scope 明确限定 TP=PP=1 的单 runtime；这是主实验拓扑，不把 TP 多 worker
+部分成功说成原子提交。该组件不隐式执行 cold-load、victim selection、KV
+reservation 或式 (8) soft admission；回执明确 `request_admission_reserved=false`。
+尚不能启用为正式 Full。引用接口默认关闭，不修改已封存运行的身份或数字。
+
+16 项新增无 GPU 测试使用已安装旧后端的真实 LRU 容器、假 slot/device events
+及实际 engine/prepared/RPC 方法，覆盖持有期间 LRU/显式驱逐、多引用、旧 epoch、
+CPU-only、backend incarnation、已有 pin、CUDA 异常回滚、旁路删除、request-ID
+绑定、未终态占用及传输拒绝。完整功能回归 **372 项通过**，无失败/skip；独立
+安全回归 **19 项通过**。一次测试模块临时导入另一个 TestCase 导致其 6 项
+被额外发现，已改为 module 引用；372 的最终计数不含该重复。
+
+图表选择为本节合同状态表，而非性能图。真实 CUDA event、模型输出、引用开销
+与性能影响尚未测量；没有声称本次检查减少 TTFT、降低 GPU-s 或提高联合 SLO。

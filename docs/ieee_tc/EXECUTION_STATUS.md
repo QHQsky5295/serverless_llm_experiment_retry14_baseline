@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Exact demand, benefit planning, service/routing and KV/admission calculations tested; native integration open | P1_FORMULA_IMPLEMENTATION.md. 16 new byte/block admission tests pass. Native profile/owner/event wiring and atomic reservation remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts + native token/reference interfaces tested; controller/resource integration open | P1_FORMULA_IMPLEMENTATION.md D1–D6. GPU references bind actual engine requests and native LRU; CUDA/clock/stream qualification, slow-tier references and atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -83,6 +83,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
   and byte/block admission checkpoint `a08b4943b5826028fd5f4ec1f1774eb610c1aa56`
   pushed to V2; remote SHAs verified.
 - Native token timing checkpoint `0013fca361c26643184689c34d0b147dc3176d57`
+  pushed to V2; remote SHA verified.
+- Native observation checkpoint `ea439a0234ba9d151d90a6d17b20596b54621c47`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -240,3 +242,28 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - At Sep 26 00:02 local, existing P2 installation is still downloading its
   hash-locked CUDA dependency. Scope is active, all memory high/max/OOM counters
   remain zero; no second install or model run started.
+
+## Native GPU reference checkpoint
+
+- Sixteen added no-GPU checks pass. Native cache pinning is paired with explicit
+  unload protection, incarnation/epoch conflicts, shared request references and
+  actual generate/prepared/RPC request-ID binding. A CPU-only adapter is never
+  implicitly loaded and relabelled as an original GPU hit.
+- A bound request without native terminal retains its reference; failure does
+  not fabricate release. Device or referenced-cache invalidation poisons the
+  owner rather than silently returning to a stale hint. Cold load/admission,
+  controller ownership, slow-tier references and abort acknowledgement are open.
+- Worker event fences cover its current CUDA stream, not all-device barriers.
+  This must pass real stream/thread/model qualification before any confirmed
+  readiness claim. Current reference API is TP=PP=1 only and opt-in.
+- Final regression: 372 functional tests, 19 safety tests, zero failures/skips.
+  Final test count excludes six temporarily duplicated imported TestCase tests.
+  All 147 protected entries unchanged; all GPUs remain idle (15 MiB each).
+- Sep 26 00:23 local: existing bounded P2 installation still active on the
+  hash-locked CUDA wheel. Disk ~338 GiB free; available RAM ~104 GiB. No GPU
+  performance run, second installation, model/adapter duplication or cleanup of
+  unique evidence was performed.
+- Next useful local work: wire bounded service launch + independent watchdog
+  readiness handshake and genuinely external replay. Continue native scheduler
+  KV/iteration observations and controller reservations after that gate; do not
+  stop the active installation or declare P1/Full complete from unit tests.

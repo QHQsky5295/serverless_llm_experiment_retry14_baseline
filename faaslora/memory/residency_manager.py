@@ -9,6 +9,7 @@ import time
 import asyncio
 import threading
 import shutil
+import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
@@ -20,6 +21,211 @@ from ..registry.artifact_registry import ArtifactRegistry
 from ..utils.math_models import ValuePerByteCalculator, EWMAEstimator, GPUMemoryEstimator
 from ..utils.config import Config
 from ..utils.logger import get_logger
+
+
+class IEEEBackendGPUReferences:
+    """Request references on the *native* CPU/GPU LoRA caches of one worker.
+
+    Called on vLLM's serialized worker execution thread, never on a polling
+    thread. Native LRU pins prevent automatic eviction; explicit unloads must
+    use ``evict``. No loading, replacement choice or soft admission is hidden in
+    this class. A cold/moved adapter returns a conflict, not a fabricated hit.
+    The caller must retain the lease until dependent backend work is terminal.
+    """
+
+    def __init__(self, manager, completion_fence):
+        self.manager = manager
+        self.completion_fence = completion_fence
+        self.owner_id = uuid.uuid4().hex
+        self.thread_id = threading.get_ident()
+        self.epoch = 0
+        self._native_state = None
+        self._leases: Dict[str, Dict[str, Any]] = {}
+        self._released: Set[str] = set()
+        self._references: Dict[int, Set[str]] = {}
+        self._borrowed_pins: Dict[int, Tuple[bool, bool]] = {}
+        self._poisoned = False
+        for cache in self._caches():
+            if not isinstance(cache.pinned_items, set) or not all(
+                callable(getattr(cache, name, None)) for name in ('pin', '_unpin')
+            ):
+                raise TypeError('native cache pin/unpin contract is unavailable')
+        self._refresh()
+
+    def _caches(self):
+        return self.manager._registered_adapters, self.manager._active_adapters
+
+    def _refresh(self):
+        if threading.get_ident() != self.thread_id:
+            raise RuntimeError('GPU reference owner called outside its worker thread')
+        if self._poisoned:
+            raise RuntimeError('GPU reference owner invalidated; worker recovery required')
+        cpu, gpu = self._caches()
+        slots = tuple(self.manager.lora_index_to_id)
+        active = set(gpu)
+        mapped = [aid for aid in slots if aid is not None]
+        if (len(slots) != self.manager.lora_slots or len(mapped) != len(set(mapped))
+                or active != set(mapped) or not active.issubset(cpu)):
+            self._poisoned = True
+            raise RuntimeError('native LoRA slot/cache invariant violated')
+        for aid, references in self._references.items():
+            if (aid not in active or aid not in cpu.pinned_items or aid not in gpu.pinned_items
+                    or any(slots[self._leases[key]['slot']] != aid for key in references)):
+                self._poisoned = True
+                raise RuntimeError('backend invalidated a referenced adapter')
+        state = (slots, tuple(sorted(cpu)), tuple(sorted(cpu.pinned_items)),
+                 tuple(sorted(gpu.pinned_items)))
+        if state != self._native_state:
+            self.epoch += 1
+            self._native_state = state
+        return slots
+
+    def snapshot(self) -> Dict[str, Any]:
+        slots = self._refresh()
+        return {'owner_id': self.owner_id, 'epoch': self.epoch,
+                'slot_adapter_ids': list(slots),
+                'reference_counts': {str(aid): len(refs) for aid, refs in self._references.items()},
+                'live_leases': len(self._leases), 'released_leases': len(self._released),
+                'snapshot_holds_reference': False}
+
+    def acquire(self, *, lease_id: str, adapter_int_id: int,
+                expected_owner_id: str, expected_epoch: int) -> Dict[str, Any]:
+        if not isinstance(lease_id, str) or not lease_id:
+            raise ValueError('a unique request/attempt/dispatch lease ID is required')
+        if type(adapter_int_id) is not int or adapter_int_id <= 0:
+            raise ValueError('adapter_int_id must be a positive native integer ID')
+        if type(expected_epoch) is not int or expected_epoch < 1:
+            raise ValueError('expected_epoch must identify a native snapshot')
+        slots = self._refresh()
+        if expected_owner_id != self.owner_id:
+            return {'acquired': False, 'reason': 'owner_changed', **self.snapshot()}
+        # Transport retries do not add references or wait on CUDA twice.
+        if lease_id in self._leases:
+            receipt = self._leases[lease_id]
+            if receipt['adapter_int_id'] != adapter_int_id:
+                raise ValueError('lease ID reused for a different adapter')
+            return dict(receipt)
+        if lease_id in self._released:
+            raise ValueError('released lease ID cannot be reused')
+        if expected_epoch != self.epoch:
+            return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
+        if adapter_int_id not in slots:
+            return {'acquired': False, 'reason': 'not_gpu_resident', **self.snapshot()}
+
+        cpu, gpu = self._caches()
+        first = adapter_int_id not in self._references
+        original = (adapter_int_id in cpu.pinned_items, adapter_int_id in gpu.pinned_items)
+        try:
+            if first:
+                # Do not call manager.pin_adapter(): it can implicitly load a
+                # CPU-only adapter and thereby change the claimed source tier.
+                cpu.pin(adapter_int_id)
+                gpu.pin(adapter_int_id)
+            fence_start = time.monotonic()
+            self.completion_fence()
+            acquired_at = time.monotonic()
+        except BaseException:
+            self._poisoned = True
+            if first:
+                for cache, borrowed in zip((cpu, gpu), original):
+                    if not borrowed and adapter_int_id in cache.pinned_items:
+                        cache._unpin(adapter_int_id)
+            raise
+        receipt = {'acquired': True, 'owner_id': self.owner_id, 'lease_id': lease_id,
+                   'adapter_int_id': adapter_int_id, 'slot': slots.index(adapter_int_id),
+                   'acquired_monotonic_s': acquired_at,
+                   'completion_fence_ms': (acquired_at - fence_start) * 1000.0,
+                   'reference_scope': 'native_cpu_and_gpu_lru',
+                   'request_admission_reserved': False}
+        if first:
+            self._borrowed_pins[adapter_int_id] = original
+            self._references[adapter_int_id] = set()
+        self._references[adapter_int_id].add(lease_id)
+        self._leases[lease_id] = receipt
+        self.epoch += 1
+        self._refresh()
+        receipt['epoch'] = self.epoch
+        return dict(receipt)
+
+    def release(self, *, lease_id: str, expected_owner_id: str) -> Dict[str, Any]:
+        self._refresh()
+        if expected_owner_id != self.owner_id:
+            raise ValueError('cannot release a lease from another worker incarnation')
+        if lease_id in self._released:
+            return {'released': True, 'already_released': True, **self.snapshot()}
+        if lease_id not in self._leases:
+            raise ValueError('unknown GPU reference lease')
+        receipt = self._leases[lease_id]
+        if receipt.get('backend_request_id') and not receipt['backend_terminal']:
+            return {'released': False, 'reason': 'request_active', **self.snapshot()}
+        aid = receipt['adapter_int_id']
+        refs = self._references[aid]
+        # Caller has already observed terminal/abort acknowledgement. Fence
+        # dependent device work before making its last native slot evictable.
+        if len(refs) == 1:
+            try:
+                self.completion_fence()
+                for cache, borrowed in zip(self._caches(), self._borrowed_pins[aid]):
+                    if not borrowed:
+                        cache._unpin(aid)
+            except BaseException:
+                self._poisoned = True
+                raise
+            del self._references[aid]
+            del self._borrowed_pins[aid]
+        else:
+            refs.remove(lease_id)
+        del self._leases[lease_id]
+        self._released.add(lease_id)
+        self.epoch += 1
+        return {'released': True, 'already_released': False, **self.snapshot()}
+
+    def begin_use(self, *, lease_id: str, expected_owner_id: str,
+                  adapter_int_id: int, backend_request_id: str) -> Dict[str, Any]:
+        self._refresh()
+        if expected_owner_id != self.owner_id or lease_id not in self._leases:
+            raise ValueError('generation requires a live lease from this worker')
+        receipt = self._leases[lease_id]
+        if type(adapter_int_id) is not int or receipt['adapter_int_id'] != adapter_int_id:
+            raise ValueError('generation adapter differs from leased adapter')
+        if not isinstance(backend_request_id, str) or not backend_request_id:
+            raise ValueError('backend request identity is required')
+        if receipt.get('backend_request_id') is not None:
+            raise ValueError('one dispatch lease cannot be used for two generations')
+        receipt.update(backend_request_id=backend_request_id, backend_terminal=False)
+        self.epoch += 1
+        return dict(receipt)
+
+    def end_use(self, *, lease_id: str, expected_owner_id: str,
+                backend_request_id: str) -> Dict[str, Any]:
+        """Engine-only acknowledgement after observing the native terminal."""
+        self._refresh()
+        if expected_owner_id != self.owner_id or lease_id not in self._leases:
+            raise ValueError('terminal acknowledgement requires its live worker lease')
+        receipt = self._leases[lease_id]
+        if (not backend_request_id or receipt.get('backend_request_id') != backend_request_id):
+            raise ValueError('terminal acknowledgement belongs to another request')
+        receipt['backend_terminal'] = True
+        self.epoch += 1
+        return dict(receipt)
+
+    def evict(self, *, adapter_int_id: int) -> Dict[str, Any]:
+        self._refresh()
+        if type(adapter_int_id) is not int or adapter_int_id <= 0:
+            raise ValueError('adapter_int_id must be a positive native integer ID')
+        if adapter_int_id in self._references:
+            return {'evicted': False, 'reason': 'referenced', **self.snapshot()}
+        if any(adapter_int_id in cache.pinned_items for cache in self._caches()):
+            return {'evicted': False, 'reason': 'externally_pinned', **self.snapshot()}
+        try:
+            self.completion_fence()
+            removed = bool(self.manager.remove_adapter(adapter_int_id))
+        except BaseException:
+            self._poisoned = True
+            raise
+        self.epoch += 1
+        return {'evicted': removed, 'reason': 'removed' if removed else 'absent',
+                **self.snapshot()}
 
 
 class EvictionPolicy(Enum):
