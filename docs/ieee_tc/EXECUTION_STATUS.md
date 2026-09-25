@@ -22,7 +22,7 @@
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
 | P1 IEEE semantic alignment | Mathematical contracts, native references, managed file ownership/storage and preallocated content-verified HTTP transfers tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D19. Native fetch allocates archive/payload before body reads under the owner file budget, retains old copies and concurrent allocations. Full-pool qualification, all-tier physical reservations/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
-| P2 backend qualification | Installation and actual single-GPU import/FP16 check passed; no model run yet | P2_BACKEND_QUALIFICATION.md + 20260926_cuda_import_qualification.json. Original installation finished; runtime attempt 3 passed and GPU contexts cleared. Next: real 3B/7B worker/clock/LoRA qualification using existing engine |
+| P2 backend qualification | Actual 3B and 7B four-request native contracts passed; extended qualification pending | P2_BACKEND_QUALIFICATION.md + 20260926_{3b,7b}_prefix_qualification.json. Each model's failed attempt 1 retained; attempt 2 matches all native token targets, time decomposition, references and cleanup. Not a main performance point |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
 | A1–A5, S1–S3 | Not started | Shared frozen policies required |
@@ -51,13 +51,16 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-0. P2 installation finished at Sep 26 05:18; do NOT reinstall. Existing environment `/home/qhq/.venvs/primelora_vllm0300_tc_20260925`, final receipt `paper_results/ieee_tc/p2_backend/vllm0300_install_attempt1.json`. Actual single-GPU check attempt 3 passes; raw directory `results/ieee_tc/p2_backend_qualification/runtime_20260926`. No live model remains. Prioritize real 3B/7B engine/LoRA qualification under the guarded launcher before more isolated P1 primitives.
+0. P2 installation finished; do NOT reinstall. Environment `/home/qhq/.venvs/primelora_vllm0300_tc_20260925`. Both 3B/7B four-request prefix attempt 2 now pass; failed first attempts retained. 3B required plain-string version transport; 7B required candidate/bin prepended to PATH so the existing ninja could run. Both scopes gone, GPU contexts clear. Next: expand existing native model qualifier to 100-request smoke and bounded native batch/cancel/eviction evidence, then pool qualification and Full owner integration. Reuse `model_20260926/candidate_cache`; keep candidate/bin on PATH. Do not jump to formal metrics, regenerate data, or return to unrelated primitives.
 1. Continue native owner integration: measured source-class costs, resource-owner remaining budgets, atomic routing/admission. Native token/reference interfaces and startup-parallel external arrival/submission are opt-in and unit/witness tested, but actual engine clocks/streams/controller owners remain open. Do not declare the historical scorer IEEE-aligned.
 2. Qualify actual model/GPU workers and lifecycle under the existing guarded launcher; native single-raylet and tiny replay witnesses are not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
 ## Verified backups
+
+- Main actual CUDA/import checkpoint `f87cc92993a59d89051e1ec390e707091d90399b`
+  pushed to V2; remote SHA verified. Current model qualification work follows it.
 
 - Main `a022340f014ab2a115bbab79841638ec6c15d1ae` pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA checked.
@@ -815,3 +818,38 @@ configs/relayserve_motivation_serverlessllm.yaml.
   distinct from true-remote main experiments. No new experiment framework.
   Source/cost pre-decision composition, atomic admission, abort reconciliation,
   physical ownership, remote disk decision and all formal matrices remain open.
+
+## P2 actual 3B/7B native prefix checkpoint
+
+- Real original weights, two old adapters per model, first four requests from
+  each existing seed42 main trace. Both successful second attempts produce
+  152/59/123/217 native tokens exactly; terminal, shared native clock, actual
+  worker cgroup/affinity, LoRA hold/use/release and final eviction pass. Each
+  per-request E2E decomposition and TPOT recalculation error is zero.
+- 3B attempt 1 initialized but its observation reply contained TorchVersion,
+  crashing native output serialization before any request. Failure reproduced
+  by a no-GPU test, then only version fields normalized to ordinary strings;
+  no insecure serialization or fallback. Its missing inner receipt is explicit,
+  outer launch/raw log and owned stop evidence remain. GPU contexts clear.
+- 7B attempt 1 loaded and compiled, then could not find ninja: absolute venv
+  Python alone did not activate its bin PATH. Existing ninja was verified,
+  candidate/bin added for attempt 2; no dependency reinstall, backend/model
+  configuration change or disabled sampler. Actual compiler was CUDA13.0 nvcc,
+  SM86 and two jobs, inside the bounded service. First FlashInfer JIT retained.
+- Successful 3B/7B runs: 65/174 resource samples, service peaks 4,997,853,184 /
+  5,031,833,600 bytes; high/max/OOM/OOM-kill zero, all GPU contexts gone and
+  scopes removed. First attempts also retained and safely released. Cached
+  startup/peak differences are not a policy gain. Adapter eviction alone does
+  not free the native preallocated dense pool.
+- Curated per-model JSONs include raw SHA, inputs, native identity, request
+  counts and time checks. State tables delivered before each next attempt.
+  565 functional and 51 independent safety/census/replay tests pass, no skips.
+  Old protected data and plan are reverified before the milestone backup.
+- No formal TC performance comparison, full-pool qualification, new trace or
+  adapter generation. Prefix is sequential and local frozen, explicitly NOT
+  true-remote/open-loop. Startup contains first-compile/cache-state differences.
+  Two models now have actual native path evidence, not just mocked tests.
+- Next: actual 100-request/batch/cancel/eviction qualification, source-cost and
+  owner integration, then qualified baseline comparisons (Serverless first).
+  Keep remote disk gate, SLO/reference calibration, all M1/M2, A1–A5 and S1–S13
+  on the mainline; none is completed by this checkpoint.

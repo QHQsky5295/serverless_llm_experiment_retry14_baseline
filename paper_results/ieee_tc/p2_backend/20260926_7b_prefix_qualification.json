@@ -1,0 +1,326 @@
+{
+  "kind": "p2_native_model_qualification_summary_v1",
+  "formal_performance_result": false,
+  "attempts": [
+    {
+      "model": "llama2_7b",
+      "attempt": 1,
+      "launch_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_prefix_attempt1_launch.json",
+      "launch_sha256": "8694787e8faa6be6bffe7ebd55356bf8b6acf5a20dcd95eafb3f865fba4126d2",
+      "launch_pass": false,
+      "result_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_prefix_attempt1.json",
+      "result_sha256": "1b55130c2e1c7da14a3b67bd0cabd28c53bc379005fea6d3534e00bdad7e88b1",
+      "result_pass": false,
+      "stage": "engine_initialization",
+      "error": "TC backend construction failed without config retry: RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}",
+      "evidence_sha256": {
+        "watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exec_receipt.json": "f477215743d1b4f67ca53c8e2ba8c46a9f3cc9f67972916094bf650eb391d8fb",
+        "watchdog.jsonl": "bcbaa3e362109a65c6a7146376f177fa9abaaa3ad3b34eee355910ce7a66f776",
+        "service.log": "e71f931acc89e0676fc22b7795d39418a089eb313252bdb5348c7b26e13fd1f1"
+      },
+      "cleanup": {
+        "scope_removed": true,
+        "native_gpu_contexts_clear": true
+      },
+      "resources": {
+        "samples": 102,
+        "service_peak_bytes": 16392409088,
+        "host_available_min_bytes": 106927349760,
+        "event_max": {
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0
+        }
+      },
+      "requests": [],
+      "trace": {
+        "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+        "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "view_sha256": "5e30436d2988d0932811a690cb5c3ebb2e618d85a9808990e1882c00e670d556",
+        "count": 4,
+        "source_count": 4000,
+        "profile": "W0",
+        "rate_scale": 1.0
+      },
+      "adapters": {
+        "finance_lora": {
+          "path": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix/finance_lora",
+          "weights_sha256": "971901c3140f83f57cbb19fcc86d33b4d010f6d8fc15fbec621f0347bc31a258",
+          "config_sha256": "43dfb033e740f0783575dcceb590cb44a87b0fe597a09afee8d38e47480a129c"
+        },
+        "writing_lora_0011": {
+          "path": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix/writing_lora_0011",
+          "weights_sha256": "bc7c9a6c63f27d3d82fac4a4897bee9fc998dd2cfa24e112562e23cf1d5a1c0f",
+          "config_sha256": "43dfb033e740f0783575dcceb590cb44a87b0fe597a09afee8d38e47480a129c"
+        }
+      },
+      "config_sha256": "f923c36d541046639ba70691106cf7841b322f850377bd8d719004adc959e45d",
+      "check_source_sha256": "9041b56b617339bcf9533ad7574c27ae4c23f37b32c044bd85f95c62e1d492ab",
+      "input_mode": "existing_trace_prefix_sequential_qualification",
+      "artifact_mode": "existing_local_frozen_qualification_only",
+      "model_config": {
+        "name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+        "backend": "vllm",
+        "device_id": 0,
+        "visible_device_ids": [
+          0
+        ],
+        "tensor_parallel_size": 1,
+        "gpu_memory_utilization": 0.7,
+        "max_model_len": 1024,
+        "max_loras": 4,
+        "max_lora_rank": 64,
+        "enable_lora": true,
+        "enforce_eager": "auto",
+        "dtype": "float16",
+        "max_num_seqs": 2,
+        "max_num_batched_tokens": 1024,
+        "max_output_tokens_cap": 256,
+        "max_input_len": 759,
+        "runtime_concurrency_cap": 2,
+        "enable_chunked_prefill": true,
+        "enable_prefix_caching": false,
+        "vllm_use_v1": true,
+        "vllm_attention_backend": "FLASH_ATTN",
+        "vllm_use_flashinfer_sampler": true,
+        "timing_contract": "ieee_tc_native_v1",
+        "ieee_worker_observation": true,
+        "ieee_gpu_references": true,
+        "ieee_scheduler_observation": true,
+        "ieee_input_upper_bounds": [
+          759
+        ],
+        "generation_contract": "fixed_length_greedy_v1",
+        "canonical_prompt_renderer": "role_lines_v1",
+        "max_cpu_loras": 24
+      }
+    },
+    {
+      "model": "llama2_7b",
+      "attempt": 2,
+      "launch_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_prefix_attempt2_launch.json",
+      "launch_sha256": "7a4d20bd3ac9494e8b36c5eb3b0e0bda2f1e64e08404d9c6e9256bc47d34d51c",
+      "launch_pass": true,
+      "result_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_prefix_attempt2.json",
+      "result_sha256": "2552ba74ffe7b8320bd2d8de645fad43e5b2ea71820abca78c295e552cd19fe8",
+      "result_pass": true,
+      "stage": "complete",
+      "error": null,
+      "evidence_sha256": {
+        "watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exec_receipt.json": "6f2556fbe841d802a4e28ddd15159a39a2943961f4f9d6194034b474baa5301b",
+        "watchdog.jsonl": "55ca2c01edd901f61f352950f3ee15426f9ab3d02482f0f4f0d23e710f386ad8",
+        "service.log": "249aea244a1976bcd877b6b38cbf002bc2fb642e0d857b355859bea23547fff6"
+      },
+      "cleanup": {
+        "scope_removed": true,
+        "native_gpu_contexts_clear": true
+      },
+      "resources": {
+        "samples": 174,
+        "service_peak_bytes": 5031833600,
+        "host_available_min_bytes": 106054262784,
+        "event_max": {
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0
+        }
+      },
+      "requests": [
+        {
+          "request_id": "req_00000",
+          "adapter_id": "finance_lora",
+          "target_tokens": 152,
+          "actual_tokens": 152,
+          "pass": true,
+          "native_terminal": true,
+          "reference_released": true,
+          "prompt_sha256": "792a0642f74c0e35283dad2b2dbdc2507fcc56c649e88d40179a19371b1a0520",
+          "native_prompt_token_ids_sha256": "b7025ee17c560bbec4a2f379e8c1aa851137a8e1a1d7eca56d1f203d03ef73dc",
+          "native_output_token_ids_sha256": "33be974f7e81c46e1b409345213f4616d9659588268f063f95ce44fe1896747e",
+          "gpu_resident_before_load": false,
+          "e2e_decomposition_error_ms": 0.0,
+          "tpot_recalculation_error_ms": 0.0
+        },
+        {
+          "request_id": "req_00001",
+          "adapter_id": "finance_lora",
+          "target_tokens": 59,
+          "actual_tokens": 59,
+          "pass": true,
+          "native_terminal": true,
+          "reference_released": true,
+          "prompt_sha256": "7d909f88ed53d92b35fc65d502ec3db8d213c2cec3c220074ea1a92c235864c5",
+          "native_prompt_token_ids_sha256": "4d005a03641d42a40de41c1fa6fca4eb2ae3d41c64d2ebf713373c025a7473c1",
+          "native_output_token_ids_sha256": "d7f1a4f3de8c67888b770ec30414ef54625570e0a1071827ba2d1e595f2eb38c",
+          "gpu_resident_before_load": true,
+          "e2e_decomposition_error_ms": 0.0,
+          "tpot_recalculation_error_ms": 0.0
+        },
+        {
+          "request_id": "req_00002",
+          "adapter_id": "writing_lora_0011",
+          "target_tokens": 123,
+          "actual_tokens": 123,
+          "pass": true,
+          "native_terminal": true,
+          "reference_released": true,
+          "prompt_sha256": "40b3a3a0009e919a9849c35f420de5bc87a313bf48e287fd12b4dc5422e736bf",
+          "native_prompt_token_ids_sha256": "4e7ad26aefe1e8726f64e2390cb3b4721b0a65c1100abc2786974bafc3d70887",
+          "native_output_token_ids_sha256": "236adbd905977548fcbbb086a90353142462e67891c58ef3ec6d3a6eeb93767d",
+          "gpu_resident_before_load": false,
+          "e2e_decomposition_error_ms": 0.0,
+          "tpot_recalculation_error_ms": 0.0
+        },
+        {
+          "request_id": "req_00003",
+          "adapter_id": "finance_lora",
+          "target_tokens": 217,
+          "actual_tokens": 217,
+          "pass": true,
+          "native_terminal": true,
+          "reference_released": true,
+          "prompt_sha256": "ee3fa20a89e360813cdd6abf93ce33113972f0f6d5fac1cf440f1ff6450d9d52",
+          "native_prompt_token_ids_sha256": "d5693c4b98695de6ce787c87dc17659778e751665897296689deace2b7ff0ca4",
+          "native_output_token_ids_sha256": "046f60aa73f688614eec503afad97295bac13a72397309ead4081c1c57de7b3b",
+          "gpu_resident_before_load": true,
+          "e2e_decomposition_error_ms": 0.0,
+          "tpot_recalculation_error_ms": 0.0
+        }
+      ],
+      "trace": {
+        "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+        "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "view_sha256": "5e30436d2988d0932811a690cb5c3ebb2e618d85a9808990e1882c00e670d556",
+        "count": 4,
+        "source_count": 4000,
+        "profile": "W0",
+        "rate_scale": 1.0
+      },
+      "adapters": {
+        "finance_lora": {
+          "path": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix/finance_lora",
+          "weights_sha256": "971901c3140f83f57cbb19fcc86d33b4d010f6d8fc15fbec621f0347bc31a258",
+          "config_sha256": "43dfb033e740f0783575dcceb590cb44a87b0fe597a09afee8d38e47480a129c"
+        },
+        "writing_lora_0011": {
+          "path": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix/writing_lora_0011",
+          "weights_sha256": "bc7c9a6c63f27d3d82fac4a4897bee9fc998dd2cfa24e112562e23cf1d5a1c0f",
+          "config_sha256": "43dfb033e740f0783575dcceb590cb44a87b0fe597a09afee8d38e47480a129c"
+        }
+      },
+      "config_sha256": "f923c36d541046639ba70691106cf7841b322f850377bd8d719004adc959e45d",
+      "check_source_sha256": "9041b56b617339bcf9533ad7574c27ae4c23f37b32c044bd85f95c62e1d492ab",
+      "input_mode": "existing_trace_prefix_sequential_qualification",
+      "artifact_mode": "existing_local_frozen_qualification_only",
+      "model_config": {
+        "name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+        "backend": "vllm",
+        "device_id": 0,
+        "visible_device_ids": [
+          0
+        ],
+        "tensor_parallel_size": 1,
+        "gpu_memory_utilization": 0.7,
+        "max_model_len": 1024,
+        "max_loras": 4,
+        "max_lora_rank": 64,
+        "enable_lora": true,
+        "enforce_eager": "auto",
+        "dtype": "float16",
+        "max_num_seqs": 2,
+        "max_num_batched_tokens": 1024,
+        "max_output_tokens_cap": 256,
+        "max_input_len": 759,
+        "runtime_concurrency_cap": 2,
+        "enable_chunked_prefill": true,
+        "enable_prefix_caching": false,
+        "vllm_use_v1": true,
+        "vllm_attention_backend": "FLASH_ATTN",
+        "vllm_use_flashinfer_sampler": true,
+        "timing_contract": "ieee_tc_native_v1",
+        "ieee_worker_observation": true,
+        "ieee_gpu_references": true,
+        "ieee_scheduler_observation": true,
+        "ieee_input_upper_bounds": [
+          759
+        ],
+        "generation_contract": "fixed_length_greedy_v1",
+        "canonical_prompt_renderer": "role_lines_v1",
+        "max_cpu_loras": 24
+      },
+      "launch_environment_correction": {
+        "path_prefix": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin",
+        "observed_ninja": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/ninja",
+        "observed_nvcc": "/usr/local/cuda-13.0/bin/nvcc",
+        "observed_arch": "compute_86,sm_86",
+        "observed_build_jobs": 2,
+        "model_parameters_changed": false
+      },
+      "startup_latency_ms": 143409.57654599333,
+      "native_worker": {
+        "pid": 2909583,
+        "uid": 1001,
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-e73c3832d5844a95b6dc493b478f0436.scope",
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "clock_id": "linux-monotonic:45f0a557-e0ca-4bc4-b821-0a1d5ab34103:time:[4026531834]",
+        "backend_version": "0.30.0",
+        "torch_version": "2.13.0+cu130",
+        "visible_gpu_count": 1,
+        "pool_allocated_bytes": 1316225024,
+        "host_tensor_storage_bytes": 33554432,
+        "slot_adapter_ids": [
+          963725,
+          416753,
+          null,
+          null
+        ]
+      },
+      "references_empty_after_eviction": true
+    }
+  ]
+}

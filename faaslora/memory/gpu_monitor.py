@@ -308,7 +308,7 @@ class IEEEWorkerObservationExtension:
             'cgroup': Path('/proc/self/cgroup').read_text().strip(),
             'affinity': sorted(os.sched_getaffinity(0)),
             'clock_id': local_monotonic_clock_id(), 'captured_monotonic_s': time.monotonic(),
-            'backend_version': vllm.__version__, 'torch_version': torch.__version__,
+            'backend_version': str(vllm.__version__), 'torch_version': str(torch.__version__),
             'cuda_visible_devices': os.environ.get('CUDA_VISIBLE_DEVICES'),
             'visible_gpu_count': torch.cuda.device_count(), 'local_device': str(self.device),
             'worker_rank': int(self.rank),

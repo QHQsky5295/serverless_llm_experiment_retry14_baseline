@@ -157,6 +157,22 @@ def fake_torch():
 
 
 class WorkerObservationContract(unittest.TestCase):
+    def test_native_observation_versions_are_plain_msgpack_strings(self):
+        from torch.torch_version import TorchVersion
+        import msgspec
+        worker = monitor.IEEEWorkerObservationExtension()
+        worker.device = FakeDevice()
+        worker.rank = 0
+        worker.model_runner = SimpleNamespace(lora_manager=SimpleNamespace(_adapter_manager=manager()))
+        torch = fake_torch()
+        torch.__version__ = TorchVersion('2.13.0')
+        with patch.object(monitor, 'torch', torch), \
+             patch.dict('sys.modules', {'vllm': SimpleNamespace(__version__='0.30.0')}):
+            observation = worker.ieee_worker_observation()
+        self.assertIs(type(observation['torch_version']), str)
+        self.assertIs(type(observation['backend_version']), str)
+        self.assertEqual(msgspec.msgpack.decode(msgspec.msgpack.encode(observation)), observation)
+
     def test_storage_aliases_count_once_not_by_view_sum(self):
         with patch.object(monitor, 'torch', fake_torch()):
             result = monitor._ieee_lora_pool_inventory(manager())

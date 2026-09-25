@@ -1,6 +1,7 @@
 # P2：共同 vLLM 后端资格（进行中）
 
-本记录不代表新版后端已通过模型或性能资格。旧环境与旧结果不覆盖。
+已通过两模型四请求的基础原生合同检查；完整模型/池资格与性能资格仍未完成。
+旧环境与旧结果不覆盖。
 
 ## 当前候选及本机条件
 
@@ -100,6 +101,85 @@ attempt 3 服务观测峰值 971,829,248 bytes，high/max/OOM/OOM-kill 均为零
 失败无后端替换、原生扩展名称正确且无 CUDA 时明确失败。安全/原生 GPU
 观察/外置回放合计 48 项通过。下一步使用现有 InferenceEngine 与冻结旧工件、
 旧 trace，验证实际 worker 归属、时钟、slot、生成与释放；不另建推理框架。
+
+### 真实 3B 首次检查与通信类型修正
+
+复用原 3B seed42 trace 前四请求、两个既有 adapter、原始模型 profile；仅启用
+共同固定输出和原生观测合同。单卡 TP=1，GPU/CPU/内存包络与外置监控不变。
+这不是 open-loop 主比较，也不是远端工件实验，不产生 SLO 或系统排名结论。
+
+| 项目 | attempt 1 观测 | 判定 / 下一步 |
+|---|---|---|
+| 原始 3B 权重与 LoRA runtime | 权重加载、编译和 CUDA Graph 初始化完成 | 硬件/后端基本模型路径已执行，完整资格未通过 |
+| 首次 worker 观测返回 | `TorchVersion` 无法由原生 msgpack 编码 | 自定义观测传输错误，不是推理失败或 OOM |
+| 实际请求生成 | 尚未开始 | 不填造 token/TTFT 结果；内层模型回执缺失明确保留 |
+| 内存与退出 | 177 样本；service peak 5,147,086,848 bytes；high/max/OOM/OOM-kill=0 | 最低主机可用 106,486,501,376 bytes；仅终止本轮所属进程，GPU contexts 清除、scope 删除 |
+| 修正后回归 | 预修正测试失败；修正后 565 项功能测试通过 | 同配置 attempt 2 验证真实通信和请求，不改模型策略 |
+
+原始结果位于 `results/ieee_tc/p2_backend_qualification/model_20260926/`。
+attempt 1 launch SHA 为 `e7dbf73848343357daacbc639ea15b45d968e24502b87b3009e1186ed25c8b0e`；
+service log SHA 为 `44c057530f28ffa79d6ffba36a8929bcef43c5b0d35d3cd2e3920e4a888e62da`。
+通信线程失败后，按既定所有权接口停止三条本轮进程，未 hard-kill，无其他作业受影响。
+
+仅把两个版本标签显式转为普通字符串。依据
+[vLLM 0.30.0 原生序列化源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/serial_utils.py)
+与实际安装的 PyTorch `torch_version.py`：字符串子类不能直接作为该原生通信对象。
+未开启不安全 pickle、未捕获后伪造字段、未跳过 worker 观测。后端、工件、生成
+目标和模型参数不变；保留首次编译缓存以节省空间和重复准备，启动条件如实记录。
+
+#### 3B attempt 2：四请求原生合同通过
+
+| 项目 | 观测 | 限制 |
+|---|---|---|
+| 原始四请求固定输出 | 152/59/123/217 token，逐条相符，原生终态完整 | 共 551 token；不是 4,000 请求完整回放 |
+| LoRA 原生状态 | 两 adapter 真实加载；其中两请求复用已加载 adapter；引用释放与最终驱逐通过 | 不代表 500 池、mixed-rank、并发取消全部合格 |
+| worker / 时钟 | 实际 worker PID/cgroup/CPU affinity/单卡/clock 与外部检查一致 | TP=PP=1；不证明多副本控制正确 |
+| native 时间重算 | 每条 E2E 分解与 TPOT 重算误差为 0 | 此处 dispatch 在后端 generate 边界，不是用户到达 TTFT |
+| 资源与退出 | 65 样本；service peak 4,997,853,184 bytes；high/max/OOM/OOM-kill=0 | 最低主机可用 106,262,097,920 bytes；contexts 清除、scope 删除 |
+
+摘要：`paper_results/ieee_tc/p2_backend/20260926_3b_prefix_qualification.json`。
+首个请求触发原生 LoRA kernel JIT，日志保留；不把该四请求测量当 warm reference。
+本轮启动复用了 attempt 1 编译缓存，不用两次启动差异归因算法改进。
+实际 dense LoRA pool 为 1,825,046,528 bytes，两 adapter 的注册 CPU tensor storage
+为 18,350,080 bytes；GPU slot 为固定预分配容量，不用磁盘文件大小替代显存。
+下一步相同入口验证原始 7B profile，之后再扩展完整模型资格。
+
+#### 7B attempt 1：启动工具搜索路径失败
+
+| 项目 | 观测 | 判定 |
+|---|---|---|
+| 权重与图编译 | 原始 7B 权重完成加载；torch.compile 完成 | 单卡实际执行，不是模型模拟 |
+| 原生 FlashInfer 初始化 | `FileNotFoundError: ninja` | 外层使用 venv 的绝对 Python，但未把该环境 bin 加入 PATH |
+| 工具是否安装 | 原隔离环境已有 ninja 1.13.2，绝对路径执行成功 | 不需要重装、换后端或关闭 FlashInfer |
+| 请求 | 0 条；模型资格失败 | 保留失败，不产生系统性能点 |
+| 资源与退出 | 102 样本；peak 16,392,409,088 bytes；high/max/OOM/OOM-kill=0 | 最低主机可用 106,927,349,760 bytes；GPU contexts 清除，scope 删除 |
+
+attempt 1 launch SHA：`8694787e8faa6be6bffe7ebd55356bf8b6acf5a20dcd95eafb3f865fba4126d2`。
+FlashInfer 安装源码 `jit/cpp_ext.py:run_ninja` 使用 PATH 搜索 `ninja`。
+下一次只在启动环境 PATH 前加入既有 candidate/bin；保持原模型 profile、
+FlashInfer、数据与生成合同不变。这是明确的环境入口修正，不是失败后的算法兜底。
+参考 [FlashInfer 安装与 JIT 依赖说明](https://docs.flashinfer.ai/installation.html)。
+
+#### 7B attempt 2：四请求原生合同通过
+
+| 项目 | 观测 | 限制 / 解释 |
+|---|---|---|
+| 真实固定输出 | 152/59/123/217 token，4/4 相符、终态完整 | 不代表 4,000 请求或正式排名 |
+| worker 与 LoRA | 单卡实际 worker 归属/时钟通过；两 adapter 的加载、复用、引用释放、驱逐通过 | GPU pool 1,316,225,024 bytes；注册 CPU tensor 33,554,432 bytes |
+| 原生时间合同 | 四请求 E2E 与 TPOT 重算误差均为 0 | 尚不是外置到达至完成的 Full 计量 |
+| 编译依赖 | candidate/bin/ninja；实际 nvcc 为 `/usr/local/cuda-13.0/bin/nvcc`；SM86、两编译任务 | 未安装新工具或替换采样机制；第一次 FlashInfer JIT 开销保留 |
+| 资源与收尾 | 174 样本；peak 5,031,833,600 bytes；high/max/OOM/OOM-kill=0 | 主机最低可用 106,054,262,784 bytes；GPU contexts 清除、scope 删除 |
+
+摘要：`paper_results/ieee_tc/p2_backend/20260926_7b_prefix_qualification.json`。
+驱逐 adapter 不等于释放整个 dense GPU pool；后者仍由 runtime 持有，直到实际
+进程退出。两次初始化的文件缓存与编译缓存状态不同，不把峰值或启动差异称作
+Prime 优化收益。两个模型的失败尝试、原始数据、hash 与状态表全部保留。
+
+这一步通过的是实际两模型的基础 native path，不是以下尚未完成项目：
+100 请求 smoke、完整 500 池、mixed rank/modules、并发/取消/抢占、完整 source
+epoch 与原子 admission、多副本扩缩容、真实 Remote、warm reference，以及
+正式 G1/G2。下一步扩展已有检查入口，优先让实际请求验证这些路径；不返回
+无限堆叠与模型无关的独立测试。旧环境/结果/工件未覆盖，也未生成新 workload。
 
 ## 原生计量接入注意事项
 

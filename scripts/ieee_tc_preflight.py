@@ -1287,6 +1287,163 @@ def backend_runtime_check(install_receipt: Path, requirements: Path) -> dict:
     return result
 
 
+def validate_model_worker(observation: dict, service: dict, clock_id: str) -> None:
+    """Compare an actual worker reply with this host's process identity."""
+    pid = observation['pid']
+    actual = gpu_process_identity(pid)
+    if (actual is None or observation.get('kind') != 'ieee_native_worker_qualification_observation'
+            or observation['uid'] != os.getuid() or actual['uid'] != os.getuid()
+            or not Path(actual['cgroup']).is_relative_to(Path(service['service_identity']['path']))
+            or observation['cgroup'] != Path(f'/proc/{pid}/cgroup').read_text().strip()
+            or observation['affinity'] != actual['affinity']
+            or not set(actual['affinity']).issubset(SERVICE_CPUS)
+            or observation['clock_id'] != clock_id
+            or observation['visible_gpu_count'] != 1
+            or observation['backend_version'] != '0.30.0'):
+        raise RuntimeError('actual model worker identity/resource/clock differs')
+
+
+async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
+                              trace: Path, count: int) -> dict:
+    """Existing engine + old trace prefix, not a replacement performance runner.
+
+    Sequential local-artifact qualification deliberately does not claim main
+    remote/open-loop semantics, Full policy qualification, or calibrated SLOs.
+    """
+    service = verify_current_service()
+    prior = json.loads(runtime_receipt.read_text())
+    if (prior.get('kind') != 'backend_cuda_import_qualification_v1'
+            or prior.get('pass') is not True or prior.get('stage') != 'complete'
+            or Path(prior['environment']).resolve() != Path(sys.prefix).resolve()):
+        raise RuntimeError('model qualification requires completed CUDA check in this environment')
+    if type(count) is not int or not 1 <= count <= 100:
+        raise ValueError('qualification uses a 1..100 request prefix, not a regenerated trace')
+    result = {'kind': 'backend_native_model_prefix_qualification_v1', 'pass': False,
+              'full_model_qualification': False, 'production_launch_authorized': False,
+              'plan_sha256': check_plan(), 'service': service, 'environment': sys.prefix,
+              'runtime_receipt_sha256': digest(runtime_receipt),
+              'check_source_sha256': digest(Path(__file__)), 'config_sha256': digest(config),
+              'profile': profile, 'stage': 'imports', 'requests': [],
+              'input_mode': 'existing_trace_prefix_sequential_qualification',
+              'artifact_mode': 'existing_local_frozen_qualification_only'}
+    engine = None
+    try:
+        import asyncio
+        import yaml
+        sys.path.insert(0, str(ROOT))
+        from scripts.run_all_experiments import InferenceEngine
+        from faaslora.datasets.workload_generator import FrozenReplayPlan
+        from faaslora.clock import local_monotonic_clock_id
+        result['stage'] = 'frozen_inputs'
+        source = yaml.safe_load(config.read_text())['model_profiles'][profile]
+        cfg = dict(source['model'])
+        if cfg['backend'] != 'vllm' or cfg['tensor_parallel_size'] != 1:
+            raise ValueError('native model qualification requires vLLM TP=1')
+        # Protocol/observation settings, not tuning using any formal result.
+        cfg.update(visible_device_ids=[0], device_id=0, timing_contract='ieee_tc_native_v1',
+                   ieee_worker_observation=True, ieee_gpu_references=True,
+                   ieee_scheduler_observation=True, ieee_input_upper_bounds=[759],
+                   generation_contract='fixed_length_greedy_v1',
+                   canonical_prompt_renderer='role_lines_v1', max_input_len=759,
+                   max_output_tokens_cap=256)
+        result['model_config'] = cfg
+        plan = FrozenReplayPlan.load(trace, count=count)
+        result['trace'] = plan.identity()
+        pool = (ROOT/source['storage']['remote_dir']).resolve(strict=True)
+        adapters = {}
+        for entry in plan.entries:
+            row = json.loads(entry.source_json)
+            aid = row['adapter_id']
+            path = (pool/aid).resolve(strict=True)
+            if not path.is_relative_to(pool) or path == pool:
+                raise ValueError('adapter is outside existing frozen pool')
+            target = row['expected_output_tokens']
+            if type(target) is not int or target <= 0 or not row['body']['messages']:
+                raise ValueError('frozen source lacks positive output target or messages')
+            if aid not in adapters:
+                # The audited native loader prefers this existing representation.
+                weights = path/'adapter_model.safetensors'
+                adapters[aid] = {'path': str(path), 'weights_sha256': digest(weights),
+                                'config_sha256': digest(path/'adapter_config.json')}
+        result['adapters'] = adapters
+        engine = InferenceEngine(cfg, {})
+        result['stage'] = 'engine_initialization'
+        print(json.dumps({'event': 'model_qualification_stage', 'stage': result['stage'],
+                          'model': cfg['name'], 'requests': count}), flush=True)
+        await engine.initialize()
+        result['startup_latency_ms'] = engine.startup_latency_ms
+        result['stage'] = 'worker_and_scheduler_observation'
+        result['workers_before'] = await engine.ieee_worker_observation()
+        for worker in result['workers_before']['workers']:
+            validate_model_worker(worker, service, local_monotonic_clock_id())
+        result['scheduler_before'] = await engine.ieee_scheduler_observation()
+        result['sources_before'] = await engine.ieee_gpu_reference(operation='source_snapshot')
+        for entry in plan.entries:
+            row = json.loads(entry.source_json)
+            aid, target = row['adapter_id'], min(row['expected_output_tokens'], 256)
+            path = adapters[aid]['path']
+            case = {'request_id': entry.request_id, 'adapter_id': aid,
+                    'source_row_sha256': entry.source_sha256, 'target_tokens': target,
+                    'pass': False}
+            result['requests'].append(case)
+            result['stage'] = 'prepare:' + entry.request_id
+            prepared = engine.prepare_request('', target, row['expected_input_tokens'],
+                                              chat_messages=row['body']['messages'])
+            case.update(prompt_sha256=hashlib.sha256(prepared.prompt.encode()).hexdigest(),
+                        input_content_tokens=prepared.input_tokens)
+            if prepared.max_tokens != target:
+                raise RuntimeError('qualification changed its original fixed output target')
+            result['stage'] = 'load_and_acquire:' + entry.request_id
+            snapshot = await engine.ieee_gpu_reference(operation='snapshot')
+            reference = await engine.ieee_gpu_reference(operation='demand_load_and_acquire',
+                lease_id='qualification/'+entry.request_id, adapter_int_id=engine._lora_int_id(aid),
+                lora_name=aid, lora_path=path, expected_owner_id=snapshot['owner_id'],
+                expected_epoch=snapshot['epoch'])
+            case['reference'] = reference
+            if reference.get('acquired') is not True:
+                raise RuntimeError('native qualification load/acquisition conflict; no hidden retry')
+            result['stage'] = 'generate:' + entry.request_id
+            generated = await asyncio.wait_for(engine.generate_prepared(request_plan=prepared,
+                lora_path=path, adapter_id=aid, temperature=0., top_p=1., generation_seed=42,
+                return_timing=True, gpu_reference=reference), timeout=1800.)
+            case['actual_tokens'], case['timing'] = generated[2], generated[3]
+            if generated[2] != target or generated[3]['native_terminal_observed'] is not True:
+                raise RuntimeError('native generation contract or terminal mismatch')
+            result['stage'] = 'release:' + entry.request_id
+            case['release'] = await engine.ieee_gpu_reference(operation='release',
+                lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'])
+            if case['release'].get('released') is not True:
+                raise RuntimeError('native qualification reference was not released')
+            case['pass'] = True
+            print(json.dumps({'event': 'model_qualification_request', 'request_id': entry.request_id,
+                              'target_tokens': target, 'actual_tokens': generated[2]}), flush=True)
+        result['stage'] = 'final_observations_and_eviction'
+        result['workers_after'] = await engine.ieee_worker_observation()
+        for worker in result['workers_after']['workers']:
+            validate_model_worker(worker, service, local_monotonic_clock_id())
+        result['scheduler_after'] = await engine.ieee_scheduler_observation()
+        result['sources_after'] = await engine.ieee_gpu_reference(operation='source_snapshot')
+        result['evictions'] = {}
+        for aid in adapters:
+            receipt = await engine.ieee_gpu_reference(operation='evict', adapter_int_id=engine._lora_int_id(aid))
+            result['evictions'][aid] = receipt
+            if receipt.get('evicted') is not True:
+                raise RuntimeError('loaded qualification adapter did not acknowledge eviction')
+        result['sources_after_eviction'] = await engine.ieee_gpu_reference(operation='source_snapshot')
+        result.update(stage='complete', **{'pass': True})
+    except Exception as error:
+        import traceback
+        result.update(error_type=type(error).__name__, error=str(error), traceback=traceback.format_exc())
+    finally:
+        if engine is not None:
+            try:
+                await engine.shutdown()
+                result['shutdown_called'] = True  # Actual release is an external check.
+            except Exception as error:
+                result.update(shutdown_error=str(error), **{'pass': False})
+    return result
+
+
 def self_test(modes=('inspect', 'oom', 'linger'), python=None) -> dict:
     records = []
     for mode in modes:
@@ -1365,7 +1522,8 @@ def self_test(modes=('inspect', 'oom', 'linger'), python=None) -> dict:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
-                                         'watchdog', 'watchdog-test', 'install-candidate', 'backend-check', '_worker',
+                                         'watchdog', 'watchdog-test', 'install-candidate', 'backend-check',
+                                         'backend-model-check', '_worker',
                                          'gated-launch', '_launch-gate', '_replay-publisher', '_replay-witness'])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--seal', type=Path)
@@ -1379,6 +1537,10 @@ def main():
     parser.add_argument('--candidate-environment', type=Path)
     parser.add_argument('--requirements', type=Path)
     parser.add_argument('--install-receipt', type=Path)
+    parser.add_argument('--runtime-receipt', type=Path)
+    parser.add_argument('--config', type=Path)
+    parser.add_argument('--model-profile')
+    parser.add_argument('--request-count', type=int, default=4)
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')
@@ -1422,6 +1584,12 @@ def main():
         if not args.install_receipt or not args.requirements or not args.output:
             parser.error('backend-check requires completed install receipt, requirements and new output')
         result = backend_runtime_check(args.install_receipt, args.requirements)
+    elif args.action == 'backend-model-check':
+        if not all((args.runtime_receipt, args.config, args.model_profile, args.replay_trace, args.output)):
+            parser.error('backend-model-check requires runtime receipt, config, model profile, trace and new output')
+        import asyncio
+        result = asyncio.run(backend_model_check(args.runtime_receipt, args.config,
+            args.model_profile, args.replay_trace, args.request_count))
     elif args.action == 'install-candidate':
         if not args.candidate_environment or not args.requirements or not args.output:
             parser.error('install-candidate requires explicit new environment, requirements and output')

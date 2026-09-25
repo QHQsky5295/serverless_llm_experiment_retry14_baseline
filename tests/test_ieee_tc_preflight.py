@@ -8,6 +8,42 @@ from scripts import ieee_tc_preflight as p
 
 
 class ProtocolGates(unittest.TestCase):
+    def test_model_check_requires_guard_before_reading_inputs(self):
+        import asyncio
+        with patch.object(p, 'verify_current_service', side_effect=RuntimeError('no guard')):
+            with self.assertRaisesRegex(RuntimeError, 'no guard'):
+                asyncio.run(p.backend_model_check(Path('/missing'), Path('/missing'),
+                                                  'profile', Path('/missing'), 4))
+
+    def test_model_check_rejects_unqualified_runtime_before_engine_import(self):
+        import asyncio
+        with tempfile.TemporaryDirectory() as directory:
+            receipt = Path(directory)/'runtime.json'
+            receipt.write_text(json.dumps({'kind': 'backend_cuda_import_qualification_v1',
+                                          'pass': False}))
+            with patch.object(p, 'verify_current_service', return_value={}):
+                with self.assertRaisesRegex(RuntimeError, 'completed CUDA check'):
+                    asyncio.run(p.backend_model_check(receipt, Path('/missing'),
+                                                     'profile', Path('/missing'), 4))
+
+    def test_model_worker_requires_actual_owner_affinity_clock_and_device(self):
+        pid = p.os.getpid()
+        actual = dict(pid=pid, uid=p.os.getuid(), cgroup='/service', affinity=[4, 28])
+        observation = dict(kind='ieee_native_worker_qualification_observation',
+                           pid=pid, uid=p.os.getuid(), cgroup=Path(f'/proc/{pid}/cgroup').read_text().strip(),
+                           affinity=[4, 28], clock_id='clock', visible_gpu_count=1, backend_version='0.30.0')
+        service = {'service_identity': {'path': '/service'}}
+        with patch.object(p, 'gpu_process_identity', return_value=actual):
+            p.validate_model_worker(observation, service, 'clock')
+            for change in ({'clock_id':'wrong'}, {'visible_gpu_count':4}, {'backend_version':'0.10.2'},
+                           {'affinity':[0]}, {'cgroup':'wrong'}):
+                with self.subTest(change=change), self.assertRaisesRegex(RuntimeError, 'actual model worker'):
+                    p.validate_model_worker({**observation, **change}, service, 'clock')
+        for identity in (None, {**actual, 'cgroup':'/escaped'}, {**actual, 'affinity':[0]}):
+            with patch.object(p, 'gpu_process_identity', return_value=identity):
+                with self.assertRaisesRegex(RuntimeError, 'actual model worker'):
+                    p.validate_model_worker(observation, service, 'clock')
+
     def test_backend_check_requires_guard_before_reading_install_or_importing_cuda(self):
         with patch.object(p, 'verify_current_service', side_effect=RuntimeError('no guard')):
             with self.assertRaisesRegex(RuntimeError, 'no guard'):
