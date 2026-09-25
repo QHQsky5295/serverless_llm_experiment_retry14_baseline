@@ -123,3 +123,43 @@ arrival hook 先于 admission，以及输入/时钟校验。
 
 当前剩余：测量类/profile 来源、共享 footprint/remaining-budget owner、真实
 pending-movement 执行路径的接入。没有接入完成就不放行 Full 正式实验。
+
+## P1-D3：服务观测与严格路由（计算合同通过，原生事件接入待完成）
+
+历史 `instance_pool.py` 的 `cb53f04` / `31a56f3` 路径保留在 legacy policy，
+以便解释历史数据；它不是新的 IEEE Full。此次没有用修改后的类重标旧结果。
+可证伪假设是：累计均值、完成时重分类、无可行集时仍返回副本，以及额外
+handoff 前缀，会使路由行为偏离式 (2)/(3)。修正目标是定义正确，不预设收益。
+
+在原 `instance_pool.py` 中增加并接入 Router 的显式 `ieee_confirmed` policy：
+
+- `ServiceClassBins` 使用冻结的闭上界分箱；输入仅为 prompt、声明输出上限、
+  rank、footprint、source representation、接受本请求后的 admitted 数。
+- `ServiceCostModel` 按 admission-time class 保存 D/T/O；初始化必须有
+  same-model/backend profile 身份，首个在线样本也按 beta 更新该初值。
+  缺类报错，不以混合 tier 均值或零成本补齐。新副本继承冻结 profile，
+  不继承上个正式运行已经学习到的状态。
+- `ServiceIntervalObservation` 只接受同一单调时钟域中的 admission、首次
+  executable acquisition、首/末 token。GPU-hit 在受保护 admission 时 D=0；
+  完成通知不计入 O。每段完成即更新，取消不编造尚未完成的段。
+- `ReplicaRoutingSnapshot` 不可变；同一次选择拒绝混合 epoch/request。
+  严格排除无请求容量、active-adapter 不可行及未 ready 的副本；空集返回排队。
+- 选择键严格为 `floor((D+T+O)/delta)` 后接 admitted、pending load、utilization、
+  last dispatch 和 replica ID。不加 handoff 前缀、occupancy 或未分桶成本。
+- 纯快照选择用于 A/A / shadow，不更新在线计数或 EWMA；live Router 入口
+  记录选择身份，但**尚不等于完成物理 reference/reservation**。
+
+十三项确定性测试通过，包括：同一服务时间桶中较空副本优先、下一个桶
+不被负载项越过、GPU-hit D=0、单 token O=0、取消只保留完整段、profile
+EWMA、稳定 ID、空可行集、错误快照拒绝、A/A 无副作用和 legacy 前缀不影响
+IEEE 选择。它们是机制正确性表，不需要性能图，也没有生成 serving workload。
+
+联网核查 [vLLM 指标设计](https://docs.vllm.ai/en/latest/design/metrics/)
+及 [0.30.0 stats 源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/metrics/stats.py)：
+其 engine/frontend 边界与本项目 admission 边界并不自动相同，输出事件也未必
+逐 token。因此不能把聚合 TTFT 或 SSE chunk 间隔直接充当本论文三个区间。
+本次沿用原生时间事件、单调时间差的原则，论文的 class 和公式仍以 IEEE 为准。
+
+仍待关闭：runner 生成已提交的完整快照；后端提供 executable acquisition 事件；
+跨进程时钟域确认；真实 profile 标定；原子选择/预约及发生冲突后的重新选择。
+在这些条件满足前，不启用 `ieee_confirmed` 进行 Full 性能实验，不回退旧 policy。

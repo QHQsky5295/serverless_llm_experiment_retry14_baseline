@@ -6,15 +6,254 @@ Router: selects which instance handles a request (round-robin, least-connections
 """
 
 import time
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
+import math
+from bisect import bisect_left
+from dataclasses import dataclass, field, replace
+from threading import RLock
+from types import MappingProxyType
+from typing import Any, Dict, List, Mapping, Optional, Set
 
 from ..utils.logger import get_logger
 
 
+@dataclass(frozen=True)
+class ServiceObservationClass:
+    """Admission-time class b and source q from IEEE Eq. (2).
+
+    Integers are bin indices, not measurements reconstructed at completion.
+    Representation includes the source layout used by the frozen profile.
+    """
+    tier: str
+    prompt_bin: int
+    output_limit_bin: int
+    rank_bin: int
+    footprint_bin: int
+    representation: str
+    admitted_bin: int
+
+    def __post_init__(self):
+        if self.tier not in {'gpu', 'host', 'nvme', 'remote', 'backbone'}:
+            raise ValueError('unknown admission source tier')
+        if not self.representation:
+            raise ValueError('source representation is required')
+        for value in (self.prompt_bin, self.output_limit_bin, self.rank_bin,
+                      self.footprint_bin, self.admitted_bin):
+            if type(value) is not int or value < 0:
+                raise ValueError('class indices must be nonnegative integers')
+
+
+@dataclass(frozen=True)
+class ServiceClassBins:
+    """Frozen inclusive upper bin edges; the final bin has no upper limit."""
+    prompt_tokens: tuple[int, ...]
+    declared_output_tokens: tuple[int, ...]
+    adapter_rank: tuple[int, ...]
+    footprint_bytes: tuple[int, ...]
+    admitted_requests: tuple[int, ...]
+
+    def __post_init__(self):
+        for edges in (self.prompt_tokens, self.declared_output_tokens,
+                      self.adapter_rank, self.footprint_bytes, self.admitted_requests):
+            if not isinstance(edges, tuple) or any(type(x) is not int or x < 0 for x in edges):
+                raise ValueError('bin boundaries must be immutable nonnegative integers')
+            if any(a >= b for a, b in zip(edges, edges[1:])):
+                raise ValueError('bin boundaries must be strictly increasing')
+
+    def classify(self, *, tier: str, prompt_tokens: int, declared_output_tokens: int,
+                 adapter_rank: int, footprint_bytes: int, representation: str,
+                 admitted_after_accept: int) -> ServiceObservationClass:
+        values = (prompt_tokens, declared_output_tokens, adapter_rank,
+                  footprint_bytes, admitted_after_accept)
+        if any(type(x) is not int or x < 0 for x in values):
+            raise ValueError('class features must be observed nonnegative integers')
+        if declared_output_tokens < 1 or admitted_after_accept < 1:
+            raise ValueError('class uses declared output limit and post-admission count')
+        edges = (self.prompt_tokens, self.declared_output_tokens, self.adapter_rank,
+                 self.footprint_bytes, self.admitted_requests)
+        p, o, r, f, a = (bisect_left(e, v) for e, v in zip(edges, values))
+        return ServiceObservationClass(tier, p, o, r, f, representation, a)
+
+
+@dataclass(frozen=True)
+class ServiceComponents:
+    d_ms: float
+    t_ms: float
+    o_ms: float
+
+    def __post_init__(self):
+        if any(not math.isfinite(x) or x < 0 for x in (self.d_ms, self.t_ms, self.o_ms)):
+            raise ValueError('D/T/O must be finite, nonnegative measured/profiled intervals')
+        if not math.isfinite(self.d_ms + self.t_ms + self.o_ms):
+            raise ValueError('service duration sum overflow')
+
+    @property
+    def total_ms(self) -> float:
+        return self.d_ms + self.t_ms + self.o_ms
+
+
+class ServiceCostModel:
+    """Per-replica IEEE EWMA, initialized only from explicit supported profiles.
+
+    Missing classes fail qualification: neither pooled tier averages nor a zero
+    cost fabricate a profile. Profile identity binds model/backend/bins upstream.
+    The historical ObservedRequestCost remains a separately named legacy path.
+    """
+    def __init__(self, profiles: Mapping[ServiceObservationClass, ServiceComponents],
+                 *, beta: float, profile_id: str):
+        if not math.isfinite(beta) or not 0 < beta <= 1:
+            raise ValueError('EWMA beta must be in (0, 1]')
+        if not profile_id or not profiles:
+            raise ValueError('explicit profile identity and supported classes are required')
+        for key, value in profiles.items():
+            if not isinstance(key, ServiceObservationClass) or not isinstance(value, ServiceComponents):
+                raise TypeError('typed observation classes and D/T/O profiles required')
+            if key.tier in {'gpu', 'backbone'} and value.d_ms != 0:
+                raise ValueError('protected executable path must have D=0')
+        self.profile_id = profile_id
+        self.beta = beta
+        self._profiles = MappingProxyType(dict(profiles))
+        self._estimates = dict(profiles)
+        self._counts = {key: {'d_ms': 0, 't_ms': 0, 'o_ms': 0} for key in profiles}
+        self._lock = RLock()
+
+    def new_replica(self) -> 'ServiceCostModel':
+        """Inherit frozen initialization, not another run's mutable observations."""
+        return ServiceCostModel(self._profiles, beta=self.beta, profile_id=self.profile_id)
+
+    def estimate(self, key: ServiceObservationClass) -> ServiceComponents:
+        with self._lock:
+            return self._estimates[key]
+
+    def sample_counts(self, key: ServiceObservationClass) -> dict[str, int]:
+        with self._lock:
+            return dict(self._counts[key])
+
+    def record_interval(self, key: ServiceObservationClass, component: str, elapsed_ms: float) -> None:
+        if component not in {'d_ms', 't_ms', 'o_ms'}:
+            raise ValueError('unknown service interval')
+        if not math.isfinite(elapsed_ms) or elapsed_ms < 0:
+            raise ValueError('invalid elapsed interval')
+        if key.tier in {'gpu', 'backbone'} and component == 'd_ms' and elapsed_ms != 0:
+            raise ValueError('GPU hit was not protected at admission')
+        with self._lock:
+            previous = self._estimates[key]  # unsupported class is an error
+            value = (1 - self.beta) * getattr(previous, component) + self.beta * elapsed_ms
+            self._estimates[key] = replace(previous, **{component: value})
+            self._counts[key][component] += 1
+
+
+class ServiceIntervalObservation:
+    """One admitted attempt, in ONE monotonic clock domain.
+
+    Hooks must be native admission/acquisition/first/last events, not response
+    completion or a resolved tier. Cancellation does not synthesize unfinished
+    intervals; intervals already completed remain legitimate observations.
+    """
+    def __init__(self, model: ServiceCostModel, key: ServiceObservationClass,
+                 admitted_at: float):
+        if not math.isfinite(admitted_at) or admitted_at < 0:
+            raise ValueError('invalid admission timestamp')
+        model.estimate(key)
+        self.model, self.key = model, key
+        self.admitted_at = admitted_at
+        self.acquired_at = self.first_at = self.last_at = None
+        self.closed = False
+        if key.tier in {'gpu', 'backbone'}:
+            self.acquire(admitted_at)
+
+    def _check_event(self, timestamp: float, after: Optional[float]):
+        if self.closed or after is None or not math.isfinite(timestamp) or timestamp < after:
+            raise ValueError('out-of-order, repeated, closed or missing service event')
+
+    def acquire(self, timestamp: float):
+        self._check_event(timestamp, self.admitted_at)
+        if self.acquired_at is not None:
+            raise ValueError('executable adapter has already been acquired')
+        self.model.record_interval(self.key, 'd_ms', (timestamp - self.admitted_at) * 1000)
+        self.acquired_at = timestamp
+
+    def first_token(self, timestamp: float):
+        self._check_event(timestamp, self.acquired_at)
+        if self.first_at is not None:
+            raise ValueError('first token already recorded')
+        self.model.record_interval(self.key, 't_ms', (timestamp - self.acquired_at) * 1000)
+        self.first_at = timestamp
+
+    def last_token(self, timestamp: float):
+        self._check_event(timestamp, self.first_at)
+        self.model.record_interval(self.key, 'o_ms', (timestamp - self.first_at) * 1000)
+        self.last_at = timestamp
+        self.closed = True
+
+    def cancel(self):
+        self.closed = True
+
+
+@dataclass(frozen=True)
+class ReplicaRoutingSnapshot:
+    """Committed request-specific inputs; not built from unconfirmed cache hints.
+
+    Resource owner captures all replicas under its state synchronization. This
+    value object does not assert that a backend reference was acquired. Actual
+    selection still requires atomic admission/reference reservation and retry.
+    """
+    epoch: int
+    request_id: str
+    replica_id: str
+    adapter_id: Optional[str]
+    runtime_ready: bool
+    available_slots: int
+    admitted_requests: int
+    active_adapters: frozenset[str]
+    max_active_loras: int
+    pending_loads: int
+    gpu_utilization_pct: float
+    last_dispatch_at: float
+    service_class: Optional[ServiceObservationClass]
+    service: Optional[ServiceComponents]
+
+    def __post_init__(self):
+        for value in (self.epoch, self.available_slots, self.admitted_requests,
+                      self.max_active_loras, self.pending_loads):
+            if type(value) is not int or value < 0:
+                raise ValueError('invalid snapshot counter')
+        if not self.request_id or not self.replica_id or self.max_active_loras < 1:
+            raise ValueError('snapshot requires identity and explicit active-adapter capacity')
+        if not isinstance(self.active_adapters, frozenset):
+            raise ValueError('admitted adapter set must be immutable')
+        if len(self.active_adapters) > min(self.max_active_loras, self.admitted_requests):
+            raise ValueError('admitted adapter counts violate snapshot capacity')
+        if not math.isfinite(self.gpu_utilization_pct) or not 0 <= self.gpu_utilization_pct <= 100:
+            raise ValueError('invalid utilization sample')
+        if not math.isfinite(self.last_dispatch_at) or self.last_dispatch_at < 0:
+            raise ValueError('invalid dispatch timestamp')
+        if self.feasible:
+            if self.service_class is None or self.service is None:
+                raise ValueError('feasible path requires a supported D/T/O profile')
+            if self.service_class.tier in {'gpu', 'backbone'} and self.service.d_ms != 0:
+                raise ValueError('protected executable path requires D=0')
+            if (self.adapter_id is None) != (self.service_class.tier == 'backbone'):
+                raise ValueError('adapter identity and source class disagree')
+
+    @property
+    def feasible(self) -> bool:
+        return (self.runtime_ready and self.available_slots > 0 and
+                (self.adapter_id is None or self.adapter_id in self.active_adapters or
+                 len(self.active_adapters) < self.max_active_loras))
+
+    def routing_key(self, delta_ms: float) -> tuple:
+        if not math.isfinite(delta_ms) or delta_ms <= 0:
+            raise ValueError('service bin width must be finite and positive')
+        if not self.feasible:
+            raise ValueError('infeasible replica has no placement key')
+        return (math.floor(self.service.total_ms / delta_ms), self.admitted_requests,
+                self.pending_loads, self.gpu_utilization_pct, self.last_dispatch_at,
+                self.replica_id)
+
+
 @dataclass
 class ObservedRequestCost:
-    """Per-slot observed request cost bucket used by routing."""
+    """Historical cumulative bucket; NOT the IEEE admission-class estimator."""
     samples: int = 0
     avg_lora_io_ms: float = 0.0
     avg_runtime_ttft_ms: float = 0.0
@@ -494,12 +733,18 @@ class Router:
         policy: str = "round_robin",
         runtime_concurrency_cap: int = 1,
         max_active_loras: int = 0,
+        service_bin_ms: Optional[float] = None,
     ):
         self.pool = pool
         self.policy = policy
         self._rr_index = 0
         self.runtime_concurrency_cap = max(1, int(runtime_concurrency_cap or 1))
         self.max_active_loras = max(0, int(max_active_loras or 0))
+        self.service_bin_ms = service_bin_ms
+        if policy == 'ieee_confirmed' and (
+                service_bin_ms is None or not math.isfinite(service_bin_ms) or service_bin_ms <= 0):
+            raise ValueError('IEEE router requires an explicit positive service bin width')
+        self.last_ieee_decision: Optional[ReplicaRoutingSnapshot] = None
         self.selection_count = 0
         self.readiness_aware_selection_count = 0
         self.load_only_selection_count = 0
@@ -732,9 +977,27 @@ class Router:
         self,
         adapter_id: Optional[str] = None,
         adapter_size_mb: Optional[float] = None,
+        *,
+        ieee_snapshot: Optional[tuple[ReplicaRoutingSnapshot, ...]] = None,
     ) -> Optional[InstanceSlot]:
         """Select one instance for the request. adapter_id can be used for affinity."""
         slots = self.pool.get_slots()
+        if self.policy == 'ieee_confirmed':
+            if ieee_snapshot is None:
+                raise ValueError('IEEE selection needs a committed snapshot, never legacy hints')
+            if any(s.adapter_id != adapter_id for s in ieee_snapshot):
+                raise ValueError('snapshot targets a different adapter')
+            if {s.replica_id for s in ieee_snapshot} != {s.instance_id for s in slots}:
+                raise ValueError('replica membership changed; retry from updated owner snapshot')
+            self.selection_count += 1
+            self.readiness_aware_selection_count += 1
+            self.last_ieee_decision = self.select_ieee_snapshot(ieee_snapshot, self.service_bin_ms)
+            if self.last_ieee_decision is None:
+                return None
+            # No handoff priority/budget consumption and no extra occupancy term.
+            return next(s for s in slots if s.instance_id == self.last_ieee_decision.replica_id)
+        if ieee_snapshot is not None:
+            raise ValueError('committed IEEE snapshot supplied to a legacy routing policy')
         if not slots:
             return None
         self.selection_count += 1
@@ -752,3 +1015,18 @@ class Router:
             self._consume_scaleup_handoff_budget_if_needed(selected, adapter_id)
             return selected
         return slots[0]
+
+    @staticmethod
+    def select_ieee_snapshot(snapshot: tuple[ReplicaRoutingSnapshot, ...],
+                             delta_ms: float) -> Optional[ReplicaRoutingSnapshot]:
+        """IEEE Eq. (3); selection only, no reservations or shadow side effects."""
+        if not isinstance(snapshot, tuple):
+            raise ValueError('routing snapshot must be immutable')
+        if not math.isfinite(delta_ms) or delta_ms <= 0:
+            raise ValueError('invalid service bin width')
+        if len({s.replica_id for s in snapshot}) != len(snapshot):
+            raise ValueError('duplicate replicas in snapshot')
+        if len({(s.epoch, s.request_id, s.adapter_id) for s in snapshot}) > 1:
+            raise ValueError('mixed snapshot epochs or request identities')
+        feasible = [s for s in snapshot if s.feasible]
+        return min(feasible, key=lambda s: s.routing_key(delta_ms)) if feasible else None

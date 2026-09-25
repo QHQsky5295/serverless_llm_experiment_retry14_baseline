@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Exact arrival demand tested; IEEE planning primitives tested, integration open | P1_FORMULA_IMPLEMENTATION.md. 309 combined tests pass incl. exhaustive subsets. Native profile/owner wiring, routing, admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Exact demand, benefit planning, service/routing contracts tested; native integration open | P1_FORMULA_IMPLEMENTATION.md. 13 new service/snapshot tests pass. Native profile/owner/event wiring and atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Pending | vLLM candidate must be checked locally |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -70,6 +70,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
   and baseline loader audit `45698053fb48ab2219ccde9253e4754e28d68a63`
   pushed to their respective branches; remote SHAs verified.
 - Main exact-demand checkpoint `b9c326958d864c3a061b7eb7049220a7aedadb67`
+  pushed to V2; remote SHA verified.
+- Main exact-planning checkpoint `1a6c3096d355ac5659c391b75c9bca89cf47d228`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -136,3 +138,22 @@ configs/relayserve_motivation_serverlessllm.yaml.
   needs confirmed per-replica source profiles/footprints and owner reservations.
   Retained legacy scorer is explicitly not IEEE-qualified; no fallback inference
   of missing costs or physical state is permitted for TC qualification.
+
+## P1 service / routing checkpoint
+
+- Thirteen new deterministic tests pass: admission-time classes, EWMA from
+  explicit profiles, nonoverlapping intervals, completed-only updates on cancel,
+  GPU-hit D=0, strict feasible set, exact binned key and A/A purity.
+- Combined regression: 322 passed, zero failures/errors/skips. The 147 sealed
+  historical files remain unchanged; all four GPUs idle after the no-GPU checks.
+- Existing Router now has an explicit `ieee_confirmed` policy requiring a
+  committed snapshot. Legacy affinity/cumulative metrics remain separately named;
+  no hidden fallback or performance requalification of old runs.
+- Not yet live-qualified: native acquisition and token hooks, snapshot owner,
+  physical references and atomic reservations. No GPU replay started.
+- Historical Serverless native loader reuse identified: successful four-request
+  3B smoke, Python 3.12 store wheels and existing converted checkpoint. Reuse is
+  compatibility/asset evidence only (different code and workload), not TC ranking.
+  All six existing vLLM files match restored preimages; seventh added loader is
+  absent as expected. Do not overwrite the shared environment or borrow global
+  cleanup commands from that other project's historical launcher.
