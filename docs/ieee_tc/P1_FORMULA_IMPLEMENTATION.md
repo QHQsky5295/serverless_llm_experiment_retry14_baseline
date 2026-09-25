@@ -456,3 +456,39 @@ float，最终结果以包含该修正的 461 项为准。本表是本步骤的�
 对账、native source snapshot 与 controller 的原子连接、慢层级引用和主动 E(t)
 admission 尚待完成。`runtime_request_ownership` 只记录 controller 未结算项，不能
 代替物理 GPU 生命周期计量，不能以此宣布 Full 已合格或 G1/G2 已达到。
+
+## P1-D11：失败请求的输入身份与缺失测量
+
+继续沿 D10 的实际失败路径追踪，而非另外建立回放器。`e238f60` 的最外层
+`append_raw` 会把两个不同请求的异常写成相同 `request_id="error"`，adapter
+和输入身份丢失；单个已启动 task 的 `CancelledError` 又会越过 `Exception`
+分支，提前结束整个回放。两个真实 runner / 假推理检查先复现了这两种行为。
+
+输入身份属于 offered trace，应在 task 创建时已知，不能根据是否生成成功决定
+是否保留。当前连续回放器在收集已完成 task 时使用其原始 trace 索引，并校验
+返回记录的身份；不再在整轮结束时凭一个匿名异常猜测请求。回放前拒绝空/重复
+request ID，而不是静默跳过。已预处理的输入计划直接复用，不生成新负载。
+
+| 情况 | 当前记录方式 | 证据含义 |
+|---|---|---|
+| 两个外层异常 | 各自保留 request、adapter、目标长度、canonical prompt SHA 与计划到达时间 | 仍是两个 offered 失败，不变成匿名结果或减少分母 |
+| 单个 task 取消 | 记录 `CancelledError`；其余回放继续 | 客户端 task 终止，不推断 native/GPU 已释放 |
+| 整轮取消 / publisher 提前结束 | 保持整轮中止；不制造未到达请求的 timeout 或补全成功列表 | 是截断运行，不能进入完整结果排名 |
+| 无 native 输出的错误 | TTFT、TPOT、E2E、输出数、请求美元成本用 null；错误被观察的时间独立保存 | 观察到失败的耗时不是首 token 延迟，更不意味着零 GPU 成本 |
+| 已 dispatch 后的 native 执行错误 | 保留已知 dispatch/tier、输入身份和 terminal 是否已观察；未观测指标仍为 null | first-dispatch 失败不能由下一请求的成功补齐 |
+| 不完整结果或错误返回身份 | 明确拒绝完整回放输出 | 不用默认值制造可比较点 |
+
+对照官方 [vLLM 0.30 benchmark](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/benchmarks/serve.py)
+对成功时延、失败数和 goodput 的分开计算，本项目继续采用自己的已批准输入、
+原生 token 与 joint-SLO 合同；不照搬它的文本重分词或零样本默认统计。
+
+新增 9 项检查，最终完整功能回归 **470 项通过**，零失败、错误、skip。中途
+469 项回归有一处旧 ingress fixture 返回 `SimpleNamespace` 而非实际结果类型，
+已显式提供合法的测试结果；后续 native 错误记录扩展曾因输入摘要在成功分支才
+定义而有四项错误，已将这些已知输入事实前移至生成前，最终回归包含该修正。
+全部测试不运行模型，表中数据是正确性反例，不是性能收益。
+
+仍需完成整轮安全中止的完整 partial-result journal、统一 offered/arrived/
+submitted/native-terminal/good 事件账本，以及物理 GPU owner 对账。旧 aggregate
+的全失败默认数值不是新的 G1/G2 合格统计；失败记录 null 也不是成本为零。
+本次完成后返回 owner/source/admission 主线，不增加额外性能矩阵或调整 SLO。

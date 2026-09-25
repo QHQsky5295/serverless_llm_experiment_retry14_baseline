@@ -123,6 +123,7 @@ class ManagedEngineFailure(unittest.TestCase):
 class ExternalDispatcherIntegration(unittest.IsolatedAsyncioTestCase):
     def setup_runner(self, *, fail=False):
         r = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        r._generation_contract = 'legacy'
         r.traces = [SimpleNamespace(request_id=str(i)) for i in range(3)]
         observed = []
 
@@ -152,7 +153,12 @@ class ExternalDispatcherIntegration(unittest.IsolatedAsyncioTestCase):
             starts.append(arrival_released_at)
             await asyncio.sleep(.05)
             ends.append(time.perf_counter())
-            return SimpleNamespace(success=True, request_id=trace.request_id)
+            return runner.RequestResult(
+                request_id=trace.request_id, adapter_id=None, is_burst=False,
+                burst_phase='normal', cache_hit=False, cache_tier='backbone',
+                lora_io_ms=0., vllm_ttft_ms=1., ttft_ms=1., contention_ms=0.,
+                defer_ms=0., tpot_ms=1., e2e_ms=2., input_tokens=1,
+                output_tokens=2, cost_usd=0., success=True)
         raw, _ = await r._run_continuous_observed(traces=r.traces, trace_start_index=0,
             replay_t0=time.perf_counter(), run_one_fn=run_one, completed_before_window=0,
             total_requests=3, result=SimpleNamespace(scale_up_events=[], scale_down_events=0),

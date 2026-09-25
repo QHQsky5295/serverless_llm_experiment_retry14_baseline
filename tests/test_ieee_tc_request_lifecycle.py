@@ -1,5 +1,9 @@
 """Real runner admission lifetime with fake inference; no GPU performance claims."""
 import asyncio
+from dataclasses import asdict, replace
+import hashlib
+import json
+import time
 from types import SimpleNamespace
 import unittest
 from unittest.mock import AsyncMock, Mock
@@ -230,6 +234,181 @@ class RequestOwnershipLifetime(unittest.TestCase):
         self.assertEqual(slot.active_requests, 0)
         self.assertFalse(slot.active_adapter_counts)
         self.assertFalse(runner._unsettled_runtime_reservations)
+        self.assertTrue(result.failure_observation['native_terminal_observed'])
+        self.assertIsNone(result.ttft_ms)
+        self.assertFalse(result.output_contract_match)
+
+    def test_native_generation_failure_keeps_input_and_dispatch_but_not_fake_latency(self):
+        runner, slot, trace, plan = fixture()
+        runner.model_cfg['timing_contract'] = 'ieee_tc_native_v1'
+        runner._generation_contract = 'fixed_length_greedy_v1'
+        slot.engine.generate_prepared.side_effect = RuntimeError('native stream failed')
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertFalse(result.success)
+        self.assertEqual(result.request_id, trace.request_id)
+        self.assertEqual(result.adapter_id, trace.adapter_id)
+        self.assertEqual(result.requested_completion_tokens, 4)
+        self.assertEqual(result.canonical_prompt_sha256, hashlib.sha256(b'hello').hexdigest())
+        self.assertEqual(result.timing_contract, 'ieee_tc_native_v1')
+        self.assertTrue(result.readiness_tier_before_dispatch)
+        for field in ('ttft_ms', 'tpot_ms', 'e2e_ms', 'cost_usd', 'output_tokens',
+                      'overall_ttft_ms', 'service_ttft_ms', 'completed_offset_s'):
+            self.assertIsNone(getattr(result, field))
+        self.assertFalse(result.output_contract_match)
+        self.assertFalse(result.failure_observation['native_terminal_observed'])
+        self.assertEqual(slot.active_requests, 1)
+
+
+def replay_fixture():
+    runner = ScenarioRunner.__new__(ScenarioRunner)
+    runner.model_cfg = {'timing_contract': 'ieee_tc_native_v1'}
+    runner._generation_contract = 'fixed_length_greedy_v1'
+    runner._coordination_enabled = False
+    runner.baseline_type = 'vllm'
+    runner.name = 'failure-identity-test'
+    runner._ttft_slo_ms = 1000.
+    runner.wl_cfg = {'generation_contract': 'fixed_length_greedy_v1'}
+    runner.engine = SimpleNamespace(backend='vllm')
+    runner._stack = None
+    runner._external_replay = None
+    runner.traces = [SimpleNamespace(request_id=f'req-{i}', adapter_id=f'adapter-{i}',
+                    is_burst=False, expected_output_tokens=4, prompt='existing fixture')
+                    for i in range(2)]
+    plans = {t.request_id: RequestExecutionPlan(t.prompt, 2, 4) for t in runner.traces}
+    runner._prepare_request_execution_plan_cache = Mock(return_value=plans)
+    runner._scheduled_offset = Mock(return_value=0.)
+    runner._live_scale_eval_period_s = Mock(return_value=.1)
+    for name in ('_assert_clean_gpu_environment', '_begin_instance_lifecycle_tracking',
+                 '_observe_live_arrived_lora', '_observe_live_waiting_trace',
+                 '_release_live_started_lora', '_release_live_waiting_trace',
+                 '_release_live_arrived_lora', '_emit_live_snapshot',
+                 '_attach_control_path_background_metrics'):
+        setattr(runner, name, Mock())
+    for name in ('_ensure_min_instances', '_await_trace_arrival',
+                 '_acquire_dispatch_admission', '_release_dispatch_admission',
+                 '_maybe_run_live_scale_control_evaluation',
+                 '_wait_for_pending_scale_up_tasks', '_cancel_runtime_gpu_forward_tasks',
+                 '_cleanup_extra_instances'):
+        setattr(runner, name, AsyncMock())
+    for name in ('_backlog_depth', '_active_request_count', '_busy_instance_ratio',
+                 '_arrived_request_count'):
+        setattr(runner, name, Mock(return_value=0))
+    runner._waiting_visible_trace_queue = Mock(return_value=[])
+    runner._coordinator_metric_views = Mock(return_value=[])
+    runner._exec_request = AsyncMock(side_effect=RuntimeError('artifact unavailable'))
+    return runner
+
+
+class ReplayFailureIdentity(unittest.TestCase):
+    def test_outer_exceptions_keep_offered_identity_and_missing_measurements(self):
+        runner = replay_fixture()
+        result, _ = asyncio.run(runner.run())
+        self.assertEqual([r.request_id for r in result.requests], ['req-0', 'req-1'])
+        self.assertEqual([r.adapter_id for r in result.requests], ['adapter-0', 'adapter-1'])
+        self.assertEqual((result.total, result.completed, result.failed), (2, 0, 2))
+        for row in result.requests:
+            self.assertFalse(row.success)
+            self.assertFalse(row.output_contract_match)
+            self.assertIsNone(row.ttft_ms)
+            self.assertIsNone(row.tpot_ms)
+            self.assertIsNone(row.output_tokens)
+            self.assertIsNone(row.cost_usd)
+            self.assertEqual(row.requested_completion_tokens, 4)
+            self.assertEqual(row.canonical_prompt_sha256,
+                             hashlib.sha256(b'existing fixture').hexdigest())
+            self.assertGreaterEqual(row.failure_observation['observed_offset_s'], 0.)
+            self.assertFalse(row.failure_observation['native_completion_inferred'])
+            self.assertIsNone(row.completed_offset_s)
+            self.assertIsNone(json.loads(json.dumps(asdict(row)))['output_tokens'])
+
+    def test_individual_task_cancellation_is_not_anonymous_or_whole_replay_abort(self):
+        runner = replay_fixture()
+        runner._exec_request.side_effect = asyncio.CancelledError('request cancelled')
+        result, _ = asyncio.run(runner.run())
+        self.assertEqual([r.request_id for r in result.requests], ['req-0', 'req-1'])
+        self.assertTrue(all(not r.success for r in result.requests))
+        self.assertTrue(all(r.failure_observation['exception_type'] == 'CancelledError'
+                            for r in result.requests))
+
+    def test_global_replay_cancellation_still_propagates(self):
+        runner = replay_fixture()
+        async def check():
+            entered = asyncio.Event()
+            async def never_complete(*args, **kwargs):
+                entered.set()
+                await asyncio.Future()
+            runner._exec_request.side_effect = never_complete
+            task = asyncio.create_task(runner.run())
+            await entered.wait()
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+        asyncio.run(check())
+        runner._attach_control_path_background_metrics.assert_not_called()
+
+    def test_collector_rejects_unfinished_future_or_wrong_result_identity(self):
+        runner = replay_fixture()
+        async def check():
+            trace = runner.traces[0]
+            plan = RequestExecutionPlan(trace.prompt, 2, 4)
+            future = asyncio.Future()
+            with self.assertRaisesRegex(RuntimeError, 'unfinished'):
+                runner._collect_request_task_result(future, trace, time.perf_counter(), plan)
+            future.set_exception(RuntimeError('original'))
+            row = runner._collect_request_task_result(future, trace, time.perf_counter() - .1, plan)
+            for changed in (replace(row, request_id='another'), replace(row, adapter_id='other')):
+                future = asyncio.Future()
+                future.set_result(changed)
+                with self.assertRaisesRegex(RuntimeError, 'identity'):
+                    runner._collect_request_task_result(future, trace, time.perf_counter() - .1, plan)
+        asyncio.run(check())
+
+    def test_failure_cannot_be_manufactured_before_arrival_or_without_fixed_input(self):
+        runner = replay_fixture()
+        async def check():
+            trace = runner.traces[0]
+            future = asyncio.Future()
+            future.set_exception(RuntimeError('original'))
+            with self.assertRaisesRegex(RuntimeError, 'before its offered arrival'):
+                runner._collect_request_task_result(future, trace, time.perf_counter() + 60., None)
+            with self.assertRaisesRegex(RuntimeError, 'prepared input identity'):
+                runner._collect_request_task_result(future, trace, time.perf_counter() - .1, None)
+        asyncio.run(check())
+
+    def test_external_failure_keeps_original_arrival_evidence(self):
+        runner = replay_fixture()
+        async def check():
+            trace = runner.traces[0]
+            record = {'request_id':trace.request_id, 'server_received_s': time.perf_counter()}
+            runner._external_replay = SimpleNamespace(records={trace.request_id:record})
+            future = asyncio.Future()
+            future.set_exception(RuntimeError('original'))
+            row = runner._collect_request_task_result(future, trace, time.perf_counter() - .1,
+                                                       RequestExecutionPlan(trace.prompt, 2, 4))
+            self.assertEqual(row.external_arrival_timing, record)
+            self.assertIsNot(row.external_arrival_timing, record)
+            self.assertEqual(row.arrival_contract, 'external_frozen_trace_v1')
+        asyncio.run(check())
+
+    def test_incomplete_publisher_does_not_manufacture_future_failure_rows(self):
+        runner = replay_fixture()
+        async def receive():
+            yield 0, {'server_received_s':time.perf_counter()}
+        runner._external_replay = SimpleNamespace(
+            context={'replay_t0_s':time.perf_counter() - .1},
+            plan=SimpleNamespace(entries=[0,1]), receive=receive,
+            records={'req-0':{'request_id':'req-0'}})
+        with self.assertRaisesRegex(RuntimeError, 'incomplete replay'):
+            asyncio.run(runner.run())
+        self.assertEqual(runner._exec_request.await_count, 1)
+
+    def test_duplicate_or_empty_input_identity_is_not_silently_skipped(self):
+        runner = replay_fixture()
+        runner._prepare_request_execution_plan = Mock(return_value=RequestExecutionPlan('p', 2, 4))
+        for traces in ([runner.traces[0], runner.traces[0]],
+                       [SimpleNamespace(request_id='')]):
+            with self.assertRaisesRegex(ValueError, 'unique request IDs'):
+                ScenarioRunner._prepare_request_execution_plan_cache(runner, runner.engine, traces, 4)
 
 
 if __name__ == '__main__':

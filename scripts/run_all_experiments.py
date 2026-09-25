@@ -720,16 +720,16 @@ class RequestResult:
     burst_phase: str              # "normal" / "phase1" / "phase2" / "quiet"
     cache_hit: bool
     cache_tier: str               # "gpu" / "host" / "nvme" / "remote" (C1: host=memory tier)
-    lora_io_ms: float
-    vllm_ttft_ms: float
-    ttft_ms: float
-    contention_ms: float          # [C3] memory contention penalty
-    defer_ms: float               # [C3] coordination queuing delay
+    lora_io_ms: Optional[float]
+    vllm_ttft_ms: Optional[float]
+    ttft_ms: Optional[float]
+    contention_ms: Optional[float]  # [C3] memory contention penalty
+    defer_ms: Optional[float]       # [C3] coordination queuing delay
     tpot_ms: Optional[float]
-    e2e_ms: float
-    input_tokens: int
-    output_tokens: int
-    cost_usd: float
+    e2e_ms: Optional[float]
+    input_tokens: Optional[int]
+    output_tokens: Optional[int]
+    cost_usd: Optional[float]
     success: bool
     instance_id: Optional[str] = None
     scaleup_affected: bool = False
@@ -792,6 +792,7 @@ class RequestResult:
     native_token_timing: Dict[str, Any] = field(default_factory=dict)
     arrival_contract: str = "legacy_internal_timer"
     external_arrival_timing: Dict[str, Any] = field(default_factory=dict)
+    failure_observation: Dict[str, Any] = field(default_factory=dict)
 
 
 class AggregateBandwidthLimiter:
@@ -6634,7 +6635,7 @@ class ScenarioRunner:
         for trace in traces:
             request_id = str(getattr(trace, "request_id", "") or "")
             if not request_id or request_id in plan_cache:
-                continue
+                raise ValueError('replay requires nonempty unique request IDs')
             plan_cache[request_id] = self._prepare_request_execution_plan(
                 engine,
                 trace,
@@ -11234,6 +11235,73 @@ class ScenarioRunner:
                 raw.append(exc)
         return raw, time.perf_counter(), peak_backlog, peak_active_requests, peak_busy_ratio
 
+    def _collect_request_task_result(
+        self, task: asyncio.Task, trace: RequestTrace, replay_t0: float,
+        request_plan: Optional[RequestExecutionPlan],
+    ) -> RequestResult:
+        """Bind a finished task to its offered request; never invent a terminal.
+
+        The observation boundary is the controller reading a finished task,
+        not the backend finishing GPU work. Global replay cancellation bypasses
+        this collector and remains a truncated run, not N individual timeouts.
+        """
+        if not task.done():
+            raise RuntimeError('cannot collect an unfinished request task')
+        try:
+            item = task.result()
+        except (Exception, asyncio.CancelledError) as exc:
+            from faaslora.metrics.metrics_collector import local_monotonic_clock_id
+            observed_at = time.perf_counter()
+            scheduled_offset = self._scheduled_offset(trace)
+            if observed_at < replay_t0 + scheduled_offset:
+                raise RuntimeError('request failure observed before its offered arrival') from exc
+            contract = self._generation_contract
+            if contract == 'fixed_length_greedy_v1' and request_plan is None:
+                raise RuntimeError('failed fixed-work request lost its prepared input identity') from exc
+            external = self._external_replay
+            arrival = dict(external.records[trace.request_id]) if external is not None else {}
+            item = RequestResult(
+                request_id=trace.request_id, adapter_id=trace.adapter_id,
+                is_burst=trace.is_burst,
+                burst_phase=getattr(trace, '_burst_phase', 'normal'),
+                cache_hit=False, cache_tier='unobserved',
+                lora_io_ms=None, vllm_ttft_ms=None, ttft_ms=None,
+                contention_ms=None, defer_ms=None, tpot_ms=None, e2e_ms=None,
+                input_tokens=request_plan.input_tokens if request_plan else None,
+                output_tokens=None, cost_usd=None, success=False,
+                error=f'{type(exc).__name__}: {exc}',
+                tpot_observed=False, output_contract_match=False,
+                service_ttft_ms=None, service_e2e_ms=None,
+                admitted_service_ttft_ms=None, admitted_service_e2e_ms=None,
+                overall_ttft_ms=None, overall_e2e_ms=None,
+                scheduled_arrival_offset_s=scheduled_offset,
+                generation_contract=contract,
+                source_expected_output_tokens=trace.expected_output_tokens,
+                requested_completion_tokens=request_plan.max_tokens if request_plan else 0,
+                canonical_prompt_sha256=(hashlib.sha256(request_plan.prompt.encode('utf-8')).hexdigest()
+                                         if request_plan else ''),
+                canonical_prompt_tokens=request_plan.input_tokens if request_plan else 0,
+                completion_token_source='unobserved_due_to_task_failure',
+                timing_contract=self.model_cfg.get('timing_contract', 'legacy'),
+                arrival_contract='external_frozen_trace_v1' if external is not None else 'legacy_internal_timer',
+                external_arrival_timing=arrival,
+                failure_observation={
+                    'kind': 'controller_task_exception_v1',
+                    'exception_type': type(exc).__name__,
+                    'observed_monotonic_s': observed_at,
+                    'observed_offset_s': observed_at - replay_t0,
+                    'elapsed_since_offered_ms': (observed_at - replay_t0 - scheduled_offset) * 1000.,
+                    'clock_id': local_monotonic_clock_id(),
+                    'native_completion_inferred': False,
+                    'gpu_release_inferred': False,
+                },
+            )
+        if not isinstance(item, RequestResult) or item.request_id != trace.request_id:
+            raise RuntimeError('request task result does not match its offered identity')
+        if self._generation_contract == 'fixed_length_greedy_v1' and item.adapter_id != trace.adapter_id:
+            raise RuntimeError('fixed-work result changed its offered adapter identity')
+        return item
+
     async def _run_continuous_observed(
         self,
         *,
@@ -11246,6 +11314,7 @@ class ScenarioRunner:
         result: ScenarioResult,
         coord_enabled: bool,
         phase_label: Optional[str] = None,
+        request_plans: Optional[Dict[str, RequestExecutionPlan]] = None,
     ) -> Tuple[List[Any], float]:
         """
         Execute one trace window with continuous arrivals and a shared waiting queue.
@@ -11320,10 +11389,10 @@ class ScenarioRunner:
                     if idx is None or idx in completed_indices:
                         continue
                     completed_indices.add(idx)
-                    try:
-                        item = task.result()
-                    except Exception as exc:
-                        item = exc
+                    trace = traces[idx]
+                    item = self._collect_request_task_result(
+                        task, trace, replay_t0,
+                        request_plans.get(trace.request_id) if request_plans is not None else None)
                     observed_raw.append(item)
                     results_by_idx[idx] = item
 
@@ -11369,14 +11438,9 @@ class ScenarioRunner:
             # A fast failed publisher may finish between controller polls.
             # Always retrieve its exception; never manufacture missing results.
             await dispatcher
-            raw: List[Any] = []
-            for idx in range(len(traces)):
-                raw.append(
-                    results_by_idx.get(
-                        idx,
-                        RuntimeError(f"missing request result for trace_index={trace_start_index + idx}"),
-                    )
-                )
+            if set(results_by_idx) != set(range(len(traces))):
+                raise RuntimeError('incomplete replay has no full request outcome set')
+            raw = [results_by_idx[idx] for idx in range(len(traces))]
             return raw, time.perf_counter()
         finally:
             self._active_replay_t0 = None
@@ -12682,21 +12746,6 @@ class ScenarioRunner:
                 self._release_live_waiting_trace(trace)
                 self._release_live_arrived_lora(getattr(trace, "adapter_id", None))
 
-        def append_raw(raw_list: list, result_requests: list):
-            for r in raw_list:
-                if isinstance(r, Exception):
-                    result_requests.append(RequestResult(
-                        request_id="error", adapter_id=None,
-                        is_burst=False, burst_phase="normal",
-                        cache_hit=False, cache_tier=_BACKBONE_CACHE_TIER,
-                        lora_io_ms=0, vllm_ttft_ms=0, ttft_ms=0,
-                        contention_ms=0, defer_ms=0, tpot_ms=0, e2e_ms=0,
-                        input_tokens=0, output_tokens=0, cost_usd=0,
-                        success=False, error=str(r),
-                    ))
-                else:
-                    result_requests.append(r)
-
         if multi_cycle_phases <= 1:
             # substrate_v2: 连续到达 + 共享等待队列；控制面按周期观察在线队列。
             t0 = time.perf_counter()
@@ -12709,9 +12758,10 @@ class ScenarioRunner:
                 total_requests=len(self.traces),
                 result=result,
                 coord_enabled=coord_enabled,
+                request_plans=request_plan_cache,
             )
             elapsed = time.perf_counter() - t0
-            append_raw(all_raw, result.requests)
+            result.requests.extend(all_raw)
             await self._wait_for_pending_scale_up_tasks()
             if self.baseline_type in ("faaslora_full", "faaslora_no_coord"):
                 if self._should_trigger_scale_down():
@@ -12753,10 +12803,11 @@ class ScenarioRunner:
                     result=result,
                     coord_enabled=coord_enabled,
                     phase_label=f"phase{phase_idx + 1}",
+                    request_plans=request_plan_cache,
                 )
                 phase_elapsed = time.perf_counter() - t0
                 total_elapsed += phase_elapsed
-                append_raw(phase_raw, result.requests)
+                result.requests.extend(phase_raw)
                 await self._wait_for_pending_scale_up_tasks()
                 phase_ok = [r for r in phase_raw if not isinstance(r, Exception) and getattr(r, "success", True)]
                 phase_ttft = sum(getattr(r, "ttft_ms", 0) for r in phase_ok) / len(phase_ok) if phase_ok else 0.0
@@ -13533,6 +13584,12 @@ class ScenarioRunner:
             "scaleup_planned_adapter_match": False,
         }
         output_tokens_hint = max(0, int(request_plan.max_tokens or 0))
+        # Input identity exists before generation; errors cannot depend on a
+        # successful output-processing branch to reconstruct these facts.
+        source_expected_output_tokens = max(
+            1, int(getattr(trace, "expected_output_tokens", 0) or request_plan.max_tokens)
+        )
+        canonical_prompt_sha256 = hashlib.sha256(request_plan.prompt.encode('utf-8')).hexdigest()
         try:
             scaleup_labels = self._begin_scaleup_runtime_request_labels(
                 slot=slot,
@@ -13705,16 +13762,10 @@ class ScenarioRunner:
                 int(_safe_float(engine_timing.get("actual_prompt_tokens"), request_plan.input_tokens)),
             )
             cost       = _calc_cost(self.cost_model, actual_input_tokens, out_tokens)
-            source_expected_output_tokens = max(
-                1, int(getattr(trace, "expected_output_tokens", 0) or request_plan.max_tokens)
-            )
             completion_token_source = (
                 "vllm_token_ids" if str(getattr(_engine, "backend", "vllm")).lower() == "vllm"
                 else f"{str(getattr(_engine, 'backend', 'engine')).lower()}_reported_tokens"
             )
-            canonical_prompt_sha256 = hashlib.sha256(
-                request_plan.prompt.encode("utf-8")
-            ).hexdigest()
             output_contract_match = (
                 int(out_tokens or 0) == int(request_plan.max_tokens or 0)
                 if str(getattr(self, "_generation_contract", "legacy")) == "fixed_length_greedy_v1"
@@ -13863,7 +13914,11 @@ class ScenarioRunner:
                 0.0,
                 (float(admitted_offset_s) - float(arrival_released_offset_s)) * 1000.0,
             ) if admitted_offset_s is not None and arrival_released_offset_s is not None else 0.0
-            service_error_ms = max(0.0, (time.perf_counter() - admitted_perf_counter) * 1000.0)
+            failure_observed_at = time.perf_counter()
+            service_error_ms = max(0.0, (failure_observed_at - admitted_perf_counter) * 1000.0)
+            native_failure = self.model_cfg.get('timing_contract', 'legacy') == 'ieee_tc_native_v1'
+            if native_failure:
+                from faaslora.clock import local_monotonic_clock_id
             overall_error_ms = dispatch_admission_wait_ms + service_error_ms
             completed_offset_s = (
                 max(0.0, float(scheduled_arrival_offset_s) + overall_error_ms / 1000.0)
@@ -13882,12 +13937,12 @@ class ScenarioRunner:
                 request_id=trace.request_id, adapter_id=adapter_id,
                 is_burst=trace.is_burst, burst_phase=burst_phase,
                 cache_hit=bool(adapter_id) and (cache_tier != "remote"), cache_tier=cache_tier,
-                lora_io_ms=lora_io_ms, vllm_ttft_ms=0,
-                ttft_ms=overall_error_ms,
+                lora_io_ms=lora_io_ms, vllm_ttft_ms=None if native_failure else 0,
+                ttft_ms=None if native_failure else overall_error_ms,
                 contention_ms=contention_ms, defer_ms=defer_ms,
-                tpot_ms=0, e2e_ms=overall_error_ms,
-                input_tokens=request_plan.input_tokens, output_tokens=0,
-                cost_usd=0, success=False,
+                tpot_ms=None if native_failure else 0, e2e_ms=None if native_failure else overall_error_ms,
+                input_tokens=request_plan.input_tokens, output_tokens=None if native_failure else 0,
+                cost_usd=None if native_failure else 0, success=False,
                 instance_id=instance_id,
                 scaleup_affected=bool(scaleup_labels.get("scaleup_affected", False)),
                 on_scaleup_runtime=bool(scaleup_labels.get("on_scaleup_runtime", False)),
@@ -13895,23 +13950,41 @@ class ScenarioRunner:
                 scaleup_planned_adapter_match=bool(
                     scaleup_labels.get("scaleup_planned_adapter_match", False)
                 ),
-                service_ttft_ms=service_error_ms,
-                service_e2e_ms=service_error_ms,
-                admitted_service_ttft_ms=admitted_service_error_ms,
-                admitted_service_e2e_ms=admitted_service_error_ms,
+                service_ttft_ms=None if native_failure else service_error_ms,
+                service_e2e_ms=None if native_failure else service_error_ms,
+                admitted_service_ttft_ms=None if native_failure else admitted_service_error_ms,
+                admitted_service_e2e_ms=None if native_failure else admitted_service_error_ms,
                 dispatch_window_wait_ms=dispatch_window_wait_ms,
                 runtime_slot_wait_ms=runtime_slot_wait_ms,
                 ingress_queue_wait_ms=ingress_queue_wait_ms,
                 arrival_release_lateness_ms=arrival_release_lateness_ms,
-                overall_ttft_ms=overall_error_ms,
-                overall_e2e_ms=overall_error_ms,
+                overall_ttft_ms=None if native_failure else overall_error_ms,
+                overall_e2e_ms=None if native_failure else overall_error_ms,
                 dispatch_admission_wait_ms=dispatch_admission_wait_ms,
                 scheduled_arrival_offset_s=scheduled_arrival_offset_s,
                 arrival_released_offset_s=arrival_released_offset_s,
                 admission_start_offset_s=admission_start_offset_s,
                 admitted_offset_s=admitted_offset_s,
-                completed_offset_s=completed_offset_s,
+                completed_offset_s=None if native_failure else completed_offset_s,
                 error=str(exc),
+                generation_contract=str(getattr(self, '_generation_contract', 'legacy')),
+                source_expected_output_tokens=source_expected_output_tokens,
+                requested_completion_tokens=request_plan.max_tokens,
+                canonical_prompt_sha256=canonical_prompt_sha256,
+                canonical_prompt_tokens=request_plan.input_tokens,
+                output_contract_match=False,
+                tpot_observed=False,
+                timing_contract=self.model_cfg.get('timing_contract', 'legacy'),
+                failure_observation=({
+                    'kind': 'native_request_execution_error_v1',
+                    'exception_type': type(exc).__name__,
+                    'observed_monotonic_s': failure_observed_at,
+                    'observed_offset_s': completed_offset_s,
+                    'clock_id': local_monotonic_clock_id(),
+                    'elapsed_since_offered_ms': overall_error_ms,
+                    'native_terminal_observed': _reservation.native_terminal_observed,
+                    'gpu_release_inferred': False,
+                } if native_failure else {}),
                 readiness_tier_before_dispatch=readiness_tier_before_dispatch,
                 adapter_gpu_ready_before_dispatch=bool(adapter_id and readiness_tier_before_dispatch == "gpu"),
                 adapter_local_ready_before_dispatch=bool(adapter_id and readiness_tier_before_dispatch in ("host", "nvme")),

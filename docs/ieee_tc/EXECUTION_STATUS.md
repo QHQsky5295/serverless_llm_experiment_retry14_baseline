@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Mathematical contracts + native timing/scheduler, fixed-work, demand-load/reference and controller request-lifetime checks tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D10. Resolution/cancellation no longer leaks controller capacity; unknown native completion retains ownership. CUDA/clock/stream qualification, abort reconciliation, slow-tier references and proactive atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts + native timing/scheduler, fixed-work, references, request lifetime and failure identity tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D11. Unknown native completion retains ownership; failed tasks keep offered identity and missing measurements. CUDA/clock/stream qualification, abort reconciliation, slow-tier references and proactive atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -101,6 +101,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Fixed-work boundary checkpoint `6ec86c6676ba9dbf39a69c12b697ce51a664af64`
   pushed to V2; remote SHA verified.
 - Native demand-load checkpoint `d22721bd6f8966a55e657a3e1dd93e414b94651d`
+  pushed to V2; remote SHA verified.
+- Controller request-lifetime checkpoint `e238f603281223eae411202a38962488b3e14000`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -476,3 +478,30 @@ configs/relayserve_motivation_serverlessllm.yaml.
   then finish owner/source/admission integration and actual backend qualification
   once installation completes. Keep Serverless first in baseline order. Remote
   service disk decision, M1/M2, ablations and sensitivities remain pending.
+
+## Offered failure identity checkpoint
+
+- Two prechange checks reproduced anonymous `error/error` rows and one-request
+  cancellation escaping as whole-replay cancellation. Continuous collection now
+  binds each task to its original trace and prepared input. Empty/duplicate input
+  IDs and wrong returned identities reject; no new trace/artifact generation.
+- Outer exceptions and native execution failures retain original input identity;
+  known dispatch/tier evidence is kept for the latter. Unobserved token/latency/
+  cost values are null, not zero. Failure-observed time is not a first token or
+  native completion, and does not imply physical GPU release.
+- Global cancellation still propagates; a prematurely ended publisher cannot
+  manufacture outcomes for unoffered requests. Durable partial-result journal
+  and common native-terminal/resource accounting remain open.
+- Nine added checks; final functional regression 470 pass, no failures/errors/
+  skips; separate safety/census/replay suite 44 pass. Intermediate fixture mismatch and failed-input initialization errors
+  are documented in P1-D11, not hidden. The 147-entry historical seal remains
+  unchanged; no model performance run, new baseline point or ranking claim.
+- Sep 26 02:59 local: original isolated backend installation remains active on
+  NCCL (112); local free disk ~336 GiB, available RAM ~103 GiB. No second installer
+  or concurrent model. Continue the same install; quiet wheel output is not a
+  reason to restart it.
+- Next: connect controller execution to native source/reference ownership and
+  atomic admission, including cancellation reconciliation. Actual backend/
+  worker/clock/stream qualification follows installation. Serverless remains
+  first among baseline model runs. Remote disk decision and all formal matrices
+  remain outstanding; do not treat correctness tests as completed experiments.
