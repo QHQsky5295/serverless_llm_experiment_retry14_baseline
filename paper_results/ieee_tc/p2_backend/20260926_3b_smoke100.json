@@ -1,0 +1,98 @@
+{
+  "kind": "p2_native_smoke100_summary_v1",
+  "model": "llama32_3b",
+  "pass": true,
+  "formal_performance_result": false,
+  "input_mode": "existing_trace_prefix_sequential_qualification",
+  "artifact_mode": "existing_local_frozen_qualification_only",
+  "n_plan": 100,
+  "n_correct": 100,
+  "actual_output_tokens": 17369,
+  "unique_logical_adapters": 29,
+  "unique_weight_sha256": 2,
+  "source_before_native_load_counts": {
+    "local_file": 29,
+    "GPU": 45,
+    "registered_CPU": 26
+  },
+  "max_e2e_decomposition_error_ms": 0,
+  "max_tpot_recalculation_error_ms": 0,
+  "first_four_same_output_and_prompt_hash_as_prior": true,
+  "final_native_cpu_cache_count": 29,
+  "final_native_gpu_cache_count": 8,
+  "already_evicted_before_cleanup_count": 0,
+  "adapter_caches_empty_after_cleanup": true,
+  "native_pool_allocated_bytes": 1825046528,
+  "registered_host_tensor_storage_bytes": 330301440,
+  "trace": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "7fc7c1a556fbf8d161ef607684416b51d7d917eff53a7c5e24ab4088d563f598",
+    "count": 100,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1
+  },
+  "model_config": {
+    "name": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+    "backend": "vllm",
+    "device_id": 0,
+    "visible_device_ids": [
+      0
+    ],
+    "tensor_parallel_size": 1,
+    "gpu_memory_utilization": 0.72,
+    "max_model_len": 1024,
+    "max_loras": 8,
+    "max_cpu_loras": 32,
+    "max_lora_rank": 64,
+    "enable_lora": true,
+    "enforce_eager": "auto",
+    "dtype": "float16",
+    "max_num_seqs": 8,
+    "max_num_batched_tokens": 4096,
+    "max_output_tokens_cap": 256,
+    "max_input_len": 759,
+    "runtime_concurrency_cap": 8,
+    "enable_chunked_prefill": false,
+    "enable_prefix_caching": false,
+    "timing_contract": "ieee_tc_native_v1",
+    "ieee_worker_observation": true,
+    "ieee_gpu_references": true,
+    "ieee_scheduler_observation": true,
+    "ieee_input_upper_bounds": [
+      759
+    ],
+    "generation_contract": "fixed_length_greedy_v1",
+    "canonical_prompt_renderer": "role_lines_v1"
+  },
+  "config_sha256": "f923c36d541046639ba70691106cf7841b322f850377bd8d719004adc959e45d",
+  "check_source_sha256": "5774fdee6a8c7b1eb03b90ffd5696d3b240f150baf351d96c3aa8842397080e6",
+  "startup_latency_ms": 37258.175324997865,
+  "resources": {
+    "samples": 297,
+    "peak_bytes": 5302902784,
+    "min_host_available_bytes": 106199601152,
+    "event_max": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "cleanup": {
+    "native_gpu_contexts_clear": true,
+    "scope_removed": true
+  },
+  "result_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama32_3b_smoke100_attempt1.json",
+  "result_sha256": "178f837d0fba0f5174b141567cc79beba655495caef45017ee2b5595815e9ba9",
+  "launch_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama32_3b_smoke100_attempt1_launch.json",
+  "launch_sha256": "adc5eedfb2ea6fd79b4ccf8b94ac70de54c4370f945151657bd18cff586b0314",
+  "evidence_sha256": {
+    "watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exec_receipt.json": "153b49b0998bd380e560531d45ed7a7acb5f2d12ba7ff5ee732c675669d8d424",
+    "watchdog.jsonl": "fd87506a4919d3b44912f2c1a13528e02920da2a3c23e46b1ca1c04f6726e756",
+    "service.log": "5709c73f34b62db049966a0da54232e67880b5223eac8de8f3502f079bf32ae7"
+  },
+  "csv_sha256": "ff71e97ad0abce44d0147e759c011ca90c6325b26dfc98699b621820adf2eaad"
+}

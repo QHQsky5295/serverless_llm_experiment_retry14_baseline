@@ -8,6 +8,17 @@ from scripts import ieee_tc_preflight as p
 
 
 class ProtocolGates(unittest.TestCase):
+    def test_qualification_eviction_distinguishes_native_lru_absence_from_failure(self):
+        p.validate_qualification_eviction({'evicted': True, 'reason': 'removed'}, present_before=True)
+        p.validate_qualification_eviction({'evicted': False, 'reason': 'absent'}, present_before=False)
+        for receipt, present in (({'evicted': False, 'reason': 'absent'}, True),
+                                 ({'evicted': True, 'reason': 'removed'}, False),
+                                 ({'evicted': False, 'reason': 'referenced'}, False),
+                                 ({'evicted': False, 'reason': 'externally_pinned'}, False),
+                                 ({'evicted': 1, 'reason': 'removed'}, True), ({}, False)):
+            with self.subTest(receipt=receipt, present=present), self.assertRaises(RuntimeError):
+                p.validate_qualification_eviction(receipt, present_before=present)
+
     def test_model_check_requires_guard_before_reading_inputs(self):
         import asyncio
         with patch.object(p, 'verify_current_service', side_effect=RuntimeError('no guard')):

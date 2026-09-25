@@ -1303,6 +1303,15 @@ def validate_model_worker(observation: dict, service: dict, clock_id: str) -> No
         raise RuntimeError('actual model worker identity/resource/clock differs')
 
 
+def validate_qualification_eviction(receipt: dict, *, present_before: bool) -> None:
+    # The native CPU LRU may have already removed an unreferenced adapter. Its
+    # explicit absent reply is different from referenced/failed removal.
+    expected_reason = 'removed' if present_before else 'absent'
+    if (receipt.get('evicted') is not present_before
+            or receipt.get('reason') != expected_reason):
+        raise RuntimeError('native eviction reply contradicts the quiescent cache snapshot')
+
+
 async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                               trace: Path, count: int) -> dict:
     """Existing engine + old trace prefix, not a replacement performance runner.
@@ -1423,13 +1432,23 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             validate_model_worker(worker, service, local_monotonic_clock_id())
         result['scheduler_after'] = await engine.ieee_scheduler_observation()
         result['sources_after'] = await engine.ieee_gpu_reference(operation='source_snapshot')
+        present_ids = set(result['sources_after']['registered_cpu_adapter_ids'])
+        known_ids = {engine._lora_int_id(aid) for aid in adapters}
+        if (result['sources_after']['complete_for_native_caches'] is not True
+                or not present_ids.issubset(known_ids)):
+            raise RuntimeError('qualification cache contains unknown or unconfirmed sources')
+        result['already_evicted_before_cleanup'] = sorted(known_ids - present_ids)
         result['evictions'] = {}
         for aid in adapters:
             receipt = await engine.ieee_gpu_reference(operation='evict', adapter_int_id=engine._lora_int_id(aid))
             result['evictions'][aid] = receipt
-            if receipt.get('evicted') is not True:
-                raise RuntimeError('loaded qualification adapter did not acknowledge eviction')
+            validate_qualification_eviction(receipt, present_before=engine._lora_int_id(aid) in present_ids)
         result['sources_after_eviction'] = await engine.ieee_gpu_reference(operation='source_snapshot')
+        final_sources = result['sources_after_eviction']
+        if (final_sources['complete_for_native_caches'] is not True
+                or final_sources['registered_cpu_adapter_ids'] or final_sources['sources']
+                or any(aid is not None for aid in final_sources['slot_adapter_ids'])):
+            raise RuntimeError('native qualification cleanup did not empty its adapter caches')
         result.update(stage='complete', **{'pass': True})
     except Exception as error:
         import traceback

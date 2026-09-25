@@ -1,0 +1,101 @@
+{
+  "kind": "p2_native_smoke100_summary_v1",
+  "model": "llama2_7b",
+  "pass": true,
+  "formal_performance_result": false,
+  "input_mode": "existing_trace_prefix_sequential_qualification",
+  "artifact_mode": "existing_local_frozen_qualification_only",
+  "n_plan": 100,
+  "n_correct": 100,
+  "actual_output_tokens": 17369,
+  "unique_logical_adapters": 29,
+  "unique_weight_sha256": 4,
+  "source_before_native_load_counts": {
+    "local_file": 30,
+    "GPU": 28,
+    "registered_CPU": 42
+  },
+  "max_e2e_decomposition_error_ms": 0,
+  "max_tpot_recalculation_error_ms": 0,
+  "first_four_same_output_and_prompt_hash_as_prior": true,
+  "final_native_cpu_cache_count": 24,
+  "final_native_gpu_cache_count": 4,
+  "already_evicted_before_cleanup_count": 5,
+  "adapter_caches_empty_after_cleanup": true,
+  "native_pool_allocated_bytes": 1316225024,
+  "registered_host_tensor_storage_bytes": 520093696,
+  "trace": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "aaf917bd816e10c4ad6f8138e5365aa9b2976b4300143cc712c12b84443cb020",
+    "count": 100,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1
+  },
+  "model_config": {
+    "name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+    "backend": "vllm",
+    "device_id": 0,
+    "visible_device_ids": [
+      0
+    ],
+    "tensor_parallel_size": 1,
+    "gpu_memory_utilization": 0.7,
+    "max_model_len": 1024,
+    "max_loras": 4,
+    "max_lora_rank": 64,
+    "enable_lora": true,
+    "enforce_eager": "auto",
+    "dtype": "float16",
+    "max_num_seqs": 2,
+    "max_num_batched_tokens": 1024,
+    "max_output_tokens_cap": 256,
+    "max_input_len": 759,
+    "runtime_concurrency_cap": 2,
+    "enable_chunked_prefill": true,
+    "enable_prefix_caching": false,
+    "vllm_use_v1": true,
+    "vllm_attention_backend": "FLASH_ATTN",
+    "vllm_use_flashinfer_sampler": true,
+    "timing_contract": "ieee_tc_native_v1",
+    "ieee_worker_observation": true,
+    "ieee_gpu_references": true,
+    "ieee_scheduler_observation": true,
+    "ieee_input_upper_bounds": [
+      759
+    ],
+    "generation_contract": "fixed_length_greedy_v1",
+    "canonical_prompt_renderer": "role_lines_v1",
+    "max_cpu_loras": 24
+  },
+  "config_sha256": "f923c36d541046639ba70691106cf7841b322f850377bd8d719004adc959e45d",
+  "check_source_sha256": "5774fdee6a8c7b1eb03b90ffd5696d3b240f150baf351d96c3aa8842397080e6",
+  "startup_latency_ms": 28796.195735019865,
+  "resources": {
+    "samples": 477,
+    "peak_bytes": 5604081664,
+    "min_host_available_bytes": 106646122496,
+    "event_max": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "cleanup": {
+    "native_gpu_contexts_clear": true,
+    "scope_removed": true
+  },
+  "result_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_smoke100_attempt1.json",
+  "result_sha256": "a74c7613051778d2415acad8d29d17c02d29d25e5ef4de64cbda28fd3d3646a9",
+  "launch_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_smoke100_attempt1_launch.json",
+  "launch_sha256": "653ecfdd0fbb0eb77258bb49c12b6bc40c132a84ebbba051fdff5250abb77775",
+  "evidence_sha256": {
+    "watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exec_receipt.json": "f631ee2afd70e052c8552206eebee8e60ba33bde758bacd5d258989d7cc3b131",
+    "watchdog.jsonl": "85ca9934800b0e11b29288ecc3c805f93e2c2ca5084c3bbe89f4e2641ef11833",
+    "service.log": "61cf2f3acd49006f9c18dbe4a984500fdc2c5ac66f103e526238d75108429ab9"
+  },
+  "csv_sha256": "b4ef1c6ccf7a57c42380e9ef2a7a229f4a24b941ccdb77b8ee78302bb73ecb0b"
+}

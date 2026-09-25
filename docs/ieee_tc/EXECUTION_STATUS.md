@@ -22,7 +22,7 @@
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
 | P1 IEEE semantic alignment | Mathematical contracts, native references, managed file ownership/storage and preallocated content-verified HTTP transfers tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D19. Native fetch allocates archive/payload before body reads under the owner file budget, retains old copies and concurrent allocations. Full-pool qualification, all-tier physical reservations/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
-| P2 backend qualification | Actual 3B and 7B four-request native contracts passed; extended qualification pending | P2_BACKEND_QUALIFICATION.md + 20260926_{3b,7b}_prefix_qualification.json. Each model's failed attempt 1 retained; attempt 2 matches all native token targets, time decomposition, references and cleanup. Not a main performance point |
+| P2 backend qualification | Actual 3B and 7B 100-request sequential native contracts passed; batch/cancel/pool qualification pending | P2_BACKEND_QUALIFICATION.md + 20260926_{3b,7b}_smoke100.{json,csv}. Each 100/100 and 17,369 native tokens, reference/eviction/time checks and actual resource cleanup pass. Earlier failed four-request attempts retained. Not open-loop/remote or a main performance point |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
 | A1–A5, S1–S3 | Not started | Shared frozen policies required |
@@ -51,13 +51,16 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-0. P2 installation finished; do NOT reinstall. Environment `/home/qhq/.venvs/primelora_vllm0300_tc_20260925`. Both 3B/7B four-request prefix attempt 2 now pass; failed first attempts retained. 3B required plain-string version transport; 7B required candidate/bin prepended to PATH so the existing ninja could run. Both scopes gone, GPU contexts clear. Next: expand existing native model qualifier to 100-request smoke and bounded native batch/cancel/eviction evidence, then pool qualification and Full owner integration. Reuse `model_20260926/candidate_cache`; keep candidate/bin on PATH. Do not jump to formal metrics, regenerate data, or return to unrelated primitives.
+0. P2 installation finished; do NOT reinstall. Environment `/home/qhq/.venvs/primelora_vllm0300_tc_20260925`. Both 3B/7B 100-request sequential checks now pass; raw failed four-request attempts retained. 3B required plain-string version transport; 7B required candidate/bin prepended to PATH so the existing ninja could run. Both model scopes gone, GPU contexts clear. Next: bounded actual native batch/cancel qualification, then pool qualification and Full owner integration. Reuse `model_20260926/candidate_cache`; keep candidate/bin on PATH. Preserve exact external/internal native request-ID mapping before abort; frontend abort alone is not completion. Do not jump to formal metrics, regenerate data, or return to unrelated primitives.
 1. Continue native owner integration: measured source-class costs, resource-owner remaining budgets, atomic routing/admission. Native token/reference interfaces and startup-parallel external arrival/submission are opt-in and unit/witness tested, but actual engine clocks/streams/controller owners remain open. Do not declare the historical scorer IEEE-aligned.
 2. Qualify actual model/GPU workers and lifecycle under the existing guarded launcher; native single-raylet and tiny replay witnesses are not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
 ## Verified backups
+
+- Main real 3B/7B prefix checkpoint `00ff917b6cf3375f409c8eacf489534796fdf348`
+  pushed to V2; remote SHA verified. Original four-request and failure evidence retained.
 
 - Main actual CUDA/import checkpoint `f87cc92993a59d89051e1ec390e707091d90399b`
   pushed to V2; remote SHA verified. Current model qualification work follows it.
@@ -853,3 +856,48 @@ configs/relayserve_motivation_serverlessllm.yaml.
   owner integration, then qualified baseline comparisons (Serverless first).
   Keep remote disk gate, SLO/reference calibration, all M1/M2, A1–A5 and S1–S13
   on the mainline; none is completed by this checkpoint.
+
+## P2 100-request sequential qualification checkpoint
+
+- 3B original prefix completed 100/100, 17,369 native output tokens, all targets
+  match; E2E/TPOT recomputation errors zero. Source-before-load counts: 45 GPU,
+  26 registered CPU, 29 local-file. Original model/cache capacities unchanged.
+  This prefix has 29 logical adapter IDs but only 2 distinct weight SHAs; do
+  not claim 29 independently trained models or extrapolate full-pool diversity.
+- All references released; final pre-cleanup caches have 8 GPU / 29 CPU IDs,
+  then explicitly empty. External witness: 297 samples, peak 5,302,902,784 bytes,
+  high/max/OOM/OOM-kill zero; native GPU contexts clear and scope removed.
+  First four prompt/output hashes match the previous successful prefix check.
+- Before expanding, checker now distinguishes an adapter already evicted by
+  the native CPU LRU from failed/referenced unload. It validates final emptiness
+  and rejects unknown sources. No inference/cache policy change. Safety suite
+  now 52 pass; raw source files and previous results remain unchanged.
+- Per-request CSV/summary and status table delivered before the next run.
+  This is local frozen, sequential qualification, not G1/G2, S1 tier costs or
+  a new real-remote result.
+- 7B original prefix also completed 100/100 and 17,369 native output tokens,
+  target/time checks all pass. It uses 29 logical IDs / 4 weight SHAs; source
+  counts 28 GPU / 42 registered CPU / 30 local-file. Original CPU cache capacity
+  24 is unchanged: five IDs had already been evicted before final cleanup, and
+  file loading includes reloading. Final 4 GPU / 24 CPU entries explicitly clear.
+  First four output/prompt hashes agree with prior successful prefix check.
+- 7B external witness: 477 samples, peak 5,604,081,664 bytes; high/max/OOM/
+  OOM-kill zero. Contexts clear and scope removed. Result SHA
+  `a74c7613051778d2415acad8d29d17c02d29d25e5ef4de64cbda28fd3d3646a9`;
+  launch SHA `653ecfdd0fbb0eb77258bb49c12b6bc40c132a84ebbba051fdff5250abb77775`.
+  Per-request CSV and source-hashed summary delivered; no old result overwritten.
+- Next: actual two-request concurrency and native cancellation/release evidence,
+  then full-pool coverage and Full owner integration. Official 0.30.0 source
+  confirms frontend abort only sends ABORT; preserve exact randomized internal
+  request IDs and prove scheduler/in-flight work has ended before reference
+  release. Do not infer that from frontend return or another request's terminal.
+- Remote read-only disk recheck: 148,886,171,648 bytes free (~138.66 GiB), still
+  below 150 GiB floor. No service started or unique/unrelated data deleted.
+  Keep Serverless first among baseline runs. SLO/reference calibration, M1/M2,
+  all ablations and sensitivity matrices remain pending.
+- Final regression: 565 functional checks pass in 21.728 s, 52 independent
+  safety/census/replay checks pass in 0.386 s; no failures or skips. Both raw
+  result/launch/log bundles, trace/config/checker and curated CSV SHAs verified.
+  The 147 protected historical entries and authoritative plan remain unchanged.
+  Four GPUs idle at 15 MiB and 0% after the two completed runs. This checkpoint
+  is ready for the requested V2 backup, not formal-performance authorization.

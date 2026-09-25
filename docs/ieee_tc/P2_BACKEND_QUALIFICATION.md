@@ -1,6 +1,6 @@
 # P2：共同 vLLM 后端资格（进行中）
 
-已通过两模型四请求的基础原生合同检查；完整模型/池资格与性能资格仍未完成。
+已通过两模型各 100 请求的顺序原生合同检查；并发、完整模型/池资格与性能资格仍未完成。
 旧环境与旧结果不覆盖。
 
 ## 当前候选及本机条件
@@ -180,6 +180,58 @@ Prime 优化收益。两个模型的失败尝试、原始数据、hash 与状态
 epoch 与原子 admission、多副本扩缩容、真实 Remote、warm reference，以及
 正式 G1/G2。下一步扩展已有检查入口，优先让实际请求验证这些路径；不返回
 无限堆叠与模型无关的独立测试。旧环境/结果/工件未覆盖，也未生成新 workload。
+
+### 100 请求资格：保留原容量的 adapter 更替
+
+使用同一 seed42 源 trace 前 100 条、原模型 profile、固定输出与原生合同，
+顺序执行；不是 open-loop 主比较，也不是 warm reference 或真实 Remote。
+未扩容缓存来容纳全部出现的 adapter，未修改 kernel、加载或淘汰策略。
+在启动前根据官方 LRU 行为修正资格检查的收尾：快照已不在 CPU cache 的
+adapter 必须返回 `evicted=false, reason=absent`；仍存在者必须成功移除。
+referenced/externally_pinned、未知 source 或非空最终 cache 均失败，而非兜底放行。
+[官方 LRU 路径](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+说明容量不足时会淘汰旧条目，因此不能强求所有曾加载 ID 到最后仍驻留。
+
+| 项目 | 3B smoke100 attempt 1 | 7B smoke100 attempt 1 |
+|---|---:|---|
+| 正确完成 / 目标数量 | 100 / 100 | 100 / 100 |
+| 原生 output tokens | 17,369，逐请求目标相符 | 17,369，逐请求目标相符 |
+| 实际 logical ID / 权重 SHA | 29 / 2 | 29 / 4 |
+| 加载前 GPU / registered CPU / local file | 45 / 26 / 29 | 28 / 42 / 30 |
+| 最终清理前 GPU / CPU cache 条目 | 8 / 29 | 4 / 24 |
+| 已被原生 CPU LRU 淘汰的 logical ID | 0 | 5 |
+| E2E / TPOT 重算最大误差 | 0 / 0 ms | 0 / 0 ms |
+| 与此前四请求 prompt/output hash | 四条全相同 | 四条全相同 |
+| 资源样本 / peak bytes | 297 / 5,302,902,784 | 477 / 5,604,081,664 |
+| high / max / OOM / OOM-kill | 全零 | 全零 |
+| adapter cache 清空、GPU contexts 与 scope 释放 | 全部确认 | 全部确认 |
+
+29/2 与 29/4 只描述各自这段前缀，不外推整个 500 池；逻辑租户身份与独立权重数分开报告。
+local file 不意味着物理冷盘：资格输入预检已经读取内容 SHA；加载成本不用于
+S1 层级性能结论。native GPU pool 仍为预分配容量，非随每次驱逐释放显存。
+逐请求 CSV、摘要 JSON 与原始 SHA 已保存在
+`paper_results/ieee_tc/p2_backend/20260926_{3b,7b}_smoke100.{csv,json}`。
+7B 的 29 个逻辑 ID 超过原始 24 条 CPU cache 容量：30 次文件加载包含再加载，
+最终仍有 5 个 ID 已正常淘汰。没有增大缓存来规避更替，也没有把 `absent`
+与引用未释放混为一谈。两模型前四条输出与此前各自成功的四请求检查一致。
+这些事实支持本机原生加载/更替路径的正确性，不支持跨系统延迟或 G1/G2 优越性。
+
+### 下一资格的原生取消边界（源码审计，尚未实现/实测）
+
+继续复用此入口和原始请求，不另建框架。下一步先验证两个真实请求并发时的
+原生 scheduler/KV 观测、共享/不同 adapter 引用与禁止活跃驱逐；再验证取消。
+依据实际安装的 v0.30.0 与
+[官方 AsyncLLM 源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/async_llm.py)，
+取消生成器会请求 abort，但不能据此直接宣称设备工作完成。
+[core_client 的 abort_requests_async](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core_client.py)
+只发送 ABORT；后续必须取得调度所有者的请求终态和在途执行证据。
+
+默认原生内部 request ID 带随机后缀，与前端 ID 不同。应保留真实映射，不能靠
+字符串前缀猜测或关闭随机化；也不能用另一个成功请求的终态释放取消请求。
+原生 scheduler 可以移除请求而仍保留在途批次/延迟释放块，因此单次“请求
+不在队列中”的观察不足以证明所有权已结束。设计应关联确切原生 ID、调度
+序列与完成事件，再执行引用释放；未知状态继续保留引用而不伪造成功。
+完整池、Full 控制器、真正 open-loop 与远端路径仍是后续独立资格门槛。
 
 ## 原生计量接入注意事项
 
