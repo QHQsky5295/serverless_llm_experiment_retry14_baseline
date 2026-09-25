@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""IEEE TC resource/provenance gates. No GPU launch or automatic OOM retry.
+"""IEEE TC resource/provenance gates. Explicit guarded GPU checks, no OOM retry.
 
 The primitive self-test uses 128 MiB; the no-GPU native-Ray witness uses 3 GiB.
 Neither uses the experiment's 80 GiB envelope.
@@ -1217,6 +1217,76 @@ def install_candidate(environment: Path, requirements: Path, output: Path) -> di
     return result
 
 
+def backend_runtime_check(install_receipt: Path, requirements: Path) -> dict:
+    """Small actual CUDA/import witness in the guarded service, never a benchmark.
+
+    Requires the completed isolated installation. No package changes, model,
+    token generation, secondary GPU, driver changes or CPU fallback are allowed.
+    Native GPU-context release is checked outside this process by gated_launch.
+    """
+    launch = verify_current_service()  # Before importing torch or opening CUDA.
+    setup = json.loads(install_receipt.read_text())
+    if (setup.get('kind') != 'isolated_backend_dependency_install' or setup.get('pass') is not True
+            or setup.get('plan_sha256') != check_plan()
+            or Path(setup['environment']).resolve() != Path(sys.prefix).resolve()
+            or setup.get('requirements_sha256') != digest(requirements)
+            or len(setup.get('steps', [])) != 3
+            or any(step['returncode'] != 0 for step in setup['steps'])):
+        raise RuntimeError('runtime check requires its completed hash-locked installation')
+    result = dict(kind='backend_cuda_import_qualification_v1', pass_=False,
+                  model_qualification=False, production_launch_authorized=False,
+                  service=launch, install_receipt_sha256=digest(install_receipt),
+                  check_source_sha256=digest(Path(__file__)),
+                  requirements_sha256=digest(requirements), environment=sys.prefix,
+                  python=sys.version, cuda_visible_devices=os.environ.get('CUDA_VISIBLE_DEVICES'),
+                  modules={}, stage='imports')
+    result['pass'] = result.pop('pass_')
+    try:
+        import importlib
+        import importlib.metadata
+        modules = {}
+        for name in ('torch', 'transformers', 'triton', 'vllm'):
+            result['stage'] = 'import:' + name
+            module = importlib.import_module(name)
+            modules[name] = module
+            result['modules'][name] = dict(version=importlib.metadata.version(name),
+                                           file=str(module.__file__))
+        torch = modules['torch']
+        result['stage'] = 'native_vllm_interfaces'
+        # v0.30.0 CudaPlatform imports the stable-libtorch extension; the old
+        # vllm._C module is not shipped by this qualified candidate.
+        for name in ('vllm._C_stable_libtorch', 'vllm.engine.arg_utils',
+                     'vllm.engine.async_llm_engine', 'vllm.lora.request'):
+            module = importlib.import_module(name)
+            result['modules'][name] = dict(file=str(module.__file__))
+        result['stage'] = 'cuda_device'
+        if not torch.cuda.is_available() or torch.cuda.device_count() != 1:
+            raise RuntimeError('qualification requires exactly one visible, usable CUDA GPU')
+        result['device'] = dict(name=torch.cuda.get_device_name(0),
+                              capability=list(torch.cuda.get_device_capability(0)),
+                              compiled_arches=torch.cuda.get_arch_list(),
+                              torch_cuda_version=torch.version.cuda,
+                              memory_total_bytes=torch.cuda.get_device_properties(0).total_memory)
+        result['stage'] = 'fp16_matmul'
+        source = torch.ones((32, 32), dtype=torch.float16, device='cuda:0')
+        product = source @ source
+        event = torch.cuda.Event()
+        event.record(torch.cuda.current_stream(0))
+        event.synchronize()
+        if not bool(torch.all(product == 32).item()):
+            raise RuntimeError('actual FP16 matrix product is incorrect')
+        result['arithmetic'] = dict(shape=[32, 32], dtype='float16', expected_value=32,
+                                   correct=True, stream=int(torch.cuda.current_stream(0).cuda_stream))
+        result['memory_allocated_bytes'] = torch.cuda.memory_allocated(0)
+        result['memory_reserved_bytes'] = torch.cuda.memory_reserved(0)
+        del product, source, event
+        result.update(stage='complete', **{'pass': True})
+    except Exception as error:
+        import traceback
+        result.update(error_type=type(error).__name__, error=str(error), traceback=traceback.format_exc())
+    return result
+
+
 def self_test(modes=('inspect', 'oom', 'linger'), python=None) -> dict:
     records = []
     for mode in modes:
@@ -1295,7 +1365,7 @@ def self_test(modes=('inspect', 'oom', 'linger'), python=None) -> dict:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
-                                         'watchdog', 'watchdog-test', 'install-candidate', '_worker',
+                                         'watchdog', 'watchdog-test', 'install-candidate', 'backend-check', '_worker',
                                          'gated-launch', '_launch-gate', '_replay-publisher', '_replay-witness'])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--seal', type=Path)
@@ -1308,6 +1378,7 @@ def main():
     parser.add_argument('--test-abort-after', type=int, help='Only for tiny UUID test scope')
     parser.add_argument('--candidate-environment', type=Path)
     parser.add_argument('--requirements', type=Path)
+    parser.add_argument('--install-receipt', type=Path)
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')
@@ -1347,6 +1418,10 @@ def main():
         result = gated_launch(command, args.output, tiny=args.tiny_witness,
                               predicted_growth=int(args.predicted_growth_gib*GIB),
                               replay_trace=args.replay_trace, replay_profile=args.replay_profile)
+    elif args.action == 'backend-check':
+        if not args.install_receipt or not args.requirements or not args.output:
+            parser.error('backend-check requires completed install receipt, requirements and new output')
+        result = backend_runtime_check(args.install_receipt, args.requirements)
     elif args.action == 'install-candidate':
         if not args.candidate_environment or not args.requirements or not args.output:
             parser.error('install-candidate requires explicit new environment, requirements and output')

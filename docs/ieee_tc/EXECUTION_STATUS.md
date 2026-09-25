@@ -22,7 +22,7 @@
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
 | P1 IEEE semantic alignment | Mathematical contracts, native references, managed file ownership/storage and preallocated content-verified HTTP transfers tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D19. Native fetch allocates archive/payload before body reads under the owner file budget, retains old copies and concurrent allocations. Full-pool qualification, all-tier physical reservations/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
-| P2 backend qualification | Dependency dry-run passed; isolated installation running, no model run yet | P2_BACKEND_QUALIFICATION.md. 198 hash-locked binary packages; private tmux `tc-p2-0925-01:install`, 3/4 GiB build scope. Poll before any new heavy work |
+| P2 backend qualification | Installation and actual single-GPU import/FP16 check passed; no model run yet | P2_BACKEND_QUALIFICATION.md + 20260926_cuda_import_qualification.json. Original installation finished; runtime attempt 3 passed and GPU contexts cleared. Next: real 3B/7B worker/clock/LoRA qualification using existing engine |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
 | A1–A5, S1–S3 | Not started | Shared frozen policies required |
@@ -51,7 +51,7 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-0. Check the existing P2 install before starting anything heavy: `tmux -L tc-p2-0925-01 list-sessions`; log `paper_results/ieee_tc/p2_backend/vllm0300_install_attempt1.install.log`; final receipt same prefix `.json`. Do not recreate the venv, repeat downloads or run another model concurrently.
+0. P2 installation finished at Sep 26 05:18; do NOT reinstall. Existing environment `/home/qhq/.venvs/primelora_vllm0300_tc_20260925`, final receipt `paper_results/ieee_tc/p2_backend/vllm0300_install_attempt1.json`. Actual single-GPU check attempt 3 passes; raw directory `results/ieee_tc/p2_backend_qualification/runtime_20260926`. No live model remains. Prioritize real 3B/7B engine/LoRA qualification under the guarded launcher before more isolated P1 primitives.
 1. Continue native owner integration: measured source-class costs, resource-owner remaining budgets, atomic routing/admission. Native token/reference interfaces and startup-parallel external arrival/submission are opt-in and unit/witness tested, but actual engine clocks/streams/controller owners remain open. Do not declare the historical scorer IEEE-aligned.
 2. Qualify actual model/GPU workers and lifecycle under the existing guarded launcher; native single-raylet and tiny replay witnesses are not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
@@ -119,6 +119,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
 - Linked-file storage checkpoint `e781ac3287afeb9e1c1dc31bd9bf997d475fa50b`
   pushed to V2; remote SHA verified.
 - Frozen-content transfer checkpoint `83646886fb0107d9ef204088dc60ae6f3fce02c6`
+  pushed to V2; remote SHA verified.
+- Preallocated transfer-capacity checkpoint `96aa015ee2b0641b484d2eb04afee138650c124d`
   pushed to V2; remote SHA verified.
 
 ## Serverless evidence checkpoint (provisional model-level attribution)
@@ -770,7 +772,8 @@ configs/relayserve_motivation_serverlessllm.yaml.
   safety/census/replay: 44 pass. The 147 protected entries and original plan SHA
   remain unchanged; four GPUs idle, 15 MiB each. D19 contains the evidence table.
   No new 7B/3B performance result, adapter pool, workload or ranking was generated.
-- Sep 26 05:05 local: same P2 installer active on its final vLLM dependency (198),
+- Sep 26 05:05 local: same P2 installer active on vLLM (requirements line 198;
+  later verification found five subsequent packages, not the final dependency),
   high 1040, max/OOM/OOM-kill zero. Disk ~335 GiB free, host available RAM ~104
   GiB. No second installation, concurrent model, driver change or unique-data
   cleanup. Continue this live attempt, not a reinstallation.
@@ -780,3 +783,35 @@ configs/relayserve_motivation_serverlessllm.yaml.
   native admission/conflict waiting, abort/release and GPU physical lifetime.
   Serverless remains first among baseline model tests; remote disk decision and
   all M1/M2, ablation, motivation and sensitivity matrices remain outstanding.
+
+## P2 actual CUDA/import qualification checkpoint
+
+- Original isolated install completed at 05:18: all three setup commands exit 0,
+  pip check passes, 198 hash-locked packages. Build memory high 16,501, max/OOM/
+  OOM-kill zero. No old environment overwrite, repeated download or driver change.
+- Attempt 1 was rejected before service creation by the existing heavy-job gate:
+  completed empty build scopes remained active. Service/test-specific cleanup
+  API correctly refused build scopes. After verifying both exact build UUIDs had
+  populated=0 and empty process sets, only those empty scopes were stopped.
+  No runtime receipt exists for this pre-exec attempt; this gap is explicit.
+- Attempt 2 failed before GPU work because the new qualification entry used
+  legacy vllm._C. Installed and official 0.30.0 code both use _C_stable_libtorch;
+  corrected the check, not the backend, with no fallback. Failed evidence retained.
+- Attempt 3 passed actual RTX 3090 SM86 FP16 matrix multiplication and native
+  imports (torch 2.13.0/CUDA13.0, vLLM0.30.0). External watcher recorded 23 samples,
+  including 3 with owned GPU contexts, then confirmed those contexts absent and
+  service scope removed. Observed service peak 971,829,248 bytes; high/max/OOM/
+  OOM-kill zero. Status table and curated JSON/SHA delivered per plan 11.2.
+- Four added no-GPU check-entry tests; independent safety/census/replay suite
+  now 48 pass. Full existing functional regression also passes all 564 tests,
+  zero failures/errors/skips. Installation logs and both raw runtime bundles
+  match recorded SHAs; all 147 protected entries and original plan SHA remain
+  unchanged. All four GPUs return to 15 MiB and zero utilization.
+  This is NOT a model run, warm latency, full LoRA qualification,
+  physical GPU lease accounting or a new Prime/baseline performance comparison.
+- Next: use existing InferenceEngine, frozen 3B/7B assets and old trace prefix to
+  qualify actual workers, clocks, native token IDs, LoRA source/reference/slot
+  operations, scheduler observations and shutdown. Keep local qualification
+  distinct from true-remote main experiments. No new experiment framework.
+  Source/cost pre-decision composition, atomic admission, abort reconciliation,
+  physical ownership, remote disk decision and all formal matrices remain open.

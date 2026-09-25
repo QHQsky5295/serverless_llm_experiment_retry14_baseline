@@ -1,0 +1,125 @@
+{
+  "kind": "isolated_backend_dependency_install",
+  "pass": true,
+  "model_qualification": false,
+  "production_launch_authorized": false,
+  "environment": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925",
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "requirements_sha256": "baa14feda8303359a03121b9cacc47e17b91ec28e9a8a3bcf51cc6e852e4f244",
+  "scope_before": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-build-b52bf775f5d34836860733f2764e13d5.scope",
+    "memory.current": 13180928,
+    "memory.peak": 13266944,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 107497\nuser_usec 76925\nsystem_usec 30572\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "predicted_incremental_peak_bytes": 85899345920,
+  "commands": [
+    [
+      "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+      "-m",
+      "venv",
+      "/home/qhq/.venvs/primelora_vllm0300_tc_20260925"
+    ],
+    [
+      "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+      "-m",
+      "pip",
+      "--isolated",
+      "install",
+      "--require-hashes",
+      "--no-cache-dir",
+      "--only-binary=:all:",
+      "--report",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/vllm0300_install_attempt1.pip.json",
+      "-r",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/vllm0300_py312_candidate_20260925.txt"
+    ],
+    [
+      "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+      "-m",
+      "pip",
+      "--isolated",
+      "check"
+    ]
+  ],
+  "log_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/vllm0300_install_attempt1.install.log",
+  "pip_report": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/vllm0300_install_attempt1.pip.json",
+  "steps": [
+    {
+      "command": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+        "-m",
+        "venv",
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+        "-m",
+        "pip",
+        "--isolated",
+        "install",
+        "--require-hashes",
+        "--no-cache-dir",
+        "--only-binary=:all:",
+        "--report",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/vllm0300_install_attempt1.pip.json",
+        "-r",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/vllm0300_py312_candidate_20260925.txt"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+        "-m",
+        "pip",
+        "--isolated",
+        "check"
+      ],
+      "returncode": 0
+    }
+  ],
+  "scope_after": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-build-b52bf775f5d34836860733f2764e13d5.scope",
+    "memory.current": 2152488960,
+    "memory.peak": 3221925888,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=1.08 avg60=0.56 avg300=0.41 total=3413608\nfull avg10=1.08 avg60=0.56 avg300=0.41 total=3413608",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 347486848\nuser_usec 258351966\nsystem_usec 89134882\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 16501,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "log_sha256": "a41eca99113c2b1e98cdce7519e30721104da63fdff529157ab19248ef7d68b6",
+  "pip_report_sha256": "5b94ef6c15a7a9b58afb74defd645ce26713d38b157242fb4b98f6960cd5fd53"
+}

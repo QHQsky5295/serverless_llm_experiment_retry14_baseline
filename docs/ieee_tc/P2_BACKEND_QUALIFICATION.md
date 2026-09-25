@@ -56,6 +56,51 @@ transformers 4.57.6、triton 3.4.0。
 日志、pip 原始报告不入 Git；curated 安装回执和版本/hash 锁入 Git。
 安装成功、pip check 成功也仅证明依赖 setup，不证明 3B/7B 性能达标。
 
+### 2026-09-26 实际安装与单卡运行检查
+
+原安装于 05:18 完成：三个步骤均退出 0，198 个锁定依赖安装完成，
+`pip check` 无破损依赖。安装 scope 峰值 3,221,925,888 bytes，high 事件
+16,501，max/OOM/OOM-kill 均为零；high 造成的回收压力是安装条件，不是
+推理性能结果。未覆盖旧环境，未重复下载或升级宿主驱动。
+
+沿用 `ieee_tc_preflight.py` 的 guarded launcher，新增显式 `backend-check`。
+在导入 torch 前验证服务归属、外置监控和完整安装回执；限定一张可见 GPU。
+检查本机实际导入版本、原生 vLLM 接口、FP16 32×32 矩阵乘法与当前流 event；
+退出后的 GPU 进程清理由外置观察确认。它不加载模型，不代表 LoRA 或性能资格。
+
+| 检查 | 结果 | 边界 / 后续 |
+|---|---|---|
+| 独立安装及依赖一致性 | 通过 | 两模型仍待测 |
+| 启动 attempt 1 | 模型启动前被 guard 拒绝 | 已结束安装的空 scope 仍为 active；确认 populated=0、无进程后清理，仅清本任务两个 build scope |
+| import attempt 2 | 失败，保留原始回执 | 检查脚本误用旧 `vllm._C`，不是硬件或模型失败 |
+| import/CUDA attempt 3 | 通过 | torch 2.13.0 / CUDA 13.0，vLLM 0.30.0；实际 SM86，FP16 结果全部为 32 |
+| attempt 3 资源与退出 | 通过 | 23 个资源样本，3 次观测到本服务 GPU context；退出后清除，服务资源域删除 |
+| 7B/3B、动态 LoRA、原生时序与引用 | 未测 | 下一主线任务，不将上述通过替代此项 |
+
+attempt 1 未生成运行回执，也未执行 CUDA 检查：前置重型任务检查在创建
+服务前拒绝；对应辅助 scope 为 `primelora-tc-aux-f80536a4b85a48b7a61800711c7a9632.scope`。
+第一次尝试调用 service/test 专用清理 API 处理 build scope 被其类型检查拒绝；
+随后只对已核验为空的两个具体 build UUID 执行停止，没有扩大 API 允许范围。
+
+接口修正依据实际安装文件和
+[官方 v0.30.0 CUDA platform 源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/platforms/cuda.py)：
+该版本导入的是 `_C_stable_libtorch`。未增加旧/新模块轮流尝试，未跳过原生
+扩展检查，未改安装包。官方 GPU 安装文档要求实际软硬件兼容，基本驱动
+门槛本身不证明全部 kernel 可运行：
+[vLLM GPU installation](https://docs.vllm.ai/en/latest/getting_started/installation/gpu/)。
+
+attempt 3 服务观测峰值 971,829,248 bytes，high/max/OOM/OOM-kill 均为零；
+最低主机可用内存 110,798,262,272 bytes。它是轻量资格检查，不能外推
+模型初始化峰值或完整 workload 内存占用。原始记录在
+`results/ieee_tc/p2_backend_qualification/runtime_20260926/`；摘要与 SHA 在
+`paper_results/ieee_tc/p2_backend/20260926_cuda_import_qualification.json`。
+按计划 11.2 使用状态表，不从资格检查制作系统性能图。
+
+检查入口的四个无 GPU 测试覆盖先保护后导入、未完成/不同环境拒绝、导入
+失败无后端替换、原生扩展名称正确且无 CUDA 时明确失败。安全/原生 GPU
+观察/外置回放合计 48 项通过。下一步使用现有 InferenceEngine 与冻结旧工件、
+旧 trace，验证实际 worker 归属、时钟、slot、生成与释放；不另建推理框架。
+
 ## 原生计量接入注意事项
 
 现有 runner 的 legacy `_derive_vllm_latency_metrics` 优先 finished timestamp。

@@ -8,6 +8,68 @@ from scripts import ieee_tc_preflight as p
 
 
 class ProtocolGates(unittest.TestCase):
+    def test_backend_check_requires_guard_before_reading_install_or_importing_cuda(self):
+        with patch.object(p, 'verify_current_service', side_effect=RuntimeError('no guard')):
+            with self.assertRaisesRegex(RuntimeError, 'no guard'):
+                p.backend_runtime_check(Path('/missing/install'), Path('/missing/requirements'))
+
+    def test_backend_check_rejects_incomplete_or_different_environment(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            requirements, receipt = root / 'requirements.txt', root / 'install.json'
+            requirements.write_text('tiny-fixture-not-installable\n')
+            setup = dict(kind='isolated_backend_dependency_install', **{'pass': True},
+                         plan_sha256='plan', requirements_sha256=p.digest(requirements),
+                         environment=p.sys.prefix, steps=[dict(returncode=0)] * 3)
+            for changes in ({'pass': False}, {'environment': '/wrong/venv'},
+                            {'requirements_sha256': 'wrong'}, {'steps': [dict(returncode=0)]}):
+                receipt.write_text(json.dumps({**setup, **changes}))
+                with patch.object(p, 'verify_current_service', return_value={}), \
+                     patch.object(p, 'check_plan', return_value='plan'):
+                    with self.assertRaisesRegex(RuntimeError, 'completed hash-locked'):
+                        p.backend_runtime_check(receipt, requirements)
+
+    def test_backend_import_failure_is_preserved_without_another_backend(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            requirements, receipt = root / 'requirements.txt', root / 'install.json'
+            requirements.write_text('tiny-fixture-not-installable\n')
+            receipt.write_text(json.dumps(dict(kind='isolated_backend_dependency_install',
+                **{'pass': True}, plan_sha256='plan', requirements_sha256=p.digest(requirements),
+                environment=p.sys.prefix, steps=[dict(returncode=0)] * 3)))
+            with patch.object(p, 'verify_current_service', return_value={}), \
+                 patch.object(p, 'check_plan', return_value='plan'), \
+                 patch('importlib.import_module', side_effect=ImportError('native library missing')) as load:
+                result = p.backend_runtime_check(receipt, requirements)
+            self.assertFalse(result['pass'])
+            self.assertFalse(result['model_qualification'])
+            self.assertEqual(result['stage'], 'import:torch')
+            self.assertEqual(result['error_type'], 'ImportError')
+            load.assert_called_once_with('torch')
+
+    def test_backend_check_uses_candidate_native_extension_not_legacy_module(self):
+        from types import SimpleNamespace
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            requirements, receipt = root / 'requirements.txt', root / 'install.json'
+            requirements.write_text('tiny-fixture-not-installable\n')
+            receipt.write_text(json.dumps(dict(kind='isolated_backend_dependency_install',
+                **{'pass': True}, plan_sha256='plan', requirements_sha256=p.digest(requirements),
+                environment=p.sys.prefix, steps=[dict(returncode=0)] * 3)))
+            module = SimpleNamespace(__file__='/fixture/module',
+                                     cuda=SimpleNamespace(is_available=lambda: False))
+            with patch.object(p, 'verify_current_service', return_value={}), \
+                 patch.object(p, 'check_plan', return_value='plan'), \
+                 patch('importlib.metadata.version', return_value='0.30.0'), \
+                 patch('importlib.import_module', return_value=module) as load:
+                result = p.backend_runtime_check(receipt, requirements)
+            names = [call.args[0] for call in load.call_args_list]
+            self.assertIn('vllm._C_stable_libtorch', names)
+            self.assertNotIn('vllm._C', names)
+            self.assertEqual(result['stage'], 'cuda_device')
+            self.assertFalse(result['pass'])
+            self.assertIn('usable CUDA GPU', result['error'])
+
     def test_startup_margin_is_consistent(self):
         self.assertEqual(p.memory_required(), 102 * p.GIB)
         self.assertEqual(p.memory_required(10*p.GIB, p.GIB), 91*p.GIB)

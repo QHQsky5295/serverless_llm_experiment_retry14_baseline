@@ -1,0 +1,64 @@
+{
+  "kind": "backend_cuda_import_qualification_summary_v1",
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "environment": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925",
+  "install_receipt_sha256": "9c70ca3e46a1230b89fe0a50fe781b9d0511b6a7c9c750ea0d74657102542e30",
+  "model_qualification": false,
+  "production_launch_authorized": false,
+  "raw_directory": "results/ieee_tc/p2_backend_qualification/runtime_20260926",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": "pre_exec_guard_rejection",
+      "cause": "completed empty build scopes remained active",
+      "raw_receipt_available": false,
+      "cuda_executed": false,
+      "auxiliary_scope": "primelora-tc-aux-f80536a4b85a48b7a61800711c7a9632.scope"
+    },
+    {
+      "attempt": 2,
+      "check_sha256": "0b3d541c0354ecc2dad194105314ad86d46714c89acade723275ec7c80f76408",
+      "launch_sha256": "8b43934387421c4fc2d0c62e229a3b58433b66609882a2bd4951767130252a72",
+      "check_source_sha256": "bce09109df9e54515360bf5763575a7a3215663a9b90acbc0e469d2d1594b32f",
+      "check_pass": false,
+      "launch_pass": false,
+      "stage": "native_vllm_interfaces",
+      "error": "No module named 'vllm._C'",
+      "classification": "qualification_check_interface_error",
+      "samples": 43,
+      "peak_service_bytes": 1067511808,
+      "native_context_release_confirmed": true,
+      "service_scope_removed": true
+    },
+    {
+      "attempt": 3,
+      "check_sha256": "cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf",
+      "launch_sha256": "dc2b28c7e5d7c782723f60bfa55ea568ab8b4a13c8c0f7f61564af3cb61c207f",
+      "check_source_sha256": "02c2d24dc756131985151726cc023927449ac0873857290fe08468deda4e7a4b",
+      "check_pass": true,
+      "launch_pass": true,
+      "stage": "complete",
+      "torch_version": "2.13.0",
+      "torch_cuda_version": "13.0",
+      "vllm_version": "0.30.0",
+      "device": "NVIDIA GeForce RTX 3090",
+      "compute_capability": [8, 6],
+      "compiled_arches": ["sm_75", "sm_80", "sm_86", "sm_90", "sm_100", "sm_120"],
+      "fp16_matmul": {"shape": [32, 32], "expected_value": 32, "correct": true},
+      "samples": 23,
+      "samples_with_owned_gpu_context": 3,
+      "peak_service_bytes": 971829248,
+      "max_memory_events": {"high": 0, "max": 0, "oom": 0, "oom_kill": 0},
+      "min_host_available_bytes": 110798262272,
+      "native_context_release_confirmed": true,
+      "service_scope_removed": true
+    }
+  ],
+  "not_proven": [
+    "actual model generation and dynamic LoRA correctness",
+    "mixed-rank/module coverage and all 500 adapters",
+    "model worker clock/stream/reference/scheduler qualification",
+    "model physical allocation-owner lifecycle integration",
+    "Full IEEE semantics or G1/G2 performance superiority"
+  ]
+}
