@@ -83,7 +83,7 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `21e80f9b88fc32f9004c842c93da79b53d85af39`, pushed to
+- Main tested implementation: `d6a6a158ab8de288a64456707e88859ab7926a82`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -172,6 +172,11 @@ its one historical SHA difference and independent numerical gate remain open.
   Do not start another isolated handoff/pitched-copy/model-prefix microcampaign.
   A meaningful integrated Full qualification is still required before M1/M2,
   baseline performance, ablations or sensitivities. Goal remains active.
+- Implementation d6a6a158ab8de288a64456707e88859ab7926a82 pushed and full remote
+  SHA verified. All six D31 test scopes checked at TasksCurrent0 and stopped.
+  Final plan/protected seal unchanged; GPUs15MiB/0%, MemAvailable109188416KiB,
+  disk353778409472 B. Only original user dirt remains. This backup receipt is
+  documentation-only; recheck live resources before the next launch.
 
 ### D30 completed implementation and real native-setter copy qualification
 
