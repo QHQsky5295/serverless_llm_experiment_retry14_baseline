@@ -90,18 +90,18 @@ performance or complete Full lifecycle claim. D26 source32 remains completed;
 its one historical SHA difference and independent numerical gate remain open.
 
 0. P2 installation finished; do NOT reinstall. All current runs finished/cleaned. Native adapter reference, full 3B/7B content scan and 7B five-arm native numeric diagnostic COMPLETE; do not repeat same-prompt/zero controls. NATIVE_ADAPTER_NUMERIC_CONTROL.md: all five 217-token outputs identical; A/Z probability max difference .02608, A/A also .006367. Descriptive evidence, not independent numeric/full semantic qualification. Return to Full source/cost and owner integration next. Current 3B pool has 500 all-zero LoRAs (2 SHAs); 7B has 498 zero plus finance/medical nonzero (4 SHAs). Plan forbids new weights; user confirmation requested before adding a few trained nonzero 3B correctness fixtures, no answer yet. Keep pools/traces/history intact. Targeted 2,521 existing configs yielded no 3B candidate, not proof of server-wide absence. Independent numerical verification remains an open gate, not erased by this diagnostic. Review official 0.30 warning on old 3B chunked_prefill=false before freezing. Reuse environment/cache, KEEP_DEDICATED_WORKER_LOGS for future proxy runs.
-1. D29 connects E(t) to native core/worker HOST→GPU; D30 qualifies rank-sliced direct copies. D31 completes pending→native demand identity handoff. D32 binds actual HOST/NVMe file migration to verified content, preallocated peak space, read references and joined cancellation. D40 extends D33 pressure to actual shared/preactivation file-owner intervals and native startup joins. Next integrate total HOST/native tensor budgets, actual IEEE planner/handoff/replacement and measured class initialization. Do not repeat source32/capacity5/lifecycle4, pitched-copy or transfer-only checks.
+1. D29 connects E(t) to native core/worker HOST→GPU; D30 qualifies rank-sliced direct copies. D31 completes pending→native demand identity handoff. D32 binds actual HOST/NVMe file migration to verified content, preallocated peak space, read references and joined cancellation. D40 extends D33 pressure to actual shared/preactivation file-owner intervals and native startup joins. D42 adds joint managed-HOST allowances and demand checks. Next connect actual IEEE automatic planner/handoff/replacement and measured class initialization, with runtime memory qualification. Do not repeat source32/capacity5/lifecycle4, pitched-copy or isolated transfer/HOST checks.
 2. D27 now qualifies the7B dedicated runtime's physical allocation and normal exit. Do not re-run its four-request prefix. Connect owner coverage and aggregation for the actual Full deployment (shared/direct/multi-runtime paths are not qualified here), while completing physical tier admission and representative measured profiles. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `34d8fabab094bd49201f9ea000fc54f8ec051ec3`, pushed to
+- Main tested implementation: `bb903d43da7e78e79c74c6ed94a14a5b0b424bb6`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
-  `origin/main`; remote SHA verified at its checkpoint. No baseline edits in D28.
+  `origin/main`; remote SHA reverified in D42. No baseline edits in D42.
 - All earlier checkpoints, failures, qualification attempts and exact backups
   remain verbatim in [EXECUTION_HISTORY_THROUGH_D26.md](EXECUTION_HISTORY_THROUGH_D26.md).
   Archive SHA256: `4e91643d959967f1f0dc8642fe969d35380f2156cf8c820964019539d3b415cb`.
@@ -205,6 +205,13 @@ its one historical SHA difference and independent numerical gate remain open.
   108640560KiB and disk353558319104B after cleanup. Source plan SHA and all147
   protected entries unchanged. Baseline repository still16570c023a439c884624e7a5bdfa0d8577faf7a3.
   No live model/test task remains. Implementation backup receipt follows.
+- Implementationbb903d43da7e78e79c74c6ed94a14a5b0b424bb6 pushed to
+  faaslora_origin/retry14_continuous_queue_v2, remote full SHA verified. Baseline
+  remote16570c023a439c884624e7a5bdfa0d8577faf7a3 reverified unchanged. This subsequent
+  documentation-only receipt is not another experiment. All six D42 scopes are
+  stopped; preserve original user dirt. On continuation revalidate plan/status,
+  processes and both repos, then proceed to automatic planning/file-tier
+  replacement, not repeated local quota tests. Full goal remains active.
 
 ### D41 explicit file→native HOST; total HOST qualification remains open
 
