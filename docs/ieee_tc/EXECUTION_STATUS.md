@@ -62,6 +62,9 @@ autonomous post-copy return. Next, at most one second focused comparison with
 official background event handling before deciding the Full loading candidate;
 do not increase B, subtract retained bytes or flush. Actual Full remains open.
 60 safety and288 smoke checks pass; raw launch/context/group cleanup verified.
+Measured evidence checkpoint4922db1a0b2dc6ce4e827ca91b2ae02cfe2050d8 is pushed;
+fresh full remote SHA matches. Baseline16570c unchanged and remote-verified.
+This subsequent receipt is documentation only. Goal remains active/incomplete.
 
 D58 connects an opt-in native HOST workspace partition inside the existing
 allowance, based on all audited existing artifact classes. Actual total occupancy
@@ -266,6 +269,11 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
   alternative is official background event processing, then return to actual
   Full/profile qualification. No production candidate selected yet. Result
   backup follows; baseline/performance/numerical/remote gates remain open.
+- Curated96-row evidence and explanatory table committed as
+  4922db1a0b2dc6ce4e827ca91b2ae02cfe2050d8, pushed and full remote SHA verified.
+  Exactly4 named result/document files staged; diff/secret/name checks pass.
+  Baseline16570c023a439c884624e7a5bdfa0d8577faf7a3 unchanged, fresh origin/main
+  full SHA verified. This final receipt changes no runtime or measurement.
 
 ### D58 native HOST workspace partition
 
