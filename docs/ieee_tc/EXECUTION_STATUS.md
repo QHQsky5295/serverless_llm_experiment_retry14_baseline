@@ -37,7 +37,14 @@
 - Protected147 and plan unchanged. Local7B100-request mechanical qualification
   configuration prepared from existing seed42/pool; it is NOT remote evidence,
   NOT the1,000-request router pair and NOT a formal performance result.
-  No D69 GPU model launched yet; loader overlay still restored at this entry.
+  First launch stopped before service creation: serving PYTHONPATH inherited by
+  external publisher triggered sitecustomize/torch/vLLM and a stdout platform
+  log before the JSON handshake. Reproduced with tokenizer only; diagnosis
+  without inherited paths emits valid ready. Its intentional origin-EOF is not
+  a model failure.52 OS tests now pass. Isolate publisher startup environment,
+  require no imported serving modules; do not skip logs/weaken strict parsing.
+  No GPU model launched in attempt1. Overlay restored exactly, auxiliary empty
+  then stopped; four GPUs15MiB. Immediate failure table in REQUEST_PROTOCOL.
   Remote-space and nonzero-LoRA user choices remain pending; M1/M2/A/S unstarted.
 
 ## Mainline ledger

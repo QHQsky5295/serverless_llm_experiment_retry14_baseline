@@ -8,6 +8,18 @@ from scripts import ieee_tc_preflight as p
 
 
 class ForwardedCommandCLI(unittest.TestCase):
+    def test_http_publisher_does_not_inherit_serving_startup_hooks(self):
+        parent = dict(PYTHONPATH='/serving', PYTHONHOME='/other-python',
+                      USE_TORCH='1', HF_HUB_OFFLINE='0', PATH='/usr/bin')
+        env = p.tokenizer_publisher_environment(parent)
+        self.assertEqual(parent['PYTHONPATH'], '/serving')
+        self.assertNotIn('PYTHONPATH', env)
+        self.assertNotIn('PYTHONHOME', env)
+        self.assertEqual(env['PATH'], parent['PATH'])
+        for key in ('PYTHONNOUSERSITE', 'PYTHONSAFEPATH', 'HF_HUB_OFFLINE'):
+            self.assertEqual(env[key], '1')
+        self.assertEqual(env['USE_TORCH'], '0')
+
     def test_child_options_are_opaque_for_supervisor_and_nested_gate(self):
         child = ['/bin/echo', '--host', '192.168.4.178', '--config', 'child.json']
         with tempfile.TemporaryDirectory() as tmp:

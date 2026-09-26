@@ -1030,6 +1030,22 @@ def verify_current_service() -> dict:
             'affinity': sorted(os.sched_getaffinity(0)), 'production_launch_authorized': False}
 
 
+def tokenizer_publisher_environment(parent: dict) -> dict:
+    """Keep serving source hooks out of the external load generator's startup.
+
+    The helper imports only its explicit shared request utilities after Python
+    initialization. Inheriting the serving PYTHONPATH imports sitecustomize,
+    which imports torch/vLLM even when Transformers USE_TORCH is disabled.
+    """
+    env = dict(parent)
+    for name in ('PYTHONPATH', 'PYTHONHOME'):
+        env.pop(name, None)
+    env.update(USE_TORCH='0', USE_TF='0', PYTHONDONTWRITEBYTECODE='1',
+               PYTHONNOUSERSITE='1', PYTHONSAFEPATH='1',
+               HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1')
+    return env
+
+
 def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_growth=0,
                  replay_trace=None, replay_profile='W0', http_replay_config=None) -> dict:
     """Existing runner launch with a bounded gate and a real independent watcher.
@@ -1133,8 +1149,7 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                         '--output', str(evidence/'replay.jsonl')]
                     # Tokenizer preparation needs neither torch nor TensorFlow.
                     # This child remains inside the shared 4 GiB auxiliary group.
-                    publish_env.update(USE_TORCH='0', USE_TF='0', PYTHONDONTWRITEBYTECODE='1',
-                                       HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1')
+                    publish_env = tokenizer_publisher_environment(publish_env)
                 else:
                     publish_args = [sys.executable, str(Path(__file__).resolve()), '_replay-publisher',
                                 '--replay-trace', str(Path(replay_trace).resolve(strict=True)),
@@ -1147,9 +1162,13 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                                              stderr=watch_error, text=True, bufsize=1, env=publish_env)
                 if not select.select([publisher.stdout], [], [], 180 if http_replay_config else 15)[0]:
                     raise RuntimeError('external replay failed to become ready before deployment')
-                replay_ready = json.loads(publisher.stdout.readline())
+                ready_line = publisher.stdout.readline()
+                (evidence/'replay_startup.txt').write_text(ready_line)
+                replay_ready = json.loads(ready_line)
                 if replay_ready['event'] != 'replay_ready':
                     raise RuntimeError('external replay did not validate its frozen trace')
+                if http_replay_config and replay_ready.get('imported_backend_modules') != []:
+                    raise RuntimeError('HTTP publisher imported serving backends')
                 result['replay_process'] = next(p for p in owned_pids(auxiliary) if p['pid'] == publisher.pid)
                 if result['replay_process']['affinity'] != POLICY['aux_cpus']:
                     raise RuntimeError('actual replay process escaped auxiliary affinity')
