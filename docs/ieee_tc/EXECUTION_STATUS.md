@@ -112,13 +112,13 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest backups and evidence index
 
-- Main tested implementation: `670aa2d3922376ce8a71e574244de57947402e5c`, pushed to
+- Main tested implementation: `107724e8e60d4ebb8de6014dac3ba83bc30b3b1c`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; fresh full remote SHA verified.
   D48 previously verified D47 receipt `1a86556e328de5aaeffce373c273cddcdd695b87`, resolving
-  its earlier independent-readback gap. This D49 backup receipt is a subsequent
+  its earlier independent-readback gap. This D50 backup receipt is a subsequent
   documentation-only commit, not another experiment.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
-  `origin/main`; remote full SHA reverified in D48. No baseline edits in D48.
+  `origin/main`; remote full SHA reverified in D50. No baseline edits in D50.
 - All earlier checkpoints, failures, qualification attempts and exact backups
   remain verbatim in [EXECUTION_HISTORY_THROUGH_D26.md](EXECUTION_HISTORY_THROUGH_D26.md).
   Archive SHA256: `4e91643d959967f1f0dc8642fe969d35380f2156cf8c820964019539d3b415cb`.
@@ -217,6 +217,12 @@ its one historical SHA difference and independent numerical gate remain open.
   entries unchanged. Baseline16570c full remote SHA reverified unchanged. Original
   user dirt preserved. Tested implementation backup follows; no performance slot,
   measured profile or complete Full qualification was produced by this block.
+- Implementation107724e8e60d4ebb8de6014dac3ba83bc30b3b1c pushed and fresh full
+  remote SHA verified. All eight D50 scopes stopped, no task remains live, only
+  original user dirt remains. This subsequent documentation-only receipt is not
+  another experiment. Resume native-inclusive file/HOST replacement and Full
+  lifecycle/profile integration, not more D50 or old-prefix checks. Full goal
+  remains active; no complete or performance qualification claim.
 
 ### D49 initial deployment uses the owned activation path
 
