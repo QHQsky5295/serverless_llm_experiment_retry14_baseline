@@ -20,7 +20,7 @@
 | Protected historical artifacts | Sealed and verified | `paper_results/ieee_tc/safety/20260925_execution_start_protected.json`; old results and selected user modifications unchanged |
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
-| Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
+| Serverless wait audit | Historical audit + control-path tests; D64 owned native launcher view prepared | Baseline ef49691; originals unchanged; 17 CPU checks pass. Actual two-raylet containment, native loader and original/repaired model pairs pending |
 | P1 IEEE semantic alignment | Automatic GPU/final-file replacement, budgeted CPU-staging joint commit and proactive d feedback connected; Full remains open | P1_FORMULA_IMPLEMENTATION.md through D54. Same frozen h/d and actual completion samples; physical-byte-full HOST/staging capacity, profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
@@ -50,6 +50,28 @@ scripts/run_serverlessllm_relayserve_continuation.sh, cache/, installs/, repos/,
 configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
+
+D64 rechecked actual Full profile dependencies: current serial GPU/HOST samples
+cannot initialize unmeasured file/remote/concurrency classes, particularly after
+the allocator change. No fabricated profiles or startup-guard removal. Fresh
+remote174 read-only check:148732485632B available (about138.52GiB), no listeners
+on18080/18081; both authority questions were asked again and remain unanswered.
+Do not start the remote service or replace the all-zero3B correctness pool.
+
+While those Full prerequisites remain blocked, a bounded Serverless prerequisite
+advanced: exact native launch scripts now have an exclusive TC view, without
+modifying historical originals/installed packages or using global cleanup.
+The real selected environment is sllm_vllm0102_newserverless_20260518 / Ray2.54,
+not the legacy default Ray2.48 environments. Baseline checkpoint
+ef49691e76c5fd1a48db11b158ab1c3177d93940 is pushed and fresh remote SHA verified.
+Read ServerlessLLM_new_project/ieee_tc/CONTAINED_LAUNCH.md in the baseline repo.
+Next qualify actual two-raylet worker containment/capacity and native loader
+using this view and the existing gated launcher; this is not permission to
+skip native overlay/checkpoint identity or run formal comparisons. No more
+standalone prefix, allocator or index repeats. Return to representative Full
+profiles/lifecycle once remote/correctness requirements can actually be met.
+No native Ray/model/remote/performance service was started in D64; the two CPU
+test domains are empty/stopped. Baseline/M1/M2/ablations remain not started.
 
 D63 independent7B HF/PEFT reference completes and is cleaned. Exact256tensors
 per adapter match existing weights; input393tokens matches old native SHA.
@@ -266,6 +288,55 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
     Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D64 Full prerequisites and contained Serverless native-launch adaptation
+
+- Main starts6826b9663afaf698f6f19566d6671120af8d65ae; baseline starts16570c.
+  Full plan/status/AGENTS and execution/backup skills reread, including after
+  compaction. Academic-plotting read before the immediate qualification table.
+  Protected147/plan unchanged; original dirty files preserved. No agents.
+- Inspected FrozenServiceProfiles/FrozenPreparationProfiles and actual native
+  acquisition/initial-deployment paths. Full still needs representative measured
+  profiles tied to its configuration and content classes. The D26 serial GPU/
+  HOST observations cannot fill missing file/remote/concurrency classes. No
+  new constants/profiles, new artifact, algorithm change or guard bypass.
+- Fresh strict-key read-only174 query gives148732485632B available, below150GiB;
+  no18080/18081 listeners. Existing server creates temporary compressed archives
+  per fetch, so a separate artifact-node space rule needs actual peak evidence
+  and user authority, not an assumption of zero temporary space. Asked again
+  about that rule versus freeing space, and about independent nonzero3B
+  correctness fixtures versus limited claims. No answer, mutation or remote
+  service launch. Both decisions remain pending.
+- Read historical new-Serverless wrapper, native-loader qualification and all
+  five existing launch scripts. Legacy start synchronizes installed code and
+  calls global cleanup; common per-node object-store8GiB would total16GiB for
+  head+worker. This is a conditional code finding, not historical allocation
+  measurement. Selected new/native environment actually has Ray2.54.0; old
+  defaults have2.48.0. Read installed/official2.54 CLI and spill implementation.
+- Baseline adds prepare_ieee_tc_serverless_stack.py, a hash-bound renderer of
+  those same scripts, not another supervisor/framework. Originals remain exact.
+  Generated stack requires the existing guarded TC service; private tmux/Ray/
+  spill/log paths, no source-install/global-stop/log-overwrite, one worker-raylet,
+  4GiB+4GiB object store, full store GPU visibility and native storage-aware CLI.
+  Direct-path fallback and conflicting legacy memory override rejected. Ports
+  checked before launch. Equal partition is qualification-only, not M1 optimum.
+  Actual worker capacity/ownership, imports, loader overlay and model correctness
+  remain unqualified; generated readiness strings do not establish those facts.
+- Initial15 and final17 CPU checks pass, zero failures/errors/skips; overlapping
+  selections, not performance repetitions. Eleven new launcher checks plus six
+  original method tests. Generated native CLI arguments are captured with a
+  non-Ray recorder; no Ray/store/model is started. Immediate qualification table
+  in baseline CONTAINED_LAUNCH separates evidence from all remaining gates.
+- Both named test domains (58c4186b4f944717a485624194291efe and
+  24d7e95dcfb349b1a7f43318831e6f66) have actual empty cgroup.procs, TasksCurrent0
+  and high/max/oom/oom_kill0, then stopped. GPUs15MiB/0%; no TMUX model remains.
+  Main runtime unchanged, D63 smoke evidence retained, no unnecessary GPU rerun.
+- Exactly four baseline task files committed/pushed as
+  ef49691e76c5fd1a48db11b158ab1c3177d93940; fresh origin/main full SHA matches.
+  Named-stage, diff and added-text credential checks pass; pre-existing dirty
+  replay/relayserve work excluded. Protected147 and source-plan SHA reverified.
+  This main-repo status update records cross-repository progress; no formal
+  baseline/M1/M2/ablation/sensitivity result or optimality claim. Goal active.
 
 ### D63 independent existing-weight numerical reference
 
