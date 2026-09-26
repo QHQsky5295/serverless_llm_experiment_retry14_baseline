@@ -7,6 +7,100 @@ from unittest.mock import patch
 from scripts import ieee_tc_preflight as p
 
 
+class ExistingContentIndex(unittest.TestCase):
+    def make(self):
+        import os
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)/'pool'
+        root.mkdir()
+        rows = []
+        for aid in ('a', 'b'):
+            directory = root/aid
+            directory.mkdir()
+            for name, data in (('adapter_model.safetensors', b'existing-weight-fixture'),
+                               ('adapter_config.json', b'{"r":8}')):
+                if aid == 'a':
+                    (directory/name).write_bytes(data)
+                else:
+                    os.link(root/'a'/name, directory/name)
+            rows.append(dict(adapter_id=aid, inspected=True, padding=None,
+                weight_sha256=p.digest(directory/'adapter_model.safetensors'),
+                config_sha256=p.digest(directory/'adapter_config.json'),
+                logical_file_bytes=sum(f.stat().st_size for f in directory.iterdir())))
+        manifest = root/'.publicmix_generation_manifest.json'
+        manifest.write_text(json.dumps({'adapters':[{'id':r['adapter_id']} for r in rows]}))
+        audit = Path(temporary.name)/'audit.json'
+        audit.write_text(json.dumps(dict(kind='existing_artifact_tensor_audit_v1',audit_complete=True,
+            pools=[dict(root=str(root),complete=True,rows=rows,manifest_sha256=p.digest(manifest))])))
+        return root,audit
+
+    def test_reuses_tensor_audit_but_hashes_current_files_and_consumes_existing_http_schema(self):
+        # This client is stdlib-only. Load its actual module without the package
+        # facade, whose legacy remote storage imports NumPy in system Python.
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('content_index_http_client',
+            p.ROOT/'faaslora/storage/http_artifact_store.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        root,audit = self.make()
+        result = p.index_existing_artifact_pool(root,audit,2)
+        proof = result['provenance']
+        self.assertEqual((proof['file_entries'],proof['unique_hashed_inodes'],
+                          proof['exact_file_tree_classes']),(4,2,1))
+        self.assertEqual(proof['logical_payload_bytes'],2*proof['unique_hashed_bytes'])
+        self.assertFalse(proof['tensor_audit_repeated'])
+        self.assertFalse(proof['remote_content_verified'])
+        self.assertFalse(proof['serving_qualified'])
+        client = module.HttpArtifactStoreClient(endpoint='http://127.0.0.1:1',token='')
+        client.configure_content_manifest(result)
+        for aid in ('a','b'):
+            identity = client.routing_identity(aid,(root/aid/'adapter_config.json').read_bytes())
+            self.assertEqual(proof['content_identity_groups'][identity['content_sha256']],['a','b'])
+        # Equal bytes in distinct inodes are not guessed to be the same file.
+        weight=root/'b'/'adapter_model.safetensors'
+        data=weight.read_bytes(); weight.unlink(); weight.write_bytes(data)
+        result=p.index_existing_artifact_pool(root,audit,2)
+        self.assertEqual(result['provenance']['unique_hashed_inodes'],3)
+
+    def test_changed_audit_or_payload_and_wrong_pool_are_rejected(self):
+        root,audit = self.make()
+        original=json.loads(audit.read_text())
+        for change in ({'audit_complete':False},{'pools':[]}):
+            audit.write_text(json.dumps({**original,**change}))
+            with self.assertRaises(ValueError): p.index_existing_artifact_pool(root,audit,2)
+        audit.write_text(json.dumps(original))
+        with self.assertRaises(ValueError): p.index_existing_artifact_pool(root,audit,3)
+        (root/'b'/'adapter_model.safetensors').write_bytes(b'changed-weight-fixture!')
+        with self.assertRaisesRegex(ValueError,'payload differs'):
+            p.index_existing_artifact_pool(root,audit,2)
+
+    def test_symlink_and_new_directory_do_not_enter_verified_index(self):
+        root,audit = self.make()
+        path=root/'b'/'adapter_model.safetensors'
+        path.unlink(); path.symlink_to(root/'a'/'adapter_model.safetensors')
+        with self.assertRaisesRegex(ValueError,'ordinary files'):
+            p.index_existing_artifact_pool(root,audit,2)
+        (root/'extra').mkdir()
+        with self.assertRaisesRegex(ValueError,'directory IDs'):
+            p.index_existing_artifact_pool(root,audit,2)
+
+    def test_mutation_after_hash_and_existing_output_are_rejected(self):
+        root,audit = self.make()
+        original=p.digest
+        def change(path):
+            value=original(path)
+            if path.name=='adapter_model.safetensors':
+                path.write_bytes(b'changed-during-hash')
+            return value
+        with patch.object(p,'digest',side_effect=change), self.assertRaisesRegex(RuntimeError,'changed'):
+            p.index_existing_artifact_pool(root,audit,2)
+        with patch('sys.argv',['ieee_tc_preflight.py','artifact-index','--output',str(audit)]), \
+                self.assertRaises(SystemExit) as stopped:
+            p.main()
+        self.assertEqual(stopped.exception.code,2)
+
+
 class ProtocolGates(unittest.TestCase):
     def test_workspace_bounds_reuse_complete_matching_classes_without_loading_weights(self):
         with tempfile.TemporaryDirectory() as directory:

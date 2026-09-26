@@ -127,3 +127,28 @@ CPU 扫描使用独立 1/2 GiB high/max、swap=0、CPU 3/27，峰值 1,074,528,2
 产生 43,008 次 high 事件（文件缓存回收/节流）；max/OOM/OOM-kill 均零。
 因此不从扫描耗时推断性能。结束后进程为空，仅停止该已空的专属 scope。
 没有并行模型运行、整机 page-cache 清理、权重修复或历史结果覆盖。
+
+## D62：把既有内容审计接入完整 HTTP / profile 输入
+
+执行前核查：当前Full使用逐文件`artifact_content_v1`，现存生成清单只有来源/
+逻辑大小，D18以来已有消费接口，但还没有两模型的真实完整内容索引。D26的
+GPU/HOST串行前缀也不覆盖当前Full所需的文件HOST、NVMe、Remote及并发
+服务类别，不能重贴配置标签后当作冻结profile。本轮先补齐实际输入身份。
+
+复用既有`ieee_tc_preflight.py`增加`artifact-index`操作：读取原审计、两池
+现有全部文件，输出可由原HTTP client直接消费的小型JSON。相同且扫描中不变
+的inode只读一次；不同inode不凭相同名字/大小/旧SHA猜测相等。权重、PEFT
+配置和填充SHA必须与原审计相同；其他文件获得当前身份，不反推历史一致性。
+扫描前后检查目录和文件身份，链接/设备/池外ID/途中改变均拒绝。不存在输出
+时才写入，不复制、解压、训练、重新生成工件或负载，不重新做tensor统计。
+
+顺序为3B索引→校验/状态表→7B索引→校验/状态表；单个受限CPU任务，无GPU
+或真实远程服务，结果不作为性能测量。每个索引保存原审计、生成清单、脚本、
+计划SHA，全部逐文件大小/SHA、完整目录内容类数及inode去重读取量。
+这服务于正式输入校验和待测类别确定，不改变当前保守`exact_content_v1`分区，
+不把两种权重SHA等同于两种远程文件树，也不据此冻结准备时间。
+
+依据原HTTP消费实现、D18/D22/D36历史及重新核查的
+[Python3.12 tarfile文档](https://docs.python.org/3.12/library/tarfile.html)、
+[vLLM0.30 loader源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)。
+文件传输完整性与正确adapter的数值应用是两项独立检查；本索引不替代后者。

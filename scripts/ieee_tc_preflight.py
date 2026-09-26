@@ -17,6 +17,7 @@ import re
 import signal
 import math
 import socket
+import stat
 import struct
 from dataclasses import dataclass
 from pathlib import Path
@@ -178,6 +179,89 @@ def audit_artifact_pools(paths: list[Path], expected_adapters: int) -> dict:
                 limitations=['No inference or trained quality verification.',
                              'No mutation, regeneration or fallback to another adapter pool.',
                              'Directory bytes are logical file bytes, not measured wire/GPU/HOST bytes.'])
+
+
+def index_existing_artifact_pool(root: Path, artifact_audit: Path, expected_adapters: int) -> dict:
+    """Index existing bytes for the existing HTTP/profile contract; copy nothing.
+
+    The tensor audit is reused, not repeated: weights/config/padding must still
+    match its recorded hashes. Other payload files receive their first current
+    content identity here. Hardlinks are hashed once per unchanged inode, never
+    inferred equal from a filename, size, logical adapter or old weight SHA.
+    """
+    if type(expected_adapters) is not int or expected_adapters <= 0:
+        raise ValueError('content index requires a positive expected adapter count')
+    root = root.resolve(strict=True)
+    audit_bytes = artifact_audit.read_bytes()
+    audit = json.loads(audit_bytes)
+    if audit.get('kind') != 'existing_artifact_tensor_audit_v1' or audit.get('audit_complete') is not True:
+        raise ValueError('content index requires a completed existing tensor audit')
+    matches = [p for p in audit['pools'] if Path(p['root']) == root]
+    if len(matches) != 1 or matches[0].get('complete') is not True:
+        raise ValueError('content index pool differs from its completed audit')
+    pool = matches[0]
+    rows = {r['adapter_id']: r for r in pool['rows']}
+    if (len(rows) != expected_adapters or len(rows) != len(pool['rows'])
+            or any(r.get('inspected') is not True for r in rows.values())
+            or any(not isinstance(a, str) or not a or Path(a).name != a or a in ('.', '..') for a in rows)):
+        raise ValueError('content index requires complete unique safe audited adapter IDs')
+
+    def signature(path):
+        st = path.lstat()
+        if not (stat.S_ISREG(st.st_mode) or stat.S_ISDIR(st.st_mode)):
+            raise ValueError('content index only supports ordinary files/directories, not links or devices')
+        return st.st_dev, st.st_ino, st.st_size, st.st_mtime_ns, st.st_ctime_ns, st.st_mode
+
+    manifest = root / '.publicmix_generation_manifest.json'
+    before = {root: signature(root), manifest: signature(manifest)}
+    if digest(manifest) != pool['manifest_sha256']:
+        raise ValueError('existing pool manifest changed since tensor audit')
+    actual_ids = {p.name for p in root.iterdir() if p.is_dir() and not p.name.startswith('.')}
+    if actual_ids != set(rows):
+        raise ValueError('content index directory IDs differ from the audited pool')
+    cache, artifacts, groups = {}, [], {}
+    for aid, row in sorted(rows.items()):
+        directory = root / aid
+        before[directory] = signature(directory)
+        files = []
+        for path in sorted(directory.rglob('*')):
+            sig = signature(path)
+            before[path] = sig
+            if stat.S_ISDIR(sig[-1]):
+                continue
+            if sig not in cache:
+                cache[sig] = digest(path)
+            if signature(path) != sig:
+                raise RuntimeError('artifact changed while constructing content index')
+            files.append(dict(path=path.relative_to(directory).as_posix(), size_bytes=sig[2], sha256=cache[sig]))
+        by_name = {f['path']: f for f in files}
+        expected = {'adapter_model.safetensors': row['weight_sha256'],
+                    'adapter_config.json': row['config_sha256']}
+        if row.get('padding') is not None:
+            expected['adapter_data.bin'] = row['padding']['sha256']
+        if (any(name not in by_name or by_name[name]['sha256'] != sha for name, sha in expected.items())
+                or sum(f['size_bytes'] for f in files) != row['logical_file_bytes']):
+            raise ValueError('artifact payload differs from its prior tensor audit')
+        canonical = json.dumps(files, sort_keys=True, separators=(',', ':')).encode()
+        content_sha = hashlib.sha256(canonical).hexdigest()
+        groups.setdefault(content_sha, []).append(aid)
+        artifacts.append(dict(id=aid, files=files))
+    if any(signature(path) != sig for path, sig in before.items()):
+        raise RuntimeError('artifact tree changed during content indexing')
+    return dict(format='artifact_content_v1', artifacts=artifacts,
+        provenance=dict(kind='existing_artifact_content_index_v1', complete=True,
+            pool_root=str(root), source_audit_sha256=hashlib.sha256(audit_bytes).hexdigest(),
+            generation_manifest_sha256=pool['manifest_sha256'], checker_sha256=digest(Path(__file__)),
+            plan_sha256=check_plan(), inspected_unix=time.time(), logical_adapters=len(artifacts),
+            file_entries=sum(len(a['files']) for a in artifacts),
+            logical_payload_bytes=sum(f['size_bytes'] for a in artifacts for f in a['files']),
+            unique_hashed_inodes=len(cache), unique_hashed_bytes=sum(sig[2] for sig in cache),
+            exact_file_tree_classes=len(groups), content_identity_groups=groups,
+            tensor_audit_repeated=False, new_weights_or_trace=False,
+            remote_content_verified=False, serving_qualified=False,
+            limitations=['Local content identity only; remote downloads must match this index.',
+                'Current auxiliary-file hashes are new; their historical equality is not asserted.',
+                'Weight/config/padding hashes and total payload bytes match the recorded tensor audit.']))
 
 
 def check_plan() -> str:
@@ -2724,7 +2808,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
                                          'watchdog', 'watchdog-test', 'install-candidate', 'backend-check',
-                                         'backend-model-check', 'backend-copy-check', 'backend-host-check', 'artifact-audit', '_worker',
+                                         'backend-model-check', 'backend-copy-check', 'backend-host-check',
+                                         'artifact-audit', 'artifact-index', '_worker',
                                          'gated-launch', '_launch-gate', '_replay-publisher', '_replay-witness'])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--seal', type=Path)
@@ -2799,6 +2884,10 @@ def main():
         if not args.path or not args.output:
             parser.error('artifact-audit requires existing pool path(s) and new output')
         result = audit_artifact_pools(args.path, args.expected_adapters)
+    elif args.action == 'artifact-index':
+        if not args.path or len(args.path) != 1 or not args.artifact_audit or not args.output:
+            parser.error('artifact-index requires one existing pool, completed audit and new output')
+        result = index_existing_artifact_pool(args.path[0], args.artifact_audit, args.expected_adapters)
     elif args.action == 'backend-check':
         if not args.install_receipt or not args.requirements or not args.output:
             parser.error('backend-check requires completed install receipt, requirements and new output')

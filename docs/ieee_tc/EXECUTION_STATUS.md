@@ -247,6 +247,29 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
 
 ## This continuation
 
+### D62 complete existing artifact identity for Full/profile input
+
+- Previous D61 is progress: actual HOST-capacity propagation implemented/tested/
+  pushed. Start61d0fde74806fa68d1ba459d2cc1ffaa6aaae2c8, baseline16570c unchanged.
+  Full plan/status/AGENTS and execution/backup/plotting skills read. Protected147
+  and plan unchanged; original dirt intact. No live TMUX/GPU work. Local available
+  353312870400B,MemAvailable109203312KiB,GPUs15MiB/0% at initial check.
+- Current-source audit: Full still lacks actual representative profiles and
+  complete consumed artifact content indices. D26 serial GPU/HOST intervals
+  cannot fill file/remote/concurrency classes or changed allocator identity.
+  Read D18/D22/D36 and actual client/profile admission source; browsed original
+  Python tarfile/vLLM0.30 loader. No fake profile or Full guard bypass.
+- Fresh read-only remote check:148728238080B available,below150GiB;18080/18081
+  have no listeners. Key access works. No remote service, cleanup or rule change.
+  Both artifact/remote authority questions remain pending.
+- Existing preflight gains index export bound to completed tensor audit. All
+  current bytes verified, unchanged hardlinks read once; no model/tensor reload,
+  pool/trace regeneration or weight/algorithm/profile changes. Four new tests.
+  First66 safety checks have1import error: system Python lacks NumPy pulled in by
+  the legacy storage package facade. Test now loads the actual stdlib HTTP module
+  directly; endpoint keyword corrected. Second66 pass0failure/error/skip.
+  Bounded smoke and actual per-pool indexing/validation receipts follow.
+
 ### D61 observed HOST return and deferred preparation
 
 - Start e7f9a4d711863495fb1d44aa9700278a1a7b42d6; baseline16570c unchanged.
