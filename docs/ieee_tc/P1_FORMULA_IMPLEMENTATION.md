@@ -1832,3 +1832,74 @@ footprint和剩余预算，而不是旧registry热度及混合priority？实际�
 native tensor预算和共享/激活前压力。GPU原生LRU尚不是论文的loss-per-usable-
 byte替换规则，不能忽略。完整验证回放须待上述合同闭合，不用另一项孤立微测
 代替。baseline、M1/M2、消融和敏感性仍未开始。
+
+## D36：实测准备成本初始化、实际请求更新与副本继承接通
+
+### 问题与依据
+
+D35已接上需求窗口与数学规划，但成本仍须由调用者提供；没有代表性实测
+加载器、实际接纳时的class绑定和完成更新，仍不能作为在线系统。
+本轮核对D34/D35、IEEE的d定义，以及
+[vLLM0.30原始loader](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/worker_manager.py)
+的原生CPU复用与文件加载边界；[dLoRA](https://www.usenix.org/conference/osdi24/presentation/wu-bingyang)
+仅作已有请求/adapter联合编排背景，不构成本轮性能证据。
+
+可证伪问题：实际请求在接纳时固定的来源表示/尺寸类，是否能在加载完成后
+收到正确d更新，并在下一次规划中使用，同时不把当前测试轮学习状态传给
+新副本？本轮不修改九个公式，不以服务D补准备d，不启动另一模型短前缀。
+
+### 已连接的实际路径
+
+1. `confirmed_source_class`的来源描述保留真实`footprint_bytes`和
+   `representation`：原生CPU/GPU使用原生占用，HOST/NVMe文件使用确认的
+   allocated bytes，Remote使用冻结清单的payload bytes。不反推size bin
+   中点，也不把压缩线上字节当作本地占用。
+2. `FrozenPreparationProfiles.load`从原始source admission、native完成
+   receipt和本请求remote receipt重新计算d，再形成class均值。文件SHA、
+   模型配置、backend/resource/input context、固定生成和原生计时协议必须
+   匹配。不同启动时钟的历史profile保留自己的时钟域，只在记录内部相减。
+   重复request/attempt或同一native lease跨记录重复均拒绝。
+3. 当前layout分区采用保守的`exact_content_v1`：只有完整已校验内容身份
+   一致才允许共享layout类别，再区分来源表示和预先冻结的size bin。相同
+   rank或字节数不自动代表相同layout。此分区比按tensor shape合并更细；
+   不宣称不同权重内容的同形adapter已共享profile，也不改变500逻辑ID含义。
+4. 实际runner支持`coordination.ieee_preparation_profile`，配置项与服务
+   profile一致为path/SHA/context/ewma_beta，两种测量context必须一致。
+   InstancePool给每个新runtime独立初始化cost model；backend配置不符则
+   在warmup前拒绝并清理新engine。汇总保存准备profile身份。
+5. 实际`_ieee_protect_selected_source`在任何source-hold/load RPC之前固定
+   preparation class；缺测量或profile不符直接报错。来源接纳记录新增
+   clock/class/profile身份。GPU命中和backbone不制造加载样本。
+6. `_ieee_prepare_selected_adapter`实际取得可执行adapter后，将D34完整
+   加载区间更新到同一slot、同一冻结class；共享/变化来源的不完整区间仍
+   不更新。加载完成是更新事件，不等待生成结束才把服务D误写入d。
+
+数据合同通过不等于原始测量正确性已独立合格；当前没有新的真实7B/3B
+代表性profile文件，本轮测试文件均为临时fixture，不进入实验结果目录。
+
+### 正确性状态表
+
+| 问题 | 实际代码路径上的检查 |
+|---|---|
+| 初值是否由测量边界得出 | 历史时钟fixture的两个加载区间3000/1000ms形成2000ms均值，不使用含初始等待的D |
+| 缺类能否借用相似类 | 内容、表示或size bin不匹配均拒绝，无rank-only、邻近类或固定延迟兜底 |
+| 请求是否更新自己的来源类 | 实际runner＋native-cache替身＋微型真实文件/HTTP接口覆盖native HOST、文件HOST/NVMe/Remote；仅本类更新，GPU命中不更新 |
+| 缺类是否先加载再失败 | 真实请求入口在hold/load之前抛出缺类错误，未调用生成，未遗留native引用 |
+| 更新能否影响下一规划 | 请求释放后，受控缓存替身退回HOST；重新读取来源，实际stack下一handoff计划使用更新后的d和序号 |
+| 新副本是否继承测试学习 | 实际InstancePool第二副本恢复冻结均值；不同runtime配置/重复物理engine拒绝 |
+| profile是否可追溯 | 实际runner加载SHA绑定文件并输出profile身份，服务/准备context不一致拒绝 |
+
+新增9项检查。首次201项定向检查有两处测试假设错误：缺类实际向外抛异常，
+而非返回失败请求；1024B预算按1MiB保守DP返回空集，不能假定强制greedy。
+修正测试为期望异常，并用同一1024B物理fixture的handoff密度规则验证成本
+传播，未改小预算DP或放宽生产语义。初次与最终760项功能回归均通过，安全
+56项通过，无跳过。测试fixture时延不能作为任何模型性能或优势数值。
+
+### 当前边界与主线下一步
+
+本轮完成profile消费与实际请求更新链，不等于已经采集代表性profile，也
+不等于自动规划/迁移执行已启用。仍须把真实owner的source/target footprint/
+剩余预算组合成规划输入，将handoff与steady-state送入同一pending movement
+queue，完成loss-per-usable-byte替换及总HOST/native预算、共享/激活前压力。
+D35的Full启动拦截保留。之后才能做有意义的整体资格和完整回放；不得绕过
+拦截、把fixture写进配置或重复孤立的cost/profile微测。正式矩阵仍未开始。

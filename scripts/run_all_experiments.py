@@ -6470,6 +6470,7 @@ class ScenarioRunner:
         if getattr(self.engine, "model_cfg", None) is not None:
             self.engine.model_cfg["generation_contract"] = generation_contract
         self._service_profiles = self._load_ieee_service_profiles()
+        self._preparation_profiles = self._load_ieee_preparation_profiles()
         self._coordination_enabled = bool(
             self.coord_cfg.get("coordination_enabled", baseline_type == "faaslora_full")
         )
@@ -6543,6 +6544,8 @@ class ScenarioRunner:
         self._routing_policy = str(cc.get("routing_policy", "adapter_affinity")).lower()
         if self._routing_policy == 'ieee_confirmed' and self._service_profiles is None:
             raise ValueError('IEEE routing requires measured ieee_service_profile initialization')
+        if self._preparation_profiles is not None and self._routing_policy != 'ieee_confirmed':
+            raise ValueError('preparation profile requires IEEE source admission, not legacy routing')
         self._ieee_routing_epoch = 0
         self._ieee_artifact_identities = {}
         self._ieee_nvml_initialized = False
@@ -6668,7 +6671,7 @@ class ScenarioRunner:
         self.router = None
         if InstancePool is not None and Router is not None and engine is not None:
             self.instance_pool = InstancePool(min_instances=min_instances, max_instances=max_instances,
-                                             service_profiles=self._service_profiles)
+                service_profiles=self._service_profiles, preparation_profiles=self._preparation_profiles)
             primary_owns_runtime = self._instance_mode in ("auto", "dedicated")
             self._primary_instance_id = self.instance_pool.add_instance(
                 engine,
@@ -6722,6 +6725,23 @@ class ScenarioRunner:
         self._observe_live_waiting_trace(trace)
         if trace.adapter_id and self._stack is not None:
             self._stack.record_arrival(trace.adapter_id, observed_at=record['server_received_s'])
+
+    def _load_ieee_preparation_profiles(self):
+        """Use completed-load d initialization, never reinterpret service D."""
+        spec = self.coord_cfg.get('ieee_preparation_profile')
+        if spec is None:
+            return None  # Explicit source-only qualification may collect first measurements.
+        if (not isinstance(spec, dict) or set(spec) != {'path', 'sha256', 'context', 'ewma_beta'}
+                or not isinstance(spec['path'], str) or not spec['path']
+                or not self.model_cfg.get('ieee_gpu_references', False)):
+            raise ValueError('invalid IEEE measured preparation profile configuration')
+        service_spec = self.coord_cfg.get('ieee_service_profile')
+        if service_spec is not None and spec['context'] != service_spec['context']:
+            raise ValueError('preparation/service measurement contexts differ')
+        from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
+        return FrozenPreparationProfiles.load(Path(spec['path']), expected_sha256=spec['sha256'],
+            model_config=getattr(self.engine, 'model_cfg', None),
+            expected_context=spec['context'], beta=spec['ewma_beta'])
 
     def _runtime_gpu_count_for_cfg(self, cfg: Optional[Dict[str, Any]] = None) -> int:
         effective_cfg = cfg if isinstance(cfg, dict) else getattr(self, "model_cfg", {})
@@ -8046,6 +8066,9 @@ class ScenarioRunner:
         profiles = getattr(self, '_service_profiles', None)
         if profiles is not None:
             result = {**result, 'ieee_service_profile': profiles.identity()}
+        preparation = getattr(self, '_preparation_profiles', None)
+        if preparation is not None:
+            result = {**result, 'ieee_preparation_profile': preparation.identity()}
         return result
 
     @staticmethod
@@ -12306,9 +12329,11 @@ class ScenarioRunner:
         except Exception as exc:
             print(f"    [WARN] Dedicated instance creation failed: {exc}", flush=True)
             return None
-        if self._service_profiles is not None:
+        if self._service_profiles is not None or getattr(self, '_preparation_profiles', None) is not None:
             try:
-                self._service_profiles.validate_runtime(getattr(new_engine, 'model_cfg', None))
+                for profiles in (self._service_profiles, getattr(self, '_preparation_profiles', None)):
+                    if profiles is not None:
+                        profiles.validate_runtime(getattr(new_engine, 'model_cfg', None))
             except (ValueError, TypeError):
                 # This engine has not entered the pool yet. Do not leak it or
                 # perform warmup with a profile measured under another backend.
@@ -14332,6 +14357,19 @@ class ScenarioRunner:
         slot, evidence = reservation.slot, reservation.gpu_reference_evidence
         engine = slot.engine
         reservation.gpu_reference_engine = engine
+        preparation_profile = getattr(self, '_preparation_profiles', None)
+        preparation_key = None
+        if preparation_profile is not None and source['tier'] not in ('gpu', 'backbone'):
+            # Freeze the preparation class before any source-hold/load RPC.
+            # It uses observed source bytes/representation and verified content,
+            # not the request's prompt/output/admitted-count service bins.
+            preparation_key = preparation_profile.classify_source(source)
+            costs = slot.preparation_cost_model
+            if (costs is None or costs.profile_id != preparation_profile.profile_id
+                    or preparation_key.tier != service_class.tier
+                    or preparation_key.representation != service_class.representation):
+                raise ValueError('preparation class/profile differs from selected admission source')
+            costs.estimate(preparation_key)  # Unsupported class fails before native work.
         if not source['native']:
             # A source may have become native while another replica's routing
             # RPC was in flight. Recheck before accepting a slower file/remote
@@ -14421,7 +14459,10 @@ class ScenarioRunner:
         evidence['source_admission'] = dict(kind='selected_source_admission_v1',
             source=dict(source), service_class=asdict(key), admitted_monotonic_s=admitted_at,
             admitted_after_accept=slot.active_requests, physical_capacity_qualified=False,
-            profile_collection_only=collect_profile_only)
+            profile_collection_only=collect_profile_only, clock_id=local_monotonic_clock_id())
+        if preparation_key is not None:
+            evidence['source_admission'].update(preparation_class=asdict(preparation_key),
+                preparation_profile_id=preparation_profile.profile_id)
         evidence['confirmed_dispatch_snapshot'] = True
         reservation.ieee_routing_evidence['selected_reference_acquired'] = source['tier'] not in ('remote', 'backbone')
         slot.ieee_last_dispatch_at = admitted_at
@@ -14466,6 +14507,17 @@ class ScenarioRunner:
             adapter_id=reservation.adapter_id, request_id=reservation.request_id,
             admission=evidence['source_admission'], native=receipt,
             remote=evidence.get('remote_preparation'))
+        admission = evidence['source_admission']
+        if 'preparation_class' in admission:
+            from faaslora.preloading.preloading_planner import PreparationClass
+            costs = reservation.slot.preparation_cost_model
+            if costs is None or costs.profile_id != admission['preparation_profile_id']:
+                raise ValueError('preparation profile changed while loading the selected source')
+            interval = evidence['preparation_interval']
+            interval['preparation_class'] = dict(admission['preparation_class'])
+            interval['preparation_profile_id'] = admission['preparation_profile_id']
+            interval['cost_model_updated'] = costs.record_completed_load(
+                PreparationClass(**admission['preparation_class']), interval)
         await self._release_ieee_host_source(reservation)
         return receipt
 

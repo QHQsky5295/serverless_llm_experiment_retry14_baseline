@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Measured-cost planning entry connected to actual demand tracker; movement/Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D35. D35 adds class-cost snapshots and stack planning entry; IEEE startup explicitly rejects legacy warmup. Frozen representative profiles, automatic owner/option production, actual movement/handoff/replacement, shared/preactivation pressure and total HOST/native accounting remain open; no new GPU/Full qualification |
+| P1 IEEE semantic alignment | Preparation profile loader and actual request updates connected; movement/Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D36. D36 binds source bytes/representation/content to preparation classes and updates actual per-slot costs; new replicas inherit frozen means. Representative real measurements, automatic owner/options, movement/handoff/replacement, shared/preactivation pressure and total HOST/native accounting remain open. IEEE startup still rejects legacy warmup; no new GPU/Full qualification |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,18 +51,19 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST CODE CHECKPOINT: D35 connects ExperimentStack.plan_ieee_preparation to
-its actual arrival-window tracker and the IEEE selectors using one class-cost
-snapshot. PreparationCostModel keeps d separate from service D and resets new
-replicas to frozen initial values.751 functional and56 safety checks pass. No
-new GPU/model or measured profile. Source/footprint/budget options still require
-the actual physical-owner producer; profile loader/online class binding and
-common movement queue are NOT complete. The actual _preload_full_stack now
-rejects ieee_confirmed BEFORE start/cache reset/legacy warmup. This is an explicit
-unqualified-path error, not a replacement IEEE executor. Next connect measured
-profiles and owner options to shared movement/handoff/replacement, with total
-HOST/shared-pressure accounting. Do not add another isolated planner/model-
-prefix or transfer/timing microcampaign and do not bypass the Full guard.
+LATEST CODE CHECKPOINT: D36 adds SHA/model/context-bound preparation profile
+loading from raw admission/native/remote load evidence, actual source bytes/
+representation, and the real request admission→completed-load class update.
+InstancePool new runtimes inherit frozen preparation means; actual stack planning
+can consume the updated per-slot model.760 functional and56 safety checks pass.
+No new GPU/model or real representative profile measurements. The current layout
+partition is conservatively exact-content-bound; same rank/size is not layout
+equivalence. Actual physical-owner source/target-footprint/budget option production
+and common movement queue/replacement remain NOT complete. _preload_full_stack
+continues rejecting ieee_confirmed BEFORE legacy work. Next connect those owner
+options and owned movement/handoff/replacement, including total HOST/native and
+shared/preactivation pressure. Do not repeat isolated class/profile/planner/model-
+prefix microtests or bypass the Full guard; representative qualification remains.
 
 LATEST COMPLETED MODEL RUN: `llama2_7b_capacity_wait_attempt2`, finished and cleaned.
 Five first-distinct requests from old32-prefix,755 native tokens, all targets met.
@@ -100,7 +101,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D35.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D36.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -155,6 +156,39 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D36 actual preparation profile/request feedback connection
+
+- FrozenPreparationProfiles recomputes d from raw source-admission/native/remote
+  boundaries, binds file SHA/model/environment/resource/input context, rejects
+  duplicate request/lease and incomplete/reused sources. Prior-boot profile
+  clocks are compared only within their original measurement. It is a data
+  contract check, not independent proof of backend/adapter numerical correctness.
+- Exact-content layout partition conservatively shares only identical verified
+  stored content, further split by source representation and size bin. Actual
+  confirmed_source_class now preserves observed footprint/representation. No
+  adjacent-bin, rank-only or service-D substitution. No new real profiles created.
+- Real runner loads preparation configuration; actual InstancePool initializes
+  each runtime from frozen means, validates runtime before warmup, and reports
+  profile identity. Preparation/service measurement contexts must match.
+  Actual source admission fixes the preparation class before hold/load RPCs;
+  actual completed loading updates that slot/class. GPU hits do not invent loads.
+- Nine added tests. Initial targeted201 had two test-assumption errors: missing
+  class propagates KeyError rather than returning a failed result; tiny1024B
+  budget correctly yields empty conservative1MiB DP, so cost propagation uses
+  the actual handoff raw-byte rule. Tests corrected without altering production
+  acceptance. Initial and final760 functional +56 safety pass, no failures/skips.
+  Real runner/cache fixtures, actual small file/HTTP interface and next stack
+  epoch exercised; no CUDA/model/Full performance or representative measurement.
+- Four owned D36 scopes checked TasksCurrent0/no pids/high,max,OOM0, then stopped.
+  Final GPU memory15MiB each, utilization0/0/1/0%; MemAvailable108926216KiB,
+  disk353696034816 B. All147 protected entries and source plan SHA unchanged.
+  Baseline repo remains16570c023a439c884624e7a5bdfa0d8577faf7a3, user dirt preserved.
+- Next: actual owner source/target footprint/remaining-budget option production,
+  common pending movement queue, loss-per-usable-byte replacement, total HOST/
+  native/shared/preactivation accounting and Full lifecycle. Representative real
+  profile collection and complete qualification still open. D35 startup guard
+  retained. Baselines/M1/M2/ablations/sensitivities not started; full goal active.
 
 ### D35 class-cost planning entry; Full execution still unqualified
 

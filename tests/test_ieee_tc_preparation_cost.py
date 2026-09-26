@@ -1,9 +1,14 @@
 """Preparation d excludes pre-load waiting; fixtures are not model profiles."""
 import unittest
+import copy
+import hashlib
+import json
+import tempfile
+from pathlib import Path
 from dataclasses import asdict
 from faaslora.clock import local_monotonic_clock_id
 from faaslora.preloading.preloading_planner import (
-    observed_preparation_interval, PreparationClass, PreparationCostModel)
+    observed_preparation_interval, PreparationClass, PreparationCostModel, FrozenPreparationProfiles)
 
 
 class PreparationIntervals(unittest.TestCase):
@@ -139,3 +144,123 @@ class PreparationCosts(unittest.TestCase):
         gpu = PreparationClass('gpu', 'slots', 'layout', 0)
         with self.assertRaises(ValueError):
             PreparationCostModel({gpu: 1.}, beta=.5, profile_id='fixture')
+
+
+class FrozenPreparationInitialization(unittest.TestCase):
+    """Synthetic contract fixtures; these files are NOT measured model profiles."""
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.path = Path(self.tmp.name) / 'preparation.json'
+        self.model = dict(model_path='/existing/model', dtype='float16', tensor_parallel_size=1,
+            ieee_gpu_references=True, timing_contract='ieee_tc_native_v1',
+            generation_contract='fixed_length_greedy_v1')
+        self.context = dict(backend_environment_sha256='a'*64,
+            resource_envelope_sha256='b'*64, input_contract_sha256='c'*64)
+        args = PreparationIntervals().inputs('host', True)
+        source = args['admission']['source']
+        source.update(expected_content_sha256='d'*64, footprint_bytes=512,
+            representation='native_cpu_dense_ab_v1:torch.float16:unpinned')
+        args['admission']['clock_id'] = args['native']['clock_id'] = 'previous-boot-fixture-clock'
+        args['admission']['service_class']['representation'] = source['representation']
+        self.sample = dict(adapter_id='a', request_id='r', attempt_id='attempt-1',
+            correct=True, source_run_sha256='e'*64,
+            admission=args['admission'], native=args['native'], remote=None)
+        self.payload = dict(kind='native_preparation_profiles_v1', layout_partition='exact_content_v1',
+            context=self.context, model_config=self.model, size_edges_bytes=[512], samples=[self.sample])
+
+    def write(self, payload=None):
+        raw = json.dumps(self.payload if payload is None else payload, sort_keys=True).encode()
+        self.path.write_bytes(raw)
+        return hashlib.sha256(raw).hexdigest()
+
+    def load(self, payload=None, **changes):
+        arguments = dict(expected_sha256=self.write(payload), model_config=self.model,
+            expected_context=self.context, beta=.5)
+        return FrozenPreparationProfiles.load(self.path, **(arguments | changes))
+
+    def test_means_use_recomputed_load_boundaries_with_original_clock(self):
+        second = copy.deepcopy(self.sample)
+        second.update(request_id='r2')
+        second['native'].update(lease_id='lease2', native_load_started_monotonic_s=152.)
+        profile = self.load(self.payload | {'samples': [self.sample, second]})
+        key = profile.classify_source(self.sample['admission']['source'])
+        self.assertEqual(profile.profiles[key], 2000.)  # (3000 + 1000)/2, never service D.
+        self.assertEqual(profile.sample_counts[key], 2)
+        self.assertEqual(key.size_bin, 0)
+        self.assertEqual(key.layout_id, 'exact_content_sha256:'+'d'*64)
+        self.assertEqual(profile.identity()['initial_samples'], 2)
+
+    def test_unsupported_content_representation_and_size_cannot_borrow_cost(self):
+        profile = self.load()
+        for changes in ({'expected_content_sha256': 'f'*64}, {'footprint_bytes': 513},
+                        {'representation': 'different-native-layout'}):
+            with self.subTest(changes=changes), self.assertRaises(KeyError):
+                profile.classify_source(self.sample['admission']['source'] | changes)
+
+    def test_profile_hash_context_backend_contract_and_size_edges_reject(self):
+        for changes in ({'expected_sha256': 'f'*64}, {'model_config': self.model | {'dtype': 'bfloat16'}},
+                {'expected_context': self.context | {'resource_envelope_sha256': 'f'*64}}, {'beta': 0}):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                self.load(**changes)
+        for field, value in (('layout_partition', 'rank_only'), ('size_edges_bytes', [512, 512]),
+                             ('samples', []), ('kind', 'native_service_profiles_v1')):
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.load(self.payload | {field: value})
+
+    def test_incomplete_changed_clock_and_duplicate_loads_reject(self):
+        mutations = [lambda s: s.update(correct=False),
+            lambda s: s['admission'].update(clock_id='other'),
+            lambda s: s['native'].update(native_load_invoked=False),
+            lambda s: s['admission']['source'].update(footprint_bytes=0),
+            lambda s: s['admission']['service_class'].update(representation='other')]
+        for change in mutations:
+            sample = copy.deepcopy(self.sample)
+            change(sample)
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                self.load(self.payload | {'samples': [sample]})
+        for second in (self.sample, self.sample | {'request_id': 'r2', 'source_run_sha256': 'f'*64}):
+            with self.assertRaises(ValueError):
+                self.load(self.payload | {'samples': [self.sample, second]})
+
+    def test_actual_pool_initializes_each_runtime_without_inheriting_online_costs(self):
+        from types import SimpleNamespace
+        from faaslora.experiment.instance_pool import InstancePool
+        profile = self.load()
+        pool = InstancePool(max_instances=4, preparation_profiles=profile)
+        engine = SimpleNamespace(model_cfg=self.model)
+        first = pool.get_slot(pool.add_instance(engine, None))
+        key = profile.classify_source(self.sample['admission']['source'])
+        args = PreparationIntervals().inputs('host', True)
+        args['native']['native_load_started_monotonic_s'] = 152.
+        args['admission']['service_class']['representation'] = key.representation
+        sample = observed_preparation_interval(**args) | {'preparation_class': asdict(key)}
+        first.preparation_cost_model.record_completed_load(key, sample)
+        second = pool.get_slot(pool.add_instance(SimpleNamespace(model_cfg=self.model | {'device_id': 1}), None))
+        self.assertEqual(first.preparation_cost_model.estimate(key), 2000.)
+        self.assertEqual(second.preparation_cost_model.estimate(key), 3000.)
+        with self.assertRaisesRegex(ValueError, 'alias'):
+            pool.add_instance(engine, None)
+        with self.assertRaisesRegex(ValueError, 'configuration differs'):
+            pool.add_instance(SimpleNamespace(model_cfg=self.model | {'dtype': 'bfloat16'}), None)
+
+    def test_actual_runner_loads_profile_and_reports_frozen_identity(self):
+        from tests.test_ieee_tc_service_routing import FrozenMeasuredInitialization
+        fixture = FrozenMeasuredInitialization()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        self.model = {k: v for k, v in fixture.model.items() if k not in ('device_id', 'visible_device_ids')}
+        self.payload['model_config'] = self.model
+        spec = dict(path=str(self.path), sha256=self.write(), context=self.context, ewma_beta=.5)
+        runner = fixture.runner(coord_changes={'ieee_preparation_profile': spec})
+        slot = runner.instance_pool.get_slots()[0]
+        key = runner._preparation_profiles.classify_source(self.sample['admission']['source'])
+        self.assertEqual(slot.preparation_cost_model.estimate(key), 3000.)
+        self.assertEqual(runner._current_coord_metrics()['ieee_preparation_profile']['profile_sha256'], spec['sha256'])
+        with self.assertRaisesRegex(ValueError, 'invalid IEEE measured preparation profile'):
+            fixture.runner(coord_changes={'ieee_preparation_profile': {'path': 'missing'}})
+        other_context = self.context | {'resource_envelope_sha256': 'f'*64}
+        other_spec = spec | {'context': other_context,
+            'sha256': self.write(self.payload | {'context': other_context})}
+        with self.assertRaisesRegex(ValueError, 'measurement contexts differ'):
+            fixture.runner(coord_changes={'ieee_preparation_profile': other_spec})

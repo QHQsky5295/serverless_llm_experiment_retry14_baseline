@@ -293,7 +293,11 @@ def confirmed_source_class(*, native: NativeSourceSnapshot, files: Mapping,
             raise ValueError('native routing source changed frozen adapter identity/rank')
         return selected.service_class(bins, **features), dict(
             owner_id=native.owner_id, epoch=native.epoch, tier=selected.tier,
-            path=selected.lora_path, native=True, expected_content_sha256=identity['content_sha256'])
+            path=selected.lora_path, native=True, expected_content_sha256=identity['content_sha256'],
+            footprint_bytes=(selected.gpu_slot_capacity_bytes if selected.tier == 'gpu'
+                             else selected.host_storage_bytes),
+            representation=(selected.gpu_representation if selected.tier == 'gpu'
+                            else selected.host_representation))
     if adapter_int_id in native.unknown_native_adapter_ids:
         raise ValueError('native routing adapter has unowned source state')
     for tier in ('host', 'nvme'):
@@ -302,11 +306,13 @@ def confirmed_source_class(*, native: NativeSourceSnapshot, files: Mapping,
             return bins.classify(tier=tier, adapter_rank=identity['rank'],
                 footprint_bytes=source['allocated_file_bytes'], representation=source['representation'],
                 **features), dict(owner_id=files['owner_id'], epoch=files['epoch'], tier=tier,
-                                 path=source['path'], native=False, content_sha256=identity['content_sha256'])
+                    path=source['path'], native=False, content_sha256=identity['content_sha256'],
+                    footprint_bytes=source['allocated_file_bytes'], representation=source['representation'])
     return bins.classify(tier='remote', adapter_rank=identity['rank'],
         footprint_bytes=identity['remote_payload_bytes'], representation=identity['remote_representation'],
         **features), dict(owner_id=files['owner_id'], epoch=files['epoch'], tier='remote',
-                         path=None, native=False, content_sha256=identity['content_sha256'])
+            path=None, native=False, content_sha256=identity['content_sha256'],
+            footprint_bytes=identity['remote_payload_bytes'], representation=identity['remote_representation'])
 
 
 @dataclass(frozen=True)
@@ -791,6 +797,7 @@ class InstanceSlot:
     native_source_state: Optional[NativeSourceSnapshot] = None
     service_cost_model: Optional[ServiceCostModel] = None
     service_class_bins: Optional[ServiceClassBins] = None
+    preparation_cost_model: Optional[Any] = None
     ieee_pending_load_ids: Set[str] = field(default_factory=set)
     ieee_last_dispatch_at: float = 0.0
     ieee_utilization_sample: Optional[Dict[str, Any]] = None
@@ -1160,7 +1167,8 @@ class InstancePool:
     """
 
     def __init__(self, min_instances: int = 1, max_instances: int = 4,
-                 *, service_profiles: Optional[FrozenServiceProfiles] = None):
+                 *, service_profiles: Optional[FrozenServiceProfiles] = None,
+                 preparation_profiles=None):
         self.min_instances = min_instances
         self.max_instances = max_instances
         self.logger = get_logger(__name__)
@@ -1169,6 +1177,10 @@ class InstancePool:
         if service_profiles is not None and not isinstance(service_profiles, FrozenServiceProfiles):
             raise TypeError('instance initialization requires frozen measured service profiles')
         self.service_profiles = service_profiles
+        from ..preloading.preloading_planner import FrozenPreparationProfiles
+        if preparation_profiles is not None and not isinstance(preparation_profiles, FrozenPreparationProfiles):
+            raise TypeError('instance initialization requires frozen measured preparation profiles')
+        self.preparation_profiles = preparation_profiles
 
     def add_instance(
         self,
@@ -1186,6 +1198,10 @@ class InstancePool:
             if any(slot.engine is engine for slot in self._slots):
                 raise ValueError('profiled replicas cannot alias one physical runtime')
             self.service_profiles.validate_runtime(getattr(engine, 'model_cfg', None))
+        if self.preparation_profiles is not None:
+            if any(slot.engine is engine for slot in self._slots):
+                raise ValueError('preparation-profiled replicas cannot alias one physical runtime')
+            self.preparation_profiles.validate_runtime(getattr(engine, 'model_cfg', None))
         self._next_id += 1
         sid = f"inst_{self._next_id}"
         self._slots.append(
@@ -1198,6 +1214,8 @@ class InstancePool:
                 device_id=device_id,
                 service_cost_model=self.service_profiles.new_replica() if self.service_profiles else None,
                 service_class_bins=self.service_profiles.bins if self.service_profiles else None,
+                preparation_cost_model=(self.preparation_profiles.new_replica()
+                                        if self.preparation_profiles else None),
             )
         )
         self.logger.info(f"Instance {sid} added (total={len(self._slots)})")

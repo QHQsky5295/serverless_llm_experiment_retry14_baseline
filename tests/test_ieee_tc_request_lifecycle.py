@@ -484,6 +484,21 @@ def native_reference_fixture():
 
 class SelectedSourceAdmissionIntegration(unittest.TestCase):
     """Real request/router/owner and event path; tiny fixtures, no GPU timing claim."""
+    def bind_preparation_fixture(self, runner, slot):
+        from faaslora.preloading.preloading_planner import PreparationClass, FrozenPreparationProfiles
+        content = runner._ieee_artifact_identities['adapter-a']['content_sha256']
+        keys = [PreparationClass(tier, representation, 'exact_content_sha256:'+content, 0)
+                for tier, representation in (
+                    ('host', 'native_cpu_dense_ab_v1:torch.float16:unpinned'),
+                    ('host', 'verified_regular_file_tree_v1'),
+                    ('nvme', 'verified_regular_file_tree_v1'),
+                    ('remote', 'tar_gzip_verified_file_tree_v1'))]
+        profile = FrozenPreparationProfiles((), {key: 10. for key in keys},
+            {key: 1 for key in keys}, 'fixture-not-measured-profile', ('fixture-run',), .5, '{}')
+        runner._preparation_profiles = profile
+        slot.preparation_cost_model = profile.new_replica()
+        return profile
+
     def build(self, tier='gpu'):
         from collections import defaultdict
         from faaslora.clock import local_monotonic_clock_id
@@ -596,6 +611,81 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 self.assertEqual(slot.service_cost_model.sample_counts(key), dict(d_ms=0, t_ms=0, o_ms=0))
             self.assertEqual(owner.snapshot()['live_leases'], 0)
             self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+
+    def test_actual_request_loads_update_the_admission_fixed_preparation_class(self):
+        for tier in ('gpu', 'native_host', 'host', 'nvme', 'remote'):
+            with self.subTest(tier=tier):
+                runner, slot, trace, plan, owner, _ = self.build(
+                    'host' if tier == 'native_host' else 'gpu' if tier == 'gpu' else 'remote')
+                if tier in ('host', 'nvme', 'remote'):
+                    self.file_source(runner, trace, publish=tier != 'remote', host=tier == 'host')
+                profile = self.bind_preparation_fixture(runner, slot)
+                result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+                self.assertTrue(result.success, result.error)
+                admission = result.gpu_reference_evidence['source_admission']
+                self.assertGreater(admission['source']['footprint_bytes'], 0)
+                self.assertEqual(admission['source']['representation'], admission['service_class']['representation'])
+                if tier == 'gpu':
+                    self.assertNotIn('preparation_interval', result.gpu_reference_evidence)
+                    self.assertEqual(slot.preparation_cost_model.snapshot()[0], 0)
+                    continue
+                key = profile.classify_source(admission['source'])
+                interval = result.gpu_reference_evidence['preparation_interval']
+                self.assertTrue(interval['cost_model_updated'])
+                self.assertEqual(interval['preparation_class'], asdict(key))
+                self.assertEqual(slot.preparation_cost_model.estimate(key), (10.+interval['d_ms'])/2)
+                self.assertEqual(slot.preparation_cost_model.snapshot()[0], 1)
+                for other in profile.profiles:
+                    if other != key:
+                        self.assertEqual(slot.preparation_cost_model.estimate(other), 10.)
+                self.assertEqual(owner.snapshot()['live_leases'], 0)
+                self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+
+    def test_unknown_preparation_class_fails_before_holding_or_loading_source(self):
+        runner, slot, trace, plan, owner, _ = self.build('host')
+        profile = self.bind_preparation_fixture(runner, slot)
+        runner._preparation_profiles = replace(profile, profiles={
+            key: value for key, value in profile.profiles.items() if key.tier == 'remote'})
+        with self.assertRaisesRegex(KeyError, 'no measured preparation profile'):
+            asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        slot.engine.generate_prepared.assert_not_awaited()
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+        calls = [call.kwargs.get('operation') for call in slot.engine.ieee_gpu_reference.await_args_list]
+        self.assertNotIn('hold_host_source', calls)
+        self.assertNotIn('demand_load_and_acquire', calls)
+
+    def test_actual_completed_load_cost_reaches_next_stack_planning_epoch(self):
+        from faaslora.preloading.preloading_planner import PreparationClass, PreparationOption, PreloadingPlanner
+        from faaslora.experiment.experiment_stack import ExperimentStack
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        from faaslora.registry.schema import StorageTier
+        runner, slot, trace, plan, owner, _ = self.build('host')
+        profile = self.bind_preparation_fixture(runner, slot)
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertTrue(result.success, result.error)
+        # Controlled cache-fixture transition: fresh received HOST state after
+        # releasing the actual request, not a stale post-load HOST assumption.
+        owner.manager.deactivate(InferenceEngine._lora_int_id(trace.adapter_id))
+        _, evidence = asyncio.run(runner._ieee_request_snapshot(trace, plan))
+        source = evidence[slot.instance_id]['source']
+        key = profile.classify_source(source)
+        stack = ExperimentStack.__new__(ExperimentStack)
+        stack.hotness_tracker = HotnessTracker(None)
+        stack.hotness_tracker.record_arrival(trace.adapter_id)
+        stack.preloading_planner = PreloadingPlanner.__new__(PreloadingPlanner)
+        stack.preloading_planner.max_dp_buffer_bytes = 16*1024**2
+        target = PreparationClass('gpu', 'native_gpu_dense_slot_v1:torch.float16', key.layout_id, 0)
+        footprint = slot.native_source_state.sources[0].gpu_slot_capacity_bytes
+        epoch = stack.plan_ieee_preparation(mode='handoff',
+            options=[PreparationOption(trace.adapter_id, key, target, footprint)],
+            budgets={StorageTier.GPU: footprint, StorageTier.HOST: 0, StorageTier.NVME: 0},
+            costs=slot.preparation_cost_model, source_snapshot_id=str(source['epoch']))
+        selected = epoch['selected']['gpu'][0]
+        self.assertEqual(epoch['cost_sequence'], 1)
+        self.assertEqual(selected.source_load_ms, slot.preparation_cost_model.estimate(key))
+        self.assertEqual(selected.benefit_ms, selected.source_load_ms)
+        self.assertFalse(epoch['physical_resources_reserved'])
 
     def test_actual_gpu_and_host_requests_use_admission_fixed_class_and_native_events(self):
         for tier in ('gpu', 'host'):

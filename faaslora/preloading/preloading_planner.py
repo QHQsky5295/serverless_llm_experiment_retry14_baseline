@@ -10,6 +10,8 @@ import math
 import hashlib
 import json
 from array import array
+from bisect import bisect_left
+from pathlib import Path
 from typing import Dict, List, Optional, Any, Mapping
 from dataclasses import dataclass, field, asdict
 from threading import RLock
@@ -32,7 +34,8 @@ class PreloadingStrategy(Enum):
     HYBRID = "hybrid"                     # Combination approach
 
 
-def observed_preparation_interval(*, adapter_id, request_id, admission, native, remote=None):
+def observed_preparation_interval(*, adapter_id, request_id, admission, native, remote=None,
+                                  expected_clock_id=None):
     """Observed source loading -> executable GPU, distinct from service D.
 
     This evidence is NOT a frozen class profile or a physical admission proof.
@@ -42,7 +45,9 @@ def observed_preparation_interval(*, adapter_id, request_id, admission, native, 
     queue/RPC/capacity waits before the first load starts do not.
     """
     from ..clock import local_monotonic_clock_id
-    clock = local_monotonic_clock_id()
+    clock = local_monotonic_clock_id() if expected_clock_id is None else expected_clock_id
+    if not isinstance(clock, str) or not clock:
+        raise ValueError('preparation interval requires a clock identity')
     source = admission['source']
     tier = source['tier']
     if tier not in ('host', 'nvme', 'remote'):
@@ -249,6 +254,10 @@ class PreparationCostModel:
         with self._lock:
             return self._sequence, MappingProxyType(dict(self._estimates))
 
+    def estimate(self, key: PreparationClass) -> float:
+        with self._lock:
+            return self._estimates[key]
+
     def record_completed_load(self, key: PreparationClass, interval: Mapping) -> bool:
         """Consume one source-bound D34 interval exactly once, not a raw number.
 
@@ -286,6 +295,132 @@ class PreparationCostModel:
             self._observations.add(identity)
             self._sequence += 1
             return True
+
+
+@dataclass(frozen=True)
+class FrozenPreparationProfiles:
+    """Measured d initialization, bound to the actual model/environment.
+
+    The initial layout partition is conservatively exact-content-bound: equal
+    verified file trees imply equal stored layout. Distinct content is NOT
+    pooled merely because ranks or tensor sizes match. Runtime representation
+    and observed source occupancy further distinguish the class. This can be
+    refined only with an explicitly qualified layout equivalence contract.
+    """
+    size_edges_bytes: tuple
+    profiles: Mapping
+    sample_counts: Mapping
+    profile_id: str
+    source_runs: tuple
+    beta: float
+    model_config_json: str
+
+    @staticmethod
+    def source_class(source, edges):
+        content = source.get('expected_content_sha256') if source.get('native') else source.get('content_sha256')
+        size = source.get('footprint_bytes')
+        representation = source.get('representation')
+        if (not isinstance(content, str) or len(content) != 64
+                or any(c not in '0123456789abcdef' for c in content)
+                or type(size) is not int or size <= 0):
+            raise ValueError('preparation source requires verified content and observed footprint')
+        return PreparationClass(source.get('tier'), representation,
+            'exact_content_sha256:' + content, bisect_left(edges, size))
+
+    def classify_source(self, source):
+        key = self.source_class(source, self.size_edges_bytes)
+        if key.tier != 'gpu' and key not in self.profiles:
+            raise KeyError('source has no measured preparation profile')
+        return key
+
+    def validate_runtime(self, model_config):
+        from ..experiment.instance_pool import FrozenServiceProfiles
+        if json.dumps(FrozenServiceProfiles.model_identity(model_config), sort_keys=True,
+                      allow_nan=False) != self.model_config_json:
+            raise ValueError('runtime configuration differs from preparation profile')
+
+    @classmethod
+    def load(cls, path, *, expected_sha256, model_config, expected_context, beta):
+        """Recompute class means from completed native load evidence, not d tables.
+
+        Source measurements may be from a prior boot; their own admission/native/
+        remote clock IDs must agree. They are never subtracted from today's clock.
+        File/schema validation does not replace qualification of the measured
+        backend or independently verified adapter correctness.
+        """
+        from ..experiment.instance_pool import FrozenServiceProfiles
+        def digest(value):
+            return isinstance(value, str) and len(value) == 64 and all(c in '0123456789abcdef' for c in value)
+        if not digest(expected_sha256):
+            raise ValueError('preparation profile requires frozen SHA256')
+        raw = Path(path).read_bytes()
+        if hashlib.sha256(raw).hexdigest() != expected_sha256:
+            raise ValueError('preparation profile SHA256 mismatch')
+        payload = json.loads(raw)
+        context_keys = {'backend_environment_sha256', 'resource_envelope_sha256', 'input_contract_sha256'}
+        if (not isinstance(expected_context, Mapping) or set(expected_context) != context_keys
+                or any(not digest(value) for value in expected_context.values())):
+            raise ValueError('preparation profile requires frozen environment/resource/input context')
+        identity = FrozenServiceProfiles.model_identity(model_config)
+        if (not isinstance(payload, dict) or payload.get('kind') != 'native_preparation_profiles_v1'
+                or payload.get('layout_partition') != 'exact_content_v1'
+                or payload.get('context') != dict(expected_context)
+                or payload.get('model_config') != identity
+                or model_config.get('timing_contract') != 'ieee_tc_native_v1'
+                or model_config.get('generation_contract') != 'fixed_length_greedy_v1'):
+            raise ValueError('preparation profile model/configuration/context mismatch')
+        edges = payload.get('size_edges_bytes')
+        if (not isinstance(edges, list) or any(type(x) is not int or x <= 0 for x in edges)
+                or any(a >= b for a, b in zip(edges, edges[1:]))):
+            raise ValueError('preparation size edges must be increasing positive byte boundaries')
+        samples = payload.get('samples')
+        if not isinstance(samples, list) or not samples:
+            raise ValueError('preparation profile requires completed measured loads')
+        groups, seen, leases, runs = {}, set(), set(), set()
+        for sample in samples:
+            if (not isinstance(sample, dict) or sample.get('correct') is not True
+                    or not digest(sample.get('source_run_sha256'))
+                    or any(not isinstance(sample.get(k), str) or not sample[k]
+                           for k in ('request_id', 'adapter_id', 'attempt_id'))):
+                raise ValueError('preparation profile sample lacks correct source identity')
+            ident = (sample['source_run_sha256'], sample['request_id'], sample['attempt_id'])
+            if ident in seen:
+                raise ValueError('duplicate preparation profile sample')
+            admission, native = sample.get('admission'), sample.get('native')
+            if (not isinstance(admission, dict) or not isinstance(native, dict)
+                    or not isinstance(admission.get('clock_id'), str) or not admission['clock_id']
+                    or admission['clock_id'] != native.get('clock_id')):
+                raise ValueError('preparation profile admission/native clock mismatch')
+            key = cls.source_class(admission['source'], tuple(edges))
+            if admission['service_class'].get('representation') != key.representation:
+                raise ValueError('preparation profile source representation changed at admission')
+            interval = observed_preparation_interval(adapter_id=sample['adapter_id'],
+                request_id=sample['request_id'], admission=admission, native=native,
+                remote=sample.get('remote'), expected_clock_id=admission['clock_id'])
+            if not interval['profile_eligible']:
+                raise ValueError('preparation profile contains an incomplete/reused load')
+            lease = (interval['clock_id'], interval['native_owner_id'], interval['native_lease_id'])
+            if lease in leases:
+                raise ValueError('one native load duplicated across profile requests/runs')
+            groups.setdefault(key, []).append(interval['d_ms'])
+            seen.add(ident)
+            leases.add(lease)
+            runs.add(sample['source_run_sha256'])
+        profiles = {key: math.fsum(values)/len(values) for key, values in groups.items()}
+        PreparationCostModel(profiles, beta=beta, profile_id=expected_sha256)
+        return cls(tuple(edges), MappingProxyType(profiles),
+            MappingProxyType({key: len(values) for key, values in groups.items()}),
+            expected_sha256, tuple(sorted(runs)), beta,
+            json.dumps(identity, sort_keys=True, allow_nan=False))
+
+    def new_replica(self):
+        return PreparationCostModel(self.profiles, beta=self.beta, profile_id=self.profile_id)
+
+    def identity(self):
+        return dict(kind='native_preparation_profiles_v1', profile_sha256=self.profile_id,
+            layout_partition='exact_content_v1', supported_classes=len(self.profiles),
+            initial_samples=sum(self.sample_counts.values()), source_run_sha256=list(self.source_runs),
+            beta=self.beta, size_edges_bytes=list(self.size_edges_bytes))
 
 
 @dataclass(frozen=True)
