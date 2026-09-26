@@ -4465,6 +4465,16 @@ class InferenceEngine:
             raise RuntimeError("invalid single-worker reference acknowledgement")
         return results[0]
 
+    async def ieee_generation_observation(self) -> Dict[str, Any]:
+        """Read-only exact frontend IDs; not a native retirement acknowledgement."""
+        if not self.model_cfg.get('ieee_gpu_references', False):
+            raise ValueError('native generation observation contract required')
+        return {'bindings': {lease: {'owner_id': value['owner_id'],
+                                     'backend_request_id': value['backend_request_id']}
+                             for lease, value in self._ieee_generation_refs.items()},
+                'frontend_mapping': {key: list(value) for key, value
+                    in self.engine.output_processor.external_req_ids.items()}}
+
     async def ieee_retire_generation(self, *, gpu_reference: Dict[str, Any], abort: bool) -> Dict[str, Any]:
         """Settle one known request, never equate frontend abort with GPU completion."""
         if not self.model_cfg.get('ieee_gpu_references', False) or type(abort) is not bool:
@@ -4473,14 +4483,17 @@ class InferenceEngine:
         bound = self._ieee_generation_refs.get(lease)
         if bound is None or bound['owner_id'] != gpu_reference['owner_id']:
             raise ValueError('unknown native generation binding; reference retained')
-        if 'retirement' not in bound:
-            retirement = await self.engine.ieee_retire_request(bound['backend_request_id'], abort=abort)
-            if (retirement.get('retired') is not True
-                    or retirement.get('external_request_id') != bound['backend_request_id']):
-                raise ValueError('retirement did not acknowledge this bound request')
-            await self.ieee_gpu_reference(operation='end_use', lease_id=lease,
-                expected_owner_id=bound['owner_id'], backend_request_id=bound['backend_request_id'])
-            bound['retirement'] = dict(retirement)
+        # Normal completion and an external abort can reach this boundary
+        # together. One lease has one end-use commit, even with two waiters.
+        async with bound.setdefault('retirement_lock', asyncio.Lock()):
+            if 'retirement' not in bound:
+                retirement = await self.engine.ieee_retire_request(bound['backend_request_id'], abort=abort)
+                if (retirement.get('retired') is not True
+                        or retirement.get('external_request_id') != bound['backend_request_id']):
+                    raise ValueError('retirement did not acknowledge this bound request')
+                await self.ieee_gpu_reference(operation='end_use', lease_id=lease,
+                    expected_owner_id=bound['owner_id'], backend_request_id=bound['backend_request_id'])
+                bound['retirement'] = dict(retirement)
         return {'gpu_reference_owner_id': bound['owner_id'], 'gpu_reference_lease_id': lease,
                 'native_retirement': dict(bound['retirement'])}
 
@@ -4626,6 +4639,9 @@ class SubprocessInferenceEngineProxy:
         self._rpc_channel_queue: Optional[asyncio.Queue] = None
         self._rpc_channel_init_lock = asyncio.Lock()
         self._rpc_channels: List["_BlockingRPCChannel"] = []
+        # A lost reply does not prove that the native process died. Keep each
+        # uncertain mutation until its exact owner/lease can be reconciled.
+        self._native_rpc_uncertain: Dict[str, Dict[str, Any]] = {}
 
     @staticmethod
     def _worker_script_path() -> Path:
@@ -4842,6 +4858,22 @@ class SubprocessInferenceEngineProxy:
         if self._engine_dead or self._process.poll() is not None:
             self._engine_dead = True
             raise RuntimeError(self._with_worker_log_context("subprocess_engine_dead"))
+        native = self.model_cfg.get('timing_contract') == 'ieee_tc_native_v1'
+        control = native and cmd != 'generate'
+        if native and cmd == 'generate' and self._native_rpc_uncertain:
+            raise RuntimeError('native RPC ownership unresolved; new generation withheld')
+        attempt_id = uuid.uuid4().hex
+        def retain_uncertain() -> None:
+            if not native or cmd in ('ieee_worker_observation', 'ieee_scheduler_observation',
+                                     'ieee_generation_observation', 'shutdown'):
+                return
+            if cmd == 'ieee_gpu_reference' and kwargs.get('operation') in ('snapshot', 'source_snapshot'):
+                return
+            ref = kwargs.get('gpu_reference') or {}
+            self._native_rpc_uncertain[attempt_id] = {
+                'cmd': cmd, 'operation': kwargs.get('operation'),
+                'owner_id': ref.get('owner_id', kwargs.get('expected_owner_id')),
+                'lease_id': ref.get('lease_id', kwargs.get('lease_id'))}
 
         async def _send_rpc_on_channel(
             channel: _BlockingRPCChannel,
@@ -4891,7 +4923,9 @@ class SubprocessInferenceEngineProxy:
         channel = None
         try:
             channel_acquire_started_at = time.perf_counter()
-            channel = await self._acquire_rpc_channel()
+            # Reconciliation must not wait behind all outstanding generations.
+            # It uses a fresh, one-operation connection, never the lost stream.
+            channel = await (self._open_rpc_channel() if control else self._acquire_rpc_channel())
             rpc_channel_acquire_ms = max(
                 0.0,
                 (time.perf_counter() - channel_acquire_started_at) * 1000.0,
@@ -4906,18 +4940,24 @@ class SubprocessInferenceEngineProxy:
             # request. Withdraw the transport, without claiming native abort.
             if channel is not None:
                 abandoned, channel = channel, None
-                self._engine_dead = True
+                retain_uncertain()
+                if not native:
+                    self._engine_dead = True
                 await self._drop_rpc_channel(abandoned)
+                if native and not control and self._rpc_channel_queue is not None:
+                    self._rpc_channel_queue.put_nowait(None)
             raise
         except Exception as first_exc:
             if channel is not None:
                 abandoned, channel = channel, None
+                retain_uncertain()
                 await self._drop_rpc_channel(abandoned)
-            if getattr(self, 'model_cfg', {}).get('timing_contract') == 'ieee_tc_native_v1':
+                if native and not control and self._rpc_channel_queue is not None:
+                    self._rpc_channel_queue.put_nowait(None)
+            if native:
                 # Native generate/begin-use may have committed before the reply
                 # was lost. The controller owns the unresolved attempt; neither
                 # blind resubmission nor closing the socket proves completion.
-                self._engine_dead = True
                 raise RuntimeError(self._with_worker_log_context(
                     f'subprocess_native_rpc_failed_no_retry: {type(first_exc).__name__}: {first_exc}'
                 )) from None
@@ -4950,8 +4990,11 @@ class SubprocessInferenceEngineProxy:
             message = f"subprocess_engine_dead: {type(first_exc).__name__}: {first_exc}"
             raise RuntimeError(self._with_worker_log_context(message))
         finally:
-            if channel is not None and cmd != "shutdown":
-                await self._release_rpc_channel(channel)
+            if channel is not None:
+                if control:
+                    await self._drop_rpc_channel(channel)
+                elif cmd != "shutdown":
+                    await self._release_rpc_channel(channel)
 
     async def _ensure_rpc_channel_pool(self) -> None:
         if self._rpc_channel_queue is not None:
@@ -4966,7 +5009,7 @@ class SubprocessInferenceEngineProxy:
                     channel = await self._open_rpc_channel()
                     opened.append(channel)
                     await queue.put(channel)
-            except Exception:
+            except BaseException:
                 for channel in opened:
                     await self._drop_rpc_channel(channel)
                 raise
@@ -5009,12 +5052,34 @@ class SubprocessInferenceEngineProxy:
             channel.recv_buffer.extend(chunk)
 
     async def _open_rpc_channel(self) -> _BlockingRPCChannel:
-        return await asyncio.to_thread(self._open_blocking_rpc_channel)
+        opening = asyncio.create_task(asyncio.to_thread(self._open_blocking_rpc_channel))
+        try:
+            return await asyncio.shield(opening)
+        except asyncio.CancelledError:
+            # Opening a socket in a thread is also not cancelled by cancelling
+            # its waiter. Join and close it, rather than leaking a live channel.
+            while not opening.done():
+                try:
+                    await asyncio.shield(opening)
+                except asyncio.CancelledError:
+                    continue
+                except Exception:
+                    break
+            if not opening.cancelled() and opening.exception() is None:
+                await self._drop_rpc_channel(opening.result())
+            raise
 
     async def _acquire_rpc_channel(self) -> _BlockingRPCChannel:
         await self._ensure_rpc_channel_pool()
         assert self._rpc_channel_queue is not None
         channel = await self._rpc_channel_queue.get()
+        if channel is None:
+            try:
+                channel = await self._open_rpc_channel()
+                self._rpc_channels.append(channel)
+            except BaseException:
+                self._rpc_channel_queue.put_nowait(None)
+                raise
         return channel
 
     async def _release_rpc_channel(
@@ -5244,8 +5309,25 @@ class SubprocessInferenceEngineProxy:
     async def ieee_scheduler_observation(self) -> Dict[str, Any]:
         return await self._rpc("ieee_scheduler_observation")
 
+    async def ieee_generation_observation(self) -> Dict[str, Any]:
+        return await self._rpc('ieee_generation_observation')
+
+    _lora_int_id = staticmethod(InferenceEngine._lora_int_id)
+
     async def ieee_retire_generation(self, *, gpu_reference: Dict[str, Any], abort: bool) -> Dict[str, Any]:
-        return await self._rpc('ieee_retire_generation', gpu_reference=gpu_reference, abort=abort)
+        result = await self._rpc('ieee_retire_generation', gpu_reference=gpu_reference, abort=abort)
+        if (result.get('gpu_reference_owner_id') != gpu_reference['owner_id']
+                or result.get('gpu_reference_lease_id') != gpu_reference['lease_id']
+                or result.get('native_retirement', {}).get('retired') is not True):
+            raise ValueError('retirement lacks exact native dispatch identity')
+        # Only settle generation/retirement exchanges for this exact dispatch.
+        # Unknown loads, acquires or releases are not cleared by a request end.
+        for key, operation in list(self._native_rpc_uncertain.items()):
+            if (operation['cmd'] in ('generate', 'ieee_retire_generation')
+                    and operation['owner_id'] == gpu_reference['owner_id']
+                    and operation['lease_id'] == gpu_reference['lease_id']):
+                del self._native_rpc_uncertain[key]
+        return result
 
     async def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
         return await self._rpc("ieee_gpu_reference", operation=operation, **kwargs)

@@ -22,7 +22,7 @@
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
 | P1 IEEE semantic alignment | Mathematical contracts, native references, managed file ownership/storage and preallocated content-verified HTTP transfers tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D19. Native fetch allocates archive/payload before body reads under the owner file budget, retains old copies and concurrent allocations. Full-pool qualification, all-tier physical reservations/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
-| P2 backend qualification | Actual sequential100/normal batch4 passed; local cancellation ownership passes both models, 3B output audit/RPC/pool gates open | P2_BACKEND_QUALIFICATION.md + smoke100/batch4/cancel4 summaries. 7B cancel survivors match old outputs; 3B distinct-adapter survivor differs, retain-adapter control matches cancel output. Not open-loop/remote/main performance |
+| P2 backend qualification | Actual sequential100/normal batch4 passed; 7B actual subprocess cancellation passes; 3B output audit/full-pool gates open | P2_BACKEND_QUALIFICATION.md + smoke100/batch4/cancel4/cancelrpc4 summaries. 7B cancel survivors match old outputs, separate TCP control settles exact ownership; 3B distinct-adapter survivor differs, retain-adapter control matches cancel output. Not open-loop/remote/main performance |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
 | A1–A5, S1–S3 | Not started | Shared frozen policies required |
@@ -51,13 +51,17 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-0. P2 installation finished; do NOT reinstall. Environment `/home/qhq/.venvs/primelora_vllm0300_tc_20260925`. All three latest cancel/retain model runs finished; contexts clear and scopes removed. Local retirement/ownership passes both models. 7B survivors match prior output SHA; 3B different-adapter survivor differs, even without post-cancel eviction (both cancel modes have identical survivor hashes). Next bounded work: native-output attribution/reference check for 3B and real subprocess reconciliation: old proxy marks _engine_dead on cancelled socket and currently refuses even retirement RPC. Separate uncertain channel from native engine failure, preserve no-retry and exact-ID ownership. Then full pool and Full integration; no more repetitions of normal batch4. Reuse candidate_cache, candidate/bin on PATH, original assets/trace. Formal metrics remain unqualified.
+0. P2 installation finished; do NOT reinstall. Environment `/home/qhq/.venvs/primelora_vllm0300_tc_20260925`. All current runs finished/cleaned. Actual 7B cancelrpc4 passed. 3B stock AsyncLLM reproduced req3 cancel-dependent f6b4... versus sequential 2c23... hashes, but whole diagnostic failed at wrong-weight control selection: finance and writing IDs share one weight SHA. Preserve partial result. Existing checker now adds native_adapter_reference (original four-row input view, executes only req3 same/wrong-weight pair); it selects first distinct actual weight from original first100 rows, not output. Run that narrow remaining control next, not native cancel pairs again. Review official 0.30 warning against old 3B chunked_prefill=false before candidate configuration freeze. Then full pool/Full integration. Reuse candidate_cache, candidate/bin on PATH, original assets/trace. Use existing KEEP_DEDICATED_WORKER_LOGS for subprocess diagnostics. Formal metrics remain unqualified.
 1. Continue native owner integration: measured source-class costs, resource-owner remaining budgets, atomic routing/admission. Native token/reference interfaces and startup-parallel external arrival/submission are opt-in and unit/witness tested, but actual engine clocks/streams/controller owners remain open. Do not declare the historical scorer IEEE-aligned.
 2. Qualify actual model/GPU workers and lifecycle under the existing guarded launcher; native single-raylet and tiny replay witnesses are not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
 ## Verified backups
+
+- Main cancellation/retirement checkpoint `ac69b3b70e6babe0af7b9f2456ebf24037185e97`
+  pushed to V2; remote SHA verified. Three real qualification runs retained;
+  3B output attribution and actual cancelled-RPC reconciliation remain open.
 
 - Main real concurrent-batch checkpoint `018e5a6337e1a8ca618686a6124a7e88043aaa21`
   pushed to V2; remote SHA verified. Both models' shared/different-adapter pairs
@@ -997,3 +1001,51 @@ configs/relayserve_motivation_serverlessllm.yaml.
   raw/launch/log/CSV bundles verified; 147 protected entries and source plan
   unchanged. Four GPUs at 15 MiB/0%; local free disk about 330 GiB. Named-file
   staging excludes all user modifications; staged credential-pattern scan clear.
+
+## Actual cancelled-RPC / stock-native attribution checkpoint
+
+- The dedicated proxy now separates native process failure from one uncertain
+  socket. A fresh independent control exchange cannot be starved by generation
+  slots. Lost mutations remain keyed by owner/lease; new generation is withheld
+  until exact retirement settles that generation. Unknown load/acquire/release
+  stays retained. No generation retry, guessed completion or worker restart.
+- Real TCP tests preserve the other in-flight request and replenish the lost
+  pool position. Wrong-owner/lease acknowledgements cannot clear uncertainty.
+  Socket opening joins cancellation; normal/abort retirement shares one end-use
+  commit. Early/missing native submission binding remains retained, not declared
+  free. This does not qualify every transport-loss boundary or Full controller.
+- Real 7B subprocess cancelrpc4 passes: two cancelled, two 59/217-token survivors,
+  both survivor/prompt hashes match prior. Each cancellation leaves exactly one
+  survivor lease; final references/cache/scheduler empty, proxy not dead and no
+  unresolved generation. 62 resource samples, peak 5,683,507,200 bytes, zero
+  high/max/OOM/OOM-kill; contexts clear and scope removed. Curated table/summary
+  delivered. Native deferred fence remains zero in this actual configuration.
+- Normal proxy shutdown removed its private text log (old default); structured
+  native/launch/watchdog evidence remains. Do not rerun solely for that log;
+  subsequent proxy qualifiers should use existing KEEP_DEDICATED_WORKER_LOGS.
+- 3B stock AsyncLLM direct-call diagnostic independently reproduces req3's
+  cancel output f6b412...0039 and sequential output 2c2300...148c. Prime demand
+  load/reference/retirement is not necessary for that change. Req1's output also
+  differs from old reference; it is retained, not filtered out. No assertion of
+  a specific numerical kernel cause or complete adapter correctness.
+- Whole native diagnostic is failed/partial: its intended wrong-weight control
+  discovered finance/writing logical IDs share the same actual weight SHA. Raw
+  failure retained; no explicit final adapter eviction occurred, but teardown
+  cleared contexts/scope. 64 samples, peak 4,978,348,032 bytes, resource events
+  zero. Existing first100 data has a genuinely different weight; only that final
+  two-request same-prompt adapter control needs running. New
+  native_adapter_reference option is implemented but NOT model-tested yet.
+- Official 0.30 source warns about old 3B chunked_prefill=false. Treat supported
+  configuration selection as a remaining P2 gate; do not infer the warning is
+  the proven cause of hash differences or silently enable batch invariance.
+- Initial ten targeted tests had one obsolete wire-command fixture
+  (generate_prepared instead of actual generate); corrected. First full 578
+  regression had a constructor-bypassing legacy fixture without model_cfg;
+  fixed explicitly, no runtime fallback. Final 578 functional pass in 21.999 s;
+  54 independent safety/census/replay pass in 0.457 s. Both raw/launch/log/CSV
+  bundles verified; 147 historical entries and authoritative plan unchanged.
+- No M1/M2, ablation or sensitivity point measured. Full integration, physical
+  owner accounting, full pool, SLO calibration, actual baseline qualification
+  (Serverless first), remote disk floor and main matrices remain outstanding.
+  The 7B RPC run used its recorded source SHA before the later single-flight
+  end-use lock; that lock is regression-tested, not separately GPU-tested.

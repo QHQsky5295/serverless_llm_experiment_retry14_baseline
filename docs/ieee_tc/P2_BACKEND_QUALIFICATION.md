@@ -1,7 +1,76 @@
 # P2：共同 vLLM 后端资格（进行中）
 
-已通过两模型各 100 请求的顺序原生合同检查；并发、完整模型/池资格与性能资格仍未完成。
+已通过两模型各 100 请求的顺序合同及普通并发检查；取消分支见以下独立证据。
+完整模型/池资格与性能资格仍未完成。
 旧环境与旧结果不覆盖。
+
+## 2026-09-26：实际跨进程取消（7B）
+
+假设：旧 proxy 把单连接取消标为整个 engine dead，会阻止已知请求的
+retirement 确认，并可能使其他同批请求所在副本被提前回收。
+官方 [AsyncLLM 源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/async_llm.py)
+区分 frontend abort 与 core 请求生命周期，不能由 TCP 关闭推断已释放 GPU 工作。
+
+改动：控制交换使用独立短连接；丢失回复的 mutation 按 owner/lease 留存，
+不重发生成，不标记进程已死。存在未知 mutation 时拒绝新的 generation；
+只有匹配 owner/lease 的原生 retirement 才清除相应 generation/retirement
+不确定记录。其他未知 load/acquire/release 不被顺带清除。已在执行的其他
+请求继续完成。真正进程退出/原生 fatal 仍按失败处理。
+
+| 实际 7B 检查 | 结果 |
+|---|---|
+| 既有前四请求、两组并发 | shared finance；writing/finance |
+| 取消时 native batch/KV | 两组均观测到共同 decode |
+| 取消请求 | 2，未计为正确 fixed-work 请求 |
+| 保留请求 | 2，59/217 native tokens，输出与旧对照一致 |
+| 取消后资源归属 | 只剩 survivor 的一个 lease；最终全部归还 |
+| 结束后的 proxy 状态 | 无未知 mutation，engine 未被误标死亡 |
+| E2E / TPOT 重算误差 | 0 / 0 ms |
+| 服务内存峰值 / high/max/OOM | 5,683,507,200 bytes / 全零 |
+| 外置采样 / 最终释放 | 62 次；GPU contexts 清空，scope 移除 |
+
+数据：`paper_results/ieee_tc/p2_backend/20260926_7b_cancelrpc4.{json,csv}`。
+raw SHA `fc4c9cec7603fe2bb58d17f4377e50a5fe428e5af2d71d343a0b58b394ef8989`。
+这是实际 dedicated worker/TCP/native core 的资格诊断，不是完整 controller
+工作流、真实远端性能、G1/G2 或非零 deferred-KV fence 的证据。20 ms 诊断
+采样与独立控制连接开销不能当作正式低扰动监控成本。
+
+本次正常 shutdown 按旧路径删除了 worker 私有文字日志；结构化 native
+观测、请求结果和外置 launch/watchdog 原始证据均保留。后续资格启动启用
+现有 keep-worker-logs 开关，不为补文字日志重跑已完成的正确检查。
+3B 输出差异仍须 stock-native reference 归因；不因 7B 通过而宣布两模型通过。
+
+## 3B stock-native 输出归因：部分诊断完成
+
+`native_cancel_reference` 直接调用 stock `vllm.v1.engine.async_llm.AsyncLLM`，
+未调用 Prime 的 demand-load/reference/retirement。保留只读 worker 和 scheduler
+观测。req_00003 的原生取消同伴后输出 SHA 为 `f6b412...0039`，与 Prime
+取消路径完全一致；随后原生顺序同提示同 adapter 输出为 `2c2300...148c`，
+与旧顺序对照一致。因此 Prime 引用/卸载实现不是这个输出变化的必要条件。
+这是所测路径的独立复现，不精确定位浮点 kernel，也不宣布全部 adapter 正确。
+
+req_00001 的原生取消输出与此前不同，同样保留，不只报告匹配的请求。
+官方 [batch invariance 文档](https://docs.vllm.ai/en/v0.30.0/features/batch_invariance/)
+提供消除 batch-size/order 依赖的可选模式，并说明性能代价；本次未打开该模式，
+没有为追求 hash 一致而改变正式候选配置。
+
+本次整体 `pass=false`：在最后的错误权重对照前发现 finance_lora 与
+writing_lora_0011 的 safetensors SHA 均为
+`dfd99d29ccc482c8634823bef3eb290a928e79e9de52bcf0fdabc5b581ab7bf3`。
+两个逻辑 adapter ID 不能冒充两套不同训练权重。已有 100 请求结果包含另一
+权重 SHA（如 code_lora_0015），后续只补同提示、正确/真正不同权重的原生对照，
+选择第一套不同 SHA，不按生成结果挑选，也不重新生成工件。
+
+状态表与完整 hashes：
+`paper_results/ieee_tc/p2_backend/20260926_3b_nativecancelref4_partial.{json,csv}`。
+64 次外置采样；峰值 4,978,348,032 bytes；high/max/OOM 全零。
+GPU contexts 清空、scope 移除；因提前终止，未执行最终 adapter 显式 eviction，
+不把进程退出释放写成完成了该检查。该诊断不进入性能排名。
+
+此外，原生 0.30.0 对旧 3B profile 的 `enable_chunked_prefill=false` 发出
+不支持关闭的警告（`arg_utils.py` 的 `_set_default_chunked_prefill_and_prefix_caching_args`）。
+这不是上述输出变化原因的证明，但后续后端配置资格须选择受支持路径再冻结；
+不能仅凭本次 native 复现，把全部旧配置直接放行到正式性能实验。
 
 ## 当前候选及本机条件
 

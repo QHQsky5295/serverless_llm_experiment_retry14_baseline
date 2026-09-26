@@ -1,0 +1,154 @@
+{
+  "kind": "p2_stock_native_cancel_reference_partial_v1",
+  "pass": false,
+  "formal_performance_result": false,
+  "status": "partial_diagnostic_protocol_error",
+  "failure": "wrong-adapter negative control requires different existing weights",
+  "native_frontend": "vllm.v1.engine.async_llm.AsyncLLM",
+  "prime_reference_loading_retirement_used": false,
+  "requests": [
+    {
+      "request_id": "req_00000/native_pair",
+      "source_request_id": "req_00000",
+      "adapter_id": "finance_lora",
+      "outcome": "cancelled",
+      "target_tokens": 152,
+      "actual_tokens": null,
+      "prompt_sha256": "d48b8782cd47f7438837d530fb7e329f42e0f7bb1857c4cf7e53acb3c9417cc6",
+      "native_prompt_ids_sha256": null,
+      "output_ids_sha256": null,
+      "prior_prompt_match": true,
+      "prior_sequential_output_match": null
+    },
+    {
+      "request_id": "req_00001/native_pair",
+      "source_request_id": "req_00001",
+      "adapter_id": "finance_lora",
+      "outcome": "completed",
+      "target_tokens": 59,
+      "actual_tokens": 59,
+      "prompt_sha256": "7d909f88ed53d92b35fc65d502ec3db8d213c2cec3c220074ea1a92c235864c5",
+      "native_prompt_ids_sha256": "2267cb2bacf06e1f715a23b3a479cb324eaa7ac97fd7df050dc4ab0c3df5861e",
+      "output_ids_sha256": "7058646b7e1c5804ac74a110b4ae14a926c95e53de3b5241551997a26750a0b0",
+      "prior_prompt_match": true,
+      "prior_sequential_output_match": false
+    },
+    {
+      "request_id": "req_00002/native_pair",
+      "source_request_id": "req_00002",
+      "adapter_id": "writing_lora_0011",
+      "outcome": "cancelled",
+      "target_tokens": 123,
+      "actual_tokens": null,
+      "prompt_sha256": "40b3a3a0009e919a9849c35f420de5bc87a313bf48e287fd12b4dc5422e736bf",
+      "native_prompt_ids_sha256": null,
+      "output_ids_sha256": null,
+      "prior_prompt_match": true,
+      "prior_sequential_output_match": null
+    },
+    {
+      "request_id": "req_00003/native_pair",
+      "source_request_id": "req_00003",
+      "adapter_id": "finance_lora",
+      "outcome": "completed",
+      "target_tokens": 217,
+      "actual_tokens": 217,
+      "prompt_sha256": "ee3fa20a89e360813cdd6abf93ce33113972f0f6d5fac1cf440f1ff6450d9d52",
+      "native_prompt_ids_sha256": "d904de63bd0654db897622ee6bbb2444dec9048443ce9b5fd55dffb7c096889c",
+      "output_ids_sha256": "f6b41212323bab4e79414b38f26c1f88cb12ae27bb74770f0aea81f2825e0039",
+      "prior_prompt_match": true,
+      "prior_sequential_output_match": false
+    },
+    {
+      "request_id": "req_00003/native_sequential_same_adapter",
+      "source_request_id": "req_00003",
+      "adapter_id": "finance_lora",
+      "outcome": "completed",
+      "target_tokens": 217,
+      "actual_tokens": 217,
+      "prompt_sha256": "ee3fa20a89e360813cdd6abf93ce33113972f0f6d5fac1cf440f1ff6450d9d52",
+      "native_prompt_ids_sha256": "d904de63bd0654db897622ee6bbb2444dec9048443ce9b5fd55dffb7c096889c",
+      "output_ids_sha256": "2c2300cd16afc6c4e1295a8695da2899ffc2e9dace654f7389d97f4cfb25148c",
+      "prior_prompt_match": true,
+      "prior_sequential_output_match": true
+    }
+  ],
+  "finding": {
+    "req3_cancel_output_matches_prime_cancel": true,
+    "req3_sequential_output_matches_old_sequential": true,
+    "req1_cancel_output_matches_prior": false,
+    "interpretation": "Target req3 batch/cancel-dependent difference is independently reproduced through stock AsyncLLM; not proof of a particular floating-point kernel or all-adapter correctness."
+  },
+  "negative_control_executed": false,
+  "shared_weight_sha256": "dfd99d29ccc482c8634823bef3eb290a928e79e9de52bcf0fdabc5b581ab7bf3",
+  "resources": {
+    "samples": 64,
+    "peak_bytes": 4978348032,
+    "min_host_available_bytes": 106130972672,
+    "event_max": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "cleanup": {
+    "native_gpu_contexts_clear": true,
+    "scope_removed": true,
+    "adapter_cache_explicitly_evicted": false
+  },
+  "result_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/model_20260926/llama32_3b_nativecancelref4_attempt1.json",
+  "result_sha256": "adf9d5d87c8b3eafa4d9886efb06e8d79cd5661c5f6e2ed3b4b6b775c1fdc602",
+  "launch_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/model_20260926/llama32_3b_nativecancelref4_attempt1_launch.json",
+  "launch_sha256": "c7c98b0ef23097d3bebebd16c572f70d6e2cc2c835ca9e7d36ec42c366180bb3",
+  "evidence_sha256": {
+    "watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exec_receipt.json": "9b01b89961cbb93cd27063092220caac2d2fd60021ad1ffac049a0d8a972d5d6",
+    "watchdog.jsonl": "4ba977811d6f0b2ab8ef34322c92990372028bba56e3a2d301bc7b63cd5db199",
+    "service.log": "35e748a82dce9717f20478e27fac656902c1ccef9b70db54afdfc1980338aabe"
+  },
+  "check_source_sha256": "3e7b43da2d224bb1c492d903fb17d037b23be2db4b746bafedaec51c952fee2d",
+  "csv_sha256": "474bff52a018a6d15b1cd60e2c70ba4454e65c24764b643bf9537b1cb98a8495",
+  "trace": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "6b796f614169a3e9d36d7b217560595a8bbb0a8e441e671ff821e104d6d1fd74",
+    "count": 4,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1
+  },
+  "model_config": {
+    "name": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+    "backend": "vllm",
+    "device_id": 0,
+    "visible_device_ids": [
+      0
+    ],
+    "tensor_parallel_size": 1,
+    "gpu_memory_utilization": 0.72,
+    "max_model_len": 1024,
+    "max_loras": 8,
+    "max_cpu_loras": 32,
+    "max_lora_rank": 64,
+    "enable_lora": true,
+    "enforce_eager": "auto",
+    "dtype": "float16",
+    "max_num_seqs": 8,
+    "max_num_batched_tokens": 4096,
+    "max_output_tokens_cap": 256,
+    "max_input_len": 759,
+    "runtime_concurrency_cap": 8,
+    "enable_chunked_prefill": false,
+    "enable_prefix_caching": false,
+    "timing_contract": "ieee_tc_native_v1",
+    "ieee_worker_observation": true,
+    "ieee_gpu_references": false,
+    "ieee_scheduler_observation": true,
+    "ieee_input_upper_bounds": [
+      759
+    ],
+    "generation_contract": "fixed_length_greedy_v1",
+    "canonical_prompt_renderer": "role_lines_v1"
+  }
+}

@@ -1130,6 +1130,8 @@ class NativeRPCOwnership(unittest.TestCase):
         proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
         proxy.model_cfg = {'timing_contract': 'ieee_tc_native_v1'}
         proxy._engine_dead = False
+        proxy._native_rpc_uncertain = {}
+        proxy._rpc_channel_queue = None
         proxy._rpc_channels = []
         proxy._process = SimpleNamespace(poll=Mock(return_value=None))
         proxy._acquire_rpc_channel = AsyncMock(return_value=object())
@@ -1143,7 +1145,7 @@ class NativeRPCOwnership(unittest.TestCase):
         proxy = self.proxy()
         proxy._blocking_rpc_roundtrip = Mock(side_effect=OSError('reply lost after submit'))
         with self.assertRaisesRegex(RuntimeError, 'reply lost after submit'):
-            asyncio.run(proxy._rpc('generate_prepared', request_plan={'prompt': 'existing'}))
+            asyncio.run(proxy._rpc('generate', prompt='existing'))
         self.assertEqual(proxy._blocking_rpc_roundtrip.call_count, 1)
         proxy._open_rpc_channel.assert_not_awaited()
         proxy._release_rpc_channel.assert_not_awaited()
@@ -1169,13 +1171,15 @@ class NativeRPCOwnership(unittest.TestCase):
         asyncio.run(check())
         proxy._release_rpc_channel.assert_not_awaited()
         proxy._drop_rpc_channel.assert_awaited_once()
-        self.assertTrue(proxy._engine_dead)
+        self.assertFalse(proxy._engine_dead)
+        self.assertEqual(len(proxy._native_rpc_uncertain), 1)
 
     def test_real_socket_shutdown_unblocks_cancelled_receiver_without_pool_reuse(self):
         proxy = self.proxy()
         client, server = socket.socketpair()
         channel = SimpleNamespace(sock=client, recv_buffer=bytearray())
         proxy._acquire_rpc_channel.return_value = channel
+        proxy._open_rpc_channel.return_value = channel
         proxy._drop_rpc_channel = MethodType(SubprocessInferenceEngineProxy._drop_rpc_channel, proxy)
         # The production blocking receiver is used, with no responding backend.
         async def check():
@@ -1193,7 +1197,8 @@ class NativeRPCOwnership(unittest.TestCase):
                 client.close()
         asyncio.run(check())
         proxy._release_rpc_channel.assert_not_awaited()
-        self.assertTrue(proxy._engine_dead)
+        self.assertFalse(proxy._engine_dead)
+        self.assertEqual(len(proxy._native_rpc_uncertain), 1)
 
 
 def replay_fixture():

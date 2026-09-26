@@ -1379,11 +1379,11 @@ async def qualify_concurrent_pairs(engine, plan, adapters, result, *, cancel_fir
             async with asyncio.timeout(1800.):
                 while not all(task.done() for task in tasks):
                     native = await engine.ieee_scheduler_observation()
-                    mapping = {key: list(value) for key, value
-                               in engine.engine.output_processor.external_req_ids.items()}
+                    frontend = await engine.ieee_generation_observation()
+                    mapping = frontend['frontend_mapping']
                     pair['samples'].append({'scheduler': native, 'frontend_mapping': mapping})
                     if cancel_first and not cancelled:
-                        bindings = [engine._ieee_generation_refs.get(ref['lease_id'])
+                        bindings = [frontend['bindings'].get(ref['lease_id'])
                                     for _, _, _, ref, _ in prepared_cases]
                         if all(bindings):
                             ids = [binding['backend_request_id'] for binding in bindings]
@@ -1472,6 +1472,109 @@ async def qualify_concurrent_pairs(engine, plan, adapters, result, *, cancel_fir
                           'same_native_batch_observed': True, 'pass': True}), flush=True)
 
 
+async def qualify_native_cancel_reference(engine, plan, adapters, result, *, include_pairs=True):
+    """Direct stock AsyncLLM reference; no Prime reference/load/retirement path.
+
+    Original input pairs and native scheduler observation are reused. The final
+    two requests are explicitly labelled same-prompt adapter counterfactuals,
+    not additional offered requests or performance samples.
+    """
+    import asyncio
+    from vllm import SamplingParams
+    from vllm.lora.request import LoRARequest
+    from vllm.v1.engine.async_llm import AsyncLLM
+    if type(engine.engine) is not AsyncLLM:
+        raise RuntimeError('native reference must use the stock AsyncLLM class')
+    result['native_frontend_class'] = type(engine.engine).__module__ + '.AsyncLLM'
+    def token_sha(ids):
+        return hashlib.sha256(json.dumps(list(ids), separators=(',', ':')).encode()).hexdigest()
+    async def generate(entry, *, suffix, adapter_override=None):
+        row = json.loads(entry.source_json)
+        aid = adapter_override or row['adapter_id']
+        target = min(row['expected_output_tokens'], 256)
+        prepared = engine.prepare_request('', target, row['expected_input_tokens'],
+                                          chat_messages=row['body']['messages'])
+        request_id = entry.request_id + '/' + suffix
+        case = {'request_id': request_id, 'source_request_id': entry.request_id,
+                'adapter_id': aid, 'target_tokens': target,
+                'prompt_sha256': hashlib.sha256(prepared.prompt.encode()).hexdigest(),
+                'lora_int_id': engine._lora_int_id(aid), 'lora_path': adapters[aid]['path'],
+                'outcome': 'pending', 'actual_tokens': None}
+        result['requests'].append(case)
+        params = SamplingParams(temperature=0., top_p=1., ignore_eos=True,
+                                stop=[], stop_token_ids=[], max_tokens=target, seed=42)
+        lora = LoRARequest(lora_name=aid, lora_int_id=case['lora_int_id'], lora_path=case['lora_path'])
+        try:
+            last = None
+            async for out in engine.engine.generate(prepared.prompt, params, request_id, lora_request=lora):
+                last = out
+            if (last is None or not last.finished or len(last.outputs) != 1
+                    or last.outputs[0].finish_reason != 'length'
+                    or len(last.outputs[0].token_ids) != target):
+                raise RuntimeError('native-reference output contract failed')
+            case.update(outcome='completed', actual_tokens=target,
+                output_ids_sha256=token_sha(last.outputs[0].token_ids),
+                native_prompt_ids_sha256=token_sha(last.prompt_token_ids),
+                output_token_ids=list(last.outputs[0].token_ids))
+        except asyncio.CancelledError:
+            case['outcome'] = 'cancelled'
+            raise
+        return case
+    result['concurrent_pairs'] = []
+    for offset in ((0, 2) if include_pairs else ()):
+        entries = plan.entries[offset:offset+2]
+        ids = [e.request_id+'/native_pair' for e in entries]
+        tasks = [asyncio.create_task(generate(e, suffix='native_pair')) for e in entries]
+        pair = {'source_indices': [offset, offset+1], 'samples': [], 'cancelled': False}
+        result['concurrent_pairs'].append(pair)
+        try:
+            async with asyncio.timeout(1800.):
+                while not all(t.done() for t in tasks):
+                    native = await engine.ieee_scheduler_observation()
+                    mapping = {k: list(v) for k,v in engine.engine.output_processor.external_req_ids.items()}
+                    pair['samples'].append({'scheduler': native, 'frontend_mapping': mapping})
+                    exact = qualification_request_mapping(ids, mapping)
+                    decoding = {r['request_id'] for r in native['admitted']
+                                if r['generated_tokens'] > 0 and r['native_allocated_blocks'] > 0}
+                    if (not pair['cancelled'] and exact and set(exact.values()).issubset(decoding)
+                            and set(exact.values()).issubset(native['scheduled_request_ids'])):
+                        pair['cancel_trigger'] = pair['samples'][-1]
+                        tasks[0].cancel()
+                        try:
+                            await tasks[0]
+                        except asyncio.CancelledError:
+                            pass
+                        else:
+                            raise RuntimeError('native-reference cancelled request unexpectedly succeeded')
+                        pair['cancelled'] = True
+                        pair['request_id_mapping'] = exact
+                    await asyncio.sleep(.02)
+                if not pair['cancelled']:
+                    raise RuntimeError('native-reference joint decode not observed')
+                await tasks[1]
+        finally:
+            for task in tasks:
+                if not task.done(): task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+    entry = plan.entries[3]
+    await generate(entry, suffix='native_sequential_same_adapter')
+    wrong_aid = result['negative_control_adapter']['adapter_id']
+    if adapters[wrong_aid]['weights_sha256'] == adapters[json.loads(entry.source_json)['adapter_id']]['weights_sha256']:
+        raise RuntimeError('wrong-adapter negative control requires different existing weights')
+    await generate(entry, suffix='native_sequential_wrong_adapter', adapter_override=wrong_aid)
+    result['scheduler_after'] = await engine.ieee_scheduler_observation()
+    final = result['scheduler_after']
+    if final['admitted'] or final['unretired_iterations'] or final['native_deferred_free_batches']:
+        raise RuntimeError('native reference has unfinished work')
+    result['workers_after'] = await engine.ieee_worker_observation()
+    result['native_adapter_cleanup'] = {}
+    for aid in sorted({case['adapter_id'] for case in result['requests']}):
+        result['native_adapter_cleanup'][aid] = await engine.engine.remove_lora(engine._lora_int_id(aid))
+    if not all(result['native_adapter_cleanup'].values()):
+        raise RuntimeError('native reference failed to remove its loaded adapters')
+    result.update(stage='complete', **{'pass': True})
+
+
 async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                               trace: Path, count: int, mode: str = 'sequential') -> dict:
     """Existing engine + old trace prefix, not a replacement performance runner.
@@ -1487,7 +1590,9 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         raise RuntimeError('model qualification requires completed CUDA check in this environment')
     if type(count) is not int or not 1 <= count <= 100:
         raise ValueError('qualification uses a 1..100 request prefix, not a regenerated trace')
-    if mode not in ('sequential', 'concurrent_pairs', 'cancel_pairs', 'cancel_pairs_retain_adapter') or (mode != 'sequential' and count != 4):
+    if mode not in ('sequential', 'concurrent_pairs', 'cancel_pairs', 'cancel_pairs_retain_adapter',
+                    'cancel_pairs_subprocess', 'native_cancel_reference',
+                    'native_adapter_reference') or (mode != 'sequential' and count != 4):
         raise ValueError('concurrent qualification requires exactly the original four-request prefix')
     result = {'kind': 'backend_native_model_prefix_qualification_v1', 'pass': False,
               'full_model_qualification': False, 'production_launch_authorized': False,
@@ -1505,7 +1610,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         import asyncio
         import yaml
         sys.path.insert(0, str(ROOT))
-        from scripts.run_all_experiments import InferenceEngine
+        from scripts.run_all_experiments import InferenceEngine, SubprocessInferenceEngineProxy
         from faaslora.datasets.workload_generator import FrozenReplayPlan
         from faaslora.clock import local_monotonic_clock_id
         result['stage'] = 'frozen_inputs'
@@ -1520,6 +1625,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                    generation_contract='fixed_length_greedy_v1',
                    canonical_prompt_renderer='role_lines_v1', max_input_len=759,
                    max_output_tokens_cap=256)
+        if mode in ('native_cancel_reference', 'native_adapter_reference'):
+            cfg['ieee_gpu_references'] = False
         result['model_config'] = cfg
         plan = FrozenReplayPlan.load(trace, count=count)
         result['trace'] = plan.identity()
@@ -1540,23 +1647,57 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 adapters[aid] = {'path': str(path), 'weights_sha256': digest(weights),
                                 'config_sha256': digest(path/'adapter_config.json')}
         result['adapters'] = adapters
-        engine = InferenceEngine(cfg, {})
+        if mode in ('native_cancel_reference', 'native_adapter_reference'):
+            # Select by existing weight identity, never by output or performance.
+            # Logical names alone are not evidence of different trained weights.
+            reference_sha = adapters[json.loads(plan.entries[3].source_json)['adapter_id']]['weights_sha256']
+            for candidate in FrozenReplayPlan.load(trace, count=100).entries:
+                aid = json.loads(candidate.source_json)['adapter_id']
+                path = (pool/aid).resolve(strict=True)
+                if not path.is_relative_to(pool) or path == pool:
+                    raise ValueError('negative-control adapter outside frozen pool')
+                weight_sha = digest(path/'adapter_model.safetensors')
+                if weight_sha != reference_sha:
+                    adapters[aid] = {'path': str(path), 'weights_sha256': weight_sha,
+                                    'config_sha256': digest(path/'adapter_config.json')}
+                    result['negative_control_adapter'] = {'adapter_id': aid,
+                        'existing_source_request_id': candidate.request_id,
+                        'selection': 'first_distinct_weight_in_existing_100_request_prefix'}
+                    break
+            else:
+                raise RuntimeError('existing prefix has no distinct weight for negative control')
         result['stage'] = 'engine_initialization'
         print(json.dumps({'event': 'model_qualification_stage', 'stage': result['stage'],
                           'model': cfg['name'], 'requests': count}), flush=True)
-        await engine.initialize()
+        if mode == 'cancel_pairs_subprocess':
+            engine = await SubprocessInferenceEngineProxy.spawn(model_cfg=cfg, cost_model={},
+                                                               device_id=0, runtime_gpu_ids=[0])
+            result['proxy_pid'] = engine._process.pid
+        else:
+            engine = InferenceEngine(cfg, {})
+            await engine.initialize()
         result['startup_latency_ms'] = engine.startup_latency_ms
         result['stage'] = 'worker_and_scheduler_observation'
         result['workers_before'] = await engine.ieee_worker_observation()
         for worker in result['workers_before']['workers']:
             validate_model_worker(worker, service, local_monotonic_clock_id())
         result['scheduler_before'] = await engine.ieee_scheduler_observation()
+        if mode in ('native_cancel_reference', 'native_adapter_reference'):
+            result['stage'] = mode
+            await qualify_native_cancel_reference(engine, plan, adapters, result,
+                                                  include_pairs=(mode == 'native_cancel_reference'))
+            return result
         result['sources_before'] = await engine.ieee_gpu_reference(operation='source_snapshot')
         if mode != 'sequential':
             result['stage'] = mode
             await qualify_concurrent_pairs(engine, plan, adapters, result,
                 cancel_first=mode.startswith('cancel_pairs'),
-                probe_cancel_eviction=(mode != 'cancel_pairs_retain_adapter'))
+                probe_cancel_eviction=(mode not in ('cancel_pairs_retain_adapter', 'cancel_pairs_subprocess')))
+            if mode == 'cancel_pairs_subprocess':
+                result['proxy_uncertain_after'] = dict(engine._native_rpc_uncertain)
+                result['proxy_engine_dead_after'] = engine._engine_dead
+                if result['proxy_uncertain_after'] or result['proxy_engine_dead_after']:
+                    raise RuntimeError('subprocess cancellation ownership remains unresolved')
         for entry in plan.entries if mode == 'sequential' else ():
             row = json.loads(entry.source_json)
             aid, target = row['adapter_id'], min(row['expected_output_tokens'], 256)
@@ -1731,7 +1872,8 @@ def main():
     parser.add_argument('--model-profile')
     parser.add_argument('--request-count', type=int, default=4)
     parser.add_argument('--qualification-mode', choices=['sequential', 'concurrent_pairs', 'cancel_pairs',
-                        'cancel_pairs_retain_adapter'], default='sequential')
+                        'cancel_pairs_retain_adapter', 'cancel_pairs_subprocess',
+                        'native_cancel_reference', 'native_adapter_reference'], default='sequential')
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')

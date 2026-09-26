@@ -1952,6 +1952,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         proxy._host = "127.0.0.1"
         proxy._port = 9999
         proxy._engine_dead = False
+        proxy.model_cfg = {'timing_contract': 'legacy'}
         proxy._rpc_pool_size = 1
         proxy._rpc_channel_queue = None
         proxy._rpc_channel_init_lock = asyncio.Lock()
