@@ -584,3 +584,31 @@ worker CPU/GPU LRU 上维护请求引用；不是只修改 router 的 resident s
 `request_admission_reserved=false`、`production_launch_authorized=false`。
 后续真实模型资格用这些现有入口验证 hold/use/release/eviction，再完成控制器
 快照与资源预约接入。没有使用本步骤数据声称 TTFT 或 GPU-s 已改善。
+
+## 2026-09-26 D28：7B 原生容量等待资格已完成
+
+这是上述原生引用工作的后续实测，不是正式 Full 结果。复用0.30环境、旧seed42
+前32条输入和原有4个LoRA槽位，按出现顺序选5个不同adapter请求；前4个持有
+实际引用，第5个在第1个真实decode期间尝试加载。没有缩小cache、注入sleep、
+新增权重或负载。使用既有受限 dedicated worker、实际UUID分配和外置监控。
+
+| 检查 | 实际结果 |
+|---|---|
+| attempt1 | 启动器漏传NVML组件SHA，模型启动前被拒绝；回执保留，非性能点 |
+| attempt2目标输出 | 5/5；152、123、256、174、50，共755 native tokens |
+| 容量冲突 | 4个原生live leases，无可驱逐槽位；req00008等待3764.347ms |
+| 恢复边界 | req00000真正结束并确认释放后重新观察epoch、加载并完成；无周期轮询 |
+| 引用与缓存 | 结束0个GPU/HOST live leases；随后受控adapter缓存清空 |
+| 输入/输出核对 | 与D26 source32对应5条prompt/native-input/output SHA全部一致 |
+| 原生TTFT/TPOT/E2E重算 | 最大误差均0ms |
+| 物理占用 | 64.852 GPU-s，末token后7.742s仍计入；退出码0、实际上下文释放 |
+| 资源保护 | 77次采样，峰值5699035136 bytes，high/max/OOM均0 |
+
+逐请求CSV、两attempt及来源SHA见
+`paper_results/ieee_tc/p2_backend/20260926_7b_capacity_wait.{csv,json}`。
+源码检查点33ef68d已在真实运行前推送。676功能/56安全检查通过；所有147个历史
+保护项未变。CPU容量等待、取消、多个等待者仍只有fixture证据；本次不称全路径
+原生资格，也不解除独立adapter数值正确性和真实远程、全池、Full接纳等门槛。
+
+下一步回到Full的物理KV/tier admission、实测profile和主动机制整合。此5请求
+诊断已经回答当前问题，不重复以增加“实验数量”。

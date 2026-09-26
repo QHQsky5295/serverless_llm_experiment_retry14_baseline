@@ -1,0 +1,6 @@
+request_id,adapter_id,target_tokens,actual_tokens,capacity_wait_ms,lease_released,prompt_matches_source32,native_input_matches_source32,output_matches_source32
+req_00000,finance_lora,152,152,0,true,true,true,true
+req_00002,writing_lora_0011,123,123,0,true,true,true,true
+req_00005,legal_lora,256,256,0,true,true,true,true
+req_00007,translate_lora,174,174,0,true,true,true,true
+req_00008,research_lora_0008,50,50,3764.346721000038,true,true,true,true

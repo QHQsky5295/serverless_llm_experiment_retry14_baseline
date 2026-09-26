@@ -1331,3 +1331,34 @@ fixture 容量修改后通过，生产策略没有因此放宽。
 随后完成所有选中请求并归还引用。无 sleep 注入、无性能排名、无完整 Full 声称。
 复用受限 dedicated worker 与物理分配者、原有 native token 计量及外置 watchdog。
 模型结果尚未预填；输出至新的 capacity-wait attempt，再交付状态表。
+
+| 实际尝试 | 请求执行 | 状态 | 后续决定 |
+|---|---:|---|---|
+| capacity_wait_attempt1 | 0；模型未启动 | launcher 漏传 `FAASLORA_TC_NVML_SHA256`，受控 gate 明确拒绝；所属 gate 进程已释放 | 保留原回执，补齐已验证组件 SHA 后以 attempt2 执行相同诊断；不算模型失败或性能点 |
+| capacity_wait_attempt2 | 5/5，755 native tokens | 真正4个槽位均持有时第5个请求等待3764.347ms；第1个请求完成并确认释放后唤醒，全部引用归还 | 已完成本问题所需 native 验证，不继续重复；回到 Full 接纳整合 |
+
+### 实测结果、解释与主线归位
+
+第5个请求 `req_00008` 的等待结束比 `req_00000` 最后一个 native token 晚
+15.072ms；这是含终态/释放回执传播的时间，不称纯 CUDA fence 开销。等待时
+原生快照确认4个 live leases；结束为0，随后 adapter caches 清空。选中请求
+为00000/00002/00005/00007/00008，目标152/123/256/174/50全部匹配。
+与 D26 source32 对应请求的 prompt、native input 和 output SHA 全部一致。
+这不解决更早 req00005 与旧100前缀之间的差异，也不是独立数值正确性证明。
+
+native TTFT/TPOT/E2E 重算误差均0ms；该诊断没有主实验到达时序，不能用来
+报告完整用户 TTFT 或新 G1/G2 收益。真实物理占用64.852 GPU-s，含末 token
+之后7.742s退出；正常退出码0，外置 NVML 证实上下文释放。77次资源采样，
+服务峰值5699035136 bytes，high/max/OOM事件均0。两个所属辅助 scope 均在
+确认空后停止，用户显示进程未动。全部147个保护项和源 plan SHA 保持不变。
+
+实现检查点 `33ef68d0a1cd566211da91892f838f4a339cfc92` 在模型运行前推送并核实；
+CSV/JSON状态表位于 `paper_results/ieee_tc/p2_backend/20260926_7b_capacity_wait.*`，
+包含启动失败和成功尝试、原始记录/监控/所有权日志 SHA 与实际执行源码 SHA。
+CPU cache 等待、多个等待者、取消和未知释放本轮只有 CPU fixture 证据；原生
+模型证据只覆盖一个GPU-capacity等待者，不声称全路径容量资格。
+
+下一个未完成项是实际 Full 的 KV/物理预算 E(t) 和代表性实测 profile 整合，
+并完成内容绑定的跨路径源身份、主动规划/准备与生命周期聚合。不再重复本轮
+5请求、D26 source32、D27 lifecycle4；正式矩阵、SLO/Resident标定与 Serverless
+优先的 baseline 顺序不变。
