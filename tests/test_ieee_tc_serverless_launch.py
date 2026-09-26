@@ -245,14 +245,29 @@ class NativeCheckpointLayoutTests(unittest.TestCase):
                   for p in ('q_proj', 'k_proj', 'v_proj')}
         source |= {'model.layers.0.mlp.' + p + '.weight' for p in ('gate_proj', 'up_proj')}
         source.add('model.norm.weight')
+        source.add('lm_head.weight')
         mapping = launch.checkpoint_tensor_sources(source)
         self.assertEqual(mapping['model.layers.0.self_attn.qkv_proj.weight'],
                          ['model.layers.0.self_attn.' + p + '.weight' for p in ('q_proj', 'k_proj', 'v_proj')])
         self.assertEqual(mapping['model.layers.0.mlp.gate_up_proj.weight'],
                          ['model.layers.0.mlp.' + p + '.weight' for p in ('gate_proj', 'up_proj')])
         self.assertEqual(mapping['model.norm.weight'], ['model.norm.weight'])
+        self.assertEqual(mapping['lm_head.weight'], ['lm_head.weight'])
         with self.assertRaisesRegex(ValueError, 'incomplete'):
             launch.checkpoint_tensor_sources(source - {'model.layers.0.self_attn.k_proj.weight'})
+
+    def test_export_refuses_outside_existing_guard_before_loading_or_writing(self):
+        from types import SimpleNamespace
+        with tempfile.TemporaryDirectory(prefix='tcs-test-') as directory:
+            output = Path(directory) / 'export.json'
+            original = os.environ.pop('FAASLORA_TC_LAUNCH_RECEIPT', None)
+            try:
+                with self.assertRaisesRegex(RuntimeError, 'missing guarded'):
+                    launch.export_checkpoint(SimpleNamespace(main_repo=MAIN, output=output))
+            finally:
+                if original is not None:
+                    os.environ['FAASLORA_TC_LAUNCH_RECEIPT'] = original
+            self.assertFalse(output.exists())
 
     def test_complete_contiguous_fp16_layout(self):
         index = {'a': [0, 12, [2, 3], [3, 1], 'torch.float16'],

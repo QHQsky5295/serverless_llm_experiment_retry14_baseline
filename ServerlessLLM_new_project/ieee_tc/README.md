@@ -124,6 +124,30 @@ by this audit; no model weights, trace, pool or checkpoint were copied.
 
 ## Reproduction
 
+### Missing 7B native representation (D68, 2026-09-27)
+
+The bounded asset audit found an existing 7B **transformers** store checkpoint
+(`models/transformers/llama2_7b_main_v2_publicmix`, two data parts), not a vLLM
+rank-packed checkpoint. The inspected vLLM namespace contains only the already
+qualified 3B backbone and LoRA staging. Do not rename the transformers directory
+to pretend it is the vLLM representation. The current original backbone remains
+`/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf`.
+
+The contained helper now offers `export-checkpoint`: call the existing audited
+TC native `VllmModelDownloader.download_vllm_model` unchanged, TP1/FP16, offline,
+inside the common guarded service envelope and an exclusive output namespace.
+This reuses existing weights; it does not generate a model/adapter/workload or
+download anything. The official exporter creates one necessary native-format
+copy (about 13.5 GB), not a duplicate dataset/pool. Its output needs subsequent
+elementwise verification and actual loading before serving qualification.
+
+The comparator now covers unquantized untied Llama as well as tied Llama: an
+independent `lm_head.weight` must exist and is compared, not dropped. Existing
+27 CPU router/launcher checks pass; no model-export success is implied yet.
+See the [official downloader](https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/9f50241baa5386e06a9321c51f19a9ef5f964c2b/sllm/model_downloader.py)
+for the serialization path. Existing launch scripts, vendor policies and the
+dirty replay client remain unchanged.
+
 ```bash
 python3 -m unittest discover -s tests -p test_ieee_tc_serverless_router.py -v
 ```

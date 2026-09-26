@@ -336,8 +336,13 @@ def audit_checkpoint(checkpoint: Path, backbone: Path) -> dict:
     source_map = source_index['weight_map']
     config = json.loads((backbone / 'config.json').read_text())
     if (config.get('model_type') != 'llama' or config.get('architectures') != ['LlamaForCausalLM']
-            or not config.get('tie_word_embeddings') or config.get('quantization_config')):
-        raise ValueError('auditor is limited to the existing tied-embedding unquantized Llama TP1 checkpoint')
+            or config.get('quantization_config')):
+        raise ValueError('auditor requires an unquantized Llama TP1 checkpoint')
+    # Llama-2 has an independent lm_head; Llama-3.2 ties it to embeddings.
+    # Do not silently discard either source: exact key/byte comparison below
+    # must cover the independent head when present.
+    if not config.get('tie_word_embeddings', False) and 'lm_head.weight' not in source_map:
+        raise ValueError('untied Llama checkpoint is missing its independent output head')
     if set(p.name for p in checkpoint.glob('rank_*')) != {'rank_0'}:
         raise ValueError('audit requires exactly one native tensor-parallel rank')
     if set(p.name for p in rank.iterdir()) != {'tensor_index.json', 'tensor.data_0'}:
@@ -411,6 +416,79 @@ def audit_checkpoint(checkpoint: Path, backbone: Path) -> dict:
                 elapsed_s=time.monotonic() - started, cuda_initialized=False,
                 native_loader_qualified=False, performance_run_authorized=False,
                 limitation='Current serialized tensor identity only; no historical, runtime loading or LoRA correctness claim')
+
+
+def export_checkpoint(args) -> dict:
+    """Call the existing native exporter once for a missing local format.
+
+    This is representation conversion of existing backbone weights, not a new
+    model, a serving run or a replacement for the later exact-byte audit. The
+    official exporter is used unchanged; output is exclusive and remains local.
+    """
+    guard = load_guard(args.main_repo)
+    admission = guard.verify_current_service()
+    if Path(sys.executable).resolve() != (args.environment / 'bin/python').resolve():
+        raise ValueError('wrong native exporter interpreter')
+    if not re.fullmatch(r'[A-Za-z0-9_-]+', args.model_name):
+        raise ValueError('invalid exclusive native checkpoint name')
+    destination = args.checkpoint_root.resolve(strict=True) / 'vllm' / args.model_name
+    if destination.exists() or destination.is_symlink():
+        raise FileExistsError(f'refuse to overwrite existing checkpoint {destination}')
+    source = args.backbone.resolve(strict=True)
+    source_index = json.loads((source / 'model.safetensors.index.json').read_text())
+    shard_names = set(source_index['weight_map'].values())
+    if not shard_names or any(Path(name).name != name or not (source / name).is_file()
+                              for name in shard_names):
+        raise ValueError('complete existing local backbone is required')
+    package = args.store_package / 'site-packages'
+    if (os.environ.get('PYTHONPATH') != f'{args.native_source}:{package}'
+            or os.environ.get('LD_LIBRARY_PATH') != str(package / 'sllm_store')
+            or os.environ.get('CUDA_VISIBLE_DEVICES') != str(args.gpu_id)):
+        raise ValueError('explicit native source/library and single-GPU composition required')
+    receipt = json.loads(args.overlay_receipt.read_text())
+    expected_root = args.environment / 'lib/python3.12/site-packages/vllm'
+    if (receipt.get('status') != 'INSTALLED' or len(receipt['members']) != 7
+            or Path(receipt['vllm_root']).resolve() != expected_root.resolve()):
+        raise ValueError('installed loader-only overlay receipt required')
+    for row in receipt['members']:
+        if sha((expected_root / row['path']).read_bytes()) != row['after_sha256']:
+            raise ValueError('installed loader-only source changed')
+    import sllm.model_downloader as downloader
+    if Path(downloader.__file__).resolve() != args.native_source / 'sllm/model_downloader.py':
+        raise ValueError('selected native exporter source differs')
+    # Offline inputs only; no whole-pool regeneration, download or Ray cluster.
+    os.environ.update(STORAGE_PATH=str(args.checkpoint_root), HF_HUB_OFFLINE='1',
+                      TRANSFORMERS_OFFLINE='1', VLLM_USE_V1='1')
+    result = dict(schema='ieee_tc_serverless_native_checkpoint_export_v1', passed=False,
+                  representation_conversion_only=True, native_loader_qualified=False,
+                  performance_run_authorized=False, service=admission,
+                  backbone=str(source), checkpoint=str(destination), gpu_id=args.gpu_id,
+                  tensor_parallel_size=1, dtype='float16', source_shards=sorted(shard_names),
+                  source_index_sha256=stream_sha(source / 'model.safetensors.index.json'),
+                  exporter_sha256=stream_sha(Path(downloader.__file__)),
+                  overlay_receipt_sha256=stream_sha(args.overlay_receipt),
+                  started_monotonic=time.monotonic())
+    # Reserve the result before the first model allocation. Failure evidence is
+    # retained even though the official exporter removes its own partial model.
+    with args.output.open('x') as handle:
+        try:
+            downloader.VllmModelDownloader().download_vllm_model(
+                model_name=args.model_name, pretrained_model_name_or_path=str(source),
+                torch_dtype='float16', tensor_parallel_size=1)
+            if not (destination / 'rank_0/tensor.data_0').is_file():
+                raise RuntimeError('native exporter did not produce a rank-0 checkpoint')
+            result['files'] = {str(path.relative_to(destination)): dict(bytes=path.stat().st_size,
+                              sha256=stream_sha(path)) for path in sorted(destination.rglob('*'))
+                              if path.is_file()}
+            result['passed'] = True
+        except Exception as exc:
+            result['error'] = f'{type(exc).__name__}: {exc}'
+            raise
+        finally:
+            result['finished_monotonic'] = time.monotonic()
+            result['external_cleanup_required'] = True
+            json.dump(result, handle, indent=2)
+    return result
 
 
 def qualify_ray(args) -> dict:
@@ -776,6 +854,12 @@ def main() -> None:
     checkpoint.add_argument('--checkpoint', type=Path, required=True)
     checkpoint.add_argument('--backbone', type=Path, required=True)
     checkpoint.add_argument('--output', type=Path, required=True)
+    export = sub.add_parser('export-checkpoint')
+    for name in ('output', 'main-repo', 'environment', 'native-source', 'checkpoint-root',
+                 'backbone', 'store-package', 'overlay-receipt'):
+        export.add_argument('--' + name, type=Path, required=True)
+    export.add_argument('--model-name', required=True)
+    export.add_argument('--gpu-id', type=int, choices=range(4), required=True)
     witness = sub.add_parser('qualify-ray')
     for name in ('output', 'private-root', 'main-repo', 'environment', 'native-source', 'checkpoint-root'):
         witness.add_argument('--' + name, type=Path, required=True)
@@ -792,6 +876,9 @@ def main() -> None:
     for name in ('ray-port', 'api-port'):
         model.add_argument('--' + name, required=True, type=int)
     args = parser.parse_args()
+    if args.action == 'export-checkpoint':
+        print(json.dumps(export_checkpoint(args), indent=2))
+        return
     if args.action == 'audit-checkpoint':
         # Reserve output before the read; a failed attempt remains visible.
         with args.output.open('x') as handle:
