@@ -1,13 +1,20 @@
 """Deterministic formula tests; no inference, remote traffic or new workload."""
 import dataclasses
+import asyncio
+import copy
+import hashlib
+import json
 import math
+import tempfile
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 from faaslora.experiment.instance_pool import (
     InstancePool, ReplicaRoutingSnapshot, Router, ServiceClassBins,
     ServiceComponents, ServiceCostModel, ServiceIntervalObservation,
-    ServiceObservationClass, NativeSourceSnapshot, InstanceSlot,
+    ServiceObservationClass, NativeSourceSnapshot, InstanceSlot, FrozenServiceProfiles,
 )
 
 
@@ -185,6 +192,196 @@ class CommittedNativeSources(unittest.TestCase):
         payload['native_footprints']['host_tensor_storage_bytes'] = 1024
         with self.assertRaisesRegex(ValueError, 'distinct storage union'):
             self.parse(payload)
+
+
+class FrozenMeasuredInitialization(unittest.TestCase):
+    """Small invented contract fixtures only; never model profiling evidence."""
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.path = Path(self.tmp.name) / 'profile.json'
+        self.model = dict(model_path='/existing/model', dtype='float16',
+                          tensor_parallel_size=1, visible_device_ids=[0, 1],
+                          timing_contract='ieee_tc_native_v1', ieee_gpu_references=True,
+                          generation_contract='fixed_length_greedy_v1')
+        self.context = dict(backend_environment_sha256='a'*64,
+                            resource_envelope_sha256='b'*64, input_contract_sha256='c'*64)
+        self.features = dict(tier='host', prompt_tokens=16, declared_output_tokens=32,
+                             adapter_rank=8, footprint_bytes=512,
+                             representation='native_cpu_dense_ab_v1:torch.float16:unpinned',
+                             admitted_after_accept=1)
+        sample = dict(source_measurement='native_admission_acquisition_token_events_v1',
+                      correct=True, source_run_sha256='d'*64, request_id='fixture-1',
+                      attempt_id='attempt-1', native_clock_id='test-clock',
+                      admission_clock_id='test-clock', class_features=self.features,
+                      native_output_tokens=32, admitted_monotonic_s=10.,
+                      acquired_monotonic_s=10.125, first_token_monotonic_s=10.5,
+                      last_token_monotonic_s=11.)
+        self.payload = dict(kind='native_service_profiles_v1', context=self.context,
+                            model_config=FrozenServiceProfiles.model_identity(self.model),
+                            bins=dict(prompt_tokens=[16], declared_output_tokens=[32],
+                                      adapter_rank=[8], footprint_bytes=[512], admitted_requests=[1]),
+                            samples=[sample])
+
+    def write_profile(self, payload=None):
+        data = json.dumps(self.payload if payload is None else payload, sort_keys=True).encode()
+        self.path.write_bytes(data)
+        return hashlib.sha256(data).hexdigest()
+
+    def load(self, payload=None, **changes):
+        kwargs = dict(expected_sha256=self.write_profile(payload), model_config=self.model,
+                      expected_context=self.context, beta=.25)
+        return FrozenServiceProfiles.load(self.path, **(kwargs | changes))
+
+    def test_means_come_from_native_boundaries_and_preserve_class_counts(self):
+        second = copy.deepcopy(self.payload['samples'][0])
+        second.update(request_id='fixture-2', acquired_monotonic_s=10.375,
+                      first_token_monotonic_s=11., last_token_monotonic_s=12.5)
+        self.payload['samples'].append(second)
+        profiles = self.load()
+        key = profiles.bins.classify(**self.features)
+        self.assertEqual(profiles.profiles[key], ServiceComponents(250., 500., 1000.))
+        self.assertEqual(profiles.sample_counts[key], 2)
+        self.assertEqual(profiles.identity()['initial_samples'], 2)
+        self.assertEqual(profiles.identity()['source_run_sha256'], ['d'*64])
+        with self.assertRaises(TypeError):
+            profiles.profiles[key] = ServiceComponents(0, 0, 0)
+
+    def test_sha_and_model_or_backend_configuration_changes_reject(self):
+        with self.assertRaisesRegex(ValueError, 'SHA256 mismatch'):
+            self.load(expected_sha256='0'*64)
+        for field, value in [('model_path', '/other'), ('dtype', 'bfloat16'),
+                             ('tensor_parallel_size', 2)]:
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'context mismatch'):
+                self.load(model_config=self.model | {field: value})
+        self.load(model_config=self.model | {'visible_device_ids': [3], 'device_id': 3})
+        for field in self.context:
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'context mismatch'):
+                self.load(expected_context=self.context | {field: 'f'*64})
+
+    def test_context_bins_and_fixed_generation_are_required(self):
+        for bad in ({}, self.context | {'extra': 'f'*64},
+                    self.context | {'backend_environment_sha256': 'unlocked'}):
+            with self.assertRaisesRegex(ValueError, 'frozen environment'):
+                self.load(expected_context=bad)
+        bad = copy.deepcopy(self.payload)
+        bad['bins']['prompt_tokens'] = [16, 16]
+        with self.assertRaisesRegex(ValueError, 'strictly increasing'):
+            self.load(bad)
+        for field in ('generation_contract', 'timing_contract'):
+            model = self.model | {field: 'legacy'}
+            bad = self.payload | {'model_config': FrozenServiceProfiles.model_identity(model)}
+            with self.assertRaisesRegex(ValueError, 'native timing'):
+                self.load(bad, model_config=model)
+
+    def test_wrong_clock_duplicates_incorrect_and_non_native_samples_reject(self):
+        for changes in ({'admission_clock_id': 'other-clock'}, {'correct': False},
+                        {'request_id': ''}, {'source_run_sha256': ''},
+                        {'source_measurement': 'http_completion'}, {'attempt_id': ''}):
+            bad = copy.deepcopy(self.payload)
+            bad['samples'][0].update(changes)
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                self.load(bad)
+        bad = copy.deepcopy(self.payload)
+        bad['samples'].append(copy.deepcopy(bad['samples'][0]))
+        with self.assertRaisesRegex(ValueError, 'duplicate'):
+            self.load(bad)
+
+    def test_native_count_and_interval_order_are_not_estimated_or_clamped(self):
+        for changes in ({'native_output_tokens': 31}, {'native_output_tokens': 32.},
+                        {'acquired_monotonic_s': 9.}, {'last_token_monotonic_s': 10.25},
+                        {'first_token_monotonic_s': math.nan}, {'admitted_monotonic_s': True}):
+            bad = copy.deepcopy(self.payload)
+            bad['samples'][0].update(changes)
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                self.load(bad)
+
+    def test_gpu_requires_protection_at_admission_and_single_token_has_no_decode(self):
+        sample = self.payload['samples'][0]
+        sample['class_features']['tier'] = 'gpu'
+        with self.assertRaisesRegex(ValueError, 'protected at admission'):
+            self.load()
+        sample.update(protected_at_admission=True)
+        with self.assertRaisesRegex(ValueError, 'protected at admission'):
+            self.load()
+        sample.update(acquired_monotonic_s=10., native_output_tokens=1)
+        sample['class_features']['declared_output_tokens'] = 1
+        with self.assertRaisesRegex(ValueError, 'O=0'):
+            self.load()
+        sample['last_token_monotonic_s'] = sample['first_token_monotonic_s']
+        profiles = self.load()
+        self.assertEqual(next(iter(profiles.profiles.values())), ServiceComponents(0, 500, 0))
+
+    def test_missing_classes_cannot_borrow_a_nearby_profile(self):
+        profiles = self.load()
+        for change in ({'prompt_tokens': 17}, {'admitted_after_accept': 2},
+                       {'tier': 'gpu'}, {'footprint_bytes': 513}):
+            with self.subTest(change=change), self.assertRaises(KeyError):
+                profiles.new_replica().estimate(profiles.bins.classify(**(self.features | change)))
+
+    def test_pool_scaleout_resets_learning_and_does_not_alias_the_runtime(self):
+        profiles = self.load()
+        key = profiles.bins.classify(**self.features)
+        pool = InstancePool(service_profiles=profiles)
+        first_engine = SimpleNamespace(model_cfg=self.model)
+        first = pool.get_slot(pool.add_instance(first_engine, None))
+        observation = ServiceIntervalObservation(first.service_cost_model, key, 20.)
+        observation.acquire(20.5)
+        self.assertEqual(first.service_cost_model.estimate(key).d_ms, 218.75)
+        second = pool.get_slot(pool.add_instance(SimpleNamespace(model_cfg=self.model | {'device_id': 1}), None))
+        self.assertEqual(second.service_cost_model.estimate(key).d_ms, 125.)
+        self.assertEqual(second.service_cost_model.sample_counts(key), {'d_ms': 0, 't_ms': 0, 'o_ms': 0})
+        self.assertIs(first.service_class_bins, profiles.bins)
+        with self.assertRaisesRegex(ValueError, 'alias one physical runtime'):
+            pool.add_instance(first_engine, None)
+        with self.assertRaisesRegex(ValueError, 'differs from its measured'):
+            pool.add_instance(SimpleNamespace(model_cfg=self.model | {'dtype': 'bfloat16'}), None)
+        self.assertEqual(pool.count(), 2)
+
+    def runner(self, coord_changes=None, model_changes=None):
+        from scripts.run_all_experiments import ScenarioRunner
+        model = self.model | (model_changes or {})
+        spec = dict(path=str(self.path), sha256=self.write_profile(),
+                    context=self.context, ewma_beta=.25)
+        coord = dict(instance_mode='dedicated', routing_policy='ieee_confirmed',
+                     service_bin_ms=10., ieee_service_profile=spec)
+        coord.update(coord_changes or {})
+        return ScenarioRunner(name='fixture', baseline_type='faaslora_full', adapter_info={},
+            traces=[], remote_dir=Path(self.tmp.name), nvme_dir=Path(self.tmp.name),
+            bandwidth_mbps=100., hardware_cfg={'gpu_device_ids': [0, 1]}, cost_model={},
+            engine=SimpleNamespace(device_id=0, model_cfg=model), runner_model_cfg=model,
+            preload_cfg={}, workload_cfg={'generation_contract': 'fixed_length_greedy_v1'},
+            coord_cfg=coord)
+
+    def test_actual_runner_initializes_profiles_bins_and_summary_identity(self):
+        runner = self.runner()
+        slot = runner.instance_pool.get_slots()[0]
+        key = slot.service_class_bins.classify(**self.features)
+        self.assertEqual(slot.service_cost_model.estimate(key), ServiceComponents(125, 375, 500))
+        self.assertEqual(runner.router.service_bin_ms, 10.)
+        identity = runner._current_coord_metrics()['ieee_service_profile']
+        self.assertEqual(identity['profile_sha256'], slot.service_cost_model.profile_id)
+        self.assertEqual(identity['initial_samples'], 1)
+
+    def test_wrong_runtime_profile_stops_new_replica_before_any_warmup(self):
+        runner = self.runner()
+        engine = SimpleNamespace(model_cfg=self.model | {'dtype': 'bfloat16'}, shutdown=AsyncMock())
+        runner.engine_factory = AsyncMock(return_value=(engine, None))
+        runner._warmup_engine_hot_set = AsyncMock()
+        with self.assertRaisesRegex(ValueError, 'differs from its measured'):
+            asyncio.run(runner._add_dedicated_instance_slot(True, reserved_device_id=1))
+        engine.shutdown.assert_awaited_once()
+        runner._warmup_engine_hot_set.assert_not_called()
+        self.assertEqual(runner.instance_pool.count(), 1)
+
+    def test_actual_runner_rejects_absent_profiles_and_shared_runtime(self):
+        for changes, message in [({'ieee_service_profile': None}, 'measured ieee_service_profile'),
+                                 ({'instance_mode': 'shared'}, 'distinct physical runtime'),
+                                 ({'service_bin_ms': None}, 'bin width')]:
+            with self.subTest(changes=changes), self.assertRaisesRegex(ValueError, message):
+                self.runner(coord_changes=changes)
+        with self.assertRaisesRegex(ValueError, 'invalid IEEE measured service profile'):
+            self.runner(model_changes={'ieee_gpu_references': False})
 
 
 class ServiceMeasurementContract(unittest.TestCase):

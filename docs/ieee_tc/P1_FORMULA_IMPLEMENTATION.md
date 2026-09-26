@@ -996,3 +996,54 @@ GPU→HOST/全失效/未确认 slot 的并发变化、未知 acquisition 取消�
 由少了一次文件解析推断 G1/G2 已改善。下一步直接返回 Full 的 admission-time
 class/profile、全副本 source/cost 与原子准入接入，然后在该真实路径进行模型
 资格，避免继续重复同 prompt 或无新问题的微测。
+
+## P1-D22：实测服务 profile 的身份、初始化与扩容继承
+
+### 缺口、依据与本次边界
+
+`cb7bc80` 已有 D/T/O 的数学对象和完成区间事件，但实际 ScenarioRunner 没有
+读取初始化测量，也没有为 InstanceSlot 建立各自的估计器。IEEE 正文要求同
+模型/后端、代表性观测类的 profiling 初始化，并由新副本继承冻结 profile。
+不能用旧按层级常量、缺失类填零或前一正式运行的学习状态来填这个缺口。
+
+核对 [vLLM 0.30 原生统计源码](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/v1/metrics/stats.py)：
+`first_token_ts`/`last_token_ts` 来自 EngineCore 事件；解码区间由两者相减。
+这支持复用原生事件边界，不支持用 HTTP 返回时间替代最后 token，也不替本系统
+提供 adapter acquisition 时刻。D/T/O 仍按论文定义；不移植其他系统的目标函数。
+
+可证伪假设：同一冻结测量应可复现相同初始化；任何模型、后端资源或输入合同
+变化必须拒绝复用；一副本的 EWMA 更新不能改变另一新副本的初始化。
+
+| 论文规范语义 | 当前实现证据 | 未完成事项 |
+|---|---|---|
+| 同模型/后端初始化 | profile 文件 SHA、实际 engine 配置、环境/资源/输入 SHA 显式匹配；只排除 GPU 放置编号 | 实际 campaign 身份生成与真实代表性 profiling 仍需资格 |
+| 使用实测 D/T/O | 输入保存 admission/acquisition/first/last 原生边界，按固定 admission 类计算均值；不接受手填 latency 代替这些边界 | 文件合同验证不是来源真实性证明；没有提交生产用虚构样本 |
+| 固定观测类 | 原始 prompt、declared output、rank、footprint、representation、post-admission count 重新分类 | 未测的类拒绝，不自动借用相邻类/尾桶 |
+| 已保护 GPU hit 的 D=0 | 必须明确 protected_at_admission，且 acquisition 与 admission 同时 | selected-path 稍后取得引用仍不能冒充该条件 |
+| 新副本继承冻结初始化 | 每个实际 pool slot 创建独立估计器；共享同一个 runtime 的假副本拒绝 | 实际 scale-out 模型路径还未资格 |
+| 扩容配置一致 | 新 engine 配置先检查；不匹配则 shutdown 并报错，不进行 warmup | 完整 physical lifecycle 仍单独验收，shutdown 返回不是释放证明 |
+| 路由使用显式 bin width | ScenarioRunner 向现有 IEEE Router 传递 service_bin_ms | 完整决策前快照、原子 admission 和请求观察对象接入仍未完成 |
+
+接口放在现有 `resource_coordination.ieee_service_profile`：`path`、`sha256`、
+`context`（backend_environment_sha256/resource_envelope_sha256/input_contract_sha256）
+和 `ewma_beta`。实际模型配置包含后端最终解析设置，不以全局 GPU 可见列表代替
+子 runtime 身份。汇总记录 profile SHA、支持类数、样本数、来源 run SHA 和 beta。
+每模型配置在验证后冻结；本次没有新增生产配置、权重、负载或测量数据。
+
+### 正确性状态表
+
+新增 11 项确定性检查：从原生边界求均值、不可变 profile、SHA/配置/context
+失配、错误时钟、重复/不正确样本、token 合同、时间顺序、GPU 保护、单 token、
+缺失类、扩容学习隔离、实际 runner 初始化/摘要及配置失配的扩容收尾。
+这些检查使用小型临时人工 fixture，明确不是模型 profiling 或性能数据。
+
+- 首次 609 项功能回归有两项旧 `__new__` 测试缺初始化字段；明确补齐其 legacy
+  `service_profiles=None`，未增加生产默认估计或放宽 IEEE 检查。
+- 最终 609 项功能检查通过（23.285 秒），56 项独立安全/census/replay 检查通过
+  （0.621 秒），无失败、错误或跳过。147 项历史保护清单与计划 SHA 不变。
+- 本步用正确性状态表交付，不生成没有实测支持的收益图。尚无新的 G1/G2 结果，
+  `Full` 不能从本步单独取得资格。
+
+下一步是实际 pre-decision source/class/cost 组合和原子 admission，将 D20 的
+观察对象绑定在真实接纳时刻；之后只做有这些完整边界的整合模型资格。不要把
+fixture 导出成生产 profile，或再重复无新问题的同 prompt / 零权重检查。

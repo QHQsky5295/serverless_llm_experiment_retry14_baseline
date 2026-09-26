@@ -7,6 +7,8 @@ Router: selects which instance handles a request (round-robin, least-connections
 
 import time
 import math
+import hashlib
+import json
 from bisect import bisect_left
 from dataclasses import dataclass, field, replace
 from threading import RLock
@@ -352,6 +354,135 @@ class ServiceCostModel:
             self._counts[key][component] += 1
 
 
+@dataclass(frozen=True)
+class FrozenServiceProfiles:
+    """Measured initialization shared by replicas, not mutable online learning.
+
+    The profile contract is exact model/configuration + environment identity.
+    Only placement IDs are excluded from model configuration: moving an otherwise
+    identical replica does not change its model profile. Resource/input hashes
+    are supplied by the frozen campaign contract, not inferred from run names.
+    Reading this file validates its data contract; model and resource qualification
+    still have to establish that its recorded source measurements are legitimate.
+    """
+    bins: ServiceClassBins
+    profiles: Mapping[ServiceObservationClass, ServiceComponents]
+    sample_counts: Mapping[ServiceObservationClass, int]
+    profile_id: str
+    source_runs: tuple[str, ...]
+    beta: float
+    model_config_json: str
+
+    @staticmethod
+    def model_identity(model_config: Mapping) -> dict:
+        if not isinstance(model_config, Mapping):
+            raise ValueError('service profile requires the actual runtime configuration')
+        return {key: value for key, value in model_config.items()
+                if key not in ('visible_device_ids', 'device_id')}
+
+    def validate_runtime(self, model_config: Mapping) -> None:
+        identity = json.dumps(self.model_identity(model_config), sort_keys=True, allow_nan=False)
+        if identity != self.model_config_json:
+            raise ValueError('runtime configuration differs from its measured service profile')
+
+    @classmethod
+    def load(cls, path: Path, *, expected_sha256: str, model_config: Mapping,
+             expected_context: Mapping[str, str], beta: float) -> 'FrozenServiceProfiles':
+        """Load frozen native-event samples and derive class means in milliseconds.
+
+        No nearest-class, pooled-tier or manually supplied latency fallback. The
+        unobserved tail bin is not automatically supported. Missing classes raise
+        at estimate time until genuine representative measurements are supplied.
+        """
+        def digest(value):
+            return (isinstance(value, str) and len(value) == 64
+                    and all(c in '0123456789abcdef' for c in value))
+        if not digest(expected_sha256):
+            raise ValueError('service profile requires its frozen SHA256')
+        data = Path(path).read_bytes()
+        if hashlib.sha256(data).hexdigest() != expected_sha256:
+            raise ValueError('service profile SHA256 mismatch')
+        payload = json.loads(data)
+        context_keys = {'backend_environment_sha256', 'resource_envelope_sha256', 'input_contract_sha256'}
+        if (not isinstance(expected_context, Mapping) or set(expected_context) != context_keys
+                or any(not digest(value) for value in expected_context.values())):
+            raise ValueError('service profile requires the frozen environment/resource/input context')
+        if (not isinstance(payload, dict) or payload.get('kind') != 'native_service_profiles_v1'
+                or payload.get('context') != dict(expected_context)
+                or payload.get('model_config') != cls.model_identity(model_config)):
+            raise ValueError('service profile model/configuration/context mismatch')
+        if (model_config.get('timing_contract') != 'ieee_tc_native_v1'
+                or model_config.get('generation_contract') != 'fixed_length_greedy_v1'):
+            raise ValueError('service profiling requires native timing and the frozen generation contract')
+        bin_names = {'prompt_tokens', 'declared_output_tokens', 'adapter_rank',
+                     'footprint_bytes', 'admitted_requests'}
+        raw_bins = payload.get('bins')
+        if (not isinstance(raw_bins, dict) or set(raw_bins) != bin_names
+                or any(not isinstance(value, list) for value in raw_bins.values())):
+            raise ValueError('service profile has invalid observation bins')
+        bins = ServiceClassBins(**{key: tuple(value) for key, value in raw_bins.items()})
+        samples = payload.get('samples')
+        if not isinstance(samples, list) or not samples:
+            raise ValueError('service profile requires actual representative samples')
+        groups, identities, sources = {}, set(), set()
+        for sample in samples:
+            if (not isinstance(sample, dict) or sample.get('source_measurement') !=
+                    'native_admission_acquisition_token_events_v1'
+                    or sample.get('correct') is not True
+                    or not digest(sample.get('source_run_sha256'))
+                    or not isinstance(sample.get('request_id'), str) or not sample['request_id']
+                    or not isinstance(sample.get('attempt_id'), str) or not sample['attempt_id']
+                    or not isinstance(sample.get('native_clock_id'), str) or not sample['native_clock_id']
+                    or sample.get('admission_clock_id') != sample['native_clock_id']):
+                raise ValueError('profile sample lacks completed native measurement identity')
+            identity = (sample['source_run_sha256'], sample['request_id'], sample['attempt_id'])
+            if identity in identities:
+                raise ValueError('duplicate service profile observation')
+            identities.add(identity)
+            sources.add(sample['source_run_sha256'])
+            features = sample.get('class_features')
+            if not isinstance(features, dict):
+                raise ValueError('profile sample requires admission-time class features')
+            key = bins.classify(**features)
+            if (type(sample.get('native_output_tokens')) is not int
+                    or sample['native_output_tokens'] != features['declared_output_tokens']):
+                raise ValueError('profile sample changed the fixed output contract')
+            if (key.tier != 'backbone' and (features['adapter_rank'] < 1 or features['footprint_bytes'] < 1)):
+                raise ValueError('adapter profile requires measured rank and source footprint')
+            times = [sample.get(name) for name in ('admitted_monotonic_s', 'acquired_monotonic_s',
+                     'first_token_monotonic_s', 'last_token_monotonic_s')]
+            if (any(type(t) not in (int, float) or not math.isfinite(t) or t <= 0 for t in times)
+                    or any(a > b for a, b in zip(times, times[1:]))):
+                raise ValueError('profile has invalid native interval boundaries')
+            admitted, acquired, first, last = times
+            if key.tier in {'gpu', 'backbone'} and (
+                    sample.get('protected_at_admission') is not True or admitted != acquired):
+                raise ValueError('profile GPU hit must already be protected at admission')
+            if sample['native_output_tokens'] == 1 and first != last:
+                raise ValueError('single-token profile must have O=0')
+            groups.setdefault(key, []).append(((acquired-admitted)*1000.,
+                                               (first-acquired)*1000., (last-first)*1000.))
+        profiles = {key: ServiceComponents(*(math.fsum(row[j] for row in values)/len(values)
+                    for j in range(3))) for key, values in groups.items()}
+        # Reuse the same validation as every live replica; beta is controller
+        # configuration, not fitted to the execution block being evaluated.
+        if type(beta) not in (int, float):
+            raise ValueError('EWMA beta must be a numeric coefficient')
+        ServiceCostModel(profiles, beta=beta, profile_id=expected_sha256)
+        return cls(bins, MappingProxyType(profiles),
+                   MappingProxyType({key: len(values) for key, values in groups.items()}),
+                   expected_sha256, tuple(sorted(sources)), beta,
+                   json.dumps(cls.model_identity(model_config), sort_keys=True, allow_nan=False))
+
+    def new_replica(self) -> ServiceCostModel:
+        return ServiceCostModel(self.profiles, beta=self.beta, profile_id=self.profile_id)
+
+    def identity(self) -> dict:
+        return {'kind': 'native_service_profiles_v1', 'profile_sha256': self.profile_id,
+                'supported_classes': len(self.profiles), 'initial_samples': sum(self.sample_counts.values()),
+                'source_run_sha256': list(self.source_runs), 'beta': self.beta}
+
+
 class ServiceIntervalObservation:
     """One admitted attempt, in ONE monotonic clock domain.
 
@@ -584,6 +715,8 @@ class InstanceSlot:
     runtime_forwarding_active: int = 0
     runtime_forwarding_started_at: float = 0.0
     native_source_state: Optional[NativeSourceSnapshot] = None
+    service_cost_model: Optional[ServiceCostModel] = None
+    service_class_bins: Optional[ServiceClassBins] = None
 
     def commit_native_sources(self, snapshot: NativeSourceSnapshot) -> bool:
         """Commit a received view without mutating legacy hints or taking pins."""
@@ -949,12 +1082,16 @@ class InstancePool:
     Pool of instances (B1). Scale-up = add slot, scale-down = remove slot.
     """
 
-    def __init__(self, min_instances: int = 1, max_instances: int = 4):
+    def __init__(self, min_instances: int = 1, max_instances: int = 4,
+                 *, service_profiles: Optional[FrozenServiceProfiles] = None):
         self.min_instances = min_instances
         self.max_instances = max_instances
         self.logger = get_logger(__name__)
         self._slots: List[InstanceSlot] = []
         self._next_id = 0
+        if service_profiles is not None and not isinstance(service_profiles, FrozenServiceProfiles):
+            raise TypeError('instance initialization requires frozen measured service profiles')
+        self.service_profiles = service_profiles
 
     def add_instance(
         self,
@@ -968,6 +1105,10 @@ class InstancePool:
         """Add a new instance; returns instance_id."""
         if len(self._slots) >= self.max_instances:
             raise RuntimeError("max_instances reached")
+        if self.service_profiles is not None:
+            if any(slot.engine is engine for slot in self._slots):
+                raise ValueError('profiled replicas cannot alias one physical runtime')
+            self.service_profiles.validate_runtime(getattr(engine, 'model_cfg', None))
         self._next_id += 1
         sid = f"inst_{self._next_id}"
         self._slots.append(
@@ -978,6 +1119,8 @@ class InstancePool:
                 owns_engine=owns_engine,
                 owns_coordinator=owns_coordinator,
                 device_id=device_id,
+                service_cost_model=self.service_profiles.new_replica() if self.service_profiles else None,
+                service_class_bins=self.service_profiles.bins if self.service_profiles else None,
             )
         )
         self.logger.info(f"Instance {sid} added (total={len(self._slots)})")

@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Mathematical contracts, native references, storage, content-verified transfers, interval events and cache-first selected-request path tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D21. Cached GPU/HOST acquisition precedes file resolution with guarded revalidation. Real loopback first-token events precede final response. Full-pool qualification, all-tier physical reservations/registry epoch, pre-decision source/cost composition, model path qualification and proactive atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts, native references, storage, interval events, cache-first path and measured-profile initialization tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D22. Actual runner/pool accepts SHA-bound native samples and independent per-replica initialization; no production profile fabricated. Full-pool qualification, all-tier physical reservations/registry epoch, pre-decision source/cost composition, model path qualification and proactive atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -52,12 +52,17 @@ configs/relayserve_motivation_serverlessllm.yaml.
 ## Immediate next actions
 
 0. P2 installation finished; do NOT reinstall. All current runs finished/cleaned. Native adapter reference, full 3B/7B content scan and 7B five-arm native numeric diagnostic COMPLETE; do not repeat same-prompt/zero controls. NATIVE_ADAPTER_NUMERIC_CONTROL.md: all five 217-token outputs identical; A/Z probability max difference .02608, A/A also .006367. Descriptive evidence, not independent numeric/full semantic qualification. Return to Full source/cost and owner integration next. Current 3B pool has 500 all-zero LoRAs (2 SHAs); 7B has 498 zero plus finance/medical nonzero (4 SHAs). Plan forbids new weights; user confirmation requested before adding a few trained nonzero 3B correctness fixtures, no answer yet. Keep pools/traces/history intact. Targeted 2,521 existing configs yielded no 3B candidate, not proof of server-wide absence. Independent numerical verification remains an open gate, not erased by this diagnostic. Review official 0.30 warning on old 3B chunked_prefill=false before freezing. Reuse environment/cache, KEEP_DEDICATED_WORKER_LOGS for future proxy runs.
-1. Native service-event bridge D20 and cache-first selected-request source D21 are implemented/tested. D21 closes an actual path prerequisite: GPU/HOST reuse no longer first requires the backing file; native guarded source changes reobserve without unprotected loading. Do not repeat isolated tests or same-prompt controls. Next integrate admission-time class/profile owners with pre-decision source snapshots, actual remaining budgets and atomic routing/admission; then qualify events/cache reuse with that actual model path. No real ScenarioRunner creates the new service observation yet. Do not declare the historical scorer IEEE-aligned or relabel a selected/post-reserve observation as a complete routing snapshot.
+1. Native service-event bridge D20, cache-first source D21 and actual runner/pool measured initialization D22 are implemented/tested. No production profile has been fabricated. Next compose pre-decision all-tier source/class/cost snapshots and bind completed-interval observers at actual admission, with physical ownership and atomic routing/admission; then qualify that integrated model path and collect genuine supported-class measurements. No real ScenarioRunner creates the new service observation yet. Do not repeat isolated or same-prompt controls, declare the historical scorer IEEE-aligned, or relabel a selected/post-reserve observation as a complete routing snapshot.
 2. Qualify actual model/GPU workers and lifecycle under the existing guarded launcher; native single-raylet and tiny replay witnesses are not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
 ## Verified backups
+
+- Main cache-first selected-request checkpoint
+  `cb7bc80d23c269589cad81219091bd91d9f412e0` pushed to V2; remote SHA verified.
+  Native cached-source guards and eight added regression checks retained;
+  actual-model net benefit and complete Full routing/admission remain open.
 
 - Main completed-interval event bridge checkpoint
   `044873d7dab4c3e6e4a9ce67bdfbc08207d387ba` pushed to V2; remote SHA verified.
@@ -1214,3 +1219,33 @@ configs/relayserve_motivation_serverlessllm.yaml.
   Remote disk gate, nonzero 3B fixture authority, numerical qualification,
   lifecycle accounting, SLO/reference, Serverless-first baseline qualification,
   M1/M2, ablations and sensitivity matrices remain open. Goal stays active.
+
+## P1 measured initialization / replica inheritance checkpoint
+
+- Existing ScenarioRunner and InstancePool now load frozen native-boundary
+  samples, derive D/T/O class means and create independent per-replica EWMA
+  owners. File SHA, actual runtime configuration, environment/resource/input
+  identities are required; only placement IDs are excluded from model identity.
+  Missing classes, wrong token counts, clocks, duplicates and unprotected GPU
+  hit samples reject. No default latency, neighboring-class or prior-run fallback.
+- New replicas inherit only frozen measurements, not a sibling's learned state.
+  Runtime aliasing/configuration mismatch rejects; mismatch after spawn shuts
+  that new engine down before warmup. This is not proof of physical release.
+  Profile identity is included in existing coordination summaries; service bin
+  width now reaches the actual IEEE Router constructor.
+- Eleven added fixture-based checks. First full 609-test run had two legacy
+  constructor-bypassing fixtures without the new field; explicitly completed
+  them, no production fallback. Final 609 functional pass in 23.285 s; separate
+  safety/census/replay 56 pass in .621 s; zero errors/failures/skips. D22 provides
+  the status table and official native-source rationale. No model experiment,
+  actual profiling values, new production configuration, weights or trace.
+- Sep 26 post-regression resource check: four GPUs idle at 15 MiB/0%; host available
+  memory 111,167,959,040 bytes; local free disk 354,061,565,952 bytes. All 147
+  protected entries and source plan SHA unchanged. No remote service or heavy
+  task started. Existing remote disk and nonzero 3B authority gates remain.
+- Next: actual pre-decision all-tier source/class/cost and atomic admission,
+  then model-integrated qualification/profiling. Actual requests still do not
+  construct the ServiceIntervalObservation, and no complete routing snapshot is
+  supplied. Do not declare Full qualified. Physical lifecycle, SLO/reference,
+  Serverless-first baseline model work, M1/M2, ablations and sensitivities remain
+  outstanding. Overall execution goal remains active.

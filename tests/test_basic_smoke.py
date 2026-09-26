@@ -7323,6 +7323,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             mark_adapter_tier=lambda aid, tier: mark_calls.append((aid, tier)),
         )
         runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._service_profiles = None  # explicitly exercise the legacy contract
         runner._last_scale_up_handoff_plan = {"planned_adapters": ["hot_a", "hot_b"]}
         runner._observed_scale_up_cold_start_latencies_ms = []
         runner._observed_scale_up_runtime_startup_latencies_ms = []
@@ -7388,6 +7389,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             mark_adapter_tier=lambda aid, tier: None,
         )
         runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._service_profiles = None  # explicitly exercise the legacy contract
         runner._last_scale_up_handoff_plan = {
             "planned_adapters": ["hot_a", "hot_b"],
             "first_service_adapter_count": 2,

@@ -6255,6 +6255,7 @@ class ScenarioRunner:
         self.model_cfg["generation_contract"] = generation_contract
         if getattr(self.engine, "model_cfg", None) is not None:
             self.engine.model_cfg["generation_contract"] = generation_contract
+        self._service_profiles = self._load_ieee_service_profiles()
         self._coordination_enabled = bool(
             self.coord_cfg.get("coordination_enabled", baseline_type == "faaslora_full")
         )
@@ -6325,12 +6326,16 @@ class ScenarioRunner:
         self._warm_pool_min = int(cc.get("warm_pool_min", 2))
         self._warm_pool_max = int(cc.get("warm_pool_max", 8))
         self._routing_policy = str(cc.get("routing_policy", "adapter_affinity")).lower()
+        if self._routing_policy == 'ieee_confirmed' and self._service_profiles is None:
+            raise ValueError('IEEE routing requires measured ieee_service_profile initialization')
         self._arrival_window_s = float(cc.get("arrival_window_s", 5.0))
         self._scale_eval_interval_s = max(0.1, float(cc.get("scale_eval_interval_s", 15.0) or 15.0))
         self._baseline_rps: float = 1.0
         self._low_load_since: Optional[float] = None
         self._active_loras_ewma: float = 0.0
         self._instance_mode = str(self.coord_cfg.get("instance_mode", "shared")).lower()
+        if self._service_profiles is not None and self._instance_mode not in ('auto', 'dedicated'):
+            raise ValueError('IEEE service profiles require distinct physical runtime replicas')
         self._primary_instance_id: Optional[str] = None
         self._retired_coord_metrics: List[Dict[str, Any]] = []
         self._arrival_base = traces[0].arrival_time if traces else 0.0
@@ -6434,7 +6439,8 @@ class ScenarioRunner:
         self.instance_pool = None
         self.router = None
         if InstancePool is not None and Router is not None and engine is not None:
-            self.instance_pool = InstancePool(min_instances=min_instances, max_instances=max_instances)
+            self.instance_pool = InstancePool(min_instances=min_instances, max_instances=max_instances,
+                                             service_profiles=self._service_profiles)
             primary_owns_runtime = self._instance_mode in ("auto", "dedicated")
             self._primary_instance_id = self.instance_pool.add_instance(
                 engine,
@@ -6458,6 +6464,7 @@ class ScenarioRunner:
                 policy=self._routing_policy,
                 runtime_concurrency_cap=self._runtime_forward_capacity_limit(),
                 max_active_loras=self._runtime_max_active_loras(),
+                service_bin_ms=cc.get('service_bin_ms'),
             )
             for slot in self.instance_pool.get_slots():
                 self._prime_slot_cache_view(slot, include_gpu=self._slot_should_include_gpu(slot))
@@ -6466,6 +6473,20 @@ class ScenarioRunner:
         if self._external_replay is not None:
             self._external_trace_by_id = {trace.request_id: trace for trace in self.traces}
             self._external_replay.subscribe(self._observe_external_ingress)
+
+    def _load_ieee_service_profiles(self):
+        """Bind measured initialization to this actual runner, never legacy defaults."""
+        spec = self.coord_cfg.get('ieee_service_profile')
+        if spec is None:
+            return None
+        if (not isinstance(spec, dict) or set(spec) != {'path', 'sha256', 'context', 'ewma_beta'}
+                or not isinstance(spec['path'], str) or not spec['path']
+                or not self.model_cfg.get('ieee_gpu_references', False)):
+            raise ValueError('invalid IEEE measured service profile configuration')
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        return FrozenServiceProfiles.load(Path(spec['path']), expected_sha256=spec['sha256'],
+            model_config=getattr(self.engine, 'model_cfg', None),
+            expected_context=spec['context'], beta=spec['ewma_beta'])
 
     def _observe_external_ingress(self, record):
         trace = self._external_trace_by_id[record['request_id']]
@@ -7683,9 +7704,12 @@ class ScenarioRunner:
 
     def _current_coord_metrics(self) -> Dict[str, Any]:
         views = self._coordinator_metric_views()
-        if views:
-            return _merge_coordinator_metrics(views)
-        return self.coordinator.get_summary_metrics() if self.coordinator else {}
+        result = (_merge_coordinator_metrics(views) if views else
+                  self.coordinator.get_summary_metrics() if self.coordinator else {})
+        profiles = getattr(self, '_service_profiles', None)
+        if profiles is not None:
+            result = {**result, 'ieee_service_profile': profiles.identity()}
+        return result
 
     @staticmethod
     def _render_progress_bar(completed: int, total: int, width: int = 28) -> str:
@@ -11941,6 +11965,14 @@ class ScenarioRunner:
         except Exception as exc:
             print(f"    [WARN] Dedicated instance creation failed: {exc}", flush=True)
             return None
+        if self._service_profiles is not None:
+            try:
+                self._service_profiles.validate_runtime(getattr(new_engine, 'model_cfg', None))
+            except (ValueError, TypeError):
+                # This engine has not entered the pool yet. Do not leak it or
+                # perform warmup with a profile measured under another backend.
+                await new_engine.shutdown()
+                raise
         runtime_startup_latency_ms = max(
             0.0,
             float(getattr(new_engine, "startup_latency_ms", 0.0) or 0.0),
