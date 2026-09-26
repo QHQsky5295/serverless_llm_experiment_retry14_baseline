@@ -142,6 +142,81 @@ def _ieee_lora_host_inventory(manager: Any) -> Dict[str, Any]:
             'host_allocator_overhead_included': False, 'host_budget_reserved': False}
 
 
+def _ieee_pinned_host_observation(inventory: Dict[str, Any]) -> Dict[str, Any]:
+    """Account allocator-retained pinned blocks, not just reachable LoRA views.
+
+    This process-wide counter includes non-LoRA pinned allocations. Do not add
+    registered pinned tensors a second time or subtract guessed non-LoRA bytes.
+    It is NOT total HOST RAM: pageable allocator retention, Python objects,
+    file cache/tmpfs and reserved allocator segments need separate ownership.
+    Empty/unavailable statistics are unknown, never zero-capacity evidence.
+    """
+    observe = getattr(getattr(torch, 'cuda', None), 'host_memory_stats', None)
+    keys = ('allocated_bytes.current', 'active_bytes.current',
+            'allocations.current', 'active_requests.current')
+    stats = observe() if callable(observe) else {}
+    if not stats:
+        return dict(kind='native_pinned_host_allocator_v1', available=False,
+                    reason='native_host_statistics_unavailable', total_host_memory_covered=False)
+    if any(type(stats.get(k)) is not int or stats[k] < 0 for k in keys):
+        raise ValueError('native pinned HOST statistics are incomplete or invalid')
+    allocated, active, blocks, active_blocks = (stats[k] for k in keys)
+    pinned = sum(row['allocated_bytes'] for row in inventory['host_allocations'] if row['pinned'])
+    pageable = sum(row['allocated_bytes'] for row in inventory['host_allocations'] if not row['pinned'])
+    if active > allocated or active_blocks > blocks or pinned > active:
+        raise ValueError('native pinned HOST inventory disagrees with allocator counters')
+    return dict(kind='native_pinned_host_allocator_v1', available=True,
+        pinned_allocated_bytes=allocated, pinned_active_bytes=active,
+        pinned_cached_bytes=allocated-active, pinned_blocks=blocks,
+        pinned_active_blocks=active_blocks, registered_pinned_storage_bytes=pinned,
+        registered_pageable_storage_bytes=pageable,
+        accounted_tensor_bytes=allocated+pageable,
+        scope='process_pinned_allocator_plus_registered_pageable_tensors',
+        total_host_memory_covered=False)
+
+
+def _ieee_file_host_contract(lora_path: str, dtype: Any) -> Dict[str, Any]:
+    """Read dense safetensors metadata before native CPU materialization.
+
+    The existing native loader holds checkpoint tensors while casting/pinning.
+    Reserve source-file bytes, all converted pageable tensors and all newly
+    rounded pinned blocks simultaneously. No credit is taken for cached-block
+    reuse or future eviction. Only dense A/B Llama weights are qualified here;
+    this is a tensor-storage bound, not an allocator-overhead/RSS bound.
+    """
+    import safetensors
+    if dtype not in (torch.float16, torch.bfloat16, torch.float32):
+        raise ValueError('unsupported native HOST loading dtype')
+    root = Path(lora_path)
+    weights = root / 'adapter_model.safetensors'
+    if (not root.is_absolute() or not weights.is_file() or weights.is_symlink()
+            or not (root / 'adapter_config.json').is_file()):
+        raise ValueError('native HOST preparation requires a protected local safetensors source')
+    itemsize = {torch.float16: 2, torch.bfloat16: 2, torch.float32: 4}[dtype]
+    converted, pinned, count = 0, 0, 0
+    with safetensors.safe_open(str(weights), framework='pt', device='cpu') as reader:
+        for name in reader.keys():
+            if not (name.endswith('.lora_A.weight') or name.endswith('.lora_B.weight')):
+                raise ValueError('native HOST loading supports dense A/B weights only')
+            shape = reader.get_slice(name).get_shape()
+            if len(shape) != 2 or any(type(n) is not int or n <= 0 for n in shape):
+                raise ValueError('native HOST loading requires nonempty dense matrices')
+            size = shape[0] * shape[1] * itemsize
+            converted += size
+            # Torch2.13 may disable rounding above a configured threshold;
+            # power-of-two ceiling remains conservative in both cases.
+            pinned += 1 << (size-1).bit_length()
+            count += 1
+    if not count:
+        raise ValueError('native HOST loading has no LoRA tensors')
+    source = weights.stat().st_size
+    return dict(kind='dense_safetensors_native_host_loading_v1', source_file_bytes=source,
+        tensor_count=count, converted_pageable_bytes=converted,
+        additional_pinned_upper_bytes=pinned,
+        peak_additional_tensor_bytes=source+converted+pinned,
+        dtype=str(dtype), total_host_memory_covered=False)
+
+
 def _ieee_lora_pool_inventory(manager: Any, *, require_uniform_slots: bool = False) -> Dict[str, Any]:
     """Inventory real tensor storage once; no file-size or rank-size proxy.
 
@@ -381,6 +456,7 @@ class IEEEWorkerObservationExtension:
         """
         if operation not in ('snapshot', 'source_snapshot', 'acquire', 'release', 'evict', 'begin_use', 'end_use',
                              'demand_load_and_acquire', 'hold_host_source', 'release_host_source',
+                             'prepare_file_host_and_hold',
                              'register_preparation_plan', 'finish_preparation_target', 'close_preparation_plan',
                              'proactive_host_prepare_and_acquire'):
             raise ValueError('unknown GPU reference operation')
@@ -428,9 +504,43 @@ class IEEEWorkerObservationExtension:
                                 for source, target in copies]
                 with _ieee_pitched_host_copy(destinations, self.device, completion_fence):
                     demand_loader(**args)
+            def file_host_loader(*, adapter_int_id, lora_name, lora_path, tensor_budget_bytes, reuse):
+                import vllm
+                from vllm.lora.request import LoRARequest
+                from vllm.utils.torch_utils import PIN_MEMORY
+                from vllm.utils.gpu_sync_debug import gpu_sync_allowed
+                if (vllm.__version__ != '0.30.0' or not str(torch.__version__).startswith('2.13.')
+                        or not PIN_MEMORY or self.model_runner.lora_manager is not native_loader
+                        or manager.moe_ep_load_spec is not None
+                        or any(name.endswith('.experts') for name in manager.modules)):
+                    raise RuntimeError('CPU-only preparation requires the qualified dense vLLM0.30/torch2.13 loader')
+                before = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager))
+                if not before['available']:
+                    raise RuntimeError('native CPU-only preparation lacks allocator occupancy')
+                contract = None if reuse else _ieee_file_host_contract(lora_path, native_loader.lora_config.lora_dtype)
+                increment = 0 if reuse else contract['peak_additional_tensor_bytes']
+                if before['accounted_tensor_bytes'] + increment > tensor_budget_bytes:
+                    return dict(admitted=False, reason='native_host_tensor_budget', before=before,
+                                contract=contract, tensor_budget_bytes=tensor_budget_bytes)
+                if not reuse:
+                    request = LoRARequest(lora_name=lora_name, lora_int_id=adapter_int_id,
+                                          lora_path=lora_path, load_inplace=False)
+                    # Preserve official parsing, mapping, packing and scaling.
+                    # Do not invoke add_adapter on the worker: it activates GPU.
+                    with gpu_sync_allowed():
+                        loaded = native_loader._load_adapter(request)
+                        if not manager.add_adapter(loaded):
+                            raise RuntimeError('CPU-only adapter registration was not new')
+                    if not any(manager._get_lora_layer_weights(loaded, name) for name in manager.modules):
+                        raise RuntimeError('prepared adapter matched no executable native module')
+                after = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager))
+                if not after['available'] or after['accounted_tensor_bytes'] > tensor_budget_bytes:
+                    raise RuntimeError('CPU-only preparation exceeded its accounted tensor sub-budget')
+                return dict(admitted=True, before=before, after=after, contract=contract,
+                            tensor_budget_bytes=tensor_budget_bytes, total_host_memory_covered=False)
             self._ieee_gpu_reference_owner = IEEEBackendGPUReferences(
                 manager, completion_fence, demand_loader=demand_loader,
-                preparation_loader=preparation_loader)
+                preparation_loader=preparation_loader, file_host_loader=file_host_loader)
         owner = self._ieee_gpu_reference_owner
         if owner.manager is not manager:
             raise RuntimeError('native LoRA manager replaced; worker reference epoch invalid')
@@ -533,6 +643,7 @@ class IEEEWorkerObservationExtension:
             result['native_footprints'] = {
                 **_ieee_lora_host_inventory(manager),
                 **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
+            result['native_host_allocator'] = _ieee_pinned_host_observation(result['native_footprints'])
             # CUDA ordinals can be remapped in dedicated workers; publish the
             # actual device identity so controller NVML queries cannot sample
             # a different physical GPU with a coincidentally equal index.
@@ -562,6 +673,7 @@ class IEEEWorkerObservationExtension:
             reserved_bytes = torch.cuda.memory_reserved(self.device)
         pool = _ieee_lora_pool_inventory(manager)
         host = _ieee_lora_host_inventory(manager)
+        host_allocator = _ieee_pinned_host_observation(host)
         if pool['pool_allocated_bytes'] > allocated_bytes:
             raise ValueError('LoRA storage inventory exceeds native allocator occupancy')
         import uuid
@@ -582,6 +694,7 @@ class IEEEWorkerObservationExtension:
             'device_barrier_used': synchronize,
             'dispatch_reference_held': False,
             'production_admission_snapshot': False,
+            'native_host_allocator': host_allocator,
             **pool,
             **host,
         }

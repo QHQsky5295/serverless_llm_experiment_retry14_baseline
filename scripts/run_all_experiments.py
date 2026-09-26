@@ -4584,6 +4584,7 @@ class InferenceEngine:
             raise RuntimeError("native references require a live vLLM engine")
         if operation not in ("snapshot", "source_snapshot", "acquire", "release", "evict", "begin_use", "end_use",
                              "demand_load_and_acquire", "hold_host_source", "release_host_source",
+                             "prepare_file_host_and_hold",
                              "register_preparation_plan", "finish_preparation_target", "close_preparation_plan"):
             raise ValueError("unknown GPU reference operation")
         rpc = getattr(self.engine, "collective_rpc", None)
@@ -8090,6 +8091,8 @@ class ScenarioRunner:
             result = {**result, 'ieee_movements': preloading.ieee_movements.snapshot()}
         if hasattr(self, '_ieee_gpu_preparation_plans'):
             result = {**result, 'ieee_gpu_preparation_plans': copy.deepcopy(self._ieee_gpu_preparation_plans)}
+        if hasattr(self, '_ieee_native_host_preparations'):
+            result = {**result, 'ieee_native_host_preparations': copy.deepcopy(self._ieee_native_host_preparations)}
         if getattr(self, '_shared_file_pressure', None) is not None:
             result = {**result, 'ieee_shared_file_pressure': self._shared_file_pressure.snapshot()}
         return result
@@ -15780,6 +15783,143 @@ class ScenarioRunner:
             if cleanup_cancelled or cancelled:
                 raise asyncio.CancelledError()
 
+    async def _queue_ieee_native_host_preparation(self, *, slot, adapter_id, source_path,
+            trigger_reason, plan_id, activation_id=None, density=0.):
+        """Confirmed file -> native CPU tensor on the existing movement queue.
+
+        The native tensor sub-budget is explicit and frozen by the worker; it
+        is not a total HOST allowance or automatic Full planning. File-source
+        protection survives the real RPC, including caller cancellation. No
+        unconfirmed file fallback, implicit GPU activation or hidden eviction.
+        """
+        from faaslora.preloading.preloading_manager import MovementOutcome
+        from faaslora.clock import local_monotonic_clock_id
+        budget = self.model_cfg.get('ieee_native_host_tensor_budget_bytes')
+        if (not self.model_cfg.get('ieee_gpu_references') or self._stack is None
+                or type(budget) is not int or budget <= 0):
+            raise ValueError('native HOST preparation requires an explicit tensor sub-budget')
+        engine = slot.engine
+        await self._attach_ieee_file_pressure(engine)
+        current = await engine.ieee_gpu_reference(operation='source_snapshot')
+        owner_id = current['owner_id']
+        clock_id = local_monotonic_clock_id()
+        def checked(value):
+            if (not isinstance(value, dict) or value.get('owner_id') != owner_id
+                    or value.get('clock_id') != clock_id):
+                raise ValueError('native HOST preparation acknowledgement owner/clock differs')
+            return value
+        checked(current)
+        references = self._stack.residency_manager.local_source_references
+        queue = self._stack.preloading_manager.ieee_movements
+        content = self._ieee_artifact_identities[adapter_id]['content_sha256']
+        aid = InferenceEngine._lora_int_id(adapter_id)
+        record = dict(adapter_id=adapter_id, target_replica=slot.instance_id,
+            source_path=str(source_path), content_sha256=content, plan_id=plan_id,
+            trigger_reason=trigger_reason, activation_id=activation_id, attempts=[])
+        if not hasattr(self, '_ieee_native_host_preparations'):
+            self._ieee_native_host_preparations = []
+        self._ieee_native_host_preparations.append(record)
+        async def settle(awaitable):
+            task, cancelled = asyncio.ensure_future(awaitable), False
+            while True:
+                try:
+                    return await asyncio.shield(task), cancelled
+                except asyncio.CancelledError:
+                    if task.cancelled():
+                        raise
+                    cancelled = True
+        async def execute(attempt_id):
+            observed = checked(await engine.ieee_gpu_reference(operation='source_snapshot'))
+            # Reuse requires this worker's actual immutable source identity.
+            native = next((s for s in observed['sources'] if s['adapter_int_id'] == aid), None)
+            if native is not None and (native['adapter_id'], native['lora_path']) != (adapter_id, str(source_path)):
+                raise ValueError('native HOST target source identity changed')
+            if native is not None and native['gpu_slot'] is not None:
+                return MovementOutcome('completed', dict(state='already_gpu', native_source=native))
+            state = references.source_snapshot(adapter_id)
+            source = next((s for s in state['sources'] if s['path'] == str(source_path)), None)
+            if source is None or source['content_sha256'] != content:
+                raise ValueError('native HOST preparation has no matching confirmed file source')
+            file_ref = references.acquire_confirmed(path=str(source_path), adapter_id=adapter_id,
+                lease_id=uuid.uuid4().hex, expected_owner_id=state['owner_id'],
+                expected_epoch=state['epoch'], expected_content_sha256=content)
+            evidence = dict(attempt_id=attempt_id, file_reference=file_ref, state='file_held')
+            record['attempts'].append(evidence)
+            known = True
+            async def materialize():
+                nonlocal known
+                command = dict(lease_id=uuid.uuid4().hex, adapter_int_id=aid,
+                    lora_name=adapter_id, lora_path=str(source_path), expected_owner_id=owner_id,
+                    expected_epoch=observed['epoch'], native_host_tensor_budget_bytes=budget)
+                evidence.update(state='native_pending', command=command)
+                known = False
+                receipt, cancelled = await settle(engine.ieee_gpu_reference(
+                    operation='prepare_file_host_and_hold', **command))
+                receipt = checked(receipt)
+                if type(receipt.get('held')) is not bool:
+                    raise ValueError('native HOST preparation lacks explicit outcome')
+                evidence['receipt'] = receipt
+                if receipt['held']:
+                    if any(receipt.get(k) != command[k] for k in ('lease_id', 'adapter_int_id', 'lora_name', 'lora_path')):
+                        raise ValueError('native HOST preparation changed protected identity')
+                    released, interrupted = await settle(engine.ieee_gpu_reference(operation='release_host_source',
+                        lease_id=command['lease_id'], expected_owner_id=owner_id))
+                    if checked(released).get('released') is not True:
+                        raise RuntimeError('native HOST preparation pin release unacknowledged')
+                    evidence['release_receipt'] = released
+                    cancelled |= interrupted
+                known = True
+                evidence['state'] = 'completed' if receipt['held'] else 'deferred'
+                if cancelled:
+                    raise asyncio.CancelledError()
+                if not receipt['held']:
+                    return MovementOutcome('deferred', reason=receipt['reason'])
+                return MovementOutcome('completed', dict(state='native_host_prepared', receipt=receipt,
+                    content_sha256=content, total_host_memory_covered=False))
+            async def owned_materialize():
+                from faaslora.scheduling.resource_coordinator import UnresolvedTransferOperation
+                try:
+                    return await materialize()
+                except BaseException as exc:
+                    if not known:
+                        raise UnresolvedTransferOperation('native HOST loading/release outcome unresolved') from exc
+                    raise
+            try:
+                return await self._run_ieee_file_transfer(adapter_id, source['tier'], 'native_host', engine, owned_materialize)
+            finally:
+                if known:
+                    references.release(lease_id=file_ref['lease_id'], expected_owner_id=file_ref['owner_id'])
+                    evidence['file_reference_released'] = True
+                else:
+                    # Lost replies can still have a reader/pin. The failed run
+                    # retains ownership, rather than evicting an in-use file.
+                    evidence['state'] = 'native_outcome_unresolved'
+        intent = uuid.uuid4().hex
+        # Same native owner/tier/content coalesces CPU work, but never aliases a
+        # tmpfs file copy whose owner is the shared file-domain ID.
+        queue.submit(key=(owner_id, 'host', adapter_id, content), intent_id=intent,
+            metadata=dict(trigger_reason=trigger_reason, plan_id=plan_id,
+                          activation_id=activation_id, target_replica=slot.instance_id),
+            density=density, action=execute, demand=trigger_reason == 'demand')
+        if not hasattr(self, '_ieee_gpu_plan_tasks'):
+            self._ieee_gpu_plan_tasks = set()
+            self._ieee_gpu_plan_engines = {}
+        task = asyncio.current_task()
+        self._ieee_gpu_plan_tasks.add(task)
+        self._ieee_gpu_plan_engines[task] = engine
+        try:
+            return await queue.wait(intent)
+        finally:
+            _, cancelled = await settle(queue.withdraw(intent))
+            try:
+                _, interrupted = await settle(queue.join_operation(intent))
+                cancelled |= interrupted
+            finally:
+                self._ieee_gpu_plan_tasks.discard(task)
+                self._ieee_gpu_plan_engines.pop(task, None)
+            if cancelled:
+                raise asyncio.CancelledError()
+
     async def _queue_ieee_file_preparation(self, *, adapter_id, target_tier,
             target_engine, target_replica, trigger_reason, plan_id, activation_id=None,
             source_path=None, density=0., intent_id=None):
@@ -15883,7 +16023,11 @@ class ScenarioRunner:
             for owner_id, target in getattr(self, '_ieee_gpu_movement_owners', {}).items():
                 member = domain.members.get(id(target))
                 if member is not None and member['state'] == 'attached':
-                    self._stack.preloading_manager.ieee_movements.wake(owner_id=owner_id)
+                    # A pressure interval changes GPU E(t), not native HOST
+                    # capacity. Waking a HOST allocation rejected inside this
+                    # very interval would create a self-triggered retry loop.
+                    self._stack.preloading_manager.ieee_movements.wake(
+                        owner_id=owner_id, target_tiers=('gpu',))
 
     async def _materialize_confirmed_source_async(self, adapter_id, source, target_tier, *, target_engine=None,
                                                 _movement_owned=False, movement_context=None,

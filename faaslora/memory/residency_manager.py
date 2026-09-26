@@ -645,11 +645,15 @@ class IEEEBackendGPUReferences:
     is an already materialized native HOST source, not all-tier admission.
     """
 
-    def __init__(self, manager, completion_fence, *, demand_loader=None, preparation_loader=None):
+    def __init__(self, manager, completion_fence, *, demand_loader=None, preparation_loader=None,
+                 file_host_loader=None):
         self.manager = manager
         self.completion_fence = completion_fence
         self.demand_loader = demand_loader
         self.preparation_loader = preparation_loader
+        self.file_host_loader = file_host_loader
+        self._native_host_tensor_budget = None
+        self._file_host_preparations: Dict[str, Dict[str, Any]] = {}
         self.owner_id = uuid.uuid4().hex
         self.thread_id = threading.get_ident()
         self.epoch = 0
@@ -941,6 +945,92 @@ class IEEEBackendGPUReferences:
         self._host_released.add(lease_id)
         self.epoch += 1
         return {'released': True, 'already_released': False, **self.snapshot()}
+
+    def prepare_file_host_and_hold(self, *, lease_id, adapter_int_id, lora_name,
+                                  lora_path, expected_owner_id, expected_epoch,
+                                  native_host_tensor_budget_bytes):
+        """Protected local file -> native CPU registration/pin, without GPU load.
+
+        This explicit path does not call the worker's add_adapter (which also
+        activates GPU). It uses only an empty CPU cache entry; full-cache
+        replacement needs the IEEE HOST objective and is not silently LRU.
+        The supplied immutable sub-budget bounds accounted native tensor bytes
+        and conservative loading workspace, NOT total service HOST memory.
+        The controller must keep its confirmed file lease through completion.
+        """
+        if (not isinstance(lease_id, str) or not lease_id
+                or type(adapter_int_id) is not int or adapter_int_id <= 0
+                or not isinstance(lora_name, str) or not lora_name
+                or not isinstance(lora_path, str) or not Path(lora_path).is_absolute()
+                or type(expected_epoch) is not int or expected_epoch < 1
+                or type(native_host_tensor_budget_bytes) is not int or native_host_tensor_budget_bytes <= 0):
+            raise ValueError('file-to-native-HOST preparation requires exact source, lease and byte budget')
+        slots = self._refresh()
+        if expected_owner_id != self.owner_id:
+            return dict(held=False, reason='owner_changed', **self.snapshot())
+        identity = (adapter_int_id, lora_name, lora_path, native_host_tensor_budget_bytes)
+        old = self._file_host_preparations.get(lease_id)
+        if old is not None:
+            if old['identity'] != identity:
+                raise ValueError('native HOST preparation lease identity changed')
+            if lease_id not in self._host_leases:
+                raise ValueError('released native HOST preparation cannot be revived')
+            return copy.deepcopy(old['receipt'])
+        if lease_id in self._host_leases or lease_id in self._host_released or lease_id in self._leases or lease_id in self._released:
+            raise ValueError('native HOST preparation lease is not unused')
+        if expected_epoch != self.epoch:
+            return dict(held=False, reason='stale_snapshot', **self.snapshot())
+        source = (lora_name, lora_path)
+        if adapter_int_id in self._sources and self._sources[adapter_int_id] != source:
+            raise ValueError('native integer ID reused for a different adapter source')
+        if self._native_host_tensor_budget not in (None, native_host_tensor_budget_bytes):
+            raise ValueError('native HOST tensor sub-budget cannot change within a worker')
+        self._native_host_tensor_budget = native_host_tensor_budget_bytes
+        cpu, _ = self._caches()
+        cached = adapter_int_id in cpu
+        if cached and adapter_int_id not in self._sources:
+            return dict(held=False, reason='unowned_native_adapter', **self.snapshot())
+        if adapter_int_id in slots:
+            return dict(held=False, reason='required_source_changed', **self.snapshot())
+        if not cached and len(cpu) >= self.manager.capacity:
+            return dict(held=False, reason='host_replacement_required', **self.snapshot())
+        if not callable(self.file_host_loader):
+            raise RuntimeError('native CPU-only loader is not attached')
+        before = (slots, tuple(cpu), tuple(cpu.pinned_items))
+        start = time.monotonic()
+        try:
+            allocation = self.file_host_loader(adapter_int_id=adapter_int_id,
+                lora_name=lora_name, lora_path=lora_path,
+                tensor_budget_bytes=native_host_tensor_budget_bytes, reuse=cached)
+            if not isinstance(allocation, dict) or type(allocation.get('admitted')) is not bool:
+                raise ValueError('native CPU-only loader lacks an allocation outcome')
+            if not allocation['admitted']:
+                if (self._refresh(), tuple(cpu), tuple(cpu.pinned_items)) != before:
+                    raise RuntimeError('deferred native HOST preparation mutated cache state')
+                return dict(held=False, reason=allocation['reason'], allocation=allocation, **self.snapshot())
+            if (adapter_int_id not in cpu or tuple(self.manager.lora_index_to_id) != slots
+                    or set(cpu) != set(before[1]) | {adapter_int_id}):
+                raise RuntimeError('native HOST preparation changed GPU or unrelated CPU residency')
+            self._sources[adapter_int_id] = source
+            self._source_objects[adapter_int_id] = weakref.ref(cpu.cache[adapter_int_id])
+            self._refresh()
+            receipt = self.hold_host_source(lease_id=lease_id, adapter_int_id=adapter_int_id,
+                lora_name=lora_name, lora_path=lora_path, expected_owner_id=self.owner_id,
+                expected_epoch=self.epoch)
+            if not receipt['held']:
+                raise RuntimeError('completed CPU preparation could not protect its source')
+            receipt.update(acquisition_operation='prepare_file_host_and_hold',
+                native_load_invoked=not cached, allocation=allocation,
+                load_started_monotonic_s=start, load_completed_monotonic_s=time.monotonic(),
+                total_host_memory_covered=False)
+            self._file_host_preparations[lease_id] = dict(identity=identity, receipt=copy.deepcopy(receipt))
+            return receipt
+        except BaseException:
+            # A native error may leave allocations/cache objects. Do not claim
+            # rollback, released bytes, a valid source or a safe blind retry.
+            self._poisoned = True
+            self._poison_reason = 'native file-to-HOST preparation outcome invalidated'
+            raise
 
     def acquire(self, *, lease_id: str, adapter_int_id: int,
                 expected_owner_id: str, expected_epoch: int) -> Dict[str, Any]:

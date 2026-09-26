@@ -24,6 +24,10 @@ from types import MappingProxyType
 from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 
+class UnresolvedTransferOperation(RuntimeError):
+    """A remote/native operation may still own its source after a lost reply."""
+
+
 class NativeIterationObservation:
     """Observe native scheduling events without changing their scheduling policy.
 
@@ -117,7 +121,7 @@ class NativeTransferObservation:
             if (not isinstance(descriptor, dict) or set(descriptor) != fields
                     or any(not isinstance(v, str) or not v for v in descriptor.values())
                     or descriptor['source_tier'] not in ('remote', 'nvme', 'host')
-                    or descriptor['target_tier'] not in ('nvme', 'host')
+                    or descriptor['target_tier'] not in ('nvme', 'host', 'native_host')
                     or descriptor['source_tier'] == descriptor['target_tier']):
                 raise ValueError('transfer requires exact source/target/adapter/file owner')
             if self.file_domain is not None and descriptor['file_owner_id'] != self.file_domain:
@@ -277,7 +281,7 @@ class SharedFileTransferDomain:
     async def run(self, adapter_id, source_tier, target_tier, operation):
         if (not isinstance(adapter_id, str) or not adapter_id
                 or source_tier not in ('remote', 'nvme', 'host')
-                or target_tier not in ('nvme', 'host') or source_tier == target_tier):
+                or target_tier not in ('nvme', 'host', 'native_host') or source_tier == target_tier):
             raise ValueError('shared transfer requires an explicit adapter and distinct file tiers')
         record = dict(transfer_id=uuid.uuid4().hex, adapter_id=adapter_id,
             source_tier=source_tier, target_tier=target_tier, file_owner_id=self.owner_id,
@@ -286,6 +290,7 @@ class SharedFileTransferDomain:
             transfer_scope='shared_file_domain_and_serialized_native_v1')
         self.evidence.append(record)
         entry = dict(record=record, done=asyncio.Event())
+        unresolved_error = None
         try:
             async with self.lock:
                 self.active[record['transfer_id']] = entry
@@ -303,12 +308,22 @@ class SharedFileTransferDomain:
             record.update(operation_outcome='completed', io_joined_at=time.monotonic())
             return result
         except BaseException as exc:
-            record.update(operation_outcome='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
-                          operation_error_type=type(exc).__name__, io_joined_at=time.monotonic())
+            if isinstance(exc, UnresolvedTransferOperation):
+                unresolved_error = exc
+                record.update(state='operation_unresolved', operation_outcome='unresolved',
+                              operation_error_type=type(exc).__name__)
+            else:
+                record.update(operation_outcome='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
+                              operation_error_type=type(exc).__name__, io_joined_at=time.monotonic())
             if isinstance(exc, asyncio.CancelledError):
                 record['caller_cancelled'] = True
             raise
         finally:
+            if unresolved_error is not None:
+                # Wake retirement's outcome check, but never forge a finish
+                # event or an IO-joined timestamp. The run needs owner recovery.
+                entry['done'].set()
+                raise unresolved_error
             async def finish():
                 errors = []
                 async with self.lock:

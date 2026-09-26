@@ -129,14 +129,15 @@ class OwnedMovementQueue:
     async def _execute(self, job):
         attempt = dict(attempt_id=uuid.uuid4().hex, started_at=time.monotonic(), state='executing')
         job['attempts'].append(attempt)
-        revision = self._revision.get(job['key'][0], 0)
+        revision_key = job['key'][:2]
+        revision = self._revision.get(revision_key, 0)
         try:
             result = await job['action'](attempt['attempt_id'])
             if not isinstance(result, MovementOutcome):
                 raise TypeError('owned movement executor must return MovementOutcome')
             attempt.update(state=result.state, reason=result.reason)
             if result.state == 'deferred':
-                job['state'] = 'pending' if self._revision.get(job['key'][0], 0) != revision else 'deferred'
+                job['state'] = 'pending' if self._revision.get(revision_key, 0) != revision else 'deferred'
                 job['deferred_revision'] = revision
             else:
                 job['state'] = 'completed'
@@ -158,14 +159,19 @@ class OwnedMovementQueue:
             job['task'] = None
             self._pump()
 
-    def wake(self, *, owner_id, ready=None):
+    def wake(self, *, owner_id, ready=None, target_tiers=('gpu', 'host', 'nvme')):
         """Notify an actual capacity/pressure/activation change; no hidden timer."""
         self._bind()
-        if not isinstance(owner_id, str) or not owner_id or (ready is not None and type(ready) is not bool):
+        if (not isinstance(owner_id, str) or not owner_id or (ready is not None and type(ready) is not bool)
+                or not isinstance(target_tiers, tuple) or not target_tiers
+                or any(t not in ('gpu', 'host', 'nvme') for t in target_tiers)
+                or len(set(target_tiers)) != len(target_tiers)):
             raise ValueError('movement wake requires its physical owner')
-        self._revision[owner_id] = self._revision.get(owner_id, 0) + 1
+        for tier in target_tiers:
+            key = (owner_id, tier)
+            self._revision[key] = self._revision.get(key, 0) + 1
         for job in self._keys.values():
-            if job['key'][0] != owner_id:
+            if job['key'][0] != owner_id or job['key'][1] not in target_tiers:
                 continue
             if ready is not None:
                 job['ready'] = ready

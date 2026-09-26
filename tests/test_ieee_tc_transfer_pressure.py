@@ -655,6 +655,130 @@ class OwnedMovements(unittest.IsolatedAsyncioTestCase):
             self.submit(queue, 'late', action)
 
 
+class OwnedNativeHostMovement(unittest.TestCase):
+    async def make(self):
+        from faaslora.clock import local_monotonic_clock_id
+        from tests.test_ieee_tc_gpu_references import NativeFileHostPreparation
+        previous = OwnedFileMovement()
+        fixture, runner, queue, engine, ledger = previous.make()
+        self.addCleanup(previous.doCleanups)
+        await previous.call(runner, engine, 'source')
+        native = NativeFileHostPreparation()
+        native.setUp()
+        owner = native.owner
+        actual_load = owner.file_host_loader
+        def load(**kwargs):
+            self.assertTrue(fixture.owner.leases)
+            self.assertEqual(ledger.snapshot()['active_transfers'], 1)
+            self.assertFalse(fixture.manager._delete_path(str(fixture.nvme/'a')))
+            return actual_load(**kwargs)
+        owner.file_host_loader = load
+        async def rpc(operation, **kwargs):
+            return {**getattr(owner, operation)(**kwargs), 'clock_id': local_monotonic_clock_id()}
+        engine.ieee_gpu_reference = rpc
+        runner.model_cfg['ieee_native_host_tensor_budget_bytes'] = 4096
+        slot = NS(engine=engine, instance_id='replica')
+        return fixture, runner, queue, engine, ledger, native, slot
+
+    def call(self, fixture, runner, slot, plan='host-plan'):
+        return runner._queue_ieee_native_host_preparation(slot=slot, adapter_id='a',
+            source_path=str(fixture.nvme/'a'), trigger_reason='residency', plan_id=plan)
+
+    def test_actual_file_to_native_host_preserves_file_and_never_activates_gpu(self):
+        async def run():
+            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+            result = await self.call(fixture, runner, slot)
+            self.assertEqual(result['state'], 'native_host_prepared')
+            self.assertEqual(native.manager.lora_index_to_id, [1, 2])
+            self.assertFalse(fixture.owner.leases)
+            self.assertFalse(native.owner._host_leases)
+            self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            self.assertFalse(runner._ieee_gpu_plan_tasks)
+            source = native.owner.source_snapshot()['sources'][0]
+            self.assertEqual(source['adapter_id'], 'a')
+            self.assertIsNone(source['gpu_slot'])
+            evidence = runner._ieee_native_host_preparations[0]['attempts'][0]
+            self.assertTrue(evidence['file_reference_released'])
+            await queue.close()
+        asyncio.run(run())
+
+    def test_repeated_cancellation_joins_native_reader_then_releases_both_references(self):
+        async def run():
+            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+            entered, proceed = asyncio.Event(), asyncio.Event()
+            rpc = engine.ieee_gpu_reference
+            async def delay(operation, **kwargs):
+                if operation == 'prepare_file_host_and_hold':
+                    entered.set()
+                    await proceed.wait()
+                return await rpc(operation, **kwargs)
+            engine.ieee_gpu_reference = delay
+            task = asyncio.create_task(self.call(fixture, runner, slot))
+            await entered.wait()
+            task.cancel()
+            await asyncio.sleep(0)
+            task.cancel()
+            self.assertTrue(fixture.owner.leases)
+            self.assertFalse(task.done())
+            proceed.set()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            self.assertFalse(fixture.owner.leases)
+            self.assertFalse(native.owner._host_leases)
+            self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_lost_native_reply_retains_file_lease_and_does_not_publish_success(self):
+        async def run():
+            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+            rpc = engine.ieee_gpu_reference
+            async def lost(operation, **kwargs):
+                result = await rpc(operation, **kwargs)
+                if operation == 'prepare_file_host_and_hold':
+                    raise ConnectionError('lost native HOST reply')
+                return result
+            engine.ieee_gpu_reference = lost
+            with self.assertRaisesRegex(RuntimeError, 'native HOST loading/release outcome unresolved'):
+                await self.call(fixture, runner, slot)
+            self.assertTrue(fixture.owner.leases)
+            self.assertTrue(native.owner._host_leases)
+            self.assertEqual(runner._ieee_native_host_preparations[0]['attempts'][0]['state'],
+                             'native_outcome_unresolved')
+            self.assertFalse(fixture.manager._delete_path(str(fixture.nvme/'a')))
+            self.assertEqual(ledger.snapshot()['active_transfers'], 1)
+            self.assertEqual(runner._adapter_transfer_pressure_evidence[-1]['operation_outcome'], 'unresolved')
+            self.assertNotIn('io_joined_at', runner._adapter_transfer_pressure_evidence[-1])
+            with self.assertRaisesRegex(RuntimeError, 'unsettled file pressure'):
+                await runner._ieee_file_pressure_domain().retire(engine)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_native_host_deferral_is_not_retried_by_its_own_pressure_finish(self):
+        async def run():
+            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+            calls = []
+            def defer(**kwargs):
+                calls.append(kwargs)
+                return dict(admitted=False, reason='native_host_tensor_budget')
+            native.owner.file_host_loader = defer
+            runner._ieee_gpu_movement_owners = {native.owner.owner_id: engine}
+            task = asyncio.create_task(self.call(fixture, runner, slot))
+            # Drain ready callbacks, without a timer-triggered capacity retry.
+            for _ in range(40):
+                await asyncio.sleep(0)
+            self.assertEqual(len(calls), 1)
+            self.assertFalse(task.done())
+            self.assertFalse(fixture.owner.leases)
+            self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            self.assertEqual(queue.snapshot()[-1]['state'], 'deferred')
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            await queue.close()
+        asyncio.run(run())
+
+
 class OwnedFileMovement(unittest.TestCase):
     def make(self):
         from unittest.mock import Mock

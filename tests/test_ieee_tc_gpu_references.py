@@ -73,6 +73,132 @@ class NativeAdapter:
         self.rank = rank
 
 
+class NativeFileHostPreparation(unittest.TestCase):
+    def setUp(self):
+        self.manager = NativeManager()
+        self.manager.remove_adapter(3)  # An empty CPU entry; GPUs1/2 stay unchanged.
+        self.loads = []
+        def load(**kwargs):
+            self.loads.append(kwargs)
+            if not kwargs['reuse']:
+                self.manager._registered_adapters[kwargs['adapter_int_id']] = NativeAdapter()
+            return dict(admitted=True, total_host_memory_covered=False)
+        self.loader = load
+        self.owner = IEEEBackendGPUReferences(self.manager, Mock(), file_host_loader=load)
+
+    def prepare(self, lease='host-only', aid=4, budget=4096):
+        snap = self.owner.snapshot()
+        return self.owner.prepare_file_host_and_hold(lease_id=lease, adapter_int_id=aid,
+            lora_name=f'adapter-{aid}', lora_path=f'/existing/adapter-{aid}',
+            expected_owner_id=snap['owner_id'], expected_epoch=snap['epoch'],
+            native_host_tensor_budget_bytes=budget)
+
+    def release(self, lease='host-only'):
+        return self.owner.release_host_source(lease_id=lease, expected_owner_id=self.owner.owner_id)
+
+    def test_cpu_only_completion_pin_identity_and_transport_idempotence(self):
+        before = list(self.manager.lora_index_to_id)
+        result = self.prepare()
+        self.assertTrue(result['held'])
+        self.assertFalse(result['gpu_acquired'])
+        self.assertEqual(self.manager.lora_index_to_id, before)
+        self.assertIn(4, self.manager._registered_adapters.pinned_items)
+        self.assertNotIn(4, self.manager._active_adapters)
+        self.assertEqual(self.prepare(), result)
+        self.assertEqual(len(self.loads), 1)
+        self.assertIsNone(self.owner.source_snapshot()['sources'][0]['gpu_slot'])
+        self.release()
+        with self.assertRaisesRegex(ValueError, 'cannot be revived'):
+            self.prepare()
+
+    def test_reuse_does_not_reload_or_change_frozen_tensor_subbudget(self):
+        self.prepare()
+        self.release()
+        self.prepare(lease='reuse')
+        self.assertTrue(self.loads[-1]['reuse'])
+        self.assertEqual(sum(not r['reuse'] for r in self.loads), 1)
+        with self.assertRaisesRegex(ValueError, 'sub-budget cannot change'):
+            self.prepare(lease='inflated', budget=8192)
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            snap = self.owner.snapshot()
+            self.owner.prepare_file_host_and_hold(lease_id='changed', adapter_int_id=4,
+                lora_name='other', lora_path='/other', expected_owner_id=snap['owner_id'],
+                expected_epoch=snap['epoch'], native_host_tensor_budget_bytes=4096)
+
+    def test_cpu_capacity_defers_without_native_lru_or_gpu_eviction(self):
+        self.prepare()
+        self.release()
+        before = self.owner.snapshot()
+        result = self.prepare(lease='next', aid=5)
+        self.assertEqual(result['reason'], 'host_replacement_required')
+        self.assertEqual(self.owner.snapshot(), before)
+        self.assertEqual(len(self.loads), 1)
+
+    def test_tensor_budget_deferral_has_no_cache_or_source_publication(self):
+        self.owner.file_host_loader = Mock(return_value=dict(admitted=False, reason='native_host_tensor_budget'))
+        before = self.owner.snapshot()
+        result = self.prepare()
+        self.assertEqual(result['reason'], 'native_host_tensor_budget')
+        self.assertEqual(self.owner.snapshot(), before)
+        self.assertFalse(self.owner.source_snapshot()['sources'])
+
+    def test_native_failure_or_hidden_gpu_activation_invalidates_owner(self):
+        for mode in ('failure', 'gpu'):
+            self.setUp()
+            def bad(**kw):
+                self.loader(**kw)
+                if mode == 'failure':
+                    raise RuntimeError('allocation failed')
+                self.manager.activate(4)
+                return dict(admitted=True)
+            self.owner.file_host_loader = bad
+            with self.assertRaises(RuntimeError):
+                self.prepare()
+            with self.assertRaisesRegex(RuntimeError, 'outcome invalidated'):
+                self.owner.source_snapshot()
+
+    def test_actual_worker_uses_cpu_loader_not_worker_gpu_activation(self):
+        import sys
+        worker = gpu_monitor.IEEEWorkerObservationExtension()
+        worker.device, worker.rank = SimpleNamespace(type='cuda'), 0
+        self.manager.moe_ep_load_spec, self.manager.modules = None, {'layer': object()}
+        self.manager._get_lora_layer_weights = lambda *args: True
+        def register(model):
+            self.manager._registered_adapters[model.id] = model
+            return True
+        self.manager.add_adapter = register
+        loaded = NativeAdapter()
+        loaded.id = 4
+        loader = SimpleNamespace(_adapter_manager=self.manager,
+            lora_config=SimpleNamespace(lora_dtype='fixture-dtype'),
+            _load_adapter=Mock(return_value=loaded),
+            add_adapter=Mock(side_effect=AssertionError('GPU activation forbidden')))
+        worker.model_runner = SimpleNamespace(lora_manager=loader)
+        modules = {'vllm': SimpleNamespace(__version__='0.30.0'),
+            # Explicit0.30 request fixture; the preserved0.10 test environment
+            # has no load_inplace field and is not our native qualification.
+            'vllm.lora.request': SimpleNamespace(LoRARequest=SimpleNamespace),
+            'vllm.utils.torch_utils': SimpleNamespace(PIN_MEMORY=True),
+            'vllm.utils.gpu_sync_debug': SimpleNamespace(gpu_sync_allowed=nullcontext)}
+        with patch.dict(sys.modules, modules), \
+             patch.object(gpu_monitor, 'torch', SimpleNamespace(__version__='2.13.0')), \
+             patch.object(gpu_monitor, '_ieee_lora_host_inventory', return_value={}), \
+             patch.object(gpu_monitor, '_ieee_pinned_host_observation', return_value=dict(available=True, accounted_tensor_bytes=513)) as occupancy, \
+             patch.object(gpu_monitor, '_ieee_file_host_contract', return_value=dict(peak_additional_tensor_bytes=1024)):
+            snap = worker.ieee_gpu_reference(operation='snapshot')
+            kwargs = dict(adapter_int_id=4, lora_name='adapter-4', lora_path='/existing/adapter-4',
+                expected_owner_id=snap['owner_id'], expected_epoch=snap['epoch'], native_host_tensor_budget_bytes=1536)
+            deferred = worker.ieee_gpu_reference(operation='prepare_file_host_and_hold', lease_id='too-large', **kwargs)
+            self.assertEqual(deferred['reason'], 'native_host_tensor_budget')
+            loader._load_adapter.assert_not_called()
+            occupancy.return_value = dict(available=True, accounted_tensor_bytes=512)
+            result = worker.ieee_gpu_reference(operation='prepare_file_host_and_hold', lease_id='native-host', **kwargs)
+            self.assertTrue(result['held'])
+            self.assertEqual(self.manager.lora_index_to_id, [1, 2])
+            loader._load_adapter.assert_called_once()
+            loader.add_adapter.assert_not_called()
+
+
 class NativeObjectiveReplacement(unittest.TestCase):
     """Actual stack/owner/worker paths with CPU native caches, not model timings."""
     def setUp(self):

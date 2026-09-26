@@ -89,6 +89,56 @@ class NativeHostFootprint(unittest.TestCase):
         self.assertFalse(result['host_allocator_overhead_included'])
 
 
+class NativePinnedHostAccounting(unittest.TestCase):
+    def observe(self, stats, rows=()):
+        fake = SimpleNamespace(cuda=SimpleNamespace(host_memory_stats=lambda: stats))
+        with patch.object(monitor, 'torch', fake):
+            return monitor._ieee_pinned_host_observation({'host_allocations': list(rows)})
+
+    def stats(self, allocated=1024, active=256):
+        return {'allocated_bytes.current': allocated, 'active_bytes.current': active,
+                'allocations.current': 4, 'active_requests.current': 1}
+
+    def test_retained_blocks_count_without_double_counting_registered_pins(self):
+        result = self.observe(self.stats(), [dict(pinned=True, allocated_bytes=128),
+                                             dict(pinned=False, allocated_bytes=64)])
+        self.assertEqual(result['accounted_tensor_bytes'], 1088)
+        self.assertEqual(result['pinned_cached_bytes'], 768)
+        after = self.observe(self.stats(active=0))
+        self.assertEqual(after['accounted_tensor_bytes'], 1024)
+        self.assertFalse(after['total_host_memory_covered'])
+
+    def test_missing_empty_or_invalid_statistics_are_not_zero_free_space(self):
+        self.assertFalse(self.observe({})['available'])
+        for stats in (self.stats(active=2048), self.stats() | {'allocations.current': True},
+                      {'allocated_bytes.current': 0}):
+            with self.subTest(stats=stats), self.assertRaises(ValueError):
+                self.observe(stats)
+        with self.assertRaisesRegex(ValueError, 'disagrees'):
+            self.observe(self.stats(), [dict(pinned=True, allocated_bytes=512)])
+
+    def test_file_contract_uses_shapes_not_materialized_tensors_and_rounds_up(self):
+        import tempfile
+        from pathlib import Path
+        import torch
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'adapter_config.json').write_text('{}')
+            (root / 'adapter_model.safetensors').write_bytes(b'header-fixture')
+            reader = Mock()
+            reader.keys.return_value = ['layer.lora_A.weight', 'layer.lora_B.weight']
+            reader.get_slice.return_value.get_shape.return_value = [3, 5]
+            with patch('safetensors.safe_open', return_value=nullcontext(reader)):
+                result = monitor._ieee_file_host_contract(directory, torch.float16)
+                reader.get_tensor.assert_not_called()
+                self.assertEqual(result['converted_pageable_bytes'], 60)
+                self.assertEqual(result['additional_pinned_upper_bytes'], 64)
+                self.assertEqual(result['peak_additional_tensor_bytes'], 138)
+                reader.keys.return_value = ['layer.base_weight']
+                with self.assertRaisesRegex(ValueError, 'dense A/B'):
+                    monitor._ieee_file_host_contract(directory, torch.float16)
+
+
 class FakeDevice:
     type = 'cuda'
     def __str__(self):

@@ -2171,3 +2171,60 @@ D39 GPU计划使用同一个HOST/NVMe物理所有者，但其他副本可能看�
 可变大小替换、完整Full物理生命周期仍待接入。保留IEEE Full启动拒绝旧
 warmup的限制。下轮沿总HOST/native所有权和自动规划主线继续，不再重复
 本轮共享计数检查或旧模型短前缀。基线、M1/M2、消融和敏感性尚未启动。
+
+## D41：文件到原生HOST的受控准备与分配器留存
+
+### 问题与来源
+
+沿D32–D40继续检查实际加载链路，发现两项不能混同的事实：受管HOST
+目录有文件，不等于vLLM已经持有可复用CPU张量；CPU cache删除一个LoRA，
+也不等于锁页分配器已把相同字节归还系统。若只合计文件和在册张量，
+后续预算与NoHOST消融可能遗漏缓存分配器留存。
+
+核对已安装0.30/2.13源码和对应原始版本：
+[vLLM CPU加载与GPU激活入口](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)、
+[原生checkpoint转换](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/lora_model.py)、
+[PyTorch锁页分配器](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/aten/src/ATen/core/CachingHostAllocator.h)。
+原worker的add_adapter包含GPU激活，因此不能拿它实现“只准备HOST”。
+本轮复用其_load_adapter与manager.add_adapter，保留原生解析、映射、
+打包和缩放；不调用激活，不改已安装后端文件。
+
+### 实现范围与正确性表
+
+| 论文性质 | 本轮实现/检查 |
+|---|---|
+| 原生HOST和文件副本区分 | 已确认文件经实际runner/queue/worker入口转为CPU cache对象；GPU slot完全不变 |
+| 发布顺序 | native加载与注册完成后建立不可变name/path身份并pin CPU；完成前不发布native HOST |
+| 源文件保护 | controller持有内容SHA绑定的文件引用直至真实RPC和CPU pin释放完成；读取期间不能删除 |
+| 缓存分配器留存 | process-wide allocated计active+cached；已计入的pinned LoRA不再加一次；非LoRA pinned也不猜测扣除 |
+| 未知不是空闲 | 缺失/空统计标unavailable；主动CPU准备拒绝，不以零占用继续 |
+| 加载峰值 | dense safetensors只读shape；保守同时计源文件、转换后pageable张量、各tensor向上取整pinned增量，不提前减victim或猜测缓存可复用 |
+| 子预算边界 | immutable native_host_tensor_budget_bytes；边界差1B时先延期且不调用loader；空间释放后允许同预算重查 |
+| CPU cache满 | 返回host_replacement_required，不隐式LRU驱逐；多victim HOST替换尚待接入 |
+| 取消 | 重复取消仍join实际native读取；已确认CPU pin归还后释放文件引用，不提前清理 |
+| 丢失回复 | 保留文件/CPU引用及共享压力，operation_unresolved；不写IO-joined时间，retirement拒绝伪关闭 |
+| 事件驱动 | 文件压力结束只唤醒GPU E(t)重查；不会因自身HOST延期检查结束而进入忙重试 |
+| 溯源 | summary保存计划、attempt、子预算、分配器前后值、引用及失败；native_host仅为传输目标表示，不是新增论文层级 |
+
+这里的子预算**不是总HOST物理预算**。它覆盖所报告的process pinned blocks、
+在册pageable tensor和保守加载tensor workspace；不覆盖pageable allocator
+留存、Python/C++元数据、未分配reserved pinned segment、tmpfs/page cache、
+其他runtime或整个服务内存。源文件可能和其他子预算重复计量，当前宁可
+保守也不进行未经证据的抵扣。服务72/80GiB限制继续独立有效；不能拿它或
+此子预算冒充已实现全局HOST used+reserved约束。普通demand loader未在本轮
+更换策略或获得完整HOST字节保证。正式Full仍受启动guard限制。
+
+新增13项检查，使用真实队列/runner/native cache接口及微型文件fixture，
+不加载模型或初始化CUDA。初次定向151项中一个测试使用了旧0.10的LoRARequest，
+不支持0.30的load_inplace字段；改为明确的0.30请求fixture，生产接口不退回旧版。
+初次完整821项通过，收尾加入延期事件与失联保留检查。最终计数与安全回执
+见EXECUTION_STATUS。原生0.30环境也单独检查实际LoRARequest字段。
+
+### 返回主线
+
+本轮关闭了显式文件→native HOST的空CPU槽路径，未关闭总HOST预算或
+自动planner/handoff。下一步统一文件、native、allocator及workspace预算
+所有权，连接剩余预算/options与自动规划，并完成HOST/NVMe replacement、
+主动d反馈和Full物理生命周期。需用代表性实际测量初始化profile；本轮
+shape上界和fixture不充当profile。不得重复本轮狭窄正确性检查、旧模型
+前缀或零权重对照来代替主线。正式比较、消融、敏感性仍未开始。
