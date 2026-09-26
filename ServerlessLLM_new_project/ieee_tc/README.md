@@ -39,14 +39,16 @@ its timings are **not inference latency measurements**.
 | Queued/during-reservation cancellation | Not used as valid performance input | Router remains live; acquired count rolled back |
 
 Full inference cancellation, scale-down races, runtime import/source identity,
-loader fidelity, actual worker resource containment and two 1,000-request model
-pairs remain qualification gates. No model replay has run with this repair yet.
+full LoRA loading and two 1,000-request model pairs remain qualification gates.
+D67 now verifies four backbone-only native3B
+requests and actual worker identity/cleanup under the repaired source; this is
+not the original/repaired1,000-request comparison or LoRA qualification.
 The environment's installed source has not been overwritten.
 
 D64 adds an exclusive view of the existing native launch scripts without
 changing those originals or installed sources. See [contained launch evidence
-and remaining qualification gates](CONTAINED_LAUNCH.md). This is not a new
-inference run or an end-to-end repair result.
+and remaining qualification gates](CONTAINED_LAUNCH.md), including the subsequent
+D67 native-loading test. Neither establishes an end-to-end polling-repair gain.
 
 ## Historical reuse
 

@@ -1,10 +1,53 @@
 # Serverless: independent native launcher view
 
-Status: D65 actual two-raylet infrastructure witness and D66 native input
-identity qualification pass. No new Serverless
-model replay. Native loader, model workers and performance remain unqualified.
-This is a prerequisite for the approved original/repaired 1,000-request pairs,
-not evidence that the repair improves TTFT or that native loading is qualified.
+Status: D65 infrastructure, D66 native-input identity and D67 actual3B native
+backbone loading qualification pass. Four fixed-output requests and actual
+worker/source/resource release are verified. LoRA, full-pool,7B loading and
+original/repaired1,000-request pairs remain open. No comparative performance or
+polling-benefit claim follows from this narrow prerequisite.
+
+## D67 final result: native3B loading qualified, not performance
+
+| Item | Attempt1 | Attempt2 |
+|---|---|---|
+| Native store GPU-load confirmation | Yes | Yes |
+| Native output counts | 152,59,123,217;4/4 | 152,59,123,217;4/4 |
+| Actual backend readback | Caller signature error | TC9f50241 backend; native store; `serverless_llm`; existing checkpoint |
+| Worker group / CPU | Readback incomplete | Actual PID249255 in72/80GiB service group; all40 allowed CPUs |
+| Peak service RAM | 41,180,987,392B | 41,225,433,088B |
+| Minimum host available | 68,445,958,144B | 67,196,321,792B |
+| Watchdog samples | 141 | 143 |
+| high/max/OOM/swap | 0 | 0 |
+| Native context release / service group removed | Yes | Yes |
+| Overlay restored after exit | Yes | Yes |
+| Overall narrow qualification | Incomplete | Pass |
+
+Attempt2 uses the same model/configuration/four inputs, with only the diagnostic
+driver's pre-start source/library composition corrected. Actual readback SHA is
+994c80ae9c6106a6469f9d8d5889132e5c2032608c4e497141c00127f91cc777;
+the worker sees one GPU, while native store sees all four correct device UUIDs.
+The complete supervisor census also checks actual GPU-owning descendants. Native
+confirmation UUID0a9cc932-fedd-410a-97ae-2969e0c0f87a is preserved. Service/watchdog
+exit0/0; private TMUX and owned domains cleaned, both overlays restored byte-for-
+byte after exit. No new artifact/trace/remote service or baseline policy change.
+
+Qualification driver7f2de0de20d51f6bdc79cecff96d67daeb736629 is backed up;26 CPU
+checks pass. Main curated JSON/CSV:
+`paper_results/ieee_tc/serverless_audit/20260927_native_model_qualification.*`.
+Eight request rows preserve both attempts; native logs copied from the private
+temporary area and every copied member SHA checked. Raw successful receipt
+SHA65fb224aadbe1a5a51ca83d660711605e75a5a685cfca6d53c0105191bed072d,
+launch SHAe3f9f744f2018ef5e8af1df28ad5001a8937fcf6071cda0139193b972b41a445.
+
+Do not repeat this passed four-request loader experiment. Next: approved paired
+original/repaired development replay, with necessary native7B identity/format
+and shared generation/LoRA instrumentation. Only the3B native checkpoint exists
+under the inspected `models/vllm` namespace; do not assume7B is already converted.
+First audit other referenced historical locations before any necessary conversion.
+The real-remote and independent LoRA correctness gates remain separate; these
+four explicitly backbone-only requests cannot satisfy either. Storage daemon
+GPU ownership must remain in lifecycle measurements. No M1/M2/ablation starts
+solely because this diagnostic passed.
 
 ## D67 preregistered actual native model qualification
 
