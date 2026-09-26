@@ -507,6 +507,9 @@ class IEEEBackendGPUReferences:
     transaction uses the native loader/LRU; it is NOT proactive soft admission.
     A cold/moved adapter returns a conflict from the hit-only path.
     The caller must retain the lease until dependent backend work is terminal.
+    ``proactive_host_prepare_and_acquire`` additionally evaluates a core-owned
+    E(t) snapshot before the same native loading/reference commit. Its scope
+    is an already materialized native HOST source, not all-tier admission.
     """
 
     def __init__(self, manager, completion_fence, *, demand_loader=None):
@@ -532,6 +535,7 @@ class IEEEBackendGPUReferences:
         # ID and slot position alone cannot distinguish replacement/reuse.
         self._source_objects: Dict[int, weakref.ReferenceType] = {}
         self._gpu_confirmations: Dict[int, Tuple[int, float]] = {}
+        self._preparations: Dict[str, Dict[str, Any]] = {}
         self._poisoned = False
         self._poison_reason = 'GPU reference owner invalidated'
         for cache in self._caches():
@@ -945,6 +949,91 @@ class IEEEBackendGPUReferences:
                        proactive_admission_evaluated=False)
         self._leases[lease_id].update(receipt)
         return dict(receipt)
+
+    def proactive_host_prepare_and_acquire(self, *, lease_id: str, adapter_int_id: int,
+            lora_name: str, lora_path: str, expected_owner_id: str, expected_epoch: int,
+            capacity_only: bool, decide) -> Dict[str, Any]:
+        """Evaluate and commit HOST -> preallocated GPU on the owner thread.
+
+        The engine-core bridge holds scheduling while this synchronous native
+        operation runs. The decision callback reads real pool/device capacity;
+        it must not evict or allocate. Only an owned CPU source is accepted, so
+        this transaction never materializes a file or allocates a CPU adapter.
+        The native LRU victim is inspected without touching its order. On
+        deferral there are no cache mutations; on success the returned GPU
+        reference remains held until its explicit release acknowledgement.
+        """
+        if (type(capacity_only) is not bool or not callable(decide)
+                or not isinstance(lease_id, str) or not lease_id
+                or type(adapter_int_id) is not int or adapter_int_id <= 0
+                or type(expected_epoch) is not int or expected_epoch < 1
+                or not isinstance(lora_name, str) or not lora_name
+                or not isinstance(lora_path, str) or not Path(lora_path).is_absolute()):
+            raise ValueError('proactive preparation requires exact source/lease/policy identity')
+        slots = self._refresh()
+        if expected_owner_id != self.owner_id:
+            return {'acquired': False, 'reason': 'owner_changed', **self.snapshot()}
+        identity = (adapter_int_id, lora_name, lora_path, capacity_only)
+        if lease_id in self._preparations:
+            previous = self._preparations[lease_id]
+            if previous['identity'] != identity:
+                raise ValueError('preparation lease reused with different source or policy')
+            if lease_id in self._released:
+                raise ValueError('released preparation lease cannot be reused')
+            return copy.deepcopy(previous['receipt'])
+        if lease_id in self._leases or lease_id in self._released or lease_id in self._host_leases or lease_id in self._host_released:
+            raise ValueError('preparation lease is not unused')
+        if expected_epoch != self.epoch:
+            return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
+        cpu, gpu = self._caches()
+        if (adapter_int_id not in cpu or adapter_int_id in slots
+                or self._sources.get(adapter_int_id) != (lora_name, lora_path)):
+            return {'acquired': False, 'reason': 'required_source_changed', **self.snapshot()}
+        if not gpu.pinned_items.issubset(cpu.pinned_items):
+            raise RuntimeError('native GPU pin lacks matching CPU eviction protection')
+        victim = None
+        if None not in slots:
+            # Same ordering and pin exclusion as native LRU.remove_oldest().
+            victim = next((aid for aid in gpu.order if aid not in gpu.pinned_items), None)
+            if victim is None:
+                return {'acquired': False, 'reason': 'all_gpu_slots_pinned',
+                        'capacity_blockers': self._capacity_blockers('gpu'), **self.snapshot()}
+        before_epoch, before_slots = self.epoch, tuple(slots)
+        before_order = (tuple(cpu.order), tuple(gpu.order))
+        evaluation = decide(victim, before_slots)
+        if (not isinstance(evaluation, dict) or type(evaluation.get('admit')) is not bool
+                or not isinstance(evaluation.get('reason'), str)):
+            raise ValueError('preparation callback did not return an explicit admission decision')
+        if (tuple(self._refresh()) != before_slots or self.epoch != before_epoch
+                or (tuple(cpu.order), tuple(gpu.order)) != before_order):
+            self._poisoned = True
+            raise RuntimeError('admission evaluation mutated the native owner')
+        common = {'proactive_admission_evaluated': True, 'admission': evaluation,
+                  'candidate_victim_adapter_id': victim, 'capacity_only': capacity_only,
+                  'transaction_scope': 'native_host_to_preallocated_gpu',
+                  'all_tier_admission_reserved': False}
+        if not evaluation['admit']:
+            receipt = {'acquired': False, 'reason': evaluation['reason'], **self.snapshot(), **common}
+        else:
+            # No yield between evaluation, native victim selection and load.
+            # The existing demand primitive supplies completion fencing and
+            # reference ownership, but its policy was not used for this decision.
+            receipt = self.demand_load_and_acquire(lease_id=lease_id,
+                adapter_int_id=adapter_int_id, lora_name=lora_name, lora_path=lora_path,
+                expected_owner_id=self.owner_id, expected_epoch=self.epoch,
+                required_source_tier='host')
+            if not receipt['acquired']:
+                self._poisoned = True
+                raise RuntimeError('serialized preparation lost its validated HOST source/slot')
+            after = tuple(self._refresh())
+            removed = set(before_slots) - set(after) - {None}
+            if removed != ({victim} if victim is not None else set()):
+                self._poisoned = True
+                raise RuntimeError('native preparation evicted a different victim')
+            receipt.update(common)
+            self._leases[lease_id].update(common)
+        self._preparations[lease_id] = {'identity': identity, 'receipt': copy.deepcopy(receipt)}
+        return receipt
 
     def begin_use(self, *, lease_id: str, expected_owner_id: str,
                   adapter_int_id: int, backend_request_id: str,

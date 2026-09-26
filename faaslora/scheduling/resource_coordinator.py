@@ -205,6 +205,8 @@ def capture_native_kv_observation(scheduler, iterations: NativeIterationObservat
             unprocessed_prompt_tokens=max(0, prompt-completed),
             reserved_unused_token_positions=capacity-completed)
         requests.append({**observation.__dict__, 'native_completed_positions': completed,
+                         'native_adapter_int_id': (request.lora_request.lora_int_id
+                             if getattr(request, 'lora_request', None) is not None else None),
                          'native_in_flight_tokens': in_flight,
                          'native_stale_in_flight_tokens': stale,
                          'native_allocated_blocks': len(blocks[0]),

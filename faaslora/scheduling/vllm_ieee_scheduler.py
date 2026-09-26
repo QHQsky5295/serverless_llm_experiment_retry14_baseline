@@ -6,6 +6,8 @@ The EngineCore utility bridge is a documented local integration of its private
 utility protocol, not a claim that vLLM publishes a stable scheduler metrics API.
 """
 import vllm
+import time
+from bisect import bisect_left
 
 if vllm.__version__ != '0.30.0':
     raise RuntimeError('IEEE native scheduler adapter requires qualified vLLM 0.30.0')
@@ -15,7 +17,7 @@ from vllm.v1.engine.core import EngineCore
 from vllm.v1.kv_cache_interface import FullAttentionSpec
 
 from .resource_coordinator import (NativeIterationObservation, NativeRequestRetirement,
-                                   capture_native_kv_observation)
+                                   CompletedLengthWindow, capture_native_kv_observation)
 
 
 def _core_observation(core):
@@ -35,6 +37,35 @@ def _core_retirement(core, request_id, abort):
     return future
 
 
+def _core_prepare_host(core, command):
+    """One synchronous core/worker transaction; not two controller samples.
+
+    UniProc calls the worker on this same engine-core thread. Native async GPU
+    execution is preserved, but no new scheduling/allocation is interleaved
+    between the KV observation and the fenced slot commit. Other executors
+    require their own reservation protocol and must not silently use this one.
+    """
+    from vllm.v1.executor.uniproc_executor import UniProcExecutor
+    if (not isinstance(core.scheduler, IEEENativeAsyncScheduler)
+            or type(core.model_executor) is not UniProcExecutor):
+        raise RuntimeError('proactive HOST preparation requires the native UniProc owner')
+    scheduler = core.scheduler
+    if scheduler._ieee_lengths is None:
+        raise RuntimeError('proactive admission has no frozen completion-length profile')
+    allowed = {'lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
+               'expected_owner_id', 'expected_epoch', 'capacity_only'}
+    if not isinstance(command, dict) or set(command) != allowed:
+        raise ValueError('proactive preparation command fields differ from the contract')
+    observation = scheduler.ieee_scheduler_observation()
+    lengths = scheduler._ieee_lengths.snapshot(now=observation['captured_at'])
+    result = core.collective_rpc('ieee_gpu_reference', kwargs={
+        'operation': 'proactive_host_prepare_and_acquire', **command,
+        'scheduler_observation': observation, 'lengths': lengths})
+    if not isinstance(result, list) or len(result) != 1 or not isinstance(result[0], dict):
+        raise RuntimeError('proactive preparation lacks single-worker acknowledgement')
+    return result[0]
+
+
 class IEEENativeAsyncScheduler(AsyncScheduler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -52,6 +83,15 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
             'ieee_tc_scheduler_observation']['input_upper_bounds'])
         self._ieee_iterations = NativeIterationObservation()
         self._ieee_retirement = NativeRequestRetirement(self._ieee_iterations)
+        profile = config.additional_config.get('ieee_tc_admission_profile')
+        self._ieee_lengths = None
+        if profile is not None:
+            means = profile['profile_means']
+            if not isinstance(means, list) or len(means) != len(self._ieee_input_upper_bounds) + 1:
+                raise ValueError('completion profile must cover every frozen input bucket')
+            self._ieee_lengths = CompletedLengthWindow(
+                window_s=profile['window_s'], model_backend_id=profile['model_backend_id'],
+                profile_id=profile['profile_id'], profile_means=dict(enumerate(means)))
         # Validate actual layout immediately, before claiming this hook is ready.
         self.ieee_scheduler_observation()
         existing = getattr(EngineCore, 'ieee_scheduler_observation', None)
@@ -62,6 +102,10 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
         if existing is not None and existing is not _core_retirement:
             raise RuntimeError('native EngineCore retirement bridge name collision')
         EngineCore.ieee_request_retirement = _core_retirement
+        existing = getattr(EngineCore, 'ieee_prepare_host', None)
+        if existing is not None and existing is not _core_prepare_host:
+            raise RuntimeError('native EngineCore proactive preparation bridge name collision')
+        EngineCore.ieee_prepare_host = _core_prepare_host
 
     def add_request(self, request):
         result = super().add_request(request)
@@ -69,6 +113,12 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
         return result
 
     def _free_request(self, request, *args, **kwargs):
+        if self._ieee_lengths is not None:
+            from vllm.v1.request import RequestStatus
+            if request.status in (RequestStatus.FINISHED_STOPPED, RequestStatus.FINISHED_LENGTH_CAPPED):
+                self._ieee_lengths.record_completed(request.request_id,
+                    bisect_left(self._ieee_input_upper_bounds, request.num_prompt_tokens),
+                    request.num_output_tokens, completed_at=time.monotonic())
         result = super()._free_request(request, *args, **kwargs)
         # Native _free_request_blocks uses sched_step_seq for deferred frees.
         self._ieee_retirement.removed(request.request_id, self.sched_step_seq)

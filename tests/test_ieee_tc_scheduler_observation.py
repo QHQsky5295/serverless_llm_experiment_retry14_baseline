@@ -218,7 +218,7 @@ class SchedulerObservationContract(unittest.TestCase):
 
 
 class NativeHookWiring(unittest.TestCase):
-    def load_adapter(self, *, version='0.30.0'):
+    def load_adapter(self, *, version='0.30.0', admission_profile=None):
         class FullAttentionSpec:
             block_size = 16
             page_size_bytes = 64
@@ -228,6 +228,8 @@ class NativeHookWiring(unittest.TestCase):
                 self.__dict__.update(state.__dict__)
                 self.vllm_config = NS(speculative_config=None, additional_config={
                     'ieee_tc_scheduler_observation': {'input_upper_bounds': [20, 100]}})
+                if admission_profile is not None:
+                    self.vllm_config.additional_config['ieee_tc_admission_profile'] = admission_profile
                 self.parallel_config = NS(tensor_parallel_size=1, pipeline_parallel_size=1)
                 self.dcp_world_size = self.pcp_world_size = 1
                 self.connector = None
@@ -255,6 +257,81 @@ class NativeHookWiring(unittest.TestCase):
         with patch.dict(sys.modules, modules):
             spec.loader.exec_module(module)
         return module, AsyncScheduler, core
+
+    def test_preparation_utility_uses_current_scheduler_and_its_completion_window(self):
+        profile = dict(window_s=10., model_backend_id='m/v0.30', profile_id='frozen',
+                       profile_means=[64., 128., 256.])
+        module, _, core = self.load_adapter(admission_profile=profile)
+        hook = module.IEEENativeAsyncScheduler(scheduler())
+        hook.next_native_output = iteration(r=8)
+        hook.schedule()
+        engine_core = core()
+        engine_core.scheduler = hook
+        uniproc = ModuleType('vllm.v1.executor.uniproc_executor')
+        uniproc.UniProcExecutor = type('UniProcExecutor', (), {})
+        engine_core.model_executor = uniproc.UniProcExecutor()
+        captured = []
+        def call(method, kwargs):
+            self.assertEqual(method, 'ieee_gpu_reference')
+            captured.append(kwargs)
+            return [{'acquired': True}]
+        engine_core.collective_rpc = call
+        command = dict(lease_id='p', adapter_int_id=4, lora_name='a', lora_path='/a',
+                       expected_owner_id='o', expected_epoch=1, capacity_only=False)
+        with patch.dict(sys.modules, {uniproc.__name__: uniproc}):
+            self.assertTrue(engine_core.ieee_prepare_host(command)['acquired'])
+            self.assertEqual(captured[0]['scheduler_observation']['scheduled_tokens'], 8)
+            self.assertEqual(captured[0]['lengths'].captured_at,
+                             captured[0]['scheduler_observation']['captured_at'])
+            self.assertEqual(captured[0]['lengths'].means[0], 64.)
+            self.assertEqual(hook.native_schedule_calls, 1)  # no hidden scheduling/draining
+            with self.assertRaisesRegex(ValueError, 'fields'):
+                engine_core.ieee_prepare_host({**command, 'fake_kv': 0})
+            engine_core.model_executor = object()
+            with self.assertRaisesRegex(RuntimeError, 'UniProc'):
+                engine_core.ieee_prepare_host(command)
+
+    def test_native_success_updates_means_abort_does_not(self):
+        profile = dict(window_s=10., model_backend_id='m/v0.30', profile_id='frozen',
+                       profile_means=[64., 128., 256.])
+        module, native, _ = self.load_adapter(admission_profile=profile)
+        native._free_request = lambda self, request: self.requests.pop(request.request_id)
+        hook = module.IEEENativeAsyncScheduler(scheduler())
+        req_module = ModuleType('vllm.v1.request')
+        req_module.RequestStatus = NS(FINISHED_STOPPED=10, FINISHED_LENGTH_CAPPED=11)
+        for rid, status, tokens in [('done', 11, 30), ('abort', 12, 99)]:
+            hook.requests[rid] = request(rid, status=status, num_output_tokens=tokens)
+            hook._ieee_retirement.added(rid)
+        with patch.dict(sys.modules, {req_module.__name__: req_module}), patch.object(module.time, 'monotonic', return_value=1.):
+            hook._free_request(hook.requests['done'])
+            hook._free_request(hook.requests['abort'])
+        self.assertEqual(dict(hook._ieee_lengths.snapshot(now=1.).means), {0: 30., 1: 128., 2: 256.})
+        self.assertEqual(hook._ieee_lengths.snapshot(now=11.).means[0], 64.)
+
+    def test_completion_profile_requires_every_bucket_without_guessed_fallback(self):
+        module, _, _ = self.load_adapter(admission_profile=dict(window_s=10.,
+            model_backend_id='m', profile_id='frozen', profile_means=[64.]))
+        with self.assertRaisesRegex(ValueError, 'every frozen input bucket'):
+            module.IEEENativeAsyncScheduler(scheduler())
+
+    def test_preparation_engine_and_proxy_preserve_contract_and_error(self):
+        cfg = dict(ieee_scheduler_observation=True, ieee_gpu_references=True,
+                   ieee_admission_profile={'profile_id': 'frozen'})
+        engine = runner.InferenceEngine(cfg, {})
+        payload = dict(acquired=False, reason='defer_effective_capacity',
+                       clock_id=local_monotonic_clock_id(), production_launch_authorized=False)
+        rpc = AsyncMock(return_value=payload)
+        engine.engine = NS(engine_core=NS(call_utility_async=rpc))
+        command = dict(lease_id='p', expected_owner_id='worker')
+        self.assertEqual(asyncio.run(engine.ieee_prepare_host(**command)), payload)
+        rpc.assert_awaited_once_with('ieee_prepare_host', command)
+        rpc.side_effect = RuntimeError('worker lost')
+        with self.assertRaisesRegex(RuntimeError, 'worker lost'):
+            asyncio.run(engine.ieee_prepare_host(**command))
+        proxy = runner.SubprocessInferenceEngineProxy.__new__(runner.SubprocessInferenceEngineProxy)
+        proxy._rpc = AsyncMock(return_value=payload)
+        self.assertEqual(asyncio.run(proxy.ieee_prepare_host(**command)), payload)
+        proxy._rpc.assert_awaited_once_with('ieee_prepare_host', **command)
 
     def test_native_retirement_bridge_waits_for_original_executor_completion(self):
         module, native, core = self.load_adapter()

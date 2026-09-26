@@ -214,6 +214,69 @@ def _ieee_lora_pool_inventory(manager: Any, *, require_uniform_slots: bool = Fal
             'registered_cpu_adapter_ids': registered}
 
 
+def _ieee_host_copy_contract(manager: Any, adapter_int_id: int) -> None:
+    """Prove the v0.30 TP=1 path copies existing CPU tensors into fixed slots.
+
+    No general claim that arbitrary LoRA modules need zero workspace. Unknown
+    or overridden setters, dtype conversions and packed expansion are rejected
+    before eviction. These dense setters only zero/slice/copy existing storage.
+    """
+    import vllm
+    from vllm.lora.layers.base_linear import BaseLinearLayerWithLoRA
+    from vllm.lora.layers.column_parallel_linear import MergedColumnParallelLinearWithLoRA
+    from vllm.lora.layers.vocab_parallel_embedding import VocabParallelEmbeddingWithLoRA
+    from vllm.lora.layers.logits_processor import LogitsProcessorWithLoRA
+    if vllm.__version__ != '0.30.0':
+        raise RuntimeError('proactive HOST copy contract requires vLLM 0.30.0')
+    loaded = manager.list_adapters()[adapter_int_id]
+    matched = 0
+    for name, module in manager.modules.items():
+        layer = manager._get_lora_layer_weights(loaded, name)
+        if layer is None:
+            # Native activation resets absent modules too. These resetters
+            # write zero into existing buffers and do not load embeddings.
+            if getattr(module.reset_lora, '__func__', None) not in (
+                    BaseLinearLayerWithLoRA.reset_lora,
+                    VocabParallelEmbeddingWithLoRA.reset_lora,
+                    LogitsProcessorWithLoRA.reset_lora):
+                raise ValueError('absent native module has an unaudited reset path')
+            continue
+        setter = getattr(module.set_lora, '__func__', None)
+        if (module.tp_size != 1 or getattr(module.reset_lora, '__func__', None)
+                is not BaseLinearLayerWithLoRA.reset_lora
+                or setter not in (BaseLinearLayerWithLoRA.set_lora,
+                                  MergedColumnParallelLinearWithLoRA.set_lora)):
+            raise ValueError('native module has no audited zero-GPU-workspace HOST copy path')
+        matched += 1
+        aa, bb = layer.lora_a, layer.lora_b
+        if setter is BaseLinearLayerWithLoRA.set_lora:
+            aa, bb = [aa], [bb]
+        if (not isinstance(aa, (list, tuple)) or not isinstance(bb, (list, tuple))
+                or len(aa) != module.n_slices or len(bb) != module.n_slices
+                or len(module.lora_a_stacked) != module.n_slices
+                or len(module.lora_b_stacked) != module.n_slices
+                or any((a is None) != (b is None) for a, b in zip(aa, bb))):
+            raise ValueError('HOST preparation would require unaudited packed expansion')
+        for source, target in zip(list(aa) + list(bb),
+                                  list(module.lora_a_stacked) + list(module.lora_b_stacked)):
+            if source is None:
+                continue  # Official missing packed submodule: reset, no allocation.
+            if (not torch.is_tensor(source) or source.device.type != 'cpu'
+                    or source.ndim != 2 or not source.is_contiguous() or not source.is_pinned()
+                    or source.dtype != target.dtype or target.ndim != 4
+                    or source.shape[0] > target.shape[2] or source.shape[1] > target.shape[3]):
+                raise ValueError('HOST source needs conversion, staging or exceeds its native GPU slot')
+            # A contiguous pool does NOT imply its rank-sliced B destination
+            # is contiguous. PyTorch CPU->CUDA copy_ allocates a temporary for
+            # a noncontiguous destination even with matching dtype/pinned CPU.
+            # Slice a view only (no allocation), exactly as the native setter.
+            destination = target[0, 0, :source.shape[0], :source.shape[1]]
+            if not destination.is_contiguous():
+                raise ValueError('native rank-sliced GPU copy requires unreserved temporary workspace')
+    if matched == 0:
+        raise ValueError('HOST source matched no executable native module')
+
+
 class IEEEWorkerObservationExtension:
     """Native qualification and opt-in reference operations via worker extension.
 
@@ -224,15 +287,18 @@ class IEEEWorkerObservationExtension:
     """
 
     def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
-        """Single-worker native reference transaction, not an admission decision.
+        """Single-worker native reference operation or core-owned HOST preparation.
 
         The owning engine must use this entry point for explicit evictions and
         must not submit load-in-place updates. Model qualification must confirm
         the native LoRA copies use the current execution stream. TP/PP > 1 needs
         a multi-worker commit protocol and is deliberately not authorized here.
+        Proactive preparation is reachable only through the same-owner core
+        bridge; ordinary request-driven loading does not evaluate soft E(t).
         """
         if operation not in ('snapshot', 'source_snapshot', 'acquire', 'release', 'evict', 'begin_use', 'end_use',
-                             'demand_load_and_acquire', 'hold_host_source', 'release_host_source'):
+                             'demand_load_and_acquire', 'hold_host_source', 'release_host_source',
+                             'proactive_host_prepare_and_acquire'):
             raise ValueError('unknown GPU reference operation')
         if torch is None or self.device is None or self.device.type != 'cuda':
             raise RuntimeError('native CUDA worker is required')
@@ -270,7 +336,72 @@ class IEEEWorkerObservationExtension:
         owner = self._ieee_gpu_reference_owner
         if owner.manager is not manager:
             raise RuntimeError('native LoRA manager replaced; worker reference epoch invalid')
-        result = getattr(owner, operation)(**kwargs)
+        if operation == 'proactive_host_prepare_and_acquire':
+            from dataclasses import asdict, fields
+            from faaslora.scheduling.resource_coordinator import (
+                AdmittedKVRequest, AdapterAllocationProposal, BackendAdmissionSnapshot,
+                CompletedLengthSnapshot, evaluate_ieee_admission)
+            observation = kwargs.pop('scheduler_observation')
+            lengths = kwargs.pop('lengths')
+            # This bridge is valid only when native scheduler and worker are
+            # synchronously owned by the same process/thread, not cached RPCs.
+            if (observation.get('scheduler_pid') != os.getpid()
+                    or observation.get('clock_id') != local_monotonic_clock_id()
+                    or observation.get('kind') != 'ieee_native_scheduler_observation_v1'
+                    or not isinstance(lengths, CompletedLengthSnapshot)
+                    or lengths.captured_at != observation['captured_at']):
+                raise ValueError('proactive preparation lacks a same-owner KV/length snapshot')
+            def decide(victim, slots):
+                # An externally submitted native request must not be an
+                # unreferenced victim merely because it bypassed our frontend.
+                cpu_cache, gpu_cache = owner._caches()
+                for row in observation['admitted']:
+                    aid = row['native_adapter_int_id']
+                    if aid is not None and (aid not in owner._references
+                            or aid not in cpu_cache.pinned_items or aid not in gpu_cache.pinned_items):
+                        raise ValueError('native admitted adapter lacks its executable reference')
+                _ieee_host_copy_contract(manager, kwargs['adapter_int_id'])
+                pool = _ieee_lora_pool_inventory(manager, require_uniform_slots=True)
+                if tuple(pool['slot_adapter_ids']) != slots:
+                    raise RuntimeError('pool inventory changed inside native preparation')
+                free, total = map(int, torch.cuda.mem_get_info(self.device))
+                slot_bytes = pool['slot_capacity_bytes']
+                occupied = pool['occupied_slot_capacity_bytes'] - (slot_bytes if victim is not None else 0)
+                keys = tuple(field.name for field in fields(AdmittedKVRequest))
+                snapshot = BackendAdmissionSnapshot(
+                    model_backend_id=lengths.model_backend_id, replica_id=owner.owner_id,
+                    epoch=owner.epoch, captured_at=lengths.captured_at,
+                    kv_layout=observation['kv_layout'], admitted=tuple(
+                        AdmittedKVRequest(**{key: row[key] for key in keys}) for row in observation['admitted']),
+                    scheduled_tokens=observation['scheduled_tokens'],
+                    iteration_token_budget=observation['iteration_token_budget'],
+                    # All native copies run on this thread and are fenced
+                    # before returning. No previous native transfer survives.
+                    active_transfers=0, transfer_limit=1,
+                    kv_tokens_per_block=observation['kv_tokens_per_block'],
+                    kv_bytes_per_block=observation['kv_bytes_per_block'],
+                    kv_unreserved_free_blocks=observation['kv_unreserved_free_blocks'],
+                    physical_limit_bytes=total, physical_used_bytes=total-free,
+                    physical_reserved_bytes=0, adapter_pool_bytes=pool['pool_allocated_bytes'],
+                    adapter_pool_occupied_bytes=occupied, adapter_pool_reserved_bytes=0)
+                proposal = AdapterAllocationProposal(kwargs['lora_name'], slot_bytes, True,
+                                                      slot_bytes, 0, 0)
+                decision = evaluate_ieee_admission(snapshot, lengths, proposal,
+                                                   capacity_only=kwargs['capacity_only'])
+                return {**asdict(decision), 'snapshot': asdict(snapshot),
+                    'proposal': asdict(proposal), 'length_profile_id': lengths.profile_id,
+                    'length_means': dict(lengths.means),
+                    'scheduler_owner_id': observation['scheduler_owner_id'],
+                    'scheduler_sequences': {key: observation[key] for key in
+                        ('scheduled_sequence', 'completed_sequence')},
+                    'admitted_scope': observation['admitted_scope'],
+                    'transfer_scope': 'serialized_native_host_to_gpu_only',
+                    'allocation_contract': 'existing_pinned_cpu_to_preallocated_dense_gpu_v1',
+                    'scheduler_held_during_commit': True,
+                    'physical_increment_reserved_bytes': 0}
+            result = owner.proactive_host_prepare_and_acquire(**kwargs, decide=decide)
+        else:
+            result = getattr(owner, operation)(**kwargs)
         if operation == 'source_snapshot':
             # Same serialized owner invocation: neither source identity nor
             # cache membership can change between these two read-only views.

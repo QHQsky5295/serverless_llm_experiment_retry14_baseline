@@ -3435,6 +3435,13 @@ class InferenceEngine:
                 kwargs["async_scheduling"] = True
                 kwargs["additional_config"] = {"ieee_tc_scheduler_observation": {
                     "input_upper_bounds": list(bounds)}}
+                if self.model_cfg.get('ieee_admission_profile') is not None:
+                    if not self.model_cfg.get('ieee_gpu_references', False):
+                        raise ValueError('native admission requires native GPU references')
+                    kwargs['additional_config']['ieee_tc_admission_profile'] = dict(
+                        self.model_cfg['ieee_admission_profile'])
+            elif self.model_cfg.get('ieee_admission_profile') is not None:
+                raise ValueError('native admission requires the native scheduler owner')
             if tokenizer_mode is not None:
                 kwargs["tokenizer_mode"] = tokenizer_mode
             if tp > 1:
@@ -4482,6 +4489,31 @@ class InferenceEngine:
             raise RuntimeError("invalid native scheduler observation identity/clock/authority")
         return observation
 
+    async def ieee_prepare_host(self, **command) -> Dict[str, Any]:
+        """Native E(t) decision and fenced HOST promotion in one owner call.
+
+        The returned reference is a preparation lease, not a request dispatch.
+        Callers must settle cancellation/transport uncertainty before releasing
+        it. Cold HOST materialization and controller-pending KV reservations
+        are outside this narrowly qualified operation; no Full gate is granted.
+        """
+        if (self.model_cfg.get('ieee_admission_profile') is None
+                or not self.model_cfg.get('ieee_gpu_references', False)
+                or not self.model_cfg.get('ieee_scheduler_observation', False)):
+            raise RuntimeError('native preparation requires explicit admission profile and owners')
+        if self.backend != 'vllm' or self.engine is None or self._engine_dead:
+            raise RuntimeError('native preparation requires a live vLLM engine')
+        rpc = getattr(getattr(self.engine, 'engine_core', None), 'call_utility_async', None)
+        if not callable(rpc):
+            raise RuntimeError('backend lacks the native preparation utility')
+        result = await rpc('ieee_prepare_host', command)
+        from faaslora.clock import local_monotonic_clock_id
+        if (not isinstance(result, dict) or type(result.get('acquired')) is not bool
+                or result.get('clock_id') != local_monotonic_clock_id()
+                or result.get('production_launch_authorized') is not False):
+            raise RuntimeError('invalid native preparation acknowledgement')
+        return result
+
     async def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
         """Forward an explicit native owner operation; no inferred success."""
         if not self.model_cfg.get("ieee_gpu_references", False):
@@ -5460,6 +5492,9 @@ class SubprocessInferenceEngineProxy:
 
     async def ieee_scheduler_observation(self) -> Dict[str, Any]:
         return await self._rpc("ieee_scheduler_observation")
+
+    async def ieee_prepare_host(self, **command) -> Dict[str, Any]:
+        return await self._rpc('ieee_prepare_host', **command)
 
     async def ieee_generation_observation(self) -> Dict[str, Any]:
         return await self._rpc('ieee_generation_observation')

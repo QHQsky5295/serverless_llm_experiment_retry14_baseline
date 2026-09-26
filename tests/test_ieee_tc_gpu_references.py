@@ -72,6 +72,223 @@ class NativeAdapter:
         self.rank = rank
 
 
+class NativeProactiveTransactions(unittest.TestCase):
+    """Use real native cache ordering; CUDA execution remains a separate gate."""
+    def setUp(self):
+        self.case = NativeDemandTransactions()
+        self.case.setUp()
+        self.case.prepare_host()
+        self.owner, self.manager = self.case.owner, self.case.manager
+
+    def prepare(self, *, lease='prepare-4', capacity_only=False, decide=None, **updates):
+        before = self.owner.snapshot()
+        args = dict(lease_id=lease, adapter_int_id=4, lora_name='adapter-4',
+                    lora_path='/existing/adapter-4', expected_owner_id=before['owner_id'],
+                    expected_epoch=before['epoch'], capacity_only=capacity_only,
+                    decide=decide or (lambda victim, slots: {'admit': True, 'reason': 'admit'}))
+        args.update(updates)
+        return self.owner.proactive_host_prepare_and_acquire(**args)
+
+    def test_full_pressure_defers_without_eviction_or_lru_touch(self):
+        from dataclasses import asdict
+        from tests import test_ieee_tc_admission as formulas
+        self.manager.activate(3)  # Fill last empty slot, without loading new weights.
+        before = self.owner.source_snapshot()
+        order = tuple(self.manager._active_adapters.order)
+        loads = len(self.case.loads)
+        def decision(victim, slots):
+            self.assertEqual(victim, order[0])
+            return asdict(formulas.evaluate_ieee_admission(
+                formulas.snapshot(scheduled_tokens=32), formulas.lengths(), formulas.proposal()))
+        receipt = self.prepare(decide=decision)
+        self.assertFalse(receipt['acquired'])
+        self.assertEqual(receipt['reason'], 'defer_effective_capacity')
+        self.assertEqual(tuple(self.manager._active_adapters.order), order)
+        after = self.owner.source_snapshot()
+        for key in ('epoch', 'slot_adapter_ids', 'sources'):
+            self.assertEqual(before[key], after[key])
+        self.assertEqual(len(self.case.loads), loads)
+
+    def test_capacity_only_uses_same_native_victim_and_retains_reference(self):
+        from dataclasses import asdict
+        from tests import test_ieee_tc_admission as formulas
+        self.manager.activate(3)
+        self.case.pin(2)
+        seen = []
+        def decision(victim, slots):
+            seen.append(victim)
+            return asdict(formulas.evaluate_ieee_admission(
+                formulas.snapshot(scheduled_tokens=32), formulas.lengths(), formulas.proposal(),
+                capacity_only=True))
+        receipt = self.prepare(capacity_only=True, decide=decision)
+        self.assertEqual(seen, [3])
+        self.assertTrue(receipt['acquired'])
+        self.assertTrue(receipt['proactive_admission_evaluated'])
+        self.assertEqual(set(self.manager.lora_index_to_id), {2, 4})
+        self.assertIn(4, self.manager._active_adapters.pinned_items)
+        self.assertFalse(receipt['all_tier_admission_reserved'])
+        replay = self.prepare(capacity_only=True, decide=Mock(side_effect=AssertionError('no reevaluation')))
+        self.assertEqual(replay, receipt)
+        self.case.release('prepare-4')
+        with self.assertRaisesRegex(ValueError, 'released preparation'):
+            self.prepare(capacity_only=True)
+
+    def test_native_lru_order_not_dictionary_insertion_order(self):
+        self.manager.activate(3)
+        self.manager._active_adapters.touch(2)
+        receipt = self.prepare()
+        self.assertEqual(receipt['candidate_victim_adapter_id'], 3)
+        self.assertEqual(set(self.manager.lora_index_to_id), {2, 4})
+
+    def test_all_pinned_capacity_cannot_be_bypassed_by_capacity_only(self):
+        self.manager.activate(3)
+        self.case.pin(2)
+        self.case.pin(3)
+        decision = Mock(side_effect=AssertionError('physical rejection precedes soft policy'))
+        receipt = self.prepare(capacity_only=True, decide=decision)
+        self.assertFalse(receipt['acquired'])
+        self.assertEqual(receipt['reason'], 'all_gpu_slots_pinned')
+        decision.assert_not_called()
+
+    def test_unknown_or_changed_source_stale_epoch_and_policy_reuse_fail_closed(self):
+        decision = Mock(side_effect=AssertionError('must reject before decision'))
+        self.assertEqual(self.prepare(lora_path='/different', decide=decision)['reason'],
+                         'required_source_changed')
+        self.assertEqual(self.prepare(expected_epoch=1, decide=decision)['reason'], 'stale_snapshot')
+        self.prepare(decide=lambda *_: {'admit': False, 'reason': 'defer_effective_capacity'})
+        with self.assertRaisesRegex(ValueError, 'different source or policy'):
+            self.prepare(capacity_only=True)
+
+    def test_deferred_attempt_is_idempotent_new_decision_needs_new_attempt(self):
+        decision = Mock(return_value={'admit': False, 'reason': 'defer_effective_capacity'})
+        a = self.prepare(decide=decision)
+        self.assertEqual(self.prepare(decide=decision), a)
+        self.assertEqual(decision.call_count, 1)
+        self.assertTrue(self.prepare(lease='prepare-later')['acquired'])
+
+    def test_mutating_callback_or_failed_load_never_publishes_ready(self):
+        self.manager.activate(3)
+        def bad_decision(*_):
+            self.manager._active_adapters.touch(2)
+            return {'admit': True, 'reason': 'admit'}
+        with self.assertRaisesRegex(RuntimeError, 'evaluation mutated'):
+            self.prepare(decide=bad_decision)
+        self.setUp()
+        self.owner.demand_loader = Mock(side_effect=RuntimeError('copy failed'))
+        with self.assertRaisesRegex(RuntimeError, 'copy failed'):
+            self.prepare()
+        with self.assertRaisesRegex(RuntimeError, 'recovery required'):
+            self.owner.snapshot()
+
+    def test_worker_composes_native_kv_pool_and_lengths_before_commit(self):
+        from faaslora.scheduling.resource_coordinator import CompletedLengthSnapshot, NativeIterationObservation
+        from tests import test_ieee_tc_scheduler_observation as fixture
+        for capacity_only in (False, True):
+            with self.subTest(capacity_only=capacity_only):
+                self.setUp()
+                worker = gpu_monitor.IEEEWorkerObservationExtension()
+                worker.device, worker.rank = SimpleNamespace(type='cuda'), 0
+                worker.model_runner = SimpleNamespace(lora_manager=SimpleNamespace(_adapter_manager=self.manager))
+                worker._ieee_gpu_reference_owner = self.owner
+                steps = NativeIterationObservation()
+                steps.scheduled(fixture.iteration(r=32))
+                observation = fixture.observe(fixture.scheduler(), steps)
+                lengths = CompletedLengthSnapshot('model/backend', 'measured-profile',
+                    observation['captured_at'], {0: 64., 1: 128., 2: 256.})
+                pool = dict(slot_adapter_ids=list(self.manager.lora_index_to_id),
+                    pool_allocated_bytes=200, slot_capacity_bytes=100, occupied_slot_capacity_bytes=100)
+                fake_torch = SimpleNamespace(cuda=SimpleNamespace(mem_get_info=lambda _: (100, 1000)))
+                before = self.owner.snapshot()
+                args = dict(operation='proactive_host_prepare_and_acquire',
+                    lease_id='native-prepare', adapter_int_id=4, lora_name='adapter-4',
+                    lora_path='/existing/adapter-4', expected_owner_id=before['owner_id'],
+                    expected_epoch=before['epoch'], capacity_only=capacity_only,
+                    scheduler_observation=observation, lengths=lengths)
+                with patch.object(gpu_monitor, 'torch', fake_torch), \
+                     patch.object(gpu_monitor, '_ieee_host_copy_contract') as check, \
+                     patch.object(gpu_monitor, '_ieee_lora_pool_inventory', return_value=pool):
+                    result = worker.ieee_gpu_reference(**args)
+                self.assertEqual(result['acquired'], capacity_only)
+                check.assert_called_once_with(self.manager, 4)
+                self.assertEqual(result['admission']['batch_pressure'], 1.)
+                self.assertEqual(result['admission']['snapshot']['physical_used_bytes'], 900)
+                self.assertEqual(result['admission']['physical_increment_reserved_bytes'], 0)
+                self.assertEqual(result['admission']['admitted_scope'], 'native_unfinished_requests_only')
+                self.assertFalse(result['production_launch_authorized'])
+                if not capacity_only:
+                    self.assertEqual(self.owner.snapshot(), before)
+
+    def test_worker_rejects_cross_process_snapshot_before_decision_or_loading(self):
+        from faaslora.clock import local_monotonic_clock_id
+        worker = gpu_monitor.IEEEWorkerObservationExtension()
+        worker.device, worker.rank = SimpleNamespace(type='cuda'), 0
+        worker.model_runner = SimpleNamespace(lora_manager=SimpleNamespace(_adapter_manager=self.manager))
+        worker._ieee_gpu_reference_owner = self.owner
+        before = self.owner.snapshot()
+        with self.assertRaisesRegex(ValueError, 'same-owner'):
+            worker.ieee_gpu_reference(operation='proactive_host_prepare_and_acquire',
+                scheduler_observation=dict(scheduler_pid=-1, clock_id=local_monotonic_clock_id()),
+                lengths=None)
+        self.assertEqual(self.owner.snapshot(), before)
+
+    def test_copy_contract_rejects_conversion_staging_and_unknown_setter(self):
+        class Base:
+            def reset_lora(self):
+                pass
+            def set_lora(self):
+                pass
+        class Merged(Base):
+            def set_lora(self):
+                pass
+        class Target:
+            ndim, shape, dtype = 4, (2, 1, 4, 4), 'float16'
+            contiguous = True
+            def __getitem__(self, key):
+                return self
+            def is_contiguous(self):
+                return self.contiguous
+        source = SimpleNamespace(device=SimpleNamespace(type='cpu'), ndim=2,
+            shape=(2, 4), dtype='float16', is_contiguous=lambda: True, is_pinned=lambda: True)
+        target = Target()
+        module = Base()
+        module.tp_size, module.n_slices = 1, 1
+        module.lora_a_stacked = module.lora_b_stacked = (target,)
+        manager = SimpleNamespace(modules={'linear': module}, list_adapters=lambda: {4: object()},
+            _get_lora_layer_weights=lambda *_: SimpleNamespace(lora_a=source, lora_b=source))
+        modules = {'vllm': SimpleNamespace(__version__='0.30.0'),
+            'vllm.lora.layers.base_linear': SimpleNamespace(BaseLinearLayerWithLoRA=Base),
+            'vllm.lora.layers.column_parallel_linear': SimpleNamespace(MergedColumnParallelLinearWithLoRA=Merged),
+            'vllm.lora.layers.vocab_parallel_embedding': SimpleNamespace(VocabParallelEmbeddingWithLoRA=Base),
+            'vllm.lora.layers.logits_processor': SimpleNamespace(LogitsProcessorWithLoRA=Base)}
+        with patch.dict('sys.modules', modules), patch.object(gpu_monitor, 'torch',
+                SimpleNamespace(is_tensor=lambda value: value is source)):
+            gpu_monitor._ieee_host_copy_contract(manager, 4)
+            for field, changed in [('dtype', 'float32'), ('is_pinned', lambda: False),
+                                   ('is_contiguous', lambda: False), ('shape', (8, 4))]:
+                original = getattr(source, field)
+                setattr(source, field, changed)
+                with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'conversion, staging'):
+                    gpu_monitor._ieee_host_copy_contract(manager, 4)
+                setattr(source, field, original)
+            target.contiguous = False
+            with self.assertRaisesRegex(ValueError, 'temporary workspace'):
+                gpu_monitor._ieee_host_copy_contract(manager, 4)
+            target.contiguous = True
+            module.set_lora = Mock()
+            with self.assertRaisesRegex(ValueError, 'zero-GPU-workspace'):
+                gpu_monitor._ieee_host_copy_contract(manager, 4)
+
+    def test_real_tensor_rank_slice_layout_requires_distinct_workspace_case(self):
+        import torch
+        # Existing D28 pool B layout is max-rank64; registered sources are rank8.
+        # Meta tensors verify the real stride rules with no host/GPU allocation.
+        pool = torch.empty((4, 1, 4096, 64), device='meta', dtype=torch.float16)
+        self.assertTrue(pool.is_contiguous())
+        self.assertFalse(pool[0, 0, :4096, :8].is_contiguous())
+        self.assertEqual(pool[0, 0, :4096, :8].stride(), (64, 1))
+        self.assertTrue(pool[0, 0, :4096, :64].is_contiguous())
+
+
 class NativeDemandTransactions(unittest.TestCase):
     """CPU-only native-cache contract; no claim about CUDA copy correctness."""
     def setUp(self):

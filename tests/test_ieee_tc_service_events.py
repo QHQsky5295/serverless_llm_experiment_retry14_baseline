@@ -186,6 +186,10 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
                 pass
             async def shutdown(self):
                 pass
+            async def ieee_scheduler_observation(self):
+                return {'admitted': [], 'kind': 'loopback-test-only'}
+            async def ieee_prepare_host(self, **command):
+                return {'acquired': False, 'reason': 'defer_effective_capacity', 'command': command}
             async def generate(self, **kwargs):
                 emit = kwargs['native_event_observer']
                 emit(event())
@@ -220,6 +224,10 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
                 proxy._rpc_channel_queue = None
                 proxy._rpc_channels = []
                 proxy._with_worker_log_context = lambda value: value
+                self.assertEqual((await proxy.ieee_scheduler_observation())['admitted'], [])
+                prepared = await proxy.ieee_prepare_host(lease_id='prepare-test', expected_owner_id='worker')
+                self.assertFalse(prepared['acquired'])
+                self.assertEqual(prepared['command']['lease_id'], 'prepare-test')
                 task = asyncio.create_task(proxy.generate_prepared(request_plan=RequestExecutionPlan('p', 2, 3),
                     adapter_id=None, lora_path=None, return_timing=True, native_event_observer=accept))
                 try:

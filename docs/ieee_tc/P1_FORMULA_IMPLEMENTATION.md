@@ -3,7 +3,7 @@
 本表不是性能结果，也不表示 Full 已完成 IEEE 对齐。主比较必须等所有关键
 合同关闭；不得把旧代码的指标移植到新设计上。论文源文件未改动。
 
-本文件前面的首次审计表保留历史发现；逐项最新进展见 D1–D12。测试通过不等于
+本文件前面的首次审计表保留历史发现；逐项最新进展见 D1–D29。测试通过不等于
 真实模型资格，更不等于全部九式已在 Full 闭环接通。
 
 ## 规范来源
@@ -1362,3 +1362,87 @@ CPU cache 等待、多个等待者、取消和未知释放本轮只有 CPU fixtu
 并完成内容绑定的跨路径源身份、主动规划/准备与生命周期聚合。不再重复本轮
 5请求、D26 source32、D27 lifecycle4；正式矩阵、SLO/Resident标定与 Serverless
 优先的 baseline 顺序不变。
+
+## D29 — E(t) 接入原生 HOST→GPU 准备事务（CPU 合同通过，Full 仍未合格）
+
+### 问题、历史证据与选择
+
+D4 的式(8)/(9)计算器没有原生资源提交权；D7 的 KV 观察与 worker 观察各自
+正确，但两次 RPC 不能提供同一次接纳事务。D28 已证实实际请求引用会阻止
+原生 LRU 替换。因此本轮只解决一个问题：已有原生 HOST 副本向预分配 GPU
+槽位提升时，让当前 KV/压力决策与受保护的替换发生在同一 owner 边界。
+没有改论文公式，也没有把请求按需加载改走主动 E(t)。
+
+核查的原始实现：
+[vLLM 0.30 engine-core utility](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/v1/engine/core.py)、
+[UniProc executor](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/v1/executor/uniproc_executor.py)、
+[native LoRA manager](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/model_manager.py)、
+[dense slot copies](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/layers/base_linear.py)、
+[packed column copies](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/layers/column_parallel_linear.py)
+及 [LRU order/pins](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/utils/cache.py)。
+这些源码与已安装0.30路径交叉检查；UniProc 的同步 utility 在 core 所在线程
+调用 worker，不改变 AsyncScheduler 的原生调度、抢占或 block 分配策略。
+[ELORA](https://arxiv.org/abs/2505.03756)说明 LoRA/KV 竞争值得独立处理，但不能
+据其结果假设本项目的 admission 必然有性能收益。
+
+### 论文规范语义与实现证据
+
+| 论文规范语义 | 当前实现及明确边界 |
+|---|---|
+| 当前 KV、完成长度窗口、iteration pressure | core utility 现场采样，长度均值由成功 native completion 更新；取消/错误不更新，空桶使用显式冻结 profile |
+| 评估与提交之间不被新调度穿插 | 精确限定0.30 UniProc、TP/PP/CP=1；同步 core→worker 调用，copy fence 完成后返回；不是把异步推理改为同步 scheduler |
+| 复用容量不重复算物理增量 | 读取实际 uniform slot pool、device free/total；整个预分配 pool 已计 used，已有 HOST 的直接 slot copy 增量为0 |
+| workspace 必须有证据 | 只接受已审计 native setter、TP1、同 dtype、连续 pinned CPU tensors及连续GPU目标切片；转换、未知 setter、packed expansion或非连续目标拒绝，不把任意模块 workspace 填0 |
+| 替换基于 proposed after-victim state | 不触碰 LRU 顺序地读取原生 `order`，仅将实际将被替换的未pin victim计为可复用；成功后核对真正被移除的 ID |
+| deferred 不改变缓存 | 先计算，再按原生 loader 执行；延后时无加载、驱逐、LRU touch或额外引用 |
+| Full/CapacityOnly 只差软检查 | 共用同一原生 victim/loader/引用/完成fence；CapacityOnly仍不能替换被引用或外部pin的槽位 |
+| 成功发布必须可执行 | 返回持有中的GPU准备租约，只有显式release回执才解除pin；失败不发布ready，未知RPC状态沿用保留机制 |
+| 重试不重复执行 | 相同prepare attempt返回相同决定；改变source/policy或复用已释放租约拒绝；新的决策必须有新attempt |
+
+接口沿用现有 `InferenceEngine`、dedicated worker、proxy 与 worker extension：
+`ieee_prepare_host` → engine-core utility → `proactive_host_prepare_and_acquire`。
+启用必须同时提供 `ieee_gpu_references`、`ieee_scheduler_observation` 和
+`ieee_admission_profile`。profile 必须含实际 `model_backend_id`、`profile_id`、
+论文窗口 `window_s` 和覆盖全部冻结输入桶的 `profile_means`。**本轮没有生成或
+填入任何正式 profile 数值，也没有启用正式 Full。**
+
+### 无 GPU 证据与状态表
+
+| 检查 | 结果 | 可支持的结论 |
+|---|---|---|
+| Full满iteration压力，CapacityOnly相同状态 | Full不加载/驱逐；CapacityOnly按同一LRU完成并持有引用 | 软策略差异与物理保护可区分；非实测性能收益 |
+| 全槽位pin、真实LRU顺序与字典顺序不同 | 正确拒绝或选择原生未pin victim | 不用假空闲或另一替换算法制造差异 |
+| 陈旧epoch、跨进程快照、source/policy复用、失败copy | 明确拒绝或使owner失效；不发布ready | 不以兜底加载绕过证据缺失 |
+| 成功/取消的完成长度窗口 | 成功更新所在桶；取消不更新；到期恢复显式profile | 没有未来长度、跨桶代替或新EWMA |
+| 真实回环dedicated RPC | 观察、准备决定与后续native事件传输均通过 | 入口已接通，不是仅孤立公式测试 |
+| 全功能/安全回归 | 691/691、56/56，无失败/skip；新增15项 | CPU/native-cache合同，不等于模型资格 |
+| 旧D28 HOST/GPU布局离线复核 | 两种HOST布局均连续；HOST rank8但GPU pool max-rank64 | GPU目标B切片不连续，不能据CPU连续性声称零workspace |
+
+按计划11.2使用状态表，不制作性能图。本轮未运行模型、未新增数据/权重/负载。
+源plan和147项保护内容零变化；模型GPU保持15MiB/0%。未修改baseline仓库。
+
+备份前进一步核查发现一个实质限制，已修正初版检查而没有启动模型冒险试错：
+本环境Torch源码版本 `cf30153c4c131c8164ee7798e5022d810682e2cb` 的
+[CUDA copy 实现](https://github.com/pytorch/pytorch/blob/cf30153c4c131c8164ee7798e5022d810682e2cb/aten/src/ATen/native/cuda/Copy.cu)
+在非连续CPU→GPU路径使用临时GPU张量。D28日志中原生pool的B布局为
+`[4,1,4096,64]` 等，注册adapter rank均为8；实际目标切片stride为`(64,1)`，
+不是连续`(8,1)`。增加真实Torch meta tensor检查，无GPU/CPU数据分配。
+因此当前零workspace分支**不能放行这些rank8→rank64的准备**；下一个实现项
+必须覆盖其真实workspace或采用有证据、不增加隐式临时分配的等价拷贝。
+不能填一个经验MB值、降低rank配置逃避问题，或把未知workspace当0。
+
+### 尚未解决、下一主线
+
+这个事务**只覆盖已经物化的 native HOST→GPU**。回执明确
+`admitted_scope=native_unfinished_requests_only`、
+`transfer_scope=serialized_native_host_to_gpu_only`、
+`all_tier_admission_reserved=false`、`production_launch_authorized=false`。
+native加载由同一线程串行且返回前完成，故该局部边界没有前一native transfer；
+不能将这里的0活动传输冒充整个系统REMOTE/HOST准备压力。
+
+下一步先闭合上述真实目标布局的workspace合同，再把控制器已接纳但未ADD的请求，与native请求作唯一身份交接，纳入同一
+KV需求集合；把其他层transfer事件与预算接入，并连接实际planner/handoff。
+同时完成代表性实测profile与内容绑定的跨路径来源。不能拿native范围的检查
+替代Full所有层的资格，不能只打开新profile开关就继续使用旧warmup启发式。
+原生模型验证必须在这些接口形成一个有意义的Full准备路径后进行，不重复
+D26 source32、D27 lifecycle4或D28 capacity5。正式M1/M2、baseline及消融均未开始。
