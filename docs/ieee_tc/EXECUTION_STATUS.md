@@ -89,7 +89,7 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `6bdff25aadefb0d42086083844b4040c5fde8514`, pushed to
+- Main tested implementation: `dba7014570a982cca892ca5937fbe611246cdb4d`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -185,6 +185,11 @@ its one historical SHA difference and independent numerical gate remain open.
   complete Full lifecycle/remote/backend qualification. Do not treat the stack
   planning API as automatic control-path execution. M1/M2, formal baselines,
   ablations and sensitivities remain not started. Goal remains active.
+- Implementation dba7014570a982cca892ca5937fbe611246cdb4d pushed to
+  faaslora_origin/retry14_continuous_queue_v2 and full remote SHA verified.
+  All D35 owned scopes stopped; only original user dirt remains. This backup
+  receipt is a subsequent documentation-only commit. Resume by rereading plan/
+  ledger and current resources; do not repeat the completed planning checks.
 
 ### D34 preparation-cost measurement boundaries; no new performance experiment
 
