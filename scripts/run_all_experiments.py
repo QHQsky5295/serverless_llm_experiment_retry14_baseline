@@ -13861,6 +13861,101 @@ class ScenarioRunner:
         finally:
             await self._finish_runtime_request_reservation(reservation)
 
+    def _track_native_reference_intent(self, reservation, intent, kind):
+        """One completion witness per native lease, created before its RPC.
+
+        Keep settled witnesses for this run: a delayed conflict reply may name a
+        lease whose release already completed. Futures are event-driven and do
+        not reserve extra cache slots or change native victim selection.
+        """
+        witnesses = getattr(self, '_native_reference_witnesses', None)
+        if witnesses is None:
+            witnesses = self._native_reference_witnesses = {}
+        key = (intent['expected_owner_id'], intent['lease_id'])
+        if key in witnesses:
+            raise RuntimeError('native reference intent was registered twice')
+        witnesses[key] = dict(engine=reservation.gpu_reference_engine,
+            request_id=reservation.request_id, kind=kind,
+            adapter_int_id=intent['adapter_int_id'],
+            completion=asyncio.get_running_loop().create_future())
+
+    def _settle_native_reference_intent(self, reservation, kind, outcome):
+        evidence = reservation.gpu_reference_evidence
+        section = evidence if kind == 'gpu' else evidence.get('native_host_source', {})
+        intent = section.get('intent')
+        if intent is None:
+            return
+        witness = getattr(self, '_native_reference_witnesses', {}).get(
+            (intent['expected_owner_id'], intent['lease_id']))
+        if witness is not None and not witness['completion'].done():
+            witness['completion'].set_result(outcome)
+
+    async def _wait_native_reference_capacity(self, reservation, receipt):
+        """Await actual known release owners; never poll/sleep or force eviction.
+
+        An unowned/external pin is not a promise of future capacity. At least one
+        possible victim must have exclusively known, other-request references.
+        Waking only authorizes a fresh native observation, not a successful load.
+        asyncio.wait does not cancel the owners when this waiter is cancelled.
+        """
+        evidence = reservation.gpu_reference_evidence
+        intent = evidence['intent']
+        blockers = receipt.get('capacity_blockers', {})
+        expected_tier = {'all_gpu_slots_pinned': 'gpu', 'all_cpu_entries_pinned': 'host'}[receipt['reason']]
+        if (receipt['owner_id'] != intent['expected_owner_id']
+                or receipt['epoch'] != intent['expected_epoch']
+                or blockers.get('kind') != 'native_pinned_capacity_v1'
+                or blockers.get('tier') != expected_tier
+                or not isinstance(blockers.get('candidates'), list) or not blockers['candidates']):
+            raise RuntimeError('native capacity conflict lacks exact blocking owners')
+        witnesses = getattr(self, '_native_reference_witnesses', {})
+        candidates = []
+        seen = set()
+        for row in blockers['candidates']:
+            aid = row.get('adapter_int_id')
+            if (type(aid) is not int or aid <= 0 or aid in seen
+                    or type(row.get('external_pin')) is not bool):
+                raise ValueError('invalid native capacity blocker identity')
+            seen.add(aid)
+            refs, valid = [], not row['external_pin']
+            for kind in ('gpu', 'host'):
+                ids = row.get(kind + '_lease_ids')
+                if (not isinstance(ids, list) or any(not isinstance(x, str) or not x for x in ids)
+                        or len(set(ids)) != len(ids) or (expected_tier == 'gpu' and kind == 'host' and ids)):
+                    raise ValueError('invalid native capacity blocker lease set')
+                for lease in ids:
+                    witness = witnesses.get((receipt['owner_id'], lease))
+                    if (witness is None or witness['engine'] is not reservation.gpu_reference_engine
+                            or witness['request_id'] == reservation.request_id
+                            or witness['adapter_int_id'] != aid or witness['kind'] != kind):
+                        valid = False
+                    else:
+                        refs.append(witness['completion'])
+            if valid and refs:
+                candidates.append(refs)
+        record = dict(reason=receipt['reason'], owner_id=receipt['owner_id'], epoch=receipt['epoch'],
+            blockers=blockers, start_monotonic_s=time.monotonic(), outcome='waiting')
+        evidence.setdefault('capacity_waits', []).append(record)
+        try:
+            while candidates:
+                # Unknown native outcomes cannot create capacity. Other fully
+                # owned candidates can still make progress without that slot.
+                candidates = [refs for refs in candidates if not any(
+                    f.done() and (f.cancelled() or f.result() != 'released') for f in refs)]
+                if not candidates:
+                    break
+                if any(all(f.done() for f in refs) for refs in candidates):
+                    record['outcome'] = 'release_observed'
+                    return
+                pending = {f for refs in candidates for f in refs if not f.done()}
+                await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+            raise RuntimeError('native capacity conflict has no acknowledged release path')
+        except BaseException as exc:
+            record['outcome'] = 'cancelled' if isinstance(exc, asyncio.CancelledError) else 'unresolved'
+            raise
+        finally:
+            record['end_monotonic_s'] = time.monotonic()
+
     async def _acquire_runtime_gpu_reference(
         self, reservation: RuntimeRequestReservation, engine, adapter_id: str,
         local_path: Optional[str] = None, *, cached_only: bool = False,
@@ -13958,6 +14053,7 @@ class ScenarioRunner:
                         cached_source_only=cached_only,
                         stale_rechecks=0)
         reservation.gpu_reference_engine = engine
+        self._track_native_reference_intent(reservation, intent, 'gpu')
         while True:
             # Record intent BEFORE awaiting: cancellation can lose a reply even
             # after the worker has pinned the adapter. Never return its capacity.
@@ -13997,7 +14093,31 @@ class ScenarioRunner:
                 # No load/pin occurred: retry the WHOLE router, not this worker
                 # with a different tier hidden behind the original prediction.
                 evidence['state'] = 'rejected'
+                self._settle_native_reference_intent(reservation, 'gpu', 'no_acquisition')
                 return None
+            if receipt.get('reason') in ('all_gpu_slots_pinned', 'all_cpu_entries_pinned'):
+                # This explicit worker outcome has no native load/pin side
+                # effects. Cancellation while waiting may release our source
+                # hold; interrupted acquisition RPCs above remain unresolved.
+                evidence['state'] = 'capacity_wait'
+                try:
+                    await self._wait_native_reference_capacity(reservation, receipt)
+                except Exception:
+                    evidence['state'] = 'rejected'
+                    raise
+                snapshot, selected_source, snapshot_evidence = await observe_source()
+                if snapshot['owner_id'] != intent['expected_owner_id']:
+                    raise ValueError('native capacity owner changed during wait')
+                evidence['snapshot_after_capacity_wait'] = snapshot_evidence
+                intent['expected_epoch'] = snapshot['epoch']
+                if cached_only:
+                    if selected_source is None:
+                        evidence['state'] = 'source_unavailable'
+                        self._settle_native_reference_intent(reservation, 'gpu', 'no_acquisition')
+                        return None
+                    intent.update(lora_path=selected_source.lora_path,
+                                  required_source_tier=selected_source.tier)
+                continue
             if (cached_only and receipt.get('reason') in ('stale_snapshot', 'required_source_changed')
                     and receipt['owner_id'] == intent['expected_owner_id']
                     and receipt['epoch'] >= intent['expected_epoch']):
@@ -14013,6 +14133,7 @@ class ScenarioRunner:
                 evidence['snapshot_before_acquisition'] = snapshot_evidence
                 if selected_source is None:
                     evidence['cached_source_absent'] = True
+                    self._settle_native_reference_intent(reservation, 'gpu', 'no_acquisition')
                     return None
                 intent.update(expected_epoch=snapshot['epoch'], lora_path=selected_source.lora_path,
                               required_source_tier=selected_source.tier)
@@ -14076,6 +14197,7 @@ class ScenarioRunner:
                 expected_owner_id=source['owner_id'], expected_epoch=source['epoch'])
             host = dict(state='holding', intent=intent)
             evidence['native_host_source'] = host
+            self._track_native_reference_intent(reservation, intent, 'host')
             receipt = await engine.ieee_gpu_reference(operation='hold_host_source', **intent)
             if (not isinstance(receipt, dict) or receipt.get('clock_id') != local_monotonic_clock_id()
                     or type(receipt.get('held')) is not bool
@@ -14156,6 +14278,7 @@ class ScenarioRunner:
                 or released.get('owner_id') != receipt['owner_id']):
             raise ValueError('native HOST source release lacks matching acknowledgement')
         host.update(state='released', release_receipt=dict(released))
+        self._settle_native_reference_intent(reservation, 'host', 'released')
 
     async def _ieee_prepare_selected_adapter(self, reservation):
         evidence, observation = reservation.gpu_reference_evidence, reservation.ieee_observation
@@ -14200,6 +14323,8 @@ class ScenarioRunner:
         if previous is not None and previous is not reservation:
             raise RuntimeError('request ID already has an unsettled reservation')
         self._unsettled_runtime_reservations[reservation.request_id] = reservation
+        self._settle_native_reference_intent(reservation, 'gpu', 'unresolved')
+        self._settle_native_reference_intent(reservation, 'host', 'unresolved')
 
     async def _finish_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
         if not reservation.bound or reservation.released:
@@ -14256,6 +14381,7 @@ class ScenarioRunner:
                         or released.get('owner_id') != receipt['owner_id']):
                     raise RuntimeError('native reference release lacks matching acknowledgement')
                 evidence.update(state='released', release_receipt=dict(released))
+                self._settle_native_reference_intent(reservation, 'gpu', 'released')
             except BaseException:
                 self._retain_runtime_request_reservation(reservation)
                 raise
@@ -14265,6 +14391,8 @@ class ScenarioRunner:
             self._retain_runtime_request_reservation(reservation)
             raise
         self._release_runtime_local_source(reservation)
+        self._settle_native_reference_intent(reservation, 'gpu', 'no_acquisition')
+        self._settle_native_reference_intent(reservation, 'host', 'no_acquisition')
         self._complete_ieee_pending_load(reservation)
         if reservation.batch_started:
             reservation.batch_coordinator.notify_batch_end(

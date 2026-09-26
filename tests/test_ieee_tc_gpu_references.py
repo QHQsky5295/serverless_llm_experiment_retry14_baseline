@@ -229,6 +229,9 @@ class NativeDemandTransactions(unittest.TestCase):
         before = self.owner.snapshot()
         result = self.demand(snapshot=before)
         self.assertEqual(result['reason'], 'all_gpu_slots_pinned')
+        self.assertEqual(result['capacity_blockers'], dict(kind='native_pinned_capacity_v1', tier='gpu',
+            candidates=[dict(adapter_int_id=aid, gpu_lease_ids=[f'hit-{aid}'], host_lease_ids=[],
+                             external_pin=False) for aid in (1, 2)]))
         self.assertEqual(self.owner.snapshot(), before)
         self.assertFalse(self.loads)
 
@@ -291,9 +294,24 @@ class NativeDemandTransactions(unittest.TestCase):
         for aid in (1, 2, 3):
             self.manager._registered_adapters.pin(aid)
         before = self.owner.snapshot()
-        self.assertEqual(self.demand()['reason'], 'all_cpu_entries_pinned')
+        conflict = self.demand()
+        self.assertEqual(conflict['reason'], 'all_cpu_entries_pinned')
+        self.assertTrue(all(row['external_pin'] for row in conflict['capacity_blockers']['candidates']))
         self.assertEqual(self.owner.snapshot(), before)
         self.assertFalse(self.loads)
+
+    def test_capacity_receipt_preserves_borrowed_gpu_pin_and_shared_references(self):
+        self.manager._registered_adapters.pin(1)
+        self.manager._active_adapters.pin(1)
+        self.pin(1)
+        self.pin(2)
+        snapshot = self.owner.snapshot()
+        self.owner.acquire(lease_id='second-hit-2', adapter_int_id=2,
+                           expected_owner_id=snapshot['owner_id'], expected_epoch=snapshot['epoch'])
+        rows = self.demand()['capacity_blockers']['candidates']
+        self.assertTrue(rows[0]['external_pin'])
+        self.assertFalse(rows[1]['external_pin'])
+        self.assertEqual(rows[1]['gpu_lease_ids'], ['hit-2', 'second-hit-2'])
 
     def test_stale_or_replaced_owner_never_loads(self):
         stale = self.owner.snapshot()

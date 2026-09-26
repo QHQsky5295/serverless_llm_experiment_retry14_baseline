@@ -1281,3 +1281,53 @@ GPU/HOST 边界测量；priming 回执保留，不能当成 Remote 加载为零�
 同卡共享逻辑实例不得重复分配，TP 的多 UUID 分别计数。直接进程内 engine 和
 外部 baseline 的分配者仍须各自接入，不能据此宣布 Full 生命周期全面合格。
 详细状态、实际失败和修正运行见 `PHYSICAL_GPU_MEASUREMENT.md`。
+
+## D28 — 原生容量冲突与真实引用释放事件
+
+### 因果问题与选择
+
+D25 已把源保护接入请求，D26/D27 分别验证源区间和整卡生命周期；但原生
+`all_gpu_slots_pinned`/`all_cpu_entries_pinned` 仍直接成为请求失败。假设是：
+对确由本服务在途引用造成的暂时容量冲突，等待实际引用释放、再重新观察并
+执行原生加载，能够保持物理保护且避免不必要的失败。不是等待固定毫秒数，
+不是 OOM 后重试，也不通过改变 IEEE 公式或 native LRU victim policy 实现。
+
+本轮核对 [vLLM 0.30 worker manager](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/worker_manager.py)
+的单线程 core 调用及 CPU cache/activation 路径，和
+[原生 cache pin/unpin](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/utils/cache.py)。
+原生 worker 不能阻塞等待尚需同一线程处理的 release RPC。因此在拒绝回执中
+返回实际阻塞租约，由异步 controller 等待其完成；采用
+[Python 3.12 asyncio.wait](https://docs.python.org/3.12/library/asyncio-task.html#asyncio.wait)
+等待具体引用，不取消被等待的 owner，不引入周期轮询。
+
+### 规范与当前实现
+
+| 论文规范语义 | 实现与验收边界 |
+|---|---|
+| 不驱逐在用副本 | 原生回执列出每个候选的 GPU/HOST 引用及外部 pin；不改变原生 LRU |
+| 释放后动态重检查 | 每个租约在发送获取前登记完成事件；一个候选的全部引用确认释放后，重新获取 native snapshot，再提交新 epoch |
+| 不丢先到事件 | 完成见证保留至本次 runner 生命周期结束，迟到的冲突回执仍可看到先前释放 |
+| 唤醒不是许可 | 其它请求先占用槽位时，再按新的真实阻塞引用等待；不把唤醒当作容量预留 |
+| 取消不伪造释放 | 等待者取消不取消引用 owner；丢失获取/释放回执仍保留所有权并撤回副本 |
+| D 包含接纳后的准备 | 已固定 HOST 类不改为 GPU 命中；容量等待起止保留在 acquisition 之前 |
+| 外部持有不能猜测完成 | 没有任何完全由已知其它请求持有的可释放候选时，显式报错；不解除外部 pin |
+
+这不等于全层物理字节 reservation 或论文主动 E(t) 已接通。源路径内容身份迁移、
+KV/全层接纳、主动 planner/handoff 和正式 Full 的整合仍然未完成。
+
+### 资格协议与预运行状态
+
+无需 GPU 的定向检查覆盖共享引用最后一次释放、先到释放、取消、未知释放、
+HOST CPU 容量、外部 pin、两等待者重新竞争和实际 Full 请求的 HOST-D 区间。
+新增资格入口也由真实 runner/reference helpers 的微小 fixture 覆盖。共增加
+10 项测试，最终功能回归 **676/676**、安全/census/replay **56/56**，无跳过。
+过程中保留一个 fixture 错误：试图改只读 LRU capacity 属性；删除无必要的
+fixture 容量修改后通过，生产策略没有因此放宽。
+
+下一次真实 7B 检查只用旧 seed42 前32条中按出现顺序的前
+`native_slot_count+1` 个不同 adapter 请求；不生成负载，不更改4个原生槽位。
+先保护4个请求的实际槽位，第5个请求在第1个真实 decode 期间尝试加载。
+只有确认确已进入容量等待后才归还第1个请求引用；第5个必须事件唤醒并完成，
+随后完成所有选中请求并归还引用。无 sleep 注入、无性能排名、无完整 Full 声称。
+复用受限 dedicated worker 与物理分配者、原有 native token 计量及外置 watchdog。
+模型结果尚未预填；输出至新的 capacity-wait attempt，再交付状态表。

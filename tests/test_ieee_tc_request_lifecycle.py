@@ -2000,6 +2000,286 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
         asyncio.run(check())
 
 
+class NativeCapacityWait(unittest.TestCase):
+    """Real runner/reference owner, CPU LRU fixtures; no GPU performance claim."""
+    def bind(self, runner, engine, name, adapter):
+        slot = InstanceSlot(name, engine=engine, coordinator=None)
+        ok, reserved = runner._try_reserve_runtime_request_slot(slot, adapter)
+        self.assertTrue(ok)
+        reservation = RuntimeRequestReservation(name)
+        reservation.bind(slot, adapter, reserved)
+        return reservation
+
+    async def acquire(self, runner, engine, name, adapter):
+        reservation = self.bind(runner, engine, name, adapter)
+        await runner._acquire_runtime_gpu_reference(reservation, engine, adapter, '/existing/'+adapter)
+        return reservation
+
+    def test_waits_for_last_shared_reference_not_first_release(self):
+        async def check():
+            runner, slot, _, _, owner, rpc = native_reference_fixture()
+            engine = slot.engine
+            a = await self.acquire(runner, engine, 'a', 'adapter-a')
+            a2 = await self.acquire(runner, engine, 'a2', 'adapter-a')
+            b = await self.acquire(runner, engine, 'b', 'adapter-b')
+            entered = asyncio.Event()
+            calls = []
+            async def observe(*, operation, **kwargs):
+                value = await rpc(operation=operation, **kwargs)
+                if value.get('reason') == 'all_gpu_slots_pinned':
+                    calls.append(value)
+                    entered.set()
+                return value
+            engine.ieee_gpu_reference.side_effect = observe
+            c = self.bind(runner, engine, 'c', 'adapter-c')
+            task = asyncio.create_task(runner._acquire_runtime_gpu_reference(c, engine, 'adapter-c', '/existing/adapter-c'))
+            await asyncio.wait_for(entered.wait(), 1)
+            await runner._finish_runtime_request_reservation(a)
+            await asyncio.sleep(0)
+            self.assertFalse(task.done())
+            self.assertEqual(len(calls), 1)  # No native polling after a partial release.
+            await runner._finish_runtime_request_reservation(a2)
+            receipt = await asyncio.wait_for(task, 1)
+            self.assertTrue(receipt['acquired'])
+            self.assertEqual(c.gpu_reference_evidence['capacity_waits'][0]['outcome'], 'release_observed')
+            await runner._finish_runtime_request_reservation(b)
+            await runner._finish_runtime_request_reservation(c)
+            self.assertEqual(owner.snapshot()['live_leases'], 0)
+        asyncio.run(check())
+
+    def test_release_before_conflict_reply_is_not_a_lost_wakeup(self):
+        async def check():
+            runner, slot, _, _, owner, rpc = native_reference_fixture()
+            a = await self.acquire(runner, slot.engine, 'a', 'adapter-a')
+            b = await self.acquire(runner, slot.engine, 'b', 'adapter-b')
+            async def early_release(*, operation, **kwargs):
+                value = await rpc(operation=operation, **kwargs)
+                if value.get('reason') == 'all_gpu_slots_pinned':
+                    await runner._finish_runtime_request_reservation(a)
+                return value
+            slot.engine.ieee_gpu_reference.side_effect = early_release
+            c = await asyncio.wait_for(self.acquire(runner, slot.engine, 'c', 'adapter-c'), 1)
+            self.assertEqual(len(c.gpu_reference_evidence['capacity_waits']), 1)
+            await runner._finish_runtime_request_reservation(b)
+            await runner._finish_runtime_request_reservation(c)
+            self.assertEqual(owner.snapshot()['live_leases'], 0)
+        asyncio.run(check())
+
+    def test_cancelled_waiter_does_not_cancel_owners_or_retain_fake_acquisition(self):
+        async def check():
+            runner, slot, _, _, owner, rpc = native_reference_fixture()
+            a = await self.acquire(runner, slot.engine, 'a', 'adapter-a')
+            b = await self.acquire(runner, slot.engine, 'b', 'adapter-b')
+            entered = asyncio.Event()
+            async def observe(*, operation, **kwargs):
+                value = await rpc(operation=operation, **kwargs)
+                if value.get('reason') == 'all_gpu_slots_pinned':
+                    entered.set()
+                return value
+            slot.engine.ieee_gpu_reference.side_effect = observe
+            c = self.bind(runner, slot.engine, 'c', 'adapter-c')
+            task = asyncio.create_task(runner._acquire_runtime_gpu_reference(c, slot.engine, 'adapter-c', '/existing/adapter-c'))
+            await asyncio.wait_for(entered.wait(), 1)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            await runner._finish_runtime_request_reservation(c)
+            self.assertTrue(c.released)
+            self.assertFalse(runner._unsettled_runtime_reservations)
+            self.assertEqual(owner.snapshot()['live_leases'], 2)
+            for request in (a, b):
+                intent = request.gpu_reference_evidence['intent']
+                witness = runner._native_reference_witnesses[(owner.owner_id, intent['lease_id'])]
+                self.assertFalse(witness['completion'].done())
+                await runner._finish_runtime_request_reservation(request)
+            self.assertEqual(owner.snapshot()['live_leases'], 0)
+        asyncio.run(check())
+
+    def test_unknown_release_is_not_free_capacity(self):
+        async def check():
+            runner, slot, _, _, owner, rpc = native_reference_fixture()
+            a = await self.acquire(runner, slot.engine, 'a', 'adapter-a')
+            b = await self.acquire(runner, slot.engine, 'b', 'adapter-b')
+            entered = asyncio.Event()
+            async def observe(*, operation, **kwargs):
+                value = await rpc(operation=operation, **kwargs)
+                if value.get('reason') == 'all_gpu_slots_pinned':
+                    entered.set()
+                return value
+            slot.engine.ieee_gpu_reference.side_effect = observe
+            c = self.bind(runner, slot.engine, 'c', 'adapter-c')
+            task = asyncio.create_task(runner._acquire_runtime_gpu_reference(c, slot.engine, 'adapter-c', '/existing/adapter-c'))
+            await asyncio.wait_for(entered.wait(), 1)
+            for request in (a, b):
+                runner._retain_runtime_request_reservation(request)
+            with self.assertRaisesRegex(RuntimeError, 'no acknowledged release path'):
+                await asyncio.wait_for(task, 1)
+            await runner._finish_runtime_request_reservation(c)
+            self.assertEqual(owner.snapshot()['live_leases'], 2)
+            self.assertEqual(c.gpu_reference_evidence['state'], 'rejected')
+            # End the fixture through actual successful releases, not forged frees.
+            for request in (a, b):
+                await runner._finish_runtime_request_reservation(request)
+        asyncio.run(check())
+
+    def test_full_host_request_includes_capacity_wait_in_its_fixed_source_interval(self):
+        async def check():
+            setup = SelectedSourceAdmissionIntegration()
+            try:
+                runner, slot, trace, plan, owner, rpc = setup.build('host')
+                # Native owners share a runtime. Source admission does not
+                # disguise another logical slot's physical pin as free capacity.
+                runner._stack, stack = None, runner._stack
+                a = await self.acquire(runner, slot.engine, 'busy-b', 'adapter-b')
+                b = await self.acquire(runner, slot.engine, 'busy-c', 'adapter-c')
+                runner._stack = stack
+                entered = asyncio.Event()
+                async def observe(*, operation, **kwargs):
+                    value = await rpc(operation=operation, **kwargs)
+                    if value.get('reason') == 'all_gpu_slots_pinned':
+                        entered.set()
+                    return value
+                slot.engine.ieee_gpu_reference.side_effect = observe
+                task = asyncio.create_task(runner._exec_request(trace, 4, 0., request_plan=plan))
+                await asyncio.wait_for(entered.wait(), 1)
+                self.assertFalse(task.done())
+                await runner._finish_runtime_request_reservation(a)
+                result = await asyncio.wait_for(task, 1)
+                self.assertTrue(result.success, result.error)
+                evidence = result.gpu_reference_evidence
+                interval, wait = evidence['service_intervals'], evidence['capacity_waits'][0]
+                self.assertEqual(result.readiness_tier_before_dispatch, 'host')
+                self.assertLessEqual(interval['admitted_monotonic_s'], wait['start_monotonic_s'])
+                self.assertLessEqual(wait['end_monotonic_s'], interval['acquired_monotonic_s'])
+                self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+                await runner._finish_runtime_request_reservation(b)
+                self.assertEqual(owner.snapshot()['live_leases'], 0)
+                runner._resolve_lora.assert_not_awaited()
+            finally:
+                setup.doCleanups()
+        asyncio.run(check())
+
+    def test_cpu_cache_waits_for_host_reference_release(self):
+        async def check():
+            runner, slot, _, _, owner, rpc = native_reference_fixture()
+            holders = []
+            for name in ('a', 'b', 'c'):
+                adapter = 'adapter-'+name
+                loaded = await self.acquire(runner, slot.engine, 'load-'+name, adapter)
+                await runner._finish_runtime_request_reservation(loaded)
+                aid = InferenceEngine._lora_int_id(adapter)
+                owner.manager.deactivate(aid)
+                held = self.bind(runner, slot.engine, 'hold-'+name, adapter)
+                held.gpu_reference_engine = slot.engine
+                intent = dict(lease_id='host-'+name, adapter_int_id=aid, lora_name=adapter,
+                    lora_path='/existing/'+adapter, expected_owner_id=owner.owner_id,
+                    expected_epoch=owner.snapshot()['epoch'])
+                held.gpu_reference_evidence['native_host_source'] = dict(state='held', intent=intent,
+                    receipt=await rpc(operation='hold_host_source', **intent))
+                runner._track_native_reference_intent(held, intent, 'host')
+                holders.append(held)
+            entered = asyncio.Event()
+            async def observe(*, operation, **kwargs):
+                value = await rpc(operation=operation, **kwargs)
+                if value.get('reason') == 'all_cpu_entries_pinned':
+                    self.assertEqual(value['capacity_blockers']['tier'], 'host')
+                    entered.set()
+                return value
+            slot.engine.ieee_gpu_reference.side_effect = observe
+            task = asyncio.create_task(self.acquire(runner, slot.engine, 'd', 'adapter-d'))
+            await asyncio.wait_for(entered.wait(), 1)
+            self.assertFalse(task.done())
+            await runner._finish_runtime_request_reservation(holders[0])
+            loaded = await asyncio.wait_for(task, 1)
+            self.assertEqual(loaded.gpu_reference_evidence['capacity_waits'][0]['reason'], 'all_cpu_entries_pinned')
+            for held in holders[1:]+[loaded]:
+                await runner._finish_runtime_request_reservation(held)
+            self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+            self.assertEqual(owner.snapshot()['live_leases'], 0)
+        asyncio.run(check())
+
+    def test_unowned_native_pins_fail_explicitly_without_stealing_capacity(self):
+        async def check():
+            runner, slot, _, _, owner, _ = native_reference_fixture()
+            for name in ('a', 'b'):
+                loaded = await self.acquire(runner, slot.engine, 'load-'+name, 'adapter-'+name)
+                await runner._finish_runtime_request_reservation(loaded)
+                aid = InferenceEngine._lora_int_id('adapter-'+name)
+                owner.manager._registered_adapters.pin(aid)
+                owner.manager._active_adapters.pin(aid)
+            before = owner.snapshot()
+            blocked = self.bind(runner, slot.engine, 'c', 'adapter-c')
+            with self.assertRaisesRegex(RuntimeError, 'no acknowledged release path'):
+                await asyncio.wait_for(runner._acquire_runtime_gpu_reference(
+                    blocked, slot.engine, 'adapter-c', '/existing/adapter-c'), 1)
+            self.assertEqual(owner.snapshot(), before)
+            await runner._finish_runtime_request_reservation(blocked)
+            self.assertTrue(blocked.released)
+            self.assertEqual(len(owner.manager._active_adapters.pinned_items), 2)
+        asyncio.run(check())
+
+    def test_wake_does_not_grant_capacity_and_two_waiters_recheck_native_victims(self):
+        async def check():
+            runner, slot, _, _, owner, rpc = native_reference_fixture()
+            a = await self.acquire(runner, slot.engine, 'a', 'adapter-a')
+            b = await self.acquire(runner, slot.engine, 'b', 'adapter-b')
+            entered, conflicts = asyncio.Event(), []
+            async def observe(*, operation, **kwargs):
+                value = await rpc(operation=operation, **kwargs)
+                if value.get('reason') == 'all_gpu_slots_pinned':
+                    conflicts.append(value)
+                    if len(conflicts) >= 2:
+                        entered.set()
+                return value
+            slot.engine.ieee_gpu_reference.side_effect = observe
+            tasks = [asyncio.create_task(self.acquire(runner, slot.engine, name, 'adapter-'+name))
+                     for name in ('c', 'd')]
+            await asyncio.wait_for(entered.wait(), 1)
+            await runner._finish_runtime_request_reservation(a)
+            done, pending = await asyncio.wait(tasks, timeout=1, return_when=asyncio.FIRST_COMPLETED)
+            self.assertEqual(len(done), 1)
+            first = next(iter(done)).result()
+            self.assertEqual(owner.snapshot()['live_leases'], 2)
+            await runner._finish_runtime_request_reservation(first)
+            remaining = await asyncio.wait_for(next(iter(pending)), 1)
+            for request in (remaining, b):
+                await runner._finish_runtime_request_reservation(request)
+            self.assertEqual(owner.snapshot()['live_leases'], 0)
+        asyncio.run(check())
+
+    def test_native_qualification_keeps_first_distinct_input_rows_and_actual_release_path(self):
+        from scripts.ieee_tc_preflight import qualify_native_capacity_wait
+        from faaslora.clock import local_monotonic_clock_id
+        async def check():
+            runner, slot, _, _, owner, rpc = native_reference_fixture()
+            engine = slot.engine
+            engine._lora_int_id = InferenceEngine._lora_int_id
+            engine.prepare_request = lambda prompt, target, inputs, **kw: RequestExecutionPlan('canonical', 2, target)
+            async def generate(**kwargs):
+                await asyncio.sleep(0)  # Fixture scheduling; not production waiting logic.
+                ref = kwargs['gpu_reference']
+                return 1., 1., kwargs['request_plan'].max_tokens, dict(native_terminal_observed=True,
+                    native_clock_id=local_monotonic_clock_id(), gpu_reference_owner_id=ref['owner_id'],
+                    gpu_reference_lease_id=ref['lease_id'], gpu_reference_adapter_int_id=ref['adapter_int_id'])
+            engine.generate_prepared.side_effect = generate
+            entries = [SimpleNamespace(request_id='req-'+str(i), source_sha256=str(i)*64,
+                source_json=json.dumps(dict(adapter_id='adapter-'+name, expected_output_tokens=4,
+                    expected_input_tokens=2, body=dict(messages=[dict(role='user', content='existing')]))))
+                for i, name in enumerate(('a', 'a', 'b', 'c', 'd'))]
+            result = dict(model_config=runner.model_cfg, requests=[], sources_before=await rpc(operation='source_snapshot'))
+            adapters = {'adapter-'+name: dict(path='/existing/adapter-'+name) for name in ('a','b','c','d')}
+            await qualify_native_capacity_wait(engine, SimpleNamespace(entries=entries), adapters, result)
+            self.assertEqual(result['selected_request_ids'], ['req-0', 'req-2', 'req-3'])
+            self.assertTrue(all(row['pass'] for row in result['requests']))
+            self.assertEqual(result['capacity_ownership_after']['live_leases'], 0)
+            self.assertFalse(result['router_qualified'])
+            self.assertFalse(result['physical_capacity_qualified'])
+            waits = result['requests'][-1]['source_evidence']['capacity_waits']
+            self.assertEqual(waits[0]['outcome'], 'release_observed')
+            self.assertTrue(all(row['source_evidence']['state'] == 'released' for row in result['requests']))
+        asyncio.run(check())
+
+
 class NativeRPCOwnership(unittest.TestCase):
     def proxy(self):
         proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)

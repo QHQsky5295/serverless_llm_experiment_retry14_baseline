@@ -1886,6 +1886,116 @@ async def qualify_native_source_intervals(engine, plan, adapters, result):
                               target_tokens=target, actual_tokens=generated[2], tier=native.tier)), flush=True)
 
 
+async def qualify_native_capacity_wait(engine, plan, adapters, result):
+    """Controlled native pin contention, not a Full/performance workload.
+
+    Use the first slot_count+1 distinct adapters already in the chosen prefix.
+    Keep the first slot_count request references until their real generation
+    finishes. An extra request must wait while the first one actually decodes;
+    no sleep, synthetic release time or smaller backend cache is injected.
+    """
+    import asyncio
+    from faaslora.clock import local_monotonic_clock_id
+    from faaslora.experiment.instance_pool import InstanceSlot
+    from scripts.run_all_experiments import ScenarioRunner, RuntimeRequestReservation
+    count = len(result['sources_before']['slot_adapter_ids'])
+    entries, seen = [], set()
+    for entry in plan.entries:
+        aid = json.loads(entry.source_json)['adapter_id']
+        if aid not in seen:
+            seen.add(aid)
+            entries.append(entry)
+        if len(entries) == count+1:
+            break
+    if count < 1 or len(entries) != count+1:
+        raise ValueError('existing prefix lacks slot_count+1 distinct adapters for capacity qualification')
+    result.update(input_mode='first_distinct_adapters_in_existing_prefix_controlled_pin_contention',
+        selected_request_ids=[entry.request_id for entry in entries], native_slot_count=count,
+        router_qualified=False, physical_capacity_qualified=False,
+        pin_policy='retain_each_request_reference_until_native_generation_terminal')
+    boundary = ScenarioRunner.__new__(ScenarioRunner)
+    boundary.model_cfg, boundary._stack, boundary.instance_pool = result['model_config'], None, None
+    boundary._unsettled_runtime_reservations = {}
+    reservations, prepared_inputs = [], []
+    pending = None
+    for entry in entries:
+        row = json.loads(entry.source_json)
+        aid, target = row['adapter_id'], min(row['expected_output_tokens'], 256)
+        prepared = engine.prepare_request('', target, row['expected_input_tokens'], chat_messages=row['body']['messages'])
+        if prepared.max_tokens != target:
+            raise ValueError('capacity qualification changed output contract')
+        slot = InstanceSlot('capacity-qualification/'+entry.request_id, engine, None)
+        ok, adapter_reserved = boundary._try_reserve_runtime_request_slot(slot, aid)
+        if not ok:
+            raise RuntimeError('controlled request could not reserve its controller lane')
+        reservation = RuntimeRequestReservation(entry.request_id)
+        reservation.bind(slot, aid, adapter_reserved)
+        reservations.append(reservation)
+        prepared_inputs.append(prepared)
+        result['requests'].append(dict(request_id=entry.request_id, adapter_id=aid,
+            source_row_sha256=entry.source_sha256, target_tokens=target,
+            prompt_sha256=hashlib.sha256(prepared.prompt.encode()).hexdigest(),
+            input_content_tokens=prepared.input_tokens, source_evidence=reservation.gpu_reference_evidence,
+            **{'pass': False}))
+
+    async def acquire(index):
+        reservation = reservations[index]
+        return await boundary._acquire_runtime_gpu_reference(reservation, engine, reservation.adapter_id,
+            adapters[reservation.adapter_id]['path'])
+
+    async def generate(index):
+        case, reservation = result['requests'][index], reservations[index]
+        reference = reservation.gpu_reference_evidence['receipt']
+        reservation.generation_started = True
+        result['stage'] = 'capacity_generate:'+reservation.request_id
+        output = await asyncio.wait_for(engine.generate_prepared(request_plan=prepared_inputs[index],
+            lora_path=reference['lora_path'], adapter_id=reservation.adapter_id, temperature=0., top_p=1.,
+            generation_seed=42, return_timing=True, gpu_reference=reference), timeout=1800.)
+        timing = output[3]
+        case.update(actual_tokens=output[2], timing=timing)
+        if (output[2] != case['target_tokens'] or timing.get('native_terminal_observed') is not True
+                or timing.get('native_clock_id') != local_monotonic_clock_id()
+                or any(timing.get('gpu_reference_'+key) != reference[key]
+                       for key in ('owner_id', 'lease_id', 'adapter_int_id'))):
+            raise RuntimeError('capacity qualification lost generation identity or native terminal')
+        reservation.native_terminal_observed = True
+        case['pass'] = True
+        print(json.dumps(dict(event='model_qualification_request', request_id=case['request_id'],
+            target_tokens=case['target_tokens'], actual_tokens=case['actual_tokens'])), flush=True)
+
+    try:
+        for index in range(count):
+            result['stage'] = 'capacity_hold:'+reservations[index].request_id
+            await acquire(index)
+        pending = asyncio.create_task(acquire(count))
+        await generate(0)
+        waits = reservations[count].gpu_reference_evidence.get('capacity_waits', [])
+        if pending.done() or not waits or waits[-1]['outcome'] != 'waiting':
+            raise RuntimeError('native contention did not reach the actual release wait; no sleep/retry injected')
+        result['contention_observed'] = dict(blocked_request_id=reservations[count].request_id,
+            first_completed_request_id=reservations[0].request_id, native_snapshot=
+            await engine.ieee_gpu_reference(operation='snapshot'))
+        await boundary._finish_runtime_request_reservation(reservations[0])
+        await asyncio.wait_for(pending, 1800.)
+        for index in range(1, count+1):
+            await generate(index)
+            await boundary._finish_runtime_request_reservation(reservations[index])
+        if (waits[-1]['outcome'] != 'release_observed'
+                or boundary._unsettled_runtime_reservations
+                or any(not reservation.released for reservation in reservations)):
+            raise RuntimeError('native capacity qualification left unresolved references')
+        result['capacity_ownership_after'] = await engine.ieee_gpu_reference(operation='snapshot')
+        if (result['capacity_ownership_after']['live_leases']
+                or result['capacity_ownership_after']['live_host_source_leases']):
+            raise RuntimeError('native capacity qualification leaked leases')
+    finally:
+        if pending is not None and not pending.done():
+            pending.cancel()
+            await asyncio.gather(pending, return_exceptions=True)
+        for reservation in reservations:
+            await boundary._finish_runtime_request_reservation(reservation)
+
+
 async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                               trace: Path, count: int, mode: str = 'sequential',
                               artifact_audit: Path | None = None) -> dict:
@@ -1905,8 +2015,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
     if mode not in ('sequential', 'concurrent_pairs', 'cancel_pairs', 'cancel_pairs_retain_adapter',
                     'cancel_pairs_subprocess', 'native_cancel_reference',
                     'native_adapter_reference', 'native_numeric_reference', 'native_source_intervals',
-                    'native_lifecycle') or (
-                    mode not in ('sequential', 'native_source_intervals') and count != 4):
+                    'native_lifecycle', 'native_capacity_wait') or (
+                    mode not in ('sequential', 'native_source_intervals', 'native_capacity_wait') and count != 4):
         raise ValueError('concurrent qualification requires exactly the original four-request prefix')
     result = {'kind': 'backend_native_model_prefix_qualification_v1', 'pass': False,
               'full_model_qualification': False, 'production_launch_authorized': False,
@@ -1945,9 +2055,10 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                    max_output_tokens_cap=256)
         if mode in ('native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference'):
             cfg['ieee_gpu_references'] = False
-        if mode == 'native_lifecycle':
+        if mode in ('native_lifecycle', 'native_capacity_wait'):
             cfg['ieee_physical_allocation'] = True
-            result['input_mode'] = 'existing_four_request_prefix_dedicated_physical_lifecycle'
+            result['input_mode'] = ('existing_four_request_prefix_dedicated_physical_lifecycle'
+                if mode == 'native_lifecycle' else 'existing_prefix_controlled_native_capacity')
         result['model_config'] = cfg
         plan = FrozenReplayPlan.load(trace, count=count)
         result['trace'] = plan.identity()
@@ -2007,7 +2118,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         result['stage'] = 'engine_initialization'
         print(json.dumps({'event': 'model_qualification_stage', 'stage': result['stage'],
                           'model': cfg['name'], 'requests': count}), flush=True)
-        if mode in ('cancel_pairs_subprocess', 'native_lifecycle'):
+        if mode in ('cancel_pairs_subprocess', 'native_lifecycle', 'native_capacity_wait'):
             engine = await SubprocessInferenceEngineProxy.spawn(model_cfg=cfg, cost_model={},
                                                                device_id=0, runtime_gpu_ids=[0])
             result['proxy_pid'] = engine._process.pid
@@ -2028,6 +2139,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         result['sources_before'] = await engine.ieee_gpu_reference(operation='source_snapshot')
         if mode == 'native_source_intervals':
             await qualify_native_source_intervals(engine, plan, adapters, result)
+        elif mode == 'native_capacity_wait':
+            await qualify_native_capacity_wait(engine, plan, adapters, result)
         elif mode not in ('sequential', 'native_lifecycle'):
             result['stage'] = mode
             await qualify_concurrent_pairs(engine, plan, adapters, result,
@@ -2218,7 +2331,7 @@ def main():
     parser.add_argument('--qualification-mode', choices=['sequential', 'concurrent_pairs', 'cancel_pairs',
                         'cancel_pairs_retain_adapter', 'cancel_pairs_subprocess',
                         'native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference',
-                        'native_source_intervals', 'native_lifecycle'], default='sequential')
+                        'native_source_intervals', 'native_lifecycle', 'native_capacity_wait'], default='sequential')
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')

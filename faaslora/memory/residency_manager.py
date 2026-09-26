@@ -650,6 +650,27 @@ class IEEEBackendGPUReferences:
                 'complete_for_native_caches': not unknown and not unconfirmed,
                 'snapshot_holds_reference': False}
 
+    def _capacity_blockers(self, tier: str) -> Dict[str, Any]:
+        """Identify pins, not estimated release times, on a rejected load.
+
+        The serialized worker must never wait for a release RPC itself. The
+        controller may await these exact leases only when it owns their release
+        paths. Pre-existing/native pins stay external and are never unpinned by
+        a waiting request. No cache/LRU state is changed by this receipt.
+        """
+        cpu, gpu = self._caches()
+        cache = gpu if tier == 'gpu' else cpu
+        rows = []
+        for aid in sorted(cache):
+            gpu_refs = sorted(self._references.get(aid, ()))
+            host_refs = sorted(self._host_references.get(aid, ())) if tier == 'host' else []
+            borrowed = self._borrowed_pins.get(aid)
+            external = (borrowed[1 if tier == 'gpu' else 0] if borrowed is not None
+                        else self._host_borrowed_pins.get(aid, True))
+            rows.append(dict(adapter_int_id=aid, gpu_lease_ids=gpu_refs,
+                             host_lease_ids=host_refs, external_pin=external))
+        return dict(kind='native_pinned_capacity_v1', tier=tier, candidates=rows)
+
     def hold_host_source(self, *, lease_id: str, adapter_int_id: int, lora_name: str,
                          lora_path: str, expected_owner_id: str, expected_epoch: int) -> Dict[str, Any]:
         """Protect an observed native HOST source without loading or GPU pinning.
@@ -883,10 +904,12 @@ class IEEEBackendGPUReferences:
         if not gpu.pinned_items.issubset(cpu.pinned_items):
             raise RuntimeError('native GPU pin lacks matching CPU eviction protection')
         if not gpu_hit and None not in slots and not (set(gpu) - gpu.pinned_items):
-            return {'acquired': False, 'reason': 'all_gpu_slots_pinned', **self.snapshot()}
+            return {'acquired': False, 'reason': 'all_gpu_slots_pinned',
+                    'capacity_blockers': self._capacity_blockers('gpu'), **self.snapshot()}
         if (not cpu_hit and len(cpu) >= self.manager.capacity
                 and not (set(cpu) - cpu.pinned_items)):
-            return {'acquired': False, 'reason': 'all_cpu_entries_pinned', **self.snapshot()}
+            return {'acquired': False, 'reason': 'all_cpu_entries_pinned',
+                    'capacity_blockers': self._capacity_blockers('host'), **self.snapshot()}
         start = time.monotonic()
         try:
             if not gpu_hit:

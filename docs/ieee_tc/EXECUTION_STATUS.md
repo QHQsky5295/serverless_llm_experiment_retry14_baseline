@@ -134,6 +134,19 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## This continuation
 
+### D28 in progress
+
+- Native pin-capacity conflicts now carry exact blocking lease identities.
+  The actual runner waits for acknowledged reference releases, then re-observes
+  the native epoch. No polling, artificial delay, external unpin or OOM retry.
+- 10 additional tests;676 functional +56 safety pass. Source plan and147-entry
+  protected seal unchanged. One corrected fixture-only read-only capacity error
+  is recorded in P1 D28. No new formal performance result.
+- Next: one controlled7B native capacity-wait qualification, first five distinct
+  adapters from the old32-prefix (4 native slots), existing dedicated owner.
+  No repeat of lifecycle4/source32 and no new trace/weights. Native model outcome
+  remains pending until raw result, cleanup and status table pass.
+
 - D27 is progress: real7B physical ownership qualification and a causally identified
   RPC-close/exit-order correction; no formal matrix slot completed.
 - Final regression:666 functional and56 safety tests passed, no failures/skips.
