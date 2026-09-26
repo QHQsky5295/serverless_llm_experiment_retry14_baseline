@@ -1,5 +1,6 @@
 """Native observation wiring and storage accounting; fake tensors, no CUDA work."""
 import asyncio
+import os
 from contextlib import nullcontext
 from types import SimpleNamespace
 import unittest
@@ -90,6 +91,34 @@ class NativeHostFootprint(unittest.TestCase):
 
 
 class NativePinnedHostAccounting(unittest.TestCase):
+    def test_allocator_policy_requires_actual_readback_not_only_environment(self):
+        env = {'FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY': 'uncached_v1',
+               'PYTORCH_ALLOC_CONF': 'pinned_max_cached_size_mb:0'}
+        settings = {'max_cached_size': 0, 'PYTORCH_CUDA_ALLOC_CONF': 'pinned_max_cached_size_mb:0'}
+        snapshot = Mock(return_value={'allocator_settings': settings})
+        fake = SimpleNamespace(__version__='2.13.0+cu130',
+            cuda=SimpleNamespace(memory=SimpleNamespace(_snapshot=snapshot)))
+        with patch.dict(os.environ, env, clear=True), patch.object(monitor, 'torch', fake):
+            result = monitor._ieee_native_host_allocator_policy()
+            self.assertTrue(result['verified'])
+            self.assertFalse(result['immediate_release_guaranteed'])
+            for bad in (-1, False, None):
+                settings['max_cached_size'] = bad
+                with self.subTest(value=bad), self.assertRaisesRegex(RuntimeError, 'readback'):
+                    monitor._ieee_native_host_allocator_policy()
+
+    def test_unconfigured_policy_does_not_probe_cuda_or_claim_default(self):
+        with patch.dict(os.environ, {}, clear=True), patch.object(monitor, 'torch', None):
+            self.assertEqual(monitor._ieee_native_host_allocator_policy(), {'policy': None, 'verified': False})
+
+    def test_allocator_policy_rejects_legacy_alias_before_readback(self):
+        env = {'FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY': 'uncached_v1',
+               'PYTORCH_ALLOC_CONF': 'pinned_max_cached_size_mb:0', 'PYTORCH_CUDA_ALLOC_CONF': ''}
+        with patch.dict(os.environ, env, clear=True), patch.object(monitor, 'torch',
+                SimpleNamespace(__version__='2.13.0+cu130')):
+            with self.assertRaisesRegex(RuntimeError, 'environment'):
+                monitor._ieee_native_host_allocator_policy()
+
     def observe(self, stats, rows=(), staged_ids=()):
         fake = SimpleNamespace(cuda=SimpleNamespace(host_memory_stats=lambda: stats))
         with patch.object(monitor, 'torch', fake):
@@ -147,6 +176,11 @@ class NativePinnedHostAccounting(unittest.TestCase):
                 self.assertEqual(result['converted_pageable_bytes'], 60)
                 self.assertEqual(result['additional_pinned_upper_bytes'], 64)
                 self.assertEqual(result['peak_additional_tensor_bytes'], 138)
+                self.assertEqual(result['resident_pinned_upper_bytes'] + result['transient_tensor_upper_bytes'], 138)
+                uncached = monitor._ieee_file_host_contract(directory, torch.float16, uncached_pinned=True)
+                self.assertEqual(uncached['resident_pinned_upper_bytes'], 60)
+                self.assertEqual(uncached['transient_tensor_upper_bytes'], 74)
+                self.assertEqual(uncached['peak_additional_tensor_bytes'], 134)
                 reader.keys.return_value = ['layer.base_weight']
                 with self.assertRaisesRegex(ValueError, 'dense A/B'):
                     monitor._ieee_file_host_contract(directory, torch.float16)

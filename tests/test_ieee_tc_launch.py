@@ -20,6 +20,52 @@ def ieee_control_fixture():
         ttft_upper_ms=1000, ttft_lower_ms=500, ttft_window_s=100, scale_down_cooldown_s=3)
 
 
+class NativeAllocatorLaunchContract(unittest.TestCase):
+    def test_default_preserves_inherited_environment_without_claiming_policy(self):
+        env = {'PYTORCH_CUDA_ALLOC_CONF': 'expandable_segments:True', 'OTHER': 'value'}
+        self.assertEqual(runner._ieee_native_allocator_environment({}, env), env)
+
+    def test_candidate_is_explicit_preimport_and_removes_alias_precedence(self):
+        env = {'OTHER': 'value', 'PYTORCH_CUDA_ALLOC_CONF': 'pinned_max_cached_size_mb:0',
+               'PYTORCH_HIP_ALLOC_CONF': ''}
+        cfg = {'backend': 'vllm', 'ieee_native_host_allocator_policy': 'uncached_v1'}
+        result = runner._ieee_native_allocator_environment(cfg, env)
+        self.assertNotIn('PYTORCH_CUDA_ALLOC_CONF', result)
+        self.assertNotIn('PYTORCH_HIP_ALLOC_CONF', result)
+        self.assertEqual(result['PYTORCH_ALLOC_CONF'], 'pinned_max_cached_size_mb:0')
+        self.assertEqual(result['FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY'], 'uncached_v1')
+        self.assertEqual(result['OTHER'], 'value')
+        self.assertIn('PYTORCH_CUDA_ALLOC_CONF', env)
+
+    def test_unknown_candidate_and_conflicting_tuning_are_rejected(self):
+        for cfg in ({'ieee_native_host_allocator_policy': False},
+                    {'ieee_native_host_allocator_policy': 'uncached_v1', 'backend': 'sglang'}):
+            with self.assertRaises(ValueError):
+                runner._ieee_native_allocator_environment(cfg, {})
+        for alias in ('PYTORCH_ALLOC_CONF', 'PYTORCH_CUDA_ALLOC_CONF', 'PYTORCH_HIP_ALLOC_CONF'):
+            with self.subTest(alias=alias), self.assertRaisesRegex(ValueError, 'conflicts'):
+                runner._ieee_native_allocator_environment(
+                    {'ieee_native_host_allocator_policy': 'uncached_v1'}, {alias: 'expandable_segments:True'})
+        with self.assertRaisesRegex(ValueError, 'frozen model'):
+            runner._ieee_native_allocator_environment({},
+                {'FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY': 'uncached_v1'})
+
+    def test_inprocess_initialization_cannot_apply_policy_after_import(self):
+        engine = runner.InferenceEngine.__new__(runner.InferenceEngine)
+        engine.model_cfg = {'ieee_native_host_allocator_policy': 'uncached_v1'}
+        with patch.dict(os.environ, {}, clear=True), self.assertRaisesRegex(RuntimeError, 'fresh process'):
+            asyncio.run(engine.initialize())
+
+    def test_worker_rejects_environment_payload_mismatch_before_backend_import(self):
+        from scripts.dedicated_engine_worker import _run_worker
+        with tempfile.TemporaryDirectory() as directory:
+            payload = Path(directory) / 'payload.json'
+            payload.write_text(json.dumps(dict(repo_root=str(Path.cwd()),
+                model_cfg={'ieee_native_host_allocator_policy': 'uncached_v1'})))
+            with patch.dict(os.environ, {}, clear=True), self.assertRaisesRegex(ValueError, 'before worker imports'):
+                asyncio.run(_run_worker(payload, Path(directory) / 'ready.json'))
+
+
 class IEEEControlContract(unittest.TestCase):
     def make(self):
         from faaslora.coordination.autoscaler import IEEEReplicaControl

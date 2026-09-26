@@ -1,0 +1,89 @@
+{
+  "kind": "native_host_workspace_offline_accounting_v1",
+  "source_path": "results/ieee_tc/p2_backend_qualification/host_20260927/native_host_allocator_uncached_attempt1.json",
+  "source_sha256": "08f7083ec24bfc2d6605187da7eabc8b5558e1dcb1f7ce1fe99809ae0a14e698",
+  "derivation": "Existing D56 checkpoint metadata: uncached resident R=converted_bytes; transient W=source_file_bytes+converted_bytes; conservative load peak R+W. Compare R with already-measured pinned allocated increment; do not infer transient measured peak or Full qualification.",
+  "new_execution": false,
+  "production_configuration_changed": false,
+  "formal_performance_result": false,
+  "rows": [
+    {
+      "model": "3B",
+      "adapter": "code_lora",
+      "rank": 8,
+      "tensor_count": 224,
+      "source_file_bytes": 9204480,
+      "converted_bytes": 9175040,
+      "rounded_resident_upper_bytes": 11927552,
+      "uncached_resident_upper_bytes": 9175040,
+      "transient_upper_bytes": 18379520,
+      "uncached_peak_upper_bytes": 27554560,
+      "observed_uncached_allocated_increment_bytes": 9175040
+    },
+    {
+      "model": "3B",
+      "adapter": "code_lora_0015",
+      "rank": 16,
+      "tensor_count": 224,
+      "source_file_bytes": 18379976,
+      "converted_bytes": 18350080,
+      "rounded_resident_upper_bytes": 23855104,
+      "uncached_resident_upper_bytes": 18350080,
+      "transient_upper_bytes": 36730056,
+      "uncached_peak_upper_bytes": 55080136,
+      "observed_uncached_allocated_increment_bytes": 18350080
+    },
+    {
+      "model": "7B",
+      "adapter": "code_lora",
+      "rank": 8,
+      "tensor_count": 256,
+      "source_file_bytes": 16811112,
+      "converted_bytes": 16777216,
+      "rounded_resident_upper_bytes": 16777216,
+      "uncached_resident_upper_bytes": 16777216,
+      "transient_upper_bytes": 33588328,
+      "uncached_peak_upper_bytes": 50365544,
+      "observed_uncached_allocated_increment_bytes": 16777216
+    },
+    {
+      "model": "7B",
+      "adapter": "finance_lora",
+      "rank": 8,
+      "tensor_count": 256,
+      "source_file_bytes": 16811112,
+      "converted_bytes": 16777216,
+      "rounded_resident_upper_bytes": 16777216,
+      "uncached_resident_upper_bytes": 16777216,
+      "transient_upper_bytes": 33588328,
+      "uncached_peak_upper_bytes": 50365544,
+      "observed_uncached_allocated_increment_bytes": 16777216
+    },
+    {
+      "model": "7B",
+      "adapter": "medical_lora",
+      "rank": 8,
+      "tensor_count": 256,
+      "source_file_bytes": 16811112,
+      "converted_bytes": 16777216,
+      "rounded_resident_upper_bytes": 16777216,
+      "uncached_resident_upper_bytes": 16777216,
+      "transient_upper_bytes": 33588328,
+      "uncached_peak_upper_bytes": 50365544,
+      "observed_uncached_allocated_increment_bytes": 16777216
+    },
+    {
+      "model": "7B",
+      "adapter": "code_lora_0015",
+      "rank": 16,
+      "tensor_count": 256,
+      "source_file_bytes": 33588752,
+      "converted_bytes": 33554432,
+      "rounded_resident_upper_bytes": 33554432,
+      "uncached_resident_upper_bytes": 33554432,
+      "transient_upper_bytes": 67143184,
+      "uncached_peak_upper_bytes": 100697616,
+      "observed_uncached_allocated_increment_bytes": 33554432
+    }
+  ]
+}

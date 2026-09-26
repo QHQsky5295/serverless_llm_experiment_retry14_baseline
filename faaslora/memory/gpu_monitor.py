@@ -190,16 +190,42 @@ def _ieee_pinned_host_observation(inventory: Dict[str, Any]) -> Dict[str, Any]:
         total_host_memory_covered=False)
 
 
-def _ieee_file_host_contract(lora_path: str, dtype: Any) -> Dict[str, Any]:
+def _ieee_native_host_allocator_policy() -> Dict[str, Any]:
+    """Read back an opted-in process policy once, never flush or set it live.
+
+    max_cached_size=0 does not mean an in-flight block is already reusable.
+    Actual allocated-byte accounting remains authoritative after every load.
+    The unconfigured path is deliberately not certified as the default policy.
+    """
+    policy = os.environ.get('FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY')
+    if policy is None:
+        return dict(policy=None, verified=False)
+    if (policy != 'uncached_v1' or str(torch.__version__) != '2.13.0+cu130'
+            or os.environ.get('PYTORCH_ALLOC_CONF') != 'pinned_max_cached_size_mb:0'
+            or any(key in os.environ for key in ('PYTORCH_CUDA_ALLOC_CONF', 'PYTORCH_HIP_ALLOC_CONF'))):
+        raise RuntimeError('unqualified native HOST allocator policy/environment')
+    settings = torch.cuda.memory._snapshot().get('allocator_settings')
+    if (not isinstance(settings, dict) or type(settings.get('max_cached_size')) is not int
+            or settings['max_cached_size'] != 0
+            or settings.get('PYTORCH_CUDA_ALLOC_CONF') != 'pinned_max_cached_size_mb:0'):
+        raise RuntimeError('native HOST allocator readback differs from requested candidate')
+    return dict(policy=policy, verified=True, allocator_settings=settings,
+                persistent_cache_enabled=False, immediate_release_guaranteed=False)
+
+
+def _ieee_file_host_contract(lora_path: str, dtype: Any, *, uncached_pinned: bool = False) -> Dict[str, Any]:
     """Read dense safetensors metadata before native CPU materialization.
 
     The existing native loader holds checkpoint tensors while casting/pinning.
-    Reserve source-file bytes, all converted pageable tensors and all newly
-    rounded pinned blocks simultaneously. No credit is taken for cached-block
-    reuse or future eviction. Only dense A/B Llama weights are qualified here;
+    Reserve source-file bytes, all converted pageable tensors and all new
+    pinned blocks simultaneously (rounded upper bound unless the worker has
+    verified uncached_v1). No credit is taken for cached-block reuse or future
+    eviction. Only dense A/B Llama weights are qualified here;
     this is a tensor-storage bound, not an allocator-overhead/RSS bound.
     """
     import safetensors
+    if type(uncached_pinned) is not bool:
+        raise ValueError('native HOST allocator contract must be explicit')
     if dtype not in (torch.float16, torch.bfloat16, torch.float32):
         raise ValueError('unsupported native HOST loading dtype')
     root = Path(lora_path)
@@ -220,7 +246,7 @@ def _ieee_file_host_contract(lora_path: str, dtype: Any) -> Dict[str, Any]:
             converted += size
             # Torch2.13 may disable rounding above a configured threshold;
             # power-of-two ceiling remains conservative in both cases.
-            pinned += 1 << (size-1).bit_length()
+            pinned += size if uncached_pinned else 1 << (size-1).bit_length()
             count += 1
     if not count:
         raise ValueError('native HOST loading has no LoRA tensors')
@@ -229,6 +255,9 @@ def _ieee_file_host_contract(lora_path: str, dtype: Any) -> Dict[str, Any]:
         tensor_count=count, converted_pageable_bytes=converted,
         additional_pinned_upper_bytes=pinned,
         peak_additional_tensor_bytes=source+converted+pinned,
+        resident_pinned_upper_bytes=pinned,
+        transient_tensor_upper_bytes=source+converted,
+        pinned_allocation_policy='uncached_v1' if uncached_pinned else 'conservative_rounded_upper',
         dtype=str(dtype), total_host_memory_covered=False)
 
 
@@ -482,6 +511,9 @@ class IEEEWorkerObservationExtension:
 
         native_loader = self.model_runner.lora_manager
         manager = native_loader._adapter_manager
+        if not hasattr(self, '_ieee_host_allocator_policy'):
+            # Capture once, not a full allocator snapshot on every request.
+            self._ieee_host_allocator_policy = _ieee_native_host_allocator_policy()
         if not hasattr(self, '_ieee_gpu_reference_owner'):
             def completion_fence():
                 with torch.cuda.device(self.device):
@@ -531,11 +563,18 @@ class IEEEWorkerObservationExtension:
                     staged_models=self._ieee_gpu_reference_owner.staged_models()))
                 if not before['available']:
                     raise RuntimeError('native CPU-only preparation lacks allocator occupancy')
-                contract = None if reuse else _ieee_file_host_contract(lora_path, native_loader.lora_config.lora_dtype)
+                if reuse:
+                    contract = None
+                elif self._ieee_host_allocator_policy['verified']:
+                    contract = _ieee_file_host_contract(lora_path, native_loader.lora_config.lora_dtype,
+                                                        uncached_pinned=True)
+                else:
+                    contract = _ieee_file_host_contract(lora_path, native_loader.lora_config.lora_dtype)
                 increment = 0 if reuse else contract['peak_additional_tensor_bytes']
                 admitted = before['accounted_tensor_bytes'] + increment <= tensor_budget_bytes
                 return dict(admitted=admitted, reason=None if admitted else 'native_host_tensor_budget',
                             before=before, contract=contract, tensor_budget_bytes=tensor_budget_bytes,
+                            allocator_policy=self._ieee_host_allocator_policy,
                             total_host_memory_covered=False)
             def file_host_loader(*, adapter_int_id, lora_name, lora_path, tensor_budget_bytes, reuse,
                                  register=True):
@@ -700,6 +739,7 @@ class IEEEWorkerObservationExtension:
             device_uuid = torch.cuda.get_device_properties(self.device).uuid
             result['device_uuid'] = 'GPU-' + str(uuid.UUID(bytes=bytes(device_uuid.bytes)))
         return {**result, 'clock_id': local_monotonic_clock_id(),
+                'native_host_allocator_policy': self._ieee_host_allocator_policy,
                 'worker_pid': os.getpid(), 'worker_rank': int(self.rank),
                 'completion_fence_scope': 'current_worker_cuda_stream',
                 'production_launch_authorized': False}
@@ -723,6 +763,8 @@ class IEEEWorkerObservationExtension:
         pool = _ieee_lora_pool_inventory(manager)
         host = _ieee_lora_host_inventory(manager)
         host_allocator = _ieee_pinned_host_observation(host)
+        if not hasattr(self, '_ieee_host_allocator_policy'):
+            self._ieee_host_allocator_policy = _ieee_native_host_allocator_policy()
         if pool['pool_allocated_bytes'] > allocated_bytes:
             raise ValueError('LoRA storage inventory exceeds native allocator occupancy')
         import uuid
@@ -744,6 +786,7 @@ class IEEEWorkerObservationExtension:
             'dispatch_reference_held': False,
             'production_admission_snapshot': False,
             'native_host_allocator': host_allocator,
+            'native_host_allocator_policy': self._ieee_host_allocator_policy,
             **pool,
             **host,
         }

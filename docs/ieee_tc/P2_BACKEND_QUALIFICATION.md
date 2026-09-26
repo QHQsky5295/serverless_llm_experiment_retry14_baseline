@@ -687,3 +687,55 @@ NVML确认本次context释放、服务资源域移除；本次辅助域与58项�
   不能因这次CPU loader测量通过而解除Full guard或补写缺失profile。
 - 本问题的两次最小测量已完成，不再重复它们或旧请求前缀增加检查数量；
   返回Full预算内staging/替换与代表性成本profile主线。
+
+## 2026-09-27：加载 workspace 分解与显式分配器候选（D57）
+
+本次复用D56原始数据，不重跑两组allocator微测，也不重跑旧请求前缀。
+瓶颈假设是：只给常驻adapter分配空间，会使官方load-before-evict路径在
+替换时没有合法的临时空间；删除对象也不自动等于回收默认allocator缓存。
+[vLLM0.30 worker源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+确实先加载再执行CPU缓存替换。IEEE原文也将staging从可用tier容量中扣除，
+因此必须在现有总预算内部作空间分配，不能靠扩大预算解决。
+
+对当前dense A/B、FP16、PyTorch2.13.0+cu130且实际确认不缓存的候选，令
+S为已有checkpoint文件字节，R为由header形状和实际dtype得到的权重字节：
+
+- 最终pinned tensor上界为R。
+- 加载期间临时tensor上界W=S+R，保守同时计入源文件和转换对象。
+- 一次加载的额外tensor峰值上界为R+W=S+2R。
+- 执行时仍要求当前实际allocator占用＋该峰值≤同一个native HOST额度。
+  所有已暂存对象、非LoRA pinned块和未结束操作仍计入当前占用，不预支驱逐
+  或异步归还的字节。不将这些tensor上界称为总HOST/RSS上界。
+
+这里的精确非取整R来自
+[PyTorch2.13 allocator实现](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/aten/src/ATen/core/CachingHostAllocator.h)：
+缓存阈值为0时，正大小块不执行二次幂取整。其他配置继续使用原保守取整上界。
+
+| 既有类 | 最终pinned上界R（B） | 临时上界W（B） | 单次加载峰值上界（B） | D56实际最终分配增量（B） |
+|---|---:|---:|---:|---:|
+| 3B rank8 | 9,175,040 | 18,379,520 | 27,554,560 | 9,175,040 |
+| 3B rank16 | 18,350,080 | 36,730,056 | 55,080,136 | 18,350,080 |
+| 7B rank8（三类同形状） | 16,777,216 | 33,588,328 | 50,365,544 | 16,777,216 |
+| 7B rank16 | 33,554,432 | 67,143,184 | 100,697,616 | 33,554,432 |
+
+最后一列是旧实测，其余为离线计算；**没有测量临时峰值**。全六类逐项表、
+计算式和原始SHA保存在`paper_results/ieee_tc/p2_backend/20260927_native_host_workspace.{csv,json}`。
+同SHA/同形状不被视为独立重复。
+
+实现新增显式候选`ieee_native_host_allocator_policy: uncached_v1`：
+
+1. 只在新runtime导入torch前设置官方选项；不修改父进程、不在线切换、
+   不刷新allocator。默认模型配置不变。
+2. 旧CUDA/HIP别名不能静默覆盖统一设置；若已有不同allocator调优则拒绝，
+   不丢掉用户原设置。进程环境与payload必须一致。
+3. native worker读回真实设置后，才允许使用非取整的加载上界；读回不匹配
+   则失败，不按环境字符串直接认定已经生效。读回只做一次，避免热路径上
+   重复整个allocator快照。后续实际占用检查仍逐次执行。
+4. 候选属于模型配置身份，旧service/preparation profile不能直接套用。
+   如后续选择此候选，共同vLLM基线需获得同一后端配置和验证机会。
+
+范围：本次接通了候选配置和预算计算，不等于已经为完整Full分配好缓存/
+workspace，也未证明多plan并发的空间上界或在途H2D归还。尚需在固定总预算内
+冻结常驻容量、暂存并发和非LoRA开销，再做实际Full资格；不得用过大的native
+额度隐藏问题，或用本表充当TTFT/profile/SLO数据。可能的分配开销回退必须测量。
+Full启动保护、九个论文公式、旧结果和正式配置均保持不变。

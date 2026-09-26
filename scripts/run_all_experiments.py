@@ -3235,6 +3235,13 @@ class InferenceEngine:
         print(f"  OK: SGLang server ready (TP={tp}, dynamic LoRA)")
 
     async def initialize(self):
+        policy = self.model_cfg.get('ieee_native_host_allocator_policy')
+        marker = os.environ.get('FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY')
+        if policy is not None or marker:
+            expected_env = _ieee_native_allocator_environment(self.model_cfg, os.environ)
+            if (marker != policy or any(os.environ.get(key) != expected_env.get(key) for key in
+                    ('PYTORCH_ALLOC_CONF', 'PYTORCH_CUDA_ALLOC_CONF', 'PYTORCH_HIP_ALLOC_CONF'))):
+                raise RuntimeError('native HOST allocator candidate requires a preconfigured fresh process')
         strict_launch = bool(os.environ.get("FAASLORA_TC_LAUNCH_RECEIPT")) or (
             self.model_cfg.get("timing_contract") == "ieee_tc_native_v1"
             or self.model_cfg.get("ieee_gpu_references", False)
@@ -4869,6 +4876,7 @@ class SubprocessInferenceEngineProxy:
             device_id=requested_device_id,
             runtime_gpu_ids=runtime_gpu_ids,
         )
+        worker_env = _ieee_native_allocator_environment(local_model_cfg, os.environ)
 
         worker_root = Path(tempfile.mkdtemp(prefix="faaslora_worker_", dir="/tmp"))
         if str(local_model_cfg.get("backend", "") or "").lower() == "sglang":
@@ -4889,7 +4897,6 @@ class SubprocessInferenceEngineProxy:
 
         python_bin = os.environ.get("FAASLORA_PYTHON") or sys.executable
         worker_script = cls._worker_script_path()
-        worker_env = os.environ.copy()
         worker_env["PYTHONPATH"] = str(REPO_ROOT) + os.pathsep + worker_env.get("PYTHONPATH", "")
         worker_env.update(worker_env_updates)
 
@@ -18467,6 +18474,36 @@ def _should_defer_primary_engine_initialization(
         ):
             return True
     return False
+
+
+def _ieee_native_allocator_environment(model_cfg, inherited):
+    """Apply an explicit backend candidate before the fresh worker imports torch.
+
+    Do not overwrite unrelated CUDA allocator tuning or let a legacy alias
+    silently outrank the unified setting. The default experiment is unchanged;
+    an opt-in is part of the frozen model configuration, not an environment-only
+    performance switch. The native worker separately verifies actual readback.
+    """
+    env = dict(inherited)
+    policy = model_cfg.get('ieee_native_host_allocator_policy')
+    marker = 'FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY'
+    if policy is None:
+        if env.get(marker):
+            raise ValueError('native HOST allocator policy must be in the frozen model configuration')
+        return env
+    if policy != 'uncached_v1' or str(model_cfg.get('backend', 'vllm')).lower() != 'vllm':
+        raise ValueError('unsupported IEEE native HOST allocator candidate')
+    setting = 'pinned_max_cached_size_mb:0'
+    aliases = ('PYTORCH_ALLOC_CONF', 'PYTORCH_CUDA_ALLOC_CONF', 'PYTORCH_HIP_ALLOC_CONF')
+    if any(env.get(key) not in (None, '', setting) for key in aliases):
+        raise ValueError('native HOST allocator candidate conflicts with inherited allocator tuning')
+    if env.get(marker) not in (None, '', policy):
+        raise ValueError('inherited native HOST allocator policy differs from the model configuration')
+    for key in aliases:
+        env.pop(key, None)
+    env['PYTORCH_ALLOC_CONF'] = setting
+    env[marker] = policy
+    return env
 
 
 def _prepare_dedicated_subprocess_model_cfg(

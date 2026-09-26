@@ -163,6 +163,11 @@ class NativeFileHostPreparation(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'outcome invalidated'):
                 self.owner.source_snapshot()
 
+    def test_uncached_candidate_reaches_the_actual_worker_budget_contract(self):
+        with patch.object(gpu_monitor, '_ieee_native_host_allocator_policy',
+                          return_value=dict(policy='uncached_v1', verified=True)):
+            self.test_actual_worker_uses_cpu_loader_not_worker_gpu_activation()
+
     def test_actual_worker_uses_cpu_loader_not_worker_gpu_activation(self):
         import sys
         worker = gpu_monitor.IEEEWorkerObservationExtension()
@@ -190,7 +195,7 @@ class NativeFileHostPreparation(unittest.TestCase):
              patch.object(gpu_monitor, 'torch', SimpleNamespace(__version__='2.13.0')), \
              patch.object(gpu_monitor, '_ieee_lora_host_inventory', return_value={}), \
              patch.object(gpu_monitor, '_ieee_pinned_host_observation', return_value=dict(available=True, accounted_tensor_bytes=513)) as occupancy, \
-             patch.object(gpu_monitor, '_ieee_file_host_contract', return_value=dict(peak_additional_tensor_bytes=1024)):
+             patch.object(gpu_monitor, '_ieee_file_host_contract', return_value=dict(peak_additional_tensor_bytes=1024)) as contract:
             snap = worker.ieee_gpu_reference(operation='snapshot')
             configured = worker.ieee_gpu_reference(operation='configure_host_budget',
                 expected_owner_id=snap['owner_id'], tensor_budget_bytes=1536)
@@ -199,6 +204,10 @@ class NativeFileHostPreparation(unittest.TestCase):
                 expected_owner_id=snap['owner_id'], expected_epoch=snap['epoch'], native_host_tensor_budget_bytes=1536)
             deferred = worker.ieee_gpu_reference(operation='prepare_file_host_and_hold', lease_id='too-large', **kwargs)
             self.assertEqual(deferred['reason'], 'native_host_tensor_budget')
+            if worker._ieee_host_allocator_policy['verified']:
+                contract.assert_called_once_with('/existing/adapter-4', 'fixture-dtype', uncached_pinned=True)
+            else:
+                contract.assert_called_once_with('/existing/adapter-4', 'fixture-dtype')
             loader._load_adapter.assert_not_called()
             occupancy.return_value = dict(available=True, accounted_tensor_bytes=512)
             result = worker.ieee_gpu_reference(operation='prepare_file_host_and_hold', lease_id='native-host', **kwargs)

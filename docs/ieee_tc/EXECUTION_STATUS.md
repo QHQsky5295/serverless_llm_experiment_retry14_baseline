@@ -51,6 +51,23 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
+D57 connects an explicit pre-import native allocator candidate to the existing
+dedicated worker, checks actual native readback, and separates resident R from
+temporary W in the existing loading contract. No production model config changed.
+Offline six-row workspace table reuses D56; no third allocator microtest or old
+request-prefix repetition. See P2_BACKEND_QUALIFICATION D57. Next choose/freeze
+the resident/staging partition INSIDE the existing HOST allowance, including
+actual non-LoRA occupancy and concurrent staged lifetimes, then qualify actual
+Full/profile/lifecycle. An allowance that cannot fit the working set plus loading
+workspace is infeasible, not a reason to increase it silently or wait forever.
+The opt-in candidate is not selected as a performance winner; complete model
+validation and matching vLLM opportunity remain required. Full guard remains.
+Current tests:928 functional,58 system-Python safety,26 installed-native CPU
+checks pass; zero CUDA initialization. The earlier combined698-test attempt
+retains2failures/2errors from using the wrong interpreter for pidfd safety tests,
+not a system-result failure. No guard or test was weakened. All5 owned scopes
+are empty with memory high/max/OOM0; cleanup/backup receipt below follows.
+
 D56 measured the actual native CPU checkpoint allocator for all six existing
 content/rank/module classes, default vs official no-caching configuration, in
 two separately guarded processes. Default retains106168320B after all objects
@@ -179,6 +196,44 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
     Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D57 explicit allocator candidate and workspace accounting
+
+- Startdec4136b637ff9142d2cb7de6d672cf1506366c5, baseline16570c unchanged.
+  Full plan/status/AGENTS and run-experiment/github-sync read after recovery.
+  Protected147 and plan SHA unchanged; original user dirt preserved. No agent,
+  model/GPU, remote174 or formal performance run launched this continuation.
+- Examined IEEE staging/budget/replacement text, D54/D56 history, actual multi-
+  target staging execution, officialvLLM0.30 load-before-evict and dense packing,
+  and PyTorch2.13 allocator. Rejected early eviction, aggregate cached-byte credit
+  and arbitrarily enlarged budgets. The actual native policy candidate is now
+  explicit in model config, applied before subprocess imports, with legacy alias
+  conflicts rejected and one actual worker readback. Default config unchanged;
+  profile identity rejects reuse across allocator-policy changes.
+- Existing header-based loading contract separates resident pinned R and
+  temporaryW=source+converted, without dropping either from peak admission.
+  Verified uncached policy uses native exact-size allocation; unconfigured
+  policy retains original rounded conservative bound. All actual retained and
+  staged bytes continue to count. No immediate release/complete RAM guarantee.
+- Reused D56 rawSHA08f7083ec24bfc2d6605187da7eabc8b5558e1dcb1f7ce1fe99809ae0a14e698
+  to produce six-row CSV/JSON and immediate P2 table. 7B rank16 final32MiB vs
+  conservative extra load peak100697616B;3B rank16 final17.5MiB vs55080136B.
+  Peak is derived, NOT measured; no SLO/profile/performance inference.
+- Initial492 targeted checks pass. Combined698 discovery uses the old model
+  Python for safety tests and returns2failures/2errors because pidfd_send_signal
+  is absent. Preserved cpu_regression.log. Correct separation gives928 functional
+  and58 qualified system-Python safety checks,0failure/error/skip. Installed
+  vLLM0.30/torch2.13 environment26 focused CPU checks pass; CUDA uninitialized.
+  Logs under results/ieee_tc/p2_backend_qualification/d57_20260927. Counts overlap.
+- Full cache/workspace partition and multi-plan liveness, measured profiles,
+  actual Full/A4, numerical500-pool and real-remote remain open. No native budget,
+  formal model config, equations, old results, trace or artifact was changed.
+  Baseline repair pairs/M1/M2/ablations/sensitivities have not started. Pending
+  user choices on nonzero3B fixtures and remote disk remain unchanged.
+- Final5 owned scopes actual cgroup.procs empty; high/max/oom/oom_kill0.
+  GPUs15MiB/0%, MemAvailable108633516KiB, disk353415098368B. Protected147 and plan
+  SHA unchanged; offline six rows independently reconciled to raw SHA/formula.
+  Tested milestone backup follows; goal remains active, not complete.
 
 ### D56 actual native HOST allocator evidence
 
