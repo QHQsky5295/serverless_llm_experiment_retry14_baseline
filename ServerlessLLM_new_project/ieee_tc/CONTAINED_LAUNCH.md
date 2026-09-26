@@ -1,10 +1,51 @@
 # Serverless: independent native launcher view
 
-Status: D65 actual two-raylet infrastructure witness passes; D66 native input
-identity qualification is in progress. No new Serverless
+Status: D65 actual two-raylet infrastructure witness and D66 native input
+identity qualification pass. No new Serverless
 model replay. Native loader, model workers and performance remain unqualified.
 This is a prerequisite for the approved original/repaired 1,000-request pairs,
 not evidence that the repair improves TTFT or that native loading is qualified.
+
+## D67 preregistered actual native model qualification
+
+Use the existing 3B TP1 FP16 checkpoint, the exact D66 compiled store, audited
+TC9f50241 source and loader-only reversible overlay. No new checkpoint, adapter,
+trace or alternative loading path. The official backend's absent `load_format`
+selects `serverless_llm`; explicitly setting an ordinary format would instead
+bypass native storage and is prohibited here. Primary source checked again:
+https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/9f50241baa5386e06a9321c51f19a9ef5f964c2b/sllm/backends/vllm_backend.py .
+
+Extend the existing contained launch helper with `qualify-model`. One native
+instance (min=max=1) remains alive for actual worker/source inspection; all four
+GPUs are visible to the native store, as required for correct device UUID mapping.
+This is a loading diagnostic, NOT an elasticity or selected M1 working point.
+Native pool32GB, four store threads,32MB chunks retain current launcher defaults;
+two raylets retain4+4GiB object stores within the common72/80GiB envelope.
+Keep confirmation enabled. Set the already bundled library directory explicitly,
+as established in D66, without rebuilding binaries. Set a private TMPDIR so the
+native100MiB temporary disk calibration cannot overwrite another job's file.
+Storage-aware scheduling is enabled; live migration is not asserted.
+
+Reuse the first four request messages from the existing 3B seed42 mainv1 trace.
+For this backbone-only loader test, encode `role: content` with its existing
+tokenizer, cap input759 and use original expected output capped256, greedy and
+ignore-EOS. Record full input token IDs/hash and native observed output counts.
+Do not attach adapters and do not interpret success as adapter correctness, a
+complete fixed-output comparative contract, or a workload performance result.
+No invented prompt, regenerated trace or base-model fallback is involved: the
+explicit tested target is the backbone loader, not a failed LoRA request.
+
+Acceptance: four successful fixed-length responses; actual backend actor has
+native load format/checkpoint/source/store identity, expected cgroup and CPU
+affinity; native GPU load confirmation exists; external supervisor verifies
+whole-tree/context release. Capture registration, responses, worker/process
+identities, full native logs and resource monitoring even on failure. Registration
+alone is not readiness. Request protection1800s; infrastructure/router timeout600s.
+The final loader-only restore occurs ONLY after actual owned processes exit.
+Record original/installed/restored hashes and do not touch another project's
+routing overlay. Publish a qualification table immediately, not a performance
+plot. Then return to approved original/repaired model pairs; semantic/remote and
+full-pool gates remain independently open.
 
 ## D66 native-input qualification (before model loading)
 

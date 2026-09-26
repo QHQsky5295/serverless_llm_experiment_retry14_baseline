@@ -20,6 +20,8 @@ import socket
 import subprocess
 import sys
 import time
+import urllib.error
+import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
 GIB = 1024**3
@@ -553,6 +555,202 @@ def qualify_ray(args) -> dict:
     return result
 
 
+def native_model_config(checkpoint: Path, backbone: Path) -> dict:
+    """One-instance loader qualification, not a selected performance point."""
+    return dict(model=checkpoint.name, backend='vllm', num_gpus=1,
+                auto_scaling_config=dict(metric='concurrency', target=1,
+                    min_instances=1, max_instances=1, keep_alive=10), router_config={},
+                backend_config=dict(pretrained_model_name_or_path=str(backbone),
+                    tensor_parallel_size=1, torch_dtype='float16',
+                    gpu_memory_utilization=0.72, max_model_len=1024, max_num_seqs=4,
+                    max_num_batched_tokens=1024, enable_chunked_prefill=True,
+                    enable_prefix_caching=True, enforce_eager=True, task='generate',
+                    vllm_use_v1=True, skip_store_model_registration=False,
+                    skip_store_lora_registration=False))
+
+
+def validate_native_response(body: dict, request_id: str, target: int, input_count: int) -> None:
+    if (body.get('error') or body.get('id') != request_id
+            or body.get('usage', {}).get('completion_tokens') != target
+            or body.get('usage', {}).get('prompt_tokens') != input_count
+            or not body.get('metrics', {}).get('instance_id')
+            or not body.get('choices')):
+        raise ValueError('native fixed-output backbone response failed; not a LoRA correctness test')
+
+
+def qualify_model(args) -> dict:
+    """Exercise the real store -> native loader -> model -> HTTP path.
+
+    Reuses the contained native script view and the existing external supervisor.
+    No routing replacement, ordinary-load fallback, artifact conversion or
+    performance claim. The loader-only overlay is restored by its existing
+    installer AFTER the external supervisor confirms complete process exit.
+    """
+    guard = load_guard(args.main_repo)
+    admission = guard.verify_current_service()
+    if Path(sys.executable).resolve() != (args.environment / 'bin/python').resolve():
+        raise ValueError('wrong native model interpreter')
+    receipt = json.loads(args.overlay_receipt.read_text())
+    if (receipt.get('status') != 'INSTALLED' or len(receipt['members']) != 7
+            or Path(receipt['vllm_root']).resolve() !=
+            (args.environment / 'lib/python3.12/site-packages/vllm').resolve()):
+        raise ValueError('explicit installed loader-only receipt required')
+    for row in receipt['members']:
+        if sha((Path(receipt['vllm_root']) / row['path']).read_bytes()) != row['after_sha256']:
+            raise ValueError('installed loader-only source changed')
+    checkpoint = args.checkpoint_root / 'vllm' / args.model_name
+    if not (checkpoint / 'rank_0/tensor.data_0').is_file():
+        raise ValueError('existing native checkpoint required; no conversion permitted')
+    manifest = prepare(args.output, args.private_root, args.main_repo, args.gpu_ids)
+    result = dict(schema='ieee_tc_serverless_native_model_qualification_v1', passed=False,
+                  service=admission, qualification_only=True, lora_correctness_qualified=False,
+                  performance_run_authorized=False, overlay_receipt_sha256=sha(args.overlay_receipt.read_bytes()),
+                  requests=[], configuration=native_model_config(checkpoint, args.backbone),
+                  trace_path=str(args.trace), trace_sha256=sha(args.trace.read_bytes()),
+                  launcher_manifest_sha256=sha((args.output / 'launch_manifest.json').read_bytes()))
+    env = dict(os.environ)
+    for key in ('TMUX', 'TMUX_PANE', 'SLLM_HEAD_RAY_BIN', 'SLLM_WORKER_RAY_BIN', 'SLLM_HEAD_PYTHON_BIN'):
+        env.pop(key, None)
+    for key in ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'http_proxy', 'https_proxy', 'all_proxy'):
+        env[key] = ''
+    package = args.store_package / 'site-packages'
+    env.update(SLLM_HEAD_ENV_PREFIX=str(args.environment), SLLM_WORKER_ENV_PREFIX=str(args.environment),
+               SLLM_STORE_ENV_PREFIX=str(args.environment), SLLM_REPO_ROOT=str(args.native_source),
+               SLLM_EXTRA_PYTHONPATH=str(package), SLLM_STORE_BIN=str(package / 'bin/sllm-store'),
+               LD_LIBRARY_PATH=str(package / 'sllm_store'), PYTHONPATH=f'{args.native_source}:{package}',
+               SLLM_SKIP_CONFIRM_MODEL_LOADED='0', SLLM_DIRECT_PATH_MODE='0',
+               SLLM_RAY_HEAD_HOST=args.host, SLLM_RAY_PORT=str(args.ray_port), SLLM_PORT=str(args.api_port),
+               SLLM_HOST='127.0.0.1', SLLM_STORE_PATH=str(args.checkpoint_root),
+               SLLM_RAY_HEAD_ADDRESS=f'{args.host}:{args.ray_port}', RAY_ADDRESS=f'{args.host}:{args.ray_port}',
+               SLLM_HEAD_SESSION='sllm_head_formal', SLLM_WORKER_SESSION_PREFIX='sllm_worker_formal',
+               SLLM_HEAD_RESOURCES='{"control_node": 1}', SLLM_WORKER_RESOURCES='{"worker_node": 1, "worker_id_0": 1}',
+               PYTHONNOUSERSITE='1', PYTHONDONTWRITEBYTECODE='1', RAY_USAGE_STATS_ENABLED='0',
+               VLLM_USE_V1='1', VLLM_NO_USAGE_STATS='1', VLLM_USE_FLASHINFER_SAMPLER='0',
+               RAY_TMPDIR=str(args.private_root / 'ray_tmp'), TMPDIR=str(args.private_root),
+               NO_PROXY=f'{args.host},127.0.0.1,localhost', no_proxy=f'{args.host},127.0.0.1,localhost')
+    # Freeze explicit native defaults rather than inheriting unrelated sessions.
+    env.update(SLLM_STORE_MEM_POOL_SIZE='32GB', SLLM_STORE_NUM_THREAD='4', SLLM_STORE_CHUNK_SIZE='32MB')
+    result['selected_environment'] = {k: env[k] for k in ('PYTHONPATH', 'LD_LIBRARY_PATH',
+        'SLLM_STORE_BIN', 'SLLM_STORE_MEM_POOL_SIZE', 'SLLM_SKIP_CONFIRM_MODEL_LOADED', 'TMPDIR')}
+    os.environ.update({k: env[k] for k in ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'http_proxy',
+        'https_proxy', 'all_proxy', 'NO_PROXY', 'no_proxy', 'RAY_TMPDIR')})
+    tmux = ['tmux', '-f', str(args.output / 'tmux.conf'), '-S', str(args.private_root / 'tmux.sock')]
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+    def post(endpoint, body, timeout=1800):
+        request = urllib.request.Request(f'http://127.0.0.1:{args.api_port}{endpoint}',
+            data=json.dumps(body).encode(), headers={'Content-Type': 'application/json'})
+        with opener.open(request, timeout=timeout) as response:
+            return json.load(response)
+
+    failure, registered = None, False
+    import ray
+    try:
+        with (args.output / 'configuration.json').open('x') as handle:
+            json.dump(result['configuration'], handle, indent=2)
+        with (args.output / 'startup.log').open('x') as log:
+            startup = subprocess.run(['bash', str(args.output / 'start_serverlessllm_stack.sh')],
+                                     env=env, stdout=log, stderr=subprocess.STDOUT, timeout=600)
+        result['startup_returncode'] = startup.returncode
+        if startup.returncode:
+            raise RuntimeError('native stack startup failed; inspect preserved logs')
+        ray.init(address=f'{args.host}:{args.ray_port}', log_to_driver=False)
+        result['nodes'] = ray.nodes()
+        validate_ray_nodes(result['nodes'], len(args.gpu_ids))
+        result['registration'] = post('/register', result['configuration'])
+        registered = True
+        # Registration enqueues router construction; wait for its actual startup
+        # notification, not a sacrificial inference/prewarm request.
+        deadline = time.monotonic() + 600
+        while f'Started handler for model {args.model_name}' not in (args.output / 'serve.log').read_text(errors='replace'):
+            if time.monotonic() >= deadline:
+                raise TimeoutError('native router construction did not complete')
+            time.sleep(1)
+        from transformers import AutoTokenizer
+        tokenizer = AutoTokenizer.from_pretrained(args.backbone, local_files_only=True)
+        source_requests = json.loads(args.trace.read_text())['requests'][:4]
+        for row in source_requests:
+            prompt = '\n'.join(f"{m['role']}: {m['content']}" for m in row['body']['messages'])
+            tokens = tokenizer.encode(prompt, add_special_tokens=True)[:759]
+            target = min(row['expected_output_tokens'], 256)
+            request = dict(model=args.model_name, request_id=row['request_id'], input_tokens=tokens,
+                           max_tokens=target, temperature=0, top_p=1, ignore_eos=True, stream=False)
+            observation = dict(request_id=row['request_id'], source_adapter_id=row['adapter_id'],
+                adapter_applied=False, target_tokens=target, input_tokens=tokens,
+                input_sha256=sha(json.dumps(tokens).encode()), started_monotonic=time.monotonic())
+            result['requests'].append(observation)
+            observation['response'] = post('/v1/chat/completions', request)
+            observation['finished_monotonic'] = time.monotonic()
+            validate_native_response(observation['response'], row['request_id'], target, len(tokens))
+        names = ray.util.list_named_actors(all_namespaces=True)
+        instance_ids = {r['response']['metrics']['instance_id'] for r in result['requests']}
+        result['model_workers'] = []
+        for name in names:
+            if name['name'] not in instance_ids:
+                continue
+            actor = ray.get_actor(name['name'], namespace=name['namespace'])
+
+            def observe(backend):
+                import hashlib, inspect, os, pathlib, ray
+                import sllm.backends.vllm_backend as module
+                import sllm_store.torch as store
+                return dict(pid=os.getpid(), cgroup=pathlib.Path('/proc/self/cgroup').read_text(),
+                    affinity=sorted(os.sched_getaffinity(0)), gpu_ids=ray.get_gpu_ids(),
+                    cuda_visible=os.environ.get('CUDA_VISIBLE_DEVICES'),
+                    backend_file=module.__file__, backend_sha256=hashlib.sha256(pathlib.Path(module.__file__).read_bytes()).hexdigest(),
+                    store_file=store.__file__, load_format=backend.engine_args.load_format,
+                    model_path=backend.engine_args.model, engine_present=backend.engine is not None,
+                    enable_lora=backend.enable_lora)
+
+            observed = ray.get(actor.__ray_call__.remote(observe), timeout=30)
+            observed.update(name)
+            result['model_workers'].append(observed)
+            group = Path(admission['service_identity']['path'])
+            if (observed['cgroup'].strip() != '0::/' + str(group.relative_to('/sys/fs/cgroup'))
+                    or observed['affinity'] != sorted(guard.SERVICE_CPUS)
+                    or observed['load_format'] != 'serverless_llm'
+                    or Path(observed['model_path']).resolve() != checkpoint.resolve()
+                    or Path(observed['backend_file']).resolve() != args.native_source / 'sllm/backends/vllm_backend.py'
+                    or Path(observed['store_file']).resolve() != package / 'sllm_store/torch.py'
+                    or not observed['engine_present']):
+                raise ValueError('actual native model worker identity/containment differs')
+        if len(result['model_workers']) != len(instance_ids) or not instance_ids:
+            raise ValueError('actual model worker missing')
+        result['owned_processes'] = guard.owned_pids(Path(admission['service_identity']['path']))
+        result['resource_snapshot'] = guard.cgroup_snapshot(Path(admission['service_identity']['path']))
+        store_log = (args.output / 'store.log').read_text(errors='replace')
+        result['store_confirmations'] = re.findall(r'Confirm model (\S+) replica (\S+) success', store_log)
+        if not any(path == f'vllm/{args.model_name}/rank_0' for path, _ in result['store_confirmations']):
+            raise ValueError('actual native GPU-load confirmation missing')
+        result['passed'] = True
+    except Exception as exc:
+        result['error'] = f'{type(exc).__name__}: {exc}'
+        failure = exc
+    finally:
+        if registered:
+            try:
+                result['delete_response'] = post('/delete', {'model': args.model_name}, timeout=60)
+            except Exception as exc:
+                result['delete_error'] = f'{type(exc).__name__}: {exc}'
+                result['passed'] = False
+                failure = failure or exc
+        if ray.is_initialized():
+            ray.shutdown()
+        for session in ('sllm_head_formal', 'sllm_worker_formal_0', 'sllm_store_formal', 'sllm_serve_formal'):
+            captured = subprocess.run(tmux + ['capture-pane', '-pJt', session, '-S', '-'],
+                                     capture_output=True, text=True, timeout=5)
+            with (args.output / f'{session}.log').open('x') as handle:
+                handle.write(captured.stdout + captured.stderr)
+        result['private_tmux_stop_returncode'] = subprocess.run(tmux + ['kill-server'], capture_output=True,
+                                                               text=True, timeout=5).returncode
+        result['external_cleanup_required'] = True
+        with (args.output / 'model_qualification.json').open('x') as handle:
+            json.dump(result, handle, indent=2)
+    if failure:
+        raise RuntimeError('native model qualification failed; original evidence preserved') from failure
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="action", required=True)
@@ -574,6 +772,14 @@ def main() -> None:
     witness.add_argument('--host', required=True)
     witness.add_argument('--ray-port', required=True, type=int)
     witness.add_argument('--api-port', required=True, type=int)
+    model = sub.add_parser('qualify-model')
+    for name in ('output', 'private-root', 'main-repo', 'environment', 'native-source',
+                 'checkpoint-root', 'backbone', 'trace', 'store-package', 'overlay-receipt'):
+        model.add_argument('--' + name, type=Path, required=True)
+    for name in ('gpu-ids', 'host', 'model-name'):
+        model.add_argument('--' + name, required=True)
+    for name in ('ray-port', 'api-port'):
+        model.add_argument('--' + name, required=True, type=int)
     args = parser.parse_args()
     if args.action == 'audit-checkpoint':
         # Reserve output before the read; a failed attempt remains visible.
@@ -587,9 +793,9 @@ def main() -> None:
             json.dump(result, handle, indent=2)
         print(json.dumps({k: v for k, v in result.items() if k != 'tensors'}, indent=2))
         return
-    if args.action == 'qualify-ray':
+    if args.action in ('qualify-ray', 'qualify-model'):
         args.gpu_ids = tuple(int(i) for i in args.gpu_ids.split(','))
-        print(json.dumps(qualify_ray(args), indent=2))
+        print(json.dumps((qualify_ray if args.action == 'qualify-ray' else qualify_model)(args), indent=2))
         return
     result = (prepare(args.output, args.private_root, args.main_repo,
                       tuple(int(i) for i in args.gpu_ids.split(','))) if args.action == "prepare"

@@ -16,6 +16,24 @@ MAIN = Path("/home/qhq/serverless_llm_experiment_retry14_baseline")
 
 
 class NativeLaunchTests(unittest.TestCase):
+    def test_model_qualification_uses_native_format_and_one_explicit_instance(self):
+        config = launch.native_model_config(Path('/models/vllm/existing'), Path('/source/model'))
+        self.assertEqual(config['model'], 'existing')
+        self.assertNotIn('load_format', config['backend_config'])
+        self.assertFalse(config['backend_config']['skip_store_model_registration'])
+        self.assertNotIn('enable_lora', config['backend_config'])
+        self.assertEqual(config['auto_scaling_config']['min_instances'], 1)
+        self.assertEqual(config['auto_scaling_config']['max_instances'], 1)
+
+    def test_native_response_requires_observed_count_and_instance(self):
+        body = dict(id='r', usage=dict(completion_tokens=5, prompt_tokens=12),
+                    metrics=dict(instance_id='native'), choices=[{}])
+        launch.validate_native_response(body, 'r', 5, 12)
+        for key, value in [('id', 'wrong'), ('error', 'bad'), ('metrics', {}),
+                           ('usage', dict(completion_tokens=4, prompt_tokens=12))]:
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                launch.validate_native_response(dict(body, **{key: value}), 'r', 5, 12)
+
     def sources(self):
         return {name: (ROOT / "scripts" / name).read_text() for name in launch.SOURCE_SHA}
 
