@@ -2840,3 +2840,81 @@ Full启动guard保留。无GPU/model、真实174或正式性能运行，没有�
 短prefix，没有新权重/trace，没有历史结果/论文变更。下一步推进这些
 集成缺口，不扩展本轮局部测试为新的微测campaign。正式baseline/M1/M2、
 消融、敏感性均未开始，整体目标仍未完成。
+
+## D51：文件替换计入原生副本，并接到自动联合执行
+
+### 假设、历史与第一性原则
+
+D44能执行显式文件替换，但只计算文件之间的fallback；D50自动处理
+GPU剩余候选，HOST/NVMe仍只做插入。直接把D44接到Full会把“删掉文件”
+误当成“后端已经没有这个adapter”，从而高估替换损失，也可能使用已失效的
+fallback。此次假设是：同一冻结h/d下，区分实际分配与其引用，按删除前后
+仍有效的副本计算增量损失，并把引用生命周期连到真实文件IO，能补齐该
+行为缺口。不能由这项正确性结论推出TTFT、GPU-s或SLO领先。
+
+重读IEEE原文Eq.(4)、Eq.(6–7)之后的替换语义；核对D44–D50修改历史。
+在线核对[vLLM 0.30 worker实现](https://docs.vllm.ai/en/v0.30.0/api/vllm/lora/worker_manager/)
+和本机同版本`model_manager.py`：CPU缓存删除会调用deactivation，CPU
+对象、GPU槽位、最初的文件路径不是同一个分配。普通load-first/LRU仍保留，
+不冒称其实现了论文收益替换。[dLoRA原文入口](https://www.usenix.org/conference/osdi24/presentation/wu-bingyang)
+仅作请求/adapter协同的相关背景，不作本机性能证据。
+
+### 接通的实际路径
+
+- 同一个file-owner锁内记录真实可用inode字节、已有引用、活跃传输及
+  整组目标保护。外部/跨目录hardlink不等于可回收字节；只能按整树删除的
+  adapter含共享分配时，不能把部分独占字节当完整可用victim。
+- GPU最终集合之后，HOST/NVMe也先做原保守插入，再处理剩余候选。
+  仍按收益密度、loss/usable-byte、最短覆盖前缀和严格正净收益选择。
+  已虚拟删除的HOST副本不再充当随后NVMe选择的fallback；不重复消费空间。
+- 非native情形比较删除前后最快有效文件副本；有独立native CPU副本时，
+  删除较低层文件不会改变该副本，故增量损失为零。这里的零不是加载延迟
+  测量：记录`loss_basis=retained_native_copy`，对应d字段为null。
+- 实际mixed runner在GPU计划注册后取得所需native CPU引用，再允许
+  文件替换。绑定的是有回执的引用，不是旧snapshot。GPU注册先于本组
+  新增引用，避免把自己改变的epoch当作未变化的原始epoch。
+- 文件owner在真实分配锁内重新观察文件、fallback和容量，仍用原冻结
+  h/d；原生fallback必须属于这个仍存活的引用绑定。之后才回收、预分配，
+  仍按实际archive/payload峰值验容量。执行结果不伪装成跨owner原子快照。
+- 专用于文件fallback的引用只保留CPU张量，不占用/引用GPU槽位。
+  因而不阻止同轮合法GPU-only驱逐；真正GPU引用、外部pin、普通请求
+  HOST加载及整组GPU目标仍受保护。不是放宽物理容量或按场景绕过检查。
+- 文件组完成后，等待所有共享物理IO结束再释放native fallback并唤醒
+  待处理原生准备；不等可能需要CPU空间的GPU组先结束。取消、共享执行和
+  未知回执不提前释放。文件层已完成的兄弟目标在整组关闭前继续受保护。
+
+### 正确性状态表（无CUDA/模型性能样本）
+
+| 检查 | 结果及范围 |
+|---|---|
+| 满HOST文件层、native副本存在 | 自动选择并执行；真实回收8192 bytes，原生GPU/CPU副本保留；未新建延迟样本 |
+| GPU与文件目标并行 | GPU注册先于fallback持有；同冻结epoch完成两类目标，无额外h/d采样 |
+| 文件先完成、GPU延后 | 文件引用归还后真实wake使GPU候选完成；没有以全组结束形成循环等待 |
+| 来源失效 | 第二个native hold拒绝时不开始文件IO，先前成功引用归还 |
+| 取消 | 实际copy线程未结束时引用仍存在；join后才归还 |
+| 跨tier虚拟状态 | HOST删除后NVMe损失按Remote重新计；删除loader文件路径不删除已加载CPU对象 |
+| hardlink与外部修改 | 未管理的改动先拒绝；经完整内容重新验证的链接fixture不充当可回收整树 |
+| 完成目标与外部pin | 文件目标整组关闭前不驱逐；file-only CPU引用不误占GPU，原外部pin不被解绑 |
+
+新增8项检查并更新既有文件目标保护断言。首轮161项发现一处执行局部变量
+覆盖incoming content以及一处旧测试允许已完成文件目标被驱逐；分别修正
+变量名和共同目标语义。142项发现hardlink fixture在确认后绕过owner修改，
+保留生产拒绝，改由完整字节验证建立fixture。首轮918项只因测试使用了
+不存在的manifest方法失败；改用既有只读接口。919项发现测试错误要求恰好
+一次defer，而实际文件完成/逐引用释放均可触发合法wake；改查全部前序defer
+和最终完成，不人为抑制owner事件。919功能检查通过。闭环复核进一步将
+新fallback等待限定为稳态native-inclusive替换，避免混合handoff文件被迫
+等到引擎ready；扩充既有pre-init检查，要求HOST文件和GPU前置NVMe两条
+路径均在ready前完成，16项通过。最终安装环境、安全、资源清理及备份回执
+见EXECUTION_STATUS。
+
+### 剩余边界，继续主线
+
+本轮是**实际稳态最终HOST/NVMe文件目标的自动替换**，不是完整native HOST
+张量替换。GPU/Remote→HOST的中间NVMe staging仍单独收费且需要可用容量；
+没有借最终目标收益去隐式批准中间层驱逐。完整多层staging/net-benefit协调、
+native HOST满缓存替换、主动d反馈、代表性实测profile、allocator资格和Full
+物理生命周期/A4绑定仍在主线待办。Full guard保留，不能称全系统已合格。
+没有GPU/model、真实174或性能运行，没有新工件/trace/论文及旧结果改写。
+不把这些fixture常数当测量数据或重新启动旧短prefix；下一步继续上述集成
+缺口。正式baseline/M1/M2、消融和敏感性均尚未开始。

@@ -182,6 +182,26 @@ class LocalSourceReferences:
             return dict(owner_id=self.owner_id, epoch=self.source_epoch, sources=rows,
                         scope='managed_file_copies_only', physical_resources_reserved=False)
 
+    def _file_replacement_capacity(self):
+        """Received usable bytes, not apparent file length or promised capacity."""
+        inventory = self._file_inventory()
+        protected = {p for plan in self._file_preparation_plans.values() for p in plan['targets']}
+        held = {Path(row[1]) for row in self.leases.values()}
+        moving = set(self.materializations.values())
+        rows = []
+        for path in sorted(self._confirmed_sources):
+            record = self._validated_source(path)
+            if record is None:
+                continue
+            usable = sum(item['allocated_bytes'] for item in inventory['allocations']
+                if item['kind'] == 'file' and item['device'] == path.parent.stat().st_dev
+                and item['external_link_count'] == 0
+                and all(path in Path(p).parents for p in item['paths']))
+            rows.append(dict(path=str(path), usable_bytes=usable,
+                eligible=bool(usable) and usable == record['public']['allocated_file_bytes']
+                    and path not in protected | held | moving))
+        return rows
+
     def _reclaim_for_file_preparation(self, transfer_id, target, required, payload_required, limit_bytes, before, content):
         """Joint loss/usable-byte decision and reclamation in allocation lock.
 
@@ -197,6 +217,28 @@ class LocalSourceReferences:
         epoch = validate_file_replacement_epoch(context['epoch'])
         if epoch['owner_id'] != self.owner_id:
             raise ValueError('file replacement physical owner changed')
+        if epoch['kind'] == 'ieee_owned_file_replacement_objective_v2':
+            from ..preloading.preloading_planner import (owned_file_replacement_rows,
+                                                         frozen_preparation_costs)
+            plan = self._file_preparation_plans.get(epoch['file_plan_id'])
+            if plan is None or plan.get('replacement_sha256') != context['epoch']['plan_sha256']:
+                raise ValueError('file replacement lost its live fallback-protection plan')
+            view = copy.deepcopy(epoch['source_view'])
+            view['files']['replacement_capacity'] = self._file_replacement_capacity()
+            for aid, state in view['sources'].items():
+                copies = [s for s in state['confirmed_copies'] if s['tier'] == 'remote'
+                    or (s['native'] and aid in plan['native_fallbacks'])]
+                expected_content = view['files']['artifacts'][aid]['content_sha256']
+                for source in self.source_snapshot(aid)['sources']:
+                    if source['content_sha256'] != expected_content:
+                        raise ValueError('file replacement observed changed artifact content')
+                    copies.append(dict(source, native=False, owner_id=self.owner_id,
+                                       footprint_bytes=source['allocated_file_bytes']))
+                state['confirmed_copies'] = copies
+            epoch['victims'] = owned_file_replacement_rows(view=view,
+                counts=epoch['arrival_counts'], total=epoch['total_arrivals'],
+                estimates=frozen_preparation_costs(epoch['cost_estimates']),
+                size_edges_bytes=epoch['size_edges_bytes'])
         tier = next(t for t, root in self.roots.items() if target.parent == root)
         incoming = next((r for r in epoch['candidates']
                          if r['adapter_id'] == target.name and r['target_tier'] == tier), None)
@@ -216,7 +258,7 @@ class LocalSourceReferences:
                 raise FilePreparationDeferred('replacement_source_invalidated')
         shortfall = before + required - limit_bytes
         inventory = self._file_inventory()
-        pending = {p for plan in self._file_preparation_plans.values() for p in plan['pending']}
+        pending = {p for plan in self._file_preparation_plans.values() for p in plan['targets']}
         held = {Path(row[1]) for row in self.leases.values()}
         moving = set(self.materializations.values())
         eligible = []
@@ -230,7 +272,11 @@ class LocalSourceReferences:
                     or record['public']['allocated_file_bytes'] != row['current_footprint_bytes']):
                 continue
             fallback = row['fallback']
-            if fallback['tier'] != 'remote':
+            if fallback.get('native') is True:
+                proof = plan['native_fallbacks'].get(row['adapter_id'])
+                if proof is None or proof['lora_path'] != fallback['path']:
+                    continue
+            elif fallback['tier'] != 'remote':
                 lower = self._validated_source(Path(fallback['path']))
                 if (lower is None or lower['public']['content_sha256'] != row['content_sha256']
                         or lower['public']['allocated_file_bytes'] != row['fallback_footprint_bytes']):
@@ -242,7 +288,10 @@ class LocalSourceReferences:
                         and item['external_link_count'] == 0
                         and all(path in p.parents for p in paths)):
                     usable += item['allocated_bytes']
-            if usable:
+            # Victim deletion operates on the whole published adapter tree.
+            # Partial exclusive bytes are not enough: removing its linked
+            # paths would lose accounting of storage still owned elsewhere.
+            if usable and usable == row['current_footprint_bytes']:
                 eligible.append((row['loss_ms']/usable, row['adapter_id'], row, usable))
         selected, freed, loss = [], 0, 0.
         for _, _, row, usable in sorted(eligible, key=lambda item: item[:2]):
@@ -265,7 +314,7 @@ class LocalSourceReferences:
         context['receipt'] = receipt
         self._file_replacement_events.append(receipt)
         for row, _ in selected:
-            if row['fallback']['tier'] != 'remote':
+            if row['fallback']['tier'] != 'remote' and not row['fallback'].get('native'):
                 lease_id = uuid.uuid4().hex
                 self.acquire(path=row['fallback']['path'], adapter_id=row['adapter_id'], lease_id=lease_id)
                 context['fallback_leases'].append(lease_id)
@@ -280,6 +329,49 @@ class LocalSourceReferences:
             raise RuntimeError('file replacement did not release its claimed allocation')
         receipt.update(state='reclaimed', observed_released_bytes=before-after)
         return after, receipt
+
+    def bind_file_native_fallbacks(self, *, plan_id, objective, receipts):
+        """Bind acknowledged native CPU leases to an existing file-plan lifetime.
+
+        The controller owns the cross-process leases and releases them only
+        after all dependent file IO joins. This binding is not a native snapshot
+        reinterpreted as a lease, and never releases native storage itself.
+        """
+        from ..preloading.preloading_planner import validate_file_replacement_epoch
+        with self.lock:
+            frozen = validate_file_replacement_epoch(objective)
+            if (frozen['kind'] != 'ieee_owned_file_replacement_objective_v2'
+                    or frozen['owner_id'] != self.owner_id or frozen['file_plan_id'] != plan_id):
+                raise ValueError('native fallback protection belongs to another file plan')
+            plan = self._file_preparation_plans[plan_id]
+            required = {r['adapter_id']: r['fallback'] for r in frozen['victims']
+                        if r['fallback'].get('native')}
+            by_id = {r['lora_name']: r for r in receipts}
+            native_owner = frozen['source_view']['native']['owner_id']
+            if len(by_id) != len(receipts) or set(by_id) != set(required):
+                raise ValueError('native fallback lease coverage differs from replacement sources')
+            for aid, expected in required.items():
+                receipt = by_id[aid]
+                if (receipt.get('held') is not True or receipt.get('owner_id') != native_owner
+                        or not receipt.get('lease_id') or receipt.get('gpu_acquired') is not False
+                        or receipt.get('reference_scope') != 'native_cpu_lru_source'
+                        or receipt.get('reference_purpose') != 'file_fallback'
+                        or receipt.get('adapter_int_id') != expected['adapter_int_id']
+                        or receipt.get('lora_path') != expected['path']):
+                    raise ValueError('file fallback lacks its acknowledged native CPU lease')
+            if 'replacement_sha256' in plan:
+                raise ValueError('file fallback protection is already bound')
+            plan.update(replacement_sha256=objective['plan_sha256'], native_fallbacks=copy.deepcopy(by_id))
+            return dict(bound=True, owner_id=self.owner_id, plan_id=plan_id,
+                        native_fallback_count=len(by_id))
+
+    def unbind_file_native_fallbacks(self, *, plan_id):
+        with self.lock:
+            plan = self._file_preparation_plans[plan_id]
+            if any(c['epoch'].get('file_plan_id') == plan_id for c in self._file_replacement_contexts.values()):
+                raise RuntimeError('file fallback leases still protect live physical IO')
+            plan.pop('replacement_sha256', None)
+            plan.pop('native_fallbacks', None)
 
     def register_file_preparation_plan(self, *, plan_id, targets):
         """Protect every selected final/staging copy before starting any work.
@@ -345,7 +437,7 @@ class LocalSourceReferences:
             del self._file_preparation_plans[plan_id]
             self._closed_file_preparation_plans.add(plan_id)
             self._file_changed(tier for tier, root in self.roots.items()
-                               if any(path.parent == root for path in plan['pending']))
+                               if any(path.parent == root for path in plan['targets']))
             return dict(owner_id=self.owner_id, plan_id=plan_id, closed=True)
 
     def file_preparation_snapshot(self):
@@ -831,6 +923,7 @@ class LocalSourceReferences:
                 epoch=self.source_epoch, clock_id=budget['clock_id'], captured_at=time.monotonic(),
                 artifacts=artifacts, budgets=budget, allocation_units_bytes=units,
                 managed_host=self.host_budget_snapshot(),
+                replacement_capacity=self._file_replacement_capacity(),
                 physical_resources_reserved=False)
 
     def copy_confirmed(self, source, target, *, limit_bytes, publish, cancel_event=None, evidence=None,
@@ -1076,7 +1169,7 @@ class LocalSourceReferences:
                            and self.materializations.get(transfer_id) == target)
             busy = busy or any((target == path or target in path.parents or path in target.parents)
                 and not (publication and target == path)
-                for plan in self._file_preparation_plans.values() for path in plan['pending'])
+                for plan in self._file_preparation_plans.values() for path in plan['targets'])
             affected = {}
             if not busy:
                 affected = {source: record for source, record in self._confirmed_sources.items()
@@ -1356,12 +1449,21 @@ class IEEEBackendGPUReferences:
                 # scheduler demand is rechecked by the core at commit. Keep
                 # the entire live joint target set protected, including an
                 # already completed sibling, until the plan closes.
-                'replacement_protected_adapter_ids': sorted(
-                    cpu.pinned_items | self._caches()[1].pinned_items
-                    | set(self._references) | set(self._host_references)
-                    | {aid for plan in self._preparation_plans.values()
-                       for aid in plan['identity'][1]}),
+                'replacement_protected_adapter_ids': sorted(self._gpu_replacement_protection()),
                 'snapshot_holds_reference': False}
+
+    def _gpu_replacement_protection(self):
+        cpu, gpu = self._caches()
+        # A file-fallback lease references only CPU tensors. It must prevent
+        # CPU eviction but does not consume/reference a GPU slot. Actual GPU
+        # leases, external pins, demand HOST preparation and joint targets keep
+        # their protections. This avoids a cross-tier false dependency cycle.
+        cpu_only = {aid for aid, leases in self._host_references.items()
+            if not self._host_borrowed_pins[aid] and aid not in self._references
+            and all(self._host_leases[lid].get('reference_purpose') == 'file_fallback' for lid in leases)}
+        return ((cpu.pinned_items | set(self._host_references)) - cpu_only
+            | gpu.pinned_items | set(self._references)
+            | {aid for plan in self._preparation_plans.values() for aid in plan['identity'][1]})
 
     def _capacity_blockers(self, tier: str) -> Dict[str, Any]:
         """Identify pins, not estimated release times, on a rejected load.
@@ -1385,7 +1487,8 @@ class IEEEBackendGPUReferences:
         return dict(kind='native_pinned_capacity_v1', tier=tier, candidates=rows)
 
     def hold_host_source(self, *, lease_id: str, adapter_int_id: int, lora_name: str,
-                         lora_path: str, expected_owner_id: str, expected_epoch: int) -> Dict[str, Any]:
+                         lora_path: str, expected_owner_id: str, expected_epoch: int,
+                         reference_purpose: str = 'demand_preparation') -> Dict[str, Any]:
         """Protect an observed native HOST source without loading or GPU pinning.
 
         This is the source half of request admission, not GPU promotion/admission.
@@ -1396,7 +1499,8 @@ class IEEEBackendGPUReferences:
         if (not isinstance(lease_id, str) or not lease_id or type(adapter_int_id) is not int
                 or adapter_int_id <= 0 or type(expected_epoch) is not int or expected_epoch < 1
                 or not isinstance(lora_name, str) or not lora_name
-                or not isinstance(lora_path, str) or not Path(lora_path).is_absolute()):
+                or not isinstance(lora_path, str) or not Path(lora_path).is_absolute()
+                or reference_purpose not in ('demand_preparation', 'file_fallback')):
             raise ValueError('HOST source hold requires exact lease/source/epoch identity')
         self._refresh()
         if expected_owner_id != self.owner_id:
@@ -1404,7 +1508,8 @@ class IEEEBackendGPUReferences:
         identity = (adapter_int_id, lora_name, lora_path)
         if lease_id in self._host_leases:
             receipt = self._host_leases[lease_id]
-            if tuple(receipt[key] for key in ('adapter_int_id', 'lora_name', 'lora_path')) != identity:
+            if (tuple(receipt[key] for key in ('adapter_int_id', 'lora_name', 'lora_path')) != identity
+                    or receipt.get('reference_purpose', 'demand_preparation') != reference_purpose):
                 raise ValueError('HOST source lease reused for another adapter')
             return dict(receipt)
         if lease_id in self._host_released or lease_id in self._leases or lease_id in self._released:
@@ -1412,7 +1517,8 @@ class IEEEBackendGPUReferences:
         if expected_epoch != self.epoch:
             return {'held': False, 'reason': 'stale_snapshot', **self.snapshot()}
         cpu, _ = self._caches()
-        if (adapter_int_id not in cpu or adapter_int_id in self._gpu_confirmations
+        if (adapter_int_id not in cpu
+                or (reference_purpose == 'demand_preparation' and adapter_int_id in self._gpu_confirmations)
                 or self._sources.get(adapter_int_id) != (lora_name, lora_path)):
             return {'held': False, 'reason': 'required_source_changed', **self.snapshot()}
         if adapter_int_id not in self._host_references:
@@ -1427,7 +1533,7 @@ class IEEEBackendGPUReferences:
         receipt = dict(held=True, owner_id=self.owner_id, epoch=self.epoch, lease_id=lease_id,
             adapter_int_id=adapter_int_id, lora_name=lora_name, lora_path=lora_path,
             tier='host', reference_scope='native_cpu_lru_source', held_monotonic_s=time.monotonic(),
-            gpu_acquired=False)
+            gpu_acquired=False, reference_purpose=reference_purpose)
         self._host_leases[lease_id] = receipt
         return dict(receipt)
 
@@ -1875,9 +1981,7 @@ class IEEEBackendGPUReferences:
             benefit = (next(r['benefit_ms'] for r in objective['gpu_candidates']
                             if r['adapter_int_id'] == adapter_int_id) if mixed
                        else weighted_host_cost(adapter_int_id))  # GPU remaining d = 0.
-            protected = (set(protected_adapter_ids) | cpu.pinned_items | gpu.pinned_items
-                         | set(self._references) | set(self._host_references)
-                         | {aid for plan in self._preparation_plans.values() for aid in plan['identity'][1]})
+            protected = set(protected_adapter_ids) | self._gpu_replacement_protection()
             # Uniform preallocated dense slots: exactly one compatible victim
             # covers a full-pool insertion. File bytes/rank are NOT usable bytes.
             usable_bytes = objective['slot_capacity_bytes']

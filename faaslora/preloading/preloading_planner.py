@@ -432,12 +432,17 @@ def validate_file_replacement_epoch(epoch):
     if digest != hashlib.sha256(json.dumps(frozen, sort_keys=True,
             separators=(',', ':'), allow_nan=False).encode()).hexdigest():
         raise ValueError('file replacement epoch hash mismatch')
-    if (frozen.get('kind') != 'ieee_file_replacement_objective_v1'
-            or frozen.get('scope') != 'managed_file_copies_only'
+    owned = frozen.get('kind') == 'ieee_owned_file_replacement_objective_v2'
+    if ((not owned and frozen.get('kind') != 'ieee_file_replacement_objective_v1')
+            or frozen.get('scope') != ('managed_files_with_held_native_fallbacks' if owned else 'managed_file_copies_only')
             or frozen.get('physical_resources_reserved') is not False
             or not isinstance(frozen.get('owner_id'), str) or not frozen['owner_id']
             or type(frozen.get('epoch')) is not int or frozen['epoch'] < 0):
         raise ValueError('file replacement requires its physical file owner')
+    if owned:
+        if not frozen.get('file_plan_id') or frozen['source_view']['files']['owner_id'] != frozen['owner_id']:
+            raise ValueError('owned file replacement lacks its live joint plan')
+        frozen_preparation_costs(frozen['cost_estimates'])
     total, counts = frozen['total_arrivals'], frozen['arrival_counts']
     if (type(total) is not int or total < 0 or sum(counts.values()) != total
             or any(not isinstance(a, str) or not a or type(n) is not int or n <= 0 for a, n in counts.items())):
@@ -452,9 +457,16 @@ def validate_file_replacement_epoch(epoch):
             raise ValueError('duplicate or invalid file replacement victim')
         seen.add(row['path'])
         h = counts.get(row['adapter_id'], 0)/total if total else 0.
-        latency(row['current_load_ms'], h)
-        latency(row['fallback_load_ms'], h)
-        loss = h * max(0., row['fallback_load_ms']-row['current_load_ms']) if h else 0.
+        unchanged = owned and row.get('loss_basis') == 'retained_native_copy'
+        if unchanged:
+            if (row['current_load_ms'] is not None or row['fallback_load_ms'] is not None
+                    or row['fallback'].get('native') is not True):
+                raise ValueError('unchanged native fallback is not a measured zero latency')
+            loss = 0.
+        else:
+            latency(row['current_load_ms'], h)
+            latency(row['fallback_load_ms'], h)
+            loss = h * max(0., row['fallback_load_ms']-row['current_load_ms']) if h else 0.
         if row['loss_ms'] != loss or row['fallback']['tier'] not in ('host', 'nvme', 'remote'):
             raise ValueError('file replacement changed frozen eviction loss')
     seen = set()
@@ -471,6 +483,89 @@ def validate_file_replacement_epoch(epoch):
         benefit = h * max(0., row['source_load_ms']-row['target_load_ms']) if h else 0.
         if row['benefit_ms'] != benefit or benefit <= 0:
             raise ValueError('file replacement changed frozen preparation benefit')
+    return frozen
+
+
+def owned_file_replacement_rows(*, view, counts, total, estimates, size_edges_bytes, removed=()):
+    """Loss of removing a real file, including retained native representations.
+
+    A native CPU copy is independent of its former loader path. Holding that
+    tensor makes deletion of a lower file zero *incremental loss*, not a zero
+    load-time measurement. Other losses compare fastest valid file copies before
+    and after removal. `removed` is virtual planning state, never real eviction.
+    """
+    capacity = {r['path']: r for r in view['files']['replacement_capacity']}
+    rows = []
+    for aid, state in sorted(view['sources'].items()):
+        copies = [s for s in state['confirmed_copies'] if s['native'] or s.get('path') not in removed]
+        native = next((s for s in copies if s['native'] and s['tier'] == 'host'), None)
+        files = [s for s in copies if not s['native'] and s['tier'] in ('host', 'nvme')]
+        remote = next(s for s in copies if s['tier'] == 'remote')
+        h = counts.get(aid, 0)/total if total else 0.
+        for source in files:
+            cap = capacity[source['path']]
+            if native is not None:
+                # No measured class is invented: this is the invariant that the
+                # same native tensor remains available on both sides of deletion.
+                current_key = fallback_key = None
+                d_current = d_fallback = None
+                fallback = dict(tier='host', native=True, adapter_id=aid,
+                    adapter_int_id=view['adapter_int_ids'][aid], path=native['path'])
+                fallback_bytes, loss, basis = native['footprint_bytes'], 0., 'retained_native_copy'
+            else:
+                order = lambda s: ('host', 'nvme', 'remote').index(s['tier'])
+                before = min(files + [remote], key=order)
+                after = min([s for s in files if s['path'] != source['path']] + [remote], key=order)
+                current_key = FrozenPreparationProfiles.source_class(before, size_edges_bytes)
+                fallback_key = FrozenPreparationProfiles.source_class(after, size_edges_bytes)
+                d_current, d_fallback = (estimates[current_key], estimates[fallback_key]) if h else (None, None)
+                current_key, fallback_key = asdict(current_key), asdict(fallback_key)
+                fallback = {k: after[k] for k in ('tier', 'path') if after.get(k) is not None}
+                fallback_bytes = after['footprint_bytes']
+                loss = h*max(0., d_fallback-d_current) if h else 0.
+                basis = 'fastest_valid_file_before_after'
+            rows.append(dict(adapter_id=aid, path=source['path'], tier=source['tier'],
+                content_sha256=source['content_sha256'], current_class=current_key,
+                current_footprint_bytes=source['footprint_bytes'], current_load_ms=d_current,
+                fallback_class=fallback_key, fallback_load_ms=d_fallback,
+                fallback_footprint_bytes=fallback_bytes, fallback=fallback,
+                loss_ms=loss, loss_basis=basis, **{k: cap[k] for k in ('usable_bytes', 'eligible')}))
+    return rows
+
+
+def owned_file_execution_objective(*, plan, file_plan_id, selected):
+    """Final HOST/NVMe preparations only; staging is charged separately.
+
+    One original h/d epoch, not new estimates sampled after GPU staging. The
+    file owner recomputes fallback validity/loss in its allocation lock, using
+    native source leases held by this live joint plan until IO has joined.
+    """
+    view = plan['source_view']
+    estimates = frozen_preparation_costs(plan['cost_estimates'])
+    pairs = {(c.artifact_id, tier) for tier in ('host', 'nvme') for c in selected[tier]}
+    candidates = []
+    for row in plan['options']:
+        if (row['artifact_id'], row['target']['tier']) not in pairs:
+            continue
+        candidates.append(dict(adapter_id=row['artifact_id'], target_tier=row['target']['tier'],
+            source_tier=row['source']['tier'], source_class=row['source'],
+            content_sha256=view['files']['artifacts'][row['artifact_id']]['content_sha256'],
+            target_footprint_bytes=row['footprint_bytes'], source_load_ms=row['source_load_ms'],
+            target_load_ms=row['target_load_ms'], benefit_ms=row['demand_fraction']*
+                max(0., row['source_load_ms']-row['target_load_ms'])))
+    frozen = dict(kind='ieee_owned_file_replacement_objective_v2',
+        scope='managed_files_with_held_native_fallbacks', owner_id=view['files']['owner_id'],
+        epoch=view['files']['epoch'], physical_resources_reserved=False, file_plan_id=file_plan_id,
+        source_view=copy.deepcopy(view), cost_estimates=copy.deepcopy(plan['cost_estimates']),
+        size_edges_bytes=plan['size_edges_bytes'], profile_id=plan['profile_id'],
+        cost_sequence=plan['cost_sequence'], planning_sha256=plan['plan_sha256'],
+        total_arrivals=plan['total_arrivals'], arrival_counts=plan['arrival_counts'],
+        candidates=candidates, victims=owned_file_replacement_rows(view=view,
+            counts=plan['arrival_counts'], total=plan['total_arrivals'], estimates=estimates,
+            size_edges_bytes=plan['size_edges_bytes']))
+    frozen['plan_sha256'] = hashlib.sha256(json.dumps(frozen, sort_keys=True,
+        separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+    validate_file_replacement_epoch(frozen)
     return frozen
 
 
@@ -1358,16 +1453,17 @@ class PreloadingPlanner:
         return tiers
 
     def select_ieee_insertions(self, candidates: List[PreparationCandidate], budgets: Dict,
-                               *, gpu_replacement=None):
+                               *, gpu_replacement=None, file_replacement=None):
         """Conditional GPU→HOST→NVMe sets; not global optimality.
 
         Caller freezes measured costs, demand, source and *remaining* budgets
         before this call. Reservations/staging must already be subtracted.
         Owned native GPU victim evidence enables its remaining-candidate pass;
-        HOST/NVMe here still use insertion only, not a full replacement claim.
+        File loss is recomputed after earlier virtual victims; a deleted HOST
+        file cannot still be the NVMe victim's fallback. No physical claim here.
         """
         tiers = self._validate_ieee_epoch(candidates, budgets)
-        selected, used_adapters, diagnostics = {}, set(), {}
+        selected, used_adapters, diagnostics, removed_files = {}, set(), {}, set()
         for tier in tiers:
             by_id = {c.artifact_id: c for c in candidates
                      if c.target_tier == tier and c.artifact_id not in used_adapters and c.benefit_ms > 0}
@@ -1408,6 +1504,40 @@ class PreloadingPlanner:
                     victims = victims[len(prefix):]
                 meta = dict(meta, replacement_scope='native_gpu_retained_host_v1',
                     replacement_victims=copy.deepcopy(gpu_replacement),
+                    replacements=replacements, rejected_remaining=rejected,
+                    final_selected_bytes=sum(c.footprint_bytes for c in selected[tier]),
+                    virtual_remaining_bytes=available, physical_resources_reserved=False)
+            elif tier != StorageTier.GPU and file_replacement is not None:
+                available = budgets[tier] - sum(c.footprint_bytes for c in selected[tier])
+                pending = {c.artifact_id for c in selected[tier]} | used_adapters
+                replacements, rejected = [], []
+                for c in sorted((c for c in by_id.values() if c.artifact_id not in pending),
+                                key=lambda c: (-c.density, c.artifact_id)):
+                    victims = sorted((v for v in file_replacement(removed_files)
+                        if v['tier'] == tier.value and v['eligible'] and v['adapter_id'] not in pending),
+                        key=lambda v: (v['loss_ms']/v['usable_bytes'], v['adapter_id'], v['path']))
+                    shortfall = max(0, c.footprint_bytes-available)
+                    prefix, freed, loss = [], 0, 0.
+                    for victim in victims:
+                        if freed >= shortfall:
+                            break
+                        prefix.append(victim)
+                        freed += victim['usable_bytes']
+                        loss = math.fsum(v['loss_ms'] for v in prefix)
+                    decision = dict(adapter_id=c.artifact_id, shortfall_bytes=shortfall,
+                        victim_paths=[v['path'] for v in prefix], usable_bytes=freed,
+                        eviction_loss_ms=loss, incoming_benefit_ms=c.benefit_ms)
+                    reason = ('insufficient_eligible_capacity' if freed < shortfall else
+                              'benefit_not_greater_than_loss' if c.benefit_ms <= loss else None)
+                    if reason:
+                        rejected.append(dict(decision, reason=reason))
+                        continue
+                    selected[tier].append(c)
+                    pending.add(c.artifact_id)
+                    replacements.append(decision)
+                    removed_files.update(v['path'] for v in prefix)
+                    available += freed-c.footprint_bytes
+                meta = dict(meta, replacement_scope='files_with_retained_native_sources_v2',
                     replacements=replacements, rejected_remaining=rejected,
                     final_selected_bytes=sum(c.footprint_bytes for c in selected[tier]),
                     virtual_remaining_bytes=available, physical_resources_reserved=False)
@@ -1472,14 +1602,18 @@ class PreloadingPlanner:
             options=inputs, cost_estimates=[dict(**{'class': asdict(key)}, load_ms=value)
                 for key, value in sorted(estimates.items(), key=lambda item: (
                     item[0].tier, item[0].representation, item[0].layout_id, item[0].size_bin))])
-        victims = None
+        victims = file_victims = None
         if mode == 'residency' and source_view is not None:
-            frozen.update(replacement_policy='owned_native_gpu_replacement_v1',
+            frozen.update(replacement_policy='owned_native_and_file_replacement_v2',
                           size_edges_bytes=list(size_edges_bytes))
             victims = owned_gpu_planning_victims(view=source_view, counts=counts,
                 total=demand.total_arrivals, estimates=estimates, size_edges_bytes=size_edges_bytes)
+            file_victims = lambda removed: owned_file_replacement_rows(view=source_view,
+                counts=counts, total=demand.total_arrivals, estimates=estimates,
+                size_edges_bytes=size_edges_bytes, removed=removed)
         selected, diagnostics = (self.select_ieee_handoff(candidates, budgets) if mode == 'handoff'
-            else self.select_ieee_insertions(candidates, budgets, gpu_replacement=victims))
+            else self.select_ieee_insertions(candidates, budgets, gpu_replacement=victims,
+                                            file_replacement=file_victims))
         plan_hash = hashlib.sha256(json.dumps(frozen, sort_keys=True,
             separators=(',', ':'), allow_nan=False).encode()).hexdigest()
         return dict(**frozen, plan_sha256=plan_hash, physical_resources_reserved=False,
@@ -1522,7 +1656,8 @@ class PreloadingPlanner:
             estimates = None  # Preserved historical file/native-only diagnostic plans.
         if 'replacement_policy' in plan:
             keys += ('replacement_policy', 'size_edges_bytes')
-            if (plan['replacement_policy'] != 'owned_native_gpu_replacement_v1'
+            if (plan['replacement_policy'] not in ('owned_native_gpu_replacement_v1',
+                                                  'owned_native_and_file_replacement_v2')
                     or plan['mode'] != 'residency' or 'source_view' not in plan or estimates is None):
                 raise ValueError('invalid owned replacement selection contract')
         frozen = {key: plan[key] for key in keys}
@@ -1549,8 +1684,13 @@ class PreloadingPlanner:
         victims = (owned_gpu_planning_victims(view=plan['source_view'], counts=plan['arrival_counts'],
             total=plan['total_arrivals'], estimates=estimates, size_edges_bytes=plan['size_edges_bytes'])
             if 'replacement_policy' in plan else None)
+        file_victims = (lambda removed: owned_file_replacement_rows(view=plan['source_view'],
+            counts=plan['arrival_counts'], total=plan['total_arrivals'], estimates=estimates,
+            size_edges_bytes=plan['size_edges_bytes'], removed=removed)) if (
+                plan.get('replacement_policy') == 'owned_native_and_file_replacement_v2') else None
         selected, _ = (self.select_ieee_handoff(candidates, budgets) if plan['mode'] == 'handoff'
-                       else self.select_ieee_insertions(candidates, budgets, gpu_replacement=victims))
+                       else self.select_ieee_insertions(candidates, budgets, gpu_replacement=victims,
+                                                        file_replacement=file_victims))
         expected = {tier.value: tuple(rows) for tier, rows in selected.items()}
         if plan['selected'] != expected:
             raise ValueError('preparation execution changed the selected target set')

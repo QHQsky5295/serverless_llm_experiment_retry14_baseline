@@ -16088,7 +16088,7 @@ class ScenarioRunner:
 
     async def _run_ieee_gpu_preparation_plan(self, *, slot, objective, target_adapter_ids,
                                            trigger_reason, activation_id=None, capacity_only=False,
-                                           prepare_source=None):
+                                           prepare_source=None, after_registration=None):
         """Execute an explicitly selected native-HOST plan on the common queue.
 
         Registration of all selected targets precedes any copy. This entry is
@@ -16237,6 +16237,8 @@ class ScenarioRunner:
             record['registration'] = registered
             if cancelled:
                 raise asyncio.CancelledError()
+            if after_registration is not None:
+                await after_registration()
             waiters = [asyncio.create_task(stage_and_submit(aid)) for aid in targets]
             record['state'] = 'executing'
             result = await asyncio.gather(*waiters)
@@ -16528,6 +16530,12 @@ class ScenarioRunner:
                 targets[tier, aid] = dict(tier=tier, adapter_id=aid,
                     content_sha256=self._ieee_artifact_identities[aid]['content_sha256'])
         plan_id = uuid.uuid4().hex
+        owned_file_replacement = (plan.get('replacement_policy') == 'owned_native_and_file_replacement_v2'
+                                  and bool(recipes))
+        if owned_file_replacement:
+            from faaslora.preloading.preloading_planner import owned_file_execution_objective
+            replacement_epoch = owned_file_execution_objective(plan=plan, file_plan_id=plan_id,
+                                                               selected=selected)
         registration = references.register_file_preparation_plan(plan_id=plan_id, targets=targets.values())
         record = dict(plan_id=plan_id, objective_sha256=plan['plan_sha256'],
             target_replica=target_replica, trigger_reason=mode, activation_id=activation_id,
@@ -16542,18 +16550,85 @@ class ScenarioRunner:
         if not hasattr(self, '_ieee_file_plan_engines'):
             self._ieee_file_plan_engines = {}
         self._ieee_file_plan_engines[task] = target_engine
-        intents, waiters = [], []
+        intents, waiters, native_fallbacks, fallback_intents = [], [], [], []
+        fallback_cleanup_lock = asyncio.Lock()
+        fallback_ready = asyncio.Event()
+        if not owned_file_replacement:
+            # Handoff files can overlap engine startup. Only the new native-
+            # inclusive replacement path depends on acknowledged CPU leases.
+            fallback_ready.set()
+        async def protect_native_fallbacks():
+            if owned_file_replacement:
+                from faaslora.clock import local_monotonic_clock_id
+                required = {r['adapter_id']: r['fallback'] for r in replacement_epoch['victims']
+                            if r['fallback'].get('native')}
+                owner_id = plan['source_view']['native']['owner_id']
+                # GPU plan registration must precede these reference mutations;
+                # otherwise our own pins would invalidate its received epoch.
+                for aid, source in sorted(required.items()):
+                    observed = await target_engine.ieee_gpu_reference(operation='source_snapshot')
+                    if observed['owner_id'] != owner_id:
+                        raise ValueError('native file fallback owner changed')
+                    evidence = dict(adapter_id=aid, lease_id=uuid.uuid4().hex,
+                                    owner_id=owner_id, state='holding')
+                    native_fallbacks.append(evidence)
+                    receipt, cancelled = await settle(target_engine.ieee_gpu_reference(
+                        operation='hold_host_source', lease_id=evidence['lease_id'],
+                        adapter_int_id=source['adapter_int_id'], lora_name=aid,
+                        lora_path=source['path'], expected_owner_id=owner_id,
+                        expected_epoch=observed['epoch'], reference_purpose='file_fallback'))
+                    if (receipt.get('clock_id') != local_monotonic_clock_id()
+                            or receipt.get('owner_id') != owner_id or type(receipt.get('held')) is not bool):
+                        raise ValueError('native fallback hold outcome is unresolved')
+                    evidence.update(state='held' if receipt['held'] else 'rejected', receipt=receipt)
+                    if not receipt['held']:
+                        raise ValueError('native file fallback changed; a new planning epoch is required')
+                    if cancelled:
+                        raise asyncio.CancelledError()
+                record['fallback_binding'] = references.bind_file_native_fallbacks(plan_id=plan_id,
+                    objective=replacement_epoch, receipts=[e['receipt'] for e in native_fallbacks])
+            fallback_ready.set()
+        record['native_fallbacks'] = native_fallbacks
+        async def release_native_fallbacks():
+            async with fallback_cleanup_lock:
+                references.unbind_file_native_fallbacks(plan_id=plan_id)
+                interrupted_cleanup = False
+                unresolved = False
+                for evidence in native_fallbacks:
+                    if evidence['state'] in ('rejected', 'released'):
+                        continue
+                    if evidence['state'] != 'held':
+                        unresolved = True
+                        continue
+                    evidence['state'] = 'releasing'
+                    released, interrupted = await settle(target_engine.ieee_gpu_reference(
+                        operation='release_host_source', lease_id=evidence['lease_id'],
+                        expected_owner_id=evidence['owner_id']))
+                    interrupted_cleanup |= interrupted
+                    if released.get('released') is not True or released.get('owner_id') != evidence['owner_id']:
+                        unresolved = True
+                        continue
+                    evidence.update(state='released', release_receipt=released)
+                    queue.wake(owner_id=evidence['owner_id'])
+                if unresolved:
+                    raise RuntimeError('native file fallback ownership is unresolved')
+                if interrupted_cleanup:
+                    raise asyncio.CancelledError()
         async def move(aid, tier, source, density):
             intent = uuid.uuid4().hex
             intents.append(intent)
+            objective = (replacement_epoch if replacement_epoch is not None and any(
+                row['adapter_id'] == aid and row['target_tier'] == tier
+                for row in replacement_epoch['candidates']) else None)
+            if objective is not None and owned_file_replacement:
+                fallback_intents.append(intent)
             return await self._queue_ieee_file_preparation(adapter_id=aid,
                 target_tier=StorageTier(tier), target_engine=target_engine, target_replica=target_replica,
                 trigger_reason=mode, plan_id=plan_id, activation_id=activation_id,
                 source_path=source, density=density, intent_id=intent,
-                replacement_epoch=(replacement_epoch if replacement_epoch is not None and any(
-                    row['adapter_id'] == aid and row['target_tier'] == tier
-                    for row in replacement_epoch['candidates']) else None))
+                replacement_epoch=objective)
         async def execute(candidate, row, content):
+            await fallback_ready.wait()
             aid, tier = candidate.artifact_id, candidate.target_tier.value
             state = references.source_snapshot(aid)
             sources = {s['tier']: s for s in state['sources']}
@@ -16619,7 +16694,7 @@ class ScenarioRunner:
                 result = await self._run_ieee_gpu_preparation_plan(slot=gpu_slot,
                     objective=gpu_objective, target_adapter_ids=tuple(gpu_recipes),
                     trigger_reason=mode, activation_id=activation_id, capacity_only=capacity_only,
-                    prepare_source=prepare_gpu_source)
+                    prepare_source=prepare_gpu_source, after_registration=protect_native_fallbacks)
                 for _, _, row in gpu_recipes.values():
                     for tier, aid in targets:
                         if aid == row['adapter_id']:
@@ -16643,6 +16718,23 @@ class ScenarioRunner:
                     if future.cancelled():
                         raise
                     cancelled = True
+        async def execute_files():
+            children = [asyncio.create_task(execute(*recipe)) for recipe in recipes]
+            try:
+                results = await asyncio.gather(*children)
+            finally:
+                for child in children:
+                    if not child.done(): child.cancel()
+                _, cancelled = await settle(asyncio.gather(*children, return_exceptions=True))
+                if cancelled: raise asyncio.CancelledError()
+            # The fallback CPU tensors are needed by the file-copy group, not
+            # by a possibly deferred GPU group. Keeping them until all GPU work
+            # finished could prevent the CPU space needed by that very work.
+            _, cancelled = await settle(asyncio.gather(
+                *(queue.join_operation(i) for i in fallback_intents), return_exceptions=True))
+            await release_native_fallbacks()
+            if cancelled: raise asyncio.CancelledError()
+            return results
         try:
             if delayed:
                 # Only the start boundary changes. No new h/d, selection or
@@ -16653,10 +16745,14 @@ class ScenarioRunner:
                 target_engine = gpu_slot.engine
                 self._ieee_file_plan_engines[task] = target_engine
             record['state'] = 'executing'
-            waiters = [asyncio.create_task(execute(*recipe)) for recipe in recipes]
+            if not gpu_recipes:
+                await protect_native_fallbacks()
+            waiters = [asyncio.create_task(execute_files())] if recipes else []
             if gpu_recipes:
                 waiters.append(asyncio.create_task(execute_gpu()))
             results = await asyncio.gather(*waiters)
+            if recipes:
+                results = results[0] + results[1:]
             record['state'] = 'completed'
             return results
         except BaseException as exc:
@@ -16674,6 +16770,8 @@ class ScenarioRunner:
                 *(queue.join_operation(intent) for intent in intents), return_exceptions=True))
             cancelled |= interrupted
             try:
+                _, interrupted = await settle(release_native_fallbacks())
+                cancelled |= interrupted
                 record['close_receipt'] = references.close_file_preparation_plan(plan_id=plan_id)
                 queue.wake(owner_id=references.owner_id)
             except BaseException as exc:

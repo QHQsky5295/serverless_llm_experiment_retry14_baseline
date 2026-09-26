@@ -1505,7 +1505,7 @@ class MixedOwnedPreparation(unittest.TestCase):
         self.assertFalse(getattr(runner, '_ieee_gpu_plan_tasks', ()))
         self.assertFalse(getattr(runner, '_ieee_file_plan_tasks', ()))
 
-    def test_preinit_remote_gpu_staging_waits_for_real_owner_and_preserves_original_benefit(self):
+    def test_preinit_files_and_gpu_staging_overlap_startup_and_preserve_original_benefit(self):
         import copy
         import json
         import time
@@ -1527,15 +1527,19 @@ class MixedOwnedPreparation(unittest.TestCase):
             return complete_snapshot() if operation=='source_snapshot' else await old_rpc(operation=operation,**kw)
         slot.engine.ieee_gpu_reference.side_effect=reference
         profiles=runner._preparation_profiles
-        values={key:80. if key.tier in ('remote','host','nvme') else value
+        values={key:(5. if key.tier=='host' and key.size_bin==0 and
+                     key.representation=='verified_regular_file_tree_v1' else
+                     80. if key.tier in ('remote','host','nvme') else value)
                 for key,value in profiles.profiles.items()}
-        # Equal file-tier d leaves only a GPU benefit. This controlled input
-        # tests staging/ordering, not a measured layer-cost performance claim.
+        # Large a has GPU-only benefit; small d has a file-HOST target. This
+        # controlled input checks that BOTH file paths overlap engine startup,
+        # not a measured layer-cost performance claim.
         profiles=replace(profiles,profiles=values,
             activation_layout_json=json.dumps(native_activation_layout(complete_snapshot()),sort_keys=True))
         runner._preparation_profiles=profiles
         runner._stack.hotness_tracker=HotnessTracker(None,clock=lambda:100.)
         runner._stack.hotness_tracker.record_arrival('a')
+        runner._stack.hotness_tracker.record_arrival('d')
         for aid in ('b','c','d'):
             fixture.manager._delete_path(str(fixture.host/aid))
         fixture.owner.reserve_activation_host(activation_id='new-activation',limit_bytes=1024)
@@ -1552,11 +1556,13 @@ class MixedOwnedPreparation(unittest.TestCase):
                 activation_id='new-activation')
             self.assertIsNone(plan['source_view']['native'])
             self.assertEqual([c.artifact_id for c in plan['selected']['gpu']],['a'])
+            self.assertEqual([c.artifact_id for c in plan['selected']['host']],['d'])
             ready=asyncio.get_running_loop().create_future()
             task=asyncio.create_task(runner._run_ieee_file_preparation_plan(plan=plan,target_engine=None,
                 target_replica=slot.instance_id,activation_id='new-activation',activation_ready=ready))
             async def staged():
-                while not (fixture.nvme/'a'/'weights').exists(): await asyncio.sleep(.001)
+                while not ((fixture.nvme/'a'/'weights').exists() and
+                           (fixture.host/'d'/'weights').exists()): await asyncio.sleep(.001)
             await asyncio.wait_for(staged(),2)
             self.assertFalse(loads)
             self.assertFalse(task.done())
@@ -1565,7 +1571,7 @@ class MixedOwnedPreparation(unittest.TestCase):
             await asyncio.wait_for(task,3)
             self.assertEqual(loads,[('host','a'),('gpu','a')])
             receipt=runner._ieee_gpu_preparation_plans[-1]['attempts'][-1]['receipt']
-            self.assertEqual(receipt['replacement']['incoming_benefit_ms'],80.)
+            self.assertEqual(receipt['replacement']['incoming_benefit_ms'],40.)
             self.check_clean(fixture,runner,owner)
             fixture.owner.cancel_activation_host(activation_id='new-activation')
             await queue.close()
@@ -1951,6 +1957,198 @@ class AutomaticGPUReplacement(unittest.TestCase):
             factory.check_clean(fixture,runner,owner)
             await queue.close()
         asyncio.run(run())
+
+
+class AutomaticFileReplacement(unittest.TestCase):
+    """Actual mixed runner, real file allocation and native cache references."""
+    def make(self, counts=None):
+        factory = AutomaticGPUReplacement()
+        self.addCleanup(factory.doCleanups)
+        inner, data = factory.make(counts or {'a':1, 'b':100, 'c':100})
+        return inner, data
+
+    def test_native_fallback_changes_file_loss_and_actual_automatic_replacement(self):
+        factory, data = self.make()
+        fixture,runner,queue,slot,owner,snapshot,loads = data
+        async def run():
+            plan = await runner._plan_ieee_preparation_for_slot(slot=slot, mode='residency')
+            self.assertFalse(plan['selected']['gpu'])
+            self.assertEqual([r.artifact_id for r in plan['selected']['host']], ['a'])
+            planned = plan['diagnostics']['host']['replacements'][0]
+            self.assertEqual(planned['eviction_loss_ms'], 0.)
+            self.assertEqual(planned['victim_paths'], [str(fixture.host/'b')])
+            with (patch.object(slot.preparation_cost_model,'snapshot',side_effect=AssertionError('new d')),
+                  patch.object(runner._stack.hotness_tracker,'snapshot',side_effect=AssertionError('new h'))):
+                await asyncio.wait_for(factory.execute(runner,slot,plan),3)
+            actual = fixture.owner._file_replacement_events[-1]
+            self.assertEqual(actual['total_eviction_loss_ms'],0.)
+            self.assertEqual(actual['observed_released_bytes'],8192)
+            self.assertEqual(actual['victims'][0]['loss_basis'],'retained_native_copy')
+            self.assertIsNone(actual['victims'][0]['fallback_load_ms'])
+            self.assertFalse((fixture.host/'b').exists())
+            self.assertTrue((fixture.host/'a').exists())
+            self.assertIn(InferenceEngine._lora_int_id('b'), owner.snapshot()['slot_adapter_ids'])
+            self.assertFalse(loads)
+            self.assertTrue(all(r['state']=='released' for r in runner._ieee_file_preparation_plans[-1]['native_fallbacks']))
+            factory.check_clean(fixture,runner,owner)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_cpu_fallback_lease_does_not_deadlock_same_epoch_gpu_replacement(self):
+        factory,data = self.make({'a':80,'d':1,'b':100,'c':100})
+        fixture,runner,queue,slot,owner,snapshot,loads = data
+        async def run():
+            plan = await runner._plan_ieee_preparation_for_slot(slot=slot,mode='residency')
+            self.assertEqual([r.artifact_id for r in plan['selected']['gpu']],['a'])
+            self.assertEqual([r.artifact_id for r in plan['selected']['host']],['d'])
+            await asyncio.wait_for(factory.execute(runner,slot,plan),3)
+            calls=slot.engine.ieee_gpu_reference.call_args_list
+            register=next(i for i,c in enumerate(calls) if c.kwargs['operation']=='register_preparation_plan')
+            hold=next(i for i,c in enumerate(calls) if c.kwargs['operation']=='hold_host_source')
+            self.assertLess(register,hold)
+            self.assertIn(InferenceEngine._lora_int_id('a'),owner.snapshot()['slot_adapter_ids'])
+            self.assertTrue((fixture.host/'d').exists())
+            factory.check_clean(fixture,runner,owner)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_lost_native_source_stops_before_file_io_and_returns_earlier_holds(self):
+        factory,data = self.make()
+        fixture,runner,queue,slot,owner,snapshot,loads=data
+        original=slot.engine.ieee_gpu_reference.side_effect
+        async def reject(**kw):
+            if kw['operation']=='hold_host_source' and kw['lora_name']=='c':
+                return dict(await original(operation='source_snapshot'),held=False,reason='required_source_changed')
+            return await original(**kw)
+        slot.engine.ieee_gpu_reference.side_effect=reject
+        async def run():
+            with self.assertRaisesRegex(ValueError,'fallback changed'):
+                await factory.execute(runner,slot,mode='residency')
+            self.assertFalse(fixture.owner._file_replacement_events)
+            self.assertFalse((fixture.host/'a').exists())
+            factory.check_clean(fixture,runner,owner)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_file_completion_releases_cpu_fallback_before_deferred_gpu_group_finishes(self):
+        factory,data = self.make({'a':80,'d':1,'b':100,'c':100})
+        fixture,runner,queue,slot,owner,snapshot,loads = data
+        queue.max_concurrent=2
+        async def run():
+            observed=asyncio.Event()
+            prepare=slot.engine.ieee_prepare_host.side_effect
+            copy_file=runner._materialize_confirmed_source_async
+            async def deferred(**kw):
+                if any(r.get('reference_purpose')=='file_fallback' for r in owner._host_leases.values()):
+                    observed.set()
+                    return dict(await slot.engine.ieee_gpu_reference(operation='source_snapshot'),
+                                acquired=False,reason='controlled_wait_for_file_fallback')
+                return await prepare(**kw)
+            async def held(*args,**kw):
+                await observed.wait()
+                return await copy_file(*args,**kw)
+            slot.engine.ieee_prepare_host.side_effect=deferred
+            with patch.object(runner,'_materialize_confirmed_source_async',side_effect=held):
+                await asyncio.wait_for(factory.execute(runner,slot,mode='residency'),3)
+            self.assertTrue(observed.is_set())
+            attempts=runner._ieee_gpu_preparation_plans[-1]['attempts']
+            self.assertGreaterEqual(len(attempts),2)
+            self.assertTrue(all(r['state']=='deferred' for r in attempts[:-1]))
+            self.assertEqual(attempts[-1]['state'],'completed')
+            factory.check_clean(fixture,runner,owner)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_cancel_waits_for_physical_copy_before_releasing_native_fallback(self):
+        factory,data = self.make()
+        fixture,runner,queue,slot,owner,snapshot,loads=data
+        entered, release=threading.Event(),threading.Event()
+        original=fixture.owner.copy_confirmed
+        def held(*args,**kwargs):
+            entered.set()
+            if not release.wait(3): raise RuntimeError('test did not release copy')
+            return original(*args,**kwargs)
+        async def run():
+            with patch.object(fixture.owner,'copy_confirmed',side_effect=held):
+                task=asyncio.create_task(factory.execute(runner,slot,mode='residency'))
+                try:
+                    async def started():
+                        while not entered.is_set(): await asyncio.sleep(.001)
+                    await asyncio.wait_for(started(),2)
+                    task.cancel()
+                    await asyncio.sleep(0)
+                    self.assertFalse(task.done())
+                    self.assertEqual(owner.snapshot()['live_host_source_leases'],2)
+                finally:
+                    release.set()
+                with self.assertRaises(asyncio.CancelledError): await task
+            factory.check_clean(fixture,runner,owner)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_virtual_lower_fallback_is_updated_after_host_victim_and_native_survives_path_removal(self):
+        from faaslora.preloading.preloading_planner import owned_file_replacement_rows, frozen_preparation_costs
+        factory=OwnedPreparationPlanning()
+        self.addCleanup(factory.doCleanups)
+        fixture,runner,queue,slot,_=factory.make()
+        plan=factory.plan(runner,slot)
+        kw=dict(view=plan['source_view'], counts=plan['arrival_counts'],total=plan['total_arrivals'],
+                estimates=frozen_preparation_costs(plan['cost_estimates']),size_edges_bytes=plan['size_edges_bytes'])
+        initial=owned_file_replacement_rows(**kw)
+        after=owned_file_replacement_rows(**kw,removed={str(fixture.host/'d'),str(fixture.nvme/'b')})
+        by_path=lambda rows:{r['path']:r for r in rows}
+        self.assertEqual(by_path(initial)[str(fixture.nvme/'d')]['loss_ms'],0.)
+        self.assertAlmostEqual(by_path(after)[str(fixture.nvme/'d')]['loss_ms'],20/103*60)
+        # Native b was loaded from the now virtually removed NVMe path. The
+        # tensor remains a separate live allocation, not a file alias.
+        self.assertEqual(by_path(after)[str(fixture.host/'b')]['loss_basis'],'retained_native_copy')
+        asyncio.run(queue.close())
+
+    def test_file_snapshot_does_not_count_external_hardlinks_as_usable_space(self):
+        factory,data=self.make()
+        fixture,runner,queue,slot,owner,snapshot,loads=data
+        target=fixture.host/'b'
+        link=fixture.host.parent/'external-link'
+        os.link(target/'weights',link)
+        self.addCleanup(link.unlink)
+        with self.assertRaisesRegex(RuntimeError,'changed outside'):
+            fixture.owner.source_snapshot('b')
+        # Establish the deliberately linked fixture through full byte/signature
+        # verification, not by changing a cached identity to ignore mutation.
+        expected=fixture.client.preparation_manifests(('b',))['b']
+        fixture.owner._publish_verified_source(target,target,expected,lambda *_:None)
+        plan=asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot,mode='residency'))
+        capacities={r['path']:r for r in plan['source_view']['files']['replacement_capacity']}
+        self.assertEqual(capacities[str(target)]['usable_bytes'],4096) # config only
+        self.assertFalse(capacities[str(target)]['eligible'])
+        self.assertEqual(plan['diagnostics']['host']['replacements'][0]['victim_paths'],
+                         [str(fixture.host/'c')])
+        asyncio.run(queue.close())
+
+    def test_fallback_cpu_reference_protects_cpu_not_gpu_but_external_pin_stays_protected(self):
+        factory,data=self.make()
+        fixture,runner,queue,slot,owner,snapshot,loads=data
+        aid=InferenceEngine._lora_int_id('b')
+        def hold(lease):
+            return owner.hold_host_source(lease_id=lease,adapter_int_id=aid,lora_name='b',
+                lora_path=str(fixture.nvme/'b'),expected_owner_id=owner.owner_id,
+                expected_epoch=owner.snapshot()['epoch'],reference_purpose='file_fallback')
+        self.assertTrue(hold('fallback')['held'])
+        self.assertIn(aid,owner._caches()[0].pinned_items)
+        self.assertNotIn(aid,owner.source_snapshot()['replacement_protected_adapter_ids'])
+        with self.assertRaisesRegex(ValueError,'another adapter'):
+            owner.hold_host_source(lease_id='fallback',adapter_int_id=aid,lora_name='b',
+                lora_path=str(fixture.nvme/'b'),expected_owner_id=owner.owner_id,
+                expected_epoch=owner.snapshot()['epoch'])
+        owner.release_host_source(lease_id='fallback',expected_owner_id=owner.owner_id)
+        owner._caches()[0].pin(aid)
+        hold('externally-pinned')
+        self.assertIn(aid,owner.source_snapshot()['replacement_protected_adapter_ids'])
+        owner.release_host_source(lease_id='externally-pinned',expected_owner_id=owner.owner_id)
+        self.assertIn(aid,owner._caches()[0].pinned_items)
+        owner._caches()[0]._unpin(aid)
+        factory.check_clean(fixture,runner,owner)
+        asyncio.run(queue.close())
 
 
 class FileObjectiveReplacement(unittest.TestCase):
@@ -2375,8 +2573,9 @@ class SelectedFilePlans(unittest.TestCase):
         files.finish_file_preparation_target(plan_id='one', tier='nvme', adapter_id='a')
         self.assertFalse(fixture.manager._delete_path(str(fixture.nvme/'a')))
         files.close_file_preparation_plan(plan_id='two')
-        self.assertTrue(fixture.manager._delete_path(str(fixture.nvme/'a')))
+        self.assertFalse(fixture.manager._delete_path(str(fixture.nvme/'a')))
         files.close_file_preparation_plan(plan_id='one')
+        self.assertTrue(fixture.manager._delete_path(str(fixture.nvme/'a')))
         with self.assertRaisesRegex(ValueError, 'fresh plan'):
             files.register_file_preparation_plan(plan_id='one', targets=targets)
         asyncio.run(queue.close())
