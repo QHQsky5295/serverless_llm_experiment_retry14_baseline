@@ -97,11 +97,11 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `bb903d43da7e78e79c74c6ed94a14a5b0b424bb6`, pushed to
+- Main tested implementation: `33735569b22f739ef9cf067c770dcd4c9c11d52c`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
-  `origin/main`; remote SHA reverified in D42. No baseline edits in D42.
+  `origin/main`; remote SHA reverified in D43. No baseline edits in D43.
 - All earlier checkpoints, failures, qualification attempts and exact backups
   remain verbatim in [EXECUTION_HISTORY_THROUGH_D26.md](EXECUTION_HISTORY_THROUGH_D26.md).
   Archive SHA256: `4e91643d959967f1f0dc8642fe969d35380f2156cf8c820964019539d3b415cb`.
@@ -197,6 +197,12 @@ its one historical SHA difference and independent numerical gate remain open.
   entries unchanged. Baseline HEAD16570c023a439c884624e7a5bdfa0d8577faf7a3 unchanged.
   No live test/model remains; preserve original dirt. Implementation backup
   receipt follows. Full goal is active, not completed by these checks.
+- Implementation33735569b22f739ef9cf067c770dcd4c9c11d52c pushed to
+  faaslora_origin/retry14_continuous_queue_v2; remote full SHA verified. Baseline
+  remote16570c023a439c884624e7a5bdfa0d8577faf7a3 reverified unchanged. This subsequent
+  documentation-only receipt is not another experiment. All four D43 scopes
+  stopped, no live task. Continue automatic options/combined handoff, file-tier
+  objective replacement and capacity rechecks, not another selected-file check.
 
 ### D42 shared managed-HOST budget and native demand enforcement
 
