@@ -45,8 +45,68 @@ loader. Still set it to 0 explicitly for the native qualification.
 |---|---|---|
 | Launcher/router and packing-layout tests | 24 pass, no failure/error/skip | No scheduling policy changed |
 | Actual pinned-environment CPU tensor fixtures | 3 pass, no failure/error/skip; CUDA uninitialized | Complete-byte comparator detects corrupted/reordered weights |
-| Existing 3B native checkpoint vs original weights | Pending actual read-only audit | Must not infer identity from directory/model names |
-| Loader overlay preflight / package import | Pending actual check | Not actual model loading |
+| Existing 3B native checkpoint vs original weights | All 170 native tensors match all 254 HF source tensors after FP16 cast; all 6,425,499,648 native bytes checked | Existing native checkpoint is reusable; no new conversion/copy |
+| Loader overlay preflight / package import | Six preimages and official patch pass; all96 package files match; corrected library selection imports actual native modules | No install, engine creation or model load yet |
+
+First audit launch stopped before service start: its outer receipt output was
+relative, while the established guard requires an absolute new output path.
+`checkpoint_console.log` preserves exit1; no checkpoint bytes were read and no
+model ran. Classify `protocol_or_launcher_error`; retry with an absolute new
+receipt/attempt path, without changing or relaxing the guard.
+
+Attempt2 completes in 93.656 s (audit wall time, **not startup latency**).
+Native file SHA256:
+`3f937cdc2c3b637cf61a19809670a0e6146b943a049ba407fa5dc5e2b46f9979`.
+All five shared config/tokenizer files match.95 external resource samples,
+peak6,769,774,592B, minimum host available110,954,188,800B; swap/high/max/OOM0.
+Service/watchdog exit0/0, service released, auxiliary group empty then stopped;
+CUDA remained uninitialized. Raw receipt SHA256
+`6f074b1d07d993664d390eb6a00297b60b61dcfd7844dfc4b8b8e4341f3a0cb3`.
+Main repo delivers the full170-row CSV and summary JSON under
+`paper_results/ieee_tc/serverless_audit/20260927_native_checkpoint_identity.*`.
+Do not repeat this successful complete byte audit or relabel it as inference.
+
+The loader-only `preflight` now passes all6 exact vLLM preimages plus the official
+patch; nothing installed. All96 compiled-store bundle members and their hashes
+match the preserved manifest (no extra/missing members). First CPU import stops
+at `_checkpoint_store`: dynamic linker cannot find `libglog.so.1`. The exact
+bundle already contains this library; do not rebuild or install another copy.
+Record the dependency and explicitly select the bundle's library directory for
+the qualification process. This is a deployment environment correction, not a
+baseline policy change. No Ray/store/API/CUDA model was started; the failed
+import is retained in `native_import.log`, owned CPU group empty/events0.
+
+Second import succeeds using only the bundle directory in `LD_LIBRARY_PATH`,
+consistent with the [Linux dynamic-loader search order](https://man7.org/linux/man-pages/man8/ld.so.8.html).
+Read ELF `RUNPATH` confirms an obsolete temporary build directory, explaining
+the first failure. Exact libraries/binaries remain unchanged. Actual TC9f50241
+backend import constructs `AsyncEngineArgs` with `load_format=serverless_llm`,
+the audited native checkpoint, TP1 and FP16; `engine` remains None and CUDA
+uninitialized. Readback: Python3.12.12, torch2.8.0+cu128, vLLM0.10.2, Ray2.54.0,
+grpc1.76.0. The compiled store's CUDA-runtime dependencies still need actual
+GPU/store qualification; import success is not proof of GPU compatibility.
+Second CPU group also empty/events0 then stopped. Full module paths and hashes,
+preflight members, exact bundle and both attempts are recorded in main
+`paper_results/ieee_tc/serverless_audit/20260927_native_inputs_preflight.json`.
+
+For the **next actual guarded native launch**, inherit these explicit selections
+in head, worker, API and store (no global environment/package installation):
+
+```text
+SLLM_REPO_ROOT=/home/qhq/serverless_llm_baselines/vendor_new_baselines/ServerlessLLM_new_main_20260518
+SLLM_EXTRA_PYTHONPATH=/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages
+SLLM_STORE_BIN=/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/bin/sllm-store
+LD_LIBRARY_PATH=/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store
+SLLM_SKIP_CONFIRM_MODEL_LOADED=0
+```
+
+Keep both old failed paths and all prior results. Next use the existing
+reversible loader installer with a new backup/receipt; restore exact bytes only
+after owned workers actually exit. Prove actual store registration, complete GPU
+UUID coverage, native load/confirm path, model-worker containment and cleanup.
+Do not merely repeat this import or the successful byte/Ray-only audits. No
+remote service, LoRA qualification, repaired-polling benefit or M1/M2 result is
+established by D66.
 
 After this table is completed, advance directly to actual owned store/model
 loading. Do not repeat the D65 infrastructure-only witness. Native loading,
