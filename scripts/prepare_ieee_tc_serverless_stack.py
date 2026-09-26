@@ -8,6 +8,7 @@ the generated stack refuses launch outside that admitted service domain.
 from __future__ import annotations
 
 import argparse
+import asyncio
 import ast
 import hashlib
 import importlib.util
@@ -38,6 +39,233 @@ SOURCE_SHA = {
 
 def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def measurement_sources(native_source: Path, variant: str) -> dict[str, str]:
+    """Instrument identical control/engine boundaries; only router loop differs.
+
+    Returns source text for an exclusive view; the dirty upstream checkout and
+    installed environment are never overwritten. The historical staged router
+    is accepted only if its already-audited pre-TC hash matches exactly.
+    """
+    paths = ['sllm/app_lib.py', 'sllm/backends/vllm_backend.py',
+             'sllm/routers/roundrobin_router.py']
+    original = {p: (native_source / p).read_text() for p in paths}
+    if sha(original[paths[1]].encode()) != '994c80ae9c6106a6469f9d8d5889132e5c2032608c4e497141c00127f91cc777':
+        raise ValueError('native backend source drift')
+    if sha(original[paths[2]].encode()) != '2bcbba0d8a3fdf46354f75c1d8ca5bcd79e505f059fcb296bf30dbff176e8f6e':
+        raise ValueError('repaired router source drift')
+    if variant == 'original':
+        original[paths[2]] = subprocess.check_output(
+            ['git', '-C', str(native_source), 'show', ':'+paths[2]], text=True)
+        if sha(original[paths[2]].encode()) != '0182bd4862c1c0e1c4bf5d00507704f05d3d5092c267b4670ff31a4c79b18843':
+            raise ValueError('historical pre-TC router identity differs')
+    elif variant != 'repaired':
+        raise ValueError('explicit original/repaired router variant required')
+    app, backend, router = (original[p] for p in paths)
+    import_line = 'from sllm.backends.tc_measurement import stamp\n'
+    app = replace_once(app, 'import time\n', 'import time\n'+import_line)
+    app = replace_once(app, '        internal_metrics.setdefault("request_received_at", time.time())',
+        '        stamp(internal_metrics, "tc_http_received_s")\n'
+        '        internal_metrics.setdefault("request_received_at", time.time())')
+    router = replace_once(router, 'import time\n', 'import time\n'+import_line)
+    router = replace_once(router, '        enqueue_at = time.time()',
+        '        stamp(internal_metrics, "tc_router_enqueued_s")\n        enqueue_at = time.time()')
+    router = replace_once(router, '            assigned_at = time.time()',
+        '            stamp(internal_metrics, "tc_instance_assigned_s")\n            assigned_at = time.time()')
+    backend = replace_once(backend, 'import time\n', 'import time\n'
+        'from sllm.backends.tc_measurement import stamp, install_v1_snapshot, NativeRequestObservation\n')
+    backend = replace_once(backend, '            self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)',
+        '            if self.backend_config.get("tc_native_measurement", False):\n'
+        '                install_v1_snapshot()\n'
+        '            self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)')
+    backend = replace_once(backend, '        internal_metrics["backend_started_at"] = time.time()',
+        '        stamp(internal_metrics, "tc_backend_entry_s")\n'
+        '        internal_metrics["backend_started_at"] = time.time()')
+    backend = replace_once(backend, '        results_generator = self.engine.generate(',
+        '        tc_observation = (NativeRequestObservation(lora_request)\n'
+        '            if self.backend_config.get("tc_native_measurement", False) else None)\n'
+        '        results_generator = self.engine.generate(')
+    backend = replace_once(backend, '        async for response_output in results_generator:\n',
+        '        async for response_output in results_generator:\n'
+        '            if tc_observation is not None:\n'
+        '                tc_observation.observe(response_output)\n')
+    backend = replace_once(backend, '        response["metrics"] = metrics\n',
+        '        if tc_observation is not None:\n'
+        '            metrics["ieee_tc"] = tc_observation.finish(internal_metrics)\n'
+        '        response["metrics"] = metrics\n')
+    return dict(zip(paths, (app, backend, router)))
+
+
+def prepare_measurement_view(native_source: Path, output: Path, variant: str) -> dict:
+    if output.exists() or output.is_symlink():
+        raise FileExistsError('preserve previous source view')
+    replacements = measurement_sources(native_source, variant)
+    support = ROOT / 'scripts/ieee_tc_serverless_measurement.py'
+    output.mkdir(mode=0o700)
+    # Symlink unchanged files; only three small instrumented sources are copied.
+    # No model, environment, artifact pool or workload copy.
+    for parent, dirs, files in os.walk(native_source / 'sllm'):
+        dirs[:] = [d for d in dirs if d != '__pycache__']
+        relative = Path(parent).relative_to(native_source)
+        dest = output / relative
+        dest.mkdir(exist_ok=True)
+        for name in files:
+            key = str(relative / name)
+            if key in replacements:
+                (dest / name).write_text(replacements[key])
+            elif not name.endswith('.pyc'):
+                (dest / name).symlink_to(Path(parent) / name)
+    (output / 'sllm/backends/tc_measurement.py').symlink_to(support)
+    result = dict(schema='ieee_tc_serverless_measurement_view_v1', variant=variant,
+        native_source=str(native_source), source_view=str(output.resolve()),
+        original_sha256={p: sha((native_source/p).read_bytes()) for p in replacements},
+        measured_sha256={p: sha(text.encode()) for p, text in replacements.items()},
+        helper_sha256=sha(support.read_bytes()), helper_path=str(support),
+        loader_policy_changed=False, routing_policy_changed=variant == 'repaired',
+        performance_run_authorized=False)
+    with (output / 'measurement_manifest.json').open('x') as handle:
+        json.dump(result, handle, indent=2)
+    return result
+
+
+def validate_http_observation(prepared, response, event, completed, clock_id):
+    """Native binding/timing validity, NOT a numerical adapter correctness proof."""
+    observed = response.get('metrics', {}).get('ieee_tc', {})
+    control = observed.get('control_observation', {})
+    ids = observed.get('completion_token_ids')
+    target = prepared['target_tokens']
+    digest = lambda value: sha(json.dumps(value, separators=(',', ':')).encode())
+    if (response.get('error') or response.get('id') != prepared['request_id']
+            or response.get('usage', {}).get('completion_tokens') != target
+            or response.get('usage', {}).get('prompt_tokens') != len(prepared['input_token_ids'])
+            or type(ids) is not list or len(ids) != target
+            or any(type(t) is not int or t < 0 for t in ids)
+            or observed.get('native_output_tokens') != target
+            or observed.get('completion_token_ids_sha256') != digest(ids)
+            or observed.get('native_prompt_token_ids') != prepared['input_token_ids']
+            or observed.get('native_prompt_token_ids_sha256') != prepared['native_prompt_token_ids_sha256']
+            or observed.get('native_lora_name') != prepared['adapter_id']
+            or type(observed.get('native_lora_int_id')) is not int or observed['native_lora_int_id'] <= 0
+            or observed.get('native_clock_id') != clock_id or control.get('tc_clock_id') != clock_id
+            or observed.get('timing_contract') != 'ieee_tc_native_v1'
+            or observed.get('native_terminal_observed') is not True
+            or not control.get('instance_id')):
+        raise ValueError('native generation/adapter/clock observation differs from frozen request')
+    times = [event['planned_arrival_s'], event['task_created_s'], event['client_submit_s'],
+             control.get('tc_http_received_s'), control.get('tc_router_enqueued_s'),
+             control.get('tc_instance_assigned_s'), control.get('tc_backend_entry_s'),
+             observed.get('native_dispatch_monotonic_s'), observed.get('native_queued_monotonic_s'),
+             observed.get('native_scheduled_monotonic_s'), observed.get('native_first_token_monotonic_s'),
+             observed.get('native_last_token_monotonic_s'), observed.get('worker_completed_monotonic_s'), completed]
+    if (any(type(t) not in (int, float) or not math.isfinite(t) for t in times)
+            or times != sorted(times)):
+        raise ValueError('planned/HTTP/router/native/completion times are not ordered')
+    a, e, d, f, last = times[0], times[2], times[5], times[10], times[11]
+    components = [e-a, d-e, f-d, last-f, completed-last]
+    tpot_ms = (last-f)*1000/(target-1) if target > 1 else None
+    if abs(sum(components)-(completed-a))*1000 > 1:
+        raise ValueError('E2E decomposition identity failed')
+    native_tpot = observed.get('native_tpot_ms')
+    if ((target == 1 and native_tpot is not None)
+            or (target > 1 and (not isinstance(native_tpot, (int, float))
+                               or not math.isfinite(native_tpot) or abs(native_tpot-tpot_ms) > 1))):
+        raise ValueError('native TPOT recomputation failed')
+    return dict(protocol_valid=True, lora_numerical_correctness_qualified=False,
+                ttft_ms=(f-a)*1000, tpot_ms=tpot_ms, e2e_ms=(completed-a)*1000,
+                submit_lag_ms=components[0]*1000, dispatch_wait_after_submit_ms=components[1]*1000,
+                service_ttft_ms=components[2]*1000, decode_ms=components[3]*1000,
+                completion_notification_ms=components[4]*1000,
+                router_queue_ms=(times[5]-times[4])*1000,
+                instance_assigned_s=d, ready_instances_at_enqueue=control.get('ready_instances_at_enqueue'))
+
+
+async def replay_http_session(plan, origin, prepared, url, emit):
+    import aiohttp
+    from faaslora.datasets.workload_generator import replay_frozen_http
+    trace = aiohttp.TraceConfig()
+
+    async def headers_sent(session, context, params):
+        event = context.trace_request_ctx
+        event['client_submit_s'] = time.perf_counter()
+        emit(dict(event='http_headers_sent', **event))
+
+    async def queued(session, context, params):
+        emit(dict(event='http_connection_queued', request_id=context.trace_request_ctx['request_id'],
+                  timestamp_s=time.perf_counter()))
+
+    trace.on_request_headers_sent.append(headers_sent)
+    trace.on_connection_queued_start.append(queued)
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=0),
+            timeout=aiohttp.ClientTimeout(total=None), trace_configs=[trace], trust_env=False) as session:
+        async def send(row, event):
+            event['http_task_started_s'] = time.perf_counter()
+            async with session.post(url, json=row['body'], trace_request_ctx=event,
+                                    allow_redirects=False) as response:
+                raw = await response.read()
+                completed = time.perf_counter()
+                try:
+                    body = json.loads(raw)
+                except (ValueError, UnicodeDecodeError):
+                    body = dict(non_json_response=raw[:4096].decode(errors='replace'))
+                # Preserve rejected responses too, before any validator raises.
+                emit(dict(event='http_raw_response', request_id=row['request_id'],
+                          status=response.status, body=body, client_completed_s=completed))
+                if response.status != 200:
+                    raise ValueError(f'HTTP status {response.status}')
+                return validate_http_observation(row, body, event, completed, origin['clock_id'])
+        return await replay_frozen_http(plan, origin, prepared, send, emit)
+
+
+def http_replay(args):
+    """Auxiliary child of the existing guarded launcher, not a new supervisor."""
+    cfg = json.loads(args.config.read_text())
+    guard = load_guard(Path(cfg['main_repo']))
+    if (guard.cgroup_snapshot(guard.cg_path())['memory.max'] != guard.POLICY['aux_max_bytes']
+            or set(os.sched_getaffinity(0)) != set(guard.POLICY['aux_cpus'])):
+        raise ValueError('HTTP publisher must share the bounded auxiliary domain')
+    sys.path.insert(0, cfg['main_repo'])
+    from faaslora.clock import local_monotonic_clock_id
+    from faaslora.datasets.workload_generator import (
+        FrozenReplayPlan, prepare_frozen_http_request)
+    from transformers import AutoTokenizer
+    if (cfg.get('schema') != 'ieee_tc_serverless_http_replay_v1'
+            or cfg.get('generation_contract') != 'fixed_length_greedy_v1'
+            or cfg.get('renderer') != 'role_lines_v1'
+            or cfg.get('request_count') not in (100, 1000, 4000)
+            or not re.fullmatch(r'http://127\.0\.0\.1:[0-9]+/v1/chat/completions', cfg['url'])):
+        raise ValueError('unqualified HTTP replay contract')
+    plan = FrozenReplayPlan.load(cfg['trace'], count=cfg['request_count'])
+    if plan.source_sha256 != cfg['trace_sha256']:
+        raise ValueError('existing trace changed')
+    tokenizer = AutoTokenizer.from_pretrained(cfg['backbone'], local_files_only=True)
+    prepared = {e.request_id: prepare_frozen_http_request(e, tokenizer, cfg['model']) for e in plan.entries}
+    with args.output.open('x') as log:
+        def emit(event):
+            log.write(json.dumps(event, separators=(',', ':'), ensure_ascii=False)+'\n')
+            log.flush()
+        ready = dict(event='replay_ready', plan=plan.identity(), clock_id=local_monotonic_clock_id(),
+                     frame_limit=0, transport='http', config_sha256=sha(args.config.read_bytes()),
+                     pid=os.getpid(), helper_sha256=sha(Path(__file__).read_bytes()),
+                     shared_source_sha256={p: sha((Path(cfg['main_repo'])/p).read_bytes()) for p in
+                         ('faaslora/datasets/workload_generator.py', 'faaslora/clock.py',
+                          'faaslora/metrics/metrics_collector.py')})
+        emit(ready)
+        for row in prepared.values():
+            emit(dict(event='request_contract', **{k: v for k, v in row.items()
+                                                   if k not in ('body', 'prompt', 'input_token_ids')}))
+        print(json.dumps(ready), flush=True)
+        origin = json.loads(sys.stdin.readline())
+
+        async def run():
+            import signal
+            task = asyncio.current_task()
+            asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, task.cancel)
+            return await replay_http_session(plan, origin, prepared, cfg['url'], emit)
+
+        counts = asyncio.run(run())
+        if counts['N_failed'] or counts['N_response'] != counts['N_plan']:
+            raise RuntimeError('HTTP protocol qualification incomplete; failures preserved')
 
 
 def replace_once(source: str, old: str, new: str) -> str:
@@ -772,6 +1000,22 @@ def qualify_model(args) -> dict:
     """
     guard = load_guard(args.main_repo)
     admission = guard.verify_current_service()
+    http_cfg = None
+    replay_context = None
+    if getattr(args, 'http_replay_config', None) is not None:
+        http_cfg = json.loads(args.http_replay_config.read_text())
+        replay_context = json.loads(Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT']).read_text()).get('external_replay', {})
+        if (replay_context.get('transport') != 'http'
+                or replay_context.get('config_sha256') != sha(args.http_replay_config.read_bytes())
+                or http_cfg['model'] != args.model_name or Path(http_cfg['trace']) != args.trace
+                or Path(http_cfg['backbone']) != args.backbone):
+            raise ValueError('service and external HTTP publisher contracts differ')
+        measured = json.loads((args.native_source / 'measurement_manifest.json').read_text())
+        for path, expected in measured['measured_sha256'].items():
+            if sha((args.native_source/path).read_bytes()) != expected:
+                raise ValueError('measured source view changed')
+        if sha(Path(measured['helper_path']).read_bytes()) != measured['helper_sha256']:
+            raise ValueError('native measurement helper changed')
     if Path(sys.executable).resolve() != (args.environment / 'bin/python').resolve():
         raise ValueError('wrong native model interpreter')
     receipt = json.loads(args.overlay_receipt.read_text())
@@ -789,7 +1033,9 @@ def qualify_model(args) -> dict:
     # Its imports must select the SAME source/library composition as workers;
     # subprocess-only PYTHONPATH is insufficient for that reconstruction.
     package = args.store_package / 'site-packages'
-    if (os.environ.get('PYTHONPATH') != f'{args.native_source}:{package}'
+    extra_path = f'{package}:{args.main_repo}' if http_cfg else str(package)
+    source_path = f'{args.native_source}:{extra_path}'
+    if (os.environ.get('PYTHONPATH') != source_path
             or os.environ.get('LD_LIBRARY_PATH') != str(package / 'sllm_store')):
         raise ValueError('native composition must be selected before diagnostic interpreter startup')
     import sllm.backends.vllm_backend as selected_backend
@@ -804,6 +1050,21 @@ def qualify_model(args) -> dict:
                   requests=[], configuration=native_model_config(checkpoint, args.backbone),
                   trace_path=str(args.trace), trace_sha256=sha(args.trace.read_bytes()),
                   launcher_manifest_sha256=sha((args.output / 'launch_manifest.json').read_bytes()))
+    if http_cfg:
+        index = json.loads(Path(http_cfg['pool_index']).read_text())
+        if sha(Path(http_cfg['pool_index']).read_bytes()) != http_cfg['pool_index_sha256']:
+            raise ValueError('existing pool index changed')
+        pool = Path(index['provenance']['pool_root'])
+        adapter_map = {row['id']: str(pool/row['id']) for row in index['artifacts']}
+        if len(adapter_map) != 500 or any(not Path(p).is_dir() for p in adapter_map.values()):
+            raise ValueError('full existing pool required; no replacement or download')
+        result['configuration']['backend_config'].update(
+            tc_native_measurement=True, enable_lora=True, require_lora_for_inference=True,
+            lora_adapters=adapter_map, max_loras=4, max_cpu_loras=4, max_lora_rank=64,
+            disable_log_stats=False)
+        result.update(external_http_replay=replay_context, source_view_manifest=measured,
+                      artifact_source='existing_local_pool_mechanical_qualification_only',
+                      remote_qualified=False, polling_comparison_completed=False)
     env = dict(os.environ)
     for key in ('TMUX', 'TMUX_PANE', 'SLLM_HEAD_RAY_BIN', 'SLLM_WORKER_RAY_BIN', 'SLLM_HEAD_PYTHON_BIN'):
         env.pop(key, None)
@@ -811,8 +1072,8 @@ def qualify_model(args) -> dict:
         env[key] = ''
     env.update(SLLM_HEAD_ENV_PREFIX=str(args.environment), SLLM_WORKER_ENV_PREFIX=str(args.environment),
                SLLM_STORE_ENV_PREFIX=str(args.environment), SLLM_REPO_ROOT=str(args.native_source),
-               SLLM_EXTRA_PYTHONPATH=str(package), SLLM_STORE_BIN=str(package / 'bin/sllm-store'),
-               LD_LIBRARY_PATH=str(package / 'sllm_store'), PYTHONPATH=f'{args.native_source}:{package}',
+               SLLM_EXTRA_PYTHONPATH=extra_path, SLLM_STORE_BIN=str(package / 'bin/sllm-store'),
+               LD_LIBRARY_PATH=str(package / 'sllm_store'), PYTHONPATH=source_path,
                SLLM_SKIP_CONFIRM_MODEL_LOADED='0', SLLM_DIRECT_PATH_MODE='0',
                SLLM_RAY_HEAD_HOST=args.host, SLLM_RAY_PORT=str(args.ray_port), SLLM_PORT=str(args.api_port),
                SLLM_HOST='127.0.0.1', SLLM_STORE_PATH=str(args.checkpoint_root),
@@ -825,6 +1086,8 @@ def qualify_model(args) -> dict:
                NO_PROXY=f'{args.host},127.0.0.1,localhost', no_proxy=f'{args.host},127.0.0.1,localhost')
     # Freeze explicit native defaults rather than inheriting unrelated sessions.
     env.update(SLLM_STORE_MEM_POOL_SIZE='32GB', SLLM_STORE_NUM_THREAD='4', SLLM_STORE_CHUNK_SIZE='32MB')
+    if http_cfg:
+        env['SLLM_TC_MEASUREMENT'] = '1'
     result['selected_environment'] = {k: env[k] for k in ('PYTHONPATH', 'LD_LIBRARY_PATH',
         'SLLM_STORE_BIN', 'SLLM_STORE_MEM_POOL_SIZE', 'SLLM_SKIP_CONFIRM_MODEL_LOADED', 'TMPDIR')}
     os.environ.update({k: env[k] for k in ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'http_proxy',
@@ -862,8 +1125,8 @@ def qualify_model(args) -> dict:
                 raise TimeoutError('native router construction did not complete')
             time.sleep(1)
         from transformers import AutoTokenizer
-        tokenizer = AutoTokenizer.from_pretrained(args.backbone, local_files_only=True)
-        source_requests = json.loads(args.trace.read_text())['requests'][:4]
+        tokenizer = AutoTokenizer.from_pretrained(args.backbone, local_files_only=True) if not http_cfg else None
+        source_requests = json.loads(args.trace.read_text())['requests'][:4] if not http_cfg else []
         for row in source_requests:
             prompt = '\n'.join(f"{m['role']}: {m['content']}" for m in row['body']['messages'])
             tokens = tokenizer.encode(prompt, add_special_tokens=True)[:759]
@@ -877,6 +1140,33 @@ def qualify_model(args) -> dict:
             observation['response'] = post('/v1/chat/completions', request)
             observation['finished_monotonic'] = time.monotonic()
             validate_native_response(observation['response'], row['request_id'], target, len(tokens))
+        if http_cfg:
+            # Arrivals started at the supervisor's fixed notice+60, independent
+            # of readiness. This service never starts or paces the HTTP client.
+            from faaslora.datasets.workload_generator import FrozenReplayPlan
+            frozen = FrozenReplayPlan.load(args.trace, count=http_cfg['request_count'])
+            deadline = replay_context['replay_t0_s']+frozen.entries[-1].offset_s+1800+5
+            completed = None
+            with Path(replay_context['result_path']).open() as log:
+                while completed is None:
+                    position = log.tell()
+                    line = log.readline()
+                    if not line.endswith('\n'):
+                        log.seek(position)
+                        if time.perf_counter() >= deadline:
+                            raise TimeoutError('external HTTP replay terminal record absent')
+                        time.sleep(.1)
+                        continue
+                    event = json.loads(line)
+                    if event['event'] == 'http_raw_response':
+                        result['requests'].append(dict(request_id=event['request_id'], response=event['body'],
+                                                       http_status=event['status']))
+                    if event['event'] in ('http_replay_complete', 'http_replay_incomplete'):
+                        completed = event
+            result['http_completion'] = completed
+            if (completed['event'] != 'http_replay_complete' or completed.get('N_failed') != 0
+                    or completed.get('N_response') != http_cfg['request_count']):
+                raise ValueError('external HTTP qualification failed; do not label binding as correctness')
         names = ray.util.list_named_actors(all_namespaces=True)
         instance_ids = {r['response']['metrics']['instance_id'] for r in result['requests']}
         result['model_workers'] = []
@@ -949,6 +1239,13 @@ def qualify_model(args) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="action", required=True)
+    source = sub.add_parser('prepare-measurement-view')
+    source.add_argument('--native-source', type=Path, required=True)
+    source.add_argument('--output', type=Path, required=True)
+    source.add_argument('--variant', choices=('original', 'repaired'), required=True)
+    replay = sub.add_parser('http-replay')
+    replay.add_argument('--config', type=Path, required=True)
+    replay.add_argument('--output', type=Path, required=True)
     prep = sub.add_parser("prepare")
     prep.add_argument("--output", type=Path, required=True)
     prep.add_argument("--private-root", type=Path, required=True)
@@ -981,7 +1278,14 @@ def main() -> None:
         model.add_argument('--' + name, required=True)
     for name in ('ray-port', 'api-port'):
         model.add_argument('--' + name, required=True, type=int)
+    model.add_argument('--http-replay-config', type=Path)
     args = parser.parse_args()
+    if args.action == 'http-replay':
+        http_replay(args)
+        return
+    if args.action == 'prepare-measurement-view':
+        print(json.dumps(prepare_measurement_view(args.native_source, args.output, args.variant), indent=2))
+        return
     if args.action == 'export-checkpoint':
         print(json.dumps(export_checkpoint(args), indent=2))
         return
