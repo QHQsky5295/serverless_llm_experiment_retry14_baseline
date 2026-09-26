@@ -91,7 +91,7 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `fdf87d59f5fa99fbdb6d4fb444bc3b9bd1fc22a1`, pushed to
+- Main tested implementation: `06132c59a0ebbd527afa830cdc95b97d39d1b60e`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -187,6 +187,12 @@ its one historical SHA difference and independent numerical gate remain open.
   lifecycle remain. D38 initialized-target file pressure is not global pressure.
   Do not treat queued file correctness as Full qualification or repeat this gate.
   Formal baselines/M1/M2/ablations/sensitivities remain not started; goal active.
+- Implementation06132c59a0ebbd527afa830cdc95b97d39d1b60e pushed to
+  faaslora_origin/retry14_continuous_queue_v2; full remote SHA verified. No D38
+  scopes remain listed; only original user dirt remains. This receipt is a
+  documentation-only commit. Reread plan/status and inspect live resources next,
+  then continue integrated GPU movement/shared pressure/total-budget ownership,
+  not another isolated file queue or model-prefix qualification.
 
 ### D37 native GPU objective replacement; Full queue still open
 
