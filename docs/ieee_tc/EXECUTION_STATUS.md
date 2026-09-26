@@ -51,13 +51,18 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-0. P2 installation finished; do NOT reinstall. All current runs finished/cleaned. Native adapter reference and full 3B/7B content scan now COMPLETE; do not repeat zero-weight output controls. Current 3B pool has 500 all-zero LoRAs (2 SHAs); 7B has 498 zero plus finance/medical nonzero (4 SHAs). New ARTIFACT_CONTENT_AUDIT.md and curated tables distinguish API/length/cleanup from numerical adapter identity. Plan forbids new weights; user confirmation requested before adding a few trained nonzero 3B correctness fixtures. Keep original pools/traces/history intact. A targeted existing asset search found no 3B candidate in 2,521 configs, not proof of server-wide absence. Useful unchanged-scope work remains 7B independent nonzero correctness and Full integration; formal semantic gate is not passed. Earlier stock AsyncLLM reproduced cancel-dependent output changes but precise numerical cause remains unproved. Review official 0.30 warning on old 3B chunked_prefill=false before freezing. Reuse environment/cache, KEEP_DEDICATED_WORKER_LOGS for future proxy runs.
+0. P2 installation finished; do NOT reinstall. All current runs finished/cleaned. Native adapter reference, full 3B/7B content scan and 7B five-arm native numeric diagnostic COMPLETE; do not repeat same-prompt/zero controls. NATIVE_ADAPTER_NUMERIC_CONTROL.md: all five 217-token outputs identical; A/Z probability max difference .02608, A/A also .006367. Descriptive evidence, not independent numeric/full semantic qualification. Return to Full source/cost and owner integration next. Current 3B pool has 500 all-zero LoRAs (2 SHAs); 7B has 498 zero plus finance/medical nonzero (4 SHAs). Plan forbids new weights; user confirmation requested before adding a few trained nonzero 3B correctness fixtures, no answer yet. Keep pools/traces/history intact. Targeted 2,521 existing configs yielded no 3B candidate, not proof of server-wide absence. Independent numerical verification remains an open gate, not erased by this diagnostic. Review official 0.30 warning on old 3B chunked_prefill=false before freezing. Reuse environment/cache, KEEP_DEDICATED_WORKER_LOGS for future proxy runs.
 1. Continue native owner integration: measured source-class costs, resource-owner remaining budgets, atomic routing/admission. Native token/reference interfaces and startup-parallel external arrival/submission are opt-in and unit/witness tested, but actual engine clocks/streams/controller owners remain open. Do not declare the historical scorer IEEE-aligned.
 2. Qualify actual model/GPU workers and lifecycle under the existing guarded launcher; native single-raylet and tiny replay witnesses are not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
 ## Verified backups
+
+- Main full-artifact/output-control audit checkpoint
+  `235c74789294b642ed7756b3eca5cbb73c9f1ebf` pushed to V2; remote SHA verified.
+  Both 500-ID content audits and native two-request control preserved. User
+  confirmation needed before adding nonzero 3B correctness-only artifacts.
 
 - Main cancelled-RPC/native-output checkpoint `656dd2b26a29ee034696bf13dae9e53507ff7731`
   pushed to V2; remote SHA verified. 7B actual subprocess cancellation qualified;
@@ -1099,3 +1104,39 @@ configs/relayserve_motivation_serverlessllm.yaml.
   after the scan only improves CLI audit-completion reporting/exit status; the
   scan receipt retains the exact source SHA used. No native inference code or
   original artifact was changed by this checkpoint.
+
+## 7B native probability-control checkpoint
+
+- One existing prompt (req00003), five predetermined sequential conditions:
+  finance A, zero Z, medical B, explicit base-only, finance A again. Existing
+  first100 input order and audited weight content determine selection; all
+  three same-rank weight/config SHAs rechecked before model initialization.
+  No new weights, prompts, trace, backend policy or production fallback.
+- Stock AsyncLLM with native top20 log probabilities: all 5x217 token outputs
+  identical. First-token common-token maximum differences: A/Z .02607775,
+  A/B .01218653, Z/base 0, A/A .00636733. Hence text identity is insufficient,
+  but A/A variation prevents an unqualified causal/numerical correctness claim.
+  One fixed-order diagnostic is not independent replication or performance.
+- Original qualifier minimally extended with numeric control selection and
+  explicit base diagnostic arm. Missing/changed audited content rejects. Native
+  probabilities preserved; no retokenization, chosen posthoc tolerance, batch-
+  invariance toggle or claimed full-pool semantic pass. Runtime source SHA is
+  a9de1ed9f3ee181f8c2707101131687149debbab64025c5133e3f2e1b6b5eff7.
+- 71 resource samples; peak 5,059,387,392 bytes; high/max/OOM/OOM-kill zero.
+  Adapter removal acknowledgements true, native scheduler empty, GPU contexts
+  clear and service scope removed. Raw result SHA
+  05c23143f1dd313e0537324259bc8c17463dd8cb52ea3f8fe1b821885724e83f.
+  NATIVE_ADAPTER_NUMERIC_CONTROL.md and curated CSV/JSON provide the state table.
+  Initial-shape JIT/logprob overhead means diagnostic times are not warm metrics.
+- Two added deterministic test methods (selection, probability comparison);
+  56 independent safety/census/replay checks pass with no skips/failures. No
+  production inference path modified by this checker-only checkpoint.
+- Before backup, all 288 existing basic smoke checks pass in 19.832 s; raw,
+  curated CSV, checker and plan hashes verify. All 147 protected historical
+  entries unchanged; four GPUs idle at 15 MiB/0%, disk 354,111,201,280 bytes free.
+  Empty owned auxiliary scope verified and stopped; no model run remains live.
+- Next action is Full pre-decision source/cost and resource-owner integration,
+  not another same-prompt diagnostic. Independent numerical verification remains
+  open; 3B additional nonzero correctness fixtures still await user authority.
+  Baseline model order remains Serverless first. Remote disk floor, physical
+  lifecycle, SLO/reference, M1/M2, all ablations and sensitivities remain pending.

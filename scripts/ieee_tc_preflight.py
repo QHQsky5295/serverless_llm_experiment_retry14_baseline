@@ -1597,7 +1597,54 @@ async def qualify_concurrent_pairs(engine, plan, adapters, result, *, cancel_fir
                           'same_native_batch_observed': True, 'pass': True}), flush=True)
 
 
-async def qualify_native_cancel_reference(engine, plan, adapters, result, *, include_pairs=True):
+def select_numeric_controls(audit, pool, entries):
+    """Select from existing input/content identities, never from model outputs."""
+    if audit.get('audit_complete') is not True:
+        raise ValueError('numeric control requires a complete content audit')
+    matches = [p for p in audit['pools'] if Path(p['root']).resolve() == pool.resolve()]
+    if len(matches) != 1 or matches[0].get('complete') is not True:
+        raise ValueError('numeric control audit does not identify this frozen pool')
+    rows = {r['adapter_id']: r for r in matches[0]['rows']}
+    source_ids = [json.loads(e.source_json)['adapter_id'] for e in entries]
+    first = rows[source_ids[3]]
+    if (first.get('all_tensors_zero') is not False or first.get('all_finite') is not True
+            or first.get('all_ab_updates_provably_zero') is not False):
+        raise ValueError('original reference adapter must have finite nonzero operands')
+    other = zero = None
+    for aid in source_ids:
+        row = rows[aid]
+        if row.get('all_finite') is not True or row['configured_rank'] != first['configured_rank']:
+            continue
+        if (other is None and row['weight_sha256'] != first['weight_sha256']
+                and row.get('all_tensors_zero') is False
+                and row.get('all_ab_updates_provably_zero') is False):
+            other = row
+        if zero is None and row.get('all_tensors_zero') is True:
+            zero = row
+    if other is None or zero is None:
+        raise ValueError('existing prefix lacks same-rank nonzero and zero controls')
+    return {'nonzero_a': first, 'nonzero_b': other, 'zero': zero}
+
+
+def compare_first_token_probabilities(left, right):
+    """Descriptive differences only; no semantic pass inferred from inequality."""
+    import math
+    if (left['prompt_sha256'] != right['prompt_sha256'] or
+            left['native_prompt_ids_sha256'] != right['native_prompt_ids_sha256']):
+        raise ValueError('probability comparison requires identical prompt tokens')
+    a, b = left['first_token_logprobs'], right['first_token_logprobs']
+    if not a or not b or any(not math.isfinite(v) for v in [*a.values(), *b.values()]):
+        raise ValueError('missing or nonfinite native log probabilities')
+    common = sorted(set(a) & set(b), key=int)
+    return {'common_token_count': len(common), 'common_token_ids': common,
+            'max_abs_logprob_difference': max((abs(a[t]-b[t]) for t in common), default=None),
+            'first_token_equal': left['output_token_ids'][0] == right['output_token_ids'][0],
+            'all_output_tokens_equal': left['output_token_ids'] == right['output_token_ids'],
+            'top_token_sets_equal': set(a) == set(b)}
+
+
+async def qualify_native_cancel_reference(engine, plan, adapters, result, *, include_pairs=True,
+                                           numeric_controls=None):
     """Direct stock AsyncLLM reference; no Prime reference/load/retirement path.
 
     Original input pairs and native scheduler observation are reused. The final
@@ -1613,9 +1660,9 @@ async def qualify_native_cancel_reference(engine, plan, adapters, result, *, inc
     result['native_frontend_class'] = type(engine.engine).__module__ + '.AsyncLLM'
     def token_sha(ids):
         return hashlib.sha256(json.dumps(list(ids), separators=(',', ':')).encode()).hexdigest()
-    async def generate(entry, *, suffix, adapter_override=None):
+    async def generate(entry, *, suffix, adapter_override=None, explicit_base=False):
         row = json.loads(entry.source_json)
-        aid = adapter_override or row['adapter_id']
+        aid = None if explicit_base else (adapter_override or row['adapter_id'])
         target = min(row['expected_output_tokens'], 256)
         prepared = engine.prepare_request('', target, row['expected_input_tokens'],
                                           chat_messages=row['body']['messages'])
@@ -1623,12 +1670,16 @@ async def qualify_native_cancel_reference(engine, plan, adapters, result, *, inc
         case = {'request_id': request_id, 'source_request_id': entry.request_id,
                 'adapter_id': aid, 'target_tokens': target,
                 'prompt_sha256': hashlib.sha256(prepared.prompt.encode()).hexdigest(),
-                'lora_int_id': engine._lora_int_id(aid), 'lora_path': adapters[aid]['path'],
+                'lora_int_id': None if explicit_base else engine._lora_int_id(aid),
+                'lora_path': None if explicit_base else adapters[aid]['path'],
+                'explicit_base_diagnostic': explicit_base,
                 'outcome': 'pending', 'actual_tokens': None}
         result['requests'].append(case)
         params = SamplingParams(temperature=0., top_p=1., ignore_eos=True,
-                                stop=[], stop_token_ids=[], max_tokens=target, seed=42)
-        lora = LoRARequest(lora_name=aid, lora_int_id=case['lora_int_id'], lora_path=case['lora_path'])
+                                stop=[], stop_token_ids=[], max_tokens=target, seed=42,
+                                logprobs=20 if numeric_controls is not None else None)
+        lora = None if explicit_base else LoRARequest(
+            lora_name=aid, lora_int_id=case['lora_int_id'], lora_path=case['lora_path'])
         try:
             last = None
             async for out in engine.engine.generate(prepared.prompt, params, request_id, lora_request=lora):
@@ -1641,6 +1692,12 @@ async def qualify_native_cancel_reference(engine, plan, adapters, result, *, inc
                 output_ids_sha256=token_sha(last.outputs[0].token_ids),
                 native_prompt_ids_sha256=token_sha(last.prompt_token_ids),
                 output_token_ids=list(last.outputs[0].token_ids))
+            if numeric_controls is not None:
+                probabilities = last.outputs[0].logprobs
+                if not probabilities or len(probabilities) != target or not probabilities[0]:
+                    raise RuntimeError('native first-token probabilities missing')
+                case['first_token_logprobs'] = {
+                    str(t): float(p.logprob) for t, p in probabilities[0].items()}
         except asyncio.CancelledError:
             case['outcome'] = 'cancelled'
             raise
@@ -1682,18 +1739,33 @@ async def qualify_native_cancel_reference(engine, plan, adapters, result, *, inc
                 if not task.done(): task.cancel()
             await asyncio.gather(*tasks, return_exceptions=True)
     entry = plan.entries[3]
-    await generate(entry, suffix='native_sequential_same_adapter')
-    wrong_aid = result['negative_control_adapter']['adapter_id']
-    if adapters[wrong_aid]['weights_sha256'] == adapters[json.loads(entry.source_json)['adapter_id']]['weights_sha256']:
-        raise RuntimeError('wrong-adapter negative control requires different existing weights')
-    await generate(entry, suffix='native_sequential_wrong_adapter', adapter_override=wrong_aid)
+    if numeric_controls is not None:
+        cases = {}
+        for role in ('nonzero_a', 'zero', 'nonzero_b', 'base', 'nonzero_a_repeat'):
+            aid = None if role == 'base' else numeric_controls[
+                'nonzero_a' if role == 'nonzero_a_repeat' else role]['adapter_id']
+            cases[role] = await generate(entry, suffix=role, adapter_override=aid,
+                                         explicit_base=(role == 'base'))
+        result['numeric_comparisons'] = {name: compare_first_token_probabilities(cases[a], cases[b])
+            for name, a, b in (('a_repeat', 'nonzero_a', 'nonzero_a_repeat'),
+                               ('a_zero', 'nonzero_a', 'zero'),
+                               ('a_b', 'nonzero_a', 'nonzero_b'),
+                               ('zero_base', 'zero', 'base'),
+                               ('a_base', 'nonzero_a', 'base'))}
+        result['semantic_full_pool_qualification'] = False
+    else:
+        await generate(entry, suffix='native_sequential_same_adapter')
+        wrong_aid = result['negative_control_adapter']['adapter_id']
+        if adapters[wrong_aid]['weights_sha256'] == adapters[json.loads(entry.source_json)['adapter_id']]['weights_sha256']:
+            raise RuntimeError('wrong-adapter negative control requires different existing weights')
+        await generate(entry, suffix='native_sequential_wrong_adapter', adapter_override=wrong_aid)
     result['scheduler_after'] = await engine.ieee_scheduler_observation()
     final = result['scheduler_after']
     if final['admitted'] or final['unretired_iterations'] or final['native_deferred_free_batches']:
         raise RuntimeError('native reference has unfinished work')
     result['workers_after'] = await engine.ieee_worker_observation()
     result['native_adapter_cleanup'] = {}
-    for aid in sorted({case['adapter_id'] for case in result['requests']}):
+    for aid in sorted({case['adapter_id'] for case in result['requests'] if case['adapter_id'] is not None}):
         result['native_adapter_cleanup'][aid] = await engine.engine.remove_lora(engine._lora_int_id(aid))
     if not all(result['native_adapter_cleanup'].values()):
         raise RuntimeError('native reference failed to remove its loaded adapters')
@@ -1701,7 +1773,8 @@ async def qualify_native_cancel_reference(engine, plan, adapters, result, *, inc
 
 
 async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
-                              trace: Path, count: int, mode: str = 'sequential') -> dict:
+                              trace: Path, count: int, mode: str = 'sequential',
+                              artifact_audit: Path | None = None) -> dict:
     """Existing engine + old trace prefix, not a replacement performance runner.
 
     Sequential local-artifact qualification deliberately does not claim main
@@ -1717,7 +1790,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         raise ValueError('qualification uses a 1..100 request prefix, not a regenerated trace')
     if mode not in ('sequential', 'concurrent_pairs', 'cancel_pairs', 'cancel_pairs_retain_adapter',
                     'cancel_pairs_subprocess', 'native_cancel_reference',
-                    'native_adapter_reference') or (mode != 'sequential' and count != 4):
+                    'native_adapter_reference', 'native_numeric_reference') or (mode != 'sequential' and count != 4):
         raise ValueError('concurrent qualification requires exactly the original four-request prefix')
     result = {'kind': 'backend_native_model_prefix_qualification_v1', 'pass': False,
               'full_model_qualification': False, 'production_launch_authorized': False,
@@ -1730,6 +1803,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
     if mode != 'sequential':
         result.update(kind=f'backend_native_{mode}_qualification_v1',
                       input_mode='existing_four_request_prefix_concurrent_pairs_qualification')
+    if mode in ('native_adapter_reference', 'native_numeric_reference'):
+        result['input_mode'] = 'same_existing_req00003_sequential_adapter_controls'
     engine = None
     try:
         import asyncio
@@ -1750,7 +1825,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                    generation_contract='fixed_length_greedy_v1',
                    canonical_prompt_renderer='role_lines_v1', max_input_len=759,
                    max_output_tokens_cap=256)
-        if mode in ('native_cancel_reference', 'native_adapter_reference'):
+        if mode in ('native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference'):
             cfg['ieee_gpu_references'] = False
         result['model_config'] = cfg
         plan = FrozenReplayPlan.load(trace, count=count)
@@ -1772,6 +1847,23 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 adapters[aid] = {'path': str(path), 'weights_sha256': digest(weights),
                                 'config_sha256': digest(path/'adapter_config.json')}
         result['adapters'] = adapters
+        numeric_controls = None
+        if mode == 'native_numeric_reference':
+            if artifact_audit is None:
+                raise ValueError('numeric reference requires the completed artifact audit')
+            audit = json.loads(artifact_audit.read_text())
+            numeric_controls = select_numeric_controls(audit, pool, FrozenReplayPlan.load(trace, count=100).entries)
+            result['numeric_control_selection'] = numeric_controls
+            result['artifact_audit_sha256'] = digest(artifact_audit)
+            for row in numeric_controls.values():
+                aid = row['adapter_id']
+                path = (pool/aid).resolve(strict=True)
+                if not path.is_relative_to(pool) or path == pool:
+                    raise ValueError('numeric-control adapter outside frozen pool')
+                weights, cfg_sha = digest(path/'adapter_model.safetensors'), digest(path/'adapter_config.json')
+                if weights != row['weight_sha256'] or cfg_sha != row['config_sha256']:
+                    raise ValueError('numeric-control content changed since audit')
+                adapters[aid] = {'path': str(path), 'weights_sha256': weights, 'config_sha256': cfg_sha}
         if mode in ('native_cancel_reference', 'native_adapter_reference'):
             # Select by existing weight identity, never by output or performance.
             # Logical names alone are not evidence of different trained weights.
@@ -1807,10 +1899,10 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         for worker in result['workers_before']['workers']:
             validate_model_worker(worker, service, local_monotonic_clock_id())
         result['scheduler_before'] = await engine.ieee_scheduler_observation()
-        if mode in ('native_cancel_reference', 'native_adapter_reference'):
+        if mode in ('native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference'):
             result['stage'] = mode
             await qualify_native_cancel_reference(engine, plan, adapters, result,
-                                                  include_pairs=(mode == 'native_cancel_reference'))
+                include_pairs=(mode == 'native_cancel_reference'), numeric_controls=numeric_controls)
             return result
         result['sources_before'] = await engine.ieee_gpu_reference(operation='source_snapshot')
         if mode != 'sequential':
@@ -1993,13 +2085,14 @@ def main():
     parser.add_argument('--requirements', type=Path)
     parser.add_argument('--install-receipt', type=Path)
     parser.add_argument('--runtime-receipt', type=Path)
+    parser.add_argument('--artifact-audit', type=Path)
     parser.add_argument('--config', type=Path)
     parser.add_argument('--model-profile')
     parser.add_argument('--request-count', type=int, default=4)
     parser.add_argument('--expected-adapters', type=int, default=500)
     parser.add_argument('--qualification-mode', choices=['sequential', 'concurrent_pairs', 'cancel_pairs',
                         'cancel_pairs_retain_adapter', 'cancel_pairs_subprocess',
-                        'native_cancel_reference', 'native_adapter_reference'], default='sequential')
+                        'native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference'], default='sequential')
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')
@@ -2052,7 +2145,8 @@ def main():
             parser.error('backend-model-check requires runtime receipt, config, model profile, trace and new output')
         import asyncio
         result = asyncio.run(backend_model_check(args.runtime_receipt, args.config,
-            args.model_profile, args.replay_trace, args.request_count, args.qualification_mode))
+            args.model_profile, args.replay_trace, args.request_count, args.qualification_mode,
+            args.artifact_audit))
     elif args.action == 'install-candidate':
         if not args.candidate_environment or not args.requirements or not args.output:
             parser.error('install-candidate requires explicit new environment, requirements and output')

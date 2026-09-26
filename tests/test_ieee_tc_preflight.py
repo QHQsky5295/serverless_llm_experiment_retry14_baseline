@@ -8,6 +8,42 @@ from scripts import ieee_tc_preflight as p
 
 
 class ProtocolGates(unittest.TestCase):
+    def test_numeric_controls_use_existing_nonzero_and_same_rank_zero_content(self):
+        from types import SimpleNamespace
+        rows = [dict(adapter_id=aid, configured_rank=8, all_finite=True,
+                     all_tensors_zero=zero, all_ab_updates_provably_zero=zero,
+                     weight_sha256=sha) for aid, zero, sha in
+                [('a', False, 'sha-a'), ('alias', False, 'sha-a'),
+                 ('zero', True, 'sha-zero'), ('b', False, 'sha-b')]]
+        audit = dict(audit_complete=True, pools=[dict(root='/frozen', complete=True, rows=rows)])
+        entries = [SimpleNamespace(source_json=json.dumps({'adapter_id': aid}))
+                   for aid in ('a', 'alias', 'zero', 'a', 'b')]
+        controls = p.select_numeric_controls(audit, Path('/frozen'), entries)
+        self.assertEqual({k: v['adapter_id'] for k,v in controls.items()},
+                         dict(nonzero_a='a', nonzero_b='b', zero='zero'))
+        rows[-1]['configured_rank'] = 16
+        with self.assertRaisesRegex(ValueError, 'same-rank'):
+            p.select_numeric_controls(audit, Path('/frozen'), entries)
+        rows[0]['all_tensors_zero'] = True
+        with self.assertRaisesRegex(ValueError, 'nonzero operands'):
+            p.select_numeric_controls(audit, Path('/frozen'), entries)
+
+    def test_numeric_control_compares_probabilities_not_just_argmax(self):
+        a = dict(prompt_sha256='p', native_prompt_ids_sha256='t', output_token_ids=[7, 8],
+                 first_token_logprobs={'7': -1., '8': -2.})
+        b = {**a, 'first_token_logprobs': {'7': -1.25, '8': -2.5}}
+        result = p.compare_first_token_probabilities(a, b)
+        self.assertTrue(result['all_output_tokens_equal'])
+        self.assertEqual(result['max_abs_logprob_difference'], .5)
+        self.assertEqual(result['common_token_count'], 2)
+        self.assertEqual(p.compare_first_token_probabilities(a,a)['max_abs_logprob_difference'], 0.)
+        self.assertIsNone(p.compare_first_token_probabilities(a,
+            {**b, 'first_token_logprobs': {'9': -2.}})['max_abs_logprob_difference'])
+        for bad in ({**b, 'prompt_sha256': 'wrong'},
+                    {**b, 'first_token_logprobs': {'7': float('nan')}}):
+            with self.assertRaises(ValueError):
+                p.compare_first_token_probabilities(a, bad)
+
     def test_concurrent_qualification_copies_exact_native_mapping(self):
         mapping = {'request-a': ['native-a-random'], 'request-b': ['native-b-random']}
         result = p.qualification_request_mapping(['request-a', 'request-b'], mapping)

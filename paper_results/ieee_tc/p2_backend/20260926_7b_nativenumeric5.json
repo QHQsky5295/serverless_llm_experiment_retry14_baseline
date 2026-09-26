@@ -1,0 +1,157 @@
+{
+  "kind": "native_same_prompt_numeric_control_summary_v1",
+  "run_tag": "llama2_7b_nativenumeric5_attempt1",
+  "curated_csv_sha256": "f23b96fb99ba6edff1b4dca111db2af20ea40bcca0f10549c72f87c405d7436a",
+  "model": "llama2_7b",
+  "diagnostic_only": true,
+  "formal_performance_result": false,
+  "structural_contract_pass": true,
+  "semantic_full_pool_qualification": false,
+  "sources": {
+    "results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_nativenumeric5_attempt1.json": "05c23143f1dd313e0537324259bc8c17463dd8cb52ea3f8fe1b821885724e83f",
+    "results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_nativenumeric5_attempt1_launch.json": "3a641181398f65e80581d831a61cdc3b860a024de26311a5b49c1900597183c9",
+    "results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_nativenumeric5_attempt1_launch.launch/watchdog.jsonl": "c4d4cf6da6cc0fee3f5246007a4ba954c9d8caaebaf6d4d14eeca8f3377ad4d9",
+    "results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_nativenumeric5_attempt1_launch.launch/service.log": "8c8408e04730ff25e9f720cbbc6deddbc4791e6e9426c1758b31fe379d6000c4"
+  },
+  "checker_sha256": "a9de1ed9f3ee181f8c2707101131687149debbab64025c5133e3f2e1b6b5eff7",
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "trace": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "5e30436d2988d0932811a690cb5c3ebb2e618d85a9808990e1882c00e670d556",
+    "count": 4,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1
+  },
+  "artifact_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+  "selection": {
+    "nonzero_a": {
+      "adapter_id": "finance_lora",
+      "weight_sha256": "971901c3140f83f57cbb19fcc86d33b4d010f6d8fc15fbec621f0347bc31a258",
+      "config_sha256": "43dfb033e740f0783575dcceb590cb44a87b0fe597a09afee8d38e47480a129c",
+      "configured_rank": 8
+    },
+    "nonzero_b": {
+      "adapter_id": "medical_lora",
+      "weight_sha256": "d2b1dcfe42193917d0b2e0f728e735f24ad119dd2c77cb9b20c983c7f688fa5c",
+      "config_sha256": "9338d10d9fc95aec5abc0aaa149f757e0c5dd010004b2b105d3a0666fd08badb",
+      "configured_rank": 8
+    },
+    "zero": {
+      "adapter_id": "writing_lora_0011",
+      "weight_sha256": "bc7c9a6c63f27d3d82fac4a4897bee9fc998dd2cfa24e112562e23cf1d5a1c0f",
+      "config_sha256": "43dfb033e740f0783575dcceb590cb44a87b0fe597a09afee8d38e47480a129c",
+      "configured_rank": 8
+    }
+  },
+  "comparison": {
+    "a_repeat": {
+      "common_token_count": 20,
+      "max_abs_logprob_difference": 0.006367325782775879,
+      "first_token_equal": true,
+      "all_output_tokens_equal": true,
+      "top_token_sets_equal": true
+    },
+    "a_zero": {
+      "common_token_count": 20,
+      "max_abs_logprob_difference": 0.026077747344970703,
+      "first_token_equal": true,
+      "all_output_tokens_equal": true,
+      "top_token_sets_equal": true
+    },
+    "a_b": {
+      "common_token_count": 20,
+      "max_abs_logprob_difference": 0.012186527252197266,
+      "first_token_equal": true,
+      "all_output_tokens_equal": true,
+      "top_token_sets_equal": true
+    },
+    "zero_base": {
+      "common_token_count": 20,
+      "max_abs_logprob_difference": 0,
+      "first_token_equal": true,
+      "all_output_tokens_equal": true,
+      "top_token_sets_equal": true
+    },
+    "a_base": {
+      "common_token_count": 20,
+      "max_abs_logprob_difference": 0.026077747344970703,
+      "first_token_equal": true,
+      "all_output_tokens_equal": true,
+      "top_token_sets_equal": true
+    }
+  },
+  "requests": [
+    {
+      "request_id": "req_00003/nonzero_a",
+      "adapter_id": "finance_lora",
+      "explicit_base_diagnostic": false,
+      "actual_tokens": 217,
+      "target_tokens": 217,
+      "prompt_sha256": "ee3fa20a89e360813cdd6abf93ce33113972f0f6d5fac1cf440f1ff6450d9d52",
+      "native_prompt_ids_sha256": "d5693c4b98695de6ce787c87dc17659778e751665897296689deace2b7ff0ca4",
+      "output_ids_sha256": "046f60aa73f688614eec503afad97295bac13a72397309ead4081c1c57de7b3b"
+    },
+    {
+      "request_id": "req_00003/zero",
+      "adapter_id": "writing_lora_0011",
+      "explicit_base_diagnostic": false,
+      "actual_tokens": 217,
+      "target_tokens": 217,
+      "prompt_sha256": "ee3fa20a89e360813cdd6abf93ce33113972f0f6d5fac1cf440f1ff6450d9d52",
+      "native_prompt_ids_sha256": "d5693c4b98695de6ce787c87dc17659778e751665897296689deace2b7ff0ca4",
+      "output_ids_sha256": "046f60aa73f688614eec503afad97295bac13a72397309ead4081c1c57de7b3b"
+    },
+    {
+      "request_id": "req_00003/nonzero_b",
+      "adapter_id": "medical_lora",
+      "explicit_base_diagnostic": false,
+      "actual_tokens": 217,
+      "target_tokens": 217,
+      "prompt_sha256": "ee3fa20a89e360813cdd6abf93ce33113972f0f6d5fac1cf440f1ff6450d9d52",
+      "native_prompt_ids_sha256": "d5693c4b98695de6ce787c87dc17659778e751665897296689deace2b7ff0ca4",
+      "output_ids_sha256": "046f60aa73f688614eec503afad97295bac13a72397309ead4081c1c57de7b3b"
+    },
+    {
+      "request_id": "req_00003/base",
+      "adapter_id": null,
+      "explicit_base_diagnostic": true,
+      "actual_tokens": 217,
+      "target_tokens": 217,
+      "prompt_sha256": "ee3fa20a89e360813cdd6abf93ce33113972f0f6d5fac1cf440f1ff6450d9d52",
+      "native_prompt_ids_sha256": "d5693c4b98695de6ce787c87dc17659778e751665897296689deace2b7ff0ca4",
+      "output_ids_sha256": "046f60aa73f688614eec503afad97295bac13a72397309ead4081c1c57de7b3b"
+    },
+    {
+      "request_id": "req_00003/nonzero_a_repeat",
+      "adapter_id": "finance_lora",
+      "explicit_base_diagnostic": false,
+      "actual_tokens": 217,
+      "target_tokens": 217,
+      "prompt_sha256": "ee3fa20a89e360813cdd6abf93ce33113972f0f6d5fac1cf440f1ff6450d9d52",
+      "native_prompt_ids_sha256": "d5693c4b98695de6ce787c87dc17659778e751665897296689deace2b7ff0ca4",
+      "output_ids_sha256": "046f60aa73f688614eec503afad97295bac13a72397309ead4081c1c57de7b3b"
+    }
+  ],
+  "resources": {
+    "samples": 71,
+    "peak_bytes": 5059387392,
+    "min_host_available_bytes": 106164277248,
+    "event_maxima": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "native_gpu_contexts_released": true,
+    "service_scope_removed": true
+  },
+  "limitations": [
+    "One original prompt; five fixed-order controls, not independent repeats or formal performance.",
+    "Nonzero adapter probabilities differ, but A/A also differs; no tolerance or semantic pass inferred after seeing results.",
+    "All outputs agree, including explicit no-LoRA control; output text alone is not adapter identity evidence.",
+    "Top-20 first-token log probabilities are native partial distributions, not complete-logit or independent-reference verification.",
+    "3B semantic qualification and Full controller integration remain open."
+  ]
+}
