@@ -2841,6 +2841,80 @@ Full启动guard保留。无GPU/model、真实174或正式性能运行，没有�
 集成缺口，不扩展本轮局部测试为新的微测campaign。正式baseline/M1/M2、
 消融、敏感性均未开始，整体目标仍未完成。
 
+## D52：主动准备完成后的真实成本反馈
+
+### 主线选择、依据与假设
+
+本轮先检查原生HOST满缓存替换。vLLM0.30的CPU cache removal会调用
+deactivation；Torch pinned allocator可能仍保留已删除对象的内存。
+因此直接pop CPU条目既不能证明可用物理容量，也可能提前损害GPU副本。
+没有以LRU删除、扩大预算或零成本fallback绕过这个仍未闭合的主线问题。
+新增反馈测试中的默认多目标fixture确实在第四个CPU对象处返回
+`host_replacement_required`；保留该事实，不将其改成成功。
+
+同时核对D34/D36的需求路径反馈及D46混合准备：主动准备已经取得真实
+完成回执，却没有更新下一轮d。此次完成这一可独立验证的实际路径，
+不是宣称原生HOST替换已经完成。假设是：用同一物理操作的起止事件连接
+Remote/file→native HOST→GPU，可以按原EWMA更新原始来源class，而不
+把排队之前的时间、共享者的时间或GPU复用当成一次新加载。
+
+依据为IEEE原文的source preparation d、完成更新及冻结epoch语义，
+[vLLM0.30 worker源码](https://docs.vllm.ai/en/v0.30.0/api/vllm/lora/worker_manager/)
+中的CPU加载/GPU activation分界和单core串行执行，以及
+[model manager源码](https://docs.vllm.ai/en/v0.30.0/api/vllm/lora/model_manager/)
+的CPU删除/deactivation关系。
+[dLoRA原文入口](https://www.usenix.org/conference/osdi24/presentation/wu-bingyang)
+仅作为请求与adapter协同的相关背景，不提供本轮性能证据。
+
+### 实际路径和边界
+
+- 实际mixed runner在任何pre-init staging前固定源表示、内容、size class
+  和profile身份；未支持class在登记文件计划前拒绝。
+- HOST原生源从真实HOST→GPU加载起算。HOST/NVMe文件源从真实CPU物化
+  起算。Remote从自己的真实传输起算，结束于原生可执行栅栏。
+- 保留各段原始时间戳和同一clock/owner/adapter/path/content关联。
+  第一段加载之前的等待排除，开始加载后的阶段间等待保留，与D34一致；
+  这不是纯H2D或纯网络时延，不修改服务D/T/O定义。
+- 原生CPU共享准备新增creator标识；共享订阅者不能借用creator的完整
+  loading interval。Remote共享沿用原有IO owner标识。GPU复用记录
+  `native_load_invoked=false`和实际来源身份，成本为null而不是零。
+- CPU对象使用owner生成的incarnation身份，而不是adapter ID或内存地址。
+  原对象复用保持身份，驱逐后同ID/同路径重新加载改变身份；CPU与GPU
+  两段身份不同则完整样本无效。其他adapter导致的epoch变化不误作失效。
+- 仅物理GPU执行action在成功完成且归还引用后更新一次原slot的成本
+  model。共享GPU消费者不重复更新；错误反馈也不泄漏已完成的GPU引用。
+  同一native lease的重复反馈仍由现有cost model拒绝。
+- 本轮已经冻结的h/d、选择和replacement objective不被在线更新改写。
+  下一epoch看到新sequence；新副本仍从冻结profile初始化。
+- 文件最终目标只完成到HOST/NVMe，不能伪造“到GPU可执行”的完整d。
+  其部分耗时不更新这里的source-to-executable成本，也不把fixture数字
+  写入模型profile。九个公式和普通请求策略不变。
+
+### 正确性状态表（构造输入，不是模型性能实验）
+
+| 检查 | 结果与范围 |
+|---|---|
+| native HOST、HOST文件、NVMe、Remote完整边界 | helper保留真实顺序和起止差；用原EWMA更新 |
+| 实际selector→queue→native完成 | Remote/NVMe/native HOST三种来源能更新下一epoch，原plan不变 |
+| 同一CPU准备两个订阅者 | 只有creator拥有时间样本；共享同一lease，不重复加载 |
+| 同ID/同路径驱逐后重载 | 新native对象有不同身份，不能拼接旧CPU加载和新GPU加载 |
+| GPU被请求抢先准备 | 复用并发布来源身份；不更新成零成本 |
+| clock、owner、内容或时序错误 | 拒绝反馈；不猜测缺失阶段 |
+| 完成后反馈验证失败 | GPU引用先归还；无剩余文件/原生引用 |
+| 原生HOST满缓存 | 仍明确延后，未放宽；不是本轮完成项目 |
+
+首轮45项检查发现GPU复用回执缺少来源身份，补齐实际身份字段；未伪造
+加载边界。一次较大检查在新NVMe多目标fixture上达到55秒保护截止；
+加上定向3秒截止后确认是上述原生HOST满缓存延后。反馈验证随后使用
+单个明确来源目标，不改变生产容量/selector。131项定向检查通过，
+无失败、错误或跳过。加入CPU对象身份检查后，最终926项全量回归、
+42项已安装vLLM0.30/torch2.13原生环境检查和56项安全检查全部通过，
+CUDA未初始化。完整资源、保护清单和备份回执见执行状态。
+
+没有GPU模型/真实174/代表性profile测量或性能运行。完整native HOST与
+staging替换、代表性profile/allocator资格、Full生命周期/A4仍未闭合，
+Full guard保留。完成反馈后返回这些主线，不再重复局部反馈微测。
+
 ## D51：文件替换计入原生副本，并接到自动联合执行
 
 ### 假设、历史与第一性原则

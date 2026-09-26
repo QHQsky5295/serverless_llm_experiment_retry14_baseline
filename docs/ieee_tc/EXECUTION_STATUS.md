@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Automatic GPU and final-file replacement connected; Full remains open | P1_FORMULA_IMPLEMENTATION.md D1–D51. Same frozen h/d, held native file fallback, actual usable bytes and joint target protection; native-HOST/staging replacement, profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
+| P1 IEEE semantic alignment | Automatic GPU/final-file replacement and proactive d feedback connected; Full remains open | P1_FORMULA_IMPLEMENTATION.md D1–D52. Same frozen h/d and actual completion samples; native-HOST/staging replacement, profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -50,6 +50,16 @@ scripts/run_serverlessllm_relayserve_continuation.sh, cache/, installs/, repos/,
 configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
+
+LATEST IMPLEMENTATION: D52 connects actual proactive Remote/file/native HOST
+loading completion to the original source-class EWMA. Shared stages and GPU
+reuse are ineligible, not zero-time samples. Same physical GPU action updates
+once after returning its reference; frozen h/d and new-replica initialization
+remain unchanged. Native HOST full-cache replacement was inspected but NOT
+implemented: removal/deactivation and retained pinned allocation need a joint
+usable-capacity/admission design. A new multi-target fixture confirmed this
+existing deferred gate. No LRU/budget bypass. Full guard remains. Final D52
+validation/backup receipts below; do not repeat feedback/old model prefixes.
 
 LATEST IMPLEMENTATION: D51 final HOST/NVMe file targets now use automatic
 remaining-candidate selection and actual replacement with held native fallback
@@ -136,7 +146,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D51.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D52.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -192,6 +202,46 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D52 actual proactive preparation-cost feedback
+
+- Reread full authoritative plan/status and AGENTS/skills; inspected IEEE source,
+  D34/D36/D41/D46/D51 history and officialvLLM0.30 worker/model source plus dLoRA.
+  Start main328492967c966ab48ac70d8a5aee815931c31521, baseline16570c unchanged.
+  Protected147 and plan SHA unchanged. GPUs15MiB/0%, MemAvailable108733024KiB,
+  disk353419440128B at live recheck; original dirt preserved. No agents/model/GPU/
+  remote174/performance campaign. All42 older listed scopes report TasksCurrent0.
+- Native HOST replacement inspection confirmed CPU removal can deactivate GPU
+  and pinned allocator retention is not freed usable bytes. Did not add eviction
+  or relax budget. Advanced another required Full gate: actual mixed preparation
+  now feeds complete own-operation loading intervals to source-class EWMA.
+  First-stage prewait excluded; interstage wait retained. CPU/Remote sharing and
+  GPU reuse do not create zero or duplicate samples. Frozen epoch unchanged;
+  new replicas retain frozen initialization. P1 D52 gives correctness table.
+-7 new checks plus actual GPU-reuse identity receipt. Initial45 had1 error due
+  that missing source identity, corrected. A larger check timed out55s in new
+  multi-target NVMe fixture; bounded3s diagnosis confirmed existing native HOST
+  full-cache deferral for the fourth CPU object. No capacity/selector change:
+  feedback fixture uses one source target; replacement remains explicitly open.
+ 131 focused and initial925 full checks pass0fail/error/skip. Closure review adds
+  native CPU object incarnation across loading stages: same ID/path reloaded is
+  not the original CPU stage. Reuse preserves identity; reload changes it and
+  disqualifies a composed sample. Final-source full/native/safety receipts follow.
+- Formal baselines/M1/M2/ablation/sensitivity remain not started. Native HOST and
+  intermediate staging replacement, representative profiles/allocator qualification,
+  Full physical lifecycle/A4 and backend/remote qualification remain. Full guard
+  retained. No weights/traces/new profile/manuscript/old-result changes. Baseline
+  untouched; remote disk/nonzero3B authority gates unchanged. Goal active.
+- Final frozen-source926 functional checks,42 installedvLLM0.30.0/torch2.13.0+
+  cu130 checks and56 safety/census/replay checks pass0fail/error/skip. CUDA remains
+  uninitialized. All147 protected entries and source plan SHA reverified unchanged.
+  Prior main3284929 and baseline16570c fresh full remote SHAs verified. Final
+  owned-scope cleanup/resource and implementation backup receipts follow.
+- All eight D52 scopes verified TasksCurrent0, actual cgroup.procs empty and
+  high/max/oom/oom_kill0, then stopped. Forty-two older listed scopes were also
+  read-only inspected: all actual cgroup.procs empty. No model/test remains.
+  Final GPUs15MiB/0%, MemAvailable108494868KiB, disk353405702144B. No capacity
+  relaxation, no artifacts regenerated. Tested implementation backup follows.
 
 ### D51 automatic final-file replacement with native fallback lifetimes
 

@@ -103,6 +103,99 @@ def observed_preparation_interval(*, adapter_id, request_id, admission, native, 
         after_remote_publication_ms=(end-published)*1000. if published is not None else None)
 
 
+def observed_proactive_preparation_interval(*, adapter_id, context, native,
+                                            expected_clock_id=None):
+    """Join this operation's real stages, never another subscriber's timings.
+
+    d is remaining time from the first loading stage to executable publication.
+    File-only preparation is not that interval. Waiting before the first stage
+    is excluded; waits between stages (including admission) remain observable.
+    This is operational loading evidence, not an inference correctness claim.
+    """
+    from ..clock import local_monotonic_clock_id
+    clock = local_monotonic_clock_id() if expected_clock_id is None else expected_clock_id
+    source = context['source']
+    key = PreparationClass(**context['preparation_class'])
+    if (not isinstance(clock, str) or not clock
+            or any(not isinstance(context.get(k), str) or not context[k]
+                   for k in ('plan_id', 'preparation_profile_id'))
+            or source['tier'] != key.tier or source['representation'] != key.representation
+            or key.tier == 'gpu' or context['clock_id'] != clock
+            or native.get('clock_id') != clock or native.get('acquired') is not True
+            or native.get('lora_name') != adapter_id
+            or native.get('source_tier_before_acquisition') not in ('host', 'gpu')
+            or type(native.get('native_load_invoked')) is not bool
+            or any(not isinstance(native.get(k), str) or not native[k]
+                   for k in ('owner_id', 'lease_id', 'lora_path'))):
+        raise ValueError('proactive loading requires matching source/class/native ownership')
+    record = dict(kind='source_loading_to_executable_v1', observation_path='proactive',
+        adapter_id=adapter_id, request_id=None, plan_id=context['plan_id'], clock_id=clock,
+        source=copy.deepcopy(source), admission_service_class=dict(tier=key.tier,
+            representation=key.representation), preparation_class=asdict(key),
+        preparation_profile_id=context['preparation_profile_id'],
+        native_owner_id=native['owner_id'], native_lease_id=native['lease_id'],
+        profile_eligible=False, d_ms=None)
+    if not native['native_load_invoked']:
+        return record | dict(reason='native_source_reused_or_changed_before_loading')
+    if native['source_tier_before_acquisition'] != 'host':
+        raise ValueError('proactive new GPU loading requires a native HOST source')
+    def instant(value):
+        return type(value) in (int, float) and math.isfinite(value) and value > 0
+    begun = context['started_monotonic_s']
+    gpu_start, end = (native.get(k) for k in
+                     ('native_load_started_monotonic_s', 'native_load_completed_monotonic_s'))
+    if (not all(instant(t) for t in (begun, gpu_start, end))
+            or not begun <= gpu_start <= end or end != native.get('acquired_monotonic_s')):
+        raise ValueError('proactive loading lacks ordered native boundaries')
+    start, cpu_end, published = gpu_start, None, None
+    if source['native']:
+        if (key.tier != 'host' or source['owner_id'] != native['owner_id']
+                or source['path'] != native['lora_path']):
+            raise ValueError('proactive native source identity changed')
+    else:
+        cpu_result = context.get('native_host')
+        if cpu_result is None or not cpu_result.get('_movement', {}).get('owns_io', False):
+            return record | dict(reason='shared_native_host_preparation_reused')
+        cpu = cpu_result.get('receipt', {})
+        if (cpu.get('held') is not True or cpu.get('native_load_invoked') is not True
+                or cpu.get('clock_id') != clock or cpu.get('owner_id') != native['owner_id']
+                or cpu.get('lora_name') != adapter_id or cpu.get('lora_path') != native['lora_path']
+                or cpu_result.get('content_sha256') != source.get('content_sha256',
+                                                            source.get('expected_content_sha256'))):
+            raise ValueError('proactive CPU stage differs from the protected content/owner')
+        if (not isinstance(cpu.get('native_host_source_id'), str) or not cpu['native_host_source_id']
+                or not isinstance(native.get('native_host_source_id'), str) or not native['native_host_source_id']):
+            raise ValueError('proactive CPU/GPU loading lacks actual native source incarnation')
+        if cpu['native_host_source_id'] != native['native_host_source_id']:
+            return record | dict(reason='native_host_source_replaced_between_stages')
+        start, cpu_end = cpu.get('load_started_monotonic_s'), cpu.get('load_completed_monotonic_s')
+        if not all(instant(t) for t in (start, cpu_end)) or not begun <= start <= cpu_end <= gpu_start:
+            raise ValueError('proactive CPU/GPU stages are not ordered')
+        record['native_host_lease_id'] = cpu['lease_id']
+        if key.tier == 'remote':
+            remote_result = context.get('remote')
+            if remote_result is None or not remote_result.get('_movement', {}).get('owns_io', False):
+                return record | dict(reason='shared_file_preparation_reused')
+            remote = remote_result.get('remote_transfer', {})
+            if (remote.get('artifact_id') != adapter_id or remote.get('state') != 'published'
+                    or remote.get('loading_clock_id') != clock or remote.get('content_verified') is not True
+                    or remote.get('target_path') != native['lora_path']
+                    or not isinstance(remote.get('transfer_id'), str) or not remote['transfer_id']):
+                raise ValueError('proactive Remote stage lacks its verified transfer identity')
+            remote_start, published = remote.get('loading_started_monotonic_s'), remote.get('published_monotonic_s')
+            if not all(instant(t) for t in (remote_start, published)) or not begun <= remote_start <= published <= start:
+                raise ValueError('proactive Remote/CPU stages are not ordered')
+            record['remote_transfer_id'] = remote['transfer_id']
+            start = remote_start
+        elif source['path'] != native['lora_path']:
+            raise ValueError('proactive preparation changed its protected file source')
+    return record | dict(profile_eligible=True, reason='observed_complete_load',
+        loading_started_monotonic_s=start, executable_monotonic_s=end,
+        native_started_monotonic_s=gpu_start, native_host_completed_monotonic_s=cpu_end,
+        remote_published_monotonic_s=published, excluded_before_loading_ms=(start-begun)*1000.,
+        d_ms=(end-start)*1000., native_loading_ms=(end-gpu_start)*1000.)
+
+
 @dataclass
 class PreloadingCandidate:
     """Represents a candidate artifact for preloading"""

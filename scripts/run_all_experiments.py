@@ -16160,6 +16160,7 @@ class ScenarioRunner:
                     or value.get('clock_id') != local_monotonic_clock_id()):
                 raise ValueError('GPU preparation acknowledgement owner/clock differs')
             return value
+        source_feedback = {}
         async def execute(aid, attempt_id):
             row = rows[aid]
             evidence = dict(attempt_id=attempt_id, adapter_int_id=aid, state='observing')
@@ -16188,6 +16189,18 @@ class ScenarioRunner:
                 if checked(released).get('released') is not True:
                     raise RuntimeError('GPU preparation reference has not been released')
                 evidence.update(state='completed', release_receipt=released)
+                if aid in source_feedback:
+                    from faaslora.preloading.preloading_planner import (
+                        observed_proactive_preparation_interval, PreparationClass)
+                    context = source_feedback[aid]
+                    costs = slot.preparation_cost_model
+                    if costs is None or costs.profile_id != context['preparation_profile_id']:
+                        raise ValueError('proactive preparation profile changed during loading')
+                    interval = observed_proactive_preparation_interval(
+                        adapter_id=row['adapter_id'], context=context, native=receipt)
+                    interval['cost_model_updated'] = costs.record_completed_load(
+                        PreparationClass(**context['preparation_class']), interval)
+                    evidence['preparation_interval'] = interval
                 if cancelled or release_cancelled:
                     raise asyncio.CancelledError()
                 return MovementOutcome('completed', dict(adapter_int_id=aid, receipt=receipt,
@@ -16211,7 +16224,14 @@ class ScenarioRunner:
             # Never occupy a movement-queue execution slot while waiting for a
             # prerequisite on that same queue (it may have concurrency one).
             if prepare_source is not None:
-                await prepare_source(aid, plan_id)
+                context = await prepare_source(aid, plan_id)
+                if context is not None:
+                    costs = slot.preparation_cost_model
+                    from faaslora.preloading.preloading_planner import PreparationClass
+                    if costs is None or costs.profile_id != context['preparation_profile_id']:
+                        raise ValueError('proactive preparation has no matching replica cost model')
+                    costs.estimate(PreparationClass(**context['preparation_class']))
+                    source_feedback[aid] = context
             row = rows[aid]
             count = frozen['arrival_counts'].get(row['adapter_id'], 0)
             benefit = (next(r['benefit_ms'] for r in frozen['gpu_candidates']
@@ -16369,7 +16389,8 @@ class ScenarioRunner:
                 if not receipt['held']:
                     return MovementOutcome('deferred', reason=receipt['reason'])
                 return MovementOutcome('completed', dict(state='native_host_prepared', receipt=receipt,
-                    content_sha256=content, total_host_memory_covered=False))
+                    content_sha256=content, total_host_memory_covered=False,
+                    _cpu_owner_intent_id=intent if receipt['native_load_invoked'] else None))
             async def owned_materialize():
                 from faaslora.scheduling.resource_coordinator import UnresolvedTransferOperation
                 try:
@@ -16402,7 +16423,10 @@ class ScenarioRunner:
         self._ieee_gpu_plan_tasks.add(task)
         self._ieee_gpu_plan_engines[task] = engine
         try:
-            return await queue.wait(intent)
+            result = copy.deepcopy(await queue.wait(intent))
+            result['_movement'] = dict(intent_id=intent,
+                owns_io=result.pop('_cpu_owner_intent_id', None) == intent)
+            return result
         finally:
             _, cancelled = await settle(queue.withdraw(intent))
             try:
@@ -16530,6 +16554,17 @@ class ScenarioRunner:
                 targets[tier, aid] = dict(tier=tier, adapter_id=aid,
                     content_sha256=self._ieee_artifact_identities[aid]['content_sha256'])
         plan_id = uuid.uuid4().hex
+        # Validate before registering any ownership or starting pre-init IO.
+        from dataclasses import asdict
+        from faaslora.clock import local_monotonic_clock_id
+        gpu_feedback = {}
+        for aid_int, (candidate, source, _) in gpu_recipes.items():
+            key = self._preparation_profiles.classify_source(source)
+            if self._preparation_profiles.profile_id != plan['profile_id']:
+                raise ValueError('proactive source profile differs from frozen plan')
+            gpu_feedback[aid_int] = dict(source=copy.deepcopy(source), preparation_class=asdict(key),
+                preparation_profile_id=plan['profile_id'], plan_id=plan_id,
+                clock_id=local_monotonic_clock_id(), started_monotonic_s=time.monotonic())
         owned_file_replacement = (plan.get('replacement_policy') == 'owned_native_and_file_replacement_v2'
                                   and bool(recipes))
         if owned_file_replacement:
@@ -16657,21 +16692,23 @@ class ScenarioRunner:
         async def prepare_gpu_source(aid_int, native_plan_id):
             candidate, source, row = gpu_recipes[aid_int]
             aid = candidate.artifact_id
+            feedback = gpu_feedback[aid_int]
             if aid_int in gpu_staging:
-                await gpu_staging[aid_int]
+                feedback['remote'] = await gpu_staging[aid_int]
             observed = await target_engine.ieee_gpu_reference(operation='source_snapshot')
             current = next((r for r in observed['sources'] if r['adapter_int_id'] == aid_int), None)
             if current is not None:
                 if (current['adapter_id'], current['lora_path']) != (aid, row['lora_path']):
                     raise ValueError('mixed GPU preparation native source changed identity')
-                return  # Actual HOST/GPU validity and admission are rechecked by its owner.
+                return feedback  # Reuse is recorded as ineligible, not zero loading.
             if source['native']:
                 raise ValueError('planned native source was invalidated; a new epoch is required')
             if source['tier'] == 'remote' and aid_int not in gpu_staging:
-                await move(aid, 'nvme', None, candidate.density)
-            await self._queue_ieee_native_host_preparation(slot=gpu_slot, adapter_id=aid,
+                feedback['remote'] = await move(aid, 'nvme', None, candidate.density)
+            feedback['native_host'] = await self._queue_ieee_native_host_preparation(slot=gpu_slot, adapter_id=aid,
                 source_path=Path(row['lora_path']), trigger_reason=mode, plan_id=native_plan_id,
                 activation_id=activation_id, density=candidate.density)
+            return feedback
         async def execute_gpu():
             nonlocal gpu_slot, target_engine, gpu_objective
             try:

@@ -8,7 +8,8 @@ from pathlib import Path
 from dataclasses import asdict
 from faaslora.clock import local_monotonic_clock_id
 from faaslora.preloading.preloading_planner import (
-    observed_preparation_interval, PreparationClass, PreparationCostModel, FrozenPreparationProfiles)
+    observed_preparation_interval, observed_proactive_preparation_interval,
+    PreparationClass, PreparationCostModel, FrozenPreparationProfiles)
 
 
 class PreparationIntervals(unittest.TestCase):
@@ -80,6 +81,70 @@ class PreparationIntervals(unittest.TestCase):
     def test_gpu_zero_is_a_definition_not_a_completed_load_sample(self):
         with self.assertRaisesRegex(ValueError, 'non-executable'):
             observed_preparation_interval(**self.inputs('gpu', True))
+
+
+class ProactivePreparationIntervals(unittest.TestCase):
+    def inputs(self, tier='remote', native_source=False):
+        args = PreparationIntervals().inputs(tier, native_source)
+        native = args['native']
+        native['source_tier_before_acquisition'] = 'host'
+        native['native_host_source_id'] = 'cpu-object-1'
+        source = args['admission']['source']
+        source.update(representation='fixture-native' if native_source else 'fixture-file',
+                      content_sha256='a'*64)
+        key = PreparationClass(tier, source['representation'], 'fixture-layout', 0)
+        context = dict(source=source, preparation_class=asdict(key),
+            preparation_profile_id='fixture', plan_id='plan', clock_id=native['clock_id'],
+            started_monotonic_s=100.)
+        if not native_source:
+            context['native_host'] = dict(_movement=dict(owns_io=True), content_sha256='a'*64,
+                receipt=dict(held=True, native_load_invoked=True, clock_id=native['clock_id'],
+                    owner_id='worker', lease_id='cpu-lease', lora_name='a', lora_path='/existing/a',
+                    native_host_source_id='cpu-object-1',
+                    load_started_monotonic_s=142., load_completed_monotonic_s=145.))
+        if tier == 'remote':
+            context['remote'] = dict(_movement=dict(owns_io=True), remote_transfer=args['remote'])
+        return dict(adapter_id='a', context=context, native=native)
+
+    def test_complete_native_file_remote_boundaries_and_same_ewma(self):
+        for tier, native, expected in (('host',True,3000.), ('host',False,11000.),
+                                       ('nvme',False,11000.), ('remote',False,42000.)):
+            args = self.inputs(tier,native)
+            sample = observed_proactive_preparation_interval(**args)
+            key = PreparationClass(**args['context']['preparation_class'])
+            costs = PreparationCostModel({key:10.}, beta=.5, profile_id='fixture')
+            with self.subTest(tier=tier,native=native):
+                self.assertEqual(sample['d_ms'],expected)
+                self.assertTrue(costs.record_completed_load(key,sample))
+                self.assertEqual(costs.estimate(key),(10.+expected)/2)
+                self.assertEqual(costs.new_replica().estimate(key),10.)
+
+    def test_shared_cpu_remote_and_gpu_reuse_are_not_zero_samples(self):
+        for stage in ('native_host','remote','gpu','replaced'):
+            args=self.inputs()
+            if stage=='gpu': args['native']['native_load_invoked']=False
+            elif stage=='replaced': args['native']['native_host_source_id']='cpu-object-2'
+            else: args['context'][stage]['_movement']['owns_io']=False
+            result=observed_proactive_preparation_interval(**args)
+            self.assertFalse(result['profile_eligible'])
+            self.assertIsNone(result['d_ms'])
+
+    def test_cross_owner_clock_content_and_order_rejected(self):
+        changes=[('context', 'clock_id', 'other'),('native','clock_id','other'),
+            ('cpu','owner_id','other'),('cpu','lora_path','/other'),
+            ('cpu','load_completed_monotonic_s',151.),('cpu','load_started_monotonic_s',99.),
+            ('remote','published_monotonic_s',143.),('remote','state','failed')]
+        for stage,key,value in changes:
+            args=self.inputs()
+            dest=(args[stage] if stage in ('context','native') else
+                  args['context']['native_host']['receipt'] if stage=='cpu' else
+                  args['context']['remote']['remote_transfer'])
+            dest[key]=value
+            with self.subTest(stage=stage,key=key),self.assertRaises(ValueError):
+                observed_proactive_preparation_interval(**args)
+        args=self.inputs()
+        args['context']['native_host']['content_sha256']='b'*64
+        with self.assertRaises(ValueError): observed_proactive_preparation_interval(**args)
 
 
 class PreparationCosts(unittest.TestCase):

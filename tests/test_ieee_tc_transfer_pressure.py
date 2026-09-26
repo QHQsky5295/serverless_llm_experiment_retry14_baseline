@@ -1726,6 +1726,108 @@ class MixedOwnedPreparation(unittest.TestCase):
         asyncio.run(run())
 
 
+class ProactiveCostFeedback(unittest.TestCase):
+    """Actual mixed entry updates completed loading, not model performance."""
+    def test_native_source_incarnation_survives_reuse_but_not_reload(self):
+        from tests.test_ieee_tc_gpu_references import NativeFileHostPreparation
+        fixture=NativeFileHostPreparation()
+        fixture.setUp()
+        first=fixture.prepare()
+        fixture.release()
+        second=fixture.prepare(lease='reuse')
+        fixture.release('reuse')
+        self.assertEqual(first['native_host_source_id'],second['native_host_source_id'])
+        fixture.manager.remove_adapter(4)
+        third=fixture.prepare(lease='reloaded')
+        fixture.release('reloaded')
+        self.assertNotEqual(first['native_host_source_id'],third['native_host_source_id'])
+
+    def test_actual_remote_nvme_and_native_host_update_next_epoch_only(self):
+        import copy
+        from faaslora.preloading.preloading_planner import PreparationClass
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        for tier in ('remote','nvme','host'):
+            with self.subTest(tier=tier):
+                factory=MixedOwnedPreparation()
+                self.addCleanup(factory.doCleanups)
+                fixture,runner,queue,slot,owner,snapshot,loads=factory.make(remote_gpu=tier=='remote')
+                # One incoming source is sufficient for this timing contract.
+                # The default residency fixture also selects a second GPU
+                # target requiring the still-open native HOST replacement.
+                runner._stack.hotness_tracker=HotnessTracker(None,clock=lambda:100.)
+                runner._stack.hotness_tracker.record_arrival('c' if tier=='host' else 'a')
+                old_sequence,old_values=slot.preparation_cost_model.snapshot()
+                async def run():
+                    plan=await runner._plan_ieee_preparation_for_slot(slot=slot,mode='residency')
+                    frozen=copy.deepcopy(plan)
+                    try:
+                        await asyncio.wait_for(factory.execute(runner,slot,plan=plan),3)
+                    except asyncio.TimeoutError:
+                        self.fail(f'{tier} preparation did not settle: {queue.snapshot()}')
+                    self.assertEqual(plan,frozen)
+                    return plan
+                plan=asyncio.run(run())
+                intervals=[a['preparation_interval'] for p in runner._ieee_gpu_preparation_plans
+                           for a in p['attempts'] if 'preparation_interval' in a]
+                eligible=[r for r in intervals if r['cost_model_updated']]
+                self.assertTrue(any(r['source']['tier']==tier for r in eligible))
+                self.assertEqual(slot.preparation_cost_model.snapshot()[0],old_sequence+len(eligible))
+                for row in eligible:
+                    key=PreparationClass(**row['preparation_class'])
+                    self.assertEqual(row['d_ms'],(row['executable_monotonic_s']-
+                                                 row['loading_started_monotonic_s'])*1000.)
+                    self.assertEqual(slot.preparation_cost_model.estimate(key),
+                                     .5*old_values[key]+.5*row['d_ms'])
+                    self.assertEqual(slot.preparation_cost_model.new_replica().estimate(key),old_values[key])
+                self.assertEqual(plan['cost_sequence'],old_sequence)
+                factory.check_clean(fixture,runner,owner)
+
+    def test_feedback_error_after_completion_does_not_leak_gpu_reference(self):
+        factory=MixedOwnedPreparation()
+        self.addCleanup(factory.doCleanups)
+        fixture,runner,queue,slot,owner,snapshot,loads=factory.make()
+        old=slot.engine.ieee_prepare_host.side_effect
+        async def invalid(**kw):
+            receipt=await old(**kw)
+            if receipt.get('acquired'):
+                receipt['native_load_completed_monotonic_s']=None
+            return receipt
+        slot.engine.ieee_prepare_host.side_effect=invalid
+        with self.assertRaisesRegex(ValueError,'ordered native boundaries'):
+            asyncio.run(factory.execute(runner,slot))
+        self.assertEqual(slot.preparation_cost_model.snapshot()[0],0)
+        factory.check_clean(fixture,runner,owner)
+
+    def test_shared_native_cpu_load_has_only_one_timing_owner(self):
+        factory=OwnedNativeHostMovement()
+        self.addCleanup(factory.doCleanups)
+        async def run():
+            fixture,runner,queue,engine,ledger,native,slot=await factory.make()
+            entered,proceed=asyncio.Event(),asyncio.Event()
+            rpc=engine.ieee_gpu_reference
+            async def held(operation,**kw):
+                if operation=='prepare_file_host_and_hold':
+                    entered.set()
+                    await proceed.wait()
+                return await rpc(operation,**kw)
+            engine.ieee_gpu_reference=held
+            first=asyncio.create_task(factory.call(fixture,runner,slot,'first'))
+            await asyncio.wait_for(entered.wait(),2)
+            second=asyncio.create_task(factory.call(fixture,runner,slot,'second'))
+            async def joined():
+                while not any(len(r['subscriptions'])==2 for r in queue.snapshot()):
+                    await asyncio.sleep(0)
+            await asyncio.wait_for(joined(),2)
+            proceed.set()
+            results=await asyncio.wait_for(asyncio.gather(first,second),2)
+            self.assertEqual([r['_movement']['owns_io'] for r in results],[True,False])
+            self.assertEqual(results[0]['receipt']['lease_id'],results[1]['receipt']['lease_id'])
+            self.assertFalse(fixture.owner.leases)
+            self.assertFalse(native.owner._host_leases)
+            await queue.close()
+        asyncio.run(run())
+
+
 class AutomaticGPUReplacement(unittest.TestCase):
     """Automatic received-owner selection through the real mixed executor."""
     def make(self, counts=None):

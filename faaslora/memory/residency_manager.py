@@ -1239,6 +1239,7 @@ class IEEEBackendGPUReferences:
         # Identity must not itself retain evicted CPU weights. A native integer
         # ID and slot position alone cannot distinguish replacement/reuse.
         self._source_objects: Dict[int, weakref.ReferenceType] = {}
+        self._source_incarnations: Dict[int, str] = {}
         self._gpu_confirmations: Dict[int, Tuple[int, float]] = {}
         self._preparations: Dict[str, Dict[str, Any]] = {}
         self._preparation_plans: Dict[str, Dict[str, Any]] = {}
@@ -1278,6 +1279,13 @@ class IEEEBackendGPUReferences:
 
     def _caches(self):
         return self.manager._registered_adapters, self.manager._active_adapters
+
+    def _remember_source_object(self, adapter_int_id):
+        model = self._caches()[0].cache[adapter_int_id]
+        previous = self._source_objects.get(adapter_int_id)
+        if previous is None or previous() is not model:
+            self._source_incarnations[adapter_int_id] = uuid.uuid4().hex
+        self._source_objects[adapter_int_id] = weakref.ref(model)
 
     def _refresh(self):
         if threading.get_ident() != self.thread_id:
@@ -1625,7 +1633,7 @@ class IEEEBackendGPUReferences:
                     or set(cpu) != set(before[1]) | {adapter_int_id}):
                 raise RuntimeError('native HOST preparation changed GPU or unrelated CPU residency')
             self._sources[adapter_int_id] = source
-            self._source_objects[adapter_int_id] = weakref.ref(cpu.cache[adapter_int_id])
+            self._remember_source_object(adapter_int_id)
             self._refresh()
             receipt = self.hold_host_source(lease_id=lease_id, adapter_int_id=adapter_int_id,
                 lora_name=lora_name, lora_path=lora_path, expected_owner_id=self.owner_id,
@@ -1633,6 +1641,7 @@ class IEEEBackendGPUReferences:
             if not receipt['held']:
                 raise RuntimeError('completed CPU preparation could not protect its source')
             receipt.update(acquisition_operation='prepare_file_host_and_hold',
+                native_host_source_id=self._source_incarnations[adapter_int_id],
                 native_load_invoked=not cached, allocation=allocation,
                 load_started_monotonic_s=start, load_completed_monotonic_s=time.monotonic(),
                 total_host_memory_covered=False)
@@ -1845,7 +1854,7 @@ class IEEEBackendGPUReferences:
                 # an unrelated replacement must never gain this authorization.
                 if adapter_int_id not in cpu:
                     raise RuntimeError('native demand load did not register the requested adapter')
-                self._source_objects[adapter_int_id] = weakref.ref(cpu.cache[adapter_int_id])
+                self._remember_source_object(adapter_int_id)
             slots = self._refresh()
             if adapter_int_id not in slots:
                 raise RuntimeError('native demand load did not activate the requested adapter')
@@ -1872,6 +1881,7 @@ class IEEEBackendGPUReferences:
                        gpu_confirmed_before_acquisition=gpu_confirmed,
                        gpu_resident_before_load=gpu_hit, cpu_registered_before_load=cpu_hit,
                        native_load_invoked=not gpu_hit,
+                       native_host_source_id=self._source_incarnations.get(adapter_int_id),
                        native_load_started_monotonic_s=start if not gpu_hit else None,
                        native_load_completed_monotonic_s=(receipt['acquired_monotonic_s']
                            if not gpu_hit else None),
@@ -1943,7 +1953,10 @@ class IEEEBackendGPUReferences:
                 receipt = self.acquire(lease_id=lease_id, adapter_int_id=adapter_int_id,
                     expected_owner_id=expected_owner_id, expected_epoch=expected_epoch)
                 receipt.update(preparation_reused_gpu=True, preparation_plan_id=preparation_plan_id,
-                               proactive_admission_evaluated=False, native_load_invoked=False)
+                               proactive_admission_evaluated=False, native_load_invoked=False,
+                               lora_name=lora_name, lora_path=lora_path,
+                               source_tier_before_acquisition='gpu',
+                               native_host_source_id=self._source_incarnations.get(adapter_int_id))
                 self._preparations[lease_id] = dict(identity=identity, receipt=copy.deepcopy(receipt),
                                                      plan_id=preparation_plan_id)
                 return receipt
