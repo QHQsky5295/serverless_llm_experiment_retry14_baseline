@@ -1,6 +1,7 @@
 # Serverless: independent native launcher view
 
-Status: source adaptation and CPU checks only; no new Serverless model replay.
+Status: D65 actual two-raylet infrastructure witness passes; no new Serverless
+model replay. Native loader, model workers and performance remain unqualified.
 This is a prerequisite for the approved original/repaired 1,000-request pairs,
 not evidence that the repair improves TTFT or that native loading is qualified.
 
@@ -136,6 +137,8 @@ The result table and cleanup evidence must precede any next experiment.
 |---|---|---|
 | 1 | Outer argument parser rejected forwarded `--host` as ambiguous with its own `--host-copy-*`; exit 2 before any service start | Launcher error, not a Serverless result. Preserve console log; disable abbreviation at the argv-forwarding boundary and test both outer and nested parsers before retry |
 | 2 | Real TC service admission succeeded, but script-view verification compared a logical result path with its resolved physical path and stopped before Ray startup | The repository's existing results-parent symlink is legitimate. Canonicalize the destination once at preparation and preserve the requested alias; retain strict identity checks. Add a real symlink-parent regression case |
+| 3 | Head session exited before a Ray cluster became reachable; timeout retained. A shell-only reproduction shows that explicit resource JSON becomes invalid with an extra closing brace | Generated leaf scripts now separate default JSON assignment from parameter expansion; both default and explicit arguments are parsed in CPU tests. No Ray/model result follows |
+| 4 | Actual two-raylet and five-worker witness passes, including spawned children; full owned cleanup passes | Advance to native checkpoint/loader qualification, not formal performance. Do not repeat this infrastructure-only witness |
 
 Attempt1's auxiliary group is empty with all memory pressure/OOM events zero
 and was stopped. No Ray/model/remote process started; no inference time or
@@ -145,3 +148,61 @@ Attempt2's service and auxiliary groups are released/empty; watchdog reports
 one resource sample, no abort, native contexts clear and the service path
 removed. It imported the actual Ray2.54 environment but did not start a cluster.
 Do not misclassify either launcher failure as a baseline resource failure.
+
+Attempt3 is cleaned: service/watchdog exit1/0, service removed, no owned GPU
+context, auxiliary actual process list empty and all memory events0, then stopped.
+Its dead tmux pane had already disappeared, so the precise native stderr was not
+retained; the invalid-JSON cause is independently reproduced, not falsely quoted
+from that run. Future views use one hash-bound private tmux configuration with
+`remain-on-exit on`, retaining an exited pane until owned cleanup. This is the
+documented [tmux pane-retention behavior](https://man.openbsd.org/tmux.1), not a
+process restart or changed baseline policy. The original five scripts remain
+unchanged. No readiness marker alone can satisfy the actual-node witness.
+
+## D65 measured result and next boundary
+
+| Measurement | Actual observation | Scope |
+|---|---|---|
+| Ray import | 2.54.0, exact inspected commit | Native existing environment |
+| Live raylets | 2, both owned; command-line and node-table agreement | One head, one worker on this host |
+| Object-store capacities | 4,294,967,296 B each; 8,589,934,592 B total | Configured live capacities, not 8 GiB resident usage |
+| Worker/child ownership | 5/5 workers and 5/5 spawned children in the admitted group | 1 head CPU actor plus 4 logical-GPU actors; no CUDA |
+| CPU affinity | All ten use `4–23,28–47` | Actual affinity, not delegated cpuset |
+| Service limits | high72/max80 GiB, swap2 GiB | Shared actual OS memory limit |
+| Sampled memory peak | 1,324,113,920 B over 11 watchdog samples | Infrastructure only |
+| Witness memory.peak | 1,347,006,464 B | Separate instantaneous readback; not a model-serving footprint |
+| Pressure / swap | high/max/oom/oom_kill all0; sampled swap0 | No OOM or budget relaxation |
+| Cleanup | service/watchdog0/0, private tmux0, group removed, owned native contexts clear | Auxiliary empty/events0 and stopped too |
+
+Raw root (existing results symlink resolves here):
+`/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d65_20260927/`.
+Curated exact values, all four attempts and source SHA values are in the main
+repo's `paper_results/ieee_tc/serverless_audit/20260927_contained_ray_qualification.json`.
+No inference, native store or model was loaded. All22 CPU launcher/router checks
+pass, zero failures/errors/skips; earlier20/21 selections overlap, not repeats.
+
+Important readback: Ray advertises per-node logical `memory` resources of
+107,262,640,128 B (head) and106,816,192,512 B (worker), larger than the shared
+80 GiB OS limit. These are scheduling estimates, not enforced separate RAM
+allowances or actual allocation. Do not add them as physical usage or claim
+Ray's native memory monitor understands the shared cgroup. Inspection of the
+same two actual raylet logs confirms total memory134626840576B and a0.99
+threshold133280571392B, not the service cap. This agrees with the inspected
+[Ray2.54 memory-monitor source](https://raw.githubusercontent.com/ray-project/ray/ray-2.54.0/src/ray/common/memory_monitor.cc),
+which checks root cgroup files rather than resolving this nested user scope.
+The native monitor is left enabled and unchanged; its behavior is recorded,
+not called service-aware. The independently verified shared OS cap and external
+watchdog remain authoritative. This known behavior does not justify another
+infrastructure-only rerun, relaxed budgets, or an unrelated Ray rebuild.
+Next reuse and verify existing native checkpoint/overlay/store artifacts, then
+measure actual model loading and finally the original/repaired development pair.
+The previous three failed attempts stay visible and are not baseline failures.
+
+The existing3B native checkpoint and reversible official-loader port are still
+available from the earlier project. Only read them in D65: no installation,
+checkpoint conversion or model service. Reuse the exact source-gated loader
+installer `relayserve_v4_3_apply_serverlessllm_vllm_store_overlay.py`, not that
+project's unrelated M4 routing/affinity overlay. The TC audited source remains
+official9f50241; the other project's witness used0fd00ca. Their runtime behavior
+and evidence must not be interchanged just because the Python environment is
+shared. Record the full effective source/loader identity during model qualification.

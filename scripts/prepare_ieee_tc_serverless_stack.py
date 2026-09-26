@@ -21,6 +21,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 GIB = 1024**3
+TMUX_CONFIG = "set-window-option -g remain-on-exit on\n"
 SOURCE_SHA = {
     "start_serverlessllm_stack.sh": "9ded784fd6c1990dc9c0994d3ec7744b799cfbff830554ff22b85b8f9ddbb95d",
     "run_serverlessllm_head.sh": "8bb2cbb3e257085183f3cd586e86f0073770d98289f515850c7a84bb488c93ac",
@@ -69,6 +70,7 @@ export RAY_TMPDIR={q(str(private_root / 'ray_tmp'))}
 export SLLM_TC_RAY_TEMP={q(str(private_root / 'ray_tmp' / 'ray'))}
 export SLLM_TC_SPILL={q(str(script_dir / 'spill'))}
 export SLLM_TC_TMUX_SOCKET={q(str(private_root / 'tmux.sock'))}
+export SLLM_TC_TMUX_CONFIG={q(str(script_dir / 'tmux.conf'))}
 export SLLM_SINGLE_HOST_MULTI_GPU=1
 export SLLM_WORKER_GPUS={q(','.join(map(str, gpu_ids)))}
 export SLLM_SERVE_LOG_PATH={q(str(script_dir / 'serve.log'))}
@@ -86,7 +88,7 @@ export SLLM_STORE_LOG={q(str(script_dir / 'store.log'))}
 [[ -d "${{SLLM_STORE_PATH}}" ]] || exit 1
 [[ "${{SLLM_DIRECT_PATH_MODE:-0}}" == 0 ]] || {{ echo "TC native loader may not fall back to direct path" >&2; exit 1; }}
 [[ ! -e "${{SLLM_SERVE_LOG_PATH}}" && ! -e "${{SLLM_STORE_LOG}}" ]] || exit 1
-tmux() {{ command tmux -f /dev/null -S "${{SLLM_TC_TMUX_SOCKET}}" "$@"; }}
+tmux() {{ command tmux -f "${{SLLM_TC_TMUX_CONFIG}}" -S "${{SLLM_TC_TMUX_SOCKET}}" "$@"; }}
 [[ ! -e "${{SLLM_TC_TMUX_SOCKET}}" ]] || {{ echo "private socket already exists" >&2; exit 1; }}
 '''
     result = dict(sources)
@@ -115,6 +117,17 @@ tmux() {{ command tmux -f /dev/null -S "${{SLLM_TC_TMUX_SOCKET}}" "$@"; }}
     for role in ("head", "worker"):
         name = f"run_serverlessllm_{role}.sh"
         source = result[name]
+        # A JSON closing brace inside ${var:-...} otherwise terminates the
+        # expansion and appends another brace when an explicit value is set.
+        resource_var = f"SLLM_{role.upper()}_RESOURCES"
+        resource_line = next(line for line in source.splitlines()
+                             if line.startswith(resource_var + '='))
+        default = ('\'{"control_node": 1}\'' if role == "head" else
+                   '"{\\"worker_node\\": 1, \\"worker_id_${WORKER_ID}\\": 1}"')
+        source = replace_once(source, resource_line,
+            f'{resource_var}="${{{resource_var}:-}}"\n'
+            f'if [[ -z "${{{resource_var}}}" ]]; then\n'
+            f'  {resource_var}={default}\nfi')
         source = replace_once(source, 'RAY_OBJECT_STORE_MEMORY_BYTES="${SLLM_RAY_OBJECT_STORE_MEMORY_BYTES:-}"',
                               f'RAY_OBJECT_STORE_MEMORY_BYTES={allocation["head" if role == "head" else "worker_0"]}')
         extra = ['  --object-spilling-directory="${SLLM_TC_SPILL}/' + role + '"']
@@ -146,6 +159,7 @@ def prepare(output: Path, private_root: Path, main_repo: Path, gpu_ids: tuple[in
         "main_repo": str(main_repo), "private_root": str(private_root),
         "script_dir": str(output), "source_sha256": SOURCE_SHA,
         "requested_script_dir": requested_output,
+        "tmux_config_sha256": sha(TMUX_CONFIG.encode()),
         "rendered_sha256": {name: sha(data.encode()) for name, data in rendered.items()},
         "helper_sha256": sha(Path(__file__).read_bytes()),
         "object_store_bytes_by_raylet": allocation,
@@ -162,6 +176,8 @@ def prepare(output: Path, private_root: Path, main_repo: Path, gpu_ids: tuple[in
     for name, data in rendered.items():
         with (output / name).open("x") as handle:
             handle.write(data)
+    with (output / 'tmux.conf').open('x') as handle:
+        handle.write(TMUX_CONFIG)
     with (output / "launch_manifest.json").open("x") as handle:
         json.dump(manifest, handle, indent=2)
     return manifest
@@ -183,6 +199,9 @@ def verify(manifest_path: Path) -> dict:
         raise ValueError("launcher identity differs")
     if sha(Path(__file__).read_bytes()) != manifest["helper_sha256"]:
         raise ValueError("launcher adapter changed after preparation")
+    if (manifest.get('tmux_config_sha256') != sha(TMUX_CONFIG.encode())
+            or sha((root / 'tmux.conf').read_bytes()) != manifest['tmux_config_sha256']):
+        raise ValueError('private tmux configuration changed')
     if (manifest.get("source_sha256") != SOURCE_SHA
             or set(manifest["rendered_sha256"]) != set(SOURCE_SHA)
             or manifest["object_store_bytes_by_raylet"] != {"head": 4 * GIB, "worker_0": 4 * GIB}
@@ -273,7 +292,7 @@ def qualify_ray(args) -> dict:
         env.pop(key, None)
     os.environ.update({key: env[key] for key in ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY',
                        'http_proxy', 'https_proxy', 'all_proxy', 'NO_PROXY', 'no_proxy', 'RAY_TMPDIR')})
-    tmux = ['tmux', '-f', '/dev/null', '-S', str(args.private_root / 'tmux.sock')]
+    tmux = ['tmux', '-f', str(args.output / 'tmux.conf'), '-S', str(args.private_root / 'tmux.sock')]
     actors, failure = [], None
     try:
         with (args.output / 'startup.log').open('x') as log:

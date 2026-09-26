@@ -39,7 +39,7 @@ class NativeLaunchTests(unittest.TestCase):
         for forbidden in ("stop_serverlessllm_stack.sh", "sync_serverlessllm_runtime_sources.sh",
                           "kill-session", 'rm -f "${SERVE_LOG_PATH}"', '"bash -lc'):
             self.assertNotIn(forbidden, stack)
-        self.assertIn('command tmux -f /dev/null -S "${SLLM_TC_TMUX_SOCKET}"', stack)
+        self.assertIn('command tmux -f "${SLLM_TC_TMUX_CONFIG}" -S "${SLLM_TC_TMUX_SOCKET}"', stack)
         self.assertLess(stack.index(" verify --manifest "), stack.index("tmux new-session"))
         self.assertIn('unset TMUX TMUX_PANE', stack)
 
@@ -88,6 +88,7 @@ class NativeLaunchTests(unittest.TestCase):
             self.assertFalse(manifest["actual_workers_verified"])
             self.assertFalse((private / "tmux.sock").exists())
             self.assertFalse((output / "serve.log").exists())
+            self.assertEqual((output / 'tmux.conf').read_text(), launch.TMUX_CONFIG)
             with self.assertRaises(FileExistsError):
                 launch.prepare(output, private, MAIN, (0, 1))
 
@@ -164,7 +165,26 @@ class NativeLaunchTests(unittest.TestCase):
                 total += int(size.split('=')[1])
                 self.assertIn("--block", args)
                 self.assertIn(f"--object-spilling-directory={output}/spill/{role}", args)
+                resources = json.loads(next(a.split('=', 1)[1] for a in args if a.startswith('--resources=')))
+                self.assertEqual(resources, {'control_node': 1} if role == 'head' else
+                                 {'worker_node': 1, 'worker_id_0': 1})
+                explicit = {'control_node': 1} if role == 'head' else {'worker_node': 1, 'worker_id_0': 1}
+                override = dict(env, **{f'SLLM_{role.upper()}_RESOURCES': json.dumps(explicit)})
+                result = subprocess.run(['bash', str(output / f'run_serverlessllm_{role}.sh')],
+                                        env=override, text=True, capture_output=True, timeout=10, check=True)
+                args = json.loads(result.stdout)
+                resources = json.loads(next(a.split('=', 1)[1] for a in args if a.startswith('--resources=')))
+                self.assertEqual(resources, explicit)
             self.assertEqual(total, 8 * 1024**3)
+
+    def test_private_pane_retention_configuration_is_hash_bound(self):
+        with tempfile.TemporaryDirectory(prefix='tcs-test-') as directory:
+            root = Path(directory)
+            output = root / 'view'
+            launch.prepare(output, root / 'private', MAIN, (0,))
+            (output / 'tmux.conf').write_text('set-window-option -g remain-on-exit off\n')
+            with self.assertRaisesRegex(ValueError, 'tmux configuration changed'):
+                launch.verify(output / 'launch_manifest.json')
 
     def test_ray_only_executes_same_prefix_without_store_api_or_model(self):
         full, _ = self.render()
