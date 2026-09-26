@@ -1,0 +1,287 @@
+{
+  "kind": "native_host_allocator_observation_summary_v1",
+  "formal_performance_result": false,
+  "model_qualification": false,
+  "full_replacement_qualification": false,
+  "source_plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "sources": [
+    {
+      "arm": "default",
+      "raw_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/host_20260927/native_host_allocator_default_attempt1.json",
+      "raw_sha256": "fdce947020198d812d1e3893be6cb475fdd3b122e95bdfe2ca0c5eee65b89ac8",
+      "launch_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/host_20260927/native_host_allocator_default_attempt1_launch.json",
+      "launch_sha256": "9316c425023bddc14b10edf27823283df121de0b4fd084655d1322ad50e9ff5f",
+      "watchdog_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/host_20260927/native_host_allocator_default_attempt1_launch.launch/watchdog.jsonl",
+      "watchdog_sha256": "d770408241e9abfee1f06b61bdb88129bf476095fb66d47ffbe0dfdcaf45af95",
+      "check_source_sha256": "13a95c5b5e055c155f4972e50a1af7463b524da9fe83a4880c43d0945a9e9833",
+      "artifact_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f"
+    },
+    {
+      "arm": "uncached",
+      "raw_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/host_20260927/native_host_allocator_uncached_attempt1.json",
+      "raw_sha256": "08f7083ec24bfc2d6605187da7eabc8b5558e1dcb1f7ce1fe99809ae0a14e698",
+      "launch_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/host_20260927/native_host_allocator_uncached_attempt1_launch.json",
+      "launch_sha256": "bbeea7ecbc7b461f45bcf2f22da3a4442f18b5e8bbdf83303261adf66a28f498",
+      "watchdog_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/host_20260927/native_host_allocator_uncached_attempt1_launch.launch/watchdog.jsonl",
+      "watchdog_sha256": "97cefc90601669559b20ef42faed3587552d59701f24f1a12074abe86e15f05e",
+      "check_source_sha256": "13a95c5b5e055c155f4972e50a1af7463b524da9fe83a4880c43d0945a9e9833",
+      "artifact_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f"
+    }
+  ],
+  "arms": [
+    {
+      "arm": "default",
+      "allocator_environment": {
+        "PYTORCH_ALLOC_CONF": null,
+        "PYTORCH_CUDA_ALLOC_CONF": null,
+        "PYTORCH_HIP_ALLOC_CONF": null
+      },
+      "allocator_settings": {
+        "PYTORCH_CUDA_ALLOC_CONF": "",
+        "max_split_size": -1,
+        "garbage_collection_threshold": 0,
+        "expandable_segments": false,
+        "pinned_num_register_threads": 1,
+        "release_lock_on_cudamalloc": false,
+        "pinned_use_cuda_host_register": false,
+        "graph_capture_record_stream_reuse": false,
+        "max_round_threshold": -1,
+        "max_cached_size": -1,
+        "roundup_power2_divisions": {
+          "1": 0,
+          "2": 0,
+          "4": 0,
+          "8": 0,
+          "16": 0,
+          "32": 0,
+          "64": 0,
+          "128": 0,
+          "256": 0,
+          "512": 0,
+          "1024": 0,
+          "2048": 0,
+          "4096": 0,
+          "8192": 0,
+          "16384": 0,
+          "32768": 0
+        }
+      },
+      "cases": [
+        {
+          "pool": "llama32_3b_a500_v1_modelscope",
+          "adapter_id": "code_lora",
+          "rank": 8,
+          "removed_active_bytes": 11927552,
+          "returned_pinned_bytes": 0,
+          "reload_cuda_host_allocations": 0,
+          "after_remove_all_pinned_bytes": 23855104
+        },
+        {
+          "pool": "llama32_3b_a500_v1_modelscope",
+          "adapter_id": "code_lora_0015",
+          "rank": 16,
+          "removed_active_bytes": 23855104,
+          "returned_pinned_bytes": 0,
+          "reload_cuda_host_allocations": 0,
+          "after_remove_all_pinned_bytes": 71565312
+        },
+        {
+          "pool": "llama2_7b_a500_v2_publicmix",
+          "adapter_id": "code_lora",
+          "rank": 8,
+          "removed_active_bytes": 16777216,
+          "returned_pinned_bytes": 0,
+          "reload_cuda_host_allocations": 0,
+          "after_remove_all_pinned_bytes": 83099648
+        },
+        {
+          "pool": "llama2_7b_a500_v2_publicmix",
+          "adapter_id": "finance_lora",
+          "rank": 8,
+          "removed_active_bytes": 16777216,
+          "returned_pinned_bytes": 0,
+          "reload_cuda_host_allocations": 0,
+          "after_remove_all_pinned_bytes": 83099648
+        },
+        {
+          "pool": "llama2_7b_a500_v2_publicmix",
+          "adapter_id": "medical_lora",
+          "rank": 8,
+          "removed_active_bytes": 16777216,
+          "returned_pinned_bytes": 0,
+          "reload_cuda_host_allocations": 0,
+          "after_remove_all_pinned_bytes": 83099648
+        },
+        {
+          "pool": "llama2_7b_a500_v2_publicmix",
+          "adapter_id": "code_lora_0015",
+          "rank": 16,
+          "removed_active_bytes": 33554432,
+          "returned_pinned_bytes": 0,
+          "reload_cuda_host_allocations": 0,
+          "after_remove_all_pinned_bytes": 106168320
+        }
+      ],
+      "resource_samples": 17,
+      "sampled_service_peak_bytes": 782364672,
+      "memory_events": {
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0
+      },
+      "service_returncode": 0,
+      "watchdog_returncode": 0,
+      "native_gpu_context_release_confirmed": true,
+      "service_path_removed": true,
+      "final_allocation": {
+        "kind": "native_pinned_host_allocator_v1",
+        "available": true,
+        "pinned_allocated_bytes": 106168320,
+        "pinned_active_bytes": 0,
+        "pinned_cached_bytes": 106168320,
+        "pinned_blocks": 1248,
+        "pinned_active_blocks": 0,
+        "registered_pinned_storage_bytes": 0,
+        "registered_pageable_storage_bytes": 0,
+        "staged_only_pinned_storage_bytes": 0,
+        "staged_only_pageable_storage_bytes": 0,
+        "native_pageable_storage_bytes": 0,
+        "accounted_tensor_bytes": 106168320,
+        "scope": "process_pinned_allocator_plus_registered_pageable_tensors",
+        "total_host_memory_covered": false
+      }
+    },
+    {
+      "arm": "uncached",
+      "allocator_environment": {
+        "PYTORCH_ALLOC_CONF": "pinned_max_cached_size_mb:0",
+        "PYTORCH_CUDA_ALLOC_CONF": null,
+        "PYTORCH_HIP_ALLOC_CONF": null
+      },
+      "allocator_settings": {
+        "PYTORCH_CUDA_ALLOC_CONF": "pinned_max_cached_size_mb:0",
+        "max_split_size": -1,
+        "garbage_collection_threshold": 0,
+        "expandable_segments": false,
+        "pinned_num_register_threads": 1,
+        "release_lock_on_cudamalloc": false,
+        "pinned_use_cuda_host_register": false,
+        "graph_capture_record_stream_reuse": false,
+        "max_round_threshold": -1,
+        "max_cached_size": 0,
+        "roundup_power2_divisions": {
+          "1": 0,
+          "2": 0,
+          "4": 0,
+          "8": 0,
+          "16": 0,
+          "32": 0,
+          "64": 0,
+          "128": 0,
+          "256": 0,
+          "512": 0,
+          "1024": 0,
+          "2048": 0,
+          "4096": 0,
+          "8192": 0,
+          "16384": 0,
+          "32768": 0
+        }
+      },
+      "cases": [
+        {
+          "pool": "llama32_3b_a500_v1_modelscope",
+          "adapter_id": "code_lora",
+          "rank": 8,
+          "removed_active_bytes": 9175040,
+          "returned_pinned_bytes": 9175040,
+          "reload_cuda_host_allocations": 224,
+          "after_remove_all_pinned_bytes": 0
+        },
+        {
+          "pool": "llama32_3b_a500_v1_modelscope",
+          "adapter_id": "code_lora_0015",
+          "rank": 16,
+          "removed_active_bytes": 18350080,
+          "returned_pinned_bytes": 18350080,
+          "reload_cuda_host_allocations": 224,
+          "after_remove_all_pinned_bytes": 0
+        },
+        {
+          "pool": "llama2_7b_a500_v2_publicmix",
+          "adapter_id": "code_lora",
+          "rank": 8,
+          "removed_active_bytes": 16777216,
+          "returned_pinned_bytes": 16777216,
+          "reload_cuda_host_allocations": 256,
+          "after_remove_all_pinned_bytes": 0
+        },
+        {
+          "pool": "llama2_7b_a500_v2_publicmix",
+          "adapter_id": "finance_lora",
+          "rank": 8,
+          "removed_active_bytes": 16777216,
+          "returned_pinned_bytes": 16777216,
+          "reload_cuda_host_allocations": 256,
+          "after_remove_all_pinned_bytes": 0
+        },
+        {
+          "pool": "llama2_7b_a500_v2_publicmix",
+          "adapter_id": "medical_lora",
+          "rank": 8,
+          "removed_active_bytes": 16777216,
+          "returned_pinned_bytes": 16777216,
+          "reload_cuda_host_allocations": 256,
+          "after_remove_all_pinned_bytes": 0
+        },
+        {
+          "pool": "llama2_7b_a500_v2_publicmix",
+          "adapter_id": "code_lora_0015",
+          "rank": 16,
+          "removed_active_bytes": 33554432,
+          "returned_pinned_bytes": 33554432,
+          "reload_cuda_host_allocations": 256,
+          "after_remove_all_pinned_bytes": 0
+        }
+      ],
+      "resource_samples": 17,
+      "sampled_service_peak_bytes": 707137536,
+      "memory_events": {
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0
+      },
+      "service_returncode": 0,
+      "watchdog_returncode": 0,
+      "native_gpu_context_release_confirmed": true,
+      "service_path_removed": true,
+      "final_allocation": {
+        "kind": "native_pinned_host_allocator_v1",
+        "available": true,
+        "pinned_allocated_bytes": 0,
+        "pinned_active_bytes": 0,
+        "pinned_cached_bytes": 0,
+        "pinned_blocks": 0,
+        "pinned_active_blocks": 0,
+        "registered_pinned_storage_bytes": 0,
+        "registered_pageable_storage_bytes": 0,
+        "staged_only_pinned_storage_bytes": 0,
+        "staged_only_pageable_storage_bytes": 0,
+        "native_pageable_storage_bytes": 0,
+        "accounted_tensor_bytes": 0,
+        "scope": "process_pinned_allocator_plus_registered_pageable_tensors",
+        "total_host_memory_covered": false
+      }
+    }
+  ],
+  "analysis": "Exact native counter observations. Returned bytes = load_overlap allocated - remove_first allocated. Reload allocation delta = reload_first num_host_alloc - remove_first num_host_alloc. Cases in one process retain cross-class allocator history. No source timing ranking.",
+  "limitations": [
+    "Six existing checkpoint classes; not 500 distinct trained adapters.",
+    "CPU checkpoint materialization only; no backbone, merged registry, GPU activation or in-flight DMA.",
+    "One fresh process per allocator arm, no latency/TTFT/SLO or performance comparison.",
+    "pinned_max_cached_size_mb:0 also disables power-of-two rounding for these nonempty blocks.",
+    "No online budget/replacement configuration changed; no reusable-byte credit inferred from aggregate cached bytes."
+  ]
+}

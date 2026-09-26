@@ -1412,6 +1412,130 @@ def backend_runtime_check(install_receipt: Path, requirements: Path) -> dict:
     return result
 
 
+def select_host_allocator_controls(audit: dict) -> list[dict]:
+    """One existing checkpoint per content/rank/module class, before measurement."""
+    if audit.get('kind') != 'existing_artifact_tensor_audit_v1' or audit.get('audit_complete') is not True:
+        raise ValueError('HOST controls require the completed existing-artifact audit')
+    selected = []
+    for pool in audit['pools']:
+        if pool.get('complete') is not True:
+            raise ValueError('HOST control pool audit is incomplete')
+        seen = set()
+        for row in sorted(pool['rows'], key=lambda r: (r['weight_bytes'], r['adapter_id'])):
+            if row.get('inspected') is not True or row.get('all_finite') is not True:
+                raise ValueError('HOST control requires inspected finite weights')
+            modules = row['target_modules']
+            if not isinstance(modules, list) or not modules or not all(isinstance(m, str) for m in modules):
+                raise ValueError('HOST control requires explicit target modules')
+            key = (row['weight_sha256'], row['configured_rank'], tuple(sorted(modules)))
+            if key not in seen:
+                seen.add(key)
+                selected.append(dict(row, pool_root=pool['root']))
+    if not selected:
+        raise ValueError('HOST controls are empty')
+    return selected
+
+
+def backend_host_allocator_check(runtime_receipt: Path, artifact_audit: Path) -> dict:
+    """Native checkpoint CPU allocation/reuse evidence, without a backbone.
+
+    Uses the existing guarded service and immutable checkpoints. This is neither
+    Full replacement qualification nor a latency/cost profile. No cache flush,
+    fabricated weights, retained-byte credit or production budget change.
+    """
+    service = verify_current_service()  # Before input reads, torch or CUDA.
+    prior = json.loads(runtime_receipt.read_text())
+    if (prior.get('kind') != 'backend_cuda_import_qualification_v1'
+            or prior.get('pass') is not True or prior.get('stage') != 'complete'
+            or Path(prior['environment']).resolve() != Path(sys.prefix).resolve()):
+        raise RuntimeError('HOST check requires the completed native CUDA receipt')
+    controls = select_host_allocator_controls(json.loads(artifact_audit.read_text()))
+    result = dict(kind='native_host_allocator_observation_v1', service=service,
+        runtime_receipt_sha256=digest(runtime_receipt), artifact_audit_sha256=digest(artifact_audit),
+        check_source_sha256=digest(Path(__file__)), plan_sha256=check_plan(), environment=sys.prefix,
+        production_launch_authorized=False, model_qualification=False,
+        formal_performance_result=False, stage='imports', cases=[], controls=controls)
+    result['pass'] = False
+    try:
+        import gc
+        import torch
+        import vllm
+        from types import SimpleNamespace
+        from vllm.lora.lora_model import LoRAModel
+        from vllm.lora.peft_helper import PEFTHelper
+        from vllm.utils.torch_utils import PIN_MEMORY
+        sys.path.insert(0, str(ROOT))
+        from faaslora.memory.gpu_monitor import (
+            _ieee_lora_host_inventory, _ieee_pinned_host_observation, _ieee_file_host_contract)
+        if (vllm.__version__ != '0.30.0' or torch.__version__ != '2.13.0+cu130'
+                or torch.cuda.device_count() != 1 or not PIN_MEMORY):
+            raise RuntimeError('HOST check requires exact installed native candidate and one GPU')
+        torch.cuda.init()
+        result.update(torch_version=torch.__version__, backend_version=vllm.__version__,
+            observation_source_sha256=digest(ROOT/'faaslora/memory/gpu_monitor.py'),
+            native_loader_source_sha256=digest(Path(sys.modules[LoRAModel.__module__].__file__)),
+            allocator_environment={k: os.environ.get(k) for k in (
+                'PYTORCH_ALLOC_CONF', 'PYTORCH_CUDA_ALLOC_CONF', 'PYTORCH_HIP_ALLOC_CONF')},
+            allocator_settings=torch.cuda.memory._snapshot().get('allocator_settings'))
+        models = {}
+        # The inventory observes real checkpoint objects; it has no allocator or
+        # model-execution substitute. No native registry/GPU readiness is claimed.
+        inventory_owner = SimpleNamespace(list_adapters=lambda: dict(models))
+        def observe(label):
+            inventory = _ieee_lora_host_inventory(inventory_owner)
+            allocation = _ieee_pinned_host_observation(inventory)
+            if not allocation['available']:
+                raise RuntimeError('native HOST allocator statistics unavailable')
+            return dict(step=label, monotonic_s=time.monotonic(), allocation=allocation,
+                inventory=inventory, native_stats=dict(torch.cuda.host_memory_stats()),
+                service_memory_current_bytes=cgroup_snapshot(cg_path())['memory.current'])
+        result['initial'] = observe('initial')
+        for case_index, control in enumerate(controls):
+            directory = Path(control['directory'])
+            weight, config = directory/'adapter_model.safetensors', directory/'adapter_config.json'
+            if (digest(weight) != control['weight_sha256'] or digest(config) != control['config_sha256']):
+                raise RuntimeError('selected checkpoint differs from frozen audit')
+            helper = PEFTHelper.from_local_dir(str(directory), max_position_embeddings=None)
+            if helper._validate_features():
+                raise RuntimeError('selected native checkpoint has unsupported PEFT features')
+            case = dict(adapter_id=control['adapter_id'], pool_root=control['pool_root'],
+                weight_sha256=control['weight_sha256'], rank=control['configured_rank'],
+                contract=_ieee_file_host_contract(str(directory), torch.float16), steps=[])
+            result['cases'].append(case)
+            result['stage'] = 'checkpoint:' + str(case_index)
+            def load(aid):
+                start = time.monotonic()
+                models[aid] = LoRAModel.from_local_checkpoint(str(directory),
+                    expected_lora_modules=set(control['target_modules']), peft_helper=helper,
+                    lora_model_id=aid, device='cpu', dtype=torch.float16)
+                return time.monotonic()-start
+            for label, action in (('before', None), ('load_first', 'load1'),
+                    ('load_overlap', 'load2'), ('remove_first', 'remove1'),
+                    ('reload_first', 'load1'), ('remove_all', 'clear')):
+                elapsed = None
+                if action in ('load1', 'load2'):
+                    elapsed = load(1 if action == 'load1' else 2)
+                elif action == 'remove1':
+                    del models[1]
+                    gc.collect()
+                elif action == 'clear':
+                    models.clear()
+                    gc.collect()
+                sample = observe(label)
+                sample['cpu_checkpoint_load_seconds'] = elapsed
+                case['steps'].append(sample)
+            if digest(weight) != control['weight_sha256'] or digest(config) != control['config_sha256']:
+                raise RuntimeError('checkpoint changed during allocator observation')
+            print(json.dumps(dict(event='native_host_allocator_case', adapter_id=control['adapter_id'],
+                pool_root=control['pool_root'], completed_steps=len(case['steps']))), flush=True)
+        result['final'] = observe('final')
+        result.update(stage='complete', **{'pass': True})
+    except Exception as error:
+        import traceback
+        result.update(error_type=type(error).__name__, error=str(error), traceback=traceback.format_exc())
+    return result
+
+
 def backend_copy_check(runtime_receipt: Path) -> dict:
     """Real native setters/DMA, no backbone, new adapter artifact or trace.
 
@@ -2413,7 +2537,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
                                          'watchdog', 'watchdog-test', 'install-candidate', 'backend-check',
-                                         'backend-model-check', 'backend-copy-check', 'artifact-audit', '_worker',
+                                         'backend-model-check', 'backend-copy-check', 'backend-host-check', 'artifact-audit', '_worker',
                                          'gated-launch', '_launch-gate', '_replay-publisher', '_replay-witness'])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--seal', type=Path)
@@ -2495,6 +2619,10 @@ def main():
         if not args.runtime_receipt or not args.output:
             parser.error('backend-copy-check requires the native runtime receipt and new output')
         result = backend_copy_check(args.runtime_receipt)
+    elif args.action == 'backend-host-check':
+        if not args.runtime_receipt or not args.artifact_audit or not args.output:
+            parser.error('backend-host-check requires native runtime receipt, existing artifact audit and new output')
+        result = backend_host_allocator_check(args.runtime_receipt, args.artifact_audit)
     elif args.action == 'install-candidate':
         if not args.candidate_environment or not args.requirements or not args.output:
             parser.error('install-candidate requires explicit new environment, requirements and output')

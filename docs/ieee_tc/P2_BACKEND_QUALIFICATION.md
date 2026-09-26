@@ -612,3 +612,78 @@ worker CPU/GPU LRU 上维护请求引用；不是只修改 router 的 resident s
 
 下一步回到Full的物理KV/tier admission、实测profile和主动机制整合。此5请求
 诊断已经回答当前问题，不重复以增加“实验数量”。
+
+## 2026-09-27 D56：既有工件的原生HOST分配器实测
+
+D55完成了整次部署的物理GPU计量接线，但HOST字节占满时的替换仍未通过。
+本轮不是再次回放短前缀：复用现有preflight、受限服务和已审计工件，以
+官方LoRAModel CPU checkpoint loader直接测量分配器行为，不加载backbone。
+每池按权重字节、adapter ID排序，事先选每个权重SHA/rank/modules类的首项；
+共3B两项、7B四项。全部文件前后SHA核对，不修改工件或生成负载。
+
+每项执行：空对象集合→加载第一份→同时加载第二份→移除第一份→重新加载
+第一份→移除全部。仅删除本测量拥有的Python对象，不调用allocator flush，
+不预扣未来victim释放字节。对象集合供现有inventory读取，不模拟分配器。
+同一进程保留跨类缓存，这是分配器机制诊断，不是各模型独立性能工作点。
+
+### 默认分配器：第一次实测已完成
+
+| 既有工件类 | 第一份移除后active减少 | 第一份移除后allocated减少 | 同形状重载新增CUDA host allocations |
+|---|---:|---:|---:|
+| 3B rank8 | 11,927,552 B | 0 B | 0 |
+| 3B rank16 | 23,855,104 B | 0 B | 0 |
+| 7B rank8，零/finance/medical三类 | 各16,777,216 B | 各0 B | 各0 |
+| 7B rank16 | 33,554,432 B | 0 B | 0 |
+
+最终所有checkpoint对象移除，active为0，allocator仍持有106,168,320 B。
+3B rank8→rank16时，原有23,855,104 B缓存并未阻止新分配：大张量第一次
+加载又增加23,855,104 B。因此总cached字节不能直接当任意shape的可复用额度。
+同shape重载确实复用，但不能从该受控序列推断并发Full中的保证。
+
+原始记录：`results/ieee_tc/p2_backend_qualification/host_20260927/native_host_allocator_default_attempt1.json`
+及同名`_launch.json`。六项36步完成；17次外置资源采样，服务和watchdog退出0，
+NVML确认本次context释放、服务资源域移除；本次辅助域与58项安全检查域为空后
+停止。测量不是数值LoRA正确性、native registry/packing/GPU激活资格或SLO profile。
+
+### 第二次最小验证的依据与范围
+
+官方[PyTorch2.13配置解析](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/c10/core/AllocatorConfig.cpp)
+允许`pinned_max_cached_size_mb:0`；[分配器实现](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/aten/src/ATen/core/CachingHostAllocator.h)
+将超过该阈值的块在依赖结束后归还，而不是放入缓存。本轮第二项在新的
+独立受限进程中，对相同六项和相同步骤测量该官方配置，核对实际settings。
+这不是在线反复flush补丁，也不修改Prime生产配置。若归还行为成立，仍须
+评估频繁分配的开销、完整Full路径和预算内staging；不会直接宣布它是最优配置。
+原生checkpoint加载语义依据[vLLM0.30源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/lora_model.py)。
+
+### 两种配置的最终结果与下一步
+
+| 问题 | 默认配置 | 官方不缓存配置 |
+|---|---:|---:|
+| 核验的`max_cached_size` | -1（未设有限上限） | 0 |
+| 六类工件的同shape重载 | 均无新CUDA host allocation | 3B每次224次、7B每次256次新分配 |
+| 每类清空后的allocator allocated | 保留并随类别累积 | 每类均为0 |
+| 全部步骤结束allocated | 106,168,320 B | 0 B |
+| 外置采样的服务内存峰值 | 782,364,672 B | 707,137,536 B |
+| high/max/oom/oom_kill | 均0 | 均0 |
+| 服务/context清理 | 完成 | 完成 |
+
+不缓存配置中移除一份3B rank8/rank16分别归还9,175,040/18,350,080 B；
+7B对应16,777,216/33,554,432 B。**此选项还改变大小取整**：超过缓存阈值
+的块不再向上取二次幂，不能把3B占用差异全部归因于释放策略。
+
+两次均为单个新进程、固定相同输入次序，各六类36个状态点；不是独立性能
+重复，也没有用两次服务峰值估计显著性或模型性能。没有H2D/在途DMA，故
+没有验证GPU使用中的对象何时可以归还。源码、两个执行回执、watchdog SHA、
+完整72行计数和限制见`paper_results/ieee_tc/p2_backend/20260927_native_host_allocator.{json,csv}`。
+
+结论是收窄实现选择，而非宣布解决所有容量问题：
+
+- 默认缓存的总cached计数不能作为任意incoming对象的可用字节信用；维持
+  现有保守拒绝，不做减去cached总量的补丁。
+- 官方不缓存配置确有可观测归还行为，可作为后续受限HOST配置候选，但
+  失去重载分配复用；未在生产路径开启，未声称它改善TTFT或GPU-s。
+- 完整方案仍需在相同HOST额度内显式容纳加载workspace，先通过收益及
+  E(t)再执行替换，并在真实native worker中验证引用/在途copy/归还。
+  不能因这次CPU loader测量通过而解除Full guard或补写缺失profile。
+- 本问题的两次最小测量已完成，不再重复它们或旧请求前缀增加检查数量；
+  返回Full预算内staging/替换与代表性成本profile主线。

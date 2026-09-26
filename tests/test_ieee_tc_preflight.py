@@ -8,6 +8,25 @@ from scripts import ieee_tc_preflight as p
 
 
 class ProtocolGates(unittest.TestCase):
+    def test_host_allocator_controls_selected_before_measurement(self):
+        rows = [dict(adapter_id=a, weight_bytes=b, weight_sha256=s,
+            configured_rank=r, target_modules=['v_proj','q_proj'], inspected=True,
+            all_finite=True) for a,b,s,r in [('b',8,'same',8),('a',8,'same',8),('c',16,'large',16)]]
+        audit=dict(kind='existing_artifact_tensor_audit_v1', audit_complete=True,
+            pools=[dict(root='/frozen',complete=True,rows=rows)])
+        self.assertEqual([r['adapter_id'] for r in p.select_host_allocator_controls(audit)], ['a','c'])
+        for replacement in (dict(audit_complete=False),dict(pools=[])):
+            with self.assertRaises(ValueError):
+                p.select_host_allocator_controls({**audit,**replacement})
+        rows[0]['all_finite']=False
+        with self.assertRaisesRegex(ValueError,'finite'):
+            p.select_host_allocator_controls(audit)
+
+    def test_host_allocator_check_requires_guard_before_inputs_or_cuda(self):
+        with patch.object(p,'verify_current_service',side_effect=RuntimeError('no guard')):
+            with self.assertRaisesRegex(RuntimeError,'no guard'):
+                p.backend_host_allocator_check(Path('/missing'),Path('/missing'))
+
     def test_numeric_controls_use_existing_nonzero_and_same_rank_zero_content(self):
         from types import SimpleNamespace
         rows = [dict(adapter_id=aid, configured_rank=8, all_finite=True,

@@ -51,6 +51,18 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
+D56 measured the actual native CPU checkpoint allocator for all six existing
+content/rank/module classes, default vs official no-caching configuration, in
+two separately guarded processes. Default retains106168320B after all objects
+are removed; same-shape reload uses cached blocks, but cached total does not
+guarantee a different shape fits. Uncached returns blocks but loses allocation
+reuse (and changes size rounding). Results/table: P2_BACKEND_QUALIFICATION D56
+and paper_results/ieee_tc/p2_backend/20260927_native_host_allocator.{json,csv}.
+Do not repeat these two microchecks or turn them into an SLO/profile claim.
+Next: budgeted workspace and physical-byte-full replacement in actual Full,
+using observed allocator semantics, then representative profile/Full lifecycle.
+Production allocator settings/equations/budgets unchanged; Full remains guarded.
+
 D55 connects all dedicated owner journals and actual request terminals to one
 external-replay deployment reducer, including retired/failed-start runtimes.
 It does not qualify Full GPU execution or infer correct LoRA application from
@@ -163,6 +175,41 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
     Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D56 actual native HOST allocator evidence
+
+- Previous goal turn is progress: D55 connected/tested/backed up complete
+  deployment physical measurement. Startd0f07d0fc522e9f8e4d3c75dce868261a3ec1c08;
+  full plan/status/AGENTS and run-experiment/github-sync reread. Protected147,
+  plan SHA and original user dirt unchanged.42 historical listed scopes were
+  checked read-only: actual cgroup.procs all empty; no running model to restart.
+- Inspected D41/D42/D54 histories, actual native loader/budget/allocator code,
+  officialvLLM0.30 LoRAModel/worker, PyTorch2.13 allocator/config/statistics and
+  ELORA paper. Default stats cannot establish shape-compatible reusable bytes;
+  rejected both early victim credit and subtracting aggregate cached bytes.
+- Extended existing preflight with backend-host-check, no new framework or
+  pool/trace. Before measurement select first existing content/rank/modules
+  representative in weight-byte/ID order:3B2 and7B4. Exact weights/config SHA
+  checked before/after. Actual native CPU checkpoint materialization; no backbone,
+  native registry/packing, H2D, generation or inferred numerical correctness.
+- Two fresh guarded services (72/80GiB, swap2GiB, common CPU/aux/watchdog) run
+  default and official pinned_max_cached_size_mb:0, same six controls and six
+  steps each. Both complete, service/watchdog exit0, actual context release and
+  service removal confirmed. Each17 resource samples; peaks782364672/707137536B,
+  high/max/oom/oom_kill0. Auxiliary groups verified empty and stopped.
+- Default finalactive0 butallocated106168320B; same-shape reload adds0 native
+  allocations;3B rank transition still grows the pool despite cached bytes.
+  Uncached returns all six objects' blocks, finalallocated0; reload adds224
+  allocations for3B and256 for7B. Its size-rounding also differs. These are
+  mechanism observations, not performance repetitions or optimality evidence.
+- Exact72-row CSV + curated JSON record raw/launch/watchdog/source SHA, actual
+  config readback, resource state and limitations. P2 document supplies the
+  immediate result table before advancing. First arm cleaned/table written
+  before second. No production allocator/budget/policy change, no Full guard
+  removal, no model prefix repetition or formal baseline/main/ablation result.
+- Two added selector/guard checks;58 safety/census/replay and288 existing basic
+  smoke checks pass0fail/error/skip. Final cleanup/protection/backup follows.
+  Remote disk/nonzero3B authority choices remain pending; main goal stays active.
 
 ### D55 whole-deployment physical GPU measurement
 
