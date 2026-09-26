@@ -51,23 +51,25 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-D62 existing-pool identity input is complete: materialized-layout candidate
-indices cover all500 IDs/model,3B4000files/24exact classes and7B5000files/6classes.
-Use ONLY the two candidate paths in paper_results/ieee_tc/inputs/README.md;
-earlier skip indices are preserved local-pack diagnostics, not remote contracts.
-Existing HTTP consumer validates all local metadata/routing identities; full
-remote downloads and numerical correctness remain unqualified. No more index
-scans, allocator-only microtests or old request prefixes. Next representative
-actual service/preparation profiles with the D60 candidate and fixed HOST
-allowance, and Full/multi-plan/lifecycle qualification. Independently establish
-numerical correctness before marking profile samples correct; existing nonzero
-7B controls remain available,3B additional controls need the pending user choice.
-Remote174 remains below the approved150GiB floor, no service start. Full guard
-stays; formal baseline/M1/M2/ablations/sensitivities have NOT started. Final68
-safety/index/census/replay and288 smoke checks pass; original147 protected entries
-and plan unchanged. All owned scopes empty/stopped. Tested checkpoint
-5c89e3824c7f2055af8e59b9013567876e95f22b is pushed with fresh full remote SHA
-verification; receipt below. Goal remains active, no formal result yet.
+D63 independent7B HF/PEFT reference completes and is cleaned. Exact256tensors
+per adapter match existing weights; input393tokens matches old native SHA.
+All5 matched references close, but all20 correct/wrong comparisons also close
+under the same preregistered tolerance. This test cannot identify native adapter
+application; do not tune tolerance or repeat the same prompt. HF itself shows
+nonzero A/B effects and exact zero/base and A/A at this position. Immediate
+20-cell table/CSV/JSON is delivered in NATIVE_ADAPTER_NUMERIC_CONTROL. Full,
+500-ID semantic and real-remote qualifications stay OPEN. Current backbone SHA
+is now available; historical native SHA cannot be backfilled. Next actual
+Full/profile integration, with native identity/slot/arithmetic evidence and
+representative preparation/service measurements; unqualified samples are not
+correct-request claims. Use ONLY the two D62 candidate content indices in
+inputs/README. No more content rescans, allocator-only checks or old prefixes.
+D60 allocator candidate/fixed HOST allowance remains; Full guard stays until
+its actual unmet requirements are satisfied. Remote174 below150GiB and nonzero3B
+authority choices remain. No formal baseline/M1/M2/ablation/sensitivity begun.
+70 safety and288 smoke checks pass; all D63 owned scopes empty/stopped. Tested
+diagnosticd81f78cbdb200cdc7375cf6ad7daee8d32aaf10c pushed/full remote SHA checked;
+evidence backup follows below. Goal active, no formal optimality claim.
 
 D61 connects actual asynchronous HOST-capacity observations to existing deferred
 work on the frozen control cadence. No waiters means no RPC; unchanged bytes
@@ -287,6 +289,21 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
  reconstruction match native SHA without initializing CUDA. Three owned CPU
  scopes are empty with high/max/OOM0 and stopped. Protected147 and plan unchanged.
  Tested diagnostic source backup precedes the one independent model observation.
+- Diagnosticd81f78cbdb200cdc7375cf6ad7daee8d32aaf10c pushed/fresh full remote SHA
+  matches before launch. One guarded TMUX reference observation completes,
+  measurement/launcher pass, service/watchdog0, actual GPU context/domain gone.
+  HF loaded3x256tensors exactly; current backbone/input identities saved. All5
+  matching comparisons close, but all20 wrong/correct matrix cells also close;
+  adapter discrimination remains unestablished. HF nonzero full-vocab effects
+  differ from base; zero/base and A/A are0 at this single output position.
+  Immediate exact result table and curated20-row CSV/JSON delivered; no plot
+  or full qualification/performance claim. No threshold change/second attempt.
+- Watchdog57samples, peak1207103488B,minimum host available110319460352B,
+  high/max/OOM0; actual auxiliary process list empty/events0 then stopped.
+  FourGPUs15MiB/0%; no TMUX/model remains. RawSHA
+  ad1ee5427b37f2c272d90633ffa6e571b554fbd5824102405ccad1094a79802d.
+  Next representative profile/Full integration, not another same-prompt check.
+  External choices/Full guard unchanged. Final protection/evidence backup follows.
 
 ### D62 complete existing artifact identity for Full/profile input
 
