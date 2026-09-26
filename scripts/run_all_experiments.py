@@ -2792,6 +2792,12 @@ class InferenceEngine:
         max_tokens = self._resolve_request_output_limit(max_tokens)
         if fixed and max_tokens != declared_target:
             raise ValueError("model output cap cannot change the common fixed-output target")
+        if fixed and self.model_cfg.get('timing_contract') == 'ieee_tc_native_v1':
+            from faaslora.datasets.workload_generator import canonical_fixed_prompt
+            prepared = canonical_fixed_prompt(prompt, self._get_prompt_guard_tokenizer(),
+                declared_target, max_model_len=int(self.model_cfg.get('max_model_len', 1024)),
+                max_input_len=int(self.model_cfg.get('max_input_len', 759) or 759))
+            return prepared['prompt'], prepared['canonical_prompt_tokens'], declared_target
         max_len = int(self.model_cfg.get("max_model_len", 2048))
         max_input_len = max(0, int(self.model_cfg.get("max_input_len", 0) or 0))
         reserve = max(32, min(int(max_tokens), 256))
@@ -2898,10 +2904,8 @@ class InferenceEngine:
             if renderer != "role_lines_v1":
                 raise ValueError("native fixed-output chat input requires a frozen canonical_prompt_renderer")
             # Explicit common rendering recipe, not a fallback after template failure.
-            if any(not isinstance(item, dict) or not isinstance(item.get('content'), str)
-                   or not isinstance(item.get('role'), str) for item in messages):
-                raise ValueError("role_lines_v1 requires text role/content messages")
-            return "\n".join(f"{item['role'].strip().capitalize()}: {item['content']}" for item in messages)
+            from faaslora.datasets.workload_generator import render_role_lines
+            return render_role_lines(messages)
         try:
             tokenizer = self._hf_tokenizer or self._get_prompt_guard_tokenizer()
             rendered = tokenizer.apply_chat_template(

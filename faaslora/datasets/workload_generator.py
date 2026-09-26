@@ -118,6 +118,128 @@ class FrozenReplayPlan:
                 'profile': self.profile, 'rate_scale': self.rate_scale}
 
 
+def render_role_lines(messages):
+    """Explicit common text renderer; never a fallback after a template error."""
+    if (not isinstance(messages, list) or not messages
+            or any(not isinstance(m, dict) or not isinstance(m.get('role'), str)
+                   or not isinstance(m.get('content'), str) for m in messages)):
+        raise ValueError('role_lines_v1 requires nonempty text role/content messages')
+    return '\n'.join(f"{m['role'].strip().capitalize()}: {m['content']}" for m in messages)
+
+
+def canonical_fixed_prompt(prompt, tokenizer, target, *, max_model_len=1024, max_input_len=759):
+    """The existing Prime fixed-output recipe, shared with HTTP comparisons.
+
+    Content tokens and actual native input IDs (including special tokens) have
+    separate identities. No string/character/count fallback and no reduced target.
+    """
+    if (type(target) is not int or not 0 < target <= 256
+            or type(max_model_len) is not int or max_model_len <= 0
+            or type(max_input_len) is not int or not 0 < max_input_len <= 759
+            or not isinstance(prompt, str)):
+        raise ValueError('invalid common fixed-output contract')
+    budget = min(max_input_len, max(32, max_model_len-max(32, target)-8))
+    ids = tokenizer.encode(prompt, add_special_tokens=False)[-budget:]
+    while True:
+        prompt = tokenizer.decode(ids, skip_special_tokens=False)
+        reencoded = tokenizer.encode(prompt, add_special_tokens=False)
+        if len(reencoded) <= budget:
+            ids = reencoded
+            break
+        overflow = max(1, len(reencoded)-budget)
+        if len(ids) <= overflow:
+            raise ValueError('canonical prompt cannot satisfy its token budget')
+        ids = ids[overflow:]
+    native_ids = tokenizer.encode(prompt, add_special_tokens=True)
+    for values in (ids, native_ids):
+        if not values or any(type(t) is not int or t < 0 for t in values):
+            raise ValueError('canonical prompt requires real nonempty token IDs')
+    if len(native_ids)+target > max_model_len:
+        raise ValueError('canonical prompt plus special tokens and target exceeds context')
+    return dict(prompt=prompt, canonical_prompt_tokens=len(ids),
+                canonical_prompt_sha256=hashlib.sha256(prompt.encode()).hexdigest(),
+                input_token_ids=native_ids,
+                native_prompt_token_ids_sha256=hashlib.sha256(
+                    json.dumps(native_ids, separators=(',', ':')).encode()).hexdigest())
+
+
+def prepare_frozen_http_request(entry, tokenizer, model):
+    """Prepare an existing request, without changing its adapter/arrival identity."""
+    row = json.loads(entry.source_json)
+    expected = row.get('expected_output_tokens')
+    if type(expected) is not int or expected <= 0 or not row.get('adapter_id'):
+        raise ValueError('frozen request requires positive integer target and explicit adapter')
+    target = min(expected, 256)
+    prepared = canonical_fixed_prompt(render_role_lines(row['body']['messages']), tokenizer, target)
+    return dict(request_id=entry.request_id, source_item_sha256=entry.source_sha256,
+                adapter_id=row['adapter_id'], target_tokens=target, **prepared,
+                body=dict(model=model, request_id=entry.request_id,
+                          input_tokens=prepared['input_token_ids'],
+                          lora_adapter_name=row['adapter_id'], max_tokens=target,
+                          temperature=0, top_p=1, ignore_eos=True, stop=[], stop_token_ids=[],
+                          stream=False))
+
+
+async def replay_frozen_http(plan, origin, prepared, send, emit, *, request_timeout_s=1800.):
+    """HTTP transport for the same frozen arrival contract, run in auxiliary domain.
+
+    `send` is asynchronous and reports actual connection/submission boundaries.
+    There is no client semaphore, ready-time origin reset, or response-dependent
+    arrival generation. The finite offered trace bounds task count. Each timeout
+    is measured from planned arrival, not from a late connection acquisition.
+    """
+    if (origin.get('clock_id') != local_monotonic_clock_id()
+            or set(prepared) != {e.request_id for e in plan.entries}
+            or not math.isfinite(request_timeout_s) or request_timeout_s <= 0):
+        raise ValueError('HTTP replay clock/input/deadline contract differs')
+    notice, t0 = origin['deployment_notice_s'], origin['replay_t0_s']
+    if not all(map(math.isfinite, (notice, t0))) or t0 < notice or notice > time.perf_counter():
+        raise ValueError('invalid HTTP replay origin')
+    counts = dict(N_plan=len(plan.entries), N_arrived=0, N_terminal=0, N_response=0, N_failed=0)
+    tasks = []
+
+    async def execute(entry, event):
+        row = prepared[entry.request_id]
+        try:
+            remaining = event['planned_arrival_s']+request_timeout_s-time.perf_counter()
+            if remaining <= 0:
+                raise TimeoutError('planned-arrival deadline already expired')
+            response = await asyncio.wait_for(send(row, event), timeout=remaining)
+            counts['N_response'] += 1
+            emit(dict(event='http_response', **event, response=response,
+                      client_completed_s=time.perf_counter()))
+        except asyncio.CancelledError:
+            counts['N_failed'] += 1
+            emit(dict(event='http_request_cancelled', **event, client_completed_s=time.perf_counter()))
+            raise
+        except Exception as exc:
+            counts['N_failed'] += 1
+            emit(dict(event='http_request_failed', **event, error=type(exc).__name__+': '+str(exc),
+                      client_completed_s=time.perf_counter()))
+        finally:
+            counts['N_terminal'] += 1
+
+    try:
+        for index, entry in enumerate(plan.entries):
+            planned = t0+entry.offset_s
+            await asyncio.sleep(max(0., planned-time.perf_counter()))
+            event = dict(index=index, request_id=entry.request_id, planned_arrival_s=planned,
+                         task_created_s=time.perf_counter(), source_item_sha256=entry.source_sha256)
+            counts['N_arrived'] += 1
+            emit(dict(event='request_created', **event))
+            tasks.append(asyncio.create_task(execute(entry, event)))
+        await asyncio.gather(*tasks)
+        emit(dict(event='http_replay_complete', **counts))
+        return counts
+    except BaseException as exc:
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        emit(dict(event='http_replay_incomplete', **counts, error=type(exc).__name__+': '+str(exc)))
+        raise
+
+
 async def publish_frozen_replay(plan, address, nonce, receive_start, emit):
     """Auxiliary-process open loop; transport never blocks the arrival producer.
 

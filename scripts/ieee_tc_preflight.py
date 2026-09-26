@@ -1031,7 +1031,7 @@ def verify_current_service() -> dict:
 
 
 def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_growth=0,
-                 replay_trace=None, replay_profile='W0') -> dict:
+                 replay_trace=None, replay_profile='W0', http_replay_config=None) -> dict:
     """Existing runner launch with a bounded gate and a real independent watcher.
 
     The supervisor and watcher share the <=4 GiB auxiliary scope; serving is a
@@ -1039,6 +1039,8 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
     campaign gate (external replay and native GPU lifecycle remain required).
     """
     require_watchdog_primitives()
+    if http_replay_config is not None and (tiny or replay_trace is not None):
+        raise ValueError('HTTP replay and Unix/tiny replay are distinct explicit transports')
     auxiliary = cg_path()
     aux = cgroup_snapshot(auxiliary)
     if not re.fullmatch(r'primelora-tc-aux-[a-f0-9]{32}\.scope', auxiliary.name):
@@ -1117,8 +1119,24 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
 
         try:
             replay_ready = None
-            if replay_trace is not None:
-                publish_args = [sys.executable, str(Path(__file__).resolve()), '_replay-publisher',
+            if replay_trace is not None or http_replay_config is not None:
+                publish_env = dict(os.environ)
+                if http_replay_config is not None:
+                    http_config = json.loads(Path(http_replay_config).read_text())
+                    publisher_python = Path(http_config['python']).resolve(strict=True)
+                    helper = Path(http_config['helper']).resolve(strict=True)
+                    if (helper.name != 'prepare_ieee_tc_serverless_stack.py'
+                            or str(ROOT) != http_config['main_repo']):
+                        raise ValueError('HTTP publisher helper/main identity differs')
+                    publish_args = [str(publisher_python), str(helper), 'http-replay',
+                        '--config', str(Path(http_replay_config).resolve(strict=True)),
+                        '--output', str(evidence/'replay.jsonl')]
+                    # Tokenizer preparation needs neither torch nor TensorFlow.
+                    # This child remains inside the shared 4 GiB auxiliary group.
+                    publish_env.update(USE_TORCH='0', USE_TF='0', PYTHONDONTWRITEBYTECODE='1',
+                                       HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1')
+                else:
+                    publish_args = [sys.executable, str(Path(__file__).resolve()), '_replay-publisher',
                                 '--replay-trace', str(Path(replay_trace).resolve(strict=True)),
                                 '--replay-profile', replay_profile,
                                 '--gate-socket', str(Path(tmp)/'replay.sock'), '--gate-nonce', nonce,
@@ -1126,8 +1144,8 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                 if tiny:
                     publish_args.append('--tiny-witness')
                 publisher = subprocess.Popen(publish_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                             stderr=watch_error, text=True, bufsize=1)
-                if not select.select([publisher.stdout], [], [], 15)[0]:
+                                             stderr=watch_error, text=True, bufsize=1, env=publish_env)
+                if not select.select([publisher.stdout], [], [], 180 if http_replay_config else 15)[0]:
                     raise RuntimeError('external replay failed to become ready before deployment')
                 replay_ready = json.loads(publisher.stdout.readline())
                 if replay_ready['event'] != 'replay_ready':
@@ -1190,7 +1208,13 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                     receipt['external_replay'] = {
                         **origin, 'address': str(Path(tmp)/'replay.sock'), 'nonce': nonce,
                         'plan': replay_ready['plan'], 'frame_limit': replay_ready['frame_limit'],
-                        'tiny_witness': tiny, 'publisher_process': result['replay_process']}
+                        'tiny_witness': tiny, 'publisher_process': result['replay_process'],
+                        'transport': replay_ready.get('transport', 'unix'),
+                        'result_path': str(evidence/'replay.jsonl')}
+                    if http_replay_config is not None:
+                        if replay_ready.get('config_sha256') != digest(Path(http_replay_config)):
+                            raise ValueError('HTTP publisher input changed during qualification')
+                        receipt['external_replay']['config_sha256'] = replay_ready['config_sha256']
                     publisher.stdin.write(json.dumps(origin)+'\n')
                     publisher.stdin.flush()
                     publisher.stdin.close()
@@ -3113,6 +3137,8 @@ def main():
     parser.add_argument('--tiny-witness', action='store_true')
     parser.add_argument('--replay-trace', type=Path)
     parser.add_argument('--replay-profile', choices=['W0', 'W1'], default='W0')
+    parser.add_argument('--http-replay-config', type=Path,
+                        help='Explicit existing Serverless HTTP publisher configuration')
     parser.add_argument('--nvml-binding', type=Path)
     parser.add_argument('--nvml-sha256')
     parser.add_argument('--exec', dest='command', nargs=argparse.REMAINDER)
@@ -3152,7 +3178,8 @@ def main():
             parser.error('gated launch requires an executable command')
         result = gated_launch(command, args.output, tiny=args.tiny_witness,
                               predicted_growth=int(args.predicted_growth_gib*GIB),
-                              replay_trace=args.replay_trace, replay_profile=args.replay_profile)
+                              replay_trace=args.replay_trace, replay_profile=args.replay_profile,
+                              http_replay_config=args.http_replay_config)
     elif args.action == 'artifact-audit':
         if not args.path or not args.output:
             parser.error('artifact-audit requires existing pool path(s) and new output')

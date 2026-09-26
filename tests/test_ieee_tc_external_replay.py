@@ -10,6 +10,7 @@ import unittest
 from faaslora.clock import local_monotonic_clock_id
 from faaslora.datasets.workload_generator import (
     FrozenReplayPlan, ExternalReplayIngress, publish_frozen_replay,
+    render_role_lines, canonical_fixed_prompt, prepare_frozen_http_request, replay_frozen_http,
 )
 
 
@@ -54,6 +55,105 @@ class FrozenViews(unittest.TestCase):
                              ([row], {'profile':'W2'})]:
             with self.assertRaises(ValueError):
                 self.load_rows(rows, **kwargs)
+
+
+class CanonicalHTTPInput(unittest.TestCase):
+    class Tokenizer:
+        def encode(self, text, add_special_tokens=False):
+            return ([1] if add_special_tokens else []) + [ord(c) for c in text]
+
+        def decode(self, ids, skip_special_tokens=False):
+            return ''.join(chr(c) for c in ids)
+
+    def test_role_rendering_and_special_tokens_have_distinct_identity(self):
+        prompt = render_role_lines([dict(role='user', content='hello')])
+        self.assertEqual(prompt, 'User: hello')
+        row = canonical_fixed_prompt(prompt, self.Tokenizer(), 256)
+        self.assertEqual(row['canonical_prompt_tokens'], 11)
+        self.assertEqual(row['input_token_ids'], [1]+list(map(ord, prompt)))
+        self.assertNotEqual(row['canonical_prompt_sha256'], row['native_prompt_token_ids_sha256'])
+
+    def test_common_tail_cap_and_bad_targets(self):
+        row = canonical_fixed_prompt('a'*1000, self.Tokenizer(), 256)
+        self.assertEqual(len(row['input_token_ids']), 760)
+        for target in (0, True, 1.5, 257):
+            with self.assertRaises(ValueError):
+                canonical_fixed_prompt('x', self.Tokenizer(), target)
+        with self.assertRaises(ValueError):
+            canonical_fixed_prompt('x', self.Tokenizer(), 256, max_model_len=10)
+        with self.assertRaises(ValueError):
+            render_role_lines([dict(role='user', content=['not text'])])
+
+    def test_source_adapter_and_target_not_substituted(self):
+        from faaslora.datasets.workload_generator import FrozenReplayEntry
+        source = dict(expected_output_tokens=999, adapter_id='adapter-a',
+                      body=dict(messages=[dict(role='user', content='x')]))
+        entry = FrozenReplayEntry('r', 0., json.dumps(source), 'source-sha')
+        row = prepare_frozen_http_request(entry, self.Tokenizer(), 'model')
+        self.assertEqual(row['body']['max_tokens'], 256)
+        self.assertEqual(row['body']['lora_adapter_name'], 'adapter-a')
+        self.assertEqual(row['body']['input_tokens'], row['input_token_ids'])
+        self.assertEqual(row['body']['stop'], [])
+        self.assertTrue(row['body']['ignore_eos'])
+
+
+class HTTPOpenLoop(unittest.IsolatedAsyncioTestCase):
+    async def test_all_arrivals_exist_while_first_response_is_delayed(self):
+        from faaslora.datasets.workload_generator import FrozenReplayEntry
+        entries = tuple(FrozenReplayEntry(str(i), i*.005, '{}', str(i)) for i in range(5))
+        plan = FrozenReplayPlan('fixture', 'sha', entries, 'W0', 1., 5)
+        now = time.perf_counter()
+        origin = dict(deployment_notice_s=now, replay_t0_s=now+.005,
+                      clock_id=local_monotonic_clock_id())
+        events, begun, ended = [], [], []
+        release = asyncio.Event()
+
+        async def send(row, event):
+            begun.append(event['request_id'])
+            await release.wait()
+            ended.append(event['request_id'])
+            return {'ok': True}
+
+        task = asyncio.create_task(replay_frozen_http(plan, origin,
+            {e.request_id: {} for e in entries}, send, events.append))
+        await asyncio.sleep(.08)
+        self.assertEqual(len(begun), 5)
+        self.assertEqual(ended, [])
+        self.assertEqual([e['planned_arrival_s'] for e in events],
+                         [origin['replay_t0_s']+e.offset_s for e in entries])
+        release.set()
+        self.assertEqual((await task)['N_response'], 5)
+
+    async def test_failure_is_terminal_and_does_not_suppress_offered_requests(self):
+        from faaslora.datasets.workload_generator import FrozenReplayEntry
+        entries = tuple(FrozenReplayEntry(str(i), 0., '{}', str(i)) for i in range(3))
+        plan = FrozenReplayPlan('fixture', 'sha', entries, 'W0', 1., 3)
+        now = time.perf_counter()
+        origin = dict(deployment_notice_s=now, replay_t0_s=now,
+                      clock_id=local_monotonic_clock_id())
+        events = []
+
+        async def send(row, event):
+            if event['request_id'] == '1':
+                raise ValueError('HTTP error')
+            return {'ok': True}
+
+        counts = await replay_frozen_http(plan, origin, {e.request_id: {} for e in entries},
+                                          send, events.append)
+        self.assertEqual(counts, dict(N_plan=3, N_arrived=3, N_terminal=3, N_response=2, N_failed=1))
+        self.assertEqual(len([e for e in events if e['event']=='http_request_failed']), 1)
+
+    async def test_expired_arrival_not_given_new_timeout_and_clock_mismatch_refused(self):
+        from faaslora.datasets.workload_generator import FrozenReplayEntry
+        plan = FrozenReplayPlan('fixture', 'sha', (FrozenReplayEntry('r', 0., '{}', 'sha'),), 'W0', 1., 1)
+        now = time.perf_counter()-10
+        origin = dict(deployment_notice_s=now, replay_t0_s=now, clock_id=local_monotonic_clock_id())
+        async def send(*args):
+            self.fail('expired request must not reach endpoint')
+        counts = await replay_frozen_http(plan, origin, {'r': {}}, send, lambda e: None, request_timeout_s=1)
+        self.assertEqual(counts['N_failed'], 1)
+        with self.assertRaisesRegex(ValueError, 'clock/input'):
+            await replay_frozen_http(plan, dict(origin, clock_id='other-host'), {'r': {}}, send, lambda e: None)
 
 
 class OpenLoopTransport(unittest.IsolatedAsyncioTestCase):

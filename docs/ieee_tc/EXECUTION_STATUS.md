@@ -15,6 +15,31 @@
 - Resume by inspecting actual handles/Git/resources; never restart a live run
   from stale notes. D68 model/audit tasks finished; loader overlay RESTORED.
 
+## D69 in progress: shared Serverless HTTP request contract
+
+- D69 starts main e5ee402d0891247bee35316b6dfcb6fad57fac7a and baseline
+  23fa16fab7a223c607bcdc4ddbb9e973517f3492. Full plan/status/skills reread.
+- Existing FrozenReplayPlan/contained helper/guard now have explicit HTTP
+  transport. Prime and client share canonical role_lines_v1/fixed-output guard;
+  no legacy dirty replay edit, new workload/pool or upstream checkout mutation.
+- Exclusive original/repaired source views share API/router/native engine
+  observations; only existing load-balancer method differs. Actual0.10.2
+  stats are snapshotted at output creation and native collector merge, not
+  mixed with wall-clock timestamps. Native accepted LoRA identity is recorded,
+  still NOT independent numerical correctness proof. Official code checked online.
+-40 shared protocol/timing tests pass.38 baseline checks pass including the
+  collector regression. Real HTTP unit endpoint receives five
+  requests before releasing any response; fixture is not model performance.
+- Initial combined379-check invocation used native Python for OS guard tests:
+  2 errors/2 failures because that interpreter lacks pidfd_send_signal. No
+  guard weakened. Qualified system Python51 passes; separate main328 passes.
+  Logs under results/ieee_tc/serverless_qualification/d69_20260927.
+- Protected147 and plan unchanged. Local7B100-request mechanical qualification
+  configuration prepared from existing seed42/pool; it is NOT remote evidence,
+  NOT the1,000-request router pair and NOT a formal performance result.
+  No D69 GPU model launched yet; loader overlay still restored at this entry.
+  Remote-space and nonzero-LoRA user choices remain pending; M1/M2/A/S unstarted.
+
 ## Mainline ledger
 
 | Block | Status | Evidence / next |
