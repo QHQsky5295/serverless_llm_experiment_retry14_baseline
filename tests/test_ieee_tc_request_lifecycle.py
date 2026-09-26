@@ -276,7 +276,8 @@ def native_reference_fixture():
         manager.remove_adapter(aid)
     def load(**kwargs):
         aid = kwargs['adapter_int_id']
-        manager._registered_adapters[aid] = NativeAdapter()
+        if aid not in manager._registered_adapters:
+            manager._registered_adapters[aid] = NativeAdapter()
         manager.activate(aid)
     owner = IEEEBackendGPUReferences(manager, Mock(), demand_loader=load)
     async def rpc(*, operation, **kwargs):
@@ -668,6 +669,122 @@ class LocalSourceOwnership(unittest.TestCase):
 
 
 class ControllerNativeReferenceLifecycle(unittest.TestCase):
+    @staticmethod
+    def preload_native(owner, adapter_id='adapter-a'):
+        aid = InferenceEngine._lora_int_id(adapter_id)
+        snapshot = owner.snapshot()
+        owner.demand_load_and_acquire(lease_id='preload', adapter_int_id=aid,
+            lora_name=adapter_id, lora_path='/existing/a',
+            expected_owner_id=snapshot['owner_id'], expected_epoch=snapshot['epoch'])
+        owner.release(lease_id='preload', expected_owner_id=owner.owner_id)
+        return aid
+
+    def test_cached_native_weights_do_not_require_the_original_file(self):
+        for tier in ('gpu', 'host'):
+            with self.subTest(tier=tier):
+                runner, slot, trace, plan, owner, rpc = native_reference_fixture()
+                aid = InferenceEngine._lora_int_id(trace.adapter_id)
+                before = owner.snapshot()
+                owner.demand_load_and_acquire(lease_id='preload', adapter_int_id=aid,
+                    lora_name=trace.adapter_id, lora_path='/evicted/file/adapter-a',
+                    expected_owner_id=before['owner_id'], expected_epoch=before['epoch'])
+                owner.release(lease_id='preload', expected_owner_id=owner.owner_id)
+                if tier == 'host':
+                    owner.manager.deactivate(aid)
+                # Faithful native cache-hit branch: activation reuses CPU tensors.
+                owner.demand_loader = lambda **kwargs: owner.manager.activate(kwargs['adapter_int_id'])
+                runner._stack = SimpleNamespace(record_access=Mock(), residency_manager=SimpleNamespace(
+                    acquire_local_source=Mock(side_effect=AssertionError('file lease on cached tensors'))))
+                runner._resolve_lora.side_effect = AssertionError('file resolution on a cache hit')
+                runner._begin_scaleup_runtime_request_labels.side_effect = ValueError('stop before generation')
+                result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+                self.assertIn('stop before generation', result.error)
+                runner._resolve_lora.assert_not_awaited()
+                runner._stack.residency_manager.acquire_local_source.assert_not_called()
+                receipt = result.gpu_reference_evidence['receipt']
+                self.assertEqual(receipt['source_tier_before_acquisition'], tier)
+                self.assertEqual(receipt['lora_path'], '/evicted/file/adapter-a')
+                self.assertNotIn('local_source_reference', result.gpu_reference_evidence)
+                self.assertEqual(result.gpu_reference_evidence['state'], 'released')
+                self.assertFalse(result.gpu_reference_evidence['confirmed_dispatch_snapshot'])
+                self.assertEqual(slot.active_requests, 0)
+                self.assertEqual(owner.snapshot()['live_leases'], 0)
+
+    def test_cached_source_change_is_reobserved_before_any_file_read(self):
+        for changed_to in ('host', 'unconfirmed_gpu', 'file'):
+            with self.subTest(changed_to=changed_to):
+                runner, slot, trace, plan, owner, rpc = native_reference_fixture()
+                aid = self.preload_native(owner)
+                probes = []
+                async def changed_once(*, operation, **kwargs):
+                    if operation == 'demand_load_and_acquire':
+                        probes.append(dict(kwargs))
+                        if len(probes) == 1:
+                            owner.manager.deactivate(aid)
+                            if changed_to == 'file':
+                                owner.evict(adapter_int_id=aid)
+                            elif changed_to == 'unconfirmed_gpu':
+                                owner.manager.activate(aid)
+                    return await rpc(operation=operation, **kwargs)
+                slot.engine.ieee_gpu_reference.side_effect = changed_once
+                runner._begin_scaleup_runtime_request_labels.side_effect = ValueError('pre-generation stop')
+                result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+                self.assertIn('pre-generation stop', result.error)
+                self.assertEqual(len(probes), 2)
+                self.assertEqual(probes[0]['required_source_tier'], 'gpu')
+                if changed_to == 'file':
+                    runner._resolve_lora.assert_awaited_once()
+                    self.assertNotIn('required_source_tier', probes[1])
+                else:
+                    runner._resolve_lora.assert_not_awaited()
+                    self.assertEqual(probes[1]['required_source_tier'], 'host')
+                evidence = result.gpu_reference_evidence
+                self.assertEqual(len(evidence['cache_source_rechecks']), 1)
+                self.assertFalse(evidence['cache_source_rechecks'][0]['conflict']['acquired'])
+                self.assertEqual(evidence['receipt']['source_tier_before_acquisition'],
+                                 'file' if changed_to == 'file' else 'host')
+                self.assertEqual(evidence['state'], 'released')
+                self.assertEqual(owner.snapshot()['live_leases'], 0)
+                self.assertEqual(slot.active_requests, 0)
+
+    def test_lost_cached_acquisition_retains_native_not_file_ownership(self):
+        runner, slot, trace, plan, owner, rpc = native_reference_fixture()
+        self.preload_native(owner)
+        async def check():
+            entered = asyncio.Event()
+            async def lost(*, operation, **kwargs):
+                value = await rpc(operation=operation, **kwargs)
+                if operation == 'demand_load_and_acquire':
+                    entered.set()
+                    await asyncio.Future()
+                return value
+            slot.engine.ieee_gpu_reference.side_effect = lost
+            task = asyncio.create_task(runner._exec_request(trace, 4, 0., request_plan=plan))
+            await asyncio.wait_for(entered.wait(), .5)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+        asyncio.run(check())
+        evidence = runner._unsettled_runtime_reservations[trace.request_id].gpu_reference_evidence
+        self.assertEqual(evidence['state'], 'acquiring')
+        self.assertNotIn('local_source_reference', evidence)
+        self.assertEqual(evidence['intent']['required_source_tier'], 'gpu')
+        runner._resolve_lora.assert_not_awaited()
+        self.assertEqual(owner.snapshot()['live_leases'], 1)
+        self.assertEqual(slot.active_requests, 1)
+        self.assertEqual(slot.status, 'draining')
+
+    def test_cached_native_identity_collision_does_not_resolve_or_generate(self):
+        runner, slot, trace, plan, owner, rpc = native_reference_fixture()
+        aid = self.preload_native(owner)
+        owner._sources[aid] = ('different-adapter', '/existing/a')
+        with self.assertRaisesRegex(ValueError, 'another adapter'):
+            asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        runner._resolve_lora.assert_not_awaited()
+        slot.engine.generate_prepared.assert_not_awaited()
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(slot.active_requests, 0)
+
     def test_native_http_capacity_conflict_rejects_before_reading_body(self):
         from faaslora.memory.residency_manager import ResidencyManager
         from faaslora.registry.schema import StorageTier
@@ -855,7 +972,14 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
             manager = ResidencyManager({'memory': {'nvme': {'cache_dir': directory}}}, Mock(), Mock())
             runner._stack = SimpleNamespace(residency_manager=manager, record_access=Mock())
             runner._resolve_lora.return_value = ('adapter-a', str(source), 1., 'nvme', 0., 0.)
-            slot.engine.ieee_gpu_reference.side_effect = RuntimeError('snapshot unavailable')
+            snapshots = []
+            async def fail_after_file_resolution(*, operation, **kwargs):
+                if operation == 'source_snapshot':
+                    snapshots.append(operation)
+                    if len(snapshots) == 2:
+                        raise RuntimeError('snapshot unavailable')
+                return await rpc(operation=operation, **kwargs)
+            slot.engine.ieee_gpu_reference.side_effect = fail_after_file_resolution
             result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
             self.assertEqual(result.gpu_reference_evidence['local_source_reference']['state'], 'released')
             self.assertTrue(manager._delete_path(str(source)))
@@ -1061,8 +1185,9 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
         async def wrong_clock(*, operation, **kwargs):
             return {**await rpc(operation=operation, **kwargs), 'clock_id': 'different-host'}
         slot.engine.ieee_gpu_reference.side_effect = wrong_clock
-        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
-        self.assertIn('clock identity', result.error)
+        with self.assertRaisesRegex(ValueError, 'clock identity'):
+            asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        runner._resolve_lora.assert_not_awaited()
         self.assertEqual(owner.snapshot()['live_leases'], 0)
         self.assertEqual(slot.active_requests, 0)
         slot.engine.generate_prepared.assert_not_awaited()

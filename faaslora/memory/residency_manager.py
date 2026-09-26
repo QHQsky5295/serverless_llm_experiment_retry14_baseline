@@ -558,7 +558,8 @@ class IEEEBackendGPUReferences:
 
     def demand_load_and_acquire(self, *, lease_id: str, adapter_int_id: int,
                                 lora_name: str, lora_path: str,
-                                expected_owner_id: str, expected_epoch: int) -> Dict[str, Any]:
+                                expected_owner_id: str, expected_epoch: int,
+                                required_source_tier: Optional[str] = None) -> Dict[str, Any]:
         """Native demand load -> completion -> pin, on one serialized worker.
 
         There is no await or controller-side load/query gap in this operation.
@@ -570,6 +571,11 @@ class IEEEBackendGPUReferences:
         CPU allocation remains subject to the actual service cgroup/native
         loader. This claims only an executable adapter reference, not request
         slots, KV capacity, HOST bytes or the paper's proactive E(t) admission.
+
+        A cached-source request has no file-read lease. It must match its
+        observed GPU/HOST source here, before any loader side effect; a changed
+        source is returned to the controller for re-resolution, never loaded
+        from an unprotected path. Native CPU reuse requires load_inplace=False.
         """
         if (not isinstance(lease_id, str) or not lease_id
                 or type(adapter_int_id) is not int or adapter_int_id <= 0
@@ -578,6 +584,8 @@ class IEEEBackendGPUReferences:
         if (not isinstance(lora_name, str) or not lora_name
                 or not isinstance(lora_path, str) or not Path(lora_path).is_absolute()):
             raise ValueError('demand load requires adapter name and absolute materialized path')
+        if required_source_tier not in (None, 'gpu', 'host'):
+            raise ValueError('required source must be a native GPU or HOST source')
         slots = self._refresh()
         if expected_owner_id != self.owner_id:
             return {'acquired': False, 'reason': 'owner_changed', **self.snapshot()}
@@ -588,7 +596,8 @@ class IEEEBackendGPUReferences:
             receipt = self._leases[lease_id]
             if (receipt['adapter_int_id'] != adapter_int_id
                     or receipt.get('acquisition_operation') != 'demand_load_and_acquire'
-                    or (receipt['lora_name'], receipt['lora_path']) != source):
+                    or (receipt['lora_name'], receipt['lora_path']) != source
+                    or receipt.get('required_source_tier') != required_source_tier):
                 raise ValueError('lease ID reused for a different demand load')
             return dict(receipt)
         if lease_id in self._released:
@@ -603,6 +612,11 @@ class IEEEBackendGPUReferences:
             # A pre-existing native cache entry carries no path identity. Do
             # not attach a new caller's name/path to it merely because IDs match.
             return {'acquired': False, 'reason': 'unowned_native_adapter', **self.snapshot()}
+        gpu_confirmed = gpu_hit and adapter_int_id in self._gpu_confirmations
+        source_tier = 'gpu' if gpu_confirmed else ('host' if cpu_hit else 'file')
+        if required_source_tier is not None and source_tier != required_source_tier:
+            return {'acquired': False, 'reason': 'required_source_changed',
+                    'observed_source_tier': source_tier, **self.snapshot()}
         if not gpu.pinned_items.issubset(cpu.pinned_items):
             raise RuntimeError('native GPU pin lacks matching CPU eviction protection')
         if not gpu_hit and None not in slots and not (set(gpu) - gpu.pinned_items):
@@ -636,6 +650,9 @@ class IEEEBackendGPUReferences:
         self._sources[adapter_int_id] = source
         receipt.update(acquisition_operation='demand_load_and_acquire',
                        lora_name=lora_name, lora_path=lora_path,
+                       required_source_tier=required_source_tier,
+                       source_tier_before_acquisition=source_tier,
+                       gpu_confirmed_before_acquisition=gpu_confirmed,
                        gpu_resident_before_load=gpu_hit, cpu_registered_before_load=cpu_hit,
                        native_load_invoked=not gpu_hit,
                        load_and_acquire_ms=(time.monotonic()-start)*1000.,

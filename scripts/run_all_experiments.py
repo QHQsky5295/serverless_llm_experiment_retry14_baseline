@@ -13619,11 +13619,14 @@ class ScenarioRunner:
             await self._finish_runtime_request_reservation(reservation)
 
     async def _acquire_runtime_gpu_reference(
-        self, reservation: RuntimeRequestReservation, engine, adapter_id: str, local_path: str,
-    ) -> Dict[str, Any]:
+        self, reservation: RuntimeRequestReservation, engine, adapter_id: str,
+        local_path: Optional[str] = None, *, cached_only: bool = False,
+    ) -> Optional[Dict[str, Any]]:
         """Connect one selected request to the native load/reference owner.
 
-        This revalidates the selected worker after path resolution, not the
+        Cached-only acquisition precedes file resolution and never reads files.
+        A miss permits ordinary path resolution; a stale view is re-observed,
+        while an unknown mutation remains owned. This selected-worker view is not the
         router's historical tier hint. Its receipt must never be relabelled as
         a pre-dispatch snapshot or as proactive E(t) admission. Full routing
         still requires its separately committed source/cost snapshot.
@@ -13631,12 +13634,15 @@ class ScenarioRunner:
         from faaslora.clock import local_monotonic_clock_id
         if self.model_cfg.get('timing_contract') != 'ieee_tc_native_v1':
             raise ValueError('native reference ownership requires native request timing')
-        if not reservation.bound or reservation.gpu_reference_evidence:
+        evidence = reservation.gpu_reference_evidence
+        if (not reservation.bound
+                or evidence.get('state') not in (None, 'source_unavailable')):
             raise ValueError('native reference requires one fresh controller reservation')
         if (not adapter_id or adapter_id != reservation.adapter_id
-                or not isinstance(local_path, str) or not Path(local_path).is_absolute()):
+                or (not cached_only and (
+                    not isinstance(local_path, str) or not Path(local_path).is_absolute()))):
             raise ValueError('native reference requires the original adapter and absolute source')
-        if self._stack is not None:
+        if self._stack is not None and not cached_only:
             # Protect physical input before the first cancellable native RPC.
             # This is a read reference, not a claim of confirmed dispatch tier.
             local_owner = self._stack.residency_manager
@@ -13650,31 +13656,47 @@ class ScenarioRunner:
                     or not isinstance(value.get('owner_id'), str) or not value['owner_id']
                     or type(value.get('epoch')) is not int or value['epoch'] < 1):
                 raise ValueError('native reference snapshot lacks worker/epoch/clock identity')
-        snapshot = await engine.ieee_gpu_reference(operation='source_snapshot')
-        validate_snapshot(snapshot)
         from faaslora.experiment.instance_pool import NativeSourceSnapshot
-        source_state = NativeSourceSnapshot.from_native(
-            snapshot, expected_clock_id=clock_id, received_monotonic_s=time.monotonic())
-        if reservation.slot is None or reservation.slot.engine is not engine:
-            raise ValueError('native source snapshot is not bound to the selected runtime')
-        reservation.slot.commit_native_sources(source_state)
+        native_id = InferenceEngine._lora_int_id(adapter_id)
+        async def observe_source():
+            value = await engine.ieee_gpu_reference(operation='source_snapshot')
+            validate_snapshot(value)
+            state = NativeSourceSnapshot.from_native(
+                value, expected_clock_id=clock_id, received_monotonic_s=time.monotonic())
+            if reservation.slot is None or reservation.slot.engine is not engine:
+                raise ValueError('native source snapshot is not bound to the selected runtime')
+            reservation.slot.commit_native_sources(state)
+            selected = next((source for source in state.sources
+                             if source.adapter_int_id == native_id), None)
+            if selected is not None and selected.adapter_id != adapter_id:
+                raise ValueError('native cached integer ID belongs to another adapter')
+            compact = {key: item for key, item in value.items() if key != 'native_footprints'}
+            compact['selected_source_footprint'] = asdict(selected) if selected else None
+            compact['host_tensor_storage_bytes'] = state.host_tensor_storage_bytes
+            compact['gpu_pool_storage_bytes'] = state.gpu_pool_storage_bytes
+            return value, selected, compact
+        snapshot, selected_source, snapshot_evidence = await observe_source()
+        if cached_only and selected_source is None:
+            # No acquisition was submitted. Absence is not proof of Remote;
+            # shared file tiers are resolved by the existing source owner next.
+            evidence.update(state='source_unavailable', cached_source_absent=True,
+                            snapshot_before_cache_probe=snapshot_evidence)
+            return None
+        if cached_only:
+            local_path = selected_source.lora_path
         intent = {'lease_id': uuid.uuid4().hex,
-                  'adapter_int_id': InferenceEngine._lora_int_id(adapter_id),
+                  'adapter_int_id': native_id,
                   'lora_name': adapter_id, 'lora_path': local_path,
                   'expected_owner_id': snapshot['owner_id'], 'expected_epoch': snapshot['epoch']}
+        if cached_only:
+            intent['required_source_tier'] = selected_source.tier
         # Keep the selected source and worker totals in per-request evidence.
         # The detailed tensor/alias inventory belongs to qualification/resource
         # observations, not a duplicate many-megabyte table for every request.
-        snapshot_evidence = {key: value for key, value in snapshot.items() if key != 'native_footprints'}
-        selected_source = next((source for source in source_state.sources
-                                if source.adapter_int_id == intent['adapter_int_id']), None)
-        snapshot_evidence['selected_source_footprint'] = asdict(selected_source) if selected_source else None
-        snapshot_evidence['host_tensor_storage_bytes'] = source_state.host_tensor_storage_bytes
-        snapshot_evidence['gpu_pool_storage_bytes'] = source_state.gpu_pool_storage_bytes
-        evidence = reservation.gpu_reference_evidence
         evidence.update(kind='native_selected_request_reference_v1', state='acquiring',
                         intent=intent, snapshot_before_acquisition=snapshot_evidence,
                         confirmed_dispatch_snapshot=False, proactive_admission_evaluated=False,
+                        cached_source_only=cached_only,
                         stale_rechecks=0)
         reservation.gpu_reference_engine = engine
         while True:
@@ -13691,6 +13713,14 @@ class ScenarioRunner:
                         raise ValueError('native acquisition receipt changed request/source identity')
                 if receipt['owner_id'] != intent['expected_owner_id']:
                     raise ValueError('native acquisition receipt changed worker identity')
+                if cached_only and (
+                        receipt.get('required_source_tier') != intent['required_source_tier']
+                        or receipt.get('source_tier_before_acquisition') != intent['required_source_tier']
+                        or receipt.get('cpu_registered_before_load') is not True
+                        or receipt.get('gpu_confirmed_before_acquisition') is not (intent['required_source_tier'] == 'gpu')
+                        or type(receipt.get('gpu_resident_before_load')) is not bool
+                        or receipt.get('native_load_invoked') is not (not receipt['gpu_resident_before_load'])):
+                    raise ValueError('cached acquisition did not preserve its guarded source')
                 acquired_at = receipt.get('acquired_monotonic_s')
                 if (type(acquired_at) not in (int, float) or not math.isfinite(acquired_at)
                         or acquired_at <= 0 or acquired_at > time.monotonic()):
@@ -13701,6 +13731,25 @@ class ScenarioRunner:
                 self._release_runtime_local_source(reservation)
                 return receipt
             evidence['last_conflict'] = dict(receipt)
+            if (cached_only and receipt.get('reason') in ('stale_snapshot', 'required_source_changed')
+                    and receipt['owner_id'] == intent['expected_owner_id']
+                    and receipt['epoch'] >= intent['expected_epoch']):
+                # The owner explicitly did no work. Re-observe the actual source,
+                # not just its epoch: a stale GPU hit can now be HOST or absent.
+                evidence['state'] = 'source_unavailable'
+                evidence.setdefault('cache_source_rechecks', []).append({
+                    'intent': dict(intent), 'conflict': dict(receipt)})
+                snapshot, selected_source, snapshot_evidence = await observe_source()
+                if snapshot['owner_id'] != intent['expected_owner_id']:
+                    raise ValueError('native cache owner changed during source re-resolution')
+                evidence['stale_rechecks'] += 1
+                evidence['snapshot_before_acquisition'] = snapshot_evidence
+                if selected_source is None:
+                    evidence['cached_source_absent'] = True
+                    return None
+                intent.update(expected_epoch=snapshot['epoch'], lora_path=selected_source.lora_path,
+                              required_source_tier=selected_source.tier)
+                continue
             if (receipt.get('reason') == 'stale_snapshot'
                     and receipt['owner_id'] == intent['expected_owner_id']
                     and receipt['epoch'] > intent['expected_epoch']):
@@ -13918,6 +13967,19 @@ class ScenarioRunner:
             request_plan = self._prepare_request_execution_plan(_engine, trace, max_tokens)
 
         # ---- LoRA resolution ----
+        gpu_reference = None
+        if adapter_id and self.model_cfg.get('ieee_gpu_references', False):
+            probe_started_ns = time.perf_counter_ns()
+            gpu_reference = await self._acquire_runtime_gpu_reference(
+                _reservation, _engine, adapter_id, cached_only=True)
+            adapter_path_resolution_us += (time.perf_counter_ns() - probe_started_ns) / 1000.0
+            if gpu_reference is not None:
+                local_path = gpu_reference['lora_path']
+                cache_tier = gpu_reference['source_tier_before_acquisition']
+                # This is native transaction time, not GPU-hit D=0 evidence.
+                lora_io_ms = gpu_reference['load_and_acquire_ms']
+                adapter_path_resolution_us = max(0.0, adapter_path_resolution_us - lora_io_ms * 1000.)
+                self._mark_slot_adapter_tier(slot, adapter_id, cache_tier)
         if adapter_id and self.baseline_type != "backbone_only":
             if _coord is not None and hasattr(_coord, "reset_gpu_admission_decision_us"):
                 try:
@@ -13925,14 +13987,15 @@ class ScenarioRunner:
                 except Exception:
                     pass
             resolve_started_ns = time.perf_counter_ns()
-            (adapter_id, local_path, lora_io_ms,
-             cache_tier, contention_ms, defer_ms) = \
-                await self._resolve_lora(
-                    adapter_id,
-                    trace.is_burst,
-                    request_plan.input_tokens,
-                    coordinator=_coord,
-                )
+            if gpu_reference is None:
+                (adapter_id, local_path, lora_io_ms,
+                 cache_tier, contention_ms, defer_ms) = \
+                    await self._resolve_lora(
+                        adapter_id,
+                        trace.is_burst,
+                        request_plan.input_tokens,
+                        coordinator=_coord,
+                    )
             if (self.model_cfg.get('generation_contract') == 'fixed_length_greedy_v1'
                     or getattr(self, '_generation_contract', 'legacy') == 'fixed_length_greedy_v1'
                     or self.model_cfg.get('ieee_gpu_references', False)):
@@ -13955,7 +14018,7 @@ class ScenarioRunner:
                 + max(0.0, float(contention_ms or 0.0))
                 + max(0.0, float(defer_ms or 0.0))
             ) * 1000.0
-            adapter_path_resolution_us = max(0.0, resolve_wall_us - explicit_adapter_work_us)
+            adapter_path_resolution_us += max(0.0, resolve_wall_us - explicit_adapter_work_us)
             affinity_tier = cache_tier
             if local_path and cache_tier == "remote":
                 affinity_tier = "nvme"
@@ -13999,8 +14062,7 @@ class ScenarioRunner:
         )
         canonical_prompt_sha256 = hashlib.sha256(request_plan.prompt.encode('utf-8')).hexdigest()
         try:
-            gpu_reference = None
-            if self.model_cfg.get('ieee_gpu_references', False) and adapter_id:
+            if self.model_cfg.get('ieee_gpu_references', False) and adapter_id and gpu_reference is None:
                 gpu_reference = await self._acquire_runtime_gpu_reference(
                     _reservation, _engine, adapter_id, local_path)
             scaleup_labels = self._begin_scaleup_runtime_request_labels(

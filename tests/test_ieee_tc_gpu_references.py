@@ -149,6 +149,61 @@ class NativeDemandTransactions(unittest.TestCase):
         self.assertEqual(self.owner.snapshot(), before)
         self.assertFalse(self.loads)
 
+    def test_required_cached_source_never_turns_into_a_file_load(self):
+        self.demand()
+        self.release('cold-1')
+        self.manager.deactivate(4)
+        before = self.owner.snapshot()
+        reply = self.demand(lease='gpu-probe', required_source_tier='gpu')
+        self.assertFalse(reply['acquired'])
+        self.assertEqual(reply['reason'], 'required_source_changed')
+        self.assertEqual(self.owner.snapshot(), before)
+        self.assertEqual(len(self.loads), 1)
+        self.owner.evict(adapter_int_id=4)
+        before = self.owner.snapshot()
+        reply = self.demand(lease='host-probe', required_source_tier='host')
+        self.assertEqual(reply['reason'], 'required_source_changed')
+        self.assertEqual(self.owner.snapshot(), before)
+        self.assertEqual(self.cpu_loads, [4])
+
+    def test_required_host_and_gpu_sources_keep_their_actual_origin(self):
+        self.demand()
+        self.release('cold-1')
+        self.manager.deactivate(4)
+        cpu_object = self.manager._registered_adapters.cache[4]
+        promoted = self.demand(lease='host', required_source_tier='host')
+        self.assertEqual(promoted['source_tier_before_acquisition'], 'host')
+        self.assertIs(self.manager._registered_adapters.cache[4], cpu_object)
+        self.assertEqual(self.cpu_loads, [4])
+        self.assertEqual(self.demand(lease='host', required_source_tier='host'), promoted)
+        with self.assertRaisesRegex(ValueError, 'different demand load'):
+            self.demand(lease='host', required_source_tier='gpu')
+        hit = self.demand(lease='gpu', required_source_tier='gpu')
+        self.assertEqual(hit['source_tier_before_acquisition'], 'gpu')
+        self.assertFalse(hit['native_load_invoked'])
+        self.assertEqual(self.cpu_loads, [4])
+
+    def test_unconfirmed_slot_is_not_published_as_a_prior_gpu_hit(self):
+        self.demand()
+        self.release('cold-1')
+        self.manager.deactivate(4)
+        self.manager.activate(4)
+        self.assertIn(4, self.owner.source_snapshot()['unconfirmed_gpu_adapter_ids'])
+        receipt = self.demand(lease='reconfirm', required_source_tier='host')
+        self.assertEqual(receipt['source_tier_before_acquisition'], 'host')
+        self.assertFalse(receipt['gpu_confirmed_before_acquisition'])
+        self.assertTrue(receipt['gpu_resident_before_load'])
+        self.assertFalse(receipt['native_load_invoked'])
+        self.assertEqual(self.cpu_loads, [4])
+        self.assertNotIn(4, self.owner.source_snapshot()['unconfirmed_gpu_adapter_ids'])
+
+    def test_invalid_cached_source_requirement_has_no_side_effect(self):
+        before = self.owner.snapshot()
+        with self.assertRaisesRegex(ValueError, 'required source'):
+            self.demand(required_source_tier='nvme')
+        self.assertEqual(self.owner.snapshot(), before)
+        self.assertFalse(self.loads)
+
     def test_pinned_cpu_capacity_defers_without_loading_or_evicting(self):
         for aid in (1, 2, 3):
             self.manager._registered_adapters.pin(aid)

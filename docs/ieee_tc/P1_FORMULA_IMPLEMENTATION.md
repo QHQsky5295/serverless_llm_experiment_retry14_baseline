@@ -950,3 +950,49 @@ fixture 缺失 `patch` 导入，已修正，未削弱运行时合同。最终完
 和原子 reservation/admission，随后在同一次实际模型资格中检验桥接。不能把
 测试初始 profile 数字填入正式配置，也不能把 resolve 后的 tier 冒称 admission
 时刻的源状态。Serverless 仍保持 baseline 首位，M1/M2 等正式矩阵未开始。
+
+## P1-D21：实际请求先保护原生缓存，再决定是否需要文件
+
+### 历史依据与可证伪假设
+
+`044873d` 中实际 `ScenarioRunner` 无条件先 `_resolve_lora`，然后才调用原生
+引用取得路径。D12/D15 保护了文件加载与后续权重使用，却没有分离“缓存 tensor
+仍有效”和“原始文件仍存在”。因此 selected replica 已有 GPU/HOST 权重也会
+先进入文件来源解析。假设：文件已被回收、但原生权重仍有效时，应能持有正确
+adapter 的原生引用，不调用文件解析或文件读引用取得。
+
+对照 [vLLM 0.30 官方 LRU worker 实现](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/worker_manager.py)：
+`LRUCacheWorkerLoRAManager.add_adapter` 在 CPU cache 命中且
+`load_inplace=False` 时，使用现有 CPU 对象并激活，不调用 `_load_adapter`。
+本机安装源码与该控制分支一致。仅借鉴这一有直接关系的原生行为，不改原生
+LRU victim 选择、论文公式、生成合同或 artifact 内容。
+
+| 论文规范语义 | 当前请求路径与验证证据 | 限制 |
+|---|---|---|
+| 最快有效副本是权重状态，不是文件名 | selected worker 先返回有身份的 GPU/HOST 来源；原生线程重新检查并保护后，跳过文件解析 | 仍不是全副本决策前快照 |
+| HOST 命中仍有准备工作 | 复用已注册 CPU tensor，保留实际 promotion/fence 时长及原始 HOST 来源 | 未测实际模型净延迟收益 |
+| 陈旧状态不能冒充命中 | acquisition 携带 required_source_tier；变化时先拒绝且不加载，再重新观察；缓存全失效才解析文件 | 尚非跨层完整原子 admission |
+| GPU slot 不等于已确认 GPU-ready | remove/reactivate 后未确认 slot 仍以有效 HOST 来源处理，在 fence 后重新发布 GPU | 不把这次确认回填成原先 GPU hit |
+| 独立来源生命周期 | native hit 不拿文件读引用；cold load 保留原文件保护；未知 acquisition 留下 native/controller ownership | 未完成全部物理预算/持久 journal |
+| 不改变观测时间定义 | 保存来源、冲突与 receipt，实际时间不填零；保留 confirmed_dispatch_snapshot=False | 不据此宣称 admission 时刻 D=0 |
+
+### 正确性状态表，不是性能结果
+
+新增八项方法检查（含多种来源子情形）：GPU/HOST 已缓存但文件不可用、
+GPU→HOST/全失效/未确认 slot 的并发变化、未知 acquisition 取消、adapter ID
+碰撞、无效来源要求、引用重放身份和原始层级保持。使用实际 controller/owner
+方法及确定性原生缓存 fixture，没有模型推理或真实远端下载。
+
+- 修改前：实际请求检查在 GPU/HOST 两个子情形均错误进入文件解析；两项原生
+  guard 检查因接口尚不存在报错。没有把此反例写成真实 CUDA 性能退化。
+- 首次相关回归 111 项中两项旧测试期望错误发生于文件解析之后；现观测已移到
+  之前。保留一个显式“取得文件读引用后的 snapshot 失败”检查，另一个加强为
+  “错误时钟在文件读取之前拒绝”。没有生产 fallback 或放宽成功标准。
+- 相关 116 项通过；完整功能回归 598 项、独立安全/census/replay 56 项通过。
+  测试输出来自本轮实际执行。所有历史保护项及计划 SHA 不变。
+
+按计划第十一节与 academic-plotting 的证据选择流程，本步采用状态表，未制作
+虚构的延迟/收益曲线。真正的净收益还须把原生 snapshot 查询开销一并计入；不能
+由少了一次文件解析推断 G1/G2 已改善。下一步直接返回 Full 的 admission-time
+class/profile、全副本 source/cost 与原子准入接入，然后在该真实路径进行模型
+资格，避免继续重复同 prompt 或无新问题的微测。
