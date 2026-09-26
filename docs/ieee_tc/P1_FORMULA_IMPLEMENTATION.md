@@ -1575,3 +1575,71 @@ planner/handoff接入、代表性实测profile、跨路径内容身份及完整�
 仍未全部闭合**。继续这些集成项；形成有意义的Full路径后才做原生整体资格。
 不重复D26 source32/D27 lifecycle4/D28 capacity5/D30 pitched-copy微测，不新增
 局部微测矩阵。M1/M2、正式baseline、消融和敏感性均未开始。
+
+## D32：真实文件层迁移与同一容量约束
+
+### 主线问题、既有证据与本轮边界
+
+D23的真实HTTP传输已经在写入前预分配archive与payload空间；D25保护并绑定
+所选副本的文件内容；D29–D31处理native HOST→GPU及KV需求。代码历史中的
+NVMe→HOST本地复制仍使用普通`copytree`，虽然发布内容经过校验，但临时新副本
+没有同一物理文件预算。这会让规划的“剩余容量”和实际准备峰值不一致。
+
+本轮可证伪判断是：**本地复制复用已验证下载的空间所有者，便能在执行时同时
+约束旧副本、临时新副本和其他传输；无需改变论文的收益或预算公式。**
+这里的约束仅是受管regular-file分配字节的子预算，不是整个HOST内存。
+
+参考依据与范围：
+
+- [ELORA论文](https://arxiv.org/abs/2505.03756)明确关注LoRA/KV使用依赖和换入换出；
+  这支持检查真实共存资源，而不意味着本轮已经复现其算法或全部内存管理。
+- [vLLM0.30 worker manager](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/worker_manager.py)
+  中native CPU LoRA对象不是本地PEFT文件本身，不能把两者混为一份HOST占用。
+- [POSIX预分配接口](https://docs.python.org/3/library/os.html#os.posix_fallocate)
+  支持先取得真实文件空间；不以稀疏truncate或磁盘剩余量快照冒充预留。
+- [Linux tmpfs说明](https://docs.kernel.org/filesystems/tmpfs.html)说明tmpfs可涉及swap，
+  因此文件已分配不等于所有页面此刻驻留DRAM，更不等于整个服务RSS。
+
+### 实际接入与不变量
+
+1. 远程archive+payload与本地payload-only共用`_prepare_file_allocation`。
+   本地复制不虚构archive；按实际文件大小与文件系统allocation unit预分配。
+2. 复制前取得原内容身份的读引用，复制、校验、发布、清理结束后才释放。
+   文件正文复制在所有者锁之外执行；所有文件已固定大小，不允许增长。
+3. 发布前校验源身份、目标每文件SHA与签名；复用原有替换/恢复和读者保护。
+   引用中的目标不可被覆盖；失败不退回普通copytree或改变容量阈值。
+4. `local_file_budgets`提供文件子预算快照：实际预分配已在used中，不再重复
+   加一份reserved；快照本身不预留容量，真正执行仍重新检查/取得空间。
+5. 实际ResidencyManager确认路径与runner本地准备入口已接入。异步复制复用
+   HTTP的取消等待规则：取消await不等于停止写线程，必须等待实际搬运退出。
+6. 结果增加`local_artifact_transfers`，保留源确认、transfer ID、预算、字节、
+   共同本地时间域、发布/失败和读引用释放。清理失败的真实路径继续占预算；
+   错误链类型保留，不写入潜在敏感异常文本。
+
+旧未确认路径仍是旧协议，不能仅凭目录存在成为IEEE confirmed命中。若源在
+旧路径检查后变成confirmed，禁止它通过未预分配的复制分支，不静默绕行。
+
+### 正确性状态表（微型文件测试，不是模型性能结果）
+
+| 问题 | 实际检查与结果 |
+|---|---|
+| 本地准备是否虚构archive或少算payload | 两个微型文件占8,192 B，没有archive；准备中used=8,192、remaining=0、额外pending=0 |
+| 两个方向是否保持内容 | 实际runner异步NVMe→HOST与HOST→NVMe，内容SHA一致；反向替换旧8,192 B时预分配峰值16,384 B，完成后8,192 B |
+| 旧副本是否仍计入 | 16,383 B预算能保留一个副本，但拒绝第二份替换暂存，原副本和epoch不变 |
+| 是否与别的传输共享额度 | 8,192 B预算已有4,096 B暂存时，新的8,192 B复制被拒绝，不能各自花一遍remaining |
+| 取消是否提前释放 | 实际异步入口重复取消后仍等待写线程；期间源不可驱逐，退出后无残留引用/活动传输 |
+| 错误是否变成命中 | 发布前损坏被拒绝；旧目标有读者时不得替换；源确认保持 |
+| 清理失败是否虚增空闲 | 故障注入后残留8,192 B仍计入used，后续准备不能使用这份空间 |
+| 实际HOST文件系统是否支持 | 同17项确认/复制检查在本机`/dev/shm`的tmpfs上通过；不据此宣称无swap或整个HOST资格 |
+
+新增7项检查，扩展既有损坏与双向复制案例。最终完整功能回归和安全回归计数
+记录于EXECUTION_STATUS；本轮不加载模型、不跑GPU微测、不新增LoRA/trace。
+表中8,192等数值仅属于微型正确性fixture，不填入模型profile或论文性能表。
+
+### 返回主线
+
+本轮只闭合文件层复制的执行预算。native CPU tensor与文件/page-cache的总HOST
+预算、跨路径内容身份、所有传输的实际压力、主动planner/handoff调用及实测
+class profile仍需集成。已有旧preload流程调用预算化复制，不等于该流程的旧
+planner已成为IEEE Full。保留这一区分，不因为局部检查通过启动正式M1/M2。
+下一项应连接完整主动准备与物理所有者，不再扩展本地复制微测矩阵。

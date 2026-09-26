@@ -12983,9 +12983,15 @@ class ScenarioRunner:
                 if target_tier not in ('host', 'nvme'):
                     raise ValueError('preload copy destination is outside managed tiers')
                 started = time.perf_counter()
-                copied = self._stack.residency_manager._materialize_into_tier_dir(
-                    aid, str(src_path), StorageTier(target_tier))
-                ok, io_ms = copied == str(dst), (time.perf_counter() - started) * 1000
+                if self.model_cfg.get('ieee_gpu_references', False):
+                    receipt = await self._materialize_confirmed_source_async(
+                        aid, src_path, StorageTier(target_tier))
+                    ok = receipt['state'] == 'published' and receipt['target_path'] == str(Path(dst).resolve())
+                else:
+                    copied = self._stack.residency_manager._materialize_into_tier_dir(
+                        aid, str(src_path), StorageTier(target_tier))
+                    ok = copied == str(dst)
+                io_ms = (time.perf_counter() - started) * 1000
             return ok, io_ms
 
         self._stack._ensure_registered()
@@ -15425,6 +15431,14 @@ class ScenarioRunner:
             if not future.cancelled():
                 future.exception()
             raise
+
+    async def _materialize_confirmed_source_async(self, adapter_id, source, target_tier):
+        """Budgeted local movement shares the remote transfer cancellation fence."""
+        if not self.model_cfg.get('ieee_gpu_references', False) or self._stack is None:
+            raise RuntimeError('confirmed tier copy requires the native source owner')
+        return await self._owned_artifact_io(
+            lambda cancellation: self._stack.residency_manager.materialize_confirmed_source(
+                adapter_id, str(source), target_tier, cancel_event=cancellation))
 
     async def _materialize_remote_adapter_async(
         self,
@@ -19887,6 +19901,8 @@ async def _main_async_impl(
                         ),
                     },
                     "remote_artifact_transfers": list(runner._remote_transfer_evidence),
+                    "local_artifact_transfers": (list(runner._stack.residency_manager.local_transfer_evidence)
+                        if runner._stack is not None else []),
                     "initial_preload_accounting": {
                         "wall_s": round(runner._initial_preload_wall_s, 6),
                         "bytes": int(runner._initial_preload_bytes),

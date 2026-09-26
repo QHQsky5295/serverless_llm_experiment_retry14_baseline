@@ -300,6 +300,17 @@ class LocalSourceReferences:
         tensors are separate resource budgets. No sparse-file fallback is allowed.
         Qualified filesystem allocation granularity must match observed blocks.
         """
+        if type(archive_bytes) is not int or archive_bytes <= 0:
+            raise ValueError('remote archive size requires explicit positive integer bytes')
+        return self._prepare_file_allocation(transfer_id, staging, expected,
+                                            limit_bytes=limit_bytes, archive_bytes=archive_bytes)
+
+    def prepare_copy(self, transfer_id, staging, expected, *, limit_bytes):
+        """Reserve the verified local payload, without inventing an archive."""
+        return self._prepare_file_allocation(transfer_id, staging, expected,
+                                            limit_bytes=limit_bytes, archive_bytes=None)
+
+    def _prepare_file_allocation(self, transfer_id, staging, expected, *, limit_bytes, archive_bytes):
         from ..storage.http_artifact_store import _canonical_member_name
         with self.lock:
             staging = Path(staging)
@@ -308,14 +319,15 @@ class LocalSourceReferences:
                 raise ValueError('space reservation requires its unique managed workspace')
             if set(self.materializations) - set(self._transfer_workspaces):
                 raise RuntimeError('unbudgeted materialization prevents capacity reservation')
-            if type(limit_bytes) is not int or limit_bytes < 0 or type(archive_bytes) is not int or archive_bytes <= 0:
-                raise ValueError('file budget and archive size require explicit nonnegative integer bytes')
+            if type(limit_bytes) is not int or limit_bytes < 0:
+                raise ValueError('file budget requires explicit nonnegative integer bytes')
             target = self.materializations[transfer_id]
             tier = next(tier for tier, root in self.roots.items() if target.parent == root)
             if tier in self._file_limits and self._file_limits[tier] != limit_bytes:
                 raise ValueError('file owner budget cannot change between transfers')
             self._file_limits[tier] = limit_bytes
-            paths = {staging.parent / 'artifact.tar.gz': archive_bytes}
+            paths = ({staging.parent / 'artifact.tar.gz': archive_bytes}
+                     if archive_bytes is not None else {})
             for name, (size, _) in expected.items():
                 _canonical_member_name(name)
                 if type(size) is not int or size < 0:
@@ -347,10 +359,127 @@ class LocalSourceReferences:
             if after != before + required or after > limit_bytes:
                 raise RuntimeError('reserved file allocation differs from owner capacity transaction')
             return dict(scope='preallocated_regular_files_v1', owner_id=self.owner_id,
+                        transfer_kind='remote_archive' if archive_bytes is not None else 'local_verified_copy',
                         transfer_id=transfer_id, tier=tier, limit_bytes=limit_bytes,
                         used_file_bytes_before=before, reserved_file_bytes=required,
                         allocated_file_bytes_after=after, pending_file_increment_bytes=0,
                         filesystem_allocation_unit_bytes=unit)
+
+    def file_budget_snapshot(self, limits):
+        """Planning input for managed *file* sub-budgets, not total HOST RAM.
+
+        Actual preallocated staging is already in used bytes. Counting it again
+        as a future reservation would reduce the same budget twice. Backend CPU
+        tensors, metadata and cgroup memory need their separate owner accounting.
+        A snapshot grants no permission to copy; execution rechecks/preallocates.
+        """
+        from ..clock import local_monotonic_clock_id
+        with self.lock:
+            if set(limits) != set(self.roots) or any(type(n) is not int or n < 0 for n in limits.values()):
+                raise ValueError('all managed file tiers require explicit integer limits')
+            for tier, limit in limits.items():
+                if tier in self._file_limits and self._file_limits[tier] != limit:
+                    raise ValueError('file owner budget cannot change between transfers')
+            view = self.inventory()
+            tiers = {}
+            for tier, limit in limits.items():
+                used = view['tiers'][tier]['allocated_file_bytes']
+                if used > limit:
+                    raise RuntimeError('existing managed files exceed the declared file budget')
+                tiers[tier] = dict(limit_bytes=limit, used_bytes=used, pending_increment_bytes=0,
+                    remaining_bytes=limit-used,
+                    active_transfers=sum(path.parent == self.roots[tier] for path in self.materializations.values()))
+            self._file_limits.update(limits)
+            return dict(kind='ieee_managed_file_budgets_v1', owner_id=self.owner_id,
+                source_epoch=self.source_epoch, clock_id=local_monotonic_clock_id(),
+                captured_at=time.monotonic(), tiers=tiers, snapshot_reserves_capacity=False,
+                scope='managed_allocated_regular_files_only', total_host_memory_covered=False)
+
+    def copy_confirmed(self, source, target, *, limit_bytes, publish, cancel_event=None, evidence=None):
+        """Verified HOST/NVMe copy with real allocation before body I/O.
+
+        Source read ownership survives the entire copy and publication. Payload
+        writing is outside the owner lock and cannot grow its preallocated files.
+        No copytree/sparse fallback, hidden eviction or early cancellation release.
+        """
+        from ..clock import local_monotonic_clock_id
+        from ..storage.http_artifact_store import _verified_file_signature
+        source, target = Path(source).resolve(strict=True), Path(target).resolve()
+        lease_id = uuid.uuid4().hex
+        def cancelled():
+            if cancel_event is not None and cancel_event.is_set():
+                raise RuntimeError('managed file copy cancelled before publication')
+        with self.lock:
+            record = self._validated_source(source)
+            if record is None or record['public']['adapter_id'] != target.name:
+                raise ValueError('local preparation requires the exact confirmed source')
+            if target.parent not in self.roots.values() or source == target:
+                raise ValueError('local preparation requires a distinct managed destination')
+            expected = dict(record['expected_files'])
+            source_receipt = self.acquire(path=str(source), adapter_id=target.name, lease_id=lease_id)
+        receipt = evidence if evidence is not None else {}
+        receipt.update(kind='ieee_confirmed_file_copy_v1', state='started', source=source_receipt,
+            target_path=str(target), started_at=time.monotonic(), copied_bytes=0,
+            clock_id=local_monotonic_clock_id(), source_reference_released=False,
+            scope='managed_allocated_regular_files_only', total_host_memory_covered=False)
+        try:
+            cancelled()
+            with self.materializing(target) as transfer_id:
+                receipt['transfer_id'] = transfer_id
+                with self.transfer_workspace(transfer_id) as staging:
+                    receipt['file_reservation'] = self.prepare_copy(
+                        transfer_id, staging, expected, limit_bytes=limit_bytes)
+                    verified_files = {}
+                    for name, (size, digest) in sorted(expected.items()):
+                        cancelled()
+                        source_file, target_file = source / name, staging / name
+                        actual = hashlib.sha256()
+                        with source_file.open('rb') as reader, target_file.open('r+b') as writer:
+                            if os.fstat(writer.fileno()).st_size != size:
+                                raise RuntimeError('copy destination differs from its reservation')
+                            remaining = size
+                            while remaining:
+                                cancelled()
+                                chunk = reader.read(min(1024 * 1024, remaining))
+                                if not chunk:
+                                    raise RuntimeError('confirmed source truncated during copy')
+                                if writer.write(chunk) != len(chunk):
+                                    raise RuntimeError('preallocated file copy made a partial write')
+                                actual.update(chunk)
+                                receipt['copied_bytes'] += len(chunk)
+                                remaining -= len(chunk)
+                            if reader.read(1):
+                                raise RuntimeError('confirmed source grew during copy')
+                        if actual.hexdigest() != digest:
+                            raise RuntimeError('confirmed source content changed during copy')
+                        verified_files[name] = dict(size_bytes=size, sha256=digest,
+                            signature=_verified_file_signature(target_file.lstat()))
+                    cancelled()
+                    with self.lock:
+                        # References exclude cooperative reclamation. Detect any
+                        # externally changed identity before the target is visible.
+                        if self._validated_source(source) is not record:
+                            raise RuntimeError('confirmed source identity changed during copy')
+                        cancelled()
+                        receipt['confirmed_file_publication'] = self.publish_transfer(
+                            transfer_id, staging, target,
+                            lambda src, dst: publish(src, dst, transfer_id=transfer_id),
+                            verified_files=verified_files)
+                    receipt['ready_at'] = time.monotonic()
+                    receipt['state'] = 'published'
+            return receipt
+        except BaseException as exc:
+            causes, cause = [], exc
+            while cause is not None and id(cause) not in {identity for identity, _ in causes}:
+                causes.append((id(cause), type(cause).__name__))
+                cause = cause.__cause__ if cause.__cause__ is not None else cause.__context__
+            receipt.update(state=('published_cleanup_failed' if 'confirmed_file_publication' in receipt
+                                  else 'not_published'), error_type=type(exc).__name__,
+                           error_chain=[name for _, name in causes])
+            raise
+        finally:
+            self.release(lease_id=lease_id, expected_owner_id=self.owner_id)
+            receipt.update(finished_at=time.monotonic(), source_reference_released=True)
 
     def publish_transfer(self, transfer_id, staging, target, publish, *, verified_files=None):
         with self.lock:
@@ -1216,6 +1345,7 @@ class ResidencyManager:
         self.nvme_cache_dir = Path(nvme_dir) if nvme_dir else None
         self.local_source_references = LocalSourceReferences({
             'host': self.host_cache_dir, 'nvme': self.nvme_cache_dir})
+        self.local_transfer_evidence: List[Dict[str, Any]] = []
         self._tracked_gpu_device_ids: Optional[Tuple[int, ...]] = None
         
         self.logger.info("Residency manager initialized")
@@ -1239,6 +1369,36 @@ class ResidencyManager:
         if self.storage_manager is not None:
             raise RuntimeError('external LocalCache does not share the managed source owner')
         return self.local_source_references.inventory()
+
+    def local_file_budgets(self):
+        """Actual managed-file sub-budgets; not total HOST/cgroup admission."""
+        if self.storage_manager is not None:
+            raise RuntimeError('external LocalCache does not share the managed source owner')
+        return self.local_source_references.file_budget_snapshot({
+            tier: int(self.tier_capacities[StorageTier(tier)].total_bytes)
+            for tier in self.local_source_references.roots})
+
+    def materialize_confirmed_source(self, artifact_id, source_path, target_tier, *, cancel_event=None):
+        """Strict budgeted tier copy. Failures propagate without an alternate path."""
+        if self.storage_manager is not None:
+            raise RuntimeError('external LocalCache does not share the managed source owner')
+        directory = self._tier_cache_dir(target_tier)
+        if directory is None:
+            raise ValueError('confirmed file preparation requires HOST or NVMe destination')
+        evidence = dict(artifact_id=artifact_id, source_path=str(source_path),
+                        target_tier=target_tier.value, state='not_started')
+        try:
+            return self.local_source_references.copy_confirmed(
+                source_path, directory / artifact_id,
+                limit_bytes=int(self.tier_capacities[target_tier].total_bytes),
+                publish=self.publish_local_source, cancel_event=cancel_event, evidence=evidence)
+        except BaseException as exc:
+            if evidence['state'] == 'not_started':
+                evidence.update(state='rejected', error_type=type(exc).__name__)
+            raise
+        finally:
+            with self.local_source_references.lock:
+                self.local_transfer_evidence.append(copy.deepcopy(evidence))
 
     def publish_local_source(self, staging: Path, target: Path, *, transfer_id=None) -> None:
         """Completed file publication shares synchronization with read leases."""
@@ -1971,6 +2131,21 @@ class ResidencyManager:
         tier_dir = self._tier_cache_dir(target_tier)
         if tier_dir is None:
             return source_path or None
+        # Confirmed copies use the same physical file allocation owner as
+        # verified HTTP downloads. Do not hold its lock while copying bytes.
+        if source_path:
+            try:
+                source = Path(source_path).resolve()
+                with self.local_source_references.lock:
+                    confirmed = self.local_source_references._validated_source(source)
+                if confirmed is not None:
+                    if source == (tier_dir / artifact_id).resolve():
+                        return str(source)
+                    self.materialize_confirmed_source(artifact_id, source, target_tier)
+                    return str(tier_dir / artifact_id)
+            except Exception as exc:
+                self.logger.error(f'Confirmed tier copy failed for {artifact_id}: {exc}')
+                return None  # Legacy caller status; never retry via unbudgeted copytree.
         # The same lock also retains the source throughout this synchronous
         # copy. A referenced destination must not be removed/replaced.
         with self.local_source_references.mutation(tier_dir / artifact_id) as allowed:
@@ -2003,13 +2178,13 @@ class ResidencyManager:
         try:
             if src.is_dir():
                 from ..storage.http_artifact_store import staged_directory
+                if self.local_source_references._validated_source(src.resolve()) is not None:
+                    # It may have been confirmed after the caller's first
+                    # observation. Never slip that race into unbudgeted I/O.
+                    raise RuntimeError('newly confirmed source requires budgeted preparation')
                 with staged_directory(dest) as staging:
-                    confirmed = self.local_source_references._validated_source(src.resolve())
                     shutil.copytree(src, staging)
-                    if confirmed is not None:
-                        self.local_source_references.publish_copy(src, staging, dest, self.publish_local_source)
-                    else:
-                        self.publish_local_source(staging, dest)
+                    self.publish_local_source(staging, dest)
             else:
                 # Legacy single-file path; IEEE source references require the
                 # PEFT directory representation and do not qualify this branch.

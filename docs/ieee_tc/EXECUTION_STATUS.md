@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Native E(t)/HOST and pending→native KV handoff connected; Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D31. D30 pitched copy is CUDA-qualified. D31 actual runner/frontend/core pending identity handoff has CPU/loopback evidence, not new GPU/Full qualification. All-tier transfer/budget and proactive planner integration remain open |
+| P1 IEEE semantic alignment | Native E(t)/HOST, pending→native KV and budgeted file migration connected; Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D32. D32 local file copy shares real preallocation/content ownership with HTTP; actual async path and tmpfs CPU tests pass. Total HOST/native accounting, global transfer pressure and proactive planner/handoff remain open; no new GPU/Full qualification |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,12 +51,14 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST CODE CHECKPOINT: D31 controller-pending/native identity handoff is connected
-through the actual runner, engine/proxy/worker, frontend and core scheduling owner.
-717 functional and56 safety checks pass; actual0.30 imports/signatures checked without
-CUDA/model. No new GPU/performance result. D30 pitched-copy CUDA evidence remains
-valid. Do not repeat that microcheck or capacity5/source32/lifecycle4. Next: all-tier
-transfer/budget and actual planner/handoff integration plus representative profiles.
+LATEST CODE CHECKPOINT: D32 confirmed HOST/NVMe file copies now use the same real
+preallocation/content owner as HTTP transfers; actual async runner integration and
+failure/cancellation evidence included.724 functional and56 safety checks pass;
+17 confirmation/copy checks also pass on actual/dev/shm tmpfs. No model/GPU or
+performance experiment. This covers managed regular-file sub-budgets, not total
+HOST RAM/native tensors. Next: global transfer/total HOST budgets and actual
+planner/handoff plus measured profiles. Do not repeat file-copy microchecks,
+D30 pitched-copy, capacity5/source32/lifecycle4.
 
 LATEST COMPLETED MODEL RUN: `llama2_7b_capacity_wait_attempt2`, finished and cleaned.
 Five first-distinct requests from old32-prefix,755 native tokens, all targets met.
@@ -76,7 +78,7 @@ performance or complete Full lifecycle claim. D26 source32 remains completed;
 its one historical SHA difference and independent numerical gate remain open.
 
 0. P2 installation finished; do NOT reinstall. All current runs finished/cleaned. Native adapter reference, full 3B/7B content scan and 7B five-arm native numeric diagnostic COMPLETE; do not repeat same-prompt/zero controls. NATIVE_ADAPTER_NUMERIC_CONTROL.md: all five 217-token outputs identical; A/Z probability max difference .02608, A/A also .006367. Descriptive evidence, not independent numeric/full semantic qualification. Return to Full source/cost and owner integration next. Current 3B pool has 500 all-zero LoRAs (2 SHAs); 7B has 498 zero plus finance/medical nonzero (4 SHAs). Plan forbids new weights; user confirmation requested before adding a few trained nonzero 3B correctness fixtures, no answer yet. Keep pools/traces/history intact. Targeted 2,521 existing configs yielded no 3B candidate, not proof of server-wide absence. Independent numerical verification remains an open gate, not erased by this diagnostic. Review official 0.30 warning on old 3B chunked_prefill=false before freezing. Reuse environment/cache, KEEP_DEDICATED_WORKER_LOGS for future proxy runs.
-1. D29 connects E(t) to native core/worker HOST→GPU; D30 qualifies rank-sliced direct copies. D31 registers provisional controller demand before source preparation, binds exact native IDs before ADD, and replaces pending demand only on actual ADD. Cancellation requires withdrawal/native retirement; no false KV allocation claim. CPU/loopback qualification only. Next include all-tier transfer events/budgets, actual planner/handoff and measured class initialization. Transfer receipts still cover serialized HOST→GPU only. Content-bound HOST/NVMe migration remains open. No repeated source32/capacity5/lifecycle4 or pitched-copy-only microcheck.
+1. D29 connects E(t) to native core/worker HOST→GPU; D30 qualifies rank-sliced direct copies. D31 completes pending→native demand identity handoff. D32 binds actual HOST/NVMe file migration to verified content, preallocated peak space, read references and joined cancellation. Its receipts are file-sub-budget evidence only. Next integrate total HOST/native tensor budgets, global transfer pressure, actual planner/handoff and measured class initialization. Do not repeat source32/capacity5/lifecycle4, pitched-copy or file-copy-only checks.
 2. D27 now qualifies the7B dedicated runtime's physical allocation and normal exit. Do not re-run its four-request prefix. Connect owner coverage and aggregation for the actual Full deployment (shared/direct/multi-runtime paths are not qualified here), while completing physical tier admission and representative measured profiles. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
@@ -94,7 +96,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D31.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D32.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -120,10 +122,11 @@ its one historical SHA difference and independent numerical gate remain open.
    not pure H2D. One output SHA mismatch at req_00005; cause unestablished.
    No ready-time cost profile, SLO, system ranking or Full qualification follows.
    Artifacts: `paper_results/ieee_tc/p2_backend/20260926_7b_source32.{json,csv}`.
-4. Full received-view routing and actual D25 source protection exist, but
-   all-tier physical admission/E(t), content-bound
-   multiple file paths, proactive planning/handoff connection and physical GPU
-   lifecycle still require real integration. Do not silently use legacy paths.
+4. Full received-view routing and actual D25 source protection exist. D32 adds
+   content-bound, budgeted multiple file paths. Total HOST/native tensor budgets,
+   all-tier transfer pressure, proactive planning/handoff connection and complete
+   deployment physical GPU lifecycle still require integration. Do not silently
+   call the legacy planner or partial file sub-budget IEEE Full.
 5. Actual profile measurements must cover their frozen class/configuration and
    environment; neither test constants nor neighboring-class latency can fill gaps.
    Replica inheritance is from frozen measurements, never a previous test block.
@@ -148,6 +151,28 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D32 implementation evidence; no new model or performance experiment
+
+- Actual confirmed local HOST/NVMe movement now shares preallocation with HTTP
+  archive transfers, payload-only for local copies. Old destination, staging and
+  concurrent transfer bytes count in one frozen file budget. No sparse allocation,
+  hidden eviction, relaxed budget or copytree fallback qualifies the native path.
+- Source lease spans copy/publication/cleanup. Actual async runner uses the same
+  join-on-cancel fence as remote transfer. Content identity is retained both ways;
+  publication errors/cleanup failures and real residual space are not hidden.
+  Planning snapshot is explicitly not a reservation and not total HOST RAM.
+- Seven added checks; final724 functional +56 safety pass, no failures/skips.
+  The17 confirmed-publication/copy checks also pass with actual tmpfs /dev/shm
+  temporary files. These are bounded CPU/filesystem checks, not model performance
+  or resident-DRAM qualification. The required correctness table is in P1 D32.
+- Source plan SHA and147 protected artifacts verified unchanged. No adapter,
+  trace or model regenerated; no GPU test/model loaded. Baseline repo unchanged
+  at16570c023a439c884624e7a5bdfa0d8577faf7a3. Do not stage either repo's user dirt.
+- Remaining mainline: total HOST/native accounting, global transfer pressure,
+  actual proactive planner/handoff, measured class initialization, complete Full
+  lifecycle and backend/remote qualifications. M1/M2, formal baseline, ablation
+  and sensitivity matrices remain not started. Do not expand local-copy tests.
 
 ### D31 implementation evidence; no new model or performance experiment
 

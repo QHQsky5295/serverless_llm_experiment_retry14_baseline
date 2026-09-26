@@ -1343,24 +1343,176 @@ class ConfirmedFilePublication(unittest.TestCase):
         self.assertEqual([row['tier'] for row in self.owner.source_snapshot('a')['sources']], ['nvme'])
 
     def test_corrupt_tier_copy_does_not_publish_fast_tier_or_invalidate_source(self):
-        import shutil
         from faaslora.registry.schema import StorageTier
         self.fetch()
-        original = shutil.copytree
+        original = self.owner.publish_transfer
         changed = []
-        def corrupt(source, target, *args, **kwargs):
-            result = original(source, target, *args, **kwargs)
-            payload = Path(target) / 'nested' / 'weights'
+        def corrupt(transfer, staging, target, publish, **kwargs):
+            payload = Path(staging) / 'nested' / 'weights'
             if payload.is_file():
                 payload.write_bytes(b'X'*len(self.payload['nested/weights']))
                 changed.append(str(payload))
-            return result
-        with patch('faaslora.memory.residency_manager.shutil.copytree', corrupt):
+            return original(transfer, staging, target, publish, **kwargs)
+        with patch.object(self.owner, 'publish_transfer', corrupt):
             destination = self.manager._materialize_into_tier_dir('a', str(self.nvme / 'a'), StorageTier.HOST)
         self.assertIsNone(destination)
         self.assertEqual(len(changed), 1)
         self.assertFalse((self.host / 'a').exists())
         self.assertEqual([row['tier'] for row in self.owner.source_snapshot('a')['sources']], ['nvme'])
+
+    def test_actual_async_copy_preallocates_payload_only_and_publishes_same_content(self):
+        from faaslora.registry.schema import StorageTier
+        self.fetch()
+        self.manager.tier_capacities[StorageTier.HOST].total_bytes = 8192
+        before = self.manager.local_file_budgets()
+        self.assertFalse(before['snapshot_reserves_capacity'])
+        self.assertFalse(before['total_host_memory_covered'])
+        original = self.owner.prepare_copy
+        def reserve(*args, **kwargs):
+            receipt = original(*args, **kwargs)
+            self.assertFalse((args[1].parent / 'artifact.tar.gz').exists())
+            view = self.manager.local_file_budgets()['tiers']['host']
+            self.assertEqual((view['used_bytes'], view['remaining_bytes'], view['pending_increment_bytes']),
+                             (8192, 0, 0))
+            self.assertEqual(view['active_transfers'], 1)
+            self.assertFalse(self.manager._delete_path(str(self.nvme / 'a')))
+            return receipt
+        with patch.object(self.owner, 'prepare_copy', reserve), patch(
+                'shutil.copytree', side_effect=AssertionError('unbudgeted fallback')):
+            receipt = asyncio.run(self.runner._materialize_confirmed_source_async(
+                'a', self.nvme / 'a', StorageTier.HOST))
+        self.assertEqual(receipt['state'], 'published')
+        self.assertEqual(receipt['file_reservation']['transfer_kind'], 'local_verified_copy')
+        self.assertEqual(receipt['file_reservation']['reserved_file_bytes'], 8192)
+        self.assertEqual(receipt['copied_bytes'], sum(map(len, self.payload.values())))
+        self.assertTrue(receipt['source_reference_released'])
+        self.assertLessEqual(receipt['started_at'], receipt['ready_at'])
+        self.assertLessEqual(receipt['ready_at'], receipt['finished_at'])
+        self.assertEqual(self.manager.local_transfer_evidence, [receipt])
+        self.assertEqual(len({r['content_sha256'] for r in self.owner.source_snapshot('a')['sources']}), 1)
+        self.assertFalse(self.owner.leases or self.owner.materializations)
+        view = self.manager.local_file_budgets()['tiers']['host']
+        self.assertEqual((view['used_bytes'], view['active_transfers']), (8192, 0))
+        # Reverse movement replaces an old NVMe copy, not an assumed one-way cache.
+        reverse = asyncio.run(self.runner._materialize_confirmed_source_async(
+            'a', self.host / 'a', StorageTier.NVME))
+        self.assertEqual(reverse['state'], 'published')
+        self.assertEqual(reverse['file_reservation']['used_file_bytes_before'], 8192)
+        self.assertEqual(reverse['file_reservation']['allocated_file_bytes_after'], 16384)
+        self.assertEqual(self.manager.local_file_budgets()['tiers']['nvme']['used_bytes'], 8192)
+        self.assertEqual(len({r['content_sha256'] for r in self.owner.source_snapshot('a')['sources']}), 1)
+
+    def test_replacement_requires_both_old_and_new_payload_space(self):
+        from faaslora.registry.schema import StorageTier
+        self.fetch()
+        self.manager.tier_capacities[StorageTier.HOST].total_bytes = 16383
+        self.manager.materialize_confirmed_source('a', self.nvme / 'a', StorageTier.HOST)
+        before = self.owner.source_snapshot('a')
+        with self.assertRaisesRegex(RuntimeError, 'capacity conflict'):
+            self.manager.materialize_confirmed_source('a', self.nvme / 'a', StorageTier.HOST)
+        self.assertEqual(self.owner.source_snapshot('a')['sources'], before['sources'])
+        self.assertEqual(self.owner.source_epoch, before['epoch'])
+        self.assertEqual(self.manager.local_transfer_evidence[-1]['state'], 'not_published')
+        self.assertEqual(self.manager.local_transfer_evidence[-1]['copied_bytes'], 0)
+        self.assertEqual(sorted(p.name for p in self.host.iterdir()), ['a'])
+        self.assertFalse(self.owner.leases or self.owner.materializations)
+
+    def test_local_copy_shares_capacity_with_another_preallocated_transfer(self):
+        from faaslora.registry.schema import StorageTier
+        self.fetch()
+        self.manager.tier_capacities[StorageTier.HOST].total_bytes = 8192
+        with self.owner.materializing(self.host / 'b') as token:
+            with self.owner.transfer_workspace(token) as staging:
+                self.owner.prepare_copy(token, staging, {'weights': (1, '0'*64)}, limit_bytes=8192)
+                before = self.manager.local_file_budgets()['tiers']['host']
+                self.assertEqual(before['used_bytes'], 4096)
+                with self.assertRaisesRegex(RuntimeError, 'capacity conflict'):
+                    self.manager.materialize_confirmed_source('a', self.nvme / 'a', StorageTier.HOST)
+                self.assertEqual(self.manager.local_file_budgets()['tiers']['host'], before)
+        self.assertEqual(self.manager.local_file_budgets()['tiers']['host']['used_bytes'], 0)
+        self.assertFalse(self.owner.leases)
+
+    def test_local_copy_cancellation_joins_writer_before_releasing_source(self):
+        from faaslora.registry.schema import StorageTier
+        self.fetch()
+        entered, leave = threading.Event(), threading.Event()
+        original = self.owner.prepare_copy
+        def reserve(*args, **kwargs):
+            result = original(*args, **kwargs)
+            entered.set()
+            if not leave.wait(5):
+                raise RuntimeError('test copy gate timed out')
+            return result
+        async def run():
+            task = asyncio.create_task(self.runner._materialize_confirmed_source_async(
+                'a', self.nvme / 'a', StorageTier.HOST))
+            try:
+                self.assertTrue(await asyncio.to_thread(entered.wait, 3))
+                task.cancel()
+                await asyncio.sleep(0)
+                task.cancel()
+                await asyncio.sleep(0)
+                self.assertFalse(task.done())
+                self.assertFalse(self.manager._delete_path(str(self.nvme / 'a')))
+                self.assertTrue(self.owner.leases and self.owner.materializations)
+            finally:
+                leave.set()
+                with self.assertRaises(asyncio.CancelledError):
+                    await task
+        with patch.object(self.owner, 'prepare_copy', reserve):
+            asyncio.run(run())
+        evidence = self.manager.local_transfer_evidence[-1]
+        self.assertEqual((evidence['state'], evidence['copied_bytes']), ('not_published', 0))
+        self.assertTrue(evidence['source_reference_released'])
+        self.assertFalse(self.owner.leases or self.owner.materializations)
+        self.assertFalse(list(self.host.iterdir()))
+        self.assertEqual([s['tier'] for s in self.owner.source_snapshot('a')['sources']], ['nvme'])
+
+    def test_reader_on_old_destination_prevents_replacement_not_source_release(self):
+        from faaslora.registry.schema import StorageTier
+        self.fetch()
+        self.manager.materialize_confirmed_source('a', self.nvme / 'a', StorageTier.HOST)
+        before = self.owner.source_snapshot('a')
+        held = self.owner.acquire(path=str(self.host / 'a'), adapter_id='a', lease_id='old-reader')
+        try:
+            with self.assertRaisesRegex(RuntimeError, 'live source reference'):
+                self.manager.materialize_confirmed_source('a', self.nvme / 'a', StorageTier.HOST)
+            self.assertEqual(list(self.owner.leases), ['old-reader'])
+            self.assertEqual(self.owner.source_snapshot('a')['sources'], before['sources'])
+        finally:
+            self.manager.release_local_source(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+        self.assertEqual(sorted(p.name for p in self.host.iterdir()), ['a'])
+
+    def test_failed_copy_cleanup_retains_capacity_and_failure_evidence(self):
+        from faaslora.registry.schema import StorageTier
+        self.fetch()
+        self.manager.tier_capacities[StorageTier.HOST].total_bytes = 8192
+        with patch.object(self.owner, 'publish_transfer', side_effect=RuntimeError('injected publication error')), \
+                patch('shutil.rmtree', side_effect=OSError('injected cleanup error')):
+            with self.assertRaisesRegex(OSError, 'injected cleanup error'):
+                self.manager.materialize_confirmed_source('a', self.nvme / 'a', StorageTier.HOST)
+        view = self.manager.local_file_budgets()['tiers']['host']
+        self.assertEqual((view['used_bytes'], view['remaining_bytes'], view['active_transfers']), (8192, 0, 0))
+        self.assertEqual(self.manager.local_transfer_evidence[-1]['state'], 'not_published')
+        self.assertEqual(self.manager.local_transfer_evidence[-1]['error_type'], 'OSError')
+        self.assertEqual(self.manager.local_transfer_evidence[-1]['error_chain'], ['OSError', 'RuntimeError'])
+        self.assertFalse(self.owner.leases or self.owner.materializations)
+        with self.assertRaisesRegex(RuntimeError, 'capacity conflict'):
+            self.manager.materialize_confirmed_source('a', self.nvme / 'a', StorageTier.HOST)
+
+    def test_local_file_snapshot_cannot_change_frozen_budget_or_admit_unknown_copy(self):
+        from faaslora.registry.schema import StorageTier
+        self.fetch()
+        self.manager.local_file_budgets()
+        self.manager.tier_capacities[StorageTier.HOST].total_bytes += 1
+        with self.assertRaisesRegex(ValueError, 'budget cannot change'):
+            self.manager.local_file_budgets()
+        (self.host / 'b').mkdir()
+        with self.assertRaisesRegex(ValueError, 'exact confirmed source'):
+            self.manager.materialize_confirmed_source('b', self.host / 'b', StorageTier.NVME)
+        self.assertFalse((self.nvme / 'b').exists())
+        self.assertEqual(self.manager.local_transfer_evidence[-1]['state'], 'rejected')
+        self.assertFalse(self.owner.leases or self.owner.materializations)
 
     def test_stale_snapshot_and_wrong_identity_do_not_create_read_leases(self):
         self.fetch()
