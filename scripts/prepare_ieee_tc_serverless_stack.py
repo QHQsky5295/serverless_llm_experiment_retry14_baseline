@@ -16,6 +16,7 @@ from pathlib import Path
 import re
 import shlex
 import socket
+import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,7 +41,7 @@ def replace_once(source: str, old: str, new: str) -> str:
 
 
 def render(sources: dict[str, str], *, script_dir: Path, private_root: Path,
-           main_repo: Path, gpu_ids: tuple[int, ...]) -> tuple[dict[str, str], dict]:
+           main_repo: Path, gpu_ids: tuple[int, ...], ray_only: bool = False) -> tuple[dict[str, str], dict]:
     if (not gpu_ids or len(set(gpu_ids)) != len(gpu_ids)
             or any(type(i) is not int or i not in range(4) for i in gpu_ids)):
         raise ValueError("explicit unique local GPU IDs from 0..3 required")
@@ -102,6 +103,14 @@ tmux() {{ command tmux -f /dev/null -S "${{SLLM_TC_TMUX_SOCKET}}" "$@"; }}
                          'store  : ${STORE_SESSION} (gpus=${WORKER_GPUS})')
     stack = replace_once(stack, 'rm -f "${SERVE_LOG_PATH}"', '# New log only; checked before launch.')
     stack = replace_once(stack, '"bash -lc \'env${VLLM_ENV_PREFIX}', '"bash -c \'env${VLLM_ENV_PREFIX}')
+    if ray_only:
+        # Explicit infrastructure qualification, not a direct-path fallback.
+        # Execute the identical guarded head/worker prefix; do not start store,
+        # API, load a model or submit inference requests in this mode.
+        marker = 'wait_for_workers "${EXPECTED_WORKERS}"\n'
+        if stack.count(marker) != 1:
+            raise ValueError("native worker-start boundary differs")
+        stack = stack[:stack.index(marker) + len(marker)] + '\necho "TC ray-only infrastructure ready"\n'
     result["start_serverlessllm_stack.sh"] = stack
     for role in ("head", "worker"):
         name = f"run_serverlessllm_{role}.sh"
@@ -119,13 +128,14 @@ tmux() {{ command tmux -f /dev/null -S "${{SLLM_TC_TMUX_SOCKET}}" "$@"; }}
     return result, allocation
 
 
-def prepare(output: Path, private_root: Path, main_repo: Path, gpu_ids: tuple[int, ...]) -> dict:
+def prepare(output: Path, private_root: Path, main_repo: Path, gpu_ids: tuple[int, ...],
+            *, ray_only: bool = False) -> dict:
     for path in (output, private_root):
         if path.exists() or path.is_symlink():
             raise FileExistsError(f"refuse to reuse or overwrite {path}")
     sources = {name: (ROOT / "scripts" / name).read_text() for name in SOURCE_SHA}
     rendered, allocation = render(sources, script_dir=output, private_root=private_root,
-                                 main_repo=main_repo, gpu_ids=gpu_ids)
+                                 main_repo=main_repo, gpu_ids=gpu_ids, ray_only=ray_only)
     manifest = {
         "schema": "ieee_tc_serverless_native_launcher_view_v1", "display_name": "Serverless",
         "main_repo": str(main_repo), "private_root": str(private_root),
@@ -134,6 +144,7 @@ def prepare(output: Path, private_root: Path, main_repo: Path, gpu_ids: tuple[in
         "helper_sha256": sha(Path(__file__).read_bytes()),
         "object_store_bytes_by_raylet": allocation,
         "object_store_bytes_total": sum(allocation.values()), "worker_gpu_ids": list(gpu_ids),
+        "ray_only_infrastructure": ray_only,
         "qualification_only": True, "actual_workers_verified": False,
         "native_loader_qualified": False, "performance_run_authorized": False,
         "cleanup_owner": "existing external TC gated launcher and watchdog",
@@ -148,6 +159,15 @@ def prepare(output: Path, private_root: Path, main_repo: Path, gpu_ids: tuple[in
     with (output / "launch_manifest.json").open("x") as handle:
         json.dump(manifest, handle, indent=2)
     return manifest
+
+
+def load_guard(main_repo: Path):
+    checker = main_repo / "scripts" / "ieee_tc_preflight.py"
+    spec = importlib.util.spec_from_file_location("tc_native_launch_guard", checker)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 def verify(manifest_path: Path) -> dict:
@@ -168,11 +188,7 @@ def verify(manifest_path: Path) -> dict:
     private = Path(manifest["private_root"])
     if private.is_symlink() or private.stat().st_uid != os.getuid() or private.stat().st_mode & 0o077:
         raise ValueError("private runtime directory ownership differs")
-    checker = Path(manifest["main_repo"]) / "scripts" / "ieee_tc_preflight.py"
-    spec = importlib.util.spec_from_file_location("tc_native_launch_guard", checker)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
+    module = load_guard(Path(manifest["main_repo"]))
     admission = module.verify_current_service()
     if os.environ.get("SLLM_RAY_OBJECT_STORE_MEMORY_BYTES"):
         raise ValueError("legacy per-node object-store override conflicts with aggregate TC contract")
@@ -192,6 +208,169 @@ def verify(manifest_path: Path) -> dict:
     return admission
 
 
+def validate_ray_nodes(nodes: list[dict], gpu_count: int) -> dict:
+    alive = [node for node in nodes if node["Alive"]]
+    if len(alive) != 2 or len({n['NodeID'] for n in alive}) != 2:
+        raise ValueError("expected exactly two live native raylets")
+    result = {}
+    for node in alive:
+        resources = node["Resources"]
+        is_head, is_worker = resources.get("control_node", 0) == 1, resources.get("worker_node", 0) == 1
+        if is_head == is_worker:
+            raise ValueError("native raylet role is ambiguous")
+        role = "head" if is_head else "worker_0"
+        if role in result or resources.get("GPU", 0) != (0 if is_head else gpu_count):
+            raise ValueError("native role or GPU inventory differs")
+        if resources.get("object_store_memory") != 4 * GIB:
+            raise ValueError("live raylet object-store capacity differs")
+        result[role] = node
+    if set(result) != {"head", "worker_0"}:
+        raise ValueError("native head/worker roles incomplete")
+    return result
+
+
+def qualify_ray(args) -> dict:
+    """Observe the actual two-raylet launch inside the existing external gate."""
+    guard = load_guard(args.main_repo)
+    admission = guard.verify_current_service()
+    if Path(sys.executable).resolve() != (args.environment / 'bin/python').resolve():
+        raise ValueError("use the explicitly selected native Ray interpreter")
+    import ray
+    from ray.util.scheduling_strategies import NodeAffinitySchedulingStrategy
+    if ray.__version__ != '2.54.0' or ray.__commit__ != '48bd1f8fa43d0e8222b0f57357b99b48c7437ed3':
+        raise ValueError("native Ray identity differs from the inspected environment")
+    result = dict(schema="ieee_tc_serverless_two_raylet_witness_v1", passed=False,
+                  inference_requests=0, model_loaded=False, actual_model_workers_qualified=False,
+                  performance_run_authorized=False, service=admission,
+                  ray_version=ray.__version__, ray_commit=ray.__commit__, ray_file=ray.__file__,
+                  ray_init_sha256=sha(Path(ray.__file__).read_bytes()))
+    manifest = prepare(args.output, args.private_root, args.main_repo, args.gpu_ids, ray_only=True)
+    result['launcher_manifest_sha256'] = sha((args.output / 'launch_manifest.json').read_bytes())
+    env = dict(os.environ)
+    env.pop('TMUX', None)
+    env.pop('TMUX_PANE', None)
+    for key in ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'http_proxy', 'https_proxy', 'all_proxy'):
+        env[key] = ''
+    env.update(SLLM_HEAD_ENV_PREFIX=str(args.environment), SLLM_WORKER_ENV_PREFIX=str(args.environment),
+               SLLM_STORE_ENV_PREFIX=str(args.environment), SLLM_REPO_ROOT=str(args.native_source),
+               SLLM_RAY_HEAD_HOST=args.host, SLLM_RAY_PORT=str(args.ray_port), SLLM_PORT=str(args.api_port),
+               SLLM_STORE_PATH=str(args.checkpoint_root), SLLM_DIRECT_PATH_MODE='0',
+               PYTHONNOUSERSITE='1', PYTHONDONTWRITEBYTECODE='1', RAY_USAGE_STATS_ENABLED='0',
+               RAY_TMPDIR=str(args.private_root / 'ray_tmp'),
+               NO_PROXY=f"{args.host},127.0.0.1,localhost", no_proxy=f"{args.host},127.0.0.1,localhost")
+    env.update(SLLM_HEAD_SESSION='sllm_head_formal', SLLM_WORKER_SESSION_PREFIX='sllm_worker_formal',
+               SLLM_RAY_HEAD_ADDRESS=f'{args.host}:{args.ray_port}', RAY_ADDRESS=f'{args.host}:{args.ray_port}',
+               SLLM_HEAD_RESOURCES='{"control_node": 1}',
+               SLLM_WORKER_RESOURCES='{"worker_node": 1, "worker_id_0": 1}')
+    # Native shell prefixes must not inherit alternate binary selections.
+    for key in ('SLLM_HEAD_RAY_BIN', 'SLLM_WORKER_RAY_BIN', 'SLLM_HEAD_PYTHON_BIN'):
+        env.pop(key, None)
+    os.environ.update({key: env[key] for key in ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY',
+                       'http_proxy', 'https_proxy', 'all_proxy', 'NO_PROXY', 'no_proxy', 'RAY_TMPDIR')})
+    tmux = ['tmux', '-f', '/dev/null', '-S', str(args.private_root / 'tmux.sock')]
+    actors, failure = [], None
+    try:
+        with (args.output / 'startup.log').open('x') as log:
+            startup = subprocess.run(['bash', str(args.output / 'start_serverlessllm_stack.sh')],
+                                     env=env, stdout=log, stderr=subprocess.STDOUT, timeout=210)
+        result['startup_returncode'] = startup.returncode
+        if startup.returncode:
+            raise RuntimeError('native Ray startup failed; preserve startup and private Ray logs')
+        ray.init(address=f'{args.host}:{args.ray_port}', namespace='tc-launch-qualification',
+                 log_to_driver=False)
+        nodes = ray.nodes()
+        result['nodes'] = nodes
+        by_role = validate_ray_nodes(nodes, len(args.gpu_ids))
+
+        @ray.remote(max_restarts=0)
+        class Witness:
+            def report(self):
+                import os
+                import pathlib
+                import subprocess
+                import sys
+                import json
+                import ray
+                child = subprocess.check_output([sys.executable, '-c',
+                    'import os,json,pathlib; print(json.dumps(dict(pid=os.getpid(),'
+                    'cgroup=pathlib.Path("/proc/self/cgroup").read_text(),'
+                    'affinity=sorted(os.sched_getaffinity(0)))))'], text=True, timeout=10)
+                return dict(pid=os.getpid(), cgroup=pathlib.Path('/proc/self/cgroup').read_text(),
+                            affinity=sorted(os.sched_getaffinity(0)), child=json.loads(child),
+                            node_id=ray.get_runtime_context().get_node_id(),
+                            gpu_ids=ray.get_gpu_ids(), cuda_visible=os.environ.get('CUDA_VISIBLE_DEVICES'))
+
+        for role, node in by_role.items():
+            for _ in range(1 if role == 'head' else len(args.gpu_ids)):
+                actors.append(Witness.options(num_cpus=1, num_gpus=0 if role == 'head' else 1,
+                    scheduling_strategy=NodeAffinitySchedulingStrategy(node['NodeID'], soft=False)).remote())
+        reports = ray.get([actor.report.remote() for actor in actors], timeout=60)
+        result['worker_reports'] = reports
+        expected_group = str(Path(admission['service_identity']['path']).relative_to('/sys/fs/cgroup'))
+        if len({row['pid'] for row in reports}) != len(actors):
+            raise RuntimeError('expected distinct native worker processes')
+        for row in reports:
+            for observed in (row, row['child']):
+                if observed['cgroup'].strip() != '0::/' + expected_group or observed['affinity'] != sorted(guard.SERVICE_CPUS):
+                    raise RuntimeError('actual Ray worker or its child escaped the common service envelope')
+        worker_reports = [r for r in reports if r['node_id'] == by_role['worker_0']['NodeID']]
+        if (len(worker_reports) != len(args.gpu_ids)
+                or sorted(int(g) for r in worker_reports for g in r['gpu_ids']) != list(range(len(args.gpu_ids)))):
+            raise RuntimeError('native witness GPU scheduling coverage differs')
+        group = Path(admission['service_identity']['path'])
+        result['owned_processes'] = guard.owned_pids(group)
+        result['resource_snapshot'] = guard.cgroup_snapshot(group)
+        raylets = []
+        for proc in result['owned_processes']:
+            try:
+                command = Path(f"/proc/{proc['pid']}/cmdline").read_bytes().split(b'\0')
+            except FileNotFoundError:
+                continue
+            if command and Path(command[0].decode()).name == 'raylet':
+                args_readback = [part.decode() for part in command if part]
+                if f'--object_store_memory={4 * GIB}' not in args_readback:
+                    raise RuntimeError('actual raylet process capacity differs')
+                raylets.append(dict(identity=proc, command=args_readback))
+        result['raylet_processes'] = raylets
+        if len(raylets) != 2:
+            raise RuntimeError('two live owned raylet processes were not observed')
+        result['passed'] = True
+    except Exception as exc:
+        result['error'] = f'{type(exc).__name__}: {exc}'
+        failure = exc
+    finally:
+        cleanup_errors = []
+        if ray.is_initialized():
+            for actor in actors:
+                try:
+                    ray.kill(actor, no_restart=True)
+                except Exception as exc:
+                    cleanup_errors.append(str(exc))
+            try:
+                ray.shutdown()
+            except Exception as exc:
+                cleanup_errors.append(str(exc))
+        # Only this fresh private tmux server is addressed. Its descendants
+        # remain covered by the original gated launcher's final whole-tree check.
+        for session in ('sllm_head_formal', 'sllm_worker_formal_0'):
+            capture = subprocess.run(tmux + ['capture-pane', '-pJt', session, '-S', '-'],
+                                     text=True, capture_output=True, timeout=5)
+            with (args.output / f'{session}.log').open('x') as handle:
+                handle.write(capture.stdout + capture.stderr)
+        killed = subprocess.run(tmux + ['kill-server'], capture_output=True, text=True, timeout=5)
+        result['private_tmux_stop_returncode'] = killed.returncode
+        result['cleanup_errors'] = cleanup_errors
+        if cleanup_errors:
+            result['passed'] = False
+            failure = failure or RuntimeError('native actor cleanup failed')
+        result['external_cleanup_required'] = True
+        with (args.output / 'ray_witness.json').open('x') as handle:
+            json.dump(result, handle, indent=2)
+    if failure:
+        raise RuntimeError('Serverless Ray qualification failed; see preserved witness') from failure
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="action", required=True)
@@ -202,7 +381,18 @@ def main() -> None:
     prep.add_argument("--gpu-ids", required=True)
     check = sub.add_parser("verify")
     check.add_argument("--manifest", type=Path, required=True)
+    witness = sub.add_parser('qualify-ray')
+    for name in ('output', 'private-root', 'main-repo', 'environment', 'native-source', 'checkpoint-root'):
+        witness.add_argument('--' + name, type=Path, required=True)
+    witness.add_argument('--gpu-ids', required=True)
+    witness.add_argument('--host', required=True)
+    witness.add_argument('--ray-port', required=True, type=int)
+    witness.add_argument('--api-port', required=True, type=int)
     args = parser.parse_args()
+    if args.action == 'qualify-ray':
+        args.gpu_ids = tuple(int(i) for i in args.gpu_ids.split(','))
+        print(json.dumps(qualify_ray(args), indent=2))
+        return
     result = (prepare(args.output, args.private_root, args.main_repo,
                       tuple(int(i) for i in args.gpu_ids.split(','))) if args.action == "prepare"
               else verify(args.manifest))

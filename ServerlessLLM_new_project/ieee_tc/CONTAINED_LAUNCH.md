@@ -108,3 +108,26 @@ Run the CPU tests without starting Ray, a model, or a remote service:
 ```bash
 /usr/bin/python3 -m unittest discover -s tests -p 'test_ieee_tc_serverless*.py' -v
 ```
+
+## D65 preregistered actual two-raylet witness
+
+Next measure the same guarded head/worker prefix, stopping explicitly before
+native store/API/model startup. `qualify-ray` runs in the existing admitted
+72/80 GiB service domain with independent 4 GiB auxiliary watchdog, under TMUX.
+Use the existing Ray2.54 native environment and four logical GPU resources;
+no CUDA/model inference is performed. This is not a substitute full baseline.
+
+Require exactly two live owned raylets, head GPU0 and worker GPU4, each reporting
+4 GiB object store (also read from both actual process command lines). Schedule
+one CPU witness on the head and four distinct one-GPU-resource witnesses on
+the worker. Their actual processes and subprocesses must share the admitted
+resource domain and service CPU set; all four logical GPU assignments must be
+covered. Record actual imports, native node IDs, PIDs/birth identities, limits,
+raw private logs and watchdog evidence. No native inference means no numerical
+adapter-correctness or physical-GPU-use claim follows.
+
+After observations, kill only those actor handles and the explicitly private
+tmux server; the existing external supervisor still verifies whole-tree release.
+Keep failures and new attempt paths. No global Ray stop, source installation,
+checkpoint conversion, remote fetch, model/pool scan or performance ranking.
+The result table and cleanup evidence must precede any next experiment.

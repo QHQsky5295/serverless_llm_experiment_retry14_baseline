@@ -147,6 +147,40 @@ class NativeLaunchTests(unittest.TestCase):
                 self.assertIn(f"--object-spilling-directory={output}/spill/{role}", args)
             self.assertEqual(total, 8 * 1024**3)
 
+    def test_ray_only_executes_same_prefix_without_store_api_or_model(self):
+        full, _ = self.render()
+        probe, _ = self.render(ray_only=True)
+        marker = 'wait_for_workers "${EXPECTED_WORKERS}"\n'
+        self.assertEqual(full['start_serverlessllm_stack.sh'].split(marker)[0],
+                         probe['start_serverlessllm_stack.sh'].split(marker)[0])
+        suffix = probe['start_serverlessllm_stack.sh'].split(marker)[1]
+        self.assertNotIn('new-session', suffix)
+        self.assertIn('ray-only infrastructure', suffix)
+
+    def nodes(self):
+        return [dict(Alive=True, NodeID='head', Resources=dict(control_node=1, object_store_memory=4 * launch.GIB)),
+                dict(Alive=True, NodeID='worker', Resources=dict(worker_node=1, GPU=4, object_store_memory=4 * launch.GIB))]
+
+    def test_live_node_capacity_and_roles_match(self):
+        self.assertEqual(set(launch.validate_ray_nodes(self.nodes(), 4)), {'head', 'worker_0'})
+
+    def test_live_node_resource_or_membership_drift_is_not_qualified(self):
+        for change in ('capacity', 'gpu', 'role', 'third', 'dead'):
+            with self.subTest(change=change):
+                nodes = self.nodes()
+                if change == 'capacity':
+                    nodes[1]['Resources']['object_store_memory'] *= 2
+                elif change == 'gpu':
+                    nodes[1]['Resources']['GPU'] = 1
+                elif change == 'role':
+                    nodes[1]['Resources']['control_node'] = 1
+                elif change == 'third':
+                    nodes.append(dict(Alive=True, NodeID='foreign', Resources={}))
+                else:
+                    nodes[1]['Alive'] = False
+                with self.assertRaises(ValueError):
+                    launch.validate_ray_nodes(nodes, 4)
+
 
 if __name__ == "__main__":
     unittest.main()
