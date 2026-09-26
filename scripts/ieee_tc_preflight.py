@@ -2194,6 +2194,218 @@ def compare_first_token_probabilities(left, right):
             'top_token_sets_equal': set(a) == set(b)}
 
 
+def reference_probability_comparison(native, reference):
+    """Official vLLM sample-logprob tolerance, frozen before this observation.
+
+    A close positive control alone is NOT adapter discrimination. Callers must
+    also report wrong-adapter/base controls under the identical criterion.
+    """
+    import math
+    if not native or any(k not in reference for k in native):
+        raise ValueError('reference must cover every observed native token')
+    if any(not math.isfinite(v) for v in [*native.values(), *reference.values()]):
+        raise ValueError('reference comparison requires finite log probabilities')
+    differences = {k: abs(v-reference[k]) for k,v in native.items()}
+    violations = [k for k,d in differences.items() if d > 1e-2+1e-2*abs(reference[k])]
+    return dict(atol=1e-2, rtol=1e-2, compared_tokens=len(native),
+                max_abs_difference=max(differences.values()), violations=violations,
+                close=not violations)
+
+
+def snapshot_reference_backbone(root):
+    """Hash the existing safetensors checkpoint and tokenizer, without copying."""
+    root = Path(root).resolve(strict=True)
+    index = root/'model.safetensors.index.json'
+    payload = json.loads(index.read_bytes())
+    shards = set(payload['weight_map'].values())
+    if not shards or any(not isinstance(n,str) or Path(n).name != n
+                         or not n.endswith('.safetensors') for n in shards):
+        raise ValueError('reference requires a local ordinary safetensors shard index')
+    names = sorted(shards | {'model.safetensors.index.json','config.json','tokenizer_config.json',
+                            'tokenizer.json','tokenizer.model','special_tokens_map.json',
+                            'generation_config.json'})
+    files = []
+    for name in names:
+        path = root/name
+        before = path.stat()
+        if not path.is_file() or path.resolve().parent != root:
+            raise ValueError('reference checkpoint escapes its existing local directory')
+        sig = (before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns,before.st_ctime_ns)
+        sha = digest(path)
+        after = path.stat()
+        if sig != (after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns,after.st_ctime_ns):
+            raise RuntimeError('reference checkpoint changed during hashing')
+        files.append(dict(path=name,size_bytes=before.st_size,sha256=sha,
+                          stat_signature=list(sig)))
+    canonical = [{k:r[k] for k in ('path','size_bytes','sha256')} for r in files]
+    return dict(root=str(root),files=files,content_sha256=hashlib.sha256(
+        json.dumps(canonical,sort_keys=True,separators=(',',':')).encode()).hexdigest())
+
+
+def verify_reference_backbone(snapshot):
+    for row in snapshot['files']:
+        st = (Path(snapshot['root'])/row['path']).stat()
+        if list((st.st_dev,st.st_ino,st.st_size,st.st_mtime_ns,st.st_ctime_ns)) != row['stat_signature']:
+            raise RuntimeError('reference checkpoint changed during execution')
+
+
+def backend_peft_reference(native_observation: Path, trace: Path):
+    """Independent HF/PEFT first-position reference for an existing native run.
+
+    Only existing assets and one existing canonical prompt are used. No new
+    weights, merged checkpoint, generated workload or production policy. This
+    is a reference observation, not full-pool or performance qualification.
+    """
+    service = verify_current_service()
+    result = dict(kind='existing_peft_numeric_reference_v1',pass_=False,
+        measurement_complete=False,semantic_full_pool_qualification=False,
+        production_launch_authorized=False,service=service,stage='inputs',
+        source_native_path=str(native_observation),source_native_sha256=digest(native_observation),
+        plan_sha256=check_plan(),check_source_sha256=digest(Path(__file__)),environment=sys.prefix,
+        requests=[],limitations=[
+            'First output position of one existing prompt; not complete inference qualification.',
+            'Historical native run lacks a recorded backbone content SHA; current files are hashed here.',
+            'Reference closeness is not adapter discrimination; wrong controls are reported identically.'])
+    result['pass'] = result.pop('pass_')
+    model = base = logits = None
+    try:
+        import gc,math,contextlib,importlib.metadata
+        source = json.loads(native_observation.read_bytes())
+        if (source.get('kind') != 'backend_native_native_numeric_reference_qualification_v1'
+                or source.get('stage') != 'complete' or source.get('pass') is not True
+                or source.get('native_frontend_class') != 'vllm.v1.engine.async_llm.AsyncLLM'
+                or digest(trace) != source['trace']['source_sha256']):
+            raise ValueError('PEFT reference requires completed original native numeric evidence and trace')
+        roles = ('nonzero_a','zero','nonzero_b','base','nonzero_a_repeat')
+        cases = source['requests']
+        if (len(cases)!=len(roles) or
+                tuple(c['request_id'].rsplit('/',1)[-1] for c in cases)!=roles or
+                len({c['source_request_id'] for c in cases})!=1 or
+                any(c['outcome']!='completed' or c['actual_tokens']!=c['target_tokens'] for c in cases)):
+            raise ValueError('native source must contain the original complete A/Z/B/base/A controls')
+        if os.environ.get('HF_HUB_OFFLINE')!='1' or os.environ.get('TRANSFORMERS_OFFLINE')!='1':
+            raise ValueError('independent reference requires offline-only existing assets')
+        import torch
+        from transformers import AutoModelForCausalLM,AutoTokenizer
+        from peft import PeftModel,get_peft_model_state_dict
+        from safetensors.torch import load_file
+        sys.path.insert(0,str(ROOT))
+        from scripts.run_all_experiments import InferenceEngine
+        from faaslora.datasets.workload_generator import FrozenReplayPlan
+        result['packages']={name:importlib.metadata.version(name)
+                            for name in ('torch','transformers','peft','safetensors')}
+        if os.environ.get('CUDA_VISIBLE_DEVICES')!='0' or torch.cuda.device_count()!=1:
+            raise ValueError('reference requires exactly the qualified visible physical GPU0')
+        cfg = source['model_config']
+        if (cfg['dtype']!='float16' or cfg['tensor_parallel_size']!=1
+                or cfg['generation_contract']!='fixed_length_greedy_v1'):
+            raise ValueError('reference only covers the recorded FP16 TP1 generation contract')
+        backbone = Path(cfg['name']).resolve(strict=True)
+        result['backbone'] = snapshot_reference_backbone(backbone)
+        result['historical_native_backbone_sha_available'] = 'backbone' in source
+        plan = FrozenReplayPlan.load(trace,count=source['trace']['count'])
+        entry = next(e for e in plan.entries if e.request_id==cases[0]['source_request_id'])
+        row = json.loads(entry.source_json)
+        tokenizer = AutoTokenizer.from_pretrained(backbone,local_files_only=True,trust_remote_code=False)
+        renderer = InferenceEngine(cfg,{})  # Reuse only input rendering, never initialize its backend.
+        renderer._prompt_guard_tokenizer = tokenizer
+        prepared = renderer.prepare_request('',min(row['expected_output_tokens'],256),
+            row['expected_input_tokens'],chat_messages=row['body']['messages'])
+        ids = tokenizer.encode(prepared.prompt,add_special_tokens=True)
+        prompt_sha = hashlib.sha256(prepared.prompt.encode()).hexdigest()
+        ids_sha = hashlib.sha256(json.dumps(ids,separators=(',',':')).encode()).hexdigest()
+        if any(c['prompt_sha256']!=prompt_sha or c['native_prompt_ids_sha256']!=ids_sha for c in cases):
+            raise ValueError('independent reference prompt/tokenizer differs from native source')
+        result['input'] = dict(source_trace_sha256=digest(trace),source_request_id=entry.request_id,
+            prompt_sha256=prompt_sha,native_prompt_ids_sha256=ids_sha,input_token_ids=ids,
+            measured_output_positions=1,original_target_tokens=prepared.max_tokens)
+        for aid,identity in source['adapters'].items():
+            path = Path(identity['path']).resolve(strict=True)
+            if (digest(path/'adapter_model.safetensors')!=identity['weights_sha256']
+                    or digest(path/'adapter_config.json')!=identity['config_sha256']):
+                raise ValueError('reference adapter differs from recorded native bytes')
+        result.update(stage='reference_model_load',reference_config=dict(dtype='float16',
+            attention='eager',autocast_adapter_dtype=False,use_cache=False,device='cuda:0',
+            local_files_only=True,use_safetensors=True))
+        print(json.dumps({'event':'peft_reference_stage','stage':result['stage']}),flush=True)
+        base = AutoModelForCausalLM.from_pretrained(backbone,local_files_only=True,
+            trust_remote_code=False,use_safetensors=True,torch_dtype=torch.float16,
+            device_map={'':'cuda:0'},low_cpu_mem_usage=True,attn_implementation='eager')
+        result['loaded_adapter_checks'] = {}
+        for aid in dict.fromkeys(c['adapter_id'] for c in cases if c['adapter_id'] is not None):
+            path = source['adapters'][aid]['path']
+            if model is None:
+                model = PeftModel.from_pretrained(base,path,adapter_name=aid,is_trainable=False,
+                    autocast_adapter_dtype=False,local_files_only=True)
+            else:
+                receipt = model.load_adapter(path,adapter_name=aid,is_trainable=False,
+                    autocast_adapter_dtype=False,local_files_only=True)
+                if receipt.unexpected_keys:
+                    raise ValueError('independent PEFT load has unexpected adapter tensors')
+            expected = load_file(str(Path(path)/'adapter_model.safetensors'),device='cpu')
+            actual = get_peft_model_state_dict(model,adapter_name=aid)
+            if set(actual)!=set(expected) or any(actual[k].dtype!=expected[k].dtype
+                or not torch.equal(actual[k].detach().cpu(),expected[k]) for k in expected):
+                raise ValueError('independent PEFT tensors do not exactly match existing checkpoint')
+            result['loaded_adapter_checks'][aid]=dict(tensors=len(expected),exact_values_and_dtype=True,
+                weights_sha256=source['adapters'][aid]['weights_sha256'])
+            del actual,expected
+        inputs = torch.tensor([ids],dtype=torch.long,device='cuda:0')
+        mask = torch.ones_like(inputs)
+        vectors = {}
+        for role,case in zip(roles,cases):
+            aid = case['adapter_id']
+            if aid is not None: model.set_adapter(aid)
+            model.eval().requires_grad_(False)
+            context = model.disable_adapter() if aid is None else contextlib.nullcontext()
+            with context,torch.inference_mode():
+                logits = model(input_ids=inputs,attention_mask=mask,use_cache=False,logits_to_keep=1).logits
+                values = torch.log_softmax(logits[0,-1].float(),dim=-1).cpu()
+            if not torch.isfinite(values).all():
+                raise ValueError('independent reference emitted nonfinite probabilities')
+            vectors[role]=values.tolist()
+            observed = {k:vectors[role][int(k)] for k in case['first_token_logprobs']}
+            top = torch.topk(values,k=20).indices.tolist()
+            record = dict(role=role,adapter_id=aid,prompt_sha256=prompt_sha,
+                native_prompt_ids_sha256=ids_sha,first_token_id=int(values.argmax()),
+                native_token_logprobs=observed,top20_logprobs={str(i):vectors[role][i] for i in top},
+                full_vocab_logprobs=vectors[role],
+                native_match=reference_probability_comparison(case['first_token_logprobs'],observed))
+            result['requests'].append(record)
+            print(json.dumps({'event':'peft_reference_case','role':role,
+                              'native_match':record['native_match']}),flush=True)
+            logits = None
+        result['counterfactual_matches'] = {role:{other:reference_probability_comparison(
+            case['first_token_logprobs'],{k:vectors[other][int(k)] for k in case['first_token_logprobs']})
+            for other in ('nonzero_a','zero','nonzero_b','base')}
+            for role,case in zip(roles,cases)}
+        result['reference_full_vocab_effects'] = {name:dict(
+            max_abs_difference=max(abs(a-b) for a,b in zip(vectors[left],vectors[right])),
+            l2_difference=math.sqrt(math.fsum((a-b)**2 for a,b in zip(vectors[left],vectors[right]))))
+            for name,left,right in (('a_base','nonzero_a','base'),('b_base','nonzero_b','base'),
+                                    ('zero_base','zero','base'),('a_repeat','nonzero_a','nonzero_a_repeat'))}
+        verify_reference_backbone(result['backbone'])
+        for identity in source['adapters'].values():
+            path = Path(identity['path'])
+            if (digest(path/'adapter_model.safetensors')!=identity['weights_sha256']
+                    or digest(path/'adapter_config.json')!=identity['config_sha256']):
+                raise RuntimeError('reference adapter changed during execution')
+        result.update(stage='complete',measurement_complete=True,
+            matched_reference_consistency_pass=all(r['native_match']['close'] for r in result['requests']),
+            **{'pass':True})
+    except Exception as error:
+        import traceback
+        result.update(error_type=type(error).__name__,error=str(error),traceback=traceback.format_exc())
+    finally:
+        # The external watchdog, not this return or empty_cache, witnesses release.
+        model = base = logits = None
+        if 'torch' in locals():
+            import gc
+            gc.collect()
+            if torch.cuda.is_initialized(): torch.cuda.empty_cache()
+    return result
+
+
 async def qualify_native_cancel_reference(engine, plan, adapters, result, *, include_pairs=True,
                                            numeric_controls=None):
     """Direct stock AsyncLLM reference; no Prime reference/load/retirement path.
@@ -2860,6 +3072,7 @@ def main():
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
                                          'watchdog', 'watchdog-test', 'install-candidate', 'backend-check',
                                          'backend-model-check', 'backend-copy-check', 'backend-host-check',
+                                         'backend-peft-reference',
                                          'artifact-audit', 'artifact-index', '_worker',
                                          'gated-launch', '_launch-gate', '_replay-publisher', '_replay-witness'])
     parser.add_argument('--output', type=Path)
@@ -2875,6 +3088,8 @@ def main():
     parser.add_argument('--requirements', type=Path)
     parser.add_argument('--install-receipt', type=Path)
     parser.add_argument('--runtime-receipt', type=Path)
+    parser.add_argument('--native-observation', type=Path,
+                        help='Completed existing native numeric control result for independent PEFT reference')
     parser.add_argument('--artifact-audit', type=Path)
     parser.add_argument('--materialized-support-root', type=Path, action='append', default=[],
                         help='Existing local metadata root corresponding to ordinary files in the remote pool')
@@ -2955,6 +3170,10 @@ def main():
         result = asyncio.run(backend_model_check(args.runtime_receipt, args.config,
             args.model_profile, args.replay_trace, args.request_count, args.qualification_mode,
             args.artifact_audit))
+    elif args.action == 'backend-peft-reference':
+        if not all((args.native_observation,args.replay_trace,args.output)):
+            parser.error('backend-peft-reference requires existing native observation, trace and new output')
+        result = backend_peft_reference(args.native_observation,args.replay_trace)
     elif args.action == 'backend-copy-check':
         if not args.runtime_receipt or not args.output:
             parser.error('backend-copy-check requires the native runtime receipt and new output')

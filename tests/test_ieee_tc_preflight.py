@@ -7,6 +7,35 @@ from unittest.mock import patch
 from scripts import ieee_tc_preflight as p
 
 
+class IndependentNumericReference(unittest.TestCase):
+    def test_closeness_is_not_discrimination_and_nonfinite_or_missing_reject(self):
+        native={'1':-1.,'2':-2.}
+        same=p.reference_probability_comparison(native,{'1':-1.001,'2':-2.001})
+        wrong=p.reference_probability_comparison(native,{'1':-1.01,'2':-2.02})
+        self.assertTrue(same['close'])
+        self.assertTrue(wrong['close'])  # Both passing cannot identify the correct adapter.
+        self.assertFalse(p.reference_probability_comparison(native,{'1':-1.1,'2':-2.})['close'])
+        for bad in ({'1':-1.},{'1':float('nan'),'2':-2.}):
+            with self.assertRaises(ValueError): p.reference_probability_comparison(native,bad)
+
+    def test_backbone_snapshot_reuses_existing_files_and_detects_change(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            for name in ('config.json','tokenizer_config.json','tokenizer.json','tokenizer.model',
+                         'special_tokens_map.json','generation_config.json','model-1.safetensors'):
+                (root/name).write_bytes(b'existing-test-data')
+            index=root/'model.safetensors.index.json'
+            index.write_text(json.dumps({'weight_map':{'weight':'model-1.safetensors'}}))
+            observation=p.snapshot_reference_backbone(root)
+            self.assertEqual(len(observation['files']),8)
+            p.verify_reference_backbone(observation)
+            (root/'model-1.safetensors').write_bytes(b'changed')
+            with self.assertRaisesRegex(RuntimeError,'changed during execution'):
+                p.verify_reference_backbone(observation)
+            index.write_text(json.dumps({'weight_map':{'weight':'../outside.safetensors'}}))
+            with self.assertRaises(ValueError): p.snapshot_reference_backbone(root)
+
+
 class ExistingContentIndex(unittest.TestCase):
     def make(self):
         import os

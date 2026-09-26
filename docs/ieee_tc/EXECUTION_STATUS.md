@@ -265,6 +265,29 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
 
 ## This continuation
 
+### D63 independent existing-weight numerical reference
+
+- Previous D62 is progress: actual two-pool indices completed/validated/pushed.
+  Startcef22afeb3bdf172b91b7959f7ff3fb5fa6c9e64; original user dirt retained.
+  Full plan/status/AGENTS and run/backup/plotting skills read. Protected147 and
+  source plan unchanged. GPUs15MiB/0%,MemAvailable109187448KiB,local free353278058496B.
+- Return to independent7B correctness, not another index/allocator/prefix run.
+  Read prior five-control probability observations, installed HF/PEFT source,
+  exactvLLM0.30 sample-logprob tests and officialPEFT API. Existing old environment
+  has PEFT0.18.1; newvLLM environment unchanged. Original nonzero7B weights and
+  source prompt are reused. No new3B control or remote174 service is authorized.
+- Existing preflight gains opt-in independent HF/PEFT first-position reference,
+  exact adapter tensor checks and current backbone/input hashes. Positive AND
+  wrong controls use the same predeclared official numeric criterion; closeness
+  alone does not establish identity. Historical native lacks backboneSHA, and
+  this limited reference does not certify Full or500ID behavior. Protocol is in
+  NATIVE_ADAPTER_NUMERIC_CONTROL before launch; tests/actual observation follow.
+-70 safety/reference/index/census/replay checks and288 basic smoke checks pass,
+ 0failures/errors/skips. Actual old-environment imports and393-token prompt
+ reconstruction match native SHA without initializing CUDA. Three owned CPU
+ scopes are empty with high/max/OOM0 and stopped. Protected147 and plan unchanged.
+ Tested diagnostic source backup precedes the one independent model observation.
+
 ### D62 complete existing artifact identity for Full/profile input
 
 - Previous D61 is progress: actual HOST-capacity propagation implemented/tested/

@@ -82,3 +82,44 @@ native scheduler 无残留请求/iteration/deferred-free，GPU contexts 清空�
 reservation/admission 和物理 GPU 生命周期接入。独立数值参考作为尚未通过的
 资格项保留，不能悄悄取消；3B 新增非零正确性工件仍需用户确认范围变更。
 实际 baseline 资格仍按 Serverless 优先，远端磁盘门槛仍未解除。
+
+## D63：独立 HF/PEFT 参考（执行前固定）
+
+上一项只有stock vLLM自身的A/Z/B/base/A观察，没有独立数值参考。现在复用
+那份原生记录和同一个原始`req_00003`，补独立模型实现，不重复生成217token
+文本或筛选提示。原始native结果SHA保持
+`05c23143f1dd313e0537324259bc8c17463dd8cb52ea3f8fe1b821885724e83f`。
+
+参考使用已安装旧环境`LLM_vllm0102`的Transformers/PEFT；实际包版本入结果。
+新vLLM环境不安装PEFT、不改依赖。沿用既有受限启动和独立watchdog；单GPU0，
+72/80GiB high/max、2GiB swap及共同CPU集；离线模式、本地现有safetensors，
+不复制/合并/训练/下载权重，不生成新trace。加载当前基座前保存选定safetensors
+分片、配置与tokenizer的SHA/文件身份，执行后验证没有变化。
+
+参考合同：
+
+- 从原trace恢复原prompt，复用现有renderer，并要求prompt和带特殊token的
+  input IDs SHA均与已有native记录一致。
+- 参考采用FP16、eager attention、eval/inference模式，关闭PEFT默认的adapter
+  FP32自动提升；不是改变Prime生产后端。所有载入adapter tensor的键、dtype、
+  数值必须逐项与原safetensors完全相同。
+- A/Z/B/base/A顺序与原记录一致；base是明确禁用adapter的独立对照，不是加载
+  失败fallback。仅计算共同prompt后第一个输出位置，保存完整词表logprob与
+  native原来20个token的对应值，不生成一份新的执行负载。
+- 正确和错误对照一律使用事前固定`atol=1e-2,rtol=1e-2`；来源是
+  [vLLM0.30采样概率与HF比较测试](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/tests/v1/sample/test_logprobs.py)。
+  这不是LoRA特有误差保证，不能凭该容差下“close”就宣布身份已识别。
+- 保存全对照匹配矩阵，以及HF自身A/base、B/base、Z/base、A/A的完整词表
+  最大绝对差和L2差。错误adapter/base同样close时明确记为不可区分，不调小/
+  放大容差追求通过，不以相同argmax替代数值正确性。
+
+参考PEFT方法及dtype语义已核对本机0.18.1源码，并参考
+[官方PeftModel API](https://huggingface.co/docs/peft/v0.18.0/package_reference/peft_model)。
+原生历史记录没有基座权重内容SHA，所以本次当前基座哈希不能反填为历史锁定。
+需要最终严格对齐时须将新native观察绑定到该当前内容身份，不能把历史路径相同
+说成历史哈希相同。单prompt/首位置也不替代500-ID、并发/切换/完整生成资格。
+
+复用`ieee_tc_preflight.py backend-peft-reference`，结果用正确性表，不画性能
+排名。`pass`只表示参考观察完整完成；`matched_reference_consistency_pass`与
+完整语义资格分开，后者保持false，直到其要求被独立满足。最多两轮有新证据
+的最小检查；不陷入重复同提示试验。执行、收尾和结果回执随后记录。
