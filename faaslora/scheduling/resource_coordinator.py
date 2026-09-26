@@ -8,6 +8,8 @@ allocation and preemption remain the backend's authority.
 
 import asyncio
 import contextvars
+import hashlib
+import json
 import math
 import os
 import subprocess
@@ -78,6 +80,127 @@ class NativeIterationObservation:
     def contains_request(self, request_id: str) -> bool:
         self.check_thread()
         return any(request_id in output.num_scheduled_tokens for output, _ in self._pending)
+
+
+def native_prompt_identity(token_ids):
+    """Identity of actual native input tokens, including its special tokens."""
+    if (not isinstance(token_ids, (list, tuple)) or not token_ids
+            or any(type(token) is not int or token < 0 for token in token_ids)):
+        raise ValueError('pending admission requires actual native prompt token IDs')
+    return hashlib.sha256(json.dumps(list(token_ids), separators=(',', ':')).encode()).hexdigest()
+
+
+class NativePendingAdmissions:
+    """Engine-core-owned handoff, not a second KV allocator.
+
+    A provisional controller reservation enters before source preparation. It
+    remains in the prediction until the *actual* native ADD, not until a send
+    returns. The native request then owns exactly the same demand. Withdrawals
+    leave tombstones: a delayed registration cannot resurrect cancelled work.
+    All calls share the scheduling owner thread; no cached frontend snapshot is
+    presented as atomic. No physical KV blocks are reserved by this journal.
+    """
+
+    def __init__(self, iterations, input_upper_bounds):
+        self.iterations = iterations
+        self.input_upper_bounds = tuple(input_upper_bounds)
+        self.entries = {}
+        self.pending_ids = set()
+        self.native_to_intent = {}
+
+    def _identity(self, intent_id):
+        self.iterations.check_thread()
+        if not isinstance(intent_id, str) or not intent_id:
+            raise ValueError('pending admission requires a unique intent identity')
+
+    def _receipt(self, intent_id):
+        from faaslora.clock import local_monotonic_clock_id
+        row = self.entries[intent_id]
+        return dict(kind='ieee_pending_admission_v1', intent_id=intent_id,
+            state=row['state'], native_request_id=row.get('native_request_id'),
+            scheduler_owner_id=self.iterations.owner_id,
+            clock_id=local_monotonic_clock_id(), observed_at=time.monotonic(),
+            physical_kv_reservation=False)
+
+    def register(self, intent_id, descriptor):
+        self._identity(intent_id)
+        keys = {'prompt_tokens', 'prompt_sha256', 'output_limit', 'adapter_int_id'}
+        if not isinstance(descriptor, dict) or set(descriptor) != keys:
+            raise ValueError('pending descriptor fields differ from the native contract')
+        _nonnegative_int('native prompt tokens', descriptor['prompt_tokens'], positive=True)
+        _nonnegative_int('declared output limit', descriptor['output_limit'], positive=True)
+        if descriptor['adapter_int_id'] is not None:
+            _nonnegative_int('native adapter identity', descriptor['adapter_int_id'], positive=True)
+        digest = descriptor['prompt_sha256']
+        if not isinstance(digest, str) or len(digest) != 64 or any(c not in '0123456789abcdef' for c in digest):
+            raise ValueError('invalid native prompt identity')
+        if intent_id in self.entries:
+            raise ValueError('pending intent already used or withdrawn')
+        self.entries[intent_id] = dict(state='pending', descriptor=dict(descriptor))
+        self.pending_ids.add(intent_id)
+        return self._receipt(intent_id)
+
+    def bind(self, intent_id, native_request_id, descriptor):
+        self._identity(intent_id)
+        row = self.entries.get(intent_id)
+        if row is None or row['state'] != 'pending' or row['descriptor'] != descriptor:
+            raise ValueError('native submission differs from its pending admission')
+        if (not isinstance(native_request_id, str) or not native_request_id
+                or native_request_id in self.native_to_intent):
+            raise ValueError('native request identity already bound or missing')
+        row.update(state='bound', native_request_id=native_request_id)
+        self.native_to_intent[native_request_id] = intent_id
+        return self._receipt(intent_id)
+
+    def validate_add(self, request):
+        self.iterations.check_thread()
+        intent_id = self.native_to_intent.get(request.request_id)
+        if intent_id is None:
+            return  # Ordinary native demand remains allowed and is observed below.
+        row = self.entries[intent_id]
+        actual = dict(prompt_tokens=request.num_prompt_tokens,
+            prompt_sha256=native_prompt_identity(request.prompt_token_ids),
+            output_limit=request.max_tokens,
+            adapter_int_id=(request.lora_request.lora_int_id if request.lora_request is not None else None))
+        if row['state'] != 'bound' or actual != row['descriptor']:
+            raise ValueError('native ADD changed or reused the pending request')
+
+    def added(self, request_id):
+        self.iterations.check_thread()
+        intent_id = self.native_to_intent.get(request_id)
+        if intent_id is not None:
+            row = self.entries[intent_id]
+            if row['state'] != 'bound':
+                raise ValueError('native ADD lacks a unique pending handoff')
+            row['state'] = 'native'
+            self.pending_ids.remove(intent_id)
+
+    def withdraw(self, intent_id):
+        self._identity(intent_id)
+        row = self.entries.get(intent_id)
+        if row is None:
+            self.entries[intent_id] = dict(state='withdrawn')
+        elif row['state'] == 'pending':
+            row['state'] = 'withdrawn'
+            self.pending_ids.remove(intent_id)
+        elif row['state'] != 'withdrawn':
+            raise ValueError('bound/native demand requires actual native retirement, not withdrawal')
+        return self._receipt(intent_id)
+
+    def snapshot(self):
+        self.iterations.check_thread()
+        rows = []
+        for intent_id in sorted(self.pending_ids):
+            row = self.entries[intent_id]
+            descriptor = row['descriptor']
+            item = AdmittedKVRequest(request_id='pending:' + intent_id,
+                input_bucket=bisect_left(self.input_upper_bounds, descriptor['prompt_tokens']),
+                output_limit=descriptor['output_limit'], generated_tokens=0,
+                unprocessed_prompt_tokens=descriptor['prompt_tokens'], reserved_unused_token_positions=0)
+            rows.append({**item.__dict__, 'demand_owner': 'controller_pending',
+                'intent_id': intent_id, 'handoff_state': row['state'],
+                'native_adapter_int_id': descriptor['adapter_int_id']})
+        return rows
 
 
 class NativeRequestRetirement:
@@ -204,7 +327,7 @@ def capture_native_kv_observation(scheduler, iterations: NativeIterationObservat
             output_limit=request.max_tokens, generated_tokens=generated,
             unprocessed_prompt_tokens=max(0, prompt-completed),
             reserved_unused_token_positions=capacity-completed)
-        requests.append({**observation.__dict__, 'native_completed_positions': completed,
+        requests.append({**observation.__dict__, 'demand_owner': 'native', 'native_completed_positions': completed,
                          'native_adapter_int_id': (request.lora_request.lora_int_id
                              if getattr(request, 'lora_request', None) is not None else None),
                          'native_in_flight_tokens': in_flight,
@@ -216,12 +339,18 @@ def capture_native_kv_observation(scheduler, iterations: NativeIterationObservat
                          'native_uncomputed_generated_history': max(
                              0, prompt + generated - max(prompt, completed)),
                          'native_preemptions': request.num_preemptions})
+    pending = getattr(scheduler, '_ieee_pending_admissions', None)
+    if pending is not None:
+        requests.extend(pending.snapshot())
+    if len({row['request_id'] for row in requests}) != len(requests):
+        raise ValueError('pending/native demand identity collision')
     from faaslora.clock import local_monotonic_clock_id
     return {**step, 'kind': 'ieee_native_scheduler_observation_v1',
             'clock_id': local_monotonic_clock_id(), 'captured_at': time.monotonic(),
             'scheduler_pid': os.getpid(), 'input_upper_bounds': list(input_upper_bounds),
             'kv_layout': 'full_attention_single_group', 'admitted': requests,
-            'admitted_scope': 'native_unfinished_requests_only',
+            'admitted_scope': ('controller_pending_and_native_unfinished' if pending is not None
+                               else 'native_unfinished_requests_only'),
             'iteration_token_budget': budget, 'kv_tokens_per_block': tokens_per_block,
             'kv_bytes_per_block': bytes_per_block, 'kv_unreserved_free_blocks': free,
             'kv_pool_allocation_bytes': tensor.size,

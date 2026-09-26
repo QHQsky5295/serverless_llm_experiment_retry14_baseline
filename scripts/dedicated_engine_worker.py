@@ -171,6 +171,12 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
                     elif cmd == "ieee_prepare_host":
                         result = await engine.ieee_prepare_host(**kwargs)
                         response = {"ok": True, "result": result}
+                    elif cmd == "ieee_register_pending":
+                        result = await engine.ieee_register_pending(**kwargs)
+                        response = {"ok": True, "result": result}
+                    elif cmd == "ieee_close_pending":
+                        result = await engine.ieee_close_pending(**kwargs)
+                        response = {"ok": True, "result": result}
                     elif cmd == 'ieee_retire_generation':
                         result = await engine.ieee_retire_generation(**kwargs)
                         response = {"ok": True, "result": result}

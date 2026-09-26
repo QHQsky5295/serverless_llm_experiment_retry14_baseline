@@ -17,7 +17,16 @@ from vllm.v1.engine.core import EngineCore
 from vllm.v1.kv_cache_interface import FullAttentionSpec
 
 from .resource_coordinator import (NativeIterationObservation, NativeRequestRetirement,
-                                   CompletedLengthWindow, capture_native_kv_observation)
+                                   NativePendingAdmissions, CompletedLengthWindow,
+                                   capture_native_kv_observation)
+
+
+def _core_pending_admission(core, operation, *args):
+    if not isinstance(core.scheduler, IEEENativeAsyncScheduler):
+        raise RuntimeError('pending KV utility requires the native scheduler owner')
+    if operation not in ('register', 'bind', 'withdraw'):
+        raise ValueError('unsupported pending KV ownership transition')
+    return getattr(core.scheduler._ieee_pending_admissions, operation)(*args)
 
 
 def _core_observation(core):
@@ -83,6 +92,8 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
             'ieee_tc_scheduler_observation']['input_upper_bounds'])
         self._ieee_iterations = NativeIterationObservation()
         self._ieee_retirement = NativeRequestRetirement(self._ieee_iterations)
+        self._ieee_pending_admissions = NativePendingAdmissions(
+            self._ieee_iterations, self._ieee_input_upper_bounds)
         profile = config.additional_config.get('ieee_tc_admission_profile')
         self._ieee_lengths = None
         if profile is not None:
@@ -106,9 +117,15 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
         if existing is not None and existing is not _core_prepare_host:
             raise RuntimeError('native EngineCore proactive preparation bridge name collision')
         EngineCore.ieee_prepare_host = _core_prepare_host
+        existing = getattr(EngineCore, 'ieee_pending_admission', None)
+        if existing is not None and existing is not _core_pending_admission:
+            raise RuntimeError('native EngineCore pending admission bridge name collision')
+        EngineCore.ieee_pending_admission = _core_pending_admission
 
     def add_request(self, request):
+        self._ieee_pending_admissions.validate_add(request)
         result = super().add_request(request)
+        self._ieee_pending_admissions.added(request.request_id)
         self._ieee_retirement.added(request.request_id)
         return result
 

@@ -453,6 +453,11 @@ class IEEEWorkerObservationExtension:
                 # unreferenced victim merely because it bypassed our frontend.
                 cpu_cache, gpu_cache = owner._caches()
                 for row in observation['admitted']:
+                    # Source preparation has not acquired a GPU reference yet.
+                    # Its KV demand still participates in E(t); demanding GPU
+                    # residency here would deadlock the preparation it awaits.
+                    if row.get('demand_owner') == 'controller_pending':
+                        continue
                     aid = row['native_adapter_int_id']
                     if aid is not None and (aid not in owner._references
                             or aid not in cpu_cache.pinned_items or aid not in gpu_cache.pinned_items):

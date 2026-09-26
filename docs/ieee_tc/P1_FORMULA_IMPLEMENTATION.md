@@ -1512,3 +1512,66 @@ high/max/OOM事件均0，NVML终态无本实验上下文、服务scope已删除�
 `paper_results/ieee_tc/p2_backend/20260926_pitched_host_copy.{csv,json}`。
 所有4行及来源SHA核验后归档；回到完整KV集合与实际主动准备集成，不继续
 扩张这个局部微测矩阵。后续只有新的集成路径问题才需要新增针对性验证。
+
+## D31：controller-pending 与 native KV 需求的唯一交接
+
+### 问题与判断
+
+D29只对后端已经收到的请求计算预测KV；控制器已经预留副本、但仍在准备
+adapter的请求尚未进入native ADD。直接把这段时间当作零需求，会让主动准备
+占用本应考虑的余量。这是观测集合不完整，不是九个公式需要增加经验系数。
+D30已经解决rank-sliced准备拷贝的已知临时张量问题，本轮不重复其GPU微测。
+
+对照[vLLM0.30 input processor](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/v1/engine/input_processor.py)、
+[native frontend](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/v1/engine/async_llm.py)
+及[Request转换](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/v1/request.py)，
+外部request ID会被原生随机化；EngineCoreRequest的external ID不会自动保留在
+scheduler Request中。因此不能靠字符串前缀、cache salt或trace header猜测交接。
+当前实现保留原生ID随机化，显式在ADD之前绑定两种身份。
+
+### 已接入的调用链与不变量
+
+1. 实际runner预留副本后、保护或准备所选source之前，生成一次性intent ID。
+   实际engine/专用worker使用原生input processor得到prompt token（包含special
+   tokens），登记数量、SHA、声明output limit和adapter ID；不使用trace token hint。
+2. core在线程内登记的确认，是pending需求开始纳入同一快照的边界。该预留
+   仍可能因source冲突被撤回，故是保守的pending集合，不冒称物理KV分配。
+3. native frontend获得原生随机内部ID后，核对实际prompt SHA、长度上限和
+   adapter，再将intent绑定到该ID；绑定/传输期间pending仍计入预测。
+4. scheduler真正执行ADD时，在同一线程中交接：pending退出，native unfinished
+   request接替。不是发送成功就移除，也不是两个集合长期各计一次。
+5. 准备前取消需要core withdrawal确认，并留下不可复用的tombstone，防止迟到
+   registration复活。已经绑定/ADD的请求不能假设不存在，必须走原生retirement
+   和既有异步KV fence。未知结果保留所有权，不返回空闲容量。
+6. Full/CapacityOnly仍用同一个集合和物理策略，仅原有软E(t)判断不同。pending
+   请求尚未取得GPU adapter引用是合法状态；native请求仍必须持有可执行引用。
+
+`admitted_scope=controller_pending_and_native_unfinished`区分新的快照范围。
+pending请求的generated/reserved positions为0，未处理prompt为真实原生长度。
+输出预测仍使用原完成窗口/冻结profile和声明上限，不读取未来实际长度。
+原物理block allocator、demand加载、LRU、后端调度、完成窗口均未替换。
+快照只遍历当前pending索引，不扫描已终态历史来重建活跃集合。
+
+### 正确性状态表（不是性能图）
+
+| 检查问题 | 当前证据及边界 |
+|---|---|
+| 准备期间是否漏计 | 原生token descriptor进入同一E(t)；确定性例子预测KV由0变500 B并正确defer，公式未改 |
+| 发送到ADD之间是否双计/漏计 | 实际core utility与scheduler hook测试：bound仍计入，ADD后恰好一次native需求 |
+| 内容/limit/adapter是否可偷换 | BOS差异、token SHA、limit、adapter差异均在原生发送/ADD前拒绝 |
+| 取消是否允许迟到复活 | 登记中取消、先撤回后迟到登记、重复绑定、未关闭生成、丢失确认均覆盖 |
+| 是否仅存在独立ledger | 实际runner HOST路径、engine方法、proxy、专用worker和真实loopback TCP控制/生成标识均接入并测试 |
+| 后端API是否对应实际环境 | 已安装vLLM0.30 frontend/scheduler导入与方法签名检查通过，CUDA不可见、未加载模型 |
+| 当前回归 | 717项功能检查、56项安全检查通过，无失败/跳过；新增18项pending检查 |
+
+注册阶段调用一次原生预处理，正常生成继续原生输入路径，并严格比对实际
+descriptor；这不是新的tokenizer或未来信息。其控制开销必须计入后续完整运行，
+不据此声称TTFT改善。以上CPU/loopback结果不是新的真实GPU/Full资格。
+
+### 下一主线
+
+当前只闭合HOST→GPU事务使用的KV集合，**all-tier transfer/budget、实际
+planner/handoff接入、代表性实测profile、跨路径内容身份及完整部署生命周期
+仍未全部闭合**。继续这些集成项；形成有意义的Full路径后才做原生整体资格。
+不重复D26 source32/D27 lifecycle4/D28 capacity5/D30 pitched-copy微测，不新增
+局部微测矩阵。M1/M2、正式baseline、消融和敏感性均未开始。

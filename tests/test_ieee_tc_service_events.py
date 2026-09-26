@@ -190,7 +190,13 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
                 return {'admitted': [], 'kind': 'loopback-test-only'}
             async def ieee_prepare_host(self, **command):
                 return {'acquired': False, 'reason': 'defer_effective_capacity', 'command': command}
+            async def ieee_register_pending(self, **command):
+                return {'intent_id': command['intent_id'], 'state': 'pending', 'command': command}
+            async def ieee_close_pending(self, **command):
+                return {'intent_id': command['intent_id'], 'closed': True}
             async def generate(self, **kwargs):
+                if kwargs.get('pending_admission_id') != 'pending-test':
+                    raise ValueError('dedicated generation lost its pending identity')
                 emit = kwargs['native_event_observer']
                 emit(event())
                 await proceed.wait()
@@ -228,8 +234,12 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
                 prepared = await proxy.ieee_prepare_host(lease_id='prepare-test', expected_owner_id='worker')
                 self.assertFalse(prepared['acquired'])
                 self.assertEqual(prepared['command']['lease_id'], 'prepare-test')
+                registered = await proxy.ieee_register_pending(intent_id='pending-test', prompt='p',
+                    max_tokens=3, adapter_id=None)
+                self.assertEqual(registered['command']['prompt'], 'p')
                 task = asyncio.create_task(proxy.generate_prepared(request_plan=RequestExecutionPlan('p', 2, 3),
-                    adapter_id=None, lora_path=None, return_timing=True, native_event_observer=accept))
+                    adapter_id=None, lora_path=None, return_timing=True, native_event_observer=accept,
+                    pending_admission_id='pending-test'))
                 try:
                     await asyncio.wait_for(seen.wait(), 2.)
                     self.assertFalse(task.done())
@@ -251,6 +261,8 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
                             self.assertEqual((await asyncio.wait_for(task, 2.))[2], 3)
                             self.assertFalse(proxy._native_rpc_uncertain)
                     await asyncio.wait_for(finished.wait(), 2.)
+                    closed = await proxy.ieee_close_pending(intent_id='pending-test')
+                    self.assertTrue(closed['closed'])
                     if fail_after_first or duplicate_first:
                         self.assertEqual(len(receive.events), 1)
                     elif not cancel:

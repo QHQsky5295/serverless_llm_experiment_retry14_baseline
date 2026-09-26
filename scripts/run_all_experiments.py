@@ -1112,6 +1112,7 @@ class RuntimeRequestReservation:
     local_source_owner: Optional[Any] = None
     ieee_routing_evidence: Optional[Dict[str, Any]] = None
     ieee_load_pending: bool = False
+    ieee_pending_admission: Optional[Dict[str, Any]] = None
     ieee_observation: Optional[Any] = None
     ieee_native_observer: Optional[Any] = None
     ieee_routing_attempts: List[Dict[str, Any]] = field(default_factory=list)
@@ -4143,6 +4144,7 @@ class InferenceEngine:
         return_timing: bool = False,
         gpu_reference: Optional[Dict[str, Any]] = None,
         native_event_observer: Optional[Callable[[Dict[str, Any]], None]] = None,
+        pending_admission_id: Optional[str] = None,
     ) -> Tuple[float, float, int]:
         """Returns (vllm_ttft_ms, tpot_ms, output_tokens[, timing]). Always real inference."""
         timing_contract = self.model_cfg.get("timing_contract", "legacy")
@@ -4155,9 +4157,16 @@ class InferenceEngine:
             raise ValueError("native V1 timing is only qualified for the vLLM path")
         if self.model_cfg.get("ieee_gpu_references", False) and not native_timing:
             raise ValueError("native GPU references require the native V1 terminal/timing contract")
+        if pending_admission_id is not None and (
+                not isinstance(pending_admission_id, str) or not pending_admission_id
+                or not native_timing or self.model_cfg.get('ieee_admission_profile') is None):
+            raise ValueError('pending generation requires an explicit native admission identity/profile')
         async with self._lock:
             self._counter += 1
-            req_id = f"req_{self._counter}"
+            req_id = pending_admission_id if pending_admission_id is not None else f"req_{self._counter}"
+        if (self.model_cfg.get('ieee_admission_profile') is not None
+                and pending_admission_id is None):
+            raise ValueError('native proactive admission requires registered controller demand')
 
         if self.backend == "transformers":
             ttft_ms, tpot_ms, out_tokens = await self._generate_transformers(
@@ -4293,9 +4302,10 @@ class InferenceEngine:
                                  gpu_reference_adapter_int_id=reference_receipt['adapter_int_id'])
                 _notify_native_service_observer(native_event_observer, event)
 
-            async for out in self.engine.generate(
-                prompt=prompt, sampling_params=sp, request_id=req_id, lora_request=lora_req
-            ):
+            outputs = (self.engine.ieee_generate_pending(req_id, prompt, sp, lora_request=lora_req)
+                if pending_admission_id is not None else
+                self.engine.generate(prompt=prompt, sampling_params=sp, request_id=req_id, lora_request=lora_req))
+            async for out in outputs:
                 if native_timing and out.finished:
                     # The native frontend can synthesize finished=True on abort;
                     # only ordinary native completion can count as successful work.
@@ -4429,6 +4439,7 @@ class InferenceEngine:
         return_timing: bool = False,
         gpu_reference: Optional[Dict[str, Any]] = None,
         native_event_observer: Optional[Callable[[Dict[str, Any]], None]] = None,
+        pending_admission_id: Optional[str] = None,
     ) -> Tuple[float, float, int]:
         return await self.generate(
             prompt=request_plan.prompt,
@@ -4443,6 +4454,7 @@ class InferenceEngine:
             return_timing=return_timing,
             **({"gpu_reference": gpu_reference} if gpu_reference is not None else {}),
             **({"native_event_observer": native_event_observer} if native_event_observer is not None else {}),
+            **({'pending_admission_id': pending_admission_id} if pending_admission_id is not None else {}),
         )
 
     @staticmethod
@@ -4494,8 +4506,9 @@ class InferenceEngine:
 
         The returned reference is a preparation lease, not a request dispatch.
         Callers must settle cancellation/transport uncertainty before releasing
-        it. Cold HOST materialization and controller-pending KV reservations
-        are outside this narrowly qualified operation; no Full gate is granted.
+        it. Registered controller demand and native unfinished requests share
+        the core's KV prediction set. Cold HOST materialization/all-tier budgets
+        remain outside this narrow operation; no Full gate is granted.
         """
         if (self.model_cfg.get('ieee_admission_profile') is None
                 or not self.model_cfg.get('ieee_gpu_references', False)
@@ -4513,6 +4526,31 @@ class InferenceEngine:
                 or result.get('production_launch_authorized') is not False):
             raise RuntimeError('invalid native preparation acknowledgement')
         return result
+
+    async def ieee_register_pending(self, *, intent_id, prompt, max_tokens, adapter_id):
+        if (self.model_cfg.get('ieee_admission_profile') is None
+                or self.model_cfg.get('generation_contract') != 'fixed_length_greedy_v1'
+                or self.backend != 'vllm' or self.engine is None or self._engine_dead):
+            raise ValueError('pending admission requires the configured native fixed-output owner')
+        params = SamplingParams(temperature=0., top_p=1., max_tokens=max_tokens,
+            ignore_eos=True, stop=[], stop_token_ids=[])
+        return await self.engine.ieee_register_pending(intent_id, prompt, params,
+            self._lora_int_id(adapter_id) if adapter_id is not None else None)
+
+    async def ieee_close_pending(self, *, intent_id):
+        if self.backend != 'vllm' or self.engine is None or self._engine_dead:
+            raise ValueError('pending retirement requires its live native owner')
+        result = await self.engine.ieee_close_pending(intent_id)
+        from faaslora.clock import local_monotonic_clock_id
+        if result.get('clock_id') != local_monotonic_clock_id():
+            raise ValueError('pending retirement clock mismatch')
+        withdrawn = (result.get('kind') == 'ieee_pending_admission_v1'
+            and result.get('intent_id') == intent_id and result.get('state') == 'withdrawn')
+        retired = (result.get('kind') == 'ieee_native_request_retirement_v1'
+            and result.get('external_request_id') == intent_id and result.get('retired') is True)
+        if not (withdrawn or retired):
+            raise ValueError('pending demand lacks withdrawal or native retirement proof')
+        return dict(intent_id=intent_id, closed=True, receipt=result)
 
     async def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
         """Forward an explicit native owner operation; no inferred success."""
@@ -5023,6 +5061,7 @@ class SubprocessInferenceEngineProxy:
             ref = kwargs.get('gpu_reference') or {}
             self._native_rpc_uncertain[attempt_id] = {
                 'cmd': cmd, 'operation': kwargs.get('operation'),
+                'intent_id': kwargs.get('intent_id'),
                 'owner_id': ref.get('owner_id', kwargs.get('expected_owner_id')),
                 'lease_id': ref.get('lease_id', kwargs.get('lease_id'))}
 
@@ -5373,6 +5412,7 @@ class SubprocessInferenceEngineProxy:
         gpu_reference: Optional[Dict[str, Any]] = None,
         _prepared_request: Optional[RequestExecutionPlan] = None,
         native_event_observer: Optional[Callable[[Dict[str, Any]], None]] = None,
+        pending_admission_id: Optional[str] = None,
     ) -> Tuple[float, float, int]:
         rpc_started_at = time.perf_counter()
         result = await self._rpc(
@@ -5392,6 +5432,7 @@ class SubprocessInferenceEngineProxy:
                                       "input_tokens": _prepared_request.input_tokens,
                                       "max_tokens": _prepared_request.max_tokens}}
                if _prepared_request is not None else {}),
+            **({'pending_admission_id': pending_admission_id} if pending_admission_id is not None else {}),
         )
         parent_rpc_wall_ms = max(0.0, (time.perf_counter() - rpc_started_at) * 1000.0)
         timing = dict(result.get("timing") or {})
@@ -5463,7 +5504,9 @@ class SubprocessInferenceEngineProxy:
         return_timing: bool = False,
         gpu_reference: Optional[Dict[str, Any]] = None,
         native_event_observer: Optional[Callable[[Dict[str, Any]], None]] = None,
+        pending_admission_id: Optional[str] = None,
     ) -> Tuple[float, float, int]:
+        # Dedicated worker preserves the exact controller/native handoff ID.
         return await self.generate(
             prompt=request_plan.prompt,
             lora_path=lora_path,
@@ -5477,6 +5520,7 @@ class SubprocessInferenceEngineProxy:
             _prepared_request=request_plan,
             **({"gpu_reference": gpu_reference} if gpu_reference is not None else {}),
             **({"native_event_observer": native_event_observer} if native_event_observer is not None else {}),
+            **({'pending_admission_id': pending_admission_id} if pending_admission_id is not None else {}),
         )
 
     async def load_lora_to_gpu_and_measure(self, lora_path: str, adapter_id: str) -> Tuple[float, bool]:
@@ -5495,6 +5539,19 @@ class SubprocessInferenceEngineProxy:
 
     async def ieee_prepare_host(self, **command) -> Dict[str, Any]:
         return await self._rpc('ieee_prepare_host', **command)
+
+    async def ieee_register_pending(self, **command):
+        return await self._rpc('ieee_register_pending', **command)
+
+    async def ieee_close_pending(self, *, intent_id):
+        result = await self._rpc('ieee_close_pending', intent_id=intent_id)
+        if result.get('closed') is not True or result.get('intent_id') != intent_id:
+            raise ValueError('pending retirement lacks matching worker acknowledgement')
+        for key, operation in list(self._native_rpc_uncertain.items()):
+            if (operation['cmd'] in ('ieee_register_pending', 'ieee_close_pending')
+                    and operation.get('intent_id') == intent_id):
+                del self._native_rpc_uncertain[key]
+        return result
 
     async def ieee_generation_observation(self) -> Dict[str, Any]:
         return await self._rpc('ieee_generation_observation')
@@ -14184,6 +14241,26 @@ class ScenarioRunner:
             evidence['state'] = 'rejected'
             raise RuntimeError(f"native reference acquisition conflict: {receipt.get('reason')}")
 
+    async def _register_ieee_pending_admission(self, reservation, request_plan):
+        if self.model_cfg.get('ieee_admission_profile') is None:
+            return  # Source-only qualification has no proactive E(t) policy.
+        from faaslora.clock import local_monotonic_clock_id
+        engine = reservation.slot.engine
+        reservation.gpu_reference_engine = engine
+        pending = dict(intent_id=uuid.uuid4().hex, state='registering')
+        reservation.ieee_pending_admission = pending
+        reservation.gpu_reference_evidence['pending_kv_admission'] = pending
+        reply = await engine.ieee_register_pending(intent_id=pending['intent_id'],
+            prompt=request_plan.prompt, max_tokens=request_plan.max_tokens,
+            adapter_id=reservation.adapter_id)
+        if (reply.get('kind') != 'ieee_pending_admission_v1'
+                or reply.get('intent_id') != pending['intent_id']
+                or reply.get('state') != 'pending'
+                or reply.get('clock_id') != local_monotonic_clock_id()
+                or reply.get('physical_kv_reservation') is not False):
+            raise ValueError('controller demand lacks native pending acknowledgement')
+        pending.update(state='pending', receipt=reply)
+
     async def _ieee_protect_selected_source(self, reservation, source, service_class,
                                             *, collect_profile_only=False):
         """Protect the selected copy before committing admission/class.
@@ -14405,6 +14482,17 @@ class ScenarioRunner:
             # is reconciled or its actual worker has been stopped. No false free.
             self._retain_runtime_request_reservation(reservation)
             return
+        pending = reservation.ieee_pending_admission
+        if pending is not None and pending['state'] != 'closed':
+            try:
+                closed = await reservation.gpu_reference_engine.ieee_close_pending(
+                    intent_id=pending['intent_id'])
+                if closed.get('intent_id') != pending['intent_id'] or closed.get('closed') is not True:
+                    raise ValueError('controller KV intent lacks matching terminal acknowledgement')
+                pending.update(state='closed', close_receipt=closed)
+            except BaseException:
+                self._retain_runtime_request_reservation(reservation)
+                raise
         if evidence.get('state') == 'acquired':
             receipt = evidence['receipt']
             evidence['state'] = 'release_pending'
@@ -14526,6 +14614,9 @@ class ScenarioRunner:
                     _reservation.gpu_reference_evidence['routing_snapshot'] = record
                     _reservation.gpu_reference_evidence['prior_routing_attempts'] = list(
                         _reservation.ieee_routing_attempts)
+                    # Owner acknowledgement is the linearization point for
+                    # pending demand, before any source preparation/admission.
+                    await self._register_ieee_pending_admission(_reservation, request_plan)
                     if selected_readiness_tier not in ('gpu', 'backbone'):
                         if _reservation.request_id in slot.ieee_pending_load_ids:
                             raise RuntimeError('duplicate IEEE pending adapter-load request')
@@ -14755,6 +14846,8 @@ class ScenarioRunner:
                     prepared_kwargs['gpu_reference'] = gpu_reference
                 if ieee_routing:
                     prepared_kwargs['native_event_observer'] = _reservation.ieee_native_observer
+                if _reservation.ieee_pending_admission is not None:
+                    prepared_kwargs['pending_admission_id'] = _reservation.ieee_pending_admission['intent_id']
                 _reservation.generation_started = True
                 generate_ret = await _engine.generate_prepared(**prepared_kwargs)
             else:
@@ -14765,6 +14858,8 @@ class ScenarioRunner:
                     generate_kwargs['gpu_reference'] = gpu_reference
                 if ieee_routing:
                     generate_kwargs['native_event_observer'] = _reservation.ieee_native_observer
+                if _reservation.ieee_pending_admission is not None:
+                    generate_kwargs['pending_admission_id'] = _reservation.ieee_pending_admission['intent_id']
                 _reservation.generation_started = True
                 generate_ret = await _engine.generate(
                     request_plan.prompt,
