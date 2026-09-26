@@ -47,6 +47,35 @@ routing overlay. Publish a qualification table immediately, not a performance
 plot. Then return to approved original/repaired model pairs; semantic/remote and
 full-pool gates remain independently open.
 
+### D67 attempt1 immediate result (qualification incomplete)
+
+| Evidence | Observed result | Interpretation |
+|---|---|---|
+| Native registered/load path | Existing6,425,499,648B; GPU replica confirmation success | Actual native loading, not ordinary HF loading |
+| Four fixed output targets | 152/59/123/217, all exact native counts | Backbone generation only, not LoRA correctness |
+| Actual actor readback | `TypeError: too many positional arguments` in Ray caller signature check | Diagnostic failure; overall qualification NOT passed |
+| Resource samples | 141; peak41,180,987,392B; minimum host68,445,958,144B | No high/max/OOM/swap events |
+| Cleanup | Delete succeeds; supervisor confirms native contexts clear/group removed | Owned resources released |
+| Reversible overlay | Restored after complete exit; restore receipt retained | Shared environment original sources recovered |
+
+Classification: `protocol_or_launcher_error`, not baseline inference failure.
+All raw responses and the failure remain. The diagnostic driver, unlike its
+native workers, did not select TC source/store PYTHONPATH and bundled libraries
+before Python startup. Ray named-actor reconstruction imports classes in that
+driver. The inspected Ray2.54 import-failure path creates placeholder methods;
+the observed signature failure is consistent with that path, but its original
+unpickle traceback was not recorded, so the exact import exception is unknown.
+Correct the driver composition, require actual imports before starting service,
+and repeat the affected qualification with a new attempt key. Do not change any
+baseline policy, byte, model config or resource limit. This is not a blind OOM
+retry. Store daemon itself holds GPU contexts on all four visible cards; physical
+lifecycle accounting must include that ownership even when only one engine runs.
+
+Raw root: main `results/ieee_tc/serverless_qualification/d67_20260927`.
+Model receipt SHA1f9a495d2acb28c785c758b60895204f49af47d41db7bc3d943d1406e0d0ac8a;
+launch SHAfc94520e250b0a693ff45b6906f5b96fd797e6b3d46aefac32fe0f57eee1e06e;
+store log SHAa6851e6823f0ef8ad9ad8c5e74372d0b1239c7dfe3a358983151d8a13d627682.
+
 ## D66 native-input qualification (before model loading)
 
 Reuse the existing native checkpoint

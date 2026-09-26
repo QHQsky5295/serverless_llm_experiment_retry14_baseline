@@ -601,6 +601,18 @@ def qualify_model(args) -> dict:
     checkpoint = args.checkpoint_root / 'vllm' / args.model_name
     if not (checkpoint / 'rank_0/tensor.data_0').is_file():
         raise ValueError('existing native checkpoint required; no conversion permitted')
+    # Ray reconstructs named-actor method metadata in this diagnostic driver.
+    # Its imports must select the SAME source/library composition as workers;
+    # subprocess-only PYTHONPATH is insufficient for that reconstruction.
+    package = args.store_package / 'site-packages'
+    if (os.environ.get('PYTHONPATH') != f'{args.native_source}:{package}'
+            or os.environ.get('LD_LIBRARY_PATH') != str(package / 'sllm_store')):
+        raise ValueError('native composition must be selected before diagnostic interpreter startup')
+    import sllm.backends.vllm_backend as selected_backend
+    import sllm_store.torch as selected_store
+    if (Path(selected_backend.__file__).resolve() != args.native_source / 'sllm/backends/vllm_backend.py'
+            or Path(selected_store.__file__).resolve() != package / 'sllm_store/torch.py'):
+        raise ValueError('diagnostic driver native source composition differs')
     manifest = prepare(args.output, args.private_root, args.main_repo, args.gpu_ids)
     result = dict(schema='ieee_tc_serverless_native_model_qualification_v1', passed=False,
                   service=admission, qualification_only=True, lora_correctness_qualified=False,
@@ -613,7 +625,6 @@ def qualify_model(args) -> dict:
         env.pop(key, None)
     for key in ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'http_proxy', 'https_proxy', 'all_proxy'):
         env[key] = ''
-    package = args.store_package / 'site-packages'
     env.update(SLLM_HEAD_ENV_PREFIX=str(args.environment), SLLM_WORKER_ENV_PREFIX=str(args.environment),
                SLLM_STORE_ENV_PREFIX=str(args.environment), SLLM_REPO_ROOT=str(args.native_source),
                SLLM_EXTRA_PYTHONPATH=str(package), SLLM_STORE_BIN=str(package / 'bin/sllm-store'),
