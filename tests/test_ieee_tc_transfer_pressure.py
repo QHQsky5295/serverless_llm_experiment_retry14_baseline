@@ -3,6 +3,9 @@ import asyncio
 from types import SimpleNamespace as NS
 import unittest
 from unittest.mock import AsyncMock, patch
+import threading
+
+from faaslora.preloading.preloading_manager import OwnedMovementQueue, MovementOutcome, PreloadingManager
 
 from faaslora.scheduling.resource_coordinator import NativeIterationObservation, NativeTransferObservation
 from faaslora.registry.schema import StorageTier
@@ -224,4 +227,287 @@ class TransferPressure(unittest.TestCase):
             rows = runner._adapter_transfer_pressure_evidence
             self.assertEqual([(r['source_tier'], r['target_tier'], r['state']) for r in rows],
                              [('remote', 'nvme', 'finished'), ('nvme', 'host', 'finished')])
+        asyncio.run(run())
+
+
+class OwnedMovements(unittest.IsolatedAsyncioTestCase):
+    """Ordering/ownership tests, not throughput or model measurements."""
+    def submit(self, queue, name, action, *, owner='files', adapter=None, tier='nvme',
+               reason='residency', density=1., ready=True):
+        return queue.submit(key=(owner, tier, adapter or name, 'sha'), intent_id=name,
+            metadata=dict(trigger_reason=reason, plan_id='plan', target_replica='replica',
+                          activation_id='activation' if reason == 'handoff' else None),
+            density=density, action=action, demand=reason == 'demand', ready=ready)
+
+    async def test_shared_interests_one_operation_and_cancelling_one_does_not_cancel_writer(self):
+        queue, entered, proceed = OwnedMovementQueue(1), asyncio.Event(), asyncio.Event()
+        calls = []
+        async def copy(attempt):
+            calls.append(attempt)
+            entered.set()
+            await proceed.wait()
+            return MovementOutcome('completed', 'same-physical-copy')
+        first = self.submit(queue, 'handoff', copy, adapter='a', reason='handoff')
+        await entered.wait()
+        second = self.submit(queue, 'demand', copy, adapter='a', reason='demand')
+        self.assertEqual(first, second)
+        waiter = asyncio.create_task(queue.wait('handoff'))
+        await asyncio.sleep(0)
+        waiter.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await waiter
+        self.assertEqual(queue.snapshot()[0]['state'], 'executing')
+        proceed.set()
+        self.assertEqual(await queue.wait('demand'), 'same-physical-copy')
+        self.assertEqual(len(calls), 1)
+        row = queue.snapshot()[0]
+        self.assertIn('withdrawn_at', row['subscriptions']['handoff'])
+        self.assertEqual(row['active_intents'], [])
+        await queue.close()
+        self.assertNotIn('withdrawn_at', queue.snapshot()[0]['subscriptions']['demand'])
+
+    async def test_deferred_only_retries_on_own_state_change_and_keeps_attempt_history(self):
+        queue, attempted = OwnedMovementQueue(1), asyncio.Event()
+        calls = []
+        async def action(attempt):
+            calls.append(attempt)
+            attempted.set()
+            return MovementOutcome('deferred', reason='capacity') if len(calls) == 1 else MovementOutcome('completed', 1)
+        self.submit(queue, 'x', action)
+        await attempted.wait()
+        self.assertEqual(queue.snapshot()[0]['state'], 'deferred')
+        queue.wake(owner_id='unrelated')
+        await asyncio.sleep(0)
+        self.assertEqual(len(calls), 1)
+        queue.wake(owner_id='files')
+        self.assertEqual(await queue.wait('x'), 1)
+        self.assertEqual(len(set(calls)), 2)
+        self.assertEqual([a['state'] for a in queue.snapshot()[0]['attempts']], ['deferred', 'completed'])
+        await queue.close()
+
+    async def test_state_change_during_attempt_is_not_lost(self):
+        queue = OwnedMovementQueue(1)
+        calls = []
+        async def action(attempt):
+            calls.append(attempt)
+            if len(calls) == 1:
+                queue.wake(owner_id='files')
+                return MovementOutcome('deferred')
+            return MovementOutcome('completed')
+        self.submit(queue, 'x', action)
+        await queue.wait('x')
+        self.assertEqual(len(calls), 2)
+        await queue.close()
+
+    async def test_demand_then_density_then_identity_orders_pending_work(self):
+        queue, proceed = OwnedMovementQueue(1), asyncio.Event()
+        order = []
+        async def held(_):
+            await proceed.wait()
+            return MovementOutcome('completed')
+        self.submit(queue, 'held', held)
+        for name, density, reason in [('z', 2, 'residency'), ('a', 2, 'residency'),
+                                     ('low', 1, 'residency'), ('request', 0, 'demand')]:
+            async def action(_, name=name):
+                order.append(name)
+                return MovementOutcome('completed')
+            self.submit(queue, name, action, density=density, reason=reason)
+        proceed.set()
+        await asyncio.gather(*(queue.wait(x) for x in ('held', 'z', 'a', 'low', 'request')))
+        self.assertEqual(order, ['request', 'a', 'z', 'low'])
+        await queue.close()
+
+    async def test_cancel_before_first_instruction_leaves_no_running_slot(self):
+        queue, action = OwnedMovementQueue(1), AsyncMock(return_value=MovementOutcome('completed'))
+        self.submit(queue, 'cancelled', action)
+        await queue.withdraw('cancelled')
+        action.assert_not_awaited()
+        self.assertEqual(queue.snapshot()[0]['state'], 'cancelled')
+        self.submit(queue, 'next', action)
+        await queue.wait('next')
+        action.assert_awaited_once()
+        await queue.close()
+
+    async def test_ready_demand_can_join_held_preparation_without_changing_action(self):
+        queue, action = OwnedMovementQueue(1), AsyncMock(return_value=MovementOutcome('completed', 1))
+        self.submit(queue, 'delayed', action, adapter='a', reason='handoff', ready=False)
+        await asyncio.sleep(0)
+        action.assert_not_awaited()
+        alternate = AsyncMock(side_effect=AssertionError('must reuse original action'))
+        self.submit(queue, 'request', alternate, adapter='a', reason='demand')
+        self.assertEqual(await queue.wait('request'), 1)
+        await queue.wait('delayed')
+        action.assert_awaited_once()
+        alternate.assert_not_awaited()
+        await queue.close()
+
+    async def test_failed_owner_not_blindly_retried_and_closed_queue_rejects(self):
+        queue = OwnedMovementQueue(1)
+        action = AsyncMock(side_effect=RuntimeError('uncertain publication'))
+        self.submit(queue, 'x', action, adapter='a')
+        with self.assertRaisesRegex(RuntimeError, 'uncertain publication'):
+            await queue.wait('x')
+        with self.assertRaisesRegex(RuntimeError, 'explicit owner recovery'):
+            self.submit(queue, 'retry', action, adapter='a')
+        await queue.close()
+        with self.assertRaises(ValueError):
+            self.submit(queue, 'late', action)
+
+
+class OwnedFileMovement(unittest.TestCase):
+    def make(self):
+        from unittest.mock import Mock
+        from tests.test_http_artifact_store import archive_bytes, SizedResponse
+        fixture = lifecycle_fixtures.ConfirmedFilePublication()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        runner, client = fixture.runner, fixture.client
+        manager = PreloadingManager({'preloading': {'max_concurrent_operations': 2}},
+            Mock(), fixture.manager, Mock())
+        runner._stack.preloading_manager = manager
+        runner._routing_policy = 'ieee_confirmed'
+        runner._ieee_artifact_identities = {'a': client.routing_identity('a', fixture.payload['adapter_config.json'])}
+        runner.model_cfg['ieee_admission_profile'] = {'transfer_limit': 2}
+        runner._adapter_transfer_pressure_evidence = []
+        ledger = NativeTransferObservation(NativeIterationObservation(), 2)
+        async def event(**command):
+            return ledger.event(**command)
+        engine = NS(ieee_transfer_event=event)
+        client._opener.open.side_effect = lambda *a, **kw: SizedResponse(archive_bytes(list(fixture.payload.items())))
+        return fixture, runner, manager.ieee_movements, engine, ledger
+
+    def call(self, runner, engine, name, *, target=StorageTier.NVME, source=None, reason='residency'):
+        return runner._queue_ieee_file_preparation(adapter_id='a', target_tier=target,
+            target_engine=engine, target_replica='replica', trigger_reason=reason,
+            plan_id='plan', activation_id='activation' if reason == 'handoff' else None,
+            source_path=source, intent_id=name)
+
+    def test_actual_remote_and_local_paths_coalesce_revalidate_and_preserve_io_provenance(self):
+        fixture, runner, queue, engine, ledger = self.make()
+        async def run():
+            handoff, demand = await asyncio.gather(self.call(runner, engine, 'handoff', reason='handoff'),
+                                                  self.call(runner, engine, 'request', reason='demand'))
+            self.assertEqual(handoff['_movement']['job_id'], demand['_movement']['job_id'])
+            self.assertTrue(handoff['_movement']['owns_io'])
+            self.assertFalse(demand['_movement']['owns_io'])
+            self.assertEqual(fixture.client._opener.open.call_count, 1)
+            self.assertEqual(len(runner._remote_transfer_evidence), 1)
+            left, right = await asyncio.gather(
+                self.call(runner, engine, 'host1', target=StorageTier.HOST, source=fixture.nvme/'a'),
+                self.call(runner, engine, 'host2', target=StorageTier.HOST, source=fixture.nvme/'a'))
+            self.assertEqual(left['_movement']['job_id'], right['_movement']['job_id'])
+            self.assertEqual(len(fixture.manager.local_transfer_evidence), 1)
+            self.assertEqual((fixture.host/'a'/'nested/weights').read_bytes(), fixture.payload['nested/weights'])
+            reuse = await self.call(runner, engine, 'reuse')
+            self.assertEqual(reuse['state'], 'reused')
+            self.assertFalse(reuse['_movement']['owns_io'])
+            self.assertNotEqual(reuse['_movement']['job_id'], handoff['_movement']['job_id'])
+            self.assertTrue(fixture.manager._delete_path(str(fixture.nvme/'a')))
+            await self.call(runner, engine, 'after-eviction')
+            self.assertEqual(fixture.client._opener.open.call_count, 2)
+            self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            self.assertEqual(len(runner._adapter_transfer_pressure_evidence), 3)
+            self.assertFalse(fixture.owner.materializations)
+            runner.coordinator = None
+            runner._coordinator_metric_views = lambda: []
+            metrics = runner._current_coord_metrics()
+            self.assertEqual(metrics['ieee_movements'], queue.snapshot())
+            import json
+            json.dumps(metrics)  # Evidence contains no live task/future/engine.
+            await queue.close()
+        asyncio.run(run())
+
+    def test_shared_remote_does_not_give_subscriber_the_creators_cost_sample(self):
+        fixture, runner, queue, engine, _ = self.make()
+        async def run():
+            evidence1, evidence2 = {}, {}
+            async def fetch(name, evidence):
+                return await runner._materialize_remote_adapter_async('a', fixture.nvme/'a',
+                    target_engine=engine, transfer_evidence=evidence,
+                    movement_context=dict(trigger_reason='demand', plan_id=name, target_replica='replica'))
+            results = await asyncio.gather(fetch('one', evidence1), fetch('two', evidence2))
+            self.assertTrue(all(r[0] for r in results))
+            self.assertTrue(evidence1['content_verified'])
+            self.assertEqual(evidence2, {})
+            self.assertEqual(fixture.client._opener.open.call_count, 1)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_wrong_frozen_source_identity_rejects_before_local_allocation(self):
+        fixture, runner, queue, engine, _ = self.make()
+        async def run():
+            await self.call(runner, engine, 'remote')
+            runner._ieee_artifact_identities['a']['content_sha256'] = '0'*64
+            with self.assertRaisesRegex(ValueError, 'frozen content identity'):
+                await self.call(runner, engine, 'wrong', target=StorageTier.HOST, source=fixture.nvme/'a')
+            self.assertFalse((fixture.host/'a').exists())
+            self.assertEqual(fixture.manager.local_transfer_evidence[-1]['state'], 'rejected')
+            self.assertFalse(fixture.owner.materializations)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_last_cancel_joins_real_http_reader_before_releasing_budget_and_pressure(self):
+        from tests.test_http_artifact_store import archive_bytes, SizedResponse
+        fixture, runner, queue, engine, ledger = self.make()
+        entered, proceed = threading.Event(), threading.Event()
+        class HeldResponse(SizedResponse):
+            def read(inner, *args):
+                entered.set()
+                if not proceed.wait(2):
+                    raise RuntimeError('test barrier timeout')
+                return super().read(*args)
+        fixture.client._opener.open.side_effect = lambda *a, **kw: HeldResponse(archive_bytes(list(fixture.payload.items())))
+        async def run():
+            task = asyncio.create_task(self.call(runner, engine, 'cancel'))
+            close = None
+            try:
+                while not entered.is_set():
+                    await asyncio.sleep(0)
+                task.cancel()
+                await asyncio.sleep(.01)
+                task.cancel()
+                await asyncio.sleep(.01)
+                self.assertFalse(task.done())
+                self.assertTrue(fixture.owner.materializations)
+                self.assertGreater(fixture.manager.local_file_inventory()['transfer_held_file_bytes'], 0)
+                self.assertEqual(ledger.snapshot()['active_transfers'], 1)
+                with self.assertRaisesRegex(RuntimeError, 'cancellation is still settling'):
+                    await self.call(runner, engine, 'late')
+                close = asyncio.create_task(queue.close())
+                await asyncio.sleep(0)
+                self.assertFalse(close.done())
+            finally:
+                proceed.set()
+                with self.assertRaises(asyncio.CancelledError):
+                    await task
+                if close is not None:
+                    await close
+            self.assertFalse(fixture.owner.materializations)
+            self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            self.assertEqual(fixture.owner.source_snapshot('a')['sources'], [])
+            self.assertEqual(queue.snapshot()[0]['state'], 'cancelled')
+            await queue.close()
+        asyncio.run(run())
+
+    def test_actual_shutdown_settles_movements_before_removing_engines(self):
+        fixture, runner, queue, engine, ledger = self.make()
+        async def run():
+            entered, cleaned, proceed = asyncio.Event(), asyncio.Event(), asyncio.Event()
+            async def operation(_):
+                entered.set()
+                try:
+                    await proceed.wait()
+                finally:
+                    cleaned.set()
+                return MovementOutcome('completed')
+            OwnedMovements().submit(queue, 'owned', operation)
+            await entered.wait()
+            slot = NS(instance_id='replica')
+            async def remove(*a, **kw):
+                self.assertTrue(cleaned.is_set())
+                self.assertEqual(queue.snapshot()[0]['state'], 'cancelled')
+            runner.instance_pool = NS(get_slots=lambda: [slot], remove_instance=lambda _: slot)
+            runner._cleanup_removed_slot = AsyncMock(side_effect=remove)
+            await runner._shutdown_instance_pool()
+            runner._cleanup_removed_slot.assert_awaited_once()
         asyncio.run(run())

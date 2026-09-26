@@ -395,7 +395,8 @@ class LocalSourceReferences:
                 captured_at=time.monotonic(), tiers=tiers, snapshot_reserves_capacity=False,
                 scope='managed_allocated_regular_files_only', total_host_memory_covered=False)
 
-    def copy_confirmed(self, source, target, *, limit_bytes, publish, cancel_event=None, evidence=None):
+    def copy_confirmed(self, source, target, *, limit_bytes, publish, cancel_event=None, evidence=None,
+                       expected_content_sha256=None):
         """Verified HOST/NVMe copy with real allocation before body I/O.
 
         Source read ownership survives the entire copy and publication. Payload
@@ -413,6 +414,9 @@ class LocalSourceReferences:
             record = self._validated_source(source)
             if record is None or record['public']['adapter_id'] != target.name:
                 raise ValueError('local preparation requires the exact confirmed source')
+            if (expected_content_sha256 is not None and
+                    record['public']['content_sha256'] != expected_content_sha256):
+                raise ValueError('local preparation source differs from frozen content identity')
             if target.parent not in self.roots.values() or source == target:
                 raise ValueError('local preparation requires a distinct managed destination')
             expected = dict(record['expected_files'])
@@ -1459,7 +1463,8 @@ class ResidencyManager:
             tier: int(self.tier_capacities[StorageTier(tier)].total_bytes)
             for tier in self.local_source_references.roots})
 
-    def materialize_confirmed_source(self, artifact_id, source_path, target_tier, *, cancel_event=None):
+    def materialize_confirmed_source(self, artifact_id, source_path, target_tier, *, cancel_event=None,
+                                     expected_content_sha256=None):
         """Strict budgeted tier copy. Failures propagate without an alternate path."""
         if self.storage_manager is not None:
             raise RuntimeError('external LocalCache does not share the managed source owner')
@@ -1472,7 +1477,8 @@ class ResidencyManager:
             return self.local_source_references.copy_confirmed(
                 source_path, directory / artifact_id,
                 limit_bytes=int(self.tier_capacities[target_tier].total_bytes),
-                publish=self.publish_local_source, cancel_event=cancel_event, evidence=evidence)
+                publish=self.publish_local_source, cancel_event=cancel_event, evidence=evidence,
+                expected_content_sha256=expected_content_sha256)
         except BaseException as exc:
             if evidence['state'] == 'not_started':
                 evidence.update(state='rejected', error_type=type(exc).__name__)

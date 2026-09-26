@@ -8069,6 +8069,9 @@ class ScenarioRunner:
         preparation = getattr(self, '_preparation_profiles', None)
         if preparation is not None:
             result = {**result, 'ieee_preparation_profile': preparation.identity()}
+        preloading = getattr(getattr(self, '_stack', None), 'preloading_manager', None)
+        if preloading is not None and preloading.ieee_movements.bound:
+            result = {**result, 'ieee_movements': preloading.ieee_movements.snapshot()}
         return result
 
     @staticmethod
@@ -12222,6 +12225,12 @@ class ScenarioRunner:
         return True
 
     async def _shutdown_instance_pool(self) -> None:
+        # Shared writers and their native pressure journals must settle while
+        # the engines they refer to still exist. Cancelling a scale-up first
+        # could otherwise remove that engine during an owned file operation.
+        preloading = getattr(getattr(self, '_stack', None), 'preloading_manager', None)
+        if preloading is not None and preloading.ieee_movements.bound:
+            await preloading.ieee_movements.close()
         tasks = list(getattr(self, "_pending_scale_up_tasks", set()) or [])
         for task in tasks:
             if task is not None and not task.done():
@@ -15537,6 +15546,69 @@ class ScenarioRunner:
                 future.exception()
             raise
 
+    async def _queue_ieee_file_preparation(self, *, adapter_id, target_tier,
+            target_engine, target_replica, trigger_reason, plan_id, activation_id=None,
+            source_path=None, density=0., intent_id=None):
+        """One common owned movement entry for handoff, residency and demand.
+
+        The existing file executors still own allocation, publication and join
+        cancellation. This entry does not enable Full or qualify global transfer
+        pressure/total HOST memory; it requires the initialized target engine
+        whenever native admission observation is enabled.
+        """
+        from faaslora.preloading.preloading_manager import MovementOutcome
+        if (not self.model_cfg.get('ieee_gpu_references', False) or self._stack is None
+                or target_tier not in (StorageTier.HOST, StorageTier.NVME)):
+            raise ValueError('owned file preparation requires native managed HOST/NVMe')
+        manager = self._stack.residency_manager
+        queue = self._stack.preloading_manager.ieee_movements
+        references = manager.local_source_references
+        identity = self._ieee_artifact_identities[adapter_id]
+        content = identity['content_sha256']
+        target = references.roots[target_tier.value] / adapter_id
+        intent_id = intent_id or uuid.uuid4().hex
+        metadata = dict(trigger_reason=trigger_reason, plan_id=plan_id,
+                        activation_id=activation_id, target_replica=target_replica)
+        async def execute(attempt_id):
+            # A completed old Future is never a residency claim. Re-observe
+            # the physical owner each time before deciding a copy is reusable.
+            state = references.source_snapshot(adapter_id)
+            for source in state['sources']:
+                if source['tier'] == target_tier.value:
+                    if source['content_sha256'] != content or source['path'] != str(target):
+                        raise ValueError('prepared target differs from frozen artifact identity')
+                    return MovementOutcome('completed', dict(state='reused', target_path=str(target),
+                        content_sha256=content, source_snapshot=state, attempt_id=attempt_id))
+            if source_path is None:
+                if target_tier != StorageTier.NVME or self._remote_artifact_client is None:
+                    raise ValueError('remote preparation must enter the owned NVMe stage')
+                transfer = {}
+                ok, elapsed = await self._materialize_remote_adapter_async(adapter_id, target,
+                    target_engine=target_engine, transfer_evidence=transfer, _movement_owned=True)
+                if not ok:
+                    raise RuntimeError('remote movement did not publish its target')
+                result = dict(state='published', target_path=str(target), io_ms=elapsed,
+                              remote_transfer=transfer, attempt_id=attempt_id)
+            else:
+                result = await self._materialize_confirmed_source_async(adapter_id, source_path,
+                    target_tier, target_engine=target_engine, _movement_owned=True,
+                    expected_content_sha256=content)
+            observed = references.source_snapshot(adapter_id)
+            if not any(s['tier'] == target_tier.value and s['path'] == str(target)
+                       and s['content_sha256'] == content for s in observed['sources']):
+                raise RuntimeError('file movement lacks matching confirmed publication')
+            result['_io_owner_intent_id'] = intent_id
+            return MovementOutcome('completed', result)
+        job_id = queue.submit(key=(references.owner_id, target_tier.value, adapter_id, content),
+            intent_id=intent_id, metadata=metadata, density=density, action=execute,
+            demand=trigger_reason == 'demand')
+        # Only the operation creator can bind this transfer to its own admitted
+        # source interval. A subscriber does not acquire the creator's timing.
+        result = copy.deepcopy(await queue.wait(intent_id))
+        result['_movement'] = dict(job_id=job_id, intent_id=intent_id,
+            owns_io=result.pop('_io_owner_intent_id', None) == intent_id)
+        return result
+
     async def _run_ieee_file_transfer(self, adapter_id, source_tier, target_tier, engine, operation):
         """Own one actual preparation interval on its target replica's core.
 
@@ -15603,10 +15675,18 @@ class ScenarioRunner:
             if cancelled:
                 raise asyncio.CancelledError()
 
-    async def _materialize_confirmed_source_async(self, adapter_id, source, target_tier, *, target_engine=None):
+    async def _materialize_confirmed_source_async(self, adapter_id, source, target_tier, *, target_engine=None,
+                                                _movement_owned=False, movement_context=None,
+                                                expected_content_sha256=None):
         """Budgeted local movement shares the remote transfer cancellation fence."""
         if not self.model_cfg.get('ieee_gpu_references', False) or self._stack is None:
             raise RuntimeError('confirmed tier copy requires the native source owner')
+        if getattr(self, '_routing_policy', None) == 'ieee_confirmed' and not _movement_owned:
+            if not isinstance(movement_context, dict):
+                raise ValueError('queued local copy requires explicit movement provenance')
+            return await self._queue_ieee_file_preparation(adapter_id=adapter_id,
+                target_tier=target_tier, source_path=source, target_engine=target_engine,
+                **movement_context)
         manager = self._stack.residency_manager
         source_tier = next((tier for tier, root in manager.local_source_references.roots.items()
                             if Path(source).resolve().parent == root), None)
@@ -15615,7 +15695,8 @@ class ScenarioRunner:
         async def operation():
             return await self._owned_artifact_io(
                 lambda cancellation: manager.materialize_confirmed_source(
-                    adapter_id, str(source), target_tier, cancel_event=cancellation))
+                    adapter_id, str(source), target_tier, cancel_event=cancellation,
+                    expected_content_sha256=expected_content_sha256))
         return await self._run_ieee_file_transfer(adapter_id, source_tier, target_tier.value,
             target_engine if target_engine is not None else getattr(self, 'engine', None), operation)
 
@@ -15623,7 +15704,7 @@ class ScenarioRunner:
         self,
         adapter_id: str,
         dst: Path,
-        *, target_engine=None, transfer_evidence=None,
+        *, target_engine=None, transfer_evidence=None, _movement_owned=False, movement_context=None,
     ) -> Tuple[bool, float]:
         """Materialize one Remote->NVMe miss with one auditable link charge.
 
@@ -15636,6 +15717,19 @@ class ScenarioRunner:
 
         if self._remote_artifact_client is not None:
             if self.model_cfg.get('ieee_gpu_references', False):
+                if getattr(self, '_routing_policy', None) == 'ieee_confirmed' and not _movement_owned:
+                    if Path(dst).resolve() != self._stack.residency_manager.local_source_references.roots['nvme'] / adapter_id:
+                        raise ValueError('queued remote target differs from managed NVMe path')
+                    if not isinstance(movement_context, dict):
+                        raise ValueError('queued remote copy requires explicit movement provenance')
+                    result = await self._queue_ieee_file_preparation(adapter_id=adapter_id,
+                        target_tier=StorageTier.NVME, target_engine=target_engine,
+                        **movement_context)
+                    if result['_movement']['owns_io'] and transfer_evidence is not None:
+                        transfer_evidence.update(result['remote_transfer'])
+                    # A shared copy is not this request's own full-load timing
+                    # sample. Queue evidence carries the actual transfer once.
+                    return True, result.get('io_ms', 0.)
                 async def operation():
                     return await self._owned_artifact_io(
                         lambda cancellation: self._materialize_remote_adapter(
@@ -15704,7 +15798,10 @@ class ScenarioRunner:
                     reservation.gpu_reference_evidence['remote_preparation'] = transfer_evidence
                     ok, transfer_ms = await self._materialize_remote_adapter_async(
                         adapter_id, self.nvme_dir / adapter_id, target_engine=reservation.slot.engine,
-                        transfer_evidence=transfer_evidence)
+                        transfer_evidence=transfer_evidence,
+                        movement_context=dict(trigger_reason='demand',
+                            plan_id=f'request:{reservation.request_id}',
+                            target_replica=reservation.slot.instance_id))
                     if not ok:
                         raise RuntimeError('IEEE remote materialization did not complete')
                     view = owner.source_snapshot(adapter_id)

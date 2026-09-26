@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Native GPU loss-based replacement connected; common movement/Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D37. D37 freezes actual native sources/slot bytes and h/d, rechecks live references and E(t), then reclaims the selected GPU slot while retaining HOST fallback. Uniform-slot native scope only. Automatic movement/handoff, HOST/NVMe replacement, representative measurements, shared/preactivation pressure and total HOST/native accounting remain open. IEEE startup still rejects legacy warmup; no new GPU/Full qualification |
+| P1 IEEE semantic alignment | Owned common file movement connected; automatic Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D38. Actual request HTTP miss and explicit handoff/residency file preparation share an owned queue, confirmed publication and joined cancellation. D37 native GPU replacement retained. Automatic planning/GPU queue, pending-target protection, HOST/NVMe replacement, representative measurements, shared/preactivation pressure and total HOST/native accounting remain open. IEEE startup still rejects legacy warmup; no new GPU/Full qualification |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,19 +51,20 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST CODE CHECKPOINT: D37 connects native uniform-slot GPU replacement to
-frozen observed h/d, native source/footprint and current owner state. Actual
-stack→core/worker command uses loss-per-usable-byte ordering, preserves native
-HOST fallback and delays reclamation until E(t) accepts. Pending native demand,
-CPU/GPU pins and references exclude victims. Ordinary demand keeps native LRU.
-773 functional +56 safety checks pass;13 new checks also pass in installed
-vLLM0.30 with CUDA uninitialized. No new GPU/model or real preparation profiles.
-Common movement queue, automatic dispatch/handoff, pending-target protection,
-HOST/NVMe multi-victim replacement, total HOST/native/shared/preactivation
-accounting and Full lifecycle remain open. _preload_full_stack still rejects
-ieee_confirmed BEFORE legacy work. Next connect the common owned queue and
-full resource accounting, not another isolated selector/profile/model-prefix
-microtest. Do not bypass the Full guard; representative qualification remains.
+LATEST CODE CHECKPOINT: D38 connects a common owned file queue to actual request
+HTTP misses and explicit handoff/residency file-preparation entries. One physical
+copy per owner/tier/adapter/content; each intent keeps provenance. Shared waiter
+cancellation does not kill other interests; last cancellation/global shutdown
+joins real writers and pressure events. Completion is not future cache residency.
+Source SHA checked under owner lock before local target allocation. Creator-only
+Remote cost evidence; no duplicate sample.785 functional +56 safety pass;12 new
+checks also pass in installedvLLM0.30 with CUDA uninitialized. No model/profile.
+Next integrate native GPU queue/execution and pending-target protection with
+shared/preactivation pressure, total HOST/native budgets and automatic planner
+options/handoff. HOST/NVMe multi-victim replacement and Full lifecycle remain
+open. Single-replica retirement must settle the relevant shared activity too.
+_preload_full_stack still rejects ieee_confirmed BEFORE legacy work. Do not
+bypass this guard or repeat local queue/file/profile/model-prefix microtests.
 
 LATEST COMPLETED MODEL RUN: `llama2_7b_capacity_wait_attempt2`, finished and cleaned.
 Five first-distinct requests from old32-prefix,755 native tokens, all targets met.
@@ -101,7 +102,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D37.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D38.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -156,6 +157,36 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D38 actual shared file preparation; automatic Full still open
+
+- The existing PreloadingManager now owns a common event-driven movement queue.
+  Actual request HTTP misses and explicit handoff/residency HOST/NVMe paths use
+  one physical operation per owner/tier/adapter/content. Demand precedes pending
+  proactive work; density/identity are stable; running work is not preempted.
+  Actual owner checks/rechecks storage, source SHA and publication. Future results
+  never replace fresh source observations. No new planner formula or downloader.
+- Cancellation withdraws one interest; last-interest cancellation joins actual
+  file work and native pressure settlement. Concurrent shutdown also joins, then
+  removes engines. Failed/uncertain work is not automatically retried. Deferred
+  queue work needs a same-owner state event. Only the creator gets Remote cost
+  evidence; per-intent metadata and attempts are recorded in actual summary.
+-12 added checks; targeted166, initial/final785 functional and56 safety pass,
+  no failures/skips.12 also pass under actual installedvLLM0.30, CUDA uninitialized;
+  subsequent concurrent-close assertion is covered by final785. Real file and
+  HTTP-response fixtures, not actual174 service, CUDA/model, representative
+  profile or performance evidence. P1 D38 gives correctness table and sources.
+- Five owned D38 scopes verified TasksCurrent0, empty cgroup.procs and
+  high/max/OOM events0, then stopped. Final GPUs15MiB/0%, MemAvailable108974684KiB,
+  disk353645719552B. All147 protected entries and source-plan SHA unchanged.
+  Baseline repository remains16570c023a439c884624e7a5bdfa0d8577faf7a3; original
+  user changes are unstaged. No new weights/traces or old-results mutation.
+- Full guard retained. Automatic handoff/options, native GPU queue and pending
+  target protection, HOST/NVMe replacement, total HOST/native accounting,
+  shared/preactivation pressure, per-replica retirement and Full physical
+  lifecycle remain. D38 initialized-target file pressure is not global pressure.
+  Do not treat queued file correctness as Full qualification or repeat this gate.
+  Formal baselines/M1/M2/ablations/sensitivities remain not started; goal active.
 
 ### D37 native GPU objective replacement; Full queue still open
 

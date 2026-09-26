@@ -1973,3 +1973,75 @@ pending movement queue尚需负责候选密度顺序、pending target保护、�
 native占用、共享/激活前压力和完整生命周期也仍需接通。代表性实测profile、
 正确adapter数值资格、真实remote资格和完整回放尚未完成。不重复本轮
 selector/cache fixture或旧短前缀微测；下一步进入统一迁移与资源所有者整合。
+
+## D38：共享文件准备队列接入实际请求路径
+
+### 问题、依据与实现边界
+
+本轮沿D37主线整合执行，不修改九个公式。IEEE要求handoff与稳态规划共用
+pending movement queue，复用已存在/正在准备的副本，并在依赖操作结束后
+释放取消任务的资源。旧PreloadingManager的顺序执行、轮询和超时状态不能
+提供这个所有权保证。因此在同一既有manager中增加owned queue，复用D32的
+文件分配/发布和D33的真实加载压力入口，不另造下载器或实验框架。
+
+实现依据：Python的[shield/cancellation规范](https://docs.python.org/3.12/library/asyncio-task.html#shielding-from-cancellation)
+明确区分等待者取消与受保护任务；必须保留任务引用并等待其结束。
+vLLM 0.30的[原生LoRA worker](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+仍由自己的执行路径管理缓存，本轮不将控制器Future当作GPU完成栅栏。
+可证伪假设是：实际文件路径能共享一次准备，取消和重复订阅不导致重复
+分配、提前回收或重复成本样本。这里不假定该改动已改善TTFT或GPU-s。
+
+### 已接入的执行路径
+
+1. 一个物理任务键绑定文件owner incarnation、目标tier、adapter和内容SHA。
+   handoff/residency/demand保留各自plan、activation、target replica和订阅
+   记录；相同任务复用原执行体，不启动第二个writer。
+2. 队列先处理等待中的请求驱动任务，再按收益密度和稳定身份排序。
+   不抢占已开始的物理操作。并发上限沿用既有显式配置；队列不假称自己
+   预留了存储，实际容量仍由文件owner在写入前原子检查/预分配。
+3. `ScenarioRunner._ensure_local_async`的真实HTTP miss现在进入此队列。
+   同一入口接收显式handoff/residency文件准备，但自动planner触发尚未连接。
+   Remote→NVMe和已确认HOST/NVMe互拷仍使用原有执行器与取消join。
+4. 每次执行重新观察真实来源。终态Future不充当缓存：后续调用必须重新
+   验证目标；驱逐后重新下载。互拷在source owner锁内核对冻结内容SHA，
+   在不匹配时尚未分配目标，不依赖复制完成后才发现错误。
+5. 一个订阅取消不会取消其他订阅的writer。最后一个取消必须等待真实
+   reader/writer与压力finish结束；重复取消、取消开始后新订阅、协程尚未
+   开始、取消与全局关闭并发都明确处理。失败任务保留，不自动盲重试。
+6. deferred保持显式状态，仅接受对应物理owner的状态变化唤醒；其他owner
+   不触发重试，执行期间发生的唤醒也不丢失。本轮真实文件复制不以此
+   替代物理容量失败；原生GPU admission的自动唤醒连接仍待实现。
+7. 仅实际操作创建者可将Remote span作为其准备成本样本，共享者不重复
+   领取。输出保留一次真实传输、各订阅和attempt状态；summary可序列化，
+   不携带活任务/engine。全局关机先join准备，再拆除对应推理实例。
+
+### 正确性状态表（小型文件/HTTP响应fixture，不是远端性能实验）
+
+| 要检查的问题 | 本轮观测 |
+|---|---|
+| handoff与请求同时准备同一NVMe目标 | 同一job、一次实际下载与一次文件发布；各自触发身份保留 |
+| HOST并发复制 | 一次实际层间复制；目标文件内容一致；无残留materialization |
+| 已完成Future与真实缓存是否混淆 | 后续命中重新核验；实际删除NVMe副本后再次下载 |
+| 成本是否重复归属 | 创建者拥有Remote evidence，共享请求的成本样本字典保持空 |
+| 源身份发生偏差 | owner锁内拒绝，HOST目标未创建，记录rejected |
+| 取消一个共享等待者 | writer继续，其他订阅完成；正常完成不伪标withdrawn |
+| 最后取消与关机并发 | 真实HTTP reader未退出时，文件预留和加载压力仍在，两个等待者均未提前返回 |
+| 延后和排队顺序 | 只由同owner事件重试；请求优先、密度/身份稳定；无定时重试 |
+| 关机先后关系 | queue任务终态先于实际runner移除实例 |
+
+新增12项检查。相关166项、初次及最终785项全量、56项安全检查全部通过，
+无失败/跳过。新增12项还在已安装vLLM0.30中通过，CUDA未初始化；其后
+加强的并发close断言包含在最终785项中。这不是模型运行、真实174远端
+下载或代表性profile，不提供新的性能数值。提交前147项历史保护清单与
+计划SHA核验零变化；五个本轮资源域均为空、high/max/OOM为零并已关闭。
+没有修改原图表、工件池或trace。
+
+### 下一步与仍未通过的资格
+
+Full guard保持：本轮不宣称自动handoff、原生GPU准备队列、pending-target
+victim保护或全层级replacement完成。共享文件传输压力目前仍绑定发起
+任务的已初始化target，不是所有副本/激活前的全局压力。单实例退役与跨
+副本共享操作也需结合该压力所有权整合；只有全局关机的join顺序在本轮
+接通。总HOST/native tensor预算、自动规划options、GPU待办执行/唤醒、
+完整物理生命周期、实测初始化、数值及remote资格仍是主线未完成项。
+下一步以这些集成为单位推进，不扩大相同文件/短前缀测试，不启动M1/M2。

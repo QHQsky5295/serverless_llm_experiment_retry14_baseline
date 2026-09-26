@@ -505,6 +505,7 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         from faaslora.experiment.instance_pool import (Router, ServiceClassBins, ServiceCostModel,
                                                      ServiceComponents, ServiceObservationClass)
         from faaslora.memory.residency_manager import ResidencyManager
+        from faaslora.preloading.preloading_manager import PreloadingManager
         runner, slot, trace, plan, owner, rpc = native_reference_fixture()
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
@@ -514,7 +515,8 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         nvme.mkdir()
         manager = ResidencyManager({'memory': {'host': {'cache_dir': str(host)},
             'nvme': {'cache_dir': str(nvme)}}}, Mock(), Mock())
-        runner._stack = SimpleNamespace(residency_manager=manager, record_access=Mock())
+        runner._stack = SimpleNamespace(residency_manager=manager, record_access=Mock(),
+            preloading_manager=PreloadingManager({}, Mock(), manager, Mock()))
         runner._routing_policy = 'ieee_confirmed'
         runner._ieee_routing_epoch = 0
         runner._access_count = defaultdict(int)

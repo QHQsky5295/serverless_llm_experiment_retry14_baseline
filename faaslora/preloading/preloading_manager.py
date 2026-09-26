@@ -8,6 +8,9 @@ for scaling-aware artifact preloading.
 import time
 import asyncio
 import threading
+import math
+import uuid
+import copy
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass
 from enum import Enum
@@ -19,6 +22,218 @@ from ..registry.artifact_registry import ArtifactRegistry
 from ..memory.residency_manager import ResidencyManager
 from ..utils.config import Config
 from ..utils.logger import get_logger
+
+
+@dataclass(frozen=True)
+class MovementOutcome:
+    """One owned execution step; deferral is not failure or completion."""
+    state: str
+    value: Any = None
+    reason: str = ''
+
+    def __post_init__(self):
+        if self.state not in ('completed', 'deferred') or not isinstance(self.reason, str):
+            raise ValueError('movement step needs an explicit completed/deferred outcome')
+
+
+class OwnedMovementQueue:
+    """Common handoff/residency queue; physical reservations belong to owners.
+
+    One in-flight operation per physical target/content key. A caller owns an
+    interest, not the shared writer. Last-interest cancellation joins the real
+    operation (whose I/O/RPC adapters must settle cancellation). Deferred work
+    is retried only by an explicit owner-state wake, never a sleep/retry loop.
+    No terminal cache: every later preparation revalidates physical residency.
+    """
+    def __init__(self, max_concurrent):
+        if type(max_concurrent) is not int or max_concurrent <= 0:
+            raise ValueError('movement concurrency must be an explicit positive limit')
+        self.max_concurrent = max_concurrent
+        self._loop = None
+        self._jobs, self._keys, self._intents = {}, {}, {}
+        self._revision = {}
+        self._closed = False
+
+    def _bind(self):
+        loop = asyncio.get_running_loop()
+        if self._loop is None:
+            self._loop = loop
+        if self._loop is not loop:
+            raise RuntimeError('movement queue belongs to another event loop')
+        return loop
+
+    @property
+    def bound(self):
+        return self._loop is not None
+
+    def submit(self, *, key, intent_id, metadata, density, action, demand=False, ready=True):
+        loop = self._bind()
+        if (self._closed or not isinstance(key, tuple) or len(key) != 4
+                or any(not isinstance(v, str) or not v for v in key)
+                or not isinstance(intent_id, str) or not intent_id or intent_id in self._intents
+                or type(density) not in (int, float) or not math.isfinite(density) or density < 0
+                or type(demand) is not bool or type(ready) is not bool or not callable(action)):
+            raise ValueError('invalid, closed or duplicate owned movement submission')
+        # key = (physical owner incarnation, target tier, adapter, content identity)
+        if key[1] not in ('gpu', 'host', 'nvme'):
+            raise ValueError('unknown physical movement target tier')
+        if (not isinstance(metadata, dict) or metadata.get('trigger_reason') not in
+                ('handoff', 'residency', 'demand')
+                or any(not isinstance(metadata.get(k), str) or not metadata[k]
+                       for k in ('plan_id', 'target_replica'))
+                or (metadata['trigger_reason'] == 'handoff' and
+                    (not isinstance(metadata.get('activation_id'), str) or not metadata['activation_id']))):
+            raise ValueError('movement intent requires plan/trigger/replica/activation provenance')
+        if demand != (metadata['trigger_reason'] == 'demand'):
+            raise ValueError('demand precedence must agree with its actual trigger')
+        job = self._keys.get(key)
+        if job is not None and job['state'] == 'failed':
+            raise RuntimeError('failed movement requires explicit owner recovery, not an automatic retry')
+        if job is not None and job['stop_requested']:
+            raise RuntimeError('movement cancellation is still settling on its physical owner')
+        if job is None:
+            future = loop.create_future()
+            # Observe errors even when all interests have been withdrawn. This
+            # does not change what an awaiting consumer receives.
+            future.add_done_callback(lambda f: None if f.cancelled() else f.exception())
+            job = dict(job_id=uuid.uuid4().hex, key=key, state='pending', action=action,
+                intents={}, subscriptions={}, future=future, task=None, ready=ready, attempts=[],
+                created_at=time.monotonic(), finished_at=None, stop_requested=False,
+                deferred_revision=-1)
+            self._keys[key] = job
+            self._jobs[job['job_id']] = job
+        job['intents'][intent_id] = dict(metadata=copy.deepcopy(metadata), density=float(density),
+                                        demand=demand, attached_at=time.monotonic())
+        job['subscriptions'][intent_id] = job['intents'][intent_id]
+        self._intents[intent_id] = job
+        if ready:
+            job['ready'] = True
+        # Joining an already-active copy never restarts/replaces its action.
+        self._pump()
+        return job['job_id']
+
+    def _pump(self):
+        if self._closed:
+            return
+        running = sum(j['state'] == 'executing' for j in self._keys.values())
+        candidates = [j for j in self._keys.values() if j['state'] == 'pending'
+                      and j['ready'] and j['intents']]
+        def order(j):
+            intents = tuple(j['intents'].values())
+            return (not any(i['demand'] for i in intents), -max(i['density'] for i in intents),
+                    j['key'][2], ('gpu', 'host', 'nvme').index(j['key'][1]), j['key'][0])
+        for job in sorted(candidates, key=order)[:max(0, self.max_concurrent-running)]:
+            job['state'] = 'executing'
+            job['task'] = self._loop.create_task(self._execute(job))
+
+    async def _execute(self, job):
+        attempt = dict(attempt_id=uuid.uuid4().hex, started_at=time.monotonic(), state='executing')
+        job['attempts'].append(attempt)
+        revision = self._revision.get(job['key'][0], 0)
+        try:
+            result = await job['action'](attempt['attempt_id'])
+            if not isinstance(result, MovementOutcome):
+                raise TypeError('owned movement executor must return MovementOutcome')
+            attempt.update(state=result.state, reason=result.reason)
+            if result.state == 'deferred':
+                job['state'] = 'pending' if self._revision.get(job['key'][0], 0) != revision else 'deferred'
+                job['deferred_revision'] = revision
+            else:
+                job['state'] = 'completed'
+                job['future'].set_result(result.value)
+        except asyncio.CancelledError:
+            job['state'] = attempt['state'] = 'cancelled'
+            job['future'].cancel()
+        except Exception as exc:
+            job['state'] = attempt['state'] = 'failed'
+            attempt['error_type'] = type(exc).__name__
+            job['future'].set_exception(exc)
+        finally:
+            attempt['finished_at'] = time.monotonic()
+            if job['state'] in ('completed', 'cancelled', 'failed'):
+                job['finished_at'] = attempt['finished_at']
+                if job['state'] != 'failed':
+                    self._keys.pop(job['key'], None)
+                job['action'] = None  # Do not retain completed I/O closures/engines.
+            job['task'] = None
+            self._pump()
+
+    def wake(self, *, owner_id, ready=None):
+        """Notify an actual capacity/pressure/activation change; no hidden timer."""
+        self._bind()
+        if not isinstance(owner_id, str) or not owner_id or (ready is not None and type(ready) is not bool):
+            raise ValueError('movement wake requires its physical owner')
+        self._revision[owner_id] = self._revision.get(owner_id, 0) + 1
+        for job in self._keys.values():
+            if job['key'][0] != owner_id:
+                continue
+            if ready is not None:
+                job['ready'] = ready
+            if job['state'] == 'deferred':
+                job['state'] = 'pending'
+        self._pump()
+
+    async def wait(self, intent_id):
+        self._bind()
+        job = self._intents[intent_id]
+        try:
+            return await asyncio.shield(job['future'])
+        except asyncio.CancelledError:
+            await self.withdraw(intent_id)
+            raise
+        finally:
+            if job['future'].done():
+                job['subscriptions'][intent_id]['observed_terminal_at'] = time.monotonic()
+                job['intents'].pop(intent_id, None)
+
+    async def withdraw(self, intent_id):
+        """Drop one interest; the last cancellation joins its owned operation."""
+        self._bind()
+        job = self._intents[intent_id]
+        if intent_id in job['intents']:
+            job['subscriptions'][intent_id]['withdrawn_at'] = time.monotonic()
+            job['intents'].pop(intent_id)
+        elif not job['stop_requested']:
+            return
+        if job['intents'] or job['state'] in ('completed', 'cancelled', 'failed'):
+            return
+        task = job['task']
+        if task is None:
+            job['state'], job['finished_at'] = 'cancelled', time.monotonic()
+            job['future'].cancel()
+            self._keys.pop(job['key'], None)
+            job['action'] = None
+            return
+        if not job['stop_requested']:
+            job['stop_requested'] = True
+            task.cancel()
+        while not task.done():
+            try:
+                await asyncio.shield(task)
+            except asyncio.CancelledError:
+                continue  # Repeated caller cancellation cannot orphan an owned writer.
+        if not task.cancelled():
+            task.result()
+        elif job['state'] == 'executing':
+            # Cancelled before the coroutine's first instruction: its finally
+            # never ran, but no owned operation was entered either.
+            job.update(state='cancelled', finished_at=time.monotonic(), task=None, action=None)
+            job['future'].cancel()
+            self._keys.pop(job['key'], None)
+            self._pump()
+
+    async def close(self):
+        self._bind()
+        self._closed = True
+        for intent_id in tuple(self._intents):
+            await self.withdraw(intent_id)
+
+    def snapshot(self):
+        return [dict(job_id=j['job_id'], key=list(j['key']), state=j['state'],
+            created_at=j['created_at'], finished_at=j['finished_at'], ready=j['ready'],
+            active_intents=list(j['intents']), subscriptions=copy.deepcopy(j['subscriptions']),
+            attempts=copy.deepcopy(j['attempts']),
+            queue_owns_physical_storage=False) for j in self._jobs.values()]
 
 
 class PreloadingStatus(Enum):
@@ -142,6 +357,7 @@ class PreloadingManager:
         
         # Event callbacks
         self.operation_callbacks: List[Callable[[PreloadingOperation], None]] = []
+        self.ieee_movements = OwnedMovementQueue(self.max_concurrent_operations)
         
         self.logger.info("Preloading manager initialized")
     
@@ -156,6 +372,8 @@ class PreloadingManager:
     
     async def stop(self):
         """Stop the preloading manager"""
+        if self.ieee_movements.bound:
+            await self.ieee_movements.close()
         if not self.running:
             return
         
