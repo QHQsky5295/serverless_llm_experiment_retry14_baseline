@@ -86,7 +86,7 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `ec1416e5f49a979ed40193852ae69bb23353eaf8`, pushed to
+- Main tested implementation: `6bdff25aadefb0d42086083844b4040c5fde8514`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -179,8 +179,11 @@ its one historical SHA difference and independent numerical gate remain open.
   total HOST/native/shared ownership and Full lifecycle remain open. Do not use
   D26 HOST D, D33 activity intervals or these fixtures as preparation profiles.
   Baseline performance, M1/M2, ablations and sensitivities remain not started.
-  Goal remains active; back up this tested measurement checkpoint and resume
-  integration, not an expanded timing-only campaign.
+  Goal remains active; resume integration, not an expanded timing-only campaign.
+- Implementation6bdff25aadefb0d42086083844b4040c5fde8514 pushed to
+  faaslora_origin/retry14_continuous_queue_v2; full remote SHA verified. This
+  receipt is documentation-only. All D34 scopes were checked empty and stopped;
+  only original user dirt remains. Recheck live resources before the next task.
 
 ### D33 implementation evidence; no new model or performance experiment
 
