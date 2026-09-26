@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Initial pool, live control and ready residency share owned activation; Full remains open | P1_FORMULA_IMPLEMENTATION.md D1–D49. Initial primary no longer eagerly starts outside runner; first ready can serve while other initial members remain pending. Remaining-candidate/native-inclusive replacement, profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
+| P1 IEEE semantic alignment | Automatic native GPU remaining-candidate replacement connected; Full remains open | P1_FORMULA_IMPLEMENTATION.md D1–D50. Same frozen h/d and real HOST fallback, joint target protection; file/native-HOST replacement, profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,7 +51,17 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST IMPLEMENTATION: D49 initial deployment now enters the D47 owned activation
+LATEST IMPLEMENTATION: D50 actual owned residency now includes native GPU
+remaining-candidate replacement BEFORE lower-tier selection. One frozen h/d;
+real slot bytes and retained native HOST fallback costs; received pin/reference/
+whole-joint-target protection. Selected capacity is not spent twice. Worker still
+rechecks and defers without eviction. Completed sibling targets stay protected
+until joint plan close. File/native-HOST replacement remains OPEN; Full guard
+stays. D50 correctness/native/final backup receipts below, no performance run.
+Next native-inclusive file/HOST replacement, proactive d feedback, representative
+profiles and Full physical lifecycle/A4 binding. Do not repeat D50 or old prefixes.
+
+D49 initial deployment now enters the D47 owned activation
 from an empty pool/configuration-only descriptor. Main skips eager primary init,
 one scenario/run per deployment; first ready can serve while the rest remain
 initial pending. Device shortage rejects before factory; cancellation joins startup
@@ -65,7 +75,7 @@ legacy warmup; ready replicas get one owned steady-state epoch each. NoHandoff
 retains ready residency. Retirement joins planning; errors surface without blind
 activation/epoch retries. Explicit model control limits still need validation.
 Next: full lifecycle,
-remaining-candidate/native-inclusive joint replacement, native HOST replacement,
+file remaining-candidate/native-inclusive joint replacement, native HOST replacement,
 proactive d feedback, representative profiles and Full lifecycle. Legacy handoff
 inputs explicitly reject at the new entry. D44 file-only loss is not enabled as
 mixed joint loss. Full guard remains. Do not repeat activation/mixed-execution
@@ -115,7 +125,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D49.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D50.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -171,6 +181,42 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D50 automatic GPU remaining candidates and stable joint replacement set
+
+- D49 was progress, not blocked. Reread full authoritative plan/status, AGENTS,
+  run-experiment/github-sync skills, IEEE original Eq.(4)–(9) replacement text,
+  relevant implementation/history and officialvLLM0.30 worker/model source plus
+  dLoRA primary page. Start HEAD008ee0e, baseline16570c unchanged. GPUs15MiB/0%,
+  MemAvailable108454308KiB, disk353362636800B at live recheck. Protected147 and
+  source-plan SHA unchanged. No old D49 task live; original user dirt preserved.
+- Actual received-owner planning now solves GPU insertions plus profitable
+  remaining candidates, with real retained-native-HOST loss at same frozen h/d.
+  Protected references/pins/joint targets excluded; virtual victim bytes spent
+  once; final GPU targets precede lower-tier selection. Execution reuses mixed
+  staging/native admission. Completed siblings stay protected until plan close.
+  Full guard remains. This is not complete file/native-HOST replacement.
+-10 new checks. Initial40 had5 fixture errors; next139 had1 missing fixture
+  class and1 old expectation allowing a completed sibling victim. Subsequent139
+  and first910 each had1 test-only immutable mapping mutation. Corrected explicit
+  fixtures/expectations, no formula/capacity/profile fallback. Intermediate910
+  pass. Added actual two-target final-residency coverage. P1 D50 has correctness
+  table, primary sources and bounds. Final native/regression/safety receipts follow.
+- No model/GPU/real174/profile measurement/performance campaign; no new weights,
+  trace, manuscript or historical-result changes. Baseline unchanged. Continue
+  native-inclusive file and HOST replacement, proactive d feedback, representative
+  profiles/allocator qualification and Full physical lifecycle/A4 binding. Formal
+  baselines/M1/M2/ablations/sensitivities remain not started. Remote disk floor and
+  nonzero3B artifact authority gates unchanged; full goal active.
+- Final frozen-source911 functional checks pass,0 failures/errors/skips.
+  InstalledvLLM0.30.0/torch2.13.0+cu130:34 selected actual planning/execution/native
+  cache checks pass, CUDA uninitialized. All56 safety/census/replay checks pass.
+  All eight owned D50 scopes verified TasksCurrent0, empty actual cgroup.procs
+  and high/max/oom/oom_kill0, then stopped. No live test/model remains. GPUs15MiB/
+  0%, MemAvailable108704388KiB, disk353355636736B. Source plan SHA and147 protected
+  entries unchanged. Baseline16570c full remote SHA reverified unchanged. Original
+  user dirt preserved. Tested implementation backup follows; no performance slot,
+  measured profile or complete Full qualification was produced by this block.
 
 ### D49 initial deployment uses the owned activation path
 

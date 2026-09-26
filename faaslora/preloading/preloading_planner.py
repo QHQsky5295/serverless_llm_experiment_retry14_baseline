@@ -555,6 +555,42 @@ def frozen_preparation_costs(rows):
     return values
 
 
+def owned_gpu_planning_victims(*, view, counts, total, estimates, size_edges_bytes):
+    """Price actual reusable native slots at the SAME frozen h/d as insertions.
+
+    Uniform GPU slots retain their native HOST fallback. File-only loss cannot
+    stand in for this loss; CPU file bytes cannot stand in for a GPU slot. This
+    received eligibility view is rechecked by the serialized native commit.
+    It does not yet describe file/native-HOST replacement transactions.
+    """
+    native = view['native']
+    if native is None:
+        raise ValueError('GPU replacement planning requires an existing native owner')
+    protected = native.get('replacement_protected_adapter_ids')
+    if (not isinstance(protected, list) or len(set(protected)) != len(protected)
+            or any(type(a) is not int or a <= 0 for a in protected)):
+        raise ValueError('GPU replacement planning lacks native reference/target protection')
+    slots = native['slot_adapter_ids']
+    slot_bytes = native['native_footprints']['slot_capacity_bytes']
+    names = {i: a for a, i in view['adapter_int_ids'].items()}
+    victims = []
+    for aid in slots:
+        if aid is None:
+            continue
+        name = names[aid]
+        sources = view['sources'][name]
+        if sources['selected_source']['tier'] != 'gpu':
+            raise ValueError('replacement victim lacks its confirmed GPU source')
+        fallback = next(s for s in sources['confirmed_copies'] if s['native'] and s['tier'] == 'host')
+        key = FrozenPreparationProfiles.source_class(fallback, size_edges_bytes)
+        h = counts.get(name, 0)/total if total else 0.
+        d = estimates[key] if h else None
+        victims.append(dict(adapter_id=name, adapter_int_id=aid, usable_bytes=slot_bytes,
+            loss_ms=h*d if h else 0., fallback_class=asdict(key), fallback_load_ms=d,
+            eligible=aid not in protected))
+    return victims
+
+
 def owned_gpu_execution_objective(*, plan, selected, size_edges_bytes, initialized_snapshot=None):
     """Carry the original all-tier benefit through file/native-HOST staging.
 
@@ -1321,11 +1357,14 @@ class PreloadingPlanner:
             sources[c.artifact_id] = state
         return tiers
 
-    def select_ieee_insertions(self, candidates: List[PreparationCandidate], budgets: Dict):
-        """Conditional GPU→HOST→NVMe insertion sets; not global optimality.
+    def select_ieee_insertions(self, candidates: List[PreparationCandidate], budgets: Dict,
+                               *, gpu_replacement=None):
+        """Conditional GPU→HOST→NVMe sets; not global optimality.
 
         Caller freezes measured costs, demand, source and *remaining* budgets
         before this call. Reservations/staging must already be subtracted.
+        Owned native GPU victim evidence enables its remaining-candidate pass;
+        HOST/NVMe here still use insertion only, not a full replacement claim.
         """
         tiers = self._validate_ieee_epoch(candidates, budgets)
         selected, used_adapters, diagnostics = {}, set(), {}
@@ -1335,12 +1374,52 @@ class PreloadingPlanner:
             items = [KnapsackItem(c.artifact_id, c.footprint_bytes, c.benefit_ms) for c in by_id.values()]
             chosen, meta = self.select_benefit_items(items, budgets[tier])
             selected[tier] = [by_id[x.artifact_id] for x in chosen]
+            if tier == StorageTier.GPU and gpu_replacement is not None:
+                # First solve the paper's conservative insertion problem, then
+                # visit remaining candidates by density. Reserve each received
+                # victim's usable capacity once in this virtual joint set.
+                # The native owner, not this snapshot, owns the real claim.
+                available = budgets[tier] - sum(c.footprint_bytes for c in selected[tier])
+                pending = {c.artifact_id for c in selected[tier]}
+                victims = sorted((v for v in gpu_replacement if v['eligible']),
+                    key=lambda v: (v['loss_ms']/v['usable_bytes'], v['adapter_id'], v['adapter_int_id']))
+                replacements, rejected = [], []
+                for c in sorted((c for c in by_id.values() if c.artifact_id not in pending),
+                                key=lambda c: (-c.density, c.artifact_id)):
+                    shortfall = max(0, c.footprint_bytes-available)
+                    prefix, freed, loss = [], 0, 0.
+                    for victim in victims:
+                        if freed >= shortfall:
+                            break
+                        prefix.append(victim)
+                        freed += victim['usable_bytes']
+                        loss += victim['loss_ms']
+                    reason = ('insufficient_eligible_capacity' if freed < shortfall else
+                              'benefit_not_greater_than_loss' if c.benefit_ms <= loss else None)
+                    decision = dict(adapter_id=c.artifact_id, shortfall_bytes=shortfall,
+                        victim_adapter_ids=[v['adapter_int_id'] for v in prefix],
+                        usable_bytes=freed, eviction_loss_ms=loss, incoming_benefit_ms=c.benefit_ms)
+                    if reason is not None:
+                        rejected.append(dict(decision, reason=reason))
+                        continue
+                    selected[tier].append(c)
+                    replacements.append(decision)
+                    available += freed-c.footprint_bytes
+                    victims = victims[len(prefix):]
+                meta = dict(meta, replacement_scope='native_gpu_retained_host_v1',
+                    replacement_victims=copy.deepcopy(gpu_replacement),
+                    replacements=replacements, rejected_remaining=rejected,
+                    final_selected_bytes=sum(c.footprint_bytes for c in selected[tier]),
+                    virtual_remaining_bytes=available, physical_resources_reserved=False)
             diagnostics[tier.value] = meta
-            used_adapters.update(x.artifact_id for x in chosen)
+            # Faster-tier replacement targets precede lower-tier insertions,
+            # not just the subset returned by the first knapsack solve.
+            used_adapters.update(x.artifact_id for x in selected[tier])
         return selected, diagnostics
 
     def generate_ieee_epoch(self, *, mode: str, options, budgets, demand,
-                            costs: PreparationCostModel, source_snapshot_id: str):
+                            costs: PreparationCostModel, source_snapshot_id: str,
+                            source_view=None, size_edges_bytes=None):
         """Build Eq.(4) inputs once, then use Eq.(5) or Eq.(6–7).
 
         This is the actual planning entry, separate from legacy priority. Source
@@ -1393,8 +1472,14 @@ class PreloadingPlanner:
             options=inputs, cost_estimates=[dict(**{'class': asdict(key)}, load_ms=value)
                 for key, value in sorted(estimates.items(), key=lambda item: (
                     item[0].tier, item[0].representation, item[0].layout_id, item[0].size_bin))])
+        victims = None
+        if mode == 'residency' and source_view is not None:
+            frozen.update(replacement_policy='owned_native_gpu_replacement_v1',
+                          size_edges_bytes=list(size_edges_bytes))
+            victims = owned_gpu_planning_victims(view=source_view, counts=counts,
+                total=demand.total_arrivals, estimates=estimates, size_edges_bytes=size_edges_bytes)
         selected, diagnostics = (self.select_ieee_handoff(candidates, budgets) if mode == 'handoff'
-            else self.select_ieee_insertions(candidates, budgets))
+            else self.select_ieee_insertions(candidates, budgets, gpu_replacement=victims))
         plan_hash = hashlib.sha256(json.dumps(frozen, sort_keys=True,
             separators=(',', ':'), allow_nan=False).encode()).hexdigest()
         return dict(**frozen, plan_sha256=plan_hash, physical_resources_reserved=False,
@@ -1435,6 +1520,11 @@ class PreloadingPlanner:
             estimates = frozen_preparation_costs(plan['cost_estimates'])
         else:
             estimates = None  # Preserved historical file/native-only diagnostic plans.
+        if 'replacement_policy' in plan:
+            keys += ('replacement_policy', 'size_edges_bytes')
+            if (plan['replacement_policy'] != 'owned_native_gpu_replacement_v1'
+                    or plan['mode'] != 'residency' or 'source_view' not in plan or estimates is None):
+                raise ValueError('invalid owned replacement selection contract')
         frozen = {key: plan[key] for key in keys}
         digest = hashlib.sha256(json.dumps(frozen, sort_keys=True,
             separators=(',', ':'), allow_nan=False).encode()).hexdigest()
@@ -1456,8 +1546,11 @@ class PreloadingPlanner:
                 candidates.append(PreparationCandidate(row['artifact_id'],
                     StorageTier(row['source']['tier']), StorageTier(row['target']['tier']),
                     row['footprint_bytes'], h, row['source_load_ms'], row['target_load_ms']))
+        victims = (owned_gpu_planning_victims(view=plan['source_view'], counts=plan['arrival_counts'],
+            total=plan['total_arrivals'], estimates=estimates, size_edges_bytes=plan['size_edges_bytes'])
+            if 'replacement_policy' in plan else None)
         selected, _ = (self.select_ieee_handoff(candidates, budgets) if plan['mode'] == 'handoff'
-                       else self.select_ieee_insertions(candidates, budgets))
+                       else self.select_ieee_insertions(candidates, budgets, gpu_replacement=victims))
         expected = {tier.value: tuple(rows) for tier, rows in selected.items()}
         if plan['selected'] != expected:
             raise ValueError('preparation execution changed the selected target set')

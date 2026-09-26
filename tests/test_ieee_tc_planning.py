@@ -89,6 +89,32 @@ class IEEEPlanningTests(unittest.TestCase):
         self.assertEqual([c.artifact_id for c in chosen[T.NVME]], ['b'])
         self.assertEqual(remaining[T.HOST], 3*MIB)
 
+    def test_remaining_replacement_uses_each_victim_once_and_precedes_lower_tiers(self):
+        candidates = [self.candidate('a', source=40), self.candidate('b', source=20),
+                      self.candidate('c', source=16), self.candidate('a', T.HOST, source=40, remaining=5)]
+        victims = [dict(adapter_id='old', adapter_int_id=8, eligible=True,
+                        usable_bytes=MIB, loss_ms=2.)]
+        selected, meta = self.p.select_ieee_insertions(candidates,
+            {T.GPU:MIB, T.HOST:MIB, T.NVME:0}, gpu_replacement=victims)
+        self.assertEqual([c.artifact_id for c in selected[T.GPU]], ['a','b'])
+        self.assertFalse(selected[T.HOST])
+        self.assertEqual(meta['gpu']['selected_bytes'], MIB)  # Original insertion set.
+        self.assertEqual(meta['gpu']['final_selected_bytes'], 2*MIB)
+        self.assertEqual(meta['gpu']['rejected_remaining'][0]['adapter_id'], 'c')
+        self.assertEqual(meta['gpu']['virtual_remaining_bytes'], 0)
+        self.assertTrue(victims[0]['eligible'])  # Caller snapshot not consumed/mutated.
+
+    def test_replacement_strict_loss_test_does_not_consume_rejected_victim(self):
+        candidates = [self.candidate('a', source=8), self.candidate('b', source=4)]
+        victims = [dict(adapter_id='old', adapter_int_id=8, eligible=True,
+                        usable_bytes=MIB, loss_ms=2.)]
+        selected, meta = self.p.select_ieee_insertions(candidates,
+            {T.GPU:0,T.HOST:0,T.NVME:0}, gpu_replacement=victims)
+        self.assertFalse(selected[T.GPU])
+        self.assertEqual([r['victim_adapter_ids'] for r in meta['gpu']['rejected_remaining']], [[8],[8]])
+        self.assertTrue(all(r['reason']=='benefit_not_greater_than_loss'
+                            for r in meta['gpu']['rejected_remaining']))
+
     def test_zero_demand_or_nonpositive_gain_is_not_prepared(self):
         candidates = [self.candidate('zero', hotness=0),
                       self.candidate('slower', T.HOST, source=2, remaining=5)]

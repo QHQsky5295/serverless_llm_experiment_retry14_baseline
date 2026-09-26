@@ -2768,3 +2768,75 @@ native HOST替换、主动d反馈，以及完整物理生命周期/代表性实�
 继续使用已完成的原生短回放证据，不重复旧prefix、initial/control微检查。
 正式baseline按Serverless优先；M1/M2、消融、敏感性均未开始。Full资格、
 远端磁盘门槛和3B非零正确性工件授权问题仍明确开放。
+
+## D50：自动规划真正考虑满GPU缓存中的剩余候选
+
+### 假设、历史和原始依据
+
+D37/D39已能执行显式GPU替换，D45/D46接入真实来源及mixed执行；但
+自动selector仍只返回 unused capacity 能容纳的插入集合。因而GPU池满时，
+再高收益的adapter也不会进入这条主动路径。假设是：将IEEE原文Eq.(6–7)
+之后的remaining-candidate步骤接到实际received-owner规划入口，能消除
+这一功能缺口。性能收益仍必须由后续固定负载验证，不能从正确性推断。
+
+本轮重读IEEE原文的GPU→HOST→NVMe次序、同一h/d、loss/usable-byte、
+strict positive net benefit、执行前重检查及deferred不驱逐规则。
+联网核对[vLLM0.30 worker源码](https://docs.vllm.ai/en/v0.30.0/api/vllm/lora/worker_manager/)
+及本机同版本`model_manager.py`：原生CPU缓存、预分配GPU槽位和普通
+load-first/LRU是不同的资源与策略，不将其直接当作论文收益替换。
+[dLoRA原文入口](https://www.usenix.org/conference/osdi24/presentation/wu-bingyang)
+提供请求/adapter协同管理的相关设计背景，不作为本实现性能证明。
+
+### 本轮实际修改
+
+- 实际stack入口仍只冻结一次需求和一次cost table。已有GPU槽位按实际
+  native HOST fallback的表示、footprint和原冻结d计算损失；引用、pin及
+  活跃联合准备目标在received snapshot中明确标出。缺保护字段或正需求
+  测量类拒绝，不猜测缺失成本。该快照不是跨owner原子视图或容量预留。
+- 先保留原保守DP/greedy插入集合，再按收益密度处理GPU剩余候选。短缺
+  使用原字节；受保护victim排除；按loss/usable-byte排序，仅消费覆盖
+  shortfall的最短前缀，并严格比较收益与损失。虚拟容量只消费一次。
+- GPU最终集合（插入＋替换）在进入HOST/NVMe选择之前确定，因此替换
+  目标也遵守faster-tier precedence。无盈利或无可用victim者不盲目入队
+  长期占住稳态epoch。保存插入/替换/拒绝分解，而不冒称全局最优。
+- policy、class边界及received view纳入原plan身份。执行前用原h/d重新
+  计算选择集，随后复用已有mixed staging、原生注册、worker admission
+  和同owner回收/加载。普通请求驱动的vLLM缓存策略不改变。
+- 同一联合计划已经完成的目标，在整组关闭前仍不能被后续主动替换
+  当作victim。否则原Remote收益可能很高、完成后的HOST损失却很低，
+  后一候选会复用前一目标的槽位，破坏联合选择集合。此保护不是物理pin，
+  不改变普通按需LRU；已有真实引用/结束fence仍独立执行。
+- 计划之后实际请求已经完成GPU准备时，复用原有fenced GPU reference
+  入口，不增加新加载或新驱逐；没有新增另一套ready兜底分支。
+
+### 正确性状态表（CPU/文件/原生缓存fixture，非模型性能）
+
+| 检查 | 观察及范围 |
+|---|---|
+| 满GPU池 | unused=0时自动选中收益更高目标；实际executor替换同成本epoch下的victim |
+| 在用副本 | 被pin/referenced的低损失槽位在规划中排除，执行仍再次检查 |
+| 联合集合 | 插入与替换不重复消费容量；GPU替换目标不再被低层重复选中 |
+| 不盈利 | 严格相等/负净收益不选择；原GPU内容保留，不入永久等待的盲目候选队列 |
+| admission延后 | 原GPU victims保持不变；真实wake后按相同h/d重新检查并完成 |
+| 目标复用 | 请求先完成目标时只取得已有reference，未再次驱逐或加载 |
+| 完成兄弟目标 | 整组关闭前继续保护；双目标检查要求最终两个目标都在GPU |
+| 数据完整性 | 更改selection/class边界或缺native保护字段在物理执行前拒绝 |
+
+新增10项检查。首轮40项有5个fixture错误：一处多tier候选原始d不一致，
+四处断言假定尚未创建的任务集合必然存在。修正fixture，没有放宽合同。
+随后139项出现一处新fixture缺目标native HOST cost、一处旧测试允许
+已完成兄弟目标被再次驱逐的旧语义；补显式fixture测量类并更新联合集合
+断言。再一次139项和首轮910项仅因测试直接写只读cost mapping而失败；
+改为复制fixture字典，完整910项通过。最后增加双目标实际执行检查。
+最终安装环境、完整回归、安全和清理回执见EXECUTION_STATUS。
+
+### 不扩大结论，继续主线
+
+本轮接通的是**自动native GPU replacement，保留native HOST fallback**。
+HOST/NVMe自动剩余候选与native-inclusive fallback保护、native HOST
+替换仍未完成；不得用D44 file-only loss充当混合层级损失。主动d反馈、
+代表性实测profile、allocator配置与Full物理生命周期/A4绑定仍需接通。
+Full启动guard保留。无GPU/model、真实174或正式性能运行，没有重做旧
+短prefix，没有新权重/trace，没有历史结果/论文变更。下一步推进这些
+集成缺口，不扩展本轮局部测试为新的微测campaign。正式baseline/M1/M2、
+消融、敏感性均未开始，整体目标仍未完成。

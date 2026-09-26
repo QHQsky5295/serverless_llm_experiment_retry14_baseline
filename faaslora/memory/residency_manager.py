@@ -1352,6 +1352,15 @@ class IEEEBackendGPUReferences:
                 'sources': sources, 'unknown_native_adapter_ids': unknown,
                 'unconfirmed_gpu_adapter_ids': unconfirmed,
                 'complete_for_native_caches': not unknown and not unconfirmed,
+                # A received eligibility view, not a pin/reservation. Pending
+                # scheduler demand is rechecked by the core at commit. Keep
+                # the entire live joint target set protected, including an
+                # already completed sibling, until the plan closes.
+                'replacement_protected_adapter_ids': sorted(
+                    cpu.pinned_items | self._caches()[1].pinned_items
+                    | set(self._references) | set(self._host_references)
+                    | {aid for plan in self._preparation_plans.values()
+                       for aid in plan['identity'][1]}),
                 'snapshot_holds_reference': False}
 
     def _capacity_blockers(self, tier: str) -> Dict[str, Any]:
@@ -1868,7 +1877,7 @@ class IEEEBackendGPUReferences:
                        else weighted_host_cost(adapter_int_id))  # GPU remaining d = 0.
             protected = (set(protected_adapter_ids) | cpu.pinned_items | gpu.pinned_items
                          | set(self._references) | set(self._host_references)
-                         | {aid for plan in self._preparation_plans.values() for aid in plan['pending']})
+                         | {aid for plan in self._preparation_plans.values() for aid in plan['identity'][1]})
             # Uniform preallocated dense slots: exactly one compatible victim
             # covers a full-pool insertion. File bytes/rank are NOT usable bytes.
             usable_bytes = objective['slot_capacity_bytes']

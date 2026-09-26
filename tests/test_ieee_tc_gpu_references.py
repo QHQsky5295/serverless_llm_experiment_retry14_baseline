@@ -1601,12 +1601,13 @@ class OwnedNativePreparationPlans(unittest.TestCase):
         owner.release(lease_id='reused', expected_owner_id=owner.owner_id)
         owner.finish_preparation_target(plan_id='p', adapter_int_id=3, expected_owner_id=owner.owner_id)
         self.assertNotEqual(owner.snapshot()['epoch'], epoch['epoch'])
-        accepted = prepare(4, 'next-attempt')
-        self.assertTrue(accepted['acquired'])
-        self.assertEqual(accepted['replacement']['plan_sha256'], epoch['plan_sha256'])
-        self.assertEqual(accepted['candidate_victim_adapter_id'], 3)
-        owner.release(lease_id='next-attempt', expected_owner_id=owner.owner_id)
-        owner.finish_preparation_target(plan_id='p', adapter_int_id=4, expected_owner_id=owner.owner_id)
+        still_blocked = prepare(4, 'next-attempt')
+        self.assertFalse(still_blocked['acquired'])
+        self.assertEqual(still_blocked['replacement']['plan_sha256'], epoch['plan_sha256'])
+        self.assertIn(3, still_blocked['replacement']['protected_adapter_ids'])
+        # Finishing a sibling does not make the joint set spend its slot twice.
+        # This explicitly supplied infeasible set is closed, not fabricated as
+        # two co-resident successful targets. Automatic planning excludes it.
         owner.close_preparation_plan(plan_id='p', expected_owner_id=owner.owner_id)
         self.assertEqual(owner.snapshot()['pending_preparation_targets'], [])
 

@@ -887,7 +887,8 @@ class ExperimentStack:
         self._pending_scaleup_gpu_artifacts.clear()
         return plan
 
-    def plan_ieee_preparation(self, *, mode, options, budgets, costs, source_snapshot_id):
+    def plan_ieee_preparation(self, *, mode, options, budgets, costs, source_snapshot_id,
+                             source_view=None, size_edges_bytes=None):
         """Plan from observed ingress, not registry popularity or legacy warmup.
 
         Received source options and remaining budgets come from physical owners.
@@ -897,15 +898,17 @@ class ExperimentStack:
         """
         return self.preloading_planner.generate_ieee_epoch(mode=mode, options=options,
             budgets=budgets, costs=costs, source_snapshot_id=source_snapshot_id,
+            source_view=source_view, size_edges_bytes=size_edges_bytes,
             demand=self.hotness_tracker.snapshot())
 
     def plan_ieee_owned_preparation(self, *, mode, native_snapshot, file_snapshot,
                                     identities, adapter_int_ids, profiles, costs,
                                     expected_clock_id, received_at, activation_id=None):
-        """Generate all insertion candidates from the actual received owners.
+        """Generate candidates from the actual received owners.
 
-        One demand window and one cost sequence feed the existing IEEE selector.
-        Full automatic movement/activation remains a separate execution step.
+        One demand window/cost sequence feeds tier insertions and native GPU
+        remaining-candidate replacement. Native-HOST/file joint replacement
+        remains open; this path must not be relabelled complete Full.
         """
         from ..preloading.preloading_planner import owned_preparation_inputs
         if profiles.profile_id != costs.profile_id:
@@ -915,7 +918,8 @@ class ExperimentStack:
             profiles=profiles, expected_clock_id=expected_clock_id, received_at=received_at,
             activation_id=activation_id)
         plan = self.plan_ieee_preparation(mode=mode, options=inputs['options'],
-            budgets=inputs['budgets'], costs=costs, source_snapshot_id=inputs['source_snapshot_id'])
+            budgets=inputs['budgets'], costs=costs, source_snapshot_id=inputs['source_snapshot_id'],
+            source_view=inputs['source_view'], size_edges_bytes=profiles.size_edges_bytes)
         return dict(plan, source_view=inputs['source_view'])
 
     def plan_ieee_native_gpu_epoch(self, *, native_snapshot, content_sha_by_adapter, profiles, costs):
