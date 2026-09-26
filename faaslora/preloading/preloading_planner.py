@@ -993,6 +993,40 @@ class PreloadingPlanner:
             remaining[c.target_tier] -= c.footprint_bytes
             used.add(c.artifact_id)
         return selected, remaining
+
+    def validate_ieee_execution_plan(self, plan):
+        """Recompute selection from the frozen epoch before physical dispatch.
+
+        The digest binds received inputs, not their measurement validity. No
+        demand/profile refresh happens here: a later observation belongs to a
+        new epoch, not to half of this plan.
+        """
+        keys = ('kind', 'mode', 'source_snapshot_id', 'profile_id', 'cost_sequence',
+                'demand_observed_at', 'window_seconds', 'total_arrivals',
+                'arrival_counts', 'remaining_bytes', 'options')
+        frozen = {key: plan[key] for key in keys}
+        digest = hashlib.sha256(json.dumps(frozen, sort_keys=True,
+            separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+        if (plan['kind'] != 'ieee_preparation_epoch_v1' or plan['mode'] not in ('handoff', 'residency')
+                or plan['physical_resources_reserved'] is not False or plan['plan_sha256'] != digest):
+            raise ValueError('preparation execution differs from frozen planning inputs')
+        budgets = {StorageTier(tier): value for tier, value in plan['remaining_bytes'].items()}
+        candidates = []
+        for row in plan['options']:
+            h = (plan['arrival_counts'].get(row['artifact_id'], 0) / plan['total_arrivals']
+                 if plan['total_arrivals'] else 0.)
+            if h != row['demand_fraction']:
+                raise ValueError('preparation execution changed frozen demand')
+            if h:
+                candidates.append(PreparationCandidate(row['artifact_id'],
+                    StorageTier(row['source']['tier']), StorageTier(row['target']['tier']),
+                    row['footprint_bytes'], h, row['source_load_ms'], row['target_load_ms']))
+        selected, _ = (self.select_ieee_handoff(candidates, budgets) if plan['mode'] == 'handoff'
+                       else self.select_ieee_insertions(candidates, budgets))
+        expected = {tier.value: tuple(rows) for tier, rows in selected.items()}
+        if plan['selected'] != expected:
+            raise ValueError('preparation execution changed the selected target set')
+        return expected
     
     def _greedy_knapsack_approximation(self, 
                                      candidates: List[PreloadingCandidate],

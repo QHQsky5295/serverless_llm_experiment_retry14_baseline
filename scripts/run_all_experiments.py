@@ -8091,6 +8091,9 @@ class ScenarioRunner:
             result = {**result, 'ieee_movements': preloading.ieee_movements.snapshot()}
         if hasattr(self, '_ieee_gpu_preparation_plans'):
             result = {**result, 'ieee_gpu_preparation_plans': copy.deepcopy(self._ieee_gpu_preparation_plans)}
+        if hasattr(self, '_ieee_file_preparation_plans'):
+            result = {**result, 'ieee_file_preparation_plans': copy.deepcopy(self._ieee_file_preparation_plans),
+                'ieee_file_pending_targets': self._stack.residency_manager.local_source_references.file_preparation_snapshot()}
         if hasattr(self, '_ieee_native_host_preparations'):
             result = {**result, 'ieee_native_host_preparations': copy.deepcopy(self._ieee_native_host_preparations)}
         if getattr(self, '_ieee_host_budget_members', None) is not None:
@@ -12209,16 +12212,18 @@ class ScenarioRunner:
             self._scaleup_runtime_handoff_plans.pop(str(instance_id), None)
             self._scaleup_runtime_lora_request_ordinals.pop(str(instance_id), None)
         await self._cancel_runtime_gpu_forward_tasks(self._runtime_forward_task_key(slot))
-        if getattr(slot, 'owns_engine', False) and getattr(self, '_shared_file_pressure', None) is not None:
+        if getattr(slot, 'owns_engine', False):
             # A retired replica must not acquire new proactive work. Join its
             # existing plans before withdrawing from the shared IO domain.
-            owned = [task for task, engine in getattr(self, '_ieee_gpu_plan_engines', {}).items()
+            owned = [task for task, engine in (getattr(self, '_ieee_gpu_plan_engines', {}) |
+                                               getattr(self, '_ieee_file_plan_engines', {})).items()
                      if engine is slot.engine and task is not asyncio.current_task() and not task.done()]
             for task in owned:
                 task.cancel()
             if owned:
                 await asyncio.gather(*owned, return_exceptions=True)
-            await self._shared_file_pressure.retire(slot.engine)
+            if getattr(self, '_shared_file_pressure', None) is not None:
+                await self._shared_file_pressure.retire(slot.engine)
         try:
             if getattr(slot, "owns_coordinator", False) and getattr(slot, "coordinator", None) is not None:
                 self._retired_coord_metrics.append(slot.coordinator.get_summary_metrics())
@@ -12265,7 +12270,8 @@ class ScenarioRunner:
         return True
 
     async def _shutdown_instance_pool(self) -> None:
-        plans = [task for task in getattr(self, '_ieee_gpu_plan_tasks', ())
+        plans = [task for task in set(getattr(self, '_ieee_gpu_plan_tasks', ())) |
+                                   set(getattr(self, '_ieee_file_plan_tasks', ()))
                  if task is not asyncio.current_task() and not task.done()]
         for task in plans:
             task.cancel()
@@ -15933,6 +15939,134 @@ class ScenarioRunner:
             finally:
                 self._ieee_gpu_plan_tasks.discard(task)
                 self._ieee_gpu_plan_engines.pop(task, None)
+            if cancelled:
+                raise asyncio.CancelledError()
+
+    async def _run_ieee_file_preparation_plan(self, *, plan, target_engine,
+            target_replica, activation_id=None):
+        """Execute selected HOST/NVMe plans, including Remote->NVMe->HOST.
+
+        All final and intermediate targets are protected before queue dispatch.
+        This consumes the actual IEEE selector, not legacy priority/warmup.
+        Native GPU targets use their separate owner; mixed/all-tier automatic
+        control and objective file replacement are not qualified by this entry.
+        """
+        if (not self.model_cfg.get('ieee_gpu_references') or self._stack is None
+                or not isinstance(target_replica, str) or not target_replica):
+            raise ValueError('file plan requires the managed native deployment')
+        plan = copy.deepcopy(plan)
+        selected = self._stack.preloading_planner.validate_ieee_execution_plan(plan)
+        if selected['gpu']:
+            raise ValueError('file executor cannot silently drop selected native GPU targets')
+        mode = plan['mode']
+        if mode == 'handoff' and not activation_id:
+            raise ValueError('file handoff requires its actual activation identity')
+        references = self._stack.residency_manager.local_source_references
+        queue = self._stack.preloading_manager.ieee_movements
+        options = {(row['artifact_id'], row['target']['tier']): row for row in plan['options']}
+        recipes, targets = [], {}
+        for tier in ('host', 'nvme'):
+            for candidate in selected[tier]:
+                aid = candidate.artifact_id
+                row = options[aid, tier]
+                content = self._ieee_artifact_identities[aid]['content_sha256']
+                if (any(row[k]['layout_id'] != 'exact_content_sha256:' + content for k in ('source', 'target'))
+                        or row['target']['representation'] != 'verified_regular_file_tree_v1'
+                        or row['source']['tier'] not in ('remote', 'nvme')):
+                    raise ValueError('file plan is not bound to its confirmed file representations/content')
+                targets[tier, aid] = dict(tier=tier, adapter_id=aid, content_sha256=content)
+                if tier == 'host' and row['source']['tier'] == 'remote':
+                    # Retained lower copies are separately charged. This intent
+                    # prevents reclaim between staging completion and HOST read.
+                    targets['nvme', aid] = dict(tier='nvme', adapter_id=aid, content_sha256=content)
+                recipes.append((candidate, row, content))
+        plan_id = uuid.uuid4().hex
+        registration = references.register_file_preparation_plan(plan_id=plan_id, targets=targets.values())
+        record = dict(plan_id=plan_id, objective_sha256=plan['plan_sha256'],
+            target_replica=target_replica, trigger_reason=mode, activation_id=activation_id,
+            state='registered', registration=registration, started_at=time.monotonic(), results=[])
+        if not hasattr(self, '_ieee_file_preparation_plans'):
+            self._ieee_file_preparation_plans = []
+        self._ieee_file_preparation_plans.append(record)
+        if not hasattr(self, '_ieee_file_plan_tasks'):
+            self._ieee_file_plan_tasks = set()
+        task = asyncio.current_task()
+        self._ieee_file_plan_tasks.add(task)
+        if not hasattr(self, '_ieee_file_plan_engines'):
+            self._ieee_file_plan_engines = {}
+        self._ieee_file_plan_engines[task] = target_engine
+        intents, waiters = [], []
+        async def move(aid, tier, source, density):
+            intent = uuid.uuid4().hex
+            intents.append(intent)
+            return await self._queue_ieee_file_preparation(adapter_id=aid,
+                target_tier=StorageTier(tier), target_engine=target_engine, target_replica=target_replica,
+                trigger_reason=mode, plan_id=plan_id, activation_id=activation_id,
+                source_path=source, density=density, intent_id=intent)
+        async def execute(candidate, row, content):
+            aid, tier = candidate.artifact_id, candidate.target_tier.value
+            state = references.source_snapshot(aid)
+            sources = {s['tier']: s for s in state['sources']}
+            if any(s['content_sha256'] != content for s in sources.values()):
+                raise ValueError('file plan execution observed different content')
+            if tier in sources:
+                source = None  # Queue re-observes and reuses the completed copy.
+            elif tier == 'host':
+                if 'nvme' not in sources:
+                    if row['source']['tier'] != 'remote':
+                        raise ValueError('planned NVMe source invalidated before preparation')
+                    await move(aid, 'nvme', None, candidate.density)
+                source = references.roots['nvme'] / aid
+            else:
+                source = None
+            result = await move(aid, tier, source, candidate.density)
+            # Intermediate NVMe remains protected through the dependent HOST
+            # copy; successful queue return joins publication and cleanup.
+            for target_tier, target_aid in targets:
+                if target_aid == aid:
+                    references.finish_file_preparation_target(plan_id=plan_id,
+                        tier=target_tier, adapter_id=aid)
+            record['results'].append(dict(adapter_id=aid, target_tier=tier, result=result))
+            return result
+        async def settle(awaitable):
+            future, cancelled = asyncio.ensure_future(awaitable), False
+            while True:
+                try:
+                    return await asyncio.shield(future), cancelled
+                except asyncio.CancelledError:
+                    if future.cancelled():
+                        raise
+                    cancelled = True
+        try:
+            record['state'] = 'executing'
+            waiters = [asyncio.create_task(execute(*recipe)) for recipe in recipes]
+            results = await asyncio.gather(*waiters)
+            record['state'] = 'completed'
+            return results
+        except BaseException as exc:
+            record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
+                          error_type=type(exc).__name__)
+            raise
+        finally:
+            for waiter in waiters:
+                if not waiter.done():
+                    waiter.cancel()
+            _, cancelled = await settle(asyncio.gather(*waiters, return_exceptions=True))
+            # A surviving subscriber may still use our physical action. The
+            # creator cannot drop its pending protections while that IO lives.
+            _, interrupted = await settle(asyncio.gather(
+                *(queue.join_operation(intent) for intent in intents), return_exceptions=True))
+            cancelled |= interrupted
+            try:
+                record['close_receipt'] = references.close_file_preparation_plan(plan_id=plan_id)
+                queue.wake(owner_id=references.owner_id)
+            except BaseException as exc:
+                record.update(state='closure_unresolved', close_error_type=type(exc).__name__)
+                raise
+            finally:
+                record['finished_at'] = time.monotonic()
+                self._ieee_file_plan_tasks.discard(task)
+                self._ieee_file_plan_engines.pop(task, None)
             if cancelled:
                 raise asyncio.CancelledError()
 

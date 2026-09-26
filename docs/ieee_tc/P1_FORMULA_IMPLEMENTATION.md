@@ -2292,3 +2292,53 @@ Conda Python没有os.pidfd_open；改用D27已经验证的Linux UAPI绑定，没
 下一步返回自动选项生成、handoff/residency执行和HOST/NVMe可变大小替换、
 主动d反馈及Full物理生命周期。Full启动guard仍保留。无需再扩展本轮
 狭窄HOST额度检查或重跑旧模型前缀；正式比较、消融、敏感性均未启动。
+
+## D43：已选文件层计划、共享中间层与待准备目标保护
+
+### 问题与依据
+
+D38已经提供真实文件传输队列，D39已保护原生GPU计划目标，但文件层仍
+只有逐项显式任务。仅有正确背包输出并不意味着被选中的集合能够执行；
+尤其Remote→HOST需要NVMe中间副本，而该副本可能在两段传输之间被回收。
+本轮检验：能否在任何移动之前注册整个已选集合，并将这份集合原样接到
+共享队列，而不改变冻结的需求、收益或普通按需加载策略？
+
+核对IEEE原文的“pending preparation不得作为victim”“共享副本复用”和
+“取消等依赖结束后释放”，以及D32/D38/D39/D42实现与测试历史。
+[vLLM0.30官方worker manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+仍将普通按需加载和原生LRU联系在一起；本轮不修改该策略，不把它冒充
+论文主动替换。[dLoRA原论文入口](https://www.usenix.org/conference/osdi24/presentation/wu-bingyang)
+描述请求和adapter的联合编排，但不能据此推断本项目文件状态已被正确保护。
+本轮仅借鉴“决策与实际状态必须连接”的系统问题，不声称移植了dLoRA算法。
+
+### 实际接入与正确性表
+
+| 论文问题 | 实际处理与已检验证据 |
+|---|---|
+| 规划与执行是否是同一目标集 | 实际runner重新核验epoch输入SHA，并用原有IEEE selector重算已选集合；任何选项/目标改变在移动前拒绝 |
+| 准备途中目标是否可能被删除 | 文件owner在同一锁下注册全部最终及NVMe中间目标；目标、父目录清理和legacy替换受保护 |
+| pending是否等于占用 | 明确不是驻留也不是物理预留；archive/payload及HOST额度仍在实际分配入口检查 |
+| 相同目标多个计划 | 同content可共享；不同content在注册或预分配前拒绝；已完成Future不当作当前驻留证据 |
+| Remote→HOST | 实际HTTP下载进入NVMe，随后真实确认文件复制进入HOST；中间副本单独计量，贯穿依赖的保护不提前撤销 |
+| 已有NVMe或HOST | 新鲜确认后复用；规划时NVMe失效不静默改成更慢Remote来源，不更改本epoch收益 |
+| 取消或缩容 | 取消本计划兴趣，等待共享物理操作及文件清理；全局/专属副本shutdown先加入计划退出，再退出传输域和engine |
+| 容量不足 | 保留旧副本和真实失败，不隐藏LRU驱逐、稀疏分配或预算放宽；尚未实现文件替换/容量事件重试 |
+| 发布 | 只有已经预分配、同content、同目标的实际传输可越过pending保护完成发布；普通删除不能借用例外 |
+| 证据 | summary保留objective SHA、plan/activation/replica、结果、关闭回执及活动pending目标，不包含live任务对象 |
+
+新增9项检查；首轮定向29项全部通过，随后全套840项全部通过，无失败、
+错误或跳过。真实小文件/HTTP响应fixture与原有实际selector、runner、owner
+连通，不加载backbone，不产生权重/trace，也不代表174真实远程性能。
+新增shutdown检查确认：真实reader还未退出时，计划和共享队列不能先关闭。
+正式结果需继续通过实际模型、生命周期、远程和生成正确性资格。
+
+### 未完成事项与下一主线
+
+本入口接收已由IEEE selector生成的HOST/NVMe计划；不是自动全层候选生成，
+也不是完整Full。含GPU目标的混合计划被显式拒绝，不静默漏掉GPU目标；
+GPU原生计划继续使用D39入口，二者的自动合并与激活触发仍待连接。
+实际文件来源/目标footprint的自动选项生产、HOST/NVMe多victim收益替换、
+真实容量变化后的队列重检查、主动准备d反馈及全部署物理生命周期仍未
+完成。Full启动guard保留，不用这些正确性检查代替共同SLO/排名/消融。
+不重复本轮窄测试或旧source32/capacity5/lifecycle4；下一轮直接继续这些
+尚未连接的主线任务。最终环境检查、回归与备份回执见EXECUTION_STATUS。

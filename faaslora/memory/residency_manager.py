@@ -139,7 +139,81 @@ class LocalSourceReferences:
         self._native_host_pidfds = {}
         self._native_host_retired = set()
         self._confirmed_sources = {}
+        self._file_preparation_plans = {}
+        self._closed_file_preparation_plans = set()
         self.source_epoch = 0
+
+    def register_file_preparation_plan(self, *, plan_id, targets):
+        """Protect every selected final/staging copy before starting any work.
+
+        A pending target is not a resident copy or a capacity reservation. Plans
+        sharing the same immutable content may coexist; publication by their
+        shared physical transfer is allowed, arbitrary replacement is not.
+        """
+        from ..storage.http_artifact_store import _quote_artifact_id
+        with self.lock:
+            if (not isinstance(plan_id, str) or not plan_id
+                    or plan_id in self._closed_file_preparation_plans):
+                raise ValueError('file preparation needs a fresh plan identity')
+            normalized = {}
+            for row in targets:
+                aid, tier, content = row['adapter_id'], row['tier'], row['content_sha256']
+                _quote_artifact_id(aid)
+                if (tier not in self.roots or not isinstance(content, str) or len(content) != 64
+                        or any(c not in '0123456789abcdef' for c in content)):
+                    raise ValueError('file preparation target lacks owned tier/content identity')
+                path = self.roots[tier] / aid
+                if path in normalized:
+                    raise ValueError('duplicate target in file preparation plan')
+                current = self._validated_source(path)
+                if current is not None and current['public']['content_sha256'] != content:
+                    raise ValueError('file preparation target conflicts with resident content')
+                for plan in self._file_preparation_plans.values():
+                    if path in plan['pending'] and plan['targets'][path] != content:
+                        raise ValueError('file preparation target conflicts with another plan')
+                normalized[path] = content
+            old = self._file_preparation_plans.get(plan_id)
+            if old is not None:
+                if old['targets'] != normalized:
+                    raise ValueError('file preparation plan cannot change its targets')
+            else:
+                self._file_preparation_plans[plan_id] = dict(targets=normalized,
+                                                            pending=set(normalized))
+            return dict(owner_id=self.owner_id, plan_id=plan_id, registered=True,
+                        physical_resources_reserved=False, targets=len(normalized))
+
+    def finish_file_preparation_target(self, *, plan_id, tier, adapter_id):
+        with self.lock:
+            path = self.roots[tier] / adapter_id
+            plan = self._file_preparation_plans[plan_id]
+            if path not in plan['targets']:
+                raise ValueError('file target does not belong to preparation plan')
+            if path in self.materializations.values():
+                raise RuntimeError('file target still has a live materialization')
+            source = self._validated_source(path)
+            if source is None or source['public']['content_sha256'] != plan['targets'][path]:
+                raise ValueError('file target lacks its confirmed completed copy')
+            plan['pending'].discard(path)
+            return dict(owner_id=self.owner_id, plan_id=plan_id, finished=True)
+
+    def close_file_preparation_plan(self, *, plan_id):
+        with self.lock:
+            if plan_id in self._closed_file_preparation_plans:
+                return dict(owner_id=self.owner_id, plan_id=plan_id, closed=True)
+            plan = self._file_preparation_plans[plan_id]
+            if any(path in self.materializations.values() for path in plan['targets']):
+                raise RuntimeError('file plan cannot close before its physical operations join')
+            del self._file_preparation_plans[plan_id]
+            self._closed_file_preparation_plans.add(plan_id)
+            return dict(owner_id=self.owner_id, plan_id=plan_id, closed=True)
+
+    def file_preparation_snapshot(self):
+        with self.lock:
+            return dict(owner_id=self.owner_id, plans=[dict(plan_id=pid,
+                targets=[dict(path=str(path), content_sha256=content, pending=path in row['pending'])
+                         for path, content in sorted(row['targets'].items())])
+                for pid, row in sorted(self._file_preparation_plans.items())],
+                physical_resources_reserved=False)
 
     def configure_host_budget(self, limit_bytes):
         """One managed HOST allowance, not a second whole-service RSS limit.
@@ -430,6 +504,13 @@ class LocalSourceReferences:
                 paths[staging / name] = size
             if not expected:
                 raise ValueError('space reservation requires frozen payload files')
+            contents = json.dumps([dict(path=name, size_bytes=size, sha256=digest)
+                for name, (size, digest) in sorted(expected.items())],
+                sort_keys=True, separators=(',', ':')).encode()
+            content = hashlib.sha256(contents).hexdigest()
+            for plan in self._file_preparation_plans.values():
+                if target in plan['pending'] and plan['targets'][target] != content:
+                    raise ValueError('materialization differs from pending preparation content')
             unit = os.statvfs(target.parent).f_frsize
             if unit <= 0:
                 raise RuntimeError('filesystem allocation unit is unavailable')
@@ -711,6 +792,14 @@ class LocalSourceReferences:
                 for key, destination in self.materializations.items())
             busy = busy or any(target == staging.parent or target in staging.parent.parents
                 or staging.parent in target.parents for staging in self._transfer_workspaces.values())
+            # Only publication by an already budgeted transfer to this exact
+            # target may pass pending-plan protection. Deletion, ancestor tier
+            # clearing and legacy replacement cannot impersonate publication.
+            publication = (transfer_id in self._prepared_transfers
+                           and self.materializations.get(transfer_id) == target)
+            busy = busy or any((target == path or target in path.parents or path in target.parents)
+                and not (publication and target == path)
+                for plan in self._file_preparation_plans.values() for path in plan['pending'])
             affected = {}
             if not busy:
                 affected = {source: record for source, record in self._confirmed_sources.items()

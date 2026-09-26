@@ -947,6 +947,228 @@ class OwnedNativeHostMovement(unittest.TestCase):
         asyncio.run(run())
 
 
+class SelectedFilePlans(unittest.TestCase):
+    """Actual selector -> shared queue -> verified file owner, no GPU/model."""
+    def make(self, *, source='remote', target='host', mode='handoff'):
+        from faaslora.preloading.preloading_planner import (
+            PreparationClass, PreparationOption, PreparationCostModel, PreloadingPlanner)
+        from faaslora.experiment.experiment_stack import ExperimentStack
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        fixture_factory = OwnedFileMovement()
+        self.addCleanup(fixture_factory.doCleanups)
+        fixture, runner, queue, engine, ledger = fixture_factory.make()
+        planner = PreloadingPlanner.__new__(PreloadingPlanner)
+        planner.max_dp_buffer_bytes = 16*1024**2
+        content = runner._ieee_artifact_identities['a']['content_sha256']
+        layout = 'exact_content_sha256:' + content
+        key = PreparationClass(source, 'tar_gzip_verified_file_tree_v1' if source == 'remote'
+                               else 'verified_regular_file_tree_v1', layout, 0)
+        dest = PreparationClass(target, 'verified_regular_file_tree_v1', layout, 0)
+        costs = PreparationCostModel({key: 30., dest: 5.}, beta=.5, profile_id='fixture-only')
+        stack = ExperimentStack.__new__(ExperimentStack)
+        stack.preloading_planner = planner
+        stack.hotness_tracker = HotnessTracker(None)
+        stack.hotness_tracker.record_arrival('a')
+        plan = stack.plan_ieee_preparation(mode=mode,
+            options=[PreparationOption('a', key, dest, 8192)],
+            budgets={StorageTier.GPU: 0, StorageTier.HOST: 1024**2, StorageTier.NVME: 1024**2},
+            costs=costs, source_snapshot_id='controlled-empty-files')
+        runner._stack.preloading_planner = planner
+        return fixture, runner, queue, engine, ledger, plan
+
+    def call(self, runner, engine, plan):
+        return runner._run_ieee_file_preparation_plan(plan=plan, target_engine=engine,
+            target_replica='replica', activation_id='activation' if plan['mode'] == 'handoff' else None)
+
+    def test_actual_selected_remote_host_plan_protects_both_targets_and_publishes(self):
+        fixture, runner, queue, engine, ledger, plan = self.make()
+        original = fixture.client._opener.open.side_effect
+        def receive(*args, **kwargs):
+            pending = fixture.owner.file_preparation_snapshot()['plans']
+            self.assertEqual(len(pending), 1)
+            self.assertEqual(len(pending[0]['targets']), 2)
+            self.assertTrue(all(row['pending'] for row in pending[0]['targets']))
+            self.assertFalse(fixture.manager._delete_path(str(fixture.nvme)))
+            self.assertFalse(fixture.manager._delete_path(str(fixture.host/'a')))
+            return original(*args, **kwargs)
+        fixture.client._opener.open.side_effect = receive
+        async def run():
+            result = await self.call(runner, engine, plan)
+            self.assertEqual(len(result), 1)
+            self.assertEqual((fixture.host/'a'/'nested/weights').read_bytes(), fixture.payload['nested/weights'])
+            self.assertEqual({s['tier'] for s in fixture.owner.source_snapshot('a')['sources']}, {'host', 'nvme'})
+            self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            self.assertEqual(fixture.owner.file_preparation_snapshot()['plans'], [])
+            record = runner._ieee_file_preparation_plans[0]
+            self.assertEqual(record['state'], 'completed')
+            self.assertFalse(record['registration']['physical_resources_reserved'])
+            self.assertEqual(record['objective_sha256'], plan['plan_sha256'])
+            self.assertFalse(runner._ieee_file_plan_tasks)
+            self.assertTrue(fixture.manager._delete_path(str(fixture.host/'a')))
+            await queue.close()
+        asyncio.run(run())
+
+    def test_residency_selected_nvme_source_and_repeated_target_reuse(self):
+        fixture, runner, queue, engine, _, plan = self.make(source='nvme', mode='residency')
+        fixture.fetch()
+        async def run():
+            await self.call(runner, engine, plan)
+            await self.call(runner, engine, plan)
+            self.assertEqual(fixture.client._opener.open.call_count, 1)
+            self.assertEqual(len(fixture.manager.local_transfer_evidence), 1)
+            self.assertEqual(runner._ieee_file_preparation_plans[-1]['results'][0]['result']['state'], 'reused')
+            await queue.close()
+        asyncio.run(run())
+
+    def test_plan_hash_and_selected_set_cannot_change_before_execution(self):
+        import copy
+        fixture, runner, queue, engine, _, plan = self.make()
+        changed = copy.deepcopy(plan)
+        changed['options'][0]['source_load_ms'] += 1
+        changed_selected = copy.deepcopy(plan)
+        changed_selected['selected']['host'] = ()
+        async def run():
+            for bad in (changed, changed_selected):
+                with self.assertRaisesRegex(ValueError, 'preparation execution'):
+                    await self.call(runner, engine, bad)
+            self.assertEqual(fixture.client._opener.open.call_count, 0)
+            self.assertEqual(fixture.owner.file_preparation_snapshot()['plans'], [])
+            await queue.close()
+        asyncio.run(run())
+
+    def test_invalidated_planned_source_does_not_fall_back_to_remote(self):
+        fixture, runner, queue, engine, _, plan = self.make(source='nvme')
+        async def run():
+            with self.assertRaisesRegex(ValueError, 'planned NVMe source invalidated'):
+                await self.call(runner, engine, plan)
+            self.assertEqual(fixture.client._opener.open.call_count, 0)
+            self.assertEqual(fixture.owner.file_preparation_snapshot()['plans'], [])
+            self.assertEqual(runner._ieee_file_preparation_plans[0]['state'], 'failed')
+            await queue.close()
+        asyncio.run(run())
+
+    def test_owner_plans_share_content_but_never_capacity_or_rebinding(self):
+        fixture, runner, queue, engine, _, plan = self.make()
+        files = fixture.owner
+        content = runner._ieee_artifact_identities['a']['content_sha256']
+        targets = [dict(adapter_id='a', tier='nvme', content_sha256=content)]
+        first = files.register_file_preparation_plan(plan_id='one', targets=targets)
+        files.register_file_preparation_plan(plan_id='two', targets=targets)
+        self.assertFalse(first['physical_resources_reserved'])
+        self.assertFalse(fixture.manager._delete_path(str(fixture.nvme/'a')))
+        with self.assertRaisesRegex(ValueError, 'another plan'):
+            files.register_file_preparation_plan(plan_id='bad', targets=[targets[0] | {'content_sha256': '0'*64}])
+        with self.assertRaisesRegex(ValueError, 'confirmed completed'):
+            files.finish_file_preparation_target(plan_id='one', tier='nvme', adapter_id='a')
+        with files.materializing(fixture.nvme/'a') as transfer:
+            with self.assertRaisesRegex(RuntimeError, 'physical operations join'):
+                files.close_file_preparation_plan(plan_id='one')
+        fixture.fetch()  # Same-content real publication is allowed, not deletion.
+        files.finish_file_preparation_target(plan_id='one', tier='nvme', adapter_id='a')
+        self.assertFalse(fixture.manager._delete_path(str(fixture.nvme/'a')))
+        files.close_file_preparation_plan(plan_id='two')
+        self.assertTrue(fixture.manager._delete_path(str(fixture.nvme/'a')))
+        files.close_file_preparation_plan(plan_id='one')
+        with self.assertRaisesRegex(ValueError, 'fresh plan'):
+            files.register_file_preparation_plan(plan_id='one', targets=targets)
+        asyncio.run(queue.close())
+
+    def test_coalesced_creator_cancel_retains_plan_until_surviving_copy_finishes(self):
+        from tests.test_http_artifact_store import archive_bytes, SizedResponse
+        fixture, runner, queue, engine, _, plan = self.make()
+        entered, release = threading.Event(), threading.Event()
+        class HeldResponse(SizedResponse):
+            def read(inner, *args):
+                entered.set()
+                if not release.wait(3):
+                    raise RuntimeError('controlled reader barrier timeout')
+                return super().read(*args)
+        fixture.client._opener.open.side_effect = lambda *a, **kw: HeldResponse(archive_bytes(list(fixture.payload.items())))
+        async def run():
+            first = asyncio.create_task(self.call(runner, engine, plan))
+            second = asyncio.create_task(self.call(runner, engine, plan))
+            try:
+                self.assertTrue(await asyncio.to_thread(entered.wait, 2))
+                first.cancel()
+                for _ in range(20):
+                    await asyncio.sleep(0)
+                self.assertFalse(first.done())
+                self.assertEqual(len(fixture.owner.file_preparation_snapshot()['plans']), 2)
+                self.assertFalse(fixture.manager._delete_path(str(fixture.nvme/'a')))
+            finally:
+                release.set()
+            with self.assertRaises(asyncio.CancelledError):
+                await first
+            await second
+            self.assertEqual(fixture.client._opener.open.call_count, 1)
+            self.assertEqual(fixture.owner.file_preparation_snapshot()['plans'], [])
+            self.assertEqual((fixture.host/'a'/'nested/weights').read_bytes(), fixture.payload['nested/weights'])
+            await queue.close()
+        asyncio.run(run())
+
+    def test_live_storage_shortfall_keeps_existing_files_without_hidden_eviction(self):
+        fixture, runner, queue, engine, _, plan = self.make()
+        (fixture.host/'unrelated').mkdir()
+        (fixture.host/'unrelated'/'weights').write_bytes(b'preserve')
+        fixture.manager.tier_capacities[StorageTier.HOST].total_bytes = 4096
+        async def run():
+            with self.assertRaisesRegex(RuntimeError, 'capacity conflict'):
+                await self.call(runner, engine, plan)
+            self.assertEqual((fixture.host/'unrelated'/'weights').read_bytes(), b'preserve')
+            self.assertFalse((fixture.host/'a').exists())
+            self.assertFalse(fixture.owner.materializations)
+            self.assertFalse(fixture.owner.leases)
+            self.assertEqual(fixture.owner.file_preparation_snapshot()['plans'], [])
+            await queue.close()
+        asyncio.run(run())
+
+    def test_changed_content_cannot_use_pending_target_publication_exception(self):
+        fixture, runner, queue, _, _, _ = self.make()
+        fixture.owner.register_file_preparation_plan(plan_id='frozen', targets=[
+            dict(adapter_id='a', tier='nvme', content_sha256='0'*64)])
+        with self.assertRaisesRegex(ValueError, 'pending preparation content'):
+            fixture.fetch()
+        self.assertFalse((fixture.nvme/'a').exists())
+        self.assertFalse(fixture.owner.materializations)
+        self.assertFalse(fixture.owner._prepared_transfers)
+        fixture.owner.close_file_preparation_plan(plan_id='frozen')
+        asyncio.run(queue.close())
+
+    def test_shutdown_joins_selected_plan_before_closing_shared_movement_queue(self):
+        from tests.test_http_artifact_store import archive_bytes, SizedResponse
+        fixture, runner, queue, engine, _, plan = self.make()
+        entered, release = threading.Event(), threading.Event()
+        class HeldResponse(SizedResponse):
+            def read(inner, *args):
+                entered.set()
+                if not release.wait(3):
+                    raise RuntimeError('controlled shutdown barrier timeout')
+                return super().read(*args)
+        fixture.client._opener.open.side_effect = lambda *a, **kw: HeldResponse(archive_bytes(list(fixture.payload.items())))
+        runner.instance_pool = None
+        async def run():
+            pending = asyncio.create_task(self.call(runner, engine, plan))
+            self.assertTrue(await asyncio.to_thread(entered.wait, 2))
+            shutdown = asyncio.create_task(runner._shutdown_instance_pool())
+            try:
+                for _ in range(20):
+                    await asyncio.sleep(0)
+                self.assertFalse(shutdown.done())
+                self.assertEqual(len(fixture.owner.file_preparation_snapshot()['plans']), 1)
+                self.assertFalse(queue._closed)
+            finally:
+                release.set()
+            await shutdown
+            with self.assertRaises(asyncio.CancelledError):
+                await pending
+            self.assertTrue(queue._closed)
+            self.assertFalse(runner._ieee_file_plan_tasks)
+            self.assertFalse(runner._ieee_file_plan_engines)
+            self.assertEqual(fixture.owner.file_preparation_snapshot()['plans'], [])
+            self.assertFalse(fixture.owner.materializations)
+        asyncio.run(run())
+
+
 class OwnedFileMovement(unittest.TestCase):
     def make(self):
         from unittest.mock import Mock
