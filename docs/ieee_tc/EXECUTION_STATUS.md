@@ -68,8 +68,9 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main: `2373c3adf9beedb3e37e49ea40581b0cf4bd0832`, pushed to
+- Main tested implementation: `0e2adf9dc938b0a9e2c2aa5447585685d60d5a3c`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
+  This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
   `origin/main`; remote SHA verified at its checkpoint. No baseline edits in D26.
 - All earlier checkpoints, failures, qualification attempts and exact backups
@@ -78,7 +79,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D26.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D27.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -141,6 +142,11 @@ its one historical SHA difference and independent numerical gate remain open.
   native-worker lifetime proof remains censored, not automatically released.
 - All three experiment scopes cleaned; their owned empty auxiliary scopes stopped.
   No model job remains live. Recheck resources/processes before resuming.
+- D27 final resource check: all four GPUs15MiB/0%, no live service scope,
+  MemAvailable108399768KiB; disk353880449024 bytes at the post-run seal check.
+  All147 protected entries and all12 raw/receipt/watchdog/journal hashes plus
+  five executed-source hashes verified. User dirt remains unstaged; baseline
+  repository unchanged. Code backup0e2adf9 remotely verified before this receipt.
 - Next work: Full physical tier admission and representative measured profiles,
   with lifecycle owner coverage/aggregation integrated into that deployment.
   Do not repeat source32, lifecycle4 or same-prompt/zero controls.
