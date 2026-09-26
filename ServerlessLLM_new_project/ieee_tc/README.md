@@ -43,6 +43,11 @@ loader fidelity, actual worker resource containment and two 1,000-request model
 pairs remain qualification gates. No model replay has run with this repair yet.
 The environment's installed source has not been overwritten.
 
+D64 adds an exclusive view of the existing native launch scripts without
+changing those originals or installed sources. See [contained launch evidence
+and remaining qualification gates](CONTAINED_LAUNCH.md). This is not a new
+inference run or an end-to-end repair result.
+
 ## Historical reuse
 
 Reuse clean 7B and 3B logs, not the contaminated superseded 7B run. Extend the
