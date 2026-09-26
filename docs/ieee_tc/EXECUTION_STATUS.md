@@ -51,13 +51,17 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-D59 in progress: actual existing-checkpoint HOST lifetime across native vs
-pitched GPU setters, reusing backend-host-check with an explicit opt-in flag.
-Predeclared six classes/two copy arms/eight observations in P2 document. No
-backbone, new weights/trace, flush or dummy allocation. This is the next new
-question after D58, not a repeat of CPU-only D56 or old request prefixes.
-60 safety/census/replay checks pass; actual GPU observation is not yet run.
-Keep actual handle/receipt authoritative before any continuation or restart.
+D59 first real-copy observation completed and cleaned: six existing classes,
+two copy arms,96 states. Native copy retains full R after object deletion and
+second fence; next ordinary checkpoint allocation processes224/256 frees.
+Pitched copy returns all blocks after the owned fence/deletion; complete slot
+contents match. Every stream query already completed: no in-flight deletion
+claim. See P2 D59 and curated20260927_host_copy_lifetime CSV/JSON. One process,
+not performance repetitions. Native uncached candidate alone does not guarantee
+autonomous post-copy return. Next, at most one second focused comparison with
+official background event handling before deciding the Full loading candidate;
+do not increase B, subtract retained bytes or flush. Actual Full remains open.
+60 safety and288 smoke checks pass; raw launch/context/group cleanup verified.
 
 D58 connects an opt-in native HOST workspace partition inside the existing
 allowance, based on all audited existing artifact classes. Actual total occupancy
@@ -225,7 +229,7 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
 
 ## This continuation
 
-### D59 real-copy HOST lifetime (in progress)
+### D59 real-copy HOST lifetime
 
 - Previous goal turn D58 is progress: implemented/tested/backed up fixed-budget
   workspace partition. Current startcb2b1e3f08265837016c5556732735f6399c3e1b;
@@ -239,6 +243,29 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
 - New measurement protocol is fixed before launch in P2 document.60 system-
   Python safety/census/replay checks pass; smoke/model observation/cleanup and
   backup receipts follow. Formal baselines/M1/M2/ablations remain not started.
+- 288 smoke checks pass. Diagnostic source d9aba9e9a63e34e1d6e9fff5a4217d68e7cf404e
+  pushed and fresh full remote SHA verified before native launch. Actual TMUX
+  tc_d59_host_copy executed one fresh guarded process; lifetime_attempt1 and
+  launch receipt complete/pass, service/watchdog0, actual context/group released.
+  No backbone/inference or performance comparison. Same six existing classes,
+  12 copy arms,96 states; all original SHA and complete GPU slot contents match.
+- Native post-fence deletion retains R (3B9,175,040/18,350,080;7B16,777,216/
+  33,554,432B). A second fence leaves it retained; the next genuine load processes
+  224/256 frees. Pitched post-fence deletion returns all blocks. Every setter-
+  return query is already complete, so do not claim in-flight source deletion
+  safety or latency. Next no-copy object removal leaves all arms at0.
+- 43 resource samples, service peak723648512B, high/max/oom/oom_kill0. Aux UUID
+  7adc4c78c67e4c8396faeb6efa59bcf1 and two owned test scopes empty, events0, stopped.
+  GPU15MiB/0%. Immediate table and complete curated CSV/JSON plus raw/launch/
+  watchdog hashes written before next experiment. Production config unchanged.
+- Final all96 curated rows independently reconciled to original native counters;
+  raw/launch/watchdog and measurement source SHA match. Protected147 and plan
+  unchanged. MemAvailable109101688KiB, available disk353353383936B, GPUs15MiB/0%.
+  No test/model/TMUX remains running. Actual pending-event retention is now
+  evidence, not speculation; do not repeat this first observation. Next focused
+  alternative is official background event processing, then return to actual
+  Full/profile qualification. No production candidate selected yet. Result
+  backup follows; baseline/performance/numerical/remote gates remain open.
 
 ### D58 native HOST workspace partition
 
