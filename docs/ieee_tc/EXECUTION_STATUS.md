@@ -65,7 +65,9 @@ numerical correctness before marking profile samples correct; existing nonzero
 Remote174 remains below the approved150GiB floor, no service start. Full guard
 stays; formal baseline/M1/M2/ablations/sensitivities have NOT started. Final68
 safety/index/census/replay and288 smoke checks pass; original147 protected entries
-and plan unchanged. All owned scopes empty/stopped; backup receipt below.
+and plan unchanged. All owned scopes empty/stopped. Tested checkpoint
+5c89e3824c7f2055af8e59b9013567876e95f22b is pushed with fresh full remote SHA
+verification; receipt below. Goal remains active, no formal result yet.
 
 D61 connects actual asynchronous HOST-capacity observations to existing deferred
 work on the frozen control cadence. No waiters means no RPC; unchanged bytes
@@ -334,6 +336,12 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
   authoritative plan SHA unchanged. No pool/trace/weight copied or regenerated,
   no semantic/remote/Full/performance gate waived. Tested named-file backup
   follows; baseline unchanged16570c verified against fresh origin/main.
+- Tested code/indices/documents checkpoint5c89e3824c7f2055af8e59b9013567876e95f22b
+  pushed; fresh faaslora_origin/retry14_continuous_queue_v2 full SHA matches.
+  Exactly9 named files; whitespace, protected-name and added-text credential
+  checks pass. Current git status contains only original user dirt; no D62
+  scope or TMUX session remains. This subsequent documentation-only receipt
+  adds no measurements and does not qualify remote/Full/semantic correctness.
 
 ### D61 observed HOST return and deferred preparation
 
