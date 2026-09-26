@@ -304,6 +304,13 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
   ad1ee5427b37f2c272d90633ffa6e571b554fbd5824102405ccad1094a79802d.
   Next representative profile/Full integration, not another same-prompt check.
   External choices/Full guard unchanged. Final protection/evidence backup follows.
+- Complete20-row curated matrix independently reconciled to raw values; all
+  raw/launch/watchdog/log and checker SHAs match. Protected147 and authoritative
+  plan unchanged. Final MemAvailable109097772KiB,local free353354043392B.
+  Evidence checkpointc497d2ee1969f3f13e6daa0a93f8df2da84e5a8d pushed; fresh full
+  remote SHA matches. Four named data/docs files only, whitespace/secrets/name
+  checks pass. Baseline16570c023a439c884624e7a5bdfa0d8577faf7a3 unchanged, fresh
+  origin/main verified. This subsequent receipt adds no experiment or gate.
 
 ### D62 complete existing artifact identity for Full/profile input
 
