@@ -102,10 +102,10 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest backups and evidence index
 
-- Main tested implementation: `faf5c855b0cbb2e13d841ff711ac7aaead43a5ae`, pushed to
+- Main tested implementation: `670aa2d3922376ce8a71e574244de57947402e5c`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; fresh full remote SHA verified.
-  D48 also verified D47 receipt `1a86556e328de5aaeffce373c273cddcdd695b87`, resolving
-  its earlier independent-readback gap. This new backup receipt is a subsequent
+  D48 previously verified D47 receipt `1a86556e328de5aaeffce373c273cddcdd695b87`, resolving
+  its earlier independent-readback gap. This D49 backup receipt is a subsequent
   documentation-only commit, not another experiment.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
   `origin/main`; remote full SHA reverified in D48. No baseline edits in D48.
@@ -204,6 +204,12 @@ its one historical SHA difference and independent numerical gate remain open.
   disk353382084608B. Source plan and147 protected entries unchanged. Baseline16570c
   and original user dirt unchanged. Tested implementation backup follows; no
   performance slot or measured profile completed, no Full qualification claimed.
+- Implementation670aa2d3922376ce8a71e574244de57947402e5c pushed and fresh full
+  remote SHA verified. All six D49 scopes stopped; no model/test remains live.
+  Only original user dirt remains. This subsequent documentation-only receipt
+  is not another experiment. Continue remaining integrated Full replacement and
+  physical accounting gates, not repeated initial/control or old short-prefix
+  checks. Full goal remains active; no complete/performance qualification claim.
 
 ### D48 live IEEE control and ready-replica residency callbacks
 
