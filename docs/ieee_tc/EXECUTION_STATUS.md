@@ -93,7 +93,7 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `79e0a6e6343d8b6cf9c4bd45f1bdc7c2714ed19c`, pushed to
+- Main tested implementation: `c27351347c1685070514e39a028c6b4ef8185939`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -201,6 +201,12 @@ its one historical SHA difference and independent numerical gate remain open.
   proactive d feedback, file pending-target/multi-victim replacement, complete
   Full physical lifecycle. Full guard stays; baselines/M1/M2/ablations/sensitivities
   remain not started. Do not repeat the shared-pressure or old model-prefix gate.
+- Final implementationc27351347c1685070514e39a028c6b4ef8185939 pushed to
+  faaslora_origin/retry14_continuous_queue_v2; remote full SHA verified. This
+  subsequent receipt is documentation-only. All eight D40 owned scopes stopped;
+  only original user dirt remains. Goal active, not complete or blocked. Recheck
+  plan/status/resources, then continue total HOST/native ownership and automatic
+  planning integration. Do not repeat D40 or old GPU/model prefixes.
 
 ### D39 selected native GPU plans on the shared queue
 
