@@ -399,6 +399,66 @@ class ServiceIntervalObservation:
         self.closed = True
 
 
+class NativeServiceIntervalObserver:
+    """Synchronous event-loop callback bound to ONE admission-time class/lease.
+
+    Construct only from a real admission and executable-acquisition observation.
+    This bridge does not infer either event from post-resolution tier metadata.
+    Native timestamps, not callback receipt times, delimit the intervals.
+    """
+
+    def __init__(self, observation: ServiceIntervalObservation, *, clock_id: str,
+                 adapter_id: Optional[str], gpu_reference: Optional[Mapping] = None):
+        if not clock_id or observation.closed or observation.acquired_at is None:
+            raise ValueError('native service observer requires a live acquired observation and clock')
+        if (adapter_id is None) != (gpu_reference is None):
+            raise ValueError('adapter events require their exact executable reference')
+        self.observation = observation
+        self.clock_id, self.adapter_id = clock_id, adapter_id
+        self.reference = None
+        if gpu_reference is not None:
+            owner, lease, integer = (gpu_reference.get(key) for key in
+                                     ('owner_id', 'lease_id', 'adapter_int_id'))
+            if (not isinstance(owner, str) or not owner or not isinstance(lease, str)
+                    or not lease or type(integer) is not int or integer <= 0):
+                raise ValueError('invalid service observation reference identity')
+            self.reference = (owner, lease, integer)
+        self.events = []
+        self.backend_request_id = None
+
+    def __call__(self, event: Mapping) -> None:
+        index = len(self.events)
+        if (not isinstance(event, Mapping) or index >= 2 or self.observation.closed
+                or event.get('contract') != 'native_service_events_v1'
+                or type(event.get('sequence')) is not int or event['sequence'] != index + 1
+                or event.get('kind') != ('first_token', 'last_token')[index]
+                or event.get('native_clock_id') != self.clock_id
+                or event.get('adapter_id') != self.adapter_id):
+            raise ValueError('native service event contract/clock/order mismatch')
+        backend_id = event.get('backend_request_id')
+        if (not isinstance(backend_id, str) or not backend_id
+                or (self.backend_request_id is not None and backend_id != self.backend_request_id)):
+            raise ValueError('native service event request identity mismatch')
+        reference = tuple(event.get(key) for key in ('gpu_reference_owner_id',
+                         'gpu_reference_lease_id', 'gpu_reference_adapter_int_id'))
+        if (reference != (self.reference if self.reference is not None else (None, None, None))
+                or (self.reference is not None and type(reference[2]) is not int)):
+            raise ValueError('native service event reference mismatch')
+        count, timestamp = event.get('token_count'), event.get('timestamp_monotonic_s')
+        if (type(count) is not int or count < 1
+                or (index and count < self.events[0]['token_count'])
+                or type(timestamp) not in (int, float) or not math.isfinite(timestamp)):
+            raise ValueError('invalid native service event token count/timestamp')
+        if index and count == 1 and timestamp != self.events[0]['timestamp_monotonic_s']:
+            raise ValueError('single-token event boundaries differ')
+        if index == 0:
+            self.observation.first_token(timestamp)
+        else:
+            self.observation.last_token(timestamp)
+        self.backend_request_id = backend_id
+        self.events.append(dict(event))
+
+
 @dataclass(frozen=True)
 class ReplicaRoutingSnapshot:
     """Committed request-specific inputs; not built from unconfirmed cache hints.

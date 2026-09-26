@@ -895,3 +895,58 @@ fixture 缺失 `patch` 导入，已修正，未削弱运行时合同。最终完
 下一主线：原 P2 安装完成即优先验证真实后端、worker/clock/stream；继续把
 内容 epoch、冷源成本和剩余预算送入决策前快照，并完成 native admission、
 已知冲突等待、abort/release 与 GPU 生命周期。Serverless 仍是首个 baseline。
+
+## P1-D20：完成区间的原生事件与跨进程在线更新
+
+本步回到 D3 的 \(\widehat S=\widehat D+\widehat T+\widehat O\)。历史 runner
+仍未创建 D3 的 admission-time observation，不能因为公式单测通过，就把旧路由
+称为 IEEE Full。新增内容是**原生事件到该 observation 的桥接**，不是完整的
+决策前快照、profile 资格或路由策略接入。
+
+### 依据、假设与实现边界
+
+历史 `cf01792` 已实现按完成区间更新的 EWMA；旧直接/子进程生成入口只返回
+最终结果。如果仅在该返回值上补算 D/T/O，长请求的 T 更新将滞后到解码结束，
+而取消请求已经完成的 T 会丢失。可证伪的检查是：阻止末 token 产生时，T 的
+样本数必须已经增加、O 的样本数仍为零；首 token 后取消，保持这个状态。
+
+复核 [vLLM 0.30 原生指标设计](https://docs.vllm.ai/en/v0.30.0/design/metrics/)
+和已安装 `vllm/v1/metrics/stats.py` 的 `first_token_ts`、`last_token_ts` 更新路径，
+沿用 EngineCore token event 时间，不把 callback 接收时间当生成时间。处理放在
+现有 frontend/控制器路径，不修改 GPU 内循环或轮询计时。跨进程相减仍要求
+已验证的本机同一 monotonic clock identity，不能推广为跨主机时钟一致。
+
+| 论文规范语义 | 当前实现证据 | 尚未完成 |
+|---|---|---|
+| D：admission 至可执行引用取得 | 继续使用原 `ServiceIntervalObservation.acquire`，不改定义 | Full 原子接纳与决策前类别绑定 |
+| T：取得引用至首 token | 直接后端首次原生 token 发出一次事件；同请求 RPC 可先传首 token 帧 | 实际模型端到端开销与下一次路由消费验证 |
+| O：首至末 token | 仅正常原生终态、完整 token 合同通过后发送末 token；保留末 token 时间，不包含完成通知尾部 | 不作为独立性能或 warm profile |
+| 更新 admission-time class | `NativeServiceIntervalObserver` 持有固定 observation，按完成区间更新同一个 EWMA | 正式多副本 profile 初始化、全源类别覆盖 |
+| 请求取消或失败 | 保留已经完成的 D/T，拒绝取消后的迟到事件；不创建 O 样本 | Full 控制器持久结果 journal 与取消闭环 |
+| 错误信息不可成为确认状态 | clock、request、adapter/reference、事件序号、token 数校验；最终结果再核对事件身份和时间 | 通信失败运行仍不具备正式性能资格 |
+
+使用现有 dedicated worker TCP 通道，opt-in `native_service_events_v1`；成功
+请求最多两帧，不传逐 token 流、不新增轮询进程。回调只更新有界内存状态，必须
+同步返回 None；socket 线程将回调送回所属 event loop。取消立即撤下连接，迟到
+回调不进入新运行，未知原生操作仍由既有 uncertainty/reference 规则保留。
+无事件 observer 的历史 API 保持原返回合同；native observer 不允许 legacy
+时间兜底。终态与事件不一致会拒绝整个请求成功资格，不能拿已收到事件代替终态。
+
+### 本步验收表：不是性能实验
+
+新增 12 个检查覆盖单次 EWMA 更新、错误身份/时钟/次序、单 token、直接生成
+过程中的更新与取消，以及**实际 worker handler + 实际 proxy + loopback TCP**
+的成功、取消、生成失败、重复帧、错误终态。推理输出由确定性 fixture 提供，
+未加载模型；网络传输和 handler 本身不是 mock。
+
+- 首轮 10 项：9 通过、1 收尾错误，原因是测试等待 server 退出前未关闭其池连接；
+  修正测试的连接关闭顺序，未修改成功标准或添加运行时容错。
+- 随后相关 131 项通过；补上重复帧检查后，最终完整功能回归 590 项通过，
+  无失败、错误、skip。独立安全/census/replay 56 项通过。
+- 147 个历史保护项和批准计划 SHA 均未变化。没有新增权重、负载或 GPU 性能点。
+
+按计划第十一节，本步选择状态表而非“增益”图。此桥接尚未在实际模型上资格，
+不重复旧同 prompt 控制；下一步推进 Full 决策前 source/cost/profile owner
+和原子 reservation/admission，随后在同一次实际模型资格中检验桥接。不能把
+测试初始 profile 数字填入正式配置，也不能把 resolve 后的 tier 冒称 admission
+时刻的源状态。Serverless 仍保持 baseline 首位，M1/M2 等正式矩阵未开始。

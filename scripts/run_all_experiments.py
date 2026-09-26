@@ -4123,9 +4123,12 @@ class InferenceEngine:
         _prepared_request: Optional[RequestExecutionPlan] = None,
         return_timing: bool = False,
         gpu_reference: Optional[Dict[str, Any]] = None,
+        native_event_observer: Optional[Callable[[Dict[str, Any]], None]] = None,
     ) -> Tuple[float, float, int]:
         """Returns (vllm_ttft_ms, tpot_ms, output_tokens[, timing]). Always real inference."""
         timing_contract = self.model_cfg.get("timing_contract", "legacy")
+        if native_event_observer is not None and timing_contract != 'ieee_tc_native_v1':
+            raise ValueError('service events require the native timing contract')
         if timing_contract not in {"legacy", "ieee_tc_native_v1"}:
             raise ValueError(f"unsupported timing contract: {timing_contract}")
         native_timing = timing_contract == "ieee_tc_native_v1"
@@ -4253,6 +4256,24 @@ class InferenceEngine:
             actual_prompt_tokens = max(1, int(input_tokens or 1))
             last_metrics = None
             backend_terminal = False
+            first_event_sent = False
+
+            def emit_service_event(kind: str, timestamp: float, sequence: int) -> None:
+                if native_event_observer is None:
+                    return
+                event = dict(contract='native_service_events_v1', kind=kind,
+                             sequence=sequence, backend_request_id=req_id,
+                             native_clock_id=timeline.clock_id,
+                             timestamp_monotonic_s=timestamp,
+                             token_count=len(timeline.token_ids), adapter_id=adapter_id,
+                             gpu_reference_owner_id=None, gpu_reference_lease_id=None,
+                             gpu_reference_adapter_int_id=None)
+                if reference_receipt is not None:
+                    event.update(gpu_reference_owner_id=reference_receipt['owner_id'],
+                                 gpu_reference_lease_id=reference_receipt['lease_id'],
+                                 gpu_reference_adapter_int_id=reference_receipt['adapter_int_id'])
+                _notify_native_service_observer(native_event_observer, event)
+
             async for out in self.engine.generate(
                 prompt=prompt, sampling_params=sp, request_id=req_id, lora_request=lora_req
             ):
@@ -4264,9 +4285,6 @@ class InferenceEngine:
                         raise ValueError('non-success native finish reason; reference retained')
                     if generation_contract == 'fixed_length_greedy_v1' and out.outputs[0].finish_reason != 'length':
                         raise ValueError('fixed-output native completion must finish by length')
-                if reference_receipt is not None and out.finished:
-                    await self.ieee_retire_generation(gpu_reference=reference_receipt, abort=False)
-                    backend_terminal = True
                 metrics = getattr(out, "metrics", None)
                 if metrics is not None:
                     last_metrics = metrics
@@ -4295,6 +4313,12 @@ class InferenceEngine:
                     ]
                 elif timeline is not None:
                     timeline.observe(metrics, timeline.token_ids, finished=out.finished)
+                if timeline is not None and timeline.first_at is not None and not first_event_sent:
+                    emit_service_event('first_token', timeline.first_at, 1)
+                    first_event_sent = True
+                if reference_receipt is not None and out.finished:
+                    await self.ieee_retire_generation(gpu_reference=reference_receipt, abort=False)
+                    backend_terminal = True
 
             t1 = time.perf_counter()
             if reference_receipt is not None and not backend_terminal:
@@ -4309,6 +4333,7 @@ class InferenceEngine:
                 tpot_ms = native_fields["native_tpot_ms"] if tok_count > 1 else 0.
                 if generation_contract == "fixed_length_greedy_v1" and tok_count != safe_max_tokens:
                     raise ValueError("native output length violates fixed_length_greedy_v1")
+                emit_service_event('last_token', timeline.last_at, 2)
             else:
                 ttft_ms, tpot_ms = self._derive_vllm_latency_metrics(
                     request_metrics=last_metrics,
@@ -4384,6 +4409,7 @@ class InferenceEngine:
         generation_seed: Optional[int] = None,
         return_timing: bool = False,
         gpu_reference: Optional[Dict[str, Any]] = None,
+        native_event_observer: Optional[Callable[[Dict[str, Any]], None]] = None,
     ) -> Tuple[float, float, int]:
         return await self.generate(
             prompt=request_plan.prompt,
@@ -4397,6 +4423,7 @@ class InferenceEngine:
             _prepared_request=request_plan,
             return_timing=return_timing,
             **({"gpu_reference": gpu_reference} if gpu_reference is not None else {}),
+            **({"native_event_observer": native_event_observer} if native_event_observer is not None else {}),
         )
 
     @staticmethod
@@ -4589,6 +4616,15 @@ class InferenceEngine:
 class _BlockingRPCChannel:
     sock: socket.socket
     recv_buffer: bytearray = field(default_factory=bytearray)
+
+
+def _notify_native_service_observer(observer, event) -> None:
+    """Callbacks update bounded in-memory state in the owner's event loop."""
+    result = observer(event)
+    if result is not None:
+        if inspect.iscoroutine(result):
+            result.close()
+        raise TypeError('native service observer must be synchronous and return None')
 
 
 class SubprocessInferenceEngineProxy:
@@ -4854,15 +4890,41 @@ class SubprocessInferenceEngineProxy:
             startup_latency_ms=max(0.0, (time.perf_counter() - spawn_started_at) * 1000.0),
         )
 
-    async def _rpc(self, cmd: str, **kwargs: Any) -> Dict[str, Any]:
+    async def _rpc(self, cmd: str, *, _native_event_observer=None, **kwargs: Any) -> Dict[str, Any]:
         if self._engine_dead or self._process.poll() is not None:
             self._engine_dead = True
             raise RuntimeError(self._with_worker_log_context("subprocess_engine_dead"))
         native = self.model_cfg.get('timing_contract') == 'ieee_tc_native_v1'
+        if _native_event_observer is not None and (not native or cmd != 'generate'):
+            raise ValueError('service progress requires native generation')
         control = native and cmd != 'generate'
         if native and cmd == 'generate' and self._native_rpc_uncertain:
             raise RuntimeError('native RPC ownership unresolved; new generation withheld')
         attempt_id = uuid.uuid4().hex
+        progress_open = True
+        progress_events = []
+        owner_task = asyncio.current_task()
+        loop = asyncio.get_running_loop()
+
+        async def deliver_progress(frame):
+            # Run in the owning event loop, never the blocking socket thread.
+            if not progress_open or owner_task.cancelling():
+                raise RuntimeError('service progress arrived after RPC cancellation')
+            if frame.get('native_event_rpc_id') != attempt_id:
+                raise ValueError('service progress RPC identity mismatch')
+            event = frame.get('native_event')
+            index = len(progress_events)
+            if (not isinstance(event, dict) or index >= 2
+                    or event.get('contract') != 'native_service_events_v1'
+                    or type(event.get('sequence')) is not int
+                    or event['sequence'] != index + 1
+                    or event.get('kind') != ('first_token', 'last_token')[index]):
+                raise ValueError('invalid service progress sequence')
+            _notify_native_service_observer(_native_event_observer, event)
+            progress_events.append(dict(event))
+
+        def receive_progress(frame):
+            asyncio.run_coroutine_threadsafe(deliver_progress(frame), loop).result()
         def retain_uncertain() -> None:
             if not native or cmd in ('ieee_worker_observation', 'ieee_scheduler_observation',
                                      'ieee_generation_observation', 'shutdown'):
@@ -4881,17 +4943,22 @@ class SubprocessInferenceEngineProxy:
             rpc_channel_acquire_ms: float,
         ) -> Dict[str, Any]:
             payload = {"cmd": cmd, "kwargs": kwargs}
+            if _native_event_observer is not None:
+                payload['native_event_rpc_id'] = attempt_id
             payload["client_send_wall_time"] = time.time()
             payload_bytes = (json.dumps(payload, ensure_ascii=True) + "\n").encode("utf-8")
             raw, send_flush_ms, wait_response_ms, parent_response_read_wall_time = await asyncio.to_thread(
                 self._blocking_rpc_roundtrip,
                 channel,
                 payload_bytes,
+                **({'on_progress': receive_progress} if _native_event_observer is not None else {}),
             )
             parent_roundtrip_resume_wall_time = time.time()
             if not raw:
                 raise RuntimeError("subprocess_engine_empty_response")
             response = json.loads(raw.decode("utf-8"))
+            if _native_event_observer is not None and response.get('native_event_rpc_id') != attempt_id:
+                raise ValueError('service terminal RPC identity mismatch')
             if not response.get("ok"):
                 error_text = str(response.get("error", "subprocess_engine_rpc_failed"))
                 if _is_fatal_engine_error_message(error_text):
@@ -4900,7 +4967,23 @@ class SubprocessInferenceEngineProxy:
                     self._preserve_worker_workdir("fatal_rpc")
                     error_text = self._with_worker_log_context(error_text)
                 raise RuntimeError(error_text)
+            if _native_event_observer is not None and len(progress_events) != 2:
+                raise ValueError('successful service reply is missing native progress')
             result = response.get("result", {}) or {}
+            if _native_event_observer is not None:
+                timing = result.get('timing', {})
+                for event, boundary in zip(progress_events, ('first', 'last')):
+                    if (event.get('backend_request_id') != timing.get('backend_request_id')
+                            or event.get('native_clock_id') != timing.get('native_clock_id')
+                            or event.get('timestamp_monotonic_s') != timing.get(
+                                f'native_{boundary}_token_monotonic_s')):
+                        raise ValueError('service progress differs from native terminal evidence')
+                    for field in ('gpu_reference_owner_id', 'gpu_reference_lease_id',
+                                  'gpu_reference_adapter_int_id'):
+                        if event.get(field) != timing.get(field):
+                            raise ValueError('service progress differs from native terminal reference')
+                if progress_events[-1]['token_count'] != result.get('output_tokens'):
+                    raise ValueError('service progress/terminal token count mismatch')
             if isinstance(result, dict):
                 result_timing = _attach_parent_rpc_breakdown(
                     result.get("timing"),
@@ -4990,6 +5073,7 @@ class SubprocessInferenceEngineProxy:
             message = f"subprocess_engine_dead: {type(first_exc).__name__}: {first_exc}"
             raise RuntimeError(self._with_worker_log_context(message))
         finally:
+            progress_open = False
             if channel is not None:
                 if control:
                     await self._drop_rpc_channel(channel)
@@ -5029,6 +5113,8 @@ class SubprocessInferenceEngineProxy:
         self,
         channel: _BlockingRPCChannel,
         payload_bytes: bytes,
+        *,
+        on_progress=None,
     ) -> Tuple[bytes, float, float, float]:
         send_flush_started_at = time.perf_counter()
         channel.sock.sendall(payload_bytes)
@@ -5040,6 +5126,11 @@ class SubprocessInferenceEngineProxy:
             if newline_idx >= 0:
                 raw = bytes(channel.recv_buffer[: newline_idx + 1])
                 del channel.recv_buffer[: newline_idx + 1]
+                if on_progress is not None:
+                    frame = json.loads(raw.decode('utf-8'))
+                    if 'native_event' in frame:
+                        on_progress(frame)
+                        continue
                 parent_response_read_wall_time = time.time()
                 wait_response_ms = max(
                     0.0,
@@ -5192,10 +5283,12 @@ class SubprocessInferenceEngineProxy:
         return_timing: bool = False,
         gpu_reference: Optional[Dict[str, Any]] = None,
         _prepared_request: Optional[RequestExecutionPlan] = None,
+        native_event_observer: Optional[Callable[[Dict[str, Any]], None]] = None,
     ) -> Tuple[float, float, int]:
         rpc_started_at = time.perf_counter()
         result = await self._rpc(
             "generate",
+            **({'_native_event_observer': native_event_observer} if native_event_observer is not None else {}),
             prompt=prompt,
             lora_path=lora_path,
             adapter_id=adapter_id,
@@ -5280,6 +5373,7 @@ class SubprocessInferenceEngineProxy:
         generation_seed: Optional[int] = None,
         return_timing: bool = False,
         gpu_reference: Optional[Dict[str, Any]] = None,
+        native_event_observer: Optional[Callable[[Dict[str, Any]], None]] = None,
     ) -> Tuple[float, float, int]:
         return await self.generate(
             prompt=request_plan.prompt,
@@ -5293,6 +5387,7 @@ class SubprocessInferenceEngineProxy:
             return_timing=return_timing,
             _prepared_request=request_plan,
             **({"gpu_reference": gpu_reference} if gpu_reference is not None else {}),
+            **({"native_event_observer": native_event_observer} if native_event_observer is not None else {}),
         )
 
     async def load_lora_to_gpu_and_measure(self, lora_path: str, adapter_id: str) -> Tuple[float, bool]:

@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Mathematical contracts, native references, managed file ownership/storage and preallocated content-verified HTTP transfers tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D19. Native fetch allocates archive/payload before body reads under the owner file budget, retains old copies and concurrent allocations. Full-pool qualification, all-tier physical reservations/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Mathematical contracts, native references, storage, content-verified transfers and native interval-event bridge tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D20. Real loopback worker/proxy emits first-token before final response, preserving completed intervals on cancellation. Full-pool qualification, all-tier physical reservations/registry epoch, pre-decision source/cost composition, model event-bridge qualification and proactive atomic admission remain open; no Full performance qualification |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -52,12 +52,16 @@ configs/relayserve_motivation_serverlessllm.yaml.
 ## Immediate next actions
 
 0. P2 installation finished; do NOT reinstall. All current runs finished/cleaned. Native adapter reference, full 3B/7B content scan and 7B five-arm native numeric diagnostic COMPLETE; do not repeat same-prompt/zero controls. NATIVE_ADAPTER_NUMERIC_CONTROL.md: all five 217-token outputs identical; A/Z probability max difference .02608, A/A also .006367. Descriptive evidence, not independent numeric/full semantic qualification. Return to Full source/cost and owner integration next. Current 3B pool has 500 all-zero LoRAs (2 SHAs); 7B has 498 zero plus finance/medical nonzero (4 SHAs). Plan forbids new weights; user confirmation requested before adding a few trained nonzero 3B correctness fixtures, no answer yet. Keep pools/traces/history intact. Targeted 2,521 existing configs yielded no 3B candidate, not proof of server-wide absence. Independent numerical verification remains an open gate, not erased by this diagnostic. Review official 0.30 warning on old 3B chunked_prefill=false before freezing. Reuse environment/cache, KEEP_DEDICATED_WORKER_LOGS for future proxy runs.
-1. Continue native owner integration: measured source-class costs, resource-owner remaining budgets, atomic routing/admission. Native token/reference interfaces and startup-parallel external arrival/submission are opt-in and unit/witness tested, but actual engine clocks/streams/controller owners remain open. Do not declare the historical scorer IEEE-aligned.
+1. Native service-event bridge D20 is implemented and passes real loopback handler/proxy + deterministic engine tests. Do not repeat these or the same-prompt controls. Next integrate admission-time class/profile owners with pre-decision source snapshots, actual remaining budgets and atomic routing/admission; then qualify events with that actual model path. No real ScenarioRunner creates the new service observation yet. Do not declare the historical scorer IEEE-aligned or substitute post-resolve source state for admission state.
 2. Qualify actual model/GPU workers and lifecycle under the existing guarded launcher; native single-raylet and tiny replay witnesses are not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
 ## Verified backups
+
+- Main native probability-control checkpoint
+  `e3aaae16b20c3080df954bf35b64f10783f52d84` pushed to V2; remote SHA verified.
+  Five-arm 7B diagnostic and explicit numerical/semantic limitations retained.
 
 - Main full-artifact/output-control audit checkpoint
   `235c74789294b642ed7756b3eca5cbb73c9f1ebf` pushed to V2; remote SHA verified.
@@ -1140,3 +1144,36 @@ configs/relayserve_motivation_serverlessllm.yaml.
   open; 3B additional nonzero correctness fixtures still await user authority.
   Baseline model order remains Serverless first. Remote disk floor, physical
   lifecycle, SLO/reference, M1/M2, all ablations and sensitivities remain pending.
+
+## P1 completed-interval native event bridge checkpoint
+
+- Existing direct/prepared generation and dedicated-worker RPC now expose an
+  opt-in first/last native token event pair. First-token observation reaches the
+  caller before decode finishes. Original native timestamps, not callback or
+  completion times, update the fixed admission-class ServiceCostModel EWMA.
+- The observer validates clock/request/reference identity, order and counts;
+  actual TCP progress is attempt-bound and runs its callback in the owning event
+  loop. Success requires the final reply to agree with events. Cancellation
+  withdraws the socket and rejects delayed updates; completed D/T remain,
+  incomplete O is not synthesized. Unknown ownership still requires retirement.
+- Twelve added checks: deterministic real-engine-method streaming/cancellation,
+  identity/order/single-token checks and real worker handler/proxy/loopback TCP
+  success, cancellation, failure, duplicate progress and wrong final identity.
+  Inference itself is a fixture, NOT actual GPU qualification. First 10-test
+  attempt had one teardown-order error; test now closes its own pool connections
+  before waiting for server shutdown. No runtime fallback or weakened criterion.
+- Final full functional regression 590 pass in 22.702 s; independent safety/
+  census/replay 56 pass in 0.369 s; zero failures/errors/skips. All 147 historical
+  seal entries and approved plan SHA unchanged. D20 provides the status table;
+  no artificial performance plot, regenerated input or actual model run.
+- Sep 26 10:33 local: four GPUs idle (15 MiB, 0% each), host available memory
+  110,492,147,712 bytes, local free disk 354,095,837,184 bytes. No heavy job started.
+  This completes only the event-to-estimator bridge, NOT Full routing integration:
+  actual ScenarioRunner still needs committed pre-decision class/profile/owner
+  construction, remaining physical budgets and atomic admission. Test profiles
+  cannot become production estimates. Model-level overhead remains unmeasured.
+- Next: close that Full source/cost admission boundary, then one integrated
+  native model qualification rather than more isolated output diagnostics.
+  Serverless remains first baseline. Remote disk gate, additional nonzero 3B
+  correctness-fixture authority, independent numerical qualification, lifecycle,
+  SLO/reference and all formal matrices remain open. Overall goal is active.
