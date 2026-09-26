@@ -2841,6 +2841,76 @@ Full启动guard保留。无GPU/model、真实174或正式性能运行，没有�
 集成缺口，不扩展本轮局部测试为新的微测campaign。正式baseline/M1/M2、
 消融、敏感性均未开始，整体目标仍未完成。
 
+## D54：有预算的临时CPU对象与HOST/GPU联合提交
+
+### 历史失败、假设与原始来源
+
+D52的默认双GPU目标案例在第四个CPU对象处一直延后；D53确认不能通过
+增加条目上限、普通LRU或提前驱逐来掩盖。此次保持原CPU容量3、GPU槽2
+和同一个自动选择的a/d目标集合，连接真正的文件准备→临时CPU对象→
+HOST/GPU联合替换路径。假设：把“CPU对象已物化”与“已注册为驻留副本”
+分开，可以在不提前损坏旧副本的条件下检查新增对象的真实copy geometry。
+
+[vLLM0.30原生worker](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+原本也是load-first后才evict/register/activate；沿用其解析与实际对象，
+不改变其普通请求策略。[model manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/model_manager.py)
+还在注册时做dense packing/scaling。新增路径在未发布对象上完成同一
+packing，再检查原有pitched-copy合同，不把未合并的对象误作可执行源。
+[ELORA](https://arxiv.org/abs/2505.03756)只作为LoRA/KV联合资源管理背景；
+本轮没有复现它或借其结果替代Prime的验证。
+
+### 实际执行与不变量
+
+- 仅当原生CPU条目满且存在已登记GPU目标时，可以物化未注册staging。
+  它首先通过原来的保守峰值字节检查，不借用未来victim释放的字节；
+  已有staging也计入同一原生tensor预算。注册缓存容量没有扩大。
+- staging有明确owner/对象身份/引用，不能作为HOST或GPU命中发布。
+  所有选中该目标的live plan共同保护其寿命；取消/关闭计划后，只有
+  无其他计划或引用时才丢弃。丢弃对象不宣称allocator已返还物理内存。
+- GPU执行前，controller对当前原生驻留对象持有最快有效HOST文件或
+  NVMe文件引用；没有本地文件时使用原始不可变Remote身份。worker用
+  原冻结h/d、实际原生footprint和这些引用计算CPU eviction loss。
+- CPU removal会同时失效对应GPU；联合损失计入这个效果，CPU/GPU同一
+  victim不重复计算。GPU另选victim时其原生HOST fallback仍受检查。
+  完整pending目标、正在使用/传输的引用及外部pins不能成为victim。
+- 同一native core事务先完成严格收益判断和E(t)，再执行CPU/GPU回收、
+  已物化对象注册、原生copy和可执行栅栏。E(t)延后不改变旧缓存。
+- 真正请求可以抢先使用已物化对象：保持原生需求LRU，不重复文件加载，
+  转移对象身份和引用；主动操作重新观察并复用真实GPU结果。该请求
+  不能把共享staging记成自己完成的一次完整文件加载成本样本。
+- 丢失joint-commit回执时，保留GPU引用和文件fallback引用；不宣称成功
+  清理或盲目重试。所有结果仍保留原始准备epoch，不更新成有利新目标。
+
+### 状态表（CPU构造输入，非模型性能）
+
+| 问题 | 验证结果 |
+|---|---|
+| 原双目标/三CPU条目案例 | 相同a/d集合完成，未扩大容量；真实owner有HOST victim回执 |
+| GPU因KV压力延后 | CPU/GPU旧resident集合保持；取消后staging/计划/引用清理 |
+| 请求先于主动GPU准备到来 | 同一CPU对象复用，原观察变旧后重查，未重复文件物化 |
+| joint commit完成但回执丢失 | 保留文件fallback和GPU引用，计划标closure_unresolved |
+| 实际worker CPU-only loader | 先做原生dense packing；staging不调用GPU activation、不发布cache |
+| registered/staging内存统计 | 共享storage只计一次，staging-only单列；进程retained pinned bytes仍完整计入 |
+
+首轮16项中2项出错，原因是新双目标fixture缺少a/d物化后的CPU class，
+补齐显式测试成本而非放宽生产profile校验；随后16项通过。扩展144项
+发现2个旧调用参数断言及7个native-only fixture错误：不需要文件fallback
+的路径不应无条件要求文件owner。修正后144项通过。初次全量930项通过，
+最终复核补一项staging内存归属检查；冻结源931项功能检查、实际安装
+vLLM0.30/torch2.13环境53项和安全56项均通过，无失败/错误/跳过。
+它们相互重叠，不作为独立重复或性能样本。CUDA未初始化；九个测试
+资源域实际无进程且high/max/oom/oom_kill均为0，已停止。完整回执见
+EXECUTION_STATUS，正式性能资格仍未通过。
+
+### 尚未完成的边界
+
+这里解决的是**条目满、但预算仍能容纳一个保守峰值staging对象**的路径。
+exclusive tensor bytes用于该原生对象的损失排序，不被计作已释放的
+allocator容量。物理字节也满时的多victim/reusable-byte证明与staging
+空间预留、代表性profile/allocator实测、Full生命周期/A4仍需完成。
+本轮不构成所有HOST预算下的完整替换资格，Full启动guard保持。
+没有新权重/trace、GPU模型或真实174运行，没有正式主结果/消融/敏感性。
+
 ## D52：主动准备完成后的真实成本反馈
 
 ### 主线选择、依据与假设

@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Automatic GPU/final-file replacement and proactive d feedback connected; Full remains open | P1_FORMULA_IMPLEMENTATION.md D1–D52. Same frozen h/d and actual completion samples; native-HOST/staging replacement, profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
+| P1 IEEE semantic alignment | Automatic GPU/final-file replacement, budgeted CPU-staging joint commit and proactive d feedback connected; Full remains open | P1_FORMULA_IMPLEMENTATION.md through D54. Same frozen h/d and actual completion samples; physical-byte-full HOST/staging capacity, profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,23 +51,32 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-D53 read-only review/documentation is complete; user decisions remain pending.
-Latest tested implementation is D52:7c4337d59fd687ebabf7acfed6f30dbfd75b2a2f,
-with pushed receipt a8e3926b436f9af8532f5739552c67afe80a3295.
+D54 implementation checks complete: budgeted unregistered CPU staging, joint
+CPU/GPU loss/admission/commit and demand takeover are connected to the actual
+runner/core/worker path. Original three-entry/two-GPU-target fixture now finishes;
+deferral leaves old residents unchanged. Physical-byte-full/multi-victim staging,
+measured profiles/allocator and Full lifecycle remain OPEN. Do not claim Full
+qualification or repeat old model prefixes. User decisions remain pending.
+Final-source931 functional,53 installed-native and56 safety checks pass. All
+nine owned test scopes are empty and stopped. No experiment runs in background.
+D54 milestone backup follows; preceding verified backup is
+D53:327fa3ba3a145ca5bbec02f43f1e152bcefba4a8 (history/status), with D52 runtime
+checkpoint7c4337d59fd687ebabf7acfed6f30dbfd75b2a2f.
 Main branch retry14_continuous_queue_v2. Baseline remains
 16570c023a439c884624e7a5bdfa0d8577faf7a3, origin/main.
 
-Continue the actual Full native-HOST/staging path. D52's mixed fixture exposed
-CPU cache capacity (three entries, fourth materialization) deferring forever;
-do not hide it with a smaller target set, enlarged cache, ordinary LRU or relaxed
-physical budget. CPU eviction can deactivate GPU; deleting pinned tensors does
-not imply usable freed bytes. Joint claim/physical admission must precede any
-victim reclamation. E(t) deferral must leave victims resident.
+Continue the actual Full physical-byte-full native-HOST/staging path. D54 fixes
+D52's three-entry/fourth-materialization stall when conservative staging peak
+fits the tensor allowance, keeping the original two GPU targets. It does not
+solve exhausted physical bytes or prove reusable allocator capacity. Do not hide
+those remaining gaps by enlarging the budget or assuming tensor deletion frees
+pinned allocator bytes. Joint claim/physical admission must precede reclamation;
+E(t) deferral must leave victims resident.
 
 Already connected: automatic frozen h/d GPU and final-file selection/replacement,
 native/file ownership, initial/natural activation and IEEE control, actual
 proactive completion feedback into the next cost epoch. Full still rejects
-legacy warmup. Still open: native-HOST and intermediate staging replacement,
+legacy warmup. Still open: physical-byte-full native-HOST/staging replacement,
 representative profiles/allocator qualification, Full physical lifecycle/A4,
 backend numerical/500-pool and real-remote qualifications.
 
@@ -87,7 +96,7 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
 - Read relevant original experiment logs/history before each optimization, not
   every obsolete chronological next-action paragraph. Current next actions above
   supersede those historical instructions.
-- P1_FORMULA_IMPLEMENTATION.md D1–D52: equations, implementation and state tables.
+- P1_FORMULA_IMPLEMENTATION.md through D54: equations, implementation and state tables.
 - P2_BACKEND_QUALIFICATION.md, ARTIFACT_CONTENT_AUDIT.md,
   NATIVE_ADAPTER_NUMERIC_CONTROL.md: model and artifact qualification limits.
 - RESOURCE_QUALIFICATION.md, EXTERNAL_REPLAY_QUALIFICATION.md,
@@ -128,19 +137,58 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
    logs and6 method tests. Original/repaired1000-request model pairs remain pending.
    Native checkpoint loader path and contained launch must qualify first.
    Existing broad Ray-stop/pkill/global-tmux launcher is not safe for TC.
-8. Remote key-only login works, last free disk137.91GiB below150GiB floor;
+8. Remote key-only login works, D53 free disk138.52GiB below150GiB floor;
    services not qualified/started. Do not delete unique/unrelated data or silently
    relax the floor. Additional nonzero3B correctness artifacts need user authority.
 9. Physical CPU isolation proof is actual affinity, not unavailable delegated
    cpuset. Services72/80GiB high/max, swap2GiB; auxiliary4GiB; one heavy at a time.
    Read source plan for exact admission, disk, failure/timeout and statistical rules.
-10. All147 protected entries and source plan SHA verified unchanged after D26.
-    D26 functional653 and safety/census/replay56 tests pass, no skips/failures.
-    Final D26 GPUs15MiB/0%, MemAvailable108586104KiB, disk353938874368 bytes.
-    Scope `primelora-tc-aux-adff572906f44b3c9872a65ecab8feb8.scope` verified empty
-    and stopped. Recheck live handles/resources; a stale record is not a live run.
+10. All147 protected entries and source plan SHA verified unchanged after D54.
+    D54 functional931, installed-native53 and safety/census/replay56 pass, no
+    skips/failures/errors; these overlapping checks are not independent repeats.
+    Final D54 GPUs15MiB/0%, MemAvailable108692732KiB, disk353486036992 bytes.
+    All nine D54 owned scopes are empty with high/max/oom/oom_kill0, then stopped.
+    Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D54 budgeted staging and joint native HOST/GPU commit
+
+- D53 archived authoritative history and refreshed external-gate evidence; it
+  did not implement replacement. D54 reread full plan/status/skills, IEEE history,
+  actual installedvLLM0.30 worker/model code and primary onlinevLLM/ELORA sources.
+  Start main327fa3ba3a145ca5bbec02f43f1e152bcefba4a8, baseline16570c unchanged.
+  Protected147 and source-plan SHA unchanged; original user dirt preserved.
+- Actual full-cache path now stages a budgeted CPU object without registration,
+  holds fastest real file fallbacks, evaluates joint CPU/GPU loss and E(t), then
+  commits only after acceptance. CPU removal's GPU invalidation is counted once.
+  Pins/joint targets protected, loss of replies retains references. Native demand
+  can consume staging under its original LRU policy and invalidates the old
+  proactive observation; no duplicate file load or complete-load cost sample.
+  No hidden LRU in proactive path, cache enlargement or future eviction credit.
+- Scope is entry-full with sufficient actual peak allowance, not physical-byte-
+  full multi-victim capacity/reuse proof. Full guard stays. P1 D54 gives the
+  required correctness state table and exact limits. No GPU/model/174/profile/
+  performance campaign, new weights/traces or manuscript/old-result changes.
+- Initial16 checks had2 errors from missing new native CPU cost classes in the
+  mixed fixture, corrected explicitly; next16 pass. Expanded144 had2 old mock
+  call-argument assertions and7 errors from requiring file owner on native-only
+  paths; move that dependency to staged operations, no fallback/relaxed guard.
+  Next144 and initial930 full regression pass with no failure/error/skip.
+  Four added integrated checks cover original a/d targets at CPU capacity3,
+  E(t) deferral/cancel, demand takeover, and lost commit reply. Final frozen-source
+  native/regression/safety, cleanup and backup receipts follow.
+- Final review distinguishes registered and staging-only tensor bytes without
+  double-charging shared storage; all process-retained pinned bytes still count.
+  Adds one accounting check. Frozen-source931 functional checks,53 checks under
+  installedvLLM0.30.0/torch2.13.0+cu130, and56 safety/census/replay checks pass
+  with no failures/errors/skips. CUDA stays uninitialized. These are overlapping
+  correctness checks, not performance observations or independent repeats.
+- All nine D54 scopes have TasksCurrent0 and actual cgroup.procs empty, with
+  high/max/oom/oom_kill0, then stopped. Final GPUs15MiB/0%, available memory
+  108692732KiB, available disk353486036992 bytes. Protected147 and plan SHA
+  unchanged. No model/test remains running. Named-file Git checks and milestone
+  backup follow; baseline unchanged and no formal performance claim is made.
 
 ### D53 mainline review and explicit external decisions
 

@@ -39,7 +39,7 @@ from ..utils.config import Config
 from ..utils.logger import get_logger
 
 
-def _ieee_lora_host_inventory(manager: Any) -> Dict[str, Any]:
+def _ieee_lora_host_inventory(manager: Any, *, staged_models=None) -> Dict[str, Any]:
     """Storage reachable from dense native CPU adapters, without materialization.
 
     A LoRAModel clone/packed layer may share a storage. Charge its capacity once
@@ -48,6 +48,10 @@ def _ieee_lora_host_inventory(manager: Any) -> Dict[str, Any]:
     tmpfs files and page cache; it is not process RSS or a HOST-budget lease.
     """
     models = manager.list_adapters()  # Native read-only cache copy, no LRU touch.
+    if staged_models:
+        if set(models) & set(staged_models):
+            raise ValueError('native CPU object cannot be both staged and registered')
+        models = {**models, **staged_models}
     allocations = {}
     views = []
     adapters = []
@@ -138,7 +142,9 @@ def _ieee_lora_host_inventory(manager: Any) -> Dict[str, Any]:
     return {'host_allocations': physical, 'host_tensor_views': views,
             'host_adapter_footprints': adapters,
             'host_tensor_storage_bytes': sum(row['allocated_bytes'] for row in physical),
-            'host_footprint_scope': 'native_registered_tensor_storage_capacity',
+            'host_footprint_scope': ('native_registered_and_staged_tensor_storage_capacity'
+                                     if staged_models else 'native_registered_tensor_storage_capacity'),
+            'host_staged_adapter_ids': sorted(staged_models or ()),
             'host_allocator_overhead_included': False, 'host_budget_reserved': False}
 
 
@@ -163,15 +169,24 @@ def _ieee_pinned_host_observation(inventory: Dict[str, Any]) -> Dict[str, Any]:
     allocated, active, blocks, active_blocks = (stats[k] for k in keys)
     pinned = sum(row['allocated_bytes'] for row in inventory['host_allocations'] if row['pinned'])
     pageable = sum(row['allocated_bytes'] for row in inventory['host_allocations'] if not row['pinned'])
+    staged_ids = set(inventory.get('host_staged_adapter_ids', ()))
+    staged_only = [row for row in inventory['host_allocations']
+                   if staged_ids and row['adapter_ids'] and set(row['adapter_ids']).issubset(staged_ids)]
+    staged_pinned = sum(row['allocated_bytes'] for row in staged_only if row['pinned'])
+    staged_pageable = sum(row['allocated_bytes'] for row in staged_only if not row['pinned'])
     if active > allocated or active_blocks > blocks or pinned > active:
         raise ValueError('native pinned HOST inventory disagrees with allocator counters')
     return dict(kind='native_pinned_host_allocator_v1', available=True,
         pinned_allocated_bytes=allocated, pinned_active_bytes=active,
         pinned_cached_bytes=allocated-active, pinned_blocks=blocks,
-        pinned_active_blocks=active_blocks, registered_pinned_storage_bytes=pinned,
-        registered_pageable_storage_bytes=pageable,
+        pinned_active_blocks=active_blocks, registered_pinned_storage_bytes=pinned-staged_pinned,
+        registered_pageable_storage_bytes=pageable-staged_pageable,
+        staged_only_pinned_storage_bytes=staged_pinned,
+        staged_only_pageable_storage_bytes=staged_pageable,
+        native_pageable_storage_bytes=pageable,
         accounted_tensor_bytes=allocated+pageable,
-        scope='process_pinned_allocator_plus_registered_pageable_tensors',
+        scope=('process_pinned_allocator_plus_registered_and_staged_pageable_tensors' if staged_ids
+               else 'process_pinned_allocator_plus_registered_pageable_tensors'),
         total_host_memory_covered=False)
 
 
@@ -291,7 +306,7 @@ def _ieee_lora_pool_inventory(manager: Any, *, require_uniform_slots: bool = Fal
             'registered_cpu_adapter_ids': registered}
 
 
-def _ieee_host_copy_contract(manager: Any, adapter_int_id: int) -> list:
+def _ieee_host_copy_contract(manager: Any, adapter_int_id: int, *, staged_model=None) -> list:
     """Prove the v0.30 TP=1 path copies existing CPU tensors into fixed slots.
 
     No general claim that arbitrary LoRA modules need zero workspace. Unknown
@@ -305,7 +320,7 @@ def _ieee_host_copy_contract(manager: Any, adapter_int_id: int) -> list:
     from vllm.lora.layers.logits_processor import LogitsProcessorWithLoRA
     if vllm.__version__ != '0.30.0':
         raise RuntimeError('proactive HOST copy contract requires vLLM 0.30.0')
-    loaded = manager.list_adapters()[adapter_int_id]
+    loaded = manager.list_adapters()[adapter_int_id] if staged_model is None else staged_model
     matched, copies = 0, []
     for name, module in manager.modules.items():
         layer = manager._get_lora_layer_weights(loaded, name)
@@ -512,7 +527,8 @@ class IEEEWorkerObservationExtension:
                         or manager.moe_ep_load_spec is not None
                         or any(name.endswith('.experts') for name in manager.modules)):
                     raise RuntimeError('CPU-only preparation requires the qualified dense vLLM0.30/torch2.13 loader')
-                before = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager))
+                before = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager,
+                    staged_models=self._ieee_gpu_reference_owner.staged_models()))
                 if not before['available']:
                     raise RuntimeError('native CPU-only preparation lacks allocator occupancy')
                 contract = None if reuse else _ieee_file_host_contract(lora_path, native_loader.lora_config.lora_dtype)
@@ -521,7 +537,8 @@ class IEEEWorkerObservationExtension:
                 return dict(admitted=admitted, reason=None if admitted else 'native_host_tensor_budget',
                             before=before, contract=contract, tensor_budget_bytes=tensor_budget_bytes,
                             total_host_memory_covered=False)
-            def file_host_loader(*, adapter_int_id, lora_name, lora_path, tensor_budget_bytes, reuse):
+            def file_host_loader(*, adapter_int_id, lora_name, lora_path, tensor_budget_bytes, reuse,
+                                 register=True):
                 from vllm.lora.request import LoRARequest
                 from vllm.utils.gpu_sync_debug import gpu_sync_allowed
                 check = host_allocation_check(lora_path=lora_path, reuse=reuse,
@@ -535,14 +552,26 @@ class IEEEWorkerObservationExtension:
                     # Do not invoke add_adapter on the worker: it activates GPU.
                     with gpu_sync_allowed():
                         loaded = native_loader._load_adapter(request)
-                        if not manager.add_adapter(loaded):
+                        if not register:
+                            # Dense packing/scaling is normally performed by
+                            # manager.add_adapter. Complete it on the incoming
+                            # object before inspecting its copy geometry, with
+                            # no native cache publication or GPU activation.
+                            manager._create_merged_loras_inplace(loaded)
+                        if register and not manager.add_adapter(loaded):
                             raise RuntimeError('CPU-only adapter registration was not new')
                     if not any(manager._get_lora_layer_weights(loaded, name) for name in manager.modules):
                         raise RuntimeError('prepared adapter matched no executable native module')
-                after = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager))
+                staged = self._ieee_gpu_reference_owner.staged_models()
+                if not register:
+                    if reuse:
+                        raise ValueError('unregistered native staging cannot reuse a CPU entry')
+                    staged = {**staged, adapter_int_id: loaded}
+                after = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager,
+                    staged_models=staged))
                 if not after['available'] or after['accounted_tensor_bytes'] > tensor_budget_bytes:
                     raise RuntimeError('CPU-only preparation exceeded its accounted tensor sub-budget')
-                return {**check, 'after': after}
+                return {**check, 'after': after, **({'_staged_model': loaded} if not register else {})}
             self._ieee_gpu_reference_owner = IEEEBackendGPUReferences(
                 manager, completion_fence, demand_loader=demand_loader,
                 preparation_loader=preparation_loader, file_host_loader=file_host_loader,
@@ -581,11 +610,16 @@ class IEEEWorkerObservationExtension:
             # native CPU pins, enforced independently by the owner.
             kwargs['protected_adapter_ids'] = tuple(sorted(protected_ids))
             objective = kwargs.get('replacement_epoch')
+            file_fallbacks = kwargs.pop('host_file_fallbacks', None)
             if objective is not None and objective.get('kind') == 'ieee_owned_gpu_objective_v2':
                 from faaslora.preloading.preloading_planner import native_gpu_fallback_costs
-                kwargs['fallback_costs'] = native_gpu_fallback_costs(objective=objective,
-                    native_inventory={**_ieee_lora_host_inventory(manager),
-                                      **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)})
+                inventory = {**_ieee_lora_host_inventory(manager),
+                             **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
+                kwargs['fallback_costs'] = native_gpu_fallback_costs(objective=objective, native_inventory=inventory)
+                if file_fallbacks is not None:
+                    from faaslora.preloading.preloading_planner import native_host_replacement_costs
+                    kwargs['host_replacement_costs'] = native_host_replacement_costs(objective=objective,
+                        native_inventory=inventory, file_fallbacks=file_fallbacks)
             def decide(victim, slots):
                 # An externally submitted native request must not be an
                 # unreferenced victim merely because it bypassed our frontend.
@@ -600,7 +634,8 @@ class IEEEWorkerObservationExtension:
                     if aid is not None and (aid not in owner._references
                             or aid not in cpu_cache.pinned_items or aid not in gpu_cache.pinned_items):
                         raise ValueError('native admitted adapter lacks its executable reference')
-                _ieee_host_copy_contract(manager, kwargs['adapter_int_id'])
+                _ieee_host_copy_contract(manager, kwargs['adapter_int_id'],
+                    staged_model=owner.staged_models().get(kwargs['adapter_int_id']))
                 pool = _ieee_lora_pool_inventory(manager, require_uniform_slots=True)
                 if tuple(pool['slot_adapter_ids']) != slots:
                     raise RuntimeError('pool inventory changed inside native preparation')
@@ -655,7 +690,9 @@ class IEEEWorkerObservationExtension:
             result['native_footprints'] = {
                 **_ieee_lora_host_inventory(manager),
                 **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
-            result['native_host_allocator'] = _ieee_pinned_host_observation(result['native_footprints'])
+            result['native_staging_footprints'] = _ieee_lora_host_inventory(manager,
+                staged_models=owner.staged_models())
+            result['native_host_allocator'] = _ieee_pinned_host_observation(result['native_staging_footprints'])
             # CUDA ordinals can be remapped in dedicated workers; publish the
             # actual device identity so controller NVML queries cannot sample
             # a different physical GPU with a coincidentally equal index.

@@ -1435,7 +1435,12 @@ class MixedOwnedPreparation(unittest.TestCase):
             self.assertTrue(Path(kw['lora_path']).is_dir())
             loads.append(('host', kw['lora_name']))
             if not kw['reuse']:
-                manager._registered_adapters[kw['adapter_int_id']] = NativeAdapter()
+                model = NativeAdapter()
+                model.id = kw['adapter_int_id']
+                if kw.get('register', True):
+                    manager._registered_adapters[kw['adapter_int_id']] = model
+                else:
+                    return dict(admitted=True, _staged_model=model, total_host_memory_covered=False)
             return dict(admitted=True, total_host_memory_covered=False)
         owner = IEEEBackendGPUReferences(manager, Mock(), demand_loader=load,
             preparation_loader=load, file_host_loader=cpu_load,
@@ -1467,9 +1472,15 @@ class MixedOwnedPreparation(unittest.TestCase):
             result = snapshot() if operation == 'source_snapshot' else getattr(owner, operation)(**kw)
             return dict(result, worker_pid=os.getpid(), clock_id=local_monotonic_clock_id())
         async def prepare(**kw):
-            from faaslora.preloading.preloading_planner import native_gpu_fallback_costs
+            from faaslora.preloading.preloading_planner import (native_gpu_fallback_costs,
+                native_host_replacement_costs)
             fallbacks = native_gpu_fallback_costs(objective=kw['replacement_epoch'],
                                                  native_inventory=snapshot()['native_footprints'])
+            file_fallbacks = kw.pop('host_file_fallbacks', None)
+            if file_fallbacks is not None:
+                kw['host_replacement_costs'] = native_host_replacement_costs(
+                    objective=kw['replacement_epoch'], native_inventory=snapshot()['native_footprints'],
+                    file_fallbacks=file_fallbacks)
             return dict(owner.proactive_host_prepare_and_acquire(**kw, fallback_costs=fallbacks,
                 decide=lambda *_: dict(admit=True, reason='admit')), clock_id=local_monotonic_clock_id())
         slot.engine.ieee_gpu_reference = AsyncMock(side_effect=reference)
@@ -1502,6 +1513,8 @@ class MixedOwnedPreparation(unittest.TestCase):
         self.assertEqual(owner.snapshot()['live_leases'], 0)
         self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
         self.assertEqual(owner.snapshot()['pending_preparation_targets'], [])
+        self.assertEqual(owner.snapshot()['staged_host_adapter_ids'], [])
+        self.assertEqual(owner.snapshot()['live_staged_host_leases'], 0)
         self.assertFalse(getattr(runner, '_ieee_gpu_plan_tasks', ()))
         self.assertFalse(getattr(runner, '_ieee_file_plan_tasks', ()))
 
@@ -1825,6 +1838,150 @@ class ProactiveCostFeedback(unittest.TestCase):
             self.assertFalse(fixture.owner.leases)
             self.assertFalse(native.owner._host_leases)
             await queue.close()
+        asyncio.run(run())
+
+
+class IntegratedNativeHostReplacement(unittest.TestCase):
+    def make(self):
+        factory = MixedOwnedPreparation()
+        self.addCleanup(factory.doCleanups)
+        data = factory.make()
+        _, runner, _, slot, _, _, _ = data
+        from faaslora.preloading.preloading_planner import FrozenPreparationProfiles, PreparationCostModel
+        old = slot.preparation_cost_model
+        values = dict(old.snapshot()[1])
+        # Explicit complete fixture classes, including newly materialized CPU
+        # objects. These constants are not measured profiles or a runtime fallback.
+        for name in ('a','d'):
+            key = FrozenPreparationProfiles.source_class(dict(native=True,tier='host',footprint_bytes=512,
+                representation='native_cpu_dense_ab_v1:torch.float16:unpinned',
+                expected_content_sha256=runner._ieee_artifact_identities[name]['content_sha256']),
+                runner._preparation_profiles.size_edges_bytes)
+            values[key] = 2.
+        slot.preparation_cost_model = PreparationCostModel(values,beta=.5,profile_id=old.profile_id)
+        return factory, data
+
+    def test_original_two_target_residency_finishes_at_same_cpu_capacity(self):
+        factory, (fixture, runner, queue, slot, owner, snapshot, loads) = self.make()
+        async def run():
+            try:
+                result = await asyncio.wait_for(factory.execute(runner, slot, mode='residency'), 5)
+                selected = runner._stack.preloading_planner.validate_ieee_execution_plan(result['plan'])
+                self.assertEqual({x.artifact_id for x in selected['gpu']}, {'a','d'})
+                self.assertEqual(owner.manager.capacity, 3)
+                self.assertEqual(set(owner.manager.lora_index_to_id),
+                    {InferenceEngine._lora_int_id(a) for a in ('a','d')})
+                receipts = [a['receipt'] for p in runner._ieee_gpu_preparation_plans for a in p['attempts']]
+                self.assertTrue(any(r['replacement']['host_victim_adapter_ids'] for r in receipts))
+                self.assertEqual(loads.count(('host','d')), 1)
+                factory.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_deferred_gpu_keeps_all_old_residents_and_cancel_drops_staging(self):
+        factory, (fixture, runner, queue, slot, owner, snapshot, loads) = self.make()
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.preloading.preloading_planner import (native_gpu_fallback_costs,
+            native_host_replacement_costs)
+        async def run():
+            seen = asyncio.Event()
+            async def prepare(**kw):
+                evidence = kw.pop('host_file_fallbacks', None)
+                before = (tuple(owner.manager._registered_adapters), tuple(owner.manager.lora_index_to_id))
+                if evidence is not None:
+                    kw['host_replacement_costs'] = native_host_replacement_costs(objective=kw['replacement_epoch'],
+                        native_inventory=snapshot()['native_footprints'], file_fallbacks=evidence)
+                fallback = native_gpu_fallback_costs(objective=kw['replacement_epoch'],
+                    native_inventory=snapshot()['native_footprints'])
+                receipt = owner.proactive_host_prepare_and_acquire(**kw, fallback_costs=fallback,
+                    decide=lambda *_: dict(admit=evidence is None, reason='admit' if evidence is None else 'kv_pressure'))
+                if evidence is not None:
+                    self.assertFalse(receipt['acquired'])
+                    self.assertEqual(before, (tuple(owner.manager._registered_adapters), tuple(owner.manager.lora_index_to_id)))
+                    self.assertTrue(owner.staged_models())
+                    seen.set()
+                return dict(receipt, clock_id=local_monotonic_clock_id())
+            slot.engine.ieee_prepare_host.side_effect = prepare
+            task = asyncio.create_task(factory.execute(runner, slot, mode='residency'))
+            witness = asyncio.create_task(seen.wait())
+            try:
+                done, _ = await asyncio.wait((task,witness),timeout=5,return_when=asyncio.FIRST_COMPLETED)
+                if task in done: await task
+                self.assertIn(witness, done)
+                task.cancel()
+                with self.assertRaises(asyncio.CancelledError): await task
+                factory.check_clean(fixture, runner, owner)
+            finally:
+                task.cancel()
+                witness.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+                await queue.close()
+        asyncio.run(run())
+
+    def test_arriving_demand_reuses_staging_and_proactive_work_rechecks(self):
+        factory, (fixture, runner, queue, slot, owner, snapshot, loads) = self.make()
+        original = slot.engine.ieee_prepare_host.side_effect
+        overtaken = []
+        async def prepare(**kw):
+            if kw.get('host_file_fallbacks') is not None and not overtaken:
+                aid = kw['adapter_int_id']
+                staged_id = owner._staged_host[aid]['source_id']
+                receipt = owner.demand_load_and_acquire(lease_id='overtaking-demand', adapter_int_id=aid,
+                    lora_name=kw['lora_name'],lora_path=kw['lora_path'],
+                    expected_owner_id=owner.owner_id,expected_epoch=owner.snapshot()['epoch'])
+                self.assertTrue(receipt['acquired'])
+                self.assertTrue(receipt['native_staged_source_reused'])
+                self.assertEqual(receipt['source_tier_before_acquisition'],'staging')
+                self.assertEqual(receipt['native_host_source_id'],staged_id)
+                overtaken.append(receipt)
+                owner.release(lease_id='overtaking-demand',expected_owner_id=owner.owner_id)
+                queue.wake(owner_id=owner.owner_id)
+                # Native ownership has changed since the router's observation;
+                # the old transaction must reject before consulting its files.
+                from faaslora.clock import local_monotonic_clock_id
+                clean = {k:v for k,v in kw.items() if k!='host_file_fallbacks'}
+                return dict(owner.proactive_host_prepare_and_acquire(**clean,
+                    decide=lambda *_: self.fail('stale command evaluated admission')),
+                    clock_id=local_monotonic_clock_id())
+            return await original(**kw)
+        slot.engine.ieee_prepare_host.side_effect=prepare
+        async def run():
+            try:
+                await asyncio.wait_for(factory.execute(runner,slot,mode='residency'),5)
+                self.assertEqual(len(overtaken),1)
+                self.assertEqual(loads.count(('host','d')),1)
+                receipts=[a['receipt'] for p in runner._ieee_gpu_preparation_plans for a in p['attempts']]
+                self.assertTrue(any(r.get('preparation_reused_gpu') for r in receipts))
+                factory.check_clean(fixture,runner,owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_lost_joint_commit_reply_keeps_file_fallbacks_and_gpu_reference(self):
+        factory, (fixture, runner, queue, slot, owner, snapshot, loads) = self.make()
+        original = slot.engine.ieee_prepare_host.side_effect
+        async def prepare(**kw):
+            if kw.get('host_file_fallbacks') is not None:
+                held = [x['file_reference'] for x in kw['host_file_fallbacks'].values() if x['file_reference']]
+                self.assertTrue(held)
+                for ref in held:
+                    self.assertFalse(fixture.manager._delete_path(ref['path']))
+                result = await original(**kw)
+                self.assertTrue(result['acquired'])
+                raise ConnectionError('joint native commit reply lost')
+            return await original(**kw)
+        slot.engine.ieee_prepare_host.side_effect=prepare
+        async def run():
+            try:
+                with self.assertRaisesRegex(RuntimeError,'unreleased GPU operation'):
+                    await asyncio.wait_for(factory.execute(runner,slot,mode='residency'),5)
+                self.assertTrue(fixture.owner.leases)
+                self.assertEqual(owner.snapshot()['live_leases'],1)
+                self.assertTrue(owner._preparation_plans)
+                self.assertEqual(runner._ieee_gpu_preparation_plans[-1]['state'],'closure_unresolved')
+            finally:
+                await queue.close()
         asyncio.run(run())
 
 

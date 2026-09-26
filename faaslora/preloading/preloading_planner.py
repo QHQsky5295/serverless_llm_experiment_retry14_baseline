@@ -802,7 +802,8 @@ def owned_gpu_execution_objective(*, plan, selected, size_edges_bytes, initializ
         path = current['path'] or view['files']['artifacts'][name]['targets']['nvme']['path']
         sources.append(dict(adapter_id=name, adapter_int_id=view['adapter_int_ids'][name],
             lora_path=path, content_sha256=(current['expected_content_sha256'] if current['native']
-                                          else current['content_sha256'])))
+                                          else current['content_sha256']),
+            remote_fallback=copy.deepcopy(next(s for s in source['confirmed_copies'] if s['tier']=='remote'))))
     candidates = []
     for candidate in selected['gpu']:
         row = options[candidate.artifact_id, 'gpu']
@@ -851,6 +852,61 @@ def native_gpu_fallback_costs(*, objective, native_inventory):
             footprint_bytes=size, representation=representation,
             expected_content_sha256=row['content_sha256']), tuple(frozen['size_edges_bytes']))
         result[aid] = n/frozen['total_arrivals'] * values[key]
+    return result
+
+
+def native_host_replacement_costs(*, objective, native_inventory, file_fallbacks):
+    """Price current native CPU eviction using held fastest file/remote copies.
+
+    Controller file receipts remain held through this native commit. Costs and
+    demand come from the original epoch; footprint comes from this actual worker.
+    Exclusive tensor bytes rank victims, not a promise that the allocator frees
+    those bytes. Incoming staging has already passed the no-eviction peak budget.
+    """
+    from ..experiment.instance_pool import NativeSourceSnapshot
+    frozen = validate_native_gpu_epoch(objective)
+    ids = tuple(native_inventory['registered_cpu_adapter_ids'])
+    slots = tuple(native_inventory['slot_adapter_ids'])
+    if frozen['kind'] != 'ieee_owned_gpu_objective_v2' or set(file_fallbacks) != {str(a) for a in ids}:
+        raise ValueError('native HOST replacement requires complete file fallback observations')
+    observed, _, _ = NativeSourceSnapshot._footprints(native_inventory, slots, ids)
+    values = frozen_preparation_costs(frozen['cost_estimates'])
+    rows = {r['adapter_int_id']: r for r in frozen['sources']}
+    footprints = {r['adapter_int_id']: r for r in native_inventory['host_adapter_footprints']}
+    result = {}
+    for aid in ids:
+        row, evidence = rows[aid], file_fallbacks[str(aid)]
+        source = evidence['source']
+        if (source['tier'] not in ('host', 'nvme', 'remote') or source.get('native') is not False
+                or source.get('content_sha256') != row['content_sha256']):
+            raise ValueError('HOST replacement fallback content/tier differs')
+        if source['tier'] == 'remote':
+            if source != row['remote_fallback'] or evidence.get('file_reference') is not None:
+                raise ValueError('remote HOST fallback differs from the frozen immutable origin')
+        else:
+            lease = evidence['file_reference']
+            confirmed = lease.get('confirmed_source') or {}
+            if (lease.get('state') != 'held' or lease.get('content_verified') is not True
+                    or lease.get('adapter_id') != row['adapter_id']
+                    or lease.get('owner_id') != source.get('owner_id')
+                    or lease.get('path') != source['path'] or lease.get('tier') != source['tier']
+                    or confirmed.get('content_sha256') != row['content_sha256']
+                    or source['footprint_bytes'] != confirmed.get('allocated_file_bytes')
+                    or source['representation'] != confirmed.get('representation')):
+                raise ValueError('HOST eviction fallback lacks its held exact file copy')
+        n = frozen['arrival_counts'].get(row['adapter_id'], 0)
+        if n:
+            source_key = FrozenPreparationProfiles.source_class(source, tuple(frozen['size_edges_bytes']))
+            size, representation = observed[aid][:2]
+            host_key = FrozenPreparationProfiles.source_class(dict(native=True, tier='host',
+                footprint_bytes=size, representation=representation,
+                expected_content_sha256=row['content_sha256']), tuple(frozen['size_edges_bytes']))
+            current_d = 0. if aid in slots else values[host_key]
+            loss = n/frozen['total_arrivals'] * max(0., values[source_key]-current_d)
+        else:
+            loss = 0.
+        result[aid] = dict(loss_ms=loss, usable_bytes=footprints[aid]['exclusive_storage_bytes'],
+                           fallback_tier=source['tier'])
     return result
 
 

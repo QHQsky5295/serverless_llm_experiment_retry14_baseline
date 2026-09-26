@@ -1221,6 +1221,11 @@ class IEEEBackendGPUReferences:
         self.host_allocation_check = host_allocation_check
         self._native_host_tensor_budget = None
         self._file_host_preparations: Dict[str, Dict[str, Any]] = {}
+        # Unregistered incoming objects are charged to the same tensor budget.
+        # They are neither a HOST hit nor a larger native CPU cache. All live
+        # plans selecting the object own its lifetime until commit/plan close.
+        self._staged_host: Dict[int, Dict[str, Any]] = {}
+        self._staged_host_leases: Dict[str, int] = {}
         self.owner_id = uuid.uuid4().hex
         self.thread_id = threading.get_ident()
         self.epoch = 0
@@ -1287,12 +1292,48 @@ class IEEEBackendGPUReferences:
             self._source_incarnations[adapter_int_id] = uuid.uuid4().hex
         self._source_objects[adapter_int_id] = weakref.ref(model)
 
+    def staged_models(self):
+        return {aid: row['model'] for aid, row in self._staged_host.items()}
+
+    def _collect_staged_host(self):
+        targets = {aid for plan in self._preparation_plans.values() for aid in plan['identity'][1]}
+        held = set(self._staged_host_leases.values())
+        for aid in set(self._staged_host) - targets - held:
+            # Dropping the object is not claimed as allocator byte release.
+            # Subsequent allocation uses fresh process pinned-memory counters.
+            del self._staged_host[aid]
+            self.epoch += 1
+
+    def _register_staged_host(self, adapter_int_id):
+        """Same-owner commit after the caller has claimed actual CPU capacity."""
+        staged = self._staged_host.pop(adapter_int_id)
+        model = staged['model']
+        if not self.manager.add_adapter(model):
+            raise RuntimeError('staged native registration was not new')
+        self._sources[adapter_int_id] = staged['source']
+        self._source_objects[adapter_int_id] = weakref.ref(model)
+        self._source_incarnations[adapter_int_id] = staged['source_id']
+        held = [lid for lid, aid in self._staged_host_leases.items() if aid == adapter_int_id]
+        if held:
+            cpu = self._caches()[0]
+            self._host_borrowed_pins[adapter_int_id] = adapter_int_id in cpu.pinned_items
+            cpu.pin(adapter_int_id)
+            self._host_references[adapter_int_id] = set(held)
+            for lid in held:
+                self._host_leases[lid] = dict(self._file_host_preparations[lid]['receipt'],
+                    reference_scope='native_cpu_lru_source', reference_purpose='proactive_staging')
+                del self._staged_host_leases[lid]
+        self._refresh()
+
     def _refresh(self):
         if threading.get_ident() != self.thread_id:
             raise RuntimeError('GPU reference owner called outside its worker thread')
         if self._poisoned:
             raise RuntimeError(f'{self._poison_reason}; worker recovery required')
         cpu, gpu = self._caches()
+        if set(self._staged_host) & set(cpu):
+            self._poisoned = True
+            raise RuntimeError('native staged source registered outside its joint commit')
         # The read-only cache view does not touch native LRU ordering/statistics.
         for aid in cpu:
             reference = self._source_objects.get(aid)
@@ -1332,7 +1373,9 @@ class IEEEBackendGPUReferences:
                 'reference_counts': {str(aid): len(refs) for aid, refs in self._references.items()},
                 'live_leases': len(self._leases), 'released_leases': len(self._released),
                 'host_source_reference_counts': {str(aid): len(refs) for aid, refs in self._host_references.items()},
-                'live_host_source_leases': len(self._host_leases),
+                'live_host_source_leases': len(self._host_leases) + len(self._staged_host_leases),
+                'staged_host_adapter_ids': sorted(self._staged_host),
+                'live_staged_host_leases': len(self._staged_host_leases),
                 'pending_preparation_targets': sorted({aid for plan in self._preparation_plans.values()
                                                        for aid in plan['pending']}),
                 'snapshot_holds_reference': False}
@@ -1417,6 +1460,7 @@ class IEEEBackendGPUReferences:
                for lease, row in self._preparations.items()):
             raise RuntimeError('preparation plan still owns an unreleased GPU operation')
         self._preparation_plans.pop(plan_id, None)
+        self._collect_staged_host()
         # A late/lost register cannot revive a cancelled plan.
         self._closed_preparation_plans.add(plan_id)
         return dict(closed=True, plan_id=plan_id, **self.snapshot())
@@ -1451,6 +1495,10 @@ class IEEEBackendGPUReferences:
                 'epoch': self.epoch, 'captured_monotonic_s': time.monotonic(),
                 'slot_adapter_ids': list(slots), 'registered_cpu_adapter_ids': sorted(cpu),
                 'sources': sources, 'unknown_native_adapter_ids': unknown,
+                'staged_sources': [dict(adapter_int_id=aid, adapter_id=row['source'][0],
+                    lora_path=row['source'][1], native_host_source_id=row['source_id'],
+                    cpu_registered=False, gpu_slot=None)
+                    for aid, row in sorted(self._staged_host.items())],
                 'unconfirmed_gpu_adapter_ids': unconfirmed,
                 'complete_for_native_caches': not unknown and not unconfirmed,
                 # A received eligibility view, not a pin/reservation. Pending
@@ -1520,7 +1568,8 @@ class IEEEBackendGPUReferences:
                     or receipt.get('reference_purpose', 'demand_preparation') != reference_purpose):
                 raise ValueError('HOST source lease reused for another adapter')
             return dict(receipt)
-        if lease_id in self._host_released or lease_id in self._leases or lease_id in self._released:
+        if (lease_id in self._host_released or lease_id in self._leases
+                or lease_id in self._released or lease_id in self._staged_host_leases):
             raise ValueError('HOST source lease is not unused')
         if expected_epoch != self.epoch:
             return {'held': False, 'reason': 'stale_snapshot', **self.snapshot()}
@@ -1551,6 +1600,12 @@ class IEEEBackendGPUReferences:
             raise ValueError('HOST source owner changed')
         if lease_id in self._host_released:
             return {'released': True, 'already_released': True, **self.snapshot()}
+        if lease_id in self._staged_host_leases:
+            del self._staged_host_leases[lease_id]
+            self._host_released.add(lease_id)
+            self._collect_staged_host()
+            self.epoch += 1
+            return {'released': True, 'already_released': False, **self.snapshot()}
         if lease_id not in self._host_leases:
             raise ValueError('unknown HOST source lease')
         aid = self._host_leases[lease_id]['adapter_int_id']
@@ -1569,7 +1624,7 @@ class IEEEBackendGPUReferences:
 
     def prepare_file_host_and_hold(self, *, lease_id, adapter_int_id, lora_name,
                                   lora_path, expected_owner_id, expected_epoch,
-                                  native_host_tensor_budget_bytes):
+                                  native_host_tensor_budget_bytes, preparation_plan_id=None):
         """Protected local file -> native CPU registration/pin, without GPU load.
 
         This explicit path does not call the worker's add_adapter (which also
@@ -1589,15 +1644,17 @@ class IEEEBackendGPUReferences:
         slots = self._refresh()
         if expected_owner_id != self.owner_id:
             return dict(held=False, reason='owner_changed', **self.snapshot())
-        identity = (adapter_int_id, lora_name, lora_path, native_host_tensor_budget_bytes)
+        identity = (adapter_int_id, lora_name, lora_path, native_host_tensor_budget_bytes,
+                    preparation_plan_id)
         old = self._file_host_preparations.get(lease_id)
         if old is not None:
             if old['identity'] != identity:
                 raise ValueError('native HOST preparation lease identity changed')
-            if lease_id not in self._host_leases:
+            if lease_id not in self._host_leases and lease_id not in self._staged_host_leases:
                 raise ValueError('released native HOST preparation cannot be revived')
             return copy.deepcopy(old['receipt'])
-        if lease_id in self._host_leases or lease_id in self._host_released or lease_id in self._leases or lease_id in self._released:
+        if (lease_id in self._host_leases or lease_id in self._host_released
+                or lease_id in self._staged_host_leases or lease_id in self._leases or lease_id in self._released):
             raise ValueError('native HOST preparation lease is not unused')
         if expected_epoch != self.epoch:
             return dict(held=False, reason='stale_snapshot', **self.snapshot())
@@ -1613,13 +1670,53 @@ class IEEEBackendGPUReferences:
             return dict(held=False, reason='unowned_native_adapter', **self.snapshot())
         if adapter_int_id in slots:
             return dict(held=False, reason='required_source_changed', **self.snapshot())
-        if not cached and len(cpu) >= self.manager.capacity:
-            return dict(held=False, reason='host_replacement_required', **self.snapshot())
+        needs_staging = adapter_int_id in self._staged_host or (not cached and len(cpu) >= self.manager.capacity)
+        if needs_staging:
+            plan = self._preparation_plans.get(preparation_plan_id)
+            if plan is None or adapter_int_id not in plan['pending']:
+                return dict(held=False, reason='host_replacement_required', **self.snapshot())
+            row = next(r for r in plan['objective']['sources'] if r['adapter_int_id'] == adapter_int_id)
+            if (row['adapter_id'], row['lora_path']) != source:
+                raise ValueError('native staging source differs from the registered plan')
         if not callable(self.file_host_loader):
             raise RuntimeError('native CPU-only loader is not attached')
         before = (slots, tuple(cpu), tuple(cpu.pinned_items))
         start = time.monotonic()
         try:
+            if needs_staging:
+                previous = self._staged_host.get(adapter_int_id)
+                if previous is not None:
+                    if previous['source'] != source:
+                        raise ValueError('staged native source identity changed')
+                    allocation = previous['allocation']
+                else:
+                    allocation = self.file_host_loader(adapter_int_id=adapter_int_id,
+                        lora_name=lora_name, lora_path=lora_path, reuse=False, register=False,
+                        tensor_budget_bytes=native_host_tensor_budget_bytes)
+                    if not isinstance(allocation, dict) or type(allocation.get('admitted')) is not bool:
+                        raise ValueError('native staging loader lacks allocation outcome')
+                    if not allocation['admitted']:
+                        if (self._refresh(), tuple(cpu), tuple(cpu.pinned_items)) != before:
+                            raise RuntimeError('deferred native staging mutated caches')
+                        return dict(held=False, reason=allocation['reason'], allocation=allocation, **self.snapshot())
+                    allocation = dict(allocation)
+                    model = allocation.pop('_staged_model')
+                    if (self._refresh(), tuple(cpu), tuple(cpu.pinned_items)) != before:
+                        raise RuntimeError('unregistered staging mutated native residency')
+                    self._staged_host[adapter_int_id] = dict(model=model, source=source,
+                        source_id=uuid.uuid4().hex, allocation=allocation)
+                    self.epoch += 1
+                self._staged_host_leases[lease_id] = adapter_int_id
+                staged = self._staged_host[adapter_int_id]
+                receipt = dict(held=True, owner_id=self.owner_id, epoch=self.epoch,
+                    lease_id=lease_id, adapter_int_id=adapter_int_id, lora_name=lora_name,
+                    lora_path=lora_path, tier='staging', reference_scope='native_unregistered_cpu_staging',
+                    gpu_acquired=False, acquisition_operation='prepare_file_host_and_hold',
+                    native_host_source_id=staged['source_id'], native_load_invoked=previous is None,
+                    allocation=allocation, load_started_monotonic_s=start,
+                    load_completed_monotonic_s=time.monotonic(), total_host_memory_covered=False)
+                self._file_host_preparations[lease_id] = dict(identity=identity, receipt=copy.deepcopy(receipt))
+                return receipt
             allocation = self.file_host_loader(adapter_int_id=adapter_int_id,
                 lora_name=lora_name, lora_path=lora_path,
                 tensor_budget_bytes=native_host_tensor_budget_bytes, reuse=cached)
@@ -1673,7 +1770,7 @@ class IEEEBackendGPUReferences:
             return dict(receipt)
         if lease_id in self._released:
             raise ValueError('released lease ID cannot be reused')
-        if lease_id in self._host_leases or lease_id in self._host_released:
+        if lease_id in self._host_leases or lease_id in self._host_released or lease_id in self._staged_host_leases:
             raise ValueError('GPU lease collides with a HOST source lease')
         if expected_epoch != self.epoch:
             return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
@@ -1795,7 +1892,7 @@ class IEEEBackendGPUReferences:
         if expected_owner_id != self.owner_id:
             return {'acquired': False, 'reason': 'owner_changed', **self.snapshot()}
         source = (lora_name, lora_path)
-        if lease_id in self._host_leases or lease_id in self._host_released:
+        if lease_id in self._host_leases or lease_id in self._host_released or lease_id in self._staged_host_leases:
             raise ValueError('GPU lease collides with a HOST source lease')
         if adapter_int_id in self._sources and self._sources[adapter_int_id] != source:
             raise ValueError('native integer ID reused for a different adapter source')
@@ -1815,12 +1912,15 @@ class IEEEBackendGPUReferences:
             raise RuntimeError('native demand loader is not attached')
         cpu, gpu = self._caches()
         cpu_hit, gpu_hit = adapter_int_id in cpu, adapter_int_id in slots
+        staged = self._staged_host.get(adapter_int_id)
+        if staged is not None and staged['source'] != source:
+            raise ValueError('demand source differs from owned staging')
         if cpu_hit and adapter_int_id not in self._sources:
             # A pre-existing native cache entry carries no path identity. Do
             # not attach a new caller's name/path to it merely because IDs match.
             return {'acquired': False, 'reason': 'unowned_native_adapter', **self.snapshot()}
         gpu_confirmed = gpu_hit and adapter_int_id in self._gpu_confirmations
-        source_tier = 'gpu' if gpu_confirmed else ('host' if cpu_hit else 'file')
+        source_tier = 'gpu' if gpu_confirmed else ('host' if cpu_hit else 'staging' if staged is not None else 'file')
         if required_source_tier is not None and source_tier != required_source_tier:
             return {'acquired': False, 'reason': 'required_source_changed',
                     'observed_source_tier': source_tier, **self.snapshot()}
@@ -1837,7 +1937,7 @@ class IEEEBackendGPUReferences:
         if self._native_host_tensor_budget is not None:
             if not callable(self.host_allocation_check):
                 raise RuntimeError('budgeted native demand requires its allocation checker')
-            host_check = self.host_allocation_check(lora_path=lora_path, reuse=cpu_hit,
+            host_check = self.host_allocation_check(lora_path=lora_path, reuse=cpu_hit or staged is not None,
                 tensor_budget_bytes=self._native_host_tensor_budget)
             if not isinstance(host_check, dict) or type(host_check.get('admitted')) is not bool:
                 raise ValueError('native HOST allocation checker lacks an explicit outcome')
@@ -1847,6 +1947,15 @@ class IEEEBackendGPUReferences:
         start = time.monotonic()
         try:
             if not gpu_hit:
+                if staged is not None:
+                    # An arriving request may overtake proactive GPU admission.
+                    # Reuse its already budgeted CPU object under the ordinary
+                    # native demand LRU policy, not the proactive benefit test.
+                    # Existing CPU/GPU pins still protect executing requests.
+                    self.completion_fence()
+                    if len(cpu) >= self.manager.capacity:
+                        cpu.remove_oldest()
+                    self._register_staged_host(adapter_int_id)
                 loader(adapter_int_id=adapter_int_id,
                        lora_name=lora_name, lora_path=lora_path)
                 # Only an owned load may establish a new native object for this
@@ -1881,6 +1990,7 @@ class IEEEBackendGPUReferences:
                        gpu_confirmed_before_acquisition=gpu_confirmed,
                        gpu_resident_before_load=gpu_hit, cpu_registered_before_load=cpu_hit,
                        native_load_invoked=not gpu_hit,
+                       native_staged_source_reused=staged is not None,
                        native_host_source_id=self._source_incarnations.get(adapter_int_id),
                        native_load_started_monotonic_s=start if not gpu_hit else None,
                        native_load_completed_monotonic_s=(receipt['acquired_monotonic_s']
@@ -1893,7 +2003,8 @@ class IEEEBackendGPUReferences:
     def proactive_host_prepare_and_acquire(self, *, lease_id: str, adapter_int_id: int,
             lora_name: str, lora_path: str, expected_owner_id: str, expected_epoch: int,
             capacity_only: bool, decide, replacement_epoch=None,
-            protected_adapter_ids=(), preparation_plan_id=None, fallback_costs=None) -> Dict[str, Any]:
+            protected_adapter_ids=(), preparation_plan_id=None, fallback_costs=None,
+            host_replacement_costs=None) -> Dict[str, Any]:
         """Evaluate and commit HOST -> preallocated GPU on the owner thread.
 
         The engine-core bridge holds scheduling while this synchronous native
@@ -1937,7 +2048,8 @@ class IEEEBackendGPUReferences:
             if lease_id in self._released:
                 raise ValueError('released preparation lease cannot be reused')
             return copy.deepcopy(previous['receipt'])
-        if lease_id in self._leases or lease_id in self._released or lease_id in self._host_leases or lease_id in self._host_released:
+        if (lease_id in self._leases or lease_id in self._released or lease_id in self._host_leases
+                or lease_id in self._host_released or lease_id in self._staged_host_leases):
             raise ValueError('preparation lease is not unused')
         if expected_epoch != self.epoch:
             return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
@@ -1960,12 +2072,19 @@ class IEEEBackendGPUReferences:
                 self._preparations[lease_id] = dict(identity=identity, receipt=copy.deepcopy(receipt),
                                                      plan_id=preparation_plan_id)
                 return receipt
-        if (adapter_int_id not in cpu or adapter_int_id in slots
-                or self._sources.get(adapter_int_id) != (lora_name, lora_path)):
+        staged = self._staged_host.get(adapter_int_id)
+        if staged is not None and adapter_int_id in self._staged_host_leases.values():
+            return dict(acquired=False, reason='staged_source_still_referenced', **self.snapshot())
+        if ((staged is None and (adapter_int_id not in cpu
+                or self._sources.get(adapter_int_id) != (lora_name, lora_path)))
+                or (staged is not None and (registered is None or staged['source'] != (lora_name, lora_path)))
+                or adapter_int_id in slots):
             return {'acquired': False, 'reason': 'required_source_changed', **self.snapshot()}
         if not gpu.pinned_items.issubset(cpu.pinned_items):
             raise RuntimeError('native GPU pin lacks matching CPU eviction protection')
         victim = None
+        host_victim = None
+        host_loss = 0.
         replacement = None
         policy_reason = None
         if objective is not None:
@@ -1995,17 +2114,40 @@ class IEEEBackendGPUReferences:
                             if r['adapter_int_id'] == adapter_int_id) if mixed
                        else weighted_host_cost(adapter_int_id))  # GPU remaining d = 0.
             protected = set(protected_adapter_ids) | self._gpu_replacement_protection()
+            if staged is not None and len(cpu) >= self.manager.capacity:
+                if (not mixed or not isinstance(host_replacement_costs, dict)
+                        or set(host_replacement_costs) != set(cpu)):
+                    raise ValueError('staged GPU commit requires complete protected HOST fallback costs')
+                host_protected = protected | cpu.pinned_items | set(self._host_references)
+                eligible_host = []
+                for aid, row in host_replacement_costs.items():
+                    loss, usable = row['loss_ms'], row['usable_bytes']
+                    if (type(loss) not in (int, float) or not math.isfinite(loss) or loss < 0
+                            or type(usable) is not int or usable < 0):
+                        raise ValueError('invalid actual HOST replacement loss/usable bytes')
+                    if usable > 0 and aid not in host_protected:
+                        eligible_host.append(aid)
+                if eligible_host:
+                    host_victim = min(eligible_host, key=lambda aid: (
+                        host_replacement_costs[aid]['loss_ms']/host_replacement_costs[aid]['usable_bytes'],
+                        rows[aid]['adapter_id'], aid))
+                    host_loss = host_replacement_costs[host_victim]['loss_ms']
+                    if host_victim in slots:
+                        victim = host_victim  # CPU removal also removes this GPU slot.
+                else:
+                    policy_reason = 'no_eligible_host_replacement_victim'
             # Uniform preallocated dense slots: exactly one compatible victim
             # covers a full-pool insertion. File bytes/rank are NOT usable bytes.
             usable_bytes = objective['slot_capacity_bytes']
             eligible = sorted((aid for aid in slots if aid is not None and aid not in protected),
                 key=lambda aid: (weighted_host_cost(aid)/usable_bytes, rows[aid]['adapter_id'], aid))
-            if None not in slots:
+            if None not in slots and victim is None:
                 if eligible:
                     victim = eligible[0]
                 else:
                     policy_reason = 'no_eligible_replacement_victim'
-            loss = weighted_host_cost(victim) if victim is not None else 0.
+            loss = host_loss + (weighted_host_cost(victim)
+                               if victim is not None and victim != host_victim else 0.)
             if policy_reason is None and benefit <= loss:
                 policy_reason = 'replacement_benefit_not_greater_than_loss'
             replacement = dict(policy='ieee_loss_per_usable_slot_byte_v1',
@@ -2013,6 +2155,8 @@ class IEEEBackendGPUReferences:
                 cost_sequence=objective['cost_sequence'], demand_observed_at=objective['demand_observed_at'],
                 incoming_benefit_ms=benefit, eviction_loss_ms=loss,
                 victim_adapter_ids=[victim] if victim is not None else [],
+                host_victim_adapter_ids=[host_victim] if host_victim is not None else [],
+                host_eviction_loss_ms=host_loss,
                 usable_bytes=usable_bytes if victim is not None else 0,
                 target_slot_bytes=usable_bytes, fallback_tier='host',
                 protected_adapter_ids=sorted(protected), eligible_victims=len(eligible))
@@ -2038,18 +2182,32 @@ class IEEEBackendGPUReferences:
                   'candidate_victim_adapter_id': victim, 'capacity_only': capacity_only,
                   'replacement': replacement,
                   'replacement_policy': replacement['policy'] if replacement else 'native_lru_diagnostic',
-                  'transaction_scope': 'native_host_to_preallocated_gpu',
+                  'transaction_scope': ('budgeted_staging_joint_cpu_gpu_commit' if staged is not None
+                                        else 'native_host_to_preallocated_gpu'),
                   'all_tier_admission_reserved': False}
         if not evaluation['admit']:
             receipt = {'acquired': False, 'reason': evaluation['reason'], **self.snapshot(), **common}
         else:
             if not callable(self.preparation_loader):
                 raise RuntimeError('native preparation loader is not attached')
+            if staged is not None:
+                # Admission and both loss checks have passed on this owner
+                # thread. The incoming object is already budgeted, so no
+                # hypothetical freed bytes are used to materialize it.
+                try:
+                    self.completion_fence()
+                    if host_victim is not None:
+                        if not self.manager.remove_adapter(host_victim):
+                            raise RuntimeError('joint HOST victim was not removed')
+                    self._register_staged_host(adapter_int_id)
+                except BaseException:
+                    self._poisoned = True
+                    raise
             # No yield between evaluation, claiming the slot and the load.
             # GPU-only removal retains the exact CPU fallback; the native
             # loader sees a free slot and cannot silently choose another LRU
             # victim. Other demand loads retain their ordinary cache policy.
-            if objective is not None and victim is not None:
+            if objective is not None and victim is not None and victim != host_victim:
                 fallback = cpu.cache[victim]
                 try:
                     self.completion_fence()
@@ -2075,7 +2233,7 @@ class IEEEBackendGPUReferences:
             if removed != ({victim} if victim is not None else set()):
                 self._poisoned = True
                 raise RuntimeError('native preparation evicted a different victim')
-            if objective is not None and victim is not None:
+            if objective is not None and victim is not None and victim != host_victim:
                 if (victim not in cpu or cpu.cache[victim] is not fallback
                         or receipt['slot'] != before_slots.index(victim)):
                     self._poisoned = True

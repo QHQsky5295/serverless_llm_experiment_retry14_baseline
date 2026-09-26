@@ -59,6 +59,12 @@ class NativeManager:
         self._registered_adapters.pop(aid, None)
         return present
 
+    def add_adapter(self, model):
+        if model.id in self._registered_adapters:
+            return False
+        self._registered_adapters[model.id] = model
+        return True
+
     def activate(self, aid):
         if len(self._active_adapters) >= self.lora_slots:
             self._active_adapters.remove_oldest()
@@ -200,6 +206,26 @@ class NativeFileHostPreparation(unittest.TestCase):
             self.assertEqual(self.manager.lora_index_to_id, [1, 2])
             loader._load_adapter.assert_called_once()
             loader.add_adapter.assert_not_called()
+            owner = worker._ieee_gpu_reference_owner
+            owner._preparation_plans['fixture-stage'] = dict(identity=('fixture-sha',(5,)),pending={5},
+                objective={'sources':[dict(adapter_int_id=5,adapter_id='adapter-5',lora_path='/existing/adapter-5')]})
+            loaded5 = NativeAdapter()
+            loaded5.id = 5
+            loader._load_adapter.return_value = loaded5
+            self.manager._create_merged_loras_inplace = Mock()
+            before = (tuple(self.manager._registered_adapters),tuple(self.manager.lora_index_to_id))
+            staged = worker.ieee_gpu_reference(operation='prepare_file_host_and_hold', lease_id='staging',
+                adapter_int_id=5,lora_name='adapter-5',lora_path='/existing/adapter-5',
+                expected_owner_id=owner.owner_id,expected_epoch=owner.snapshot()['epoch'],
+                native_host_tensor_budget_bytes=1536,preparation_plan_id='fixture-stage')
+            self.assertTrue(staged['held'])
+            self.assertEqual(staged['tier'],'staging')
+            self.assertEqual(before,(tuple(self.manager._registered_adapters),tuple(self.manager.lora_index_to_id)))
+            self.manager._create_merged_loras_inplace.assert_called_once_with(loaded5)
+            self.assertIs(owner.staged_models()[5],loaded5)
+            owner.release_host_source(lease_id='staging',expected_owner_id=owner.owner_id)
+            owner.close_preparation_plan(plan_id='fixture-stage',expected_owner_id=owner.owner_id)
+            self.assertFalse(owner.staged_models())
 
 
 class NativeHostDemandBudget(unittest.TestCase):
@@ -658,7 +684,7 @@ class NativeProactiveTransactions(unittest.TestCase):
                      patch.object(gpu_monitor, '_ieee_lora_pool_inventory', return_value=pool):
                     result = worker.ieee_gpu_reference(**args)
                 self.assertEqual(result['acquired'], capacity_only)
-                check.assert_called_once_with(self.manager, 4)
+                check.assert_called_once_with(self.manager, 4, staged_model=None)
                 self.assertEqual(result['admission']['batch_pressure'], 1.)
                 self.assertEqual(result['admission']['load_pressure'], .5)
                 self.assertEqual(result['admission']['active_transfer_ids'], ['file-copy'])

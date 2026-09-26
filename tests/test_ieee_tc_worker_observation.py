@@ -90,10 +90,11 @@ class NativeHostFootprint(unittest.TestCase):
 
 
 class NativePinnedHostAccounting(unittest.TestCase):
-    def observe(self, stats, rows=()):
+    def observe(self, stats, rows=(), staged_ids=()):
         fake = SimpleNamespace(cuda=SimpleNamespace(host_memory_stats=lambda: stats))
         with patch.object(monitor, 'torch', fake):
-            return monitor._ieee_pinned_host_observation({'host_allocations': list(rows)})
+            return monitor._ieee_pinned_host_observation({'host_allocations': list(rows),
+                                                        'host_staged_adapter_ids': list(staged_ids)})
 
     def stats(self, allocated=1024, active=256):
         return {'allocated_bytes.current': allocated, 'active_bytes.current': active,
@@ -116,6 +117,18 @@ class NativePinnedHostAccounting(unittest.TestCase):
                 self.observe(stats)
         with self.assertRaisesRegex(ValueError, 'disagrees'):
             self.observe(self.stats(), [dict(pinned=True, allocated_bytes=512)])
+
+    def test_staged_objects_are_charged_but_not_labeled_registered(self):
+        rows = [dict(pinned=False,allocated_bytes=64,adapter_ids=[1]),
+                dict(pinned=False,allocated_bytes=128,adapter_ids=[2]),
+                dict(pinned=True,allocated_bytes=128,adapter_ids=[2]),
+                dict(pinned=False,allocated_bytes=32,adapter_ids=[1,2])]
+        result = self.observe(self.stats(),rows,staged_ids=(2,))
+        self.assertEqual(result['accounted_tensor_bytes'],1024+64+128+32)
+        self.assertEqual(result['registered_pageable_storage_bytes'],96)
+        self.assertEqual(result['staged_only_pageable_storage_bytes'],128)
+        self.assertEqual(result['registered_pinned_storage_bytes'],0)
+        self.assertEqual(result['staged_only_pinned_storage_bytes'],128)
 
     def test_file_contract_uses_shapes_not_materialized_tensors_and_rounds_up(self):
         import tempfile

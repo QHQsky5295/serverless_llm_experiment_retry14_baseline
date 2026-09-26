@@ -16167,20 +16167,58 @@ class ScenarioRunner:
             record['attempts'].append(evidence)
             current = checked(await engine.ieee_gpu_reference(operation='source_snapshot'))
             source = next((r for r in current['sources'] if r['adapter_int_id'] == aid), None)
+            staged = next((r for r in current.get('staged_sources', ()) if r['adapter_int_id'] == aid), None)
+            if source is None:
+                source = staged
             if source is None or (source['adapter_id'], source['lora_path']) != (row['adapter_id'], row['lora_path']):
                 raise ValueError('planned native HOST source changed; next planning epoch required')
             command = dict(lease_id=uuid.uuid4().hex, adapter_int_id=aid,
                 lora_name=row['adapter_id'], lora_path=row['lora_path'],
                 expected_owner_id=owner_id, expected_epoch=current['epoch'])
             evidence.update(state='native_pending', lease_id=command['lease_id'])
+            file_holds, file_fallbacks = [], {}
+            if staged is not None:
+                references = self._stack.residency_manager.local_source_references
+                try:
+                    # Hold each actual fastest remaining file copy before the
+                    # native transaction. No predicted path or stale snapshot
+                    # is used as a fallback after CPU/GPU reclamation.
+                    with references.lock:
+                        for registered_aid in current['registered_cpu_adapter_ids']:
+                            victim = rows[registered_aid]
+                            view = references.source_snapshot(victim['adapter_id'])
+                            local = sorted(view['sources'], key=lambda s: ('host','nvme').index(s['tier']))
+                            if local:
+                                fallback = local[0]
+                                held = references.acquire_confirmed(path=fallback['path'],
+                                    adapter_id=victim['adapter_id'], lease_id=uuid.uuid4().hex,
+                                    expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
+                                    expected_content_sha256=victim['content_sha256'])
+                                file_holds.append(held)
+                                fallback = dict(fallback, native=False, owner_id=view['owner_id'],
+                                                footprint_bytes=fallback['allocated_file_bytes'])
+                            else:
+                                fallback, held = victim['remote_fallback'], None
+                            file_fallbacks[str(registered_aid)] = dict(source=fallback, file_reference=held)
+                except BaseException:
+                    for held in file_holds:
+                        references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+                    raise
+            evidence['host_file_fallbacks'] = file_fallbacks
             call = engine.ieee_prepare_host(**command, capacity_only=capacity_only,
-                replacement_epoch=objective, preparation_plan_id=plan_id)
+                replacement_epoch=objective, preparation_plan_id=plan_id,
+                **({'host_file_fallbacks': file_fallbacks} if staged is not None else {}))
             try:
                 receipt, cancelled = await settle(call)
                 receipt = checked(receipt)
             except BaseException:
                 evidence['state'] = 'native_outcome_unresolved'
+                # The RPC may still be reclaiming against these exact copies.
+                # Retain unknown ownership; do not make them evictable.
                 raise
+            for held in file_holds:
+                references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+            evidence['host_file_fallbacks_released'] = True
             evidence['receipt'] = receipt
             if receipt.get('acquired') is True:
                 evidence['state'] = 'releasing'
@@ -16364,7 +16402,8 @@ class ScenarioRunner:
                 nonlocal known
                 command = dict(lease_id=uuid.uuid4().hex, adapter_int_id=aid,
                     lora_name=adapter_id, lora_path=str(source_path), expected_owner_id=owner_id,
-                    expected_epoch=observed['epoch'], native_host_tensor_budget_bytes=budget)
+                    expected_epoch=observed['epoch'], native_host_tensor_budget_bytes=budget,
+                    preparation_plan_id=plan_id)
                 evidence.update(state='native_pending', command=command)
                 known = False
                 receipt, cancelled = await settle(engine.ieee_gpu_reference(
