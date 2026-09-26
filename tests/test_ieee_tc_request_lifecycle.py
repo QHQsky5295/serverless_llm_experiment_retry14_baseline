@@ -571,6 +571,24 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         slot.engine.generate_prepared.side_effect = generate
         return runner, slot, trace, plan, owner, observed
 
+    def test_explicit_profile_measurement_reuses_actual_admission_without_cost_defaults(self):
+        for tier in ('gpu', 'host'):
+            runner, slot, trace, plan, owner, _ = self.build(tier)
+            protect = runner._ieee_protect_selected_source
+            async def collect(reservation, source, key):
+                return await protect(reservation, source, key, collect_profile_only=True)
+            runner._ieee_protect_selected_source = collect
+            result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+            self.assertTrue(result.success, result.error)
+            evidence = result.gpu_reference_evidence
+            self.assertTrue(evidence['source_admission']['profile_collection_only'])
+            self.assertEqual(evidence['service_intervals']['service_class']['tier'], tier)
+            self.assertEqual(len(evidence['service_events']), 2)
+            for key in slot.service_cost_model._profiles:
+                self.assertEqual(slot.service_cost_model.sample_counts(key), dict(d_ms=0, t_ms=0, o_ms=0))
+            self.assertEqual(owner.snapshot()['live_leases'], 0)
+            self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+
     def test_actual_gpu_and_host_requests_use_admission_fixed_class_and_native_events(self):
         for tier in ('gpu', 'host'):
             with self.subTest(tier=tier):

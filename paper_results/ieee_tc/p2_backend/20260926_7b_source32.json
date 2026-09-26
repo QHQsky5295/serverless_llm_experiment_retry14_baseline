@@ -1,0 +1,122 @@
+{
+  "kind": "native_source_interval_qualification_summary_v1",
+  "model": "llama2_7b",
+  "mechanical_boundary_checks_pass": true,
+  "full_model_qualification": false,
+  "formal_performance_result": false,
+  "router_qualified": false,
+  "physical_capacity_qualified": false,
+  "production_profile_frozen": false,
+  "n_plan": 32,
+  "n_native_target_matched": 32,
+  "native_output_tokens": 5967,
+  "sources": {
+    "gpu": 28,
+    "host": 4
+  },
+  "primed_requests": 16,
+  "host_d_ms": [
+    93.90952499234118,
+    103.71925900108181,
+    108.98943099891767,
+    118.30028501572087
+  ],
+  "max_e2e_error_ms": 0,
+  "max_tpot_error_ms": 0,
+  "all_prior_prompt_native_input_ids_match": true,
+  "prior_output_mismatch_request_ids": [
+    "req_00005"
+  ],
+  "request_references_all_released": true,
+  "adapter_caches_empty": true,
+  "resources": {
+    "samples": 256,
+    "peak_bytes": 4743290880,
+    "min_host_available_bytes": 106406178816,
+    "event_max": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "cleanup": {
+    "native_gpu_contexts_clear": true,
+    "service_scope_removed": true
+  },
+  "result_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_source32_attempt1.json",
+  "result_sha256": "28e01325a1aefd272615cdb47993eaa27bf1c3c87fb601b12c6d461989382614",
+  "launch_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_source32_attempt1_launch.json",
+  "launch_sha256": "5d6326a420ee71bbc5497ee9ff42a00e8acc1abf3d416312c7028c4077b37d9c",
+  "evidence_sha256": {
+    "watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exec_receipt.json": "a453d4d7b569f83d3821ab6e0bc6c92b27f4a8a59ca4d2d48045904f01047da6",
+    "watchdog.jsonl": "d7d94618f6804358d5f4ab2694ddbfd5370cf87d7e1b5d553c8ad010008830cd",
+    "service.log": "b31dc4f039f71e5d130005e3b5e99ae22d9abd34115d2bfa856413af8f9ea1b0"
+  },
+  "prior_csv_sha256": "b4ef1c6ccf7a57c42380e9ef2a7a229f4a24b941ccdb77b8ee78302bb73ecb0b",
+  "trace": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "216e8716a7db14abcf41e92112c0c8743c51b71fa40e7efdeb606857b4ae0a2e",
+    "count": 32,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1
+  },
+  "model_config": {
+    "name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+    "backend": "vllm",
+    "device_id": 0,
+    "visible_device_ids": [
+      0
+    ],
+    "tensor_parallel_size": 1,
+    "gpu_memory_utilization": 0.7,
+    "max_model_len": 1024,
+    "max_loras": 4,
+    "max_lora_rank": 64,
+    "enable_lora": true,
+    "enforce_eager": "auto",
+    "dtype": "float16",
+    "max_num_seqs": 2,
+    "max_num_batched_tokens": 1024,
+    "max_output_tokens_cap": 256,
+    "max_input_len": 759,
+    "runtime_concurrency_cap": 2,
+    "enable_chunked_prefill": true,
+    "enable_prefix_caching": false,
+    "vllm_use_v1": true,
+    "vllm_attention_backend": "FLASH_ATTN",
+    "vllm_use_flashinfer_sampler": true,
+    "timing_contract": "ieee_tc_native_v1",
+    "ieee_worker_observation": true,
+    "ieee_gpu_references": true,
+    "ieee_scheduler_observation": true,
+    "ieee_input_upper_bounds": [
+      759
+    ],
+    "generation_contract": "fixed_length_greedy_v1",
+    "canonical_prompt_renderer": "role_lines_v1",
+    "max_cpu_loras": 24
+  },
+  "config_sha256": "f923c36d541046639ba70691106cf7841b322f850377bd8d719004adc959e45d",
+  "check_source_sha256": "807e0de2629d8c6bc97e2388e59db327c2da069a43e962518173c5d4ae43a96e",
+  "runtime_receipt_sha256": "cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf",
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "qualification_sources_sha256": {
+    "scripts/run_all_experiments.py": "ca504f5fb673c51d8a1a4ea7ee5fe414327fc54d7c07b343a40d01ebd6021023",
+    "scripts/ieee_tc_preflight.py": "807e0de2629d8c6bc97e2388e59db327c2da069a43e962518173c5d4ae43a96e",
+    "faaslora/experiment/instance_pool.py": "6040ccf5666a20f8eb0a86f1922e3f641338dc5081a90c8ab7445d01b044314b"
+  },
+  "limitations": [
+    "single-worker serial qualification, not full routing or open-loop",
+    "16 first misses are primed outside admission; no Remote/NVMe interval measured",
+    "first-shape JIT and cache-state effects retained; no warm/performance claim",
+    "one HOST/GPU native-source sample class does not cover production service classes",
+    "whole-pool independent numerical adapter qualification remains open",
+    "req_00005 output hash differs from the earlier same-prompt/input 7B prefix; cause not established, no semantic pass claimed"
+  ],
+  "csv_sha256": "7479144e56efd6d06406efca3d78b1f35988c99a997ce6943dfe1a5072b4b342",
+  "semantic_output_qualification_complete": false
+}

@@ -13955,7 +13955,8 @@ class ScenarioRunner:
             evidence['state'] = 'rejected'
             raise RuntimeError(f"native reference acquisition conflict: {receipt.get('reason')}")
 
-    async def _ieee_protect_selected_source(self, reservation, source, service_class):
+    async def _ieee_protect_selected_source(self, reservation, source, service_class,
+                                            *, collect_profile_only=False):
         """Protect the selected copy before committing admission/class.
 
         Controller count reservation precedes this transaction. Known conflicts
@@ -14051,11 +14052,17 @@ class ScenarioRunner:
         key = replace(service_class, admitted_bin=bisect_left(
             slot.service_class_bins.admitted_requests, slot.active_requests))
         admitted_at = time.monotonic()
-        observation = ServiceIntervalObservation(slot.service_cost_model, key, admitted_at)
+        if collect_profile_only:
+            # Explicit measurement entry only. The live router never requests
+            # this and still requires its frozen, measured service estimates.
+            observation = ServiceIntervalObservation.for_profiling(key, admitted_at)
+        else:
+            observation = ServiceIntervalObservation(slot.service_cost_model, key, admitted_at)
         reservation.ieee_observation = observation
         evidence['source_admission'] = dict(kind='selected_source_admission_v1',
             source=dict(source), service_class=asdict(key), admitted_monotonic_s=admitted_at,
-            admitted_after_accept=slot.active_requests, physical_capacity_qualified=False)
+            admitted_after_accept=slot.active_requests, physical_capacity_qualified=False,
+            profile_collection_only=collect_profile_only)
         evidence['confirmed_dispatch_snapshot'] = True
         reservation.ieee_routing_evidence['selected_reference_acquired'] = source['tier'] not in ('remote', 'backbone')
         slot.ieee_last_dispatch_at = admitted_at

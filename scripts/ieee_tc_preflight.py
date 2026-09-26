@@ -1772,6 +1772,120 @@ async def qualify_native_cancel_reference(engine, plan, adapters, result, *, inc
     result.update(stage='complete', **{'pass': True})
 
 
+async def qualify_native_source_intervals(engine, plan, adapters, result):
+    """Measure actual admission helpers without claiming a qualified Full router.
+
+    A single, serial native worker has no selection decision. First touches are
+    explicitly primed and excluded from the measured native-source intervals;
+    subsequent HOST sources arise from native LRU, not forced sleeps/evictions.
+    No fictitious initial service estimate is needed for profile collection.
+    """
+    import asyncio
+    from dataclasses import asdict
+    from faaslora.clock import local_monotonic_clock_id
+    from faaslora.experiment.instance_pool import (
+        InstanceSlot, NativeSourceSnapshot, ServiceClassBins, NativeServiceIntervalObserver)
+    from scripts.run_all_experiments import ScenarioRunner, RuntimeRequestReservation
+    clock_id = local_monotonic_clock_id()
+    # Only source-admission/preparation methods are exercised. Do not construct
+    # a fake Router, planner, transfer owner or zero-latency production profile.
+    boundary = ScenarioRunner.__new__(ScenarioRunner)
+    boundary.model_cfg, boundary._stack = result['model_config'], None
+    slot = InstanceSlot('source-qualification-only', engine, None)
+    bins = ServiceClassBins((759,), (256,), (8, 16, 64), (), (1,))
+    slot.service_class_bins = bins
+    result.update(profile_collection_only=True, router_qualified=False,
+                  physical_capacity_qualified=False, observation_bins=asdict(bins),
+                  priming_policy='first_native_miss_load_release_before_measured_admission')
+    for entry in plan.entries:
+        row = json.loads(entry.source_json)
+        aid, target = row['adapter_id'], min(row['expected_output_tokens'], 256)
+        case = dict(request_id=entry.request_id, adapter_id=aid, target_tokens=target,
+                    source_row_sha256=entry.source_sha256, **{'pass': False})
+        result['requests'].append(case)
+        result['stage'] = 'source_interval:' + entry.request_id
+        prepared = engine.prepare_request('', target, row['expected_input_tokens'],
+                                          chat_messages=row['body']['messages'])
+        if prepared.max_tokens != target:
+            raise RuntimeError('source qualification changed the fixed output target')
+        case.update(prompt_sha256=hashlib.sha256(prepared.prompt.encode()).hexdigest(),
+                    input_content_tokens=prepared.input_tokens)
+        integer = engine._lora_int_id(aid)
+        async def observe():
+            payload = await engine.ieee_gpu_reference(operation='source_snapshot')
+            state = NativeSourceSnapshot.from_native(payload, expected_clock_id=clock_id,
+                                                     received_monotonic_s=time.monotonic())
+            if not slot.commit_native_sources(state) or state.unknown_native_adapter_ids:
+                raise RuntimeError('source qualification lacks a complete current native view')
+            return state, next((s for s in state.sources if s.adapter_int_id == integer), None)
+        state, native = await observe()
+        if native is None:
+            prime = await engine.ieee_gpu_reference(operation='demand_load_and_acquire',
+                lease_id='profile-prime/'+entry.request_id, adapter_int_id=integer,
+                lora_name=aid, lora_path=adapters[aid]['path'],
+                expected_owner_id=state.owner_id, expected_epoch=state.epoch)
+            case['priming_reference'] = prime
+            if prime.get('acquired') is not True:
+                raise RuntimeError('source priming conflict; no hidden retry')
+            case['priming_release'] = await engine.ieee_gpu_reference(operation='release',
+                lease_id=prime['lease_id'], expected_owner_id=prime['owner_id'])
+            if case['priming_release'].get('released') is not True:
+                raise RuntimeError('source priming release not acknowledged')
+            state, native = await observe()
+        if native is None or native.adapter_id != aid or native.lora_path != adapters[aid]['path']:
+            raise RuntimeError('native selected source identity differs from frozen input')
+        key = native.service_class(bins, prompt_tokens=prepared.input_tokens,
+            declared_output_tokens=target, admitted_after_accept=1)
+        features = dict(tier=native.tier, prompt_tokens=prepared.input_tokens,
+            declared_output_tokens=target, adapter_rank=native.rank,
+            footprint_bytes=(native.gpu_slot_capacity_bytes if native.tier == 'gpu'
+                             else native.host_storage_bytes),
+            representation=(native.gpu_representation if native.tier == 'gpu'
+                            else native.host_representation), admitted_after_accept=1)
+        source = dict(native=True, tier=native.tier, path=native.lora_path,
+                      owner_id=state.owner_id, epoch=state.epoch)
+        reservation = RuntimeRequestReservation(entry.request_id)
+        reservation.bind(slot, aid, False)
+        reservation.ieee_routing_evidence = dict(selection='single_worker_qualification_not_router')
+        slot.active_requests = 1
+        accepted = await boundary._ieee_protect_selected_source(
+            reservation, source, key, collect_profile_only=True)
+        case['source_evidence'] = reservation.gpu_reference_evidence
+        if not accepted:
+            raise RuntimeError('serial source admission conflicted; no hidden retry')
+        reference = await boundary._ieee_prepare_selected_adapter(reservation)
+        case['reference'] = reference
+        observation = reservation.ieee_observation
+        observer = NativeServiceIntervalObserver(observation, clock_id=clock_id,
+                                                 adapter_id=aid, gpu_reference=reference)
+        generated = await asyncio.wait_for(engine.generate_prepared(request_plan=prepared,
+            lora_path=native.lora_path, adapter_id=aid, temperature=0., top_p=1.,
+            generation_seed=42, return_timing=True, gpu_reference=reference,
+            native_event_observer=observer), timeout=1800.)
+        timing = generated[3]
+        case.update(actual_tokens=generated[2], timing=timing, native_events=observer.events,
+            class_features=features, service_class=asdict(observation.key),
+            admission_clock_id=clock_id, native_clock_id=timing['native_clock_id'],
+            admitted_monotonic_s=observation.admitted_at,
+            acquired_monotonic_s=observation.acquired_at,
+            first_token_monotonic_s=observation.first_at, last_token_monotonic_s=observation.last_at,
+            protected_at_admission=True)
+        if (generated[2] != target or timing['native_terminal_observed'] is not True
+                or len(observer.events) != 2 or not observation.closed
+                or observer.events[-1]['token_count'] != target
+                or observation.first_at != timing['native_first_token_monotonic_s']
+                or observation.last_at != timing['native_last_token_monotonic_s']):
+            raise RuntimeError('native source interval events disagree with completed generation')
+        case['release'] = await engine.ieee_gpu_reference(operation='release',
+            lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'])
+        if case['release'].get('released') is not True:
+            raise RuntimeError('source interval reference was not released')
+        slot.active_requests = 0
+        case['pass'] = True
+        print(json.dumps(dict(event='model_qualification_request', request_id=entry.request_id,
+                              target_tokens=target, actual_tokens=generated[2], tier=native.tier)), flush=True)
+
+
 async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                               trace: Path, count: int, mode: str = 'sequential',
                               artifact_audit: Path | None = None) -> dict:
@@ -1790,7 +1904,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         raise ValueError('qualification uses a 1..100 request prefix, not a regenerated trace')
     if mode not in ('sequential', 'concurrent_pairs', 'cancel_pairs', 'cancel_pairs_retain_adapter',
                     'cancel_pairs_subprocess', 'native_cancel_reference',
-                    'native_adapter_reference', 'native_numeric_reference') or (mode != 'sequential' and count != 4):
+                    'native_adapter_reference', 'native_numeric_reference', 'native_source_intervals') or (
+                    mode not in ('sequential', 'native_source_intervals') and count != 4):
         raise ValueError('concurrent qualification requires exactly the original four-request prefix')
     result = {'kind': 'backend_native_model_prefix_qualification_v1', 'pass': False,
               'full_model_qualification': False, 'production_launch_authorized': False,
@@ -1805,6 +1920,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                       input_mode='existing_four_request_prefix_concurrent_pairs_qualification')
     if mode in ('native_adapter_reference', 'native_numeric_reference'):
         result['input_mode'] = 'same_existing_req00003_sequential_adapter_controls'
+    if mode == 'native_source_intervals':
+        result['input_mode'] = 'existing_trace_prefix_sequential_source_profiling'
     engine = None
     try:
         import asyncio
@@ -1905,7 +2022,9 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 include_pairs=(mode == 'native_cancel_reference'), numeric_controls=numeric_controls)
             return result
         result['sources_before'] = await engine.ieee_gpu_reference(operation='source_snapshot')
-        if mode != 'sequential':
+        if mode == 'native_source_intervals':
+            await qualify_native_source_intervals(engine, plan, adapters, result)
+        elif mode != 'sequential':
             result['stage'] = mode
             await qualify_concurrent_pairs(engine, plan, adapters, result,
                 cancel_first=mode.startswith('cancel_pairs'),
@@ -2092,7 +2211,8 @@ def main():
     parser.add_argument('--expected-adapters', type=int, default=500)
     parser.add_argument('--qualification-mode', choices=['sequential', 'concurrent_pairs', 'cancel_pairs',
                         'cancel_pairs_retain_adapter', 'cancel_pairs_subprocess',
-                        'native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference'], default='sequential')
+                        'native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference',
+                        'native_source_intervals'], default='sequential')
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')

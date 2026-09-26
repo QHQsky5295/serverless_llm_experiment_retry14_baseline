@@ -547,9 +547,25 @@ class ServiceIntervalObservation:
     """
     def __init__(self, model: ServiceCostModel, key: ServiceObservationClass,
                  admitted_at: float):
+        model.estimate(key)
+        self._initialize(model, key, admitted_at)
+
+    @classmethod
+    def for_profiling(cls, key: ServiceObservationClass, admitted_at: float):
+        """Collect first measurements without inventing an initial estimate.
+
+        This observation cannot rank a replica or supply a service estimate.
+        Production construction still requires a supported measured cost model.
+        """
+        observation = cls.__new__(cls)
+        observation._initialize(None, key, admitted_at)
+        return observation
+
+    def _initialize(self, model, key, admitted_at):
         if not math.isfinite(admitted_at) or admitted_at < 0:
             raise ValueError('invalid admission timestamp')
-        model.estimate(key)
+        if not isinstance(key, ServiceObservationClass):
+            raise TypeError('service observation requires an explicit class')
         self.model, self.key = model, key
         self.admitted_at = admitted_at
         self.acquired_at = self.first_at = self.last_at = None
@@ -565,19 +581,22 @@ class ServiceIntervalObservation:
         self._check_event(timestamp, self.admitted_at)
         if self.acquired_at is not None:
             raise ValueError('executable adapter has already been acquired')
-        self.model.record_interval(self.key, 'd_ms', (timestamp - self.admitted_at) * 1000)
+        if self.model is not None:
+            self.model.record_interval(self.key, 'd_ms', (timestamp - self.admitted_at) * 1000)
         self.acquired_at = timestamp
 
     def first_token(self, timestamp: float):
         self._check_event(timestamp, self.acquired_at)
         if self.first_at is not None:
             raise ValueError('first token already recorded')
-        self.model.record_interval(self.key, 't_ms', (timestamp - self.acquired_at) * 1000)
+        if self.model is not None:
+            self.model.record_interval(self.key, 't_ms', (timestamp - self.acquired_at) * 1000)
         self.first_at = timestamp
 
     def last_token(self, timestamp: float):
         self._check_event(timestamp, self.first_at)
-        self.model.record_interval(self.key, 'o_ms', (timestamp - self.first_at) * 1000)
+        if self.model is not None:
+            self.model.record_interval(self.key, 'o_ms', (timestamp - self.first_at) * 1000)
         self.last_at = timestamp
         self.closed = True
 

@@ -40,6 +40,32 @@ def event(index=1, *, adapter=False, **changes):
 
 
 class NativeServiceObservationTests(unittest.TestCase):
+    def test_initial_profile_collection_has_no_synthetic_estimate(self):
+        key = ServiceObservationClass('host', 0, 0, 0, 0, 'fixture-fp16', 0)
+        obs = ServiceIntervalObservation.for_profiling(key, 99.)
+        self.assertIsNone(obs.model)
+        obs.acquire(100.)
+        receive = NativeServiceIntervalObserver(obs, clock_id='clock-a', adapter_id=None)
+        receive(event())
+        receive(event(2))
+        self.assertEqual((obs.admitted_at, obs.acquired_at, obs.first_at, obs.last_at),
+                         (99., 100., 100.5, 101.1))
+        self.assertTrue(obs.closed)
+        with self.assertRaises(AttributeError):
+            ServiceIntervalObservation(None, key, 99.)
+
+    def test_profile_collection_keeps_gpu_zero_and_cancel_invariants(self):
+        key = ServiceObservationClass('gpu', 0, 0, 0, 0, 'fixture-fp16', 0)
+        obs = ServiceIntervalObservation.for_profiling(key, 100.)
+        self.assertEqual(obs.acquired_at, 100.)
+        with self.assertRaises(ValueError):
+            obs.acquire(100.1)
+        obs.first_token(100.5)
+        obs.cancel()
+        with self.assertRaises(ValueError):
+            obs.last_token(101.)
+        self.assertIsNone(obs.last_at)
+
     def test_admission_class_and_each_completed_interval_updated_once(self):
         receive = observer(adapter=True)
         receive(event(adapter=True))

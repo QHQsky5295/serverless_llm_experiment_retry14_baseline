@@ -4,6 +4,41 @@
 完整模型/池资格与性能资格仍未完成。
 旧环境与旧结果不覆盖。
 
+## 2026-09-26：7B 实际 source admission / D+T+O 资格
+
+复用原前 32 请求；单 worker 顺序执行，调用 D25 的实际接纳/准备方法与原生
+token observer。没有构造默认延迟或假 profile；这次不运行 Full 路由/规划。
+首次原生 miss 先 load/release，16 条 priming 的回执均保留且位于测量接纳前，
+因此不能把这一诊断说成真实 remote 主实验或端到端成本收益。
+
+| 检查 | 结果 | 结论边界 |
+|---|---|---|
+| 固定输出 | 32/32，5,967 native tokens | 机械合同通过，不替代数值正确性 |
+| 接纳源 | GPU 28，HOST 4 | HOST 由原生 LRU 自然产生，无强制驱逐 |
+| GPU D | 28 次全部 0；可执行引用先于接纳 | 不是在 resolve 后追认命中 |
+| HOST D | 93.910 / 103.719 / 108.989 / 118.300 ms | 含实际控制/加载路径，不称纯 H2D 时间或稳定均值 |
+| 原生事件、分解、TPOT | 32 条一致，恒等式和重算最大误差均为 0 ms | 同一实际 monotonic 时间域 |
+| 原始 prompt / native input IDs | 32/32 与历史前缀一致 | 无重新生成输入 |
+| 历史 native output SHA | 31/32 一致；req_00005 不同 | 原样保留，原因未确立，语义/数值资格仍开放 |
+| 引用与退出 | 每条 GPU/HOST 引用归还、cache 清空、GPU contexts 清空、scope 移除 | 实际整卡生命周期计量仍另行接入 |
+| 资源 | 256 次采样，峰值 4,743,290,880 bytes；high/max/OOM 全零 | 不外推完整负载峰值 |
+
+req_00005 为既有 legal_lora，同 prompt、目标和原生 input IDs；当前输出 SHA
+`73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3`，
+历史为 `a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272`。
+不能仅因长度正确而宣称语义验证全部通过，也不能未证明就归咎于某个数值 kernel。
+保留已有全池/数值资格问题，不重复没有判别力的零权重同提示对照。
+
+本次初始 JIT 与串行 admitted=1、仅 GPU/HOST 的覆盖均记录。当前原始区间
+不是完整冻结生产 profile，不据此设 SLO，不生成系统优越性图。按计划 11.2
+交付状态表及逐请求 CSV/JSON：`paper_results/ieee_tc/p2_backend/20260926_7b_source32.*`。
+原始 SHA `28e01325a1aefd272615cdb47993eaa27bf1c3c87fb601b12c6d461989382614`。
+新增三项测试后的完整功能回归 653 项通过（22.819 s），安全/census/replay
+56 项通过（.648 s），无跳过或失败。
+
+下一步沿主线接通物理容量/生命周期并补齐真实服务类初始化和集成资格，不把
+这次测量包装为 Full、远端 174、M1/M2 或新一轮性能胜负证据。
+
 ## 2026-09-26：实际跨进程取消（7B）
 
 假设：旧 proxy 把单连接取消标为整个 engine dead，会阻止已知请求的

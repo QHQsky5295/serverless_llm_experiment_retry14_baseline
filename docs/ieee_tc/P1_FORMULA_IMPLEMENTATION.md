@@ -1228,3 +1228,39 @@ load/reference 路径作为已合格 Full 的性能结果。其它 legacy 实验
 互换；接纳后原生容量冲突还需与真实 owner 的等待/唤醒协调。不能通过删除身份
 校验、固定 sleep、猜测释放或旧模拟路径兜底解决。全池数值正确性、真实 profile、
 远端磁盘门槛、SLO 标定、Serverless 优先的 baseline 对照和正式矩阵仍未完成。
+
+## P1-D26：先测量，再初始化服务成本
+
+### 本次问题与明确边界
+
+D25 已把接纳边界接到真实方法，但此前只有受控事件测试。直接运行 Full 又需要
+真正测得的初始化 profile；用测试常数填入路由器会形成循环论证。因此复用现有
+`backend-model-check`，增加显式 `native_source_intervals` 资格方式。它调用原
+ScenarioRunner 的 source protection / preparation 方法和原生 token observer，
+但只选一个真实 worker，不创建虚构 Router、planner 或零延迟 profile。
+
+`ServiceIntervalObservation.for_profiling` 仅收集已发生区间，不提供 estimate；
+普通构造仍要求支持该观测类的 ServiceCostModel。生产路由不调用此资格方式。
+九个行间公式、EWMA、原生 LRU/批处理及模型配置均不因这次测量而改变。
+
+本次使用原 7B trace 的前 32 条、原权重和 adapter。历史前缀在第 21 条开始出现
+原生 HOST 复用，故不增加人工驱逐。原生缺失时明确先 load/release，再开始这条
+GPU/HOST 边界测量；priming 回执保留，不能当成 Remote 加载为零的主实验。
+这是逐请求资格回放，不遵循主实验 open-loop 到达，亦无扩缩容或共同 SLO 结论。
+
+### 依据与验收
+
+核对 [vLLM 0.30.0 原生 LoRA manager](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/worker_manager.py)
+的 CPU cache 复用/原生激活边界，以及
+[AsyncLLM 原生输出](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/v1/engine/async_llm.py)。
+本次不改官方调度策略，只检查已有缓存副本在接纳时的保护及实际 token 事件。
+
+必须同时检查：固定原生输出数量、源身份、HOST-only 引用、GPU D=0、HOST D 的
+非负顺序、事件与最终回复一致、D+T+O 恒等式、引用归还及实际 worker 退出。
+原始 footprint/rank/prompt/output/admitted count 保留，资格用粗分桶不自动成为
+正式冻结分桶。首次 JIT、串行并发度一、Remote/NVMe 缺失与样本覆盖限制必须
+保留；不能把这些观测直接宣布为完整生产 profile 或系统性能收益。
+
+新增三项确定性检查，GPU/HOST 子案例覆盖显式 profile-only 接纳、无初始化
+估计、生产入口不接受空 model、GPU 零区间与取消不补 O；26 项定向检查通过。
+真实模型与最终完整回归结果另列执行状态和 P2 资格表，未通过前不预填成功。
