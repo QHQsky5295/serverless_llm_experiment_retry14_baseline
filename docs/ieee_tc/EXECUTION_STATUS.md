@@ -94,7 +94,7 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `c27351347c1685070514e39a028c6b4ef8185939`, pushed to
+- Main tested implementation: `34d8fabab094bd49201f9ea000fc54f8ec051ec3`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -204,6 +204,12 @@ its one historical SHA difference and independent numerical gate remain open.
   local path or old model prefixes. Formal baselines/M1/M2/ablations/sensitivities
   remain not started. Goal active; outstanding remote disk and3B fixture authority
   gates remain unchanged. Preserve both repositories' pre-existing user dirt.
+- Implementation34d8fabab094bd49201f9ea000fc54f8ec051ec3 pushed to
+  faaslora_origin/retry14_continuous_queue_v2; full remote SHA verified. This
+  subsequent backup receipt is documentation-only. All seven owned D41 scopes
+  are stopped, no model or test job remains live. Recheck plan/status/resources
+  on continuation, then integrate total HOST ownership and automatic planning,
+  not another isolated native-HOST/pressure or old-model-prefix qualification.
 
 ### D40 shared/preactivation file-owner pressure
 
