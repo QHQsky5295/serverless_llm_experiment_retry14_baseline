@@ -1883,7 +1883,7 @@ D35已接上需求窗口与数学规划，但成本仍须由调用者提供；�
 |---|---|
 | 初值是否由测量边界得出 | 历史时钟fixture的两个加载区间3000/1000ms形成2000ms均值，不使用含初始等待的D |
 | 缺类能否借用相似类 | 内容、表示或size bin不匹配均拒绝，无rank-only、邻近类或固定延迟兜底 |
-| 请求是否更新自己的来源类 | 实际runner＋native-cache替身＋微型真实文件/HTTP接口覆盖native HOST、文件HOST/NVMe/Remote；仅本类更新，GPU命中不更新 |
+| 请求是否更新自己的来源类 | 实际runner＋native-cache替身＋临时文件/HTTP响应夹具覆盖native HOST、文件HOST/NVMe/Remote；仅本类更新，GPU命中不更新，非真实远端实验 |
 | 缺类是否先加载再失败 | 真实请求入口在hold/load之前抛出缺类错误，未调用生成，未遗留native引用 |
 | 更新能否影响下一规划 | 请求释放后，受控缓存替身退回HOST；重新读取来源，实际stack下一handoff计划使用更新后的d和序号 |
 | 新副本是否继承测试学习 | 实际InstancePool第二副本恢复冻结均值；不同runtime配置/重复物理engine拒绝 |

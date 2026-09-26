@@ -90,7 +90,7 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `dba7014570a982cca892ca5937fbe611246cdb4d`, pushed to
+- Main tested implementation: `f3039c35184287e584b615659c9dd63d443f65cf`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -178,8 +178,9 @@ its one historical SHA difference and independent numerical gate remain open.
   budget correctly yields empty conservative1MiB DP, so cost propagation uses
   the actual handoff raw-byte rule. Tests corrected without altering production
   acceptance. Initial and final760 functional +56 safety pass, no failures/skips.
-  Real runner/cache fixtures, actual small file/HTTP interface and next stack
-  epoch exercised; no CUDA/model/Full performance or representative measurement.
+  Real runner/cache fixtures, temporary files/HTTP response fixtures and next
+  stack epoch exercised; not a real remote run, CUDA/model/Full performance or
+  representative measurement.
 - Four owned D36 scopes checked TasksCurrent0/no pids/high,max,OOM0, then stopped.
   Final GPU memory15MiB each, utilization0/0/1/0%; MemAvailable108926216KiB,
   disk353696034816 B. All147 protected entries and source plan SHA unchanged.
@@ -189,6 +190,11 @@ its one historical SHA difference and independent numerical gate remain open.
   native/shared/preactivation accounting and Full lifecycle. Representative real
   profile collection and complete qualification still open. D35 startup guard
   retained. Baselines/M1/M2/ablations/sensitivities not started; full goal active.
+- Implementation f3039c35184287e584b615659c9dd63d443f65cf pushed to
+  faaslora_origin/retry14_continuous_queue_v2; full remote SHA verified. All D36
+  owned scopes checked empty and stopped. Only original user dirt remains.
+  This backup receipt is documentation-only. Recheck current state and plan
+  before continuing actual owner/movement integration; do not repeat this gate.
 
 ### D35 class-cost planning entry; Full execution still unqualified
 
