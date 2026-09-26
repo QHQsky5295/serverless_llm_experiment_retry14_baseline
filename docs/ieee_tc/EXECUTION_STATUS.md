@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Same-epoch mixed preparation connected; automatic Full activation open | P1_FORMULA_IMPLEMENTATION.md D1–D46. Initialized owners→selector→file/native HOST/GPU queue now keep original benefits and frozen fallback costs. Pre-init/control integration, remaining-candidate/native-inclusive replacement, representative profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
+| P1 IEEE semantic alignment | Dedicated pre-init handoff path connected; complete Full control open | P1_FORMULA_IMPLEMENTATION.md D1–D47. Frozen measured geometry + actual files→selector→overlapped activation/file staging→real native owner/recheck. Full/NoHandoff/Delayed share the entry. Upper control/initial-primary path, remaining-candidate/native-inclusive replacement, profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,18 +51,20 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST IMPLEMENTATION: D46 initialized actual owner→selector→mixed file/native
-HOST/GPU execution is connected. The original source benefit survives staging;
-worker-observed fallback footprints use the same frozen cost catalog. Complete
-GPU pending targets are registered before their staging, file targets protected,
-and prerequisites never occupy a queue slot while waiting on the same queue.
-Next: pre-init layout/profile inheritance and actual activation/control callbacks,
+LATEST IMPLEMENTATION: D47 actual dedicated activation overlaps owned file
+preparation with initialization, using measured immutable geometry and an explicit
+prospective view (native=null), not a made-up ready owner. Future native HOST
+allowance is charged before IO and adopted without a capacity gap. Full/NoHandoff/
+Delayed share the entry; actual initialized owner/layout and each GPU prerequisite
+are rechecked without replacing the original h/d. Runtime readiness does not
+wait for every target. Cancellation joins owned startup and staging.
+Next: upper automatic control/initial-primary path and steady-state callbacks,
 remaining-candidate/native-inclusive joint replacement, native HOST replacement,
-proactive d feedback, representative profiles and Full lifecycle. The current
-producer still requires an initialized engine; it is NOT initialization-overlap
-handoff or complete Full. D44 file-only loss is not enabled as mixed joint loss.
-Full guard remains. Do not repeat mixed-execution checks or old model prefixes.
-D46 final866 functional,42 installed-native and56 safety checks pass; receipts below.
+proactive d feedback, representative profiles and Full lifecycle. Legacy handoff
+inputs explicitly reject at the new entry. D44 file-only loss is not enabled as
+mixed joint loss. Full guard remains. Do not repeat activation/mixed-execution
+checks or old model prefixes. Final878 functional,67 installed-native and56
+safety checks pass. D47 regression/cleanup receipts below.
 Runtime allocator configuration/service memory observations remain, not an
 indefinite demand to prove every driver RSS byte. The full goal remains active.
 Queue wakes on actual reference release/file-pressure finish/target closure,
@@ -105,7 +107,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D46.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D47.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -161,6 +163,53 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D47 actual dedicated activation and pre-init file/native handoff
+
+- Previous D46 was progress, tested/pushed. Reread full authoritative plan and
+  status, AGENTS, relevant IEEE original equations/activation text, D36–D46
+  history, official vLLM0.30 worker source and HydraServe primary paper page.
+  Start HEAD3c57e00c45cd8dc618ce802e87f0060d146ae27b; baseline16570c unchanged.
+  GPUs15MiB/0%, MemAvailable108736368KiB, disk353453264896B. Protected147 entries
+  and source plan SHA unchanged; only original user dirt. No live D46 work.
+- Actual dedicated scale-out entry now freezes an honest prospective plan from
+  measured initialization geometry and actual files, overlaps files/init, then
+  binds the actual native owner. Future HOST allowance is atomically adopted;
+  no capacity gap/double charge. GPU preparation waits on its own prerequisite,
+  not all files. Original h/d remains. Full/NoHandoff/Delayed, cancellation,
+  model/layout mismatch, unknown startup ownership and journal boundaries tested.
+  Upper control/initial-primary and complete Full remain open, startup guard kept.
+-12 new checks. Initial27 had7 fixture errors: epoch0 violated existing positive
+  native epoch contract; fixture changed to1 without relaxing validation. Next28
+  pass, additional staging/profile group29 pass. First full876 had1 old fixture
+  expectation: service-profile-only activation now rejects before factory/warmup.
+  Preserved that earlier rejection and added a complete-config wrong-runtime
+  test. Intermediate877 functional checks pass. P1 D47 contains
+  required correctness table, sources, implementation scope and open gates.
+- No GPU/model/real174/profile measurement/performance campaign. No new weights,
+  traces, historical-result or manuscript changes; baseline untouched. Formal
+  baselines/M1/M2/ablations/sensitivities remain not started. Next integrated
+  control/steady-state path and full-source replacement, not repeated local gates.
+  Remote disk floor/nonzero3B artifact authority unchanged. Full goal active.
+  Installed-native, safety, final cleanup and backup receipts follow.
+- Pre-close877 recheck exposed1 intermittent timeout in D44's concurrent file
+  replacement test. Added state diagnostics;10 focused repeats reproduced3
+  failures, actually `unbudgeted materialization` during the registration/
+  workspace transition. Budgeted preallocation-before-write operations now have
+  explicit lifetime state; unknown legacy writers remain rejected. Atomic real
+  allocation/replacement limits unchanged, no sleep/retry/capacity relaxation.
+  Deterministic transition test +10 same-race repeats all pass. Initial54 native
+  and56 safety checks had passed before this fix; final-source receipts follow.
+  Initial baseline remote verification hit GitHub TLS termination; HTTP/1.1
+  retry verified baseline16570c and current main3c57e00 without disabling TLS.
+- Final frozen-source878 functional,67 installed-vLLM0.30/torch2.13 and56 safety
+  checks pass,0 failures/errors/skips; CUDA uninitialized in native tests. Code
+  unchanged afterward. All13 owned D47 scopes verified TasksCurrent0, empty
+  cgroup.procs and high/max/oom/oom_kill0, then stopped. No live test/model.
+  GPUs15MiB/0%, MemAvailable108646856KiB, disk353425494016B. Source plan SHA
+  and all147 protected entries unchanged; baseline16570c and original dirt
+  preserved. Main tested implementation backup follows. No performance slot
+  completed, no new profile claimed, complete Full guard remains.
 
 ### D46 one frozen epoch across mixed file/native HOST/GPU execution
 

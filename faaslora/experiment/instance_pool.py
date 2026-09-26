@@ -1190,6 +1190,7 @@ class InstancePool:
         owns_engine: bool = False,
         owns_coordinator: bool = False,
         device_id: Optional[int] = None,
+        instance_id: Optional[str] = None,
     ) -> str:
         """Add a new instance; returns instance_id."""
         if len(self._slots) >= self.max_instances:
@@ -1202,8 +1203,11 @@ class InstancePool:
             if any(slot.engine is engine for slot in self._slots):
                 raise ValueError('preparation-profiled replicas cannot alias one physical runtime')
             self.preparation_profiles.validate_runtime(getattr(engine, 'model_cfg', None))
+        if instance_id is not None and (not isinstance(instance_id, str) or not instance_id
+                                       or self.get_slot(instance_id) is not None):
+            raise ValueError('replica publication requires a unique nonempty identity')
         self._next_id += 1
-        sid = f"inst_{self._next_id}"
+        sid = instance_id if instance_id is not None else f"inst_{self._next_id}"
         self._slots.append(
             InstanceSlot(
                 instance_id=sid,

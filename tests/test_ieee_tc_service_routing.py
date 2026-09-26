@@ -431,14 +431,15 @@ class FrozenMeasuredInitialization(unittest.TestCase):
         self.assertEqual(identity['profile_sha256'], slot.service_cost_model.profile_id)
         self.assertEqual(identity['initial_samples'], 1)
 
-    def test_wrong_runtime_profile_stops_new_replica_before_any_warmup(self):
+    def test_service_profile_alone_cannot_enter_legacy_activation_or_warmup(self):
         runner = self.runner()
         engine = SimpleNamespace(model_cfg=self.model | {'dtype': 'bfloat16'}, shutdown=AsyncMock())
         runner.engine_factory = AsyncMock(return_value=(engine, None))
         runner._warmup_engine_hot_set = AsyncMock()
-        with self.assertRaisesRegex(ValueError, 'differs from its measured'):
+        with self.assertRaisesRegex(ValueError, 'real owners and frozen measurements'):
             asyncio.run(runner._add_dedicated_instance_slot(True, reserved_device_id=1))
-        engine.shutdown.assert_awaited_once()
+        runner.engine_factory.assert_not_awaited()
+        engine.shutdown.assert_not_awaited()
         runner._warmup_engine_hot_set.assert_not_called()
         self.assertEqual(runner.instance_pool.count(), 1)
 

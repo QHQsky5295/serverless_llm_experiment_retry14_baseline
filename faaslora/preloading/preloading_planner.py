@@ -299,7 +299,8 @@ class PreparationCostModel:
 
 
 def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
-                             adapter_int_ids, profiles, expected_clock_id, received_at):
+                             adapter_int_ids, profiles, expected_clock_id, received_at,
+                             activation_id=None):
     """Compose actual per-replica sources and physical-owner insertion budgets.
 
     Native GPU/HOST and shared HOST/NVMe files are all retained in the view.
@@ -309,11 +310,21 @@ def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
     uniform backend slots, never file size or an adapter-name constant.
     """
     from ..experiment.instance_pool import NativeSourceSnapshot
-    native = NativeSourceSnapshot.from_native(native_snapshot,
-        expected_clock_id=expected_clock_id, received_monotonic_s=received_at)
-    if (native.unknown_native_adapter_ids or native.unconfirmed_gpu_adapter_ids
-            or native.gpu_pool_storage_bytes is None
-            or set(adapter_int_ids) != set(identities)
+    prospective = native_snapshot is None
+    if prospective:
+        if not isinstance(activation_id, str) or not activation_id:
+            raise ValueError('pre-init planning requires its activation identity')
+        layout = profiles.activation_layout()
+        native = None
+    else:
+        if activation_id is not None:
+            raise ValueError('initialized owner planning cannot masquerade as pre-init')
+        native = NativeSourceSnapshot.from_native(native_snapshot,
+            expected_clock_id=expected_clock_id, received_monotonic_s=received_at)
+        if (native.unknown_native_adapter_ids or native.unconfirmed_gpu_adapter_ids
+                or native.gpu_pool_storage_bytes is None):
+            raise ValueError('automatic planning requires complete owned native identities/footprints')
+    if (set(adapter_int_ids) != set(identities)
             or any(type(i) is not int or i <= 0 for i in adapter_int_ids.values())
             or len(set(adapter_int_ids.values())) != len(adapter_int_ids)):
         raise ValueError('automatic planning requires complete owned native identities/footprints')
@@ -321,7 +332,7 @@ def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
     budget = files['budgets']
     if (files.get('kind') != 'ieee_file_planning_sources_v1'
             or files.get('physical_resources_reserved') is not False
-            or files.get('clock_id') != native.clock_id
+            or files.get('clock_id') != expected_clock_id
             or type(files.get('epoch')) is not int or files['epoch'] < 0
             or not isinstance(files.get('owner_id'), str) or not files['owner_id']
             or not 0 < budget['captured_at'] <= files['captured_at'] <= received_at
@@ -330,18 +341,22 @@ def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
             or set(files['artifacts']) != set(identities)):
             raise ValueError('automatic planning requires one complete confirmed file-owner view')
     host = files['managed_host']
+    allowance = (host['activation_reservations'].get(activation_id, 0) if prospective
+                 else host['native_reservations'].get(native.owner_id, 0))
     if (host['owner_id'] != files['owner_id'] or host['snapshot_reserves_capacity'] is not False
-            or native.owner_id not in host['native_reservations']
-            or host['native_reservations'][native.owner_id] <= 0
+            or allowance <= 0
             or budget['tiers']['host']['remaining_bytes'] > host['remaining_bytes']):
         raise ValueError('automatic planning lacks this native owner in the shared HOST allowance')
-    native_by_name = {s.adapter_id: s for s in native.sources}
+    native_by_name = {} if prospective else {s.adapter_id: s for s in native.sources}
     if not set(native_by_name).issubset(identities):
         raise ValueError('native owner contains adapters outside the frozen universe')
-    slot_bytes = native_snapshot['native_footprints']['slot_capacity_bytes']
-    gpu_representation = 'native_gpu_dense_slot_v1:' + ','.join(sorted({
-        row['dtype'] for row in native_snapshot['native_footprints']['pool_tensor_views']}))
-    budgets = {StorageTier.GPU: native.slot_adapter_ids.count(None)*slot_bytes}
+    slot_bytes = (layout['slot_capacity_bytes'] if prospective
+                  else native_snapshot['native_footprints']['slot_capacity_bytes'])
+    gpu_representation = (layout['representation'] if prospective else
+        'native_gpu_dense_slot_v1:' + ','.join(sorted({
+            row['dtype'] for row in native_snapshot['native_footprints']['pool_tensor_views']})))
+    budgets = {StorageTier.GPU: (layout['slot_count'] if prospective
+                                else native.slot_adapter_ids.count(None))*slot_bytes}
     for tier in ('host', 'nvme'):
         row = budget['tiers'][tier]
         remaining = row['remaining_bytes']
@@ -401,6 +416,9 @@ def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
         adapter_int_ids=dict(adapter_int_ids), sources=source_rows,
         remaining_bytes={tier.value: value for tier, value in budgets.items()},
         captured_from_separate_owners=True, physical_resources_reserved=False)
+    if prospective:
+        view.update(activation_id=activation_id, inherited_layout=layout,
+                    native_owner_exists=False, gpu_budget_basis='frozen_initialization_layout')
     view = copy.deepcopy(view)
     digest = hashlib.sha256(json.dumps(view, sort_keys=True,
         separators=(',', ':'), allow_nan=False).encode()).hexdigest()
@@ -537,7 +555,7 @@ def frozen_preparation_costs(rows):
     return values
 
 
-def owned_gpu_execution_objective(*, plan, selected, size_edges_bytes):
+def owned_gpu_execution_objective(*, plan, selected, size_edges_bytes, initialized_snapshot=None):
     """Carry the original all-tier benefit through file/native-HOST staging.
 
     The native owner may register not-yet-materialized targets. Their path and
@@ -547,6 +565,12 @@ def owned_gpu_execution_objective(*, plan, selected, size_edges_bytes):
     """
     view = plan['source_view']
     native = view['native']
+    if native is None:
+        if initialized_snapshot is None or native_activation_layout(initialized_snapshot) != view['inherited_layout']:
+            raise ValueError('initialized layout differs from frozen activation planning')
+        native = initialized_snapshot
+    elif initialized_snapshot is not None:
+        raise ValueError('initialized plan cannot replace its native observation')
     options = {(r['artifact_id'], r['target']['tier']): r for r in plan['options']}
     sources = []
     for name, source in sorted(view['sources'].items()):
@@ -743,6 +767,37 @@ def freeze_native_gpu_epoch(*, native_snapshot, content_sha_by_adapter, profiles
     return frozen
 
 
+def native_activation_layout(snapshot):
+    """Only measured immutable slot geometry is inherited, never readiness.
+
+    Validate a complete native report in its own clock domain. GPU addresses,
+    owner/epoch, residents and free capacity are deliberately not inherited.
+    """
+    from ..experiment.instance_pool import NativeSourceSnapshot
+    native = NativeSourceSnapshot.from_native(snapshot, expected_clock_id=snapshot['clock_id'],
+                                              received_monotonic_s=snapshot['captured_monotonic_s'])
+    inv = snapshot['native_footprints']
+    keys = ('name', 'allocation_id', 'shape', 'dtype', 'view_bytes',
+            'storage_offset_elements', 'contiguous')
+    views = [{key: row[key] for key in keys} for row in inv['pool_tensor_views']]
+    allocations = inv['pool_allocations']
+    count = len(native.slot_adapter_ids)
+    if (not count or native.unknown_native_adapter_ids or native.unconfirmed_gpu_adapter_ids
+            or any(row['allocation_id'] != i or type(row['allocated_bytes']) is not int
+                   or row['allocated_bytes'] <= 0 for i, row in enumerate(allocations))
+            or sum(row['allocated_bytes'] for row in allocations) != inv['pool_allocated_bytes']
+            or any(not row['name'] or not row['shape'] or row['shape'][0] != count
+                   or row['contiguous'] is not True or row['storage_offset_elements'] != 0
+                   or not 0 <= row['allocation_id'] < len(allocations)
+                   or row['view_bytes'] != allocations[row['allocation_id']]['allocated_bytes']
+                   or row['view_bytes'] % count for row in views)):
+        raise ValueError('activation inheritance needs a measured uniform native pool layout')
+    return dict(slot_count=count, slot_capacity_bytes=inv['slot_capacity_bytes'],
+        representation='native_gpu_dense_slot_v1:' + ','.join(sorted({r['dtype'] for r in views})),
+        pool_tensor_views=views,
+        pool_allocations=[{k: row[k] for k in ('allocation_id', 'allocated_bytes')} for row in allocations])
+
+
 @dataclass(frozen=True)
 class FrozenPreparationProfiles:
     """Measured d initialization, bound to the actual model/environment.
@@ -760,6 +815,12 @@ class FrozenPreparationProfiles:
     source_runs: tuple
     beta: float
     model_config_json: str
+    activation_layout_json: Optional[str] = None
+
+    def activation_layout(self):
+        if self.activation_layout_json is None:
+            raise ValueError('pre-init preparation lacks a measured initialization layout')
+        return json.loads(self.activation_layout_json)
 
     @staticmethod
     def source_class(source, edges):
@@ -854,10 +915,17 @@ class FrozenPreparationProfiles:
             runs.add(sample['source_run_sha256'])
         profiles = {key: math.fsum(values)/len(values) for key, values in groups.items()}
         PreparationCostModel(profiles, beta=beta, profile_id=expected_sha256)
+        layout = payload.get('activation_layout_evidence')
+        if layout is not None:
+            if (not isinstance(layout, dict) or not digest(layout.get('source_run_sha256'))
+                    or layout['source_run_sha256'] not in runs):
+                raise ValueError('activation layout must reference the same frozen measured source runs')
+            layout = native_activation_layout(layout['native_snapshot'])
         return cls(tuple(edges), MappingProxyType(profiles),
             MappingProxyType({key: len(values) for key, values in groups.items()}),
             expected_sha256, tuple(sorted(runs)), beta,
-            json.dumps(identity, sort_keys=True, allow_nan=False))
+            json.dumps(identity, sort_keys=True, allow_nan=False),
+            json.dumps(layout, sort_keys=True, allow_nan=False) if layout is not None else None)
 
     def new_replica(self):
         return PreparationCostModel(self.profiles, beta=self.beta, profile_id=self.profile_id)
@@ -866,7 +934,8 @@ class FrozenPreparationProfiles:
         return dict(kind='native_preparation_profiles_v1', profile_sha256=self.profile_id,
             layout_partition='exact_content_v1', supported_classes=len(self.profiles),
             initial_samples=sum(self.sample_counts.values()), source_run_sha256=list(self.source_runs),
-            beta=self.beta, size_edges_bytes=list(self.size_edges_bytes))
+            beta=self.beta, size_edges_bytes=list(self.size_edges_bytes),
+            activation_layout_available=self.activation_layout_json is not None)
 
 
 @dataclass(frozen=True)

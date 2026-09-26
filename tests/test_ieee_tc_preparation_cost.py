@@ -191,6 +191,24 @@ class FrozenPreparationInitialization(unittest.TestCase):
         self.assertEqual(key.layout_id, 'exact_content_sha256:'+'d'*64)
         self.assertEqual(profile.identity()['initial_samples'], 2)
 
+    def test_activation_layout_inherits_only_measured_geometry_from_frozen_run(self):
+        from tests.test_ieee_tc_transfer_pressure import ActivationPreparation
+        fixture=ActivationPreparation()
+        self.addCleanup(fixture.doCleanups)
+        _,_,_,_,native=fixture.make()
+        payload=self.payload | {'activation_layout_evidence':dict(source_run_sha256='e'*64,native_snapshot=native)}
+        profile=self.load(payload)
+        layout=profile.activation_layout()
+        self.assertEqual((layout['slot_count'],layout['slot_capacity_bytes']),(2,1048576))
+        self.assertFalse(set(layout)&{'owner_id','epoch','slot_adapter_ids','sources','captured_monotonic_s'})
+        changed=copy.deepcopy(payload)
+        changed['activation_layout_evidence']['source_run_sha256']='f'*64
+        with self.assertRaisesRegex(ValueError,'same frozen measured source runs'): self.load(changed)
+        changed=copy.deepcopy(payload)
+        changed['activation_layout_evidence']['native_snapshot']['native_footprints']['pool_tensor_views'][0]['shape']=[3,524288]
+        with self.assertRaisesRegex(ValueError,'uniform native pool layout'): self.load(changed)
+        with self.assertRaisesRegex(ValueError,'measured initialization layout'): self.load().activation_layout()
+
     def test_unsupported_content_representation_and_size_cannot_borrow_cost(self):
         profile = self.load()
         for changes in ({'expected_content_sha256': 'f'*64}, {'footprint_bytes': 513},

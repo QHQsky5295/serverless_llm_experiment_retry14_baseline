@@ -47,6 +47,47 @@ class ManagedHostOwnership(unittest.TestCase):
         self.addCleanup(finish)
         return process
 
+    def test_activation_allowance_is_charged_then_adopted_without_double_reservation(self):
+        fixture,files,fd=self.make()
+        files.reserve_activation_host(activation_id='activation',limit_bytes=12288)
+        before=files.host_budget_snapshot()
+        self.assertEqual(before['remaining_bytes'],4096)
+        with self.assertRaises(RuntimeError):
+            files.reserve_activation_host(activation_id='second',limit_bytes=8192)
+        with self.assertRaises(ValueError):
+            files.reserve_native_host(owner_id='native',limit_bytes=8192,exit_pidfd=fd,activation_id='activation')
+        self.assertEqual(files.host_budget_snapshot(),before)
+        files.reserve_native_host(owner_id='native',limit_bytes=12288,exit_pidfd=fd,activation_id='activation')
+        after=files.host_budget_snapshot()
+        self.assertEqual(after['remaining_bytes'],4096)
+        self.assertEqual(after['native_reservations'],{'native':12288})
+        self.assertFalse(after['activation_reservations'])
+        with self.assertRaises(ValueError): files.cancel_activation_host(activation_id='activation')
+        with self.assertRaises(ValueError):
+            files.reserve_activation_host(activation_id='activation',limit_bytes=12288)
+
+    def test_budgeted_preworkspace_transition_is_not_an_unchecked_writer(self):
+        import hashlib
+        fixture,files,_=self.make()
+        expected={'weights':(1,hashlib.sha256(b'a').hexdigest())}
+        root=files.roots['host']
+        for budgeted in (True,False):
+            with files.materializing(root/'not-yet-staged',budgeted=budgeted):
+                if budgeted:
+                    self.assertEqual(files.inventory()['pending_file_increment_bytes'],0)
+                else:
+                    with self.assertRaisesRegex(RuntimeError,'quiescent'):
+                        files.inventory()
+                with files.materializing(root/'other',budgeted=True) as transfer:
+                    with files.transfer_workspace(transfer) as staging:
+                        if budgeted:
+                            files.prepare_copy(transfer,staging,expected,limit_bytes=16384)
+                            self.assertLessEqual(files.inventory()['tiers']['host']['allocated_file_bytes'],16384)
+                        else:
+                            with self.assertRaisesRegex(RuntimeError,'unbudgeted materialization'):
+                                files.prepare_copy(transfer,staging,expected,limit_bytes=16384)
+        self.assertFalse(files.materializations or files._budgeted_materializations)
+
     def test_native_reservation_and_file_preallocation_share_remaining_capacity(self):
         fixture, files, fd = self.make()
         files.reserve_native_host(owner_id='native', limit_bytes=12288, exit_pidfd=fd)
@@ -1135,6 +1176,235 @@ class OwnedPreparationPlanning(unittest.TestCase):
         asyncio.run(queue.close())
 
 
+class ActivationPreparation(unittest.TestCase):
+    """Actual activation entry with real file IO; controlled CPU-only runtime.
+
+    The fixture's timing/layout constants are not measured model profiles.
+    """
+    def make(self, policy='full'):
+        import copy
+        import json
+        import time
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.experiment.experiment_stack import ExperimentStack
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        from faaslora.experiment.instance_pool import InstancePool, FrozenServiceProfiles
+        from faaslora.preloading.preloading_planner import FrozenPreparationProfiles, native_activation_layout
+        factory = FileObjectiveReplacement()
+        self.addCleanup(factory.doCleanups)
+        fixture, runner, queue, engine, _, _, old_profiles, costs = factory.make(victims=())
+        # No prior native owner. The HOST file ceiling and future native
+        # allowance are separate and jointly charged by the real file owner.
+        fixture.manager.tier_capacities[StorageTier.HOST].total_bytes = 16384
+        model = dict(model_path='/existing/model', dtype='float16', tensor_parallel_size=1,
+            ieee_gpu_references=True, ieee_host_budget_bytes=32768,
+            ieee_native_host_tensor_budget_bytes=16384)
+        runner.model_cfg = engine.model_cfg = model
+        clock = local_monotonic_clock_id()
+        native = dict(kind='native_lora_sources_v1', owner_id='controlled-new-native', epoch=1,
+            clock_id=clock, captured_monotonic_s=time.monotonic(), slot_adapter_ids=[None, None],
+            registered_cpu_adapter_ids=[], unknown_native_adapter_ids=[], unconfirmed_gpu_adapter_ids=[],
+            complete_for_native_caches=True, snapshot_holds_reference=False, sources=[])
+        native['native_footprints'] = dict(uniform_slot_layout=True,
+            host_footprint_scope='native_registered_tensor_storage_capacity', host_budget_reserved=False,
+            host_allocator_overhead_included=False, slot_adapter_ids=[None, None],
+            registered_cpu_adapter_ids=[], slot_capacity_bytes=1048576, pool_allocated_bytes=2097152,
+            host_tensor_storage_bytes=0, host_allocations=[], host_adapter_footprints=[],
+            pool_allocations=[dict(allocation_id=0, allocated_bytes=2097152, device='cuda:0')],
+            pool_tensor_views=[dict(name='fixture.lora_a_stacked', allocation_id=0,
+                shape=[2,524288],dtype='torch.float16',view_bytes=2097152,
+                storage_offset_elements=0,contiguous=True)])
+        profile = FrozenPreparationProfiles(old_profiles.size_edges_bytes, costs.snapshot()[1], {},
+            old_profiles.profile_id, (), .5,
+            json.dumps(FrozenServiceProfiles.model_identity(model), sort_keys=True, allow_nan=False),
+            json.dumps(native_activation_layout(native),sort_keys=True))
+        runner._preparation_profiles = profile
+        runner._service_profiles = None
+        runner._routing_policy = 'ieee_confirmed'
+        runner._ieee_handoff_policy = policy
+        runner.instance_pool = InstancePool(min_instances=1,max_instances=4,preparation_profiles=profile)
+        stack = ExperimentStack.__new__(ExperimentStack)
+        stack.__dict__.update(runner._stack.__dict__)
+        stack.hotness_tracker = HotnessTracker(None,clock=lambda:100.)
+        stack.hotness_tracker.record_arrival('a')
+        runner._stack = stack
+        runner._notify_dispatch_capacity_changed = AsyncMock()
+        runner._warmup_engine_hot_set = AsyncMock(side_effect=AssertionError('legacy warmup'))
+        engine.shutdown = AsyncMock()
+        async def rpc(*, operation, **kw):
+            if operation == 'source_snapshot': return copy.deepcopy(native)
+            if operation == 'snapshot': return dict(owner_id=native['owner_id'],worker_pid=os.getpid(),clock_id=clock)
+            if operation == 'configure_host_budget':
+                return dict(configured=True,owner_id=native['owner_id'],worker_pid=os.getpid(),
+                    clock_id=clock,tensor_budget_bytes=kw['tensor_budget_bytes'])
+            raise AssertionError(operation)
+        engine.ieee_gpu_reference = AsyncMock(side_effect=rpc)
+        engine.ieee_prepare_host = AsyncMock(side_effect=AssertionError('file-only target used GPU'))
+        def close_descriptors():
+            for member in getattr(runner,'_ieee_host_budget_members',{}).values():
+                if member['state'] != 'retired': os.close(member['pidfd'])
+        self.addCleanup(close_descriptors)
+        return fixture,runner,queue,engine,native
+
+    async def finish_preparation(self,runner):
+        tasks=list(getattr(runner,'_ieee_file_plan_tasks',()))
+        if tasks: await asyncio.wait_for(asyncio.gather(*tasks),3)
+        await asyncio.sleep(0)  # Deliver the completion journal callback.
+
+    def test_full_file_copy_precedes_runtime_ready_and_adoption_has_no_budget_gap(self):
+        fixture,runner,queue,engine,_=self.make()
+        async def run():
+            started,release=asyncio.Event(),asyncio.Event()
+            async def initialize(**_):
+                started.set()
+                await release.wait()
+                return engine,None
+            runner.engine_factory=AsyncMock(side_effect=initialize)
+            activation=asyncio.create_task(runner._add_dedicated_instance_slot(True,
+                reserved_device_id=0,activation_kind='natural_scaleout'))
+            await started.wait()
+            await self.finish_preparation(runner)
+            self.assertEqual((fixture.host/'a'/'weights').read_bytes(),b'a'*12288)
+            self.assertEqual(runner.instance_pool.count(),0)
+            engine.ieee_gpu_reference.assert_not_awaited()
+            before=fixture.owner.host_budget_snapshot()
+            self.assertEqual((before['native_reserved_bytes'],before['remaining_bytes']),(16384,0))
+            self.assertFalse(before['native_reservations'])
+            self.assertEqual(len(before['activation_reservations']),1)
+            release.set()
+            event=await activation
+            after=fixture.owner.host_budget_snapshot()
+            self.assertFalse(after['activation_reservations'])
+            self.assertEqual(after['native_reserved_bytes'],before['native_reserved_bytes'])
+            self.assertEqual(runner.instance_pool.count(),1)
+            self.assertEqual(event['activation_kind'],'natural_scaleout')
+            self.assertEqual(event['instance_id'],event['activation_id'])
+            self.assertEqual(runner._ieee_file_preparation_plans[-1]['objective_sha256'],event['handoff_plan_sha256'])
+            runner._warmup_engine_hot_set.assert_not_awaited()
+            engine.ieee_prepare_host.assert_not_awaited()
+            await queue.close()
+        asyncio.run(run())
+
+    def test_delayed_keeps_frozen_epoch_but_does_no_copy_before_initialized(self):
+        fixture,runner,queue,engine,_=self.make('delayed')
+        async def run():
+            started,release=asyncio.Event(),asyncio.Event()
+            async def initialize(**_):
+                started.set()
+                await release.wait()
+                return engine,None
+            runner.engine_factory=AsyncMock(side_effect=initialize)
+            with patch.object(runner._stack.hotness_tracker,'snapshot',wraps=runner._stack.hotness_tracker.snapshot) as demand:
+                task=asyncio.create_task(runner._add_dedicated_instance_slot(True,reserved_device_id=0))
+                await started.wait()
+                await asyncio.sleep(0)
+                self.assertFalse((fixture.host/'a').exists())
+                plan_sha=runner._ieee_activations[-1]['plan_sha256']
+                runner._stack.hotness_tracker.record_arrival('d')
+                release.set()
+                await task
+                await self.finish_preparation(runner)
+                self.assertEqual(demand.call_count,1)
+            self.assertEqual((fixture.host/'a'/'weights').read_bytes(),b'a'*12288)
+            self.assertEqual(runner._ieee_file_preparation_plans[-1]['objective_sha256'],plan_sha)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_no_handoff_activates_without_any_preparation_entry(self):
+        fixture,runner,queue,engine,_=self.make('no_handoff')
+        async def run():
+            runner.engine_factory=AsyncMock(return_value=(engine,None))
+            with patch.object(runner,'_run_ieee_file_preparation_plan',side_effect=AssertionError('no handoff')):
+                event=await runner._add_dedicated_instance_slot(True,reserved_device_id=0)
+            self.assertEqual(event['preparation_state'],'disabled')
+            self.assertIsNone(event['handoff_plan_sha256'])
+            self.assertFalse((fixture.host/'a').exists())
+            self.assertEqual(runner.instance_pool.count(),1)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_cancel_before_initialization_joins_factory_and_real_file_readers(self):
+        fixture,runner,queue,engine,_=self.make()
+        async def run():
+            started,release=asyncio.Event(),asyncio.Event()
+            async def initialize(**_):
+                started.set()
+                await release.wait()
+                return engine,None
+            runner.engine_factory=AsyncMock(side_effect=initialize)
+            task=asyncio.create_task(runner._add_dedicated_instance_slot(True,reserved_device_id=0))
+            await started.wait()
+            task.cancel()
+            await asyncio.sleep(0)
+            task.cancel()
+            await asyncio.sleep(0)
+            self.assertFalse(task.done())
+            engine.shutdown.assert_not_awaited()
+            release.set()
+            with self.assertRaises(asyncio.CancelledError): await task
+            engine.shutdown.assert_awaited_once()
+            self.assertFalse(fixture.owner.host_budget_snapshot()['activation_reservations'])
+            self.assertFalse(fixture.owner.leases or fixture.owner.materializations or fixture.owner._file_preparation_plans)
+            self.assertEqual(runner.instance_pool.count(),0)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_layout_mismatch_does_not_publish_or_fallback_to_legacy(self):
+        fixture,runner,queue,engine,native=self.make('delayed')
+        native['native_footprints']['pool_tensor_views'][0]['name']='different-layout'
+        async def run():
+            runner.engine_factory=AsyncMock(return_value=(engine,None))
+            with self.assertRaisesRegex(ValueError,'actual initialized GPU layout'):
+                await runner._add_dedicated_instance_slot(True,reserved_device_id=0)
+            self.assertFalse((fixture.host/'a').exists())
+            self.assertEqual(runner.instance_pool.count(),0)
+            self.assertFalse(fixture.owner.host_budget_snapshot()['activation_reservations'])
+            engine.shutdown.assert_awaited_once()
+            runner._warmup_engine_hot_set.assert_not_awaited()
+            await queue.close()
+        asyncio.run(run())
+
+    def test_missing_measurement_rejects_before_startup_or_file_preparation(self):
+        from dataclasses import replace
+        fixture,runner,queue,engine,_=self.make()
+        runner._preparation_profiles=replace(runner._preparation_profiles,activation_layout_json=None)
+        runner.engine_factory=AsyncMock(return_value=(engine,None))
+        async def run():
+            with self.assertRaisesRegex(ValueError,'measured initialization layout'):
+                await runner._add_dedicated_instance_slot(True,reserved_device_id=0)
+            runner.engine_factory.assert_not_awaited()
+            self.assertFalse((fixture.host/'a').exists())
+            await queue.close()
+        asyncio.run(run())
+
+    def test_initialized_model_mismatch_is_closed_before_publication(self):
+        fixture,runner,queue,engine,_=self.make('delayed')
+        engine.model_cfg=dict(engine.model_cfg,dtype='bfloat16')
+        runner.engine_factory=AsyncMock(return_value=(engine,None))
+        async def run():
+            with self.assertRaisesRegex(ValueError,'differs from preparation profile'):
+                await runner._add_dedicated_instance_slot(True,reserved_device_id=0)
+            engine.shutdown.assert_awaited_once()
+            self.assertFalse((fixture.host/'a').exists())
+            self.assertFalse(fixture.owner.host_budget_snapshot()['activation_reservations'])
+            self.assertEqual(runner.instance_pool.count(),0)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_factory_error_retains_unknown_worker_allowance(self):
+        fixture,runner,queue,engine,_=self.make('delayed')
+        runner.engine_factory=AsyncMock(side_effect=RuntimeError('lost initialization reply'))
+        async def run():
+            with self.assertRaisesRegex(RuntimeError,'lost initialization reply'):
+                await runner._add_dedicated_instance_slot(True,reserved_device_id=0)
+            self.assertEqual(runner._ieee_activations[-1]['state'],'startup_ownership_unresolved')
+            self.assertEqual(len(fixture.owner.host_budget_snapshot()['activation_reservations']),1)
+            self.assertFalse((fixture.host/'a').exists())
+            self.assertEqual(runner.instance_pool.count(),0)
+            await queue.close()
+        asyncio.run(run())
+
+
 class MixedOwnedPreparation(unittest.TestCase):
     """One real selector/file queue/native cache owner; no CUDA/model samples."""
     def make(self, *, remote_gpu=False):
@@ -1225,6 +1495,72 @@ class MixedOwnedPreparation(unittest.TestCase):
         self.assertEqual(owner.snapshot()['pending_preparation_targets'], [])
         self.assertFalse(runner._ieee_gpu_plan_tasks)
         self.assertFalse(runner._ieee_file_plan_tasks)
+
+    def test_preinit_remote_gpu_staging_waits_for_real_owner_and_preserves_original_benefit(self):
+        import copy
+        import json
+        import time
+        from dataclasses import replace
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        from faaslora.preloading.preloading_planner import PreparationCostModel, native_activation_layout
+        fixture,runner,queue,slot,owner,snapshot,loads=self.make(remote_gpu=True)
+        def complete_snapshot():
+            observed=copy.deepcopy(snapshot())
+            inv=observed['native_footprints']
+            inv['pool_allocations']=[dict(allocation_id=0,allocated_bytes=2097152,device='cuda:0')]
+            inv['pool_tensor_views']=[dict(name='fixture.lora_a_stacked',allocation_id=0,
+                shape=[2,524288],dtype='torch.float16',view_bytes=2097152,
+                storage_offset_elements=0,contiguous=True)]
+            return observed
+        old_rpc=slot.engine.ieee_gpu_reference.side_effect
+        async def reference(*,operation,**kw):
+            return complete_snapshot() if operation=='source_snapshot' else await old_rpc(operation=operation,**kw)
+        slot.engine.ieee_gpu_reference.side_effect=reference
+        profiles=runner._preparation_profiles
+        values={key:80. if key.tier in ('remote','host','nvme') else value
+                for key,value in profiles.profiles.items()}
+        # Equal file-tier d leaves only a GPU benefit. This controlled input
+        # tests staging/ordering, not a measured layer-cost performance claim.
+        profiles=replace(profiles,profiles=values,
+            activation_layout_json=json.dumps(native_activation_layout(complete_snapshot()),sort_keys=True))
+        runner._preparation_profiles=profiles
+        runner._stack.hotness_tracker=HotnessTracker(None,clock=lambda:100.)
+        runner._stack.hotness_tracker.record_arrival('a')
+        for aid in ('b','c','d'):
+            fixture.manager._delete_path(str(fixture.host/aid))
+        fixture.owner.reserve_activation_host(activation_id='new-activation',limit_bytes=1024)
+        async def run():
+            manager=fixture.manager
+            files=fixture.owner.preparation_snapshot(
+                manifests=runner._remote_artifact_client.preparation_manifests(runner._ieee_artifact_identities),
+                limits={t:int(manager.tier_capacities[StorageTier(t)].total_bytes) for t in fixture.owner.roots})
+            plan=runner._stack.plan_ieee_owned_preparation(mode='handoff',native_snapshot=None,
+                file_snapshot=files,identities=runner._ieee_artifact_identities,
+                adapter_int_ids={a:InferenceEngine._lora_int_id(a) for a in runner._ieee_artifact_identities},
+                profiles=profiles,costs=PreparationCostModel(values,beta=.5,profile_id=profiles.profile_id),
+                expected_clock_id=local_monotonic_clock_id(),received_at=time.monotonic(),
+                activation_id='new-activation')
+            self.assertIsNone(plan['source_view']['native'])
+            self.assertEqual([c.artifact_id for c in plan['selected']['gpu']],['a'])
+            ready=asyncio.get_running_loop().create_future()
+            task=asyncio.create_task(runner._run_ieee_file_preparation_plan(plan=plan,target_engine=None,
+                target_replica=slot.instance_id,activation_id='new-activation',activation_ready=ready))
+            async def staged():
+                while not (fixture.nvme/'a'/'weights').exists(): await asyncio.sleep(.001)
+            await asyncio.wait_for(staged(),2)
+            self.assertFalse(loads)
+            self.assertFalse(task.done())
+            self.assertTrue(fixture.owner.file_preparation_snapshot()['plans'])
+            ready.set_result(slot)
+            await asyncio.wait_for(task,3)
+            self.assertEqual(loads,[('host','a'),('gpu','a')])
+            receipt=runner._ieee_gpu_preparation_plans[-1]['attempts'][-1]['receipt']
+            self.assertEqual(receipt['replacement']['incoming_benefit_ms'],80.)
+            self.check_clean(fixture,runner,owner)
+            fixture.owner.cancel_activation_host(activation_id='new-activation')
+            await queue.close()
+        asyncio.run(run())
 
     def test_actual_mixed_selector_file_native_and_gpu_chain_with_single_queue_slot(self):
         fixture, runner, queue, slot, owner, snapshot, loads = self.make()
@@ -1657,7 +1993,12 @@ class FileObjectiveReplacement(unittest.TestCase):
                 while {r['state'] for r in queue.snapshot()} != {'completed', 'deferred'}:
                     await asyncio.sleep(.001)
             try:
-                await asyncio.wait_for(settled(), 2)
+                try:
+                    await asyncio.wait_for(settled(), 2)
+                except TimeoutError:
+                    self.fail(str(dict(queue=queue.snapshot(), outcomes=[
+                        repr(task.exception()) if task.done() and not task.cancelled() else 'pending'
+                        for task in tasks], replacements=fixture.owner._file_replacement_events)))
                 self.assertEqual(len(fixture.owner._file_replacement_events), 1)
                 self.assertLessEqual(fixture.owner.inventory()['tiers']['host']['allocated_file_bytes'], 16384)
                 self.assertEqual(sum(task.done() for task in tasks), 1)

@@ -901,7 +901,7 @@ class ExperimentStack:
 
     def plan_ieee_owned_preparation(self, *, mode, native_snapshot, file_snapshot,
                                     identities, adapter_int_ids, profiles, costs,
-                                    expected_clock_id, received_at):
+                                    expected_clock_id, received_at, activation_id=None):
         """Generate all insertion candidates from the actual received owners.
 
         One demand window and one cost sequence feed the existing IEEE selector.
@@ -912,7 +912,8 @@ class ExperimentStack:
             raise ValueError('owned preparation profile differs from the replica cost model')
         inputs = owned_preparation_inputs(native_snapshot=native_snapshot,
             file_snapshot=file_snapshot, identities=identities, adapter_int_ids=adapter_int_ids,
-            profiles=profiles, expected_clock_id=expected_clock_id, received_at=received_at)
+            profiles=profiles, expected_clock_id=expected_clock_id, received_at=received_at,
+            activation_id=activation_id)
         plan = self.plan_ieee_preparation(mode=mode, options=inputs['options'],
             budgets=inputs['budgets'], costs=costs, source_snapshot_id=inputs['source_snapshot_id'])
         return dict(plan, source_view=inputs['source_view'])

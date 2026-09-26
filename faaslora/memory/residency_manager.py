@@ -136,11 +136,14 @@ class LocalSourceReferences:
         self.leases = {}
         self.released = set()
         self.materializations = {}
+        self._budgeted_materializations = set()
         self._transfer_workspaces = {}
         self._prepared_transfers = {}
         self._file_limits = {}
         self._host_limit = None
         self._native_host_reservations = {}
+        self._activation_host_reservations = {}
+        self._closed_host_activations = set()
         self._native_host_pidfds = {}
         self._native_host_retired = set()
         self._confirmed_sources = {}
@@ -382,17 +385,56 @@ class LocalSourceReferences:
             if self._host_limit is None:
                 raise RuntimeError('managed HOST budget is not configured')
             files = self.inventory()['tiers']['host']['allocated_file_bytes']
-            reserved = sum(self._native_host_reservations.values())
+            reserved = (sum(self._native_host_reservations.values())
+                        + sum(self._activation_host_reservations.values()))
             if files + reserved > self._host_limit:
                 raise RuntimeError('managed HOST files and native allowances exceed capacity')
             return dict(kind='ieee_managed_host_budget_v1', owner_id=self.owner_id,
                 limit_bytes=self._host_limit, shared_file_bytes=files,
                 native_reserved_bytes=reserved, native_reservations=dict(self._native_host_reservations),
+                bound_native_reserved_bytes=sum(self._native_host_reservations.values()),
+                activation_reserved_bytes=sum(self._activation_host_reservations.values()),
+                activation_reservations=dict(self._activation_host_reservations),
                 remaining_bytes=self._host_limit-files-reserved,
                 scope='shared_allocated_files_plus_native_tensor_allowances',
                 whole_service_rss_covered=False, snapshot_reserves_capacity=False)
 
-    def reserve_native_host(self, *, owner_id, limit_bytes, exit_pidfd):
+    def reserve_activation_host(self, *, activation_id, limit_bytes):
+        """Charge the future native allowance before concurrent file preparation.
+
+        This does not assert that a worker or native tensor exists. Adoption
+        transfers this exact allowance to a witnessed worker without a gap.
+        """
+        with self.lock:
+            if (not isinstance(activation_id, str) or not activation_id
+                    or activation_id in self._closed_host_activations
+                    or type(limit_bytes) is not int or limit_bytes <= 0):
+                raise ValueError('activation HOST allowance requires a fresh identity and bytes')
+            old = self._activation_host_reservations.get(activation_id)
+            if old is not None:
+                if old != limit_bytes:
+                    raise ValueError('activation HOST allowance cannot change')
+                return self.host_budget_snapshot()
+            if limit_bytes > self.host_budget_snapshot()['remaining_bytes']:
+                raise RuntimeError('managed HOST cannot reserve an activating replica')
+            self._activation_host_reservations[activation_id] = limit_bytes
+            return self.host_budget_snapshot()
+
+    def cancel_activation_host(self, *, activation_id):
+        """Return an unadopted allowance after its preparation/startup is joined.
+
+        The caller owns startup cancellation. Once adopted, only native pidfd
+        retirement can return bytes; this interface cannot undo adoption.
+        """
+        with self.lock:
+            if activation_id not in self._activation_host_reservations:
+                raise ValueError('activation HOST allowance absent or already adopted')
+            del self._activation_host_reservations[activation_id]
+            self._closed_host_activations.add(activation_id)
+            self._file_changed(('host',))
+            return self.host_budget_snapshot()
+
+    def reserve_native_host(self, *, owner_id, limit_bytes, exit_pidfd, activation_id=None):
         """Reserve before installing a worker limit or submitting adapter loads.
 
         An unknown installation outcome retains this allowance. Only the
@@ -407,11 +449,17 @@ class LocalSourceReferences:
                 raise ValueError('native HOST allowance requires a process pidfd')
             old = self._native_host_reservations.get(owner_id)
             if old is not None:
+                if activation_id is not None:
+                    raise ValueError('activation cannot alias an existing native HOST owner')
                 if old != limit_bytes or self._native_host_pidfds[owner_id] != exit_pidfd:
                     raise ValueError('native HOST allowance cannot change')
                 return self.host_budget_snapshot()
-            view = self.host_budget_snapshot()
-            if limit_bytes > view['remaining_bytes']:
+            if activation_id is not None:
+                if self._activation_host_reservations.get(activation_id) != limit_bytes:
+                    raise ValueError('native HOST adoption differs from activation allowance')
+                del self._activation_host_reservations[activation_id]
+                self._closed_host_activations.add(activation_id)
+            elif limit_bytes > self.host_budget_snapshot()['remaining_bytes']:
                 raise RuntimeError('managed HOST capacity cannot reserve another native owner')
             self._native_host_reservations[owner_id] = limit_bytes
             self._native_host_pidfds[owner_id] = exit_pidfd
@@ -547,12 +595,12 @@ class LocalSourceReferences:
     def inventory(self):
         """Owner snapshot, including retained and private-stage paths.
 
-        A transfer writes outside this lock. Unprepared transfers have unknown
-        remaining growth and prevent a capacity snapshot; fully preallocated
-        transfers may overwrite content but cannot change their storage footprint.
+        A transfer writes outside this lock. Unqualified transfers have unknown
+        growth and prevent a snapshot. Budgeted transfers cannot write before
+        owner preallocation; afterward they overwrite but cannot grow storage.
         """
         with self.lock:
-            if set(self.materializations) != set(self._prepared_transfers):
+            if set(self.materializations) - set(self._prepared_transfers) - self._budgeted_materializations:
                 raise RuntimeError('file inventory requires quiescent managed writes')
             view = self._file_inventory()
             held = {key for record in self._prepared_transfers.values() for key in record['files']}
@@ -629,7 +677,7 @@ class LocalSourceReferences:
             if (self._transfer_workspaces.get(transfer_id) != staging or
                     transfer_id in self._prepared_transfers):
                 raise ValueError('space reservation requires its unique managed workspace')
-            if set(self.materializations) - set(self._transfer_workspaces):
+            if set(self.materializations) - set(self._transfer_workspaces) - self._budgeted_materializations:
                 raise RuntimeError('unbudgeted materialization prevents capacity reservation')
             if type(limit_bytes) is not int or limit_bytes < 0:
                 raise ValueError('file budget requires explicit nonnegative integer bytes')
@@ -660,7 +708,8 @@ class LocalSourceReferences:
             effective_limit = limit_bytes
             if tier == 'host' and self._host_limit is not None:
                 effective_limit = min(effective_limit,
-                    self._host_limit-sum(self._native_host_reservations.values()))
+                    self._host_limit-sum(self._native_host_reservations.values())
+                    -sum(self._activation_host_reservations.values()))
             replacement = None
             if before + required > effective_limit and transfer_id in self._file_replacement_contexts:
                 before, replacement = self._reclaim_for_file_preparation(
@@ -670,7 +719,8 @@ class LocalSourceReferences:
             if tier == 'host' and self._host_limit is not None:
                 # Same lock as native reservations; concurrent replica setup
                 # cannot spend these bytes between this check and fallocate.
-                if before + required + sum(self._native_host_reservations.values()) > self._host_limit:
+                if (before + required + sum(self._native_host_reservations.values())
+                        + sum(self._activation_host_reservations.values()) > self._host_limit):
                     raise RuntimeError('managed HOST capacity conflict: file staging plus native allowances')
             files = {}
             for path, size in paths.items():
@@ -816,7 +866,7 @@ class LocalSourceReferences:
             scope='managed_allocated_regular_files_only', total_host_memory_covered=False)
         try:
             cancelled()
-            with self.materializing(target, replacement_epoch=replacement_epoch) as transfer_id:
+            with self.materializing(target, replacement_epoch=replacement_epoch, budgeted=True) as transfer_id:
                 receipt['transfer_id'] = transfer_id
                 with self.transfer_workspace(transfer_id) as staging:
                     receipt['file_reservation'] = self.prepare_copy(
@@ -962,14 +1012,19 @@ class LocalSourceReferences:
             self._file_changed((tier,))
 
     @contextmanager
-    def materializing(self, target, *, replacement_epoch=None):
+    def materializing(self, target, *, replacement_epoch=None, budgeted=False):
         """Retain the containing tier while a private workspace is being written.
 
         Old destination bytes remain readable. This is transfer lifetime, not
         physical capacity admission, and does not hold a lock across network I/O.
+
+        A budgeted operation is owned before workspace creation and may only
+        write payload after this owner's prepare_copy/prepare_transfer. Thus
+        before preallocation (or after workspace cleanup) it has no unchecked
+        growth. Unqualified legacy writers still prevent capacity observation.
         """
         target = Path(target).resolve()
-        if target.parent not in self.roots.values():
+        if target.parent not in self.roots.values() or type(budgeted) is not bool:
             raise ValueError('materialization destination is outside managed tiers')
         transfer_id = uuid.uuid4().hex
         with self.lock:
@@ -987,6 +1042,8 @@ class LocalSourceReferences:
                     del self.materializations[transfer_id]
                     raise
                 self._file_replacement_contexts[transfer_id] = dict(epoch=epoch, receipt=None, fallback_leases=[])
+            if budgeted:
+                self._budgeted_materializations.add(transfer_id)
         try:
             yield transfer_id
         finally:
@@ -994,6 +1051,7 @@ class LocalSourceReferences:
                 if transfer_id in self._transfer_workspaces:
                     raise RuntimeError('materialization cannot end before its workspace cleanup')
                 del self.materializations[transfer_id]
+                self._budgeted_materializations.discard(transfer_id)
                 context = self._file_replacement_contexts.pop(transfer_id, None)
                 if context is not None:
                     for lease_id in context['fallback_leases']:

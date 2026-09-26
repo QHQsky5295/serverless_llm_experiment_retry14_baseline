@@ -6559,6 +6559,9 @@ class ScenarioRunner:
         self._warm_pool_min = int(cc.get("warm_pool_min", 2))
         self._warm_pool_max = int(cc.get("warm_pool_max", 8))
         self._routing_policy = str(cc.get("routing_policy", "adapter_affinity")).lower()
+        self._ieee_handoff_policy = str(cc.get('ieee_handoff_policy', 'full'))
+        if self._ieee_handoff_policy not in ('full', 'no_handoff', 'delayed'):
+            raise ValueError('unknown IEEE activation preparation policy')
         if self._routing_policy == 'ieee_confirmed' and self._service_profiles is None:
             raise ValueError('IEEE routing requires measured ieee_service_profile initialization')
         if self._preparation_profiles is not None and self._routing_policy != 'ieee_confirmed':
@@ -8096,6 +8099,8 @@ class ScenarioRunner:
                 'ieee_file_pending_targets': self._stack.residency_manager.local_source_references.file_preparation_snapshot()}
         if hasattr(self, '_ieee_native_host_preparations'):
             result = {**result, 'ieee_native_host_preparations': copy.deepcopy(self._ieee_native_host_preparations)}
+        if hasattr(self, '_ieee_activations'):
+            result = {**result, 'ieee_activations': copy.deepcopy(self._ieee_activations)}
         if getattr(self, '_ieee_host_budget_members', None) is not None:
             result['ieee_managed_host_budget'] = self._stack.residency_manager.local_source_references.host_budget_snapshot()
             result['ieee_native_host_budget_owners'] = [copy.deepcopy({
@@ -12379,6 +12384,7 @@ class ScenarioRunner:
         *,
         handoff_plan: Optional[Dict[str, Any]] = None,
         reserved_device_id: Optional[int] = None,
+        activation_kind: str = 'initial',
     ) -> Optional[Dict[str, Any]]:
         if self.instance_pool is None or getattr(self, "engine_factory", None) is None:
             return None
@@ -12389,6 +12395,11 @@ class ScenarioRunner:
             if reserved_device_id is not None
             else self._select_dedicated_device_id()
         )
+        if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
+            if handoff_plan:
+                raise ValueError('IEEE activation cannot consume a legacy warmup/handoff plan')
+            return await self._add_ieee_dedicated_instance(device_id=device_id,
+                                                           activation_kind=activation_kind)
         cold_start_started_at = time.perf_counter()
         try:
             new_engine, new_coord = await self.engine_factory(device_id=device_id)
@@ -12560,6 +12571,145 @@ class ScenarioRunner:
             "preload_budget": event_preload_budget,
         }
 
+    async def _add_ieee_dedicated_instance(self, *, device_id, activation_kind):
+        """Actual scale-out entry: freeze -> overlap files/init -> native recheck.
+
+        Runtime readiness does not wait for all proactive work. Unfinished
+        targets retain the common queue's ownership and live admission checks.
+        The complete Full startup guard remains until its other gates qualify.
+        """
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.preloading.preloading_planner import native_activation_layout
+        policy = self._ieee_handoff_policy
+        if activation_kind not in ('initial', 'natural_scaleout', 'controlled'):
+            raise ValueError('activation requires its causal category')
+        profiles = self._preparation_profiles
+        if (profiles is None or self._stack is None or self._remote_artifact_client is None
+                or not self.model_cfg.get('ieee_gpu_references')):
+            raise ValueError('IEEE activation needs real owners and frozen measurements')
+        profiles.validate_runtime(self.model_cfg)
+        layout = profiles.activation_layout()
+        activation_id = 'ieee-activation-' + uuid.uuid4().hex
+        files = self._stack.residency_manager.local_source_references
+        files.configure_host_budget(self.model_cfg['ieee_host_budget_bytes'])
+        files.reserve_activation_host(activation_id=activation_id,
+            limit_bytes=self.model_cfg['ieee_native_host_tensor_budget_bytes'])
+        record = dict(activation_id=activation_id, target_replica=activation_id,
+            category=activation_kind, policy=policy, trigger_at=time.monotonic(),
+            clock_id=local_monotonic_clock_id(), state='planning', plan_sha256=None)
+        if not hasattr(self, '_ieee_activations'):
+            self._ieee_activations = []
+        self._ieee_activations.append(record)
+        initialized = asyncio.get_running_loop().create_future()
+        startup = preparation = None
+        engine = coordinator = None
+        published = False
+
+        async def settle(awaitable):
+            task = asyncio.ensure_future(awaitable)
+            while True:
+                try:
+                    return await asyncio.shield(task)
+                except asyncio.CancelledError:
+                    if task.cancelled():
+                        raise
+
+        def preparation_done(task):
+            try:
+                task.result()
+                record['preparation_state'] = 'completed'
+            except BaseException as exc:
+                record.update(preparation_state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
+                              preparation_error=type(exc).__name__)
+            record['preparation_terminal_at'] = time.monotonic()
+
+        try:
+            plan = None
+            if policy != 'no_handoff':
+                manifests = self._remote_artifact_client.preparation_manifests(self._ieee_artifact_identities)
+                manager = self._stack.residency_manager
+                view = files.preparation_snapshot(manifests=manifests,
+                    limits={tier: int(manager.tier_capacities[StorageTier(tier)].total_bytes)
+                            for tier in files.roots})
+                plan = self._stack.plan_ieee_owned_preparation(mode='handoff', native_snapshot=None,
+                    file_snapshot=view, identities=self._ieee_artifact_identities,
+                    adapter_int_ids={a: InferenceEngine._lora_int_id(a) for a in self._ieee_artifact_identities},
+                    profiles=profiles, costs=profiles.new_replica(),
+                    expected_clock_id=local_monotonic_clock_id(), received_at=time.monotonic(),
+                    activation_id=activation_id)
+                record['plan_sha256'] = plan['plan_sha256']
+            # Both coroutines are owned before yielding. Initialization is
+            # shielded: cancellation must join it, never abandon a new worker.
+            record['state'] = 'initializing'
+            startup = asyncio.create_task(self.engine_factory(device_id=device_id))
+            if plan is not None:
+                preparation = asyncio.create_task(self._run_ieee_file_preparation_plan(
+                    plan=plan, target_engine=None, target_replica=activation_id,
+                    activation_id=activation_id, activation_ready=initialized,
+                    delayed=policy == 'delayed'))
+                preparation.add_done_callback(preparation_done)
+                record['preparation_state'] = 'pending'
+            else:
+                record['preparation_state'] = 'disabled'
+            engine, coordinator = await asyncio.shield(startup)
+            profiles.validate_runtime(engine.model_cfg)
+            if self._service_profiles is not None:
+                self._service_profiles.validate_runtime(engine.model_cfg)
+            observed = await engine.ieee_gpu_reference(operation='source_snapshot')
+            if native_activation_layout(observed) != layout:
+                raise ValueError('actual initialized GPU layout differs from frozen measurements')
+            # Install before adapter work; adoption moves, not doubles, the
+            # future native allowance. A lost acknowledgement retains it.
+            if not hasattr(self, '_ieee_host_activation_ids'):
+                self._ieee_host_activation_ids = {}
+            self._ieee_host_activation_ids[id(engine)] = activation_id
+            await self._attach_ieee_file_pressure(engine)
+            instance_id = self.instance_pool.add_instance(engine, coordinator, owns_engine=True,
+                owns_coordinator=True, device_id=device_id, instance_id=activation_id)
+            published = True
+            slot = self.instance_pool.get_slot(instance_id)
+            if preparation is not None and not preparation.done():
+                self._ieee_file_plan_engines[preparation] = engine
+            record.update(state='runtime_ready', engine_ready_at=time.monotonic(),
+                          native_owner_id=observed['owner_id'])
+            initialized.set_result(slot)
+            await self._notify_dispatch_capacity_changed(wake_all=True)
+            return dict(event_type='physical_scale_up', instance_id=instance_id,
+                device_id=device_id, runtime_kind='dedicated', activation_id=activation_id,
+                activation_kind=activation_kind, handoff_plan_sha256=record['plan_sha256'],
+                engine_activation_ms=1000*(record['engine_ready_at']-record['trigger_at']),
+                preparation_state=record['preparation_state'])
+        except BaseException as exc:
+            record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
+                          error_type=type(exc).__name__)
+            if preparation is not None:
+                preparation.cancel()
+                await settle(asyncio.gather(preparation, return_exceptions=True))
+            if not initialized.done():
+                initialized.cancel()
+            if startup is not None and engine is None:
+                # The factory may still own a process. Only a successful join
+                # gives us a runtime we can retire; failure is not exit proof.
+                try:
+                    engine, coordinator = await settle(startup)
+                except BaseException as failure:
+                    record.update(state='startup_ownership_unresolved', startup_error=type(failure).__name__)
+                    raise
+            if engine is not None:
+                if published:
+                    self.instance_pool.remove_instance(activation_id)
+                domain = getattr(self, '_shared_file_pressure', None)
+                member = domain.members.get(id(engine)) if domain is not None else None
+                if member is not None and member['state'] == 'attached':
+                    await settle(domain.retire(engine))
+                await settle(engine.shutdown())
+                self._retire_ieee_host_budget(engine)
+            # Unadopted bytes never enabled native adapter allocation. Startup
+            # and file readers above have joined; adopted bytes use pidfd only.
+            if activation_id in files.host_budget_snapshot()['activation_reservations']:
+                files.cancel_activation_host(activation_id=activation_id)
+            raise
+
     def _handle_pending_scale_up_task_done(self, task: asyncio.Task) -> None:
         tasks = getattr(self, "_pending_scale_up_tasks", None)
         if tasks is not None:
@@ -12591,6 +12741,7 @@ class ScenarioRunner:
                 coord_enabled,
                 handoff_plan=handoff_plan,
                 reserved_device_id=reserved_device_id,
+                activation_kind='natural_scaleout',
             )
             if not scale_event:
                 return
@@ -12795,8 +12946,11 @@ class ScenarioRunner:
                     scale_event = await self._add_dedicated_instance_slot(
                         coord_enabled,
                         handoff_plan=handoff_plan,
+                        activation_kind='natural_scaleout',
                     )
                 except TypeError:
+                    if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
+                        raise  # Never restart a partly-created IEEE runtime as a legacy retry.
                     scale_event = await self._add_dedicated_instance_slot(coord_enabled)
                 if not scale_event:
                     break
@@ -12867,6 +13021,8 @@ class ScenarioRunner:
             "cold_start_latency_ms",
             "runtime_startup_latency_ms",
             "warmed_adapters",
+            "activation_id", "activation_kind", "handoff_plan_sha256",
+            "engine_activation_ms", "preparation_state",
         ):
             if key in scale_event:
                 event[key] = scale_event.get(key)
@@ -15563,7 +15719,7 @@ class ScenarioRunner:
                         raise RuntimeError('native managed artifact transfer requires the physical source owner')
                     owner = self._stack.residency_manager
                     references = owner.local_source_references
-                    with references.materializing(dst, replacement_epoch=replacement_epoch) as transfer_id:
+                    with references.materializing(dst, replacement_epoch=replacement_epoch, budgeted=True) as transfer_id:
                         transfer_evidence.update(transfer_id=transfer_id,
                             local_source_owner_id=owner.local_source_references.owner_id,
                             target_path=str(dst.resolve()))
@@ -15999,7 +16155,7 @@ class ScenarioRunner:
 
     async def _run_ieee_file_preparation_plan(self, *, plan, target_engine,
             target_replica, activation_id=None, replacement_costs=None,
-            gpu_slot=None, capacity_only=False):
+            gpu_slot=None, capacity_only=False, activation_ready=None, delayed=False):
         """Execute selected HOST/NVMe plans, including Remote->NVMe->HOST.
 
         All final and intermediate targets are protected before queue dispatch.
@@ -16014,10 +16170,18 @@ class ScenarioRunner:
             raise ValueError('file plan requires the managed native deployment')
         plan = copy.deepcopy(plan)
         selected = self._stack.preloading_planner.validate_ieee_execution_plan(plan)
-        if selected['gpu'] and gpu_slot is None:
+        preinit = activation_ready is not None
+        if preinit and (plan['source_view']['native'] is not None
+                or plan['source_view']['activation_id'] != activation_id
+                or target_engine is not None or gpu_slot is not None
+                or replacement_costs is not None or plan['mode'] != 'handoff'):
+            raise ValueError('pre-init execution needs its unchanged activation plan and readiness future')
+        if delayed and not preinit:
+            raise ValueError('delayed handoff requires the same pre-init plan')
+        if selected['gpu'] and gpu_slot is None and not preinit:
             raise ValueError('file executor cannot silently drop selected native GPU targets')
         gpu_objective = None
-        if selected['gpu']:
+        if selected['gpu'] and not preinit:
             from faaslora.preloading.preloading_planner import owned_gpu_execution_objective
             if (gpu_slot.engine is not target_engine or gpu_slot.instance_id != target_replica
                     or replacement_costs is not None):
@@ -16057,7 +16221,9 @@ class ScenarioRunner:
         for candidate in selected['gpu']:
             aid = candidate.artifact_id
             source = plan['source_view']['sources'][aid]['selected_source']
-            row = next(r for r in gpu_objective['sources'] if r['adapter_id'] == aid)
+            row = (dict(adapter_id=aid, adapter_int_id=plan['source_view']['adapter_int_ids'][aid],
+                        lora_path=source['path'] or plan['source_view']['files']['artifacts'][aid]['targets']['nvme']['path'])
+                   if preinit else next(r for r in gpu_objective['sources'] if r['adapter_id'] == aid))
             gpu_recipes[row['adapter_int_id']] = (candidate, source, row)
             if not source['native']:
                 tier = 'nvme' if source['tier'] == 'remote' else source['tier']
@@ -16114,9 +16280,12 @@ class ScenarioRunner:
                         tier=target_tier, adapter_id=aid)
             record['results'].append(dict(adapter_id=aid, target_tier=tier, result=result))
             return result
+        gpu_staging = {}
         async def prepare_gpu_source(aid_int, native_plan_id):
             candidate, source, row = gpu_recipes[aid_int]
             aid = candidate.artifact_id
+            if aid_int in gpu_staging:
+                await gpu_staging[aid_int]
             observed = await target_engine.ieee_gpu_reference(operation='source_snapshot')
             current = next((r for r in observed['sources'] if r['adapter_int_id'] == aid_int), None)
             if current is not None:
@@ -16125,23 +16294,48 @@ class ScenarioRunner:
                 return  # Actual HOST/GPU validity and admission are rechecked by its owner.
             if source['native']:
                 raise ValueError('planned native source was invalidated; a new epoch is required')
-            if source['tier'] == 'remote':
+            if source['tier'] == 'remote' and aid_int not in gpu_staging:
                 await move(aid, 'nvme', None, candidate.density)
             await self._queue_ieee_native_host_preparation(slot=gpu_slot, adapter_id=aid,
                 source_path=Path(row['lora_path']), trigger_reason=mode, plan_id=native_plan_id,
                 activation_id=activation_id, density=candidate.density)
         async def execute_gpu():
-            result = await self._run_ieee_gpu_preparation_plan(slot=gpu_slot,
-                objective=gpu_objective, target_adapter_ids=tuple(gpu_recipes),
-                trigger_reason=mode, activation_id=activation_id, capacity_only=capacity_only,
-                prepare_source=prepare_gpu_source)
-            for _, _, row in gpu_recipes.values():
-                for tier, aid in targets:
-                    if aid == row['adapter_id']:
-                        references.finish_file_preparation_target(plan_id=plan_id, tier=tier, adapter_id=aid)
-            record['results'].extend(dict(adapter_id=row['adapter_id'], target_tier='gpu', result=value)
-                for (_, _, row), value in zip(gpu_recipes.values(), result))
-            return result
+            nonlocal gpu_slot, target_engine, gpu_objective
+            try:
+                if preinit:
+                    # Start all staging now; after initialization each GPU job
+                    # waits only for its own prerequisite, not the slowest file.
+                    gpu_staging.update({aid: asyncio.create_task(move(candidate.artifact_id,
+                        'nvme', None, candidate.density)) for aid, (candidate, source, _) in gpu_recipes.items()
+                        if source['tier'] == 'remote'})
+                    gpu_slot = await asyncio.shield(activation_ready)
+                    if gpu_slot.instance_id != target_replica:
+                        raise ValueError('activation completed on a different replica')
+                    target_engine = gpu_slot.engine
+                    self._ieee_file_plan_engines[task] = target_engine
+                    observed = await target_engine.ieee_gpu_reference(operation='source_snapshot')
+                    from faaslora.preloading.preloading_planner import owned_gpu_execution_objective
+                    gpu_objective = owned_gpu_execution_objective(plan=plan, selected=selected,
+                        size_edges_bytes=self._preparation_profiles.size_edges_bytes,
+                        initialized_snapshot=observed)
+                result = await self._run_ieee_gpu_preparation_plan(slot=gpu_slot,
+                    objective=gpu_objective, target_adapter_ids=tuple(gpu_recipes),
+                    trigger_reason=mode, activation_id=activation_id, capacity_only=capacity_only,
+                    prepare_source=prepare_gpu_source)
+                for _, _, row in gpu_recipes.values():
+                    for tier, aid in targets:
+                        if aid == row['adapter_id']:
+                            references.finish_file_preparation_target(plan_id=plan_id, tier=tier, adapter_id=aid)
+                record['results'].extend(dict(adapter_id=row['adapter_id'], target_tier='gpu', result=value)
+                    for (_, _, row), value in zip(gpu_recipes.values(), result))
+                return result
+            finally:
+                for child in gpu_staging.values():
+                    if not child.done():
+                        child.cancel()
+                _, cancelled = await settle(asyncio.gather(*gpu_staging.values(), return_exceptions=True))
+                if cancelled:
+                    raise asyncio.CancelledError()
         async def settle(awaitable):
             future, cancelled = asyncio.ensure_future(awaitable), False
             while True:
@@ -16152,6 +16346,14 @@ class ScenarioRunner:
                         raise
                     cancelled = True
         try:
+            if delayed:
+                # Only the start boundary changes. No new h/d, selection or
+                # planning budget is sampled for the controlled comparison.
+                gpu_slot = await asyncio.shield(activation_ready)
+                if gpu_slot.instance_id != target_replica:
+                    raise ValueError('activation completed on a different replica')
+                target_engine = gpu_slot.engine
+                self._ieee_file_plan_engines[task] = target_engine
             record['state'] = 'executing'
             waiters = [asyncio.create_task(execute(*recipe)) for recipe in recipes]
             if gpu_recipes:
@@ -16341,7 +16543,8 @@ class ScenarioRunner:
             try:
                 if gpu_process_identity(pid) != identity:
                     raise RuntimeError('native HOST process changed during pidfd binding')
-                files.reserve_native_host(owner_id=owner_id, limit_bytes=native, exit_pidfd=fd)
+                files.reserve_native_host(owner_id=owner_id, limit_bytes=native, exit_pidfd=fd,
+                    activation_id=getattr(self, '_ieee_host_activation_ids', {}).get(id(engine)))
             except BaseException:
                 os.close(fd)
                 raise

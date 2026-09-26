@@ -2532,3 +2532,92 @@ replacement、native HOST容量满时的替换、完整native/file fallback
 Full guard保留。正式baseline/M1/M2、消融和敏感性没有新增完成槽位。
 后续直接推进初始化前准备与实际activation/control调用，以及剩余候选
 和完整来源replacement，不重复本轮已完成的混合执行或旧模型prefix。
+
+## D47：实际扩容入口的初始化重叠与三种handoff时机
+
+### 依据、假设与边界
+
+D46的混合执行仍要求已经初始化的engine，实际扩容入口仍走旧启动后
+warmup。因此它不能证明IEEE正文中“HOST/NVMe准备与初始化重叠”的机制。
+本轮再次核对原文Eq.(4)–(7)、初始化/activation段落及D36–D46代码历史。
+对照[vLLM0.30 worker manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+的模型依赖CPU解析和GPU activation，以及
+[HydraServe原论文入口](https://www.usenix.org/conference/nsdi26/presentation/lou)
+关于初始化重叠的系统设计。后者说明重叠值得测量，不证明本机有同等收益，
+本次也没有移植其pipeline/consolidation或报告其性能。
+
+可证伪假设：预先冻结测得的不可变槽位几何，仅以现存文件为确认来源，
+就能在新运行时初始化期间执行文件准备；初始化后绑定实际owner并保留
+原h/d目标，再通过既有native准入执行，而无需虚构初始化前的GPU状态。
+
+### 实际修改
+
+- 冻结准备profile可包含`activation_layout_evidence`，引用同一profile
+  已登记的source run，并保存原生完整快照。载入时提取/验证uniform槽位
+  数、容量、tensor名称/shape/dtype/分配映射。继承内容不含owner、epoch、
+  地址、驻留列表或ready时间。没有实测layout时在启动前拒绝，不猜测。
+- 初始化前的规划视图明确`native=null`、`native_owner_exists=false`。
+  来源只有真实共享文件和远端工件；GPU规划预算来自冻结初始化几何，
+  不是当前GPU空闲观测或物理reservation。选择器与原公式不变。
+- 文件owner在并发准备前登记新activation的native HOST额度。额度与已有
+  native额度和文件占用共同扣除；worker初始化、pidfd身份确认后原子转移
+  给真实owner，不重复扣款也没有先释放再申请的窗口。未知启动结果保留
+  未决额度；一旦转为native额度，只能由原pidfd退出证明归还。
+- 实际`_add_dedicated_instance_slot`的IEEE分支不再调用旧warmup，改为
+  同时持有初始化任务和原计划的文件任务。所有文件pending目标先登记。
+  GPU目标先staging；每项只等待自己的来源，初始化后才绑定实际owner、
+  登记native目标并执行原HOST/GPU队列与准入。初始化不等待所有准备结束。
+- `full/no_handoff/delayed`共用该入口。NoHandoff不启动准备；Delayed
+  在初始化前冻结计划，但等ready后才开始IO，不重新读取h/d或换选集。
+  本次没有完成跨运行同hash的受控A4实验；不同自然闭环epoch不冒称相同。
+- 新replica沿用activation身份并记录initial/natural_scaleout/controlled，
+  保存触发、engine-ready、准备完成/失败和plan SHA。初始化成功不等于
+  全部adapter-ready，也不等于物理GPU已释放或完整first-service计量。
+- 取消会等待自己拥有的初始化、文件reader和staging任务，再清理；不能
+  用取消Future冒充运行时退出。错误、旧plan、不同layout/model都显式拒绝。
+  启动factory丢失结果时保留`startup_ownership_unresolved`，不假装空闲。
+
+### 正确性状态表（CPU/native-cache fixture，不是模型性能实验）
+
+| 问题 | 检查与结果 |
+|---|---|
+| Full是否真的提前准备 | 实际扩容入口在受控初始化尚未结束时完成真实文件复制；实例池仍为0，没有native RPC |
+| Delayed是否偷换目标 | 初始化前无复制，之后完成同一plan SHA；期间新增到达不会重新采样本轮需求 |
+| NoHandoff是否仍有旁路 | 同入口成功发布runtime，准备入口和旧warmup均未调用 |
+| GPU staging边界 | 实际Remote文件准备在ready前完成，未调用CPU/GPU加载；ready后原native owner完成HOST/GPU链，原收益不变 |
+| HOST额度是否重复/超用 | activation额度减少可用文件空间；不允许第二个超额activation；绑定后总扣除不变，已绑定额度不能由activation取消归还 |
+| profile/model/layout不符 | 缺layout在启动前拒绝；实际model或layout变化时收尾，不发布实例或回退旧warmup |
+| 反复取消初始化 | 等待factory及真实文件任务，不遗弃它们；没有发布实例，未绑定额度在join后归还 |
+| 初始化回复丢失 | 保留未决额度和显式失败状态，不声称worker退出 |
+| profile继承是否拷贝ready状态 | 原生几何可继承，owner/epoch/驻留状态不可继承；不属于冻结source run或非法shape的证据被拒绝 |
+
+新增12项检查。第一轮27项有7个fixture错误：空运行时快照epoch写成0，
+而真实快照合同要求正epoch；改为1，没有放宽生产校验。随后28项通过。
+增加staging/profile覆盖后29项通过。第一轮完整876项有1个旧测试期望
+错误：仅服务profile的旧fixture现在应在创建运行时前拒绝，不能再进入旧
+warmup路径。保留这个更早拒绝检查，并新增完整配置下实际model不符的
+收尾测试。最终回归/原生环境/安全检查与备份回执见EXECUTION_STATUS。
+
+收尾回归还暴露了D44旧并发测试的真实竞争：登记materialization与创建
+workspace之间（以及清理workspace后），另一个准备任务会将它误判成
+未知增长的未受管写入者，抛出`unbudgeted materialization`，并非仅仅慢。
+首次877项复查因此有1个超时；给原测试增加状态诊断后，10次中3次复现。
+未增加等待时间、吞掉异常或把失败改称deferred。
+
+依据当前文件owner写入顺序和[Linux fallocate说明](https://man7.org/linux/man-pages/man2/fallocate.2.html)，
+现在在登记时明确区分必须由owner预分配后才写payload的budgeted任务。
+它在workspace前后没有未受控增长；真正的分配、替换和容量检查仍在
+同一owner锁内。只对现有验证过的HTTP/local-copy入口使用此状态，
+未知legacy writer仍阻止快照/预分配。确定性检查固定停在workspace前，
+同时验证安全路径可继续、未知writer仍拒绝；原竞争10次及新增1项均通过。
+这是补全已有资源状态机，不是关闭并发、加sleep或失败后重试兜底。
+
+### 下一主线与未完成事项
+
+本次是实际dedicated扩容入口的连接，不是Full上线资格。上层自动控制仍
+需清除旧handoff计划生产，初始主engine路径/完整物理生命周期仍待对接；
+旧计划进入此新路径会被拒绝。完整启动guard保留。剩余候选和native/file
+联合replacement、native HOST替换、主动d反馈、实际profile及allocator
+资格仍未完成。本次未测GPU模型、真实174服务或主性能；没有新权重/trace，
+没有修改旧结果或论文。后续继续完整控制/稳态计划集成，不再重复此局部
+扩容检查或旧模型短prefix。
