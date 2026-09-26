@@ -14643,10 +14643,11 @@ class ScenarioRunner:
                             reserve_files=lambda staging, archive_bytes, files: references.prepare_transfer(
                                 transfer_id, staging, archive_bytes, files,
                                 limit_bytes=int(owner.tier_capacities[StorageTier.NVME].total_bytes)),
-                            publish=lambda staging, target: references.publish_transfer(
+                            publish_verified=lambda staging, target, verified_files: references.publish_transfer(
                                 transfer_id, staging, target,
                                 lambda source, destination: owner.publish_local_source(
-                                    source, destination, transfer_id=transfer_id)),
+                                    source, destination, transfer_id=transfer_id),
+                                verified_files=verified_files),
                             cancel_event=cancel_event, require_content_manifest=True,
                             evidence=transfer_evidence)
                 else:

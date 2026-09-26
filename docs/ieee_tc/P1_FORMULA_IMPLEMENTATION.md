@@ -1047,3 +1047,53 @@ class/profile、全副本 source/cost 与原子准入接入，然后在该真实
 下一步是实际 pre-decision source/class/cost 组合和原子 admission，将 D20 的
 观察对象绑定在真实接纳时刻；之后只做有这些完整边界的整合模型资格。不要把
 fixture 导出成生产 profile，或再重复无新问题的同 prompt / 零权重检查。
+
+## P1-D23：把已验证文件发布接入真实 HOST/NVMe 状态
+
+`d324b26` 的原生 tensor 状态已有 owner/epoch，但文件 owner 只有路径读引用和
+空间盘点。真实 HTTP 路径虽验证了 payload SHA，验证结果没有成为可供路由读取
+的已确认本地状态。直接用目录存在或旧 tier hint 补齐快照，会混淆“存在”与
+“已完成且可用”。本步复用原 HTTP writer、LocalSourceReferences 和层间复制，
+没有建立新的下载框架或替代论文算法。
+
+参考 [vLLM 0.30 的 atomic_writer 与下载锁](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/model_executor/model_loader/weight_utils.py)：
+完成后同文件系统发布与互斥下载是现有底层做法。本项目在已有机制上连接内容
+身份和副本状态，不把原子 rename 本身称为新贡献。
+
+| 论文规范语义 | 当前实现证据 | 限制 |
+|---|---|---|
+| 目的副本可用后才发布 | actual ScenarioRunner 的严格 HTTP 路径传入逐文件验证回执，owner 检查实际目的内容并发布 epoch/content SHA/footprint | 本轮小文件 loopback，不是 174 或完整池性能资格 |
+| 位置不是缓存标签 | source_snapshot 返回已确认文件副本；现存但未验证的目录报 unknown，不能记为命中或 Remote | 旧缓存复用需单独验证；cold 主协议不自动导入未知旧目录 |
+| 撤回先于存储复用 | managed mutation 先撤回，失败替换只恢复身份与内容记录仍一致的旧副本 | 非本 owner 的外部写入不受合作锁保护 |
+| 引用绑定所选源 | acquire_confirmed 检查 owner、epoch、content identity 并在同一锁内持有读引用 | 未接入完整 pre-decision routing/atomic admission |
+| 层间迁移保留内容身份 | 既有 NVMe→文件型 HOST 复制验证目的字节后保留同内容 SHA，回收 HOST 后 NVMe 仍可见 | 不把文件型 HOST 视作已注册 native CPU tensor；物理 HOST 内存与复制准入仍独立验收 |
+| 观测不改变策略 | snapshot 不加载、不触碰 LRU、不重读整份权重；返回副本不可被调用方修改内部记录 | 元数据扫描/发布校验的真实开销尚未量化 |
+
+### 反例及修正
+
+首次八项检查有一项失败：测试在流式验证之后、发布之前等长改写目的文件，
+原 stat 签名检查没有拒绝。本机此反例说明仅依赖大小/inode/时间戳不足以确认
+最终目的字节。现发布边界对实际目的文件再做一次 SHA 校验，复用现有冻结
+文件索引，不在每次路由查询重复哈希；该开销必须进入后续真实运行。
+
+发布后的正确性依赖所有服务内写入、回收和复制使用共同 owner。元数据检查
+能撤回观察到的外部变化，但不声称防范任意不合作进程或具有同 UID 的恶意
+改写，也不声称 inode/stat 是内容哈希。外部修改属于协议破坏，而非允许的
+后台更新路径。没有通过改 checksum、放宽错误或缩小生成目标消除该反例。
+
+### 状态表与下一步
+
+新增十项方法检查包括实际 runner 的发布/保护、未知目录、失败传输、撤回与
+恢复、可观察外部变化、错误 owner/epoch/identity、校验后改写、真实 localhost
+HTTP 往返、HOST 复制/下层保留和损坏复制。全部使用微小 fixture，不生成模型
+工件或回放负载。真实 copytree 故障测试还断言破坏确实发生，避免仅因测试
+包装器签名错误而“成功拒绝”。
+
+最终功能回归 619 项通过（29.472 秒），独立安全/census/replay 56 项通过
+（0.495 秒），无失败或跳过。完整旧 smoke 中一次 dummy-model 的 HF HEAD
+发生 TLS 重试，未下载模型；该运行耗时不作性能证据。147 项历史保护清单和
+源计划 SHA 不变。按计划以正确性状态表交付，没有制作虚构的延迟收益图。
+
+下一步将原生 GPU/HOST 与此文件型 HOST/NVMe 状态组合为决策前 source/class/
+cost 视图，再绑定真实 admission 观察和引用。REMOTE 身份/代表性 profile、
+全层物理预算、准入与生命周期仍需整合；本步不能宣称 Full、主比较或 A3 已完成。

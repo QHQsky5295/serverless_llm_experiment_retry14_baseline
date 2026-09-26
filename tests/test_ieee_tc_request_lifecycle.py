@@ -668,6 +668,203 @@ class LocalSourceOwnership(unittest.TestCase):
         self.assertEqual((self.host / 'a' / 'weights').read_bytes(), b'tiny-test-fixture')
 
 
+class ConfirmedFilePublication(unittest.TestCase):
+    """Actual download/owner publication with tiny files, not inference evidence."""
+    def setUp(self):
+        from faaslora.memory.residency_manager import ResidencyManager
+        from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+        from tests.test_http_artifact_store import content_manifest
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.nvme, self.host = self.root / 'nvme', self.root / 'host'
+        self.nvme.mkdir()
+        self.host.mkdir()
+        self.manager = ResidencyManager({'memory': {'nvme': {'cache_dir': str(self.nvme)},
+            'host': {'cache_dir': str(self.host)}}}, Mock(), Mock())
+        self.owner = self.manager.local_source_references
+        self.client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+        self.payload = {'adapter_config.json': b'{"r":8}', 'nested/weights': b'tiny-test-fixture'}
+        self.client.configure_content_manifest(content_manifest(files=self.payload))
+        self.client._opener = Mock()
+        self.runner = ScenarioRunner.__new__(ScenarioRunner)
+        self.runner.model_cfg = {'ieee_gpu_references': True}
+        self.runner._stack = SimpleNamespace(residency_manager=self.manager)
+        self.runner._remote_artifact_client = self.client
+        self.runner._remote_transfer_evidence = []
+
+    def fetch(self, payload=None):
+        from tests.test_http_artifact_store import archive_bytes, SizedResponse
+        self.client._opener.open.return_value = SizedResponse(archive_bytes(list(
+            (self.payload if payload is None else payload).items())))
+        return self.runner._materialize_remote_adapter('a', self.nvme / 'a')
+
+    def test_actual_runner_publishes_verified_snapshot_and_protects_exact_copy(self):
+        self.assertEqual(self.owner.source_snapshot('a')['sources'], [])
+        self.assertTrue(self.fetch()[0])
+        state = self.owner.source_snapshot('a')
+        self.assertEqual(len(state['sources']), 1)
+        source = state['sources'][0]
+        self.assertEqual((source['tier'], source['adapter_id']), ('nvme', 'a'))
+        self.assertTrue(source['content_verified'])
+        self.assertEqual(source['file_path_bytes'], sum(map(len, self.payload.values())))
+        self.assertEqual(source['allocated_file_bytes'], 8192)
+        evidence = self.runner._remote_transfer_evidence[-1]['confirmed_file_publication']
+        self.assertEqual(evidence['epoch'], state['epoch'])
+        self.assertEqual(evidence['content_sha256'], source['content_sha256'])
+        lease = self.owner.acquire_confirmed(path=source['path'], adapter_id='a', lease_id='r',
+            expected_owner_id=state['owner_id'], expected_epoch=state['epoch'],
+            expected_content_sha256=source['content_sha256'])
+        self.assertTrue(lease['content_verified'])
+        with self.owner.mutation(self.nvme / 'a') as allowed:
+            self.assertFalse(allowed)
+        self.owner.release(lease_id='r', expected_owner_id=state['owner_id'])
+        source['tier'] = 'gpu'
+        self.assertEqual(self.owner.source_snapshot('a')['sources'][0]['tier'], 'nvme')
+
+    def test_directory_existence_is_not_confirmed_local_or_remote(self):
+        (self.nvme / 'a').mkdir()
+        (self.nvme / 'a' / 'unknown').write_bytes(b'x')
+        with self.assertRaisesRegex(RuntimeError, 'without verified source publication'):
+            self.owner.source_snapshot('a')
+        self.assertTrue(self.fetch()[0])
+        self.assertEqual(len(self.owner.source_snapshot('a')['sources']), 1)
+
+    def test_bad_transfer_preserves_old_confirmed_copy_and_epoch(self):
+        from faaslora.storage.http_artifact_store import RemoteArtifactError
+        self.fetch()
+        before = self.owner.source_snapshot('a')
+        with self.assertRaises(RemoteArtifactError):
+            self.fetch(self.payload | {'nested/weights': b'wrong-data'})
+        after = self.owner.source_snapshot('a')
+        self.assertEqual(after['sources'], before['sources'])
+        self.assertEqual(after['epoch'], before['epoch'])
+        self.assertFalse(self.owner.materializations)
+
+    def test_delete_withdraws_before_reuse_and_failed_rename_restores_identity(self):
+        import shutil
+        self.fetch()
+        before = self.owner.source_snapshot('a')
+        original = Path.rename
+        def fail_new(path, destination):
+            if path.name == 'payload':
+                raise OSError('publication-test-failure')
+            return original(path, destination)
+        with patch.object(Path, 'rename', fail_new), self.assertRaises(OSError):
+            self.fetch()
+        restored = self.owner.source_snapshot('a')
+        self.assertEqual(restored['sources'], before['sources'])
+        self.assertGreater(restored['epoch'], before['epoch'])
+        with self.owner.mutation(self.nvme / 'a') as allowed:
+            self.assertTrue(allowed)
+            with self.assertRaisesRegex(RuntimeError, 'without verified source publication'):
+                self.owner.source_snapshot('a')
+            shutil.rmtree(self.nvme / 'a')
+        self.assertEqual(self.owner.source_snapshot('a')['sources'], [])
+
+    def test_observed_file_metadata_change_withdraws_confirmation(self):
+        import os
+        self.fetch()
+        epoch = self.owner.source_snapshot('a')['epoch']
+        path = self.nvme / 'a' / 'nested' / 'weights'
+        before = path.stat()
+        path.write_bytes(b'X'*len(self.payload['nested/weights']))
+        # Post-publication external writers are outside the cooperative owner.
+        # Check observable invalidation deterministically, not timestamp precision.
+        os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns + 1_000_000_000))
+        with self.assertRaisesRegex(RuntimeError, 'changed outside'):
+            self.owner.source_snapshot('a')
+        self.assertGreater(self.owner.source_epoch, epoch)
+        with self.assertRaisesRegex(RuntimeError, 'without verified source publication'):
+            self.owner.source_snapshot('a')
+
+    def test_verified_host_copy_preserves_content_and_lower_tier_after_eviction(self):
+        from faaslora.registry.schema import StorageTier
+        self.fetch()
+        destination = self.manager._materialize_into_tier_dir('a', str(self.nvme / 'a'), StorageTier.HOST)
+        self.assertEqual(destination, str(self.host / 'a'))
+        sources = self.owner.source_snapshot('a')['sources']
+        self.assertEqual({row['tier'] for row in sources}, {'host', 'nvme'})
+        self.assertEqual(len({row['content_sha256'] for row in sources}), 1)
+        self.assertTrue(self.manager._delete_path(destination))
+        self.assertEqual([row['tier'] for row in self.owner.source_snapshot('a')['sources']], ['nvme'])
+
+    def test_corrupt_tier_copy_does_not_publish_fast_tier_or_invalidate_source(self):
+        import shutil
+        from faaslora.registry.schema import StorageTier
+        self.fetch()
+        original = shutil.copytree
+        changed = []
+        def corrupt(source, target, *args, **kwargs):
+            result = original(source, target, *args, **kwargs)
+            payload = Path(target) / 'nested' / 'weights'
+            if payload.is_file():
+                payload.write_bytes(b'X'*len(self.payload['nested/weights']))
+                changed.append(str(payload))
+            return result
+        with patch('faaslora.memory.residency_manager.shutil.copytree', corrupt):
+            destination = self.manager._materialize_into_tier_dir('a', str(self.nvme / 'a'), StorageTier.HOST)
+        self.assertIsNone(destination)
+        self.assertEqual(len(changed), 1)
+        self.assertFalse((self.host / 'a').exists())
+        self.assertEqual([row['tier'] for row in self.owner.source_snapshot('a')['sources']], ['nvme'])
+
+    def test_stale_snapshot_and_wrong_identity_do_not_create_read_leases(self):
+        self.fetch()
+        state = self.owner.source_snapshot('a')
+        source = state['sources'][0]
+        args = dict(path=source['path'], adapter_id='a', lease_id='r',
+            expected_owner_id=state['owner_id'], expected_epoch=state['epoch'],
+            expected_content_sha256=source['content_sha256'])
+        for change in ({'expected_epoch': state['epoch'] - 1}, {'expected_epoch': True},
+                       {'expected_owner_id': 'old-owner'}, {'adapter_id': 'other'},
+                       {'expected_content_sha256': '0'*64}):
+            with self.subTest(change=change), self.assertRaises(RuntimeError):
+                self.owner.acquire_confirmed(**(args | change))
+        self.assertFalse(self.owner.leases)
+        with self.assertRaisesRegex(ValueError, 'verified adapter identity'):
+            self.owner.acquire(path=source['path'], adapter_id='wrong', lease_id='r')
+
+    def test_post_verification_mutation_rejects_before_publication(self):
+        from faaslora.storage import http_artifact_store
+        original = http_artifact_store._extract_verified
+        def mutate(tar, target, expected, check, **kwargs):
+            receipt = original(tar, target, expected, check, **kwargs)
+            (target / 'nested' / 'weights').write_bytes(b'X'*len(self.payload['nested/weights']))
+            return receipt
+        with patch.object(http_artifact_store, '_extract_verified', mutate):
+            with self.assertRaisesRegex(RuntimeError, 'changed before source publication'):
+                self.fetch()
+        self.assertFalse((self.nvme / 'a').exists())
+        self.assertEqual(self.owner.source_snapshot('a')['sources'], [])
+        self.assertEqual(self.runner._remote_transfer_evidence[-1]['state'], 'not_published')
+
+    def test_existing_localhost_server_feeds_actual_runner_confirmed_publication(self):
+        from remote_artifact_node.server import ArtifactServer, ArtifactHandler
+        from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+        from tests.test_http_artifact_store import content_manifest
+        origin = self.root / 'origin'
+        for name, data in self.payload.items():
+            path = origin / 'a' / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+        server = ArtifactServer(('127.0.0.1', 0), ArtifactHandler, root=origin, token=None)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            client = HttpArtifactStoreClient(endpoint=f'http://127.0.0.1:{server.server_port}')
+            client.configure_content_manifest(content_manifest(files=self.payload))
+            self.runner._remote_artifact_client = client
+            ok, _ = asyncio.run(self.runner._materialize_remote_adapter_async('a', self.nvme / 'a'))
+            self.assertTrue(ok)
+            self.assertEqual(len(self.owner.source_snapshot('a')['sources']), 1)
+            self.assertFalse(self.owner.materializations)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+
+
 class ControllerNativeReferenceLifecycle(unittest.TestCase):
     @staticmethod
     def preload_native(owner, adapter_id='adapter-a'):

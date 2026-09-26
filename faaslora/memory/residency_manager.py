@@ -13,6 +13,9 @@ import uuid
 import weakref
 import stat as stat_types
 import os
+import hashlib
+import json
+import copy
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
@@ -106,8 +109,9 @@ def _local_file_inventory(roots, *, writing_inodes=()):
 class LocalSourceReferences:
     """Cooperative file-copy ownership, shared by local readers and reclaimers.
 
-    This protects a resolved HOST/NVMe path during loading; it is NOT a content
-    verifier or a confirmed-tier publisher. Native remote transfers can reserve
+    This protects a resolved HOST/NVMe path during loading. Verified native
+    transfers also publish content-bound source observations under this owner;
+    legacy/unverified paths never become confirmed merely by existing. Transfers reserve
     regular-file space by actual preallocation before any body is written. All physical
     mutations must use this same owner. Native CPU/GPU tensors have a separate
     owner and may outlive the file read. No async work runs while the lock is held.
@@ -126,6 +130,82 @@ class LocalSourceReferences:
         self._transfer_workspaces = {}
         self._prepared_transfers = {}
         self._file_limits = {}
+        self._confirmed_sources = {}
+        self.source_epoch = 0
+
+    @staticmethod
+    def _source_observation(path):
+        from ..storage.http_artifact_store import _verified_file_signature
+        footprint = _local_file_inventory({'source': path})
+        signatures = {}
+        for allocation in footprint['allocations']:
+            for name in allocation['paths']:
+                item = Path(name)
+                info = item.lstat()
+                signature = _verified_file_signature(info)
+                # Renaming a completed directory changes its ctime, not its
+                # verified contents. The full path set and child signatures
+                # already detect membership/content changes.
+                signatures[str(item.relative_to(path))] = (
+                    signature[:-2] if stat_types.S_ISDIR(info.st_mode) else signature)
+        return signatures, {key: footprint[key] for key in
+            ('file_path_bytes', 'allocated_file_bytes', 'allocated_bytes', 'unique_file_count')}
+
+    def _validated_source(self, path):
+        record = self._confirmed_sources.get(path)
+        if record is None:
+            return None
+        try:
+            signatures, footprint = self._source_observation(path)
+            if signatures != record['signatures'] or footprint != record['footprint']:
+                raise RuntimeError('confirmed source changed outside its managed publication')
+        except (OSError, ValueError, RuntimeError):
+            del self._confirmed_sources[path]
+            self.source_epoch += 1
+            raise
+        return record
+
+    def source_snapshot(self, adapter_id):
+        """Received file-tier state; no references, loading, hashing or LRU touch.
+
+        An existing but unverified directory is unknown, not a hit or a remote
+        miss. Qualified cold runs start with empty managed caches; reuse needs
+        its own verified publication rather than trusting a directory name.
+        """
+        from ..storage.http_artifact_store import _quote_artifact_id
+        from ..clock import local_monotonic_clock_id
+        if not isinstance(adapter_id, str) or adapter_id.strip() != adapter_id:
+            raise ValueError('confirmed source requires a canonical adapter ID')
+        _quote_artifact_id(adapter_id)
+        with self.lock:
+            sources = []
+            for tier, root in self.roots.items():
+                if not root.is_dir():
+                    raise RuntimeError('managed source root is unavailable')
+                path = root / adapter_id
+                record = self._validated_source(path)
+                if record is not None:
+                    sources.append(copy.deepcopy(record['public']))
+                elif path.exists() or path.is_symlink():
+                    raise RuntimeError('local copy exists without verified source publication')
+            return dict(kind='confirmed_file_sources_v1', owner_id=self.owner_id,
+                        epoch=self.source_epoch, adapter_id=adapter_id,
+                        captured_monotonic_s=time.monotonic(), clock_id=local_monotonic_clock_id(),
+                        snapshot_holds_reference=False, sources=sources)
+
+    def acquire_confirmed(self, *, path, adapter_id, lease_id, expected_owner_id,
+                          expected_epoch, expected_content_sha256):
+        """Revalidate and protect the exact published source under reclamation lock."""
+        with self.lock:
+            if (expected_owner_id != self.owner_id or type(expected_epoch) is not int
+                    or expected_epoch != self.source_epoch):
+                raise RuntimeError('confirmed file source owner/epoch changed')
+            source = Path(path).resolve(strict=True)
+            record = self._validated_source(source)
+            if (record is None or record['public']['adapter_id'] != adapter_id
+                    or record['public']['content_sha256'] != expected_content_sha256):
+                raise RuntimeError('confirmed file source identity changed')
+            return self.acquire(path=str(source), adapter_id=adapter_id, lease_id=lease_id)
 
     def acquire(self, *, path: str, adapter_id: str, lease_id: str) -> Dict[str, Any]:
         with self.lock:
@@ -141,10 +221,14 @@ class LocalSourceReferences:
             if previous is not None and previous != identity:
                 raise ValueError('source lease cannot be rebound to another copy')
             footprint = _local_file_inventory({matches[0]: source})
+            record = self._validated_source(source)
+            if record is not None and record['public']['adapter_id'] != adapter_id:
+                raise ValueError('source reference changed the verified adapter identity')
             self.leases[lease_id] = identity
             return dict(owner_id=self.owner_id, lease_id=lease_id, adapter_id=adapter_id,
                         path=str(source), tier=matches[0], device=stat.st_dev, inode=stat.st_ino,
-                        state='held', content_verified=False, capacity_reserved=False,
+                        state='held', content_verified=record is not None, capacity_reserved=False,
+                        confirmed_source=(copy.deepcopy(record['public']) if record else None),
                         file_footprint={key: value for key, value in footprint.items()
                                         if key not in ('allocations', 'tiers')})
 
@@ -253,7 +337,8 @@ class LocalSourceReferences:
                 if info.st_size != size or allocated != ((size + unit - 1) // unit) * unit:
                     raise RuntimeError('filesystem preallocation does not match qualified file footprint')
                 files[(info.st_dev, info.st_ino)] = (size, allocated, info.st_nlink)
-            self._prepared_transfers[transfer_id] = dict(files=files, tier=tier)
+            self._prepared_transfers[transfer_id] = dict(files=files, tier=tier,
+                expected_files={name: tuple(value) for name, value in expected.items()})
             after = self._file_inventory()['tiers'][tier]['allocated_file_bytes']
             if after != before + required or after > limit_bytes:
                 raise RuntimeError('reserved file allocation differs from owner capacity transaction')
@@ -263,14 +348,80 @@ class LocalSourceReferences:
                         allocated_file_bytes_after=after, pending_file_increment_bytes=0,
                         filesystem_allocation_unit_bytes=unit)
 
-    def publish_transfer(self, transfer_id, staging, target, publish):
+    def publish_transfer(self, transfer_id, staging, target, publish, *, verified_files=None):
         with self.lock:
             if (self._transfer_workspaces.get(transfer_id) != Path(staging) or
                     self.materializations.get(transfer_id) != Path(target).resolve() or
                     transfer_id not in self._prepared_transfers):
                 raise ValueError('publication requires a prepared transfer on its original target')
             self._file_inventory()  # Last check before making completed bytes visible.
-            publish(staging, target)
+            expected = self._prepared_transfers[transfer_id]['expected_files']
+            if verified_files is not None:
+                if not isinstance(verified_files, dict) or set(verified_files) != set(expected):
+                    raise ValueError('source publication requires complete verified file evidence')
+                return self._publish_verified_source(staging, target, expected, publish,
+                                                     verified_files=verified_files)
+            return publish(staging, target)  # Legacy publication is not confirmed.
+
+    def publish_copy(self, source, staging, target, publish):
+        """Preserve content identity across an existing cooperative tier copy.
+
+        Caller holds this owner across the synchronous copy. This confirms bytes,
+        not the legacy copy path's capacity admission or HOST memory residency.
+        """
+        with self.lock:
+            record = self._validated_source(Path(source).resolve(strict=True))
+            if record is None or record['public']['adapter_id'] != Path(target).name:
+                raise ValueError('tier copy requires its original confirmed source identity')
+            return self._publish_verified_source(staging, target, record['expected_files'], publish)
+
+    def _publish_verified_source(self, staging, target, expected, publish, *, verified_files=None):
+        from ..storage.http_artifact_store import _verified_file_signature
+        path = Path(target).resolve()
+        tiers = [tier for tier, root in self.roots.items() if path.parent == root]
+        if len(tiers) != 1:
+            raise ValueError('confirmed publication requires one managed tier')
+        before_signatures, before_footprint = self._source_observation(Path(staging))
+        expected_paths = {'.', *expected}
+        expected_paths.update(str(parent) for name in expected for parent in Path(name).parents)
+        if set(before_signatures) != expected_paths:
+            raise RuntimeError('verified payload path set changed before source publication')
+        for name, (size, digest) in expected.items():
+            file = Path(staging) / name
+            info = file.lstat()
+            if not stat_types.S_ISREG(info.st_mode) or info.st_size != size:
+                raise RuntimeError('verified payload changed before source publication')
+            if verified_files is not None:
+                receipt = verified_files[name]
+                if (not isinstance(receipt, dict) or receipt.get('size_bytes') != size
+                        or receipt.get('sha256') != digest
+                        or receipt.get('signature') != _verified_file_signature(info)):
+                    raise RuntimeError('verified payload changed before source publication')
+            # Stream verification alone does not bind the destination bytes.
+            # Equal-size rewrites may share filesystem timestamp granularity.
+            # Verify once at publication, not at each routing lookup.
+            actual = hashlib.sha256()
+            with file.open('rb') as contents:
+                while chunk := contents.read(1024 * 1024):
+                    actual.update(chunk)
+            if actual.hexdigest() != digest:
+                raise RuntimeError('verified payload content changed before source publication')
+        if self._source_observation(Path(staging)) != (before_signatures, before_footprint):
+            raise RuntimeError('verified payload changed during source confirmation')
+        contents = json.dumps([dict(path=name, size_bytes=size, sha256=digest)
+            for name, (size, digest) in sorted(expected.items())],
+            sort_keys=True, separators=(',', ':')).encode()
+        publish(staging, target)
+        signatures, footprint = self._source_observation(path)
+        if (signatures, footprint) != (before_signatures, before_footprint):
+            raise RuntimeError('published source differs from verified transfer')
+        public = dict(adapter_id=path.name, path=str(path), tier=tiers[0],
+                      content_sha256=hashlib.sha256(contents).hexdigest(), content_verified=True,
+                      representation='verified_regular_file_tree_v1', **footprint)
+        self._confirmed_sources[path] = dict(signatures=signatures, footprint=footprint,
+            public=public, expected_files={name: tuple(value) for name, value in expected.items()})
+        self.source_epoch += 1
+        return dict(owner_id=self.owner_id, epoch=self.source_epoch, **copy.deepcopy(public))
 
     def release(self, *, lease_id: str, expected_owner_id: str) -> None:
         with self.lock:
@@ -318,7 +469,29 @@ class LocalSourceReferences:
                 for key, destination in self.materializations.items())
             busy = busy or any(target == staging.parent or target in staging.parent.parents
                 or staging.parent in target.parents for staging in self._transfer_workspaces.values())
-            yield not busy
+            affected = {}
+            if not busy:
+                affected = {source: record for source, record in self._confirmed_sources.items()
+                            if target == source or target in source.parents or source in target.parents}
+                for source in affected:
+                    del self._confirmed_sources[source]
+                if affected:
+                    self.source_epoch += 1  # Withdraw before physical reuse starts.
+            try:
+                yield not busy
+            finally:
+                # Failed replacement may restore the old directory. Only the
+                # exact unchanged copy regains its previous content confirmation.
+                for source, record in affected.items():
+                    if source in self._confirmed_sources:
+                        continue
+                    try:
+                        signatures, footprint = self._source_observation(source)
+                    except (OSError, ValueError, RuntimeError):
+                        continue
+                    if signatures == record['signatures'] and footprint == record['footprint']:
+                        self._confirmed_sources[source] = record
+                        self.source_epoch += 1
 
 
 class IEEEBackendGPUReferences:
@@ -1619,8 +1792,12 @@ class ResidencyManager:
             if src.is_dir():
                 from ..storage.http_artifact_store import staged_directory
                 with staged_directory(dest) as staging:
+                    confirmed = self.local_source_references._validated_source(src.resolve())
                     shutil.copytree(src, staging)
-                    self.publish_local_source(staging, dest)
+                    if confirmed is not None:
+                        self.local_source_references.publish_copy(src, staging, dest, self.publish_local_source)
+                    else:
+                        self.publish_local_source(staging, dest)
             else:
                 # Legacy single-file path; IEEE source references require the
                 # PEFT directory representation and do not qualify this branch.

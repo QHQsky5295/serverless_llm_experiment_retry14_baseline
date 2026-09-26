@@ -209,7 +209,7 @@ class HttpArtifactStoreClient:
             raise RemoteArtifactError(f"remote HEAD timed out for {artifact_id}") from exc
 
     def download_artifact(self, artifact_id: str, target_path: str, *,
-                          publish=None, cancel_event=None, require_content_manifest=False,
+                          publish=None, publish_verified=None, cancel_event=None, require_content_manifest=False,
                           evidence=None, workspace=None, reserve_files=None) -> Tuple[bool, float, int]:
         """Download and extract one adapter directory into ``target_path``.
 
@@ -228,6 +228,8 @@ class HttpArtifactStoreClient:
             expected = self._content_manifest[artifact_id]
         if (workspace is None) != (reserve_files is None) or (reserve_files is not None and expected is None):
             raise ValueError('file reservation requires a managed workspace and frozen content')
+        if publish_verified is not None and (expected is None or publish is not None):
+            raise ValueError('verified publication requires frozen content and one publication callback')
         evidence = evidence if evidence is not None else {}
         evidence.update(artifact_id=artifact_id, content_manifest_sha256=(
             self.content_manifest_sha256 if expected is not None else None),
@@ -271,14 +273,18 @@ class HttpArtifactStoreClient:
                     if expected is None:
                         _safe_extract(tar, staging)
                     else:
-                        _extract_verified(tar, staging, expected, check_cancelled,
-                                          preallocated=reserve_files is not None)
+                        verified_files = _extract_verified(tar, staging, expected, check_cancelled,
+                                                          preallocated=reserve_files is not None)
                         evidence['content_verified'] = True
                 check_cancelled()
                 size_bytes = _path_size(staging)
                 if size_bytes <= 0:
                     raise RemoteArtifactError('empty artifact extraction cannot be published')
-                (publish or publish_directory)(staging, target)
+                if publish_verified is not None:
+                    publication = publish_verified(staging, target, verified_files)
+                    evidence['confirmed_file_publication'] = publication
+                else:
+                    (publish or publish_directory)(staging, target)
                 evidence.update(state='published', payload_bytes_verified=(
                     size_bytes if expected is not None else None))
                 return True, (time.perf_counter() - t0) * 1000.0, size_bytes
@@ -331,6 +337,12 @@ def _canonical_member_name(name):
     return name
 
 
+def _verified_file_signature(info):
+    """Identity/change detector, not a replacement for the completed content SHA."""
+    return (info.st_dev, info.st_ino, info.st_mode, info.st_size, info.st_blocks,
+            info.st_nlink, info.st_mtime_ns, info.st_ctime_ns)
+
+
 def _extract_verified(tar, target, expected, check_cancelled, *, preallocated=False):
     """Materialize only the frozen regular-file payload, hashing while writing.
 
@@ -340,7 +352,7 @@ def _extract_verified(tar, target, expected, check_cancelled, *, preallocated=Fa
     """
     directories = {str(parent) for name in expected for parent in PurePosixPath(name).parents
                    if str(parent) != '.'}
-    seen, seen_directories = set(), set()
+    seen, seen_directories, verified = set(), set(), {}
     for member in tar:
         check_cancelled()
         try:
@@ -376,9 +388,15 @@ def _extract_verified(tar, target, expected, check_cancelled, *, preallocated=Fa
                 destination.write(chunk)
         if digest.hexdigest() != expected_sha:
             raise RemoteArtifactError('artifact content SHA differs from frozen manifest')
+        # The writer is closed/flushed before capturing identity. The cooperative
+        # owner will revalidate it before publication; later routing need not hash
+        # the same weights again. This is not a claim of crash durability.
+        verified[name] = dict(size_bytes=size, sha256=expected_sha,
+                              signature=_verified_file_signature(path.lstat()))
         seen.add(name)
     if seen != set(expected):
         raise RemoteArtifactError('artifact is missing frozen manifest files')
+    return verified
 
 
 def _safe_extract(tar: tarfile.TarFile, target: Path) -> None:
