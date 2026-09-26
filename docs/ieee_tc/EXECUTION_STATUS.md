@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Preparation profile loader and actual request updates connected; movement/Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D36. D36 binds source bytes/representation/content to preparation classes and updates actual per-slot costs; new replicas inherit frozen means. Representative real measurements, automatic owner/options, movement/handoff/replacement, shared/preactivation pressure and total HOST/native accounting remain open. IEEE startup still rejects legacy warmup; no new GPU/Full qualification |
+| P1 IEEE semantic alignment | Native GPU loss-based replacement connected; common movement/Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D37. D37 freezes actual native sources/slot bytes and h/d, rechecks live references and E(t), then reclaims the selected GPU slot while retaining HOST fallback. Uniform-slot native scope only. Automatic movement/handoff, HOST/NVMe replacement, representative measurements, shared/preactivation pressure and total HOST/native accounting remain open. IEEE startup still rejects legacy warmup; no new GPU/Full qualification |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,19 +51,19 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST CODE CHECKPOINT: D36 adds SHA/model/context-bound preparation profile
-loading from raw admission/native/remote load evidence, actual source bytes/
-representation, and the real request admission→completed-load class update.
-InstancePool new runtimes inherit frozen preparation means; actual stack planning
-can consume the updated per-slot model.760 functional and56 safety checks pass.
-No new GPU/model or real representative profile measurements. The current layout
-partition is conservatively exact-content-bound; same rank/size is not layout
-equivalence. Actual physical-owner source/target-footprint/budget option production
-and common movement queue/replacement remain NOT complete. _preload_full_stack
-continues rejecting ieee_confirmed BEFORE legacy work. Next connect those owner
-options and owned movement/handoff/replacement, including total HOST/native and
-shared/preactivation pressure. Do not repeat isolated class/profile/planner/model-
-prefix microtests or bypass the Full guard; representative qualification remains.
+LATEST CODE CHECKPOINT: D37 connects native uniform-slot GPU replacement to
+frozen observed h/d, native source/footprint and current owner state. Actual
+stack→core/worker command uses loss-per-usable-byte ordering, preserves native
+HOST fallback and delays reclamation until E(t) accepts. Pending native demand,
+CPU/GPU pins and references exclude victims. Ordinary demand keeps native LRU.
+773 functional +56 safety checks pass;13 new checks also pass in installed
+vLLM0.30 with CUDA uninitialized. No new GPU/model or real preparation profiles.
+Common movement queue, automatic dispatch/handoff, pending-target protection,
+HOST/NVMe multi-victim replacement, total HOST/native/shared/preactivation
+accounting and Full lifecycle remain open. _preload_full_stack still rejects
+ieee_confirmed BEFORE legacy work. Next connect the common owned queue and
+full resource accounting, not another isolated selector/profile/model-prefix
+microtest. Do not bypass the Full guard; representative qualification remains.
 
 LATEST COMPLETED MODEL RUN: `llama2_7b_capacity_wait_attempt2`, finished and cleaned.
 Five first-distinct requests from old32-prefix,755 native tokens, all targets met.
@@ -101,7 +101,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D36.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D37.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -156,6 +156,36 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D37 native GPU objective replacement; Full queue still open
+
+- Actual stack freezes one ingress demand window and one preparation-cost
+  snapshot with complete native source/footprint/slot evidence. Unknown or
+  unconfirmed sources and missing positive-demand classes reject. Zero-demand
+  missing classes carry null d, not an invented zero latency. Hash is message
+  integrity, not measurement/numerical correctness proof.
+- Actual core accepts the objective; worker contributes live pending demand
+  protection and checks real uniform slot bytes. Owner chooses loss/usable-byte
+  victim with stable identity tie-break, checks strict positive net benefit,
+  then evaluates E(t). Deferral leaves caches untouched. Accepted GPU-only
+  reclamation preserves native HOST fallback and uses the existing copy/fence.
+  Failed copy or lost fallback poisons the owner, not a claimed rollback.
+  Full/CapacityOnly share replacement; ordinary demand remains native LRU.
+-13 new tests. Targeted114, first full772, final773 functional +56 safety pass.
+  Exact-tie fixture refined to exactly representable1.5; fallback post-copy
+  invariant added. All13 new checks pass under actual installedvLLM0.30 with
+  CUDA uninitialized. These are native-cache/worker fixtures, not CUDA copy,
+  model latency, real representative profiles or Full performance evidence.
+  P1 D37 includes the required correctness table and primary-source rationale.
+- Five owned scopes checked TasksCurrent0/empty pids/high,max,OOM0. Final GPUs
+  15MiB/0%, MemAvailable109057500KiB, disk353680191488B. All147 protected entries
+  and plan SHA unchanged; baseline remains16570c023a439c884624e7a5bdfa0d8577faf7a3.
+- Next is common owned movement/handoff queue, pending-target/transfer reuse,
+  total HOST/native accounting, shared/preactivation pressure and full lifecycle.
+  This single uniform GPU-slot transaction is NOT HOST/NVMe multi-victim or
+  automatic Full integration. Representative profiles, numerical correctness
+  and remote/backend qualification remain open. No baselines/M1/M2/ablations/
+  sensitivities started. Do not repeat this local gate; full goal remains active.
 
 ### D36 actual preparation profile/request feedback connection
 

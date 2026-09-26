@@ -899,6 +899,17 @@ class ExperimentStack:
             budgets=budgets, costs=costs, source_snapshot_id=source_snapshot_id,
             demand=self.hotness_tracker.snapshot())
 
+    def plan_ieee_native_gpu_epoch(self, *, native_snapshot, content_sha_by_adapter, profiles, costs):
+        """Frozen GPU insertion/replacement objective for the actual native owner.
+
+        The native preparation command rechecks it with live references and
+        E(t). Automatic movement-queue dispatch is a separate integration gate.
+        """
+        from ..preloading.preloading_planner import freeze_native_gpu_epoch
+        return freeze_native_gpu_epoch(native_snapshot=native_snapshot,
+            content_sha_by_adapter=content_sha_by_adapter, profiles=profiles, costs=costs,
+            demand=self.hotness_tracker.snapshot())
+
     async def start(self):
         await self.registry.start()
         await self.gpu_monitor.start()

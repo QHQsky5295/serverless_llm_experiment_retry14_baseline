@@ -4,6 +4,7 @@ The installed legacy cache is useful for contract regression; it does not
 qualify vLLM 0.30 CUDA copies, worker threading or model correctness.
 """
 import asyncio
+import copy
 from contextlib import nullcontext
 from types import SimpleNamespace
 import threading
@@ -70,6 +71,249 @@ class NativeAdapter:
     """Weak-referenceable native-model identity, without allocating weights."""
     def __init__(self, rank=8):
         self.rank = rank
+
+
+class NativeObjectiveReplacement(unittest.TestCase):
+    """Actual stack/owner/worker paths with CPU native caches, not model timings."""
+    def setUp(self):
+        from faaslora.experiment.experiment_stack import ExperimentStack
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        from faaslora.preloading.preloading_planner import FrozenPreparationProfiles, PreparationCostModel
+        self.case = NativeDemandTransactions()
+        self.case.setUp()
+        self.owner, self.manager = self.case.owner, self.case.manager
+        for aid in (1, 2, 3):
+            self.owner.evict(adapter_int_id=aid)
+        # Establish identities through actual owned loads, not registry edits.
+        for aid in (4, 2, 3):
+            self.case.demand(lease=f'initial-{aid}', aid=aid)
+            self.case.release(f'initial-{aid}')
+            if aid == 4:
+                self.manager.deactivate(4)
+        self.owner.preparation_loader = self.case.loader
+        self.stack = ExperimentStack.__new__(ExperimentStack)
+        self.stack.hotness_tracker = HotnessTracker(None, clock=lambda: 100.)
+        for aid, count in ((4, 5), (2, 3), (3, 2)):
+            for _ in range(count):
+                self.stack.hotness_tracker.record_arrival(f'adapter-{aid}')
+        self.content = {f'adapter-{aid}': str(aid)*64 for aid in (2, 3, 4)}
+        keys = {aid: FrozenPreparationProfiles.source_class(dict(native=True, tier='host',
+            representation='native_cpu_dense_ab_v1', footprint_bytes=16,
+            expected_content_sha256=self.content[f'adapter-{aid}']), ()) for aid in (2, 3, 4)}
+        self.keys = keys
+        self.means = {keys[2]: 100., keys[3]: 1., keys[4]: 30.}
+        self.profiles = FrozenPreparationProfiles((), self.means, {}, 'fixture-profile', (), .5, '{}')
+        self.costs = PreparationCostModel(self.means, beta=.5, profile_id='fixture-profile')
+
+    def epoch(self):
+        snap = self.owner.source_snapshot()
+        snap['native_footprints'] = dict(slot_adapter_ids=list(snap['slot_adapter_ids']),
+            slot_capacity_bytes=100, host_adapter_footprints=[dict(adapter_int_id=aid,
+                storage_bytes=16, representation='native_cpu_dense_ab_v1')
+                for aid in snap['registered_cpu_adapter_ids']])
+        return self.stack.plan_ieee_native_gpu_epoch(native_snapshot=snap,
+            content_sha_by_adapter=self.content, profiles=self.profiles, costs=self.costs)
+
+    def prepare(self, epoch, *, decide=None, **kw):
+        snap = self.owner.snapshot()
+        return self.owner.proactive_host_prepare_and_acquire(lease_id='objective-prepare',
+            adapter_int_id=4, lora_name='adapter-4', lora_path='/existing/adapter-4',
+            expected_owner_id=snap['owner_id'], expected_epoch=snap['epoch'],
+            replacement_epoch=epoch, decide=decide or (lambda *_: dict(admit=True, reason='admit')),
+            **({'capacity_only': False} | kw))
+
+    def test_actual_objective_replaces_non_lru_and_keeps_host_fallback(self):
+        for capacity_only in (False, True):
+            with self.subTest(capacity_only=capacity_only):
+                self.setUp()
+                before_order = tuple(self.manager._active_adapters.order)
+                fallback = self.manager._registered_adapters.cache[3]
+                epoch = self.epoch()
+                self.assertEqual(before_order, (2, 3))
+                receipt = self.prepare(epoch, capacity_only=capacity_only)
+                self.assertTrue(receipt['acquired'])
+                self.assertEqual(receipt['candidate_victim_adapter_id'], 3)
+                self.assertEqual(receipt['replacement']['incoming_benefit_ms'], 15.)
+                self.assertEqual(receipt['replacement']['eviction_loss_ms'], .2)
+                self.assertEqual(set(self.manager.lora_index_to_id), {2, 4})
+                self.assertIs(self.manager._registered_adapters.cache[3], fallback)
+                self.assertEqual(receipt['slot'], 1)
+                self.assertEqual(self.prepare(epoch, capacity_only=capacity_only), receipt)
+                self.case.release('objective-prepare')
+
+    def test_effective_capacity_deferral_does_not_reclaim_or_touch(self):
+        epoch = self.epoch()
+        before = self.owner.snapshot()
+        order = tuple(self.manager._active_adapters.order)
+        receipt = self.prepare(epoch, decide=lambda *_: dict(admit=False, reason='defer_effective_capacity'))
+        self.assertFalse(receipt['acquired'])
+        self.assertEqual(receipt['candidate_victim_adapter_id'], 3)
+        self.assertEqual(self.owner.snapshot(), before)
+        self.assertEqual(tuple(self.manager._active_adapters.order), order)
+
+    def test_zero_or_insufficient_benefit_does_not_call_admission(self):
+        from faaslora.preloading.preloading_planner import PreparationCostModel
+        for value in (0., .4):  # h4=.5 => F=.2, exactly the lowest loss: strict rejection.
+            self.setUp()
+            self.costs = PreparationCostModel(self.means | {self.keys[4]: value},
+                beta=.5, profile_id=self.profiles.profile_id)
+            before = self.owner.snapshot()
+            decide = Mock(side_effect=AssertionError('no resource admission before positive net benefit'))
+            receipt = self.prepare(self.epoch(), decide=decide, capacity_only=True)
+            self.assertEqual(receipt['reason'], 'replacement_benefit_not_greater_than_loss')
+            self.assertFalse(receipt['proactive_admission_evaluated'])
+            self.assertEqual(self.owner.snapshot(), before)
+
+    def test_live_pending_or_cpu_transfer_pin_excludes_best_victim(self):
+        for mode in ('pending', 'cpu_pin', 'gpu_reference'):
+            self.setUp()
+            kwargs = {}
+            if mode == 'pending':
+                kwargs['protected_adapter_ids'] = (3,)
+            elif mode == 'cpu_pin':
+                self.manager._registered_adapters.pin(3)
+            else:
+                self.case.pin(3)
+            before = self.owner.snapshot()
+            receipt = self.prepare(self.epoch(), **kwargs)
+            self.assertFalse(receipt['acquired'])  # Remaining loss30 exceeds benefit15.
+            self.assertEqual(receipt['candidate_victim_adapter_id'], 2)
+            self.assertIn(3, receipt['replacement']['protected_adapter_ids'])
+            self.assertEqual(self.owner.snapshot(), before)
+
+    def test_stale_or_corrupt_epoch_cannot_evict(self):
+        epoch = self.epoch()
+        bad = copy.deepcopy(epoch)
+        bad['sources'][0]['host_load_ms'] = 0.
+        before = self.owner.snapshot()
+        with self.assertRaisesRegex(ValueError, 'hash mismatch'):
+            self.prepare(bad)
+        self.assertEqual(self.owner.snapshot(), before)
+        self.case.pin(3)
+        before = self.owner.snapshot()
+        self.assertEqual(self.prepare(epoch)['reason'], 'stale_replacement_epoch')
+        self.assertEqual(self.owner.snapshot(), before)
+
+    def test_free_slot_does_not_evict_and_missing_loader_does_not_reclaim(self):
+        epoch = self.epoch()
+        self.owner.preparation_loader = None
+        before = self.owner.snapshot()
+        with self.assertRaisesRegex(RuntimeError, 'loader is not attached'):
+            self.prepare(epoch)
+        self.assertEqual(self.owner.snapshot(), before)
+        self.owner.preparation_loader = self.case.loader
+        self.manager.deactivate(3)
+        receipt = self.prepare(self.epoch())
+        self.assertTrue(receipt['acquired'])
+        self.assertIsNone(receipt['candidate_victim_adapter_id'])
+        self.assertEqual(receipt['replacement']['eviction_loss_ms'], 0.)
+
+    def test_one_cost_snapshot_and_missing_positive_class_rejected(self):
+        from faaslora.preloading.preloading_planner import PreparationCostModel
+        self.costs.snapshot = Mock(wraps=self.costs.snapshot)
+        epoch = self.epoch()
+        self.costs.snapshot.assert_called_once()
+        self.assertEqual(epoch['arrival_counts'], {'adapter-4': 5, 'adapter-2': 3, 'adapter-3': 2})
+        self.costs = PreparationCostModel({self.keys[4]: 30.}, beta=.5, profile_id='fixture-profile')
+        with self.assertRaises(KeyError):
+            self.epoch()
+
+    def test_equal_loss_uses_adapter_identity_not_lru_and_demand_stays_lru(self):
+        from faaslora.preloading.preloading_planner import PreparationCostModel
+        self.costs = PreparationCostModel(self.means | {self.keys[2]: 5., self.keys[3]: 7.5},
+            beta=.5, profile_id='fixture-profile')  # loss2=loss3=1.5, exactly representable.
+        self.manager._active_adapters.touch(2)  # Native LRU would remove3.
+        receipt = self.prepare(self.epoch())
+        self.assertEqual(receipt['candidate_victim_adapter_id'], 2)
+        self.case.release('objective-prepare')
+        self.assertEqual(tuple(self.manager._active_adapters.order), (3, 4))
+        self.case.demand(lease='ordinary-demand', aid=2, required_source_tier='host')
+        self.assertEqual(set(self.manager.lora_index_to_id), {2, 4})  # Native LRU removes3.
+
+    def test_loader_cannot_silently_discard_retained_host_fallback(self):
+        loader = self.owner.preparation_loader
+        def invalid_loader(**kw):
+            loader(**kw)
+            self.manager._registered_adapters.pop(3)
+        self.owner.preparation_loader = invalid_loader
+        with self.assertRaisesRegex(RuntimeError, 'lost its fallback'):
+            self.prepare(self.epoch())
+        with self.assertRaisesRegex(RuntimeError, 'recovery required'):
+            self.owner.snapshot()
+
+    def test_all_protected_rejects_and_unsupported_zero_demand_needs_no_fake_cost(self):
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        from faaslora.preloading.preloading_planner import PreparationCostModel
+        self.stack.hotness_tracker = HotnessTracker(None, clock=lambda: 100.)
+        self.stack.hotness_tracker.record_arrival('adapter-4')
+        self.costs = PreparationCostModel({self.keys[4]: 30.}, beta=.5, profile_id='fixture-profile')
+        epoch = self.epoch()
+        self.assertTrue(all(r['host_load_ms'] is None for r in epoch['sources'] if r['adapter_int_id'] != 4))
+        before = self.owner.snapshot()
+        result = self.prepare(epoch, protected_adapter_ids=(2, 3))
+        self.assertEqual(result['reason'], 'no_eligible_replacement_victim')
+        self.assertEqual(self.owner.snapshot(), before)
+
+    def test_epoch_requires_complete_confirmed_sources(self):
+        self.manager.deactivate(3)
+        self.manager.activate(3)
+        with self.assertRaisesRegex(ValueError, 'complete confirmed'):
+            self.epoch()
+
+    def test_failed_copy_poisoned_owner_does_not_claim_rollback(self):
+        self.owner.preparation_loader = Mock(side_effect=RuntimeError('actual copy failure'))
+        with self.assertRaisesRegex(RuntimeError, 'actual copy failure'):
+            self.prepare(self.epoch())
+        self.assertIn(3, self.manager._registered_adapters)
+        with self.assertRaisesRegex(RuntimeError, 'recovery required'):
+            self.owner.snapshot()
+
+    def test_actual_worker_uses_objective_live_pending_and_real_slot_bytes(self):
+        from faaslora.scheduling.resource_coordinator import (
+            CompletedLengthSnapshot, NativeIterationObservation, NativeTransferObservation)
+        from tests import test_ieee_tc_scheduler_observation as fixture
+        for pending, slot_bytes in ((False, 100), (True, 100), (False, 101)):
+            with self.subTest(pending=pending, slot_bytes=slot_bytes):
+                self.setUp()
+                worker = gpu_monitor.IEEEWorkerObservationExtension()
+                worker.device, worker.rank = SimpleNamespace(type='cuda'), 0
+                worker.model_runner = SimpleNamespace(lora_manager=SimpleNamespace(_adapter_manager=self.manager))
+                worker._ieee_gpu_reference_owner = self.owner
+                steps = NativeIterationObservation()
+                scheduler = fixture.scheduler()
+                scheduler._ieee_transfers = NativeTransferObservation(steps, 2)
+                observation = fixture.observe(scheduler, steps)
+                if pending:
+                    observation['admitted'][0]['native_adapter_int_id'] = 3
+                    observation['admitted'][0]['demand_owner'] = 'controller_pending'
+                lengths = CompletedLengthSnapshot('model/backend', 'measured-profile',
+                    observation['captured_at'], {0: 64., 1: 128., 2: 256.})
+                epoch = self.epoch()
+                before = self.owner.snapshot()
+                pool = dict(slot_adapter_ids=list(self.manager.lora_index_to_id),
+                    pool_allocated_bytes=2*slot_bytes, slot_capacity_bytes=slot_bytes,
+                    occupied_slot_capacity_bytes=2*slot_bytes)
+                args = dict(operation='proactive_host_prepare_and_acquire', lease_id='worker-objective',
+                    adapter_int_id=4, lora_name='adapter-4', lora_path='/existing/adapter-4',
+                    expected_owner_id=before['owner_id'], expected_epoch=before['epoch'],
+                    capacity_only=True, replacement_epoch=epoch,
+                    scheduler_observation=observation, lengths=lengths)
+                with patch.object(gpu_monitor, 'torch', SimpleNamespace(cuda=SimpleNamespace(
+                        mem_get_info=lambda _: (100, 1000)))), \
+                     patch.object(gpu_monitor, '_ieee_host_copy_contract'), \
+                     patch.object(gpu_monitor, '_ieee_lora_pool_inventory', return_value=pool):
+                    if slot_bytes != 100:
+                        with self.assertRaisesRegex(ValueError, 'actual native slot'):
+                            worker.ieee_gpu_reference(**args)
+                        self.assertEqual(self.owner.snapshot(), before)
+                    else:
+                        receipt = worker.ieee_gpu_reference(**args)
+                        self.assertEqual(receipt['acquired'], not pending)
+                        self.assertEqual(receipt['candidate_victim_adapter_id'], 2 if pending else 3)
+                        if pending:
+                            self.assertEqual(self.owner.snapshot(), before)
+                        else:
+                            self.assertEqual(receipt['admission']['snapshot']['adapter_pool_occupied_bytes'], 100)
 
 
 class NativeProactiveTransactions(unittest.TestCase):

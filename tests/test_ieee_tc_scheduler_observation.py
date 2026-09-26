@@ -285,6 +285,9 @@ class NativeHookWiring(unittest.TestCase):
                              captured[0]['scheduler_observation']['captured_at'])
             self.assertEqual(captured[0]['lengths'].means[0], 64.)
             self.assertEqual(hook.native_schedule_calls, 1)  # no hidden scheduling/draining
+            epoch = {'plan_sha256': 'message-validated-by-worker'}
+            self.assertTrue(engine_core.ieee_prepare_host({**command, 'replacement_epoch': epoch})['acquired'])
+            self.assertEqual(captured[-1]['replacement_epoch'], epoch)
             with self.assertRaisesRegex(ValueError, 'fields'):
                 engine_core.ieee_prepare_host({**command, 'fake_kv': 0})
             engine_core.model_executor = object()
@@ -322,7 +325,8 @@ class NativeHookWiring(unittest.TestCase):
                        clock_id=local_monotonic_clock_id(), production_launch_authorized=False)
         rpc = AsyncMock(return_value=payload)
         engine.engine = NS(engine_core=NS(call_utility_async=rpc))
-        command = dict(lease_id='p', expected_owner_id='worker')
+        command = dict(lease_id='p', expected_owner_id='worker',
+                       replacement_epoch={'plan_sha256': 'worker-validates'})
         self.assertEqual(asyncio.run(engine.ieee_prepare_host(**command)), payload)
         rpc.assert_awaited_once_with('ieee_prepare_host', command)
         rpc.side_effect = RuntimeError('worker lost')

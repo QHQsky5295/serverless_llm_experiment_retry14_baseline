@@ -1903,3 +1903,73 @@ D35已接上需求窗口与数学规划，但成本仍须由调用者提供；�
 queue，完成loss-per-usable-byte替换及总HOST/native预算、共享/激活前压力。
 D35的Full启动拦截保留。之后才能做有意义的整体资格和完整回放；不得绕过
 拦截、把fixture写进配置或重复孤立的cost/profile微测。正式矩阵仍未开始。
+
+## D37：收益—损失替换接到原生 GPU 槽位所有者
+
+### 瓶颈假设与依据
+
+D29–D36的主动HOST→GPU路径仍按原生LRU选择victim。它不能验证IEEE正文
+“相同h/d下按loss per usable byte替换”的机制，也会使后续CapacityOnly
+消融缺少一致的替换基础。本轮不改公式，不改普通按需加载策略。
+
+核对官方[vLLM0.30 model manager](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/model_manager.py)
+和[cache](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/utils/cache.py)：
+原生active cache移除回调释放GPU槽位，CPU registered cache独立；普通
+activate在满池时调用remove_oldest。采用已有GPU-only移除接口，不靠重排
+LRU或临时给其他victim加假引用来强迫后端选中目标。
+[ELORA](https://arxiv.org/abs/2505.03756)提供LoRA/KV联合管理的相关背景，
+本轮替换目标以IEEE本文定义为准，不据此宣称新算法或性能优越性。
+本地安装源码SHA：model_manager
+`6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302`；cache
+`397e993cebeeb44f37104e6f9a48ac7b4f3f878e0294fd8899e22f161de379c5`。
+
+### 已接通的实际路径与范围
+
+1. 实际ExperimentStack从HotnessTracker读取一次完整窗口，从每副本准备
+   cost model读取一次h/d版本。原生source/footprint快照绑定owner、epoch、
+   source path、内容类和slot bytes，生成可序列化objective及SHA。
+   HOST fallback使用该adapter实际native CPU表示的准备成本，不用服务D。
+   缺少正需求class、未知native身份或未确认GPU副本时拒绝；零需求不填假d。
+2. objective通过既有engine/proxy/core preparation命令传给实际worker。
+   worker提供当前unfinished/controller-pending需求的保护集合，并使用
+   实际pool重新核验slot bytes。SHA是消息一致性，不是测量正确性认证。
+3. native owner核对完整当前来源、epoch与GPU槽位。GPU/CPU引用、外部pin、
+   活跃source transfer和当前pending demand排除victim。剩余victim按
+   `h*d_HOST / usable_slot_bytes`排序，平局按adapter ID。
+4. 当前限定为已资格的uniform dense GPU slots：一个完整槽位足以容纳
+   incoming，满池最短覆盖前缀就是一个victim。文件大小或LoRA rank不充当
+   GPU可复用字节。仅incoming收益严格大于loss才继续E(t)检查。
+5. Full/CapacityOnly使用相同替换objective和物理保护。E(t)延后或净收益
+   不正时，不驱逐、不touch LRU。接纳后，同一serialized owner在完成栅栏
+   后移除指定GPU条目，再由既有pitched-copy/native setter填入释放槽位。
+   不释放HOST fallback，完成后再核对fallback对象和所占slot。
+6. ordinary demand继续使用原生LRU。没有objective的旧qualification调用
+   显式标`native_lru_diagnostic`，不是缺profile时的IEEE兜底。Full旧入口
+   仍被D35 guard拦截。失败/不确定copy使owner进入需恢复状态，不虚构回滚。
+
+### 正确性状态表（构造输入，不是模型性能）
+
+| 论文需要的性质 | 检查结果 |
+|---|---|
+| 与LRU是否真正不同 | 实际owner中LRU为2；同一h/d下选择loss更小的3，使用其slot1，保留其原CPU对象 |
+| 净收益与严格边界 | fixture收益15ms、loss0.2ms可接纳；收益等于loss或为0时不进入资源准入 |
+| 延后是否损害旧缓存 | E(t)拒绝前后source/epoch/slot/LRU完全不变 |
+| 保护是否覆盖pending/transfer | 实际worker的controller-pending集合及CPU/GPU引用排除最优victim；全部受保护时不替换 |
+| usable bytes是否真实 | worker实际slot101B与消息100B不一致时，在驱逐前拒绝（仅fixture字节） |
+| 同分是否稳定 | 精确相同loss时按adapter ID，不追随native LRU顺序；后续普通需求仍按LRU |
+| 重试与失败 | 相同lease/objective幂等；stale/hash错误拒绝；copy失败或fallback被丢弃不发布成功 |
+| 成本是否同轮 | 实际stack只snapshot一次cost；正需求缺类拒绝，零需求缺类保留d=null |
+
+新增13项检查。首轮定向114项、初次全量772项通过；随后把同分fixture改为
+精确可表示的1.5并增加fallback丢失断言。已安装vLLM0.30环境运行上述13项
+全部通过，CUDA未初始化。最终773项全量和56项安全检查全部通过，无跳过。
+没有加载backbone、新生成权重/trace、采集真实profile或开展性能实验。
+
+### 仍未闭合的主线
+
+这是单次原生HOST→GPU物理事务的替换执行，不是全层级Full完成。统一
+pending movement queue尚需负责候选密度顺序、pending target保护、跨执行
+源变化和同规划epoch的剩余工作；HOST/NVMe可变大小多victim替换、总HOST/
+native占用、共享/激活前压力和完整生命周期也仍需接通。代表性实测profile、
+正确adapter数值资格、真实remote资格和完整回放尚未完成。不重复本轮
+selector/cache fixture或旧短前缀微测；下一步进入统一迁移与资源所有者整合。

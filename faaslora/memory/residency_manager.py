@@ -1094,15 +1094,18 @@ class IEEEBackendGPUReferences:
 
     def proactive_host_prepare_and_acquire(self, *, lease_id: str, adapter_int_id: int,
             lora_name: str, lora_path: str, expected_owner_id: str, expected_epoch: int,
-            capacity_only: bool, decide) -> Dict[str, Any]:
+            capacity_only: bool, decide, replacement_epoch=None,
+            protected_adapter_ids=()) -> Dict[str, Any]:
         """Evaluate and commit HOST -> preallocated GPU on the owner thread.
 
         The engine-core bridge holds scheduling while this synchronous native
         operation runs. The decision callback reads real pool/device capacity;
         it must not evict or allocate. Only an owned CPU source is accepted, so
         this transaction never materializes a file or allocates a CPU adapter.
-        The native LRU victim is inspected without touching its order. On
-        deferral there are no cache mutations; on success the returned GPU
+        A frozen IEEE epoch uses loss per usable slot byte, with native HOST
+        fallbacks rechecked here. Without it this remains the explicitly labeled
+        legacy native-LRU diagnostic path, not IEEE replacement. On deferral
+        there are no cache mutations; on success the returned GPU
         reference remains held until its explicit release acknowledgement.
         """
         if (type(capacity_only) is not bool or not callable(decide)
@@ -1112,10 +1115,20 @@ class IEEEBackendGPUReferences:
                 or not isinstance(lora_name, str) or not lora_name
                 or not isinstance(lora_path, str) or not Path(lora_path).is_absolute()):
             raise ValueError('proactive preparation requires exact source/lease/policy identity')
+        if any(type(aid) is not int or aid <= 0 for aid in protected_adapter_ids):
+            raise ValueError('native pending/transfer protection requires adapter identities')
+        objective = None
+        if replacement_epoch is not None:
+            from ..preloading.preloading_planner import validate_native_gpu_epoch
+            # Copy across the callback boundary; caller mutation cannot change
+            # the accepted objective after its hash has been checked.
+            replacement_epoch = copy.deepcopy(replacement_epoch)
+            objective = validate_native_gpu_epoch(replacement_epoch)
         slots = self._refresh()
         if expected_owner_id != self.owner_id:
             return {'acquired': False, 'reason': 'owner_changed', **self.snapshot()}
-        identity = (adapter_int_id, lora_name, lora_path, capacity_only)
+        identity = (adapter_int_id, lora_name, lora_path, capacity_only,
+                    replacement_epoch['plan_sha256'] if objective is not None else None)
         if lease_id in self._preparations:
             previous = self._preparations[lease_id]
             if previous['identity'] != identity:
@@ -1134,7 +1147,47 @@ class IEEEBackendGPUReferences:
         if not gpu.pinned_items.issubset(cpu.pinned_items):
             raise RuntimeError('native GPU pin lacks matching CPU eviction protection')
         victim = None
-        if None not in slots:
+        replacement = None
+        policy_reason = None
+        if objective is not None:
+            if (objective['owner_id'] != self.owner_id or objective['epoch'] != self.epoch
+                    or tuple(objective['slot_adapter_ids']) != tuple(slots)):
+                return {'acquired': False, 'reason': 'stale_replacement_epoch', **self.snapshot()}
+            rows = {row['adapter_int_id']: row for row in objective['sources']}
+            if (set(rows) != set(cpu) or any(self._sources.get(aid) !=
+                    (row['adapter_id'], row['lora_path']) for aid, row in rows.items())
+                    or any(aid not in self._gpu_confirmations for aid in slots if aid is not None)):
+                raise ValueError('replacement epoch lacks the current owned source/fallback set')
+            total, counts = objective['total_arrivals'], objective['arrival_counts']
+            def weighted_host_cost(aid):
+                row = rows[aid]
+                n = counts.get(row['adapter_id'], 0)
+                return (n / total) * row['host_load_ms'] if n else 0.
+            benefit = weighted_host_cost(adapter_int_id)  # GPU remaining d = 0.
+            protected = (set(protected_adapter_ids) | cpu.pinned_items | gpu.pinned_items
+                         | set(self._references) | set(self._host_references))
+            # Uniform preallocated dense slots: exactly one compatible victim
+            # covers a full-pool insertion. File bytes/rank are NOT usable bytes.
+            usable_bytes = objective['slot_capacity_bytes']
+            eligible = sorted((aid for aid in slots if aid is not None and aid not in protected),
+                key=lambda aid: (weighted_host_cost(aid)/usable_bytes, rows[aid]['adapter_id'], aid))
+            if None not in slots:
+                if eligible:
+                    victim = eligible[0]
+                else:
+                    policy_reason = 'no_eligible_replacement_victim'
+            loss = weighted_host_cost(victim) if victim is not None else 0.
+            if policy_reason is None and benefit <= loss:
+                policy_reason = 'replacement_benefit_not_greater_than_loss'
+            replacement = dict(policy='ieee_loss_per_usable_slot_byte_v1',
+                plan_sha256=replacement_epoch['plan_sha256'], profile_id=objective['profile_id'],
+                cost_sequence=objective['cost_sequence'], demand_observed_at=objective['demand_observed_at'],
+                incoming_benefit_ms=benefit, eviction_loss_ms=loss,
+                victim_adapter_ids=[victim] if victim is not None else [],
+                usable_bytes=usable_bytes if victim is not None else 0,
+                target_slot_bytes=usable_bytes, fallback_tier='host',
+                protected_adapter_ids=sorted(protected), eligible_victims=len(eligible))
+        elif None not in slots:
             # Same ordering and pin exclusion as native LRU.remove_oldest().
             victim = next((aid for aid in gpu.order if aid not in gpu.pinned_items), None)
             if victim is None:
@@ -1142,7 +1195,8 @@ class IEEEBackendGPUReferences:
                         'capacity_blockers': self._capacity_blockers('gpu'), **self.snapshot()}
         before_epoch, before_slots = self.epoch, tuple(slots)
         before_order = (tuple(cpu.order), tuple(gpu.order))
-        evaluation = decide(victim, before_slots)
+        evaluation = ({'admit': False, 'reason': policy_reason, 'resource_admission_evaluated': False}
+                      if policy_reason is not None else decide(victim, before_slots))
         if (not isinstance(evaluation, dict) or type(evaluation.get('admit')) is not bool
                 or not isinstance(evaluation.get('reason'), str)):
             raise ValueError('preparation callback did not return an explicit admission decision')
@@ -1150,14 +1204,33 @@ class IEEEBackendGPUReferences:
                 or (tuple(cpu.order), tuple(gpu.order)) != before_order):
             self._poisoned = True
             raise RuntimeError('admission evaluation mutated the native owner')
-        common = {'proactive_admission_evaluated': True, 'admission': evaluation,
+        common = {'proactive_admission_evaluated': policy_reason is None, 'admission': evaluation,
                   'candidate_victim_adapter_id': victim, 'capacity_only': capacity_only,
+                  'replacement': replacement,
+                  'replacement_policy': replacement['policy'] if replacement else 'native_lru_diagnostic',
                   'transaction_scope': 'native_host_to_preallocated_gpu',
                   'all_tier_admission_reserved': False}
         if not evaluation['admit']:
             receipt = {'acquired': False, 'reason': evaluation['reason'], **self.snapshot(), **common}
         else:
-            # No yield between evaluation, native victim selection and load.
+            if not callable(self.preparation_loader):
+                raise RuntimeError('native preparation loader is not attached')
+            # No yield between evaluation, claiming the slot and the load.
+            # GPU-only removal retains the exact CPU fallback; the native
+            # loader sees a free slot and cannot silently choose another LRU
+            # victim. Other demand loads retain their ordinary cache policy.
+            if objective is not None and victim is not None:
+                fallback = cpu.cache[victim]
+                try:
+                    self.completion_fence()
+                    gpu.pop(victim)
+                    self._refresh()
+                    if (victim not in cpu or cpu.cache[victim] is not fallback
+                            or self.manager.lora_index_to_id[before_slots.index(victim)] is not None):
+                        raise RuntimeError('native replacement did not preserve its fallback/free slot')
+                except BaseException:
+                    self._poisoned = True
+                    raise
             # The existing demand primitive supplies completion fencing and
             # reference ownership, but its policy was not used for this decision.
             receipt = self._load_and_acquire(lease_id=lease_id,
@@ -1172,6 +1245,11 @@ class IEEEBackendGPUReferences:
             if removed != ({victim} if victim is not None else set()):
                 self._poisoned = True
                 raise RuntimeError('native preparation evicted a different victim')
+            if objective is not None and victim is not None:
+                if (victim not in cpu or cpu.cache[victim] is not fallback
+                        or receipt['slot'] != before_slots.index(victim)):
+                    self._poisoned = True
+                    raise RuntimeError('native replacement lost its fallback or claimed slot')
             receipt.update(common)
             self._leases[lease_id].update(common)
         self._preparations[lease_id] = {'identity': identity, 'receipt': copy.deepcopy(receipt)}

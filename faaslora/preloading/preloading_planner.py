@@ -297,6 +297,102 @@ class PreparationCostModel:
             return True
 
 
+def validate_native_gpu_epoch(epoch):
+    """Validate a serialized frozen objective, not its measurement provenance.
+
+    Physical owner/slot/source validity is checked again on the worker. The hash
+    binds the message, not a reservation or proof of numerical correctness.
+    """
+    frozen = dict(epoch)
+    digest = frozen.pop('plan_sha256', None)
+    if digest != hashlib.sha256(json.dumps(frozen, sort_keys=True,
+            separators=(',', ':'), allow_nan=False).encode()).hexdigest():
+        raise ValueError('native GPU preparation epoch hash mismatch')
+    if (frozen.get('kind') != 'ieee_native_gpu_objective_v1'
+            or frozen.get('physical_resources_reserved') is not False
+            or not isinstance(frozen.get('owner_id'), str) or not frozen['owner_id']
+            or type(frozen.get('epoch')) is not int or frozen['epoch'] < 1
+            or type(frozen.get('slot_capacity_bytes')) is not int or frozen['slot_capacity_bytes'] <= 0
+            or not isinstance(frozen.get('profile_id'), str) or not frozen['profile_id']
+            or type(frozen.get('cost_sequence')) is not int or frozen['cost_sequence'] < 0):
+        raise ValueError('invalid native GPU preparation objective identity')
+    counts, total = frozen['arrival_counts'], frozen['total_arrivals']
+    if (type(total) is not int or total < 0 or not isinstance(counts, dict)
+            or any(not isinstance(a, str) or not a or type(n) is not int or n <= 0
+                   for a, n in counts.items()) or sum(counts.values()) != total
+            or any(type(frozen[k]) not in (int, float) or not math.isfinite(frozen[k])
+                   for k in ('demand_observed_at', 'window_seconds'))
+            or frozen['window_seconds'] <= 0):
+        raise ValueError('native GPU objective requires one complete demand snapshot')
+    rows, names, ids = frozen['sources'], set(), set()
+    for row in rows:
+        aid, name = row['adapter_int_id'], row['adapter_id']
+        key = PreparationClass(**row['host_class'])
+        d = row['host_load_ms']
+        if (type(aid) is not int or aid <= 0 or aid in ids
+                or not isinstance(name, str) or not name or name in names
+                or not isinstance(row['lora_path'], str) or not Path(row['lora_path']).is_absolute()
+                or key.tier != 'host' or key.representation != 'native_cpu_dense_ab_v1'
+                or type(row['host_storage_bytes']) is not int or row['host_storage_bytes'] <= 0
+                or (counts.get(name, 0) and (type(d) not in (int, float)
+                    or not math.isfinite(d) or d < 0))
+                or (not counts.get(name, 0) and d is not None)):
+            raise ValueError('invalid native HOST source/fallback cost')
+        ids.add(aid)
+        names.add(name)
+    slots = frozen['slot_adapter_ids']
+    used = [aid for aid in slots if aid is not None]
+    if (not slots or any(type(aid) is not int or aid not in ids for aid in used)
+            or len(set(used)) != len(used)):
+        raise ValueError('native GPU objective lacks complete resident source coverage')
+    return frozen
+
+
+def freeze_native_gpu_epoch(*, native_snapshot, content_sha_by_adapter, profiles, costs, demand):
+    """Bind one actual native source/slot view to one h/d planning epoch.
+
+    Native dense GPU slots are uniform; every resident has a retained native
+    HOST fallback. This is not a general HOST/NVMe replacement planner. Content
+    identities come from the caller's verified immutable artifact registry.
+    """
+    snap = native_snapshot
+    if (snap.get('kind') != 'native_lora_sources_v1'
+            or snap.get('complete_for_native_caches') is not True
+            or snap.get('unknown_native_adapter_ids') or snap.get('unconfirmed_gpu_adapter_ids')
+            or profiles.profile_id != costs.profile_id):
+        raise ValueError('native GPU objective requires complete confirmed sources and matching profiles')
+    inventory = snap['native_footprints']
+    footprints = {row['adapter_int_id']: row for row in inventory['host_adapter_footprints']}
+    if (len(footprints) != len(inventory['host_adapter_footprints'])
+            or set(footprints) != set(snap['registered_cpu_adapter_ids'])
+            or set(footprints) != {row['adapter_int_id'] for row in snap['sources']}
+            or inventory['slot_adapter_ids'] != snap['slot_adapter_ids']):
+        raise ValueError('native source/footprint inventory disagrees')
+    sequence, estimates = costs.snapshot()
+    counts, sources = dict(demand.counts), []
+    for row in sorted(snap['sources'], key=lambda r: r['adapter_int_id']):
+        footprint = footprints[row['adapter_int_id']]
+        source = dict(native=True, tier='host', representation=footprint['representation'],
+            footprint_bytes=footprint['storage_bytes'],
+            expected_content_sha256=content_sha_by_adapter[row['adapter_id']])
+        key = FrozenPreparationProfiles.source_class(source, profiles.size_edges_bytes)
+        # An unused class has zero weighted loss without inventing a latency.
+        d = estimates[key] if counts.get(row['adapter_id'], 0) else None
+        sources.append(dict(adapter_int_id=row['adapter_int_id'], adapter_id=row['adapter_id'],
+            lora_path=row['lora_path'], host_class=asdict(key),
+            host_storage_bytes=footprint['storage_bytes'], host_load_ms=d))
+    frozen = dict(kind='ieee_native_gpu_objective_v1', owner_id=snap['owner_id'], epoch=snap['epoch'],
+        slot_adapter_ids=list(snap['slot_adapter_ids']), slot_capacity_bytes=inventory['slot_capacity_bytes'],
+        profile_id=costs.profile_id, cost_sequence=sequence,
+        demand_observed_at=demand.observed_at, window_seconds=demand.window_seconds,
+        total_arrivals=demand.total_arrivals, arrival_counts=counts, sources=sources,
+        physical_resources_reserved=False)
+    frozen['plan_sha256'] = hashlib.sha256(json.dumps(frozen, sort_keys=True,
+        separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+    validate_native_gpu_epoch(frozen)
+    return frozen
+
+
 @dataclass(frozen=True)
 class FrozenPreparationProfiles:
     """Measured d initialization, bound to the actual model/environment.

@@ -454,6 +454,12 @@ class IEEEWorkerObservationExtension:
                     or type(transfers.get('active_transfers')) is not int
                     or transfers['active_transfers'] != len(transfers.get('active_transfer_ids', []))):
                 raise ValueError('proactive preparation lacks owned file-transfer pressure')
+            protected_ids = {row['native_adapter_int_id'] for row in observation['admitted']
+                             if row.get('native_adapter_int_id') is not None}
+            # Controller-pending demand must not lose its source while waiting
+            # for the executable reference. Transfer-held sources also carry
+            # native CPU pins, enforced independently by the owner.
+            kwargs['protected_adapter_ids'] = tuple(sorted(protected_ids))
             def decide(victim, slots):
                 # An externally submitted native request must not be an
                 # unreferenced victim merely because it bypassed our frontend.
@@ -474,6 +480,9 @@ class IEEEWorkerObservationExtension:
                     raise RuntimeError('pool inventory changed inside native preparation')
                 free, total = map(int, torch.cuda.mem_get_info(self.device))
                 slot_bytes = pool['slot_capacity_bytes']
+                objective = kwargs.get('replacement_epoch')
+                if objective is not None and objective['slot_capacity_bytes'] != slot_bytes:
+                    raise ValueError('replacement usable bytes differ from the actual native slot')
                 occupied = pool['occupied_slot_capacity_bytes'] - (slot_bytes if victim is not None else 0)
                 keys = tuple(field.name for field in fields(AdmittedKVRequest))
                 snapshot = BackendAdmissionSnapshot(
