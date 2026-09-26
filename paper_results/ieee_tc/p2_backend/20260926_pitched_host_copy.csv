@@ -1,0 +1,5 @@
+case,arm,rank,max_rank,slot,copy_rectangles,peak_extra_allocated_bytes,extra_reserved_bytes,device_free_change_bytes,exact_all_slots,native_pitched_sha_match,formal_performance_result
+linear,native_copy_,8,64,2,2,65536,2097152,-2097152,true,true,false
+linear,pitched_native_setter,8,64,2,2,0,0,0,true,true,false
+merged_missing_middle,native_copy_,8,64,2,4,176128,0,0,true,true,false
+merged_missing_middle,pitched_native_setter,8,64,2,4,0,0,0,true,true,false

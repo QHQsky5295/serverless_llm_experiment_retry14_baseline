@@ -1486,3 +1486,29 @@ CUDA/native-setter检查：普通linear与包含缺失子模块的merged，rank8
 零填充和额外GPU tensor峰值。它只回答拷贝问题，不是再次运行模型前缀，也不是
 Full/performance资格。检查后交付状态表，再回到controller/native KV身份交接、
 全层transfer/budget与planner/handoff主线。
+
+### D30真实GPU验证结果（已完成，不再重复本微测）
+
+执行代码`21e80f9b88fc32f9004c842c93da79b53d85af39`已先推送并核对远端SHA。
+第一次调用未满足既有launcher的32位hex辅助scope命名、绝对路径要求，未进入
+服务/CUDA；tmux早退未保留traceback，故保存的是实际调用和源检查依据，不伪造
+原始异常。第二次按原入口规范执行成功，没有修改测试条件或重试GPU错误。
+
+| 实际原生setter布局 | 原copy额外tensor峰值 | pitched copy额外tensor峰值 | 全槽位/零填充/非目标槽位 |
+|---|---:|---:|---|
+| linear，rank8/maxrank64，width4096 | 65,536 B | 0 B | 与预期、原生copy逐元素及SHA一致 |
+| merged含缺失中间子模块，width4096/11008 | 176,128 B | 0 B | 与预期、原生copy逐元素及SHA一致 |
+
+成功运行仅一次。scope正常退出0、12次外置采样，service peak729,321,472 B，
+high/max/OOM事件均0，NVML终态无本实验上下文、服务scope已删除。没有生成token、
+加载backbone或创造新LoRA文件。两个拷贝策略在所测完整pool内容上完全一致。
+
+这里的0是**PyTorch额外GPU tensor分配峰值**。不能由此宣称任意CUDA内部资源
+瞬时占用为0，也不能声称显存减少量等于reserved allocator arena变化。原生linear
+先执行，增加2MiB allocator reservation；后续复用不能解释为稳定节省2MiB。
+这不是时延优化实验证据，更不是Full/SLO/主比较资格。
+
+按计划11.2交付此状态表及
+`paper_results/ieee_tc/p2_backend/20260926_pitched_host_copy.{csv,json}`。
+所有4行及来源SHA核验后归档；回到完整KV集合与实际主动准备集成，不继续
+扩张这个局部微测矩阵。后续只有新的集成路径问题才需要新增针对性验证。

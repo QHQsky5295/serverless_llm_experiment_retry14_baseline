@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Native E(t)/HOST preparation transaction connected and CPU-tested; Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D29. Source32 and capacity5 measured earlier. D29 adds same-owner KV/slot decision/commit, not a new model or Full performance result. Controller-pending KV, all-tier transfer/budget and proactive planner integration remain open |
+| P1 IEEE semantic alignment | Native E(t)/HOST transaction connected; rank-sliced copy CUDA-qualified; Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D30. D30 native-setter microcheck removes the known temporary-tensor gap without rank changes. Not Full performance. Controller-pending KV, all-tier transfer/budget and proactive planner integration remain open |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,10 +51,11 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST CODE CHECKPOINT: D29 adds opt-in native HOST→preallocated-GPU preparation
-with core-owned E(t) evaluation and completion-length window.691 functional and
-56 safety tests pass. No new model execution or profile numbers. Existing model
-evidence remains D28 below. Do not repeat capacity5/source32/lifecycle4.
+LATEST CODE CHECKPOINT: D30 explicit pitched HOST copy closes the known rank8→rank64
+temporary-tensor case.699 functional and56 safety checks pass. Real native-setter
+CUDA microcheck completed: same whole-slot contents, extra tensor peaks0 vs65,536/
+176,128 bytes. Not model/Full/performance qualification. Do not repeat this microcheck
+or capacity5/source32/lifecycle4. Next: controller/native admitted-KV identity handoff.
 
 LATEST COMPLETED MODEL RUN: `llama2_7b_capacity_wait_attempt2`, finished and cleaned.
 Five first-distinct requests from old32-prefix,755 native tokens, all targets met.
@@ -74,14 +75,14 @@ performance or complete Full lifecycle claim. D26 source32 remains completed;
 its one historical SHA difference and independent numerical gate remain open.
 
 0. P2 installation finished; do NOT reinstall. All current runs finished/cleaned. Native adapter reference, full 3B/7B content scan and 7B five-arm native numeric diagnostic COMPLETE; do not repeat same-prompt/zero controls. NATIVE_ADAPTER_NUMERIC_CONTROL.md: all five 217-token outputs identical; A/Z probability max difference .02608, A/A also .006367. Descriptive evidence, not independent numeric/full semantic qualification. Return to Full source/cost and owner integration next. Current 3B pool has 500 all-zero LoRAs (2 SHAs); 7B has 498 zero plus finance/medical nonzero (4 SHAs). Plan forbids new weights; user confirmation requested before adding a few trained nonzero 3B correctness fixtures, no answer yet. Keep pools/traces/history intact. Targeted 2,521 existing configs yielded no 3B candidate, not proof of server-wide absence. Independent numerical verification remains an open gate, not erased by this diagnostic. Review official 0.30 warning on old 3B chunked_prefill=false before freezing. Reuse environment/cache, KEEP_DEDICATED_WORKER_LOGS for future proxy runs.
-1. D29 now connects E(t) to the native core/worker HOST→GPU operation, with exact native LRU victim and real pool/headroom reads. NEW concrete gap: D28 native rank8 CPU adapters copy into max-rank64 GPU B slices; PyTorch allocates a temporary for this noncontiguous target. The zero-workspace branch correctly REJECTS this path. First close its actual workspace or equivalent no-hidden-allocation copy contract; do not lower rank config or guess MB. Then bridge controller-admitted/not-yet-ADD requests into the KV set with unique identity handoff; include all-tier transfer events/budgets, attach actual planner/handoff and measured class initialization. Current receipts cover native unfinished requests and serialized HOST→GPU transfers only. Content-bound HOST/NVMe migration remains open. No repeated source32/capacity5/lifecycle4.
+1. D29 connects E(t) to native core/worker HOST→GPU with exact LRU and headroom. D30 qualifies the rank-sliced direct copy on actual CUDA/native setters; current rank64 and native policies retained. Next bridge controller-admitted/not-yet-ADD requests into the KV set with unique identity handoff; include all-tier transfer events/budgets, attach actual planner/handoff and measured class initialization. Current receipts cover native unfinished requests and serialized HOST→GPU transfers only. Content-bound HOST/NVMe migration remains open. No repeated source32/capacity5/lifecycle4 or pitched-copy-only microcheck.
 2. D27 now qualifies the7B dedicated runtime's physical allocation and normal exit. Do not re-run its four-request prefix. Connect owner coverage and aggregation for the actual Full deployment (shared/direct/multi-runtime paths are not qualified here), while completing physical tier admission and representative measured profiles. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `4ca84c375d1b17029cfb8807650bfe86a631ede6`, pushed to
+- Main tested implementation: `21e80f9b88fc32f9004c842c93da79b53d85af39`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -92,7 +93,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D29.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D30.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -147,15 +148,27 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## This continuation
 
-### D30 implementation, real copy qualification next
+### D30 completed implementation and real native-setter copy qualification
 
 - D29 workspace finding now has an explicit pitched-copy strategy, using actual
   CUDA row geometry inside unchanged native setters/LRU. No max-rank reduction,
   guessed workspace, global monkeypatch, fallback copy or new adapter artifacts.
   Ordinary demand loading remains distinct; Full/CapacityOnly share this strategy.
 - 699 functional and56 safety checks passed, no failures/skips. Plan SHA and147
-  protected entries unchanged. Current CUDA qualification still pending: next is
-  one guarded native-setter/copy microcheck, no backbone/model-prefix rerun.
+  protected entries unchanged before execution. Actual CUDA/native-setter test
+  completed once: linear and merged/missing-middle full-pool contents exactly match
+  native copy; extra tensor peaks0 vs65,536/176,128 B. No backbone/model-prefix rerun.
+- Attempt1 was a launcher name/path contract error before service; note retained,
+  no invented traceback. Attempt2 normal exit0,12 resource samples, peak729321472 B,
+  no high/max/OOM; actual native contexts clear and service scope removed. Auxiliary
+  scope18791d4b43c847298cb13ece0ab9fc29 checked empty and stopped; owned tmux closed.
+  State table plus curated CSV/JSON delivered, not a latency or system ranking result.
+- All8 curated source/evidence SHA entries and4 CSV rows checked against raw output.
+  Final plan SHA and147 protected entries unchanged. All five remaining D30 test
+  scopes verified at TasksCurrent0 and stopped. GPUs15MiB/0%, MemAvailable109355868KiB,
+  disk353817423872 B at final check. Baseline repo unchanged; preserve its user dirt.
+  Implementation21e80f9 was pushed and remote SHA verified before the CUDA test;
+  this result/receipt is a subsequent documentation/data-only checkpoint.
 - Then resume controller-pending/native KV identity handoff, all-tier budget and
   transfer accounting, actual planner/handoff and representative measured profiles.
   M1/M2, formal baselines, ablations/sensitivities remain not started.

@@ -1,0 +1,59 @@
+{
+  "kind": "pitched_host_copy_qualification_summary_v1",
+  "implementation_commit": "21e80f9b88fc32f9004c842c93da79b53d85af39",
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "formal_performance_result": false,
+  "full_qualification": false,
+  "model_qualification": false,
+  "scope": "actual CUDA copies and vLLM native setters on nonzero in-memory tensor fixtures; no backbone or new adapter artifacts",
+  "backend": "vllm 0.30.0",
+  "torch": "2.13.0+cu130",
+  "cuda_bindings": "13.4.3",
+  "rank": 8,
+  "max_rank": 64,
+  "cases": [
+    {"case": "linear", "copy_rectangles": 2, "native_extra_tensor_peak_bytes": 65536, "pitched_extra_tensor_peak_bytes": 0, "all_slot_contents_match": true},
+    {"case": "merged_missing_middle", "copy_rectangles": 4, "native_extra_tensor_peak_bytes": 176128, "pitched_extra_tensor_peak_bytes": 0, "all_slot_contents_match": true}
+  ],
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": "protocol_or_launcher_error_before_service",
+      "path": "results/ieee_tc/p2_backend_qualification/copy_20260926/pitched_attempt1_launcher_note.json",
+      "sha256": "933d172959e9828adb33abd7717877b4a85fb5936b9c26aed62030dc7b6afbb1",
+      "traceback_preserved": false,
+      "cause_evidence": "submitted scope name fails the first source-level gated-launch scope check; relative output also violates its contract"
+    },
+    {
+      "attempt": 2,
+      "status": "passed_native_setter_copy_qualification",
+      "path": "results/ieee_tc/p2_backend_qualification/copy_20260926/pitched_attempt2.json",
+      "sha256": "d843b0c89cf8ed07a2db0bd9d2096afec04a8dce17d36adcf53a48e7384013d0",
+      "launch_path": "results/ieee_tc/p2_backend_qualification/copy_20260926/pitched_attempt2_launch.json",
+      "launch_sha256": "bcf663f1c491f851eaa90e4a5bf9dbeb7b795d8ad9811d770892c7b5118b16b7",
+      "watchdog_path": "results/ieee_tc/p2_backend_qualification/copy_20260926/pitched_attempt2_launch.launch/watchdog.jsonl",
+      "watchdog_sha256": "6d4504a7fc709fdb0f27939ae66fc71bcf42f639a243162d26fa876745b1d508",
+      "exec_receipt_path": "results/ieee_tc/p2_backend_qualification/copy_20260926/pitched_attempt2_launch.launch/exec_receipt.json",
+      "exec_receipt_sha256": "141fab86ee564705fbb3374cee532848770f1e619573a13cc39648730ef3a649",
+      "service_returncode": 0,
+      "native_contexts_clear": true,
+      "service_scope_removed": true,
+      "physical_gpu_s_measured": false,
+      "resource_samples": 12,
+      "service_peak_bytes": 729321472,
+      "memory_event_max": {"high": 0, "max": 0, "oom": 0, "oom_kill": 0}
+    }
+  ],
+  "implementation_source_sha256": {
+    "faaslora/memory/gpu_monitor.py": "4fc59d6d0d12bfcd6257dee8ebf35bc33335e7ecfeff0d51ea4b5632a2fbdddc",
+    "scripts/ieee_tc_preflight.py": "460f5333a30268e98c1d3e21da037fba68700a7bcc2f794317ad8e44f3cea994",
+    "faaslora/memory/residency_manager.py": "16c0e21b0c33460178c066983d8aecbbe27d45133d1def93a2f95fd9d48e12a5"
+  },
+  "tests": {"functional_passed": 699, "safety_passed": 56, "skipped": 0},
+  "limitations": [
+    "Native-copy arm precedes pitched arm. Reserved-memory growth is allocator-state dependent, not a general steady-state saving or performance estimate.",
+    "Zero extra tensor peak is measured through the PyTorch allocator; it is not a proof that every driver/internal resource has zero transient cost.",
+    "Two native setter layouts are checked, not arbitrary TP, dtype conversion, graph capture, packed expansion or embedding-weight copies.",
+    "No model outputs, E2E improvement, SLO, Full admission or baseline ranking is established by this check."
+  ]
+}
