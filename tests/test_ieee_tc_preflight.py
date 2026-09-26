@@ -7,6 +7,25 @@ from unittest.mock import patch
 from scripts import ieee_tc_preflight as p
 
 
+class ForwardedCommandCLI(unittest.TestCase):
+    def test_child_options_are_opaque_for_supervisor_and_nested_gate(self):
+        child = ['/bin/echo', '--host', '192.168.4.178', '--config', 'child.json']
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / 'launch.json'
+            argv = ['preflight', 'gated-launch', '--output', str(output), '--exec', *child]
+            with patch('sys.argv', argv), patch.object(p, 'check_plan'), \
+                    patch.object(p, 'gated_launch', return_value={'pass': True}) as launch, \
+                    patch('builtins.print'):
+                p.main()
+            self.assertEqual(launch.call_args.args[0], child)
+            self.assertEqual(json.loads(output.read_text()), {'pass': True})
+        argv = ['preflight', '_launch-gate', '--gate-socket', '/tmp/example.sock',
+                '--gate-nonce', 'example', '--exec', *child]
+        with patch('sys.argv', argv), patch.object(p, 'launch_gate_worker') as gate:
+            p.main()
+        gate.assert_called_once_with('/tmp/example.sock', 'example', child, False)
+
+
 class IndependentNumericReference(unittest.TestCase):
     def test_closeness_is_not_discrimination_and_nonfinite_or_missing_reject(self):
         native={'1':-1.,'2':-2.}

@@ -3068,7 +3068,10 @@ def self_test(modes=('inspect', 'oom', 'linger'), python=None) -> dict:
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    # This CLI forwards an opaque argv after --exec. Prefix abbreviation must
+    # not interpret a child's --host as our --host-copy-* before REMAINDER is
+    # consumed (the same applies again in the nested _launch-gate process).
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
                                          'watchdog', 'watchdog-test', 'install-candidate', 'backend-check',
                                          'backend-model-check', 'backend-copy-check', 'backend-host-check',
