@@ -158,6 +158,7 @@ class NativePinnedHostAccounting(unittest.TestCase):
         self.assertEqual(result['staged_only_pageable_storage_bytes'],128)
         self.assertEqual(result['registered_pinned_storage_bytes'],0)
         self.assertEqual(result['staged_only_pinned_storage_bytes'],128)
+        self.assertEqual(result['registered_exclusive_storage_bytes'],64)
 
     def test_file_contract_uses_shapes_not_materialized_tensors_and_rounds_up(self):
         import tempfile

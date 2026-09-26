@@ -8,6 +8,34 @@ from scripts import ieee_tc_preflight as p
 
 
 class ProtocolGates(unittest.TestCase):
+    def test_workspace_bounds_reuse_complete_matching_classes_without_loading_weights(self):
+        with tempfile.TemporaryDirectory() as directory:
+            audit_path, observation_path = Path(directory)/'audit.json', Path(directory)/'observation.json'
+            audit = dict(kind='existing_artifact_tensor_audit_v1', audit_complete=True,
+                pools=[dict(root='/existing/pool', complete=True, inspected_adapters=1, expected_adapters=1,
+                    rows=[dict(adapter_id='a', weight_bytes=120, weight_sha256='a'*64, configured_rank=8,
+                               target_modules=['q_proj'], inspected=True, all_finite=True)])])
+            audit_path.write_text(json.dumps(audit))
+            observation = dict(kind='native_host_allocator_observation_v1', stage='complete',
+                **{'pass':True}, artifact_audit_sha256=p.digest(audit_path),
+                torch_version='2.13.0+cu130', backend_version='0.30.0',
+                allocator_settings={'max_cached_size':0}, controls=p.select_host_allocator_controls(audit),
+                cases=[dict(pool_root='/existing/pool', adapter_id='a', weight_sha256='a'*64, rank=8,
+                    contract=dict(kind='dense_safetensors_native_host_loading_v1', dtype='torch.float16',
+                                  source_file_bytes=120, converted_pageable_bytes=100, tensor_count=2))])
+            observation_path.write_text(json.dumps(observation))
+            result = p.derive_host_workspace_contracts(observation_path, audit_path)
+            contract = result['pools'][0]['workspace_contract']
+            self.assertEqual(contract['max_resident_pinned_bytes'], 100)
+            self.assertEqual(contract['max_transient_tensor_bytes'], 220)
+            self.assertEqual(contract['source_audit_sha256'], p.digest(audit_path))
+            self.assertFalse(result['new_execution'])
+            for change in ({'cases':[]}, {'allocator_settings':{'max_cached_size':False}},
+                           {'artifact_audit_sha256':'b'*64}, {'controls':[]}):
+                observation_path.write_text(json.dumps({**observation,**change}))
+                with self.subTest(change=change), self.assertRaises(ValueError):
+                    p.derive_host_workspace_contracts(observation_path, audit_path)
+
     def test_host_allocator_controls_selected_before_measurement(self):
         rows = [dict(adapter_id=a, weight_bytes=b, weight_sha256=s,
             configured_rank=r, target_modules=['v_proj','q_proj'], inspected=True,

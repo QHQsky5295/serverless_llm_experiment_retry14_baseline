@@ -16352,6 +16352,9 @@ class ScenarioRunner:
                 if checked(closed).get('closed') is not True:
                     raise RuntimeError('GPU preparation plan closure is unacknowledged')
                 record['close_receipt'] = closed
+                # Closing a cancelled plan can release staged HOST objects.
+                # Wake other plans only after the actual owner acknowledges it.
+                queue.wake(owner_id=owner_id)
             except BaseException as exc:
                 record.update(state='closure_unresolved', close_error_type=type(exc).__name__)
                 raise
@@ -17007,6 +17010,11 @@ class ScenarioRunner:
         from scripts.ieee_tc_preflight import gpu_process_identity
         from faaslora.metrics.metrics_collector import _open_pidfd
         native = self.model_cfg.get('ieee_native_host_tensor_budget_bytes')
+        workspace_contract = copy.deepcopy(self.model_cfg.get('ieee_native_host_workspace'))
+        def workspace_matches(receipt):
+            partition = receipt.get('workspace_partition')
+            return (partition is None if workspace_contract is None else
+                    isinstance(partition, dict) and partition.get('contract') == workspace_contract)
         if (not self.model_cfg.get('ieee_gpu_references') or self._stack is None
                 or type(total) is not int or total <= 0 or type(native) is not int or native <= 0):
             raise ValueError('managed HOST requires explicit total and native tensor allowances')
@@ -17019,7 +17027,8 @@ class ScenarioRunner:
             old = self._ieee_host_budget_members.get(id(engine))
             if old is not None:
                 if (old['state'] != 'attached' or not any(e is engine for e in old['engines'])
-                        or old['receipt']['tensor_budget_bytes'] != native):
+                        or old['receipt']['tensor_budget_bytes'] != native
+                        or not workspace_matches(old['receipt'])):
                     raise RuntimeError('native HOST limit installation is unresolved or retired')
                 return old['receipt']
             state = await engine.ieee_gpu_reference(operation='snapshot')
@@ -17033,7 +17042,8 @@ class ScenarioRunner:
             for member in tuple(self._ieee_host_budget_members.values()):
                 if member['owner_id'] == owner_id:
                     if (member['state'] != 'attached' or member['process_identity'] != identity
-                            or member['receipt']['tensor_budget_bytes'] != native):
+                            or member['receipt']['tensor_budget_bytes'] != native
+                            or not workspace_matches(member['receipt'])):
                         raise ValueError('shared native HOST owner is unresolved or changed identity')
                     member['engines'].append(engine)
                     self._ieee_host_budget_members[id(engine)] = member
@@ -17053,7 +17063,8 @@ class ScenarioRunner:
             # Cancellation cannot abandon an in-flight installation or return
             # its bytes. Join the exact command before propagating cancellation.
             task = asyncio.create_task(engine.ieee_gpu_reference(operation='configure_host_budget',
-                expected_owner_id=owner_id, tensor_budget_bytes=native))
+                expected_owner_id=owner_id, tensor_budget_bytes=native,
+                **({'workspace_contract': workspace_contract} if workspace_contract is not None else {})))
             cancelled = False
             try:
                 while True:
@@ -17066,7 +17077,8 @@ class ScenarioRunner:
                         cancelled = True
                 if (receipt.get('configured') is not True or receipt.get('owner_id') != owner_id
                         or receipt.get('worker_pid') != pid or receipt.get('tensor_budget_bytes') != native
-                        or receipt.get('clock_id') != local_monotonic_clock_id()):
+                        or receipt.get('clock_id') != local_monotonic_clock_id()
+                        or not workspace_matches(receipt)):
                     raise ValueError('native HOST limit acknowledgement differs from its reserved owner')
                 member.update(state='attached', receipt=receipt)
             except BaseException:

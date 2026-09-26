@@ -200,6 +200,34 @@ class ManagedHostOwnership(unittest.TestCase):
             runner._retire_ieee_host_budget(engine)
         asyncio.run(run())
 
+    def test_workspace_contract_is_forwarded_acknowledged_and_frozen_for_aliases(self):
+        async def run():
+            _, files, _ = self.make()
+            child = self.child()
+            runner, engine, calls = self.runner(files, child.pid)
+            contract = dict(kind='native_host_workspace_contract_v1', dtype='torch.float16',
+                max_resident_pinned_bytes=100, max_transient_tensor_bytes=200, source_audit_sha256='a'*64)
+            runner.model_cfg['ieee_native_host_workspace'] = contract
+            original = engine.ieee_gpu_reference
+            async def with_workspace(operation, **kwargs):
+                result = await original(operation, **kwargs)
+                if operation == 'configure_host_budget':
+                    self.assertEqual(kwargs['workspace_contract'], contract)
+                    result['workspace_partition'] = dict(contract=dict(contract))
+                return result
+            engine.ieee_gpu_reference = with_workspace
+            await runner._attach_ieee_host_budget(engine)
+            alias = NS(ieee_gpu_reference=with_workspace)
+            await runner._attach_ieee_host_budget(alias)
+            self.assertEqual(calls.count('configure_host_budget'), 1)
+            runner.model_cfg['ieee_native_host_workspace'] = {**contract, 'max_resident_pinned_bytes': 101}
+            with self.assertRaisesRegex(RuntimeError, 'unresolved or retired'):
+                await runner._attach_ieee_host_budget(engine)
+            child.stdin.close()
+            child.wait(timeout=5)
+            runner._retire_ieee_host_budget(engine)
+        asyncio.run(run())
+
     def test_cancelled_installation_joins_then_propagates_without_returning_bytes(self):
         async def run():
             _, files, _ = self.make()

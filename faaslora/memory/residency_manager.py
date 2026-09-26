@@ -1220,6 +1220,7 @@ class IEEEBackendGPUReferences:
         self.file_host_loader = file_host_loader
         self.host_allocation_check = host_allocation_check
         self._native_host_tensor_budget = None
+        self._native_host_workspace = None
         self._file_host_preparations: Dict[str, Dict[str, Any]] = {}
         # Unregistered incoming objects are charged to the same tensor budget.
         # They are neither a HOST hit nor a larger native CPU cache. All live
@@ -1380,7 +1381,7 @@ class IEEEBackendGPUReferences:
                                                        for aid in plan['pending']}),
                 'snapshot_holds_reference': False}
 
-    def configure_host_budget(self, *, expected_owner_id, tensor_budget_bytes):
+    def configure_host_budget(self, *, expected_owner_id, tensor_budget_bytes, workspace_contract=None):
         """Freeze the same capacity check for proactive AND demand loading."""
         self._refresh()
         if expected_owner_id != self.owner_id:
@@ -1395,9 +1396,89 @@ class IEEEBackendGPUReferences:
                                           tensor_budget_bytes=tensor_budget_bytes)
         if not isinstance(check, dict) or check.get('admitted') is not True:
             raise RuntimeError('native HOST occupancy does not fit its reserved allowance')
+        if self._native_host_workspace is not None:
+            if workspace_contract != self._native_host_workspace['contract']:
+                raise ValueError('native HOST workspace contract cannot change within a worker')
+        elif workspace_contract is not None:
+            # Bound native count capacity using the largest existing tensor
+            # class, then leave one whole load for demand and one for proactive
+            # progress. All are partitions of the existing physical allowance.
+            fields = {'kind', 'max_resident_pinned_bytes', 'max_transient_tensor_bytes',
+                      'source_audit_sha256', 'dtype'}
+            if (not isinstance(workspace_contract, dict) or set(workspace_contract) != fields
+                    or workspace_contract['kind'] != 'native_host_workspace_contract_v1'
+                    or workspace_contract['dtype'] != 'torch.float16'
+                    or any(type(workspace_contract[k]) is not int or workspace_contract[k] <= 0
+                           for k in ('max_resident_pinned_bytes', 'max_transient_tensor_bytes'))
+                    or not isinstance(workspace_contract['source_audit_sha256'], str)
+                    or len(workspace_contract['source_audit_sha256']) != 64
+                    or any(c not in '0123456789abcdef' for c in workspace_contract['source_audit_sha256'])):
+                raise ValueError('native HOST workspace requires frozen existing-artifact bounds')
+            if (self._caches()[0] or self._staged_host
+                    or check.get('allocator_policy', {}).get('policy') != 'uncached_v1'
+                    or check.get('allocator_policy', {}).get('verified') is not True):
+                raise RuntimeError('native HOST workspace requires an empty owner and verified uncached allocator')
+            baseline = check.get('before', {}).get('accounted_tensor_bytes')
+            capacity = self.manager.capacity
+            if (type(baseline) is not int or baseline < 0
+                    or type(capacity) is not int or capacity <= 0):
+                raise ValueError('native HOST workspace needs actual occupancy and cache capacity')
+            resident = capacity * workspace_contract['max_resident_pinned_bytes']
+            peak = workspace_contract['max_resident_pinned_bytes'] + workspace_contract['max_transient_tensor_bytes']
+            minimum = baseline + resident + 2 * peak
+            if minimum > tensor_budget_bytes:
+                raise ValueError('native HOST allowance cannot fit residency, proactive loading and demand workspace')
+            self._native_host_workspace = dict(contract=copy.deepcopy(workspace_contract),
+                native_cache_entries=capacity, registered_upper_bytes=resident,
+                demand_load_peak_bytes=peak, initial_accounted_bytes=baseline,
+                minimum_tensor_allowance_bytes=minimum,
+                tensor_budget_bytes=tensor_budget_bytes)
         self._native_host_tensor_budget = tensor_budget_bytes
         return dict(configured=True, tensor_budget_bytes=tensor_budget_bytes,
-                    allocation=check, **self.snapshot())
+                    allocation=check, workspace_partition=copy.deepcopy(self._native_host_workspace),
+                    **self.snapshot())
+
+    def host_workspace_check(self, *, before, contract, proactive):
+        """Protect native cache growth and one demand load from proactive work.
+
+        Only actual exclusively registered storage is credited against the
+        count-capacity ceiling. Cached, staged, aliased and other pinned bytes
+        remain charged. No victim byte is credited before reclamation. The
+        caller still performs its ordinary total-byte check for every operation.
+        """
+        partition = self._native_host_workspace
+        if partition is None:
+            return None
+        self._refresh()
+        if type(proactive) is not bool:
+            raise ValueError('native HOST loading purpose must be explicit')
+        if self.manager.capacity != partition['native_cache_entries']:
+            raise RuntimeError('native HOST cache capacity changed after workspace partition')
+        limits = partition['contract']
+        if contract is not None:
+            if (contract.get('pinned_allocation_policy') != 'uncached_v1'
+                    or contract.get('dtype') != limits['dtype']
+                    or any(type(contract.get(field)) is not int or not 0 < contract[field] <= limits[limit]
+                           for field, limit in (
+                               ('resident_pinned_upper_bytes', 'max_resident_pinned_bytes'),
+                               ('transient_tensor_upper_bytes', 'max_transient_tensor_bytes')))
+                    or contract.get('peak_additional_tensor_bytes') !=
+                       contract['resident_pinned_upper_bytes'] + contract['transient_tensor_upper_bytes']):
+                raise ValueError('incoming native HOST layout exceeds its frozen workspace contract')
+        current = before.get('accounted_tensor_bytes')
+        registered = before.get('registered_exclusive_storage_bytes')
+        if (type(current) is not int or current < 0 or type(registered) is not int
+                or not 0 <= registered <= min(current, partition['registered_upper_bytes'])):
+            raise ValueError('native HOST workspace lacks consistent actual storage accounting')
+        increment = 0 if contract is None else contract['peak_additional_tensor_bytes']
+        growth = partition['registered_upper_bytes'] - registered
+        reserve = growth + partition['demand_load_peak_bytes'] if proactive and contract is not None else 0
+        projected = current + increment + reserve
+        return dict(admitted=projected <= partition['tensor_budget_bytes'],
+                    accounted_bytes=current, incoming_peak_bytes=increment,
+                    reserved_for_cache_growth_and_demand_bytes=reserve,
+                    projected_bytes=projected, tensor_budget_bytes=partition['tensor_budget_bytes'],
+                    reason=None if projected <= partition['tensor_budget_bytes'] else 'native_host_workspace_pressure')
 
     def register_preparation_plan(self, *, plan_id, objective, target_adapter_ids, expected_owner_id):
         """Register the entire selected set before any candidate may execute.

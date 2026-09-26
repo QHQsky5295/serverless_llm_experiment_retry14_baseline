@@ -1,0 +1,35 @@
+{
+  "kind": "native_host_workspace_derivation_v1",
+  "new_execution": false,
+  "model_qualification": false,
+  "source_allocator_observation": "results/ieee_tc/p2_backend_qualification/host_20260927/native_host_allocator_uncached_attempt1.json",
+  "source_allocator_observation_sha256": "08f7083ec24bfc2d6605187da7eabc8b5558e1dcb1f7ce1fe99809ae0a14e698",
+  "source_artifact_audit": "results/ieee_tc/p2_backend_qualification/model_20260926/artifact_tensor_audit_3b7b_attempt1.json",
+  "source_artifact_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+  "pools": [
+    {
+      "pool_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+      "logical_adapters": 500,
+      "audited_content_classes": 2,
+      "workspace_contract": {
+        "kind": "native_host_workspace_contract_v1",
+        "dtype": "torch.float16",
+        "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+        "max_resident_pinned_bytes": 18350080,
+        "max_transient_tensor_bytes": 36730056
+      }
+    },
+    {
+      "pool_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix",
+      "logical_adapters": 500,
+      "audited_content_classes": 4,
+      "workspace_contract": {
+        "kind": "native_host_workspace_contract_v1",
+        "dtype": "torch.float16",
+        "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+        "max_resident_pinned_bytes": 33554432,
+        "max_transient_tensor_bytes": 67143184
+      }
+    }
+  ]
+}

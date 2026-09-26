@@ -237,6 +237,150 @@ class NativeFileHostPreparation(unittest.TestCase):
             self.assertFalse(owner.staged_models())
 
 
+class NativeHostWorkspace(unittest.TestCase):
+    def setUp(self):
+        self.manager = NativeManager()
+        for aid in (1, 2, 3):
+            self.manager.remove_adapter(aid)
+        self.checker = Mock(return_value=dict(admitted=True,
+            before=dict(accounted_tensor_bytes=10),
+            allocator_policy=dict(policy='uncached_v1', verified=True)))
+        self.owner = IEEEBackendGPUReferences(self.manager, Mock(), host_allocation_check=self.checker)
+        self.contract = dict(kind='native_host_workspace_contract_v1', dtype='torch.float16',
+            max_resident_pinned_bytes=100, max_transient_tensor_bytes=200, source_audit_sha256='a'*64)
+
+    def configure(self, budget=910, contract=None):
+        return self.owner.configure_host_budget(expected_owner_id=self.owner.owner_id,
+            tensor_budget_bytes=budget, workspace_contract=self.contract if contract is None else contract)
+
+    def project(self, current, registered, proactive=True, **changes):
+        incoming=dict(pinned_allocation_policy='uncached_v1', dtype='torch.float16',
+            resident_pinned_upper_bytes=100, transient_tensor_upper_bytes=200,
+            peak_additional_tensor_bytes=300)
+        incoming.update(changes)
+        return self.owner.host_workspace_check(before=dict(accounted_tensor_bytes=current,
+            registered_exclusive_storage_bytes=registered), contract=incoming, proactive=proactive)
+
+    def test_partition_is_inside_budget_and_rejects_one_byte_short(self):
+        before = self.owner.snapshot()
+        with self.assertRaisesRegex(ValueError, 'cannot fit'):
+            self.configure(909)
+        self.assertEqual(self.owner.snapshot(), before)
+        self.assertIsNone(self.owner._native_host_tensor_budget)
+        result = self.configure()
+        partition = result['workspace_partition']
+        self.assertEqual(partition['registered_upper_bytes'], 300)
+        self.assertEqual(partition['demand_load_peak_bytes'], 300)
+        self.assertEqual(partition['minimum_tensor_allowance_bytes'], 910)
+        self.assertEqual(self.configure()['workspace_partition'], partition)
+        with self.assertRaisesRegex(ValueError, 'cannot change'):
+            self.configure(contract={**self.contract, 'max_resident_pinned_bytes': 99})
+
+    def test_proactive_staging_cannot_consume_demand_or_future_cache_growth(self):
+        self.configure()
+        self.assertTrue(self.project(210, 200)['admitted'])
+        deferred = self.project(310, 200)
+        self.assertFalse(deferred['admitted'])
+        self.assertEqual(deferred['reason'], 'native_host_workspace_pressure')
+        self.assertEqual(deferred['reserved_for_cache_growth_and_demand_bytes'], 400)
+        self.assertTrue(self.project(310, 200, proactive=False)['admitted'])
+        # After demand fills the last CPU entry, proactive work still waits;
+        # committing the staged object/reclaiming its victim permits progress.
+        self.assertFalse(self.project(410, 300)['admitted'])
+        self.assertTrue(self.project(310, 300)['admitted'])
+
+    def test_real_occupancy_not_future_free_credit_controls_both_paths(self):
+        self.configure()
+        self.assertFalse(self.project(611, 300, proactive=False)['admitted'])
+        self.assertFalse(self.project(311, 300)['admitted'])
+        self.assertTrue(self.project(610, 300, proactive=False)['admitted'])
+        self.assertTrue(self.owner.host_workspace_check(before=dict(accounted_tensor_bytes=910,
+            registered_exclusive_storage_bytes=300), contract=None, proactive=True)['admitted'])
+
+    def test_layout_bound_and_cache_capacity_cannot_change_silently(self):
+        self.configure()
+        for changed in (dict(resident_pinned_upper_bytes=101), dict(transient_tensor_upper_bytes=201),
+                        dict(dtype='torch.bfloat16'), dict(pinned_allocation_policy='default'),
+                        dict(peak_additional_tensor_bytes=299)):
+            with self.subTest(changed=changed), self.assertRaisesRegex(ValueError, 'layout'):
+                self.project(10, 0, **changed)
+        self.manager.capacity = 4
+        with self.assertRaisesRegex(RuntimeError, 'capacity changed'):
+            self.project(10, 0)
+
+    def test_partition_requires_empty_and_verified_owner(self):
+        self.checker.return_value['allocator_policy']['verified'] = False
+        with self.assertRaisesRegex(RuntimeError, 'verified uncached'):
+            self.configure()
+        self.checker.return_value['allocator_policy']['verified'] = True
+        self.manager._registered_adapters[1] = NativeAdapter()
+        with self.assertRaisesRegex(RuntimeError, 'empty owner'):
+            self.configure()
+
+    def test_actual_worker_reserves_demand_space_before_loading_a_staged_target(self):
+        import sys
+        worker = gpu_monitor.IEEEWorkerObservationExtension()
+        worker.device, worker.rank = SimpleNamespace(type='cuda'), 0
+        self.manager.moe_ep_load_spec, self.manager.modules = None, {'layer': object()}
+        self.manager._get_lora_layer_weights = lambda *args: True
+        self.manager._create_merged_loras_inplace = Mock()
+        model = NativeAdapter()
+        model.id = 4
+        loader = SimpleNamespace(_adapter_manager=self.manager,
+            lora_config=SimpleNamespace(lora_dtype='torch.float16'), _load_adapter=Mock(return_value=model))
+        worker.model_runner = SimpleNamespace(lora_manager=loader)
+        modules = {'vllm': SimpleNamespace(__version__='0.30.0'),
+            'vllm.lora.request': SimpleNamespace(LoRARequest=SimpleNamespace),
+            'vllm.utils.torch_utils': SimpleNamespace(PIN_MEMORY=True),
+            'vllm.utils.gpu_sync_debug': SimpleNamespace(gpu_sync_allowed=nullcontext)}
+        incoming = dict(pinned_allocation_policy='uncached_v1', dtype='torch.float16',
+            resident_pinned_upper_bytes=100, transient_tensor_upper_bytes=200, peak_additional_tensor_bytes=300)
+        def observed(total, registered):
+            return dict(available=True, accounted_tensor_bytes=total, registered_exclusive_storage_bytes=registered)
+        with patch.dict(sys.modules, modules), \
+             patch.object(gpu_monitor, 'torch', SimpleNamespace(__version__='2.13.0+cu130')), \
+             patch.object(gpu_monitor, '_ieee_native_host_allocator_policy', return_value=dict(policy='uncached_v1', verified=True)), \
+             patch.object(gpu_monitor, '_ieee_lora_host_inventory', return_value={}), \
+             patch.object(gpu_monitor, '_ieee_pinned_host_observation', return_value=observed(10, 0)) as occupancy, \
+             patch.object(gpu_monitor, '_ieee_file_host_contract', return_value=incoming):
+            snap = worker.ieee_gpu_reference(operation='snapshot')
+            worker.ieee_gpu_reference(operation='configure_host_budget', expected_owner_id=snap['owner_id'],
+                tensor_budget_bytes=910, workspace_contract=self.contract)
+            owner = worker._ieee_gpu_reference_owner
+            for aid in (1, 2, 3):
+                resident = NativeAdapter()
+                resident.id = aid
+                self.manager.add_adapter(resident)
+            owner._preparation_plans['plan'] = dict(identity=('fixture',(4,)), pending={4},
+                objective={'sources':[dict(adapter_int_id=4,adapter_id='adapter-4',lora_path='/existing/adapter-4')]})
+            kwargs = dict(adapter_int_id=4, lora_name='adapter-4', lora_path='/existing/adapter-4',
+                expected_owner_id=owner.owner_id, expected_epoch=owner.snapshot()['epoch'],
+                native_host_tensor_budget_bytes=910, preparation_plan_id='plan')
+            occupancy.return_value = observed(311, 300)
+            before = owner.snapshot()
+            result = worker.ieee_gpu_reference(operation='prepare_file_host_and_hold', lease_id='deferred', **kwargs)
+            self.assertEqual(result['reason'], 'native_host_workspace_pressure')
+            self.assertEqual(owner.snapshot(), before)
+            loader._load_adapter.assert_not_called()
+            # One byte of actual headroom changes eligibility, not an eviction
+            # prediction. The new CPU object is staged, not a native cache hit.
+            occupancy.side_effect = [observed(310, 300), observed(410, 300)]
+            result = worker.ieee_gpu_reference(operation='prepare_file_host_and_hold', lease_id='stage', **kwargs)
+            self.assertTrue(result['held'])
+            self.assertEqual(result['tier'], 'staging')
+            self.assertEqual(tuple(self.manager._registered_adapters), (1, 2, 3))
+            self.assertEqual(self.manager.lora_index_to_id, [None, None])
+            occupancy.side_effect = None
+            occupancy.return_value = observed(410, 300)
+            self.assertTrue(owner.host_allocation_check(lora_path='/existing/adapter-5',
+                tensor_budget_bytes=910, reuse=False)['admitted'])
+            self.assertFalse(owner.host_allocation_check(lora_path='/existing/adapter-5',
+                tensor_budget_bytes=910, reuse=False, proactive=True)['admitted'])
+            owner.release_host_source(lease_id='stage', expected_owner_id=owner.owner_id)
+            owner.close_preparation_plan(plan_id='plan', expected_owner_id=owner.owner_id)
+            self.assertFalse(owner.staged_models())
+
+
 class NativeHostDemandBudget(unittest.TestCase):
     def make(self):
         case = NativeDemandTransactions()

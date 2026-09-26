@@ -174,6 +174,10 @@ def _ieee_pinned_host_observation(inventory: Dict[str, Any]) -> Dict[str, Any]:
                    if staged_ids and row['adapter_ids'] and set(row['adapter_ids']).issubset(staged_ids)]
     staged_pinned = sum(row['allocated_bytes'] for row in staged_only if row['pinned'])
     staged_pageable = sum(row['allocated_bytes'] for row in staged_only if not row['pinned'])
+    # A registered/staged alias is not exclusively reclaimable registration.
+    # Keep it charged outside the cache-growth credit used by the workspace gate.
+    registered_exclusive = sum(row['allocated_bytes'] for row in inventory['host_allocations']
+        if not staged_ids or (row.get('adapter_ids') and not set(row['adapter_ids']) & staged_ids))
     if active > allocated or active_blocks > blocks or pinned > active:
         raise ValueError('native pinned HOST inventory disagrees with allocator counters')
     return dict(kind='native_pinned_host_allocator_v1', available=True,
@@ -184,6 +188,7 @@ def _ieee_pinned_host_observation(inventory: Dict[str, Any]) -> Dict[str, Any]:
         staged_only_pinned_storage_bytes=staged_pinned,
         staged_only_pageable_storage_bytes=staged_pageable,
         native_pageable_storage_bytes=pageable,
+        registered_exclusive_storage_bytes=registered_exclusive,
         accounted_tensor_bytes=allocated+pageable,
         scope=('process_pinned_allocator_plus_registered_and_staged_pageable_tensors' if staged_ids
                else 'process_pinned_allocator_plus_registered_pageable_tensors'),
@@ -551,7 +556,7 @@ class IEEEWorkerObservationExtension:
                                 for source, target in copies]
                 with _ieee_pitched_host_copy(destinations, self.device, completion_fence):
                     demand_loader(**args)
-            def host_allocation_check(*, lora_path, tensor_budget_bytes, reuse):
+            def host_allocation_check(*, lora_path, tensor_budget_bytes, reuse, proactive=False):
                 import vllm
                 from vllm.utils.torch_utils import PIN_MEMORY
                 if (vllm.__version__ != '0.30.0' or not str(torch.__version__).startswith('2.13.')
@@ -572,16 +577,22 @@ class IEEEWorkerObservationExtension:
                     contract = _ieee_file_host_contract(lora_path, native_loader.lora_config.lora_dtype)
                 increment = 0 if reuse else contract['peak_additional_tensor_bytes']
                 admitted = before['accounted_tensor_bytes'] + increment <= tensor_budget_bytes
-                return dict(admitted=admitted, reason=None if admitted else 'native_host_tensor_budget',
+                workspace = self._ieee_gpu_reference_owner.host_workspace_check(
+                    before=before, contract=contract, proactive=proactive)
+                reason = None if admitted else 'native_host_tensor_budget'
+                if workspace is not None and not workspace['admitted']:
+                    admitted, reason = False, workspace['reason']
+                return dict(admitted=admitted, reason=reason,
                             before=before, contract=contract, tensor_budget_bytes=tensor_budget_bytes,
                             allocator_policy=self._ieee_host_allocator_policy,
+                            workspace_projection=workspace,
                             total_host_memory_covered=False)
             def file_host_loader(*, adapter_int_id, lora_name, lora_path, tensor_budget_bytes, reuse,
                                  register=True):
                 from vllm.lora.request import LoRARequest
                 from vllm.utils.gpu_sync_debug import gpu_sync_allowed
                 check = host_allocation_check(lora_path=lora_path, reuse=reuse,
-                                             tensor_budget_bytes=tensor_budget_bytes)
+                                             tensor_budget_bytes=tensor_budget_bytes, proactive=True)
                 if not check['admitted']:
                     return check
                 if not reuse:

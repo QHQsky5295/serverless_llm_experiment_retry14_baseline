@@ -51,6 +51,20 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
+D58 connects an opt-in native HOST workspace partition inside the existing
+allowance, based on all audited existing artifact classes. Actual total occupancy
+protects native cache growth and one demand load from proactive staging; no
+early eviction, budget/cache growth or assumed allocator release. Controller
+aliases share one frozen contract; acknowledged plan closure wakes waiters.
+935 functional,59 system-Python safety and30 installed-native CPU checks pass;
+CUDA uninitialized. Two-pool bounds independently recompute from D56/audit SHA.
+See P2_BACKEND_QUALIFICATION D58 for the formulas, correctness table and limits.
+Next is actual native copy/in-flight HOST return and representative Full/profile
+qualification, not another default/uncached CPU microtest or old request prefix.
+Actual multi-plan liveness and Full are not qualified; no production B/C chosen.
+Full guard and the two unanswered artifact/remote authority choices remain.
+Final resource cleanup, protection and tested milestone backup follow below.
+
 D57 connects an explicit pre-import native allocator candidate to the existing
 dedicated worker, checks actual native readback, and separates resident R from
 temporary W in the existing loading contract. No production model config changed.
@@ -200,6 +214,42 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
     Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D58 native HOST workspace partition
+
+- Start8856bdfff20dc0b9be8c5c888fdc669afadb54e0, baseline16570c unchanged.
+  Full plan/status/AGENTS and run-experiment/github-sync reread after recovery.
+  Protected147/plan SHA unchanged; all pre-existing user dirt preserved. No
+  agents, model/GPU, remote174 or formal performance run in this continuation.
+- Read D54/D56/D57 source/history, IEEE staging/budget text, actual installed
+  vLLM0.30 loader and dense packing, official worker_manager/PyTorch2.13 allocator
+  and ELORA sources. Derived conservative resident/growth/demand protection from
+  actual serialized native loading, not a new paper objective or manual retry.
+  New optional contract uses actual native C, actual baseline/current occupancy,
+  and existing full-pool R/W bounds. It rejects undersized allowances and changed
+  layouts; no B/C increase, hidden LRU, predicted victim credit or flush.
+- Runtime worker separates actual exclusively registered storage from staged
+  aliases, applies protected-space check only to new proactive loads, and keeps
+  actual total-byte checks for demand/reuse. Controller forwards/validates one
+  immutable contract per physical owner. Acknowledged plan close wakes waiters.
+  Opt-in/default model config and Full startup guard remain unchanged.
+- Reused six-class D56 observations and complete audit to derive 3B/7B bounds,
+  no weights loaded/generated. Curated JSON and immediate correctness table in
+  P2 document; source SHA and independent offline recomputation match. These
+  tensor upper bounds are not measured peaks or whole-service RAM guarantees.
+- Initial281 and focused22 checks pass. Final-source935 functional,59 system-
+  Python safety/census/replay and30 installedvLLM0.30/torch2.13 CPU checks pass,
+  zero failures/errors/skips and CUDA uninitialized. Logs under
+  results/ieee_tc/p2_backend_qualification/d58_20260927. Counts overlap.
+- Actual in-flight pinned return, full multi-plan behavior, measured profiles,
+  actual Full/A4, numerical500-pool and realremote gates remain open. No new
+  baseline/M1/M2/ablation/sensitivity results or optimality claims. Next proceeds
+  to actual copy/Full evidence instead of repeating completed CPU measurements.
+  Final owned-scope cleanup/protection/backup receipt follows; goal stays active.
+- All5 D58 owned scopes verified actual cgroup.procs empty, TasksCurrent0 and
+  high/max/oom/oom_kill0, then stopped. Final GPUs15MiB/0%, MemAvailable108651780KiB,
+  available disk353387175936B. Protected147 and source plan SHA unchanged;
+  no model/test remains running. Named-file tested milestone backup follows.
 
 ### D57 explicit allocator candidate and workspace accounting
 

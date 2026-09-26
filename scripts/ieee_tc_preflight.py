@@ -1436,6 +1436,53 @@ def select_host_allocator_controls(audit: dict) -> list[dict]:
     return selected
 
 
+def derive_host_workspace_contracts(allocator_observation: Path, artifact_audit: Path) -> dict:
+    """Reuse complete existing class measurements for HOST workspace bounds.
+
+    No tensor read/load, new artifact, runtime budget choice or qualification
+    waiver. The native worker checks every incoming layout against these bounds
+    and the actual initial occupancy against the unchanged allowance.
+    """
+    observation = json.loads(allocator_observation.read_text())
+    audit = json.loads(artifact_audit.read_text())
+    controls = select_host_allocator_controls(audit)
+    audit_sha = digest(artifact_audit)
+    if (observation.get('kind') != 'native_host_allocator_observation_v1'
+            or observation.get('pass') is not True or observation.get('stage') != 'complete'
+            or observation.get('artifact_audit_sha256') != audit_sha
+            or observation.get('torch_version') != '2.13.0+cu130'
+            or observation.get('backend_version') != '0.30.0'
+            or type(observation.get('allocator_settings', {}).get('max_cached_size')) is not int
+            or observation.get('allocator_settings', {}).get('max_cached_size') != 0
+            or observation.get('controls') != controls):
+        raise ValueError('workspace derivation needs the complete uncached native observation and matching audit')
+    cases = observation.get('cases', [])
+    expected = [(r['pool_root'], r['adapter_id'], r['weight_sha256'], r['configured_rank']) for r in controls]
+    actual = [(r['pool_root'], r['adapter_id'], r['weight_sha256'], r['rank']) for r in cases]
+    if actual != expected:
+        raise ValueError('workspace classes do not cover the audited artifact pool')
+    pools = []
+    for pool in audit['pools']:
+        selected = [r['contract'] for r in cases if r['pool_root'] == pool['root']]
+        if not selected or pool['inspected_adapters'] != pool['expected_adapters']:
+            raise ValueError('workspace derivation cannot use partial pool coverage')
+        for contract in selected:
+            if (contract.get('kind') != 'dense_safetensors_native_host_loading_v1'
+                    or contract.get('dtype') != 'torch.float16'
+                    or any(type(contract.get(k)) is not int or contract[k] <= 0
+                           for k in ('source_file_bytes', 'converted_pageable_bytes', 'tensor_count'))):
+                raise ValueError('workspace derivation lacks dense FP16 header bounds')
+        pools.append(dict(pool_root=pool['root'], logical_adapters=pool['expected_adapters'],
+            audited_content_classes=len(selected), workspace_contract=dict(
+                kind='native_host_workspace_contract_v1', dtype='torch.float16', source_audit_sha256=audit_sha,
+                max_resident_pinned_bytes=max(r['converted_pageable_bytes'] for r in selected),
+                max_transient_tensor_bytes=max(r['source_file_bytes']+r['converted_pageable_bytes'] for r in selected))))
+    return dict(kind='native_host_workspace_derivation_v1', new_execution=False,
+        model_qualification=False, source_allocator_observation=str(allocator_observation),
+        source_allocator_observation_sha256=digest(allocator_observation),
+        source_artifact_audit=str(artifact_audit), source_artifact_audit_sha256=audit_sha, pools=pools)
+
+
 def backend_host_allocator_check(runtime_receipt: Path, artifact_audit: Path) -> dict:
     """Native checkpoint CPU allocation/reuse evidence, without a backbone.
 

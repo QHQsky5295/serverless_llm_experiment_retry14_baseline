@@ -739,3 +739,73 @@ workspace，也未证明多plan并发的空间上界或在途H2D归还。尚需�
 冻结常驻容量、暂存并发和非LoRA开销，再做实际Full资格；不得用过大的native
 额度隐藏问题，或用本表充当TTFT/profile/SLO数据。可能的分配开销回退必须测量。
 Full启动保护、九个论文公式、旧结果和正式配置均保持不变。
+
+## 2026-09-27 D58：固定HOST额度内的加载空间保护
+
+本轮接通预算内的空间保护，不再重复D56的allocator测量。直接复用完整
+500池审计和六个既有类的测量，生成
+`paper_results/ieee_tc/p2_backend/20260927_native_host_workspace_contracts.json`；
+原始SHA及离线重算一致。没有新工件、新负载、模型运行或新性能结果。
+
+### 设计依据与不变项
+
+原生worker串行执行CPU checkpoint加载，且先加载再替换；不能用尚未驱逐的
+对象作为可用空间。如果主动staging占满余量，业务请求即使将来能替换旧项，
+当下也无法加载。IEEE要求从tier容量中扣除staging，因而在既有额度内部
+保护加载空间，而不是增大HOST预算、提前驱逐或预测allocator归还。
+这属于执行容量约束，不替换IEEE的九个公式、收益目标或E(t)。
+
+令B为已有native tensor额度、C为实际原生CPU cache条目容量，Rmax/Wmax为
+当前完整既有工件集合在FP16下的常驻/临时上界，Pmax=Rmax+Wmax。
+仅对实际读回成功的`uncached_v1`候选，在空owner上检查：
+
+`B >= A0 + C*Rmax + 2*Pmax`。
+
+A0是配置时实际已占tensor字节；两份Pmax分别允许一个主动加载和一次按需
+加载。额度不足即判配置不可行，不修改B或C。它是保守可行性条件，不是
+最优分区算法，也不是总服务RSS的保证。
+
+| 冻结输入 | 3B | 7B |
+|---|---:|---:|
+| 已审计逻辑adapter | 500 | 500 |
+| 不同内容/rank/modules类 | 2 | 4 |
+| Rmax（B） | 18,350,080 | 33,554,432 |
+| Wmax（B） | 36,730,056 | 67,143,184 |
+| Pmax（B） | 55,080,136 | 100,697,616 |
+
+实际每次主动加载前，用当前占用A、仅由已注册对象独占的真实storage X检查：
+
+`A + P_incoming + (C*Rmax - X) + Pmax <= B`。
+
+其中A始终包含所有plan的staging、共享storage、allocator保留块及其他
+pinned占用。共享给staging的storage不能作为X抵扣。剩余cache增长量与一次
+按需加载受到保护；没有按plan各分一份完整预算。按需加载保留原生替换策略，
+仅检查`A+P_incoming<=B`；复用不新增加载峰值。所有路径仍做原有实际总字节
+检查。incoming形状/dtype、原生cache容量变化或未知计数不能静默通过。
+
+分区配置由现有控制器传入实际worker；同一物理owner的别名共享一个额度和
+合同，不能重复预留或改变合同。取消plan后的staging释放须由实际owner确认，
+再唤醒其他等待者，不靠固定间隔轮询。dense packing保持官方引用列表和
+原地缩放，未扩展到另有tensor分配的MoE路径。
+
+### 正确性证据及下一步
+
+| 问题 | 本轮结果 | 证据层级 |
+|---|---|---|
+| 分区最低额度少1B | 拒绝，未改变owner/cache | CPU fixture |
+| 当前占用多1B | 主动加载前拒绝，旧CPU/GPU对象不变 | 实际worker入口＋计数fixture |
+| 主动对象已暂存 | 再次主动加载延后；同一实际占用下按需加载可接纳 | 实际worker入口＋计数fixture |
+| registered/staged共享storage | 只计一次占用，但不给独占registered抵扣 | inventory/allocator计数fixture |
+| 多别名及合同变化 | 同owner一次安装；更改合同拒绝 | 控制器/进程身份测试 |
+| 回归 | 935功能、59安全/计量、30安装版native环境CPU检查通过 | 非性能检查，数量有交集 |
+
+测试日志在`results/ieee_tc/p2_backend_qualification/d58_20260927/`。
+CUDA均未初始化；没有把fixture字节、离线上界或测试数量当成实测峰值、性能
+重复或Full通过证据。尚未选择生产B/C，也未宣称分区最佳或所有多plan执行
+均有进展保证。非LoRA占用增长仍按实际值检查，可能令后续配置不可行。
+
+下一步转到实际native copy/HOST归还与代表性Full/profile资格，不再增加
+同类离线allocator重复。尤其PyTorch在有stream依赖时通过event队列延后归还：
+完成fence不自动证明统计中的allocated已下降，不能预扣或用flush绕过。
+实际多plan、物理字节压力、数值正确性、完整池及真实remote仍需资格。
+Full启动保护保留，共同vLLM须获得相同候选配置与合理优化机会。
