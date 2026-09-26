@@ -240,13 +240,17 @@ def http_replay(args):
         raise ValueError('existing trace changed')
     tokenizer = AutoTokenizer.from_pretrained(cfg['backbone'], local_files_only=True)
     prepared = {e.request_id: prepare_frozen_http_request(e, tokenizer, cfg['model']) for e in plan.entries}
+    imported_backends = sorted(name for name in ('torch', 'vllm', 'ray', 'sllm') if name in sys.modules)
+    if imported_backends:
+        raise RuntimeError(f'external tokenizer publisher imported serving modules: {imported_backends}')
     with args.output.open('x') as log:
         def emit(event):
             log.write(json.dumps(event, separators=(',', ':'), ensure_ascii=False)+'\n')
             log.flush()
         ready = dict(event='replay_ready', plan=plan.identity(), clock_id=local_monotonic_clock_id(),
                      frame_limit=0, transport='http', config_sha256=sha(args.config.read_bytes()),
-                     pid=os.getpid(), helper_sha256=sha(Path(__file__).read_bytes()),
+                     pid=os.getpid(), imported_backend_modules=imported_backends,
+                     helper_sha256=sha(Path(__file__).read_bytes()),
                      shared_source_sha256={p: sha((Path(cfg['main_repo'])/p).read_bytes()) for p in
                          ('faaslora/datasets/workload_generator.py', 'faaslora/clock.py',
                           'faaslora/metrics/metrics_collector.py')})

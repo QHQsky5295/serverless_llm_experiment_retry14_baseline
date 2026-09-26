@@ -64,3 +64,21 @@ two-model original/repaired1,000-request development pairs. Local mechanical
 qualification does not fulfill the real-remote main protocol. No M1/M2 winner,
 polling benefit, independent LoRA correctness or full baseline reproduction is
 claimed by these tests.
+
+## D69 first launch: measurement failure before model construction
+
+| Attempt | Model/request execution | Result | Interpretation |
+|---|---|---|---|
+| `d69_20260927/model_launch1.json` | No service started, no request arrived | Publisher readiness JSON rejected | Launcher/import isolation error; not a Serverless startup, throughput or OOM result |
+| Tokenizer-only diagnosis | Existing tokenizer only, no model | Ready record emitted without inherited serving source paths | Reproduced serving `PYTHONPATH` imports `sitecustomize`, torch/vLLM and a stdout platform log before the handshake |
+
+The [Python startup documentation](https://docs.python.org/3.12/library/site.html)
+explains why this precedes helper-level imports. The publisher now has its own
+startup environment, with no serving PYTHONPATH/PYTHONHOME; shared request code
+is explicitly imported after startup. The ready record must report no imported
+torch/vLLM/Ray/Serverless modules. The parser remains strict; it does not skip
+unexpected output or silently retry. Service imports and policies are unchanged.
+The first loader overlay was restored byte-for-byte after verifying no service
+or GPU context existed. The auxiliary group was empty before stopping it.
+The direct diagnostic intentionally had no deployment-origin input; its EOF
+exception is retained and is not an inference attempt.
