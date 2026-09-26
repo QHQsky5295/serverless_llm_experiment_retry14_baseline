@@ -20,7 +20,7 @@
 | Protected historical artifacts | Sealed and verified | `paper_results/ieee_tc/safety/20260925_execution_start_protected.json`; old results and selected user modifications unchanged |
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
-| Serverless wait audit | Historical audit + control-path tests; D64 owned native launcher view prepared | Baseline ef49691; originals unchanged; 17 CPU checks pass. Actual two-raylet containment, native loader and original/repaired model pairs pending |
+| Serverless wait audit | Historical audit + control-path tests; D65 actual two-raylet containment passes | 2 raylets,8GiB aggregate object-store capacity,5 workers+5 children owned/affinity verified and released. 22 CPU checks pass. Native loader/model workers and original/repaired model pairs pending |
 | P1 IEEE semantic alignment | Automatic GPU/final-file replacement, budgeted CPU-staging joint commit and proactive d feedback connected; Full remains open | P1_FORMULA_IMPLEMENTATION.md through D54. Same frozen h/d and actual completion samples; physical-byte-full HOST/staging capacity, profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
@@ -50,6 +50,23 @@ scripts/run_serverlessllm_relayserve_continuation.sh, cache/, installs/, repos/,
 configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
+
+D65 actual Serverless infrastructure witness now passes (attempt4), cleaned and
+immediately tabulated. Do not repeat it or treat it as a model/performance run.
+Both live raylet capacities total8GiB; five native workers and their children
+share the actual72/80GiB service group and40CPU affinity. All cleanup passes.
+Three launcher-error attempts are retained, separately classified from baseline
+failures. The current source fixes argv abbreviation, results-parent symlink
+identity and explicit-resource JSON expansion; original native scripts untouched.
+Private dead-pane retention preserves early failures. Next native checkpoint/
+overlay identity and actual store/model loading, then the two-model1000-request
+original/repaired pairs. Native Ray memory-monitor inspection is complete: both
+logs show0.99of134626840576B host RAM, not shared80GiB. Leave native semantics
+recorded/enabled and retain the qualified OS cap/watchdog; no Ray rebuild or
+extra infrastructure-only rerun is justified. Logical memory is neither an
+enforceable budget nor actual allocation. Full/remote/correctness gates
+below stay open. No baseline/M1/M2/ablation/sensitivity performance result yet.
+Final source/evidence backup details are recorded in D65 below.
 
 D64 rechecked actual Full profile dependencies: current serial GPU/HOST samples
 cannot initialize unmeasured file/remote/concurrency classes, particularly after
@@ -288,6 +305,66 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
     Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D65 actual Serverless two-raylet qualification
+
+- Full plan/status/AGENTS and run/backup/academic-plotting skills read, including
+  recovery. No agents, new model/pool/trace, remote service or formal replay.
+  Existing native source adapter reused; exact Ray2.54/commit import required.
+  Preregistered two live raylets,4+4GiB capacity,1head+4worker actors and children,
+  actual cgroup/affinity, private cleanup. No CUDA/model/store/API inference.
+- Attempt1 failed outer argparse abbreviation of child --host before service
+  start. Main parser now allow_abbrev=False; actual outer+nested argv test and
+  71 safety/census/replay checks pass. Fixc8fd70c702a36e5cecb133f373a2304c06d85002
+  pushed/full remote SHA checked. Attempt2 stopped before Ray: logical/physical
+  output alias mismatch. Canonicalize once, preserve alias, test real symlink;
+  21 baseline checks pass. Baselineff2b268df048e90a44c4adbfa751d97869c0eeba
+  pushed/full origin/main SHA checked (earlier witness source3a642e7 also saved).
+- Attempt3 head exits before ready. Shell-only reproduction proves explicit
+  resource JSON gains an extra closing brace; original native stderr was lost
+  when its pane exited, so do not quote that run as direct error-text proof.
+  Generated leaf now separates defaults from parameter expansion, tests both
+  explicit/default actual argv. One hash-bound private tmux config preserves
+  exited panes. No scheduling/loader/resource-budget changes. 22 CPU checks pass.
+  Attempts1–3 are protocol_or_launcher_error, not performance/system failures.
+  All owned service/auxiliary groups clean, memory high/max/OOM0, then stopped.
+- Attempt4 actual witness and guarded launch both pass:2live raylets, each
+  4294967296B object-store capacity;5distinct native actors and5children share
+  group/40CPU affinity; all4logical GPU IDs covered. Actual raylet command lines
+  agree. No CUDA/model correctness follows. Service/watchdog0/0, private tmux0,
+  service path removed and native contexts clear. Auxa5c0a5cf531f4ae5963877337c7c6baf
+  actual process list empty/events0, then stopped. No experiment left running.
+-11 watchdog samples, peak1324113920B, minimum host available110455627776B,
+  swap0/high/max/OOM0. Separate witness peak1347006464B; no inference-footprint
+  claim. Actual Ray logical memory107262640128/106816192512B exceeds shared80GiB
+  cap; native memory-monitor semantics need inspection, OS cap not waived.
+  Immediate exact table in baseline CONTAINED_LAUNCH plus main curatedCSV/JSON;
+  no artificial performance plot. Rawwitnessf6d16cbee35c000ffc00b5898bc3b6791dfcd439aadaf27fedb074dd1b331511,
+  launch8a8ddbe98be63248fbe38fc5dfd3ffed6db0082b5786d07e974ef978e14e2d5c.
+- Next native loader/store/checkpoint and real model-worker qualification, then
+  original/repaired pairs; do not repeat this infrastructure-only witness. Remote
+  disk/nonzero3B authority choices remain, Full guard stays. Formal comparisons,
+  ablations and sensitivities not started. Final protection/backup follows.
+- Read same actual raylet logs and officialRay2.54 memory-monitor source: native
+  threshold133280571392B,total134626840576B (host-based), not service-aware.
+  Preserve native monitor and documented OS/external safety; no new memory-loop
+  prerequisite. Both original logs retained in attempt4 with exact SHA. Reuse
+  existing official-loader port/checkpoint; no installed-source mutation here.
+  Other project's M4 routing overlay is NOT a loader and must not be imported.
+  Its historical0fd00ca witness differs from TC audited9f50241 source; qualify
+  the actual selected composition, never relabel the other project's success.
+- Final baseline checkpoint03a9fd7e92261673bda748ac9c897065fc0067bb is pushed;
+  fresh origin/main full SHA matches. Exactly3 named baseline task files;
+  original dirty replay/relayserve work excluded. Final main288 smoke checks
+  pass0failure/error/skip (earlier71 safety checks and baseline22 pass); all
+  test domains actual empty/events0 and stopped. Protected147/plan unchanged.
+  Curated values reconcile with raw witness/receipt; all4 launch-evidence SHA
+  values and actual measured helperSHA7340b753af523ea675d81418edbafa2d6c6deb9f019b48d0a36a4aafea00a7cd
+  match. Original raylet logs retained with exact SHA. Final GPUs15MiB/0%,
+  MemAvailable109140492KiB, local available353304219648B. No TMUX/model remains.
+  This main data/status checkpoint contains only the two curated files and this
+  ledger; named-stage/secrets/diff checks precede its non-force V2 push. No old
+  result, pool, trace, manuscript or remote service changed. Goal remains active.
 
 ### D64 Full prerequisites and contained Serverless native-launch adaptation
 
