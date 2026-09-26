@@ -8,6 +8,7 @@ the generated stack refuses launch outside that admitted service domain.
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import importlib.util
 import json
@@ -353,6 +354,65 @@ def checkpoint_parts(rank: Path) -> list[Path]:
     return parts
 
 
+def derived_rope_sources(source_keys: set[str], config: dict) -> set[str]:
+    observed = {name for name in source_keys if 'rotary_emb.inv_freq' in name}
+    if not observed:
+        return set()
+    expected = {f'model.layers.{i}.self_attn.rotary_emb.inv_freq'
+                for i in range(config['num_hidden_layers'])}
+    if (observed != expected or config.get('rope_scaling') is not None
+            or config.get('partial_rotary_factor', 1) != 1):
+        raise ValueError('unsupported or incomplete derived RoPE source buffers')
+    return observed
+
+
+def validate_stored_rope(actual, expected) -> str:
+    """No tolerance: accept exact FP32 or its exact FP16 serialization roundtrip."""
+    import torch
+    if actual.shape != expected.shape or actual.dtype not in (torch.float16, torch.float32):
+        raise ValueError('stored RoPE shape/dtype differs')
+    if torch.equal(actual, expected.to(actual.dtype)):
+        return 'exact_config_formula_at_stored_dtype'
+    if torch.equal(actual, expected.half().to(actual.dtype)):
+        return 'exact_fp16_serialization_roundtrip'
+    raise ValueError('stored RoPE values do not match the declared configuration')
+
+
+def audit_derived_rope(names, config, readers, source_map) -> dict:
+    """Account for buffers the official vLLM loader deliberately recomputes."""
+    if not names:
+        return dict(buffers=[], scope='no stored derived RoPE buffers')
+    import torch
+    from types import SimpleNamespace
+    root = Path(importlib.util.find_spec('vllm').origin).parent
+    identities = {
+        'model_executor/models/llama.py': '231282afc57850184704a0ab064a83828701ab8662c9547042fbe4f987a4ea93',
+        'model_executor/layers/rotary_embedding/base.py': '69986aca0500b2f170d8567ace04b54cbc3d2dc0f5e8ab9de0524244945ed108',
+    }
+    for name, expected in identities.items():
+        if stream_sha(root / name) != expected:
+            raise ValueError('inspected native Llama/RoPE implementation changed')
+    rope_path = root / 'model_executor/layers/rotary_embedding/base.py'
+    tree = ast.parse(rope_path.read_text())
+    cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'RotaryEmbedding')
+    method = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == '_compute_inv_freq')
+    namespace = {'torch': torch}
+    exec(compile(ast.Module(body=[method], type_ignores=[]), str(rope_path), 'exec'), namespace)
+    dimension = config.get('head_dim') or config['hidden_size'] // config['num_attention_heads']
+    base = config.get('rope_theta', 10000)
+    expected = namespace['_compute_inv_freq'](SimpleNamespace(rotary_dim=dimension), base)
+    rows = []
+    for name in sorted(names):
+        actual = readers[source_map[name]].get_tensor(name)
+        interpretation = validate_stored_rope(actual, expected)
+        rows.append(dict(tensor=name, dtype=str(actual.dtype), shape=list(actual.shape),
+                         source_sha256=sha(actual.contiguous().numpy().tobytes()),
+                         interpretation=interpretation,
+                         max_abs_difference_from_recomputed_fp32=float((actual.float() - expected).abs().max())))
+    return dict(buffers=rows, backend_source_sha256=identities, base=base, rotary_dim=dimension,
+                scope='Official vLLM ignores stored inv_freq and recomputes nonpersistent RoPE; not bitwise HF inference equivalence')
+
+
 def audit_checkpoint(checkpoint: Path, backbone: Path) -> dict:
     """Read existing TP1 Llama FP16 checkpoint bytes; never load a CUDA model.
 
@@ -395,7 +455,8 @@ def audit_checkpoint(checkpoint: Path, backbone: Path) -> dict:
             raise ValueError(f'checkpoint and source differ: {name}')
         small[name] = current
         inputs.extend((backbone / name, checkpoint / name))
-    mapping = checkpoint_tensor_sources(set(source_map))
+    derived = derived_rope_sources(set(source_map), config)
+    mapping = checkpoint_tensor_sources(set(source_map) - derived)
     ordered = validate_checkpoint_index(native_index, mapping, data_bytes)
     shards = {}
     for name in set(source_map.values()):
@@ -415,6 +476,7 @@ def audit_checkpoint(checkpoint: Path, backbone: Path) -> dict:
         actual_keys = {key: name for name, reader in readers.items() for key in reader.keys()}
         if actual_keys != source_map or sum(len(r.keys()) for r in readers.values()) != len(source_map):
             raise ValueError('source index does not describe every actual tensor exactly once')
+        derived_audit = audit_derived_rope(derived, config, readers, source_map)
         raw = NativeTensorStream([stack.enter_context(path.open('rb')) for path in data_paths])
         for name, (offset, length, shape, stride, dtype) in ordered:
             native_digest, reference_digest = hashlib.sha256(), hashlib.sha256()
@@ -448,6 +510,8 @@ def audit_checkpoint(checkpoint: Path, backbone: Path) -> dict:
     return dict(schema='ieee_tc_serverless_native_checkpoint_identity_v1', passed=True,
                 checkpoint=str(checkpoint), backbone=str(backbone), tensor_parallel_size=1,
                 dtype='float16', native_tensor_count=len(rows), source_tensor_count=len(source_map),
+                serialized_source_tensor_count=len(source_map) - len(derived),
+                derived_source_buffer_audit=derived_audit,
                 native_data_bytes=data_bytes, native_data_sha256=all_native.hexdigest(),
                 native_parts=[dict(name=path.name, bytes=path.stat().st_size,
                                    sha256=digest.hexdigest())

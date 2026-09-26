@@ -428,6 +428,24 @@ and evidence must not be interchanged just because the Python environment is
 shared. Record the full effective source/loader identity during model qualification.
 # D68 missing 7B representation: export completed, audit pending
 
+Audit attempt1 rejects source/native key mismatch before comparing weights.
+The32 unmatched keys are stored `rotary_emb.inv_freq` buffers. This is an
+auditor coverage issue, not evidence of lost trained parameters: the official
+[vLLM0.10.2 Llama loader](https://raw.githubusercontent.com/vllm-project/vllm/v0.10.2/vllm/model_executor/models/llama.py)
+skips these keys, and its [RoPE implementation](https://raw.githubusercontent.com/vllm-project/vllm/v0.10.2/vllm/model_executor/layers/rotary_embedding/base.py)
+recomputes frequencies from the configuration into nonpersistent cos/sin caches.
+The current first buffer is FP32 containing the exact FP16-roundtrip of the
+configuration formula, not the exact unrounded FP32 formula (max difference
+0.00024169683456420898). Do not describe this as bitwise HF inference equivalence.
+
+The comparator now separately accounts for all32 stored buffers: complete layer
+coverage, exact configuration/FP16-roundtrip values, per-buffer hash and the
+recomputation difference. Actual pinned backend method is executed on CPU only;
+both implementation files are SHA-bound. All291 serialized source parameter
+tensors, including the independent output head, still require exact FP16 byte
+identity. No tolerance is relaxed.31 native-environment CPU tests pass, including
+single-ULP corruption rejection. Original failed audit remains at `audit1.json`.
+
 This is a prerequisite for the approved original/repaired request comparison,
 not a performance run. Source checkpoint3052ab9559a117de6d4a5e56525ba0b165df9769
 was pushed and independently verified before execution. Existing native exporter

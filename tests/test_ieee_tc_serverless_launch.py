@@ -240,6 +240,30 @@ class NativeLaunchTests(unittest.TestCase):
 
 
 class NativeCheckpointLayoutTests(unittest.TestCase):
+    def test_only_complete_unscaled_derived_rope_is_classified(self):
+        names = {f'model.layers.{i}.self_attn.rotary_emb.inv_freq' for i in range(2)}
+        config = dict(num_hidden_layers=2, rope_scaling=None)
+        self.assertEqual(launch.derived_rope_sources(names | {'lm_head.weight'}, config), names)
+        self.assertEqual(launch.derived_rope_sources({'lm_head.weight'}, config), set())
+        for keys, cfg in (({next(iter(names))}, config), (names | {'wrong.rotary_emb.inv_freq'}, config),
+                          (names, dict(config, rope_scaling={'type': 'linear'}))):
+            with self.assertRaises(ValueError):
+                launch.derived_rope_sources(keys, cfg)
+
+    @unittest.skipUnless(importlib.util.find_spec('torch'), 'native tensor environment required')
+    def test_stored_rope_requires_exact_formula_or_exact_serialization_roundtrip(self):
+        import torch
+        expected = 1.0 / (10000 ** (torch.arange(0, 128, 2, dtype=torch.float32) / 128))
+        self.assertEqual(launch.validate_stored_rope(expected, expected), 'exact_config_formula_at_stored_dtype')
+        stored = expected.half().float()
+        self.assertEqual(launch.validate_stored_rope(stored, expected), 'exact_fp16_serialization_roundtrip')
+        damaged = stored.clone()
+        damaged[1] = torch.nextafter(damaged[1], torch.tensor(float('inf')))
+        with self.assertRaises(ValueError):
+            launch.validate_stored_rope(damaged, expected)
+        with self.assertRaises(ValueError):
+            launch.validate_stored_rope(stored[:-1], expected)
+
     def test_partition_reader_crosses_boundaries_and_hashes_each_part(self):
         import hashlib
         import io
