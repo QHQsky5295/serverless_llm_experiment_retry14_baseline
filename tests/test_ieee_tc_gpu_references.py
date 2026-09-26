@@ -469,6 +469,8 @@ class NativeDemandTransactions(unittest.TestCase):
         self.assertFalse(result['proactive_admission_evaluated'])
         self.assertFalse(result['request_admission_reserved'])
         self.assertTrue(result['native_load_invoked'])
+        self.assertLessEqual(result['native_load_started_monotonic_s'], result['native_load_completed_monotonic_s'])
+        self.assertEqual(result['native_load_completed_monotonic_s'], result['acquired_monotonic_s'])
         self.assertEqual(self.owner.snapshot()['slot_adapter_ids'], [1, 4])
         self.assertEqual(self.manager._active_adapters.pinned_items, {1, 4})
         self.assertEqual(self.manager._registered_adapters.pinned_items, {1, 4})

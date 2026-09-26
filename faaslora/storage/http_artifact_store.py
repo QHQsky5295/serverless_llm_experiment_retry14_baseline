@@ -270,6 +270,9 @@ class HttpArtifactStoreClient:
                 archive = staging.parent / 'artifact.tar.gz'
                 check_cancelled()
                 req = self._request(f"/artifacts/{quoted}.tar.gz")
+                from faaslora.clock import local_monotonic_clock_id
+                evidence.update(loading_clock_id=local_monotonic_clock_id(),
+                                loading_started_monotonic_s=time.monotonic())
                 with self._opener.open(req, timeout=self.timeout_s) as resp:
                     length = None
                     if expected is not None:
@@ -311,7 +314,7 @@ class HttpArtifactStoreClient:
                     evidence['confirmed_file_publication'] = publication
                 else:
                     (publish or publish_directory)(staging, target)
-                evidence.update(state='published', payload_bytes_verified=(
+                evidence.update(state='published', published_monotonic_s=time.monotonic(), payload_bytes_verified=(
                     size_bytes if expected is not None else None))
                 return True, (time.perf_counter() - t0) * 1000.0, size_bytes
         except urllib.error.HTTPError as exc:

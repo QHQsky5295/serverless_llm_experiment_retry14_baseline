@@ -14453,6 +14453,11 @@ class ScenarioRunner:
             receipt = await self._acquire_runtime_gpu_reference(reservation, reservation.slot.engine,
                 reservation.adapter_id, path)
         observation.acquire(receipt['acquired_monotonic_s'])
+        from faaslora.preloading.preloading_planner import observed_preparation_interval
+        evidence['preparation_interval'] = observed_preparation_interval(
+            adapter_id=reservation.adapter_id, request_id=reservation.request_id,
+            admission=evidence['source_admission'], native=receipt,
+            remote=evidence.get('remote_preparation'))
         await self._release_ieee_host_source(reservation)
         return receipt
 
@@ -15381,7 +15386,8 @@ class ScenarioRunner:
         # Cold start: always download from remote
         return await self._download_from_remote(adapter_id, size_mb)
 
-    def _materialize_remote_adapter(self, adapter_id: str, dst: Path, *, cancel_event=None) -> Tuple[bool, float]:
+    def _materialize_remote_adapter(self, adapter_id: str, dst: Path, *, cancel_event=None,
+                                    transfer_evidence=None) -> Tuple[bool, float]:
         """Materialize an adapter from the configured remote origin into NVMe.
 
         Default behavior is the historical local frozen-directory copy.  When
@@ -15393,7 +15399,8 @@ class ScenarioRunner:
         """
 
         if self._remote_artifact_client is not None:
-            transfer_evidence = {'artifact_id': adapter_id, 'state': 'not_started'}
+            transfer_evidence = transfer_evidence if transfer_evidence is not None else {}
+            transfer_evidence.update(artifact_id=adapter_id, state='not_started')
             try:
                 native = self.model_cfg.get('ieee_gpu_references', False)
                 if native:
@@ -15404,7 +15411,7 @@ class ScenarioRunner:
                     with references.materializing(dst) as transfer_id:
                         transfer_evidence.update(transfer_id=transfer_id,
                             local_source_owner_id=owner.local_source_references.owner_id,
-                            target_path=str(dst))
+                            target_path=str(dst.resolve()))
                         ok, elapsed_ms, size_bytes = self._remote_artifact_client.download_artifact(
                             adapter_id, str(dst),
                             workspace=lambda target: references.transfer_workspace(transfer_id),
@@ -15556,7 +15563,7 @@ class ScenarioRunner:
         self,
         adapter_id: str,
         dst: Path,
-        *, target_engine=None,
+        *, target_engine=None, transfer_evidence=None,
     ) -> Tuple[bool, float]:
         """Materialize one Remote->NVMe miss with one auditable link charge.
 
@@ -15572,7 +15579,7 @@ class ScenarioRunner:
                 async def operation():
                     return await self._owned_artifact_io(
                         lambda cancellation: self._materialize_remote_adapter(
-                            adapter_id, dst, cancel_event=cancellation))
+                            adapter_id, dst, cancel_event=cancellation, transfer_evidence=transfer_evidence))
                 return await self._run_ieee_file_transfer(adapter_id, 'remote', 'nvme',
                     target_engine if target_engine is not None else getattr(self, 'engine', None), operation)
             return self._materialize_remote_adapter(adapter_id, dst)
@@ -15633,8 +15640,11 @@ class ScenarioRunner:
                 view = owner.source_snapshot(adapter_id)
                 transfer_ms = 0.
                 if not view['sources']:
+                    transfer_evidence = {}
+                    reservation.gpu_reference_evidence['remote_preparation'] = transfer_evidence
                     ok, transfer_ms = await self._materialize_remote_adapter_async(
-                        adapter_id, self.nvme_dir / adapter_id, target_engine=reservation.slot.engine)
+                        adapter_id, self.nvme_dir / adapter_id, target_engine=reservation.slot.engine,
+                        transfer_evidence=transfer_evidence)
                     if not ok:
                         raise RuntimeError('IEEE remote materialization did not complete')
                     view = owner.source_snapshot(adapter_id)

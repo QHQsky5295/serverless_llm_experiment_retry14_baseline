@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Native E(t)/HOST, pending→native KV, budgeted files and replica file-pressure journal connected; Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D33. D33 joins real file preparation events to native pressure for initialized target replicas. Shared/preactivation pressure, total HOST/native accounting and proactive planner/handoff remain open; no new GPU/Full qualification |
+| P1 IEEE semantic alignment | Native ownership/pressure and actual preparation-d boundaries connected; Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D34. D34 separates actual loading→executable d from admission→acquisition D on real request/file/native entry points. Measured class initialization and actual IEEE planner/handoff/replacement, shared/preactivation pressure and total HOST/native accounting remain open; no new GPU/Full qualification |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,14 +51,15 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST CODE CHECKPOINT: D33 connects initialized-replica file-preparation events
-to its native E(t) load pressure. Actual remote/local async entries, unique IDs,
-joined cancellation and uncertain acknowledgements are covered.734 functional
-and56 safety checks pass; actual0.30 imports/signatures pass with CUDA hidden.
-No model/GPU or performance experiment. This does NOT complete shared/preactivation
-pressure, total HOST/native accounting, IEEE planner/handoff/replacement or measured
-profiles. Next integrate these actual Full paths; do not expand transfer-only
-microtests or repeat D30 pitched-copy, capacity5/source32/lifecycle4.
+LATEST CODE CHECKPOINT: D34 records actual loading-start→executable d separately
+from admission→acquisition D. Remote per-request transfer identity and native
+load/fence boundaries are connected in the actual runner. Shared/changed sources
+are explicitly ineligible complete-load samples, not zero costs.740 functional
+and56 safety checks pass. No new GPU/model or profile measurement. The actual
+_preload_full_stack still uses legacy priority/warmup; it is NOT IEEE Full.
+Next use these measurements for class initialization and actual IEEE planning/
+handoff/replacement, with remaining HOST/shared-pressure owners. Do not launch
+another source32/capacity5/lifecycle4 or isolated transfer/timing microcampaign.
 
 LATEST COMPLETED MODEL RUN: `llama2_7b_capacity_wait_attempt2`, finished and cleaned.
 Five first-distinct requests from old32-prefix,755 native tokens, all targets met.
@@ -96,7 +97,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D33.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D34.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -151,6 +152,35 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D34 preparation-cost measurement boundaries; no new performance experiment
+
+- Actual native loading records start after source/capacity checks and completion
+  at the existing executable-reference fence. Actual HTTP records request-start
+  and publication in the inference host clock. The real async/request path carries
+  its own transfer evidence, not a nearest-adapter global-log lookup.
+- Preparation d excludes waiting before its first loading stage; Remote d retains
+  gaps after that start through native activation. D/T/O remains unchanged.
+  GPU hits are not invented load samples. Shared-file or changed-native sources
+  have d=null and an explicit ineligible reason; bad identity/clock/order fails.
+- Six added checks and extended real runner/file/native-cache-fixture cases.
+  Initial targeted222 had one test-only NameError (missing clock-helper import),
+  corrected without changing acceptance. Final740 functional and56 safety pass,
+  no failures/skips. P1 D34 contains correctness table and source rationale.
+  Fixtures are not representative model profiles, CUDA/model performance or
+  proof that LoRA weights are applied numerically.
+- All three owned D34 scopes verified empty, high/max/OOM events0, then stopped.
+  Final GPUs15MiB/0%, MemAvailable109106632KiB, disk353723465728 B. Protected147
+  entries and source-plan SHA unchanged. Baseline repo remains16570c023a439c884624e7a5bdfa0d8577faf7a3;
+  no adapter/trace regeneration, model load or old-result mutation.
+- Important mainline finding retained: _preload_full_stack still calls legacy
+  mixed priority/warmup, not the tested IEEE mathematical selectors. Actual
+  planner/handoff/replacement, measured class/layout/footprint initialization,
+  total HOST/native/shared ownership and Full lifecycle remain open. Do not use
+  D26 HOST D, D33 activity intervals or these fixtures as preparation profiles.
+  Baseline performance, M1/M2, ablations and sensitivities remain not started.
+  Goal remains active; back up this tested measurement checkpoint and resume
+  integration, not an expanded timing-only campaign.
 
 ### D33 implementation evidence; no new model or performance experiment
 

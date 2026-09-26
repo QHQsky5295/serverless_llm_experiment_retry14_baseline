@@ -28,6 +28,71 @@ class PreloadingStrategy(Enum):
     HYBRID = "hybrid"                     # Combination approach
 
 
+def observed_preparation_interval(*, adapter_id, request_id, admission, native, remote=None):
+    """Observed source loading -> executable GPU, distinct from service D.
+
+    This evidence is NOT a frozen class profile or a physical admission proof.
+    A source shared or replaced before actual loading is explicitly ineligible
+    for this admission source's complete-load profile, not a zero-time sample.
+    Inter-stage waits after a genuine remote load starts remain in d; initial
+    queue/RPC/capacity waits before the first load starts do not.
+    """
+    from ..clock import local_monotonic_clock_id
+    clock = local_monotonic_clock_id()
+    source = admission['source']
+    tier = source['tier']
+    if tier not in ('host', 'nvme', 'remote'):
+        raise ValueError('preparation interval requires a non-executable source')
+    if (native.get('acquired') is not True or native.get('clock_id') != clock
+            or native.get('lora_name') != adapter_id
+            or not isinstance(native.get('lease_id'), str) or not native['lease_id']
+            or not isinstance(native.get('owner_id'), str) or not native['owner_id']
+            or type(native.get('native_load_invoked')) is not bool):
+        raise ValueError('preparation interval requires matching native acquisition evidence')
+    if source['native'] and source.get('owner_id') != native['owner_id']:
+        raise ValueError('preparation interval changed the protected native owner')
+    record = dict(kind='source_loading_to_executable_v1', adapter_id=adapter_id,
+        request_id=request_id, clock_id=clock, source=dict(source),
+        admission_service_class=dict(admission['service_class']),
+        native_owner_id=native['owner_id'], native_lease_id=native['lease_id'],
+        profile_eligible=False, d_ms=None)
+    expected_native_source = 'host' if source['native'] else 'file'
+    if (not native['native_load_invoked']
+            or native.get('source_tier_before_acquisition') != expected_native_source):
+        return record | dict(reason='native_source_reused_or_changed_before_loading')
+    if tier != 'remote' and native.get('lora_path') != source['path']:
+        raise ValueError('preparation interval changed the protected file source')
+    def instant(value):
+        return type(value) in (int, float) and math.isfinite(value) and value > 0
+    admitted = admission['admitted_monotonic_s']
+    native_start = native.get('native_load_started_monotonic_s')
+    end = native.get('native_load_completed_monotonic_s')
+    if (not all(instant(t) for t in (admitted, native_start, end))
+            or not admitted <= native_start <= end
+            or end != native.get('acquired_monotonic_s')):
+        raise ValueError('preparation interval lacks ordered native load boundaries')
+    start, published = native_start, None
+    if tier == 'remote':
+        if remote is None:
+            return record | dict(reason='shared_file_preparation_reused')
+        if (remote.get('artifact_id') != adapter_id or remote.get('state') != 'published'
+                or remote.get('loading_clock_id') != clock or remote.get('content_verified') is not True
+                or not isinstance(remote.get('transfer_id'), str) or not remote['transfer_id']
+                or remote.get('target_path') != native.get('lora_path')):
+            raise ValueError('remote preparation interval lacks its verified transfer identity')
+        start, published = remote.get('loading_started_monotonic_s'), remote.get('published_monotonic_s')
+        if (not all(instant(t) for t in (start, published))
+                or not admitted <= start <= published <= native_start):
+            raise ValueError('remote preparation interval crosses clock or stage order')
+        record['remote_transfer_id'] = remote['transfer_id']
+    return record | dict(profile_eligible=True, reason='observed_complete_load',
+        loading_started_monotonic_s=start, executable_monotonic_s=end,
+        remote_published_monotonic_s=published, native_started_monotonic_s=native_start,
+        excluded_before_loading_ms=(start-admitted)*1000., d_ms=(end-start)*1000.,
+        native_loading_ms=(end-native_start)*1000.,
+        after_remote_publication_ms=(end-published)*1000. if published is not None else None)
+
+
 @dataclass
 class PreloadingCandidate:
     """Represents a candidate artifact for preloading"""

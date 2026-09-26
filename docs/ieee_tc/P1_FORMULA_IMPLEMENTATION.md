@@ -3,7 +3,7 @@
 本表不是性能结果，也不表示 Full 已完成 IEEE 对齐。主比较必须等所有关键
 合同关闭；不得把旧代码的指标移植到新设计上。论文源文件未改动。
 
-本文件前面的首次审计表保留历史发现；逐项最新进展见 D1–D33。测试通过不等于
+本文件前面的首次审计表保留历史发现；逐项最新进展见 D1–D34。测试通过不等于
 真实模型资格，更不等于全部九式已在 Full 闭环接通。
 
 ## 规范来源
@@ -1708,3 +1708,65 @@ trace。根据计划11.2使用状态表，不为正确性fixture绘制性能优�
 victim选择、实测d及D/T/O初始化、Full生命周期仍需集成。当前native LRU不能
 称为论文收益驱逐。后续从这些真实路径继续，不增加独立transfer微测矩阵。
 正式M1/M2、baseline、消融和敏感性均未因本轮通过而获准启动。
+
+## D34：直接观测准备成本 d，不以含排队的服务 D 替代
+
+### 为什么这是规划接入的前置项
+
+检查实际`_preload_full_stack`发现它仍调用旧混合priority和阈值warmup，尚未
+使用IEEE的需求加权准备收益。已有`select_ieee_insertions/handoff`数学检查
+通过，不等于实际入口已经使用它们。准备收益的实测输入也不能从旧服务D
+直接取得：IEEE明确规定d从开始加载到GPU激活，排除加载前等待，而D从副本
+接纳到首次取得可执行adapter，包含其中等待。D26的HOST D及D33的保守活动
+所有权区间都不是这个d。
+
+本轮假设：在真实加载入口记录开始，并与已有完成同步/可执行引用关联，即可
+提供直接可验证的d边界。无需改变收益公式、插入sleep或推测准备延迟。
+核对了D25/D26/D29/D33记录和
+[vLLM0.30 worker manager源码](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/worker_manager.py)：
+native CPU复用与从文件加载不同，不能以目录存在或入队时间代表加载开始。
+[dLoRA](https://www.usenix.org/conference/osdi24/presentation/wu-bingyang)
+的请求/adapter联合编排提供相关背景，不用于证明本轮存在性能优势。
+
+### 实际边界与复用规则
+
+1. 原生加载开始在同一worker通过源/容量检查、即将调用loader时记录；结束为
+   原有completion fence后的可执行引用时间。真正GPU命中没有加载起止，
+   不把引用RPC耗时记成d；GPU的d=0仍是论文定义。
+2. 真实HTTP开始在已获得逐adapter搬运资格、创建暂存空间之后、发起请求之前。
+   包含此后的远端打包/传输/预分配/解包/发布，而非纯网络时间。发布时刻与
+   native加载开始/完成在同一推理机时间域比较，不与服务端时钟直接相减。
+3. 请求自己的remote传输记录通过实际异步下载入口传递，不从全局日志按
+   adapter名称猜最近的一次。request ID、transfer ID、源表示、native owner/
+   lease与路径共同保留，目标路径规范化为绝对路径。
+4. HOST/NVMe起点为真实native加载开始。Remote起点为本请求实际HTTP加载开始，
+   后续阶段间的等待仍包含在d中；只排除第一段加载之前的等待。
+5. 文件已由另一个请求准备好，或实际加载前出现native复用时，明确记录
+   `profile_eligible=false`、`d_ms=null`及原因，不生成虚假的零成本完整加载
+   样本。错误时钟、路径/owner、缺失完成或不合法顺序被拒绝。
+6. 实际IEEE请求完成获取后生成`preparation_interval`，原有D/T/O更新保持不变。
+   该证据是后续class profile的输入，不自动成为已冻结的代表性测量，不声称
+   HOST/NVMe读取绕过page cache，也不把native加载总区间称为纯H2D。
+
+### 正确性状态表（不含新模型性能测量）
+
+| 问题 | 检查结果 |
+|---|---|
+| D与d是否分开 | 构造边界admission=100、native开始150、完成153：D=53s，d=3s，加载前等待50s；仅为数学fixture |
+| Remote阶段间等待是否被删除 | 构造Remote开始111、发布140、native开始150、完成153：d=42s而非只相加传输+native；加载前11s排除 |
+| 真正请求链能否提供字段 | 既有实际runner、微型HTTP/file源、native缓存替身的HOST/NVMe/Remote请求均检查d+加载前等待=D，remote transfer ID一致 |
+| 复用是否误作完整冷加载 | shared文件、native源改变或GPU复用均为明确的不可用完整样本，而非d=0 |
+| 非法边界是否默默修正 | 不同时钟、错误路径/身份、缺失native边界、倒序发布均拒绝；不clip到0 |
+| GPU命中是否被污染 | 原有protected GPU D=0和服务事件保持，未伪造一个GPU加载样本 |
+
+新增6项检查并扩展既有真实runner/file/native事务测试。初次222项定向检查有
+一个测试代码漏导入clock helper的NameError，修复该测试后完整740项功能检查
+通过，无失败或跳过；未修改判定门槛。安全回归结果见EXECUTION_STATUS。
+
+### 返回主线与仍未完成的内容
+
+本轮完成观测入口，**没有完成规划策略接入**，没有采集新的7B/3B profile，也
+不以fixture或旧D填补它们。接下来应按实际表示/layout/footprint建立冻结实测
+class初始化，并把收益、预算与实际planner/handoff/replacement共同接入。
+完整HOST/native预算、共享/激活前压力及Full生命周期仍在该集成范围内。
+不要再重复source32/capacity5或创建另一套测量框架。正式主比较仍未开始。

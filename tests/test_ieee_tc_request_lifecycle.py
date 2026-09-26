@@ -600,6 +600,14 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 self.assertEqual(intervals['service_class']['tier'], tier)
                 d = intervals['acquired_monotonic_s'] - intervals['admitted_monotonic_s']
                 self.assertEqual(d == 0., tier == 'gpu')
+                if tier == 'host':
+                    preparation = evidence['preparation_interval']
+                    self.assertTrue(preparation['profile_eligible'])
+                    self.assertLessEqual(preparation['d_ms'], d * 1000.)
+                    self.assertAlmostEqual(preparation['d_ms'] + preparation['excluded_before_loading_ms'],
+                                           d * 1000.)
+                else:
+                    self.assertNotIn('preparation_interval', evidence)
                 self.assertEqual(result.readiness_tier_before_dispatch, tier)
                 self.assertTrue(evidence['confirmed_dispatch_snapshot'])
                 self.assertEqual(len(evidence['service_events']), 2)
@@ -744,6 +752,14 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 self.assertEqual(evidence['service_intervals']['service_class']['tier'], tier)
                 self.assertEqual(evidence['local_source_reference']['state'], 'released')
                 self.assertTrue(evidence['local_source_reference']['content_verified'])
+                preparation = evidence['preparation_interval']
+                self.assertTrue(preparation['profile_eligible'])
+                spans = evidence['service_intervals']
+                self.assertAlmostEqual(preparation['d_ms'] + preparation['excluded_before_loading_ms'],
+                    1000. * (spans['acquired_monotonic_s'] - spans['admitted_monotonic_s']))
+                if tier == 'remote':
+                    self.assertEqual(preparation['remote_transfer_id'], evidence['remote_preparation']['transfer_id'])
+                    self.assertLessEqual(preparation['remote_published_monotonic_s'], preparation['native_started_monotonic_s'])
                 self.assertEqual(client._opener.open.call_count, 1)
                 runner._resolve_lora.assert_not_awaited()
                 self.assertEqual(slot.active_requests, 0)
@@ -1253,6 +1269,7 @@ class ConfirmedFilePublication(unittest.TestCase):
         return self.runner._materialize_remote_adapter('a', self.nvme / 'a')
 
     def test_actual_runner_publishes_verified_snapshot_and_protects_exact_copy(self):
+        from faaslora.clock import local_monotonic_clock_id
         self.assertEqual(self.owner.source_snapshot('a')['sources'], [])
         self.assertTrue(self.fetch()[0])
         state = self.owner.source_snapshot('a')
@@ -1262,6 +1279,9 @@ class ConfirmedFilePublication(unittest.TestCase):
         self.assertTrue(source['content_verified'])
         self.assertEqual(source['file_path_bytes'], sum(map(len, self.payload.values())))
         self.assertEqual(source['allocated_file_bytes'], 8192)
+        transfer = self.runner._remote_transfer_evidence[-1]
+        self.assertEqual(transfer['loading_clock_id'], local_monotonic_clock_id())
+        self.assertLessEqual(transfer['loading_started_monotonic_s'], transfer['published_monotonic_s'])
         evidence = self.runner._remote_transfer_evidence[-1]['confirmed_file_publication']
         self.assertEqual(evidence['epoch'], state['epoch'])
         self.assertEqual(evidence['content_sha256'], source['content_sha256'])

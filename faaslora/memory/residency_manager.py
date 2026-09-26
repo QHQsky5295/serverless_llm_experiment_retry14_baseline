@@ -1084,6 +1084,9 @@ class IEEEBackendGPUReferences:
                        gpu_confirmed_before_acquisition=gpu_confirmed,
                        gpu_resident_before_load=gpu_hit, cpu_registered_before_load=cpu_hit,
                        native_load_invoked=not gpu_hit,
+                       native_load_started_monotonic_s=start if not gpu_hit else None,
+                       native_load_completed_monotonic_s=(receipt['acquired_monotonic_s']
+                           if not gpu_hit else None),
                        load_and_acquire_ms=(time.monotonic()-start)*1000.,
                        proactive_admission_evaluated=False)
         self._leases[lease_id].update(receipt)
