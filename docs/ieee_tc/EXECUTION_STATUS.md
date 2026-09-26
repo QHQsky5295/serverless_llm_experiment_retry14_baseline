@@ -51,6 +51,14 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
+D59 in progress: actual existing-checkpoint HOST lifetime across native vs
+pitched GPU setters, reusing backend-host-check with an explicit opt-in flag.
+Predeclared six classes/two copy arms/eight observations in P2 document. No
+backbone, new weights/trace, flush or dummy allocation. This is the next new
+question after D58, not a repeat of CPU-only D56 or old request prefixes.
+60 safety/census/replay checks pass; actual GPU observation is not yet run.
+Keep actual handle/receipt authoritative before any continuation or restart.
+
 D58 connects an opt-in native HOST workspace partition inside the existing
 allowance, based on all audited existing artifact classes. Actual total occupancy
 protects native cache growth and one demand load from proactive staging; no
@@ -216,6 +224,21 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
     Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D59 real-copy HOST lifetime (in progress)
+
+- Previous goal turn D58 is progress: implemented/tested/backed up fixed-budget
+  workspace partition. Current startcb2b1e3f08265837016c5556732735f6399c3e1b;
+  baseline16570c unchanged. Full plan/status/AGENTS and execution/backup skills
+  reread. Protected147/plan SHA unchanged, original user dirt retained.
+- Inspected actual native setters/allocator, D29/D56/D58 evidence and IEEE
+  staging/replacement text; browsed officialvLLM0.30 Base/Merged setter sources
+  and PyTorch2.13 CachingHostAllocator. Hypothesis: real H2D stream references
+  retain blocks even after a fence, unlike D56 CPU-only deletion. No guessed
+  release credit or production workaround. Extended existing diagnostic only.
+- New measurement protocol is fixed before launch in P2 document.60 system-
+  Python safety/census/replay checks pass; smoke/model observation/cleanup and
+  backup receipts follow. Formal baselines/M1/M2/ablations remain not started.
 
 ### D58 native HOST workspace partition
 

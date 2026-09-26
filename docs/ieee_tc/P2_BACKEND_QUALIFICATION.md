@@ -809,3 +809,30 @@ CUDA均未初始化；没有把fixture字节、离线上界或测试数量当成
 完成fence不自动证明统计中的allocated已下降，不能预扣或用flush绕过。
 实际多plan、物理字节压力、数值正确性、完整池及真实remote仍需资格。
 Full启动保护保留，共同vLLM须获得相同候选配置与合理优化机会。
+
+## 2026-09-27 D59：真实checkpoint传输后的HOST生命周期诊断
+
+### 执行前固定的问题和方法
+
+D56只测CPU加载/移除，D58据此保护工作空间。本次新问题是：已参与异步H2D的
+真实checkpoint对象，在copy完成且所有Python引用删除后，allocator是否已经
+归还内存；如果没有，单独同步及下一次正常checkpoint加载分别会发生什么。
+依据[PyTorch2.13源码](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/aten/src/ATen/core/CachingHostAllocator.h)，
+free可能只登记stream事件，统计读取不处理该队列；不能从D56的CPU结果推断
+H2D路径立即释放。这是需要实测的机制假设，不是已得到的结果。
+
+- 在现有`backend-host-check`增加显式`--host-copy-lifecycle`，不建新框架。
+- 同一个新受限进程，实际读回D57的`uncached_v1`候选，未启用后台事件处理。
+- 复用同六个既有内容/rank/modules类及其SHA；不下载、生成或改变权重。
+- 每类依次使用官方`BaseLinearLayerWithLoRA.set_lora`和已实现的pitched copy
+  strategy，加载同一真实checkpoint；四个独立slot、max-rank64、slot2与既有
+  copy诊断一致。逐模块原始A/B尺寸不变。只构造隔离的GPU槽位，不加载backbone，
+  不声称native registry、merged packing、推理数值或Full已经资格。
+- 保存加载前/后、setter返回且持有HOST、fence后持有HOST、删除后、再次fence
+  后、下一次正常checkpoint加载后/删除后八个状态，记录实际allocator、inventory、
+  分配/释放次数和资源占用。setter返回时查询stream，未观测到在途便如实记录。
+- 两条路径均保留source引用直到fence。核对全部slot内容、零padding和未用slot；
+  这不是不同系统吞吐比较，不用其耗时定SLO或profile。
+- 不插入sleep、不flush、不用dummy分配促回收；下一次加载是显式测量动作，
+  不绕过生产准入后宣称Full可以持续运行。
+- 一次诊断后先清理、制表和解释，再决定下一步。生产allocator/预算/公式不变。

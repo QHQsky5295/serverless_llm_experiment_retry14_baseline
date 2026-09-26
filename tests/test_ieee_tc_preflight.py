@@ -54,6 +54,15 @@ class ProtocolGates(unittest.TestCase):
         with patch.object(p,'verify_current_service',side_effect=RuntimeError('no guard')):
             with self.assertRaisesRegex(RuntimeError,'no guard'):
                 p.backend_host_allocator_check(Path('/missing'),Path('/missing'))
+            with self.assertRaisesRegex(RuntimeError,'no guard'):
+                p.backend_host_allocator_check(Path('/missing'),Path('/missing'), copy_lifecycle=True)
+
+    def test_host_copy_lifetime_flag_cannot_silently_apply_to_another_action(self):
+        with patch('sys.argv', ['ieee_tc_preflight.py', 'preflight', '--host-copy-lifecycle']), \
+             patch.object(p, 'check_plan', side_effect=AssertionError('invalid flag reached execution')):
+            with self.assertRaises(SystemExit) as raised:
+                p.main()
+            self.assertEqual(raised.exception.code, 2)
 
     def test_numeric_controls_use_existing_nonzero_and_same_rank_zero_content(self):
         from types import SimpleNamespace

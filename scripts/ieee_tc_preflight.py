@@ -1483,7 +1483,105 @@ def derive_host_workspace_contracts(allocator_observation: Path, artifact_audit:
         source_artifact_audit=str(artifact_audit), source_artifact_audit_sha256=audit_sha, pools=pools)
 
 
-def backend_host_allocator_check(runtime_receipt: Path, artifact_audit: Path) -> dict:
+def _host_copy_lifecycle_case(models, load, observe, case):
+    """Observe real checkpoint storage through the two existing dense copy paths.
+
+    Native setters act on isolated slot buffers, not a backbone/model manager.
+    Sources are existing checkpoint tensors; no new adapter/prompt is created.
+    No cache flush, dummy allocation, injected delay or stream-lifetime shortcut.
+    """
+    import gc
+    import torch
+    from types import SimpleNamespace, MethodType
+    from vllm.lora.layers.base_linear import BaseLinearLayerWithLoRA as Base
+    from faaslora.memory.gpu_monitor import _ieee_host_copy_contract, _ieee_pitched_host_copy
+    device = torch.device('cuda:0')
+    stream = torch.cuda.current_stream(device)
+    def execute(model, arm, row):
+        # Scope every CPU alias to this function; none may survive deletion of
+        # models[1]. Keep sources alive through the fence on both paths.
+        modules = {}
+        for name, layer in model.loras.items():
+            a, b = layer.lora_a, layer.lora_b
+            if (not torch.is_tensor(a) or not torch.is_tensor(b)
+                    or a.ndim != 2 or b.ndim != 2 or a.shape[0] != model.rank
+                    or b.shape[1] != model.rank or model.rank > 64):
+                raise RuntimeError('HOST copy lifetime check requires the audited dense checkpoint layout')
+            module = SimpleNamespace(tp_size=1, n_slices=1,
+                lora_a_stacked=(torch.full((4, 1, 64, a.shape[1]), -7., device=device, dtype=a.dtype),),
+                lora_b_stacked=(torch.full((4, 1, b.shape[0], 64), -7., device=device, dtype=b.dtype),))
+            module.reset_lora = MethodType(Base.reset_lora, module)
+            module.set_lora = MethodType(Base.set_lora, module)
+            modules[name] = module
+        manager = SimpleNamespace(modules=modules, list_adapters=lambda: {1:model},
+            _get_lora_layer_weights=lambda loaded, name: loaded.loras[name])
+        copies = _ieee_host_copy_contract(manager, 1)
+        destinations = [(s, t[2, 0, :s.shape[0], :s.shape[1]]) for s, t in copies]
+        stream.synchronize()
+        row.update(native_setter='BaseLinearLayerWithLoRA.set_lora', modules=len(modules),
+            source_tensor_bytes=sum(s.numel()*s.element_size() for s, _ in copies),
+            rank=model.rank, max_rank=64, slots=4, slot=2)
+        torch.cuda.reset_peak_memory_stats(device)
+        allocated = torch.cuda.memory_allocated(device)
+        def set_all():
+            for name, module in modules.items():
+                layer = model.loras[name]
+                module.set_lora(2, layer.lora_a, layer.lora_b)
+        if arm == 'native_copy_':
+            set_all()
+        else:
+            with _ieee_pitched_host_copy(destinations, device, stream.synchronize):
+                set_all()
+        sample = observe('after_setter_host_held')
+        sample['copy_stream_complete_at_observation'] = stream.query()
+        sample['setter_includes_completion_fence'] = arm == 'pitched_native_setter'
+        row['steps'].append(sample)
+        stream.synchronize()
+        row['peak_extra_gpu_tensor_bytes'] = torch.cuda.max_memory_allocated(device)-allocated
+        row['steps'].append(observe('after_fence_host_held'))
+        fingerprints = []
+        # All slots, padding and source rectangles checked. CPU comparison
+        # allocations are pageable and not retained as tensor references.
+        for name, module in modules.items():
+            layer = model.loras[name]
+            for source, target in zip((layer.lora_a, layer.lora_b),
+                                     module.lora_a_stacked+module.lora_b_stacked):
+                expected = torch.full(tuple(target.shape), -7., dtype=target.dtype, device='cpu')
+                expected[2] = 0
+                expected[2, 0, :source.shape[0], :source.shape[1]].copy_(source)
+                actual = target.cpu()
+                if not torch.equal(actual, expected):
+                    raise RuntimeError('checkpoint copy changed content, padding or untouched native slot')
+                fingerprints.append(hashlib.sha256(actual.numpy().tobytes()).hexdigest())
+        row.update(exact_all_slots=True, gpu_contents_sha256=
+                   hashlib.sha256(json.dumps(fingerprints, separators=(',', ':')).encode()).hexdigest())
+        if arm == 'pitched_native_setter' and row['peak_extra_gpu_tensor_bytes'] != 0:
+            raise RuntimeError('pitched native setter allocated unexpected GPU workspace')
+    case['copy_lifecycle'] = []
+    for arm in ('native_copy_', 'pitched_native_setter'):
+        row = dict(arm=arm, steps=[observe('before_load')])
+        case['copy_lifecycle'].append(row)
+        row['cpu_checkpoint_load_seconds'] = load(1)
+        row['steps'].append(observe('loaded_host_held'))
+        execute(models[1], arm, row)
+        del models[1]
+        gc.collect()
+        row['steps'].append(observe('removed_after_fence'))
+        # Synchronization alone is distinct from allocator event processing.
+        stream.synchronize()
+        row['steps'].append(observe('removed_after_second_fence'))
+        # This is an ordinary next real checkpoint load, not a zero-byte/dummy
+        # flush. Observe it explicitly; production admission is not bypassed.
+        row['next_checkpoint_load_seconds'] = load(1)
+        row['steps'].append(observe('next_checkpoint_loaded_no_copy'))
+        del models[1]
+        gc.collect()
+        row['steps'].append(observe('next_checkpoint_removed_no_copy'))
+    if case['copy_lifecycle'][0]['gpu_contents_sha256'] != case['copy_lifecycle'][1]['gpu_contents_sha256']:
+        raise RuntimeError('native and pitched checkpoint copy contents differ')
+
+
+def backend_host_allocator_check(runtime_receipt: Path, artifact_audit: Path, *, copy_lifecycle=False) -> dict:
     """Native checkpoint CPU allocation/reuse evidence, without a backbone.
 
     Uses the existing guarded service and immutable checkpoints. This is neither
@@ -1497,7 +1595,8 @@ def backend_host_allocator_check(runtime_receipt: Path, artifact_audit: Path) ->
             or Path(prior['environment']).resolve() != Path(sys.prefix).resolve()):
         raise RuntimeError('HOST check requires the completed native CUDA receipt')
     controls = select_host_allocator_controls(json.loads(artifact_audit.read_text()))
-    result = dict(kind='native_host_allocator_observation_v1', service=service,
+    result = dict(kind=('native_host_copy_lifecycle_observation_v1' if copy_lifecycle
+                       else 'native_host_allocator_observation_v1'), service=service,
         runtime_receipt_sha256=digest(runtime_receipt), artifact_audit_sha256=digest(artifact_audit),
         check_source_sha256=digest(Path(__file__)), plan_sha256=check_plan(), environment=sys.prefix,
         production_launch_authorized=False, model_qualification=False,
@@ -1513,7 +1612,8 @@ def backend_host_allocator_check(runtime_receipt: Path, artifact_audit: Path) ->
         from vllm.utils.torch_utils import PIN_MEMORY
         sys.path.insert(0, str(ROOT))
         from faaslora.memory.gpu_monitor import (
-            _ieee_lora_host_inventory, _ieee_pinned_host_observation, _ieee_file_host_contract)
+            _ieee_lora_host_inventory, _ieee_pinned_host_observation, _ieee_file_host_contract,
+            _ieee_native_host_allocator_policy)
         if (vllm.__version__ != '0.30.0' or torch.__version__ != '2.13.0+cu130'
                 or torch.cuda.device_count() != 1 or not PIN_MEMORY):
             raise RuntimeError('HOST check requires exact installed native candidate and one GPU')
@@ -1524,6 +1624,11 @@ def backend_host_allocator_check(runtime_receipt: Path, artifact_audit: Path) ->
             allocator_environment={k: os.environ.get(k) for k in (
                 'PYTORCH_ALLOC_CONF', 'PYTORCH_CUDA_ALLOC_CONF', 'PYTORCH_HIP_ALLOC_CONF')},
             allocator_settings=torch.cuda.memory._snapshot().get('allocator_settings'))
+        if copy_lifecycle:
+            result['allocator_policy'] = _ieee_native_host_allocator_policy()
+            if result['allocator_policy'].get('verified') is not True:
+                raise RuntimeError('copy lifetime observation requires the explicit uncached candidate without background processing')
+            result['scope'] = 'existing_dense_checkpoint_native_setters_no_backbone_or_registry'
         models = {}
         # The inventory observes real checkpoint objects; it has no allocator or
         # model-execution substitute. No native registry/GPU readiness is claimed.
@@ -1556,6 +1661,13 @@ def backend_host_allocator_check(runtime_receipt: Path, artifact_audit: Path) ->
                     expected_lora_modules=set(control['target_modules']), peft_helper=helper,
                     lora_model_id=aid, device='cpu', dtype=torch.float16)
                 return time.monotonic()-start
+            if copy_lifecycle:
+                _host_copy_lifecycle_case(models, load, observe, case)
+                if digest(weight) != control['weight_sha256'] or digest(config) != control['config_sha256']:
+                    raise RuntimeError('checkpoint changed during copy lifetime observation')
+                print(json.dumps(dict(event='native_host_copy_lifecycle_case', adapter_id=control['adapter_id'],
+                    pool_root=control['pool_root'], completed_arms=len(case['copy_lifecycle']))), flush=True)
+                continue
             for label, action in (('before', None), ('load_first', 'load1'),
                     ('load_overlap', 'load2'), ('remove_first', 'remove1'),
                     ('reload_first', 'load1'), ('remove_all', 'clear')):
@@ -2600,6 +2712,8 @@ def main():
     parser.add_argument('--install-receipt', type=Path)
     parser.add_argument('--runtime-receipt', type=Path)
     parser.add_argument('--artifact-audit', type=Path)
+    parser.add_argument('--host-copy-lifecycle', action='store_true',
+                        help='Observe existing dense checkpoint HOST lifetime across native GPU copy paths')
     parser.add_argument('--config', type=Path)
     parser.add_argument('--model-profile')
     parser.add_argument('--request-count', type=int, default=4)
@@ -2617,6 +2731,8 @@ def main():
     parser.add_argument('--nvml-sha256')
     parser.add_argument('--exec', dest='command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
+    if args.host_copy_lifecycle and args.action != 'backend-host-check':
+        parser.error('--host-copy-lifecycle applies only to backend-host-check')
     if args.action == '_replay-publisher':
         replay_publisher(args)
         return
@@ -2669,7 +2785,8 @@ def main():
     elif args.action == 'backend-host-check':
         if not args.runtime_receipt or not args.artifact_audit or not args.output:
             parser.error('backend-host-check requires native runtime receipt, existing artifact audit and new output')
-        result = backend_host_allocator_check(args.runtime_receipt, args.artifact_audit)
+        result = backend_host_allocator_check(args.runtime_receipt, args.artifact_audit,
+                                             copy_lifecycle=args.host_copy_lifecycle)
     elif args.action == 'install-candidate':
         if not args.candidate_environment or not args.requirements or not args.output:
             parser.error('install-candidate requires explicit new environment, requirements and output')
