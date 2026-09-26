@@ -440,6 +440,7 @@ class IEEEWorkerObservationExtension:
                 CompletedLengthSnapshot, evaluate_ieee_admission)
             observation = kwargs.pop('scheduler_observation')
             lengths = kwargs.pop('lengths')
+            transfers = observation.get('adapter_transfers')
             # This bridge is valid only when native scheduler and worker are
             # synchronously owned by the same process/thread, not cached RPCs.
             if (observation.get('scheduler_pid') != os.getpid()
@@ -448,6 +449,11 @@ class IEEEWorkerObservationExtension:
                     or not isinstance(lengths, CompletedLengthSnapshot)
                     or lengths.captured_at != observation['captured_at']):
                 raise ValueError('proactive preparation lacks a same-owner KV/length snapshot')
+            if (not isinstance(transfers, dict) or transfers.get('transfer_scope') !=
+                    'replica_owned_file_preparation_and_serialized_native_v1'
+                    or type(transfers.get('active_transfers')) is not int
+                    or transfers['active_transfers'] != len(transfers.get('active_transfer_ids', []))):
+                raise ValueError('proactive preparation lacks owned file-transfer pressure')
             def decide(victim, slots):
                 # An externally submitted native request must not be an
                 # unreferenced victim merely because it bypassed our frontend.
@@ -477,9 +483,10 @@ class IEEEWorkerObservationExtension:
                         AdmittedKVRequest(**{key: row[key] for key in keys}) for row in observation['admitted']),
                     scheduled_tokens=observation['scheduled_tokens'],
                     iteration_token_budget=observation['iteration_token_budget'],
-                    # All native copies run on this thread and are fenced
-                    # before returning. No previous native transfer survives.
-                    active_transfers=0, transfer_limit=1,
+                    # Native copies cannot overlap this serialized decision;
+                    # controller file preparations can and must remain counted.
+                    active_transfers=transfers['active_transfers'],
+                    transfer_limit=transfers['transfer_limit'],
                     kv_tokens_per_block=observation['kv_tokens_per_block'],
                     kv_bytes_per_block=observation['kv_bytes_per_block'],
                     kv_unreserved_free_blocks=observation['kv_unreserved_free_blocks'],
@@ -497,7 +504,9 @@ class IEEEWorkerObservationExtension:
                     'scheduler_sequences': {key: observation[key] for key in
                         ('scheduled_sequence', 'completed_sequence')},
                     'admitted_scope': observation['admitted_scope'],
-                    'transfer_scope': 'serialized_native_host_to_gpu_only',
+                    'transfer_scope': transfers['transfer_scope'],
+                    'active_transfer_ids': list(transfers['active_transfer_ids']),
+                    'transfer_sequence': transfers['transfer_sequence'],
                     'allocation_contract': 'existing_pinned_cpu_to_pitched_gpu_v2',
                     'copy_method': 'cudaMemcpy2DAsync_in_native_setter_scope',
                     'scheduler_held_during_commit': True,

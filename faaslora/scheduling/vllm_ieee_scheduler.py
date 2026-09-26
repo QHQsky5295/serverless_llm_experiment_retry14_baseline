@@ -17,7 +17,7 @@ from vllm.v1.engine.core import EngineCore
 from vllm.v1.kv_cache_interface import FullAttentionSpec
 
 from .resource_coordinator import (NativeIterationObservation, NativeRequestRetirement,
-                                   NativePendingAdmissions, CompletedLengthWindow,
+                                   NativePendingAdmissions, NativeTransferObservation, CompletedLengthWindow,
                                    capture_native_kv_observation)
 
 
@@ -33,6 +33,13 @@ def _core_observation(core):
     if not isinstance(core.scheduler, IEEENativeAsyncScheduler):
         raise RuntimeError('IEEE observation is not enabled for this native scheduler')
     return core.scheduler.ieee_scheduler_observation()
+
+
+def _core_transfer_event(core, command):
+    if (not isinstance(core.scheduler, IEEENativeAsyncScheduler)
+            or core.scheduler._ieee_transfers is None):
+        raise RuntimeError('transfer events require the configured native admission owner')
+    return core.scheduler._ieee_transfers.event(**command)
 
 
 def _core_retirement(core, request_id, abort):
@@ -96,6 +103,7 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
             self._ieee_iterations, self._ieee_input_upper_bounds)
         profile = config.additional_config.get('ieee_tc_admission_profile')
         self._ieee_lengths = None
+        self._ieee_transfers = None
         if profile is not None:
             means = profile['profile_means']
             if not isinstance(means, list) or len(means) != len(self._ieee_input_upper_bounds) + 1:
@@ -103,6 +111,7 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
             self._ieee_lengths = CompletedLengthWindow(
                 window_s=profile['window_s'], model_backend_id=profile['model_backend_id'],
                 profile_id=profile['profile_id'], profile_means=dict(enumerate(means)))
+            self._ieee_transfers = NativeTransferObservation(self._ieee_iterations, profile['transfer_limit'])
         # Validate actual layout immediately, before claiming this hook is ready.
         self.ieee_scheduler_observation()
         existing = getattr(EngineCore, 'ieee_scheduler_observation', None)
@@ -121,6 +130,10 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
         if existing is not None and existing is not _core_pending_admission:
             raise RuntimeError('native EngineCore pending admission bridge name collision')
         EngineCore.ieee_pending_admission = _core_pending_admission
+        existing = getattr(EngineCore, 'ieee_transfer_event', None)
+        if existing is not None and existing is not _core_transfer_event:
+            raise RuntimeError('native EngineCore transfer bridge name collision')
+        EngineCore.ieee_transfer_event = _core_transfer_event
 
     def add_request(self, request):
         self._ieee_pending_admissions.validate_add(request)

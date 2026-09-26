@@ -190,6 +190,9 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
                 return {'admitted': [], 'kind': 'loopback-test-only'}
             async def ieee_prepare_host(self, **command):
                 return {'acquired': False, 'reason': 'defer_effective_capacity', 'command': command}
+            async def ieee_transfer_event(self, **command):
+                return {'kind': 'ieee_adapter_transfer_event_v1', 'transfer_id': command['transfer_id'],
+                        'state': {'start': 'active', 'finish': 'finished'}[command['operation']]}
             async def ieee_register_pending(self, **command):
                 return {'intent_id': command['intent_id'], 'state': 'pending', 'command': command}
             async def ieee_close_pending(self, **command):
@@ -234,6 +237,10 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
                 prepared = await proxy.ieee_prepare_host(lease_id='prepare-test', expected_owner_id='worker')
                 self.assertFalse(prepared['acquired'])
                 self.assertEqual(prepared['command']['lease_id'], 'prepare-test')
+                started = await proxy.ieee_transfer_event(operation='start', transfer_id='transfer-test')
+                self.assertEqual(started['state'], 'active')
+                ended = await proxy.ieee_transfer_event(operation='finish', transfer_id='transfer-test')
+                self.assertEqual(ended['state'], 'finished')
                 registered = await proxy.ieee_register_pending(intent_id='pending-test', prompt='p',
                     max_tokens=3, adapter_id=None)
                 self.assertEqual(registered['command']['prompt'], 'p')

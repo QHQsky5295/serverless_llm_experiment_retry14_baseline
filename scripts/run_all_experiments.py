@@ -3439,6 +3439,9 @@ class InferenceEngine:
                 if self.model_cfg.get('ieee_admission_profile') is not None:
                     if not self.model_cfg.get('ieee_gpu_references', False):
                         raise ValueError('native admission requires native GPU references')
+                    limit = self.model_cfg['ieee_admission_profile'].get('transfer_limit')
+                    if type(limit) is not int or limit <= 0:
+                        raise ValueError('native admission requires explicit positive transfer_limit')
                     kwargs['additional_config']['ieee_tc_admission_profile'] = dict(
                         self.model_cfg['ieee_admission_profile'])
             elif self.model_cfg.get('ieee_admission_profile') is not None:
@@ -4527,6 +4530,23 @@ class InferenceEngine:
             raise RuntimeError('invalid native preparation acknowledgement')
         return result
 
+    async def ieee_transfer_event(self, **command):
+        if (self.model_cfg.get('ieee_admission_profile') is None
+                or not self.model_cfg.get('ieee_gpu_references', False)
+                or not self.model_cfg.get('ieee_scheduler_observation', False)):
+            raise RuntimeError('file transfer pressure requires native admission configuration')
+        if self.backend != 'vllm' or self.engine is None or self._engine_dead:
+            raise RuntimeError('file transfer pressure requires a live vLLM engine')
+        rpc = getattr(getattr(self.engine, 'engine_core', None), 'call_utility_async', None)
+        if not callable(rpc):
+            raise RuntimeError('backend lacks the native transfer utility')
+        result = await rpc('ieee_transfer_event', command)
+        if (not isinstance(result, dict) or result.get('kind') != 'ieee_adapter_transfer_event_v1'
+                or result.get('transfer_id') != command.get('transfer_id')
+                or result.get('state') != {'start': 'active', 'finish': 'finished'}.get(command.get('operation'))):
+            raise ValueError('file transfer event lacks matching scheduler acknowledgement')
+        return result
+
     async def ieee_register_pending(self, *, intent_id, prompt, max_tokens, adapter_id):
         if (self.model_cfg.get('ieee_admission_profile') is None
                 or self.model_cfg.get('generation_contract') != 'fixed_length_greedy_v1'
@@ -5062,6 +5082,7 @@ class SubprocessInferenceEngineProxy:
             self._native_rpc_uncertain[attempt_id] = {
                 'cmd': cmd, 'operation': kwargs.get('operation'),
                 'intent_id': kwargs.get('intent_id'),
+                'transfer_id': kwargs.get('transfer_id'),
                 'owner_id': ref.get('owner_id', kwargs.get('expected_owner_id')),
                 'lease_id': ref.get('lease_id', kwargs.get('lease_id'))}
 
@@ -5539,6 +5560,22 @@ class SubprocessInferenceEngineProxy:
 
     async def ieee_prepare_host(self, **command) -> Dict[str, Any]:
         return await self._rpc('ieee_prepare_host', **command)
+
+    async def ieee_transfer_event(self, **command):
+        result = await self._rpc('ieee_transfer_event', **command)
+        if (not isinstance(result, dict) or result.get('kind') != 'ieee_adapter_transfer_event_v1'
+                or result.get('transfer_id') != command.get('transfer_id')
+                or result.get('state') != {'start': 'active', 'finish': 'finished'}.get(command.get('operation'))
+                or (command.get('expected_owner_id') is not None
+                    and result.get('owner_id') != command['expected_owner_id'])):
+            raise ValueError('file transfer event lacks matching worker acknowledgement')
+        if result['state'] == 'finished':
+            for key, operation in list(self._native_rpc_uncertain.items()):
+                if (operation['cmd'] == 'ieee_transfer_event'
+                        and operation.get('transfer_id') == result['transfer_id']
+                        and operation.get('owner_id') in (None, result.get('owner_id'))):
+                    del self._native_rpc_uncertain[key]
+        return result
 
     async def ieee_register_pending(self, **command):
         return await self._rpc('ieee_register_pending', **command)
@@ -6453,6 +6490,7 @@ class ScenarioRunner:
         self._access_count: Dict[str, int] = defaultdict(int)
         self._remote_artifact_client = None
         self._remote_transfer_evidence: List[Dict[str, Any]] = []
+        self._adapter_transfer_pressure_evidence: List[Dict[str, Any]] = []
         self._bandwidth_limiter = AggregateBandwidthLimiter(self.bw_mbps)
         self._remote_materialize_locks: Dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
         self._local_sim_materialization_mode = (
@@ -15432,18 +15470,93 @@ class ScenarioRunner:
                 future.exception()
             raise
 
-    async def _materialize_confirmed_source_async(self, adapter_id, source, target_tier):
+    async def _run_ieee_file_transfer(self, adapter_id, source_tier, target_tier, engine, operation):
+        """Own one actual preparation interval on its target replica's core.
+
+        No I/O before start acknowledgement; no finish before joined I/O. This
+        does not count a second request merely waiting for a shared copy. Byte
+        capacity remains the file owner's responsibility, not this journal.
+        """
+        if self.model_cfg.get('ieee_admission_profile') is None:
+            return await operation()
+        if not callable(getattr(engine, 'ieee_transfer_event', None)):
+            raise ValueError('file preparation requires its initialized target replica')
+        owner = self._stack.residency_manager.local_source_references
+        transfer_id = uuid.uuid4().hex
+        record = dict(transfer_id=transfer_id, adapter_id=adapter_id, source_tier=source_tier,
+                      target_tier=target_tier, state='start_pending', file_owner_id=owner.owner_id,
+                      operation_outcome='not_started', caller_cancelled=False)
+        self._adapter_transfer_pressure_evidence.append(record)
+        rpc_owner, cancelled = None, False
+        async def settle(command):
+            nonlocal cancelled
+            task = asyncio.create_task(engine.ieee_transfer_event(**command))
+            while True:
+                try:
+                    return await asyncio.shield(task)
+                except asyncio.CancelledError:
+                    record['caller_cancelled'] = True
+                    if task.cancelled():
+                        raise
+                    cancelled = True
+        try:
+            receipt = await settle(dict(operation='start', transfer_id=transfer_id,
+                descriptor={key: record[key] for key in
+                    ('adapter_id', 'source_tier', 'target_tier', 'file_owner_id')}))
+            if receipt.get('state') != 'active' or receipt.get('transfer_id') != transfer_id:
+                raise ValueError('preparation start is not acknowledged')
+            rpc_owner = receipt['owner_id']
+            record.update(state='active', start_receipt=dict(receipt))
+            if cancelled:
+                raise asyncio.CancelledError()
+            record['operation_outcome'] = 'running'
+            result = await operation()
+            record['operation_outcome'] = 'completed'
+            return result
+        except BaseException as exc:
+            if isinstance(exc, asyncio.CancelledError):
+                record['caller_cancelled'] = True
+            record.update(operation_outcome=('cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed'),
+                          operation_error_type=type(exc).__name__)
+            raise
+        finally:
+            # Even a lost start reply needs a finish tombstone. A later start
+            # cannot revive it; no body ran unless the start was acknowledged.
+            record['state'] = 'finish_pending'
+            try:
+                receipt = await settle(dict(operation='finish', transfer_id=transfer_id,
+                                            expected_owner_id=rpc_owner))
+                if (receipt.get('state') != 'finished' or receipt.get('transfer_id') != transfer_id
+                        or (rpc_owner is not None and receipt.get('owner_id') != rpc_owner)):
+                    raise ValueError('preparation finish is not acknowledged')
+            except BaseException as exc:
+                record['finish_error_type'] = type(exc).__name__
+                raise
+            record.update(state='finished', finish_receipt=dict(receipt))
+            if cancelled:
+                raise asyncio.CancelledError()
+
+    async def _materialize_confirmed_source_async(self, adapter_id, source, target_tier, *, target_engine=None):
         """Budgeted local movement shares the remote transfer cancellation fence."""
         if not self.model_cfg.get('ieee_gpu_references', False) or self._stack is None:
             raise RuntimeError('confirmed tier copy requires the native source owner')
-        return await self._owned_artifact_io(
-            lambda cancellation: self._stack.residency_manager.materialize_confirmed_source(
-                adapter_id, str(source), target_tier, cancel_event=cancellation))
+        manager = self._stack.residency_manager
+        source_tier = next((tier for tier, root in manager.local_source_references.roots.items()
+                            if Path(source).resolve().parent == root), None)
+        if source_tier is None:
+            raise ValueError('local transfer source is not a managed tier')
+        async def operation():
+            return await self._owned_artifact_io(
+                lambda cancellation: manager.materialize_confirmed_source(
+                    adapter_id, str(source), target_tier, cancel_event=cancellation))
+        return await self._run_ieee_file_transfer(adapter_id, source_tier, target_tier.value,
+            target_engine if target_engine is not None else getattr(self, 'engine', None), operation)
 
     async def _materialize_remote_adapter_async(
         self,
         adapter_id: str,
         dst: Path,
+        *, target_engine=None,
     ) -> Tuple[bool, float]:
         """Materialize one Remote->NVMe miss with one auditable link charge.
 
@@ -15456,9 +15569,12 @@ class ScenarioRunner:
 
         if self._remote_artifact_client is not None:
             if self.model_cfg.get('ieee_gpu_references', False):
-                return await self._owned_artifact_io(
-                    lambda cancellation: self._materialize_remote_adapter(
-                        adapter_id, dst, cancel_event=cancellation))
+                async def operation():
+                    return await self._owned_artifact_io(
+                        lambda cancellation: self._materialize_remote_adapter(
+                            adapter_id, dst, cancel_event=cancellation))
+                return await self._run_ieee_file_transfer(adapter_id, 'remote', 'nvme',
+                    target_engine if target_engine is not None else getattr(self, 'engine', None), operation)
             return self._materialize_remote_adapter(adapter_id, dst)
 
         src = self.remote_dir / adapter_id
@@ -15518,7 +15634,7 @@ class ScenarioRunner:
                 transfer_ms = 0.
                 if not view['sources']:
                     ok, transfer_ms = await self._materialize_remote_adapter_async(
-                        adapter_id, self.nvme_dir / adapter_id)
+                        adapter_id, self.nvme_dir / adapter_id, target_engine=reservation.slot.engine)
                     if not ok:
                         raise RuntimeError('IEEE remote materialization did not complete')
                     view = owner.source_snapshot(adapter_id)
@@ -19901,6 +20017,7 @@ async def _main_async_impl(
                         ),
                     },
                     "remote_artifact_transfers": list(runner._remote_transfer_evidence),
+                    "adapter_transfer_pressure": list(runner._adapter_transfer_pressure_evidence),
                     "local_artifact_transfers": (list(runner._stack.residency_manager.local_transfer_evidence)
                         if runner._stack is not None else []),
                     "initial_preload_accounting": {

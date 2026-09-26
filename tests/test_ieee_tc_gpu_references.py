@@ -199,7 +199,8 @@ class NativeProactiveTransactions(unittest.TestCase):
         self.owner.demand_loader.assert_not_called()
 
     def test_worker_composes_native_kv_pool_and_lengths_before_commit(self):
-        from faaslora.scheduling.resource_coordinator import CompletedLengthSnapshot, NativeIterationObservation
+        from faaslora.scheduling.resource_coordinator import (
+            CompletedLengthSnapshot, NativeIterationObservation, NativeTransferObservation)
         from tests import test_ieee_tc_scheduler_observation as fixture
         for capacity_only in (False, True):
             with self.subTest(capacity_only=capacity_only):
@@ -210,7 +211,11 @@ class NativeProactiveTransactions(unittest.TestCase):
                 worker._ieee_gpu_reference_owner = self.owner
                 steps = NativeIterationObservation()
                 steps.scheduled(fixture.iteration(r=32))
-                observation = fixture.observe(fixture.scheduler(), steps)
+                scheduler = fixture.scheduler()
+                scheduler._ieee_transfers = NativeTransferObservation(steps, 2)
+                scheduler._ieee_transfers.event(operation='start', transfer_id='file-copy',
+                    descriptor=dict(adapter_id='other', source_tier='nvme', target_tier='host', file_owner_id='files'))
+                observation = fixture.observe(scheduler, steps)
                 lengths = CompletedLengthSnapshot('model/backend', 'measured-profile',
                     observation['captured_at'], {0: 64., 1: 128., 2: 256.})
                 pool = dict(slot_adapter_ids=list(self.manager.lora_index_to_id),
@@ -229,6 +234,8 @@ class NativeProactiveTransactions(unittest.TestCase):
                 self.assertEqual(result['acquired'], capacity_only)
                 check.assert_called_once_with(self.manager, 4)
                 self.assertEqual(result['admission']['batch_pressure'], 1.)
+                self.assertEqual(result['admission']['load_pressure'], .5)
+                self.assertEqual(result['admission']['active_transfer_ids'], ['file-copy'])
                 self.assertEqual(result['admission']['snapshot']['physical_used_bytes'], 900)
                 self.assertEqual(result['admission']['physical_increment_reserved_bytes'], 0)
                 self.assertEqual(result['admission']['admitted_scope'], 'native_unfinished_requests_only')

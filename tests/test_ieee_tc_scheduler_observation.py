@@ -260,7 +260,7 @@ class NativeHookWiring(unittest.TestCase):
 
     def test_preparation_utility_uses_current_scheduler_and_its_completion_window(self):
         profile = dict(window_s=10., model_backend_id='m/v0.30', profile_id='frozen',
-                       profile_means=[64., 128., 256.])
+                       profile_means=[64., 128., 256.], transfer_limit=2)
         module, _, core = self.load_adapter(admission_profile=profile)
         hook = module.IEEENativeAsyncScheduler(scheduler())
         hook.next_native_output = iteration(r=8)
@@ -293,7 +293,7 @@ class NativeHookWiring(unittest.TestCase):
 
     def test_native_success_updates_means_abort_does_not(self):
         profile = dict(window_s=10., model_backend_id='m/v0.30', profile_id='frozen',
-                       profile_means=[64., 128., 256.])
+                       profile_means=[64., 128., 256.], transfer_limit=2)
         module, native, _ = self.load_adapter(admission_profile=profile)
         native._free_request = lambda self, request: self.requests.pop(request.request_id)
         hook = module.IEEENativeAsyncScheduler(scheduler())

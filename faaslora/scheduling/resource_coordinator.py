@@ -82,6 +82,68 @@ class NativeIterationObservation:
         return any(request_id in output.num_scheduled_tokens for output, _ in self._pending)
 
 
+class NativeTransferObservation:
+    """Replica-owned external preparation intervals on the scheduler thread.
+
+    A start acknowledgement grants the controller permission to begin its file
+    operation. Finish is sent only after its writer/cleanup is joined. Thus a
+    delayed acknowledgement is conservative, never an invented idle interval.
+    This is a load-pressure journal, not a physical byte reservation or limiter.
+    Native HOST->GPU work is serialized/fenced on this same core thread.
+    """
+    def __init__(self, iterations, limit):
+        _nonnegative_int('configured adapter transfer limit', limit, positive=True)
+        self.iterations, self.limit = iterations, limit
+        self.active, self.finished = {}, set()
+        self.sequence = 0
+
+    def event(self, *, operation, transfer_id, descriptor=None, expected_owner_id=None):
+        self.iterations.check_thread()
+        owner_id = self.iterations.owner_id
+        if not isinstance(transfer_id, str) or not transfer_id:
+            raise ValueError('transfer requires a unique nonempty identity')
+        if expected_owner_id is not None and expected_owner_id != owner_id:
+            raise ValueError('transfer scheduler owner changed')
+        if operation == 'start':
+            fields = {'adapter_id', 'source_tier', 'target_tier', 'file_owner_id'}
+            if (not isinstance(descriptor, dict) or set(descriptor) != fields
+                    or any(not isinstance(v, str) or not v for v in descriptor.values())
+                    or descriptor['source_tier'] not in ('remote', 'nvme', 'host')
+                    or descriptor['target_tier'] not in ('nvme', 'host')
+                    or descriptor['source_tier'] == descriptor['target_tier']):
+                raise ValueError('transfer requires exact source/target/adapter/file owner')
+            if transfer_id in self.finished:
+                raise ValueError('finished transfer cannot restart')
+            old = self.active.get(transfer_id)
+            if old is not None and old['descriptor'] != descriptor:
+                raise ValueError('transfer identity cannot change')
+            if old is None:
+                self.active[transfer_id] = dict(descriptor=dict(descriptor), started_at=time.monotonic())
+                self.sequence += 1
+            state = 'active'
+        elif operation == 'finish':
+            if descriptor is not None:
+                raise ValueError('finish does not rebind transfer identity')
+            if transfer_id not in self.finished:
+                self.active.pop(transfer_id, None)
+                self.finished.add(transfer_id)  # Also rejects a late start after lost/cancelled RPC.
+                self.sequence += 1
+            state = 'finished'
+        else:
+            raise ValueError('unknown transfer event')
+        from faaslora.clock import local_monotonic_clock_id
+        return dict(kind='ieee_adapter_transfer_event_v1', owner_id=owner_id,
+                    transfer_id=transfer_id, state=state, clock_id=local_monotonic_clock_id(),
+                    observed_at=time.monotonic(), **self.snapshot())
+
+    def snapshot(self):
+        self.iterations.check_thread()
+        return dict(active_transfers=len(self.active), transfer_limit=self.limit,
+                    active_transfer_ids=sorted(self.active), transfer_sequence=self.sequence,
+                    transfer_scope='replica_owned_file_preparation_and_serialized_native_v1',
+                    physical_capacity_reserved=False)
+
+
 def native_prompt_identity(token_ids):
     """Identity of actual native input tokens, including its special tokens."""
     if (not isinstance(token_ids, (list, tuple)) or not token_ids
@@ -345,6 +407,7 @@ def capture_native_kv_observation(scheduler, iterations: NativeIterationObservat
     if len({row['request_id'] for row in requests}) != len(requests):
         raise ValueError('pending/native demand identity collision')
     from faaslora.clock import local_monotonic_clock_id
+    transfers = getattr(scheduler, '_ieee_transfers', None)
     return {**step, 'kind': 'ieee_native_scheduler_observation_v1',
             'clock_id': local_monotonic_clock_id(), 'captured_at': time.monotonic(),
             'scheduler_pid': os.getpid(), 'input_upper_bounds': list(input_upper_bounds),
@@ -355,6 +418,7 @@ def capture_native_kv_observation(scheduler, iterations: NativeIterationObservat
             'kv_bytes_per_block': bytes_per_block, 'kv_unreserved_free_blocks': free,
             'kv_pool_allocation_bytes': tensor.size,
             'native_deferred_free_batches': len(scheduler.deferred_frees),
+            'adapter_transfers': transfers.snapshot() if transfers is not None else None,
             'admission_reservation': False, 'production_launch_authorized': False}
 
 
