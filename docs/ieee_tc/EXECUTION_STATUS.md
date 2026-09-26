@@ -85,7 +85,7 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `d6a6a158ab8de288a64456707e88859ab7926a82`, pushed to
+- Main tested implementation: `05b1b366fdf407e6be378cf73f868f54d022f9ce`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -173,6 +173,12 @@ its one historical SHA difference and independent numerical gate remain open.
   actual proactive planner/handoff, measured class initialization, complete Full
   lifecycle and backend/remote qualifications. M1/M2, formal baseline, ablation
   and sensitivity matrices remain not started. Do not expand local-copy tests.
+- Implementation05b1b366fdf407e6be378cf73f868f54d022f9ce pushed and full remote
+  SHA verified. All five D32 test scopes checked at TasksCurrent0 and stopped;
+  none remain listed. Final GPUs15MiB/0%, MemAvailable109176836KiB,
+  disk353765814272 B.147 protected entries/source plan SHA unchanged.
+  Only pre-existing user dirt remains. This backup receipt is documentation-only;
+  recheck current resources before the next launch. Full goal remains active.
 
 ### D31 implementation evidence; no new model or performance experiment
 
