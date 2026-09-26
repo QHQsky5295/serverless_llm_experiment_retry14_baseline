@@ -1,6 +1,7 @@
 # Serverless: independent native launcher view
 
-Status: D65 infrastructure, D66 native-input identity and D67 actual3B native
+Status: D68 adds verified7B native serialization (not7B serving); D65 infrastructure,
+D66 native-input identity and D67 actual3B native
 backbone loading qualification pass. Four fixed-output requests and actual
 worker/source/resource release are verified. LoRA, full-pool,7B loading and
 original/repaired1,000-request pairs remain open. No comparative performance or
@@ -426,7 +427,7 @@ project's unrelated M4 routing/affinity overlay. The TC audited source remains
 official9f50241; the other project's witness used0fd00ca. Their runtime behavior
 and evidence must not be interchanged just because the Python environment is
 shared. Record the full effective source/loader identity during model qualification.
-# D68 missing 7B representation: export completed, audit pending
+# D68 missing 7B representation: export and identity audit complete
 
 Audit attempt1 rejects source/native key mismatch before comparing weights.
 The32 unmatched keys are stored `rotary_emb.inv_freq` buffers. This is an
@@ -459,7 +460,7 @@ unchanged; TP1/FP16, one visible GPU, offline original local 7B weights.
 | External supervision | 359 samples, service/watchdog exit0/0 | Full72/80GiB service envelope used |
 | Process/GPU cleanup | Owned contexts cleared; service path gone; auxiliary empty then stopped | All GPUs back to15MiB |
 | Loader-only environment modification | Exact-byte restore completed after worker exit | No active overlay remains |
-| Elementwise source identity | PENDING | Must compare both parts and untied output head |
+| Elementwise source identity | PASS:195 native tensors cover291 source parameter tensors; all13,476,831,232 bytes exact | Includes both parts and independent output head;32 derived RoPE buffers accounted separately |
 
 Exclusive native directory:
 `models/vllm/tc-native-llama2-7b-fp16-20260927`.
@@ -469,8 +470,33 @@ needed by native loading. Keep the original; remove only the new duplicate after
 exact content/reference/open-handle checks and save a cleanup receipt. No broad
 cache cleanup or unique data deletion is authorized by this observation.
 
+Content review completed:18 files/5,454,685,562B exactly equal the retained
+original and the export manifest. No destination links/submounts or readable
+owned-process open references. Three same-UID system processes are unreadable;
+lsof also warns about protected mounts. **Removal deferred**, not a claimed
+complete open-reference check. Raw `duplicate_cache_review.json` records no
+deletions. Do not expand this incidental cleanup into another qualification loop.
+
 The native format splits large checkpoints into numbered parts, with global
 offsets. The existing comparator is extended to stream them in numeric order;
 it rejects missing/extra parts and checks every byte, including independent
 `lm_head.weight`.29 CPU router/launcher/partition tests pass. The completed3B
 byte audit is not repeated.
+
+Audit attempt2 passes in195.598s (read-only verification, not model startup),
+CUDA uninitialized.32/32 stored RoPE buffers exactly match the configuration's
+FP16 serialization roundtrip. Concatenated native SHA256:
+`e4181af39c6465da68b09baa309a340067157f287b531ca6de98a9922d159f8b`.
+Both partition SHAs equal the export receipt; all five config/tokenizer file
+SHAs equal their sources.196 samples; recorded service-cgroup peak310,521,856B,
+minimum host110,806,183,936B; swap/high/max/OOM0. Mapped source pages may already
+be charged outside this fresh cgroup, so this peak is not the export footprint
+or a prediction of serving memory. Export peak25,143,644,160B, minimum host
+94,542,897,152B; no high/max/OOM/swap events. Failed audit1 had3 samples, no OOM;
+all three service domains released and all auxiliaries empty then stopped.
+
+Main curated `20260927_native_7b_checkpoint_identity.json` preserves all attempts,
+raw log hashes, derived-buffer records and source IDs; the CSV contains195 exact
+parameter rows. Do not repeat export/byte audit. Next: shared canonical generation,
+native-token/LoRA evidence, then the approved original/repaired1,000-request pairs.
+Actual7B store loading remains to be exercised in that qualification path.

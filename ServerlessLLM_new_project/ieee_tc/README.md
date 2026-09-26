@@ -143,7 +143,12 @@ elementwise verification and actual loading before serving qualification.
 
 The comparator now covers unquantized untied Llama as well as tied Llama: an
 independent `lm_head.weight` must exist and is compared, not dropped. Existing
-27 CPU router/launcher checks pass; no model-export success is implied yet.
+Initial27 CPU router/launcher checks passed before export. D68 subsequently
+completed the export and exact195-tensor/291-source-parameter audit, plus32
+separately explained derived RoPE buffers; final31 native-environment tests
+pass. Failed audit1 is preserved. Full results/limitations are in
+[contained launch evidence](CONTAINED_LAUNCH.md); no actual7B native serving or
+original/repaired performance result is implied by serialization identity.
 See the [official downloader](https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/9f50241baa5386e06a9321c51f19a9ef5f964c2b/sllm/model_downloader.py)
 for the serialization path. Existing launch scripts, vendor policies and the
 dirty replay client remain unchanged.
