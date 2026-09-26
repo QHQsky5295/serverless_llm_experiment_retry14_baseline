@@ -95,11 +95,11 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `33735569b22f739ef9cf067c770dcd4c9c11d52c`, pushed to
+- Main tested implementation: `ee20e6d05f0bb3329ab2cd88a3caef06c1e8de61`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
-  `origin/main`; remote SHA reverified in D43. No baseline edits in D43.
+  `origin/main`; remote SHA reverified in D44. No baseline edits in D44.
 - All earlier checkpoints, failures, qualification attempts and exact backups
   remain verbatim in [EXECUTION_HISTORY_THROUGH_D26.md](EXECUTION_HISTORY_THROUGH_D26.md).
   Archive SHA256: `4e91643d959967f1f0dc8642fe969d35380f2156cf8c820964019539d3b415cb`.
@@ -201,6 +201,13 @@ its one historical SHA difference and independent numerical gate remain open.
   Final GPUs15MiB/0%, MemAvailable108870612KiB, disk353504448512B. Plan SHA and
  147 protected entries unchanged; baseline HEAD16570c023a439c884624e7a5bdfa0d8577faf7a3
   and original dirty files unchanged. No D44 scopes remain listed.
+- Implementationee20e6d05f0bb3329ab2cd88a3caef06c1e8de61 pushed to
+  faaslora_origin/retry14_continuous_queue_v2; full remote SHA verified. Baseline
+  remote16570c023a439c884624e7a5bdfa0d8577faf7a3 also reverified. This subsequent
+  documentation-only receipt is not another experiment. No task is live. On
+  continuation reread plan/status, inspect current resources and preserve original
+  dirt; proceed to automatic complete-source/options/remaining-candidate and
+  combined activation integration, not another file-replacement microcampaign.
 
 ### D43 selected file plans and pending intermediate/final targets
 
