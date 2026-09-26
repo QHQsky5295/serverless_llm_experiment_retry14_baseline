@@ -62,6 +62,10 @@ Do not repeat these two microchecks or turn them into an SLO/profile claim.
 Next: budgeted workspace and physical-byte-full replacement in actual Full,
 using observed allocator semantics, then representative profile/Full lifecycle.
 Production allocator settings/equations/budgets unchanged; Full remains guarded.
+D56 code/data checkpointcbfbe188f719ca16457133c90c75ed5ab973da33 is pushed and
+its full remote SHA verified. Both native observations and all CPU tests ended;
+their owned service/aux/test groups are released or empty and stopped. This
+subsequent receipt is documentation only. Baseline remains16570c, unchanged.
 
 D55 connects all dedicated owner journals and actual request terminals to one
 external-replay deployment reducer, including retired/failed-start runtimes.
@@ -210,6 +214,17 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
 - Two added selector/guard checks;58 safety/census/replay and288 existing basic
   smoke checks pass0fail/error/skip. Final cleanup/protection/backup follows.
   Remote disk/nonzero3B authority choices remain pending; main goal stays active.
+- Final two auxiliary and two test scopes checked TasksCurrent0/actual empty
+  cgroup.procs, high/max/oom/oom_kill0, then stopped; both service groups already
+  gone under the existing watchdog. GPUs15MiB/0%, MemAvailable108489688KiB,
+  disk353422700544B. Protected147 and authoritative plan unchanged. All72 curated
+  rows independently reconciled with raw counters; raw/launch/watchdog/source
+  hashes match. No model/test remains running. Only original user dirt remains.
+- Code/data checkpointcbfbe188f719ca16457133c90c75ed5ab973da33 pushed; fresh
+  full faaslora_origin/retry14_continuous_queue_v2 SHA matches. Six named task
+  files only, whitespace/secrets checks pass. Baseline no edits at16570c with
+  fresh origin/main full SHA checked. This documentation-only receipt adds no
+  measurement and does not certify Full or formal comparison eligibility.
 
 ### D55 whole-deployment physical GPU measurement
 
