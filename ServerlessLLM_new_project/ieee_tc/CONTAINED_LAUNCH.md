@@ -1,9 +1,56 @@
 # Serverless: independent native launcher view
 
-Status: D65 actual two-raylet infrastructure witness passes; no new Serverless
+Status: D65 actual two-raylet infrastructure witness passes; D66 native input
+identity qualification is in progress. No new Serverless
 model replay. Native loader, model workers and performance remain unqualified.
 This is a prerequisite for the approved original/repaired 1,000-request pairs,
 not evidence that the repair improves TTFT or that native loading is qualified.
+
+## D66 native-input qualification (before model loading)
+
+Reuse the existing native checkpoint
+`models/vllm/v43-sllm-native-smoke-llama32-3b` and original local
+`LLM-Research--Llama-3.2-3B-Instruct`; do not reconvert or copy either model.
+The native directory contains one 6,425,499,648-byte tensor file, 170 indexed
+FP16 tensors. The original HF index contains 254 tensors. These counts differ
+because native vLLM packs Q/K/V and gate/up projections, not necessarily because
+weights are missing. The audit mapping follows the
+[vLLM 0.10.2 Llama implementation](https://raw.githubusercontent.com/vllm-project/vllm/v0.10.2/vllm/model_executor/models/llama.py).
+
+`audit-checkpoint` in the existing launcher adapter compares **all** tensor
+elements after the source-to-FP16 cast, in the original projection order.
+Bounded CPU row slices, exact source/index/member closure, shape/stride/extent
+checks, whole native/source SHA values and unchanged input identities are
+required. Config/tokenizer files must match. No CUDA context, conversion,
+model/pool/trace regeneration or old-result change is permitted. Wrong weights,
+swapped projections, missing keys and changed tokenizer must fail in CPU tests.
+The receipt records current identity only; it cannot backfill an old run's SHA
+or establish runtime loading/LoRA correctness. A unique output preserves failure.
+
+Reuse the existing official-loader-only version port:
+`/home/qhq/relayserve_serverless_llm/scripts/relayserve_v4_3_apply_serverlessllm_vllm_store_overlay.py`.
+Its `preflight` checks six exact vLLM preimages and the official patch without
+installing. Do not import that project's M4/routing policy overlay or global
+cleanup. The native environment has no `sllm_store.torch` or `bin/sllm-store`;
+the previous successful native smoke used the existing compiled package at
+`installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages`.
+Future launch must explicitly select that package and its executable, preserving
+the complete package/build identity. No reinstall is needed. The
+[official native loader](https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/main/sllm_store/sllm_store/torch.py)
+calls `confirm_model_loaded` unconditionally through `load_dict`; the old
+`SLLM_SKIP_CONFIRM_MODEL_LOADED` switch applies to the separate transformers
+loader. Still set it to 0 explicitly for the native qualification.
+
+| D66 check | Current result | Interpretation |
+|---|---|---|
+| Launcher/router and packing-layout tests | 24 pass, no failure/error/skip | No scheduling policy changed |
+| Actual pinned-environment CPU tensor fixtures | 3 pass, no failure/error/skip; CUDA uninitialized | Complete-byte comparator detects corrupted/reordered weights |
+| Existing 3B native checkpoint vs original weights | Pending actual read-only audit | Must not infer identity from directory/model names |
+| Loader overlay preflight / package import | Pending actual check | Not actual model loading |
+
+After this table is completed, advance directly to actual owned store/model
+loading. Do not repeat the D65 infrastructure-only witness. Native loading,
+LoRA qualification and the original/repaired model pairs remain separate gates.
 
 ## D64 source findings and decision
 

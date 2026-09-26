@@ -221,5 +221,36 @@ class NativeLaunchTests(unittest.TestCase):
                     launch.validate_ray_nodes(nodes, 4)
 
 
+class NativeCheckpointLayoutTests(unittest.TestCase):
+    def test_projection_packing_is_complete_and_ordered(self):
+        source = {'model.layers.0.self_attn.' + p + '.weight'
+                  for p in ('q_proj', 'k_proj', 'v_proj')}
+        source |= {'model.layers.0.mlp.' + p + '.weight' for p in ('gate_proj', 'up_proj')}
+        source.add('model.norm.weight')
+        mapping = launch.checkpoint_tensor_sources(source)
+        self.assertEqual(mapping['model.layers.0.self_attn.qkv_proj.weight'],
+                         ['model.layers.0.self_attn.' + p + '.weight' for p in ('q_proj', 'k_proj', 'v_proj')])
+        self.assertEqual(mapping['model.layers.0.mlp.gate_up_proj.weight'],
+                         ['model.layers.0.mlp.' + p + '.weight' for p in ('gate_proj', 'up_proj')])
+        self.assertEqual(mapping['model.norm.weight'], ['model.norm.weight'])
+        with self.assertRaisesRegex(ValueError, 'incomplete'):
+            launch.checkpoint_tensor_sources(source - {'model.layers.0.self_attn.k_proj.weight'})
+
+    def test_complete_contiguous_fp16_layout(self):
+        index = {'a': [0, 12, [2, 3], [3, 1], 'torch.float16'],
+                 'b': [12, 6, [3], [1], 'torch.float16']}
+        self.assertEqual(len(launch.validate_checkpoint_index(index, {'a': [], 'b': []}, 18)), 2)
+        for field, value in ((0, 2), (1, 14), (2, [2, 4]), (3, [1, 2]), (4, 'torch.bfloat16')):
+            changed = json.loads(json.dumps(index))
+            changed['a'][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                launch.validate_checkpoint_index(changed, {'a': [], 'b': []}, 18)
+        for size in (16, 20):
+            with self.assertRaises(ValueError):
+                launch.validate_checkpoint_index(index, {'a': [], 'b': []}, size)
+        with self.assertRaisesRegex(ValueError, 'keys differ'):
+            launch.validate_checkpoint_index(index, {'a': []}, 18)
+
+
 if __name__ == "__main__":
     unittest.main()

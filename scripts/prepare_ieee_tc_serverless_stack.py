@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -18,6 +19,7 @@ import shlex
 import socket
 import subprocess
 import sys
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
 GIB = 1024**3
@@ -254,6 +256,161 @@ def validate_ray_nodes(nodes: list[dict], gpu_count: int) -> dict:
     return result
 
 
+def checkpoint_tensor_sources(source_keys: set[str]) -> dict[str, list[str]]:
+    """The native TP=1 Llama packing; reject incomplete fused projections.
+
+    vLLM 0.10.2 LlamaForCausalLM packs q/k/v and gate/up in this order.
+    This is an audit mapping, not a checkpoint converter or a model loader.
+    """
+    grouped: dict[str, list[str]] = {}
+    for name in sorted(source_keys):
+        target, parts = name, [name]
+        for fused, separate in (("qkv_proj", ("q_proj", "k_proj", "v_proj")),
+                                ("gate_up_proj", ("gate_proj", "up_proj"))):
+            for part in separate:
+                token = f".{part}."
+                if token in name:
+                    target = name.replace(token, f".{fused}.")
+                    parts = [name.replace(token, f".{item}.") for item in separate]
+                    break
+        if not set(parts) <= source_keys:
+            raise ValueError(f"incomplete native projection source: {name}")
+        if target in grouped and grouped[target] != parts:
+            raise ValueError(f"ambiguous native packing: {target}")
+        grouped[target] = parts
+    if sum(map(len, grouped.values())) != len(source_keys):
+        raise ValueError("source tensors are duplicated or omitted")
+    return grouped
+
+
+def validate_checkpoint_index(index: dict, sources: dict, size: int) -> list[tuple]:
+    if set(index) != set(sources):
+        raise ValueError("native checkpoint tensor keys differ from the complete source")
+    ordered = sorted(index.items(), key=lambda item: item[1][0])
+    end = 0
+    for name, record in ordered:
+        if len(record) != 5:
+            raise ValueError("unexpected native tensor record")
+        offset, length, shape, stride, dtype = record
+        if (type(offset) is not int or type(length) is not int or offset != end
+                or dtype != 'torch.float16' or not shape
+                or any(type(n) is not int or n <= 0 for n in shape)
+                or length != 2 * math.prod(shape)
+                or stride != [math.prod(shape[i + 1:]) for i in range(len(shape))]):
+            raise ValueError(f"unsupported or non-contiguous TP1 FP16 tensor: {name}")
+        end += length
+    if end != size:
+        raise ValueError("native checkpoint has missing or extra bytes")
+    return ordered
+
+
+def stream_sha(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open('rb') as handle:
+        for block in iter(lambda: handle.read(8 * 1024**2), b''):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def audit_checkpoint(checkpoint: Path, backbone: Path) -> dict:
+    """Read existing TP1 Llama FP16 checkpoint bytes; never load a CUDA model.
+
+    Compare every native element with the original source cast to FP16,
+    preserving exact packed projection order. Bounded row slices avoid loading
+    or duplicating either complete 6GB checkpoint. Current hashes establish
+    current identity, not retrospective identity for an old performance run.
+    """
+    from contextlib import ExitStack
+    import torch
+    from safetensors import safe_open
+    if torch.cuda.is_initialized():
+        raise ValueError('checkpoint audit requires an uninitialized CUDA context')
+    torch.set_num_threads(2)
+    checkpoint, backbone = checkpoint.resolve(strict=True), backbone.resolve(strict=True)
+    rank = checkpoint / 'rank_0'
+    index_path, data_path = rank / 'tensor_index.json', rank / 'tensor.data_0'
+    native_index = json.loads(index_path.read_text())
+    source_index = json.loads((backbone / 'model.safetensors.index.json').read_text())
+    source_map = source_index['weight_map']
+    config = json.loads((backbone / 'config.json').read_text())
+    if (config.get('model_type') != 'llama' or config.get('architectures') != ['LlamaForCausalLM']
+            or not config.get('tie_word_embeddings') or config.get('quantization_config')):
+        raise ValueError('auditor is limited to the existing tied-embedding unquantized Llama TP1 checkpoint')
+    if set(p.name for p in checkpoint.glob('rank_*')) != {'rank_0'}:
+        raise ValueError('audit requires exactly one native tensor-parallel rank')
+    if set(p.name for p in rank.iterdir()) != {'tensor_index.json', 'tensor.data_0'}:
+        raise ValueError('unexpected native rank members')
+    inputs = [index_path, data_path, backbone / 'model.safetensors.index.json']
+    small = {}
+    for name in ('config.json', 'tokenizer.json', 'tokenizer_config.json',
+                 'generation_config.json', 'special_tokens_map.json'):
+        current = stream_sha(backbone / name)
+        if current != stream_sha(checkpoint / name):
+            raise ValueError(f'checkpoint and source differ: {name}')
+        small[name] = current
+        inputs.extend((backbone / name, checkpoint / name))
+    mapping = checkpoint_tensor_sources(set(source_map))
+    ordered = validate_checkpoint_index(native_index, mapping, data_path.stat().st_size)
+    shards = {}
+    for name in set(source_map.values()):
+        path = backbone / name
+        if Path(name).name != name or path.resolve().parent != backbone:
+            raise ValueError('source shard escapes backbone directory')
+        shards[name] = path
+    inputs.extend(shards.values())
+    identity = lambda p: (p.stat().st_dev, p.stat().st_ino, p.stat().st_size,
+                          p.stat().st_mtime_ns, p.stat().st_ctime_ns)
+    before = {str(p): identity(p) for p in inputs}
+    rows, all_native = [], hashlib.sha256()
+    started = time.monotonic()
+    with ExitStack() as stack:
+        readers = {name: stack.enter_context(safe_open(path, framework='pt', device='cpu'))
+                   for name, path in shards.items()}
+        actual_keys = {key: name for name, reader in readers.items() for key in reader.keys()}
+        if actual_keys != source_map or sum(len(r.keys()) for r in readers.values()) != len(source_map):
+            raise ValueError('source index does not describe every actual tensor exactly once')
+        raw = stack.enter_context(data_path.open('rb'))
+        for name, (offset, length, shape, stride, dtype) in ordered:
+            native_digest, reference_digest = hashlib.sha256(), hashlib.sha256()
+            consumed, source_rows = 0, 0
+            for source in mapping[name]:
+                part = readers[source_map[source]].get_slice(source)
+                source_shape = part.get_shape()
+                if source_shape[1:] != shape[1:]:
+                    raise ValueError(f'packed tensor shape mismatch: {source}')
+                source_rows += source_shape[0]
+                step = max(1, 4 * 1024**2 // (2 * math.prod(source_shape[1:])))
+                for start in range(0, source_shape[0], step):
+                    tensor = part[start:min(start + step, source_shape[0])]
+                    expected = tensor.to(dtype=torch.float16).contiguous().numpy().tobytes()
+                    actual = raw.read(len(expected))
+                    if actual != expected:
+                        raise ValueError(f'exact FP16 checkpoint mismatch: {name}, source={source}, row={start}')
+                    native_digest.update(actual)
+                    reference_digest.update(expected)
+                    all_native.update(actual)
+                    consumed += len(actual)
+                    del tensor, expected, actual
+            if consumed != length or source_rows != shape[0] or raw.tell() != offset + length:
+                raise ValueError(f'packed tensor extent differs: {name}')
+            rows.append(dict(tensor=name, source_tensors=mapping[name], offset=offset,
+                             bytes=length, shape=shape, native_sha256=native_digest.hexdigest(),
+                             reference_fp16_sha256=reference_digest.hexdigest(), exact=True))
+    source_sha = {name: stream_sha(path) for name, path in shards.items()}
+    if before != {str(p): identity(p) for p in inputs} or torch.cuda.is_initialized():
+        raise ValueError('input changed or CUDA initialized during read-only checkpoint audit')
+    return dict(schema='ieee_tc_serverless_native_checkpoint_identity_v1', passed=True,
+                checkpoint=str(checkpoint), backbone=str(backbone), tensor_parallel_size=1,
+                dtype='float16', native_tensor_count=len(rows), source_tensor_count=len(source_map),
+                native_data_bytes=data_path.stat().st_size, native_data_sha256=all_native.hexdigest(),
+                native_index_sha256=stream_sha(index_path), small_file_sha256=small,
+                source_index_sha256=stream_sha(backbone / 'model.safetensors.index.json'),
+                source_shard_sha256=source_sha, tensors=rows,
+                elapsed_s=time.monotonic() - started, cuda_initialized=False,
+                native_loader_qualified=False, performance_run_authorized=False,
+                limitation='Current serialized tensor identity only; no historical, runtime loading or LoRA correctness claim')
+
+
 def qualify_ray(args) -> dict:
     """Observe the actual two-raylet launch inside the existing external gate."""
     guard = load_guard(args.main_repo)
@@ -406,6 +563,10 @@ def main() -> None:
     prep.add_argument("--gpu-ids", required=True)
     check = sub.add_parser("verify")
     check.add_argument("--manifest", type=Path, required=True)
+    checkpoint = sub.add_parser('audit-checkpoint')
+    checkpoint.add_argument('--checkpoint', type=Path, required=True)
+    checkpoint.add_argument('--backbone', type=Path, required=True)
+    checkpoint.add_argument('--output', type=Path, required=True)
     witness = sub.add_parser('qualify-ray')
     for name in ('output', 'private-root', 'main-repo', 'environment', 'native-source', 'checkpoint-root'):
         witness.add_argument('--' + name, type=Path, required=True)
@@ -414,6 +575,18 @@ def main() -> None:
     witness.add_argument('--ray-port', required=True, type=int)
     witness.add_argument('--api-port', required=True, type=int)
     args = parser.parse_args()
+    if args.action == 'audit-checkpoint':
+        # Reserve output before the read; a failed attempt remains visible.
+        with args.output.open('x') as handle:
+            try:
+                result = audit_checkpoint(args.checkpoint, args.backbone)
+            except Exception as exc:
+                json.dump(dict(passed=False, error=f'{type(exc).__name__}: {exc}',
+                               performance_run_authorized=False), handle, indent=2)
+                raise
+            json.dump(result, handle, indent=2)
+        print(json.dumps({k: v for k, v in result.items() if k != 'tensors'}, indent=2))
+        return
     if args.action == 'qualify-ray':
         args.gpu_ids = tuple(int(i) for i in args.gpu_ids.split(','))
         print(json.dumps(qualify_ray(args), indent=2))
