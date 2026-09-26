@@ -27,7 +27,7 @@
 | M1 / M2 | Not started | No new formal performance claims |
 | A1–A5, S1–S3 | Not started | Shared frozen policies required |
 | S4–S13 + offline supplements | Not started | Follow core experiments |
-| Documents / final curated figures | Not started | Per-run figures/tables start with the first evidence block |
+| Documents / final curated figures | Design/qualification documents and diagnostic tables in progress; formal performance figures pending | Current measurement table: PHYSICAL_GPU_MEASUREMENT.md D55; no formal performance figure |
 
 ## Reporting and backup cadence
 
@@ -55,7 +55,8 @@ D55 connects all dedicated owner journals and actual request terminals to one
 external-replay deployment reducer, including retired/failed-start runtimes.
 It does not qualify Full GPU execution or infer correct LoRA application from
 token counts. Final-source937 functional,70 installed-native and56 safety checks
-pass; all nine owned scopes are empty and stopped. Milestone backup follows; see
+pass; all nine owned scopes are empty and stopped. Implementation7f27bd3fed7d842dac68d5e032b082ea558976b6
+is pushed and its full remote SHA verified. This receipt is documentation only; see
 PHYSICAL_GPU_MEASUREMENT D55 for the correctness table and scope. Native HOST physical-byte-full capacity,
 measured profiles/allocator, actual Full multi-activation/A4 and the two external
 authority choices still remain. Baseline/performance stages have not started.
@@ -205,6 +206,15 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
   protected entries and plan SHA unchanged. Baseline unchanged at16570c with
   fresh origin/main full-SHA verification; no unrelated changes staged. Named
   file diff/secrets checks and tested implementation milestone backup follow.
+- Tested implementation7f27bd3fed7d842dac68d5e032b082ea558976b6 pushed to
+  faaslora_origin/retry14_continuous_queue_v2; fresh full remote SHA matches.
+  Exactly six task files committed, generated manifest/unrelated dirt excluded.
+  Initial added-text secret scan falsely matched the hexadecimal validation
+  alphabet; inspection identified only that hit, boundary-aware scan passed
+  before push. No credential was introduced. Baseline remains16570c unchanged
+  with fresh remote verification. This subsequent receipt changes documentation
+  only. Mainline remains representative measured HOST/allocator capacity and
+  actual Full multi-activation/A4 qualification; no new performance claim.
 
 ### D54 budgeted staging and joint native HOST/GPU commit
 
