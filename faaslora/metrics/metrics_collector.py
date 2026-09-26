@@ -13,6 +13,7 @@ import json
 import uuid
 import fcntl
 import select
+import hashlib
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
@@ -145,6 +146,156 @@ class PhysicalGPULedger:
                 'open_lease_ids': open_ids, 'owner_event_count': len(self._events),
                 'eligible_correctness': complete and n_correct == n_plan,
                 'owner_and_native_census_qualification_required': True}
+
+
+class PhysicalGPUDeployment:
+    """Whole guarded deployment, including retired and failed-start runtimes.
+
+    All dedicated owners write under one fresh allocation directory. Reduction
+    happens after service cleanup, not from the surviving instance pool. Request
+    terminals use this host's monotonic clock; token-contract completion is NOT
+    promoted to adapter numerical correctness or formal comparison eligibility.
+    """
+
+    def __init__(self, *, root, plan, context):
+        self.root = Path(root)
+        self.clock_id = local_monotonic_clock_id()
+        self.notice = context['deployment_notice_s']
+        self.arrival_start = context['replay_t0_s']
+        if (context['clock_id'] != self.clock_id or context['plan'] != plan.identity()
+                or not math.isfinite(self.notice) or not math.isfinite(self.arrival_start)
+                or self.notice > self.arrival_start or not plan.entries):
+            raise ValueError('physical deployment requires the exact frozen replay and clock')
+        self.entries = {entry.request_id: entry for entry in plan.entries}
+        if len(self.entries) != len(plan.entries):
+            raise ValueError('physical deployment has duplicate offered IDs')
+        self.arrival_end = self.arrival_start + max(e.offset_s for e in plan.entries)
+        self.terminals = {}
+        self.interruptions = {}
+        self.root.mkdir(exist_ok=False)
+        self._terminal_path = self.root / 'request_terminals.jsonl'
+        self._terminal_path.touch(exist_ok=False)
+        # Keep the existing launch-wide lock namespace. A second directory per
+        # deployment would permit competing owners to take independent locks.
+        self.allocations = self.root.parent / 'physical_allocations'
+        self.allocations.mkdir()
+        with (self.root / 'deployment.json').open('x') as handle:
+            json.dump(dict(contract='physical_gpu_deployment_v1', clock_id=self.clock_id,
+                deployment_notice_s=self.notice, arrival_start_s=self.arrival_start,
+                arrival_end_s=self.arrival_end, plan=plan.identity()), handle, sort_keys=True)
+
+    def terminal(self, request_id, *, at, result=None, error_type=None, interrupted=False):
+        entry = self.entries.get(request_id)
+        if (entry is None or request_id in self.terminals or request_id in self.interruptions
+                or type(interrupted) is not bool or not math.isfinite(at)
+                or at < self.arrival_start + entry.offset_s):
+            raise ValueError('unknown/duplicate/early physical request terminal')
+        source = json.loads(entry.source_json)
+        target = min(int(source['expected_output_tokens']), 256)
+        get = (result.get if isinstance(result, dict) else
+               lambda name, default=None: getattr(result, name, default))
+        # Success/token metadata is a generation check, not numerical proof that
+        # the intended LoRA was applied. Preserve that distinction in the report.
+        matched = (get('success') is True and error_type is None
+            and get('request_id') == request_id
+            and get('generation_contract') == 'fixed_length_greedy_v1'
+            and get('timing_contract') == 'ieee_tc_native_v1'
+            and get('output_contract_match') is True
+            and type(get('output_tokens')) is int and get('output_tokens') == target
+            and get('completion_tokens') == target and get('requested_completion_tokens') == target
+            and get('completion_token_source') == 'vllm_token_ids'
+            and get('adapter_id') == source['adapter_id']
+            and all(isinstance(get(key), str) and len(get(key)) == 64
+                    and set(get(key)) <= set('0123456789abcdef')
+                    for key in ('completion_token_ids_sha256', 'canonical_prompt_sha256')))
+        record = dict(request_id=request_id, at=at, clock_id=self.clock_id,
+            event='request_interrupted' if interrupted else 'request_terminal',
+            source_request_sha256=entry.source_sha256, target_tokens=target,
+            success=get('success') is True, native_contract_matched=matched,
+            error_type=error_type, instance_id=get('instance_id'),
+            completion_token_ids_sha256=get('completion_token_ids_sha256'),
+            canonical_prompt_sha256=get('canonical_prompt_sha256'))
+        with self._terminal_path.open('a') as handle:
+            handle.write(json.dumps(record, sort_keys=True) + '\n')
+            handle.flush()
+        (self.interruptions if interrupted else self.terminals)[request_id] = record
+
+    def summarize(self, *, observed_until_s):
+        ledger = PhysicalGPULedger(clock_id=self.clock_id, deployment_notice_s=self.notice)
+        events, sources = [], []
+        for path in sorted(self.allocations.glob('*.jsonl')):
+            raw = path.read_bytes()
+            if not raw.endswith(b'\n'):
+                raise ValueError('incomplete physical owner journal; cannot infer return')
+            records = [json.loads(line) for line in raw.splitlines()]
+            if not records or records[0]['event'] != 'acquire':
+                raise ValueError('physical journal lacks its original allocation')
+            first, last_at, released = records[0], self.notice, False
+            spawned = confirmed = exited = False
+            for index, row in enumerate(records):
+                if (released or row['clock_id'] != self.clock_id
+                        or row['lease_id'] != path.stem or row['owner_id'] != path.stem
+                        or row['gpu_uuids'] != first['gpu_uuids']
+                        or not math.isfinite(row['at']) or not last_at <= row['at'] <= observed_until_s):
+                    raise ValueError('physical owner journal identity/order differs')
+                last_at = row['at']
+                event = row['event']
+                if event == 'acquire' and index != 0:
+                    raise ValueError('duplicate physical acquire')
+                if event == 'worker_spawn':
+                    if spawned or confirmed or exited:
+                        raise ValueError('physical worker spawn sequence differs')
+                    spawned = True
+                elif event == 'native_workers':
+                    if not spawned or exited:
+                        raise ValueError('native worker confirmation precedes spawn or follows exit')
+                    confirmed = True
+                elif event == 'native_workers_exited':
+                    if spawned and not confirmed:
+                        raise ValueError('native worker exit lacks confirmation')
+                    exited = True
+                elif event == 'release':
+                    if spawned and not (confirmed and exited):
+                        raise ValueError('physical return lacks native worker lifetime evidence')
+                    released = True
+                elif event not in ('acquire', 'release_deferred'):
+                    raise ValueError('unknown physical owner event')
+                if event in ('acquire', 'release'):
+                    events.append((row, str(path) + ':' + str(index+1)))
+            sources.append(dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest(),
+                                events=len(records), released=released))
+        for row, evidence_id in sorted(events, key=lambda pair: (pair[0]['at'], pair[1])):
+            args = dict(lease_id=row['lease_id'], owner_id=row['owner_id'], at=row['at'],
+                        clock_id=self.clock_id, evidence_id=evidence_id)
+            if row['event'] == 'acquire':
+                ledger.acquire(**args, gpu_uuids=row['gpu_uuids'])
+            else:
+                ledger.release(**args)
+        n_terminal = len(self.terminals)
+        if any(row['at'] > observed_until_s for row in self.terminals.values()):
+            raise ValueError('physical observation ends before request terminal')
+        last = max((row['at'] for row in self.terminals.values()), default=None)
+        report = ledger.summarize(observed_until_s=observed_until_s,
+            arrival_start_s=self.arrival_start, arrival_end_s=self.arrival_end,
+            last_terminal_s=last if n_terminal == len(self.entries) else None,
+            n_plan=len(self.entries), n_terminal=n_terminal, n_correct=0)
+        native_complete = sum(row['native_contract_matched'] for row in self.terminals.values())
+        if native_complete and report['gpu_seconds_observed'] <= 0:
+            raise ValueError('native completion has no physical allocation evidence')
+        report.update(deployment_contract='physical_gpu_deployment_v1',
+            n_correct=None, n_native_contract_complete=native_complete,
+            n_interrupted=len(self.interruptions),
+            correctness_qualification='not_inferred_from_token_contract',
+            eligible_correctness=False, gpu_seconds_per_correct_request=None,
+            allocation_journals=sources, request_terminals_path=str(self._terminal_path),
+            request_terminals_sha256=hashlib.sha256(self._terminal_path.read_bytes()).hexdigest())
+        return report
+
+    def finalize(self):
+        report = self.summarize(observed_until_s=time.monotonic())
+        with (self.root / 'summary.json').open('x') as handle:
+            json.dump(report, handle, sort_keys=True, indent=2)
+        return report
 
 
 def _open_pidfd(pid):

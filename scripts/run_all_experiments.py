@@ -6453,6 +6453,7 @@ class ScenarioRunner:
         runner_model_cfg: Optional[Dict] = None,
         external_replay: Optional[Any] = None,
         initial_runtime_pending: bool = False,
+        physical_deployment: Optional[Any] = None,
     ):
         self.name          = name
         self.baseline_type = baseline_type
@@ -6485,6 +6486,12 @@ class ScenarioRunner:
                     or getattr(engine, 'engine', None) is not None):
                 raise ValueError('pending IEEE deployment requires an uninitialized descriptor and owned factory')
         self._configure_external_replay(external_replay)
+        self._physical_deployment = physical_deployment
+        if physical_deployment is not None:
+            if (self._external_replay is None or self.model_cfg.get('ieee_physical_allocation') is not True
+                    or physical_deployment.allocations.resolve() !=
+                    Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT']).parent.resolve()/'physical_allocations'):
+                raise ValueError('physical deployment must cover this exact external replay/runtime factory')
         generation_contract = str(
             self.wl_cfg.get("generation_contract", "legacy") or "legacy"
         ).strip().lower()
@@ -12405,8 +12412,9 @@ class ScenarioRunner:
             try:
                 await slot.engine.shutdown()
             except Exception:
-                if self.model_cfg.get('ieee_host_budget_bytes') is not None:
-                    raise  # Retain HOST reservation on unresolved teardown.
+                if (self.model_cfg.get('ieee_host_budget_bytes') is not None
+                        or self.model_cfg.get('ieee_physical_allocation')):
+                    raise  # Retain HOST/GPU ownership on unresolved teardown.
             self._retire_ieee_host_budget(slot.engine)
         self._sync_stack_gpu_accounting()
         await self._notify_dispatch_capacity_changed(wake_all=True)
@@ -12498,6 +12506,7 @@ class ScenarioRunner:
             pending_sequences.clear()
         if self.instance_pool is None:
             return
+        cleanup_failures = []
         for slot in list(self.instance_pool.get_slots()):
             instance_id = getattr(slot, "instance_id", None)
             if not instance_id:
@@ -12505,14 +12514,18 @@ class ScenarioRunner:
             removed = self.instance_pool.remove_instance(instance_id)
             if removed is None:
                 continue
-            await self._cleanup_removed_slot(
-                removed,
-                removal_reason="shutdown",
-            )
+            try:
+                await self._cleanup_removed_slot(removed, removal_reason="shutdown")
+            except Exception as exc:
+                # Still retire the other owned runtimes. Durable physical owner
+                # journals retain this failed return; do not turn it into success.
+                cleanup_failures.append(exc)
         if getattr(self, '_ieee_nvml_initialized', False):
             import pynvml
             pynvml.nvmlShutdown()
             self._ieee_nvml_initialized = False
+        if cleanup_failures:
+            raise RuntimeError('instance-pool cleanup has unresolved runtime ownership') from cleanup_failures[0]
         for outcome in residency_outcomes:
             if isinstance(outcome, BaseException) and not isinstance(outcome, asyncio.CancelledError):
                 raise RuntimeError('IEEE shutdown preserved a failed residency epoch') from outcome
@@ -13919,6 +13932,7 @@ class ScenarioRunner:
             # request starts the heavier dispatch/runtime path on the shared
             # control loop.
             await asyncio.sleep(0)
+            out = None
             try:
                 admission_start_at = time.perf_counter()
                 await self._acquire_dispatch_admission()
@@ -13958,6 +13972,12 @@ class ScenarioRunner:
             finally:
                 self._release_live_waiting_trace(trace)
                 self._release_live_arrived_lora(getattr(trace, "adapter_id", None))
+                deployment = getattr(self, '_physical_deployment', None)
+                if deployment is not None:
+                    failure = sys.exc_info()[0]
+                    deployment.terminal(trace.request_id, at=time.monotonic(), result=out,
+                        error_type=failure.__name__ if failure is not None else None,
+                        interrupted=failure is not None and issubclass(failure, asyncio.CancelledError))
 
         if multi_cycle_phases <= 1:
             # substrate_v2: 连续到达 + 共享等待队列；控制面按周期观察在线队列。
@@ -20525,6 +20545,7 @@ async def _main_async_impl(
     dataset_profile_override: Optional[str] = None,
     workload_profile_override: Optional[str] = None,
     external_replay: Optional[Any] = None,
+    physical_deployment: Optional[Any] = None,
 ):
     with open(cfg_path, "r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
@@ -21161,6 +21182,15 @@ async def _main_async_impl(
     # Legacy multi-scenario reuse cannot supply independent IEEE run blocks.
     ieee_initial_deployment = _ieee_initial_deployment_requested(model_cfg,
         scenarios, coord_cfg, num_runs=num_runs, only_scenario=only_scenario)
+    if physical_deployment is not None:
+        if (external_replay is None or backend != 'vllm'
+                or model_cfg.get('timing_contract') != 'ieee_tc_native_v1'
+                or not (ieee_initial_deployment or _should_defer_primary_engine_initialization(
+                    model_cfg, scenarios, coord_cfg, only_scenario=only_scenario))):
+            raise ValueError('physical deployment requires contained dedicated native runtimes before startup')
+        # This is mandatory accounting for every primary/scale-out/reinitialized
+        # runtime in this launch, not an ablation switch or a ready-time proxy.
+        model_cfg['ieee_physical_allocation'] = True
     engine = InferenceEngine(model_cfg, cost_model)
     engine_inited = False
     primary_engine_deployment_started_at: Optional[float] = None
@@ -21347,6 +21377,13 @@ async def _main_async_impl(
             )
         runner_model_cfg.update(copy.deepcopy(sc_coord.get("instance_model_overrides", {})))
         runner_model_cfg = _normalize_runtime_concurrency_cap(runner_model_cfg)
+        if physical_deployment is not None:
+            if (runner_model_cfg.get('ieee_physical_allocation') is not True
+                    or runner_model_cfg.get('backend', 'vllm') != 'vllm'
+                    or runner_model_cfg.get('timing_contract') != 'ieee_tc_native_v1'
+                    or not _should_spawn_dedicated_engine_subprocess(runner_model_cfg,
+                        instance_mode=instance_mode)):
+                raise ValueError('scenario override would bypass physical deployment ownership')
         scenario_coordination_meta[sname].update(
             {
                 "max_model_len": runner_model_cfg.get("max_model_len"),
@@ -21530,6 +21567,7 @@ async def _main_async_impl(
                 engine_factory=engine_factory,
                 external_replay=external_replay,
                 initial_runtime_pending=initial_runtime_pending,
+                physical_deployment=physical_deployment,
             )
 
             needs_engine = not initial_runtime_pending and btype not in ("backbone_only", "cold_start")
@@ -21626,6 +21664,13 @@ async def _main_async_impl(
                     if experiment_stack is not None:
                         await experiment_stack.stop()
             runner.finalize_runtime_infra_accounting(result)
+            if physical_deployment is not None:
+                # The final sidecar is written only after outer cleanup. Legacy
+                # lifecycle billing remains separate and keeps its old meaning.
+                scenario_coordination_meta[sname]['physical_resource_evidence'] = {
+                    'contract': 'physical_gpu_deployment_v1',
+                    'summary_path': str(physical_deployment.root/'summary.json'),
+                    'legacy_instance_billing_is_not_physical_gpu_time': True}
             scenario_coordination_meta[sname].update(
                 {
                     "effective_scale_down_min_idle_s": round(
@@ -22076,12 +22121,15 @@ async def main_async(*args, **kwargs):
         return await _main_async_impl(*args, **kwargs)
     from scripts.ieee_tc_preflight import verify_current_service
     from faaslora.datasets.workload_generator import FrozenReplayPlan, ExternalReplayIngress
+    from faaslora.metrics.metrics_collector import PhysicalGPUDeployment
     identity = verify_current_service()
     receipt_path = Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT'])
     context = json.loads(receipt_path.read_text())['external_replay']
     if context['tiny_witness']:
         raise ValueError('a tiny replay witness cannot authorize model initialization')
     plan = FrozenReplayPlan.load(context['plan']['source_path'], profile=context['plan']['profile'])
+    deployment = PhysicalGPUDeployment(root=receipt_path.parent/'physical_deployment',
+        plan=plan, context=context)
     with (receipt_path.parent/'service_ingress.jsonl').open('x') as log:
         def emit(event):
             log.write(json.dumps(event, separators=(',', ':'))+'\n')
@@ -22092,7 +22140,8 @@ async def main_async(*args, **kwargs):
         try:
             # Header/clock/input verification completes BEFORE any startup path.
             await ingress.start()
-            work = asyncio.create_task(_main_async_impl(*args, **kwargs, external_replay=ingress))
+            work = asyncio.create_task(_main_async_impl(*args, **kwargs,
+                external_replay=ingress, physical_deployment=deployment))
             await asyncio.wait({work, ingress.background_task}, return_when=asyncio.FIRST_COMPLETED)
             ingress.raise_if_failed()
             result = await work
@@ -22105,7 +22154,12 @@ async def main_async(*args, **kwargs):
                 if not work.done():
                     work.cancel()
                 await asyncio.gather(work, return_exceptions=True)
-            await ingress.close()
+            try:
+                await ingress.close()
+            finally:
+                # Also preserve partial requests and open leases on failure;
+                # never derive return from request completion or a vanished slot.
+                deployment.finalize()
 
 
 def main():

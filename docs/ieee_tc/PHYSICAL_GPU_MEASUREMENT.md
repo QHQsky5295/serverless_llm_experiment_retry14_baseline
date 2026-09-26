@@ -247,6 +247,84 @@ The [sleep-mode documentation](https://docs.vllm.ai/en/latest/features/sleep_mod
 likewise distinguishes memory reduction from stopping the server; sleep alone
 does not satisfy this experiment's physical-return contract.
 
+## D55: whole-deployment collection in the actual external-replay runner
+
+Plan review keeps G1 as physical possession, not discounted ready time. D54
+solves CPU entry capacity only when incoming staging fits; inspection of the
+actual dense loader and pinned allocator does not justify reclaimable-byte
+credit when physical bytes are exhausted. That work stays open. D55 advances
+the independent Full lifecycle gate rather than adding another staging test
+campaign. No IEEE policy equation, budget, workload or artifact is changed.
+
+Historical D27 already proved one dedicated runtime's acquire/exit/return path.
+It did not connect every Full activation and request population to one reducer.
+Old instance accounting does retain removal events, but logical removal is not
+physical return. The new `PhysicalGPUDeployment` reuses the qualified owner's
+append-only journals and `PhysicalGPULedger`; it does not reconstruct leases
+from ready/idle or instance-pool membership.
+
+- The actual external-replay entry creates a fresh deployment record before
+  model initialization, bound to its exact plan hash, clock and notice/arrival
+  boundaries. Every dedicated initial/scale-out/reinitialized runtime is forced
+  through the existing physical allocator. Scenario overrides cannot disable
+  this accounting or select an unowned in-process backend.
+- All owners retain the **existing launch-wide lock directory**, not separate
+  locks per replica or collector. Fresh deployment evidence cannot overwrite
+  an old run or create a competing allocation namespace. Per-run journal paths
+  are deployment evidence, not model-config/profile identity. The physical
+  accounting enablement itself remains in model identity; measured profiles
+  must use that same enabled configuration, with no profile-hash exception.
+- Request terminals are observed on the actual `run_one` return/exception path.
+  Global cancellation is an interruption, not an invented request timeout or a
+  terminal used to declare full completion. Offered IDs/denominator never shrink.
+- Final reduction occurs after the actual work/ingress cleanup, including the
+  failure path. It reads every owner journal, including removed replicas and
+  failed startup attempts. Clock/identity/order errors or truncated journals
+  fail; missing return remains censored. No ready or successful-RPC timestamp
+  closes an allocation. Failed cleanup of one runtime does not skip the others.
+- The sidecar retains journal/request SHA, physical UUID unions and the four
+  windows. Scenario metadata links to it without relabelling legacy billing.
+- `n_native_contract_complete` checks request/adapter identity, native token
+  source/count, fixed contract and digests. It is **not numerical adapter proof**:
+  `n_correct=null`, per-correct resource=null and comparison eligibility=false
+  until the independent correctness/qualification analysis supplies evidence.
+  There is no flag that converts a token match into semantic qualification.
+
+The approach still relies on qualified native owner events and independent
+[NVML device/process observations](https://docs.nvidia.com/deploy/nvml-api/api/group__nvmlDeviceQueries.html).
+The candidate's [vLLM0.30 sleep documentation](https://docs.vllm.ai/en/v0.30.0/features/sleep_mode/)
+supports keeping memory reduction distinct from runtime termination. Neither
+source provides a Prime performance result.
+
+### D55 correctness table (constructed events, no GPU/model run)
+
+| Question | Evidence |
+|---|---|
+| Same GPU released then reacquired | The unallocated gap is excluded; old lease remains in the journal set |
+| Another physical GPU overlaps | Three leases on two devices total12 GPU-s in the fixture |
+| Four exclusive windows | 1+4+4+3=12 GPU-s; no startup/preparation double count |
+| Failed startup with open allocation | Only observed GPU-s, no completed resource score |
+| Global replay interruption | Full offered denominator retained, interruption not a fake terminal |
+| All requests fail but physical release completes | Resource measurement can complete; correctness/ranking cannot |
+| Malformed/foreign-clock source journal | Rejected, not silently omitted |
+| First runtime cleanup fails | Other owned runtimes still receive cleanup; failure remains visible |
+| Existing replay wrapper and actual request path | Final sidecar exists on normal wrapper exit; success/error/cancellation recorded once |
+
+Initial70 checks had one fixture assertion mismatch from JSON tuple→list
+serialization; normalize the assertion, not the measurement. Next70 pass.
+Initial19-module919 and expanded20-module937 checks pass. Final frozen-source
+20-module937 functional checks,70 checks under installedvLLM0.30.0/torch2.13.0+
+cu130 and56 safety/census/replay checks pass without failure/error/skip; CUDA
+remains uninitialized. All nine owned scopes are empty with no high/max/OOM
+events and stopped. These counts overlap and are not independent experiment
+repetitions. Full receipt and source hashes are in EXECUTION_STATUS.
+
+This is connected measurement logic with CPU tests, **not Full GPU qualification**.
+No D27/source-prefix model rerun, remote174 service, new weights/traces, formal
+baseline/main/ablation/sensitivity result, or manuscript/old-result mutation.
+Actual multi-activation ownership/terminal coverage, A4 dispatch linkage and
+correctness-qualified resource analysis still require the integrated model run.
+
 ## Remaining mainline work
 
 Connect and qualify real allocation-owner events, native scheduler/KV/iteration

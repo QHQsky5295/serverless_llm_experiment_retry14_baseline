@@ -733,6 +733,59 @@ class ExternalDispatcherIntegration(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(sum(x['event']=='request_received' for x in log), 3)
             self.assertEqual(sum(x['event']=='request_dequeued' for x in log), 3)
             self.assertTrue(next(x for x in log if x['event']=='service_ingress_terminal')['complete'])
+            resource = json.loads((root/'physical_deployment/summary.json').read_text())
+            self.assertEqual(resource['n_plan'], 3)
+            self.assertEqual(resource['n_terminal'], 0)  # Mock service did not report terminals.
+            self.assertFalse(resource['measurement_complete'])
+            self.assertIsNone(resource['gpu_seconds_per_correct_request'])
+
+
+class DeploymentTerminalIntegration(unittest.IsolatedAsyncioTestCase):
+    async def test_actual_run_reports_success_exception_and_interruption_once(self):
+        for outcome in (SimpleNamespace(success=True), RuntimeError('controlled failure'),
+                        asyncio.CancelledError()):
+            with self.subTest(outcome=type(outcome).__name__):
+                r = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+                r.name, r.baseline_type, r._coordination_enabled = 'fixture', 'faaslora_full', False
+                r.engine = SimpleNamespace(backend='vllm')
+                r.wl_cfg, r._ttft_slo_ms = {}, 1000.
+                trace = SimpleNamespace(request_id='q', adapter_id='a')
+                r.traces = [trace]
+                r._external_replay = SimpleNamespace(context={'replay_t0_s':time.monotonic()-1}, records={'q':{}})
+                r._physical_deployment = SimpleNamespace(terminal=Mock())
+                for name in ('_assert_clean_gpu_environment', '_begin_instance_lifecycle_tracking',
+                             '_release_live_started_lora', '_release_live_waiting_trace', '_release_live_arrived_lora'):
+                    setattr(r, name, Mock())
+                for name in ('_attach_ieee_file_pressure', '_ensure_min_instances',
+                             '_acquire_dispatch_admission', '_release_dispatch_admission'):
+                    setattr(r, name, AsyncMock())
+                r._scheduled_offset = Mock(return_value=0.)
+                r._prepare_request_execution_plan_cache = Mock(return_value={'q':object()})
+                r._exec_request = (AsyncMock(side_effect=outcome) if isinstance(outcome, BaseException)
+                                   else AsyncMock(return_value=outcome))
+
+                async def dispatch(**kwargs):
+                    await kwargs['run_one_fn'](0, trace, arrival_released_at=time.monotonic())
+                    raise LookupError('stop after actual request path; no mock performance aggregation')
+                r._run_continuous_observed = dispatch
+                expected = type(outcome) if isinstance(outcome, BaseException) else LookupError
+                with self.assertRaises(expected):
+                    await r.run()
+                r._physical_deployment.terminal.assert_called_once()
+                call = r._physical_deployment.terminal.call_args
+                self.assertEqual(call.args, ('q',))
+                self.assertEqual(call.kwargs['interrupted'], isinstance(outcome, asyncio.CancelledError))
+                self.assertIs(call.kwargs['result'], None if isinstance(outcome, BaseException) else outcome)
+
+    async def test_failed_return_does_not_skip_other_runtime_cleanup(self):
+        r = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        slots = {str(i):SimpleNamespace(instance_id=str(i)) for i in range(2)}
+        r.instance_pool = SimpleNamespace(get_slots=lambda:list(slots.values()), remove_instance=slots.pop)
+        r._cleanup_removed_slot = AsyncMock(side_effect=[RuntimeError('return unconfirmed'), None])
+        with self.assertRaisesRegex(RuntimeError, 'unresolved runtime ownership'):
+            await r._shutdown_instance_pool()
+        self.assertEqual(r._cleanup_removed_slot.await_count, 2)
+        self.assertEqual(slots, {})
 
 
 class NativePhysicalShutdown(unittest.IsolatedAsyncioTestCase):

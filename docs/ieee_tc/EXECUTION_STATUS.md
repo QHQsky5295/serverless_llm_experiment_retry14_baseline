@@ -16,7 +16,7 @@
 | Block | Status | Evidence / next action |
 |---|---|---|
 | Approved plan persistence | Recorded | Full snapshot + source hash + AGENTS instructions |
-| Resource containment / safety | Native Ray inheritance, external replay and7B dedicated physical owner/exit witness tested; full-deployment gates pending | RESOURCE_QUALIFICATION.md + EXTERNAL_REPLAY_QUALIFICATION.md + PHYSICAL_GPU_MEASUREMENT.md D27. Other owner paths and Full lifecycle aggregation remain open. CPU proof is affinity, not delegated cpuset |
+| Resource containment / safety | Native Ray inheritance, external replay and7B dedicated physical owner/exit witness tested; Full deployment aggregation connected with CPU tests | RESOURCE_QUALIFICATION.md + EXTERNAL_REPLAY_QUALIFICATION.md + PHYSICAL_GPU_MEASUREMENT.md D27/D55. Actual multi-activation/other-owner qualification and A4 remain open. CPU proof is affinity, not delegated cpuset |
 | Protected historical artifacts | Sealed and verified | `paper_results/ieee_tc/safety/20260925_execution_start_protected.json`; old results and selected user modifications unchanged |
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
@@ -50,6 +50,15 @@ scripts/run_serverlessllm_relayserve_continuation.sh, cache/, installs/, repos/,
 configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
+
+D55 connects all dedicated owner journals and actual request terminals to one
+external-replay deployment reducer, including retired/failed-start runtimes.
+It does not qualify Full GPU execution or infer correct LoRA application from
+token counts. Final-source937 functional,70 installed-native and56 safety checks
+pass; all nine owned scopes are empty and stopped. Milestone backup follows; see
+PHYSICAL_GPU_MEASUREMENT D55 for the correctness table and scope. Native HOST physical-byte-full capacity,
+measured profiles/allocator, actual Full multi-activation/A4 and the two external
+authority choices still remain. Baseline/performance stages have not started.
 
 D54 implementation checks complete: budgeted unregistered CPU staging, joint
 CPU/GPU loss/admission/commit and demand takeover are connected to the actual
@@ -131,7 +140,8 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
    environment; neither test constants nor neighboring-class latency can fill gaps.
    Replica inheritance is from frozen measurements, never a previous test block.
 6. D27 adds opt-in dedicated-runtime physical allocation/return journals and
-   actual7B qualification. Full/all-baseline owner binding is NOT complete.
+   actual7B qualification. D55 connects launch-wide Full journal/terminal
+   reduction; actual Full/all-baseline owner coverage is NOT qualified.
    Physical GPU possession is not GPU utilization,
    instance “ready”, request completion, empty_cache or shutdown return.
 7. Serverless official one-second ready-path polling is supported by old raw
@@ -144,14 +154,57 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
 9. Physical CPU isolation proof is actual affinity, not unavailable delegated
    cpuset. Services72/80GiB high/max, swap2GiB; auxiliary4GiB; one heavy at a time.
    Read source plan for exact admission, disk, failure/timeout and statistical rules.
-10. All147 protected entries and source plan SHA verified unchanged after D54.
-    D54 functional931, installed-native53 and safety/census/replay56 pass, no
+10. All147 protected entries and source plan SHA verified unchanged after D55.
+    D55 functional937, installed-native70 and safety/census/replay56 pass, no
     skips/failures/errors; these overlapping checks are not independent repeats.
-    Final D54 GPUs15MiB/0%, MemAvailable108692732KiB, disk353486036992 bytes.
-    All nine D54 owned scopes are empty with high/max/oom/oom_kill0, then stopped.
+    Final D55 GPUs15MiB/0%, MemAvailable108544020KiB, disk353458348032 bytes.
+    All nine D55 owned scopes are empty with high/max/oom/oom_kill0, then stopped.
     Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D55 whole-deployment physical GPU measurement
+
+- Previous goal turn is progress: D54 implemented/tested/backed up budgeted
+  CPU staging and joint native HOST/GPU commit. Current start748f78ec7f4e313dbd6e8fbced7e83e643c3e0cc,
+  baseline16570c unchanged. Full authoritative plan, status and skills reread;
+  protected147 and source-plan SHA unchanged, original user dirt preserved.
+- Examined actual native-HOST budget/loader and IEEE replacement text. Physical
+  byte exhaustion cannot be fixed by pretending deleted pinned tensors are
+  reusable. No budget increase, early eviction or allocator-flush workaround.
+  Advanced the independent Full physical accounting requirement, based on D27
+  history and current official NVML/vLLM sources, rather than repeat prefixes.
+- Actual external-replay entry now owns a fresh measurement bound to frozen
+  input/clock/notice; mandatory dedicated allocator configuration propagates
+  through initial/scale-out/reinit. All allocations use the existing launch-wide
+  locks. Final sidecar reduces every owner journal after cleanup, independent
+  of the surviving pool; incomplete/malformed evidence is not a complete score.
+  Scenario metadata links physical evidence separately from old billing.
+- Actual request terminal path records success/failure; global cancellation is
+  interruption, not a terminal/timeout. Native token-contract matches are a
+  separate count, never inferred numerical LoRA correctness. n_correct and
+  per-correct resource remain null, comparison eligibility false pending proof.
+  One runtime return failure no longer skips all remaining runtime cleanups.
+-9 added tests. First70 had1 fixture tuple/list JSON comparison failure, fixed
+  by canonical serialization in the assertion. Next70, initial919 across19
+  modules and expanded937 across20 modules pass. Final frozen-source/native/
+  safety results follow. Counts overlap, not independent repetitions.
+- No model/GPU/performance/remote174 run, new artifacts/traces, manuscript or
+  old-result edits. Full startup guard stays. Physical-byte-full HOST/staging,
+  measured profiles/allocator, actual Full multi-activation/A4, numerical and
+  remote gates remain. P1/P2 has progressed; formal baseline/M1/M2/ablations/
+  sensitivities have NOT started. No full-completion claim.
+- Final frozen-source20-module937 functional, installedvLLM0.30.0/torch2.13.0+
+  cu13070 and safety/census/replay56 checks pass with no failures/errors/skips.
+  CUDA remains uninitialized. Test selections/counts overlap; no performance or
+  independent-repeat claim. Final runtime SHA256: metrics741d0781bb9ccb53114a6267e4c90ac0c806320f382f4e87bb122e29e2b2e8d2;
+  runnerb488f2fa2ea9e63b10b3e364ba4d0ba285204b5fa9be8d7a82be50081afa4f45.
+- All nine D55 scopes have TasksCurrent0 and actual cgroup.procs empty,
+  high/max/oom/oom_kill0, then stopped. No test/model remains running. Final
+  GPUs15MiB/0%, MemAvailable108544020KiB, disk353458348032 bytes. All147
+  protected entries and plan SHA unchanged. Baseline unchanged at16570c with
+  fresh origin/main full-SHA verification; no unrelated changes staged. Named
+  file diff/secrets checks and tested implementation milestone backup follow.
 
 ### D54 budgeted staging and joint native HOST/GPU commit
 
