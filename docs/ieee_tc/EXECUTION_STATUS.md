@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Actual max-score control + ready residency callbacks connected; initial-primary/Full open | P1_FORMULA_IMPLEMENTATION.md D1–D48. Actual replay uses IEEE control, D47 activation and owned steady-state queue; no legacy votes/forecast/warmup. Initial-primary path, remaining-candidate/native-inclusive replacement, profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
+| P1 IEEE semantic alignment | Initial pool, live control and ready residency share owned activation; Full remains open | P1_FORMULA_IMPLEMENTATION.md D1–D49. Initial primary no longer eagerly starts outside runner; first ready can serve while other initial members remain pending. Remaining-candidate/native-inclusive replacement, profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,20 +51,26 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST IMPLEMENTATION: D48 actual replay control uses IEEE max(queue/upper,
+LATEST IMPLEMENTATION: D49 initial deployment now enters the D47 owned activation
+from an empty pool/configuration-only descriptor. Main skips eager primary init,
+one scenario/run per deployment; first ready can serve while the rest remain
+initial pending. Device shortage rejects before factory; cancellation joins startup
+before closing movement owner. Failed/late failed initial members remain failures,
+not ready siblings or automatic retries. Existing Full guard stays, no bypass.
+D48 actual replay control uses IEEE max(queue/upper,
 active saturation/upper, observed P95 TTFT/upper), not legacy voting/ready-time
 prediction. Pending activation counts toward limits, not ready capacity. Unknown
 TTFT cannot prove all-low scale-in. Actual control reaches D47 activation with no
 legacy warmup; ready replicas get one owned steady-state epoch each. NoHandoff
 retains ready residency. Retirement joins planning; errors surface without blind
 activation/epoch retries. Explicit model control limits still need validation.
-Next: initial-primary activation path and full lifecycle,
+Next: full lifecycle,
 remaining-candidate/native-inclusive joint replacement, native HOST replacement,
 proactive d feedback, representative profiles and Full lifecycle. Legacy handoff
 inputs explicitly reject at the new entry. D44 file-only loss is not enabled as
 mixed joint loss. Full guard remains. Do not repeat activation/mixed-execution
-checks or old model prefixes. D48 final890 functional pass; installed-native,
-safety and cleanup receipts below. D47 previous67 native/56 safety are historical.
+checks or old model prefixes. D49 functional/native/safety receipts below;
+D48 final890 and D47 previous67 native/56 safety are historical.
 Runtime allocator configuration/service memory observations remain, not an
 indefinite demand to prove every driver RSS byte. The full goal remains active.
 Queue wakes on actual reference release/file-pressure finish/target closure,
@@ -109,7 +115,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D48.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D49.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -165,6 +171,39 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D49 initial deployment uses the owned activation path
+
+- D48 was progress, not a blocked turn. Reread full source plan/status, AGENTS and
+  run-experiment/github-sync skills; checked IEEE original §3.1, existing entry
+  and ownership history, HydraServe primary page and officialvLLM0.30 core client.
+  Start main9815015 and baseline16570c; original dirt preserved. Initial GPUs
+ 15MiB/0%, MemAvailable108675756KiB, disk353397313536B. Plan and protected147 unchanged.
+- Main now passes an uninitialized descriptor/empty pool into actual initial
+  activation, not an eager primary. Same file/native handoff/owner as scale-out;
+  first ready serves without waiting for all min members. External origin is not
+  rewritten. All pending initial tasks join before shutdown closes movement owner.
+  Initial failures retain unknown resources; late failure cannot hide behind a
+  successful sibling or trigger a blind ensure-min retry. Actual Full guard kept.
+-11 new checks. First22 had1 fixture alias error (two logical replicas sharing
+  one test engine); second25 had1 typed-profile fixture error. Both corrected
+  without relaxing production requirements. Initial full900 pass. Final regression,
+  installed-native, safety and cleanup receipts follow. P1 D49 has state table.
+- No GPU/model, real174, measured profile or performance run. Full physical
+  aggregation/first-dispatch binding, remaining-candidate joint replacement/native
+  HOST replacement, proactive d feedback and representative profiles/allocator
+  qualification remain. Formal baselines/M1/M2/ablations/sensitivities not started.
+  Next these integrated Full gates, not more initial/control or old model-prefix
+  microcampaigns. Remote disk floor/nonzero3B authority gates unchanged. No new
+  weights/traces, no old-result/manuscript change; baseline untouched. Goal active.
+- Final source unchanged after901 functional checks,0 failures/errors/skips.
+  InstalledvLLM0.30.0/torch2.13.0+cu130:26 initial/control/activation checks pass,
+  CUDA uninitialized. All56 safety/census/replay checks pass. All six owned D49
+  scopes verified TasksCurrent0, empty actual cgroup.procs and high/max/oom/oom_kill0,
+  then stopped. No live model/test remains. GPUs15MiB/0%, MemAvailable108573532KiB,
+  disk353382084608B. Source plan and147 protected entries unchanged. Baseline16570c
+  and original user dirt unchanged. Tested implementation backup follows; no
+  performance slot or measured profile completed, no Full qualification claimed.
 
 ### D48 live IEEE control and ready-replica residency callbacks
 

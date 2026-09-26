@@ -6452,6 +6452,7 @@ class ScenarioRunner:
         engine_factory: Optional[Callable[..., Awaitable[Tuple[Any, Any]]]] = None,
         runner_model_cfg: Optional[Dict] = None,
         external_replay: Optional[Any] = None,
+        initial_runtime_pending: bool = False,
     ):
         self.name          = name
         self.baseline_type = baseline_type
@@ -6473,6 +6474,16 @@ class ScenarioRunner:
         self.preload_cfg   = preload_cfg
         self.wl_cfg        = workload_cfg
         self.coord_cfg     = coord_cfg or {}
+        if type(initial_runtime_pending) is not bool:
+            raise ValueError('initial_runtime_pending must be a boolean')
+        self._initial_runtime_pending = initial_runtime_pending
+        if initial_runtime_pending:
+            if (self.coord_cfg.get('routing_policy') != 'ieee_confirmed'
+                    or self.coord_cfg.get('instance_mode') not in ('auto', 'dedicated')
+                    or not self.model_cfg.get('ieee_gpu_references') or engine_factory is None
+                    or not isinstance(engine, InferenceEngine) or engine.backend != 'vllm'
+                    or getattr(engine, 'engine', None) is not None):
+                raise ValueError('pending IEEE deployment requires an uninitialized descriptor and owned factory')
         self._configure_external_replay(external_replay)
         generation_contract = str(
             self.wl_cfg.get("generation_contract", "legacy") or "legacy"
@@ -6697,13 +6708,14 @@ class ScenarioRunner:
             self.instance_pool = InstancePool(min_instances=min_instances, max_instances=max_instances,
                 service_profiles=self._service_profiles, preparation_profiles=self._preparation_profiles)
             primary_owns_runtime = self._instance_mode in ("auto", "dedicated")
-            self._primary_instance_id = self.instance_pool.add_instance(
-                engine,
-                self.coordinator,
-                owns_engine=primary_owns_runtime,
-                owns_coordinator=primary_owns_runtime,
-                device_id=getattr(engine, "device_id", None),
-            )
+            if not initial_runtime_pending:
+                self._primary_instance_id = self.instance_pool.add_instance(
+                    engine,
+                    self.coordinator,
+                    owns_engine=primary_owns_runtime,
+                    owns_coordinator=primary_owns_runtime,
+                    device_id=getattr(engine, "device_id", None),
+                )
             # shared 模式下，仅按 min_instances 预创建共享-engine 槽位。
             if self._instance_mode == "shared" and min_instances > 1:
                 for _ in range(1, min_instances):
@@ -8105,6 +8117,8 @@ class ScenarioRunner:
             result = {**result, 'ieee_native_host_preparations': copy.deepcopy(self._ieee_native_host_preparations)}
         if hasattr(self, '_ieee_activations'):
             result = {**result, 'ieee_activations': copy.deepcopy(self._ieee_activations)}
+        if hasattr(self, '_ieee_initial_deployment'):
+            result['ieee_initial_deployment'] = copy.deepcopy(self._ieee_initial_deployment)
         if hasattr(self, '_ieee_control_events'):
             result['ieee_control_events'] = copy.deepcopy(self._ieee_control_events)
         if hasattr(self, '_ieee_residency_epochs'):
@@ -12430,6 +12444,20 @@ class ScenarioRunner:
         return True
 
     async def _shutdown_instance_pool(self) -> None:
+        # Initial activation owns startup AND preparation. Join it while the
+        # common movement owner is still open; otherwise a late factory result
+        # could publish a new slot after shutdown's plan/engine census.
+        initial = list(getattr(self, '_ieee_initial_tasks', ()))
+        for task in initial:
+            if not task.done():
+                task.cancel()
+        if initial:
+            joined = asyncio.gather(*initial, return_exceptions=True)
+            while not joined.done():
+                try:
+                    await asyncio.shield(joined)
+                except asyncio.CancelledError:
+                    continue
         residency = list(getattr(self, '_ieee_residency_tasks', {}).values())
         for task in residency:
             if not task.done():
@@ -13058,6 +13086,13 @@ class ScenarioRunner:
     async def _ensure_min_instances(self, coord_enabled: bool) -> None:
         if self.instance_pool is None:
             return
+        if hasattr(self, '_ieee_initial_deployment'):
+            if getattr(self, '_ieee_scale_failure', None) is not None:
+                raise RuntimeError('IEEE initial activation failed') from self._ieee_scale_failure
+            pending = sum(not task.done() for task in self._ieee_initial_tasks)
+            if self.instance_pool.count() + pending < self.instance_pool.min_instances:
+                raise RuntimeError('IEEE initial pool lost an owned activation')
+            return  # First ready may serve while other initial runtimes load.
         while self.instance_pool.count() < self.instance_pool.min_instances:
             use_dedicated = (
                 self._instance_mode in ("dedicated", "auto")
@@ -13379,6 +13414,10 @@ class ScenarioRunner:
     # ------------------------------------------------------------------
 
     async def preload(self):
+        if getattr(self, '_initial_runtime_pending', False):
+            # Disabling handoff/preload does not disable runtime activation.
+            await self._preload_full_stack()
+            return
         if self.baseline_type in ("cold_start", "slora_style", "serverlessllm",
                                    "backbone_only", "lru_nvme"):
             return
@@ -13431,16 +13470,102 @@ class ScenarioRunner:
         print(f"    Preload done  total_io={total_io:.0f}ms  "
               f"nvme_cached={len(self._nvme_cache)}")
 
+    def _require_ieee_full_qualification(self):
+        # No configuration switch bypasses this remaining integration gate.
+        # Initial activation can be tested independently, but is not sufficient
+        # to qualify joint replacement, measured profiles or physical accounting.
+        raise RuntimeError('IEEE Full preparation execution is not qualified: '
+            'legacy priority/warmup is forbidden; use measured planning and owned movement')
+
+    async def _start_ieee_initial_deployment(self):
+        """Start the initial physical pool through the same owner as scale-out.
+
+        Return on first ready, not last ready. External arrival origin is never
+        changed here. Pending initial members remain owned by the live control
+        and shutdown paths, and retain their initial category after business t0.
+        """
+        if (not getattr(self, '_initial_runtime_pending', False)
+                or self.instance_pool is None or self.instance_pool.count()
+                or getattr(self, '_ieee_initial_tasks', None)
+                or self._routing_policy != 'ieee_confirmed'
+                or self.engine_factory is None):
+            raise ValueError('IEEE initial deployment requires an empty owned pending pool')
+        devices = []
+        try:
+            for _ in range(self.instance_pool.min_instances):
+                device = self._select_dedicated_device_id()
+                if device is None:
+                    raise ValueError('insufficient physical devices for the initial pool')
+                self._pending_scale_up_device_ids.add(device)
+                devices.append(device)
+        except BaseException:
+            self._pending_scale_up_device_ids.difference_update(devices)
+            raise
+        from faaslora.clock import local_monotonic_clock_id
+        record = self._ieee_initial_deployment = dict(state='initializing',
+            trigger_at=time.monotonic(), clock_id=local_monotonic_clock_id(),
+            devices=list(devices), ready_events=[], failures=[])
+
+        async def activate(device):
+            try:
+                event = await self._add_dedicated_instance_slot(self._coordination_enabled,
+                    reserved_device_id=device, activation_kind='initial')
+                if event is None:
+                    raise RuntimeError('initial physical activation returned no runtime')
+                record['ready_events'].append(event)
+                return event
+            except BaseException as exc:
+                # Never reuse a failed startup's device merely because its
+                # controller task is terminal. Actual exit proof is separate.
+                self._failed_runtime_device_ids.add(device)
+                record['failures'].append(dict(device_id=device, error_type=type(exc).__name__))
+                record['state'] = 'cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed'
+                raise
+            finally:
+                self._pending_scale_up_device_ids.discard(device)
+
+        self._ieee_initial_tasks = [asyncio.create_task(activate(device)) for device in devices]
+        for task in self._ieee_initial_tasks:
+            self._pending_scale_up_tasks.add(task)
+            task.add_done_callback(self._handle_pending_scale_up_task_done)
+        try:
+            done, _ = await asyncio.wait(self._ieee_initial_tasks,
+                                        return_when=asyncio.FIRST_COMPLETED)
+            # Surface every already-finished failure; do not pick a lucky
+            # successful sibling to conceal an incomplete initial pool.
+            for task in self._ieee_initial_tasks:
+                if task in done:
+                    task.result()
+            first = record['ready_events'][0]
+            slot = self.instance_pool.get_slot(first['instance_id'])
+            if slot is None:
+                raise RuntimeError('initial ready event has no owned pool member')
+            self._primary_instance_id = slot.instance_id
+            self.engine, self.coordinator = slot.engine, slot.coordinator
+            self._initial_runtime_pending = False
+            record.update(state='serving', first_ready_at=time.monotonic(),
+                          primary_instance_id=slot.instance_id)
+        except BaseException as exc:
+            record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
+                          error_type=type(exc).__name__)
+            # The caller owns the pool even after failure. Join each startup's
+            # existing cancellation fence, then retire any published siblings.
+            cleanup = asyncio.create_task(self._shutdown_instance_pool())
+            while True:
+                try:
+                    await asyncio.shield(cleanup)
+                    break
+                except asyncio.CancelledError:
+                    if cleanup.cancelled():
+                        raise
+            raise
+
     async def _preload_full_stack(self):
         """C1 完整：三层级联预加载 远端→硬盘(NVMe)→内存(HOST)→GPU，最热在 GPU、次热在内存、再次在硬盘。"""
         if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
-            # Routing ownership alone does not qualify proactive policy. Fail
-            # before start(), cache reset or background work, not after running
-            # legacy priorities and labeling their result IEEE Full. The measured
-            # plan_ieee_preparation entry is separate; its movement-owner/queue
-            # integration must be completed before enabling this campaign path.
-            raise RuntimeError('IEEE Full preparation execution is not qualified: '
-                'legacy priority/warmup is forbidden; use measured planning and owned movement')
+            self._require_ieee_full_qualification()
+            await self._start_ieee_initial_deployment()
+            return
         await self._stack.start()
         if self.nvme_dir.exists():
             if not self._stack.residency_manager._delete_path(str(self.nvme_dir)):
@@ -18093,6 +18218,24 @@ def _should_spawn_dedicated_engine_subprocess(
     return backend in {"vllm", "sglang"} and str(instance_mode).lower() in ("auto", "dedicated")
 
 
+def _ieee_initial_deployment_requested(model_cfg, scenarios, coord_cfg, *, num_runs, only_scenario=None):
+    selected = [sc for sc in scenarios if not only_scenario or sc.get('name') == only_scenario]
+    enabled = any({**coord_cfg, **sc.get('resource_coordination', {})}.get('routing_policy')
+                  == 'ieee_confirmed' for sc in selected)
+    if not enabled:
+        return False
+    if len(selected) != 1 or num_runs != 1:
+        raise ValueError('IEEE deployment requires one scenario and one run per owned launch')
+    coord = {**coord_cfg, **selected[0].get('resource_coordination', {})}
+    model = {**model_cfg, **coord.get('instance_model_overrides', {})}
+    if (str(model.get('backend', 'vllm')).lower() != 'vllm'
+            or not model.get('ieee_gpu_references')
+            or not _should_spawn_dedicated_engine_subprocess(model,
+                instance_mode=coord.get('instance_mode', 'shared'))):
+        raise ValueError('IEEE initial deployment requires the owned native subprocess path')
+    return True
+
+
 def _should_defer_primary_engine_initialization(
     model_cfg: Dict[str, Any],
     scenarios: List[Dict[str, Any]],
@@ -20840,12 +20983,16 @@ async def _main_async_impl(
     import gc; gc.collect()
 
     # ---- 4. Init engine ----
+    # A guarded launch owns one deployment/arrival clock and one cold state.
+    # Legacy multi-scenario reuse cannot supply independent IEEE run blocks.
+    ieee_initial_deployment = _ieee_initial_deployment_requested(model_cfg,
+        scenarios, coord_cfg, num_runs=num_runs, only_scenario=only_scenario)
     engine = InferenceEngine(model_cfg, cost_model)
     engine_inited = False
     primary_engine_deployment_started_at: Optional[float] = None
     primary_engine_initialization_wall_s = 0.0
     if engine.backend != "transformers":
-        defer_primary_engine_init = _should_defer_primary_engine_initialization(
+        defer_primary_engine_init = ieee_initial_deployment or _should_defer_primary_engine_initialization(
             model_cfg,
             scenarios,
             coord_cfg,
@@ -21140,8 +21287,16 @@ async def _main_async_impl(
 
                 engine_factory = _spawn_engine
 
+            initial_runtime_pending = sc_coord.get('routing_policy') == 'ieee_confirmed'
+            if initial_runtime_pending:
+                if engine_inited or not use_subprocess_engine or engine_factory is None:
+                    raise ValueError('IEEE initial runtime must be owned by the pending deployment')
+                # Configuration/tokenizer descriptor only: no native process or
+                # ready pool member until the common activation owner publishes.
+                engine = InferenceEngine(copy.deepcopy(runner_model_cfg), cost_model)
             if (
                 use_subprocess_engine
+                and not initial_runtime_pending
                 and not engine_inited
                 and not isinstance(engine, SubprocessInferenceEngineProxy)
             ):
@@ -21200,9 +21355,10 @@ async def _main_async_impl(
                 experiment_stack=experiment_stack,
                 engine_factory=engine_factory,
                 external_replay=external_replay,
+                initial_runtime_pending=initial_runtime_pending,
             )
 
-            needs_engine = btype not in ("backbone_only", "cold_start")
+            needs_engine = not initial_runtime_pending and btype not in ("backbone_only", "cold_start")
             if btype == "faaslora_full" and engine.backend == "transformers":
                 needs_engine = False  # 子进程隔离，主进程不加载模型
             if needs_engine and not engine_inited:
@@ -21229,6 +21385,14 @@ async def _main_async_impl(
                 preload_limiter_before = runner._bandwidth_limiter.snapshot()
                 preload_started_at = time.perf_counter()
                 await runner.preload()
+                if initial_runtime_pending:
+                    engine = runner.engine
+                    engine_inited = True
+                    # Legacy wall-time fields remain diagnostics; physical GPU
+                    # possession must come from the native allocation journal.
+                    primary_engine_initialization_wall_s = (
+                        runner._ieee_initial_deployment['first_ready_at']
+                        - runner._ieee_initial_deployment['trigger_at'])
                 preload_ended_at = time.perf_counter()
                 preload_limiter_after = runner._bandwidth_limiter.snapshot()
                 runner._initial_preload_wall_s = max(

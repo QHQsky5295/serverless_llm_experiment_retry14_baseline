@@ -277,6 +277,256 @@ class IEEEActualControl(unittest.TestCase):
         asyncio.run(run())
 
 
+class IEEEInitialDeployment(unittest.TestCase):
+    def test_main_deployment_contract_rejects_reuse_and_nonowned_runtime(self):
+        model = dict(backend='vllm', ieee_gpu_references=True)
+        coord = dict(routing_policy='ieee_confirmed', instance_mode='dedicated')
+        scenarios = [dict(name='tc', resource_coordination=coord)]
+        check = runner._ieee_initial_deployment_requested
+        self.assertTrue(check(model, scenarios, {}, num_runs=1))
+        for changes in (dict(num_runs=2), dict(scenarios=scenarios+[dict(name='legacy')]),
+                        dict(model_cfg=dict(model, backend='transformers')),
+                        dict(model_cfg=dict(model, ieee_gpu_references=False)),
+                        dict(scenarios=[dict(name='tc',resource_coordination=dict(coord,instance_mode='shared'))])):
+            args = dict(model_cfg=model, scenarios=scenarios, coord_cfg={}, num_runs=1)
+            args.update(changes)
+            with self.assertRaises(ValueError): check(**args)
+        self.assertTrue(check(model, scenarios+[dict(name='legacy')], {}, num_runs=1, only_scenario='tc'))
+        self.assertFalse(check({}, [dict(name='legacy')], {}, num_runs=2))
+
+    def test_actual_constructor_keeps_uninitialized_descriptor_out_of_ready_pool(self):
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles, ServiceClassBins
+        model = dict(backend='vllm', ieee_gpu_references=True)
+        descriptor = runner.InferenceEngine(model, {})
+        # Empty because this test must never publish a runtime or estimate work.
+        profiles = FrozenServiceProfiles(ServiceClassBins((),(),(),(),()), {}, {},
+                                         'constructor-fixture', (), .5, '{}')
+        with tempfile.TemporaryDirectory() as root, \
+             patch.object(runner.ScenarioRunner, '_load_ieee_service_profiles', return_value=profiles), \
+             patch.object(runner.ScenarioRunner, '_load_ieee_preparation_profiles', return_value=None), \
+             patch.object(runner, '_remote_artifact_from_env', return_value=None), \
+             patch.object(runner, 'ResourceCoordinator'):
+            args = dict(name='tc', baseline_type='faaslora_full', adapter_info={}, traces=[],
+                remote_dir=Path(root)/'remote', nvme_dir=Path(root)/'nvme', bandwidth_mbps=0,
+                hardware_cfg={}, cost_model={}, engine=descriptor, preload_cfg={}, workload_cfg={},
+                coord_cfg=dict(routing_policy='ieee_confirmed', instance_mode='dedicated',
+                               service_bin_ms=1., min_instances=2, max_instances=2),
+                engine_factory=AsyncMock(), initial_runtime_pending=True)
+            service = runner.ScenarioRunner(**args)
+            self.assertEqual(service.instance_pool.count(), 0)
+            self.assertIsNone(service._primary_instance_id)
+            self.assertIsNone(descriptor.engine)
+            service.engine_factory.assert_not_awaited()
+            descriptor.engine = object()
+            with self.assertRaisesRegex(ValueError, 'uninitialized descriptor'):
+                runner.ScenarioRunner(**args)
+
+    def make(self, policy='full'):
+        from tests.test_ieee_tc_transfer_pressure import ActivationPreparation
+        fixture = ActivationPreparation()
+        self.addCleanup(fixture.doCleanups)
+        files, service, queue, engine, native = fixture.make(policy)
+        service.engine = runner.InferenceEngine(service.model_cfg, {})
+        service.engine_factory = AsyncMock(return_value=(engine, None))
+        service._initial_runtime_pending = True
+        service._instance_mode = 'dedicated'
+        service._coordination_enabled = True
+        service._primary_instance_id = None
+        service._pending_scale_up_tasks = set()
+        service._pending_scale_up_device_ids = set()
+        service._failed_runtime_device_ids = set()
+        service._available_device_ids = Mock(return_value=[0, 1])
+        service._scaleup_runtime_instance_ids = set()
+        service._scaleup_runtime_handoff_plans = {}
+        service._scaleup_runtime_lora_request_ordinals = {}
+        service._mark_instance_lifecycle_removed = Mock()
+        service._cancel_runtime_gpu_forward_tasks = AsyncMock()
+        service._sync_stack_gpu_accounting = Mock()
+        # CPU fixture uses this test process, not an exited native worker.
+        service._retire_ieee_host_budget = Mock()
+        return fixture, files, service, queue, engine
+
+    def test_actual_initial_preparation_overlaps_init_without_changing_arrival_origin(self):
+        fixture, files, service, queue, engine = self.make()
+        async def run():
+            started, release = asyncio.Event(), asyncio.Event()
+            async def initialize(**_):
+                started.set()
+                await release.wait()
+                return engine, None
+            service.engine_factory = AsyncMock(side_effect=initialize)
+            service._active_replay_t0 = 1234.5
+            deployment = asyncio.create_task(service._start_ieee_initial_deployment())
+            await started.wait()
+            await fixture.finish_preparation(service)
+            self.assertEqual((files.host/'a'/'weights').read_bytes(), b'a'*12288)
+            self.assertEqual(service.instance_pool.count(), 0)
+            self.assertFalse(deployment.done())
+            release.set()
+            await deployment
+            self.assertIs(service.engine, engine)
+            self.assertFalse(service._initial_runtime_pending)
+            self.assertEqual(service._active_replay_t0, 1234.5)
+            self.assertEqual(service._ieee_activations[0]['category'], 'initial')
+            self.assertEqual(service._ieee_initial_deployment['state'], 'serving')
+            self.assertEqual(service._primary_instance_id, service._ieee_activations[0]['activation_id'])
+            self.assertFalse(service._pending_scale_up_device_ids)
+            await service._shutdown_instance_pool()
+            engine.shutdown.assert_awaited_once()
+        asyncio.run(run())
+
+    def test_no_handoff_still_activates_when_preload_disabled(self):
+        _, files, service, _, engine = self.make('no_handoff')
+        async def run():
+            service.preload_cfg = dict(enabled=False)
+            # This fixture tests entry wiring, not full-campaign qualification.
+            with patch.object(service, '_require_ieee_full_qualification') as qualification:
+                await service.preload()
+                qualification.assert_called_once_with()
+            self.assertIs(service.engine, engine)
+            self.assertFalse((files.host/'a').exists())
+            self.assertEqual(service._ieee_activations[0]['preparation_state'], 'disabled')
+            await service._shutdown_instance_pool()
+        asyncio.run(run())
+
+    def test_unqualified_pending_preload_cannot_skip_guard(self):
+        _, _, service, queue, _ = self.make('no_handoff')
+        async def run():
+            service.preload_cfg = dict(enabled=False)
+            with self.assertRaisesRegex(RuntimeError, 'not qualified'):
+                await service.preload()
+            service.engine_factory.assert_not_awaited()
+            self.assertEqual(service.instance_pool.count(), 0)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_insufficient_devices_reject_before_any_factory_or_reservation_leak(self):
+        _, _, service, queue, _ = self.make()
+        async def run():
+            service.instance_pool.min_instances = 2
+            service._available_device_ids.return_value = [0]
+            with self.assertRaisesRegex(ValueError, 'insufficient physical'):
+                await service._start_ieee_initial_deployment()
+            service.engine_factory.assert_not_awaited()
+            self.assertFalse(service._pending_scale_up_device_ids)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_first_ready_does_not_wait_for_min_pool_and_pending_keeps_initial_category(self):
+        _, _, service, _, engine = self.make('no_handoff')
+        async def run():
+            service.instance_pool.min_instances = 2
+            second_started, release = asyncio.Event(), asyncio.Event()
+            async def activate(*_, reserved_device_id, activation_kind):
+                if reserved_device_id == 1:
+                    second_started.set()
+                    await release.wait()
+                distinct_engine = SimpleNamespace(model_cfg=engine.model_cfg)
+                sid = service.instance_pool.add_instance(distinct_engine, None, owns_engine=False,
+                    device_id=reserved_device_id)
+                return dict(instance_id=sid, activation_kind=activation_kind)
+            service._add_dedicated_instance_slot = AsyncMock(side_effect=activate)
+            await service._start_ieee_initial_deployment()
+            await second_started.wait()
+            self.assertEqual(service.instance_pool.count(), 1)
+            self.assertEqual(service._pending_scale_up_device_ids, {1})
+            await service._ensure_min_instances(True)
+            self.assertEqual(service._add_dedicated_instance_slot.await_count, 2)
+            release.set()
+            await service._wait_for_pending_scale_up_tasks()
+            self.assertEqual(service.instance_pool.count(), 2)
+            self.assertTrue(all(e['activation_kind']=='initial'
+                                for e in service._ieee_initial_deployment['ready_events']))
+            await service._shutdown_instance_pool()
+        asyncio.run(run())
+
+    def test_cancel_initial_wait_joins_factory_before_closing_movement_owner(self):
+        _, files, service, queue, engine = self.make('no_handoff')
+        async def run():
+            started, release = asyncio.Event(), asyncio.Event()
+            async def initialize(**_):
+                started.set()
+                await release.wait()
+                return engine, None
+            service.engine_factory = AsyncMock(side_effect=initialize)
+            deployment = asyncio.create_task(service._start_ieee_initial_deployment())
+            await started.wait()
+            deployment.cancel()
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
+            self.assertFalse(deployment.done())
+            engine.shutdown.assert_not_awaited()
+            release.set()
+            with self.assertRaises(asyncio.CancelledError): await deployment
+            engine.shutdown.assert_awaited_once()
+            self.assertFalse(files.owner.host_budget_snapshot()['activation_reservations'])
+            self.assertEqual(service.instance_pool.count(), 0)
+            self.assertTrue(all(t.done() for t in service._ieee_initial_tasks))
+            self.assertFalse(service._pending_scale_up_device_ids)
+            self.assertEqual(service._failed_runtime_device_ids, {0})
+            self.assertEqual(service._ieee_initial_deployment['state'], 'cancelled')
+        asyncio.run(run())
+
+    def test_failed_factory_keeps_unknown_host_reservation_and_prevents_retry(self):
+        _, files, service, _, _ = self.make('no_handoff')
+        async def run():
+            service.engine_factory = AsyncMock(side_effect=RuntimeError('lost startup reply'))
+            with self.assertRaisesRegex(RuntimeError, 'lost startup reply'):
+                await service._start_ieee_initial_deployment()
+            self.assertEqual(service._ieee_initial_deployment['state'], 'failed')
+            self.assertEqual(service._failed_runtime_device_ids, {0})
+            self.assertEqual(len(files.owner.host_budget_snapshot()['activation_reservations']), 1)
+            with self.assertRaisesRegex(ValueError, 'empty owned pending pool'):
+                await service._start_ieee_initial_deployment()
+            service.engine_factory.assert_awaited_once()
+        asyncio.run(run())
+
+    def test_initial_sibling_failure_does_not_hide_behind_ready_sibling(self):
+        _, _, service, _, engine = self.make('no_handoff')
+        async def run():
+            service.instance_pool.min_instances = 2
+            async def activate(*_, reserved_device_id, activation_kind):
+                if reserved_device_id == 1:
+                    raise RuntimeError('second runtime failed')
+                sid = service.instance_pool.add_instance(engine, None, owns_engine=True,
+                    device_id=reserved_device_id)
+                return dict(instance_id=sid, activation_kind=activation_kind)
+            service._add_dedicated_instance_slot = AsyncMock(side_effect=activate)
+            with self.assertRaisesRegex(RuntimeError, 'second runtime failed'):
+                await service._start_ieee_initial_deployment()
+            self.assertEqual(service.instance_pool.count(), 0)
+            engine.shutdown.assert_awaited_once()
+            self.assertTrue(all(t.done() for t in service._ieee_initial_tasks))
+            self.assertEqual(service._ieee_initial_deployment['state'], 'failed')
+        asyncio.run(run())
+
+    def test_late_initial_failure_updates_deployment_and_prevents_min_pool_retry(self):
+        _, _, service, _, engine = self.make('no_handoff')
+        async def run():
+            service.instance_pool.min_instances = 2
+            release = asyncio.Event()
+            async def activate(*_, reserved_device_id, activation_kind):
+                if reserved_device_id == 1:
+                    await release.wait()
+                    raise RuntimeError('late initial failure')
+                sid = service.instance_pool.add_instance(engine, None, owns_engine=True, device_id=0)
+                return dict(instance_id=sid, activation_kind=activation_kind)
+            service._add_dedicated_instance_slot = AsyncMock(side_effect=activate)
+            await service._start_ieee_initial_deployment()
+            self.assertEqual(service._ieee_initial_deployment['state'], 'serving')
+            release.set()
+            with self.assertRaisesRegex(RuntimeError, 'activation failed'):
+                await service._wait_for_pending_scale_up_tasks()
+            self.assertEqual(service._ieee_initial_deployment['state'], 'failed')
+            self.assertEqual(service._ieee_initial_deployment['failures'],
+                             [dict(device_id=1,error_type='RuntimeError')])
+            with self.assertRaisesRegex(RuntimeError, 'initial activation failed'):
+                await service._ensure_min_instances(True)
+            self.assertEqual(service._add_dedicated_instance_slot.await_count, 2)
+            await service._shutdown_instance_pool()
+        asyncio.run(run())
+
+
 class ManagedEngineLaunch(unittest.TestCase):
     def test_managed_cleanup_only_revalidates_owned_service(self):
         engine = runner.InferenceEngine({}, {})

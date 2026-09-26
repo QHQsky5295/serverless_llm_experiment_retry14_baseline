@@ -2700,3 +2700,71 @@ candidate与native/file联合替换、native HOST替换、主动d反馈及代表
 实测profile/内存配置资格。当前CPU fixture阈值不得复制为正式模型配置。
 正式baseline、M1/M2、消融和敏感性均未启动；无新增权重/trace、无历史
 结果/论文改动。下一轮直接推进初始主路径，不重复本轮控制局部测试。
+
+## D49：初始部署进入相同的activation所有权路径
+
+### 问题与依据
+
+D48已接通业务内控制，但历史主入口在创建ScenarioRunner之前就等待
+primary模型加载完成。这样初始主副本不能使用D47的加载/制品准备重叠，
+初始池与业务内扩容也不是同一条生命周期路径。本轮对照原IEEE §3.1、
+D27/D47/D48历史和实际main→preload调用链，假设是：先建立空的受管池，
+再由同一activation入口创建初始副本，可以去除这一非机制性启动差异，
+而不改变九个公式、业务到达或baseline行为。
+
+联网核查[HydraServe原始论文入口](https://www.usenix.org/conference/nsdi26/presentation/lou)
+关于启动阶段重叠的设计，以及[vLLM0.30 core client源码](https://docs.vllm.ai/en/v0.30.0/api/vllm/v1/engine/core_client/)
+关于进程启动、后台工作、ready握手及失败清理的分离。借鉴的是明确启动
+依赖和资源所有权，不把vLLM的多模态warmup当成LoRA准备，也不据此声称
+Prime性能收益。实际adapter准备仍使用D47已有文件/native路径。
+
+### 实际变更与边界
+
+- IEEE主入口只允许一次受管launch对应一个scenario、一个run，不复用
+  legacy多scenario/多run的GPU状态。要求原生独立进程路径；按scenario
+  模型配置建立尚未初始化的descriptor，不先启动primary或发布假ready。
+- ScenarioRunner可拥有空的初始池。在preload disabled/NoHandoff时仍
+  必须激活runtime；关闭主动准备不等于免费拥有一个预先加载的GPU。
+- 初始min副本的物理device在yield前统一预留，不足时不启动任何factory。
+  每个任务通过同一D47入口，类别始终是initial。准备计划、源引用、HOST
+  allowance、初始化后真实layout校验和native admission均复用该入口。
+- 第一个实际ready副本成为primary即可进入服务，其余初始副本仍占pending
+  上限但不贡献ready容量。ensure-min不会再次创建或串行等待同一批副本。
+  本方法不写external replay的固定t0；晚ready不能通过平移到达减小TTFT。
+- 初始任务和其准备/初始化一起归shutdown所有；先join这些任务，再关闭
+  共同movement owner和清理已发布副本，避免晚factory在收尾后发布新副本。
+  取消不遗弃启动任务。未知启动失败保留HOST allowance和失败device，
+  不把控制协程终态等同于物理退出，也不自动重试。
+- 同时失败和晚失败均保留；不能因为另一个副本成功就将初始池标作完整。
+  记录deployment、实际activation、初始ready事件和失败。此记录是事件
+  证据，**不是**物理GPU积分、完整A4 first-dispatch绑定或新的性能结果。
+- Full启动guard原样保留为独立方法，无配置/env绕过。主入口已接线，但
+  全部Full资格未通过前仍拒绝正式启动；测试直接检验这一入口和子流程。
+  legacy wall-time accounting仍未升级为Full物理计量，不能用于G1结论。
+
+### 正确性状态表（CPU/文件fixture，不是模型性能实验）
+
+| 检查 | 观察及范围 |
+|---|---|
+| 主入口/构造 | 单run独占约束；未初始化descriptor不成为ready member；已初始化输入拒绝 |
+| 初始准备 | 实际文件copy可先于runtime-ready完成；之后绑定真实pool member |
+| NoHandoff | 禁止准备仍激活runtime；preload disabled不能跳过Full资格guard |
+| min池并行 | 首个ready即返回；其他initial仍pending；没有补建或重新归类 |
+| 设备不足 | 任一设备不足则factory调用0次，释放尚未使用的设备预留 |
+| 取消/失败 | join factory之后收尾；已发布兄弟副本被清理；未知资源不伪造释放 |
+| 晚失败 | 已开始服务后另一initial失败仍更新状态，ensure-min不自动重试 |
+
+新增11项检查。首轮22项有1个fixture错误：两个假副本使用同一engine，
+正确触发既有alias禁止条件；改用独立fixture身份。第二轮25项有1个fixture
+类型错误：构造测试的Mock不是FrozenServiceProfiles；改为明确无测量、
+不发布runtime的空typed fixture，没有放宽profile验证。之后完整900项
+通过。再补充晚失败journal覆盖，最终回归及原生环境/安全回执见状态记录。
+
+### 返回主线
+
+没有GPU/model、真实174下载、实测profile或性能campaign；没有新权重、
+trace、历史结果或论文修改。下一步是Full剩余候选与native/file联合替换、
+native HOST替换、主动d反馈，以及完整物理生命周期/代表性实测初始化。
+继续使用已完成的原生短回放证据，不重复旧prefix、initial/control微检查。
+正式baseline按Serverless优先；M1/M2、消融、敏感性均未开始。Full资格、
+远端磁盘门槛和3B非零正确性工件授权问题仍明确开放。
