@@ -85,7 +85,7 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `05b1b366fdf407e6be378cf73f868f54d022f9ce`, pushed to
+- Main tested implementation: `ec1416e5f49a979ed40193852ae69bb23353eaf8`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -176,8 +176,11 @@ its one historical SHA difference and independent numerical gate remain open.
 - Return to actual planner/handoff/replacement, shared pressure, full HOST/native
   resource ownership and correctly measured initialization profiles. Do not turn
   this narrow journal into a new microtest campaign. M1/M2, baseline performance,
-  ablation and sensitivity remain not started; goal active. Backup receipt follows
-  only after commit and remote SHA verification.
+  ablation and sensitivity remain not started; goal active.
+- Implementationec1416e5f49a979ed40193852ae69bb23353eaf8 pushed to
+  faaslora_origin/retry14_continuous_queue_v2; remote full SHA verified. This
+  receipt is documentation-only. Recheck live resources and reread plan/status
+  before continuing; no D33 task remains active and no performance slot completed.
 
 ### D32 implementation evidence; no new model or performance experiment
 
