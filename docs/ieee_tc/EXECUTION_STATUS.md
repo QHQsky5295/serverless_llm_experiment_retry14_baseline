@@ -51,6 +51,22 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
+D62 existing-pool identity input is complete: materialized-layout candidate
+indices cover all500 IDs/model,3B4000files/24exact classes and7B5000files/6classes.
+Use ONLY the two candidate paths in paper_results/ieee_tc/inputs/README.md;
+earlier skip indices are preserved local-pack diagnostics, not remote contracts.
+Existing HTTP consumer validates all local metadata/routing identities; full
+remote downloads and numerical correctness remain unqualified. No more index
+scans, allocator-only microtests or old request prefixes. Next representative
+actual service/preparation profiles with the D60 candidate and fixed HOST
+allowance, and Full/multi-plan/lifecycle qualification. Independently establish
+numerical correctness before marking profile samples correct; existing nonzero
+7B controls remain available,3B additional controls need the pending user choice.
+Remote174 remains below the approved150GiB floor, no service start. Full guard
+stays; formal baseline/M1/M2/ablations/sensitivities have NOT started. Final68
+safety/index/census/replay and288 smoke checks pass; original147 protected entries
+and plan unchanged. All owned scopes empty/stopped; backup receipt below.
+
 D61 connects actual asynchronous HOST-capacity observations to existing deferred
 work on the frozen control cadence. No waiters means no RPC; unchanged bytes
 mean no new physical load. Actual A (budget) or A-X (protected workspace) must
@@ -269,6 +285,55 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
   the legacy storage package facade. Test now loads the actual stdlib HTTP module
   directly; endpoint keyword corrected. Second66 pass0failure/error/skip.
   Bounded smoke and actual per-pool indexing/validation receipts follow.
+- 288 basic smoke checks pass. Initial indexer checkpoint
+  860a066deaae9c12513661244eb84c65dd595889 pushed/full remote SHA verified.
+  First3B index task terminates on existing external support symlinks; no output
+  or artifact mutation. Exact first log retained. Read-only enumeration finds
+  2500 such links (five per adapter). Actual remote server SHA a365072244512f4880432d7f4198cf3e45897ff19063a2b25eb141c8ca4e2a02
+  already skips outside/dangling links. Indexer now explicitly mirrors that
+  selection, records excluded link bytes, rejects unsupported internal expansion.
+  Required weight/config/padding hashes still match old audit; no server change.
+  Added real loopback archive-versus-index test;67 safety checks pass. Immediate
+  failure/correction table delivered in ARTIFACT_CONTENT_AUDIT before next task.
+- Local-pack3B index completes:500adapters,1500files,14911799296B,24exact classes;
+  excludes2500support links/4570774000B. Scope empty/stopped,peak1074524160B,
+  high23683,max/OOM0. SHA ba57a73918851669c28af0e383df9cacb38d2217fbbbaa9d8dd16662c00a6d16.
+  Subsequent read-only174 metadata inspection finds NO symlinks:3B auxiliary
+  files already materialized,4000files/19482573296B;7B5000files/12985984450B.
+  Thus local-pack index is diagnostic only, NOT the remote3B contract. No remote
+  bytes hashed/service started. New explicit allowed-local-support-root mode
+  describes those remote relative files without copying or rewriting pools.
+  Added shared-target mutation check; fresh tests and new indices follow.
+  safety4 retained:58 checks execute and1 nonexistent census-module import fails;
+  launcher corrected to the existing gpu_census module, no production failure.
+- Final68 safety/index/census/replay checks pass. Materialized3B index completes:
+  500IDs/4000files/19482573296B,24exact classes;1505inodes/14920940844B hashed.
+  Existing actualHTTP client freezes manifest and validates all500 routing IDs.
+  File SHA bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275;
+  remote contents still unverified. Scope empty/stopped,peak1074520064B,
+  high22769,max/OOM0. Both safety4/5 scopes empty/events0/stopped. Immediate
+  evidence table saved before advancing to the7B existing-pool index.
+- Final-source288 basic smoke checks pass; owned scope empty/events0/stopped.
+  7B defaultskip scan completes but finds2external auxiliary links in finance_lora
+  (797B), contrary to the earlier readable-file enumeration assumption. Output
+  4998files/12985983653B,6classes;actualHTTP client validates500IDs but this does
+  NOT match the remote5000file layout. Preserve as local-pack diagnostic only.
+  Scope empty/stopped,peak1074266112B,high18811,max/OOM0. Immediate table recorded;
+  next same tested explicit-support mode includes those two existing7B targets,
+  new output/no overwrite. Baseline16570c full origin/main SHA reverified.
+- Final7B materialized index completes:500IDs/5000files/12985984450B,6classes,
+  2approved support targets, no exclusions. Both candidate indices revalidated
+  through actualHTTP consumer/all500 localPEFT/routing IDs.7B file SHA
+  e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c;
+  peak1074266112B,high17056,max/OOM0;actual process list empty then scope stopped.
+  Those2remote7B auxiliary files additionally have matching read-onlySSH SHAs,
+  not complete remote qualification. Candidate-vs-diagnostic paths and all
+  hashes documented in inputs/README; immediate final two-model table delivered.
+- All D62 owned scopes empty/stopped; no live model/TMUX/service/test. Final
+  GPUs15MiB/0%,MemAvailable109255308KiB,available353285074944B. Protected147 and
+  authoritative plan SHA unchanged. No pool/trace/weight copied or regenerated,
+  no semantic/remote/Full/performance gate waived. Tested named-file backup
+  follows; baseline unchanged16570c verified against fresh origin/main.
 
 ### D61 observed HOST return and deferred preparation
 

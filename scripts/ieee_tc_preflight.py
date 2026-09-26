@@ -181,7 +181,8 @@ def audit_artifact_pools(paths: list[Path], expected_adapters: int) -> dict:
                              'Directory bytes are logical file bytes, not measured wire/GPU/HOST bytes.'])
 
 
-def index_existing_artifact_pool(root: Path, artifact_audit: Path, expected_adapters: int) -> dict:
+def index_existing_artifact_pool(root: Path, artifact_audit: Path, expected_adapters: int,
+                                *, materialized_support_roots: tuple[Path, ...] = ()) -> dict:
     """Index existing bytes for the existing HTTP/profile contract; copy nothing.
 
     The tensor audit is reused, not repeated: weights/config/padding must still
@@ -192,6 +193,9 @@ def index_existing_artifact_pool(root: Path, artifact_audit: Path, expected_adap
     if type(expected_adapters) is not int or expected_adapters <= 0:
         raise ValueError('content index requires a positive expected adapter count')
     root = root.resolve(strict=True)
+    support_roots = tuple(path.resolve(strict=True) for path in materialized_support_roots)
+    if len(support_roots) != len(set(support_roots)) or any(not path.is_dir() for path in support_roots):
+        raise ValueError('materialized support roots must be explicit unique existing directories')
     audit_bytes = artifact_audit.read_bytes()
     audit = json.loads(audit_bytes)
     if audit.get('kind') != 'existing_artifact_tensor_audit_v1' or audit.get('audit_complete') is not True:
@@ -208,8 +212,8 @@ def index_existing_artifact_pool(root: Path, artifact_audit: Path, expected_adap
 
     def signature(path):
         st = path.lstat()
-        if not (stat.S_ISREG(st.st_mode) or stat.S_ISDIR(st.st_mode)):
-            raise ValueError('content index only supports ordinary files/directories, not links or devices')
+        if not (stat.S_ISREG(st.st_mode) or stat.S_ISDIR(st.st_mode) or stat.S_ISLNK(st.st_mode)):
+            raise ValueError('content index does not support devices or special files')
         return st.st_dev, st.st_ino, st.st_size, st.st_mtime_ns, st.st_ctime_ns, st.st_mode
 
     manifest = root / '.publicmix_generation_manifest.json'
@@ -219,19 +223,57 @@ def index_existing_artifact_pool(root: Path, artifact_audit: Path, expected_adap
     actual_ids = {p.name for p in root.iterdir() if p.is_dir() and not p.name.startswith('.')}
     if actual_ids != set(rows):
         raise ValueError('content index directory IDs differ from the audited pool')
-    cache, artifacts, groups = {}, [], {}
+    cache, artifacts, groups, excluded_links, materialized_links = {}, [], {}, [], []
     for aid, row in sorted(rows.items()):
         directory = root / aid
         before[directory] = signature(directory)
+        if not stat.S_ISDIR(before[directory][-1]):
+            raise ValueError('content index adapter root must be an ordinary directory')
         files = []
+        excluded_readable_bytes = 0
         for path in sorted(directory.rglob('*')):
             sig = signature(path)
             before[path] = sig
+            read_path = path
             if stat.S_ISDIR(sig[-1]):
                 continue
+            if stat.S_ISLNK(sig[-1]):
+                # Default: match local server link selection. Explicit support
+                # roots instead describe a remote pool where those links were
+                # already materialized. Hash existing targets; copy nothing.
+                try:
+                    resolved = path.resolve(strict=True)
+                except FileNotFoundError:
+                    resolved = None
+                if resolved is not None and resolved.is_relative_to(directory):
+                    raise ValueError('internal symlink expansion requires separate payload qualification')
+                materialized = (resolved is not None and
+                    any(resolved.is_relative_to(allowed) for allowed in support_roots))
+                size = 0
+                if resolved is not None:
+                    observed = signature(resolved)
+                    if resolved in before and before[resolved] != observed:
+                        raise RuntimeError('shared support target changed during content indexing')
+                    before[resolved] = observed
+                    if stat.S_ISREG(before[resolved][-1]):
+                        size = before[resolved][2]
+                if materialized:
+                    if not stat.S_ISREG(before[resolved][-1]):
+                        raise ValueError('materialized support target must be an existing regular file')
+                    read_path, sig = resolved, before[resolved]
+                    materialized_links.append(dict(adapter_id=aid,path=path.relative_to(directory).as_posix(),
+                        source_path=str(resolved),size_bytes=size))
+                else:
+                    if support_roots:
+                        raise ValueError('materialized payload contains an unapproved or dangling support link')
+                    excluded_readable_bytes += size
+                    excluded_links.append(dict(adapter_id=aid,path=path.relative_to(directory).as_posix(),
+                        reason='outside_artifact' if resolved is not None else 'dangling',
+                        local_readable_bytes=size))
+                    continue
             if sig not in cache:
-                cache[sig] = digest(path)
-            if signature(path) != sig:
+                cache[sig] = digest(read_path)
+            if signature(read_path) != sig:
                 raise RuntimeError('artifact changed while constructing content index')
             files.append(dict(path=path.relative_to(directory).as_posix(), size_bytes=sig[2], sha256=cache[sig]))
         by_name = {f['path']: f for f in files}
@@ -240,7 +282,7 @@ def index_existing_artifact_pool(root: Path, artifact_audit: Path, expected_adap
         if row.get('padding') is not None:
             expected['adapter_data.bin'] = row['padding']['sha256']
         if (any(name not in by_name or by_name[name]['sha256'] != sha for name, sha in expected.items())
-                or sum(f['size_bytes'] for f in files) != row['logical_file_bytes']):
+                or sum(f['size_bytes'] for f in files)+excluded_readable_bytes != row['logical_file_bytes']):
             raise ValueError('artifact payload differs from its prior tensor audit')
         canonical = json.dumps(files, sort_keys=True, separators=(',', ':')).encode()
         content_sha = hashlib.sha256(canonical).hexdigest()
@@ -255,13 +297,22 @@ def index_existing_artifact_pool(root: Path, artifact_audit: Path, expected_adap
             plan_sha256=check_plan(), inspected_unix=time.time(), logical_adapters=len(artifacts),
             file_entries=sum(len(a['files']) for a in artifacts),
             logical_payload_bytes=sum(f['size_bytes'] for a in artifacts for f in a['files']),
+            source_logical_readable_bytes=sum(r['logical_file_bytes'] for r in rows.values()),
+            payload_selection=('regular_files_materialized_support_v1' if support_roots
+                               else 'regular_files_skip_external_symlinks_v1'),
+            materialized_support_roots=[str(path) for path in support_roots],
+            materialized_links=materialized_links,
+            excluded_links=excluded_links,
+            excluded_readable_bytes=sum(link['local_readable_bytes'] for link in excluded_links),
             unique_hashed_inodes=len(cache), unique_hashed_bytes=sum(sig[2] for sig in cache),
             exact_file_tree_classes=len(groups), content_identity_groups=groups,
             tensor_audit_repeated=False, new_weights_or_trace=False,
             remote_content_verified=False, serving_qualified=False,
             limitations=['Local content identity only; remote downloads must match this index.',
                 'Current auxiliary-file hashes are new; their historical equality is not asserted.',
-                'Weight/config/padding hashes and total payload bytes match the recorded tensor audit.']))
+                'Weight/config/padding hashes and total readable source bytes match the recorded tensor audit.',
+                'Materialized mode hashes approved existing support targets; it does not modify either pool.',
+                'Skip mode omits outside/dangling symlinks as in a local artifact service; internal links reject.']))
 
 
 def check_plan() -> str:
@@ -2825,6 +2876,8 @@ def main():
     parser.add_argument('--install-receipt', type=Path)
     parser.add_argument('--runtime-receipt', type=Path)
     parser.add_argument('--artifact-audit', type=Path)
+    parser.add_argument('--materialized-support-root', type=Path, action='append', default=[],
+                        help='Existing local metadata root corresponding to ordinary files in the remote pool')
     parser.add_argument('--host-copy-lifecycle', action='store_true',
                         help='Observe existing dense checkpoint HOST lifetime across native GPU copy paths')
     parser.add_argument('--host-copy-background', action='store_true',
@@ -2846,6 +2899,8 @@ def main():
     parser.add_argument('--nvml-sha256')
     parser.add_argument('--exec', dest='command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
+    if args.materialized_support_root and args.action != 'artifact-index':
+        parser.error('--materialized-support-root applies only to artifact-index')
     if args.host_copy_lifecycle and args.action != 'backend-host-check':
         parser.error('--host-copy-lifecycle applies only to backend-host-check')
     if args.host_copy_background and (args.action != 'backend-host-check' or not args.host_copy_lifecycle):
@@ -2887,7 +2942,8 @@ def main():
     elif args.action == 'artifact-index':
         if not args.path or len(args.path) != 1 or not args.artifact_audit or not args.output:
             parser.error('artifact-index requires one existing pool, completed audit and new output')
-        result = index_existing_artifact_pool(args.path[0], args.artifact_audit, args.expected_adapters)
+        result = index_existing_artifact_pool(args.path[0], args.artifact_audit, args.expected_adapters,
+            materialized_support_roots=tuple(args.materialized_support_root))
     elif args.action == 'backend-check':
         if not args.install_receipt or not args.requirements or not args.output:
             parser.error('backend-check requires completed install receipt, requirements and new output')

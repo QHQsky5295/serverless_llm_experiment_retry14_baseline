@@ -79,11 +79,80 @@ class ExistingContentIndex(unittest.TestCase):
         root,audit = self.make()
         path=root/'b'/'adapter_model.safetensors'
         path.unlink(); path.symlink_to(root/'a'/'adapter_model.safetensors')
-        with self.assertRaisesRegex(ValueError,'ordinary files'):
+        with self.assertRaisesRegex(ValueError,'payload differs'):
             p.index_existing_artifact_pool(root,audit,2)
         (root/'extra').mkdir()
         with self.assertRaisesRegex(ValueError,'directory IDs'):
             p.index_existing_artifact_pool(root,audit,2)
+
+    def test_outside_support_links_match_actual_existing_server_payload(self):
+        import io,tarfile,threading,urllib.request
+        from remote_artifact_node.server import ArtifactHandler,ArtifactServer
+        root,audit = self.make()
+        support=root.parent/'support.json'
+        support.write_bytes(b'local-backbone-metadata')
+        data=json.loads(audit.read_text())
+        for row in data['pools'][0]['rows']:
+            (root/row['adapter_id']/'tokenizer.json').symlink_to(support)
+            row['logical_file_bytes']+=support.stat().st_size
+        audit.write_text(json.dumps(data))
+        result=p.index_existing_artifact_pool(root,audit,2)
+        self.assertEqual(len(result['provenance']['excluded_links']),2)
+        self.assertEqual(result['provenance']['excluded_readable_bytes'],2*support.stat().st_size)
+        server=ArtifactServer(('127.0.0.1',0),ArtifactHandler,root=root)
+        thread=threading.Thread(target=server.serve_forever)
+        thread.start()
+        try:
+            opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            for artifact in result['artifacts']:
+                with opener.open(f'http://127.0.0.1:{server.server_port}/artifacts/{artifact["id"]}.tar.gz',timeout=2) as response:
+                    payload=response.read()
+                with tarfile.open(fileobj=io.BytesIO(payload),mode='r:gz') as archive:
+                    actual={m.name:(m.size,p.hashlib.sha256(archive.extractfile(m).read()).hexdigest())
+                            for m in archive.getmembers() if m.isfile()}
+                self.assertEqual(actual,{f['path']:(f['size_bytes'],f['sha256']) for f in artifact['files']})
+        finally:
+            server.shutdown();server.server_close();thread.join(timeout=2)
+        materialized=p.index_existing_artifact_pool(root,audit,2,
+            materialized_support_roots=(support.parent,))
+        self.assertEqual(len(materialized['provenance']['materialized_links']),2)
+        self.assertFalse(materialized['provenance']['excluded_links'])
+        self.assertEqual(materialized['provenance']['file_entries'],6)
+        self.assertEqual(materialized['provenance']['unique_hashed_inodes'],3)
+        self.assertEqual(materialized['provenance']['logical_payload_bytes'],
+                         materialized['provenance']['source_logical_readable_bytes'])
+        for artifact in materialized['artifacts']:
+            entry=next(f for f in artifact['files'] if f['path']=='tokenizer.json')
+            self.assertEqual(entry['sha256'],p.digest(support))
+        self.assertTrue((root/'a'/'tokenizer.json').is_symlink())  # no pool rewrite
+        with self.assertRaisesRegex(ValueError,'unapproved'):
+            p.index_existing_artifact_pool(root,audit,2,materialized_support_roots=(root,))
+        internal=root/'a'/'internal'
+        internal.symlink_to(root/'a'/'adapter_config.json')
+        with self.assertRaisesRegex(ValueError,'internal symlink'):
+            p.index_existing_artifact_pool(root,audit,2)
+
+    def test_shared_support_mutation_between_adapters_is_rejected(self):
+        root,audit = self.make()
+        support=root.parent/'support.json'
+        support.write_bytes(b'original')
+        data=json.loads(audit.read_text())
+        for row in data['pools'][0]['rows']:
+            (root/row['adapter_id']/'tokenizer.json').symlink_to(support)
+            row['logical_file_bytes']+=support.stat().st_size
+        trigger=root/'b'/'0-trigger'
+        trigger.write_bytes(b'trigger')
+        data['pools'][0]['rows'][1]['logical_file_bytes']+=trigger.stat().st_size
+        audit.write_text(json.dumps(data))
+        original=p.digest
+        def mutate(path):
+            if path==trigger:
+                support.write_bytes(b'modified')
+            return original(path)
+        with patch.object(p,'digest',side_effect=mutate):
+            with self.assertRaisesRegex(RuntimeError,'shared support target changed'):
+                p.index_existing_artifact_pool(root,audit,2,
+                    materialized_support_roots=(support.parent,))
 
     def test_mutation_after_hash_and_existing_output_are_rejected(self):
         root,audit = self.make()
