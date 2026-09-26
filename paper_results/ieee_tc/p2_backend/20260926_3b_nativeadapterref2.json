@@ -1,0 +1,131 @@
+{
+  "kind": "p2_stock_native_adapter_reference_v1",
+  "pass_gate": false,
+  "raw_mechanical_checks_pass": true,
+  "semantic_adapter_discrimination": "not_established_zero_update_controls",
+  "formal_performance_result": false,
+  "requests": [
+    {
+      "request_id": "req_00003/native_sequential_same_adapter",
+      "source_request_id": "req_00003",
+      "adapter_id": "finance_lora",
+      "outcome": "completed",
+      "target_tokens": 217,
+      "actual_tokens": 217,
+      "prompt_sha256": "ee3fa20a89e360813cdd6abf93ce33113972f0f6d5fac1cf440f1ff6450d9d52",
+      "native_prompt_ids_sha256": "d904de63bd0654db897622ee6bbb2444dec9048443ce9b5fd55dffb7c096889c",
+      "output_ids_sha256": "2c2300cd16afc6c4e1295a8695da2899ffc2e9dace654f7389d97f4cfb25148c"
+    },
+    {
+      "request_id": "req_00003/native_sequential_wrong_adapter",
+      "source_request_id": "req_00003",
+      "adapter_id": "code_lora_0015",
+      "outcome": "completed",
+      "target_tokens": 217,
+      "actual_tokens": 217,
+      "prompt_sha256": "ee3fa20a89e360813cdd6abf93ce33113972f0f6d5fac1cf440f1ff6450d9d52",
+      "native_prompt_ids_sha256": "d904de63bd0654db897622ee6bbb2444dec9048443ce9b5fd55dffb7c096889c",
+      "output_ids_sha256": "2c2300cd16afc6c4e1295a8695da2899ffc2e9dace654f7389d97f4cfb25148c"
+    }
+  ],
+  "input_mode": "same_existing_req00003_prompt_sequential_two_existing_adapters",
+  "raw_input_mode_caveat": "Raw metadata says concurrent_pairs; actual recorded execution is two sequential counterfactuals.",
+  "negative_control": {
+    "adapter_id": "code_lora_0015",
+    "existing_source_request_id": "req_00015",
+    "selection": "first_distinct_weight_in_existing_100_request_prefix"
+  },
+  "adapters": {
+    "finance_lora": {
+      "path": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/finance_lora",
+      "weights_sha256": "dfd99d29ccc482c8634823bef3eb290a928e79e9de52bcf0fdabc5b581ab7bf3",
+      "config_sha256": "2fd5d614008fe02c854926c4b17510c171e0453bda9f672e7a6fc5bfa7fb2f08"
+    },
+    "writing_lora_0011": {
+      "path": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/writing_lora_0011",
+      "weights_sha256": "dfd99d29ccc482c8634823bef3eb290a928e79e9de52bcf0fdabc5b581ab7bf3",
+      "config_sha256": "2fd5d614008fe02c854926c4b17510c171e0453bda9f672e7a6fc5bfa7fb2f08"
+    },
+    "code_lora_0015": {
+      "path": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/code_lora_0015",
+      "weights_sha256": "c3569070daf5c2f5a402daed573b02d68dfe8da4c656135578f4e08d447fe44b",
+      "config_sha256": "68ce193813f603f4034db49bf504a581a53f9ffff1095b344bf309e488e7c981"
+    }
+  },
+  "outputs_identical": true,
+  "native_frontend": "vllm.v1.engine.async_llm.AsyncLLM",
+  "native_adapter_cleanup": {
+    "code_lora_0015": true,
+    "finance_lora": true
+  },
+  "resources": {
+    "samples": 64,
+    "peak_bytes": 4926136320,
+    "min_host_available_bytes": 106023329792,
+    "event_max": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "cleanup": {
+    "native_gpu_contexts_clear": true,
+    "scope_removed": true
+  },
+  "result_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/model_20260926/llama32_3b_nativeadapterref2_attempt1.json",
+  "result_sha256": "bb93a4335e0d16464814e6ee7f8e9968f93968e3d38b5d3ae7b81ac1a84c1eef",
+  "launch_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/model_20260926/llama32_3b_nativeadapterref2_attempt1_launch.json",
+  "launch_sha256": "2a4f4513d9979b0e30f461ca5c5b20c67f7043e60d97364e4b0a741653ce76ed",
+  "evidence_sha256": {
+    "watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exec_receipt.json": "7a47a5049296df4b8cb2589e0d343588c3e46462fbe9bb5f910bc16152c6af31",
+    "watchdog.jsonl": "94c90e4b7171710641e9294d54b8e98cede388cc99b4c9627715e33b4f445972",
+    "service.log": "4d54a25ab128ab851d515ff7e0baeccd73849637a95aa7df2e29d6f290897457"
+  },
+  "trace": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "6b796f614169a3e9d36d7b217560595a8bbb0a8e441e671ff821e104d6d1fd74",
+    "count": 4,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1
+  },
+  "model_config": {
+    "name": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+    "backend": "vllm",
+    "device_id": 0,
+    "visible_device_ids": [
+      0
+    ],
+    "tensor_parallel_size": 1,
+    "gpu_memory_utilization": 0.72,
+    "max_model_len": 1024,
+    "max_loras": 8,
+    "max_cpu_loras": 32,
+    "max_lora_rank": 64,
+    "enable_lora": true,
+    "enforce_eager": "auto",
+    "dtype": "float16",
+    "max_num_seqs": 8,
+    "max_num_batched_tokens": 4096,
+    "max_output_tokens_cap": 256,
+    "max_input_len": 759,
+    "runtime_concurrency_cap": 8,
+    "enable_chunked_prefill": false,
+    "enable_prefix_caching": false,
+    "timing_contract": "ieee_tc_native_v1",
+    "ieee_worker_observation": true,
+    "ieee_gpu_references": false,
+    "ieee_scheduler_observation": true,
+    "ieee_input_upper_bounds": [
+      759
+    ],
+    "generation_contract": "fixed_length_greedy_v1",
+    "canonical_prompt_renderer": "role_lines_v1"
+  },
+  "check_source_sha256": "3ce29eeca9e894707c7ad600efe08e4f1f24bf1bce0b39b6b7c38df728640d10",
+  "csv_sha256": "54cc945198ced844470bd06330f1365e2e7f6d707ea4dbd4a0af2d13c009b621",
+  "interpretation": "Both native outputs have 217 tokens and the same prompt/output hashes. Different weight-file SHAs alone do not establish semantic difference. Read-only tensor audit found both selected adapters all-zero; no inference policy is blamed from this result."
+}

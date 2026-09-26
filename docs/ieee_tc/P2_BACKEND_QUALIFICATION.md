@@ -447,6 +447,18 @@ fake-engine 控制器测试不等于真实断连恢复。必须区分“该 sock
 这个问题不影响上述本地 InferenceEngine 的实测结论，但阻止宣称 Full
 跨进程取消已经合格。下一步与 3B 原生输出对照一起闭合，再进入完整池主线。
 
+## 全池内容核查后的资格边界（2026-09-26）
+
+后续 stock-native 两次同 prompt 对照已经完成，并进一步检查当前两池全部权重。
+**3B 500/500、7B 498/500 的 A、B 全零**，不同权重 SHA 仅 2/4 个；7B 的
+finance/medical 两份含非零值。此前顺序/批次/取消检查证明了各自记录的原生
+调用、长度、所有权和清理，不证明 500 个独立训练模型或全面数值正确性。
+3B 同 prompt 的不同 SHA 控制均输出相同 217 tokens；原始 mechanical pass
+保留，但语义区分门槛没有通过。详见 [完整内容核查](ARTIFACT_CONTENT_AUDIT.md)。
+不再重复数学上不可区分的零权重负对照，不修复/重新生成工件以掩盖发现。
+计划禁止新增权重，少量非零 3B 独立正确性工件需用户另行确认；原池、trace、
+旧测量保持原样。Full 集成及正式性能矩阵仍未完成。
+
 ## 原生计量接入注意事项
 
 现有 runner 的 legacy `_derive_vllm_latency_metrics` 优先 finished timestamp。

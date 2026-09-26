@@ -55,6 +55,131 @@ def digest(path: Path) -> str:
     return h.hexdigest()
 
 
+def artifact_tensor_facts(path: Path) -> dict:
+    """Read actual tensors, without CUDA, repair, training or checkpoint pickle."""
+    import numpy as np
+    from safetensors import safe_open
+
+    groups = {side: dict(tensors=0, elements=0, nonzero=0, nonfinite=0)
+              for side in ('A', 'B', 'other')}
+    pairs = {}
+    dtypes, shapes = set(), {}
+    with safe_open(str(path), framework='numpy') as source:
+        for key in source.keys():
+            value = source.get_tensor(key)
+            side = next((s for s in ('A', 'B') if f'.lora_{s}.' in key), 'other')
+            facts = dict(elements=int(value.size), nonzero=int(np.count_nonzero(value)),
+                         nonfinite=int(value.size - np.count_nonzero(np.isfinite(value))))
+            groups[side]['tensors'] += 1
+            for field, count in facts.items():
+                groups[side][field] += count
+            dtypes.add(str(value.dtype))
+            shapes[key] = list(value.shape)
+            if side != 'other':
+                prefix, suffix = key.split(f'.lora_{side}.', 1)
+                pairs.setdefault((prefix, suffix), {})[side] = facts
+            del value
+    complete = bool(pairs) and all(set(pair) == {'A', 'B'} for pair in pairs.values())
+    zero_pairs = sum(set(pair) == {'A', 'B'} and
+                     any(pair[s]['nonzero'] == 0 for s in ('A', 'B'))
+                     for pair in pairs.values())
+    finite = all(g['nonfinite'] == 0 for g in groups.values())
+    return dict(groups=groups, dtypes=sorted(dtypes), tensor_shapes=shapes,
+                paired_modules=len(pairs), paired_modules_complete=complete,
+                zero_product_pairs_by_zero_operand=zero_pairs,
+                all_ab_updates_provably_zero=complete and finite and zero_pairs == len(pairs),
+                all_tensors_zero=sum(g['nonzero'] for g in groups.values()) == 0,
+                all_finite=finite,
+                note='Nonzero operands do not alone prove a nonzero BA product or training quality.')
+
+
+def audit_artifact_pools(paths: list[Path], expected_adapters: int) -> dict:
+    """Content audit of existing pools; complete scan is NOT a serving qualification."""
+    if expected_adapters <= 0:
+        raise ValueError('expected adapter count must be positive')
+    stats_cache, pools = {}, []
+
+    def signature(path):
+        st = path.stat()
+        return (st.st_dev, st.st_ino, st.st_size, st.st_mtime_ns, st.st_ctime_ns)
+
+    for root in paths:
+        root = root.resolve(strict=True)
+        manifest = root / '.publicmix_generation_manifest.json'
+        before_manifest = signature(manifest)
+        manifest_sha = digest(manifest)
+        content = json.loads(manifest.read_text())
+        ids = [str(row['id']) for row in content['adapters']]
+        if len(ids) != len(set(ids)) or any(not a or Path(a).name != a or a in ('.', '..') for a in ids):
+            raise ValueError('artifact manifest needs unique safe adapter IDs')
+        actual_ids = {d.name for d in root.iterdir() if d.is_dir() and not d.name.startswith('.')}
+        rows, observed_files = [], {}
+        for adapter in ids:
+            row = dict(adapter_id=adapter, inspected=False)
+            rows.append(row)
+            try:
+                directory = root / adapter
+                files = sorted(p for p in directory.rglob('*') if p.is_file())
+                before = {p: signature(p) for p in files}
+                observed_files.update(before)
+                weight = directory / 'adapter_model.safetensors'
+                config_path = directory / 'adapter_config.json'
+                config_sha = digest(config_path)
+                cfg = json.loads(config_path.read_text())
+                weight_sha = digest(weight)
+                if weight_sha not in stats_cache:
+                    stats_cache[weight_sha] = artifact_tensor_facts(weight)
+                tensor_facts = stats_cache[weight_sha]
+                pad = directory / 'adapter_data.bin'
+                padding = None
+                if pad.exists():
+                    pad_hash, nonzero = hashlib.sha256(), 0
+                    with pad.open('rb') as stream:
+                        for chunk in iter(lambda: stream.read(MIB), b''):
+                            pad_hash.update(chunk)
+                            nonzero += len(chunk) - chunk.count(0)
+                    padding = dict(bytes=before[pad][2], sha256=pad_hash.hexdigest(),
+                                   nonzero_bytes=nonzero)
+                if any(signature(p) != st for p, st in before.items()):
+                    raise RuntimeError('artifact changed during content inspection')
+                row.update(inspected=True, directory=str(directory),
+                    weight_sha256=weight_sha, weight_bytes=before[weight][2],
+                    config_sha256=config_sha, configured_rank=cfg.get('r'),
+                    configured_alpha=cfg.get('lora_alpha'),
+                    target_modules=cfg.get('target_modules'), base_model=cfg.get('base_model_name_or_path'),
+                    modules_to_save=cfg.get('modules_to_save'), bias=cfg.get('bias'),
+                    logical_file_bytes=sum(st[2] for st in before.values()),
+                    padding=padding, all_tensors_zero=tensor_facts['all_tensors_zero'],
+                    all_ab_updates_provably_zero=tensor_facts['all_ab_updates_provably_zero'],
+                    all_finite=tensor_facts['all_finite'])
+            except Exception as exc:
+                row.update(error_type=type(exc).__name__, error=str(exc))
+        unchanged = (signature(manifest) == before_manifest and
+                     all(p.exists() and signature(p) == st for p, st in observed_files.items()))
+        seen = [r for r in rows if r['inspected']]
+        complete = (len(ids) == expected_adapters and set(ids) == actual_ids and
+                    len(seen) == len(ids) and unchanged)
+        pools.append(dict(root=str(root), manifest_sha256=manifest_sha,
+            expected_adapters=expected_adapters, manifest_adapters=len(ids),
+            directory_adapters=len(actual_ids), inspected_adapters=len(seen),
+            unchanged_during_audit=unchanged, complete=complete,
+            distinct_weight_sha256=len({r['weight_sha256'] for r in seen}),
+            all_zero_tensor_adapters=sum(r['all_tensors_zero'] for r in seen),
+            provably_zero_ab_update_adapters=sum(r['all_ab_updates_provably_zero'] for r in seen),
+            nonfinite_adapters=sum(not r['all_finite'] for r in seen),
+            logical_file_bytes=sum(r['logical_file_bytes'] for r in seen),
+            logical_weight_bytes=sum(r['weight_bytes'] for r in seen),
+            logical_padding_bytes=sum((r['padding'] or {}).get('bytes', 0) for r in seen),
+            rows=rows))
+    return dict(kind='existing_artifact_tensor_audit_v1', audit_complete=all(p['complete'] for p in pools),
+                formal_performance_result=False, semantic_adapter_qualification=False,
+                plan_sha256=check_plan(), checker_sha256=digest(Path(__file__)),
+                inspected_unix=time.time(), pools=pools, weights_by_sha256=stats_cache,
+                limitations=['No inference or trained quality verification.',
+                             'No mutation, regeneration or fallback to another adapter pool.',
+                             'Directory bytes are logical file bytes, not measured wire/GPU/HOST bytes.'])
+
+
 def check_plan() -> str:
     source, approved = digest(PLAN), digest(SNAPSHOT)
     if source != approved:
@@ -1853,7 +1978,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
                                          'watchdog', 'watchdog-test', 'install-candidate', 'backend-check',
-                                         'backend-model-check', '_worker',
+                                         'backend-model-check', 'artifact-audit', '_worker',
                                          'gated-launch', '_launch-gate', '_replay-publisher', '_replay-witness'])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--seal', type=Path)
@@ -1871,6 +1996,7 @@ def main():
     parser.add_argument('--config', type=Path)
     parser.add_argument('--model-profile')
     parser.add_argument('--request-count', type=int, default=4)
+    parser.add_argument('--expected-adapters', type=int, default=500)
     parser.add_argument('--qualification-mode', choices=['sequential', 'concurrent_pairs', 'cancel_pairs',
                         'cancel_pairs_retain_adapter', 'cancel_pairs_subprocess',
                         'native_cancel_reference', 'native_adapter_reference'], default='sequential')
@@ -1913,6 +2039,10 @@ def main():
         result = gated_launch(command, args.output, tiny=args.tiny_witness,
                               predicted_growth=int(args.predicted_growth_gib*GIB),
                               replay_trace=args.replay_trace, replay_profile=args.replay_profile)
+    elif args.action == 'artifact-audit':
+        if not args.path or not args.output:
+            parser.error('artifact-audit requires existing pool path(s) and new output')
+        result = audit_artifact_pools(args.path, args.expected_adapters)
     elif args.action == 'backend-check':
         if not args.install_receipt or not args.requirements or not args.output:
             parser.error('backend-check requires completed install receipt, requirements and new output')
@@ -1963,10 +2093,11 @@ def main():
         with args.output.open('x') as f:
             f.write(output)
         print(json.dumps({'output': str(args.output), 'sha256': digest(args.output),
-                          'pass': result.get('pass', result.get('preflight_pass'))}))
+                          'pass': result.get('pass', result.get('preflight_pass')),
+                          'audit_complete': result.get('audit_complete')}))
     else:
         print(output)
-    if result.get('pass', result.get('preflight_pass', True)) is False:
+    if result.get('pass', result.get('preflight_pass', result.get('audit_complete', True))) is False:
         raise SystemExit(2)
 
 

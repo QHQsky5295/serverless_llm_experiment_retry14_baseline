@@ -22,7 +22,7 @@
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
 | P1 IEEE semantic alignment | Mathematical contracts, native references, managed file ownership/storage and preallocated content-verified HTTP transfers tested; physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D19. Native fetch allocates archive/payload before body reads under the owner file budget, retains old copies and concurrent allocations. Full-pool qualification, all-tier physical reservations/registry epoch, pre-decision source/cost composition, CUDA/clock/stream qualification, abort reconciliation and proactive atomic admission remain open; no Full performance qualification |
-| P2 backend qualification | Actual sequential100/normal batch4 passed; 7B actual subprocess cancellation passes; 3B output audit/full-pool gates open | P2_BACKEND_QUALIFICATION.md + smoke100/batch4/cancel4/cancelrpc4 summaries. 7B cancel survivors match old outputs, separate TCP control settles exact ownership; 3B distinct-adapter survivor differs, retain-adapter control matches cancel output. Not open-loop/remote/main performance |
+| P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
 | A1–A5, S1–S3 | Not started | Shared frozen policies required |
@@ -51,13 +51,17 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-0. P2 installation finished; do NOT reinstall. Environment `/home/qhq/.venvs/primelora_vllm0300_tc_20260925`. All current runs finished/cleaned. Actual 7B cancelrpc4 passed. 3B stock AsyncLLM reproduced req3 cancel-dependent f6b4... versus sequential 2c23... hashes, but whole diagnostic failed at wrong-weight control selection: finance and writing IDs share one weight SHA. Preserve partial result. Existing checker now adds native_adapter_reference (original four-row input view, executes only req3 same/wrong-weight pair); it selects first distinct actual weight from original first100 rows, not output. Run that narrow remaining control next, not native cancel pairs again. Review official 0.30 warning against old 3B chunked_prefill=false before candidate configuration freeze. Then full pool/Full integration. Reuse candidate_cache, candidate/bin on PATH, original assets/trace. Use existing KEEP_DEDICATED_WORKER_LOGS for subprocess diagnostics. Formal metrics remain unqualified.
+0. P2 installation finished; do NOT reinstall. All current runs finished/cleaned. Native adapter reference and full 3B/7B content scan now COMPLETE; do not repeat zero-weight output controls. Current 3B pool has 500 all-zero LoRAs (2 SHAs); 7B has 498 zero plus finance/medical nonzero (4 SHAs). New ARTIFACT_CONTENT_AUDIT.md and curated tables distinguish API/length/cleanup from numerical adapter identity. Plan forbids new weights; user confirmation requested before adding a few trained nonzero 3B correctness fixtures. Keep original pools/traces/history intact. A targeted existing asset search found no 3B candidate in 2,521 configs, not proof of server-wide absence. Useful unchanged-scope work remains 7B independent nonzero correctness and Full integration; formal semantic gate is not passed. Earlier stock AsyncLLM reproduced cancel-dependent output changes but precise numerical cause remains unproved. Review official 0.30 warning on old 3B chunked_prefill=false before freezing. Reuse environment/cache, KEEP_DEDICATED_WORKER_LOGS for future proxy runs.
 1. Continue native owner integration: measured source-class costs, resource-owner remaining budgets, atomic routing/admission. Native token/reference interfaces and startup-parallel external arrival/submission are opt-in and unit/witness tested, but actual engine clocks/streams/controller owners remain open. Do not declare the historical scorer IEEE-aligned.
 2. Qualify actual model/GPU workers and lifecycle under the existing guarded launcher; native single-raylet and tiny replay witnesses are not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
 ## Verified backups
+
+- Main cancelled-RPC/native-output checkpoint `656dd2b26a29ee034696bf13dae9e53507ff7731`
+  pushed to V2; remote SHA verified. 7B actual subprocess cancellation qualified;
+  3B stock-native partial diagnostic retained, narrow distinct-weight control next.
 
 - Main cancellation/retirement checkpoint `ac69b3b70e6babe0af7b9f2456ebf24037185e97`
   pushed to V2; remote SHA verified. Three real qualification runs retained;
@@ -1049,3 +1053,49 @@ configs/relayserve_motivation_serverlessllm.yaml.
   (Serverless first), remote disk floor and main matrices remain outstanding.
   The 7B RPC run used its recorded source SHA before the later single-flight
   end-use lock; that lock is regression-tested, not separately GPU-tested.
+
+## Native output control and full existing-artifact content checkpoint
+
+- Actual 3B nativeadapterref2 executes old req00003 twice, finance then the first
+  distinct file SHA from the existing first100 trace (code_lora_0015). Both have
+  identical prompt/native IDs and output hash, 217/217 tokens. Raw API/length/
+  cleanup assertions pass; semantic adapter-discrimination does NOT. Raw input
+  mode says concurrent pairs despite the actual two sequential controls; raw
+  unchanged, curated caveat explicit. 64 samples, peak 4,926,136,320 bytes, events
+  high/max/OOM zero; contexts clear, native cache removed and scope gone.
+- Read-only full content scan: all 500 current 3B IDs are all-zero A/B, with only
+  two weight SHAs (350 rank8,150 rank16). 7B has 498 all-zero IDs plus nonzero
+  finance/medical, four SHAs total. Both pools finite and unchanged during scan.
+  3B additionally has 8,932,962,246 logical padding bytes, all zero. Do not equate
+  directory bytes to LoRA tensors or gzip wire bytes. Actual server uses tar gzip.
+- No blanket invalidation of historical timing: zero adapters can exercise
+  storage/loading/kernel paths. However they cannot demonstrate 500 independent
+  trained models or distinguish wrong-adapter/base fallback by output. Historical
+  and remote identity requires own hashes; current contents are not retroactively
+  asserted as every old run's contents. No Prime/baseline ranking inferred.
+- Existing synthetic generator explicitly writes zero A/B and padding; this is
+  consistent with observed files, not proven historical command provenance.
+  7B manifest says public_count=0/generated_fill_count=500 despite publicmix name.
+  Sanitization exists but is not established as the cause. Targeted 2,521 existing
+  configs in candidates/archive/remote backups yield no Llama-3.2-3B source; not
+  an exhaustive server-wide absence claim. No new/downloaded weights or traces.
+- Existing preflight extended with read-only artifact-audit (no new framework),
+  seven small-array tests pass. Audit in 1/2 GiB high/max, swap0, CPU3/27, peak
+  1,074,528,256 bytes. File-cache reclaim causes 43,008 high events; max/OOM zero.
+  Finished processes empty; only that empty owned scope stopped. Audit timing is
+  NOT performance. Curated JSON/CSV and status tables delivered before more runs.
+- ARTIFACT_CONTENT_AUDIT.md records sources, caveats and next action. User choice
+  required before adding a few trained nonzero 3B correctness controls because
+  the plan forbids new weights. Do not silently replace either 500 pool or repeat
+  uninformative zero controls. Existing nonzero 7B correctness and Full integration
+  remain in-scope work. Native 3B batching/cancel numerical cause still unproved.
+- No M1/M2, A1–A5 or S1–S13 performance point completed. Remote disk gate, actual
+  baseline qualification (Serverless first), warm SLO/reference and full physical
+  accounting remain open. Preserve all failures and historic outputs.
+- Final proportional regression: seven artifact checks + 54 system safety/
+  census/replay checks pass, zero skips/failures. Both curated CSV/raw/launch/log
+  hash bundles verify; all 147 protected entries and source plan unchanged.
+  Four GPUs idle at 15 MiB/0%; local disk 354,130,219,008 bytes free. Source change
+  after the scan only improves CLI audit-completion reporting/exit status; the
+  scan receipt retains the exact source SHA used. No native inference code or
+  original artifact was changed by this checkpoint.

@@ -1,0 +1,349 @@
+{
+  "kind": "existing_artifact_tensor_audit_v1",
+  "audit_complete": true,
+  "semantic_adapter_qualification": false,
+  "formal_performance_result": false,
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "checker_sha256": "f08db50c7344746a7e28a0f6b3d27ceb35db62e864364d523ed09b7b6b2e6194",
+  "source_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/model_20260926/artifact_tensor_audit_3b7b_attempt1.json",
+  "source_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+  "csv_sha256": "28b3e64142698d75b09bdd62cfb4cf51e59903804818495b22729d2050ab33bc",
+  "inspected_unix": 1790387375.0370064,
+  "pools": [
+    {
+      "root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+      "manifest_sha256": "7e5db7605f4c9e44eb713a054d0e66623405a9bef07e81e6c81cfce957e4d27d",
+      "expected_adapters": 500,
+      "manifest_adapters": 500,
+      "directory_adapters": 500,
+      "inspected_adapters": 500,
+      "unchanged_during_audit": true,
+      "complete": true,
+      "distinct_weight_sha256": 2,
+      "all_zero_tensor_adapters": 500,
+      "provably_zero_ab_update_adapters": 500,
+      "nonfinite_adapters": 0,
+      "logical_file_bytes": 19482573296,
+      "logical_weight_bytes": 5978564400,
+      "logical_padding_bytes": 8932962246
+    },
+    {
+      "root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix",
+      "manifest_sha256": "ad5b44f47bb365097f7cf0fa34d1405b5ff37ff20b7f5910c84ec379ac7e67cc",
+      "expected_adapters": 500,
+      "manifest_adapters": 500,
+      "directory_adapters": 500,
+      "inspected_adapters": 500,
+      "unchanged_during_audit": true,
+      "complete": true,
+      "distinct_weight_sha256": 4,
+      "all_zero_tensor_adapters": 498,
+      "provably_zero_ab_update_adapters": 498,
+      "nonfinite_adapters": 0,
+      "logical_file_bytes": 12985984450,
+      "logical_weight_bytes": 10922202000,
+      "logical_padding_bytes": 0
+    }
+  ],
+  "weight_groups": [
+    {
+      "pool": "llama32_3b_a500_v1_modelscope",
+      "weight_sha256": "c3569070daf5c2f5a402daed573b02d68dfe8da4c656135578f4e08d447fe44b",
+      "logical_adapters": 150,
+      "configured_ranks": [
+        16
+      ],
+      "example_ids": [
+        "education_lora_0007",
+        "gaming_lora_0010",
+        "code_lora_0015"
+      ],
+      "weight_bytes": 18379976,
+      "groups": {
+        "A": {
+          "tensors": 112,
+          "elements": 5505024,
+          "nonzero": 0,
+          "nonfinite": 0
+        },
+        "B": {
+          "tensors": 112,
+          "elements": 3670016,
+          "nonzero": 0,
+          "nonfinite": 0
+        },
+        "other": {
+          "tensors": 0,
+          "elements": 0,
+          "nonzero": 0,
+          "nonfinite": 0
+        }
+      },
+      "dtypes": [
+        "float16"
+      ],
+      "paired_modules": 112,
+      "paired_modules_complete": true,
+      "zero_product_pairs_by_zero_operand": 112,
+      "all_ab_updates_provably_zero": true,
+      "all_tensors_zero": true,
+      "all_finite": true,
+      "note": "Nonzero operands do not alone prove a nonzero BA product or training quality."
+    },
+    {
+      "pool": "llama32_3b_a500_v1_modelscope",
+      "weight_sha256": "dfd99d29ccc482c8634823bef3eb290a928e79e9de52bcf0fdabc5b581ab7bf3",
+      "logical_adapters": 350,
+      "configured_ranks": [
+        8
+      ],
+      "example_ids": [
+        "finance_lora",
+        "medical_lora",
+        "code_lora"
+      ],
+      "weight_bytes": 9204480,
+      "groups": {
+        "A": {
+          "tensors": 112,
+          "elements": 2752512,
+          "nonzero": 0,
+          "nonfinite": 0
+        },
+        "B": {
+          "tensors": 112,
+          "elements": 1835008,
+          "nonzero": 0,
+          "nonfinite": 0
+        },
+        "other": {
+          "tensors": 0,
+          "elements": 0,
+          "nonzero": 0,
+          "nonfinite": 0
+        }
+      },
+      "dtypes": [
+        "float16"
+      ],
+      "paired_modules": 112,
+      "paired_modules_complete": true,
+      "zero_product_pairs_by_zero_operand": 112,
+      "all_ab_updates_provably_zero": true,
+      "all_tensors_zero": true,
+      "all_finite": true,
+      "note": "Nonzero operands do not alone prove a nonzero BA product or training quality."
+    },
+    {
+      "pool": "llama2_7b_a500_v2_publicmix",
+      "weight_sha256": "763a734f248ff2557d156beaa0b78e35bdb97d02a8572de6e2e46466dcc69040",
+      "logical_adapters": 150,
+      "configured_ranks": [
+        16
+      ],
+      "example_ids": [
+        "education_lora_0007",
+        "gaming_lora_0010",
+        "code_lora_0015"
+      ],
+      "weight_bytes": 33588752,
+      "groups": {
+        "A": {
+          "tensors": 128,
+          "elements": 8388608,
+          "nonzero": 0,
+          "nonfinite": 0
+        },
+        "B": {
+          "tensors": 128,
+          "elements": 8388608,
+          "nonzero": 0,
+          "nonfinite": 0
+        },
+        "other": {
+          "tensors": 0,
+          "elements": 0,
+          "nonzero": 0,
+          "nonfinite": 0
+        }
+      },
+      "dtypes": [
+        "float16"
+      ],
+      "paired_modules": 128,
+      "paired_modules_complete": true,
+      "zero_product_pairs_by_zero_operand": 128,
+      "all_ab_updates_provably_zero": true,
+      "all_tensors_zero": true,
+      "all_finite": true,
+      "note": "Nonzero operands do not alone prove a nonzero BA product or training quality."
+    },
+    {
+      "pool": "llama2_7b_a500_v2_publicmix",
+      "weight_sha256": "971901c3140f83f57cbb19fcc86d33b4d010f6d8fc15fbec621f0347bc31a258",
+      "logical_adapters": 1,
+      "configured_ranks": [
+        8
+      ],
+      "example_ids": [
+        "finance_lora"
+      ],
+      "weight_bytes": 16811112,
+      "groups": {
+        "A": {
+          "tensors": 128,
+          "elements": 4194304,
+          "nonzero": 4194295,
+          "nonfinite": 0
+        },
+        "B": {
+          "tensors": 128,
+          "elements": 4194304,
+          "nonzero": 4194090,
+          "nonfinite": 0
+        },
+        "other": {
+          "tensors": 0,
+          "elements": 0,
+          "nonzero": 0,
+          "nonfinite": 0
+        }
+      },
+      "dtypes": [
+        "float16"
+      ],
+      "paired_modules": 128,
+      "paired_modules_complete": true,
+      "zero_product_pairs_by_zero_operand": 0,
+      "all_ab_updates_provably_zero": false,
+      "all_tensors_zero": false,
+      "all_finite": true,
+      "note": "Nonzero operands do not alone prove a nonzero BA product or training quality."
+    },
+    {
+      "pool": "llama2_7b_a500_v2_publicmix",
+      "weight_sha256": "bc7c9a6c63f27d3d82fac4a4897bee9fc998dd2cfa24e112562e23cf1d5a1c0f",
+      "logical_adapters": 348,
+      "configured_ranks": [
+        8
+      ],
+      "example_ids": [
+        "code_lora",
+        "support_lora",
+        "legal_lora"
+      ],
+      "weight_bytes": 16811112,
+      "groups": {
+        "A": {
+          "tensors": 128,
+          "elements": 4194304,
+          "nonzero": 0,
+          "nonfinite": 0
+        },
+        "B": {
+          "tensors": 128,
+          "elements": 4194304,
+          "nonzero": 0,
+          "nonfinite": 0
+        },
+        "other": {
+          "tensors": 0,
+          "elements": 0,
+          "nonzero": 0,
+          "nonfinite": 0
+        }
+      },
+      "dtypes": [
+        "float16"
+      ],
+      "paired_modules": 128,
+      "paired_modules_complete": true,
+      "zero_product_pairs_by_zero_operand": 128,
+      "all_ab_updates_provably_zero": true,
+      "all_tensors_zero": true,
+      "all_finite": true,
+      "note": "Nonzero operands do not alone prove a nonzero BA product or training quality."
+    },
+    {
+      "pool": "llama2_7b_a500_v2_publicmix",
+      "weight_sha256": "d2b1dcfe42193917d0b2e0f728e735f24ad119dd2c77cb9b20c983c7f688fa5c",
+      "logical_adapters": 1,
+      "configured_ranks": [
+        8
+      ],
+      "example_ids": [
+        "medical_lora"
+      ],
+      "weight_bytes": 16811112,
+      "groups": {
+        "A": {
+          "tensors": 128,
+          "elements": 4194304,
+          "nonzero": 4194295,
+          "nonfinite": 0
+        },
+        "B": {
+          "tensors": 128,
+          "elements": 4194304,
+          "nonzero": 4194098,
+          "nonfinite": 0
+        },
+        "other": {
+          "tensors": 0,
+          "elements": 0,
+          "nonzero": 0,
+          "nonfinite": 0
+        }
+      },
+      "dtypes": [
+        "float16"
+      ],
+      "paired_modules": 128,
+      "paired_modules_complete": true,
+      "zero_product_pairs_by_zero_operand": 0,
+      "all_ab_updates_provably_zero": false,
+      "all_tensors_zero": false,
+      "all_finite": true,
+      "note": "Nonzero operands do not alone prove a nonzero BA product or training quality."
+    }
+  ],
+  "resource_scope": {
+    "unit": "primelora-tc-aux-c4c2407eb13a4d038a978e143584cf7f.scope",
+    "memory_high_bytes": 1073741824,
+    "memory_max_bytes": 2147483648,
+    "swap_max_bytes": 0,
+    "cpus": [
+      3,
+      27
+    ],
+    "memory_peak_bytes": 1074528256,
+    "memory_events": {
+      "high": 43008,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "processes_after": [],
+    "populated_after": 0
+  },
+  "existing_asset_search": {
+    "configs_checked": 2521,
+    "roots": [
+      "artifacts/public_candidates",
+      "artifacts/archive",
+      "artifacts/remote",
+      "artifacts/remote_backup_before_nemo_20260316_101230",
+      "artifacts/remote_before_nemo_retry_20260316_111801"
+    ],
+    "matching_Llama_3_2_3B_configs": 0,
+    "scope_caveat": "Targeted existing-asset metadata search, not proof of absence across the entire server."
+  },
+  "limitations": [
+    "No inference or trained quality verification.",
+    "No mutation, regeneration or fallback to another adapter pool.",
+    "Directory bytes are logical file bytes, not measured wire/GPU/HOST bytes.",
+    "Current local frozen contents verified; historical/remote identity is not assumed without matching hashes.",
+    "All-zero LoRAs can exercise loading and kernels but do not discriminate wrong-adapter or base-fallback via outputs.",
+    "No trained-domain quality claim follows from nonzero weights."
+  ]
+}
