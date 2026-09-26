@@ -426,3 +426,33 @@ project's unrelated M4 routing/affinity overlay. The TC audited source remains
 official9f50241; the other project's witness used0fd00ca. Their runtime behavior
 and evidence must not be interchanged just because the Python environment is
 shared. Record the full effective source/loader identity during model qualification.
+# D68 missing 7B representation: export completed, audit pending
+
+This is a prerequisite for the approved original/repaired request comparison,
+not a performance run. Source checkpoint3052ab9559a117de6d4a5e56525ba0b165df9769
+was pushed and independently verified before execution. Existing native exporter
+unchanged; TP1/FP16, one visible GPU, offline original local 7B weights.
+
+| Check | Result | Scope |
+|---|---|---|
+| Native serialization | PASS;13,476,831,232 weight bytes, two partitions | Existing weights, new required native representation only |
+| Export duration | 357.651s including metadata copy and hash | NOT serving startup latency |
+| Requests served | 0 | No inference/performance/correct-adapter claim |
+| External supervision | 359 samples, service/watchdog exit0/0 | Full72/80GiB service envelope used |
+| Process/GPU cleanup | Owned contexts cleared; service path gone; auxiliary empty then stopped | All GPUs back to15MiB |
+| Loader-only environment modification | Exact-byte restore completed after worker exit | No active overlay remains |
+| Elementwise source identity | PENDING | Must compare both parts and untied output head |
+
+Exclusive native directory:
+`models/vllm/tc-native-llama2-7b-fp16-20260927`.
+Raw evidence: main `results/ieee_tc/serverless_qualification/d68_20260927`.
+The official exporter also copies its source `.cache` (about5GiB), which is not
+needed by native loading. Keep the original; remove only the new duplicate after
+exact content/reference/open-handle checks and save a cleanup receipt. No broad
+cache cleanup or unique data deletion is authorized by this observation.
+
+The native format splits large checkpoints into numbered parts, with global
+offsets. The existing comparator is extended to stream them in numeric order;
+it rejects missing/extra parts and checks every byte, including independent
+`lm_head.weight`.29 CPU router/launcher/partition tests pass. The completed3B
+byte audit is not repeated.

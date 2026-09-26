@@ -240,6 +240,37 @@ class NativeLaunchTests(unittest.TestCase):
 
 
 class NativeCheckpointLayoutTests(unittest.TestCase):
+    def test_partition_reader_crosses_boundaries_and_hashes_each_part(self):
+        import hashlib
+        import io
+        raw = launch.NativeTensorStream([io.BytesIO(b'abc'), io.BytesIO(b'defg')])
+        self.assertEqual(raw.read(0), b'')
+        self.assertEqual(raw.read(4), b'abcd')
+        self.assertEqual(raw.tell(), 4)
+        self.assertEqual(raw.read(4), b'efg')
+        self.assertEqual(raw.tell(), 7)
+        self.assertEqual(raw.read(1), b'')
+        self.assertEqual([d.hexdigest() for d in raw.digests],
+                         [hashlib.sha256(p).hexdigest() for p in (b'abc', b'defg')])
+        with self.assertRaises(ValueError):
+            raw.read(-1)
+
+    def test_partition_discovery_rejects_gaps_extra_files_and_links(self):
+        with tempfile.TemporaryDirectory(prefix='tcs-test-') as directory:
+            rank = Path(directory)
+            (rank / 'tensor_index.json').write_text('{}')
+            (rank / 'tensor.data_0').write_bytes(b'abc')
+            (rank / 'tensor.data_1').write_bytes(b'defg')
+            self.assertEqual([p.name for p in launch.checkpoint_parts(rank)],
+                             ['tensor.data_0', 'tensor.data_1'])
+            (rank / 'tensor.data_1').rename(rank / 'tensor.data_2')
+            with self.assertRaises(ValueError):
+                launch.checkpoint_parts(rank)
+            (rank / 'tensor.data_2').unlink()
+            (rank / 'tensor.data_1').symlink_to(rank / 'tensor.data_0')
+            with self.assertRaises(ValueError):
+                launch.checkpoint_parts(rank)
+
     def test_projection_packing_is_complete_and_ordered(self):
         source = {'model.layers.0.self_attn.' + p + '.weight'
                   for p in ('q_proj', 'k_proj', 'v_proj')}

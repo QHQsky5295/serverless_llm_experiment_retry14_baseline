@@ -314,6 +314,45 @@ def stream_sha(path: Path) -> str:
     return digest.hexdigest()
 
 
+class NativeTensorStream:
+    """Bounded sequential reads over native store partitions in numeric order."""
+    def __init__(self, handles):
+        self.handles = handles
+        self.partition = 0
+        self.position = 0
+        self.digests = [hashlib.sha256() for _ in handles]
+
+    def read(self, size: int) -> bytes:
+        if type(size) is not int or size < 0 or size > 4 * 1024**2:
+            raise ValueError('bounded nonnegative native tensor read required')
+        chunks, remaining = [], size
+        while remaining and self.partition < len(self.handles):
+            chunk = self.handles[self.partition].read(remaining)
+            if not chunk:
+                self.partition += 1
+                continue
+            self.digests[self.partition].update(chunk)
+            chunks.append(chunk)
+            remaining -= len(chunk)
+            self.position += len(chunk)
+        return b''.join(chunks)
+
+    def tell(self) -> int:
+        return self.position
+
+
+def checkpoint_parts(rank: Path) -> list[Path]:
+    parts = list(rank.glob('tensor.data_*'))
+    if not parts or any(not re.fullmatch(r'tensor\.data_[0-9]+', p.name) for p in parts):
+        raise ValueError('missing or malformed native partitions')
+    parts.sort(key=lambda path: int(path.name.split('_')[-1]))
+    if ([p.name for p in parts] != [f'tensor.data_{i}' for i in range(len(parts))]
+            or any(not p.is_file() or p.is_symlink() or p.stat().st_size <= 0 for p in parts)
+            or set(p.name for p in rank.iterdir()) != {'tensor_index.json', *(p.name for p in parts)}):
+        raise ValueError('native partitions must be complete numbered ordinary files')
+    return parts
+
+
 def audit_checkpoint(checkpoint: Path, backbone: Path) -> dict:
     """Read existing TP1 Llama FP16 checkpoint bytes; never load a CUDA model.
 
@@ -330,7 +369,9 @@ def audit_checkpoint(checkpoint: Path, backbone: Path) -> dict:
     torch.set_num_threads(2)
     checkpoint, backbone = checkpoint.resolve(strict=True), backbone.resolve(strict=True)
     rank = checkpoint / 'rank_0'
-    index_path, data_path = rank / 'tensor_index.json', rank / 'tensor.data_0'
+    index_path = rank / 'tensor_index.json'
+    data_paths = checkpoint_parts(rank)
+    data_bytes = sum(path.stat().st_size for path in data_paths)
     native_index = json.loads(index_path.read_text())
     source_index = json.loads((backbone / 'model.safetensors.index.json').read_text())
     source_map = source_index['weight_map']
@@ -345,9 +386,7 @@ def audit_checkpoint(checkpoint: Path, backbone: Path) -> dict:
         raise ValueError('untied Llama checkpoint is missing its independent output head')
     if set(p.name for p in checkpoint.glob('rank_*')) != {'rank_0'}:
         raise ValueError('audit requires exactly one native tensor-parallel rank')
-    if set(p.name for p in rank.iterdir()) != {'tensor_index.json', 'tensor.data_0'}:
-        raise ValueError('unexpected native rank members')
-    inputs = [index_path, data_path, backbone / 'model.safetensors.index.json']
+    inputs = [index_path, *data_paths, backbone / 'model.safetensors.index.json']
     small = {}
     for name in ('config.json', 'tokenizer.json', 'tokenizer_config.json',
                  'generation_config.json', 'special_tokens_map.json'):
@@ -357,7 +396,7 @@ def audit_checkpoint(checkpoint: Path, backbone: Path) -> dict:
         small[name] = current
         inputs.extend((backbone / name, checkpoint / name))
     mapping = checkpoint_tensor_sources(set(source_map))
-    ordered = validate_checkpoint_index(native_index, mapping, data_path.stat().st_size)
+    ordered = validate_checkpoint_index(native_index, mapping, data_bytes)
     shards = {}
     for name in set(source_map.values()):
         path = backbone / name
@@ -376,7 +415,7 @@ def audit_checkpoint(checkpoint: Path, backbone: Path) -> dict:
         actual_keys = {key: name for name, reader in readers.items() for key in reader.keys()}
         if actual_keys != source_map or sum(len(r.keys()) for r in readers.values()) != len(source_map):
             raise ValueError('source index does not describe every actual tensor exactly once')
-        raw = stack.enter_context(data_path.open('rb'))
+        raw = NativeTensorStream([stack.enter_context(path.open('rb')) for path in data_paths])
         for name, (offset, length, shape, stride, dtype) in ordered:
             native_digest, reference_digest = hashlib.sha256(), hashlib.sha256()
             consumed, source_rows = 0, 0
@@ -409,7 +448,10 @@ def audit_checkpoint(checkpoint: Path, backbone: Path) -> dict:
     return dict(schema='ieee_tc_serverless_native_checkpoint_identity_v1', passed=True,
                 checkpoint=str(checkpoint), backbone=str(backbone), tensor_parallel_size=1,
                 dtype='float16', native_tensor_count=len(rows), source_tensor_count=len(source_map),
-                native_data_bytes=data_path.stat().st_size, native_data_sha256=all_native.hexdigest(),
+                native_data_bytes=data_bytes, native_data_sha256=all_native.hexdigest(),
+                native_parts=[dict(name=path.name, bytes=path.stat().st_size,
+                                   sha256=digest.hexdigest())
+                              for path, digest in zip(data_paths, raw.digests)],
                 native_index_sha256=stream_sha(index_path), small_file_sha256=small,
                 source_index_sha256=stream_sha(backbone / 'model.safetensors.index.json'),
                 source_shard_sha256=source_sha, tensors=rows,
