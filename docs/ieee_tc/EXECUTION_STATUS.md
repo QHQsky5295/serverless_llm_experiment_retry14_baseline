@@ -59,9 +59,10 @@ measured profiles/allocator and Full lifecycle remain OPEN. Do not claim Full
 qualification or repeat old model prefixes. User decisions remain pending.
 Final-source931 functional,53 installed-native and56 safety checks pass. All
 nine owned test scopes are empty and stopped. No experiment runs in background.
-D54 milestone backup follows; preceding verified backup is
-D53:327fa3ba3a145ca5bbec02f43f1e152bcefba4a8 (history/status), with D52 runtime
-checkpoint7c4337d59fd687ebabf7acfed6f30dbfd75b2a2f.
+D54 tested implementation774bd7f5d0dbdd415ad3ded148152cefd092b5fd is pushed;
+fresh full remote SHA verified. This subsequent documentation-only receipt does
+not change runtime/test sources. Previous D53:327fa3ba3a145ca5bbec02f43f1e152bcefba4a8
+preserves history/status; D52 runtime checkpoint remains7c4337d59fd687ebabf7acfed6f30dbfd75b2a2f.
 Main branch retry14_continuous_queue_v2. Baseline remains
 16570c023a439c884624e7a5bdfa0d8577faf7a3, origin/main.
 
@@ -189,6 +190,14 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
   108692732KiB, available disk353486036992 bytes. Protected147 and plan SHA
   unchanged. No model/test remains running. Named-file Git checks and milestone
   backup follow; baseline unchanged and no formal performance claim is made.
+- Tested implementation774bd7f5d0dbdd415ad3ded148152cefd092b5fd pushed to
+  faaslora_origin/retry14_continuous_queue_v2; fresh remote SHA matches exactly.
+  Only10 named task files staged, diff/secret-pattern checks pass, generated
+  manifest and unrelated dirt excluded. Baseline has no task changes. This
+  receipt is documentation only, not another experiment. Next mainline remains
+  actual physical HOST/staging capacity, representative profiles/allocator and
+  Full lifecycle qualification; do not rerun completed prefixes or treat entry-
+  capacity success as physical-byte-full success. Goal remains active.
 
 ### D53 mainline review and explicit external decisions
 
