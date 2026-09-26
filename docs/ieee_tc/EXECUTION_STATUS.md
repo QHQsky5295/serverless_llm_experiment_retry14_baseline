@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | File objective replacement connected; automatic all-tier Full open | P1_FORMULA_IMPLEMENTATION.md D1–D44. Same frozen h/d reaches real HOST/NVMe preallocation, shortest loss/usable-byte victim prefixes and event-driven rechecks. Explicit file-only objective is not the all-tier per-replica problem. Automatic options/remaining candidates/all-tier activation, representative profiles, runtime allocator qualification and complete lifecycle remain open. IEEE startup still rejects legacy warmup; no new GPU/Full qualification |
+| P1 IEEE semantic alignment | Real-owner insertion candidates connected; automatic Full activation open | P1_FORMULA_IMPLEMENTATION.md D1–D45. Initialized native/file owners now generate source classes, target footprints and remaining budgets for the existing IEEE selectors. Native HOST objective/feedback classes agree. Combined remaining-candidate replacement, mixed execution/activation, representative profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,19 +51,21 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST IMPLEMENTATION: D44 connects frozen file h/d and actual confirmed
-fallbacks to preallocation. Strictly positive net benefit, shortest loss/usable
-byte victim prefixes, protected reader/pending/moving copies, archive peak and
-single-owner allocation prevent fictitious capacity. Known conflicts defer;
-real owner changes wake rechecks, not sleep/retry. Actual allocation failure
-retains reclaimed/failed facts and never claims rollback. D42 managed HOST and
-D43 complete selected-target protection remain. This objective is explicitly
-managed-file-only, NOT native/GPU-inclusive per-replica Full. No model/profile.
-Next: actual complete owner/source/footprint option production, remaining
-candidate selection and combined handoff/activation, proactive d feedback,
-representative profiles and Full physical lifecycle. Mixed GPU/file plans still
-reject. Do not repeat narrow replacement checks or old model prefixes. D44
-final852 functional,21 installed-native and56 safety checks pass; receipts below.
+LATEST IMPLEMENTATION: D45 actual runner reads initialized native source/slot
+footprints plus one file-owner source/target/budget view, then generates all
+insertion options automatically through ExperimentStack and the existing IEEE
+selector. Same native dtype/pinning/packing class now serves request feedback
+and GPU preparation objective. Source-view SHA binds the full received state;
+it is not an atomic cross-owner snapshot or reservation. Actual generated file
+selection reaches real queued copy/publication. No model/profile/performance run.
+Next: same-epoch combined GPU/file execution, remaining-candidate joint
+replacement and activation (file work before initialization, GPU after actual
+admission), proactive d feedback, representative profiles and Full lifecycle.
+The current producer requires an initialized native owner. Pre-init GPU layout
+inheritance and automatic control callbacks are not implemented. D44 file-only
+replacement still must not be relabelled complete native-inclusive loss. Full
+guard remains. Do not repeat candidate/file replacement or old model prefixes.
+D45 final859 functional,20 installed-native and56 safety checks pass; receipts below.
 Runtime allocator configuration/service memory observations remain, not an
 indefinite demand to prove every driver RSS byte. The full goal remains active.
 Queue wakes on actual reference release/file-pressure finish/target closure,
@@ -106,7 +108,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D44.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D45.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -162,6 +164,42 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D45 automatic real-owner candidates and consistent native cost classes
+
+- Previous D44 turn was progress. Reread authoritative plan/status completely,
+  IEEE source, current code/history and official vLLM/dLoRA references. Starting
+  HEADb7b5cc15c2d138a181530c64e5949303c6ba77cd; baseline16570c unchanged. All42
+  older listed scopes have empty real cgroup.procs; no live D44 task. GPUs15MiB/0%,
+  MemAvailable108920152KiB and disk353502703616B. Protected147 entries unchanged.
+- Actual HTTP frozen metadata→file-owner same-lock view→native received state→
+  runner→stack→IEEE selector now supplies sources, destination allocation bytes
+  and unused budgets. No weights/traces regenerated, no remote HTTP/model/GPU run.
+  Existing native HOST allowances remain charged. Complete per-replica sources
+  retained; snapshots/reservations and file/native HOST representations distinct.
+- Found/fixed native objective raw representation versus request-profile full
+  dtype/pinning/packing class mismatch. Same footprint parser now drives both;
+  no missing-class fallback. Old fixture costs/capacities unchanged, complete
+  footprint evidence added. Source-view mutation rejects before execution.
+-7 new checks. Initial20 had16 errors including subtests because the old native
+  objective validator still required raw representation. Updated that protocol
+  consistently; second20 pass. Initial full859 pass without failure/error/skip.
+  Actual generated file selection reaches real copy/publication; correctness
+  table and limits in P1 D45. Final installed-native/safety receipts follow.
+- Still not automatic Full: combined remaining-candidate replacement, mixed
+  GPU/file execution, pre-init layout inheritance, actual activation/control
+  callbacks, proactive d feedback, representative profiles, runtime memory and
+  complete physical lifecycle remain. Do not redo this narrow gate. Full guard
+  retained. Formal baselines/M1/M2/ablations/sensitivities have not started. Remote
+  disk and nonzero3B fixture authority gates unchanged. Goal remains active.
+- Final source unchanged after859-check full regression. InstalledvLLM0.30.0/
+  torch2.13.0+cu130 runs20 checks (7 new+13 native objective), all pass with CUDA
+  uninitialized. All56 safety/census/replay checks pass. All five owned D45 scopes
+  verified TasksCurrent0, empty cgroup.procs and high/max/oom/oom_kill0, stopped.
+  GPUs15MiB/0%, MemAvailable108774740KiB, disk353485008896B. Source plan SHA and
+ 147 protected entries unchanged; baseline remains16570c023a439c884624e7a5bdfa0d8577faf7a3.
+  No live experiment/test, no new artifacts, no old results overwritten. Original
+  dirty files preserved. Tested implementation backup receipt follows.
 
 ### D44 file-objective replacement and actual capacity events
 

@@ -2398,3 +2398,61 @@ replacement也不能代替完整native/file来源下的loss评估。自动候选
 生命周期仍待完成。Full guard保持；M1/M2、正式baseline、消融及敏感性
 均未启动。下一步直接连接这些控制路径，不再重复文件替换微测或旧模型
 prefix。旧稿、旧结果与工件不变；本表是正确性证据，不是性能优胜图。
+
+## D45：真实副本视图自动生成候选与剩余预算
+
+### 缺口、证据与处理
+
+D35规划器仍依赖调用者手工提供options/budgets。D44仅解决受限文件目标的
+物理替换，不能据此认为Full已经自动决定“准备什么、放在哪里”。本轮
+假设：从同一目标runtime的真实native状态和共享文件owner状态生成全部
+可提升选项，可以让现有IEEE选择器接收完整来源，而不再依赖legacy缓存
+提示、人工候选尺寸或按层级名称填入的固定耗时。
+
+核对IEEE Eq.(4)–(7)、D25来源保护、D36成本反馈和D42/D44容量历史。
+[vLLM0.30 model manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/model_manager.py)
+区分已注册CPU adapter与GPU slot映射；本轮保留这种实际区别，不用文件
+存在代替GPU可执行。
+[dLoRA原论文](https://www.usenix.org/conference/osdi24/presentation/wu-bingyang)
+是请求/adapter共同编排的参照，不提供本项目的正确性证据。
+
+实际发现D37原生GPU objective采用不带dtype/pinning的raw footprint
+representation，而D36实际请求反馈采用包含这些信息的类别。这样同一
+组实测初始化可能无法被主动准备读取。本轮复用NativeSourceSnapshot的
+同一footprint解析，统一dtype/pinning/packing类别，同时更新消息校验，
+不填入兼容性默认延迟。原测试保留成本/容量，只补全实际观察字段。
+
+### 正确性结果表
+
+| 要验证的问题 | 本轮路径与结果 |
+|---|---|
+| 如何取得文件目标尺寸 | 复用HTTP客户端已冻结的逐文件size/SHA元数据；不下载payload、不复制工件。owner按目的文件系统f_frsize逐文件取整，与实际fallocate同一规则 |
+| 文件状态与预算 | 同一owner锁下读取全部确认副本、剩余文件预算、native HOST预留额度；该runtime未计入共同HOST额度则拒绝 |
+| 如何取得GPU预算 | 真实后端uniform slot容量×实际空槽数；不拿LoRA文件尺寸当GPU槽位，不把整块已分配池重复计为空闲显存；E(t)仍在实际加载准入检查 |
+| 最快有效来源 | GPU→原生HOST→HOST文件→NVMe→Remote；原生HOST与HOST文件保留不同表示。GPU命中不再生成多余提升候选；native未知/未确认状态不静默降为Remote |
+| 较低副本是否丢失 | 完整视图保留native GPU/HOST及HOST/NVMe/Remote副本，供后续联合fallback/replacement使用；并非只留下一个tier标签 |
+| 同一epoch | 实际runner→ExperimentStack→既有selector；需求读取一次、cost sequence读取一次；后续arrival不改变已生成目标 |
+| 无需求/缺profile | 空窗口产生空选择，未用类保留null；正需求类缺失直接拒绝，不借相邻类或service D补值 |
+| 实际执行 | 自动生成的HOST选择接入原共享队列、真实文件复制和publication；16KiB目标最终字节与原payload一致，引用与workspace正常收尾 |
+| 完整性 | source_view由SHA绑定到plan；修改收到的物理来源在执行前拒绝。SHA是消息完整性，不是测量或全局原子快照证明 |
+| 成本分类一致 | 原生GPU objective与实际请求初始化读取相同dtype/pinning/packing类；不再使用不完整raw表示 |
+
+新增7项检查。首轮定向20项出现16个error（包含subtest），暴露旧消息校验
+仍只接受raw HOST representation；统一消息语义后20项全部通过。整套859项
+回归通过，无失败、错误或跳过。原生环境/安全测试和最终资源回执记录在
+EXECUTION_STATUS。小文件和控制native报文用于实现验证，不是实际模型
+profile、真实174远程实验或性能比较。
+
+### 未完成边界与下一主线
+
+新入口要求已初始化的native owner，不声称已实现初始化前GPU布局/预算
+继承。完整视图是先后收到的owner观察，不是跨进程原子快照；执行仍须
+重新检查实际来源、容量和admission。HOST目标目前是受管文件表示；native
+HOST现存表示被正确识别，file→native HOST物化仍由既有D41路径处理。
+
+剩余候选的联合replacement、从同一冻结epoch衔接GPU/file混合执行、
+初始化前文件准备与初始化后GPU admission、主动d反馈及自动control触发
+仍未完成。D44文件-only loss不能冒称已使用此完整视图。代表性profile、
+完整生命周期、数值正确性和远端资格仍未通过，Full guard保留。后续直接
+连接混合计划与activation，不扩大本轮候选生成微测；正式比较/消融没有
+完成任何新增槽位。

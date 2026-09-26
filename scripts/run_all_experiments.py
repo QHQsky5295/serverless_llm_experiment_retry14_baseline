@@ -15946,6 +15946,32 @@ class ScenarioRunner:
             if cancelled:
                 raise asyncio.CancelledError()
 
+    async def _plan_ieee_preparation_for_slot(self, *, slot, mode):
+        """Read the real backend and file owners, then run the IEEE selector.
+
+        No manually supplied candidate sizes, cache hints or tier latencies.
+        This entry requires an initialized native owner; pre-initialization GPU
+        layout inheritance and combined activation execution are not implied.
+        """
+        from faaslora.clock import local_monotonic_clock_id
+        if (not self.model_cfg.get('ieee_gpu_references') or self._stack is None
+                or self._preparation_profiles is None or self._remote_artifact_client is None
+                or slot.preparation_cost_model is None):
+            raise ValueError('automatic preparation requires measured profiles and real source owners')
+        self._preparation_profiles.validate_runtime(slot.engine.model_cfg)
+        await self._attach_ieee_host_budget(slot.engine)
+        native = await slot.engine.ieee_gpu_reference(operation='source_snapshot')
+        manager = self._stack.residency_manager
+        manifests = self._remote_artifact_client.preparation_manifests(self._ieee_artifact_identities)
+        files = manager.local_source_references.preparation_snapshot(manifests=manifests,
+            limits={tier: int(manager.tier_capacities[StorageTier(tier)].total_bytes)
+                    for tier in manager.local_source_references.roots})
+        return self._stack.plan_ieee_owned_preparation(mode=mode, native_snapshot=native,
+            file_snapshot=files, identities=self._ieee_artifact_identities,
+            adapter_int_ids={aid: InferenceEngine._lora_int_id(aid) for aid in self._ieee_artifact_identities},
+            profiles=self._preparation_profiles, costs=slot.preparation_cost_model,
+            expected_clock_id=local_monotonic_clock_id(), received_at=time.monotonic())
+
     async def _run_ieee_file_preparation_plan(self, *, plan, target_engine,
             target_replica, activation_id=None, replacement_costs=None):
         """Execute selected HOST/NVMe plans, including Remote->NVMe->HOST.

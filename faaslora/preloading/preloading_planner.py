@@ -9,6 +9,7 @@ import time
 import math
 import hashlib
 import json
+import copy
 from array import array
 from bisect import bisect_left
 from pathlib import Path
@@ -297,6 +298,115 @@ class PreparationCostModel:
             return True
 
 
+def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
+                             adapter_int_ids, profiles, expected_clock_id, received_at):
+    """Compose actual per-replica sources and physical-owner insertion budgets.
+
+    Native GPU/HOST and shared HOST/NVMe files are all retained in the view.
+    The fastest confirmed source wins, as in routing. This is a received view,
+    not an atomic cross-owner observation or a reservation. Target file bytes
+    come from per-file destination allocation rounding; GPU bytes from actual
+    uniform backend slots, never file size or an adapter-name constant.
+    """
+    from ..experiment.instance_pool import NativeSourceSnapshot
+    native = NativeSourceSnapshot.from_native(native_snapshot,
+        expected_clock_id=expected_clock_id, received_monotonic_s=received_at)
+    if (native.unknown_native_adapter_ids or native.unconfirmed_gpu_adapter_ids
+            or native.gpu_pool_storage_bytes is None
+            or set(adapter_int_ids) != set(identities)
+            or any(type(i) is not int or i <= 0 for i in adapter_int_ids.values())
+            or len(set(adapter_int_ids.values())) != len(adapter_int_ids)):
+        raise ValueError('automatic planning requires complete owned native identities/footprints')
+    files = file_snapshot
+    budget = files['budgets']
+    if (files.get('kind') != 'ieee_file_planning_sources_v1'
+            or files.get('physical_resources_reserved') is not False
+            or files.get('clock_id') != native.clock_id
+            or type(files.get('epoch')) is not int or files['epoch'] < 0
+            or not isinstance(files.get('owner_id'), str) or not files['owner_id']
+            or not 0 < budget['captured_at'] <= files['captured_at'] <= received_at
+            or budget['owner_id'] != files['owner_id'] or budget['source_epoch'] != files['epoch']
+            or budget['snapshot_reserves_capacity'] is not False
+            or set(files['artifacts']) != set(identities)):
+            raise ValueError('automatic planning requires one complete confirmed file-owner view')
+    host = files['managed_host']
+    if (host['owner_id'] != files['owner_id'] or host['snapshot_reserves_capacity'] is not False
+            or native.owner_id not in host['native_reservations']
+            or host['native_reservations'][native.owner_id] <= 0
+            or budget['tiers']['host']['remaining_bytes'] > host['remaining_bytes']):
+        raise ValueError('automatic planning lacks this native owner in the shared HOST allowance')
+    native_by_name = {s.adapter_id: s for s in native.sources}
+    if not set(native_by_name).issubset(identities):
+        raise ValueError('native owner contains adapters outside the frozen universe')
+    slot_bytes = native_snapshot['native_footprints']['slot_capacity_bytes']
+    gpu_representation = 'native_gpu_dense_slot_v1:' + ','.join(sorted({
+        row['dtype'] for row in native_snapshot['native_footprints']['pool_tensor_views']}))
+    budgets = {StorageTier.GPU: native.slot_adapter_ids.count(None)*slot_bytes}
+    for tier in ('host', 'nvme'):
+        row = budget['tiers'][tier]
+        remaining = row['remaining_bytes']
+        if (type(remaining) is not int or remaining < 0
+                or remaining > row['limit_bytes']-row['used_bytes']-row['pending_increment_bytes']):
+            raise ValueError('file insertion budget exceeds actual unused capacity')
+        budgets[StorageTier(tier)] = remaining
+    options, source_rows = [], {}
+    order = ('gpu', 'host', 'nvme', 'remote')
+    for aid, identity in sorted(identities.items()):
+        record = files['artifacts'][aid]
+        content = identity['content_sha256']
+        if (identity['adapter_id'] != aid or record['content_sha256'] != content
+                or record['logical_payload_bytes'] != identity['remote_payload_bytes']):
+            raise ValueError('planning content differs from the frozen artifact identity')
+        copies = []
+        source = native_by_name.get(aid)
+        if source is not None:
+            if source.adapter_int_id != adapter_int_ids[aid] or source.rank != identity['rank']:
+                raise ValueError('planning native identity/rank differs from frozen artifact')
+            if source.gpu_slot is not None:
+                copies.append(dict(tier='gpu', native=True, owner_id=native.owner_id,
+                    path=source.lora_path, expected_content_sha256=content,
+                    representation=source.gpu_representation, footprint_bytes=source.gpu_slot_capacity_bytes))
+            copies.append(dict(tier='host', native=True, owner_id=native.owner_id,
+                path=source.lora_path, expected_content_sha256=content,
+                representation=source.host_representation, footprint_bytes=source.host_storage_bytes))
+        by_tier = {}
+        for row in record['sources']:
+            tier = row['tier']
+            if (tier not in ('host', 'nvme') or tier in by_tier
+                    or row['adapter_id'] != aid or row['content_sha256'] != content
+                    or row['content_verified'] is not True
+                    or row['representation'] != 'verified_regular_file_tree_v1'):
+                raise ValueError('planning file source differs from confirmed identity')
+            by_tier[tier] = dict(row, native=False, owner_id=files['owner_id'],
+                                footprint_bytes=row['allocated_file_bytes'])
+        copies.extend(by_tier[tier] for tier in ('host', 'nvme') if tier in by_tier)
+        copies.append(dict(tier='remote', native=False, owner_id='immutable_artifact_origin', path=None,
+            content_sha256=content, footprint_bytes=identity['remote_payload_bytes'],
+            representation=identity['remote_representation']))
+        # Stable order gives native HOST precedence over the HOST file tree.
+        copies.sort(key=lambda source: order.index(source['tier']))
+        current = copies[0]
+        source_key = FrozenPreparationProfiles.source_class(current, profiles.size_edges_bytes)
+        source_rows[aid] = dict(selected_source=current, confirmed_copies=copies)
+        targets = dict(record['targets'])
+        targets['gpu'] = dict(tier='gpu', representation=gpu_representation,
+            content_sha256=content, footprint_bytes=slot_bytes)
+        for tier in order[:order.index(current['tier'])]:
+            target = targets[tier]
+            if target['content_sha256'] != content or target['tier'] != tier:
+                raise ValueError('planning target changed frozen content or tier')
+            target_key = FrozenPreparationProfiles.source_class(target, profiles.size_edges_bytes)
+            options.append(PreparationOption(aid, source_key, target_key, target['footprint_bytes']))
+    view = dict(kind='ieee_owned_preparation_view_v1', native=native_snapshot, files=file_snapshot,
+        adapter_int_ids=dict(adapter_int_ids), sources=source_rows,
+        remaining_bytes={tier.value: value for tier, value in budgets.items()},
+        captured_from_separate_owners=True, physical_resources_reserved=False)
+    view = copy.deepcopy(view)
+    digest = hashlib.sha256(json.dumps(view, sort_keys=True,
+        separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+    return dict(options=tuple(options), budgets=budgets, source_snapshot_id=digest, source_view=view)
+
+
 def validate_file_replacement_epoch(epoch):
     """Message/objective checks; execution still rechecks files and references."""
     frozen = dict(epoch)
@@ -446,11 +556,17 @@ def validate_native_gpu_epoch(epoch):
     for row in rows:
         aid, name = row['adapter_int_id'], row['adapter_id']
         key = PreparationClass(**row['host_class'])
+        representation = key.representation.split(':')
+        native_host_class = (len(representation) in (3, 4)
+            and representation[0] == 'native_cpu_dense_ab_v1'
+            and all(representation[1].split(','))
+            and representation[2] in ('pinned', 'unpinned', 'mixed_pinning')
+            and (len(representation) == 3 or representation[3] == 'packed'))
         d = row['host_load_ms']
         if (type(aid) is not int or aid <= 0 or aid in ids
                 or not isinstance(name, str) or not name or name in names
                 or not isinstance(row['lora_path'], str) or not Path(row['lora_path']).is_absolute()
-                or key.tier != 'host' or key.representation != 'native_cpu_dense_ab_v1'
+                or key.tier != 'host' or not native_host_class
                 or type(row['host_storage_bytes']) is not int or row['host_storage_bytes'] <= 0
                 or (counts.get(name, 0) and (type(d) not in (int, float)
                     or not math.isfinite(d) or d < 0))
@@ -479,7 +595,10 @@ def freeze_native_gpu_epoch(*, native_snapshot, content_sha_by_adapter, profiles
             or snap.get('unknown_native_adapter_ids') or snap.get('unconfirmed_gpu_adapter_ids')
             or profiles.profile_id != costs.profile_id):
         raise ValueError('native GPU objective requires complete confirmed sources and matching profiles')
+    from ..experiment.instance_pool import NativeSourceSnapshot
     inventory = snap['native_footprints']
+    observed, _, _ = NativeSourceSnapshot._footprints(inventory,
+        tuple(snap['slot_adapter_ids']), tuple(snap['registered_cpu_adapter_ids']))
     footprints = {row['adapter_int_id']: row for row in inventory['host_adapter_footprints']}
     if (len(footprints) != len(inventory['host_adapter_footprints'])
             or set(footprints) != set(snap['registered_cpu_adapter_ids'])
@@ -490,8 +609,10 @@ def freeze_native_gpu_epoch(*, native_snapshot, content_sha_by_adapter, profiles
     counts, sources = dict(demand.counts), []
     for row in sorted(snap['sources'], key=lambda r: r['adapter_int_id']):
         footprint = footprints[row['adapter_int_id']]
-        source = dict(native=True, tier='host', representation=footprint['representation'],
-            footprint_bytes=footprint['storage_bytes'],
+        # Use the same dtype/pinning/packing class as actual request feedback.
+        # Raw footprint representation alone omits these measured distinctions.
+        source = dict(native=True, tier='host', representation=observed[row['adapter_int_id']][1],
+            footprint_bytes=observed[row['adapter_int_id']][0],
             expected_content_sha256=content_sha_by_adapter[row['adapter_id']])
         key = FrozenPreparationProfiles.source_class(source, profiles.size_edges_bytes)
         # An unused class has zero weighted loss without inventing a latency.
@@ -1119,6 +1240,11 @@ class PreloadingPlanner:
         demand/profile refresh happens here: a later observation belongs to a
         new epoch, not to half of this plan.
         """
+        if 'source_view' in plan:
+            digest = hashlib.sha256(json.dumps(plan['source_view'], sort_keys=True,
+                separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+            if digest != plan['source_snapshot_id']:
+                raise ValueError('preparation execution changed its received physical owner view')
         keys = ('kind', 'mode', 'source_snapshot_id', 'profile_id', 'cost_sequence',
                 'demand_observed_at', 'window_seconds', 'total_arrivals',
                 'arrival_counts', 'remaining_bytes', 'options')

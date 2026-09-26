@@ -947,6 +947,193 @@ class OwnedNativeHostMovement(unittest.TestCase):
         asyncio.run(run())
 
 
+class OwnedPreparationPlanning(unittest.TestCase):
+    """Actual runner/owner/selector composition, with controlled native reports."""
+    def make(self):
+        import copy
+        import json
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.experiment.experiment_stack import ExperimentStack
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles, NativeSourceSnapshot
+        from faaslora.preloading.preloading_planner import FrozenPreparationProfiles, PreparationCostModel
+        factory = FileObjectiveReplacement()
+        self.addCleanup(factory.doCleanups)
+        fixture, runner, queue, engine, _, _, old_profiles, old_costs = factory.make(victims=('b','c','d'))
+        clock = local_monotonic_clock_id()
+        ids = {aid: InferenceEngine._lora_int_id(aid) for aid in runner._ieee_artifact_identities}
+        registered = sorted((ids['b'], ids['c']))
+        names = {i: aid for aid, i in ids.items()}
+        native = dict(kind='native_lora_sources_v1', owner_id='controlled-native', epoch=1,
+            clock_id=clock, captured_monotonic_s=10., slot_adapter_ids=[ids['b'], None],
+            registered_cpu_adapter_ids=registered, unknown_native_adapter_ids=[],
+            unconfirmed_gpu_adapter_ids=[], complete_for_native_caches=True, snapshot_holds_reference=False,
+            sources=[dict(adapter_id=names[i], adapter_int_id=i, rank=8,
+                lora_path=str(fixture.nvme/names[i]), cpu_registered=True,
+                gpu_slot=0 if i == ids['b'] else None,
+                gpu_confirmed_monotonic_s=9. if i == ids['b'] else None) for i in registered])
+        native['native_footprints'] = dict(uniform_slot_layout=True,
+            host_footprint_scope='native_registered_tensor_storage_capacity', host_budget_reserved=False,
+            host_allocator_overhead_included=False, slot_adapter_ids=list(native['slot_adapter_ids']),
+            registered_cpu_adapter_ids=registered, slot_capacity_bytes=1048576, pool_allocated_bytes=2097152,
+            host_tensor_storage_bytes=1024, pool_tensor_views=[dict(dtype='torch.float16')],
+            host_allocations=[dict(allocation_id=j, allocated_bytes=512, adapter_ids=[i], pinned=False)
+                              for j, i in enumerate(registered)],
+            host_adapter_footprints=[dict(adapter_int_id=i, allocation_ids=[j], storage_bytes=512,
+                exclusive_storage_bytes=512, dtypes=['torch.float16'], representation='native_cpu_dense_ab_v1',
+                has_packed_modules=False) for j, i in enumerate(registered)])
+        values = dict(old_costs.snapshot()[1])
+        parsed = NativeSourceSnapshot.from_native(native, expected_clock_id=clock, received_monotonic_s=20.)
+        for row in parsed.sources:
+            source = dict(native=True, tier='host', footprint_bytes=row.host_storage_bytes,
+                representation=row.host_representation,
+                expected_content_sha256=runner._ieee_artifact_identities[row.adapter_id]['content_sha256'])
+            values[FrozenPreparationProfiles.source_class(source, old_profiles.size_edges_bytes)] = 2.
+        model = dict(model_path='/existing/model', dtype='float16', tensor_parallel_size=1,
+                     ieee_gpu_references=True)
+        profiles = FrozenPreparationProfiles(old_profiles.size_edges_bytes, values, {},
+            old_profiles.profile_id, (), .5, json.dumps(FrozenServiceProfiles.model_identity(model),
+                                                       sort_keys=True, allow_nan=False))
+        engine.model_cfg = model
+        async def observation(**command):
+            if command['operation'] == 'source_snapshot':
+                return copy.deepcopy(native)
+            if command['operation'] == 'snapshot':
+                return dict(owner_id=native['owner_id'], worker_pid=os.getpid(), clock_id=clock)
+            if command['operation'] == 'configure_host_budget':
+                return dict(configured=True, owner_id=native['owner_id'], worker_pid=os.getpid(),
+                            tensor_budget_bytes=command['tensor_budget_bytes'], clock_id=clock)
+            raise AssertionError(command)
+        engine.ieee_gpu_reference = AsyncMock(side_effect=observation)
+        stack = ExperimentStack.__new__(ExperimentStack)
+        stack.__dict__.update(runner._stack.__dict__)
+        stack.hotness_tracker = HotnessTracker(None, clock=lambda: 100.)
+        for aid, n in (('a',80), ('b',1), ('c',2), ('d',20)):
+            for _ in range(n): stack.hotness_tracker.record_arrival(aid)
+        runner._stack = stack
+        runner._preparation_profiles = profiles
+        runner.model_cfg.update(ieee_host_budget_bytes=2097152+24576,
+                                ieee_native_host_tensor_budget_bytes=2097152)
+        costs = PreparationCostModel(values, beta=.5, profile_id=profiles.profile_id)
+        slot = NS(engine=engine, instance_id='replica', preparation_cost_model=costs)
+        asyncio.run(runner._attach_ieee_host_budget(engine))
+        self.addCleanup(os.close, runner._ieee_host_budget_members[id(engine)]['pidfd'])
+        return fixture, runner, queue, slot, native
+
+    def plan(self, runner, slot, mode='residency'):
+        return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+
+    def test_all_owner_sources_and_actual_budgets_feed_existing_selector(self):
+        fixture, runner, queue, slot, _ = self.make()
+        before = fixture.owner.inventory()
+        plan = self.plan(runner, slot)
+        sources = plan['source_view']['sources']
+        self.assertEqual({a: row['selected_source']['tier'] for a, row in sources.items()},
+                         {'a':'nvme','b':'gpu','c':'host','d':'host'})
+        self.assertTrue(sources['c']['selected_source']['native'])
+        self.assertFalse(sources['d']['selected_source']['native'])
+        self.assertEqual(len(sources['b']['confirmed_copies']), 5)
+        self.assertEqual(plan['remaining_bytes'], dict(gpu=1048576, host=0, nvme=90112))
+        self.assertEqual([r.artifact_id for r in plan['selected']['gpu']], ['a'])
+        self.assertEqual(fixture.owner.inventory(), before)
+        self.assertFalse(plan['physical_resources_reserved'])
+        self.assertTrue(plan['source_view']['captured_from_separate_owners'])
+        asyncio.run(queue.close())
+
+    def test_remote_candidates_use_per_file_allocation_not_logical_payload_sum(self):
+        fixture, runner, queue, slot, _ = self.make()
+        for path in (fixture.host/'d', fixture.nvme/'d'):
+            self.assertTrue(fixture.manager._delete_path(str(path)))
+        plan = self.plan(runner, slot)
+        rows = {r['target']['tier']:r for r in plan['options'] if r['artifact_id']=='d'}
+        self.assertEqual(set(rows), {'gpu','host','nvme'})
+        self.assertEqual(rows['host']['footprint_bytes'], 8192)
+        self.assertGreater(rows['host']['footprint_bytes'], runner._ieee_artifact_identities['d']['remote_payload_bytes'])
+        self.assertEqual(rows['gpu']['footprint_bytes'], 1048576)
+        self.assertEqual(plan['source_view']['sources']['d']['selected_source']['tier'], 'remote')
+        self.assertEqual(plan['remaining_bytes']['host'],8192)
+        asyncio.run(queue.close())
+
+    def test_unconfirmed_native_state_and_changed_identity_are_not_remote_fallbacks(self):
+        fixture, runner, queue, slot, native = self.make()
+        row = next(r for r in native['sources'] if r['adapter_id']=='b')
+        row.update(gpu_slot=None, gpu_confirmed_monotonic_s=None)
+        native.update(unconfirmed_gpu_adapter_ids=[row['adapter_int_id']], complete_for_native_caches=False)
+        with self.assertRaisesRegex(ValueError, 'complete owned native'):
+            self.plan(runner, slot)
+        native.update(unconfirmed_gpu_adapter_ids=[], complete_for_native_caches=True)
+        row.update(gpu_slot=0, gpu_confirmed_monotonic_s=9., rank=16)
+        with self.assertRaisesRegex(ValueError, 'identity/rank'):
+            self.plan(runner, slot)
+        asyncio.run(queue.close())
+
+    def test_one_demand_cost_snapshot_and_changed_view_rejected_before_execution(self):
+        import copy
+        fixture, runner, queue, slot, _ = self.make()
+        hotness = runner._stack.hotness_tracker
+        with (patch.object(hotness, 'snapshot', wraps=hotness.snapshot) as demand,
+              patch.object(slot.preparation_cost_model, 'snapshot', wraps=slot.preparation_cost_model.snapshot) as costs):
+            plan = self.plan(runner, slot)
+        self.assertEqual((demand.call_count,costs.call_count),(1,1))
+        hotness.record_arrival('d')
+        self.assertEqual(plan['arrival_counts']['d'],20)
+        runner._stack.preloading_planner.validate_ieee_execution_plan(plan)
+        changed = copy.deepcopy(plan)
+        changed['source_view']['sources']['a']['selected_source']['tier']='remote'
+        with self.assertRaisesRegex(ValueError, 'physical owner view'):
+            runner._stack.preloading_planner.validate_ieee_execution_plan(changed)
+        asyncio.run(queue.close())
+
+    def test_zero_demand_never_invents_a_missing_preparation_measurement(self):
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        from faaslora.preloading.preloading_planner import PreparationCostModel
+        fixture, runner, queue, slot, _ = self.make()
+        runner._stack.hotness_tracker = HotnessTracker(None,clock=lambda:100.)
+        # Keep one supported measured class, not a fabricated all-zero profile.
+        old = slot.preparation_cost_model
+        one = next(iter(old.snapshot()[1].items()))
+        slot.preparation_cost_model = PreparationCostModel(dict([one]),beta=.5,profile_id=old.profile_id)
+        plan = self.plan(runner,slot)
+        self.assertTrue(all(not rows for rows in plan['selected'].values()))
+        self.assertTrue(all(row['source_load_ms'] is None for row in plan['options']))
+        runner._stack.hotness_tracker.record_arrival('a')
+        with self.assertRaises(KeyError): self.plan(runner,slot)
+        asyncio.run(queue.close())
+
+    def test_generated_file_selection_reaches_existing_real_copy_and_publication(self):
+        fixture, runner, queue, slot, native = self.make()
+        ids = {r['adapter_id']:r['adapter_int_id'] for r in native['sources']}
+        native['slot_adapter_ids'][1]=ids['c']
+        native['native_footprints']['slot_adapter_ids'][1]=ids['c']
+        next(r for r in native['sources'] if r['adapter_id']=='c').update(gpu_slot=1,gpu_confirmed_monotonic_s=9.)
+        for aid in ('b','c'):
+            self.assertTrue(fixture.manager._delete_path(str(fixture.host/aid)))
+        async def run():
+            plan = await runner._plan_ieee_preparation_for_slot(slot=slot, mode='handoff')
+            self.assertEqual([r.artifact_id for r in plan['selected']['host']],['a'])
+            self.assertFalse(plan['selected']['gpu'])
+            await runner._run_ieee_file_preparation_plan(plan=plan, target_engine=slot.engine,
+                target_replica=slot.instance_id, activation_id='controlled-activation')
+            self.assertEqual((fixture.host/'a'/'weights').read_bytes(), b'a'*12288)
+            self.assertEqual(runner._ieee_file_preparation_plans[-1]['state'],'completed')
+            self.assertFalse(fixture.owner.materializations)
+            self.assertFalse(fixture.owner.leases)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_native_objective_and_request_profiles_use_identical_representation_classes(self):
+        from faaslora.preloading.preloading_planner import freeze_native_gpu_epoch
+        fixture, runner, queue, slot, native = self.make()
+        epoch = freeze_native_gpu_epoch(native_snapshot=native,
+            content_sha_by_adapter={a:r['content_sha256'] for a,r in runner._ieee_artifact_identities.items()},
+            profiles=runner._preparation_profiles, costs=slot.preparation_cost_model,
+            demand=runner._stack.hotness_tracker.snapshot())
+        self.assertTrue(all(r['host_class']['representation']=='native_cpu_dense_ab_v1:torch.float16:unpinned'
+                            for r in epoch['sources']))
+        self.assertTrue(all(r['host_load_ms']==2. for r in epoch['sources']))
+        asyncio.run(queue.close())
+
+
 class FileObjectiveReplacement(unittest.TestCase):
     """Real preallocation/reclamation with controlled, non-performance costs."""
     def make(self, *, incoming_count=80, victims=('b', 'c'), target='host'):

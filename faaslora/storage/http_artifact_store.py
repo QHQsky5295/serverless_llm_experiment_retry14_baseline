@@ -205,6 +205,18 @@ class HttpArtifactStoreClient:
                     remote_representation='tar_gzip_verified_file_tree_v1',
                     content_manifest_sha256=self.content_manifest_sha256)
 
+    def preparation_manifests(self, artifact_ids):
+        """Read frozen file sizes/hashes without fetching or copying artifacts.
+
+        Allocation granularity belongs to the destination owner. Logical remote
+        bytes must not be substituted for HOST/NVMe target allocation bytes.
+        """
+        ids = tuple(artifact_ids)
+        if (self._content_manifest is None or len(ids) != len(set(ids))
+                or any(a not in self._content_manifest for a in ids)):
+            raise ValueError('preparation requires unique frozen artifact identities')
+        return {a: dict(self._content_manifest[a]) for a in ids}
+
     def health(self) -> Dict[str, Any]:
         return self._json_request("/health")
 

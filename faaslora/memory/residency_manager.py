@@ -647,10 +647,7 @@ class LocalSourceReferences:
                 paths[staging / name] = size
             if not expected:
                 raise ValueError('space reservation requires frozen payload files')
-            contents = json.dumps([dict(path=name, size_bytes=size, sha256=digest)
-                for name, (size, digest) in sorted(expected.items())],
-                sort_keys=True, separators=(',', ':')).encode()
-            content = hashlib.sha256(contents).hexdigest()
+            content = self._expected_content(expected)
             for plan in self._file_preparation_plans.values():
                 if target in plan['pending'] and plan['targets'][target] != content:
                     raise ValueError('materialization differs from pending preparation content')
@@ -734,6 +731,57 @@ class LocalSourceReferences:
                 source_epoch=self.source_epoch, clock_id=local_monotonic_clock_id(),
                 captured_at=time.monotonic(), tiers=tiers, snapshot_reserves_capacity=False,
                 scope='managed_allocated_regular_files_only', total_host_memory_covered=False)
+
+    @staticmethod
+    def _expected_content(files):
+        from ..storage.http_artifact_store import _canonical_member_name
+        if not files:
+            raise ValueError('preparation requires frozen payload files')
+        for name, (size, digest) in files.items():
+            _canonical_member_name(name)
+            if (type(size) is not int or size < 0 or not isinstance(digest, str)
+                    or len(digest) != 64 or any(c not in '0123456789abcdef' for c in digest)):
+                raise ValueError('preparation requires frozen file sizes and SHA256')
+        contents = json.dumps([dict(path=name, size_bytes=size, sha256=digest)
+            for name, (size, digest) in sorted(files.items())],
+            sort_keys=True, separators=(',', ':')).encode()
+        return hashlib.sha256(contents).hexdigest()
+
+    def preparation_snapshot(self, *, manifests, limits):
+        """One physical file-owner view for automatic candidate production.
+
+        Sources, unused budgets and target allocation units are captured under
+        one owner lock. Target bytes use the same per-file rounding as fallocate;
+        archive peak is unknown until HTTP headers and is checked at execution.
+        The snapshot neither reserves space nor claims native tensor ownership.
+        """
+        from ..storage.http_artifact_store import _quote_artifact_id
+        with self.lock:
+            budget = self.file_budget_snapshot(limits)
+            units = {tier: os.statvfs(root).f_frsize for tier, root in self.roots.items()}
+            if any(type(unit) is not int or unit <= 0 for unit in units.values()):
+                raise RuntimeError('preparation requires actual destination allocation units')
+            if any(path.name not in manifests for path in self._confirmed_sources):
+                raise ValueError('confirmed file owner contains adapters outside the frozen universe')
+            artifacts = {}
+            for aid, files in sorted(manifests.items()):
+                _quote_artifact_id(aid)
+                content = self._expected_content(files)
+                observed = self.source_snapshot(aid)
+                if any(row['content_sha256'] != content for row in observed['sources']):
+                    raise ValueError('preparation file source differs from frozen manifest')
+                artifacts[aid] = dict(content_sha256=content,
+                    logical_payload_bytes=sum(size for size, _ in files.values()),
+                    sources=observed['sources'],
+                    targets={tier: dict(tier=tier, representation='verified_regular_file_tree_v1',
+                        content_sha256=content, footprint_bytes=sum(
+                            ((size+unit-1)//unit)*unit for size, _ in files.values()),
+                        path=str(self.roots[tier]/aid)) for tier, unit in units.items()})
+            return dict(kind='ieee_file_planning_sources_v1', owner_id=self.owner_id,
+                epoch=self.source_epoch, clock_id=budget['clock_id'], captured_at=time.monotonic(),
+                artifacts=artifacts, budgets=budget, allocation_units_bytes=units,
+                managed_host=self.host_budget_snapshot(),
+                physical_resources_reserved=False)
 
     def copy_confirmed(self, source, target, *, limit_bytes, publish, cancel_event=None, evidence=None,
                        expected_content_sha256=None, replacement_epoch=None):

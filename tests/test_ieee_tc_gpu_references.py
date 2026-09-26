@@ -271,7 +271,7 @@ class NativeObjectiveReplacement(unittest.TestCase):
                 self.stack.hotness_tracker.record_arrival(f'adapter-{aid}')
         self.content = {f'adapter-{aid}': str(aid)*64 for aid in (2, 3, 4)}
         keys = {aid: FrozenPreparationProfiles.source_class(dict(native=True, tier='host',
-            representation='native_cpu_dense_ab_v1', footprint_bytes=16,
+            representation='native_cpu_dense_ab_v1:torch.float16:unpinned', footprint_bytes=16,
             expected_content_sha256=self.content[f'adapter-{aid}']), ()) for aid in (2, 3, 4)}
         self.keys = keys
         self.means = {keys[2]: 100., keys[3]: 1., keys[4]: 30.}
@@ -280,10 +280,18 @@ class NativeObjectiveReplacement(unittest.TestCase):
 
     def epoch(self):
         snap = self.owner.source_snapshot()
+        ids = snap['registered_cpu_adapter_ids']
         snap['native_footprints'] = dict(slot_adapter_ids=list(snap['slot_adapter_ids']),
-            slot_capacity_bytes=100, host_adapter_footprints=[dict(adapter_int_id=aid,
-                storage_bytes=16, representation='native_cpu_dense_ab_v1')
-                for aid in snap['registered_cpu_adapter_ids']])
+            uniform_slot_layout=True, host_footprint_scope='native_registered_tensor_storage_capacity',
+            host_budget_reserved=False, host_allocator_overhead_included=False,
+            registered_cpu_adapter_ids=list(ids), slot_capacity_bytes=100,
+            pool_allocated_bytes=100*len(snap['slot_adapter_ids']), host_tensor_storage_bytes=16*len(ids),
+            pool_tensor_views=[dict(dtype='torch.float16')],
+            host_allocations=[dict(allocation_id=i, allocated_bytes=16, adapter_ids=[aid], pinned=False)
+                              for i, aid in enumerate(ids)],
+            host_adapter_footprints=[dict(adapter_int_id=aid, storage_bytes=16,
+                representation='native_cpu_dense_ab_v1', allocation_ids=[i], exclusive_storage_bytes=16,
+                dtypes=['torch.float16'], has_packed_modules=False) for i, aid in enumerate(ids)])
         return self.stack.plan_ieee_native_gpu_epoch(native_snapshot=snap,
             content_sha_by_adapter=self.content, profiles=self.profiles, costs=self.costs)
 
