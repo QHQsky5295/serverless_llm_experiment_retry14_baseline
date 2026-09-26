@@ -2342,3 +2342,59 @@ GPU原生计划继续使用D39入口，二者的自动合并与激活触发仍�
 完成。Full启动guard保留，不用这些正确性检查代替共同SLO/排名/消融。
 不重复本轮窄测试或旧source32/capacity5/lifecycle4；下一轮直接继续这些
 尚未连接的主线任务。最终环境检查、回归与备份回执见EXECUTION_STATUS。
+
+## D44：文件层按损失/可回收字节替换，容量变化后重新检查
+
+### 问题、假设与适用边界
+
+D43的已选集合可以到达真实复制路径，但执行时容量减少会直接失败；尚无
+论文要求的多victim替换。假设是：保持同一epoch的需求与准备成本，在真实
+分配入口联合判断收益、可释放字节及引用，可以实现论文替换规则，而不
+改变普通按需加载、另设临时大缓存或用定时重试掩盖容量冲突。
+
+核对IEEE原文的replacement段落、D32文件预分配、D38共享队列、D39原生
+GPU替换与D42 HOST预算历史。
+[vLLM0.30官方worker manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+采用原生加载/缓存管理，本轮不改其按需策略；
+[dLoRA原论文](https://www.usenix.org/conference/osdi24/presentation/wu-bingyang)
+讨论请求与adapter联合编排，不意味着本项目的文件替换已被验证。这里实现
+的是IEEE现有规则，不声称提出新的缓存算法。
+
+本轮objective明确限定为`managed_file_copies_only`：fallback是已确认的
+另一个文件副本或冻结Remote工件，不包含推断出的原生tensor/GPU副本。
+因此它不是完整的逐副本、全层级最优目标；自动整合时必须使用完整来源
+视图，不能把这个受限问题直接称为Full。正需求缺少实测类成本就拒绝，
+零需求保留null而不是编造加载耗时。测试成本常数不进入实测profile。
+
+### 正确性结果表
+
+| 检验问题 | 实际路径与断言 |
+|---|---|
+| 冻结目标是否一致 | 文件副本content/footprint、原plan SHA、需求窗口、profile与cost sequence一起冻结；改变hash或cost epoch拒绝 |
+| 多victim选择 | 按损失/真实可回收字节排序，选择覆盖shortfall的最短前缀；三个候选中只删除两个低损失副本，保留高损失副本 |
+| 收益等于损失 | 不替换；旧副本保留，队列停在deferred，没有自旋重试 |
+| 可回收字节 | 只计算目标设备上所有链接均位于该victim内的真实分配文件；跨副本/外部hardlink不提前计为空闲 |
+| 读引用与pending | 真实reader、活动materialization、pending目标都不能被选；引用释放或另一计划关闭后才重新尝试 |
+| fallback变化 | 实际fallback内容/footprint变化不悄悄改用Remote重新定价；真实fallback引用保持到新目标发布及清理完成 |
+| Remote临时空间 | 同时计archive和payload；16KiB最终payload并不意味着16KiB预算足够，20KiB峰值无法容纳时不删除victim |
+| 实际Remote替换 | 24KiB满缓存为20KiB峰值删除三个8KiB副本；最终保留16KiB，原HOST fallback仍有效 |
+| 并发 | owner锁贯穿联合claim、reclaim与fallocate；两个候选不能重复花费同一victim容量，一个完成后另一个重新判定为deferred |
+| 实际分配失败 | 注入真实fallocate异常后保留failed和已回收事实；不伪造旧副本回滚，fallback仍在，引用/工作空间正确收尾 |
+| 重检查事件 | 同owner的文件引用释放、非空workspace清理、pending关闭与HOST额度退休唤醒；不添加固定sleep轮询 |
+| 接入 | 实际IEEE文件计划入口可冻结并传递replacement objective；同一共享队列和真实复制/HTTP预分配处理，不另建传输框架 |
+
+新增12项检查。首轮16项中7项测试构造错误：DemandSnapshot位置参数错误，
+以及测试初始NVMe布置未计archive峰值；修正fixture，未放宽真实预算。
+随后16项全部通过；包含前10项新增检查的850项回归全部通过。最后增加
+fallback存活与并发容量两项检查。完整冻结源码回归、原生环境及安全检查
+最终回执见EXECUTION_STATUS。测试使用小文件和HTTP响应fixture，不运行
+真实174服务，不加载模型、不产生性能数据或新的LoRA池。
+
+### 返回主线
+
+尚未把原背包未选中的候选自动加入最终migration set；当前入口的可选
+replacement也不能代替完整native/file来源下的loss评估。自动候选生产、
+混合GPU/file计划、activation触发、主动d反馈、代表性profile及完整部署
+生命周期仍待完成。Full guard保持；M1/M2、正式baseline、消融及敏感性
+均未启动。下一步直接连接这些控制路径，不再重复文件替换微测或旧模型
+prefix。旧稿、旧结果与工件不变；本表是正确性证据，不是性能优胜图。

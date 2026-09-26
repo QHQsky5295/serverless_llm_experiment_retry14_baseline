@@ -947,6 +947,303 @@ class OwnedNativeHostMovement(unittest.TestCase):
         asyncio.run(run())
 
 
+class FileObjectiveReplacement(unittest.TestCase):
+    """Real preallocation/reclamation with controlled, non-performance costs."""
+    def make(self, *, incoming_count=80, victims=('b', 'c'), target='host'):
+        from tests.test_http_artifact_store import content_manifest, archive_bytes, SizedResponse
+        from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+        from faaslora.preloading.preloading_planner import (FrozenPreparationProfiles,
+            PreparationCostModel, PreparationOption, PreloadingPlanner, freeze_file_replacement_epoch)
+        from faaslora.experiment.hotness_tracker import DemandSnapshot
+        factory = OwnedFileMovement()
+        self.addCleanup(factory.doCleanups)
+        fixture, runner, queue, engine, ledger = factory.make()
+        payloads = {a: {'adapter_config.json': b'{"r":8}', 'weights':
+            b'a'*(12288 if a == 'a' else 8)} for a in ('a', 'b', 'c', 'd')}
+        manifest = dict(format='artifact_content_v1', artifacts=[
+            content_manifest(a, p)['artifacts'][0] for a, p in payloads.items()])
+        client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+        client.configure_content_manifest(manifest)
+        client._opener = fixture.client._opener
+        client._opener.open.side_effect = lambda req, **kw: SizedResponse(archive_bytes(list(
+            payloads[req.full_url.rsplit('/', 1)[-1].split('.')[0]].items())))
+        fixture.client = runner._remote_artifact_client = client
+        runner._ieee_artifact_identities = {a: client.routing_identity(a, p['adapter_config.json'])
+                                            for a, p in payloads.items()}
+        # Set immutable budgets before the first actual allocation.
+        limit = len(victims)*8192
+        fixture.manager.tier_capacities[StorageTier.HOST].total_bytes = limit
+        fixture.manager.tier_capacities[StorageTier.NVME].total_bytes = (limit if target == 'nvme' else 131072)
+        for aid in victims:
+            runner._materialize_remote_adapter(aid, fixture.nvme/aid)
+            fixture.manager.materialize_confirmed_source(aid, fixture.nvme/aid, StorageTier.HOST)
+            if target == 'nvme':
+                self.assertTrue(fixture.manager._delete_path(str(fixture.nvme/aid)))
+        if target == 'nvme':
+            for aid in victims:
+                fixture.manager.materialize_confirmed_source(aid, fixture.host/aid, StorageTier.NVME)
+        if target == 'host':
+            runner._materialize_remote_adapter('a', fixture.nvme/'a')
+        counts = {'a': incoming_count, **{a: {'b': 1, 'c': 2, 'd': 20}[a] for a in victims}}
+        demand = DemandSnapshot(observed_at=100., window_seconds=60., counts=counts,
+                               total_arrivals=sum(counts.values()))
+        profile_id, edges, values = 'controlled-file-costs-not-measurements', (8192,), {}
+        classes = {}
+        for aid, identity in runner._ieee_artifact_identities.items():
+            for tier, size, representation, cost in (
+                    ('remote', identity['remote_payload_bytes'], identity['remote_representation'], 80.),
+                    ('nvme', 16384 if aid == 'a' else 8192, 'verified_regular_file_tree_v1', 20.),
+                    ('host', 16384 if aid == 'a' else 8192, 'verified_regular_file_tree_v1', 5.)):
+                key = FrozenPreparationProfiles.source_class(dict(tier=tier, footprint_bytes=size,
+                    representation=representation, content_sha256=identity['content_sha256']), edges)
+                classes[aid, tier], values[key] = key, cost
+        costs = PreparationCostModel(values, beta=.5, profile_id=profile_id)
+        profiles = NS(profile_id=profile_id, size_edges_bytes=edges)
+        planner = PreloadingPlanner.__new__(PreloadingPlanner)
+        planner.max_dp_buffer_bytes = 16*1024**2
+        source = 'nvme' if target == 'host' else 'remote'
+        plan = planner.generate_ieee_epoch(mode='residency', options=[PreparationOption(
+            'a', classes['a', source], classes['a', target], 16384)],
+            budgets={StorageTier.GPU: 0, StorageTier.HOST: 0, StorageTier.NVME: 0},
+            demand=demand, costs=costs, source_snapshot_id=str(fixture.owner.source_epoch))
+        epoch = freeze_file_replacement_epoch(file_snapshot=fixture.owner.replacement_source_snapshot(),
+            plan=plan, identities=runner._ieee_artifact_identities, profiles=profiles, costs=costs)
+        runner._stack.preloading_planner = planner
+        runner._preparation_profiles = profiles
+        fixture.replacement_target = StorageTier(target)
+        return fixture, runner, queue, engine, epoch, plan, profiles, costs
+
+    def call(self, fixture, runner, engine, epoch):
+        tier = fixture.replacement_target
+        return runner._queue_ieee_file_preparation(adapter_id='a', target_tier=tier,
+            source_path=fixture.nvme/'a' if tier == StorageTier.HOST else None,
+            target_engine=engine, target_replica='replica', trigger_reason='residency',
+            plan_id='controlled-replacement', replacement_epoch=epoch)
+
+    async def deferred(self, queue):
+        async def wait():
+            while not queue.snapshot() or queue.snapshot()[-1]['state'] != 'deferred':
+                await asyncio.sleep(.001)
+        await asyncio.wait_for(wait(), 2)
+
+    def test_actual_copy_reclaims_shortest_loss_prefix_and_keeps_expensive_victim(self):
+        fixture, runner, queue, engine, epoch, *_ = self.make(victims=('b', 'c', 'd'))
+        async def run():
+            result = await self.call(fixture, runner, engine, epoch)
+            receipt = result['file_reservation']['replacement']
+            self.assertEqual([r['adapter_id'] for r in receipt['victims']], ['b', 'c'])
+            self.assertEqual(receipt['observed_released_bytes'], 16384)
+            self.assertLess(receipt['total_eviction_loss_ms'], receipt['incoming_benefit_ms'])
+            self.assertTrue((fixture.host/'d').exists())
+            self.assertFalse((fixture.host/'b').exists())
+            self.assertFalse((fixture.host/'c').exists())
+            self.assertEqual((fixture.host/'a'/'weights').stat().st_size, 12288)
+            self.assertFalse(fixture.owner.leases)
+            self.assertEqual(fixture.owner.inventory()['tiers']['host']['allocated_file_bytes'], 24576)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_exact_benefit_loss_tie_defers_without_deletion_or_busy_retry(self):
+        fixture, runner, queue, engine, epoch, *_ = self.make(incoming_count=3)
+        async def run():
+            task = asyncio.create_task(self.call(fixture, runner, engine, epoch))
+            await self.deferred(queue)
+            for _ in range(60):
+                await asyncio.sleep(0)
+            self.assertEqual(len(queue.snapshot()[-1]['attempts']), 1)
+            self.assertTrue((fixture.host/'b').exists() and (fixture.host/'c').exists())
+            self.assertFalse(fixture.owner._file_replacement_events)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            self.assertFalse(fixture.owner.materializations)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_real_source_reference_release_wakes_deferred_replacement(self):
+        fixture, runner, queue, engine, epoch, *_ = self.make()
+        owner = fixture.owner
+        owner.acquire(path=str(fixture.host/'b'), adapter_id='b', lease_id='reader')
+        async def run():
+            task = asyncio.create_task(self.call(fixture, runner, engine, epoch))
+            await self.deferred(queue)
+            self.assertTrue((fixture.host/'b').exists())
+            owner.release(lease_id='reader', expected_owner_id=owner.owner_id)
+            await asyncio.wait_for(task, 2)
+            self.assertEqual(len(queue.snapshot()[-1]['attempts']), 2)
+            self.assertFalse(owner.leases)
+            self.assertFalse(owner.materializations)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_pending_target_protection_excludes_victim_until_plan_closes(self):
+        fixture, runner, queue, engine, epoch, *_ = self.make()
+        owner = fixture.owner
+        owner.register_file_preparation_plan(plan_id='other', targets=[dict(tier='host', adapter_id='b',
+            content_sha256=runner._ieee_artifact_identities['b']['content_sha256'])])
+        async def run():
+            task = asyncio.create_task(self.call(fixture, runner, engine, epoch))
+            await self.deferred(queue)
+            owner.close_file_preparation_plan(plan_id='other')
+            await asyncio.wait_for(task, 2)
+            self.assertFalse((fixture.host/'b').exists())
+            await queue.close()
+        asyncio.run(run())
+
+    def test_invalidated_fallback_does_not_silently_change_frozen_loss(self):
+        fixture, runner, queue, engine, epoch, *_ = self.make()
+        self.assertTrue(fixture.manager._delete_path(str(fixture.nvme/'b')))
+        async def run():
+            task = asyncio.create_task(self.call(fixture, runner, engine, epoch))
+            await self.deferred(queue)
+            self.assertTrue((fixture.host/'b').exists() and (fixture.host/'c').exists())
+            self.assertFalse(fixture.owner._file_replacement_events)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            await queue.close()
+        asyncio.run(run())
+
+    def test_remote_replacement_charges_archive_peak_not_just_final_payload(self):
+        fixture, runner, queue, engine, epoch, *_ = self.make(target='nvme')
+        # Final payload fits after two victims; archive+payload does not. No
+        # victim is reclaimed in anticipation of an impossible physical peak.
+        async def run():
+            task = asyncio.create_task(self.call(fixture, runner, engine, epoch))
+            await self.deferred(queue)
+            self.assertTrue((fixture.nvme/'b').exists() and (fixture.nvme/'c').exists())
+            self.assertFalse(fixture.owner._file_replacement_events)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            await queue.close()
+        asyncio.run(run())
+
+    def test_frozen_cost_sequence_and_hash_reject_changed_objectives(self):
+        import copy
+        from faaslora.preloading.preloading_planner import freeze_file_replacement_epoch, validate_file_replacement_epoch
+        fixture, runner, queue, _, epoch, plan, profiles, costs = self.make()
+        changed = copy.deepcopy(epoch)
+        changed['victims'][0]['loss_ms'] = 0.
+        with self.assertRaisesRegex(ValueError, 'hash mismatch'):
+            validate_file_replacement_epoch(changed)
+        with self.assertRaisesRegex(ValueError, 'cost epoch'):
+            freeze_file_replacement_epoch(file_snapshot=fixture.owner.replacement_source_snapshot(),
+                plan=plan | {'cost_sequence': 7}, identities=runner._ieee_artifact_identities,
+                profiles=profiles, costs=costs)
+        asyncio.run(queue.close())
+
+    def test_remote_archive_peak_requires_three_victims_and_keeps_host_fallbacks(self):
+        fixture, runner, queue, engine, epoch, *_ = self.make(victims=('b', 'c', 'd'), target='nvme')
+        async def run():
+            result = await self.call(fixture, runner, engine, epoch)
+            receipt = result['remote_transfer']['file_reservation']['replacement']
+            self.assertEqual(len(receipt['victims']), 3)
+            self.assertEqual(receipt['shortfall_bytes'], 20480)
+            self.assertTrue(all((fixture.host/a).exists() for a in ('b', 'c', 'd')))
+            self.assertTrue(all(not (fixture.nvme/a).exists() for a in ('b', 'c', 'd')))
+            self.assertEqual(fixture.owner.inventory()['tiers']['nvme']['allocated_file_bytes'], 16384)
+            self.assertFalse(fixture.owner.leases)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_real_allocation_failure_retains_failure_not_fabricated_rollback(self):
+        fixture, runner, queue, engine, epoch, *_ = self.make()
+        async def run():
+            with patch('os.posix_fallocate', side_effect=OSError('controlled allocation failure')):
+                with self.assertRaisesRegex(OSError, 'controlled allocation failure'):
+                    await self.call(fixture, runner, engine, epoch)
+            self.assertFalse((fixture.host/'b').exists() or (fixture.host/'c').exists())
+            self.assertTrue((fixture.nvme/'b').exists() and (fixture.nvme/'c').exists())
+            self.assertEqual(fixture.owner._file_replacement_events[-1]['state'], 'reclaimed')
+            self.assertFalse(fixture.owner.materializations)
+            self.assertFalse(fixture.owner.leases)
+            self.assertEqual(queue.snapshot()[-1]['state'], 'failed')
+            await queue.close()
+        asyncio.run(run())
+
+    def test_selected_plan_builds_frozen_file_objective_at_actual_execution_entry(self):
+        from faaslora.preloading.preloading_planner import PreparationClass, PreparationOption
+        from faaslora.experiment.hotness_tracker import DemandSnapshot
+        fixture, runner, queue, engine, epoch, previous, _, costs = self.make()
+        row = previous['options'][0]
+        # A real handoff plan can outlive its unused-capacity observation.
+        # Execution must recheck rather than spend the old planning snapshot.
+        plan = runner._stack.preloading_planner.generate_ieee_epoch(mode='handoff',
+            options=[PreparationOption('a', PreparationClass(**row['source']),
+                PreparationClass(**row['target']), 16384)],
+            budgets={StorageTier.GPU: 0, StorageTier.HOST: 16384, StorageTier.NVME: 0},
+            demand=DemandSnapshot(observed_at=100., window_seconds=60., total_arrivals=83,
+                                  counts={'a': 80, 'b': 1, 'c': 2}),
+            costs=costs, source_snapshot_id='unused-capacity-before-concurrent-work')
+        async def run():
+            await runner._run_ieee_file_preparation_plan(plan=plan, target_engine=engine,
+                target_replica='replica', activation_id='activation', replacement_costs=costs)
+            self.assertEqual(runner._ieee_file_preparation_plans[-1]['state'], 'completed')
+            self.assertEqual(fixture.owner.file_preparation_snapshot()['plans'], [])
+            self.assertEqual(len(fixture.owner._file_replacement_events), 1)
+            self.assertFalse(fixture.owner.leases)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_fallback_read_references_survive_through_actual_publication(self):
+        fixture, runner, queue, engine, epoch, *_ = self.make()
+        publish = fixture.manager.publish_local_source
+        def checked(*args, **kwargs):
+            for aid in ('b', 'c'):
+                self.assertFalse(fixture.manager._delete_path(str(fixture.nvme/aid)))
+            return publish(*args, **kwargs)
+        async def run():
+            with patch.object(fixture.manager, 'publish_local_source', side_effect=checked):
+                await self.call(fixture, runner, engine, epoch)
+            self.assertFalse(fixture.owner.leases)
+            self.assertTrue(fixture.manager._delete_path(str(fixture.nvme/'b')))
+            await queue.close()
+        asyncio.run(run())
+
+    def test_concurrent_candidates_cannot_double_spend_the_same_victims(self):
+        from faaslora.preloading.preloading_planner import (
+            PreparationClass, PreparationOption, freeze_file_replacement_epoch)
+        from faaslora.experiment.hotness_tracker import DemandSnapshot
+        fixture, runner, queue, engine, epoch, previous, profiles, costs = self.make()
+        runner._materialize_remote_adapter('d', fixture.nvme/'d')
+        row = previous['options'][0]
+        layout = 'exact_content_sha256:' + runner._ieee_artifact_identities['d']['content_sha256']
+        plan = runner._stack.preloading_planner.generate_ieee_epoch(mode='residency',
+            options=[PreparationOption('a', PreparationClass(**row['source']),
+                PreparationClass(**row['target']), 16384), PreparationOption('d',
+                PreparationClass('nvme', 'verified_regular_file_tree_v1', layout, 0),
+                PreparationClass('host', 'verified_regular_file_tree_v1', layout, 0), 8192)],
+            budgets={StorageTier.GPU: 0, StorageTier.HOST: 0, StorageTier.NVME: 0},
+            demand=DemandSnapshot(observed_at=100., window_seconds=60., total_arrivals=143,
+                                  counts={'a': 80, 'b': 1, 'c': 2, 'd': 60}),
+            costs=costs, source_snapshot_id='concurrent-candidates')
+        epoch = freeze_file_replacement_epoch(file_snapshot=fixture.owner.replacement_source_snapshot(),
+            plan=plan, identities=runner._ieee_artifact_identities, profiles=profiles, costs=costs)
+        async def run():
+            tasks = [asyncio.create_task(runner._queue_ieee_file_preparation(adapter_id=aid,
+                target_tier=StorageTier.HOST, source_path=fixture.nvme/aid, target_engine=engine,
+                target_replica='replica', trigger_reason='residency', plan_id='concurrent',
+                replacement_epoch=epoch)) for aid in ('a', 'd')]
+            async def settled():
+                while {r['state'] for r in queue.snapshot()} != {'completed', 'deferred'}:
+                    await asyncio.sleep(.001)
+            try:
+                await asyncio.wait_for(settled(), 2)
+                self.assertEqual(len(fixture.owner._file_replacement_events), 1)
+                self.assertLessEqual(fixture.owner.inventory()['tiers']['host']['allocated_file_bytes'], 16384)
+                self.assertEqual(sum(task.done() for task in tasks), 1)
+            finally:
+                for task in tasks:
+                    if not task.done():
+                        task.cancel()
+                await asyncio.gather(*tasks, return_exceptions=True)
+                await queue.close()
+            self.assertFalse(fixture.owner.leases)
+            self.assertFalse(fixture.owner.materializations)
+        asyncio.run(run())
+
+
 class SelectedFilePlans(unittest.TestCase):
     """Actual selector -> shared queue -> verified file owner, no GPU/model."""
     def make(self, *, source='remote', target='host', mode='handoff'):

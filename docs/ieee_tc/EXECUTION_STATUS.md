@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Selected file plans/pending targets connected; automatic all-tier Full open | P1_FORMULA_IMPLEMENTATION.md D1–D43. Actual IEEE selected HOST/NVMe sets reach shared physical preparation, including protected Remote→NVMe→HOST dependencies and joined cancellation. D42 managed HOST allowance remains. Automatic option production/all-tier activation, file-tier replacement, runtime allocator qualification and complete lifecycle remain open. IEEE startup still rejects legacy warmup; no new GPU/Full qualification |
+| P1 IEEE semantic alignment | File objective replacement connected; automatic all-tier Full open | P1_FORMULA_IMPLEMENTATION.md D1–D44. Same frozen h/d reaches real HOST/NVMe preallocation, shortest loss/usable-byte victim prefixes and event-driven rechecks. Explicit file-only objective is not the all-tier per-replica problem. Automatic options/remaining candidates/all-tier activation, representative profiles, runtime allocator qualification and complete lifecycle remain open. IEEE startup still rejects legacy warmup; no new GPU/Full qualification |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,21 +51,19 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST IMPLEMENTATION: D43 connects actual IEEE selected file plans to the
-shared queue. Epoch SHA/selection recheck precedes all movement; final and
-intermediate NVMe targets are protected before any task. Matching publications
-may proceed, arbitrary deletion/rebinding may not. Remote→NVMe→HOST is an actual
-two-stage path with separately charged retained copies. Cancellation/coalescing
-and shutdown join real operations before pending protection closes. D42 shared
-managed-HOST limits remain; neither pending targets nor plans reserve capacity.
-No new model/profile. Mixed GPU/file plans explicitly reject; D39 native GPU
-execution is retained but automatic all-tier selection/activation is NOT complete.
-Next: actual owner/source/footprint option production and combined handoff,
-HOST/NVMe multi-victim replacement plus event-driven capacity rechecks, proactive
-d feedback, representative profiles and Full physical lifecycle. Known file
-capacity shortfall currently preserves old files and fails, not yet a qualified
-replacement/deferred-control path. Do not repeat these narrow checks or old
-model prefixes. D43 initial840 functional pass; final receipts below.
+LATEST IMPLEMENTATION: D44 connects frozen file h/d and actual confirmed
+fallbacks to preallocation. Strictly positive net benefit, shortest loss/usable
+byte victim prefixes, protected reader/pending/moving copies, archive peak and
+single-owner allocation prevent fictitious capacity. Known conflicts defer;
+real owner changes wake rechecks, not sleep/retry. Actual allocation failure
+retains reclaimed/failed facts and never claims rollback. D42 managed HOST and
+D43 complete selected-target protection remain. This objective is explicitly
+managed-file-only, NOT native/GPU-inclusive per-replica Full. No model/profile.
+Next: actual complete owner/source/footprint option production, remaining
+candidate selection and combined handoff/activation, proactive d feedback,
+representative profiles and Full physical lifecycle. Mixed GPU/file plans still
+reject. Do not repeat narrow replacement checks or old model prefixes. D44
+final852 functional,21 installed-native and56 safety checks pass; receipts below.
 Runtime allocator configuration/service memory observations remain, not an
 indefinite demand to prove every driver RSS byte. The full goal remains active.
 Queue wakes on actual reference release/file-pressure finish/target closure,
@@ -108,7 +106,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D43.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D44.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -164,6 +162,45 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D44 file-objective replacement and actual capacity events
+
+- Previous D43 continuation was progress. Read full plan/status, IEEE original,
+  history and current primary-source vLLM/dLoRA references. Main starting HEAD
+  aca96a40c2f142e78acc3211dae1f26ceaa7e12d; baseline16570c unchanged. Original user
+  dirt preserved. No D43 job live, GPUs15MiB/0%, MemAvailable108585556KiB and
+  disk353525932032B at start. No model/GPU/174/profile/performance run this block.
+- Actual owner checks frozen file objective and confirmed fallback, excludes
+  references/pending/moving targets and unusable linked bytes, claims/reclaims
+  shortest positive-benefit prefix then preallocates. Actual archive peak is
+  charged; fallback references survive publication. Allocation failure remains
+  failure, not rollback. Real owner events wake the shared queue, no timer retry.
+  The native demand policy and IEEE equations are unchanged. Full guard remains.
+- Scope is conditional managed-file copies, not native tensor/GPU fallback loss.
+  Automatic remaining-candidate/all-tier options/activation, proactive d feedback,
+  representative profiles, runtime allocator/service observation and Full physical
+  lifecycle remain open. No formal baseline/M1/M2/ablation/sensitivity slot done.
+-12 new checks. Initial16 had7 fixture errors (DemandSnapshot argument order,
+  initial NVMe staging missing archive peak); fixtures corrected without budget
+  relaxation. Second16 pass. Initial850 includes first10 new checks and passes.
+  Final two check fallback protection and concurrent no-double-spend. First
+  native21 run's terminal output was unavailable after compaction; its scope
+  has0 tasks, empty cgroup.procs and high/max/oom/oom_kill0, stopped. Do not count
+  its unknown test result; bounded native recheck planned. Final receipts below.
+- Required correctness table, limitations and sources recorded in P1 D44.
+ 147-entry seal and plan SHA reverified unchanged after compaction. No new
+  artifacts/traces, old-result or manuscript changes. Remote disk floor and
+  nonzero3B fixture authority gates unchanged. Full goal active, not complete.
+- Final frozen-source852 functional and56 safety checks pass with no failures,
+  errors or skips. InstalledvLLM0.30.0/torch2.13.0+cu130:21 checks pass (12 new,
+ 9 D43), CUDA uninitialized. This bounded repeat recovers the unavailable
+  native receipt; it is not another model or performance experiment. No code
+  changes after final regression. All owned D44 scopes verified TasksCurrent0,
+  empty cgroup.procs and high/max/oom/oom_kill0 before stopping. No live test/model
+  remains. Implementation backup receipt follows; mainline integration is next.
+  Final GPUs15MiB/0%, MemAvailable108870612KiB, disk353504448512B. Plan SHA and
+ 147 protected entries unchanged; baseline HEAD16570c023a439c884624e7a5bdfa0d8577faf7a3
+  and original dirty files unchanged. No D44 scopes remain listed.
 
 ### D43 selected file plans and pending intermediate/final targets
 

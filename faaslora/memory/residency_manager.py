@@ -16,6 +16,7 @@ import os
 import hashlib
 import json
 import copy
+import math
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
@@ -110,6 +111,10 @@ class ConfirmedSourceConflict(RuntimeError):
     """Known pre-acquisition conflict; no read lease or mutation was performed."""
 
 
+class FilePreparationDeferred(RuntimeError):
+    """Known capacity/objective conflict before any victim is reclaimed."""
+
+
 class LocalSourceReferences:
     """Cooperative file-copy ownership, shared by local readers and reclaimers.
 
@@ -141,7 +146,137 @@ class LocalSourceReferences:
         self._confirmed_sources = {}
         self._file_preparation_plans = {}
         self._closed_file_preparation_plans = set()
+        self._file_replacement_contexts = {}
+        self._file_replacement_events = []
+        self._file_change_callbacks = {}
         self.source_epoch = 0
+
+    def subscribe_file_changes(self, subscriber_id, callback):
+        """Callbacks only enqueue notifications; never perform IO under this lock."""
+        with self.lock:
+            if not subscriber_id or not callable(callback):
+                raise ValueError('file state subscription requires identity/callback')
+            if subscriber_id in self._file_change_callbacks:
+                raise ValueError('duplicate file state subscription')
+            self._file_change_callbacks[subscriber_id] = callback
+
+    def unsubscribe_file_changes(self, subscriber_id):
+        with self.lock:
+            self._file_change_callbacks.pop(subscriber_id, None)
+
+    def _file_changed(self, tiers):
+        tiers = tuple(sorted(set(tiers)))
+        for callback in tuple(self._file_change_callbacks.values()):
+            callback(tiers)
+
+    def replacement_source_snapshot(self):
+        """Complete confirmed file view; not a snapshot of native tensor caches."""
+        with self.lock:
+            rows = []
+            for path in sorted(self._confirmed_sources):
+                record = self._validated_source(path)
+                rows.append(copy.deepcopy(record['public']))
+            return dict(owner_id=self.owner_id, epoch=self.source_epoch, sources=rows,
+                        scope='managed_file_copies_only', physical_resources_reserved=False)
+
+    def _reclaim_for_file_preparation(self, transfer_id, target, required, payload_required, limit_bytes, before, content):
+        """Joint loss/usable-byte decision and reclamation in allocation lock.
+
+        Native copies are not inferred from file paths. The frozen objective
+        explicitly describes the file-tier problem and its confirmed fallbacks.
+        No cross-tier hardlink, external link or protected reader yields space.
+        """
+        from ..preloading.preloading_planner import (validate_file_replacement_epoch,
+            FrozenPreparationProfiles, PreparationClass)
+        context = self._file_replacement_contexts.get(transfer_id)
+        if context is None:
+            raise RuntimeError('local file capacity conflict: retained copies plus transfer exceed tier budget')
+        epoch = validate_file_replacement_epoch(context['epoch'])
+        if epoch['owner_id'] != self.owner_id:
+            raise ValueError('file replacement physical owner changed')
+        tier = next(t for t, root in self.roots.items() if target.parent == root)
+        incoming = next((r for r in epoch['candidates']
+                         if r['adapter_id'] == target.name and r['target_tier'] == tier), None)
+        if incoming is None or incoming['content_sha256'] != content:
+            raise ValueError('file replacement lacks the original candidate objective')
+        if incoming['target_footprint_bytes'] != payload_required:
+            raise ValueError('file replacement target footprint changed from planning')
+        current = self.source_snapshot(target.name)
+        if any(s['tier'] == tier for s in current['sources']):
+            raise FilePreparationDeferred('target_already_present_revalidate')
+        if incoming['source_tier'] != 'remote':
+            source = next((s for s in current['sources'] if s['tier'] == incoming['source_tier']
+                           and s['content_sha256'] == incoming['content_sha256']), None)
+            if source is None or FrozenPreparationProfiles.source_class(
+                    dict(source, footprint_bytes=source['allocated_file_bytes']), epoch['size_edges_bytes']) != (
+                    PreparationClass(**incoming['source_class'])):
+                raise FilePreparationDeferred('replacement_source_invalidated')
+        shortfall = before + required - limit_bytes
+        inventory = self._file_inventory()
+        pending = {p for plan in self._file_preparation_plans.values() for p in plan['pending']}
+        held = {Path(row[1]) for row in self.leases.values()}
+        moving = set(self.materializations.values())
+        eligible = []
+        target_device = target.parent.stat().st_dev
+        for row in epoch['victims']:
+            path = Path(row['path'])
+            if row['tier'] != tier or path == target or path in pending | held | moving:
+                continue
+            record = self._validated_source(path)
+            if (record is None or record['public']['content_sha256'] != row['content_sha256']
+                    or record['public']['allocated_file_bytes'] != row['current_footprint_bytes']):
+                continue
+            fallback = row['fallback']
+            if fallback['tier'] != 'remote':
+                lower = self._validated_source(Path(fallback['path']))
+                if (lower is None or lower['public']['content_sha256'] != row['content_sha256']
+                        or lower['public']['allocated_file_bytes'] != row['fallback_footprint_bytes']):
+                    continue
+            usable = 0
+            for item in inventory['allocations']:
+                paths = [Path(p) for p in item['paths']]
+                if (item['kind'] == 'file' and item['device'] == target_device
+                        and item['external_link_count'] == 0
+                        and all(path in p.parents for p in paths)):
+                    usable += item['allocated_bytes']
+            if usable:
+                eligible.append((row['loss_ms']/usable, row['adapter_id'], row, usable))
+        selected, freed, loss = [], 0, 0.
+        for _, _, row, usable in sorted(eligible, key=lambda item: item[:2]):
+            selected.append((row, usable))
+            freed += usable
+            loss = math.fsum(r['loss_ms'] for r, _ in selected)
+            if freed >= shortfall:
+                break
+        if freed < shortfall:
+            raise FilePreparationDeferred('insufficient_unreferenced_file_capacity')
+        if incoming['benefit_ms'] <= loss:
+            raise FilePreparationDeferred('file_replacement_no_positive_net_benefit')
+        # This lock excludes all cooperative readers, plans and allocators until
+        # every victim has been withdrawn/reclaimed and incoming fallocate ends.
+        # Thus no observer can spend promised bytes or acquire a chosen victim.
+        receipt = dict(state='claimed', shortfall_bytes=shortfall, incoming_benefit_ms=incoming['benefit_ms'],
+            total_eviction_loss_ms=loss, expected_usable_bytes=freed,
+            objective_sha256=context['epoch']['plan_sha256'], transfer_id=transfer_id,
+            victims=[dict(row, usable_bytes=n) for row, n in selected])
+        context['receipt'] = receipt
+        self._file_replacement_events.append(receipt)
+        for row, _ in selected:
+            if row['fallback']['tier'] != 'remote':
+                lease_id = uuid.uuid4().hex
+                self.acquire(path=row['fallback']['path'], adapter_id=row['adapter_id'], lease_id=lease_id)
+                context['fallback_leases'].append(lease_id)
+        for row, _ in selected:
+            path = Path(row['path'])
+            del self._confirmed_sources[path]
+            self.source_epoch += 1
+            shutil.rmtree(path)
+        after = self._file_inventory()['tiers'][tier]['allocated_file_bytes']
+        if before-after != freed or after+required > limit_bytes:
+            receipt['state'] = 'reclamation_inconsistent'
+            raise RuntimeError('file replacement did not release its claimed allocation')
+        receipt.update(state='reclaimed', observed_released_bytes=before-after)
+        return after, receipt
 
     def register_file_preparation_plan(self, *, plan_id, targets):
         """Protect every selected final/staging copy before starting any work.
@@ -194,6 +329,7 @@ class LocalSourceReferences:
             if source is None or source['public']['content_sha256'] != plan['targets'][path]:
                 raise ValueError('file target lacks its confirmed completed copy')
             plan['pending'].discard(path)
+            self._file_changed((tier,))
             return dict(owner_id=self.owner_id, plan_id=plan_id, finished=True)
 
     def close_file_preparation_plan(self, *, plan_id):
@@ -205,6 +341,8 @@ class LocalSourceReferences:
                 raise RuntimeError('file plan cannot close before its physical operations join')
             del self._file_preparation_plans[plan_id]
             self._closed_file_preparation_plans.add(plan_id)
+            self._file_changed(tier for tier, root in self.roots.items()
+                               if any(path.parent == root for path in plan['pending']))
             return dict(owner_id=self.owner_id, plan_id=plan_id, closed=True)
 
     def file_preparation_snapshot(self):
@@ -213,7 +351,7 @@ class LocalSourceReferences:
                 targets=[dict(path=str(path), content_sha256=content, pending=path in row['pending'])
                          for path, content in sorted(row['targets'].items())])
                 for pid, row in sorted(self._file_preparation_plans.items())],
-                physical_resources_reserved=False)
+                physical_resources_reserved=False, replacements=copy.deepcopy(self._file_replacement_events))
 
     def configure_host_budget(self, limit_bytes):
         """One managed HOST allowance, not a second whole-service RSS limit.
@@ -304,6 +442,7 @@ class LocalSourceReferences:
             del self._native_host_reservations[owner_id]
             del self._native_host_pidfds[owner_id]
             self._native_host_retired.add(owner_id)
+            self._file_changed(('host',))
             return self.host_budget_snapshot()
 
     @staticmethod
@@ -453,6 +592,7 @@ class LocalSourceReferences:
             yield staging
         finally:
             with self.lock:
+                allocated = _local_file_inventory({'workspace': staging.parent})['allocated_file_bytes']
                 try:
                     context.__exit__(None, None, None)
                 finally:
@@ -460,6 +600,9 @@ class LocalSourceReferences:
                     # no unlink/physical-release claim follows from retirement.
                     self._prepared_transfers.pop(transfer_id, None)
                     del self._transfer_workspaces[transfer_id]
+                    if allocated:
+                        target = self.materializations[transfer_id]
+                        self._file_changed(tier for tier, root in self.roots.items() if target.parent == root)
 
     def prepare_transfer(self, transfer_id, staging, archive_bytes, expected, *, limit_bytes):
         """Reserve archive + payload as real allocated files before network reads.
@@ -515,7 +658,16 @@ class LocalSourceReferences:
             if unit <= 0:
                 raise RuntimeError('filesystem allocation unit is unavailable')
             required = sum(((size + unit - 1) // unit) * unit for size in paths.values())
+            payload_required = required - (((archive_bytes + unit - 1)//unit)*unit if archive_bytes else 0)
             before = self._file_inventory()['tiers'][tier]['allocated_file_bytes']
+            effective_limit = limit_bytes
+            if tier == 'host' and self._host_limit is not None:
+                effective_limit = min(effective_limit,
+                    self._host_limit-sum(self._native_host_reservations.values()))
+            replacement = None
+            if before + required > effective_limit and transfer_id in self._file_replacement_contexts:
+                before, replacement = self._reclaim_for_file_preparation(
+                    transfer_id, target, required, payload_required, effective_limit, before, content)
             if before + required > limit_bytes:
                 raise RuntimeError('local file capacity conflict: retained copies plus transfer exceed tier budget')
             if tier == 'host' and self._host_limit is not None:
@@ -539,12 +691,14 @@ class LocalSourceReferences:
             after = self._file_inventory()['tiers'][tier]['allocated_file_bytes']
             if after != before + required or after > limit_bytes:
                 raise RuntimeError('reserved file allocation differs from owner capacity transaction')
+            if replacement is not None:
+                replacement['state'] = 'incoming_allocated'
             return dict(scope='preallocated_regular_files_v1', owner_id=self.owner_id,
                         transfer_kind='remote_archive' if archive_bytes is not None else 'local_verified_copy',
                         transfer_id=transfer_id, tier=tier, limit_bytes=limit_bytes,
                         used_file_bytes_before=before, reserved_file_bytes=required,
                         allocated_file_bytes_after=after, pending_file_increment_bytes=0,
-                        filesystem_allocation_unit_bytes=unit)
+                        filesystem_allocation_unit_bytes=unit, replacement=copy.deepcopy(replacement))
 
     def file_budget_snapshot(self, limits):
         """Planning input for managed *file* sub-budgets, not total HOST RAM.
@@ -582,7 +736,7 @@ class LocalSourceReferences:
                 scope='managed_allocated_regular_files_only', total_host_memory_covered=False)
 
     def copy_confirmed(self, source, target, *, limit_bytes, publish, cancel_event=None, evidence=None,
-                       expected_content_sha256=None):
+                       expected_content_sha256=None, replacement_epoch=None):
         """Verified HOST/NVMe copy with real allocation before body I/O.
 
         Source read ownership survives the entire copy and publication. Payload
@@ -614,7 +768,7 @@ class LocalSourceReferences:
             scope='managed_allocated_regular_files_only', total_host_memory_covered=False)
         try:
             cancelled()
-            with self.materializing(target) as transfer_id:
+            with self.materializing(target, replacement_epoch=replacement_epoch) as transfer_id:
                 receipt['transfer_id'] = transfer_id
                 with self.transfer_workspace(transfer_id) as staging:
                     receipt['file_reservation'] = self.prepare_copy(
@@ -754,11 +908,13 @@ class LocalSourceReferences:
                 return
             if lease_id not in self.leases:
                 raise ValueError('unknown local source lease')
+            tier = self.leases[lease_id][2]
             del self.leases[lease_id]
             self.released.add(lease_id)
+            self._file_changed((tier,))
 
     @contextmanager
-    def materializing(self, target):
+    def materializing(self, target, *, replacement_epoch=None):
         """Retain the containing tier while a private workspace is being written.
 
         Old destination bytes remain readable. This is transfer lifetime, not
@@ -772,6 +928,17 @@ class LocalSourceReferences:
             if target in self.materializations.values():
                 raise RuntimeError('materialization destination already has an active transfer')
             self.materializations[transfer_id] = target
+            if replacement_epoch is not None:
+                from ..preloading.preloading_planner import validate_file_replacement_epoch
+                epoch = copy.deepcopy(replacement_epoch)
+                try:
+                    frozen = validate_file_replacement_epoch(epoch)
+                    if frozen['owner_id'] != self.owner_id:
+                        raise ValueError('file replacement owner changed')
+                except BaseException:
+                    del self.materializations[transfer_id]
+                    raise
+                self._file_replacement_contexts[transfer_id] = dict(epoch=epoch, receipt=None, fallback_leases=[])
         try:
             yield transfer_id
         finally:
@@ -779,6 +946,10 @@ class LocalSourceReferences:
                 if transfer_id in self._transfer_workspaces:
                     raise RuntimeError('materialization cannot end before its workspace cleanup')
                 del self.materializations[transfer_id]
+                context = self._file_replacement_contexts.pop(transfer_id, None)
+                if context is not None:
+                    for lease_id in context['fallback_leases']:
+                        self.release(lease_id=lease_id, expected_owner_id=self.owner_id)
 
     @contextmanager
     def mutation(self, path, *, transfer_id=None):
@@ -823,6 +994,8 @@ class LocalSourceReferences:
                     if signatures == record['signatures'] and footprint == record['footprint']:
                         self._confirmed_sources[source] = record
                         self.source_epoch += 1
+                if affected:
+                    self._file_changed(self.roots)
 
 
 class IEEEBackendGPUReferences:
@@ -1870,7 +2043,7 @@ class ResidencyManager:
             for tier in self.local_source_references.roots})
 
     def materialize_confirmed_source(self, artifact_id, source_path, target_tier, *, cancel_event=None,
-                                     expected_content_sha256=None):
+                                     expected_content_sha256=None, replacement_epoch=None):
         """Strict budgeted tier copy. Failures propagate without an alternate path."""
         if self.storage_manager is not None:
             raise RuntimeError('external LocalCache does not share the managed source owner')
@@ -1884,7 +2057,7 @@ class ResidencyManager:
                 source_path, directory / artifact_id,
                 limit_bytes=int(self.tier_capacities[target_tier].total_bytes),
                 publish=self.publish_local_source, cancel_event=cancel_event, evidence=evidence,
-                expected_content_sha256=expected_content_sha256)
+                expected_content_sha256=expected_content_sha256, replacement_epoch=replacement_epoch)
         except BaseException as exc:
             if evidence['state'] == 'not_started':
                 evidence.update(state='rejected', error_type=type(exc).__name__)

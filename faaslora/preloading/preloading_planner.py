@@ -297,6 +297,124 @@ class PreparationCostModel:
             return True
 
 
+def validate_file_replacement_epoch(epoch):
+    """Message/objective checks; execution still rechecks files and references."""
+    frozen = dict(epoch)
+    digest = frozen.pop('plan_sha256', None)
+    if digest != hashlib.sha256(json.dumps(frozen, sort_keys=True,
+            separators=(',', ':'), allow_nan=False).encode()).hexdigest():
+        raise ValueError('file replacement epoch hash mismatch')
+    if (frozen.get('kind') != 'ieee_file_replacement_objective_v1'
+            or frozen.get('scope') != 'managed_file_copies_only'
+            or frozen.get('physical_resources_reserved') is not False
+            or not isinstance(frozen.get('owner_id'), str) or not frozen['owner_id']
+            or type(frozen.get('epoch')) is not int or frozen['epoch'] < 0):
+        raise ValueError('file replacement requires its physical file owner')
+    total, counts = frozen['total_arrivals'], frozen['arrival_counts']
+    if (type(total) is not int or total < 0 or sum(counts.values()) != total
+            or any(not isinstance(a, str) or not a or type(n) is not int or n <= 0 for a, n in counts.items())):
+        raise ValueError('file replacement requires one frozen demand distribution')
+    def latency(value, h):
+        if (h and (type(value) not in (int, float) or not math.isfinite(value) or value < 0)
+                or not h and value is not None):
+            raise ValueError('file replacement lacks a measured class cost')
+    seen = set()
+    for row in frozen['victims']:
+        if row['path'] in seen or row['tier'] not in ('host', 'nvme') or not Path(row['path']).is_absolute():
+            raise ValueError('duplicate or invalid file replacement victim')
+        seen.add(row['path'])
+        h = counts.get(row['adapter_id'], 0)/total if total else 0.
+        latency(row['current_load_ms'], h)
+        latency(row['fallback_load_ms'], h)
+        loss = h * max(0., row['fallback_load_ms']-row['current_load_ms']) if h else 0.
+        if row['loss_ms'] != loss or row['fallback']['tier'] not in ('host', 'nvme', 'remote'):
+            raise ValueError('file replacement changed frozen eviction loss')
+    seen = set()
+    for row in frozen['candidates']:
+        pair = (row['adapter_id'], row['target_tier'])
+        if pair in seen or row['target_tier'] not in ('host', 'nvme'):
+            raise ValueError('duplicate or invalid file replacement candidate')
+        if type(row['target_footprint_bytes']) is not int or row['target_footprint_bytes'] <= 0:
+            raise ValueError('file replacement candidate lacks target allocation bytes')
+        seen.add(pair)
+        h = counts.get(row['adapter_id'], 0)/total if total else 0.
+        latency(row['source_load_ms'], h)
+        latency(row['target_load_ms'], h)
+        benefit = h * max(0., row['source_load_ms']-row['target_load_ms']) if h else 0.
+        if row['benefit_ms'] != benefit or benefit <= 0:
+            raise ValueError('file replacement changed frozen preparation benefit')
+    return frozen
+
+
+def freeze_file_replacement_epoch(*, file_snapshot, plan, identities, profiles, costs):
+    """Bind real file/fallback identity and class costs to the planner's h/d.
+
+    This is the conditional file-copy problem, not an assertion about native
+    tensor fallback availability. Automatic combined per-replica planning must
+    supply its complete source view; this explicit scope must not be relabelled.
+    """
+    sequence, estimates = costs.snapshot()
+    if (file_snapshot.get('scope') != 'managed_file_copies_only'
+            or file_snapshot.get('physical_resources_reserved') is not False
+            or profiles.profile_id != costs.profile_id or plan['profile_id'] != costs.profile_id
+            or sequence != plan['cost_sequence']):
+        raise ValueError('file replacement changed the frozen planning cost epoch')
+    counts, total = dict(plan['arrival_counts']), plan['total_arrivals']
+    by_adapter, victims, candidates = {}, [], []
+    for source in file_snapshot['sources']:
+        identity = identities[source['adapter_id']]
+        if source['content_sha256'] != identity['content_sha256'] or source['content_verified'] is not True:
+            raise ValueError('file replacement source differs from frozen content')
+        by_adapter.setdefault(source['adapter_id'], []).append(source)
+    def source_cost(source, h):
+        key = FrozenPreparationProfiles.source_class(source, profiles.size_edges_bytes)
+        return asdict(key), estimates[key] if h else None
+    for aid, sources in sorted(by_adapter.items()):
+        identity = identities[aid]
+        h = counts.get(aid, 0)/total if total else 0.
+        for source in sources:
+            current = dict(source, footprint_bytes=source['allocated_file_bytes'])
+            others = sorted((s for s in sources if s['path'] != source['path']),
+                            key=lambda s: ('host', 'nvme').index(s['tier']))
+            fallback = (dict(others[0], footprint_bytes=others[0]['allocated_file_bytes']) if others else
+                dict(tier='remote', representation=identity['remote_representation'],
+                    footprint_bytes=identity['remote_payload_bytes'], content_sha256=identity['content_sha256']))
+            current_key, d_current = source_cost(current, h)
+            fallback_key, d_fallback = source_cost(fallback, h)
+            victims.append(dict(adapter_id=aid, path=source['path'], tier=source['tier'],
+                content_sha256=identity['content_sha256'], current_class=current_key,
+                current_footprint_bytes=source['allocated_file_bytes'],
+                current_load_ms=d_current, fallback_class=fallback_key, fallback_load_ms=d_fallback,
+                fallback_footprint_bytes=fallback['footprint_bytes'],
+                fallback={k: fallback[k] for k in ('tier', 'path') if k in fallback},
+                loss_ms=h*max(0., d_fallback-d_current) if h else 0.))
+    for row in plan['options']:
+        if row['target']['tier'] not in ('host', 'nvme') or not row['demand_fraction']:
+            continue
+        aid = row['artifact_id']
+        source_key, target_key = PreparationClass(**row['source']), PreparationClass(**row['target'])
+        content = identities[aid]['content_sha256']
+        if (any(k.layout_id != 'exact_content_sha256:' + content for k in (source_key, target_key))
+                or estimates[source_key] != row['source_load_ms'] or estimates[target_key] != row['target_load_ms']):
+            raise ValueError('file replacement candidate differs from frozen measured classes')
+        benefit = row['demand_fraction'] * max(0., row['source_load_ms']-row['target_load_ms'])
+        if benefit > 0:
+            candidates.append(dict(adapter_id=aid, content_sha256=content,
+                source_tier=source_key.tier, target_tier=target_key.tier,
+                source_class=asdict(source_key), target_footprint_bytes=row['footprint_bytes'],
+                source_load_ms=row['source_load_ms'], target_load_ms=row['target_load_ms'], benefit_ms=benefit))
+    frozen = dict(kind='ieee_file_replacement_objective_v1', scope='managed_file_copies_only',
+        owner_id=file_snapshot['owner_id'], epoch=file_snapshot['epoch'], physical_resources_reserved=False,
+        size_edges_bytes=list(profiles.size_edges_bytes),
+        profile_id=costs.profile_id, cost_sequence=sequence, planning_sha256=plan['plan_sha256'],
+        total_arrivals=total, arrival_counts=counts, demand_observed_at=plan['demand_observed_at'],
+        window_seconds=plan['window_seconds'], candidates=candidates, victims=victims)
+    frozen['plan_sha256'] = hashlib.sha256(json.dumps(frozen, sort_keys=True,
+        separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+    validate_file_replacement_epoch(frozen)
+    return frozen
+
+
 def validate_native_gpu_epoch(epoch):
     """Validate a serialized frozen objective, not its measurement provenance.
 
