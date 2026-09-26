@@ -92,7 +92,7 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `06132c59a0ebbd527afa830cdc95b97d39d1b60e`, pushed to
+- Main tested implementation: `391f1613fecc573c82667179f286d98092d842b4`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -188,6 +188,12 @@ its one historical SHA difference and independent numerical gate remain open.
   current release/transfer/target events provide actual rechecks. Do not repeat
   this local gate or source32/capacity5/lifecycle4. Baselines/M1/M2/ablations/
   sensitivities remain not started. Full goal active, not complete or blocked.
+- Implementation391f1613fecc573c82667179f286d98092d842b4 pushed to
+  faaslora_origin/retry14_continuous_queue_v2; full remote SHA verified. All six
+  D39 scopes stopped and no longer listed; only original user dirt remains.
+  This backup receipt is documentation-only. Recheck plan/status/resources,
+  then continue shared/preactivation pressure and total HOST/native ownership
+  with automatic planner integration. Do not repeat this narrow qualification.
 
 ### D38 actual shared file preparation; automatic Full still open
 
