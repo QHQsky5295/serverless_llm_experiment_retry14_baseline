@@ -14,6 +14,269 @@ from faaslora.clock import local_monotonic_clock_id
 from faaslora.datasets.workload_generator import FrozenReplayPlan, publish_frozen_replay
 
 
+def ieee_control_fixture():
+    # Deliberately synthetic: correctness constants, not a frozen serving profile.
+    return dict(queue_upper=2, queue_lower=1, active_upper=.75, active_lower=.25,
+        ttft_upper_ms=1000, ttft_lower_ms=500, ttft_window_s=100, scale_down_cooldown_s=3)
+
+
+class IEEEControlContract(unittest.TestCase):
+    def make(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl
+        return IEEEReplicaControl(ieee_control_fixture(), interval_s=1, min_instances=1, max_instances=4)
+
+    def evaluate(self, control, now, **overrides):
+        args = dict(now=now, queue_depth=0, active_requests=0, ready_capacity=8,
+                    ready_instances=2, pending_instances=0)
+        args.update(overrides)
+        return control.evaluate(**args)
+
+    def test_each_signal_uses_max_not_averages_and_strict_upper_boundary(self):
+        from faaslora.coordination.autoscaler import ScalingAction
+        for signal in ('queue', 'active', 'ttft'):
+            control = self.make()
+            if signal == 'ttft':
+                control.observe_ttft('slow', 1001., observed_at=0.)
+            args = dict(queue_depth=3) if signal == 'queue' else dict(active_requests=7) if signal == 'active' else {}
+            observed = self.evaluate(control, 0., **args)
+            self.assertEqual(observed['action'], ScalingAction.SCALE_UP)
+            self.assertEqual(observed['target_instances'], 3)
+        control = self.make()
+        observed = self.evaluate(control, 0., queue_depth=2, active_requests=6)
+        self.assertEqual(observed['score'], 1.)
+        self.assertEqual(observed['action'], ScalingAction.NO_ACTION)
+
+    def test_p95_type1_deduplicated_window_unknown_not_free_scalein(self):
+        control = self.make()
+        for index in range(20):
+            control.observe_ttft(str(index), 100 if index < 18 else 1100, observed_at=0.)
+        self.assertFalse(control.observe_ttft('0', 100, observed_at=0.))
+        sample = self.evaluate(control, 0.)
+        self.assertEqual((sample['p95_ttft_ms'], sample['ttft_sample_count']), (1100,20))
+        self.assertIsNone(self.evaluate(control, .1))
+        sample = self.evaluate(control, 100.)
+        self.assertIsNone(sample['p95_ttft_ms'])
+        self.assertFalse(sample['all_low'])
+        self.assertIsNone(control.low_since)
+
+    def test_low_cooldown_resets_on_pressure_or_pending_and_respects_minimum(self):
+        from faaslora.coordination.autoscaler import ScalingAction
+        control = self.make()
+        control.observe_ttft('fast', 100, observed_at=0.)
+        self.evaluate(control, 0.)
+        self.evaluate(control, 1., queue_depth=1)  # At lower boundary is not below.
+        self.assertIsNone(control.low_since)
+        self.evaluate(control, 2.)
+        self.evaluate(control, 3., pending_instances=1)
+        self.assertIsNone(control.low_since)
+        self.evaluate(control, 4.)
+        self.assertEqual(self.evaluate(control, 6.)['action'], ScalingAction.NO_ACTION)
+        self.assertEqual(self.evaluate(control, 7.)['action'], ScalingAction.SCALE_DOWN)
+        self.assertEqual(self.evaluate(control, 10., ready_instances=1, ready_capacity=4)['action'],
+                         ScalingAction.NO_ACTION)
+
+    def test_pending_counts_toward_replica_limit_not_ready_saturation(self):
+        from faaslora.coordination.autoscaler import ScalingAction
+        control = self.make()
+        observed = self.evaluate(control, 0., queue_depth=100, active_requests=8, pending_instances=2)
+        self.assertEqual(observed['active_saturation'], 1.)
+        self.assertEqual(observed['action'], ScalingAction.NO_ACTION)
+        with self.assertRaises(ValueError): self.evaluate(control, 1., active_requests=9)
+        with self.assertRaises(ValueError): self.evaluate(control, -1.)
+
+    def test_no_implicit_thresholds_or_nonfinite_state(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl
+        for config in ({}, ieee_control_fixture() | dict(active_upper=float('nan')),
+                       ieee_control_fixture() | dict(queue_lower=2), ieee_control_fixture() | dict(extra=1)):
+            with self.assertRaises(ValueError):
+                IEEEReplicaControl(config, interval_s=1, min_instances=1, max_instances=4)
+        control = self.make()
+        with self.assertRaises(ValueError): control.observe_ttft('bad', None, observed_at=0.)
+        control.observe_ttft('good', 10, observed_at=2.)
+        with self.assertRaises(ValueError): self.evaluate(control, 1.)
+
+
+class IEEEActualControl(unittest.TestCase):
+    def make(self, policy='full'):
+        from tests.test_ieee_tc_transfer_pressure import ActivationPreparation
+        fixture = ActivationPreparation()
+        self.addCleanup(fixture.doCleanups)
+        files, service, queue, engine, native = fixture.make(policy)
+        service.coord_cfg = dict(ieee_scaling=ieee_control_fixture())
+        service._scale_eval_interval_s = 1.
+        service._instance_mode = 'dedicated'
+        service._coordination_enabled = True
+        service._hierarchical_residency_enabled = False
+        service._primary_instance_id = None
+        service._scaleup_runtime_instance_ids = set()
+        service._runtime_forward_capacity_limit = Mock(return_value=4)
+        service._select_dedicated_device_id = Mock(return_value=0)
+        service._arrived_request_count = Mock(return_value=3)
+        service._live_scale_up_preferred_gpu_adapters = Mock(side_effect=AssertionError('legacy forecast'))
+        service._update_dynamic_scaling_live_state = Mock(side_effect=AssertionError('legacy votes'))
+        service._stack.trigger_scaling_preload = AsyncMock(side_effect=AssertionError('legacy preload'))
+        service._last_scale_up_handoff_plan = dict(planned_adapters=['stale-legacy'])
+        service._last_scale_up_preload_budget = dict(mode='stale-legacy')
+        return fixture, files, service, queue, engine
+
+    async def evaluate(self, service, result, **overrides):
+        args = dict(result=result, coord_enabled=True, replay_t0=0., results_view=[],
+                    backlog=3, active_requests=0, busy_ratio=0., completed_count=0)
+        args.update(overrides)
+        return await service._maybe_run_live_scale_control_evaluation(**args)
+
+    def test_actual_control_reaches_owned_activation_no_legacy_preparation_or_metadata(self):
+        fixture, files, service, queue, engine = self.make()
+        async def run():
+            service.engine_factory = AsyncMock(return_value=(engine,None))
+            result = SimpleNamespace(scale_up_events=[],scale_down_events=0,scale_down_event_log=[])
+            self.assertTrue(await self.evaluate(service,result))
+            await service._wait_for_pending_scale_up_tasks()
+            await fixture.finish_preparation(service)
+            self.assertEqual(service.instance_pool.count(),1)
+            self.assertEqual((files.host/'a'/'weights').read_bytes(),b'a'*12288)
+            self.assertEqual(len(result.scale_up_events),1)
+            event = result.scale_up_events[0]
+            self.assertEqual(event['activation_kind'],'natural_scaleout')
+            self.assertIsNotNone(event['handoff_plan_sha256'])
+            self.assertNotIn('planned_adapters',event)
+            self.assertNotIn('budget_mode',event)
+            self.assertEqual(service._ieee_control_events[0]['queue_depth'],3)
+            service._stack.trigger_scaling_preload.assert_not_awaited()
+            await queue.close()
+        asyncio.run(run())
+
+    def test_no_handoff_still_runs_actual_ready_residency_without_duplicate_epoch(self):
+        from tests.test_ieee_tc_transfer_pressure import MixedOwnedPreparation
+        fixture=MixedOwnedPreparation()
+        self.addCleanup(fixture.doCleanups)
+        files,service,queue,slot,owner,_,loads=fixture.make(remote_gpu=True)
+        engine=slot.engine
+        service.instance_pool=SimpleNamespace(get_slots=lambda:[slot])
+        service._ieee_handoff_policy='no_handoff'
+        service._coordination_enabled=True
+        async def run():
+            self.assertFalse((files.nvme/'a').exists())
+            service._hierarchical_residency_enabled=True
+            service._schedule_ieee_residency_epochs()
+            task=service._ieee_residency_tasks[id(engine)]
+            service._schedule_ieee_residency_epochs()
+            self.assertIs(service._ieee_residency_tasks[id(engine)],task)
+            await task
+            service._reap_ieee_residency_tasks()
+            self.assertEqual((files.nvme/'a'/'weights').read_bytes(),b'a'*12288)
+            self.assertEqual(loads,[('host','a'),('gpu','a')])
+            self.assertEqual(service._ieee_residency_epochs[0]['state'],'completed')
+            fixture.check_clean(files,service,owner)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_admitted_work_is_not_counted_twice_and_missing_config_never_uses_legacy(self):
+        _,_,service,queue,engine=self.make()
+        async def run():
+            service.engine_factory=AsyncMock(return_value=(engine,None))
+            service.instance_pool.add_instance(engine,None,owns_engine=True,device_id=0)
+            result=SimpleNamespace(scale_up_events=[],scale_down_events=0,scale_down_event_log=[])
+            self.assertFalse(await self.evaluate(service,result,backlog=3,active_requests=3))
+            record=service._ieee_control_events[0]
+            self.assertEqual((record['queue_depth'],record['active_saturation']),(0,.75))
+            service._ieee_scale_controller=None
+            service.coord_cfg={}
+            with self.assertRaises(ValueError): await self.evaluate(service,result)
+            service._update_dynamic_scaling_live_state.assert_not_called()
+            await queue.close()
+        asyncio.run(run())
+
+    def test_failed_residency_surfaces_once_not_automatic_retry(self):
+        _,_,service,queue,engine=self.make()
+        async def run():
+            service.instance_pool.add_instance(engine,None,owns_engine=True,device_id=0)
+            service._hierarchical_residency_enabled=True
+            service._run_ieee_owned_preparation_plan=AsyncMock(side_effect=ValueError('missing class'))
+            service._schedule_ieee_residency_epochs()
+            await asyncio.gather(*service._ieee_residency_tasks.values(),return_exceptions=True)
+            with self.assertRaisesRegex(ValueError,'missing class'): service._reap_ieee_residency_tasks()
+            self.assertEqual(service._ieee_residency_epochs[0]['state'],'failed')
+            self.assertEqual(service._run_ieee_owned_preparation_plan.await_count,1)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_all_low_scalein_withdraws_before_cleanup_and_keeps_minimum(self):
+        _,_,service,queue,engine=self.make()
+        async def run():
+            service.engine_factory=AsyncMock()
+            primary=service.instance_pool.add_instance(engine,None,owns_engine=True,device_id=0)
+            second=SimpleNamespace(model_cfg=engine.model_cfg)
+            victim=service.instance_pool.add_instance(second,None,owns_engine=True,device_id=1)
+            service._primary_instance_id=primary
+            async def cleanup(slot, **kw):
+                self.assertEqual(slot.instance_id,victim)
+                self.assertIsNone(service.instance_pool.get_slot(victim))
+                self.assertEqual(service.instance_pool.count(),1)
+            service._cleanup_removed_slot=AsyncMock(side_effect=cleanup)
+            result=SimpleNamespace(scale_up_events=[],scale_down_events=0,scale_down_event_log=[])
+            completed=[SimpleNamespace(success=True,request_id='fast',overall_ttft_ms=100.)]
+            for when in (10.,11.,12.,13.,14.,17.):
+                with patch('scripts.run_all_experiments.time.monotonic',return_value=when):
+                    await self.evaluate(service,result,backlog=0,active_requests=0,
+                                        completed_count=1,results_view=completed)
+            service._cleanup_removed_slot.assert_awaited_once()
+            self.assertEqual(result.scale_down_events,1)
+            self.assertEqual(service._ieee_control_events[3]['outcome'],'drained_replica_retired')
+            self.assertEqual(service._ieee_control_events[-1]['ttft_sample_count'],1)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_failed_activation_is_not_retried_on_next_control_interval(self):
+        _,_,service,queue,_=self.make()
+        async def run():
+            service.engine_factory=AsyncMock(side_effect=RuntimeError('startup ownership unknown'))
+            result=SimpleNamespace(scale_up_events=[],scale_down_events=0,scale_down_event_log=[])
+            await self.evaluate(service,result)
+            with self.assertRaisesRegex(RuntimeError,'no blind control-loop retry'):
+                await service._wait_for_pending_scale_up_tasks()
+            with self.assertRaisesRegex(RuntimeError,'no blind control-loop retry'):
+                await self.evaluate(service,result)
+            service.engine_factory.assert_awaited_once()
+            self.assertEqual(service._ieee_activations[0]['state'],'startup_ownership_unresolved')
+            await queue.close()
+        asyncio.run(run())
+
+    def test_retirement_joins_a_planning_epoch_before_runtime_shutdown(self):
+        _,_,service,queue,engine=self.make()
+        async def run():
+            sid=service.instance_pool.add_instance(engine,None,owns_engine=True,device_id=0)
+            service._hierarchical_residency_enabled=True
+            entered,release=asyncio.Event(),asyncio.Event()
+            async def plan(**_):
+                entered.set()
+                try:
+                    await asyncio.Event().wait()
+                finally:
+                    await release.wait()  # An actual reader/observation must join first.
+            service._run_ieee_owned_preparation_plan=AsyncMock(side_effect=plan)
+            service._mark_instance_lifecycle_removed=Mock()
+            service._scaleup_runtime_handoff_plans={}
+            service._scaleup_runtime_lora_request_ordinals={}
+            service._cancel_runtime_gpu_forward_tasks=AsyncMock()
+            service._retire_ieee_host_budget=Mock()
+            service._sync_stack_gpu_accounting=Mock()
+            service._schedule_ieee_residency_epochs()
+            await entered.wait()
+            removed=service.instance_pool.remove_instance(sid)
+            retiring=asyncio.create_task(service._cleanup_removed_slot(removed))
+            await asyncio.sleep(0)
+            engine.shutdown.assert_not_awaited()
+            self.assertFalse(retiring.done())
+            release.set()
+            await retiring
+            engine.shutdown.assert_awaited_once()
+            self.assertFalse(service._ieee_residency_tasks)
+            self.assertEqual(service._ieee_residency_epochs[0]['state'],'cancelled')
+            await queue.close()
+        asyncio.run(run())
+
+
 class ManagedEngineLaunch(unittest.TestCase):
     def test_managed_cleanup_only_revalidates_owned_service(self):
         engine = runner.InferenceEngine({}, {})

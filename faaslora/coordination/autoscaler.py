@@ -12,6 +12,8 @@ import sys
 import socket
 import subprocess
 import uuid
+import math
+from collections import deque
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
@@ -102,6 +104,100 @@ class InstanceInfo:
     load_score: float = 0.0
     gpu_memory_used: float = 0.0
     active_requests: int = 0
+
+
+class IEEEReplicaControl:
+    """IEEE §3.1 sampled max-score control, separate from historical voting.
+
+    Limits and the observation window are explicit frozen operator settings.
+    A missing TTFT observation is unknown, not zero: it cannot establish the
+    all-low condition for scale-in. Samples enter once at controller observation
+    of a completed request, never by reading future trace rows.
+    """
+    _fields = frozenset(('queue_upper', 'queue_lower', 'active_upper', 'active_lower',
+        'ttft_upper_ms', 'ttft_lower_ms', 'ttft_window_s', 'scale_down_cooldown_s'))
+
+    def __init__(self, config, *, interval_s, min_instances, max_instances):
+        if not isinstance(config, dict) or set(config) != self._fields:
+            raise ValueError('IEEE scaling requires the complete explicit limit/window configuration')
+        values = {}
+        for key, value in config.items():
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+                raise ValueError('IEEE scaling limits must be finite numbers')
+            values[key] = float(value)
+        for name in ('queue', 'active', 'ttft'):
+            suffix = '_ms' if name == 'ttft' else ''
+            if not 0 <= values[name+'_lower'+suffix] < values[name+'_upper'+suffix]:
+                raise ValueError('IEEE lower limit must be nonnegative and below its positive upper limit')
+        if (values['ttft_window_s'] <= 0 or values['scale_down_cooldown_s'] < 0
+                or isinstance(interval_s, bool) or not math.isfinite(interval_s) or interval_s <= 0
+                or type(min_instances) is not int or type(max_instances) is not int
+                or not 1 <= min_instances <= max_instances):
+            raise ValueError('invalid IEEE control interval/window/replica limits')
+        self.config = values
+        self.interval_s = float(interval_s)
+        self.min_instances, self.max_instances = min_instances, max_instances
+        self.last_evaluation = self.last_observation = None
+        self.low_since = None
+        self.samples = deque()
+        self.seen_requests = set()
+
+    def observe_ttft(self, request_id, ttft_ms, *, observed_at):
+        if (not isinstance(request_id, str) or not request_id
+                or isinstance(ttft_ms, bool) or not isinstance(ttft_ms, (int, float))
+                or not math.isfinite(ttft_ms) or ttft_ms < 0
+                or not math.isfinite(observed_at) or observed_at < 0
+                or (self.last_observation is not None and observed_at < self.last_observation)):
+            raise ValueError('invalid causal IEEE TTFT observation')
+        if request_id in self.seen_requests:
+            return False
+        self.last_observation = observed_at
+        self.seen_requests.add(request_id)
+        self.samples.append((observed_at, float(ttft_ms)))
+        return True
+
+    def evaluate(self, *, now, queue_depth, active_requests, ready_capacity,
+                 ready_instances, pending_instances):
+        for value in (queue_depth, active_requests, ready_capacity, ready_instances, pending_instances):
+            if type(value) is not int or value < 0:
+                raise ValueError('IEEE control counts must be nonnegative integers')
+        if (not math.isfinite(now) or now < 0
+                or (self.last_evaluation is not None and now < self.last_evaluation)
+                or (self.last_observation is not None and now < self.last_observation)
+                or ready_instances + pending_instances > self.max_instances
+                or active_requests > ready_capacity or (ready_instances > 0) != (ready_capacity > 0)):
+            raise ValueError('inconsistent IEEE control snapshot')
+        if self.last_evaluation is not None and now - self.last_evaluation < self.interval_s:
+            return None
+        self.last_evaluation = now
+        cfg = self.config
+        while self.samples and self.samples[0][0] <= now-cfg['ttft_window_s']:
+            self.samples.popleft()
+        values = sorted(value for _, value in self.samples)
+        p95 = values[math.ceil(.95*len(values))-1] if values else None  # Type-1, no interpolation.
+        saturation = active_requests / ready_capacity if ready_capacity else 0.
+        ratios = dict(queue=queue_depth/cfg['queue_upper'], active=saturation/cfg['active_upper'],
+                      ttft=None if p95 is None else p95/cfg['ttft_upper_ms'])
+        score = max(value for value in ratios.values() if value is not None)
+        all_low = (queue_depth < cfg['queue_lower'] and saturation < cfg['active_lower']
+                   and p95 is not None and p95 < cfg['ttft_lower_ms'])
+        total = ready_instances + pending_instances
+        action, reason, target = ScalingAction.NO_ACTION, 'within_limits', total
+        if not all_low or pending_instances:
+            self.low_since = None
+        elif self.low_since is None:
+            self.low_since = now
+        if score > 1 and total < self.max_instances:
+            action, reason, target = ScalingAction.SCALE_UP, 'ieee_max_score_above_one', total+1
+        elif (all_low and not pending_instances and ready_instances > self.min_instances
+                and now-self.low_since >= cfg['scale_down_cooldown_s']):
+            action, reason, target = ScalingAction.SCALE_DOWN, 'ieee_all_low_through_cooldown', total-1
+            self.low_since = now  # Each additional reclamation needs its own cooldown.
+        return dict(action=action, target_instances=target, current_instances=total, reason=reason,
+            observed_at=now, queue_depth=queue_depth, active_requests=active_requests,
+            ready_capacity=ready_capacity, ready_instances=ready_instances, pending_instances=pending_instances,
+            active_saturation=saturation, p95_ttft_ms=p95, ttft_sample_count=len(values),
+            ratios=ratios, score=score, all_low=all_low, low_since=self.low_since)
 
 
 class AutoScaler:

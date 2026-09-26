@@ -2621,3 +2621,82 @@ workspace之间（以及清理workspace后），另一个准备任务会将它�
 资格仍未完成。本次未测GPU模型、真实174服务或主性能；没有新权重/trace，
 没有修改旧结果或论文。后续继续完整控制/稳态计划集成，不再重复此局部
 扩容检查或旧模型短prefix。
+
+## D48：实际在线控制接入扩容与就绪副本的稳态规划
+
+### 主线问题、依据和可证伪假设
+
+D47接通了单次activation，但真实回放仍进入旧多规则投票、ready-time
+预测、额外预热和旧handoff名单。这些路径既不等于IEEE §3.1的三个观测量
+归一化max-score，也会污染NoHandoff等消融。检查D35–D47历史和真实
+`_maybe_run_live_scale_control_evaluation`调用链后，本轮假设是：用同一
+实际控制入口连接正文控制律与已有owner队列，就能消除上述旁路，而不
+需要改变九个公式、到达序列、基线或物理预算。
+
+联网核对了[vLLM0.30 worker manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+中分离的CPU加载/GPU activation和原生加载策略；它不是可直接调用的
+主动全层规划器。[HydraServe](https://www.usenix.org/conference/nsdi26/presentation/lou)
+仅作为启动重叠的相关系统参照。
+[Kubernetes HPA](https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/)
+使用多指标建议的最大值，并对缺失指标导致的缩容采取保守处理；本实现
+不照搬其比例扩容或默认时间常数，具体max-score与每次激活一个副本仍
+来自IEEE正文。以上资料不证明Prime的性能优势。
+
+### 实现与观测边界
+
+- 在既有autoscaler文件中增加显式IEEE控制律，旧投票路径保留用于历史
+  协议。真实IEEE回放入口在进入旧规则/预测/预热前转入它。
+- `coordination.ieee_scaling`必须明确提供`queue_upper/queue_lower`、
+  `active_upper/active_lower`、`ttft_upper_ms/ttft_lower_ms`、
+  `ttft_window_s`、`scale_down_cooldown_s`。实际控制间隔及min/max沿用
+  冻结配置；本次没有填写模型性能配置或加入默认调参值。
+- Queue是尚未admit的请求数。旧`backlog`表示全部未完成到达，因此需减去
+  admitted数；后者单独除以runtime-ready副本的实际请求容量。pending
+  activation占用副本上限，但不能冒充ready容量降低饱和度。
+- TTFT是控制器实际收到的成功完成请求的overall TTFT，按收到时刻进入
+  冻结长度的尾窗，每request只记一次，Type-1 P95。它不是尚未完成请求
+  的预测TTFT。连续回放只处理新结果后缀，避免每次轮询重复全量扫描。
+- 空TTFT窗为未知，不填0或借用其他类。已知队列/饱和度仍可触发扩容；
+  未知TTFT不能证明三项全低，因而不触发缩容。冷却持续性按控制采样
+  判断，不声称控制采样之间没有未观测瞬态。该边界和窗口需正式前冻结。
+- 每个控制间隔最多激活一个副本，使用既有独占设备预留和D47路径。
+  不生成旧handoff名单、不调用旧trigger_scaling_preload、不刷新旧热集。
+  新事件也不能附上旧全局缓存的预热名单。初始化失败会终止该控制链，
+  不盲目在下个间隔重试；未知owner仍保留D47的未决资源记录。
+- 满足全低/cooldown且无pending后，优先回收已排空的非primary副本，
+  同步撤销路由可见性再收尾。没有排空候选则记录等待，不借旧TTL提前
+  缩容；一般的withdraw-then-drain仍是完整初始/生命周期衔接的一部分。
+- 每次有效控制采样为ready副本启动一个稳态epoch，直接复用已有实际
+  来源、profile、IEEE GPU→HOST→NVMe selector和共同文件/native队列。
+  每engine最多一个未完成稳态任务，已有handoff未结束时不重复启动。
+  NoHandoff不关闭此ready后的稳态路径；hierarchy关闭则不创建它。
+- 在规划开始前登记任务所有权，包含来源观察阶段；retire/shutdown必须
+  先等待该任务及其读者。失败保留状态并传递，不当作成功后自动重试。
+  增加control和residency epoch记录，尚未完成全层replacement不改称已完成。
+
+### 本轮正确性表（不是GPU模型或性能结果）
+
+| 检查 | 证据 |
+|---|---|
+| 三指标与边界 | 任一归一化值>1触发；=1不触发；使用P95而非平均TTFT |
+| pending与计数 | pending计入副本上限但不计ready容量；admitted不会再重复计入queue |
+| 冷却与缺测 | 任一量不低或存在pending重置低压窗口；未知TTFT不伪造低压；保留min副本 |
+| 实际控制→准备 | 真实runner控制触发D47初始化及真实文件复制，禁止旧预测/预热，事件无旧名单 |
+| NoHandoff的ready行为 | 现有真实文件/原生缓存fixture完成Remote→native HOST→GPU，未重复提交epoch |
+| 缩容顺序 | 候选先从routing pool撤出，再清理；已排空条件和minimum保留 |
+| 失败与退出 | 失败activation不重试；失败稳态epoch显式抛出；规划读者join先于engine shutdown |
+
+新增12项检查。首轮25项有1个fixture错误：沿用file-only activation
+fixture检验稳态时，真实tier-order正确选中GPU，fixture却未提供native
+GPU命令。改用既有完整mixed-native fixture，没有修改选择器、优先级或
+预算来迎合测试。随后25项通过。首轮整套887项通过；补充缩容、失败与
+退出覆盖后最终890项通过。安装原生环境、安全和备份回执见执行记录。
+
+### 未完成与下一步
+
+这不是完整Full资格或新的性能实验。初始primary的创建仍在统一activation
+之外，完整启动guard保留。需要继续初始启动/完整生命周期、remaining
+candidate与native/file联合替换、native HOST替换、主动d反馈及代表性
+实测profile/内存配置资格。当前CPU fixture阈值不得复制为正式模型配置。
+正式baseline、M1/M2、消融和敏感性均未启动；无新增权重/trace、无历史
+结果/论文改动。下一轮直接推进初始主路径，不重复本轮控制局部测试。

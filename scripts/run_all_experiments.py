@@ -6567,6 +6567,10 @@ class ScenarioRunner:
         if self._preparation_profiles is not None and self._routing_policy != 'ieee_confirmed':
             raise ValueError('preparation profile requires IEEE source admission, not legacy routing')
         self._ieee_routing_epoch = 0
+        self._ieee_scale_controller = None
+        self._ieee_control_events = []
+        self._ieee_residency_tasks = {}
+        self._ieee_residency_epochs = []
         self._ieee_artifact_identities = {}
         self._ieee_nvml_initialized = False
         if self._routing_policy == 'ieee_confirmed':
@@ -8101,6 +8105,10 @@ class ScenarioRunner:
             result = {**result, 'ieee_native_host_preparations': copy.deepcopy(self._ieee_native_host_preparations)}
         if hasattr(self, '_ieee_activations'):
             result = {**result, 'ieee_activations': copy.deepcopy(self._ieee_activations)}
+        if hasattr(self, '_ieee_control_events'):
+            result['ieee_control_events'] = copy.deepcopy(self._ieee_control_events)
+        if hasattr(self, '_ieee_residency_epochs'):
+            result['ieee_residency_epochs'] = copy.deepcopy(self._ieee_residency_epochs)
         if getattr(self, '_ieee_host_budget_members', None) is not None:
             result['ieee_managed_host_budget'] = self._stack.residency_manager.local_source_references.host_budget_snapshot()
             result['ieee_native_host_budget_owners'] = [copy.deepcopy({
@@ -11192,6 +11200,8 @@ class ScenarioRunner:
                 except asyncio.CancelledError:
                     pass
                 except Exception as exc:
+                    if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
+                        self._ieee_scale_failure = exc
                     print(f"    [WARN] Pending scale-up task failed: {exc}", flush=True)
                 continue
             live_tasks.add(task)
@@ -11526,6 +11536,10 @@ class ScenarioRunner:
         submitted_count: Optional[int] = None,
         submitted_traces: Optional[List[Any]] = None,
     ) -> bool:
+        if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
+            return await self._evaluate_ieee_live_control(result=result, coord_enabled=coord_enabled,
+                replay_t0=replay_t0, results_view=results_view, backlog=backlog,
+                active_requests=active_requests, completed_count=completed_count)
         visible_request_count = (
             queue_visible_request_count
             if queue_visible_request_count is not None
@@ -11813,6 +11827,137 @@ class ScenarioRunner:
                 scale_event=scale_event,
             )
         return True
+
+    def _ieee_control_owner(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl
+        controller = getattr(self, '_ieee_scale_controller', None)
+        if controller is None:
+            controller = IEEEReplicaControl(self.coord_cfg.get('ieee_scaling'),
+                interval_s=self._scale_eval_interval_s,
+                min_instances=self.instance_pool.min_instances, max_instances=self.instance_pool.max_instances)
+            self._ieee_scale_controller = controller
+        return controller
+
+    async def _evaluate_ieee_live_control(self, *, result, coord_enabled, replay_t0,
+                                         results_view, backlog, active_requests, completed_count):
+        """The real replay control entry; no legacy forecast, votes or warmup.
+
+        Historical backlog counts *all* unfinished arrivals, including admitted
+        requests. Queue depth here removes the admitted set rather than counting
+        it both as a queue and as active-request saturation. Only completed TTFT
+        actually received by this controller enters the frozen trailing window.
+        """
+        if self._instance_mode not in ('dedicated', 'auto') or self.engine_factory is None:
+            raise ValueError('IEEE control requires physically owned runtime activation')
+        self._reap_ieee_residency_tasks()  # Surface failure; do not silently restart the same plan.
+        controller = self._ieee_control_owner()
+        now = time.monotonic()
+        # The continuous replay appends to one result view. Process only its
+        # new suffix; do not rescan thousands of completed rows on every poll.
+        previous, cursor = getattr(self, '_ieee_ttft_result_cursor', (None, 0))
+        if previous is not results_view or len(results_view) < cursor:
+            cursor = 0
+        for index in range(cursor, len(results_view)):
+            item = results_view[index]
+            if getattr(item, 'success', False):
+                controller.observe_ttft(item.request_id, item.overall_ttft_ms, observed_at=now)
+        self._ieee_ttft_result_cursor = (results_view, len(results_view))
+        ready = self.instance_pool.count()
+        pending = self._pending_scale_up_count()
+        failure = getattr(self, '_ieee_scale_failure', None)
+        if failure is not None:
+            raise RuntimeError('IEEE activation failed; no blind control-loop retry') from failure
+        if type(backlog) is not int or backlog < active_requests:
+            raise ValueError('unfinished arrivals do not cover the admitted set')
+        snapshot = controller.evaluate(now=now, queue_depth=backlog-active_requests,
+            active_requests=active_requests, ready_capacity=ready*self._runtime_forward_capacity_limit(),
+            ready_instances=ready, pending_instances=pending)
+        if snapshot is None:
+            return False
+        self._live_scale_eval_last_at = now
+        record = dict(snapshot, action=snapshot['action'].value, outcome='no_action')
+        if not hasattr(self, '_ieee_control_events'):
+            self._ieee_control_events = []
+        self._ieee_control_events.append(record)
+        decision = SimpleNamespace(reason=snapshot['reason'], target_instances=snapshot['target_instances'])
+        changed = False
+        if snapshot['action'] == ScalingAction.SCALE_UP:
+            # One activation per control interval; physical device reservations
+            # and the owner budgets, not a prediction of future arrivals, limit it.
+            arrived = self._arrived_request_count(replay_t0)
+            count = self._schedule_background_scale_up_instance_pool(result=result,
+                coord_enabled=coord_enabled, decision=decision, current_instances=ready,
+                pending_scale_up_instances=pending, request_index=arrived,
+                completed_request_count=completed_count, queue_visible_request_count=arrived,
+                arrived_request_count=arrived, target_instances=snapshot['target_instances'],
+                runtime_handoff_plans=None, startup_parallelism_limit=pending+1)
+            changed = count > 0
+            record.update(outcome='activation_scheduled' if changed else 'no_free_device', scheduled=count)
+        elif snapshot['action'] == ScalingAction.SCALE_DOWN:
+            # The sampled all-low/cooldown condition is already established.
+            # Pick an already-drained replica; withdrawal is synchronous before
+            # cleanup awaits, so a new router reservation cannot revive it.
+            idle = [s for s in self.instance_pool.get_slots()
+                    if s.instance_id != self._primary_instance_id
+                    and s.active_requests == 0 and s.load_queue_depth == 0
+                    and getattr(s, 'runtime_forwarding_active', 0) == 0]
+            if idle:
+                selected = min(idle, key=lambda s: (s.last_selected_at, s.instance_id))
+                removed = self.instance_pool.remove_instance(selected.instance_id)
+                await self._cleanup_removed_slot(removed, removal_reason='ieee_all_low_cooldown')
+                result.scale_down_events += 1
+                result.scale_down_event_log.append(dict(event_type='physical_scale_down',
+                    instance_id=selected.instance_id, device_id=selected.device_id,
+                    reason=snapshot['reason'], observed_monotonic_s=now,
+                    control_event_index=len(self._ieee_control_events)-1))
+                changed = True
+                record['outcome'] = 'drained_replica_retired'
+            else:
+                record['outcome'] = 'awaiting_drained_replica'
+        # NoHandoff disables only the activating-replica path, not this ready
+        # steady-state path. Existing in-flight plans keep their immutable epoch.
+        self._schedule_ieee_residency_epochs()
+        return changed
+
+    def _reap_ieee_residency_tasks(self):
+        tasks = getattr(self, '_ieee_residency_tasks', {})
+        for key, task in list(tasks.items()):
+            if task.done():
+                del tasks[key]
+                task.result()  # A failed epoch is evidence, not a swallowed warning/retry.
+
+    def _schedule_ieee_residency_epochs(self):
+        if not self._hierarchical_residency_enabled:
+            return
+        if not hasattr(self, '_ieee_residency_tasks'):
+            self._ieee_residency_tasks = {}
+        if not hasattr(self, '_ieee_residency_epochs'):
+            self._ieee_residency_epochs = []
+        active_engines = {id(engine) for task, engine in (
+            getattr(self, '_ieee_file_plan_engines', {}) |
+            getattr(self, '_ieee_gpu_plan_engines', {})).items() if not task.done()}
+        for slot in self.instance_pool.get_slots():
+            key = id(slot.engine)
+            if key in self._ieee_residency_tasks or key in active_engines:
+                continue
+            record = dict(target_replica=slot.instance_id, state='planning', trigger_reason='residency',
+                          started_at=time.monotonic())
+            self._ieee_residency_epochs.append(record)
+            self._ieee_residency_tasks[key] = asyncio.create_task(self._execute_ieee_residency_epoch(slot, record))
+
+    async def _execute_ieee_residency_epoch(self, slot, record):
+        try:
+            # Registered before the first await, including source collection.
+            result = await self._run_ieee_owned_preparation_plan(slot=slot, mode='residency',
+                capacity_only=not self._coordination_enabled)
+            record.update(state='completed', plan_sha256=result['plan']['plan_sha256'])
+            return result
+        except BaseException as exc:
+            record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
+                          error_type=type(exc).__name__)
+            raise
+        finally:
+            record['terminal_at'] = time.monotonic()
 
     async def _maybe_run_live_scale_up_evaluation(
         self,
@@ -12206,6 +12351,7 @@ class ScenarioRunner:
     ) -> None:
         if slot is None:
             return
+        residency_failure = None
         instance_id = getattr(slot, "instance_id", None)
         if instance_id:
             self._mark_instance_lifecycle_removed(
@@ -12218,6 +12364,13 @@ class ScenarioRunner:
             self._scaleup_runtime_lora_request_ordinals.pop(str(instance_id), None)
         await self._cancel_runtime_gpu_forward_tasks(self._runtime_forward_task_key(slot))
         if getattr(slot, 'owns_engine', False):
+            task = getattr(self, '_ieee_residency_tasks', {}).pop(id(slot.engine), None)
+            if task is not None:
+                if not task.done():
+                    task.cancel()
+                outcome = (await asyncio.gather(task, return_exceptions=True))[0]
+                if isinstance(outcome, BaseException) and not isinstance(outcome, asyncio.CancelledError):
+                    residency_failure = outcome
             # A retired replica must not acquire new proactive work. Join its
             # existing plans before withdrawing from the shared IO domain.
             owned = [task for task, engine in (getattr(self, '_ieee_gpu_plan_engines', {}) |
@@ -12243,6 +12396,8 @@ class ScenarioRunner:
             self._retire_ieee_host_budget(slot.engine)
         self._sync_stack_gpu_accounting()
         await self._notify_dispatch_capacity_changed(wake_all=True)
+        if residency_failure is not None:
+            raise RuntimeError('retired IEEE replica had a failed residency epoch') from residency_failure
 
     async def _retire_failed_slot(self, slot: Optional[Any], reason: str) -> bool:
         if slot is None or self.instance_pool is None:
@@ -12275,6 +12430,12 @@ class ScenarioRunner:
         return True
 
     async def _shutdown_instance_pool(self) -> None:
+        residency = list(getattr(self, '_ieee_residency_tasks', {}).values())
+        for task in residency:
+            if not task.done():
+                task.cancel()
+        residency_outcomes = await asyncio.gather(*residency, return_exceptions=True)
+        getattr(self, '_ieee_residency_tasks', {}).clear()
         plans = [task for task in set(getattr(self, '_ieee_gpu_plan_tasks', ())) |
                                    set(getattr(self, '_ieee_file_plan_tasks', ()))
                  if task is not asyncio.current_task() and not task.done()]
@@ -12324,6 +12485,9 @@ class ScenarioRunner:
             import pynvml
             pynvml.nvmlShutdown()
             self._ieee_nvml_initialized = False
+        for outcome in residency_outcomes:
+            if isinstance(outcome, BaseException) and not isinstance(outcome, asyncio.CancelledError):
+                raise RuntimeError('IEEE shutdown preserved a failed residency epoch') from outcome
 
     async def _prune_dead_instance_slots(self) -> int:
         instance_pool = getattr(self, "instance_pool", None)
@@ -12719,6 +12883,8 @@ class ScenarioRunner:
         except asyncio.CancelledError:
             pass
         except Exception as exc:
+            if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
+                self._ieee_scale_failure = exc
             print(f"    [WARN] Background scale-up task failed: {exc}", flush=True)
 
     async def _execute_background_scale_up(
@@ -12880,9 +13046,13 @@ class ScenarioRunner:
         while True:
             tasks = list(getattr(self, "_pending_scale_up_tasks", set()) or [])
             if not tasks:
+                if getattr(self, '_ieee_scale_failure', None) is not None:
+                    raise RuntimeError('IEEE activation failed; no blind control-loop retry') from self._ieee_scale_failure
                 return
             await asyncio.gather(*tasks, return_exceptions=True)
             if self._pending_scale_up_count() <= 0:
+                if getattr(self, '_ieee_scale_failure', None) is not None:
+                    raise RuntimeError('IEEE activation failed; no blind control-loop retry') from self._ieee_scale_failure
                 return
 
     async def _ensure_min_instances(self, coord_enabled: bool) -> None:
@@ -13026,8 +13196,11 @@ class ScenarioRunner:
         ):
             if key in scale_event:
                 event[key] = scale_event.get(key)
-        handoff_plan = dict(scale_event.get("handoff_plan") or getattr(self, "_last_scale_up_handoff_plan", {}) or {})
-        preload_budget = dict(scale_event.get("preload_budget") or getattr(self, "_last_scale_up_preload_budget", {}) or {})
+        if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
+            handoff_plan, preload_budget = {}, {}  # Never attach a stale legacy prefix to a real IEEE epoch.
+        else:
+            handoff_plan = dict(scale_event.get("handoff_plan") or getattr(self, "_last_scale_up_handoff_plan", {}) or {})
+            preload_budget = dict(scale_event.get("preload_budget") or getattr(self, "_last_scale_up_preload_budget", {}) or {})
         if handoff_plan:
             planned_adapters = list(handoff_plan.get("planned_adapters", []) or [])
             ordered_handoff_adapters = list(
