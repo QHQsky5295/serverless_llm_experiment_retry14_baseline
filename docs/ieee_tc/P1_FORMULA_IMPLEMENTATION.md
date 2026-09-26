@@ -1264,3 +1264,20 @@ GPU/HOST 边界测量；priming 回执保留，不能当成 Remote 加载为零�
 新增三项确定性检查，GPU/HOST 子案例覆盖显式 profile-only 接纳、无初始化
 估计、生产入口不接受空 model、GPU 零区间与取消不补 O；26 项定向检查通过。
 真实模型与最终完整回归结果另列执行状态和 P2 资格表，未通过前不预填成功。
+
+## D27 — 物理 GPU 所有权与实际退出（计量，不改九式）
+
+历史 instance billing 的 ready/idle/shutdown 记录不能直接作为 G1 的物理占用。
+在既有 dedicated subprocess 生命周期中增加真正的卡分配：分配者锁定物理 UUID，
+子进程启动前得到对应 CUDA 可见集；实际 worker 返回 UUID，NVML 独立核对所属。
+请求完成、LoRA 引用归还和物理卡归还是三个不同边界，不互相替代。
+
+第一次真实 7B 检查完成 4/4 条目标输出，但在 shutdown 返回时仍检测到 GPU 上下文，
+因此保留未关闭租约，未输出完整 GPU-s。旧退出顺序在收到停止应答后立即 TERM；
+修正为先等待原生退出，用按出生身份固定的 pidfd 接收退出通知，再作原生 GPU 核验。
+60 秒收尾上限与既有 TERM/KILL 保护仍成立，不添加等待 sleep 或伪造 release。
+
+局部互斥锁不是集群资源管理器，测量范围仅为受保护服务内的独立 runtime；
+同卡共享逻辑实例不得重复分配，TP 的多 UUID 分别计数。直接进程内 engine 和
+外部 baseline 的分配者仍须各自接入，不能据此宣布 Full 生命周期全面合格。
+详细状态、实际失败和修正运行见 `PHYSICAL_GPU_MEASUREMENT.md`。

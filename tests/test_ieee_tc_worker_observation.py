@@ -151,6 +151,8 @@ def fake_torch():
     return SimpleNamespace(
         is_tensor=lambda x: isinstance(x, FakeTensor), __version__='test', strided='strided',
         cuda=SimpleNamespace(synchronize=Mock(), device=lambda _: nullcontext(),
+                             get_device_properties=lambda _: SimpleNamespace(
+                                 uuid=SimpleNamespace(bytes=bytes(16))),
                              mem_get_info=lambda _: (1000, 10000),
                              memory_allocated=lambda _: 8000,
                              memory_reserved=lambda _: 8500, device_count=lambda: 1))

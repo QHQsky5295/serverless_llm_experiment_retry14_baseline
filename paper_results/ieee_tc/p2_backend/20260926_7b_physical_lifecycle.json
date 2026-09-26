@@ -1,0 +1,145 @@
+{
+  "kind": "dedicated_physical_lifecycle_qualification_v1",
+  "model": "llama2_7b",
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "full_performance_qualification": false,
+  "resource_efficiency_claim": false,
+  "attempts": [
+    {
+      "attempt": 1,
+      "raw_path": "results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_physical_lifecycle_attempt1.json",
+      "raw_sha256": "979c9074cc1965f626ed3eaa3a6837e6932ea00505c7b52232396bfc5373835f",
+      "launch_path": "results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_physical_lifecycle_attempt1_launch.json",
+      "launch_sha256": "340d8b84b1b0e12014b229b688bab574ab337d6361dd7d7cb5ca362c30f70b56",
+      "watchdog_path": "results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_physical_lifecycle_attempt1_launch.launch/watchdog.jsonl",
+      "watchdog_sha256": "6fb70929dc0f7b8c09beae9de7cddfd9eed645d640a2b035c3837fb2976b7a4f",
+      "journal_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_physical_lifecycle_attempt1_launch.launch/physical_allocations/1765697eb8864ea8a53e5fce684b124f.jsonl",
+      "journal_sha256": "a9c093d7d9e529c36c404cf9e100df9f97b02c0b89ae4cb546407a4bf8905204",
+      "qualification_pass": false,
+      "native_target_matches": 4,
+      "native_output_tokens": 551,
+      "physical_lease_released": false,
+      "gpu_uuids": [
+        "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946"
+      ],
+      "owner_event_kinds": [
+        "acquire",
+        "worker_spawn",
+        "native_workers"
+      ],
+      "lifecycle_gpu_seconds": null,
+      "last_native_token_to_return_s": null,
+      "worker_returncode": null,
+      "shutdown_error": "physical GPU still has compute/owned/unknown contexts",
+      "service_peak_bytes": 5650046976,
+      "resource_samples": 82,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "service_path_removed": true,
+      "native_contexts_clear": true
+    },
+    {
+      "attempt": 2,
+      "raw_path": "results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_physical_lifecycle_attempt2.json",
+      "raw_sha256": "14cefe2e1fd1e68b869767d8bc17bb4410fbf3d6c61643fe0d3f03bc8c91588e",
+      "launch_path": "results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_physical_lifecycle_attempt2_launch.json",
+      "launch_sha256": "e6687b485569014f89ab57bf93502dda701bf34308eae9cae674849d04d8a074",
+      "watchdog_path": "results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_physical_lifecycle_attempt2_launch.launch/watchdog.jsonl",
+      "watchdog_sha256": "5f3f5330b551c9e85626e3c7098925026bc37d48e67bbfdb718a88873761595d",
+      "journal_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_physical_lifecycle_attempt2_launch.launch/physical_allocations/6e5b8faa4fb1449c8f77db4740f03368.jsonl",
+      "journal_sha256": "a07a212242f511c4e9c719687b845281d19ad5c9b1c7a79d915b3c5ae32e1f1f",
+      "qualification_pass": true,
+      "native_target_matches": 4,
+      "native_output_tokens": 551,
+      "physical_lease_released": true,
+      "gpu_uuids": [
+        "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946"
+      ],
+      "owner_event_kinds": [
+        "acquire",
+        "worker_spawn",
+        "native_workers",
+        "release"
+      ],
+      "lifecycle_gpu_seconds": 102.16393127999618,
+      "last_native_token_to_return_s": 48.769133135996526,
+      "worker_returncode": -15,
+      "shutdown_error": null,
+      "service_peak_bytes": 5684703232,
+      "resource_samples": 115,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "service_path_removed": true,
+      "native_contexts_clear": true
+    },
+    {
+      "attempt": 3,
+      "raw_path": "results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_physical_lifecycle_attempt3.json",
+      "raw_sha256": "a52ee1e86bca3ed9c8ef9862612d24b53386f4821d6bcd429d9754dcae1b1a33",
+      "launch_path": "results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_physical_lifecycle_attempt3_launch.json",
+      "launch_sha256": "73a2207bf9fbe138e673d8bfa947b90168b2e4f23a1ad4bdd2efe3b7ab465c3f",
+      "watchdog_path": "results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_physical_lifecycle_attempt3_launch.launch/watchdog.jsonl",
+      "watchdog_sha256": "e45154750153bc9f9645abb644c07d76be5991c2607747cc84d9e3654c1e803e",
+      "journal_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_physical_lifecycle_attempt3_launch.launch/physical_allocations/8c148d52864d4ad685e716de31c80ccb.jsonl",
+      "journal_sha256": "b751599aa579177617b631183a0c418ed3bbec683a27ee6568db7ce777f2f9e7",
+      "qualification_pass": true,
+      "native_target_matches": 4,
+      "native_output_tokens": 551,
+      "physical_lease_released": true,
+      "gpu_uuids": [
+        "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946"
+      ],
+      "owner_event_kinds": [
+        "acquire",
+        "worker_spawn",
+        "native_workers",
+        "native_workers_exited",
+        "release"
+      ],
+      "lifecycle_gpu_seconds": 60.738438347005285,
+      "last_native_token_to_return_s": 7.642244392016437,
+      "worker_returncode": 0,
+      "shutdown_error": null,
+      "service_peak_bytes": 5684371456,
+      "resource_samples": 74,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "service_path_removed": true,
+      "native_contexts_clear": true
+    }
+  ],
+  "all_three_request_adapter_prompt_and_output_sha_equal": true,
+  "attempt3_runtime_source_sha256": {
+    "scripts/run_all_experiments.py": "3d4d98466bfacdf34676aec0943d2108949bd4f0c3c8815be09e803334c0939a",
+    "scripts/ieee_tc_preflight.py": "88682ffc17841b65ca8c79990220b11dbb51ac82359ec23f164c297c2dabba36",
+    "scripts/dedicated_engine_worker.py": "f70ccdf5f21b80a96e42953db80ea7fd5bd910dd93080eafffd69f38b94fb623",
+    "faaslora/metrics/metrics_collector.py": "cd08a4e042522be6f57477a09d57df3fa79f8a0e190f7f42e329c43ccc0fd575",
+    "faaslora/memory/gpu_monitor.py": "d3998c280a163a882913367b8762bfedb1fa6650954f907e76cfab162cd54fab"
+  },
+  "limitations": [
+    "Four existing sequential local-artifact requests, not remote/open-loop/Full comparison.",
+    "Attempt1 is censored and retained; external cleanup does not synthesize release.",
+    "Attempt2 had bounded forced cleanup (SIGTERM); attempt3 is normal exit.",
+    "No TP/multi-runtime/shared-runtime/direct-engine or baseline-owner qualification follows.",
+    "Independent numeric/complete-pool adapter correctness remains an open separate gate.",
+    "No GPU-s per correct-request ranking or statistical resource-efficiency claim."
+  ]
+}

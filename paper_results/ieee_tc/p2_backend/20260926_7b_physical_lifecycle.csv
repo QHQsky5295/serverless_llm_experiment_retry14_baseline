@@ -1,0 +1,4 @@
+attempt,qualification_pass,native_target_matches,native_output_tokens,physical_lease_released,lifecycle_gpu_seconds,last_native_token_to_return_s,worker_returncode,service_peak_bytes,resource_samples
+1,false,4,551,false,,,,5650046976,82
+2,true,4,551,true,102.16393127999618,48.769133135996526,-15,5684703232,115
+3,true,4,551,true,60.738438347005285,7.642244392016437,0,5684371456,74

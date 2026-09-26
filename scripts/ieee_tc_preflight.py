@@ -1904,7 +1904,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         raise ValueError('qualification uses a 1..100 request prefix, not a regenerated trace')
     if mode not in ('sequential', 'concurrent_pairs', 'cancel_pairs', 'cancel_pairs_retain_adapter',
                     'cancel_pairs_subprocess', 'native_cancel_reference',
-                    'native_adapter_reference', 'native_numeric_reference', 'native_source_intervals') or (
+                    'native_adapter_reference', 'native_numeric_reference', 'native_source_intervals',
+                    'native_lifecycle') or (
                     mode not in ('sequential', 'native_source_intervals') and count != 4):
         raise ValueError('concurrent qualification requires exactly the original four-request prefix')
     result = {'kind': 'backend_native_model_prefix_qualification_v1', 'pass': False,
@@ -1944,6 +1945,9 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                    max_output_tokens_cap=256)
         if mode in ('native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference'):
             cfg['ieee_gpu_references'] = False
+        if mode == 'native_lifecycle':
+            cfg['ieee_physical_allocation'] = True
+            result['input_mode'] = 'existing_four_request_prefix_dedicated_physical_lifecycle'
         result['model_config'] = cfg
         plan = FrozenReplayPlan.load(trace, count=count)
         result['trace'] = plan.identity()
@@ -2003,7 +2007,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         result['stage'] = 'engine_initialization'
         print(json.dumps({'event': 'model_qualification_stage', 'stage': result['stage'],
                           'model': cfg['name'], 'requests': count}), flush=True)
-        if mode == 'cancel_pairs_subprocess':
+        if mode in ('cancel_pairs_subprocess', 'native_lifecycle'):
             engine = await SubprocessInferenceEngineProxy.spawn(model_cfg=cfg, cost_model={},
                                                                device_id=0, runtime_gpu_ids=[0])
             result['proxy_pid'] = engine._process.pid
@@ -2024,7 +2028,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         result['sources_before'] = await engine.ieee_gpu_reference(operation='source_snapshot')
         if mode == 'native_source_intervals':
             await qualify_native_source_intervals(engine, plan, adapters, result)
-        elif mode != 'sequential':
+        elif mode not in ('sequential', 'native_lifecycle'):
             result['stage'] = mode
             await qualify_concurrent_pairs(engine, plan, adapters, result,
                 cancel_first=mode.startswith('cancel_pairs'),
@@ -2034,7 +2038,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 result['proxy_engine_dead_after'] = engine._engine_dead
                 if result['proxy_uncertain_after'] or result['proxy_engine_dead_after']:
                     raise RuntimeError('subprocess cancellation ownership remains unresolved')
-        for entry in plan.entries if mode == 'sequential' else ():
+        for entry in plan.entries if mode in ('sequential', 'native_lifecycle') else ():
             row = json.loads(entry.source_json)
             aid, target = row['adapter_id'], min(row['expected_output_tokens'], 256)
             path = adapters[aid]['path']
@@ -2107,6 +2111,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 result['shutdown_called'] = True  # Actual release is an external check.
             except Exception as error:
                 result.update(shutdown_error=str(error), **{'pass': False})
+            if getattr(engine, '_physical_allocation', None) is not None:
+                result['physical_allocation'] = engine._physical_allocation.evidence()
     return result
 
 
@@ -2212,7 +2218,7 @@ def main():
     parser.add_argument('--qualification-mode', choices=['sequential', 'concurrent_pairs', 'cancel_pairs',
                         'cancel_pairs_retain_adapter', 'cancel_pairs_subprocess',
                         'native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference',
-                        'native_source_intervals'], default='sequential')
+                        'native_source_intervals', 'native_lifecycle'], default='sequential')
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')

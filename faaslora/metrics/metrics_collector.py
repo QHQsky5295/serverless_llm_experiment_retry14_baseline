@@ -9,6 +9,10 @@ import asyncio
 import threading
 import math
 import os
+import json
+import uuid
+import fcntl
+import select
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
@@ -141,6 +145,211 @@ class PhysicalGPULedger:
                 'open_lease_ids': open_ids, 'owner_event_count': len(self._events),
                 'eligible_correctness': complete and n_correct == n_plan,
                 'owner_and_native_census_qualification_required': True}
+
+
+def _open_pidfd(pid):
+    """Linux x86-64 UAPI binding for the qualified Conda runtime.
+
+    Its Python was built without os.pidfd_open, and host glibc2.35 has no wrapper.
+    434 is the kernel ABI number (Linux6.8 syscall_64.tbl / installed unistd_64.h),
+    not a scheduling parameter. Unsupported ABI/errors fail; no PID-poll fallback.
+    """
+    import ctypes
+    if (os.uname().sysname != 'Linux' or os.uname().machine != 'x86_64'
+            or ctypes.sizeof(ctypes.c_void_p) != 8 or type(pid) is not int or pid <= 0):
+        raise ValueError('pidfd binding requires Linux x86-64 and a positive PID')
+    syscall = ctypes.CDLL(None, use_errno=True).syscall
+    syscall.restype = ctypes.c_long
+    fd = syscall(ctypes.c_long(434), ctypes.c_int(pid), ctypes.c_uint(0))
+    if fd < 0:
+        error = ctypes.get_errno()
+        raise OSError(error, os.strerror(error))
+    return int(fd)
+
+
+class PhysicalGPUAllocation:
+    """Actual exclusive allocation for one local dedicated runtime.
+
+    Cooperative locks are scoped to the guarded service, not a cluster scheduler.
+    Allocation precedes worker creation; return requires process termination AND
+    a fresh native census. A crashed owner leaves an open durable journal which
+    prevents reuse, even when the OS has dropped its locks. No destructor invents
+    a release. UUID visibility is a consequence of allocation, not its evidence.
+    """
+
+    def __init__(self, *, root: Path, census, service_path: Path, device_indices,
+                 owner_identity: dict):
+        indices = tuple(device_indices)
+        if (not indices or len(set(indices)) != len(indices)
+                or any(type(i) is not int or i < 0 for i in indices)
+                or owner_identity.get('pid') != os.getpid()
+                or not owner_identity.get('start_ticks')):
+            raise ValueError('physical allocation requires explicit indices and owner birth identity')
+        self.root, self.census, self.service_path = Path(root), census, Path(service_path)
+        self.owner_identity = dict(owner_identity)
+        self.owner_id = uuid.uuid4().hex
+        self.clock_id = local_monotonic_clock_id()
+        self.process = None
+        self.released = False
+        self.events = []
+        self._locks = []
+        self._worker_pidfds = {}
+        self._native_workers_confirmed = False
+        self._worker_exit_observed = False
+        self._mutex = threading.RLock()
+        self.root.mkdir(parents=True, exist_ok=True)
+        sample = self.census.sample(self.service_path)
+        by_index = {d['index']: d['gpu_uuid'] for d in sample['devices']}
+        self.gpu_uuids = tuple(by_index[i] for i in indices)
+        self.journal = self.root / (self.owner_id + '.jsonl')
+        self._validate_clear(sample)
+        try:
+            for gpu in sorted(self.gpu_uuids):
+                handle = (self.root / (gpu + '.lock')).open('a+')
+                try:
+                    fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BaseException:
+                    handle.close()
+                    raise
+                self._locks.append(handle)
+                handle.seek(0)
+                prior = handle.read()
+                if prior:
+                    old = self.root / prior
+                    records = [json.loads(line) for line in old.read_text().splitlines()]
+                    if not records or records[-1]['event'] != 'release':
+                        raise RuntimeError('previous physical owner has no confirmed release')
+            # Recheck after locking, before assigning the devices to this runtime.
+            sample = self.census.sample(self.service_path)
+            self._validate_clear(sample)
+            self.journal.touch(exist_ok=False)
+            self._append('acquire', census=sample, owner_identity=self.owner_identity)
+            for handle in self._locks:
+                handle.seek(0)
+                handle.truncate()
+                handle.write(self.journal.name)
+                handle.flush()
+                os.fsync(handle.fileno())
+        except BaseException:
+            self._unlock()
+            raise
+
+    def _validate_clear(self, sample):
+        if (sample.get('source') != 'nvml_v3_compute_and_graphics'
+                or sample.get('clock_id') != self.clock_id):
+            raise RuntimeError('unqualified physical census source/clock')
+        devices = {d['gpu_uuid']: d for d in sample['devices']}
+        for gpu in self.gpu_uuids:
+            if gpu not in devices:
+                raise RuntimeError('allocated GPU missing from native census')
+            for process in devices[gpu]['processes']:
+                if (process['identity'] is None or process['kind'] == 'compute'
+                        or process['service_member'] or process['previously_owned']):
+                    raise RuntimeError('physical GPU still has compute/owned/unknown contexts')
+
+    def _append(self, event, **evidence):
+        if os.getpid() != self.owner_identity['pid']:
+            raise RuntimeError('physical allocation may only be changed by its owning process')
+        record = dict(event=event, at=time.monotonic(), clock_id=self.clock_id,
+                      lease_id=self.owner_id, owner_id=self.owner_id,
+                      gpu_uuids=list(self.gpu_uuids), **evidence)
+        with self.journal.open('a') as handle:
+            handle.write(json.dumps(record, sort_keys=True) + '\n')
+            handle.flush()
+            os.fsync(handle.fileno())
+        self.events.append(record)
+
+    def _unlock(self):
+        for handle in self._locks:
+            handle.close()
+        self._locks.clear()
+
+    def bind_process(self, process, birth_identity):
+        with self._mutex:
+            if self.process is not None or self.released:
+                raise RuntimeError('physical owner already bound or released')
+            # Retain Popen even if birth observation fails: unknown != unspawned.
+            self.process = process
+            if (birth_identity is None or birth_identity['pid'] != process.pid
+                    or not Path(birth_identity['cgroup']).is_relative_to(self.service_path)):
+                raise RuntimeError('worker birth/containment identity unavailable')
+            self._append('worker_spawn', worker=birth_identity)
+
+    def confirm_workers(self, workers):
+        with self._mutex:
+            if self.process is None or self.released:
+                raise RuntimeError('native worker confirmation without allocated process')
+            sample = self.census.sample(self.service_path)
+            native = {(d['gpu_uuid'], p['pid']): p['identity'] for d in sample['devices']
+                      for p in d['processes'] if p['identity'] is not None
+                      and p['service_member'] and p['kind'] == 'compute'}
+            if (not workers or {w['device_uuid'] for w in workers} != set(self.gpu_uuids)
+                    or any((w['device_uuid'], w['pid']) not in native for w in workers)):
+                raise RuntimeError('native worker UUID/containment differs from physical allocation')
+            for worker in workers:
+                pid = worker['pid']
+                if pid in self._worker_pidfds:
+                    continue
+                birth = native[(worker['device_uuid'], pid)]
+                fd = _open_pidfd(pid)
+                current = self.census.process_identity(pid)
+                if current != birth:
+                    os.close(fd)
+                    raise RuntimeError('native worker birth changed during pidfd acquisition')
+                self._worker_pidfds[pid] = fd
+            self._append('native_workers', census=sample,
+                         workers=[{k: w[k] for k in ('device_uuid', 'pid', 'worker_rank')}
+                                  for w in workers])
+            self._native_workers_confirmed = True
+
+    async def wait_workers(self, *, timeout_s):
+        """Wait on kernel exit notifications, never on a guessed teardown sleep."""
+        if timeout_s < 0:
+            raise ValueError('negative native teardown deadline')
+        pending = set(self._worker_pidfds.values())
+        deadline = time.monotonic() + timeout_s
+        while pending:
+            ready, _, _ = await asyncio.to_thread(select.select, list(pending), [], [],
+                                                  max(0., deadline - time.monotonic()))
+            if not ready:
+                self._append('release_deferred', reason='native_worker_exit_timeout')
+                raise TimeoutError('native workers have not terminated; physical lease retained')
+            pending.difference_update(ready)
+        self._worker_exit_observed = True
+        self._append('native_workers_exited', worker_pids=sorted(self._worker_pidfds))
+
+    def release(self):
+        with self._mutex:
+            if self.released:
+                return self.events[-1]
+            if self.process is not None and self.process.poll() is None:
+                raise RuntimeError('runtime process still alive; physical lease retained')
+            if self.process is not None and (not self._native_workers_confirmed
+                                             or not self._worker_exit_observed):
+                self._append('release_deferred', reason='native_worker_lifetime_unqualified')
+                raise RuntimeError('native worker lifetime unqualified; physical lease retained')
+            sample = self.census.sample(self.service_path)
+            try:
+                self._validate_clear(sample)
+            except RuntimeError:
+                self._append('release_deferred', census=sample)
+                raise
+            # This is the allocator's return decision, after actual teardown.
+            # Lock release follows while no code path can launch new workers.
+            self._append('release', census=sample,
+                         worker_returncode=None if self.process is None else self.process.returncode)
+            self.released = True
+            self._unlock()
+            for fd in self._worker_pidfds.values():
+                os.close(fd)
+            self._worker_pidfds.clear()
+            self.census.close()
+            return self.events[-1]
+
+    def evidence(self):
+        return dict(contract='dedicated_physical_allocation_v1', journal=str(self.journal),
+                    lease_id=self.owner_id, gpu_uuids=list(self.gpu_uuids),
+                    released=self.released, events=list(self.events))
 
 
 class NativeV1TokenTimeline:

@@ -222,5 +222,40 @@ class ExternalDispatcherIntegration(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(next(x for x in log if x['event']=='service_ingress_terminal')['complete'])
 
 
+class NativePhysicalShutdown(unittest.IsolatedAsyncioTestCase):
+    def proxy(self):
+        events = []
+        proxy = runner.SubprocessInferenceEngineProxy.__new__(runner.SubprocessInferenceEngineProxy)
+        proxy._normal_shutdown_completed = False
+        proxy._engine_dead = False
+        proxy._workdir = Path('/unused-test-workdir')
+        proxy._keep_worker_logs_requested = lambda: True
+        proxy._preserve_worker_workdir = Mock()
+        proxy._rpc = AsyncMock(side_effect=lambda _: events.append('shutdown_ack'))
+        proxy._process = SimpleNamespace(poll=lambda: None,
+            wait=lambda _: events.append('parent_exit'))
+        proxy._close_all_rpc_channels = AsyncMock(side_effect=lambda: events.append('channels_closed'))
+        proxy._terminate_process_tree = AsyncMock(side_effect=lambda **_: events.append('owned_cleanup'))
+        proxy._physical_allocation = SimpleNamespace(
+            wait_workers=AsyncMock(side_effect=lambda **_: events.append('native_worker_exit')),
+            release=Mock(side_effect=lambda: events.append('physical_return')))
+        return proxy, events
+
+    async def test_shutdown_ack_is_not_the_release_boundary(self):
+        proxy, events = self.proxy()
+        await proxy.shutdown()
+        self.assertEqual(events, ['shutdown_ack', 'channels_closed', 'parent_exit',
+                                  'owned_cleanup', 'native_worker_exit', 'physical_return'])
+
+    async def test_failed_native_exit_does_not_return_allocation(self):
+        proxy, events = self.proxy()
+        proxy._physical_allocation.wait_workers.side_effect = TimeoutError('still alive')
+        with self.assertRaises(TimeoutError):
+            await proxy.shutdown()
+        proxy._physical_allocation.release.assert_not_called()
+        self.assertTrue(proxy._engine_dead)
+        proxy._preserve_worker_workdir.assert_called_once_with('physical_release_unconfirmed')
+
+
 if __name__ == '__main__':
     unittest.main()

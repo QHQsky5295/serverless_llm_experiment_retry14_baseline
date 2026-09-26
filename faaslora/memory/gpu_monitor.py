@@ -308,6 +308,8 @@ class IEEEWorkerObservationExtension:
         host = _ieee_lora_host_inventory(manager)
         if pool['pool_allocated_bytes'] > allocated_bytes:
             raise ValueError('LoRA storage inventory exceeds native allocator occupancy')
+        import uuid
+        device_uuid = torch.cuda.get_device_properties(self.device).uuid
         return {
             'kind': 'ieee_native_worker_qualification_observation',
             'pid': os.getpid(), 'uid': os.getuid(), 'parent_pid': os.getppid(),
@@ -318,6 +320,7 @@ class IEEEWorkerObservationExtension:
             'cuda_visible_devices': os.environ.get('CUDA_VISIBLE_DEVICES'),
             'visible_gpu_count': torch.cuda.device_count(), 'local_device': str(self.device),
             'worker_rank': int(self.rank),
+            'device_uuid': 'GPU-' + str(uuid.UUID(bytes=bytes(device_uuid.bytes))),
             'device_total_bytes': int(total_bytes), 'device_free_bytes': int(free_bytes),
             'torch_allocated_bytes': int(allocated_bytes), 'torch_reserved_bytes': int(reserved_bytes),
             'device_barrier_used': synchronize,

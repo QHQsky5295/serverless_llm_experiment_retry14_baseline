@@ -4663,6 +4663,7 @@ class SubprocessInferenceEngineProxy:
         log_path: Path,
         runtime_gpu_ids: Optional[List[int]] = None,
         startup_latency_ms: float = 0.0,
+        physical_allocation=None,
     ) -> None:
         self._process = process
         self._host = host
@@ -4677,6 +4678,7 @@ class SubprocessInferenceEngineProxy:
         self.engine = None
         self._engine_dead = False
         self._normal_shutdown_completed = False
+        self._physical_allocation = physical_allocation
         self._reinit_attempted = False
         self.last_timing: Dict[str, Any] = {}
         self._prompt_planner: Optional[InferenceEngine] = None
@@ -4799,7 +4801,30 @@ class SubprocessInferenceEngineProxy:
         worker_env.update(worker_env_updates)
 
         log_handle = open(log_path, "ab", buffering=0)
-        process = subprocess.Popen(
+        allocation = None
+        if local_model_cfg.get('ieee_physical_allocation', False):
+            from scripts.ieee_tc_preflight import (
+                verify_current_service, NativeGPUCensus, load_nvml_binding, gpu_process_identity)
+            from faaslora.metrics.metrics_collector import PhysicalGPUAllocation
+            service = verify_current_service()
+            census = NativeGPUCensus(load_nvml_binding(
+                Path(os.environ['FAASLORA_TC_NVML_BINDING']), os.environ['FAASLORA_TC_NVML_SHA256']))
+            try:
+                allocation = PhysicalGPUAllocation(
+                    root=Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT']).parent/'physical_allocations',
+                    census=census, service_path=Path(service['service_identity']['path']),
+                    device_indices=[int(i) for i in worker_env_updates['CUDA_VISIBLE_DEVICES'].split(',')],
+                    owner_identity=gpu_process_identity(os.getpid()))
+            except BaseException:
+                census.close()
+                log_handle.close()
+                raise
+            # NVML and CUDA ordinals need not have the same order. A fresh worker
+            # receives the actual allocated UUIDs before importing either backend.
+            visible = ','.join(allocation.gpu_uuids)
+            worker_env.update(CUDA_VISIBLE_DEVICES=visible, FAASLORA_VISIBLE_DEVICES=visible)
+        try:
+            process = subprocess.Popen(
             [
                 python_bin,
                 str(worker_script),
@@ -4814,7 +4839,12 @@ class SubprocessInferenceEngineProxy:
             stderr=subprocess.STDOUT,
             close_fds=True,
             start_new_session=True,
-        )
+            )
+        except BaseException:
+            log_handle.close()
+            if allocation is not None:
+                allocation.release()
+            raise
         cls._write_process_meta(worker_root, process)
 
         async def _terminate_startup_process() -> None:
@@ -4852,6 +4882,8 @@ class SubprocessInferenceEngineProxy:
 
         ready: Optional[Dict[str, Any]] = None
         try:
+            if allocation is not None:
+                allocation.bind_process(process, gpu_process_identity(process.pid))
             startup_timeout_s = float(os.environ.get("FAASLORA_WORKER_START_TIMEOUT_S", "180"))
             startup_timeout_s = max(30.0, startup_timeout_s)
             deadline = time.monotonic() + startup_timeout_s
@@ -4871,6 +4903,8 @@ class SubprocessInferenceEngineProxy:
             except Exception:
                 pass
             await _terminate_startup_process()
+            if allocation is not None:
+                allocation.release()
             raise
         finally:
             try:
@@ -4880,6 +4914,8 @@ class SubprocessInferenceEngineProxy:
 
         if not isinstance(ready, dict) or ready.get("status") != "ready":
             await _terminate_startup_process()
+            if allocation is not None:
+                allocation.release()
             error = ready.get("error") if isinstance(ready, dict) else "subprocess_worker_timeout"
             log_tail = cls._tail_worker_log(log_path)
             error = (
@@ -4889,7 +4925,7 @@ class SubprocessInferenceEngineProxy:
                 error = f"{error}\nworker_log_tail:\n{log_tail}"
             raise RuntimeError(f"subprocess_engine_start_failed: {error}")
 
-        return cls(
+        proxy = cls(
             process=process,
             host=str(ready["host"]),
             port=int(ready["port"]),
@@ -4900,7 +4936,16 @@ class SubprocessInferenceEngineProxy:
             log_path=log_path,
             runtime_gpu_ids=runtime_gpu_ids,
             startup_latency_ms=max(0.0, (time.perf_counter() - spawn_started_at) * 1000.0),
+            physical_allocation=allocation,
         )
+        if allocation is not None:
+            try:
+                workers = await proxy.ieee_worker_observation()
+                allocation.confirm_workers(workers['workers'])
+            except BaseException:
+                await proxy.shutdown()
+                raise
+        return proxy
 
     async def _rpc(self, cmd: str, *, _native_event_observer=None, **kwargs: Any) -> Dict[str, Any]:
         if self._engine_dead or self._process.poll() is not None:
@@ -5447,24 +5492,51 @@ class SubprocessInferenceEngineProxy:
 
     async def shutdown(self) -> None:
         keep_logs = self._keep_worker_logs_requested()
+        allocation = getattr(self, '_physical_allocation', None)
+        teardown_deadline = time.monotonic() + 60.0
         if self._normal_shutdown_completed and not keep_logs:
             shutil.rmtree(self._workdir, ignore_errors=True)
             self._engine_dead = True
             return
         preserve_logs = bool(self._engine_dead) or keep_logs
         normal_shutdown = False
+        channels_closed = False
         try:
             if self._process.poll() is None:
                 try:
-                    await self._rpc("shutdown")
+                    if allocation is not None:
+                        # The RPC only initiates worker shutdown. Allow native
+                        # teardown to finish, reserving the existing 10+5s TERM/
+                        # KILL budget, instead of immediately killing its owner.
+                        await asyncio.wait_for(self._rpc('shutdown'), timeout=45.)
+                        # Python3.12 Server.wait_closed also waits for accepted
+                        # connections. Close the idle RPC pool BEFORE waiting for
+                        # the worker, or each side waits for the other to exit.
+                        await self._close_all_rpc_channels()
+                        channels_closed = True
+                        await asyncio.to_thread(self._process.wait,
+                            max(0., teardown_deadline - time.monotonic() - 15.))
+                    else:
+                        await self._rpc("shutdown")
                     normal_shutdown = True
                 except Exception:
                     pass
             elif not self._engine_dead and self._process.returncode == 0:
                 normal_shutdown = True
         finally:
-            await self._close_all_rpc_channels()
+            if not channels_closed:
+                await self._close_all_rpc_channels()
             await self._terminate_process_tree(force=False)
+            if allocation is not None:
+                # RPC shutdown and an empty LoRA cache are not physical return.
+                # Failure keeps the durable lease open and prevents GPU reuse.
+                try:
+                    await allocation.wait_workers(timeout_s=max(0., teardown_deadline-time.monotonic()))
+                    allocation.release()
+                except BaseException:
+                    self._engine_dead = True
+                    self._preserve_worker_workdir('physical_release_unconfirmed')
+                    raise
             if normal_shutdown and not keep_logs:
                 shutil.rmtree(self._workdir, ignore_errors=True)
                 self._normal_shutdown_completed = True
@@ -5490,6 +5562,7 @@ class SubprocessInferenceEngineProxy:
         self._workdir = replacement._workdir
         self._log_path = replacement._log_path
         self._engine_dead = replacement._engine_dead
+        self._physical_allocation = replacement._physical_allocation
         self._reinit_attempted = False
 
 
