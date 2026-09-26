@@ -525,6 +525,87 @@ def freeze_file_replacement_epoch(*, file_snapshot, plan, identities, profiles, 
     return frozen
 
 
+def frozen_preparation_costs(rows):
+    """Deserialize one complete measured-class snapshot without filling gaps."""
+    values = {}
+    for row in rows:
+        key, value = PreparationClass(**row['class']), row['load_ms']
+        if (key in values or type(value) not in (int, float) or not math.isfinite(value)
+                or value < 0 or (key.tier == 'gpu' and value != 0)):
+            raise ValueError('invalid or duplicate frozen preparation cost')
+        values[key] = value
+    return values
+
+
+def owned_gpu_execution_objective(*, plan, selected, size_edges_bytes):
+    """Carry the original all-tier benefit through file/native-HOST staging.
+
+    The native owner may register not-yet-materialized targets. Their path and
+    content are fixed here, but registration is neither a copy nor a reservation.
+    Execution derives victim loss from actual native HOST footprints using this
+    same frozen class-cost table; it never samples a newer cost/demand epoch.
+    """
+    view = plan['source_view']
+    native = view['native']
+    options = {(r['artifact_id'], r['target']['tier']): r for r in plan['options']}
+    sources = []
+    for name, source in sorted(view['sources'].items()):
+        current = source['selected_source']
+        path = current['path'] or view['files']['artifacts'][name]['targets']['nvme']['path']
+        sources.append(dict(adapter_id=name, adapter_int_id=view['adapter_int_ids'][name],
+            lora_path=path, content_sha256=(current['expected_content_sha256'] if current['native']
+                                          else current['content_sha256'])))
+    candidates = []
+    for candidate in selected['gpu']:
+        row = options[candidate.artifact_id, 'gpu']
+        candidates.append(dict(adapter_id=candidate.artifact_id,
+            adapter_int_id=view['adapter_int_ids'][candidate.artifact_id],
+            source_class=row['source'], source_load_ms=row['source_load_ms'],
+            benefit_ms=candidate.benefit_ms))
+    frozen = dict(kind='ieee_owned_gpu_objective_v2', owner_id=native['owner_id'],
+        epoch=native['epoch'], slot_adapter_ids=list(native['slot_adapter_ids']),
+        slot_capacity_bytes=native['native_footprints']['slot_capacity_bytes'],
+        planning_sha256=plan['plan_sha256'], profile_id=plan['profile_id'],
+        cost_sequence=plan['cost_sequence'], cost_estimates=copy.deepcopy(plan['cost_estimates']),
+        size_edges_bytes=list(size_edges_bytes), sources=sources, gpu_candidates=candidates,
+        physical_resources_reserved=False,
+        **{k: copy.deepcopy(plan[k]) for k in ('arrival_counts', 'total_arrivals',
+                                               'demand_observed_at', 'window_seconds')})
+    frozen['plan_sha256'] = hashlib.sha256(json.dumps(frozen, sort_keys=True,
+        separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+    validate_native_gpu_epoch(frozen)
+    return frozen
+
+
+def native_gpu_fallback_costs(*, objective, native_inventory):
+    """Actual worker-side HOST fallback classes priced at the original epoch."""
+    from ..experiment.instance_pool import NativeSourceSnapshot
+    frozen = validate_native_gpu_epoch(objective)
+    if frozen['kind'] != 'ieee_owned_gpu_objective_v2':
+        raise ValueError('mixed preparation requires its owned cost snapshot')
+    if native_inventory['slot_capacity_bytes'] != frozen['slot_capacity_bytes']:
+        raise ValueError('native slot geometry changed within the preparation epoch')
+    observed, _, _ = NativeSourceSnapshot._footprints(native_inventory,
+        tuple(native_inventory['slot_adapter_ids']), tuple(native_inventory['registered_cpu_adapter_ids']))
+    values = frozen_preparation_costs(frozen['cost_estimates'])
+    rows = {r['adapter_int_id']: r for r in frozen['sources']}
+    result = {}
+    for aid in native_inventory['slot_adapter_ids']:
+        if aid is None:
+            continue
+        row = rows[aid]
+        n = frozen['arrival_counts'].get(row['adapter_id'], 0)
+        if not n:
+            result[aid] = 0.
+            continue
+        size, representation = observed[aid][:2]
+        key = FrozenPreparationProfiles.source_class(dict(native=True, tier='host',
+            footprint_bytes=size, representation=representation,
+            expected_content_sha256=row['content_sha256']), tuple(frozen['size_edges_bytes']))
+        result[aid] = n/frozen['total_arrivals'] * values[key]
+    return result
+
+
 def validate_native_gpu_epoch(epoch):
     """Validate a serialized frozen objective, not its measurement provenance.
 
@@ -536,7 +617,8 @@ def validate_native_gpu_epoch(epoch):
     if digest != hashlib.sha256(json.dumps(frozen, sort_keys=True,
             separators=(',', ':'), allow_nan=False).encode()).hexdigest():
         raise ValueError('native GPU preparation epoch hash mismatch')
-    if (frozen.get('kind') != 'ieee_native_gpu_objective_v1'
+    mixed = frozen.get('kind') == 'ieee_owned_gpu_objective_v2'
+    if (frozen.get('kind') not in ('ieee_native_gpu_objective_v1', 'ieee_owned_gpu_objective_v2')
             or frozen.get('physical_resources_reserved') is not False
             or not isinstance(frozen.get('owner_id'), str) or not frozen['owner_id']
             or type(frozen.get('epoch')) is not int or frozen['epoch'] < 1
@@ -555,6 +637,17 @@ def validate_native_gpu_epoch(epoch):
     rows, names, ids = frozen['sources'], set(), set()
     for row in rows:
         aid, name = row['adapter_int_id'], row['adapter_id']
+        if mixed:
+            content = row['content_sha256']
+            if (type(aid) is not int or aid <= 0 or aid in ids
+                    or not isinstance(name, str) or not name or name in names
+                    or not isinstance(row['lora_path'], str) or not Path(row['lora_path']).is_absolute()
+                    or not isinstance(content, str) or len(content) != 64
+                    or any(c not in '0123456789abcdef' for c in content)):
+                raise ValueError('invalid mixed preparation source identity')
+            ids.add(aid)
+            names.add(name)
+            continue
         key = PreparationClass(**row['host_class'])
         representation = key.representation.split(':')
         native_host_class = (len(representation) in (3, 4)
@@ -579,6 +672,24 @@ def validate_native_gpu_epoch(epoch):
     if (not slots or any(type(aid) is not int or aid not in ids for aid in used)
             or len(set(used)) != len(used)):
         raise ValueError('native GPU objective lacks complete resident source coverage')
+    if mixed:
+        values = frozen_preparation_costs(frozen['cost_estimates'])
+        edges = frozen['size_edges_bytes']
+        if (not isinstance(edges, list) or any(type(x) is not int or x <= 0 for x in edges)
+                or any(a >= b for a, b in zip(edges, edges[1:]))
+                or not isinstance(frozen['planning_sha256'], str) or len(frozen['planning_sha256']) != 64):
+            raise ValueError('mixed preparation lacks its original planning identity')
+        by_id, seen = {r['adapter_int_id']: r for r in rows}, set()
+        for row in frozen['gpu_candidates']:
+            aid, name = row['adapter_int_id'], row['adapter_id']
+            key = PreparationClass(**row['source_class'])
+            h = counts.get(name, 0)/total if total else 0.
+            if (aid not in ids or aid in seen or by_id[aid]['adapter_id'] != name
+                    or key.tier == 'gpu' or key.layout_id != 'exact_content_sha256:'+by_id[aid]['content_sha256']
+                    or not h or values[key] != row['source_load_ms']
+                    or row['benefit_ms'] != h*row['source_load_ms'] or row['benefit_ms'] <= 0):
+                raise ValueError('GPU target benefit differs from the original preparation epoch')
+            seen.add(aid)
     return frozen
 
 
@@ -1210,7 +1321,9 @@ class PreloadingPlanner:
             cost_sequence=sequence, demand_observed_at=demand.observed_at,
             window_seconds=demand.window_seconds, total_arrivals=demand.total_arrivals,
             arrival_counts=counts, remaining_bytes={tier.value: value for tier, value in budgets.items()},
-            options=inputs)
+            options=inputs, cost_estimates=[dict(**{'class': asdict(key)}, load_ms=value)
+                for key, value in sorted(estimates.items(), key=lambda item: (
+                    item[0].tier, item[0].representation, item[0].layout_id, item[0].size_bin))])
         selected, diagnostics = (self.select_ieee_handoff(candidates, budgets) if mode == 'handoff'
             else self.select_ieee_insertions(candidates, budgets))
         plan_hash = hashlib.sha256(json.dumps(frozen, sort_keys=True,
@@ -1248,6 +1361,11 @@ class PreloadingPlanner:
         keys = ('kind', 'mode', 'source_snapshot_id', 'profile_id', 'cost_sequence',
                 'demand_observed_at', 'window_seconds', 'total_arrivals',
                 'arrival_counts', 'remaining_bytes', 'options')
+        if 'cost_estimates' in plan:
+            keys += ('cost_estimates',)
+            estimates = frozen_preparation_costs(plan['cost_estimates'])
+        else:
+            estimates = None  # Preserved historical file/native-only diagnostic plans.
         frozen = {key: plan[key] for key in keys}
         digest = hashlib.sha256(json.dumps(frozen, sort_keys=True,
             separators=(',', ':'), allow_nan=False).encode()).hexdigest()
@@ -1262,6 +1380,10 @@ class PreloadingPlanner:
             if h != row['demand_fraction']:
                 raise ValueError('preparation execution changed frozen demand')
             if h:
+                if estimates is not None and (estimates[PreparationClass(**row['source'])] != row['source_load_ms']
+                        or (0. if row['target']['tier'] == 'gpu' else
+                            estimates[PreparationClass(**row['target'])]) != row['target_load_ms']):
+                    raise ValueError('preparation option differs from its frozen measured costs')
                 candidates.append(PreparationCandidate(row['artifact_id'],
                     StorageTier(row['source']['tier']), StorageTier(row['target']['tier']),
                     row['footprint_bytes'], h, row['source_load_ms'], row['target_load_ms']))

@@ -580,6 +580,12 @@ class IEEEWorkerObservationExtension:
             # for the executable reference. Transfer-held sources also carry
             # native CPU pins, enforced independently by the owner.
             kwargs['protected_adapter_ids'] = tuple(sorted(protected_ids))
+            objective = kwargs.get('replacement_epoch')
+            if objective is not None and objective.get('kind') == 'ieee_owned_gpu_objective_v2':
+                from faaslora.preloading.preloading_planner import native_gpu_fallback_costs
+                kwargs['fallback_costs'] = native_gpu_fallback_costs(objective=objective,
+                    native_inventory={**_ieee_lora_host_inventory(manager),
+                                      **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)})
             def decide(victim, slots):
                 # An externally submitted native request must not be an
                 # unreferenced victim merely because it bypassed our frontend.

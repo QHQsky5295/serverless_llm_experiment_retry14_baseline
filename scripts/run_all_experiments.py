@@ -15633,7 +15633,8 @@ class ScenarioRunner:
             raise
 
     async def _run_ieee_gpu_preparation_plan(self, *, slot, objective, target_adapter_ids,
-                                           trigger_reason, activation_id=None, capacity_only=False):
+                                           trigger_reason, activation_id=None, capacity_only=False,
+                                           prepare_source=None):
         """Execute an explicitly selected native-HOST plan on the common queue.
 
         Registration of all selected targets precedes any copy. This entry is
@@ -15646,6 +15647,7 @@ class ScenarioRunner:
         from faaslora.clock import local_monotonic_clock_id
         objective = copy.deepcopy(objective)
         frozen = validate_native_gpu_epoch(objective)
+        mixed = frozen['kind'] == 'ieee_owned_gpu_objective_v2'
         if (not self.model_cfg.get('ieee_gpu_references') or self._stack is None
                 or type(capacity_only) is not bool or trigger_reason not in ('handoff', 'residency')
                 or not isinstance(slot.instance_id, str) or not slot.instance_id
@@ -15660,7 +15662,8 @@ class ScenarioRunner:
         for aid in targets:
             row = rows[aid]
             identity = self._ieee_artifact_identities[row['adapter_id']]
-            if row['host_class']['layout_id'] != 'exact_content_sha256:' + identity['content_sha256']:
+            if ((row['content_sha256'] if mixed else row['host_class']['layout_id'].removeprefix(
+                    'exact_content_sha256:')) != identity['content_sha256']):
                 raise ValueError('GPU preparation content differs from frozen artifact registry')
         queue = self._stack.preloading_manager.ieee_movements
         plans = getattr(self, '_ieee_gpu_preparation_plans', None)
@@ -15750,6 +15753,28 @@ class ScenarioRunner:
             if cancelled:
                 raise asyncio.CancelledError()
             return result
+        async def stage_and_submit(aid):
+            # Never occupy a movement-queue execution slot while waiting for a
+            # prerequisite on that same queue (it may have concurrency one).
+            if prepare_source is not None:
+                await prepare_source(aid, plan_id)
+            row = rows[aid]
+            count = frozen['arrival_counts'].get(row['adapter_id'], 0)
+            benefit = (next(r['benefit_ms'] for r in frozen['gpu_candidates']
+                            if r['adapter_int_id'] == aid) if mixed else
+                       count/frozen['total_arrivals'] * row['host_load_ms'] if count else 0.)
+            intent = uuid.uuid4().hex
+            queue.submit(key=(owner_id, 'gpu', row['adapter_id'],
+                self._ieee_artifact_identities[row['adapter_id']]['content_sha256']), intent_id=intent,
+                metadata=dict(trigger_reason=trigger_reason, plan_id=plan_id,
+                              activation_id=activation_id, target_replica=slot.instance_id),
+                density=benefit/frozen['slot_capacity_bytes'],
+                action=lambda attempt: execute(aid, attempt), ready=False)
+            intents.append(intent)
+            # Co-ready prerequisites enter one density-ordered dispatch wave.
+            # This is an observed staging-completion event, not timed polling.
+            asyncio.get_running_loop().call_soon(lambda: queue.wake(owner_id=owner_id, ready=True))
+            return await consume(intent, aid)
         try:
             registered, cancelled = await settle(engine.ieee_gpu_reference(operation='register_preparation_plan',
                 plan_id=plan_id, objective=objective, target_adapter_ids=list(targets), expected_owner_id=owner_id))
@@ -15758,21 +15783,8 @@ class ScenarioRunner:
             record['registration'] = registered
             if cancelled:
                 raise asyncio.CancelledError()
-            for aid in targets:
-                row = rows[aid]
-                count = frozen['arrival_counts'].get(row['adapter_id'], 0)
-                density = (count / frozen['total_arrivals'] * row['host_load_ms'] /
-                           frozen['slot_capacity_bytes']) if count else 0.
-                intent = uuid.uuid4().hex
-                queue.submit(key=(owner_id, 'gpu', row['adapter_id'],
-                    self._ieee_artifact_identities[row['adapter_id']]['content_sha256']), intent_id=intent,
-                    metadata=dict(trigger_reason=trigger_reason, plan_id=plan_id,
-                                  activation_id=activation_id, target_replica=slot.instance_id),
-                    density=density, action=lambda attempt, aid=aid: execute(aid, attempt), ready=False)
-                intents.append(intent)
-                waiters.append(asyncio.create_task(consume(intent, aid)))
+            waiters = [asyncio.create_task(stage_and_submit(aid)) for aid in targets]
             record['state'] = 'executing'
-            queue.wake(owner_id=owner_id, ready=True)
             result = await asyncio.gather(*waiters)
             record['state'] = 'completed'
             return result
@@ -15972,14 +15984,29 @@ class ScenarioRunner:
             profiles=self._preparation_profiles, costs=slot.preparation_cost_model,
             expected_clock_id=local_monotonic_clock_id(), received_at=time.monotonic())
 
+    async def _run_ieee_owned_preparation_plan(self, *, slot, mode, activation_id=None,
+                                              capacity_only=False):
+        """Plan once from real owners, then execute that unchanged mixed epoch.
+
+        Requires an initialized engine. Activation-time pre-init layout/profile
+        inheritance and remaining-candidate joint replacement are separate gates.
+        """
+        plan = await self._plan_ieee_preparation_for_slot(slot=slot, mode=mode)
+        result = await self._run_ieee_file_preparation_plan(plan=plan, target_engine=slot.engine,
+            target_replica=slot.instance_id, activation_id=activation_id, gpu_slot=slot,
+            capacity_only=capacity_only)
+        return dict(plan=plan, results=result)
+
     async def _run_ieee_file_preparation_plan(self, *, plan, target_engine,
-            target_replica, activation_id=None, replacement_costs=None):
+            target_replica, activation_id=None, replacement_costs=None,
+            gpu_slot=None, capacity_only=False):
         """Execute selected HOST/NVMe plans, including Remote->NVMe->HOST.
 
         All final and intermediate targets are protected before queue dispatch.
         This consumes the actual IEEE selector, not legacy priority/warmup.
-        Native GPU targets use their separate owner; mixed/all-tier automatic
-        control is not qualified by this entry. Optional replacement uses the
+        Mixed GPU targets keep the original epoch across file/native staging
+        when the actual slot is supplied. This does not qualify pre-init Full
+        activation. Optional file-only replacement uses the
         same frozen h/d for managed file copies only, not native tensor fallbacks.
         """
         if (not self.model_cfg.get('ieee_gpu_references') or self._stack is None
@@ -15987,8 +16014,16 @@ class ScenarioRunner:
             raise ValueError('file plan requires the managed native deployment')
         plan = copy.deepcopy(plan)
         selected = self._stack.preloading_planner.validate_ieee_execution_plan(plan)
-        if selected['gpu']:
+        if selected['gpu'] and gpu_slot is None:
             raise ValueError('file executor cannot silently drop selected native GPU targets')
+        gpu_objective = None
+        if selected['gpu']:
+            from faaslora.preloading.preloading_planner import owned_gpu_execution_objective
+            if (gpu_slot.engine is not target_engine or gpu_slot.instance_id != target_replica
+                    or replacement_costs is not None):
+                raise ValueError('mixed plan requires its actual slot; file-only replacement is not a joint objective')
+            gpu_objective = owned_gpu_execution_objective(plan=plan, selected=selected,
+                size_edges_bytes=self._preparation_profiles.size_edges_bytes)
         mode = plan['mode']
         if mode == 'handoff' and not activation_id:
             raise ValueError('file handoff requires its actual activation identity')
@@ -16018,6 +16053,16 @@ class ScenarioRunner:
                     # prevents reclaim between staging completion and HOST read.
                     targets['nvme', aid] = dict(tier='nvme', adapter_id=aid, content_sha256=content)
                 recipes.append((candidate, row, content))
+        gpu_recipes = {}
+        for candidate in selected['gpu']:
+            aid = candidate.artifact_id
+            source = plan['source_view']['sources'][aid]['selected_source']
+            row = next(r for r in gpu_objective['sources'] if r['adapter_id'] == aid)
+            gpu_recipes[row['adapter_int_id']] = (candidate, source, row)
+            if not source['native']:
+                tier = 'nvme' if source['tier'] == 'remote' else source['tier']
+                targets[tier, aid] = dict(tier=tier, adapter_id=aid,
+                    content_sha256=self._ieee_artifact_identities[aid]['content_sha256'])
         plan_id = uuid.uuid4().hex
         registration = references.register_file_preparation_plan(plan_id=plan_id, targets=targets.values())
         record = dict(plan_id=plan_id, objective_sha256=plan['plan_sha256'],
@@ -16069,6 +16114,34 @@ class ScenarioRunner:
                         tier=target_tier, adapter_id=aid)
             record['results'].append(dict(adapter_id=aid, target_tier=tier, result=result))
             return result
+        async def prepare_gpu_source(aid_int, native_plan_id):
+            candidate, source, row = gpu_recipes[aid_int]
+            aid = candidate.artifact_id
+            observed = await target_engine.ieee_gpu_reference(operation='source_snapshot')
+            current = next((r for r in observed['sources'] if r['adapter_int_id'] == aid_int), None)
+            if current is not None:
+                if (current['adapter_id'], current['lora_path']) != (aid, row['lora_path']):
+                    raise ValueError('mixed GPU preparation native source changed identity')
+                return  # Actual HOST/GPU validity and admission are rechecked by its owner.
+            if source['native']:
+                raise ValueError('planned native source was invalidated; a new epoch is required')
+            if source['tier'] == 'remote':
+                await move(aid, 'nvme', None, candidate.density)
+            await self._queue_ieee_native_host_preparation(slot=gpu_slot, adapter_id=aid,
+                source_path=Path(row['lora_path']), trigger_reason=mode, plan_id=native_plan_id,
+                activation_id=activation_id, density=candidate.density)
+        async def execute_gpu():
+            result = await self._run_ieee_gpu_preparation_plan(slot=gpu_slot,
+                objective=gpu_objective, target_adapter_ids=tuple(gpu_recipes),
+                trigger_reason=mode, activation_id=activation_id, capacity_only=capacity_only,
+                prepare_source=prepare_gpu_source)
+            for _, _, row in gpu_recipes.values():
+                for tier, aid in targets:
+                    if aid == row['adapter_id']:
+                        references.finish_file_preparation_target(plan_id=plan_id, tier=tier, adapter_id=aid)
+            record['results'].extend(dict(adapter_id=row['adapter_id'], target_tier='gpu', result=value)
+                for (_, _, row), value in zip(gpu_recipes.values(), result))
+            return result
         async def settle(awaitable):
             future, cancelled = asyncio.ensure_future(awaitable), False
             while True:
@@ -16081,6 +16154,8 @@ class ScenarioRunner:
         try:
             record['state'] = 'executing'
             waiters = [asyncio.create_task(execute(*recipe)) for recipe in recipes]
+            if gpu_recipes:
+                waiters.append(asyncio.create_task(execute_gpu()))
             results = await asyncio.gather(*waiters)
             record['state'] = 'completed'
             return results

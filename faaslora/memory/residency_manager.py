@@ -1223,11 +1223,16 @@ class IEEEBackendGPUReferences:
                 raise ValueError('preparation plan identity cannot change')
             return dict(registered=True, plan_id=plan_id, **self.snapshot())
         rows = {row['adapter_int_id']: row for row in frozen['sources']}
+        mixed = frozen['kind'] == 'ieee_owned_gpu_objective_v2'
+        cpu_ids = set(self._caches()[0])
+        covered = cpu_ids.issubset(rows) if mixed else set(rows) == cpu_ids
         if (frozen['epoch'] != self.epoch or tuple(frozen['slot_adapter_ids']) != slots
-                or set(rows) != set(self._caches()[0]) or not set(targets).issubset(rows)
+                or not covered or not set(targets).issubset(rows)
                 or any(self._sources.get(a) != (row['adapter_id'], row['lora_path'])
-                       for a, row in rows.items())):
+                       for a, row in rows.items() if a in cpu_ids)):
             raise ValueError('preparation plan requires its complete current native source epoch')
+        if mixed and set(targets) != {r['adapter_int_id'] for r in frozen['gpu_candidates']}:
+            raise ValueError('mixed preparation targets differ from the selected GPU set')
         self._preparation_plans[plan_id] = dict(identity=identity, pending=set(targets),
                                                objective=copy.deepcopy(objective))
         return dict(registered=True, plan_id=plan_id, **self.snapshot())
@@ -1705,7 +1710,7 @@ class IEEEBackendGPUReferences:
     def proactive_host_prepare_and_acquire(self, *, lease_id: str, adapter_int_id: int,
             lora_name: str, lora_path: str, expected_owner_id: str, expected_epoch: int,
             capacity_only: bool, decide, replacement_epoch=None,
-            protected_adapter_ids=(), preparation_plan_id=None) -> Dict[str, Any]:
+            protected_adapter_ids=(), preparation_plan_id=None, fallback_costs=None) -> Dict[str, Any]:
         """Evaluate and commit HOST -> preallocated GPU on the owner thread.
 
         The engine-core bridge holds scheduling while this synchronous native
@@ -1782,16 +1787,27 @@ class IEEEBackendGPUReferences:
                     (objective['epoch'] != self.epoch or tuple(objective['slot_adapter_ids']) != tuple(slots)))):
                 return {'acquired': False, 'reason': 'stale_replacement_epoch', **self.snapshot()}
             rows = {row['adapter_int_id']: row for row in objective['sources']}
-            if (set(rows) != set(cpu) or any(self._sources.get(aid) !=
-                    (row['adapter_id'], row['lora_path']) for aid, row in rows.items())
+            mixed = objective['kind'] == 'ieee_owned_gpu_objective_v2'
+            covered = set(cpu).issubset(rows) if mixed else set(rows) == set(cpu)
+            if (not covered or any(self._sources.get(aid) !=
+                    (rows[aid]['adapter_id'], rows[aid]['lora_path']) for aid in cpu)
                     or any(aid not in self._gpu_confirmations for aid in slots if aid is not None)):
                 raise ValueError('replacement epoch lacks the current owned source/fallback set')
+            if mixed and (registered is None or not isinstance(fallback_costs, dict)
+                    or set(fallback_costs) != {a for a in slots if a is not None}
+                    or any(type(v) not in (int, float) or not math.isfinite(v) or v < 0
+                           for v in fallback_costs.values())):
+                raise ValueError('mixed GPU preparation requires worker-observed fallback costs')
             total, counts = objective['total_arrivals'], objective['arrival_counts']
             def weighted_host_cost(aid):
+                if mixed:
+                    return fallback_costs[aid]
                 row = rows[aid]
                 n = counts.get(row['adapter_id'], 0)
                 return (n / total) * row['host_load_ms'] if n else 0.
-            benefit = weighted_host_cost(adapter_int_id)  # GPU remaining d = 0.
+            benefit = (next(r['benefit_ms'] for r in objective['gpu_candidates']
+                            if r['adapter_int_id'] == adapter_int_id) if mixed
+                       else weighted_host_cost(adapter_int_id))  # GPU remaining d = 0.
             protected = (set(protected_adapter_ids) | cpu.pinned_items | gpu.pinned_items
                          | set(self._references) | set(self._host_references)
                          | {aid for plan in self._preparation_plans.values() for aid in plan['pending']})

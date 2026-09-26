@@ -2456,3 +2456,79 @@ HOST现存表示被正确识别，file→native HOST物化仍由既有D41路径�
 完整生命周期、数值正确性和远端资格仍未通过，Full guard保留。后续直接
 连接混合计划与activation，不扩大本轮候选生成微测；正式比较/消融没有
 完成任何新增槽位。
+
+## D46：同一冻结收益下执行混合GPU/文件准备
+
+### 具体缺口与第一性原则处理
+
+D45能够自动选择目标，但文件执行器拒绝GPU选集；D39 GPU入口则要求
+所有目标已经在native HOST中。因此直接串联两者会丢失原Remote/NVMe
+来源，或在staging后重新取h/d，把同一次规划变成不同优化目标。
+
+本轮核查IEEE原文Eq.(4)–(7)及replacement段落、D39/D41/D43–D45历史，
+对照[vLLM0.30 worker manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+的CPU checkpoint加载与GPU activation顺序，以及
+[model manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/model_manager.py)
+的分离CPU/GPU缓存。保留官方解析、映射及tensor布局，继续使用已有
+file→native HOST与native admission入口；不把CPU注册说成GPU就绪。
+[dLoRA](https://www.usenix.org/conference/osdi24/presentation/wu-bingyang)
+仅作为请求与adapter联合编排的参照，不为本实现提供正确性或性能证明。
+
+假设是：将完整成本类别快照与原h/来源收益绑定到一个规划epoch，同时
+将物理来源、GPU fallback与准入留给执行时重查，就能忠实衔接多阶段
+准备，而不需要修改公式、猜测延迟或在半途换目标。
+
+### 已连接的实际路径
+
+- 现有selector在原一次cost snapshot中保存完整类别成本目录，并将其
+  纳入plan SHA。后续class反馈及arrival不会改变这轮已经选定的收益。
+- 初始化后的真实runner入口一次读取实际owner、选择并执行混合选集。
+  HOST/NVMe目标继续使用既有文件计划；GPU目标按原始来源复用native
+  HOST，或完成Remote→NVMe/file→native HOST，再进入原GPU准入事务。
+- native owner在GPU目标的staging之前登记完整选集，允许目标尚未成为
+  native CPU对象；登记仍不分配物理容量、不发布就绪。首次登记要求
+  当前真实epoch/slot与已知native身份匹配，不任意接受旧快照。
+- GPU收益保留原源层到GPU的h*d；不改成staging后的HOST收益。实际worker
+  读取现存GPU对象的HOST fallback footprint，使用同轮冻结类别成本
+  计算victim loss，再执行已有loss/usable-byte与E(t)判断。缺少正需求
+  实测类即拒绝，不使用相邻类或后来更新的profile。
+- 文件目标及GPU staging文件提前登记并保护到依赖操作完成；真实分配、
+  HOST额度、引用与取消收尾复用原owner。没有增加临时超额缓存。
+- 前置文件/HOST任务在GPU任务提交前执行，不能占着共同队列的唯一
+  execution slot等待自己排队的前置任务。共同就绪的GPU目标仍按密度
+  一批提交；完成事件唤醒，不使用固定sleep重试。
+- GPU的现存HOST诊断接口和历史文件计划仍有显式旧合同支持，不是新
+  Full失败后静默回落；mixed入口必须提供其完整冻结目录与实际slot。
+
+### 正确性状态表（小文件/原生cache fixture，不是模型测量）
+
+| 问题 | 验证结果 |
+|---|---|
+| 一个计划包含文件与GPU目标 | 自动handoff选a→GPU、d→HOST；实际文件复制、CPU注册、GPU cache activation及引用释放完整衔接 |
+| 只有一个队列执行槽 | Remote/文件、native HOST、GPU前置链完成，不因嵌套排队死锁 |
+| 原Remote收益是否丢失 | residency选Remote→GPU；IO开始前已有native pending目标；执行期间禁止读取新h/d，最终仍用原收益 |
+| 原空槽被真实需求占用 | staging后需求c进入GPU；a仍以原NVMe收益80/103×20比较，而victim b损失为1/103×2；保留不同来源的语义 |
+| 篡改目录或目标副本 | 执行前拒绝，无IO/CPU/GPU准备 |
+| 缺少native fallback成本 | 正需求类别缺失抛出错误，没有猜测或GPU加载；已有GPU副本保留 |
+| 首次登记的快照过期 | 实际reference改变epoch后拒绝，Remote GPU staging未开始 |
+| staging期间取消 | 等待真实reader结束后归还文件/native引用，再关闭两类计划；未继续GPU加载 |
+
+新增7项检查。首轮22项中1项失败是fixture误把handoff密度选择当作
+GPU优先：给定小文件成本，handoff正确选择NVMe。Remote→GPU测试改用
+论文规定GPU优先的residency选择器；不更改真实选择器或预算。随后23项
+全部通过。第一轮完整回归停在旧smoke的Hugging Face SSL配置查询，55秒
+诊断超时退出；没有模型运行或OOM。禁止该纯正确性检查的无关联网后，
+866项完整回归通过，无失败、错误或跳过。原生环境、安全与最终备份
+回执见EXECUTION_STATUS。表中常数仅是测试fixture，不进入实测profile。
+
+### 未完成边界与下一主线
+
+本轮执行入口仍要求已初始化engine，不能称为初始化前handoff。自动
+control/activation回调、pre-init布局/profile继承、未选候选的联合
+replacement、native HOST容量满时的替换、完整native/file fallback
+损失、主动准备成本反馈、代表性真实profile和Full生命周期仍待衔接/
+资格验证。D44文件-only replacement不在mixed入口冒充联合替换。
+
+Full guard保留。正式baseline/M1/M2、消融和敏感性没有新增完成槽位。
+后续直接推进初始化前准备与实际activation/control调用，以及剩余候选
+和完整来源replacement，不重复本轮已完成的混合执行或旧模型prefix。

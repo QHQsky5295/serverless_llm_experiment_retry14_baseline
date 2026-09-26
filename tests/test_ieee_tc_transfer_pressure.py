@@ -2,7 +2,8 @@
 import asyncio
 from types import SimpleNamespace as NS
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
+from pathlib import Path
 import threading
 import os
 import subprocess
@@ -1132,6 +1133,246 @@ class OwnedPreparationPlanning(unittest.TestCase):
                             for r in epoch['sources']))
         self.assertTrue(all(r['host_load_ms']==2. for r in epoch['sources']))
         asyncio.run(queue.close())
+
+
+class MixedOwnedPreparation(unittest.TestCase):
+    """One real selector/file queue/native cache owner; no CUDA/model samples."""
+    def make(self, *, remote_gpu=False):
+        import copy
+        import time
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.memory.residency_manager import IEEEBackendGPUReferences
+        from tests.test_ieee_tc_gpu_references import NativeManager, NativeAdapter
+        factory = OwnedPreparationPlanning()
+        self.addCleanup(factory.doCleanups)
+        fixture, runner, queue, slot, template = factory.make()
+        manager = NativeManager()
+        for aid in tuple(manager._registered_adapters): manager.remove_adapter(aid)
+        ids = {a: InferenceEngine._lora_int_id(a) for a in runner._ieee_artifact_identities}
+        loads = []
+        def load(**kw):
+            loads.append(('gpu', kw['lora_name']))
+            if kw['adapter_int_id'] not in manager._registered_adapters:
+                manager._registered_adapters[kw['adapter_int_id']] = NativeAdapter()
+            manager.activate(kw['adapter_int_id'])
+        def cpu_load(**kw):
+            # The actual runner holds the real file lease through this RPC.
+            self.assertTrue(fixture.owner.leases)
+            self.assertFalse(fixture.manager._delete_path(kw['lora_path']))
+            self.assertTrue(Path(kw['lora_path']).is_dir())
+            loads.append(('host', kw['lora_name']))
+            if not kw['reuse']:
+                manager._registered_adapters[kw['adapter_int_id']] = NativeAdapter()
+            return dict(admitted=True, total_host_memory_covered=False)
+        owner = IEEEBackendGPUReferences(manager, Mock(), demand_loader=load,
+            preparation_loader=load, file_host_loader=cpu_load,
+            host_allocation_check=lambda **kw: dict(admitted=True))
+        owner.owner_id = template['owner_id']  # Same explicit fixture incarnation.
+        owner.demand_load_and_acquire(lease_id='initial-b', adapter_int_id=ids['b'],
+            lora_name='b', lora_path=str(fixture.nvme/'b'), expected_owner_id=owner.owner_id,
+            expected_epoch=owner.snapshot()['epoch'])
+        owner.release(lease_id='initial-b', expected_owner_id=owner.owner_id)
+        # Seed a confirmed native source, then remove only its GPU copy.
+        receipt = owner.demand_load_and_acquire(lease_id='initial-c', adapter_int_id=ids['c'],
+            lora_name='c', lora_path=str(fixture.nvme/'c'), expected_owner_id=owner.owner_id,
+            expected_epoch=owner.snapshot()['epoch'])
+        owner.release(lease_id='initial-c', expected_owner_id=owner.owner_id)
+        manager.deactivate(ids['c'])
+        def snapshot():
+            source = owner.source_snapshot()
+            registered = source['registered_cpu_adapter_ids']
+            inv = copy.deepcopy(template['native_footprints'])
+            inv.update(slot_adapter_ids=source['slot_adapter_ids'], registered_cpu_adapter_ids=registered,
+                host_tensor_storage_bytes=512*len(registered),
+                host_allocations=[dict(allocation_id=j, allocated_bytes=512, adapter_ids=[aid], pinned=False)
+                    for j, aid in enumerate(registered)],
+                host_adapter_footprints=[dict(adapter_int_id=aid, allocation_ids=[j], storage_bytes=512,
+                    exclusive_storage_bytes=512, dtypes=['torch.float16'], representation='native_cpu_dense_ab_v1',
+                    has_packed_modules=False) for j, aid in enumerate(registered)])
+            return dict(source, native_footprints=inv, clock_id=local_monotonic_clock_id())
+        async def reference(*, operation, **kw):
+            result = snapshot() if operation == 'source_snapshot' else getattr(owner, operation)(**kw)
+            return dict(result, worker_pid=os.getpid(), clock_id=local_monotonic_clock_id())
+        async def prepare(**kw):
+            from faaslora.preloading.preloading_planner import native_gpu_fallback_costs
+            fallbacks = native_gpu_fallback_costs(objective=kw['replacement_epoch'],
+                                                 native_inventory=snapshot()['native_footprints'])
+            return dict(owner.proactive_host_prepare_and_acquire(**kw, fallback_costs=fallbacks,
+                decide=lambda *_: dict(admit=True, reason='admit')), clock_id=local_monotonic_clock_id())
+        slot.engine.ieee_gpu_reference = AsyncMock(side_effect=reference)
+        slot.engine.ieee_prepare_host = AsyncMock(side_effect=prepare)
+        loads.clear()
+        if remote_gpu:
+            self.assertTrue(fixture.manager._delete_path(str(fixture.nvme/'a')))
+        else:
+            for path in (fixture.host/'d', fixture.nvme/'d'):
+                self.assertTrue(fixture.manager._delete_path(str(path)))
+        queue.max_concurrent = 1  # A prerequisite cannot wait inside this slot.
+        return fixture, runner, queue, slot, owner, snapshot, loads
+
+    async def execute(self, runner, slot, plan=None, mode='handoff'):
+        if plan is None:
+            return await runner._run_ieee_owned_preparation_plan(slot=slot, mode=mode, activation_id='activation')
+        return await runner._run_ieee_file_preparation_plan(plan=plan, target_engine=slot.engine,
+            target_replica=slot.instance_id, gpu_slot=slot, activation_id='activation')
+
+    def check_clean(self, fixture, runner, owner):
+        self.assertFalse(fixture.owner.leases)
+        self.assertFalse(fixture.owner.materializations)
+        self.assertFalse(fixture.owner._file_preparation_plans)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+        self.assertEqual(owner.snapshot()['pending_preparation_targets'], [])
+        self.assertFalse(runner._ieee_gpu_plan_tasks)
+        self.assertFalse(runner._ieee_file_plan_tasks)
+
+    def test_actual_mixed_selector_file_native_and_gpu_chain_with_single_queue_slot(self):
+        fixture, runner, queue, slot, owner, snapshot, loads = self.make()
+        async def run():
+            result = await asyncio.wait_for(self.execute(runner, slot), 3)
+            plan = result['plan']
+            self.assertEqual([r.artifact_id for r in plan['selected']['gpu']], ['a'])
+            self.assertEqual([r.artifact_id for r in plan['selected']['host']], ['d'])
+            self.assertEqual(loads, [('host','a'), ('gpu','a')])
+            self.assertEqual((fixture.host/'d'/'weights').read_bytes(), b'a'*8)
+            receipt = runner._ieee_gpu_preparation_plans[-1]['attempts'][-1]['receipt']
+            self.assertEqual(receipt['replacement']['incoming_benefit_ms'],plan['selected']['gpu'][0].benefit_ms)
+            self.check_clean(fixture,runner,owner)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_remote_gpu_target_registered_before_io_and_original_benefit_survives_updates(self):
+        fixture, runner, queue, slot, owner, snapshot, loads = self.make(remote_gpu=True)
+        async def run():
+            # Residency's tier order selects GPU first. Handoff's density scan
+            # correctly prefers a smaller NVMe target for these fixture costs.
+            plan = await runner._plan_ieee_preparation_for_slot(slot=slot,mode='residency')
+            self.assertEqual([r.artifact_id for r in plan['selected']['gpu']],['a'])
+            original = plan['selected']['gpu'][0].benefit_ms
+            open_http = fixture.client._opener.open.side_effect
+            # IO is on an executor thread: inspect immutable registered targets,
+            # not native owner.snapshot() which correctly forbids other threads.
+            def checked_thread_open(req, **kw):
+                self.assertTrue(any(InferenceEngine._lora_int_id('a') in p['pending']
+                                    for p in owner._preparation_plans.values()))
+                return open_http(req, **kw)
+            fixture.client._opener.open.side_effect=checked_thread_open
+            with (patch.object(slot.preparation_cost_model, 'snapshot', side_effect=AssertionError('new cost epoch')),
+                  patch.object(runner._stack.hotness_tracker, 'snapshot', side_effect=AssertionError('new demand epoch'))):
+                await asyncio.wait_for(self.execute(runner,slot,plan),3)
+            receipt=runner._ieee_gpu_preparation_plans[-1]['attempts'][-1]['receipt']
+            self.assertEqual(receipt['replacement']['incoming_benefit_ms'],original)
+            self.assertEqual(loads,[('host','a'),('gpu','a')])
+            self.assertEqual((fixture.nvme/'a'/'weights').read_bytes(),b'a'*12288)
+            self.check_clean(fixture,runner,owner)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_cost_catalog_tampering_and_wrong_slot_fail_before_any_work(self):
+        import copy
+        fixture,runner,queue,slot,owner,snapshot,loads=self.make()
+        async def run():
+            plan=await runner._plan_ieee_preparation_for_slot(slot=slot,mode='handoff')
+            changed=copy.deepcopy(plan)
+            changed['cost_estimates'][0]['load_ms']+=1
+            with self.assertRaisesRegex(ValueError,'frozen planning'):
+                await self.execute(runner,slot,changed)
+            with self.assertRaisesRegex(ValueError,'actual slot'):
+                await runner._run_ieee_file_preparation_plan(plan=plan,target_engine=slot.engine,
+                    target_replica='other',gpu_slot=slot,activation_id='activation')
+            self.assertFalse(loads)
+            self.assertFalse(fixture.owner._file_preparation_plans)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_cancel_during_native_stage_joins_reader_then_closes_both_plans(self):
+        fixture,runner,queue,slot,owner,snapshot,loads=self.make(remote_gpu=True)
+        async def run():
+            entered,proceed=asyncio.Event(),asyncio.Event()
+            rpc=slot.engine.ieee_gpu_reference
+            async def delayed(*,operation,**kw):
+                if operation=='prepare_file_host_and_hold':
+                    entered.set()
+                    await proceed.wait()
+                return await rpc(operation=operation,**kw)
+            slot.engine.ieee_gpu_reference=delayed
+            task=asyncio.create_task(self.execute(runner,slot,mode='residency'))
+            await asyncio.wait_for(entered.wait(),3)
+            task.cancel()
+            await asyncio.sleep(0)
+            self.assertFalse(task.done())
+            self.assertTrue(fixture.owner.leases)
+            proceed.set()
+            with self.assertRaises(asyncio.CancelledError): await task
+            self.assertNotIn(('gpu','a'),loads)
+            self.check_clean(fixture,runner,owner)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_original_nvme_benefit_is_compared_with_live_victim_frozen_host_loss(self):
+        fixture,runner,queue,slot,owner,snapshot,loads=self.make()
+        async def run():
+            plan=await runner._plan_ieee_preparation_for_slot(slot=slot,mode='handoff')
+            original_prepare=runner._queue_ieee_native_host_preparation
+            async def fill_during_staging(**kw):
+                result=await original_prepare(**kw)
+                aid=InferenceEngine._lora_int_id('c')
+                # A real demand consumes the originally free slot after plan
+                # registration. The proactive path must jointly reconsider it.
+                held=owner.demand_load_and_acquire(lease_id='demand-c',adapter_int_id=aid,
+                    lora_name='c',lora_path=str(fixture.nvme/'c'),expected_owner_id=owner.owner_id,
+                    expected_epoch=owner.snapshot()['epoch'])
+                self.assertTrue(held['acquired'])
+                owner.release(lease_id='demand-c',expected_owner_id=owner.owner_id)
+                return result
+            runner._queue_ieee_native_host_preparation=fill_during_staging
+            await asyncio.wait_for(self.execute(runner,slot,plan),3)
+            receipt=runner._ieee_gpu_preparation_plans[-1]['attempts'][-1]['receipt']
+            replacement=receipt['replacement']
+            self.assertEqual(replacement['incoming_benefit_ms'],80/103*20.)
+            self.assertEqual(replacement['eviction_loss_ms'],1/103*2.)
+            self.assertEqual(replacement['victim_adapter_ids'],[InferenceEngine._lora_int_id('b')])
+            self.check_clean(fixture,runner,owner)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_missing_positive_demand_native_fallback_class_is_not_guessed(self):
+        from faaslora.preloading.preloading_planner import PreparationCostModel
+        fixture,runner,queue,slot,owner,snapshot,loads=self.make(remote_gpu=True)
+        old=slot.preparation_cost_model
+        values={k:v for k,v in old.snapshot()[1].items()
+                if not k.representation.startswith('native_cpu_dense_ab_v1')}
+        slot.preparation_cost_model=PreparationCostModel(values,beta=.5,profile_id=old.profile_id)
+        # c would require a native-HOST incoming class; zero its demand without
+        # erasing b's positive-demand GPU fallback requirement.
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        runner._stack.hotness_tracker=HotnessTracker(None,clock=lambda:100.)
+        for name in ('a','a','b'): runner._stack.hotness_tracker.record_arrival(name)
+        async def run():
+            with self.assertRaises(KeyError):
+                await asyncio.wait_for(self.execute(runner,slot,mode='residency'),3)
+            self.assertNotIn(('gpu','a'),loads)
+            self.assertIn(InferenceEngine._lora_int_id('b'),owner.snapshot()['slot_adapter_ids'])
+            self.check_clean(fixture,runner,owner)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_stale_initial_native_epoch_rejects_before_remote_gpu_staging(self):
+        fixture,runner,queue,slot,owner,snapshot,loads=self.make(remote_gpu=True)
+        async def run():
+            plan=await runner._plan_ieee_preparation_for_slot(slot=slot,mode='residency')
+            # A genuine source reference transition invalidates first registration.
+            held=owner.acquire(lease_id='intervening',adapter_int_id=InferenceEngine._lora_int_id('b'),
+                expected_owner_id=owner.owner_id,expected_epoch=owner.snapshot()['epoch'])
+            owner.release(lease_id='intervening',expected_owner_id=owner.owner_id)
+            calls=fixture.client._opener.open.call_count
+            with self.assertRaisesRegex(ValueError,'current native source epoch'):
+                await self.execute(runner,slot,plan)
+            self.assertEqual(fixture.client._opener.open.call_count,calls)
+            self.assertFalse(loads)
+            self.check_clean(fixture,runner,owner)
+            await queue.close()
+        asyncio.run(run())
 
 
 class FileObjectiveReplacement(unittest.TestCase):

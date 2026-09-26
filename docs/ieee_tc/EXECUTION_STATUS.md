@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Real-owner insertion candidates connected; automatic Full activation open | P1_FORMULA_IMPLEMENTATION.md D1–D45. Initialized native/file owners now generate source classes, target footprints and remaining budgets for the existing IEEE selectors. Native HOST objective/feedback classes agree. Combined remaining-candidate replacement, mixed execution/activation, representative profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
+| P1 IEEE semantic alignment | Same-epoch mixed preparation connected; automatic Full activation open | P1_FORMULA_IMPLEMENTATION.md D1–D46. Initialized owners→selector→file/native HOST/GPU queue now keep original benefits and frozen fallback costs. Pre-init/control integration, remaining-candidate/native-inclusive replacement, representative profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,21 +51,18 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST IMPLEMENTATION: D45 actual runner reads initialized native source/slot
-footprints plus one file-owner source/target/budget view, then generates all
-insertion options automatically through ExperimentStack and the existing IEEE
-selector. Same native dtype/pinning/packing class now serves request feedback
-and GPU preparation objective. Source-view SHA binds the full received state;
-it is not an atomic cross-owner snapshot or reservation. Actual generated file
-selection reaches real queued copy/publication. No model/profile/performance run.
-Next: same-epoch combined GPU/file execution, remaining-candidate joint
-replacement and activation (file work before initialization, GPU after actual
-admission), proactive d feedback, representative profiles and Full lifecycle.
-The current producer requires an initialized native owner. Pre-init GPU layout
-inheritance and automatic control callbacks are not implemented. D44 file-only
-replacement still must not be relabelled complete native-inclusive loss. Full
-guard remains. Do not repeat candidate/file replacement or old model prefixes.
-D45 final859 functional,20 installed-native and56 safety checks pass; receipts below.
+LATEST IMPLEMENTATION: D46 initialized actual owner→selector→mixed file/native
+HOST/GPU execution is connected. The original source benefit survives staging;
+worker-observed fallback footprints use the same frozen cost catalog. Complete
+GPU pending targets are registered before their staging, file targets protected,
+and prerequisites never occupy a queue slot while waiting on the same queue.
+Next: pre-init layout/profile inheritance and actual activation/control callbacks,
+remaining-candidate/native-inclusive joint replacement, native HOST replacement,
+proactive d feedback, representative profiles and Full lifecycle. The current
+producer still requires an initialized engine; it is NOT initialization-overlap
+handoff or complete Full. D44 file-only loss is not enabled as mixed joint loss.
+Full guard remains. Do not repeat mixed-execution checks or old model prefixes.
+D46 final866 functional,42 installed-native and56 safety checks pass; receipts below.
 Runtime allocator configuration/service memory observations remain, not an
 indefinite demand to prove every driver RSS byte. The full goal remains active.
 Queue wakes on actual reference release/file-pressure finish/target closure,
@@ -108,7 +105,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D45.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D46.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -164,6 +161,41 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D46 one frozen epoch across mixed file/native HOST/GPU execution
+
+- Previous D45 turn was progress: tested implementation and backup receipt are
+  pushed/verified. Reread full plan/status and relevant history, IEEE original
+  Eq.(4)–(7)/replacement, official vLLM0.30 worker/model code and dLoRA source.
+  Starting HEAD7b43046dbb7177d42bfc3dcb9a46f69e1d4ef0ab; baseline16570c unchanged.
+  No D45 job live. GPUs15MiB/0%, MemAvailable108755960KiB, disk353474301952B.
+  Protected147 entries and source plan SHA unchanged; original dirt preserved.
+- Actual initialized runner now plans once and executes mixed selected targets
+  through existing owned file/native CPU/GPU paths. Original benefit and complete
+  measured-class cost table survive staging; real worker fallback footprint
+  rechecks use that same h/d epoch. Pending targets precede their staging;
+  prerequisites run outside the limited queue slot. No new strategy/formula,
+  capacity relaxation, guessed class, model/GPU/remote174/performance run.
+-7 new checks. First22 had1 fixture selection failure: handoff correctly chose
+  smaller NVMe before GPU by density. Remote→GPU case now uses IEEE residency
+  tier order, not a changed selector. Subsequent23 pass. First full regression
+  was interrupted at55s in oldsmoke's external HF SSL configuration lookup, not
+  a native queue deadlock or OOM. CPU-only rerun with HF/Transformers offline:
+ 866 tests pass,0 failures/errors/skips. Correctness table and bounds in P1 D46.
+- Pre-init/control activation, remaining-candidate/full-source replacement,
+  native HOST replacement, proactive d feedback, representative profiles,
+  runtime memory and complete Full physical lifecycle remain. Guard retained;
+  no formal baselines/M1/M2/ablations/sensitivities started. Remote disk floor and
+  nonzero3B artifact authority gates unchanged. Do not repeat mixed-execution or
+  old model-prefix checks. Final native/safety/cleanup and backup receipts follow.
+- Final source unchanged after866-check regression. Installed vLLM0.30.0/
+  torch2.13.0+cu130:42 checks pass (7 mixed,11 existing native-plan,13 native
+  objective,11 core wiring), CUDA uninitialized. All56 safety/census/replay
+  checks pass. All six owned D46 scopes verified TasksCurrent0, empty cgroup.procs
+  and high/max/oom/oom_kill0 before stopping. No model/test remains live.
+  GPUs15MiB/0%, MemAvailable108666564KiB, disk353460240384B. Plan SHA and147-entry
+  protected seal unchanged; baseline16570c and original dirt unchanged. No weights,
+  traces, old results or manuscripts modified. Implementation backup follows.
 
 ### D45 automatic real-owner candidates and consistent native cost classes
 
