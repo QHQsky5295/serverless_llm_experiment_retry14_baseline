@@ -456,7 +456,7 @@ class IEEEWorkerObservationExtension:
         """
         if operation not in ('snapshot', 'source_snapshot', 'acquire', 'release', 'evict', 'begin_use', 'end_use',
                              'demand_load_and_acquire', 'hold_host_source', 'release_host_source',
-                             'prepare_file_host_and_hold',
+                             'prepare_file_host_and_hold', 'configure_host_budget',
                              'register_preparation_plan', 'finish_preparation_target', 'close_preparation_plan',
                              'proactive_host_prepare_and_acquire'):
             raise ValueError('unknown GPU reference operation')
@@ -504,11 +504,9 @@ class IEEEWorkerObservationExtension:
                                 for source, target in copies]
                 with _ieee_pitched_host_copy(destinations, self.device, completion_fence):
                     demand_loader(**args)
-            def file_host_loader(*, adapter_int_id, lora_name, lora_path, tensor_budget_bytes, reuse):
+            def host_allocation_check(*, lora_path, tensor_budget_bytes, reuse):
                 import vllm
-                from vllm.lora.request import LoRARequest
                 from vllm.utils.torch_utils import PIN_MEMORY
-                from vllm.utils.gpu_sync_debug import gpu_sync_allowed
                 if (vllm.__version__ != '0.30.0' or not str(torch.__version__).startswith('2.13.')
                         or not PIN_MEMORY or self.model_runner.lora_manager is not native_loader
                         or manager.moe_ep_load_spec is not None
@@ -519,9 +517,17 @@ class IEEEWorkerObservationExtension:
                     raise RuntimeError('native CPU-only preparation lacks allocator occupancy')
                 contract = None if reuse else _ieee_file_host_contract(lora_path, native_loader.lora_config.lora_dtype)
                 increment = 0 if reuse else contract['peak_additional_tensor_bytes']
-                if before['accounted_tensor_bytes'] + increment > tensor_budget_bytes:
-                    return dict(admitted=False, reason='native_host_tensor_budget', before=before,
-                                contract=contract, tensor_budget_bytes=tensor_budget_bytes)
+                admitted = before['accounted_tensor_bytes'] + increment <= tensor_budget_bytes
+                return dict(admitted=admitted, reason=None if admitted else 'native_host_tensor_budget',
+                            before=before, contract=contract, tensor_budget_bytes=tensor_budget_bytes,
+                            total_host_memory_covered=False)
+            def file_host_loader(*, adapter_int_id, lora_name, lora_path, tensor_budget_bytes, reuse):
+                from vllm.lora.request import LoRARequest
+                from vllm.utils.gpu_sync_debug import gpu_sync_allowed
+                check = host_allocation_check(lora_path=lora_path, reuse=reuse,
+                                             tensor_budget_bytes=tensor_budget_bytes)
+                if not check['admitted']:
+                    return check
                 if not reuse:
                     request = LoRARequest(lora_name=lora_name, lora_int_id=adapter_int_id,
                                           lora_path=lora_path, load_inplace=False)
@@ -536,11 +542,11 @@ class IEEEWorkerObservationExtension:
                 after = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager))
                 if not after['available'] or after['accounted_tensor_bytes'] > tensor_budget_bytes:
                     raise RuntimeError('CPU-only preparation exceeded its accounted tensor sub-budget')
-                return dict(admitted=True, before=before, after=after, contract=contract,
-                            tensor_budget_bytes=tensor_budget_bytes, total_host_memory_covered=False)
+                return {**check, 'after': after}
             self._ieee_gpu_reference_owner = IEEEBackendGPUReferences(
                 manager, completion_fence, demand_loader=demand_loader,
-                preparation_loader=preparation_loader, file_host_loader=file_host_loader)
+                preparation_loader=preparation_loader, file_host_loader=file_host_loader,
+                host_allocation_check=host_allocation_check)
         owner = self._ieee_gpu_reference_owner
         if owner.manager is not manager:
             raise RuntimeError('native LoRA manager replaced; worker reference epoch invalid')

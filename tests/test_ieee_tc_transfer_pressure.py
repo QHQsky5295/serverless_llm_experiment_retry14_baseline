@@ -4,12 +4,16 @@ from types import SimpleNamespace as NS
 import unittest
 from unittest.mock import AsyncMock, patch
 import threading
+import os
+import subprocess
+import sys
 
 from faaslora.preloading.preloading_manager import OwnedMovementQueue, MovementOutcome, PreloadingManager
 
 from faaslora.scheduling.resource_coordinator import (NativeIterationObservation,
     NativeTransferObservation, SharedFileTransferDomain)
 from faaslora.registry.schema import StorageTier
+from faaslora.metrics.metrics_collector import _open_pidfd
 from scripts.run_all_experiments import InferenceEngine, ScenarioRunner, SubprocessInferenceEngineProxy
 from tests import test_ieee_tc_scheduler_observation as hook_fixtures
 from tests import test_ieee_tc_request_lifecycle as lifecycle_fixtures
@@ -17,6 +21,170 @@ from tests import test_ieee_tc_request_lifecycle as lifecycle_fixtures
 
 def descriptor():
     return dict(adapter_id='a', source_tier='remote', target_tier='nvme', file_owner_id='files')
+
+
+class ManagedHostOwnership(unittest.TestCase):
+    def make(self):
+        fixture = lifecycle_fixtures.LocalSourceOwnership()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        files = fixture.manager.local_source_references
+        files.configure_host_budget(16384)
+        fd = _open_pidfd(os.getpid())
+        self.addCleanup(os.close, fd)
+        return fixture, files, fd
+
+    def child(self):
+        process = subprocess.Popen([sys.executable, '-S', '-c', 'import sys; sys.stdin.buffer.read(1)'],
+                                   stdin=subprocess.PIPE)
+        def finish():
+            if process.poll() is None:
+                process.stdin.close()
+                process.wait(timeout=5)
+            elif not process.stdin.closed:
+                process.stdin.close()
+        self.addCleanup(finish)
+        return process
+
+    def test_native_reservation_and_file_preallocation_share_remaining_capacity(self):
+        fixture, files, fd = self.make()
+        files.reserve_native_host(owner_id='native', limit_bytes=12288, exit_pidfd=fd)
+        # One physical owner, not one allowance per logical subscriber.
+        files.reserve_native_host(owner_id='native', limit_bytes=12288, exit_pidfd=fd)
+        view = files.file_budget_snapshot({'host': 32768, 'nvme': 32768})
+        self.assertEqual(view['tiers']['host']['remaining_bytes'], 4096)
+        target = fixture.host/'b'
+        with files.materializing(target) as transfer:
+            with files.transfer_workspace(transfer) as stage:
+                with self.assertRaisesRegex(RuntimeError, 'managed HOST capacity conflict'):
+                    files.prepare_transfer(transfer, stage, 8, {'weights': (8, '0'*64)}, limit_bytes=32768)
+                # Remote archive+payload needs two pages; local payload needs one.
+                receipt = files.prepare_copy(transfer, stage, {'weights': (8, '0'*64)}, limit_bytes=32768)
+                self.assertEqual(receipt['reserved_file_bytes'], 4096)
+                view = files.host_budget_snapshot()
+                self.assertEqual((view['shared_file_bytes'], view['native_reserved_bytes'],
+                                  view['remaining_bytes']), (4096, 12288, 0))
+                with self.assertRaisesRegex(RuntimeError, 'cannot reserve'):
+                    files.reserve_native_host(owner_id='second', limit_bytes=1, exit_pidfd=fd)
+        self.assertEqual(files.host_budget_snapshot()['remaining_bytes'], 4096)
+
+    def test_concurrent_replica_reservations_cannot_double_spend(self):
+        _, files, fd = self.make()
+        start, results = threading.Barrier(2), []
+        def reserve(name):
+            start.wait(timeout=2)
+            try:
+                files.reserve_native_host(owner_id=name, limit_bytes=12288, exit_pidfd=fd)
+                results.append('reserved')
+            except RuntimeError:
+                results.append('capacity')
+        jobs = [threading.Thread(target=reserve, args=(str(i),)) for i in range(2)]
+        for job in jobs:
+            job.start()
+        for job in jobs:
+            job.join(timeout=3)
+        self.assertCountEqual(results, ['reserved', 'capacity'])
+        self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 12288)
+
+    def test_exit_witness_not_cache_eviction_or_shutdown_ack_returns_allowance(self):
+        _, files, _ = self.make()
+        child = self.child()
+        fd = _open_pidfd(child.pid)
+        self.addCleanup(os.close, fd)
+        files.reserve_native_host(owner_id='child', limit_bytes=8192, exit_pidfd=fd)
+        with self.assertRaisesRegex(RuntimeError, 'has not exited'):
+            files.retire_native_host(owner_id='child', exit_pidfd=fd)
+        child.stdin.close()
+        child.wait(timeout=5)
+        self.assertEqual(files.retire_native_host(owner_id='child', exit_pidfd=fd)['native_reserved_bytes'], 0)
+        with self.assertRaisesRegex(ValueError, 'live unique'):
+            files.reserve_native_host(owner_id='child', limit_bytes=8192, exit_pidfd=fd)
+
+    def runner(self, files, pid):
+        from faaslora.clock import local_monotonic_clock_id
+        calls = []
+        async def rpc(operation, **kwargs):
+            calls.append(operation)
+            result = dict(owner_id='native', worker_pid=pid, clock_id=local_monotonic_clock_id())
+            if operation == 'configure_host_budget':
+                self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
+                result.update(configured=True, tensor_budget_bytes=kwargs['tensor_budget_bytes'])
+            return result
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.model_cfg = dict(ieee_gpu_references=True, ieee_host_budget_bytes=16384,
+                               ieee_native_host_tensor_budget_bytes=8192)
+        runner._stack = NS(residency_manager=NS(local_source_references=files))
+        return runner, NS(ieee_gpu_reference=rpc), calls
+
+    def test_actual_runner_deduplicates_native_aliases_and_retires_after_real_exit(self):
+        async def run():
+            _, files, _ = self.make()
+            child = self.child()
+            runner, engine, calls = self.runner(files, child.pid)
+            await runner._attach_ieee_host_budget(engine)
+            alias = NS(ieee_gpu_reference=engine.ieee_gpu_reference)
+            await runner._attach_ieee_host_budget(alias)
+            await runner._attach_ieee_host_budget(alias)
+            self.assertEqual(calls.count('configure_host_budget'), 1)
+            self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
+            with self.assertRaisesRegex(RuntimeError, 'has not exited'):
+                runner._retire_ieee_host_budget(engine)
+            child.stdin.close()
+            child.wait(timeout=5)
+            runner._retire_ieee_host_budget(engine)
+            runner._retire_ieee_host_budget(alias)
+            self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 0)
+        asyncio.run(run())
+
+    def test_lost_installation_ack_retains_budget_until_process_exit(self):
+        async def run():
+            _, files, _ = self.make()
+            child = self.child()
+            runner, engine, _ = self.runner(files, child.pid)
+            original = engine.ieee_gpu_reference
+            async def lost(operation, **kwargs):
+                result = await original(operation, **kwargs)
+                if operation == 'configure_host_budget':
+                    raise RuntimeError('lost ack')
+                return result
+            engine.ieee_gpu_reference = lost
+            with self.assertRaisesRegex(RuntimeError, 'lost ack'):
+                await runner._attach_ieee_host_budget(engine)
+            self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
+            with self.assertRaisesRegex(RuntimeError, 'unresolved'):
+                await runner._attach_ieee_host_budget(engine)
+            child.stdin.close()
+            child.wait(timeout=5)
+            runner._retire_ieee_host_budget(engine)
+        asyncio.run(run())
+
+    def test_cancelled_installation_joins_then_propagates_without_returning_bytes(self):
+        async def run():
+            _, files, _ = self.make()
+            child = self.child()
+            runner, engine, _ = self.runner(files, child.pid)
+            original = engine.ieee_gpu_reference
+            entered, proceed = asyncio.Event(), asyncio.Event()
+            async def delay(operation, **kwargs):
+                if operation == 'configure_host_budget':
+                    entered.set()
+                    await proceed.wait()
+                return await original(operation, **kwargs)
+            engine.ieee_gpu_reference = delay
+            job = asyncio.create_task(runner._attach_ieee_host_budget(engine))
+            await asyncio.wait_for(entered.wait(), 1)
+            job.cancel()
+            await asyncio.sleep(0)
+            self.assertFalse(job.done())
+            proceed.set()
+            with self.assertRaises(asyncio.CancelledError):
+                await job
+            self.assertEqual(runner._ieee_host_budget_members[id(engine)]['state'], 'attached')
+            self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
+            child.stdin.close()
+            child.wait(timeout=5)
+            runner._retire_ieee_host_budget(engine)
+        asyncio.run(run())
 
 
 class TransferPressure(unittest.TestCase):

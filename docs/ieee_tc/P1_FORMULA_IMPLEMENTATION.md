@@ -2228,3 +2228,67 @@ warmup的限制。下轮沿总HOST/native所有权和自动规划主线继续，
 主动d反馈和Full物理生命周期。需用代表性实际测量初始化profile；本轮
 shape上界和fixture不充当profile。不得重复本轮狭窄正确性检查、旧模型
 前缀或零权重对照来代替主线。正式比较、消融、敏感性仍未开始。
+
+## D42：共享HOST额度、原生按需加载与退出归还
+
+### 论文边界与可证伪问题
+
+重读IEEE原文的共享副本、目标表示、staging及预算段落，并核对D32–D41。
+原文Eq.(9)明确约束GPU物理容量；HOST受管副本预算不能被偷换为“逐字节
+证明整个Python/CUDA进程RSS”。反过来，仅分别限制文件和各worker，也不能
+证明这些副本使用的是同一个HOST额度。本轮问题是：两个副本和一个共享
+文件传输能否同时花掉同一份剩余容量？普通请求能否绕过主动准备的限制？
+
+重新核查[vLLM0.30按需加载源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)：
+新CPU adapter先加载成功，再按原生LRU回收旧项，因此峰值检查不能预扣
+尚未释放的victim。[PyTorch2.13锁页分配器](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/aten/src/ATen/cuda/CachingHostAllocator.cpp)
+保留分配缓存，并可使用reserved segment；其统计不是整个服务内存。
+[Linux cgroup说明](https://docs.kernel.org/admin-guide/cgroup-v2.html)也不声称所有
+驱动分配都无遗漏计入memory.current。因此本轮不虚构二者相加就是精确RSS。
+
+### 接入与状态表
+
+新增显式、按模型冻结的`ieee_host_budget_bytes`，与已有
+`ieee_native_host_tensor_budget_bytes`连接。共享文件所有者在同一锁下约束：
+HOST已分配文件（含stage）＋各物理native owner保留的完整tensor额度不超过
+受管HOST上限。native实际占用不再叠加在完整额度上，避免双计。该执行
+约束不改变九个论文公式；文件规划快照的remaining也扣除相同额度。
+
+| 检查问题 | 实现与验证范围 |
+|---|---|
+| 文件与副本能否重复花费预算 | 文件fallocate和native额度预留共用同一owner锁；两个并发预留只能有一个取得不足以容纳两者的空间 |
+| 一份文件被多个副本使用 | 共享文件计一次；每个真正持有独立CPU tensor的native owner各有额度，不按逻辑slot重复计 |
+| HTTP与本地复制的峰值 | archive＋payload和仅payload分别使用真实预分配字节；测试中前者超额拒绝、后者恰好装入，不注入sleep |
+| 普通请求绕过限制 | 同一native checker在按需加载前后执行，保留原生load-first/LRU策略；超额前不加载、不驱逐；实际超额后失效owner，不谎称回滚 |
+| 安装与取消 | 先预留，再由实际worker确认不可变额度；重复取消仍等待原RPC；丢失确认保留额度，不重试扩大额度 |
+| 缩容何时归还 | 绑定具体进程birth identity和真实Linux pidfd；仅收到该进程退出事件后归还，不靠shutdown回复、adapter卸载或低RSS |
+| 共享engine别名 | 同一owner/进程只安装一次额度；多逻辑订阅不重复占用；旧owner退出后不能复活 |
+| 执行入口 | 初始/新增副本、准备队列、文件传输与原生request acquisition均接入；实际slot shutdown后核验HOST归还 |
+| 开销控制 | 不可变额度重复安装不重新扫描整池文件；实际分配和规划快照仍读取owner的真实存储量 |
+| 溯源 | summary保存总受管额度、各owner状态、native确认和退出回执，不序列化engine或文件描述符 |
+
+该策略保守预留每个活worker完整额度，可能闲置部分空间；这是真实的容量
+取舍，不是假装动态共享已测。额度应由后续模型footprint/profile和合法验证
+确定，不能按正式场景或输赢改变。本轮不填写虚构的3B/7B最优额度。
+进程启动本身仍受共同72/80GiB资源域；此额度在首次受管adapter准备前
+安装，并非一个已经资格通过的“启动前全进程内存预留器”。
+
+### 限制与验证记录
+
+这里覆盖共享HOST普通文件、process pinned allocator统计、在册pageable
+tensor以及加载tensor峰值预留；没有声称覆盖所有pageable allocator留存、
+Python元数据、未使用pinned reserve segment、NVMe page cache或驱动开销。
+服务资源域与外置保护继续独立记录这些性能/安全条件。实际模型的分配器
+配置和总量观测仍需在整合资格中核查，不能用这张正确性表代替。
+
+新增9项检查，并扩展已有实际worker检查。首次定向161项有6个错误：
+Conda Python没有os.pidfd_open；改用D27已经验证的Linux UAPI绑定，没有
+另建PID轮询兜底。首轮全量831项中4个测试子进程被环境site初始化拖慢；
+退出见证fixture改为与D27一致的Python -S，实际服务启动方式不变。
+随后831项通过；最终冻结源码回归、原生环境和安全回执见EXECUTION_STATUS。
+测试使用真实文件分配、真实短生命周期CPU进程及native cache fixtures，
+不加载模型、不产生新权重/trace，不是性能或整套Full资格。
+
+下一步返回自动选项生成、handoff/residency执行和HOST/NVMe可变大小替换、
+主动d反馈及Full物理生命周期。Full启动guard仍保留。无需再扩展本轮
+狭窄HOST额度检查或重跑旧模型前缀；正式比较、消融、敏感性均未启动。

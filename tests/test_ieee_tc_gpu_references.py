@@ -186,6 +186,9 @@ class NativeFileHostPreparation(unittest.TestCase):
              patch.object(gpu_monitor, '_ieee_pinned_host_observation', return_value=dict(available=True, accounted_tensor_bytes=513)) as occupancy, \
              patch.object(gpu_monitor, '_ieee_file_host_contract', return_value=dict(peak_additional_tensor_bytes=1024)):
             snap = worker.ieee_gpu_reference(operation='snapshot')
+            configured = worker.ieee_gpu_reference(operation='configure_host_budget',
+                expected_owner_id=snap['owner_id'], tensor_budget_bytes=1536)
+            self.assertTrue(configured['configured'])
             kwargs = dict(adapter_int_id=4, lora_name='adapter-4', lora_path='/existing/adapter-4',
                 expected_owner_id=snap['owner_id'], expected_epoch=snap['epoch'], native_host_tensor_budget_bytes=1536)
             deferred = worker.ieee_gpu_reference(operation='prepare_file_host_and_hold', lease_id='too-large', **kwargs)
@@ -197,6 +200,50 @@ class NativeFileHostPreparation(unittest.TestCase):
             self.assertEqual(self.manager.lora_index_to_id, [1, 2])
             loader._load_adapter.assert_called_once()
             loader.add_adapter.assert_not_called()
+
+
+class NativeHostDemandBudget(unittest.TestCase):
+    def make(self):
+        case = NativeDemandTransactions()
+        case.setUp()
+        checker = Mock(return_value=dict(admitted=True, accounted_tensor_bytes=16))
+        case.owner.host_allocation_check = checker
+        case.owner.configure_host_budget(expected_owner_id=case.owner.owner_id,
+                                         tensor_budget_bytes=4096)
+        return case, checker
+
+    def test_budget_freezes_and_no_allocation_deferral_preserves_native_lru(self):
+        case, checker = self.make()
+        before = case.owner.snapshot()
+        checker.return_value = dict(admitted=False)
+        result = case.demand()
+        self.assertEqual(result['reason'], 'native_host_tensor_budget')
+        self.assertEqual(case.owner.snapshot(), before)
+        self.assertFalse(case.loads)
+        with self.assertRaisesRegex(ValueError, 'cannot change'):
+            case.owner.configure_host_budget(expected_owner_id=case.owner.owner_id,
+                                             tensor_budget_bytes=8192)
+
+    def test_demand_keeps_native_policy_and_checks_retained_bytes_after_loading(self):
+        case, checker = self.make()
+        result = case.demand()
+        self.assertTrue(result['acquired'])
+        self.assertEqual(case.cpu_loads, [4])
+        self.assertFalse(checker.call_args_list[-2].kwargs['reuse'])
+        self.assertTrue(checker.call_args.kwargs['reuse'])
+        self.assertIn('host_allocation', result)
+        case.release('cold-1')
+        case.demand(lease='cached')
+        self.assertTrue(checker.call_args_list[-2].kwargs['reuse'])
+        self.assertEqual(case.cpu_loads, [4])
+
+    def test_postload_violation_poisoned_instead_of_fabricated_rollback(self):
+        case, checker = self.make()
+        checker.side_effect = [dict(admitted=True), dict(admitted=False)]
+        with self.assertRaisesRegex(RuntimeError, 'exceeded its HOST'):
+            case.demand()
+        with self.assertRaisesRegex(RuntimeError, 'invalidated'):
+            case.owner.snapshot()
 
 
 class NativeObjectiveReplacement(unittest.TestCase):

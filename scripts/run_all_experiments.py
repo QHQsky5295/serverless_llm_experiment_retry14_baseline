@@ -4584,7 +4584,7 @@ class InferenceEngine:
             raise RuntimeError("native references require a live vLLM engine")
         if operation not in ("snapshot", "source_snapshot", "acquire", "release", "evict", "begin_use", "end_use",
                              "demand_load_and_acquire", "hold_host_source", "release_host_source",
-                             "prepare_file_host_and_hold",
+                             "prepare_file_host_and_hold", "configure_host_budget",
                              "register_preparation_plan", "finish_preparation_target", "close_preparation_plan"):
             raise ValueError("unknown GPU reference operation")
         rpc = getattr(self.engine, "collective_rpc", None)
@@ -8093,6 +8093,11 @@ class ScenarioRunner:
             result = {**result, 'ieee_gpu_preparation_plans': copy.deepcopy(self._ieee_gpu_preparation_plans)}
         if hasattr(self, '_ieee_native_host_preparations'):
             result = {**result, 'ieee_native_host_preparations': copy.deepcopy(self._ieee_native_host_preparations)}
+        if getattr(self, '_ieee_host_budget_members', None) is not None:
+            result['ieee_managed_host_budget'] = self._stack.residency_manager.local_source_references.host_budget_snapshot()
+            result['ieee_native_host_budget_owners'] = [copy.deepcopy({
+                k: v for k, v in member.items() if k not in ('engines', 'pidfd')})
+                for member in {id(m): m for m in self._ieee_host_budget_members.values()}.values()]
         if getattr(self, '_shared_file_pressure', None) is not None:
             result = {**result, 'ieee_shared_file_pressure': self._shared_file_pressure.snapshot()}
         return result
@@ -12223,7 +12228,9 @@ class ScenarioRunner:
             try:
                 await slot.engine.shutdown()
             except Exception:
-                pass
+                if self.model_cfg.get('ieee_host_budget_bytes') is not None:
+                    raise  # Retain HOST reservation on unresolved teardown.
+            self._retire_ieee_host_budget(slot.engine)
         self._sync_stack_gpu_accounting()
         await self._notify_dispatch_capacity_changed(wake_all=True)
 
@@ -12402,6 +12409,7 @@ class ScenarioRunner:
                     await domain.retire(new_engine)
             finally:
                 await new_engine.shutdown()
+                self._retire_ieee_host_budget(new_engine)
             raise
         runtime_startup_latency_ms = max(
             0.0,
@@ -14219,6 +14227,7 @@ class ScenarioRunner:
                 or (not cached_only and (
                     not isinstance(local_path, str) or not Path(local_path).is_absolute()))):
             raise ValueError('native reference requires the original adapter and absolute source')
+        await self._attach_ieee_host_budget(engine)
         held_file = evidence.get('local_source_reference', {})
         if not cached_only and held_file.get('state') == 'held':
             if (held_file['adapter_id'] != adapter_id or held_file['path'] != local_path
@@ -14325,6 +14334,13 @@ class ScenarioRunner:
                 self._release_runtime_local_source(reservation)
                 return receipt
             evidence['last_conflict'] = dict(receipt)
+            if receipt.get('reason') == 'native_host_tensor_budget':
+                # This explicit no-allocation result is a capacity failure, not
+                # an uncertain load. Do not spin on allocator retention or
+                # inflate the frozen allowance until the request fits.
+                evidence['state'] = 'rejected'
+                self._settle_native_reference_intent(reservation, 'gpu', 'no_acquisition')
+                raise RuntimeError('native HOST tensor budget cannot admit demand loading')
             if guarded_source is not None:
                 if receipt.get('reason') not in ('stale_snapshot', 'required_source_changed', 'owner_changed'):
                     raise ValueError('unexpected failure of a selected GPU-only acquisition')
@@ -15995,8 +16011,103 @@ class ScenarioRunner:
         return domain
 
     async def _attach_ieee_file_pressure(self, engine):
+        await self._attach_ieee_host_budget(engine)
         if self.model_cfg.get('ieee_admission_profile') is not None:
             return await self._ieee_file_pressure_domain().attach(engine)
+
+    async def _attach_ieee_host_budget(self, engine):
+        """Bind one native allowance before any managed adapter preparation.
+
+        This is an explicit managed-memory policy. Other charged service memory
+        stays under the unchanged service cgroup. It does not relabel the tensor
+        allocator observation as total RSS or remove the IEEE Full startup gate.
+        """
+        total = self.model_cfg.get('ieee_host_budget_bytes')
+        if total is None:
+            return
+        from faaslora.clock import local_monotonic_clock_id
+        from scripts.ieee_tc_preflight import gpu_process_identity
+        from faaslora.metrics.metrics_collector import _open_pidfd
+        native = self.model_cfg.get('ieee_native_host_tensor_budget_bytes')
+        if (not self.model_cfg.get('ieee_gpu_references') or self._stack is None
+                or type(total) is not int or total <= 0 or type(native) is not int or native <= 0):
+            raise ValueError('managed HOST requires explicit total and native tensor allowances')
+        if not hasattr(self, '_ieee_host_budget_lock'):
+            self._ieee_host_budget_lock = asyncio.Lock()
+            self._ieee_host_budget_members = {}
+        async with self._ieee_host_budget_lock:
+            files = self._stack.residency_manager.local_source_references
+            files.configure_host_budget(total)
+            old = self._ieee_host_budget_members.get(id(engine))
+            if old is not None:
+                if (old['state'] != 'attached' or not any(e is engine for e in old['engines'])
+                        or old['receipt']['tensor_budget_bytes'] != native):
+                    raise RuntimeError('native HOST limit installation is unresolved or retired')
+                return old['receipt']
+            state = await engine.ieee_gpu_reference(operation='snapshot')
+            owner_id, pid = state.get('owner_id'), state.get('worker_pid')
+            if (state.get('clock_id') != local_monotonic_clock_id()
+                    or not isinstance(owner_id, str) or not owner_id or type(pid) is not int or pid <= 0):
+                raise ValueError('native HOST limit lacks local physical worker identity')
+            identity = gpu_process_identity(pid)
+            if identity is None or identity['uid'] != os.getuid():
+                raise ValueError('native HOST process is unavailable or belongs to another user')
+            for member in tuple(self._ieee_host_budget_members.values()):
+                if member['owner_id'] == owner_id:
+                    if (member['state'] != 'attached' or member['process_identity'] != identity
+                            or member['receipt']['tensor_budget_bytes'] != native):
+                        raise ValueError('shared native HOST owner is unresolved or changed identity')
+                    member['engines'].append(engine)
+                    self._ieee_host_budget_members[id(engine)] = member
+                    return member['receipt']
+            fd = _open_pidfd(pid)
+            try:
+                if gpu_process_identity(pid) != identity:
+                    raise RuntimeError('native HOST process changed during pidfd binding')
+                files.reserve_native_host(owner_id=owner_id, limit_bytes=native, exit_pidfd=fd)
+            except BaseException:
+                os.close(fd)
+                raise
+            member = dict(engines=[engine], owner_id=owner_id, pidfd=fd,
+                          process_identity=identity, state='installing')
+            self._ieee_host_budget_members[id(engine)] = member
+            # Cancellation cannot abandon an in-flight installation or return
+            # its bytes. Join the exact command before propagating cancellation.
+            task = asyncio.create_task(engine.ieee_gpu_reference(operation='configure_host_budget',
+                expected_owner_id=owner_id, tensor_budget_bytes=native))
+            cancelled = False
+            try:
+                while True:
+                    try:
+                        receipt = await asyncio.shield(task)
+                        break
+                    except asyncio.CancelledError:
+                        if task.cancelled():
+                            raise
+                        cancelled = True
+                if (receipt.get('configured') is not True or receipt.get('owner_id') != owner_id
+                        or receipt.get('worker_pid') != pid or receipt.get('tensor_budget_bytes') != native
+                        or receipt.get('clock_id') != local_monotonic_clock_id()):
+                    raise ValueError('native HOST limit acknowledgement differs from its reserved owner')
+                member.update(state='attached', receipt=receipt)
+            except BaseException:
+                member['state'] = 'installation_unresolved'
+                raise
+            if cancelled:
+                raise asyncio.CancelledError()
+            return receipt
+
+    def _retire_ieee_host_budget(self, engine):
+        members = getattr(self, '_ieee_host_budget_members', {})
+        member = members.get(id(engine))
+        if member is None or member['state'] == 'retired':
+            return
+        # Only an actual native process exit returns its entire allowance,
+        # including allocator caches. Shared logical slots do not call this.
+        receipt = self._stack.residency_manager.local_source_references.retire_native_host(
+            owner_id=member['owner_id'], exit_pidfd=member['pidfd'])
+        os.close(member['pidfd'])
+        member.update(state='retired', retirement_receipt=receipt)
 
     async def _run_ieee_file_transfer(self, adapter_id, source_tier, target_tier, engine, operation):
         """One real IO interval, visible to all cores sharing this file owner.
@@ -16005,7 +16116,12 @@ class ScenarioRunner:
         owner; a later native subscriber must replay it before preparation.
         This is conservative pressure, not aggregate bandwidth or a d sample.
         """
+        total = self.model_cfg.get('ieee_host_budget_bytes')
+        if total is not None:
+            self._stack.residency_manager.local_source_references.configure_host_budget(total)
         if self.model_cfg.get('ieee_admission_profile') is None:
+            if engine is not None:
+                await self._attach_ieee_host_budget(engine)
             return await operation()
         domain = self._ieee_file_pressure_domain()
         engines = [engine]
@@ -16016,6 +16132,7 @@ class ScenarioRunner:
             engines.append(getattr(self, 'engine', None))
         for target in engines:
             if target is not None:
+                await self._attach_ieee_host_budget(target)
                 await domain.attach(target)  # Same physical engine is idempotent.
         try:
             return await domain.run(adapter_id, source_tier, target_tier, operation)

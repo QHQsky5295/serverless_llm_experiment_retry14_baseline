@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Explicit file→native HOST connected; automatic Full open | P1_FORMULA_IMPLEMENTATION.md D1–D41. CPU-only preparation retains file/source identity and allocator-accounted tensor sub-budget, never implicitly activates GPU. Full HOST budget, automatic planner/handoff, file-tier replacement and complete lifecycle remain open. IEEE startup still rejects legacy warmup; no new GPU/Full qualification |
+| P1 IEEE semantic alignment | Shared managed-HOST allowance + native demand enforcement connected; automatic Full open | P1_FORMULA_IMPLEMENTATION.md D1–D42. Shared files and per-native-owner tensor/staging allowances cannot double-spend. Demand/proactive checks share the frozen native limit; exact process exit returns allowances. This is not universal RSS accounting. Automatic planner/handoff, file-tier replacement, runtime allocator qualification and complete lifecycle remain open. IEEE startup still rejects legacy warmup; no new GPU/Full qualification |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,18 +51,21 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST IMPLEMENTATION: D41 connects confirmed file→native CPU-only loading,
-registration and source pins through the actual runner/common queue/worker.
-It checks an immutable accounted-tensor sub-budget using process pinned allocator
-retention, reachable pageable tensors and conservative checkpoint/cast/pin peak.
-This is explicitly NOT total HOST memory. Cache-full preparation defers; no
-implicit LRU or GPU activation. Cancel joins actual reads/releases; lost reply
-retains source and shared pressure. Pressure-finish wakes GPU, not its own HOST
-budget deferral. D40 shared/preactivation ownership remains. No new model/profile.
-Next integrate total HOST/native/file/workspace ownership with automatic planner
-options/handoff and proactive d feedback; do not repeat this narrow CPU path.
-Final frozen-source822 functional and56 safety checks pass. All13 new checks
-and11 native-hook checks pass under installedvLLM0.30, CUDA uninitialized.
+LATEST IMPLEMENTATION: D42 installs one shared managed-HOST ceiling. Existing
+file preallocation and per-native-owner full tensor/staging allowances share the
+file-owner lock. Actual worker demand AND proactive paths check the immutable
+allowance without changing native LRU. Runner attaches before adapter work;
+duplicates share one allowance, cancellation joins, lost acknowledgements retain
+capacity. Only the original pidfd's process-exit event retires it. Initial engine
+startup still relies on the service envelope, not this late adapter allowance.
+No new model/profile. This is NOT universal physical RSS accounting: pageable
+allocator retention/metadata/reserved pinned segments require explicit runtime
+qualification with service observations, not an invented precise total.
+Next return to automatic planner options/handoff, file-tier pending protection/
+replacement and proactive d feedback. Do not repeat a narrow HOST allowance
+campaign or make an unachievable all-driver-RSS proof the entire mainline.
+Final frozen-source831 functional and56 safety checks pass;26 native-environment
+checks pass with CUDA uninitialized. All six D42 scopes are empty and stopped.
 File-tier pending protection/multi-victim replacement and full per-replica
 physical lifecycle remain open. D39 native plan/queue invariants are retained.
 Queue wakes on actual reference release/file-pressure finish/target closure,
@@ -105,7 +108,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D41.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D42.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -132,10 +135,11 @@ its one historical SHA difference and independent numerical gate remain open.
    No ready-time cost profile, SLO, system ranking or Full qualification follows.
    Artifacts: `paper_results/ieee_tc/p2_backend/20260926_7b_source32.{json,csv}`.
 4. Full received-view routing and actual D25 source protection exist. D32 adds
-   content-bound, budgeted multiple file paths. Total HOST/native tensor budgets,
-   proactive planning/handoff connection and complete
-   deployment physical GPU lifecycle still require integration. Do not silently
-   call the legacy planner or partial file sub-budget IEEE Full.
+   content-bound file paths; D42 combines shared file capacity and per-native-owner
+   reserved tensor allowances. Actual allocator configuration/total-service
+   observations, proactive planning/handoff and complete deployment physical GPU
+   lifecycle still require qualification. Do not silently call the legacy planner
+   or the explicit managed-memory envelope qualified IEEE Full.
 5. Actual profile measurements must cover their frozen class/configuration and
    environment; neither test constants nor neighboring-class latency can fill gaps.
    Replica inheritance is from frozen measurements, never a previous test block.
@@ -160,6 +164,47 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D42 shared managed-HOST budget and native demand enforcement
+
+- Previous D41 continuation was progress, not waiting/no-progress. Revalidated
+  authoritative plan, complete status, both repository identities and live state.
+  No D41 job was live; current user dirt preserved. D42 did not repeat old model
+  prefixes, zero-weight controls or file/native preparation microcampaigns.
+- Actual file owner now jointly limits shared HOST file/staging allocations and
+  full allowances for unique native owners. Actual planner file-budget snapshots
+  expose the same remaining bytes. Native configure/demand/proactive checks share
+  one immutable limit; demand still uses official load-first/LRU semantics, with
+  no advance eviction credit. Reused limit installation avoids a whole-pool scan.
+- Actual runner binds the worker birth identity/pidfd, reserves before installation
+  and joins cancellation. Aliases do not duplicate allowances; lost installation
+  keeps its reservation. Slot shutdown must witness native process exit before
+  returning capacity. Repeated/cached replies do not imply physical release.
+- Scope is managed file storage plus accounted native tensor/staging allowances,
+  NOT all RSS. The IEEE GPU equation is unchanged. Service cgroup safety remains
+  independent. Native reserve-segment configuration/pageable retention and real
+  multi-runtime behavior remain qualification questions, not silently zero bytes.
+  Full guard stays. No model/GPU/174 service/performance or profile run occurred.
+-9 new checks plus expanded actual-worker coverage. Initial targeted161 had6
+  errors because Conda's os lacks pidfd_open; now reuses the qualified D27 UAPI
+  binding, not PID polling. Initial full831 had4 CPU fixture startup timeouts;
+  child witness uses Python -S as D27 already does, actual serving unchanged.
+  Intermediate831 passes. InstalledvLLM0.30/torch2.13:26 checks pass, no failures/
+  skips and CUDA uninitialized. P1 D42 contains the correctness state table,
+  primary-source rationale and explicit limitations. Final receipts follow.
+- Next actual mainline: automatic owner/source/footprint option production and
+  handoff/residency, pending HOST/NVMe targets and multi-victim replacement,
+  proactive d feedback, representative measured profiles and Full lifecycle.
+  Then qualified baseline comparison in the prescribed Serverless-first order.
+  Baselines/M1/M2/ablations/sensitivities remain not started; full goal active.
+  Remote disk and nonzero3B fixture authority gates unchanged. No new artifacts,
+  no modified manuscript, no historical-result overwrite, no baseline edits.
+- Final frozen-source831 functional and56 safety checks pass without failures,
+  errors or skips. All six D42 owned scopes have TasksCurrent0, empty cgroup.procs,
+  high/max/oom/oom_kill0, then were stopped. Four GPUs15MiB/0%, MemAvailable
+  108640560KiB and disk353558319104B after cleanup. Source plan SHA and all147
+  protected entries unchanged. Baseline repository still16570c023a439c884624e7a5bdfa0d8577faf7a3.
+  No live model/test task remains. Implementation backup receipt follows.
 
 ### D41 explicit file→native HOST; total HOST qualification remains open
 

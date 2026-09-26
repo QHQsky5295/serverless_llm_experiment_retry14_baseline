@@ -134,8 +134,103 @@ class LocalSourceReferences:
         self._transfer_workspaces = {}
         self._prepared_transfers = {}
         self._file_limits = {}
+        self._host_limit = None
+        self._native_host_reservations = {}
+        self._native_host_pidfds = {}
+        self._native_host_retired = set()
         self._confirmed_sources = {}
         self.source_epoch = 0
+
+    def configure_host_budget(self, limit_bytes):
+        """One managed HOST allowance, not a second whole-service RSS limit.
+
+        Shared allocated files are charged once. Each physical native owner
+        reserves its entire enforced tensor/staging allowance, including unused
+        capacity and allocator retention. Do not add its observed use again.
+        The independent service cgroup covers other charged service memory.
+        """
+        with self.lock:
+            if type(limit_bytes) is not int or limit_bytes <= 0:
+                raise ValueError('managed HOST budget requires positive integer bytes')
+            if self._host_limit not in (None, limit_bytes):
+                raise ValueError('managed HOST budget cannot change within a file owner')
+            if self._host_limit == limit_bytes:
+                # Installation is immutable. Actual allocations recheck under
+                # this lock; a request reusing the limit need not rescan files.
+                return dict(configured=True, owner_id=self.owner_id, limit_bytes=limit_bytes)
+            if 'host' not in self.roots:
+                raise ValueError('managed HOST budget requires its shared file root')
+            if self.inventory()['tiers']['host']['allocated_file_bytes'] > limit_bytes:
+                raise RuntimeError('existing managed HOST files exceed the new allowance')
+            self._host_limit = limit_bytes
+            return dict(configured=True, owner_id=self.owner_id, limit_bytes=limit_bytes)
+
+    def host_budget_snapshot(self):
+        with self.lock:
+            if self._host_limit is None:
+                raise RuntimeError('managed HOST budget is not configured')
+            files = self.inventory()['tiers']['host']['allocated_file_bytes']
+            reserved = sum(self._native_host_reservations.values())
+            if files + reserved > self._host_limit:
+                raise RuntimeError('managed HOST files and native allowances exceed capacity')
+            return dict(kind='ieee_managed_host_budget_v1', owner_id=self.owner_id,
+                limit_bytes=self._host_limit, shared_file_bytes=files,
+                native_reserved_bytes=reserved, native_reservations=dict(self._native_host_reservations),
+                remaining_bytes=self._host_limit-files-reserved,
+                scope='shared_allocated_files_plus_native_tensor_allowances',
+                whole_service_rss_covered=False, snapshot_reserves_capacity=False)
+
+    def reserve_native_host(self, *, owner_id, limit_bytes, exit_pidfd):
+        """Reserve before installing a worker limit or submitting adapter loads.
+
+        An unknown installation outcome retains this allowance. Only the
+        controller's process-exit witness may authorize its retirement.
+        """
+        with self.lock:
+            if (not isinstance(owner_id, str) or not owner_id
+                    or type(limit_bytes) is not int or limit_bytes <= 0
+                    or owner_id in self._native_host_retired or type(exit_pidfd) is not int):
+                raise ValueError('native HOST allowance requires a live unique owner and byte limit')
+            if os.readlink(f'/proc/self/fd/{exit_pidfd}') != 'anon_inode:[pidfd]':
+                raise ValueError('native HOST allowance requires a process pidfd')
+            old = self._native_host_reservations.get(owner_id)
+            if old is not None:
+                if old != limit_bytes or self._native_host_pidfds[owner_id] != exit_pidfd:
+                    raise ValueError('native HOST allowance cannot change')
+                return self.host_budget_snapshot()
+            view = self.host_budget_snapshot()
+            if limit_bytes > view['remaining_bytes']:
+                raise RuntimeError('managed HOST capacity cannot reserve another native owner')
+            self._native_host_reservations[owner_id] = limit_bytes
+            self._native_host_pidfds[owner_id] = exit_pidfd
+            return self.host_budget_snapshot()
+
+    def retire_native_host(self, *, owner_id, exit_pidfd):
+        """Release only after the exact Linux pidfd is readable (process exit).
+
+        The controller retains the fd established before the acknowledged
+        limit installation. A shutdown reply, cache eviction or low RSS is not
+        an exit witness. No CPU memory is claimed returned while it can live.
+        """
+        import select
+        with self.lock:
+            if owner_id in self._native_host_retired:
+                return self.host_budget_snapshot()
+            if (owner_id not in self._native_host_reservations or type(exit_pidfd) is not int
+                    or self._native_host_pidfds[owner_id] != exit_pidfd):
+                raise ValueError('unknown native HOST owner or process witness')
+            # Reject closed/ordinary descriptors: only pidfds qualify.
+            if os.readlink(f'/proc/self/fd/{exit_pidfd}') != 'anon_inode:[pidfd]':
+                raise ValueError('HOST retirement requires the original process pidfd')
+            poll = select.poll()
+            poll.register(exit_pidfd, select.POLLIN)
+            events = poll.poll(0)
+            if not events or not events[0][1] & select.POLLIN:
+                raise RuntimeError('native HOST owner process has not exited')
+            del self._native_host_reservations[owner_id]
+            del self._native_host_pidfds[owner_id]
+            self._native_host_retired.add(owner_id)
+            return self.host_budget_snapshot()
 
     @staticmethod
     def _source_observation(path):
@@ -342,6 +437,11 @@ class LocalSourceReferences:
             before = self._file_inventory()['tiers'][tier]['allocated_file_bytes']
             if before + required > limit_bytes:
                 raise RuntimeError('local file capacity conflict: retained copies plus transfer exceed tier budget')
+            if tier == 'host' and self._host_limit is not None:
+                # Same lock as native reservations; concurrent replica setup
+                # cannot spend these bytes between this check and fallocate.
+                if before + required + sum(self._native_host_reservations.values()) > self._host_limit:
+                    raise RuntimeError('managed HOST capacity conflict: file staging plus native allowances')
             files = {}
             for path, size in paths.items():
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -390,6 +490,11 @@ class LocalSourceReferences:
                     remaining_bytes=limit-used,
                     active_transfers=sum(path.parent == self.roots[tier] for path in self.materializations.values()))
             self._file_limits.update(limits)
+            if self._host_limit is not None:
+                host = self.host_budget_snapshot()
+                tiers['host']['remaining_bytes'] = min(tiers['host']['remaining_bytes'], host['remaining_bytes'])
+                tiers['host']['native_reserved_bytes'] = host['native_reserved_bytes']
+                tiers['host']['managed_host_limit_bytes'] = host['limit_bytes']
             return dict(kind='ieee_managed_file_budgets_v1', owner_id=self.owner_id,
                 source_epoch=self.source_epoch, clock_id=local_monotonic_clock_id(),
                 captured_at=time.monotonic(), tiers=tiers, snapshot_reserves_capacity=False,
@@ -646,12 +751,13 @@ class IEEEBackendGPUReferences:
     """
 
     def __init__(self, manager, completion_fence, *, demand_loader=None, preparation_loader=None,
-                 file_host_loader=None):
+                 file_host_loader=None, host_allocation_check=None):
         self.manager = manager
         self.completion_fence = completion_fence
         self.demand_loader = demand_loader
         self.preparation_loader = preparation_loader
         self.file_host_loader = file_host_loader
+        self.host_allocation_check = host_allocation_check
         self._native_host_tensor_budget = None
         self._file_host_preparations: Dict[str, Dict[str, Any]] = {}
         self.owner_id = uuid.uuid4().hex
@@ -761,6 +867,25 @@ class IEEEBackendGPUReferences:
                 'pending_preparation_targets': sorted({aid for plan in self._preparation_plans.values()
                                                        for aid in plan['pending']}),
                 'snapshot_holds_reference': False}
+
+    def configure_host_budget(self, *, expected_owner_id, tensor_budget_bytes):
+        """Freeze the same capacity check for proactive AND demand loading."""
+        self._refresh()
+        if expected_owner_id != self.owner_id:
+            raise ValueError('native HOST budget owner changed')
+        if type(tensor_budget_bytes) is not int or tensor_budget_bytes <= 0:
+            raise ValueError('native HOST budget requires positive integer bytes')
+        if self._native_host_tensor_budget not in (None, tensor_budget_bytes):
+            raise ValueError('native HOST tensor sub-budget cannot change within a worker')
+        if not callable(self.host_allocation_check):
+            raise RuntimeError('native HOST allocation checker is not attached')
+        check = self.host_allocation_check(lora_path=None, reuse=True,
+                                          tensor_budget_bytes=tensor_budget_bytes)
+        if not isinstance(check, dict) or check.get('admitted') is not True:
+            raise RuntimeError('native HOST occupancy does not fit its reserved allowance')
+        self._native_host_tensor_budget = tensor_budget_bytes
+        return dict(configured=True, tensor_budget_bytes=tensor_budget_bytes,
+                    allocation=check, **self.snapshot())
 
     def register_preparation_plan(self, *, plan_id, objective, target_adapter_ids, expected_owner_id):
         """Register the entire selected set before any candidate may execute.
@@ -1211,6 +1336,17 @@ class IEEEBackendGPUReferences:
                 and not (set(cpu) - cpu.pinned_items)):
             return {'acquired': False, 'reason': 'all_cpu_entries_pinned',
                     'capacity_blockers': self._capacity_blockers('host'), **self.snapshot()}
+        host_check = None
+        if self._native_host_tensor_budget is not None:
+            if not callable(self.host_allocation_check):
+                raise RuntimeError('budgeted native demand requires its allocation checker')
+            host_check = self.host_allocation_check(lora_path=lora_path, reuse=cpu_hit,
+                tensor_budget_bytes=self._native_host_tensor_budget)
+            if not isinstance(host_check, dict) or type(host_check.get('admitted')) is not bool:
+                raise ValueError('native HOST allocation checker lacks an explicit outcome')
+            if not host_check['admitted']:
+                return dict(acquired=False, reason='native_host_tensor_budget',
+                            allocation=host_check, **self.snapshot())
         start = time.monotonic()
         try:
             if not gpu_hit:
@@ -1231,6 +1367,12 @@ class IEEEBackendGPUReferences:
                                    expected_owner_id=self.owner_id, expected_epoch=self.epoch)
             if not receipt['acquired']:
                 raise RuntimeError('native demand-load transaction lost its executable slot')
+            if host_check is not None:
+                after = self.host_allocation_check(lora_path=None, reuse=True,
+                    tensor_budget_bytes=self._native_host_tensor_budget)
+                if after.get('admitted') is not True:
+                    raise RuntimeError('native demand exceeded its HOST allowance')
+                receipt['host_allocation'] = dict(before=host_check, after=after)
         except BaseException:
             self._poisoned = True
             raise
