@@ -133,6 +133,11 @@ def prepare(output: Path, private_root: Path, main_repo: Path, gpu_ids: tuple[in
     for path in (output, private_root):
         if path.exists() or path.is_symlink():
             raise FileExistsError(f"refuse to reuse or overwrite {path}")
+    # Results are intentionally mounted through an existing repository symlink.
+    # Freeze the physical destination once, instead of generating a logical
+    # path then comparing it against a resolved path at launch time.
+    requested_output = str(output)
+    output, private_root, main_repo = (p.resolve() for p in (output, private_root, main_repo))
     sources = {name: (ROOT / "scripts" / name).read_text() for name in SOURCE_SHA}
     rendered, allocation = render(sources, script_dir=output, private_root=private_root,
                                  main_repo=main_repo, gpu_ids=gpu_ids, ray_only=ray_only)
@@ -140,6 +145,7 @@ def prepare(output: Path, private_root: Path, main_repo: Path, gpu_ids: tuple[in
         "schema": "ieee_tc_serverless_native_launcher_view_v1", "display_name": "Serverless",
         "main_repo": str(main_repo), "private_root": str(private_root),
         "script_dir": str(output), "source_sha256": SOURCE_SHA,
+        "requested_script_dir": requested_output,
         "rendered_sha256": {name: sha(data.encode()) for name, data in rendered.items()},
         "helper_sha256": sha(Path(__file__).read_bytes()),
         "object_store_bytes_by_raylet": allocation,

@@ -91,6 +91,25 @@ class NativeLaunchTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 launch.prepare(output, private, MAIN, (0, 1))
 
+    def test_existing_results_parent_symlink_uses_one_canonical_identity(self):
+        with tempfile.TemporaryDirectory(prefix="tcs-test-") as directory:
+            root = Path(directory)
+            real = root / 'real'
+            real.mkdir()
+            alias = root / 'results'
+            alias.symlink_to(real, target_is_directory=True)
+            output, private = alias / 'view', root / 'private'
+            manifest = launch.prepare(output, private, MAIN, (0,))
+            self.assertEqual(manifest['script_dir'], str(real / 'view'))
+            self.assertEqual(manifest['requested_script_dir'], str(output))
+            env = dict(os.environ)
+            env.pop('FAASLORA_TC_LAUNCH_RECEIPT', None)
+            check = subprocess.run(['/usr/bin/python3', str(HELPER), 'verify', '--manifest',
+                                    str(output / 'launch_manifest.json')], env=env,
+                                   text=True, capture_output=True, timeout=10)
+            self.assertIn('missing guarded TC launch receipt', check.stderr)
+            self.assertNotIn('launcher identity differs', check.stderr)
+
     def test_generated_stack_refuses_before_native_launch_outside_guard(self):
         with tempfile.TemporaryDirectory(prefix="tcs-test-") as directory:
             root = Path(directory)

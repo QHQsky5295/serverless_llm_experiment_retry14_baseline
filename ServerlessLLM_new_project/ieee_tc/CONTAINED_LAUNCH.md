@@ -131,3 +131,17 @@ tmux server; the existing external supervisor still verifies whole-tree release.
 Keep failures and new attempt paths. No global Ray stop, source installation,
 checkpoint conversion, remote fetch, model/pool scan or performance ranking.
 The result table and cleanup evidence must precede any next experiment.
+
+| D65 attempt | Observation | Interpretation / next action |
+|---|---|---|
+| 1 | Outer argument parser rejected forwarded `--host` as ambiguous with its own `--host-copy-*`; exit 2 before any service start | Launcher error, not a Serverless result. Preserve console log; disable abbreviation at the argv-forwarding boundary and test both outer and nested parsers before retry |
+| 2 | Real TC service admission succeeded, but script-view verification compared a logical result path with its resolved physical path and stopped before Ray startup | The repository's existing results-parent symlink is legitimate. Canonicalize the destination once at preparation and preserve the requested alias; retain strict identity checks. Add a real symlink-parent regression case |
+
+Attempt1's auxiliary group is empty with all memory pressure/OOM events zero
+and was stopped. No Ray/model/remote process started; no inference time or
+resource score can be derived from this failed invocation.
+
+Attempt2's service and auxiliary groups are released/empty; watchdog reports
+one resource sample, no abort, native contexts clear and the service path
+removed. It imported the actual Ray2.54 environment but did not start a cluster.
+Do not misclassify either launcher failure as a baseline resource failure.
