@@ -71,6 +71,7 @@ claimed by these tests.
 |---|---|---|---|
 | `d69_20260927/model_launch1.json` | No service started, no request arrived | Publisher readiness JSON rejected | Launcher/import isolation error; not a Serverless startup, throughput or OOM result |
 | Tokenizer-only diagnosis | Existing tokenizer only, no model | Ready record emitted without inherited serving source paths | Reproduced serving `PYTHONPATH` imports `sitecustomize`, torch/vLLM and a stdout platform log before the handshake |
+| `model_launch2.json` | Publisher ready, zero arrivals, no model construction | Driver rejects changed library path | Shared repository startup hook imports cv2 through vLLM and cv2 prepends its libraries; not a baseline performance failure |
 
 The [Python startup documentation](https://docs.python.org/3.12/library/site.html)
 explains why this precedes helper-level imports. The publisher now has its own
@@ -82,3 +83,12 @@ The first loader overlay was restored byte-for-byte after verifying no service
 or GPU context existed. The auxiliary group was empty before stopping it.
 The direct diagnostic intentionally had no deployment-origin input; its EOF
 exception is retained and is not an inference attempt.
+
+Attempt2 confirms an empty serving-module set in the external publisher. Its
+separate driver check exposed the same repository startup-hook coupling in the
+service. Rather than permitting arbitrary library drift, the exclusive source
+view now exposes only a symlink to the shared `faaslora` package, not the main
+repository root. This excludes legacy torch.load/shutdown patches from Serverless
+and keeps original native imports/library paths. Attempt2 had12 watchdog samples,
+confirmed GPU release/service removal and no GPU model constructed. Overlay2
+restored; empty auxiliary stopped. All attempts remain retained.

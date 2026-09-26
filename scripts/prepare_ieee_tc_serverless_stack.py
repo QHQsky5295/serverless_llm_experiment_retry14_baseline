@@ -97,7 +97,8 @@ def measurement_sources(native_source: Path, variant: str) -> dict[str, str]:
     return dict(zip(paths, (app, backend, router)))
 
 
-def prepare_measurement_view(native_source: Path, output: Path, variant: str) -> dict:
+def prepare_measurement_view(native_source: Path, output: Path, variant: str,
+                             main_repo: Path) -> dict:
     if output.exists() or output.is_symlink():
         raise FileExistsError('preserve previous source view')
     replacements = measurement_sources(native_source, variant)
@@ -117,8 +118,13 @@ def prepare_measurement_view(native_source: Path, output: Path, variant: str) ->
             elif not name.endswith('.pyc'):
                 (dest / name).symlink_to(Path(parent) / name)
     (output / 'sllm/backends/tc_measurement.py').symlink_to(support)
+    # Expose the shared package, not its repository-level sitecustomize. That
+    # legacy startup hook modifies torch.load and imports the serving stack.
+    shared_package = (main_repo / 'faaslora').resolve(strict=True)
+    (output / 'faaslora').symlink_to(shared_package, target_is_directory=True)
     result = dict(schema='ieee_tc_serverless_measurement_view_v1', variant=variant,
         native_source=str(native_source), source_view=str(output.resolve()),
+        shared_package=str(shared_package), repository_startup_hooks=False,
         original_sha256={p: sha((native_source/p).read_bytes()) for p in replacements},
         measured_sha256={p: sha(text.encode()) for p, text in replacements.items()},
         helper_sha256=sha(support.read_bytes()), helper_path=str(support),
@@ -1020,6 +1026,11 @@ def qualify_model(args) -> dict:
                 raise ValueError('measured source view changed')
         if sha(Path(measured['helper_path']).read_bytes()) != measured['helper_sha256']:
             raise ValueError('native measurement helper changed')
+        if ((args.native_source/'faaslora').resolve(strict=True) !=
+                (args.main_repo/'faaslora').resolve(strict=True)
+                or measured.get('repository_startup_hooks') is not False
+                or (args.native_source/'sitecustomize.py').exists()):
+            raise ValueError('shared package view must exclude repository startup hooks')
     if Path(sys.executable).resolve() != (args.environment / 'bin/python').resolve():
         raise ValueError('wrong native model interpreter')
     receipt = json.loads(args.overlay_receipt.read_text())
@@ -1037,7 +1048,7 @@ def qualify_model(args) -> dict:
     # Its imports must select the SAME source/library composition as workers;
     # subprocess-only PYTHONPATH is insufficient for that reconstruction.
     package = args.store_package / 'site-packages'
-    extra_path = f'{package}:{args.main_repo}' if http_cfg else str(package)
+    extra_path = str(package)
     source_path = f'{args.native_source}:{extra_path}'
     if (os.environ.get('PYTHONPATH') != source_path
             or os.environ.get('LD_LIBRARY_PATH') != str(package / 'sllm_store')):
@@ -1247,6 +1258,7 @@ def main() -> None:
     source.add_argument('--native-source', type=Path, required=True)
     source.add_argument('--output', type=Path, required=True)
     source.add_argument('--variant', choices=('original', 'repaired'), required=True)
+    source.add_argument('--main-repo', type=Path, required=True)
     replay = sub.add_parser('http-replay')
     replay.add_argument('--config', type=Path, required=True)
     replay.add_argument('--output', type=Path, required=True)
@@ -1288,7 +1300,8 @@ def main() -> None:
         http_replay(args)
         return
     if args.action == 'prepare-measurement-view':
-        print(json.dumps(prepare_measurement_view(args.native_source, args.output, args.variant), indent=2))
+        print(json.dumps(prepare_measurement_view(args.native_source, args.output, args.variant,
+                                                 args.main_repo), indent=2))
         return
     if args.action == 'export-checkpoint':
         print(json.dumps(export_checkpoint(args), indent=2))

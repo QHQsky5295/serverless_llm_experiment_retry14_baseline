@@ -123,12 +123,15 @@ class MeasurementTests(unittest.TestCase):
         before = {p: hashlib.sha256((NATIVE/p).read_bytes()).hexdigest() for p in paths}
         with tempfile.TemporaryDirectory() as d:
             output = Path(d)/'view'
-            result = launch.prepare_measurement_view(NATIVE, output, 'repaired')
+            result = launch.prepare_measurement_view(NATIVE, output, 'repaired', MAIN)
+            self.assertEqual((output/'faaslora').resolve(), (MAIN/'faaslora').resolve())
+            self.assertFalse((output/'sitecustomize.py').exists())
+            self.assertFalse(result['repository_startup_hooks'])
             self.assertFalse(result['performance_run_authorized'])
             self.assertTrue((output/'sllm/controller.py').is_symlink())
             self.assertFalse((output/'sllm/app_lib.py').is_symlink())
             with self.assertRaises(FileExistsError):
-                launch.prepare_measurement_view(NATIVE, output, 'original')
+                launch.prepare_measurement_view(NATIVE, output, 'original', MAIN)
         self.assertEqual(before, {p: hashlib.sha256((NATIVE/p).read_bytes()).hexdigest() for p in paths})
 
 
