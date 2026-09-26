@@ -473,6 +473,43 @@ class SharedPressure(unittest.IsolatedAsyncioTestCase):
         await cleanup
         engine.shutdown.assert_awaited_once()
 
+    async def test_cancelled_actual_scaleout_settles_join_before_closing_engine(self):
+        runner, engine, ledger = self.make()
+        runner.instance_pool = NS(count=lambda: 1, max_instances=4, get_slots=lambda: [])
+        runner.engine_factory = AsyncMock(return_value=(engine, None))
+        runner._service_profiles = None
+        entered, release, joining, joined = [asyncio.Event() for _ in range(4)]
+        async def body():
+            entered.set()
+            await release.wait()
+            return 'other-replicas-copy'
+        copy = asyncio.create_task(runner._run_ieee_file_transfer('a', 'remote', 'nvme', None, body))
+        await entered.wait()
+        original = engine.ieee_transfer_event
+        async def rpc(**command):
+            result = await original(**command)
+            if command['operation'] == 'start':
+                joining.set()
+                await joined.wait()
+            return result
+        engine.ieee_transfer_event = rpc
+        async def shutdown():
+            self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            self.assertEqual(runner._shared_file_pressure.members[id(engine)]['state'], 'retired')
+        engine.shutdown = AsyncMock(side_effect=shutdown)
+        scaleup = asyncio.create_task(runner._add_dedicated_instance_slot(True, reserved_device_id=0))
+        await joining.wait()
+        scaleup.cancel()
+        joined.set()
+        await asyncio.sleep(0)
+        self.assertFalse(scaleup.done())
+        engine.shutdown.assert_not_awaited()
+        release.set()
+        self.assertEqual(await copy, 'other-replicas-copy')
+        with self.assertRaises(asyncio.CancelledError):
+            await scaleup
+        engine.shutdown.assert_awaited_once()
+
     async def test_actual_engine_and_native_core_accept_domain_before_observation(self):
         profile = dict(window_s=10., model_backend_id='fixture', profile_id='fixture',
                        profile_means=[64., 128., 256.], transfer_limit=3)

@@ -58,7 +58,8 @@ Shared logical slots do not multiply the count. Start/join/finish serialize
 notifications, not actual IO. Lost replies retain uncertainty; one failed finish
 does not prevent other owners from settling. Per-engine preparation plans join
 before pressure retirement and shutdown; this does not certify physical release.
-Final808 functional,56 safety and24 installed-backend checks pass; backup pending.
+Closure809 functional and56 safety pass. All13 new checks also pass under
+installedvLLM0.30, CUDA uninitialized; native-hook/worker evidence below retained.
 No new model/real profile. Next integrate total HOST/native budgets/file→native
 HOST loading with automatic planner options/handoff and proactive d feedback.
 File-tier pending protection/multi-victim replacement and full per-replica
@@ -92,7 +93,7 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `391f1613fecc573c82667179f286d98092d842b4`, pushed to
+- Main tested implementation: `79e0a6e6343d8b6cf9c4bd45f1bdc7c2714ed19c`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -174,19 +175,28 @@ its one historical SHA difference and independent numerical gate remain open.
 - Initial targeted144 passed. First full807 had two legacy smoke fixture errors:
   model_cfg was absent on __new__-constructed runners. Fixtures now explicitly
   provide empty legacy configuration; no production missing-field fallback added.
- 12 new checks plus extensions; final808 functional pass, no failures/skips.
+  Initial12 new checks plus extensions; full808 passed, no failures/skips.
   InstalledvLLM0.30:12 new +11 native-hook checks pass; one further worker test
   initially had an invalid selector (NativeProactivePreparation). Correct selector
   NativeProactiveTransactions passes separately:24 actual checks pass in total,
   CUDA uninitialized. The selector error is not a backend/runtime failure.
- 56 safety checks pass. Six owned D40 scopes checked TasksCurrent0/empty pids,
+ 56 safety checks pass. Initial six owned D40 scopes checked TasksCurrent0/empty pids,
   high,max,OOM0, then stopped. No check process or GPU context remains.
   P1 D40 contains the correctness table and primary-source rationale. No GPU/model,
   real174, numerical adapter, representative profile or performance run occurred.
 - Source plan SHA and147 protected entries checked unchanged after final tests.
   Final GPUs15MiB/0%, MemAvailable109966216KiB, disk353608052736B. No new
-  weights/traces, no old-results mutation. Implementation backup pending.
+  weights/traces, no old-results mutation. Initial implementation79e0a6e6343d8b6cf9c4bd45f1bdc7c2714ed19c
+  pushed and remote full SHA verified.
   Baseline repository remains16570c023a439c884624e7a5bdfa0d8577faf7a3. Preserve user dirt.
+- Closure review found that cancellation after a native join acknowledgement
+  must retire that subscription BEFORE shutting down the new engine. Actual
+  scale-out cancellation now joins old file pressure; the other replica's copy
+  still completes. One additional real-entrypoint check, total13 new checks;
+  final809 functional pass. All13 new checks pass in installedvLLM0.30 with CUDA
+  uninitialized. Both additional owned scopes checked empty/high,max,OOM0 and
+  stopped (eight D40 scopes total). Final GPUs15MiB/0%, MemAvailable108830624KiB,
+  disk353606467584B; plan SHA and147 protected entries unchanged. No running job.
 - Next: total HOST/native budgets and file→native HOST, automatic options/handoff,
   proactive d feedback, file pending-target/multi-victim replacement, complete
   Full physical lifecycle. Full guard stays; baselines/M1/M2/ablations/sensitivities

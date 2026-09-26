@@ -12389,7 +12389,16 @@ class ScenarioRunner:
             # Join shared/preactivation IO before any warmup or pool publication.
             await self._attach_ieee_file_pressure(new_engine)
         except BaseException:
-            await new_engine.shutdown()
+            try:
+                domain = getattr(self, '_shared_file_pressure', None)
+                member = domain.members.get(id(new_engine)) if domain is not None else None
+                # A cancelled join may already be acknowledged by the core.
+                # Settle that subscription while the core is still alive; a
+                # genuinely unknown attachment remains explicit uncertainty.
+                if member is not None and member['state'] == 'attached':
+                    await domain.retire(new_engine)
+            finally:
+                await new_engine.shutdown()
             raise
         runtime_startup_latency_ms = max(
             0.0,
