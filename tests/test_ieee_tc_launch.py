@@ -21,6 +21,31 @@ def ieee_control_fixture():
 
 
 class NativeAllocatorLaunchContract(unittest.TestCase):
+    def test_background_candidate_has_distinct_frozen_identity_and_no_live_upgrade(self):
+        cfg = {'backend':'vllm', 'ieee_native_host_allocator_policy':'uncached_background_v1'}
+        setting = 'pinned_max_cached_size_mb:0,pinned_use_background_threads:True'
+        result = runner._ieee_native_allocator_environment(cfg, {})
+        self.assertEqual(result['PYTORCH_ALLOC_CONF'], setting)
+        self.assertEqual(result['FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY'], cfg['ieee_native_host_allocator_policy'])
+        with self.assertRaisesRegex(ValueError, 'conflicts'):
+            runner._ieee_native_allocator_environment(cfg, {'PYTORCH_ALLOC_CONF':'pinned_max_cached_size_mb:0'})
+        engine = runner.InferenceEngine.__new__(runner.InferenceEngine)
+        engine.model_cfg = cfg
+        with patch.dict(os.environ, {}, clear=True), self.assertRaisesRegex(RuntimeError, 'fresh process'):
+            asyncio.run(engine.initialize())
+        from scripts.dedicated_engine_worker import _run_worker
+        with tempfile.TemporaryDirectory() as directory:
+            payload = Path(directory)/'payload.json'
+            payload.write_text(json.dumps(dict(repo_root=str(Path.cwd()), model_cfg=cfg)))
+            with patch.dict(os.environ, result, clear=True), self.assertRaises(KeyError) as raised:
+                # Passing the pre-import check reaches the deliberately absent
+                # next required payload field, without importing a model.
+                asyncio.run(_run_worker(payload, Path(directory)/'ready.json'))
+            self.assertEqual(raised.exception.args, ('cost_model',))
+            with patch.dict(os.environ, {**result,'PYTORCH_ALLOC_CONF':'pinned_max_cached_size_mb:0'}, clear=True), \
+                 self.assertRaisesRegex(ValueError, 'before worker imports'):
+                asyncio.run(_run_worker(payload, Path(directory)/'ready.json'))
+
     def test_default_preserves_inherited_environment_without_claiming_policy(self):
         env = {'PYTORCH_CUDA_ALLOC_CONF': 'expandable_segments:True', 'OTHER': 'value'}
         self.assertEqual(runner._ieee_native_allocator_environment({}, env), env)

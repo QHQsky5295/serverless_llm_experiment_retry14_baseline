@@ -892,3 +892,53 @@ Prime等待队列已被唤醒；所有容量检查仍必须使用当时实际占
 依据：[PyTorch2.13官方allocator源码](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/aten/src/ATen/core/CachingHostAllocator.h)、
 [配置解析](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/c10/core/AllocatorConfig.cpp)、
 [vLLM0.30官方copy路径](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/layers/base_linear.py)。
+
+### D60观测结果与裁决
+
+一次新进程完成96个状态点；全部slot和padding内容核对通过。42次资源采样，
+服务峰值727,416,832 B，high/max/OOM均0；服务/watchdog退出0，实际CUDA
+context及服务域已释放，辅助域实际进程清单为空后停止。没有新增权重或负载。
+
+| 工件/rank | 无后台：删除后占用B（D59） | 有后台：删除后占用B（D60） | 有后台：再次fence后B | 两条copy路径内容一致 |
+|---|---:|---:|---:|---|
+| 3B code/r8 | 9,175,040 | 0 | 0 | 是 |
+| 3B code_0015/r16 | 18,350,080 | 0 | 0 | 是 |
+| 7B code/r8 | 16,777,216 | 0 | 0 | 是 |
+| 7B finance/r8 | 16,777,216 | 0 | 0 | 是 |
+| 7B medical/r8 | 16,777,216 | 0 | 0 | 是 |
+| 7B code_0015/r16 | 33,554,432 | 0 | 0 | 是 |
+
+表中字节为普通native copy路径；主动pitched路径在两次运行均为0。D60所有
+setter后stream查询仍已完成，未测试在途删除，也不能由此给出回收时间上界。
+完整CSV/JSON在`paper_results/ieee_tc/p2_backend/20260927_host_copy_background.*`；
+原始SHA为`e54e7932bc30fc0e82afafe89878ae48774d9fc907434b88296b32efb464bda4`。
+
+裁决：接受官方后台事件处理作为后续Full集成候选；不是SLO/性能胜出结论，
+也不自动冻结正式模型配置。保留D59数据和原候选身份，不再增加同类microtest。
+下一主线是候选的实际启动身份、固定预算与等待状态更新，然后代表性Full/profile。
+字节回收必须被实际观测才能释放额度；尚未证明等待队列持续进展或完整模型资格。
+
+### Full候选接入（不是正式配置冻结）
+
+现有runner、dedicated worker和native readback支持显式
+`ieee_native_host_allocator_policy: uncached_background_v1`。旧`uncached_v1`
+保持原语义，默认仍未选择；两个身份不能继承混用环境或旧profile。
+后台策略没有改变exact-size常驻/工作空间上界，仍用D58分区，在实际占用未下降
+前拒绝新的不合预算加载；不能以“最终会回收”为理由预扣。Full启动保护不变。
+
+| 集成检查 | 判据 |
+|---|---|
+| 新鲜子进程/配置身份 | runner、worker及实际native解析配置一致 |
+| 老环境/旧profile | 不默默升级，冲突拒绝 |
+| 后台回收但占用未下降 | 仍按真实字节延后，预算不增加 |
+| profile/Full资格 | 本次没有获得，下一步实际验证 |
+
+源码审查发现现有movement唤醒来自请求引用释放、准备目标结束、plan关闭等；
+这些事件不能替代对异步allocator归还的实际观察。后续需在原有状态更新路径
+中处理该状态变化并验证等待进展，不能靠循环重试或人为分配触发回收。
+本轮只接入有真实证据支持的allocator候选，没有假装该后续问题已解决。
+
+最终检查：938功能、22安装版native环境CPU、62安全/计量检查通过，0失败/
+错误/跳过；CPU检查没有初始化CUDA。测试数有交集，不是独立性能重复。
+完整96行与原始计数独立核对，D59/D60的12组GPU内容SHA也一致。旧147项
+保护清单和权威计划零变化，所有本轮进程及资源已清理。

@@ -51,20 +51,21 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-D59 first real-copy observation completed and cleaned: six existing classes,
-two copy arms,96 states. Native copy retains full R after object deletion and
-second fence; next ordinary checkpoint allocation processes224/256 frees.
-Pitched copy returns all blocks after the owned fence/deletion; complete slot
-contents match. Every stream query already completed: no in-flight deletion
-claim. See P2 D59 and curated20260927_host_copy_lifetime CSV/JSON. One process,
-not performance repetitions. Native uncached candidate alone does not guarantee
-autonomous post-copy return. Next, at most one second focused comparison with
-official background event handling before deciding the Full loading candidate;
-do not increase B, subtract retained bytes or flush. Actual Full remains open.
-60 safety and288 smoke checks pass; raw launch/context/group cleanup verified.
-Measured evidence checkpoint4922db1a0b2dc6ce4e827ca91b2ae02cfe2050d8 is pushed;
-fresh full remote SHA matches. Baseline16570c unchanged and remote-verified.
-This subsequent receipt is documentation only. Goal remains active/incomplete.
+D60 second/final local comparison completed and cleaned: official background
+event processing returns all6classes' native-copy pinned bytes at the original
+post-delete observations, before the next real load. Exact GPU content matches;
+all queries completed, no in-flight/private-pool/latency-bound claim. See P2 D60
+and curated20260927_host_copy_background CSV/JSON alongside unchanged D59.
+Opt-in uncached_background_v1 now has a distinct frozen model/worker/readback
+identity and uses the same fixed HOST partition/actual-byte checks. No production
+config or B/C selected; old profiles cannot be relabeled as the new candidate.
+No more allocator-only microtests or old request prefixes. Next use this candidate
+in representative Full/profile integration, explicitly address actual observed
+HOST return waking deferred work, then actual Full/lifecycle/A4. Current release
+events are not proof of asynchronous allocator-return notification; don't poll
+unconditionally, assume future bytes or raise the budget. Full guard remains.
+Tests/backup receipts below; formal baselines/M1/M2/ablations remain not started.
+The two unanswered artifact/remote authority choices remain. Goal active.
 
 D58 connects an opt-in native HOST workspace partition inside the existing
 allowance, based on all audited existing artifact classes. Actual total occupancy
@@ -241,6 +242,35 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
   sources. No production policy or budget change. Existing diagnostic gains a
   strictly checked background-only flag; second/final local hypothesis comparison
   preregistered in P2. No new artifacts/traces or formal performance run.
+- 62 safety and288 smoke checks pass. Diagnostic checkpoint
+  e9ebcbe7b1415e2dea565ff1eed071dadde04e78 pushed with full remote verification.
+  Actual one-process background_attempt1 completes all6classes/2arms/96states.
+  All native-copy post-delete and second-fence allocated bytes0 before next load;
+  all slot content matches. All stream queries completed, no in-flight deletion
+  guarantee. Peak727416832B over42 samples, high/max/OOM0, service/watchdog0.
+  Actual native context/domain released; aux950712bccfc44b3f8574df3738f59330
+  cgroup.procs empty then stopped. Two CPU test scopes TasksCurrent0/events0,
+  stopped. Immediate P2 table and complete CSV/JSON delivered before next task.
+  Accept official background handling as the Full integration candidate, not a
+  performance winner. No further allocator microloop; production identity and
+  actual queue progress/profile/Full remain next.
+- Existing runner/worker/native readback and fixed workspace gate now accept
+  distinct opt-in uncached_background_v1. Default/model configs unchanged; old
+  profiles and inherited allocator conflicts rejected. Actual occupancy remains
+  authoritative; no future-return credit, B/C increase or Full guard removal.
+  Initial215 targeted checks, final938 functional,22 installed-native CPU and
+  62 system-Python safety checks pass with no failures/errors/skips. CUDA remains
+  uninitialized in CPU checks. Counts overlap; not performance repetitions.
+- All96 curated rows independently reconciled to raw counters; all12 cross-run
+  GPU slot SHAs match D59. Raw/launch/watchdog/comparison/source SHAs verified.
+  Four final integration/test scopes actual cgroup.procs empty, TasksCurrent0,
+  high/max/OOM0, stopped. No test/model/TMUX remains. Protected147 and plan SHA
+  unchanged; GPUs15MiB/0%, MemAvailable109306740KiB, available353322582016B.
+  Next: integrate observed HOST capacity changes with actual deferred-work
+  progress and representative measured profiles/Full, not another isolated
+  allocator or old-prefix check. Numerical/500pool/remote authority gates remain;
+  formal baseline/main/ablation/sensitivity experiments have not started.
+  Named-file evidence/integration backup follows; goal remains active.
 
 ### D59 real-copy HOST lifetime
 

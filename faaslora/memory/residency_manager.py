@@ -1415,7 +1415,8 @@ class IEEEBackendGPUReferences:
                     or any(c not in '0123456789abcdef' for c in workspace_contract['source_audit_sha256'])):
                 raise ValueError('native HOST workspace requires frozen existing-artifact bounds')
             if (self._caches()[0] or self._staged_host
-                    or check.get('allocator_policy', {}).get('policy') != 'uncached_v1'
+                    or check.get('allocator_policy', {}).get('policy') not in
+                       ('uncached_v1', 'uncached_background_v1')
                     or check.get('allocator_policy', {}).get('verified') is not True):
                 raise RuntimeError('native HOST workspace requires an empty owner and verified uncached allocator')
             baseline = check.get('before', {}).get('accounted_tensor_bytes')

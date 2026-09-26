@@ -205,16 +205,20 @@ def _ieee_native_host_allocator_policy() -> Dict[str, Any]:
     policy = os.environ.get('FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY')
     if policy is None:
         return dict(policy=None, verified=False)
-    if (policy != 'uncached_v1' or str(torch.__version__) != '2.13.0+cu130'
-            or os.environ.get('PYTORCH_ALLOC_CONF') != 'pinned_max_cached_size_mb:0'
+    setting = 'pinned_max_cached_size_mb:0'
+    if policy == 'uncached_background_v1':
+        setting += ',pinned_use_background_threads:True'
+    if (policy not in ('uncached_v1', 'uncached_background_v1') or str(torch.__version__) != '2.13.0+cu130'
+            or os.environ.get('PYTORCH_ALLOC_CONF') != setting
             or any(key in os.environ for key in ('PYTORCH_CUDA_ALLOC_CONF', 'PYTORCH_HIP_ALLOC_CONF'))):
         raise RuntimeError('unqualified native HOST allocator policy/environment')
     settings = torch.cuda.memory._snapshot().get('allocator_settings')
     if (not isinstance(settings, dict) or type(settings.get('max_cached_size')) is not int
             or settings['max_cached_size'] != 0
-            or settings.get('PYTORCH_CUDA_ALLOC_CONF') != 'pinned_max_cached_size_mb:0'):
+            or settings.get('PYTORCH_CUDA_ALLOC_CONF') != setting):
         raise RuntimeError('native HOST allocator readback differs from requested candidate')
     return dict(policy=policy, verified=True, allocator_settings=settings,
+                background_event_processing_requested=policy == 'uncached_background_v1',
                 persistent_cache_enabled=False, immediate_release_guaranteed=False)
 
 

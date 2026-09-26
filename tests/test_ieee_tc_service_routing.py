@@ -320,7 +320,8 @@ class FrozenMeasuredInitialization(unittest.TestCase):
             self.load(expected_sha256='0'*64)
         for field, value in [('model_path', '/other'), ('dtype', 'bfloat16'),
                              ('tensor_parallel_size', 2),
-                             ('ieee_native_host_allocator_policy', 'uncached_v1')]:
+                             ('ieee_native_host_allocator_policy', 'uncached_v1'),
+                             ('ieee_native_host_allocator_policy', 'uncached_background_v1')]:
             with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'context mismatch'):
                 self.load(model_config=self.model | {field: value})
         self.load(model_config=self.model | {'visible_device_ids': [3], 'device_id': 3})

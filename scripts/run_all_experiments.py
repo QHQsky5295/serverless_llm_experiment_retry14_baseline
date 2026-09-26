@@ -18503,9 +18503,11 @@ def _ieee_native_allocator_environment(model_cfg, inherited):
         if env.get(marker):
             raise ValueError('native HOST allocator policy must be in the frozen model configuration')
         return env
-    if policy != 'uncached_v1' or str(model_cfg.get('backend', 'vllm')).lower() != 'vllm':
+    if policy not in ('uncached_v1', 'uncached_background_v1') or str(model_cfg.get('backend', 'vllm')).lower() != 'vllm':
         raise ValueError('unsupported IEEE native HOST allocator candidate')
     setting = 'pinned_max_cached_size_mb:0'
+    if policy == 'uncached_background_v1':
+        setting += ',pinned_use_background_threads:True'
     aliases = ('PYTORCH_ALLOC_CONF', 'PYTORCH_CUDA_ALLOC_CONF', 'PYTORCH_HIP_ALLOC_CONF')
     if any(env.get(key) not in (None, '', setting) for key in aliases):
         raise ValueError('native HOST allocator candidate conflicts with inherited allocator tuning')

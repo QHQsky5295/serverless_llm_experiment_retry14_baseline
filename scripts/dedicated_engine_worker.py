@@ -78,8 +78,11 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
     policy = model_cfg.get('ieee_native_host_allocator_policy')
     marker = os.environ.get('FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY')
     if policy is not None or marker:
-        if (policy != 'uncached_v1' or marker != policy
-                or os.environ.get('PYTORCH_ALLOC_CONF') != 'pinned_max_cached_size_mb:0'
+        setting = 'pinned_max_cached_size_mb:0'
+        if policy == 'uncached_background_v1':
+            setting += ',pinned_use_background_threads:True'
+        if (policy not in ('uncached_v1', 'uncached_background_v1') or marker != policy
+                or os.environ.get('PYTORCH_ALLOC_CONF') != setting
                 or any(key in os.environ for key in ('PYTORCH_CUDA_ALLOC_CONF', 'PYTORCH_HIP_ALLOC_CONF'))):
             raise ValueError('native HOST allocator candidate must be configured before worker imports')
     cost_model = dict(payload["cost_model"])

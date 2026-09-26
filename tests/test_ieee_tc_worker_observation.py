@@ -91,6 +91,22 @@ class NativeHostFootprint(unittest.TestCase):
 
 
 class NativePinnedHostAccounting(unittest.TestCase):
+    def test_background_candidate_reads_native_config_without_assuming_immediate_return(self):
+        setting = 'pinned_max_cached_size_mb:0,pinned_use_background_threads:True'
+        env = {'FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY':'uncached_background_v1',
+               'PYTORCH_ALLOC_CONF':setting}
+        settings = {'max_cached_size':0, 'PYTORCH_CUDA_ALLOC_CONF':setting}
+        fake = SimpleNamespace(__version__='2.13.0+cu130',
+            cuda=SimpleNamespace(memory=SimpleNamespace(_snapshot=lambda:{'allocator_settings':settings})))
+        with patch.dict(os.environ, env, clear=True), patch.object(monitor, 'torch', fake):
+            result = monitor._ieee_native_host_allocator_policy()
+            self.assertEqual(result['policy'], 'uncached_background_v1')
+            self.assertTrue(result['verified'])
+            self.assertFalse(result['immediate_release_guaranteed'])
+            settings['PYTORCH_CUDA_ALLOC_CONF'] = 'pinned_max_cached_size_mb:0'
+            with self.assertRaisesRegex(RuntimeError, 'readback'):
+                monitor._ieee_native_host_allocator_policy()
+
     def test_allocator_policy_requires_actual_readback_not_only_environment(self):
         env = {'FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY': 'uncached_v1',
                'PYTORCH_ALLOC_CONF': 'pinned_max_cached_size_mb:0'}

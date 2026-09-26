@@ -253,6 +253,15 @@ class NativeHostWorkspace(unittest.TestCase):
         return self.owner.configure_host_budget(expected_owner_id=self.owner.owner_id,
             tensor_budget_bytes=budget, workspace_contract=self.contract if contract is None else contract)
 
+    def test_background_return_does_not_waive_actual_occupancy_or_budget(self):
+        self.checker.return_value['allocator_policy']['policy'] = 'uncached_background_v1'
+        with self.assertRaisesRegex(ValueError, 'cannot fit'):
+            self.configure(909)
+        self.configure()
+        self.assertFalse(self.project(310, 200)['admitted'])
+        self.assertTrue(self.project(210, 200)['admitted'])
+        self.assertEqual(self.owner._native_host_tensor_budget, 910)
+
     def project(self, current, registered, proactive=True, **changes):
         incoming=dict(pinned_allocation_policy='uncached_v1', dtype='torch.float16',
             resident_pinned_upper_bytes=100, transient_tensor_upper_bytes=200,
