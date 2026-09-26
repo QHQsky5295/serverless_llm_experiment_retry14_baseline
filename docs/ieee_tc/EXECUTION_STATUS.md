@@ -94,13 +94,15 @@ its one historical SHA difference and independent numerical gate remain open.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
-## Latest verified backups and evidence index
+## Latest backups and evidence index
 
-- Main tested implementation: `0d1ae6d70b3e599125b671615b28419a1fbca146`, pushed to
-  `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
+- Main tested implementation: `4af6a9cc50de80f29a9fabe91ad6166437e3e6d5`, pushed to
+  `faaslora_origin/retry14_continuous_queue_v2`; Git acknowledged the successful
+  branch update from3c57e00 to4af6a9c. Two subsequent fresh full-SHA readbacks hit
+  GitHub TLS termination; independent readback remains pending, not claimed done.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
-  `origin/main`; remote SHA reverified in D46. No baseline edits in D46.
+  `origin/main`; remote full SHA reverified in D47. No baseline edits in D47.
 - All earlier checkpoints, failures, qualification attempts and exact backups
   remain verbatim in [EXECUTION_HISTORY_THROUGH_D26.md](EXECUTION_HISTORY_THROUGH_D26.md).
   Archive SHA256: `4e91643d959967f1f0dc8642fe969d35380f2156cf8c820964019539d3b415cb`.
@@ -210,6 +212,14 @@ its one historical SHA difference and independent numerical gate remain open.
   and all147 protected entries unchanged; baseline16570c and original dirt
   preserved. Main tested implementation backup follows. No performance slot
   completed, no new profile claimed, complete Full guard remains.
+- Implementation4af6a9cc50de80f29a9fabe91ad6166437e3e6d5 committed and push
+  acknowledged by GitHub (3c57e00..4af6a9c). Two fresh ls-remote readbacks failed
+  with gnutls_handshake termination; do not claim an independent fresh readback.
+  Baseline16570c full remote SHA was reverified. All13 D47 scopes stopped and no
+  task remains. This documentation-only receipt is not another experiment.
+  On continuation verify remote backup and continue integrated control/steady
+  state and full-source replacement; do not repeat D47 or old model prefixes.
+  Full goal remains active; original user dirt and all protected assets intact.
 
 ### D46 one frozen epoch across mixed file/native HOST/GPU execution
 
