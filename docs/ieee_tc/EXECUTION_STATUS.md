@@ -67,6 +67,10 @@ checks pass; zero CUDA initialization. The earlier combined698-test attempt
 retains2failures/2errors from using the wrong interpreter for pidfd safety tests,
 not a system-result failure. No guard or test was weakened. All5 owned scopes
 are empty with memory high/max/OOM0; cleanup/backup receipt below follows.
+Tested code/data checkpoint81fc5c47410b43f93142fefee1577a9cd395d7d5 is pushed;
+fresh full remote SHA matches. All5 owned scopes stopped. No experiment remains
+running. This subsequent receipt is documentation only; baseline16570c unchanged
+with fresh origin/main verification. Do not claim complete Full qualification.
 
 D56 measured the actual native CPU checkpoint allocator for all six existing
 content/rank/module classes, default vs official no-caching configuration, in
@@ -234,6 +238,12 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
   GPUs15MiB/0%, MemAvailable108633516KiB, disk353415098368B. Protected147 and plan
   SHA unchanged; offline six rows independently reconciled to raw SHA/formula.
   Tested milestone backup follows; goal remains active, not complete.
+- Tested code/data81fc5c47410b43f93142fefee1577a9cd395d7d5 pushed to
+  faaslora_origin/retry14_continuous_queue_v2; fresh full remote SHA verified.
+  Eleven named task files only, diff/protected-name/added-text secret checks pass.
+  All5 test scopes empty and stopped; no live model/test. Baseline no task edits,
+  HEAD16570c023a439c884624e7a5bdfa0d8577faf7a3 matches fresh origin/main.
+  This documentation-only receipt changes no measurement or runtime source.
 
 ### D56 actual native HOST allocator evidence
 
