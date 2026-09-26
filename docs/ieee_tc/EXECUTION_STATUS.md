@@ -81,7 +81,7 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `33ef68d0a1cd566211da91892f838f4a339cfc92`, pushed to
+- Main tested implementation: `4ca84c375d1b17029cfb8807650bfe86a631ede6`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -174,6 +174,11 @@ its one historical SHA difference and independent numerical gate remain open.
 - Next: actual rank-sliced copy workspace contract, controller/native identity handoff for complete admitted-KV set,
   other-tier transfer/budget integration, actual planner/preparation, representative
   frozen measurements. No new isolated capacity5/source32/lifecycle4 diagnostics.
+- Implementation4ca84c3 pushed and remote full SHA verified. All five D29 auxiliary
+  scopes checked at TasksCurrent0 and stopped; no model/context left. Final protected
+  seal147/147 and plan SHA unchanged; GPUs15MiB/0%, MemAvailable109386324KiB,
+  disk353836335104 bytes. Only the original user dirt remains unstaged. This backup
+  receipt is a subsequent documentation-only commit; the full goal is not complete.
 
 ### D28 completed evidence block; full goal remains active
 
