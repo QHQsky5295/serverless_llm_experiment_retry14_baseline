@@ -512,10 +512,11 @@ class IEEEBackendGPUReferences:
     is an already materialized native HOST source, not all-tier admission.
     """
 
-    def __init__(self, manager, completion_fence, *, demand_loader=None):
+    def __init__(self, manager, completion_fence, *, demand_loader=None, preparation_loader=None):
         self.manager = manager
         self.completion_fence = completion_fence
         self.demand_loader = demand_loader
+        self.preparation_loader = preparation_loader
         self.owner_id = uuid.uuid4().hex
         self.thread_id = threading.get_ident()
         self.epoch = 0
@@ -846,6 +847,15 @@ class IEEEBackendGPUReferences:
                                 lora_name: str, lora_path: str,
                                 expected_owner_id: str, expected_epoch: int,
                                 required_source_tier: Optional[str] = None) -> Dict[str, Any]:
+        return self._load_and_acquire(lease_id=lease_id, adapter_int_id=adapter_int_id,
+            lora_name=lora_name, lora_path=lora_path, expected_owner_id=expected_owner_id,
+            expected_epoch=expected_epoch, required_source_tier=required_source_tier,
+            loader=self.demand_loader)
+
+    def _load_and_acquire(self, *, lease_id: str, adapter_int_id: int,
+                         lora_name: str, lora_path: str, expected_owner_id: str,
+                         expected_epoch: int, required_source_tier: Optional[str],
+                         loader) -> Dict[str, Any]:
         """Native demand load -> completion -> pin, on one serialized worker.
 
         There is no await or controller-side load/query gap in this operation.
@@ -892,7 +902,7 @@ class IEEEBackendGPUReferences:
             raise ValueError('released lease ID cannot be reused')
         if expected_epoch != self.epoch:
             return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
-        if not callable(self.demand_loader):
+        if not callable(loader):
             raise RuntimeError('native demand loader is not attached')
         cpu, gpu = self._caches()
         cpu_hit, gpu_hit = adapter_int_id in cpu, adapter_int_id in slots
@@ -917,8 +927,8 @@ class IEEEBackendGPUReferences:
         start = time.monotonic()
         try:
             if not gpu_hit:
-                self.demand_loader(adapter_int_id=adapter_int_id,
-                                   lora_name=lora_name, lora_path=lora_path)
+                loader(adapter_int_id=adapter_int_id,
+                       lora_name=lora_name, lora_path=lora_path)
                 # Only an owned load may establish a new native object for this
                 # immutable name/path. Do this before checking the new state;
                 # an unrelated replacement must never gain this authorization.
@@ -1018,10 +1028,10 @@ class IEEEBackendGPUReferences:
             # No yield between evaluation, native victim selection and load.
             # The existing demand primitive supplies completion fencing and
             # reference ownership, but its policy was not used for this decision.
-            receipt = self.demand_load_and_acquire(lease_id=lease_id,
+            receipt = self._load_and_acquire(lease_id=lease_id,
                 adapter_int_id=adapter_int_id, lora_name=lora_name, lora_path=lora_path,
                 expected_owner_id=self.owner_id, expected_epoch=self.epoch,
-                required_source_tier='host')
+                required_source_tier='host', loader=self.preparation_loader)
             if not receipt['acquired']:
                 self._poisoned = True
                 raise RuntimeError('serialized preparation lost its validated HOST source/slot')

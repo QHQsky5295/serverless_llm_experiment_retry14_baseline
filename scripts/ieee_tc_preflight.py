@@ -1412,6 +1412,111 @@ def backend_runtime_check(install_receipt: Path, requirements: Path) -> dict:
     return result
 
 
+def backend_copy_check(runtime_receipt: Path) -> dict:
+    """Real native setters/DMA, no backbone, new adapter artifact or trace.
+
+    Nonzero tensor patterns are in-memory correctness fixtures, not training
+    weights. This answers the D29 rank8/maxrank64 workspace question only.
+    Model/pool semantics and Full admission remain separate qualifications.
+    """
+    service = verify_current_service()
+    prior = json.loads(runtime_receipt.read_text())
+    if (prior.get('kind') != 'backend_cuda_import_qualification_v1'
+            or prior.get('pass') is not True or prior.get('stage') != 'complete'
+            or Path(prior['environment']).resolve() != Path(sys.prefix).resolve()):
+        raise RuntimeError('copy qualification requires the completed native CUDA receipt')
+    result = dict(kind='backend_pitched_host_copy_qualification_v1', service=service,
+        runtime_receipt_sha256=digest(runtime_receipt), check_source_sha256=digest(Path(__file__)),
+        plan_sha256=check_plan(), environment=sys.prefix, production_launch_authorized=False,
+        model_qualification=False, fixture='in_memory_nonzero_patterns_not_LoRA_artifacts',
+        stage='imports', cases=[])
+    result['pass'] = False
+    try:
+        import torch
+        import vllm
+        from types import SimpleNamespace, MethodType
+        from cuda.bindings import __version__ as bindings_version
+        from vllm.lora.layers.base_linear import BaseLinearLayerWithLoRA as Base
+        from vllm.lora.layers.column_parallel_linear import MergedColumnParallelLinearWithLoRA as Merged
+        sys.path.insert(0, str(ROOT))
+        from faaslora.memory.gpu_monitor import _ieee_host_copy_contract, _ieee_pitched_host_copy
+        if (vllm.__version__ != '0.30.0' or torch.cuda.device_count() != 1
+                or torch.__version__ != '2.13.0+cu130'):
+            raise RuntimeError('copy qualification requires the existing exact candidate and one GPU')
+        result.update(torch_version=torch.__version__, backend_version=vllm.__version__,
+            bindings_version=bindings_version,
+            copy_source_sha256=digest(ROOT/'faaslora/memory/gpu_monitor.py'))
+        device = torch.device('cuda:0')
+        stream = torch.cuda.current_stream(device)
+        rank, max_rank, index = 8, 64, 2
+        def pattern(rows, cols):
+            return (torch.arange(rows*cols, dtype=torch.int32).remainder_(251)
+                    .to(dtype=torch.float16).reshape(rows, cols).pin_memory())
+        def fence():
+            stream.synchronize()
+        for kind, widths in [('linear', [4096]), ('merged_missing_middle', [4096, 4096, 11008])]:
+            result['stage'] = kind
+            n = len(widths)
+            module = SimpleNamespace(tp_size=1, n_slices=n)
+            module.lora_a_stacked = tuple(torch.full((4, 1, max_rank, width), -7.,
+                device=device, dtype=torch.float16) for width in widths)
+            module.lora_b_stacked = tuple(torch.full((4, 1, width, max_rank), -7.,
+                device=device, dtype=torch.float16) for width in widths)
+            module.reset_lora = MethodType(Base.reset_lora, module)
+            module.set_lora = MethodType(Base.set_lora if n == 1 else Merged.set_lora, module)
+            aa = [None if n > 1 and j == 1 else pattern(rank, width) for j, width in enumerate(widths)]
+            bb = [None if n > 1 and j == 1 else pattern(width, rank) for j, width in enumerate(widths)]
+            layer = SimpleNamespace(lora_a=aa[0] if n == 1 else aa, lora_b=bb[0] if n == 1 else bb)
+            manager = SimpleNamespace(modules={'fixture': module}, list_adapters=lambda: {1: object()},
+                _get_lora_layer_weights=lambda *_: layer)
+            copies = _ieee_host_copy_contract(manager, 1)
+            destinations = [(s, t[index, 0, :s.shape[0], :s.shape[1]]) for s, t in copies]
+            row = dict(case=kind, rank=rank, max_rank=max_rank, slot=index,
+                       widths=widths, copy_rectangles=len(copies), arms=[])
+            result['cases'].append(row)
+            tensors = list(module.lora_a_stacked) + list(module.lora_b_stacked)
+            expected = []
+            for source, target in zip(aa+bb, tensors):
+                cpu = torch.full(tuple(target.shape), -7., dtype=target.dtype)
+                cpu[index] = 0
+                if source is not None:
+                    cpu[index, 0, :source.shape[0], :source.shape[1]].copy_(source)
+                expected.append(cpu)
+            for arm in ('native_copy_', 'pitched_native_setter'):
+                for tensor in tensors:
+                    tensor.fill_(-7.)
+                fence()
+                torch.cuda.reset_peak_memory_stats(device)
+                allocated = torch.cuda.memory_allocated(device)
+                reserved = torch.cuda.memory_reserved(device)
+                free_before, _ = torch.cuda.mem_get_info(device)
+                if arm == 'native_copy_':
+                    module.set_lora(index, layer.lora_a, layer.lora_b)
+                else:
+                    with _ieee_pitched_host_copy(destinations, device, fence):
+                        module.set_lora(index, layer.lora_a, layer.lora_b)
+                fence()
+                measured = dict(arm=arm,
+                    peak_extra_allocated_bytes=torch.cuda.max_memory_allocated(device)-allocated,
+                    extra_reserved_bytes=torch.cuda.memory_reserved(device)-reserved,
+                    device_free_change_bytes=torch.cuda.mem_get_info(device)[0]-free_before)
+                actual = [tensor.cpu() for tensor in tensors]
+                measured.update(exact_all_slots=all(torch.equal(x, y) for x, y in zip(actual, expected)),
+                    tensor_sha256=[hashlib.sha256(x.numpy().tobytes()).hexdigest() for x in actual])
+                row['arms'].append(measured)
+                if not measured['exact_all_slots']:
+                    raise RuntimeError('native slot contents, zero padding or untouched slots differ')
+                if arm != 'native_copy_' and measured['peak_extra_allocated_bytes'] != 0:
+                    raise RuntimeError('pitched strategy unexpectedly allocated a GPU tensor')
+            if row['arms'][0]['tensor_sha256'] != row['arms'][1]['tensor_sha256']:
+                raise RuntimeError('native and pitched full-pool contents differ')
+        result.update(stage='complete', **{'pass': True})
+    except Exception as error:
+        import traceback
+        result.update(error_type=type(error).__name__, error=str(error), traceback=traceback.format_exc())
+    return result
+
+
 def validate_model_worker(observation: dict, service: dict, clock_id: str) -> None:
     """Compare an actual worker reply with this host's process identity."""
     pid = observation['pid']
@@ -2308,7 +2413,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
                                          'watchdog', 'watchdog-test', 'install-candidate', 'backend-check',
-                                         'backend-model-check', 'artifact-audit', '_worker',
+                                         'backend-model-check', 'backend-copy-check', 'artifact-audit', '_worker',
                                          'gated-launch', '_launch-gate', '_replay-publisher', '_replay-witness'])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--seal', type=Path)
@@ -2386,6 +2491,10 @@ def main():
         result = asyncio.run(backend_model_check(args.runtime_receipt, args.config,
             args.model_profile, args.replay_trace, args.request_count, args.qualification_mode,
             args.artifact_audit))
+    elif args.action == 'backend-copy-check':
+        if not args.runtime_receipt or not args.output:
+            parser.error('backend-copy-check requires the native runtime receipt and new output')
+        result = backend_copy_check(args.runtime_receipt)
     elif args.action == 'install-candidate':
         if not args.candidate_environment or not args.requirements or not args.output:
             parser.error('install-candidate requires explicit new environment, requirements and output')

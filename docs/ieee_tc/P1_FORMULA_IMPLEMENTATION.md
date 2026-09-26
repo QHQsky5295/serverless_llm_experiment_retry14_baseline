@@ -1446,3 +1446,43 @@ KV需求集合；把其他层transfer事件与预算接入，并连接实际plan
 替代Full所有层的资格，不能只打开新profile开关就继续使用旧warmup启发式。
 原生模型验证必须在这些接口形成一个有意义的Full准备路径后进行，不重复
 D26 source32、D27 lifecycle4或D28 capacity5。正式M1/M2、baseline及消融均未开始。
+
+## D30：rank-sliced HOST→GPU 的显式 pitched-copy 路径
+
+### 假设、依据和范围
+
+D29发现的不是“显存预留值偏小”，而是PyTorch的非连续目标拷贝需要临时GPU
+张量。为此增加一个明确的准备拷贝策略：保持原生vLLM0.30 reset/setter、LRU
+victim、slot布局及rank64配置，使用`cudaMemcpy2DAsync`直接写入rank8目标矩形。
+不重新训练或生成adapter，不改变九个公式，不新增经验workspace常量。
+
+依据为当前Torch精确版本的Copy.cu（链接见D29）、
+[CUDA13二维异步拷贝定义](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-runtime-api/group__CUDART__MEMORY.html)、
+[vLLM0.30原生linear setter](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/layers/base_linear.py)
+及同版本merged setter。CUDA接口使用实际源/目标行距、字节宽度、行数和当前
+stream。已安装cuda-bindings13.4.3提供该接口，未安装新依赖或修改原环境源码。
+
+使用线程局部、限于一次native准备的TorchDispatchMode接管经过验证的copy操作，
+不全局替换Torch/vLLM方法。所有预期源和目标地址、形状、stride、dtype必须
+匹配，每个矩形恰好写入一次。未知/重复/遗漏copy均失败；没有copy_兜底重试。
+零填充仍调用原生reset，缺失packed子模块保持原生语义。强引用保持CPU/GPU
+视图直到所捕获stream的fence完成，包括异常退出；随后沿用原生引用确认。
+
+| 论文规范语义 | D30当前实现证据 |
+|---|---|
+| workspace有实际依据 | 消除该已知路径的临时张量，而非把未知workspace填零；真实CUDA资格待下项 |
+| Full/CapacityOnly物理策略相同 | 两者使用同一准备loader和原生LRU，只有软E(t)检查不同 |
+| 普通请求加载不暗改 | demand和preparation显式分离，未安装准备loader不得回退到普通copy |
+| 成功发布必须可执行 | 完成全部预期矩形并fence后才获得GPU引用；错误使事务失效 |
+| 不把底层测试当完整资格 | 699项功能、56项安全检查通过；无模型/正式性能结论 |
+
+新增8项CPU检查包含真实ATen局部dispatch、原生reset表达式、padding/其他slot
+不变、CUDA错误/异常、未预期/重复/遗漏写入、stream切换及capture拒绝。
+其中DMA以CPU mock验证控制合同，不冒称真实GPU验证。
+
+下一项使用现有preflight的`backend-copy-check`，在原安全资源域运行一次真实
+CUDA/native-setter检查：普通linear与包含缺失子模块的merged，rank8/maxrank64，
+非零内存测试图样，不加载backbone、不新增权重文件或trace。比较全slot内容SHA、
+零填充和额外GPU tensor峰值。它只回答拷贝问题，不是再次运行模型前缀，也不是
+Full/performance资格。检查后交付状态表，再回到controller/native KV身份交接、
+全层transfer/budget与planner/handoff主线。

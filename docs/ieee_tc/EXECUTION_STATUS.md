@@ -147,6 +147,19 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## This continuation
 
+### D30 implementation, real copy qualification next
+
+- D29 workspace finding now has an explicit pitched-copy strategy, using actual
+  CUDA row geometry inside unchanged native setters/LRU. No max-rank reduction,
+  guessed workspace, global monkeypatch, fallback copy or new adapter artifacts.
+  Ordinary demand loading remains distinct; Full/CapacityOnly share this strategy.
+- 699 functional and56 safety checks passed, no failures/skips. Plan SHA and147
+  protected entries unchanged. Current CUDA qualification still pending: next is
+  one guarded native-setter/copy microcheck, no backbone/model-prefix rerun.
+- Then resume controller-pending/native KV identity handoff, all-tier budget and
+  transfer accounting, actual planner/handoff and representative measured profiles.
+  M1/M2, formal baselines, ablations/sensitivities remain not started.
+
 ### D29 implementation evidence; no new model experiment
 
 - The actual engine/proxy/dedicated/core/worker entry points now execute one

@@ -12,6 +12,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
 from collections import deque
+from collections import Counter
+from contextlib import contextmanager
 
 try:
     import torch
@@ -214,7 +216,7 @@ def _ieee_lora_pool_inventory(manager: Any, *, require_uniform_slots: bool = Fal
             'registered_cpu_adapter_ids': registered}
 
 
-def _ieee_host_copy_contract(manager: Any, adapter_int_id: int) -> None:
+def _ieee_host_copy_contract(manager: Any, adapter_int_id: int) -> list:
     """Prove the v0.30 TP=1 path copies existing CPU tensors into fixed slots.
 
     No general claim that arbitrary LoRA modules need zero workspace. Unknown
@@ -229,7 +231,7 @@ def _ieee_host_copy_contract(manager: Any, adapter_int_id: int) -> None:
     if vllm.__version__ != '0.30.0':
         raise RuntimeError('proactive HOST copy contract requires vLLM 0.30.0')
     loaded = manager.list_adapters()[adapter_int_id]
-    matched = 0
+    matched, copies = 0, []
     for name, module in manager.modules.items():
         layer = manager._get_lora_layer_weights(loaded, name)
         if layer is None:
@@ -266,15 +268,96 @@ def _ieee_host_copy_contract(manager: Any, adapter_int_id: int) -> None:
                     or source.dtype != target.dtype or target.ndim != 4
                     or source.shape[0] > target.shape[2] or source.shape[1] > target.shape[3]):
                 raise ValueError('HOST source needs conversion, staging or exceeds its native GPU slot')
-            # A contiguous pool does NOT imply its rank-sliced B destination
-            # is contiguous. PyTorch CPU->CUDA copy_ allocates a temporary for
-            # a noncontiguous destination even with matching dtype/pinned CPU.
-            # Slice a view only (no allocation), exactly as the native setter.
+            # A rank-sliced B view need not be contiguous. Its row pitch is
+            # explicit; the preparation loader uses cudaMemcpy2DAsync instead
+            # of PyTorch's implicit contiguous GPU temporary. No rank reduction.
             destination = target[0, 0, :source.shape[0], :source.shape[1]]
-            if not destination.is_contiguous():
-                raise ValueError('native rank-sliced GPU copy requires unreserved temporary workspace')
+            if (not target.is_contiguous() or destination.stride(1) != 1
+                    or destination.stride(0) < source.shape[1]):
+                raise ValueError('native GPU slot has an unsupported row-pitched layout')
+            copies.append((source, target))
     if matched == 0:
         raise ValueError('HOST source matched no executable native module')
+    return copies
+
+
+def _ieee_copy_signature(tensor):
+    return (str(tensor.device), int(tensor.data_ptr()), tuple(tensor.shape),
+            tuple(tensor.stride()), str(tensor.dtype))
+
+
+def _ieee_copy2d_layout(source, destination):
+    """Byte geometry for a dense pinned HOST -> row-pitched CUDA rectangle."""
+    if (source.device.type != 'cpu' or destination.device.type != 'cuda'
+            or source.layout != torch.strided or destination.layout != torch.strided
+            or source.ndim != 2 or destination.ndim != 2 or source.numel() <= 0
+            or source.shape != destination.shape or source.dtype != destination.dtype
+            or not source.is_contiguous() or not source.is_pinned()
+            or destination.stride(1) != 1 or destination.stride(0) < source.shape[1]
+            or source.data_ptr() <= 0 or destination.data_ptr() <= 0):
+        raise ValueError('unqualified pinned HOST -> pitched CUDA rectangle')
+    size = int(source.element_size())
+    return (int(destination.stride(0))*size, int(source.stride(0))*size,
+            int(source.shape[1])*size, int(source.shape[0]))
+
+
+@contextmanager
+def _ieee_pitched_host_copy(copies, device, completion_fence):
+    """Scoped native setter copy strategy; never patch installed vLLM/Torch.
+
+    Only the prevalidated source/destination pairs may be copied. Native
+    resetters, LRU/activation policy and all other ATen operators are unchanged.
+    Exact references survive through a stream fence, including exceptional
+    exit, because a direct CUDA copy does not record PyTorch pinned-allocator
+    events. No retry or fallback to copy_ on a CUDA error is allowed.
+    """
+    from cuda.bindings import runtime
+    from torch.utils._python_dispatch import TorchDispatchMode
+    pairs = tuple(copies)  # Own all CPU and destination views until the fence.
+    if not pairs:
+        raise ValueError('pitched preparation requires at least one weight copy')
+    pending = Counter()
+    for source, destination in pairs:
+        _ieee_copy2d_layout(source, destination)
+        if destination.device != device:
+            raise ValueError('preparation destination belongs to another CUDA device')
+        pending[(_ieee_copy_signature(source), _ieee_copy_signature(destination))] += 1
+    with torch.cuda.device(device):
+        stream = torch.cuda.current_stream(device)
+        if torch.cuda.is_current_stream_capturing():
+            raise RuntimeError('HOST preparation must execute outside CUDA graph capture')
+
+        class CopyMode(TorchDispatchMode):
+            def __torch_dispatch__(self, func, types, args=(), kwargs=None):
+                kwargs = kwargs or {}
+                if func is not torch.ops.aten.copy_.default:
+                    return func(*args, **kwargs)
+                destination, source = args[:2]
+                key = (_ieee_copy_signature(source), _ieee_copy_signature(destination))
+                if pending[key] <= 0:
+                    raise RuntimeError('native setter attempted an unplanned or repeated copy')
+                dpitch, spitch, width, height = _ieee_copy2d_layout(source, destination)
+                current = torch.cuda.current_stream(device)
+                if current.cuda_stream != stream.cuda_stream:
+                    raise RuntimeError('native setter changed its preparation stream')
+                status, = runtime.cudaMemcpy2DAsync(destination.data_ptr(), dpitch,
+                    source.data_ptr(), spitch, width, height,
+                    runtime.cudaMemcpyKind.cudaMemcpyHostToDevice, stream.cuda_stream)
+                if status != runtime.cudaError_t.cudaSuccess:
+                    raise RuntimeError(f'cudaMemcpy2DAsync failed with status {int(status)}')
+                pending[key] -= 1
+                return destination
+
+        try:
+            with CopyMode():
+                yield
+            if any(pending.values()):
+                raise RuntimeError('native setter omitted a planned HOST weight copy')
+        finally:
+            # Also needed after partially submitted copies or reset kernels.
+            # A fence failure propagates to the owner's poisoned transaction.
+            with torch.cuda.stream(stream):
+                completion_fence()
 
 
 class IEEEWorkerObservationExtension:
@@ -331,8 +414,22 @@ class IEEEWorkerObservationExtension:
                 if not any(manager._get_lora_layer_weights(loaded, name)
                            for name in manager.modules):
                     raise RuntimeError('native adapter matched no executable LoRA module')
+            def preparation_loader(**args):
+                copies = _ieee_host_copy_contract(manager, args['adapter_int_id'])
+                slots = manager.lora_index_to_id
+                if None in slots:
+                    index = slots.index(None)
+                else:
+                    cache = manager._active_adapters
+                    victim = next(aid for aid in cache.order if aid not in cache.pinned_items)
+                    index = slots.index(victim)
+                destinations = [(source, target[index, 0, :source.shape[0], :source.shape[1]])
+                                for source, target in copies]
+                with _ieee_pitched_host_copy(destinations, self.device, completion_fence):
+                    demand_loader(**args)
             self._ieee_gpu_reference_owner = IEEEBackendGPUReferences(
-                manager, completion_fence, demand_loader=demand_loader)
+                manager, completion_fence, demand_loader=demand_loader,
+                preparation_loader=preparation_loader)
         owner = self._ieee_gpu_reference_owner
         if owner.manager is not manager:
             raise RuntimeError('native LoRA manager replaced; worker reference epoch invalid')
@@ -396,7 +493,8 @@ class IEEEWorkerObservationExtension:
                         ('scheduled_sequence', 'completed_sequence')},
                     'admitted_scope': observation['admitted_scope'],
                     'transfer_scope': 'serialized_native_host_to_gpu_only',
-                    'allocation_contract': 'existing_pinned_cpu_to_preallocated_dense_gpu_v1',
+                    'allocation_contract': 'existing_pinned_cpu_to_pitched_gpu_v2',
+                    'copy_method': 'cudaMemcpy2DAsync_in_native_setter_scope',
                     'scheduler_held_during_commit': True,
                     'physical_increment_reserved_bytes': 0}
             result = owner.proactive_host_prepare_and_acquire(**kwargs, decide=decide)

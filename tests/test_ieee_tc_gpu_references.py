@@ -79,6 +79,7 @@ class NativeProactiveTransactions(unittest.TestCase):
         self.case.setUp()
         self.case.prepare_host()
         self.owner, self.manager = self.case.owner, self.case.manager
+        self.owner.preparation_loader = self.owner.demand_loader
 
     def prepare(self, *, lease='prepare-4', capacity_only=False, decide=None, **updates):
         before = self.owner.snapshot()
@@ -174,11 +175,28 @@ class NativeProactiveTransactions(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'evaluation mutated'):
             self.prepare(decide=bad_decision)
         self.setUp()
-        self.owner.demand_loader = Mock(side_effect=RuntimeError('copy failed'))
+        self.owner.preparation_loader = Mock(side_effect=RuntimeError('copy failed'))
         with self.assertRaisesRegex(RuntimeError, 'copy failed'):
             self.prepare()
         with self.assertRaisesRegex(RuntimeError, 'recovery required'):
             self.owner.snapshot()
+
+    def test_preparation_cannot_fall_back_to_unqualified_demand_copy(self):
+        self.owner.preparation_loader = None
+        before = self.owner.snapshot()
+        self.owner.demand_loader = Mock(side_effect=AssertionError('not a preparation copier'))
+        with self.assertRaisesRegex(RuntimeError, 'loader is not attached'):
+            self.prepare()
+        self.owner.demand_loader.assert_not_called()
+        self.assertEqual(self.owner.snapshot(), before)
+
+    def test_preparation_and_demand_use_distinct_copy_contracts_same_cache_policy(self):
+        copier = Mock(wraps=self.owner.preparation_loader)
+        self.owner.preparation_loader = copier
+        self.owner.demand_loader = Mock(side_effect=AssertionError('ordinary copier not used'))
+        self.assertTrue(self.prepare()['acquired'])
+        copier.assert_called_once()
+        self.owner.demand_loader.assert_not_called()
 
     def test_worker_composes_native_kv_pool_and_lengths_before_commit(self):
         from faaslora.scheduling.resource_coordinator import CompletedLengthSnapshot, NativeIterationObservation
@@ -247,6 +265,8 @@ class NativeProactiveTransactions(unittest.TestCase):
                 return self
             def is_contiguous(self):
                 return self.contiguous
+            def stride(self, index):
+                return (64, 1)[index]
         source = SimpleNamespace(device=SimpleNamespace(type='cpu'), ndim=2,
             shape=(2, 4), dtype='float16', is_contiguous=lambda: True, is_pinned=lambda: True)
         target = Target()
@@ -262,7 +282,7 @@ class NativeProactiveTransactions(unittest.TestCase):
             'vllm.lora.layers.logits_processor': SimpleNamespace(LogitsProcessorWithLoRA=Base)}
         with patch.dict('sys.modules', modules), patch.object(gpu_monitor, 'torch',
                 SimpleNamespace(is_tensor=lambda value: value is source)):
-            gpu_monitor._ieee_host_copy_contract(manager, 4)
+            self.assertEqual(len(gpu_monitor._ieee_host_copy_contract(manager, 4)), 2)
             for field, changed in [('dtype', 'float32'), ('is_pinned', lambda: False),
                                    ('is_contiguous', lambda: False), ('shape', (8, 4))]:
                 original = getattr(source, field)
@@ -271,7 +291,7 @@ class NativeProactiveTransactions(unittest.TestCase):
                     gpu_monitor._ieee_host_copy_contract(manager, 4)
                 setattr(source, field, original)
             target.contiguous = False
-            with self.assertRaisesRegex(ValueError, 'temporary workspace'):
+            with self.assertRaisesRegex(ValueError, 'row-pitched layout'):
                 gpu_monitor._ieee_host_copy_contract(manager, 4)
             target.contiguous = True
             module.set_lora = Mock()
@@ -287,6 +307,112 @@ class NativeProactiveTransactions(unittest.TestCase):
         self.assertFalse(pool[0, 0, :4096, :8].is_contiguous())
         self.assertEqual(pool[0, 0, :4096, :8].stride(), (64, 1))
         self.assertTrue(pool[0, 0, :4096, :64].is_contiguous())
+
+
+class PitchedCopyContract(unittest.TestCase):
+    """Real ATen dispatch on CPU plus a mock DMA: not a CUDA qualification."""
+    def setUp(self):
+        import torch
+        import ctypes
+        self.torch = torch
+        self.source = torch.arange(12, dtype=torch.float16).reshape(3, 4)
+        self.pool = torch.full((2, 3, 8), -7., dtype=torch.float16)
+        self.target = self.pool[1, :, :4]
+        self.fence, self.dma = Mock(), Mock()
+        def copy(dst, dpitch, src, spitch, width, height, kind, stream):
+            for row in range(height):
+                ctypes.memmove(dst+row*dpitch, src+row*spitch, width)
+            return (0,)
+        self.dma.side_effect = copy
+        self.runtime = SimpleNamespace(cudaMemcpy2DAsync=self.dma,
+            cudaMemcpyKind=SimpleNamespace(cudaMemcpyHostToDevice=1),
+            cudaError_t=SimpleNamespace(cudaSuccess=0))
+        self.layout = (16, 8, 8, 3)
+        self.patches = [patch.dict('sys.modules', {
+            'cuda': SimpleNamespace(), 'cuda.bindings': SimpleNamespace(runtime=self.runtime)}),
+            patch.object(gpu_monitor, '_ieee_copy2d_layout', return_value=self.layout),
+            patch.object(torch.cuda, 'device', side_effect=lambda *_: nullcontext()),
+            patch.object(torch.cuda, 'stream', side_effect=lambda *_: nullcontext()),
+            patch.object(torch.cuda, 'current_stream', return_value=SimpleNamespace(cuda_stream=71)),
+            patch.object(torch.cuda, 'is_current_stream_capturing', return_value=False)]
+        for p in self.patches:
+            p.start()
+            self.addCleanup(p.stop)
+
+    def context(self):
+        return gpu_monitor._ieee_pitched_host_copy(
+            [(self.source, self.target)], self.target.device, self.fence)
+
+    def test_exact_copy_and_padding_with_real_scoped_aten_dispatch(self):
+        with self.context():
+            self.pool[1] = 0  # Exact native reset expression, not replaced.
+            returned = self.target.copy_(self.source, non_blocking=True)
+        self.assertIs(returned, self.target)
+        self.assertTrue(self.torch.equal(self.target, self.source))
+        self.assertTrue(self.torch.all(self.pool[1, :, 4:] == 0))
+        self.assertTrue(self.torch.all(self.pool[0] == -7))
+        self.dma.assert_called_once_with(self.target.data_ptr(), 16, self.source.data_ptr(),
+                                        8, 8, 3, 1, 71)
+        self.fence.assert_called_once()
+        self.target.copy_(self.source+1)  # Scope restored, no process-global patch.
+        self.assertEqual(self.dma.call_count, 1)
+
+    def test_unplanned_repeated_and_missing_copies_are_not_silently_accepted(self):
+        for case in ('unplanned', 'repeated', 'missing'):
+            with self.subTest(case=case):
+                self.fence.reset_mock()
+                with self.assertRaisesRegex(RuntimeError, 'unplanned or repeated|omitted'):
+                    with self.context():
+                        if case == 'unplanned':
+                            self.pool[0, :, :4].copy_(self.source)
+                        if case == 'repeated':
+                            self.target.copy_(self.source)
+                            self.target.copy_(self.source)
+                self.fence.assert_called_once()
+
+    def test_cuda_error_or_body_error_fences_once_without_fallback(self):
+        for error in ('cuda', 'body'):
+            with self.subTest(error=error):
+                self.fence.reset_mock()
+                self.dma.reset_mock()
+                self.dma.side_effect = lambda *args: (999 if error == 'cuda' else 0,)
+                with self.assertRaisesRegex(RuntimeError, 'status 999|body failed'):
+                    with self.context():
+                        self.target.copy_(self.source)
+                        raise RuntimeError('body failed')
+                self.dma.assert_called_once()
+                self.fence.assert_called_once()
+
+    def test_graph_capture_is_rejected_before_mutation(self):
+        with patch.object(self.torch.cuda, 'is_current_stream_capturing', return_value=True):
+            with self.assertRaisesRegex(RuntimeError, 'graph capture'):
+                with self.context():
+                    self.fail('must not start native activation')
+        self.dma.assert_not_called()
+
+    def test_stream_change_rejected_and_original_scope_fenced(self):
+        with self.assertRaisesRegex(RuntimeError, 'changed its preparation stream'):
+            with self.context(), patch.object(self.torch.cuda, 'current_stream',
+                    return_value=SimpleNamespace(cuda_stream=72)):
+                self.target.copy_(self.source)
+        self.dma.assert_not_called()
+        self.fence.assert_called_once()
+
+
+class PitchedGeometry(unittest.TestCase):
+    def test_rank8_to_rank64_geometry_and_rejected_conversion(self):
+        import torch
+        source = SimpleNamespace(device=SimpleNamespace(type='cpu'), layout=torch.strided,
+            ndim=2, shape=(4096, 8), dtype=torch.float16, numel=lambda: 4096*8,
+            is_contiguous=lambda: True, is_pinned=lambda: True, stride=lambda i: (8, 1)[i],
+            data_ptr=lambda: 1234, element_size=lambda: 2)
+        target = SimpleNamespace(device=SimpleNamespace(type='cuda'), layout=torch.strided,
+            ndim=2, shape=(4096, 8), dtype=torch.float16, stride=lambda i: (64, 1)[i],
+            data_ptr=lambda: 5678)
+        self.assertEqual(gpu_monitor._ieee_copy2d_layout(source, target), (128, 16, 16, 4096))
+        source.is_pinned = lambda: False
+        with self.assertRaisesRegex(ValueError, 'unqualified'):
+            gpu_monitor._ieee_copy2d_layout(source, target)
 
 
 class NativeDemandTransactions(unittest.TestCase):
