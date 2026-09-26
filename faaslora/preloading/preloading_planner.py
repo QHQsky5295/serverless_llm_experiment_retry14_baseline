@@ -7,9 +7,13 @@ based on hotness prediction and value-per-byte optimization.
 
 import time
 import math
+import hashlib
+import json
 from array import array
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Any, Mapping
+from dataclasses import dataclass, field, asdict
+from threading import RLock
+from types import MappingProxyType
 from enum import Enum
 from collections import defaultdict
 
@@ -191,6 +195,111 @@ class PreparationCandidate:
     @property
     def density(self) -> float:
         return self.benefit_ms / self.footprint_bytes
+
+
+@dataclass(frozen=True)
+class PreparationClass:
+    """Preparation class, deliberately independent of request D/T/O bins.
+
+    Layout identifies the qualified tensor/file layout, not an adapter name or
+    tier-name latency constant. Size edges and layout identities are frozen by
+    the measured profile producer. This type does not certify those measurements.
+    """
+    tier: str
+    representation: str
+    layout_id: str
+    size_bin: int
+
+    def __post_init__(self):
+        if (self.tier not in ('remote', 'nvme', 'host', 'gpu')
+                or not isinstance(self.representation, str) or not self.representation
+                or not isinstance(self.layout_id, str) or not self.layout_id
+                or type(self.size_bin) is not int or self.size_bin < 0):
+            raise ValueError('preparation class needs tier, representation, layout and size bin')
+
+
+class PreparationCostModel:
+    """Replica-local completed-load estimates; new replicas reset to profiles.
+
+    The caller supplies qualified measured class means and a frozen profile ID.
+    No service D, tier average, nearest class or static hotness substitutes a
+    missing d. Snapshotting all classes under one lock prevents mixed epochs.
+    """
+    def __init__(self, profiles: Mapping[PreparationClass, float], *, beta: float, profile_id: str):
+        if (type(beta) not in (int, float) or not math.isfinite(beta) or not 0 < beta <= 1
+                or not isinstance(profile_id, str) or not profile_id or not profiles):
+            raise ValueError('preparation costs require explicit profiles, identity and update coefficient')
+        for key, value in profiles.items():
+            if (not isinstance(key, PreparationClass) or type(value) not in (int, float)
+                    or not math.isfinite(value) or value < 0
+                    or (key.tier == 'gpu' and value != 0)):
+                raise ValueError('invalid measured preparation class/cost')
+        self.profile_id, self.beta = profile_id, beta
+        self._profiles = MappingProxyType(dict(profiles))
+        self._estimates = dict(profiles)
+        self._counts = {key: 0 for key in profiles}
+        self._sequence = 0
+        self._observations = set()
+        self._lock = RLock()
+
+    def new_replica(self):
+        return PreparationCostModel(self._profiles, beta=self.beta, profile_id=self.profile_id)
+
+    def snapshot(self):
+        with self._lock:
+            return self._sequence, MappingProxyType(dict(self._estimates))
+
+    def record_completed_load(self, key: PreparationClass, interval: Mapping) -> bool:
+        """Consume one source-bound D34 interval exactly once, not a raw number.
+
+        Profile qualification must associate the layout/size class with the
+        source before loading. Matching tier/representation is rechecked here.
+        Ineligible shared-source samples are not counted as zero-time loads.
+        """
+        if (interval.get('kind') != 'source_loading_to_executable_v1'
+                or interval.get('source', {}).get('tier') != key.tier
+                or interval.get('admission_service_class', {}).get('representation') != key.representation
+                or interval.get('preparation_class') != asdict(key)
+                or key.tier == 'gpu' or type(interval.get('profile_eligible')) is not bool):
+            raise ValueError('completed preparation differs from its frozen source class')
+        with self._lock:
+            if key not in self._estimates:
+                raise KeyError('unsupported preparation class')
+            if not interval['profile_eligible']:
+                if interval.get('d_ms') is not None:
+                    raise ValueError('ineligible load cannot supply a preparation cost')
+                return False
+            start, end = interval.get('loading_started_monotonic_s'), interval.get('executable_monotonic_s')
+            value = interval.get('d_ms')
+            if (any(type(t) not in (int, float) or not math.isfinite(t) or t <= 0 for t in (start, end))
+                    or start > end or type(value) not in (int, float) or not math.isfinite(value)
+                    or value != (end-start)*1000.):
+                raise ValueError('preparation sample must retain its actual loading boundaries')
+            identity = tuple(interval.get(name) for name in
+                ('clock_id', 'native_owner_id', 'native_lease_id'))
+            if any(not isinstance(v, str) or not v for v in identity):
+                raise ValueError('preparation sample lacks native ownership identity')
+            if identity in self._observations:
+                raise ValueError('duplicate completed preparation observation')
+            self._estimates[key] = (1-self.beta)*self._estimates[key] + self.beta*value
+            self._counts[key] += 1
+            self._observations.add(identity)
+            self._sequence += 1
+            return True
+
+
+@dataclass(frozen=True)
+class PreparationOption:
+    """One received source/target option, not a physical capacity reservation."""
+    artifact_id: str
+    source: PreparationClass
+    target: PreparationClass
+    target_footprint_bytes: int
+
+    def __post_init__(self):
+        # Reuse all tier/byte validation without inventing a measured cost.
+        PreparationCandidate(self.artifact_id, StorageTier(self.source.tier),
+            StorageTier(self.target.tier), self.target_footprint_bytes, 0., 0., 0.)
 
 
 @dataclass
@@ -579,6 +688,67 @@ class PreloadingPlanner:
             diagnostics[tier.value] = meta
             used_adapters.update(x.artifact_id for x in chosen)
         return selected, diagnostics
+
+    def generate_ieee_epoch(self, *, mode: str, options, budgets, demand,
+                            costs: PreparationCostModel, source_snapshot_id: str):
+        """Build Eq.(4) inputs once, then use Eq.(5) or Eq.(6–7).
+
+        This is the actual planning entry, separate from legacy priority. Source
+        owners supply options and unused budgets after residents/reservations/
+        staging. Execution still must revalidate and claim storage; this return
+        value is never a reservation or proof of Full qualification.
+        """
+        if mode not in ('handoff', 'residency') or not isinstance(source_snapshot_id, str) or not source_snapshot_id:
+            raise ValueError('IEEE planning needs mode and received source snapshot identity')
+        if (type(demand.total_arrivals) is not int or demand.total_arrivals < 0
+                or sum(demand.counts.values()) != demand.total_arrivals
+                or any(not isinstance(a, str) or not a or type(n) is not int or n <= 0
+                       for a, n in demand.counts.items())
+                or not math.isfinite(demand.observed_at)
+                or not math.isfinite(demand.window_seconds) or demand.window_seconds <= 0):
+            raise ValueError('IEEE preparation requires one complete arrival-window snapshot')
+        # Copy received inputs before construction; class estimates are obtained
+        # once, not separately while a completion can update a later candidate.
+        options, budgets = tuple(options), dict(budgets)
+        self._validate_ieee_epoch([], budgets)
+        if any(not isinstance(option, PreparationOption) for option in options):
+            raise TypeError('IEEE planner requires source-bound preparation options')
+        counts = dict(demand.counts)
+        sequence, estimates = costs.snapshot()
+        candidates, inputs = [], []
+        seen, sources = set(), {}
+        for option in sorted(options, key=lambda o: (o.artifact_id, o.target.tier)):
+            pair = (option.artifact_id, option.target.tier)
+            if pair in seen or (option.artifact_id in sources and sources[option.artifact_id] != option.source):
+                raise ValueError('duplicate target or conflicting source class in preparation epoch')
+            seen.add(pair)
+            sources[option.artifact_id] = option.source
+            h = counts.get(option.artifact_id, 0)/demand.total_arrivals if demand.total_arrivals else 0.
+            # Zero demand implies zero benefit without estimating unsupported
+            # unused classes; do not replace a missing positive-demand d by zero.
+            d_source = estimates[option.source] if h else None
+            d_target = (0. if option.target.tier == 'gpu' else estimates[option.target]) if h else None
+            inputs.append(dict(artifact_id=option.artifact_id, source=asdict(option.source),
+                target=asdict(option.target), footprint_bytes=option.target_footprint_bytes,
+                demand_fraction=h, source_load_ms=d_source, target_load_ms=d_target))
+            if h:
+                candidates.append(PreparationCandidate(option.artifact_id,
+                    StorageTier(option.source.tier), StorageTier(option.target.tier),
+                    option.target_footprint_bytes, h, d_source, d_target))
+        frozen = dict(kind='ieee_preparation_epoch_v1', mode=mode,
+            source_snapshot_id=source_snapshot_id, profile_id=costs.profile_id,
+            cost_sequence=sequence, demand_observed_at=demand.observed_at,
+            window_seconds=demand.window_seconds, total_arrivals=demand.total_arrivals,
+            arrival_counts=counts, remaining_bytes={tier.value: value for tier, value in budgets.items()},
+            options=inputs)
+        selected, diagnostics = (self.select_ieee_handoff(candidates, budgets) if mode == 'handoff'
+            else self.select_ieee_insertions(candidates, budgets))
+        plan_hash = hashlib.sha256(json.dumps(frozen, sort_keys=True,
+            separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+        return dict(**frozen, plan_sha256=plan_hash, physical_resources_reserved=False,
+            selected={tier.value: tuple(values) for tier, values in selected.items()},
+            diagnostics=({tier.value: value for tier, value in diagnostics.items()}
+                         if mode == 'handoff' else diagnostics))
 
     def select_ieee_handoff(self, candidates: List[PreparationCandidate], budgets: Dict):
         """Eq. (5) density scan with one final target per adapter."""

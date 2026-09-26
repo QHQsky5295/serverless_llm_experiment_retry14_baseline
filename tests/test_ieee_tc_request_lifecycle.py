@@ -51,6 +51,14 @@ def fixture():
 
 class PredecisionRoutingIntegration(unittest.TestCase):
     """Actual runner/router calls with explicit native-measurement fixtures, no GPU."""
+    def test_ieee_full_cannot_silently_start_legacy_preloading(self):
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._routing_policy = 'ieee_confirmed'
+        runner._stack = SimpleNamespace(start=AsyncMock())
+        with self.assertRaisesRegex(RuntimeError, 'legacy priority/warmup is forbidden'):
+            asyncio.run(runner._preload_full_stack())
+        runner._stack.start.assert_not_awaited()
+
     def build(self):
         from faaslora.clock import local_monotonic_clock_id
         from faaslora.experiment.instance_pool import Router, ServiceClassBins, ServiceCostModel, ServiceComponents

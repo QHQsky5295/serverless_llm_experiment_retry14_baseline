@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Native ownership/pressure and actual preparation-d boundaries connected; Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D34. D34 separates actual loading→executable d from admission→acquisition D on real request/file/native entry points. Measured class initialization and actual IEEE planner/handoff/replacement, shared/preactivation pressure and total HOST/native accounting remain open; no new GPU/Full qualification |
+| P1 IEEE semantic alignment | Measured-cost planning entry connected to actual demand tracker; movement/Full integration open | P1_FORMULA_IMPLEMENTATION.md D1–D35. D35 adds class-cost snapshots and stack planning entry; IEEE startup explicitly rejects legacy warmup. Frozen representative profiles, automatic owner/option production, actual movement/handoff/replacement, shared/preactivation pressure and total HOST/native accounting remain open; no new GPU/Full qualification |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -51,15 +51,18 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
-LATEST CODE CHECKPOINT: D34 records actual loading-start→executable d separately
-from admission→acquisition D. Remote per-request transfer identity and native
-load/fence boundaries are connected in the actual runner. Shared/changed sources
-are explicitly ineligible complete-load samples, not zero costs.740 functional
-and56 safety checks pass. No new GPU/model or profile measurement. The actual
-_preload_full_stack still uses legacy priority/warmup; it is NOT IEEE Full.
-Next use these measurements for class initialization and actual IEEE planning/
-handoff/replacement, with remaining HOST/shared-pressure owners. Do not launch
-another source32/capacity5/lifecycle4 or isolated transfer/timing microcampaign.
+LATEST CODE CHECKPOINT: D35 connects ExperimentStack.plan_ieee_preparation to
+its actual arrival-window tracker and the IEEE selectors using one class-cost
+snapshot. PreparationCostModel keeps d separate from service D and resets new
+replicas to frozen initial values.751 functional and56 safety checks pass. No
+new GPU/model or measured profile. Source/footprint/budget options still require
+the actual physical-owner producer; profile loader/online class binding and
+common movement queue are NOT complete. The actual _preload_full_stack now
+rejects ieee_confirmed BEFORE start/cache reset/legacy warmup. This is an explicit
+unqualified-path error, not a replacement IEEE executor. Next connect measured
+profiles and owner options to shared movement/handoff/replacement, with total
+HOST/shared-pressure accounting. Do not add another isolated planner/model-
+prefix or transfer/timing microcampaign and do not bypass the Full guard.
 
 LATEST COMPLETED MODEL RUN: `llama2_7b_capacity_wait_attempt2`, finished and cleaned.
 Five first-distinct requests from old32-prefix,755 native tokens, all targets met.
@@ -97,7 +100,7 @@ its one historical SHA difference and independent numerical gate remain open.
   This is archival organization, not new experimental evidence.
 - Read the relevant historical section before each optimization; do not treat
   old chronological “next” items as current instructions.
-- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D34.
+- P1 formulas / native sources / ownership: `P1_FORMULA_IMPLEMENTATION.md` D1–D35.
 - Actual model qualifications and source32 table: `P2_BACKEND_QUALIFICATION.md`.
 - Full-pool SHA / zero weights: `ARTIFACT_CONTENT_AUDIT.md`.
 - Native five-arm limits: `NATIVE_ADAPTER_NUMERIC_CONTROL.md`.
@@ -152,6 +155,36 @@ its one historical SHA difference and independent numerical gate remain open.
     and stopped. Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D35 class-cost planning entry; Full execution still unqualified
+
+- PreparationClass separates representation/layout/size from request D/T/O.
+  Cost updates require source-bound actual loading intervals, reject repeated
+  native lease samples and unsupported classes, and do not treat shared-source
+  ineligible records as zero. New replicas inherit frozen initial profiles.
+  Typed inputs alone do not certify the eventual measured profile provenance.
+- Actual ExperimentStack planning entry reads its HotnessTracker once, freezes
+  class estimates once, derives F=h*[d_source-d_target]+, then calls the existing
+  IEEE handoff/residency selectors. Input-order-stable plan SHA binds all options,
+  demand, cost version, received source ID and remaining budgets. It explicitly
+  is NOT a physical reservation. Positive-demand missing classes fail, while
+  zero-demand options do not invent measurements.
+- Actual runner's ieee_confirmed preload path rejects legacy priority/warmup
+  BEFORE stack.start and cache reset. No fabricated fallback/legacy Full. This
+  guard remains until actual movement-owner/queue integration is complete.
+-11 added tests; targeted152, full751 and safety56 pass, no failures/skips.
+  Correctness table in P1 D35; no GPU/model run or representative profile. Three
+  owned test scopes verified TasksCurrent0, no pids, high/max/OOM events0, stopped.
+  Final GPUs15MiB/0%, MemAvailable108992372KiB, disk353713020928 B. Plan SHA and147
+  protected entries unchanged. Baseline remains16570c023a439c884624e7a5bdfa0d8577faf7a3,
+  its user dirt untouched. No adapter/trace generation or old-result mutation.
+- Next unresolved mainline: frozen real preparation class producer/loader and
+  binding of actual completed loads; received owner source/footprint/remaining
+  budget options; common pending movement queue and loss-per-usable-byte
+  replacement; total HOST/native tensor and shared/preactivation pressure;
+  complete Full lifecycle/remote/backend qualification. Do not treat the stack
+  planning API as automatic control-path execution. M1/M2, formal baselines,
+  ablations and sensitivities remain not started. Goal remains active.
 
 ### D34 preparation-cost measurement boundaries; no new performance experiment
 

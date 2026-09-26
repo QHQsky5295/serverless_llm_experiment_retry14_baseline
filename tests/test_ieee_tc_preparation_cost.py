@@ -1,7 +1,9 @@
 """Preparation d excludes pre-load waiting; fixtures are not model profiles."""
 import unittest
+from dataclasses import asdict
 from faaslora.clock import local_monotonic_clock_id
-from faaslora.preloading.preloading_planner import observed_preparation_interval
+from faaslora.preloading.preloading_planner import (
+    observed_preparation_interval, PreparationClass, PreparationCostModel)
 
 
 class PreparationIntervals(unittest.TestCase):
@@ -73,3 +75,67 @@ class PreparationIntervals(unittest.TestCase):
     def test_gpu_zero_is_a_definition_not_a_completed_load_sample(self):
         with self.assertRaisesRegex(ValueError, 'non-executable'):
             observed_preparation_interval(**self.inputs('gpu', True))
+
+
+class PreparationCosts(unittest.TestCase):
+    def setUp(self):
+        self.key = PreparationClass('nvme', 'verified_regular_file_tree_v1', 'fixture-layout', 0)
+        self.model = PreparationCostModel({self.key: 10.}, beta=.5, profile_id='fixture-not-measurement')
+
+    def sample(self):
+        args = PreparationIntervals().inputs()
+        args['admission']['service_class']['representation'] = self.key.representation
+        sample = observed_preparation_interval(**args)
+        sample['preparation_class'] = asdict(self.key)
+        return sample
+
+    def test_completed_d_updates_without_preload_wait_and_inheritance_is_frozen(self):
+        old_seq, old_view = self.model.snapshot()
+        self.assertTrue(self.model.record_completed_load(self.key, self.sample()))
+        sequence, view = self.model.snapshot()
+        self.assertEqual((old_seq, sequence), (0, 1))
+        self.assertEqual(view[self.key], 1505.)  # (10 + actual 3000) / 2, not D=53000.
+        self.assertEqual(old_view[self.key], 10.)
+        self.assertEqual(self.model.new_replica().snapshot()[1][self.key], 10.)
+        with self.assertRaises(TypeError):
+            view[self.key] = 0
+
+    def test_duplicate_or_unsupported_samples_do_not_update(self):
+        sample = self.sample()
+        self.model.record_completed_load(self.key, sample)
+        with self.assertRaisesRegex(ValueError, 'duplicate'):
+            self.model.record_completed_load(self.key, sample)
+        other = PreparationClass('nvme', self.key.representation, 'another-layout', 0)
+        sample['preparation_class'] = asdict(other)
+        with self.assertRaises(KeyError):
+            self.model.record_completed_load(other, sample)
+        self.assertEqual(self.model.snapshot()[0], 1)
+
+    def test_changed_class_invalid_boundaries_or_service_D_rejected(self):
+        for field, value in (('preparation_class', asdict(self.key) | {'size_bin': 1}),
+                ('d_ms', 53000.), ('executable_monotonic_s', 149.),
+                ('native_lease_id', ''), ('profile_eligible', None)):
+            sample = self.sample()
+            sample[field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.model.record_completed_load(self.key, sample)
+        self.assertEqual(self.model.snapshot()[0], 0)
+
+    def test_ineligible_sample_not_zero_or_online_initialization(self):
+        sample = self.sample() | dict(profile_eligible=False, d_ms=None,
+                                    reason='shared_file_preparation_reused')
+        self.assertFalse(self.model.record_completed_load(self.key, sample))
+        self.assertEqual(self.model.snapshot()[0], 0)
+        sample['d_ms'] = 0.
+        with self.assertRaises(ValueError):
+            self.model.record_completed_load(self.key, sample)
+
+    def test_profile_and_class_validation(self):
+        for value in (True, -1., float('nan'), float('inf')):
+            with self.assertRaises(ValueError):
+                PreparationCostModel({self.key: value}, beta=.5, profile_id='fixture')
+        with self.assertRaises(ValueError):
+            PreparationClass('host', '', 'layout', 0)
+        gpu = PreparationClass('gpu', 'slots', 'layout', 0)
+        with self.assertRaises(ValueError):
+            PreparationCostModel({gpu: 1.}, beta=.5, profile_id='fixture')

@@ -12997,6 +12997,14 @@ class ScenarioRunner:
 
     async def _preload_full_stack(self):
         """C1 完整：三层级联预加载 远端→硬盘(NVMe)→内存(HOST)→GPU，最热在 GPU、次热在内存、再次在硬盘。"""
+        if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
+            # Routing ownership alone does not qualify proactive policy. Fail
+            # before start(), cache reset or background work, not after running
+            # legacy priorities and labeling their result IEEE Full. The measured
+            # plan_ieee_preparation entry is separate; its movement-owner/queue
+            # integration must be completed before enabling this campaign path.
+            raise RuntimeError('IEEE Full preparation execution is not qualified: '
+                'legacy priority/warmup is forbidden; use measured planning and owned movement')
         await self._stack.start()
         if self.nvme_dir.exists():
             if not self._stack.residency_manager._delete_path(str(self.nvme_dir)):

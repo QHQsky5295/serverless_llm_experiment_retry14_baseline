@@ -1770,3 +1770,65 @@ native CPU复用与从文件加载不同，不能以目录存在或入队时间�
 class初始化，并把收益、预算与实际planner/handoff/replacement共同接入。
 完整HOST/native预算、共享/激活前压力及Full生命周期仍在该集成范围内。
 不要再重复source32/capacity5或创建另一套测量框架。正式主比较仍未开始。
+
+## D35：从需求与准备成本快照构造 IEEE 规划，并阻止旧策略冒充 Full
+
+### 依据与可证伪问题
+
+核对计划P1/P3、IEEE准备收益段、D34及其实现提交`6bdff25`后，本轮问题是：
+既有数学selector是否真正收到同一需求窗口、同一版本的准备成本、真实目标
+footprint和剩余预算，而不是旧registry热度及混合priority？实际启动入口仍
+调用旧策略，因此不能仅凭selector检查通过就运行Full消融。
+
+重新核查了[vLLM0.30原始实现](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/worker_manager.py)
+中CPU LoRA复用、文件加载和原生LRU的边界，以及
+[dLoRA原论文入口](https://www.usenix.org/conference/osdi24/presentation/wu-bingyang)。
+来源用于核对真实加载表示和联合编排的已有设计；不据此宣称IEEE规划有性能
+优势。准备成本仍严格使用D34的加载开始→可执行完成，不使用含初始等待的D。
+
+### 本轮实际实现范围
+
+- `PreparationClass`单独表示tier/representation/layout/size class；不把请求
+  prompt/output/admission类直接当作准备类。其layout和尺寸边界必须由后续
+  合格实测profile生产者绑定，类型检查本身不是测量真实性证明。
+- `PreparationCostModel`从明确class初值初始化，完整加载按固定beta更新；
+  一次snapshot在同一锁内取得全部class估计。新副本只继承冻结初值，不继承
+  其他测试轮学习状态。GPU剩余准备时间为论文定义的0。
+- 更新接受带源类别、实际起止、native owner/lease的D34记录，拒绝重复、
+  改类、把D填成d或不支持的class。共享/改变来源的无完整样本记录不更新，
+  也不产生0成本。beta是明确冻结的更新规则，不按正式结果选取。
+- `ExperimentStack.plan_ieee_preparation`直接取实际HotnessTracker窗口，
+  再调用`generate_ieee_epoch`：冻结输入、由`h*(d_source-d_target)_+`构造
+  candidate，handoff用密度扫描，residency用GPU→HOST→NVMe条件选择。
+  每adapter一个目标；目标footprint和各层剩余预算由物理owner调用方提供。
+- plan SHA绑定来源快照ID、需求计数/时刻、profile ID/更新序号、全部option
+  和预算。返回值明确`physical_resources_reserved=false`；这是决策结果，
+  不是物理资源预留。空窗口无需估计无收益class；正需求缺实测类直接报错。
+- 实际`ScenarioRunner._preload_full_stack`在IEEE routing模式下，先于
+  `stack.start()`、缓存重置和旧background warmup拒绝未合格执行。历史路径
+  保留给旧协议；不会将旧priority悄悄用作IEEE Full。
+
+### 正确性状态表（构造输入，不是性能数据）
+
+| 要验证的问题 | 检查与结论 |
+|---|---|
+| 真实窗口还是静态热度 | 实际stack入口：空窗口不准备；a/b各一次到达时h_a=1/2；过窗后回到0 |
+| d与D是否混用 | fixture初值10ms、实际加载3000ms、beta=1/2，更新1505ms；不使用含等待的53000ms |
+| 是否使用统一epoch | 所有option只读取一次cost snapshot；旧snapshot不随后续更新变化；来源或预算变化改变plan SHA |
+| 两种论文选择是否有区别 | 同fixture下handoff选高密度HOST，residency先选可容纳的GPU；同adapter无重复最终目标 |
+| 是否靠缺测量兜底 | 正需求缺representation/layout类报错；重复观测、非法边界、冲突source和重复target拒绝 |
+| 新副本是否继承测试结果 | new_replica恢复冻结初值，不继承在线更新 |
+| 是否执行旧Full | 实际runner入口在启动后台任务之前拒绝；无文件重置或旧预加载副作用 |
+
+定向152项通过；完整回归及资源收尾以EXECUTION_STATUS中的最终回执为准。
+这些输入是CPU正确性fixture，没有建立新的7B/3B测量profile，没有GPU运行。
+
+### 明确尚未完成，下一步不重复本轮检查
+
+本轮接通**实际stack的规划入口**，但没有完成自动控制路径上的源/预算option
+生产、实测profile加载与在线绑定，也没有接通统一pending movement queue。
+因此Full执行目前被明确拦截；不能称已完成handoff/residency机制或论文实验。
+接下来把代表性实测class、物理owner快照及统一迁移/替换执行接通，处理总HOST/
+native tensor预算和共享/激活前压力。GPU原生LRU尚不是论文的loss-per-usable-
+byte替换规则，不能忽略。完整验证回放须待上述合同闭合，不用另一项孤立微测
+代替。baseline、M1/M2、消融和敏感性仍未开始。

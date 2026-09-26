@@ -887,6 +887,18 @@ class ExperimentStack:
         self._pending_scaleup_gpu_artifacts.clear()
         return plan
 
+    def plan_ieee_preparation(self, *, mode, options, budgets, costs, source_snapshot_id):
+        """Plan from observed ingress, not registry popularity or legacy warmup.
+
+        Received source options and remaining budgets come from physical owners.
+        This entry never starts the legacy background preloader. The resulting
+        plan must enter the common movement queue with execution-time rechecks;
+        until that integration is qualified it is not an executable Full plan.
+        """
+        return self.preloading_planner.generate_ieee_epoch(mode=mode, options=options,
+            budgets=budgets, costs=costs, source_snapshot_id=source_snapshot_id,
+            demand=self.hotness_tracker.snapshot())
+
     async def start(self):
         await self.registry.start()
         await self.gpu_monitor.start()

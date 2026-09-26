@@ -4,8 +4,11 @@ import random
 import unittest
 
 from faaslora.preloading.preloading_planner import (
-    KnapsackItem, PreparationCandidate, PreloadingPlanner,
+    KnapsackItem, PreparationCandidate, PreloadingPlanner, PreparationClass,
+    PreparationCostModel, PreparationOption,
 )
+from faaslora.experiment.hotness_tracker import HotnessTracker
+from faaslora.experiment.experiment_stack import ExperimentStack
 from faaslora.registry.schema import StorageTier as T
 
 MIB = 1024**2
@@ -111,6 +114,85 @@ class IEEEPlanningTests(unittest.TestCase):
                       [KnapsackItem('a', 0, 1)], [KnapsackItem('a', MIB, float('inf'))]]:
             with self.assertRaises(ValueError):
                 self.p.select_benefit_items(items, MIB)
+
+
+class IEEEPlanningEntryTests(unittest.TestCase):
+    def setUp(self):
+        self.now = 100.
+        self.tracker = HotnessTracker(None, 10., clock=lambda: self.now)
+        self.planner = PreloadingPlanner.__new__(PreloadingPlanner)
+        self.planner.max_dp_buffer_bytes = 16*MIB
+        self.stack = ExperimentStack.__new__(ExperimentStack)
+        self.stack.hotness_tracker = self.tracker
+        self.stack.preloading_planner = self.planner
+        self.remote = PreparationClass('remote', 'tar', 'fixture-layout', 0)
+        self.host = PreparationClass('host', 'native_tensors', 'fixture-layout', 0)
+        self.gpu = PreparationClass('gpu', 'native_slots', 'fixture-layout', 0)
+        self.costs = PreparationCostModel({self.remote: 20., self.host: 5.},
+            beta=.5, profile_id='fixture-no-model-qualification')
+        self.options = [PreparationOption('a', self.remote, self.gpu, 4*MIB),
+                        PreparationOption('a', self.remote, self.host, MIB)]
+        self.budgets = {T.GPU: 4*MIB, T.HOST: MIB, T.NVME: 0}
+
+    def plan(self, mode='residency', **kwargs):
+        return self.stack.plan_ieee_preparation(**(dict(mode=mode, options=self.options,
+            budgets=self.budgets, costs=self.costs, source_snapshot_id='fixture-owner-epoch-1') | kwargs))
+
+    def test_actual_stack_uses_arrivals_not_registry_hotness(self):
+        empty = self.plan()
+        self.assertFalse(any(empty['selected'].values()))
+        self.tracker.record_arrival('a')
+        self.tracker.record_arrival('b')
+        result = self.plan()
+        candidate = result['selected']['gpu'][0]
+        self.assertEqual(candidate.demand_fraction, .5)
+        self.assertEqual(candidate.benefit_ms, 10.)
+        self.assertFalse(result['physical_resources_reserved'])
+        self.assertEqual(result['selected']['host'], ())
+        self.now = 111.
+        self.assertFalse(any(self.plan()['selected'].values()))
+        # Previously issued plan remains tied to its old observed window.
+        self.assertEqual(candidate.demand_fraction, .5)
+
+    def test_handoff_and_residency_apply_different_paper_rules(self):
+        self.tracker.record_arrival('a')
+        handoff, residency = self.plan('handoff'), self.plan('residency')
+        self.assertEqual(handoff['selected']['host'][0].artifact_id, 'a')
+        self.assertEqual(residency['selected']['gpu'][0].artifact_id, 'a')
+        self.assertEqual(handoff['diagnostics']['host'], 0)
+        self.assertNotEqual(handoff['plan_sha256'], residency['plan_sha256'])
+
+    def test_missing_positive_demand_profile_rejects_not_zero_or_nearest_class(self):
+        missing = PreparationClass('remote', 'other-representation', 'fixture-layout', 0)
+        options = [PreparationOption('a', missing, self.gpu, MIB)]
+        self.assertFalse(any(self.plan(options=options)['selected'].values()))
+        self.tracker.record_arrival('a')
+        with self.assertRaises(KeyError):
+            self.plan(options=options)
+
+    def test_stable_hash_and_input_copy(self):
+        self.tracker.record_arrival('a')
+        first = self.plan()
+        self.assertEqual(first['plan_sha256'], self.plan(options=reversed(self.options))['plan_sha256'])
+        self.assertNotEqual(first['plan_sha256'], self.plan(source_snapshot_id='next-owner-epoch')['plan_sha256'])
+        self.budgets[T.GPU] = 0
+        self.assertEqual(first['remaining_bytes']['gpu'], 4*MIB)
+        self.assertNotEqual(first['plan_sha256'], self.plan()['plan_sha256'])
+
+    def test_one_atomic_cost_snapshot_and_epoch_consistency(self):
+        from unittest.mock import Mock
+        self.tracker.record_arrival('a')
+        self.costs.snapshot = Mock(wraps=self.costs.snapshot)
+        self.plan()
+        self.costs.snapshot.assert_called_once_with()
+        for options in ([self.options[0]]*2, [self.options[0],
+                PreparationOption('a', self.host, self.gpu, MIB)]):
+            with self.assertRaises(ValueError):
+                self.plan(options=options)
+        with self.assertRaises(ValueError):
+            self.plan(budgets={T.GPU: MIB})
+        with self.assertRaises(ValueError):
+            self.plan(mode='legacy')
 
 
 if __name__ == '__main__':
