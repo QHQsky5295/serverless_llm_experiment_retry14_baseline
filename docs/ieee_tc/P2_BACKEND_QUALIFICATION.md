@@ -868,3 +868,27 @@ sleep制造在途状态。最后一份未copy的checkpoint移除后各arm均回�
 下一项若继续此假设，只比较官方后台事件处理选项能否自主归还这部分占用，
 使用相同工件/程序/资源边界；生产策略保持未选定。该问题不再重跑CPU-only
 allocator测试或旧请求前缀。
+
+## 2026-09-27 D60：官方后台回收的第二次、最终局部对照
+
+执行前协议：复用D59的六类、两条copy路径、八个状态和完整slot核对，
+仅在新的受限进程启用官方
+`pinned_max_cached_size_mb:0,pinned_use_background_threads:True`。
+使用已有命令的显式`--host-copy-background`，不修改生产allocator候选。
+实际snapshot必须读回完整解析配置串及max_cached_size=0；此版本没有单独
+background布尔字段，不杜撰该字段或把环境变量单独当成生效证明。
+
+假设来自D59及官方PyTorch2.13的默认pool事件后台处理实现：删除后的真实
+pinned占用可以在下一次checkpoint分配前归还。判据为原有删除后/第二次fence后
+两个观测点的实际字节，结果不强制为0，也不插入等待直到得到期望值。
+若仍有残留就完整报告；不flush、不dummy分配、不增加HOST预算。不测新的
+性能矩阵，不把一次观察作为及时性上界、CUDA Graph/private pool或Full保证。
+保持原始非后台结果不变；两次独立进程不是统计性能重复。
+
+这是同一假设的第二次最小比较，此后不继续allocator局部循环。先交付对照表，
+再把可支持的候选带回Full/profile及等待队列实际进展验证。后台字节下降不等于
+Prime等待队列已被唤醒；所有容量检查仍必须使用当时实际占用。
+
+依据：[PyTorch2.13官方allocator源码](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/aten/src/ATen/core/CachingHostAllocator.h)、
+[配置解析](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/c10/core/AllocatorConfig.cpp)、
+[vLLM0.30官方copy路径](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/layers/base_linear.py)。

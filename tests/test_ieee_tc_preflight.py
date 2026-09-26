@@ -56,6 +56,42 @@ class ProtocolGates(unittest.TestCase):
                 p.backend_host_allocator_check(Path('/missing'),Path('/missing'))
             with self.assertRaisesRegex(RuntimeError,'no guard'):
                 p.backend_host_allocator_check(Path('/missing'),Path('/missing'), copy_lifecycle=True)
+            with self.assertRaisesRegex(RuntimeError,'no guard'):
+                p.backend_host_allocator_check(Path('/missing'),Path('/missing'),
+                                              copy_lifecycle=True, copy_background=True)
+
+    def test_background_copy_requires_explicit_diagnostic_and_native_readback(self):
+        config = 'pinned_max_cached_size_mb:0,pinned_use_background_threads:True'
+        settings = dict(max_cached_size=0, PYTORCH_CUDA_ALLOC_CONF=config)
+        environment = dict(PYTORCH_ALLOC_CONF=config)
+        result = p._host_copy_background_policy(settings, environment, '2.13.0+cu130')
+        self.assertTrue(result['verified'])
+        self.assertFalse(result['production_launch_authorized'])
+        self.assertFalse(result['immediate_release_guaranteed'])
+        self.assertEqual(result['background_readback'], 'parsed_configuration_string')
+        for invalid in (None, {}, {**settings,'max_cached_size':False},
+                        {**settings,'max_cached_size':1},
+                        {**settings,'PYTORCH_CUDA_ALLOC_CONF':'pinned_max_cached_size_mb:0'}):
+            with self.subTest(settings=invalid), self.assertRaises(RuntimeError):
+                p._host_copy_background_policy(invalid, environment, '2.13.0+cu130')
+        for extra in ({'PYTORCH_ALLOC_CONF':'pinned_max_cached_size_mb:0'},
+                      {'PYTORCH_CUDA_ALLOC_CONF':config}, {'PYTORCH_HIP_ALLOC_CONF':config},
+                      {'FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY':'uncached_v1'}):
+            with self.subTest(environment=extra), self.assertRaises(RuntimeError):
+                p._host_copy_background_policy(settings, {**environment,**extra}, '2.13.0+cu130')
+        with self.assertRaises(RuntimeError):
+            p._host_copy_background_policy(settings, environment, '2.12.0')
+        with patch.object(p, 'verify_current_service', return_value={}):
+            with self.assertRaisesRegex(ValueError, 'requires the copy'):
+                p.backend_host_allocator_check(Path('/missing'), Path('/missing'), copy_background=True)
+
+    def test_background_copy_flag_rejects_other_experiments(self):
+        for args in (['preflight'], ['backend-host-check'], ['backend-copy-check']):
+            with self.subTest(args=args), patch('sys.argv', ['ieee_tc_preflight.py', *args, '--host-copy-background']), \
+                 patch.object(p, 'check_plan', side_effect=AssertionError('invalid flag reached execution')):
+                with self.assertRaises(SystemExit) as raised:
+                    p.main()
+                self.assertEqual(raised.exception.code, 2)
 
     def test_host_copy_lifetime_flag_cannot_silently_apply_to_another_action(self):
         with patch('sys.argv', ['ieee_tc_preflight.py', 'preflight', '--host-copy-lifecycle']), \

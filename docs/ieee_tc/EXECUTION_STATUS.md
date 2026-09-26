@@ -232,6 +232,16 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
 
 ## This continuation
 
+### D60 official background event handling
+
+- Start e2d4c886bd6d4588d07e2b4f6d0db3195c5dd8be; baseline16570c unchanged.
+  Full plan/status/AGENTS and execution/backup/plotting skills read. Protected147
+  and plan SHA unchanged; no model/TMUX active, GPUs15MiB/0%. Read actual D59
+  evidence and installed allocator/native setter; browsed matching official
+  sources. No production policy or budget change. Existing diagnostic gains a
+  strictly checked background-only flag; second/final local hypothesis comparison
+  preregistered in P2. No new artifacts/traces or formal performance run.
+
 ### D59 real-copy HOST lifetime
 
 - Previous goal turn D58 is progress: implemented/tested/backed up fixed-budget

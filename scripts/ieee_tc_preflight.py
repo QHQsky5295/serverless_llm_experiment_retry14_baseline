@@ -1581,7 +1581,31 @@ def _host_copy_lifecycle_case(models, load, observe, case):
         raise RuntimeError('native and pitched checkpoint copy contents differ')
 
 
-def backend_host_allocator_check(runtime_receipt: Path, artifact_audit: Path, *, copy_lifecycle=False) -> dict:
+def _host_copy_background_policy(settings, environment, torch_version):
+    """Diagnostic-only native readback, never authorization of a Full policy.
+
+    Torch exposes the parsed configuration string but not a separate background
+    boolean in this snapshot. Preserve that evidence level; observe actual
+    return in the unchanged copy experiment, not an invented readback field.
+    """
+    expected = 'pinned_max_cached_size_mb:0,pinned_use_background_threads:True'
+    if (torch_version != '2.13.0+cu130'
+            or environment.get('PYTORCH_ALLOC_CONF') != expected
+            or any(key in environment for key in ('PYTORCH_CUDA_ALLOC_CONF',
+                'PYTORCH_HIP_ALLOC_CONF', 'FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY'))
+            or not isinstance(settings, dict)
+            or type(settings.get('max_cached_size')) is not int
+            or settings['max_cached_size'] != 0
+            or settings.get('PYTORCH_CUDA_ALLOC_CONF') != expected):
+        raise RuntimeError('background copy diagnostic requires exact fresh native allocator readback')
+    return dict(policy='uncached_background_diagnostic_v1', verified=True,
+        allocator_settings=settings, background_readback='parsed_configuration_string',
+        production_launch_authorized=False, persistent_cache_enabled=False,
+        immediate_release_guaranteed=False)
+
+
+def backend_host_allocator_check(runtime_receipt: Path, artifact_audit: Path, *,
+                                 copy_lifecycle=False, copy_background=False) -> dict:
     """Native checkpoint CPU allocation/reuse evidence, without a backbone.
 
     Uses the existing guarded service and immutable checkpoints. This is neither
@@ -1589,6 +1613,8 @@ def backend_host_allocator_check(runtime_receipt: Path, artifact_audit: Path, *,
     fabricated weights, retained-byte credit or production budget change.
     """
     service = verify_current_service()  # Before input reads, torch or CUDA.
+    if copy_background and not copy_lifecycle:
+        raise ValueError('background processing diagnostic requires the copy lifetime experiment')
     prior = json.loads(runtime_receipt.read_text())
     if (prior.get('kind') != 'backend_cuda_import_qualification_v1'
             or prior.get('pass') is not True or prior.get('stage') != 'complete'
@@ -1625,9 +1651,11 @@ def backend_host_allocator_check(runtime_receipt: Path, artifact_audit: Path, *,
                 'PYTORCH_ALLOC_CONF', 'PYTORCH_CUDA_ALLOC_CONF', 'PYTORCH_HIP_ALLOC_CONF')},
             allocator_settings=torch.cuda.memory._snapshot().get('allocator_settings'))
         if copy_lifecycle:
-            result['allocator_policy'] = _ieee_native_host_allocator_policy()
+            result['allocator_policy'] = (_host_copy_background_policy(
+                result['allocator_settings'], os.environ, str(torch.__version__))
+                if copy_background else _ieee_native_host_allocator_policy())
             if result['allocator_policy'].get('verified') is not True:
-                raise RuntimeError('copy lifetime observation requires the explicit uncached candidate without background processing')
+                raise RuntimeError('copy lifetime observation requires the explicit allocator candidate')
             result['scope'] = 'existing_dense_checkpoint_native_setters_no_backbone_or_registry'
         models = {}
         # The inventory observes real checkpoint objects; it has no allocator or
@@ -2714,6 +2742,8 @@ def main():
     parser.add_argument('--artifact-audit', type=Path)
     parser.add_argument('--host-copy-lifecycle', action='store_true',
                         help='Observe existing dense checkpoint HOST lifetime across native GPU copy paths')
+    parser.add_argument('--host-copy-background', action='store_true',
+                        help='Diagnostic-only official background event handling; requires --host-copy-lifecycle')
     parser.add_argument('--config', type=Path)
     parser.add_argument('--model-profile')
     parser.add_argument('--request-count', type=int, default=4)
@@ -2733,6 +2763,8 @@ def main():
     args = parser.parse_args()
     if args.host_copy_lifecycle and args.action != 'backend-host-check':
         parser.error('--host-copy-lifecycle applies only to backend-host-check')
+    if args.host_copy_background and (args.action != 'backend-host-check' or not args.host_copy_lifecycle):
+        parser.error('--host-copy-background requires backend-host-check --host-copy-lifecycle')
     if args.action == '_replay-publisher':
         replay_publisher(args)
         return
@@ -2786,7 +2818,8 @@ def main():
         if not args.runtime_receipt or not args.artifact_audit or not args.output:
             parser.error('backend-host-check requires native runtime receipt, existing artifact audit and new output')
         result = backend_host_allocator_check(args.runtime_receipt, args.artifact_audit,
-                                             copy_lifecycle=args.host_copy_lifecycle)
+                                             copy_lifecycle=args.host_copy_lifecycle,
+                                             copy_background=args.host_copy_background)
     elif args.action == 'install-candidate':
         if not args.candidate_environment or not args.requirements or not args.output:
             parser.error('install-candidate requires explicit new environment, requirements and output')
