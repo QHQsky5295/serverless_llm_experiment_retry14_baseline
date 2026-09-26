@@ -21,7 +21,7 @@
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
 | Serverless wait audit | Historical audit + no-GPU control-path tests complete | Clean 7B/3B logs reused; six real-method AST tests pass; incremental ready-before-wait patch preserved. Model pair pending |
-| P1 IEEE semantic alignment | Actual pre-decision source/cost routing connected and tested; admission/physical integration open | P1_FORMULA_IMPLEMENTATION.md D1–D24. Actual request selection uses confirmed native/file views and frozen measured profiles, not legacy hints. No production profile fabricated. Selected-source admission revalidation/class/observer, full-pool qualification, all-tier physical reservations and integrated model qualification remain open; no Full performance qualification |
+| P1 IEEE semantic alignment | Actual routing, selected-source admission/class and native interval observer connected and tested; physical/model integration open | P1_FORMULA_IMPLEMENTATION.md D1–D25. Guarded GPU, CPU-only HOST protection, verified file/HTTP path and known-conflict whole reselection; no legacy simulation fallback or production profile fabricated. Native multi-path content identity/capacity waiting, all-tier physical admission/lifecycle and integrated model qualification remain open; no Full performance qualification |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
 | M1 / M2 | Not started | No new formal performance claims |
@@ -52,12 +52,17 @@ configs/relayserve_motivation_serverlessllm.yaml.
 ## Immediate next actions
 
 0. P2 installation finished; do NOT reinstall. All current runs finished/cleaned. Native adapter reference, full 3B/7B content scan and 7B five-arm native numeric diagnostic COMPLETE; do not repeat same-prompt/zero controls. NATIVE_ADAPTER_NUMERIC_CONTROL.md: all five 217-token outputs identical; A/Z probability max difference .02608, A/A also .006367. Descriptive evidence, not independent numeric/full semantic qualification. Return to Full source/cost and owner integration next. Current 3B pool has 500 all-zero LoRAs (2 SHAs); 7B has 498 zero plus finance/medical nonzero (4 SHAs). Plan forbids new weights; user confirmation requested before adding a few trained nonzero 3B correctness fixtures, no answer yet. Keep pools/traces/history intact. Targeted 2,521 existing configs yielded no 3B candidate, not proof of server-wide absence. Independent numerical verification remains an open gate, not erased by this diagnostic. Review official 0.30 warning on old 3B chunked_prefill=false before freezing. Reuse environment/cache, KEEP_DEDICATED_WORKER_LOGS for future proxy runs.
-1. D24 now connects actual pre-decision all-tier source/class/cost to real request selection and controller count reservation. Native UUID selects actual NVML device; stale/membership-changed collections retry, empty feasible set waits. Next combine selected-source protection/conflict reselection with admission-fixed class and ServiceIntervalObservation; actual requests still do not create that observer, and later acquisition can differ from routing prediction. No production profile fabricated. Do not repeat isolated source-composition/same-prompt controls or relabel this received view as atomic native admission. Complete all-tier physical admission/lifecycle and integrated model qualification remain next.
+1. D25 now connects selected-source protection, known-conflict whole reselection, actual admission-fixed class and ServiceIntervalObservation in real requests. GPU protection precedes admission/D=0; native HOST is CPU-only protected before admission and promoted afterwards. Actual native events update completed intervals; file/HTTP path uses confirmed read references, not legacy resolve. No production profile fabricated. Next use the existing backend-model-check qualification entry for native integrated boundary evidence, then complete physical admission/lifecycle. Known native capacity waiting and content-bound HOST/NVMe path migration remain explicit gaps; never remove identity checks or introduce sleep/fallback. Do not repeat isolated source-composition/same-prompt controls. This is not full global atomic admission or Full performance qualification.
 2. Qualify actual model/GPU workers and lifecycle under the existing guarded launcher; native single-raylet and tiny replay witnesses are not the full deployment gate. Qualify Serverless native checkpoint path before its original/repaired model pair.
 3. Continue remote setup after its disk gate; no heavy GPU run
    until actual process containment and watchdog gates are satisfied.
 
 ## Verified backups
+
+- Main actual pre-decision routing checkpoint
+  `e7a3b1e427616fea2667c9ebe910c80b625fdce5` pushed to V2; remote SHA verified.
+  Actual received-view selection, native UUID utilization and fifteen added
+  checks retained; selected-source atomic admission/model qualification remain open.
 
 - Main confirmed file-publication checkpoint
   `da9109bd7b0e8eb63fae4848d6256f6aa1cf1c09` pushed to V2; remote SHA verified.
@@ -1328,3 +1333,38 @@ configs/relayserve_motivation_serverlessllm.yaml.
   late GPU acquisition proves admission D=0. Remote disk/nonzero 3B authority,
   numerical qualification, warm SLO/reference, Serverless-first baseline pairs,
   M1/M2, all ablations and sensitivities remain open. Overall goal remains active.
+
+## P1 selected-source admission / actual interval-observer checkpoint
+
+- Actual request path now protects the selected native GPU or HOST source, or
+  the verified file copy, before fixing its admission class. HOST protection
+  holds CPU cache only and performs no loading/fence/GPU pin. GPU D=0 starts at
+  admission after its executable reference; HOST/file/Remote D ends at the real
+  native acquisition. Pending post-accept count is reclassified at admission.
+- Known source/epoch conflicts release only this tentative reservation and retry
+  the entire Router. Faster native publication before file/Remote admission also
+  reselects. Received views/conflicts are retained, not replaced by hindsight.
+  Unknown HOST hold/load/release retains native/controller ownership; no blind
+  retry, guessed completion or global cross-owner atomicity claim.
+- IEEE preparation bypasses old simulated resolve: it reuses the existing real
+  HTTP materializer and confirmed file references. Actual generation now calls
+  NativeServiceIntervalObserver; completed D/T/O update the fixed class, final
+  native count/timestamps must agree. Cancellation preserves only completed
+  intervals. Preparation, references and actual GPU release remain distinct.
+- Sixteen added test methods, actual runner/router/owners with tiny deterministic
+  inference/events and HTTP response fixtures, NOT models or remote 174. First
+  19-method attempt had four fixture errors from missing required config bytes;
+  corrected fixture explicitly, no production fallback. Subsequent ten-method
+  run passes; final decode-cancel check included in full 650 functional checks
+  (23.451 s). Independent safety/census/replay: 56 pass (.500 s), no skips/errors.
+  D25 contains the correctness state table, sources and remaining limits.
+- Post-test four GPUs idle at 15 MiB/0%; MemAvailable 108875716 KiB, disk free
+  353996525568 bytes. All 147 protected entries and authoritative plan SHA remain
+  unchanged. No heavy model, remote service, new weights/trace or old-result
+  overwrite. There are still no formal M1/M2, ablation or sensitivity results.
+- Next: native integrated qualification via the existing backend-model-check
+  entry, actual measured profile and remaining physical admission/lifecycle.
+  Native content-bound multi-path identity and capacity-conflict waiting remain
+  open; don't remove identity guards or use a fixed sleep. Whole-pool numerical
+  qualification, remote disk floor/nonzero 3B authority, warm SLO/reference and
+  Serverless-first baseline comparison remain pending. Goal remains active.

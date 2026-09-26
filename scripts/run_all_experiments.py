@@ -1112,6 +1112,9 @@ class RuntimeRequestReservation:
     local_source_owner: Optional[Any] = None
     ieee_routing_evidence: Optional[Dict[str, Any]] = None
     ieee_load_pending: bool = False
+    ieee_observation: Optional[Any] = None
+    ieee_native_observer: Optional[Any] = None
+    ieee_routing_attempts: List[Dict[str, Any]] = field(default_factory=list)
 
     def bind(self, slot, adapter_id, adapter_reserved: bool) -> None:
         if self.bound:
@@ -1119,6 +1122,13 @@ class RuntimeRequestReservation:
         self.slot, self.adapter_id = slot, adapter_id
         self.adapter_reserved = adapter_reserved
         self.bound = True
+
+    def retry_known_conflict(self) -> None:
+        if not self.released or self.generation_started or self.ieee_observation is not None:
+            raise RuntimeError('only fully released pre-admission conflicts may retry selection')
+        attempts = self.ieee_routing_attempts
+        self.__dict__.update(RuntimeRequestReservation(self.request_id).__dict__)
+        self.ieee_routing_attempts = attempts
 
 
 DEFAULT_TTFT_SLO_MS = 5000.0
@@ -4482,7 +4492,7 @@ class InferenceEngine:
         if self.backend != "vllm" or self.engine is None or self._engine_dead:
             raise RuntimeError("native references require a live vLLM engine")
         if operation not in ("snapshot", "source_snapshot", "acquire", "release", "evict", "begin_use", "end_use",
-                             "demand_load_and_acquire"):
+                             "demand_load_and_acquire", "hold_host_source", "release_host_source"):
             raise ValueError("unknown GPU reference operation")
         rpc = getattr(self.engine, "collective_rpc", None)
         if not callable(rpc):
@@ -7468,8 +7478,6 @@ class ScenarioRunner:
             active_adapter_reserved = True
         slot.active_requests = active_requests + 1
         slot.last_selected_at = time.time()
-        if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
-            slot.ieee_last_dispatch_at = time.monotonic()
         return True, active_adapter_reserved
 
     def _runtime_total_capacity_after_removal(self, remaining_instances: int) -> int:
@@ -13783,15 +13791,16 @@ class ScenarioRunner:
     async def _acquire_runtime_gpu_reference(
         self, reservation: RuntimeRequestReservation, engine, adapter_id: str,
         local_path: Optional[str] = None, *, cached_only: bool = False,
+        selected_source: Optional[Dict[str, Any]] = None,
     ) -> Optional[Dict[str, Any]]:
         """Connect one selected request to the native load/reference owner.
 
         Cached-only acquisition precedes file resolution and never reads files.
         A miss permits ordinary path resolution; a stale view is re-observed,
-        while an unknown mutation remains owned. This selected-worker view is not the
-        router's historical tier hint. Its receipt must never be relabelled as
-        a pre-dispatch snapshot or as proactive E(t) admission. Full routing
-        still requires its separately committed source/cost snapshot.
+        while an unknown mutation remains owned. Ordinary cached-only callers
+        have no pre-dispatch claim. IEEE admission instead supplies its explicit
+        selected GPU view and retries whole selection on conflict. Neither path
+        claims proactive E(t) admission or all-tier physical byte reservations.
         """
         from faaslora.clock import local_monotonic_clock_id
         if self.model_cfg.get('timing_contract') != 'ieee_tc_native_v1':
@@ -13804,7 +13813,13 @@ class ScenarioRunner:
                 or (not cached_only and (
                     not isinstance(local_path, str) or not Path(local_path).is_absolute()))):
             raise ValueError('native reference requires the original adapter and absolute source')
-        if self._stack is not None and not cached_only:
+        held_file = evidence.get('local_source_reference', {})
+        if not cached_only and held_file.get('state') == 'held':
+            if (held_file['adapter_id'] != adapter_id or held_file['path'] != local_path
+                    or (reservation.ieee_observation is not None and held_file.get('content_verified') is not True)):
+                raise ValueError('native file loading differs from the protected selected source')
+        if (self._stack is not None and not cached_only
+                and evidence.get('local_source_reference', {}).get('state') != 'held'):
             # Protect physical input before the first cancellable native RPC.
             # This is a read reference, not a claim of confirmed dispatch tier.
             local_owner = self._stack.residency_manager
@@ -13837,7 +13852,15 @@ class ScenarioRunner:
             compact['host_tensor_storage_bytes'] = state.host_tensor_storage_bytes
             compact['gpu_pool_storage_bytes'] = state.gpu_pool_storage_bytes
             return value, selected, compact
-        snapshot, selected_source, snapshot_evidence = await observe_source()
+        guarded_source = selected_source
+        if guarded_source is not None:
+            if not cached_only or guarded_source['tier'] != 'gpu' or not guarded_source['native']:
+                raise ValueError('pre-admission executable guard requires the selected GPU source')
+            snapshot = dict(owner_id=guarded_source['owner_id'], epoch=guarded_source['epoch'], clock_id=clock_id)
+            selected_source = SimpleNamespace(tier='gpu', lora_path=guarded_source['path'])
+            snapshot_evidence = dict(snapshot, selected_routing_source=dict(guarded_source))
+        else:
+            snapshot, selected_source, snapshot_evidence = await observe_source()
         if cached_only and selected_source is None:
             # No acquisition was submitted. Absence is not proof of Remote;
             # shared file tiers are resolved by the existing source owner next.
@@ -13857,7 +13880,8 @@ class ScenarioRunner:
         # observations, not a duplicate many-megabyte table for every request.
         evidence.update(kind='native_selected_request_reference_v1', state='acquiring',
                         intent=intent, snapshot_before_acquisition=snapshot_evidence,
-                        confirmed_dispatch_snapshot=False, proactive_admission_evaluated=False,
+                        confirmed_dispatch_snapshot=reservation.ieee_observation is not None,
+                        proactive_admission_evaluated=False,
                         cached_source_only=cached_only,
                         stale_rechecks=0)
         reservation.gpu_reference_engine = engine
@@ -13894,6 +13918,13 @@ class ScenarioRunner:
                 self._release_runtime_local_source(reservation)
                 return receipt
             evidence['last_conflict'] = dict(receipt)
+            if guarded_source is not None:
+                if receipt.get('reason') not in ('stale_snapshot', 'required_source_changed', 'owner_changed'):
+                    raise ValueError('unexpected failure of a selected GPU-only acquisition')
+                # No load/pin occurred: retry the WHOLE router, not this worker
+                # with a different tier hidden behind the original prediction.
+                evidence['state'] = 'rejected'
+                return None
             if (cached_only and receipt.get('reason') in ('stale_snapshot', 'required_source_changed')
                     and receipt['owner_id'] == intent['expected_owner_id']
                     and receipt['epoch'] >= intent['expected_epoch']):
@@ -13923,6 +13954,148 @@ class ScenarioRunner:
                 continue
             evidence['state'] = 'rejected'
             raise RuntimeError(f"native reference acquisition conflict: {receipt.get('reason')}")
+
+    async def _ieee_protect_selected_source(self, reservation, source, service_class):
+        """Protect the selected copy before committing admission/class.
+
+        Controller count reservation precedes this transaction. Known conflicts
+        have no native work and require full selection again; lost replies retain
+        ownership. This is source admission, NOT the proactive E(t) byte budget.
+        """
+        from bisect import bisect_left
+        from dataclasses import replace
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot, ServiceIntervalObservation
+        from faaslora.memory.residency_manager import ConfirmedSourceConflict
+        if (self.model_cfg.get('timing_contract') != 'ieee_tc_native_v1'
+                or not self.model_cfg.get('ieee_gpu_references')):
+            raise ValueError('IEEE source admission requires native timing and references')
+        slot, evidence = reservation.slot, reservation.gpu_reference_evidence
+        engine = slot.engine
+        reservation.gpu_reference_engine = engine
+        if not source['native']:
+            # A source may have become native while another replica's routing
+            # RPC was in flight. Recheck before accepting a slower file/remote
+            # class. This is a received native view, not a global cross-owner
+            # lock; the selected lower copy is then protected below.
+            previous_owner = slot.native_source_state.owner_id
+            native = NativeSourceSnapshot.from_native(
+                await engine.ieee_gpu_reference(operation='source_snapshot'),
+                expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
+            if native.owner_id != previous_owner or not slot.commit_native_sources(native):
+                evidence['native_source_conflict'] = 'native owner/epoch changed during source admission'
+                return False
+            aid = InferenceEngine._lora_int_id(reservation.adapter_id)
+            if aid in native.unknown_native_adapter_ids:
+                raise ValueError('source admission found an unowned native adapter')
+            if any(row.adapter_int_id == aid for row in native.sources):
+                evidence['native_source_conflict'] = 'faster native source appeared before admission'
+                return False
+        if source['tier'] == 'gpu':
+            if await self._acquire_runtime_gpu_reference(reservation, engine,
+                    reservation.adapter_id, cached_only=True, selected_source=source) is None:
+                return False
+        elif source['native'] and source['tier'] == 'host':
+            intent = dict(lease_id=uuid.uuid4().hex,
+                adapter_int_id=InferenceEngine._lora_int_id(reservation.adapter_id),
+                lora_name=reservation.adapter_id, lora_path=source['path'],
+                expected_owner_id=source['owner_id'], expected_epoch=source['epoch'])
+            host = dict(state='holding', intent=intent)
+            evidence['native_host_source'] = host
+            receipt = await engine.ieee_gpu_reference(operation='hold_host_source', **intent)
+            if (not isinstance(receipt, dict) or receipt.get('clock_id') != local_monotonic_clock_id()
+                    or type(receipt.get('held')) is not bool
+                    or type(receipt.get('epoch')) is not int):
+                raise ValueError('HOST source reply lacks an explicit native outcome')
+            if not receipt['held']:
+                if receipt.get('reason') not in ('stale_snapshot', 'required_source_changed', 'owner_changed'):
+                    raise ValueError('unexpected selected HOST source rejection')
+                host.update(state='rejected', conflict=dict(receipt))
+                return False
+            held_at = receipt.get('held_monotonic_s')
+            if (receipt.get('owner_id') != source['owner_id']
+                    or receipt['epoch'] <= source['epoch']
+                    or any(receipt.get(key) != intent[key] for key in
+                           ('lease_id', 'adapter_int_id', 'lora_name', 'lora_path'))
+                    or receipt.get('tier') != 'host' or receipt.get('gpu_acquired') is not False
+                    or receipt.get('reference_scope') != 'native_cpu_lru_source'
+                    or type(held_at) not in (int, float) or not math.isfinite(held_at)
+                    or not 0 < held_at <= time.monotonic()):
+                raise ValueError('HOST source protection changed selected identity or semantics')
+            host.update(state='held', receipt=dict(receipt))
+        elif source['tier'] in ('host', 'nvme'):
+            manager = self._stack.residency_manager
+            try:
+                reference = manager.local_source_references.acquire_confirmed(
+                    path=source['path'], adapter_id=reservation.adapter_id,
+                    lease_id=uuid.uuid4().hex, expected_owner_id=source['owner_id'],
+                    expected_epoch=source['epoch'], expected_content_sha256=source['content_sha256'])
+            except ConfirmedSourceConflict as exc:
+                evidence['file_source_conflict'] = str(exc)
+                return False
+            reservation.local_source_owner = manager
+            evidence['local_source_reference'] = reference
+        elif source['tier'] == 'remote':
+            # No local copy is borrowed. Do not turn an intervening completed
+            # file publication into a request classified as a Remote miss.
+            current = self._stack.residency_manager.local_source_references.source_snapshot(reservation.adapter_id)
+            if current['owner_id'] != source['owner_id'] or current['epoch'] != source['epoch']:
+                evidence['file_source_conflict'] = 'Remote source view changed before admission'
+                return False
+        elif source['tier'] != 'backbone':
+            raise ValueError('unsupported selected source')
+        # Other already-admitted requests can finish during the reference RPC.
+        # Fix the class to the actual post-accept count, not the earlier estimate.
+        if type(slot.active_requests) is not int or slot.active_requests < 1:
+            raise RuntimeError('admission lost its controller count')
+        key = replace(service_class, admitted_bin=bisect_left(
+            slot.service_class_bins.admitted_requests, slot.active_requests))
+        admitted_at = time.monotonic()
+        observation = ServiceIntervalObservation(slot.service_cost_model, key, admitted_at)
+        reservation.ieee_observation = observation
+        evidence['source_admission'] = dict(kind='selected_source_admission_v1',
+            source=dict(source), service_class=asdict(key), admitted_monotonic_s=admitted_at,
+            admitted_after_accept=slot.active_requests, physical_capacity_qualified=False)
+        evidence['confirmed_dispatch_snapshot'] = True
+        reservation.ieee_routing_evidence['selected_reference_acquired'] = source['tier'] not in ('remote', 'backbone')
+        slot.ieee_last_dispatch_at = admitted_at
+        return True
+
+    async def _release_ieee_host_source(self, reservation):
+        host = reservation.gpu_reference_evidence.get('native_host_source')
+        if host is None or host['state'] in ('released', 'rejected'):
+            return
+        if host['state'] != 'held':
+            raise RuntimeError('native HOST source ownership is unresolved')
+        receipt = host['receipt']
+        host['state'] = 'release_pending'
+        released = await reservation.gpu_reference_engine.ieee_gpu_reference(
+            operation='release_host_source', lease_id=receipt['lease_id'],
+            expected_owner_id=receipt['owner_id'])
+        if (not isinstance(released, dict) or released.get('released') is not True
+                or released.get('owner_id') != receipt['owner_id']):
+            raise ValueError('native HOST source release lacks matching acknowledgement')
+        host.update(state='released', release_receipt=dict(released))
+
+    async def _ieee_prepare_selected_adapter(self, reservation):
+        evidence, observation = reservation.gpu_reference_evidence, reservation.ieee_observation
+        source = evidence['source_admission']['source']
+        if source['tier'] == 'gpu':
+            return evidence['receipt']
+        if source['native']:
+            receipt = await self._acquire_runtime_gpu_reference(reservation, reservation.slot.engine,
+                reservation.adapter_id, cached_only=True)
+            if receipt is None:
+                raise RuntimeError('protected native HOST source disappeared before acquisition')
+        else:
+            path = source['path']
+            if source['tier'] == 'remote':
+                path, _ = await self._ensure_local_async(reservation.adapter_id, reservation=reservation)
+            receipt = await self._acquire_runtime_gpu_reference(reservation, reservation.slot.engine,
+                reservation.adapter_id, path)
+        observation.acquire(receipt['acquired_monotonic_s'])
+        await self._release_ieee_host_source(reservation)
+        return receipt
 
     @staticmethod
     def _complete_ieee_pending_load(reservation: RuntimeRequestReservation) -> None:
@@ -13954,6 +14127,16 @@ class ScenarioRunner:
         slot = reservation.slot
         native = self.model_cfg.get('timing_contract', 'legacy') == 'ieee_tc_native_v1'
         evidence = reservation.gpu_reference_evidence
+        observation = reservation.ieee_observation
+        if observation is not None:
+            if not observation.closed:
+                observation.cancel()
+            evidence['service_intervals'] = dict(service_class=asdict(observation.key),
+                admitted_monotonic_s=observation.admitted_at, acquired_monotonic_s=observation.acquired_at,
+                first_monotonic_s=observation.first_at, last_monotonic_s=observation.last_at)
+            if reservation.ieee_native_observer is not None:
+                evidence['service_events'] = list(reservation.ieee_native_observer.events)
+        host_state = evidence.get('native_host_source', {}).get('state')
         if (native and reservation.generation_started and not reservation.native_terminal_observed
                 and evidence.get('state') == 'acquired' and 'retirement_receipt' not in evidence):
             receipt = evidence['receipt']
@@ -13974,6 +14157,7 @@ class ScenarioRunner:
                 self._retain_runtime_request_reservation(reservation)
                 raise
         if (evidence.get('state') in ('acquiring', 'release_pending')
+                or host_state in ('holding', 'release_pending')
                 or (native and reservation.generation_started and not reservation.native_terminal_observed
                     and 'retirement_receipt' not in evidence)):
             # Sending abort / losing an RPC is not an engine-core terminal ack.
@@ -13995,6 +14179,11 @@ class ScenarioRunner:
             except BaseException:
                 self._retain_runtime_request_reservation(reservation)
                 raise
+        try:
+            await self._release_ieee_host_source(reservation)
+        except BaseException:
+            self._retain_runtime_request_reservation(reservation)
+            raise
         self._release_runtime_local_source(reservation)
         self._complete_ieee_pending_load(reservation)
         if reservation.batch_started:
@@ -14092,11 +14281,21 @@ class ScenarioRunner:
                         selected_reference_acquired=False)
                     _reservation.ieee_routing_evidence = record
                     _reservation.gpu_reference_evidence['routing_snapshot'] = record
+                    _reservation.gpu_reference_evidence['prior_routing_attempts'] = list(
+                        _reservation.ieee_routing_attempts)
                     if selected_readiness_tier not in ('gpu', 'backbone'):
                         if _reservation.request_id in slot.ieee_pending_load_ids:
                             raise RuntimeError('duplicate IEEE pending adapter-load request')
                         slot.ieee_pending_load_ids.add(_reservation.request_id)
                         _reservation.ieee_load_pending = True
+                    if not await self._ieee_protect_selected_source(_reservation,
+                            source_evidence[slot.instance_id]['source'],
+                            self.router.last_ieee_decision.service_class):
+                        await self._finish_runtime_request_reservation(_reservation)
+                        _reservation.gpu_reference_evidence.pop('prior_routing_attempts', None)
+                        _reservation.ieee_routing_attempts.append(_reservation.gpu_reference_evidence)
+                        _reservation.retry_known_conflict()
+                        continue
                 readiness_tier_before_dispatch = selected_readiness_tier
                 if slot is not None:
                     created_at = float(getattr(slot, "created_at", 0.0) or 0.0)
@@ -14111,7 +14310,8 @@ class ScenarioRunner:
                     pass
         runtime_slot_wait_ms = max(
             0.0,
-            (time.perf_counter() - runtime_slot_wait_started) * 1000.0,
+            ((_reservation.ieee_observation.admitted_at if ieee_routing else time.perf_counter())
+             - runtime_slot_wait_started) * 1000.0,
         )
         dispatch_admission_wait_ms = max(
             0.0,
@@ -14121,7 +14321,8 @@ class ScenarioRunner:
             admitted_offset_s = float(admitted_offset_s) + (runtime_slot_wait_ms / 1000.0)
         self._release_live_waiting_trace(trace)
         self._observe_live_started_lora(adapter_id)
-        admitted_perf_counter = time.perf_counter()
+        admitted_perf_counter = (_reservation.ieee_observation.admitted_at if ieee_routing
+                                 else time.perf_counter())
         _engine = slot.engine if slot else self.engine
         _coord = slot.coordinator if slot else self.coordinator
         inflight_request_key: Optional[str] = None
@@ -14163,7 +14364,12 @@ class ScenarioRunner:
 
         # ---- LoRA resolution ----
         gpu_reference = None
-        if adapter_id and self.model_cfg.get('ieee_gpu_references', False):
+        if ieee_routing and adapter_id:
+            gpu_reference = await self._ieee_prepare_selected_adapter(_reservation)
+            local_path = gpu_reference['lora_path']
+            cache_tier = readiness_tier_before_dispatch
+            lora_io_ms = (_reservation.ieee_observation.acquired_at - admitted_perf_counter) * 1000.
+        if not ieee_routing and adapter_id and self.model_cfg.get('ieee_gpu_references', False):
             probe_started_ns = time.perf_counter_ns()
             gpu_reference = await self._acquire_runtime_gpu_reference(
                 _reservation, _engine, adapter_id, cached_only=True)
@@ -14175,7 +14381,7 @@ class ScenarioRunner:
                 lora_io_ms = gpu_reference['load_and_acquire_ms']
                 adapter_path_resolution_us = max(0.0, adapter_path_resolution_us - lora_io_ms * 1000.)
                 self._mark_slot_adapter_tier(slot, adapter_id, cache_tier)
-        if adapter_id and self.baseline_type != "backbone_only":
+        if not ieee_routing and adapter_id and self.baseline_type != "backbone_only":
             if _coord is not None and hasattr(_coord, "reset_gpu_admission_decision_us"):
                 try:
                     _coord.reset_gpu_admission_decision_us()
@@ -14260,6 +14466,12 @@ class ScenarioRunner:
             if self.model_cfg.get('ieee_gpu_references', False) and adapter_id and gpu_reference is None:
                 gpu_reference = await self._acquire_runtime_gpu_reference(
                     _reservation, _engine, adapter_id, local_path)
+            if ieee_routing:
+                from faaslora.clock import local_monotonic_clock_id
+                from faaslora.experiment.instance_pool import NativeServiceIntervalObserver
+                _reservation.ieee_native_observer = NativeServiceIntervalObserver(
+                    _reservation.ieee_observation, clock_id=local_monotonic_clock_id(),
+                    adapter_id=adapter_id, gpu_reference=gpu_reference)
             scaleup_labels = self._begin_scaleup_runtime_request_labels(
                 slot=slot,
                 adapter_id=adapter_id,
@@ -14298,6 +14510,8 @@ class ScenarioRunner:
                     prepared_kwargs["generation_seed"] = generation_seed
                 if gpu_reference is not None:
                     prepared_kwargs['gpu_reference'] = gpu_reference
+                if ieee_routing:
+                    prepared_kwargs['native_event_observer'] = _reservation.ieee_native_observer
                 _reservation.generation_started = True
                 generate_ret = await _engine.generate_prepared(**prepared_kwargs)
             else:
@@ -14306,6 +14520,8 @@ class ScenarioRunner:
                     generate_kwargs["generation_seed"] = generation_seed
                 if gpu_reference is not None:
                     generate_kwargs['gpu_reference'] = gpu_reference
+                if ieee_routing:
+                    generate_kwargs['native_event_observer'] = _reservation.ieee_native_observer
                 _reservation.generation_started = True
                 generate_ret = await _engine.generate(
                     request_plan.prompt,
@@ -14335,6 +14551,13 @@ class ScenarioRunner:
                 _reservation.native_terminal_observed = engine_timing.get('native_terminal_observed') is True
                 if not _reservation.native_terminal_observed:
                     raise ValueError('native request lacks terminal acknowledgement')
+                if ieee_routing:
+                    events = _reservation.ieee_native_observer.events
+                    if (len(events) != 2 or events[-1]['token_count'] != out_tokens
+                            or not _reservation.ieee_observation.closed
+                            or events[0]['timestamp_monotonic_s'] != engine_timing.get('native_first_token_monotonic_s')
+                            or events[1]['timestamp_monotonic_s'] != engine_timing.get('native_last_token_monotonic_s')):
+                        raise ValueError('completed request lacks matching native interval events')
             else:
                 engine_timing = dict(per_request_timing or getattr(_engine, "last_timing", {}) or {})
             native_token_timing: Dict[str, Any] = {}
@@ -14931,9 +15154,33 @@ class ScenarioRunner:
         self._nvme_cache[adapter_id] = str(dst)
         return str(dst)
 
-    async def _ensure_local_async(self, adapter_id: str) -> Tuple[Optional[str], float]:
+    async def _ensure_local_async(self, adapter_id: str, *, reservation=None) -> Tuple[Optional[str], float]:
         """Async local materialization with the shared link limiter applied."""
         async with self._remote_materialize_locks[str(adapter_id)]:
+            if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
+                if reservation is None or reservation.adapter_id != adapter_id or self._remote_artifact_client is None:
+                    raise ValueError('IEEE materialization requires its request owner and real remote client')
+                manager = self._stack.residency_manager
+                owner = manager.local_source_references
+                view = owner.source_snapshot(adapter_id)
+                transfer_ms = 0.
+                if not view['sources']:
+                    ok, transfer_ms = await self._materialize_remote_adapter_async(
+                        adapter_id, self.nvme_dir / adapter_id)
+                    if not ok:
+                        raise RuntimeError('IEEE remote materialization did not complete')
+                    view = owner.source_snapshot(adapter_id)
+                candidates = sorted(view['sources'], key=lambda row: ('host', 'nvme').index(row['tier']))
+                if not candidates:
+                    raise RuntimeError('completed remote materialization has no verified source')
+                source = candidates[0]
+                reference = owner.acquire_confirmed(path=source['path'], adapter_id=adapter_id,
+                    lease_id=uuid.uuid4().hex, expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
+                    expected_content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'])
+                reservation.local_source_owner = manager
+                reservation.gpu_reference_evidence['local_source_reference'] = reference
+                self._nvme_cache[adapter_id] = source['path']
+                return source['path'], float(transfer_ms)
             if adapter_id in self._nvme_cache:
                 return self._nvme_cache[adapter_id], 0.0
             dst = self.nvme_dir / adapter_id

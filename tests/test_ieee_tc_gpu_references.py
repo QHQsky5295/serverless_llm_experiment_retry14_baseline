@@ -126,6 +126,89 @@ class NativeDemandTransactions(unittest.TestCase):
         self.assertEqual(len(self.loads), 1)
         self.assertEqual(self.fence.call_count, 2)  # One hit, one completed load.
 
+    def host_source(self, lease='host-1', snapshot=None):
+        snapshot = snapshot or self.owner.snapshot()
+        return self.owner.hold_host_source(lease_id=lease, adapter_int_id=4,
+            lora_name='adapter-4', lora_path='/existing/adapter-4',
+            expected_owner_id=snapshot['owner_id'], expected_epoch=snapshot['epoch'])
+
+    def prepare_host(self):
+        self.demand()
+        self.release('cold-1')
+        self.manager.deactivate(4)
+
+    def test_host_hold_does_not_load_fence_or_protect_a_gpu_slot(self):
+        self.prepare_host()
+        loads, fences = len(self.loads), self.fence.call_count
+        before = self.owner.snapshot()
+        receipt = self.host_source(snapshot=before)
+        self.assertTrue(receipt['held'])
+        self.assertFalse(receipt['gpu_acquired'])
+        self.assertNotIn(4, self.manager.lora_index_to_id)
+        self.assertIn(4, self.manager._registered_adapters.pinned_items)
+        self.assertNotIn(4, self.manager._active_adapters.pinned_items)
+        self.assertEqual((len(self.loads), self.fence.call_count), (loads, fences))
+        self.assertEqual(self.host_source(snapshot=before), receipt)
+        self.assertFalse(self.owner.evict(adapter_int_id=4)['evicted'])
+        self.owner.release_host_source(lease_id='host-1', expected_owner_id=self.owner.owner_id)
+        self.assertNotIn(4, self.manager._registered_adapters.pinned_items)
+        self.assertTrue(self.owner.release_host_source(
+            lease_id='host-1', expected_owner_id=self.owner.owner_id)['already_released'])
+
+    def test_host_gpu_shared_pins_release_in_either_order_without_stealing_external_pin(self):
+        for external in (False, True):
+            for gpu_first in (False, True):
+                with self.subTest(external=external, gpu_first=gpu_first):
+                    self.setUp()
+                    self.prepare_host()
+                    if external:
+                        self.manager._registered_adapters.pin(4)
+                    self.host_source()
+                    self.host_source('host-2')
+                    receipt = self.demand(lease='promote', required_source_tier='host')
+                    self.assertTrue(receipt['acquired'])
+                    if gpu_first:
+                        self.release('promote')
+                    self.owner.release_host_source(lease_id='host-1', expected_owner_id=self.owner.owner_id)
+                    self.assertIn(4, self.manager._registered_adapters.pinned_items)
+                    self.owner.release_host_source(lease_id='host-2', expected_owner_id=self.owner.owner_id)
+                    if not gpu_first:
+                        self.assertIn(4, self.manager._registered_adapters.pinned_items)
+                        self.release('promote')
+                    self.assertEqual(4 in self.manager._registered_adapters.pinned_items, external)
+                    self.assertEqual(self.owner.snapshot()['live_host_source_leases'], 0)
+                    self.assertNotIn(4, self.manager._active_adapters.pinned_items)
+
+    def test_host_guard_rejects_stale_or_changed_source_before_pinning(self):
+        self.prepare_host()
+        before = self.owner.snapshot()
+        self.manager.activate(4)  # A raw unconfirmed activation remains HOST evidence.
+        self.assertEqual(self.host_source(snapshot=before)['reason'], 'stale_snapshot')
+        self.assertFalse(self.manager._registered_adapters.pinned_items)
+        self.demand(lease='confirmed')
+        self.release('confirmed')
+        self.assertEqual(self.host_source()['reason'], 'required_source_changed')
+        self.assertFalse(self.manager._registered_adapters.pinned_items)
+
+    def test_host_reference_survives_gpu_only_invalidation_but_not_cpu_removal(self):
+        self.prepare_host()
+        self.host_source()
+        self.manager.activate(4)
+        self.manager.deactivate(4)
+        self.assertEqual(self.owner.snapshot()['host_source_reference_counts'], {'4': 1})
+        self.manager.remove_adapter(4)
+        with self.assertRaises(RuntimeError):
+            self.owner.snapshot()
+
+    def test_host_lease_identity_cannot_be_reused_for_gpu_load(self):
+        self.prepare_host()
+        self.host_source()
+        with self.assertRaisesRegex(ValueError, 'collides'):
+            self.demand(lease='host-1')
+        self.owner.release_host_source(lease_id='host-1', expected_owner_id=self.owner.owner_id)
+        with self.assertRaisesRegex(ValueError, 'collides'):
+            self.demand(lease='host-1')
+
     def test_cpu_cached_promotion_and_gpu_hit_retain_distinct_sources(self):
         self.demand()
         self.release('cold-1')

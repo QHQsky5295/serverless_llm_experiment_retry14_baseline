@@ -106,6 +106,10 @@ def _local_file_inventory(roots, *, writing_inodes=()):
                 content_verified=False, capacity_reserved=False, physical_release_proven=False)
 
 
+class ConfirmedSourceConflict(RuntimeError):
+    """Known pre-acquisition conflict; no read lease or mutation was performed."""
+
+
 class LocalSourceReferences:
     """Cooperative file-copy ownership, shared by local readers and reclaimers.
 
@@ -199,7 +203,7 @@ class LocalSourceReferences:
         with self.lock:
             if (expected_owner_id != self.owner_id or type(expected_epoch) is not int
                     or expected_epoch != self.source_epoch):
-                raise RuntimeError('confirmed file source owner/epoch changed')
+                raise ConfirmedSourceConflict('confirmed file source owner/epoch changed')
             source = Path(path).resolve(strict=True)
             record = self._validated_source(source)
             if (record is None or record['public']['adapter_id'] != adapter_id
@@ -517,6 +521,10 @@ class IEEEBackendGPUReferences:
         self._released: Set[str] = set()
         self._references: Dict[int, Set[str]] = {}
         self._borrowed_pins: Dict[int, Tuple[bool, bool]] = {}
+        self._host_leases: Dict[str, Dict[str, Any]] = {}
+        self._host_released: Set[str] = set()
+        self._host_references: Dict[int, Set[str]] = {}
+        self._host_borrowed_pins: Dict[int, bool] = {}
         # Immutable identity within this worker incarnation. An eviction does
         # not authorize reusing its integer ID for different weights/path.
         self._sources: Dict[int, Tuple[str, str]] = {}
@@ -550,7 +558,7 @@ class IEEEBackendGPUReferences:
                 raise RuntimeError('native cache removal outside its worker thread')
             self._gpu_confirmations.pop(key, None)
             self.epoch += 1
-            if key in self._references:
+            if key in self._references or (cache is self._caches()[0] and key in self._host_references):
                 self._poisoned = True
                 self._poison_reason = 'backend invalidated a referenced adapter'
             original(key, value)
@@ -584,6 +592,10 @@ class IEEEBackendGPUReferences:
                     or any(slots[self._leases[key]['slot']] != aid for key in references)):
                 self._poisoned = True
                 raise RuntimeError('backend invalidated a referenced adapter')
+        for aid in self._host_references:
+            if aid not in cpu or aid not in cpu.pinned_items:
+                self._poisoned = True
+                raise RuntimeError('backend invalidated a referenced HOST source')
         for aid, (slot, _) in tuple(self._gpu_confirmations.items()):
             if slots[slot] != aid:
                 del self._gpu_confirmations[aid]
@@ -600,6 +612,8 @@ class IEEEBackendGPUReferences:
                 'slot_adapter_ids': list(slots),
                 'reference_counts': {str(aid): len(refs) for aid, refs in self._references.items()},
                 'live_leases': len(self._leases), 'released_leases': len(self._released),
+                'host_source_reference_counts': {str(aid): len(refs) for aid, refs in self._host_references.items()},
+                'live_host_source_leases': len(self._host_leases),
                 'snapshot_holds_reference': False}
 
     def source_snapshot(self) -> Dict[str, Any]:
@@ -636,6 +650,75 @@ class IEEEBackendGPUReferences:
                 'complete_for_native_caches': not unknown and not unconfirmed,
                 'snapshot_holds_reference': False}
 
+    def hold_host_source(self, *, lease_id: str, adapter_int_id: int, lora_name: str,
+                         lora_path: str, expected_owner_id: str, expected_epoch: int) -> Dict[str, Any]:
+        """Protect an observed native HOST source without loading or GPU pinning.
+
+        This is the source half of request admission, not GPU promotion/admission.
+        One serialized owner operation validates the observation and pins CPU
+        storage. Later promotion may reuse a newer GPU copy, but this source
+        remains valid until its dependent operation is acknowledged complete.
+        """
+        if (not isinstance(lease_id, str) or not lease_id or type(adapter_int_id) is not int
+                or adapter_int_id <= 0 or type(expected_epoch) is not int or expected_epoch < 1
+                or not isinstance(lora_name, str) or not lora_name
+                or not isinstance(lora_path, str) or not Path(lora_path).is_absolute()):
+            raise ValueError('HOST source hold requires exact lease/source/epoch identity')
+        self._refresh()
+        if expected_owner_id != self.owner_id:
+            return {'held': False, 'reason': 'owner_changed', **self.snapshot()}
+        identity = (adapter_int_id, lora_name, lora_path)
+        if lease_id in self._host_leases:
+            receipt = self._host_leases[lease_id]
+            if tuple(receipt[key] for key in ('adapter_int_id', 'lora_name', 'lora_path')) != identity:
+                raise ValueError('HOST source lease reused for another adapter')
+            return dict(receipt)
+        if lease_id in self._host_released or lease_id in self._leases or lease_id in self._released:
+            raise ValueError('HOST source lease is not unused')
+        if expected_epoch != self.epoch:
+            return {'held': False, 'reason': 'stale_snapshot', **self.snapshot()}
+        cpu, _ = self._caches()
+        if (adapter_int_id not in cpu or adapter_int_id in self._gpu_confirmations
+                or self._sources.get(adapter_int_id) != (lora_name, lora_path)):
+            return {'held': False, 'reason': 'required_source_changed', **self.snapshot()}
+        if adapter_int_id not in self._host_references:
+            borrowed = (self._borrowed_pins[adapter_int_id][0] if adapter_int_id in self._references
+                        else adapter_int_id in cpu.pinned_items)
+            cpu.pin(adapter_int_id)
+            self._host_borrowed_pins[adapter_int_id] = borrowed
+            self._host_references[adapter_int_id] = set()
+        self._host_references[adapter_int_id].add(lease_id)
+        self.epoch += 1
+        self._refresh()
+        receipt = dict(held=True, owner_id=self.owner_id, epoch=self.epoch, lease_id=lease_id,
+            adapter_int_id=adapter_int_id, lora_name=lora_name, lora_path=lora_path,
+            tier='host', reference_scope='native_cpu_lru_source', held_monotonic_s=time.monotonic(),
+            gpu_acquired=False)
+        self._host_leases[lease_id] = receipt
+        return dict(receipt)
+
+    def release_host_source(self, *, lease_id: str, expected_owner_id: str) -> Dict[str, Any]:
+        self._refresh()
+        if expected_owner_id != self.owner_id:
+            raise ValueError('HOST source owner changed')
+        if lease_id in self._host_released:
+            return {'released': True, 'already_released': True, **self.snapshot()}
+        if lease_id not in self._host_leases:
+            raise ValueError('unknown HOST source lease')
+        aid = self._host_leases[lease_id]['adapter_int_id']
+        refs = self._host_references[aid]
+        if len(refs) == 1:
+            if aid not in self._references and not self._host_borrowed_pins[aid]:
+                self._caches()[0]._unpin(aid)
+            del self._host_references[aid]
+            del self._host_borrowed_pins[aid]
+        else:
+            refs.remove(lease_id)
+        del self._host_leases[lease_id]
+        self._host_released.add(lease_id)
+        self.epoch += 1
+        return {'released': True, 'already_released': False, **self.snapshot()}
+
     def acquire(self, *, lease_id: str, adapter_int_id: int,
                 expected_owner_id: str, expected_epoch: int) -> Dict[str, Any]:
         if not isinstance(lease_id, str) or not lease_id:
@@ -655,6 +738,8 @@ class IEEEBackendGPUReferences:
             return dict(receipt)
         if lease_id in self._released:
             raise ValueError('released lease ID cannot be reused')
+        if lease_id in self._host_leases or lease_id in self._host_released:
+            raise ValueError('GPU lease collides with a HOST source lease')
         if expected_epoch != self.epoch:
             return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
         if adapter_int_id not in slots:
@@ -663,6 +748,8 @@ class IEEEBackendGPUReferences:
         cpu, gpu = self._caches()
         first = adapter_int_id not in self._references
         original = (adapter_int_id in cpu.pinned_items, adapter_int_id in gpu.pinned_items)
+        if adapter_int_id in self._host_references:
+            original = (self._host_borrowed_pins[adapter_int_id], original[1])
         try:
             if first:
                 # Do not call manager.pin_adapter(): it can implicitly load a
@@ -676,7 +763,8 @@ class IEEEBackendGPUReferences:
             self._poisoned = True
             if first:
                 for cache, borrowed in zip((cpu, gpu), original):
-                    if not borrowed and adapter_int_id in cache.pinned_items:
+                    if (not borrowed and adapter_int_id in cache.pinned_items
+                            and not (cache is cpu and adapter_int_id in self._host_references)):
                         cache._unpin(adapter_int_id)
             raise
         receipt = {'acquired': True, 'owner_id': self.owner_id, 'lease_id': lease_id,
@@ -715,7 +803,7 @@ class IEEEBackendGPUReferences:
             try:
                 self.completion_fence()
                 for cache, borrowed in zip(self._caches(), self._borrowed_pins[aid]):
-                    if not borrowed:
+                    if not borrowed and not (cache is self._caches()[0] and aid in self._host_references):
                         cache._unpin(aid)
             except BaseException:
                 self._poisoned = True
@@ -763,6 +851,8 @@ class IEEEBackendGPUReferences:
         if expected_owner_id != self.owner_id:
             return {'acquired': False, 'reason': 'owner_changed', **self.snapshot()}
         source = (lora_name, lora_path)
+        if lease_id in self._host_leases or lease_id in self._host_released:
+            raise ValueError('GPU lease collides with a HOST source lease')
         if adapter_int_id in self._sources and self._sources[adapter_int_id] != source:
             raise ValueError('native integer ID reused for a different adapter source')
         if lease_id in self._leases:
@@ -870,7 +960,7 @@ class IEEEBackendGPUReferences:
         self._refresh()
         if type(adapter_int_id) is not int or adapter_int_id <= 0:
             raise ValueError('adapter_int_id must be a positive native integer ID')
-        if adapter_int_id in self._references:
+        if adapter_int_id in self._references or adapter_int_id in self._host_references:
             return {'evicted': False, 'reason': 'referenced', **self.snapshot()}
         if any(adapter_int_id in cache.pinned_items for cache in self._caches()):
             return {'evicted': False, 'reason': 'externally_pinned', **self.snapshot()}

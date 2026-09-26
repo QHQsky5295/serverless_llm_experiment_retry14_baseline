@@ -56,6 +56,7 @@ class PredecisionRoutingIntegration(unittest.TestCase):
         from faaslora.experiment.instance_pool import Router, ServiceClassBins, ServiceCostModel, ServiceComponents
         from tests.test_ieee_tc_service_routing import source_payload
         runner, a, trace, plan = fixture()
+        runner.model_cfg.update(timing_contract='ieee_tc_native_v1', ieee_gpu_references=True)
         runner._routing_policy = 'ieee_confirmed'
         runner._ieee_routing_epoch = 0
         runner._ieee_nvml_initialized = False
@@ -162,7 +163,7 @@ class PredecisionRoutingIntegration(unittest.TestCase):
             self.assertIn(trace.request_id, b.ieee_pending_load_ids)
             self.assertEqual(a.active_requests, 0)
             raise RuntimeError('end of routing boundary witness')
-        runner._resolve_lora.side_effect = stop_at_resolution
+        runner._ieee_prepare_selected_adapter = AsyncMock(side_effect=stop_at_resolution)
         async def run():
             try:
                 with self.assertRaisesRegex(RuntimeError, 'boundary witness'):
@@ -471,6 +472,353 @@ def native_reference_fixture():
         return {**getattr(owner, operation)(**kwargs), 'clock_id': local_monotonic_clock_id()}
     slot.engine.ieee_gpu_reference = AsyncMock(side_effect=rpc)
     return runner, slot, trace, plan, owner, rpc
+
+
+class SelectedSourceAdmissionIntegration(unittest.TestCase):
+    """Real request/router/owner and event path; tiny fixtures, no GPU timing claim."""
+    def build(self, tier='gpu'):
+        from collections import defaultdict
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.experiment.instance_pool import (Router, ServiceClassBins, ServiceCostModel,
+                                                     ServiceComponents, ServiceObservationClass)
+        from faaslora.memory.residency_manager import ResidencyManager
+        runner, slot, trace, plan, owner, rpc = native_reference_fixture()
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        host, nvme = root / 'host', root / 'nvme'
+        host.mkdir()
+        nvme.mkdir()
+        manager = ResidencyManager({'memory': {'host': {'cache_dir': str(host)},
+            'nvme': {'cache_dir': str(nvme)}}}, Mock(), Mock())
+        runner._stack = SimpleNamespace(residency_manager=manager, record_access=Mock())
+        runner._routing_policy = 'ieee_confirmed'
+        runner._ieee_routing_epoch = 0
+        runner._access_count = defaultdict(int)
+        runner._generation_contract = 'fixed_length_greedy_v1'
+        runner._ieee_artifact_identities = {trace.adapter_id: dict(adapter_id=trace.adapter_id,
+            rank=8, content_sha256='a'*64, remote_payload_bytes=8192,
+            remote_representation='tar_gzip_verified_file_tree_v1')}
+        runner.instance_pool = SimpleNamespace(get_slots=lambda: [slot])
+        runner.router = Router(runner.instance_pool, 'ieee_confirmed', service_bin_ms=10.)
+        runner._sample_ieee_gpu_utilization = Mock(return_value=dict(gpu_utilization_pct=0.))
+        runner._resolve_lora.side_effect = AssertionError('IEEE must not use legacy resolve/admission')
+        runner._remote_materialize_locks = defaultdict(asyncio.Lock)
+        runner.nvme_dir = nvme
+        runner._nvme_cache = {}
+        aid = InferenceEngine._lora_int_id(trace.adapter_id)
+        if tier in ('gpu', 'host'):
+            ControllerNativeReferenceLifecycle.preload_native(owner)
+            if tier == 'host':
+                owner.manager.deactivate(aid)
+        representations = dict(gpu='native_gpu_dense_slot_v1:torch.float16',
+            host='native_cpu_dense_ab_v1:torch.float16:unpinned',
+            nvme='verified_regular_file_tree_v1', remote='tar_gzip_verified_file_tree_v1')
+        slot.service_class_bins = ServiceClassBins((), (), (), (), (1,))
+        profiles = {ServiceObservationClass(t, 0, 0, 0, 0, representation, count):
+                    ServiceComponents(0. if t == 'gpu' else 100., 200., 300.)
+                    for t, representation in representations.items() for count in (0, 1)}
+        profiles.update({ServiceObservationClass('host', 0, 0, 0, 0,
+            'verified_regular_file_tree_v1', count): ServiceComponents(100., 200., 300.) for count in (0, 1)})
+        slot.service_cost_model = ServiceCostModel(profiles, beta=.5, profile_id='test-fixtures-not-profile-data')
+
+        async def observed(*, operation, **kwargs):
+            value = await rpc(operation=operation, **kwargs)
+            if operation == 'source_snapshot':
+                ids, slots = value['registered_cpu_adapter_ids'], value['slot_adapter_ids']
+                value['device_uuid'] = 'GPU-00010203-0405-0607-0809-0a0b0c0d0e0f'
+                value['native_footprints'] = dict(uniform_slot_layout=True,
+                    host_footprint_scope='native_registered_tensor_storage_capacity', host_budget_reserved=False,
+                    host_allocator_overhead_included=False, slot_adapter_ids=slots,
+                    registered_cpu_adapter_ids=ids, slot_capacity_bytes=1024, pool_allocated_bytes=2048,
+                    host_tensor_storage_bytes=512*len(ids),
+                    host_allocations=[dict(allocation_id=i, allocated_bytes=512, adapter_ids=[a], pinned=False)
+                                      for i, a in enumerate(ids)],
+                    host_adapter_footprints=[dict(adapter_int_id=a, allocation_ids=[i], storage_bytes=512,
+                        exclusive_storage_bytes=512, dtypes=['torch.float16'],
+                        representation='native_cpu_dense_ab_v1', has_packed_modules=False) for i, a in enumerate(ids)],
+                    pool_tensor_views=[dict(dtype='torch.float16')])
+            return value
+        slot.engine.ieee_gpu_reference.side_effect = observed
+
+        async def generate(**kwargs):
+            from tests.test_ieee_tc_service_events import event
+            reference = kwargs['gpu_reference']
+            receive = kwargs['native_event_observer']
+            dispatch = time.monotonic()
+            owner.begin_use(lease_id=reference['lease_id'], expected_owner_id=owner.owner_id,
+                adapter_int_id=aid, backend_request_id='native-test', lora_name=trace.adapter_id,
+                lora_path=reference['lora_path'])
+            first = time.monotonic()
+            fields = dict(adapter_id=trace.adapter_id, native_clock_id=local_monotonic_clock_id(),
+                backend_request_id='native-test', gpu_reference_owner_id=owner.owner_id,
+                gpu_reference_lease_id=reference['lease_id'], gpu_reference_adapter_int_id=aid)
+            receive(event(**fields, timestamp_monotonic_s=first))
+            await asyncio.sleep(0)
+            last = time.monotonic()
+            receive(event(2, **fields, token_count=4, timestamp_monotonic_s=last))
+            owner.end_use(lease_id=reference['lease_id'], expected_owner_id=owner.owner_id,
+                backend_request_id='native-test')
+            timing = dict(timing_contract='ieee_tc_native_v1', native_clock_id=local_monotonic_clock_id(),
+                native_terminal_observed=True, native_dispatch_monotonic_s=dispatch,
+                native_queued_monotonic_s=dispatch, native_scheduled_monotonic_s=dispatch,
+                native_first_token_monotonic_s=first, native_last_token_monotonic_s=last,
+                worker_completed_monotonic_s=time.monotonic(), native_output_tokens=4,
+                native_tpot_ms=(last-first)*1000/3,
+                gpu_reference_owner_id=owner.owner_id, gpu_reference_lease_id=reference['lease_id'],
+                gpu_reference_adapter_int_id=aid)
+            return (first-dispatch)*1000, (last-first)*1000/3, 4, timing
+        slot.engine.generate_prepared.side_effect = generate
+        return runner, slot, trace, plan, owner, observed
+
+    def test_actual_gpu_and_host_requests_use_admission_fixed_class_and_native_events(self):
+        for tier in ('gpu', 'host'):
+            with self.subTest(tier=tier):
+                runner, slot, trace, plan, owner, _ = self.build(tier)
+                result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+                self.assertTrue(result.success, result.error)
+                evidence = result.gpu_reference_evidence
+                intervals = evidence['service_intervals']
+                self.assertEqual(intervals['service_class']['tier'], tier)
+                d = intervals['acquired_monotonic_s'] - intervals['admitted_monotonic_s']
+                self.assertEqual(d == 0., tier == 'gpu')
+                self.assertEqual(result.readiness_tier_before_dispatch, tier)
+                self.assertTrue(evidence['confirmed_dispatch_snapshot'])
+                self.assertEqual(len(evidence['service_events']), 2)
+                key = next(key for key in slot.service_cost_model._profiles
+                    if asdict(key) == intervals['service_class'])
+                self.assertEqual(slot.service_cost_model.sample_counts(key), dict(d_ms=1, t_ms=1, o_ms=1))
+                self.assertEqual(slot.active_requests, 0)
+                self.assertFalse(slot.active_adapter_counts)
+                self.assertFalse(slot.ieee_pending_load_ids)
+                self.assertEqual(owner.snapshot()['live_leases'], 0)
+                self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+                runner._resolve_lora.assert_not_awaited()
+
+    def test_changed_gpu_source_reselects_whole_router_and_does_not_record_gpu_zero(self):
+        runner, slot, trace, plan, owner, rpc = self.build('gpu')
+        attempts = []
+        async def invalidate(*, operation, **kwargs):
+            if operation == 'demand_load_and_acquire':
+                attempts.append(kwargs)
+                if len(attempts) == 1:
+                    owner.manager.deactivate(InferenceEngine._lora_int_id(trace.adapter_id))
+            return await rpc(operation=operation, **kwargs)
+        slot.engine.ieee_gpu_reference.side_effect = invalidate
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertTrue(result.success, result.error)
+        self.assertEqual(runner.router.selection_count, 2)
+        self.assertEqual(result.readiness_tier_before_dispatch, 'host')
+        history = result.gpu_reference_evidence['prior_routing_attempts']
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0]['state'], 'rejected')
+        self.assertFalse(history[0]['last_conflict']['acquired'])
+        for key in slot.service_cost_model._profiles:
+            if key.tier == 'gpu':
+                self.assertEqual(slot.service_cost_model.sample_counts(key), dict(d_ms=0, t_ms=0, o_ms=0))
+
+    def test_admission_class_uses_live_post_accept_count_after_host_guard(self):
+        runner, slot, trace, plan, owner, rpc = self.build('host')
+        slot.active_requests = 1  # Another backbone request ends during native RPC.
+        async def completing(*, operation, **kwargs):
+            value = await rpc(operation=operation, **kwargs)
+            if operation == 'hold_host_source':
+                slot.active_requests -= 1
+            return value
+        slot.engine.ieee_gpu_reference.side_effect = completing
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertTrue(result.success, result.error)
+        evidence = result.gpu_reference_evidence
+        self.assertEqual(evidence['routing_snapshot']['candidates'][0]['service_class']['admitted_bin'], 1)
+        self.assertEqual(evidence['source_admission']['service_class']['admitted_bin'], 0)
+
+    def test_lost_host_hold_ack_keeps_controller_and_cpu_source_owned(self):
+        runner, slot, trace, plan, owner, rpc = self.build('host')
+        async def lost(*, operation, **kwargs):
+            value = await rpc(operation=operation, **kwargs)
+            if operation == 'hold_host_source':
+                raise ConnectionError('test lost HOST acknowledgement')
+            return value
+        slot.engine.ieee_gpu_reference.side_effect = lost
+        with self.assertRaises(ConnectionError):
+            asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        pending = runner._unsettled_runtime_reservations[trace.request_id]
+        self.assertIsNone(pending.ieee_observation)
+        self.assertEqual(slot.active_requests, 1)
+        self.assertEqual(slot.status, 'draining')
+        self.assertEqual(owner.snapshot()['live_host_source_leases'], 1)
+        self.assertFalse(owner.evict(adapter_int_id=InferenceEngine._lora_int_id(trace.adapter_id))['evicted'])
+
+    def test_cancel_after_host_admission_does_not_invent_preparation_or_token_intervals(self):
+        runner, slot, trace, plan, owner, _ = self.build('host')
+        entered = asyncio.Event()
+        async def wait_for_cancel(reservation):
+            self.assertIsNotNone(reservation.ieee_observation)
+            entered.set()
+            await asyncio.Future()
+        runner._ieee_prepare_selected_adapter = AsyncMock(side_effect=wait_for_cancel)
+        async def run():
+            task = asyncio.create_task(runner._exec_request(trace, 4, 0., request_plan=plan))
+            await asyncio.wait_for(entered.wait(), .5)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+        asyncio.run(run())
+        self.assertEqual(slot.active_requests, 0)
+        self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+        for key in slot.service_cost_model._profiles:
+            self.assertEqual(slot.service_cost_model.sample_counts(key), dict(d_ms=0, t_ms=0, o_ms=0))
+
+    def test_lost_host_release_ack_retains_gpu_and_request_until_reconciliation(self):
+        runner, slot, trace, plan, owner, rpc = self.build('host')
+        async def lost(*, operation, **kwargs):
+            result = await rpc(operation=operation, **kwargs)
+            if operation == 'release_host_source':
+                raise ConnectionError('test lost HOST release acknowledgement')
+            return result
+        slot.engine.ieee_gpu_reference.side_effect = lost
+        with self.assertRaises(ConnectionError):
+            asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        reservation = runner._unsettled_runtime_reservations[trace.request_id]
+        self.assertEqual(reservation.gpu_reference_evidence['native_host_source']['state'], 'release_pending')
+        self.assertEqual(slot.active_requests, 1)
+        self.assertEqual(owner.snapshot()['live_leases'], 1)
+        self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+        self.assertIsNotNone(reservation.ieee_observation.acquired_at)
+        self.assertIsNone(reservation.ieee_observation.first_at)
+
+    def file_source(self, runner, trace, *, publish=False, host=False):
+        from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+        from tests.test_http_artifact_store import content_manifest, archive_bytes, SizedResponse
+        from faaslora.registry.schema import StorageTier
+        payload = {'adapter_config.json': b'{"r":8}', 'weights': b'fixture-not-a-model'}
+        client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+        client.configure_content_manifest(content_manifest(artifact_id=trace.adapter_id, files=payload))
+        client._opener = Mock()
+        client._opener.open.side_effect = lambda *a, **kw: SizedResponse(archive_bytes(list(payload.items())))
+        runner._remote_artifact_client = client
+        runner._ieee_artifact_identities[trace.adapter_id] = dict(client.routing_identity(
+            trace.adapter_id, payload['adapter_config.json']))
+        if publish:
+            ok, _ = runner._materialize_remote_adapter(trace.adapter_id, runner.nvme_dir / trace.adapter_id)
+            self.assertTrue(ok)
+            if host:
+                runner._stack.residency_manager._materialize_into_tier_dir(trace.adapter_id,
+                    str(runner.nvme_dir / trace.adapter_id), StorageTier.HOST)
+        return client
+
+    def test_file_and_remote_sources_load_from_confirmed_reference_not_legacy_hint(self):
+        for tier in ('remote', 'nvme', 'host'):
+            with self.subTest(tier=tier):
+                runner, slot, trace, plan, owner, rpc = self.build('remote')
+                client = self.file_source(runner, trace, publish=tier != 'remote', host=tier == 'host')
+                load = owner.demand_loader
+                def guarded_load(**kwargs):
+                    reference_owner = runner._stack.residency_manager.local_source_references
+                    self.assertEqual(len(reference_owner.leases), 1)
+                    self.assertFalse(runner._stack.residency_manager._delete_path(kwargs['lora_path']))
+                    load(**kwargs)
+                owner.demand_loader = guarded_load
+                result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+                self.assertTrue(result.success, result.error)
+                evidence = result.gpu_reference_evidence
+                self.assertEqual(result.readiness_tier_before_dispatch, tier)
+                self.assertEqual(evidence['service_intervals']['service_class']['tier'], tier)
+                self.assertEqual(evidence['local_source_reference']['state'], 'released')
+                self.assertTrue(evidence['local_source_reference']['content_verified'])
+                self.assertEqual(client._opener.open.call_count, 1)
+                runner._resolve_lora.assert_not_awaited()
+                self.assertEqual(slot.active_requests, 0)
+
+    def test_native_publication_after_remote_routing_reselects_before_admission(self):
+        runner, slot, trace, plan, owner, rpc = self.build('remote')
+        calls = 0
+        async def becomes_native(*, operation, **kwargs):
+            nonlocal calls
+            if operation == 'source_snapshot':
+                calls += 1
+                if calls == 2:
+                    ControllerNativeReferenceLifecycle.preload_native(owner)
+            return await rpc(operation=operation, **kwargs)
+        slot.engine.ieee_gpu_reference.side_effect = becomes_native
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertTrue(result.success, result.error)
+        self.assertEqual(result.readiness_tier_before_dispatch, 'gpu')
+        self.assertEqual(runner.router.selection_count, 2)
+        self.assertEqual(len(result.gpu_reference_evidence['prior_routing_attempts']), 1)
+        for key in slot.service_cost_model._profiles:
+            if key.tier == 'remote':
+                self.assertEqual(slot.service_cost_model.sample_counts(key), dict(d_ms=0, t_ms=0, o_ms=0))
+
+    def test_file_epoch_conflict_retries_selection_without_leaking_reference(self):
+        runner, slot, trace, plan, owner, _ = self.build('remote')
+        self.file_source(runner, trace, publish=True)
+        files = runner._stack.residency_manager.local_source_references
+        acquire = files.acquire_confirmed
+        calls = 0
+        def conflict_once(**kwargs):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                files.source_epoch += 1
+            return acquire(**kwargs)
+        with patch.object(files, 'acquire_confirmed', side_effect=conflict_once):
+            result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertTrue(result.success, result.error)
+        self.assertEqual(runner.router.selection_count, 2)
+        self.assertIn('owner/epoch changed', result.gpu_reference_evidence['prior_routing_attempts'][0]['file_source_conflict'])
+        self.assertFalse(files.leases)
+
+    def test_wrong_event_final_timestamp_cannot_pass_completed_request(self):
+        runner, slot, trace, plan, owner, _ = self.build('gpu')
+        generate = slot.engine.generate_prepared.side_effect
+        async def wrong(**kwargs):
+            ttft, tpot, count, timing = await generate(**kwargs)
+            timing['native_first_token_monotonic_s'] += .001
+            return ttft, tpot, count, timing
+        slot.engine.generate_prepared.side_effect = wrong
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertFalse(result.success)
+        self.assertIn('native interval events', result.error)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+
+    def test_cancellation_during_decode_retains_only_completed_intervals(self):
+        from faaslora.clock import local_monotonic_clock_id
+        from tests.test_ieee_tc_service_events import event
+        runner, slot, trace, plan, owner, _ = self.build('host')
+        entered = asyncio.Event()
+        async def partial(**kwargs):
+            reference = kwargs['gpu_reference']
+            owner.begin_use(lease_id=reference['lease_id'], expected_owner_id=owner.owner_id,
+                adapter_int_id=reference['adapter_int_id'], backend_request_id='partial',
+                lora_name=trace.adapter_id, lora_path=reference['lora_path'])
+            kwargs['native_event_observer'](event(adapter_id=trace.adapter_id,
+                backend_request_id='partial', native_clock_id=local_monotonic_clock_id(),
+                gpu_reference_owner_id=owner.owner_id, gpu_reference_lease_id=reference['lease_id'],
+                gpu_reference_adapter_int_id=reference['adapter_int_id'],
+                timestamp_monotonic_s=time.monotonic()))
+            entered.set()
+            await asyncio.Future()
+        async def retire(*, gpu_reference, abort):
+            self.assertTrue(abort)
+            owner.end_use(lease_id=gpu_reference['lease_id'], expected_owner_id=owner.owner_id,
+                backend_request_id='partial')
+            return dict(gpu_reference_owner_id=owner.owner_id,
+                gpu_reference_lease_id=gpu_reference['lease_id'], native_retirement={'retired': True})
+        slot.engine.generate_prepared.side_effect = partial
+        slot.engine.ieee_retire_generation = AsyncMock(side_effect=retire)
+        async def run():
+            task = asyncio.create_task(runner._exec_request(trace, 4, 0., request_plan=plan))
+            await asyncio.wait_for(entered.wait(), .5)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+        asyncio.run(run())
+        observed = [slot.service_cost_model.sample_counts(key) for key in slot.service_cost_model._profiles
+                    if slot.service_cost_model.sample_counts(key)['t_ms']]
+        self.assertEqual(observed, [dict(d_ms=1, t_ms=1, o_ms=0)])
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(slot.active_requests, 0)
 
 
 class LocalSourceOwnership(unittest.TestCase):

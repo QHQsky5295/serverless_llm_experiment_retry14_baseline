@@ -1162,3 +1162,69 @@ ServiceIntervalObservation；源变化不能沿用旧类给 EWMA 记账，稍后
 引用不能追溯声称 admission 时 D=0。并继续全层物理预算及生命周期所有权。
 没有经过这些边界和真实模型整合资格，不运行/宣称正式 Full、LastKnown 因果
 消融或新 G1/G2 主结果。后续不再重复本轮各独立组合测试作为新的实验进展。
+
+## P1-D25：将所选源保护与接纳时观测类接入实际请求
+
+### 缺口、依据和决定
+
+`e7a3b1e` 已使路由使用决策前状态，但之后的 cached-only acquisition 可以在
+同一副本上重新发现另一层。若保留路由时的类来统计，会将 HOST 加载误记为
+GPU 命中；若先加载 HOST 再开始接纳计时，又会把准备时间移出论文的 D。
+本步在既有请求、原生引用、文件 owner 和事件回调中接通边界，不替换公式。
+
+依据 [vLLM 0.30 原生 LoRA 加载路径](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/worker_manager.py)，
+LRU loader 在 ID 已注册且未启用 inplace 时复用 CPU adapter，再进行 activation；
+原生 engine-core 在线程内串行调用该路径。因此 HOST 来源可以先仅保护 CPU
+cache 条目，再于接纳后加载 GPU。依据其
+[LRU pin/unpin 接口](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/utils/cache.py)，
+共享引用需区分本请求借用的 pin 与外部原有 pin，不能用统一 unpin 回收别人的保护。
+不把这类引用管理包装成论文的新算法。
+
+### 论文规范与实现证据
+
+| 论文规范语义 | 当前实际请求路径 | 尚不能据此声称 |
+|---|---|---|
+| 选择后重新确认源 | GPU 用所选 owner/epoch 进行仅 GPU 的引用获取；HOST 用同一身份只保护 CPU 源；文件以 owner/epoch/content 获取读引用 | 跨所有进程、所有层的全局同时采样或原子事务 |
+| 冲突重选 | 已知无副作用的 epoch/tier 冲突释放本次计数，并重新运行整个 Router；保留各次收到的视图与拒绝原因 | 未知 RPC 结果可当成无副作用冲突；未知结果仍保留所有权并撤回副本 |
+| GPU 的 D=0 | 先保护可执行副本，随后提交接纳时刻；此前等待计入 admission wait | 迟到的 GPU acquisition 可追溯成接纳时已就绪 |
+| HOST 的 D 包含准备 | CPU-only hold 不调用 loader/fence/GPU pin；接纳后才激活，按原生 acquisition 时间完成 D | HOST 来源保护等于 GPU-ready 或通过完整 HOST 物理预算准入 |
+| 观测类在接纳固定 | 保护回执后用当前 admitted/pending 数重新确定 load bin；其余 source 表示不变；缺 profile 仍拒绝 | 路由旧 count 可覆盖接纳时的真实 count；fixture 可以充当生产 profile |
+| 只更新完成区间 | 实际 generate 接收 NativeServiceIntervalObserver；首末 token 事件立即更新对应类；最终 token/时间须与回执一致 | 取消能补出未完成 O；仅完成通知可替代首 token |
+| 文件引用覆盖读入 | HOST/NVMe 使用已验证副本；Remote 复用原 HTTP materializer，实际发布后取得同 owner 的引用，再加载 | 目录存在、旧 `_nvme_cache` 或本地 frozen fallback 可替代真实远端/内容确认 |
+| 已持有状态不虚假释放 | HOST 释放与 GPU 引用分别确认；未知 hold/load/release 回执保留 controller/native 所有权 | 已发取消等于 CUDA 工作已结束或整卡已释放 |
+
+文件/Remote 接纳前另复查选中副本的原生状态；若已出现更快的原生副本则重选。
+这仍是各 owner 的已接收状态与所选有效源保护，不声称全局线性化的“最快层”。
+下层副本受保护期间可以出现更快副本；接纳类固定，后续真实 acquisition 时间
+决定 D。只有 guarded GPU admission 才使用 D=0。
+
+IEEE 请求不再进入旧模拟加载/旧协调 resolve 路径。尚未接入的论文 E(t) 与
+全层物理预算明确标记 `physical_capacity_qualified=false`，不能因此将这条
+load/reference 路径作为已合格 Full 的性能结果。其它 legacy 实验路径未改名。
+
+### 正确性状态表与失败保留
+
+新增 16 个测试方法（多层、释放顺序和外部 pin 使用 subtests）：
+
+- 原生 HOST-only hold、无加载/无 fence、共享 CPU/GPU 引用两种释放顺序、外部
+  pin、GPU-only 撤回、CPU 非法撤回、stale/tier 冲突和 lease 身份冲突；
+- 实际 runner + router + 引用 owner + 原生事件 fixture 的 GPU/HOST/文件 HOST/
+  NVMe/Remote 全请求，包含 GPU→HOST 冲突重选、Remote→GPU 更快副本出现、
+  文件 epoch 冲突、实际 admitted bin、hold/release 丢回执、接纳后取消、解码
+  途中取消，以及最终回执时间与事件不符的拒绝。
+
+首次 19 项定向运行有四个 fixture 初始化错误：测试未提供 routing_identity
+必须的 config bytes。补齐实际微小配置输入，未在生产方法增加默认值。随后
+10 项定向检查通过，再补一项解码取消检查。最终完整功能回归 **650 项通过**
+（23.451 秒），独立安全/census/replay **56 项通过**（0.500 秒），无失败或跳过。
+使用已有稳定环境、CPU/内存受限范围，无模型推理；HTTP 输入为微小内存响应，
+不是 174 的真实链路资格。本节是正确性表，不生成收益图或生产延迟 profile。
+
+### 回到主线
+
+下一步不重复以上孤立检查：对现有模型资格入口接入这些真实边界并取得 native
+整合证据，同时完成全层物理 admission 与 GPU 生命周期。特别保留两个已知边界：
+原生 name/path 身份目前不能把同一已验证内容在 HOST/NVMe 的不同路径无条件
+互换；接纳后原生容量冲突还需与真实 owner 的等待/唤醒协调。不能通过删除身份
+校验、固定 sleep、猜测释放或旧模拟路径兜底解决。全池数值正确性、真实 profile、
+远端磁盘门槛、SLO 标定、Serverless 优先的 baseline 对照和正式矩阵仍未完成。

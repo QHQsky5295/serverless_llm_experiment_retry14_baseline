@@ -232,7 +232,7 @@ class IEEEWorkerObservationExtension:
         a multi-worker commit protocol and is deliberately not authorized here.
         """
         if operation not in ('snapshot', 'source_snapshot', 'acquire', 'release', 'evict', 'begin_use', 'end_use',
-                             'demand_load_and_acquire'):
+                             'demand_load_and_acquire', 'hold_host_source', 'release_host_source'):
             raise ValueError('unknown GPU reference operation')
         if torch is None or self.device is None or self.device.type != 'cuda':
             raise RuntimeError('native CUDA worker is required')
