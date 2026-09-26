@@ -270,7 +270,13 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
   progress and representative measured profiles/Full, not another isolated
   allocator or old-prefix check. Numerical/500pool/remote authority gates remain;
   formal baseline/main/ablation/sensitivity experiments have not started.
-  Named-file evidence/integration backup follows; goal remains active.
+  Named-file evidence/integration backup completed below; goal remains active.
+- Measured evidence and explicit candidate committed as
+  32972897965e9ed3728dae6bb1917581d068f4e2; pushed and fresh full remote SHA
+  matches. Exactly12 named task files, diff/secrets/protected-name checks pass.
+  Baseline16570c023a439c884624e7a5bdfa0d8577faf7a3 unchanged and fresh origin/main
+  SHA matches. Protected147 and source plan reverified after backup. This final
+  documentation-only receipt changes no runtime, measurement or qualification.
 
 ### D59 real-copy HOST lifetime
 
