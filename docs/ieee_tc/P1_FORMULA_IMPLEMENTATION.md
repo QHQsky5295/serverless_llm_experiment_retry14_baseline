@@ -2045,3 +2045,78 @@ victim保护或全层级replacement完成。共享文件传输压力目前仍绑
 接通。总HOST/native tensor预算、自动规划options、GPU待办执行/唤醒、
 完整物理生命周期、实测初始化、数值及remote资格仍是主线未完成项。
 下一步以这些集成为单位推进，不扩大相同文件/短前缀测试，不启动M1/M2。
+
+## D39：原生GPU准备接入共同队列与pending-target保护
+
+### 证据驱动的问题
+
+D38已有真实文件队列，D37已有单次HOST→GPU准入/替换，但两者尚未连接。
+此前worker只排除native需求、引用和传输pin；已规划未执行的目标不在
+victim保护集合内。另外，把每个候选都要求为原始slot epoch，会让一轮
+计划自己的第一项复制使后续项立即过期。这不是需要新评分公式的问题，
+而是冻结优化目标与动态执行状态必须分离。
+
+依据仍是IEEE的“同轮固定h/d、执行重查、pending target不可主动驱逐”。
+本轮核查[vLLM0.30 LoRA manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/model_manager.py)
+中CPU注册与GPU active cache/slot的联动，以及[EngineCore](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core.py)
+的utility执行位置。登记与替换均落在实际native owner，不以控制器名单
+冒充原子资源状态，也不改原生按需加载LRU。假设是完整选集先登记后执行，
+可以在不改h/d及E(t)的前提下，使多个准备任务正确共享、延后和取消。
+
+### 已完成连接（不是自动Full启动）
+
+- 实际runner增加显式GPU计划执行入口，复用D38 queue。执行前一次登记
+  整个selected set；内容身份与冻结工件索引核对，GPU任务按相同h*d/slot
+  bytes排序。该入口接收已选集合，不自行发明planner目标。
+- native owner登记plan incarnation、原始objective SHA与pending targets。
+  首次登记要求完整当前source epoch，重复必须同身份；关闭留下tombstone。
+  登记不占用GPU/CPU物理字节、不pin所有目标，也不伪称reservation。
+- 每个执行attempt重新观察当前native来源，进入已有core/worker事务。
+  已登记plan保留原始h/d，但允许本轮自身的slot/引用变化；仍检查完整
+  当前source/fallback、live引用与E(t)。未登记的旧诊断路径仍执行原来的
+  严格epoch检查，不能用新路径任意接受陈旧objective。
+- pending targets加入主动replacement的排除集。目标已在GPU时，通过
+  native acquire/fence确认复用，不虚构一次加载；其reference也关联plan。
+  原生按需加载仍具有原策略和优先权，本轮不是修改整个LRU语义。
+- successful准备释放临时GPU引用后才结束目标。延后任务保留，实际GPU/
+  HOST引用释放、同engine文件压力finish和目标完成事件唤醒重查，无轮询。
+  原生iteration变化尚未单独推送给此队列；当前由上述事件推进，不能
+  将其描述为每个iteration都立即重试的完整调度实现。
+- 一个任务供两个plan复用时，真实加载只做一次。若creator取消，其
+  native冻结计划必须留到共享操作终态；不会撤掉其他订阅仍依赖的保护。
+  取消后的等待是资源所有权join，不是成功请求，也不重置任何到达时刻。
+- 丢失提交回复时，已有GPU lease和目标保护保持不确定状态；close拒绝
+  带未释放操作的plan。代理仅凭同owner/plan的关闭证明清理对应RPC记录。
+  不清除其他plan、旧owner或ordinary demand的不确定性。
+- 实际全局shutdown先取消并join GPU plan，再关闭file queue及runtime。
+  summary保存计划、attempt、真实准入/释放和关闭结果；不把重复订阅的
+  返回值分别累加为两次物理加载。
+
+### 正确性状态表（CPU原生cache fixture，不是模型性能）
+
+| 论文性质 | 本轮观测 |
+|---|---|
+| 整个选集先于执行 | 错误目标集合原子拒绝；有效集合进入同一native owner |
+| pending target是否可被主动替换 | 原最低loss目标受保护后不再被选；finish后才恢复资格 |
+| 同轮执行是否改了目标 | GPU命中acquire/release改变实时epoch后，后续HOST→GPU仍用同一objective SHA/h/d |
+| HOST→GPU和GPU复用 | 实际runner/common queue执行两目标，复用一项、加载一项；引用全部归还 |
+| admission延后 | 旧GPU内容保留；实际引用释放后第二attempt重查并完成 |
+| 共享与creator取消 | 两plan同一物理GPU任务、一次加载；creator取消不撤掉另一订阅保护 |
+| 不确定回复 | 注入提交后丢回复：lease与pending target仍在，plan标closure_unresolved |
+| proxy关闭范围 | 只清理同owner/plan准备RPC；其他身份和需求加载不被清除 |
+| engine/core/worker链路 | 新plan命令、core字段及native owner回复贯通；错误字段拒绝 |
+| 全局shutdown | GPU准备与临时引用/目标关闭先于runtime移除 |
+
+新增11项检查。首轮定向130项、初次全量794项、最终796项以及56项安全
+检查通过。最终在实际安装vLLM0.30中运行11项新增检查与11项core hook
+检查，共22项通过，CUDA未初始化。没有新GPU/model运行、真实profile或
+远端性能测量。构造输入不能证明实际数值adapter资格或G1/G2领先。
+
+### 返回主线
+
+Full guard不解除。自动planner/handoff触发及options生产、文件→native
+HOST装载、总HOST预算、共享/激活前压力、文件pending target/可变大小
+replacement、逐replica退役与完整生命周期仍需集成。主动加载完成如何
+统一反馈d也需随自动规划路径接入；本轮只保留原始加载完成证据，没有
+伪造profile。下一步推进这些完整资源/控制路径，不再重复本轮cache/queue
+或旧模型短前缀检查。正式比较、消融、敏感性均未启动。

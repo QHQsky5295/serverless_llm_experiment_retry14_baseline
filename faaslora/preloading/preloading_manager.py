@@ -222,6 +222,16 @@ class OwnedMovementQueue:
             self._keys.pop(job['key'], None)
             self._pump()
 
+    async def join_operation(self, intent_id):
+        """Keep a physical operation's dependent plan alive after withdrawal.
+
+        This does not add another interest or restart a cancelled operation.
+        Native target registration can outlive its creator while another plan
+        still uses that creator's shared execution body.
+        """
+        self._bind()
+        return await asyncio.shield(self._intents[intent_id]['future'])
+
     async def close(self):
         self._bind()
         self._closed = True

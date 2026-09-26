@@ -381,6 +381,7 @@ class IEEEWorkerObservationExtension:
         """
         if operation not in ('snapshot', 'source_snapshot', 'acquire', 'release', 'evict', 'begin_use', 'end_use',
                              'demand_load_and_acquire', 'hold_host_source', 'release_host_source',
+                             'register_preparation_plan', 'finish_preparation_target', 'close_preparation_plan',
                              'proactive_host_prepare_and_acquire'):
             raise ValueError('unknown GPU reference operation')
         if torch is None or self.device is None or self.device.type != 'cuda':

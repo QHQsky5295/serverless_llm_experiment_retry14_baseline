@@ -70,7 +70,8 @@ def _core_prepare_host(core, command):
         raise RuntimeError('proactive admission has no frozen completion-length profile')
     allowed = {'lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
                'expected_owner_id', 'expected_epoch', 'capacity_only'}
-    if not isinstance(command, dict) or set(command) not in (allowed, allowed | {'replacement_epoch'}):
+    if not isinstance(command, dict) or set(command) not in (allowed, allowed | {'replacement_epoch'},
+            allowed | {'replacement_epoch', 'preparation_plan_id'}):
         raise ValueError('proactive preparation command fields differ from the contract')
     observation = scheduler.ieee_scheduler_observation()
     lengths = scheduler._ieee_lengths.snapshot(now=observation['captured_at'])

@@ -670,6 +670,8 @@ class IEEEBackendGPUReferences:
         self._source_objects: Dict[int, weakref.ReferenceType] = {}
         self._gpu_confirmations: Dict[int, Tuple[int, float]] = {}
         self._preparations: Dict[str, Dict[str, Any]] = {}
+        self._preparation_plans: Dict[str, Dict[str, Any]] = {}
+        self._closed_preparation_plans: Set[str] = set()
         self._poisoned = False
         self._poison_reason = 'GPU reference owner invalidated'
         for cache in self._caches():
@@ -752,7 +754,69 @@ class IEEEBackendGPUReferences:
                 'live_leases': len(self._leases), 'released_leases': len(self._released),
                 'host_source_reference_counts': {str(aid): len(refs) for aid, refs in self._host_references.items()},
                 'live_host_source_leases': len(self._host_leases),
+                'pending_preparation_targets': sorted({aid for plan in self._preparation_plans.values()
+                                                       for aid in plan['pending']}),
                 'snapshot_holds_reference': False}
+
+    def register_preparation_plan(self, *, plan_id, objective, target_adapter_ids, expected_owner_id):
+        """Register the entire selected set before any candidate may execute.
+
+        This protects targets from proactive replacement, not ordinary demand
+        policy, and does not reserve/pin physical GPU or CPU storage. Frozen h/d
+        survives this plan's own slot changes; every execution still revalidates
+        the live source set, references, fallback and physical admission.
+        """
+        from ..preloading.preloading_planner import validate_native_gpu_epoch
+        frozen = validate_native_gpu_epoch(objective)
+        slots = self._refresh()
+        if expected_owner_id != self.owner_id or frozen['owner_id'] != self.owner_id:
+            raise ValueError('preparation plan belongs to another native owner')
+        if (not isinstance(plan_id, str) or not plan_id or plan_id in self._closed_preparation_plans
+                or not isinstance(target_adapter_ids, (list, tuple)) or not target_adapter_ids
+                or any(type(a) is not int or a <= 0 for a in target_adapter_ids)
+                or len(set(target_adapter_ids)) != len(target_adapter_ids)):
+            raise ValueError('invalid or closed preparation plan/target identity')
+        targets = tuple(sorted(target_adapter_ids))
+        identity = (objective['plan_sha256'], targets)
+        old = self._preparation_plans.get(plan_id)
+        if old is not None:
+            if old['identity'] != identity:
+                raise ValueError('preparation plan identity cannot change')
+            return dict(registered=True, plan_id=plan_id, **self.snapshot())
+        rows = {row['adapter_int_id']: row for row in frozen['sources']}
+        if (frozen['epoch'] != self.epoch or tuple(frozen['slot_adapter_ids']) != slots
+                or set(rows) != set(self._caches()[0]) or not set(targets).issubset(rows)
+                or any(self._sources.get(a) != (row['adapter_id'], row['lora_path'])
+                       for a, row in rows.items())):
+            raise ValueError('preparation plan requires its complete current native source epoch')
+        self._preparation_plans[plan_id] = dict(identity=identity, pending=set(targets),
+                                               objective=copy.deepcopy(objective))
+        return dict(registered=True, plan_id=plan_id, **self.snapshot())
+
+    def finish_preparation_target(self, *, plan_id, adapter_int_id, expected_owner_id):
+        self._refresh()
+        if expected_owner_id != self.owner_id or plan_id not in self._preparation_plans:
+            raise ValueError('preparation target has no matching live plan owner')
+        plan = self._preparation_plans[plan_id]
+        if type(adapter_int_id) is not int or adapter_int_id not in plan['identity'][1]:
+            raise ValueError('preparation target differs from registered selection')
+        if any(lease in self._leases and row.get('plan_id') == plan_id
+               and row['identity'][0] == adapter_int_id for lease, row in self._preparations.items()):
+            raise RuntimeError('preparation target still owns an unreleased GPU operation')
+        plan['pending'].discard(adapter_int_id)
+        return dict(finished=True, plan_id=plan_id, adapter_int_id=adapter_int_id, **self.snapshot())
+
+    def close_preparation_plan(self, *, plan_id, expected_owner_id):
+        self._refresh()
+        if (expected_owner_id != self.owner_id or not isinstance(plan_id, str) or not plan_id):
+            raise ValueError('preparation plan close requires its original owner')
+        if any(lease in self._leases and row.get('plan_id') == plan_id
+               for lease, row in self._preparations.items()):
+            raise RuntimeError('preparation plan still owns an unreleased GPU operation')
+        self._preparation_plans.pop(plan_id, None)
+        # A late/lost register cannot revive a cancelled plan.
+        self._closed_preparation_plans.add(plan_id)
+        return dict(closed=True, plan_id=plan_id, **self.snapshot())
 
     def source_snapshot(self) -> Dict[str, Any]:
         """Completed, source-bound copies, without acquiring or touching LRU.
@@ -1099,7 +1163,7 @@ class IEEEBackendGPUReferences:
     def proactive_host_prepare_and_acquire(self, *, lease_id: str, adapter_int_id: int,
             lora_name: str, lora_path: str, expected_owner_id: str, expected_epoch: int,
             capacity_only: bool, decide, replacement_epoch=None,
-            protected_adapter_ids=()) -> Dict[str, Any]:
+            protected_adapter_ids=(), preparation_plan_id=None) -> Dict[str, Any]:
         """Evaluate and commit HOST -> preallocated GPU on the owner thread.
 
         The engine-core bridge holds scheduling while this synchronous native
@@ -1128,11 +1192,14 @@ class IEEEBackendGPUReferences:
             # the accepted objective after its hash has been checked.
             replacement_epoch = copy.deepcopy(replacement_epoch)
             objective = validate_native_gpu_epoch(replacement_epoch)
+        elif preparation_plan_id is not None:
+            raise ValueError('registered preparation requires its frozen objective')
         slots = self._refresh()
         if expected_owner_id != self.owner_id:
             return {'acquired': False, 'reason': 'owner_changed', **self.snapshot()}
         identity = (adapter_int_id, lora_name, lora_path, capacity_only,
-                    replacement_epoch['plan_sha256'] if objective is not None else None)
+                    replacement_epoch['plan_sha256'] if objective is not None else None,
+                    preparation_plan_id)
         if lease_id in self._preparations:
             previous = self._preparations[lease_id]
             if previous['identity'] != identity:
@@ -1145,6 +1212,21 @@ class IEEEBackendGPUReferences:
         if expected_epoch != self.epoch:
             return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
         cpu, gpu = self._caches()
+        registered = self._preparation_plans.get(preparation_plan_id)
+        if preparation_plan_id is not None:
+            if (registered is None or objective is None
+                    or registered['identity'][0] != replacement_epoch['plan_sha256']
+                    or adapter_int_id not in registered['pending']):
+                raise ValueError('GPU preparation lacks its registered frozen plan target')
+            if (adapter_int_id in slots and adapter_int_id in self._gpu_confirmations
+                    and self._sources.get(adapter_int_id) == (lora_name, lora_path)):
+                receipt = self.acquire(lease_id=lease_id, adapter_int_id=adapter_int_id,
+                    expected_owner_id=expected_owner_id, expected_epoch=expected_epoch)
+                receipt.update(preparation_reused_gpu=True, preparation_plan_id=preparation_plan_id,
+                               proactive_admission_evaluated=False, native_load_invoked=False)
+                self._preparations[lease_id] = dict(identity=identity, receipt=copy.deepcopy(receipt),
+                                                     plan_id=preparation_plan_id)
+                return receipt
         if (adapter_int_id not in cpu or adapter_int_id in slots
                 or self._sources.get(adapter_int_id) != (lora_name, lora_path)):
             return {'acquired': False, 'reason': 'required_source_changed', **self.snapshot()}
@@ -1154,8 +1236,8 @@ class IEEEBackendGPUReferences:
         replacement = None
         policy_reason = None
         if objective is not None:
-            if (objective['owner_id'] != self.owner_id or objective['epoch'] != self.epoch
-                    or tuple(objective['slot_adapter_ids']) != tuple(slots)):
+            if (objective['owner_id'] != self.owner_id or (registered is None and
+                    (objective['epoch'] != self.epoch or tuple(objective['slot_adapter_ids']) != tuple(slots)))):
                 return {'acquired': False, 'reason': 'stale_replacement_epoch', **self.snapshot()}
             rows = {row['adapter_int_id']: row for row in objective['sources']}
             if (set(rows) != set(cpu) or any(self._sources.get(aid) !=
@@ -1169,7 +1251,8 @@ class IEEEBackendGPUReferences:
                 return (n / total) * row['host_load_ms'] if n else 0.
             benefit = weighted_host_cost(adapter_int_id)  # GPU remaining d = 0.
             protected = (set(protected_adapter_ids) | cpu.pinned_items | gpu.pinned_items
-                         | set(self._references) | set(self._host_references))
+                         | set(self._references) | set(self._host_references)
+                         | {aid for plan in self._preparation_plans.values() for aid in plan['pending']})
             # Uniform preallocated dense slots: exactly one compatible victim
             # covers a full-pool insertion. File bytes/rank are NOT usable bytes.
             usable_bytes = objective['slot_capacity_bytes']
@@ -1209,6 +1292,7 @@ class IEEEBackendGPUReferences:
             self._poisoned = True
             raise RuntimeError('admission evaluation mutated the native owner')
         common = {'proactive_admission_evaluated': policy_reason is None, 'admission': evaluation,
+                  'preparation_plan_id': preparation_plan_id,
                   'candidate_victim_adapter_id': victim, 'capacity_only': capacity_only,
                   'replacement': replacement,
                   'replacement_policy': replacement['policy'] if replacement else 'native_lru_diagnostic',
@@ -1256,7 +1340,8 @@ class IEEEBackendGPUReferences:
                     raise RuntimeError('native replacement lost its fallback or claimed slot')
             receipt.update(common)
             self._leases[lease_id].update(common)
-        self._preparations[lease_id] = {'identity': identity, 'receipt': copy.deepcopy(receipt)}
+        self._preparations[lease_id] = {'identity': identity, 'receipt': copy.deepcopy(receipt),
+                                      'plan_id': preparation_plan_id}
         return receipt
 
     def begin_use(self, *, lease_id: str, expected_owner_id: str,

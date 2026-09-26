@@ -4582,7 +4582,8 @@ class InferenceEngine:
         if self.backend != "vllm" or self.engine is None or self._engine_dead:
             raise RuntimeError("native references require a live vLLM engine")
         if operation not in ("snapshot", "source_snapshot", "acquire", "release", "evict", "begin_use", "end_use",
-                             "demand_load_and_acquire", "hold_host_source", "release_host_source"):
+                             "demand_load_and_acquire", "hold_host_source", "release_host_source",
+                             "register_preparation_plan", "finish_preparation_target", "close_preparation_plan"):
             raise ValueError("unknown GPU reference operation")
         rpc = getattr(self.engine, "collective_rpc", None)
         if not callable(rpc):
@@ -5082,6 +5083,7 @@ class SubprocessInferenceEngineProxy:
             self._native_rpc_uncertain[attempt_id] = {
                 'cmd': cmd, 'operation': kwargs.get('operation'),
                 'intent_id': kwargs.get('intent_id'),
+                'preparation_plan_id': kwargs.get('preparation_plan_id', kwargs.get('plan_id')),
                 'transfer_id': kwargs.get('transfer_id'),
                 'owner_id': ref.get('owner_id', kwargs.get('expected_owner_id')),
                 'lease_id': ref.get('lease_id', kwargs.get('lease_id'))}
@@ -5611,7 +5613,19 @@ class SubprocessInferenceEngineProxy:
         return result
 
     async def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
-        return await self._rpc("ieee_gpu_reference", operation=operation, **kwargs)
+        result = await self._rpc("ieee_gpu_reference", operation=operation, **kwargs)
+        if operation == 'close_preparation_plan':
+            if (result.get('closed') is not True or result.get('plan_id') != kwargs.get('plan_id')
+                    or result.get('owner_id') != kwargs.get('expected_owner_id')):
+                raise ValueError('preparation close lacks matching native owner proof')
+            for key, pending in list(self._native_rpc_uncertain.items()):
+                if (pending.get('preparation_plan_id') == result['plan_id']
+                        and pending.get('owner_id') == result['owner_id']
+                        and (pending['cmd'] == 'ieee_prepare_host' or
+                            (pending['cmd'] == 'ieee_gpu_reference' and pending.get('operation') in
+                             ('register_preparation_plan', 'finish_preparation_target', 'close_preparation_plan')))):
+                    del self._native_rpc_uncertain[key]
+        return result
 
     async def unload_lora_adapter(self, adapter_id: str) -> bool:
         result = await self._rpc("unload_lora_adapter", adapter_id=adapter_id)
@@ -8072,6 +8086,8 @@ class ScenarioRunner:
         preloading = getattr(getattr(self, '_stack', None), 'preloading_manager', None)
         if preloading is not None and preloading.ieee_movements.bound:
             result = {**result, 'ieee_movements': preloading.ieee_movements.snapshot()}
+        if hasattr(self, '_ieee_gpu_preparation_plans'):
+            result = {**result, 'ieee_gpu_preparation_plans': copy.deepcopy(self._ieee_gpu_preparation_plans)}
         return result
 
     @staticmethod
@@ -12225,6 +12241,12 @@ class ScenarioRunner:
         return True
 
     async def _shutdown_instance_pool(self) -> None:
+        plans = [task for task in getattr(self, '_ieee_gpu_plan_tasks', ())
+                 if task is not asyncio.current_task() and not task.done()]
+        for task in plans:
+            task.cancel()
+        if plans:
+            await asyncio.gather(*plans, return_exceptions=True)
         # Shared writers and their native pressure journals must settle while
         # the engines they refer to still exist. Cancelling a scale-up first
         # could otherwise remove that engine during an owned file operation.
@@ -14067,6 +14089,10 @@ class ScenarioRunner:
             (intent['expected_owner_id'], intent['lease_id']))
         if witness is not None and not witness['completion'].done():
             witness['completion'].set_result(outcome)
+        if outcome == 'released':
+            preloading = getattr(getattr(self, '_stack', None), 'preloading_manager', None)
+            if preloading is not None and preloading.ieee_movements.bound:
+                preloading.ieee_movements.wake(owner_id=intent['expected_owner_id'])
 
     async def _wait_native_reference_capacity(self, reservation, receipt):
         """Await actual known release owners; never poll/sleep or force eviction.
@@ -15546,6 +15572,177 @@ class ScenarioRunner:
                 future.exception()
             raise
 
+    async def _run_ieee_gpu_preparation_plan(self, *, slot, objective, target_adapter_ids,
+                                           trigger_reason, activation_id=None, capacity_only=False):
+        """Execute an explicitly selected native-HOST plan on the common queue.
+
+        Registration of all selected targets precedes any copy. This entry is
+        not an automatic planner, file->native HOST loader or Full qualification.
+        A deferred candidate remains queued until an observed owner-state event
+        or cancellation; it never polls, evicts early or loads by a fallback path.
+        """
+        from faaslora.preloading.preloading_planner import validate_native_gpu_epoch
+        from faaslora.preloading.preloading_manager import MovementOutcome
+        from faaslora.clock import local_monotonic_clock_id
+        objective = copy.deepcopy(objective)
+        frozen = validate_native_gpu_epoch(objective)
+        if (not self.model_cfg.get('ieee_gpu_references') or self._stack is None
+                or type(capacity_only) is not bool or trigger_reason not in ('handoff', 'residency')
+                or not isinstance(slot.instance_id, str) or not slot.instance_id
+                or (trigger_reason == 'handoff' and not activation_id)):
+            raise ValueError('native GPU plan needs explicit owner/trigger/activation/policy')
+        rows = {r['adapter_int_id']: r for r in frozen['sources']}
+        targets = tuple(target_adapter_ids)
+        if not targets or len(set(targets)) != len(targets) or any(a not in rows for a in targets):
+            raise ValueError('native GPU plan targets differ from frozen source identities')
+        owner_id, engine = frozen['owner_id'], slot.engine
+        for aid in targets:
+            row = rows[aid]
+            identity = self._ieee_artifact_identities[row['adapter_id']]
+            if row['host_class']['layout_id'] != 'exact_content_sha256:' + identity['content_sha256']:
+                raise ValueError('GPU preparation content differs from frozen artifact registry')
+        queue = self._stack.preloading_manager.ieee_movements
+        plans = getattr(self, '_ieee_gpu_preparation_plans', None)
+        if plans is None:
+            plans = self._ieee_gpu_preparation_plans = []
+        owners = getattr(self, '_ieee_gpu_movement_owners', None)
+        if owners is None:
+            owners = self._ieee_gpu_movement_owners = {}
+        if owner_id in owners and owners[owner_id] is not engine:
+            raise ValueError('native movement owner changed engines')
+        owners[owner_id] = engine
+        plan_id = uuid.uuid4().hex
+        record = dict(plan_id=plan_id, objective_sha256=objective['plan_sha256'],
+            owner_id=owner_id, target_replica=slot.instance_id, trigger_reason=trigger_reason,
+            activation_id=activation_id, targets=list(targets), capacity_only=capacity_only,
+            state='registering', attempts=[], started_at=time.monotonic())
+        plans.append(record)
+        tasks = getattr(self, '_ieee_gpu_plan_tasks', None)
+        if tasks is None:
+            tasks = self._ieee_gpu_plan_tasks = set()
+        plan_task = asyncio.current_task()
+        tasks.add(plan_task)
+        # Cancellation of a controller must not abandon a possibly accepted
+        # native operation. Each call settles its actual RPC before cleanup.
+        async def settle(awaitable):
+            task, cancelled = asyncio.ensure_future(awaitable), False
+            while True:
+                try:
+                    return await asyncio.shield(task), cancelled
+                except asyncio.CancelledError:
+                    if task.cancelled():
+                        raise
+                    cancelled = True
+        def checked(value):
+            if (not isinstance(value, dict) or value.get('owner_id') != owner_id
+                    or value.get('clock_id') != local_monotonic_clock_id()):
+                raise ValueError('GPU preparation acknowledgement owner/clock differs')
+            return value
+        async def execute(aid, attempt_id):
+            row = rows[aid]
+            evidence = dict(attempt_id=attempt_id, adapter_int_id=aid, state='observing')
+            record['attempts'].append(evidence)
+            current = checked(await engine.ieee_gpu_reference(operation='source_snapshot'))
+            source = next((r for r in current['sources'] if r['adapter_int_id'] == aid), None)
+            if source is None or (source['adapter_id'], source['lora_path']) != (row['adapter_id'], row['lora_path']):
+                raise ValueError('planned native HOST source changed; next planning epoch required')
+            command = dict(lease_id=uuid.uuid4().hex, adapter_int_id=aid,
+                lora_name=row['adapter_id'], lora_path=row['lora_path'],
+                expected_owner_id=owner_id, expected_epoch=current['epoch'])
+            evidence.update(state='native_pending', lease_id=command['lease_id'])
+            call = engine.ieee_prepare_host(**command, capacity_only=capacity_only,
+                replacement_epoch=objective, preparation_plan_id=plan_id)
+            try:
+                receipt, cancelled = await settle(call)
+                receipt = checked(receipt)
+            except BaseException:
+                evidence['state'] = 'native_outcome_unresolved'
+                raise
+            evidence['receipt'] = receipt
+            if receipt.get('acquired') is True:
+                evidence['state'] = 'releasing'
+                released, release_cancelled = await settle(engine.ieee_gpu_reference(operation='release',
+                    lease_id=command['lease_id'], expected_owner_id=owner_id))
+                if checked(released).get('released') is not True:
+                    raise RuntimeError('GPU preparation reference has not been released')
+                evidence.update(state='completed', release_receipt=released)
+                if cancelled or release_cancelled:
+                    raise asyncio.CancelledError()
+                return MovementOutcome('completed', dict(adapter_int_id=aid, receipt=receipt,
+                    reused=source['gpu_slot'] is not None, release_receipt=released))
+            if cancelled:
+                raise asyncio.CancelledError()
+            evidence['state'] = 'deferred'
+            return MovementOutcome('deferred', reason=receipt['reason'])
+        waiters, intents = [], []
+        async def consume(intent_id, aid):
+            result = await queue.wait(intent_id)
+            finished, cancelled = await settle(engine.ieee_gpu_reference(operation='finish_preparation_target',
+                plan_id=plan_id, adapter_int_id=aid, expected_owner_id=owner_id))
+            if checked(finished).get('finished') is not True:
+                raise RuntimeError('GPU preparation target closure is unacknowledged')
+            queue.wake(owner_id=owner_id)
+            if cancelled:
+                raise asyncio.CancelledError()
+            return result
+        try:
+            registered, cancelled = await settle(engine.ieee_gpu_reference(operation='register_preparation_plan',
+                plan_id=plan_id, objective=objective, target_adapter_ids=list(targets), expected_owner_id=owner_id))
+            if checked(registered).get('registered') is not True:
+                raise RuntimeError('GPU preparation plan registration is unacknowledged')
+            record['registration'] = registered
+            if cancelled:
+                raise asyncio.CancelledError()
+            for aid in targets:
+                row = rows[aid]
+                count = frozen['arrival_counts'].get(row['adapter_id'], 0)
+                density = (count / frozen['total_arrivals'] * row['host_load_ms'] /
+                           frozen['slot_capacity_bytes']) if count else 0.
+                intent = uuid.uuid4().hex
+                queue.submit(key=(owner_id, 'gpu', row['adapter_id'],
+                    self._ieee_artifact_identities[row['adapter_id']]['content_sha256']), intent_id=intent,
+                    metadata=dict(trigger_reason=trigger_reason, plan_id=plan_id,
+                                  activation_id=activation_id, target_replica=slot.instance_id),
+                    density=density, action=lambda attempt, aid=aid: execute(aid, attempt), ready=False)
+                intents.append(intent)
+                waiters.append(asyncio.create_task(consume(intent, aid)))
+            record['state'] = 'executing'
+            queue.wake(owner_id=owner_id, ready=True)
+            result = await asyncio.gather(*waiters)
+            record['state'] = 'completed'
+            return result
+        except BaseException as exc:
+            record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
+                          error_type=type(exc).__name__)
+            raise
+        finally:
+            for waiter in waiters:
+                if not waiter.done():
+                    waiter.cancel()
+            _, cleanup_cancelled = await settle(asyncio.gather(*waiters, return_exceptions=True))
+            for intent in intents:
+                _, interrupted = await settle(queue.withdraw(intent))
+                cleanup_cancelled |= interrupted
+            # A different plan may still reuse our execution closure. Keep its
+            # registered frozen objective/targets until that physical job ends.
+            _, interrupted = await settle(asyncio.gather(
+                *(queue.join_operation(intent) for intent in intents), return_exceptions=True))
+            cleanup_cancelled |= interrupted
+            try:
+                closed, cancelled = await settle(engine.ieee_gpu_reference(operation='close_preparation_plan',
+                    plan_id=plan_id, expected_owner_id=owner_id))
+                if checked(closed).get('closed') is not True:
+                    raise RuntimeError('GPU preparation plan closure is unacknowledged')
+                record['close_receipt'] = closed
+            except BaseException as exc:
+                record.update(state='closure_unresolved', close_error_type=type(exc).__name__)
+                raise
+            finally:
+                record['finished_at'] = time.monotonic()
+                tasks.discard(plan_task)
+            if cleanup_cancelled or cancelled:
+                raise asyncio.CancelledError()
+
     async def _queue_ieee_file_preparation(self, *, adapter_id, target_tier,
             target_engine, target_replica, trigger_reason, plan_id, activation_id=None,
             source_path=None, density=0., intent_id=None):
@@ -15672,6 +15869,9 @@ class ScenarioRunner:
                 record['finish_error_type'] = type(exc).__name__
                 raise
             record.update(state='finished', finish_receipt=dict(receipt))
+            for owner_id, target in getattr(self, '_ieee_gpu_movement_owners', {}).items():
+                if target is engine:
+                    self._stack.preloading_manager.ieee_movements.wake(owner_id=owner_id)
             if cancelled:
                 raise asyncio.CancelledError()
 

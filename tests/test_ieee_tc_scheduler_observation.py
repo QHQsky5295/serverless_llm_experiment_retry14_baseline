@@ -288,6 +288,11 @@ class NativeHookWiring(unittest.TestCase):
             epoch = {'plan_sha256': 'message-validated-by-worker'}
             self.assertTrue(engine_core.ieee_prepare_host({**command, 'replacement_epoch': epoch})['acquired'])
             self.assertEqual(captured[-1]['replacement_epoch'], epoch)
+            self.assertTrue(engine_core.ieee_prepare_host({**command, 'replacement_epoch': epoch,
+                'preparation_plan_id': 'registered-plan'})['acquired'])
+            self.assertEqual(captured[-1]['preparation_plan_id'], 'registered-plan')
+            with self.assertRaisesRegex(ValueError, 'fields'):
+                engine_core.ieee_prepare_host({**command, 'preparation_plan_id': 'without-objective'})
             with self.assertRaisesRegex(ValueError, 'fields'):
                 engine_core.ieee_prepare_host({**command, 'fake_kv': 0})
             engine_core.model_executor = object()

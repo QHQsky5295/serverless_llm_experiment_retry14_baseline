@@ -1351,5 +1351,293 @@ class NativeReferences(unittest.TestCase):
             asyncio.run(proxy.unload_lora_adapter('adapter'))
 
 
+class OwnedNativePreparationPlans(unittest.TestCase):
+    """Actual runner/common queue/native owner, with native cache fixtures only."""
+    def make(self, decide=None):
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.preloading.preloading_manager import PreloadingManager
+        from scripts.run_all_experiments import ScenarioRunner
+        case = NativeObjectiveReplacement()
+        case.setUp()
+        owner = case.owner
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.model_cfg = {'ieee_gpu_references': True}
+        runner._stack = SimpleNamespace(preloading_manager=PreloadingManager({}, Mock(), Mock(), Mock()))
+        runner._ieee_artifact_identities = {name: {'content_sha256': digest} for name, digest in case.content.items()}
+        def response(row):
+            return row | {'clock_id': local_monotonic_clock_id()}
+        async def reference(*, operation, **kwargs):
+            return response(getattr(owner, operation)(**kwargs))
+        async def prepare(**kwargs):
+            return response(owner.proactive_host_prepare_and_acquire(**kwargs,
+                decide=decide or (lambda *_: {'admit': True, 'reason': 'admit'})))
+        engine = SimpleNamespace(ieee_gpu_reference=AsyncMock(side_effect=reference),
+                                 ieee_prepare_host=AsyncMock(side_effect=prepare))
+        slot = SimpleNamespace(instance_id='actual-queue-fixture', engine=engine)
+        return case, runner, slot, response
+
+    def test_atomic_plan_registration_identity_and_cancellation_tombstone(self):
+        case, _, _, _ = self.make()
+        owner, epoch = case.owner, case.epoch()
+        kwargs = dict(plan_id='plan', objective=epoch, target_adapter_ids=[3, 4], expected_owner_id=owner.owner_id)
+        before = owner.snapshot()
+        with self.assertRaisesRegex(ValueError, 'current native source epoch'):
+            owner.register_preparation_plan(**(kwargs | {'target_adapter_ids': [4, 99]}))
+        self.assertEqual(owner.snapshot(), before)
+        receipt = owner.register_preparation_plan(**kwargs)
+        self.assertEqual(receipt['pending_preparation_targets'], [3, 4])
+        self.assertEqual(owner.register_preparation_plan(**kwargs), receipt)
+        with self.assertRaisesRegex(ValueError, 'identity cannot change'):
+            owner.register_preparation_plan(**(kwargs | {'target_adapter_ids': [4]}))
+        owner.close_preparation_plan(plan_id='plan', expected_owner_id=owner.owner_id)
+        with self.assertRaisesRegex(ValueError, 'closed preparation'):
+            owner.register_preparation_plan(**kwargs)
+        owner.close_preparation_plan(plan_id='lost-register', expected_owner_id=owner.owner_id)
+        with self.assertRaises(ValueError):
+            owner.register_preparation_plan(**(kwargs | {'plan_id': 'lost-register'}))
+
+    def test_pending_target_is_not_replacement_victim_and_frozen_objective_survives_own_work(self):
+        case, _, _, _ = self.make()
+        owner, epoch = case.owner, case.epoch()
+        owner.register_preparation_plan(plan_id='p', objective=epoch, target_adapter_ids=[3, 4],
+                                         expected_owner_id=owner.owner_id)
+        def prepare(aid, lease):
+            return owner.proactive_host_prepare_and_acquire(lease_id=lease, adapter_int_id=aid,
+                lora_name=f'adapter-{aid}', lora_path=f'/existing/adapter-{aid}',
+                expected_owner_id=owner.owner_id, expected_epoch=owner.snapshot()['epoch'],
+                replacement_epoch=epoch, preparation_plan_id='p', capacity_only=False,
+                decide=lambda *_: {'admit': True, 'reason': 'admit'})
+        blocked = prepare(4, 'blocked')
+        self.assertFalse(blocked['acquired'])
+        self.assertIn(3, blocked['replacement']['protected_adapter_ids'])
+        hit = prepare(3, 'reused')
+        self.assertTrue(hit['preparation_reused_gpu'])
+        with self.assertRaisesRegex(RuntimeError, 'unreleased GPU operation'):
+            owner.close_preparation_plan(plan_id='p', expected_owner_id=owner.owner_id)
+        with self.assertRaisesRegex(RuntimeError, 'unreleased GPU operation'):
+            owner.finish_preparation_target(plan_id='p', adapter_int_id=3, expected_owner_id=owner.owner_id)
+        owner.release(lease_id='reused', expected_owner_id=owner.owner_id)
+        owner.finish_preparation_target(plan_id='p', adapter_int_id=3, expected_owner_id=owner.owner_id)
+        self.assertNotEqual(owner.snapshot()['epoch'], epoch['epoch'])
+        accepted = prepare(4, 'next-attempt')
+        self.assertTrue(accepted['acquired'])
+        self.assertEqual(accepted['replacement']['plan_sha256'], epoch['plan_sha256'])
+        self.assertEqual(accepted['candidate_victim_adapter_id'], 3)
+        owner.release(lease_id='next-attempt', expected_owner_id=owner.owner_id)
+        owner.finish_preparation_target(plan_id='p', adapter_int_id=4, expected_owner_id=owner.owner_id)
+        owner.close_preparation_plan(plan_id='p', expected_owner_id=owner.owner_id)
+        self.assertEqual(owner.snapshot()['pending_preparation_targets'], [])
+
+    def test_actual_runner_executes_frozen_batch_and_releases_all_references(self):
+        case, runner, slot, _ = self.make()
+        epoch = case.epoch()
+        async def run():
+            result = await asyncio.wait_for(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                objective=epoch, target_adapter_ids=[2, 4], trigger_reason='residency'), 2)
+            self.assertEqual({r['adapter_int_id'] for r in result}, {2, 4})
+            self.assertEqual(sum(r['reused'] for r in result), 1)
+            self.assertEqual(set(case.manager.lora_index_to_id), {2, 4})
+            self.assertEqual(case.owner.snapshot()['live_leases'], 0)
+            self.assertEqual(case.owner.snapshot()['pending_preparation_targets'], [])
+            record = runner._ieee_gpu_preparation_plans[0]
+            self.assertEqual(record['state'], 'completed')
+            self.assertEqual(record['objective_sha256'], epoch['plan_sha256'])
+            self.assertFalse(runner._ieee_gpu_plan_tasks)
+            self.assertTrue(all(j['state'] == 'completed' for j in runner._stack.preloading_manager.ieee_movements.snapshot()))
+            await runner._stack.preloading_manager.stop()
+        asyncio.run(run())
+
+    def test_actual_deferral_resumes_after_acknowledged_reference_release(self):
+        allow = [False]
+        case, runner, slot, _ = self.make(lambda *_: dict(admit=allow[0], reason='admit' if allow[0] else 'defer_effective_capacity'))
+        async def run():
+            task = asyncio.create_task(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                objective=case.epoch(), target_adapter_ids=[4], trigger_reason='handoff', activation_id='a'))
+            queue = runner._stack.preloading_manager.ieee_movements
+            while not queue.snapshot() or queue.snapshot()[0]['state'] != 'deferred':
+                await asyncio.sleep(0)
+            self.assertFalse(task.done())
+            self.assertEqual(set(case.manager.lora_index_to_id), {2, 3})
+            self.assertEqual(case.owner.snapshot()['pending_preparation_targets'], [4])
+            case.case.pin(2)
+            case.case.release('hit-2')
+            allow[0] = True
+            reservation = SimpleNamespace(gpu_reference_evidence={'intent': {
+                'expected_owner_id': case.owner.owner_id, 'lease_id': 'hit-2'}})
+            runner._settle_native_reference_intent(reservation, 'gpu', 'released')
+            result = await asyncio.wait_for(task, 2)
+            self.assertTrue(result[0]['receipt']['acquired'])
+            self.assertEqual(len(queue.snapshot()[0]['attempts']), 2)
+            self.assertEqual(case.owner.snapshot()['live_leases'], 0)
+            await queue.close()
+        asyncio.run(asyncio.wait_for(run(), 3))
+
+    def test_two_plans_reuse_one_gpu_movement_and_keep_separate_native_protection(self):
+        case, runner, slot, _ = self.make()
+        epoch, before = case.epoch(), len(case.case.loads)
+        async def run():
+            left, right = await asyncio.gather(*(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                objective=epoch, target_adapter_ids=[4], trigger_reason=reason,
+                activation_id='a' if reason == 'handoff' else None) for reason in ('handoff', 'residency')))
+            self.assertEqual(left, right)
+            self.assertEqual(len(case.case.loads)-before, 1)
+            self.assertEqual(len(runner._stack.preloading_manager.ieee_movements.snapshot()), 1)
+            self.assertEqual(len(runner._ieee_gpu_preparation_plans), 2)
+            self.assertTrue(all(r['close_receipt']['closed'] for r in runner._ieee_gpu_preparation_plans))
+            self.assertFalse(case.owner.snapshot()['pending_preparation_targets'])
+            await runner._stack.preloading_manager.stop()
+        asyncio.run(asyncio.wait_for(run(), 3))
+
+    def test_cancelled_rpc_waits_for_native_result_release_and_target_closure(self):
+        case, runner, slot, response = self.make()
+        original = slot.engine.ieee_prepare_host.side_effect
+        async def run():
+            entered, proceed = asyncio.Event(), asyncio.Event()
+            async def held(**command):
+                receipt = await original(**command)
+                self.assertTrue(receipt['acquired'])
+                entered.set()
+                await proceed.wait()
+                return receipt
+            slot.engine.ieee_prepare_host.side_effect = held
+            task = asyncio.create_task(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                objective=case.epoch(), target_adapter_ids=[4], trigger_reason='residency'))
+            await entered.wait()
+            task.cancel()
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
+            self.assertFalse(task.done())
+            self.assertEqual(case.owner.snapshot()['live_leases'], 1)
+            self.assertEqual(case.owner.snapshot()['pending_preparation_targets'], [4])
+            proceed.set()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            self.assertEqual(case.owner.snapshot()['live_leases'], 0)
+            self.assertEqual(case.owner.snapshot()['pending_preparation_targets'], [])
+            self.assertEqual(runner._ieee_gpu_preparation_plans[0]['state'], 'cancelled')
+            await runner._stack.preloading_manager.stop()
+        asyncio.run(asyncio.wait_for(run(), 3))
+
+    def test_lost_native_reply_retains_unknown_lease_and_does_not_claim_plan_closed(self):
+        case, runner, slot, _ = self.make()
+        original = slot.engine.ieee_prepare_host.side_effect
+        async def lost(**command):
+            await original(**command)
+            raise ConnectionError('native reply lost after commit')
+        slot.engine.ieee_prepare_host.side_effect = lost
+        async def run():
+            with self.assertRaisesRegex(RuntimeError, 'unreleased GPU operation'):
+                await runner._run_ieee_gpu_preparation_plan(slot=slot,
+                    objective=case.epoch(), target_adapter_ids=[4], trigger_reason='residency')
+            self.assertEqual(case.owner.snapshot()['live_leases'], 1)
+            self.assertEqual(case.owner.snapshot()['pending_preparation_targets'], [4])
+            self.assertEqual(runner._ieee_gpu_preparation_plans[0]['state'], 'closure_unresolved')
+            self.assertFalse(runner._ieee_gpu_plan_tasks)
+            await runner._stack.preloading_manager.stop()
+        asyncio.run(run())
+
+    def test_creator_cancel_keeps_shared_native_plan_until_other_subscriber_finishes(self):
+        case, runner, slot, _ = self.make()
+        original, epoch = slot.engine.ieee_prepare_host.side_effect, case.epoch()
+        async def run():
+            entered, proceed = asyncio.Event(), asyncio.Event()
+            async def held(**command):
+                receipt = await original(**command)
+                entered.set()
+                await proceed.wait()
+                return receipt
+            slot.engine.ieee_prepare_host.side_effect = held
+            first = asyncio.create_task(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                objective=epoch, target_adapter_ids=[4], trigger_reason='handoff', activation_id='a'))
+            second = asyncio.create_task(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                objective=epoch, target_adapter_ids=[4], trigger_reason='residency'))
+            await entered.wait()
+            first.cancel()
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
+            self.assertFalse(first.done())
+            self.assertFalse(second.done())
+            self.assertEqual(len(case.owner._preparation_plans), 2)
+            proceed.set()
+            self.assertTrue((await second)[0]['receipt']['acquired'])
+            with self.assertRaises(asyncio.CancelledError):
+                await first
+            self.assertEqual(case.owner.snapshot()['live_leases'], 0)
+            self.assertEqual(case.owner.snapshot()['pending_preparation_targets'], [])
+            self.assertEqual(slot.engine.ieee_prepare_host.await_count, 1)
+            await runner._stack.preloading_manager.stop()
+        asyncio.run(asyncio.wait_for(run(), 3))
+
+    def test_proxy_only_clears_exact_closed_plan_uncertainty(self):
+        proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
+        proxy._rpc = AsyncMock(return_value=dict(closed=True, plan_id='p', owner_id='o'))
+        proxy._native_rpc_uncertain = {
+            'register': dict(cmd='ieee_gpu_reference', operation='register_preparation_plan', preparation_plan_id='p', owner_id='o'),
+            'prepare': dict(cmd='ieee_prepare_host', preparation_plan_id='p', owner_id='o'),
+            'other': dict(cmd='ieee_prepare_host', preparation_plan_id='other', owner_id='o'),
+            'owner': dict(cmd='ieee_prepare_host', preparation_plan_id='p', owner_id='old'),
+            'demand': dict(cmd='ieee_gpu_reference', operation='demand_load_and_acquire', preparation_plan_id='p', owner_id='o')}
+        asyncio.run(proxy.ieee_gpu_reference(operation='close_preparation_plan', plan_id='p', expected_owner_id='o'))
+        self.assertEqual(set(proxy._native_rpc_uncertain), {'other', 'owner', 'demand'})
+        with self.assertRaisesRegex(ValueError, 'matching native owner proof'):
+            asyncio.run(proxy.ieee_gpu_reference(operation='close_preparation_plan', plan_id='p', expected_owner_id='new'))
+
+    def test_real_engine_worker_entry_registers_and_closes_same_owner_plan(self):
+        case, _, _, _ = self.make()
+        worker = gpu_monitor.IEEEWorkerObservationExtension()
+        worker.device, worker.rank = SimpleNamespace(type='cuda'), 0
+        worker.model_runner = SimpleNamespace(lora_manager=SimpleNamespace(_adapter_manager=case.manager))
+        worker._ieee_gpu_reference_owner = case.owner
+        engine = InferenceEngine({'backend': 'vllm', 'ieee_gpu_references': True}, {})
+        async def rpc(method, kwargs):
+            self.assertEqual(method, 'ieee_gpu_reference')
+            return [worker.ieee_gpu_reference(**kwargs)]
+        engine.engine = SimpleNamespace(collective_rpc=rpc)
+        async def run():
+            registered = await engine.ieee_gpu_reference(operation='register_preparation_plan',
+                plan_id='p', objective=case.epoch(), target_adapter_ids=[4], expected_owner_id=case.owner.owner_id)
+            self.assertEqual(registered['pending_preparation_targets'], [4])
+            self.assertFalse(registered['production_launch_authorized'])
+            finished = await engine.ieee_gpu_reference(operation='finish_preparation_target',
+                plan_id='p', adapter_int_id=4, expected_owner_id=case.owner.owner_id)
+            self.assertTrue(finished['finished'])
+            closed = await engine.ieee_gpu_reference(operation='close_preparation_plan',
+                plan_id='p', expected_owner_id=case.owner.owner_id)
+            self.assertEqual(closed['pending_preparation_targets'], [])
+        with patch.object(gpu_monitor, 'torch', SimpleNamespace()):
+            asyncio.run(run())
+
+    def test_full_shutdown_joins_gpu_plan_before_removing_its_runtime(self):
+        case, runner, slot, _ = self.make()
+        original = slot.engine.ieee_prepare_host.side_effect
+        async def run():
+            entered, proceed = asyncio.Event(), asyncio.Event()
+            async def held(**command):
+                receipt = await original(**command)
+                entered.set()
+                await proceed.wait()
+                return receipt
+            slot.engine.ieee_prepare_host.side_effect = held
+            task = asyncio.create_task(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                objective=case.epoch(), target_adapter_ids=[4], trigger_reason='residency'))
+            await entered.wait()
+            runner.instance_pool = SimpleNamespace(get_slots=lambda: [slot], remove_instance=lambda _: slot)
+            async def remove(*args, **kwargs):
+                self.assertEqual(case.owner.snapshot()['live_leases'], 0)
+                self.assertEqual(case.owner.snapshot()['pending_preparation_targets'], [])
+            runner._cleanup_removed_slot = AsyncMock(side_effect=remove)
+            shutdown = asyncio.create_task(runner._shutdown_instance_pool())
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
+            self.assertFalse(shutdown.done())
+            runner._cleanup_removed_slot.assert_not_awaited()
+            proceed.set()
+            await shutdown
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            runner._cleanup_removed_slot.assert_awaited_once()
+        asyncio.run(asyncio.wait_for(run(), 3))
+
+
 if __name__ == '__main__':
     unittest.main()
