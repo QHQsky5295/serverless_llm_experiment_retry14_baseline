@@ -133,13 +133,13 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest backups and evidence index
 
-- Main tested implementation: `39e5af62ca275b90968e28b2f5eff1520492bc15`, pushed to
+- Main tested implementation: `7c4337d59fd687ebabf7acfed6f30dbfd75b2a2f`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; fresh full remote SHA verified.
   D48 previously verified D47 receipt `1a86556e328de5aaeffce373c273cddcdd695b87`, resolving
-  its earlier independent-readback gap. This D51 backup receipt is a subsequent
+  its earlier independent-readback gap. This D52 backup receipt is a subsequent
   documentation-only commit, not another experiment.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
-  `origin/main`; remote full SHA reverified in D51. No baseline edits in D51.
+  `origin/main`; remote full SHA reverified in D52. No baseline edits in D52.
 - All earlier checkpoints, failures, qualification attempts and exact backups
   remain verbatim in [EXECUTION_HISTORY_THROUGH_D26.md](EXECUTION_HISTORY_THROUGH_D26.md).
   Archive SHA256: `4e91643d959967f1f0dc8642fe969d35380f2156cf8c820964019539d3b415cb`.
@@ -242,6 +242,13 @@ its one historical SHA difference and independent numerical gate remain open.
   read-only inspected: all actual cgroup.procs empty. No model/test remains.
   Final GPUs15MiB/0%, MemAvailable108494868KiB, disk353405702144B. No capacity
   relaxation, no artifacts regenerated. Tested implementation backup follows.
+- Implementation7c4337d59fd687ebabf7acfed6f30dbfd75b2a2f pushed and fresh full
+  remote SHA verified. All eight D52 scopes are stopped; only original user dirt
+  remains. Plan and protected147 reverified unchanged after backup. This subsequent
+  documentation-only receipt is not another experiment. Resume integrated native
+  HOST/staging capacity/admission, representative profiles/allocator qualification
+  and Full physical lifecycle/A4; do not repeat feedback or old model prefixes.
+  Full goal remains active, no complete/performance qualification claim.
 
 ### D51 automatic final-file replacement with native fallback lifetimes
 
