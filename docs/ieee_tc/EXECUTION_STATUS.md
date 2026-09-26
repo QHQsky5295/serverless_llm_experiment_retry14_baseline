@@ -61,7 +61,9 @@ limits. No more allocator-only microtests or old prefixes. Next representative
 measured profiles and actual Full/multi-plan/lifecycle qualification, using the
 explicit D60 candidate and fixed HOST allowance. Full guard and both unanswered
 artifact/remote authority choices remain. Formal baselines/M1/M2/ablations are
-not started. Final cleanup/protection/backup receipt follows below; goal active.
+not started. Tested checkpoint34ac569cf8d3ee38013efe499193a8febbd3d6fd is pushed
+with fresh full remote SHA verification. All four owned scopes are empty/stopped;
+no experiment remains running. Receipt below; goal active.
 
 D60 second/final local comparison completed and cleaned: official background
 event processing returns all6classes' native-copy pinned bytes at the original
@@ -273,6 +275,11 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
   GPUs15MiB/0%,MemAvailable108888372KiB,available disk353312206848B. Protected147
   and authoritative plan reverified unchanged. Tested named-file backup follows;
   baseline has no task edits. These checks add no performance qualification.
+- Tested implementation34ac569cf8d3ee38013efe499193a8febbd3d6fd pushed; fresh
+  faaslora_origin/retry14_continuous_queue_v2 full SHA matches. Exactly six named
+  files, whitespace/protected-name/added-text secrets checks pass. Baseline
+  16570c023a439c884624e7a5bdfa0d8577faf7a3 unchanged and fresh origin/main SHA
+  matches. This subsequent receipt is documentation only, not another run.
 
 ### D60 official background event handling
 
