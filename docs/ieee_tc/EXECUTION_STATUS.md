@@ -90,7 +90,7 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest verified backups and evidence index
 
-- Main tested implementation: `f3039c35184287e584b615659c9dd63d443f65cf`, pushed to
+- Main tested implementation: `fdf87d59f5fa99fbdb6d4fb444bc3b9bd1fc22a1`, pushed to
   `faaslora_origin/retry14_continuous_queue_v2`; remote SHA verified.
   This backup receipt is a subsequent documentation-only commit.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
@@ -186,6 +186,11 @@ its one historical SHA difference and independent numerical gate remain open.
   automatic Full integration. Representative profiles, numerical correctness
   and remote/backend qualification remain open. No baselines/M1/M2/ablations/
   sensitivities started. Do not repeat this local gate; full goal remains active.
+- Implementation fdf87d59f5fa99fbdb6d4fb444bc3b9bd1fc22a1 pushed to
+  faaslora_origin/retry14_continuous_queue_v2; full remote SHA verified. All five
+  D37 scopes stopped after empty checks; none remain listed. Only original user
+  dirt remains. This backup receipt is documentation-only. Recheck plan/status
+  and live resources before continuing the common owned movement integration.
 
 ### D36 actual preparation profile/request feedback connection
 
