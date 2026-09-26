@@ -96,15 +96,13 @@ its one historical SHA difference and independent numerical gate remain open.
 
 ## Latest backups and evidence index
 
-- Main tested implementation: `4af6a9cc50de80f29a9fabe91ad6166437e3e6d5`, pushed to
-  `faaslora_origin/retry14_continuous_queue_v2`; Git acknowledged the successful
-  branch update from3c57e00 to4af6a9c. Two subsequent fresh full-SHA readbacks hit
-  GitHub TLS termination; independent readback remains pending, not claimed done.
-  This backup receipt is a subsequent documentation-only commit.
-  D48 fresh remote readback verified its receipt commit
-  `1a86556e328de5aaeffce373c273cddcdd695b87`; D47 backup is now independently verified.
+- Main tested implementation: `faf5c855b0cbb2e13d841ff711ac7aaead43a5ae`, pushed to
+  `faaslora_origin/retry14_continuous_queue_v2`; fresh full remote SHA verified.
+  D48 also verified D47 receipt `1a86556e328de5aaeffce373c273cddcdd695b87`, resolving
+  its earlier independent-readback gap. This new backup receipt is a subsequent
+  documentation-only commit, not another experiment.
 - Baselines: `16570c023a439c884624e7a5bdfa0d8577faf7a3`, pushed to
-  `origin/main`; remote full SHA reverified in D47. No baseline edits in D47.
+  `origin/main`; remote full SHA reverified in D48. No baseline edits in D48.
 - All earlier checkpoints, failures, qualification attempts and exact backups
   remain verbatim in [EXECUTION_HISTORY_THROUGH_D26.md](EXECUTION_HISTORY_THROUGH_D26.md).
   Archive SHA256: `4e91643d959967f1f0dc8642fe969d35380f2156cf8c820964019539d3b415cb`.
@@ -202,6 +200,12 @@ its one historical SHA difference and independent numerical gate remain open.
   0%, MemAvailable108696840KiB, disk353403703296B. Source plan SHA and protected147
   entries unchanged; baseline16570c and original user dirt unchanged. Tested
   implementation backup follows. No performance slot or real profile completed.
+- Implementationfaf5c855b0cbb2e13d841ff711ac7aaead43a5ae pushed and fresh full remote
+  SHA verified. Baseline16570c full remote SHA reverified unchanged. All six D48
+  scopes stopped, no task live, only original user dirt remains. This subsequent
+  documentation-only receipt is not another experiment. Resume initial-primary
+  activation and complete Full ownership/replacement, not repeated control or
+  old short model checks. Full goal stays active; no formal performance claim.
 
 ### D47 actual dedicated activation and pre-init file/native handoff
 
