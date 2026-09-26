@@ -137,6 +137,10 @@ class OwnedMovementQueue:
                 raise TypeError('owned movement executor must return MovementOutcome')
             attempt.update(state=result.state, reason=result.reason)
             if result.state == 'deferred':
+                # Retain the actual refusal observation, not a prediction of
+                # future capacity. Monitoring can compare subsequent state
+                # without re-running the physical operation on every tick.
+                attempt['observation'] = copy.deepcopy(result.value)
                 job['state'] = 'pending' if self._revision.get(revision_key, 0) != revision else 'deferred'
                 job['deferred_revision'] = revision
             else:
@@ -158,6 +162,19 @@ class OwnedMovementQueue:
                 job['action'] = None  # Do not retain completed I/O closures/engines.
             job['task'] = None
             self._pump()
+
+    def deferred_observations(self, *, target_tier, reasons):
+        """Only live, settled refusals; don't scan completed experiment history."""
+        self._bind()
+        if target_tier not in ('gpu', 'host', 'nvme') or not isinstance(reasons, tuple):
+            raise ValueError('deferred observations require a tier and reason tuple')
+        if self._closed:
+            return []
+        return [dict(job_id=j['job_id'], key=j['key'], attempt_id=j['attempts'][-1]['attempt_id'],
+                     reason=j['attempts'][-1]['reason'], observation=copy.deepcopy(j['attempts'][-1]['observation']))
+                for j in self._keys.values() if j['key'][1] == target_tier
+                and j['state'] == 'deferred' and j['ready'] and j['intents']
+                and j['attempts'][-1]['reason'] in reasons]
 
     def wake(self, *, owner_id, ready=None, target_tiers=('gpu', 'host', 'nvme')):
         """Notify an actual capacity/pressure/activation change; no hidden timer."""

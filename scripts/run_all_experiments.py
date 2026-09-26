@@ -8135,6 +8135,8 @@ class ScenarioRunner:
             result['ieee_initial_deployment'] = copy.deepcopy(self._ieee_initial_deployment)
         if hasattr(self, '_ieee_control_events'):
             result['ieee_control_events'] = copy.deepcopy(self._ieee_control_events)
+        if hasattr(self, '_ieee_host_capacity_events'):
+            result['ieee_host_capacity_events'] = copy.deepcopy(self._ieee_host_capacity_events)
         if hasattr(self, '_ieee_residency_epochs'):
             result['ieee_residency_epochs'] = copy.deepcopy(self._ieee_residency_epochs)
         if getattr(self, '_ieee_host_budget_members', None) is not None:
@@ -11902,6 +11904,9 @@ class ScenarioRunner:
             ready_instances=ready, pending_instances=pending)
         if snapshot is None:
             return False
+        # Sample only actual HOST-capacity waiters on the already-frozen control
+        # cadence. Reading allocator counters is not a new loading attempt.
+        await self._refresh_ieee_deferred_host_capacity()
         self._live_scale_eval_last_at = now
         record = dict(snapshot, action=snapshot['action'].value, outcome='no_action')
         if not hasattr(self, '_ieee_control_events'):
@@ -11946,6 +11951,64 @@ class ScenarioRunner:
         # steady-state path. Existing in-flight plans keep their immutable epoch.
         self._schedule_ieee_residency_epochs()
         return changed
+
+    async def _refresh_ieee_deferred_host_capacity(self):
+        """Observe asynchronous HOST return without a per-operation retry timer.
+
+        Native allocators don't expose a Python return callback. Refusals keep
+        their actual A/X observation. On existing control samples, refresh only
+        owners with live byte-pressure waiters; wake only if their measured
+        capacity improves. Execution still rechecks all budgets/references/E(t).
+        No credit for Python deletion, expected frees, inactive or cached bytes.
+        """
+        preloading = getattr(getattr(self, '_stack', None), 'preloading_manager', None)
+        if preloading is None or not preloading.ieee_movements.bound:
+            return
+        queue = preloading.ieee_movements
+        waits = queue.deferred_observations(target_tier='host',
+            reasons=('native_host_tensor_budget', 'native_host_workspace_pressure'))
+        if not waits:
+            return
+        from faaslora.clock import local_monotonic_clock_id
+        def measured(value):
+            if (not isinstance(value, dict) or value.get('available') is not True
+                    or any(type(value.get(k)) is not int or value[k] < 0 for k in
+                           ('accounted_tensor_bytes', 'registered_exclusive_storage_bytes'))
+                    or value['registered_exclusive_storage_bytes'] > value['accounted_tensor_bytes']):
+                raise ValueError('native HOST capacity notification lacks actual storage accounting')
+            return value['accounted_tensor_bytes'], value['registered_exclusive_storage_bytes']
+        owners = getattr(self, '_ieee_gpu_movement_owners', {})
+        for owner_id in sorted({w['key'][0] for w in waits}):
+            if owner_id not in owners:
+                raise RuntimeError('deferred native HOST capacity has no physical owner')
+            group = [w for w in waits if w['key'][0] == owner_id]
+            before = []
+            for wait in group:
+                allocation = wait['observation']
+                if not isinstance(allocation, dict) or allocation.get('admitted') is not False:
+                    raise ValueError('native HOST capacity refusal lacks its allocation observation')
+                before.append(measured(allocation.get('before')))
+            reply = await owners[owner_id].ieee_gpu_reference(operation='source_snapshot')
+            if reply.get('owner_id') != owner_id or reply.get('clock_id') != local_monotonic_clock_id():
+                raise ValueError('native HOST capacity observation owner/clock changed')
+            current, exclusive = measured(reply.get('native_host_allocator'))
+            # The RPC may overlap cancellation or a genuine release wake. An
+            # obsolete refusal cannot wake a later incarnation of the job.
+            live_attempts = {w['attempt_id'] for w in queue.deferred_observations(target_tier='host',
+                reasons=('native_host_tensor_budget', 'native_host_workspace_pressure'))}
+            improved = [w for w, (old, old_exclusive) in zip(group, before)
+                if w['attempt_id'] in live_attempts and
+                   (current-exclusive < old-old_exclusive
+                    if w['reason'] == 'native_host_workspace_pressure' else current < old)]
+            if improved:
+                queue.wake(owner_id=owner_id, target_tiers=('host',))
+                if not hasattr(self, '_ieee_host_capacity_events'):
+                    self._ieee_host_capacity_events = []
+                self._ieee_host_capacity_events.append(dict(owner_id=owner_id,
+                    observed_monotonic_s=time.monotonic(), clock_id=local_monotonic_clock_id(),
+                    current_accounted_bytes=current, current_registered_exclusive_bytes=exclusive,
+                    refusal_attempt_ids=[w['attempt_id'] for w in improved],
+                    capacity_reserved=False))
 
     def _reap_ieee_residency_tasks(self):
         tasks = getattr(self, '_ieee_residency_tasks', {})
@@ -16391,6 +16454,12 @@ class ScenarioRunner:
                 raise ValueError('native HOST preparation acknowledgement owner/clock differs')
             return value
         checked(current)
+        owners = getattr(self, '_ieee_gpu_movement_owners', None)
+        if owners is None:
+            owners = self._ieee_gpu_movement_owners = {}
+        if owner_id in owners and owners[owner_id] is not engine:
+            raise ValueError('native HOST movement owner changed engines')
+        owners[owner_id] = engine
         references = self._stack.residency_manager.local_source_references
         queue = self._stack.preloading_manager.ieee_movements
         content = self._ieee_artifact_identities[adapter_id]['content_sha256']
@@ -16456,7 +16525,7 @@ class ScenarioRunner:
                 if cancelled:
                     raise asyncio.CancelledError()
                 if not receipt['held']:
-                    return MovementOutcome('deferred', reason=receipt['reason'])
+                    return MovementOutcome('deferred', value=receipt.get('allocation'), reason=receipt['reason'])
                 return MovementOutcome('completed', dict(state='native_host_prepared', receipt=receipt,
                     content_sha256=content, total_host_memory_covered=False,
                     _cpu_owner_intent_id=intent if receipt['native_load_invoked'] else None))

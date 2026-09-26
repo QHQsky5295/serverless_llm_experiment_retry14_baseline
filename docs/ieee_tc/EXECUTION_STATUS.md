@@ -51,6 +51,18 @@ configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
 
+D61 connects actual asynchronous HOST-capacity observations to existing deferred
+work on the frozen control cadence. No waiters means no RPC; unchanged bytes
+mean no new physical load. Actual A (budget) or A-X (protected workspace) must
+improve; cancellation/owner/clock checked, all original admission checks remain.
+943 functional,16 installed-native CPU and62 safety checks pass; no GPU/profile/
+Full experiment this turn. P2 D61 contains the immediate correctness table and
+limits. No more allocator-only microtests or old prefixes. Next representative
+measured profiles and actual Full/multi-plan/lifecycle qualification, using the
+explicit D60 candidate and fixed HOST allowance. Full guard and both unanswered
+artifact/remote authority choices remain. Formal baselines/M1/M2/ablations are
+not started. Final cleanup/protection/backup receipt follows below; goal active.
+
 D60 second/final local comparison completed and cleaned: official background
 event processing returns all6classes' native-copy pinned bytes at the original
 post-delete observations, before the next real load. Exact GPU content matches;
@@ -232,6 +244,35 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
     Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D61 observed HOST return and deferred preparation
+
+- Start e7f9a4d711863495fb1d44aa9700278a1a7b42d6; baseline16570c unchanged.
+  Full plan/status/AGENTS and execution/backup/plotting skills read, including
+  after recovery. Protected147 and plan unchanged; original dirt preserved.
+  Reviewed actual queue/worker/allocator path, D54/D58/D60, IEEE budget text and
+  matching official PyTorch2.13/vLLM0.30 sources. No agent/model/GPU/remote run.
+- Existing deferred work retains its actual byte-refusal snapshot. On existing
+  frozen control samples, only owners with live HOST byte-pressure waiters are
+  observed, once per owner. A or A-X improvement wakes existing work; original
+  executor rechecks capacity/references/E(t). Wrong owner/clock/unknown bytes
+  rejected; post-RPC attempt recheck excludes withdrawn/obsolete refusals.
+  No retry timer, dummy allocation, future-free credit, budget increase, early
+  eviction, paper equation/profile/model-config change or Full guard removal.
+- Five added checks. Initial61 targeted checks, final943 functional,16 installed
+  native CPU and62 system-Python safety/census/replay checks pass,0fail/error/skip.
+  Native CPU checks assert CUDA uninitialized; counts overlap. Correctness table
+  in P2 D61 explicitly distinguishes controlled CPU observations from actual D60
+  allocator measurement. Logs:results/ieee_tc/p2_backend_qualification/d61_20260927.
+- Next is representative actual profiles and Full/multi-plan/lifecycle, not
+  another allocator-only or old-prefix check. Full numerical/500-pool and remote
+  authority gates remain. No formal baseline/main/ablation/sensitivity started.
+  Final owned-scope cleanup, protection and named-file backup follows.
+- All four D61 scopes have actual cgroup.procs empty,TasksCurrent0 and
+  high/max/oom/oom_kill0, then stopped. No model/test remains running. Final
+  GPUs15MiB/0%,MemAvailable108888372KiB,available disk353312206848B. Protected147
+  and authoritative plan reverified unchanged. Tested named-file backup follows;
+  baseline has no task edits. These checks add no performance qualification.
 
 ### D60 official background event handling
 

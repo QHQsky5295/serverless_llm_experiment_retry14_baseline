@@ -168,6 +168,20 @@ class IEEEControlContract(unittest.TestCase):
 
 
 class IEEEActualControl(unittest.TestCase):
+    def test_host_capacity_refresh_uses_existing_frozen_control_cadence(self):
+        _,_,service,queue,engine = self.make()
+        async def run():
+            service.engine_factory = AsyncMock(return_value=(engine,None))
+            service.instance_pool.add_instance(engine,None,owns_engine=True,device_id=0)
+            service._refresh_ieee_deferred_host_capacity = AsyncMock()
+            result=SimpleNamespace(scale_up_events=[],scale_down_events=0,scale_down_event_log=[])
+            with patch('scripts.run_all_experiments.time.monotonic', return_value=1000.):
+                await self.evaluate(service,result,backlog=0,active_requests=0)
+                await self.evaluate(service,result,backlog=0,active_requests=0)
+            service._refresh_ieee_deferred_host_capacity.assert_awaited_once()
+            await queue.close()
+        asyncio.run(run())
+
     def make(self, policy='full'):
         from tests.test_ieee_tc_transfer_pressure import ActivationPreparation
         fixture = ActivationPreparation()

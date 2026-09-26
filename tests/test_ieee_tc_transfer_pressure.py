@@ -894,6 +894,63 @@ class OwnedMovements(unittest.IsolatedAsyncioTestCase):
 
 
 class OwnedNativeHostMovement(unittest.TestCase):
+    def test_delayed_physical_return_wakes_real_host_movement_without_a_new_request(self):
+        async def run():
+            from faaslora.clock import local_monotonic_clock_id
+            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+            state = dict(available=True, accounted_tensor_bytes=3900,
+                         registered_exclusive_storage_bytes=1000)
+            loader = native.owner.file_host_loader
+            calls = []
+            def budgeted_load(**kwargs):
+                calls.append(dict(state))
+                if state['accounted_tensor_bytes'] > 3000:
+                    return dict(admitted=False, reason='native_host_tensor_budget', before=dict(state))
+                return loader(**kwargs)
+            native.owner.file_host_loader = budgeted_load
+            rpc = engine.ieee_gpu_reference
+            async def observed(operation, **kwargs):
+                value = await rpc(operation, **kwargs)
+                if operation == 'source_snapshot':
+                    value['native_host_allocator'] = dict(state)
+                return value
+            engine.ieee_gpu_reference = observed
+            task = asyncio.create_task(self.call(fixture, runner, slot))
+            for _ in range(50):
+                await asyncio.sleep(0)
+                if queue.deferred_observations(target_tier='host', reasons=('native_host_tensor_budget',)):
+                    break
+            self.assertEqual(len(calls), 1)
+            self.assertFalse(task.done())
+            for _ in range(3):
+                await runner._refresh_ieee_deferred_host_capacity()
+            self.assertEqual(len(calls), 1)
+            self.assertFalse(fixture.owner.leases)
+            state['accounted_tensor_bytes'] = 2800
+            await asyncio.sleep(0)
+            self.assertFalse(task.done())  # Physical return alone sends no queue event.
+            self.assertEqual(len(calls), 1)
+            await runner._refresh_ieee_deferred_host_capacity()
+            result = await asyncio.wait_for(task, 2)
+            self.assertEqual(result['state'], 'native_host_prepared')
+            self.assertEqual(len(calls), 2)
+            self.assertEqual(native.manager.lora_index_to_id, [1,2])
+            event = runner._ieee_host_capacity_events[0]
+            self.assertEqual(event['clock_id'], local_monotonic_clock_id())
+            self.assertEqual(event['current_accounted_bytes'], 2800)
+            self.assertFalse(event['capacity_reserved'])
+            runner.coordinator = None
+            runner._coordinator_metric_views = lambda: []
+            metrics = runner._current_coord_metrics()
+            self.assertEqual(metrics['ieee_host_capacity_events'], runner._ieee_host_capacity_events)
+            import json
+            json.dumps(metrics)
+            self.assertFalse(fixture.owner.leases)
+            self.assertFalse(native.owner._host_leases)
+            self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            await queue.close()
+        asyncio.run(run())
+
     async def make(self):
         from faaslora.clock import local_monotonic_clock_id
         from tests.test_ieee_tc_gpu_references import NativeFileHostPreparation
@@ -2961,6 +3018,81 @@ class SelectedFilePlans(unittest.TestCase):
             self.assertEqual(fixture.owner.file_preparation_snapshot()['plans'], [])
             self.assertFalse(fixture.owner.materializations)
         asyncio.run(run())
+
+
+class DeferredNativeHostCapacity(unittest.IsolatedAsyncioTestCase):
+    async def make(self, reason='native_host_workspace_pressure'):
+        from faaslora.clock import local_monotonic_clock_id
+        queue = OwnedMovementQueue(2)
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._stack = NS(preloading_manager=NS(ieee_movements=queue))
+        state = dict(available=True,accounted_tensor_bytes=1000,registered_exclusive_storage_bytes=400)
+        calls = []
+        async def action(attempt):
+            calls.append(attempt)
+            return MovementOutcome('deferred', value=dict(admitted=False,before=dict(state)), reason=reason)
+        for name in ('a','b'):
+            queue.submit(key=('owner','host',name,'content'), intent_id=name,
+                metadata=dict(trigger_reason='residency',plan_id='p',target_replica='r'),density=1.,action=action)
+        await asyncio.sleep(0)
+        engine = NS(ieee_gpu_reference=AsyncMock(side_effect=lambda **kw:dict(owner_id='owner',
+            clock_id=local_monotonic_clock_id(),native_host_allocator=dict(state))))
+        runner._ieee_gpu_movement_owners = {'owner':engine}
+        return runner,queue,engine,state,calls
+
+    async def test_workspace_uses_actual_nonregistered_occupancy_and_one_query_per_owner(self):
+        runner,queue,engine,state,calls = await self.make()
+        await runner._refresh_ieee_deferred_host_capacity()
+        self.assertEqual(len(calls), 2)
+        engine.ieee_gpu_reference.assert_awaited_once()
+        # A and X fall together: no increase in protected-workspace headroom.
+        state.update(accounted_tensor_bytes=900,registered_exclusive_storage_bytes=300)
+        await runner._refresh_ieee_deferred_host_capacity()
+        await asyncio.sleep(0)
+        self.assertEqual(len(calls), 2)
+        state['accounted_tensor_bytes'] = 800
+        await runner._refresh_ieee_deferred_host_capacity()
+        await asyncio.sleep(0)
+        self.assertEqual(len(calls), 4)
+        await runner._refresh_ieee_deferred_host_capacity()
+        await asyncio.sleep(0)
+        self.assertEqual(len(calls), 4)
+        self.assertEqual(len(runner._ieee_host_capacity_events), 1)
+        await queue.close()
+        engine.ieee_gpu_reference.reset_mock()
+        await runner._refresh_ieee_deferred_host_capacity()
+        engine.ieee_gpu_reference.assert_not_awaited()
+
+    async def test_other_refusal_or_retired_wait_does_not_start_monitoring(self):
+        runner,queue,engine,state,calls = await self.make(reason='host_replacement_required')
+        await runner._refresh_ieee_deferred_host_capacity()
+        engine.ieee_gpu_reference.assert_not_awaited()
+        await queue.close()
+        runner,queue,engine,state,calls = await self.make()
+        async def reply(**kwargs):
+            from faaslora.clock import local_monotonic_clock_id
+            await queue.withdraw('a'); await queue.withdraw('b')
+            return dict(owner_id='owner',clock_id=local_monotonic_clock_id(),
+                native_host_allocator={**state,'accounted_tensor_bytes':900})
+        engine.ieee_gpu_reference.side_effect = reply
+        await runner._refresh_ieee_deferred_host_capacity()
+        self.assertFalse(hasattr(runner,'_ieee_host_capacity_events'))
+        self.assertEqual(len(calls), 2)
+        await queue.close()
+
+    async def test_wrong_owner_clock_or_unknown_bytes_cannot_wake(self):
+        runner,queue,engine,state,calls = await self.make()
+        from faaslora.clock import local_monotonic_clock_id
+        base=dict(owner_id='owner',clock_id=local_monotonic_clock_id(),native_host_allocator=dict(state))
+        for changed in ({'owner_id':'another'}, {'clock_id':'another'},
+                        {'native_host_allocator':{}},
+                        {'native_host_allocator':{**state,'accounted_tensor_bytes':False}}):
+            engine.ieee_gpu_reference.side_effect = None
+            engine.ieee_gpu_reference.return_value = {**base,**changed}
+            with self.assertRaises(ValueError):
+                await runner._refresh_ieee_deferred_host_capacity()
+        self.assertEqual(len(calls), 2)
+        await queue.close()
 
 
 class OwnedFileMovement(unittest.TestCase):

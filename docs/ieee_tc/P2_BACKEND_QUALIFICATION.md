@@ -942,3 +942,54 @@ setter后stream查询仍已完成，未测试在途删除，也不能由此给�
 错误/跳过；CPU检查没有初始化CUDA。测试数有交集，不是独立性能重复。
 完整96行与原始计数独立核对，D59/D60的12组GPU内容SHA也一致。旧147项
 保护清单和权威计划零变化，所有本轮进程及资源已清理。
+
+## 2026-09-27 D61：真实 HOST 容量变化到准备队列的闭环
+
+D60证明后台事件处理可以归还实际pinned占用，但native allocator没有向
+Python准备队列提供归还回调。仅等待新请求、其他transfer结束或plan关闭，
+不能保证这些事件之后发生的容量归还能让既有任务继续。此次补齐状态传播，
+不是增加另一种allocator策略，也没有继续做隔离allocator微测。
+
+| 论文规范语义 | 当前实现及证据 |
+|---|---|
+| 执行时按当前容量重新检查 | 延后记录保留实际拒绝时的占用；重新执行仍经过原budget/reference/admission检查 |
+| 实际释放而非预测释放 | 只接受同物理owner、同单调时钟域的原生占用；删除Python对象不产生可用容量信用 |
+| 共用冻结控制周期 | 只在既有control采样时检查，且仅检查存在HOST字节压力等待者的owner；不新增定时器或无条件重试 |
+| 已撤回/失效的计划不继续准备 | 异步读取后核对仍存活的拒绝attempt；取消中的旧状态不能唤醒新任务 |
+
+令A为实际总tensor占用、X为独占已注册tensor占用。D58保护的剩余workspace
+与A−X相关；只有A−X下降才通知workspace等待者，A和X同步下降不算余量改善。
+普通总字节预算等待者则使用A下降。这里是既有分区检查的等价状态比较，
+不改IEEE九式、不增加B/C、不预留通知中观察到的容量。唤醒后若容量又变紧，
+原执行器仍可正常延后。每个等待owner每次control采样最多一次snapshot调用；
+没有对应等待者则不调用。真实调用开销尚需后续完整回放/S10测量。
+
+### 即时正确性状态表（CPU检查，不是GPU性能实验）
+
+| 检查条件 | 观察结果 |
+|---|---|
+| 实际占用不变，连续三个控制检查 | 无额外checkpoint加载 |
+| 占用下降，但尚未传播状态 | 等待任务没有凭空完成 |
+| 实际余量改善，传播后重新准入 | 原HOST准备完成，无需新请求触发；GPU原slot不变，文件/tensor引用释放 |
+| A和X等量下降 | 不误判为受保护workspace增加 |
+| 同owner两个等待任务 | 一次snapshot覆盖，只有实际余量改善才重新执行 |
+| owner/clock不匹配或实际字节未知 | 拒绝该观察，不产生唤醒 |
+| 读取期间撤回全部等待者 | 不唤醒，不生成容量通知记录 |
+| 同一控制时间重复进入 | 只在原冻结周期允许的一次采样中刷新 |
+
+结果metadata记录owner、实际A/X、原拒绝attempt ID、观察时间及
+`capacity_reserved=false`。这些记录证明状态传播，不充当成功加载或物理预留。
+新增五项检查包含现有runner、队列、文件引用和native owner执行路径；
+容量变动由CPU fixture控制，**没有假称来自新的GPU测量**。
+
+最终943项功能检查、16项已安装vLLM0.30/torch2.13环境CPU检查、62项系统
+Python安全/计量检查通过，无失败/错误/跳过；CPU检查CUDA未初始化。
+日志在`results/ieee_tc/p2_backend_qualification/d61_20260927/`；计数有交集，
+不是独立实验重复。Full guard保留，正式模型配置/profile/B/C未选择。
+
+结合D59/D60及再次核查的
+[PyTorch2.13 allocator源码](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/aten/src/ATen/core/CachingHostAllocator.h)、
+[vLLM0.30 worker源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)，
+本项接受为完整加载路径的候选正确性修复。下一步回到代表性profile和Full
+多计划/生命周期资格，不增加同类microtest或重复旧请求前缀；本次不能推出
+实际Full持续进展、正确adapter数值效果、共同SLO达标或优于baseline。
