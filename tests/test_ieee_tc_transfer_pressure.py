@@ -7,7 +7,8 @@ import threading
 
 from faaslora.preloading.preloading_manager import OwnedMovementQueue, MovementOutcome, PreloadingManager
 
-from faaslora.scheduling.resource_coordinator import NativeIterationObservation, NativeTransferObservation
+from faaslora.scheduling.resource_coordinator import (NativeIterationObservation,
+    NativeTransferObservation, SharedFileTransferDomain)
 from faaslora.registry.schema import StorageTier
 from scripts.run_all_experiments import InferenceEngine, ScenarioRunner, SubprocessInferenceEngineProxy
 from tests import test_ieee_tc_scheduler_observation as hook_fixtures
@@ -228,6 +229,269 @@ class TransferPressure(unittest.TestCase):
             self.assertEqual([(r['source_tier'], r['target_tier'], r['state']) for r in rows],
                              [('remote', 'nvme', 'finished'), ('nvme', 'host', 'finished')])
         asyncio.run(run())
+
+
+class SharedPressure(unittest.IsolatedAsyncioTestCase):
+    """Actual runner/domain/native journals, no GPU or performance claims."""
+    def make(self):
+        runner, engine, ledger = TransferPressure().runner()
+        return runner, engine, ledger
+
+    async def test_physical_domain_binding_and_wrong_domain_rejection(self):
+        runner, engine, ledger = self.make()
+        await runner._attach_ieee_file_pressure(engine)
+        state = ledger.snapshot()
+        self.assertEqual(state['file_domain_id'], 'files')
+        self.assertEqual(state['transfer_scope'], 'shared_file_domain_and_serialized_native_v1')
+        with self.assertRaisesRegex(ValueError, 'domain cannot change'):
+            ledger.event(operation='attach_domain', transfer_id='another')
+        with self.assertRaisesRegex(ValueError, 'another physical'):
+            ledger.event(operation='start', transfer_id='bad', descriptor=descriptor() | {'file_owner_id': 'other'})
+        self.assertEqual(state['active_transfers'], 0)
+
+    async def test_one_shared_operation_projects_to_two_engines_not_logical_slots(self):
+        runner, first, left = self.make()
+        _, second, right = self.make()
+        runner.instance_pool = NS(get_slots=lambda: [NS(engine=first), NS(engine=first), NS(engine=second)])
+        async def body():
+            self.assertEqual(left.snapshot()['active_transfers'], 1)
+            self.assertEqual(right.snapshot()['active_transfer_ids'], left.snapshot()['active_transfer_ids'])
+            return 'one-physical-copy'
+        self.assertEqual(await runner._run_ieee_file_transfer('a', 'remote', 'nvme', first, body),
+                         'one-physical-copy')
+        self.assertEqual(left.snapshot()['active_transfers'], 0)
+        self.assertEqual(right.snapshot()['active_transfers'], 0)
+        self.assertEqual(len(runner._adapter_transfer_pressure_evidence), 1)
+        self.assertEqual(len(runner._adapter_transfer_pressure_evidence[0]['participants']), 2)
+
+    async def test_preactivation_transfer_joins_new_replica_before_it_can_prepare(self):
+        runner, engine, ledger = self.make()
+        entered, release = asyncio.Event(), asyncio.Event()
+        async def body():
+            entered.set()
+            await release.wait()
+            return 'preactivation-copy'
+        task = asyncio.create_task(runner._run_ieee_file_transfer('a', 'remote', 'nvme', None, body))
+        await entered.wait()
+        self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+        await runner._attach_ieee_file_pressure(engine)
+        self.assertEqual(ledger.snapshot()['active_transfers'], 1)
+        release.set()
+        self.assertEqual(await task, 'preactivation-copy')
+        self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+
+    async def test_join_and_finish_race_keeps_pressure_until_join_acknowledges(self):
+        runner, engine, ledger = self.make()
+        started, release, join_started, join_release = [asyncio.Event() for _ in range(4)]
+        async def body():
+            started.set()
+            await release.wait()
+        copy = asyncio.create_task(runner._run_ieee_file_transfer('a', 'remote', 'nvme', None, body))
+        await started.wait()
+        original = engine.ieee_transfer_event
+        async def rpc(**command):
+            reply = await original(**command)
+            if command['operation'] == 'start':
+                join_started.set()
+                await join_release.wait()
+            return reply
+        engine.ieee_transfer_event = rpc
+        join = asyncio.create_task(runner._attach_ieee_file_pressure(engine))
+        await join_started.wait()
+        release.set()
+        await asyncio.sleep(0)
+        self.assertFalse(copy.done())
+        self.assertEqual(ledger.snapshot()['active_transfers'], 1)
+        join_release.set()
+        await join
+        await copy
+        self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+
+    async def test_cancelled_join_does_not_cancel_another_replicas_file_operation(self):
+        runner, engine, ledger = self.make()
+        entered, release, joining, joined = [asyncio.Event() for _ in range(4)]
+        async def body():
+            entered.set()
+            await release.wait()
+            return 'completed'
+        task = asyncio.create_task(runner._run_ieee_file_transfer('a', 'remote', 'nvme', None, body))
+        await entered.wait()
+        original = engine.ieee_transfer_event
+        async def rpc(**command):
+            result = await original(**command)
+            if command['operation'] == 'start':
+                joining.set()
+                await joined.wait()
+            return result
+        engine.ieee_transfer_event = rpc
+        join = asyncio.create_task(runner._attach_ieee_file_pressure(engine))
+        await joining.wait()
+        join.cancel()
+        await asyncio.sleep(0)
+        join.cancel()
+        joined.set()
+        with self.assertRaises(asyncio.CancelledError):
+            await join
+        self.assertEqual(ledger.snapshot()['active_transfers'], 1)
+        release.set()
+        self.assertEqual(await task, 'completed')
+        self.assertFalse(runner._adapter_transfer_pressure_evidence[0]['caller_cancelled'])
+
+    async def test_lost_finish_on_one_replica_does_not_hide_or_strand_other_receipts(self):
+        runner, first, left = self.make()
+        _, second, right = self.make()
+        await runner._attach_ieee_file_pressure(first)
+        await runner._attach_ieee_file_pressure(second)
+        original = first.ieee_transfer_event
+        async def rpc(**command):
+            if command['operation'] == 'finish':
+                raise RuntimeError('lost-finish')
+            return await original(**command)
+        first.ieee_transfer_event = rpc
+        with self.assertRaisesRegex(RuntimeError, 'lost-finish'):
+            await runner._run_ieee_file_transfer('a', 'remote', 'nvme', first, AsyncMock())
+        self.assertEqual(left.snapshot()['active_transfers'], 1)
+        self.assertEqual(right.snapshot()['active_transfers'], 0)
+        row = runner._adapter_transfer_pressure_evidence[0]
+        self.assertEqual(row['state'], 'finish_pending')
+        self.assertEqual(row['operation_outcome'], 'completed')
+        self.assertEqual(len(runner._shared_file_pressure.active), 1)
+
+    async def test_retirement_joins_old_io_but_does_not_claim_physical_gpu_release(self):
+        runner, first, left = self.make()
+        _, second, right = self.make()
+        await runner._attach_ieee_file_pressure(first)
+        await runner._attach_ieee_file_pressure(second)
+        entered, release = asyncio.Event(), asyncio.Event()
+        async def body():
+            entered.set()
+            await release.wait()
+        copy = asyncio.create_task(runner._run_ieee_file_transfer('a', 'remote', 'nvme', first, body))
+        await entered.wait()
+        retire = asyncio.create_task(runner._shared_file_pressure.retire(first))
+        await asyncio.sleep(0)
+        self.assertFalse(retire.done())
+        with self.assertRaisesRegex(RuntimeError, 'not available'):
+            await runner._attach_ieee_file_pressure(first)
+        async def next_copy():
+            self.assertEqual(left.snapshot()['active_transfers'], 1)
+            self.assertEqual(right.snapshot()['active_transfers'], 2)
+        await runner._run_ieee_file_transfer('b', 'remote', 'nvme', second, next_copy)
+        release.set()
+        await copy
+        await retire
+        self.assertEqual(left.snapshot()['active_transfers'], 0)
+        self.assertEqual(runner._shared_file_pressure.members[id(first)]['state'], 'retired')
+        await runner._shared_file_pressure.retire(first)  # Idempotent cleanup, not reactivation.
+
+    async def test_cancelled_retirement_still_joins_native_pressure(self):
+        runner, engine, ledger = self.make()
+        entered, release = asyncio.Event(), asyncio.Event()
+        async def body():
+            entered.set()
+            await release.wait()
+        copy = asyncio.create_task(runner._run_ieee_file_transfer('a', 'remote', 'nvme', engine, body))
+        await entered.wait()
+        retire = asyncio.create_task(runner._shared_file_pressure.retire(engine))
+        await asyncio.sleep(0)
+        retire.cancel()
+        await asyncio.sleep(0)
+        retire.cancel()
+        await asyncio.sleep(0)
+        self.assertFalse(retire.done())
+        self.assertEqual(ledger.snapshot()['active_transfers'], 1)
+        release.set()
+        await copy
+        with self.assertRaises(asyncio.CancelledError):
+            await retire
+        self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+        await runner._shared_file_pressure.retire(engine)
+        import json
+        self.assertIn('retired', json.dumps(runner._shared_file_pressure.snapshot()))
+
+    async def test_lost_attach_reply_prevents_io_and_does_not_invent_empty_owner(self):
+        runner, engine, ledger = self.make()
+        original = engine.ieee_transfer_event
+        async def rpc(**command):
+            await original(**command)
+            raise RuntimeError('lost-attach')
+        engine.ieee_transfer_event = rpc
+        body = AsyncMock()
+        with self.assertRaisesRegex(RuntimeError, 'lost-attach'):
+            await runner._run_ieee_file_transfer('a', 'remote', 'nvme', engine, body)
+        body.assert_not_awaited()
+        self.assertEqual(runner._shared_file_pressure.members[id(engine)]['state'], 'uncertain')
+        with self.assertRaisesRegex(RuntimeError, 'not available'):
+            await runner._attach_ieee_file_pressure(engine)
+        self.assertEqual(ledger.snapshot()['file_domain_id'], 'files')
+
+    async def test_actual_scaleout_attaches_before_warmup_and_pool_publication(self):
+        runner, engine, ledger = self.make()
+        runner.instance_pool = NS(count=lambda: 1, max_instances=4, get_slots=lambda: [])
+        runner.engine_factory = AsyncMock(return_value=(engine, None))
+        runner._service_profiles = None
+        runner._refresh_scale_up_runtime_handoff_plan_after_startup = lambda *a, **k: {}
+        entered, release = asyncio.Event(), asyncio.Event()
+        async def body():
+            entered.set()
+            await release.wait()
+        copy = asyncio.create_task(runner._run_ieee_file_transfer('a', 'remote', 'nvme', None, body))
+        await entered.wait()
+        async def warm(*args, **kwargs):
+            self.assertEqual(ledger.snapshot()['active_transfers'], 1)
+            raise RuntimeError('stop-before-legacy-warmup')
+        runner._warmup_engine_hot_set = warm
+        with self.assertRaisesRegex(RuntimeError, 'stop-before-legacy-warmup'):
+            await runner._add_dedicated_instance_slot(True, reserved_device_id=0)
+        release.set()
+        await copy
+        self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+
+    async def test_actual_slot_cleanup_joins_shared_pressure_before_engine_shutdown(self):
+        runner, engine, ledger = self.make()
+        entered, release = asyncio.Event(), asyncio.Event()
+        runner._cancel_runtime_gpu_forward_tasks = AsyncMock()
+        runner._runtime_forward_task_key = lambda _: 'fixture-runtime'
+        runner._sync_stack_gpu_accounting = lambda: None
+        runner._notify_dispatch_capacity_changed = AsyncMock()
+        async def shutdown():
+            self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            self.assertEqual(runner._shared_file_pressure.members[id(engine)]['state'], 'retired')
+        engine.shutdown = AsyncMock(side_effect=shutdown)
+        async def body():
+            entered.set()
+            await release.wait()
+        copy = asyncio.create_task(runner._run_ieee_file_transfer('a', 'remote', 'nvme', engine, body))
+        await entered.wait()
+        slot = NS(instance_id=None, owns_engine=True, owns_coordinator=False, engine=engine)
+        cleanup = asyncio.create_task(runner._cleanup_removed_slot(slot))
+        await asyncio.sleep(0)
+        self.assertFalse(cleanup.done())
+        engine.shutdown.assert_not_awaited()
+        release.set()
+        await copy
+        await cleanup
+        engine.shutdown.assert_awaited_once()
+
+    async def test_actual_engine_and_native_core_accept_domain_before_observation(self):
+        profile = dict(window_s=10., model_backend_id='fixture', profile_id='fixture',
+                       profile_means=[64., 128., 256.], transfer_limit=3)
+        module, _, core_type = hook_fixtures.NativeHookWiring().load_adapter(admission_profile=profile)
+        core = core_type()
+        core.scheduler = module.IEEENativeAsyncScheduler(hook_fixtures.scheduler())
+        engine = InferenceEngine({'backend': 'vllm', 'ieee_gpu_references': True,
+            'ieee_scheduler_observation': True, 'ieee_admission_profile': profile}, {})
+        async def rpc(name, command):
+            return getattr(core, name)(command)
+        engine.engine = NS(engine_core=NS(call_utility_async=rpc))
+        domain = SharedFileTransferDomain('files', [])
+        await domain.attach(engine)
+        async def body():
+            view = core.ieee_scheduler_observation()['adapter_transfers']
+            self.assertEqual(view['file_domain_id'], 'files')
+            self.assertEqual(view['active_transfers'], 1)
+        await domain.run('a', 'remote', 'nvme', body)
+        self.assertEqual(core.ieee_scheduler_observation()['adapter_transfers']['active_transfers'], 0)
 
 
 class OwnedMovements(unittest.IsolatedAsyncioTestCase):

@@ -2120,3 +2120,51 @@ replacement、逐replica退役与完整生命周期仍需集成。主动加载�
 统一反馈d也需随自动规划路径接入；本轮只保留原始加载完成证据，没有
 伪造profile。下一步推进这些完整资源/控制路径，不再重复本轮cache/queue
 或旧模型短前缀检查。正式比较、消融、敏感性均未启动。
+
+## D40：共享文件域与激活前传输压力
+
+### 问题、依据与边界
+
+D33只把一次文件准备通知发起它的已初始化engine。D38共享文件队列和
+D39 GPU计划使用同一个HOST/NVMe物理所有者，但其他副本可能看不见该活动；
+激活期间还不存在目标engine时，原入口直接拒绝。因此仅把目标engine的
+活动数称为共享资源压力是不成立的。本轮假设：以实际文件所有者保存
+唯一传输区间，在副本加入时同步未完成区间，可以消除这类状态遗漏，
+无需改变IEEE的p_load、E(t)、h/d或准备选择公式。
+
+核对IEEE handoff/residency的共享复制、执行重查和取消语义，以及D32–D39
+历史实现；再次查阅[vLLM0.30 EngineCore源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core.py)
+的utility执行位置和[Python取消屏蔽语义](https://docs.python.org/3.12/library/asyncio-task.html#shielding-from-cancellation)。
+采用实际native owner确认而非把控制端cached counter当作原子GPU状态。
+这里的域只包含本runner共享同一文件所有者的副本，不把其他节点或无关
+服务的传输强加给每个副本，也不声称实现全局带宽限速。
+
+### 接入及正确性状态表
+
+| 论文性质 | 本轮实现及验证范围 |
+|---|---|
+| 共享传输只计一次 | 真实文件入口建立一个transfer ID；两个native owner各观察同一活动，重复逻辑slot不增加活动数 |
+| engine尚未初始化 | 文件域先持有区间；新engine在warmup/池发布/主动GPU计划前登记并重放全部未完成区间 |
+| 加入与结束并发 | 同一控制锁序列化开始、加入、结束通知，不串行化实际文件复制；加入确认前不能参与主动准备 |
+| 原生准入 | native core绑定不可变file-domain身份；worker接受该共享域快照，使用原有p_load/E(t)公式 |
+| 错误与应答丢失 | 一副本finish失败保留不确定压力，但其他副本仍完成自己的finish；lost attach不允许IO或伪造空状态 |
+| 取消 | 取消加入者不取消另一个副本的文件操作；IO/清理join后才结束；重复取消retirement仍等待实际压力终态 |
+| 缩容清理 | 实际slot cleanup先join该engine准备计划，再退出共享压力域，最后调用engine shutdown；这不代替物理GPU释放证明 |
+| 可追溯 | summary保留共享域成员及不确定状态；transfer保留每个native owner的start/finish回执、时钟和唯一IO结果 |
+
+初轮定向144项通过。初次全量807项出现两个历史legacy测试fixture缺少
+真实runner必有的model_cfg字段；补充空配置明确legacy身份，不在生产路径
+加入缺字段静默回退。最终808项功能回归通过；新增12项及11项core hook
+在已安装vLLM0.30下通过。另一个worker测试最初选择器类名写错，改用实际
+类名后独立通过，共24项有效原生环境检查，CUDA未初始化。完整回执及
+安全检查记录见EXECUTION_STATUS。
+本轮使用实际runner/native接口与微型文件fixture，不是新GPU模型实验、
+174真实服务实验、准备profile、性能对比或Full资格；按计划11.2交付状态表。
+
+### 返回主线
+
+该共享压力路径不等于自动planner/handoff已闭合。总HOST文件/native tensor
+预算、文件到native HOST加载、选项生成及主动d反馈、文件pending-target/
+可变大小替换、完整Full物理生命周期仍待接入。保留IEEE Full启动拒绝旧
+warmup的限制。下轮沿总HOST/native所有权和自动规划主线继续，不再重复
+本轮共享计数检查或旧模型短前缀。基线、M1/M2、消融和敏感性尚未启动。

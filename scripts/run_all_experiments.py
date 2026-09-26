@@ -4543,7 +4543,8 @@ class InferenceEngine:
         result = await rpc('ieee_transfer_event', command)
         if (not isinstance(result, dict) or result.get('kind') != 'ieee_adapter_transfer_event_v1'
                 or result.get('transfer_id') != command.get('transfer_id')
-                or result.get('state') != {'start': 'active', 'finish': 'finished'}.get(command.get('operation'))):
+                or result.get('state') != {'start': 'active', 'finish': 'finished',
+                    'attach_domain': 'attached'}.get(command.get('operation'))):
             raise ValueError('file transfer event lacks matching scheduler acknowledgement')
         return result
 
@@ -5567,7 +5568,8 @@ class SubprocessInferenceEngineProxy:
         result = await self._rpc('ieee_transfer_event', **command)
         if (not isinstance(result, dict) or result.get('kind') != 'ieee_adapter_transfer_event_v1'
                 or result.get('transfer_id') != command.get('transfer_id')
-                or result.get('state') != {'start': 'active', 'finish': 'finished'}.get(command.get('operation'))
+                or result.get('state') != {'start': 'active', 'finish': 'finished',
+                    'attach_domain': 'attached'}.get(command.get('operation'))
                 or (command.get('expected_owner_id') is not None
                     and result.get('owner_id') != command['expected_owner_id'])):
             raise ValueError('file transfer event lacks matching worker acknowledgement')
@@ -8088,6 +8090,8 @@ class ScenarioRunner:
             result = {**result, 'ieee_movements': preloading.ieee_movements.snapshot()}
         if hasattr(self, '_ieee_gpu_preparation_plans'):
             result = {**result, 'ieee_gpu_preparation_plans': copy.deepcopy(self._ieee_gpu_preparation_plans)}
+        if getattr(self, '_shared_file_pressure', None) is not None:
+            result = {**result, 'ieee_shared_file_pressure': self._shared_file_pressure.snapshot()}
         return result
 
     @staticmethod
@@ -12197,6 +12201,16 @@ class ScenarioRunner:
             self._scaleup_runtime_handoff_plans.pop(str(instance_id), None)
             self._scaleup_runtime_lora_request_ordinals.pop(str(instance_id), None)
         await self._cancel_runtime_gpu_forward_tasks(self._runtime_forward_task_key(slot))
+        if getattr(slot, 'owns_engine', False) and getattr(self, '_shared_file_pressure', None) is not None:
+            # A retired replica must not acquire new proactive work. Join its
+            # existing plans before withdrawing from the shared IO domain.
+            owned = [task for task, engine in getattr(self, '_ieee_gpu_plan_engines', {}).items()
+                     if engine is slot.engine and task is not asyncio.current_task() and not task.done()]
+            for task in owned:
+                task.cancel()
+            if owned:
+                await asyncio.gather(*owned, return_exceptions=True)
+            await self._shared_file_pressure.retire(slot.engine)
         try:
             if getattr(slot, "owns_coordinator", False) and getattr(slot, "coordinator", None) is not None:
                 self._retired_coord_metrics.append(slot.coordinator.get_summary_metrics())
@@ -12315,6 +12329,7 @@ class ScenarioRunner:
             return None
         if self.instance_pool.count() >= self.instance_pool.max_instances:
             return None
+        await self._attach_ieee_file_pressure(self.engine)
         instance_id = self.instance_pool.add_instance(
             self.engine,
             self.coordinator,
@@ -12370,6 +12385,12 @@ class ScenarioRunner:
                 # perform warmup with a profile measured under another backend.
                 await new_engine.shutdown()
                 raise
+        try:
+            # Join shared/preactivation IO before any warmup or pool publication.
+            await self._attach_ieee_file_pressure(new_engine)
+        except BaseException:
+            await new_engine.shutdown()
+            raise
         runtime_startup_latency_ms = max(
             0.0,
             float(getattr(new_engine, "startup_latency_ms", 0.0) or 0.0),
@@ -13356,6 +13377,7 @@ class ScenarioRunner:
                 self.baseline_type, self.coord_cfg, self.engine.model_cfg
             )
         self._assert_clean_gpu_environment(context="scenario_start", force=True)
+        await self._attach_ieee_file_pressure(self.engine)
         await self._ensure_min_instances(coord_enabled)
         concurrency = self.wl_cfg.get("concurrency", 8)
         max_tokens  = self.wl_cfg.get("max_tokens", 128)
@@ -15596,6 +15618,7 @@ class ScenarioRunner:
         if not targets or len(set(targets)) != len(targets) or any(a not in rows for a in targets):
             raise ValueError('native GPU plan targets differ from frozen source identities')
         owner_id, engine = frozen['owner_id'], slot.engine
+        await self._attach_ieee_file_pressure(engine)
         for aid in targets:
             row = rows[aid]
             identity = self._ieee_artifact_identities[row['adapter_id']]
@@ -15622,6 +15645,10 @@ class ScenarioRunner:
             tasks = self._ieee_gpu_plan_tasks = set()
         plan_task = asyncio.current_task()
         tasks.add(plan_task)
+        task_engines = getattr(self, '_ieee_gpu_plan_engines', None)
+        if task_engines is None:
+            task_engines = self._ieee_gpu_plan_engines = {}
+        task_engines[plan_task] = engine
         # Cancellation of a controller must not abandon a possibly accepted
         # native operation. Each call settles its actual RPC before cleanup.
         async def settle(awaitable):
@@ -15740,6 +15767,7 @@ class ScenarioRunner:
             finally:
                 record['finished_at'] = time.monotonic()
                 tasks.discard(plan_task)
+                task_engines.pop(plan_task, None)
             if cleanup_cancelled or cancelled:
                 raise asyncio.CancelledError()
 
@@ -15749,9 +15777,9 @@ class ScenarioRunner:
         """One common owned movement entry for handoff, residency and demand.
 
         The existing file executors still own allocation, publication and join
-        cancellation. This entry does not enable Full or qualify global transfer
-        pressure/total HOST memory; it requires the initialized target engine
-        whenever native admission observation is enabled.
+        cancellation. The shared file owner records preactivation work even
+        without an initialized target engine. It does not qualify total HOST
+        memory, automatic handoff/planning or Full execution.
         """
         from faaslora.preloading.preloading_manager import MovementOutcome
         if (not self.model_cfg.get('ieee_gpu_references', False) or self._stack is None
@@ -15806,74 +15834,47 @@ class ScenarioRunner:
             owns_io=result.pop('_io_owner_intent_id', None) == intent_id)
         return result
 
-    async def _run_ieee_file_transfer(self, adapter_id, source_tier, target_tier, engine, operation):
-        """Own one actual preparation interval on its target replica's core.
+    def _ieee_file_pressure_domain(self):
+        from faaslora.scheduling.resource_coordinator import SharedFileTransferDomain
+        owner = self._stack.residency_manager.local_source_references
+        domain = getattr(self, '_shared_file_pressure', None)
+        if domain is None:
+            domain = self._shared_file_pressure = SharedFileTransferDomain(
+                owner.owner_id, self._adapter_transfer_pressure_evidence)
+        if domain.owner_id != owner.owner_id:
+            raise ValueError('shared physical file pressure owner changed')
+        return domain
 
-        No I/O before start acknowledgement; no finish before joined I/O. This
-        does not count a second request merely waiting for a shared copy. Byte
-        capacity remains the file owner's responsibility, not this journal.
+    async def _attach_ieee_file_pressure(self, engine):
+        if self.model_cfg.get('ieee_admission_profile') is not None:
+            return await self._ieee_file_pressure_domain().attach(engine)
+
+    async def _run_ieee_file_transfer(self, adapter_id, source_tier, target_tier, engine, operation):
+        """One real IO interval, visible to all cores sharing this file owner.
+
+        An activation may precede its engine. Its interval lives at the file
+        owner; a later native subscriber must replay it before preparation.
+        This is conservative pressure, not aggregate bandwidth or a d sample.
         """
         if self.model_cfg.get('ieee_admission_profile') is None:
             return await operation()
-        if not callable(getattr(engine, 'ieee_transfer_event', None)):
-            raise ValueError('file preparation requires its initialized target replica')
-        owner = self._stack.residency_manager.local_source_references
-        transfer_id = uuid.uuid4().hex
-        record = dict(transfer_id=transfer_id, adapter_id=adapter_id, source_tier=source_tier,
-                      target_tier=target_tier, state='start_pending', file_owner_id=owner.owner_id,
-                      operation_outcome='not_started', caller_cancelled=False)
-        self._adapter_transfer_pressure_evidence.append(record)
-        rpc_owner, cancelled = None, False
-        async def settle(command):
-            nonlocal cancelled
-            task = asyncio.create_task(engine.ieee_transfer_event(**command))
-            while True:
-                try:
-                    return await asyncio.shield(task)
-                except asyncio.CancelledError:
-                    record['caller_cancelled'] = True
-                    if task.cancelled():
-                        raise
-                    cancelled = True
+        domain = self._ieee_file_pressure_domain()
+        engines = [engine]
+        pool = getattr(self, 'instance_pool', None)
+        if pool is not None:
+            engines.extend(slot.engine for slot in pool.get_slots())
+        else:
+            engines.append(getattr(self, 'engine', None))
+        for target in engines:
+            if target is not None:
+                await domain.attach(target)  # Same physical engine is idempotent.
         try:
-            receipt = await settle(dict(operation='start', transfer_id=transfer_id,
-                descriptor={key: record[key] for key in
-                    ('adapter_id', 'source_tier', 'target_tier', 'file_owner_id')}))
-            if receipt.get('state') != 'active' or receipt.get('transfer_id') != transfer_id:
-                raise ValueError('preparation start is not acknowledged')
-            rpc_owner = receipt['owner_id']
-            record.update(state='active', start_receipt=dict(receipt))
-            if cancelled:
-                raise asyncio.CancelledError()
-            record['operation_outcome'] = 'running'
-            result = await operation()
-            record['operation_outcome'] = 'completed'
-            return result
-        except BaseException as exc:
-            if isinstance(exc, asyncio.CancelledError):
-                record['caller_cancelled'] = True
-            record.update(operation_outcome=('cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed'),
-                          operation_error_type=type(exc).__name__)
-            raise
+            return await domain.run(adapter_id, source_tier, target_tier, operation)
         finally:
-            # Even a lost start reply needs a finish tombstone. A later start
-            # cannot revive it; no body ran unless the start was acknowledged.
-            record['state'] = 'finish_pending'
-            try:
-                receipt = await settle(dict(operation='finish', transfer_id=transfer_id,
-                                            expected_owner_id=rpc_owner))
-                if (receipt.get('state') != 'finished' or receipt.get('transfer_id') != transfer_id
-                        or (rpc_owner is not None and receipt.get('owner_id') != rpc_owner)):
-                    raise ValueError('preparation finish is not acknowledged')
-            except BaseException as exc:
-                record['finish_error_type'] = type(exc).__name__
-                raise
-            record.update(state='finished', finish_receipt=dict(receipt))
             for owner_id, target in getattr(self, '_ieee_gpu_movement_owners', {}).items():
-                if target is engine:
+                member = domain.members.get(id(target))
+                if member is not None and member['state'] == 'attached':
                     self._stack.preloading_manager.ieee_movements.wake(owner_id=owner_id)
-            if cancelled:
-                raise asyncio.CancelledError()
 
     async def _materialize_confirmed_source_async(self, adapter_id, source, target_tier, *, target_engine=None,
                                                 _movement_owned=False, movement_context=None,
@@ -15898,7 +15899,7 @@ class ScenarioRunner:
                     adapter_id, str(source), target_tier, cancel_event=cancellation,
                     expected_content_sha256=expected_content_sha256))
         return await self._run_ieee_file_transfer(adapter_id, source_tier, target_tier.value,
-            target_engine if target_engine is not None else getattr(self, 'engine', None), operation)
+            target_engine, operation)
 
     async def _materialize_remote_adapter_async(
         self,
@@ -15935,7 +15936,7 @@ class ScenarioRunner:
                         lambda cancellation: self._materialize_remote_adapter(
                             adapter_id, dst, cancel_event=cancellation, transfer_evidence=transfer_evidence))
                 return await self._run_ieee_file_transfer(adapter_id, 'remote', 'nvme',
-                    target_engine if target_engine is not None else getattr(self, 'engine', None), operation)
+                    target_engine, operation)
             return self._materialize_remote_adapter(adapter_id, dst)
 
         src = self.remote_dir / adapter_id

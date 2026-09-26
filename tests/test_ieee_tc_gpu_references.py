@@ -457,6 +457,7 @@ class NativeProactiveTransactions(unittest.TestCase):
                 steps.scheduled(fixture.iteration(r=32))
                 scheduler = fixture.scheduler()
                 scheduler._ieee_transfers = NativeTransferObservation(steps, 2)
+                scheduler._ieee_transfers.event(operation='attach_domain', transfer_id='files')
                 scheduler._ieee_transfers.event(operation='start', transfer_id='file-copy',
                     descriptor=dict(adapter_id='other', source_tier='nvme', target_tier='host', file_owner_id='files'))
                 observation = fixture.observe(scheduler, steps)

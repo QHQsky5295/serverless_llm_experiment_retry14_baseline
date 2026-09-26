@@ -450,8 +450,11 @@ class IEEEWorkerObservationExtension:
                     or not isinstance(lengths, CompletedLengthSnapshot)
                     or lengths.captured_at != observation['captured_at']):
                 raise ValueError('proactive preparation lacks a same-owner KV/length snapshot')
-            if (not isinstance(transfers, dict) or transfers.get('transfer_scope') !=
-                    'replica_owned_file_preparation_and_serialized_native_v1'
+            if (not isinstance(transfers, dict) or transfers.get('transfer_scope') not in (
+                    'replica_owned_file_preparation_and_serialized_native_v1',
+                    'shared_file_domain_and_serialized_native_v1')
+                    or (transfers.get('transfer_scope') == 'shared_file_domain_and_serialized_native_v1'
+                        and not transfers.get('file_domain_id'))
                     or type(transfers.get('active_transfers')) is not int
                     or transfers['active_transfers'] != len(transfers.get('active_transfer_ids', []))):
                 raise ValueError('proactive preparation lacks owned file-transfer pressure')

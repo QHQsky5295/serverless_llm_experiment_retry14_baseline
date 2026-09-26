@@ -96,6 +96,7 @@ class NativeTransferObservation:
         self.iterations, self.limit = iterations, limit
         self.active, self.finished = {}, set()
         self.sequence = 0
+        self.file_domain = None
 
     def event(self, *, operation, transfer_id, descriptor=None, expected_owner_id=None):
         self.iterations.check_thread()
@@ -104,7 +105,14 @@ class NativeTransferObservation:
             raise ValueError('transfer requires a unique nonempty identity')
         if expected_owner_id is not None and expected_owner_id != owner_id:
             raise ValueError('transfer scheduler owner changed')
-        if operation == 'start':
+        if operation == 'attach_domain':
+            if descriptor is not None or self.file_domain not in (None, transfer_id):
+                raise ValueError('native file pressure domain cannot change')
+            if self.active and self.file_domain is None:
+                raise ValueError('cannot bind a domain over unowned active transfers')
+            self.file_domain = transfer_id
+            state = 'attached'
+        elif operation == 'start':
             fields = {'adapter_id', 'source_tier', 'target_tier', 'file_owner_id'}
             if (not isinstance(descriptor, dict) or set(descriptor) != fields
                     or any(not isinstance(v, str) or not v for v in descriptor.values())
@@ -112,6 +120,8 @@ class NativeTransferObservation:
                     or descriptor['target_tier'] not in ('nvme', 'host')
                     or descriptor['source_tier'] == descriptor['target_tier']):
                 raise ValueError('transfer requires exact source/target/adapter/file owner')
+            if self.file_domain is not None and descriptor['file_owner_id'] != self.file_domain:
+                raise ValueError('transfer belongs to another physical file domain')
             if transfer_id in self.finished:
                 raise ValueError('finished transfer cannot restart')
             old = self.active.get(transfer_id)
@@ -140,8 +150,200 @@ class NativeTransferObservation:
         self.iterations.check_thread()
         return dict(active_transfers=len(self.active), transfer_limit=self.limit,
                     active_transfer_ids=sorted(self.active), transfer_sequence=self.sequence,
-                    transfer_scope='replica_owned_file_preparation_and_serialized_native_v1',
+                    transfer_scope=('shared_file_domain_and_serialized_native_v1' if self.file_domain
+                                    else 'replica_owned_file_preparation_and_serialized_native_v1'),
+                    file_domain_id=self.file_domain,
                     physical_capacity_reserved=False)
+
+
+class SharedFileTransferDomain:
+    """One physical file owner's intervals, projected into participating cores.
+
+    Starts, joins and finishes are serialized, not the actual file operations.
+    The lock prevents activation from missing a start/finish transition. A core
+    cannot participate before replaying every open interval. Subscriptions do
+    not create transfers, byte reservations, measured loading times or GPU work.
+    All RPCs settle despite caller cancellation; uncertain outcomes fail closed.
+    """
+    def __init__(self, file_owner_id, evidence):
+        if not isinstance(file_owner_id, str) or not file_owner_id:
+            raise ValueError('shared transfer domain requires its physical owner')
+        self.owner_id, self.evidence = file_owner_id, evidence
+        from faaslora.clock import local_monotonic_clock_id
+        self.clock_id = local_monotonic_clock_id()
+        self.members, self.active = {}, {}
+        self.lock = asyncio.Lock()
+
+    async def _rpc(self, member, command, record):
+        task = asyncio.create_task(member['engine'].ieee_transfer_event(**command))
+        while True:
+            try:
+                receipt = await asyncio.shield(task)
+                break
+            except asyncio.CancelledError:
+                record['caller_cancelled'] = True
+                if task.cancelled():
+                    raise
+        expected = {'attach_domain': 'attached', 'start': 'active', 'finish': 'finished'}[command['operation']]
+        if (not isinstance(receipt, dict) or receipt.get('state') != expected
+                or receipt.get('transfer_id') != command['transfer_id']
+                or not isinstance(receipt.get('owner_id'), str)
+                or receipt.get('clock_id') != self.clock_id
+                or receipt.get('file_domain_id') != self.owner_id
+                or (member['owner_id'] is not None and receipt['owner_id'] != member['owner_id'])):
+            raise ValueError('shared transfer event lacks matching native domain acknowledgement')
+        return receipt
+
+    async def _start_member(self, member, record, cancel_record=None):
+        key = member['owner_id']
+        row = record['participants'].setdefault(key, dict(state='start_pending'))
+        receipt = await self._rpc(member, dict(operation='start', transfer_id=record['transfer_id'],
+            expected_owner_id=key, descriptor={k: record[k] for k in
+                ('adapter_id', 'source_tier', 'target_tier', 'file_owner_id')}),
+            record if cancel_record is None else cancel_record)
+        row.update(state='active', start_receipt=receipt)
+
+    async def attach(self, engine):
+        if not callable(getattr(engine, 'ieee_transfer_event', None)):
+            raise ValueError('shared pressure subscription requires an initialized native engine')
+        async with self.lock:
+            member = self.members.get(id(engine))
+            if member is not None:
+                if member['state'] != 'attached':
+                    raise RuntimeError('native file pressure subscription is not available')
+                return member['owner_id']
+            member = dict(engine=engine, owner_id=None, state='attaching', caller_cancelled=False)
+            self.members[id(engine)] = member  # Retain even if its reply is lost.
+            try:
+                receipt = await self._rpc(member, dict(operation='attach_domain',
+                    transfer_id=self.owner_id), member)
+                member['owner_id'] = receipt['owner_id']
+                if any(m is not member and m['owner_id'] == member['owner_id'] for m in self.members.values()):
+                    raise ValueError('one native owner has multiple engine identities')
+                for entry in self.active.values():
+                    await self._start_member(member, entry['record'], member)
+                member['state'] = 'attached'
+            except BaseException:
+                member['state'] = 'uncertain'
+                raise
+            if member['caller_cancelled']:
+                raise asyncio.CancelledError()
+            return member['owner_id']
+
+    def snapshot(self):
+        return dict(file_owner_id=self.owner_id, clock_id=self.clock_id,
+            active_transfer_ids=sorted(self.active),
+            members=[dict(owner_id=m['owner_id'], state=m['state'],
+                          caller_cancelled=m['caller_cancelled']) for m in self.members.values()],
+            physical_capacity_reserved=False)
+
+    async def retire(self, engine):
+        """Stop new admission, then settle this member's existing projections.
+
+        The runner joins its proactive plans first. New file work for other
+        replicas may continue. This does not certify physical GPU release.
+        """
+        async with self.lock:
+            member = self.members.get(id(engine))
+            if member is None:
+                return
+            if member['state'] == 'retired':
+                return
+            if member['state'] not in ('attached', 'retiring'):
+                raise RuntimeError('cannot retire an uncertain pressure subscription')
+            member['state'] = 'retiring'
+            pending = [e for e in self.active.values() if member['owner_id'] in e['record']['participants']]
+            async def join():
+                for entry in pending:
+                    await entry['done'].wait()
+                    if entry['record']['participants'][member['owner_id']]['state'] != 'finished':
+                        raise RuntimeError('retiring native owner has unsettled file pressure')
+                member['state'] = 'retired'
+            if 'retirement_task' not in member:
+                member['retirement_task'] = asyncio.create_task(join())
+            task = member['retirement_task']
+        cancelled = False
+        while True:
+            try:
+                await asyncio.shield(task)
+                break
+            except asyncio.CancelledError:
+                cancelled = True
+                if task.cancelled():
+                    raise
+        if cancelled:
+            raise asyncio.CancelledError()
+
+    async def run(self, adapter_id, source_tier, target_tier, operation):
+        if (not isinstance(adapter_id, str) or not adapter_id
+                or source_tier not in ('remote', 'nvme', 'host')
+                or target_tier not in ('nvme', 'host') or source_tier == target_tier):
+            raise ValueError('shared transfer requires an explicit adapter and distinct file tiers')
+        record = dict(transfer_id=uuid.uuid4().hex, adapter_id=adapter_id,
+            source_tier=source_tier, target_tier=target_tier, file_owner_id=self.owner_id,
+            state='start_pending', operation_outcome='not_started', caller_cancelled=False,
+            participants={}, created_at=time.monotonic(), clock_id=self.clock_id,
+            transfer_scope='shared_file_domain_and_serialized_native_v1')
+        self.evidence.append(record)
+        entry = dict(record=record, done=asyncio.Event())
+        try:
+            async with self.lock:
+                self.active[record['transfer_id']] = entry
+                for member in self.members.values():
+                    if member['state'] in ('retiring', 'retired'):
+                        continue
+                    if member['state'] != 'attached':
+                        raise RuntimeError('shared file pressure has an uncertain subscriber')
+                    await self._start_member(member, record)
+                record['state'] = 'active'
+            if record['caller_cancelled']:
+                raise asyncio.CancelledError()
+            record.update(operation_outcome='running', io_started_at=time.monotonic())
+            result = await operation()
+            record.update(operation_outcome='completed', io_joined_at=time.monotonic())
+            return result
+        except BaseException as exc:
+            record.update(operation_outcome='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
+                          operation_error_type=type(exc).__name__, io_joined_at=time.monotonic())
+            if isinstance(exc, asyncio.CancelledError):
+                record['caller_cancelled'] = True
+            raise
+        finally:
+            async def finish():
+                errors = []
+                async with self.lock:
+                    record['state'] = 'finish_pending'
+                    for member in self.members.values():
+                        row = record['participants'].get(member['owner_id'])
+                        if row is None:
+                            continue
+                        try:
+                            receipt = await self._rpc(member, dict(operation='finish',
+                                transfer_id=record['transfer_id'], expected_owner_id=member['owner_id']), record)
+                            row.update(state='finished', finish_receipt=receipt)
+                        except BaseException as exc:
+                            row['finish_error_type'] = type(exc).__name__
+                            errors.append(exc)
+                    if not errors:
+                        record.update(state='finished', finished_at=time.monotonic())
+                        self.active.pop(record['transfer_id'], None)
+                    entry['done'].set()
+                if errors:
+                    record['finish_error_type'] = type(errors[0]).__name__
+                    raise errors[0]
+            # Cancellation while acquiring the finish lock cannot abandon the
+            # IO interval. Keep and join this task, including repeated cancel.
+            task = asyncio.create_task(finish())
+            while True:
+                try:
+                    await asyncio.shield(task)
+                    break
+                except asyncio.CancelledError:
+                    record['caller_cancelled'] = True
+                    if task.cancelled():
+                        raise
+            if record['caller_cancelled']:
+                raise asyncio.CancelledError()
 
 
 def native_prompt_identity(token_ids):
