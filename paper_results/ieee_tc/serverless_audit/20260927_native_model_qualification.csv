@@ -1,0 +1,9 @@
+attempt,qualification_passed,request_id,prompt_tokens,target_tokens,native_actual_tokens,adapter_applied
+1,false,req_00000,759,152,152,false
+1,false,req_00001,477,59,59,false
+1,false,req_00002,303,123,123,false
+1,false,req_00003,322,217,217,false
+2,true,req_00000,759,152,152,false
+2,true,req_00001,477,59,59,false
+2,true,req_00002,303,123,123,false
+2,true,req_00003,322,217,217,false
