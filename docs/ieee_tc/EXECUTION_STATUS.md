@@ -11,34 +11,40 @@
 - Main branch retry14_continuous_queue_v2; baseline main. No agents authorized.
 - Main starting commit7ebb1ca9688362736710d94db78ec416a88a2384; baseline
   startingd85263e00e976cc61c8938e662d77a2b249cdf58. Goal remains incomplete.
-- D67 start main319487d6bfc6e7a88379caee801585d2406802aa, baseline9b12427ca7bcf8b7f20771fe0ecd671930029cf6.
+- D68 start main5b09401c1e7598c407b22710a21486dc1be44166, baseline08153b457f43d3d587dae171f9dc49024fde4752.
 - Resume by inspecting actual handles/Git/resources; never restart a live run
-  from stale notes. No model/TMUX remains after D67; both loader overlays RESTORED.
+  from stale notes. D68 model/audit tasks finished; loader overlay RESTORED.
 
 ## Mainline ledger
 
 | Block | Status | Evidence / next |
 |---|---|---|
 | Safety/physical measurement | Actual Ray/worker and dedicated7B owner qualification; Full reducer connected | RESOURCE_QUALIFICATION, EXTERNAL_REPLAY_QUALIFICATION, PHYSICAL_GPU_MEASUREMENT D27/D55; actual Full multi-activation still open |
-| Old results | All147 protected entries unchanged at D67 | paper_results/ieee_tc/safety/20260925_execution_start_protected.json |
+| Old results | All147 protected entries unchanged at D68 | paper_results/ieee_tc/safety/20260925_execution_start_protected.json |
 | Remote174 | Strict key login works; service qualification pending | Disk138.52GiB below approved150GiB; user decision pending |
 | P0 Table1/Full | 7B source-pair audit complete | Same inputs, different execution;202 scalars retained; no rerun needed for provenance finding |
 | P1 IEEE alignment | Frozen h/d planning/replacement, staging/admission, observed HOST return connected | P1 throughD54, P2 throughD61; representative profiles and actual Full remain open |
 | P2 backend/artifacts | vLLM0.30 installed; mechanical/numerical diagnostics; complete pool content audits | Full semantic qualification OPEN;3B500/500 and7B498/500 zero weights |
-| Serverless | D67 real3B native backbone loading/4 requests/worker identity/cleanup pass | No polling-benefit, LoRA,500-pool,7B or original/repaired pair claim |
+| Serverless | D67 real3B native loading pass; D68 missing7B native format exported and every serialized parameter verified | No polling-benefit, LoRA,500-pool,actual7B native load or original/repaired pair claim |
 | Baseline qualification | Pending | Serverless first, then vLLM/S-LoRA/dLoRA3B/Loquetier/HydraServe |
 | M1/M2, A1–A5, S1–S13 | NOT STARTED | No formal performance or optimality claim |
 | Documents/figures | Design and qualification tables in progress | Formal performance figures pending |
 
 ## Immediate next action
 
-D67 native loading is complete for its narrow3B case. Do NOT repeat the passed
-Ray-only/checkpoint/allocator/four-request loader witnesses or old request prefixes.
+D67 native loading is complete for its narrow3B case. D68 now provides7B native
+checkpoint `baseline/models/vllm/tc-native-llama2-7b-fp16-20260927`: both numbered
+parts and all291 source parameter tensors verified exactly;32 recomputed RoPE
+buffers separately accounted. Do NOT re-export it or repeat the passed byte,
+Ray-only, allocator or four-request3B witnesses/old prefixes.
 Move toward the approved two-model original/repaired1,000-request development
-pairs. First establish the necessary shared generation/LoRA instrumentation and
-the7B native checkpoint identity/path, reusing prior assets. Only the3B native
-checkpoint exists under the inspected baseline models/vllm namespace; audit
-other referenced historical locations before any necessary conversion.
+pairs. Establish shared canonical prompt/native token/LoRA instrumentation and
+HTTP open-loop replay using the existing FrozenReplayPlan/contained stack.
+The dirty legacy replay client currently restricts fixed_length_greedy_v1 to
+S-LoRA; do not overwrite that user file or silently apply its legacy path to
+Serverless. Actual7B native loading belongs in this next request qualification,
+not another export/audit sub-loop. Preserve identical loading/scaling/queue
+configuration and inputs between the two router variants.
 The real-remote and independent LoRA-correctness gates remain separate.
 Do not silently replace native loading by ordinary HF/direct loading, relabel
 backbone requests as LoRA correctness, or start M1/M2 on this evidence.
@@ -59,6 +65,63 @@ and fixed HOST partition are explicit candidates; actual observed capacity wakes
 D61 deferred work without early eviction, assumed future bytes or budget growth.
 Do not remove the Full guard. Return to actual Full/profile/lifecycle once its
 prerequisites are satisfied. No more isolated allocator microloops.
+
+## D68 necessary 7B native-format preparation, 2026-09-27
+
+- Full plan/status/AGENTS and run-experiment/github-sync/academic-plotting read.
+  Source/read-only historical audit: baseline has7B transformers store format,
+  but only3B native vLLM format. Rechecked official Serverless downloader and
+  vLLM0.10.2 Llama/RoPE source online. No manuscript/core policy/pool/trace edit.
+- Extended existing contained helper export-checkpoint; actual unchanged
+  VllmModelDownloader exports existing local7B backbone offline, TP1FP16, one
+  GPU. Source3052ab9559a117de6d4a5e56525ba0b165df9769 tested27/pushed/remote verified.
+  Common72/80GiB, swap2GiB and40CPU; existing external watchdog. No inference.
+- Export PASS:13,476,831,232 native weight bytes in two parts;357.651s includes
+  metadata copy/hash, NOT startup latency.359 samples, peak25,143,644,160B,
+  min host94,542,897,152B; high/max/OOM/swap0. Actual GPU contexts gone, service
+  removed, auxiliary0 tasks then stopped. All GPUs15MiB. Overlay restored only
+  after worker release; exact preimages restored, no active environment change.
+- Native format uses global offsets across numbered parts. Existing comparator
+  now streams parts and retains untied lm_head.29 tests pass; source847d851
+  pushed before audit1. Audit1 rejects32 unmatched rotary_emb.inv_freq buffers;
+  preserved as auditor-coverage error, not model corruption/inference failure.
+- Official vLLM ignores these stored buffers and recomputes from config. First
+  stored FP32 buffer is exact FP16-roundtrip, not exact unrounded formula. No
+  tolerance relaxation: separate complete32-buffer accounting, pinned actual
+  backend formula on CPU, exact representations and per-buffer SHA.31 tests in
+  native env pass including single-ULP corruption/shape rejection. Source
+  4908d1e855ab15d52c7a62d3d075a40e1136d340 pushed/remote verified before audit2.
+- Audit2 PASS:195 native tensors cover all291 source parameter tensors, every
+  byte exact after FP16;32/32 derived buffers exact formula FP16-roundtrip.
+  323 total source entries accounted.195.598s, CUDA uninitialized.196 samples,
+  cgroup peak310,521,856B/min host110,806,183,936B, high/max/OOM/swap0. Existing
+  mapped pages may be charged elsewhere; this is not a serving-memory estimate.
+  Audit1/2 service/watchdog1/0 then0/0, all groups released/empty then stopped.
+- Concatenated native SHA e4181af39c6465da68b09baa309a340067157f287b531ca6de98a9922d159f8b.
+  Both partition SHAs match export; five metadata files equal source. New raw
+  root results/ieee_tc/serverless_qualification/d68_20260927; audit2 SHA
+  4353982d3dfc2ade530f4f3f9a584b424ac7781d42e603a3eea7a713cac69e61.
+  Immediate state table baseline CONTAINED_LAUNCH; main curated
+  20260927_native_7b_checkpoint_identity.json/.csv preserves failures, all195
+  parameter rows,32 derived buffers, raw hashes and tested source commits.
+- Official exporter unnecessarily copied18 downloader-cache files totaling
+  5,454,685,562B. All match original/source/export hashes, ordinary files with
+  no duplicate hardlinks or submounts. No readable owned-process references;
+  three same-UID system processes cannot be inspected and lsof reports protected
+  mounts. Removal DEFERRED rather than pretending a complete reference check.
+  duplicate_cache_review.json records this; no deletion/unique data loss.
+  Do not turn cache cleanup into a side investigation; disk remains above floor.
+- Protected147 and plan unchanged. Main formal matrix remains NOT STARTED;
+  no LoRA correctness, actual7B native loading or polling-repair benefit claim.
+- Main288 offline smoke tests PASS (22.880s); baseline31 native-environment tests
+  PASS with0 skips. Curated195 rows and13 raw log/receipt hashes independently
+  reconcile; six restored source preimages and absence of the added loader
+  verified. Final disk334,272,143,360B free, MemAvailable111,074,742,272B;
+  no model/TMUX remains. The5.08GiB duplicate cache is retained, not deleted.
+- Baseline evidence backup23fa16fab7a223c607bcdc4ddbb9e973517f3492 pushed;
+  fresh origin/main full SHA matches. Main backup contains only this status and
+  two curated identity files. Original user dirt and dirty baseline replay are
+  excluded. This checkpoint is a prerequisite, not completion of the goal.
 
 ## D67 actual native loading result, 2026-09-27
 
