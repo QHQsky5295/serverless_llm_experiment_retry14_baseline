@@ -63,7 +63,9 @@ Next is actual native copy/in-flight HOST return and representative Full/profile
 qualification, not another default/uncached CPU microtest or old request prefix.
 Actual multi-plan liveness and Full are not qualified; no production B/C chosen.
 Full guard and the two unanswered artifact/remote authority choices remain.
-Final resource cleanup, protection and tested milestone backup follow below.
+All5 owned scopes empty and stopped; protected147 and plan unchanged. Tested
+checkpoint e2ba9f6f8a76d0e0ce02e87f2f097161dd64bd83 is pushed with fresh full remote
+SHA verification. No experiment is running; this subsequent receipt is docs only.
 
 D57 connects an explicit pre-import native allocator candidate to the existing
 dedicated worker, checks actual native readback, and separates resident R from
@@ -250,6 +252,12 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
   high/max/oom/oom_kill0, then stopped. Final GPUs15MiB/0%, MemAvailable108651780KiB,
   available disk353387175936B. Protected147 and source plan SHA unchanged;
   no model/test remains running. Named-file tested milestone backup follows.
+- Tested code/data checkpoint e2ba9f6f8a76d0e0ce02e87f2f097161dd64bd83 pushed to
+  faaslora_origin/retry14_continuous_queue_v2 and fresh full remote SHA matches.
+  Exactly11 named task files, diff/protected-name/added-text secret checks pass.
+  Baseline has no task edits at16570c023a439c884624e7a5bdfa0d8577faf7a3; fresh
+  origin/main full SHA also matches. This additional
+  documentation-only receipt adds no measurements or qualification claims.
 
 ### D57 explicit allocator candidate and workspace accounting
 
