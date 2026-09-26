@@ -20,7 +20,7 @@
 | Protected historical artifacts | Sealed and verified | `paper_results/ieee_tc/safety/20260925_execution_start_protected.json`; old results and selected user modifications unchanged |
 | Remote authentication / management | Key login verified; service qualification pending | Strict host checking, dedicated restricted key; remote disk 138.9 GiB below 150 GiB floor, user decision pending. See REMOTE_ACCESS.md |
 | P0 main-table / Full provenance | 7B source-pair audit complete | Same trace/subset SHA, different execution; 202 scalar fields preserved. P0_FULL_PROVENANCE.md; no performance rerun needed for this finding |
-| Serverless wait audit | Historical audit + control-path tests; D65 actual two-raylet containment passes | 2 raylets,8GiB aggregate object-store capacity,5 workers+5 children owned/affinity verified and released. 22 CPU checks pass. Native loader/model workers and original/repaired model pairs pending |
+| Serverless wait audit | D65 actual two-raylet containment and D66 native-input identity pass | Existing3B170 packed tensors exactly match254HF tensors; complete96-file store bundle and actual native imports verified. Native store/model loading and original/repaired model pairs pending; no performance claim |
 | P1 IEEE semantic alignment | Automatic GPU/final-file replacement, budgeted CPU-staging joint commit and proactive d feedback connected; Full remains open | P1_FORMULA_IMPLEMENTATION.md through D54. Same frozen h/d and actual completion samples; physical-byte-full HOST/staging capacity, profiles, allocator qualification and Full lifecycle remain open. No GPU/Full qualification; startup still rejects legacy warmup |
 | P2 backend qualification | Mechanical sequential/batch/cancel evidence retained; full-pool content scan complete; semantic qualification OPEN | ARTIFACT_CONTENT_AUDIT.md: current 3B 500/500 all-zero, 7B 498/500 all-zero, only 2/4 weight SHAs respectively. 3B native same-prompt/different-SHA outputs identical; zero controls cannot distinguish adapter application. No formal/remote performance qualification |
 | Baseline qualification | Pending | Serverless, vLLM, S-LoRA, dLoRA 3B, Loquetier, HydraServe |
@@ -50,6 +50,28 @@ scripts/run_serverlessllm_relayserve_continuation.sh, cache/, installs/, repos/,
 configs/relayserve_motivation_serverlessllm.yaml.
 
 ## Immediate next actions
+
+D66 completes reusable native Serverless input qualification. All170 packed
+FP16 checkpoint tensors match all254 source tensors, complete6,425,499,648B;
+metadata/tokenizers equal. Main CSV170rows and JSON delivered.24 launcher/router/
+layout and3 native CPU fixture checks pass. Native-input preflight also passes:
+6overlay preimages/official patch, complete96-file existing store bundle,
+actual9f50241 backend/native imports and native-format EngineArgs. No install,
+model load, new pool/trace or remote service. One pre-service relative-output
+launcher error and one missing-libglog import retained; both corrected without
+guard or baseline policy changes. Explicit bundled-library selection fixes its
+obsolete build RUNPATH. All owned scopes cleaned; backup receipt below.
+
+Next actual guarded native store/model loading, not another preflight/identity/
+Ray-only audit. Reuse exact checkpoint, qualified native launch view, existing
+compiled store and reversible loader-only port. Exact selection/readback is in
+native_inputs_preflight JSON and baseline CONTAINED_LAUNCH. Install with new
+backup/receipt; restore only after actual owned worker exit. Verify store UUIDs,
+registration/load confirmation, actual model-worker containment and cleanup.
+Then proceed to the approved original/repaired pairs. Full startup/remote/
+correctness gates below remain; no formal baseline/M1/M2/ablation/sensitivity
+performance result or optimality claim. Do not rerun successful checkpoint,
+allocator, old prefixes or infrastructure witnesses.
 
 D65 actual Serverless infrastructure witness now passes (attempt4), cleaned and
 immediately tabulated. Do not repeat it or treat it as a model/performance run.
@@ -305,6 +327,62 @@ yet answered requests about nonzero3B correctness fixtures / remote disk gate.
     Recheck live handles/resources; a stale record is not a live run.
 
 ## This continuation
+
+### D66 reusable native checkpoint and loader composition
+
+- Full plan/status/AGENTS reread after recovery; run-experiment/github-sync and
+  academic-plotting used. Start main ebfbc0594468299530bf6c01b0cbdc117ec64460,
+  baseline03a9fd7e92261673bda748ac9c897065fc0067bb; original user dirt preserved.
+  No agents. D65 remains passed, not repeated. Formal baseline/M1/M2/ablations
+  and sensitivities not started. Two external authority choices stay open.
+- Read actual TC9f50241 backend/store and historical0fd00ca native-loader smoke,
+  exact loader-only reversible overlay, compiled store receipt and native tensor
+  format. Browsed primary Serverless loader/backend and vLLM0.10.2 Llama source.
+  Other project's routing overlay and ordinary direct loader are not substitutes.
+- Existing native3B file6,425,499,648B has170 packed FP16 tensors versus254 source
+  HF tensors. Added complete-element bounded CPU identity audit to the existing
+  source adapter; no conversion/pool generation.24 launcher/router/layout tests
+  and3 pinned-native CPU fixtures pass, no failure/error/skip. Wrong/reordered
+  weights, missing source keys and changed tokenizer are rejected. Actual large
+  checkpoint audit and loader composition preflight follow; no model yet.
+- Baseline comparator checkpoint2aec04be304c1314f8145ee48524bf8ff15a73e7 pushed;
+  fresh origin/main full SHA matches. First audit launch stopped before service:
+  outer receipt path was relative, rejected by existing absolute-output rule.
+  Preserve console/exit1 as protocol_or_launcher_error; no native file audit
+  executed, no source fix/guard relaxation. Retry uses explicit absolute paths.
+- Actual attempt2 complete:170/170 native packed tensors,254/254 source tensors,
+  6,425,499,648B exact after FP16 conversion, all5 shared small files equal.
+  Native SHA3f937cdc2c3b637cf61a19809670a0e6146b943a049ba407fa5dc5e2b46f9979.
+  Audit93.656s is not startup latency.95watchdog samples,peak6769774592B,
+  minimum host available110954188800B,swap/high/max/OOM0,CUDA uninitialized.
+  Service/watchdog0/0, service released; aux4704cd42cbc54798a30f3c8a4d67eee3
+  actual process list empty/events0 then stopped. First-error aux likewise.
+  Complete170-row CSV and summaryJSON delivered before next task. No native
+  model/LoRA/performance qualification follows; reused data unchanged.
+- Loader-only preflight passes6preimages/official patch, with no installation.
+  Complete96-file native store bundle exactly matches preservedSHA/member closure.
+  First actual CPU import fails missinglibglog.so.1; ELF RUNPATH points to obsolete
+  build staging. Existing bundled library selected explicitly (no rebuild/copy)
+  and second import succeeds. ActualTC9f50241 source, native storeTorch/C/C++,
+  grpc1.76,torch2.8+cu128,vLLM0.10.2,Ray2.54 imported; nativeFP16/TP1 EngineArgs
+  selects audited checkpoint, engine None andCUDA uninitialized. Both CPU groups
+  actual empty/events0 then stopped. Curated input-preflight JSON and immediate
+  table include paths/SHA/all attempts. No actual model/native load qualified.
+  Next actual owned native loading, not another CPU/Ray/checkpoint repetition.
+- Final main288 smoke checks pass,0failure/error/skip; owned group actual empty,
+  memory.high19612 under its CPU-test1GiB soft limit, max/OOM0, then stopped.
+  This is CPU-test reclaim pressure, not native-audit or model performance.
+  All D66 owned groups cleaned, no model/TMUX
+  remains. Complete170 curated rows/totals independently reconcile to original
+  native audit; raw/launch/watchdog/source/import file hashes all match.147
+  protected artifacts and authoritative plan unchanged. GPUs15MiB/0%, available
+  host108887676KiB, available disk353281323008B; no artifact conversion/copy.
+- Baseline source checkpoint2aec04be304c1314f8145ee48524bf8ff15a73e7 and evidence
+  document9b12427ca7bcf8b7f20771fe0ecd671930029cf6 are pushed; fresh full origin/main
+  SHA matches9b12427. Original dirty replay/relayserve files excluded. Main backup
+  includes only this status and three new curated CSV/JSON files, after diff/
+  secrets/protected-name checks. Goal remains active; no formal performance,
+  native loader or numerical LoRA qualification is claimed.
 
 ### D65 actual Serverless two-raylet qualification
 

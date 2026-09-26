@@ -1,0 +1,138 @@
+{
+  "schema": "ieee_tc_serverless_native_inputs_preflight_v1",
+  "display_name": "Serverless",
+  "status": "PASS_CPU_INPUTS_ONLY",
+  "native_commit": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
+  "native_sllm_diff_head_sha256": "0402f74846682d7df4346a756fa889449ac93bb4d3262e27920919ec073269e3",
+  "checkpoint_audit_helper_sha256": "9cd138e5eda5588bce3d29674564880cfa36e0ce941e0204c49f19da2475a9ad",
+  "loader_installer": "/home/qhq/relayserve_serverless_llm/scripts/relayserve_v4_3_apply_serverlessllm_vllm_store_overlay.py",
+  "loader_installer_sha256": "da6a14276f92186457c44c215d45d1ca9d18f7bbea9cdec6665737743f9c5978",
+  "overlay_preflight": {
+    "members": [
+      {
+        "after_sha256": "563a7f0ee067569ac7d55da61c1c0b0e980ce18d55a920cb40c62537640e2000",
+        "before_sha256": "0ff8f5c9dd6cf38929d9b8bd949408f0d4a18cc6a51e9eddedace1ccbd6a4ff5",
+        "path": "model_executor/model_loader/__init__.py"
+      },
+      {
+        "after_sha256": "8707c7509b30a3a1e125e8a03919315e1b342bee849706ad87713922ab0fb9c4",
+        "before_sha256": "d1219de0d526b2326a471fe8464b3b8a55730dcab63ea99eb9b15e8b90bb116b",
+        "path": "v1/engine/core.py"
+      },
+      {
+        "after_sha256": "5c0b7357b151d8087247199ff2ae093352a15d82c3a266ed388bfbad8feff916",
+        "before_sha256": "bf815cbc2cce2869f77a08d53a746f416f1fd495f8dc081faf660ebe2e122189",
+        "path": "v1/engine/core_client.py"
+      },
+      {
+        "after_sha256": "46f289dbe317d96d657e670a8b31e365e9f15e66f33ba9aacda07a8e620234e7",
+        "before_sha256": "7914ec242ed96ecbbba8adfacd46c89017f31f372853ed65390ed4458f826223",
+        "path": "executor/executor_base.py"
+      },
+      {
+        "after_sha256": "4c7ae3fcd4d3ffc2f693b7e43d12254a77f79b93c3486dcf7e4f73fd4e7ca5a0",
+        "before_sha256": "818c25eb49e9dc1251c630845a25504961257f145851f748ee4b2ea980ed863c",
+        "path": "v1/worker/gpu_model_runner.py"
+      },
+      {
+        "after_sha256": "4e1d263d446c9c771aa63675ecbcafc309d5ef3207fdf7eef7060861aefa4022",
+        "before_sha256": "8a50c7c633ea5f9e14360029e1551929975a91cdaa750de2be3ae9922bdb1f5f",
+        "path": "v1/worker/gpu_worker.py"
+      },
+      {
+        "after_sha256": "1bcb830ae7671bb6462844c0d1b14feb5ad433bcf5980c92ca7a826f168cb9e4",
+        "before_sha256": null,
+        "path": "model_executor/model_loader/sllm_loader.py"
+      }
+    ],
+    "official_patch_path": "/home/qhq/serverless_llm_baselines/repos/ServerlessLLM/sllm_store/vllm_patch/sllm_load.patch",
+    "official_patch_sha256": "0d5f9e4e1ea8901538b7a75bf3ac5caa706519bc9e2bbcb91d99aa8ce022f357",
+    "port_scope": "version-location compatibility only: native ServerlessLLM store serialization and load hooks; no routing, autoscaling, cache, or admission changes",
+    "schema": "relayserve_v4_3_serverlessllm_vllm_store_overlay_v1",
+    "status": "PREFLIGHT_PASS",
+    "vllm_root": "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/lib/python3.12/site-packages/vllm",
+    "vllm_version": "0.10.2"
+  },
+  "overlay_installed": false,
+  "store_bundle": {
+    "root": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1",
+    "file_count": 96,
+    "all_member_sha256_match": true,
+    "extra_or_missing_files": [],
+    "checksums_sha256": "5871a1dd9d1c532cd7a0af366bcb12331b35bbc5bfe2641eadbc1e906fff077c",
+    "receipt_sha256": "d403ee96cffd7216ef0aa01c688da9a78838f177ca33a4d9fb91982d77f4ff13"
+  },
+  "readback": {
+    "passed": true,
+    "modules": {
+      "torch": "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/lib/python3.12/site-packages/torch/__init__.py",
+      "ray": "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/lib/python3.12/site-packages/ray/__init__.py",
+      "grpc": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/grpc/__init__.py",
+      "vllm": "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/lib/python3.12/site-packages/vllm/__init__.py",
+      "sllm": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/ServerlessLLM_new_main_20260518/sllm/__init__.py",
+      "sllm.backends.vllm_backend": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/ServerlessLLM_new_main_20260518/sllm/backends/vllm_backend.py",
+      "sllm_store": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/__init__.py",
+      "sllm_store.torch": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+      "sllm_store._C": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/_C.cpython-312-x86_64-linux-gnu.so",
+      "sllm_store._checkpoint_store": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so"
+    },
+    "python": "3.12.12 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 20:16:04) [GCC 11.2.0]",
+    "torch": "2.8.0+cu128",
+    "ray": "2.54.0",
+    "grpc": "1.76.0",
+    "vllm": "0.10.2",
+    "load_format": "serverless_llm",
+    "model": "/home/qhq/serverless_llm_baselines/models/vllm/v43-sllm-native-smoke-llama32-3b",
+    "dtype": "float16",
+    "tensor_parallel_size": 1,
+    "cuda_initialized": false,
+    "engine_created": false,
+    "model_loaded": false
+  },
+  "imported_file_sha256": {
+    "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/lib/python3.12/site-packages/torch/__init__.py": "2f0deb66d5dff6b9c02a62832c3bf3824c2ee031c462a3afeb9ca170466da5bf",
+    "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/lib/python3.12/site-packages/ray/__init__.py": "c3f0fe8f93b0774b8ecd911bbd92dfeb7b6b40f2bab7920c487c6d6258e2f793",
+    "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/grpc/__init__.py": "da04867956f5cf2f388f51365c92d7f42d90205744364f3e0dc4fbf39ab332e5",
+    "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/lib/python3.12/site-packages/vllm/__init__.py": "ec99b5ce98760e00a254442f7d7268239c956ac4ac97c3b345796dac5ae3e565",
+    "/home/qhq/serverless_llm_baselines/vendor_new_baselines/ServerlessLLM_new_main_20260518/sllm/__init__.py": "443c88507f3d7181ca4fad8fdea634f77ac48578e89bccffe0f90dbe932ffa40",
+    "/home/qhq/serverless_llm_baselines/vendor_new_baselines/ServerlessLLM_new_main_20260518/sllm/backends/vllm_backend.py": "994c80ae9c6106a6469f9d8d5889132e5c2032608c4e497141c00127f91cc777",
+    "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/__init__.py": "6d102dbbf1ce6f0229d51b959cc5cbf86bfedbc689403c52c2af383cafff3bcd",
+    "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9",
+    "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/_C.cpython-312-x86_64-linux-gnu.so": "b7421159821a639cbb7f8680a574eb7101d13709e4d3ab98e4e92935a6dd70b9",
+    "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so": "4ea0991a9ed940a0ea2ebf75f9f84dec537ef4975818c9e044bc0db4b54f5260"
+  },
+  "required_environment": {
+    "SLLM_SKIP_CONFIRM_MODEL_LOADED": "0",
+    "LD_LIBRARY_PATH": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store",
+    "SLLM_EXTRA_PYTHONPATH": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages",
+    "SLLM_STORE_BIN": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/bin/sllm-store"
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": "import_failure",
+      "error": "libglog.so.1 not found",
+      "reason": "ELF RUNPATH retains obsolete build staging directory; existing bundled library not on search path",
+      "log": "native_import.log",
+      "sha256": "1a414c08d095b3560bd1ea32e6863f51e4bff296699c335ffa7ac3e8027885c8"
+    },
+    {
+      "attempt": 2,
+      "status": "pass_cpu_import_and_native_engine_args",
+      "change": "Explicit bundled-library directory, no binary/package modification",
+      "log": "native_import2.log",
+      "sha256": "d6271fb76145b03194a697dd60c990912da0e15b1ad244372acade609084560e"
+    }
+  ],
+  "cleanup": {
+    "cpu_groups_empty": true,
+    "memory_high_max_oom_events": 0
+  },
+  "native_loader_qualified": false,
+  "performance_run_authorized": false,
+  "limitations": [
+    "No native store/API/Ray service or inference engine started in this preflight",
+    "Successful imports and native-format EngineArgs do not prove actual checkpoint loading or numerical LoRA correctness",
+    "Existing historical native success uses different server source commit; not relabeled as this qualification"
+  ]
+}

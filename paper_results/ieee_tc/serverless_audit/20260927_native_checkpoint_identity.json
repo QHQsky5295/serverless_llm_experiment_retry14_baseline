@@ -1,0 +1,67 @@
+{
+  "schema": "ieee_tc_serverless_native_checkpoint_identity_v1",
+  "passed": true,
+  "checkpoint": "/home/qhq/serverless_llm_baselines/models/vllm/v43-sllm-native-smoke-llama32-3b",
+  "backbone": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+  "tensor_parallel_size": 1,
+  "dtype": "float16",
+  "native_tensor_count": 170,
+  "source_tensor_count": 254,
+  "native_data_bytes": 6425499648,
+  "native_data_sha256": "3f937cdc2c3b637cf61a19809670a0e6146b943a049ba407fa5dc5e2b46f9979",
+  "native_index_sha256": "b3ea2cd1218ccf1ce86694e0ca1a9cdd0379ca958a2f69181e10f999f9a59521",
+  "small_file_sha256": {
+    "config.json": "39fb36dc5416f445ebc4e71cb71fbcf6727e80a35836d8ba1a1474c318467b7a",
+    "tokenizer.json": "79e3e522635f3171300913bb421464a87de6222182a0570b9b2ccba2a964b2b4",
+    "tokenizer_config.json": "9823dcfdc1121869029da45192238e85cf44f0b232a6d9dc20e4fe6f4242a14e",
+    "generation_config.json": "88effbb63300dbbc7390143fbbdd9d9fa50587b37e8bfd16c8c90d4970a74a36",
+    "special_tokens_map.json": "6f38c73729248f6c127296386e3cdde96e254636cc58b4169d3fd32328d9a8ec"
+  },
+  "source_index_sha256": "0a57c30afc07c81610ae7fe013bea3b9d50365f9a8145ae98e8714220f3d7c7c",
+  "source_shard_sha256": {
+    "model-00001-of-00002.safetensors": "13cbd6d16e927a0c5bad54102514e6e18b4a47b3a6eb911e39d678d328d19f55",
+    "model-00002-of-00002.safetensors": "7b770216613ac5c34d7c54bdff1fa616bc4e338a9d0b20af6303e48c295ee23c"
+  },
+  "elapsed_s": 93.6561329899705,
+  "cuda_initialized": false,
+  "native_loader_qualified": false,
+  "performance_run_authorized": false,
+  "limitation": "Current serialized tensor identity only; no historical, runtime loading or LoRA correctness claim",
+  "display_name": "Serverless",
+  "baseline_commit": "2aec04be304c1314f8145ee48524bf8ff15a73e7",
+  "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d66_20260927",
+  "source_files": {
+    "checkpoint_attempt2": "6f074b1d07d993664d390eb6a00297b60b61dcfd7844dfc4b8b8e4341f3a0cb3",
+    "checkpoint_launch2": "9e3211ff6a5eeb002d92f896a42e99a7ad2fdcf5f5f9acdab437ab6be6ed0907",
+    "service_log": "72c4bc1656e88155669f878104cf92df2c3ebafd46ef7c9510b2a353e3b88fd4",
+    "watchdog_jsonl": "16c0f46148b0e4c5e747f0f20cdb839997f0415203ce0052a29d3b0cf1bfde72"
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": "protocol_or_launcher_error",
+      "reason": "Relative outer receipt path; stopped before service/checkpoint read",
+      "console": "checkpoint_console.log"
+    },
+    {
+      "attempt": 2,
+      "status": "pass_read_only_complete_tensor_identity",
+      "receipt": "checkpoint_attempt2.json"
+    }
+  ],
+  "resources": {
+    "samples": 95,
+    "memory_peak_bytes": 6769774592,
+    "min_host_available_bytes": 110954188800,
+    "max_swap_bytes": 0,
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0,
+    "service_returncode": 0,
+    "watchdog_returncode": 0,
+    "service_released": true,
+    "auxiliary_empty_and_stopped": true
+  },
+  "tensor_rows_csv": "20260927_native_checkpoint_identity.csv"
+}
