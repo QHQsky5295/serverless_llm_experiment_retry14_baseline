@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import threading
 import io
+import json
 import hashlib
 import tarfile
 import tempfile
@@ -48,6 +49,30 @@ class AtomicArtifactPublication(unittest.TestCase):
         (self.target / 'old').write_bytes(b'previous-valid-copy')
         self.client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
         self.client._opener = Mock()
+
+    def test_routing_identity_uses_exact_frozen_config_and_logical_payload(self):
+        config = b'{"r":8}'
+        files = {'adapter_config.json': config, 'weights': b'tiny-fixture'}
+        self.client.configure_content_manifest(content_manifest(files=files))
+        identity = self.client.routing_identity('a', config)
+        canonical = json.dumps([dict(path=name, size_bytes=len(data),
+            sha256=hashlib.sha256(data).hexdigest()) for name, data in sorted(files.items())],
+            sort_keys=True, separators=(',', ':')).encode()
+        self.assertEqual(identity['content_sha256'], hashlib.sha256(canonical).hexdigest())
+        self.assertEqual(identity['remote_payload_bytes'], sum(map(len, files.values())))
+        self.assertEqual(identity['rank'], 8)
+        self.assertEqual(identity['remote_representation'], 'tar_gzip_verified_file_tree_v1')
+        self.client._opener.open.assert_not_called()
+        for aid, raw in [('b', config), ('a', b'{"r":16}'), ('a', b'{ "r":8}')]:
+            with self.subTest(aid=aid, raw=raw), self.assertRaises(ValueError):
+                self.client.routing_identity(aid, raw)
+
+    def test_routing_rank_does_not_silently_approximate_unqualified_metadata(self):
+        for config in (b'{}', b'{"r":true}', b'{"r":0}', b'{"r":8,"rank_pattern":{"q":16}}'):
+            client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+            client.configure_content_manifest(content_manifest(files={'adapter_config.json': config}))
+            with self.subTest(config=config), self.assertRaisesRegex(ValueError, 'rank'):
+                client.routing_identity('a', config)
 
     def test_bad_archive_preserves_previous_destination(self):
         self.client._opener.open.return_value = io.BytesIO(b'invalid-archive')

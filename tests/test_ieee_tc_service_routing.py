@@ -15,6 +15,7 @@ from faaslora.experiment.instance_pool import (
     InstancePool, ReplicaRoutingSnapshot, Router, ServiceClassBins,
     ServiceComponents, ServiceCostModel, ServiceIntervalObservation,
     ServiceObservationClass, NativeSourceSnapshot, InstanceSlot, FrozenServiceProfiles,
+    confirmed_source_class,
 )
 
 
@@ -192,6 +193,73 @@ class CommittedNativeSources(unittest.TestCase):
         payload['native_footprints']['host_tensor_storage_bytes'] = 1024
         with self.assertRaisesRegex(ValueError, 'distinct storage union'):
             self.parse(payload)
+
+
+class ConfirmedTierComposition(unittest.TestCase):
+    def setUp(self):
+        self.identity = dict(adapter_id='a', rank=8, content_sha256='a'*64,
+            remote_payload_bytes=10000, remote_representation='tar_gzip_verified_file_tree_v1')
+        self.files = dict(kind='confirmed_file_sources_v1', owner_id='files', epoch=2,
+            clock_id='clock', adapter_id='a', snapshot_holds_reference=False, sources=[])
+        self.bins = ServiceClassBins((), (), (8,), (512, 1024, 4096), ())
+
+    def classify(self, payload, **changes):
+        args = dict(native=NativeSourceSnapshot.from_native(payload,
+            expected_clock_id='clock', received_monotonic_s=20.), files=self.files,
+            identity=self.identity, adapter_int_id=4, bins=self.bins,
+            prompt_tokens=2, declared_output_tokens=4, admitted_after_accept=1)
+        return confirmed_source_class(**(args | changes))
+
+    def file(self, tier):
+        return dict(tier=tier, adapter_id='a', content_sha256='a'*64, content_verified=True,
+            representation='verified_regular_file_tree_v1', allocated_file_bytes=4096,
+            path=f'/managed/{tier}/a')
+
+    def empty_native(self):
+        payload = source_payload()
+        payload.update(sources=[], slot_adapter_ids=[None, None], registered_cpu_adapter_ids=[])
+        return payload
+
+    def test_fastest_confirmed_native_source_preserves_tensor_representation(self):
+        self.files['sources'] = [self.file('host'), self.file('nvme')]
+        payload = measured_source_payload()
+        key, evidence = self.classify(payload)
+        self.assertEqual((key.tier, key.footprint_bin), ('gpu', 1))
+        self.assertTrue(evidence['native'])
+        self.assertNotIn('content_sha256', evidence)  # expected ID is not native byte verification
+        payload['slot_adapter_ids'] = [None, None]
+        payload['sources'][0].update(gpu_slot=None, gpu_confirmed_monotonic_s=None)
+        payload['native_footprints']['slot_adapter_ids'] = [None, None]
+        key, evidence = self.classify(payload)
+        self.assertEqual((key.tier, key.footprint_bin), ('host', 0))
+        self.assertTrue(key.representation.startswith('native_cpu_'))
+
+    def test_file_host_nvme_and_remote_are_not_tensor_or_wire_footprints(self):
+        for tier, sources, footprint_bin in [('host', [self.file('nvme'), self.file('host')], 2),
+                ('nvme', [self.file('nvme')], 2), ('remote', [], 3)]:
+            self.files['sources'] = sources
+            key, evidence = self.classify(self.empty_native())
+            self.assertEqual((key.tier, key.footprint_bin), (tier, footprint_bin))
+            self.assertFalse(evidence['native'])
+            self.assertNotIn('native_', key.representation)
+
+    def test_bad_file_content_rejects_even_when_a_native_hit_exists(self):
+        for change in ({'content_sha256': 'b'*64}, {'content_verified': False},
+                       {'allocated_file_bytes': 0}, {'path': 'relative'}, {'tier': 'gpu'}):
+            self.files['sources'] = [self.file('host') | change]
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                self.classify(measured_source_payload())
+
+    def test_unknown_native_id_and_wrong_native_name_or_rank_reject(self):
+        payload = source_payload()
+        payload.update(sources=[], unknown_native_adapter_ids=[4], complete_for_native_caches=False)
+        with self.assertRaisesRegex(ValueError, 'unowned'):
+            self.classify(payload)
+        for change in ({'adapter_id': 'wrong'}, {'rank': 16}):
+            payload = measured_source_payload()
+            payload['sources'][0].update(change)
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, 'identity/rank'):
+                self.classify(payload)
 
 
 class FrozenMeasuredInitialization(unittest.TestCase):

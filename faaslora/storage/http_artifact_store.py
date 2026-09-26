@@ -179,6 +179,32 @@ class HttpArtifactStoreClient:
         self.content_manifest_sha256 = digest
         return digest
 
+    def routing_identity(self, artifact_id: str, config_bytes: bytes) -> Dict[str, Any]:
+        """Static identity from the frozen pool, not a request-time local load.
+
+        Only the small PEFT config is read locally. Its bytes must match the same
+        frozen index used for real HTTP materialization. Payload size is logical
+        uncompressed file-tree bytes, never compressed wire bytes or GPU memory.
+        """
+        if self._content_manifest is None or artifact_id not in self._content_manifest:
+            raise ValueError('routing identity requires the frozen artifact content index')
+        files = self._content_manifest[artifact_id]
+        if (not isinstance(config_bytes, bytes) or 'adapter_config.json' not in files
+                or (len(config_bytes), hashlib.sha256(config_bytes).hexdigest()) != files['adapter_config.json']):
+            raise ValueError('routing PEFT metadata differs from the frozen artifact')
+        config = json.loads(config_bytes)
+        rank = config.get('r') if isinstance(config, dict) else None
+        if type(rank) is not int or rank <= 0 or config.get('rank_pattern'):
+            raise ValueError('routing identity requires qualified uniform positive adapter rank')
+        canonical = json.dumps([dict(path=name, size_bytes=size, sha256=digest)
+            for name, (size, digest) in sorted(files.items())],
+            sort_keys=True, separators=(',', ':')).encode()
+        return dict(adapter_id=artifact_id, rank=rank,
+                    content_sha256=hashlib.sha256(canonical).hexdigest(),
+                    remote_payload_bytes=sum(size for size, _ in files.values()),
+                    remote_representation='tar_gzip_verified_file_tree_v1',
+                    content_manifest_sha256=self.content_manifest_sha256)
+
     def health(self) -> Dict[str, Any]:
         return self._json_request("/health")
 

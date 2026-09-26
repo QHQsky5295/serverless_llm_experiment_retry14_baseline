@@ -254,6 +254,61 @@ class ServiceObservationClass:
                 raise ValueError('class indices must be nonnegative integers')
 
 
+def confirmed_source_class(*, native: NativeSourceSnapshot, files: Mapping,
+                           identity: Mapping, adapter_int_id: int,
+                           bins: 'ServiceClassBins', prompt_tokens: int,
+                           declared_output_tokens: int, admitted_after_accept: int):
+    """Compose received owners' state without substituting legacy cache hints.
+
+    Native HOST is executable-loader CPU state, not the managed HOST file tree.
+    Prefer it within HOST; NVMe/Remote remain distinct file representations.
+    Neither this view nor a predicted GPU hit acquires a reference.
+    """
+    adapter_id = identity['adapter_id']
+    if (files.get('kind') != 'confirmed_file_sources_v1' or files.get('adapter_id') != adapter_id
+            or files.get('clock_id') != native.clock_id or files.get('snapshot_holds_reference') is not False
+            or not isinstance(files.get('owner_id'), str) or not files['owner_id']
+            or type(files.get('epoch')) is not int or files['epoch'] < 0
+            or not isinstance(files.get('sources'), list)):
+        raise ValueError('routing file snapshot lacks consistent owner/clock/adapter identity')
+    file_by_tier = {}
+    for row in files['sources']:
+        tier = row.get('tier')
+        if (tier not in ('host', 'nvme') or tier in file_by_tier
+                or row.get('adapter_id') != adapter_id
+                or row.get('content_sha256') != identity['content_sha256']
+                or row.get('content_verified') is not True
+                or row.get('representation') != 'verified_regular_file_tree_v1'
+                or type(row.get('allocated_file_bytes')) is not int or row['allocated_file_bytes'] <= 0
+                or not isinstance(row.get('path'), str) or not Path(row['path']).is_absolute()):
+            raise ValueError('routing file source differs from frozen content/representation')
+        file_by_tier[tier] = row
+    features = dict(prompt_tokens=prompt_tokens, declared_output_tokens=declared_output_tokens,
+                    admitted_after_accept=admitted_after_accept)
+    selected = next((source for source in native.sources
+                     if source.adapter_int_id == adapter_int_id or source.adapter_id == adapter_id), None)
+    if selected is not None:
+        if (selected.adapter_int_id != adapter_int_id or selected.adapter_id != adapter_id
+                or selected.rank != identity['rank']):
+            raise ValueError('native routing source changed frozen adapter identity/rank')
+        return selected.service_class(bins, **features), dict(
+            owner_id=native.owner_id, epoch=native.epoch, tier=selected.tier,
+            path=selected.lora_path, native=True, expected_content_sha256=identity['content_sha256'])
+    if adapter_int_id in native.unknown_native_adapter_ids:
+        raise ValueError('native routing adapter has unowned source state')
+    for tier in ('host', 'nvme'):
+        if tier in file_by_tier:
+            source = file_by_tier[tier]
+            return bins.classify(tier=tier, adapter_rank=identity['rank'],
+                footprint_bytes=source['allocated_file_bytes'], representation=source['representation'],
+                **features), dict(owner_id=files['owner_id'], epoch=files['epoch'], tier=tier,
+                                 path=source['path'], native=False, content_sha256=identity['content_sha256'])
+    return bins.classify(tier='remote', adapter_rank=identity['rank'],
+        footprint_bytes=identity['remote_payload_bytes'], representation=identity['remote_representation'],
+        **features), dict(owner_id=files['owner_id'], epoch=files['epoch'], tier='remote',
+                         path=None, native=False, content_sha256=identity['content_sha256'])
+
+
 @dataclass(frozen=True)
 class ServiceClassBins:
     """Frozen inclusive upper bin edges; the final bin has no upper limit."""
@@ -717,6 +772,9 @@ class InstanceSlot:
     native_source_state: Optional[NativeSourceSnapshot] = None
     service_cost_model: Optional[ServiceCostModel] = None
     service_class_bins: Optional[ServiceClassBins] = None
+    ieee_pending_load_ids: Set[str] = field(default_factory=set)
+    ieee_last_dispatch_at: float = 0.0
+    ieee_utilization_sample: Optional[Dict[str, Any]] = None
 
     def commit_native_sources(self, snapshot: NativeSourceSnapshot) -> bool:
         """Commit a received view without mutating legacy hints or taking pins."""

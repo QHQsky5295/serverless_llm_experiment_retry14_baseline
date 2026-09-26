@@ -49,6 +49,193 @@ def fixture():
     return runner, slot, trace, plan
 
 
+class PredecisionRoutingIntegration(unittest.TestCase):
+    """Actual runner/router calls with explicit native-measurement fixtures, no GPU."""
+    def build(self):
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.experiment.instance_pool import Router, ServiceClassBins, ServiceCostModel, ServiceComponents
+        from tests.test_ieee_tc_service_routing import source_payload
+        runner, a, trace, plan = fixture()
+        runner._routing_policy = 'ieee_confirmed'
+        runner._ieee_routing_epoch = 0
+        runner._ieee_nvml_initialized = False
+        runner._runtime_hints_refresh_interval_s = 1.
+        runner._ieee_artifact_identities = {trace.adapter_id: dict(adapter_id=trace.adapter_id,
+            rank=8, content_sha256='a'*64, remote_payload_bytes=8192,
+            remote_representation='tar_gzip_verified_file_tree_v1')}
+        files = Mock()
+        files.source_snapshot.side_effect = lambda aid: dict(kind='confirmed_file_sources_v1',
+            owner_id='files', epoch=1, clock_id=local_monotonic_clock_id(), adapter_id=aid,
+            snapshot_holds_reference=False, captured_monotonic_s=time.monotonic(), sources=[])
+        runner._stack = SimpleNamespace(residency_manager=SimpleNamespace(local_source_references=files))
+        b = InstanceSlot('inst-b', engine=SimpleNamespace(), coordinator=None)
+        slots = [a, b]
+        runner.instance_pool = SimpleNamespace(get_slots=lambda: list(slots))
+        runner.router = Router(runner.instance_pool, 'ieee_confirmed', service_bin_ms=10.)
+        bins = ServiceClassBins((), (), (), (), ())
+        key = bins.classify(tier='remote', prompt_tokens=2, declared_output_tokens=4,
+            adapter_rank=8, footprint_bytes=8192, representation='tar_gzip_verified_file_tree_v1',
+            admitted_after_accept=1)
+        for index, slot in enumerate(slots):
+            slot.device_id = index
+            slot.service_class_bins = bins
+            slot.service_cost_model = ServiceCostModel(beta=.25, profile_id='test-fixture-only',
+                profiles={key: ServiceComponents(100. if index == 0 else 10., 20., 30.)})
+            async def snapshot(*, operation, replica=slot.instance_id, ordinal=index):
+                self.assertEqual(operation, 'source_snapshot')
+                return source_payload() | dict(owner_id=replica, clock_id=local_monotonic_clock_id(),
+                    captured_monotonic_s=time.monotonic(), sources=[],
+                    device_uuid=f'GPU-00010203-0405-0607-0809-0a0b0c0d0e0{ordinal}',
+                    slot_adapter_ids=[None, None], registered_cpu_adapter_ids=[])
+            slot.engine.ieee_gpu_reference = AsyncMock(side_effect=snapshot)
+        runner._sample_ieee_gpu_utilization = Mock(side_effect=lambda slot, **kw: dict(
+            source='fixture-native-busy', device_id=slot.device_id, device_uuid=kw['device_uuid'],
+            gpu_utilization_pct=0., sampled_monotonic_s=time.monotonic()))
+        return runner, slots, trace, plan, files
+
+    def test_actual_predecision_view_and_selection_ignore_legacy_affinity(self):
+        runner, (a, b), trace, plan, files = self.build()
+        a.gpu_resident_adapters.add(trace.adapter_id)
+        a.scaleup_handoff_request_budget = 100
+        rows, evidence = asyncio.run(runner._ieee_request_snapshot(trace, plan))
+        self.assertEqual([row.service_class.tier for row in rows], ['remote', 'remote'])
+        self.assertIs(runner.router.select_instance(trace.adapter_id, ieee_snapshot=rows), b)
+        self.assertEqual(evidence[b.instance_id]['source']['tier'], 'remote')
+        self.assertEqual(a.active_requests, 0)
+        self.assertEqual(b.active_requests, 0)
+        self.assertEqual(rows[0].epoch, rows[1].epoch)
+        runner._refresh_all_slot_runtime_hints.assert_not_called()
+        files.source_snapshot.assert_called_once_with(trace.adapter_id)
+
+    def test_live_counts_make_infeasible_rows_without_fabricating_missing_cost(self):
+        runner, (a, b), trace, plan, _ = self.build()
+        a.active_requests = 2
+        a.service_cost_model = None
+        b.ieee_pending_load_ids.add('already-loading')
+        rows, _ = asyncio.run(runner._ieee_request_snapshot(trace, plan))
+        self.assertFalse(rows[0].feasible)
+        self.assertIsNone(rows[0].service)
+        self.assertEqual(rows[1].pending_loads, 1)
+        self.assertIs(runner.router.select_instance(trace.adapter_id, ieee_snapshot=rows), b)
+        b.runtime_forwarding_active = 1
+        with self.assertRaisesRegex(ValueError, 'untracked legacy forwarding'):
+            asyncio.run(runner._ieee_request_snapshot(trace, plan))
+
+    def test_membership_change_during_collection_retries_without_selection(self):
+        runner, slots, trace, plan, _ = self.build()
+        original = slots[0].engine.ieee_gpu_reference.side_effect
+        async def changing(**kwargs):
+            result = await original(**kwargs)
+            slots.pop()
+            return result
+        slots[0].engine.ieee_gpu_reference.side_effect = changing
+        self.assertIsNone(asyncio.run(runner._ieee_request_snapshot(trace, plan)))
+        self.assertEqual(runner.router.selection_count, 0)
+        self.assertEqual(slots[0].active_requests, 0)
+
+    def test_delayed_native_epoch_cannot_be_used_after_newer_commit(self):
+        runner, (a, _), trace, plan, _ = self.build()
+        asyncio.run(runner._ieee_request_snapshot(trace, plan))
+        a.native_source_state = replace(a.native_source_state, epoch=2)
+        self.assertIsNone(asyncio.run(runner._ieee_request_snapshot(trace, plan)))
+        self.assertEqual(a.native_source_state.epoch, 2)
+
+    def test_duplicate_native_devices_do_not_masquerade_as_scaleout(self):
+        runner, (a, b), trace, plan, _ = self.build()
+        original = b.engine.ieee_gpu_reference.side_effect
+        async def duplicate(**kwargs):
+            view = await original(**kwargs)
+            view['device_uuid'] = 'GPU-00010203-0405-0607-0809-0a0b0c0d0e00'
+            return view
+        b.engine.ieee_gpu_reference.side_effect = duplicate
+        with self.assertRaisesRegex(ValueError, 'distinct native physical GPU'):
+            asyncio.run(runner._ieee_request_snapshot(trace, plan))
+        self.assertEqual(runner.router.selection_count, 0)
+
+    def test_actual_request_reserves_selected_view_before_resolve_then_releases(self):
+        runner, (a, b), trace, plan, _ = self.build()
+        reservation = RuntimeRequestReservation(trace.request_id)
+        async def stop_at_resolution(*args, **kwargs):
+            self.assertIs(reservation.slot, b)
+            self.assertEqual(reservation.ieee_routing_evidence['selected_replica_id'], 'inst-b')
+            self.assertEqual(b.active_requests, 1)
+            self.assertIn(trace.request_id, b.ieee_pending_load_ids)
+            self.assertEqual(a.active_requests, 0)
+            raise RuntimeError('end of routing boundary witness')
+        runner._resolve_lora.side_effect = stop_at_resolution
+        async def run():
+            try:
+                with self.assertRaisesRegex(RuntimeError, 'boundary witness'):
+                    await runner._exec_request_in_reservation(trace, 4, 0.,
+                        request_plan=plan, _reservation=reservation)
+            finally:
+                await runner._finish_runtime_request_reservation(reservation)
+        asyncio.run(run())
+        self.assertTrue(reservation.released)
+        self.assertFalse(b.ieee_pending_load_ids)
+        self.assertEqual(b.active_requests, 0)
+        self.assertGreater(b.ieee_last_dispatch_at, 0.)
+
+    def test_empty_feasible_set_waits_and_never_uses_primary_fallback(self):
+        runner, (a, b), trace, plan, _ = self.build()
+        a.active_requests = b.active_requests = 2
+        runner.engine = SimpleNamespace(generate_prepared=AsyncMock())
+        async def run():
+            task = asyncio.create_task(runner._exec_request(trace, 4, 0., request_plan=plan))
+            for _ in range(20):
+                await asyncio.sleep(0)
+                if runner.router.selection_count:
+                    break
+            self.assertGreater(runner.router.selection_count, 0)
+            self.assertFalse(task.done())
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+        asyncio.run(run())
+        runner.engine.generate_prepared.assert_not_called()
+        runner._resolve_lora.assert_not_called()
+        self.assertEqual((a.active_requests, b.active_requests), (2, 2))
+
+    def test_unknown_load_retains_pending_and_controller_ownership(self):
+        runner, (a, _), trace, _, _ = self.build()
+        a.active_requests = 1
+        a.ieee_pending_load_ids.add(trace.request_id)
+        reservation = RuntimeRequestReservation(trace.request_id)
+        reservation.bind(a, trace.adapter_id, False)
+        reservation.ieee_load_pending = True
+        reservation.gpu_reference_evidence['state'] = 'acquiring'
+        asyncio.run(runner._finish_runtime_request_reservation(reservation))
+        self.assertFalse(reservation.released)
+        self.assertEqual(a.ieee_pending_load_ids, {trace.request_id})
+        self.assertEqual(a.active_requests, 1)
+        self.assertEqual(a.status, 'draining')
+
+    def test_native_busy_sample_not_memory_fraction_and_cadence_is_recorded(self):
+        runner, (a, _), _, _, _ = self.build()
+        del runner._sample_ieee_gpu_utilization
+        native = SimpleNamespace(nvmlInit=Mock(), nvmlShutdown=Mock(),
+            nvmlDeviceGetHandleByUUID=Mock(return_value='handle'),
+            nvmlDeviceGetUtilizationRates=Mock(return_value=SimpleNamespace(gpu=13, memory=91)),
+            nvmlDeviceGetHandleByIndex=Mock(side_effect=AssertionError('index is not native identity')))
+        a.utilization_percent = 99.
+        device_uuid = 'GPU-00010203-0405-0607-0809-0a0b0c0d0e0f'
+        with patch.dict('sys.modules', {'pynvml': native}):
+            first = runner._sample_ieee_gpu_utilization(a, device_uuid=device_uuid)
+            second = runner._sample_ieee_gpu_utilization(a, device_uuid=device_uuid)
+            self.assertEqual(first, second)
+            self.assertEqual(first['gpu_utilization_pct'], 13.)
+            self.assertEqual(first['device_uuid'], device_uuid)
+            native.nvmlDeviceGetHandleByUUID.assert_called_once_with(device_uuid)
+            native.nvmlDeviceGetUtilizationRates.assert_called_once_with('handle')
+            with self.assertRaisesRegex(ValueError, 'physical GPU changed'):
+                runner._sample_ieee_gpu_utilization(a,
+                    device_uuid='GPU-00010203-0405-0607-0809-0a0b0c0d0e00')
+            a.ieee_utilization_sample = None
+            native.nvmlDeviceGetUtilizationRates.return_value.gpu = float('nan')
+            with self.assertRaisesRegex(ValueError, 'invalid native GPU'):
+                runner._sample_ieee_gpu_utilization(a, device_uuid=device_uuid)
+
+
 class RequestOwnershipLifetime(unittest.TestCase):
     def test_resolution_failure_releases_original_request_and_adapter_counts(self):
         runner, slot, trace, plan = fixture()

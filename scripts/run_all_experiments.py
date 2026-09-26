@@ -1110,6 +1110,8 @@ class RuntimeRequestReservation:
     gpu_reference_engine: Optional[Any] = None
     gpu_reference_evidence: Dict[str, Any] = field(default_factory=dict)
     local_source_owner: Optional[Any] = None
+    ieee_routing_evidence: Optional[Dict[str, Any]] = None
+    ieee_load_pending: bool = False
 
     def bind(self, slot, adapter_id, adapter_reserved: bool) -> None:
         if self.bound:
@@ -6328,6 +6330,19 @@ class ScenarioRunner:
         self._routing_policy = str(cc.get("routing_policy", "adapter_affinity")).lower()
         if self._routing_policy == 'ieee_confirmed' and self._service_profiles is None:
             raise ValueError('IEEE routing requires measured ieee_service_profile initialization')
+        self._ieee_routing_epoch = 0
+        self._ieee_artifact_identities = {}
+        self._ieee_nvml_initialized = False
+        if self._routing_policy == 'ieee_confirmed':
+            if int(self.model_cfg.get('tensor_parallel_size', 1)) != 1:
+                raise ValueError('current native ownership qualification requires TP=1')
+            if self.adapter_info and self._remote_artifact_client is None:
+                raise ValueError('IEEE routing requires the frozen real-remote artifact index')
+            for aid in self.adapter_info:
+                # Static metadata, not payload materialization. The same config
+                # SHA belongs to the actual HTTP download contract.
+                self._ieee_artifact_identities[aid] = self._remote_artifact_client.routing_identity(
+                    aid, (self.remote_dir / aid / 'adapter_config.json').read_bytes())
         self._arrival_window_s = float(cc.get("arrival_window_s", 5.0))
         self._scale_eval_interval_s = max(0.1, float(cc.get("scale_eval_interval_s", 15.0) or 15.0))
         self._baseline_rps: float = 1.0
@@ -7284,6 +7299,115 @@ class ScenarioRunner:
         except Exception:
             return 0
 
+    def _sample_ieee_gpu_utilization(self, slot, *, device_uuid):
+        """Sample actual device busy rate; old memory-percent hints are separate."""
+        if (not isinstance(device_uuid, str) or not device_uuid.startswith('GPU-')
+                or 'GPU-' + str(uuid.UUID(device_uuid[4:])) != device_uuid):
+            raise ValueError('IEEE utilization requires the native worker physical GPU UUID')
+        now = time.monotonic()
+        previous = slot.ieee_utilization_sample
+        interval = self._runtime_hints_refresh_interval_s
+        if previous is not None and previous['device_uuid'] != device_uuid:
+            raise ValueError('physical GPU changed during replica ownership')
+        if previous is not None and now - previous['sampled_monotonic_s'] < interval:
+            return dict(previous)
+        import pynvml
+        if not self._ieee_nvml_initialized:
+            pynvml.nvmlInit()
+            self._ieee_nvml_initialized = True
+        handle = pynvml.nvmlDeviceGetHandleByUUID(device_uuid)
+        rate = float(pynvml.nvmlDeviceGetUtilizationRates(handle).gpu)
+        if not math.isfinite(rate) or not 0 <= rate <= 100:
+            raise ValueError('invalid native GPU utilization sample')
+        sample = dict(source='nvmlDeviceGetUtilizationRates.gpu', device_id=slot.device_id,
+                      device_uuid=device_uuid,
+                      gpu_utilization_pct=rate, sampled_monotonic_s=now)
+        slot.ieee_utilization_sample = sample
+        return dict(sample)
+
+    async def _ieee_request_snapshot(self, trace, request_plan):
+        """Commit received source and live controller state before target selection.
+
+        RPCs collect native observations without pinning candidates. After the
+        last await, file-source, counts, profile estimates and membership form one
+        received controller view. Selection/reservation follows without yielding;
+        selected-copy revalidation remains a separate required transaction.
+        """
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.experiment.instance_pool import (
+            NativeSourceSnapshot, ReplicaRoutingSnapshot, confirmed_source_class)
+        if self._stack is None:
+            raise ValueError('IEEE routing requires the actual managed file source owner')
+        owner = self._stack.residency_manager.local_source_references
+        slots = tuple(self.instance_pool.get_slots())
+        native_views = await asyncio.gather(*(slot.engine.ieee_gpu_reference(
+            operation='source_snapshot') for slot in slots))
+        # Scale-up/removal during RPC collection is not a complete current view.
+        if tuple(self.instance_pool.get_slots()) != slots:
+            return None
+        device_uuids = [view.get('device_uuid') for view in native_views]
+        if (any(not isinstance(value, str) for value in device_uuids)
+                or len(set(device_uuids)) != len(device_uuids)):
+            raise ValueError('IEEE TP=1 replicas require distinct native physical GPU identities')
+        clock_id = local_monotonic_clock_id()
+        native = [NativeSourceSnapshot.from_native(view, expected_clock_id=clock_id,
+            received_monotonic_s=time.monotonic()) for view in native_views]
+        adapter_id = trace.adapter_id
+        files = owner.source_snapshot(adapter_id) if adapter_id else None
+        if files is not None:
+            captured = files.get('captured_monotonic_s')
+            if (type(captured) not in (int, float) or not math.isfinite(captured)
+                    or captured <= 0 or captured > time.monotonic()):
+                raise ValueError('file routing view lacks a valid observation time')
+        identity = self._ieee_artifact_identities[adapter_id] if adapter_id else None
+        self._ieee_routing_epoch += 1
+        rows, evidence = [], {}
+        capacity, active_limit = self._runtime_forward_capacity_limit(), self._runtime_max_active_loras()
+        for slot, state, raw_view in zip(slots, native, native_views):
+            if not slot.commit_native_sources(state):
+                # Another request can receive a newer native epoch while this
+                # collection is awaiting a slower replica. Never rank on the
+                # rejected old view or splice it into the newer owner state.
+                return None
+            admitted = slot.active_requests
+            active = frozenset(aid for aid, count in slot.active_adapter_counts.items() if count > 0)
+            remaining = max(0, capacity - admitted)
+            if slot.runtime_forwarding_active:
+                # Historical forwarding does not expose native load ownership.
+                # Do not fabricate zero pending work and call it IEEE-qualified.
+                raise ValueError('untracked legacy forwarding cannot enter IEEE routing state')
+            utilization = self._sample_ieee_gpu_utilization(slot, device_uuid=raw_view.get('device_uuid'))
+            key = service = source = None
+            feasible = remaining > 0 and (not adapter_id or adapter_id in active or len(active) < active_limit)
+            if feasible:
+                features = dict(prompt_tokens=request_plan.input_tokens,
+                                declared_output_tokens=request_plan.max_tokens,
+                                admitted_after_accept=admitted + 1)
+                if adapter_id:
+                    key, source = confirmed_source_class(native=state, files=files, identity=identity,
+                        adapter_int_id=InferenceEngine._lora_int_id(adapter_id),
+                        bins=slot.service_class_bins, **features)
+                else:
+                    key = slot.service_class_bins.classify(tier='backbone', adapter_rank=0,
+                        footprint_bytes=0, representation='backbone', **features)
+                    source = dict(tier='backbone', native=True, owner_id=state.owner_id, epoch=state.epoch)
+                service = slot.service_cost_model.estimate(key)
+            rows.append(ReplicaRoutingSnapshot(epoch=self._ieee_routing_epoch,
+                request_id=trace.request_id, replica_id=slot.instance_id, adapter_id=adapter_id,
+                runtime_ready=True, available_slots=remaining, admitted_requests=admitted,
+                active_adapters=active, max_active_loras=active_limit,
+                pending_loads=len(slot.ieee_pending_load_ids),
+                gpu_utilization_pct=utilization['gpu_utilization_pct'],
+                last_dispatch_at=slot.ieee_last_dispatch_at, service_class=key, service=service))
+            evidence[slot.instance_id] = dict(source=source,
+                native_owner_id=state.owner_id, native_epoch=state.epoch,
+                native_captured_monotonic_s=state.captured_monotonic_s,
+                file_owner_id=files['owner_id'] if files else None,
+                file_epoch=files['epoch'] if files else None,
+                file_captured_monotonic_s=files['captured_monotonic_s'] if files else None,
+                utilization=utilization)
+        return tuple(rows), evidence
+
     def _slot_can_accept_runtime_request(
         self,
         slot: Optional[Any],
@@ -7344,6 +7468,8 @@ class ScenarioRunner:
             active_adapter_reserved = True
         slot.active_requests = active_requests + 1
         slot.last_selected_at = time.time()
+        if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
+            slot.ieee_last_dispatch_at = time.monotonic()
         return True, active_adapter_reserved
 
     def _runtime_total_capacity_after_removal(self, remaining_instances: int) -> int:
@@ -11890,6 +12016,10 @@ class ScenarioRunner:
                 removed,
                 removal_reason="shutdown",
             )
+        if getattr(self, '_ieee_nvml_initialized', False):
+            import pynvml
+            pynvml.nvmlShutdown()
+            self._ieee_nvml_initialized = False
 
     async def _prune_dead_instance_slots(self) -> int:
         instance_pool = getattr(self, "instance_pool", None)
@@ -13758,6 +13888,7 @@ class ScenarioRunner:
                         or acquired_at <= 0 or acquired_at > time.monotonic()):
                     raise ValueError('native acquisition receipt has invalid completion time')
                 evidence.update(state='acquired', receipt=dict(receipt))
+                self._complete_ieee_pending_load(reservation)
                 # The backend acknowledged completed loading/copying. File input
                 # is no longer read; native tensor leases own subsequent work.
                 self._release_runtime_local_source(reservation)
@@ -13792,6 +13923,14 @@ class ScenarioRunner:
                 continue
             evidence['state'] = 'rejected'
             raise RuntimeError(f"native reference acquisition conflict: {receipt.get('reason')}")
+
+    @staticmethod
+    def _complete_ieee_pending_load(reservation: RuntimeRequestReservation) -> None:
+        if reservation.ieee_load_pending:
+            if reservation.slot is None or reservation.request_id not in reservation.slot.ieee_pending_load_ids:
+                raise RuntimeError('IEEE pending load lost its controller owner')
+            reservation.slot.ieee_pending_load_ids.remove(reservation.request_id)
+            reservation.ieee_load_pending = False
 
     @staticmethod
     def _release_runtime_local_source(reservation: RuntimeRequestReservation) -> None:
@@ -13857,6 +13996,7 @@ class ScenarioRunner:
                 self._retain_runtime_request_reservation(reservation)
                 raise
         self._release_runtime_local_source(reservation)
+        self._complete_ieee_pending_load(reservation)
         if reservation.batch_started:
             reservation.batch_coordinator.notify_batch_end(
                 reservation.batch_input_tokens, reservation.batch_output_tokens)
@@ -13906,16 +14046,26 @@ class ScenarioRunner:
         selected_instance_age_s = 0.0
         runtime_slot_wait_started = time.perf_counter()
         slot = None
+        ieee_routing = getattr(self, '_routing_policy', None) == 'ieee_confirmed'
+        if ieee_routing and request_plan is None:
+            request_plan = self._prepare_request_execution_plan(self.engine, trace, max_tokens)
         while True:
             await self._prune_dead_instance_slots()
-            self._refresh_all_slot_runtime_hints()
             routing_started_ns = time.perf_counter_ns()
-            slot = (
-                self.router.select_instance(adapter_id, adapter_size_mb=size_mb)
-                if self.router else None
-            )
+            if ieee_routing:
+                committed = await self._ieee_request_snapshot(trace, request_plan)
+                if committed is None:
+                    continue
+                snapshot, source_evidence = committed
+                slot = self.router.select_instance(adapter_id, ieee_snapshot=snapshot)
+            else:
+                self._refresh_all_slot_runtime_hints()
+                slot = (self.router.select_instance(adapter_id, adapter_size_mb=size_mb)
+                        if self.router else None)
             selected_readiness_tier = _BACKBONE_CACHE_TIER if not adapter_id else "remote"
-            if slot is not None and adapter_id:
+            if ieee_routing and slot is not None:
+                selected_readiness_tier = self.router.last_ieee_decision.service_class.tier
+            elif slot is not None and adapter_id:
                 predictor = getattr(slot, "predicted_cache_tier", None)
                 if callable(predictor):
                     try:
@@ -13928,12 +14078,25 @@ class ScenarioRunner:
                 0.0,
                 (time.perf_counter_ns() - routing_started_ns) / 1000.0,
             )
-            reserved, active_adapter_reserved = self._try_reserve_runtime_request_slot(
-                slot,
-                adapter_id,
-            )
+            # An empty IEEE feasible set means queue, never implicit primary
+            # execution through the historical slot=None compatibility branch.
+            reserved, active_adapter_reserved = ((False, False) if ieee_routing and slot is None else
+                self._try_reserve_runtime_request_slot(slot, adapter_id))
             if reserved:
                 _reservation.bind(slot, adapter_id, active_adapter_reserved)
+                if ieee_routing:
+                    record = dict(kind='ieee_predecision_received_view_v1',
+                        selected_replica_id=slot.instance_id,
+                        candidates=[asdict(row) | {'active_adapters': sorted(row.active_adapters)}
+                                    for row in snapshot], sources=source_evidence,
+                        selected_reference_acquired=False)
+                    _reservation.ieee_routing_evidence = record
+                    _reservation.gpu_reference_evidence['routing_snapshot'] = record
+                    if selected_readiness_tier not in ('gpu', 'backbone'):
+                        if _reservation.request_id in slot.ieee_pending_load_ids:
+                            raise RuntimeError('duplicate IEEE pending adapter-load request')
+                        slot.ieee_pending_load_ids.add(_reservation.request_id)
+                        _reservation.ieee_load_pending = True
                 readiness_tier_before_dispatch = selected_readiness_tier
                 if slot is not None:
                     created_at = float(getattr(slot, "created_at", 0.0) or 0.0)

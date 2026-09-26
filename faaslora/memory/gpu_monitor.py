@@ -277,6 +277,12 @@ class IEEEWorkerObservationExtension:
             result['native_footprints'] = {
                 **_ieee_lora_host_inventory(manager),
                 **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
+            # CUDA ordinals can be remapped in dedicated workers; publish the
+            # actual device identity so controller NVML queries cannot sample
+            # a different physical GPU with a coincidentally equal index.
+            import uuid
+            device_uuid = torch.cuda.get_device_properties(self.device).uuid
+            result['device_uuid'] = 'GPU-' + str(uuid.UUID(bytes=bytes(device_uuid.bytes)))
         return {**result, 'clock_id': local_monotonic_clock_id(),
                 'worker_pid': os.getpid(), 'worker_rank': int(self.rank),
                 'completion_fence_scope': 'current_worker_cuda_stream',

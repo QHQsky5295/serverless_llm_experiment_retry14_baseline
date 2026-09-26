@@ -285,7 +285,8 @@ class NativeDemandTransactions(unittest.TestCase):
         worker.model_runner = SimpleNamespace(lora_manager=native_loader)
         event = Mock()
         torch = SimpleNamespace(cuda=SimpleNamespace(device=lambda _: nullcontext(),
-            Event=Mock(return_value=event), current_stream=Mock(return_value='native-stream')))
+            Event=Mock(return_value=event), current_stream=Mock(return_value='native-stream'),
+            get_device_properties=Mock(return_value=SimpleNamespace(uuid=SimpleNamespace(bytes=list(range(16)))))))
         with patch.object(gpu_monitor, 'torch', torch), \
              patch.object(gpu_monitor, '_ieee_lora_pool_inventory') as inventory, \
              patch.object(gpu_monitor, '_ieee_lora_host_inventory', return_value={'host_tensor_storage_bytes': 16}), \
@@ -305,6 +306,7 @@ class NativeDemandTransactions(unittest.TestCase):
             event.synchronize.assert_called_once_with()
             inventory.return_value = {'slot_capacity_bytes': 32}
             sources = worker.ieee_gpu_reference(operation='source_snapshot')
+            self.assertEqual(sources['device_uuid'], 'GPU-00010203-0405-0607-0809-0a0b0c0d0e0f')
             self.assertEqual(sources['sources'][0]['adapter_id'], 'adapter-4')
             self.assertIn('clock_id', sources)
             self.assertEqual(sources['native_footprints'], {'host_tensor_storage_bytes': 16,

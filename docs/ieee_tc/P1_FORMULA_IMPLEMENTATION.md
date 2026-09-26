@@ -1097,3 +1097,68 @@ HTTP 往返、HOST 复制/下层保留和损坏复制。全部使用微小 fixtu
 下一步将原生 GPU/HOST 与此文件型 HOST/NVMe 状态组合为决策前 source/class/
 cost 视图，再绑定真实 admission 观察和引用。REMOTE 身份/代表性 profile、
 全层物理预算、准入与生命周期仍需整合；本步不能宣称 Full、主比较或 A3 已完成。
+
+## P1-D24：真实请求的决策前全副本状态与服务成本
+
+### 缺口与因果问题
+
+`da9109b` 已有已确认原生源、已验证文件源、冻结实测 profile 和 IEEE Router，
+但真实请求仍调用不带 IEEE snapshot 的 select_instance。分开的对象存在，
+不等于论文 Eq.(2)–(3) 已决定实际目标。本步把这些输入接入原请求方法，
+不另建回放器、不替换论文排序、不把历史缓存提示重命名为确认状态。
+
+可证伪问题：旧 affinity/handoff 标签指向慢副本时，实际路由是否仍按同一
+已接收视图的服务分桶与 Q 选目标？空可行集是否真正排队？接收过程中副本或
+原生 epoch 改变时，是否会用被拒绝的旧观察做决策？
+
+### 论文语义与当前接入
+
+| 论文规范语义 | 当前实现证据 | 限制 / 后续验收 |
+|---|---|---|
+| 在选目标之前观察所有候选 | 原 runner 并行收集原生 source_snapshot；接收后合并文件源、当前 request/adapter counts 和 profile 估计；实际 Router 使用该 tuple | 是 controller 已接收视图，不是假称跨进程同时采样；必须单独复查所选源 |
+| 最快有效源及表示相关成本 | native GPU → native HOST → 文件 HOST → NVMe → Remote；保持 rank/真实 footprint/representation；来源不明拒绝 | 原生名称/rank 绑定不等于已独立证明数值正确；native evidence 标 expected content，未冒充实际权重哈希证明 |
+| Remote 具有固定内容身份 | 仅从既有小 PEFT config 读 rank，并核对冻结 content index；统计未压缩文件树字节 | 不进行本地权重 fallback；逻辑 payload 不是 gzip 线上字节或 GPU/CPU tensor 大小 |
+| 同一收到的可行集合与 Q | 非目标提示不参与新排序；所有本地字段在最后一次 await 后组合；选择/计数预留间不 yield | 不等于原生资源已经原子预留；真实 physical admission 仍未整合 |
+| 不能使用拒收的旧状态 | membership 改变或比已提交 epoch 旧时重新收集；未知 forwarding 不能假装 pending=0 | 后续需纳入有原生所有权的主动 preparation，未声称 Full 已启用全部机制 |
+| GPU utilization 是执行忙碌率 | 查询 NVML gpu 时间占比，按冻结 hint cadence 保留采样时间；native CUDA UUID 定位物理 GPU | 不是即时精确 occupancy，也不是显存占比；模型下采样/RPC开销待测 |
+| 副本位置须真实 | worker 发布 CUDA 实际 UUID；控制器按 UUID 查询，TP=1 下不同副本不能重复同一物理 UUID | 不把 worker-local CUDA ordinal 直接当主机 NVML index；TP>1 未资格 |
+| 没有可行副本应等待 | 实际请求空可行集进入容量等待，不经过旧 slot=None 主副本兼容路径 | 取消等待不虚构 dispatch 或改变已持有计数 |
+| load 任务有生命周期 | 保存 admitted request 的准备意图集合，完成 acquire 才清除；未知 mutation 保留并撤回副本 | 数的是请求准备意图，不是已合并 transfer 数/线上字节；不是完整主动 load ledger |
+
+参照 [NVIDIA NVML 利用率定义](https://docs.nvidia.com/deploy/nvml-api/api/structnvmlUtilization__t.html)：
+gpu 字段反映采样窗口内 kernel 执行的时间比例；本项目旧 GPU memory monitor 的
+`utilization_percent` 是 used/total 显存比，不能替代该量。采样有窗口，时间戳和
+cadence 进入证据，不将其包装成逐请求瞬时 SM occupancy。
+
+参照 [PyTorch 2.13 CUDA device properties 实现](https://github.com/pytorch/pytorch/blob/v2.13.0/torch/csrc/cuda/Module.cpp)：
+设备属性暴露 UUID 字节，worker-local 编号可以转换为物理身份。本步复用该
+现成事实，不通过主机编号相等假设解决专用进程 CUDA_VISIBLE_DEVICES 重映射。
+
+### 正确性状态表
+
+新增十五项方法测试使用微小文件/原生事件 fixture：冻结 config/内容身份、
+四类源的优先级与 footprint、错误 rank/身份、实际请求选副本、live counts、
+membership 与 stale epoch、未知 load 保留、无可行集等待、实际利用率字段与
+UUID，以及重复物理 GPU 不得冒充 scale-out。现有 worker 方法测试也核对 UUID
+输出。没有生成模型工件、trace 或生产 profile。
+
+首次十四项尝试中八项 fixture 缺少显式 `profile_id`，在进入被测路径前报错；
+补齐为 `test-fixture-only`，没有给生产代码增加默认估计。首次完整回归 633 项
+通过，随后加入物理 UUID 绑定及重复设备检查；最终 634 项功能检查通过
+（23.069 秒），56 项独立安全/census/replay 检查通过（0.451 秒），无跳过或失败。
+147 项旧结果保护清单与原计划 SHA 不变。所有本轮数据是正确性检查，不是
+G1/G2 性能点，因此以本状态表交付，不画没有模型实测支持的收益曲线。
+
+### 不得跨越的结论边界与下一步
+
+现在真实请求会产生 `ieee_predecision_received_view_v1`，包括所有候选类/估计、
+owner/epoch、source 和 utilization 的采样事实。该记录明确
+`selected_reference_acquired=false`：它证明“按哪些已收到的事实选目标”，
+**不证明随后获取引用时源未变化**。现有 selected acquisition 仍重新查询，
+完整 source revalidation/reselection 与 actual admission class 尚需合并。
+
+下一步在同一真实请求边界完成所选源保护/冲突重选、接纳时固定观测类和
+ServiceIntervalObservation；源变化不能沿用旧类给 EWMA 记账，稍后才拿到 GPU
+引用不能追溯声称 admission 时 D=0。并继续全层物理预算及生命周期所有权。
+没有经过这些边界和真实模型整合资格，不运行/宣称正式 Full、LastKnown 因果
+消融或新 G1/G2 主结果。后续不再重复本轮各独立组合测试作为新的实验进展。
