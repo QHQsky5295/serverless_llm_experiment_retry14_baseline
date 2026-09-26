@@ -28,3 +28,13 @@ A user question is pending about retaining the common floor versus approving
 a separate measured-peak rule for the lightweight artifact node. Meanwhile,
 local audits continue. No remote artifact service was started, and full
 start/stop/restart/download qualification is NOT yet complete.
+
+## Rechecked 2026-09-27 (D53, read-only)
+
+Strict BatchMode key access still works. Available disk is148735832064 bytes
+(138.52GiB). The7B/3B upload archives contain1967102690 bytes in total (1.83GiB);
+removing these cannot reach the150GiB floor. No listener is present on18080/18081.
+No files were removed and no service was started. The user was asked to retain
+the floor and free space, or authorize a separate measured-peak artifact-node
+rule. That rule is not yet approved, derived or installed; inference-host
+limits and the existing approved plan remain unchanged.
