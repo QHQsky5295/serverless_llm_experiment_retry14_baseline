@@ -939,7 +939,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         runner.hw = {}
         runner.engine = SimpleNamespace(model_cfg={"visible_device_ids": [0, 1]})
         runner.instance_pool = SimpleNamespace(
-            get_slots=lambda: [SimpleNamespace(device_id=0)],
+            get_all_slots=lambda: [SimpleNamespace(device_id=0)],
             count=lambda: 1,
         )
 
@@ -7460,7 +7460,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner._failed_runtime_device_ids = set()
         runner._pending_scale_up_device_ids = set()
         runner.instance_pool = SimpleNamespace(
-            get_slots=lambda: [SimpleNamespace(device_id=0)],
+            get_all_slots=lambda: [SimpleNamespace(device_id=0)],
             count=lambda: 1,
         )
 
@@ -7473,7 +7473,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner._pending_scale_up_device_ids = set()
         runner._failed_runtime_device_ids = set()
         runner.instance_pool = SimpleNamespace(
-            get_slots=lambda: [
+            get_all_slots=lambda: [
                 SimpleNamespace(device_id=0),
                 SimpleNamespace(device_id=1),
                 SimpleNamespace(device_id=2),
@@ -7491,7 +7491,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner._pending_scale_up_device_ids = set()
         runner._failed_runtime_device_ids = {0}
         runner.instance_pool = SimpleNamespace(
-            get_slots=lambda: [SimpleNamespace(device_id=1)],
+            get_all_slots=lambda: [SimpleNamespace(device_id=1)],
             count=lambda: 1,
         )
 
@@ -7707,7 +7707,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         runner.model_cfg = {}
         runner._failed_runtime_device_ids = set()
         runner.instance_pool = SimpleNamespace(
-            get_slots=lambda: [SimpleNamespace(device_id=0)],
+            get_all_slots=lambda: [SimpleNamespace(device_id=0)],
             count=lambda: 1,
         )
         runner._pending_scale_up_device_ids = {1}

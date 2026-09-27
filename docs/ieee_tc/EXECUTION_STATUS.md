@@ -1,6 +1,39 @@
 # IEEE TC execution status
 
+## Latest — D94 physical-owner retirement fixed; CPU verified, no GPU replay
+
+2026-09-28 04:41. Supersedes all older NEXT/LIVE instructions below.
+No live inference/remote monitor. Baselines remain PAUSED at 9e2cf289.
+D93 failure evidence already pushed df47980; no need to repeat that backup.
+
+D94 actual CPU counterexamples reproduced: 4 draining owners allowed GPU 0;
+scale-down removed membership before asynchronous shutdown; failed shutdown
+lost its owner. Pre-fix 3 tests: 2 failures/1 error. Fix selects from all retained
+members and keeps draining membership through teardown across retirement paths.
+Only successful cleanup removes membership. Physical/native checks unchanged;
+no blind retry, no IEEE formula/profile/trace/deadline/remote change.
+
+19 targeted tests PASS 0.471s; final 841 regression PASS 49.844s in bounded
+offline CPU scope. Raw d94_20260928/regression1.log; doc D94_PHYSICAL_OWNER_RETIREMENT
+contains immediate status table; curated 20260928_d94_physical_owner_retirement.json.
+147 protected entries and plan/metric SHA unchanged. No GPU performance result.
+
+NEXT: scoped checkpoint backup, then continue the same failure diagnosis:
+1. req00333 was withheld BEFORE generate send/binding, yet retirement was attempted;
+   distinguish unsubmitted from uncertain submitted work without weakening guards.
+2. Bound/test concurrent source-observation and selected-source conflict amplification.
+Do NOT rerun unchanged GPU workload just because physical selection is fixed.
+Long waiting is still unexplained; all-draining liveness is not restored by this fix.
+Do not repeat D78/D80 cache, D88/D89 profiles, or D90 prefixes. Complete canonical
+3B Full4000 then7B only after causal validation. Warm/Resident/M1/M2/A/S pending.
+
 ## Latest — D93 full4000 attempt2 FAILED/CLEANED; backup then causal CPU diagnosis
+
+BACKEDUP df4798095caf2458d7e4c46254cc647561391b01 PUSHED/freshremote matched.
+Three scoped evidencefiles;19refs/147protected/secretsPASS;288basic smoke tests
+PASS24.142s in bounded4GiB/offline scope, no runtime edits. NoGPU/tmux/remote
+remains. Rawfull2_evidence_push_receipt.json. NEXT is causalCPUwork, notanother
+evidence/backup/wait loop or GPU replay. OlderLIVE is superseded.
 
 2026-09-28 04:28. Supersedes LIVEbelow. No live model/tmux/service/remote monitor;
 baseline9e2cf289 remainsPAUSED. Execution17bb348 unchanged. Outcome originalerror

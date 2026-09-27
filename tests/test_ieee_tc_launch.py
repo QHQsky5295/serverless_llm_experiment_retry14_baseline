@@ -1060,7 +1060,8 @@ class IEEEActualControl(unittest.TestCase):
             service._primary_instance_id=primary
             async def cleanup(slot, **kw):
                 self.assertEqual(slot.instance_id,victim)
-                self.assertIsNone(service.instance_pool.get_slot(victim))
+                self.assertIs(service.instance_pool.get_slot(victim), slot)
+                self.assertEqual(slot.status, 'draining')
                 self.assertEqual(service.instance_pool.count(),1)
             service._cleanup_removed_slot=AsyncMock(side_effect=cleanup)
             result=SimpleNamespace(scale_up_events=[],scale_down_events=0,scale_down_event_log=[])
@@ -1765,6 +1766,60 @@ class ExternalDispatcherIntegration(unittest.IsolatedAsyncioTestCase):
 
 
 class DeploymentTerminalIntegration(unittest.IsolatedAsyncioTestCase):
+    def owned_pool_runner(self, count=2):
+        from faaslora.experiment.instance_pool import InstancePool
+        r = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        r.model_cfg = {'tensor_parallel_size': 1}
+        r._available_device_ids = lambda: list(range(count))
+        r._pending_scale_up_device_ids = set()
+        r._failed_runtime_device_ids = set()
+        r.instance_pool = InstancePool(min_instances=1, max_instances=count)
+        ids = [r.instance_pool.add_instance(SimpleNamespace(device_id=i), None,
+            owns_engine=True, owns_coordinator=False, device_id=i) for i in range(count)]
+        r._primary_instance_id = ids[0]
+        return r, ids
+
+    def test_allocator_excludes_quarantined_owners_even_with_no_serving_slots(self):
+        r, ids = self.owned_pool_runner(4)
+        for instance_id in ids:
+            r.instance_pool.get_slot(instance_id).status = 'draining'
+        self.assertEqual(r.instance_pool.count(), 0)
+        self.assertIsNone(r._select_dedicated_device_id())
+
+    async def test_scale_down_keeps_device_owned_until_cleanup_acknowledges_release(self):
+        r, ids = self.owned_pool_runner()
+        slot = r.instance_pool.get_slot(ids[1])
+        r._select_scale_down_candidate_slot = Mock(return_value=slot)
+        entered, finish = asyncio.Event(), asyncio.Event()
+        async def cleanup(candidate, **kwargs):
+            self.assertIs(candidate, slot)
+            entered.set()
+            await finish.wait()
+        r._cleanup_removed_slot = cleanup
+        retiring = asyncio.create_task(r._scale_down_one_instance())
+        try:
+            await entered.wait()
+            self.assertEqual(slot.status, 'draining')
+            self.assertIs(r.instance_pool.get_slot(ids[1]), slot)
+            self.assertEqual(r.instance_pool.count(), 1)
+            self.assertIsNone(r._select_dedicated_device_id())
+        finally:
+            finish.set()
+            await retiring
+        self.assertIsNone(r.instance_pool.get_slot(ids[1]))
+        self.assertEqual(r._select_dedicated_device_id(), 1)
+
+    async def test_failed_cleanup_retains_nonserving_owner_and_continues_other_returns(self):
+        r, ids = self.owned_pool_runner()
+        r._cleanup_removed_slot = AsyncMock(side_effect=[RuntimeError('return unconfirmed'), None])
+        with self.assertRaisesRegex(RuntimeError, 'unresolved runtime ownership'):
+            await r._shutdown_instance_pool()
+        self.assertEqual(r._cleanup_removed_slot.await_count, 2)
+        self.assertEqual(r.instance_pool.get_slot(ids[0]).status, 'draining')
+        self.assertIsNone(r.instance_pool.get_slot(ids[1]))
+        self.assertEqual(r.instance_pool.count(), 0)
+        self.assertEqual(r._select_dedicated_device_id(), 1)
+
     def deadline_runner(self, timeout):
         r = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
         r.wl_cfg = {} if timeout is None else dict(request_timeout_s=timeout)
@@ -1903,7 +1958,8 @@ class DeploymentTerminalIntegration(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(RuntimeError, 'unresolved runtime ownership'):
             await r._shutdown_instance_pool()
         self.assertEqual(r._cleanup_removed_slot.await_count, 2)
-        self.assertEqual(slots, {})
+        self.assertEqual(set(slots), {'0'})
+        self.assertEqual(slots['0'].status, 'draining')
 
 
 class MainOutcomeRetention(unittest.IsolatedAsyncioTestCase):

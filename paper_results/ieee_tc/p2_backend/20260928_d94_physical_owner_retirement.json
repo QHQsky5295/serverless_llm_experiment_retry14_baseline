@@ -1,0 +1,52 @@
+{
+  "kind": "cpu_correctness_checkpoint_v1",
+  "id": "d94_20260928_physical_owner_retirement",
+  "parent_commit": "df4798095caf2458d7e4c46254cc647561391b01",
+  "stage": "Prime IEEE Full development qualification",
+  "full_replay_performed": false,
+  "performance_qualified": false,
+  "baselines_paused": true,
+  "review_independence": "local-only",
+  "hypothesis": "Serving membership incorrectly stood in for retained physical ownership during draining and asynchronous teardown.",
+  "pre_fix_counterexamples": {
+    "tests": 3,
+    "failures": 2,
+    "errors": 1,
+    "stdout_preservation": "tool transcript only; no separate raw stdout file",
+    "observations": [
+      "Four draining owners incorrectly permit selection of GPU 0.",
+      "Scale-down removes membership and sets stopped before cleanup acknowledgement.",
+      "Failed cleanup loses the retained owner; the assertion finds None."
+    ]
+  },
+  "post_fix_targeted": {"tests": 19, "seconds": 0.471, "passed": true},
+  "regression": {
+    "tests": 841,
+    "seconds": 49.844,
+    "passed": true,
+    "exit_code": 0,
+    "log_path": "results/ieee_tc/p2_backend_qualification/d94_20260928/regression1.log",
+    "log_sha256": "ffe04c4ebe4a576b34da03d2309d6ad3237b55d2f0018bb581f9ca5a4717b561",
+    "environment": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+    "memory_high_gib": 3,
+    "memory_max_gib": 4,
+    "memory_swap_max_bytes": 0,
+    "allowed_cpus": "2,3,26,27",
+    "offline": true
+  },
+  "source_sha256": {
+    "scripts/run_all_experiments.py": "8e2860955d95dfb60109bb5fb120cec359edb2072855efe1abcb8984edeb278e",
+    "tests/test_basic_smoke.py": "4f4d717f873df7324e176cec977319bd9eed7ebf98bb5f118a47682f3c457f2c",
+    "tests/test_ieee_tc_launch.py": "c7dc5b5cbdc84c78a9b8391089e11e245a2a10537e0164cbdb2bd6610ac31de5",
+    "paper_results/ieee_tc/p2_backend/20260928_d93_3b_full_w0_attempt2.json": "9750d4b0053f83f3cdd16527ab5f96ebcba86a3638f2586863db9215551fc3ea"
+  },
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "protected_artifacts": {"passed": true, "entry_count": 147, "changed": []},
+  "unresolved": [
+    "D93 long dispatch/admission waiting precedes final ownership failure; not explained by this fix.",
+    "req_00333 generation was withheld before send but cleanup tried a missing native generation binding.",
+    "Concurrent source snapshot and selected-source conflicts need causal bounded testing.",
+    "No complete canonical 4000-request Full replay or warm SLO/Resident qualification yet."
+  ]
+}

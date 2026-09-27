@@ -11260,8 +11260,11 @@ class ScenarioRunner:
             return None
         if self.instance_pool is None:
             return device_ids[0]
+        # Routing eligibility is not physical resource ownership. A draining
+        # replica (including one with unresolved native work) still owns its
+        # device until teardown acknowledges release and removes membership.
         used = {
-            slot.device_id for slot in self.instance_pool.get_slots()
+            slot.device_id for slot in self.instance_pool.get_all_slots()
             if getattr(slot, "device_id", None) is not None
         }
         used.update(
@@ -12079,8 +12082,9 @@ class ScenarioRunner:
                     and getattr(s, 'runtime_forwarding_active', 0) == 0]
             if idle:
                 selected = min(idle, key=lambda s: (s.last_selected_at, s.instance_id))
-                removed = self.instance_pool.remove_instance(selected.instance_id)
-                await self._cleanup_removed_slot(removed, removal_reason='ieee_all_low_cooldown')
+                selected.status = 'draining'
+                await self._cleanup_removed_slot(selected, removal_reason='ieee_all_low_cooldown')
+                self.instance_pool.remove_instance(selected.instance_id)
                 result.scale_down_events += 1
                 result.scale_down_event_log.append(dict(event_type='physical_scale_down',
                     instance_id=selected.instance_id, device_id=selected.device_id,
@@ -12683,9 +12687,8 @@ class ScenarioRunner:
             current = self.instance_pool.get_slot(instance_id)
             if current is None:
                 return False
-            removed = self.instance_pool.remove_instance(instance_id)
-            if removed is None:
-                return False
+            removed = current
+            removed.status = 'draining'
             failed_device_id = getattr(removed, "device_id", None)
             if failed_device_id is not None and getattr(removed, "owns_engine", False):
                 failed_devices = getattr(self, "_failed_runtime_device_ids", None)
@@ -12700,6 +12703,7 @@ class ScenarioRunner:
                 removed,
                 removal_reason=f"runtime_failed:{reason}",
             )
+            self.instance_pool.remove_instance(instance_id)
         print(f"    [runtime-failed] removed {instance_id}: {reason[:160]}", flush=True)
         return True
 
@@ -12763,11 +12767,10 @@ class ScenarioRunner:
             instance_id = getattr(slot, "instance_id", None)
             if not instance_id:
                 continue
-            removed = self.instance_pool.remove_instance(instance_id)
-            if removed is None:
-                continue
+            slot.status = 'draining'
             try:
-                await self._cleanup_removed_slot(removed, removal_reason="shutdown")
+                await self._cleanup_removed_slot(slot, removal_reason="shutdown")
+                self.instance_pool.remove_instance(instance_id)
             except Exception as exc:
                 # Still retire the other owned runtimes. Durable physical owner
                 # journals retain this failed return; do not turn it into success.
@@ -13154,13 +13157,15 @@ class ScenarioRunner:
                     raise
             if engine is not None:
                 if published:
-                    self.instance_pool.remove_instance(activation_id)
+                    self.instance_pool.get_slot(activation_id).status = 'draining'
                 domain = getattr(self, '_shared_file_pressure', None)
                 member = domain.members.get(id(engine)) if domain is not None else None
                 if member is not None and member['state'] == 'attached':
                     await settle(domain.retire(engine))
                 await settle(engine.shutdown())
                 self._retire_ieee_host_budget(engine)
+                if published:
+                    self.instance_pool.remove_instance(activation_id)
             # Unadopted bytes never enabled native adapter allocation. Startup
             # and file readers above have joined; adopted bytes use pidfd only.
             if activation_id in files.host_budget_snapshot()['activation_reservations']:
@@ -13644,11 +13649,12 @@ class ScenarioRunner:
             or max(0, int(getattr(selected_slot, "runtime_forwarding_active", 0) or 0)) > 0
         ):
             return None
-        removed = self.instance_pool.remove_instance(selected_slot.instance_id)
+        selected_slot.status = 'draining'
         await self._cleanup_removed_slot(
-            removed,
+            selected_slot,
             removal_reason="scale_down",
         )
+        removed = self.instance_pool.remove_instance(selected_slot.instance_id)
         if removed is None:
             return None
         return {
@@ -13666,13 +13672,14 @@ class ScenarioRunner:
     async def _cleanup_extra_instances(self) -> None:
         if self.instance_pool is None:
             return
-        slots = [s.instance_id for s in self.instance_pool.get_slots() if s.instance_id != self._primary_instance_id]
-        for instance_id in reversed(slots):
-            removed = self.instance_pool.remove_instance(instance_id)
+        slots = [s for s in self.instance_pool.get_all_slots() if s.instance_id != self._primary_instance_id]
+        for slot in reversed(slots):
+            slot.status = 'draining'
             await self._cleanup_removed_slot(
-                removed,
+                slot,
                 removal_reason="cleanup_extra_instances",
             )
+            self.instance_pool.remove_instance(slot.instance_id)
 
     # ------------------------------------------------------------------
     # Phase 1: preload
