@@ -223,3 +223,64 @@ original/repaired router pair must use the same selected bootstrap on both sides
 Candidate40 launch/router/measurement unit checks pass (2.425s); actual startup
 and bounded failed-workload finalization are untested at this checkpoint.
 New paired wall/monotonic startup events will preserve registration boundaries.
+
+| D71 attempt | Current result | Interpretation |
+|---|---|---|
+|1 | Refused before native service execution: missing NVML binding environment | GPU-monitor CLI options do not configure gated-launch's environment-based interface; no model or arrivals, not system failure |
+
+Attempt1 service path removed and auxiliary verified empty/events0 then stopped;
+all GPUs15MiB. Loader overlay restored exactly. Original command/receipt remain.
+Attempt2 changes only the command's explicit monitoring environment and fresh
+output/ownership paths; no guard relaxation or baseline configuration change.
+
+## D71 completed result: remaining startup boundary is preserved
+
+| Observation | D70 serial bootstrap | D71 overlapping bootstrap |
+|---|---:|---:|
+| Planned / arrived / terminal |100/100/100 |100/100/100 |
+| Protocol-valid / failed |96/4 |97/3 |
+| Early failure type |1 refused connection +3 HTTP500 |3 HTTP500 missing model router |
+| Whole-run qualification |FAIL |FAIL |
+| Native prompt / target / adapter-name match |96/96 |97/97 |
+| Actual native output tokens |16,818 |17,035 |
+| Service memory peak (bytes) |42,924,400,640 |41,928,572,928 |
+| Minimum host available (bytes) |67,016,757,248 |66,548,797,440 |
+| High / max / OOM / swap events |0 |0 |
+
+Each column is one development run, NOT a formal paired CI or evidence of
+statistically improved latency/resource consumption. The configuration SHA is
+identical:2471d58ec951eb8fca1fd0dd24b7a8d0bdb841a5727cd7ef1fea407c9c4b9a50.
+No new request failures occurred after router creation in either observed run.
+The extra successful D71 request is req_00003, whose217 tokens explain the
+output-count difference. Both runs use29 actual unique adapter IDs.
+
+D71 monotonic boundaries relative to the unchanged common deployment notice:
+
+| Boundary | Seconds after notice | Meaning |
+|---|---:|---|
+| Native launcher starts |7.346 | Pre-launch validation/imports are included in the window |
+| Launcher sees API ready and returns |60.667 | Observation is not the exact socket-bind time |
+| Model registration starts |60.855 | Artifacts registered before router exists |
+| Registration returns |78.254 | Not native-engine-ready |
+| Router start observed |79.257 | Polling observation, not exact construction timestamp |
+
+All97 successful requests pass the exact prompt/adapter/count binding; E2E
+identity and TPOT recomputation errors are0ms. This is not independent numerical
+LoRA correctness. All100 terminal records are retained; no readiness-based
+arrival shift, retry, early truncation or denominator change was applied.
+
+The bounded finalization correction now has an actual native failed-workload
+witness: model_qualification.json is saved, classification is
+qualification_request_failure, service/replay/watchdog exits1/1/0. Measurement
+completion is true and workload pass is false. Actual GPU contexts clear,
+service path removed, empty auxiliary stopped, overlay2 exactly restored.
+1226 watchdog samples; swap0 and no high/max/OOM/OOM-kill.93 regular native log
+files copied with every SHA equal; four obsolete socket files are not copied.
+
+Raw root results/ieee_tc/serverless_qualification/d71_20260927. Main curated
+20260927_http_qualification_d71.json/.csv preserves both attempts and all100 rows.
+Do not repeat this startup experiment to obtain a cosmetic100/100. Return to
+the planned original/repaired1,000-request development pairs with equal
+bootstrap, native loading, scaling and inputs; retain any startup failures
+there too. Those pairs isolate dispatch polling, not the absent-front-door
+boundary. Formal, full-pool, remote and numerical correctness gates stay open.
