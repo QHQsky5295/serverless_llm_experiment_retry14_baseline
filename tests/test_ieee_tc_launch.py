@@ -146,6 +146,22 @@ class ScenarioRuntimeConfiguration(unittest.TestCase):
             self.assertEqual(child,evidence['planned_child_model_config'])
             self.assertFalse(evidence['performance_samples_relabelled'])
             self.assertNotIn('ieee_admission_profile',cfg)
+            contract_path=Path(tmp)/'contract.json'
+            contract=dict(kind='ieee_development_control_runtime_contract_v1',model_config=child,
+                runtime_receipt_sha256='runtime',coordination=dict(online_hotness_window_s=5.,max_concurrent_loads=3))
+            contract_path.write_text(json.dumps(contract))
+            spec['full_development_contract']=dict(path=str(contract_path),sha256=p.digest(contract_path))
+            with patch.object(p,'measured_admission_initializer',return_value=(admission,{})):
+                _,_,bound=p.prepare_admission_source_runtime(cfg,spec,backend_version='0.30.0',
+                    runtime_receipt_sha256='runtime',source_trace_sha256='trace')
+                self.assertFalse(bound['control_settings_applied_to_source_collector'])
+                self.assertEqual(bound['full_development_contract'],spec['full_development_contract'])
+                contract['model_config']['runtime_concurrency_cap']=2
+                contract_path.write_text(json.dumps(contract))
+                spec['full_development_contract']['sha256']=p.digest(contract_path)
+                with self.assertRaisesRegex(ValueError,'binding differs'):
+                    p.prepare_admission_source_runtime(cfg,spec,backend_version='0.30.0',
+                        runtime_receipt_sha256='runtime',source_trace_sha256='trace')
             spec['content_index']['sha256']='wrong'
             with self.assertRaisesRegex(ValueError,'SHA256'):
                 p.prepare_admission_source_runtime(cfg,spec,backend_version='0.30.0',
@@ -232,6 +248,78 @@ class SourceProfileDomainCoverage(unittest.TestCase):
         identities['b']['rank']=16
         with self.assertRaisesRegex(ValueError,'different PEFT ranks'):
             source_profile_class_coverage(payload,identities)
+
+
+class DevelopmentControlDerivation(unittest.TestCase):
+    def fixture(self):
+        waves,requests=[],[]
+        for i in range(3):
+            selected=dict(adapter_id='a',source_request_id='original')
+            waves.append(dict(source='gpu',role='representative_measurement',round=i,requests=[selected]))
+            a,b,f,z=10.+i,10.+i,10.+i+.1*(i+1),10.+i+.1*(i+1)+.02
+            requests.append(dict(selected,request_id=f'source-profile/w{i}/l0',requested_source='gpu',
+                reservation_released=True,actual_tokens=3,target_tokens=3,protected_at_admission=True,
+                service_class=dict(tier='gpu'),admitted_monotonic_s=a,acquired_monotonic_s=b,
+                first_token_monotonic_s=f,last_token_monotonic_s=z,admission_clock_id='fixture',
+                native_clock_id='fixture',timing=dict(native_output_tokens=3,native_terminal_observed=True,
+                    native_clock_id='fixture',native_first_token_monotonic_s=f,
+                    native_last_token_monotonic_s=z,native_tpot_ms=10.),**{'pass':True}))
+        return dict(kind='backend_native_native_source_matrix_qualification_v1',stage='complete',
+            shutdown_called=True,profile_workspaces_removed=True,startup_latency_ms=7500.,
+            model_config=dict(runtime_concurrency_cap=2,generation_contract='fixed_length_greedy_v1'),
+            source_profile_spec=dict(waves=waves),requests=requests,**{'pass':True})
+
+    def derive(self,payload,**updates):
+        from scripts.ieee_tc_preflight import derive_ieee_development_controls
+        values=dict(window_s=5.,interval_s=2.,historical_ttft_ms=5000.,min_instances=1,max_instances=4)
+        values.update(updates)
+        return derive_ieee_development_controls(payload,**values)
+
+    def test_observed_spacing_capacity_startup_and_rounds_determine_explicit_values(self):
+        result=self.derive(self.fixture())
+        cc=result['coordination']
+        self.assertAlmostEqual(cc['service_bin_ms'],10.)
+        self.assertAlmostEqual(cc['ieee_scaling']['ttft_lower_ms'],300.)
+        self.assertEqual(cc['ieee_scaling']['scale_down_cooldown_s'],8.)
+        self.assertEqual(cc['ieee_scaling']['ttft_window_s'],15.)
+        self.assertEqual(cc['ieee_scaling']['active_upper'],.5)
+        self.assertEqual(cc['ieee_scaling']['active_lower'],.25)
+        self.assertEqual(result['service_ewma_beta'],.5)
+        self.assertFalse(result['formal_common_slo'])
+        self.assertFalse(result['optimality_qualified'])
+
+    def test_real_controller_can_keep_known_low_reference_through_cooldown(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl,ScalingAction
+        cc=self.derive(self.fixture())['coordination']
+        control=IEEEReplicaControl(cc['ieee_scaling'],interval_s=cc['scale_eval_interval_s'],
+                                   min_instances=cc['min_instances'],max_instances=cc['max_instances'])
+        control.observe_ttft('completed',100.,observed_at=10.)
+        for now in (10.,12.,14.,16.,18.):
+            result=control.evaluate(now=now,queue_depth=0,active_requests=0,ready_capacity=4,
+                                    ready_instances=2,pending_instances=0)
+        self.assertEqual(result['action'],ScalingAction.SCALE_DOWN)
+
+    def test_low_capacity_threshold_preserves_upper_target_after_one_idle_replica_retirement(self):
+        for cap in (2,8):
+            raw=self.fixture();raw['model_config']['runtime_concurrency_cap']=cap
+            cfg=self.derive(raw)['coordination']['ieee_scaling']
+            for replicas in range(2,5):
+                for active in range(replicas*cap+1):
+                    if active/(replicas*cap)<cfg['active_lower']:
+                        self.assertLess(active/((replicas-1)*cap),cfg['active_upper'])
+
+    def test_unsupported_missing_or_invalid_evidence_does_not_get_a_default(self):
+        for problem in ('cap_one','incomplete','failed','native_clock','no_tpot','wrong_generation'):
+            raw=self.fixture()
+            if problem=='cap_one':raw['model_config']['runtime_concurrency_cap']=1
+            elif problem=='incomplete':raw['requests'].pop()
+            elif problem=='failed':raw['pass']=False
+            elif problem=='native_clock':raw['requests'][0]['native_clock_id']='other'
+            elif problem=='no_tpot':raw['requests'][0]['timing']['native_tpot_ms']=None
+            else:raw['model_config']['generation_contract']='legacy'
+            with self.subTest(problem=problem),self.assertRaises(ValueError):self.derive(raw)
+        with self.assertRaisesRegex(ValueError,'does not fit'):self.derive(self.fixture(),historical_ttft_ms=100.)
+        with self.assertRaises(ValueError):self.derive(self.fixture(),interval_s=True)
 
 
 class NativeAllocatorLaunchContract(unittest.TestCase):

@@ -1,6 +1,28 @@
 # IEEE TC execution status
 
-## Current checkpoint — 2026-09-27 D87 configuration/coverage (no new GPU run)
+## Current checkpoint — 2026-09-27 D88 development controls; admission source next
+
+- Explicit controller/bin/EWMA development rules now derived from completed D84
+  native observations and historical bounds; IEEE formulas unchanged. Separate
+  capacity algebra from heuristics in D88_DEVELOPMENT_CONTROL_DERIVATION.md.
+  3B/7B cooldown48/38s may exceed W1gap30s; no promise of eight natural cycles.
+- Both actual Full child configurations bind exactly to D88 contracts and measured
+  admission initializer. No new weights/trace; source spec keeps all original
+  D84 representative waves/bins. Collector does NOT run autoscaler; controller
+  binding records future Full identity, not a controller performance result.
+- Regression422pass37.356s; OS60pass1.952s. Both source assemblies passed and
+  current code rederived both control dictionaries exactly.147protected entries
+  unchanged. Curated20260927_d88_control_validation.json; complete rawd88 logs.
+- Prepared unique rawd88/run_{3b,7b}_admission_source_attempt1.sh, not launched
+  at this checkpoint. Native compiler/cache and safety limits unchanged.
+- NEXT: backup tested code/contracts, restart already-qualified remote delivery
+  with fresh owned monitor/log, then 3B admission-enabled source acquisition.
+  Cleanup/validate/table/plot BEFORE7B. Do not repeat remote full-pool coverage,
+  publication, allocator or static class audit. Full guard remains intact.
+- Full/M1/M2/A/S NOT qualified or started; baselines PAUSED. Development5000ms
+  target and W5s are NOT final common SLO or production-optimal parameters.
+
+## D87 preceding configuration/coverage checkpoint (no new GPU run)
 
 - Main/source now share generation/capacity assembly and actual subprocess
   factory. Repeated normalization retains requested cap; explicit override resets
@@ -18,6 +40,9 @@
 - Final related/basic418pass34.084s;OS60pass0.948s. Both input audits completed,
   rawd87_20260927, curated20260927_d87_main_source_configuration_coverage.json.
   147protected entries unchanged. Details/table D87_MAIN_SOURCE_CONFIGURATION_AND_COVERAGE.
+- Code5e516134325402389ae6a9e0ec7fc2e4bacd6d8a PUSHED/freshremoteSHA matched;
+  rawd87/code_push_receipt.json.17references verified,147protected unchanged,
+  GPUcomputeempty;baselineHEAD9e2cf289 unchanged/PAUSED. No live D87 job.
 - NEXT before GPU: resolve explicit development controller upper/lower/window/
   cooldown, routing bin width and EWMA beta; then only the affected admission-
   enabled source path and integrated Full activation/lifecycle. Common runtime

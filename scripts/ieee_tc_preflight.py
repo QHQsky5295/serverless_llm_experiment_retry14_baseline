@@ -2996,6 +2996,22 @@ def prepare_admission_source_runtime(cfg, spec, *, backend_version,
         workload=workload, instance_model_overrides={}, content_index=spec['content_index'],
         planned_child_model_config=child, production_profile_frozen=False,
         performance_samples_relabelled=False)
+    reference = spec.get('full_development_contract')
+    if reference is not None:
+        path = Path(reference['path'])
+        path = path if path.is_absolute() else ROOT/path
+        if digest(path) != reference['sha256']:
+            raise ValueError('Full development contract SHA256 differs')
+        contract = json.loads(path.read_text())
+        coord = contract.get('coordination', {})
+        if (contract.get('kind') != 'ieee_development_control_runtime_contract_v1'
+                or contract.get('model_config') != child
+                or contract.get('runtime_receipt_sha256') != runtime_receipt_sha256
+                or coord.get('online_hotness_window_s') != initializer['window_s']
+                or coord.get('max_concurrent_loads') != initializer['transfer_limit']):
+            raise ValueError('Full development runtime/window/movement binding differs')
+        assembly['full_development_contract'] = dict(reference)
+        assembly['control_settings_applied_to_source_collector'] = False
     return configured, evidence, assembly
 
 
@@ -3109,6 +3125,101 @@ def source_profile_class_coverage(payload, identities):
         class_domain_covered=not missing_content and required <= set(counts),
         production_profile_frozen=False, full_qualified=False, timing_samples_exported=False,
         numerical_adapter_correctness_qualified=False)
+
+
+def derive_ieee_development_controls(payload, *, window_s, interval_s,
+                                     historical_ttft_ms, min_instances, max_instances):
+    """Explicit development starting point, not a formal SLO or optimum.
+
+    Uses only a completed, SHA-bound calibration supplied by the caller. The
+    IEEE max-score controller and EWMA equations are unchanged. See D88's
+    derivation note for the capacity argument versus the heuristic choices.
+    """
+    if (payload.get('kind') != 'backend_native_native_source_matrix_qualification_v1'
+            or payload.get('pass') is not True or payload.get('stage') != 'complete'
+            or payload.get('shutdown_called') is not True
+            or payload.get('profile_workspaces_removed') is not True
+            or payload['model_config'].get('generation_contract') != 'fixed_length_greedy_v1'):
+        raise ValueError('development controls require completed source calibration')
+    startup_ms = payload['startup_latency_ms']
+    if any(type(x) not in (int, float) or not math.isfinite(x) or x <= 0
+           for x in (window_s, interval_s, historical_ttft_ms, startup_ms)):
+        raise ValueError('control observations and historical limits must be positive finite values')
+    cap = payload['model_config']['runtime_concurrency_cap']
+    if (type(cap) is not int or cap < 2 or type(min_instances) is not int
+            or type(max_instances) is not int or not 1 <= min_instances < max_instances):
+        raise ValueError('development rule requires cap>=2 and a nonempty scale-out range')
+    expected = {}
+    for i, wave in enumerate(payload['source_profile_spec']['waves']):
+        if wave['role'] not in ('representative_measurement', 'kernel_warmup_retained'):
+            raise ValueError('unknown control-calibration analysis role')
+        for j, selected in enumerate(wave['requests']):
+            expected[f'source-profile/w{i}/l{j}'] = (wave, selected)
+    if (len(payload['requests']) != len(expected)
+            or {q['request_id'] for q in payload['requests']} != set(expected)):
+        raise ValueError('control calibration has incomplete or duplicate requests')
+    gpu_samples, rounds = [], set()
+    for q in payload['requests']:
+        wave, selected = expected[q['request_id']]
+        if (q.get('pass') is not True or q.get('reservation_released') is not True
+                or q['requested_source'] != wave['source']
+                or any(q[k] != selected[k] for k in ('adapter_id', 'source_request_id'))
+                or type(q['actual_tokens']) is not int or q['actual_tokens'] < 1
+                or q['actual_tokens'] != q['target_tokens']):
+            raise ValueError('control calibration request did not complete its declared work')
+        if wave['role'] != 'representative_measurement':
+            continue
+        if type(wave['round']) is not int or wave['round'] < 0:
+            raise ValueError('calibration round must have an explicit nonnegative identity')
+        rounds.add(wave['round'])
+        if wave['source'] != 'gpu':
+            continue
+        a,b,f,z = (q[k] for k in ('admitted_monotonic_s','acquired_monotonic_s',
+                                  'first_token_monotonic_s','last_token_monotonic_s'))
+        t = q['timing']
+        if (any(type(v) not in (int,float) or not math.isfinite(v) for v in (a,b,f,z))
+                or not 0 < a == b <= f <= z or q.get('protected_at_admission') is not True
+                or q['service_class']['tier'] != 'gpu' or t['native_terminal_observed'] is not True
+                or t['native_output_tokens'] != q['actual_tokens']
+                or t['native_clock_id'] != q['admission_clock_id']
+                or t['native_clock_id'] != q['native_clock_id']
+                or f != t['native_first_token_monotonic_s'] or z != t['native_last_token_monotonic_s']):
+            raise ValueError('GPU calibration must use protected native same-clock intervals')
+        # Single-token samples support T but not TPOT; no zero substitution.
+        spacing = (z-f)*1000/(q['actual_tokens']-1) if q['actual_tokens'] > 1 else None
+        if spacing is not None and (type(t['native_tpot_ms']) not in (int,float)
+                                    or not math.isfinite(t['native_tpot_ms'])
+                                    or abs(spacing-t['native_tpot_ms']) > 1):
+            raise ValueError('GPU TPOT reconstruction exceeds 1 ms')
+        gpu_samples.append(dict(request_id=q['request_id'], round=wave['round'],
+                                acquired_to_first_ms=(f-b)*1000, tpot_ms=spacing))
+    if len(rounds) < 2 or {s['round'] for s in gpu_samples} != rounds:
+        raise ValueError('every interleaved calibration round needs actual GPU observations')
+    def quantile(values, probability):
+        if not values or any(not math.isfinite(v) or v <= 0 for v in values):
+            raise ValueError('development control reference lacks positive observations')
+        return sorted(values)[math.ceil(probability*len(values))-1]
+    spacing = quantile([s['tpot_ms'] for s in gpu_samples if s['tpot_ms'] is not None], .5)
+    low_ttft = quantile([s['acquired_to_first_ms'] for s in gpu_samples], .95)
+    if low_ttft >= historical_ttft_ms:
+        raise ValueError('measured GPU-ready reference does not fit the historical development target')
+    cooldown = math.ceil(max(window_s,startup_ms/1000)/interval_s)*interval_s
+    high_active = (cap-1)/cap
+    scaling = dict(queue_upper=cap, queue_lower=1,
+        active_upper=high_active, active_lower=high_active*min_instances/(min_instances+1),
+        ttft_upper_ms=historical_ttft_ms, ttft_lower_ms=low_ttft,
+        ttft_window_s=cooldown+window_s+interval_s, scale_down_cooldown_s=cooldown)
+    return dict(kind='ieee_development_control_derivation_v1',
+        development_only=True, formal_common_slo=False, optimality_qualified=False,
+        calibration_rounds=sorted(rounds), calibration_rounds_are_independent_runs=False,
+        gpu_sample_count=len(gpu_samples), gpu_tpot_sample_count=sum(s['tpot_ms'] is not None for s in gpu_samples),
+        observed_startup_ms=startup_ms, observed_gpu_p95_t_ms=low_ttft,
+        observed_gpu_median_tpot_ms=spacing,
+        coordination=dict(min_instances=min_instances,max_instances=max_instances,
+            online_hotness_window_s=window_s, scale_eval_interval_s=interval_s,
+            service_bin_ms=spacing, ieee_scaling=scaling),
+        service_ewma_beta=2/(len(rounds)+1), preparation_ewma_beta=2/(len(rounds)+1),
+        production_profile_frozen=False, full_qualified=False)
 
 
 def source_profile_inputs(path, plan, cfg, pool):

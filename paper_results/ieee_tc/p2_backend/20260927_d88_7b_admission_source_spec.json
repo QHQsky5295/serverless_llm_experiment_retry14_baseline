@@ -1,0 +1,853 @@
+{
+  "kind": "native_source_profile_spec_v1",
+  "purpose": "representative_static_content_classes_development_profile_not_formal_S1",
+  "trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+  "content_index": {
+    "path": "paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+    "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+  },
+  "workspace_derivation": {
+    "path": "paper_results/ieee_tc/p2_backend/20260927_native_host_workspace_contracts.json",
+    "sha256": "275efc7e669b958ded47ab1b7dca2724700ad3580583f3331aeebf8028c22453"
+  },
+  "model_overrides": {
+    "ieee_host_budget_bytes": 17179869184,
+    "ieee_native_host_tensor_budget_bytes": 2147483648,
+    "ieee_native_host_workspace": {
+      "kind": "native_host_workspace_contract_v1",
+      "dtype": "torch.float16",
+      "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+      "max_resident_pinned_bytes": 33554432,
+      "max_transient_tensor_bytes": 67143184
+    },
+    "ieee_native_host_allocator_policy": "uncached_background_v1"
+  },
+  "nvme_budget_bytes": 17179869184,
+  "movement_concurrency": 3,
+  "host_parent": "/dev/shm",
+  "nvme_parent": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d88_20260927",
+  "bins": {
+    "prompt_tokens": [
+      759
+    ],
+    "declared_output_tokens": [
+      256
+    ],
+    "adapter_rank": [
+      8,
+      16,
+      64
+    ],
+    "footprint_bytes": [],
+    "admitted_requests": [
+      1,
+      2
+    ]
+  },
+  "waves": [
+    {
+      "role": "kernel_warmup_retained",
+      "round": -1,
+      "source": "gpu",
+      "requests": [
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        },
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 0,
+      "source": "remote",
+      "requests": [
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        },
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 0,
+      "source": "nvme",
+      "requests": [
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        },
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 0,
+      "source": "file_host",
+      "requests": [
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        },
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 0,
+      "source": "native_host",
+      "requests": [
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        },
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 0,
+      "source": "gpu",
+      "requests": [
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        },
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 1,
+      "source": "nvme",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 1,
+      "source": "file_host",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 1,
+      "source": "native_host",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 1,
+      "source": "gpu",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 1,
+      "source": "remote",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 2,
+      "source": "file_host",
+      "requests": [
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 2,
+      "source": "native_host",
+      "requests": [
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 2,
+      "source": "gpu",
+      "requests": [
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 2,
+      "source": "remote",
+      "requests": [
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "group": 2,
+      "source": "nvme",
+      "requests": [
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 0,
+      "source": "file_host",
+      "requests": [
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        },
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 0,
+      "source": "native_host",
+      "requests": [
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        },
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 0,
+      "source": "gpu",
+      "requests": [
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        },
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 0,
+      "source": "remote",
+      "requests": [
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        },
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 0,
+      "source": "nvme",
+      "requests": [
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        },
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 1,
+      "source": "native_host",
+      "requests": [
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        },
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 1,
+      "source": "gpu",
+      "requests": [
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        },
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 1,
+      "source": "remote",
+      "requests": [
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        },
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 1,
+      "source": "nvme",
+      "requests": [
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        },
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 1,
+      "source": "file_host",
+      "requests": [
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        },
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 2,
+      "source": "gpu",
+      "requests": [
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        },
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 2,
+      "source": "remote",
+      "requests": [
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        },
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 2,
+      "source": "nvme",
+      "requests": [
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        },
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 2,
+      "source": "file_host",
+      "requests": [
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        },
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "group": 2,
+      "source": "native_host",
+      "requests": [
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        },
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 0,
+      "source": "gpu",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 0,
+      "source": "remote",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 0,
+      "source": "nvme",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 0,
+      "source": "file_host",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 0,
+      "source": "native_host",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00005",
+          "adapter_id": "legal_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 1,
+      "source": "remote",
+      "requests": [
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 1,
+      "source": "nvme",
+      "requests": [
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 1,
+      "source": "file_host",
+      "requests": [
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 1,
+      "source": "native_host",
+      "requests": [
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 1,
+      "source": "gpu",
+      "requests": [
+        {
+          "source_request_id": "req_00021",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00002",
+          "adapter_id": "writing_lora_0011"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 2,
+      "source": "nvme",
+      "requests": [
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        },
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 2,
+      "source": "file_host",
+      "requests": [
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        },
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 2,
+      "source": "native_host",
+      "requests": [
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        },
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 2,
+      "source": "gpu",
+      "requests": [
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        },
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "group": 2,
+      "source": "remote",
+      "requests": [
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        },
+        {
+          "source_request_id": "req_00017",
+          "adapter_id": "education_lora_0007"
+        }
+      ]
+    }
+  ],
+  "representatives": [
+    {
+      "adapter_id": "code_lora_0015",
+      "source_request_id": "req_00015",
+      "rank": 16,
+      "file_tree_sha256": "f70d55d381a2a10507313f3fa382fd74436033217d4492387d01cb3f430395f6",
+      "logical_bytes": 37716322,
+      "selection": "first_development_request_in_static_class"
+    },
+    {
+      "adapter_id": "education_lora_0007",
+      "source_request_id": "req_00017",
+      "rank": 16,
+      "file_tree_sha256": "6bb8606cf74d534409846d9e6f44fdae13294a223ebdf246c781f8f8b072a0c2",
+      "logical_bytes": 37716318,
+      "selection": "first_development_request_in_static_class"
+    },
+    {
+      "adapter_id": "finance_lora",
+      "source_request_id": "req_00000",
+      "rank": 8,
+      "file_tree_sha256": "b65ce16add60cbd9caccda3467af11a79d63bb83e970c16ddce7eb58367c67e4",
+      "logical_bytes": 20938675,
+      "selection": "first_development_request_in_static_class"
+    },
+    {
+      "adapter_id": "legal_lora",
+      "source_request_id": "req_00005",
+      "rank": 8,
+      "file_tree_sha256": "445b02e111198cf2b827bb8ba69bdca809fb8ec46a08c9d7151e6708dced75c2",
+      "logical_bytes": 20938675,
+      "selection": "first_development_request_in_static_class"
+    },
+    {
+      "adapter_id": "medical_lora",
+      "source_request_id": "req_00021",
+      "rank": 8,
+      "file_tree_sha256": "f880678539ede80b7984a0b2690333da0ead38c25622855dbc62de3e76b59005",
+      "logical_bytes": 20938679,
+      "selection": "first_development_request_in_static_class"
+    },
+    {
+      "adapter_id": "writing_lora_0011",
+      "source_request_id": "req_00002",
+      "rank": 8,
+      "file_tree_sha256": "25b08503586abb678b175859dd6be026994275023fdbb7165ef2c5dddd066c7f",
+      "logical_bytes": 20938679,
+      "selection": "first_development_request_in_static_class"
+    }
+  ],
+  "rounds": 3,
+  "selection_window": "existing_source_trace_first_1000_requests_development_only",
+  "order_rule": "one_explicit_GPU_warmup_wave_then_three_rounds_rotate_adapter_lanes_by_round_and_source_order_by_round_plus_group",
+  "warmup_policy": "first_wave_retained_separately_not_in_initial_service_means_no_lifecycle_subtraction",
+  "runtime_boundary": "dedicated_subprocess_physical_allocation",
+  "derivation": "D83 identical static adapters/requests/waves/bins/budgets; actual Full subprocess runtime, no direct-path observations reused",
+  "admission_initialization": {
+    "kind": "native_completed_length_binding_v1",
+    "model": "7b",
+    "window_s": 5.0,
+    "audit": {
+      "path": "paper_results/ieee_tc/p2_backend/20260927_d84_completion_length_audit.json",
+      "sha256": "5deef0df7e0d945e194e8e9d5effc6eab2ea0422fbc509f481a23698ca030c55"
+    }
+  },
+  "full_development_contract": {
+    "path": "paper_results/ieee_tc/p2_backend/20260927_d88_7b_development_contract.json",
+    "sha256": "16f1d71a46adf9a83a9baf629fd1195909636fc5995b84ed575ab43e996acbf5"
+  }
+}

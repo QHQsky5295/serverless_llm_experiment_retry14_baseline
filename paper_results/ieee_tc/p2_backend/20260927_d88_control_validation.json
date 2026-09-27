@@ -1,0 +1,64 @@
+{
+  "kind": "development_control_configuration_validation_v1",
+  "models": {
+    "3b": {
+      "contract": {
+        "path": "paper_results/ieee_tc/p2_backend/20260927_d88_3b_development_contract.json",
+        "sha256": "f71b6469603ec572e327f8e46086a062fe0b60921ba093d221f7339a11506e9f"
+      },
+      "source_spec": {
+        "path": "paper_results/ieee_tc/p2_backend/20260927_d88_3b_admission_source_spec.json",
+        "sha256": "b72aa5c125be2a2eaac91fcbaae9156cb43effd5f394e5aa37e779806fabe2aa"
+      },
+      "rederived_exactly": true,
+      "gpu_sample_count": 72
+    },
+    "7b": {
+      "contract": {
+        "path": "paper_results/ieee_tc/p2_backend/20260927_d88_7b_development_contract.json",
+        "sha256": "16f1d71a46adf9a83a9baf629fd1195909636fc5995b84ed575ab43e996acbf5"
+      },
+      "source_spec": {
+        "path": "paper_results/ieee_tc/p2_backend/20260927_d88_7b_admission_source_spec.json",
+        "sha256": "927e6ed3869adebe634b27f62380892b1a4976c77e214bd9a244cb0ba6c33368"
+      },
+      "rederived_exactly": true,
+      "gpu_sample_count": 18
+    }
+  },
+  "protected_artifacts": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "logs": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/derive_2.log",
+      "sha256": "c60837859351cd2239b646b978fd085a109b8f06691b17212164604b282b33c1"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/verify_candidate_1.log",
+      "sha256": "cea893aef37afa8fa7e8cb5c4d6f273bdecab4c16be349929e08912ebe93bbba"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/regression_1.log",
+      "sha256": "25831ab1a6c626a7f5f2c6203528b14bd4834b35f0cf60898168593e129dd053"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/os_tests_1.log",
+      "sha256": "ded59828451c14dcb6268aacd5e0fd405a9259547a30a079d93ab11ee18fa25a"
+    }
+  ],
+  "regression_tests": 422,
+  "regression_seconds": 37.356,
+  "os_tests": 60,
+  "os_seconds": 1.952,
+  "source_code_base": "5e516134325402389ae6a9e0ec7fc2e4bacd6d8a",
+  "new_gpu_runs": 0,
+  "formal_common_slo": false,
+  "full_qualified": false,
+  "production_profile_frozen": false
+}
