@@ -407,3 +407,45 @@ target8/min1/max4/keepalive10 and diagnostic max_num_seqs4. Reuse audited native
 checkpoint and existing trace/pool; no7B repeat or startup-only tuning. This
 development attribution does not close remote, full-pool, independent numerical
 LoRA or formal performance qualification.
+
+## D74: 3B repaired side complete; baseline work paused by user
+
+The precreated repaired3B command completed all1000 planned/arrived/terminal
+requests:997 protocol-valid,3 failed,999 submitted,122176 native output tokens.
+Initial request0 had connection refusal;1/2 returned HTTP500 before model-router
+construction. No later failure or hidden retry. Target/prompt/adapter binding
+passes for all997 responses; E2E and TPOT recomputation error0ms. Four observed
+serving instance IDs,60 offered logical adapters; NOT500-pool qualification.
+
+| Conditional metric, valid responses only | Repaired3B, one run |
+|---|---:|
+| Mean router queue |2.131323s |
+| Mean TTFT |3.519802s |
+| P95 TTFT (Type1) |18.305062s |
+| Mean service TTFT |1.380324s |
+| Mean E2E |10.792867s |
+| Median observed assignment gap |0.621779s |
+| Complete-workload qualification |Failed (3 startup failures) |
+
+No matching original3B run is claimed. The user explicitly requested this run
+be analyzed/saved, then a return to complete PrimeLoRA before more baselines.
+The original3B command/config remain prepared, unexecuted. Do not substitute a
+historical different-contract original run, fabricate a paired improvement, or
+rerun the completed7B pair. This diagnostic used local artifacts, not remote;
+it provides no independent numerical LoRA correctness or formal ranking.
+
+1157 watchdog samples, peak61358882816B, minimum host47412617216B; service high/
+max/OOM/OOM-kill/swap0. Actual GPU contexts released and service removed; own
+auxiliary empty/events0 before targeted stop. Loader overlay restored after
+release.118 regular native files copied, checksum dry-run finds no differences;
+four obsolete sockets intentionally omitted. Final classification
+qualification_request_failure, service/replay/watchdog1/1/0; intact measurement
+is not a passing workload.
+
+Raw: main results/ieee_tc/serverless_qualification/d74_20260927.
+Curated: paper_results/ieee_tc/serverless_audit/20260927_3b_repaired_polling_d74.json
+and companion _evidence.json. Figure family: figs/ieee_tc/serverless_audit/
+d74_3b_repaired (queue timeline, assignment ECDF, CSV, provenance). Both3.45×
+2.85in figures visually checked: embedded Times New Roman, below-bold titles,
+no overlap, explicit3 failures and single development run. No historical output
+was overwritten. Next mainline: Prime P1/P2/Full, not another baseline.
