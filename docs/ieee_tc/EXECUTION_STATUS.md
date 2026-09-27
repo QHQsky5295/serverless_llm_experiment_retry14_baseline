@@ -13,10 +13,10 @@
   startingd85263e00e976cc61c8938e662d77a2b249cdf58. Goal remains incomplete.
 - D68 start main5b09401c1e7598c407b22710a21486dc1be44166, baseline08153b457f43d3d587dae171f9dc49024fde4752.
 - Resume by inspecting actual handles/Git/resources; never restart a live run
-  from stale notes. D71 ended/restored. D72 7B ORIGINAL1,000-request diagnostic
-  is LIVE: inspect handles below before any new launch or source/overlay edit.
+  from stale notes. D72 7B ORIGINAL1,000-request diagnostic ENDED; actual GPU
+  contexts clear, service removed, auxiliary empty/stopped, overlay RESTORED.
 
-## D72 in progress: planned native polling development pair
+## D72 checkpoint: 7B original polling development side completed
 
 - Full plan/status/AGENTS and run-experiment/github-sync/academic-plotting read.
   Starts main6f957fbece8bb96f195a553b7b5764f43052c1ba,
@@ -35,20 +35,52 @@
   Source-view preparation initially lacked parent directory; no files/service
   created; fixed directory and prepared both exclusive views. Failed command
   is a preparation error, not a system or performance run.
-- D72 current LIVE run began2026-09-27T09:34:22+08:00:
+- D72 run began2026-09-27T09:34:22+08:00 and is now ENDED:
   outer TMUX tc-d72-7bo; private/tmp/tc-d72-7bo;
   service b3cad4271d8e4f6394d15810a354ce96;
   auxiliary d7200000000000000000000000000001;
   run7b_original.sh,launch7b_original.launch,model7b_original.
-  Loader overlay7b_original/install.json IS INSTALLED: restore with existing
-  installer only AFTER actual owned GPU contexts release. Do not mutate source
-  view/helper while running or launch another heavy task. Actual watchdog
-  verifies72/80GiB,swap2GiB,CPU restrictions; no high/OOM events at sample62.
+  Loader overlay7b_original/install.json has matching restore_receipt.json:
+  restored AFTER actual owned GPU contexts released. No model/TMUX remains.
 - Fixed notice+60, native loader, external open loop; retain startup failures.
   Only original/repaired polling differs. Local artifacts mean diagnosis only,
-  not remote/formal or independent numerical LoRA qualification. After this run:
-  cleanup→validate→immediate table/diagnostic figure→7B repaired same settings.
+  not remote/formal or independent numerical LoRA qualification.
   Remote-space/nonzero-LoRA choices remain unanswered; formal matrices unstarted.
+- Final1000 planned/arrived/terminal;997 protocol-valid/3 initial missing-router
+  HTTP500, no later failures.122176 actual native output tokens,60 offered
+  unique adapter IDs,4 actual serving instance IDs. E2E/TPOT max errors0ms.
+  Conditional valid-response mean router queue294.746s, serviceTTFT380.685ms,
+  meanTTFT295.140s/P95TTFT534.178s. Observed assignment gap P50/P95=1.004/5.009s.
+  Control-path limitation supported; one original run does NOT quantify repair
+  benefit, establish CI, full-pool/numerical/remote qualification or formal rank.
+- Final classification qualification_request_failure; service/replay/watchdog
+  1/1/0, measurement_complete=true/workload_passed=false.1704 watchdog samples;
+  peak51780816896B,min host57868718080B,high/max/OOM/OOM-kill/swap0. GPU release
+  and service removal confirmed; own auxiliary empty/events0 then stopped.
+ 108 regular native files copied/SHA-equal; four obsolete socket files omitted.
+  Raw root70MiB; all original evidence and failed preparation commands retained.
+- Extended EXISTING summarizer/plotter, no new framework. Main curated
+  20260927_7b_original_polling_d72.json retains1000 rows incl failures; companion
+  _evidence.json records24 raw SHAs. Immediate baseline REQUEST_PROTOCOL table.
+  Figure final path figs/ieee_tc/serverless_audit/d72_7b_original_v2,3.45×2.85in,
+  embedded TNR, two PNGs manually reviewed/no overlap. Wrong initial plotting
+  environment lacked matplotlib; switched to existing conda base. First render
+  note/legend overlap rejected/preserved; final new directory, no data overwrite.
+  These are analysis corrections, not repeated model runs.46 baseline tests
+  PASS2.982s;328 main checks23.936s and53 OS checks0.786s PASS.147 protected and
+  plan reverified unchanged. Source backup7f135ad; main running-ledger backup
+  ec385d30ae5c4d5158d090bd0b14bef438579fb2 pushed/full remote SHA checked.
+- Next EXACT action: planned7B repaired side using precreated run7b_repaired.sh
+  and shared http_7b_1000.json, fresh overlay7b_repaired and private/tmp/tc-d72-7br.
+  No repeat original/100-request/bootstrap/Ray/byte checks. Keep same target2,
+  min1/max4, backend/bootstrap/load/input configuration. Then3B repaired→original.
+- Final raw24 SHA checks and figure/data/script7 SHA checks pass. Rejected
+  first-render directory remains untracked, not included in published figures.
+  Baseline analysis/evidence ce23e7512f66847eafc95645b51ba9fbde870255 pushed;
+  fresh origin/main full SHA matches. Main staged files are only status,
+  existing plotter, curated2JSON and accepted6figure/data/manifest files; no user
+  dirt, failed preview, credential or raw large journal staged. Disk333976756224B
+  free, host MemAvailable108932112kB, all GPUs15MiB/0%; no live model/TMUX.
 
 ## D71 checkpoint: native bootstrap dependency diagnostic completed
 
@@ -251,12 +283,12 @@
 | Block | Status | Evidence / next |
 |---|---|---|
 | Safety/physical measurement | Actual Ray/worker and dedicated7B owner qualification; Full reducer connected | RESOURCE_QUALIFICATION, EXTERNAL_REPLAY_QUALIFICATION, PHYSICAL_GPU_MEASUREMENT D27/D55; actual Full multi-activation still open |
-| Old results | All147 protected entries unchanged at D71 final verification | paper_results/ieee_tc/safety/20260925_execution_start_protected.json |
+| Old results | All147 protected entries unchanged at D72 final verification | paper_results/ieee_tc/safety/20260925_execution_start_protected.json |
 | Remote174 | Strict key login works; service qualification pending | Disk138.52GiB below approved150GiB; user decision pending |
 | P0 Table1/Full | 7B source-pair audit complete | Same inputs, different execution;202 scalars retained; no rerun needed for provenance finding |
 | P1 IEEE alignment | Frozen h/d planning/replacement, staging/admission, observed HOST return connected | P1 throughD54, P2 throughD61; representative profiles and actual Full remain open |
 | P2 backend/artifacts | vLLM0.30 installed; mechanical/numerical diagnostics; complete pool content audits | Full semantic qualification OPEN;3B500/500 and7B498/500 zero weights |
-| Serverless | D71 complete100-request observation:97 valid/3 initial HTTP500; finalization and cleanup verified | Original/repaired1,000-request diagnostic pairs next; full qualification remains open, no more startup-only retry |
+| Serverless | D72 7B original1,000-request side complete:997 valid/3 initial HTTP500; finalization/cleanup/plots delivered | 7B repaired next, then3B pair; full qualification open; no more startup-only retry |
 | Baseline qualification | Pending | Serverless first, then vLLM/S-LoRA/dLoRA3B/Loquetier/HydraServe |
 | M1/M2, A1–A5, S1–S13 | NOT STARTED | No formal performance or optimality claim |
 | Documents/figures | Design and qualification tables in progress | Formal performance figures pending |
@@ -268,19 +300,17 @@ checkpoint `baseline/models/vllm/tc-native-llama2-7b-fp16-20260927`: both number
 parts and all291 source parameter tensors verified exactly;32 recomputed RoPE
 buffers separately accounted. Do NOT re-export it or repeat the passed byte,
 Ray-only, allocator or four-request3B witnesses/old prefixes.
-Move toward the approved two-model original/repaired1,000-request development
-pairs. D71 now verifies97 native7B responses after removing a false bootstrap
-dependency, but three initial missing-router errors prevent whole-run qualification.
-All100 terminal records, native final report and cleanup are preserved. Do NOT
-repeat100 requests, checkpoint bytes, Ray-only checks or another bootstrap-only
-optimization to obtain a cosmetic pass. The cold control path and engine-ready
-queue are distinct; retain startup failures in the upcoming diagnostic pairs.
-Use the same selected bootstrap/loading/scaling/queue configuration on both
-router sides. Next expose the historical min1/max4,target7B2/3B8 as explicit
-development settings in the existing helper rather than extrapolating from
-the one-inflight mechanical check; these historical settings are not frozen
-M1/M2 optima. No change to notice+60 or hidden per-baseline retries. Actual
-bounded failed-workload finalization is verified, not merely unit-tested.
+Complete the approved two-model original/repaired1,000-request development
+pairs. D72 7B original side is COMPLETE and must NOT be repeated:997 valid/3
+initial failures, all1000 terminal rows preserved, cleanup and plots checked.
+Next7B repaired with prepared run7b_repaired.sh and SAME http_7b_1000.json;
+fresh overlay/receipt/private directory. Then3B repaired followed by original.
+Explicit historical min1/max4,target7B2/3B8 settings are now available; backend
+diagnostic max_num_seqs4 retained, not a frozen M1/M2 optimum. Do NOT repeat100
+requests, checkpoint bytes, Ray-only or another bootstrap-only optimization.
+The absent-router and engine-ready queue are distinct; keep startup failures.
+No change to notice+60, hidden retries or configuration changes between paired
+sides. Actual bounded failed-workload finalization is verified.
 The dirty legacy replay client currently restricts fixed_length_greedy_v1 to
 S-LoRA; do not overwrite that user file or silently apply its legacy path to
 Serverless. D70 now observes actual7B native inference, unlike D69.

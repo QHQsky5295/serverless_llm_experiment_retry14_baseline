@@ -1,0 +1,41 @@
+{
+  "kind": "native_polling_development",
+  "runs_per_variant": 1,
+  "ci": null,
+  "display_name": "Serverless",
+  "interpretation": "Conditional valid-response timing; all failures retained in table. Not formal/remote/numerical LoRA evidence.",
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/serverless_audit/20260927_7b_original_polling_d72.json",
+      "sha256": "b3dff9b3ca09b33f9fe32baa582c6115390e15979c3a737dba1e0f7d8ed29db3"
+    }
+  ],
+  "script_sha256": "181df61b1f5bf069052b9350a32258bea07b9d613ad7f3b927540dd057ae859e",
+  "qa": [
+    {
+      "figure": "queue",
+      "width_inches": 3.45,
+      "height_inches": 2.85,
+      "label_clipping": false,
+      "note_legend_overlap": false,
+      "font_path": "/home/qhq/.local/share/fonts/msttcorefonts-times/times.ttf",
+      "manual_visual_review": "required"
+    },
+    {
+      "figure": "cadence",
+      "width_inches": 3.45,
+      "height_inches": 2.85,
+      "label_clipping": false,
+      "note_legend_overlap": false,
+      "font_path": "/home/qhq/.local/share/fonts/msttcorefonts-times/times.ttf",
+      "manual_visual_review": "required"
+    }
+  ],
+  "files": {
+    "serverless_polling_cadence.pdf": "a6b150c24ff7965093b096fc3a66eec58b46aeff56520f7e475789432aecdf75",
+    "serverless_polling_cadence.png": "adfabefde37e3b59744fa10d4d9c5c5567a17af18c29bc5be0d61d54cbabc834",
+    "serverless_polling_queue.pdf": "179d126c3ae3fad50c19ece0358bd199a7c8b9f9dc8dbeb920330d2562fe511c",
+    "serverless_polling_queue.png": "965fa2ebf9859a75fefbe6cb407163b65903b793b38cbbefa753a46445f84835",
+    "serverless_polling_summary.csv": "41ffae3786b0a958093083b03931ae41efc1ef5e672811bc7c69607dee2f7ab0"
+  }
+}

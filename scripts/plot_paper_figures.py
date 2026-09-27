@@ -3300,8 +3300,9 @@ MOTIVATION_FIGURES = ("fig2_mismatch", "fig3_tier")
 ABLATION_FIGURES = ("fig4_coordination", "fig6_ablation")
 
 
-def plot_tc_serverless_wait_audit(inputs: Sequence[Path], out_dir: Path) -> None:
-    """Historical diagnosis only; preserve full data and never infer a CI."""
+def plot_tc_serverless_wait_audit(inputs: Sequence[Path], out_dir: Path,
+                                  *, native_polling: bool = False) -> None:
+    """Historical/native development diagnosis; preserve failures, never infer CI."""
     from matplotlib import font_manager
     import subprocess
     # The long-lived plotting env may cache its font list before installation.
@@ -3316,10 +3317,41 @@ def plot_tc_serverless_wait_audit(inputs: Sequence[Path], out_dir: Path) -> None
         raise SystemExit('audit output must be new/empty; no figure overwrite')
     audits = [_load_json(p) for p in inputs]
     labels = {'llama2_7b': '7B', 'llama32_3b': '3B'}
-    if len(audits) != 2 or {a.get('model_profile') for a in audits} != set(labels):
+    if native_polling:
+        if (not 1 <= len(audits) <= 2 or len({a.get('model_profile') for a in audits}) != 1
+                or audits[0].get('model_profile') not in labels
+                or len({a.get('variant') for a in audits}) != len(audits)
+                or not {a.get('variant') for a in audits} <= {'original', 'repaired'}):
+            raise SystemExit('expected one model, one observation per polling variant')
+        if (len({a.get('http_config_sha256') for a in audits}) != 1
+                or len({a.get('deployment_sha256') for a in audits}) != 1):
+            raise SystemExit('paired polling configuration differs')
+        for a in audits:
+            if (a.get('kind') != 'ieee_tc_serverless_polling_diagnostic'
+                    or not a.get('measurement_complete') or a['counts']['N_plan'] != 1000):
+                raise SystemExit('incomplete/wrong native polling diagnostic')
+            for path, digest in (('http_config_path', 'http_config_sha256'),
+                                 ('deployment_path', 'deployment_sha256')):
+                if hashlib.sha256(Path(a[path]).read_bytes()).hexdigest() != a[digest]:
+                    raise SystemExit('native diagnostic configuration SHA differs')
+            # Adapt to the existing diagnostic renderer without dropping failed
+            # offered rows from the source or the accompanying summary table.
+            valid = [r for r in a['diagnostic_rows'] if r['status'] == 'http_response']
+            if not valid:
+                raise SystemExit('no valid timing population; publish a failure table instead')
+            t0 = min(r['planned_arrival_s'] for r in a['diagnostic_rows'])
+            a['diagnostic_rows'] = [dict(arrival_time_s=r['planned_arrival_s']-t0,
+                dispatch_wait_s=(r['submit_lag_ms']+r['dispatch_wait_after_submit_ms'])/1000)
+                for r in valid]
+            a['backend_gaps_s'] = a['assignment_gaps_s']
+            a['means'] = {k: v['mean'] for k,v in a['conditional_metrics'].items()}
+            a['backend_gap_seconds'] = a['assignment_gap_stats']
+            a['requests'] = a['counts']['N_plan']
+        labels = {'original': 'Original', 'repaired': 'Repaired'}
+    elif len(audits) != 2 or {a.get('model_profile') for a in audits} != set(labels):
         raise SystemExit('expected one clean historical audit per model')
     for a in audits:
-        if a['kind'] != 'historical_serverless_dispatch_audit' or a['requests'] != 4000:
+        if not native_polling and (a['kind'] != 'historical_serverless_dispatch_audit' or a['requests'] != 4000):
             raise SystemExit('wrong audit type or incomplete historical run')
         if hashlib.sha256(Path(a['replay_path']).read_bytes()).hexdigest() != a['replay_sha256']:
             raise SystemExit('historical source SHA mismatch')
@@ -3331,10 +3363,14 @@ def plot_tc_serverless_wait_audit(inputs: Sequence[Path], out_dir: Path) -> None
     with plt.rc_context(style):
         for kind, caption in [('queue', '(a) Serverless: accumulated wait'),
                               ('cadence', '(b) Serverless: backend cadence')]:
-            fig, ax = plt.subplots(figsize=(3.45, 2.65))
-            fig.subplots_adjust(left=.19, right=.975, bottom=.29, top=.84)
+            if native_polling and kind == 'cadence':
+                caption = '(b) Serverless: assignment cadence'
+            height = 2.85 if native_polling else 2.65
+            fig, ax = plt.subplots(figsize=(3.45, height))
+            fig.subplots_adjust(left=.19, right=.975, bottom=.29,
+                                top=.80 if native_polling else .84)
             for a, color, linestyle in zip(audits, ['#0072B2', '#D55E00'], ['-', '--']):
-                label = labels[a['model_profile']]
+                label = labels[a['variant'] if native_polling else a['model_profile']]
                 if kind == 'queue':
                     rows = sorted(a['diagnostic_rows'], key=lambda r:r['arrival_time_s'])
                     ax.plot([r['arrival_time_s'] for r in rows],
@@ -3353,14 +3389,16 @@ def plot_tc_serverless_wait_audit(inputs: Sequence[Path], out_dir: Path) -> None
                 ax.set_xticks([.5, 1, 2, 5], ['0.5', '1', '2', '5'])
                 ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
                 ax.axvline(1, color='#666666', linestyle=':', lw=1)
-                ax.set_xlabel('Backend-start gap (s, log)', labelpad=2)
+                ax.set_xlabel('Assignment gap (s, log)' if native_polling else 'Backend-start gap (s, log)', labelpad=2)
                 ax.set_ylabel('Cumulative fraction', labelpad=2)
                 ax.set_ylim(0, 1.02)
             ax.legend(loc='lower center', bbox_to_anchor=(.5, 1.0), ncol=2,
                       frameon=False, borderaxespad=.1, handlelength=1.6,
                       columnspacing=1.4)
-            fig.text(.58, .975, 'Historical replay; 1 run/model', ha='center',
-                     va='top', fontsize=9)
+            note = ('Development; 1 run/variant\n'
+                    + '; '.join(f"{labels[a['variant']]}: {a['counts']['N_failed']} failed/1000" for a in audits)
+                    if native_polling else 'Historical replay; 1 run/model')
+            fig.text(.58, .975, note, ha='center', va='top', fontsize=9)
             fig.text(.19 + (.975-.19)/2, .04, caption, ha='center',
                      weight='bold', fontsize=10.5)
             fig.canvas.draw()
@@ -3369,20 +3407,28 @@ def plot_tc_serverless_wait_audit(inputs: Sequence[Path], out_dir: Path) -> None
             boxes = [t.get_window_extent(renderer) for t in text]
             if any(not fig.bbox.contains(b.x0,b.y0) or not fig.bbox.contains(b.x1,b.y1) for b in boxes):
                 raise SystemExit('clipped figure label')
+            legend_box = ax.get_legend().get_window_extent(renderer)
+            if any(t.get_window_extent(renderer).overlaps(legend_box) for t in fig.texts):
+                raise SystemExit('diagnostic note/subtitle overlaps legend')
             qa.append({'figure': kind, 'width_inches': 3.45,
-                       'height_inches': 2.65, 'label_clipping': False,
+                       'height_inches': height, 'label_clipping': False,
+                       'note_legend_overlap': False,
                        'font_path': font, 'manual_visual_review': 'required'})
-            stem = out_dir/f'serverless_historical_{kind}'
+            stem = out_dir/f'serverless_{"polling" if native_polling else "historical"}_{kind}'
             fig.savefig(stem.with_suffix('.pdf'), bbox_inches=None)
             fig.savefig(stem.with_suffix('.png'), dpi=300, bbox_inches=None)
             plt.close(fig)
-    table = [{'model':labels[a['model_profile']], 'requests':a['requests'],
+    table = [{'model':a['model_profile'] if native_polling else labels[a['model_profile']],
+              **({'variant': labels[a['variant']]} if native_polling else {}),
+              'requests':a['requests'], **(a['counts'] if native_polling else {}),
               **a['means'], **{'gap_'+k:v for k,v in a['backend_gap_seconds'].items()}}
              for a in audits]
-    _write_csv(out_dir/'serverless_historical_summary.csv', table)
-    manifest = {'kind':'historical_diagnostic_not_formal_comparison',
-        'runs_per_model':1, 'ci':None, 'display_name':'Serverless',
-        'interpretation':'Queue/cadence evidence only; no measured repaired-model latency yet',
+    _write_csv(out_dir/f'serverless_{"polling" if native_polling else "historical"}_summary.csv', table)
+    manifest = {'kind':'native_polling_development' if native_polling else 'historical_diagnostic_not_formal_comparison',
+        **({'runs_per_variant':1} if native_polling else {'runs_per_model':1}),
+        'ci':None, 'display_name':'Serverless',
+        'interpretation':('Conditional valid-response timing; all failures retained in table. Not formal/remote/numerical LoRA evidence.'
+                          if native_polling else 'Queue/cadence evidence only; no measured repaired-model latency yet'),
         'sources':[{'path':str(p.resolve()),'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in inputs],
         'script_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), 'qa':qa,
         'files':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(out_dir.iterdir()) if p.is_file()}}
@@ -3440,6 +3486,9 @@ def main() -> None:
     out_dir = args.out_dir.resolve()
     if args.figure == 'tc_serverless_wait_audit':
         plot_tc_serverless_wait_audit(args.input, out_dir)
+        return
+    if args.figure == 'tc_serverless_polling_audit':
+        plot_tc_serverless_wait_audit(args.input, out_dir, native_polling=True)
         return
     if args.figure in {"fig9_v2_ablation", "v2_fig9", "v2_ablation"}:
         inputs = list(args.input)
