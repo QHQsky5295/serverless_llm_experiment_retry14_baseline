@@ -1,6 +1,30 @@
 # IEEE TC execution status
 
-## Current checkpoint — 2026-09-27 D89 measured initialization exported and bound
+## Current checkpoint — 2026-09-27 D90 bounded Full integration ready
+
+D90 existing preflight now exercises actual initial+one controlled activation,
+then existing ScenarioRunner.run on original100requestprefix. NOTmain/A4natural/
+deployment_notice performance. Production Full guard untouched. Main and diagnostic
+share extracted actual subprocess factory; controller-construction failure retires
+already-created runtime. IEEE request callbacks no longer start legacy HOST-hit
+promotion or opportunisticGPUforwarding; actualIEEE planner/movement/nativeadmission
+and cache reuse remain enabled. Two exact isolation tests include legacy control.
+Final713related/basic testsPASS43.170s(rawd90/regression5.log). Earlier wrongmodule
+command and two incomplete __new__ legacyfixtures failures retained. Fixturesnow
+explicitlylegacy; no productionfallback added.147protectedentriesUNCHANGED.
+Rawd90/full_prefix_driver.py and run_3b_full_prefix_attempt1.sh PREPARED, notrun.
+Models/remotes STOPPED; actuallink1000 confirmed. BaselinesPAUSED. NEXT backup
+tested checkpoint then start existingremoteunits with newownedmonitor and3B bounded
+Fullactivationprefix;cleanup/table BEFORE any7B or nextmodel. No D78/D80/D81/D88
+repeat. See D90_FULL_ACTIVATION_PREFIX.md. Full/M1/M2/A/S unqualified/unstarted.
+
+## D89 completed measured initialization export and binding
+
+D89 code/data1bcc2ffed7df40f8db23c1a16b69c45e89fd8d82 PUSHED/freshremoteSHA
+matched. Rawd89/code_push_receipt.json;13rawrefs+4profilehashes+11scopedfiles
+verified,430tests,147protectedunchanged. BaselineHEAD9e2cf289unchanged/PAUSED.
+NoD89CPUunit/model/GPUcontextorremoteartifactservice remains running.
+NEXT actualintegratedFullactivation/lifecycle; do not repeat completedexports.
 
 D89BOTHofflineexportsCOMPLETE. Newexisting-preflight helper
 measured_source_profile_payloads converts strict D88 native events; unchanged

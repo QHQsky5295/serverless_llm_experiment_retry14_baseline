@@ -8139,6 +8139,10 @@ class ScenarioRunner:
                 self._runtime_gpu_forward_tasks.pop(key, None)
 
     def _schedule_runtime_gpu_forward(self, slot: Optional[Any]) -> bool:
+        if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
+            # Request-release callbacks cannot introduce a second preparation
+            # objective alongside IEEE residency/handoff and owned admission.
+            return False
         if not self._dynamic_forwarding_enabled or self._stack is None or slot is None:
             return False
         engine = getattr(slot, "engine", None)
@@ -18594,6 +18598,50 @@ def _build_local_tp_runtime_env_updates(
     }
 
 
+async def _spawn_dedicated_scenario_engine(*, model_cfg, host_visible_ids, cost_cfg,
+        coord_cfg, hardware_cfg, coordination_enabled, use_subprocess, device_id=None):
+    """One runtime factory for the main replay and bounded integration checks.
+
+    Preserve the parent configuration until the subprocess resolves its own
+    device view. Qualification must not implement a second model startup path.
+    """
+    local_model_cfg = copy.deepcopy(model_cfg)
+    if device_id is not None:
+        local_model_cfg['device_id'] = int(device_id)
+    target_resolve_cfg = copy.deepcopy(model_cfg)
+    if host_visible_ids:
+        target_resolve_cfg['visible_device_ids'] = list(host_visible_ids)
+    target_runtime_gpu_ids = _resolve_runtime_gpu_device_ids(
+        target_resolve_cfg, device_id=local_model_cfg.get('device_id'))
+    if use_subprocess:
+        new_engine = await SubprocessInferenceEngineProxy.spawn(
+            model_cfg=local_model_cfg, cost_model=cost_cfg,
+            device_id=local_model_cfg.get('device_id'), runtime_gpu_ids=target_runtime_gpu_ids)
+    else:
+        local_model_cfg['skip_stale_gpu_cleanup'] = True
+        new_engine = InferenceEngine(local_model_cfg, cost_cfg)
+        await new_engine.initialize()
+    try:
+        config = {**coord_cfg, **hardware_cfg}
+        runtime_gpu_device_ids = _resolve_runtime_gpu_device_ids(local_model_cfg,
+            device_id=getattr(new_engine, 'device_id', local_model_cfg.get('device_id')))
+        if runtime_gpu_device_ids:
+            config['gpu_device_ids'] = runtime_gpu_device_ids
+        return new_engine, ResourceCoordinator(config=config,
+            coordination_enabled=coordination_enabled)
+    except BaseException:
+        # A successfully created runtime remains owned if controller assembly
+        # fails. Do not abandon its process or physical-allocation journal.
+        cleanup = asyncio.create_task(new_engine.shutdown())
+        while not cleanup.done():
+            try:
+                await asyncio.shield(cleanup)
+            except asyncio.CancelledError:
+                continue
+        cleanup.result()
+        raise
+
+
 def _should_spawn_dedicated_engine_subprocess(
     model_cfg: Dict[str, Any],
     *,
@@ -21681,40 +21729,11 @@ async def _main_async_impl(
                         and bool(sc_coord.get("coordination_enabled", True))
                     ),
                 ):
-                    local_model_cfg = copy.deepcopy(model_cfg)
-                    if device_id is not None:
-                        local_model_cfg["device_id"] = int(device_id)
-                    target_resolve_cfg = copy.deepcopy(model_cfg)
-                    if host_visible_ids:
-                        target_resolve_cfg["visible_device_ids"] = list(host_visible_ids)
-                    target_runtime_gpu_ids = _resolve_runtime_gpu_device_ids(
-                        target_resolve_cfg,
-                        device_id=local_model_cfg.get("device_id"),
-                    )
-                    if use_subprocess_engine:
-                        new_engine = await SubprocessInferenceEngineProxy.spawn(
-                            model_cfg=local_model_cfg,
-                            cost_model=cost_cfg,
-                            device_id=local_model_cfg.get("device_id"),
-                            runtime_gpu_ids=target_runtime_gpu_ids,
-                        )
-                    else:
-                        # Do not kill already-live EngineCore workers when spawning
-                        # an additional dedicated instance in the same experiment.
-                        local_model_cfg["skip_stale_gpu_cleanup"] = True
-                        new_engine = InferenceEngine(local_model_cfg, cost_cfg)
-                        await new_engine.initialize()
-                    coord_kwargs: Dict[str, Any] = {
-                        "config": {**coord_cfg_local, **hw_cfg_local},
-                        "coordination_enabled": coord_enabled_local,
-                    }
-                    runtime_gpu_device_ids = _resolve_runtime_gpu_device_ids(
-                        local_model_cfg,
-                        device_id=getattr(new_engine, "device_id", local_model_cfg.get("device_id")),
-                    )
-                    if runtime_gpu_device_ids:
-                        coord_kwargs["config"]["gpu_device_ids"] = runtime_gpu_device_ids
-                    return new_engine, ResourceCoordinator(**coord_kwargs)
+                    return await _spawn_dedicated_scenario_engine(
+                        model_cfg=model_cfg, host_visible_ids=host_visible_ids, cost_cfg=cost_cfg,
+                        coord_cfg=coord_cfg_local, hardware_cfg=hw_cfg_local,
+                        coordination_enabled=coord_enabled_local,
+                        use_subprocess=use_subprocess_engine, device_id=device_id)
 
                 engine_factory = _spawn_engine
 

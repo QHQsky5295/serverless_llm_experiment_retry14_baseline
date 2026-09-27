@@ -1,0 +1,57 @@
+{
+  "kind": "full_prefix_preparation_code_validation_v1",
+  "pass_": true,
+  "formal_performance_result": false,
+  "full_qualified": false,
+  "tests": {
+    "count": 713,
+    "elapsed_seconds": 43.17,
+    "log": "regression5.log"
+  },
+  "references": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/focused1.log",
+      "sha256": "88b09c7f8270c237ea6f441bf07b3f0dc141df2c2fb2bc6eec481f3c7dc534a1"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/regression1.log",
+      "sha256": "414ec884fdc25b36b36f5ebdea6dd49c607c59e62a03f48a0c590eafd3e8b41c"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/regression2.log",
+      "sha256": "b8956859214f83c9c6bfd90632c4039ffbacb61974c790e8a3d79be7f3a6f7dd"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/regression3.log",
+      "sha256": "cc55fc38d972dffb25414b8ced9cc4edff1454023552911ce9a932f2354dfb01"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/regression4.log",
+      "sha256": "5adc4591523133919bfe6b86606631ee5b3e3843d1226e2aea806705257df3de"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/regression5.log",
+      "sha256": "72710bdfc336151fb9c863674425a146cb25bbe9b36540d01104c0b8e8dde7d3"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/full_prefix_driver.py",
+      "sha256": "91983fbbf72276ffcea9e9131d05e7f41fada223de374d21845f2cc77ffe6c63"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/run_3b_full_prefix_attempt1.sh",
+      "sha256": "306a8a641fc5232ad4e201e50c236d4c16abcb490e5bf0db671f6cd8d3a82ce5"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/activate_services.sh",
+      "sha256": "e8b24ac3b103ed014088b5ec0894064ea306496fb5cf7c7d072ca3386c5693bd"
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  }
+}

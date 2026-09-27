@@ -1187,6 +1187,168 @@ class IEEEInitialDeployment(unittest.TestCase):
         asyncio.run(run())
 
 
+class SharedDedicatedFactory(unittest.TestCase):
+    def test_parent_configuration_and_actual_device_path_are_preserved(self):
+        model = dict(backend='vllm', visible_device_ids=[0, 1, 2, 3], device_id=0,
+                     tensor_parallel_size=1, enforce_eager='auto')
+        engine = SimpleNamespace(device_id=2, shutdown=AsyncMock())
+        coord = object()
+        async def run():
+            with patch.object(runner.SubprocessInferenceEngineProxy, 'spawn',
+                              AsyncMock(return_value=engine)) as spawn, \
+                 patch.object(runner, 'ResourceCoordinator', return_value=coord) as construct:
+                result = await runner._spawn_dedicated_scenario_engine(
+                    model_cfg=model, host_visible_ids=[0,1,2,3], cost_cfg={},
+                    coord_cfg={'x':1}, hardware_cfg={'gpu_device_ids':[0,1,2,3]},
+                    coordination_enabled=True, use_subprocess=True, device_id=2)
+                self.assertEqual(result, (engine, coord))
+                args = spawn.await_args.kwargs
+                self.assertEqual(args['runtime_gpu_ids'], [2])
+                self.assertEqual(args['model_cfg']['enforce_eager'], 'auto')
+                self.assertNotIn('requested_enforce_eager', args['model_cfg'])
+                self.assertEqual(construct.call_args.kwargs['config']['gpu_device_ids'], [2])
+                self.assertEqual(model['device_id'], 0)
+                engine.shutdown.assert_not_awaited()
+        asyncio.run(run())
+
+    def test_controller_failure_retires_the_successfully_created_runtime(self):
+        engine = SimpleNamespace(device_id=0, shutdown=AsyncMock())
+        async def run():
+            with patch.object(runner.SubprocessInferenceEngineProxy, 'spawn',
+                              AsyncMock(return_value=engine)), \
+                 patch.object(runner, 'ResourceCoordinator', side_effect=ValueError('controller failed')):
+                with self.assertRaisesRegex(ValueError, 'controller failed'):
+                    await runner._spawn_dedicated_scenario_engine(
+                        model_cfg=dict(device_id=0,tensor_parallel_size=1),
+                        host_visible_ids=[0], cost_cfg={}, coord_cfg={}, hardware_cfg={},
+                        coordination_enabled=True, use_subprocess=True)
+                engine.shutdown.assert_awaited_once()
+        asyncio.run(run())
+
+
+class FullPreparationEntryIsolation(unittest.TestCase):
+    def test_ieee_release_callback_cannot_start_legacy_gpu_forwarding(self):
+        service=runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        service._routing_policy='ieee_confirmed'
+        # Nothing beyond policy is needed: no cache hints, capacity guesses,
+        # legacy objective or new task may be consulted by this callback.
+        self.assertFalse(service._schedule_runtime_gpu_forward(object()))
+
+    def test_actual_stack_cache_access_cannot_start_legacy_promotion_under_ieee(self):
+        from faaslora.experiment.experiment_stack import ExperimentStack
+        async def run():
+            for policy in ('ieee_confirmed','adapter_affinity'):
+                with self.subTest(policy=policy), tempfile.TemporaryDirectory() as tmp:
+                    stack=ExperimentStack(adapter_info={'a':{'size_mb':1}}, hardware_cfg={},
+                        coord_cfg={'routing_policy':policy},preload_cfg={'dynamic_forwarding_enabled':True},
+                        remote_dir=Path(tmp)/'remote',nvme_dir=Path(tmp)/'nvme',host_dir=Path(tmp)/'host')
+                    try:
+                        stack._ensure_registered()
+                        stack._nvme_paths['a']=str(Path(tmp)/'nvme'/'a')
+                        stack.sync_local_tier_paths=Mock()
+                        stack._can_schedule_explicit_host_promotion=Mock(return_value=True)
+                        stack._promote_nvme_hit_to_host=AsyncMock()
+                        stack.record_access('a',load_time_ms=1,hit=True)
+                        if policy=='ieee_confirmed':
+                            self.assertFalse(stack._pending_host_promotions)
+                            stack._can_schedule_explicit_host_promotion.assert_not_called()
+                            stack._promote_nvme_hit_to_host.assert_not_awaited()
+                        else:
+                            await asyncio.gather(*stack._pending_host_promotions.values())
+                            stack._promote_nvme_hit_to_host.assert_awaited_once_with('a')
+                    finally:
+                        await stack.stop()
+        asyncio.run(run())
+
+
+class FullPrefixQualification(unittest.TestCase):
+    def fixture(self):
+        from dataclasses import make_dataclass
+        request = dict(request_id='r', adapter_id='a', success=True,
+            generation_contract='fixed_length_greedy_v1', timing_contract='ieee_tc_native_v1',
+            output_contract_match=True, output_tokens=2, completion_tokens=2,
+            readiness_tier_before_dispatch='remote', native_token_timing={'fixture':True},
+            gpu_reference_evidence={'fixture':True})
+        scenario = make_dataclass('FixtureScenario', [('requests',list)])([request])
+        pool = SimpleNamespace(count=Mock(return_value=0))
+        service = SimpleNamespace(_routing_policy='ieee_confirmed', _initial_runtime_pending=True,
+            instance_pool=pool, _service_profiles=object(), _preparation_profiles=object(),
+            model_cfg={'ieee_physical_allocation':True}, _external_replay=None,
+            traces=[SimpleNamespace(request_id='r',adapter_id='a',expected_output_tokens=2)],
+            _start_ieee_initial_deployment=AsyncMock(), _ieee_initial_deployment={'fixture':True},
+            _select_dedicated_device_id=Mock(return_value=1), _pending_scale_up_device_ids=set(),
+            _coordination_enabled=True, _add_dedicated_instance_slot=AsyncMock(
+                return_value={'activation_kind':'controlled'}),
+            run=AsyncMock(return_value=(scenario,{})), _shutdown_instance_pool=AsyncMock(),
+            _remote_transfer_evidence=[], _stack=SimpleNamespace(
+                preloading_manager=SimpleNamespace(ieee_movements=SimpleNamespace(snapshot=lambda:{})),
+                residency_manager=SimpleNamespace(local_source_references=SimpleNamespace(
+                    host_budget_snapshot=lambda:{}))))
+        return service, request
+
+    def execute(self, service, result):
+        from scripts.ieee_tc_preflight import qualify_ieee_full_prefix
+        return asyncio.run(qualify_ieee_full_prefix(service,result))
+
+    def test_same_run_path_and_explicit_controlled_category_without_production_claim(self):
+        service, _ = self.fixture()
+        result = {}
+        self.execute(service,result)
+        self.assertTrue(result['pass'])
+        self.assertFalse(result['production_launch_authorized'])
+        self.assertFalse(result['formal_performance_result'])
+        self.assertFalse(result['numerical_adapter_correctness_qualified'])
+        service._add_dedicated_instance_slot.assert_awaited_once_with(
+            True,reserved_device_id=1,activation_kind='controlled')
+        service.run.assert_awaited_once_with()
+        service._shutdown_instance_pool.assert_awaited_once_with()
+        self.assertFalse(service._pending_scale_up_device_ids)
+        # The qualification function does not replace/remove the main guard.
+        with self.assertRaisesRegex(RuntimeError,'not qualified'):
+            runner.ScenarioRunner._require_ieee_full_qualification(service)
+
+    def test_reject_wrong_generation_or_missing_native_evidence_after_retaining_rows(self):
+        for field, value in [('success',False),('completion_tokens',1),('output_tokens',1),
+                             ('native_token_timing',{}),('gpu_reference_evidence',{}),
+                             ('readiness_tier_before_dispatch',''),('adapter_id','wrong')]:
+            service, row = self.fixture()
+            row[field] = value
+            result = {}
+            with self.subTest(field=field), self.assertRaisesRegex(RuntimeError,'native generation/source'):
+                self.execute(service,result)
+            self.assertFalse(result['pass'])
+            self.assertEqual(result['requests'][0][field],value)
+            service._shutdown_instance_pool.assert_awaited_once()
+
+    def test_initial_failure_and_cancel_still_join_shutdown(self):
+        for failure in [RuntimeError('startup failed'),asyncio.CancelledError()]:
+            service, _ = self.fixture()
+            service._start_ieee_initial_deployment.side_effect = failure
+            with self.subTest(failure=type(failure)), self.assertRaises(type(failure)):
+                self.execute(service,{})
+            service.run.assert_not_awaited()
+            service._shutdown_instance_pool.assert_awaited_once()
+
+    def test_controlled_failure_releases_device_reservation_and_retires_pool(self):
+        service, _ = self.fixture()
+        service._add_dedicated_instance_slot.side_effect = RuntimeError('controlled failed')
+        with self.assertRaisesRegex(RuntimeError,'controlled failed'):
+            self.execute(service,{})
+        self.assertFalse(service._pending_scale_up_device_ids)
+        service.run.assert_not_awaited()
+        service._shutdown_instance_pool.assert_awaited_once()
+
+    def test_invalid_prefix_or_existing_deployment_cannot_start(self):
+        for field, value in [('_initial_runtime_pending',False),('_service_profiles',None),
+                             ('_preparation_profiles',None),('_external_replay',object()),
+                             ('traces',[])]:
+            service, _ = self.fixture()
+            setattr(service,field,value)
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError,'empty measured'):
+                self.execute(service,{})
+            service._start_ieee_initial_deployment.assert_not_awaited()
+
+
 class ManagedEngineLaunch(unittest.TestCase):
     def test_managed_cleanup_only_revalidates_owned_service(self):
         engine = runner.InferenceEngine({}, {})

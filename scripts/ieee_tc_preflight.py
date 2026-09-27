@@ -3756,6 +3756,88 @@ async def qualify_native_capacity_wait(engine, plan, adapters, result):
             await boundary._finish_runtime_request_reservation(reservation)
 
 
+async def qualify_ieee_full_prefix(boundary, result):
+    """Exercise real activation + the existing continuous runner, not a new policy.
+
+    Explicit diagnostic: initial deployment, one controlled activation, then an
+    unchanged original-input prefix. It has no common deployment-notice origin
+    and is NOT a main comparison, a natural-scaleout sample, or a Full gate
+    certificate. In particular, the production preload guard stays untouched.
+    Empty initial handoff plans are valid and must not be called triggered work.
+    The caller records every factory/physical lease and owns stack/file cleanup.
+    """
+    from dataclasses import asdict
+    if (boundary._routing_policy != 'ieee_confirmed'
+            or not boundary._initial_runtime_pending
+            or boundary.instance_pool.count() != 0
+            or boundary._service_profiles is None or boundary._preparation_profiles is None
+            or not boundary.model_cfg.get('ieee_physical_allocation')
+            or boundary._external_replay is not None
+            or not 1 <= len(boundary.traces) <= 100):
+        raise ValueError('Full prefix requires an empty measured physical deployment and 1..100 original requests')
+    result.update(kind='ieee_full_activation_prefix_diagnostic_v1',
+        production_launch_authorized=False, formal_performance_result=False,
+        numerical_adapter_correctness_qualified=False,
+        input_mode='original_prefix_internal_open_loop_after_initial_and_controlled_activation',
+        controlled_activation_order='one_extra_runtime_before_first_arrival', requests=[], **{'pass': False})
+    try:
+        result['stage'] = 'initial_activation'
+        await boundary._start_ieee_initial_deployment()
+        result['initial_deployment'] = boundary._ieee_initial_deployment
+        result['stage'] = 'controlled_activation'
+        device = boundary._select_dedicated_device_id()
+        if device is None:
+            raise RuntimeError('controlled activation has no free physical device')
+        boundary._pending_scale_up_device_ids.add(device)
+        try:
+            event = await boundary._add_dedicated_instance_slot(
+                boundary._coordination_enabled, reserved_device_id=device,
+                activation_kind='controlled')
+            if event is None:
+                raise RuntimeError('controlled activation did not publish a runtime')
+            result['controlled_activation'] = event
+        finally:
+            boundary._pending_scale_up_device_ids.discard(device)
+        result['stage'] = 'existing_continuous_prefix'
+        scenario, metrics = await boundary.run()
+        result['scenario'] = asdict(scenario)
+        result['coordination_metrics'] = metrics
+        result['requests'] = result['scenario']['requests']
+        expected = {t.request_id: (t.adapter_id, min(t.expected_output_tokens, 256))
+                    for t in boundary.traces}
+        rows = result['requests']
+        if len(rows) != len(expected) or {r['request_id'] for r in rows} != set(expected):
+            raise RuntimeError('Full prefix omitted or duplicated an offered request')
+        for row in rows:
+            aid, target = expected[row['request_id']]
+            if (row.get('success') is not True or row.get('adapter_id') != aid
+                    or row.get('generation_contract') != 'fixed_length_greedy_v1'
+                    or row.get('timing_contract') != 'ieee_tc_native_v1'
+                    or row.get('output_contract_match') is not True
+                    or row.get('output_tokens') != target or row.get('completion_tokens') != target
+                    or row.get('readiness_tier_before_dispatch') not in ('gpu', 'host', 'nvme', 'remote')
+                    or not row.get('native_token_timing') or not row.get('gpu_reference_evidence')):
+                raise RuntimeError('Full prefix request lacks exact native generation/source evidence: '+row['request_id'])
+        result.update(stage='complete', **{'pass': True})
+    finally:
+        # Even a failed activation/replay must join preparation and retire every
+        # owned engine through the same production shutdown path.
+        try:
+            await boundary._shutdown_instance_pool()
+        except BaseException:
+            result['pass'] = False
+            raise
+        finally:
+            result['activations'] = getattr(boundary, '_ieee_activations', [])
+            result['residency_epochs'] = getattr(boundary, '_ieee_residency_epochs', [])
+            result['file_preparation_plans'] = getattr(boundary, '_ieee_file_preparation_plans', [])
+            result['native_host_preparations'] = getattr(boundary, '_ieee_native_host_preparations', [])
+            result['remote_transfers'] = boundary._remote_transfer_evidence
+            result['movement_queue'] = boundary._stack.preloading_manager.ieee_movements.snapshot()
+            result['host_budget_after_shutdown'] = boundary._stack.residency_manager.local_source_references.host_budget_snapshot()
+            result['ready_pool_after_shutdown'] = boundary.instance_pool.count()
+
+
 async def initialize_qualification_runtime(model_config, mode):
     """Use Full's process boundary for measurements intended to initialize Full.
 

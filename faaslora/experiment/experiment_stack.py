@@ -258,6 +258,7 @@ class ExperimentStack:
                 preload_cfg.get("host_promotion_on_nvme_hit_enabled", True),
             )
         )
+        self._ieee_owned_preparation = coord_cfg.get('routing_policy') == 'ieee_confirmed'
         self._gpu_dynamic_forwarding_enabled = bool(
             preload_cfg.get("gpu_dynamic_forwarding_enabled", self._dynamic_forwarding_enabled)
         )
@@ -777,6 +778,11 @@ class ExperimentStack:
             self._pending_host_promotions.pop(adapter_id, None)
 
     def _schedule_host_promotion_from_nvme(self, adapter_id: Optional[str] = None) -> bool:
+        if self._ieee_owned_preparation:
+            # IEEE preparation is selected by its demand/cost objective and
+            # executed by the shared movement owner. A cache-access callback
+            # must not independently promote through the legacy hit heuristic.
+            return False
         if not bool(getattr(self, "_dynamic_forwarding_enabled", False)):
             # Mechanism-1/ElasticOnly ablation rows intentionally stop at NVMe.
             # An explicit NVMe hit is a strong signal only when Mechanism 2 is

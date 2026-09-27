@@ -2253,6 +2253,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
     def test_explicit_nvme_hit_schedules_host_promotion_without_utility_gate(self) -> None:
         stack = ExperimentStack.__new__(ExperimentStack)
+        stack._ieee_owned_preparation = False  # Fixture exercises the historical policy.
         stack._dynamic_forwarding_enabled = True
         stack.config = SimpleNamespace(
             get=lambda key, default=None: {"max_concurrent_operations": 2}
@@ -2288,6 +2289,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
 
     def test_explicit_nvme_hit_respects_disabled_hierarchy_gate(self) -> None:
         stack = ExperimentStack.__new__(ExperimentStack)
+        stack._ieee_owned_preparation = False  # Historical policy with hierarchy disabled.
         stack._dynamic_forwarding_enabled = False
         stack.sync_local_tier_paths = Mock(
             side_effect=AssertionError("disabled mechanism must stop before tier lookup")
