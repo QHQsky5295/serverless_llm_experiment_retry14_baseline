@@ -1,0 +1,36 @@
+{
+  "kind": "offline_published_cache_v1",
+  "model": "7b",
+  "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/remote_qualification/d78_20260927",
+  "complete": true,
+  "adapters": 500,
+  "files": 5000,
+  "payload_bytes": 12985984450,
+  "archive_bytes": 420740410,
+  "allocated_bytes": 421691392,
+  "elapsed_s": 516.2222481999997,
+  "source_commit": "e00e3f7c898cb90022361b0afc7381d9ba947d40",
+  "source_index_sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c",
+  "content_manifest_sha256": "684c7ab113b6a51b694066753b340fce4eb0b26f565e1f9b7ebbd97d3b8ea050",
+  "inference_qualified": false,
+  "http_delivery_qualified": false,
+  "resource": {
+    "samples": 493,
+    "peak_bytes": 1074266112,
+    "min_host_available_bytes": 109775691776,
+    "swap_peak_bytes": 0,
+    "events": {
+      "high": 23604,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "raw_sha256": {
+    "delivery_7b_manifest.json": "9af659e8178ba0994452a048b92e414c93988b51698b8b247e05d04eee2cfff8",
+    "publication_7b.jsonl": "8198998b08cb8818cb315bbd5618dc96a8fc69152d9424ff0f6fe68b085ebd62",
+    "publication_7b_monitor.log": "dc0dd1580d3c1557cd53aa5f2160cb6d8fab33d3f76656449a631d13496ac401",
+    "publish_one_remote.sh": "8bc12cb37ee7bde595ddc6287b45282dca465037259e035bdda6e04373e07497",
+    "run_publish_7b.sh": "e755cdff391a6c0bbe9b69d495d275bec24b5a149bd8c00682fbe35a71e96ab0"
+  }
+}

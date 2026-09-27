@@ -1,0 +1,51 @@
+{
+  "kind": "published_http_functional_coverage_v1",
+  "model": "3b",
+  "source_commit": "a125b54a6cd2436ea3784d8ead859eca55be9ad4",
+  "pass_checks": true,
+  "inference_qualified": false,
+  "performance_profile": false,
+  "verified_adapters": 500,
+  "verified_files": 4000,
+  "wire_bytes": 1160474851,
+  "payload_bytes": 19482573296,
+  "elapsed_s": 154.63692601000002,
+  "paired_transfer_ids": 500,
+  "request_packing_count": 0,
+  "temporary_creation_count": 0,
+  "service_returncode": 0,
+  "watchdog_returncode": 0,
+  "service_path_removed": true,
+  "local_resource": {
+    "samples": 154,
+    "peak_bytes": 96903168,
+    "min_host_available_bytes": 116392169472,
+    "swap_peak_bytes": 0,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "diagnostic_mean_ms": {
+    "client_total": 297.4618946600276,
+    "object_read": 1.065116338,
+    "socket_write": 14.260133934,
+    "receive_reserve_write": 28.702753509969625,
+    "extract_verify": 261.4808976679906
+  },
+  "nonadditive_spans": true,
+  "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/remote_qualification/d80_20260927",
+  "raw_sha256": {
+    "coverage_3b.jsonl": "8d85bd375114393290b7393780484d07a433485716d5a8cea8a9532caf091a2b",
+    "coverage_3b_launch.json": "131dceaa971f39973b53ae562966bec25c140d04eeea64604bb7ce9904fdfdb7",
+    "remote_3b_complete.jsonl": "8fd4909cc9a527887cb87fe4bebbb7b155c58b597fe52c51da565abc97ddd77f",
+    "run_coverage_3b.sh": "f2b2383ca209be82bb5438960c6d478bef73bdf60dfe5c7b7aca23abc3ba70c4",
+    "activation_attempt2_health.json": "6319d28bb6c91b9c899a697f22b16e2d7b43bcfe3de42958e7835fdd4181ee25",
+    "coverage_3b_launch.launch/watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "coverage_3b_launch.launch/exec_receipt.json": "4c05c5b23295ff63f75bf63806bafac03c206b4e3f3782e35e2379f2b0d88b17",
+    "coverage_3b_launch.launch/watchdog.jsonl": "d0c42b9a907d2cc28d4d747beeb49c6885c28daaf897281c586e352fd8ae1e43",
+    "coverage_3b_launch.launch/service.log": "f3e45f490a444e41ce8c3bfa7ae1407227c6dba23da9737ec157ef8eeee13418"
+  }
+}

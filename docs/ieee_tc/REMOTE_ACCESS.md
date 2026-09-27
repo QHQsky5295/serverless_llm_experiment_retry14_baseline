@@ -513,3 +513,161 @@ Initialavailable148370919424B disk,107305060KiB memory;8/500 first observation.
 LocalTMUXprimelora-d78-publish7b, unique rawpublication_7b_monitor.log;
 launcherSHAe755cdff391a6c0bbe9b69d495d275bec24b5a149bd8c00682fbe35a71e96ab0.
 No inference experiment overlaps. Observe this run, never duplicate at recovery.
+
+### D78 7B complete: both immutable caches now published
+
+| Field | 3B | 7B |
+|---|---:|---:|
+|Complete adapters / exact source files|500/4000|500/5000|
+|Logical source bytes|19482573296|12985984450|
+|Immutable archive bytes|1160474851|420740410|
+|Allocated cache bytes|1161277440|421691392|
+|Offline preparation seconds|1210.560770|516.222248|
+|Watchdog samples|1154|493|
+|Peak bytes|1074266112|1074266112|
+|high events|37690|23604|
+|max /OOM /OOM-kill /swap|0/0/0/0|0/0/0/0|
+|Publisher /supervisor|Both inactive|Both inactive|
+
+These durations are offline packaging, excluded by placement BEFORE deployment,
+not subtracted from any request. All source SHA identities unchanged. Sum archive
+bytes1581215261 (~1.47GiB); no new weights/trace/extracted pool.7B manifestSHA
+9af659e8178ba0994452a048b92e414c93988b51698b8b247e05d04eee2cfff8,
+eventSHA8198998b08cb8818cb315bbd5618dc96a8fc69152d9424ff0f6fe68b085ebd62.
+Curated20260927_d78_7b_publication.json carries5 raw hashes. New HTTP and
+concurrent service/profile qualification remain pending; next is D80 functional
+verification with existing scripts and explicit prepublished mode.
+
+### D80 actual published HTTP qualification, running
+
+Original D75 source and fragments remain backed up; new backed-up a125b54
+server streams D78 cache. Authenticated health3B/7B returns artifact_timing_v2
+and prepublished_gzip_v1. Each functional service high2GiB/max4GiB/swap0,
+unchanged CPU2–19,22–39/Tasks128.2GiB permits the larger1.08GiB whole archive
+cache plus serial stream/runtime headroom; it is NOT a proven128-concurrent
+production bound. Actual stack8192KiB, tcp_rmem/tcp_wmem maxima6/4MiB recorded
+for later concurrency accounting, not called measured socket memory.
+
+Initial new monitor failed on absent io.stat before downloading. Remote user
+manager delegates cpu/memory/pids, not io; exit2 stopped exact owned services.
+Preserved raw failed attempt, no performance point. Correct monitor reports
+io_accounting=not_delegated and host /proc/diskstats, never substitutes global
+I/O for service I/O or fills zero. Linux io.stat is an I/O-controller interface:
+https://docs.kernel.org/admin-guide/cgroup-v2.html#io.
+
+Remote Linger enabled specifically forlab14, no password/sudo required;
+user manager now survives SSH logout. This implements prior autonomous service
+authorization, not a performance strategy. Units are not boot-enabled.
+
+| Item | Current observation |
+|---|---|
+|3B service|165665 /04dc5408cf4e433fa4fc9b4e7f382a67, authenticated health pass|
+|7B service|165667 /0039abaf5baa459cae8de747c96f629c, authenticated health pass|
+|Independent remote monitor|165670 /7c3039d545374a19b07d5cf3bab16b4f, active|
+|3B published full HTTP coverage|Running,50/500 first observation; no GPU inference|
+|7B published full HTTP coverage|Prepared, not started; wait3B validation/table|
+|Formal performance /Full qualification|Still pending|
+
+Raw d80_20260927/activation_attempt2_health.json and named launch/monitor scripts.
+Monitor exit trap stops only matching service invocations; keep it alive while
+clients measure. Fresh process identity required before all management actions.
+
+### D80 3B published HTTP coverage COMPLETE
+
+| Functional observation | Result |
+|---|---:|
+|Verified adapters / exact original files|500/4000|
+|UUID-matched server/client attempts|500/500|
+|Wire / logical bytes|1160474851 /19482573296|
+|Request-time pack /temporary-archive creation|0 /0|
+|Serial functional-loop seconds|154.636926|
+|Local watchdog samples /peak bytes|154 /96903168|
+|Local high /max /OOM /swap|0 /0 /0 /0|
+|Service/watchdog exits, service path removed|0/0, yes|
+|Remote high /max /OOM /swap at completion|0 /0 /0 /0|
+
+Each archive and logical payload matches D78 immutable manifest and frozen
+content. Every server record shows ordered local spans, no packing, matching
+read/write/received bytes. Mean diagnostic durations: total297.462ms,
+object-read1.065ms, blocking-write14.260ms, client receive/reserve/write28.703ms,
+local extract/verify261.481ms. These spans OVERLAP and are NOT additive to each
+other; serial functional samples are not concurrent Full profiles or a system
+speedup claim. Network speed and source format differ from legacy D75.
+
+Local auxiliary scope remained marked active despite empty cgroup/populated0;
+matching invocation8dffd02378064ce7ac1e19c1cdcbab5a verified and empty owned scope
+explicitly stopped. No live process killed. Receiptcoverage_3b_aux_cleanup.json.
+Curated20260927_d80_3b_coverage.json retains9 raw SHAs.7B is the next same-mode
+functional run; source/core algorithms unchanged and all baselines paused.
+
+### D80 both published HTTP pools COMPLETE
+
+| Functional gate | 3B | 7B |
+|---|---:|---:|
+|Verified adapters /files|500/4000|500/5000|
+|Matched transfer UUIDs|500|500|
+|Request pack /temporary archive|0/0|0/0|
+|Wire bytes|1160474851|420740410|
+|Serial loop seconds (not profile)|154.636926|101.359877|
+|Local watchdog samples /peak bytes|154/96903168|101/75149312|
+|Local high /max /OOM /swap|0/0/0/0|0/0/0/0|
+|Client/service path /auxiliary|Exited/removed/inactive|Exited/removed/inactive|
+
+7B archive/original content, UUID, byte count and local-clock stage ordering all
+match; no packing timestamps or fallback. GPU compute remains empty.7B empty
+auxiliary(populated0,cgroup.procs empty) exactinvocationc8e8d46bbb5f43fc958aad04d0f5ac29
+stopped explicitly, not an unrelated process. Curated20260927_d80_7b_coverage.json
+contains9 raw hashes; remote journalSHA698a2068154572504d855a10a22d665f10d9155212d34334e1d1dd46e78fadac.
+Mean diagnostic7B total193.639/read0.395/blocking-write2.356/receive11.545/
+extract-verify176.697ms. Nonadditive, serial functional-only, no Full/system rank.
+Next: published-mode post-header cancellation, then common concurrency/profile
+qualification. Old dynamic coverage and new publication do not need repeating.
+
+### D80 published cancellation: 3B complete, 7B next
+
+| Functional check | 3B observation |
+|---|---|
+|Cancellation point|After actual HTTP headers, before application body read|
+|Client content published / leftover owned files|No / none (checked before outer cleanup)|
+|Server UUID / result|92adf056201f4609b381953f4569b0ab / BrokenPipeError|
+|Server request-time packing / temporary archive|Neither performed|
+|Client body bytes / server successful write bytes|0 / 0; does not prove zero network bytes|
+|Local service/watchdog / GPU contexts|Both exit 0 / no experiment context|
+|Auxiliary cleanup|Empty procs and populated 0 verified, matching invocation stopped|
+
+The remote server had read 1048576 bytes before detecting the disconnect. This
+checks cancellation and absence of false publication, not elimination of all
+already-started remote work. Snapshot remote_3b_after_cancel.jsonl has 501 rows
+and SHA3f822f056b383c33b67cfa2b031cb99e02d09cdb760fe27eef0a54d6ced41192;
+the earlier 500-row coverage snapshot remains unchanged. Next is the prepared
+7B cancellation check, with the same delivery contract and safety limits.
+
+### D80 published delivery qualification closed
+
+| Published-mode cancellation gate | 3B | 7B |
+|---|---|---|
+|Triggered after headers / local body bytes|Yes /0|Yes /0|
+|False publication / owned temporary leftovers|None /none|None /none|
+|UUID-correlated server disconnect|BrokenPipeError|ConnectionResetError|
+|Server read bytes before disconnect|1048576|780740|
+|Request packing /temporary creation|None /none|None /none|
+|Local service and watchdog exit status|0 /0|0 /0|
+|Sampled high/max/OOM/swap events|0/0/0/0|0/0/0/0|
+
+Both full 500-object HTTP coverages and both cancellation checks are complete.
+No repeat is needed. Curated `20260927_d80_cancellation.json` preserves both
+client/server records and raw SHA references. Earlier coverage snapshots are
+unchanged; post-cancellation journals each contain 501 records.
+
+After all clients exited, both empty local auxiliary scopes were identity-checked
+and stopped. The owned remote monitor was stopped by matching invocation; its
+exit trap stopped only the two matching artifact services. All three read back
+inactive/MainPID0/Result=success. Immutable published caches remain in place.
+Complete remote monitor SHA:
+`c9200043f87982c28aee9d00e5562351c5b1d596cb75aa64bffe37c60d4e0b3f`.
+The log is retained, not overwritten. Service cgroup I/O was not delegated;
+host disk counters are separate, not substituted as service I/O.
+
+This closes delivery **functionality**, not concurrent production profiling.
+Next: qualify the shared remote concurrency/resource conditions, then collect
+representative Prime Full service/preparation intervals. Baselines remain paused.

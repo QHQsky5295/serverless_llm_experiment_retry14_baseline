@@ -1,0 +1,213 @@
+{
+  "kind": "published_post_header_cancel_qualification_v1",
+  "source_commit": "a125b54a6cd2436ea3784d8ead859eca55be9ad4",
+  "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/remote_qualification/d80_20260927",
+  "inference_qualified": false,
+  "pass": true,
+  "cases": [
+    {
+      "model": "3b",
+      "client_result": {
+        "adapter_id": "code_lora",
+        "cancel_triggered": true,
+        "cancel_triggered_monotonic_s": 7678.916527006,
+        "client_workspace_removed_before_outer_cleanup": true,
+        "content_manifest_sha256": "ac8e9b36c328376a9e1ecec6a4d928dd684f4d94e3fa4d2e08f531b166da145e",
+        "endpoint": "http://192.168.4.174:18080",
+        "event": "cancel_qualification",
+        "evidence": {
+          "archive_bytes_declared": 2339502,
+          "artifact_id": "code_lora",
+          "client_completed_monotonic_s": 7678.91674954,
+          "client_stage_ms": {
+            "extract_and_verify_ms": null,
+            "request_to_headers_ms": 5.096344000776298,
+            "reserve_receive_and_write_ms": null
+          },
+          "content_manifest_sha256": "ac8e9b36c328376a9e1ecec6a4d928dd684f4d94e3fa4d2e08f531b166da145e",
+          "content_verified": false,
+          "elapsed_ms": 6.2279359999593,
+          "headers_received_monotonic_s": 7678.916328291,
+          "http_transfer_id": "92adf056201f4609b381953f4569b0ab",
+          "loading_clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+          "loading_started_monotonic_s": 7678.911231947,
+          "payload_bytes_expected": 56327468,
+          "remote_archive_sha256": "19374afda497e2f0fec2082723c091c09ca6de1644a1a1995b0aa1da6343d0eb",
+          "remote_delivery_mode": "prepublished_gzip_v1",
+          "remote_pack_duration_basis": "absent_by_published_contract",
+          "remote_pack_ms": 0,
+          "remote_pack_performed": false,
+          "remote_spans_additive_to_client_total": false,
+          "remote_timing_available": true,
+          "remote_timing_contract": "artifact_timing_v2",
+          "stages_clock": "client_monotonic",
+          "state": "not_published",
+          "transferred_bytes": 0
+        },
+        "inference_qualified": false,
+        "observed_cause": "RemoteArtifactError",
+        "pass": true,
+        "remaining_owned_entries": [],
+        "remote_cancellation_inferred": false,
+        "scope": "post_header_pre_body_client_cancel",
+        "temporary_removed": true
+      },
+      "server_result": {
+        "archive_bytes": 2339502,
+        "archive_sha256": "19374afda497e2f0fec2082723c091c09ca6de1644a1a1995b0aa1da6343d0eb",
+        "artifact_id": "code_lora",
+        "bytes_read": 1048576,
+        "bytes_written": 0,
+        "clock_id": "remote-process-monotonic:6abfbe9757d84aed9f038ec105b3bcad",
+        "delivery_mode": "prepublished_gzip_v1",
+        "error_type": "BrokenPipeError",
+        "event": "artifact_transfer",
+        "handler_completed_ns": 7634929533235,
+        "handler_started_ns": 7634927026655,
+        "object_open_completed_ns": 7634927369129,
+        "object_open_started_ns": 7634927305743,
+        "object_read_wall_ns": 1174740,
+        "outcome": "failed",
+        "pack_performed": false,
+        "read_calls": 1,
+        "send_started_ns": 7634927881633,
+        "socket_write_wall_ns": 422187,
+        "temporary_created": false,
+        "timing_contract": "artifact_timing_v2",
+        "transfer_id": "92adf056201f4609b381953f4569b0ab"
+      },
+      "service_returncode": 0,
+      "watchdog_returncode": 0,
+      "service_path_removed": true,
+      "local_resource": {
+        "samples": 1,
+        "sampled_peak_bytes": 19349504,
+        "min_host_available_bytes": 116804341760,
+        "events": {
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0
+        },
+        "swap_peak_bytes": 0
+      },
+      "raw_sha256": {
+        "cancel_3b.jsonl": "33e469aa54dbe11115cf47707570480eb5ded39c051fb92394769ee32e6de2eb",
+        "cancel_3b_launch.json": "5fabc814643519005103b235543aa499666c9d22a0f70541b49ef156d6123946",
+        "remote_3b_after_cancel.jsonl": "3f822f056b383c33b67cfa2b031cb99e02d09cdb760fe27eef0a54d6ced41192",
+        "run_cancel_3b.sh": "e759cda8efaf8eeaa1dbf8428a4eed5c50a5e17beec85545a470832b095ec91a",
+        "cancel_3b_launch.launch/watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cancel_3b_launch.launch/exec_receipt.json": "3d356da2f33bd60e3fcf4bf8fd182dbbe036f42a9ffaf88677f98e6032bcb27b",
+        "cancel_3b_launch.launch/watchdog.jsonl": "271a669143fc4c9d10c2363047322190aa1ebe3fa0c833f08fd47939779fc5f1",
+        "cancel_3b_launch.launch/service.log": "f04416a224b81140a72c28451e6b30185e9b713f7a111698723dfde9983bf587"
+      }
+    },
+    {
+      "model": "7b",
+      "client_result": {
+        "adapter_id": "code_lora",
+        "cancel_triggered": true,
+        "cancel_triggered_monotonic_s": 7983.612747844,
+        "client_workspace_removed_before_outer_cleanup": true,
+        "content_manifest_sha256": "684c7ab113b6a51b694066753b340fce4eb0b26f565e1f9b7ebbd97d3b8ea050",
+        "endpoint": "http://192.168.4.174:18081",
+        "event": "cancel_qualification",
+        "evidence": {
+          "archive_bytes_declared": 780740,
+          "artifact_id": "code_lora",
+          "client_completed_monotonic_s": 7983.613008655,
+          "client_stage_ms": {
+            "extract_and_verify_ms": null,
+            "request_to_headers_ms": 3.879503999996814,
+            "reserve_receive_and_write_ms": null
+          },
+          "content_manifest_sha256": "684c7ab113b6a51b694066753b340fce4eb0b26f565e1f9b7ebbd97d3b8ea050",
+          "content_verified": false,
+          "elapsed_ms": 5.178933999559376,
+          "headers_received_monotonic_s": 7983.612341226,
+          "http_transfer_id": "09e08c7d905a421d8977361aec1ecc17",
+          "loading_clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+          "loading_started_monotonic_s": 7983.608461722,
+          "payload_bytes_expected": 20938675,
+          "remote_archive_sha256": "8e3f6df9283a04093560ff655fd082285647b1bf41767c59b278611860b35d5a",
+          "remote_delivery_mode": "prepublished_gzip_v1",
+          "remote_pack_duration_basis": "absent_by_published_contract",
+          "remote_pack_ms": 0,
+          "remote_pack_performed": false,
+          "remote_spans_additive_to_client_total": false,
+          "remote_timing_available": true,
+          "remote_timing_contract": "artifact_timing_v2",
+          "stages_clock": "client_monotonic",
+          "state": "not_published",
+          "transferred_bytes": 0
+        },
+        "inference_qualified": false,
+        "observed_cause": "RemoteArtifactError",
+        "pass": true,
+        "remaining_owned_entries": [],
+        "remote_cancellation_inferred": false,
+        "scope": "post_header_pre_body_client_cancel",
+        "temporary_removed": true
+      },
+      "server_result": {
+        "archive_bytes": 780740,
+        "archive_sha256": "8e3f6df9283a04093560ff655fd082285647b1bf41767c59b278611860b35d5a",
+        "artifact_id": "code_lora",
+        "bytes_read": 780740,
+        "bytes_written": 0,
+        "clock_id": "remote-process-monotonic:8aa4193e1b634b26b99364c80d73b7c4",
+        "delivery_mode": "prepublished_gzip_v1",
+        "error_type": "ConnectionResetError",
+        "event": "artifact_transfer",
+        "handler_completed_ns": 7939625757955,
+        "handler_started_ns": 7939624109749,
+        "object_open_completed_ns": 7939624259975,
+        "object_open_started_ns": 7939624215419,
+        "object_read_wall_ns": 324576,
+        "outcome": "failed",
+        "pack_performed": false,
+        "read_calls": 1,
+        "send_started_ns": 7939624574547,
+        "socket_write_wall_ns": 817357,
+        "temporary_created": false,
+        "timing_contract": "artifact_timing_v2",
+        "transfer_id": "09e08c7d905a421d8977361aec1ecc17"
+      },
+      "service_returncode": 0,
+      "watchdog_returncode": 0,
+      "service_path_removed": true,
+      "local_resource": {
+        "samples": 1,
+        "sampled_peak_bytes": 19103744,
+        "min_host_available_bytes": 116783026176,
+        "events": {
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0
+        },
+        "swap_peak_bytes": 0
+      },
+      "raw_sha256": {
+        "cancel_7b.jsonl": "dbb222f7104c997a94849e56294f31e3dc3b48f17eb17bc7372e8f0cc6f9aca0",
+        "cancel_7b_launch.json": "c724ee47d367c3c94edd1a69497450f3a7c966ed9f42546c6490a390a3e50911",
+        "remote_7b_after_cancel.jsonl": "83d8d84f952718f5e659c91059ef02ade497fe8d1322c3100f3d8074675d0ec5",
+        "run_cancel_7b.sh": "661e82f4ba46486e17ae556b0aedf989a781a86d51ea91b6e657c0d6e4974612",
+        "cancel_7b_launch.launch/watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cancel_7b_launch.launch/exec_receipt.json": "cf009213f54325f523f092cfec3d0525fbf8422055594fcaa9d1c4cd06e37d09",
+        "cancel_7b_launch.launch/watchdog.jsonl": "0abbf696e6378d4bd77c1703779e670b1ac1c659fd6f23034cd7756a57ac22cc",
+        "cancel_7b_launch.launch/service.log": "e377d760f94bd3e215dc7d3cfae17fcfabfedd4cf2aaea38e997546d4f293f82"
+      }
+    }
+  ],
+  "caveats": [
+    "One cancellation per model, not a performance sample.",
+    "Zero completed writes does not prove zero network bytes.",
+    "Cancellation cannot revoke object reads already performed."
+  ],
+  "terminal_raw_sha256": {
+    "cancel_3b_aux_cleanup.json": "f7003a72bc20576dda532ac15760e9ae75a063f03904a2db91be914b8a4786e2",
+    "terminal_cleanup_receipt.json": "7e90eb24ba529f81770633741922181e7d461084360918415b39cbeb2d91fd80",
+    "remote_monitor_complete.log": "c9200043f87982c28aee9d00e5562351c5b1d596cb75aa64bffe37c60d4e0b3f"
+  }
+}
