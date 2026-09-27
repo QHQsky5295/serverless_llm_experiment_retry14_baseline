@@ -57,4 +57,38 @@ P1 公式合同。此次修正的可证伪检查是：同一个 NVMe-hit 回调�
 全部中间失败日志保留，最终依据为 `regression5.log`。
 147 项旧投稿保护内容 SHA 无变化。当前没有真实性能增益结论。
 原始目录为 `results/ieee_tc/p2_backend_qualification/d90_20260927/`。
-真实 3B 联动尚未启动；须最终检查与备份后执行，结束后先校验和制表。
+源代码 `2f26d3233ed9d5723786d47d34830db4d441dd8a` 已推送并核对远端。
+
+## 3B 第一次真实联动：受控扩容失败，已清理
+
+| 检查 | 观测 |
+|---|---|
+| 初始副本 | 实际就绪，activation 46,791.79 ms |
+| 第二次启动 | controlled；物理分配检查拒绝 |
+| 计划 / 已执行推理请求 |100 /0 |
+| 真实制品获取 |0；空需求初始计划不算准备收益 |
+| 错误 |`physical GPU still has compute/owned/unknown contexts` |
+| 本服务峰值内存 |5,673,623,552 B；71 次采样 |
+| 主机最低可用内存 |110,412,017,664 B |
+| high / max / OOM / swap |0 /0 /0 /0 |
+| 实际模型租约 |`1a7fcfcfcd434f89bbb030b2daac0327` 已释放 |
+| 最终状态 |GPU compute 清空，服务域消失，工作缓存删除，池为0 |
+| 远端与外置组 |核对 invocation 后停止，无后台模型 |
+
+监测记录显示控制进程 PID 3240430 在采样16时已经分别持有 GPU1/2/3 上的
+268,435,456 B CUDA 上下文；此时模型工作进程尚未在 GPU0 上出现，后者首次
+出现在采样40。第二次受控启动因此不能把 GPU1 视为无上下文设备。不能把
+控制进程占卡从计量中删除，或豁免物理分配检查来绕过。
+
+源码存在明确的不当观测路径：`GPUMemoryMonitor.get_current_memory_info`
+先进入 `torch.cuda.device` 读取当前进程 allocator，再读取 NVML。
+当前进程的 allocator 不是子进程模型的 KV/LoRA 状态，而且控制面观察不应
+创建 CUDA 上下文。下一步以无 GPU 依赖替身测试隔离此路径，再将控制面
+设备观测与工作进程 allocator 观测分开；不能把未知的 worker allocator
+值填成零。实际 native admission 仍使用工作进程原生状态。该因果修正尚未
+实施或通过反事实重测，不声称问题已经解决。
+
+失败的 controlled activation 在进程内保留了2 GiB未确认 HOST reservation，
+没有虚构成功释放；真实服务进程结束后，cgroup/GPU外置核验均清空。
+所有失败原始数据保留。这不是可用 TTFT/GPU-s 性能点；不启动7B重跑同问题。
+汇总：`paper_results/ieee_tc/p2_backend/20260927_d90_3b_full_prefix_attempt1.json`。

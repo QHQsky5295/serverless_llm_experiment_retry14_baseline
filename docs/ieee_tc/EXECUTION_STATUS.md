@@ -2,6 +2,33 @@
 
 ## Current checkpoint — 2026-09-27 D90 bounded Full integration ready
 
+LATEST23:16:D90 3B attempt1 FAILED/CLEANED atcontrolledactivation,0/100requests,
+0HTTPfetch. Initialruntimeactuallyready46.791787s;secondphysicalallocation rejects
+existingcontexts. ServiceparentPID3240430alreadyowns256MiBeachonGPU1/2/3 atsample16;
+modelworker3245954GPU0firstsample40. GPUMemoryMonitor currentdevice sampling calls
+torch.cuda.device/memory_stats beforeNVML: likelydirectcontextcreationpath, must
+isolate withCPUtest and separatepassivecontrollerNVML/nativeworkerallocator.
+Do notexemptparentcontext/relaxphysicalguard or claimcausalfixbeforeverification.
+71samplespeak5673623552B,minhost110412017664B,high/max/OOM/swap0. Service/watcher2/0.
+GPU/service/workspacesgone;pool0;actuallease1a7fcfcfcd434f89bbb030b2daac0327released.
+Failedactivation2GiBHOSTreservation conservativelyretainedinprocess,notfakeclosed.
+Matchingemptyaux24dc5ec30ab64845bb82fe8fa1a8923fSTOPPED afteractualprocs/populated0.
+Matchingremote monitor0fe8fa51 STOPPED;bothservicesinactive/MainPID0/success.
+NO LIVE MODEL/TMUX/REMOTE. Failuretable D90 doc and curated20260927_d90_3b_full_prefix_attempt1.json.
+NEXT evidencebackup thenpassivecontrollerobservationfix;do notlaunch7B/samefailed
+configuration. AllD89/D88measurementsretained, baselinesPAUSED, main/A/Snotstarted.
+
+LIVE23:14:D90 3B bounded Full prefix attempt1 STARTED in tmux tc-d90-3b-attempt1.
+Code2f26d3233ed9d5723786d47d34830db4d441dd8a PUSHED/freshremoteSHA matched;
+rawcode_push_receipt.json. Oneinitial+onecontrolledbefore100originalrequests;
+not commonnotice/mainperformance. SameD89profiles/D88parentconfig/actualfactory.
+Remote3B1ba54fee5b6f477292714ac5c4553d9f PID564450,
+7B586e7389bf694669b8e45abca8c3036d PID564452,
+monitor0fe8fa5135864f12957777fd7f9d37fa PID564455 ACTIVE.
+Monitorunit primelora-artifact-monitor-d90.service/logremote tc/d90_20260927/remote_monitor.log.
+Bothdirecthealthpass;link1000. No source/remotechanges duringinference.
+Observe sameattempt toterminal,cleanup/validate/table before7B. No othermodelrun.
+
 D90 existing preflight now exercises actual initial+one controlled activation,
 then existing ScenarioRunner.run on original100requestprefix. NOTmain/A4natural/
 deployment_notice performance. Production Full guard untouched. Main and diagnostic

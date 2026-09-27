@@ -1,0 +1,142 @@
+{
+  "kind": "full_prefix_failed_activation_evidence_v1",
+  "model": "3b",
+  "executed_commit": "2f26d3233ed9d5723786d47d34830db4d441dd8a",
+  "planned_requests": 100,
+  "executed_requests": 0,
+  "remote_transfers": 0,
+  "formal_performance_result": false,
+  "full_qualified": false,
+  "stage": "controlled_activation",
+  "error": "physical GPU still has compute/owned/unknown contexts",
+  "initial_activation_ms": 46791.78717600007,
+  "activations": [
+    {
+      "activation_id": "ieee-activation-83cf1ddc4d434cb7b6cd76f7b7af8391",
+      "target_replica": "ieee-activation-83cf1ddc4d434cb7b6cd76f7b7af8391",
+      "category": "initial",
+      "policy": "full",
+      "trigger_at": 29321.146123059,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "state": "runtime_ready",
+      "plan_sha256": "0e951d8d2dfd5321341f52957f5c2848089dc115c61a6c0fb415a6e63f57f0f5",
+      "preparation_state": "completed",
+      "preparation_terminal_at": 29321.558505844,
+      "engine_ready_at": 29367.937910235,
+      "native_owner_id": "bf3183e2880443478d7fe95672b3dbbc"
+    },
+    {
+      "activation_id": "ieee-activation-47da48d6abf546a6ac12f7ad0d9d4756",
+      "target_replica": "ieee-activation-47da48d6abf546a6ac12f7ad0d9d4756",
+      "category": "controlled",
+      "policy": "full",
+      "trigger_at": 29367.941694158,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "state": "startup_ownership_unresolved",
+      "plan_sha256": "a86e8bfac312711e188b2849ad6070e226e158314e3cd4a833461341aa74f4c7",
+      "preparation_state": "cancelled",
+      "error_type": "RuntimeError",
+      "preparation_error": "CancelledError",
+      "preparation_terminal_at": 29368.213369223,
+      "startup_error": "RuntimeError"
+    }
+  ],
+  "owned_gpu_process_first_observations": [
+    {
+      "pid": 3240430,
+      "device_index": 1,
+      "first_sample": 16,
+      "first_monotonic": 29321.518774899,
+      "used_gpu_memory_bytes": 268435456
+    },
+    {
+      "pid": 3240430,
+      "device_index": 2,
+      "first_sample": 16,
+      "first_monotonic": 29321.518774899,
+      "used_gpu_memory_bytes": 268435456
+    },
+    {
+      "pid": 3240430,
+      "device_index": 3,
+      "first_sample": 16,
+      "first_monotonic": 29321.518774899,
+      "used_gpu_memory_bytes": 268435456
+    },
+    {
+      "pid": 3245954,
+      "device_index": 0,
+      "first_sample": 40,
+      "first_monotonic": 29345.821339311,
+      "used_gpu_memory_bytes": 335544320
+    },
+    {
+      "pid": 3240430,
+      "device_index": 0,
+      "first_sample": 70,
+      "first_monotonic": 29376.235321223,
+      "used_gpu_memory_bytes": 268435456
+    }
+  ],
+  "resources": {
+    "samples": 71,
+    "peak_bytes": 5673623552,
+    "min_host_available_bytes": 110412017664,
+    "memory_events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "max_swap_bytes": 0
+  },
+  "cleanup": {
+    "service_returncode": 2,
+    "watchdog_returncode": 0,
+    "native_gpu_context_release_confirmed": true,
+    "service_path_removed": true,
+    "workspaces_removed": true,
+    "pool_count": 0,
+    "physical_allocations": [
+      {
+        "lease_id": "1a7fcfcfcd434f89bbb030b2daac0327",
+        "released": true
+      }
+    ],
+    "retained_activation_reservations": {
+      "ieee-activation-47da48d6abf546a6ac12f7ad0d9d4756": 2147483648
+    },
+    "matching_auxiliary_stopped": true,
+    "matching_remote_monitor_and_services_stopped": true
+  },
+  "references": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/3b_full_prefix_attempt1.json",
+      "sha256": "97bd0d95c8c729bca0acfe27fb3a50bda35bc25778f67848384905acc173402e"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/3b_full_prefix_attempt1_launch.json",
+      "sha256": "6c2accdb5a903dc5fb6a3ae122fb1f3e36cd83bb97db49fcc1c97d1658444bda"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/3b_full_prefix_attempt1_launch.launch/watchdog.jsonl",
+      "sha256": "ebd30306aa6d36f0afc518fc130cd0c5b6a0b8b516ec25db0afce07b1fc34415"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/remote_start1.log",
+      "sha256": "f4a5699398a331ebb50336dffbb6235aea0d3c0639a2cdbb8f816968409f5b4b"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/remote_preinference_health1.json",
+      "sha256": "2cca432b5b95f02babdde63dafb29d0bc1589217738668957c3108f14e93b98b"
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  }
+}
