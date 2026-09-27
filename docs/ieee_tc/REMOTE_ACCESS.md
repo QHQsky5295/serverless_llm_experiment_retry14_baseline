@@ -451,3 +451,31 @@ SHA8bc12cb37ee7bde595ddc6287b45282dca465037259e035bdda6e04373e07497.
 |7B|Not started|Wait for3B completion/cleanup/table|
 |Host safety|~102GiB available; no max/OOM/swap event|Offline high events retained|
 |Inference / new HTTP qualification|Not started|No model or comparative result claimed|
+
+### D79 observed transfer stages and integration qualification
+
+Published serving now records object-open duration, accumulated object-read
+duration and accumulated blocking socket-write duration, plus bytes read and
+successfully written. Read duration can include filesystem/page-cache/storage
+wait. Socket writes include backpressure and do not measure isolated wire time;
+failed writes retain elapsed time without inventing partial byte counts.
+All use one remote monotonic clock; client receive/verify spans remain separate.
+No cross-host subtraction or sum of overlapping spans is treated as E2E.
+Python3.12 primary contracts: https://docs.python.org/3.12/library/socket.html#socket.socket.sendall
+and https://docs.python.org/3.12/library/time.html#time.monotonic_ns.
+
+| Qualification | Observed result | Claim boundary |
+|---|---|---|
+|HTTP + real file-owner/router path|Cold fetch verifies archive/content; following GPU hit makes no second transfer|CPU inference fixture only|
+|HTTP/lifecycle/preparation suite|182pass,6.310s|Source checks, not Full performance|
+|Offline basic smoke|288pass,21.870s|Bounded CPU, terminal pass; verbose capture truncated|
+|Old-result protection|147unchanged|No overwritten legacy results|
+|Live offline3B publication at16:45|381/500, same invocation|Still incomplete, no HTTP/profile claim|
+
+Raw d78_20260927/published_integration_suite.json SHA
+18c77c24c096c2b0dae82a4b9b1d2f056f40080c2cf08b5d500d914e25f554be;
+d79_basic_smoke_offline_terminal.txt SHA
+08c6bc1f71f1cb0b53d687e48ae28c975c0bdd3da4fe51d4cc2cee1d9d9b99e7.
+Failed launcher/test-development attempts and the explicitly TERM-stopped online
+smoke remain raw evidence; they are not passes or inference-performance failures.
+No D79 serving code is substituted underneath live D78 publication.

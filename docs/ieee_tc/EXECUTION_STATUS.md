@@ -38,6 +38,35 @@
 
 ## D78 approved prepublished cache: 3B publication LIVE (do not duplicate)
 
+### D79 published-path integration and telemetry, 2026-09-27
+
+- Published server separately records object-open/read wall spans, socket-write
+  wall spans and observed byte counts. Blocking writes include backpressure,
+  not pure network time; reads include page-cache/storage/system wait. All spans
+  use the remote monotonic clock and are nested, not added to client E2E.
+- Actual local HTTP + file-owner/router test confirms one cold Remote fetch,
+  exact archive/content verification, source lease release and measured loading;
+  a subsequent GPU hit does NOT fetch again. Inference is a CPU fixture, not
+  numerical LoRA correctness or performance evidence. No core formula changed.
+-182 HTTP/request-lifecycle/preparation checks PASS6.310s; raw
+  published_integration_suite.json SHA18c77c24c096c2b0dae82a4b9b1d2f056f40080c2cf08b5d500d914e25f554be.
+-288 offline basic-smoke checks PASS21.870s, bounded unit runtime29.367s,
+  CPU29.696s; terminal MainPID0/inactive/collected. Terminal capture was truncated
+  (1200-token read of17616tokens); retained terminal footer is explicitly NOT a
+  full log. d79_basic_smoke_offline_terminal.txt SHA
+  08c6bc1f71f1cb0b53d687e48ae28c975c0bdd3da4fe51d4cc2cee1d9d9b99e7.
+- Three failed test attempts retained: missing working directory; test fixture
+  reused an event-loop-owned queue across loops; misplaced pre-existing test
+  tail assertion. Fixed launcher/test structure only; old assertions preserved.
+  Initial smoke without offline variables stalled on dummy-model HEAD; exact
+  owned invocation35b1b8b3971a404b9c5526811ef16b2a stopped/TERM. NOT a pass;
+  offline rerun above is the completed test. No real-model run was cancelled.
+- Protected147 entries unchanged. Current D78 publication continues the SAME
+  e00e3f7c source; no live source replacement/restart. D79 telemetry will deploy
+  separately after backup, with no regeneration of valid immutable caches.
+-16:45 observation381/5003B objects, PID128063/same invocation, still running.
+  Baselines remain PAUSED, Full profiles and integrated qualification pending.
+
 - User explicitly APPROVED once-only immutable compressed transport cache,
   expected1.47GiB, no second extracted pool/new weights/trace. No longer a
   pending choice. Source plan and same current approved snapshot include this

@@ -884,6 +884,82 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
             if key.tier == 'remote':
                 self.assertEqual(slot.service_cost_model.sample_counts(key), dict(d_ms=0, t_ms=0, o_ms=0))
 
+    def test_published_http_delivery_keeps_measured_remote_path_and_subsequent_gpu_reuse(self):
+        """Actual HTTP/file owner/router path; inference remains a CPU fixture."""
+        from remote_artifact_node.server import ArtifactServer, ArtifactHandler, prepare_delivery_cache
+        from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+        from tests.test_http_artifact_store import content_manifest
+        runner, slot, trace, plan, owner, _ = self.build('remote')
+        root = runner.nvme_dir.parent
+        origin, cache = root/'published-origin', root/'delivery-cache'
+        payload = {'adapter_config.json': b'{"r":8}', 'weights': b'fixture-not-a-model'}
+        for name, data in payload.items():
+            target = origin/trace.adapter_id/name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
+        index = root/'content.json'
+        index.write_text(json.dumps(content_manifest(artifact_id=trace.adapter_id, files=payload)))
+        publication = prepare_delivery_cache(origin, index, cache)
+        records = []
+        server = ArtifactServer(('127.0.0.1', 0), ArtifactHandler,
+            root=origin, delivery_cache=cache, event_sink=records.append)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            client = HttpArtifactStoreClient(endpoint=f'http://127.0.0.1:{server.server_port}',
+                required_delivery_mode='prepublished_gzip_v1')
+            client.configure_content_manifest(json.loads(index.read_text()))
+            runner._remote_artifact_client = client
+            runner._ieee_artifact_identities[trace.adapter_id] = client.routing_identity(
+                trace.adapter_id, payload['adapter_config.json'])
+            self.bind_preparation_fixture(runner, slot)
+            with asyncio.Runner() as event_loop, patch('remote_artifact_node.server._sha_file',
+                       side_effect=AssertionError('request must not scan published/source objects')):
+                cold = event_loop.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+                self.assertTrue(cold.success, cold.error)
+                evidence = cold.gpu_reference_evidence
+                transfer = evidence['remote_preparation']
+                self.assertEqual(cold.readiness_tier_before_dispatch, 'remote')
+                self.assertEqual(transfer['remote_delivery_mode'], 'prepublished_gzip_v1')
+                self.assertFalse(transfer['remote_pack_performed'])
+                self.assertTrue(transfer['published_archive_verified'])
+                self.assertTrue(transfer['content_verified'])
+                self.assertEqual(transfer['remote_archive_sha256'],
+                                 publication['artifacts'][0]['archive_sha256'])
+                self.assertEqual(transfer['transferred_bytes'],
+                                 publication['artifacts'][0]['archive_bytes'])
+                self.assertEqual(evidence['local_source_reference']['state'], 'released')
+                preparation, service = evidence['preparation_interval'], evidence['service_intervals']
+                self.assertTrue(preparation['cost_model_updated'])
+                self.assertEqual(preparation['remote_transfer_id'], transfer['transfer_id'])
+                self.assertLessEqual(transfer['published_monotonic_s'],
+                                     preparation['native_started_monotonic_s'])
+                self.assertAlmostEqual(preparation['d_ms']+preparation['excluded_before_loading_ms'],
+                    1000*(service['acquired_monotonic_s']-service['admitted_monotonic_s']))
+                # Only information already obtained by the first actual request.
+                trace.request_id = 'req-published-gpu-hit'
+                warm = event_loop.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+                self.assertTrue(warm.success, warm.error)
+                self.assertEqual(warm.readiness_tier_before_dispatch, 'gpu')
+                self.assertNotIn('remote_preparation', warm.gpu_reference_evidence)
+                self.assertEqual(len(runner._remote_transfer_evidence), 1)
+                runner._resolve_lora.assert_not_awaited()
+                self.assertEqual(slot.active_requests, 0)
+                self.assertEqual(owner.snapshot()['live_leases'], 0)
+                self.assertFalse(runner._stack.residency_manager.local_source_references.materializations)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]['transfer_id'], transfer['http_transfer_id'])
+        self.assertEqual(records[0]['bytes_written'], transfer['transferred_bytes'])
+        self.assertFalse(records[0]['pack_performed'])
+        self.assertFalse(records[0]['temporary_created'])
+        for tier in ('remote', 'gpu'):
+            self.assertEqual(sum(slot.service_cost_model.sample_counts(key)['t_ms']
+                for key in slot.service_cost_model._profiles if key.tier == tier), 1)
+
     def test_file_epoch_conflict_retries_selection_without_leaking_reference(self):
         runner, slot, trace, plan, owner, _ = self.build('remote')
         self.file_source(runner, trace, publish=True)

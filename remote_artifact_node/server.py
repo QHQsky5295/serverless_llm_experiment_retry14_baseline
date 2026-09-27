@@ -404,10 +404,13 @@ class ArtifactHandler(BaseHTTPRequestHandler):
                       handler_started_ns=self.handler_started_ns, bytes_written=0,
                       pack_performed=False, temporary_created=False,
                       archive_bytes=entry['archive_bytes'], archive_sha256=entry['archive_sha256'],
+                      bytes_read=0, read_calls=0, object_read_wall_ns=0, socket_write_wall_ns=0,
                       outcome='incomplete')
         try:
             try:
+                record['object_open_started_ns'] = time.monotonic_ns()
                 fd = os.open(entry['path'], os.O_RDONLY | os.O_NOFOLLOW)
+                record['object_open_completed_ns'] = time.monotonic_ns()
             except OSError as exc:
                 record.update(outcome='object_unavailable', error_type=type(exc).__name__)
                 self.send_error(HTTPStatus.CONFLICT, 'published object unavailable')
@@ -428,8 +431,24 @@ class ArtifactHandler(BaseHTTPRequestHandler):
                                  self.server.delivery_manifest['content_manifest_sha256'])
                 self.end_headers()
                 record['send_started_ns'] = time.monotonic_ns()
-                while chunk := source.read(1024 * 1024):
-                    self.wfile.write(chunk)
+                while True:
+                    started = time.monotonic_ns()
+                    try:
+                        chunk = source.read(1024 * 1024)
+                    finally:
+                        record['object_read_wall_ns'] += time.monotonic_ns() - started
+                        record['read_calls'] += 1
+                    if not chunk:
+                        break
+                    record['bytes_read'] += len(chunk)
+                    started = time.monotonic_ns()
+                    try:
+                        self.wfile.write(chunk)
+                    finally:
+                        # Blocking socket write includes backpressure, not just
+                        # wire time. Failed writes retain elapsed time but do
+                        # not claim an unobserved successful byte count.
+                        record['socket_write_wall_ns'] += time.monotonic_ns() - started
                     record['bytes_written'] += len(chunk)
                 record['send_completed_ns'] = time.monotonic_ns()
                 record['outcome'] = 'sent'

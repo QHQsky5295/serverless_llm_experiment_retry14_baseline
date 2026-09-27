@@ -285,6 +285,17 @@ class AtomicArtifactPublication(unittest.TestCase):
         self.assertNotIn('pack_started_ns', records[0])
         self.assertEqual(records[0]['bytes_written'], evidence['transferred_bytes'])
 
+        record = records[0]
+        self.assertEqual(record['bytes_read'], record['bytes_written'])
+        self.assertGreaterEqual(record['read_calls'], 2)  # payload then EOF
+        self.assertLessEqual(record['handler_started_ns'], record['object_open_started_ns'])
+        self.assertLessEqual(record['object_open_started_ns'], record['object_open_completed_ns'])
+        self.assertLessEqual(record['object_open_completed_ns'], record['send_started_ns'])
+        self.assertGreaterEqual(record['object_read_wall_ns'], 0)
+        self.assertGreaterEqual(record['socket_write_wall_ns'], 0)
+        self.assertLessEqual(record['object_read_wall_ns'] + record['socket_write_wall_ns'],
+                             record['send_completed_ns'] - record['send_started_ns'])
+
     def test_published_cache_rejects_corrupt_source_without_completion_manifest(self):
         from remote_artifact_node.server import prepare_delivery_cache, load_delivery_cache
         root = self.root/'bad-source'
