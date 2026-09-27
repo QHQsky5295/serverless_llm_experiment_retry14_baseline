@@ -27,6 +27,18 @@ from ..utils.config import Config
 from ..utils.logger import get_logger
 
 
+class PreparationPlanSuperseded(RuntimeError):
+    """A validated native acknowledgement that no stale plan was registered.
+
+    Internal control flow only, never reconstructed by matching exception text
+    from an RPC. The caller must finish all owned work before starting a new
+    planning epoch; this does not authorize retrying the rejected objective.
+    """
+    def __init__(self, receipt):
+        self.receipt = copy.deepcopy(receipt)
+        super().__init__('native preparation snapshot superseded before registration')
+
+
 class PreloadingStrategy(Enum):
     """Preloading strategy options"""
     GREEDY_VALUE = "greedy_value"          # Greedy by value per byte

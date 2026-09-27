@@ -1812,6 +1812,7 @@ class MixedOwnedPreparation(unittest.TestCase):
         asyncio.run(run())
 
     def test_stale_initial_native_epoch_rejects_before_remote_gpu_staging(self):
+        from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
         fixture,runner,queue,slot,owner,snapshot,loads=self.make(remote_gpu=True)
         async def run():
             plan=await runner._plan_ieee_preparation_for_slot(slot=slot,mode='residency')
@@ -1820,10 +1821,48 @@ class MixedOwnedPreparation(unittest.TestCase):
                 expected_owner_id=owner.owner_id,expected_epoch=owner.snapshot()['epoch'])
             owner.release(lease_id='intervening',expected_owner_id=owner.owner_id)
             calls=fixture.client._opener.open.call_count
-            with self.assertRaisesRegex(ValueError,'current native source epoch'):
+            with self.assertRaises(PreparationPlanSuperseded):
                 await self.execute(runner,slot,plan)
             self.assertEqual(fixture.client._opener.open.call_count,calls)
             self.assertFalse(loads)
+            self.check_clean(fixture,runner,owner)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_residency_conflict_ends_epoch_then_next_normal_epoch_uses_fresh_state(self):
+        import copy
+        fixture,runner,queue,slot,owner,snapshot,loads=self.make(remote_gpu=True)
+        original=runner._plan_ieee_preparation_for_slot
+        frozen=[]
+        async def crossed(**kwargs):
+            plan=await original(**kwargs)
+            frozen.append(copy.deepcopy(plan))
+            if len(frozen)==1:
+                owner.acquire(lease_id='business',adapter_int_id=InferenceEngine._lora_int_id('b'),
+                    expected_owner_id=owner.owner_id,expected_epoch=owner.snapshot()['epoch'])
+                owner.release(lease_id='business',expected_owner_id=owner.owner_id)
+            return plan
+        runner._plan_ieee_preparation_for_slot=AsyncMock(side_effect=crossed)
+        runner._coordination_enabled=True
+        async def run():
+            record={}
+            calls=fixture.client._opener.open.call_count
+            result=await asyncio.wait_for(runner._execute_ieee_residency_epoch(slot,record),3)
+            self.assertEqual(record['state'],'superseded')
+            self.assertEqual(result['state'],'superseded')
+            self.assertIsNone(result['results'])
+            self.assertEqual(runner._plan_ieee_preparation_for_slot.await_count,1)
+            self.assertEqual(result['plan'],frozen[0])
+            self.assertEqual(fixture.client._opener.open.call_count,calls)
+            self.assertFalse(loads)
+            self.assertEqual(runner._ieee_gpu_preparation_plans[-1]['state'],'superseded')
+            self.assertEqual(runner._ieee_file_preparation_plans[-1]['state'],'superseded')
+            self.check_clean(fixture,runner,owner)
+            next_record={}
+            await asyncio.wait_for(runner._execute_ieee_residency_epoch(slot,next_record),3)
+            self.assertEqual(next_record['state'],'completed')
+            self.assertNotEqual(next_record['plan_sha256'],record['plan_sha256'])
+            self.assertEqual(runner._plan_ieee_preparation_for_slot.await_count,2)
             self.check_clean(fixture,runner,owner)
             await queue.close()
         asyncio.run(run())

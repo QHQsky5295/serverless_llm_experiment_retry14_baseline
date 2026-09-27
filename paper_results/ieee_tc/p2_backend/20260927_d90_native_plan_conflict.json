@@ -1,0 +1,70 @@
+{
+  "kind": "native_plan_registration_conflict_cpu_validation_v1",
+  "full_qualified": false,
+  "formal_performance_result": false,
+  "original_real_failure_predicate_identified": false,
+  "red_tests": {
+    "tests": 3,
+    "errors": 2
+  },
+  "targeted_tests": 22,
+  "regression": {
+    "tests": 788,
+    "seconds": 41.934,
+    "passed": true
+  },
+  "unchanged": [
+    "IEEE nine equations",
+    "model config",
+    "measured initializer",
+    "actual physical admission and reference checks",
+    "normal control cadence",
+    "unknown native RPC no-retry"
+  ],
+  "sources": [
+    {
+      "path": "faaslora/memory/residency_manager.py",
+      "sha256": "f84c5d8c3ec2213a3f59ed48ee87eaec2d3893f7319949e94cfc0f934a4e4f47"
+    },
+    {
+      "path": "faaslora/preloading/preloading_planner.py",
+      "sha256": "39cb3bcdbda2ba6e63db66823fd7aad65b6cad162c75699230e7c5168b916667"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "sha256": "c831de0846bfb22278416b6492eff66d2c5edb730235139c1a9739d6ee20aa0a"
+    },
+    {
+      "path": "scripts/ieee_tc_preflight.py",
+      "sha256": "1860b9ab32972a90f29af569913d6851936d1da298b0efd2892d375bae1110ba"
+    },
+    {
+      "path": "tests/test_ieee_tc_gpu_references.py",
+      "sha256": "3eb55a0d44150e6f4810cf52049298afb620099952a9e5d74379626433154001"
+    },
+    {
+      "path": "tests/test_ieee_tc_transfer_pressure.py",
+      "sha256": "1842dc5a223c34679bbf98ab0c2b02320f9ba17b43ca8fb586aba46d25d0c331"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/epoch_red1.log",
+      "sha256": "9586b3eb36fa2e1c498541ed191861ca48fd7932e0290734d7be0f16fadbbe35"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/epoch_green1.log",
+      "sha256": "0739cae0740c8de55ec0d9cb482941c70c4b3cf6e1f70912023acfe14189a63f"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/epoch_regression1.log",
+      "sha256": "ba53266ddb5864dd4e023a23abeb0d5e9455e326c3aac26b33af3dfd756fa6d4"
+    }
+  ],
+  "protected_seal": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  }
+}

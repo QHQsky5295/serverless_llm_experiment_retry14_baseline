@@ -1,6 +1,51 @@
 # IEEE TC execution status
 
-## Current checkpoint — 2026-09-27 D90 RPC correction ready for attempt3
+## Current checkpoint — 2026-09-27 D90 attempt3 FAILED/CLEANED
+
+23:59 CPUcorrectionCOMPLETE: legit acquire/release between snapshot/register
+reproduced oldfailure. Native returns explicit registered=false onlyforstrictly
+olderrevision afteridentity/targetvalidation; controller requires exactowner/
+clock/plan/expected/current, closesownership, marks superseded. Nextnormal
+residencytick replans; noimmediateretry, nohandoffrewriting, noformula/configchange.
+Malformed/unknownRPC/cancel/closurefailures remainfatal/cancelled.22targetedPASS;
+final788related/basicPASS41.934s,rawepoch_regression1.log. Red2errors retained.
+Originalrealguardcombinedpredicates: exactoldcause stillnotproven. ActualGPU
+planledger nowretained, same-epoch invariant errorlogs separated. No newGPUrun.
+NEXT backup testedcheckpoint, thenpreservepartialrequestrows oncontrollerabort
+in existingrunner beforeunique3Bprefixattempt4. Do notrerunD78/D80/D81/D88/D89,
+no7Bbefore3Bcleanup/table; no Fullqualification claim. Models/remotesstopped.
+
+Latest supersedes live notes below: attempt3 reached actual concurrent business,
+then native plan registration rejected its complete-current-source predicate.
+Both activations ready,38residencyepochs completed/1failed; lastlive counter
+arrived9/done5/ok5. Aborted runner returned0requestrows: NOTzeroactualinference,
+NOTverified100, notperformance. Original guard combines epoch/slots/coverage/
+sourceidentity; exact failing predicate unrecorded, do not assert a proven race.
+168samplespeak8954916864B/minhost107262668800B,high/max/OOM/swap0.
+5HTTP UUIDs exact,11609599wire/200896988logicalB,no packing. Bothphysicalleases
+released,HOSTreservationsclosed,workspacesremoved,service/GPUgone. Matchingempty
+aux447f832b stopped afterprocs/populated0; matchingremotemonitorc355b7ac stopped,
+bothservicesandmonitorinactive/MainPID0/success. NO LIVE MODEL/TMUX/REMOTE.
+Curated20260927_d90_3b_full_prefix_attempt3.json andD90table preserve failure;
+147protectedentriesunchanged. NEXT CPU isolate legitimate native epoch change
+before registration from malformed plan/identity/unknown RPC; no blindretry,
+no guardrelaxation, no7B/baseline/main/A/S launch. Full remainsunqualified.
+
+LIVE23:43:D90 3B attempt3 STARTED tmux tc-d90-3b-attempt3, sourcef6ef5d6
+unchanged/pushed. Same100originalprefix500pool/D89profiles/D88config/driver.
+Remote3Bfd9850c726034919a84b9283a8a2dccaPID590223,
+7B13ff857521704e88a5a010a055b5104cPID590225,
+monitorc355b7ac955945d3b6104789e3cce261PID590228 ACTIVE,
+unitprimelora-artifact-monitor-d90a3.service/logremote_monitor_attempt3.log.
+Bothdirecthealthpass,link1000;147protectedunchanged/9source-scriptrefsverified.
+No model/source/remotechange duringinference. Monitor sameattempttoterminal,
+cleanup/validate/table BEFORE any7B. Main/A/S NOTqualified; baselinesPAUSED.
+
+BACKEDUP:f6ef5d6d0a440290117e52b02a3a750a403145bc PUSHED andfreshremoteSHA
+matched;rawd90/rpc_fix_push_receipt.json. Do not repeat completed tests/backup.
+NEXTreadfullplan/ledgerandsafetythenpreparedunique3Bprefixattempt3. No live
+model/tmux/remote;314GiBdiskfree,MemAvailable113902456KiB,swap0 atcheckpoint.
+BaselineHEAD9e2cf28903ed11bc8ee891dd4cc9636b94307573unchanged/PAUSED.
 
 LATEST23:42:ExistingnewlineJSON nowshared8MiBencodedbodybound,bothsendandreceive;
 nativeunknownresponsesstillNOretry/cancellationownershipunchanged. PerRPC wire

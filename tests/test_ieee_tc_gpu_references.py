@@ -1816,6 +1816,101 @@ class OwnedNativePreparationPlans(unittest.TestCase):
         with self.assertRaises(ValueError):
             owner.register_preparation_plan(**(kwargs | {'plan_id': 'lost-register'}))
 
+    def test_intervening_reference_is_explicit_unregistered_conflict_not_rpc_failure(self):
+        case, _, _, _ = self.make()
+        owner, objective = case.owner, case.epoch()
+        owner.acquire(lease_id='business', adapter_int_id=3,
+            expected_owner_id=owner.owner_id, expected_epoch=owner.snapshot()['epoch'])
+        owner.release(lease_id='business', expected_owner_id=owner.owner_id)
+        before = owner.snapshot()
+        receipt = owner.register_preparation_plan(plan_id='stale', objective=objective,
+            target_adapter_ids=[3, 4], expected_owner_id=owner.owner_id)
+        self.assertIs(receipt['registered'], False)
+        self.assertEqual(receipt['reason'], 'stale_preparation_epoch')
+        self.assertEqual(receipt['expected_epoch'], objective['epoch'])
+        self.assertEqual(receipt['epoch'], before['epoch'])
+        self.assertGreater(receipt['epoch'], receipt['expected_epoch'])
+        self.assertEqual(owner.snapshot(), before)
+        self.assertNotIn('stale', owner._preparation_plans)
+        owner.close_preparation_plan(plan_id='stale', expected_owner_id=owner.owner_id)
+        with self.assertRaisesRegex(ValueError, 'closed preparation'):
+            owner.register_preparation_plan(plan_id='stale', objective=objective,
+                target_adapter_ids=[3, 4], expected_owner_id=owner.owner_id)
+
+    def test_malformed_target_still_fails_even_when_snapshot_is_old(self):
+        case, _, _, _ = self.make()
+        owner, objective = case.owner, case.epoch()
+        owner.acquire(lease_id='business', adapter_int_id=3,
+            expected_owner_id=owner.owner_id, expected_epoch=owner.snapshot()['epoch'])
+        owner.release(lease_id='business', expected_owner_id=owner.owner_id)
+        with self.assertRaises(ValueError):
+            owner.register_preparation_plan(plan_id='invalid', objective=objective,
+                target_adapter_ids=[99], expected_owner_id=owner.owner_id)
+        self.assertNotIn('invalid', owner._preparation_plans)
+
+    def test_invalid_or_unknown_registration_reply_never_becomes_superseded(self):
+        for fault in ('unknown_rpc', 'wrong_plan', 'same_epoch', 'wrong_reason', 'wrong_owner'):
+            with self.subTest(fault=fault):
+                case, runner, slot, response = self.make()
+                objective = case.epoch()
+                original = slot.engine.ieee_gpu_reference.side_effect
+                async def crossed(*, operation, **kwargs):
+                    if operation != 'register_preparation_plan':
+                        return await original(operation=operation, **kwargs)
+                    if fault == 'unknown_rpc':
+                        raise RuntimeError('stale_preparation_epoch with unknown RPC outcome')
+                    row = response(dict(case.owner.snapshot(), registered=False,
+                        plan_id=kwargs['plan_id'], reason='stale_preparation_epoch',
+                        expected_epoch=objective['epoch']))
+                    row['epoch'] = objective['epoch'] + 1
+                    if fault == 'wrong_plan': row['plan_id'] = 'other'
+                    if fault == 'same_epoch': row['epoch'] = objective['epoch']
+                    if fault == 'wrong_reason': row['reason'] = 'unclassified'
+                    if fault == 'wrong_owner': row['owner_id'] = 'other'
+                    return row
+                slot.engine.ieee_gpu_reference.side_effect = crossed
+                async def run():
+                    with self.assertRaises((RuntimeError, ValueError)) as cm:
+                        await runner._run_ieee_gpu_preparation_plan(slot=slot,
+                            objective=objective, target_adapter_ids=[4], trigger_reason='residency')
+                    self.assertNotEqual(type(cm.exception).__name__, 'PreparationPlanSuperseded')
+                    self.assertEqual(runner._ieee_gpu_preparation_plans[-1]['state'], 'failed')
+                    slot.engine.ieee_prepare_host.assert_not_awaited()
+                    self.assertFalse(case.owner.snapshot()['pending_preparation_targets'])
+                    await runner._stack.preloading_manager.ieee_movements.close()
+                asyncio.run(run())
+
+    def test_cancelled_stale_register_is_cancelled_and_closes_before_return(self):
+        case, runner, slot, _ = self.make()
+        objective = case.epoch()
+        original = slot.engine.ieee_gpu_reference.side_effect
+        async def run():
+            entered, proceed = asyncio.Event(), asyncio.Event()
+            async def crossed(*, operation, **kwargs):
+                if operation == 'register_preparation_plan':
+                    case.owner.acquire(lease_id='business',adapter_int_id=3,
+                        expected_owner_id=case.owner.owner_id,expected_epoch=case.owner.snapshot()['epoch'])
+                    case.owner.release(lease_id='business',expected_owner_id=case.owner.owner_id)
+                    entered.set()
+                    await proceed.wait()
+                return await original(operation=operation, **kwargs)
+            slot.engine.ieee_gpu_reference.side_effect = crossed
+            task = asyncio.create_task(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                objective=objective, target_adapter_ids=[4], trigger_reason='residency'))
+            await entered.wait()
+            task.cancel()
+            await asyncio.sleep(0)
+            self.assertFalse(task.done())
+            proceed.set()
+            with self.assertRaises(asyncio.CancelledError): await task
+            record = runner._ieee_gpu_preparation_plans[-1]
+            self.assertEqual(record['state'], 'cancelled')
+            self.assertTrue(record['close_receipt']['closed'])
+            slot.engine.ieee_prepare_host.assert_not_awaited()
+            self.assertFalse(case.owner.snapshot()['pending_preparation_targets'])
+            await runner._stack.preloading_manager.ieee_movements.close()
+        asyncio.run(asyncio.wait_for(run(), 3))
+
     def test_pending_target_is_not_replacement_victim_and_frozen_objective_survives_own_work(self):
         case, _, _, _ = self.make()
         owner, epoch = case.owner, case.epoch()

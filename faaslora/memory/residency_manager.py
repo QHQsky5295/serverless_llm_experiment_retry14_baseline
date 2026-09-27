@@ -1544,15 +1544,28 @@ class IEEEBackendGPUReferences:
             return dict(registered=True, plan_id=plan_id, **self.snapshot())
         rows = {row['adapter_int_id']: row for row in frozen['sources']}
         mixed = frozen['kind'] == 'ieee_owned_gpu_objective_v2'
-        cpu_ids = set(self._caches()[0])
-        covered = cpu_ids.issubset(rows) if mixed else set(rows) == cpu_ids
-        if (frozen['epoch'] != self.epoch or tuple(frozen['slot_adapter_ids']) != slots
-                or not covered or not set(targets).issubset(rows)
-                or any(self._sources.get(a) != (row['adapter_id'], row['lora_path'])
-                       for a, row in rows.items() if a in cpu_ids)):
-            raise ValueError('preparation plan requires its complete current native source epoch')
+        if not set(targets).issubset(rows):
+            raise ValueError('preparation plan requires its complete current native source epoch: unknown target')
         if mixed and set(targets) != {r['adapter_int_id'] for r in frozen['gpu_candidates']}:
             raise ValueError('mixed preparation targets differ from the selected GPU set')
+        # The snapshot is not a reservation. Ordinary demand acquisition/release
+        # may advance this owner's revision before the register reaches its
+        # single-threaded commit point. A definite compare failure has applied
+        # no plan; it is distinct from malformed input or an unknown RPC result.
+        if frozen['epoch'] < self.epoch:
+            return dict(registered=False, plan_id=plan_id, reason='stale_preparation_epoch',
+                        expected_epoch=frozen['epoch'], **self.snapshot())
+        if frozen['epoch'] > self.epoch:
+            raise ValueError('preparation plan references a future native source epoch')
+        cpu_ids = set(self._caches()[0])
+        covered = cpu_ids.issubset(rows) if mixed else set(rows) == cpu_ids
+        if (tuple(frozen['slot_adapter_ids']) != slots or not covered
+                or any(self._sources.get(a) != (row['adapter_id'], row['lora_path'])
+                       for a, row in rows.items() if a in cpu_ids)):
+            raise ValueError('preparation plan requires its complete current native source epoch: '
+                             f'same_epoch={self.epoch}, slots_match={tuple(frozen["slot_adapter_ids"]) == slots}, '
+                             f'cpu_covered={covered}, source_identity_match='
+                             f'{all(self._sources.get(a) == (row["adapter_id"], row["lora_path"]) for a, row in rows.items() if a in cpu_ids)}')
         self._preparation_plans[plan_id] = dict(identity=identity, pending=set(targets),
                                                objective=copy.deepcopy(objective))
         return dict(registered=True, plan_id=plan_id, **self.snapshot())

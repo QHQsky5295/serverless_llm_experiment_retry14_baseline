@@ -12176,7 +12176,9 @@ class ScenarioRunner:
             # Registered before the first await, including source collection.
             result = await self._run_ieee_owned_preparation_plan(slot=slot, mode='residency',
                 capacity_only=not self._coordination_enabled)
-            record.update(state='completed', plan_sha256=result['plan']['plan_sha256'])
+            record.update(state=result.get('state', 'completed'), plan_sha256=result['plan']['plan_sha256'])
+            if record['state'] == 'superseded':
+                record['native_registration_rejection'] = result['native_registration_rejection']
             return result
         except BaseException as exc:
             record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
@@ -16321,7 +16323,8 @@ class ScenarioRunner:
         A deferred candidate remains queued until an observed owner-state event
         or cancellation; it never polls, evicts early or loads by a fallback path.
         """
-        from faaslora.preloading.preloading_planner import validate_native_gpu_epoch
+        from faaslora.preloading.preloading_planner import (
+            validate_native_gpu_epoch, PreparationPlanSuperseded)
         from faaslora.preloading.preloading_manager import MovementOutcome
         from faaslora.clock import local_monotonic_clock_id
         objective = copy.deepcopy(objective)
@@ -16515,11 +16518,20 @@ class ScenarioRunner:
         try:
             registered, cancelled = await settle(engine.ieee_gpu_reference(operation='register_preparation_plan',
                 plan_id=plan_id, objective=objective, target_adapter_ids=list(targets), expected_owner_id=owner_id))
-            if checked(registered).get('registered') is not True:
-                raise RuntimeError('GPU preparation plan registration is unacknowledged')
+            checked(registered)
             record['registration'] = registered
             if cancelled:
                 raise asyncio.CancelledError()
+            if (registered.get('registered') is False
+                    and registered.get('reason') == 'stale_preparation_epoch'
+                    and registered.get('plan_id') == plan_id
+                    and type(registered.get('expected_epoch')) is int
+                    and registered['expected_epoch'] == frozen['epoch']
+                    and type(registered.get('epoch')) is int
+                    and registered['epoch'] > frozen['epoch']):
+                raise PreparationPlanSuperseded(registered)
+            if registered.get('registered') is not True:
+                raise RuntimeError('GPU preparation plan registration is unacknowledged')
             if after_registration is not None:
                 await after_registration()
             waiters = [asyncio.create_task(stage_and_submit(aid)) for aid in targets]
@@ -16527,6 +16539,9 @@ class ScenarioRunner:
             result = await asyncio.gather(*waiters)
             record['state'] = 'completed'
             return result
+        except PreparationPlanSuperseded:
+            record['state'] = 'superseded'
+            raise
         except BaseException as exc:
             record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
                           error_type=type(exc).__name__)
@@ -16745,9 +16760,19 @@ class ScenarioRunner:
         inheritance and remaining-candidate joint replacement are separate gates.
         """
         plan = await self._plan_ieee_preparation_for_slot(slot=slot, mode=mode)
-        result = await self._run_ieee_file_preparation_plan(plan=plan, target_engine=slot.engine,
-            target_replica=slot.instance_id, activation_id=activation_id, gpu_slot=slot,
-            capacity_only=capacity_only)
+        from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
+        try:
+            result = await self._run_ieee_file_preparation_plan(plan=plan, target_engine=slot.engine,
+                target_replica=slot.instance_id, activation_id=activation_id, gpu_slot=slot,
+                capacity_only=capacity_only)
+        except PreparationPlanSuperseded as exc:
+            if mode != 'residency':
+                raise  # A controlled activation must not be silently replanned.
+            # The file/native executors have joined/closed their ownership.
+            # Keep partial physical work in their journals, not a fake empty
+            # successful result. A later normal control tick observes anew.
+            return dict(plan=plan, results=None, state='superseded',
+                        native_registration_rejection=exc.receipt)
         return dict(plan=plan, results=result)
 
     async def _run_ieee_file_preparation_plan(self, *, plan, target_engine,
@@ -16830,6 +16855,7 @@ class ScenarioRunner:
         # Validate before registering any ownership or starting pre-init IO.
         from dataclasses import asdict
         from faaslora.clock import local_monotonic_clock_id
+        from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
         gpu_feedback = {}
         for aid_int, (candidate, source, _) in gpu_recipes.items():
             key = self._preparation_profiles.classify_source(source)
@@ -17065,6 +17091,9 @@ class ScenarioRunner:
                 results = results[0] + results[1:]
             record['state'] = 'completed'
             return results
+        except PreparationPlanSuperseded:
+            record['state'] = 'superseded'
+            raise
         except BaseException as exc:
             record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
                           error_type=type(exc).__name__)
