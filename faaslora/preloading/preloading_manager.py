@@ -255,6 +255,33 @@ class OwnedMovementQueue:
         self._bind()
         return await asyncio.shield(self._intents[intent_id]['future'])
 
+    async def join_target_operations(self, keys):
+        """Join already executing physical targets, without subscribing to them.
+
+        A plan can be superseded before creating any intents while a different
+        request writes one of its protected targets. Its pending protection must
+        survive that writer too. Pending/deferred jobs own no active IO and are
+        not awakened here. Re-observe after each actual task completion; the
+        caller must close the physical owner's plan without another await.
+        """
+        self._bind()
+        keys = tuple(keys)
+        if any(not isinstance(key, tuple) or len(key) != 4
+               or any(not isinstance(value, str) or not value for value in key)
+               or key[1] not in ('gpu', 'host', 'nvme') for key in keys):
+            raise ValueError('target join requires exact physical owner/tier/content keys')
+        joined = {}
+        while True:
+            jobs = [self._keys[key] for key in keys if key in self._keys
+                    and self._keys[key]['state'] == 'executing']
+            if not jobs:
+                return list(joined.values())
+            await asyncio.gather(*(asyncio.shield(job['task']) for job in jobs),
+                                 return_exceptions=True)
+            for job in jobs:
+                joined[job['job_id']] = dict(job_id=job['job_id'], key=list(job['key']),
+                                             state=job['state'])
+
     async def close(self):
         self._bind()
         self._closed = True

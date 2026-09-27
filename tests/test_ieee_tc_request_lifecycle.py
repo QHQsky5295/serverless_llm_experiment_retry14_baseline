@@ -1013,6 +1013,25 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
                 runner._resolve_lora.assert_not_awaited()
 
+    def test_pending_registration_cannot_replace_this_requests_routing_class(self):
+        for tier in ('gpu', 'host'):
+            with self.subTest(tier=tier):
+                runner,slot,trace,plan,owner,_=self.build(tier)
+                self.bind_preparation_fixture(runner,slot)
+                async def intervening_decision(*args):
+                    await asyncio.sleep(0)
+                    previous=runner.router.last_ieee_decision
+                    other=next(key for key in slot.service_cost_model._profiles if key.tier=='remote')
+                    # Another request can overwrite the router's diagnostic
+                    # last-decision attribute during the actual pending RPC.
+                    runner.router.last_ieee_decision=replace(previous,service_class=other)
+                runner._register_ieee_pending_admission=AsyncMock(side_effect=intervening_decision)
+                result=asyncio.run(runner._exec_request(trace,4,0.,request_plan=plan))
+                self.assertTrue(result.success,result.error)
+                self.assertEqual(result.gpu_reference_evidence['source_admission']['service_class']['tier'],tier)
+                self.assertEqual(result.readiness_tier_before_dispatch,tier)
+                self.assertEqual(owner.snapshot()['live_leases'],0)
+
     def test_changed_gpu_source_reselects_whole_router_and_does_not_record_gpu_zero(self):
         runner, slot, trace, plan, owner, rpc = self.build('gpu')
         attempts = []
@@ -1175,6 +1194,50 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         for key in slot.service_cost_model._profiles:
             if key.tier == 'remote':
                 self.assertEqual(slot.service_cost_model.sample_counts(key), dict(d_ms=0, t_ms=0, o_ms=0))
+
+    def test_remote_subscriber_does_not_claim_creators_preparation_interval(self):
+        from tests.test_http_artifact_store import SizedResponse
+        from faaslora.registry.schema import StorageTier
+        runner,slot,trace,plan,owner,_=self.build('remote')
+        client=self.file_source(runner,trace)
+        self.bind_preparation_fixture(runner,slot)
+        entered,release=threading.Event(),threading.Event()
+        original=client._opener.open.side_effect
+        class HeldResponse(SizedResponse):
+            def read(inner,*args):
+                entered.set()
+                if not release.wait(5): raise RuntimeError('shared transfer barrier timeout')
+                return super().read(*args)
+        client._opener.open.side_effect=lambda *a,**kw: HeldResponse(original(*a,**kw).getvalue())
+        queue=runner._stack.preloading_manager.ieee_movements
+        async def run():
+            creator=asyncio.create_task(runner._queue_ieee_file_preparation(
+                adapter_id=trace.adapter_id,target_tier=StorageTier.NVME,target_engine=slot.engine,
+                target_replica=slot.instance_id,trigger_reason='residency',plan_id='proactive'))
+            request=None
+            try:
+                self.assertTrue(await asyncio.to_thread(entered.wait,2))
+                request=asyncio.create_task(runner._exec_request(trace,4,0.,request_plan=plan))
+                async def subscribed():
+                    while not any(row['metadata']['trigger_reason']=='demand'
+                            for job in queue.snapshot() for row in job['subscriptions'].values()):
+                        if request.done(): request.result()
+                        await asyncio.sleep(0)
+                await asyncio.wait_for(subscribed(),2)
+            finally:
+                release.set()
+                await asyncio.gather(creator,*([request] if request else []),return_exceptions=True)
+            result=request.result()
+            self.assertTrue(result.success,result.error)
+            evidence=result.gpu_reference_evidence
+            self.assertNotIn('remote_preparation',evidence)
+            self.assertEqual(evidence['preparation_interval']['reason'],'shared_file_preparation_reused')
+            self.assertFalse(evidence['preparation_interval']['cost_model_updated'])
+            self.assertEqual(client._opener.open.call_count,1)
+            self.assertEqual(len(runner._remote_transfer_evidence),1)
+            self.assertEqual(owner.snapshot()['live_leases'],0)
+            await queue.close()
+        asyncio.run(run())
 
     def test_published_http_delivery_keeps_measured_remote_path_and_subsequent_gpu_reuse(self):
         """Actual HTTP/file owner/router path; inference remains a CPU fixture."""

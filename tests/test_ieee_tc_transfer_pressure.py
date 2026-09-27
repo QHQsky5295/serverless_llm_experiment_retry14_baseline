@@ -1867,6 +1867,75 @@ class MixedOwnedPreparation(unittest.TestCase):
             await queue.close()
         asyncio.run(run())
 
+    def test_superseded_plan_joins_unsubscribed_shared_target_before_close(self):
+        self._check_superseded_shared_target(cancel=False)
+
+    def test_cancel_during_superseded_target_join_does_not_cancel_demand(self):
+        self._check_superseded_shared_target(cancel=True)
+
+    def _check_superseded_shared_target(self, *, cancel):
+        from tests.test_http_artifact_store import archive_bytes, SizedResponse
+        from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
+        fixture,runner,queue,slot,owner,snapshot,loads=self.make(remote_gpu=True)
+        entered, release = threading.Event(), threading.Event()
+        class HeldResponse(SizedResponse):
+            def read(inner, *args):
+                entered.set()
+                if not release.wait(5):
+                    raise RuntimeError('controlled shared target barrier timeout')
+                return super().read(*args)
+        original_open=fixture.client._opener.open.side_effect
+        fixture.client._opener.open.side_effect=lambda *a,**kw: HeldResponse(
+            original_open(*a,**kw).getvalue())
+        previous_fetches=fixture.client._opener.open.call_count
+        async def run():
+            plan=await runner._plan_ieee_preparation_for_slot(slot=slot,mode='residency')
+            demand=asyncio.create_task(runner._queue_ieee_file_preparation(adapter_id='a',
+                target_tier=StorageTier.NVME,target_engine=slot.engine,target_replica=slot.instance_id,
+                trigger_reason='demand',plan_id='business-file',intent_id='business-file-intent'))
+            task=None
+            try:
+                self.assertTrue(await asyncio.to_thread(entered.wait,2))
+                owner.acquire(lease_id='business',adapter_int_id=InferenceEngine._lora_int_id('b'),
+                    expected_owner_id=owner.owner_id,expected_epoch=owner.snapshot()['epoch'])
+                owner.release(lease_id='business',expected_owner_id=owner.owner_id)
+                closed=asyncio.Event()
+                rpc=slot.engine.ieee_gpu_reference.side_effect
+                async def observed_rpc(*,operation,**kw):
+                    result=await rpc(operation=operation,**kw)
+                    if operation=='close_preparation_plan': closed.set()
+                    return result
+                slot.engine.ieee_gpu_reference.side_effect=observed_rpc
+                task=asyncio.create_task(self.execute(runner,slot,plan))
+                await asyncio.wait_for(closed.wait(),2)
+                for _ in range(10): await asyncio.sleep(0)
+                if cancel:
+                    task.cancel()
+                    await asyncio.sleep(0)
+                    task.cancel()
+                    for _ in range(10): await asyncio.sleep(0)
+                self.assertFalse(task.done())
+                self.assertFalse(demand.done())
+                self.assertTrue(fixture.owner.file_preparation_snapshot()['plans'])
+                self.assertFalse(fixture.manager._delete_path(str(fixture.nvme/'a')))
+            finally:
+                release.set()
+                if task is not None:
+                    await asyncio.gather(task,demand,return_exceptions=True)
+                else:
+                    await asyncio.gather(demand,return_exceptions=True)
+            with self.assertRaises(asyncio.CancelledError if cancel else PreparationPlanSuperseded):
+                task.result()
+            self.assertEqual(demand.result()['state'],'published')
+            self.assertEqual(fixture.client._opener.open.call_count,previous_fetches+1)
+            joins=runner._ieee_file_preparation_plans[-1]['shared_target_joins']
+            self.assertEqual(len(joins),1)
+            self.assertEqual(joins[0]['key'][1:3],['nvme','a'])
+            self.assertFalse(loads)
+            self.check_clean(fixture,runner,owner)
+            await queue.close()
+        asyncio.run(run())
+
 
 class ProactiveCostFeedback(unittest.TestCase):
     """Actual mixed entry updates completed loading, not model performance."""

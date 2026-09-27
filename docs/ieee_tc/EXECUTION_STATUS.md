@@ -1,6 +1,56 @@
 # IEEE TC execution status
 
-## Current checkpoint — 2026-09-28 D90 corrections tested; attempt4 PREPARED ONLY
+## Current checkpoint — 2026-09-28 D90 attempt4 FAILED, models/remotes STOPPED
+
+00:28 CPUcorrectionsCOMPLETE,757related/basicPASS39.889s(rawconcurrent_regression1).
+Three exact boundaries: (1)fileplans nowjoin existing same-owner/tier/content
+executing targets evenwithout ownintent, no newinterest/wake/cancel,thenoriginal
+atomicclose withoutawaitgap;(2)router decision frozenlocallybeforependingRPC,
+notreadsharedlastdecisionafterawait;(3)Remote subscriber recordsnoemptyowntransfer,
+retainsservicewait, skipsfull-loadprofileupdate. Old CPU interleaving reproduced
+classmismatch ANDNone subtraction;actualreq00007queue proves sharedresidencyfetch.
+Closuretests include repeatedcancel and survivingdemand. No guard/formula/profile/
+configurationchange. Firstgreenfixturewrongpayload thenwrongsetupcountretained
+andfixturecorrected, no productionloosening. No newGPUrunyet.
+NEXT backup verifiedcode/evidence thenunique3Bprefixattempt5 using SAME original
+driver/profiles/config. Freshplan/ledger/safetybeforelaunch,cleanup/table before7B.
+No D78/D80/D81/D88/D89reruns. BaselinesPAUSED;Full/M1/M2/A/S NOTqualified/started.
+
+Latest supersedes live notes below: attempt4 terminal,100planned/45submitted/
+30success/7exception/8cancelled/55unsubmitted. All45 retained;collectionerrors0.
+Root superseded nativeplan then fileclose rejected active materialization.
+2ready activations(initial+controlled);2natural activations cancelled. Epochs
+56completed/5superseded/1cancelled/1failed. Requesterrors5source-class mismatch,
+1remote identity,1None subtraction; not yet individually diagnosed. No Full pass.
+339samplespeak18941923328B/minhost97875075072B;high/max/OOM/swap0.
+20HTTPUUIDpairs exact,46437100wireB;19published/1notpublished,no packing.
+3/4 inprocessleasesclosed;outercleanupconfirms actualGPUcontexts/servicegone.
+Never infer missingrelease timestamp. Aux0a10c9f5 stoppedafterprocs/populated0;
+matchingremote0343b97b stopped;all3remoteinactive/MainPID0/success. No livejob.
+HOSTworkspacegone;NVMe tc-d90-full-c2dxtgv5 retained because sameUIDprocinspection
+partlydenied,notblinddeleted. Rawattempt4_workspace_cleanup.json hasdetails.
+Curated20260928_d90_3b_full_prefix_attempt4.json/D90immediatetable;147protected
+unchanged. NEXT CPU owner/queue reproduction of plan-close concurrent target IO,
+then exact request-source/measurement failures. No new GPU before corrections;
+no7B/baseline/main/A/S. CompletedD78/D80/D81/D88/D89 reused,notrepeated.
+
+LIVE00:06:D90 3B attempt4 STARTED tmux tc-d90-3b-attempt4, unchangedpushed
+sourcedb317368466691160c245e5dd7ae5e2650d614a5. Same100prefix/500pool/D88config/
+D89profiles/driver. Bothdirecthealthpass,147protectedunchanged,8refsverified.
+Remote3Be3996ea87fe44ff8a4e7093ad6f68fc5PID613503;
+7B61d4f5f65ad3406e81007e4f5bab235cPID613505;
+monitor0343b97b43e94671a42b10014d3eeb4fPID613508 ACTIVE,
+unitprimelora-artifact-monitor-d90a4.service/logremote_monitor_attempt4.log.
+Bothlinks1000/full; localinterfaceeno1np0, remoteeno1. Aninitialread mistakenly
+usedremoteinterfacenameonlocalhost andstoppedbeforeanyactivation; routequery
+resolvedit, no networkchange. No source/remoteoperations duringinference.
+MonitorSAMEattempttoterminal;cleanup/validate/table BEFORE7B. Fullnotqualified.
+
+BACKEDUP db317368466691160c245e5dd7ae5e2650d614a5 PUSHED/freshremoteSHA
+matched; rawpartial_fix_push_receipt.json. Maincode/tests/curated/doccheckpoint
+saved, baselineHEAD9e2cf28903ed11bc8ee891dd4cc9636b94307573unchanged/PAUSED.
+No GPUcompute/model/tmux/remote job live. NEXT exactly prepared3Battempt4 after
+fullplan/ledger/safety recheck; do not repeat finished CPUregressions or publication.
 
 00:03:Explicitconflictcheckpointc44167157a3634e6e420a26e66499a7e9f42b7dc
 PUSHED/freshremoteSHA matched,rawepoch_fix_push_receipt.json. Thencompleted

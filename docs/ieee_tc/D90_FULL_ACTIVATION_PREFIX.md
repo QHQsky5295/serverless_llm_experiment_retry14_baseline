@@ -243,3 +243,82 @@ slot/覆盖/来源异常现在输出各项谓词，不将它们归并成正常�
 （38.600秒）。覆盖全局取消、缺失后续到达、控制异常和诊断器不冒充成功。
 原attempt3不能追补未保留的请求级证据。新attempt4脚本仅准备、语法检查通过，
 尚未启动；仍为同一原100请求、500池和冻结开发配置。所有模型与远端服务停止。
+## 2026-09-28：attempt4 并发回放失败，保留全部已提交请求
+
+执行代码 `db317368466691160c245e5dd7ae5e2650d614a5`；仍为原始 100 请求前缀、
+500 adapter 池及 D88/D89 冻结配置，不是正式 Full 性能比较。
+
+| 检查 | 实测结果 | 解释 |
+|---|---:|---|
+| 计划 / 已提交 / 未提交 | 100 / 45 / 55 | 未提交不伪造 timeout |
+| 成功 / 异常 / 中断取消 | 30 / 7 / 8 | 45 条均保留，无 collection error |
+| ready activation | 2 | initial 和 controlled；另 2 个自然扩容被中断取消 |
+| residency epoch | completed 56；superseded 5；cancelled 1；failed 1 | 不是 56 次独立实验 |
+| 本机服务内存峰值 | 18,941,923,328 B | high/max/OOM/oom_kill/swap 均为 0 |
+| 最低主机可用内存 | 97,875,075,072 B | 无保护性资源中止 |
+| HTTP UUID 对齐 | 20 / 20 | 无请求打包；线上 46,437,100 B |
+| 本地已确认发布 / 未发布 | 19 / 1 | 未发布项不得视为 cache hit；已核验逻辑字节 756,697,668 B |
+| 进程内 physical lease 关闭 | 3 / 4 | 1 个未闭合事实保留，不补造 release 时间 |
+| 外层退出后的实际 GPU / 服务进程 | 均已释放 | 与进程内账本关闭不同，不混为一项 |
+
+七个请求异常分别是准备类别与 admitted source 不一致 5 次、远端准备区间缺少
+相符的传输身份 1 次、缺失时间值参与减法 1 次；尚未单独确证各自原因。
+这些错误不能作为“推理后端慢”或“层级机制无收益”的证据。
+
+最终回放中断栈明确显示：native 注册返回合法 superseded，随后 file plan
+关闭被仍存在的 physical materialization 拒绝。既有收尾只 join 自己记录的
+intent；是否存在相同目标但未订阅的并发写入，需要用真实 owner/queue CPU
+fixture 单独复现。保留资源/引用保护，不靠吞掉异常或取消所有请求规避。
+
+本轮 local auxiliary scope `0a10c9f5fc8d46ebb6cf143487cafee1` 在实际
+`cgroup.procs` 为空且 `populated=0` 后停止；远端 monitor
+`0343b97b43e94671a42b10014d3eeb4f` 按身份停止，两个 artifact 服务及 monitor
+最终均 inactive/MainPID=0/Result=success。没有运行中的模型或远端服务。
+
+本轮 NVMe 临时缓存暂存：部分同 UID 进程的 `/proc` 检查被拒绝，未把不完整
+引用检查当作可删除证明；空间充足，不删除原始证据或唯一工件。HOST 临时目录
+已消失。原始收尾失败、保守未闭合 HOST 预留和 outer cleanup 回执均分别保留。
+147 个历史保护项无变化。
+
+来源：`paper_results/ieee_tc/p2_backend/20260928_d90_3b_full_prefix_attempt4.json`。
+后续先 CPU 复现并发收尾与请求观测错误；不启动 7B、baseline 或正式矩阵。
+
+## attempt4 后的三项最小并发修正（真实性能待重验）
+
+| 已复现的问题 | 修正边界 | 不能据此声称 |
+|---|---|---|
+| superseded plan 未订阅同目标的另一实际写入，关闭失败 | 原 queue 按 owner/tier/adapter/content 等待已有执行；不新增订阅，不唤醒 deferred，不取消其他请求；原 owner 原子关闭检查保留 | 全系统资源收尾已经通过 |
+| pending RPC 让出执行后读共享 `last_ieee_decision` | 选中时保存现有不可变 decision，后续始终使用本请求的 service class | confirmed routing 的性能收益已量化 |
+| Remote 共享下载留下空的本请求 transfer dict | 只有实际拥有下载记录才登记本请求完整准备区间；共享等待仍计入 service D，物理传输日志仍保留 | 共享请求等待免费，或其 d=0 |
+
+第一项在真实 file owner、queue、下载 fixture 与 native owner 的组合测试中复现；
+包含重复取消，确保取消的计划不杀死仍有需求的共享下载，pending 保护到物理结束。
+新 join 与关闭放在同一收尾 coroutine 内，最终无 await 缝隙；不取消引用检查。
+
+第二项的控制性 interleaving 在旧实现上分别产生与真实日志相同的
+`preparation class/profile differs...` 和 `NoneType - float`。其中 GPU 命中原本
+由 GPU service class 初始化 D=0；错拿 Remote class 才没有 acquired timestamp。
+因此不能用补一个默认时间值修理。这一修正保留 service class 与选中源的一致性。
+
+第三项的真实 attempt4 queue 记录显示 `req_00007/translate_lora` 在 residency
+写入开始后加入同一 job；它并非下载 creator。CPU 相同共享路径复现原始 identity
+错误。修正后继续以 `shared_file_preparation_reused` 标注为不适合完整 d profile
+更新，仍保留完整用户时间线；未把另一个任务的加载样本记到本请求。
+
+参考边界：对照 [Python 3.12 任务、取消及 shield 语义](https://docs.python.org/3.12/library/asyncio-task.html)，
+共享物理任务有独立寿命，取消一个等待者不代表操作已经终止。
+[vLLM 0.30 LoRA worker manager](https://docs.vllm.ai/en/v0.30.0/api/vllm/lora/worker_manager/)
+按实际 adapter 请求执行缓存加载/复用；本次不修改该原生缓存策略。
+另核查 [vLLM 0.30 forward context 源码](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/forward_context.py)：
+其 forward 范围的保存/恢复不能直接当作并发异步 router 的跨 await 请求状态，
+所以这里复用不可变局部 decision，而不是新增全局状态或锁住全部请求。
+这些文档只帮助限定正确的实现边界，不替本项目证明收益。
+
+首次两个 closure 测试已有旧行为失败；第一轮 green fixture 误复用了上游不同
+内容的 archive，第二轮计数误含 fixture 的 4 次 setup fetch。均只修正 fixture，
+不松动正式内容 SHA 或下载计数校验。失败日志保留在 D90 raw 目录。
+所有九式、D88/D89 配置/profile、原始 workload、工件及正式 Full 拦截均不变。
+
+最终相关回归与基本检查 **757 项通过，39.889 秒**；完整日志为
+`results/ieee_tc/p2_backend_qualification/d90_20260927/concurrent_regression1.log`。
+当前只完成 CPU 正确性修正，下一次实际 3B 回放尚未启动。

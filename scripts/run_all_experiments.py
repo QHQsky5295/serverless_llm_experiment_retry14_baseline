@@ -15499,8 +15499,15 @@ class ScenarioRunner:
                 slot = (self.router.select_instance(adapter_id, adapter_size_mb=size_mb)
                         if self.router else None)
             selected_readiness_tier = _BACKBONE_CACHE_TIER if not adapter_id else "remote"
+            selected_ieee_decision = None
             if ieee_routing and slot is not None:
-                selected_readiness_tier = self.router.last_ieee_decision.service_class.tier
+                # Router.last_ieee_decision is diagnostic shared state. Freeze
+                # this request's immutable decision before pending-admission
+                # RPCs yield to other requests selecting on the same router.
+                selected_ieee_decision = self.router.last_ieee_decision
+                if selected_ieee_decision.replica_id != slot.instance_id:
+                    raise RuntimeError('IEEE decision differs from selected replica')
+                selected_readiness_tier = selected_ieee_decision.service_class.tier
             elif slot is not None and adapter_id:
                 predictor = getattr(slot, "predicted_cache_tier", None)
                 if callable(predictor):
@@ -15540,7 +15547,7 @@ class ScenarioRunner:
                         _reservation.ieee_load_pending = True
                     if not await self._ieee_protect_selected_source(_reservation,
                             source_evidence[slot.instance_id]['source'],
-                            self.router.last_ieee_decision.service_class):
+                            selected_ieee_decision.service_class):
                         await self._finish_runtime_request_reservation(_reservation)
                         _reservation.gpu_reference_evidence.pop('prior_routing_attempts', None)
                         _reservation.ieee_routing_attempts.append(_reservation.gpu_reference_evidence)
@@ -17142,7 +17149,17 @@ class ScenarioRunner:
             try:
                 _, interrupted = await settle(release_native_fallbacks())
                 cancelled |= interrupted
-                record['close_receipt'] = references.close_file_preparation_plan(plan_id=plan_id)
+                async def close_files_after_join():
+                    joined = await queue.join_target_operations(tuple(
+                        (references.owner_id, tier, aid, target['content_sha256'])
+                        for (tier, aid), target in targets.items()))
+                    # No task handoff between the final target observation and
+                    # the owner's existing atomic close invariant.
+                    return joined, references.close_file_preparation_plan(plan_id=plan_id)
+                (joined, closed), interrupted = await settle(close_files_after_join())
+                cancelled |= interrupted
+                record['shared_target_joins'] = joined
+                record['close_receipt'] = closed
                 queue.wake(owner_id=references.owner_id)
             except BaseException as exc:
                 record.update(state='closure_unresolved', close_error_type=type(exc).__name__)
@@ -17523,7 +17540,6 @@ class ScenarioRunner:
                 transfer_ms = 0.
                 if not view['sources']:
                     transfer_evidence = {}
-                    reservation.gpu_reference_evidence['remote_preparation'] = transfer_evidence
                     ok, transfer_ms = await self._materialize_remote_adapter_async(
                         adapter_id, self.nvme_dir / adapter_id, target_engine=reservation.slot.engine,
                         transfer_evidence=transfer_evidence,
@@ -17532,6 +17548,11 @@ class ScenarioRunner:
                             target_replica=reservation.slot.instance_id))
                     if not ok:
                         raise RuntimeError('IEEE remote materialization did not complete')
+                    if transfer_evidence:
+                        # A coalesced subscriber did not perform this transfer.
+                        # Keep its actual wait in service D, but do not publish
+                        # an empty dict as its own complete-load observation.
+                        reservation.gpu_reference_evidence['remote_preparation'] = transfer_evidence
                     view = owner.source_snapshot(adapter_id)
                 candidates = sorted(view['sources'], key=lambda row: ('host', 'nvme').index(row['tier']))
                 if not candidates:

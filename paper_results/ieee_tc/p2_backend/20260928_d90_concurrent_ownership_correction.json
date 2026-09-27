@@ -1,0 +1,83 @@
+{
+  "kind": "d90_concurrent_ownership_correction_v1",
+  "parent_commit": "db317368466691160c245e5dd7ae5e2650d614a5",
+  "observed_run_commit": "db317368466691160c245e5dd7ae5e2650d614a5",
+  "full_qualified": false,
+  "formal_performance_result": false,
+  "new_gpu_run": false,
+  "corrected_boundaries": [
+    "keep file-plan protection until same-target physical writes join",
+    "freeze immutable per-request router decision before pending RPC",
+    "record complete Remote loading only for the transfer creator"
+  ],
+  "unchanged": [
+    "IEEE nine equations",
+    "native backend cache and safety checks",
+    "D88 configuration",
+    "D89 initialization profiles",
+    "existing trace/artifacts",
+    "formal Full guard"
+  ],
+  "cpu_regression": {
+    "tests": 757,
+    "seconds": 39.889,
+    "passed": true
+  },
+  "previous_test_failures": [
+    "first closure red tests failed before waiting on shared IO; tool transcript retained",
+    "green1 fixture wrong inherited payload: exact-content rejection retained",
+    "green2 fixture counted four setup transfers: assertion corrected to incremental one",
+    "routing-class red reproduced both class mismatch and None subtraction",
+    "remote-subscriber red reproduced exact remote identity rejection"
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "sources": [
+    {
+      "path": "faaslora/preloading/preloading_manager.py",
+      "sha256": "a5b2aa2ee2efa59d185d468a6f5562fcfa2604aaf85e43345f24c631e8aa8240"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "sha256": "33dd765f7f07f52ab0c4fd870915a3df2ff4901001c96a3252f665544d0b255a"
+    },
+    {
+      "path": "tests/test_ieee_tc_transfer_pressure.py",
+      "sha256": "a05d217f68c71371bbfd54754e46880303f7c8ac620baf615cfd5766c76bb413"
+    },
+    {
+      "path": "tests/test_ieee_tc_request_lifecycle.py",
+      "sha256": "6defc52e6fa9ed9fba9a793a77bbdaa716efac4cf5b9ae115c0d2a0dcd6eb450"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/concurrent_regression1.log",
+      "sha256": "a798e90468f7ea70884cf65bab605076f2d63af4153d664a1cb8630125d52542"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/routing_class_red.log",
+      "sha256": "fbfe9459533648923e1edc4cebaad2888c3babb86e7f19fb0cc55ee871e41fb8"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/remote_subscriber_red.log",
+      "sha256": "797f4a510afb0ce22b8c3c3e51f9690ac27a2126c54d5c2a3e175be417e8eda3"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/shared_target_green1.log",
+      "sha256": "54f4b8fb39c6203046447827e212cd9847050b255ca13626eb075234a20c3b8c"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/concurrent_green2.log",
+      "sha256": "4c9854a3e423ae80580f91526249cee7f28cf6c9a6890b32d92d4257d455bfb5"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/summarize_concurrent_fix.py",
+      "sha256": "640f173769dde14591a3afa5d62a97b1955625b9188f307f3854503b506ff276"
+    }
+  ]
+}
