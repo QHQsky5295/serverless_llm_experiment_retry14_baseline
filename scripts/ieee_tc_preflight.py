@@ -1046,6 +1046,49 @@ def tokenizer_publisher_environment(parent: dict) -> dict:
     return env
 
 
+def completed_http_failure(path: Path, ready: dict) -> dict:
+    """Recognize complete *failed work*, never accept a broken publisher.
+
+    Exit1 alone cannot distinguish four HTTP failures from a crashed client.
+    Require the frozen ready record, all offered IDs and exactly one terminal
+    outcome per request. This allows bounded service finalization, NOT success.
+    """
+    count = ready['plan']['count']
+    if type(count) is not int or count <= 0:
+        raise ValueError('invalid offered count')
+    sets = {name: set() for name in ('request_contract', 'request_created',
+                                    'http_response', 'http_request_failed')}
+    terminal = None
+    with path.open() as handle:
+        if json.loads(handle.readline()) != ready:
+            raise ValueError('HTTP journal readiness identity changed')
+        for line in handle:
+            if not line.endswith('\n') or terminal is not None:
+                raise ValueError('truncated or post-terminal HTTP journal')
+            row = json.loads(line)
+            event = row['event']
+            if event in sets:
+                rid = row['request_id']
+                if not isinstance(rid, str) or not rid or rid in sets[event]:
+                    raise ValueError('missing or duplicate HTTP request identity')
+                if event == 'http_response' and row.get('response', {}).get('protocol_valid') is not True:
+                    raise ValueError('unvalidated HTTP response')
+                sets[event].add(rid)
+            elif event == 'http_replay_complete':
+                terminal = row
+            elif event not in ('http_headers_sent', 'http_connection_queued', 'http_raw_response'):
+                raise ValueError('unexpected or incomplete HTTP replay event')
+    offered, arrived, responses, failed = (sets[name] for name in sets)
+    expected = dict(event='http_replay_complete', N_plan=count, N_arrived=count,
+                    N_terminal=count, N_response=len(responses), N_failed=len(failed))
+    if (terminal != expected or any(type(terminal.get(k)) is not int for k in expected if k != 'event')
+            or len(offered) != count or arrived != offered
+            or responses & failed or responses | failed != offered or not failed):
+        raise ValueError('HTTP failed-workload terminal counts/identities differ')
+    return dict(**expected, measurement_complete=True, workload_passed=False,
+                journal_sha256=digest(path))
+
+
 def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_growth=0,
                  replay_trace=None, replay_profile='W0', http_replay_config=None) -> dict:
     """Existing runner launch with a bounded gate and a real independent watcher.
@@ -1243,12 +1286,23 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                 channel.sendall(json.dumps(receipt).encode()+b'\n')
                 result['exec_authorized_monotonic_s'] = time.monotonic()
             stopped_at = None
+            failed_replay_deadline = None
             while True:
                 fresh = read_events()
                 if any(e['event'] in ('watchdog_abort', 'watchdog_error') for e in fresh):
                     raise RuntimeError('watchdog interrupted this launch')
                 if publisher is not None and publisher.poll() not in (None, 0):
-                    raise RuntimeError('external replay failed; no silent internal timer fallback')
+                    if http_replay_config is None or publisher.returncode != 1:
+                        raise RuntimeError('external replay failed; no silent internal timer fallback')
+                    if failed_replay_deadline is None:
+                        result['external_replay_outcome'] = completed_http_failure(
+                            evidence/'replay.jsonl', replay_ready)
+                        # Complete offered work may contain HTTP failures. Keep
+                        # the service alive only for its normal bounded report /
+                        # cleanup, retaining all watchdog and ownership checks.
+                        failed_replay_deadline = time.monotonic()+60
+                    if service.poll() is None and time.monotonic() >= failed_replay_deadline:
+                        raise RuntimeError('failed-workload service finalization exceeded60s')
                 live = scope_still_owned(identity)
                 if watcher.poll() is not None and live:
                     raise RuntimeError('watchdog disappeared while service domain is live')
@@ -1273,6 +1327,9 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                 result['pass'] = result['pass'] and publisher.returncode == 0
             if not result['pass']:
                 result['classification'] = 'qualification_command_failure'
+            if failed_replay_deadline is not None:
+                result['pass'] = False
+                result['classification'] = 'qualification_request_failure'
         except (Exception, KeyboardInterrupt) as exc:
             result.update(error=str(exc), classification='protocol_or_launcher_error')
         finally:

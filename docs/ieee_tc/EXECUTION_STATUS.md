@@ -13,7 +13,64 @@
   startingd85263e00e976cc61c8938e662d77a2b249cdf58. Goal remains incomplete.
 - D68 start main5b09401c1e7598c407b22710a21486dc1be44166, baseline08153b457f43d3d587dae171f9dc49024fde4752.
 - Resume by inspecting actual handles/Git/resources; never restart a live run
-  from stale notes. D68 model/audit tasks finished; loader overlay RESTORED.
+  from stale notes. D70 model task finished; loader overlay RESTORED.
+
+## D70 checkpoint: native 7B inference works; whole-workload qualification fails
+
+- Starts main7b4133cfbe02a19f2e2b233387a4b9efbab2adfc/baseline865d105ccfc7b1fd94cc056e6f2e884e08c9b27c.
+  Full source plan/status/skills reread;147 protected entries and plan unchanged.
+- Run ENDED: raw `results/ieee_tc/serverless_qualification/d70_20260927`, private
+  `/tmp/tc-d70-7b1`; service f65b0818aebc4447a488f2fb864cd8b1 removed, auxiliary
+  d7000000000000000000000000000001 verified empty/stopped. No model/TMUX live.
+- Reuses D69 immutable source_repaired2/http_7b_100.json, existing7B checkpoint,
+  pool and trace. Only previously checked content-derived historical embedding
+  mode changed from D69 attempt3. No new weights, padding, trace, policy change.
+- Native7B GPU load confirmed replica9e2a4977-cdf4-417d-b8fb-4941cd839480;
+  engine initialization completes08:14:14. Final100 planned/arrived/terminal,
+ 96 protocol-valid and4 initial startup errors (one refusal/three HTTP500).
+ 16,818 native output tokens;96/96 target/input-hash/adapter-name matches,
+  max E2E identity/TPOT recomputation error0ms;29 actual unique requested adapters.
+  Not a100/100 qualification pass, complete-pool or numerical LoRA proof.
+- One-instance/one-inflight mechanical configuration serializes this check;
+  max_loras4/backend max_num_seqs4 does not imply four router admissions. Let the
+  prescribed100 requests drained without changing config or truncation for speed.
+  Do not infer final throughput or polling effect from this setting.
+-1237 watchdog samples; peak42,924,400,640B, min host67,016,757,248B; high/max/
+  OOM/OOM-kill/swap0. GPU contexts clear; no hard kill. Overlay exactly restored
+  after actual worker release.93 private native regular log files copied/SHA-equal;
+  native_log_copy_check.json retained. No live source edit, new model/pool/trace.
+- Client completed all100 terminal records but exited1 for four HTTP failures.
+  Supervisor treated that as broken replay and stopped the service before its
+  model_qualification.json was written. Raw service-15/replay1/watchdog0 and
+  protocol_or_launcher_error preserved; that classification is not proof the
+  four application failures were launcher errors. No failure induced by cleanup.
+- Immediate baseline REQUEST_PROTOCOL table and main curated
+ 20260927_http_qualification_d70.json/.csv(100rows) delivered. No ranking plot.
+- Corrected supervisor state distinction AFTER run: require original ready
+  identity, full unique offered/arrived/terminal ID sets and reconciled counts.
+  An intact failed-workload journal permits at most the existing60s normal
+  finalization window; qualification remains false. Missing/truncated/duplicate/
+  inconsistent records and watchdog/ownership errors still stop immediately.
+ 53 OS tests pass (final0.850s); actual unchanged D70 journal recognized as
+  measurement_complete=true/workload_passed=false. Native finalization behavior
+  not yet exercised; check during the next useful qualification, not a repeat
+ 100-request run merely to produce a report. Candidate is not a model-policy fix.
+- Read official pinned controller/router/app online: artifact registration
+  precedes model router construction; router queue cannot receive requests
+  before the router exists. Next audit native boot/API/registration timeline
+  from preserved records and determine faithful startup handling before the
+  next baseline qualification/polling pair. Do not shift notice+60, insert
+  arbitrary retries or count the failed100-request round as a pass.
+- Remote-space and nonzero-LoRA choices remain open; formal matrix unstarted.
+- Final regression:53 OS checks0.850s,328 main smoke/shared-protocol checks
+ 23.758s,39 baseline checks2.565s all PASS. No model/performance rerun implied.
+ 147 protected entries/plan unchanged, restored-loader preflight passes.
+  Disk334,161,096,704B free; host MemAvailable109,296,048kB; no live model/TMUX.
+  Curated100-row table includes all failures; code/test and13 raw evidence SHAs
+  recorded. Baseline evidencee01f78b1a164e353bd8b01fd0a01f79f47fa4172 pushed;
+  fresh origin/main full SHA matches. Main checkpoint contains the tested
+  supervisor correction, regression and curated evidence; original user dirt
+  is excluded from explicit staging. Main push/remote verification follows commit.
 
 ## D69 checkpoint: shared HTTP contract and native LoRA layout qualification
 
@@ -89,12 +146,12 @@
 | Block | Status | Evidence / next |
 |---|---|---|
 | Safety/physical measurement | Actual Ray/worker and dedicated7B owner qualification; Full reducer connected | RESOURCE_QUALIFICATION, EXTERNAL_REPLAY_QUALIFICATION, PHYSICAL_GPU_MEASUREMENT D27/D55; actual Full multi-activation still open |
-| Old results | All147 protected entries unchanged at D68 | paper_results/ieee_tc/safety/20260925_execution_start_protected.json |
+| Old results | All147 protected entries unchanged at D70 | paper_results/ieee_tc/safety/20260925_execution_start_protected.json |
 | Remote174 | Strict key login works; service qualification pending | Disk138.52GiB below approved150GiB; user decision pending |
 | P0 Table1/Full | 7B source-pair audit complete | Same inputs, different execution;202 scalars retained; no rerun needed for provenance finding |
 | P1 IEEE alignment | Frozen h/d planning/replacement, staging/admission, observed HOST return connected | P1 throughD54, P2 throughD61; representative profiles and actual Full remain open |
 | P2 backend/artifacts | vLLM0.30 installed; mechanical/numerical diagnostics; complete pool content audits | Full semantic qualification OPEN;3B500/500 and7B498/500 zero weights |
-| Serverless | D67 real3B native loading pass; D68 exact7B checkpoint; D69 actual7B native GPU transfer confirmed, then LoRA layout failure | Content-derived historical linear-only configuration now checked for500 headers; actual inference/polling pair remains open |
+| Serverless | D70 native7B initialization and96 valid HTTP responses;4 startup errors |100/100 qualification and original/repaired1,000-request pairs remain open; no identical retry |
 | Baseline qualification | Pending | Serverless first, then vLLM/S-LoRA/dLoRA3B/Loquetier/HydraServe |
 | M1/M2, A1–A5, S1–S13 | NOT STARTED | No formal performance or optimality claim |
 | Documents/figures | Design and qualification tables in progress | Formal performance figures pending |
@@ -107,14 +164,18 @@ parts and all291 source parameter tensors verified exactly;32 recomputed RoPE
 buffers separately accounted. Do NOT re-export it or repeat the passed byte,
 Ray-only, allocator or four-request3B witnesses/old prefixes.
 Move toward the approved two-model original/repaired1,000-request development
-pairs. D69 shared canonical prompt/native token/LoRA observation and external
-HTTP replay are connected. Next run the existing100-request qualification with
-the verified historical linear-only adapter layout, preserving native loading
-and the60s schedule; keep prior errors and any new startup failures. No blind
-same-config retry, re-export, arbitrary padding or ordinary-loading fallback.
+pairs. D70 verifies96 native7B responses with the historical linear-only layout,
+but4 startup failures prevent whole-run qualification. Preserve its100 terminal
+records and all earlier failed attempts. Do NOT repeat the100-request run or
+byte audit just to recover the missing final report. Inspect preserved native
+boot/API/registration timelines and official dependencies; distinguish absent
+front-door/router from engine-not-ready queuing. Then select the next faithful
+qualification step without changing notice+60, hiding failures or introducing
+a per-baseline retry policy. Bounded finalization fix is unit/journal tested;
+actual native finalization will be checked in that next useful run.
 The dirty legacy replay client currently restricts fixed_length_greedy_v1 to
 S-LoRA; do not overwrite that user file or silently apply its legacy path to
-Serverless. Actual7B native transfer was observed in D69 but inference was not.
+Serverless. D70 now observes actual7B native inference, unlike D69.
 Preserve identical loading/scaling/queue
 configuration and inputs between the two router variants.
 The real-remote and independent LoRA-correctness gates remain separate.

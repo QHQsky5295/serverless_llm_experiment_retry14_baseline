@@ -8,6 +8,44 @@ from scripts import ieee_tc_preflight as p
 
 
 class ForwardedCommandCLI(unittest.TestCase):
+    def test_complete_failed_http_work_is_not_a_broken_measurement_or_a_pass(self):
+        ready = dict(event='replay_ready', plan=dict(count=2, view_sha256='frozen'))
+        rows = [ready,
+                dict(event='request_contract', request_id='a'),
+                dict(event='request_contract', request_id='b'),
+                dict(event='request_created', request_id='a'),
+                dict(event='request_created', request_id='b'),
+                dict(event='http_response', request_id='a', response=dict(protocol_valid=True)),
+                dict(event='http_request_failed', request_id='b', error='HTTP500'),
+                dict(event='http_replay_complete', N_plan=2, N_arrived=2,
+                     N_terminal=2, N_response=1, N_failed=1)]
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d)/'replay.jsonl'
+            def write(items):
+                path.write_text(''.join(json.dumps(row)+'\n' for row in items))
+            write(rows)
+            result = p.completed_http_failure(path, ready)
+            self.assertTrue(result['measurement_complete'])
+            self.assertFalse(result['workload_passed'])
+            self.assertEqual(result['N_failed'], 1)
+            self.assertEqual(result['journal_sha256'], p.digest(path))
+            bad_cases = [rows[:-1], rows+[rows[-1]], rows[:3]+[rows[2]]+rows[3:],
+                         rows[:3]+rows[4:],
+                         rows[:-1]+[{**rows[-1], 'N_failed':0}],
+                         rows[:-1]+[{**rows[-1], 'event':'http_replay_incomplete'}],
+                         [{**ready, 'plan':dict(count=2, view_sha256='other')}]+rows[1:],
+                         rows[:5]+[{**rows[5], 'response':dict(protocol_valid=False)}]+rows[6:],
+                         rows[:6]+[{**rows[6], 'request_id':'a'}]+rows[7:]]
+            for i, bad in enumerate(bad_cases):
+                with self.subTest(case=i):
+                    write(bad)
+                    with self.assertRaises(ValueError):
+                        p.completed_http_failure(path, ready)
+            write(rows)
+            path.write_text(path.read_text().rstrip('\n'))
+            with self.assertRaises(ValueError):
+                p.completed_http_failure(path, ready)
+
     def test_http_publisher_does_not_inherit_serving_startup_hooks(self):
         parent = dict(PYTHONPATH='/serving', PYTHONHOME='/other-python',
                       USE_TORCH='1', HF_HUB_OFFLINE='0', PATH='/usr/bin')

@@ -1,0 +1,171 @@
+{
+  "schema": "ieee_tc_native_http_qualification_d70_v1",
+  "system": "Serverless",
+  "model": "Llama-2-7B",
+  "case": "local_native_100_request_mechanical_qualification",
+  "performance_result": false,
+  "whole_run_qualified": false,
+  "independent_lora_numerical_correctness": false,
+  "remote_qualified": false,
+  "baseline_commit": "865d105ccfc7b1fd94cc056e6f2e884e08c9b27c",
+  "main_commit": "7b4133cfbe02a19f2e2b233387a4b9efbab2adfc",
+  "counts": {
+    "event": "http_replay_complete",
+    "N_plan": 100,
+    "N_arrived": 100,
+    "N_terminal": 100,
+    "N_response": 96,
+    "N_failed": 4
+  },
+  "request_binding_audit": {
+    "native_observations": 96,
+    "target_prompt_adapter_matches": 96,
+    "native_output_tokens": 16818,
+    "actual_unique_adapters": 29,
+    "max_e2e_identity_error_ms": 0,
+    "max_tpot_recomputation_error_ms": 0
+  },
+  "failures": [
+    {
+      "request_id": "req_00000",
+      "error": "ClientConnectorError: Cannot connect to host 127.0.0.1:8348 ssl:default [Connect call failed ('127.0.0.1', 8348)]"
+    },
+    {
+      "request_id": "req_00001",
+      "error": "ValueError: HTTP status 500"
+    },
+    {
+      "request_id": "req_00002",
+      "error": "ValueError: HTTP status 500"
+    },
+    {
+      "request_id": "req_00003",
+      "error": "ValueError: HTTP status 500"
+    }
+  ],
+  "interpretation": "Native 7B inference succeeds with content-derived historical linear-only adapter layout. Four startup requests fail before router readiness. One-instance/one-inflight configuration is mechanical, not optimized throughput. Complete observed workload is not complete successful work.",
+  "safety": {
+    "samples": 1237,
+    "peak": 42924400640,
+    "min_available": 67016757248,
+    "max_swap": 0,
+    "final_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "raw_launch": {
+    "pass": false,
+    "classification": "protocol_or_launcher_error",
+    "error": "external replay failed; no silent internal timer fallback",
+    "service_returncode": -15,
+    "watchdog_returncode": 0,
+    "replay_returncode": 1,
+    "native_gpu_context_release_confirmed": true,
+    "service_path_removed": true,
+    "cleanup": {
+      "hard_kill": false,
+      "released": true
+    },
+    "evidence_sha256": {
+      "watchdog.stderr": "7c1016e0ecbb0294ca2c7549e046b8260784fc69f7a4dfb757d8ca959fc2937c",
+      "replay.jsonl": "73ab7c2b1e0b94ff459f652b9174717c4187e6abeacb8295cce028a9f40f4b5e",
+      "exec_receipt.json": "f4d3d30f6230970a27479b22efa6f0ecdfd3037167f75106d1378c387ad700d7",
+      "watchdog.jsonl": "2c55706e52ca588834aa4c10475a7f866dc8f1b23444d542a929306a66eeb0fd",
+      "replay_startup.txt": "cb3dae624f2feaf9a9ebf740874ebe6e8091711c10a2138654c5abc1fba18dff",
+      "service.log": "2f092daf116f3cb0368cd41d03d046d77ae690982872aef9ee78bfb7efc32b46"
+    }
+  },
+  "cleanup_interpretation": "Publisher exits1 because N_failed=4 despite complete terminal journal; supervisor immediately stops service, so model_qualification.json is absent. All100 terminal records predate cleanup. Raw protocol_or_launcher_error is the supervisor's coarse classification, not proof all four application failures were launcher defects.",
+  "native_gpu_replica": "9e2a4977-cdf4-417d-b8fb-4941cd839480",
+  "native_logs_regular_files_copied": 93,
+  "loader_restored": true,
+  "auxiliary_verified_empty_and_stopped": true,
+  "raw_hashes": [
+    {
+      "sha256": "c6b4439eb618b6729b13b0002ef1d65fe95daacb30bb4366d684116385384f1a",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d70_20260927/model_launch1.json"
+    },
+    {
+      "sha256": "73ab7c2b1e0b94ff459f652b9174717c4187e6abeacb8295cce028a9f40f4b5e",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d70_20260927/model_launch1.launch/replay.jsonl"
+    },
+    {
+      "sha256": "2c55706e52ca588834aa4c10475a7f866dc8f1b23444d542a929306a66eeb0fd",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d70_20260927/model_launch1.launch/watchdog.jsonl"
+    },
+    {
+      "sha256": "f4d3d30f6230970a27479b22efa6f0ecdfd3037167f75106d1378c387ad700d7",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d70_20260927/model_launch1.launch/exec_receipt.json"
+    },
+    {
+      "sha256": "b4a9f6e289019c472c74bd900a43e4eef4950a88a322355268d622ff6b7f7b61",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d70_20260927/model1/store.log"
+    },
+    {
+      "sha256": "76856b9a725187bf8623fa6da2c9c30cb4f3ee3b117c83b1b48f4ba615ff0d48",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d70_20260927/model1/serve.log"
+    },
+    {
+      "sha256": "2471d58ec951eb8fca1fd0dd24b7a8d0bdb841a5727cd7ef1fea407c9c4b9a50",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d70_20260927/model1/configuration.json"
+    },
+    {
+      "sha256": "7eaf90a0068dcf897242d0e7da7cdef60e012c1e82b006833aae0354a05a0781",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d70_20260927/overlay/install.json"
+    },
+    {
+      "sha256": "a91966e719e8b1956c29b1a5db9ac62e08a46673e1366d982e200d60a065a6b6",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d70_20260927/overlay/restore_receipt.json"
+    },
+    {
+      "sha256": "8854ec57c6cc1b8c06d192295ad9f62c8ac7785d6a90e1cbd3a6b02eedd32c88",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d70_20260927/native_log_copy_check.json"
+    },
+    {
+      "sha256": "b3f25f7a9ede4f605daf1692974628bd8dcfd8cc4aed63e08492ddb341e9dc89",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d70_20260927/guard2_tests.log"
+    },
+    {
+      "sha256": "510a1c8b5ca794e8657c31963894ffa0167840b7a80e9b971e6ebda9fec9b475",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d70_20260927/main_tests.log"
+    },
+    {
+      "sha256": "f97cff6fe50549273dda2d6e2fc75b5047b5852506a527be13f5b4e17abce009",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d70_20260927/baseline_tests.log"
+    }
+  ],
+  "next": "Separate completed-request failures from broken replay supervision; retain invalid status and bounded finalization. Audit initial API/router readiness before next qualified baseline/polling comparison; no identical blind rerun or readiness-shifted trace.",
+  "postrun_measurement_fix": {
+    "scope": "supervision_state_only_no_model_or_baseline_policy_change",
+    "os_tests_passed": 53,
+    "main_smoke_and_shared_protocol_tests_passed": 328,
+    "baseline_tests_passed": 39,
+    "actual_journal_reinspection": {
+      "event": "http_replay_complete",
+      "N_plan": 100,
+      "N_arrived": 100,
+      "N_terminal": 100,
+      "N_response": 96,
+      "N_failed": 4,
+      "measurement_complete": true,
+      "workload_passed": false,
+      "journal_sha256": "73ab7c2b1e0b94ff459f652b9174717c4187e6abeacb8295cce028a9f40f4b5e"
+    },
+    "native_finalization_retest_completed": false,
+    "code_and_test_hashes": [
+      {
+        "sha256": "765aa14943c8589f15b5e1c24d5c822c4f55eeb17265cf21812e31a3d155ab5c",
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py"
+      },
+      {
+        "sha256": "17189f313aa9f9d9fb1302b94bb0c4b9ad4800e343cb7811cdbb695c1b93cc65",
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py"
+      }
+    ]
+  }
+}
