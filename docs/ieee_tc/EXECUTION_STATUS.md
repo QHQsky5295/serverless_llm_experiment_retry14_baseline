@@ -1,6 +1,43 @@
 # IEEE TC execution status
 
-## Current checkpoint — 2026-09-27 D90 bounded Full integration ready
+## Current checkpoint — 2026-09-27 D90 RPC correction ready for attempt3
+
+LATEST23:42:ExistingnewlineJSON nowshared8MiBencodedbodybound,bothsendandreceive;
+nativeunknownresponsesstillNOretry/cancellationownershipunchanged. PerRPC wire
+bytesobserved. Realworker/proxy500-candidate>1MiBCPUroundtrip reproducedold64KiB
+failure,nowpassesincludingnextframe/progress. Bytebound/Unicode/fragment/merged/
+oversizetestsPASS. Final571testsPASS31.604s(rawrpc_regression2.log);prior571PASS
+32.403s beforewirebytemetadata. NativeKV/LoRA/IEEEformulas/profileinputsunchanged.
+Preparedrawrun_3b_full_prefix_attempt3.sh andactivate_services_attempt3.sh ONLY;
+no model/service is running. NEXT freshplan/ledger/safetycheck thenbackupverified
+checkpoint andlaunch3Bprefixattempt3,cleanup/table before7B. Do notreruncompleted
+D78/D80/D81/D88/D89orresumeServerless. Full/M1/M2/A/S NOTqualified/started.
+
+LATEST23:37:D90attempt2 FAILED/CLEANED, rootresidencyregister_preparation_plan
+newlineJSON>default64KiB reader; initial+controlledBOTHready46.813/48.296s.
+127samples controller3355270NEVERownsGPU, twoactualleasesreleased; passivefix
+supportedfororiginalactivationfailure, NOTFullqualified.1remoteUUIDverified,
+wire2325514B/logical42695980B;no packing.0/100verifiedcompletedrequests.
+Peak8946106368B/minhost107181121536B,high/max/OOM/swap0;service/watcher2/0.
+Inprocessfilecleanupfailedunresolvedrefs;afterservice/controllergone/noopenFD,
+ownedNVMe42729472B removed withrawattempt2_workspace_cleanup.json. HOSTgone.
+Emptyauxa12e69a16d9b402b91e1445aa5897dc4STOPPED afterprocs/populated0.
+Remote monitor8b716b5d STOPPED;all3inactive/MainPID0/success. Finalmonitorand
+exactjournal5b6aea4f copied. Earlierwrongjournalnameemptyfilekept,notused.
+NO LIVE MODEL/TMUX/REMOTE. Failuretable/curatedattempt2written;NEXT boundedRPC
+messagecontract withrealworker/proxyCPUlargeframe/limit/cancelchecks thenbackup,
+unique3Battempt3. No7B/fullformal/baseline. Allcompletedprofilesremainreuse.
+
+LIVE23:31:D90 3B prefixattempt2 STARTED tmux tc-d90-3b-attempt2. Passivefix
+7012bfbd4f8a63496c0120ddb59f5cca7c1e9820 PUSHED/freshremoteSHA matched;
+rawd90/passive_fix_push_receipt.json. Sameoriginaldriver/profiles/config/prefix.
+Remote3Bb20683772941411d9ff96be6e7ae5323PID578552,
+7B670f6d62a1114b96a04d9f3dfd527bcePID578554,
+monitor8b716b5dae4d4111861144d7cfcb6cffPID578557 ACTIVE,unchangedsharedlimits,
+primelora-artifact-monitor-d90a2.service/logremote_monitor_attempt2.log.
+Bothdirecthealthpassed,actuallink1000,protected147unchanged. No source/remote
+changes duringinference. Monitor toterminal thencleanup/validate/table before7B.
+Fullformalguardunchanged; no baselineorotherheavyjob. Failureattempt1retained.
 
 LATEST23:29:D90 failureevidence75a72bd68a3a9bce179d66da39b110176393f7aa
 PUSHED/freshremoteSHA matched. Passivecontrollerfix CPU/native-NVML checked:

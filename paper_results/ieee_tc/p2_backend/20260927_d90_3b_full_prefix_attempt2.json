@@ -1,0 +1,210 @@
+{
+  "kind": "full_prefix_failed_residency_transport_evidence_v1",
+  "executed_commit": "7012bfbd4f8a63496c0120ddb59f5cca7c1e9820",
+  "formal_performance_result": false,
+  "full_qualified": false,
+  "planned_requests": 100,
+  "verified_completed_requests": 0,
+  "controller_pid": 3355270,
+  "controller_gpu_observed": false,
+  "activations": [
+    {
+      "activation_id": "ieee-activation-3018cafa041e450699c7e4bd9087b7c5",
+      "target_replica": "ieee-activation-3018cafa041e450699c7e4bd9087b7c5",
+      "category": "initial",
+      "policy": "full",
+      "trigger_at": 30324.429723849,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "state": "runtime_ready",
+      "plan_sha256": "e58df365ecac90e010ad5e67b60d1d0472a5bf382bd4556a00619415a772a496",
+      "preparation_state": "completed",
+      "preparation_terminal_at": 30324.877698743,
+      "engine_ready_at": 30371.24233281,
+      "native_owner_id": "b56ff8627635471e90cdd260f7844aaa"
+    },
+    {
+      "activation_id": "ieee-activation-0d4ebb76724048dfba48aa59e28e1a07",
+      "target_replica": "ieee-activation-0d4ebb76724048dfba48aa59e28e1a07",
+      "category": "controlled",
+      "policy": "full",
+      "trigger_at": 30371.24674167,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "state": "runtime_ready",
+      "plan_sha256": "719e237a2d810a65051c4b45d772df01c474fef35b2582a5d559c37f094dbac2",
+      "preparation_state": "completed",
+      "preparation_terminal_at": 30371.60190277,
+      "engine_ready_at": 30419.542915579,
+      "native_owner_id": "aec11c52c86c44a78748436342d30150"
+    }
+  ],
+  "error": "IEEE shutdown preserved a failed residency epoch",
+  "root_error": "ValueError: Separator is not found, and chunk exceed the limit",
+  "resource_samples": 127,
+  "peak_bytes": 8946106368,
+  "min_host_available_bytes": 107181121536,
+  "memory_events": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "max_swap_bytes": 0,
+  "remote_transfers": [
+    {
+      "artifact_id": "finance_lora",
+      "state": "published",
+      "transfer_id": "c76278a3fbda4fd99e67782fd613c2b5",
+      "local_source_owner_id": "c1aa6d6cdb3742b7805fb7c5900679b0",
+      "target_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-62v6cgm2/finance_lora",
+      "content_manifest_sha256": "ac8e9b36c328376a9e1ecec6a4d928dd684f4d94e3fa4d2e08f531b166da145e",
+      "transferred_bytes": 2325514,
+      "content_verified": true,
+      "http_transfer_id": "11503963c87a45b7b96efbfe3b570784",
+      "remote_timing_available": true,
+      "remote_pack_ms": 0.0,
+      "stages_clock": "client_monotonic",
+      "remote_spans_additive_to_client_total": false,
+      "loading_clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "loading_started_monotonic_s": 30421.759432239,
+      "headers_received_monotonic_s": 30421.765098426,
+      "remote_timing_contract": "artifact_timing_v2",
+      "remote_delivery_mode": "prepublished_gzip_v1",
+      "remote_pack_performed": false,
+      "remote_pack_duration_basis": "absent_by_published_contract",
+      "remote_archive_sha256": "d715f13afe1045a1294ba686641b688e662c90b3cfe286ff31fa81caeea82aa1",
+      "archive_bytes_declared": 2325514,
+      "payload_bytes_expected": 42695980,
+      "file_reservation": {
+        "scope": "preallocated_regular_files_v1",
+        "owner_id": "c1aa6d6cdb3742b7805fb7c5900679b0",
+        "transfer_kind": "remote_archive",
+        "transfer_id": "c76278a3fbda4fd99e67782fd613c2b5",
+        "tier": "nvme",
+        "limit_bytes": 17179869184,
+        "used_file_bytes_before": 0,
+        "reserved_file_bytes": 45047808,
+        "allocated_file_bytes_after": 45047808,
+        "pending_file_increment_bytes": 0,
+        "filesystem_allocation_unit_bytes": 4096,
+        "replacement": null
+      },
+      "published_archive_verified": true,
+      "body_received_monotonic_s": 30421.799441742,
+      "extraction_started_monotonic_s": 30421.799656767,
+      "extraction_completed_monotonic_s": 30422.470310792,
+      "confirmed_file_publication": {
+        "owner_id": "c1aa6d6cdb3742b7805fb7c5900679b0",
+        "epoch": 1,
+        "adapter_id": "finance_lora",
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-62v6cgm2/finance_lora",
+        "tier": "nvme",
+        "content_sha256": "07f5e8575cf08fc5b0e78fde16b9c239b6c6406f3a1ca89c013d8aa5e481bba7",
+        "content_verified": true,
+        "representation": "verified_regular_file_tree_v1",
+        "file_path_bytes": 42695980,
+        "allocated_file_bytes": 42721280,
+        "allocated_bytes": 42725376,
+        "unique_file_count": 8
+      },
+      "published_monotonic_s": 30422.611453852,
+      "payload_bytes_verified": 42695980,
+      "elapsed_ms": 873.7408790002519,
+      "client_completed_monotonic_s": 30422.631665917,
+      "client_stage_ms": {
+        "request_to_headers_ms": 5.666187000315404,
+        "reserve_receive_and_write_ms": 34.34331600146834,
+        "extract_and_verify_ms": 670.6540249979298
+      }
+    }
+  ],
+  "remote_rows": [
+    {
+      "archive_bytes": 2325514,
+      "archive_sha256": "d715f13afe1045a1294ba686641b688e662c90b3cfe286ff31fa81caeea82aa1",
+      "artifact_id": "finance_lora",
+      "bytes_read": 2325514,
+      "bytes_written": 2325514,
+      "clock_id": "remote-process-monotonic:55edd8bee1184edb8cd59f684d295eca",
+      "delivery_mode": "prepublished_gzip_v1",
+      "event": "artifact_transfer",
+      "handler_completed_ns": 30377747145735,
+      "handler_started_ns": 30377725842180,
+      "object_open_completed_ns": 30377726294273,
+      "object_open_started_ns": 30377726237990,
+      "object_read_wall_ns": 4017255,
+      "outcome": "sent",
+      "pack_performed": false,
+      "read_calls": 4,
+      "send_completed_ns": 30377747125204,
+      "send_started_ns": 30377726631636,
+      "socket_write_wall_ns": 16429799,
+      "temporary_created": false,
+      "timing_contract": "artifact_timing_v2",
+      "transfer_id": "11503963c87a45b7b96efbfe3b570784"
+    }
+  ],
+  "cleanup": {
+    "service_returncode": 2,
+    "watchdog_returncode": 0,
+    "native_gpu_context_release_confirmed": true,
+    "service_path_removed": true,
+    "physical_leases": [
+      {
+        "lease_id": "fdbeedfce9e545c4a7723b248d5ecacd",
+        "released": true
+      },
+      {
+        "lease_id": "b03618b98a7a45c6a9a3ae855153a805",
+        "released": true
+      }
+    ],
+    "inprocess_file_reference_cleanup_failed": true,
+    "postprocess_workspace_cleanup": {
+      "kind": "ended_owned_workspace_cleanup_v1",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-62v6cgm2",
+      "reason": "failed Full ended; both physical leases and service gone; original frozen remote content retained",
+      "controller_pid_gone": true,
+      "open_fd_owners": [],
+      "file_count": 8,
+      "allocated_bytes": 42729472,
+      "host_already_removed": true,
+      "inprocess_reference_cleanup_failed": true,
+      "removed": true
+    },
+    "auxiliary_and_remote_stopped": true
+  },
+  "references": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/3b_full_prefix_attempt2.json",
+      "sha256": "3447b723916f44c8f0517f603bb4fe69adb8f11d3330ab266d346bf43642444b"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/3b_full_prefix_attempt2_launch.json",
+      "sha256": "eab3c8ba4c6af6d4f46c3f92c8a66886b4410f0ff80c31471e765ca4c53ada57"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/3b_full_prefix_attempt2_launch.launch/watchdog.jsonl",
+      "sha256": "ece6b4be4a11199d10be42785add7acad7b225486be8912b8b05739fc34c9ea4"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/remote_monitor_attempt2_final.log",
+      "sha256": "6487656c78f79e86991ad7e4adffa2625b2bc93bcc30b1531a8228006084f941"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/attempt2_remote_3b_transfers_verified.jsonl",
+      "sha256": "1aec6339a028e97d7c45e8424954e50afc52a326519920844270bb84f6dd217f"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/attempt2_workspace_cleanup.json",
+      "sha256": "5bd1ebfd03860ec28813da3d550e485e90e4ce863f3d4933aef99e317b5ab7d0"
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  }
+}

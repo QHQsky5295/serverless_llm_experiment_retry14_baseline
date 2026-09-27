@@ -105,6 +105,8 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
         from scripts.run_all_experiments import (
             InferenceEngine,
             _build_local_tp_runtime_env_updates,
+            _encode_rpc_frame,
+            _RPC_FRAME_MAX_BYTES,
         )
 
         executor_backend = model_cfg.get("distributed_executor_backend")
@@ -146,8 +148,8 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
                             def publish_progress(event):
                                 # Exactly two bounded frames per successful request;
                                 # write immediately, not after full generation.
-                                writer.write((json.dumps({'native_event_rpc_id': progress_id,
-                                    'native_event': event}, ensure_ascii=True) + '\n').encode('utf-8'))
+                                writer.write(_encode_rpc_frame({'native_event_rpc_id': progress_id,
+                                    'native_event': event}))
                             kwargs['native_event_observer'] = publish_progress
                         started_at = time.perf_counter()
                         generate_started_wall_time = time.time()
@@ -213,7 +215,7 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
                         response = {"ok": False, "error": f"unknown_cmd:{cmd}"}
                     if 'native_event_rpc_id' in rpc:
                         response['native_event_rpc_id'] = rpc['native_event_rpc_id']
-                    writer.write((json.dumps(response, ensure_ascii=True) + "\n").encode("utf-8"))
+                    writer.write(_encode_rpc_frame(response))
                     await writer.drain()
                     if cmd == "shutdown":
                         break
@@ -222,7 +224,7 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
                     response = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
                     if 'native_event_rpc_id' in rpc:
                         response['native_event_rpc_id'] = rpc['native_event_rpc_id']
-                    writer.write((json.dumps(response, ensure_ascii=True) + "\n").encode("utf-8"))
+                    writer.write(_encode_rpc_frame(response))
                     await writer.drain()
                 except Exception:
                     pass
@@ -235,7 +237,8 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
 
         try:
             await engine.initialize()
-            server = await asyncio.start_server(_handle_client, host="127.0.0.1", port=0)
+            server = await asyncio.start_server(_handle_client, host="127.0.0.1", port=0,
+                                                limit=_RPC_FRAME_MAX_BYTES)
             sock = server.sockets[0]
             host, port = sock.getsockname()[:2]
             _write_ready(ready_path, {"status": "ready", "host": host, "port": int(port),

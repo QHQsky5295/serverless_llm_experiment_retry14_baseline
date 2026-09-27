@@ -173,7 +173,7 @@ class NativeEngineEventTests(unittest.IsolatedAsyncioTestCase):
 
 class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
     async def roundtrip(self, *, cancel=False, wrong_terminal=False, fail_after_first=False,
-                        duplicate_first=False):
+                        duplicate_first=False, large_control_payload=False):
         receive = observer()
         seen = asyncio.Event()
         proceed = asyncio.Event()
@@ -197,6 +197,8 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
                 return {'intent_id': command['intent_id'], 'state': 'pending', 'command': command}
             async def ieee_close_pending(self, **command):
                 return {'intent_id': command['intent_id'], 'closed': True}
+            async def ieee_gpu_reference(self, **command):
+                return {'command': command, 'registered': True}
             async def generate(self, **kwargs):
                 if kwargs.get('pending_admission_id') != 'pending-test':
                     raise ValueError('dedicated generation lost its pending identity')
@@ -236,6 +238,19 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
                 proxy._rpc_channels = []
                 proxy._with_worker_log_context = lambda value: value
                 self.assertEqual((await proxy.ieee_scheduler_observation())['admitted'], [])
+                if large_control_payload:
+                    objective = {'candidates': [dict(adapter_id='adapter_'+str(i),
+                        metadata='x'*2048, benefit_ms=float(i)) for i in range(500)]}
+                    self.assertGreater(len(json.dumps(objective)), 65536)
+                    # Actual production reader/writer, no StreamReader stand-in.
+                    reply = await proxy.ieee_gpu_reference(operation='register_preparation_plan',
+                        plan_id='large', objective=objective, target_adapter_ids=[1],
+                        expected_owner_id='worker')
+                    self.assertEqual(reply['command']['objective'], objective)
+                    self.assertGreater(reply['timing']['parent_rpc_request_bytes'], 65536)
+                    self.assertGreater(reply['timing']['parent_rpc_response_bytes'], 65536)
+                    # A following frame on the same pool must remain aligned.
+                    self.assertEqual((await proxy.ieee_scheduler_observation())['admitted'], [])
                 prepared = await proxy.ieee_prepare_host(lease_id='prepare-test', expected_owner_id='worker')
                 self.assertFalse(prepared['acquired'])
                 self.assertEqual(prepared['command']['lease_id'], 'prepare-test')
@@ -289,6 +304,9 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
     async def test_actual_worker_and_proxy_stream_completed_intervals(self):
         await self.roundtrip()
 
+    async def test_full_pool_objective_above_default_reader_limit_roundtrips_exactly(self):
+        await self.roundtrip(large_control_payload=True)
+
     async def test_cancelled_rpc_retains_first_interval_and_drops_late_events(self):
         await self.roundtrip(cancel=True)
 
@@ -300,3 +318,35 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
 
     async def test_repeated_progress_is_rejected_before_second_update(self):
         await self.roundtrip(duplicate_first=True)
+
+
+class BoundedDedicatedRPC(unittest.TestCase):
+    def test_encoding_limit_is_wire_bytes_and_includes_all_fields(self):
+        from scripts import run_all_experiments as r
+        with patch.object(r, '_RPC_FRAME_MAX_BYTES', 16):
+            self.assertEqual(r._encode_rpc_frame({'v':'1234567'}), b'{"v": "1234567"}\n')
+            with self.assertRaisesRegex(ValueError, 'protocol byte limit'):
+                r._encode_rpc_frame({'v':'12345678'})
+            # ensure_ascii expands Unicode; character count is not wire size.
+            with self.assertRaisesRegex(ValueError, 'protocol byte limit'):
+                r._encode_rpc_frame({'v':'两个'})
+
+    def test_receiver_rejects_oversize_with_or_without_delimiter(self):
+        from scripts import run_all_experiments as r
+        for suffix in [b'', b'\n']:
+            channel = r._BlockingRPCChannel(sock=Mock(), recv_buffer=bytearray(b'x'*17+suffix))
+            with patch.object(r, '_RPC_FRAME_MAX_BYTES', 16), self.assertRaisesRegex(ValueError, 'protocol byte limit'):
+                r.SubprocessInferenceEngineProxy._blocking_rpc_roundtrip(None, channel, b'{}\n')
+            channel.sock.recv.assert_not_called()
+
+    def test_fragmented_and_coalesced_frames_preserve_boundaries(self):
+        from scripts import run_all_experiments as r
+        sock = Mock()
+        sock.recv.side_effect = [b'{"o', b'k":true}\n{"ok":false}\n']
+        channel = r._BlockingRPCChannel(sock=sock)
+        with patch.object(r, '_RPC_FRAME_MAX_BYTES', 16):
+            a = r.SubprocessInferenceEngineProxy._blocking_rpc_roundtrip(None, channel, b'{}\n')[0]
+            b = r.SubprocessInferenceEngineProxy._blocking_rpc_roundtrip(None, channel, b'{}\n')[0]
+        self.assertEqual(json.loads(a), {'ok':True})
+        self.assertEqual(json.loads(b), {'ok':False})
+        self.assertEqual(sock.recv.call_count, 2)

@@ -1,0 +1,61 @@
+{
+  "kind": "bounded_dedicated_rpc_cpu_qualification_v1",
+  "protocol": "newline_json",
+  "max_encoded_body_bytes": 8388608,
+  "trace_or_weights_created": false,
+  "ieee_formulas_changed": false,
+  "native_unknown_response_retry": false,
+  "full_qualified": false,
+  "formal_performance_result": false,
+  "regression": {
+    "passed": 571,
+    "seconds": 31.604
+  },
+  "references": [
+    {
+      "path": "scripts/run_all_experiments.py",
+      "sha256": "352c3dbfedb2863c28ccfe686f30c01a426d215550578269908a9fb209b9e3d1"
+    },
+    {
+      "path": "scripts/dedicated_engine_worker.py",
+      "sha256": "88b07309389814bf3cecae2db1fb222a165c628cd2db78b2d3d0e2d94e03fcb5"
+    },
+    {
+      "path": "tests/test_ieee_tc_service_events.py",
+      "sha256": "fedc4792442903a90baf38b0acc80a5d0fbffbbf12ede4d15170b8bed5b77a46"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/rpc_red1.log",
+      "sha256": "b8cfeea0d329a7b45d95a5eb361b2eb5880f23559bfaeb5ee57af4a0f01eb815"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/rpc_regression1.log",
+      "sha256": "5d627f2eb6fe76db1b4e9067f6f328ebcaa69cbf1584073e80757328d368bb40"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/rpc_regression2.log",
+      "sha256": "90397478def3d7b3cab31537b4cad15f976f12024e06385295978f234612fb22"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/full_prefix_driver.py",
+      "sha256": "91983fbbf72276ffcea9e9131d05e7f41fada223de374d21845f2cc77ffe6c63"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/run_3b_full_prefix_attempt3.sh",
+      "sha256": "defd1cb37aed9819e523a85f6bee4bd70e7044a2bc3310b0e00ecc6b2a29300b"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/activate_services_attempt3.sh",
+      "sha256": "998b5586816a1e04cce49d0a106f199a88f7ef65782cc7e829152b8c53cdb539"
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "next": "prepared_not_started_3b_full_prefix_attempt3"
+}

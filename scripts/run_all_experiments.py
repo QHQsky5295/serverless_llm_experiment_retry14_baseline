@@ -4800,6 +4800,19 @@ class InferenceEngine:
             return False
 
 
+# Shared newline-JSON wire bound, not a model/workload tuning parameter. Both
+# directions enforce it; 8 MiB bounds each message (including full-pool plan
+# metadata) without depending on asyncio's unrelated 64 KiB reader default.
+_RPC_FRAME_MAX_BYTES = 8 * 1024 * 1024
+
+
+def _encode_rpc_frame(payload: Dict[str, Any]) -> bytes:
+    body = json.dumps(payload, ensure_ascii=True).encode('utf-8')
+    if len(body) > _RPC_FRAME_MAX_BYTES:
+        raise ValueError('dedicated RPC frame exceeds protocol byte limit')
+    return body + b'\n'
+
+
 @dataclass
 class _BlockingRPCChannel:
     sock: socket.socket
@@ -5192,7 +5205,7 @@ class SubprocessInferenceEngineProxy:
             if _native_event_observer is not None:
                 payload['native_event_rpc_id'] = attempt_id
             payload["client_send_wall_time"] = time.time()
-            payload_bytes = (json.dumps(payload, ensure_ascii=True) + "\n").encode("utf-8")
+            payload_bytes = _encode_rpc_frame(payload)
             raw, send_flush_ms, wait_response_ms, parent_response_read_wall_time = await asyncio.to_thread(
                 self._blocking_rpc_roundtrip,
                 channel,
@@ -5237,6 +5250,8 @@ class SubprocessInferenceEngineProxy:
                     parent_response_read_wall_time=parent_response_read_wall_time,
                 )
                 result_timing["parent_rpc_send_flush_ms"] = send_flush_ms
+                result_timing["parent_rpc_request_bytes"] = len(payload_bytes)
+                result_timing["parent_rpc_response_bytes"] = len(raw)
                 result_timing["parent_rpc_wait_response_ms"] = wait_response_ms
                 result_timing["parent_rpc_thread_resume_delay_ms"] = max(
                     0.0,
@@ -5370,6 +5385,8 @@ class SubprocessInferenceEngineProxy:
         while True:
             newline_idx = channel.recv_buffer.find(b"\n")
             if newline_idx >= 0:
+                if newline_idx > _RPC_FRAME_MAX_BYTES:
+                    raise ValueError('dedicated RPC frame exceeds protocol byte limit')
                 raw = bytes(channel.recv_buffer[: newline_idx + 1])
                 del channel.recv_buffer[: newline_idx + 1]
                 if on_progress is not None:
@@ -5383,6 +5400,8 @@ class SubprocessInferenceEngineProxy:
                     (time.perf_counter() - wait_response_started_at) * 1000.0,
                 )
                 return raw, send_flush_ms, wait_response_ms, parent_response_read_wall_time
+            if len(channel.recv_buffer) > _RPC_FRAME_MAX_BYTES:
+                raise ValueError('dedicated RPC frame exceeds protocol byte limit')
             chunk = channel.sock.recv(65536)
             if not chunk:
                 raise RuntimeError("subprocess_engine_empty_response")

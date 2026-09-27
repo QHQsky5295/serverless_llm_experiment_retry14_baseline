@@ -119,3 +119,55 @@ reserved/active/cached allocator 值记为未知（null），不填零，不传�
 补丁。原生检查没有加载模型、没有远程传输，不是扩容反事实结果。
 下一次复用原 driver、D89 profile、D88 配置和原100请求，新结果键 attempt2，
 不重跑准备成本测量。只有真实联动及外置 GPU 所有权证据才能验证失败是否消除。
+
+## 3B 第二次真实联动：启动通过，驻留报文失败
+
+| 检查 | 观测 |
+|---|---|
+| initial / controlled |两者实际就绪；46.813 /48.296 秒 |
+| 控制进程额外 GPU 上下文 |127 次资源采样均未观察到；仅模型工作进程持卡 |
+| 业务 |进入首请求；完整可验证请求结果0/100，不作性能点 |
+| 首次驻留计划 |两个副本均失败，内部 RPC 的逐行读取超过上限 |
+| 真实 Remote 获取 |1 次，2,325,514 B 线上，42,695,980 B 原内容，UUID准确关联 |
+| 打包 / 临时归档 |0 /0；请求采用既有发布缓存 |
+| 内存峰值 /主机最低可用 |8,946,106,368 /107,181,121,536 B |
+| high /max /OOM /swap |均为0 |
+| 资源释放 |两张实际 GPU 租约均释放，服务域消失，远端/外置组均停止 |
+| 文件收尾 |进程内保守拒绝未闭合引用；进程消失且无打开 fd 后回收本轮唯一工作副本 |
+
+该反事实联动支持“控制面 CUDA 观测阻止第二副本启动”的归因，不能推广为
+Full 已经合格。原生 KV/LoRA 控制没有替换为 NVML，九式和物理护栏未改。
+新的根错误位于 `register_preparation_plan` 接收：`Separator is not found,
+and chunk exceed the limit`。现有 dedicated worker 使用 `asyncio.start_server`
+默认64 KiB reader 和 `readline`，父端发送却没有对应上限。官方
+[Python 3.12 streams 文档](https://docs.python.org/3.12/library/asyncio-stream.html)
+说明该默认限制；这是内部消息协议不一致，不能归因为显存不够或网络慢。
+
+下一步保留完整候选和目标，明确已有 newline-JSON 协议的双向有界帧合同，
+以实际 worker/proxy 的无 GPU loopback 测试先覆盖大计划、连续帧、超限及取消。
+不对本次失败自动重试，不通过缩小500池、删计划字段或改变优化目标来规避。
+错误读取远端 journal 的一次空文件保留；随后按实际 journal 身份获取完整记录，
+没有修改原始记录。内容、清理及127次监测见
+`paper_results/ieee_tc/p2_backend/20260927_d90_3b_full_prefix_attempt2.json`。
+
+### 报文修正的验证与下一执行键
+
+复用现有 newline-JSON 通道，不更换后端或另建通信框架。双方以共享的
+8 MiB **单帧编码字节上限**接收/发送；它是内存保护的协议上限，不是模型
+优化参数，不按测试点调大。父端检查超限回复，worker 的 reader 使用同一
+上限；不能只单边加大读取缓冲。保留原有 native unknown-response 不重试、
+取消后的所有权对账，以及 first/last token 的独立进度帧。每次回复记录
+请求/响应线上字节，便于后续检查距离上限和观测开销。
+
+使用真实 `_run_worker` 和 `SubprocessInferenceEngineProxy` loopback：500候选
+测试报文超过1 MiB，修正前复现相同 `Separator` 错误；修正后完整字段往返
+相等，随后下一条消息和 token 进度仍正确。另测编码字节边界、非ASCII膨胀、
+有/无换行超限、分片及合并消息。该数据只是通信测试对象，不新增模型工件
+或实验 workload，不作为准备算法/性能证据。
+
+最终 worker、native retirement、request lifecycle、launch、basic 共571项通过
+（31.604秒）；前一轮571项也通过（32.403秒），随后仅补充两项报文字节观测。
+147项旧投稿保护清单无变化。所有原始失败、测试和清理日志保留。
+新 `run_3b_full_prefix_attempt3.sh` 与远端 attempt3 monitor 启动文件已准备，
+**尚未运行**。仍复用同一原100请求、原500池、D88配置和D89初始化测量，
+下一步按原保护门槛做真实联动，不先跑7B或恢复baseline。Full正式拦截保留。
