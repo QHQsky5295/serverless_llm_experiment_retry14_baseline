@@ -135,7 +135,7 @@
   Warmup retained separately, no lifecycle subtraction. Reuse original development
   prompts/static artifacts; no new trace/weights. New rawd83_20260927, no overwrite.
 
-### D83 latest: 3B complete, 7B prepared next
+### D83 latest: 3B complete, 7B attempt1 environment failure; attempt2 prepared
 
 - Specsf5e238935c266edfdeb45ff237d195338b598969 PUSHED/remote SHA matched.
   Real3B368/368 completed:360 representative +8explicit warmup.40service classes,
@@ -152,13 +152,23 @@
   D215ms exceeds NVMe157ms. Preserve discrepancy, do not claim monotonic tier gains.
 - Plotter only extended during inference (not imported by model). Inference source
   stayedf5e2389. Seven new strict plotting tests pass in existing conda base;
-  old LLM_vllm0102 has no matplotlib. Plot regression/evidence backup next.
+  old LLM_vllm0102 has no matplotlib. All43analysis-tools tests passed7.201s.
+  Backup a719e9c915efa189f222b50a88f6f7c520a7148b PUSHED/freshremoteSHA matched.
+  3B4/24static request groups have output SHA variation, same prompt/target;
+  retain all. Official vLLM default nondeterminism is a possible, not proven cause.
 - D83 remote units STILL ACTIVE, shared configuration unchanged:
   3B3af671e251a7464fbd6fcd31f4e3965a;7Bf09f1cde4b7d4458947fe637649fac31;
   monitorf322f426d2d9402c9e0bacc22d7af998. Do not use old D82 identities.
   Health clocks3B2762c9d63bc14907be430ef8935d4ebf,7B66c4e294d86644df8f283f2bed599d80.
-- NEXT after3Btable/plot/backup: rawd83/run_7b_source_representative_attempt1.sh,
-  92requests,realcap2. Same published services; direct no-proxy health before start.
+- 7B attempt1 sourcea719e9c failed engine_initialization0requests: rawlauncher
+  copied3B environment omitted already-qualified7B venv/bin PATH; FlashInfer
+  could not find installedninja. Prior P2 document records this same failure/fix.
+  Service2/watchdog0,69samples peak16224022528B,high/max/OOM0, actualGPUcontexts/
+  service/workspaces cleared; emptyaux89bc9fc714f6401e957074c9062e201a stopped.
+- NEXT: back up failure table; launch rawd83/run_7b_source_representative_attempt2.sh
+  with restored venv/bin PATH,CUDA_HOME13,FLASHINFER_NVCC13,MAX_JOBS2. No install,
+  backend substitution or model changes. Reuse this environment in all native
+  launchers. Do not re-run3B or reinterpret failure as performance sample.
   Stop matching remote monitor after7B finishes; retrieve final monitor and7B UUIDs.
   Then freeze measured profiles/Full integrated activation, NOT baseline/remote sweeps.
 ### D81 completed four-way real-remote qualification; Full profiling next
@@ -256,10 +266,9 @@ Earlier preparation details (completed; not new launch instructions):
   Private key ~/.ssh/primelora_artifact_174_ed25519_20260925,0600,outsideGit.
   Local/remote token ~/.config/primelora-tc-d75/artifact.token,0600.
   NEVER print values/put credentials in journals or Git.
-- Remote primelora-artifact-tc-{3b,7b}.service and
-  primelora-artifact-monitor-d80-v2.service INACTIVE now. Do not reuse dead
-  PID165665/165667/165670 or prior invocations for new management.
-  Unit fragments remain deployed; caches not deleted.
+- D80 monitor is INACTIVE. Artifact units and D83 monitor are currently ACTIVE
+  with identities in the latest D83 section. Do not reuse dead D80 PIDs or
+  invocations. Unit fragments remain deployed; caches not deleted.
 - Cache root /home/lab14/primelora_remote/tc/d78_20260927/published/{3b,7b}.
   Source pools /home/lab14/primelora_remote_artifacts/
   llama32_3b_a500_v1_modelscope and llama2_7b_a500_v2_publicmix.

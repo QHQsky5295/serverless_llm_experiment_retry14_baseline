@@ -1224,3 +1224,31 @@ Times New Roman嵌入，bbox检查和三图目视检查无裁切/文字遮挡。
 完整既有analysis-tools回归共43项通过（7.201s，受限CPU域），包括上述7项；
 测试内预期的CLI拒绝输出不代表套件失败，进程exit0。147项历史保护及7个新原始
 引用SHA均通过；不stage用户manifest或旧图。
+
+补充输出审计：24个固定工件/原请求组合中，20个跨来源/轮次输出SHA一致，
+4个存在多个输出SHA（`ecommerce_lora_0009`:3，`gaming_lora_0034`:2，
+`medical_lora`:2，`translate_lora_0054`:2），对应prompt/target未变。
+全部原生输出数量仍准确。不能将D82两请求输出一致泛化为整个D83逐字一致。
+官方[vLLM0.30复现性文档](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/docs/usage/reproducibility.md)
+说明默认不保证输出可复现，在线调度变化下需专门的
+[batch-invariance模式](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/docs/features/batch_invariance.md)。
+这是批次/浮点变化的可能解释，不是本次差异的已证实归因；保留逐请求SHA，
+后续正确性审计中核对，不在当前测量中途切换后端模式或筛掉这些请求。
+
+### D83 7B attempt1：历史启动环境缺项复现（0请求）
+
+| 检查 | 观测 |
+|---|---|
+| 终止点 | engine_initialization，FlashInfer查找ninja失败，0条测量请求 |
+| 原因 | 由3B启动器复用时遗漏原7B已验证的venv/bin PATH；不是工具未安装 |
+| 已有工具 | ninja1.13.2、CUDA13.0.88，绝对路径执行正常 |
+| 资源 |69采样，peak16,224,022,528B，high/max/OOM为0 |
+| 退出 |service2/watchdog0；GPU上下文、服务域、临时工作目录释放，空辅助域停止 |
+| 结果用途 |仅保留失败证据，无性能点 |
+
+与本文先前“7B attempt1/2”记录是同一个环境入口问题，不作为新机制缺陷或
+新优化收益。再次核查已安装FlashInfer的`jit/cpp_ext.py:run_ninja`，确实以PATH
+调用ninja，并用MAX_JOBS限制并行；[PyTorch对应源码](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/torch/utils/cpp_extension.py)
+同样公开此构建控制。下一次只恢复已验证的工具PATH/CUDA13和MAX_JOBS=2，
+不重装、不关闭FlashInfer、不改模型/LoRA/生成/缓存预算；新attempt2路径保留
+原失败。所有后续native模型启动器均须复用此环境，不再仅替换Python绝对路径。
