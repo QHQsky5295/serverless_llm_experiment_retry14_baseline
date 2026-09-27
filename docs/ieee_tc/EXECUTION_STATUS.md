@@ -1,6 +1,33 @@
 # IEEE TC execution status
 
+## Latest — D93 snapshot counterexample fixed and CPU-verified; full replay next
+
+2026-09-28 03:38. No live inference/remote/tmux; baselines9e2cf289 PAUSED.
+CPU counterexample reproduced D92's same complete-file-view ValueError when
+the previous capacity observation ages without content/signature changes.
+Original D92 exact predicate remains unknown because failing fields were absent.
+Fix: finish source refresh BEFORE epoch freeze; derive HOST/file/replacement
+capacity from one inventory, reuse each confirmed source once. Same owner lock,
+content/ref/reservation/capacity checks and execution revalidation retained.
+Guard unchanged, now records failing owner/epoch/time/universe fields.
+No equation/config/profile/trace/remote semantics change, no retry/sleep/fsync.
+
+Targeted28 tests PASS1.672s; final838 regression PASS48.077s/offline.
+First regression stopped because old dummy-model test attempted online HEAD;
+log retained, no model download. Rawd93_20260928 andD93doc immediate status table.
+3B attempt2 config reuses D92 with ONLY new output/cache roots. Do NOT repeat
+CPU assembly, prefixes, whole-pool/cache work or D88/D89 profiling.
+NEXT verify protected/curated, scoped backup, one3B4000 W0 canonicalFull attempt;
+cleanup/validation/table BEFORE7B. All warm/Resident/M1/M2/A/S remain pending,
+zero-weight numerical discrimination caveat unchanged. No Full success yet.
+
 ## Latest — D92 full4000 attempt1 FAILED/CLEANED; CPU snapshot diagnosis next
+
+Evidence BACKEDUP b280c23e84ad020ee8727a13215dbad8065be847; fresh remote SHA
+matched again after compaction. Raw full1_evidence_push_receipt.json records it.
+No live experiment. D93 CPU hypothesis: source footprint refresh may advance
+the owner epoch after the budget was captured, even under the existing lock.
+Not yet proven to be the exact D92 failing predicate (inputs were not retained).
 
 2026-09-28 03:26 supersedes LIVEbelow. Originalmain08cbf45:4000planned/
 27submitted/23success/4cancelled/3973unsubmitted; incomplete NOTperformance.

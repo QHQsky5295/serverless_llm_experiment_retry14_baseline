@@ -1,0 +1,103 @@
+{
+  "kind": "d93_file_planning_snapshot_cpu_v1",
+  "parent_commit": "b280c23e84ad020ee8727a13215dbad8065be847",
+  "new_gpu_run": false,
+  "new_remote_run": false,
+  "full_qualified": false,
+  "formal_performance_result": false,
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "regression": {
+    "tests": 838,
+    "seconds": 48.077,
+    "passed": true
+  },
+  "interrupted_regression": {
+    "reason": "legacy dummy-model test attempted online HEAD; stopped own CPU unit and reran offline",
+    "evidence": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/regression1.log",
+    "new_model_download": false
+  },
+  "causal_scope": "Controlled previous capacity observation reproduces same owner-epoch guard; original D92 exact predicate was not captured",
+  "changes": [
+    "refresh source observations before freezing file planning epoch",
+    "derive HOST/file/replacement capacities from one owner inventory",
+    "one source validation reused for candidate and replacement views",
+    "unchanged guard now retains original field diagnostics"
+  ],
+  "unchanged": [
+    "IEEE nine equations",
+    "content/reference/budget/replacement safety",
+    "D88 parent / D89 measured configuration",
+    "existing inputs",
+    "remote delivery protocol"
+  ],
+  "prepared_3b_config_changes": "run-owned output and cache paths only",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "7f29d8743bbeb579d377581416005d35a78480a8d823181c69e3c72acc8ffb79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+      "sha256": "326c712b52094a4bd01f4b46a8b489f3e024efa5307d94880cbb45c7f18a0403"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py",
+      "sha256": "a2e481b3ef602b030c35b98f0e788b928ef36bfc7b322b9d40ea4ac418e529d7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/red_snapshot.log",
+      "sha256": "7e94d9f8a2a5c7ad3b056bb22ead221b91c75e4ed0661d36461f291c13794303"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/green_snapshot1.log",
+      "sha256": "b45b80caac7f0ccc1ce715a18b4f53e179f66bff5f24789b6f23d69949403dfe"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/regression1.log",
+      "sha256": "ce7980b4bb6706f521c4611075f544b01996dff53a6de09b6c67a8d5ecf0c942"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/regression2.log",
+      "sha256": "3efad41d4b4592525024191f18ddcf89a34ab16acc19b885a3ef8ffccc717370"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_main_config_attempt2.yaml",
+      "sha256": "8d0ef2e3fcd7509b3d7137a4a25072886796c282a19f3ad06b567e745cfdabcd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/summarize_checkpoint.py",
+      "sha256": "c4acda37c4b5b9530413e44c3e749857d9726ec8ea1ddd61ea99ac205edc84e9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20260928_d92_3b_full_w0_attempt1.json",
+      "sha256": "6b64785daaf27863aeb6da44a4459083ee549949c9345aedef275fddb95fb866"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/full1_evidence_push_receipt.json",
+      "sha256": "fb0ae3ce478a74b6ff0cbee9db53405d7fae72ceb89e33863ecdbcdfed2b1360"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_3b_initialization/service.json",
+      "sha256": "667e397831214198faf078e6c2e30c63e826946e3590fea8c63d87bc68995727"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_3b_initialization/preparation.json",
+      "sha256": "3ab29bca4f374c3457af3e9f5e804d6cfa9178baa121c06e707b2f8c17553c27"
+    }
+  ],
+  "next": "canonical3B4000 W0 new attempt; cleanup/validation/table before7B",
+  "baseline_status": "paused; 9e2cf28903ed11bc8ee891dd4cc9636b94307573",
+  "limitations": [
+    "warm SLO/Resident unmeasured",
+    "original zero-weight numerical discrimination limitation"
+  ]
+}

@@ -1170,6 +1170,73 @@ class OwnedPreparationPlanning(unittest.TestCase):
         self.assertTrue(plan['source_view']['captured_from_separate_owners'])
         asyncio.run(queue.close())
 
+    def test_planning_refreshes_capacity_observation_before_freezing_owner_epoch(self):
+        fixture, runner, queue, slot, _ = self.make()
+        self.addCleanup(lambda: asyncio.run(queue.close()))
+        # A previous capacity observation can age without changing content.
+        # The actual filesystem observation and all content signatures stay real.
+        record = fixture.owner._confirmed_sources[fixture.nvme / 'a']
+        record['footprint']['allocated_bytes'] += 4096
+        record['public']['allocated_bytes'] += 4096
+        before = fixture.owner.source_epoch
+        plan = self.plan(runner, slot)
+        files = plan['source_view']['files']
+        self.assertGreater(files['epoch'], before)
+        self.assertEqual(files['epoch'], files['budgets']['source_epoch'])
+        self.assertEqual(files['epoch'], fixture.owner.source_epoch)
+        self.assertEqual(files['artifacts']['a']['sources'][0], record['public'])
+        self.assertFalse(files['physical_resources_reserved'])
+
+    def test_planning_reuses_one_confirmation_for_sources_and_replacement(self):
+        fixture, runner, queue, slot, _ = self.make()
+        self.addCleanup(lambda: asyncio.run(queue.close()))
+        owner = fixture.owner
+        with (patch.object(owner, '_source_observation', wraps=owner._source_observation) as observed,
+              patch.object(owner, 'inventory', wraps=owner.inventory) as inventory):
+            plan = self.plan(runner, slot)
+        inventory.assert_called_once()
+        paths = [call.args[0] for call in observed.call_args_list]
+        self.assertCountEqual(paths, list(owner._confirmed_sources))
+        files = plan['source_view']['files']
+        self.assertEqual(files['epoch'], owner.source_epoch)
+        for artifact in files['artifacts'].values():
+            for row in artifact['sources']:
+                self.assertEqual(row, owner._confirmed_sources[Path(row['path'])]['public'])
+        host = files['managed_host']
+        budget = files['budgets']['tiers']['host']
+        self.assertEqual(budget['used_bytes'], host['shared_file_bytes'])
+        self.assertEqual(budget['pending_increment_bytes'], host['pending_file_increment_bytes'])
+
+    def test_mixed_file_view_is_still_rejected_with_original_snapshot_evidence(self):
+        import json
+        fixture, runner, queue, slot, _ = self.make()
+        self.addCleanup(lambda: asyncio.run(queue.close()))
+        snapshot = fixture.owner.preparation_snapshot
+        for mutation in ('epoch', 'owner', 'time', 'universe', 'reservation'):
+            with self.subTest(mutation=mutation):
+                def corrupt(**kwargs):
+                    files = snapshot(**kwargs)
+                    if mutation == 'epoch':
+                        files['budgets']['source_epoch'] -= 1
+                    elif mutation == 'owner':
+                        files['budgets']['owner_id'] = 'different-owner'
+                    elif mutation == 'time':
+                        files['budgets']['captured_at'] = files['captured_at'] + 1.
+                    elif mutation == 'universe':
+                        files['artifacts'].pop('a')
+                    else:
+                        files['budgets']['snapshot_reserves_capacity'] = True
+                    return files
+                with patch.object(fixture.owner, 'preparation_snapshot', corrupt):
+                    with self.assertRaisesRegex(ValueError, 'complete confirmed') as caught:
+                        self.plan(runner, slot)
+                detail = json.loads(str(caught.exception).split(': ', 1)[1])
+                self.assertEqual(detail['kind'], 'file_planning_snapshot_invariant_failure_v1')
+                if mutation == 'epoch':
+                    self.assertEqual(detail['source_epoch'], detail['budget_source_epoch'] + 1)
+                if mutation == 'universe':
+                    self.assertEqual(detail['missing_artifacts'], ['a'])
+
     def test_remote_candidates_use_per_file_allocation_not_logical_payload_sum(self):
         fixture, runner, queue, slot, _ = self.make()
         for path in (fixture.host/'d', fixture.nvme/'d'):

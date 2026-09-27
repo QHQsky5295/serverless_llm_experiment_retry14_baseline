@@ -444,7 +444,17 @@ def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
             or budget['owner_id'] != files['owner_id'] or budget['source_epoch'] != files['epoch']
             or budget['snapshot_reserves_capacity'] is not False
             or set(files['artifacts']) != set(identities)):
-            raise ValueError('automatic planning requires one complete confirmed file-owner view')
+            detail = dict(kind='file_planning_snapshot_invariant_failure_v1',
+                file_kind=files.get('kind'), physical_resources_reserved=files.get('physical_resources_reserved'),
+                clock_id=files.get('clock_id'), expected_clock_id=expected_clock_id,
+                owner_id=files.get('owner_id'), budget_owner_id=budget.get('owner_id'),
+                source_epoch=files.get('epoch'), budget_source_epoch=budget.get('source_epoch'),
+                budget_captured_at=budget.get('captured_at'), captured_at=files.get('captured_at'),
+                received_at=received_at, snapshot_reserves_capacity=budget.get('snapshot_reserves_capacity'),
+                missing_artifacts=sorted(set(identities)-set(files['artifacts'])),
+                unexpected_artifacts=sorted(set(files['artifacts'])-set(identities)))
+            raise ValueError('automatic planning requires one complete confirmed file-owner view: '
+                             + json.dumps(detail, sort_keys=True))
     host = files['managed_host']
     allowance = (host['activation_reservations'].get(activation_id, 0) if prospective
                  else host['native_reservations'].get(native.owner_id, 0))

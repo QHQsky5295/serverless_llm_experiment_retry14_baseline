@@ -257,22 +257,25 @@ class LocalSourceReferences:
 
     def _file_replacement_capacity(self):
         """Received usable bytes, not apparent file length or promised capacity."""
+        sources = {path: self._validated_source(path)['public']
+                   for path in sorted(self._confirmed_sources)}
         inventory = self._file_inventory()
+        return self._file_replacement_capacity_from_inventory(inventory, sources)
+
+    def _file_replacement_capacity_from_inventory(self, inventory, sources):
+        """Derive capacity from an already confirmed owner view, under its lock."""
         protected = {p for plan in self._file_preparation_plans.values() for p in plan['targets']}
         held = {Path(row[1]) for row in self.leases.values()}
         moving = set(self.materializations.values())
         rows = []
-        for path in sorted(self._confirmed_sources):
-            record = self._validated_source(path)
-            if record is None:
-                continue
+        for path, source in sorted(sources.items()):
             usable = sum(item['allocated_bytes'] for item in inventory['allocations']
                 if item['kind'] == 'file' and item['device'] == path.parent.stat().st_dev
                 and item['external_link_count'] == 0
                 and item.get('pending_increment_bytes', 0) == 0
                 and all(path in Path(p).parents for p in item['paths']))
             rows.append(dict(path=str(path), usable_bytes=usable,
-                eligible=bool(usable) and usable == record['public']['allocated_file_bytes']
+                eligible=bool(usable) and usable == source['allocated_file_bytes']
                     and path not in protected | held | moving))
         return rows
 
@@ -549,25 +552,28 @@ class LocalSourceReferences:
 
     def host_budget_snapshot(self):
         with self.lock:
-            if self._host_limit is None:
-                raise RuntimeError('managed HOST budget is not configured')
-            inventory = self.inventory()
-            files = inventory['tiers']['host']['allocated_file_bytes']
-            pending = inventory['tiers']['host']['pending_file_increment_bytes']
-            reserved = (sum(self._native_host_reservations.values())
-                        + sum(self._activation_host_reservations.values()))
-            if files + pending + reserved > self._host_limit:
-                raise RuntimeError('managed HOST files and native allowances exceed capacity')
-            return dict(kind='ieee_managed_host_budget_v1', owner_id=self.owner_id,
-                limit_bytes=self._host_limit, shared_file_bytes=files,
-                native_reserved_bytes=reserved, native_reservations=dict(self._native_host_reservations),
-                bound_native_reserved_bytes=sum(self._native_host_reservations.values()),
-                activation_reserved_bytes=sum(self._activation_host_reservations.values()),
-                activation_reservations=dict(self._activation_host_reservations),
-                pending_file_increment_bytes=pending,
-                remaining_bytes=self._host_limit-files-pending-reserved,
-                scope='shared_allocated_files_plus_native_tensor_allowances',
-                whole_service_rss_covered=False, snapshot_reserves_capacity=False)
+            return self._host_budget_from_inventory(self.inventory())
+
+    def _host_budget_from_inventory(self, inventory):
+        """Pure derivation under owner lock; no second filesystem observation."""
+        if self._host_limit is None:
+            raise RuntimeError('managed HOST budget is not configured')
+        files = inventory['tiers']['host']['allocated_file_bytes']
+        pending = inventory['tiers']['host']['pending_file_increment_bytes']
+        reserved = (sum(self._native_host_reservations.values())
+                    + sum(self._activation_host_reservations.values()))
+        if files + pending + reserved > self._host_limit:
+            raise RuntimeError('managed HOST files and native allowances exceed capacity')
+        return dict(kind='ieee_managed_host_budget_v1', owner_id=self.owner_id,
+            limit_bytes=self._host_limit, shared_file_bytes=files,
+            native_reserved_bytes=reserved, native_reservations=dict(self._native_host_reservations),
+            bound_native_reserved_bytes=sum(self._native_host_reservations.values()),
+            activation_reserved_bytes=sum(self._activation_host_reservations.values()),
+            activation_reservations=dict(self._activation_host_reservations),
+            pending_file_increment_bytes=pending,
+            remaining_bytes=self._host_limit-files-pending-reserved,
+            scope='shared_allocated_files_plus_native_tensor_allowances',
+            whole_service_rss_covered=False, snapshot_reserves_capacity=False)
 
     def reserve_activation_host(self, *, activation_id, limit_bytes):
         """Charge the future native allowance before concurrent file preparation.
@@ -1047,34 +1053,38 @@ class LocalSourceReferences:
         directory/inode/journal metadata and cgroup memory have separate budgets.
         A snapshot grants no permission to copy; execution rechecks/preallocates.
         """
-        from ..clock import local_monotonic_clock_id
         with self.lock:
-            if set(limits) != set(self.roots) or any(type(n) is not int or n < 0 for n in limits.values()):
-                raise ValueError('all managed file tiers require explicit integer limits')
-            for tier, limit in limits.items():
-                if tier in self._file_limits and self._file_limits[tier] != limit:
-                    raise ValueError('file owner budget cannot change between transfers')
             self._settle_file_allocations()
             view = self.inventory()
-            tiers = {}
-            for tier, limit in limits.items():
-                used = view['tiers'][tier]['allocated_file_bytes']
-                pending = view['tiers'][tier]['pending_file_increment_bytes']
-                if used + pending > limit:
-                    raise RuntimeError('existing managed files exceed the declared file budget')
-                tiers[tier] = dict(limit_bytes=limit, used_bytes=used, pending_increment_bytes=pending,
-                    remaining_bytes=limit-used-pending,
-                    active_transfers=sum(path.parent == self.roots[tier] for path in self.materializations.values()))
-            self._file_limits.update(limits)
-            if self._host_limit is not None:
-                host = self.host_budget_snapshot()
-                tiers['host']['remaining_bytes'] = min(tiers['host']['remaining_bytes'], host['remaining_bytes'])
-                tiers['host']['native_reserved_bytes'] = host['native_reserved_bytes']
-                tiers['host']['managed_host_limit_bytes'] = host['limit_bytes']
-            return dict(kind='ieee_managed_file_budgets_v1', owner_id=self.owner_id,
-                source_epoch=self.source_epoch, clock_id=local_monotonic_clock_id(),
-                captured_at=time.monotonic(), tiers=tiers, snapshot_reserves_capacity=False,
-                scope='managed_allocated_regular_files_only', total_host_memory_covered=False)
+            return self._file_budget_from_inventory(limits, view)
+
+    def _file_budget_from_inventory(self, limits, view):
+        """Owner-locked derivation; caller finishes source refresh before stamping."""
+        from ..clock import local_monotonic_clock_id
+        if set(limits) != set(self.roots) or any(type(n) is not int or n < 0 for n in limits.values()):
+            raise ValueError('all managed file tiers require explicit integer limits')
+        for tier, limit in limits.items():
+            if tier in self._file_limits and self._file_limits[tier] != limit:
+                raise ValueError('file owner budget cannot change between transfers')
+        tiers = {}
+        for tier, limit in limits.items():
+            used = view['tiers'][tier]['allocated_file_bytes']
+            pending = view['tiers'][tier]['pending_file_increment_bytes']
+            if used + pending > limit:
+                raise RuntimeError('existing managed files exceed the declared file budget')
+            tiers[tier] = dict(limit_bytes=limit, used_bytes=used, pending_increment_bytes=pending,
+                remaining_bytes=limit-used-pending,
+                active_transfers=sum(path.parent == self.roots[tier] for path in self.materializations.values()))
+        self._file_limits.update(limits)
+        if self._host_limit is not None:
+            host = self._host_budget_from_inventory(view)
+            tiers['host']['remaining_bytes'] = min(tiers['host']['remaining_bytes'], host['remaining_bytes'])
+            tiers['host']['native_reserved_bytes'] = host['native_reserved_bytes']
+            tiers['host']['managed_host_limit_bytes'] = host['limit_bytes']
+        return dict(kind='ieee_managed_file_budgets_v1', owner_id=self.owner_id,
+            source_epoch=self.source_epoch, clock_id=local_monotonic_clock_id(),
+            captured_at=time.monotonic(), tiers=tiers, snapshot_reserves_capacity=False,
+            scope='managed_allocated_regular_files_only', total_host_memory_covered=False)
 
     @staticmethod
     def _expected_content(files):
@@ -1094,14 +1104,17 @@ class LocalSourceReferences:
     def preparation_snapshot(self, *, manifests, limits):
         """One physical file-owner view for automatic candidate production.
 
-        Sources, unused budgets and target allocation units are captured under
-        one owner lock. Target bytes use the same per-file rounding as fallocate;
+        Refresh sources before freezing their epoch; derive all capacities from
+        one inventory under the same owner lock. Filesystem extent conversion
+        is not stopped by that lock: pending allocation stays conservatively
+        charged, and execution still revalidates. This is no cross-owner atomic
+        snapshot. Target bytes use the same per-file rounding as fallocate;
         archive peak is unknown until HTTP headers and is checked at execution.
         The snapshot neither reserves space nor claims native tensor ownership.
         """
         from ..storage.http_artifact_store import _quote_artifact_id
         with self.lock:
-            budget = self.file_budget_snapshot(limits)
+            self._settle_file_allocations()
             units = {tier: os.statvfs(root).f_frsize for tier, root in self.roots.items()}
             if any(type(unit) is not int or unit <= 0 for unit in units.values()):
                 raise RuntimeError('preparation requires actual destination allocation units')
@@ -1121,11 +1134,18 @@ class LocalSourceReferences:
                         content_sha256=content, footprint_bytes=sum(
                             ((size+unit-1)//unit)*unit for size, _ in files.values()),
                         path=str(self.roots[tier]/aid)) for tier, unit in units.items()})
+            # Source validation can advance source_epoch without a content change.
+            # Do not capture a budget earlier, or revalidate during serialization.
+            inventory = self.inventory()
+            budget = self._file_budget_from_inventory(limits, inventory)
+            host = self._host_budget_from_inventory(inventory)
+            sources = {Path(row['path']): row for artifact in artifacts.values()
+                       for row in artifact['sources']}
+            replacement = self._file_replacement_capacity_from_inventory(inventory, sources)
             return dict(kind='ieee_file_planning_sources_v1', owner_id=self.owner_id,
                 epoch=self.source_epoch, clock_id=budget['clock_id'], captured_at=time.monotonic(),
                 artifacts=artifacts, budgets=budget, allocation_units_bytes=units,
-                managed_host=self.host_budget_snapshot(),
-                replacement_capacity=self._file_replacement_capacity(),
+                managed_host=host, replacement_capacity=replacement,
                 physical_resources_reserved=False)
 
     def copy_confirmed(self, source, target, *, limit_bytes, publish, cancel_event=None, evidence=None,
