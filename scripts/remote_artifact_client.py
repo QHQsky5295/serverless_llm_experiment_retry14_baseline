@@ -93,6 +93,80 @@ def verify_pool(client: HttpArtifactStoreClient, *, content_index: Path, output:
             raise
 
 
+def verify_cancel(client: HttpArtifactStoreClient, *, adapter_id: str, output: Path) -> dict:
+    """Exercise the existing cancellation path after real headers, before body.
+
+    This is one functional HTTP attempt, not a timing experiment. A peer may
+    already have sent the response into socket buffers: client cancellation is
+    not proof of remote work cancellation. Reconcile its UUID separately.
+    """
+    evidence = {}
+    triggered_at = None
+
+    class AfterHeaders:
+        def is_set(self):
+            nonlocal triggered_at
+            if 'headers_received_monotonic_s' not in evidence:
+                return False
+            if triggered_at is None:
+                triggered_at = time.monotonic()
+            return True
+
+    with output.open('x', buffering=1) as journal:
+        def emit(record):
+            journal.write(json.dumps(record, sort_keys=True) + '\n')
+
+        result = dict(event='cancel_qualification', adapter_id=adapter_id,
+                      endpoint=client.endpoint,
+                      content_manifest_sha256=client.content_manifest_sha256,
+                      scope='post_header_pre_body_client_cancel',
+                      inference_qualified=False, remote_cancellation_inferred=False,
+                      evidence=evidence, cancel_triggered=False,
+                      client_workspace_removed_before_outer_cleanup=False,
+                      temporary_removed=False)
+        emit(dict(event='start', adapter_id=adapter_id, scope=result['scope']))
+        temporary = None
+        failure = None
+        try:
+            with tempfile.TemporaryDirectory(prefix='.remote-cancel-', dir=output.parent) as temporary:
+                try:
+                    client.download_artifact(adapter_id, str(Path(temporary)/'payload'),
+                        cancel_event=AfterHeaders(), evidence=evidence,
+                        require_content_manifest=True, require_remote_timing=True)
+                except RemoteArtifactError as exc:
+                    if triggered_at is None or str(exc) != f'artifact transfer cancelled: {adapter_id}':
+                        raise
+                    result['observed_cause'] = type(exc).__name__
+                else:
+                    raise RuntimeError('expected cancellation did not occur')
+                # Inspect BEFORE TemporaryDirectory cleanup; an outer removal
+                # must not hide a leaked downloader workspace or publication.
+                remaining = sorted(p.name for p in Path(temporary).iterdir())
+                result.update(remaining_owned_entries=remaining,
+                              client_workspace_removed_before_outer_cleanup=not remaining)
+                if remaining:
+                    raise RuntimeError('downloader cancellation cleanup left owned entries')
+                if (evidence.get('state') != 'not_published'
+                        or evidence.get('transferred_bytes') != 0
+                        or not evidence.get('remote_timing_available')
+                        or evidence.get('content_verified')):
+                    raise RuntimeError('cancellation evidence violates post-header pre-body contract')
+        except BaseException as exc:
+            failure = exc
+        result.update(cancel_triggered=triggered_at is not None,
+                      cancel_triggered_monotonic_s=triggered_at,
+                      temporary_removed=temporary is not None and not Path(temporary).exists())
+        result['pass'] = failure is None and result['temporary_removed']
+        if failure is not None:
+            result['error_type'] = type(failure).__name__
+        emit(result)
+        if failure is not None:
+            raise failure
+        if not result['pass']:
+            raise RuntimeError('qualification temporary cleanup failed')
+        return result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="PrimeLoRA remote artifact client.")
     parser.add_argument("--endpoint", default="", help="Remote endpoint, e.g. http://10.199.227.174:18080")
@@ -119,8 +193,18 @@ def main() -> int:
     pool_parser = sub.add_parser('verify-pool', help='Verify every existing adapter, retaining no pool copy')
     pool_parser.add_argument('--output', required=True, type=Path, help='New JSONL journal; refuses overwrite')
 
+    cancel_parser = sub.add_parser('verify-cancel', help='Qualify post-header cancellation and local cleanup')
+    cancel_parser.add_argument('--adapter-id', required=True)
+    cancel_parser.add_argument('--output', required=True, type=Path, help='New JSONL journal; refuses overwrite')
+
     args = parser.parse_args()
     client = _client(args)
+
+    if args.cmd == 'verify-cancel':
+        if not args.content_index:
+            parser.error('verify-cancel requires the existing --content-index')
+        print(json.dumps(verify_cancel(client, adapter_id=args.adapter_id, output=args.output), sort_keys=True))
+        return 0
 
     if args.cmd == 'verify-pool':
         if not args.content_index:

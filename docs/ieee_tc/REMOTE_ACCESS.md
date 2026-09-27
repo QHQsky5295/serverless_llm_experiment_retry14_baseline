@@ -223,3 +223,29 @@ Remote memory.high reclaim is retained as an observed condition; durations are
 NOT production initialization profiles or an inference-performance conclusion.
 7B complete coverage and real cancellation cleanup are still pending at this
 checkpoint. No new baseline, weights, full trace or retained pool copy.
+
+### D77 complete 7B content coverage (2026-09-27)
+
+The prepared D75 run completed without restart: 12:21+08 start, serial loop
+645.243s. Both model pools now pass full content coverage, not inference or
+performance qualification. No serving configuration changed during either run.
+
+| Qualification evidence | 7B observed |
+|---|---:|
+| Frozen manifest / verified IDs |500 /500|
+| SHA-verified regular files |5000|
+| Logical payload / HTTP archive bytes |12985984450 /420756591|
+| Distinct client/server UUID matches |500|
+| Local / remote temporary cleanup |500 /500|
+| Failed transfers |0|
+| Local watchdog samples / peak bytes |638 /74416128|
+| Local high / max / OOM / OOM-kill |0 /0 /0 /0|
+| Remote high / max / OOM / OOM-kill |22352 /0 /0 /0|
+
+All 500 HTTP attempts reconcile individually by identity, bytes, content
+manifest, ordered spans and cleanup. Remote journal copy SHA matches the source.
+Service path removed, auxiliary inactive, no owned temporary pool or GPU model.
+Curated evidence: `paper_results/ieee_tc/remote_qualification/20260927_d77_7b_coverage.json`.
+Actual remote1/2GiB qualification limits cause reclaim; these timings must NOT
+initialize Full profiles. Cancellation cleanup and the shared performance
+resource contract remain separate gates before representative Full profiling.

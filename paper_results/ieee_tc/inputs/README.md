@@ -55,3 +55,9 @@ evidence: `../remote_qualification/20260927_d76_3b_coverage.json`,500/500 IDs an
 4000/4000 files verified. Do not mutate the original index's historical
 `remote_content_verified=false` field and invalidate its frozen SHA. Join the
 new evidence by that SHA.7B full coverage and inference qualification remain open.
+
+2026-09-27 D77: the correct unchanged 7B materialized index also has separate
+remote evidence: `../remote_qualification/20260927_d77_7b_coverage.json`,500/500
+IDs and5000/5000 files verified. Join by index SHA e85cce3c...; do not rewrite
+historical index fields. Both full-pool content gates pass. Inference, numerical
+LoRA application and representative performance profiles are separate gates.

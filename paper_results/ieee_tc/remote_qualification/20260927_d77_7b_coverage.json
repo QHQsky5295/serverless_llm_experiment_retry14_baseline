@@ -1,0 +1,55 @@
+{
+  "kind": "remote_full_pool_content_qualification_v1",
+  "model": "llama2_7b",
+  "source_commit": "d8a0b49443e413947130a14a62c7aa5562bbee17",
+  "plan_sha256": "d79d7eb691d6f57fff08290134e6f8841222c6ed68ef975c7febb362d8a61381",
+  "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/remote_qualification/d75_20260927",
+  "expected_adapters": 500,
+  "verified_adapters": 500,
+  "failed_adapters": 0,
+  "verified_files": 5000,
+  "logical_bytes": 12985984450,
+  "wire_bytes": 420756591,
+  "elapsed_s": 645.2430364760221,
+  "client_server_matches": 500,
+  "local_temporary_removed": 500,
+  "remote_temporary_removed": 500,
+  "content_coverage_pass": true,
+  "inference_qualified": false,
+  "numerical_lora_correctness_qualified": false,
+  "performance_profile_qualified": false,
+  "remote_clock_ids": ["remote-process-monotonic:89ed8a77f43141bd939fa21dc22ce2ea"],
+  "local_resource": {
+    "samples": 638, "peak_bytes": 74416128,
+    "min_host_available_bytes": 110448508928,
+    "events": {"high": 0, "max": 0, "oom": 0, "oom_kill": 0},
+    "swap_peak_bytes": 0
+  },
+  "remote_resources": {
+    "memory.current": "1071734784", "memory.peak": "1074266112",
+    "memory.high": "1073741824", "memory.max": "2147483648",
+    "memory.swap.current": "0", "memory.swap.max": "0",
+    "memory.events": "low 0\nhigh 22352\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=920420\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=920420",
+    "cpu.stat": "usage_usec 460255690\nuser_usec 448314299\nsystem_usec 11941390\ncore_sched.force_idle_usec 0"
+  },
+  "cleanup": {"service_path_removed": true, "auxiliary_scope_inactive": true, "no_owned_temporary_copy": true},
+  "caveats": [
+    "Serial functional coverage, not latency/throughput or initialization profiling.",
+    "Remote memory.high events are retained; functional settings are not the frozen Full performance environment.",
+    "No new weights, trace or retained full-pool copy. All-zero-weight correctness limitation unchanged.",
+    "Packing overlaps header wait; no subtraction from user E2E."
+  ],
+  "raw_sha256": {
+    "coverage_7b.jsonl": "3226dd5412dc6bfda450b2c20357f816862f76dbf91ff2590883fe836d2d9dbc",
+    "coverage_7b_launch.json": "a79db1d969a5db029be33807b7b0a50957e8bd974f54f876a681c319c9df0856",
+    "remote_7b_complete.jsonl": "e26ab45e286792bcea3f02ac60691c26dea75dfbd73ad09c95c83f367fb685fc",
+    "remote_7b_end.json": "ce487e885f82d972e5d110cf219b1f0c8a531d714eff072bc0358e271121b94c",
+    "run_coverage_7b.sh": "85bc4d8d6b4b0302a8b0f5612d0cc8c8fc61696c3e4a54b1fca2292e74fb082a",
+    "coverage_7b_launch.launch/watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "coverage_7b_launch.launch/exec_receipt.json": "c8a23f9076671d20a4f9e0283985276634843ea9645e5b2f3368675967286c6d",
+    "coverage_7b_launch.launch/watchdog.jsonl": "9057dda2afa121320735924e433599d725702db790b240b8420a47a699501bcb",
+    "coverage_7b_launch.launch/service.log": "cf2bce39a875c0e7f3d5f449c1a44e26ec6b4ad533cd846aab94a127c0148495"
+  },
+  "input_index_sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+}

@@ -184,6 +184,82 @@ class AtomicArtifactPublication(unittest.TestCase):
         self.assertEqual(client.download_artifact.call_count, 1)
         self.assertEqual(json.loads((self.root/'mismatch.jsonl').read_text().splitlines()[-1])['event'], 'incomplete')
 
+    def test_cancel_qualification_uses_real_headers_and_checks_cleanup_before_outer_removal(self):
+        from scripts.remote_artifact_client import verify_cancel
+        served = self.root/'cancel-served'
+        (served/'a').mkdir(parents=True)
+        payload = b'unchanged-existing-unit-fixture'
+        (served/'a'/'weights').write_bytes(payload)
+        records, finished = [], threading.Event()
+        def record(row):
+            records.append(row)
+            finished.set()
+        server = ArtifactServer(('127.0.0.1', 0), ArtifactHandler,
+                                root=served, event_sink=record)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:'+str(server.server_port))
+            client.configure_content_manifest(content_manifest(files={'weights': payload}))
+            output = self.root/'cancel.jsonl'
+            result = verify_cancel(client, adapter_id='a', output=output)
+            self.assertTrue(result['pass'])
+            self.assertTrue(result['client_workspace_removed_before_outer_cleanup'])
+            self.assertEqual(result['evidence']['state'], 'not_published')
+            self.assertEqual(result['evidence']['transferred_bytes'], 0)
+            self.assertFalse(result['remote_cancellation_inferred'])
+            self.assertTrue(finished.wait(2))
+            self.assertEqual(len(records), 1)
+            self.assertEqual(records[0]['transfer_id'], result['evidence']['http_transfer_id'])
+            self.assertTrue(records[0]['temporary_removed'])
+            # A small response can already be in the socket buffer at cancel.
+            self.assertIn(records[0]['outcome'], ('sent', 'failed'))
+            with self.assertRaises(FileExistsError):
+                verify_cancel(client, adapter_id='a', output=output)
+            self.assertEqual(len(records), 1)
+            self.assertFalse(list(self.root.glob('.remote-cancel-*')))
+            self.assertEqual((served/'a'/'weights').read_bytes(), payload)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+
+    def test_cancel_qualification_does_not_relabel_network_failure_as_cancellation(self):
+        from scripts.remote_artifact_client import verify_cancel
+        client = Mock()
+        client.endpoint = 'http://unit.invalid'
+        client.content_manifest_sha256 = 'a'*64
+        client.download_artifact.side_effect = RemoteArtifactError('HTTP 401')
+        output = self.root/'early-failure.jsonl'
+        with self.assertRaises(RemoteArtifactError):
+            verify_cancel(client, adapter_id='a', output=output)
+        result = json.loads(output.read_text().splitlines()[-1])
+        self.assertFalse(result['pass'])
+        self.assertFalse(result['cancel_triggered'])
+        self.assertEqual(client.download_artifact.call_count, 1)
+
+    def test_cancel_qualification_outer_temp_cleanup_cannot_hide_leaked_workspace(self):
+        from scripts.remote_artifact_client import verify_cancel
+        client = Mock()
+        client.endpoint = 'http://unit.invalid'
+        client.content_manifest_sha256 = 'a'*64
+        def leave_workspace(aid, target, **kwargs):
+            evidence = kwargs['evidence']
+            evidence.update(headers_received_monotonic_s=1., state='not_published',
+                            transferred_bytes=0, remote_timing_available=True)
+            self.assertTrue(kwargs['cancel_event'].is_set())
+            (Path(target).parent/'leaked-workspace').mkdir()
+            raise RemoteArtifactError('artifact transfer cancelled: '+aid)
+        client.download_artifact.side_effect = leave_workspace
+        output = self.root/'leaked-cancel.jsonl'
+        with self.assertRaisesRegex(RuntimeError, 'cleanup'):
+            verify_cancel(client, adapter_id='a', output=output)
+        result = json.loads(output.read_text().splitlines()[-1])
+        self.assertFalse(result['pass'])
+        self.assertFalse(result['client_workspace_removed_before_outer_cleanup'])
+        self.assertEqual(result['remaining_owned_entries'], ['leaked-workspace'])
+        self.assertFalse(list(self.root.glob('.remote-cancel-*')))
+
     def test_routing_rank_does_not_silently_approximate_unqualified_metadata(self):
         for config in (b'{}', b'{"r":true}', b'{"r":0}', b'{"r":8,"rank_pattern":{"q":16}}'):
             client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')

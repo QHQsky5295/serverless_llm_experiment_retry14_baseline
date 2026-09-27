@@ -18,6 +18,31 @@
   D74 3B REPAIRED is ENDED/cleaned. Baselines are PAUSED by latest user direction.
   Do not run the prepared3B original side; return to Prime P1/P2/Full.
 
+## D77 checkpoint: both remote pools complete; cancellation witness next
+
+- Starts main6b3246ff184893d536ceb6587a18dbd207f6ce2e; baseline9e2cf289 stays
+  PAUSED. Full plan/status/AGENTS and required skills reread. No model/baseline,
+  new weights, trace or pool. SAME D75 7B run ENDED normally; do not repeat it.
+-7B500/500 IDs,5000 files SHA-verified, logical12985984450B/wire420756591B,
+ 645.243s SERIAL FUNCTIONAL loop,0failed.500 distinct client/server UUIDs,
+ bytes/ordered spans/pack-rounding/content/cleanup reconciled. Remote journal
+ SHA e26ab45e matches copied source. All local/remote temporary copies removed.
+-638 watchdog samples; local peak74416128B,min host110448508928B,high/max/OOM/
+ swap0; service/watchdog0/0, actual service path gone, auxiliary inactive, all
+ GPUs15MiB/0%, no model/TMUX. Remote high22352,max/OOM0,swap0. NOT Full profiles.
+- Immediate REMOTE_ACCESS table and curated20260927_d77_7b_coverage.json retain
+ nine raw SHAs. Both indices unchanged; README links qualification separately.
+ No remote restart/configuration change or inference overlap.147 protected
+ entries and authoritative plan unchanged (d77_protected.json).
+- Added opt-in cancellation witness to EXISTING client CLI, not the production
+ downloader. Trigger after observed HTTP headers, verify no publication/bytes,
+ inspect downloader workspace BEFORE outer temp cleanup. Unit tests cover real
+ headers, unrelated HTTP error and leaked workspace; peer completion is NOT
+ inferred from client cancellation. Actual one-per-model check still pending.
+- Next: finish test/backup, one cancel/model using existing gated-launch,
+ correlate remote cleanup, then shared performance envelope and representative
+ Full profiles/integration. No baselines or another serial-only source prefix.
+
 ## D76 checkpoint: 3B remote content coverage complete; Prime Full still next
 
 - Starts main2273cfc767c0eb3bab209a89a22e1ae80f0b2120; baseline9e2cf289 remains
@@ -557,7 +582,7 @@
 |---|---|---|
 | Safety/physical measurement | Actual Ray/worker and dedicated7B owner qualification; Full reducer connected | RESOURCE_QUALIFICATION, EXTERNAL_REPLAY_QUALIFICATION, PHYSICAL_GPU_MEASUREMENT D27/D55; actual Full multi-activation still open |
 | Old results | All147 protected entries unchanged at D72 final verification | paper_results/ieee_tc/safety/20260925_execution_start_protected.json |
-| Remote174 | Start/stop/restart and3B500/500 content pass;7B coverage LIVE | Full performance envelope/cancellation remain open; no150GiB floor on artifact-only node |
+| Remote174 | Start/stop/restart and both500/500 content pass | Full performance envelope/cancellation remain open; no150GiB floor on artifact-only node |
 | P0 Table1/Full | 7B source-pair audit complete | Same inputs, different execution;202 scalars retained; no rerun needed for provenance finding |
 | P1 IEEE alignment | Frozen h/d planning/replacement, staging/admission, observed HOST return connected | P1 throughD54, P2 throughD61; representative profiles and actual Full remain open |
 | P2 backend/artifacts | vLLM0.30 installed; mechanical/numerical diagnostics; complete pool content audits | Full semantic qualification OPEN;3B500/500 and7B498/500 zero weights |
