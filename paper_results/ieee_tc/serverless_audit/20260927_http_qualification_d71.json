@@ -1,0 +1,203 @@
+{
+  "schema": "ieee_tc_serverless_http_qualification_summary_v1",
+  "system": "Serverless",
+  "model": "llama2_7b",
+  "case": "D71 native local mechanical bootstrap dependency diagnostic; not polling comparison",
+  "main_commit": "583787a4f2410761ec2fdd8d5f5c81b9ee83c772",
+  "baseline_commit": "1b05335d29b8f07a89913c7bce79a31049d84140",
+  "whole_run_qualified": false,
+  "performance_result": false,
+  "remote_qualified": false,
+  "independent_lora_numerical_correctness": false,
+  "counts": {
+    "event": "http_replay_complete",
+    "N_plan": 100,
+    "N_arrived": 100,
+    "N_terminal": 100,
+    "N_response": 97,
+    "N_failed": 3
+  },
+  "request_binding_audit": {
+    "native_observations": 97,
+    "target_prompt_adapter_matches": 97,
+    "native_output_tokens": 17035,
+    "actual_unique_adapters": 29,
+    "max_e2e_identity_error_ms": 0,
+    "max_tpot_recomputation_error_ms": 0
+  },
+  "failures": [
+    {
+      "event": "http_request_failed",
+      "index": 0,
+      "request_id": "req_00000",
+      "planned_arrival_s": 330800.557982657,
+      "task_created_s": 330800.570560588,
+      "source_item_sha256": "ad0f1b8d7b4683c73ca04d89dddd8cf1986d5ba96d9297c970a2be33276c58c0",
+      "http_task_started_s": 330800.570975757,
+      "client_submit_s": 330800.574433048,
+      "error": "ValueError: HTTP status 500",
+      "client_completed_s": 330800.738611432
+    },
+    {
+      "event": "http_request_failed",
+      "index": 1,
+      "request_id": "req_00001",
+      "planned_arrival_s": 330812.029725287,
+      "task_created_s": 330812.033123218,
+      "source_item_sha256": "79cba96f0d085a3f431bd43dd6368141fa00e7c17afefe75c3cac7b6b740df43",
+      "http_task_started_s": 330812.033393461,
+      "client_submit_s": 330812.035153241,
+      "error": "ValueError: HTTP status 500",
+      "client_completed_s": 330812.043484525
+    },
+    {
+      "event": "http_request_failed",
+      "index": 2,
+      "request_id": "req_00002",
+      "planned_arrival_s": 330814.21366998914,
+      "task_created_s": 330814.216208995,
+      "source_item_sha256": "b235f3a2b90de853857f6168ef78ab9361d3dc3730c9c67aa7faa114adfb088e",
+      "http_task_started_s": 330814.216398579,
+      "client_submit_s": 330814.217592731,
+      "error": "ValueError: HTTP status 500",
+      "client_completed_s": 330814.225530465
+    }
+  ],
+  "raw_launch": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d71_20260927/model_launch2.json",
+  "raw_hashes": {
+    "model_launch1.json": "43833ebd4bf8662da5acbff29385991c4d9ca56392c2dcaf4f4525d57fa1378b",
+    "model_launch2.json": "eb2c1828fa4763a7e81a69ba3aaeabf97d0bf95bd36ae4c7f51be47ae45a0bca",
+    "model_launch2.launch/replay.jsonl": "e276509f9d58085e38c454ba7beea3e7b72000b3d6d02249c2798a733b25f59b",
+    "model_launch2.launch/watchdog.jsonl": "2631429556aa03c1dde80f4ee9e84dcb8e292d6e9035afe72f51c5a2172404f3",
+    "model_launch2.launch/exec_receipt.json": "4f30e38a5ec340376c70db79102a507e8037fc42677685f0eaef7121d5dacad1",
+    "model2/model_qualification.json": "ce84b1be588b8d281c9ec25f72ee7afcc5daf9a3081562460880387b133ea057",
+    "model2/configuration.json": "2471d58ec951eb8fca1fd0dd24b7a8d0bdb841a5727cd7ef1fea407c9c4b9a50",
+    "model2/launch_manifest.json": "6973a1e23035493846c621053b260528efcac01dc14c9eb12c01d81822682c51",
+    "model2/startup_events.jsonl": "2b6b3ca658c3f16da7ed7edd171ffa87c148a838a3e4dd32a3c3b0f761371d5f",
+    "model2/store.log": "c2cd49bae33c94ea0be9c5e30f87d52ecbf89babacf34e0f8fe1880fbb4c1c76",
+    "model2/serve.log": "6f249992e3c8e59de41284ca58d5582c251de03a3762e6613f3e610190307e71",
+    "native_log_copy_check.json": "2116b3f3cb260172bd46e122c06a8818c649455b9046fd4e423ceffce419773f",
+    "overlay/restore_receipt.json": "d4a955f72c0e38d87fdee10cf5095a34d1d9e1187610561542ec0a8b802ee89a",
+    "overlay2/restore_receipt.json": "09704d2dba0aa0156e14046269bc6933b79865ca17d9d6eb91eb6787eeef6eb7",
+    "run1.sh": "245c8ee074ca4ef082c09411c153f8a569d09dfd34d98076076a7da3101fc7ab",
+    "run2.sh": "776793b0593037675ee010ada07c0e6ede03a0e46f89515772c5352e6977fd64"
+  },
+  "safety": {
+    "samples": 1226,
+    "peak": 41928572928,
+    "min_available": 66548797440,
+    "max_swap": 0,
+    "final_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "loader_restored": true,
+  "auxiliary_verified_empty_and_stopped": true,
+  "native_logs_regular_files_copied": 93,
+  "native_gpu_replica": "8d139127-b23b-4ad9-bd82-2a731e80d323",
+  "startup_events": [
+    {
+      "event": "native_stack_start",
+      "monotonic_s": 330747.903528858,
+      "wall_time_s": 1790470538.9388795,
+      "seconds_since_deployment_notice": 7.345546200987883
+    },
+    {
+      "event": "native_stack_return",
+      "monotonic_s": 330801.224633641,
+      "wall_time_s": 1790470592.259985,
+      "seconds_since_deployment_notice": 60.66665098402882
+    },
+    {
+      "event": "model_registration_start",
+      "monotonic_s": 330801.412960107,
+      "wall_time_s": 1790470592.4483116,
+      "seconds_since_deployment_notice": 60.85497744998429
+    },
+    {
+      "event": "model_registration_return",
+      "monotonic_s": 330818.811487973,
+      "wall_time_s": 1790470609.8468397,
+      "seconds_since_deployment_notice": 78.25350531603908
+    },
+    {
+      "event": "native_router_start_observed",
+      "monotonic_s": 330819.81538,
+      "wall_time_s": 1790470610.850732,
+      "seconds_since_deployment_notice": 79.25739734299714
+    }
+  ],
+  "deployment_notice_s": 330740.557982657,
+  "replay_t0_s": 330800.557982657,
+  "selected_bootstrap": "store_parallel_head_worker_then_controller_v1",
+  "comparison": {
+    "reference": "20260927_http_qualification_d70.json",
+    "same_configuration_sha256": "2471d58ec951eb8fca1fd0dd24b7a8d0bdb841a5727cd7ef1fea407c9c4b9a50",
+    "reference_protocol_valid": 96,
+    "reference_startup_failures": 4,
+    "current_protocol_valid": 97,
+    "current_startup_failures": 3,
+    "causal_limit": "One development run each; no CI or statistical startup/latency/resource improvement claim. More timely router availability observed, not 100/100 qualification.",
+    "earlier_gpu_possession_charged": true
+  },
+  "prior_attempt": {
+    "raw_launch": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d71_20260927/model_launch1.json",
+    "classification": "protocol_or_launcher_error",
+    "reason": "NVML CLI fields did not supply the gated-launch environment interface; native command never authorized.",
+    "native_model_started": false,
+    "request_arrivals": 0,
+    "overlay_restored": true,
+    "auxiliary_verified_empty_and_stopped": true
+  },
+  "cleanup_interpretation": {
+    "classification": "qualification_request_failure",
+    "service_returncode": 1,
+    "replay_returncode": 1,
+    "watchdog_returncode": 0,
+    "native_gpu_context_release_confirmed": true,
+    "service_path_removed": true,
+    "complete_failed_workload_finalization_verified": true,
+    "missing_or_invalid_model_qualification_report": false,
+    "cleanup": {
+      "already_gone": true,
+      "released": true,
+      "targets": []
+    },
+    "external_replay_outcome": {
+      "event": "http_replay_complete",
+      "N_plan": 100,
+      "N_arrived": 100,
+      "N_terminal": 100,
+      "N_response": 97,
+      "N_failed": 3,
+      "measurement_complete": true,
+      "workload_passed": false,
+      "journal_sha256": "e276509f9d58085e38c454ba7beea3e7b72000b3d6d02249c2798a733b25f59b"
+    }
+  },
+  "interpretation": [
+    "Startup request acceptance and native engine readiness are different paths. Three requests received HTTP500 before named model router construction.",
+    "100 planned/arrived/terminal; all failures remain in denominator. Conditional success times are diagnostics only.",
+    "97 native responses have matching target, prompt hash and accepted adapter name; this is not independent numerical correctness.",
+    "One-instance target1 is a mechanical qualification, not a selected throughput point. Four store GPU contexts must be counted.",
+    "No original weights, adapter pool, source trace, model policy or preparation window changed."
+  ],
+  "analysis_recipe": [
+    "Join request_contract, http_response, http_request_failed and successful http_raw_response by unique request_id; terminal sets must partition all100 contracts.",
+    "Compare native output count/name/prompt hash with target_tokens/adapter_id/native_prompt_token_ids_sha256; require protocol_valid.",
+    "E2E identity=sum(submit_lag,dispatch_wait_after_submit,service_ttft,decode,completion_notification); TPOT=native_decode/(native_output_tokens-1).",
+    "Resource summary uses resource_sample entries only; native copy receipt verifies all93 regular-file hashes."
+  ],
+  "source_sha256_receipt": [
+    "765aa14943c8589f15b5e1c24d5c822c4f55eeb17265cf21812e31a3d155ab5c  scripts/ieee_tc_preflight.py",
+    "f1381d2e249d5860e3ed51efbbb5acae9a81419ffd4f8b0209c1bf5bcfd0acae  paper_results/ieee_tc/serverless_audit/20260927_http_qualification_d70.json",
+    "4042918cbbf0453982709e4b1e4fdb36aaae97a08d943bfe9e16523a149c034f  /home/qhq/serverless_llm_baselines/scripts/prepare_ieee_tc_serverless_stack.py",
+    "7dbc0ba0463749ddd74580c94055261c586e6f2bb79772494cdbdec93f47872d  /home/qhq/serverless_llm_baselines/tests/test_ieee_tc_serverless_launch.py"
+  ],
+  "next": "Return to original/repaired1,000-request development pairs with equal bootstrap/loading/scaling/input/configuration, retaining any startup failures. Do not repeat startup tuning for a cosmetic qualification pass. Remote and nonzero-LoRA choices remain open."
+}

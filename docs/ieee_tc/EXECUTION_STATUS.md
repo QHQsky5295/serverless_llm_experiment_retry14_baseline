@@ -13,7 +13,68 @@
   startingd85263e00e976cc61c8938e662d77a2b249cdf58. Goal remains incomplete.
 - D68 start main5b09401c1e7598c407b22710a21486dc1be44166, baseline08153b457f43d3d587dae171f9dc49024fde4752.
 - Resume by inspecting actual handles/Git/resources; never restart a live run
-  from stale notes. D70 model task finished; loader overlay RESTORED.
+  from stale notes. D71 attempt2 ENDED; both loader overlays are RESTORED.
+
+## D71 checkpoint: native bootstrap dependency diagnostic completed
+
+- Starts main583787a4f2410761ec2fdd8d5f5c81b9ee83c772/baselinee01f78b1a164e353bd8b01fd0a01f79f47fa4172.
+  Full plan/status/required skills read.147 protected entries and plan unchanged.
+- D70 timeline and official pinned controller/store reviewed online. Native
+ 32GiB pool allocation took20.236s; launcher unnecessarily placed store after
+  Ray workers. Store itself does not depend on Ray; controller needs both.
+  Candidate overlaps store with head→worker and retains both readiness barriers.
+  No RR/scaler/loader/configuration/pool/trace change, no hidden retry or t0 shift.
+  Earlier store GPU possession must still be charged; no benefit presumed.
+- Candidate40 launch/router/measurement checks pass2.425s. Baseline source
+ 1b05335d29b8f07a89913c7bce79a31049d84140 pushed; fresh origin/main SHA matches.
+  This is one bootstrap hypothesis, not a repeat merely for final-report output.
+- Attempt1 stopped before native service execution: command incorrectly passed
+  NVML CLI fields rather than gated-launch's environment contract. No model or
+  arrival; service path removed, auxiliary d710...001 empty/events0 then stopped,
+  all GPUs15MiB, overlay1 restored. Original run1.sh/launch/logs preserved.
+- Attempt2 uses corrected monitoring environment only and fresh paths. Raw root
+  results/ieee_tc/serverless_qualification/d71_20260927; run2.sh, model_launch2,
+  model2, private /tmp/tc-d71-7b2. Outer TMUX tc-d71-7b2, auxiliary
+  d7100000000000000000000000000002; service48cb8ef6258e481fadde1d6f711198a7.
+  Both overlays exactly restored AFTER actual worker release; no live model/TMUX.
+- API bootstrap returned notice+60.667s, registration
+  returned+78.254s, router start observed+79.257s. Three initial HTTP500 failures
+  occurred before named-router construction. All100 requests reached terminal;
+ 97 protocol-valid/3 failed, with no new failures after the initial three.
+  No100/100 pass. Native target/prompt/adapter-name match97/97,17,035 actual
+  output tokens,29 actual unique adapters; E2E identity and TPOT error0ms.
+  Native GPU replica8d139127-b23b-4ad9-bd82-2a731e80d323 confirmed. No independent
+  numerical LoRA, remote, full-pool or formal-performance qualification claim.
+-1226 watchdog samples, peak41,928,572,928B/min host66,548,797,440B; high/max/
+  OOM/OOM-kill/swap0. GPU contexts clear, service removed, auxiliary empty/events0
+  then stopped.93 regular native log files copied and every SHA equal; four
+  obsolete socket files intentionally not copied. Raw evidence remains21MiB.
+- Actual bounded failed-workload finalization now verified: native final report
+  saved, measurement_complete=true/workload_passed=false, classification
+  qualification_request_failure, service/replay/watchdog1/1/0. No forced service
+  termination or failure reclassification as a publisher crash.
+- Immediate D70/D71 table in baseline REQUEST_PROTOCOL; main curated
+ 20260927_http_qualification_d71.json/.csv retains both attempts and all100 rows,
+ 16 raw SHAs, startup spans, source identities, and explicit claim limitations.
+  Configuration SHA identical to D70; one extra successful request217 tokens.
+  One run each gives no statistical startup or resource-improvement conclusion.
+- No more startup tuning merely to pass100; next return toward planned1,000-request
+  original/repaired diagnostic pairs (which must preserve startup failures and
+  equal bootstrap/loading/scaling/configuration). Formal qualification stays open.
+- Remote-space/nonzero-LoRA decisions and Full representative profiling remain
+  open. M1/M2/A/S not started; this is not a formal performance experiment.
+- Final checks:53 OS tests0.784s and328 smoke/shared-protocol tests23.611s PASS;
+  candidate40 baseline checks2.425s PASS before the run. An initial post-run
+  test command named a nonexistent test_ieee_tc_os_guard module and failed
+  discovery; no tests or model ran in that invocation. Corrected command uses
+  existing test_ieee_tc_preflight. Logs retained under the D71 raw root.
+  All16 curated raw hashes and100-row CSV independently reconcile;147 protected
+  entries/plan unchanged, restored-loader preflight PASS. Disk334,091,194,368B
+  available; host MemAvailable108,717,956kB. No model/TMUX or D71 tasks remain;
+  unrelated/older empty scope records were not globally stopped.
+  Baseline source1b05335 and evidence9603442 are backed up. Main checkpoint
+  contains only the current ledger and curated JSON/CSV; original user dirt
+  excluded. Full remote SHA verification is performed after each push.
 
 ## D70 checkpoint: native 7B inference works; whole-workload qualification fails
 
@@ -146,12 +207,12 @@
 | Block | Status | Evidence / next |
 |---|---|---|
 | Safety/physical measurement | Actual Ray/worker and dedicated7B owner qualification; Full reducer connected | RESOURCE_QUALIFICATION, EXTERNAL_REPLAY_QUALIFICATION, PHYSICAL_GPU_MEASUREMENT D27/D55; actual Full multi-activation still open |
-| Old results | All147 protected entries unchanged at D70 | paper_results/ieee_tc/safety/20260925_execution_start_protected.json |
+| Old results | All147 protected entries unchanged at D71 final verification | paper_results/ieee_tc/safety/20260925_execution_start_protected.json |
 | Remote174 | Strict key login works; service qualification pending | Disk138.52GiB below approved150GiB; user decision pending |
 | P0 Table1/Full | 7B source-pair audit complete | Same inputs, different execution;202 scalars retained; no rerun needed for provenance finding |
 | P1 IEEE alignment | Frozen h/d planning/replacement, staging/admission, observed HOST return connected | P1 throughD54, P2 throughD61; representative profiles and actual Full remain open |
 | P2 backend/artifacts | vLLM0.30 installed; mechanical/numerical diagnostics; complete pool content audits | Full semantic qualification OPEN;3B500/500 and7B498/500 zero weights |
-| Serverless | D70 native7B initialization and96 valid HTTP responses;4 startup errors |100/100 qualification and original/repaired1,000-request pairs remain open; no identical retry |
+| Serverless | D71 complete100-request observation:97 valid/3 initial HTTP500; finalization and cleanup verified | Original/repaired1,000-request diagnostic pairs next; full qualification remains open, no more startup-only retry |
 | Baseline qualification | Pending | Serverless first, then vLLM/S-LoRA/dLoRA3B/Loquetier/HydraServe |
 | M1/M2, A1–A5, S1–S13 | NOT STARTED | No formal performance or optimality claim |
 | Documents/figures | Design and qualification tables in progress | Formal performance figures pending |
@@ -164,15 +225,18 @@ parts and all291 source parameter tensors verified exactly;32 recomputed RoPE
 buffers separately accounted. Do NOT re-export it or repeat the passed byte,
 Ray-only, allocator or four-request3B witnesses/old prefixes.
 Move toward the approved two-model original/repaired1,000-request development
-pairs. D70 verifies96 native7B responses with the historical linear-only layout,
-but4 startup failures prevent whole-run qualification. Preserve its100 terminal
-records and all earlier failed attempts. Do NOT repeat the100-request run or
-byte audit just to recover the missing final report. Inspect preserved native
-boot/API/registration timelines and official dependencies; distinguish absent
-front-door/router from engine-not-ready queuing. Then select the next faithful
-qualification step without changing notice+60, hiding failures or introducing
-a per-baseline retry policy. Bounded finalization fix is unit/journal tested;
-actual native finalization will be checked in that next useful run.
+pairs. D71 now verifies97 native7B responses after removing a false bootstrap
+dependency, but three initial missing-router errors prevent whole-run qualification.
+All100 terminal records, native final report and cleanup are preserved. Do NOT
+repeat100 requests, checkpoint bytes, Ray-only checks or another bootstrap-only
+optimization to obtain a cosmetic pass. The cold control path and engine-ready
+queue are distinct; retain startup failures in the upcoming diagnostic pairs.
+Use the same selected bootstrap/loading/scaling/queue configuration on both
+router sides. Next expose the historical min1/max4,target7B2/3B8 as explicit
+development settings in the existing helper rather than extrapolating from
+the one-inflight mechanical check; these historical settings are not frozen
+M1/M2 optima. No change to notice+60 or hidden per-baseline retries. Actual
+bounded failed-workload finalization is verified, not merely unit-tested.
 The dirty legacy replay client currently restricts fixed_length_greedy_v1 to
 S-LoRA; do not overwrite that user file or silently apply its legacy path to
 Serverless. D70 now observes actual7B native inference, unlike D69.
