@@ -241,8 +241,45 @@ unchanged. The prior invariant failure was NOT reproduced or causally fixed;
 the diagnostic change did not relax the guard. This run qualifies the actual
 pending transport for these3Bcases, not Full activation/autoscaling.
 
-Next execute the prepared7B admission-enabled source specification, then
-cleanup/validate/plot. The frozen contract is unchanged. Full profile
-export, integrated activation/lifecycle and complete development replay remain
-pending; baselines stay paused. The all-zero adapter discrimination limitation
-also remains explicit. No claim of Full qualification or G1/G2 superiority.
+## Completed admission-enabled 7B source calibration
+
+Source `c642fdfc3bffc5eee09f70777b0570954235e58a` is an evidence-only successor
+to the 3B source, with identical implementation. All92requests pass
+(90representative,2warmup), all92pending intents close. Six exact-content
+classes,20service classes and24preparation classes are observed. Each preparation
+class has3observations within this one run. The six repeated input groups retain
+identical prompt/target and output hashes; this does not resolve the separately
+documented numerical-discrimination limitation of the original adapter pool.
+
+| Source | Actual loading d mean (ms) | Admission-to-acquisition D mean (ms) | Acquired-to-first T mean (ms) |
+|---|---:|---:|---:|
+| Remote |531.17 |545.96 |260.27 |
+| NVMe |55.18 |154.80 |241.80 |
+| HOST file |54.83 |153.55 |244.36 |
+| HOST tensor |16.93 |124.16 |262.40 |
+| Protected GPU |not a load |0.00 |241.01 |
+
+Native TPOT means range27.38–27.55ms/token. Source reuse mainly changes observed
+preparation in this calibration; it does not prove a general ordering of all
+latency components or a Full speedup. NVMe may use page cache. Results are not
+three independent repetitions, S1 causal evidence, or main-comparison results.
+
+All92HTTP UUID pairs match:490,763,433wire bytes/2,463,242,860logical bytes;
+18measured Remote fetches and74controlled setup fetches. No request packaging.
+437resource samples:peak5,442,330,624B,minimum host available110,904,717,312B,
+high/max/OOM/swap all0. Service/watcher0/0, GPU/service/workspaces cleared,
+physical lease `4de9038dd25e4cd9a74447a5a80804b9` released. The matching empty
+auxiliary was stopped only after actual cgroup membership checks.
+
+Three3.45-inch Times New Roman PDF/PNG figures and CSVs are in
+`figs/ieee_tc/p2_backend/d88_7b_admission_attempt1`. All rendered views inspected,
+no text overlap; regular/bold fonts embedded. Curated7B JSON binds raw/log/script
+and figure SHAs.147protected entries unchanged. After both models completed,
+the matching remote monitor was stopped; its trap stopped both matching artifact
+services. All three units are inactive/MainPID0/Resultsuccess; final monitoring
+and transfer journals retained. No remote change occurred during inference.
+
+Next reuse both completed D88 runs to export strict measured initialization,
+then verify integrated Full activation/lifecycle and complete development replay.
+Do not repeat publication/full-pool/source calibrations. Baselines remain paused;
+Full, main comparisons and ablations are not yet qualified or started.

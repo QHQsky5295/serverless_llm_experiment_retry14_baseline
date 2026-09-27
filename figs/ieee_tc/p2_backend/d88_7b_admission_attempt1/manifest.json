@@ -1,0 +1,65 @@
+{
+  "kind": "development_native_source_profile_preview_v1",
+  "formal_S1": false,
+  "independent_runs": 1,
+  "ci": null,
+  "warmup_retained_but_not_in_means": true,
+  "warmup_requests": 2,
+  "measured_requests": 90,
+  "limitations": [
+    "not Full qualification or a causal system comparison",
+    "within-run rounds are not independent experimental repeats",
+    "NVMe source may be page-cache resident",
+    "variable prompt/token/concurrency composition; see all_observations.csv"
+  ],
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d88_20260927/7b_admission_source_attempt1.json",
+      "sha256": "60d2f9e7ec28f2a1a2a0884a216919e5561aa86c75708b3079698d7f5e97c2c5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d88_20260927/7b_admission_source_attempt1_launch.json",
+      "sha256": "63ffd1522b462ab91e1a0cac196c6edb86f5596d6fe7f0729ece095a560fcb23"
+    }
+  ],
+  "script_sha256": "1e4345e7f598efc418e58adb3aea9e7b9754681543c0e5c06a9714413318aad7",
+  "qa": [
+    {
+      "metric": "D_ms",
+      "width_inches": 3.45,
+      "height_inches": 2.65,
+      "text_clipping": false,
+      "text_overlap": false,
+      "font_path": "/home/qhq/.local/share/fonts/msttcorefonts-times/times.ttf",
+      "manual_visual_review": "required"
+    },
+    {
+      "metric": "T_ms",
+      "width_inches": 3.45,
+      "height_inches": 2.65,
+      "text_clipping": false,
+      "text_overlap": false,
+      "font_path": "/home/qhq/.local/share/fonts/msttcorefonts-times/times.ttf",
+      "manual_visual_review": "required"
+    },
+    {
+      "metric": "TPOT_ms",
+      "width_inches": 3.45,
+      "height_inches": 2.65,
+      "text_clipping": false,
+      "text_overlap": false,
+      "font_path": "/home/qhq/.local/share/fonts/msttcorefonts-times/times.ttf",
+      "manual_visual_review": "required"
+    }
+  ],
+  "files": {
+    "source_TPOT_ms.pdf": "5f7871cb92deb8c375c53c5fa085eb96c0c35847c47dc1a72d73a2e07129dce4",
+    "source_T_ms.pdf": "aee9ff68c3f293ada96126639d6c7198417aaa85e78e4c8302acd6f4a3b4a620",
+    "all_observations.csv": "3e310d91a78f9f7779f8b50918eb1cc0ca9e2dd30c9305c275e61960ecf0c38b",
+    "source_TPOT_ms.png": "2e36a1372bd5cb8339d5dc9cae89ab7da7e4a9d5119600291d4d5b6fbaca12b1",
+    "summary.csv": "2fc6d11c60d89e5a25e452cb99cf3fb6e29b5ae8fd59444e9094976829669659",
+    "source_T_ms.png": "de8f8eeca04ac4a20e66a407d8337f1739f72702b38295f6fdef0ad764f9a215",
+    "source_D_ms.pdf": "b92b1abf4c7360b1f7aaad6510372cd12a2b992b7009aa4b1b1d34e88a619fcf",
+    "source_D_ms.png": "fedeaa376a1bb03ba270f529e59743c22c8ef3e77d2859196a0bd3b49337a84a"
+  }
+}

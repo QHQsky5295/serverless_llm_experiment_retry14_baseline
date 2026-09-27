@@ -1,6 +1,41 @@
 # IEEE TC execution status
 
-## Current checkpoint — 2026-09-27 D88 development controls; admission source next
+## Current checkpoint — 2026-09-27 D88 BOTH admission source runs complete
+
+LATEST22:48:7B attempt1 COMPLETE92/92(90representative+2warmup),allpendingclosed.
+Sourcec642fdfc3bffc5eee09f70777b0570954235e58a;20service/24preparation/6content
+classes,3observations/preparationclass.92HTTPUUID pairs exact,wire490763433B/
+logical2463242860B,18measuredRemote+74setup;no packing.437resourcesamples,
+peak5442330624B,minhost110904717312B,high/max/OOM/swap0. Service/watcher0/0;
+GPU/service/workspacesgone;lease4de9038dd25e4cd9a74447a5a80804b9released.
+Emptyaux049879743d89405b9683837df0decbec STOPPED afteractualemptychecks.
+AFTERallinference,matchingd88a4monitord99dad5a STOPPED;bothservicesinactive/
+MainPID0/Resultsuccess. Finalmonitor and7Bjournal copied;NO LIVE MODEL/TMUX/REMOTE.
+ThreeTNR3.45inchPDF/PNG d88_7b_admission_attempt1 visuallychecked/embeddedfonts.
+Curated20260927_d88_7b_admission_source.json;147protectedunchanged.
+7BloadingdmeansRemote531.17/NVMe55.18/fileHOST54.83/nativeHOST16.93ms;
+serviceD545.96/154.80/153.55/124.16ms;GPU0. No outputSHAvariation6groups.
+Descriptiveinitialization only,NOTFull/S1/baseline or independent3runs.
+NEXTbackupD88evidence,thenofflineprofileexportfromBOTHcompletedD88runs and
+integratedFullactivation/lifecycle. NoD78/D80/D81or sourceprofile reruns.
+Fullguardunchanged;M1/M2/A/SNOTstarted;baselinesPAUSED. Historicalnotesbelow.
+
+LIVE22:39:37:7B admission_source_attempt1 STARTED,tmux tc-d88-7b-attempt1;
+sourcec642fdfc3bffc5eee09f70777b0570954235e58a PUSHED/freshremoteSHA matched.
+This is evidence-only successor to3B executionc180bac,implementation unchanged.
+Rawd88/run_7b_admission_source_attempt1.sh;7b_admission_source_attempt1
+result/launch/console.92plannedcases(90representative+2warmup),samefrozen7Bspec.
+CompilerPATH/CUDA13/nativeenv andallresourceguards unchanged. Newauxsuffix0002.
+DirecthealthBOTHpass,remote3Bc0114fbb/7B2a22e5b3/monitord99dad5a identities
+unchanged from3B andACTIVE,link1000. No remote management/hash/config/cleanup
+or source changes during7Binference. Monitor to terminal,cleanup/validate/plot,
+then STOPmatchingd88a4remote monitor (trapstopsmatchingservices) afterbothmodels.
+3Bcompleted/backedup/plotschecked;DO NOT RERUN3B or D78/D80/D81.
+Rawsummaryscript summarize_admission_source.py isSHA-bound by3Bcuratedevidence;
+DO NOT editinplace for7B(hardcodedexecutioncommitc180bac). Reuse its logic with
+a new raw filename/actual7Bexecutioncommit ifneeded. Fullprofileexport+actual
+activation/lifecycle remainNEXT after7B;Full/M1/M2/A/S unqualified/unstarted.
+Originalfilefailure stillunresolved,negativeCPUprobesretained;no guardrelaxation.
 
 LATEST22:38:3B attempt4 COMPLETE368/368,360representative+8warmup,allpending
 closed.24content/40service/96preparation classes,3samples/preparationclass.
