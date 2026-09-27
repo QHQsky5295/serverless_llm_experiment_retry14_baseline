@@ -2965,6 +2965,152 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
     return profile, evidence
 
 
+def prepare_admission_source_runtime(cfg, spec, *, backend_version,
+                                     runtime_receipt_sha256, source_trace_sha256):
+    """Assemble the admission-enabled candidate through the actual main helper.
+
+    Old source-only specs remain unchanged at the call site. Length priors are
+    derived under their original source identity before adding Full-only
+    configuration. This never exports or relabels old timing observations.
+    """
+    from scripts.run_all_experiments import (
+        _prepare_dedicated_subprocess_model_cfg, _prepare_scenario_runtime_model_config)
+    index = Path(spec['content_index']['path'])
+    index = (index if index.is_absolute() else ROOT/index).resolve(strict=True)
+    if digest(index) != spec['content_index']['sha256']:
+        raise ValueError('Full source runtime content index SHA256 differs')
+    if 'artifact_content_manifest_path' in cfg or 'requested_runtime_concurrency_cap' in cfg:
+        raise ValueError('source initializer requires its recorded base before Full assembly')
+    child, _ = _prepare_dedicated_subprocess_model_cfg(cfg, device_id=0, runtime_gpu_ids=[0])
+    initializer, evidence = measured_admission_initializer(spec['admission_initialization'],
+        model_config=child, backend_version=backend_version,
+        runtime_receipt_sha256=runtime_receipt_sha256, source_trace_sha256=source_trace_sha256,
+        movement_concurrency=spec['movement_concurrency'])
+    workload = dict(generation_contract=cfg['generation_contract'],
+        fixed_prompt_max_tokens=cfg['max_input_len'], fixed_output_max_tokens=cfg['max_output_tokens_cap'])
+    configured = _prepare_scenario_runtime_model_config(dict(cfg,
+        ieee_admission_profile=initializer, artifact_content_manifest_path=str(index)), workload, {})
+    child, _ = _prepare_dedicated_subprocess_model_cfg(configured, device_id=0, runtime_gpu_ids=[0])
+    assembly = dict(kind='main_source_runtime_assembly_v1',
+        helper='scripts.run_all_experiments._prepare_scenario_runtime_model_config',
+        workload=workload, instance_model_overrides={}, content_index=spec['content_index'],
+        planned_child_model_config=child, production_profile_frozen=False,
+        performance_samples_relabelled=False)
+    return configured, evidence, assembly
+
+
+def source_profile_class_coverage(payload, identities):
+    """Audit the reachable class domain of an existing source calibration.
+
+    Metadata-only: no new input, fetch, model initialization or timing export.
+    Exact file-content equivalence is used only within this measured runtime.
+    Missing classes are reported, never filled with neighbouring/zero costs.
+    Full workload correctness and applicability to a changed runtime are NOT
+    certified here. The caller binds raw/index/config files by SHA256.
+    """
+    from collections import Counter
+    from dataclasses import asdict, replace
+    from bisect import bisect_left
+    from itertools import product
+    from faaslora.experiment.instance_pool import ServiceClassBins
+    from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
+
+    if (payload.get('kind') != 'backend_native_native_source_matrix_qualification_v1'
+            or payload.get('pass') is not True or payload.get('stage') != 'complete'
+            or payload.get('shutdown_called') is not True
+            or payload.get('profile_workspaces_removed') is not True
+            or payload.get('artifact_mode') != 'prepublished_gzip_v1_real_remote_no_fallback'):
+        raise ValueError('class coverage requires a completed published-source calibration')
+    spec, cfg = payload['source_profile_spec'], payload['model_config']
+    if cfg.get('generation_contract') != 'fixed_length_greedy_v1':
+        raise ValueError('class coverage requires the fixed generation contract')
+    bins = ServiceClassBins(**{k: tuple(v) for k, v in spec['bins'].items()})
+    if bins.footprint_bytes:
+        raise ValueError('nonempty footprint bins require a separately qualified allocation-domain audit')
+    cap, prompt_cap, output_cap = (cfg[k] for k in
+        ('runtime_concurrency_cap', 'max_input_len', 'max_output_tokens_cap'))
+    if any(type(x) is not int or x < 1 for x in (cap, prompt_cap, output_cap)):
+        raise ValueError('class domain requires actual positive runtime/generation bounds')
+    if not identities or any(k != v['adapter_id'] for k, v in identities.items()):
+        raise ValueError('static adapter identities are missing or inconsistent')
+    content_ranks = {}
+    for identity in identities.values():
+        ranks = content_ranks.setdefault(identity['content_sha256'], set())
+        ranks.add(identity['rank'])
+        if len(ranks) != 1:
+            raise ValueError('one exact file-content class cannot have different PEFT ranks')
+    expected = {}
+    for i, wave in enumerate(spec['waves']):
+        if wave['role'] not in ('kernel_warmup_retained', 'representative_measurement'):
+            raise ValueError('unknown calibration wave role')
+        for lane, selected in enumerate(wave['requests']):
+            expected[f'source-profile/w{i}/l{lane}'] = (wave, selected)
+    requests = payload['requests']
+    if (len(requests) != len(expected) or {q['request_id'] for q in requests} != set(expected)
+            or len(payload['profile_waves']) != len(spec['waves'])
+            or not all(w['complete'] for w in payload['profile_waves'])):
+        raise ValueError('class coverage cannot use incomplete request/wave evidence')
+    counts, prep_counts, content_sources = Counter(), Counter(), {}
+    for q in requests:
+        wave, selected = expected[q['request_id']]
+        if (q.get('pass') is not True or q.get('reservation_released') is not True
+                or q['requested_source'] != wave['source']
+                or any(q[k] != selected[k] for k in ('adapter_id', 'source_request_id'))
+                or q['actual_tokens'] != q['target_tokens']):
+            raise ValueError('class observation differs from the completed planned request')
+        identity = identities[q['adapter_id']]
+        admission = q['source_evidence']['source_admission']
+        source, features = admission['source'], q['class_features']
+        content = source.get('expected_content_sha256') if source['native'] else source.get('content_sha256')
+        source_kind = ('native_host' if source['native'] and source['tier'] == 'host'
+                       else 'file_host' if source['tier'] == 'host' else source['tier'])
+        key = bins.classify(**features)
+        if (source_kind != wave['source'] or content != identity['content_sha256']
+                or features['adapter_rank'] != identity['rank']
+                or any(source[k] != features[k] for k in ('tier', 'representation', 'footprint_bytes'))
+                or asdict(key) != q['service_class'] or asdict(key) != admission['service_class']
+                or features['admitted_after_accept'] != admission['admitted_after_accept']
+                or not 1 <= features['admitted_after_accept'] <= cap
+                or not 0 <= features['prompt_tokens'] <= prompt_cap
+                or not 1 <= features['declared_output_tokens'] <= output_cap):
+            raise ValueError('class features disagree with actual source/content/runtime bounds')
+        if wave['role'] != 'representative_measurement':
+            continue
+        counts[key] += 1
+        content_sources.setdefault((content, wave['source']), set()).add(key)
+        if key.tier != 'gpu':
+            prep_counts[FrozenPreparationProfiles.source_class(source, ())] += 1
+    sources = ('remote', 'nvme', 'file_host', 'native_host', 'gpu')
+    contents = sorted({v['content_sha256'] for v in identities.values()})
+    missing_content = [dict(content_sha256=c, source=s) for c, s in product(contents, sources)
+                       if (c, s) not in content_sources]
+    # Enumerate reachable bins, not future arrival identities or output lengths.
+    p_bins = {bisect_left(bins.prompt_tokens, x) for x in (0, prompt_cap)
+              + tuple(e+1 for e in bins.prompt_tokens if e < prompt_cap)}
+    o_bins = {bisect_left(bins.declared_output_tokens, x) for x in (1, output_cap)
+              + tuple(e+1 for e in bins.declared_output_tokens if 1 <= e < output_cap)}
+    a_bins = {bisect_left(bins.admitted_requests, x) for x in range(1, cap+1)}
+    required = {replace(key, prompt_bin=p, output_limit_bin=o, admitted_bin=a)
+                for keys in content_sources.values() for key in keys
+                for p, o, a in product(p_bins, o_bins, a_bins)}
+    encode = lambda key: json.dumps(asdict(key), sort_keys=True)
+    return dict(kind='native_source_class_domain_audit_v1',
+        static_adapter_count=len(identities), exact_file_content_classes=len(contents),
+        rank_counts=dict(sorted(Counter(v['rank'] for v in identities.values()).items())),
+        measured_service_classes=len(counts), required_service_classes=len(required),
+        measured_preparation_classes=len(prep_counts),
+        minimum_preparation_source_observations=min(prep_counts.values(), default=0),
+        missing_content_sources=missing_content,
+        missing_service_classes=[asdict(k) for k in sorted(required-set(counts), key=encode)],
+        observed_service_counts=[dict(service_class=asdict(k), count=counts[k])
+                                 for k in sorted(counts, key=encode)],
+        reachable_bins=dict(prompt=sorted(p_bins), output=sorted(o_bins), admitted=sorted(a_bins)),
+        runtime_cap=cap, prompt_content_cap=prompt_cap, declared_output_cap=output_cap,
+        class_domain_covered=not missing_content and required <= set(counts),
+        production_profile_frozen=False, full_qualified=False, timing_samples_exported=False,
+        numerical_adapter_correctness_qualified=False)
+
+
 def source_profile_inputs(path, plan, cfg, pool):
     """Resolve a small profiling index; never create a trace or adapter payload."""
     from faaslora.experiment.instance_pool import ServiceClassBins
@@ -3456,15 +3602,11 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             spec, bins, identities, waves, index = source_profile_inputs(source_profile_spec, plan, cfg, pool)
             cfg.update(spec['model_overrides'])
             if 'admission_initialization' in spec:
-                from scripts.run_all_experiments import _prepare_dedicated_subprocess_model_cfg
-                child_cfg, _ = _prepare_dedicated_subprocess_model_cfg(cfg, device_id=0, runtime_gpu_ids=[0])
-                initializer, evidence = measured_admission_initializer(spec['admission_initialization'],
-                    model_config=child_cfg, backend_version=prior['modules']['vllm']['version'],
-                    runtime_receipt_sha256=digest(runtime_receipt),
-                    source_trace_sha256=plan.source_sha256,
-                    movement_concurrency=spec['movement_concurrency'])
-                cfg['ieee_admission_profile'] = initializer
+                cfg, evidence, assembly = prepare_admission_source_runtime(cfg, spec,
+                    backend_version=prior['modules']['vllm']['version'],
+                    runtime_receipt_sha256=digest(runtime_receipt), source_trace_sha256=plan.source_sha256)
                 result['admission_initialization'] = evidence
+                result['runtime_configuration_assembly'] = assembly
             result.update(source_profile_spec_sha256=digest(source_profile_spec),
                 source_profile_spec=spec, artifact_mode='prepublished_gzip_v1_real_remote_no_fallback',
                 input_mode='controlled_sources_original_prompt_target_static_adapter_index')

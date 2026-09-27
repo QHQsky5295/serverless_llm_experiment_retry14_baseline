@@ -1034,7 +1034,8 @@ def _effective_runtime_concurrency_cap(model_cfg: Optional[Dict[str, Any]]) -> i
 def _normalize_runtime_concurrency_cap(model_cfg: Dict[str, Any]) -> Dict[str, Any]:
     """Clamp the configured runtime cap to the backend's true scheduling cap."""
     cfg = copy.deepcopy(model_cfg or {})
-    requested = cfg.get("runtime_concurrency_cap", cfg.get("max_num_seqs", 1))
+    requested = cfg.get("requested_runtime_concurrency_cap",
+                        cfg.get("runtime_concurrency_cap", cfg.get("max_num_seqs", 1)))
     effective = _effective_runtime_concurrency_cap(cfg)
     cfg["requested_runtime_concurrency_cap"] = requested
     cfg["runtime_concurrency_cap"] = effective
@@ -1051,6 +1052,26 @@ def _normalize_runtime_concurrency_cap(model_cfg: Dict[str, Any]) -> Dict[str, A
             flush=True,
         )
     return cfg
+
+
+def _prepare_scenario_runtime_model_config(model_cfg, workload_cfg, coord_cfg):
+    """The shared main/profile boundary for generation and runtime capacity.
+
+    Keep the existing scenario override precedence. Re-applying normalization
+    preserves the original requested cap; an explicit scenario cap starts a new
+    request. No model initialization, input generation or parameter search.
+    """
+    configured = copy.deepcopy(model_cfg)
+    generation = str(workload_cfg.get('generation_contract', 'legacy') or 'legacy').strip().lower()
+    configured['generation_contract'] = generation
+    if generation == 'fixed_length_greedy_v1':
+        configured['max_input_len'] = max(1, int(workload_cfg.get('fixed_prompt_max_tokens', 759) or 759))
+        configured['max_output_tokens_cap'] = max(1, int(workload_cfg.get('fixed_output_max_tokens', 256) or 256))
+    overrides = copy.deepcopy(coord_cfg.get('instance_model_overrides', {}))
+    if 'runtime_concurrency_cap' in overrides:
+        configured.pop('requested_runtime_concurrency_cap', None)
+    configured.update(overrides)
+    return _normalize_runtime_concurrency_cap(configured)
 
 
 def _runtime_mode_summary(model_cfg: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -21575,20 +21596,7 @@ async def _main_async_impl(
 
         hw_merged = {**hw_cfg, **sc.get("hardware_override", {})}
         instance_mode = str(sc_coord.get("instance_mode", "shared")).lower()
-        runner_model_cfg = copy.deepcopy(model_cfg)
-        runner_generation_contract = str(
-            wl_cfg_yaml.get("generation_contract", "legacy") or "legacy"
-        ).strip().lower()
-        runner_model_cfg["generation_contract"] = runner_generation_contract
-        if runner_generation_contract == "fixed_length_greedy_v1":
-            runner_model_cfg["max_input_len"] = max(
-                1, int(wl_cfg_yaml.get("fixed_prompt_max_tokens", 759) or 759)
-            )
-            runner_model_cfg["max_output_tokens_cap"] = max(
-                1, int(wl_cfg_yaml.get("fixed_output_max_tokens", 256) or 256)
-            )
-        runner_model_cfg.update(copy.deepcopy(sc_coord.get("instance_model_overrides", {})))
-        runner_model_cfg = _normalize_runtime_concurrency_cap(runner_model_cfg)
+        runner_model_cfg = _prepare_scenario_runtime_model_config(model_cfg, wl_cfg_yaml, sc_coord)
         if physical_deployment is not None:
             if (runner_model_cfg.get('ieee_physical_allocation') is not True
                     or runner_model_cfg.get('backend', 'vllm') != 'vllm'

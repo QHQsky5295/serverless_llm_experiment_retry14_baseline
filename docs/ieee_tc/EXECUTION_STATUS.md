@@ -1,6 +1,33 @@
 # IEEE TC execution status
 
-## Current checkpoint — 2026-09-27 D86 binding work (no new GPU run)
+## Current checkpoint — 2026-09-27 D87 configuration/coverage (no new GPU run)
+
+- Main/source now share generation/capacity assembly and actual subprocess
+  factory. Repeated normalization retains requested cap; explicit override resets
+  its provenance. Actual effective capacity/IEEE formulas/Full guard unchanged.
+- Opt-in admission-enabled source spec now derives measured prior first, verifies
+  frozen content-index SHA, and assembles Full fields with main helper. Old specs
+  unchanged. Both real model inputs assembled offline; no performance relabelling.
+- Entire static500/model checked using frozen index + existing tiny PEFT configs,
+  no weight read/network/new data. D84 measured class domain complete:3B40/40
+  service96preparation24content;7B20/20service24preparation6content. Bothrank8/16
+  counts350/150. No missing content/source or service bins;warmup excluded.
+- Original native activation layouts validated:3B8slots*228130816B,
+  7B4slots*329056256B. Geometry only, not readiness/free capacity or new-runtime
+  qualification. Full raw snapshots remain in old D84 results.
+- Final related/basic418pass34.084s;OS60pass0.948s. Both input audits completed,
+  rawd87_20260927, curated20260927_d87_main_source_configuration_coverage.json.
+  147protected entries unchanged. Details/table D87_MAIN_SOURCE_CONFIGURATION_AND_COVERAGE.
+- NEXT before GPU: resolve explicit development controller upper/lower/window/
+  cooldown, routing bin width and EWMA beta; then only the affected admission-
+  enabled source path and integrated Full activation/lifecycle. Common runtime
+  assembly and static class coverage are DONE; do not reopen D78/D80/D81/D84
+  source-only runs or add another full-pool download. No Full guard bypass.
+- W5s remains development-only. Old D84 lacks admission initializer, so its
+  latency remains source-only. No production profile or numerical discrimination
+  claim. M1/M2/A/S NOT STARTED, baselines PAUSED, models/remote services STOPPED.
+
+## D86 previous checkpoint — binding work (no new GPU run)
 
 - Full constructor now requires the same explicit demand/completion W and the
   same native-pressure/actual-movement limit; records immutable binding summary.
@@ -21,6 +48,9 @@
   Model/GPU/remote services remain stopped; no actual inference in this checkpoint.
 - Final launch/basic349pass33.726s after preserving nested model-config objects;
   curated20260927_d86_runtime_configuration_binding.json stores source/log SHAs.
+- Code5d7c2ecb8870b722a9049b99f0647bc0817927a1 PUSHED/freshremoteSHA matched;
+  rawd86/code_push_receipt.json.18source/log references verified,147protected
+  entries unchanged,GPUcomputeempty,baselineHEAD9e2cf289 unchanged/PAUSED.
 - NEXT before any GPU: finish common main/source config assembly, including
   requested_runtime_concurrency_cap and artifact_content_manifest_path; settle
   controller/profile settings and class coverage together. Then affected native

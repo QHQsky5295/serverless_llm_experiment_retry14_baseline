@@ -1,0 +1,335 @@
+{
+  "kind": "main_source_configuration_and_class_coverage_development_v1",
+  "source_basis_commit": "5d7c2ecb8870b722a9049b99f0647bc0817927a1",
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "gpu_runs_added": 0,
+  "real_remote_operations_added": 0,
+  "production_profile_frozen": false,
+  "full_qualified": false,
+  "performance_samples_relabelled": false,
+  "models": {
+    "3b": {
+      "class_coverage": {
+        "kind": "native_source_class_domain_audit_v1",
+        "static_adapter_count": 500,
+        "exact_file_content_classes": 24,
+        "rank_counts": {
+          "8": 350,
+          "16": 150
+        },
+        "measured_service_classes": 40,
+        "required_service_classes": 40,
+        "measured_preparation_classes": 96,
+        "minimum_preparation_source_observations": 3,
+        "missing_content_sources": [],
+        "missing_service_classes": [],
+        "reachable_bins": {
+          "prompt": [
+            0
+          ],
+          "output": [
+            0
+          ],
+          "admitted": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        "runtime_cap": 8,
+        "prompt_content_cap": 759,
+        "declared_output_cap": 256,
+        "class_domain_covered": true,
+        "production_profile_frozen": false,
+        "full_qualified": false,
+        "timing_samples_exported": false,
+        "numerical_adapter_correctness_qualified": false
+      },
+      "source_raw": {
+        "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/3b_physical_source_attempt2.json",
+        "sha256": "4c28b3813617628d81d5eb24cd08b625c81da901258e3a1344b115fb474260ec"
+      },
+      "source_spec": {
+        "path": "paper_results/ieee_tc/p2_backend/20260927_d84_3b_physical_source_profile_spec.json",
+        "sha256": "22af67c32d93fe9618096fd4ea0141ad59e860892aaf664c6600a4048ac09669"
+      },
+      "source_index": {
+        "path": "paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+        "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+      },
+      "planned_child_model_config": {
+        "name": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+        "backend": "vllm",
+        "device_id": 0,
+        "visible_device_ids": [
+          0
+        ],
+        "tensor_parallel_size": 1,
+        "gpu_memory_utilization": 0.72,
+        "max_model_len": 1024,
+        "max_loras": 8,
+        "max_cpu_loras": 32,
+        "max_lora_rank": 64,
+        "enable_lora": true,
+        "enforce_eager": false,
+        "dtype": "float16",
+        "max_num_seqs": 8,
+        "max_num_batched_tokens": 4096,
+        "max_output_tokens_cap": 256,
+        "max_input_len": 759,
+        "runtime_concurrency_cap": 8,
+        "enable_chunked_prefill": false,
+        "enable_prefix_caching": false,
+        "timing_contract": "ieee_tc_native_v1",
+        "ieee_worker_observation": true,
+        "ieee_gpu_references": true,
+        "ieee_scheduler_observation": true,
+        "ieee_input_upper_bounds": [
+          759
+        ],
+        "generation_contract": "fixed_length_greedy_v1",
+        "canonical_prompt_renderer": "role_lines_v1",
+        "ieee_physical_allocation": true,
+        "ieee_host_budget_bytes": 17179869184,
+        "ieee_native_host_tensor_budget_bytes": 2147483648,
+        "ieee_native_host_workspace": {
+          "kind": "native_host_workspace_contract_v1",
+          "dtype": "torch.float16",
+          "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+          "max_resident_pinned_bytes": 18350080,
+          "max_transient_tensor_bytes": 36730056
+        },
+        "ieee_native_host_allocator_policy": "uncached_background_v1",
+        "ieee_admission_profile": {
+          "window_s": 5.0,
+          "model_backend_id": "native-model/3a41720821468b1d0042f8783941a2a28698488f749909bd179f6cd9ae774f38",
+          "profile_id": "native-completed/1c325d13d0372112cf312b4a2cc991bb6e0c89b7a610887dfcd79742d36d3692",
+          "profile_means": [
+            98.375,
+            171.69230769230768
+          ],
+          "transfer_limit": 3
+        },
+        "artifact_content_manifest_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+        "requested_runtime_concurrency_cap": 8,
+        "requested_enforce_eager": "auto",
+        "resolved_enforce_eager": false,
+        "skip_stale_gpu_cleanup": true
+      },
+      "source_config_sha256": "f923c36d541046639ba70691106cf7841b322f850377bd8d719004adc959e45d",
+      "activation_layout": {
+        "slot_count": 8,
+        "slot_capacity_bytes": 228130816,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tensor_views": 396,
+        "pool_allocations": 396,
+        "canonical_json_sha256": "14254f553bfc6a40000b2e58146a36c34e720a4e2190790b210041eaed467a9e",
+        "relabelled": false
+      }
+    },
+    "7b": {
+      "class_coverage": {
+        "kind": "native_source_class_domain_audit_v1",
+        "static_adapter_count": 500,
+        "exact_file_content_classes": 6,
+        "rank_counts": {
+          "8": 350,
+          "16": 150
+        },
+        "measured_service_classes": 20,
+        "required_service_classes": 20,
+        "measured_preparation_classes": 24,
+        "minimum_preparation_source_observations": 3,
+        "missing_content_sources": [],
+        "missing_service_classes": [],
+        "reachable_bins": {
+          "prompt": [
+            0
+          ],
+          "output": [
+            0
+          ],
+          "admitted": [
+            0,
+            1
+          ]
+        },
+        "runtime_cap": 2,
+        "prompt_content_cap": 759,
+        "declared_output_cap": 256,
+        "class_domain_covered": true,
+        "production_profile_frozen": false,
+        "full_qualified": false,
+        "timing_samples_exported": false,
+        "numerical_adapter_correctness_qualified": false
+      },
+      "source_raw": {
+        "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/7b_physical_source_attempt1.json",
+        "sha256": "2c286dd8672530fcc5fe8d908ea0442b5f0d929454af10a0b6a3cd3871cef769"
+      },
+      "source_spec": {
+        "path": "paper_results/ieee_tc/p2_backend/20260927_d84_7b_physical_source_profile_spec.json",
+        "sha256": "51ad5f2856b987152a3b257b6458fd41d43c35039ea2085fbceaa4d6a114b561"
+      },
+      "source_index": {
+        "path": "paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+        "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+      },
+      "planned_child_model_config": {
+        "name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+        "backend": "vllm",
+        "device_id": 0,
+        "visible_device_ids": [
+          0
+        ],
+        "tensor_parallel_size": 1,
+        "gpu_memory_utilization": 0.7,
+        "max_model_len": 1024,
+        "max_loras": 4,
+        "max_lora_rank": 64,
+        "enable_lora": true,
+        "enforce_eager": false,
+        "dtype": "float16",
+        "max_num_seqs": 2,
+        "max_num_batched_tokens": 1024,
+        "max_output_tokens_cap": 256,
+        "max_input_len": 759,
+        "runtime_concurrency_cap": 2,
+        "enable_chunked_prefill": true,
+        "enable_prefix_caching": false,
+        "vllm_use_v1": true,
+        "vllm_attention_backend": "FLASH_ATTN",
+        "vllm_use_flashinfer_sampler": true,
+        "timing_contract": "ieee_tc_native_v1",
+        "ieee_worker_observation": true,
+        "ieee_gpu_references": true,
+        "ieee_scheduler_observation": true,
+        "ieee_input_upper_bounds": [
+          759
+        ],
+        "generation_contract": "fixed_length_greedy_v1",
+        "canonical_prompt_renderer": "role_lines_v1",
+        "ieee_physical_allocation": true,
+        "ieee_host_budget_bytes": 17179869184,
+        "ieee_native_host_tensor_budget_bytes": 2147483648,
+        "ieee_native_host_workspace": {
+          "kind": "native_host_workspace_contract_v1",
+          "dtype": "torch.float16",
+          "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+          "max_resident_pinned_bytes": 33554432,
+          "max_transient_tensor_bytes": 67143184
+        },
+        "ieee_native_host_allocator_policy": "uncached_background_v1",
+        "ieee_admission_profile": {
+          "window_s": 5.0,
+          "model_backend_id": "native-model/47195242726318d3e564d57bae4d182750991d6941d839eb9b20d205001bdfb6",
+          "profile_id": "native-completed/47d9ea8e982a8238d1ff1928fc0b7152c64976f271e40165c532179a2cc2d2ad",
+          "profile_means": [
+            121.33333333333333,
+            256.0
+          ],
+          "transfer_limit": 3
+        },
+        "artifact_content_manifest_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+        "requested_runtime_concurrency_cap": 2,
+        "max_cpu_loras": 24,
+        "requested_enforce_eager": "auto",
+        "resolved_enforce_eager": false,
+        "skip_stale_gpu_cleanup": true
+      },
+      "source_config_sha256": "f923c36d541046639ba70691106cf7841b322f850377bd8d719004adc959e45d",
+      "activation_layout": {
+        "slot_count": 4,
+        "slot_capacity_bytes": 329056256,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tensor_views": 452,
+        "pool_allocations": 452,
+        "canonical_json_sha256": "3d1c4bcfbbef4b25c6d4c7d9d570e0cb65acb2ed90607284dca2ed1b0b3d2b89",
+        "relabelled": false
+      }
+    }
+  },
+  "protection": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "protected_seal": {
+    "path": "paper_results/ieee_tc/safety/20260925_execution_start_protected.json",
+    "sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6"
+  },
+  "source_files": [
+    {
+      "path": "scripts/ieee_tc_preflight.py",
+      "sha256": "94331122b569d3523c3ea5dc43882024fc8a72c52accd299aa7c42fec03984ef"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "sha256": "38fc8b3121ec71fb4f212f24df843614a37aecabf6c70006cc1ce81106ccb4d2"
+    },
+    {
+      "path": "tests/test_ieee_tc_launch.py",
+      "sha256": "dad1ba2c80c0684bd94413e1f51827ebcdae11625febb1d45661fd533e2730be"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d87_20260927/verify_domain_and_assembly.py",
+      "sha256": "98463de626fa59132f61dc2d902cad5798aff0f8999d067cfc23f03e14bff4db"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d87_20260927/domain_audit_1.log",
+      "sha256": "2dd78b4d555b1b41a701ceb35390e1609fc85de8b871dde172a4ef27a03e5383"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d87_20260927/domain_audit_2.log",
+      "sha256": "691ea62a49e4bdaec0efd77a9e51fb54427db33b44d5b8d90ffa3855dbfc31ce"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d87_20260927/config_tests_1.log",
+      "sha256": "6c6d8b431cbcb883c1175d7d6174e9364e63115b87203fbfbed0d20f28081af4"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d87_20260927/domain_tests_1.log",
+      "sha256": "3ad7372cee8aa56b85557b2b538f521dd140b71b47cdd4134d8527d519e4c3dc"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d87_20260927/regression_1.log",
+      "sha256": "ff5df231ed501994c880a1ae7395f66ae391cb847a0cbcf8831841e6d7977b99"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d87_20260927/os_tests_1.log",
+      "sha256": "821fd30e74d4d937124fe0a92d02188c230ee034495a4a4142d3778947d3c6fa"
+    }
+  ],
+  "tests": {
+    "config_initial": {
+      "passed": 358,
+      "seconds": 32.611
+    },
+    "domain_initial": {
+      "passed": 4,
+      "seconds": 0.064
+    },
+    "final_related_and_basic": {
+      "passed": 418,
+      "seconds": 34.084
+    },
+    "os_preflight": {
+      "passed": 60,
+      "seconds": 0.948
+    }
+  },
+  "next_prerequisites": [
+    "explicit development controller/bin/EWMA settings",
+    "admission-enabled native path qualification with common configuration",
+    "matching frozen initialization export and integrated Full activation/lifecycle"
+  ],
+  "primary_sources": [
+    "https://docs.vllm.ai/en/latest/configuration/optimization/"
+  ]
+}

@@ -88,6 +88,152 @@ class IEEEOnlineObservationBinding(unittest.TestCase):
             service._require_ieee_full_qualification()
 
 
+class ScenarioRuntimeConfiguration(unittest.TestCase):
+    def test_main_and_source_common_generation_capacity_boundary_is_pure(self):
+        source = dict(backend='vllm', max_num_seqs=4, runtime_concurrency_cap=8,
+                      max_input_len=1024, max_output_tokens_cap=1024)
+        workload = dict(generation_contract='fixed_length_greedy_v1',
+                        fixed_prompt_max_tokens=759, fixed_output_max_tokens=256)
+        direct = runner._prepare_scenario_runtime_model_config(source, workload, {})
+        twice = runner._prepare_scenario_runtime_model_config(
+            runner._normalize_runtime_concurrency_cap(source), workload, {})
+        self.assertEqual(direct, twice)
+        self.assertEqual(direct['runtime_concurrency_cap'], 4)
+        self.assertEqual(direct['requested_runtime_concurrency_cap'], 8)
+        self.assertEqual((direct['max_input_len'], direct['max_output_tokens_cap']), (759,256))
+        self.assertEqual(source['max_input_len'], 1024)
+        self.assertNotIn('requested_runtime_concurrency_cap', source)
+
+    def test_explicit_scenario_override_is_a_new_capacity_request(self):
+        source = runner._normalize_runtime_concurrency_cap(dict(
+            backend='vllm', max_num_seqs=4, runtime_concurrency_cap=8))
+        coord = dict(instance_model_overrides=dict(runtime_concurrency_cap=2, max_input_len=128))
+        cfg = runner._prepare_scenario_runtime_model_config(source,
+            dict(generation_contract='fixed_length_greedy_v1'), coord)
+        self.assertEqual((cfg['requested_runtime_concurrency_cap'], cfg['runtime_concurrency_cap']), (2,2))
+        self.assertEqual(cfg['max_input_len'],128)
+        self.assertEqual(source['requested_runtime_concurrency_cap'],8)
+        self.assertEqual(coord['instance_model_overrides']['runtime_concurrency_cap'],2)
+
+    def test_legacy_generation_does_not_gain_fixed_length_caps(self):
+        cfg = runner._prepare_scenario_runtime_model_config(dict(max_input_len=100), {}, {})
+        self.assertEqual(cfg['generation_contract'], 'legacy')
+        self.assertEqual(cfg['max_input_len'], 100)
+        self.assertNotIn('max_output_tokens_cap',cfg)
+
+    def test_source_assembly_derives_prior_before_full_fields_and_matches_main(self):
+        from scripts import ieee_tc_preflight as p
+        with tempfile.TemporaryDirectory() as tmp:
+            index = Path(tmp)/'index.json'
+            index.write_text('{}')
+            spec = dict(content_index=dict(path=str(index),sha256=p.digest(index)),
+                admission_initialization={'fixture':True}, movement_concurrency=3)
+            cfg = dict(backend='vllm', generation_contract='fixed_length_greedy_v1',
+                max_input_len=759, max_output_tokens_cap=256, max_num_seqs=4, runtime_concurrency_cap=8)
+            admission = dict(window_s=5., transfer_limit=3, profile_means=[20.,40.],
+                model_backend_id='fixture-model',profile_id='fixture-profile')
+            with patch.object(p,'measured_admission_initializer', return_value=(admission, {'fixture':True})) as derive:
+                assembled, _, evidence = p.prepare_admission_source_runtime(cfg, spec,
+                    backend_version='0.30.0',runtime_receipt_sha256='runtime',source_trace_sha256='trace')
+            prior_cfg=derive.call_args.kwargs['model_config']
+            self.assertNotIn('artifact_content_manifest_path',prior_cfg)
+            self.assertNotIn('requested_runtime_concurrency_cap',prior_cfg)
+            self.assertNotIn('ieee_admission_profile',prior_cfg)
+            main = runner._prepare_scenario_runtime_model_config(dict(cfg,
+                ieee_admission_profile=admission,artifact_content_manifest_path=str(index)), evidence['workload'], {})
+            self.assertEqual(main,assembled)
+            child,_=runner._prepare_dedicated_subprocess_model_cfg(main,device_id=0,runtime_gpu_ids=[0])
+            self.assertEqual(child,evidence['planned_child_model_config'])
+            self.assertFalse(evidence['performance_samples_relabelled'])
+            self.assertNotIn('ieee_admission_profile',cfg)
+            spec['content_index']['sha256']='wrong'
+            with self.assertRaisesRegex(ValueError,'SHA256'):
+                p.prepare_admission_source_runtime(cfg,spec,backend_version='0.30.0',
+                    runtime_receipt_sha256='runtime',source_trace_sha256='trace')
+
+
+class SourceProfileDomainCoverage(unittest.TestCase):
+    def fixture(self):
+        from dataclasses import asdict
+        from faaslora.experiment.instance_pool import ServiceClassBins
+        identities = {a: dict(adapter_id=a, rank=8, content_sha256='a'*64) for a in ('a','b')}
+        edges = dict(prompt_tokens=[10], declared_output_tokens=[2], adapter_rank=[8],
+                     footprint_bytes=[], admitted_requests=[1,2])
+        bins = ServiceClassBins(**{k:tuple(v) for k,v in edges.items()})
+        payload = dict(kind='backend_native_native_source_matrix_qualification_v1',
+            stage='complete', shutdown_called=True, profile_workspaces_removed=True,
+            artifact_mode='prepublished_gzip_v1_real_remote_no_fallback',
+            model_config=dict(generation_contract='fixed_length_greedy_v1',
+                runtime_concurrency_cap=2,max_input_len=10,max_output_tokens_cap=2),
+            source_profile_spec=dict(bins=edges,waves=[]),profile_waves=[],requests=[],**{'pass':True})
+        for i,s in enumerate(('remote','nvme','file_host','native_host','gpu')):
+            tier = 'host' if s.endswith('host') else s
+            native = s in ('native_host','gpu')
+            rep = {'remote':'compressed','nvme':'file','file_host':'file','native_host':'tensor','gpu':'slot'}[s]
+            wave = dict(source=s,role='representative_measurement',requests=[])
+            payload['source_profile_spec']['waves'].append(wave)
+            payload['profile_waves'].append(dict(complete=True))
+            for lane,aid in enumerate(identities):
+                selected = dict(adapter_id=aid,source_request_id='original-'+aid)
+                wave['requests'].append(selected)
+                features = dict(tier=tier,representation=rep,footprint_bytes=32,adapter_rank=8,
+                    prompt_tokens=10,declared_output_tokens=2,admitted_after_accept=lane+1)
+                key = asdict(bins.classify(**features))
+                source = dict(tier=tier,representation=rep,footprint_bytes=32,native=native)
+                source['expected_content_sha256' if native else 'content_sha256']='a'*64
+                payload['requests'].append(dict(selected,request_id=f'source-profile/w{i}/l{lane}',
+                    requested_source=s,reservation_released=True,actual_tokens=2,target_tokens=2,
+                    class_features=features,service_class=key,
+                    source_evidence=dict(source_admission=dict(source=source,service_class=key,
+                        admitted_after_accept=lane+1)),**{'pass':True}))
+        return payload,identities
+
+    def test_observed_full_class_domain_is_not_production_qualification(self):
+        from scripts.ieee_tc_preflight import source_profile_class_coverage
+        result=source_profile_class_coverage(*self.fixture())
+        self.assertTrue(result['class_domain_covered'])
+        self.assertEqual(result['measured_service_classes'],10)
+        self.assertEqual(result['measured_preparation_classes'],4)
+        self.assertFalse(result['full_qualified'])
+        self.assertFalse(result['timing_samples_exported'])
+
+    def test_unmeasured_static_content_and_warmup_only_source_are_missing(self):
+        from scripts.ieee_tc_preflight import source_profile_class_coverage
+        payload,identities=self.fixture()
+        identities['c']=dict(adapter_id='c',rank=16,content_sha256='c'*64)
+        payload['source_profile_spec']['waves'][-1]['role']='kernel_warmup_retained'
+        result=source_profile_class_coverage(payload,identities)
+        self.assertFalse(result['class_domain_covered'])
+        self.assertEqual(len(result['missing_content_sources']),6)
+
+    def test_tail_prompt_and_post_accept_count_are_not_extrapolated(self):
+        from scripts.ieee_tc_preflight import source_profile_class_coverage
+        payload,identities=self.fixture()
+        payload['model_config'].update(max_input_len=11,runtime_concurrency_cap=3)
+        result=source_profile_class_coverage(payload,identities)
+        self.assertFalse(result['class_domain_covered'])
+        self.assertEqual(result['required_service_classes'],30)
+        self.assertEqual(len(result['missing_service_classes']),20)
+
+    def test_incomplete_or_inconsistent_evidence_is_rejected(self):
+        from scripts.ieee_tc_preflight import source_profile_class_coverage
+        for change in ('missing','rank','source','count'):
+            payload,identities=self.fixture()
+            if change=='missing': payload['requests'].pop()
+            elif change=='rank': payload['requests'][0]['class_features']['adapter_rank']=16
+            elif change=='source': payload['requests'][0]['source_evidence']['source_admission']['source']['content_sha256']='b'*64
+            else: payload['requests'][0]['class_features']['admitted_after_accept']=3
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                source_profile_class_coverage(payload,identities)
+
+    def test_identical_content_cannot_imply_different_rank(self):
+        from scripts.ieee_tc_preflight import source_profile_class_coverage
+        payload,identities=self.fixture()
+        identities['b']['rank']=16
+        with self.assertRaisesRegex(ValueError,'different PEFT ranks'):
+            source_profile_class_coverage(payload,identities)
+
+
 class NativeAllocatorLaunchContract(unittest.TestCase):
     def test_worker_configuration_receipt_published_as_one_complete_document(self):
         from scripts.dedicated_engine_worker import _write_ready
