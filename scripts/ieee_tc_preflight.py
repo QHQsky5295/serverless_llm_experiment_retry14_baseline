@@ -922,7 +922,7 @@ def watch_scope(identity: dict, *, paths: list[Path], emit,
             census.close()
             raise
     emit({'event': 'watchdog_ready', 'watchdog_pid': os.getpid(), 'aux': aux,
-          'watchdog_process': next(p for p in owned_pids(own_path) if p['pid'] == os.getpid()),
+          'watchdog_process': watchdog_process_identity(os.getpid(), own_path),
           'service_identity': identity, 'service': service,
           'gpu_initial': first_gpu,
           'nvml_binding_sha256': nvml_sha256,
@@ -988,13 +988,29 @@ def watch_scope(identity: dict, *, paths: list[Path], emit,
     return {'event': 'service_domain_gone', 'samples': count}
 
 
+def watchdog_process_identity(pid: int, auxiliary: Path) -> dict:
+    """Read the one acknowledged watcher, not unrelated migrating helpers.
+
+    cgroup.procs enumeration is not an atomic process snapshot. The existing
+    double birth read retains fail-closed behavior for this actual watcher.
+    Whole-service census and PID-handle cleanup remain separate and unchanged.
+    """
+    if type(pid) is not int or pid <= 0:
+        raise RuntimeError('watchdog birth identity or live service identity differs')
+    observed = gpu_process_identity(pid)
+    if (observed is None or observed['uid'] != os.getuid()
+            or not Path(observed['cgroup']).is_relative_to(auxiliary)):
+        raise RuntimeError('watchdog birth identity or live service identity differs')
+    return {key: observed[key] for key in ('pid', 'start_ticks', 'cgroup', 'affinity')}
+
+
 def verify_watchdog_attachment(event: dict, identity: dict, auxiliary: Path) -> dict:
     """Verify the actual watcher, not a stale ready file or a launcher PID."""
     if (event.get('event') != 'watchdog_ready' or event.get('service_identity') != identity
             or event.get('aux', {}).get('path') != str(auxiliary)):
         raise RuntimeError('watchdog acknowledgement targets another resource domain')
     proc = event['watchdog_process']
-    current = next((p for p in owned_pids(auxiliary) if p['pid'] == event['watchdog_pid']), None)
+    current = watchdog_process_identity(event['watchdog_pid'], auxiliary)
     if current != proc or not scope_still_owned(identity):
         raise RuntimeError('watchdog birth identity or live service identity differs')
     if current['affinity'] != POLICY['aux_cpus']:

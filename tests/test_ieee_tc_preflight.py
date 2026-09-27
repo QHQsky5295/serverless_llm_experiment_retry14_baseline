@@ -727,14 +727,48 @@ class ProtocolGates(unittest.TestCase):
         proc = {'pid':123, 'start_ticks':5, 'affinity':p.POLICY['aux_cpus'], 'cgroup':'/aux'}
         event = {'event':'watchdog_ready', 'service_identity':identity, 'watchdog_pid':123,
                  'watchdog_process':proc, 'aux':{'path':'/aux'}}
-        with patch.object(p, 'owned_pids', return_value=[proc]), \
+        with patch.object(p, 'gpu_process_identity', return_value=dict(proc,uid=p.os.getuid())), \
              patch.object(p, 'scope_still_owned', return_value=True):
             self.assertEqual(p.verify_watchdog_attachment(event, identity, auxiliary), proc)
             with self.assertRaisesRegex(RuntimeError, 'another resource domain'):
                 p.verify_watchdog_attachment(event, dict(identity, invocation_id='two'), auxiliary)
-        with patch.object(p, 'owned_pids', return_value=[dict(proc, start_ticks=6)]):
+        with patch.object(p, 'gpu_process_identity', return_value=dict(proc, start_ticks=6,uid=p.os.getuid())):
             with self.assertRaisesRegex(RuntimeError, 'birth identity'):
                 p.verify_watchdog_attachment(event, identity, auxiliary)
+
+    def test_watcher_check_is_independent_of_other_auxiliary_process_churn(self):
+        identity = {'unit':'test', 'path':'/service', 'invocation_id':'one', 'inode':1}
+        proc = {'pid':123, 'start_ticks':5, 'affinity':p.POLICY['aux_cpus'], 'cgroup':'/aux'}
+        event = {'event':'watchdog_ready', 'service_identity':identity, 'watchdog_pid':123,
+                 'watchdog_process':proc, 'aux':{'path':'/aux'}}
+        with patch.object(p, 'owned_pids', side_effect=RuntimeError('unrelated helper moved')) as scan, \
+             patch.object(p, 'gpu_process_identity', return_value=dict(proc,uid=p.os.getuid())) as observe, \
+             patch.object(p, 'scope_still_owned', return_value=True):
+            self.assertEqual(p.verify_watchdog_attachment(event,identity,Path('/aux')),proc)
+            observe.assert_called_once_with(123)
+            scan.assert_not_called()
+
+    def test_target_watcher_missing_foreign_owner_domain_or_affinity_still_rejects(self):
+        identity = {'unit':'test', 'path':'/service', 'invocation_id':'one', 'inode':1}
+        proc = {'pid':123, 'start_ticks':5, 'affinity':p.POLICY['aux_cpus'], 'cgroup':'/aux'}
+        event = {'event':'watchdog_ready', 'service_identity':identity, 'watchdog_pid':123,
+                 'watchdog_process':proc, 'aux':{'path':'/aux'}}
+        observed=dict(proc,uid=p.os.getuid())
+        for value in (None,dict(observed,uid=p.os.getuid()+1),dict(observed,cgroup='/other'),
+                      dict(observed,start_ticks=6),dict(observed,affinity=[0])):
+            with self.subTest(value=value), \
+                 patch.object(p,'gpu_process_identity',return_value=value), \
+                 patch.object(p,'scope_still_owned',return_value=True):
+                with self.assertRaises(RuntimeError):p.verify_watchdog_attachment(event,identity,Path('/aux'))
+        with patch.object(p,'gpu_process_identity',return_value=observed), \
+             patch.object(p,'scope_still_owned',return_value=False):
+            with self.assertRaises(RuntimeError):p.verify_watchdog_attachment(event,identity,Path('/aux'))
+
+    def test_direct_watcher_read_matches_actual_current_process_without_cuda(self):
+        identity=p.watchdog_process_identity(p.os.getpid(),p.cg_path())
+        self.assertEqual(identity['pid'],p.os.getpid())
+        self.assertEqual(identity['cgroup'],str(p.cg_path()))
+        self.assertEqual(identity['affinity'],sorted(p.os.sched_getaffinity(0)))
 
     def test_missing_launch_receipt_is_not_authorization(self):
         with patch.dict(p.os.environ, {}, clear=True):

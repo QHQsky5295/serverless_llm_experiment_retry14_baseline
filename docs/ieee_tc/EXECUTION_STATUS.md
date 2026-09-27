@@ -2,6 +2,22 @@
 
 ## Current checkpoint — 2026-09-27 D88 development controls; admission source next
 
+LATEST overrides live notes below:3B attempt1 FAILED before inference0/368,
+remote0. GPU contexts/service/workspaces cleared; matching emptyauxdba5def0 and
+remote monitor70b2339c/services stopped. No actual inference/performance sample.
+Worker log shows watchdog identity verification enumerated auxiliary processes
+and hit membership/owner race; exact changing PID unknown. Top-level physical
+release remained conservatively deferred, not falsely completed.25samplespeak
+1916977152B,high/max/OOM/swap0. Table D88_ADMISSION_SOURCE_INITIALIZATION.md and
+curated20260927_d88_3b_admission_attempt1_failure.json preserve failure evidence.
+Correction reads actual acknowledged watcher directly using existing double-birth
+observer, verifies UID/domain/start/affinity/service incarnation. No other safety
+guard/core formula/config changed. OS63pass1.009s and real tiny bounded handshake/
+teardown pass0/0. First tiny relative-path invocation rejected before service;
+both emptyaux scopes stopped. Regression run1 canceled during accidental online
+dummy-model retry; offline run2 completed422pass33.514s. Full still NOT qualified.
+NEXT backup correction, then unique3B attempt2; prepared7B stays unstarted.
+
 - Explicit controller/bin/EWMA development rules now derived from completed D84
   native observations and historical bounds; IEEE formulas unchanged. Separate
   capacity algebra from heuristics in D88_DEVELOPMENT_CONTROL_DERIVATION.md.
@@ -21,6 +37,21 @@
   publication, allocator or static class audit. Full guard remains intact.
 - Full/M1/M2/A/S NOT qualified or started; baselines PAUSED. Development5000ms
   target and W5s are NOT final common SLO or production-optimal parameters.
+- Code00199ebe64e96202471fd6b5764359c79ae538a4 PUSHED/freshremoteSHA matched;
+  rawd88/code_push_receipt.json records completed checks and the initial local
+  audit-tool compatibility failure. No user manifest in commit.
+- D88 3B admission-source attempt1 STARTED21:43 in tmux tc-d88-3b-attempt1.
+  Same368requests/spec waves, now measured initializer/pending descriptor active.
+  Rawd88/3b_admission_source_attempt1{,_launch}.json, console.log. Monitor same
+  run to terminal; do NOT start7B until cleanup/validation/table/plots.
+- Remote ACTIVE unchanged qualified delivery config:3B03d7f6af8962468a9edef85156ed19e3,
+  7Bb0e5a572b841445cbe3e09478edca857; monitor70b2339c19844bc0b0a723d14f864ddd
+  (primelora-artifact-monitor-d88.service). PID463731/463733/463736; verify IDs
+  before any later management. Monitorlog remote tc/d88_20260927/remote_monitor.log.
+  Direct health passed both, link1000/full. Initial diagnostic urllib request
+  used ambient proxy and returned502; retained, not a service failure/restart.
+  Actual artifact client already explicitly bypasses proxy. No remote management
+  or configuration/hash/cleanup during inference. OldD84IDs no longer apply.
 
 ## D87 preceding configuration/coverage checkpoint (no new GPU run)
 

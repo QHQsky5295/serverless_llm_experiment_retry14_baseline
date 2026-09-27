@@ -1,0 +1,70 @@
+{
+  "kind": "failed_source_initialization_evidence_v1",
+  "model": "3b",
+  "attempt": 1,
+  "source_commit": "00199ebe64e96202471fd6b5764359c79ae538a4",
+  "status": "failed_before_inference",
+  "classification": "protocol_or_launcher_error",
+  "planned_requests": 368,
+  "executed_requests": 0,
+  "remote_transfers": 0,
+  "original_error": "process membership/owner changed during census",
+  "top_level_error": "native worker lifetime unqualified; physical lease retained",
+  "changing_pid_unknown": true,
+  "service_returncode": 2,
+  "watchdog_returncode": 0,
+  "service_peak_bytes": 1916977152,
+  "host_min_available_bytes": 114707853312,
+  "resource_samples": 25,
+  "max_memory_events": {
+    "low": 0,
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0,
+    "oom_group_kill": 0
+  },
+  "max_service_swap_bytes": 0,
+  "native_contexts_released": true,
+  "service_group_removed": true,
+  "workspaces_removed": true,
+  "physical_owner_release_qualified": false,
+  "remote_monitor_and_services_stopped": true,
+  "empty_auxiliary_stopped": true,
+  "full_qualified": false,
+  "valid_performance_samples": 0,
+  "raw": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/3b_admission_source_attempt1.json",
+      "sha256": "22450c85742e64f1317b51e8bf8ff4dadc3afa41fe7d251f704493cec36c9588"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/3b_admission_source_attempt1_launch.json",
+      "sha256": "26e85b0f794a63c7f6f6074b792e8a2764de51e7a3bdee8f3cf58ab1782e9160"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/3b_admission_source_attempt1_launch.launch/watchdog.jsonl",
+      "sha256": "1aa2c4c4a40bf536e7592841cf89c97c273bce332f3670e44ecf843a1bde9637"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/attempt1_worker/ready.json",
+      "sha256": "fc1e29e23af719dda50682cb3ad1845e649cc590745639cb9c98b9b8b45d7554"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/attempt1_worker/worker.log",
+      "sha256": "842ca9761697cfbe000d928d0f129fc7b60b18683638e4673b48187aba4b07b9"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/remote_monitor_final.log",
+      "sha256": "382e279b935496c4dae270af604d226dbe14f72d98c4088e475f50f5e3bdfc17"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/watchdog_direct_tiny_launch.json",
+      "sha256": "572b372c5ee62e35d5280e694e03d4e6c8977a4f42c442159d4514d6f8ebc55a"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/watchdog_os_1.log",
+      "sha256": "9459ea9eab77fb354c2e02851bd93a45eae198d447e491d41956f19557518523"
+    }
+  ]
+}
