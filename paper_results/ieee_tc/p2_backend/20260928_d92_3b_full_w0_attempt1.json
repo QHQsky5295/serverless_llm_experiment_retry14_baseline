@@ -1,0 +1,236 @@
+{
+  "kind": "d92_interrupted_canonical_full_v1",
+  "model": "3b",
+  "workload": "W0",
+  "execution_commit": "08cbf45c1920019373ab4dfd8ba1e7840a44c519",
+  "full_qualified": false,
+  "formal_performance_result": false,
+  "baselines": "paused",
+  "population": {
+    "planned": 4000,
+    "submitted": 27,
+    "success": 23,
+    "cancelled": 4,
+    "unsubmitted": 3973
+  },
+  "original_failure": {
+    "stage": "main_execution",
+    "type": "ValueError",
+    "message": "automatic planning requires one complete confirmed file-owner view",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 22277, in _main_async_impl\n    result, coord_m = await runner.run()\n                      ^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 14351, in run\n    all_raw, _tb1 = await self._run_continuous_observed(\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12473, in _run_continuous_observed\n    await self._maybe_run_live_scale_control_evaluation(\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 11713, in _maybe_run_live_scale_control_evaluation\n    return await self._evaluate_ieee_live_control(result=result, coord_enabled=coord_enabled,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12025, in _evaluate_ieee_live_control\n    self._reap_ieee_residency_tasks()  # Surface failure; do not silently restart the same plan.\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12161, in _reap_ieee_residency_tasks\n    task.result()  # A failed epoch is evidence, not a swallowed warning/retry.\n    ^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12185, in _execute_ieee_residency_epoch\n    result = await self._run_ieee_owned_preparation_plan(slot=slot, mode='residency',\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 16928, in _run_ieee_owned_preparation_plan\n    plan = await self._plan_ieee_preparation_for_slot(slot=slot, mode=mode)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 16915, in _plan_ieee_preparation_for_slot\n    return self._stack.plan_ieee_owned_preparation(mode=mode, native_snapshot=native,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/experiment_stack.py\", line 926, in plan_ieee_owned_preparation\n    inputs = owned_preparation_inputs(native_snapshot=native_snapshot,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py\", line 447, in owned_preparation_inputs\n    raise ValueError('automatic planning requires one complete confirmed file-owner view')\nValueError: automatic planning requires one complete confirmed file-owner view\n"
+  },
+  "outer_launcher": {
+    "error": "external replay failed; no silent internal timer fallback",
+    "classification": "protocol_or_launcher_error",
+    "service_returncode": -15,
+    "watchdog_returncode": 0,
+    "note": "retained launcher label; original controller ValueError is separately preserved, not attributed to hardware"
+  },
+  "cleanup": {
+    "complete": true,
+    "roots": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_nvme_attempt1/tc_ieee_full",
+        "device": 2050,
+        "inode": 106204568
+      },
+      {
+        "path": "/dev/shm/tc-d92-3b-attempt1/tc_ieee_full",
+        "device": 27,
+        "inode": 2984
+      }
+    ],
+    "inventory_before": null,
+    "inventory_after": null
+  },
+  "resources": {
+    "samples": 164,
+    "peak_bytes": 19352363008,
+    "min_host_available_bytes": 95952441344,
+    "max_events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "max_swap_bytes": 0
+  },
+  "physical": {
+    "allocation_journals": [
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_full_w0_attempt1/launch.launch/physical_allocations/2e348c9ca5254df1b26c5db54a5eecd2.jsonl",
+        "released": true,
+        "sha256": "20938d8197c6a3d85381820bc290ffb3f0f122d45cdefb14a67b1e7d85129993"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_full_w0_attempt1/launch.launch/physical_allocations/5a3189c0f55746dabed68ef467db6578.jsonl",
+        "released": true,
+        "sha256": "22cd4ce972d7cc456e4977dd0c5216bca62dc94513281e195fb0e908d05d4c3f"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_full_w0_attempt1/launch.launch/physical_allocations/8019ed534cc747e4ae1b29dc0b74a142.jsonl",
+        "released": true,
+        "sha256": "d3d9c17d706d66246d0b45d3dfe19a37d01d1cf047e01c22249c801f1fe2dbb6"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_full_w0_attempt1/launch.launch/physical_allocations/f7b870bbc35b453e980a7fe57ce59d7f.jsonl",
+        "released": true,
+        "sha256": "589e826ab63ff3a9f73f844de314cb48edcfe00c6c0d1af0a7012660f9585db5"
+      }
+    ],
+    "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+    "contract": "physical_gpu_owner_union_v1",
+    "correctness_qualification": "not_inferred_from_token_contract",
+    "deployment_contract": "physical_gpu_deployment_v1",
+    "device_intervals": {
+      "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036": [
+        [
+          44075.881730716,
+          44135.88812974
+        ]
+      ],
+      "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946": [
+        [
+          43994.277871777,
+          44145.15475214
+        ]
+      ],
+      "GPU-c4663821-4888-e199-7151-d6298f8d45a5": [
+        [
+          44077.949570071,
+          44137.370247361
+        ]
+      ],
+      "GPU-dadf0267-9617-8824-cddb-82fba48a7b97": [
+        [
+          44073.80181955,
+          44132.779356425
+        ]
+      ]
+    },
+    "eligible_correctness": false,
+    "gpu_seconds": null,
+    "gpu_seconds_observed": 329.2814935520073,
+    "gpu_seconds_per_correct_request": null,
+    "gpu_seconds_per_offered_observed": 0.08232037338800183,
+    "measurement_complete": false,
+    "n_correct": null,
+    "n_interrupted": 4,
+    "n_native_contract_complete": 23,
+    "n_plan": 4000,
+    "n_terminal": 23,
+    "observed_until_s": 44146.297966164,
+    "open_lease_ids": [],
+    "owner_and_native_census_qualification_required": true,
+    "owner_event_count": 8,
+    "request_terminals_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_full_w0_attempt1/launch.launch/physical_deployment/request_terminals.jsonl",
+    "request_terminals_sha256": "a8c0011753b9cf7b2d5409904057439dcd46449857f0d7d2abc8cea909524291",
+    "window_gpu_seconds": {
+      "arrival": 281.24132675300643,
+      "cleanup": 0.0,
+      "drain": 0.0,
+      "pre_arrival": 48.04016679900087
+    }
+  },
+  "mechanism_counts": {
+    "_ieee_activations": {
+      "runtime_ready": 1,
+      "cancelled": 3
+    },
+    "_ieee_residency_epochs": {
+      "completed": 12,
+      "superseded": 5,
+      "failed": 1
+    },
+    "_ieee_file_preparation_plans": {
+      "completed": 14,
+      "cancelled": 2,
+      "superseded": 5
+    }
+  },
+  "remote": {
+    "uuid_pairs": 13,
+    "wire_bytes": 30210124,
+    "verified_logical_bytes": 542464828,
+    "request_packing": 0
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "next": "CPU isolate complete-file-snapshot invariant; no blind rerun or guard relaxation",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_full_w0_attempt1/launch.json",
+      "sha256": "926a8cfcfb2354925f3993acedf909074297b7060a46ddd4d4a5f5214fc5a289"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_full_w0_attempt1/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "cc1e8c0b75c6e03dd3cb59008c2aaceeb3cd730c538844f2869f6293f08582cb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_full_w0_attempt1/launch.launch/physical_deployment/summary.json",
+      "sha256": "2130bca0ec920a7bf5333a603cacb9ccd776c98425828afcf9f04a2815eb49e6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_full_w0_attempt1/launch.launch/physical_deployment/request_terminals.jsonl",
+      "sha256": "a8c0011753b9cf7b2d5409904057439dcd46449857f0d7d2abc8cea909524291"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_full_w0_attempt1/launch.launch/watchdog.jsonl",
+      "sha256": "7d55e55c2fa04c5c3310fb76cc2af752374012e737483b3b4cd20d659781fac0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_full_w0_attempt1/launch.launch/service_ingress.jsonl",
+      "sha256": "edf4c57b802c1eec03ef1c243eff50f19e0566414a8cb70cd491fe50f1dff8f9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_full_w0_attempt1/launch.launch/replay.jsonl",
+      "sha256": "d97388c63e320b03044260d881a292a6cea7095e288baf81a0b579665aa95270"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_main_config_attempt1.yaml",
+      "sha256": "45bedd2fc253e7ef3c86aaeed0964abe0591c36d96d633eb2c13632f6266583b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/run_3b_full_w0_attempt1.sh",
+      "sha256": "343ea74dd0d5d70b657f89945762450ec592d359f96ca48a036f087a30054a37"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/remote_3b_full_attempt1_transfers.jsonl",
+      "sha256": "5f6eba45c8372fbc1fca8e40f19b9e1573930164b22e233373387ecbee2dba23"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/remote_monitor_full_attempt1_final.log",
+      "sha256": "0df2b831b273a7e5c844a8f5007e37fa5c61f1100f4658694125f77995cbca70"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/remote_stop_full_attempt1.log",
+      "sha256": "e85b378ad196586d4fd7285fca6c3f34a087a7713fb2aff9bf334e1842a00209"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/summarize_full_attempt1.py",
+      "sha256": "48ad8576f3777d8c5ccb453f08280d58d05149234e568a2a3c929fe6859a4e53"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "555dc46ae0ec47871dd039b76a125b8194c906e4f444c581364ee7d5398f02fd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "5237729f3fc34999f118138f80ce6ac42bc82fa9ac5cd92bf906618a9673ea78"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+      "sha256": "39cb3bcdbda2ba6e63db66823fd7aad65b6cad162c75699230e7c5168b916667"
+    }
+  ]
+}

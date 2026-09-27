@@ -1,6 +1,57 @@
 # IEEE TC execution status
 
+## Latest — D92 full4000 attempt1 FAILED/CLEANED; CPU snapshot diagnosis next
+
+2026-09-28 03:26 supersedes LIVEbelow. Originalmain08cbf45:4000planned/
+27submitted/23success/4cancelled/3973unsubmitted; incomplete NOTperformance.
+OriginalValueError:automaticplanningrequiresonecompleteconfirmedfile-owner view,
+residencyepochinputguard. ExactpredicateinputNOTcaptured; doNOTassumecause.
+12residencycomplete/5superseded/1failed;file14complete/5superseded/2cancelled.
+1activationready/3cancelled;all4physicalleasesreleased,actualGPU/servicegone.
+13HTTPUUIDpairs exact,30210124wireB/542464828verifiedlogicalB,requestpacking0.
+164resourcesamplespeak19352363008B/minhost95952441344B;high/max/OOM/swap0.
+Mainoutcome preservespartial/native/UUID/mechanismevidence;no snapshot/cleanup
+errors,ownedHOST/NVMe removed. Outerpublisher subsequentlyfailed,launchlabel
+protocol_or_launcher_error/service-15/watchdog0 doesNOTreplaceoriginalValueError.
+Observed329.281494GPU-s ispartialU_obs,NOTfullperformance/correctrequestcost.
+
+AFTERinference,matchingremote monitor0574f3ff stopped;bothservices+monitor
+inactive/MainPID0/success. Finalmonitor/currentjournal copied;13pairsverified.
+Aux72637aed131d4e358bab9f87d1da642a stopped ONLYafteremptyprocs/populated0.
+NOliveGPU/model/tmux/remote. D92docimmediatefailuretable andcurated
+20260928_d92_3b_full_w0_attempt1.json (16SHArefs) complete;147protectedunchanged.
+NEXT evidencebackup thenCPU isolateactualpreparation_snapshot vs complete-view
+guard;oneexistingownerlock alreadycoverscollection,so don'tassertsimplemissing
+lock. NoGPUrerun/7B/baseline orcompletedprofile/cachework before causaltest.
+Allformalmatrices/warmSLO/Resident/numericalcorrectness remainpending.
+
+## LIVE — D92 canonical 3B4000 Full W0 attempt1, 2026-09-28 03:18:53
+
+Source08cbf45c1920019373ab4dfd8ba1e7840a44c519 unchanged/pushed.
+tmux tc-d92-3b-full1; rawd92_20260928/3b_full_w0_attempt1/launch.json,
+launch.launch/ and3b_full_w0_attempt1_console.log. Existingcanonicalrunner+
+actualexternal4000arrivalmap,60snotice,1800splanned-arrivaldeadline,D88parent/
+D89profiles,original500pool. One runtimecap8/aggregateupto32, naturalcontrol.
+This isdevelopmentqualification, NOTformalM1/M2/SLO/numericalcorrectnessproof.
+Aux22de466b3b1a403ba7d38f3510128417,service7ec035e7dfd74913abb40c8323990bea
+scope/invocation500bf55e04f445abbecc785af4bba01e;guardedactualworkers+watchdog.
+Beforelaunch bothdirecthealthPASS,20SHArefs/147protectedunchanged,GPUidle,
+312GiBdisk/108GiBMemAvailable/swap0,bothNIC1000/full.
+Remote3B9329cc89ccaa428cadbfa69331b536a6 PID804093;
+7B3b6407dd455642d08f790c0dbb9596d5 PID804095;
+monitor0574f3ffd87f483796d33caf6994e8e7 PID804098,
+unitprimelora-artifact-monitor-d92full1.service,
+logremote tc/d92_20260928/remote_monitor_3b_full_attempt1.log.
+NOsource/remoteconfiguration/restart/hash/cleanup duringinference. MonitorSAME
+attempttoterminal;cleanup/validate/table BEFORE7B oranyotherexperiment.
+Baselines9e2cf289PAUSED. D78/D80/D81/D88/D89/D90prefixescomplete,dontrepeat.
+AllpriorNEXT/nostart/livestate notesbelow arehistorical, not restart instructions.
+
 ## Latest — D92 deadline/outcome/owned cleanup verified; Full replay next
+
+BACKEDUP08cbf45c1920019373ab4dfd8ba1e7840a44c519 PUSHED/freshremoteSHA
+matched. Sixscopedfiles,835tests,20sourceSHArefs and147protected/secretschecks
+PASS. UserdirtymanifestNOTstaged. Noactualreplayyet. Rawcheckpoint_push_receipt.
 
 2026-09-28 03:16. No live model/tmux/remote; baseline9e2cf289 PAUSED.
 Implemented explicit finite request deadline from PLANNEDarrival; development
@@ -129,7 +180,8 @@ warmSLO/Resident stillunmeasured;originalzero-weight numerical limitation remain
   Wrong/right controls nondiscriminative. Noauthoritynewweights;don'treask
   repeatedly. Otherimplementationcanprogress independently.
 - Currentdevelopmentcontrols:3Bcap8/slots8/cpu32/gpu.72,7Bcap2/slots4/cpu24/gpu.70;
-  HOST16GiB/native2/NVMe16,W5/movement3,routingbin2/beta.5,min1/max4.
+  HOST16GiB/native2/NVMe16,W5/movement3,scaleinterval2/beta.5,min1/max4;
+  service_bin_ms staysactualD88measured modelvalue, NOT2ms.
   NOTfinalSLO/optimalworkingpoints.
 - NativePATH includesvenv/bin,CUDA_HOME=/usr/local/cuda-13.0,FLASHINFER_NVCC
   itsbin/nvcc,MAX_JOBS2;allocatoruncached_background_v1,PYTORCH_ALLOC_CONF

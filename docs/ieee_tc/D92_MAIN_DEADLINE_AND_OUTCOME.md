@@ -1,5 +1,41 @@
 # D92 — 完整回放的超时、失败证据和缓存收尾
 
+## 最新实际回放：3B W0 attempt1 未通过，已收尾
+
+2026-09-28 03:18:53 启动，执行源码 `08cbf45`。以下覆盖后文“下一步”的
+启动状态；保留后文作为启动前检查记录。
+
+| 项目 | 实际观察 |
+|---|---|
+| 计划/已提交/成功/随整轮中断取消 | 4000 / 27 / 23 / 4 |
+| 未提交 | 3973；未伪作 timeout |
+| 初始及后续激活状态 | 1 个 ready，3 个取消；4 个真实持卡记录全部释放 |
+| 驻留规划 epoch | 12 completed / 5 superseded / 1 failed |
+| file preparation plan | 14 completed / 5 superseded / 2 cancelled |
+| 真实远端传输 | 13 对 UUID 完全匹配，30,210,124 wire bytes |
+| 已核验解包字节 / 请求打包 | 542,464,828 / 0 |
+| 资源监控 | 164 样本，峰值19,352,363,008 B；最小主机可用95,952,441,344 B |
+| high / max / OOM / 实验 swap | 全部 0 |
+| 收尾 | 四张卡实际释放；HOST/NVMe 本轮工作区删除；两远端服务/监控停止 |
+
+原始控制异常为 `automatic planning requires one complete confirmed file-owner view`，
+发生在 residency epoch 的自动候选输入检查。请求级、原始 traceback、远端
+UUID 和独立机制事件均被 D92 新边界完整保留；没有二次 snapshot/cleanup
+错误。4 个取消不是1800秒 deadline，也不是4个独立性能失败样本。
+
+外置 launcher 随后记录 publisher 失败并将自身类别标为 protocol/launcher
+error，最终 service 返回 -15、watchdog 0；该二次标签不替代上面的原始
+控制异常。所有请求/持卡记录都在清理前保存。观察GPU占用329.281494 GPU-s
+属于不完整运行的 U_obs，不能把它除以4000作为完整工作负载低成本结果。
+
+暂不判定为网络、OOM或具体竞态。该拒绝条件合并了 owner/epoch/时钟/集合
+完整性，当前失败日志没有逐字段输入快照，尚不能确定是哪一个条件不满足。
+下一项为 CPU 上隔离 file-owner 完整快照的生成与自校验，不放松拒绝条件，
+没有通过反例验证前不再重跑 GPU。7B及 baseline 仍未启动。
+
+本轮原始目录 `d92_20260928/3b_full_w0_attempt1`，curated 文件
+`20260928_d92_3b_full_w0_attempt1.json` 含16个来源 SHA；旧147保护项不变。
+
 ## 问题与处理
 
 D91 已贯通主入口的配置装配，但尚未运行 canonical Full 4000 请求。
