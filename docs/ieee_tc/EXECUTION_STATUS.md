@@ -1,6 +1,61 @@
 # IEEE TC execution status
 
+## Latest — D90 attempt6 terminal/cleaned; exact private-file allocation growth
+
+CPUfollowupCOMPLETE:3/3controlledextent-transitionprobes reproduce +4096B
+unchangedinode/size/nlink;filefrag1→3→5→7→1records,allocation0/0/+4096/+4096/0.
+Existingcode_lora_0039bytes only,8filesSHApass afterfullwrite,alltempdirsremoved.
+Actualownerrejects both5/7-recordstates. Sameext4,12.099s,3/4GiBswap0CPU2,3,26,27.
+Controlledsparsewrites+diagnosticfsync areNOToriginalextractorder/productionfix.
+This disprovesconstantst_blocks assumption; originalrunextenttreeNOTcaptured,
+attempt5causenotproven. Primarykernel6.8extents.c/iforkandposix_fallocatechecked.
+Curated20260928_d90_extent_transition_diagnostic.json andD90immediatetable.
+No productionedit/newGPUrun. NEXT designaccountedboundedwrite-timeallocation,
+separatecontentidentityfrommetadata; preservebudget/concurrency/integrity,
+no4KiBmagic tolerance/sleep/fsyncworkaround. Nativeleasecleanupstillopen.
+147protectedunchanged;312GiBdiskfree,108GiBMemAvailable. Backuptheseevidencenext.
+
+Attempt6 ended100planned/61submitted/47success/14cancelled/39unsubmitted.
+Firstfatal SAMEreservedinode code_lora_0039/adapter_data.bin grew allocated
+37982208→37986304B (+4096), logical37980895B/device/inode/nlink1 unchanged.
+Transfer72c41c58f17e4eb488c13c29a56ceb11, HTTPeeb281f137a048a39e237ef6c7870708.
+Duringprivateextraction, NOTpublished-sourceerror; extentsnotcapturedinrun.
+2epochsfailed/60completed/13superseded;initial+controlledready,2naturalcancelled.
+22UUIDpairs exact,51098232wire/831603868verifiedlogicalB;21published1not;packing0.
+340samplespeak19138220032B/minhost97015042048B;high/max/OOM/swap0.
+2/4inprocessleasesclosed;outercleanup60s thenallcontexts/servicegone,2/0.
+Bothworkspacesremovedbyoriginalrun;NO postrun deletion. Aux855b9b92 stopped after
+emptyprocs/populated0;matchingremote33eda388 stopped,all3inactive/MainPID0/success.
+No liveGPUmodel/tmux/remote. Curated20260928_d90_3b_full_prefix_attempt6.json,
+summarize_attempt6 reusesimmutableattempt4 reducer;rawSHArefs/147protectedpass.
+ImmediateD90failuretablewritten. Sourceunchanged21f2258;healthpreparationerror
+retained below. NEXT boundedCPU ext4 allocation-transition probe onexistingfile,
+notanotherGPUrepeat or speculativeguardrelaxation. Full/M1/M2/A/SNOTqualified;
+baselinesPAUSED. PreviousLIVE/nextattempt6text below nowhistorical.
+
 ## Current checkpoint — 2026-09-28 D90 publication diagnostics CPU-qualified, root NOT proven
+
+LIVE01:05:56:3B attempt6 STARTED tmux tc-d90-3b-attempt6, source21f2258
+unchanged/pushed. Sameoriginaldriver100prefix500poolD88configD89profiles.
+Remote3B4568b94b502743cb84176b21d903bbcb PID676299;
+7B17e4616ee4ec4bee9c3042b8ad536cfa PID676301;
+monitor33eda388c0ef4faeb5a359a9201420dd PID676304 ACTIVE,
+unitprimelora-artifact-monitor-d90a6.service/logremote_monitor_attempt6.log.
+ActualbothNIC1000/full,147protectedunchanged,9source/logrefsverified. No
+source/config/remotechanges duringinference;observe SAMEattempttoterminal.
+Preparationerror:healthCLI invokedundersystemPythonfailedmissingnumpy;empty
+remote_health6_{3b,7b}.json retained. Launchalreadybeganbeforethatwasnoticed.
+CorrectedSAMECLI underexistingconda environment passedBOTHhealth at01:06:10,
+duringinitialconstructionBEFOREruntime-ready/business;new*_verified.json kept.
+No restart/configchange,notclaimedasprelaunchhealth/performancequalification.
+Cleanup/validation/tablebefore7B;baselinesPAUSED,Full/M1/M2/A/Snotqualified.
+
+BACKEDUP21f2258dcccd8b8e2c4790e8dc41e660ea4e8676 PUSHED/freshremoteSHA
+matched. Seven scopedfiles,9raw/sourceSHArefs and147protectedentriesverified;
+userdirtymanifestNOTstaged. BaselineHEAD9e2cf289unchanged/PAUSED. No liveCPUtest/
+GPUmodel/tmux/remote. Nextreadfullplan/ledger/safetybeforeONEinstrumented3B
+originalprefix;attempt6notprepared/launched. Do notrepeatcompletedCPUtests or
+remotequalification. MetricsV1unchanged;sourcefailureNOTcausallyfixed.
 
 Latest user approved once-only immutable compressed cache again; already DONE
 D78/D80,1.47GiB,both500/500. DO NOT rebuild/republish/download full pools.

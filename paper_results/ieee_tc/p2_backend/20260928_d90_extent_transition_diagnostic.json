@@ -1,0 +1,285 @@
+{
+  "kind": "controlled_extent_transition_cpu_probe_v1",
+  "production_modified": false,
+  "gpu_used": false,
+  "remote_used": false,
+  "experimental_difference": "Scattered existing bytes with per-file fsync forces written/unwritten boundaries; not original extraction order or performance.",
+  "protected_before": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "protected_after": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "source_sha256": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d88_20260927/probe_reserved_files.py",
+      "sha256": "5a70afbacc03c3ca263f1a1145945e16e983eb1c886638ea4abe84909a1fddeb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d90_20260927/probe_allocation_transition.py",
+      "sha256": "5008d09ddbf425f89e266df9988dfaec98dc6b1aaf389ac5f5eae4b2d83105e9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+      "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+    }
+  ],
+  "runs": [
+    {
+      "repeat": 0,
+      "initial": {
+        "device": 2050,
+        "inode": 106204404,
+        "size": 37980895,
+        "allocated": 37982208,
+        "links": 1
+      },
+      "temporary_removed": true,
+      "verified_file_count": 8,
+      "snapshots": [
+        {
+          "stage": "preallocated",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37982208,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "extent_record_count": 1
+        },
+        {
+          "stage": "existing_4KiB_at_4194304",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37982208,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "extent_record_count": 3
+        },
+        {
+          "stage": "existing_4KiB_at_12582912",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37986304,
+            "links": 1
+          },
+          "inventory_pass": false,
+          "extent_record_count": 5
+        },
+        {
+          "stage": "existing_4KiB_at_20971520",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37986304,
+            "links": 1
+          },
+          "inventory_pass": false,
+          "extent_record_count": 7
+        },
+        {
+          "stage": "all_original_bytes_written_and_synced",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37982208,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "extent_record_count": 1
+        }
+      ]
+    },
+    {
+      "repeat": 1,
+      "initial": {
+        "device": 2050,
+        "inode": 106204404,
+        "size": 37980895,
+        "allocated": 37982208,
+        "links": 1
+      },
+      "temporary_removed": true,
+      "verified_file_count": 8,
+      "snapshots": [
+        {
+          "stage": "preallocated",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37982208,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "extent_record_count": 1
+        },
+        {
+          "stage": "existing_4KiB_at_4194304",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37982208,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "extent_record_count": 3
+        },
+        {
+          "stage": "existing_4KiB_at_12582912",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37986304,
+            "links": 1
+          },
+          "inventory_pass": false,
+          "extent_record_count": 5
+        },
+        {
+          "stage": "existing_4KiB_at_20971520",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37986304,
+            "links": 1
+          },
+          "inventory_pass": false,
+          "extent_record_count": 7
+        },
+        {
+          "stage": "all_original_bytes_written_and_synced",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37982208,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "extent_record_count": 1
+        }
+      ]
+    },
+    {
+      "repeat": 2,
+      "initial": {
+        "device": 2050,
+        "inode": 106204404,
+        "size": 37980895,
+        "allocated": 37982208,
+        "links": 1
+      },
+      "temporary_removed": true,
+      "verified_file_count": 8,
+      "snapshots": [
+        {
+          "stage": "preallocated",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37982208,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "extent_record_count": 1
+        },
+        {
+          "stage": "existing_4KiB_at_4194304",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37982208,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "extent_record_count": 3
+        },
+        {
+          "stage": "existing_4KiB_at_12582912",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37986304,
+            "links": 1
+          },
+          "inventory_pass": false,
+          "extent_record_count": 5
+        },
+        {
+          "stage": "existing_4KiB_at_20971520",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37986304,
+            "links": 1
+          },
+          "inventory_pass": false,
+          "extent_record_count": 7
+        },
+        {
+          "stage": "all_original_bytes_written_and_synced",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37982208,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "extent_record_count": 1
+        }
+      ]
+    }
+  ],
+  "raw_sources": [
+    {
+      "sha256": "eb26e20db34796725bb2d750f7fa513f143b9e335560dd98c2f914c4a7638ad5",
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/allocation_transition_probe1.json"
+    },
+    {
+      "sha256": "5008d09ddbf425f89e266df9988dfaec98dc6b1aaf389ac5f5eae4b2d83105e9",
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/probe_allocation_transition.py"
+    }
+  ],
+  "interpretation": "All 3 controlled cases reproduce +4096 allocated bytes with unchanged inode/size/link count at 5 and 7 written/unwritten extent records; complete original content matches SHA and allocation returns to initial. This falsifies fixed st_blocks after fallocate, but does not capture the original replay's extent interleaving or prove attempt5 has the same cause. No production fix or GPU retry.",
+  "performance_result": false,
+  "full_qualified": false,
+  "runtime": {
+    "systemd_exit": 0,
+    "wall_seconds": 12.099,
+    "cpu_seconds": 3.914,
+    "limits": "MemoryHigh3GiB/Max4GiB/swap0,CPU2,3,26,27"
+  },
+  "primary_sources": [
+    "https://docs.kernel.org/filesystems/ext4/ifork.html",
+    "https://raw.githubusercontent.com/torvalds/linux/v6.8/fs/ext4/extents.c",
+    "https://man7.org/linux/man-pages/man3/posix_fallocate.3.html"
+  ]
+}
