@@ -128,6 +128,12 @@
 - NEXT: evidence backup, then representative3B24/7B6 exact-content classes and
   actual concurrency profiles, then integrated Full activation/lifecycle.
   Do not repeat D78/D80/D81, allocator microtests or baseline work.
+- D82 evidence a81c29e53aa4e3f60a6e0166558fbd13e782d103 PUSHED; fresh remote
+  SHA matched;8rawrefs/147protected entries unchanged.
+- D83 representative specs prepared, not yet executed:3B360+8warmup requests,
+  7B90+2warmup;3interleaved rounds, actual caps8/2, all24/6static file classes.
+  Warmup retained separately, no lifecycle subtraction. Reuse original development
+  prompts/static artifacts; no new trace/weights. New rawd83_20260927, no overwrite.
 ### D81 completed four-way real-remote qualification; Full profiling next
 
 - BOTH models:3waves×4lanes=12/12verified, each wave observed4server-handler
