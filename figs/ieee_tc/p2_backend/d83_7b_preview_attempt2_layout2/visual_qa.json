@@ -1,0 +1,18 @@
+{
+  "kind": "manual_academic_figure_qa_v1",
+  "date": "2026-09-27",
+  "reviewed_pngs": ["source_D_ms.png", "source_T_ms.png", "source_TPOT_ms.png"],
+  "width_inches": 3.45,
+  "height_inches": 2.65,
+  "pdf_page_points": [248.4, 190.8],
+  "embedded_fonts": ["TimesNewRomanPSMT", "TimesNewRomanPS-BoldMT"],
+  "text_overlap": false,
+  "text_clipping": false,
+  "bottom_bold_panel_captions": true,
+  "all_registered_points_retained": true,
+  "independent_runs": 1,
+  "ci": null,
+  "interpretation": "Development source profile only; not Full, formal S1, or a system ranking.",
+  "previous_preview": "../d83_7b_preview_attempt2",
+  "previous_preview_status": "Retained incomplete: QA falsely checked an out-of-view 500 ms tick, not an actual clipping/data failure."
+}

@@ -2227,6 +2227,21 @@ class FormalMatrixCliTests(unittest.TestCase):
 
 
 class TestNativeSourceProfilePreview(unittest.TestCase):
+    def test_layout_qa_ignores_only_ticks_outside_the_drawn_view(self):
+        fig, ax = plot_paper_figures.plt.subplots()
+        self.addCleanup(plot_paper_figures.plt.close, fig)
+        ax.set_xticks([0, 1, 2])
+        ax.set_yticks([0, 250, 500])
+        ax.set_xlim(0, 2)
+        ax.set_ylim(0, 410)
+        labels = plot_paper_figures._tc_drawn_tick_labels(ax)
+        self.assertIn(ax.get_yticklabels()[0], labels)
+        self.assertIn(ax.get_yticklabels()[1], labels)
+        self.assertNotIn(ax.get_yticklabels()[2], labels)
+        self.assertIn(ax.get_xticklabels()[2], labels)
+        ax.set_ylim(500, 0)
+        self.assertIn(ax.get_yticklabels()[2], plot_paper_figures._tc_drawn_tick_labels(ax))
+
     def fixture(self):
         q = dict(request_id='source-profile/w0/l0', source_request_id='req0', adapter_id='a',
             requested_source='remote', target_tokens=2, actual_tokens=2,

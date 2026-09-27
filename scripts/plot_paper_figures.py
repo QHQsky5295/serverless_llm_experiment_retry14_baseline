@@ -3514,6 +3514,22 @@ def tc_native_source_rows(payload: dict) -> List[dict]:
     return rows
 
 
+def _tc_drawn_tick_labels(ax) -> list:
+    """Matplotlib locators can retain labels outside the displayed view interval.
+
+    Axis.draw omits those ticks. QA must check the labels that are actually drawn,
+    not reject an invisible next tick above the data-dependent upper limit.
+    """
+    labels = []
+    for positions, texts, limits in (
+            (ax.get_xticks(), ax.get_xticklabels(), ax.get_xlim()),
+            (ax.get_yticks(), ax.get_yticklabels(), ax.get_ylim())):
+        low, high = sorted(limits)
+        labels.extend(text for position, text in zip(positions, texts)
+                      if low <= position <= high and text.get_visible())
+    return labels
+
+
 def plot_tc_native_source_profile(inputs: Sequence[Path], out_dir: Path) -> None:
     """Single-run profile preview, not S1 or a causal system-ranking figure."""
     from matplotlib import font_manager
@@ -3591,7 +3607,7 @@ def plot_tc_native_source_profile(inputs: Sequence[Path], out_dir: Path) -> None
             fig.text(.5925,.035,caption,ha='center',weight='bold',fontsize=10.5)
             fig.canvas.draw()
             renderer=fig.canvas.get_renderer()
-            texts=[ax.yaxis.label,*ax.get_xticklabels(),*ax.get_yticklabels(),*fig.texts]
+            texts=[ax.yaxis.label,*_tc_drawn_tick_labels(ax),*fig.texts]
             boxes=[t.get_window_extent(renderer) for t in texts if t.get_text()]
             if any(not fig.bbox.contains(b.x0,b.y0) or not fig.bbox.contains(b.x1,b.y1) for b in boxes):
                 raise ValueError('source preview text is clipped')

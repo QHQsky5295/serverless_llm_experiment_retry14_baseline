@@ -135,7 +135,7 @@
   Warmup retained separately, no lifecycle subtraction. Reuse original development
   prompts/static artifacts; no new trace/weights. New rawd83_20260927, no overwrite.
 
-### D83 latest: 3B complete, 7B attempt1 environment failure; attempt2 prepared
+### D83 latest: BOTH models complete, cleaned and plotted
 
 - Specsf5e238935c266edfdeb45ff237d195338b598969 PUSHED/remote SHA matched.
   Real3B368/368 completed:360 representative +8explicit warmup.40service classes,
@@ -156,7 +156,7 @@
   Backup a719e9c915efa189f222b50a88f6f7c520a7148b PUSHED/freshremoteSHA matched.
   3B4/24static request groups have output SHA variation, same prompt/target;
   retain all. Official vLLM default nondeterminism is a possible, not proven cause.
-- D83 remote units STILL ACTIVE, shared configuration unchanged:
+- D83 remote units used unchanged shared configuration (now STOPPED below):
   3B3af671e251a7464fbd6fcd31f4e3965a;7Bf09f1cde4b7d4458947fe637649fac31;
   monitorf322f426d2d9402c9e0bacc22d7af998. Do not use old D82 identities.
   Health clocks3B2762c9d63bc14907be430ef8935d4ebf,7B66c4e294d86644df8f283f2bed599d80.
@@ -165,12 +165,36 @@
   could not find installedninja. Prior P2 document records this same failure/fix.
   Service2/watchdog0,69samples peak16224022528B,high/max/OOM0, actualGPUcontexts/
   service/workspaces cleared; emptyaux89bc9fc714f6401e957074c9062e201a stopped.
-- NEXT: back up failure table; launch rawd83/run_7b_source_representative_attempt2.sh
+- Failure table a0ec5e023acbee52ae4213e890a6db1eab34871a PUSHED/freshremoteSHA matched.
+  Attempt2 launched19:02:24 in tmux tc-d83-7b-attempt2;
+  rawd83/run_7b_source_representative_attempt2.sh
   with restored venv/bin PATH,CUDA_HOME13,FLASHINFER_NVCC13,MAX_JOBS2. No install,
   backend substitution or model changes. Reuse this environment in all native
   launchers. Do not re-run3B or reinterpret failure as performance sample.
-  Stop matching remote monitor after7B finishes; retrieve final monitor and7B UUIDs.
-  Then freeze measured profiles/Full integrated activation, NOT baseline/remote sweeps.
+  Attempt2 completed19:11:92/92 (90+2warmup),20service/24preparation classes,
+  three observations per preparation class. Six fixed input groups preserve
+  both prompt/output SHA across sources/rounds. All native output counts exact.
+  92UUIDpairs verified,490763433B wire/2463242860B logical;18measuredRemote+
+  74setup transfers.513resource samples,peak4909465600B,high/max/OOM/swap0.
+  Service/watchdog0/0, GPU/service/workspaces released; emptyaux invocation
+  412bd195f42449a89fd3cbe8e5dbe6cd STOPPED. No live tmux/model remains.
+  Matching D83 remote monitor STOPPED after inference; both artifact services
+  inactive/MainPID0/Resultsuccess. Complete1619samplemonitor retrieved SHA
+  d6d7c85782424f9e8a486150547719248d33ef96772b985e5c515bfdbb00723e.
+  Curated20260927_d83_7b_source_representative.json; three TNR singlecolumn
+  figures d83_7b_preview_attempt2_layout2 visually checked. First preview kept
+  incomplete: QA falsely checked a locator tick outside displayed limits.
+  Fixed only QA to match drawn ticks, not data/axes;44analysis-tools tests pass.
+  NEXT: backup D83, resolve measured-profile applicability to Full subprocess
+  path, then integrated activation/lifecycle. No baseline/remote/allocator sweeps.
+- D83 applicability audit in progress: source collector currently uses direct
+  InferenceEngine, while IEEE Full uses SubprocessInferenceEngineProxy with
+  ieee_physical_allocation=True. Both ultimately use native EngineCore, but the
+  Full proxy adds a controller/worker communication boundary. Frozen profile
+  identity currently differs and must NOT be relabelled or bypassed. Inspect
+  measured interval boundaries and actual configuration before exporting Full
+  initialization; D83 remains valid direct-path development evidence. Do not
+  automatically repeat remote/publication/allocator checks or remove Full guard.
 ### D81 completed four-way real-remote qualification; Full profiling next
 
 - BOTH models:3waves×4lanes=12/12verified, each wave observed4server-handler
@@ -266,9 +290,9 @@ Earlier preparation details (completed; not new launch instructions):
   Private key ~/.ssh/primelora_artifact_174_ed25519_20260925,0600,outsideGit.
   Local/remote token ~/.config/primelora-tc-d75/artifact.token,0600.
   NEVER print values/put credentials in journals or Git.
-- D80 monitor is INACTIVE. Artifact units and D83 monitor are currently ACTIVE
-  with identities in the latest D83 section. Do not reuse dead D80 PIDs or
-  invocations. Unit fragments remain deployed; caches not deleted.
+- D80/D83 monitors and both artifact services are INACTIVE. D83 stopped after
+  completed7B19:11. Do not reuse old PIDs/invocations. Unit fragments remain
+  deployed; caches not deleted. No live local model/tmux or qualification run.
 - Cache root /home/lab14/primelora_remote/tc/d78_20260927/published/{3b,7b}.
   Source pools /home/lab14/primelora_remote_artifacts/
   llama32_3b_a500_v1_modelscope and llama2_7b_a500_v2_publicmix.

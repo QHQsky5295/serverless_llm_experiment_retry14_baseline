@@ -1252,3 +1252,47 @@ Times New Roman嵌入，bbox检查和三图目视检查无裁切/文字遮挡。
 同样公开此构建控制。下一次只恢复已验证的工具PATH/CUDA13和MAX_JOBS=2，
 不重装、不关闭FlashInfer、不改模型/LoRA/生成/缓存预算；新attempt2路径保留
 原失败。所有后续native模型启动器均须复用此环境，不再仅替换Python绝对路径。
+
+### D83 7B attempt2：代表性测量完成，Full适用性仍须核查
+
+92/92完成（90代表性＋2预热），6个静态内容类、20个服务观测类、24个非GPU
+准备类；每准备类3次。全部原生输出数量等于target，六个固定工件/原请求组合
+跨来源/轮次的prompt和输出SHA均一致。此结果不能消除3B已有输出变化或零权重
+数值鉴别限制。三个轮次属于同一个run，不作为独立重复或正式S1。
+
+| 来源 | n（不含预热） | 服务D均值/ms | 加载d均值/ms | T均值/ms | TPOT均值/ms |
+|---|---:|---:|---:|---:|---:|
+| Remote |18|498.604|496.535|238.721|27.548|
+| NVMe文件 |18|123.546|76.286|223.746|27.357|
+| HOST文件 |18|125.240|77.044|224.002|27.386|
+| native HOST张量 |18|143.317|16.896|241.754|27.461|
+| GPU |18|0|已可执行|201.502|27.442|
+
+与3B一致，加载d的收益不能替代整个服务D的比较：native HOST实际加载短，
+但仍有加载前等待；不能据此宣称整体TTFT必然更低。文件来源可能命中page cache。
+本组只建立初始化与路径诊断证据，不对系统排名、SLO或G1/G2下结论。
+
+92远端UUID逐项配对、内容与归档SHA核验通过：490,763,433B线上、
+2,463,242,860B逻辑内容；18次Remote测量、74次受控建态，无请求内打包。
+513本机资源采样，服务峰值4,909,465,600B，high/max/OOM/swap均0。
+service/watchdog均exit0，GPU上下文、服务域和工作目录已释放；空辅助域
+412bd195f42449a89fd3cbe8e5dbe6cd停止。推理结束后才停止匹配D83远端monitor，
+它的退出处理停止两制品服务；三个服务inactive/MainPID0/Resultsuccess。
+远端完整1619采样、最小可用内存109,411,741,696B、最大full PSI0；I/O控制器
+仍标not_delegated，不能当作零I/O。完整monitor SHA为
+`d6d7c85782424f9e8a486150547719248d33ef96772b985e5c515bfdbb00723e`。
+
+汇总：`paper_results/ieee_tc/p2_backend/20260927_d83_7b_source_representative.json`。
+图：`figs/ieee_tc/p2_backend/d83_7b_preview_attempt2_layout2/`，三图均经目视检查、
+单栏3.45×2.65inch、TNR嵌入、无实际文字遮挡/裁切。首次预览目录保留：原QA把
+轴范围外不绘制的500ms刻度误判为裁切；按实际可见刻度检查后通过，数据/坐标范围
+未改。新增边界与反转轴测试；完整44项analysis-tools测试通过（5.956s）。
+
+**Full适用性审计，不直接改profile身份：**D83调用`InferenceEngine`，而Full
+通过`SubprocessInferenceEngineProxy`持有物理GPU，配置含
+`ieee_physical_allocation=True`。二者虽都调用原生EngineCore，Full额外有
+控制器/worker通信边界。官方[vLLM0.30 AsyncLLM源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/async_llm.py)
+确实创建独立EngineCore client，但这不能证明本项目附加proxy没有开销。
+现有严格profile配置核对会拒绝混用，保留此检查。下一步先核对D/T/O和d边界、
+导出真实测量身份，再只补缺失的实际Full路径证据；不自动重做远端发布/全池检查，
+不移除Full未合格保护，不把D83改名成完整Full。
