@@ -181,9 +181,9 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
         ready = asyncio.get_running_loop().create_future()
         class FakeEngine:
             def __init__(self, *args):
-                pass
+                self.model_cfg = dict(args[0])
             async def initialize(self):
-                pass
+                self.model_cfg['max_cpu_loras'] = 24
             async def shutdown(self):
                 pass
             async def ieee_scheduler_observation(self):
@@ -222,6 +222,8 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
                  patch.object(worker, '_write_ready', side_effect=lambda path, value: ready.set_result(value)):
                 server_task = asyncio.create_task(worker._run_worker(payload, Path(temp) / 'ready.json'))
                 address = await asyncio.wait_for(ready, 2.)
+                self.assertEqual(address['configuration_contract'], 'initialized_model_config_v1')
+                self.assertEqual(address['model_config'], {'max_cpu_loras':24})
                 proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
                 proxy.model_cfg = dict(timing_contract='ieee_tc_native_v1')
                 proxy._engine_dead = False

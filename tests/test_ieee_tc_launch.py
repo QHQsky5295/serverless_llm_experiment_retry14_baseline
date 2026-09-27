@@ -20,7 +20,149 @@ def ieee_control_fixture():
         ttft_upper_ms=1000, ttft_lower_ms=500, ttft_window_s=100, scale_down_cooldown_s=3)
 
 
+class IEEEOnlineObservationBinding(unittest.TestCase):
+    def setUp(self):
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        from faaslora.preloading.preloading_manager import OwnedMovementQueue
+        self.model = dict(ieee_admission_profile=dict(window_s=5.0, transfer_limit=3,
+                         profile_id='measured-fixture', model_backend_id='fixture-model'))
+        self.coord = dict(online_hotness_window_s=5.0, max_concurrent_loads=3)
+        self.stack = SimpleNamespace(hotness_tracker=HotnessTracker(None, window_seconds=5),
+            preloading_manager=SimpleNamespace(ieee_movements=OwnedMovementQueue(3)))
+
+    def check(self, **changes):
+        values = dict(model_cfg=self.model, coord_cfg=self.coord, preload_cfg={},
+                      stack=self.stack, runner_window_s=5.0)
+        values.update(changes)
+        return runner._validate_ieee_online_observation_binding(**values)
+
+    def test_actual_owners_match_and_no_runtime_state_is_created(self):
+        result = self.check(preload_cfg=dict(online_hotness_window_s=5))
+        self.assertEqual(result['window_s'], 5.0)
+        self.assertEqual(result['transfer_limit'], 3)
+        self.assertEqual(result['demand_windows']['actual_demand'], 5)
+        self.assertEqual(result['movement_limits']['actual_movement'], 3)
+        self.assertFalse(self.stack.preloading_manager.ieee_movements.bound)
+        self.assertEqual(self.stack.hotness_tracker.snapshot().total_arrivals, 0)
+
+    def test_explicit_window_required_instead_of_legacy_default_or_precedence(self):
+        for value in (None, 'auto', True, 0, 2, float('nan'), float('inf')):
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, 'same explicit W'):
+                self.check(coord_cfg=dict(self.coord, online_hotness_window_s=value))
+        with self.assertRaisesRegex(ValueError, 'same explicit W'):
+            self.check(preload_cfg=dict(online_hotness_window_s=10))
+        with self.assertRaisesRegex(ValueError, 'same explicit W'):
+            self.check(runner_window_s=10)
+        self.stack.hotness_tracker.window_seconds = 10
+        with self.assertRaisesRegex(ValueError, 'same explicit W'):
+            self.check()
+
+    def test_observation_limit_cannot_silently_differ_from_movement_capacity(self):
+        for value in (None, 2, 5, True, 3.0):
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, 'actual shared movement'):
+                self.check(coord_cfg=dict(self.coord, max_concurrent_loads=value))
+        self.stack.preloading_manager.ieee_movements.max_concurrent = 5
+        with self.assertRaisesRegex(ValueError, 'actual shared movement'):
+            self.check()
+
+    def test_missing_or_invalid_admission_owner_is_not_zero_pressure(self):
+        with self.assertRaisesRegex(ValueError, 'native admission'):
+            self.check(model_cfg={})
+        for window in (None, 0, True, float('nan')):
+            model = dict(ieee_admission_profile={**self.model['ieee_admission_profile'], 'window_s':window})
+            with self.subTest(window=window), self.assertRaisesRegex(ValueError, 'positive W'):
+                self.check(model_cfg=model)
+        with self.assertRaisesRegex(ValueError, 'same explicit W'):
+            self.check(stack=None)
+
+    def test_actual_runner_records_binding_without_changing_the_guard(self):
+        service = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        service._ieee_online_observation_binding = self.check()
+        service._retired_coord_metrics = []
+        service.instance_pool = service.coordinator = None
+        result = service._current_coord_metrics()
+        self.assertEqual(result['ieee_online_observation_binding'], self.check())
+        result['ieee_online_observation_binding']['window_s'] = 99
+        self.assertEqual(service._ieee_online_observation_binding['window_s'], 5)
+        with self.assertRaisesRegex(RuntimeError, 'not qualified'):
+            service._require_ieee_full_qualification()
+
+
 class NativeAllocatorLaunchContract(unittest.TestCase):
+    def test_worker_configuration_receipt_published_as_one_complete_document(self):
+        from scripts.dedicated_engine_worker import _write_ready
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/'ready.json'
+            value = dict(status='ready', model_config={'large_fixture': 'x'*100000})
+            replace = Path.replace
+            def inspect(pending, target):
+                self.assertFalse(target.exists())
+                self.assertEqual(json.loads(pending.read_text()), value)
+                return replace(pending, target)
+            with patch.object(Path, 'replace', inspect):
+                _write_ready(path, value)
+            self.assertEqual(json.loads(path.read_text()), value)
+            self.assertEqual(list(Path(tmp).iterdir()), [path])
+
+    def test_existing_facade_capacity_resolution_is_pure_and_not_upstream_default(self):
+        from faaslora.runtime_configuration import resolve_facade_lora_capacity
+        for source, expected in (({}, 24), ({'max_loras':32}, 32),
+                                 ({'max_loras':4, 'max_cpu_loras':32}, 32)):
+            before = dict(source)
+            result = resolve_facade_lora_capacity(source)
+            self.assertEqual(result['max_cpu_loras'], expected)
+            self.assertEqual(source, before)
+            child, _ = runner._prepare_dedicated_subprocess_model_cfg(source, device_id=0)
+            self.assertEqual(child['max_cpu_loras'], expected)
+        for backend in ('transformers', 'sglang'):
+            self.assertEqual(resolve_facade_lora_capacity({'backend':backend}), {'backend':backend})
+
+    def test_initialized_worker_receipt_is_required_and_all_fields_remain_checked(self):
+        from faaslora.runtime_configuration import initialized_worker_configuration, resolve_facade_lora_capacity
+        requested = dict(backend='vllm', max_loras=4, device_id=0, timing_contract='ieee_tc_native_v1')
+        actual = resolve_facade_lora_capacity(requested)
+        receipt = dict(configuration_contract='initialized_model_config_v1', model_config=actual)
+        result = initialized_worker_configuration(receipt, requested)
+        self.assertEqual(result, actual)
+        result['max_cpu_loras'] = 99
+        self.assertEqual(actual['max_cpu_loras'], 24)
+        for bad in ({}, {'model_config':actual}, dict(receipt, model_config=None)):
+            with self.subTest(bad=bad), self.assertRaisesRegex(ValueError, 'receipt'):
+                initialized_worker_configuration(bad, requested)
+        for field, value in (('max_cpu_loras',32), ('device_id',1), ('extra',None),
+                             ('timing_contract','other'), ('max_loras',8)):
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'differs'):
+                initialized_worker_configuration(dict(receipt, model_config=dict(actual, **{field:value})), requested)
+
+    def test_spawn_rejects_wrong_initialized_configuration_and_retires_its_process(self):
+        from faaslora.runtime_configuration import resolve_facade_lora_capacity
+        process = SimpleNamespace(pid=987654, returncode=None)
+        process.poll = lambda: process.returncode
+        def wait(timeout):
+            process.returncode = 0
+            return 0
+        process.wait = Mock(side_effect=wait)
+        with tempfile.TemporaryDirectory() as tmp:
+            def start(command, **kwargs):
+                payload = json.loads(Path(command[command.index('--payload')+1]).read_text())
+                actual = resolve_facade_lora_capacity(payload['model_cfg'])
+                actual['max_cpu_loras'] += 1
+                Path(command[command.index('--ready-file')+1]).write_text(json.dumps(dict(
+                    status='ready', host='127.0.0.1', port=18080,
+                    configuration_contract='initialized_model_config_v1', model_config=actual)))
+                return process
+            with patch.object(runner.SubprocessInferenceEngineProxy, '_startup_cleanup_done', True), \
+                 patch.object(runner.SubprocessInferenceEngineProxy, '_write_process_meta'), \
+                 patch.object(runner.tempfile, 'mkdtemp', return_value=tmp), \
+                 patch.object(runner.subprocess, 'Popen', side_effect=start), \
+                 patch.object(runner.os, 'getpgid', return_value=987654), \
+                 patch.object(runner.os, 'killpg') as terminate:
+                with self.assertRaisesRegex(ValueError, 'max_cpu_loras'):
+                    asyncio.run(runner.SubprocessInferenceEngineProxy.spawn(
+                        model_cfg=dict(backend='vllm', max_loras=4), cost_model={}, device_id=0))
+                terminate.assert_called_once_with(987654, runner.signal.SIGTERM)
+                process.wait.assert_called_once_with(5)
+
     def test_pending_profile_binding_matches_factory_without_mutating_descriptor(self):
         model = dict(backend='vllm', tensor_parallel_size=1, enforce_eager=True,
                      ieee_physical_allocation=True, visible_device_ids=[0, 1, 2, 3])

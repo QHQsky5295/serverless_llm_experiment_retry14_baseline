@@ -1032,9 +1032,13 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             worker_root.mkdir(parents=True, exist_ok=True)
 
             def fake_popen(cmd, **kwargs):
+                from faaslora.runtime_configuration import resolve_facade_lora_capacity
+                payload = json.loads(Path(cmd[cmd.index("--payload") + 1]).read_text())
                 ready_path = Path(cmd[cmd.index("--ready-file") + 1])
                 ready_path.write_text(
-                    json.dumps({"status": "ready", "host": "127.0.0.1", "port": 18080}),
+                    json.dumps({"status": "ready", "host": "127.0.0.1", "port": 18080,
+                        "configuration_contract": "initialized_model_config_v1",
+                        "model_config": resolve_facade_lora_capacity(payload['model_cfg'])}),
                     encoding="utf-8",
                 )
                 return FakeProcess(pid=123456)

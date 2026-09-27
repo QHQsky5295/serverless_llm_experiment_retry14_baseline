@@ -1,6 +1,34 @@
 # IEEE TC execution status
 
-## Current checkpoint — 2026-09-27 D85 binding work (no new GPU run)
+## Current checkpoint — 2026-09-27 D86 binding work (no new GPU run)
+
+- Full constructor now requires the same explicit demand/completion W and the
+  same native-pressure/actual-movement limit; records immutable binding summary.
+  Tested actual HotnessTracker/OwnedMovementQueue and actual runner constructor.
+- Worker now atomically publishes initialized facade model_cfg; parent validates
+  every field and rejects/cleans a mismatched worker before exposing it. Shared
+  pure capacity resolver preserves existing max(max_loras,24) default; no new
+  capacity tuning. Raw qualification now records configuration receipt origin.
+- CORRECTION to D84/D85 wording: old proxy model_config was parent-resolved, not
+  post-initialize worker receipt.7B omitted max_cpu_loras although actual old
+  facade used24;3B explicitly32. No old evidence overwritten/relabelled.
+- Completed-length reuse resolves only this known historical facade default,
+  retains source and resolved configs; changed actual capacity still rejects.
+  Both D84 raw inputs reverified offline. No GPU, remote or baseline operation.
+- Final related/basic regression418pass34.973s;OS60pass0.857s. Rawd86_20260927;
+  full scope/table/remaining prerequisites in D86_RUNTIME_CONFIGURATION_BINDING.
+- Additional ownership regression331pass7.336s;147protected entries unchanged.
+  Model/GPU/remote services remain stopped; no actual inference in this checkpoint.
+- Final launch/basic349pass33.726s after preserving nested model-config objects;
+  curated20260927_d86_runtime_configuration_binding.json stores source/log SHAs.
+- NEXT before any GPU: finish common main/source config assembly, including
+  requested_runtime_concurrency_cap and artifact_content_manifest_path; settle
+  controller/profile settings and class coverage together. Then affected native
+  path and Full activation/lifecycle. Do NOT blindly repeat D84 or bypass guard.
+- Candidate W5s NOT production-frozen; actual GPU receipt NOT yet qualified.
+  M1/M2/A/S NOT STARTED; baselines PAUSED. D78/D80/D81 remain completed, no rerun.
+
+## D85 preceding checkpoint (completed, retained provenance)
 
 - Both physical-subprocess source calibrations completed, cleaned, analyzed and
   plotted:3B368/368 (360+8warmup),7B92/92 (90+2warmup). No local GPU job/tmux or
@@ -32,7 +60,8 @@
   Evidence20260927_d85_measured_admission_initializer.json; complete logs rawd85.
   First two environment/import failures retained; no safety guard relaxed.
 - Initializer follow-up basic288pass22.195s;147protected entries unchanged.
-  Backup pending after diff/checksum/secrets check. All models/services stopped;
+  Code e7b48fe0b3b2198a8e5808132763f9f4b88c9d07 PUSHED/fresh remote SHA verified;
+  rawd85/initializer_push_receipt.json. All models/services stopped;
   no new remote operation or performance measurement in this follow-up.
 - D85 basic288pass21.478s;147protected entries unchanged, GPU compute empty.
   Complete tests and sourceSHA in20260927_d85_pending_collector_alignment.json.

@@ -1256,6 +1256,41 @@ def _derive_online_hotness_window_s(
     return max(arrival_window_s, scale_eval_interval_s, ttft_slo_s)
 
 
+def _validate_ieee_online_observation_binding(model_cfg, coord_cfg, preload_cfg,
+                                              stack, *, runner_window_s):
+    """Bind the two uses of IEEE W and the real loading-pressure denominator.
+
+    No defaults or configuration repair here: historical source-only collectors
+    do not call this Full integration check. Owners still validate live state.
+    """
+    profile = model_cfg.get('ieee_admission_profile')
+    if not isinstance(profile, dict):
+        raise ValueError('IEEE online binding requires native admission initialization')
+    window = profile.get('window_s')
+    if type(window) not in (int, float) or not math.isfinite(window) or window <= 0:
+        raise ValueError('IEEE online binding requires an explicit positive W')
+    tracker = getattr(stack, 'hotness_tracker', None)
+    windows = dict(configured_demand=coord_cfg.get('online_hotness_window_s'),
+                   runner_demand=runner_window_s,
+                   actual_demand=getattr(tracker, 'window_seconds', None))
+    if 'online_hotness_window_s' in preload_cfg:
+        windows['preload_demand'] = preload_cfg['online_hotness_window_s']
+    if any(type(value) not in (int, float) or not math.isfinite(value)
+           or value != window for value in windows.values()):
+        raise ValueError('IEEE demand and native completion must share the same explicit W')
+    queue = getattr(getattr(stack, 'preloading_manager', None), 'ieee_movements', None)
+    limit = profile.get('transfer_limit')
+    limits = dict(configured_movement=coord_cfg.get('max_concurrent_loads'),
+                  actual_movement=getattr(queue, 'max_concurrent', None))
+    if (type(limit) is not int or limit <= 0
+            or any(type(value) is not int or value != limit for value in limits.values())):
+        raise ValueError('IEEE transfer pressure limit must match the actual shared movement owner')
+    return dict(kind='ieee_online_observation_binding_v1', window_s=float(window),
+                demand_windows=windows, transfer_limit=limit, movement_limits=limits,
+                admission_profile_id=profile['profile_id'],
+                model_backend_id=profile['model_backend_id'])
+
+
 METRIC_DEF_PRIMARY_TTFT = (
     "scheduled trace arrival to system-observed first generated output token/chunk"
 )
@@ -3292,10 +3327,9 @@ class InferenceEngine:
         gpu_util = self.model_cfg.get("gpu_memory_utilization", 0.90)
         max_len  = self.model_cfg.get("max_model_len", 2048)
         max_lr   = self.model_cfg.get("max_loras", 4)
-        max_cpu_lr = self.model_cfg.get("max_cpu_loras")
-        if max_cpu_lr is None:
-            max_cpu_lr = max(int(max_lr), 24)
-            self.model_cfg["max_cpu_loras"] = int(max_cpu_lr)
+        from faaslora.runtime_configuration import resolve_facade_lora_capacity
+        max_cpu_lr = resolve_facade_lora_capacity(self.model_cfg)["max_cpu_loras"]
+        self.model_cfg["max_cpu_loras"] = max_cpu_lr
         max_rank = self.model_cfg.get("max_lora_rank", 16)
         eager    = _resolve_vllm_enforce_eager(self.model_cfg)
         visible_devices = self._resolve_vllm_visible_devices(tp)
@@ -5046,11 +5080,20 @@ class SubprocessInferenceEngineProxy:
                 error = f"{error}\nworker_log_tail:\n{log_tail}"
             raise RuntimeError(f"subprocess_engine_start_failed: {error}")
 
+        try:
+            from faaslora.runtime_configuration import initialized_worker_configuration
+            initialized_cfg = initialized_worker_configuration(ready, local_model_cfg)
+        except BaseException:
+            await _terminate_startup_process()
+            if allocation is not None:
+                allocation.release()
+            raise
+
         proxy = cls(
             process=process,
             host=str(ready["host"]),
             port=int(ready["port"]),
-            model_cfg=local_model_cfg,
+            model_cfg=initialized_cfg,
             cost_model=copy.deepcopy(cost_model),
             device_id=requested_device_id,
             workdir=worker_root,
@@ -5059,6 +5102,7 @@ class SubprocessInferenceEngineProxy:
             startup_latency_ms=max(0.0, (time.perf_counter() - spawn_started_at) * 1000.0),
             physical_allocation=allocation,
         )
+        proxy.model_config_source = ready['configuration_contract']
         if allocation is not None:
             try:
                 workers = await proxy.ieee_worker_observation()
@@ -6665,6 +6709,12 @@ class ScenarioRunner:
             self.preload_cfg,
             ttft_slo_ms=self._ttft_slo_ms,
         )
+        self._ieee_online_observation_binding = None
+        if (self._routing_policy == 'ieee_confirmed'
+                and self.model_cfg.get('ieee_admission_profile') is not None):
+            self._ieee_online_observation_binding = _validate_ieee_online_observation_binding(
+                self.model_cfg, self.coord_cfg, self.preload_cfg, self._stack,
+                runner_window_s=self._online_hotness_window_s)
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1
         self._run_started_at = 0.0
@@ -8151,6 +8201,9 @@ class ScenarioRunner:
         views = self._coordinator_metric_views()
         result = (_merge_coordinator_metrics(views) if views else
                   self.coordinator.get_summary_metrics() if self.coordinator else {})
+        binding = getattr(self, '_ieee_online_observation_binding', None)
+        if binding is not None:
+            result['ieee_online_observation_binding'] = copy.deepcopy(binding)
         profiles = getattr(self, '_service_profiles', None)
         if profiles is not None:
             result = {**result, 'ieee_service_profile': profiles.identity()}
@@ -18637,7 +18690,8 @@ def _prepare_dedicated_subprocess_model_cfg(
     Prepare a child-process model config and environment so the child sees only
     the target physical GPU.
     """
-    local_model_cfg = copy.deepcopy(model_cfg)
+    from faaslora.runtime_configuration import resolve_facade_lora_capacity
+    local_model_cfg = resolve_facade_lora_capacity(model_cfg)
     requested_enforce_eager = local_model_cfg.get("enforce_eager", True)
     resolved_enforce_eager = _resolve_vllm_enforce_eager(local_model_cfg)
     local_model_cfg["requested_enforce_eager"] = requested_enforce_eager

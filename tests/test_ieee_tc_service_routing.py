@@ -408,7 +408,7 @@ class FrozenMeasuredInitialization(unittest.TestCase):
             pool.add_instance(SimpleNamespace(model_cfg=self.model | {'dtype': 'bfloat16'}), None)
         self.assertEqual(pool.count(), 2)
 
-    def runner(self, coord_changes=None, model_changes=None):
+    def runner(self, coord_changes=None, model_changes=None, experiment_stack=None):
         from scripts.run_all_experiments import ScenarioRunner
         model = self.model | (model_changes or {})
         spec = dict(path=str(self.path), sha256=self.write_profile(),
@@ -421,7 +421,24 @@ class FrozenMeasuredInitialization(unittest.TestCase):
             bandwidth_mbps=100., hardware_cfg={'gpu_device_ids': [0, 1]}, cost_model={},
             engine=SimpleNamespace(device_id=0, model_cfg=model), runner_model_cfg=model,
             preload_cfg={}, workload_cfg={'generation_contract': 'fixed_length_greedy_v1'},
-            coord_cfg=coord)
+            coord_cfg=coord, experiment_stack=experiment_stack)
+
+    def test_real_constructor_binds_demand_completion_and_movement_owners(self):
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        from faaslora.preloading.preloading_manager import OwnedMovementQueue
+        self.model['ieee_admission_profile'] = dict(window_s=5., transfer_limit=3,
+            profile_id='fixture-only', model_backend_id='fixture-model')
+        self.payload['model_config'] = FrozenServiceProfiles.model_identity(self.model)
+        stack = SimpleNamespace(hotness_tracker=HotnessTracker(None, window_seconds=5),
+            preloading_manager=SimpleNamespace(ieee_movements=OwnedMovementQueue(3)),
+            coordinator=None)
+        coord = dict(online_hotness_window_s=5., max_concurrent_loads=3)
+        service = self.runner(coord_changes=coord, experiment_stack=stack)
+        self.assertEqual(service._current_coord_metrics()['ieee_online_observation_binding']['window_s'], 5.)
+        self.assertFalse(stack.preloading_manager.ieee_movements.bound)
+        stack.hotness_tracker.window_seconds = 10.
+        with self.assertRaisesRegex(ValueError, 'same explicit W'):
+            self.runner(coord_changes=coord, experiment_stack=stack)
 
     def test_actual_runner_initializes_profiles_bins_and_summary_identity(self):
         runner = self.runner()

@@ -35,7 +35,11 @@ if _mistral_warning_filter not in _pythonwarnings.split(","):
 
 
 def _write_ready(path: Path, payload: Dict[str, Any]) -> None:
-    path.write_text(json.dumps(payload), encoding="utf-8")
+    # The complete post-initialize configuration is larger than the old address
+    # only reply. Publish it atomically so the parent cannot read a partial JSON.
+    pending = path.with_name(path.name + '.pending')
+    pending.write_text(json.dumps(payload), encoding="utf-8")
+    pending.replace(path)
 
 
 def _push_env_updates(updates: Dict[str, str]) -> Dict[str, Optional[str]]:
@@ -234,7 +238,9 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
             server = await asyncio.start_server(_handle_client, host="127.0.0.1", port=0)
             sock = server.sockets[0]
             host, port = sock.getsockname()[:2]
-            _write_ready(ready_path, {"status": "ready", "host": host, "port": int(port)})
+            _write_ready(ready_path, {"status": "ready", "host": host, "port": int(port),
+                "configuration_contract": "initialized_model_config_v1",
+                "model_config": engine.model_cfg})
             async with server:
                 await stop_event.wait()
         finally:

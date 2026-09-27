@@ -829,6 +829,16 @@ class MeasuredAdmissionInitializer(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'SHA256'):
             self.derive()
 
+    def test_only_existing_facade_capacity_default_can_be_resolved_for_length_reuse(self):
+        self.bind()
+        profile, evidence = self.derive()
+        self.assertEqual(self.derive(model_config=dict(self.cfg, max_cpu_loras=24)), (profile, evidence))
+        self.assertEqual(evidence['base_model_config']['max_cpu_loras'], 24)
+        self.assertNotIn('max_cpu_loras', evidence['source_recorded_model_config'])
+        self.assertFalse(evidence['performance_samples_relabelled'])
+        with self.assertRaisesRegex(ValueError, 'identity differs'):
+            self.derive(model_config=dict(self.cfg, max_cpu_loras=32))
+
     def test_bad_raw_completion_coverage_or_curated_means_rejected(self):
         original_run, original_entry = copy.deepcopy(self.run), copy.deepcopy(self.entry)
         mutations = [

@@ -2834,12 +2834,16 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
     Call before model startup, with the factory-resolved child configuration.
     """
     from bisect import bisect_left
+    from faaslora.runtime_configuration import resolve_facade_lora_capacity
 
     def model_identity(config):
         # Same placement-only exclusion as FrozenServiceProfiles.model_identity.
+        # Resolve the historical facade CPU-cache default rather than ignoring
+        # that capacity. This applies only to completed-length evidence reuse;
+        # the performance-profile loaders retain their exact recorded identity.
         # Keep this pre-start evidence check usable by the stdlib-only OS gate;
         # importing the experiment package would import optional serving stacks.
-        return {key: value for key, value in config.items()
+        return {key: value for key, value in resolve_facade_lora_capacity(config).items()
                 if key not in ('visible_device_ids', 'device_id')}
 
     if (set(binding) != {'kind', 'audit', 'model', 'window_s'}
@@ -2947,7 +2951,9 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         production_profile_frozen=False, audit=binding['audit'], source_run=entry['source_run'],
         model=binding['model'], backend_version=backend_version,
         runtime_receipt_sha256=runtime_receipt_sha256, source_trace_sha256=source_trace_sha256,
-        base_model_config=identity, input_upper_bounds=bounds, observed_buckets=observed,
+        base_model_config=identity, source_recorded_model_config=run['model_config'],
+        capacity_resolution='historical_facade_max_cpu_loras_v1',
+        input_upper_bounds=bounds, observed_buckets=observed,
         unique_original_requests=len(samples), window_s=float(window),
         transfer_limit=movement_concurrency, transfer_limit_source='owned_movement_concurrency',
         performance_samples_relabelled=False)
@@ -3541,6 +3547,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             if isinstance(engine, SubprocessInferenceEngineProxy) else 'direct_engine_facade')
         if isinstance(engine, SubprocessInferenceEngineProxy):
             result['proxy_pid'] = engine._process.pid
+            result['model_config_source'] = engine.model_config_source
         if source_boundary is not None:
             source_boundary.model_cfg = dict(engine.model_cfg)
         result['startup_latency_ms'] = engine.startup_latency_ms

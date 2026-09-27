@@ -1,0 +1,178 @@
+{
+  "kind": "ieee_runtime_configuration_binding_development_v1",
+  "pass_checks": true,
+  "development_only": true,
+  "gpu_runs_added": 0,
+  "real_remote_operations_added": 0,
+  "production_profile_frozen": false,
+  "full_qualified": false,
+  "actual_gpu_receipt_qualified": false,
+  "performance_samples_relabelled": false,
+  "source_basis_commit": "e7b48fe0b3b2198a8e5808132763f9f4b88c9d07",
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "source_files": [
+    {
+      "path": "faaslora/runtime_configuration.py",
+      "sha256": "3cd14353f368438478672ccd9830a2bad3966079c8a6fc365c7f70a28d8c6d2d"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "sha256": "1d0efdf178538e9b84b621deb0d0940162dab32a39528e6e3b37850aa919b579"
+    },
+    {
+      "path": "scripts/dedicated_engine_worker.py",
+      "sha256": "e3d611131262cd141ad0ea1c252755d3b592f605b30c6b5b3c28c6118b2c5773"
+    },
+    {
+      "path": "scripts/ieee_tc_preflight.py",
+      "sha256": "a644d744af5227f6340f745e71da269a1c451a7c6a9e411a58f67cee58d8bc4d"
+    },
+    {
+      "path": "tests/test_ieee_tc_launch.py",
+      "sha256": "8cd3b94a00321b8d827c1d5d5d9aff75a1a1131f557660c23b4280aeebab53b4"
+    },
+    {
+      "path": "tests/test_ieee_tc_service_routing.py",
+      "sha256": "edfb9dc814323c5841c36589e72a804da066c50962c4b0c90044cd46d0f32047"
+    },
+    {
+      "path": "tests/test_ieee_tc_service_events.py",
+      "sha256": "4f4052090fa4327d03d3bf1867b104e2ca0e4dccaf85ad3f9c74d1ebeece5cce"
+    },
+    {
+      "path": "tests/test_ieee_tc_preflight.py",
+      "sha256": "3dd8f44afee131c170dda13f60849c6de53d9689d60605e637db5110a05cb07a"
+    },
+    {
+      "path": "tests/test_basic_smoke.py",
+      "sha256": "393de735bd2b2d60dd6f163a76320a2a16c511435e05724fe7d797348c4b90ba"
+    }
+  ],
+  "test_evidence": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d86_20260927/binding_tests_1.log",
+      "sha256": "75893699a825c45d418a3f316fe98dfb71801ca6e2689201c312435f5c228c7e",
+      "tests_passed": 108,
+      "seconds": 12.367
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d86_20260927/binding_tests_2.log",
+      "sha256": "0944dada4e5cd19bf0aed8eb5463085d3fc7ab62e4cb6532cc599e3f7456808a",
+      "tests_passed": 119,
+      "seconds": 11.934
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d86_20260927/regression_1.log",
+      "sha256": "4ac3fecaa2f8ee60a67d498a15cc9d087775abd36208a972594bad9824beaf7f",
+      "tests_passed": 417,
+      "seconds": 33.872
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d86_20260927/regression_2.log",
+      "sha256": "2f8aab7a959471ecaef145d653a7c2686ba880e79c588cf6d3b6d61146b7d7f6",
+      "tests_passed": 418,
+      "seconds": 34.973
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d86_20260927/os_tests_1.log",
+      "sha256": "739d154a0d488021ec144f46256c2e0616bc920b039eee5a027eecb20d0e9be8",
+      "tests_passed": 60,
+      "seconds": 0.857
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d86_20260927/owners_tests_1.log",
+      "sha256": "5c3b49d0bad9d7767e7e534113510ff78a04c124a3fa85bc3a10dde327785ffb",
+      "tests_passed": 331,
+      "seconds": 7.336
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d86_20260927/final_smoke_1.log",
+      "sha256": "ffac1cb2248d41ecff13fa2af255c221a18b2ca5e4a4ede8f5dcc058016b2260",
+      "tests_passed": 349,
+      "seconds": 33.726
+    }
+  ],
+  "initializer_evidence": {
+    "path": "results/ieee_tc/p2_backend_qualification/d86_20260927/initializer_reuse_1.log",
+    "sha256": "95690a1aa3a6dc2d2abcdd2dd852567fb02d99d9f8b8ef4248c56158d5d4a40d"
+  },
+  "reused_verifier": {
+    "path": "results/ieee_tc/p2_backend_qualification/d85_20260927/verify_initializer.py",
+    "sha256": "5068d7a7640d097efe16aa8629dc8550b320caba4a5dc9e51def1db9b20121d2"
+  },
+  "models": {
+    "3b": {
+      "initializer": {
+        "window_s": 5,
+        "model_backend_id": "native-model/3a41720821468b1d0042f8783941a2a28698488f749909bd179f6cd9ae774f38",
+        "profile_id": "native-completed/1c325d13d0372112cf312b4a2cc991bb6e0c89b7a610887dfcd79742d36d3692",
+        "profile_means": [
+          98.375,
+          171.69230769230768
+        ],
+        "transfer_limit": 3
+      },
+      "base_capacity": 32,
+      "source_recorded_capacity": 32,
+      "source_run": {
+        "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/3b_physical_source_attempt2.json",
+        "sha256": "4c28b3813617628d81d5eb24cd08b625c81da901258e3a1344b115fb474260ec"
+      },
+      "observed_buckets": [
+        {
+          "bucket": 0,
+          "unique_requests": 8,
+          "completed_output_mean": 98.375
+        },
+        {
+          "bucket": 1,
+          "unique_requests": 13,
+          "completed_output_mean": 171.69230769230768
+        }
+      ],
+      "unique_original_requests": 21,
+      "performance_samples_relabelled": false
+    },
+    "7b": {
+      "initializer": {
+        "window_s": 5,
+        "model_backend_id": "native-model/47195242726318d3e564d57bae4d182750991d6941d839eb9b20d205001bdfb6",
+        "profile_id": "native-completed/47d9ea8e982a8238d1ff1928fc0b7152c64976f271e40165c532179a2cc2d2ad",
+        "profile_means": [
+          121.33333333333333,
+          256
+        ],
+        "transfer_limit": 3
+      },
+      "base_capacity": 24,
+      "source_recorded_capacity": null,
+      "source_run": {
+        "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/7b_physical_source_attempt1.json",
+        "sha256": "2c286dd8672530fcc5fe8d908ea0442b5f0d929454af10a0b6a3cd3871cef769"
+      },
+      "observed_buckets": [
+        {
+          "bucket": 0,
+          "unique_requests": 3,
+          "completed_output_mean": 121.33333333333333
+        },
+        {
+          "bucket": 1,
+          "unique_requests": 3,
+          "completed_output_mean": 256
+        }
+      ],
+      "unique_original_requests": 6,
+      "performance_samples_relabelled": false
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "next": "Complete common Full/source config, controller/profile bindings and coverage before affected native path and Full activation; baselines paused."
+}
