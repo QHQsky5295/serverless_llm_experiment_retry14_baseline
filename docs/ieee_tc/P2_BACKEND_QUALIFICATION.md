@@ -1136,3 +1136,37 @@ Torch2.13/vLLM0.30调用官方max_split上下文：前/中/后的实际cache上�
 最近配置字符串依次为启动策略、max_split20、恢复值；修正后的观察器均通过。
 三个观察点`cuda_initialized=false`，无模型、请求或张量分配，不是额外性能
 测量；原生程序退出0，服务cgroup实际为空，high/max/OOM均0。
+补充收尾事实：该CPU API检查的systemd包装最终报stop timeout（102.000s），
+尽管主程序exit0且超时前cgroup.procs为空/populated0；包装返回1，不能称为
+完整服务资格通过。保留完整终端记录；仅复用其已完成的三个API状态观察，
+不将此检查加入GPU服务/性能成功计数。正式模型pilot仍使用既有外置监控启动器。
+
+### D82 attempt3：五来源真实3B集成通过，尚非正式性能比较
+
+源版本`83b9f7f140b8c491cce42e9e3cdaaa9a60475624`，同一两个既有请求，
+五来源各一次双路wave。以下为逐请求原始 D/T/O（毫秒），不是重复均值或CI。
+D=admission→acquired，T=acquired→first token，O=first→last token。
+
+| 来源 | rank8 D/T/O | rank16 D/T/O | 输出与释放 |
+|---|---:|---:|---|
+| Remote |703.679 / 390.831 / 2552.843|746.724 / 456.298 / 3929.343|152/256 tokens，均通过|
+| NVMe文件 |45.476 / 149.311 / 2536.386|110.904 / 137.568 / 3921.273|均通过|
+| HOST文件 |46.242 / 159.791 / 2521.672|121.987 / 135.491 / 3910.773|均通过|
+| native HOST张量 |59.962 / 166.939 / 2569.427|109.067 / 162.677 / 3919.666|均通过|
+| GPU |0 / 123.660 / 2544.547|0 / 127.117 / 3937.472|均通过|
+
+十次actual/target完全相等，20个原生首末token事件齐全；同原请求跨五来源的
+prompt、原生prompt IDs、输出token IDs SHA完全一致。时延分解/TPOT重算误差0ms。
+实际接纳并发为1/2；没有通过barrier伪造统一并发。所有引用退休、GPU上下文和
+本轮临时目录释放。service/watchdog均exit0；82次资源采样峰值5,023,551,488B，
+high/max/OOM/swap均0。远端与本机空辅助资源域在推理结束后才停止。
+
+10个远端UUID与本地传输逐项对应：23,325,570B线上字节、495,117,240B逻辑
+解包字节。**只有2次是Remote测量请求，另8次是受控来源建态**；全部从只读
+已发布缓存读取，未打包或创建临时归档。各阶段是嵌套span，不能相加冒充纯网络。
+
+首个Remote wave仍包含首次LoRA内核JIT；NVMe文件可能命中page cache，因此
+不能由此宣称层级性能因果、物理盘带宽、完整Full、数值adapter鉴别或G1/G2领先。
+当前适合状态表而非带CI性能图。下一项按静态内容类/实际并发进行交错代表性
+测量；不重复远端完整池资格或分配器microtest。CSV/JSON与原始SHA见
+`paper_results/ieee_tc/p2_backend/20260927_d82_3b_source_pilot_attempt3.{csv,json}`。

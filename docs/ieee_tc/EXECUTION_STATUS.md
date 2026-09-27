@@ -85,64 +85,49 @@
 
 ## Mainline: next action (do not reopen completed qualification)
 
-### D82 source profiling implementation, real pilot next
+### D82 completed source integration pilot; representative profiles next
 
-- Source2fe7c0fe184c1653115b19c31f98ce4b3b58c9c1 pushed/remoteSHA verified.
-  attempt2 initialized real3B, then failed at first worker readback,0requests.
-  Observer mistook PyTorch last_allocator_settings string for complete state;
-  official vLLM max_split scope legitimately updates only GPU parameters.
-  Fix verifies actual typed pinned cache limit0 and reports background flag
-  requested/readback=null (API lacks getter); no live reset/guard removal.
-  420worker/owner/basic smoke tests pass22.388s. Actual native official scope
-  check passes before/inside/after,max_cached_size0 throughout,CUDAnotinitialized.
-- Attempt2 service2/watchdog0;nativecontexts clear/service path removed,
-  temporary workspaces removed;91samples peak10657054720B,high/max/OOM0.
-  Empty auxscope eafaa1dedee84356b008483f7023097b stopped.
-- NEXT: backup readback correction, then attempt3 same10-request real3Bpilot
-  rawrun_3b_source_pilot_attempt3.sh. No additional allocator/remote sweeps.
-- D82 source2c1308e10ee71e690f9ed6cbfc95b349fc35492d PUSHED and remoteSHA
-  verified. Real3B pilot attempt1 failed before model creation/any request:
-  runner import overwrote startup allocator env with historical defaults.
-  Source fix now preserves explicit process policy; original conflict/native
-  readback guards remain.72launch/worker tests pass11.230s including actual
-  fresh-process import. No formulas/capacities changed. P2 immediate table added.
-- Attempt1 service2/watchdog0, native contexts clear/service path removed,
-  profile workspaces removed;67samples memory peak1424781312B,high/max/OOM0.
-  Empty auxscope invocation2caec0ceab7b474eaa8286ae8211801a stopped.
-- Remote D82 services ACTIVE:3B612bfa8d08a645ccb068be707022dede/PID234472;
-  7B15a09462cc8e4038a33fb218df1af11c/PID234474;
-  monitor0cbac9d7bced4aa89c8f14d0ec16b0a4/PID234479. Both authenticated
-  published delivery health passed before attempt1; no remote changes during
-  the run. Stop only matching monitor invocation after pilot series finishes.
-- NEXT after offline smoke/backup: attempt2 same3B10-request source pilot,
-  rawrun_3b_source_pilot_attempt2.sh (new receipt/scope). Do not overwrite1.
-- Offline smoke after import fix:288pass21.876s;147protected unchanged.
-- D81 evidence4ba3f58aa7ab86f1056905fc8136d01539e7966e PUSHED; fresh remoteSHA
-  matched.25new raw references/147protected entries verified.
-- Existing backend-model-check gains native_source_matrix with explicit small
-  source-profile-spec. Uses actual Full source/admission/load/native-event/release
-  helpers, no fabricated profiles or router. All five source representations and
-  concurrent sibling failure tested. Old source32 entry preserved, do not rerun it.
-- Continuous file-tier test exposed native name/path binding surviving complete
-  eviction. Fixed physical-incarnation semantics, not core formulas: same name
-  can use a new confirmed path only after all residency/references/staging/plans
-  retire. Different name, live copy, old epoch/lease remain rejected. P2 document
-  records original failure, history, official vLLM evidence and scope.
--278owner/lifecycle/service/preparation tests pass3.680s;55systemPython tests
-  pass0.982s. Conda lacks pidfd_send_signal; do not use it for OS tests/guards.
-  Rawd82_20260927 keeps test logs; OS capture partial. No GPU inference yet.
--288offline basic smoke pass22.170s in6/8GiB CPU domain. Earlier online smoke
-  omitted offline flags and contacted dummy-model; stopped owned unit after
- 74.767s, NOT a pass. Offline environment required in all following launchers.
-- Prepared 3B rank8/16 source pilot spec:5sources×2requests=10samples, original
-  req00000/00015. HOST16GiB/native2GiB/NVMe16GiB, originalC32/slots8/cap8,
-  sharedmovement3. Candidate only, not selected production/profile/Full qualified.
-  Spec resolves original trace/content/workspace SHA; no new payload/prompt/trace.
-- NEXT: backup tested source; run guarded real3B source
-  pilot with published remote service. Then representative24/6-content-class and
-  actual concurrency profiles, followed by integrated Full activation/lifecycle.
-  Do not expand remote qualification, allocator microtests or baseline work.
-
+- Source83b9f7f140b8c491cce42e9e3cdaaa9a60475624 PUSHED/remoteSHA verified.
+  Attempt3 real3B five sources x two original requests PASSED10/10. No Full,
+  router, numerical discrimination, SLO or optimality qualification claimed.
+- Original req00000/finance_lora rank8 target152 and req00015/code_lora_0015
+  rank16 target256, actual counts exact in all five sources.20nativefirst/last
+  events, cross-source prompt/output hashes identical, timing identity error0ms.
+  Actual post-accept counts1/2. All references and owned workspaces retired.
+- Service/watchdog0/0, GPU contexts clear, service domain removed.82samples,
+  peak5023551488B, high/max/OOM/swap0. Empty aux invocation
+  ebf1f8645a894b1289ad4140708c835d STOPPED.
+- Remote10UUIDs joined exactly:23325570B wire/495117240B logical.2measured
+  Remote fetches plus8controlled source-setup fetches. All published/cache/content
+  verified, request-time packing0. Raw spans nested, not additive network time.
+- Remote monitor0cbac9d7bced4aa89c8f14d0ec16b0a4 STOPPED after inference.
+  Its trap stopped services612bfa8d08a645ccb068be707022dede and
+  15a09462cc8e4038a33fb218df1af11c. All3inactive/MainPID0/Resultsuccess.
+  Complete monitor SHA1cc18c62d058a6f4bc71ace561a2eff9a674ed777c5829009dfdf5cf934adb36
+  retrieved; service journals and10transfer records preserved.
+- Raw results/ieee_tc/p2_backend_qualification/d82_20260927. Curated
+  20260927_d82_3b_source_pilot_attempt3 CSV/JSON and immediate P2 table.
+  First Remote wave includes first LoRA JIT; NVMe may hit page cache.
+  Single pilot does not isolate performance or constitute frozen D/T/O profiles.
+- Attempt1 failed before model/requests: runner import clobbered explicit
+  startup allocator env. Fix2fe7 preserves startup policies/defaults, retains
+  conflict checks;72launch/worker tests including real fresh import passed.
+- Attempt2 initialized3B but failed before requests: observer mistook last
+  allocator command for full current state. Fix83b9 checks actual typed pinned
+  cache limit0; background flag readback=null, no live allocator reset.
+  420worker/owner/basic smoke passed22.388s. Failures retained/cleaned, not samples.
+- Native API-only check: programexit0 and three effective cache limits0, no CUDA
+  initialization. Wrapper eventuallyexit1 stop-timeout102s despite emptycgroup;
+  not a complete service qualification. Full terminal evidence/P2 caveat retained.
+- Collector uses actual Full source/protection/preparation/native-event/release
+  helpers, no fabricated router costs. Same-name/new-path allowed only after
+  complete old native incarnation retirement; live conflicts still rejected.
+  278owner/lifecycle/service/preparation and55OS tests passed earlier.
+- CandidateHOST16GiB/native2GiB/NVMe16GiB,C32/slots8/cap8,movement3 unchanged.
+  This is not frozen production-optimal configuration.
+- NEXT: evidence backup, then representative3B24/7B6 exact-content classes and
+  actual concurrency profiles, then integrated Full activation/lifecycle.
+  Do not repeat D78/D80/D81, allocator microtests or baseline work.
 ### D81 completed four-way real-remote qualification; Full profiling next
 
 - BOTH models:3waves×4lanes=12/12verified, each wave observed4server-handler

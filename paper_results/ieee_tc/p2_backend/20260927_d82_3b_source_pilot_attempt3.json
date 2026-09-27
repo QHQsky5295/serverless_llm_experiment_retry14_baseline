@@ -1,0 +1,84 @@
+{
+  "kind": "d82_source_pilot_completed_summary_v1",
+  "attempt": 3,
+  "source_commit": "83b9f7f140b8c491cce42e9e3cdaaa9a60475624",
+  "status": "integration_pilot_pass_not_full_qualification",
+  "requests": 10,
+  "native_first_last_events": 20,
+  "source_counts": {
+    "file_host": 2,
+    "gpu": 2,
+    "native_host": 2,
+    "nvme": 2,
+    "remote": 2
+  },
+  "prompt_and_output_hashes_equal_across_sources": true,
+  "max_timing_identity_error_ms": 0,
+  "remote_uuid_pairs": 10,
+  "remote_wire_bytes": 23325570,
+  "remote_logical_bytes": 495117240,
+  "remote_measurement_fetches": 2,
+  "remote_controlled_setup_fetches": 8,
+  "request_time_packing": 0,
+  "service_returncode": 0,
+  "watchdog_returncode": 0,
+  "native_gpu_context_release_confirmed": true,
+  "owned_profile_workspaces_removed": true,
+  "remote_services_stopped": true,
+  "resource_samples": 82,
+  "memory_peak_bytes": 5023551488,
+  "memory_events": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "max_service_swap_bytes": 0,
+  "native_api_check": {
+    "program_exit": 0,
+    "wrapper_exit": 1,
+    "wrapper_stop_timeout": true,
+    "full_service_qualification": false
+  },
+  "limitations": [
+    "single two-lane integration pilot, not representative frozen profile",
+    "first Remote wave includes first LoRA JIT; no causal tier performance claim",
+    "NVMe source may be page-cache resident",
+    "existing zero-weight artifacts do not establish numerical adapter discrimination",
+    "no Full/router/capacity/SLO/optimality qualification"
+  ],
+  "raw_evidence": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/3b_source_pilot_attempt3.json",
+      "sha256": "82c75897f0999391071b1823a3046f5451f1f2e8b25a5850a2083e6b6e7e0fdf"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/3b_source_pilot_attempt3_launch.json",
+      "sha256": "c6e97eb59ebdf39863558dbc2670e0f7d0bc7c84f88ab6f02ab5b3f132d2663a"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/3b_source_pilot_attempt3_launch.launch/service.log",
+      "sha256": "c67c3facdbb4d94ac28372109879f65f13d448749f5aa54b9b0a89a4ac3a0e59"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/3b_source_pilot_attempt3_launch.launch/watchdog.jsonl",
+      "sha256": "8725763994546f55381ae43bf407d8fac17d653f82fc8b62d70dd38013aa6a89"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/remote_monitor.log",
+      "sha256": "1cc18c62d058a6f4bc71ace561a2eff9a674ed777c5829009dfdf5cf934adb36"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/remote_3b_transfers.jsonl",
+      "sha256": "414992e9cdff3b6b5e12bfc37d2e41a9a9f0340f44f7fbefb0c5f3d592c23208"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/remote_3b_journal.txt",
+      "sha256": "c38347ad2509bd6d83e2dddafefba544962191ff3d623587ccb0d31a134bf1cf"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/native_allocator_api_check.json",
+      "sha256": "a26fd7716d304f39bb4c17e16fe68ab468fe7205577770c9afe8f03830699193"
+    }
+  ]
+}
