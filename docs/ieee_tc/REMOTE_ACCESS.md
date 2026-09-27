@@ -428,3 +428,26 @@ Plan/snapshot currentSHAfe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c465940
 | Protected historical entries |147unchanged|No old results overwritten|
 | Current remote disk/memory |149560934400B /107319648KiB available|Recheck at launch|
 | Remote publication |Not started|3B then table,7B then table|
+
+### D78 live offline publication (supersedes preceding not-started row)
+
+Sourcee00e3f7c898cb90022361b0afc7381d9ba947d40 was tested/pushed and independently
+read back from the Git remote before deployment. Versioned serverSHA
+cdcdbe1f4a90db9a5546e77d386075b62baf88b5ee1fefdd678d6b420fb346bc and both index
+SHAs matched on174; original source and source pools were not overwritten.
+
+3B started16:29:46+08 in primelora-publish-tc-3b-d78.service,
+invocationefce4fd2c63f4b83822de2ccdb88ff45, separately supervised by
+primelora-publish-monitor-3b-d78.scope/a4d98a1482c44fc29e2e11fe3b9c8563.
+Publication high1G/max2G/swap0,2SMT siblings; monitor high128M/max256M/swap0,
+separate physical core. This is offline preparation, NOT frozen serving limits.
+Conservative whole-two-pool disk bound97407250432B passed, no150GiB exemption
+extended to inference. Explicit single-model script at rawd78/publish_one_remote.sh
+SHA8bc12cb37ee7bde595ddc6287b45282dca465037259e035bdda6e04373e07497.
+
+| Publication | Snapshot status | Interpretation |
+|---|---|---|
+|3B|63/500 exact-source-verified objects, ongoing|Not complete; no usable manifest yet|
+|7B|Not started|Wait for3B completion/cleanup/table|
+|Host safety|~102GiB available; no max/OOM/swap event|Offline high events retained|
+|Inference / new HTTP qualification|Not started|No model or comparative result claimed|

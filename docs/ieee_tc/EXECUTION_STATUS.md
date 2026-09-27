@@ -31,12 +31,12 @@
   and local tiers. Necessary storage reads/HTTP response are distinguished from
   artificial preparation, not assumed zero. D75–D77 pack results remain legacy
   functionality/diagnosis, not formal performance. D78 source delivery change
-  tested; actual remote publication/deployment not started yet.
+  tested; offline3B publication LIVE below, not yet serving new HTTP mode.
 - User now asks why actual remote link is100M and whether latency should be
   excluded. D77 read-only diagnosis below answers; no network-change permission
   inferred. Do not silently replace measured real-remote main protocol by sim.
 
-## D78 approved prepublished cache: implementation tested, deployment next
+## D78 approved prepublished cache: 3B publication LIVE (do not duplicate)
 
 - User explicitly APPROVED once-only immutable compressed transport cache,
   expected1.47GiB, no second extracted pool/new weights/trace. No longer a
@@ -58,11 +58,34 @@
 - Initial30 client checks3.951s pass; expanded40 client/content checks3.680s pass,
   including corrupted source, incomplete cache, mutation/no fallback, content/
   archive/mode mismatch, cancellation and no HTTP-path pack/hash/temp tests.
-  Basic smoke288 checks PASS68.316s (bounded CPU unit, no GPU). Actual remote
-  cache NOT generated yet. Protected147 entries unchanged, diff-check clean.
+  Basic smoke288 checks PASS68.316s (bounded CPU unit, no GPU). Protected147
+  entries unchanged, diff-check clean. Sourcee00e3f7c898cb90022361b0afc7381d9ba947d40
+  PUSHED; fresh remote branch SHA identical, no user changes staged.
 - Raw root results/ieee_tc/remote_qualification/d78_20260927, PROTOCOL.md.
-  Next: finish checks/backup, bounded offline3B publication to fresh remote root,
-  monitor/validate/table, then7B. No parallel inference, baseline or new pool.
+  Next: observe SAME3B offline publication, validate/table, then7B. No parallel
+  inference, baseline or new pool. Cache destination is exclusive; NEVER restart
+  or overwrite this live attempt because a context boundary occurred.
+- Remote newversion /home/lab14/primelora_remote/tc/e00e3f7c898cb90022361b0afc7381d9ba947d40/server.py,
+  sourceSHAcdcdbe1f4a90db9a5546e77d386075b62baf88b5ee1fefdd678d6b420fb346bc.
+  Both frozen indices copied/SHAs matched; original serverSHAa3650722 unchanged.
+- Live3B publication started16:29:46+08, unitprimelora-publish-tc-3b-d78.service,
+  PID128063/invocationefce4fd2c63f4b83822de2ccdb88ff45, high1G/max2G/swap0,
+  CPU2,22/TasksMax16. Separate monitor scopeprimelora-publish-monitor-3b-d78.scope,
+  invocationa4d98a1482c44fc29e2e11fe3b9c8563, high128M/max256M/swap0, CPU0,20.
+  Monitor checks host memory/pressure each loop, disk/inodes every30 samples,
+  and only stops the matching invocation on abort/exit. No GPU/runtime on174.
+- Local TMUXprimelora-d78-publish3b owns SSH/monitor; rawpublication_3b_monitor.log
+  grows. Remote events /home/lab14/primelora_remote/tc/d78_20260927/publication_3b.jsonl;
+  destination sameparent/published/3b. Incomplete directory is0700; complete
+  manifest appears only after all500 success, then directory0555/objects0444.
+- Last observation63/500 published,152monitor samples, remotepeak1074266112B,
+  high4144/max0/OOM0/swap0, hostavailable~102GiB, free149404114944B. Offline
+  page-cache reclaim under1G high is not production latency or a failed run.
+- Raw launcher publish_one_remote.sh SHA8bc12cb37ee7bde595ddc6287b45282dca465037259e035bdda6e04373e07497;
+  run_publish_3b.sh SHA5d501c1b1bf9d0ef6b855823ff9d18e74db40d36ef4950725f2ea46f58cf47ca.
+  They select one explicit model, never automatically chain7B before3B table.
+- NewHTTP delivery/all-pool qualification and common performance envelope still
+  PENDING. Fresh1Gbps state must key subsequent preparation/service profiles.
 
 ### D78 external reboot and link change, 2026-09-27 16:25+08
 
@@ -180,7 +203,7 @@
    transport cache (same content/compression semantic, estimated1.5GiB total)
    versus direct existing files (no duplicate cache but substantially more wire
    bytes). User now APPROVED once-only compressed cache; implement that choice.
-   No cache generated yet at D78 source-check stage. Do not silently inflate
+   3B cache publication is LIVE; observe it rather than restarting. Do not inflate
    network work by switching to uncompressed files merely to avoid disk use.
    Both alternatives must retain exact input
    SHA, identical common protocol, cold local state and legitimate caching.
