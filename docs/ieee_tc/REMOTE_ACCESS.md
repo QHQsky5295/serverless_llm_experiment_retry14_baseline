@@ -98,3 +98,35 @@ interface, not clock synchronization or a causal latency-subtraction rule.
 No remote start, restart, deletion, stress download or configuration change was
 performed during D74's local inference measurement. All new remote qualification
 work occurs between runs and is a prerequisite for Prime's real-remote Full.
+
+## D75 preparation and timing contract (not yet service qualification)
+
+Reuse the existing server and HTTP client. The `artifact_timing_v1` observations
+correlate HTTP attempt UUIDs with remote packing/send/cleanup spans. Keep the
+physical file-reservation ID separately. Remote durations are not clock-synced
+timestamps; packaging is nested in the client's request-to-header wait, not an
+extra additive E2E stage. Client reserve/receive/write includes reservation work
+and local I/O; it is not pure network time. Missing legacy timing stays unknown.
+
+Two complete remote pools have500 directories each and no symlinks/special
+members. A metadata-only PAX-header calculation and conservative zlib DEFLATE
+bound give maximum allocated archives63725568B(3B),42684416B(7B), including gzip
+wrapper/name and4KiB block rounding. No weight bytes were read for this bound.
+Use the maximum of fixed/stored bounds in the installed zlib1.3
+[source](https://github.com/madler/zlib/blob/v1.3/deflate.c), not average observed
+zero-weight compression. Filesystem is ext4, no quota mount option,30896617 free
+inodes and148635492352B available at this check.
+
+For the bounded SERIAL functional qualification, allow at most502 attempts per
+model (500 coverage, one sample, one cancellation); even if every temporary
+archive remained until the end, their upper bound is53417811968B. Add64MiB log
+growth allowance,16GiB safety reserve for OS/unrelated-user recovery and1.5 growth
+margin: required97407250432B. This passes available space without deletion,
+inference-node rule changes or backend concurrency throttling. This count bound
+is only for qualification, NOT the eventual Full all-worker concurrency rule.
+
+The existing client `verify-pool` performs authenticated manifest equality and
+SHA-verified downloads serially into one owned temporary directory at a time.
+It retains an exclusive JSONL journal, not another full dataset. No successful
+sample alone establishes whole-pool, model or numerical-LoRA qualification.
+Baseline work remains paused. No remote configuration work overlaps inference.

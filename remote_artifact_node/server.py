@@ -15,8 +15,10 @@ import re
 import shutil
 import tarfile
 import tempfile
+import threading
 import time
 import urllib.parse
+import uuid
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -27,11 +29,21 @@ _ARTIFACT_RE = re.compile(r"^[A-Za-z0-9._-]+$")
 
 
 class ArtifactServer(ThreadingHTTPServer):
-    def __init__(self, server_address, handler_class, *, root: Path, token: str = "", include_sizes: bool = False):
+    def __init__(self, server_address, handler_class, *, root: Path, token: str = "", include_sizes: bool = False,
+                 event_sink=None):
         super().__init__(server_address, handler_class)
         self.root = root.resolve()
         self.token = token
         self.include_sizes = include_sizes
+        self.event_sink = event_sink
+        self.event_lock = threading.Lock()
+        self.clock_id = 'remote-process-monotonic:' + uuid.uuid4().hex
+
+    def record_transfer(self, record):
+        if self.event_sink is not None:
+            # One bounded record per transfer; never request headers or tokens.
+            with self.event_lock:
+                self.event_sink(record)
 
 
 class ArtifactHandler(BaseHTTPRequestHandler):
@@ -52,11 +64,13 @@ class ArtifactHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self) -> None:  # noqa: N802
+        self.handler_started_ns = time.monotonic_ns()
         if not self._authorized():
             return
         parsed = urllib.parse.urlparse(self.path)
         if parsed.path == "/health":
-            self._send_json({"ok": True, "root": str(self.server.root), "time": time.time()})
+            self._send_json({"ok": True, "root": str(self.server.root), "time": time.time(),
+                             "timing_contract": "artifact_timing_v1", "clock_id": self.server.clock_id})
             return
         if parsed.path == "/manifest":
             self._send_json(self._manifest())
@@ -117,9 +131,21 @@ class ArtifactHandler(BaseHTTPRequestHandler):
             self.send_error(HTTPStatus.NOT_FOUND)
             return
 
-        tmp_dir = Path(tempfile.mkdtemp(prefix="primelora-artifact-server-"))
-        archive = tmp_dir / f"{artifact_id}.tar.gz"
+        transfer_id = self.headers.get('X-PrimeLoRA-Transfer-ID', '')
+        if transfer_id and not re.fullmatch(r'[0-9a-f]{32}', transfer_id):
+            self.send_error(HTTPStatus.BAD_REQUEST, 'invalid transfer identity')
+            return
+        transfer_id = transfer_id or uuid.uuid4().hex
+        record = dict(event='artifact_transfer', timing_contract='artifact_timing_v1',
+                      transfer_id=transfer_id, artifact_id=artifact_id,
+                      clock_id=self.server.clock_id, handler_started_ns=self.handler_started_ns,
+                      bytes_written=0, outcome='incomplete')
+        tmp_dir = None
         try:
+            tmp_dir = Path(tempfile.mkdtemp(prefix="primelora-artifact-server-"))
+            archive = tmp_dir / f"{artifact_id}.tar.gz"
+            record['pack_started_ns'] = time.monotonic_ns()
+            pack_cpu_start_ns = time.thread_time_ns()
             with tarfile.open(archive, "w:gz") as tar:
                 for item in sorted(artifact_dir.rglob("*")):
                     arcname = item.relative_to(artifact_dir)
@@ -144,15 +170,37 @@ class ArtifactHandler(BaseHTTPRequestHandler):
                                 tar.add(child, arcname=child_arcname, recursive=False)
                         continue
                     tar.add(item, arcname=arcname, recursive=False)
+            record['pack_completed_ns'] = time.monotonic_ns()
+            record['pack_thread_cpu_ns'] = time.thread_time_ns() - pack_cpu_start_ns
+            archive_stat = archive.stat()
+            record.update(archive_bytes=archive_stat.st_size,
+                          archive_allocated_bytes=archive_stat.st_blocks * 512)
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "application/gzip")
-            self.send_header("Content-Length", str(archive.stat().st_size))
+            self.send_header("Content-Length", str(archive_stat.st_size))
             self.send_header("Content-Disposition", f'attachment; filename="{artifact_id}.tar.gz"')
+            self.send_header('X-PrimeLoRA-Transfer-ID', transfer_id)
+            self.send_header('X-PrimeLoRA-Timing-Contract', 'artifact_timing_v1')
+            self.send_header('Server-Timing', 'artifact_pack;dur=' + format(
+                (record['pack_completed_ns'] - record['pack_started_ns']) / 1e6, '.6f'))
             self.end_headers()
+            record['send_started_ns'] = time.monotonic_ns()
             with archive.open("rb") as fh:
-                shutil.copyfileobj(fh, self.wfile, length=1024 * 1024)
+                while chunk := fh.read(1024 * 1024):
+                    self.wfile.write(chunk)
+                    record['bytes_written'] += len(chunk)
+            record['send_completed_ns'] = time.monotonic_ns()
+            record['outcome'] = 'sent'  # Socket writes, not proof of client publication.
+        except BaseException as exc:
+            record.update(outcome='failed', error_type=type(exc).__name__)
+            raise
         finally:
-            shutil.rmtree(tmp_dir, ignore_errors=True)
+            record['cleanup_started_ns'] = time.monotonic_ns()
+            if tmp_dir is not None:
+                shutil.rmtree(tmp_dir, ignore_errors=True)
+            record.update(cleanup_completed_ns=time.monotonic_ns(),
+                          temporary_removed=tmp_dir is None or not tmp_dir.exists())
+            self.server.record_transfer(record)
 
     def _send_json(self, payload: Dict[str, Any]) -> None:
         body = json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
@@ -180,25 +228,52 @@ def main() -> int:
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=18080)
     parser.add_argument("--token-env", default="PRIME_REMOTE_TOKEN")
+    parser.add_argument('--token-file', type=Path, help='Owner-only token file outside the repository')
     parser.add_argument("--include-sizes", action="store_true", help="Include recursive size_bytes in /manifest.")
+    parser.add_argument('--transfer-events', type=Path,
+                        help='New JSONL path for bounded per-transfer spans; refuses overwrite')
+    parser.add_argument('--transfer-events-dir', type=Path,
+                        help='Existing directory; each service start creates a unique journal')
     args = parser.parse_args()
 
     root = Path(args.root).expanduser().resolve()
-    root.mkdir(parents=True, exist_ok=True)
+    if not root.is_dir():
+        parser.error('artifact root must already exist; never create an empty replacement pool')
+    if args.transfer_events and args.transfer_events_dir:
+        parser.error('choose an exclusive event path or a per-start journal directory')
     token = os.getenv(args.token_env, "")
+    if args.token_file:
+        mode = args.token_file.stat()
+        if mode.st_uid != os.getuid() or mode.st_mode & 0o077 or not args.token_file.is_file():
+            parser.error('token file must be owned by this UID and private (0600)')
+        token = args.token_file.read_text().strip()
+        if not token or any(c.isspace() for c in token):
+            parser.error('token file must contain a nonempty token without whitespace')
+    event_path = args.transfer_events
+    if args.transfer_events_dir:
+        if not args.transfer_events_dir.is_dir():
+            parser.error('transfer event directory must already exist')
+        event_path = args.transfer_events_dir / ('transfers-' + uuid.uuid4().hex + '.jsonl')
+    events = event_path.open('x', buffering=1) if event_path else None
     httpd = ArtifactServer(
         (args.host, args.port),
         ArtifactHandler,
         root=root,
         token=token,
         include_sizes=bool(args.include_sizes),
+        event_sink=(lambda record: events.write(json.dumps(record, sort_keys=True) + '\n')) if events else None,
     )
     print(f"PrimeLoRA remote artifact node serving {root} on {args.host}:{args.port}")
     if token:
-        print(f"Token auth enabled via ${args.token_env}")
+        print('Token auth enabled')
     else:
         print("Token auth disabled; use only on a trusted network or behind a firewall.")
-    httpd.serve_forever()
+    try:
+        httpd.serve_forever()
+    finally:
+        httpd.server_close()
+        if events:
+            events.close()
     return 0
 
 

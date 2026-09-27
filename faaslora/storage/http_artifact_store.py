@@ -11,6 +11,8 @@ from __future__ import annotations
 import json
 import hashlib
 import os
+import math
+import re
 import shutil
 import tarfile
 import tempfile
@@ -18,6 +20,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 from contextlib import contextmanager
 from pathlib import Path, PurePosixPath
 from types import MappingProxyType
@@ -248,7 +251,8 @@ class HttpArtifactStoreClient:
 
     def download_artifact(self, artifact_id: str, target_path: str, *,
                           publish=None, publish_verified=None, cancel_event=None, require_content_manifest=False,
-                          evidence=None, workspace=None, reserve_files=None) -> Tuple[bool, float, int]:
+                          evidence=None, workspace=None, reserve_files=None,
+                          require_remote_timing=False) -> Tuple[bool, float, int]:
         """Download and extract one adapter directory into ``target_path``.
 
         Returns ``(ok, elapsed_ms, size_bytes)``.  The tarball is downloaded to a
@@ -272,6 +276,12 @@ class HttpArtifactStoreClient:
         evidence.update(artifact_id=artifact_id, content_manifest_sha256=(
             self.content_manifest_sha256 if expected is not None else None),
             state='started', transferred_bytes=0, content_verified=False)
+        transfer_id = uuid.uuid4().hex
+        # File ownership already has a transfer_id. Keep the HTTP attempt's
+        # correlation separate instead of overwriting that physical reservation.
+        evidence.update(http_transfer_id=transfer_id, remote_timing_available=False,
+                        remote_pack_ms=None, stages_clock='client_monotonic',
+                        remote_spans_additive_to_client_total=False)
         target = Path(target_path)
         t0 = time.perf_counter()
         def check_cancelled():
@@ -282,10 +292,18 @@ class HttpArtifactStoreClient:
                 archive = staging.parent / 'artifact.tar.gz'
                 check_cancelled()
                 req = self._request(f"/artifacts/{quoted}.tar.gz")
+                req.add_header('X-PrimeLoRA-Transfer-ID', transfer_id)
                 from faaslora.clock import local_monotonic_clock_id
                 evidence.update(loading_clock_id=local_monotonic_clock_id(),
                                 loading_started_monotonic_s=time.monotonic())
                 with self._opener.open(req, timeout=self.timeout_s) as resp:
+                    evidence['headers_received_monotonic_s'] = time.monotonic()
+                    timing = _remote_pack_timing(getattr(resp, 'headers', {}), transfer_id)
+                    if require_remote_timing and timing is None:
+                        raise RemoteArtifactError('remote timing contract is required for this measurement')
+                    if timing is not None:
+                        evidence.update(remote_timing_available=True, remote_pack_ms=timing,
+                                        remote_timing_contract='artifact_timing_v1')
                     length = None
                     if expected is not None:
                         raw = resp.headers.get('Content-Length', '')
@@ -308,8 +326,10 @@ class HttpArtifactStoreClient:
                             fh.write(chunk)
                     if length is not None and evidence['transferred_bytes'] != length:
                         raise RemoteArtifactError('artifact body is shorter than declared Content-Length')
+                    evidence['body_received_monotonic_s'] = time.monotonic()
                 check_cancelled()
                 staging.mkdir(exist_ok=reserve_files is not None)
+                evidence['extraction_started_monotonic_s'] = time.monotonic()
                 with tarfile.open(archive, 'r:gz') as tar:
                     if expected is None:
                         _safe_extract(tar, staging)
@@ -317,6 +337,7 @@ class HttpArtifactStoreClient:
                         verified_files = _extract_verified(tar, staging, expected, check_cancelled,
                                                           preallocated=reserve_files is not None)
                         evidence['content_verified'] = True
+                evidence['extraction_completed_monotonic_s'] = time.monotonic()
                 check_cancelled()
                 size_bytes = _path_size(staging)
                 if size_bytes <= 0:
@@ -341,6 +362,17 @@ class HttpArtifactStoreClient:
             if evidence['state'] != 'published':
                 evidence['state'] = 'not_published'
             evidence['elapsed_ms'] = (time.perf_counter() - t0) * 1000.0
+            evidence['client_completed_monotonic_s'] = time.monotonic()
+            # These client-local intervals are sequential. Remote pack is nested
+            # inside header wait, NOT another term to add/subtract from E2E.
+            intervals = {
+                'request_to_headers_ms': ('loading_started_monotonic_s', 'headers_received_monotonic_s'),
+                'reserve_receive_and_write_ms': ('headers_received_monotonic_s', 'body_received_monotonic_s'),
+                'extract_and_verify_ms': ('extraction_started_monotonic_s', 'extraction_completed_monotonic_s'),
+            }
+            evidence['client_stage_ms'] = {name: (1000 * (evidence[end] - evidence[start])
+                if start in evidence and end in evidence else None)
+                for name, (start, end) in intervals.items()}
 
     def _json_request(self, path: str) -> Dict[str, Any]:
         req = self._request(path)
@@ -361,6 +393,26 @@ class HttpArtifactStoreClient:
         if self.token:
             headers["Authorization"] = f"Bearer {self.token}"
         return urllib.request.Request(url, headers=headers, method=method)
+
+
+def _remote_pack_timing(headers, transfer_id):
+    """Our explicit duration contract, not a generic Server-Timing parser.
+
+    Legacy uninstrumented servers remain available but never report zero pack
+    time. An advertised contract must match identity and a finite duration.
+    Cross-host timestamps are intentionally absent.
+    """
+    contract = headers.get('X-PrimeLoRA-Timing-Contract')
+    if contract is None:
+        return None
+    if (contract != 'artifact_timing_v1'
+            or headers.get('X-PrimeLoRA-Transfer-ID') != transfer_id):
+        raise RemoteArtifactError('remote timing identity/contract mismatch')
+    value = headers.get('Server-Timing', '')
+    match = re.fullmatch(r'artifact_pack;dur=([0-9]+(?:\.[0-9]+)?)', value)
+    if match is None or not math.isfinite(float(match.group(1))):
+        raise RemoteArtifactError('invalid remote packing duration')
+    return float(match.group(1))
 
 
 def _quote_artifact_id(artifact_id: str) -> str:

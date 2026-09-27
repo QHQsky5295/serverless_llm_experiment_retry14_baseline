@@ -18,6 +18,48 @@
   D74 3B REPAIRED is ENDED/cleaned. Baselines are PAUSED by latest user direction.
   Do not run the prepared3B original side; return to Prime P1/P2/Full.
 
+## D75 in progress: remote preparation prerequisite for Prime Full
+
+- Start mainf1f361108e817ac6378687563126256d74bcd41b; baseline9e2cf289 PAUSED.
+  Full plan/status/AGENTS and run-experiment/github-sync read. No model run,
+  baseline repeat, new weights, full trace or pool regeneration.147 protected
+  entries unchanged. Existing Full guard is still intact.
+- Extended existing artifact server/client with HTTP-attempt correlation and
+  remote pack/client header-wait, reserve-receive-write/extract-verify spans.
+  Original physical file-owner transfer_id is preserved separately. Legacy
+  missing timing is unknown, never zero; strict timing is opt-in. Socket writes
+  do not claim client publication. Remote and local clocks remain separate;
+  pack overlaps header wait and is not additive/subtractable from total E2E.
+- Root/token/event-journal safeguards and existing-client functional whole-pool
+  coverage added. Coverage reuses frozen index and removes each owned temporary
+  download; does not retain another pool. No compression/cache/concurrency or
+  routing-policy change. No need to reimplement the runner.
+- Read-only remote: strict SSH succeeds; no artifact listeners; two500 pools,
+  no symlinks/special entries. Metadata-only exact PAX raw-tar size plus zlib
+  conservative fixed/stored DEFLATE bound, gzip wrapper/name and4KiB rounding:
+  max archive allocation3B63725568B,7B42684416B. zlib1.3,tarformat2;
+  filesystem148635492352B available,30896617 free inodes,ext4 no quota mount
+  option. No per-adapter archive found through depth3. No artifact content read
+  for this bound, no tar produced. Raw remote_archive_bounds.json retained.
+- For upcoming SERIAL functional qualification only, bound ALL possible retained
+  archives, not assumed fast cleanup:502 attempts/model (500 coverage, one sample,
+  one cancellation). Log allowance64MiB, safety reserve16GiB for OS/other-user
+  recovery, and1.5 growth margin. This is NOT a frozen Full-concurrency estimate
+  or a transfer throttle. Formal all-worker bounds still need deriving.
+- Raw results/ieee_tc/remote_qualification/d75_20260927. Initial systemPython
+  test discovery lacked NumPy, no test/model/network ran; qualified existing
+  conda interpreter passes150 client/content/pressure checks6.097s including
+  complete-pool CLI tests. Test fixture errors are
+  intentional, not remote/model failures. No remote deployment/start yet.
+- Next: back up tested source; deploy versioned copy without replacing original
+  server; create private non-Git token; verify actual bounded user services,
+  authenticated manifests/transfers, start/stop/restart, and complete content
+  coverage. All occur between inference runs, not during measurement. Then
+  return directly to Full representative profiles/integration, not baselines.
+- Source regression also passes288 existing basic smoke tests23.239s; no real
+  inference ran. Qualification disk bound97407250432B < remote148635492352B.
+  Source backup excludes all user dirt, credentials and large raw logs.
+
 ## D74 checkpoint: 3B repaired completed; baseline work paused
 
 ### Latest user direction (2026-09-27; supersedes older next-action text)
