@@ -130,3 +130,64 @@ SHA-verified downloads serially into one owned temporary directory at a time.
 It retains an exclusive JSONL journal, not another full dataset. No successful
 sample alone establishes whole-pool, model or numerical-LoRA qualification.
 Baseline work remains paused. No remote configuration work overlaps inference.
+
+### D75 actual two-model samples and management (2026-09-27)
+
+Source d8a0b49443e413947130a14a62c7aa5562bbee17 is pushed/remote-SHA verified.
+Versioned remote script lives at
+`/home/lab14/primelora_remote/tc/d8a0b49443e413947130a14a62c7aa5562bbee17/server.py`;
+SHA942a8e52956a58c22e822d68011fbd47ffa3b64bd4306904168a46bad7059101.
+Original server SHAa365072244512f4880432d7f4198cf3e45897ff19063a2b25eb141c8ca4e2a02
+is unchanged. Local and remote token files are owner0600, outside repositories;
+only their paths are recorded, never token material.
+
+Local private token: `/home/qhq/.config/primelora-tc-d75/artifact.token`.
+Remote private token: `/home/lab14/.config/primelora-tc-d75/artifact.token`.
+Managed units: `primelora-artifact-tc-3b.service` and
+`primelora-artifact-tc-7b.service`. Strict SSH sessions can execute user systemctl
+status/start/stop/restart for these two owned units; no password interaction.
+Both actually stopped (PID0, inactive, ports gone), started and restarted.
+Post-restart invocation IDs3B5d1621ec44f44d5495e0fd2c86a182ba and
+7B856cbbb9dfd94974ae19fffc2c8549c3. Resource readbacks and later health checks
+must verify the current invocation, not reuse these IDs after another restart.
+Each service1/2GiB high/max,swap0, affinity2–19/22–39 (18 physical cores),
+PrivateTmp, no automatic restart. These are qualification settings, not yet the
+common frozen Full performance delivery contract. No limit/event bypass.
+
+| Functional sample, one each | 3B code_lora | 7B code_lora |
+|---|---:|---:|
+| Frozen content SHA verified | yes | yes |
+| Logical payload bytes |56327468|20938675|
+| Transferred archive bytes |2339543|780772|
+| Client total through cleanup, ms |3004.945|1152.759|
+| Request-to-headers, ms |2412.344|927.992|
+| Remote pack, ms (nested in previous row) |2406.873|922.631|
+| Client reserve/receive/write, ms |199.435|67.496|
+| Client extract/verify, ms |391.039|155.381|
+| Remote temporary removed |yes|yes|
+
+This is NOT a representative performance/profile estimate or system comparison;
+it verifies content and time-stage correlation. Never add the pack row to the
+client rows. Source logs: D75sample3b.log/sample7b.log and matching server JSONL.
+The uninstrumented original was not modified. Authentication without a token
+returns401 on both ports. An initial curl invocation followed inherited proxy
+configuration and timed out; explicit direct-LAN checks pass. The actual client
+already disables environment proxies; do not call the proxy timeout a server
+failure or silently use a proxy for experiments.
+
+IMPORTANT actual link observation: route to inference host uses remote eno1;
+sysfs reports100Mbps/full/MTU1500, while inference eno1np0 reports1000Mbps/full.
+Do NOT label this measured route1Gbps or claim a configured1Gbps cap achieved it.
+No link renegotiation, cable/NIC reset or remote tuning was attempted. Separate
+hardware capability from current negotiated link speed and achieved throughput.
+The full500/model content coverage and cancellation qualification remain open.
+
+Sample extracted copies were removed after successful SHA verification, client
+exit and ownership/reference check; original remote/local pools and raw timing
+records remain. Complete-pool coverage is now in progress. Its1GiB per-service
+memory.high triggers file-cache reclaim; max/OOM remain0 at the checkpoint.
+This is an explicitly lightweight functional envelope, not a qualified Full
+performance environment, and these durations will not be promoted into frozen
+service/preparation profiles. Keep the active run unchanged; choose the common
+remote resource contract from complete footprint/concurrency observations before
+later performance profiling. No claim that a high event invalidates content.

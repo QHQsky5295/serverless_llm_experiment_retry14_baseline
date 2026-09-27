@@ -59,6 +59,53 @@
 - Source regression also passes288 existing basic smoke tests23.239s; no real
   inference ran. Qualification disk bound97407250432B < remote148635492352B.
   Source backup excludes all user dirt, credentials and large raw logs.
+- Source d8a0b49443e413947130a14a62c7aa5562bbee17 pushed/fresh full SHA matched.
+  Versioned remote copy deployed; original a3650722 remains unchanged. Private
+  tokens are0600 at ~/.config/primelora-tc-d75/artifact.token on each machine,
+  outside Git. Both user units primelora-artifact-tc-{3b,7b}.service actually
+  started/stopped/restarted. Current remote invocation3B5d1621ec44f44d5495e0fd2c86a182ba,
+ 7B856cbbb9dfd94974ae19fffc2c8549c3; PID3240469/3240475. Do NOT restart while
+  downloads/inference are live. Actual each1/2GiB,swap0,CPU2–19/22–39 read back.
+- Two code_lora sample downloads SHA-verified and UUID-correlated; remote temp
+  removed.3B client3004.945ms/pack2406.873ms,7B1152.759ms/922.631ms, one each.
+  NOT representative profiles or inference results. Immediate table in
+  REMOTE_ACCESS; curated remote_qualification/20260927_d75_samples.json.
+- Actual route remote eno1 negotiated100Mbps/full/MTU1500; local eno1np0 is
+ 1000Mbps/full. No NIC/network change. Do NOT claim this is measured1Gbps.
+  Initial unauth curl followed environment proxy/timeouts; direct-LAN401 and
+  authenticated client health pass. Actual client always bypassed env proxies.
+- Pre-coverage SHA check caught the misleading7B *_remote_content_index filename
+  (local-pack diagnostic f53c8e4e) in the sample/prepared script. Read inputs/README;
+  correct7B path is20260927_7b_materialized_content_index.json, SHAe85cce3c.
+  No coverage had run. The two code_lora file lists are EXACTLY equal; retain
+  sample's actual index identity and do not relabel its full manifest. Prepared
+  unexecuted7B script corrected; no new input file or performance rerun.
+- LIVE3B full-content qualification started11:54:28+08; TMUXtc-d75-coverage3b,
+  auxiliaryd7500000000000000000000000000001,
+  serviceb29f3e31758a432293c512a0b1042bc7;
+  run_coverage_3b.sh,coverage_3b.jsonl,coverage_3b_launch.json/.launch.
+ 72/500 verified at last check, no failed entry. Exact manifest500. Service
+  peak95641600B,host available110722039808B,local high/max/OOM0. No GPU inference.
+  Remote lightweight qualification high events observed3111 (file-cache reclaim),
+  max/OOM0,host PSI0. Do NOT reuse its durations as a Full performance profile;
+  no memory-threshold adjustment mid-run. Whole-pool content remains in progress.
+- Remote vmstat monitor is owned user unit primelora-tc-d75-monitor, invocation
+ 181b9be672ca41b08512532c8046cfd0, capped128MiB/swap0,CPU0,20,timeout3600.
+  Local exec handle65199 captures it to remote_vmstat.log; do not start duplicate.
+  After this3B run: inspect terminal/cleanup/watchdog, correlate every server
+  event byUUID and make status table BEFORE prepared7B coverage. No automatic
+ 7B run yet. Cancellation check still unperformed. Sample local temporary copies
+  remain~75MiB; remove only these owned reproducible copies after references check.
+- Next after remote qualification: reuse existing native source collector for
+  representative Remote/file-HOST/NVMe/native-HOST/GPU classes and concurrency,
+  actual background allocator/B/C budget; then integrated Full. No repetition
+  of D26 serial-only prefix, baseline bootstrap or independent allocator loop.
+- D75 sample records independently reconciled to both client/serverUUIDs,
+  bytes, durations and cleanup; all10 cited raw SHA checks pass.147 protected
+  entries/plan unchanged at checkpoint. Only the two owned sample3b/sample7b
+  extracted copies (~75MiB, reproducible verified contents, no open lsof entries)
+  removed; original pools/indices/raw sample records remain. Complete-pool loop
+  similarly removes only its own current temporary copy. No inference overlap.
 
 ## D74 checkpoint: 3B repaired completed; baseline work paused
 

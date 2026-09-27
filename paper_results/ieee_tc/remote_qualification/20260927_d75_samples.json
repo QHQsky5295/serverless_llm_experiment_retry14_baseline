@@ -1,0 +1,102 @@
+{
+  "kind": "remote_functional_samples_v1",
+  "purpose": "real_remote_prerequisite_for_prime_full",
+  "source_commit": "d8a0b49443e413947130a14a62c7aa5562bbee17",
+  "plan_sha256": "d79d7eb691d6f57fff08290134e6f8841222c6ed68ef975c7febb362d8a61381",
+  "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/remote_qualification/d75_20260927",
+  "full_pool_qualified": false,
+  "inference_qualified": false,
+  "performance_comparison": false,
+  "remote_link": {
+    "interface": "eno1",
+    "negotiated_mbit_s": 100,
+    "duplex": "full",
+    "mtu": 1500
+  },
+  "local_link": {
+    "interface": "eno1np0",
+    "negotiated_mbit_s": 1000,
+    "duplex": "full"
+  },
+  "remote_original_source_sha256": "a365072244512f4880432d7f4198cf3e45897ff19063a2b25eb141c8ca4e2a02",
+  "deployed_source_sha256": "942a8e52956a58c22e822d68011fbd47ffa3b64bd4306904168a46bad7059101",
+  "authentication_without_token_http_status": [
+    401,
+    401
+  ],
+  "lifecycle": {
+    "start_verified": true,
+    "stop_verified": true,
+    "restart_verified": true,
+    "original_source_preserved": true,
+    "private_token_outside_git": true
+  },
+  "qualification_only_resource_envelope": {
+    "per_model_memory_high_bytes": 1073741824,
+    "per_model_memory_max_bytes": 2147483648,
+    "swap_max_bytes": 0,
+    "remote_cpus": "2-19,22-39",
+    "formal_delivery_contract_frozen": false
+  },
+  "archive_bounds": {
+    "max_3b_bytes": 63725568,
+    "max_7b_bytes": 42684416,
+    "maximum_qualification_attempts_per_model": 502,
+    "log_growth_bytes": 67108864,
+    "safety_reserve_bytes": 17179869184,
+    "growth_margin": 1.5,
+    "required_bytes": 97407250432,
+    "observed_available_bytes": 148629319680
+  },
+  "samples": [
+    {
+      "model": "3b",
+      "adapter_id": "code_lora",
+      "http_transfer_id": "0f026fd6a2d742c6b750c083c1290537",
+      "content_verified": true,
+      "payload_bytes": 56327468,
+      "wire_bytes": 2339543,
+      "client_total_ms": 3004.9450409715064,
+      "client_request_to_headers_ms": 2412.344167008996,
+      "remote_pack_ms": 2406.872546,
+      "client_reserve_receive_write_ms": 199.4345440180041,
+      "client_extract_verify_ms": 391.0393789992668,
+      "remote_temporary_removed": true
+    },
+    {
+      "model": "7b",
+      "adapter_id": "code_lora",
+      "http_transfer_id": "2aef8cbf24f24426b6d24f8dea104902",
+      "content_verified": true,
+      "payload_bytes": 20938675,
+      "wire_bytes": 780772,
+      "client_total_ms": 1152.7593840146437,
+      "client_request_to_headers_ms": 927.9919500113465,
+      "remote_pack_ms": 922.631333,
+      "client_reserve_receive_write_ms": 67.49644502997398,
+      "client_extract_verify_ms": 155.38078401004896,
+      "remote_temporary_removed": true,
+      "sample_index_sha256": "f53c8e4e71e189ff064aa76cb4d133900d62cee43f71b820cd28d27c90fc8bc3",
+      "sample_file_list_equals_materialized_index": true
+    }
+  ],
+  "caveats": [
+    "One sample per model; not representative performance or initialization profiles.",
+    "Remote packing is nested in client header wait; never add or subtract aggregate pack from E2E.",
+    "7B sample used historical local-pack index; exact sampled file list equals correct materialized contract. Whole-pool path corrected before launch; no sample relabel or rerun.",
+    "Remote high events during later functional coverage invalidate performance-profile reuse, not verified content.",
+    "Full500/model coverage, cancellation, formal remote resource settings and Full integration remain open."
+  ],
+  "raw_sha256": {
+    "sample3b.log": "5b07910314fe2b2de83a13bd274936b02fec8d100eb0c581bb96aa357f2689c2",
+    "sample7b.log": "26d70ef1a03bd314d95425e9d84de14429c2bba42f591eb155f3e3c4d13a0899",
+    "remote_sample3b.jsonl": "ad5800664e27c05d0414e575774402846d87c82b50060f513cc63530ff6af503",
+    "remote_sample7b_link.log": "2c7f5bf75d44f7e55a672fcdfa0821e5056de3ad5cf2e9e7caf5dafe5339d52b",
+    "remote_lifecycle.log": "e25237f0ddd77f82f847c6ba3fad238dbd0d53c74588f64ea28aaedcb8209386",
+    "remote_archive_bounds.json": "4137f673f5b8e7950dbc57bcdc0a7ca24960f085504d4c9c749e3c6ab661161b",
+    "run_coverage_3b.sh": "aca4104cf5cf3506ea786e7c66581078c73879b086fb3732c1283ec5f115ede6",
+    "run_coverage_7b.sh": "85bc4d8d6b4b0302a8b0f5612d0cc8c8fc61696c3e4a54b1fca2292e74fb082a",
+    "client_tests5.log": "64cf274ebb68a7d0eccdc22b332a44d1081a0e4b4dcb2a233b55cb4f7f49062c",
+    "basic_smoke.log": "f27ad21053b129b970b5032e7b9655736d5f8b2b1d2a3cb622b562939e1513ee"
+  }
+}
