@@ -10,6 +10,73 @@ from faaslora.memory import gpu_monitor as monitor
 from scripts.run_all_experiments import InferenceEngine, SubprocessInferenceEngineProxy
 
 
+class PassiveControllerObservation(unittest.TestCase):
+    def config(self, mode='nvml_device'):
+        from faaslora.experiment.experiment_stack import ExperimentConfig
+        return ExperimentConfig({'memory': {'gpu': {
+            'device_ids': [1, 3], 'monitor': {'observation_mode': mode}}}})
+
+    def nvml(self):
+        return SimpleNamespace(nvmlInit=Mock(), nvmlDeviceGetCount=lambda: 4,
+            nvmlDeviceGetHandleByIndex=Mock(side_effect=lambda i: ('physical', i)),
+            nvmlDeviceGetMemoryInfo=lambda h: SimpleNamespace(total=100, used=30, free=70),
+            nvmlDeviceGetTemperature=lambda *a: 40, NVML_TEMPERATURE_GPU=0,
+            nvmlDeviceGetPowerUsage=lambda h: 20000)
+
+    def test_constructor_and_device_sampling_never_enter_torch_cuda(self):
+        nvml = self.nvml()
+        # Any access, including is_available/device_count, is prohibited here.
+        class NoTorch:
+            def __getattr__(self, name):
+                raise AssertionError('controller entered torch.' + name)
+        with patch.object(monitor, 'torch', NoTorch()), patch.object(monitor, 'pynvml', nvml):
+            observed = monitor.GPUMemoryMonitor(self.config())
+            infos = observed.get_all_devices_memory_info()
+            self.assertEqual(set(infos), {1, 3})
+            for info in infos.values():
+                self.assertEqual((info.total_bytes, info.used_bytes, info.free_bytes), (100, 30, 70))
+                self.assertEqual(info.observation_mode, 'nvml_device')
+                self.assertIsNone(info.active_bytes)
+                self.assertIsNone(info.cached_bytes)
+                self.assertIsNone(info.reserved_bytes)
+
+    def test_passive_mode_cannot_fall_back_to_current_process_allocator(self):
+        with patch.object(monitor, 'pynvml', None), patch.object(monitor, '_cuda_available') as cuda:
+            with self.assertRaisesRegex(RuntimeError, 'NVML'):
+                monitor.GPUMemoryMonitor(self.config())
+            cuda.assert_not_called()
+        nvml = self.nvml()
+        with patch.object(monitor, 'pynvml', nvml):
+            observed = monitor.GPUMemoryMonitor(self.config())
+            nvml.nvmlDeviceGetMemoryInfo = Mock(side_effect=RuntimeError('lost device'))
+            with self.assertRaisesRegex(RuntimeError, 'lost device'):
+                observed.get_current_memory_info(1)
+
+    def test_ieee_stack_selects_passive_mode_without_changing_legacy_default(self):
+        from pathlib import Path
+        from faaslora.experiment.experiment_stack import _build_experiment_config
+        for policy in ['ieee_confirmed', 'legacy']:
+            cfg = _build_experiment_config({}, {'gpu_device_ids': [1, 3]},
+                {'routing_policy': policy}, {}, Path('/remote'), Path('/nvme'))
+            self.assertEqual(cfg.get('memory.gpu.monitor.observation_mode'),
+                'nvml_device' if policy == 'ieee_confirmed' else 'process_allocator')
+
+    def test_device_usage_does_not_supply_unknown_worker_allocator_as_zero(self):
+        from faaslora.memory.residency_manager import ResidencyManager
+        from faaslora.registry.schema import StorageTier
+        nvml = self.nvml()
+        with patch.object(monitor, 'pynvml', nvml):
+            observed = monitor.GPUMemoryMonitor(self.config())
+            manager = ResidencyManager.__new__(ResidencyManager)
+            manager.gpu_monitor = observed
+            manager._gpu_device_ids_for_accounting = lambda: [1, 3]
+            manager.tier_capacities = {StorageTier.GPU: SimpleNamespace(total_bytes=0, used_bytes=0)}
+            manager.memory_estimator = Mock()
+            manager._sync_gpu_capacity_once()
+            self.assertEqual(manager.tier_capacities[StorageTier.GPU].used_bytes, 60)
+            manager.memory_estimator.update_memory_usage.assert_not_called()
+
+
 class NativeHostFootprint(unittest.TestCase):
     def native_models(self):
         # Actual tiny CPU storages and views; never initialize CUDA.

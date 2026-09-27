@@ -105,6 +105,10 @@ def _build_experiment_config(
                 "total_memory_gb": gpu_total_mb / 1024,
                 "safety_margin": 0.15,
                 "device_ids": gpu_device_ids,
+                "monitor": {"observation_mode": (
+                    "nvml_device" if coord_cfg.get("routing_policy") == "ieee_confirmed"
+                    else "process_allocator"
+                )},
             },
             "host": {
                 "total_memory_gb": host_cap_gb,

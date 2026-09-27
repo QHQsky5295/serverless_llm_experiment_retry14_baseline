@@ -3493,12 +3493,18 @@ class ResidencyManager:
         if device_ids:
             total_bytes = sum(int(infos[device_id].total_bytes) for device_id in device_ids)
             used_bytes = sum(int(infos[device_id].used_bytes) for device_id in device_ids)
-            active_bytes = sum(int(infos[device_id].active_bytes) for device_id in device_ids)
-            cached_bytes = sum(int(infos[device_id].cached_bytes) for device_id in device_ids)
+            active = [infos[device_id].active_bytes for device_id in device_ids]
+            cached = [infos[device_id].cached_bytes for device_id in device_ids]
+            active_bytes = None if any(v is None for v in active) else sum(active)
+            cached_bytes = None if any(v is None for v in cached) else sum(cached)
         if total_bytes <= 0:
             return
         self.tier_capacities[StorageTier.GPU].total_bytes = total_bytes
         self.tier_capacities[StorageTier.GPU].used_bytes = used_bytes
+        if active_bytes is None or cached_bytes is None:
+            # A device observation is not a process allocator/KV estimate.
+            # IEEE admission uses its independent native worker snapshot.
+            return
         self.memory_estimator.update_memory_usage(
             total_bytes=total_bytes,
             used_bytes=used_bytes,

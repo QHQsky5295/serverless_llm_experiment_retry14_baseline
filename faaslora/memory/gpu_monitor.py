@@ -824,12 +824,13 @@ class GPUMemoryInfo:
     total_bytes: int
     used_bytes: int
     free_bytes: int
-    reserved_bytes: int = 0
-    active_bytes: int = 0
-    cached_bytes: int = 0
+    reserved_bytes: Optional[int] = 0
+    active_bytes: Optional[int] = 0
+    cached_bytes: Optional[int] = 0
     utilization_percent: float = 0.0
     temperature_celsius: int = 0
     power_watts: int = 0
+    observation_mode: str = "process_allocator"
 
 
 @dataclass
@@ -861,25 +862,48 @@ class GPUMemoryMonitor:
         self.logger = get_logger(__name__)
         self.monitoring = False
         self.monitor_thread: Optional[threading.Thread] = None
+
+        monitor_config = config.get('memory.gpu.monitor', {})
+        self.observation_mode = monitor_config.get('observation_mode', 'process_allocator')
+        if self.observation_mode not in {'process_allocator', 'nvml_device'}:
+            raise ValueError('unknown GPU memory observation mode')
+        self.update_interval = monitor_config.get('update_interval', 1.0)
+        self.history_size = monitor_config.get('history_size', 300)
+        self.enable_nvml = monitor_config.get('enable_nvml', True)
+        self.nvml_handles = {}
+        self.devices = []
+        self.device_count = 0
+        self.enabled = False
+
+        # The IEEE controller owns no CUDA context. Device capacity is an NVML
+        # observation; allocator/KV/LoRA state is observed inside each native
+        # worker by IEEEWorkerObservationExtension, never by this controller.
+        if self.observation_mode == 'nvml_device':
+            if not self.enable_nvml or pynvml is None:
+                raise RuntimeError('passive device observation requires NVML')
+            pynvml.nvmlInit()
+            count = int(pynvml.nvmlDeviceGetCount())
+            devices = config.get('memory.gpu.device_ids', []) or list(range(count))
+            if (not devices or len(set(devices)) != len(devices)
+                    or any(type(d) is not int or not 0 <= d < count for d in devices)):
+                raise ValueError('passive NVML devices must be physical device indices')
+            self.devices = list(devices)
+            self.device_count = len(self.devices)
+            self.nvml_handles = {d: pynvml.nvmlDeviceGetHandleByIndex(d) for d in self.devices}
         
         # Check CUDA availability lazily at runtime. Import-time CUDA init in the
         # main process can force spawn-based workers and increase memory pressure.
-        if not _cuda_available():
+        if self.observation_mode == 'process_allocator' and not _cuda_available():
             self.logger.warning("CUDA not available, GPU monitoring disabled")
             self.enabled = False
             return
         
         self.enabled = True
         
-        # Get monitoring configuration
-        monitor_config = config.get('memory.gpu.monitor', {})
-        self.update_interval = monitor_config.get('update_interval', 1.0)  # seconds
-        self.history_size = monitor_config.get('history_size', 300)  # 5 minutes at 1s intervals
-        self.enable_nvml = monitor_config.get('enable_nvml', True)
-        
         # Initialize GPU devices
-        self.device_count = torch.cuda.device_count()
-        self.devices = list(range(self.device_count))
+        if self.observation_mode == 'process_allocator':
+            self.device_count = torch.cuda.device_count()
+            self.devices = list(range(self.device_count))
         
         # Memory history for each device
         self.memory_history: Dict[int, deque] = {}
@@ -895,8 +919,7 @@ class GPUMemoryMonitor:
         self.monitor_thread: Optional[threading.Thread] = None
         
         # NVML handles
-        self.nvml_handles = {}
-        if self.enable_nvml and pynvml:
+        if self.observation_mode == 'process_allocator' and self.enable_nvml and pynvml:
             try:
                 pynvml.nvmlInit()
                 for device_id in self.devices:
@@ -959,6 +982,25 @@ class GPUMemoryMonitor:
         """
         if not self.enabled or device_id not in self.devices:
             return None
+
+        if self.observation_mode == 'nvml_device':
+            # No CUDA fallback and no fabricated zero-valued worker allocator.
+            # Failure remains explicit; callers cannot infer free KV from it.
+            handle = self.nvml_handles[device_id]
+            mem = pynvml.nvmlDeviceGetMemoryInfo(handle)
+            temperature = power = 0
+            try:
+                temperature = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
+                power = pynvml.nvmlDeviceGetPowerUsage(handle) // 1000
+            except Exception as exc:
+                self.logger.debug(f'NVML ancillary telemetry unavailable: {exc}')
+            return GPUMemoryInfo(
+                device_id=device_id, timestamp=time.time(), total_bytes=int(mem.total),
+                used_bytes=int(mem.used), free_bytes=int(mem.free), reserved_bytes=None,
+                active_bytes=None, cached_bytes=None, observation_mode='nvml_device',
+                utilization_percent=(100 * mem.used / mem.total) if mem.total else 0.0,
+                temperature_celsius=temperature, power_watts=power,
+            )
         
         try:
             # Get PyTorch memory stats

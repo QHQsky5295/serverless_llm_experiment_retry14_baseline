@@ -1,0 +1,71 @@
+{
+  "kind": "passive_controller_observation_cpu_qualification_v1",
+  "ieee_formulas_changed": false,
+  "physical_guard_changed": false,
+  "full_qualified": false,
+  "production_launch_authorized": false,
+  "regression": {
+    "passed": 404,
+    "seconds": 30.271
+  },
+  "native_probe": {
+    "torch_cuda_initialized": false,
+    "physical_devices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "model_loaded": false
+  },
+  "references": [
+    {
+      "path": "faaslora/experiment/experiment_stack.py",
+      "sha256": "9c00992380a8cd9d810bc7a4be2f906b630f90dbff24d8c2f3194ca0a4f8104d"
+    },
+    {
+      "path": "faaslora/memory/gpu_monitor.py",
+      "sha256": "b14117c91dbfd5856e9dc97c9a2aabeb1480f7e55b3af20441a281834d41f3f4"
+    },
+    {
+      "path": "faaslora/memory/residency_manager.py",
+      "sha256": "2c1c7f2d5af40a1892e05f713176161e8a65e99bbccad98bb141ad3e99c7486d"
+    },
+    {
+      "path": "tests/test_ieee_tc_worker_observation.py",
+      "sha256": "8c843b09975a23c0d33c93291ced688243b499d6aaf86ce8ef9c4dfe8cfef2f2"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/passive_red1.log",
+      "sha256": "0afecc23d8c6ed714a28fcfca580d980d52025975920565efff7172821f32ee8"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/passive_regression1.log",
+      "sha256": "1ecb7cdf0221e9a4df2f4ae110ea5935e272aac7c1e24cf531b7d10e4edb6128"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/passive_native1.log",
+      "sha256": "57cecbe3c3bb333c4415254f5f3eadcfa3a3cb4496710d2b150195df5a753a87"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/full_prefix_driver.py",
+      "sha256": "91983fbbf72276ffcea9e9131d05e7f41fada223de374d21845f2cc77ffe6c63"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/run_3b_full_prefix_attempt2.sh",
+      "sha256": "0b6da5e9153eabe03da233d7fa9b9ac4972fc537b3d4aeb56cb08441d71d2322"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/activate_services_attempt2.sh",
+      "sha256": "034bd77ea4afc5c08857e2e1a35405e5d3f87a6839eb9fc1dd4d3c37d06778b2"
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  }
+}

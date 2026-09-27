@@ -92,3 +92,30 @@ P1 公式合同。此次修正的可证伪检查是：同一个 NVMe-hit 回调�
 没有虚构成功释放；真实服务进程结束后，cgroup/GPU外置核验均清空。
 所有失败原始数据保留。这不是可用 TTFT/GPU-s 性能点；不启动7B重跑同问题。
 汇总：`paper_results/ieee_tc/p2_backend/20260927_d90_3b_full_prefix_attempt1.json`。
+
+## 控制面被动观测修正（尚待联动复测）
+
+失败证据已备份 `75a72bd68a3a9bce179d66da39b110176393f7aa`，远端 SHA 一致。
+旧监控从初始同步 `b68eaeb` 就包含当前进程 CUDA allocator 采样；它在多子进程
+执行中不具备所需的 worker 观测语义。IEEE policy 现在明确使用 `nvml_device`，
+按配置的物理 GPU 索引读取设备总量/已用/剩余；构造及采样均不调用 Torch。
+reserved/active/cached allocator 值记为未知（null），不填零，不传给旧估算器。
+原生 worker 的 KV、LoRA、引用、有效容量和物理保护路径均不变；旧策略默认
+仍为原 process-allocator 观测。无 NVML 或设备读取失败不退回 CUDA。
+
+依据：[PyTorch 2.13 CUDA 源码](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/torch/cuda/__init__.py)、
+[分配器源码](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/torch/cuda/memory.py)、
+[NVIDIA NVML 设备查询](https://docs.nvidia.com/deploy/nvml-api/api/group__nvmlDeviceQueries.html)。
+前者涉及本进程 CUDA/allocator，后者提供设备级内存；两者不能互换为 worker KV。
+
+| 检查 | 结果与范围 |
+|---|---|
+| 修正前四项替身测试 |3 failure /1 error，证明旧实现不满足被动观测合同；日志保留 |
+| worker/launch/basic 回归 |404 项通过，30.271 秒 |
+| 原生已安装环境、真实四卡 NVML 读取 |通过；进程3332000前后 `torch.cuda.is_initialized=False` |
+| 正式 Full/性能 |仍未合格；不因 CPU 测试解除拦截 |
+
+首次测试另有一个测试导入路径笔误，已纠正为 registry.schema；没有生产兼容
+补丁。原生检查没有加载模型、没有远程传输，不是扩容反事实结果。
+下一次复用原 driver、D89 profile、D88 配置和原100请求，新结果键 attempt2，
+不重跑准备成本测量。只有真实联动及外置 GPU 所有权证据才能验证失败是否消除。

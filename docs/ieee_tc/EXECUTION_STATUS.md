@@ -2,6 +2,17 @@
 
 ## Current checkpoint — 2026-09-27 D90 bounded Full integration ready
 
+LATEST23:29:D90 failureevidence75a72bd68a3a9bce179d66da39b110176393f7aa
+PUSHED/freshremoteSHA matched. Passivecontrollerfix CPU/native-NVML checked:
+IEEE stack selects nvml_device, physicalindices; noTorch probe/device/allocator.
+Workerallocator fieldsnull, legacyestimatornotfedunknownzero. Nativeworker KV/
+LoRA/admission andphysicalguard unchanged.404worker/launch/basicPASS30.271s;
+nativeenv real4GPU NVMLread passedwithoutTorchCUDAinit. Red3failure/1error kept;
+firsttest hadwrongregistryimport correctedonlyfixture. No actualFull rerun yet.
+NEXT backupfix thenunique3Bprefixattempt2 usingSAMEdriver/profiles/config/inputs.
+Do notrerun D78/D80/D81/D88/D89;7Bwaits3Bcleanup/table. No liveinference/remote;
+baselinesPAUSED, Full/M1/M2/A/S stillunqualified/unstarted.
+
 LATEST23:16:D90 3B attempt1 FAILED/CLEANED atcontrolledactivation,0/100requests,
 0HTTPfetch. Initialruntimeactuallyready46.791787s;secondphysicalallocation rejects
 existingcontexts. ServiceparentPID3240430alreadyowns256MiBeachonGPU1/2/3 atsample16;
