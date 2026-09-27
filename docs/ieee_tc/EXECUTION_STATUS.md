@@ -1,6 +1,73 @@
 # IEEE TC execution status
 
+## Latest — D90 both model prefixes complete; integrated Full protocol next
+
+2026-09-28 02:28: 7B attempt1 finished 100 planned/submitted/success, zero failures
+or unsubmitted. Execution a78f76b (evidence-only after runtime857fc7e/799 tests).
+Same original driver, D88 parent configuration and D89 measured initialization.
+All native generation/dispatch fields pass; E2E identity error <0.000001ms,
+TPOT recalculation ≤1ms. Initial1/controlled1/natural2 ready, all4 leases released.
+Residency469 completed/13 superseded/0 failed; file473/13/0. Dispatch tiers
+GPU49/HOST25/NVMe21/Remote5. Actual29 HTTP UUID pairs exact, all published;
+50,650,865 wire /724,665,100 verified logical bytes, request packing0.
+1093 resource samples: peak17,347,903,488B/min host98,979,450,880B; high/max/OOM/
+OOM-kill/swap0. Service/watchdog0/0, no outer forced cleanup. Both workspaces
+removed by original driver, actual native contexts and service domain gone.
+HOST snapshot after native shutdown BEFORE file cleanup still58,720,256B;
+native/pending reservations0. Preserve that intermediate value, not a fake0.
+
+Empty aux9be8eafc11fc42408a0a20601158341b stopped after procs empty/populated0.
+AFTER inference, matching remote monitor62d58c6cb2914f3a9a3627a46bde439f stopped;
+all3 remote units inactive/MainPID0/success. Postprocessing scopes also stopped
+after empty checks. No live GPU/model/tmux/remote job. Disk312GiB/host108GiB/swap0.
+Curated20260928_d90_7b_full_prefix_attempt1.json has15 SHA references;
+147 protected entries unchanged. D90 immediate functional/descriptive tables done.
+Mean TTFT261.173s, dispatch wait258.445s, service2.728s; P95 TTFT685.236s.
+These are NOT formal performance, SLO qualification or superiority evidence.
+
+IMPORTANT: original limited driver caps GLOBAL admitted requests at ONE runtime
+capacity and omits Azure/open-loop labels. Thus3B total8,7B total2 even with4
+runtimes. Code-established limitation, NOT proven attribution of all waiting.
+Canonical main assembly sets arrival_source/workload_source/timing_mode and its
+Azure path uses aggregate runtime capacity. Do not blindly change global policy.
+Both old raw prefixes retained as functional evidence; new caveat in D90 doc.
+Routing span includes awaited snapshot RPC, not pure CPU; legacy0 fields are
+uninstrumented on IEEE path, not zero-overhead proof.
+
+NEXT verify/scoped evidence backup, then integrated MAIN Full qualification:
+actual assembled open-loop configuration, fixed deployment notice+60s, external
+publisher and physical lifecycle. Existing unconditional Full gate remains;
+replace only through validated explicit contract, not monkeypatch/bypass.
+No more D90 prefix/profile/publication loops without new causal evidence.
+3B and7B original bounded checks DONE; D78/D80/D81/D88/D89 reused, no reruns.
+Full/M1/M2/A/S NOT qualified/started. Baselines9e2cf289 PAUSED. Warm SLO and
+Resident references not yet measured; numerical discrimination still unqualified.
+All preceding live/next headings are historical, not restart instructions.
+
+## Live — D90 7B original limited Full prefix attempt1, 2026-09-28 02:10
+
+Sourcea78f76b95f9218b54f29c6ab11cd32259ea3f71e (evidence-onlyafter857fc7e);
+tmux tc-d90-7b-attempt1, raw7b_full_prefix_attempt1 result/launch/console.
+Sameoriginaldriver100prefix500pool,7B D88parentconfig/D89measuredprofiles.
+Newlauncheronlymodel/endpoint/output/auxidentitychanges;qualifiedCUDA13PATHretained.
+BothdirecthealthPASSED BEFORElaunch;14priorSHArefs/147protectedunchanged.
+Host108GiB/disk312GiB/swap0/GPUidle;bothNIC1000/full. BaselinesPAUSED.
+Remote3B1ef06346c3b841378eac5c05521bf36e PID736862;
+7B41839c68676541ad8861d49eb9957c14 PID736864;
+monitor62d58c6cb2914f3a9a3627a46bde439f PID736867,
+unitprimelora-artifact-monitor-d90b1.service/logremote_monitor_7b_attempt1.log.
+No source/remotechanges,hash,cleanup,extraexperiments duringinference.
+Observe SAMEattempttoterminal;cleanup/validate/table beforefurtherwork.
+3Bcompleted/backedup;do notrepeat3B/D78/D80/D81/D88/D89. Full/M1/M2/A/S
+notqualified/started. Old latest/next/live notesbelow historical.
+
 ## Latest — D90 3B attempt7 completed and cleaned; 7B next, not launched
+
+Evidencecheckpoint a78f76b95f9218b54f29c6ab11cd32259ea3f71e PUSHED/freshremoteSHA
+matched. Three scopedfiles,14SHArefs/147protected/stagedsecretchecksPASS. Runtime
+unchangedfrom857fc7e/799tests;actualprefix100/100pass. UsermanifestNOTstaged.
+Baseline9e2cf289unchanged/PAUSED. No livejob. NEXT7Blimitedprefix afterfullreads;
+do not redo completed3B or evidencebackup. Rawattempt7_evidence_push_receipt.json.
 
 Supersedes LIVE/next notes below. Original100prefix COMPLETE100/100, exactnative
 generation/dispatchfields, E2Eidentity0ms andTPOTrecalc≤1ms. Source857fc7e;

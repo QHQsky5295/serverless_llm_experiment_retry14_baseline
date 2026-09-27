@@ -1,5 +1,87 @@
 # D90：完整路径的有限联动检查
 
+## 最新：7B 原前缀完成；两模型有限联动已结束（2026-09-28 02:28）
+
+7B 使用 `a78f76b95f9218b54f29c6ab11cd32259ea3f71e`；该提交仅补充3B
+证据，实际运行代码与799项回归通过的857fc7e相同。原driver、D88父配置、
+D89实测初始化、500工件和原100请求不变。推理期间没有代码或远端管理操作。
+
+| 检查 | 7B attempt1 |
+|---|---:|
+| 计划 /提交 /成功 /失败 /未提交 |100 /100 /100 /0 /0 |
+| 固定输出、原生token及dispatch字段 |100/100通过 |
+| E2E分解最大误差 /TPOT重算误差 |小于0.000001 ms /不超过1 ms |
+| initial /controlled /natural实际ready |1 /1 /2 |
+| trigger至engine-ready |39.033 /38.710 /42.301和42.064秒 |
+| 驻留周期 completed /superseded /failed |469 /13 /0 |
+| 文件准备 completed /superseded /failed |473 /13 /0 |
+| dispatch前GPU /HOST /NVMe /Remote |49 /25 /21 /5 |
+| 实际HTTP传输、两端UUID关联和发布 |29/29通过 |
+| 线上字节 /内容核验后的逻辑字节 |50,650,865 /724,665,100 B |
+| 请求中打包 /临时归档 |0 /0 |
+| 实际GPU租约归还 /退出可服务副本数 |4/4 /0 |
+| 内存采样 /服务峰值 /主机最低可用 |1093 /17,347,903,488 /98,979,450,880 B |
+| high /max /OOM /OOM-kill /服务swap |均0 |
+| 服务 /watchdog退出 |0 /0，无外层强制终止 |
+| 临时HOST和NVMe工作目录 |原运行自行删除；后验存在性检查通过 |
+| 历史保护清单 |147项均不变 |
+
+原始 `host_budget_after_shutdown` 在native引擎退出后、driver删除文件之前
+采样，因此仍记录58,720,256 B合法HOST文件缓存；native reservation与pending
+均为0。不能将这个中间快照改写成0，也不能把它误作最终泄漏。后续原driver
+的stack关闭和文件清理已完成，两个目录实际不存在，服务资源域与GPU均已释放。
+空辅助域及后处理域只在核对身份、procs为空和populated=0后停止。全部推理
+结束后才停止匹配远端monitor，三个远端单元最终inactive/MainPID0/success。
+
+### 7B描述性延迟：完整保留，但不进入正式比较
+
+| 指标 | 平均 | P95（Type-1） |
+|---|---:|---:|
+| 用户TTFT |261,172.96 ms |685,235.69 ms |
+| 派发/准入等待 |258,444.67 ms |685,003.13 ms |
+| 已准入服务TTFT |2,728.29 ms |9,538.12 ms |
+| 用户E2E |267,662.95 ms |693,378.20 ms |
+| 原生TPOT |26.84 ms |32.52 ms |
+
+真实请求时间不扣除、不补造。平均值可分解，分位数不可相加。远端传输次数
+不同于Remote dispatch数：主动准备也能引发传输，不能用5次Remote派发冒充
+只有5次实际获取。不存在正式SLO达标、G1/G2优势或数值adapter区分性结论。
+本轮为功能资格，采用状态表，不画误导性的系统性能比较图。
+
+### 两模型共同的诊断入口限制：后续主入口必须独立验证
+
+原 `full_prefix_driver.py` 将 `workload_cfg.concurrency` 设置为单runtime的
+`runtime_concurrency_cap`，未提供Azure/open-loop的三个标识字段。现有
+`_dispatch_admission_mode()`因而取`workload_capped`，其总准入上限为
+`min(workload_concurrency, runtime_count * runtime_cap)`：
+
+| 诊断 | 单runtime cap | 四runtime时总准入上限 | 主入口相同容量下的aggregate上限 |
+|---|---:|---:|---:|
+| 3B attempt7 |8 |8 |32 |
+| 7B attempt1 |2 |2 |8 |
+
+这是服务接单约束，不代表计划到达被重新生成或改为closed-loop；但不能用
+这些诊断的排队/持卡结果证明Full扩容性能。上述约束由实际源码可直接确认，
+尚未量化它解释了全部等待中的多少；不将所有慢延迟武断归因于这一处。
+
+规范主入口在构造runner前明确设置`arrival_source`、`workload_timing_mode`
+和`workload_source`，Azure路径选择aggregate容量。故没有证据表明主入口也
+具有同样全局clamp，**不据此盲改全局调度代码或提高人为并发常数**。下一步
+核验完整主入口的真实配置、60秒部署通知、外置回放和物理生命周期；仍不能
+用这两个诊断绕过Full现有未资格拦截。
+
+另核实`routing_decision_us`计时包括等待`_ieee_request_snapshot()`的跨进程
+观测，7B平均4.318秒不能称纯CPU路由运算。旧两个为0的计时字段尚无IEEE
+路径独立埋点，不解释成零开销；后续若需归因，必须分离观测、等待与决策。
+
+curated：`paper_results/ieee_tc/p2_backend/20260928_d90_7b_full_prefix_attempt1.json`，
+15个原始/脚本SHA引用。新wrapper复用旧完成态reducer，未修改原始脚本或数据。
+后处理第一次scope命令使用不支持的CPUAffinity属性，在进程启动前被拒绝；
+随后使用原launcher已有的taskset方式，未更改推理包络或重跑模型。
+
+下一步备份本完成节点，随后返回集成Full资格；不重复3B/7B前缀、工件发布、
+完整池下载或D88/D89初始化，baseline继续暂停。
+
 ## 最新：attempt7 完整通过，但尚不是性能达标（2026-09-28）
 
 使用已备份 `857fc7e493fd6d2fa0660e1a81805670c8d7a9bc`，原100请求前缀、
