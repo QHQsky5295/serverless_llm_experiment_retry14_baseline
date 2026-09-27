@@ -1000,6 +1000,41 @@ def validate_native_response(body: dict, request_id: str, target: int, input_cou
         raise ValueError('native fixed-output backbone response failed; not a LoRA correctness test')
 
 
+def existing_pool_embedding_policy(adapter_map: dict[str, str]) -> dict:
+    """Reuse the historical content-based deployment selector, never guess.
+
+    A native backbone checkpoint has no extra-vocabulary rows. The existing
+    environment supports linear-only adapters without modifying that layout.
+    Reject embedding deltas instead of truncating, zero-filling or ignoring them.
+    """
+    helper = ROOT / 'scripts/generate_serverlessllm_deploy_config.py'
+    if sha(helper.read_bytes()) != '45ab8b151a9fb3b53e2b1a8fb86d0c180604eb3f14ef999792e2a413ad9d53f4':
+        raise ValueError('historical deployment selector changed; inspect before reuse')
+    spec = importlib.util.spec_from_file_location('tc_existing_deploy_selector', helper)
+    selector = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(selector)
+    if selector.safe_open is None or not adapter_map:
+        raise ValueError('complete safetensors header inspection required')
+    config_shas = {}
+    for aid, path in sorted(adapter_map.items()):
+        directory = Path(path)
+        config_path = directory/'adapter_config.json'
+        config = json.loads(config_path.read_text())
+        targets = config.get('target_modules')
+        if (not isinstance(targets, list) or not targets
+                or any(not isinstance(t, str) for t in targets)
+                or config.get('modules_to_save')
+                or any('embed' in t.lower() or 'lm_head' in t.lower() for t in targets)
+                or not (directory/'adapter_model.safetensors').is_file()
+                or selector._adapter_has_embedding_delta(directory)):
+            raise ValueError(f'{aid}: native backbone layout cannot discard embedding/saved-module deltas')
+        config_shas[aid] = sha(config_path.read_bytes())
+    return dict(disable_lora_embeddings=True, inspected_adapters=len(adapter_map),
+                selector_path=str(helper), selector_sha256=sha(helper.read_bytes()),
+                config_sha256=config_shas, basis='complete_current_pool_configs_and_tensor_headers',
+                independent_numerical_correctness=False)
+
+
 def qualify_model(args) -> dict:
     """Exercise the real store -> native loader -> model -> HTTP path.
 
@@ -1073,10 +1108,13 @@ def qualify_model(args) -> dict:
         adapter_map = {row['id']: str(pool/row['id']) for row in index['artifacts']}
         if len(adapter_map) != 500 or any(not Path(p).is_dir() for p in adapter_map.values()):
             raise ValueError('full existing pool required; no replacement or download')
+        embedding_policy = existing_pool_embedding_policy(adapter_map)
+        result['embedding_layout_qualification'] = embedding_policy
         result['configuration']['backend_config'].update(
             tc_native_measurement=True, enable_lora=True, require_lora_for_inference=True,
             lora_adapters=adapter_map, max_loras=4, max_cpu_loras=4, max_lora_rank=64,
-            disable_log_stats=False)
+            disable_log_stats=False,
+            disable_lora_embeddings=embedding_policy['disable_lora_embeddings'])
         result.update(external_http_replay=replay_context, source_view_manifest=measured,
                       artifact_source='existing_local_pool_mechanical_qualification_only',
                       remote_qualified=False, polling_comparison_completed=False)
@@ -1103,6 +1141,9 @@ def qualify_model(args) -> dict:
     env.update(SLLM_STORE_MEM_POOL_SIZE='32GB', SLLM_STORE_NUM_THREAD='4', SLLM_STORE_CHUNK_SIZE='32MB')
     if http_cfg:
         env['SLLM_TC_MEASUREMENT'] = '1'
+        env['VLLM_DISABLE_LORA_EMBEDDINGS'] = '1'
+        result['embedding_layout_qualification']['native_llama_sha256'] = sha(
+            (args.environment/'lib/python3.12/site-packages/vllm/model_executor/models/llama.py').read_bytes())
     result['selected_environment'] = {k: env[k] for k in ('PYTHONPATH', 'LD_LIBRARY_PATH',
         'SLLM_STORE_BIN', 'SLLM_STORE_MEM_POOL_SIZE', 'SLLM_SKIP_CONFIRM_MODEL_LOADED', 'TMPDIR')}
     os.environ.update({k: env[k] for k in ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'http_proxy',

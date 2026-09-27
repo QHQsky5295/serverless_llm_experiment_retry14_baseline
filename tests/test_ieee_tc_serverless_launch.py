@@ -16,6 +16,30 @@ MAIN = Path("/home/qhq/serverless_llm_experiment_retry14_baseline")
 
 
 class NativeLaunchTests(unittest.TestCase):
+    def test_existing_embedding_selector_requires_complete_current_content(self):
+        import torch
+        from safetensors.torch import save_file
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = root/'adapter_config.json'
+            config.write_text(json.dumps(dict(target_modules=['q_proj'], modules_to_save=None)))
+            weights = root/'adapter_model.safetensors'
+            save_file({'base_model.model.layers.0.self_attn.q_proj.lora_A.weight': torch.zeros(1, 1)}, weights)
+            policy = launch.existing_pool_embedding_policy({'a': str(root)})
+            self.assertTrue(policy['disable_lora_embeddings'])
+            self.assertEqual(policy['inspected_adapters'], 1)
+            self.assertFalse(policy['independent_numerical_correctness'])
+            (root/'added_tokens.json').write_text('{}')
+            with self.assertRaisesRegex(ValueError, 'cannot discard'):
+                launch.existing_pool_embedding_policy({'a': str(root)})
+            (root/'added_tokens.json').unlink()
+            save_file({'base_model.model.embed_tokens.lora_embedding_A': torch.zeros(1, 1)}, weights)
+            with self.assertRaisesRegex(ValueError, 'cannot discard'):
+                launch.existing_pool_embedding_policy({'a': str(root)})
+            weights.unlink()
+            with self.assertRaisesRegex(ValueError, 'cannot discard'):
+                launch.existing_pool_embedding_policy({'a': str(root)})
+
     def test_model_qualification_uses_native_format_and_one_explicit_instance(self):
         config = launch.native_model_config(Path('/models/vllm/existing'), Path('/source/model'))
         self.assertEqual(config['model'], 'existing')

@@ -92,3 +92,50 @@ repository root. This excludes legacy torch.load/shutdown patches from Serverles
 and keeps original native imports/library paths. Attempt2 had12 watchdog samples,
 confirmed GPU release/service removal and no GPU model constructed. Overlay2
 restored; empty auxiliary stopped. All attempts remain retained.
+
+## D69 native loading reaches GPU; LoRA layout qualification fails
+
+| Observation | Attempt3 result | Interpretation |
+|---|---:|---|
+| Planned/arrived requests |100/99 | Truncated after fatal engine exit; one unarrived request is not a timeout |
+| Protocol-valid responses |0 | No latency, TPOT or polling-effect estimate |
+| Initial startup failures |1 connection refusal +3 HTTP500 missing-router | Shared notice+60 preserved; no readiness-based shift |
+| Errors during manual owned cleanup |89 disconnected +6 connection refused | Do not mislabel these95 as independently observed inference failures |
+| Native store GPU confirmation | PASS |7B native weights loaded before LoRA initialization crashed |
+| Service peak/minimum host available |40,590,913,536 /68,924,452,864 bytes |238 watchdog samples; high/max/OOM/OOM-kill/swap all0 |
+| Cleanup | PASS |No hard kill, GPU contexts clear, service removed, empty auxiliary stopped; overlay3 restored |
+
+EngineCore exits in `VocabParallelEmbeddingWithLoRA.set_lora`:0 rows available
+versus1024 requested. The native checkpoint contains32000×4096 input embeddings;
+the default4×256 extra vocabulary requires33024 rows. The loader assigns the
+stored tensor directly. This layout mismatch is distinct from parameter-byte
+identity, which remains valid. This is not native throughput saturation.
+
+Primary sources: [vLLM0.10.2 LoRA configuration](https://raw.githubusercontent.com/vllm-project/vllm/v0.10.2/vllm/config/lora.py),
+[embedding layer](https://raw.githubusercontent.com/vllm-project/vllm/v0.10.2/vllm/lora/layers/vocal_parallel_embedding.py),
+[Serverless native loader patch](https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/9f50241baa5386e06a9321c51f19a9ef5f964c2b/sllm_store/vllm_patch/sllm_load.patch).
+In particular0 extra-vocab is not an accepted stock0.10.2 setting; do not silently
+relax that validation or pad/truncate adapter weights.
+
+Historical7B deployment already selected `disable_lora_embeddings=true` through
+`generate_serverlessllm_deploy_config.py`; its old `load_format=auto` does NOT
+prove the native path. The existing environment has the corresponding Llama
+compatibility mode (source SHA231282afc57850184704a0ab064a83828701ab8662c9547042fbe4f987a4ea93).
+Next candidate reuses this content-derived selector, after checking every
+adapter config and actual safetensors header. Embedding/saved-module deltas,
+missing files or an unavailable inspector must reject the candidate. It does
+not infer absence from adapter names or zero output differences. No new vLLM
+patch, weight/pool/trace generation or checkpoint re-export is needed on this
+evidence. Actual candidate model execution remains to be checked.
+
+Candidate39 unit checks pass (2.468s), including rejection of extra-token files,
+embedding tensor keys and missing weight files. The actual500-adapter header/
+config check passes without CUDA initialization (6.729s service wall, not model
+startup). Config-set SHA0597fa687254333e626255672113abcb2a2efd1594044e7d6f59f237969a09fc;
+existing selector SHA45ab8b151a9fb3b53e2b1a8fb86d0c180604eb3f14ef999792e2a413ad9d53f4.
+These are layout prerequisites, not a numerical LoRA or inference pass.
+
+Raw root `results/ieee_tc/serverless_qualification/d69_20260927`; copied private
+Ray logs match every original regular-file SHA (`--no-ignore` required inside
+the ignored results directory). Main curated `20260927_http_qualification_d69`
+JSON/CSV preserves all three attempts. No paper performance claim is supported.
