@@ -2,6 +2,31 @@
 
 ## Current checkpoint — 2026-09-27 D88 development controls; admission source next
 
+LATEST:3B attempt3 FAILED before request wave initialization,0requests/1setup
+transfer. Model initialized, original archive AND content verified, but final
+file-publication inventory rejected changed reserved inode size/allocation/link
+tuple. Exact differing tuple NOT logged; no assumption of corruption or ext4
+cause yet. No pending-register call was reached; transport fix remains CPU-only
+qualified. Actual GPU/service/workspaces released;physicalleasecf746ef588cc41f5b9717f972c1d2f9d
+released. Matchingemptyaux8c81d440 stopped;remote monitor27ba3e2e and both matching
+services STOPPED/allinactive/MainPID0/success. No live tmux/GPU model.
+NEXT preserve failure status/UUID then diagnose existing preallocation invariant
+without GPU. Do not start another inference or relax capacity/content checks on
+speculation. BaselinesPAUSED;Full/M1/M2/A/S stillunqualified/unstarted.
+
+Historical:3B attempt3 launched22:09:52 in tmux tc-d88-3b-attempt3, source
+b091e426b0444329fe151ebc4f17e30baf12710f PUSHED/freshremoteSHA matches.
+Rawd88/run_3b_admission_source_attempt3.sh;3b_admission_source_attempt3{,_launch}.json.
+Same368-case spec/settings/inputs, only corrected native pending transport.
+Remote3Bafbe2ed1f5354f149506f551cebb0722 PID490895,
+7B4c57cf3ffe8343afad78f187d93e0224 PID490897,
+monitor27ba3e2e82c8444e8932d70179810cf9 PID490900
+(primelora-artifact-monitor-d88a3.service), logtc/d88_20260927/remote_monitor_attempt3.log.
+Both direct health pass, actualeno1 speed1000; no remote configuration change.
+Newauxprimelora-tc-aux-d8800000000000000000000000000004.scope.
+Monitor to terminal;no code/remote management during inference. Cleanup,validate,
+table/plot BEFORE7B or any next experiment. No Full qualification yet.
+
 LATEST correction ready:fixed two-field operation/payload utility packet preserves
 native pending ownership.190related tests pass2.635s;20final pending tests pass
 0.039s;actual installed converter/msgspec no-CUDA audit passes. OS63pass1.172s;

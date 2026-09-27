@@ -118,9 +118,50 @@ The unchanged OS tests pass under the already-qualified system interpreter;
 the corrected application regression passes under its intended environment.
 Production safety checks were not relaxed.147protected entries remain unchanged.
 
+## Third attempt: file-reservation invariant (unresolved)
+
+| 3B attempt3, sourceb091e42 | Observation |
+|---|---|
+| Native model initialization |completed |
+| Planned / executed / correct requests |368 /0 /0 |
+| Controlled setup transfer |1, code_lora |
+| Wire / logical payload bytes |2,339,502 /56,327,468 |
+| Immutable archive SHA / original content SHA |both verified |
+| Local verified-source publication |rejected; not made visible |
+| Native pending registration |not reached |
+| Service / independent watcher exit |2 /0 |
+| Sampled service peak / host minimum |5,673,803,776 /110,588,620,800 bytes |
+| Sampled high / max / OOM / swap |0 /0 /0 /0 |
+| Actual GPU / service / workspaces / physical lease |all released |
+| Remote monitor/services and empty auxiliary |stopped by matching identity |
+| Valid performance samples |none |
+
+The first setup object's archive and extracted content passed SHA verification,
+then `LocalSourceReferences._file_inventory` rejected a reserved inode tuple
+before publication. The exception checks identity, logical size, allocated bytes
+and link count together; it did not log the differing values. Consequently this
+run alone does **not** establish corruption, allocation growth, link mutation or
+a particular filesystem cause. It also cannot qualify the pending-transport fix,
+because no inference request reached that interface.
+
+The filesystem is ext4. The owner assumes allocated blocks remain exactly fixed
+after fallocate while byte writes proceed outside its lock. This assumption is
+the next diagnostic target, not a reason to remove the check. Ext4 stores extent
+mapping in a tree and distinguishes unwritten/written extents; those documented
+mechanisms motivate measuring actual allocation transitions, but do not prove
+this failure's cause. [Kernel extent-tree documentation](https://docs.kernel.org/filesystems/ext4/dynamic.html),
+[fallocate semantics](https://man7.org/linux/man-pages/man2/fallocate.2.html).
+
+Next: a bounded no-GPU diagnostic of the existing file owner, preserving expected
+and actual inode/size/allocation/link values through write and publication. Use
+only existing content in a temporary owned single-object workspace; no full pool,
+new weights, remote publication or GPU retry. Any correction must retain content
+verification, byte-budget accounting, concurrent reservation and cleanup safety.
+Curated `20260927_d88_3b_admission_attempt3_failure.json` binds complete raw evidence.
+
 ## Remaining work
 
-After regression and backup: rerun the affected 3B source path as attempt3,
+Resolve the newly observed file invariant before another inference attempt;
 then cleanup/validate/plot before7B. The frozen contract is unchanged. Full profile
 export, integrated activation/lifecycle and complete development replay remain
 pending; baselines stay paused. The all-zero adapter discrimination limitation

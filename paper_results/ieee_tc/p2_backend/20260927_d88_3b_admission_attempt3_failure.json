@@ -1,0 +1,89 @@
+{
+  "kind": "failed_source_initialization_evidence_v1",
+  "model": "3b",
+  "attempt": 3,
+  "source_commit": "b091e426b0444329fe151ebc4f17e30baf12710f",
+  "status": "failed_setup_file_publication_before_requests",
+  "classification": "unresolved_file_reservation_invariant",
+  "planned_requests": 368,
+  "executed_requests": 0,
+  "correct_requests": 0,
+  "representative_samples": 0,
+  "original_error": "reserved file changed identity, size or allocation",
+  "exact_differing_file_tuple_not_logged": true,
+  "filesystem": "ext4",
+  "filesystem_cause_proven": false,
+  "pending_transport_reached": false,
+  "remote_transfers": 1,
+  "remote_uuid_pairs_verified": 1,
+  "remote_wire_bytes": 2339502,
+  "remote_logical_bytes": 56327468,
+  "archive_sha_verified": true,
+  "content_sha_verified": true,
+  "publication_completed": false,
+  "remote_request_packing": 0,
+  "service_returncode": 2,
+  "watchdog_returncode": 0,
+  "resource_samples": 72,
+  "service_peak_bytes": 5673803776,
+  "host_min_available_bytes": 110588620800,
+  "max_memory_events": {
+    "low": 0,
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0,
+    "oom_group_kill": 0
+  },
+  "max_service_swap_bytes": 0,
+  "native_contexts_released": true,
+  "service_group_removed": true,
+  "workspaces_removed": true,
+  "physical_owner_release_qualified": true,
+  "remote_monitor_and_services_stopped": true,
+  "empty_auxiliary_stopped": true,
+  "full_qualified": false,
+  "valid_performance_samples": 0,
+  "raw": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/3b_admission_source_attempt3.json",
+      "sha256": "e6e31da1fa0f0fc5c65c295339bc0c01810e62074d8e98b5fbc30604c4936ad1"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/3b_admission_source_attempt3_launch.json",
+      "sha256": "9228cd07802a18210d04b15ba7230de7326d27a861a752093d23fd21b005f4ec"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/3b_admission_source_attempt3_launch.launch/watchdog.jsonl",
+      "sha256": "de0a54995eb1ae8612283c11a441df1da2cfa0dc1183fdaace2babed1379ff12"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/attempt3_remote_3b_transfers.jsonl",
+      "sha256": "631c8ff43fca59aa368c686bbb495c98e30c07bccc4d22614d44b9e239ebb3a5"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/remote_monitor_attempt3_final.log",
+      "sha256": "50a4c5038b6ad121ed68d17d9080180160e89e9ada4a509bba8af4422d4034b9"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/pending_regression1.log",
+      "sha256": "3efc1ab919ae0440e2e8e876a28b9cab0ff849dd35550810220ee4795c2258de"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/pending_regression2.log",
+      "sha256": "29c45bb36461b6dd45cd249b207ef7ad8ccdcffd19cc5f678f2c1577a11fdf7a"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/pending_os1.log",
+      "sha256": "1fa9700fa913292c27446df2839e1f6c8d3671755648a8d32756faea60f101a7"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d88_20260927/pending_green2.log",
+      "sha256": "73a6056e35e32f5ea68990e07f892012de22255eb671495ffc32627c1fc773b3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d88_20260927/3b_admission_source_attempt3_launch.launch/physical_allocations/cf746ef588cc41f5b9717f972c1d2f9d.jsonl",
+      "sha256": "ced6658f1e9f3fdc76bfdda5b864979da5425fb398db570673432e2250d7c52a"
+    }
+  ]
+}
