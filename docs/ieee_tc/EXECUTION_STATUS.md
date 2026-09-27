@@ -31,12 +31,41 @@
   and local tiers. Necessary storage reads/HTTP response are distinguished from
   artificial preparation, not assumed zero. D75–D77 pack results remain legacy
   functionality/diagnosis, not formal performance. D78 source delivery change
-  tested; offline3B publication LIVE below, not yet serving new HTTP mode.
+  tested; offline3B publication COMPLETE below, not yet serving new HTTP mode.
 - User now asks why actual remote link is100M and whether latency should be
   excluded. D77 read-only diagnosis below answers; no network-change permission
   inferred. Do not silently replace measured real-remote main protocol by sim.
 
-## D78 approved prepublished cache: 3B publication LIVE (do not duplicate)
+## D78 approved prepublished cache: 3B COMPLETE; 7B LIVE
+
+-7B launched16:51:51+08 after3B cleanup/validation/table, same frozen builder.
+  Unitprimelora-publish-tc-7b-d78.service, PID152301,
+  invocation0bb5c87f25e148069fd9c2ccd303e8e2, high1G/max2G/swap0,CPU2,22.
+  Separate monitorprimelora-publish-monitor-7b-d78.scope,
+  invocation4f89329a279f498aaec1ea3bb7f6639f, high128M/max256M/swap0,CPU0,20.
+  LocalTMUXprimelora-d78-publish7b; rawpublication_7b_monitor.log grows.
+  Remote /home/lab14/primelora_remote/tc/d78_20260927/publication_7b.jsonl and
+  published/7b.8/500 first snapshot. DO NOT duplicate/restart/overwrite.
+  LauncherSHAe755cdff391a6c0bbe9b69d495d275bec24b5a149bd8c00682fbe35a71e96ab0.
+  Disk148370919424B,host107305060KiB available at first sample, passed unchanged
+  independent remote launch rules. No inference/baseline run or source change.
+  Next: SAME7B completion/cleanup/table, then newversionD79 HTTP qualification
+  and representative Full profiles. Do not reuse legacy dynamic-pack timings.
+
+-3B SAME publication completed1210.560769688s,500/500 objects/4000files,
+  original19482573296B/archive1160474851B, allocated1161277440B. All500events
+  exactly match manifest and frozen full input; source/canonical SHAs match.
+  ManifestSHA9fbd57b6216541d90f01e3efb7e63e849fec011c51a278259e9a54d8546d8173.
+-1154 watchdog samples,peak1074266112B,minhost109824106496B,high37690,
+  max/OOM/OOM-kill/swap0. Offline reclaim is not production latency. Publisher
+  success/exit0, then STOPPED/MainPID0/inactive; supervisor inactive,TMUXgone.
+  Directory0555/manifest0444; no second extracted pool or source modification.
+-Curated20260927_d78_3b_publication.json retains5 raw SHAs and status table is
+  in REMOTE_ACCESS. New HTTP serving/archive-startup validation/profile still
+  pending. Do NOT rerun3B publication;7B LIVE with same existing single-model
+  script and separately named raw files. Remote free148371685376B after3B.
+-D79 source/test checkpoint a125b54a6cd2436ea3784d8ead859eca55be9ad4 PUSHED,
+  fresh remote branch exact match. Rawd79_backup_receipt.json. No user dirt staged.
 
 ### D79 published-path integration and telemetry, 2026-09-27
 
@@ -64,8 +93,10 @@
 - Protected147 entries unchanged. Current D78 publication continues the SAME
   e00e3f7c source; no live source replacement/restart. D79 telemetry will deploy
   separately after backup, with no regeneration of valid immutable caches.
--16:45 observation381/5003B objects, PID128063/same invocation, still running.
+-Historical16:45 observation381/5003B objects, PID128063/same invocation.
   Baselines remain PAUSED, Full profiles and integrated qualification pending.
+
+### D78 implementation and earlier3B live snapshots (superseded above)
 
 - User explicitly APPROVED once-only immutable compressed transport cache,
   expected1.47GiB, no second extracted pool/new weights/trace. No longer a
@@ -91,23 +122,23 @@
   entries unchanged, diff-check clean. Sourcee00e3f7c898cb90022361b0afc7381d9ba947d40
   PUSHED; fresh remote branch SHA identical, no user changes staged.
 - Raw root results/ieee_tc/remote_qualification/d78_20260927, PROTOCOL.md.
-  Next: observe SAME3B offline publication, validate/table, then7B. No parallel
-  inference, baseline or new pool. Cache destination is exclusive; NEVER restart
-  or overwrite this live attempt because a context boundary occurred.
+  Earlier order was SAME3B publication, validate/table, then7B;3B now complete.
+  No parallel inference, baseline or new pool. Cache destination is exclusive;
+  NEVER restart or overwrite the CURRENT7B attempt at a context boundary.
 - Remote newversion /home/lab14/primelora_remote/tc/e00e3f7c898cb90022361b0afc7381d9ba947d40/server.py,
   sourceSHAcdcdbe1f4a90db9a5546e77d386075b62baf88b5ee1fefdd678d6b420fb346bc.
   Both frozen indices copied/SHAs matched; original serverSHAa3650722 unchanged.
-- Live3B publication started16:29:46+08, unitprimelora-publish-tc-3b-d78.service,
+- Historical3B publication started16:29:46+08, unitprimelora-publish-tc-3b-d78.service,
   PID128063/invocationefce4fd2c63f4b83822de2ccdb88ff45, high1G/max2G/swap0,
   CPU2,22/TasksMax16. Separate monitor scopeprimelora-publish-monitor-3b-d78.scope,
   invocationa4d98a1482c44fc29e2e11fe3b9c8563, high128M/max256M/swap0, CPU0,20.
   Monitor checks host memory/pressure each loop, disk/inodes every30 samples,
   and only stops the matching invocation on abort/exit. No GPU/runtime on174.
-- Local TMUXprimelora-d78-publish3b owns SSH/monitor; rawpublication_3b_monitor.log
-  grows. Remote events /home/lab14/primelora_remote/tc/d78_20260927/publication_3b.jsonl;
+- Historical local TMUXprimelora-d78-publish3b owned SSH/monitor, now gone;
+  rawpublication_3b_monitor.log final. Remote events /home/lab14/primelora_remote/tc/d78_20260927/publication_3b.jsonl;
   destination sameparent/published/3b. Incomplete directory is0700; complete
   manifest appears only after all500 success, then directory0555/objects0444.
-- Last observation63/500 published,152monitor samples, remotepeak1074266112B,
+- Early observation63/500 published,152monitor samples, remotepeak1074266112B,
   high4144/max0/OOM0/swap0, hostavailable~102GiB, free149404114944B. Offline
   page-cache reclaim under1G high is not production latency or a failed run.
 - Raw launcher publish_one_remote.sh SHA8bc12cb37ee7bde595ddc6287b45282dca465037259e035bdda6e04373e07497;
@@ -232,7 +263,9 @@
    transport cache (same content/compression semantic, estimated1.5GiB total)
    versus direct existing files (no duplicate cache but substantially more wire
    bytes). User now APPROVED once-only compressed cache; implement that choice.
-   3B cache publication is LIVE; observe it rather than restarting. Do not inflate
+   3B cache publication is COMPLETE;7B is LIVE, observe SAME invocation above.
+   After7B completion/cleanup/table deploy separately versioned backed-up D79
+   server; qualify published HTTP path before Full profiles. Do not inflate
    network work by switching to uncompressed files merely to avoid disk use.
    Both alternatives must retain exact input
    SHA, identical common protocol, cold local state and legitimate caching.
@@ -314,7 +347,7 @@
 - Main push faaslora_origin/retry14_continuous_queue_v2; baseline origin/main.
   Before push: diff/secrets/protected-name/checksum/test/smoke, then fresh full
   remote SHA. Raw large logs/credentials never Git. Current source checkpoint
-  c476784 is backed up; later evidence-only checkpoint is recorded by Git/raw receipt.
+  a125b54 is backed up; later evidence-only checkpoint is recorded by Git/raw receipt.
 - Every run: cleanup→validation→table/figure→interpretation→next. Reports in
   Chinese from paper-evidence perspective at least each minute while active.
   academic-plotting is used for actual data figures; functional status uses tables.

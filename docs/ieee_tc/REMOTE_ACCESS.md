@@ -479,3 +479,37 @@ d79_basic_smoke_offline_terminal.txt SHA
 Failed launcher/test-development attempts and the explicitly TERM-stopped online
 smoke remain raw evidence; they are not passes or inference-performance failures.
 No D79 serving code is substituted underneath live D78 publication.
+
+### D78 3B offline publication COMPLETE (supersedes live snapshots)
+
+| Field | Final value | Interpretation |
+|---|---:|---|
+|Adapters / source files|500/4000|Whole static set, SHA-verified while publishing|
+|Original / archive bytes|19482573296 /1160474851|Same logical content, new immutable gzip objects|
+|Allocated cache bytes|1161277440|No second extracted pool|
+|Offline duration|1210.560770s|NOT inference TTFT/E2E or a transport profile|
+|Watchdog samples / peak bytes|1154 /1074266112|Offline high1G/max2G|
+|high /max /OOM /swap|37690 /0 /0 /0|Recorded reclaim, no hidden limit relaxation|
+|Publisher /supervisor terminal state|inactive /inactive|Owned processes released; exit0|
+|HTTP delivery /Full inference|Pending /pending|Do not infer performance qualification|
+
+All500 artifact events match the completion manifest, which matches exact frozen
+IDs, file counts, logical bytes, source-index and canonical content SHAs.
+ManifestSHA9fbd57b6216541d90f01e3efb7e63e849fec011c51a278259e9a54d8546d8173;
+eventSHAf4a53ddfa79ed2724ee347822099606ebe2962814422bb7b12f4595380f9e9d4.
+Curatedpaper_results/ieee_tc/remote_qualification/20260927_d78_3b_publication.json
+retains5 raw SHA references. Startup archive hashing remains required before
+HTTP serving. Next:7B with same builder, no inference or baseline overlap.
+
+### D78 7B publication LIVE,16:51:51+08
+
+3B complete/clean/table recorded before7B start. Same backed-up e00e3f7c builder,
+frozen7B materialized indexSHAe85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c.
+Publisherprimelora-publish-tc-7b-d78.service, PID152301,
+invocation0bb5c87f25e148069fd9c2ccd303e8e2; monitor scope
+primelora-publish-monitor-7b-d78.scope/4f89329a279f498aaec1ea3bb7f6639f.
+Same offline1/2GiB/swap0 and separate128/256MiB supervisor limits.
+Initialavailable148370919424B disk,107305060KiB memory;8/500 first observation.
+LocalTMUXprimelora-d78-publish7b, unique rawpublication_7b_monitor.log;
+launcherSHAe755cdff391a6c0bbe9b69d495d275bec24b5a149bd8c00682fbe35a71e96ab0.
+No inference experiment overlaps. Observe this run, never duplicate at recovery.
