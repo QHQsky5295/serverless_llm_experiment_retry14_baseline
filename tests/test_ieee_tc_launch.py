@@ -21,6 +21,47 @@ def ieee_control_fixture():
 
 
 class NativeAllocatorLaunchContract(unittest.TestCase):
+    def test_import_defaults_preserve_explicit_settings_and_conflicts(self):
+        default = {}
+        runner._apply_allocator_import_defaults(default)
+        self.assertEqual(default, {'PYTORCH_ALLOC_CONF': 'expandable_segments:False',
+                                  'PYTORCH_CUDA_ALLOC_CONF': 'expandable_segments:False'})
+        candidates = [
+            {'PYTORCH_ALLOC_CONF': 'pinned_max_cached_size_mb:0,pinned_use_background_threads:True',
+             'FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY': 'uncached_background_v1'},
+            {'PYTORCH_CUDA_ALLOC_CONF': 'expandable_segments:True'},
+            {'PYTORCH_ALLOC_CONF': 'one', 'PYTORCH_CUDA_ALLOC_CONF': 'another'},
+            {'FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY': 'uncached_background_v1'},
+        ]
+        for env in candidates:
+            before = dict(env)
+            runner._apply_allocator_import_defaults(env)
+            self.assertEqual(env, before)
+
+    def test_actual_fresh_import_preserves_preconfigured_allocator(self):
+        import subprocess
+        import sys
+        env = dict(os.environ)
+        for key in ('PYTORCH_CUDA_ALLOC_CONF', 'PYTORCH_HIP_ALLOC_CONF'):
+            env.pop(key, None)
+        env['PYTORCH_ALLOC_CONF'] = 'pinned_max_cached_size_mb:0,pinned_use_background_threads:True'
+        env['FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY'] = 'uncached_background_v1'
+        # No model, CUDA operation or live policy change: exercise the exact
+        # fresh-process import which the previous unit-only checks missed.
+        code = '''
+import os
+keys = ('PYTORCH_ALLOC_CONF','PYTORCH_CUDA_ALLOC_CONF','PYTORCH_HIP_ALLOC_CONF',
+        'FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY')
+before = {key: os.environ.get(key) for key in keys}
+from scripts import run_all_experiments as runner
+assert {key: os.environ.get(key) for key in keys} == before
+runner._ieee_native_allocator_environment(
+    {'backend':'vllm','ieee_native_host_allocator_policy':'uncached_background_v1'}, os.environ)
+'''
+        subprocess.run([sys.executable, '-c', code], env=env,
+                       cwd=Path(runner.__file__).resolve().parent.parent,
+                       check=True, capture_output=True, text=True, timeout=120)
+
     def test_background_candidate_has_distinct_frozen_identity_and_no_live_upgrade(self):
         cfg = {'backend':'vllm', 'ieee_native_host_allocator_policy':'uncached_background_v1'}
         setting = 'pinned_max_cached_size_mb:0,pinned_use_background_threads:True'

@@ -71,6 +71,24 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Awaitable, Callable, Collection, Dict, List, Optional, Sequence, Tuple
 
+
+def _apply_allocator_import_defaults(environment):
+    """Set the legacy default only when the launcher supplied no policy.
+
+    Allocation policy belongs to process startup. Importing this runner must
+    not replace an explicit setting after torch has consumed it or introduce a
+    competing legacy alias into a fresh worker. Candidate validation remains in
+    initialize/the dedicated worker and actual native allocator readback.
+    """
+    aliases = ('PYTORCH_ALLOC_CONF', 'PYTORCH_CUDA_ALLOC_CONF', 'PYTORCH_HIP_ALLOC_CONF')
+    if (not environment.get('FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY')
+            and not any(environment.get(key) for key in aliases)):
+        environment['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:False'
+        environment['PYTORCH_ALLOC_CONF'] = 'expandable_segments:False'
+
+
+_apply_allocator_import_defaults(os.environ)
+
 import yaml
 
 # 抑制 PEFT load_adapter 时的 "Already found peft_config" 警告（预期行为，非错误）
@@ -175,9 +193,8 @@ if os.environ.get("FAASLORA_VISIBLE_DEVICES") and not os.environ.get("CUDA_VISIB
 # Limit CPU threads to avoid memory spikes and driver issues with multi-threaded CUDA
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
-# vLLM EngineCore init can fail with expandable_segments:True (KV cache / multiprocess); force False
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:False"
-os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:False"  # new PyTorch name
+# Allocator defaults are applied before any torch import above. Explicit
+# startup policies are never overwritten by importing this module.
 # PunicaWrapperGPU multi-stream LoRA can crash on RTX 3090; use single-stream path
 os.environ["VLLM_DISABLE_LORA_STREAM"] = "1"
 # Keep the default sampler path conservative and deterministic unless a profile

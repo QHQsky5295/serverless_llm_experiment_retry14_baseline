@@ -87,6 +87,23 @@
 
 ### D82 source profiling implementation, real pilot next
 
+- D82 source2c1308e10ee71e690f9ed6cbfc95b349fc35492d PUSHED and remoteSHA
+  verified. Real3B pilot attempt1 failed before model creation/any request:
+  runner import overwrote startup allocator env with historical defaults.
+  Source fix now preserves explicit process policy; original conflict/native
+  readback guards remain.72launch/worker tests pass11.230s including actual
+  fresh-process import. No formulas/capacities changed. P2 immediate table added.
+- Attempt1 service2/watchdog0, native contexts clear/service path removed,
+  profile workspaces removed;67samples memory peak1424781312B,high/max/OOM0.
+  Empty auxscope invocation2caec0ceab7b474eaa8286ae8211801a stopped.
+- Remote D82 services ACTIVE:3B612bfa8d08a645ccb068be707022dede/PID234472;
+  7B15a09462cc8e4038a33fb218df1af11c/PID234474;
+  monitor0cbac9d7bced4aa89c8f14d0ec16b0a4/PID234479. Both authenticated
+  published delivery health passed before attempt1; no remote changes during
+  the run. Stop only matching monitor invocation after pilot series finishes.
+- NEXT after offline smoke/backup: attempt2 same3B10-request source pilot,
+  rawrun_3b_source_pilot_attempt2.sh (new receipt/scope). Do not overwrite1.
+- Offline smoke after import fix:288pass21.876s;147protected unchanged.
 - D81 evidence4ba3f58aa7ab86f1056905fc8136d01539e7966e PUSHED; fresh remoteSHA
   matched.25new raw references/147protected entries verified.
 - Existing backend-model-check gains native_source_matrix with explicit small

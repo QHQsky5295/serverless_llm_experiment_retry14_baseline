@@ -1,0 +1,61 @@
+{
+  "kind": "d82_source_pilot_failed_attempt_summary_v1",
+  "attempt": 1,
+  "source_commit": "2c1308e10ee71e690f9ed6cbfc95b349fc35492d",
+  "status": "failed_before_model_creation",
+  "classification": "protocol_or_launcher_error",
+  "request_count": 0,
+  "cause": "runner import overwrote explicit startup allocator policy",
+  "service_returncode": 2,
+  "watchdog_returncode": 0,
+  "native_contexts_clear": true,
+  "service_path_removed": true,
+  "workspace_removed": true,
+  "sampled_memory_peak_bytes": 1424781312,
+  "sampled_memory_events": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "fix_validation": {
+    "targeted_tests": 72,
+    "targeted_seconds": 11.23,
+    "basic_smoke_tests": 288,
+    "basic_smoke_seconds": 21.876
+  },
+  "raw_evidence": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/3b_source_pilot_attempt1.json",
+      "sha256": "16cc4ab7ae042fbae0bfb1b0ed55a44f0f3ff6964b8df44cbd5b931adfc8bc95"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/3b_source_pilot_attempt1_launch.json",
+      "sha256": "dcb808f79c951de65e9f8ac11c8c25ec6bc52a3f6b966c99f434929b0c424660"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/3b_source_pilot_attempt1_launch.launch/service.log",
+      "sha256": "10f761ad2e3f0968afff4186c7311d93c0e5c6bee180101b2a3a84a5b36c386b"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/3b_source_pilot_attempt1_launch.launch/watchdog.jsonl",
+      "sha256": "fecfaf7eb89015bab572868c71e2cc84af18584d28c9fc2f60bef7edca9fc792"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/remote_activation_receipt.json",
+      "sha256": "f42b2ec7f37c28882ccb7c0c6afbaf0b848778096772c39904223714feb96d63"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/remote_preinference_health.json",
+      "sha256": "37d7ec87297fec0f9712d3da1288b56912113cc2f91038ce1b3386a644d1ef59"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/test_allocator_import.json",
+      "sha256": "c44dea33958b90d815bc139d559ed8621d72585c3159d4d97f41715e77fcfb38"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/basic_smoke_after_allocator_fix.json",
+      "sha256": "9b99f8128660181cd2193b76edaa73ac5a61f4979c76b740f3ad635821c76495"
+    }
+  ]
+}
