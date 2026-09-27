@@ -707,11 +707,24 @@ class LocalSourceReferences:
         writing = {key for record in self._prepared_transfers.values() for key in record['files']}
         view = _local_file_inventory(self.roots, writing_inodes=writing)
         actual = {(item['device'], item['inode']): item for item in view['allocations']}
-        for record in self._prepared_transfers.values():
+        for transfer_id, record in self._prepared_transfers.items():
             for key, expected in record['files'].items():
                 item = actual.get(key)
                 if item is None or (item['logical_bytes'], item['allocated_bytes'], item['link_count']) != expected:
-                    raise RuntimeError('reserved file changed identity, size or allocation')
+                    fields = ('logical_bytes', 'allocated_bytes', 'link_count')
+                    expected_values = dict(zip(fields, expected))
+                    observed = None if item is None else {field: item[field] for field in fields}
+                    # Preserve the exact failed observation, not a second stat
+                    # that might hide a transient change. Diagnostics do not
+                    # retry, change the reservation, or relax its byte budget.
+                    detail = dict(kind='reserved_file_invariant_failure_v1',
+                        transfer_id=transfer_id, tier=record['tier'],
+                        device=key[0], inode=key[1], expected=expected_values,
+                        observed=observed, observed_paths=[] if item is None else item['paths'],
+                        changed_fields=['missing_reserved_inode'] if item is None else
+                            [field for field in fields if observed[field] != expected_values[field]])
+                    raise RuntimeError('reserved file changed identity, size or allocation: '
+                                       + json.dumps(detail, sort_keys=True))
         return view
 
     @contextmanager

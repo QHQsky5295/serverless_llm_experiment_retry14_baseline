@@ -2,6 +2,19 @@
 
 ## Current checkpoint — 2026-09-27 D88 development controls; admission source next
 
+LATEST22:23:two bounded CPU diagnostic sets completed,3copy+3original-archive
+cases. All content and allocation checks pass;NO reproduction,NO causal fix.
+Originalarchive read once overSSH, no HTTP/service/config/newpool operation.
+Alltempfiles removed,147protected unchanged. Firstsystemdlaunchwrongcwd retained,
+correctedexplicitWorkingDirectory. Production only adds exact expected/observed
+tuple to SAME invariant rejection; no normal-path IO,guardrelaxation,retry,fsync,
+or config change.2redtests preserved;448lifecycle/pending/basicpass24.914s.
+Curated20260927_d88_file_invariant_diagnostic.json and D88 status table preserved.
+NEXT backup this diagnostic checkpoint, then one instrumented same-contract3B
+attempt; pending wire remains onlyCPUqualified. If failure recurs,use exacttuple,
+not speculation. No claim filebugfixed or Fullqualified. Models/remotes STOPPED;
+baselinesPAUSED and M1/M2/A/S notstarted. Historicalnotes below preserved.
+
 LATEST:3B attempt3 FAILED before request wave initialization,0requests/1setup
 transfer. Model initialized, original archive AND content verified, but final
 file-publication inventory rejected changed reserved inode size/allocation/link

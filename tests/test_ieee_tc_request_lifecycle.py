@@ -1429,6 +1429,44 @@ class LocalSourceOwnership(unittest.TestCase):
         self.assertCountEqual(outcomes, ['reserved', 'conflict'])
         self.assertEqual(owner.inventory()['allocated_file_bytes'], before)
 
+    def test_reserved_allocation_failure_records_exact_observation_without_relaxing_guard(self):
+        from faaslora.memory import residency_manager as module
+        owner = self.manager.local_source_references
+        original_inventory = module._local_file_inventory
+        with owner.materializing(self.source) as transfer:
+            with owner.transfer_workspace(transfer) as staging:
+                owner.prepare_copy(transfer, staging, {'weights': (17, '0' * 64)}, limit_bytes=32768)
+                key, expected = next(iter(owner._prepared_transfers[transfer]['files'].items()))
+                def observed_change(*args, **kwargs):
+                    view = original_inventory(*args, **kwargs)
+                    for item in view['allocations']:
+                        if (item['device'], item['inode']) == key:
+                            item['allocated_bytes'] += 4096
+                    return view
+                with patch.object(module, '_local_file_inventory', side_effect=observed_change):
+                    with self.assertRaisesRegex(RuntimeError, 'reserved file changed') as caught:
+                        owner.inventory()
+                detail = json.loads(str(caught.exception).split(': ', 1)[1])
+                self.assertEqual(detail['transfer_id'], transfer)
+                self.assertEqual(detail['tier'], 'nvme')
+                self.assertEqual(detail['expected']['allocated_bytes'], expected[1])
+                self.assertEqual(detail['observed']['allocated_bytes'], expected[1] + 4096)
+                self.assertEqual(detail['changed_fields'], ['allocated_bytes'])
+                self.assertEqual(owner._prepared_transfers[transfer]['files'][key], expected)
+                owner.inventory()  # Failure diagnostics did not mutate ownership.
+
+    def test_reserved_missing_file_failure_distinguishes_identity_from_size(self):
+        owner = self.manager.local_source_references
+        with owner.materializing(self.source) as transfer:
+            with owner.transfer_workspace(transfer) as staging:
+                owner.prepare_copy(transfer, staging, {'weights': (17, '0' * 64)}, limit_bytes=32768)
+                (staging / 'weights').unlink()
+                with self.assertRaisesRegex(RuntimeError, 'reserved file changed') as caught:
+                    owner.inventory()
+                detail = json.loads(str(caught.exception).split(': ', 1)[1])
+                self.assertIsNone(detail['observed'])
+                self.assertEqual(detail['changed_fields'], ['missing_reserved_inode'])
+
     def test_transfer_budget_is_frozen_and_private_writer_cannot_be_reclaimed(self):
         owner = self.manager.local_source_references
         with owner.materializing(self.source) as transfer:

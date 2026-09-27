@@ -161,7 +161,49 @@ Curated `20260927_d88_3b_admission_attempt3_failure.json` binds complete raw evi
 
 ## Remaining work
 
-Resolve the newly observed file invariant before another inference attempt;
+CPU diagnostic first result (no production modification): three fresh owned
+NVMe workspaces copied the same existing `code_lora` payload under the actual
+preallocation owner, recording tuples after each write and close. All three
+passed every inventory check and all eight original hashes; explicit diagnostic
+fsync also did not change allocation. Each workspace was removed, leaving zero
+regular-file bytes;147protected entries unchanged. This does **not** reproduce
+attempt3 and does not justify relaxing its guard. Raw `file_probe2.json` and
+`probe_reserved_files.py` preserve all observations. The first launch selected
+systemd's home-directory default and failed before running the script; explicit
+WorkingDirectory corrected that launcher-only error.
+
+Next minimal diagnostic adds the original prepublished archive and the actual
+verified extractor, using one read of the existing remote object, not a new
+archive or pool. It is a CPU filesystem diagnostic, not an HTTP performance run.
+
+That archive diagnostic is now complete: three fresh workspaces, original
+2,339,502-byte archive SHA checked, all eight extracted files SHA checked,
+58,695,680 allocated bytes unchanged throughout. All three cleanups completed.
+The archive was read once over authenticated SSH and held in bounded memory;
+no remote service/configuration changed and no archive/pool was regenerated.
+Both diagnostic sets are negative reproductions, not proof that attempt3 was
+safe or that ext4 is its cause. No production fsync/sleep/margin was introduced.
+
+| Check | Result |
+|---|---:|
+| Existing payload-copy cases |3/3 passed |
+| Existing archive + production extractor cases |3/3 passed |
+| Reproduced reserved-tuple changes |0 |
+| Protected historical entries unchanged |147/147 |
+| Diagnostic + lifecycle + pending + basic tests |448 passed,24.914s |
+| Full/GPU inference qualification |not established |
+
+Production now emits the exact already-observed expected/actual tuple, transfer,
+tier, inode and differing fields **only when the same guard rejects**. No extra
+normal-path stat, retry, relaxed check or ownership mutation. Two tests first
+failed on missing diagnostic evidence; after the change they verify allocation
+change versus missing inode and that reservation state remains intact. A future
+instrumented same-contract attempt can now distinguish these causes; it is not
+being presented as a fixed allocation bug. Curated diagnostic JSON binds raw
+checks, original failures and script version; the first copy probe preceded the
+archive-mode script extension, explicitly recorded rather than mislabelled.
+
+Observe the affected native path with exact failure evidence;
 then cleanup/validate/plot before7B. The frozen contract is unchanged. Full profile
 export, integrated activation/lifecycle and complete development replay remain
 pending; baselines stay paused. The all-zero adapter discrimination limitation

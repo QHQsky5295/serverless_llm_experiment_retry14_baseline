@@ -1,0 +1,53 @@
+{
+  "kind": "d88_file_invariant_diagnostic_v1",
+  "production_parent_commit": "ba99488ada4ebe178ac1328692d9db341d5eaef8",
+  "cause_resolved": false,
+  "guard_relaxed": false,
+  "gpu_inference": false,
+  "full_qualified": false,
+  "rows": [
+    {
+      "raw": "file_probe2.json",
+      "repeats": 3,
+      "failed_checks": 0,
+      "source_hashes_verified": true,
+      "temporary_removed": true,
+      "protected_unchanged": true,
+      "archive_reused": null,
+      "remote_operation": null,
+      "diagnostic_fsync_only": true
+    },
+    {
+      "raw": "file_probe3.json",
+      "repeats": 3,
+      "failed_checks": 0,
+      "source_hashes_verified": true,
+      "temporary_removed": true,
+      "protected_unchanged": true,
+      "archive_reused": {
+        "archive": "code_lora.tar.gz",
+        "archive_bytes": 2339502,
+        "archive_sha256": "19374afda497e2f0fec2082723c091c09ca6de1644a1a1995b0aa1da6343d0eb",
+        "file_count": 8,
+        "id": "code_lora",
+        "payload_bytes": 56327468
+      },
+      "remote_operation": "read_one_existing_immutable_archive_via_ssh_no_HTTP_measurement",
+      "diagnostic_fsync_only": true
+    }
+  ],
+  "tests": {
+    "count": 448,
+    "seconds": 24.914,
+    "passed": true
+  },
+  "source_note": "probe2 preceded archive-mode extension; probe3 used the recorded script SHA. Production change only improves failure evidence.",
+  "raw_sha256": {
+    "results/ieee_tc/p2_backend_qualification/d88_20260927/file_probe1_launcher_failure.json": "4830418cbad3683d3a8c3df8af137d2bb9637c471a32bb42b1b5eb80ab6ebfaa",
+    "results/ieee_tc/p2_backend_qualification/d88_20260927/file_probe2.json": "f52e2cd1ac57d3c9257cee1d57631347d01f072cbd2ccfdc03ca6d780fd0083a",
+    "results/ieee_tc/p2_backend_qualification/d88_20260927/file_probe3.json": "e79b6a49bf0bbcfba2a49cd263645afbdf5cb8dc7435e4bcdf67f5b0fa99e613",
+    "results/ieee_tc/p2_backend_qualification/d88_20260927/probe_reserved_files.py": "5a70afbacc03c3ca263f1a1145945e16e983eb1c886638ea4abe84909a1fddeb",
+    "results/ieee_tc/p2_backend_qualification/d88_20260927/file_diagnostic_red_terminal.json": "6f2ffb1b182f87b681e361ae0eed3de908b1dfce66055cf6ecaec122f6d7c696",
+    "results/ieee_tc/p2_backend_qualification/d88_20260927/file_diagnostic_green.log": "87995384dd6260fb3b3b7d447e6baf8af68061c2dc84e62115e1f59937c78f3f"
+  }
+}
