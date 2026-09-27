@@ -13,7 +13,42 @@
   startingd85263e00e976cc61c8938e662d77a2b249cdf58. Goal remains incomplete.
 - D68 start main5b09401c1e7598c407b22710a21486dc1be44166, baseline08153b457f43d3d587dae171f9dc49024fde4752.
 - Resume by inspecting actual handles/Git/resources; never restart a live run
-  from stale notes. D71 attempt2 ENDED; both loader overlays are RESTORED.
+  from stale notes. D71 ended/restored. D72 7B ORIGINAL1,000-request diagnostic
+  is LIVE: inspect handles below before any new launch or source/overlay edit.
+
+## D72 in progress: planned native polling development pair
+
+- Full plan/status/AGENTS and run-experiment/github-sync/academic-plotting read.
+  Starts main6f957fbece8bb96f195a553b7b5764f43052c1ba,
+  baseline9603442c34ac53327df93c6adf0fc7f15c2fc02a.147 protected entries/plan unchanged.
+- Rechecked official pinned router online and actual historical deploy JSON:
+ 7Btarget2;3B first historical pointtarget4, later seq8 pointtarget8. Explicit
+  min/max/target/keepalive settings added to EXISTING helper, defaults unchanged.
+ 41 launch/router/measurement checks PASS2.451s. Baseline source
+ 7f135add13082af1cc2e428c7a8e497e9360d949 pushed; fresh remote full SHA matches.
+  No native policy/loader/trace/artifact changes. No additional bootstrap retry.
+- Raw results/ieee_tc/serverless_qualification/d72_20260927/PROTOCOL.md records
+  development pair order7Boriginal→repaired,3Brepaired→original. Both per-model
+  sides share native min1/max4/keepalive10,target7B2/3B8; existing diagnostic
+  engine settings retained (max_num_seqs4), NOT claimed historical performance
+  settings or M1 optimum. Same1,000-request seed42prefix, development identity41.
+  Source-view preparation initially lacked parent directory; no files/service
+  created; fixed directory and prepared both exclusive views. Failed command
+  is a preparation error, not a system or performance run.
+- D72 current LIVE run began2026-09-27T09:34:22+08:00:
+  outer TMUX tc-d72-7bo; private/tmp/tc-d72-7bo;
+  service b3cad4271d8e4f6394d15810a354ce96;
+  auxiliary d7200000000000000000000000000001;
+  run7b_original.sh,launch7b_original.launch,model7b_original.
+  Loader overlay7b_original/install.json IS INSTALLED: restore with existing
+  installer only AFTER actual owned GPU contexts release. Do not mutate source
+  view/helper while running or launch another heavy task. Actual watchdog
+  verifies72/80GiB,swap2GiB,CPU restrictions; no high/OOM events at sample62.
+- Fixed notice+60, native loader, external open loop; retain startup failures.
+  Only original/repaired polling differs. Local artifacts mean diagnosis only,
+  not remote/formal or independent numerical LoRA qualification. After this run:
+  cleanup→validate→immediate table/diagnostic figure→7B repaired same settings.
+  Remote-space/nonzero-LoRA choices remain unanswered; formal matrices unstarted.
 
 ## D71 checkpoint: native bootstrap dependency diagnostic completed
 
