@@ -249,3 +249,134 @@ Curated evidence: `paper_results/ieee_tc/remote_qualification/20260927_d77_7b_co
 Actual remote1/2GiB qualification limits cause reclaim; these timings must NOT
 initialize Full profiles. Cancellation cleanup and the shared performance
 resource contract remain separate gates before representative Full profiling.
+
+### D77 post-header cancellation qualification
+
+One existing `code_lora` request per model, no new data, no injected sleep or
+socket pacing. Cancellation is triggered by actual received headers, before
+the first application body read. Downloader cleanup is checked BEFORE the
+outer temporary directory is removed. This is not a performance measurement.
+
+| Model | Client published / body-read bytes | Downloader leftovers | Matched remote result | Remote temp removed | Local service/watchdog |
+|---|---|---:|---|---|---|
+|3B|no /0|0|ConnectionResetError, UUID92125202dde74e9d814889e37b117ef4|yes|0/0, released|
+|7B|no /0|0|ConnectionResetError, UUID9d87fa4e53c64d9195247d30ae752efd|yes|0/0, released|
+
+3B server bytes_written=0 counts completed socket write calls, NOT a guarantee
+that zero bytes reached the network: a failing send can be partial. Packing
+already completed before headers. Cancellation therefore does not erase that
+work or imply remote packaging was cancelled. Local auxiliary is inactive.
+Client/raw/remote receipts remain under D75 raw root with new cancel_* names;
+the original500-row complete-coverage snapshots remain unchanged.
+
+Both post-header checks pass. 3B/7B local watchdog3/2 samples, peak39182336/
+38817792B, all high/max/OOM/OOM-kill/swap0; both service paths gone and auxiliary
+scopes inactive. Curated `20260927_d77_cancellation.json` retains16 raw SHAs.
+Owned vmstat monitor invocation181b9be672ca41b08512532c8046cfd0 was verified and
+stopped after both checks; remote MainPID0/inactive, local capture exit0.
+Final remote_vmstat.log SHA33b8b9601125dfca7c99560a31908af4b9b7ba114241617aa4abf29acc1c40de.
+The artifact services themselves remain unchanged. No inference ran concurrently.
+
+### D77 link-rate diagnosis and claim boundary (user question)
+
+Read-only diagnosis, no speed/duplex/MTU/qdisc/interface or switch change:
+
+| Observation | Actual evidence |
+|---|---|
+| Remote NIC | Broadcom BCM5720 Gigabit Ethernet, PCI14e4:165f, tg3 |
+| Remote supported AND advertised modes | includes1000baseT/Full |
+| Link partner advertised modes |10/100 only; no1000 |
+| Negotiated mode |100Mb/s, full duplex, auto-negotiation on |
+| Local interface |eno1np0, sysfs1000Mb/s/full |
+| Data route |192.168.4.174↔192.168.4.178, directly through remoteeno1/localeno1np0 |
+| Remote qdisc/filters inspected |mq/fq_codel; no rate shaper or ingress/egress filter shown |
+
+Raw `d77_remote_link_diagnosis.json` SHA
+30b1acd7f03257c5da9b47dfb237a627cf11da36e12b1fe901a3a432766dcb15.
+One optional ethtool netlink query reports insufficient privileges, but the
+driver's supported/advertised/peer modes and speed are returned. Local ethtool
+is absent; local speed comes from sysfs. An unsupported remote diagnostic flag
+was rejected without state change. No privileged write or installation occurred.
+
+Inference: the GPU and NIC maximum capability are NOT the demonstrated limit.
+The immediate peer is not advertising gigabit; a100M-only/configured switch
+port, intervening equipment or physical-link/downshift issue requires peer-side
+inspection/known-good port and cable to distinguish. This does NOT prove the
+entire machine-room network is100M, nor rule out unobserved switch/path QoS.
+Do not force link speed or renegotiate the active SSH/data interface.
+
+The qualified500-transfer serial samples provide only a diagnostic hint:
+
+| Model | Mean client total ms | Remote pack ms (nested) | Receive/reserve/write ms | Mean archive bytes |
+|---|---:|---:|---:|---:|
+|3B|2810.138|2331.979|199.532|2320987.468|
+|7B|1255.401|959.539|74.296|841513.182|
+
+Remote1/2GiB qualification limits reclaim cache; compression reflects existing
+mostly-zero artifacts. These are NOT representative inference profiles. Receive
+span is not pure wire time; packing is nested in header wait, not an additive
+E2E term. Link negotiation alone does not establish the application's bottleneck.
+
+For the paper: actual request-induced transfer remains in TTFT/E2E and resource
+accounting. Deleting it also deletes legitimate caching benefits; summing remote
+pack spans and subtracting them from E2E is invalid under overlap/queue feedback.
+Report service-only timing separately under that name, not as corrected E2E.
+Unrelated interference is handled by predeclared exclusion/rerun rules, never
+post-hoc arithmetic subtraction selected by winner. Delivery-format overhead is
+measured separately and the common delivery contract must be frozen beforehand.
+
+100M-only data constrain external validity and may magnify remote-avoidance
+benefits. Retain actual speed in methods; do not relabel0.25/0.5/1G caps as achieved
+on this path. Prefer verifying/restoring the peer's intended gigabit capability
+between runs, with physical administrator involvement if necessary. Without it,
+higher-bandwidth local-sim is explicitly controlled/simulated supplementary
+evidence, not measured faster Ethernet. Existing S1/S2/S3 and LastKnown controls
+must establish HOST/GPU location/state/admission benefits beyond remote miss
+avoidance; no new broad matrix or silently changed protocol is authorized here.
+
+Primary references checked: Linux ethtool link-mode semantics
+(https://www.kernel.org/doc/html/v6.12/networking/ethtool-netlink.html), Intel's
+gigabit troubleshooting guidance
+(https://www.intel.com/content/www/us/en/support/articles/000035045/ethernet-products.html).
+ServerlessLLM §7.1 uses1Gbps to MinIO in one testbed and10Gbps cluster links in
+another (https://www.usenix.org/system/files/osdi24-fu.pdf); HydraServe §2/§7
+treats fetching/contention as part of cold start and uses16/64Gbps GPU-server
+links with sufficient remote-storage capacity
+(https://www.usenix.org/system/files/nsdi26-lou.pdf). These support evaluating
+storage/network costs, NOT claiming our100M path matches their environments.
+
+### Latest D77 user clarification: already-published artifacts, no dynamic pack
+
+The formal scenario assumes ready-to-transfer remote artifacts. Our on-demand
+tar/gzip is extra delivery preparation, not a Prime research contribution. It
+will be removed from the ACTUAL measured path, not subtracted afterward. This
+supersedes earlier language treating pack avoidance as part of the formal gain.
+Necessary transfer/read/response/contention and inference-local tier work remain
+observed service costs. Full E2E is measured on this revised common contract.
+No dynamic-delivery functional timings become initialization profiles.
+
+Two implementation choices, neither deployed yet:
+
+- Once-only immutable compressed transport cache, from existing exact files,
+  generated before any deployment notice and used by ALL systems. Measured total
+  archive bytes across two500 pools =1581250325B (about1.47GiB). This is a small
+  derived delivery representation, not new weights or another extracted pool,
+  but requires explicit permission under the no-pool-copy rule. Keeps current
+  compression semantics and avoids per-request compression/formatting.
+- Direct frozen file GET, reusing existing files without new retained objects.
+  Hugging Face's official file/snapshot download model supports this design
+  (https://huggingface.co/docs/huggingface_hub/guides/download), and the pinned
+  vLLM0.30 resolver was inspected. HOWEVER it changes wire volume substantially:
+  existing uncompressed logical total32468557746B versus historical compressed
+  archives1581250325B. Do not switch silently then attribute the larger network
+  exposure to Prime's mechanism. All systems/profile identities must match.
+
+An asynchronous choice was sent to the user; no derived cache or direct-file
+implementation has been created. Prefer once-only compressed cache if permitted;
+otherwise qualify direct existing files with explicit representation/byte audit.
+Do not download/generate new weights, inspect future trace to choose objects,
+prewarm inference-local caches for free, or alter native caching asymmetrically.
+Source plan updated explicitly and snapshotted as
+PLAN_APPROVED_20260927_PUBLISHED_ARTIFACT.md, SHA
+7d91a34791f5132b50e983c7552105a297f1ded2dcd1cbdd4108428e2b2dfb05.
+Earlier plan snapshots and all D75–D77 raw identities remain intact.
