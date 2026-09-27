@@ -58,6 +58,22 @@ class NativeLaunchTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError):
                 launch.validate_native_response(dict(body, **{key: value}), 'r', 5, 12)
 
+    def test_development_scaling_changes_only_native_scaling_fields(self):
+        paths = (Path('/models/vllm/existing'), Path('/source/model'))
+        default = launch.native_model_config(*paths)
+        for target in (2, 8):
+            config = launch.native_model_config(*paths, min_instances=1,
+                                                max_instances=4, target=target)
+            self.assertEqual(config['auto_scaling_config'], dict(metric='concurrency',
+                target=target, min_instances=1, max_instances=4, keep_alive=10))
+            self.assertEqual({k: v for k, v in config.items() if k != 'auto_scaling_config'},
+                             {k: v for k, v in default.items() if k != 'auto_scaling_config'})
+        for invalid in (dict(min_instances=-1), dict(max_instances=0),
+                        dict(max_instances=5), dict(min_instances=2), dict(target=0),
+                        dict(target=True), dict(keep_alive=-1)):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                launch.native_model_config(*paths, **invalid)
+
     def sources(self):
         return {name: (ROOT / "scripts" / name).read_text() for name in launch.SOURCE_SHA}
 

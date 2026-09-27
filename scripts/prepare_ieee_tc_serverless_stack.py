@@ -995,11 +995,21 @@ def qualify_ray(args) -> dict:
     return result
 
 
-def native_model_config(checkpoint: Path, backbone: Path) -> dict:
-    """One-instance loader qualification, not a selected performance point."""
+def native_model_config(checkpoint: Path, backbone: Path, *, min_instances=1,
+                        max_instances=1, target=1, keep_alive=10) -> dict:
+    """Explicit native scaling settings; defaults retain the loader-only witness.
+
+    Development polling pairs can reuse historical scaling without changing
+    the native controller or treating a one-inflight witness as a tuned point.
+    """
+    if (any(type(v) is not int for v in (min_instances, max_instances, target, keep_alive))
+            or not 0 <= min_instances <= max_instances <= 4
+            or max_instances < 1 or target < 1 or keep_alive < 0):
+        raise ValueError('invalid native scaling configuration')
     return dict(model=checkpoint.name, backend='vllm', num_gpus=1,
-                auto_scaling_config=dict(metric='concurrency', target=1,
-                    min_instances=1, max_instances=1, keep_alive=10), router_config={},
+                auto_scaling_config=dict(metric='concurrency', target=target,
+                    min_instances=min_instances, max_instances=max_instances,
+                    keep_alive=keep_alive), router_config={},
                 backend_config=dict(pretrained_model_name_or_path=str(backbone),
                     tensor_parallel_size=1, torch_dtype='float16',
                     gpu_memory_utilization=0.72, max_model_len=1024, max_num_seqs=4,
@@ -1115,7 +1125,9 @@ def qualify_model(args) -> dict:
     result = dict(schema='ieee_tc_serverless_native_model_qualification_v1', passed=False,
                   service=admission, qualification_only=True, lora_correctness_qualified=False,
                   performance_run_authorized=False, overlay_receipt_sha256=sha(args.overlay_receipt.read_bytes()),
-                  requests=[], configuration=native_model_config(checkpoint, args.backbone),
+                  requests=[], configuration=native_model_config(checkpoint, args.backbone,
+                      min_instances=args.min_instances, max_instances=args.max_instances,
+                      target=args.target, keep_alive=args.keep_alive),
                   trace_path=str(args.trace), trace_sha256=sha(args.trace.read_bytes()),
                   launcher_manifest_sha256=sha((args.output / 'launch_manifest.json').read_bytes()))
     if http_cfg:
@@ -1367,6 +1379,10 @@ def main() -> None:
     for name in ('ray-port', 'api-port'):
         model.add_argument('--' + name, required=True, type=int)
     model.add_argument('--http-replay-config', type=Path)
+    model.add_argument('--min-instances', type=int, default=1)
+    model.add_argument('--max-instances', type=int, default=1)
+    model.add_argument('--target', type=int, default=1)
+    model.add_argument('--keep-alive', type=int, default=10)
     args = parser.parse_args()
     if args.action == 'http-replay':
         http_replay(args)
