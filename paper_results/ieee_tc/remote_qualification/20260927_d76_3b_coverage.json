@@ -1,0 +1,70 @@
+{
+  "kind": "remote_full_pool_content_qualification_v1",
+  "model": "llama32_3b",
+  "source_commit": "d8a0b49443e413947130a14a62c7aa5562bbee17",
+  "plan_sha256": "d79d7eb691d6f57fff08290134e6f8841222c6ed68ef975c7febb362d8a61381",
+  "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/remote_qualification/d75_20260927",
+  "expected_adapters": 500,
+  "verified_adapters": 500,
+  "failed_adapters": 0,
+  "verified_files": 4000,
+  "logical_bytes": 19482573296,
+  "wire_bytes": 1160493734,
+  "elapsed_s": 1410.2084073569858,
+  "client_server_matches": 500,
+  "local_temporary_removed": 500,
+  "remote_temporary_removed": 500,
+  "content_coverage_pass": true,
+  "inference_qualified": false,
+  "numerical_lora_correctness_qualified": false,
+  "performance_profile_qualified": false,
+  "remote_clock_ids": [
+    "remote-process-monotonic:f671ce3242c84e26b7ed1e407c1d9f2b"
+  ],
+  "local_resource": {
+    "samples": 1392,
+    "peak_bytes": 95641600,
+    "min_host_available_bytes": 110347976704,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "swap_peak_bytes": 0
+  },
+  "remote_resources": {
+    "memory.current": "1070022656",
+    "memory.peak": "1074266112",
+    "memory.high": "1073741824",
+    "memory.max": "2147483648",
+    "memory.swap.current": "0",
+    "memory.swap.max": "0",
+    "memory.events": "low 0\nhigh 34982\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=2300606\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=2300606",
+    "cpu.stat": "usage_usec 1145892502\nuser_usec 1124737920\nsystem_usec 21154581\ncore_sched.force_idle_usec 0"
+  },
+  "cleanup": {
+    "service_path_removed": true,
+    "auxiliary_scope_inactive": true,
+    "no_owned_temporary_copy": true
+  },
+  "caveats": [
+    "Serial functional coverage, not latency/throughput or initialization profiling.",
+    "Remote memory.high events are retained; functional settings are not the frozen Full performance environment.",
+    "No new weights, trace or retained full-pool copy. All-zero-weight correctness limitation unchanged.",
+    "Packing overlaps header wait; no subtraction from user E2E."
+  ],
+  "raw_sha256": {
+    "coverage_3b.jsonl": "368dd5a886375d5a5762c31d7f82305a8f500e740dd050ddae00ac5aa2af7810",
+    "coverage_3b_launch.json": "8535f34e7150eb1360aebd6f2ffe848e5390c7102d49ce45b20128a769fa6ba1",
+    "remote_3b_complete.jsonl": "971a6fdac0dbd7ecd11ef68982a8f51f946e51d5aec2bc15cced80dee802abb8",
+    "remote_3b_end.json": "f4b8bff369d15c2417df26116f0be17d0a3d07330c9d97ba7a3b75990a68144e",
+    "run_coverage_3b.sh": "aca4104cf5cf3506ea786e7c66581078c73879b086fb3732c1283ec5f115ede6",
+    "coverage_3b_launch.launch/watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "coverage_3b_launch.launch/exec_receipt.json": "dd01aaa0bf9a3a221c8830ee79ea5c18774c6feebc46d3ca4c9ce888e1caa9d5",
+    "coverage_3b_launch.launch/watchdog.jsonl": "8873d92956fb5215e82ad384d62b44b41e79e9483e0d78212e1e824e5eefe909",
+    "coverage_3b_launch.launch/service.log": "f7a56e0b75ee4dd577af834b867943ff5041010facf7fadea1029661c6aa2c31"
+  },
+  "input_index_sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+}

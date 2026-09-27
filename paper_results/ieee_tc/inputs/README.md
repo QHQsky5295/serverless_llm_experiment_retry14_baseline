@@ -49,3 +49,9 @@ See `docs/ieee_tc/ARTIFACT_CONTENT_AUDIT.md` for the failed first attempt,
 symlink discoveries, tests, resource receipts, limits and interpretation.
 All-zero weight and independent-correctness limitations from the prior audit
 remain unchanged. Content classes are not counts of independently trained LoRAs.
+
+2026-09-27 D76: the unchanged 3B index now has separate actual remote coverage
+evidence: `../remote_qualification/20260927_d76_3b_coverage.json`,500/500 IDs and
+4000/4000 files verified. Do not mutate the original index's historical
+`remote_content_verified=false` field and invalidate its frozen SHA. Join the
+new evidence by that SHA.7B full coverage and inference qualification remain open.

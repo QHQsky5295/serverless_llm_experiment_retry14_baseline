@@ -191,3 +191,35 @@ performance environment, and these durations will not be promoted into frozen
 service/preparation profiles. Keep the active run unchanged; choose the common
 remote resource contract from complete footprint/concurrency observations before
 later performance profiling. No claim that a high event invalidates content.
+### D76 complete 3B content coverage (2026-09-27)
+
+The SAME D75 run completed; it was not restarted or replayed. Actual start
+11:54:28+08, serial verification1410.208s. This is a functionality result only.
+
+| Qualification evidence | 3B observed |
+|---|---:|
+| Complete frozen manifest / verified adapter IDs |500 /500|
+| Content-SHA-verified regular files |4000|
+| Logical payload bytes |19482573296|
+| Actual HTTP archive bytes |1160493734|
+| Distinct client/server UUID matches |500|
+| Local / remote temporary cleanup confirmed |500 /500|
+| Failed transfers |0|
+| Local watchdog samples |1392|
+| Local service peak, bytes |95641600|
+| Local high / max / OOM / OOM-kill |0 /0 /0 /0|
+| Remote high / max / OOM / OOM-kill |34982 /0 /0 /0|
+
+All500 server records were copied AFTER completion, SHA-matched against the
+remote journal, then reconciled individually with adapter identity, content
+contract, payload and wire bytes, pack-duration rounding, ordered local/remote
+spans and cleanup. Remote clocks were never subtracted from local timestamps.
+The local service path is removed, its auxiliary scope is inactive, no owned
+download directory remains, and no GPU model ran. Original pools are unchanged.
+
+Curated source: `paper_results/ieee_tc/remote_qualification/20260927_d76_3b_coverage.json`.
+It retains nine raw SHA references and the unchanged frozen input-index SHA.
+Remote memory.high reclaim is retained as an observed condition; durations are
+NOT production initialization profiles or an inference-performance conclusion.
+7B complete coverage and real cancellation cleanup are still pending at this
+checkpoint. No new baseline, weights, full trace or retained pool copy.

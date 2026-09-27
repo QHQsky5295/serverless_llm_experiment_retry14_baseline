@@ -18,7 +18,49 @@
   D74 3B REPAIRED is ENDED/cleaned. Baselines are PAUSED by latest user direction.
   Do not run the prepared3B original side; return to Prime P1/P2/Full.
 
-## D75 in progress: remote preparation prerequisite for Prime Full
+## D76 checkpoint: 3B remote content coverage complete; Prime Full still next
+
+- Starts main2273cfc767c0eb3bab209a89a22e1ae80f0b2120; baseline9e2cf289 remains
+  PAUSED. Full plan/status/AGENTS, run-experiment/github-sync/academic-plotting
+  read. No subagent, model or new baseline run. Do NOT repeat3B coverage.
+- SAME D75 3B run ENDED normally at approximately12:18+08,500/500 IDs and4000
+  files SHA-verified,0 failures; logical19482573296B/wire1160493734B. Functional
+  loop1410.208s, not latency profiling.500 distinct HTTP UUIDs reconciled to
+  remote adapter/byte/span/cleanup records; copied journal SHA equals remote.
+  All local/remote temporary copies removed; no retained duplicate pool.
+- Local watchdog1392 samples, peak95641600B,min host110347976704B; high/max/
+  OOM/OOM-kill/swap0. Service/watchdog0/0, service path removed, auxiliary actual
+  inactive. All GPUs15MiB/0%, no model. Remote3B high34982,max/OOM0,swap0,
+  peak1074266112B. These lightweight functional timings are NOT Full profiles.
+- Immediate qualification table in REMOTE_ACCESS, curated
+  remote_qualification/20260927_d76_3b_coverage.json with9 raw SHAs. Original
+  input index unchanged; inputs/README links separate evidence by frozen SHA.
+  Two readonly inspection mistakes (unfinished launch file and wrong remote UID
+  cgroup path) created no experiment or state change; actual UID1000 readback
+  corrected. No remote configuration/restart or inference overlap.
+- Offline profile-input audit: existing1000-request development prefixes cover
+  21/24 exact-content classes for3B,6/6 for7B. Three missing3B representatives
+  from STATIC existing pool: support_lora_0148,research_lora_0104,finance_lora_0073.
+  P2 document records coverage and official vLLM0.30 source reference. No new
+  weights/prompt/trace or future-hotspot use. Do not repeat the old serial-only
+  source32 prefix or fill unmeasured file/remote/concurrency classes from it.
+-147 protected entries/plan still unchanged. Next: precreated7B coverage using
+  CORRECT materialized indexe85cce3c, then cancellation/cleanup qualification,
+  then directly representative measured Full profiles and integrated Full.
+  No new baseline, allocator microloop or removal of the Full guard.
+- Owned remote vmstat monitor fromD75 remains running (unit invocation
+ 181b9be672ca41b08512532c8046cfd0, local handle65199); expires12:53+08.
+  Do not duplicate it. Remote units remain the same post-restart invocation.
+- LIVE7B coverage started12:21:00+08 in TMUXtc-d75-coverage7b, SAME prepared
+  run_coverage_7b.sh (SHA85bc4d8d). Service3e0cef2de7a9494aa4530d1adbcdf7f0,
+  invocationb66ae3b8609940e5b7c92bc3d6866d82, auxiliaryd750...0002. Raw
+  coverage_7b.jsonl and coverage_7b_launch.launch; final coverage_7b_launch.json
+  only after completion.17/500 at readback, full manifest500, correct canonical
+  SHA684c7ab1. Actual72/80GiB and independent watchdog, high/max/OOM0. Do NOT
+  restart from missing final JSON. Let it finish, then correlate/cleanup/table.
+  No source code changed this turn; D75 tests still cover the executed source.
+
+## D75 historical checkpoint: remote preparation prerequisite for Prime Full
 
 - Start mainf1f361108e817ac6378687563126256d74bcd41b; baseline9e2cf289 PAUSED.
   Full plan/status/AGENTS and run-experiment/github-sync read. No model run,
@@ -515,7 +557,7 @@
 |---|---|---|
 | Safety/physical measurement | Actual Ray/worker and dedicated7B owner qualification; Full reducer connected | RESOURCE_QUALIFICATION, EXTERNAL_REPLAY_QUALIFICATION, PHYSICAL_GPU_MEASUREMENT D27/D55; actual Full multi-activation still open |
 | Old results | All147 protected entries unchanged at D72 final verification | paper_results/ieee_tc/safety/20260925_execution_start_protected.json |
-| Remote174 | Strict key login works; artifact-specific disk rule APPROVED | Actual peak/concurrency/quota/service qualification pending; no150GiB floor on artifact-only node |
+| Remote174 | Start/stop/restart and3B500/500 content pass;7B coverage LIVE | Full performance envelope/cancellation remain open; no150GiB floor on artifact-only node |
 | P0 Table1/Full | 7B source-pair audit complete | Same inputs, different execution;202 scalars retained; no rerun needed for provenance finding |
 | P1 IEEE alignment | Frozen h/d planning/replacement, staging/admission, observed HOST return connected | P1 throughD54, P2 throughD61; representative profiles and actual Full remain open |
 | P2 backend/artifacts | vLLM0.30 installed; mechanical/numerical diagnostics; complete pool content audits | Full semantic qualification OPEN;3B500/500 and7B498/500 zero weights |

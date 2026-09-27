@@ -993,3 +993,33 @@ Python安全/计量检查通过，无失败/错误/跳过；CPU检查CUDA未初�
 本项接受为完整加载路径的候选正确性修复。下一步回到代表性profile和Full
 多计划/生命周期资格，不增加同类microtest或重复旧请求前缀；本次不能推出
 实际Full持续进展、正确adapter数值效果、共同SLO达标或优于baseline。
+## 2026-09-27 D76：代表性 profile 的输入覆盖核对（离线，不是新模型实验）
+
+在 D75 远程完整性检查运行期间，只读取既有冻结内容索引和源 trace；没有
+启动 GPU、基线或另一组远程下载，也没有修改正在执行的检查代码。
+重新核对已安装版本对应的
+[vLLM 0.30 worker manager](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/worker_manager.py)：
+文件读取、CPU LoRA 对象和 GPU activation 是不同路径。既有 D26 source32
+只有 28 次 GPU、4 次 native HOST 观察，且 16 次 first-touch 在测量前预热；
+不能据此填入 Remote、文件 HOST、NVMe 或并发类别的准备/服务初值。
+
+| 既有输入覆盖 | 3B | 7B |
+|---|---:|---:|
+| 完整池逻辑 ID |500|500|
+| 精确文件树内容类 |24|6|
+| 开发期原 trace 前 1,000 请求实际 ID |60|60|
+| 此前缀出现的内容类 |21|6|
+| 还需由静态工件清单覆盖的内容类 |3|0|
+
+3B 缺失三类的字典序首个既有 ID 为 `support_lora_0148`、
+`research_lora_0104`、`finance_lora_0073`。它们来自已冻结的 500-ID 静态清单，
+不是读取后续请求预测热点；后续受控准备测量可使用这些既有工件和既有开发
+prompt。不能重新跑相同短前缀后宣称覆盖已补齐，也不能以 rank 相同替代精确
+内容类。这里只确认输入覆盖，不代表已获得任何延迟样本或冻结生产 profile。
+
+核对依据：`inputs/README.md` 指定的 3B remote、7B materialized 索引；
+两源 trace SHA 分别为
+`4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d`、
+`efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c`，
+本次读取时重新校验一致。只在内存中建立 ID→类索引，没有复制完整 trace。
+独立训练权重数量和全零权重限制不变；内容类数量不是模型多样性结论。
