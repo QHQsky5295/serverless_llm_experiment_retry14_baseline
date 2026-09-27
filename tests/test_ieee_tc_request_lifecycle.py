@@ -2311,6 +2311,66 @@ class ConfirmedFilePublication(unittest.TestCase):
 
 
 class ControllerNativeReferenceLifecycle(unittest.TestCase):
+    def proxy_submission_fixture(self):
+        service, slot, trace, plan, owner, rpc = native_reference_fixture()
+        self.preload_native(owner)
+        proxy = NativeRPCOwnership().proxy()
+        slot.engine.generate_prepared = proxy.generate_prepared
+        slot.engine.ieee_retire_generation = AsyncMock(
+            side_effect=ValueError('unknown native generation binding; reference retained'))
+        proxy._blocking_rpc_roundtrip = Mock(side_effect=AssertionError('no send expected'))
+        return service, slot, trace, plan, owner, proxy
+
+    def test_unsent_proxy_refusal_releases_unused_reference_without_native_retirement(self):
+        service, slot, trace, plan, owner, proxy = self.proxy_submission_fixture()
+        proxy._native_rpc_uncertain['other-request'] = {'cmd': 'generate'}
+        result = asyncio.run(service._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertFalse(result.success)
+        self.assertIn('new generation withheld', result.error)
+        proxy._blocking_rpc_roundtrip.assert_not_called()
+        slot.engine.ieee_retire_generation.assert_not_awaited()
+        self.assertEqual(result.gpu_reference_evidence['state'], 'released')
+        self.assertEqual(result.gpu_reference_evidence['generation_submission']['state'], 'not_submitted')
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(slot.active_requests, 0)
+        self.assertFalse(service._unsettled_runtime_reservations)
+        self.assertIn('other-request', proxy._native_rpc_uncertain)
+
+    def test_cancel_before_proxy_channel_handoff_does_not_invent_native_generation(self):
+        service, slot, trace, plan, owner, proxy = self.proxy_submission_fixture()
+        async def check():
+            waiting = asyncio.Event()
+            async def channel():
+                waiting.set()
+                await asyncio.Future()
+            proxy._acquire_rpc_channel.side_effect = channel
+            task = asyncio.create_task(service._exec_request(trace, 4, 0., request_plan=plan))
+            await asyncio.wait_for(waiting.wait(), 1.)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+        asyncio.run(check())
+        proxy._blocking_rpc_roundtrip.assert_not_called()
+        slot.engine.ieee_retire_generation.assert_not_awaited()
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(slot.active_requests, 0)
+        self.assertFalse(proxy._native_rpc_uncertain)
+        self.assertFalse(service._unsettled_runtime_reservations)
+
+    def test_proxy_handoff_with_lost_reply_keeps_native_ownership(self):
+        service, slot, trace, plan, owner, proxy = self.proxy_submission_fixture()
+        proxy._blocking_rpc_roundtrip.side_effect = OSError('reply lost after possible submission')
+        result = asyncio.run(service._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertFalse(result.success)
+        self.assertEqual(result.gpu_reference_evidence['generation_submission']['state'], 'may_execute')
+        proxy._blocking_rpc_roundtrip.assert_called_once()
+        slot.engine.ieee_retire_generation.assert_awaited_once()
+        self.assertEqual(owner.snapshot()['live_leases'], 1)
+        self.assertEqual(slot.active_requests, 1)
+        self.assertEqual(slot.status, 'draining')
+        self.assertIn(trace.request_id, service._unsettled_runtime_reservations)
+        self.assertEqual(len(proxy._native_rpc_uncertain), 1)
+
     @staticmethod
     def preload_native(owner, adapter_id='adapter-a'):
         aid = InferenceEngine._lora_int_id(adapter_id)
@@ -3187,6 +3247,57 @@ class NativeRPCOwnership(unittest.TestCase):
         proxy._release_rpc_channel = AsyncMock()
         proxy._with_worker_log_context = lambda value: value
         return proxy
+
+    def test_submission_receipt_is_local_and_not_a_native_start_ack(self):
+        proxy = self.proxy()
+        evidence = {'state': 'unobserved'}
+        def reply(channel, payload, **kwargs):
+            self.assertEqual(evidence['state'], 'may_execute')
+            frame = json.loads(payload)
+            self.assertNotIn('_native_submission_evidence', frame['kwargs'])
+            self.assertEqual(frame['kwargs'], {'prompt': 'existing'})
+            return b'{"ok":true,"result":{}}', 0., 0., time.time()
+        proxy._blocking_rpc_roundtrip = Mock(side_effect=reply)
+        asyncio.run(proxy._rpc('generate', prompt='existing', _native_submission_evidence=evidence))
+        self.assertEqual(evidence['state'], 'may_execute')
+        self.assertNotIn('native_terminal_observed', evidence)
+        self.assertFalse(proxy._native_rpc_uncertain)
+
+    def test_encoding_failure_has_no_uncertain_native_operation(self):
+        proxy = self.proxy()
+        evidence = {'state': 'unobserved'}
+        proxy._blocking_rpc_roundtrip = Mock()
+        with self.assertRaisesRegex(RuntimeError, 'serializable'):
+            asyncio.run(proxy._rpc('generate', bad=object(), _native_submission_evidence=evidence))
+        proxy._blocking_rpc_roundtrip.assert_not_called()
+        self.assertEqual(evidence['state'], 'not_submitted')
+        self.assertFalse(proxy._native_rpc_uncertain)
+
+    def test_generation_rechecks_uncertainty_after_waiting_for_channel(self):
+        proxy = self.proxy()
+        evidence = {'state': 'unobserved'}
+        proxy._blocking_rpc_roundtrip = Mock()
+        async def channel():
+            proxy._native_rpc_uncertain['other'] = {'cmd': 'generate'}
+            return object()
+        proxy._acquire_rpc_channel.side_effect = channel
+        with self.assertRaisesRegex(RuntimeError, 'new generation withheld'):
+            asyncio.run(proxy._rpc('generate', _native_submission_evidence=evidence))
+        proxy._blocking_rpc_roundtrip.assert_not_called()
+        self.assertEqual(evidence['state'], 'not_submitted')
+        self.assertEqual(set(proxy._native_rpc_uncertain), {'other'})
+
+    def test_direct_engine_rejection_records_unsent_before_native_binding(self):
+        engine = InferenceEngine.__new__(InferenceEngine)
+        engine.model_cfg = {'timing_contract': 'ieee_tc_native_v1'}
+        engine.backend, engine.engine, engine._engine_dead = 'vllm', None, True
+        engine._lock, engine._counter = asyncio.Lock(), 0
+        evidence = {'state': 'unobserved'}
+        with self.assertRaisesRegex(RuntimeError, 'not initialised or dead'):
+            asyncio.run(engine.generate_prepared(request_plan=RequestExecutionPlan('existing', 2, 4),
+                lora_path=None, adapter_id=None, native_submission_evidence=evidence))
+        self.assertEqual(evidence['state'], 'not_submitted')
+        self.assertEqual(evidence['boundary'], 'engine_begin_use_v1')
 
     def test_unknown_native_outcome_is_not_reexecuted_by_transport_retry(self):
         proxy = self.proxy()

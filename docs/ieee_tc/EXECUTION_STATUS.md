@@ -1,6 +1,35 @@
 # IEEE TC execution status
 
+## Latest — D95 unsent generation boundary CPU-verified; checkpoint then source-conflict diagnosis
+
+2026-09-28. Supersedes older NEXT/LIVE. No live GPU/remote run; baselines PAUSED.
+Actual runner/proxy tests reproduce D93 req00333's pre-send rejection boundary:
+old code attempts retirement with no native generation. Two red tests failed;
+34 targeted and 848 related regression tests PASS (0.224s / 48.032s).
+Receipt distinguishes positively not_submitted from may_execute/unobserved;
+only the former avoids nonexistent-generation retirement. Lost replies retain
+ownership; other unresolved RPCs are never cleared. No retry/formula/profile/
+trace/deadline/remote change. D95 doc has immediate correctness status table;
+curated 20260928_d95_generation_submission.json has seven source/log SHA refs.
+Raw d95_20260928. D94 already backed up; do NOT repeat its work or tests.
+
+NEXT: verify protected files/secrets, scoped D95 commit/push, then ONE CPU causal
+source-conflict workstream. Per-request full source collection can partially
+commit; global native epoch changes on acquire/release even without copy/tier
+change. Quantify actual repeated work before choosing a correction. Existing
+source incarnations may distinguish unrelated reference mutation from replaced
+copy; never simply remove epoch/tier/capacity/pin checks. No optimization yet.
+No unchanged GPU replay. Long queue remains unexplained; D95 is not Full success.
+After causal validation return canonical3B4000 then7B; no repeated D78/D80 cache,
+D88/D89 profiles or D90 prefixes. Warm/Resident/M1/M2/A1-A5/S1-S13 pending.
+
 ## Latest — D94 physical-owner retirement fixed; CPU verified, no GPU replay
+
+BACKED UP: df09f25986168b296941883978caeb15a9e5036f pushed to
+faaslora_origin/retry14_continuous_queue_v2; fresh remote SHA matched.
+Six scoped files, 841 tests, five source/log SHA references, 147 protected items
+and credential exclusion passed. User manifest excluded. No extra backup loop:
+NEXT is the unsubmitted-versus-uncertain generation boundary below.
 
 2026-09-28 04:41. Supersedes all older NEXT/LIVE instructions below.
 No live inference/remote monitor. Baselines remain PAUSED at 9e2cf289.

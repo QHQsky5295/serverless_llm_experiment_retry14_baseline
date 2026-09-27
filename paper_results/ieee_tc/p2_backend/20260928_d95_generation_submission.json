@@ -1,0 +1,35 @@
+{
+  "kind": "cpu_correctness_checkpoint_v1",
+  "id": "d95_20260928_generation_submission",
+  "parent_commit": "df09f25986168b296941883978caeb15a9e5036f",
+  "stage": "Prime IEEE Full development qualification",
+  "full_replay_performed": false,
+  "performance_qualified": false,
+  "baselines_paused": true,
+  "review_independence": "local-only",
+  "hypothesis": "Runner treated generate call intent as possible native execution even when proxy positively rejected before handoff.",
+  "pre_fix_counterexamples": {"tests": 2, "failures": 2, "seconds": 0.012},
+  "post_fix_targeted": {"tests": 34, "seconds": 0.224, "passed": true},
+  "regression": {
+    "tests": 848, "seconds": 48.032, "passed": true,
+    "environment": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+    "memory_high_gib": 3, "memory_max_gib": 4,
+    "memory_swap_max_bytes": 0, "allowed_cpus": "2,3,26,27", "offline": true
+  },
+  "source_sha256": {
+    "scripts/run_all_experiments.py": "79fe3c080ac3e2031eb0f8c209bcbf5c59a5d460350a56144b465294f6d55baa",
+    "tests/test_ieee_tc_request_lifecycle.py": "360187d416076ebcca9e42f325be110782b3e591aea5df46ea41d3cecedaab62",
+    "results/ieee_tc/p2_backend_qualification/d95_20260928/red_submission.log": "56cf05698ac113c6f4a0e682068476774044de2494e283b7db38e5d44ea67fac",
+    "results/ieee_tc/p2_backend_qualification/d95_20260928/green_submission1.log": "7da5acc39e211ef307592aee9f9731c9cbdd3a740433dcbd1343f5d8b5a20d99",
+    "results/ieee_tc/p2_backend_qualification/d95_20260928/green_submission2.log": "65356f311216effc4544496e22f09fb11244203351b1d2c3f556defbfa19890c",
+    "results/ieee_tc/p2_backend_qualification/d95_20260928/regression1.log": "58f77974a8b68d97ad279e68a65e3bb53befa9a6689dd360775674ebea257bfb",
+    "paper_results/ieee_tc/p2_backend/20260928_d93_3b_full_w0_attempt2.json": "9750d4b0053f83f3cdd16527ab5f96ebcba86a3638f2586863db9215551fc3ea"
+  },
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "unresolved": [
+    "D93 long dispatch/admission waiting is not explained by this boundary fix.",
+    "Concurrent full source snapshots and global epoch conflicts need causal tests.",
+    "No complete canonical 4000-request Full replay or warm SLO/Resident qualification."
+  ]
+}

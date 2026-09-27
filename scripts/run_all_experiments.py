@@ -1169,6 +1169,21 @@ class RuntimeRequestReservation:
         self.__dict__.update(RuntimeRequestReservation(self.request_id).__dict__)
         self.ieee_routing_attempts = attempts
 
+    def may_have_native_generation(self) -> bool:
+        # The call may be waiting for a channel or rejected by a local guard.
+        # Only a positively observed pre-handoff state proves no native work;
+        # an unobserved boundary remains conservative, as does any lost reply.
+        submission = self.gpu_reference_evidence.get('generation_submission', {})
+        return self.generation_started and submission.get('state') != 'not_submitted'
+
+
+def _begin_native_submission_observation(evidence, *, boundary):
+    """Local mutable receipt; never serialized into the worker request."""
+    if evidence is not None:
+        if not isinstance(evidence, dict) or evidence.get('state') != 'unobserved':
+            raise ValueError('native submission observation requires a fresh request receipt')
+        evidence.update(state='not_submitted', boundary=boundary)
+
 
 DEFAULT_TTFT_SLO_MS = 5000.0
 
@@ -4231,9 +4246,14 @@ class InferenceEngine:
         gpu_reference: Optional[Dict[str, Any]] = None,
         native_event_observer: Optional[Callable[[Dict[str, Any]], None]] = None,
         pending_admission_id: Optional[str] = None,
+        native_submission_evidence: Optional[Dict[str, Any]] = None,
     ) -> Tuple[float, float, int]:
         """Returns (vllm_ttft_ms, tpot_ms, output_tokens[, timing]). Always real inference."""
         timing_contract = self.model_cfg.get("timing_contract", "legacy")
+        if native_submission_evidence is not None:
+            if timing_contract != 'ieee_tc_native_v1':
+                raise ValueError('submission observation requires native generation')
+            _begin_native_submission_observation(native_submission_evidence, boundary='engine_begin_use_v1')
         if native_event_observer is not None and timing_contract != 'ieee_tc_native_v1':
             raise ValueError('service events require the native timing contract')
         if timing_contract not in {"legacy", "ieee_tc_native_v1"}:
@@ -4345,6 +4365,9 @@ class InferenceEngine:
             if self.model_cfg.get("ieee_gpu_references", False) and adapter_id:
                 if lora_req is None or not isinstance(gpu_reference, dict):
                     raise ValueError("native adapter generation requires its dispatch reference")
+                if native_submission_evidence is not None:
+                    native_submission_evidence.update(state='may_execute',
+                        handoff_monotonic_s=time.monotonic(), backend_request_id=req_id)
                 reference_receipt = await self.ieee_gpu_reference(
                     operation="begin_use", lease_id=gpu_reference['lease_id'],
                     expected_owner_id=gpu_reference['owner_id'],
@@ -4388,6 +4411,9 @@ class InferenceEngine:
                                  gpu_reference_adapter_int_id=reference_receipt['adapter_int_id'])
                 _notify_native_service_observer(native_event_observer, event)
 
+            if native_submission_evidence is not None and reference_receipt is None:
+                native_submission_evidence.update(state='may_execute',
+                    handoff_monotonic_s=time.monotonic(), backend_request_id=req_id)
             outputs = (self.engine.ieee_generate_pending(req_id, prompt, sp, lora_request=lora_req)
                 if pending_admission_id is not None else
                 self.engine.generate(prompt=prompt, sampling_params=sp, request_id=req_id, lora_request=lora_req))
@@ -4526,6 +4552,7 @@ class InferenceEngine:
         gpu_reference: Optional[Dict[str, Any]] = None,
         native_event_observer: Optional[Callable[[Dict[str, Any]], None]] = None,
         pending_admission_id: Optional[str] = None,
+        native_submission_evidence: Optional[Dict[str, Any]] = None,
     ) -> Tuple[float, float, int]:
         return await self.generate(
             prompt=request_plan.prompt,
@@ -4541,6 +4568,8 @@ class InferenceEngine:
             **({"gpu_reference": gpu_reference} if gpu_reference is not None else {}),
             **({"native_event_observer": native_event_observer} if native_event_observer is not None else {}),
             **({'pending_admission_id': pending_admission_id} if pending_admission_id is not None else {}),
+            **({'native_submission_evidence': native_submission_evidence}
+               if native_submission_evidence is not None else {}),
         )
 
     @staticmethod
@@ -5146,17 +5175,23 @@ class SubprocessInferenceEngineProxy:
                 raise
         return proxy
 
-    async def _rpc(self, cmd: str, *, _native_event_observer=None, **kwargs: Any) -> Dict[str, Any]:
+    async def _rpc(self, cmd: str, *, _native_event_observer=None,
+                   _native_submission_evidence=None, **kwargs: Any) -> Dict[str, Any]:
+        native = self.model_cfg.get('timing_contract') == 'ieee_tc_native_v1'
+        if _native_submission_evidence is not None:
+            if not native or cmd != 'generate':
+                raise ValueError('submission observation requires native generation')
+            _begin_native_submission_observation(_native_submission_evidence, boundary='parent_rpc_handoff_v1')
         if self._engine_dead or self._process.poll() is not None:
             self._engine_dead = True
             raise RuntimeError(self._with_worker_log_context("subprocess_engine_dead"))
-        native = self.model_cfg.get('timing_contract') == 'ieee_tc_native_v1'
         if _native_event_observer is not None and (not native or cmd != 'generate'):
             raise ValueError('service progress requires native generation')
         control = native and cmd != 'generate'
         if native and cmd == 'generate' and self._native_rpc_uncertain:
             raise RuntimeError('native RPC ownership unresolved; new generation withheld')
         attempt_id = uuid.uuid4().hex
+        dispatch_started = False
         progress_open = True
         progress_events = []
         owner_task = asyncio.current_task()
@@ -5182,7 +5217,7 @@ class SubprocessInferenceEngineProxy:
         def receive_progress(frame):
             asyncio.run_coroutine_threadsafe(deliver_progress(frame), loop).result()
         def retain_uncertain() -> None:
-            if not native or cmd in ('ieee_worker_observation', 'ieee_scheduler_observation',
+            if not dispatch_started or not native or cmd in ('ieee_worker_observation', 'ieee_scheduler_observation',
                                      'ieee_generation_observation', 'shutdown'):
                 return
             if cmd == 'ieee_gpu_reference' and kwargs.get('operation') in ('snapshot', 'source_snapshot'):
@@ -5201,11 +5236,22 @@ class SubprocessInferenceEngineProxy:
             *,
             rpc_channel_acquire_ms: float,
         ) -> Dict[str, Any]:
+            nonlocal dispatch_started
+            # Another exchange can become unresolved while this call waits for
+            # a channel. Recheck at the actual handoff, not just at entry.
+            if native and cmd == 'generate' and self._native_rpc_uncertain:
+                raise RuntimeError('native RPC ownership unresolved; new generation withheld')
             payload = {"cmd": cmd, "kwargs": kwargs}
             if _native_event_observer is not None:
                 payload['native_event_rpc_id'] = attempt_id
             payload["client_send_wall_time"] = time.time()
             payload_bytes = _encode_rpc_frame(payload)
+            # From this boundary the executor thread may send even if its
+            # awaiting coroutine is cancelled. This is NOT a native-start ack.
+            dispatch_started = True
+            if _native_submission_evidence is not None:
+                _native_submission_evidence.update(state='may_execute', attempt_id=attempt_id,
+                    handoff_monotonic_s=time.monotonic())
             raw, send_flush_ms, wait_response_ms, parent_response_read_wall_time = await asyncio.to_thread(
                 self._blocking_rpc_roundtrip,
                 channel,
@@ -5550,11 +5596,14 @@ class SubprocessInferenceEngineProxy:
         _prepared_request: Optional[RequestExecutionPlan] = None,
         native_event_observer: Optional[Callable[[Dict[str, Any]], None]] = None,
         pending_admission_id: Optional[str] = None,
+        native_submission_evidence: Optional[Dict[str, Any]] = None,
     ) -> Tuple[float, float, int]:
         rpc_started_at = time.perf_counter()
         result = await self._rpc(
             "generate",
             **({'_native_event_observer': native_event_observer} if native_event_observer is not None else {}),
+            **({'_native_submission_evidence': native_submission_evidence}
+               if native_submission_evidence is not None else {}),
             prompt=prompt,
             lora_path=lora_path,
             adapter_id=adapter_id,
@@ -5642,6 +5691,7 @@ class SubprocessInferenceEngineProxy:
         gpu_reference: Optional[Dict[str, Any]] = None,
         native_event_observer: Optional[Callable[[Dict[str, Any]], None]] = None,
         pending_admission_id: Optional[str] = None,
+        native_submission_evidence: Optional[Dict[str, Any]] = None,
     ) -> Tuple[float, float, int]:
         # Dedicated worker preserves the exact controller/native handoff ID.
         return await self.generate(
@@ -5658,6 +5708,8 @@ class SubprocessInferenceEngineProxy:
             **({"gpu_reference": gpu_reference} if gpu_reference is not None else {}),
             **({"native_event_observer": native_event_observer} if native_event_observer is not None else {}),
             **({'pending_admission_id': pending_admission_id} if pending_admission_id is not None else {}),
+            **({'native_submission_evidence': native_submission_evidence}
+               if native_submission_evidence is not None else {}),
         )
 
     async def load_lora_to_gpu_and_measure(self, lora_path: str, adapter_id: str) -> Tuple[float, bool]:
@@ -15505,7 +15557,7 @@ class ScenarioRunner:
             if reservation.ieee_native_observer is not None:
                 evidence['service_events'] = list(reservation.ieee_native_observer.events)
         host_state = evidence.get('native_host_source', {}).get('state')
-        if (native and reservation.generation_started and not reservation.native_terminal_observed
+        if (native and reservation.may_have_native_generation() and not reservation.native_terminal_observed
                 and evidence.get('state') == 'acquired' and 'retirement_receipt' not in evidence):
             receipt = evidence['receipt']
             try:
@@ -15526,7 +15578,7 @@ class ScenarioRunner:
                 raise
         if (evidence.get('state') in ('acquiring', 'release_pending')
                 or host_state in ('holding', 'release_pending')
-                or (native and reservation.generation_started and not reservation.native_terminal_observed
+                or (native and reservation.may_have_native_generation() and not reservation.native_terminal_observed
                     and 'retirement_receipt' not in evidence)):
             # Sending abort / losing an RPC is not an engine-core terminal ack.
             # Keep capacity owned and withdraw this replica until native work
@@ -15879,6 +15931,10 @@ class ScenarioRunner:
                 _reservation.batch_output_tokens = output_tokens_hint
                 _reservation.batch_started = True
             t_start = time.perf_counter()
+            submission = None
+            if self.model_cfg.get('timing_contract') == 'ieee_tc_native_v1':
+                submission = {'state': 'unobserved'}
+                _reservation.gpu_reference_evidence['generation_submission'] = submission
 
             def _call_accepts_kw(callable_obj: Any, kw_name: str) -> bool:
                 try:
@@ -15900,6 +15956,8 @@ class ScenarioRunner:
                 }
                 if _call_accepts_kw(_engine.generate_prepared, "generation_seed"):
                     prepared_kwargs["generation_seed"] = generation_seed
+                if submission is not None and _call_accepts_kw(_engine.generate_prepared, 'native_submission_evidence'):
+                    prepared_kwargs['native_submission_evidence'] = submission
                 if gpu_reference is not None:
                     prepared_kwargs['gpu_reference'] = gpu_reference
                 if ieee_routing:
@@ -15912,6 +15970,8 @@ class ScenarioRunner:
                 generate_kwargs: Dict[str, Any] = {"return_timing": True}
                 if _call_accepts_kw(_engine.generate, "generation_seed"):
                     generate_kwargs["generation_seed"] = generation_seed
+                if submission is not None and _call_accepts_kw(_engine.generate, 'native_submission_evidence'):
+                    generate_kwargs['native_submission_evidence'] = submission
                 if gpu_reference is not None:
                     generate_kwargs['gpu_reference'] = gpu_reference
                 if ieee_routing:
