@@ -1,0 +1,343 @@
+{
+  "kind": "d93_interrupted_canonical_full_v1",
+  "model": "3b",
+  "workload": "W0",
+  "execution_commit": "17bb348602f00c66520c66d9b6074cc70a1e514e",
+  "full_qualified": false,
+  "formal_performance_result": false,
+  "baselines": "paused",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "population": {
+    "planned": 4000,
+    "publisher_submitted": 2513,
+    "runner_started": 2417,
+    "success": 320,
+    "native_contract_matched": 320,
+    "runner_not_started": 1583,
+    "event_counts": {
+      "request_terminal": 350,
+      "request_interrupted": 2067
+    },
+    "failure_observations": {
+      "TimeoutError": 29,
+      "CancelledError": 2067,
+      "RuntimeError": 1
+    },
+    "replay_event_counts": {
+      "replay_ready": 1,
+      "request_created": 2514,
+      "request_submitted": 2513,
+      "replay_incomplete": 1
+    },
+    "ingress_event_counts": {
+      "service_ingress_identity": 1,
+      "service_ingress_started": 1,
+      "request_received": 2482,
+      "request_dequeued": 2417,
+      "service_ingress_terminal": 1
+    }
+  },
+  "original_failure": {
+    "stage": "main_execution",
+    "type": "RuntimeError",
+    "message": "IEEE activation failed; no blind control-loop retry",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 13175, in _handle_pending_scale_up_task_done\n    task.result()\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 13199, in _execute_background_scale_up\n    scale_event = await self._add_dedicated_instance_slot(\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12858, in _add_dedicated_instance_slot\n    return await self._add_ieee_dedicated_instance(device_id=device_id,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 13151, in _add_ieee_dedicated_instance\n    engine, coordinator = await settle(startup)\n                          ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 13069, in settle\n    return await asyncio.shield(task)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 22112, in _spawn_engine\n    return await _spawn_dedicated_scenario_engine(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 18845, in _spawn_dedicated_scenario_engine\n    new_engine = await SubprocessInferenceEngineProxy.spawn(\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 5002, in spawn\n    allocation = PhysicalGPUAllocation(\n                 ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/metrics/metrics_collector.py\", line 356, in __init__\n    self._validate_clear(sample)\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/metrics/metrics_collector.py\", line 399, in _validate_clear\n    raise RuntimeError('physical GPU still has compute/owned/unknown contexts')\nRuntimeError: physical GPU still has compute/owned/unknown contexts\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 22277, in _main_async_impl\n    result, coord_m = await runner.run()\n                      ^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 14351, in run\n    all_raw, _tb1 = await self._run_continuous_observed(\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12473, in _run_continuous_observed\n    await self._maybe_run_live_scale_control_evaluation(\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 11713, in _maybe_run_live_scale_control_evaluation\n    return await self._evaluate_ieee_live_control(result=result, coord_enabled=coord_enabled,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12042, in _evaluate_ieee_live_control\n    raise RuntimeError('IEEE activation failed; no blind control-loop retry') from failure\nRuntimeError: IEEE activation failed; no blind control-loop retry\n"
+  },
+  "outer_launcher": {
+    "error": "external replay failed; no silent internal timer fallback",
+    "classification": "protocol_or_launcher_error",
+    "service_returncode": -15,
+    "watchdog_returncode": 0,
+    "note": "retained outer label; original activation error is separately preserved, not external interference"
+  },
+  "cleanup": {
+    "complete": true,
+    "roots": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_nvme_attempt2/tc_ieee_full",
+        "device": 2050,
+        "inode": 106204616
+      },
+      {
+        "path": "/dev/shm/tc-d93-3b-attempt2/tc_ieee_full",
+        "device": 27,
+        "inode": 2995
+      }
+    ],
+    "inventory_before": null,
+    "inventory_after": null
+  },
+  "resources": {
+    "samples": 2309,
+    "peak_bytes": 21293617152,
+    "min_host_available_bytes": 95746981888,
+    "max_events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "max_swap_bytes": 0
+  },
+  "physical": {
+    "allocation_journals": [
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_full_w0_attempt2/launch.launch/physical_allocations/01189ca9ee354896a7cf6ca101ff00a8.jsonl",
+        "released": true,
+        "sha256": "f7931fe804b9fd5f219e8dbf05dad9ec28075dccf56fa2213c39763a6bbc7646"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_full_w0_attempt2/launch.launch/physical_allocations/c13d7bb2613844b5b79bee79dd5c5385.jsonl",
+        "released": true,
+        "sha256": "f3e807ba0260f7f88ce543c0dc2d28b1417366f591c74b69921d919271577d12"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_full_w0_attempt2/launch.launch/physical_allocations/cb46d241def24a8abe9be5ba84c7d456.jsonl",
+        "released": true,
+        "sha256": "df85af425627a3d81b08fd090155f940c2ef4cab1b8a827c0eb1ea5c66860da2"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_full_w0_attempt2/launch.launch/physical_allocations/ed071531cef04c09abf069e0e8285233.jsonl",
+        "released": true,
+        "sha256": "9317456ae0c8ecea7784ba796b44b207537d3a4d820da64ebe87a0ac36f928f3"
+      }
+    ],
+    "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+    "contract": "physical_gpu_owner_union_v1",
+    "correctness_qualification": "not_inferred_from_token_contract",
+    "deployment_contract": "physical_gpu_deployment_v1",
+    "device_intervals": {
+      "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036": [
+        [
+          45337.725780396,
+          47547.506604273
+        ]
+      ],
+      "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946": [
+        [
+          45255.959851806,
+          47529.554127071
+        ]
+      ],
+      "GPU-c4663821-4888-e199-7151-d6298f8d45a5": [
+        [
+          45340.322608697,
+          47556.158245942
+        ]
+      ],
+      "GPU-dadf0267-9617-8824-cddb-82fba48a7b97": [
+        [
+          45335.654469213,
+          47537.808870163
+        ]
+      ]
+    },
+    "eligible_correctness": false,
+    "gpu_seconds": null,
+    "gpu_seconds_observed": 8901.365137337001,
+    "gpu_seconds_per_correct_request": null,
+    "gpu_seconds_per_offered_observed": 2.22534128433425,
+    "measurement_complete": false,
+    "n_correct": null,
+    "n_interrupted": 2067,
+    "n_native_contract_complete": 320,
+    "n_plan": 4000,
+    "n_terminal": 350,
+    "observed_until_s": 47582.768935303,
+    "open_lease_ids": [],
+    "owner_and_native_census_qualification_required": true,
+    "owner_event_count": 8,
+    "request_terminals_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_full_w0_attempt2/launch.launch/physical_deployment/request_terminals.jsonl",
+    "request_terminals_sha256": "1ca620e3bf4dee7ce7b4d4f7fc048ae8d2dd92ad283669fcc83a2f12c57ce923",
+    "window_gpu_seconds": {
+      "arrival": 8853.200202860004,
+      "cleanup": 0.0,
+      "drain": 0.0,
+      "pre_arrival": 48.16493447699759
+    }
+  },
+  "mechanism_counts": {
+    "_ieee_activations": {
+      "runtime_ready": 4,
+      "startup_ownership_unresolved": 4
+    },
+    "_ieee_residency_epochs": {
+      "completed": 31,
+      "superseded": 32,
+      "cancelled": 4
+    },
+    "_ieee_file_preparation_plans": {
+      "completed": 34,
+      "failed": 1,
+      "superseded": 32,
+      "cancelled": 8
+    },
+    "_ieee_gpu_preparation_plans": {
+      "completed": 12,
+      "superseded": 32,
+      "failed": 1,
+      "cancelled": 4
+    },
+    "_ieee_native_host_preparations": {
+      "not_a_state_event": 32
+    },
+    "_ieee_control_events": {
+      "not_a_state_event": 682
+    }
+  },
+  "remote": {
+    "uuid_pairs": 45,
+    "wire_bytes": 104449531,
+    "verified_logical_bytes": 1756692668,
+    "request_packing": 0,
+    "server_journal": "transfers-24d46dbbdee2450ca4d4109438b8379c.jsonl"
+  },
+  "conditional_success_latency_ms": {
+    "overall_ttft_ms": {
+      "n": 320,
+      "mean": 540249.5967605562,
+      "p50_type1": 319393.5519594379,
+      "p95_type1": 1641525.8879229731
+    },
+    "overall_e2e_ms": {
+      "n": 320,
+      "mean": 545474.4918060906,
+      "p50_type1": 323495.7661124354,
+      "p95_type1": 1647733.9781709742
+    },
+    "dispatch_admission_wait_ms": {
+      "n": 320,
+      "mean": 517525.7348168685,
+      "p50_type1": 257307.0147476683,
+      "p95_type1": 1639472.2189809545
+    },
+    "runtime_slot_wait_ms": {
+      "n": 320,
+      "mean": 138338.58587405615,
+      "p50_type1": 55410.225980995165,
+      "p95_type1": 605504.7026850006
+    },
+    "service_ttft_ms": {
+      "n": 320,
+      "mean": 22723.861943687778,
+      "p50_type1": 2004.0110219997587,
+      "p95_type1": 148908.03432199755
+    },
+    "vllm_ttft_ms": {
+      "n": 320,
+      "mean": 429.83191753426127,
+      "p50_type1": 153.18490900244797,
+      "p95_type1": 1964.1106749986648
+    },
+    "pre_runtime_service_shell_ms": {
+      "n": 320,
+      "mean": 22294.03002615352,
+      "p50_type1": 1284.9855899985414,
+      "p95_type1": 148638.7579700022
+    },
+    "parent_rpc_overhead_ms": {
+      "n": 320,
+      "mean": 2617.5061348251347,
+      "p50_type1": 1839.015700003074,
+      "p95_type1": 7521.3955029976205
+    },
+    "tpot_ms": {
+      "n": 320,
+      "mean": 25.355945903295755,
+      "p50_type1": 16.134810403922994,
+      "p95_type1": 41.13306754067686
+    }
+  },
+  "conditional_latency_caveat": "320 completed requests only, not the full4000 workload or numerical adapter qualification; no ranking/CI",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "next": "After evidence backup: isolate timeout/reference cancellation and activation availability; then bounded state-query amplification. No blind GPU rerun.",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_full_w0_attempt2/launch.json",
+      "sha256": "609ee175a63e598e58d028e535d228720ed09d167d197b15ee6c09aace240847"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_full_w0_attempt2/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "12b25a1b6457f72a1111a93498b1e9831aeef7fb40f9e8613290fddd3bd7fe84"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_full_w0_attempt2/launch.launch/physical_deployment/summary.json",
+      "sha256": "77605049022154b7beecb16d1d83dc26d97ecbd496663f6f7bbb92d999c46920"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_full_w0_attempt2/launch.launch/physical_deployment/request_terminals.jsonl",
+      "sha256": "1ca620e3bf4dee7ce7b4d4f7fc048ae8d2dd92ad283669fcc83a2f12c57ce923"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_full_w0_attempt2/launch.launch/watchdog.jsonl",
+      "sha256": "1751df1ef7df775360f940a47618950976e4ba2d2c28dc40cbab8f74effa1533"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_full_w0_attempt2/launch.launch/service_ingress.jsonl",
+      "sha256": "8c0f8d8d784700bc47eb09ce165b0e6f9f02f73f2c85e2c0a6c065c256912b3d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_full_w0_attempt2/launch.launch/replay.jsonl",
+      "sha256": "31ff687ca32c0df8d2306ad0212cc5262138efde52425e88592120469d6e44d1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_full_w0_attempt2/launch.launch/service.log",
+      "sha256": "32142ce4fc4a39cb0199157e46e31d92502711082c6b4abde00f784e4b52d0bd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/3b_main_config_attempt2.yaml",
+      "sha256": "8d0ef2e3fcd7509b3d7137a4a25072886796c282a19f3ad06b567e745cfdabcd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/run_3b_full_w0_attempt2.sh",
+      "sha256": "62adda3acef065374abc9178cbd46538a7e5b0a8bfd1ae7fb2cf1403e5a862fc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/remote_3b_full_attempt2_transfers.jsonl",
+      "sha256": "122c46aaee0eb8f9855b094731a46e97034b80d13ad616d9d9f29c64c873d1b8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/remote_monitor_full_attempt2_final.log",
+      "sha256": "378078f24cbab218c6e512ae3bdcf4f9a408ee31b5f20fed7351cbeea30b773a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/remote_stop_full_attempt2.log",
+      "sha256": "24a5f61b7149008b59eeef53ffd049b5b665b5d42565719a40799af943231b78"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/local_aux_cleanup_attempt2.log",
+      "sha256": "e4f68690eb3431cab9ec1af2b5d08c7b1c6cb968e4f5b8348e9862e9e516d838"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/summarize_full_attempt2.py",
+      "sha256": "8310eeb751ff42dc32ec452296a2771bc443cb407986a55aa37e2845a9a6990d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d93_20260928/full_attempt2_analysis_projection.json",
+      "sha256": "491634d99f31c9eed332c50229cfe306b81a139a23ee2c80b8e85b65e0422795"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "555dc46ae0ec47871dd039b76a125b8194c906e4f444c581364ee7d5398f02fd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "7f29d8743bbeb579d377581416005d35a78480a8d823181c69e3c72acc8ffb79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+      "sha256": "326c712b52094a4bd01f4b46a8b489f3e024efa5307d94880cbb45c7f18a0403"
+    }
+  ]
+}

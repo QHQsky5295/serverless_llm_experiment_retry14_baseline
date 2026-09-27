@@ -1,6 +1,112 @@
 # IEEE TC execution status
 
+## Latest — D93 full4000 attempt2 FAILED/CLEANED; backup then causal CPU diagnosis
+
+2026-09-28 04:28. Supersedes LIVEbelow. No live model/tmux/service/remote monitor;
+baseline9e2cf289 remainsPAUSED. Execution17bb348 unchanged. Outcome originalerror
+IEEE activation failed from physical GPU still has compute/owned/unknown contexts.
+Fourready initial/natural runtimes laterdraining afterdeadline/ownership trouble;
+fournewactivationattempts unresolved. Outerexternalreplay failure issecondary.
+Population:4000planned,2513publisher submitted,2482ingressreceived,2417runner
+tasks;320success/native matched,29TimeoutError,1RuntimeError(req00333),2067
+whole-runCancelledError. 1583notrunnerstarted includesbuffered/inflight/future;
+do NOTcallall1583 unarrived or only2513 theoffereddenominator.
+
+All4physicalleasesreleased, nativecensusclear,servicepathgone,nohardkill;
+ownerHOST/NVMe rootsremoved; outcome cleanup/measurementerrors empty.
+2309resourcesamplespeak21293617152B,minhost95746981888B,high/max/OOM/swap0.
+U_obs8901.365137GPU-s incomplete NOTfullcost. 45remoteUUIDpairsexact,
+104449531wireB/1756692668verifiedlogicalB,requestpacking0. Remotejournalfile
+transfers-24d46dbbdee2450ca4d4109438b8379c.jsonl has clock3b7dfc18...;
+clockUUIDandfilenameUUID differ. Finalremote monitor38MiBcopied; matchingmonitor
+a19e7d1b... stopped AFTERinference; bothartifactservices+monitor inactive/MainPID0/
+success. Emptylocalaux matchingfaadb5a... stopped; noactualGPUjob remains.
+
+Curated20260928_d93_3b_full_w0_attempt2.json SHA9750d4b0053f83f3cdd16527ab5f96ebcba86a3638f2586863db9215551fc3ea,
+19sourceSHArefs/147protectedPASS. D93doc immediatefailuretable complete.
+Rawmain_outcome584MiB staysunchanged; D92curatoradaptation usesbounded4GiB jq
+projection (full_attempt2_analysis_projection.json), notfullPythonJSONtree.
+Conditional320success:meanuserTTFT540.250s,dispatch517.526s,service22.724s,
+native.430s; notfullperformance/ranking/CI. 201successwithselected-source retries,
+1242total/max47; NOTfullsnapshotdiscardcount. Onefile+oneGPUhandofffailed
+ConfirmedSourceConflict, exactpredicate notcaptured; noFullqualificationclaim.
+
+NEXT scopedfailure-evidencebackup, thenONEcausalCPU workstream: deviceallocation
+uses get_slots(runningonly) although drainingowners stillphysicallyholddevices;
+testactualselector/cancellation/retirement boundaries. req00333waswithheld by
+unresolvedRPC BEFOREnewgeneration, butcleanup triedunknownnativebinding.
+Do NOTrelaxphysical/referenceguards or addblindretry. Afterownershipcorrectness,
+testnativeobservation/sourceconflict amplification; mainlinefullreplay mustthen
+revalidateall4000before7B/baselines. No newGPUjob/profile/cache/fullpoolwork now.
+Warm/Resident/M1/M2/A/S remainpending, zero-weight numerical limitation unchanged.
+
+## LIVE — D93 canonical 3B4000 Full W0 attempt2, 2026-09-28 03:39:55
+
+04:17:02 progress:2384submitted/330terminal/315success/15TimeoutError,
+315native-contractmatched;watchdogsample2197,service19.51GiB,
+hostavailable89.54GiB,disk309.39GiB,high/max/OOM/OOMkill0.
+Actualscopeactive at every poll; freshest sample0.74s old.
+Scope remained active, nooutcome/launchterminal yet. Backlog grows and native
+generation remains much shorter than user waiting; NOTcompletequalification.
+Auxiliaryinvocationfaadb5a13abc4616bb7026362a7a55d5.
+Continue monitoring THIS run; no duplicate launch or source changes.
+This turn was verified monitoring/read-only diagnosis, no runtime edits or new
+experiments. Tool-only polling cells1711/1715/1721 were ended; they are NOT the
+experiment. Tmux/service/watchdog/external publisher remain live. Do NOT try to
+resume those closed tool cells, restart the experiment, or treat slow progress
+as a termination condition. Planned4000arrivalspan3963.9s plus fixed1800s
+planned-arrival deadlines; terminal files must be checked, not guessed from ETA.
+
+New qualification evidence: first4timeouts observed04:15:34. req00150/00152/
+00157/00160 terminal at1803.015/1802.980/1800.209/1800.324s from plannedarrival.
+Thus this configuration CANNOT pass4000/4000 completion even if the remaining
+run completes. Keep the same replay until its terminal/authorized safety stop,
+preserve alloffered4000 and failures. Do NOT advance7B with a success claim or
+change timeout/trace midrun. The4terminal rows have instance_id=null because
+_run_offered_request passes result=None on exception; this is NOT proof they
+timed out before replica selection/native dispatch. Need retained per-request
+failure observations after run end. These are1800sdeadline failures, NOT5sSLO
+classification. NoOOM/high/max or source-snapshot ValueError observed so far.
+
+Read-only candidate diagnosis (NOT proven, no runtime edits): each routing
+attempt gathers source_snapshot from all native workers; each response rebuilds
+HOST inventories twice and the GPU tensor inventory. Partial per-slot commit can
+then reject a gathered view that another request has overtaken, immediately
+restarting the entire gather. Global admission bounds these callers (3B32), so
+do NOT claim every offered waiter polls all workers. Native controls already use
+fresh connections, NOT the generation-channel pool; shared-pool deadlock is not
+established. Inspect actual end-of-run stages and test count/progress separately
+after cleanup before accepting an optimization. Official v0.30 core.py input
+queue is drained before stepping, worker_manager.py keeps native mutation in
+the single-threaded core; these motivate bounded/coalesced observation research,
+not proof of this run's exact cause. Sources checked 2026-09-28:
+https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core.py
+https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py
+
+Source17bb348602f00c66520c66d9b6074cc70a1e514e PUSHED/frozen; tmux
+tc-d93-3b-full2. Rawd93_20260928/3b_full_w0_attempt2/launch.json and
+launch.launch/,3b_full_w0_attempt2_console.log; D92 attempt1 unchanged.
+Canonical existingrunner, actual4000 externalarrivalmap,60snotice,1800splanned-
+arrivaldeadline, sameD88/D89 configuration; only codefix andnewownedroots.
+Auxa917b3643e2c482290182c00eec26bc2; serviceabd1a98f3730468ab6e0ec5ab4ecdd42
+scope/invocationb92baf0317bc4f288304426507c98a06. Watchdog1578138 actualworkers
+inside72/80GiB/swap2 domain. Beforelaunch13refs/147protectedPASS,bothhealthPASS.
+Remote3Binv2e00b66fe4e24c25905d6320fe90ae46 PID823499;
+7Binv9abca9bd988f47b2b349abd5ad7b1b71 PID823501;
+monitorinv a19e7d1b00ec43ed89939cdb95daae51 PID823504,
+unitprimelora-artifact-monitor-d93full2.service,
+remote tc/d93_20260928/remote_monitor_3b_full_attempt2.log.
+NOsource/remoteconfiguration/restart/hash/cleanup duringinference. MonitorSAME
+attempt toterminal thencleanup/validation/status table BEFORE7B/nexttask.
+AllolderLIVE/NEXT notes superseded. NoFull/SLO/numericalqualification yet;
+baselinesremainPAUSED. Do NOTlaunch duplicate, reprofile orrebuildcache.
+
 ## Latest — D93 snapshot counterexample fixed and CPU-verified; full replay next
+
+BACKEDUP17bb348602f00c66520c66d9b6074cc70a1e514e PUSHED/freshremote matched.
+Six scopedfiles/13SHArefs/147protected/secrets PASS; usermanifest untouched.
+Prelaunch localdisk334048542720B,MemAvailable113298712KiB,swap0,GPUidle;
+bothNIC1000/full. Remote services inactive before new attempt activation.
 
 2026-09-28 03:38. No live inference/remote/tmux; baselines9e2cf289 PAUSED.
 CPU counterexample reproduced D92's same complete-file-view ValueError when
