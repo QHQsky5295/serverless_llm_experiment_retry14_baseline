@@ -12,6 +12,11 @@ time, not the user's subsequent explicit execution authorization.
   adapter pools, duplicate full datasets, overwrite old results, or run 13B.
 - G1: correct full workload + common joint SLO, then minimum lifecycle GPU-s.
   G2: common budget + SLO, then tail TTFT. CE is supplementary.
+- Before every system comparison, configuration selection or comparative figure,
+  read docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md in full. Record its SHA and the
+  separately frozen warm/reference manifests. Development 5000ms/live CE is not
+  final SLO qualification. Do not alter V1 in place after its freeze; revisions
+  require a new protocol identity and an explicit impact assessment.
 - Every optimization: historical logs/code + current primary-source literature
   and code + falsifiable bottleneck hypothesis + validation + full replay.
 - Preserve IEEE's nine equations and semantics. Prefer measured, causal online

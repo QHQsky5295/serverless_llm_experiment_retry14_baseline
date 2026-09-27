@@ -1,6 +1,63 @@
 # IEEE TC execution status
 
-## Current checkpoint — 2026-09-28 D90 attempt4 FAILED, models/remotes STOPPED
+## Current checkpoint — 2026-09-28 D90 attempt5 FAILED/CLEANED; metric rules frozen
+
+Latest:attempt5 terminal100planned/74submitted/56success/18cancelled/26unsubmitted.
+No individualrequestexceptions; source_snapshot failed unverified localcopy during
+residency planning. Exactadapter/atomicinterleavingNOTyetproven. Actualreadyepochs
+initial1/controlled1/natural2;residency61complete/16superseded/1cancel/3failed.
+23HTTPUUIDpairs exact,53437743wireB/887931336verifiedlogicalB,22published/1not,
+no requestpacking.350samples peak19172200448B/minhost97284222976B;high/max/OOM/swap0.
+3/4inprocessleasesclosed;lastconservativelyfalse/2GiBHOSTreserved. Actualouter
+cleanup after60s remainingdescendants confirmsallGPUcontexts/servicegone;2/0.
+Emptyaux85cdb2b2 stopped afterprocs/populated0;matchingremote45872767 stopped only
+afterinference;all3remoteinactive/MainPID0/success. NO LIVEMODEL/TMUX/REMOTE.
+HOSTworkspacegone;NVMe531046400B112filesretained fordeniedsameUIDholderinspection.
+Rawattempt5_workspace_cleanup.json, curated20260928_d90_3b_full_prefix_attempt5
+and D90immediatetable preservefailure.147protectedunchanged. NEXT CPUisolatefile
+publication/snapshotatomicboundary andlastnativeleaserelease beforeanyGPUrerun.
+Do not relaxverifiedsourceguard, treatunknownasmiss, orrepeatD78/D80/D81/D88/D89.
+7B/main/A/S notstarted;baselinesPAUSED. FullNOTqualified.
+
+Userrequested definitiveMD/frozencomparisonrules. METRIC_PROTOCOL_FROZEN_V1.md
+now fixes G1/G2, TTFT/TPOT/jointdenominators,nativecounts,physicalGPU-s,failures,
+referenceSLOrecipe,workpointselection,Holm/noninfer,CEsupplement andcomparisonchecklist.
+Numericalwarmthresholds/Residentreference areNOTyetmeasured/frozen;doNOTinventthem.
+AGENTSrequiresfullreadbeforecomparisons. ExistingplanSHA/formulas unchanged.
+HYDRASERVE_METRIC_ALIGNMENT_20260928.md holdsobjectiveadaptationreasoning.
+No productioncodeeditedduringthisrun;needscoped evidence/docbackup next.
+
+User objective expanded duringrun: objectively compare HydraServe metric system,
+not mandatoryalignment; permit observable-driven adaptive optimization outside
+IEEE displayedformulas/coresemantics. Read officialNSDI§8.2–8.4/AppendixA and
+officialAEguide. Analysis recorded HYDRASERVE_METRIC_ALIGNMENT_20260928.md:
+retainG1/G2, CE supplementary; TTFT/TPOT marginal vsjoint distinctions; original
+GPU-memory-time != physicalGPU-s underexclusiveallocation. CurrentD90 uses
+development5000ms, NOTfinalwarmSLO. No runningconfig/source/metric changed.
+No superiorityassertion. OfficialAE defaultprecomputedfigurefallback mustNOT
+enterourfuturelocalresults. BaselinesremainPAUSED.
+
+00:35:3B attempt5 STARTED tmux tc-d90-3b-attempt5, source7297141 unchanged/pushed.
+Same original driver/100prefix/500pool/D88config/D89profiles; no new input/profile.
+Both direct healthPASS,147protectedunchanged,10source/logrefsverified.
+Remote3B6fb89f6e98b84e9491a47d7b4ab39404 PID641621;
+7B2a53ca6259ea4e119c66b6ea2da4e893 PID641623;
+monitor4587276762c849e9bb61fe4ccdf880bb PID641626 ACTIVE,
+unitprimelora-artifact-monitor-d90a5.service/logremote_monitor_attempt5.log.
+Both NICs1000/full; inference MemAvailable113581608KiB and disk313GiB.
+Raw3b_full_prefix_attempt5 result/launch/console,remote_preinference_health5.
+No source/remoteoperations duringinference. Monitor SAMEattempt totterminal;
+cleanup/validation/table BEFORE7B. Full/M1/M2/A/S stillNOTqualified/started.
+BaselinesPAUSED. Following attempt4 stop/next notes are historical.
+
+BACKEDUP72971413137e192fa297b3a6b2d413cd989097a1 PUSHED/freshremoteSHA
+matched,rawconcurrent_fix_push_receipt.json. Eightscopedfiles,allsourceSHAs and
+secret/name checksPASS;userdirtymanifestuntouched. PreparedONLYunique
+run_3b_full_prefix_attempt5.sh/activate_services_attempt5.sh fromsameattempt4
+interfaces,newnames/auxID/monitor only;bash-nPASS. DO NOT interpret asrunning.
+Nextfreshreadfullplan/ledger/safety,thenlaunchONE3B100prefix withoriginaldriver.
+No live tmux/GPUmodel/remote service. Disk313GiBavailable;baselineHEAD9e2cf289
+unchanged/PAUSED. All prior failedrawruns retained;no benchmarkrankingyet.
 
 00:28 CPUcorrectionsCOMPLETE,757related/basicPASS39.889s(rawconcurrent_regression1).
 Three exact boundaries: (1)fileplans nowjoin existing same-owner/tier/content

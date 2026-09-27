@@ -1,0 +1,30 @@
+{
+  "kind": "metric_rule_freeze_v1",
+  "protocol_id": "primelora_tc_metrics_v1",
+  "frozen_at_date": "2026-09-28",
+  "timezone": "Asia/Shanghai",
+  "rules_frozen": true,
+  "protocol": {
+    "path": "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+    "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+  },
+  "approved_plan": {
+    "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+    "sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "source_checkpoint": "72971413137e192fa297b3a6b2d413cd989097a1",
+  "primary_objectives": [
+    "G1: complete correct workload and joint SLO >= 0.95, then minimum physical lifecycle GPU-s/request",
+    "G2: complete correct workload, common GPU-time budget and joint SLO >= 0.95, then minimum W1/W2 reference-normalized P95 TTFT; joint-SLO noninferiority evaluated separately"
+  ],
+  "warm_reference_multiplier_ttft": 5,
+  "warm_reference_multiplier_tpot": 2,
+  "numerical_slo_reference": null,
+  "resident_resource_reference": null,
+  "selected_system_workpoints": null,
+  "numerical_freeze_status": "pending_actual_common_calibration",
+  "formal_comparison_authorized_by_this_file": false,
+  "current_d90_threshold_status": "development_5000ms_not_final_SLO",
+  "ce_role": "supplementary_not_primary_selection",
+  "revision_rule": "Preserve this protocol and manifest; any semantic change requires a new protocol version, impact assessment and separate comparison identity."
+}
