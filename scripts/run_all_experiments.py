@@ -12183,6 +12183,12 @@ class ScenarioRunner:
         except BaseException as exc:
             record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
                           error_type=type(exc).__name__)
+            if not isinstance(exc, asyncio.CancelledError):
+                import traceback
+                # Reaping and shutdown may raise different failed epochs. Keep
+                # each original cause at its actual failure boundary, before a
+                # subsequent lookup observes only withdrawn source state.
+                record.update(error=str(exc), traceback=traceback.format_exc())
             raise
         finally:
             record['terminal_at'] = time.monotonic()

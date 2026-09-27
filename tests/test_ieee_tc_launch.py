@@ -857,6 +857,8 @@ class IEEEActualControl(unittest.TestCase):
             await asyncio.gather(*service._ieee_residency_tasks.values(),return_exceptions=True)
             with self.assertRaisesRegex(ValueError,'missing class'): service._reap_ieee_residency_tasks()
             self.assertEqual(service._ieee_residency_epochs[0]['state'],'failed')
+            self.assertEqual(service._ieee_residency_epochs[0]['error'], 'missing class')
+            self.assertIn('ValueError: missing class', service._ieee_residency_epochs[0]['traceback'])
             self.assertEqual(service._run_ieee_owned_preparation_plan.await_count,1)
             await queue.close()
         asyncio.run(run())

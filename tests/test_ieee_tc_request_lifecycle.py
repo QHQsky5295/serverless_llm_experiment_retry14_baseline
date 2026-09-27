@@ -1867,10 +1867,75 @@ class ConfirmedFilePublication(unittest.TestCase):
     def test_directory_existence_is_not_confirmed_local_or_remote(self):
         (self.nvme / 'a').mkdir()
         (self.nvme / 'a' / 'unknown').write_bytes(b'x')
-        with self.assertRaisesRegex(RuntimeError, 'without verified source publication'):
+        with self.assertRaisesRegex(RuntimeError, 'without verified source publication') as caught:
             self.owner.source_snapshot('a')
+        detail = json.loads(str(caught.exception).split(': ', 1)[1])
+        self.assertEqual(detail['path'], str(self.nvme / 'a'))
+        self.assertEqual(detail['adapter_id'], 'a')
+        self.assertEqual(detail['tier'], 'nvme')
+        self.assertEqual(detail['active_transfer_ids'], [])
         self.assertTrue(self.fetch()[0])
         self.assertEqual(len(self.owner.source_snapshot('a')['sources']), 1)
+
+    def test_reader_cannot_observe_rename_before_confirmation(self):
+        """Real publisher/owner lock; force a pause after rename, before registry commit."""
+        from concurrent.futures import ThreadPoolExecutor
+        original = self.manager.publish_local_source
+        for replacing in (False, True):
+            with self.subTest(replacing=replacing):
+                renamed, proceed, reading = (threading.Event() for _ in range(3))
+                def pause_after_rename(*args, **kwargs):
+                    original(*args, **kwargs)
+                    renamed.set()
+                    if not proceed.wait(3):
+                        raise TimeoutError('test publication barrier')
+                def read():
+                    reading.set()
+                    return self.owner.source_snapshot('a')
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    with patch.object(self.manager, 'publish_local_source', pause_after_rename):
+                        writer = pool.submit(self.fetch)
+                        try:
+                            self.assertTrue(renamed.wait(3))
+                            self.assertTrue((self.nvme / 'a').is_dir())
+                            acquired = self.owner.lock.acquire(blocking=False)
+                            if acquired:
+                                self.owner.lock.release()
+                            self.assertFalse(acquired, 'publication must retain the real owner lock')
+                            reader = pool.submit(read)
+                            self.assertTrue(reading.wait(3))
+                            self.assertFalse(reader.done())
+                        finally:
+                            proceed.set()
+                        self.assertTrue(writer.result(timeout=3)[0])
+                        observed = reader.result(timeout=3)
+                self.assertEqual(len(observed['sources']), 1)
+                self.assertTrue(observed['sources'][0]['content_verified'])
+                self.assertFalse(self.owner.materializations)
+
+    def test_private_preallocation_does_not_publish_in_progress_copy(self):
+        from concurrent.futures import ThreadPoolExecutor
+        allocated, proceed = threading.Event(), threading.Event()
+        original = self.owner.prepare_transfer
+        def pause_after_allocation(*args, **kwargs):
+            receipt = original(*args, **kwargs)
+            allocated.set()
+            if not proceed.wait(3):
+                raise TimeoutError('test allocation barrier')
+            return receipt
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            with patch.object(self.owner, 'prepare_transfer', pause_after_allocation):
+                writer = pool.submit(self.fetch)
+                try:
+                    self.assertTrue(allocated.wait(3))
+                    self.assertTrue(self.owner.materializations)
+                    self.assertFalse((self.nvme / 'a').exists())
+                    self.assertEqual(self.owner.source_snapshot('a')['sources'], [])
+                finally:
+                    proceed.set()
+                self.assertTrue(writer.result(timeout=3)[0])
+        self.assertEqual(len(self.owner.source_snapshot('a')['sources']), 1)
+        self.assertFalse(self.owner.materializations)
 
     def test_bad_transfer_preserves_old_confirmed_copy_and_epoch(self):
         from faaslora.storage.http_artifact_store import RemoteArtifactError
@@ -1914,8 +1979,13 @@ class ConfirmedFilePublication(unittest.TestCase):
         # Post-publication external writers are outside the cooperative owner.
         # Check observable invalidation deterministically, not timestamp precision.
         os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns + 1_000_000_000))
-        with self.assertRaisesRegex(RuntimeError, 'changed outside'):
+        with self.assertRaisesRegex(RuntimeError, 'changed outside') as caught:
             self.owner.source_snapshot('a')
+        detail = json.loads(str(caught.exception).split(': ', 1)[1])
+        self.assertEqual(detail['path'], str(self.nvme / 'a'))
+        self.assertIn('nested/weights', detail['changed_paths'])
+        self.assertEqual(detail['changed_paths']['nested/weights']['expected'][6], before.st_mtime_ns)
+        self.assertEqual(detail['changed_paths']['nested/weights']['observed'][6], before.st_mtime_ns + 1_000_000_000)
         self.assertGreater(self.owner.source_epoch, epoch)
         with self.assertRaisesRegex(RuntimeError, 'without verified source publication'):
             self.owner.source_snapshot('a')

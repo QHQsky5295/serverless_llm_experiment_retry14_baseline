@@ -363,3 +363,39 @@ HOST临时目录消失；该attempt的NVMe缓存531,046,400B/112文件暂保留�
 147个历史保护项均无变化。立即使用本状态表，不画虚假的完整性能图。
 来源：`paper_results/ieee_tc/p2_backend/20260928_d90_3b_full_prefix_attempt5.json`。
 下一步是文件发布边界与失败后的native lease收尾；不启动7B、baseline或主矩阵。
+
+## attempt5 后的有界 CPU 排查：尚未证明根因
+
+2026-09-28：用真实 `LocalSourceReferences`、原 runner 下载和发布入口，在
+初次发布及替换时强制暂停于 rename 已完成、confirmed registry 尚未提交的
+位置。读线程不能进入同一 owner 的观察区，恢复后只读到核验完成的副本。
+另在真实预分配完成、正文写入前暂停，目标目录仍不存在，未把私有 workspace
+当作已发布源。这些测试支持现有锁的原子边界，**不支持**简单的
+“rename 与 registry 之间漏锁”假设；不能宣称已修复原 GPU 回放失败。
+
+| 证据 | 结果 | 限制 |
+|---|---|---|
+| 发布窗口并发测试 |初次发布/替换均隔离中间态 |小型 CPU fixture，不是 GPU 回放 |
+| 下载中预分配测试 |私有文件不成为 confirmed source |不覆盖所有真实文件系统时序 |
+| attempt5 保留的14份 NVMe副本 |逻辑/分配字节及文件数与发布回执一致 |不是重新内容哈希，不能排除瞬时变化或已清理HOST副本 |
+| 相关回归和基本检查 |759项通过，43.685秒 |Full仍不合格 |
+
+原失败只保留每个驻留任务的异常类型；首个任务被取出后，收尾可能呈现另一
+任务的后续 `unverified` 错误。因此本次仅补充错误分支的可观测性：每个失败
+epoch保留原错误和堆栈；源变化记录首次不一致的路径、签名和footprint；未知
+现存目录记录工件、tier及活动transfer。失败仍原样抛出，不重试、不重新扫描
+覆盖首次观测、不把未知降级成Remote miss，也不增加正常请求的哈希/I/O。
+首次red检查的两项失败是缺诊断字段；并发测试在修改前已经通过，完整日志保留。
+
+边界依据：[Python RLock 官方语义](https://docs.python.org/3/library/threading.html#rlock-objects)
+支持同一所有者的互斥；[vLLM 0.30 PEFT配置读取源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/peft_helper.py)
+只证明该配置读取路径不回写文件，不代表已排除所有外部写入。
+[Linux ext4分配说明](https://kernel.org/doc/html/next/filesystems/ext4/allocators.html)
+提示物理分配有独立时序，但当前没有足够证据将此次失败归因于ext4。
+不能因此加任意sleep/fsync或放宽签名/容量检查。
+
+源证据：`paper_results/ieee_tc/p2_backend/20260928_d90_file_publication_diagnostic.json`。
+下一步只允许一次同driver、同配置、同profile的3B原前缀诊断，以新记录保留
+首次失败；不是验证已知修复或正式性能。7B和baseline继续等待，D78/D80/D81/
+D88/D89不重做。异常后最后native lease归还问题仍待核查，不能用外置清理
+冒充完整生命周期合格。

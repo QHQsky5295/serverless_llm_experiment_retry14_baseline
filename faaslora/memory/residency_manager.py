@@ -610,7 +610,21 @@ class LocalSourceReferences:
         try:
             signatures, footprint = self._source_observation(path)
             if signatures != record['signatures'] or footprint != record['footprint']:
-                raise RuntimeError('confirmed source changed outside its managed publication')
+                # Preserve the FIRST mismatching observation. Withdrawal below
+                # makes a later lookup report only "unverified"; rescanning now
+                # could instead hide a transient filesystem/identity change.
+                detail = dict(owner_id=self.owner_id, source_epoch=self.source_epoch,
+                    path=str(path), adapter_id=record['public']['adapter_id'],
+                    tier=record['public']['tier'],
+                    signature_fields=['device', 'inode', 'mode', 'size', 'blocks',
+                                      'link_count', 'mtime_ns', 'ctime_ns'],
+                    changed_paths={name: dict(expected=record['signatures'].get(name),
+                                             observed=signatures.get(name))
+                        for name in sorted(set(signatures) | set(record['signatures']))
+                        if signatures.get(name) != record['signatures'].get(name)},
+                    expected_footprint=record['footprint'], observed_footprint=footprint)
+                raise RuntimeError('confirmed source changed outside its managed publication: '
+                                   + json.dumps(detail, sort_keys=True))
         except (OSError, ValueError, RuntimeError):
             del self._confirmed_sources[path]
             self.source_epoch += 1
@@ -639,7 +653,12 @@ class LocalSourceReferences:
                 if record is not None:
                     sources.append(copy.deepcopy(record['public']))
                 elif path.exists() or path.is_symlink():
-                    raise RuntimeError('local copy exists without verified source publication')
+                    detail = dict(owner_id=self.owner_id, source_epoch=self.source_epoch,
+                        path=str(path), adapter_id=adapter_id, tier=tier,
+                        active_transfer_ids=sorted(key for key, destination in
+                            self.materializations.items() if destination == path))
+                    raise RuntimeError('local copy exists without verified source publication: '
+                                       + json.dumps(detail, sort_keys=True))
             return dict(kind='confirmed_file_sources_v1', owner_id=self.owner_id,
                         epoch=self.source_epoch, adapter_id=adapter_id,
                         captured_monotonic_s=time.monotonic(), clock_id=local_monotonic_clock_id(),

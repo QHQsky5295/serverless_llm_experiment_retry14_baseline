@@ -1,6 +1,32 @@
 # IEEE TC execution status
 
-## Current checkpoint — 2026-09-28 D90 attempt5 FAILED/CLEANED; metric rules frozen
+## Current checkpoint — 2026-09-28 D90 publication diagnostics CPU-qualified, root NOT proven
+
+Latest user approved once-only immutable compressed cache again; already DONE
+D78/D80,1.47GiB,both500/500. DO NOT rebuild/republish/download full pools.
+CPU post-rename/pre-registry barriers on actualowner+runner pass forinitial AND
+replacement;privatepreallocation remainsunpublished. Existinglock correctly
+excludesotherthread. Simplepublicationgap hypothesisNOTsupported.14retainedNVMe
+copies matchoriginalpublishedfootprints;notcontentrehash/nottransientproof.
+AddedONLYfailureobservability:originalepocherror/traceback,firstsource-signature/
+footprintdifference,andunknowncopy exactpath/tier/activeIDs. Samefatalpredicates,
+no normal-pathIO,retry,fsync,formula/config/profilechange. Red2missingfielderrors
+retained;20targetedPASS0.979s;759related/basicPASS43.685s. Curated
+20260928_d90_file_publication_diagnostic.json + immediateD90table.147protected
+unchanged. NO causalfix/Fullqualification/newGPUrun. NEXT verify/backupthenONE
+instrumented same-contract3Bprefix to preservefirstcause,notblindperformance
+rerun;lastnativeleasefailurestillopen. No7B/baselines/main/A/S. No livemodel,
+tmux,remote.312GiBfree,MemAvailable107GiB;oldretainedcachesnotdeleted.
+
+## Previous backed-up checkpoint — attempt5 and metric rules
+
+BACKEDUP c7ed4994e1261fb837219c6acac3801b4bfad78b PUSHED/freshremoteSHA matched.
+Seven scoped docs/rules/evidence files, runtime code unchanged from757-test
+checkpoint7297141. MetricV1SHA5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22
+frozen inpaper_results/ieee_tc/protocols/20260928_metrics_v1_freeze.json.
+Allattempt5 rawreferences and147protecteditems verified again; userdirtymanifest
+untouched. BaselineHEAD9e2cf289unchanged/PAUSED. No liveGPUmodel/tmux/remote;
+disk312GiBfree. NextCPU file-publication atomicity diagnosis, NOT a blindGPUrerun.
 
 Latest:attempt5 terminal100planned/74submitted/56success/18cancelled/26unsubmitted.
 No individualrequestexceptions; source_snapshot failed unverified localcopy during

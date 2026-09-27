@@ -1,0 +1,341 @@
+{
+  "kind": "d90_file_publication_diagnostic_v1",
+  "parent_commit": "c7ed4994e1261fb837219c6acac3801b4bfad78b",
+  "new_gpu_run": false,
+  "formal_performance_result": false,
+  "full_qualified": false,
+  "original_failure_causally_explained": false,
+  "concurrency_probes": {
+    "real_owner_lock": true,
+    "actual_runner_download": true,
+    "transport": "mock HTTP response with tiny test payload; not remote qualification",
+    "post_rename_before_registry": [
+      "initial publication",
+      "replacement"
+    ],
+    "private_preallocation": "unpublished target remains absent from sources",
+    "production_predicates_unchanged": true
+  },
+  "regression": {
+    "tests": 759,
+    "seconds": 43.685,
+    "passed": true
+  },
+  "prior_failures": "two missing diagnostic fields in red run; concurrency probes already passed",
+  "retained_cache_observations": [
+    {
+      "adapter_id": "finance_lora",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/finance_lora",
+      "expected": {
+        "file_path_bytes": 42695980,
+        "allocated_file_bytes": 42721280,
+        "allocated_bytes": 42725376,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 42695980,
+        "allocated_file_bytes": 42721280,
+        "allocated_bytes": 42725376,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    },
+    {
+      "adapter_id": "legal_lora",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/legal_lora",
+      "expected": {
+        "file_path_bytes": 45841708,
+        "allocated_file_bytes": 45867008,
+        "allocated_bytes": 45871104,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 45841708,
+        "allocated_file_bytes": 45867008,
+        "allocated_bytes": 45871104,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    },
+    {
+      "adapter_id": "translate_lora",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/translate_lora",
+      "expected": {
+        "file_path_bytes": 34307372,
+        "allocated_file_bytes": 34332672,
+        "allocated_bytes": 34336768,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 34307372,
+        "allocated_file_bytes": 34332672,
+        "allocated_bytes": 34336768,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    },
+    {
+      "adapter_id": "research_lora_0008",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/research_lora_0008",
+      "expected": {
+        "file_path_bytes": 40598828,
+        "allocated_file_bytes": 40624128,
+        "allocated_bytes": 40628224,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 40598828,
+        "allocated_file_bytes": 40624128,
+        "allocated_bytes": 40628224,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    },
+    {
+      "adapter_id": "education_lora_0043",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/education_lora_0043",
+      "expected": {
+        "file_path_bytes": 36404524,
+        "allocated_file_bytes": 36429824,
+        "allocated_bytes": 36433920,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 36404524,
+        "allocated_file_bytes": 36429824,
+        "allocated_bytes": 36433920,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    },
+    {
+      "adapter_id": "education_lora_0007",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/education_lora_0007",
+      "expected": {
+        "file_path_bytes": 36404524,
+        "allocated_file_bytes": 36429824,
+        "allocated_bytes": 36433920,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 36404524,
+        "allocated_file_bytes": 36429824,
+        "allocated_bytes": 36433920,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    },
+    {
+      "adapter_id": "ecommerce_lora_0009",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/ecommerce_lora_0009",
+      "expected": {
+        "file_path_bytes": 32210220,
+        "allocated_file_bytes": 32235520,
+        "allocated_bytes": 32239616,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 32210220,
+        "allocated_file_bytes": 32235520,
+        "allocated_bytes": 32239616,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    },
+    {
+      "adapter_id": "medical_lora",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/medical_lora",
+      "expected": {
+        "file_path_bytes": 38501676,
+        "allocated_file_bytes": 38526976,
+        "allocated_bytes": 38531072,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 38501676,
+        "allocated_file_bytes": 38526976,
+        "allocated_bytes": 38531072,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/gaming_lora_0010",
+      "expected": {
+        "file_path_bytes": 28015916,
+        "allocated_file_bytes": 28041216,
+        "allocated_bytes": 28045312,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 28015916,
+        "allocated_file_bytes": 28041216,
+        "allocated_bytes": 28045312,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    },
+    {
+      "adapter_id": "translate_lora_0018",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/translate_lora_0018",
+      "expected": {
+        "file_path_bytes": 34307372,
+        "allocated_file_bytes": 34332672,
+        "allocated_bytes": 34336768,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 34307372,
+        "allocated_file_bytes": 34332672,
+        "allocated_bytes": 34336768,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    },
+    {
+      "adapter_id": "support_lora",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/support_lora",
+      "expected": {
+        "file_path_bytes": 30113068,
+        "allocated_file_bytes": 30138368,
+        "allocated_bytes": 30142464,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 30113068,
+        "allocated_file_bytes": 30138368,
+        "allocated_bytes": 30142464,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    },
+    {
+      "adapter_id": "education_lora_0031",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/education_lora_0031",
+      "expected": {
+        "file_path_bytes": 36404524,
+        "allocated_file_bytes": 36429824,
+        "allocated_bytes": 36433920,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 36404524,
+        "allocated_file_bytes": 36429824,
+        "allocated_bytes": 36433920,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    },
+    {
+      "adapter_id": "medical_lora_0026",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/medical_lora_0026",
+      "expected": {
+        "file_path_bytes": 38501676,
+        "allocated_file_bytes": 38526976,
+        "allocated_bytes": 38531072,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 38501676,
+        "allocated_file_bytes": 38526976,
+        "allocated_bytes": 38531072,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    },
+    {
+      "adapter_id": "code_lora_0039",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d90_20260927/tc-d90-full-pkvt241z/code_lora_0039",
+      "expected": {
+        "file_path_bytes": 56327468,
+        "allocated_file_bytes": 56352768,
+        "allocated_bytes": 56356864,
+        "unique_file_count": 8
+      },
+      "observed": {
+        "file_path_bytes": 56327468,
+        "allocated_file_bytes": 56352768,
+        "allocated_bytes": 56356864,
+        "unique_file_count": 8
+      },
+      "equal": true,
+      "content_sha_reverified": false,
+      "publication_signatures_available": false
+    }
+  ],
+  "caveat": "post-run footprint equality does not rule out transient mutation, identity change or removed HOST copies",
+  "next_step": "capture first failure cause in one instrumented original-contract 3B prefix; not a performance rerun",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "sources": [
+    {
+      "path": "faaslora/memory/residency_manager.py",
+      "sha256": "8d3536d1068d111c744af26cf188108ba4157736521bfb09e5fd11dbf82c99f3"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "sha256": "a161a68569acdf7d65ffb67e4f068ce35bd14bf1d3a3969d01165473d752ff88"
+    },
+    {
+      "path": "tests/test_ieee_tc_request_lifecycle.py",
+      "sha256": "263567ae8846fc5e7e7ae122dc8081469c144e8eaa642f55c1262310fcc06432"
+    },
+    {
+      "path": "tests/test_ieee_tc_launch.py",
+      "sha256": "5c6172ec61b8617d2351e964863d9ea285e5d832b66350b6d8717a6a7401fe66"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/3b_full_prefix_attempt5.json",
+      "sha256": "7f4ead3ec13b5e0c7241adea4be2bc6848c06f3ef2eee7888736edde34fe392d"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/publication_regression1.log",
+      "sha256": "98d2dfecb7363b8a8b929ace35636c97646fbb1a24352c596037b575dc077188"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/publication_red1.log",
+      "sha256": "38aacaafc59e92d16fe8ab47f6f39228de6b92604d3d1dc5e76d740b7e6e3ee4"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/publication_green1.log",
+      "sha256": "6712d0739aff82e549d41a274541c7eae1db7f3e0e00720acf86d4766d6fa892"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/summarize_publication_diagnostic.py",
+      "sha256": "5265deddf69e5d1706835a0680d44ea967121d534cf9c8b681456e62340207f2"
+    }
+  ]
+}
