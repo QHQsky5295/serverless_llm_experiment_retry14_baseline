@@ -191,3 +191,35 @@ and328 main smoke/shared-protocol checks pass; this exact D70 journal is
 recognized as measurement_complete=true/workload_passed=false.39 baseline
 checks pass2.565s. No native rerun was made just to test report finalization;
 its actual behavior remains to be checked during the next useful qualification.
+
+## D71 candidate: remove a false bootstrap dependency, not a serving policy
+
+D70 store.log records pinned-pool construction from08:12:15.828617 to
+08:12:36.064198 (20.236s). The launcher started that independent process only
+after the Ray head and worker. API startup was08:12:58; artifact registration
+began08:12:59 and the router was constructed afterward. A missing router and an
+existing router waiting for an engine are different request paths. Do not
+subtract these wall stamps from request monotonic stamps without an anchor.
+
+The [official storage service](https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/9f50241baa5386e06a9321c51f19a9ef5f964c2b/sllm_store/sllm_store/server.py)
+constructs CheckpointStore from storage/pool parameters without Ray membership.
+Conversely, the [store manager](https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/9f50241baa5386e06a9321c51f19a9ef5f964c2b/sllm/store_manager.py)
+requires worker discovery and the store endpoint. Therefore the candidate
+starts store in parallel with head→worker, then retains both readiness barriers
+before the controller. Native commands,32GiB pool, admission/CPU/memory envelope,
+one-instance target1, RR/loader/scaler,500-adapter map and notice+60 stay fixed.
+Earlier GPU possession by the store remains charged; shorter startup is not
+automatically less GPU time. No client retry, free prewarm or arrival shift.
+
+Hypothesis: removing this unnecessary ordering reduces absent-front-door/router
+exposure. It does NOT assert that all100 requests will pass or that native
+engine initialization fits60s. Use one100-request development comparison with
+the same D70 inputs and record every failure. This is a changed bootstrap
+experiment, not an identical repeat to recover a final report. If startup
+failures remain, retain the boundary and return to the mainline; do not tune
+the preparation window or indefinitely optimize infrastructure. The eventual
+original/repaired router pair must use the same selected bootstrap on both sides.
+
+Candidate40 launch/router/measurement unit checks pass (2.425s); actual startup
+and bounded failed-workload finalization are untested at this checkpoint.
+New paired wall/monotonic startup events will preserve registration boundaries.

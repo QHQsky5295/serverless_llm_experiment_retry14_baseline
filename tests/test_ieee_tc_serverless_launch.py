@@ -229,14 +229,29 @@ class NativeLaunchTests(unittest.TestCase):
                 launch.verify(output / 'launch_manifest.json')
 
     def test_ray_only_executes_same_prefix_without_store_api_or_model(self):
-        full, _ = self.render()
         probe, _ = self.render(ray_only=True)
         marker = 'wait_for_workers "${EXPECTED_WORKERS}"\n'
-        self.assertEqual(full['start_serverlessllm_stack.sh'].split(marker)[0],
-                         probe['start_serverlessllm_stack.sh'].split(marker)[0])
+        self.assertNotIn('tmux new-session -d -s "${STORE_SESSION}"',
+                         probe['start_serverlessllm_stack.sh'])
         suffix = probe['start_serverlessllm_stack.sh'].split(marker)[1]
         self.assertNotIn('new-session', suffix)
         self.assertIn('ray-only infrastructure', suffix)
+
+    def test_store_boot_overlaps_ray_but_controller_waits_for_both(self):
+        rendered, _ = self.render()
+        stack = rendered['start_serverlessllm_stack.sh']
+        store = stack.index('tmux new-session -d -s "${STORE_SESSION}"')
+        head = stack.index('tmux new-session -d -s "${HEAD_SESSION}"')
+        workers_ready = stack.index('\nwait_for_workers "${EXPECTED_WORKERS}"\n')
+        store_ready = stack.index('\nwait_for_store\n')
+        controller = stack.index('tmux new-session -d -s "${SERVE_SESSION}"')
+        self.assertLess(stack.index(' verify --manifest '), store)
+        self.assertLess(store, head)
+        self.assertLess(head, workers_ready)
+        self.assertLess(workers_ready, store_ready)
+        self.assertLess(store_ready, controller)
+        self.assertEqual(stack.count('tmux new-session -d -s "${STORE_SESSION}"'), 1)
+        self.assertEqual(stack.count('\nwait_for_store\n'), 1)
 
     def nodes(self):
         return [dict(Alive=True, NodeID='head', Resources=dict(control_node=1, object_store_memory=4 * launch.GIB)),

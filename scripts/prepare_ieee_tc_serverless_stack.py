@@ -356,6 +356,22 @@ tmux() {{ command tmux -f "${{SLLM_TC_TMUX_CONFIG}}" -S "${{SLLM_TC_TMUX_SOCKET}
         if stack.count(marker) != 1:
             raise ValueError("native worker-start boundary differs")
         stack = stack[:stack.index(marker) + len(marker)] + '\necho "TC ray-only infrastructure ready"\n'
+    else:
+        # Native CheckpointStore construction has no Ray dependency. Start it
+        # alongside the head/worker chain, but retain BOTH readiness barriers
+        # before starting the controller. All processes still start after the
+        # common deployment notice inside the same guarded service domain.
+        # This changes launcher dependencies, not model registration, RR,
+        # scaling, native loading, queueing, or the replay's fixed t=0.
+        store_begin = stack.index('if [[ "${DIRECT_PATH_MODE}" != "1" ]]; then\n  tmux new-session')
+        store_end = stack.index('\nfi', store_begin) + len('\nfi')
+        store_block = stack[store_begin:store_end]
+        if store_block.count('  wait_for_store\n') != 1:
+            raise ValueError('native store readiness boundary differs')
+        store_start = replace_once(store_block, '  wait_for_store\n', '')
+        stack = stack[:store_begin] + 'wait_for_store' + stack[store_end:]
+        head_start = '\ntmux new-session -d -s "${HEAD_SESSION}"'
+        stack = replace_once(stack, head_start, '\n' + store_start + '\n' + head_start)
     result["start_serverlessllm_stack.sh"] = stack
     for role in ("head", "worker"):
         name = f"run_serverlessllm_{role}.sh"
@@ -408,6 +424,8 @@ def prepare(output: Path, private_root: Path, main_repo: Path, gpu_ids: tuple[in
         "object_store_bytes_by_raylet": allocation,
         "object_store_bytes_total": sum(allocation.values()), "worker_gpu_ids": list(gpu_ids),
         "ray_only_infrastructure": ray_only,
+        "bootstrap_dependencies": ("head_then_worker" if ray_only else
+                                   "store_parallel_head_worker_then_controller_v1"),
         "qualification_only": True, "actual_workers_verified": False,
         "native_loader_qualified": False, "performance_run_authorized": False,
         "cleanup_owner": "existing external TC gated launcher and watchdog",
@@ -1159,19 +1177,31 @@ def qualify_model(args) -> dict:
 
     failure, registered = None, False
     import ray
+    # These spans share the request publisher's host monotonic clock. Pair each
+    # with a wall reading so coarse native wall logs are not silently treated
+    # as precise monotonic observations. Preserve the journal even on failure.
+    def startup_event(event):
+        observation = dict(event=event, monotonic_s=time.perf_counter(), wall_time_s=time.time())
+        with (args.output / 'startup_events.jsonl').open('a') as handle:
+            handle.write(json.dumps(observation) + '\n')
+
     try:
         with (args.output / 'configuration.json').open('x') as handle:
             json.dump(result['configuration'], handle, indent=2)
         with (args.output / 'startup.log').open('x') as log:
+            startup_event('native_stack_start')
             startup = subprocess.run(['bash', str(args.output / 'start_serverlessllm_stack.sh')],
                                      env=env, stdout=log, stderr=subprocess.STDOUT, timeout=600)
+            startup_event('native_stack_return')
         result['startup_returncode'] = startup.returncode
         if startup.returncode:
             raise RuntimeError('native stack startup failed; inspect preserved logs')
         ray.init(address=f'{args.host}:{args.ray_port}', log_to_driver=False)
         result['nodes'] = ray.nodes()
         validate_ray_nodes(result['nodes'], len(args.gpu_ids))
+        startup_event('model_registration_start')
         result['registration'] = post('/register', result['configuration'])
+        startup_event('model_registration_return')
         registered = True
         # Registration enqueues router construction; wait for its actual startup
         # notification, not a sacrificial inference/prewarm request.
@@ -1180,6 +1210,7 @@ def qualify_model(args) -> dict:
             if time.monotonic() >= deadline:
                 raise TimeoutError('native router construction did not complete')
             time.sleep(1)
+        startup_event('native_router_start_observed')
         from transformers import AutoTokenizer
         tokenizer = AutoTokenizer.from_pretrained(args.backbone, local_files_only=True) if not http_cfg else None
         source_requests = json.loads(args.trace.read_text())['requests'][:4] if not http_cfg else []
