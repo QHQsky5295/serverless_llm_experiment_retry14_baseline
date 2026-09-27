@@ -6853,6 +6853,9 @@ class ScenarioRunner:
         self._dispatch_admission_condition: Optional[asyncio.Condition] = None
         self._runtime_slot_capacity_condition: Optional[asyncio.Condition] = None
         self._unsettled_runtime_reservations: Dict[str, RuntimeRequestReservation] = {}
+        self._live_runtime_reservations: Dict[str, RuntimeRequestReservation] = {}
+        self._runtime_quarantines = {}
+        self._ieee_runtime_quarantine_events = []
         self._active_replay_t0: Optional[float] = None
         self._slot_retire_lock = asyncio.Lock()
         # The replay dispatcher, autoscaler, and subprocess RPC completion all
@@ -8384,6 +8387,8 @@ class ScenarioRunner:
             result['ieee_control_events'] = copy.deepcopy(self._ieee_control_events)
         if hasattr(self, '_ieee_source_observation_stats'):
             result['ieee_source_observation_stats'] = dict(self._ieee_source_observation_stats)
+        if hasattr(self, '_ieee_runtime_quarantine_events'):
+            result['ieee_runtime_quarantine_events'] = copy.deepcopy(self._ieee_runtime_quarantine_events)
         if hasattr(self, '_ieee_host_capacity_events'):
             result['ieee_host_capacity_events'] = copy.deepcopy(self._ieee_host_capacity_events)
         if hasattr(self, '_ieee_residency_epochs'):
@@ -11823,6 +11828,7 @@ class ScenarioRunner:
         submitted_count: Optional[int] = None,
         submitted_traces: Optional[List[Any]] = None,
     ) -> bool:
+        self._check_runtime_quarantines()
         if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
             return await self._evaluate_ieee_live_control(result=result, coord_enabled=coord_enabled,
                 replay_t0=replay_t0, results_view=results_view, backlog=backlog,
@@ -12783,6 +12789,7 @@ class ScenarioRunner:
                         or self.model_cfg.get('ieee_physical_allocation')):
                     raise  # Retain HOST/GPU ownership on unresolved teardown.
             self._retire_ieee_host_budget(slot.engine)
+            self._settle_exited_runtime_reservations(slot)
         self._sync_stack_gpu_accounting()
         await self._notify_dispatch_capacity_changed(wake_all=True)
         if residency_failure is not None:
@@ -12819,6 +12826,13 @@ class ScenarioRunner:
         return True
 
     async def _shutdown_instance_pool(self) -> None:
+        self._instance_pool_closing = True
+        # Quarantine owns online shutdown independently of cancelled requests.
+        # Join it before the common shutdown census; never close one engine twice
+        # concurrently or remove its shared IO owner underneath that shutdown.
+        quarantine_tasks = [entry['task'] for entry in
+            getattr(self, '_runtime_quarantines', {}).values()]
+        quarantine_outcomes = await asyncio.gather(*quarantine_tasks, return_exceptions=True)
         # Initial activation owns startup AND preparation. Join it while the
         # common movement owner is still open; otherwise a late factory result
         # could publish a new slot after shutdown's plan/engine census.
@@ -12873,7 +12887,8 @@ class ScenarioRunner:
             pending_sequences.clear()
         if self.instance_pool is None:
             return
-        cleanup_failures = []
+        cleanup_failures = [outcome for outcome in quarantine_outcomes
+                            if isinstance(outcome, BaseException)]
         for slot in self.instance_pool.get_all_slots():
             instance_id = getattr(slot, "instance_id", None)
             if not instance_id:
@@ -12897,6 +12912,7 @@ class ScenarioRunner:
                 raise RuntimeError('IEEE shutdown preserved a failed residency epoch') from outcome
 
     async def _prune_dead_instance_slots(self) -> int:
+        self._check_runtime_quarantines()
         instance_pool = getattr(self, "instance_pool", None)
         if instance_pool is None:
             return 0
@@ -15059,6 +15075,12 @@ class ScenarioRunner:
         admitted_offset_s: Optional[float] = None,
     ) -> RequestResult:
         reservation = RuntimeRequestReservation(str(trace.request_id))
+        live = getattr(self, '_live_runtime_reservations', None)
+        if live is None:
+            live = self._live_runtime_reservations = {}
+        if reservation.request_id in live:
+            raise RuntimeError('request already has a live controller reservation')
+        live[reservation.request_id] = reservation
         try:
             return await self._exec_request_in_reservation(
                 trace, max_tokens, temperature, _reservation=reservation,
@@ -15069,7 +15091,14 @@ class ScenarioRunner:
                 arrival_released_offset_s=arrival_released_offset_s,
                 admission_start_offset_s=admission_start_offset_s, admitted_offset_s=admitted_offset_s)
         finally:
-            await self._finish_runtime_request_reservation(reservation)
+            try:
+                await self._finish_runtime_request_reservation(reservation)
+            finally:
+                del live[reservation.request_id]
+                if reservation.slot is not None:
+                    entry = getattr(self, '_runtime_quarantines', {}).get(id(reservation.slot.engine))
+                    if entry is not None:
+                        entry['changed'].set()
 
     def _track_native_reference_intent(self, reservation, intent, kind):
         """One completion witness per native lease, created before its RPC.
@@ -15599,6 +15628,106 @@ class ScenarioRunner:
         self._unsettled_runtime_reservations[reservation.request_id] = reservation
         self._settle_native_reference_intent(reservation, 'gpu', 'unresolved')
         self._settle_native_reference_intent(reservation, 'host', 'unresolved')
+        self._schedule_runtime_quarantine(reservation.slot)
+
+    def _schedule_runtime_quarantine(self, slot) -> None:
+        """Withdraw first, drain actual controller users, then return the owner.
+
+        Unknown native outcomes cannot be retried or assumed released. They also
+        cannot leave a live but permanently unroutable owner outside lifecycle
+        control. This task is not a child of the cancelled request's lifetime.
+        """
+        if (slot is None or not getattr(slot, 'owns_engine', False)
+                or self.model_cfg.get('timing_contract') != 'ieee_tc_native_v1'
+                or getattr(self, '_instance_pool_closing', False)):
+            return
+        entries = getattr(self, '_runtime_quarantines', None)
+        if entries is None:
+            entries = self._runtime_quarantines = {}
+        key = id(slot.engine)
+        if key in entries:
+            entries[key]['changed'].set()
+            return
+        from faaslora.clock import local_monotonic_clock_id
+        record = dict(instance_id=slot.instance_id, device_id=slot.device_id,
+            reason='unresolved_native_request_ownership', state='draining_controllers',
+            started_monotonic_s=time.monotonic(), clock_id=local_monotonic_clock_id())
+        if not hasattr(self, '_ieee_runtime_quarantine_events'):
+            self._ieee_runtime_quarantine_events = []
+        self._ieee_runtime_quarantine_events.append(record)
+        entry = dict(slot=slot, changed=asyncio.Event(), record=record)
+        entries[key] = entry
+        entry['task'] = asyncio.create_task(self._retire_quarantined_runtime(entry))
+        # Retrieve background exceptions promptly; control/shutdown still raises
+        # the same retained task error. This is not a retry or swallowed failure.
+        entry['task'].add_done_callback(lambda task: task.exception() if not task.cancelled() else None)
+
+    def _check_runtime_quarantines(self) -> None:
+        for entry in getattr(self, '_runtime_quarantines', {}).values():
+            if entry['task'].done():
+                entry['task'].result()
+
+    async def _retire_quarantined_runtime(self, entry):
+        slot, record, changed = entry['slot'], entry['record'], entry['changed']
+        try:
+            # New admission already rejects draining slots. Existing requests
+            # retain their original deadlines and may finish normally. Their
+            # wrapper finally publishes completion even if its cleanup fails.
+            while True:
+                changed.clear()
+                users = [r for r in getattr(self, '_live_runtime_reservations', {}).values()
+                         if r.slot is slot and not r.released]
+                if not users:
+                    break
+                await changed.wait()
+            unresolved = [r for r in self._unsettled_runtime_reservations.values()
+                          if r.slot is slot and not r.released]
+            if slot.active_requests != len(unresolved):
+                raise RuntimeError('quarantined runtime has untracked controller ownership')
+            async with self._slot_retire_lock:
+                if self.instance_pool.get_slot(slot.instance_id) is not slot:
+                    raise RuntimeError('quarantined runtime lost retained membership')
+                record.update(state='stopping_runtime', drained_monotonic_s=time.monotonic(),
+                              unresolved_request_ids=[r.request_id for r in unresolved])
+                await self._cleanup_removed_slot(slot, removal_reason='native_ownership_quarantine')
+                # Unlike a device failure, a software quarantine does not
+                # blacklist hardware after its actual owned release succeeds.
+                self.instance_pool.remove_instance(slot.instance_id)
+                if self._primary_instance_id == slot.instance_id:
+                    remaining = self.instance_pool.get_slots()
+                    self._primary_instance_id = remaining[0].instance_id if remaining else None
+                record.update(state='released', released_monotonic_s=time.monotonic())
+            await self._notify_dispatch_capacity_changed(wake_all=True)
+        except BaseException as exc:
+            record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
+                          error_type=type(exc).__name__, error=str(exc))
+            raise
+
+    def _settle_exited_runtime_reservations(self, slot) -> None:
+        reservations = [r for r in getattr(self, '_unsettled_runtime_reservations', {}).values()
+                        if r.slot is slot and not r.released]
+        if not reservations:
+            return
+        allocation = getattr(slot.engine, '_physical_allocation', None)
+        if allocation is None or allocation.released is not True:
+            raise RuntimeError('unsettled native ownership requires confirmed physical release')
+        # The existing physical allocator only publishes released after owned
+        # processes, native worker pidfds and GPU census confirm return. No new
+        # native RPC acknowledgement or successful request is manufactured.
+        receipt = dict(kind='physical_runtime_retirement_v1', lease_id=allocation.owner_id,
+            journal=str(allocation.journal), gpu_uuids=list(allocation.gpu_uuids), released=True)
+        for reservation in reservations:
+            evidence = reservation.gpu_reference_evidence
+            evidence['physical_runtime_retirement'] = dict(receipt)
+            if evidence.get('state') not in (None, 'released', 'rejected'):
+                evidence['state'] = 'retired_with_runtime'
+            host = evidence.get('native_host_source')
+            if host is not None and host.get('state') not in ('released', 'rejected'):
+                host['state'] = 'retired_with_runtime'
+            pending = reservation.ieee_pending_admission
+            if pending is not None and pending['state'] != 'closed':
+                pending['state'] = 'retired_with_runtime'
+            self._release_runtime_controller_accounting(reservation, native_outcome='runtime_exited')
 
     async def _finish_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
         if not reservation.bound or reservation.released:
@@ -15675,9 +15804,20 @@ class ScenarioRunner:
         except BaseException:
             self._retain_runtime_request_reservation(reservation)
             raise
+        self._release_runtime_controller_accounting(reservation, native_outcome='no_acquisition')
+        if slot is not None:
+            self._refresh_slot_runtime_hints(slot)
+            await self._notify_dispatch_capacity_changed(notify_admission=False, slot_wake_all=False)
+        self._schedule_all_runtime_gpu_forward()
+
+    def _release_runtime_controller_accounting(self, reservation, *, native_outcome):
+        """Synchronous local ownership commit, after native ack OR physical exit."""
+        if reservation.released:
+            return
+        slot = reservation.slot
         self._release_runtime_local_source(reservation)
-        self._settle_native_reference_intent(reservation, 'gpu', 'no_acquisition')
-        self._settle_native_reference_intent(reservation, 'host', 'no_acquisition')
+        self._settle_native_reference_intent(reservation, 'gpu', native_outcome)
+        self._settle_native_reference_intent(reservation, 'host', native_outcome)
         self._complete_ieee_pending_load(reservation)
         if reservation.batch_started:
             reservation.batch_coordinator.notify_batch_end(
@@ -15695,12 +15835,15 @@ class ScenarioRunner:
                 slot.last_idle_at = time.time()
         # Synchronous accounting is committed before any cancellable wake-up.
         reservation.released = True
-        if native and self._unsettled_runtime_reservations.get(reservation.request_id) is reservation:
-            del self._unsettled_runtime_reservations[reservation.request_id]
+        unsettled = getattr(self, '_unsettled_runtime_reservations', {})
+        if unsettled.get(reservation.request_id) is reservation:
+            del unsettled[reservation.request_id]
         if slot is not None:
-            self._refresh_slot_runtime_hints(slot)
-            await self._notify_dispatch_capacity_changed(notify_admission=False, slot_wake_all=False)
-        self._schedule_all_runtime_gpu_forward()
+            entry = getattr(self, '_runtime_quarantines', {}).get(id(slot.engine))
+            if entry is not None:
+                # A pre-admission conflict can release this runtime and reset
+                # the reservation before the whole request finishes elsewhere.
+                entry['changed'].set()
 
     async def _exec_request_in_reservation(
         self,
@@ -21306,7 +21449,7 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
             '_ieee_activations','_ieee_initial_deployment','_ieee_residency_epochs',
             '_ieee_file_preparation_plans','_ieee_gpu_preparation_plans',
             '_ieee_native_host_preparations','_ieee_control_events',
-            '_ieee_source_observation_stats')})
+            '_ieee_source_observation_stats','_ieee_runtime_quarantine_events')})
     try:
         data['coordination_after_shutdown'] = service._current_coord_metrics()
     except BaseException as exc:

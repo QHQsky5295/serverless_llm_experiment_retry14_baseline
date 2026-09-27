@@ -1,6 +1,77 @@
 # IEEE TC execution status
 
+## Latest — D97 event-driven quarantine recovery CPU-verified; backup then Full replay
+
+2026-09-28 07:35. Supersedes ALL older LIVE/NEXT instructions. No inference or
+remote service is running; CPU jobs finished. Baselines PAUSED. Production runner
+now has one owned quarantine exit per runtime, real live reservation tracking,
+event-driven drain (no new timeout/polling), existing owned shutdown/physical ACK
+before releasing unsettled local accounting and pool membership; software
+quarantine does not blacklist hardware. Failures/cancellation retain ownership.
+Global shutdown joins quarantines; event journals survive main failure. Nine IEEE
+equations/configuration/profiles/trace/1800sdeadline/remote semantics unchanged.
+
+Local review found actual selected-source reselection could release/reset the old
+reservation without waking its drain. New red test reproduced timeout; release
+now emits the event, and released users no longer block that runtime. Two review
+tests initially1error; original seven preimplementation errors retained. First
+54targeted PASS0.672s. Final validation1201distinct tests:1138model/related PASS
+and63OSguards PASS0.999s using qualified /usr/bin/python3. Initial mixed-interpreter
+1201run56.400s had4preflight failures due absent pidfd_send_signal in conda, NOT
+production regression; original log retained, no source change for OS rerun.
+Rawd97_20260928; curated20260928_d97_quarantine_recovery.json has8SHArefs and
+147protected PASS. Counterexample source is explicitly9b23a49; doNOT compare its
+historical runnerSHA to current modified source. Review local-only, no subagents.
+
+NEXT verify/scoped commit+push D97 (runner, tests, doc, two curated files, ledger),
+then canonical3B4000 W0 attempt4 with fresh owned paths. Do NOT stack source-epoch
+optimization, repeat profiles/cache/prefixes or launch7B/baselines. CPU fixture
+endpoints are NOTphysicalGPUproof; Full/SLO/numericalqualification/M1M2AS all
+remainpending. After replay cleanup→validation→status table before next task.
+Userdirtymanifest/unrelated files preserved and excluded. Goal remainsactive.
+
+## Latest — D97 quarantine-liveness counterexample verified; implementation NEXT
+
+2026-09-28 07:18. NO live GPU/remote/analysis job. Production code UNCHANGED.
+D96failure evidence BACKEDUP9b23a49bcb2cfaa81cae2adf1661ccfa5c3c29a6,
+freshremoteSHA matched;47evidence smoke/21SHA/147protected PASS. DoNOTrepeatbackup.
+Baselines PAUSED. Fullqualification/warmSLO/Resident/formalM1M2AS remainpending.
+
+Actual CPUprobe reused D94 owned_pool_runner and actualretain/prune/retire/selector:
+fourquarantined owners areSKIPPED whetherenginealiveordead;zero cleanupcalls,
+4retained/4unsettled/no allocatabledevice. Running-dead control DOEScleanup4,
+butblacklists all4devices. Thus simply widening dead-prune census isinsufficient.
+Native model/referenceintent/shutdown areexplicitCPU mocks, NOTphysicalrelease
+proof orperformance. Exit0,scopeprimelora-d97-quarantine-probe-20260928 inactive.
+Rawd97_20260928/probe_quarantine_liveness.py andquarantine_probe.json; latter
+containsstdoutlogs BEFOREvalidfinalJSONobject (preserved,notrerun). Curated
+20260928_d97_quarantine_counterexample.json andD97_QUARANTINE_LIVENESS.md contain
+immediatetable/4sourceSHAs,actualboundaries,primaryvLLM0.30/Kubernetesreferences.
+NewD97doc/curated areNOTyetcommitted;includeinthenexttestedimplementationcheckpoint.
+
+NEXT samecausalworkstream: implementreason-aware ownedruntime quarantine exit /
+reconciliation with actualrelease beforedevice reuse; firsttestsforretention,
+concurrency/cancellation/healthyinflight/failedcleanup/physicalack. DoNOTremove
+physicalguards, clearuncertainRPCs withoutproof, permanentlyblacklistordinary
+softwarequarantine oraddblindretry. Existingproxyshutdown provesphysicalrelease;
+onlinepruneonlygetsrunning slots; cleanup_removed_slot cancelsownedplans and
+awaitsengine.shutdown thenretireHOST budget. Needhandleexistingreservations and
+newadmissionwithdrawal coherently. No productionimplementationmade YET.
+Aftervalidatedfix returncanonical3B4000,not7B/baseline/cache/profile/prefixrepeats.
+This doesNOTexplainallpre-timeout queueing/global-source conflicts. Goalactive.
+
+Post-analysis cleanup: four CPU scopes were process-empty (Tasks0,cgroup.procs
+empty,populated0) but stillsystemdACTIVE; verifiedownedinvocations thenstopped.
+Project4c20d70b/curator4559a186/smoke51f92fea/probe3c690d54. ActualCPUtasks already
+exited0; no inferencewasrunning. Freshchecks afterstop requiredinactive. No global
+kill/reset used. D97fourSHArefs PASS;curated checkedagainst finalrawJSONobject.
+
 ## Latest — D96 Full4000 failure curated; evidence backup next
+
+BACKEDUP9b23a49bcb2cfaa81cae2adf1661ccfa5c3c29a6 PUSHED/freshremoteSHA matched.
+Three scoped files/21 sourceSHA checks/147protected/secrets/47smoke PASS.
+Usermanifest untouched. NEXT actualCPU quarantine-retirement counterexample,
+not another backup/test/curation loop. Rawfull3_evidence_push_receipt.json saved.
 
 2026-09-28 ~07:14. Supersedes ALL old LIVE/NEXT instructions. Streaming projection
 session30032 FINISHED exit0,803.62s,RSS67584KiB; curator session16609 FINISHED exit0.

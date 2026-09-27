@@ -1,0 +1,53 @@
+{
+  "kind": "cpu_quarantine_recovery_checkpoint_v1",
+  "id": "d97_20260928_quarantine_recovery",
+  "parent_commit": "9b23a49bcb2cfaa81cae2adf1661ccfa5c3c29a6",
+  "stage": "Prime IEEE Full development qualification",
+  "review_independence": "local-only",
+  "gpu_experiment": false,
+  "performance_qualified": false,
+  "baselines_paused": true,
+  "quarantine_contract": {
+    "new_admission": "withdrawn by existing draining state",
+    "healthy_controller_users": "drain under original request deadlines",
+    "wakeup": "reservation release and wrapper exit events, no new polling constant",
+    "retirement_owners_per_runtime": 1,
+    "device_reuse_requires_existing_physical_allocator_release": true,
+    "native_rpc_ack_manufactured": false,
+    "software_quarantine_blacklists_device": false,
+    "unknown_execution_retry_added": false,
+    "equations_configuration_trace_deadline_remote_protocol_changed": false
+  },
+  "targeted_initial": {"tests": 54, "passed": true, "seconds": 0.672},
+  "review_counterexample": {"tests": 2, "errors": 1, "seconds": 1.026,
+    "failure": "pre-admission reselection released the old reservation without waking the old runtime drain"},
+  "final_validation": {
+    "distinct_tests_passed": 1201,
+    "runtime_and_related_tests_passed": 1138,
+    "new_quarantine_tests_passed": 9,
+    "os_guard_tests_passed": 63,
+    "mixed_interpreter_attempt": {"tests": 1201, "seconds": 56.400, "failures": 2, "errors": 2,
+      "explanation": "All four were preflight tests requiring pidfd_send_signal absent in the model interpreter. Original failure retained."},
+    "qualified_os_interpreter_rerun": {"tests": 63, "seconds": 0.999, "passed": true,
+      "source_changed_between_runs": false},
+    "model_python": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+    "os_python": "/usr/bin/python3",
+    "memory_high_gib": 3, "memory_max_gib": 4, "memory_swap_max_bytes": 0,
+    "allowed_cpus": "2,3,26,27", "offline": true
+  },
+  "source_sha256": {
+    "scripts/run_all_experiments.py": "88c915f29676db842244f320f4aebd77c8a451a5ff9a3eb1afd61281ec273a56",
+    "tests/test_ieee_tc_native_retirement.py": "dcd27078a53918f0171dc573ab48922eecf91e8c4d91af8efe2c2949e110802f",
+    "results/ieee_tc/p2_backend_qualification/d97_20260928/red.log": "a3bc0e5e9113a216d7229f7b902720388b04c6610c0f77ca99ff709c5e46a0a8",
+    "results/ieee_tc/p2_backend_qualification/d97_20260928/targeted1.log": "1ed279fdc01d7be57998fc544abb0c9b051352cb61e77b43951ac7291d163fbf",
+    "results/ieee_tc/p2_backend_qualification/d97_20260928/review_red.log": "4845443deeb2c0b31d0c59a17cda37e0458d0aed805bc77a817f4304a2f2455c",
+    "results/ieee_tc/p2_backend_qualification/d97_20260928/regression1.log": "a4a3a6e65f0aaf7807ddd9b8263808a971605ea8e739bb609ca8cc2976d4ef04",
+    "results/ieee_tc/p2_backend_qualification/d97_20260928/system_preflight.log": "3a50d9420fb6526ce065adde4a18ff21549e6e5dd4be3a0fae25685ed095e074",
+    "results/ieee_tc/p2_backend_qualification/d97_20260928/protected_verified.json": "62ba190e643f6843d89baca11689cc2f6a954b600635e5795cd656bf7f4e7de7"
+  },
+  "protected_entries": 147,
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "limitations": "CPU shutdown/physical endpoints are explicit fixtures, not actual GPU release proof. Does not solve or explain all early queue/source-epoch conflicts.",
+  "next": "Scoped tested backup, then canonical 3B Full4000 W0 attempt4 with unchanged configuration except fresh owned output/cache paths. No further optimization before that replay."
+}

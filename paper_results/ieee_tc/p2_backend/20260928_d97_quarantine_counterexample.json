@@ -1,0 +1,22 @@
+{
+  "kind": "d97_quarantine_liveness_cpu_counterexample_curated_v1",
+  "source_commit": "9b23a49bcb2cfaa81cae2adf1661ccfa5c3c29a6",
+  "source_reference_scope": "Repository files refer to source_commit; original raw probe/output files remain at their recorded paths.",
+  "production_code_changed": false,
+  "gpu_experiment": false,
+  "performance_qualified": false,
+  "raw_probe_exit_code": 0,
+  "native_endpoints": "CPU mocks inherited from existing D94 fixture; not proof of physical release",
+  "cases": [
+    {"quarantine": true, "engine_dead": false, "starting_members": 4, "pruned": 0, "retained": 4, "cleanup_calls": 0, "failed_device_ids": [], "allocatable_device": null},
+    {"quarantine": true, "engine_dead": true, "starting_members": 4, "pruned": 0, "retained": 4, "cleanup_calls": 0, "failed_device_ids": [], "allocatable_device": null},
+    {"quarantine": false, "engine_dead": true, "starting_members": 4, "pruned": 4, "retained": 0, "cleanup_calls": 4, "failed_device_ids": [0, 1, 2, 3], "allocatable_device": null}
+  ],
+  "source_refs": [
+    {"path": "results/ieee_tc/p2_backend_qualification/d97_20260928/probe_quarantine_liveness.py", "sha256": "b154b86766626804975195daee01ee1bd5ee0ead59e4c5e0f12ff01e230dcfd5"},
+    {"path": "results/ieee_tc/p2_backend_qualification/d97_20260928/quarantine_probe.json", "sha256": "103741caca91ff3cb441c27348e2eb8b9d86827220c6f4e238c39db404d46197"},
+    {"path": "scripts/run_all_experiments.py", "sha256": "1c2595e72c07e6b656d65e608fef72f60bd9ef2b663ceb953c701d41b73effe9"},
+    {"path": "faaslora/experiment/instance_pool.py", "sha256": "5dc471e606572bdf97e029922c9974f704711808e13b59cc9f3d96973847f577"}
+  ],
+  "caveat": "Structural counterexample, not proof of every D96 cancellation cause or of any performance improvement. Raw stdout contains log prefix before its JSON object."
+}
