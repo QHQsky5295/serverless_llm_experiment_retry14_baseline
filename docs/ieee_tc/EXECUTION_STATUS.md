@@ -1,6 +1,52 @@
 # IEEE TC execution status
 
+## Latest — D91 main-entry integration CPU-verified; no live inference
+
+2026-09-28 02:56. Supersedes older NEXT/LIVE notes. Completed actual canonical
+`_main_async_impl` assembly for BOTH models:4000 existing requests/500 adapters,
+exact D88 child configuration after original parent assembly,D89 measured profiles.
+One/four-runtime capacity3B8/32,7B2/8. Stops deliberately before activation;
+ingress/notice are explicit CPU fixtures,NOT real transport/resource/performance
+qualification. Main raw input reuse now skips raw dataset construction; IEEE
+remote setup only reads frozen index+SHA-checked small configs, no payload scan,
+repair/generation or local fallback. Actual external ingress determines open-loop
+mode independently of provenance labels; old non-external behavior retained.
+
+Unconditional Full rejection now replaced with explicit executable prerequisites:
+pending native owned TP1, exact measured profiles+activation layout, actual shared
+demand/movement/admission binding,published remote/no artificial delay, started
+external full-map replay,common60s notice and physical ledger. Does NOT certify
+numerical correctness, SLO or superiority; receipt formal_comparison_qualified=false.
+Existing per-worker/ownership/source/reservation/release checks unchanged.
+
+Final825 related/basic/external testsPASS47.471s;99 launch-onlyPASS11.591s earlier.
+Initial807 regression had1failure ONLYold exact error text; test still requires
+rejection and no legacy startup,updated to new missing-owner reason. Red input
+counterexamples2failure/3error retained. Final-source real main assemblies both
+PASS in13.485s. Rawd91_20260928 incl assembly_final/,curated
+20260928_d91_integrated_main_entry.json,D91_INTEGRATED_MAIN_ENTRY.md status table.
+No new GPU/remote/weights/trace/profile/baseline run. No tmux/model/remote job.
+Disk312GiB,host108GiBavailable,swap0. Protected/source verification and scoped
+backup follow; NEVERstage userdirtymanifest or unrelateduntrackedfiles.
+
+NEXT complete canonical main finite deadline FROM plannedarrival (development
+1800s) and distinguish request timeout from whole-run interruption; preserve
+interrupted replay/native/UUID/mechanism evidence on main exception; owned HOST/
+NVMe cleanup receipt. THEN3B full4000 development replay viaexisting scope/native
+environment/externalpublisher/physicalledger,cleanup+validation+table before7B.
+Config files prepared byCPU audit lack the yet-to-wire request deadline and are
+NOT launch-authorized scripts. Do NOT blindly launch them or repeat D90 prefixes,
+D78/D80/D81/D88/D89. Baselines9e2cf289PAUSED. Full/M1/M2/A/S notqualified/started;
+warmSLO/Resident stillunmeasured;originalzero-weight numerical limitation remains.
+
 ## Latest — D90 both model prefixes complete; integrated Full protocol next
+
+Evidence checkpoint d763ec795988fbb6f2beb3938fa1b5d232f9d085 PUSHED; fresh
+remote branch SHA matched. Three scoped files,15 source SHA references and147
+protected entries verified; staged secrets/name checks PASS. No runtime changes
+from799-test857fc7e; actual7B100/100 pass. User manifest not staged. Raw receipt
+7b_attempt1_evidence_push_receipt.json. No live local/remote job. NEXT integrated
+canonical Full qualification audit, not another prefix/profile or backup repeat.
 
 2026-09-28 02:28: 7B attempt1 finished 100 planned/submitted/success, zero failures
 or unsubmitted. Execution a78f76b (evidence-only after runtime857fc7e/799 tests).

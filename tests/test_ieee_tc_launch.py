@@ -3,6 +3,7 @@ import asyncio
 import os
 import time
 import json
+import hashlib
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -18,6 +19,189 @@ def ieee_control_fixture():
     # Deliberately synthetic: correctness constants, not a frozen serving profile.
     return dict(queue_upper=2, queue_lower=1, active_upper=.75, active_lower=.25,
         ttft_upper_ms=1000, ttft_lower_ms=500, ttft_window_s=100, scale_down_cooldown_s=3)
+
+
+class IEEEFrozenInputAssembly(unittest.TestCase):
+    def test_remote_setup_reads_only_verified_metadata_without_payload(self):
+        from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            remote = root/'metadata'
+            (remote/'a').mkdir(parents=True)
+            config = b'{"r":8,"base_model_name_or_path":"existing-model"}'
+            (remote/'a'/'adapter_config.json').write_bytes(config)
+            # The weight deliberately does not exist locally. Its immutable
+            # content identity is sufficient until an actual remote fetch.
+            index = root/'index.json'
+            index.write_text(json.dumps(dict(format='artifact_content_v1', artifacts=[dict(
+                id='a', files=[dict(path='adapter_config.json', size_bytes=len(config),
+                    sha256=hashlib.sha256(config).hexdigest()),
+                    dict(path='adapter_model.safetensors', size_bytes=1048576, sha256='a'*64)])])))
+            client = HttpArtifactStoreClient(endpoint='http://unused.invalid',
+                required_delivery_mode='prepublished_gzip_v1')
+            model = dict(ieee_gpu_references=True, artifact_content_manifest_path=str(index))
+            forbidden = AssertionError('frozen inputs must not be rebuilt or fetched during setup')
+            with patch.object(runner, '_remote_artifact_from_env', return_value=client), \
+                    patch.object(runner, '_get_model_arch', side_effect=forbidden), \
+                    patch.object(runner, 'ensure_adapter_support_files', side_effect=forbidden), \
+                    patch.object(runner, '_dir_size_mb', side_effect=forbidden), \
+                    patch.object(client, '_json_request', side_effect=forbidden):
+                result = runner.setup_remote_storage(dict(adapters=[dict(id='a', hotness=.25)]),
+                    remote, 'existing-model', model)
+                self.assertEqual(result, dict(a=dict(hotness=.25,
+                    size_bytes=1048576+len(config), size_mb=(1048576+len(config))/1048576)))
+                self.assertFalse((remote/'a'/'adapter_model.safetensors').exists())
+                with self.assertRaisesRegex(ValueError, 'unique'):
+                    runner.setup_remote_storage(dict(adapters=[dict(id='a'), dict(id='a')]),
+                        remote, 'existing-model', model)
+                with self.assertRaisesRegex(ValueError, 'metadata differs'):
+                    (remote/'a'/'adapter_config.json').write_bytes(b'{"r":16}')
+                    runner.setup_remote_storage(dict(adapters=[dict(id='a')]), remote, 'existing-model', model)
+
+    def test_ieee_remote_setup_cannot_fall_back_to_local_or_dynamic_delivery(self):
+        from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+        for client in (None, HttpArtifactStoreClient(endpoint='http://unused.invalid')):
+            with self.subTest(client=client), \
+                    patch.object(runner, '_remote_artifact_from_env', return_value=client), \
+                    self.assertRaisesRegex(ValueError, 'published real-remote'):
+                runner.setup_remote_storage(dict(adapters=[]), Path('/not-created'),
+                    'existing-model', dict(ieee_gpu_references=True))
+
+    def test_frozen_replay_does_not_initialize_or_download_raw_datasets(self):
+        with patch.object(runner, 'WorkloadDataset', side_effect=AssertionError('raw dataset accessed')):
+            dataset, stats, azure, sgpt = runner._initialize_workload_sources(
+                shared_trace_path='existing/frozen.json', max_azure=None, max_sgpt=5000,
+                arrival_source='azure_llm', token_source='azure_llm', prompt_source='sharegpt_auto')
+        self.assertIsNone(dataset)
+        self.assertEqual(stats, {})
+        self.assertFalse(azure)
+        self.assertFalse(sgpt)
+
+    def test_verified_external_ingress_not_source_label_controls_dispatch_mode(self):
+        service = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        service.wl_cfg = dict(workload_source='external_shared_trace', concurrency=2)
+        service._external_replay = object()  # constructor owns ingress validation
+        service._runtime_forward_capacity_limit = lambda: 2
+        self.assertEqual(service._dispatch_admission_mode(), 'open_loop_trace_replay')
+        self.assertEqual(service._dispatch_capacity_limit_for_runtime_groups(4), 8)
+        service._external_replay = None
+        self.assertEqual(service._dispatch_capacity_limit_for_runtime_groups(4), 2)
+
+    def test_raw_dataset_construction_retains_source_validation(self):
+        data = Mock()
+        data.initialize.return_value = {'fixture':'raw-source-stats'}
+        data.has_real_azure_data.return_value = True
+        data.has_real_sharegpt_data.return_value = True
+        kwargs = dict(shared_trace_path=None,max_azure=12,max_sgpt=13,
+            arrival_source='azure_llm',token_source='azure_llm',prompt_source='sharegpt_auto')
+        with patch.object(runner,'WorkloadDataset',return_value=data):
+            self.assertEqual(runner._initialize_workload_sources(**kwargs),
+                (data,{'fixture':'raw-source-stats'},True,True))
+            data.initialize.assert_called_once_with(max_azure=12,max_sgpt=13,
+                load_azure=True,prompt_source='sharegpt_auto')
+            data.has_real_azure_data.return_value = False
+            with self.assertRaises(RuntimeError):
+                runner._initialize_workload_sources(**kwargs)
+
+
+class IEEEIntegratedLaunchContract(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        from faaslora.datasets.workload_generator import ExternalReplayIngress
+        from faaslora.metrics.metrics_collector import PhysicalGPUDeployment
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles, ServiceClassBins
+        from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
+        from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        root = Path(self.tmp.name)
+        trace = root/'trace.json'
+        trace.write_text(json.dumps(dict(requests=[dict(request_id='r',arrival_time_s=0,
+            adapter_id='a',expected_output_tokens=2)])))
+        plan = FrozenReplayPlan.load(trace)
+        notice = time.monotonic()
+        context = dict(plan=plan.identity(),clock_id=local_monotonic_clock_id(),
+            deployment_notice_s=notice,replay_t0_s=notice+60,tiny_witness=False)
+        service = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        self.service = service
+        service.model_cfg = dict(backend='vllm',ieee_gpu_references=True,
+            ieee_physical_allocation=True,timing_contract='ieee_tc_native_v1',
+            tensor_parallel_size=1,runtime_concurrency_cap=2,
+            ieee_admission_profile=dict(window_s=5.,transfer_limit=3,
+                profile_id='fixture',model_backend_id='fixture'))
+        service.engine = runner.InferenceEngine(service.model_cfg,{})
+        service.engine_factory = AsyncMock()
+        service.coord_cfg = dict(routing_policy='ieee_confirmed',
+            online_hotness_window_s=5., max_concurrent_loads=3)
+        service.preload_cfg = dict(online_hotness_window_s=5.)
+        service._stack = runner.ExperimentStack(adapter_info={'a':dict(size_mb=1)},
+            hardware_cfg={},coord_cfg=service.coord_cfg,preload_cfg=service.preload_cfg,
+            remote_dir=root/'remote',nvme_dir=root/'nvme',host_dir=root/'host')
+        # Typed synthetic fixtures test contract wiring only; they are NOT
+        # measured profiles, an actual transport witness or model qualification.
+        identity = json.dumps(FrozenServiceProfiles.model_identity(
+            service._planned_ieee_runtime_model_config()),sort_keys=True)
+        service._service_profiles = FrozenServiceProfiles(ServiceClassBins((),(),(),(),()),
+            {},{},'fixture-service',(),.5,identity)
+        service._preparation_profiles = FrozenPreparationProfiles((),{}, {},
+            'fixture-preparation',(),.5,identity,'{}')
+        service.instance_pool = runner.InstancePool(service_profiles=service._service_profiles,
+            preparation_profiles=service._preparation_profiles)
+        service._routing_policy = 'ieee_confirmed'
+        service._initial_runtime_pending = True
+        service._instance_mode = 'dedicated'
+        service._generation_contract = 'fixed_length_greedy_v1'
+        service._online_hotness_window_s = 5.
+        service._ieee_online_observation_binding = runner._validate_ieee_online_observation_binding(
+            service.model_cfg,service.coord_cfg,service.preload_cfg,service._stack,runner_window_s=5.)
+        service._remote_artifact_client = HttpArtifactStoreClient(endpoint='http://unused.invalid',
+            required_delivery_mode='prepublished_gzip_v1')
+        service._ieee_artifact_identities = {'a':{}}
+        service.adapter_info = {'a':{}}
+        service.bw_mbps = 0
+        service._external_replay = ExternalReplayIngress(plan,context)
+        service._external_replay._pump_task = asyncio.create_task(asyncio.sleep(0))
+        service._physical_deployment = PhysicalGPUDeployment(root=root/'physical',plan=plan,context=context)
+        service.traces = [SimpleNamespace(request_id='r')]
+
+    async def asyncTearDown(self):
+        await self.service._stack.stop()
+
+    async def test_accepts_bound_components_but_does_not_certify_results_or_start_runtime(self):
+        self.service._require_ieee_full_qualification()
+        receipt = self.service._ieee_full_launch_contract
+        self.assertFalse(receipt['formal_comparison_qualified'])
+        self.assertEqual(receipt['dispatch_admission_mode'],'open_loop_trace_replay')
+        self.assertEqual(receipt['runtime_concurrency_cap'],2)
+        self.service.engine_factory.assert_not_awaited()
+        self.assertIsNone(self.service.engine.engine)
+
+    async def test_missing_owner_profiles_remote_or_pending_state_rejects(self):
+        for field, value in [('_initial_runtime_pending',False),('_physical_deployment',None),
+                ('_external_replay',None),('_service_profiles',None),('_preparation_profiles',None),
+                ('_remote_artifact_client',None),('bw_mbps',250),('engine_factory',None),
+                ('_generation_contract','legacy')]:
+            old = getattr(self.service,field)
+            try:
+                setattr(self.service,field,value)
+                with self.subTest(field=field), self.assertRaisesRegex(RuntimeError,'not qualified'):
+                    self.service._require_ieee_full_qualification()
+            finally:
+                setattr(self.service,field,old)
+
+    async def test_profile_runtime_and_notice_must_match_without_relabelling(self):
+        self.service.model_cfg['runtime_concurrency_cap'] = 4
+        with self.assertRaisesRegex(ValueError,'measured service profile'):
+            self.service._require_ieee_full_qualification()
+        self.service.model_cfg['runtime_concurrency_cap'] = 2
+        self.service._external_replay.context['replay_t0_s'] += 1
+        with self.assertRaisesRegex(RuntimeError,'common deployment notice'):
+            self.service._require_ieee_full_qualification()
+
+    async def test_ingress_must_already_be_started(self):
+        await self.service._external_replay._pump_task
+        self.service._external_replay._pump_task = None
+        with self.assertRaisesRegex(RuntimeError,'ingress has not started'):
+            self.service._require_ieee_full_qualification()
 
 
 class IEEEOnlineObservationBinding(unittest.TestCase):

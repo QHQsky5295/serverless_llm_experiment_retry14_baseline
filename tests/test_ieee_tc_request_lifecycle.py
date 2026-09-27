@@ -56,7 +56,7 @@ class PredecisionRoutingIntegration(unittest.TestCase):
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner._routing_policy = 'ieee_confirmed'
         runner._stack = SimpleNamespace(start=AsyncMock())
-        with self.assertRaisesRegex(RuntimeError, 'legacy priority/warmup is forbidden'):
+        with self.assertRaisesRegex(RuntimeError, 'pending IEEE initial owner required'):
             asyncio.run(runner._preload_full_stack())
         runner._stack.start.assert_not_awaited()
 

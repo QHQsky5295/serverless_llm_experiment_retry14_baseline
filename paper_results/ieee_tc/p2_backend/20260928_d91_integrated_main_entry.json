@@ -1,0 +1,281 @@
+{
+  "kind": "d91_integrated_main_entry_cpu_v1",
+  "parent_commit": "d763ec795988fbb6f2beb3938fa1b5d232f9d085",
+  "new_gpu_run": false,
+  "new_remote_run": false,
+  "full_qualified": false,
+  "formal_performance_result": false,
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "runtime_configuration": "unchanged D88 parent / D89 measured initialization",
+  "code_changes": [
+    "IEEE metadata-only immutable artifact setup",
+    "reuse complete shared request map without raw dataset construction",
+    "external ingress, not provenance label, controls open-loop admission mode",
+    "executable Full preconditions replace unconditional integration refusal"
+  ],
+  "regression": {
+    "tests": 825,
+    "seconds": 47.471,
+    "passed": true
+  },
+  "retained_failure": {
+    "tests": 807,
+    "failed": 1,
+    "reason": "test expected superseded unconditional error text; rejection/no legacy startup still held"
+  },
+  "final_source_assembly": {
+    "kind": "main_assembly_audit_v1",
+    "records": [
+      {
+        "model": "3b",
+        "kind": "main_configuration_assembly_only",
+        "actual_inference": false,
+        "real_ingress": false,
+        "formal_comparison_qualified": false,
+        "profile_manifest": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_3b_initialization/manifest.json",
+          "sha256": "332f914d31dca776b0fdf52faad6241e04a3f3713db3e9289f5b5ecd551a9e0e"
+        },
+        "trace": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W0",
+          "rate_scale": 1.0
+        },
+        "subset": {
+          "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json",
+          "sha256": "6c5fc286e3cef00efdd6b84e26c841f3b09d20b17a57b8f6a394b8d27bb1e86b"
+        },
+        "config": {
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d91_20260928/assembly_final/3b_main_config_attempt1.yaml",
+          "sha256": "cbe57441f5269d807759519797a47b96d429398ff3b7d182f93e3f5afb22e7d6"
+        },
+        "launch_contract": {
+          "contract": "ieee_full_integrated_replay_v1",
+          "service_profile_id": "667e397831214198faf078e6c2e30c63e826946e3590fea8c63d87bc68995727",
+          "preparation_profile_id": "3ab29bca4f374c3457af3e9f5e804d6cfa9178baa121c06e707b2f8c17553c27",
+          "content_manifest_sha256": "ac8e9b36c328376a9e1ecec6a4d928dd684f4d94e3fa4d2e08f531b166da145e",
+          "input_plan": {
+            "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+            "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+            "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+            "count": 4000,
+            "source_count": 4000,
+            "profile": "W0",
+            "rate_scale": 1.0
+          },
+          "observation_binding": {
+            "kind": "ieee_online_observation_binding_v1",
+            "window_s": 5.0,
+            "demand_windows": {
+              "configured_demand": 5.0,
+              "runner_demand": 5.0,
+              "actual_demand": 5.0,
+              "preload_demand": 5
+            },
+            "transfer_limit": 3,
+            "movement_limits": {
+              "configured_movement": 3,
+              "actual_movement": 3
+            },
+            "admission_profile_id": "native-completed/1c325d13d0372112cf312b4a2cc991bb6e0c89b7a610887dfcd79742d36d3692",
+            "model_backend_id": "native-model/3a41720821468b1d0042f8783941a2a28698488f749909bd179f6cd9ae774f38"
+          },
+          "runtime_concurrency_cap": 8,
+          "dispatch_admission_mode": "open_loop_trace_replay",
+          "physical_deployment_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d91_20260928/assembly_final/d91-assembly-7t8lfgyw/physical_deployment",
+          "formal_comparison_qualified": false
+        },
+        "adapter_count": 500,
+        "requests": 4000,
+        "one_runtime_capacity": 8,
+        "four_runtime_capacity": 32,
+        "ready_pool_count": 0,
+        "initialized_engines": 0,
+        "pass": true
+      },
+      {
+        "model": "7b",
+        "kind": "main_configuration_assembly_only",
+        "actual_inference": false,
+        "real_ingress": false,
+        "formal_comparison_qualified": false,
+        "profile_manifest": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_7b_initialization/manifest.json",
+          "sha256": "7ba165a97559ac375dea3e4c5690023c045c591b7de6c08a28adbe9a63069468"
+        },
+        "trace": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+          "view_sha256": "a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W0",
+          "rate_scale": 1.0
+        },
+        "subset": {
+          "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json",
+          "sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+        },
+        "config": {
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d91_20260928/assembly_final/7b_main_config_attempt1.yaml",
+          "sha256": "bd21d6205f886c44b407e1efb102b76b3fd014564cbf90870d5b7554b3b6c899"
+        },
+        "launch_contract": {
+          "contract": "ieee_full_integrated_replay_v1",
+          "service_profile_id": "9d5714f6dc8d00f3aef1a775dfb7e563d2e7404ae54b77f9d4c2554f18aeccb8",
+          "preparation_profile_id": "188dd702796cea71058d999f787e368c8bbb363a3b5dff6a2866a23a32cdf9b7",
+          "content_manifest_sha256": "684c7ab113b6a51b694066753b340fce4eb0b26f565e1f9b7ebbd97d3b8ea050",
+          "input_plan": {
+            "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+            "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+            "view_sha256": "a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d",
+            "count": 4000,
+            "source_count": 4000,
+            "profile": "W0",
+            "rate_scale": 1.0
+          },
+          "observation_binding": {
+            "kind": "ieee_online_observation_binding_v1",
+            "window_s": 5.0,
+            "demand_windows": {
+              "configured_demand": 5.0,
+              "runner_demand": 5.0,
+              "actual_demand": 5.0,
+              "preload_demand": 5
+            },
+            "transfer_limit": 3,
+            "movement_limits": {
+              "configured_movement": 3,
+              "actual_movement": 3
+            },
+            "admission_profile_id": "native-completed/47d9ea8e982a8238d1ff1928fc0b7152c64976f271e40165c532179a2cc2d2ad",
+            "model_backend_id": "native-model/47195242726318d3e564d57bae4d182750991d6941d839eb9b20d205001bdfb6"
+          },
+          "runtime_concurrency_cap": 2,
+          "dispatch_admission_mode": "open_loop_trace_replay",
+          "physical_deployment_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d91_20260928/assembly_final/d91-assembly-ojxzcszg/physical_deployment",
+          "formal_comparison_qualified": false
+        },
+        "adapter_count": 500,
+        "requests": 4000,
+        "one_runtime_capacity": 2,
+        "four_runtime_capacity": 8,
+        "ready_pool_count": 0,
+        "initialized_engines": 0,
+        "pass": true
+      }
+    ],
+    "pass": true,
+    "full_qualification_complete": false,
+    "driver_sha256": "62cc8746eec935e7db0fff87c0c606b7a76130d793e7afd090d3eae0577fdf04"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "29c52266fcbade99dd72d141eb536251a396a145ed206eb015c88c598519a3a7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py",
+      "sha256": "af1b2dfa3de487d1d5d424620f6cf4c00058f64cee8629be7b2637295f6ee659"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py",
+      "sha256": "4f0ecf8f0ad3b3cf10ba4dab4a9baec4b409bcb91b7b250609164b47076c299f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d91_20260928/audit_main_assembly.py",
+      "sha256": "62cc8746eec935e7db0fff87c0c606b7a76130d793e7afd090d3eae0577fdf04"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d91_20260928/summarize_checkpoint.py",
+      "sha256": "f03a012d18cde55cded7b0c638238a26f1e64a8908bfa0250c05c987039fa9dc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d91_20260928/input_red.log",
+      "sha256": "79ecb66b2d0610ad877b447c3a204233b6085efafe170aacc690e4766b7bf4ab"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d91_20260928/input_green.log",
+      "sha256": "359f7711673fa639dc2facc81b734f42187e56de80168797d7efb336adb41ac5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d91_20260928/launch_contract1.log",
+      "sha256": "d4de98b73ca89efef6c6b50c17efe45b85ccc975741f3ee7c027616a27a778ae"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d91_20260928/regression1.log",
+      "sha256": "1ded21f6ee3bc48f9998bfe864744fc4c2f26338c805e181aa21d368b8cad21b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d91_20260928/regression2.log",
+      "sha256": "3e061d25db28ad95c4a318b9eaa3f16afa0fa3d94f566af6ffa38b2e947846cf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d91_20260928/main_assembly_attempt1.json",
+      "sha256": "bd786ecba96587b6373d60da6f198317c5130035ffe37f48e4164f8ef1ffa7d5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d91_20260928/main_assembly_attempt1.log",
+      "sha256": "4f414e3b337f3672efc205707b322ed66c4318e89fe411e8f7e5f512e0df35f8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d91_20260928/assembly_final/main_assembly.json",
+      "sha256": "474ee85c12c8f523e15fb004a811ce4cc01f68c865dc0fdb67acfed4fd0b65e3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d91_20260928/assembly_final/main_assembly.log",
+      "sha256": "118b2f6e8042a60beed15b33833d038d8e398df9e4234f6bcb879d93a4e3836c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_3b_initialization/manifest.json",
+      "sha256": "332f914d31dca776b0fdf52faad6241e04a3f3713db3e9289f5b5ecd551a9e0e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d91_20260928/assembly_final/3b_main_config_attempt1.yaml",
+      "sha256": "cbe57441f5269d807759519797a47b96d429398ff3b7d182f93e3f5afb22e7d6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json",
+      "sha256": "6c5fc286e3cef00efdd6b84e26c841f3b09d20b17a57b8f6a394b8d27bb1e86b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_7b_initialization/manifest.json",
+      "sha256": "7ba165a97559ac375dea3e4c5690023c045c591b7de6c08a28adbe9a63069468"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d91_20260928/assembly_final/7b_main_config_attempt1.yaml",
+      "sha256": "bd21d6205f886c44b407e1efb102b76b3fd014564cbf90870d5b7554b3b6c899"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json",
+      "sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c"
+    }
+  ],
+  "next": [
+    "planned-arrival request deadline and distinction from global interruption",
+    "interrupted request/source/mechanism evidence at canonical main failure boundary",
+    "owned per-run workspace cleanup and full external replay"
+  ],
+  "baselines": "paused",
+  "metric_references": "warm SLO/Resident not yet measured"
+}

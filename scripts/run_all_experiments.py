@@ -8248,6 +8248,9 @@ class ScenarioRunner:
         binding = getattr(self, '_ieee_online_observation_binding', None)
         if binding is not None:
             result['ieee_online_observation_binding'] = copy.deepcopy(binding)
+        launch = getattr(self, '_ieee_full_launch_contract', None)
+        if launch is not None:
+            result['ieee_full_launch_contract'] = copy.deepcopy(launch)
         profiles = getattr(self, '_service_profiles', None)
         if profiles is not None:
             result = {**result, 'ieee_service_profile': profiles.identity()}
@@ -11450,6 +11453,11 @@ class ScenarioRunner:
             return 1
 
     def _dispatch_admission_mode(self) -> str:
+        # The guarded publisher is the authority for actual arrivals. Dataset
+        # provenance labels must not add a one-runtime global concurrency clamp
+        # to an independently timed external replay.
+        if getattr(self, '_external_replay', None) is not None:
+            return "open_loop_trace_replay"
         wl_cfg = getattr(self, "wl_cfg", {}) or {}
         arrival_source = str(
             wl_cfg.get("arrival_source", wl_cfg.get("workload_arrival_source", "")) or ""
@@ -13728,11 +13736,84 @@ class ScenarioRunner:
               f"nvme_cached={len(self._nvme_cache)}")
 
     def _require_ieee_full_qualification(self):
-        # No configuration switch bypasses this remaining integration gate.
-        # Initial activation can be tested independently, but is not sufficient
-        # to qualify joint replacement, measured profiles or physical accounting.
-        raise RuntimeError('IEEE Full preparation execution is not qualified: '
-            'legacy priority/warmup is forbidden; use measured planning and owned movement')
+        """Check executable ownership, not a user-supplied 'qualified' switch.
+
+        Successful admission permits an integrated replay to obtain evidence.
+        It does NOT certify numerical adapter correctness, formal SLO feasibility
+        or superiority. Actual worker receipts, reservations and releases remain
+        checked by the already-qualified owners throughout execution.
+        """
+        from faaslora.datasets.workload_generator import ExternalReplayIngress
+        from faaslora.metrics.metrics_collector import PhysicalGPUDeployment
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
+
+        def require(condition, reason):
+            if not condition:
+                raise RuntimeError('IEEE Full preparation execution is not qualified: ' + reason)
+
+        require(getattr(self, '_routing_policy', None) == 'ieee_confirmed'
+            and getattr(self, '_initial_runtime_pending', False), 'pending IEEE initial owner required')
+        engine, cfg = getattr(self, 'engine', None), self.model_cfg
+        require(isinstance(engine, InferenceEngine) and engine.backend == 'vllm'
+            and engine.engine is None and callable(getattr(self, 'engine_factory', None)),
+            'uninitialized descriptor and dedicated runtime factory required')
+        require(cfg.get('ieee_gpu_references') is True
+            and cfg.get('ieee_physical_allocation') is True
+            and cfg.get('timing_contract') == 'ieee_tc_native_v1'
+            and cfg.get('tensor_parallel_size', 1) == 1
+            and _should_spawn_dedicated_engine_subprocess(cfg, instance_mode=self._instance_mode),
+            'native owned TP1 subprocess contract required')
+        require(self._generation_contract == 'fixed_length_greedy_v1', 'fixed native generation required')
+        require(isinstance(self._stack, ExperimentStack), 'owned IEEE stack required')
+        require(isinstance(self._service_profiles, FrozenServiceProfiles)
+            and isinstance(self._preparation_profiles, FrozenPreparationProfiles),
+            'measured service and preparation profiles required')
+        child = self._planned_ieee_runtime_model_config()
+        self._service_profiles.validate_runtime(child)
+        self._preparation_profiles.validate_runtime(child)
+        self._preparation_profiles.activation_layout()
+        require(self.instance_pool is not None and not self.instance_pool.count()
+            and self.instance_pool.service_profiles is self._service_profiles
+            and self.instance_pool.preparation_profiles is self._preparation_profiles,
+            'empty shared-profile pool required')
+        binding = _validate_ieee_online_observation_binding(cfg, self.coord_cfg,
+            self.preload_cfg, self._stack, runner_window_s=self._online_hotness_window_s)
+        require(binding == self._ieee_online_observation_binding,
+            'demand, movement and native admission ownership changed after assembly')
+        remote = self._remote_artifact_client
+        require(remote is not None and remote.required_delivery_mode == 'prepublished_gzip_v1'
+            and set(self._ieee_artifact_identities) == set(self.adapter_info)
+            and bool(self.adapter_info) and self.bw_mbps == 0,
+            'frozen published remote identities without artificial delay required')
+        replay, deployment = self._external_replay, self._physical_deployment
+        require(isinstance(replay, ExternalReplayIngress)
+            and isinstance(deployment, PhysicalGPUDeployment),
+            'external arrivals and physical lifecycle owner required')
+        replay.raise_if_failed()
+        replay.background_task  # Raises if ingress was not started before setup.
+        context = replay.context
+        require(context.get('tiny_witness') is False
+            and len(replay.plan.entries) == replay.plan.source_count
+            and replay.plan.rate_scale == 1.
+            and math.isclose(context['replay_t0_s'] - context['deployment_notice_s'],
+                             60., rel_tol=0., abs_tol=1e-6)
+            and context['deployment_notice_s'] == deployment.notice
+            and context['replay_t0_s'] == deployment.arrival_start
+            and context['clock_id'] == deployment.clock_id
+            and list(deployment.entries) == [t.request_id for t in self.traces],
+            'common deployment notice, full request map and lifecycle clock required')
+        require(self._dispatch_admission_mode() == 'open_loop_trace_replay',
+            'external arrivals must not be globally workload-capped')
+        self._ieee_full_launch_contract = dict(contract='ieee_full_integrated_replay_v1',
+            service_profile_id=self._service_profiles.profile_id,
+            preparation_profile_id=self._preparation_profiles.profile_id,
+            content_manifest_sha256=remote.content_manifest_sha256,
+            input_plan=replay.plan.identity(), observation_binding=binding,
+            runtime_concurrency_cap=self._runtime_forward_capacity_limit(),
+            dispatch_admission_mode=self._dispatch_admission_mode(),
+            physical_deployment_path=str(deployment.root),
+            formal_comparison_qualified=False)
 
     async def _start_ieee_initial_deployment(self):
         """Start the initial physical pool through the same owner as scale-out.
@@ -19328,6 +19409,33 @@ def setup_remote_storage(
     model_name: str,
     model_cfg: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Dict]:
+    if (model_cfg or {}).get('ieee_gpu_references', False):
+        # IEEE artifacts already exist on the published remote node. Only the
+        # frozen index and small, SHA-checked PEFT metadata are needed here;
+        # payload reads, support-file repair, model probing and generation are
+        # neither setup prerequisites nor permitted local fallbacks.
+        client = _remote_artifact_from_env() if _remote_artifact_from_env is not None else None
+        if client is None or client.required_delivery_mode != 'prepublished_gzip_v1':
+            raise ValueError('IEEE input setup requires published real-remote delivery')
+        manifest_path = (model_cfg or {}).get('artifact_content_manifest_path')
+        if not manifest_path:
+            raise ValueError('IEEE input setup requires its frozen content manifest')
+        with Path(manifest_path).open(encoding='utf-8') as handle:
+            client.configure_content_manifest(json.load(handle))
+        selected = adapters_cfg.get('adapters', [])
+        ids = [row['id'] for row in selected]
+        if not ids or len(ids) != len(set(ids)):
+            raise ValueError('IEEE input setup requires nonempty unique adapter IDs')
+        client.preparation_manifests(ids)  # Reject unknown IDs before any local path read.
+        result = {}
+        for row in selected:
+            aid = row['id']
+            identity = client.routing_identity(aid,
+                (remote_dir / aid / 'adapter_config.json').read_bytes())
+            size = identity['remote_payload_bytes']
+            result[aid] = dict(hotness=row.get('hotness', .5),
+                size_bytes=size, size_mb=size / (1024 * 1024))
+        return result
     generation_mode = _normalize_lora_generation_mode(adapters_cfg)
     preparation_mode = _normalize_lora_preparation_mode(adapters_cfg)
     gen_synthetic = generation_mode == "synthetic"
@@ -19684,12 +19792,13 @@ def _build_metric_groups(r: ScenarioResult, digits: int = 4) -> Dict[str, Dict[s
 
 
 def print_results(results: List[ScenarioResult], bw_mbps: float,
-                  has_azure: bool, has_sgpt: bool, backend: str):
+                  has_azure: bool, has_sgpt: bool, backend: str,
+                  workload_description: Optional[str] = None):
     """Print full results table with comparisons."""
     LINE = "-" * 152
     DLINE = "=" * 152
 
-    dataset_info = (
+    dataset_info = workload_description or (
         f"{'Azure LLM real trace' if has_azure else 'Synthetic workload'}"
         f" ({('28K records' if has_azure else 'Poisson')})"
         f"  +  {'ShareGPT real prompts' if has_sgpt else 'ShareGPT embedded 200'}"
@@ -20920,6 +21029,27 @@ def _warm_page_cache_early(model_path: str) -> None:
         time.sleep(3)
 
 
+def _initialize_workload_sources(*, shared_trace_path, max_azure, max_sgpt,
+                                arrival_source, token_source, prompt_source):
+    """Load raw source datasets only when constructing a workload from them.
+
+    A shared trace is already a complete immutable request map. Its separate
+    strict loader validates every request; replay must not download or resample
+    the original datasets, or claim they were freshly loaded into this service.
+    """
+    if shared_trace_path is not None:
+        return None, {}, False, False
+    dataset = WorkloadDataset()
+    stats = dataset.initialize(max_azure=max_azure, max_sgpt=max_sgpt,
+        load_azure=arrival_source == 'azure_llm' or token_source == 'azure_llm',
+        prompt_source=prompt_source)
+    has_azure, has_sgpt = dataset.has_real_azure_data(), dataset.has_real_sharegpt_data()
+    _assert_official_workload_sources_available(arrival_source=arrival_source,
+        token_source=token_source, prompt_source=prompt_source,
+        has_azure=has_azure, has_sgpt=has_sgpt)
+    return dataset, stats, has_azure, has_sgpt
+
+
 async def _main_async_impl(
     cfg_path: str,
     quick: bool = False,
@@ -21307,50 +21437,41 @@ async def _main_async_impl(
     if azure_max_records is not None and azure_max_records <= 0:
         azure_max_records = None
 
-    load_azure_records = arrival_source == "azure_llm" or token_source == "azure_llm"
-
     # ---- 1. Load datasets ----
     print("[1/5] Loading datasets ...")
-    dataset = WorkloadDataset()
-    ds_stats = dataset.initialize(
-        max_azure=azure_max_records,
-        max_sgpt=sharegpt_max_records,
-        load_azure=load_azure_records,
-        prompt_source=prompt_source,
-    )
-
+    dataset, ds_stats, has_azure, has_sgpt = _initialize_workload_sources(
+        shared_trace_path=shared_trace_path_override, max_azure=azure_max_records,
+        max_sgpt=sharegpt_max_records, arrival_source=arrival_source,
+        token_source=token_source, prompt_source=prompt_source)
     azure_stat = ds_stats.get("azure", {})
     sgpt_stat  = ds_stats.get("sharegpt", {})
-    has_azure  = dataset.has_real_azure_data()
-    has_sgpt   = dataset.has_real_sharegpt_data()
-    _assert_official_workload_sources_available(
-        arrival_source=arrival_source,
-        token_source=token_source,
-        prompt_source=prompt_source,
-        has_azure=has_azure,
-        has_sgpt=has_sgpt,
-    )
     use_azure_replay = arrival_source == "azure_llm" and has_azure
     use_azure_tokens = token_source == "azure_llm" and has_azure
+    workload_source = ('external_shared_trace' if shared_trace_path_override is not None
+                       else 'azure_real_trace' if use_azure_replay else 'poisson_synthetic')
 
     print(
         "  数据配置 : "
         f"arrival={arrival_source}  token={token_source}  prompt={prompt_source}"
     )
-    print(
-        f"  Azure LLM trace: {azure_stat.get('total_records', 0)} records "
-        f"({'REAL' if has_azure else 'DISABLED/MISSING'})"
-    )
+    if shared_trace_path_override is not None:
+        print(f"  Frozen request map: {shared_trace_path_override}; raw datasets not loaded")
+    else:
+        print(
+            f"  Azure LLM trace: {azure_stat.get('total_records', 0)} records "
+            f"({'REAL' if has_azure else 'DISABLED/MISSING'})"
+        )
     if has_azure:
         print(
             f"    input_tokens p50={azure_stat['context_tokens']['p50']:.0f} "
             f"p95={azure_stat['context_tokens']['p95']:.0f}  "
             f"output_tokens p50={azure_stat['generated_tokens']['p50']:.0f}"
         )
-    print(
-        f"  ShareGPT: {sgpt_stat.get('total_records', 0)} records "
-        f"({'REAL/' + sgpt_stat.get('source', '') if has_sgpt else sgpt_stat.get('source', 'embedded')})"
-    )
+    if shared_trace_path_override is None:
+        print(
+            f"  ShareGPT: {sgpt_stat.get('total_records', 0)} records "
+            f"({'REAL/' + sgpt_stat.get('source', '') if has_sgpt else sgpt_stat.get('source', 'embedded')})"
+        )
     print()
 
     # ---- 2. Remote storage ----
@@ -21888,9 +22009,7 @@ async def _main_async_impl(
             runner_workload_cfg = dict(wl_cfg_yaml)
             runner_workload_cfg["arrival_source"] = arrival_source
             runner_workload_cfg["workload_timing_mode"] = workload_timing_mode
-            runner_workload_cfg["workload_source"] = (
-                "azure_real_trace" if use_azure_replay else "poisson_synthetic"
-            )
+            runner_workload_cfg["workload_source"] = workload_source
             runner_workload_cfg["quick_mode"] = bool(quick)
 
             runner = ScenarioRunner(
@@ -22297,7 +22416,9 @@ async def _main_async_impl(
             all_results.append(run_results[0])
 
     # ---- Output ----
-    print_results(all_results, bw_mbps, use_azure_replay, has_sgpt, backend)
+    print_results(all_results, bw_mbps, use_azure_replay, has_sgpt, backend,
+        workload_description=f"Frozen shared request map ({shared_trace_path})"
+        if shared_trace_path_override is not None else None)
     save_results(
         all_results,
         results_file,
@@ -22449,10 +22570,11 @@ async def _main_async_impl(
             "azure_max_records": azure_max_records,
             "sharegpt_max_records": sharegpt_max_records,
             "azure_trace_records": azure_stat.get("total_records", 0),
-            "sharegpt_source": sgpt_stat.get("source", "embedded"),
+            "sharegpt_source": sgpt_stat.get("source", "not_loaded_frozen_trace"
+                if shared_trace_path_override is not None else "embedded"),
             "has_real_azure_data": has_azure,
             "has_real_sharegpt_data": has_sgpt,
-            "workload_source": "azure_real_trace" if use_azure_replay else "poisson_synthetic",
+            "workload_source": workload_source,
         },
     )
 
