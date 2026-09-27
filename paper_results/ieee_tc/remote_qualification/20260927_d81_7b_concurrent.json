@@ -1,0 +1,64 @@
+{
+  "kind": "published_concurrent_delivery_qualification_v1",
+  "model": "7b",
+  "source_commit": "a65e2f8c0234ba471bc16d5fe481220bcfe24cab",
+  "pass": true,
+  "performance_profile": false,
+  "inference_qualified": false,
+  "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/remote_qualification/d81_20260927",
+  "terminal": {
+    "elapsed_s": 2.3719591600001877,
+    "event": "complete",
+    "inference_qualified": false,
+    "offered_concurrency": 4,
+    "payload_bytes": 251264148,
+    "performance_profile": false,
+    "repetitions": 3,
+    "verified_count": 12,
+    "wire_bytes": 176838192
+  },
+  "server_overlap_waves": [
+    {
+      "wave": 0,
+      "server_handler_overlap": 4
+    },
+    {
+      "wave": 1,
+      "server_handler_overlap": 4
+    },
+    {
+      "wave": 2,
+      "server_handler_overlap": 4
+    }
+  ],
+  "unique_server_clocks": [
+    "remote-process-monotonic:b2613e98aca145b4bb98351e4192dd9a"
+  ],
+  "local_resources": {
+    "samples": 3,
+    "peak_bytes": 178532352,
+    "min_host_available_bytes": 116573827072,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "swap_peak": 0
+  },
+  "raw_sha256": {
+    "concurrent_7b.jsonl": "99f7c0d040ab5e7d3f67b91ff7d9cb297b55a4003be6a6f104a45029db501468",
+    "concurrent_7b_launch.json": "fb560b67ed324802b03f5e7efb272822b18bfa4475de4f486c9f8d35a7a22808",
+    "concurrent_7b_cleanup.json": "3d6d3979b2634155d379fbcd27d86b448534156d5389f29a159ddc7fd8c9847f",
+    "remote_7b_complete.jsonl": "5cd9f1e7206b9f0114065313c8b6f48f87854189437bcafe7dfaafff15002651",
+    "run_concurrent_7b.sh": "fd2f8d0c2f99b9e670e546efc7c47a56b0d9acabd742b8c992a91341996fd0d2",
+    "PROTOCOL.md": "e16d3cd7e5b566de8d69c6641984194445cabfcc8a9d5f14e9bd629c5773d8d5",
+    "activation_receipt.json": "915ea951453d73675192dcab60297c0c0d4da2d65eb07aae3c4569fb29363cee",
+    "health_receipt.json": "05c5819f364c7d8ea71bc1e8984dc1d98df536c4883aa549fd9137738f6d0946",
+    "remote_monitor_complete.log": "bfe39e36e6ee84197dad8c57c39f91fe90d60ad7a698a02d83238c5c375e8dab",
+    "concurrent_7b_launch.launch/watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "concurrent_7b_launch.launch/exec_receipt.json": "b6699bad7a50a35e6145272cb4c8a63f130e114cccfe7aae5a692668baa18ce4",
+    "concurrent_7b_launch.launch/watchdog.jsonl": "91a24a42e20b58b4da7c742fd72a6bbc7f501704f531b2089ce91cc007bf0c65",
+    "concurrent_7b_launch.launch/service.log": "5b6dbeacbff494eb99703bb52eaf07a2f5256a35af7a56d2463fa571f56f26f9"
+  }
+}

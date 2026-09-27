@@ -706,3 +706,60 @@ successful serial coverage cannot qualify every simultaneous workload. Pinned
 keeps file loading, CPU objects and GPU activation distinct; subsequent Full
 profiles must retain those source distinctions instead of pooling them into
 one download time. No server/backlog/queue optimization was made in this step.
+
+### D81 actual four-way published delivery:3B complete,7B next
+
+| Qualification observation | 3B |
+|---|---:|
+|Completed waves / verified transfers|3 /12|
+|Offered lanes / observed server-handler overlap in each wave|4 /4,4,4|
+|Transferred compressed / verified logical bytes|28075224 /675929616|
+|Total functional-loop seconds (not inference profile)|1.696959|
+|Request packing /temporary archive|0 /0|
+|Local service peak bytes / high,max,OOM,swap|283430912 /0,0,0,0|
+|Remote service peak bytes / high,max,OOM,swap at completion|27054080 /0,0,0,0|
+|Client/watchdog / owned cleanup|Exit0/0; service removed, empty auxiliary stopped|
+
+All12 client UUIDs match successful server records, original/archive SHA and
+read/write byte counts. Server overlap is reconstructed within its own clock;
+no cross-host timestamp subtraction. This uses the static largest compressed
+3B object, not a regenerated workload. The existing formal4000_s8 profiles for
+both Llama models set max_concurrent_loads=3; the four-lane qualification does
+not change them or establish a final Full configuration. No arbitrary-concurrency
+or all-baseline capacity claim.7B separately follows this validated table.
+
+New service identities:3B204149/5f32136ac7eb40769b7d2d6d97bf683f;
+7B204151/a7db5c5d428e4e21bb229342fe92a3b4;
+monitor204154/65b1f8f2997e44f3a3d4ec1fdd5ce132. All under unchanged D80 limits.
+Immediate probes preceded startup hash completion and were refused; same
+invocations subsequently passed health, with no restart and no inference overlap.
+Curated20260927_d81_3b_concurrent.json includes12raw SHA references.
+
+### D81 both concurrent checks complete; return to Full profiles
+
+| Four-way shared-delivery qualification | 3B | 7B |
+|---|---:|---:|
+|Verified transfers /waves|12/3|12/3|
+|Observed server overlap in each wave|4,4,4|4,4,4|
+|Compressed bytes|28075224|176838192|
+|Logical bytes|675929616|251264148|
+|Functional loop seconds, not profile|1.696959|2.371959|
+|Local service peak bytes|283430912|178532352|
+|Remote service peak bytes at completion|27054080|31903744|
+|Local/remote high,max,OOM,swap events|All0|All0|
+|Verified content, UUID and transfer byte agreement|12/12|12/12|
+
+No request packing or archive creation. Both local clients/watchdogs exited0,
+service scopes removed, empty auxiliary scopes stopped by matching invocation.
+Owned remote monitor stopped after both completions; both artifact services
+read back inactive/MainPID0/success. New remote monitor SHA
+bfe39e36e6ee84197dad8c57c39f91fe90d60ad7a698a02d83238c5c375e8dab.
+No inference/core strategy/source data changes; existing cold destinations were
+removed, original pools and immutable delivery caches retained. Remote filesystem
+page cache was not dropped; low cgroup resident peaks do not mean no OS caching.
+
+This qualifies the observed four-way condition with unchanged D80 resource
+limits, sufficient to proceed with candidate Prime loading/profile work using
+no more than that transfer concurrency. It is not all-system arbitrary-concurrency
+evidence, a frozen final configuration, an S6 bandwidth sweep, or an inference
+speedup. Do not repeat D78/D80/D81. Next is representative native Full profiling.

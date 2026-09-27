@@ -85,7 +85,30 @@
 
 ## Mainline: next action (do not reopen completed qualification)
 
-### D81 qualification-client extension tested; real concurrent check NOT STARTED
+### D81 completed four-way real-remote qualification; Full profiling next
+
+- BOTH models:3waves×4lanes=12/12verified, each wave observed4server-handler
+  overlap via same-clock UUID records.3Bwire28075224B/logical675929616B,
+  loop1.696959s;7Bwire176838192B/logical251264148B,loop2.371959s. No packing.
+  Exact compressed/original content and bytes agree for every transfer.
+- Local peaks283430912/178532352B; remote27054080/31903744B at completion;
+  allhigh/max/OOM/swap0. Client/watchdog0/0, service paths gone, empty owned
+  auxiliary scopes stopped. Both original pools/caches intact, no new pool/trace.
+- Remote monitor65b1f8f2997e44f3a3d4ec1fdd5ce132 STOPPED after both clients.
+  Services5f32136ac7eb40769b7d2d6d97bf683f/a7db5c5d428e4e21bb229342fe92a3b4
+  inactive/MainPID0/Result=success. OldPID204149/204151/204154 are notlive.
+  Final monitor SHA bfe39e36e6ee84197dad8c57c39f91fe90d60ad7a698a02d83238c5c375e8dab.
+- No remote setting changed. Immediate health checks preceded startup archive
+  hashing and were refused; subsequent SAME invocation health passed, no restart.
+- Existing Llama3B/7B formal4000_s8 profiles both use max_concurrent_loads=3.
+  Four-lane qualification comes from plan microtest condition, not tuning Full
+  concurrency. The class default5 is NOT the effective config.
+- Curated20260927_d81_{3b,7b}_concurrent.json and REMOTE_ACCESS immediate tables.
+  This qualifies observed4-way candidate delivery, NOT final all-baseline bounds
+  or Full profiles. No more publication/full-pool/concurrent repeats needed.
+  Return directly to representative native source/preparation collector.
+
+Earlier preparation details (completed; not new launch instructions):
 
 - D80 evidence checkpoint88e6ad9f4174d43da98446763678d8d88de1374b PUSHED;
   fresh remote SHA matched. All42new raw SHA references/147protected entries pass.
@@ -109,16 +132,16 @@
   7B largest logical object differs:code_lora_0015=37716322B logical.
   Use measured identity/footprint; no new data. Do not confuse compressed size
   with original payload, HOST footprint or training diversity.
-- Remote services remain INACTIVE. Next check reuses D80 qualified server/units/
+- Remote services remain INACTIVE. The completed check reused D80 server/units/
   immutable caches/monitor with new unit identity and exclusive log files. Do
   NOT rerun activation script that refuses existing D80 logs or overwrite them.
   Common all-baseline concurrency qualification is still open; a Prime-specific
   bound must not be called an all-system production guarantee.
 
-1. Check actual whole-service transfer entrypoints/concurrency and derive common
-   remote resource envelope. No request archive allocation now; retain published
-   cache, streaming buffers, thread/socket/metadata/log overhead. Qualify shared
-   concurrency on existing selected objects, not another500-pool pass.
+1. D81 has qualified4-way published delivery under2/4GiB remote limits, enough
+   for the next Prime candidate profiling. Freeze actual Full configuration and
+   verify integrated transfer concurrency; do not repeat finished remote checks.
+   All-baseline common bounds are audited when those systems resume, not claimed now.
 2. Extend existing source/profile collector for representative Remote, file-HOST/
    NVMe, native-HOST and GPU sources plus actual concurrency. Reuse frozen inputs,
    completed loading events, and existing admission helpers with

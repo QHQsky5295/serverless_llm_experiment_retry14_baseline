@@ -1,0 +1,63 @@
+{
+  "kind": "published_concurrent_delivery_qualification_v1",
+  "model": "3b",
+  "source_commit": "a65e2f8c0234ba471bc16d5fe481220bcfe24cab",
+  "pass": true,
+  "performance_profile": false,
+  "inference_qualified": false,
+  "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/remote_qualification/d81_20260927",
+  "terminal": {
+    "elapsed_s": 1.6969589969994558,
+    "event": "complete",
+    "inference_qualified": false,
+    "offered_concurrency": 4,
+    "payload_bytes": 675929616,
+    "performance_profile": false,
+    "repetitions": 3,
+    "verified_count": 12,
+    "wire_bytes": 28075224
+  },
+  "server_overlap_waves": [
+    {
+      "wave": 0,
+      "server_handler_overlap": 4
+    },
+    {
+      "wave": 1,
+      "server_handler_overlap": 4
+    },
+    {
+      "wave": 2,
+      "server_handler_overlap": 4
+    }
+  ],
+  "unique_server_clocks": [
+    "remote-process-monotonic:6c0ff25c75e9406195695e8e35b7120a"
+  ],
+  "local_resources": {
+    "samples": 3,
+    "peak_bytes": 283430912,
+    "min_host_available_bytes": 116518899712,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "swap_peak": 0
+  },
+  "raw_sha256": {
+    "concurrent_3b.jsonl": "7091848e3438b1fff16c9b4d614ebf32d8a7d3162dbf35f64a19e958b9d299d6",
+    "concurrent_3b_launch.json": "d06b3acd44c3c304a8281bcbffa056f4b2c081ce528c99840edf31411ebbefc6",
+    "concurrent_3b_cleanup.json": "2743b3a0999b7353ad97c8170cb5f7d640065c7ed2230f5cfde712a5db97b77e",
+    "remote_3b_complete.jsonl": "30d63d1c0dd6dc96a0d9d9ee314cd9df7b0598e008f00218e56e524bc78f01e1",
+    "run_concurrent_3b.sh": "5918c24818001cd4a50c275b941b7dd04f22fa4e371333bc30af51ba5c42c1aa",
+    "PROTOCOL.md": "e16d3cd7e5b566de8d69c6641984194445cabfcc8a9d5f14e9bd629c5773d8d5",
+    "activation_receipt.json": "915ea951453d73675192dcab60297c0c0d4da2d65eb07aae3c4569fb29363cee",
+    "health_receipt.json": "05c5819f364c7d8ea71bc1e8984dc1d98df536c4883aa549fd9137738f6d0946",
+    "concurrent_3b_launch.launch/watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "concurrent_3b_launch.launch/exec_receipt.json": "a8250859d7a5223a59cb7f675acaca4861de9cd0064a29eba91e24c379059dce",
+    "concurrent_3b_launch.launch/watchdog.jsonl": "3d68307279669e363888b0def14299e2342d62285f4811e261fa3f172311f1bb",
+    "concurrent_3b_launch.launch/service.log": "d69e3abac9a791b055b4c81bb92372fd3223ff8273ce37f872832a970b5eedfc"
+  }
+}
