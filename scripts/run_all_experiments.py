@@ -6776,6 +6776,23 @@ class ScenarioRunner:
             self._external_trace_by_id = {trace.request_id: trace for trace in self.traces}
             self._external_replay.subscribe(self._observe_external_ingress)
 
+    def _planned_ieee_runtime_model_config(self):
+        """Resolve the same child configuration as the owned runtime factory.
+
+        A pending controller descriptor has no backend yet. Validate its future
+        child, including eager-mode resolution and worker cleanup policy, rather
+        than dropping those fields from the measured profile identity. Actual
+        new workers are independently validated after spawn as before.
+        """
+        configuration, _ = _prepare_dedicated_subprocess_model_cfg(
+            self.model_cfg, device_id=0, runtime_gpu_ids=[0])
+        return configuration
+
+    def _ieee_profile_binding_model_config(self):
+        if getattr(self, '_initial_runtime_pending', False):
+            return self._planned_ieee_runtime_model_config()
+        return getattr(self.engine, 'model_cfg', None)
+
     def _load_ieee_service_profiles(self):
         """Bind measured initialization to this actual runner, never legacy defaults."""
         spec = self.coord_cfg.get('ieee_service_profile')
@@ -6787,7 +6804,7 @@ class ScenarioRunner:
             raise ValueError('invalid IEEE measured service profile configuration')
         from faaslora.experiment.instance_pool import FrozenServiceProfiles
         return FrozenServiceProfiles.load(Path(spec['path']), expected_sha256=spec['sha256'],
-            model_config=getattr(self.engine, 'model_cfg', None),
+            model_config=self._ieee_profile_binding_model_config(),
             expected_context=spec['context'], beta=spec['ewma_beta'])
 
     def _observe_external_ingress(self, record):
@@ -6811,7 +6828,7 @@ class ScenarioRunner:
             raise ValueError('preparation/service measurement contexts differ')
         from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
         return FrozenPreparationProfiles.load(Path(spec['path']), expected_sha256=spec['sha256'],
-            model_config=getattr(self.engine, 'model_cfg', None),
+            model_config=self._ieee_profile_binding_model_config(),
             expected_context=spec['context'], beta=spec['ewma_beta'])
 
     def _runtime_gpu_count_for_cfg(self, cfg: Optional[Dict[str, Any]] = None) -> int:
@@ -12883,7 +12900,7 @@ class ScenarioRunner:
         if (profiles is None or self._stack is None or self._remote_artifact_client is None
                 or not self.model_cfg.get('ieee_gpu_references')):
             raise ValueError('IEEE activation needs real owners and frozen measurements')
-        profiles.validate_runtime(self.model_cfg)
+        profiles.validate_runtime(self._planned_ieee_runtime_model_config())
         layout = profiles.activation_layout()
         activation_id = 'ieee-activation-' + uuid.uuid4().hex
         files = self._stack.residency_manager.local_source_references

@@ -1287,7 +1287,12 @@ class ActivationPreparation(unittest.TestCase):
         model = dict(model_path='/existing/model', dtype='float16', tensor_parallel_size=1,
             ieee_gpu_references=True, ieee_host_budget_bytes=32768,
             ieee_native_host_tensor_budget_bytes=16384)
-        runner.model_cfg = engine.model_cfg = model
+        # The controller descriptor and dedicated child's resolved configuration
+        # are different objects in the real factory, even in this CPU fixture.
+        from scripts.run_all_experiments import _prepare_dedicated_subprocess_model_cfg
+        runner.model_cfg = model
+        engine.model_cfg, _ = _prepare_dedicated_subprocess_model_cfg(
+            model, device_id=0, runtime_gpu_ids=[0])
         clock = local_monotonic_clock_id()
         native = dict(kind='native_lora_sources_v1', owner_id='controlled-new-native', epoch=1,
             clock_id=clock, captured_monotonic_s=time.monotonic(), slot_adapter_ids=[None, None],
@@ -1304,7 +1309,7 @@ class ActivationPreparation(unittest.TestCase):
                 storage_offset_elements=0,contiguous=True)])
         profile = FrozenPreparationProfiles(old_profiles.size_edges_bytes, costs.snapshot()[1], {},
             old_profiles.profile_id, (), .5,
-            json.dumps(FrozenServiceProfiles.model_identity(model), sort_keys=True, allow_nan=False),
+            json.dumps(FrozenServiceProfiles.model_identity(engine.model_cfg), sort_keys=True, allow_nan=False),
             json.dumps(native_activation_layout(native),sort_keys=True))
         runner._preparation_profiles = profile
         runner._service_profiles = None

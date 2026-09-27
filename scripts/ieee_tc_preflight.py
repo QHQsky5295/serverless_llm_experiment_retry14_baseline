@@ -3200,6 +3200,23 @@ async def qualify_native_capacity_wait(engine, plan, adapters, result):
             await boundary._finish_runtime_request_reservation(reservation)
 
 
+async def initialize_qualification_runtime(model_config, mode):
+    """Use Full's process boundary for measurements intended to initialize Full.
+
+    This is not a switch to qualify production. Direct-path historical profiles
+    stay direct-path evidence; no configuration relabelling or assumed zero RPC
+    cost makes them interchangeable with dedicated-runtime measurements.
+    """
+    from scripts.run_all_experiments import SubprocessInferenceEngineProxy
+    physical = mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix')
+    if physical and model_config.get('ieee_physical_allocation') is not True:
+        raise ValueError('physical qualification requires actual GPU allocation before startup')
+    if not physical and mode != 'cancel_pairs_subprocess':
+        raise ValueError('this qualification does not use a dedicated runtime')
+    return await SubprocessInferenceEngineProxy.spawn(model_cfg=model_config, cost_model={},
+                                                     device_id=0, runtime_gpu_ids=[0])
+
+
 async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                               trace: Path, count: int, mode: str = 'sequential',
                               artifact_audit: Path | None = None,
@@ -3264,10 +3281,11 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                    max_output_tokens_cap=256)
         if mode in ('native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference'):
             cfg['ieee_gpu_references'] = False
-        if mode in ('native_lifecycle', 'native_capacity_wait'):
+        if mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix'):
             cfg['ieee_physical_allocation'] = True
-            result['input_mode'] = ('existing_four_request_prefix_dedicated_physical_lifecycle'
-                if mode == 'native_lifecycle' else 'existing_prefix_controlled_native_capacity')
+            if mode != 'native_source_matrix':
+                result['input_mode'] = ('existing_four_request_prefix_dedicated_physical_lifecycle'
+                    if mode == 'native_lifecycle' else 'existing_prefix_controlled_native_capacity')
         result['model_config'] = cfg
         plan = FrozenReplayPlan.load(trace, count=count)
         result['trace'] = plan.identity()
@@ -3343,13 +3361,22 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         result['stage'] = 'engine_initialization'
         print(json.dumps({'event': 'model_qualification_stage', 'stage': result['stage'],
                           'model': cfg['name'], 'requests': count}), flush=True)
-        if mode in ('cancel_pairs_subprocess', 'native_lifecycle', 'native_capacity_wait'):
-            engine = await SubprocessInferenceEngineProxy.spawn(model_cfg=cfg, cost_model={},
-                                                               device_id=0, runtime_gpu_ids=[0])
-            result['proxy_pid'] = engine._process.pid
+        result['requested_model_config'] = dict(cfg)
+        if mode in ('cancel_pairs_subprocess', 'native_lifecycle', 'native_capacity_wait',
+                    'native_source_matrix'):
+            engine = await initialize_qualification_runtime(cfg, mode)
         else:
+            # Retain ownership even if direct initialization raises, so the
+            # existing finally block can retire a partially started engine.
             engine = InferenceEngine(cfg, {})
             await engine.initialize()
+        result['model_config'] = dict(engine.model_cfg)
+        result['runtime_boundary'] = ('dedicated_subprocess'
+            if isinstance(engine, SubprocessInferenceEngineProxy) else 'direct_engine_facade')
+        if isinstance(engine, SubprocessInferenceEngineProxy):
+            result['proxy_pid'] = engine._process.pid
+        if source_boundary is not None:
+            source_boundary.model_cfg = dict(engine.model_cfg)
         result['startup_latency_ms'] = engine.startup_latency_ms
         result['stage'] = 'worker_and_scheduler_observation'
         result['workers_before'] = await engine.ieee_worker_observation()

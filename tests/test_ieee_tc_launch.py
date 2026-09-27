@@ -21,6 +21,47 @@ def ieee_control_fixture():
 
 
 class NativeAllocatorLaunchContract(unittest.TestCase):
+    def test_pending_profile_binding_matches_factory_without_mutating_descriptor(self):
+        model = dict(backend='vllm', tensor_parallel_size=1, enforce_eager=True,
+                     ieee_physical_allocation=True, visible_device_ids=[0, 1, 2, 3])
+        service = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        service.model_cfg = dict(model)
+        service.engine = SimpleNamespace(model_cfg=dict(model))
+        service._initial_runtime_pending = True
+        expected, _ = runner._prepare_dedicated_subprocess_model_cfg(
+            model, device_id=0, runtime_gpu_ids=[0])
+        bound = service._ieee_profile_binding_model_config()
+        self.assertEqual(bound, expected)
+        self.assertTrue(bound['skip_stale_gpu_cleanup'])
+        self.assertTrue(bound['ieee_physical_allocation'])
+        self.assertEqual(service.model_cfg, model)
+        self.assertEqual(service.engine.model_cfg, model)
+        service._initial_runtime_pending = False
+        actual = dict(expected, max_loras=8)
+        service.engine.model_cfg = actual
+        self.assertIs(service._ieee_profile_binding_model_config(), actual)
+
+    def test_source_profiles_use_actual_full_subprocess_boundary(self):
+        from scripts.ieee_tc_preflight import initialize_qualification_runtime
+        model = dict(backend='vllm', ieee_physical_allocation=True)
+        actual = SimpleNamespace(model_cfg=dict(model, skip_stale_gpu_cleanup=True))
+        with patch.object(runner.SubprocessInferenceEngineProxy, 'spawn',
+                          new=AsyncMock(return_value=actual)) as spawn, \
+             patch.object(runner, 'InferenceEngine') as direct:
+            result = asyncio.run(initialize_qualification_runtime(model, 'native_source_matrix'))
+            self.assertIs(result, actual)
+            spawn.assert_awaited_once_with(model_cfg=model, cost_model={}, device_id=0, runtime_gpu_ids=[0])
+            direct.assert_not_called()
+
+    def test_source_profiles_cannot_bypass_physical_allocation(self):
+        from scripts.ieee_tc_preflight import initialize_qualification_runtime
+        with patch.object(runner.SubprocessInferenceEngineProxy, 'spawn', new=AsyncMock()) as spawn:
+            for value in (None, False, 1):
+                with self.subTest(value=value), self.assertRaisesRegex(ValueError, 'actual GPU allocation'):
+                    asyncio.run(initialize_qualification_runtime(
+                        dict(ieee_physical_allocation=value), 'native_source_matrix'))
+            spawn.assert_not_awaited()
+
     def test_import_defaults_preserve_explicit_settings_and_conflicts(self):
         default = {}
         runner._apply_allocator_import_defaults(default)

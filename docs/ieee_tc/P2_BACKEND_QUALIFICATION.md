@@ -1296,3 +1296,29 @@ service/watchdog均exit0，GPU上下文、服务域和工作目录已释放；�
 现有严格profile配置核对会拒绝混用，保留此检查。下一步先核对D/T/O和d边界、
 导出真实测量身份，再只补缺失的实际Full路径证据；不自动重做远端发布/全池检查，
 不移除Full未合格保护，不把D83改名成完整Full。
+
+### D84：校准路径与实际独立副本一致（实现修正，模型测量待运行）
+
+D83适用性检查发现三类真实差异：Full的loopback RPC、物理GPU租约，以及
+工厂解析后的`requested/resolved_enforce_eager`和`skip_stale_gpu_cleanup`。
+不能把配置差异删掉就称为相同测量。修正既有`native_source_matrix`入口，
+强制实际物理租约＋既有`SubprocessInferenceEngineProxy.spawn`，记录请求配置
+与返回的实际配置；测量边界、已有请求/工件、预算、分桶和预登记轮次不改。
+
+Full初始未启动描述符现在按同一工厂的纯配置解析函数验证未来runtime；
+新worker出现后仍独立严格核对它实际的配置，差异仍拒绝。planner启动前也验证
+未来runtime而不是尚未解析的controller描述符。九公式、在线估计、策略与
+Full资格保护均未放宽。D83仍为direct-path证据，不能直接改标为新配置样本。
+
+367项启动/生命周期/服务路由/准备/传输压力测试通过（19.418s）。第一次测试
+发现CPU activation fixture错误地把controller与child配置设为同一对象，
+配置拒绝后测试等待未到达的startup事件；29s时仅停止该自有测试unit，无GPU
+运行。fixture改为真实工厂解析后的child配置，保留真实拒绝测试，而非绕开验证。
+该367项终端输出有截断，仅保存通过footer的事实，不声称拥有完整首轮日志。
+
+后续只补实际副本边界的代表性初始化测量，沿用既有D83索引，不重建负载/工件。
+为取得当前严格profile合同所需的完整观测类，重复相同类与轮次，但新campaign/
+新源版本；D83不作为新profile的样本，不重复远端全池/allocator资格。结果完成
+并图表收尾后直接导出冻结初始化，再做Full集成，不另开性能调参扫描。
+OS护栏55项通过（0.796s）；既有basic smoke 288项通过（22.440s），两者完整
+日志已保存在D84原始目录。未启动GPU或远端服务，不改既有后端环境。

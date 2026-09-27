@@ -195,6 +195,21 @@
   measured interval boundaries and actual configuration before exporting Full
   initialization; D83 remains valid direct-path development evidence. Do not
   automatically repeat remote/publication/allocator checks or remove Full guard.
+- D83 completed evidence71206ed6a5b2bf7965596c1429b8cbb2e832a548 PUSHED and
+  freshremoteSHA verified. D84 now corrects source collector to actual Full
+  subprocess+physical allocation boundary and records effective child config.
+  Full pending descriptor/pre-init validation uses the identical factory's pure
+  config resolution; actual spawned worker still independently checked. No
+  profile identity fields removed, no Full guard bypass.367CPU integration tests
+  passed19.418s; first stale syntheticfixture run stopped29s, then fixture made
+  faithful to actual distinct controller/child configs. D84 no model run yet.
+  Next: complete OS/smoke and backup, then same representative indexes under
+  actual owned subprocess path; D83 raw observations remain direct-path evidence.
+  OS55pass0.796s/basic288pass22.440s, complete logs in rawd84. Final launch-only
+  regression also exit0; source direct-initialization retains original finally
+  ownership on startup failure. D84 specs preserve all D83 waves/bins/budgets/
+  input hashes, change only temporary campaign parent and record runtime boundary.
+  Prepared rawd84/run_{3b,7b}_physical_source_attempt1.sh; NOT LAUNCHED yet.
 ### D81 completed four-way real-remote qualification; Full profiling next
 
 - BOTH models:3waves×4lanes=12/12verified, each wave observed4server-handler
