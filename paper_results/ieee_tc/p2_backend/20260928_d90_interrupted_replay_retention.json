@@ -1,0 +1,58 @@
+{
+  "kind": "interrupted_replay_evidence_retention_cpu_v1",
+  "base_commit": "c44167157a3634e6e420a26e66499a7e9f42b7dc",
+  "formal_performance_result": false,
+  "full_qualified": false,
+  "red_tests": {
+    "tests": 2,
+    "errors": 2
+  },
+  "regression": {
+    "tests": 519,
+    "seconds": 38.6,
+    "passed": true
+  },
+  "next_attempt_prepared_not_started": "3b_full_prefix_attempt4",
+  "sources": [
+    {
+      "path": "scripts/run_all_experiments.py",
+      "sha256": "4ad5447aeafa3a5dad120a17c7854e398208aa138c8dc547696a317b83aefba4"
+    },
+    {
+      "path": "scripts/ieee_tc_preflight.py",
+      "sha256": "56bde26f4a284ecf02de66364f811251405a9b087cbeff3f1b7bf3080b30636b"
+    },
+    {
+      "path": "tests/test_ieee_tc_request_lifecycle.py",
+      "sha256": "536acfced1410dd64e0404d2c9d944849df443bda4c05feb04d3481a08ee9b8d"
+    },
+    {
+      "path": "tests/test_ieee_tc_launch.py",
+      "sha256": "5a024b1d2064aa6fb02ba22e32dfec465d78193eea8f9feb6346b8becbc180cf"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/partial_red1.log",
+      "sha256": "d953ee944e6810061386b4d194e7af8ef9e837eda55212b2bbe232a0ae6495bf"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/partial_regression1.log",
+      "sha256": "47534b03551fef3599b055783cf7beb815de4d7bc41837248fb80c2fc3485fb0"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/run_3b_full_prefix_attempt4.sh",
+      "sha256": "2ce630881c9ab031639b9707e2ffc36739a14cabedf37dca378701f3faafe580"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/activate_services_attempt4.sh",
+      "sha256": "206156f258dfdd3a85fea646a3d951ed3a458259bb8b79ac724f40c52da6036d"
+    }
+  ],
+  "protected_seal": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  }
+}

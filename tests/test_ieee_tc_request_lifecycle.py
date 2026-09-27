@@ -3120,6 +3120,12 @@ class ReplayFailureIdentity(unittest.TestCase):
                 await task
         asyncio.run(check())
         runner._attach_control_path_background_metrics.assert_not_called()
+        evidence=runner._interrupted_replay_evidence[-1]
+        self.assertFalse(evidence['complete'])
+        self.assertEqual(evidence['planned_request_count'],2)
+        self.assertEqual(len(evidence['requests']),evidence['submitted_count'])
+        self.assertTrue(all(not r['success'] for r in evidence['requests']))
+        self.assertFalse(evidence['collection_errors'])
 
     def test_collector_rejects_unfinished_future_or_wrong_result_identity(self):
         runner = replay_fixture()
@@ -3176,6 +3182,24 @@ class ReplayFailureIdentity(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'incomplete replay'):
             asyncio.run(runner.run())
         self.assertEqual(runner._exec_request.await_count, 1)
+        evidence=runner._interrupted_replay_evidence[-1]
+        self.assertEqual(evidence['planned_request_count'],2)
+        self.assertEqual(evidence['submitted_count'],1)
+        self.assertEqual([r['request_id'] for r in evidence['requests']],['req-0'])
+        self.assertEqual(evidence['unsubmitted_request_ids'],['req-1'])
+        self.assertFalse(evidence['complete'])
+
+    def test_control_failure_preserves_previously_observed_rows_and_original_error(self):
+        runner=replay_fixture()
+        runner._maybe_run_live_scale_control_evaluation.side_effect=RuntimeError('control failure')
+        with self.assertRaisesRegex(RuntimeError,'control failure'):
+            asyncio.run(runner.run())
+        evidence=runner._interrupted_replay_evidence[-1]
+        self.assertEqual(evidence['error_type'],'RuntimeError')
+        self.assertEqual(evidence['submitted_count'],2)
+        self.assertEqual([r['request_id'] for r in evidence['requests']],['req-0','req-1'])
+        self.assertFalse(evidence['collection_errors'])
+        runner._attach_control_path_background_metrics.assert_not_called()
 
     def test_duplicate_or_empty_input_identity_is_not_silently_skipped(self):
         runner = replay_fixture()

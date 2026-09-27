@@ -1329,6 +1329,19 @@ class FullPrefixQualification(unittest.TestCase):
             service.run.assert_not_awaited()
             service._shutdown_instance_pool.assert_awaited_once()
 
+    def test_prefix_failure_retains_partial_rows_separately_without_success(self):
+        service,row=self.fixture()
+        service.run.side_effect=RuntimeError('controller failed')
+        service._interrupted_replay_evidence=[dict(complete=False,planned_request_count=1,
+            submitted_count=1,requests=[row],unsubmitted_request_ids=[],collection_errors=[])]
+        result={}
+        with self.assertRaisesRegex(RuntimeError,'controller failed'):
+            self.execute(service,result)
+        self.assertFalse(result['pass'])
+        self.assertEqual(result['requests'],[])
+        self.assertEqual(result['interrupted_replays'][0]['requests'],[row])
+        self.assertFalse(result['formal_performance_result'])
+
     def test_controlled_failure_releases_device_reservation_and_retires_pool(self):
         service, _ = self.fixture()
         service._add_dedicated_instance_slot.side_effect = RuntimeError('controlled failed')

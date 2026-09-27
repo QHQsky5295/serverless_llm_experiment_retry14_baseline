@@ -3832,6 +3832,7 @@ async def qualify_ieee_full_prefix(boundary, result):
             result['residency_epochs'] = getattr(boundary, '_ieee_residency_epochs', [])
             result['file_preparation_plans'] = getattr(boundary, '_ieee_file_preparation_plans', [])
             result['gpu_preparation_plans'] = getattr(boundary, '_ieee_gpu_preparation_plans', [])
+            result['interrupted_replays'] = getattr(boundary, '_interrupted_replay_evidence', [])
             result['native_host_preparations'] = getattr(boundary, '_ieee_native_host_preparations', [])
             result['remote_transfers'] = boundary._remote_transfer_evidence
             result['movement_queue'] = boundary._stack.preloading_manager.ieee_movements.snapshot()

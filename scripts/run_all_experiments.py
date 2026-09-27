@@ -12382,6 +12382,7 @@ class ScenarioRunner:
         active_tasks: set[asyncio.Task] = set()
         task_to_idx: Dict[asyncio.Task, int] = {}
         results_by_idx: Dict[int, Any] = {}
+        interruption = None
 
         async def _dispatch_traces() -> None:
             nonlocal launched_count
@@ -12437,7 +12438,7 @@ class ScenarioRunner:
                     if task is dispatcher:
                         continue
                     active_tasks.discard(task)
-                    idx = task_to_idx.pop(task, None)
+                    idx = task_to_idx.get(task)
                     if idx is None or idx in completed_indices:
                         continue
                     completed_indices.add(idx)
@@ -12447,6 +12448,7 @@ class ScenarioRunner:
                         request_plans.get(trace.request_id) if request_plans is not None else None)
                     observed_raw.append(item)
                     results_by_idx[idx] = item
+                    del task_to_idx[task]
 
                 completed_now = completed_before_window + len(completed_indices)
                 backlog = self._backlog_depth(completed_now, replay_t0)
@@ -12494,6 +12496,10 @@ class ScenarioRunner:
                 raise RuntimeError('incomplete replay has no full request outcome set')
             raw = [results_by_idx[idx] for idx in range(len(traces))]
             return raw, time.perf_counter()
+        except BaseException as exc:
+            interruption = dict(error_type=type(exc).__name__,
+                                interrupted_monotonic_s=time.perf_counter())
+            raise
         finally:
             self._active_replay_t0 = None
             if not dispatcher.done():
@@ -12502,6 +12508,31 @@ class ScenarioRunner:
                 if not task.done():
                     task.cancel()
             await asyncio.gather(dispatcher, *active_tasks, return_exceptions=True)
+            if interruption is not None:
+                # Preserve only real launched tasks after their terminal join.
+                # This is failure evidence, never a successful ScenarioResult;
+                # future unsubmitted requests acquire no invented outcomes.
+                from dataclasses import asdict
+                retained = dict(results_by_idx)
+                collection_errors = []
+                for task, idx in task_to_idx.items():
+                    try:
+                        trace = traces[idx]
+                        retained[idx] = self._collect_request_task_result(task, trace, replay_t0,
+                            request_plans.get(trace.request_id) if request_plans is not None else None)
+                    except BaseException as exc:
+                        collection_errors.append(dict(request_id=traces[idx].request_id,
+                            error_type=type(exc).__name__, error=str(exc)))
+                submitted = set(results_by_idx) | set(task_to_idx.values())
+                if not hasattr(self, '_interrupted_replay_evidence'):
+                    self._interrupted_replay_evidence = []
+                self._interrupted_replay_evidence.append(dict(
+                    kind='interrupted_continuous_replay_v1', complete=False,
+                    planned_request_count=len(traces), submitted_count=launched_count,
+                    replay_t0_s=replay_t0, trace_start_index=trace_start_index,
+                    requests=[asdict(retained[i]) for i in sorted(retained)],
+                    unsubmitted_request_ids=[t.request_id for i,t in enumerate(traces) if i not in submitted],
+                    collection_errors=collection_errors, **interruption))
 
     def _prime_slot_cache_view(self, slot: Any, include_gpu: bool) -> None:
         if slot is None:

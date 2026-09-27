@@ -1,6 +1,20 @@
 # IEEE TC execution status
 
-## Current checkpoint — 2026-09-27 D90 attempt3 FAILED/CLEANED
+## Current checkpoint — 2026-09-28 D90 corrections tested; attempt4 PREPARED ONLY
+
+00:03:Explicitconflictcheckpointc44167157a3634e6e420a26e66499a7e9f42b7dc
+PUSHED/freshremoteSHA matched,rawepoch_fix_push_receipt.json. Thencompleted
+failureevidenceretention: existingcontinuousrunnerjoinslaunchedtasks, retains
+observed/terminalrows, unsubmittedIDs andcollectionerrors; originalexception
+propagates. Preflightstoresseparateinterrupted_replays, notsuccessfulrequests.
+Red2errors kept;519request/launch/basicPASS38.600s(rawpartial_regression1.log).
+No normal-path serialization ormetric/formula/config change; no newGPUrun.
+Preparedrun_3b_full_prefix_attempt4.sh/activate_services_attempt4.sh; bash-nPASS.
+NEXT backupthismeasurementcheckpoint thenreadfullplan/ledger/freshsafety,
+activateexistingremoteunitswithattempt4monitor andlaunchsame100prefix unique
+attempt4. No D78/D80/D81/D88/D89 repeats,7Bonlyafter3Bcleanup/validation/table.
+No model/tmux/remote services live. FormalFull/M1/M2/A/S stillNOTqualified;
+baselinesPAUSED. Rawroot staysd90_20260927 withuniqueattemptkeys acrossmidnight.
 
 23:59 CPUcorrectionCOMPLETE: legit acquire/release between snapshot/register
 reproduced oldfailure. Native returns explicit registered=false onlyforstrictly
