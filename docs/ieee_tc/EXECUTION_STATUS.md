@@ -130,10 +130,37 @@
   Do not repeat D78/D80/D81, allocator microtests or baseline work.
 - D82 evidence a81c29e53aa4e3f60a6e0166558fbd13e782d103 PUSHED; fresh remote
   SHA matched;8rawrefs/147protected entries unchanged.
-- D83 representative specs prepared, not yet executed:3B360+8warmup requests,
+- D83 pre-run specification (3B completion supersedes this preparation state):3B360+8warmup,
   7B90+2warmup;3interleaved rounds, actual caps8/2, all24/6static file classes.
   Warmup retained separately, no lifecycle subtraction. Reuse original development
   prompts/static artifacts; no new trace/weights. New rawd83_20260927, no overwrite.
+
+### D83 latest: 3B complete, 7B prepared next
+
+- Specsf5e238935c266edfdeb45ff237d195338b598969 PUSHED/remote SHA matched.
+  Real3B368/368 completed:360 representative +8explicit warmup.40service classes,
+  96preparation classes,3samples per preparation class;24static content classes.
+  Not Full/S1/SLO/numerical discrimination qualification. No production profile frozen.
+- 368remoteUUIDpairs exact,854130750B wire/14353166144B logical;72measured
+  Remote fetches +296controlled setup. No request packing. Original input hashes unchanged.
+- 585resource samples,peak5015142400B,high/max/OOM/swap0. Service/watchdog0/0,
+  native GPU contexts/service path/workspaces removed. Empty auxscope invocation
+  5853996aaae74b4d917c540000b13882 STOPPED. No local model remains.
+- P2 immediate interpretation/table and3TNR single-column PDF/PNG previews:
+  figs/ieee_tc/p2_backend/d83_3b_preview_attempt1. Actual loading d meansRemote973ms,
+  NVMe40ms,fileHOST40ms,nativeHOST15ms. ServiceD has additional waits; nativeHOST
+  D215ms exceeds NVMe157ms. Preserve discrepancy, do not claim monotonic tier gains.
+- Plotter only extended during inference (not imported by model). Inference source
+  stayedf5e2389. Seven new strict plotting tests pass in existing conda base;
+  old LLM_vllm0102 has no matplotlib. Plot regression/evidence backup next.
+- D83 remote units STILL ACTIVE, shared configuration unchanged:
+  3B3af671e251a7464fbd6fcd31f4e3965a;7Bf09f1cde4b7d4458947fe637649fac31;
+  monitorf322f426d2d9402c9e0bacc22d7af998. Do not use old D82 identities.
+  Health clocks3B2762c9d63bc14907be430ef8935d4ebf,7B66c4e294d86644df8f283f2bed599d80.
+- NEXT after3Btable/plot/backup: rawd83/run_7b_source_representative_attempt1.sh,
+  92requests,realcap2. Same published services; direct no-proxy health before start.
+  Stop matching remote monitor after7B finishes; retrieve final monitor and7B UUIDs.
+  Then freeze measured profiles/Full integrated activation, NOT baseline/remote sweeps.
 ### D81 completed four-way real-remote qualification; Full profiling next
 
 - BOTH models:3waves×4lanes=12/12verified, each wave observed4server-handler

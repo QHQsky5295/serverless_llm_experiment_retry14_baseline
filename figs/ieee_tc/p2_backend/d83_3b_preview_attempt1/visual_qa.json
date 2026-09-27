@@ -1,0 +1,17 @@
+{
+  "kind": "academic_plot_visual_qa_v1",
+  "manual_review": "all_three_pngs_viewed",
+  "text_overlap": false,
+  "clipping": false,
+  "pdf_width_pt": 248.4,
+  "pdf_height_pt": 190.8,
+  "font_regular": "TimesNewRomanPSMT",
+  "font_bold": "TimesNewRomanPS-BoldMT",
+  "fonts_embedded": true,
+  "lower_better_metrics": ["D_ms", "T_ms", "TPOT_ms"],
+  "D_axis": "symlog; linear threshold 1 ms; includes measured GPU zero",
+  "other_axes": "linear, zero origin",
+  "independent_runs": 1,
+  "confidence_interval_claim": false,
+  "status": "development_preview_not_formal_S1"
+}

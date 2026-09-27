@@ -2226,5 +2226,66 @@ class FormalMatrixCliTests(unittest.TestCase):
             self.assertTrue(plotter.call_args.kwargs["formal_matrix"])
 
 
+class TestNativeSourceProfilePreview(unittest.TestCase):
+    def fixture(self):
+        q = dict(request_id='source-profile/w0/l0', source_request_id='req0', adapter_id='a',
+            requested_source='remote', target_tokens=2, actual_tokens=2,
+            reservation_released=True, native_events=[{}, {'token_count':2}],
+            admission_clock_id='c', native_clock_id='c', source_evidence={'state':'released'},
+            admitted_monotonic_s=1., acquired_monotonic_s=2.,
+            first_token_monotonic_s=3., last_token_monotonic_s=4., prompt_sha256='p',
+            class_features=dict(adapter_rank=8,footprint_bytes=16,admitted_after_accept=1),
+            timing=dict(native_terminal_observed=True,native_output_tokens=2,
+                native_clock_id='c',native_first_token_monotonic_s=3.,native_last_token_monotonic_s=4.,
+                native_decode_ms=1000.,native_tpot_ms=1000.,native_dispatch_monotonic_s=2.,
+                worker_wall_e2e_ms=2100.,worker_completion_notification_ms=100.,
+                native_prompt_token_ids_sha256='p',completion_token_ids_sha256='o'), **{'pass':True})
+        return dict(kind='backend_native_native_source_matrix_qualification_v1',stage='complete',
+            shutdown_called=True,profile_workspaces_removed=True,
+            artifact_mode='prepublished_gzip_v1_real_remote_no_fallback',
+            source_profile_spec=dict(
+                purpose='representative_static_content_classes_development_profile_not_formal_S1',
+                waves=[dict(role='representative_measurement',round=0,source='remote',
+                            requests=[dict(source_request_id='req0',adapter_id='a')])]),
+            requests=[q],profile_waves=[dict(complete=True)],**{'pass':True})
+
+    def test_complete_native_intervals(self):
+        rows=plot_paper_figures.tc_native_source_rows(self.fixture())
+        self.assertEqual((rows[0]['D_ms'],rows[0]['T_ms'],rows[0]['O_ms']), (1000.,1000.,1000.))
+        self.assertEqual(rows[0]['admitted_after_accept'],1)
+
+    def test_reject_partial_and_wrong_contract(self):
+        for key,value in [('pass',False),('shutdown_called',False),
+                          ('profile_workspaces_removed',False),('artifact_mode','local_sim')]:
+            with self.subTest(key=key):
+                payload=self.fixture();payload[key]=value
+                with self.assertRaises(ValueError):plot_paper_figures.tc_native_source_rows(payload)
+
+    def test_missing_or_duplicate_request_rejected(self):
+        for mode in ('missing','duplicate'):
+            p=self.fixture();p['requests']=[] if mode=='missing' else p['requests']*2
+            with self.assertRaises(ValueError):plot_paper_figures.tc_native_source_rows(p)
+
+    def test_wrong_source_token_ownership_and_clock_rejected(self):
+        for key,value in [('actual_tokens',3),('requested_source','nvme'),
+                          ('reservation_released',False),('native_clock_id','other')]:
+            with self.subTest(key=key):
+                p=self.fixture();p['requests'][0][key]=value
+                with self.assertRaises(ValueError):plot_paper_figures.tc_native_source_rows(p)
+
+    def test_timing_error_and_nan_rejected(self):
+        for value in (9999.,float('nan')):
+            p=self.fixture();p['requests'][0]['timing']['native_tpot_ms']=value
+            with self.assertRaises(ValueError):plot_paper_figures.tc_native_source_rows(p)
+
+    def test_warmup_is_retained_with_role(self):
+        p=self.fixture();p['source_profile_spec']['waves'][0]['role']='kernel_warmup_retained'
+        self.assertEqual(plot_paper_figures.tc_native_source_rows(p)[0]['role'],'kernel_warmup_retained')
+
+    def test_integration_pilot_cannot_be_renamed_representative(self):
+        p=self.fixture();p['source_profile_spec']['purpose']='integration_pilot'
+        with self.assertRaises(ValueError):plot_paper_figures.tc_native_source_rows(p)
+
+
 if __name__ == "__main__":
     unittest.main()

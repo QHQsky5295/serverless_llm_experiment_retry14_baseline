@@ -3442,6 +3442,183 @@ def plot_tc_serverless_wait_audit(inputs: Sequence[Path], out_dir: Path,
     (out_dir/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 
 
+def tc_native_source_rows(payload: dict) -> List[dict]:
+    """Strict descriptive export; initialization observations are not run repeats."""
+    if (payload.get('kind') != 'backend_native_native_source_matrix_qualification_v1'
+            or payload.get('pass') is not True or payload.get('stage') != 'complete'
+            or payload.get('shutdown_called') is not True
+            or payload.get('profile_workspaces_removed') is not True
+            or payload.get('artifact_mode') != 'prepublished_gzip_v1_real_remote_no_fallback'):
+        raise ValueError('source profile is incomplete or has the wrong delivery contract')
+    spec = payload['source_profile_spec']
+    if spec['purpose'] != 'representative_static_content_classes_development_profile_not_formal_S1':
+        raise ValueError('representative source plot must not relabel an integration pilot')
+    expected = {}
+    for i, wave in enumerate(spec['waves']):
+        if wave['role'] not in ('kernel_warmup_retained', 'representative_measurement'):
+            raise ValueError('source wave has an unknown analysis role')
+        for lane, selected in enumerate(wave['requests']):
+            expected[f'source-profile/w{i}/l{lane}'] = (wave, selected)
+    requests = payload['requests']
+    if (len(requests) != len(expected)
+            or {q['request_id'] for q in requests} != set(expected)
+            or len(payload['profile_waves']) != len(spec['waves'])
+            or not all(w['complete'] for w in payload['profile_waves'])):
+        raise ValueError('source profile does not complete every predeclared wave/request')
+    rows = []
+    for q in requests:
+        wave, selected = expected[q['request_id']]
+        t, features = q['timing'], q['class_features']
+        if (q.get('pass') is not True or q.get('reservation_released') is not True
+                or q['requested_source'] != wave['source']
+                or any(q[k] != selected[k] for k in ('source_request_id', 'adapter_id'))
+                or q['target_tokens'] != q['actual_tokens']
+                or t['native_output_tokens'] != q['actual_tokens']
+                or t['native_terminal_observed'] is not True
+                or len(q['native_events']) != 2
+                or q['native_events'][-1]['token_count'] != q['actual_tokens']
+                or q['admission_clock_id'] != t['native_clock_id']
+                or q['native_clock_id'] != t['native_clock_id']
+                or q['source_evidence']['state'] != 'released'):
+            raise ValueError('source request contract or ownership failed')
+        a, b, f, z = [q[k] for k in ('admitted_monotonic_s', 'acquired_monotonic_s',
+                                     'first_token_monotonic_s', 'last_token_monotonic_s')]
+        if not (all(math.isfinite(x) for x in (a,b,f,z)) and 0 < a <= b <= f <= z):
+            raise ValueError('invalid measured D/T/O ordering')
+        if (f != t['native_first_token_monotonic_s']
+                or z != t['native_last_token_monotonic_s']):
+            raise ValueError('native endpoints disagree with observed service intervals')
+        d, pre, dec = (b-a)*1000, (f-b)*1000, (z-f)*1000
+        n = q['actual_tokens']
+        checked_times = [t[k] for k in ('native_decode_ms', 'native_dispatch_monotonic_s',
+                         'worker_wall_e2e_ms', 'worker_completion_notification_ms')]
+        if n > 1:
+            checked_times.append(t['native_tpot_ms'])
+        if (type(n) is not int or n < 1
+                or any(type(x) not in (int, float) or not math.isfinite(x) for x in checked_times)):
+            raise ValueError('source native metrics must be finite and have positive integer output')
+        tpot = dec/(n-1) if n > 1 else None
+        if (abs(dec-t['native_decode_ms']) > 1
+                or (n > 1 and abs(tpot-t['native_tpot_ms']) > 1)
+                or abs(t['worker_wall_e2e_ms'] - ((f-t['native_dispatch_monotonic_s'])*1000
+                       + dec + t['worker_completion_notification_ms'])) > 1):
+            raise ValueError('native timing reconstruction exceeds 1 ms')
+        rows.append(dict(request_id=q['request_id'], source=wave['source'], role=wave['role'],
+            round=wave['round'], adapter_id=q['adapter_id'], source_request_id=q['source_request_id'],
+            rank=features['adapter_rank'], footprint_bytes=features['footprint_bytes'],
+            admitted_after_accept=features['admitted_after_accept'],
+            actual_tokens=n, prompt_sha256=q['prompt_sha256'],
+            native_prompt_sha256=t['native_prompt_token_ids_sha256'],
+            output_sha256=t['completion_token_ids_sha256'],
+            D_ms=d, T_ms=pre, O_ms=dec, TPOT_ms=tpot))
+    return rows
+
+
+def plot_tc_native_source_profile(inputs: Sequence[Path], out_dir: Path) -> None:
+    """Single-run profile preview, not S1 or a causal system-ranking figure."""
+    from matplotlib import font_manager
+    import subprocess
+    if len(inputs) != 1:
+        raise ValueError('source preview requires exactly one completed model run')
+    if out_dir.exists() and any(out_dir.iterdir()):
+        raise ValueError('source preview output must be new/empty')
+    path = inputs[0]
+    raw = _load_json(path)
+    rows = tc_native_source_rows(raw)
+    launch_path = path.with_name(path.stem + '_launch.json')
+    launch = _load_json(launch_path)
+    if (launch.get('pass') is not True or launch['service_returncode'] != 0
+            or launch['watchdog_returncode'] != 0
+            or not launch['native_gpu_context_release_confirmed']
+            or not launch['service_path_removed']):
+        raise ValueError('source run did not finish actual service cleanup')
+    for p in subprocess.check_output(
+            ['fc-list', '-f', '%{file}\n', ':family=Times New Roman'], text=True).splitlines():
+        if font_manager.FontProperties(fname=p).get_name() == 'Times New Roman':
+            font_manager.fontManager.addfont(p)
+    font = font_manager.findfont('Times New Roman', fallback_to_default=False)
+    order = ['remote', 'nvme', 'file_host', 'native_host', 'gpu']
+    labels = ['Remote', 'NVMe', 'HOST\nfile', 'HOST\ntensor', 'GPU']
+    colors = ['#D55E00', '#0072B2', '#009E73', '#CC79A7', '#E69F00']
+    selected = [r for r in rows if r['role'] == 'representative_measurement']
+    out_dir.mkdir(parents=True, exist_ok=True)
+    _write_csv(out_dir/'all_observations.csv', rows)
+    summary = []
+    for source in order:
+        group = [r for r in selected if r['source'] == source]
+        if not group:
+            raise ValueError('representative source category missing')
+        values = {key: [r[key] for r in group if r[key] is not None]
+                  for key in ('D_ms', 'T_ms', 'O_ms', 'TPOT_ms')}
+        summary.append(dict(source=source, requests=len(group),
+            adapters=len({r['adapter_id'] for r in group}),
+            rounds=len({r['round'] for r in group}),
+            **{f'{k}_mean': math.fsum(v)/len(v) if v else None for k,v in values.items()},
+            **{f'{k}_p95_type1': sorted(v)[math.ceil(.95*len(v))-1] if v else None
+               for k,v in values.items()}))
+    _write_csv(out_dir/'summary.csv', summary)
+    style = {'font.family':'serif', 'font.serif':['Times New Roman'],
+             'axes.labelsize':10.5, 'xtick.labelsize':9.5, 'ytick.labelsize':9.5,
+             'pdf.fonttype':42, 'savefig.bbox':None}
+    qa = []
+    with plt.rc_context(style):
+        for key, ylabel, caption in (
+                ('D_ms', 'Preparation D (ms, symlog)', '(a) Preparation after admission'),
+                ('T_ms', 'Acquired-to-first T (ms)', '(b) Acquired-to-first token'),
+                ('TPOT_ms', 'TPOT (ms/token)', '(c) Native decode spacing')):
+            fig, ax = plt.subplots(figsize=(3.45, 2.65))
+            fig.subplots_adjust(left=.21, right=.975, bottom=.25, top=.85)
+            for i, (source, color) in enumerate(zip(order, colors)):
+                values = [r[key] for r in selected if r['source'] == source and r[key] is not None]
+                if not values:
+                    raise ValueError('source metric has no observed eligible values')
+                # Deterministic horizontal separation is visual jitter only.
+                x = i + np.linspace(-.15, .15, len(values))
+                ax.scatter(x, values, s=9, color=color, alpha=.65, linewidths=0, zorder=3)
+                ax.plot([i-.23,i+.23], [np.median(values)]*2, color='#202020', lw=1.4, zorder=4)
+            ax.set_xticks(range(5), labels)
+            ax.set_xlim(-.5,4.5)
+            ax.set_ylabel(ylabel, labelpad=2)
+            if key == 'D_ms':
+                ax.set_yscale('symlog', linthresh=1)
+                ticks=[0,1,10,100,1000,10000]
+                ax.set_yticks([v for v in ticks if v <= ax.get_ylim()[1]])
+                ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v,_:f'{v:g}'))
+            ax.set_ylim(bottom=0)
+            _style_axes(ax)
+            fig.text(.59,.965,'Development profile; one run\nPoints: requests; bars: medians',
+                     ha='center', va='top', fontsize=9)
+            fig.text(.5925,.035,caption,ha='center',weight='bold',fontsize=10.5)
+            fig.canvas.draw()
+            renderer=fig.canvas.get_renderer()
+            texts=[ax.yaxis.label,*ax.get_xticklabels(),*ax.get_yticklabels(),*fig.texts]
+            boxes=[t.get_window_extent(renderer) for t in texts if t.get_text()]
+            if any(not fig.bbox.contains(b.x0,b.y0) or not fig.bbox.contains(b.x1,b.y1) for b in boxes):
+                raise ValueError('source preview text is clipped')
+            if any(a.overlaps(b) for i,a in enumerate(boxes) for b in boxes[i+1:]):
+                raise ValueError('source preview text overlaps')
+            stem=out_dir/('source_'+key)
+            fig.savefig(stem.with_suffix('.pdf'),bbox_inches=None)
+            fig.savefig(stem.with_suffix('.png'),dpi=300,bbox_inches=None)
+            plt.close(fig)
+            qa.append(dict(metric=key,width_inches=3.45,height_inches=2.65,
+                           text_clipping=False,text_overlap=False,font_path=font,
+                           manual_visual_review='required'))
+    manifest=dict(kind='development_native_source_profile_preview_v1',formal_S1=False,
+        independent_runs=1,ci=None,warmup_retained_but_not_in_means=True,
+        warmup_requests=len(rows)-len(selected),measured_requests=len(selected),
+        limitations=['not Full qualification or a causal system comparison',
+                     'within-run rounds are not independent experimental repeats',
+                     'NVMe source may be page-cache resident',
+                     'variable prompt/token/concurrency composition; see all_observations.csv'],
+        sources=[dict(path=str(p.resolve()),sha256=hashlib.sha256(p.read_bytes()).hexdigest())
+                 for p in (path,launch_path)],
+        script_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),qa=qa,
+        files={p.name:hashlib.sha256(p.read_bytes()).hexdigest()
+               for p in out_dir.iterdir() if p.is_file()})
+    (out_dir/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate PrimeLoRA paper figures from result JSONs.")
     parser.add_argument("--round-dir", type=Path, help="Completed legacy round directory.")
@@ -3491,6 +3668,9 @@ def main() -> None:
     args = parser.parse_args()
 
     out_dir = args.out_dir.resolve()
+    if args.figure == 'tc_native_source_profile':
+        plot_tc_native_source_profile(args.input, out_dir)
+        return
     if args.figure == 'tc_serverless_wait_audit':
         plot_tc_serverless_wait_audit(args.input, out_dir)
         return

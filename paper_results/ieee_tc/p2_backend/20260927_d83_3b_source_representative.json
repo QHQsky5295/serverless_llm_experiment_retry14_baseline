@@ -1,0 +1,318 @@
+{
+  "kind": "representative_native_source_profile_summary_v1",
+  "model": "3b",
+  "source_commit": "f5e238935c266edfdeb45ff237d195338b598969",
+  "status": "completed_development_profile_not_Full",
+  "requests": 368,
+  "representative_requests": 360,
+  "warmup_requests": 8,
+  "content_classes": 24,
+  "service_classes_observed": 40,
+  "preparation_classes_observed": 96,
+  "samples_per_preparation_class": 3,
+  "service_class_counts": [
+    {
+      "source": "file_host",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 4
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 0,
+      "admitted_bin": 2,
+      "samples": 8
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 0,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 5
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 1,
+      "admitted_bin": 2,
+      "samples": 10
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 1,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 4
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 0,
+      "admitted_bin": 2,
+      "samples": 8
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 0,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 5
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 1,
+      "admitted_bin": 2,
+      "samples": 10
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 1,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 4
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 0,
+      "admitted_bin": 2,
+      "samples": 9
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 0,
+      "admitted_bin": 3,
+      "samples": 17
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 5
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 1,
+      "admitted_bin": 2,
+      "samples": 10
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 1,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 4
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 0,
+      "admitted_bin": 2,
+      "samples": 8
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 0,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 5
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 1,
+      "admitted_bin": 2,
+      "samples": 10
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 1,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "remote",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "remote",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 4
+    },
+    {
+      "source": "remote",
+      "rank_bin": 0,
+      "admitted_bin": 2,
+      "samples": 8
+    },
+    {
+      "source": "remote",
+      "rank_bin": 0,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "remote",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "remote",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 5
+    },
+    {
+      "source": "remote",
+      "rank_bin": 1,
+      "admitted_bin": 2,
+      "samples": 10
+    },
+    {
+      "source": "remote",
+      "rank_bin": 1,
+      "admitted_bin": 3,
+      "samples": 18
+    }
+  ],
+  "preparation_d_ms_mean": {
+    "remote": 973.3137198472327,
+    "nvme": 40.16412973606344,
+    "file_host": 40.185056583317824,
+    "native_host": 15.031970944594125
+  },
+  "prompt_hash_invariant_across_sources": true,
+  "remote_uuid_pairs": 368,
+  "remote_wire_bytes": 854130750,
+  "remote_logical_bytes": 14353166144,
+  "remote_measured_fetches": 72,
+  "remote_controlled_setup_fetches": 296,
+  "remote_packing": 0,
+  "resources": {
+    "samples": 585,
+    "peak_bytes": 5015142400,
+    "memory_event_max": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "max_swap_bytes": 0
+  },
+  "service_exit": 0,
+  "watchdog_exit": 0,
+  "native_gpu_released": true,
+  "service_path_removed": true,
+  "workspaces_removed": true,
+  "figures": "figs/ieee_tc/p2_backend/d83_3b_preview_attempt1",
+  "full_qualified": false,
+  "frozen_profile": false,
+  "numerical_adapter_correctness_qualified": false,
+  "raw_evidence": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d83_20260927/3b_source_representative_attempt1.json",
+      "sha256": "e9eb99a9c3bbce3146a1332f19c8d4484078b5c0749ce058e22f7ac1cafc6f36"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d83_20260927/3b_source_representative_attempt1_launch.json",
+      "sha256": "2801bfe8cd9528112a2464852402d3c6acd3086fbd49bb0edd0c12925e97994a"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d83_20260927/3b_source_representative_attempt1_launch.launch/service.log",
+      "sha256": "1b1ef8388d8d43f53a1df54d9d36711736e986a3b6a5c147e88f43883091d0ea"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d83_20260927/3b_source_representative_attempt1_launch.launch/watchdog.jsonl",
+      "sha256": "c954caf585330891d70e4c09248eb0334429ca8287dd2c41c4dd5adaa088f8d1"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d83_20260927/remote_3b_transfers.jsonl",
+      "sha256": "02522416edf0f19c26b08801b060ce9ac5188e17679ea917cccf398c78a066f2"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d83_20260927/remote_preinference_health.json",
+      "sha256": "e7bf8af4346d0c4b28cd2e9557aa48ac1cbb9eebad514c4dbc66d8a22bced6f8"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d83_20260927/run_3b_source_representative_attempt1.sh",
+      "sha256": "f06d39684d71a07747e21c83f0c13f73c6553cfec6845fffbe16ce294a6c3f8c"
+    }
+  ]
+}
