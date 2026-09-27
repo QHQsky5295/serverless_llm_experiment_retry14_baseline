@@ -139,3 +139,55 @@ Raw root `results/ieee_tc/serverless_qualification/d69_20260927`; copied private
 Ray logs match every original regular-file SHA (`--no-ignore` required inside
 the ignored results directory). Main curated `20260927_http_qualification_d69`
 JSON/CSV preserves all three attempts. No paper performance claim is supported.
+
+## D70: complete observed replay, but four startup failures
+
+| Observation | Result | Interpretation |
+|---|---:|---|
+| Planned / arrived / terminal |100 /100 /100 | No truncation or missing terminal request |
+| Protocol-valid / failed |96 /4 | NOT a100/100 qualification pass |
+| Failure stages |1 connection refusal,3 HTTP500 before router creation | No readiness-shifted arrival or retry hiding these failures |
+| Native7B initialization and inference | PASS for96 observed responses | Layout candidate works for linear-only existing adapters; not numerical LoRA proof |
+| Native prompt / adapter name / output target |96/96 match | Original raw tokens preserved; no text retokenization |
+| Watchdog samples |1237 | No high/max/OOM/OOM-kill/swap events |
+| Peak service / minimum host available |42,924,400,640 /67,016,757,248 bytes | Not a serving-memory extrapolation |
+| Actual cleanup / loader restore | PASS |GPU contexts clear, service removed, empty auxiliary stopped; exact overlay restore |
+
+The same source_repaired2 and100-request trace view are reused. The single
+instance has native target1 (one in-flight admission); backend max_num_seqs4
+does not make this a four-concurrent-request throughput experiment. All store
+GPU contexts remain part of physical possession, not just the one model GPU.
+
+The client writes http_replay_complete with96 responses/four failures, then
+exits1. The supervisor treats any publisher nonzero exit as a broken replay
+and stops the service before its final model_qualification.json is saved.
+The raw classification protocol_or_launcher_error is retained, but is not a
+root-cause classification of the four startup request failures. All100 requests
+were terminal before cleanup; none of these failures was induced by cleanup.
+Next separate an intact failed-workload journal from a failed measurement
+process, retaining qualification failure and bounded finalization. Do not
+weaken monitoring or reinterpret failed requests as successful inference.
+
+Actual primary code was rechecked: the
+[controller](https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/9f50241baa5386e06a9321c51f19a9ef5f964c2b/sllm/controller.py)
+registers artifacts before constructing the model router; the
+[router](https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/9f50241baa5386e06a9321c51f19a9ef5f964c2b/sllm/routers/roundrobin_router.py)
+queues only after that router exists. Local startup stage ordering and the
+API errors must be audited separately from native engine load or repaired
+allocation latency. This is NOT the two-model1,000-request polling pair.
+
+Raw root results/ieee_tc/serverless_qualification/d70_20260927;93 regular native
+log files copied and SHA-equal. Main curated20260927_http_qualification_d70
+JSON and100-row CSV retain complete status, conditional times and raw hashes.
+No whole-run correctness, real-remote qualification, baseline winner or main
+matrix completion is claimed. No new weights, pool, trace or backend patch.
+
+Post-run measurement correction: the main supervisor now distinguishes exit1
+with a complete, identity/count-checked failed-workload journal from a crashed
+publisher. It allows at most60s normal service finalization while all watchdog
+checks remain active, and still returns qualification failure. Truncated,
+duplicate, inconsistent or missing terminal records remain fatal.53 OS tests
+and328 main smoke/shared-protocol checks pass; this exact D70 journal is
+recognized as measurement_complete=true/workload_passed=false.39 baseline
+checks pass2.565s. No native rerun was made just to test report finalization;
+its actual behavior remains to be checked during the next useful qualification.
