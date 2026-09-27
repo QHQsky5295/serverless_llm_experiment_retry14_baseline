@@ -103,9 +103,20 @@ class NativePinnedHostAccounting(unittest.TestCase):
             self.assertEqual(result['policy'], 'uncached_background_v1')
             self.assertTrue(result['verified'])
             self.assertFalse(result['immediate_release_guaranteed'])
-            settings['PYTORCH_CUDA_ALLOC_CONF'] = 'pinned_max_cached_size_mb:0'
-            with self.assertRaisesRegex(RuntimeError, 'readback'):
-                monitor._ieee_native_host_allocator_policy()
+            self.assertEqual(result['verified_scope'], 'effective_uncached_pinned_allocation_limit')
+            self.assertIsNone(result['background_event_processing_readback'])
+            # Native setters update the last command, not a serialization of
+            # all effective fields. No host policy is changed by max_split.
+            settings['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:17592186044415'
+            result = monitor._ieee_native_host_allocator_policy()
+            self.assertTrue(result['verified'])
+            self.assertTrue(result['background_event_processing_requested'])
+            self.assertEqual(result['last_allocator_update'], settings['PYTORCH_CUDA_ALLOC_CONF'])
+            self.assertIsNone(result['background_event_processing_readback'])
+            # Even an explicit background update cannot be misreported as
+            # current readback; only the typed zero-cache limit is certified.
+            settings['PYTORCH_CUDA_ALLOC_CONF'] = 'pinned_use_background_threads:False'
+            self.assertIsNone(monitor._ieee_native_host_allocator_policy()['background_event_processing_readback'])
 
     def test_allocator_policy_requires_actual_readback_not_only_environment(self):
         env = {'FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY': 'uncached_v1',
@@ -118,7 +129,7 @@ class NativePinnedHostAccounting(unittest.TestCase):
             result = monitor._ieee_native_host_allocator_policy()
             self.assertTrue(result['verified'])
             self.assertFalse(result['immediate_release_guaranteed'])
-            for bad in (-1, False, None):
+            for bad in (-1, False, None, 1, 1048576):
                 settings['max_cached_size'] = bad
                 with self.subTest(value=bad), self.assertRaisesRegex(RuntimeError, 'readback'):
                     monitor._ieee_native_host_allocator_policy()

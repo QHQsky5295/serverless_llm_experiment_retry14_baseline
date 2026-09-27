@@ -213,12 +213,21 @@ def _ieee_native_host_allocator_policy() -> Dict[str, Any]:
             or any(key in os.environ for key in ('PYTORCH_CUDA_ALLOC_CONF', 'PYTORCH_HIP_ALLOC_CONF'))):
         raise RuntimeError('unqualified native HOST allocator policy/environment')
     settings = torch.cuda.memory._snapshot().get('allocator_settings')
+    # This typed field is the effective pinned-cache limit. PyTorch's legacy
+    # PYTORCH_CUDA_ALLOC_CONF snapshot field is *last_allocator_settings*, not
+    # the full effective configuration: vLLM's model-loading max_split scope
+    # updates that string without resetting either pinned option. Comparing it
+    # to the startup string wrongly rejects a correctly configured worker.
     if (not isinstance(settings, dict) or type(settings.get('max_cached_size')) is not int
             or settings['max_cached_size'] != 0
-            or settings.get('PYTORCH_CUDA_ALLOC_CONF') != setting):
-        raise RuntimeError('native HOST allocator readback differs from requested candidate')
+            or not isinstance(settings.get('PYTORCH_CUDA_ALLOC_CONF'), str)):
+        raise RuntimeError(f'native HOST allocator readback differs from requested candidate: {settings!r}')
     return dict(policy=policy, verified=True, allocator_settings=settings,
+                verified_scope='effective_uncached_pinned_allocation_limit',
+                last_allocator_update=settings['PYTORCH_CUDA_ALLOC_CONF'],
                 background_event_processing_requested=policy == 'uncached_background_v1',
+                background_event_processing_readback=None,
+                background_readback_limitation='torch_2_13_snapshot_does_not_export_background_flag',
                 persistent_cache_enabled=False, immediate_release_guaranteed=False)
 
 

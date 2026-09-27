@@ -1,0 +1,63 @@
+{
+  "kind": "d82_source_pilot_failed_attempt_summary_v1",
+  "attempt": 2,
+  "source_commit": "2fe7c0fe184c1653115b19c31f98ce4b3b58c9c1",
+  "status": "failed_after_model_initialization_before_requests",
+  "classification": "protocol_or_launcher_error",
+  "request_count": 0,
+  "cause": "observer compared last allocator update string instead of effective typed HOST cache limit",
+  "service_returncode": 2,
+  "watchdog_returncode": 0,
+  "native_contexts_clear": true,
+  "service_path_removed": true,
+  "workspace_removed": true,
+  "sampled_memory_peak_bytes": 10657054720,
+  "sampled_memory_events": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "fix_validation": {
+    "worker_owner_basic_smoke_tests": 420,
+    "seconds": 22.388,
+    "actual_native_max_split_scope_check": true,
+    "host_cache_limit_before_inside_after": [
+      0,
+      0,
+      0
+    ],
+    "cuda_initialized": false,
+    "background_flag_direct_readback": null
+  },
+  "raw_evidence": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/3b_source_pilot_attempt2.json",
+      "sha256": "aab5b51bbe56d0c395f145ba92627e3ff17cbc7103d85ccfa4e6ff0571254be7"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/3b_source_pilot_attempt2_launch.json",
+      "sha256": "2527bd88a5760797d2da551c1b0f8d93ee18ca3f34684cdd7e8034fe2ea5098f"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/3b_source_pilot_attempt2_launch.launch/service.log",
+      "sha256": "404ef875d33bbe5304689df2714014c80bfbcc83814578cd5b0a100c06b81185"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/3b_source_pilot_attempt2_launch.launch/watchdog.jsonl",
+      "sha256": "9b5a3cc278565c0345be846ed6a292d2702ca4ab45377f57e171b581151487d4"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/test_effective_allocator_readback.json",
+      "sha256": "683a2cbee88c6910468fd0be69079abd44b3359f0fa488b4434a70b96c47767f"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/native_allocator_api_check.json",
+      "sha256": "a26fd7716d304f39bb4c17e16fe68ab468fe7205577770c9afe8f03830699193"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d82_20260927/check_native_allocator_readback.py",
+      "sha256": "6a4bd172ad47c50d0f288e5c76db0c633a627f97c8376690ebcdec68c5082162"
+    }
+  ]
+}

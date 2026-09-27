@@ -87,6 +87,19 @@
 
 ### D82 source profiling implementation, real pilot next
 
+- Source2fe7c0fe184c1653115b19c31f98ce4b3b58c9c1 pushed/remoteSHA verified.
+  attempt2 initialized real3B, then failed at first worker readback,0requests.
+  Observer mistook PyTorch last_allocator_settings string for complete state;
+  official vLLM max_split scope legitimately updates only GPU parameters.
+  Fix verifies actual typed pinned cache limit0 and reports background flag
+  requested/readback=null (API lacks getter); no live reset/guard removal.
+  420worker/owner/basic smoke tests pass22.388s. Actual native official scope
+  check passes before/inside/after,max_cached_size0 throughout,CUDAnotinitialized.
+- Attempt2 service2/watchdog0;nativecontexts clear/service path removed,
+  temporary workspaces removed;91samples peak10657054720B,high/max/OOM0.
+  Empty auxscope eafaa1dedee84356b008483f7023097b stopped.
+- NEXT: backup readback correction, then attempt3 same10-request real3Bpilot
+  rawrun_3b_source_pilot_attempt3.sh. No additional allocator/remote sweeps.
 - D82 source2c1308e10ee71e690f9ed6cbfc95b349fc35492d PUSHED and remoteSHA
   verified. Real3B pilot attempt1 failed before model creation/any request:
   runner import overwrote startup allocator env with historical defaults.

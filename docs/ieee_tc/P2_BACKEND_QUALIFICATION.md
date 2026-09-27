@@ -1104,3 +1104,35 @@ loader检查没有经过该完整入口，既有单元测试也在已导入模�
 （21.876s）；147项历史保护检查无变化。attempt1最高服务内存1,424,781,312B，
 67次采样的high/max/OOM均为0，最小主机可用115,999,780,864B。
 下一次使用全新attempt2路径，原attempt1及全部失败证据保持不动。
+
+### D82 attempt2：配置字符串不是当前配置状态
+
+| 检查 | 观测 |
+|---|---|
+| 启动 | 3B真实模型、FLASH_ATTN/CUDA Graph完成初始化 |
+| 拒绝点 | 首次worker状态读取；尚无LoRA请求或remote fetch |
+| 原因 | 本项目将最近一次allocator设置字符串误作完整生效配置 |
+| 内存 | 91采样，峰值10,657,054,720B；high/max/OOM均0 |
+| 退出 | service2/watchdog0；原生GPU释放已确认，服务域/层级临时目录移除 |
+
+核对 [vLLM0.30 Worker._scoped_allocator_max_split](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/worker/gpu_worker.py)：
+模型加载前后设置GPU分配器max_split。
+[PyTorch2.13 parseArgs](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/c10/core/AllocatorConfig.cpp)
+只重置列出的GPU参数；未指定的pinned上限和background选项继续保留。
+[snapshot输出](https://raw.githubusercontent.com/pytorch/pytorch/v2.13.0/torch/csrc/cuda/memory_snapshot.cpp)
+中的`PYTORCH_CUDA_ALLOC_CONF`只是`last_allocator_settings`，不能与启动环境
+字符串逐字比较来证明完整有效状态。这是观察器缺陷，不能据失败推断HOST缓存
+实际已开启，也不应为迎合观察器在模型运行后重设整个allocator。
+
+修正仍要求完全一致的启动环境/模型策略、Torch版本和实际typed
+`max_cached_size==0`，其验证范围明确为无持久pinned缓存；原始最近配置字符串
+继续记录。Torch2.13没有导出background布尔值，记为requested、readback=null，
+不能声称单独读取到了该值。背景归还的进展沿用真实容量事件/引用完成检查，
+不会假定立刻释放，也不会按未来腾出字节提前准入。GPU/HOST安全预算不变。
+新增回归验证GPU-only参数更新不造成假拒绝、非零/缺失上限仍然拒绝。
+
+420项worker/owner/原有smoke检查通过（22.388s）。随后在已安装原生
+Torch2.13/vLLM0.30调用官方max_split上下文：前/中/后的实际cache上限均0，
+最近配置字符串依次为启动策略、max_split20、恢复值；修正后的观察器均通过。
+三个观察点`cuda_initialized=false`，无模型、请求或张量分配，不是额外性能
+测量；原生程序退出0，服务cgroup实际为空，high/max/OOM均0。
