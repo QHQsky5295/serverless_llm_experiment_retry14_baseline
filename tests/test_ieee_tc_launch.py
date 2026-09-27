@@ -1578,6 +1578,21 @@ class ExternalDispatcherIntegration(unittest.IsolatedAsyncioTestCase):
 
 
 class DeploymentTerminalIntegration(unittest.IsolatedAsyncioTestCase):
+    async def test_shutdown_visits_draining_members_not_only_serving_slots(self):
+        from faaslora.experiment.instance_pool import InstancePool
+        r = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        r.instance_pool = InstancePool(min_instances=1, max_instances=2)
+        engines = [SimpleNamespace(device_id=i) for i in range(2)]
+        ids = [r.instance_pool.add_instance(engine, None, owns_engine=True,
+                                           owns_coordinator=False) for engine in engines]
+        r.instance_pool.get_slot(ids[0]).status = 'draining'
+        self.assertEqual(r.instance_pool.count(), 1)
+        r._cleanup_removed_slot = AsyncMock()
+        await r._shutdown_instance_pool()
+        self.assertEqual(r._cleanup_removed_slot.await_count, 2)
+        self.assertIsNone(r.instance_pool.get_slot(ids[0]))
+        self.assertIsNone(r.instance_pool.get_slot(ids[1]))
+
     async def test_actual_run_reports_success_exception_and_interruption_once(self):
         for outcome in (SimpleNamespace(success=True), RuntimeError('controlled failure'),
                         asyncio.CancelledError()):
@@ -1617,7 +1632,7 @@ class DeploymentTerminalIntegration(unittest.IsolatedAsyncioTestCase):
     async def test_failed_return_does_not_skip_other_runtime_cleanup(self):
         r = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
         slots = {str(i):SimpleNamespace(instance_id=str(i)) for i in range(2)}
-        r.instance_pool = SimpleNamespace(get_slots=lambda:list(slots.values()), remove_instance=slots.pop)
+        r.instance_pool = SimpleNamespace(get_all_slots=lambda:list(slots.values()), remove_instance=slots.pop)
         r._cleanup_removed_slot = AsyncMock(side_effect=[RuntimeError('return unconfirmed'), None])
         with self.assertRaisesRegex(RuntimeError, 'unresolved runtime ownership'):
             await r._shutdown_instance_pool()

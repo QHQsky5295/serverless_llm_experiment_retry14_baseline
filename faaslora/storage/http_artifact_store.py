@@ -463,8 +463,12 @@ def _canonical_member_name(name):
 
 
 def _verified_file_signature(info):
-    """Identity/change detector, not a replacement for the completed content SHA."""
-    return (info.st_dev, info.st_ino, info.st_mode, info.st_size, info.st_blocks,
+    """Content change detector; allocation state has its own capacity owner.
+
+    ext4 extent conversion can change st_blocks without a content/identity
+    change. The destination SHA is still verified at publication.
+    """
+    return (info.st_dev, info.st_ino, info.st_mode, info.st_size,
             info.st_nlink, info.st_mtime_ns, info.st_ctime_ns)
 
 

@@ -1,0 +1,272 @@
+{
+  "kind": "d90_bounded_file_allocation_and_draining_cleanup_v2",
+  "formal_performance_result": false,
+  "full_qualified": false,
+  "gpu_used": false,
+  "remote_used": false,
+  "protected_before": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "protected_after": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "source_sha256": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d88_20260927/probe_reserved_files.py",
+      "sha256": "5a70afbacc03c3ca263f1a1145945e16e983eb1c886638ea4abe84909a1fddeb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d90_20260927/probe_allocation_transition.py",
+      "sha256": "5008d09ddbf425f89e266df9988dfaec98dc6b1aaf389ac5f5eae4b2d83105e9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d90_20260927/probe_allocation_bound_v2.py",
+      "sha256": "6e7b6e9d3a06703ab33398e98aa59c69621042a7bf43159ef74fdb28378ed987"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d90_20260927/probe_allocation_bound_final.py",
+      "sha256": "7f2d25d91f03e55916762af5c45026cb705c582c6f57b6ad4a5e45d9bc61cc62"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+      "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "5237729f3fc34999f118138f80ce6ac42bc82fa9ac5cd92bf906618a9673ea78"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/storage/http_artifact_store.py",
+      "sha256": "30ccc955c503a49c52ff93b04ce5b55dbbad2760d43fdc147933ed6dcc7a195f"
+    }
+  ],
+  "final_probe": [
+    {
+      "repeat": 0,
+      "temporary_removed": true,
+      "verified_file_count": 8,
+      "reservation": {
+        "scope": "preallocated_regular_files_v1",
+        "allocation_contract": "bounded_extent_allocation_v2",
+        "owner_id": "81c72bd6232a40d08a01bad832dd96a6",
+        "transfer_kind": "local_verified_copy",
+        "transfer_id": "037f101825714e08bd5b20fe99d48c58",
+        "tier": "nvme",
+        "limit_bytes": 338116608,
+        "used_file_bytes_before": 0,
+        "reserved_file_bytes": 338034688,
+        "used_bytes_before_includes_pending": true,
+        "allocated_file_bytes_after": 56352768,
+        "pending_file_increment_bytes": 281681920,
+        "charged_file_bytes_after": 338034688,
+        "data_preallocated_bytes": 56352768,
+        "filesystem": "ext4",
+        "filesystem_allocation_unit_bytes": 4096,
+        "replacement": null
+      },
+      "snapshots": [
+        {
+          "stage": "preallocated",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37982208,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "allocated_file_bytes": 56352768,
+          "pending_bytes": 281681920,
+          "charged_bytes": 338034688
+        },
+        {
+          "stage": "existing_4KiB_at_4194304",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37982208,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "allocated_file_bytes": 56352768,
+          "pending_bytes": 281681920,
+          "charged_bytes": 338034688
+        },
+        {
+          "stage": "existing_4KiB_at_12582912",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37986304,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "allocated_file_bytes": 56356864,
+          "pending_bytes": 281677824,
+          "charged_bytes": 338034688
+        },
+        {
+          "stage": "existing_4KiB_at_20971520",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37986304,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "allocated_file_bytes": 56356864,
+          "pending_bytes": 281677824,
+          "charged_bytes": 338034688
+        },
+        {
+          "stage": "all_original_bytes_written_and_synced",
+          "actual": {
+            "device": 2050,
+            "inode": 106204404,
+            "size": 37980895,
+            "allocated": 37982208,
+            "links": 1
+          },
+          "inventory_pass": true,
+          "allocated_file_bytes": 56352768,
+          "pending_bytes": 281681920,
+          "charged_bytes": 338034688
+        }
+      ]
+    }
+  ],
+  "tests": {
+    "allocation_targeted": {
+      "passed": 71,
+      "seconds": 2.976
+    },
+    "allocation_regression": {
+      "passed": 798,
+      "seconds": 48.055
+    },
+    "combined_final": {
+      "passed": 799,
+      "seconds": 48.173
+    },
+    "draining_red": {
+      "tests": 1,
+      "failures": 1,
+      "observation": "running+draining actual pool invoked cleanup only once"
+    }
+  },
+  "inference_revalidation": "not_started; next original 3B prefix uses original inputs/D88 configuration/D89 initialization",
+  "limitations": [
+    "No numerical adapter discrimination claim; existing zero-weight-pool limitation remains.",
+    "Controlled fsync is diagnostic only; production uses non-sync FIEMAP.",
+    "Intermediate three-repeat probe used an earlier development source revision; final source rerun is one counterexample, not an independent performance repeat.",
+    "Conservative write-time reservations may defer preparation; performance impact is not yet measured.",
+    "Draining omission proven in actual-pool CPU test; exact complete slot status history absent from attempt6."
+  ],
+  "final_checkpoint_references": [
+    {
+      "path": "faaslora/memory/residency_manager.py",
+      "sha256": "5237729f3fc34999f118138f80ce6ac42bc82fa9ac5cd92bf906618a9673ea78"
+    },
+    {
+      "path": "faaslora/storage/http_artifact_store.py",
+      "sha256": "30ccc955c503a49c52ff93b04ce5b55dbbad2760d43fdc147933ed6dcc7a195f"
+    },
+    {
+      "path": "faaslora/experiment/instance_pool.py",
+      "sha256": "1a7571d18fd08e35d915843a6e1514bf11a4555a5388cf0ad1ebd62046f521b7"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "sha256": "bd69b0937dc8bf1f9941db18ebb9e66417a52ff277defbfe3316e504279cad5e"
+    },
+    {
+      "path": "tests/test_ieee_tc_request_lifecycle.py",
+      "sha256": "bcb9bde0cb84b55aec283d6efe3604953bf2ac37f3654a9284f0d3f64bdfbd01"
+    },
+    {
+      "path": "tests/test_ieee_tc_launch.py",
+      "sha256": "1e7afbc9ee5dfd774a070193bdbec0ec5cdb6d70878ed4c2c891c2b1960bda4a"
+    },
+    {
+      "path": "tests/test_ieee_tc_gpu_references.py",
+      "sha256": "ac3aa0d8a3de7783a4dc973a9563a9c129f850275f31ce846a06b6e0374fdbd6"
+    },
+    {
+      "path": "tests/test_ieee_tc_transfer_pressure.py",
+      "sha256": "1f06fed7dc53e9285fe7c9d8c27bf599e3e36ca22847e3d8b85ea27aa041db4f"
+    },
+    {
+      "path": "tests/test_basic_smoke.py",
+      "sha256": "63e967095a3f925b37d9b79a82c389fef7799fafa0422d34c2312abf0b6d274b"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/allocation_bound_final.json",
+      "sha256": "70191348dceafabb8f599768349e8f7781826464f98dafbcfb1b31607788416a"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/allocation_bound_final.log",
+      "sha256": "de40b749f5188ff93b7a438e5b6b78aa981c122a9664690dc16b9b42055e1b0e"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/allocation_bound_probe2.json",
+      "sha256": "f0b257457b0be70aab86133022f8bb78d4c1aa4646641a32bc1517beabdbe02b"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/allocation_bound_probe2.log",
+      "sha256": "4d47ebf7f5ee4142cfeef3483ad703142a664a3b372b2cfbadf47db24f6dc93c"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/allocation_unit1_precollection_failure.json",
+      "sha256": "92fee6f43116c24682d555d98cb691920415ccd0675fa1e3386d257aa185cd1d"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/allocation_unit2.log",
+      "sha256": "fb2d3ad7f7138b5642389c3a6ac96706e967ae704867dc6e2b157dd28ac74280"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/allocation_unit3.log",
+      "sha256": "3e4280cce6e670e65990fb70719e15ba90c0e37d335b1d95477e6e47fc8de9ac"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/allocation_unit4.log",
+      "sha256": "b019a86577bbab0c1cba5ebfeb3c61c90f494f816667e3c2c0db3c7e6a808549"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/allocation_regression1.log",
+      "sha256": "603557ef6fc665f57ef92cbc65822874c8484618da5be623b07d52eeda75eaea"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/allocation_regression2.log",
+      "sha256": "532ff86cab9f121f4a27549e09081c20718b0ef8f6886f8d7adabbc2e87d5283"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/allocation_regression3.log",
+      "sha256": "74fac82fc205015f0d54388126272f119e3b48e697d2d885ee668ec8fb4cc2d4"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/draining_red1.log",
+      "sha256": "c7d3a9c52fae57947713a8fa2102fb3fecfe2a99a78c619fc533db16ef28b28b"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/draining_regression1.log",
+      "sha256": "8bd3287f3fc49c12aeabae34da92fd948725f3a968a8f61f999f662ed3cb14a2"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d90_20260927/draining_regression2.log",
+      "sha256": "28b56a2843863d3436dd5619b096eb1d5602dea2dc0d27ecdf12cdb448aa5e2c"
+    }
+  ]
+}

@@ -12751,7 +12751,7 @@ class ScenarioRunner:
         if self.instance_pool is None:
             return
         cleanup_failures = []
-        for slot in list(self.instance_pool.get_slots()):
+        for slot in self.instance_pool.get_all_slots():
             instance_id = getattr(slot, "instance_id", None)
             if not instance_id:
                 continue

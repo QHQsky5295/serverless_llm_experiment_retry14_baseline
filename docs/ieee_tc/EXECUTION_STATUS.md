@@ -1,6 +1,49 @@
 # IEEE TC execution status
 
+## Latest — D90 allocation correction and draining-member cleanup CPU-qualified
+
+Final combined regression799PASS48.173s (`draining_regression2.log`), including
+native ownership/launch/request/pressure/HTTP/basic smoke. Earlier798PASS48.055s
+for allocation-only;71targetedPASS2.976s. Final-source existing-weight extent
+counterexample1/1PASS4.582s,all5states including+4096B;8SHAverified,temporary
+removed,147protectedunchanged. Prior intermediate3/3PASS retained separately,
+not3final-source repetitions or performance. Curated
+20260928_d90_bounded_allocation_and_cleanup.json holds23final source/log refs.
+
+Correction: preallocate data and reserve a filesystem-derived extent envelope
+before writes. Account actual blocks+unconsumed pending once; pending follows
+inode through publication/cleanup, retired only for closed fullyinitialized
+non-syncFIEMAP files. No productionfsync/sleep/retry/4KiBtolerance. Content SHA/
+identity checks kept; allocation no longer masquerades as content signature.
+Full16GiB budgets/config/nineIEEEequations unchanged. Conservative temporary
+bound may defer preparation; no performance claim. Supported actualext4/tmpfs,
+64-bitLinux; no generic filesystem claim. Known-deleted identities retire before
+nextcreate; no-capacity-change emptyworkspace doesnotwake deferred jobs.
+
+Separate exactCPUproof: actualpool one running+one draining, oldshutdown visits
+onlyone (red1!=2). Addedcomplete retained-membership view ONLYforfinalcleanup;
+servingget_slots/count/routing unchanged. Realnative shutdown/pidfd/release
+remainrequired, nofakephysicalreturn. Exacthistoricalslotstate notcaptured,
+notclaimedsoleprovenattempt6cleanupcause. Twooldmockinterfacesupdated after
+firstcombinedregression, no productionfallback. Intermediatefailures allkept:
+unit1syntax;regression1externalhardlink;regression2deletedinodeownership;
+unit3empty-workspacewake/deletedroot;drainingregression1twoincompletefixtures.
+
+NO newGPU/remote run, no liveCPUtest/model/tmux;baseline9e2cf289unchanged/PAUSED.
+Once-only delivery cachealreadyDONE1.47GiB500/500both;DO NOTrebuild. D88/D89data
+reused. NEXT verify/scopedbackupthenreadfullplan/ledger/freshsafety andONEunique
+original3B100prefixattempt7;notprepared/launched. Full/M1/M2/A/S remainNOTqualified
+orstarted;do notredoCPUcounterexamples/profiles/publicationbeforethat. Allolder
+latest/live/nextnotes below historical. Disk312GiB/host107GiBavailable/swap0.
+
 ## Latest — D90 attempt6 terminal/cleaned; exact private-file allocation growth
+
+BACKEDUP21e2e66780f88fa315f47cc16b87bb79455d9c96 PUSHED/freshremoteSHA
+matched. Fourdocs/evidencefiles,16SHArefs/147protectedchecksPASS;secretscheckPASS,
+userdirtymanifestNOTstaged. Productionstill21f2258/759tested;no runtimechange.
+Baseline9e2cf289unchanged/PAUSED. No liveGPU/remote/CPUprobe. NEXTaccounting
+contractcorrection using PROVENCPUcounterexample;do not repeatnegativeD88probes
+orlaunchGPUwithouttestedcorrection. Rawextent_evidence_push_receipt.json.
 
 CPUfollowupCOMPLETE:3/3controlledextent-transitionprobes reproduce +4096B
 unchangedinode/size/nlink;filefrag1→3→5→7→1records,allocation0/0/+4096/+4096/0.

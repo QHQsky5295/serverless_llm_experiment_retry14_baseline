@@ -7504,7 +7504,7 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             runner._pending_scale_up_tasks = {pending}
             runner._pending_scale_up_device_ids = {3}
             runner._pending_scale_up_sequences = {7}
-            runner.instance_pool = SimpleNamespace(get_slots=lambda: [])
+            runner.instance_pool = SimpleNamespace(get_all_slots=lambda: [])
 
             await runner._shutdown_instance_pool()
 

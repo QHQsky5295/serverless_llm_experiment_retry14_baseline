@@ -1245,6 +1245,14 @@ class InstancePool:
     def get_slots(self) -> List[InstanceSlot]:
         return [s for s in self._slots if s.status == "running"]
 
+    def get_all_slots(self) -> List[InstanceSlot]:
+        """Retained membership, including draining owners excluded from routing.
+
+        Stopping admission is not physical GPU return. Lifecycle cleanup must
+        visit these members even when the serving view/count is empty.
+        """
+        return list(self._slots)
+
     def count(self) -> int:
         return len(self.get_slots())
 

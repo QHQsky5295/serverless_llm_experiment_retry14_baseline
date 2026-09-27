@@ -3,6 +3,7 @@ import asyncio
 from dataclasses import asdict, replace
 import hashlib
 import json
+import os
 import socket
 import tempfile
 import threading
@@ -1492,6 +1493,86 @@ class LocalSourceOwnership(unittest.TestCase):
         self.assertCountEqual(outcomes, ['reserved', 'conflict'])
         self.assertEqual(owner.inventory()['allocated_file_bytes'], before)
 
+    def test_extent_envelope_is_reserved_before_write_and_not_spent_twice(self):
+        from faaslora.memory import residency_manager as module
+        owner = self.manager.local_source_references
+        filesystem, unit = module._file_allocation_geometry(self.nvme)
+        self.assertEqual(filesystem, 'ext4')
+        size = 16 * unit
+        bound = module._file_allocation_ceiling(size, unit, filesystem)
+        self.assertEqual(bound, 6*size)
+        before = owner.inventory()['allocated_file_bytes']
+        limit = before + bound
+        with owner.materializing(self.nvme/'b', budgeted=True) as first:
+            with owner.transfer_workspace(first) as one:
+                receipt = owner.prepare_copy(first, one, {'weights': (size, '0'*64)}, limit_bytes=limit)
+                self.assertEqual(receipt['charged_file_bytes_after'], limit)
+                self.assertEqual(receipt['pending_file_increment_bytes'], 5*size)
+                key = next(iter(owner._prepared_transfers[first]['files']))
+                # Real unwritten->written transitions, diagnostic fsync only.
+                with (one/'weights').open('r+b', buffering=0) as writer:
+                    for offset in (unit, 3*unit, 5*unit):
+                        writer.seek(offset)
+                        writer.write(b'x'*unit)
+                        os.fsync(writer.fileno())
+                        view = owner.inventory()
+                        self.assertEqual(owner._charged_file_bytes(view, 'nvme'), limit)
+                self.assertGreater((one/'weights').stat().st_blocks*512, size)
+                self.assertFalse(owner._file_allocations[key]['settled'])
+                with owner.materializing(self.nvme/'c', budgeted=True) as second:
+                    with owner.transfer_workspace(second) as two:
+                        with self.assertRaisesRegex(RuntimeError, 'capacity conflict'):
+                            owner.prepare_copy(second, two, {'weights': (1, '0'*64)}, limit_bytes=limit)
+                        self.assertFalse((two/'weights').exists())
+        # Cleanup itself must retire identities, before any next inventory or
+        # mkdir/fallocate can encounter an inode number reused by the kernel.
+        self.assertFalse(owner._file_allocations)
+        self.assertEqual(owner.inventory()['allocated_file_bytes'], before)
+
+    def test_closed_extent_reservation_survives_rename_until_initialized(self):
+        from faaslora.memory import residency_manager as module
+        from faaslora.storage.http_artifact_store import _verified_file_signature
+        owner = self.manager.local_source_references
+        size = 16 * 4096
+        payload = b'x'*size
+        expected = {'weights': (size, hashlib.sha256(payload).hexdigest())}
+        with owner.materializing(self.nvme/'b', budgeted=True) as transfer:
+            with owner.transfer_workspace(transfer) as staging:
+                owner.prepare_copy(transfer, staging, expected, limit_bytes=1024**2)
+                with (staging/'weights').open('r+b') as stream:
+                    stream.write(payload)
+                key = next(iter(owner._prepared_transfers[transfer]['files']))
+                with patch.object(module, '_file_extents_initialized', return_value=False):
+                    owner.publish_transfer(transfer, staging, self.nvme/'b',
+                        lambda src, dst: Path(src).rename(dst), verified_files={'weights': dict(
+                            size_bytes=size, sha256=expected['weights'][1],
+                            signature=_verified_file_signature((staging/'weights').stat()))})
+                self.assertTrue(owner._file_allocations[key]['writer_closed'])
+        # The transfer has ended, but background conversion may still own space.
+        with patch.object(module, '_file_extents_initialized', return_value=False):
+            snapshot = owner.file_budget_snapshot({'host': 1024**2, 'nvme': 1024**2})
+        self.assertGreater(snapshot['tiers']['nvme']['pending_increment_bytes'], 0)
+        self.assertIn(key, owner._file_allocations)
+        self.assertTrue(owner.source_snapshot('b')['sources'][0]['content_verified'])
+        with (self.nvme/'b'/'weights').open('rb') as stream:
+            os.fsync(stream.fileno())  # Test barrier, never used in production.
+        snapshot = owner.file_budget_snapshot({'host': 1024**2, 'nvme': 1024**2})
+        self.assertEqual(snapshot['tiers']['nvme']['pending_increment_bytes'], 0)
+        self.assertTrue(owner._file_allocations[key]['settled'])
+
+    def test_file_extent_query_rejects_unwritten_and_gaps_without_sync(self):
+        import struct
+        from faaslora.memory.residency_manager import _file_extents_initialized
+        for logical, flags, expected in ((0, 1, True), (0, 0x801, False),
+                                          (4096, 1, False), (0, 3, False)):
+            with self.subTest(logical=logical, flags=flags):
+                def ioctl(fd, operation, buf, mutate):
+                    self.assertEqual(struct.unpack_from('=I', buf, 16)[0], 0)
+                    struct.pack_into('=I', buf, 20, 1)
+                    struct.pack_into('=QQQQQIIII', buf, 32, logical, 4096, 8192, 0, 0, flags, 0, 0, 0)
+                with patch('fcntl.ioctl', side_effect=ioctl):
+                    self.assertEqual(_file_extents_initialized(99, 8192), expected)
+
     def test_reserved_allocation_failure_records_exact_observation_without_relaxing_guard(self):
         from faaslora.memory import residency_manager as module
         owner = self.manager.local_source_references
@@ -1984,8 +2065,8 @@ class ConfirmedFilePublication(unittest.TestCase):
         detail = json.loads(str(caught.exception).split(': ', 1)[1])
         self.assertEqual(detail['path'], str(self.nvme / 'a'))
         self.assertIn('nested/weights', detail['changed_paths'])
-        self.assertEqual(detail['changed_paths']['nested/weights']['expected'][6], before.st_mtime_ns)
-        self.assertEqual(detail['changed_paths']['nested/weights']['observed'][6], before.st_mtime_ns + 1_000_000_000)
+        self.assertEqual(detail['changed_paths']['nested/weights']['expected'][5], before.st_mtime_ns)
+        self.assertEqual(detail['changed_paths']['nested/weights']['observed'][5], before.st_mtime_ns + 1_000_000_000)
         self.assertGreater(self.owner.source_epoch, epoch)
         with self.assertRaisesRegex(RuntimeError, 'without verified source publication'):
             self.owner.source_snapshot('a')

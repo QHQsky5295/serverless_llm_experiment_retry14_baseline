@@ -3360,7 +3360,7 @@ class OwnedFileMovement(unittest.TestCase):
             async def remove(*a, **kw):
                 self.assertTrue(cleaned.is_set())
                 self.assertEqual(queue.snapshot()[0]['state'], 'cancelled')
-            runner.instance_pool = NS(get_slots=lambda: [slot], remove_instance=lambda _: slot)
+            runner.instance_pool = NS(get_all_slots=lambda: [slot], remove_instance=lambda _: slot)
             runner._cleanup_removed_slot = AsyncMock(side_effect=remove)
             await runner._shutdown_instance_pool()
             runner._cleanup_removed_slot.assert_awaited_once()

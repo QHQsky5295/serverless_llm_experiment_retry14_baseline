@@ -2137,7 +2137,7 @@ class OwnedNativePreparationPlans(unittest.TestCase):
             task = asyncio.create_task(runner._run_ieee_gpu_preparation_plan(slot=slot,
                 objective=case.epoch(), target_adapter_ids=[4], trigger_reason='residency'))
             await entered.wait()
-            runner.instance_pool = SimpleNamespace(get_slots=lambda: [slot], remove_instance=lambda _: slot)
+            runner.instance_pool = SimpleNamespace(get_all_slots=lambda: [slot], remove_instance=lambda _: slot)
             async def remove(*args, **kwargs):
                 self.assertEqual(case.owner.snapshot()['live_leases'], 0)
                 self.assertEqual(case.owner.snapshot()['pending_preparation_targets'], [])

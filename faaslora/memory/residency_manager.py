@@ -31,7 +31,74 @@ from ..utils.config import Config
 from ..utils.logger import get_logger
 
 
-def _local_file_inventory(roots, *, writing_inodes=()):
+def _file_allocation_geometry(path):
+    """Qualified Linux file allocation, not a fitted per-adapter allowance.
+
+    ext4 has at most five external extent-tree levels, with no more nodes
+    at any level than data blocks. Up to four extents fit in the inode.
+    tmpfs preallocation has no on-disk extent tree. Other layouts must be
+    qualified explicitly; they do not inherit an ext4 bound.
+    """
+    import ctypes
+    if ctypes.sizeof(ctypes.c_long) != 8:
+        raise RuntimeError('file allocation ioctl contract requires the qualified Linux 64-bit ABI')
+    libc = ctypes.CDLL(None, use_errno=True)
+    # Linux statfs starts with two native longs. The oversized aligned buffer
+    # accommodates the remaining ABI fields without interpreting them.
+    buffer = (ctypes.c_long * 64)()
+    if libc.statfs(os.fsencode(path), ctypes.byref(buffer)):
+        raise OSError(ctypes.get_errno(), 'statfs failed', str(path))
+    magic, unit = buffer[0], buffer[1]
+    if magic not in (0xEF53, 0x01021994) or unit != os.statvfs(path).f_frsize:
+        raise RuntimeError('file allocation requires qualified ext4 or tmpfs geometry')
+    return ('ext4' if magic == 0xEF53 else 'tmpfs'), unit
+
+
+def _file_allocation_ceiling(size, unit, filesystem):
+    if filesystem not in ('ext4', 'tmpfs') or unit <= 0 or size < 0:
+        raise ValueError('unqualified file allocation geometry')
+    blocks = (size + unit - 1) // unit
+    data = blocks * unit
+    if filesystem == 'tmpfs' or blocks <= 4:
+        return data
+    if filesystem != 'ext4' or blocks > 2**32:
+        raise ValueError('unqualified extent-tree allocation geometry')
+    return data + 5 * blocks * unit
+
+
+def _file_extents_initialized(fd, size):
+    """Non-sync FIEMAP proof for a closed writer; no forced writeback/wait.
+
+    An incomplete, unwritten or specially flagged mapping retains its reservation.
+    This proves no pending extent conversion, not crash durability.
+    """
+    import fcntl
+    import struct
+    if not size:
+        return True
+    start, count = 0, 64
+    while start < size:
+        buf = bytearray(32 + 56 * count)
+        struct.pack_into('=QQIIII', buf, 0, start, size-start, 0, 0, count, 0)
+        fcntl.ioctl(fd, 0xC020660B, buf, True)  # FS_IOC_FIEMAP, flags=0 (not SYNC)
+        mapped = struct.unpack_from('=I', buf, 20)[0]
+        if not 0 < mapped <= count:
+            return False
+        end = start
+        for index in range(mapped):
+            logical, physical, length, _, _, flags, _, _, _ = struct.unpack_from(
+                '=QQQQQIIII', buf, 32 + 56 * index)
+            # Only ordinary initialized extents, with the optional LAST flag.
+            if flags & ~1 or logical > end or length <= 0 or logical+length <= end:
+                return False
+            end = logical + length
+            if flags & 1:
+                return end >= size
+        start = end
+    return True
+
+
+def _local_file_inventory(roots, *, writing_inodes=(), allocation_bounds=None):
     """Inventory linked storage, not RSS, content hashes, or reclaimable bytes.
 
     Call under the cooperative file owner. Active writers must be listed and
@@ -43,9 +110,14 @@ def _local_file_inventory(roots, *, writing_inodes=()):
     """
     allocations, observations = {}, []
     writing_inodes = set(writing_inodes)
+    allocation_bounds = allocation_bounds or {}
     def signature_for(info, key):
-        # Preallocated files may change content, never identity/size/allocation.
-        return (info.st_mode, info.st_size, info.st_blocks, info.st_nlink,
+        bound = allocation_bounds.get(key)
+        if bound is not None and not bound['data_bytes'] <= 512*info.st_blocks <= bound['ceiling_bytes']:
+            raise RuntimeError('managed inode allocation exceeds its reserved envelope')
+        # Allocation is capacity state, not content identity. Only explicitly
+        # reserved inodes may change it, always within their charged envelope.
+        return (info.st_mode, info.st_size, 0 if bound is not None else info.st_blocks, info.st_nlink,
                 *((0, 0) if key in writing_inodes else (info.st_mtime_ns, info.st_ctime_ns)))
     for tier, root in roots.items():
         root = Path(root)
@@ -139,6 +211,7 @@ class LocalSourceReferences:
         self._budgeted_materializations = set()
         self._transfer_workspaces = {}
         self._prepared_transfers = {}
+        self._file_allocations = {}  # Inode ownership outlives rename/publication.
         self._file_limits = {}
         self._host_limit = None
         self._native_host_reservations = {}
@@ -196,6 +269,7 @@ class LocalSourceReferences:
             usable = sum(item['allocated_bytes'] for item in inventory['allocations']
                 if item['kind'] == 'file' and item['device'] == path.parent.stat().st_dev
                 and item['external_link_count'] == 0
+                and item.get('pending_increment_bytes', 0) == 0
                 and all(path in Path(p).parents for p in item['paths']))
             rows.append(dict(path=str(path), usable_bytes=usable,
                 eligible=bool(usable) and usable == record['public']['allocated_file_bytes']
@@ -286,6 +360,7 @@ class LocalSourceReferences:
                 paths = [Path(p) for p in item['paths']]
                 if (item['kind'] == 'file' and item['device'] == target_device
                         and item['external_link_count'] == 0
+                        and item.get('pending_increment_bytes', 0) == 0
                         and all(path in p.parents for p in paths)):
                     usable += item['allocated_bytes']
             # Victim deletion operates on the whole published adapter tree.
@@ -323,7 +398,7 @@ class LocalSourceReferences:
             del self._confirmed_sources[path]
             self.source_epoch += 1
             shutil.rmtree(path)
-        after = self._file_inventory()['tiers'][tier]['allocated_file_bytes']
+        after = self._charged_file_bytes(self._file_inventory(), tier)
         if before-after != freed or after+required > limit_bytes:
             receipt['state'] = 'reclamation_inconsistent'
             raise RuntimeError('file replacement did not release its claimed allocation')
@@ -467,7 +542,7 @@ class LocalSourceReferences:
                 return dict(configured=True, owner_id=self.owner_id, limit_bytes=limit_bytes)
             if 'host' not in self.roots:
                 raise ValueError('managed HOST budget requires its shared file root')
-            if self.inventory()['tiers']['host']['allocated_file_bytes'] > limit_bytes:
+            if self._charged_file_bytes(self.inventory(), 'host') > limit_bytes:
                 raise RuntimeError('existing managed HOST files exceed the new allowance')
             self._host_limit = limit_bytes
             return dict(configured=True, owner_id=self.owner_id, limit_bytes=limit_bytes)
@@ -476,10 +551,12 @@ class LocalSourceReferences:
         with self.lock:
             if self._host_limit is None:
                 raise RuntimeError('managed HOST budget is not configured')
-            files = self.inventory()['tiers']['host']['allocated_file_bytes']
+            inventory = self.inventory()
+            files = inventory['tiers']['host']['allocated_file_bytes']
+            pending = inventory['tiers']['host']['pending_file_increment_bytes']
             reserved = (sum(self._native_host_reservations.values())
                         + sum(self._activation_host_reservations.values()))
-            if files + reserved > self._host_limit:
+            if files + pending + reserved > self._host_limit:
                 raise RuntimeError('managed HOST files and native allowances exceed capacity')
             return dict(kind='ieee_managed_host_budget_v1', owner_id=self.owner_id,
                 limit_bytes=self._host_limit, shared_file_bytes=files,
@@ -487,7 +564,8 @@ class LocalSourceReferences:
                 bound_native_reserved_bytes=sum(self._native_host_reservations.values()),
                 activation_reserved_bytes=sum(self._activation_host_reservations.values()),
                 activation_reservations=dict(self._activation_host_reservations),
-                remaining_bytes=self._host_limit-files-reserved,
+                pending_file_increment_bytes=pending,
+                remaining_bytes=self._host_limit-files-pending-reserved,
                 scope='shared_allocated_files_plus_native_tensor_allowances',
                 whole_service_rss_covered=False, snapshot_reserves_capacity=False)
 
@@ -585,10 +663,9 @@ class LocalSourceReferences:
             self._file_changed(('host',))
             return self.host_budget_snapshot()
 
-    @staticmethod
-    def _source_observation(path):
+    def _source_observation(self, path):
         from ..storage.http_artifact_store import _verified_file_signature
-        footprint = _local_file_inventory({'source': path})
+        footprint = _local_file_inventory({'source': path}, allocation_bounds=self._file_allocations)
         signatures = {}
         for allocation in footprint['allocations']:
             for name in allocation['paths']:
@@ -609,14 +686,14 @@ class LocalSourceReferences:
             return None
         try:
             signatures, footprint = self._source_observation(path)
-            if signatures != record['signatures'] or footprint != record['footprint']:
+            if signatures != record['signatures']:
                 # Preserve the FIRST mismatching observation. Withdrawal below
                 # makes a later lookup report only "unverified"; rescanning now
                 # could instead hide a transient filesystem/identity change.
                 detail = dict(owner_id=self.owner_id, source_epoch=self.source_epoch,
                     path=str(path), adapter_id=record['public']['adapter_id'],
                     tier=record['public']['tier'],
-                    signature_fields=['device', 'inode', 'mode', 'size', 'blocks',
+                    signature_fields=['device', 'inode', 'mode', 'size',
                                       'link_count', 'mtime_ns', 'ctime_ns'],
                     changed_paths={name: dict(expected=record['signatures'].get(name),
                                              observed=signatures.get(name))
@@ -629,6 +706,12 @@ class LocalSourceReferences:
             del self._confirmed_sources[path]
             self.source_epoch += 1
             raise
+        if footprint != record['footprint']:
+            # Content identity is unchanged. Capacity remains covered by the
+            # inode envelope; publish the current physical observation separately.
+            record['footprint'] = footprint
+            record['public'].update(footprint)
+            self.source_epoch += 1
         return record
 
     def source_snapshot(self, adapter_id):
@@ -673,6 +756,8 @@ class LocalSourceReferences:
                 raise ConfirmedSourceConflict('confirmed file source owner/epoch changed')
             source = Path(path).resolve(strict=True)
             record = self._validated_source(source)
+            if expected_epoch != self.source_epoch:
+                raise ConfirmedSourceConflict('confirmed file source footprint epoch changed')
             if (record is None or record['public']['adapter_id'] != adapter_id
                     or record['public']['content_sha256'] != expected_content_sha256):
                 raise RuntimeError('confirmed file source identity changed')
@@ -691,7 +776,7 @@ class LocalSourceReferences:
             previous = self.leases.get(lease_id)
             if previous is not None and previous != identity:
                 raise ValueError('source lease cannot be rebound to another copy')
-            footprint = _local_file_inventory({matches[0]: source})
+            footprint = _local_file_inventory({matches[0]: source}, allocation_bounds=self._file_allocations)
             record = self._validated_source(source)
             if record is not None and record['public']['adapter_id'] != adapter_id:
                 raise ValueError('source reference changed the verified adapter identity')
@@ -708,7 +793,7 @@ class LocalSourceReferences:
 
         A transfer writes outside this lock. Unqualified transfers have unknown
         growth and prevent a snapshot. Budgeted transfers cannot write before
-        owner preallocation; afterward they overwrite but cannot grow storage.
+        owner preallocation and a bounded extent-metadata reservation.
         """
         with self.lock:
             if set(self.materializations) - set(self._prepared_transfers) - self._budgeted_materializations:
@@ -717,19 +802,21 @@ class LocalSourceReferences:
             held = {key for record in self._prepared_transfers.values() for key in record['files']}
             view['transfer_held_file_bytes'] = sum(item['allocated_bytes'] for item in view['allocations']
                 if (item['device'], item['inode']) in held)
-            # These bytes are already physically allocated, not a second future
-            # increment to add on top of allocated_file_bytes.
-            view['pending_file_increment_bytes'] = 0
             return dict(owner_id=self.owner_id, **view)
 
-    def _file_inventory(self):
+    def _file_inventory(self, *, after_managed_root_deletion=False):
         writing = {key for record in self._prepared_transfers.values() for key in record['files']}
-        view = _local_file_inventory(self.roots, writing_inodes=writing)
+        roots = ({tier: root for tier, root in self.roots.items() if root.exists()}
+                 if after_managed_root_deletion else self.roots)
+        view = _local_file_inventory(roots, writing_inodes=writing,
+                                     allocation_bounds=self._file_allocations)
         actual = {(item['device'], item['inode']): item for item in view['allocations']}
         for transfer_id, record in self._prepared_transfers.items():
             for key, expected in record['files'].items():
                 item = actual.get(key)
-                if item is None or (item['logical_bytes'], item['allocated_bytes'], item['link_count']) != expected:
+                bound = self._file_allocations[key]
+                if item is None or (item['logical_bytes'], item['link_count']) != (expected[0], expected[2]) or not (
+                        bound['data_bytes'] <= item['allocated_bytes'] <= bound['ceiling_bytes']):
                     fields = ('logical_bytes', 'allocated_bytes', 'link_count')
                     expected_values = dict(zip(fields, expected))
                     observed = None if item is None else {field: item[field] for field in fields}
@@ -744,7 +831,57 @@ class LocalSourceReferences:
                             [field for field in fields if observed[field] != expected_values[field]])
                     raise RuntimeError('reserved file changed identity, size or allocation: '
                                        + json.dumps(detail, sort_keys=True))
+        for tier in view['tiers'].values():
+            tier['pending_file_increment_bytes'] = 0
+        for key, bound in list(self._file_allocations.items()):
+            item = actual.get(key)
+            if item is None:
+                # Active missing files have already failed above. Retired,
+                # unlinked workspaces have no linked-inode budget claim.
+                del self._file_allocations[key]
+                continue
+            if item['logical_bytes'] != bound['size_bytes'] or (
+                    not bound['writer_closed'] and item['link_count'] != 1):
+                raise RuntimeError('reserved file changed identity, size or allocation')
+            pending = bound['ceiling_bytes'] - item['allocated_bytes']
+            item['pending_increment_bytes'] = pending
+            for tier in item['tiers']:
+                view['tiers'][tier]['pending_file_increment_bytes'] += pending
+        view['pending_file_increment_bytes'] = sum(
+            item.get('pending_increment_bytes', 0) for item in view['allocations'])
         return view
+
+    @staticmethod
+    def _charged_file_bytes(view, tier):
+        row = view['tiers'][tier]
+        return row['allocated_file_bytes'] + row['pending_file_increment_bytes']
+
+    def _settle_file_allocations(self):
+        """Retire only witnessed closed-writer extent reservations, under lock.
+
+        No polling delay or sync. If normal background conversion has not
+        finished, the next ordinary budget snapshot retains/rechecks the bound.
+        """
+        view = self._file_inventory()
+        for item in view['allocations']:
+            key = item['device'], item['inode']
+            bound = self._file_allocations.get(key)
+            if bound is None or not bound['writer_closed'] or bound['settled']:
+                continue
+            if bound['data_bytes'] == bound['ceiling_bytes']:
+                bound['settled'] = True
+                continue
+            path = item['paths'][0]
+            with open(path, 'rb') as file:
+                info = os.fstat(file.fileno())
+                if (info.st_dev, info.st_ino, info.st_size) != (*key, bound['size_bytes']):
+                    raise RuntimeError('extent observation lost its reserved inode')
+                if bound['filesystem'] == 'ext4' and not _file_extents_initialized(file.fileno(), info.st_size):
+                    continue
+                allocated = 512 * os.fstat(file.fileno()).st_blocks
+                if not bound['data_bytes'] <= allocated <= bound['ceiling_bytes']:
+                    raise RuntimeError('closed file allocation exceeds its reserved envelope')
+                bound.update(ceiling_bytes=allocated, data_bytes=allocated, settled=True)
 
     @contextmanager
     def transfer_workspace(self, transfer_id):
@@ -764,25 +901,34 @@ class LocalSourceReferences:
             yield staging
         finally:
             with self.lock:
-                allocated = _local_file_inventory({'workspace': staging.parent})['allocated_file_bytes']
+                # A refused preparation created only empty directories. Their
+                # removal must not wake that same capacity waiter in a busy loop.
+                had_files = any(path.is_file() for path in staging.parent.rglob('*'))
                 try:
                     context.__exit__(None, None, None)
                 finally:
                     # Any retained recovery files become ordinary charged files;
                     # no unlink/physical-release claim follows from retirement.
                     self._prepared_transfers.pop(transfer_id, None)
+                    for bound in self._file_allocations.values():
+                        if bound['transfer_id'] == transfer_id:
+                            bound['writer_closed'] = True
                     del self._transfer_workspaces[transfer_id]
-                    if allocated:
-                        target = self.materializations[transfer_id]
+                    # Retire deleted inode identities before another workspace
+                    # can reuse their inode numbers. Published/retained paths
+                    # keep their bounds, including on partial cleanup failure.
+                    self._file_inventory()
+                    target = self.materializations[transfer_id]
+                    if had_files:
                         self._file_changed(tier for tier, root in self.roots.items() if target.parent == root)
 
     def prepare_transfer(self, transfer_id, staging, archive_bytes, expected, *, limit_bytes):
         """Reserve archive + payload as real allocated files before network reads.
 
-        Scope is allocated regular-file bytes of this tier, including old copies
-        and other transfers. Directory/inode/journal metadata, page cache and HOST
-        tensors are separate resource budgets. No sparse-file fallback is allowed.
-        Qualified filesystem allocation granularity must match observed blocks.
+        Scope is regular-file st_blocks plus unconsumed extent-conversion
+        reservations, including old copies and other transfers. Directory/inode/
+        journal metadata, page cache and HOST tensors are separate budgets.
+        No sparse-file fallback is allowed.
         """
         if type(archive_bytes) is not int or archive_bytes <= 0:
             raise ValueError('remote archive size requires explicit positive integer bytes')
@@ -823,12 +969,13 @@ class LocalSourceReferences:
             for plan in self._file_preparation_plans.values():
                 if target in plan['pending'] and plan['targets'][target] != content:
                     raise ValueError('materialization differs from pending preparation content')
-            unit = os.statvfs(target.parent).f_frsize
-            if unit <= 0:
-                raise RuntimeError('filesystem allocation unit is unavailable')
-            required = sum(((size + unit - 1) // unit) * unit for size in paths.values())
-            payload_required = required - (((archive_bytes + unit - 1)//unit)*unit if archive_bytes else 0)
-            before = self._file_inventory()['tiers'][tier]['allocated_file_bytes']
+            filesystem, unit = _file_allocation_geometry(target.parent)
+            data_required = sum(((size + unit - 1) // unit) * unit for size in paths.values())
+            required = sum(_file_allocation_ceiling(size, unit, filesystem) for size in paths.values())
+            payload_required = data_required - (((archive_bytes + unit - 1)//unit)*unit if archive_bytes else 0)
+            self._settle_file_allocations()
+            before_view = self._file_inventory()
+            before = self._charged_file_bytes(before_view, tier)
             effective_limit = limit_bytes
             if tier == 'host' and self._host_limit is not None:
                 effective_limit = min(effective_limit,
@@ -854,29 +1001,50 @@ class LocalSourceReferences:
                         os.posix_fallocate(stream.fileno(), 0, size)
                     info = os.fstat(stream.fileno())
                 allocated = 512 * info.st_blocks
-                if info.st_size != size or allocated != ((size + unit - 1) // unit) * unit:
+                data_bytes = ((size + unit - 1) // unit) * unit
+                ceiling = _file_allocation_ceiling(size, unit, filesystem)
+                if info.st_size != size or not data_bytes <= allocated <= ceiling:
                     raise RuntimeError('filesystem preallocation does not match qualified file footprint')
+                if filesystem == 'ext4' and size:
+                    import fcntl
+                    import array
+                    with path.open('rb') as check:
+                        flags = array.array('L', [0])
+                        fcntl.ioctl(check.fileno(), 0x80086601, flags, True)  # FS_IOC_GETFLAGS
+                        if not flags[0] & 0x80000 or os.listxattr(check.fileno()):
+                            raise RuntimeError('file requires plain ext4 extents without external attributes')
                 files[(info.st_dev, info.st_ino)] = (size, allocated, info.st_nlink)
+                self._file_allocations[(info.st_dev, info.st_ino)] = dict(
+                    size_bytes=size, data_bytes=data_bytes, ceiling_bytes=ceiling,
+                    filesystem=filesystem, tier=tier, transfer_id=transfer_id,
+                    writer_closed=False, settled=False)
             self._prepared_transfers[transfer_id] = dict(files=files, tier=tier,
                 expected_files={name: tuple(value) for name, value in expected.items()})
-            after = self._file_inventory()['tiers'][tier]['allocated_file_bytes']
-            if after != before + required or after > limit_bytes:
+            after_view = self._file_inventory()
+            charged_after = self._charged_file_bytes(after_view, tier)
+            after = after_view['tiers'][tier]['allocated_file_bytes']
+            if charged_after != before + required or charged_after > limit_bytes:
                 raise RuntimeError('reserved file allocation differs from owner capacity transaction')
             if replacement is not None:
                 replacement['state'] = 'incoming_allocated'
-            return dict(scope='preallocated_regular_files_v1', owner_id=self.owner_id,
+            return dict(scope='preallocated_regular_files_v1', allocation_contract='bounded_extent_allocation_v2',
+                        owner_id=self.owner_id,
                         transfer_kind='remote_archive' if archive_bytes is not None else 'local_verified_copy',
                         transfer_id=transfer_id, tier=tier, limit_bytes=limit_bytes,
                         used_file_bytes_before=before, reserved_file_bytes=required,
-                        allocated_file_bytes_after=after, pending_file_increment_bytes=0,
-                        filesystem_allocation_unit_bytes=unit, replacement=copy.deepcopy(replacement))
+                        used_bytes_before_includes_pending=True,
+                        allocated_file_bytes_after=after,
+                        pending_file_increment_bytes=after_view['tiers'][tier]['pending_file_increment_bytes'],
+                        charged_file_bytes_after=charged_after, data_preallocated_bytes=data_required,
+                        filesystem=filesystem, filesystem_allocation_unit_bytes=unit,
+                        replacement=copy.deepcopy(replacement))
 
     def file_budget_snapshot(self, limits):
         """Planning input for managed *file* sub-budgets, not total HOST RAM.
 
-        Actual preallocated staging is already in used bytes. Counting it again
-        as a future reservation would reduce the same budget twice. Backend CPU
-        tensors, metadata and cgroup memory need their separate owner accounting.
+        Preallocated staging is in used bytes; only the unconsumed allocation
+        envelope is pending. Neither is double-counted. Backend CPU tensors,
+        directory/inode/journal metadata and cgroup memory have separate budgets.
         A snapshot grants no permission to copy; execution rechecks/preallocates.
         """
         from ..clock import local_monotonic_clock_id
@@ -886,14 +1054,16 @@ class LocalSourceReferences:
             for tier, limit in limits.items():
                 if tier in self._file_limits and self._file_limits[tier] != limit:
                     raise ValueError('file owner budget cannot change between transfers')
+            self._settle_file_allocations()
             view = self.inventory()
             tiers = {}
             for tier, limit in limits.items():
                 used = view['tiers'][tier]['allocated_file_bytes']
-                if used > limit:
+                pending = view['tiers'][tier]['pending_file_increment_bytes']
+                if used + pending > limit:
                     raise RuntimeError('existing managed files exceed the declared file budget')
-                tiers[tier] = dict(limit_bytes=limit, used_bytes=used, pending_increment_bytes=0,
-                    remaining_bytes=limit-used,
+                tiers[tier] = dict(limit_bytes=limit, used_bytes=used, pending_increment_bytes=pending,
+                    remaining_bytes=limit-used-pending,
                     active_transfers=sum(path.parent == self.roots[tier] for path in self.materializations.values()))
             self._file_limits.update(limits)
             if self._host_limit is not None:
@@ -963,7 +1133,7 @@ class LocalSourceReferences:
         """Verified HOST/NVMe copy with real allocation before body I/O.
 
         Source read ownership survives the entire copy and publication. Payload
-        writing is outside the owner lock and cannot grow its preallocated files.
+        writing is outside the lock, bounded by its preclaimed allocation envelope.
         No copytree/sparse fallback, hidden eviction or early cancellation release.
         """
         from ..clock import local_monotonic_clock_id
@@ -1054,7 +1224,13 @@ class LocalSourceReferences:
                     self.materializations.get(transfer_id) != Path(target).resolve() or
                     transfer_id not in self._prepared_transfers):
                 raise ValueError('publication requires a prepared transfer on its original target')
-            self._file_inventory()  # Last check before making completed bytes visible.
+            # The fetch/copy caller has closed all body writers before this
+            # synchronous publication. Reservations follow inode identity through
+            # rename and remain until ordinary non-sync extent observations settle.
+            for key in self._prepared_transfers[transfer_id]['files']:
+                self._file_allocations[key]['writer_closed'] = True
+            self._settle_file_allocations()
+            self._file_inventory()  # Last capacity check before publication.
             expected = self._prepared_transfers[transfer_id]['expected_files']
             if verified_files is not None:
                 if not isinstance(verified_files, dict) or set(verified_files) != set(expected):
@@ -1106,14 +1282,14 @@ class LocalSourceReferences:
                     actual.update(chunk)
             if actual.hexdigest() != digest:
                 raise RuntimeError('verified payload content changed before source publication')
-        if self._source_observation(Path(staging)) != (before_signatures, before_footprint):
+        if self._source_observation(Path(staging))[0] != before_signatures:
             raise RuntimeError('verified payload changed during source confirmation')
         contents = json.dumps([dict(path=name, size_bytes=size, sha256=digest)
             for name, (size, digest) in sorted(expected.items())],
             sort_keys=True, separators=(',', ':')).encode()
         publish(staging, target)
         signatures, footprint = self._source_observation(path)
-        if (signatures, footprint) != (before_signatures, before_footprint):
+        if signatures != before_signatures:
             raise RuntimeError('published source differs from verified transfer')
         public = dict(adapter_id=path.name, path=str(path), tier=tiers[0],
                       content_sha256=hashlib.sha256(contents).hexdigest(), content_verified=True,
@@ -1222,11 +1398,16 @@ class LocalSourceReferences:
                         signatures, footprint = self._source_observation(source)
                     except (OSError, ValueError, RuntimeError):
                         continue
-                    if signatures == record['signatures'] and footprint == record['footprint']:
+                    if signatures == record['signatures']:
+                        record['footprint'] = footprint
+                        record['public'].update(footprint)
                         self._confirmed_sources[source] = record
                         self.source_epoch += 1
                 if affected:
                     self._file_changed(self.roots)
+                # Deletion/replacement is atomic with respect to future creates;
+                # an inode number alone must not bind a later unrelated file.
+                self._file_inventory(after_managed_root_deletion=True)
 
 
 class IEEEBackendGPUReferences:

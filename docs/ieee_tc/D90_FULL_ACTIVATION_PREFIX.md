@@ -1,5 +1,72 @@
 # D90：完整路径的有限联动检查
 
+## 当前修正：分开内容身份与分配预留（2026-09-28）
+
+原CPU反例已在修正后的同一owner路径复验；没有改权重、trace、远端服务或IEEE九式。
+
+| 检查 | 结果 |
+|---|---|
+| 原 `code_lora_0039` 反例，三个临时目录 | 3/3通过，均仍观察到同样的+4096 B变化 |
+| 每轮五个写入阶段 | 15/15容量检查通过；不改变原写入/fsync诊断顺序 |
+| 内容/清理 | 每轮8个文件SHA相同；临时目录全部删除；147项旧结果不变 |
+| 针对性回归 | 51项通过，1.522秒；首次命令的测试文件括号错误另行保留 |
+| 容量/共享/替换相关回归 |最终71项通过，2.976秒；完整798项通过，48.055秒 |
+| 加入draining退出修正后的最终回归 |799项通过，48.173秒；原生准备、取消、HTTP及basic smoke均包含 |
+| 最终源版本的原工件反例复验 |1/1通过、五阶段无拒绝、8文件SHA相同、临时目录删除；4.582秒 |
+| 真实GPU联动 | 尚未重跑，不宣称Full已经合格或性能改善 |
+
+新容量合同保留 `st_blocks*512` 实测值，再加尚未消耗的分配预留，两者不重复计数。
+对于本机plain ext4，令每文件的数据块数为 `n=ceil(size/block_size)`：最多4块时
+extent可放入inode；更大文件按最多5层、每层不超过n个树节点预留保守的临时上界。
+因此写入期上界为 `n*block_size + 5*n*block_size`，不是额外实际分配五倍数据，
+也不是把额外预留写成真实磁盘消耗。tmpfs没有该extent树，仍按页面分配计算。
+该上界刻意保守，可能暂时推迟准备；不会凭“此处通常只多4KiB”放过容量。
+
+预留在写入之前、与其他传输/native HOST预留相同的锁内获得；随inode跨越发布
+和传输退出，不能在rename后过早释放。只有写入者已关闭，且无SYNC的FIEMAP覆盖
+完整普通已写extent时，才退还未用部分；仍unwritten/unknown时继续计量。
+不添加生产fsync、sleep、整文件预写或失败重试。实际执行仍须满足原16GiB文件预算。
+复验的临时目录容量随这个新保守上界计算，未修改生产预算。
+
+内容身份仍由device/inode/mode/size/link/time及发布时完整SHA约束；分配块数不再
+充当内容变化证据。分配变化单独检查已持有的容量上界，并更新实际footprint。
+内容修改、缺失文件、非法扩长、超预留和未确认目录仍然拒绝。
+替换只回收已无pending分配的副本，避免把可能仍需的元数据空间当可用容量。
+
+依据：[extent-tree布局](https://docs.kernel.org/filesystems/ext4/ifork.html)、
+[FIEMAP接口及非同步标志](https://docs.kernel.org/filesystems/fiemap.html)、
+[Linux6.8的实际FIEMAP映射路径](https://github.com/torvalds/linux/blob/v6.8/fs/ext4/inode.c#L3430)。
+仅适用于已核查的本机ext4/tmpfs与64位Linux接口，不宣称所有文件系统相同。
+原始结果为 `allocation_bound_probe2.json`；原反例 `allocation_transition_probe1.json`
+不覆盖。下一步完成相关回归与备份，再处理仍未闭合的native退出路径。
+
+中间回归完整保留：第一次发现重新验证过的外部硬链接也被拒绝；恢复“共享inode
+计一次、外部链接不可当回收空间”的既有规则。第二次并发替换暴露删除后的inode
+身份记录需要在下一次create前退还；修正清理生命周期。随后针对性检查发现空
+workspace清理会错误唤醒容量等待，以及合法根目录删除后不应按仍存在目录扫描。
+分别保持原先无空间变化不唤醒的规则、区分受管删除后的清理视图。没有加重试、
+延长测试超时或更改替换收益公式；失败日志仍为原名。
+
+### GPU退出：可服务集合不是仍持有资源的集合
+
+实际源码中，`_retain_runtime_request_reservation` 将未完成归还的副本标为
+`draining`，这是正确的停止接单保护。问题在于最终退出遍历 `get_slots()`，该
+接口只返回 `running` 副本，因此漏掉仍持有引擎的draining成员。
+
+确定性CPU检查用真实InstancePool构造一个running和一个draining成员：原代码
+只调用一次清理，断言 `1 != 2` 失败。修正新增完整成员视图，只用于最终退出；
+路由、可服务数量、选卡和调度公式不变。继续调用原生shutdown、pidfd和物理归还
+检查，不因状态变为draining而补记release。该CPU检查证明遗漏路径存在；没有
+原运行的完整slot状态快照，仍不把它写成attempt6全部收尾问题的唯一已证原因。
+取消/清理遵循 [Python官方语义](https://docs.python.org/3.12/library/asyncio-task.html#task-cancellation)。
+首次组合回归有两个旧SimpleNamespace测试fixture缺少完整成员接口，补齐测试
+接口后799项全部通过；没有在生产代码加“接口缺失就退回可服务集合”的兜底。
+
+当前证据汇总为 `20260928_d90_bounded_allocation_and_cleanup.json`；最终源码
+与测试日志SHA单独保存。旧三轮反例通过属于中间开发版本，最终版本另有一轮
+复验，不合并成正式性能重复。下一步备份后恢复原3B有限Full联动，不重跑已完成
+的工件发布、完整池下载或初始化profiling。是否真正消除Full失败由新运行决定。
+
 ## 最新结果：第六次联动定位到写入期分配增长（2026-09-28）
 
 代码为已备份 `21f2258dcccd8b8e2c4790e8dc41e660ea4e8676`，配置、原100请求、

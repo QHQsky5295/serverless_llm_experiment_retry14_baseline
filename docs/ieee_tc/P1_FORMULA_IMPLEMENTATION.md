@@ -838,6 +838,15 @@ epoch 与 pre-decision registry。当前可在写 archive 前取得线上声明�
 
 ## P1-D19：下载前预分配实际文件空间，统一计入旧副本和并发传输
 
+**2026-09-28更正（D90）：**以下保留为原实现记录，其“预分配后块数固定、
+pending永远为0”的假设已被同机ext4实验证伪。当前实现将内容身份与分配状态
+分开：`actual st_blocks*512 + pending extent reservation <= budget`。
+写前按已核查文件系统结构预留上界；预留随inode跨越发布，闭合writer且非同步
+FIEMAP确认完整initialized映射后归还未用部分。已分配字节不重复预留。
+目录、inode、journal仍不计入普通文件池，但计入`st_blocks`的extent树块不能
+忽略。IEEE九式未改，变更的是原容量观测/预留实现。
+详见 [D90纠正与原反例](D90_FULL_ACTIVATION_PREFIX.md)。原结果不回填为新合同。
+
 D18 已获得可信 payload 文件大小，但收到 HTTP 长度仍不等于获得空间。
 本步在原 owner/fetcher 内接入真正的写前分配：先在同一锁内检查受管 tier
 全部已有普通文件（含旧目标、其他 transfer、未清理残留），再为压缩包及每个
