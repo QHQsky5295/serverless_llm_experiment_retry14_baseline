@@ -1,0 +1,4 @@
+attempt,N_plan,N_arrived,N_protocol_valid,native_load_confirmed,status,performance_qualified
+1,100,0,0,false,publisher_startup_import_error,false
+2,100,0,0,false,driver_startup_import_error,false
+3,100,99,0,true,native_lora_layout_failure_truncated,false

@@ -15,7 +15,7 @@
 - Resume by inspecting actual handles/Git/resources; never restart a live run
   from stale notes. D68 model/audit tasks finished; loader overlay RESTORED.
 
-## D69 in progress: shared Serverless HTTP request contract
+## D69 checkpoint: shared HTTP contract and native LoRA layout qualification
 
 - D69 starts main e5ee402d0891247bee35316b6dfcb6fad57fac7a and baseline
   23fa16fab7a223c607bcdc4ddbb9e973517f3492. Full plan/status/skills reread.
@@ -45,6 +45,43 @@
   require no imported serving modules; do not skip logs/weaken strict parsing.
   No GPU model launched in attempt1. Overlay restored exactly, auxiliary empty
   then stopped; four GPUs15MiB. Immediate failure table in REQUEST_PROTOCOL.
+  Revised38 baseline tests pass. Source backups mainf74ca25c0e093a7251d0819228770a4dea59314e
+  and baseline147f8de24889781e0ee8d3811d2d7d5fa93654c6 pushed/full remote SHA verified.
+  Attempt2 ended before model construction: publisher ready/backend modules[],
+  but shared main-root startup hook imports cv2 via vLLM and changes library
+  path. Driver rejects composition drift.12 watchdog samples, actual GPU release
+  and service removal confirmed; auxiliary empty/stopped, overlay2 restored.
+  Exclusive source view now symlinks ONLY shared faaslora package, excluding
+  legacy repository-level torch.load/shutdown hooks. No relaxing library guard.
+  Raw model_launch2.json/model_launch2.launch preserved; zero arrivals, not a
+  performance or system-memory failure. Same100 inputs/model/service settings.
+  Baselinef79dd8414c9d5c419165e96cdf4605f61e4ed16c tested38/pushed/remote verified.
+  Attempt3 ENDED: actual7B native GPU load confirmed, then EngineCore crashes
+  in LoRA embedding initialization (0 rows versus1024). Checkpoint input shape
+  32000×4096 differs from enabled default vocabulary32000+4×256. Parameter bytes
+  remain valid; no inference success. First1 connection-refused+3 HTTP500 occurred
+  before manual stop. Exact owned service stopped after fatal exit:89 disconnects
+  and6 connection refusals during cleanup; no hard kill.100 planned/99 arrived,
+  0 protocol-valid; one unarrived not timeout. Publisher preserves incomplete.
+ 238 watchdog samples; peak40,590,913,536B/min host68,924,452,864B;high/max/OOM/
+  OOM-kill/swap0. Actual GPU contexts clear, service removed, empty auxiliary
+  stopped, overlay3 restored. All GPUs15MiB; no live model/TMUX remains.
+  Private Ray log tree copied/SHA-equal. Main curated20260927_http_qualification_d69
+  JSON/CSV and baseline REQUEST_PROTOCOL immediate status table preserve3attempts.
+  Historical7B config already uses disable_lora_embeddings=true (old ordinary
+  loading is NOT native qualification). Existing native Llama source supports
+  this mode. Candidate reuses existing content-based selector, rejects any
+  embedding/saved-module delta or missing header; no new backend patch/weights/
+  pool/trace/checkpoint. Actual candidate execution is next, not yet passed.
+  Candidate39 baseline tests pass2.468s; actual500 headers/configs inspected in
+  bounded CPU service6.729s, CUDA uninitialized. Config-set SHA
+ 0597fa687254333e626255672113abcb2a2efd1594044e7d6f59f237969a09fc.
+ 147 protected entries/plan unchanged; disk334,214,193,152B available, host
+  MemAvailable111,583,469,568B. No new source data or historical result overwrite.
+  Final13 curated raw hashes independently verified; all installed loader
+  preimages restored, installer preflight passes. Baseline checkpoint
+ 865d105ccfc7b1fd94cc056e6f2e884e08c9b27c pushed; fresh origin/main full SHA matches.
+  Main checkpoint contains status plus curated JSON/CSV only; user dirt excluded.
   Remote-space and nonzero-LoRA user choices remain pending; M1/M2/A/S unstarted.
 
 ## Mainline ledger
@@ -57,7 +94,7 @@
 | P0 Table1/Full | 7B source-pair audit complete | Same inputs, different execution;202 scalars retained; no rerun needed for provenance finding |
 | P1 IEEE alignment | Frozen h/d planning/replacement, staging/admission, observed HOST return connected | P1 throughD54, P2 throughD61; representative profiles and actual Full remain open |
 | P2 backend/artifacts | vLLM0.30 installed; mechanical/numerical diagnostics; complete pool content audits | Full semantic qualification OPEN;3B500/500 and7B498/500 zero weights |
-| Serverless | D67 real3B native loading pass; D68 missing7B native format exported and every serialized parameter verified | No polling-benefit, LoRA,500-pool,actual7B native load or original/repaired pair claim |
+| Serverless | D67 real3B native loading pass; D68 exact7B checkpoint; D69 actual7B native GPU transfer confirmed, then LoRA layout failure | Content-derived historical linear-only configuration now checked for500 headers; actual inference/polling pair remains open |
 | Baseline qualification | Pending | Serverless first, then vLLM/S-LoRA/dLoRA3B/Loquetier/HydraServe |
 | M1/M2, A1–A5, S1–S13 | NOT STARTED | No formal performance or optimality claim |
 | Documents/figures | Design and qualification tables in progress | Formal performance figures pending |
@@ -70,12 +107,15 @@ parts and all291 source parameter tensors verified exactly;32 recomputed RoPE
 buffers separately accounted. Do NOT re-export it or repeat the passed byte,
 Ray-only, allocator or four-request3B witnesses/old prefixes.
 Move toward the approved two-model original/repaired1,000-request development
-pairs. Establish shared canonical prompt/native token/LoRA instrumentation and
-HTTP open-loop replay using the existing FrozenReplayPlan/contained stack.
+pairs. D69 shared canonical prompt/native token/LoRA observation and external
+HTTP replay are connected. Next run the existing100-request qualification with
+the verified historical linear-only adapter layout, preserving native loading
+and the60s schedule; keep prior errors and any new startup failures. No blind
+same-config retry, re-export, arbitrary padding or ordinary-loading fallback.
 The dirty legacy replay client currently restricts fixed_length_greedy_v1 to
 S-LoRA; do not overwrite that user file or silently apply its legacy path to
-Serverless. Actual7B native loading belongs in this next request qualification,
-not another export/audit sub-loop. Preserve identical loading/scaling/queue
+Serverless. Actual7B native transfer was observed in D69 but inference was not.
+Preserve identical loading/scaling/queue
 configuration and inputs between the two router variants.
 The real-remote and independent LoRA-correctness gates remain separate.
 Do not silently replace native loading by ordinary HF/direct loading, relabel
