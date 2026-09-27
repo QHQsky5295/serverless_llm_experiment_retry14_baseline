@@ -2,6 +2,37 @@
 
 ## Current checkpoint — 2026-09-27 D88 development controls; admission source next
 
+LATEST22:38:3B attempt4 COMPLETE368/368,360representative+8warmup,allpending
+closed.24content/40service/96preparation classes,3samples/preparationclass.
+368HTTP UUID pairs exact;wire854130750B/logical14353166144B;72measuredRemote+
+296setup,packing0.639samplespeak5652393984B,high/max/OOM/swap0. Service/watcher
+0/0;GPU/service/workspacesclear;physicalleased4d6cdfe755641839fc3350b832a60d3
+released;matchingemptyaux30a7bb9e stopped. No localmodel/tmux remains.
+ThreeTNR3.45-inchPDF/PNG d88_3b_admission_attempt4 visuallychecked;tables/curated
+20260927_d88_3b_admission_source.json complete.147protectedunchanged.
+LoadingdmeansRemote986.48/NVMe41.26/fileHOST40.31/nativeHOST15.21ms;nativeHOST
+serviceD390.62ms exceedsNVMe216.77ms:retain,not assumedtierordering.
+3/24outputgroupsvarySHA,sameprompt/target;no numericaldiscrimination claim.
+PriorfilefailureNOTreproduced/NOTcausallyfixed;exactguardunchanged.
+NEXTbackup3Bevidence thenprepared7Badmission_source_attempt1,unchangedsettings.
+RemoteD88a4services/monitor STILL ACTIVE withidentities immediatelybelow; keep
+sameconfiguration for7B,stopmatchingmonitor afterbothmodels. Do not repeat3B,
+publicationorfullpoolchecks. Full/M1/M2/A/S NOTqualified/started;baselinesPAUSED.
+
+LIVE22:24:D88 3B attempt4 STARTED tmux tc-d88-3b-attempt4, source
+c180bacd59415d45f7fcd1554829da2270ca813b PUSHED/freshremoteSHA matched.
+Same368cases/config; only failure diagnostics added,not a causal fix.
+Rawd88/run_3b_admission_source_attempt4.sh and3b_admission_source_attempt4
+result/launch/console names. Newauxd8800000000000000000000000000005.
+Remote3Bc0114fbbf035400e868f9100b35d8b02 PID504777,
+7B2a22e5b33a434c4cb9bcbd5619890fa3 PID504779,
+monitord99dad5a1b1b4fa690ccfba9c63bb24d PID504782,
+unitprimelora-artifact-monitor-d88a4.service/logremote_monitor_attempt4.log.
+Both directhealthpassed;link1000;no configchange. No remote management/hash/
+cleanup or source modification during inference. Monitor to terminal,then
+cleanup/validate/table or plots; do not launch7B before that. Full remains
+unqualified; baselinesPAUSED. Originalfailure and negativeCPUprobes retained.
+
 LATEST22:23:two bounded CPU diagnostic sets completed,3copy+3original-archive
 cases. All content and allocation checks pass;NO reproduction,NO causal fix.
 Originalarchive read once overSSH, no HTTP/service/config/newpool operation.

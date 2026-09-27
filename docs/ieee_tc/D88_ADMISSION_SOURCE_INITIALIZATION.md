@@ -203,8 +203,46 @@ being presented as a fixed allocation bug. Curated diagnostic JSON binds raw
 checks, original failures and script version; the first copy probe preceded the
 archive-mode script extension, explicitly recorded rather than mislabelled.
 
-Observe the affected native path with exact failure evidence;
-then cleanup/validate/plot before7B. The frozen contract is unchanged. Full profile
+## Fourth attempt: completed admission-enabled 3B source calibration
+
+Source `c180bacd59415d45f7fcd1554829da2270ca813b`; same frozen368-case
+specification and controls. All368requests pass (360representative,8warmup),
+all368pending intents close, actual token counts match, native timing checks
+pass.24content classes,40service classes and96preparation classes are observed;
+each preparation class has3within-run observations, not3independent runs.
+
+| Source | Actual loading d mean (ms) | Admission-to-acquisition D mean (ms) | Acquired-to-first T mean (ms) |
+|---|---:|---:|---:|
+| Remote |986.48 |1578.81 |263.94 |
+| NVMe |41.26 |216.77 |240.75 |
+| HOST file |40.31 |208.75 |241.92 |
+| HOST tensor |15.21 |390.62 |317.34 |
+| Protected GPU |not a load |0.00 |227.57 |
+
+These are descriptive initialization observations, not a Full/baseline effect
+estimate. NVMe may hit page cache. Shorter native-HOST loading does not imply
+the shortest service interval: admission/RPC waiting and acquired-to-first
+time remain visible. Do not subtract these waits or substitute assumed tier
+ordering. Three of24same-input groups have output-hash variation; all retained.
+Native counts/identity are verified, but numerical adapter discrimination remains
+unqualified because of the previously documented weight-pool limitation.
+
+All368HTTP UUID pairs match server bytes/archive identities:854,130,750wire
+bytes,14,353,166,144logical bytes;72measured Remote fetches and296controlled
+setup fetches. No request packaging.639resource samples,peak5,652,393,984B,
+minimum host available110,699,298,816B,high/max/OOM/swap all0. Service/watcher
+exit0/0; actual GPU contexts/service/workspaces cleared, physical lease
+`d4d6cdfe755641839fc3350b832a60d3` released. Matching empty auxiliary stopped.
+
+Three3.45-inch PDF/PNG figures, CSVs and provenance manifest are in
+`figs/ieee_tc/p2_backend/d88_3b_admission_attempt4`; all rendered views inspected,
+no text overlap, Times New Roman regular/bold embedded.147protected entries
+unchanged. The prior invariant failure was NOT reproduced or causally fixed;
+the diagnostic change did not relax the guard. This run qualifies the actual
+pending transport for these3Bcases, not Full activation/autoscaling.
+
+Next execute the prepared7B admission-enabled source specification, then
+cleanup/validate/plot. The frozen contract is unchanged. Full profile
 export, integrated activation/lifecycle and complete development replay remain
 pending; baselines stay paused. The all-zero adapter discrimination limitation
 also remains explicit. No claim of Full qualification or G1/G2 superiority.
